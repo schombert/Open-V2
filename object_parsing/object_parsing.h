@@ -1,0 +1,302 @@
+#pragma once
+#include <functional>
+#include <vector>
+#include <memory>
+
+#include "Parsers\\parsers.h"
+#include "text_classifier\\text_classifiers.h"
+
+template<typename result_type>
+class object_parser {
+private:
+	using boolean_classifying_function = std::function<bool(const char*, const char*)>;
+	using handling_function = std::function<void(result_type&, const token_group&, const token_group*, const token_group*)>;
+
+	binary_search_classifier tag_classifier;
+	handling_function default_handler = [](result_type&, const token_group&, const token_group*, const token_group*) {};
+	std::vector<std::pair<const char*, handling_function>> tag_handlers;
+public:
+	result_type operator()(const token_group* start, const token_group* end) const;
+	void add_case_handler(const char* tag, const handling_function &handle);
+	void reset_default_handler(const handling_function& f);
+	void add_special_case_handler(const boolean_classifying_function &test, const handling_function &handle);
+};
+
+std::string associated_string(const token_group& left, const token_group* child_start, const token_group* child_end);
+
+template<typename T>
+T value_from_rh(association_type, const token_and_type& t) {
+	return token_to<T>(t);
+};
+
+template<typename T>
+T value_from_full_rh(const token_and_type&, association_type, const token_and_type& t) {
+	return token_to<T>(t);
+};
+
+template<typename T>
+std::pair<association_type, T> association_and_value_from_rh(association_type a, const token_and_type& t) {
+	return std::make_pair(a, token_to<T>(t));
+};
+
+template<typename T>
+std::pair<association_type, T> association_and_value_from_full_rh(const token_and_type&, association_type a, const token_and_type& t) {
+	return std::make_pair(a, token_to<T>(t));
+};
+
+template<typename T>
+T value_from_lh(const token_and_type& t, association_type, const token_and_type&) {
+	return token_to<T>(t);
+};
+
+template<typename T, typename U>
+std::pair<T,U> pair_from_lh_rh(const token_and_type& t, association_type, const token_and_type& u) {
+	return std::make_pair(token_to<T>(t), token_to<U>(u));
+};
+
+template<typename T, typename R>
+void move_to_member(T&& member, R&& result) {
+	member = std::move(result);
+}
+template<typename V, typename A, typename T, typename = std::enable_if_t<std::is_constructible_v<V, T>>>
+void move_to_member(std::vector<V, A>& member, T&& result) {
+	member.emplace_back(std::forward<T>(result));
+}
+
+#define BEGIN_DERIVED_DOMAIN(name, base)    using name = typename base
+#define BEGIN_DOMAIN(name)    using name = typename type_list<>
+#define BEGIN_TYPE(type_name)     ::template cons< typepair< type_name, typename type_list<type_list<>, type_list<>, type_list<>, type_list<>, type_list<>>
+#define MEMBER_ASSOCIATION(member_name, tag, generating_function) ::template append_to_member<0ui64, typepair<CT_STRING( tag ), function_and_tuple< CT_STRING( member_name ), decltype(generating_function), generating_function >>>
+#define MEMBER_ASSOCIATION_1(member_name, tag, generating_function, parameter) ::template append_to_member<0ui64, typepair<CT_STRING( tag ), function_and_tuple< CT_STRING( member_name ), decltype(generating_function), generating_function, generic_constant< decltype(parameter), parameter> > > >
+#define MEMBER_TYPE_ASSOCIATION(member_name, tag, to_type)   ::template append_to_member<1ui64, typepair<CT_STRING( tag ), function_and_object_tuple<to_type, CT_STRING(member_name)>>>
+#define MEMBER_TYPE_ASSOCIATION_EX0(member_name, tag, to_type, function)   ::template append_to_member<1ui64, typepair<CT_STRING( tag ), function_and_object_tuple_with_extra<to_type, CT_STRING(member_name), decltype(function), function>>>
+#define MEMBER_TYPE_ASSOCIATION_EX1(member_name, tag, to_type, function, parameter)   ::template append_to_member<1ui64, typepair<CT_STRING( tag ), function_and_object_tuple_with_extra<to_type, CT_STRING(member_name), decltype(function), function, generic_constant< decltype(parameter), parameter>>>>
+#define MEMBER_VARIABLE_ASSOCIATION(member_name, classifying_function, generating_function)   ::template append_to_member<2ui64, typepair<generic_function<decltype(classifying_function), classifying_function>, function_and_tuple_ext<CT_STRING(member_name), decltype(generating_function), generating_function>>>
+#define MEMBER_VARIABLE_ASSOCIATION_1(member_name, classifying_function, generating_function, parameter)   ::template append_to_member<2ui64, typepair<generic_function<decltype(classifying_function), classifying_function>, function_and_tuple_ext<CT_STRING(member_name), decltype(generating_function), generating_function, generic_constant< decltype(parameter), parameter>>>>
+#define MEMBER_VARIABLE_TYPE_ASSOCIATION(member_name, classifying_function, to_type, generating_function) ::template append_to_member<3ui64, typepair<generic_function<decltype(classifying_function), classifying_function>, function_and_object_tuple_ext<to_type, CT_STRING(member_name), decltype(generating_function), generating_function> >>
+#define INHERIT_FROM(type)  ::template append_to_member<4ui64, type >
+#define END_TYPE                   > >
+#define END_DOMAIN            ;
+
+template<typename IDENT, typename CLASS>
+struct _get_member;
+
+template<typename CLASS>
+struct _get_member<CT_STRING("this"), CLASS> {
+	static CLASS& get(CLASS& in) { return in; }
+};
+
+#define MEMBER_DEF(class_name, member, identifier) \
+template<> \
+struct _get_member<CT_STRING(identifier), class_name>{ \
+    template<typename T = decltype(std::declval<class_name>(). member), typename = std::enable_if_t<!std::is_same_v<T, decltype((std::declval<class_name>(). member))>>>\
+    static decltype(std::declval<class_name>().member)& get(class_name& class_passed) { \
+        return class_passed. member;\
+    } \
+    template<typename T = decltype(std::declval<class_name>(). member), typename = std::enable_if_t<std::is_same_v<T, decltype((std::declval<class_name>(). member))>>>\
+    static decltype(std::declval<class_name>().member) get(class_name& class_passed) { \
+        return class_passed. member;\
+    } \
+};
+
+
+template<size_t nth, typename context>
+struct _get_nth_list {
+	template<typename T>
+	struct get_from_context {
+		using type = type_list_get_t< nth, type_map_get_t<context, T>>;
+	};
+};
+
+template<typename tag_to_function, typename function_to_function, typename T, typename U>
+bool try_and_fallback(const token_and_type& lhtoken, const T& f1, const U& f2) {
+	if (!(map_call_functions<tag_to_function>::template bt_scan_ci<bool>(lhtoken.start, lhtoken.end, f1))) {
+		return map_call_functions<function_to_function>::template scan_by_predicate<bool>(f2, lhtoken.start, lhtoken.end);
+	}
+	return true;
+}
+
+template<typename result_type, typename context>
+result_type parse_object(const token_group* start, const token_group* end) {
+	using this_in_context = type_map_get_t<context, result_type>;
+	using inheritance_list = type_list_get_t<4ui64, this_in_context>;
+
+
+
+	using tag_to_function =
+		sorted_t<
+		merge_lists<
+		type_list_get_t<0ui64, this_in_context>,
+		flatten_list<
+		apply_to_all<_get_nth_list<0ui64, context>::template get_from_context, inheritance_list>
+		>
+		>
+		>;
+	using tag_to_generator =
+		sorted_t<
+		merge_lists<
+		type_list_get_t<1ui64, this_in_context>,
+		flatten_list<
+		apply_to_all<_get_nth_list<1ui64, context>::template get_from_context, inheritance_list>
+		>
+		>
+		>;
+	using function_to_function =
+		sorted_t<
+		merge_lists<
+		type_list_get_t<2ui64, this_in_context>,
+		flatten_list<
+		apply_to_all<_get_nth_list<2ui64, context>::template get_from_context, inheritance_list>
+		>
+		>
+		>;
+	using function_to_generator =
+		sorted_t<
+		merge_lists<
+		type_list_get_t<3ui64, this_in_context>,
+		flatten_list<
+		apply_to_all<_get_nth_list<3ui64, context>::template get_from_context, inheritance_list>
+		>
+		>
+		>;
+
+	result_type result;
+
+	forall_tokens(start, end, [&result](const token_group &n, const token_group *child_start, const token_group *child_end) {
+		if (n.association != association_type::list) {
+			if (n.group_size == 0) {
+				if (!try_and_fallback<tag_to_function, function_to_function>(n.token, [&result](auto t) {
+					using type_passed = typename decltype(t)::type;
+					typename type_passed::function_object()(
+						result,
+						association_type::none,
+						token_and_type{ nullptr, nullptr, token_type::unknown }
+					);
+					return true;
+				}, [&result, &n](auto t) {
+					using type_passed = typename decltype(t)::type;
+
+					typename type_passed::function_object()(
+						result,
+						n.token,
+						association_type::none,
+						token_and_type{ nullptr, nullptr, token_type::unknown }
+					);
+					return true;
+				})) {
+#ifdef _DEBUG
+					OutputDebugStringA("Error: failed to find association for free token ");
+					OutputDebugStringA(std::string(n.token.start, n.token.end).c_str());
+#endif
+				}
+			} else {
+				if (!try_and_fallback<tag_to_function, function_to_function>(n.token, [&result, asc = n.association, right = child_start](auto t) {
+					using type_passed = typename decltype(t)::type;
+					typename type_passed::function_object()(
+						result,
+						asc,
+						right->token
+						);
+					return true;
+				}, [&result, &n, right = child_start](auto t) {
+					using type_passed = typename decltype(t)::type;
+					typename type_passed::function_object()(
+						result,
+						n.token,
+						n.association,
+						right->token
+						);
+					return true;
+				})) {
+#ifdef _DEBUG
+					OutputDebugStringA("Error: failed to find token-identifier pair association for token ");
+					OutputDebugStringA(std::string(n.token.start, n.token.end).c_str());
+					OutputDebugStringA(" = ");
+					OutputDebugStringA(std::string(child_start->token.start, child_start->token.end).c_str());
+					OutputDebugStringA("\n");
+#endif
+				}
+			}
+		} else {
+			if (!try_and_fallback<tag_to_generator, function_to_generator>(n.token, [&result, &n, child_start, child_end](const auto t) {
+				using type_passed = typename decltype(t)::type;
+				typename type_passed::function_object()(
+					result, n.token, n.association,
+					parse_object<typename type_passed::type, context>(child_start, child_end)
+					);
+				return true;
+			}, [&result, &n, child_start, child_end](const auto t) {
+				using type_passed = typename decltype(t)::type;
+				typename type_passed::function_object()(
+					result, n.token, n.association,
+					parse_object<typename type_passed::type, context>(child_start, child_end)
+					);
+				return true;
+			})) {
+#ifdef _DEBUG
+				OutputDebugStringA("Error: failed to find token list association for token ");
+				OutputDebugStringA(std::string(n.token.start, n.token.end).c_str());
+				OutputDebugStringA("\n");
+#endif
+			}
+		}
+	});
+	return result;
+}
+
+template<typename member_ident, typename function_type, function_type finstance, typename ... ARGS>
+struct function_and_tuple {
+	struct function_object {
+		template<typename in_class>
+		void operator()(in_class& cls, association_type b, const token_and_type& c) {
+			move_to_member(_get_member<member_ident, in_class>::get(cls), finstance(b, c, ARGS::value ...));
+		};
+	};
+};
+
+template<typename dest_type, typename member_ident, typename function_type, function_type finstance, typename ... ARGS>
+struct function_and_object_tuple_ext {
+	using type = dest_type;
+	using tag = member_ident;
+	struct function_object {
+		template<typename in_class, typename from>
+		void operator()(in_class& cls, const token_and_type& a, association_type b, from&& c) {
+			move_to_member(_get_member<member_ident, in_class>::get(cls), finstance(a, b, c, ARGS::value ...));
+		};
+	};
+};
+
+template<typename dest_type, typename member_ident>
+struct function_and_object_tuple {
+	using type = dest_type;
+	using tag = member_ident;
+	struct function_object {
+		template<typename in_class, typename from>
+		void operator()(in_class& cls, const token_and_type&, association_type, from&& c) {
+			move_to_member(_get_member<member_ident, in_class>::get(cls), c);
+		};
+	};
+};
+
+template<typename dest_type, typename member_ident, typename function_type, function_type finstance, typename ... ARGS>
+struct function_and_object_tuple_with_extra {
+	using type = dest_type;
+	using tag = member_ident;
+	struct function_object {
+		template<typename in_class, typename from>
+		void operator()(in_class& cls, const token_and_type&, association_type t, from&& c) {
+			finstance(c, t, ARGS::value ...);
+			move_to_member(_get_member<member_ident, in_class>::get(cls), c);
+		};
+	};
+};
+
+template<typename member_ident, typename function_type, function_type finstance, typename ... ARGS>
+struct function_and_tuple_ext {
+	struct function_object {
+		template<typename in_class>
+		void operator()(in_class& cls, const token_and_type& a, association_type b, const token_and_type& c) {
+			move_to_member(_get_member<member_ident, in_class>::get(cls), finstance(a, b, c, ARGS::value ...));
+		};
+	};
+};
