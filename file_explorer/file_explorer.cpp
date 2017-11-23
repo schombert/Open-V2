@@ -5,6 +5,7 @@
 #include <set>
 #include "object_parsing\\object_parsing.hpp"
 #include "fake_fs\\fake_fs.h"
+#include "graphics\\\v2_window.hpp"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -529,8 +530,21 @@ struct unknown_type {
 	}
 };
 
+struct empty_window_handler {
+	template<typename T>
+	void operator()(T&&) const {
+		// do nothing;
+	}
+};
 
 int __cdecl main() {
+	{
+		window<empty_window_handler> test_window;
+
+		std::cout << "test window created" << std::endl;
+		getchar();
+	}
+
 
 	{
 		file_system fs;
