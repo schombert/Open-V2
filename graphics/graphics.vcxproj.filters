@@ -21,9 +21,27 @@
     <ClInclude Include="v2_window.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="open_gl_setup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="eglew.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="glew.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="glxew.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wglew.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="v2_window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="open_gl_setup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

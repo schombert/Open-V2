@@ -97,8 +97,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;libglew32d.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -147,12 +146,21 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <AdditionalDependencies>opengl32.lib;libglew32.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="eglew.h" />
+    <ClInclude Include="glew.h" />
+    <ClInclude Include="glxew.h" />
+    <ClInclude Include="open_gl_setup.h" />
     <ClInclude Include="v2_window.h" />
     <ClInclude Include="v2_window.hpp" />
+    <ClInclude Include="wglew.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="open_gl_setup.cpp" />
     <ClCompile Include="v2_window.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

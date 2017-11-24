@@ -2,15 +2,17 @@
 #include <Windows.h>
 #include <Windowsx.h>
 
-window_base::window_base() {}
+window_base::window_base(void(*rd)(window_base*)) : render_dispatch(rd) {}
 
 window_base::~window_base() {
+	if (message_thread.joinable())
+		message_thread.join();
+}
+
+void window_base::close_window() {
 	const HWND hwnd = (HWND)handle;
 	SendMessage(hwnd, WM_CLOSE, 0, 0);
 }
-
-#ifdef VK_TAB
-#endif
 
 modifiers get_current_modifiers() {
 	return (modifiers) ( ((GetKeyState(VK_CONTROL) & 0x8000) ? modifiers_ctrl : modifiers_none) |
@@ -18,31 +20,49 @@ modifiers get_current_modifiers() {
 		((GetKeyState(VK_SHIFT) & 0x8000) ? modifiers_shift : modifiers_none) );
 }
 
+void* get_handler(void* _hwnd) {
+	return (void*)GetWindowLongPtr((HWND)_hwnd, GWLP_USERDATA);
+}
+
 message_variant yield_message(void* _hwnd, unsigned int uMsg, unsigned int* _wParam, long* _lParam) {
 	const HWND hwnd = (HWND)_hwnd;
 	const WPARAM wParam = (WPARAM)_wParam;
 	const LPARAM lParam = (LPARAM)_lParam;
 
+	window_base* winbase = (window_base*)GetWindowLongPtr((HWND)_hwnd, GWLP_USERDATA);
+
 	switch (uMsg) {
 		case WM_CLOSE:
+			winbase->gl_wrapper.destory(_hwnd);
 			DestroyWindow(hwnd);
-			break;
+			SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)nullptr);
+			return int64_t(0);
 		case WM_DESTROY:
 			PostQuitMessage(0);
-			break;
+			return int64_t(0);
 		case WM_CREATE:
 		{
 			CREATESTRUCT* cptr = (CREATESTRUCT*)lParam;
 			window_base* base = (window_base*)(cptr->lpCreateParams);
 			base->handle = (void*)(hwnd);
+
+			base->gl_wrapper.setup(_hwnd, base);
+
+			SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)base);
 			return int64_t(0);
 		}
 		case WM_SETFOCUS:
-			SetWindowPos(hwnd, HWND_TOPMOST, 0,0,0,0, SWP_NOREDRAW | SWP_NOMOVE | SWP_NOSIZE);
+		{
+			HDC screenDC = GetDC(NULL);
+			SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOREDRAW | SWP_NOSIZE | SWP_NOMOVE);
+			ReleaseDC(NULL, screenDC);
+		}
 			return int64_t(0);
 		case WM_KILLFOCUS:
 			SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOREDRAW | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 			return int64_t(0);
+		case WM_ERASEBKGND:
+			return int64_t(1);
 		case WM_LBUTTONDOWN:
 			SetCapture(hwnd);
 			return lbutton_down{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), get_current_modifiers() };
@@ -59,6 +79,8 @@ message_variant yield_message(void* _hwnd, unsigned int uMsg, unsigned int* _wPa
 		case WM_RBUTTONUP:
 			return rbutton_up{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), get_current_modifiers() };
 		case WM_SIZE:
+			if(winbase)
+				winbase->gl_wrapper.set_viewport(uint32_t(LOWORD(lParam)), uint32_t(HIWORD(lParam)));
 			return resize{ uint32_t(LOWORD(lParam)), uint32_t(HIWORD(lParam)) };
 		case WM_MOUSEWHEEL:
 			return scroll{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), (float)(GET_WHEEL_DELTA_WPARAM(wParam)) / 120.0, get_current_modifiers() };
@@ -76,7 +98,7 @@ message_variant yield_message(void* _hwnd, unsigned int uMsg, unsigned int* _wPa
 	return int64_t(DefWindowProc(hwnd, uMsg, wParam, lParam));
 }
 
-inline void windowing_thread(long* (__stdcall *win_proc)(void*, unsigned int, unsigned int*, long*), uint32_t xsize, uint32_t ysize, window_base & container, bool & construction_completed, std::mutex & condition_mutex, std::condition_variable & wakeup) {
+void windowing_thread(long* (__stdcall *win_proc)(void*, unsigned int, unsigned int*, long*), uint32_t xsize, uint32_t ysize, window_base & container) {
 
 	HINSTANCE shCoreDll = LoadLibrary(L"Shcore.dll");
 	bool SetProcessDpiAwareness_ok = false;
@@ -103,18 +125,20 @@ inline void windowing_thread(long* (__stdcall *win_proc)(void*, unsigned int, un
 		SetProcessDPIAware();
 	}
 
-	WNDCLASSW windowClass;
-	windowClass.style = 0;
+	WNDCLASSEX windowClass;
+	windowClass.cbSize = sizeof(WNDCLASSEX);
+	windowClass.style = CS_OWNDC;
 	windowClass.lpfnWndProc = (WNDPROC)win_proc;
 	windowClass.cbClsExtra = 0;
-	windowClass.cbWndExtra = 0;
+	windowClass.cbWndExtra = sizeof(void*);
 	windowClass.hInstance = GetModuleHandleW(NULL);
 	windowClass.hIcon = NULL;
 	windowClass.hCursor = 0;
 	windowClass.hbrBackground = 0;
 	windowClass.lpszMenuName = NULL;
+	windowClass.hIconSm = NULL;
 	windowClass.lpszClassName = L"Open V2 Window";
-	RegisterClassW(&windowClass);
+	RegisterClassEx(&windowClass);
 
 
 	HDC screenDC = GetDC(NULL);
@@ -125,8 +149,8 @@ inline void windowing_thread(long* (__stdcall *win_proc)(void*, unsigned int, un
 	ReleaseDC(NULL, screenDC);
 
 	DWORD win32Style = xsize != 0 ?
-		WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_SYSMENU :
-		WS_VISIBLE | WS_POPUP | WS_BORDER;
+		WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_SYSMENU | WS_CLIPCHILDREN | WS_CLIPSIBLINGS :
+		WS_VISIBLE | WS_BORDER | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 
 	if (xsize != 0) {
 		RECT rectangle = { 0, 0, width, height };
@@ -143,44 +167,20 @@ inline void windowing_thread(long* (__stdcall *win_proc)(void*, unsigned int, un
 		left, top, width, height,
 		NULL, NULL, GetModuleHandle(NULL), &container
 	);
-	//CreateWindowW(L"Open V2 Window", L"Open V2", win32Style, left, top, width, height, NULL, NULL, GetModuleHandle(NULL), &container);
-
-	{
-		std::unique_lock<std::mutex> lock_to_condition(condition_mutex);
-		construction_completed = true;
-	}
-	wakeup.notify_all();
 
 	ShowWindow(handle, SW_SHOW);
 	UpdateWindow(handle);
 
-	// Start the message loop. 
-
-	BOOL mreturn;
 	MSG msg;
-
-	while ((mreturn = GetMessage(&msg, handle, 0, 0)) != 0) {
-		if (mreturn == -1) {
-			// handle the error and possibly exit
-		} else {
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
+	while (GetMessage(&msg, nullptr, 0, 0)) {
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
 	}
 }
 
 
-void generic_setup(long* (__stdcall *win_proc)(void*, unsigned int, unsigned int*, long*), uint32_t xsize, uint32_t ysize, window_base& container) {
-	bool construction_completed = false;
-	std::mutex condition_mutex;
-	std::condition_variable wakeup;
-
-	std::thread win_creation([win_proc, xsize, ysize, &container, &construction_completed, &condition_mutex, &wakeup]() {
-		windowing_thread(win_proc, xsize, ysize, container, construction_completed, condition_mutex, wakeup);
+void window_base::generic_setup(long* (__stdcall *win_proc)(void*, unsigned int, unsigned int*, long*), uint32_t xsize, uint32_t ysize) {
+	message_thread = std::thread([win_proc, xsize, ysize, _this = this]() {
+		windowing_thread(win_proc, xsize, ysize, *_this);
 	});
-
-	std::unique_lock<std::mutex> lock_to_condition(condition_mutex);
-	wakeup.wait(lock_to_condition, [&construction_completed]() { return construction_completed; });
-
-	win_creation.detach();
 }

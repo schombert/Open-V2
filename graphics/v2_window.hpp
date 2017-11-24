@@ -4,30 +4,39 @@
 #include <condition_variable>
 #include <variant>
 
+void* get_handler(void* _hwnd);
+
 template<typename HANDLER>
 long* __stdcall templated_win_proc(void* hwnd, unsigned int uMsg, unsigned int* wParam, long* lParam) {
 	const auto message_result = yield_message(hwnd, uMsg, wParam, lParam);
 	if (std::holds_alternative<int64_t>(message_result)) {
 		return (long*)(std::get<int64_t>(message_result));
 	} else {
-		std::visit(HANDLER(), message_result);
+		window<HANDLER>* obj = (window<HANDLER>*)get_handler(hwnd);
+		if(obj)
+			std::visit(obj->h, message_result);
 		return 0;
 	}
 }
 
-void generic_setup(long* (__stdcall *win_proc)(void*, unsigned int, unsigned int*, long*), uint32_t xsize, uint32_t ysize, window_base& container);
-
 template<typename HANDLER>
-window<HANDLER>::window() {
-	generic_setup(templated_win_proc<HANDLER>, 0, 0, *this);
+void templated_render_dispatch(window_base* base) {
+	static_cast<window<HANDLER>*>(base)->h.render(base->gl_wrapper);
 }
 
 template<typename HANDLER>
-window<HANDLER>::window(uint32_t x, uint32_t y) {
-	generic_setup(templated_win_proc<HANDLER>, x, y, *this);
+template<typename ...T, typename>
+window<HANDLER>::window(T&& ...args) : window_base(templated_render_dispatch<HANDLER>), h(std::forward<T>(args)...) {
+	generic_setup(templated_win_proc<HANDLER>, 0, 0);
+}
+
+template<typename HANDLER>
+template<typename ...T>
+window<HANDLER>::window(uint32_t x, uint32_t y, T&& ...args) : window_base(templated_render_dispatch<HANDLER>), h(std::forward<T>(args)...) {
+	generic_setup(templated_win_proc<HANDLER>, x, y);
 }
 
 template<typename HANDLER>
 window<HANDLER>::~window() {
-
+	
 }

@@ -535,14 +535,20 @@ struct empty_window_handler {
 	void operator()(T&&) const {
 		// do nothing;
 	}
+	void render(open_gl_wrapper& ogl) {
+		ogl.render_textured_rect(true, 100.0f, 50.0f, 10.0f, 50.0f);
+	}
 };
 
 int __cdecl main() {
 	{
-		window<empty_window_handler> test_window;
+		window<empty_window_handler> test_window(400, 400);
+
 
 		std::cout << "test window created" << std::endl;
 		getchar();
+
+		//test_window.close_window();
 	}
 
 

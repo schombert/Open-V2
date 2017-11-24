@@ -2,6 +2,9 @@
 #include <cstdint>
 #include <memory>
 #include <variant>
+#include <thread>
+
+#include "open_gl_setup.h"
 
 enum modifiers {
 	modifiers_none = 0x0,
@@ -232,22 +235,40 @@ using message_variant = std::variant<int64_t, rbutton_down, rbutton_up, lbutton_
 
 message_variant yield_message(void* _hwnd, unsigned int uMsg, unsigned int* _wParam, long* _lParam);
 
+class window_base;
+
+template<typename HANDLER>
+void templated_render_dispatch(window_base* base);
+
+
 class window_base {
 protected:
 	void* handle = nullptr;
+	open_gl_wrapper gl_wrapper;
+	std::thread message_thread;
 public:
-	window_base();
+	window_base(void(*rd)(window_base*));
 	~window_base();
 
-	std::pair<uint32_t, uint32_t> size();
+	void(*const render_dispatch)(window_base*);
+
+	void generic_setup(long* (__stdcall *win_proc)(void*, unsigned int, unsigned int*, long*), uint32_t xsize, uint32_t ysize);
+	void close_window();
 
 	friend message_variant yield_message(void* _hwnd, unsigned int uMsg, unsigned int* _wParam, long* _lParam);
+	template<typename T>
+	friend void templated_render_dispatch(window_base* base);
 };
+
 
 template<typename HANDLER>
 class window : public window_base {
 public:
-	window();
-	window(uint32_t x, uint32_t y);
+	HANDLER h;
+
+	template<typename ...T, typename = std::enable_if_t<std::is_constructible_v<HANDLER, T...>>>
+	window(T&& ... args);
+	template<typename ...T>
+	window(uint32_t x, uint32_t y, T&& ... args);
 	~window();
 };
