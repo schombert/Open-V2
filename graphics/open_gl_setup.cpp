@@ -88,6 +88,24 @@ void debug_callback(
 #endif
 
 
+namespace parameters {
+	constexpr GLuint screen_width = 0;
+	constexpr GLuint screen_height = 1;
+	constexpr GLuint rect_top = 2;
+	constexpr GLuint rect_left = 3;
+	constexpr GLuint rect_width = 4;
+	constexpr GLuint rect_height = 5;
+	constexpr GLuint border_size = 6;
+	constexpr GLuint inner_color = 7;
+	constexpr GLuint border_color = 10;
+
+	constexpr GLuint enabled = 4;
+	constexpr GLuint disabled = 3;
+	constexpr GLuint border_filter = 0;
+	constexpr GLuint filter = 1;
+	constexpr GLuint no_filter = 2;
+}
+
 char tquad_vertex_shader[] =
 "#version 430 core\n"
 "layout (location = 0) in vec2 vertex_position;\n"
@@ -95,12 +113,12 @@ char tquad_vertex_shader[] =
 "\n"
 "out vec2 tex_coord;\n"
 "\n"
-"uniform float screen_width;\n"
-"uniform float screen_height;\n"
-"uniform float rect_top;\n"
-"uniform float rect_left;\n"
-"uniform float rect_width;\n"
-"uniform float rect_height;\n"
+"layout(location = 0) uniform float screen_width;\n"
+"layout(location = 1) uniform float screen_height;\n"
+"layout(location = 2) uniform float rect_top;\n"
+"layout(location = 3) uniform float rect_left;\n"
+"layout(location = 4) uniform float rect_width;\n"
+"layout(location = 5) uniform float rect_height;\n"
 ""
 "void main() {\n"
 "	gl_Position = vec4(-1.0 + (2.0 * ((vertex_position.x * rect_width)  + rect_left) / screen_width), "
@@ -114,23 +132,20 @@ char tquad_fragment_shader[] =
 "#version 430 core\n"
 "\n"
 "subroutine vec4 color_function_class(vec4 color_in);\n"
-"subroutine uniform color_function_class coloring_function;\n"
+"layout(location = 0) subroutine uniform color_function_class coloring_function;\n"
+"\n"
+"subroutine vec4 font_function_class(vec4 color_in);\n"
+"layout(location = 1) subroutine uniform font_function_class font_function;\n"
 "\n"
 "in vec2 tex_coord;\n"
 "layout (location = 0) out vec4 frag_color;"
 "\n"
 "layout (binding = 0) uniform sampler2D texture_sampler;"
-"uniform float edge_blur;\n"
-"uniform float border_size;\n"
-"uniform vec3 inner_color;\n"
-"uniform vec3 border_color;\n"
+"layout(location = 6) uniform float border_size;\n"
+"layout(location = 7) uniform vec3 inner_color;\n"
+"layout(location = 10) uniform vec3 border_color;\n"
 "\n"
-"subroutine(color_function_class)\n"
-"vec4 enabled_color(vec4 color_in) {\n"
-"	return color_in;\n"
-"}\n"
-"\n"
-"subroutine(color_function_class)\n"
+"layout(index = 0) subroutine(font_function_class)\n"
 "vec4 border_filter(vec4 color_in) {\n"
 "	if(color_in.r > 0.5) {"
 "		return vec4(inner_color, 1.0);\n"
@@ -143,20 +158,30 @@ char tquad_fragment_shader[] =
 "	}\n"
 "}\n"
 "\n"
-"subroutine(color_function_class)\n"
+"layout(index = 1) subroutine(font_function_class)\n"
 "vec4 color_filter(vec4 color_in) {\n"
-"	float sm_val = smoothstep(0.5 - edge_blur, 0.5, color_in.r);\n"
+"	float sm_val = smoothstep(0.5 - border_size, 0.5, color_in.r);\n"
 "	return vec4(inner_color, sm_val);\n"
 "}\n"
 "\n"
-"subroutine(color_function_class)\n"
+"layout(index = 2) subroutine(font_function_class)\n"
+"vec4 no_filter(vec4 color_in) {\n"
+"	return color_in;\n"
+"}\n"
+"\n"
+"layout(index = 3) subroutine(color_function_class)\n"
 "vec4 disabled_color(vec4 color_in) {\n"
-"	const float amount = (color_in.x + color_in.y + color_in.z) / 4.0;\n"
-"	return vec4(amount, amount, amount, color_in.w);\n"
+"	const float amount = (color_in.r + color_in.g + color_in.b) / 4.0;\n"
+"	return vec4(amount, amount, amount, color_in.a);\n"
+"}\n"
+"\n"
+"layout(index = 4) subroutine(color_function_class)\n"
+"vec4 enabled_color(vec4 color_in) {\n"
+"	return color_in;\n"
 "}\n"
 "\n"
 "void main() {\n"
-"	frag_color = coloring_function(texture(texture_sampler, tex_coord));\n"
+"	frag_color = coloring_function(font_function(texture(texture_sampler, tex_coord)));\n"
 "}\n";
 
 /*
@@ -180,23 +205,6 @@ GLuint general_shader = 0;
 
 GLuint global_square_vao = 0;
 GLuint global_sqaure_buffer = 0;
-
-GLuint general_parameter_screen_width = 0;
-GLuint general_parameter_screen_height = 0;
-GLuint general_parameter_rect_top = 0;
-GLuint general_parameter_rect_left = 0;
-GLuint general_parameter_rect_width = 0;
-GLuint general_parameter_rect_height = 0;
-
-GLuint general_parameter_inner_color = 0;
-GLuint general_parameter_border_color = 0;
-GLuint general_parameter_border_size = 0;
-GLuint general_parameter_edge_blur = 0;
-
-GLuint general_parameter_enabled = 0;;
-GLuint general_parameter_disabled = 0;;
-GLuint general_parameter_border_filter = 0;;
-GLuint general_parameter_filter = 0;;
 
 GLfloat global_square_data[] = {
 	0.0f, 0.0f, 0.0f, 0.0f,
@@ -342,23 +350,11 @@ void create_shaders() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	general_parameter_screen_width = glGetUniformLocation(general_shader, "screen_width");
-	general_parameter_screen_height = glGetUniformLocation(general_shader, "screen_height");
-	general_parameter_rect_top = glGetUniformLocation(general_shader, "rect_top");
-	general_parameter_rect_left = glGetUniformLocation(general_shader, "rect_left");
-	general_parameter_rect_width = glGetUniformLocation(general_shader, "rect_width");
-	general_parameter_rect_height = glGetUniformLocation(general_shader, "rect_height");
-
-
-	general_parameter_inner_color = glGetUniformLocation(general_shader, "inner_color");
-	general_parameter_border_color = glGetUniformLocation(general_shader, "border_color");
-	general_parameter_border_size = glGetUniformLocation(general_shader, "border_size");
-	general_parameter_edge_blur = glGetUniformLocation(general_shader, "edge_blur");
-
-	general_parameter_enabled = glGetSubroutineIndex(general_shader, GL_FRAGMENT_SHADER, "enabled_color");
-	general_parameter_disabled = glGetSubroutineIndex(general_shader, GL_FRAGMENT_SHADER, "disabled_color");
-	general_parameter_filter = glGetSubroutineIndex(general_shader, GL_FRAGMENT_SHADER, "color_filter");
-	general_parameter_border_filter = glGetSubroutineIndex(general_shader, GL_FRAGMENT_SHADER, "border_filter");
+	//parameters::enabled = glGetSubroutineIndex(general_shader, GL_FRAGMENT_SHADER, "enabled_color");
+	//parameters::disabled = glGetSubroutineIndex(general_shader, GL_FRAGMENT_SHADER, "disabled_color");
+	//parameters::filter = glGetSubroutineIndex(general_shader, GL_FRAGMENT_SHADER, "color_filter");
+	//parameters::no_filter = glGetSubroutineIndex(general_shader, GL_FRAGMENT_SHADER, "no_filter");
+	//parameters::border_filter = glGetSubroutineIndex(general_shader, GL_FRAGMENT_SHADER, "border_filter");
 }
 
 HGLRC setup_opengl_context(HWND hwnd, HDC window_dc) {
@@ -390,7 +386,7 @@ HGLRC setup_opengl_context(HWND hwnd, HDC window_dc) {
 	int attribs[] =
 	{
 		WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
-		WGL_CONTEXT_MINOR_VERSION_ARB, 3,
+		WGL_CONTEXT_MINOR_VERSION_ARB, 4,
 		WGL_CONTEXT_FLAGS_ARB, 
 #ifdef _DEBUG
 		WGL_CONTEXT_DEBUG_BIT_ARB | 
@@ -515,21 +511,20 @@ void open_gl_wrapper::render_textured_rect(bool enabled, float x, float y, float
 
 	glBindVertexBuffer(0, global_sqaure_buffer, 0, sizeof(GLfloat) * 4);
 
-	glUniform1f(general_parameter_screen_width, impl->viewport_x);
-	glUniform1f(general_parameter_screen_height, impl->viewport_y);
-	glUniform1f(general_parameter_rect_top, y);
-	glUniform1f(general_parameter_rect_left, x);
-	glUniform1f(general_parameter_rect_height, height);
-	glUniform1f(general_parameter_rect_width, width);
+	glUniform1f(parameters::screen_width, impl->viewport_x);
+	glUniform1f(parameters::screen_height, impl->viewport_y);
+	glUniform1f(parameters::rect_top, y);
+	glUniform1f(parameters::rect_left, x);
+	glUniform1f(parameters::rect_height, height);
+	glUniform1f(parameters::rect_width, width);
 
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, t.handle());
 
-	if(enabled)
-		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &general_parameter_enabled); // must set all subroutines in one call
-	else
-		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &general_parameter_disabled);
+
+	GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::no_filter };
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
@@ -542,22 +537,22 @@ void open_gl_wrapper::render_character(char16_t codepoint, bool enabled, float x
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, g.texture);
 
-	glUniform1f(general_parameter_screen_width, impl->viewport_x);
-	glUniform1f(general_parameter_screen_height, impl->viewport_y);
-	glUniform1f(general_parameter_rect_top, y);
-	glUniform1f(general_parameter_rect_left, x);
-	glUniform1f(general_parameter_rect_height, size);
-	glUniform1f(general_parameter_rect_width, size);
+	glUniform1f(parameters::screen_width, impl->viewport_x);
+	glUniform1f(parameters::screen_height, impl->viewport_y);
+	glUniform1f(parameters::rect_top, y);
+	glUniform1f(parameters::rect_left, x);
+	glUniform1f(parameters::rect_height, size);
+	glUniform1f(parameters::rect_width, size);
 
 
-	glUniform3f(general_parameter_inner_color, 0.0f, 0.0f, 0.0f);
-	glUniform3f(general_parameter_border_color, 1.0f, 1.0f, 1.0f);
-	glUniform1f(general_parameter_border_size, 0.08 );
+	glUniform3f(parameters::inner_color, 0.0f, 0.0f, 0.0f);
+	glUniform3f(parameters::border_color, 1.0f, 1.0f, 1.0f);
+	glUniform1f(parameters::border_size, 0.08f );
 
-	glUniform1f(general_parameter_edge_blur, 0.02f + 2.0f / size);
 
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &general_parameter_border_filter); // must set all subroutines in one call
-	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &general_parameter_enabled); // must set all subroutines in one call
+	GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::border_filter };
+	//GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::no_filter };
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }

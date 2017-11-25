@@ -55,18 +55,18 @@ int32_t transform_offset_b(int32_t x, int32_t y, int32_t btmap_x_off, int32_t bt
 constexpr int dr_size = 64 * magnification_factor;
 constexpr float rt_2 = 1.41421356237309504f;
 
-void init_in_map(bool* in_map, uint8_t* bmp_data, int32_t btmap_x_off, int32_t btmap_y_off, uint32_t width, uint32_t height, uint32_t pitch) {
-	for (uint32_t j = 1; j < dr_size - 1; ++j) {
-		for (uint32_t i = 1; i < dr_size - 1; ++i) {
+void init_in_map(bool in_map[dr_size * dr_size], uint8_t* bmp_data, int32_t btmap_x_off, int32_t btmap_y_off, uint32_t width, uint32_t height, uint32_t pitch) {
+	for (uint32_t j = 0; j < dr_size; ++j) {
+		for (uint32_t i = 0; i < dr_size; ++i) {
 			const auto boff = transform_offset_b(i, j, btmap_x_off, btmap_y_off, width, height, pitch);
 			in_map[i + dr_size * j] = (boff != -1) ? (bmp_data[boff] > 127) : false;
 		}
 	}
 }
 
-void dead_reckoning(float* distance_map, const bool* in_map) {
-	int16_t yborder[dr_size * dr_size] = { -1 };
-	int16_t xborder[dr_size * dr_size] = { -1 };
+void dead_reckoning(float distance_map[dr_size * dr_size], const bool in_map[dr_size * dr_size]) {
+	int16_t yborder[dr_size * dr_size] = { 0 };
+	int16_t xborder[dr_size * dr_size] = { 0 };
 
 	for (uint32_t i = 0; i < dr_size*dr_size; ++i) {
 		distance_map[i] = std::numeric_limits<float>::infinity();
@@ -116,8 +116,8 @@ void dead_reckoning(float* distance_map, const bool* in_map) {
 		}
 	}
 
-	for (uint32_t j = dr_size - 1; j > 0; --j) {
-		for (uint32_t i = dr_size - 1; i > 0; --i) {
+	for (uint32_t j = dr_size - 2; j > 0; --j) {
+		for (uint32_t i = dr_size - 2; i > 0; --i) {
 			if (distance_map[(i + 1) + dr_size * (j)] + 1.0f < distance_map[(i)+dr_size * (j)]) {
 				yborder[i + dr_size * j] = yborder[(i + 1) + dr_size * (j)];
 				xborder[i + dr_size * j] = xborder[(i + 1) + dr_size * (j)];
@@ -203,18 +203,21 @@ public:
 			glyph created;
 			created.advance = static_cast<float>(font_face->glyph->metrics.horiAdvance) / static_cast<float>(1 << 6);
 
-			if ((last_in_texture & (62 - 1)) == 0) {
+			if ((last_in_texture & 63) == 0) {
 				glGenTextures(1, &created.texture);
 				glBindTexture(GL_TEXTURE_2D, created.texture);
-				glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 64 * 8, 64 * 8);
+				glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, 64 * 8, 64 * 8);
+
+				//glClearTexImage(created.texture, 0, GL_RED, GL_FLOAT, nullptr);
+
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 				textures.push_back(created.texture);
 			} else {
 				created.texture = textures.back();
 				glBindTexture(GL_TEXTURE_2D, created.texture);
 			}
-
-			// FTglyph_To_Bitmap(&g_result, FT_RENDER_MODE_NORMAL, nullptr, 1);
 
 			FT_Bitmap& bitmap = ((FT_BitmapGlyphRec*)g_result)->bitmap;
 			
@@ -225,8 +228,7 @@ public:
 
 			created.buffer = (last_in_texture & 63);
 
-			uint8_t pixel_buffer[4 * 64 * 64];;
-			memset(pixel_buffer, 255, 4 * 64 * 64);
+			uint8_t pixel_buffer[64 * 64];
 
 			const int btmap_x_off = 32 * magnification_factor - bitmap.width / 2;
 			const int btmap_y_off = 32 * magnification_factor - bitmap.rows / 2;
@@ -244,7 +246,7 @@ public:
 			for (int y = 0; y < 64; ++y) {
 				for (int x = 0; x < 64; ++x) {
 					
-					const size_t index = (x + y * 64) * 4;
+					const size_t index = (x + y * 64);
 					const float distance_value = distance_map[
 						(x * magnification_factor + magnification_factor / 2) + 
 						(y * magnification_factor + magnification_factor / 2)* dr_size]
@@ -252,10 +254,7 @@ public:
 					const int int_value = static_cast<int>(distance_value * -255.0f + 128.0f);
 					const uint8_t small_value = static_cast<uint8_t>(std::min(255, std::max(0, int_value)));
 
-					pixel_buffer[index + 0] = small_value;
-					pixel_buffer[index + 1] = small_value;
-					pixel_buffer[index + 2] = small_value;
-					pixel_buffer[index + 3] = 255;
+					pixel_buffer[index] = small_value;
 				}
 			}
 
@@ -264,10 +263,12 @@ public:
 				((last_in_texture >> 3) & 7) * 64,
 				64,
 				64,
-				GL_RGBA, GL_UNSIGNED_BYTE, pixel_buffer);
+				GL_RED, GL_UNSIGNED_BYTE, pixel_buffer);
 
 			++last_in_texture;
 			glyph_mappings[codepoint] = created;
+
+			FT_Done_Glyph(g_result);
 
 			return created;
 		} else if(parent) {
