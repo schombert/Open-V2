@@ -531,12 +531,24 @@ struct unknown_type {
 };
 
 struct empty_window_handler {
+	texture test_tex;
+	font test_font;
+	empty_window_handler() : test_tex("F:\\VS2007Projects\\open_v2_test_data\\test_tx.bmp"), test_font("F:\\VS2007Projects\\open_v2_test_data\\FallingSkyBd.otf") {}
+
 	template<typename T>
 	void operator()(T&&) const {
 		// do nothing;
 	}
 	void render(open_gl_wrapper& ogl) {
-		ogl.render_textured_rect(true, 100.0f, 50.0f, 10.0f, 50.0f);
+		//ogl.render_textured_rect(true, 100.0f, 74.0f, 10.0f, 50.0f, test_tex);
+
+		//ogl.render_textured_rect(true, 50.0f, 150.0f, 80.0f, 40.0f, test_tex);
+		//ogl.render_textured_rect(false, 50.0f, 200.0f, 80.0f, 80.0f, test_tex);
+
+		ogl.render_character(u'A', true, 10.0f, 10.0f, 16.0f, test_font);
+		ogl.render_character(u'A', true, 26.0f, 10.0f, 64.0f, test_font);
+		ogl.render_character(u'y', true, 80.0f, 10.0f, 128.0f, test_font);
+		ogl.render_character(u'A', true, 10.0f, 138.0f, 512.0f, test_font);
 	}
 };
 

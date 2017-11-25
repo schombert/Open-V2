@@ -48,6 +48,10 @@ message_variant yield_message(void* _hwnd, unsigned int uMsg, unsigned int* _wPa
 
 			base->gl_wrapper.setup(_hwnd, base);
 
+			RECT crect;
+			GetClientRect(hwnd, &crect);
+			base->gl_wrapper.set_viewport(uint32_t(crect.right), uint32_t(crect.bottom));
+
 			SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)base);
 			return int64_t(0);
 		}
@@ -78,6 +82,19 @@ message_variant yield_message(void* _hwnd, unsigned int uMsg, unsigned int* _wPa
 			return rbutton_down{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), get_current_modifiers() };
 		case WM_RBUTTONUP:
 			return rbutton_up{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), get_current_modifiers() };
+		case WM_SIZING:
+		{
+			RECT* window_rect = (RECT*)lParam;
+			RECT zero_rect = { 0, 0, 0, 0 };
+			AdjustWindowRectEx(&zero_rect, GetWindowLong(hwnd, GWL_STYLE), false, GetWindowLong(hwnd, GWL_EXSTYLE));
+
+			if (winbase)
+				winbase->gl_wrapper.set_viewport(
+				uint32_t((window_rect->right - window_rect->left) - (zero_rect.right - zero_rect.left)),
+				uint32_t((window_rect->bottom - window_rect->top) - (zero_rect.bottom - zero_rect.top)));
+
+			return int64_t(0);
+		}
 		case WM_SIZE:
 			if(winbase)
 				winbase->gl_wrapper.set_viewport(uint32_t(LOWORD(lParam)), uint32_t(HIWORD(lParam)));
@@ -154,7 +171,7 @@ void windowing_thread(long* (__stdcall *win_proc)(void*, unsigned int, unsigned 
 
 	if (xsize != 0) {
 		RECT rectangle = { 0, 0, width, height };
-		AdjustWindowRect(&rectangle, win32Style, false);
+		AdjustWindowRectEx(&rectangle, win32Style, false, xsize != 0 ? 0 : WS_EX_TOPMOST);
 		width = rectangle.right - rectangle.left;
 		height = rectangle.bottom - rectangle.top;
 	}

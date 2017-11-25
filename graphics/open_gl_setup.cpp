@@ -9,6 +9,8 @@
 #include <atomic>
 #include <thread>
 
+#include <chrono>
+
 #include "v2_window.hpp"
 
 #ifdef _DEBUG
@@ -98,11 +100,11 @@ char tquad_vertex_shader[] =
 "uniform float rect_top;\n"
 "uniform float rect_left;\n"
 "uniform float rect_width;\n"
-"uniform float rect_hieght;\n"
+"uniform float rect_height;\n"
 ""
 "void main() {\n"
 "	gl_Position = vec4(-1.0 + (2.0 * ((vertex_position.x * rect_width)  + rect_left) / screen_width), "
-"1.0 - (2.0 * ((vertex_position.y * rect_hieght)  + rect_top) / screen_height), "
+"1.0 - (2.0 * ((vertex_position.y * rect_height)  + rect_top) / screen_height), "
 "0.0, 1.0);\n"
 "	tex_coord = v_tex_coord;\n"
 "}\n";
@@ -118,10 +120,33 @@ char tquad_fragment_shader[] =
 "layout (location = 0) out vec4 frag_color;"
 "\n"
 "layout (binding = 0) uniform sampler2D texture_sampler;"
+"uniform float edge_blur;\n"
+"uniform float border_size;\n"
+"uniform vec3 inner_color;\n"
+"uniform vec3 border_color;\n"
 "\n"
 "subroutine(color_function_class)\n"
 "vec4 enabled_color(vec4 color_in) {\n"
 "	return color_in;\n"
+"}\n"
+"\n"
+"subroutine(color_function_class)\n"
+"vec4 border_filter(vec4 color_in) {\n"
+"	if(color_in.r > 0.5) {"
+"		return vec4(inner_color, 1.0);\n"
+"	} else if(color_in.r > 0.5 - border_size / 4.0) {"
+"		float sm_val = smoothstep(0.5 - border_size / 4.0, 0.5, color_in.r);\n"
+"		return vec4(mix(border_color, inner_color, sm_val), 1.0);"
+"	} else {\n"
+"		float sm_val = smoothstep(0.5 - border_size * 5.0 / 4.0, 0.5 - border_size, color_in.r);\n"
+"		return vec4(border_color, sm_val);\n"
+"	}\n"
+"}\n"
+"\n"
+"subroutine(color_function_class)\n"
+"vec4 color_filter(vec4 color_in) {\n"
+"	float sm_val = smoothstep(0.5 - edge_blur, 0.5, color_in.r);\n"
+"	return vec4(inner_color, sm_val);\n"
 "}\n"
 "\n"
 "subroutine(color_function_class)\n"
@@ -136,14 +161,6 @@ char tquad_fragment_shader[] =
 
 /*
 glActiveTexture(GL_TEXTURE0);
-
-GLuint tid;
-glGenTextures(1, &tid);
-glBindTexture(GL_TEXTURE_2D, tid);
-glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, w, h);
-glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 to unbind ... 
 glActiveTexture(GL_TEXTURE0);
@@ -169,10 +186,17 @@ GLuint general_parameter_screen_height = 0;
 GLuint general_parameter_rect_top = 0;
 GLuint general_parameter_rect_left = 0;
 GLuint general_parameter_rect_width = 0;
-GLuint general_parameter_rect_hieght = 0;
+GLuint general_parameter_rect_height = 0;
 
-GLuint general_parameter_enabled;
-GLuint general_parameter_disabled;
+GLuint general_parameter_inner_color = 0;
+GLuint general_parameter_border_color = 0;
+GLuint general_parameter_border_size = 0;
+GLuint general_parameter_edge_blur = 0;
+
+GLuint general_parameter_enabled = 0;;
+GLuint general_parameter_disabled = 0;;
+GLuint general_parameter_border_filter = 0;;
+GLuint general_parameter_filter = 0;;
 
 GLfloat global_square_data[] = {
 	0.0f, 0.0f, 0.0f, 0.0f,
@@ -180,6 +204,8 @@ GLfloat global_square_data[] = {
 	1.0f, 1.0f, 1.0f, 1.0f,
 	1.0f, 0.0f, 1.0f, 0.0f
 };
+
+GLuint sub_sqaure_buffers[64] = { 0 };
 
 void create_global_square() {
 	glGenBuffers(1, &global_sqaure_buffer);
@@ -199,6 +225,23 @@ void create_global_square() {
 	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 2); //texture coordinates
 	glVertexAttribBinding(0, 0); //position -> to array zero
 	glVertexAttribBinding(1, 0); //texture coordinates -> to array zero 
+
+	glGenBuffers(64, sub_sqaure_buffers);
+	for (uint32_t i = 0; i < 64; ++i) {
+		glBindBuffer(GL_ARRAY_BUFFER, sub_sqaure_buffers[i]);
+
+		const float cell_x = static_cast<float>(i & 7) / 8.0f;
+		const float cell_y = static_cast<float>((i >> 3) & 7) / 8.0f;
+
+		GLfloat global_sub_square_data[] = {
+			0.0f, 0.0f, cell_x, cell_y,
+			0.0f, 1.0f, cell_x, cell_y + 1.0f / 8.0f,
+			1.0f, 1.0f, cell_x + 1.0f / 8.0f, cell_y + 1.0f / 8.0f,
+			1.0f, 0.0f, cell_x + 1.0f / 8.0f, cell_y
+		};
+
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_sub_square_data, GL_STATIC_DRAW);
+	}
 }
 
 void create_shaders() {
@@ -296,15 +339,26 @@ void create_shaders() {
 
 	glUseProgram(general_shader);
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	general_parameter_screen_width = glGetUniformLocation(general_shader, "screen_width");
 	general_parameter_screen_height = glGetUniformLocation(general_shader, "screen_height");
 	general_parameter_rect_top = glGetUniformLocation(general_shader, "rect_top");
 	general_parameter_rect_left = glGetUniformLocation(general_shader, "rect_left");
 	general_parameter_rect_width = glGetUniformLocation(general_shader, "rect_width");
-	general_parameter_rect_hieght = glGetUniformLocation(general_shader, "rect_hieght");
+	general_parameter_rect_height = glGetUniformLocation(general_shader, "rect_height");
+
+
+	general_parameter_inner_color = glGetUniformLocation(general_shader, "inner_color");
+	general_parameter_border_color = glGetUniformLocation(general_shader, "border_color");
+	general_parameter_border_size = glGetUniformLocation(general_shader, "border_size");
+	general_parameter_edge_blur = glGetUniformLocation(general_shader, "edge_blur");
 
 	general_parameter_enabled = glGetSubroutineIndex(general_shader, GL_FRAGMENT_SHADER, "enabled_color");
 	general_parameter_disabled = glGetSubroutineIndex(general_shader, GL_FRAGMENT_SHADER, "disabled_color");
+	general_parameter_filter = glGetSubroutineIndex(general_shader, GL_FRAGMENT_SHADER, "color_filter");
+	general_parameter_border_filter = glGetSubroutineIndex(general_shader, GL_FRAGMENT_SHADER, "border_filter");
 }
 
 HGLRC setup_opengl_context(HWND hwnd, HDC window_dc) {
@@ -411,10 +465,18 @@ void open_gl_wrapper::setup(void* hwnd, window_base* base) {
 		iptr->context = setup_opengl_context((HWND)hwnd, iptr->window_dc);
 
 		while (iptr->active.load(std::memory_order::memory_order_acquire)) {
+			//if we want to slow down to 30 fps ...
+			//const auto start_time = std::chrono::high_resolution_clock::now();
+
 			_this->clear();
 			base->render_dispatch(base);
 			_this->display();
-			Sleep(1);
+
+			//const auto end_time = std::chrono::high_resolution_clock::now();
+			//const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+			//if (elapsed < (1000 / 30)) {
+			//	Sleep((1000 / 30) - elapsed);
+			//}
 		}
 	});
 }
@@ -446,7 +508,7 @@ void open_gl_wrapper::clear() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
-void open_gl_wrapper::render_textured_rect(bool enabled, float x, float y, float width, float height) {
+void open_gl_wrapper::render_textured_rect(bool enabled, float x, float y, float width, float height, texture& t) {
 	//glBindBuffer(GL_ARRAY_BUFFER, global_sqaure_buffer);
 	
 	glBindVertexArray(global_square_vao);
@@ -457,13 +519,45 @@ void open_gl_wrapper::render_textured_rect(bool enabled, float x, float y, float
 	glUniform1f(general_parameter_screen_height, impl->viewport_y);
 	glUniform1f(general_parameter_rect_top, y);
 	glUniform1f(general_parameter_rect_left, x);
-	glUniform1f(general_parameter_rect_hieght, height);
+	glUniform1f(general_parameter_rect_height, height);
 	glUniform1f(general_parameter_rect_width, width);
+
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, t.handle());
 
 	if(enabled)
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &general_parameter_enabled); // must set all subroutines in one call
 	else
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &general_parameter_disabled);
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
+
+void open_gl_wrapper::render_character(char16_t codepoint, bool enabled, float x, float y, float size, font& f) {
+	const auto g = f.get_glyph(codepoint);
+
+	glBindVertexArray(global_square_vao);
+	glBindVertexBuffer(0, sub_sqaure_buffers[g.buffer], 0, sizeof(GLfloat) * 4);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, g.texture);
+
+	glUniform1f(general_parameter_screen_width, impl->viewport_x);
+	glUniform1f(general_parameter_screen_height, impl->viewport_y);
+	glUniform1f(general_parameter_rect_top, y);
+	glUniform1f(general_parameter_rect_left, x);
+	glUniform1f(general_parameter_rect_height, size);
+	glUniform1f(general_parameter_rect_width, size);
+
+
+	glUniform3f(general_parameter_inner_color, 0.0f, 0.0f, 0.0f);
+	glUniform3f(general_parameter_border_color, 1.0f, 1.0f, 1.0f);
+	glUniform1f(general_parameter_border_size, 0.08 );
+
+	glUniform1f(general_parameter_edge_blur, 0.02f + 2.0f / size);
+
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &general_parameter_border_filter); // must set all subroutines in one call
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &general_parameter_enabled); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
