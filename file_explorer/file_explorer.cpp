@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include "simple_fs\\simple_fs.h"
 #include "Parsers\\parsers.hpp"
 #include <map>
@@ -532,23 +532,45 @@ struct unknown_type {
 
 struct empty_window_handler {
 	texture test_tex;
+
+	font test_fallback;
 	font test_font;
-	empty_window_handler() : test_tex("F:\\VS2007Projects\\open_v2_test_data\\test_tx.bmp"), test_font("F:\\VS2007Projects\\open_v2_test_data\\FallingSkyBd.otf") {}
+	
+	empty_window_handler() : test_tex("F:\\VS2007Projects\\open_v2_test_data\\test_tx.bmp"), test_fallback("F:\\VS2007Projects\\open_v2_test_data\\unifont-9.0.02.ttf"),
+		// test_font("F:\\VS2007Projects\\open_v2_test_data\\Primitive.ttf", test_fallback) {}
+		test_font("F:\\VS2007Projects\\open_v2_test_data\\CreteRound-Regular.otf", test_fallback) {}
 
 	template<typename T>
 	void operator()(T&&) const {
 		// do nothing;
 	}
+	void initialize_graphics(open_gl_wrapper& ogl) {
+		test_fallback.load_font(ogl);
+		test_font.load_font(ogl);
+	}
+
 	void render(open_gl_wrapper& ogl) {
 		//ogl.render_textured_rect(true, 100.0f, 74.0f, 10.0f, 50.0f, test_tex);
 
 		//ogl.render_textured_rect(true, 50.0f, 150.0f, 80.0f, 40.0f, test_tex);
 		//ogl.render_textured_rect(false, 50.0f, 200.0f, 80.0f, 80.0f, test_tex);
 
-		ogl.render_character(u'A', true, 10.0f, 10.0f, 16.0f, test_font);
-		ogl.render_character(u'A', true, 26.0f, 10.0f, 64.0f, test_font);
-		ogl.render_character(u'y', true, 80.0f, 10.0f, 128.0f, test_font);
+		//
+		ogl.render_textured_rect(true, 0.0f, 0.0f, 80.0f, 40.0f, test_tex);
+		//ogl.render_outlined_text(u"明Tast", 5, true, 80.0f, 40.0f, 16.0f, color{ 1.0f,1.0f,1.0f }, test_font);
+
+		ogl.render_outlined_text(u"明Test", 5, true, 80.0f, 40.0f, 16.0f, color{ 0.0f,0.0f,0.0f }, test_font);
+		ogl.render_text(u"明Tast", 5, true, 80.0f, 56.0f, 16.0f, color{ 1.0f,1.0f,1.0f }, test_font);
+
+		ogl.render_character(u'T', true, 26.0f, 60.0f, 16.0f, test_font);
+
+		ogl.render_character(u'a', true, 10.0f, 10.0f, 16.0f, test_font);
+
+		//ogl.render_character(u'A', true, 26.0f, 10.0f, 64.0f, test_font);
+		ogl.render_character(u'y', true, 80.0f, 60.0f, 128.0f, test_font);
 		ogl.render_character(u'A', true, 10.0f, 138.0f, 512.0f, test_font);
+
+		
 	}
 };
 

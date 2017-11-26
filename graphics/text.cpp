@@ -162,14 +162,23 @@ public:
 	boost::container::flat_map<char16_t, glyph> glyph_mappings;
 	std::vector<uint32_t> textures;
 
+	const std::string font_file;
+
 	FT_Face font_face;
 	uint32_t last_in_texture = 0;
+	float line_height = 0.0f;
 
-	_font(const char* filename, _font* p) : parent(p) {
-		FT_New_Face(global_freetype.library, filename, 0, &font_face);
+	void load() {
+		FT_New_Face(global_freetype.library, font_file.c_str(), 0, &font_face);
 		FT_Select_Charmap(font_face, FT_ENCODING_UNICODE);
 
 		FT_Set_Pixel_Sizes(font_face, 0, 64 * magnification_factor);
+
+		line_height = static_cast<float>(font_face->height) / static_cast<float>(1 << 6);
+	}
+
+	_font(const char* filename, _font* p) : parent(p), font_file(filename) {
+		
 	}
 
 	~_font() {
@@ -192,6 +201,26 @@ public:
 		}
 	}
 
+	float kerning(char16_t codepoint_first, char16_t codepoint_second) const {
+		const auto index_a = FT_Get_Char_Index(font_face, codepoint_first);
+		const auto index_b = FT_Get_Char_Index(font_face, codepoint_second);
+
+		if ((index_a == 0) | (index_b == 0)) {
+			if (parent)
+				return parent->kerning(codepoint_first, codepoint_second);
+			else
+				return 0.0f;
+		}
+
+		if (FT_HAS_KERNING(font_face)) {
+			FT_Vector kerning;
+			FT_Get_Kerning(font_face, index_a, index_b, FT_KERNING_DEFAULT, &kerning);
+			return static_cast<float>(kerning.x) / static_cast<float>(1 << 6);
+		} else {
+			return 0.0f;
+		}
+	}
+
 	glyph makeglyph(char16_t codepoint) {
 		const auto index_in_this_font = FT_Get_Char_Index(font_face, codepoint);
 		if (index_in_this_font) {
@@ -201,7 +230,6 @@ public:
 			FT_Get_Glyph(font_face->glyph, &g_result);
 
 			glyph created;
-			created.advance = static_cast<float>(font_face->glyph->metrics.horiAdvance) / static_cast<float>(1 << 6);
 
 			if ((last_in_texture & 63) == 0) {
 				glGenTextures(1, &created.texture);
@@ -224,7 +252,7 @@ public:
 			const float hb_x = static_cast<float>(font_face->glyph->metrics.horiBearingX) / static_cast<float>(1 << 6);
 			const float hb_y = static_cast<float>(font_face->glyph->metrics.horiBearingY) / static_cast<float>(1 << 6);
 
-			created.advance = static_cast<float>(font_face->glyph->metrics.horiAdvance) / static_cast<float>(1 << 6);
+			created.advance = static_cast<float>(font_face->glyph->metrics.horiAdvance) / static_cast<float>((1 << 6) * magnification_factor);
 
 			created.buffer = (last_in_texture & 63);
 
@@ -290,6 +318,18 @@ public:
 
 glyph font::get_glyph(char16_t codepoint) {
 	return impl->getglyph(codepoint);
+}
+
+float font::kerning(char16_t codepoint_first, char16_t codepoint_second) const {
+	return impl->kerning(codepoint_first, codepoint_second);
+}
+
+void font::load_font(open_gl_wrapper&) {
+	impl->load();
+}
+
+float font::line_height() const {
+	return impl->line_height;
 }
 
 font::font(const char* filename, font& p) : impl(std::make_unique<_font>(filename, p.impl.get())) {

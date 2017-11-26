@@ -247,10 +247,11 @@ protected:
 	open_gl_wrapper gl_wrapper;
 	std::thread message_thread;
 public:
-	window_base(void(*rd)(window_base*));
-	~window_base();
+	window_base();
+	virtual ~window_base();
 
-	void(*const render_dispatch)(window_base*);
+	virtual void render() = 0;
+	virtual void initialize_graphics() = 0;
 
 	void generic_setup(long* (__stdcall *win_proc)(void*, unsigned int, unsigned int*, long*), uint32_t xsize, uint32_t ysize);
 	void close_window();
@@ -265,6 +266,9 @@ template<typename HANDLER>
 class window : public window_base {
 public:
 	HANDLER h;
+
+	virtual void render();
+	virtual void initialize_graphics();
 
 	template<typename ...T, typename = std::enable_if_t<std::is_constructible_v<HANDLER, T...>>>
 	window(T&& ... args);

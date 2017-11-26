@@ -25,14 +25,29 @@ void templated_render_dispatch(window_base* base) {
 }
 
 template<typename HANDLER>
+void templated_render_init(window_base* base) {
+	static_cast<window<HANDLER>*>(base)->h.initialize_graphics(base->gl_wrapper);
+}
+
+template<typename HANDLER>
+void window<HANDLER>::render() {
+	h.render(gl_wrapper);
+}
+
+template<typename HANDLER>
+void window<HANDLER>::initialize_graphics() {
+	h.initialize_graphics(gl_wrapper);
+}
+
+template<typename HANDLER>
 template<typename ...T, typename>
-window<HANDLER>::window(T&& ...args) : window_base(templated_render_dispatch<HANDLER>), h(std::forward<T>(args)...) {
+window<HANDLER>::window(T&& ...args) : h(std::forward<T>(args)...) {
 	generic_setup(templated_win_proc<HANDLER>, 0, 0);
 }
 
 template<typename HANDLER>
 template<typename ...T>
-window<HANDLER>::window(uint32_t x, uint32_t y, T&& ...args) : window_base(templated_render_dispatch<HANDLER>), h(std::forward<T>(args)...) {
+window<HANDLER>::window(uint32_t x, uint32_t y, T&& ...args) :  h(std::forward<T>(args)...) {
 	generic_setup(templated_win_proc<HANDLER>, x, y);
 }
 

@@ -14,6 +14,10 @@
 */
 
 #define SOIL_CHECK_FOR_GL_ERRORS 0
+#define GLEW_STATIC
+
+#include "glew.h"
+#include "wglew.h"
 
 #ifdef _WIN32
 	#define WIN32_LEAN_AND_MEAN
@@ -1876,10 +1880,7 @@ int query_NPOT_capability( void )
 	if( has_NPOT_capability == SOIL_CAPABILITY_UNKNOWN )
 	{
 		/*	we haven't yet checked for the capability, do so	*/
-		if(
-			(NULL == strstr( (char const*)glGetString( GL_EXTENSIONS ),
-				"GL_ARB_texture_non_power_of_two" ) )
-			)
+		if(wglewIsSupported("GL_ARB_texture_non_power_of_two"))
 		{
 			/*	not there, flag the failure	*/
 			has_NPOT_capability = SOIL_CAPABILITY_NONE;
@@ -1899,16 +1900,9 @@ int query_tex_rectangle_capability( void )
 	if( has_tex_rectangle_capability == SOIL_CAPABILITY_UNKNOWN )
 	{
 		/*	we haven't yet checked for the capability, do so	*/
-		if(
-			(NULL == strstr( (char const*)glGetString( GL_EXTENSIONS ),
-				"GL_ARB_texture_rectangle" ) )
-		&&
-			(NULL == strstr( (char const*)glGetString( GL_EXTENSIONS ),
-				"GL_EXT_texture_rectangle" ) )
-		&&
-			(NULL == strstr( (char const*)glGetString( GL_EXTENSIONS ),
-				"GL_NV_texture_rectangle" ) )
-			)
+		if(wglewIsSupported("GL_ARB_texture_rectangle" )
+		&& wglewIsSupported("GL_EXT_texture_rectangle" )
+		&& wglewIsSupported("GL_NV_texture_rectangle" ))
 		{
 			/*	not there, flag the failure	*/
 			has_tex_rectangle_capability = SOIL_CAPABILITY_NONE;
@@ -1928,13 +1922,8 @@ int query_cubemap_capability( void )
 	if( has_cubemap_capability == SOIL_CAPABILITY_UNKNOWN )
 	{
 		/*	we haven't yet checked for the capability, do so	*/
-		if(
-			(NULL == strstr( (char const*)glGetString( GL_EXTENSIONS ),
-				"GL_ARB_texture_cube_map" ) )
-		&&
-			(NULL == strstr( (char const*)glGetString( GL_EXTENSIONS ),
-				"GL_EXT_texture_cube_map" ) )
-			)
+		if(wglewIsSupported("GL_ARB_texture_cube_map" )
+		&& wglewIsSupported("GL_EXT_texture_cube_map" ) )
 		{
 			/*	not there, flag the failure	*/
 			has_cubemap_capability = SOIL_CAPABILITY_NONE;
@@ -1954,9 +1943,7 @@ int query_DXT_capability( void )
 	if( has_DXT_capability == SOIL_CAPABILITY_UNKNOWN )
 	{
 		/*	we haven't yet checked for the capability, do so	*/
-		if( NULL == strstr(
-				(char const*)glGetString( GL_EXTENSIONS ),
-				"GL_EXT_texture_compression_s3tc" ) )
+		if(wglewIsSupported("GL_EXT_texture_compression_s3tc" ) )
 		{
 			/*	not there, flag the failure	*/
 			has_DXT_capability = SOIL_CAPABILITY_NONE;

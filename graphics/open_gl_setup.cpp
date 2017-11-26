@@ -91,13 +91,10 @@ void debug_callback(
 namespace parameters {
 	constexpr GLuint screen_width = 0;
 	constexpr GLuint screen_height = 1;
-	constexpr GLuint rect_top = 2;
-	constexpr GLuint rect_left = 3;
-	constexpr GLuint rect_width = 4;
-	constexpr GLuint rect_height = 5;
+	constexpr GLuint drawing_rectangle = 2;
+
 	constexpr GLuint border_size = 6;
 	constexpr GLuint inner_color = 7;
-	constexpr GLuint border_color = 10;
 
 	constexpr GLuint enabled = 4;
 	constexpr GLuint disabled = 3;
@@ -115,14 +112,11 @@ char tquad_vertex_shader[] =
 "\n"
 "layout(location = 0) uniform float screen_width;\n"
 "layout(location = 1) uniform float screen_height;\n"
-"layout(location = 2) uniform float rect_top;\n"
-"layout(location = 3) uniform float rect_left;\n"
-"layout(location = 4) uniform float rect_width;\n"
-"layout(location = 5) uniform float rect_height;\n"
+"layout(location = 2) uniform vec4 d_rect;\n"
 ""
 "void main() {\n"
-"	gl_Position = vec4(-1.0 + (2.0 * ((vertex_position.x * rect_width)  + rect_left) / screen_width), "
-"1.0 - (2.0 * ((vertex_position.y * rect_height)  + rect_top) / screen_height), "
+"	gl_Position = vec4(-1.0 + (2.0 * ((vertex_position.x * d_rect.z)  + d_rect.x) / screen_width), "
+"1.0 - (2.0 * ((vertex_position.y * d_rect.w)  + d_rect.y) / screen_height), "
 "0.0, 1.0);\n"
 "	tex_coord = v_tex_coord;\n"
 "}\n";
@@ -143,24 +137,23 @@ char tquad_fragment_shader[] =
 "layout (binding = 0) uniform sampler2D texture_sampler;"
 "layout(location = 6) uniform float border_size;\n"
 "layout(location = 7) uniform vec3 inner_color;\n"
-"layout(location = 10) uniform vec3 border_color;\n"
 "\n"
 "layout(index = 0) subroutine(font_function_class)\n"
 "vec4 border_filter(vec4 color_in) {\n"
-"	if(color_in.r > 0.5) {"
+"	if(color_in.r > 0.5 + border_size / 4.0) {"
 "		return vec4(inner_color, 1.0);\n"
-"	} else if(color_in.r > 0.5 - border_size / 4.0) {"
-"		float sm_val = smoothstep(0.5 - border_size / 4.0, 0.5, color_in.r);\n"
-"		return vec4(mix(border_color, inner_color, sm_val), 1.0);"
+"	} else if(color_in.r > 0.5 - border_size / 2.0) {"
+"		float sm_val = smoothstep(0.5, 0.5 + border_size / 4.0, color_in.r);\n"
+"		return vec4(mix(vec3(1.0, 1.0, 1.0) - inner_color, inner_color, sm_val), 1.0);"
 "	} else {\n"
-"		float sm_val = smoothstep(0.5 - border_size * 5.0 / 4.0, 0.5 - border_size, color_in.r);\n"
-"		return vec4(border_color, sm_val);\n"
+"		float sm_val = smoothstep(0.5 - border_size * 3.0 / 4.0, 0.5 - border_size / 2.0, color_in.r);\n"
+"		return vec4(vec3(1.0, 1.0, 1.0) - inner_color, sm_val);\n"
 "	}\n"
 "}\n"
 "\n"
 "layout(index = 1) subroutine(font_function_class)\n"
 "vec4 color_filter(vec4 color_in) {\n"
-"	float sm_val = smoothstep(0.5 - border_size, 0.5, color_in.r);\n"
+"	float sm_val = smoothstep(0.5 - border_size / 2.0, 0.5 + border_size / 2.0, color_in.r);\n"
 "	return vec4(inner_color, sm_val);\n"
 "}\n"
 "\n"
@@ -460,12 +453,14 @@ void open_gl_wrapper::setup(void* hwnd, window_base* base) {
 		iptr->window_dc = GetDC((HWND)hwnd);
 		iptr->context = setup_opengl_context((HWND)hwnd, iptr->window_dc);
 
+		base->initialize_graphics();
+
 		while (iptr->active.load(std::memory_order::memory_order_acquire)) {
 			//if we want to slow down to 30 fps ...
 			//const auto start_time = std::chrono::high_resolution_clock::now();
 
 			_this->clear();
-			base->render_dispatch(base);
+			base->render();
 			_this->display();
 
 			//const auto end_time = std::chrono::high_resolution_clock::now();
@@ -497,6 +492,9 @@ void open_gl_wrapper::clear() {
 		impl->update_viewport.store(false, std::memory_order::memory_order_release);
 		glViewport(0, 0, impl->viewport_x, impl->viewport_y);
 		glDepthRange(-1.0, 1.0);
+
+		glUniform1f(parameters::screen_width, impl->viewport_x);
+		glUniform1f(parameters::screen_height, impl->viewport_y);
 	}
 
 	//glUseProgram(...)
@@ -511,13 +509,7 @@ void open_gl_wrapper::render_textured_rect(bool enabled, float x, float y, float
 
 	glBindVertexBuffer(0, global_sqaure_buffer, 0, sizeof(GLfloat) * 4);
 
-	glUniform1f(parameters::screen_width, impl->viewport_x);
-	glUniform1f(parameters::screen_height, impl->viewport_y);
-	glUniform1f(parameters::rect_top, y);
-	glUniform1f(parameters::rect_left, x);
-	glUniform1f(parameters::rect_height, height);
-	glUniform1f(parameters::rect_width, width);
-
+	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, t.handle());
@@ -532,29 +524,58 @@ void open_gl_wrapper::render_textured_rect(bool enabled, float x, float y, float
 void open_gl_wrapper::render_character(char16_t codepoint, bool enabled, float x, float y, float size, font& f) {
 	const auto g = f.get_glyph(codepoint);
 
-	glBindVertexArray(global_square_vao);
 	glBindVertexBuffer(0, sub_sqaure_buffers[g.buffer], 0, sizeof(GLfloat) * 4);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, g.texture);
-
-	glUniform1f(parameters::screen_width, impl->viewport_x);
-	glUniform1f(parameters::screen_height, impl->viewport_y);
-	glUniform1f(parameters::rect_top, y);
-	glUniform1f(parameters::rect_left, x);
-	glUniform1f(parameters::rect_height, size);
-	glUniform1f(parameters::rect_width, size);
-
+	
+	glUniform4f(parameters::drawing_rectangle, x, y, size, size);
 
 	glUniform3f(parameters::inner_color, 0.0f, 0.0f, 0.0f);
-	glUniform3f(parameters::border_color, 1.0f, 1.0f, 1.0f);
-	glUniform1f(parameters::border_size, 0.08f );
+	
+	glUniform1f(parameters::border_size, 0.08f * 16.0f / size ); // for normal outlines
+	// glUniform1f(parameters::border_size, 0.16f * 16.0f / size); // for bold outlines
 
-
+	//GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::filter };
 	GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::border_filter };
-	//GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::no_filter };
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
+
+void internal_text_render(const char16_t* codepoints, uint32_t count, float x, float baseline_y, float size, font& f, float extra) {
+	for (uint32_t i = 0; i < count; ++i) {
+		const auto g = f.get_glyph(codepoints[i]);
+
+		glBindVertexBuffer(0, sub_sqaure_buffers[g.buffer], 0, sizeof(GLfloat) * 4);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, g.texture);
+
+		glUniform4f(parameters::drawing_rectangle, x + g.x_offset * size / 64.0f, baseline_y + g.y_offset * size / 64.0f, size, size);
+
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		x += g.advance * size / 64.0f + extra;
+	}
+}
+
+void open_gl_wrapper::render_outlined_text(const char16_t* codepoints, uint32_t count, bool enabled, float x, float baseline_y, float size, const color& c, font& f) {
+	GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::border_filter };
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
+
+	glUniform3f(parameters::inner_color, c.r, c.b, c.g);
+	glUniform1f(parameters::border_size, 0.08f * 16.0f / size); // for normal outlines
+	// glUniform1f(parameters::border_size, 0.16f * 16.0f / size); // for bold outlines
+
+	internal_text_render(codepoints, count, x, baseline_y, size, f, 0.6);
+}
+
+void open_gl_wrapper::render_text(const char16_t* codepoints, uint32_t count, bool enabled, float x, float baseline_y, float size, const color& c, font& f) {
+	GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::filter };
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
+
+	glUniform3f(parameters::inner_color, c.r, c.b, c.g);
+	glUniform1f(parameters::border_size, 0.08f * 16.0f / size);
+
+	internal_text_render(codepoints, count, x, baseline_y, size, f, 0.0);
 }
 
 void open_gl_wrapper::set_viewport(uint32_t width, uint32_t height) {

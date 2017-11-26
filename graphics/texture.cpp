@@ -18,6 +18,7 @@ void texture::load() {
 	if (texture_handle != 0)
 		return;
 
+	/*
 	int channels = 4;
 	const auto data = SOIL_load_image(filename.c_str(), &width, &height, &channels, SOIL_LOAD_RGBA);
 
@@ -29,6 +30,9 @@ void texture::load() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	SOIL_free_image_data(data);
+	*/
+
+	texture_handle = SOIL_load_OGL_texture(filename.c_str(), 0, 0, SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_DDS_LOAD_DIRECT);
 }
 
 uint32_t texture::handle() {

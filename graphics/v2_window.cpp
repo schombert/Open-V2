@@ -2,7 +2,7 @@
 #include <Windows.h>
 #include <Windowsx.h>
 
-window_base::window_base(void(*rd)(window_base*)) : render_dispatch(rd) {}
+window_base::window_base()  {}
 
 window_base::~window_base() {
 	if (message_thread.joinable())
