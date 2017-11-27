@@ -4,10 +4,7 @@
 
 window_base::window_base()  {}
 
-window_base::~window_base() {
-	if (message_thread.joinable())
-		message_thread.join();
-}
+window_base::~window_base() {}
 
 void window_base::close_window() {
 	const HWND hwnd = (HWND)handle;
@@ -46,14 +43,14 @@ message_variant yield_message(void* _hwnd, unsigned int uMsg, unsigned int* _wPa
 			window_base* base = (window_base*)(cptr->lpCreateParams);
 			base->handle = (void*)(hwnd);
 
-			base->gl_wrapper.setup(_hwnd, base);
+			//base->gl_wrapper.setup(_hwnd, base);
 
 			RECT crect;
 			GetClientRect(hwnd, &crect);
 			base->gl_wrapper.set_viewport(uint32_t(crect.right), uint32_t(crect.bottom));
 
 			SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)base);
-			return int64_t(0);
+			return creation{};
 		}
 		case WM_SETFOCUS:
 		{

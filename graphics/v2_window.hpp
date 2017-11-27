@@ -3,6 +3,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <variant>
+#include "open_gl_wrapper.h"
 
 void* get_handler(void* _hwnd);
 
@@ -11,32 +12,17 @@ long* __stdcall templated_win_proc(void* hwnd, unsigned int uMsg, unsigned int* 
 	const auto message_result = yield_message(hwnd, uMsg, wParam, lParam);
 	if (std::holds_alternative<int64_t>(message_result)) {
 		return (long*)(std::get<int64_t>(message_result));
+	} else if (std::holds_alternative<creation>(message_result)) {
+		window<HANDLER>* obj = (window<HANDLER>*)get_handler(hwnd);
+		obj->gl_wrapper.setup(hwnd, obj->h);
+		obj->h(creation{}, *obj);
+		return 0;
 	} else {
 		window<HANDLER>* obj = (window<HANDLER>*)get_handler(hwnd);
 		if(obj)
-			std::visit(obj->h, message_result);
+			std::visit([obj](auto&& o) { obj->h(std::forward<decltype(o)>(o), *obj); }, message_result);
 		return 0;
 	}
-}
-
-template<typename HANDLER>
-void templated_render_dispatch(window_base* base) {
-	static_cast<window<HANDLER>*>(base)->h.render(base->gl_wrapper);
-}
-
-template<typename HANDLER>
-void templated_render_init(window_base* base) {
-	static_cast<window<HANDLER>*>(base)->h.initialize_graphics(base->gl_wrapper);
-}
-
-template<typename HANDLER>
-void window<HANDLER>::render() {
-	h.render(gl_wrapper);
-}
-
-template<typename HANDLER>
-void window<HANDLER>::initialize_graphics() {
-	h.initialize_graphics(gl_wrapper);
 }
 
 template<typename HANDLER>
@@ -53,5 +39,8 @@ window<HANDLER>::window(uint32_t x, uint32_t y, T&& ...args) :  h(std::forward<T
 
 template<typename HANDLER>
 window<HANDLER>::~window() {
-	
+	if (message_thread.joinable())
+		message_thread.join();
 }
+
+#include "open_gl_wrapper.hpp"

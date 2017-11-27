@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <functional>
 #include "texture.h"
 #include "text.h"
 
@@ -14,13 +15,18 @@ struct color {
 };
 
 class open_gl_wrapper {
+private:
+	void set_render_thread(const std::function<void()>&);
+	bool is_running();
+	void setup_context(void* hwnd);
 public:
 	std::unique_ptr<_open_gl_wrapper> impl;
 
 	open_gl_wrapper();
 	~open_gl_wrapper();
 
-	void setup(void* hwnd, window_base* base);
+	template<typename T>
+	void setup(void* hwnd, T& base);
 	void destory(void* hwnd);
 	void bind_to_thread();
 	void clear();

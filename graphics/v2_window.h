@@ -4,7 +4,7 @@
 #include <variant>
 #include <thread>
 
-#include "open_gl_setup.h"
+#include "open_gl_wrapper.h"
 
 enum modifiers {
 	modifiers_none = 0x0,
@@ -231,14 +231,16 @@ struct text_event {
 	char16_t text;
 };
 
-using message_variant = std::variant<int64_t, rbutton_down, rbutton_up, lbutton_down, lbutton_up, resize, scroll, key_down, key_up, text_event, mouse_move, mouse_drag>;
+struct creation {};
+
+using message_variant = std::variant<int64_t, rbutton_down, rbutton_up, lbutton_down, lbutton_up, resize, scroll, key_down, key_up, text_event, mouse_move, mouse_drag, creation>;
 
 message_variant yield_message(void* _hwnd, unsigned int uMsg, unsigned int* _wParam, long* _lParam);
 
 class window_base;
 
 template<typename HANDLER>
-void templated_render_dispatch(window_base* base);
+long* __stdcall templated_win_proc(void* hwnd, unsigned int uMsg, unsigned int* wParam, long* lParam);
 
 
 class window_base {
@@ -248,17 +250,14 @@ protected:
 	std::thread message_thread;
 public:
 	window_base();
-	virtual ~window_base();
-
-	virtual void render() = 0;
-	virtual void initialize_graphics() = 0;
+	~window_base();
 
 	void generic_setup(long* (__stdcall *win_proc)(void*, unsigned int, unsigned int*, long*), uint32_t xsize, uint32_t ysize);
 	void close_window();
 
 	friend message_variant yield_message(void* _hwnd, unsigned int uMsg, unsigned int* _wParam, long* _lParam);
 	template<typename T>
-	friend void templated_render_dispatch(window_base* base);
+	friend long* __stdcall templated_win_proc(void* hwnd, unsigned int uMsg, unsigned int* wParam, long* lParam);
 };
 
 
@@ -266,9 +265,6 @@ template<typename HANDLER>
 class window : public window_base {
 public:
 	HANDLER h;
-
-	virtual void render();
-	virtual void initialize_graphics();
 
 	template<typename ...T, typename = std::enable_if_t<std::is_constructible_v<HANDLER, T...>>>
 	window(T&& ... args);

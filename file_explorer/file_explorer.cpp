@@ -5,7 +5,8 @@
 #include <set>
 #include "object_parsing\\object_parsing.hpp"
 #include "fake_fs\\fake_fs.h"
-#include "graphics\\\v2_window.hpp"
+#include "graphics\\v2_window.hpp"
+#include "graphics\\test_helpers.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -536,12 +537,15 @@ struct empty_window_handler {
 	font test_fallback;
 	font test_font;
 	
-	empty_window_handler() : test_tex("F:\\VS2007Projects\\open_v2_test_data\\test_tx.bmp"), test_fallback("F:\\VS2007Projects\\open_v2_test_data\\unifont-9.0.02.ttf"),
-		// test_font("F:\\VS2007Projects\\open_v2_test_data\\Primitive.ttf", test_fallback) {}
+	empty_window_handler() :
+		//test_tex("F:\\VS2007Projects\\open_v2_test_data\\army_icon_2.dds"),
+		test_tex("F:\\VS2007Projects\\open_v2_test_data\\test_tx.bmp"),
+		test_fallback("F:\\VS2007Projects\\open_v2_test_data\\unifont-9.0.02.ttf"),
+		//test_font("F:\\VS2007Projects\\open_v2_test_data\\Primitive.ttf", test_fallback) {}
 		test_font("F:\\VS2007Projects\\open_v2_test_data\\CreteRound-Regular.otf", test_fallback) {}
 
 	template<typename T>
-	void operator()(T&&) const {
+	void operator()(T&&, window_base& w) const {
 		// do nothing;
 	}
 	void initialize_graphics(open_gl_wrapper& ogl) {
@@ -582,7 +586,7 @@ int __cdecl main() {
 		std::cout << "test window created" << std::endl;
 		getchar();
 
-		//test_window.close_window();
+		test_window.close_window();
 	}
 
 

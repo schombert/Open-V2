@@ -1,4 +1,4 @@
-#include "open_gl_setup.h"
+#include "open_gl_wrapper.hpp"
 #define GLEW_STATIC
 
 #include "glew.h"
@@ -446,30 +446,17 @@ public:
 open_gl_wrapper::open_gl_wrapper() : impl(std::make_unique<_open_gl_wrapper>()) {}
 open_gl_wrapper::~open_gl_wrapper() {}
 
-void open_gl_wrapper::setup(void* hwnd, window_base* base) {
-	impl->render_thread = std::thread([hwnd, base, _this = this]() {
-		const auto iptr = _this->impl.get();
+void open_gl_wrapper::set_render_thread(const std::function<void()> &f) {
+	impl->render_thread = std::thread(f);
+}
 
-		iptr->window_dc = GetDC((HWND)hwnd);
-		iptr->context = setup_opengl_context((HWND)hwnd, iptr->window_dc);
+bool open_gl_wrapper::is_running() {
+	return impl->active.load(std::memory_order::memory_order_acquire);
+}
 
-		base->initialize_graphics();
-
-		while (iptr->active.load(std::memory_order::memory_order_acquire)) {
-			//if we want to slow down to 30 fps ...
-			//const auto start_time = std::chrono::high_resolution_clock::now();
-
-			_this->clear();
-			base->render();
-			_this->display();
-
-			//const auto end_time = std::chrono::high_resolution_clock::now();
-			//const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-			//if (elapsed < (1000 / 30)) {
-			//	Sleep((1000 / 30) - elapsed);
-			//}
-		}
-	});
+void open_gl_wrapper::setup_context(void* hwnd) {
+	impl->window_dc = GetDC((HWND)hwnd);
+	impl->context = setup_opengl_context((HWND)hwnd, impl->window_dc);
 }
 
 void open_gl_wrapper::destory(void* hwnd) {
@@ -497,8 +484,7 @@ void open_gl_wrapper::clear() {
 		glUniform1f(parameters::screen_height, impl->viewport_y);
 	}
 
-	//glUseProgram(...)
-	glClearColor(0.0, 0.0, 1.0, 0.0);
+	//glClearColor(0.0, 0.0, 1.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 

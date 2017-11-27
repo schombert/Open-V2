@@ -14,7 +14,7 @@
 #include "freetype\\ftglyph.h"
 #include "boost\\container\\\flat_map.hpp"
 
-#include "open_gl_setup.h"
+#include "open_gl_wrapper.h"
 
 #undef min
 #undef max
