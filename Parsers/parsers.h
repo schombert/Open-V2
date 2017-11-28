@@ -48,9 +48,9 @@ char* CALL parse_first_and_nth_csv_values(uint32_t nth, char* start, char* end, 
 association_type parse_association_type_b(const char* start, const char* end);
 
 template<size_t N>
-bool is_fixed_token(const token_group& g, const char(&t)[N]);
+bool is_fixed_token(const token_and_type& g, const char(&t)[N]);
 template<size_t N>
-bool is_fixed_token_ci(const token_group& g, const char(&t)[N]);
+bool is_fixed_token_ci(const token_and_type& g, const char(&t)[N]);
 template<typename T>
 bool any_token(const token_group* start, const token_group* end, const T& function);
 template<typename T>

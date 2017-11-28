@@ -6,13 +6,23 @@
 #include <string>
 
 template<>
-inline int token_to<int>(const token_and_type& in) {
+inline int32_t token_to<int32_t>(const token_and_type& in) {
 	return parse_int(in.start, in.end);
 }
 
 template<>
 inline uint32_t token_to<uint32_t>(const token_and_type& in) {
 	return parse_uint(in.start, in.end);
+}
+
+template<>
+inline int16_t token_to<int16_t>(const token_and_type& in) {
+	return (int16_t)parse_int(in.start, in.end);
+}
+
+template<>
+inline uint16_t token_to<uint16_t>(const token_and_type& in) {
+	return (uint16_t)parse_uint(in.start, in.end);
 }
 
 template<>
@@ -236,13 +246,13 @@ std::pair<association_type, T*> parse_association_type(T* start, const char* end
 }
 
 template<size_t N>
-bool is_fixed_token(const token_group& g, const char(&t)[N]) {
-	return is_fixed_token(g.token.start, g.token.end, t);
+bool is_fixed_token(const token_and_type& g, const char(&t)[N]) {
+	return is_fixed_token(g.start, g.end, t);
 }
 
 template<size_t N>
-bool is_fixed_token_ci(const token_group& g, const char(&t)[N]) {
-	return is_fixed_token_ci(g.token.start, g.token.end, t);
+bool is_fixed_token_ci(const token_and_type& g, const char(&t)[N]) {
+	return is_fixed_token_ci(g.start, g.end, t);
 }
 
 const char* parse_token_list(std::vector<token_group>& results, const char* start, const char* end);

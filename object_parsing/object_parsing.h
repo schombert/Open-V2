@@ -29,6 +29,9 @@ T value_from_rh(association_type, const token_and_type& t) {
 	return token_to<T>(t);
 };
 
+inline int discard_from_rh(association_type, const token_and_type&) { return 0; }
+inline int discard_from_full(const token_and_type&, association_type, const token_and_type&) { return 0; }
+
 template<typename T>
 T value_from_full_rh(const token_and_type&, association_type, const token_and_type& t) {
 	return token_to<T>(t);
@@ -65,6 +68,7 @@ void move_to_member(std::vector<V, A>& member, T&& result) {
 
 #define BEGIN_DERIVED_DOMAIN(name, base)    using name = typename base
 #define BEGIN_DOMAIN(name)    using name = typename type_list<>
+#define EMPTY_TYPE(type_name)     ::template cons< typepair< type_name, type_list<type_list<>, type_list<>, type_list<>, type_list<>, type_list<>> >>
 #define BEGIN_TYPE(type_name)     ::template cons< typepair< type_name, typename type_list<type_list<>, type_list<>, type_list<>, type_list<>, type_list<>>
 #define MEMBER_ASSOCIATION(member_name, tag, generating_function) ::template append_to_member<0ui64, typepair<CT_STRING( tag ), function_and_tuple< CT_STRING( member_name ), decltype(generating_function), generating_function >>>
 #define MEMBER_ASSOCIATION_1(member_name, tag, generating_function, parameter) ::template append_to_member<0ui64, typepair<CT_STRING( tag ), function_and_tuple< CT_STRING( member_name ), decltype(generating_function), generating_function, generic_constant< decltype(parameter), parameter> > > >
@@ -116,8 +120,17 @@ bool try_and_fallback(const token_and_type& lhtoken, const T& f1, const U& f2) {
 	return true;
 }
 
-template<typename result_type, typename context>
-result_type parse_object(const token_group* start, const token_group* end) {
+template<typename result_type, typename ... obj_params>
+result_type obj_construction_wrapper(const obj_params& ... params) {
+	if constexpr(std::is_constructible_v<result_type, obj_params...>) {
+		return result_type(params...);
+	} else {
+		return result_type();
+	}
+}
+
+template<typename result_type, typename context, typename ... obj_params>
+result_type parse_object(const token_group* start, const token_group* end, const obj_params& ... params) {
 	using this_in_context = type_map_get_t<context, result_type>;
 	using inheritance_list = type_list_get_t<4ui64, this_in_context>;
 
@@ -160,9 +173,9 @@ result_type parse_object(const token_group* start, const token_group* end) {
 		>
 		>;
 
-	result_type result;
+	result_type result = obj_construction_wrapper<result_type>(params...);
 
-	forall_tokens(start, end, [&result](const token_group &n, const token_group *child_start, const token_group *child_end) {
+	forall_tokens(start, end, [&result, &params ...](const token_group &n, const token_group *child_start, const token_group *child_end) {
 		if (n.association != association_type::list) {
 			if (n.group_size == 0) {
 				if (!try_and_fallback<tag_to_function, function_to_function>(n.token, [&result](auto t) {
@@ -218,18 +231,18 @@ result_type parse_object(const token_group* start, const token_group* end) {
 				}
 			}
 		} else {
-			if (!try_and_fallback<tag_to_generator, function_to_generator>(n.token, [&result, &n, child_start, child_end](const auto t) {
+			if (!try_and_fallback<tag_to_generator, function_to_generator>(n.token, [&result, &n, child_start, child_end, &params ...](const auto t) {
 				using type_passed = typename decltype(t)::type;
 				typename type_passed::function_object()(
 					result, n.token, n.association,
-					parse_object<typename type_passed::type, context>(child_start, child_end)
+					parse_object<typename type_passed::type, context>(child_start, child_end, params ...)
 					);
 				return true;
-			}, [&result, &n, child_start, child_end](const auto t) {
+			}, [&result, &n, child_start, child_end, &params ...](const auto t) {
 				using type_passed = typename decltype(t)::type;
 				typename type_passed::function_object()(
 					result, n.token, n.association,
-					parse_object<typename type_passed::type, context>(child_start, child_end)
+					parse_object<typename type_passed::type, context>(child_start, child_end, params ...)
 					);
 				return true;
 			})) {

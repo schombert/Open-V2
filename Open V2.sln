@@ -59,6 +59,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "graphics", "graphics\graphi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "graphics_gtests", "graphics_gtests\graphics_gtests.vcxproj", "{1AB7DEB9-7B5D-4FA4-BB44-DC268C6C10AD}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gui_definitions", "gui_definitions\gui_definitions.vcxproj", "{FF9513FE-8DE3-4263-9D53-EAF04DC81C8C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -291,6 +293,14 @@ Global
 		{1AB7DEB9-7B5D-4FA4-BB44-DC268C6C10AD}.Release|x64.Build.0 = Release|x64
 		{1AB7DEB9-7B5D-4FA4-BB44-DC268C6C10AD}.Release|x86.ActiveCfg = Release|Win32
 		{1AB7DEB9-7B5D-4FA4-BB44-DC268C6C10AD}.Release|x86.Build.0 = Release|Win32
+		{FF9513FE-8DE3-4263-9D53-EAF04DC81C8C}.Debug|x64.ActiveCfg = Debug|x64
+		{FF9513FE-8DE3-4263-9D53-EAF04DC81C8C}.Debug|x64.Build.0 = Debug|x64
+		{FF9513FE-8DE3-4263-9D53-EAF04DC81C8C}.Debug|x86.ActiveCfg = Debug|Win32
+		{FF9513FE-8DE3-4263-9D53-EAF04DC81C8C}.Debug|x86.Build.0 = Debug|Win32
+		{FF9513FE-8DE3-4263-9D53-EAF04DC81C8C}.Release|x64.ActiveCfg = Release|x64
+		{FF9513FE-8DE3-4263-9D53-EAF04DC81C8C}.Release|x64.Build.0 = Release|x64
+		{FF9513FE-8DE3-4263-9D53-EAF04DC81C8C}.Release|x86.ActiveCfg = Release|Win32
+		{FF9513FE-8DE3-4263-9D53-EAF04DC81C8C}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

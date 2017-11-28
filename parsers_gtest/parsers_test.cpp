@@ -477,10 +477,10 @@ TEST_METHOD(unnested_token_lists, parsers_test) {
 
 	AreEqual(4ui64, r3_list.size());
 	AreEqual(flat_simple + sizeof(flat_simple) - 1, r3);
-	IsTrue(is_fixed_token(r3_list[0], "aaa"));
-	IsTrue(is_fixed_token(r3_list[1], "b"));
-	IsTrue(is_fixed_token(r3_list[2], "cc ccc"));
-	IsTrue(is_fixed_token(r3_list[3], "ddd"));
+	IsTrue(is_fixed_token(r3_list[0].token, "aaa"));
+	IsTrue(is_fixed_token(r3_list[1].token, "b"));
+	IsTrue(is_fixed_token(r3_list[2].token, "cc ccc"));
+	IsTrue(is_fixed_token(r3_list[3].token, "ddd"));
 
 	char flat_terminated[] = " aaa b \"cc ccc\"}ddd    ";
 
@@ -489,9 +489,9 @@ TEST_METHOD(unnested_token_lists, parsers_test) {
 
 	AreEqual(3ui64, r4_list.size());
 	AreEqual(flat_terminated + 16, r4);
-	IsTrue(is_fixed_token(r4_list[0], "aaa"));
-	IsTrue(is_fixed_token(r4_list[1], "b"));
-	IsTrue(is_fixed_token(r4_list[2], "cc ccc"));
+	IsTrue(is_fixed_token(r4_list[0].token, "aaa"));
+	IsTrue(is_fixed_token(r4_list[1].token, "b"));
+	IsTrue(is_fixed_token(r4_list[2].token, "cc ccc"));
 }
 
 TEST_METHOD(comments, parsers_test) {
@@ -505,10 +505,10 @@ TEST_METHOD(comments, parsers_test) {
 
 	AreEqual(4ui64, r3_list.size());
 	AreEqual(flat_simple + sizeof(flat_simple) - 1, r3);
-	IsTrue(is_fixed_token(r3_list[0], "aaa"));
-	IsTrue(is_fixed_token(r3_list[1], "b"));
-	IsTrue(is_fixed_token(r3_list[2], "cc ccc"));
-	IsTrue(is_fixed_token(r3_list[3], "eee"));
+	IsTrue(is_fixed_token(r3_list[0].token, "aaa"));
+	IsTrue(is_fixed_token(r3_list[1].token, "b"));
+	IsTrue(is_fixed_token(r3_list[2].token, "cc ccc"));
+	IsTrue(is_fixed_token(r3_list[3].token, "eee"));
 }
 
 TEST_METHOD(lua_comments, parsers_test) {
@@ -522,10 +522,10 @@ TEST_METHOD(lua_comments, parsers_test) {
 
 	AreEqual(4ui64, r3_list.size());
 	AreEqual(flat_simple + sizeof(flat_simple) - 1, r3);
-	IsTrue(is_fixed_token(r3_list[0], "aaa"));
-	IsTrue(is_fixed_token(r3_list[1], "b"));
-	IsTrue(is_fixed_token(r3_list[2], "cc ccc"));
-	IsTrue(is_fixed_token(r3_list[3], "eee"));
+	IsTrue(is_fixed_token(r3_list[0].token, "aaa"));
+	IsTrue(is_fixed_token(r3_list[1].token, "b"));
+	IsTrue(is_fixed_token(r3_list[2].token, "cc ccc"));
+	IsTrue(is_fixed_token(r3_list[3].token, "eee"));
 }
 
 TEST_METHOD(typed_associated, parsers_test) {
@@ -536,8 +536,8 @@ TEST_METHOD(typed_associated, parsers_test) {
 
 	AreEqual(2ui64, r1_list.size());
 	AreEqual(associtive_pair_eq + sizeof(associtive_pair_eq) - 1, r1);
-	IsTrue(is_fixed_token(r1_list[0], "value"));
-	IsTrue(is_fixed_token(r1_list[1], "0.5"));
+	IsTrue(is_fixed_token(r1_list[0].token, "value"));
+	IsTrue(is_fixed_token(r1_list[1].token, "0.5"));
 	AreEqual(association_type::eq_default, r1_list[0].association);
 	AreEqual(association_type::none, r1_list[1].association);
 	AreEqual(1ui16, r1_list[0].group_size);
@@ -550,8 +550,8 @@ TEST_METHOD(typed_associated, parsers_test) {
 
 	AreEqual(2ui64, r2_list.size());
 	AreEqual(associtive_pair_le + sizeof(associtive_pair_le) - 1, r2);
-	IsTrue(is_fixed_token(r2_list[0], "value"));
-	IsTrue(is_fixed_token(r2_list[1], "0.5"));
+	IsTrue(is_fixed_token(r2_list[0].token, "value"));
+	IsTrue(is_fixed_token(r2_list[1].token, "0.5"));
 	AreEqual(association_type::le, r2_list[0].association);
 	AreEqual(association_type::none, r2_list[1].association);
 	AreEqual(1ui16, r2_list[0].group_size);
@@ -564,8 +564,8 @@ TEST_METHOD(typed_associated, parsers_test) {
 
 	AreEqual(2ui64, r3_list.size());
 	AreEqual(associtive_pair_auto + sizeof(associtive_pair_auto) - 1, r3);
-	IsTrue(is_fixed_token(r3_list[0], "value"));
-	IsTrue(is_fixed_token(r3_list[1], "0.5"));
+	IsTrue(is_fixed_token(r3_list[0].token, "value"));
+	IsTrue(is_fixed_token(r3_list[1].token, "0.5"));
 	AreEqual(association_type::list, r3_list[0].association);
 	AreEqual(association_type::none, r3_list[1].association);
 	AreEqual(1ui16, r3_list[0].group_size);
@@ -596,7 +596,7 @@ TEST_METHOD(empty_associated_list, parsers_test) {
 
 	AreEqual(1ui64, r1_list.size());
 	AreEqual(associtive_pair_eq + sizeof(associtive_pair_eq) - 1, r1);
-	IsTrue(is_fixed_token(r1_list[0], "key"));
+	IsTrue(is_fixed_token(r1_list[0].token, "key"));
 	AreEqual(association_type::list, r1_list[0].association);
 	AreEqual(0ui16, r1_list[0].group_size);
 }
@@ -609,10 +609,10 @@ TEST_METHOD(associated_list, parsers_test) {
 
 	AreEqual(4ui64, r1_list.size());
 	AreEqual(associtive_pair_eq + sizeof(associtive_pair_eq) - 1, r1);
-	IsTrue(is_fixed_token(r1_list[0], "key"));
-	IsTrue(is_fixed_token(r1_list[1], "value"));
-	IsTrue(is_fixed_token(r1_list[2], "b b"));
-	IsTrue(is_fixed_token(r1_list[3], "c"));
+	IsTrue(is_fixed_token(r1_list[0].token, "key"));
+	IsTrue(is_fixed_token(r1_list[1].token, "value"));
+	IsTrue(is_fixed_token(r1_list[2].token, "b b"));
+	IsTrue(is_fixed_token(r1_list[3].token, "c"));
 	AreEqual(association_type::list, r1_list[0].association);
 	AreEqual(association_type::none, r1_list[1].association);
 	AreEqual(association_type::none, r1_list[2].association);
@@ -631,11 +631,11 @@ TEST_METHOD(associated_list_of_pairs, parsers_test) {
 
 	AreEqual(5ui64, r1_list.size());
 	AreEqual(associtive_pair_eq + sizeof(associtive_pair_eq) - 1, r1);
-	IsTrue(is_fixed_token(r1_list[0], "key"));
-	IsTrue(is_fixed_token(r1_list[1], "value"));
-	IsTrue(is_fixed_token(r1_list[2], "b b"));
-	IsTrue(is_fixed_token(r1_list[3], "c"));
-	IsTrue(is_fixed_token(r1_list[4], "0"));
+	IsTrue(is_fixed_token(r1_list[0].token, "key"));
+	IsTrue(is_fixed_token(r1_list[1].token, "value"));
+	IsTrue(is_fixed_token(r1_list[2].token, "b b"));
+	IsTrue(is_fixed_token(r1_list[3].token, "c"));
+	IsTrue(is_fixed_token(r1_list[4].token, "0"));
 	AreEqual(association_type::list, r1_list[0].association);
 	AreEqual(association_type::eq_default, r1_list[1].association);
 	AreEqual(association_type::none, r1_list[2].association);
@@ -664,17 +664,17 @@ TEST_METHOD(nested_lists, parsers_test) {
 
 	AreEqual(11ui64, r3_list.size());
 	AreEqual(nlist + sizeof(nlist) - 1, r3);
-	IsTrue(is_fixed_token(r3_list[0], "l1"));
-	IsTrue(is_fixed_token(r3_list[1], "v1"));
-	IsTrue(is_fixed_token(r3_list[2], "a"));
-	IsTrue(is_fixed_token(r3_list[3], "v2"));
-	IsTrue(is_fixed_token(r3_list[4], "v2_1"));
-	IsTrue(is_fixed_token(r3_list[5], "s1"));
-	IsTrue(is_fixed_token(r3_list[6], "v2_2"));
-	IsTrue(is_fixed_token(r3_list[7], "s2"));
-	IsTrue(is_fixed_token(r3_list[8], "extra"));
-	IsTrue(is_fixed_token(r3_list[9], "l2"));
-	IsTrue(is_fixed_token(r3_list[10], "6"));
+	IsTrue(is_fixed_token(r3_list[0].token, "l1"));
+	IsTrue(is_fixed_token(r3_list[1].token, "v1"));
+	IsTrue(is_fixed_token(r3_list[2].token, "a"));
+	IsTrue(is_fixed_token(r3_list[3].token, "v2"));
+	IsTrue(is_fixed_token(r3_list[4].token, "v2_1"));
+	IsTrue(is_fixed_token(r3_list[5].token, "s1"));
+	IsTrue(is_fixed_token(r3_list[6].token, "v2_2"));
+	IsTrue(is_fixed_token(r3_list[7].token, "s2"));
+	IsTrue(is_fixed_token(r3_list[8].token, "extra"));
+	IsTrue(is_fixed_token(r3_list[9].token, "l2"));
+	IsTrue(is_fixed_token(r3_list[10].token, "6"));
 	AreEqual(8ui16, r3_list[0].group_size);
 	AreEqual(1ui16, r3_list[1].group_size);
 	AreEqual(0ui16, r3_list[2].group_size);
@@ -704,22 +704,22 @@ TEST_METHOD(element_if_forall_and_find, parsers_test) {
 
 	IsFalse(any_token(&r3_list[0], &r3_list[0] + 11,
 							  [](const token_group &n, const token_group *child_start, const token_group *child_end) {
-		return is_fixed_token(n, "s1"); }));
+		return is_fixed_token(n.token, "s1"); }));
 	IsTrue(all_tokens(&r3_list[0], &r3_list[0] + 11,
 							  [](const token_group &n, const token_group *child_start, const token_group *child_end) {
 		return n.association == association_type::list || n.association == association_type::eq_default; }));
 	IsTrue(any_token_recursive(&r3_list[0], &r3_list[0] + 11,
 									   [](const token_group &n, const token_group *child_start, const token_group *child_end) {
-		return is_fixed_token(n, "s1"); }));
+		return is_fixed_token(n.token, "s1"); }));
 	IsFalse(all_tokens_recursive(&r3_list[0], &r3_list[0] + 11,
 										 [](const token_group &n, const token_group *child_start, const token_group *child_end) {
 		return n.association == association_type::eq_default; }));
 	IsTrue(&r3_list[5] == find_token_recursive(&r3_list[0], &r3_list[0] + 11,
 													   [](const token_group &n, const token_group *child_start, const token_group *child_end) {
-		return is_fixed_token(n, "s1"); }));
+		return is_fixed_token(n.token, "s1"); }));
 	IsTrue(&r3_list[0] + 11 == find_token(&r3_list[0], &r3_list[0] + 11,
 												  [](const token_group &n, const token_group *child_start, const token_group *child_end) {
-		return is_fixed_token(n, "s1"); }));
+		return is_fixed_token(n.token, "s1"); }));
 
 	IsTrue(all_tokens(&r3_list[0], &r3_list[0] + 11,
 							  [](const token_group &n, const token_group *child_start, const token_group *child_end) {
@@ -757,10 +757,10 @@ TEST_METHOD(parse_lua_float, parsers_test) {
 
 	forall_tokens(&r3_list[0], &r3_list[0] + r3_list.size(),
 				  [&float_found, &diplomacy_count](const token_group &n, token_group *child_start, token_group *child_end) {
-		if (is_fixed_token(n, "diplomacy")) {
+		if (is_fixed_token(n.token, "diplomacy")) {
 			forall_tokens(child_start, child_end, [&float_found, &diplomacy_count](token_group &n, token_group *child_start, const token_group *child_end) {
 				++diplomacy_count;
-				if (is_fixed_token_ci(n, "prestige_reduction")) {
+				if (is_fixed_token_ci(n.token, "prestige_reduction")) {
 					if (child_start != child_end) {
 						float_found = is_fp(child_start->token.start, child_start->token.end);
 					}

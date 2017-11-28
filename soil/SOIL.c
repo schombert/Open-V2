@@ -1603,12 +1603,14 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 				/*	and remember, DXT uncompressed uses BGR(A),
 					so swap to RGB(A) for ALL MIPmap levels	*/
 
-				glTexStorage2D(opengl_texture_type, mipmaps+1, S3TC_type, width, height);
-				if(S3TC_type == GL_RGBA8)
+				
+				if (S3TC_type == GL_RGBA8) {
+					glTexStorage2D(opengl_texture_type, mipmaps + 1, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, width, height);
 					glTexSubImage2D(opengl_texture_type, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, DDS_data);
-				else if (S3TC_type == GL_RGB8)
+				} else if (S3TC_type == GL_RGB8) {
+					glTexStorage2D(opengl_texture_type, mipmaps + 1, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, width, height);
 					glTexSubImage2D(opengl_texture_type, 0, 0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, DDS_data);
-				//glTexSubImage2D(cf_target, 0, 0, 0, width, height, S3TC_type, GL_UNSIGNED_BYTE, DDS_data);
+				}
 
 			} else
 			{

@@ -283,6 +283,37 @@ TEST_METHOD(compile_time_default_list_associations, object_parsing_tests) {
 	EXPECT_EQ(-1, result.contents[1].second);
 }
 
+struct strange_object {
+	int stored;
+	strange_object(int s) : stored(s) {}
+
+	struct add_to_member {
+		strange_object& p;
+		add_to_member(strange_object& o) : p(o) {}
+		add_to_member& operator=(int i) { p.stored += i; return *this; }
+	};
+
+	add_to_member addition_target() { return add_to_member(*this); }
+};
+
+MEMBER_DEF(strange_object, addition_target(), "value")
+
+BEGIN_DOMAIN(strange_object_domain)
+BEGIN_TYPE(strange_object)
+MEMBER_ASSOCIATION("value", "v", value_from_rh<int>)
+END_TYPE
+END_DOMAIN
+
+TEST_METHOD(parse_with_default_constructor_argument, object_parsing_tests) {
+
+	std::vector<token_group> parse_results;
+	parse_pdx_file(parse_results, RANGE("v = 1 v = 3"));
+
+	strange_object result = parse_object<strange_object, strange_object_domain>(&parse_results[0], &parse_results[0] + parse_results.size(), 4);
+
+	EXPECT_EQ(8, result.stored);
+}
+
 TEST_METHOD(compile_tiime_derived_object_parsing, object_parsing_tests) {
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, RANGE("x = 2.0 svalue = blah"));
