@@ -26,6 +26,16 @@ inline uint16_t token_to<uint16_t>(const token_and_type& in) {
 }
 
 template<>
+inline int8_t token_to<int8_t>(const token_and_type& in) {
+	return (int8_t)parse_int(in.start, in.end);
+}
+
+template<>
+inline uint8_t token_to<uint8_t>(const token_and_type& in) {
+	return (uint8_t)parse_uint(in.start, in.end);
+}
+
+template<>
 inline float token_to<float>(const token_and_type& in) {
 	return parse_float(in.start, in.end);
 }
@@ -211,7 +221,7 @@ bool is_fixed_token_ci(const char* start, const char* end, const char(&t)[N]) {
 
 template<size_t N>
 bool has_fixed_prefix(const  char* start, const  char* end, const char(&t)[N]) {
-	if (end - start < (N - 1))
+	if (end - start < ((ptrdiff_t)N - 1))
 		return false;
 	for (unsigned int i = 0; i < N - 1; ++i) {
 		if (start[i] != t[i])

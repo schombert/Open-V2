@@ -48,12 +48,15 @@ public:
 	bool b = false;
 	bool c = false;
 	bool d = false;
+
+	void set_b(bool i) { b = i; }
 };
 
 MEMBER_DEF(three_bool, a, "a")
 MEMBER_DEF(three_bool, b, "b")
 MEMBER_DEF(three_bool, c, "c")
 MEMBER_DEF(three_bool, d, "d")
+MEMBER_FDEF(three_bool, set_b, "alt-b")
 
 class three_bool_vector {
 public:
@@ -199,12 +202,10 @@ TEST(member_assignment_test, object_parsing_tests) {
 	three_bool test_obj;
 	test_obj.a = true;
 
-	using get_class = _get_member<CT_STRING("a"), three_bool>;
-	EXPECT_TRUE(get_class::get(test_obj));
-	get_class::get(test_obj) = false;
+	_set_member<CT_STRING("a"), three_bool>::set(test_obj, false);
 	EXPECT_FALSE(test_obj.a);
 
-	move_to_member(_get_member<CT_STRING("b"), three_bool>::get(test_obj), true);
+	_set_member<CT_STRING("alt-b"), three_bool>::set(test_obj, true);
 	EXPECT_TRUE(test_obj.b);
 }
 

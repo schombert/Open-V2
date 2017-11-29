@@ -15,14 +15,17 @@ namespace ui {
 		unknown_button_orientation,
 		unknown_button_shortcut,
 		unexpected_button_rotation,
-		unexpected_button_attribute
+		unexpected_button_attribute,
+		unknown_icon_orientation,
+		unexpected_icon_rotation,
+		unexpected_icon_attribute
 	};
 
-	enum class element_types {
-		button
+	enum class element_types : uint8_t {
+		button, icon
 	};
 
-	class xy_pair {
+	struct xy_pair {
 		int16_t x = 0;
 		int16_t y = 0;
 	};
@@ -40,7 +43,7 @@ namespace ui {
 		static constexpr uint8_t rotation_90_left          = 0x10;
 		static constexpr uint8_t rotation_90_right         = 0x20;
 		static constexpr uint8_t graphical_obj_type_mask   = 0x40;
-		static constexpr uint8_t graphical_obj_qtex        = 0x00;
+		static constexpr uint8_t graphical_obj_qtex_type   = 0x00;
 		static constexpr uint8_t graphical_obj_sprite_type = 0x40;
 
 		xy_pair position;
@@ -55,28 +58,59 @@ namespace ui {
 		virtual_key shortcut = virtual_key::NONE;
 	};
 
+	struct icon_def {
+		static constexpr uint8_t orientation_mask = 0x07;
+		static constexpr uint8_t orientation_center = 0x00;
+		static constexpr uint8_t orientation_lower_left = 0x01;
+		static constexpr uint8_t orientation_lower_right = 0x02;
+		static constexpr uint8_t orientation_upper_left = 0x03;
+		static constexpr uint8_t orientation_upper_right = 0x04;
+		static constexpr uint8_t orientation_center_down = 0x05;
+		static constexpr uint8_t orientation_center_up = 0x06;
+
+		static constexpr uint8_t rotation_mask = 0x30;
+		static constexpr uint8_t rotation_upright = 0x00;
+		static constexpr uint8_t rotation_90_left = 0x10;
+		static constexpr uint8_t rotation_90_right = 0x20;
+
+		xy_pair position;
+		float scale = 1.0f;
+		uint16_t graphical_object_handle = 0;
+		uint8_t frame = 0;
+		uint8_t flags = 0;
+	};
+
 	struct name_maps {
-		boost::container::flat_map<std::string, uint16_t> button_names;
+		std::vector<std::string> button_names;
+		std::vector<std::string> icon_names;
+
+		const std::string& get_name(element_types t, uint16_t handle) {
+			switch (t) {
+				case element_types::button:
+					return button_names[handle - 1];
+				case element_types::icon:
+					return icon_names[handle - 1];
+			}
+		}
 	};
 
 	struct definitions {
 		std::vector<button_def> buttons;
+		std::vector<icon_def> icons;
 	};
 };
 
 using text_handle_lookup = std::function<uint16_t(const char*, const char*)>;
 using font_handle_lookup = std::function<uint16_t(const char*, const char*)>;
-using qtex_lookup = std::function<uint16_t(const char*, const char*)>;
-using sprite_type_lookup = std::function<uint16_t(const char*, const char*)>;
+using gobj_lookup = std::function<uint16_t(const char*, const char*)>;
 using sound_lookup = std::function<uint16_t(const char*, const char*)>;
 
 void load_ui_definitions_from_directory(
 	const directory& source_directory,
 	ui::name_maps& nmaps,
 	ui::definitions& defs,
-	std::vector<ui::errors>& errors_generated,
+	std::vector<std::pair<std::string,ui::errors>>& errors_generated,
 	const text_handle_lookup& th_f,
 	const font_handle_lookup& fh_f,
-	const qtex_lookup& qt_f,
-	const sprite_type_lookup& st_f,
+	const gobj_lookup& qt_f,
 	const sound_lookup& sl_f);

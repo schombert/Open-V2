@@ -417,7 +417,7 @@ struct guiButtonType {
 	std::string Orientation;
 	std::string clicksound;
 
-	std::string delayedtoottipText;
+	std::string delayedtooltipText;
 	std::string format;
 	xy_pair position;
 	std::string rotation;
@@ -440,7 +440,7 @@ MEMBER_DEF(guiButtonType, buttonText, "buttonText");
 MEMBER_DEF(guiButtonType, buttonFont, "buttonFont");
 MEMBER_DEF(guiButtonType, Orientation, "Orientation");
 MEMBER_DEF(guiButtonType, clicksound, "clicksound");
-MEMBER_DEF(guiButtonType, delayedtoottipText, "delayedtoottipText");
+MEMBER_DEF(guiButtonType, delayedtooltipText, "delayedtooltipText");
 MEMBER_DEF(guiButtonType, format, "format");
 MEMBER_DEF(guiButtonType, position, "position");
 MEMBER_DEF(guiButtonType, rotation, "rotation");
@@ -962,7 +962,7 @@ EMPTY_TYPE(empty_type)
 	BEGIN_TYPE(guiButtonType)
 		MEMBER_TYPE_ASSOCIATION("position", "position", xy_pair)
 		MEMBER_TYPE_ASSOCIATION("size", "size", xy_pair)
-		MEMBER_ASSOCIATION("delayedtoottipText", "delayedtoottiptext", value_from_rh<std::string>)
+		MEMBER_ASSOCIATION("delayedtooltipText", "delayedtooltiptext", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("format", "format", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("spriteType", "spritetype", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("rotation", "rotation", value_from_rh<std::string>)
@@ -1426,21 +1426,17 @@ int __cdecl main() {
 
 
 		std::set<std::string> entries;
-		int hasboth_count = 0;
-		for (auto& i : guiButtonType::all_buttons) {
-			entries.insert(i.tooltip);
-			if (i.quadTextureSprite.length() != 0 && i.spriteType.length() != 0)
-				++hasboth_count;
+		for (auto& i : instantTextBoxType::all_items) {
+			entries.insert(i.textureFile);
 		}
 
-		std::cout << "guiButtonType count: " << guiButtonType::all_buttons.size() << std::endl;
-		std::cout << "guiButtonType count with both quadTextureSprite and spriteType: " << hasboth_count << std::endl;
-
-		std::cout << "guiButtonType.XXXX entries: " << std::endl;
+		std::cout << "instantTextBoxType.XXXX entries: " << std::endl;
 
 		for (auto& k : entries) {
 			std::cout << k << std::endl;
 		}
+
+		std::cout << "guiButtonType count: " << guiButtonType::all_buttons.size() << std::endl;
 
 		std::cout << "iconType count: " << iconType::all_items.size() << std::endl;
 		std::cout << "iconType unknown keys:" << std::endl;

@@ -13,66 +13,31 @@ struct empty_type {
 struct parsing_environment {
 	ui::name_maps& nmaps;
 	ui::definitions& defs;
-	std::vector<ui::errors>& errors_generated;
-	const text_handle_lookup& th_f;
-	const font_handle_lookup& fh_f;
-	const qtex_lookup& qt_f;
-	const sprite_type_lookup& st_f;
-	const sound_lookup& sl_f;
+	std::vector<std::pair<std::string, ui::errors>>& errors_generated;
+	const text_handle_lookup th_f;
+	const font_handle_lookup fh_f;
+	const gobj_lookup gl_f;
+	const sound_lookup sl_f;
+	std::string file;
+
+	parsing_environment(
+		ui::name_maps& a,
+		ui::definitions& b,
+		std::vector<std::pair<std::string, ui::errors>>& c,
+		const text_handle_lookup& d,
+		const font_handle_lookup& e,
+		const gobj_lookup& f,
+		const sound_lookup& h) : 
+	nmaps(a), defs(b), errors_generated(c), th_f(d), fh_f(e), gl_f(f), sl_f(h) {}
 };
 
 std::string label_empty_type(const token_and_type& a, association_type, empty_type&) {
 	return std::string(a.start, a.end);
 }
 
-struct assign_to_bitfield8 {
-	uint8_t& target;
-	assign_to_bitfield8(uint8_t& t) : target(t) {}
-	assign_to_bitfield8& operator=(uint8_t i) { target |= i; return *this; }
-};
-
-struct assign_to_bitfield8_or_err {
-	uint8_t& target;
-	std::vector<ui::errors>& product;
-	const ui::errors error_type;
-	assign_to_bitfield8_or_err(uint8_t& t, std::vector<ui::errors>& p, ui::errors e) : target(t), product(p), error_type(e) {}
-	assign_to_bitfield8_or_err& operator=(std::optional<uint8_t> &i) {
-		if (i)
-			target |= *i;
-		else
-			product.push_back(error_type);
-		return *this;
-	}
-};
-
-struct error_on_assignment {
-	std::vector<ui::errors>& product;
-	const ui::errors error_type;
-	error_on_assignment(std::vector<ui::errors>& p, ui::errors e) : product(p), error_type(e) {}
-	error_on_assignment& operator=(empty_type&) { product.push_back(error_type); return *this; }
-	error_on_assignment& operator=(int) { product.push_back(error_type); return *this; }
-};
-
-struct error_on_non_empty {
-	std::vector<ui::errors>& product;
-	const ui::errors error_type;
-	error_on_non_empty(std::vector<ui::errors>& p, ui::errors e) : product(p), error_type(e) {}
-	error_on_non_empty& operator=(const token_and_type& t) {
-		if(t.start != t.end)
-			product.push_back(error_type);
-		return *this; 
-	}
-};
-
-struct token_to_texth_assignment {
-	uint16_t& handle;
-	parsing_environment& env;
-	token_to_texth_assignment(uint16_t& h, parsing_environment& e) : handle(h), env(e) {}
-	token_to_texth_assignment& operator=(const token_and_type& t) {
-		handle = env.th_f(t.start, t.end);
-		return *this;
-	}
-};
+int discard_empty_type(const token_and_type& a, association_type, empty_type&) {
+	return 0;
+}
 
 template<typename gui_item_type>
 struct global_consume_gui_item {
@@ -95,22 +60,195 @@ struct add_string_to_set {
 	}
 };
 
-struct discard_int {
-	discard_int& operator=(int) {
-		return *this;
-	}
-};
-
-struct xy_pair {
-	int x;
-	int y;
-};
-
-MEMBER_DEF(xy_pair, x, "x");
-MEMBER_DEF(xy_pair, y, "y");
+MEMBER_DEF(ui::xy_pair, x, "x");
+MEMBER_DEF(ui::xy_pair, y, "y");
 
 token_and_type token_from_rh(association_type, const token_and_type& t) {
 	return t;
+}
+
+std::optional<virtual_key> virtual_key_from_rh(association_type, const token_and_type& t) {
+	if (t.start == t.end)
+		return std::optional<virtual_key>();
+	if (t.start + 1 == t.end) {
+		if ((*t.start >= 'a') & (*t.start <= 'z')) {
+			return virtual_key((uint8_t)virtual_key::A + (*t.start - 'a'));
+		} else if ((*t.start >= 'A') & (*t.start <= 'Z')) {
+			return virtual_key((uint8_t)virtual_key::A + (*t.start - 'A'));
+		} else if ((*t.start >= '0') & (*t.start <= '9')) {
+			return virtual_key((uint8_t)virtual_key::NUM_0 + (*t.start - '0'));
+		} else if (*t.start == ':') {
+			return virtual_key::SEMICOLON;
+		} else if (*t.start == ';') {
+			return virtual_key::SEMICOLON;
+		} else if (*t.start == '+') {
+			return virtual_key::PLUS;
+		} else if (*t.start == '=') {
+			return virtual_key::PLUS;
+		} else if (*t.start == '<') {
+			return virtual_key::COMMA;
+		} else if (*t.start == ',') {
+			return virtual_key::COMMA;
+		} else if (*t.start == '-') {
+			return virtual_key::MINUS;
+		} else if (*t.start == '_') {
+			return virtual_key::MINUS;
+		} else if (*t.start == '.') {
+			return virtual_key::PERIOD;
+		} else if (*t.start == '>') {
+			return virtual_key::PERIOD;
+		} else if (*t.start == '?') {
+			return virtual_key::FORWARD_SLASH;
+		} else if (*t.start == '/') {
+			return virtual_key::FORWARD_SLASH;
+		} else if (*t.start == '~') {
+			return virtual_key::TILDA;
+		} else if (*t.start == '`') {
+			return virtual_key::TILDA;
+		} else if (*t.start == '{') {
+			return virtual_key::OPEN_BRACKET;
+		} else if (*t.start == '[') {
+			return virtual_key::OPEN_BRACKET;
+		} else if (*t.start == '|') {
+			return virtual_key::BACK_SLASH;
+		} else if (*t.start == '\\') {
+			return virtual_key::BACK_SLASH;
+		} else if (*t.start == '}') {
+			return virtual_key::CLOSED_BRACKET;
+		} else if (*t.start == ']') {
+			return virtual_key::CLOSED_BRACKET;
+		} else if (*t.start == '\'') {
+			return virtual_key::QUOTE;
+		} else if (*t.start == '\"') {
+			return virtual_key::QUOTE;
+		}
+	}
+
+	if (is_fixed_token_ci(t, "none")) {
+		return virtual_key::NONE;
+	} else if (is_fixed_token_ci(t, "backspace")) {
+		return virtual_key::BACK;
+	} else if (is_fixed_token_ci(t, "back")) {
+		return virtual_key::BACK;
+	} else if (is_fixed_token_ci(t, "tab")) {
+		return virtual_key::TAB;
+	} else if (is_fixed_token_ci(t, "return")) {
+		return virtual_key::RETURN;
+	} else if (is_fixed_token_ci(t, "enter")) {
+		return virtual_key::RETURN;
+	} else if (is_fixed_token_ci(t, "esc")) {
+		return virtual_key::ESCAPE;
+	} else if (is_fixed_token_ci(t, "escape")) {
+		return virtual_key::ESCAPE;
+	} else if (is_fixed_token_ci(t, "space")) {
+		return virtual_key::SPACE;
+	} else if (is_fixed_token_ci(t, "page_up")) {
+		return virtual_key::PRIOR;
+	} else if (is_fixed_token_ci(t, "page_down")) {
+		return virtual_key::NEXT;
+	} else if (is_fixed_token_ci(t, "end")) {
+		return virtual_key::END;
+	} else if (is_fixed_token_ci(t, "home")) {
+		return virtual_key::HOME;
+	} else if (is_fixed_token_ci(t, "left")) {
+		return virtual_key::LEFT;
+	} else if (is_fixed_token_ci(t, "up")) {
+		return virtual_key::UP;
+	} else if (is_fixed_token_ci(t, "right")) {
+		return virtual_key::RIGHT;
+	} else if (is_fixed_token_ci(t, "down")) {
+		return virtual_key::DOWN;
+	} else if (is_fixed_token_ci(t, "select")) {
+		return virtual_key::SELECT;
+	} else if (is_fixed_token_ci(t, "insert")) {
+		return virtual_key::INSERT;
+	} else if (is_fixed_token_ci(t, "delete")) {
+		return virtual_key::DELETE_KEY;
+	} else if (is_fixed_token_ci(t, "del")) {
+		return virtual_key::DELETE_KEY;
+	} else if (is_fixed_token_ci(t, "f1")) {
+		return virtual_key::F1;
+	} else if (is_fixed_token_ci(t, "f2")) {
+		return virtual_key::F2;
+	} else if (is_fixed_token_ci(t, "f3")) {
+		return virtual_key::F3;
+	} else if (is_fixed_token_ci(t, "f4")) {
+		return virtual_key::F4;
+	} else if (is_fixed_token_ci(t, "f5")) {
+		return virtual_key::F5;
+	} else if (is_fixed_token_ci(t, "f6")) {
+		return virtual_key::F6;
+	} else if (is_fixed_token_ci(t, "f7")) {
+		return virtual_key::F7;
+	} else if (is_fixed_token_ci(t, "f8")) {
+		return virtual_key::F8;
+	} else if (is_fixed_token_ci(t, "f9")) {
+		return virtual_key::F9;
+	} else if (is_fixed_token_ci(t, "f10")) {
+		return virtual_key::F10;
+	} else if (is_fixed_token_ci(t, "f11")) {
+		return virtual_key::F11;
+	} else if (is_fixed_token_ci(t, "f12")) {
+		return virtual_key::F12;
+	} else if (is_fixed_token_ci(t, "f13")) {
+		return virtual_key::F13;
+	} else if (is_fixed_token_ci(t, "f14")) {
+		return virtual_key::F14;
+	} else if (is_fixed_token_ci(t, "f15")) {
+		return virtual_key::F15;
+	} else if (is_fixed_token_ci(t, "f16")) {
+		return virtual_key::F16;
+	} else if (is_fixed_token_ci(t, "f17")) {
+		return virtual_key::F17;
+	} else if (is_fixed_token_ci(t, "f18")) {
+		return virtual_key::F18;
+	} else if (is_fixed_token_ci(t, "f19")) {
+		return virtual_key::F19;
+	} else if (is_fixed_token_ci(t, "f20")) {
+		return virtual_key::F20;
+	} else if (is_fixed_token_ci(t, "f21")) {
+		return virtual_key::F21;
+	} else if (is_fixed_token_ci(t, "f22")) {
+		return virtual_key::F22;
+	} else if (is_fixed_token_ci(t, "f23")) {
+		return virtual_key::F23;
+	} else if (is_fixed_token_ci(t, "f24")) {
+		return virtual_key::F24;
+	} else if (is_fixed_token_ci(t, "numpad0")) {
+		return virtual_key::NUMPAD0;
+	} else if (is_fixed_token_ci(t, "numpad1")) {
+		return virtual_key::NUMPAD1;
+	} else if (is_fixed_token_ci(t, "numpad2")) {
+		return virtual_key::NUMPAD2;
+	} else if (is_fixed_token_ci(t, "numpad3")) {
+		return virtual_key::NUMPAD3;
+	} else if (is_fixed_token_ci(t, "numpad4")) {
+		return virtual_key::NUMPAD4;
+	} else if (is_fixed_token_ci(t, "numpad5")) {
+		return virtual_key::NUMPAD5;
+	} else if (is_fixed_token_ci(t, "numpad6")) {
+		return virtual_key::NUMPAD6;
+	} else if (is_fixed_token_ci(t, "numpad7")) {
+		return virtual_key::NUMPAD7;
+	} else if (is_fixed_token_ci(t, "numpad8")) {
+		return virtual_key::NUMPAD8;
+	} else if (is_fixed_token_ci(t, "numpad9")) {
+		return virtual_key::NUMPAD9;
+	} else if (is_fixed_token_ci(t, "multiply")) {
+		return virtual_key::MULTIPLY;
+	} else if (is_fixed_token_ci(t, "add")) {
+		return virtual_key::ADD;
+	} else if (is_fixed_token_ci(t, "separator")) {
+		return virtual_key::SEPARATOR;
+	} else if (is_fixed_token_ci(t, "subtract")) {
+		return virtual_key::SUBTRACT;
+	} else if (is_fixed_token_ci(t, "decimal")) {
+		return virtual_key::DECIMAL;
+	} else if (is_fixed_token_ci(t, "divide")) {
+		return virtual_key::DIVIDE;
+	}
+
+	return std::optional<virtual_key>();
 }
 
 std::optional<uint8_t> button_orientation_from_rh(association_type, const token_and_type& t) {
@@ -135,109 +273,177 @@ std::optional<uint8_t> button_format_from_rh(association_type, const token_and_t
 	return std::optional<uint8_t>();
 }
 
-
+std::optional<uint8_t> button_rotation_from_rh(association_type, const token_and_type& t) {
+	if (is_fixed_token_ci(t, "-1.5708")) {
+		return ui::button_def::rotation_90_left;
+	} else if (is_fixed_token_ci(t, "1.5708")) {
+		return ui::button_def::rotation_90_right;
+	} else if (token_to<double>(t) == 0.0) {
+		return ui::button_def::rotation_upright;
+	}
+	return std::optional<uint8_t>();
+}
 
 struct guiButtonType {
 	ui::button_def internal_definition;
+	const parsing_environment& env;
 
-	parsing_environment& env;
-
-	guiButtonType(parsing_environment& e) : env(e) {};
-
-	static std::set<std::string> unknown_keys;
-
-	static std::vector<guiButtonType> all_buttons;
-	static void add_global(guiButtonType&& in) { all_buttons.emplace_back(std::move(in)); }
+	guiButtonType(const parsing_environment& e) : env(e) {};
 
 	std::string name;
-	std::string quadTextureSprite;
-	std::string buttonText; // should be int from global test key
-	std::string buttonFont; // should be id from font table
-	std::string clicksound;
 
-	xy_pair position;
-	std::string rotation;
-	std::string shortcut;
-	xy_pair size;
-	std::string spriteType;
-
-	token_to_texth_assignment buttonText() {
-		return token_to_texth_assignment(internal_definition.text_handle, env);
+	void buttonText(const token_and_type& t) {
+		internal_definition.text_handle = env.th_f(t.start, t.end);
 	}
-	error_on_non_empty tooltip() {
-		return error_on_non_empty(env.errors_generated, ui::errors::expected_tooltip_empty_for_button);
+	void clicksound(const token_and_type& t) {
+		internal_definition.clicksound_handle = env.sl_f(t.start, t.end);
 	}
-	error_on_non_empty tooltipText() {
-		return error_on_non_empty(env.errors_generated, ui::errors::expected_tooltiptext_empty_for_button);
+	void quadTextureSprite(const token_and_type& t) {
+		internal_definition.graphical_object_handle = env.gl_f(t.start, t.end);
 	}
-	error_on_non_empty delayedtoottipText() {
-		return error_on_non_empty(env.errors_generated, ui::errors::expected_delayedtooltiptext_empty_for_button);
+	void spriteType(const token_and_type& t) {
+		internal_definition.flags |= ui::button_def::graphical_obj_sprite_type;
+		internal_definition.graphical_object_handle = env.gl_f(t.start, t.end);
 	}
-	assign_to_bitfield8_or_err orientation_bits() {
-		return assign_to_bitfield8_or_err(internal_definition.flags, env.errors_generated, ui::errors::unknown_button_orientation);
+	void buttonFont(const token_and_type& t) {
+		internal_definition.font_handle = env.fh_f(t.start, t.end);
 	}
-	assign_to_bitfield8_or_err format_bits() {
-		return assign_to_bitfield8_or_err(internal_definition.flags, env.errors_generated, ui::errors::expected_button_format_to_be_left);
+	void tooltip(const token_and_type& t) {
+		if (t.start != t.end) 
+			env.errors_generated.emplace_back(env.file, ui::errors::expected_tooltip_empty_for_button);
 	}
-	discard_int discard_member() {
-		return discard_int();
+	void tooltipText(const token_and_type& t) {
+		if (t.start != t.end)
+			env.errors_generated.emplace_back(env.file,  ui::errors::expected_tooltiptext_empty_for_button);
 	}
-	error_on_assignment add_unknown_key() {
-		return error_on_assignment(env.errors_generated, ui::errors::unexpected_button_attribute);
+	void delayedtooltipText(const token_and_type& t) {
+		if (t.start != t.end)
+			env.errors_generated.emplace_back(env.file,  ui::errors::expected_delayedtooltiptext_empty_for_button);
+	}
+	void orientation_bits(std::optional<uint8_t> f) {
+		if (f)
+			internal_definition.flags |= *f;
+		else
+			env.errors_generated.emplace_back(env.file, ui::errors::unknown_button_orientation);
+	}
+	void format_bits(std::optional<uint8_t> f) {
+		if (f)
+			internal_definition.flags |= *f;
+		else
+			env.errors_generated.emplace_back(env.file,  ui::errors::expected_button_format_to_be_left);
+	}
+	void rotation_bits(std::optional<uint8_t> f) {
+		if (f)
+			internal_definition.flags |= *f;
+		else
+			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_button_rotation);
+	}
+	void shortcut(std::optional<virtual_key> f) {
+		if (f)
+			internal_definition.shortcut = *f;
+		else
+			env.errors_generated.emplace_back(env.file, ui::errors::unknown_button_shortcut);
+	}
+	void discard_member(int) {
+	}
+	void add_unknown_key(int) {
+		env.errors_generated.emplace_back(env.file, ui::errors::unexpected_button_attribute);
 	};
 };
 
-std::vector<guiButtonType> guiButtonType::all_buttons;
-std::set<std::string> guiButtonType::unknown_keys;
 
 MEMBER_DEF(guiButtonType, name, "name");
-MEMBER_DEF(guiButtonType, quadTextureSprite, "quadTextureSprite");
-MEMBER_DEF(guiButtonType, buttonText(), "buttonText");
-MEMBER_DEF(guiButtonType, buttonFont, "buttonFont");
-MEMBER_DEF(guiButtonType, orientation_bits(), "Orientation");
-MEMBER_DEF(guiButtonType, clicksound, "clicksound");
-MEMBER_DEF(guiButtonType, delayedtoottipText(), "delayedtoottipText");
-MEMBER_DEF(guiButtonType, format_bits(), "format");
+MEMBER_FDEF(guiButtonType, quadTextureSprite, "quadTextureSprite");
+MEMBER_FDEF(guiButtonType, buttonText, "buttonText");
+MEMBER_FDEF(guiButtonType, buttonFont, "buttonFont");
+MEMBER_FDEF(guiButtonType, orientation_bits, "Orientation");
+MEMBER_FDEF(guiButtonType, clicksound, "clicksound");
+MEMBER_FDEF(guiButtonType, delayedtooltipText, "delayedtooltipText");
+MEMBER_FDEF(guiButtonType, format_bits, "format");
 MEMBER_DEF(guiButtonType, internal_definition.position, "position");
-MEMBER_DEF(guiButtonType, rotation, "rotation");
-MEMBER_DEF(guiButtonType, shortcut, "shortcut");
+MEMBER_FDEF(guiButtonType, rotation_bits, "rotation");
+MEMBER_FDEF(guiButtonType, shortcut, "shortcut");
 MEMBER_DEF(guiButtonType, internal_definition.size, "size");
-MEMBER_DEF(guiButtonType, spriteType, "spriteType");
-MEMBER_DEF(guiButtonType, tooltip(), "tooltip");
-MEMBER_DEF(guiButtonType, tooltipText(), "tooltipText");
-MEMBER_DEF(guiButtonType, discard_member(), "parent");
-MEMBER_DEF(guiButtonType, add_unknown_key(), "unknown_key");
+MEMBER_FDEF(guiButtonType, spriteType, "spriteType");
+MEMBER_FDEF(guiButtonType, tooltip, "tooltip");
+MEMBER_FDEF(guiButtonType, tooltipText, "tooltipText");
+MEMBER_FDEF(guiButtonType, discard_member, "parent");
+MEMBER_FDEF(guiButtonType, add_unknown_key, "unknown_key");
 
+std::optional<uint8_t> icon_orientation_from_rh(association_type, const token_and_type& t) {
+	if (is_fixed_token_ci(t, "center")) {
+		return ui::icon_def::orientation_center;
+	} else if (is_fixed_token_ci(t, "lower_left")) {
+		return ui::icon_def::orientation_lower_left;
+	} else if (is_fixed_token_ci(t, "lower_right")) {
+		return ui::icon_def::orientation_lower_right;
+	} else if (is_fixed_token_ci(t, "upper_left")) {
+		return ui::icon_def::orientation_upper_left;
+	} else if (is_fixed_token_ci(t, "upper_right")) {
+		return ui::icon_def::orientation_upper_right;
+	} else if (is_fixed_token_ci(t, "center_up")) {
+		return ui::icon_def::orientation_center_up;
+	} else if (is_fixed_token_ci(t, "center_down")) {
+		return ui::icon_def::orientation_center_down;
+	}
+	return std::optional<uint8_t>();
+}
+
+std::optional<uint8_t> icon_rotation_from_rh(association_type, const token_and_type& t) {
+	if (is_fixed_token_ci(t, "-1.5708")) {
+		return ui::icon_def::rotation_90_left;
+	} else if (is_fixed_token_ci(t, "1.5708")) {
+		return ui::icon_def::rotation_90_right;
+	} else if (token_to<double>(t) == 0.0) {
+		return ui::icon_def::rotation_upright;
+	}
+	return std::optional<uint8_t>();
+}
 
 struct iconType {
-	static std::set<std::string> unknown_keys;
-	static std::vector<iconType> all_items;
+	ui::icon_def internal_definition;
+	const parsing_environment& env;
 
 	std::string orientation;
 	std::string buttonMesh;
 	std::string frame;
 	std::string name;
-	xy_pair position;
+	ui::xy_pair position;
 	std::string rotation;
 	std::string scale;
 	std::string spriteType;
 
-	static void add_global(iconType&& in) { all_items.emplace_back(std::move(in)); }
-	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
+	iconType(const parsing_environment& e) : env(e) {};
+
+	void orientation_bits(std::optional<uint8_t> f) {
+		if (f)
+			internal_definition.flags |= *f;
+		else
+			env.errors_generated.emplace_back(env.file, ui::errors::unknown_icon_orientation);
+	}
+	void rotation_bits(std::optional<uint8_t> f) {
+		if (f)
+			internal_definition.flags |= *f;
+		else
+			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_icon_rotation);
+	}
+	void gobj_handle(const token_and_type& t) {
+		internal_definition.graphical_object_handle = env.gl_f(t.start, t.end);
+	}
+	void add_unknown_key(int) {
+		env.errors_generated.emplace_back(env.file, ui::errors::unexpected_icon_attribute);
+	};
 };
 
-std::vector<iconType> iconType::all_items;
-std::set<std::string> iconType::unknown_keys;
-
-MEMBER_DEF(iconType, orientation, "orientation");
-MEMBER_DEF(iconType, buttonMesh, "buttonMesh");
-MEMBER_DEF(iconType, frame, "frame");
+MEMBER_FDEF(iconType, orientation_bits, "orientation");
+MEMBER_FDEF(iconType, gobj_handle, "buttonMesh");
+MEMBER_DEF(iconType, internal_definition.frame, "frame");
 MEMBER_DEF(iconType, name, "name");
-MEMBER_DEF(iconType, position, "position");
-MEMBER_DEF(iconType, rotation, "rotation");
-MEMBER_DEF(iconType, scale, "scale");
-MEMBER_DEF(iconType, spriteType, "spriteType");
-MEMBER_DEF(iconType, add_unknown_key(), "unknown_key");
+MEMBER_DEF(iconType, internal_definition.position, "position");
+MEMBER_FDEF(iconType, rotation_bits, "rotation");
+MEMBER_DEF(iconType, internal_definition.scale, "scale");
+MEMBER_FDEF(iconType, gobj_handle, "spriteType");
+MEMBER_FDEF(iconType, add_unknown_key, "unknown_key");
 
 struct instantTextBoxType {
 	static std::set<std::string> unknown_keys;
@@ -245,14 +451,14 @@ struct instantTextBoxType {
 
 	std::string orientation;
 	std::string alwaysTransparent;
-	xy_pair borderSize;
+	ui::xy_pair borderSize;
 	std::string fixedSize;
 	std::string font;
 	std::string format;
 	std::string maxHeight;
 	std::string maxWidth;
 	std::string name;
-	xy_pair position;
+	ui::xy_pair position;
 	std::string text;
 	std::string textureFile;
 
@@ -290,10 +496,10 @@ struct listBoxType {
 	std::string scrollbartype;
 	std::string spacing;
 	std::string step;
-	xy_pair size;
-	xy_pair bordersize;
-	xy_pair position;
-	xy_pair offset;
+	ui::xy_pair size;
+	ui::xy_pair bordersize;
+	ui::xy_pair position;
+	ui::xy_pair offset;
 
 	static void add_global(listBoxType&& in) { all_items.emplace_back(std::move(in)); }
 	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
@@ -322,7 +528,7 @@ struct positionType {
 	static std::vector<positionType> all_items;
 
 	std::string name;
-	xy_pair position;
+	ui::xy_pair position;
 
 	static void add_global(positionType&& in) { all_items.emplace_back(std::move(in)); }
 	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
@@ -356,9 +562,9 @@ struct scrollbarType {
 	std::string stepsize;
 	std::string track;
 	std::string userangelimit;
-	xy_pair bordersize;
-	xy_pair position;
-	xy_pair size;
+	ui::xy_pair bordersize;
+	ui::xy_pair position;
+	ui::xy_pair size;
 
 	global_consume_gui_item<guiButtonType> gui_button() { return global_consume_gui_item<guiButtonType>(); }
 	global_consume_gui_item<iconType> gui_iconType() { return global_consume_gui_item<iconType>(); }
@@ -406,7 +612,7 @@ struct checkboxType {
 	std::string shortcut;
 	std::string tooltip;
 	std::string tooltiptext;
-	xy_pair position;
+	ui::xy_pair position;
 
 	static void add_global(checkboxType&& in) { all_items.emplace_back(std::move(in)); }
 	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
@@ -434,7 +640,7 @@ struct shieldtype {
 	std::string name;
 	std::string rotation;
 	std::string spriteType;
-	xy_pair position;
+	ui::xy_pair position;
 
 	static void add_global(shieldtype&& in) { all_items.emplace_back(std::move(in)); }
 	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
@@ -457,8 +663,8 @@ struct OverlappingElementsBoxType {
 	std::string format;
 	std::string name;
 	std::string spacing;
-	xy_pair position;
-	xy_pair size;
+	ui::xy_pair position;
+	ui::xy_pair size;
 
 	static void add_global(OverlappingElementsBoxType&& in) { all_items.emplace_back(std::move(in)); }
 	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
@@ -484,9 +690,9 @@ struct editBoxType {
 	std::string name;
 	std::string text;
 	std::string texturefile;
-	xy_pair bordersize;
-	xy_pair position;
-	xy_pair size;
+	ui::xy_pair bordersize;
+	ui::xy_pair position;
+	ui::xy_pair size;
 
 	static void add_global(editBoxType&& in) { all_items.emplace_back(std::move(in)); }
 	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
@@ -518,8 +724,8 @@ struct textBoxType {
 	std::string name;
 	std::string text;
 	std::string texturefile;
-	xy_pair bordersize;
-	xy_pair position;
+	ui::xy_pair bordersize;
+	ui::xy_pair position;
 
 	static void add_global(textBoxType&& in) { all_items.emplace_back(std::move(in)); }
 	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
@@ -556,8 +762,8 @@ struct windowType {
 	std::string verticalborder;
 	std::string moveable;
 	std::string name;
-	xy_pair position;
-	xy_pair size;
+	ui::xy_pair position;
+	ui::xy_pair size;
 
 	static void add_global(windowType&& in) { all_items.emplace_back(std::move(in)); }
 	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
@@ -589,7 +795,7 @@ MEMBER_DEF(windowType, moveable, "moveable");
 MEMBER_DEF(windowType, name, "name");
 MEMBER_DEF(windowType, position, "position");
 MEMBER_DEF(windowType, size, "size");
-MEMBER_DEF(windowType, gui_button(), "guiButtonType");
+// MEMBER_DEF(windowType, gui_button(), "guiButtonType");
 MEMBER_DEF(windowType, gui_iconType(), "iconType");
 MEMBER_DEF(windowType, gui_instantTextBoxType(), "instantTextBoxType");
 MEMBER_DEF(windowType, gui_listBoxType(), "listBoxType");
@@ -613,8 +819,8 @@ struct eu3dialogtype {
 	std::string verticalBorder;
 	std::string moveable;
 	std::string name;
-	xy_pair position;
-	xy_pair size;
+	ui::xy_pair position;
+	ui::xy_pair size;
 
 	static void add_global(eu3dialogtype&& in) { all_items.emplace_back(std::move(in)); }
 	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
@@ -642,7 +848,7 @@ MEMBER_DEF(eu3dialogtype, moveable, "moveable");
 MEMBER_DEF(eu3dialogtype, name, "name");
 MEMBER_DEF(eu3dialogtype, position, "position");
 MEMBER_DEF(eu3dialogtype, size, "size");
-MEMBER_DEF(eu3dialogtype, gui_button(), "guiButtonType");
+// MEMBER_DEF(eu3dialogtype, gui_button(), "guiButtonType");
 MEMBER_DEF(eu3dialogtype, gui_iconType(), "iconType");
 MEMBER_DEF(eu3dialogtype, gui_instantTextBoxType(), "instantTextBoxType");
 MEMBER_DEF(eu3dialogtype, gui_listBoxType(), "listBoxType");
@@ -656,9 +862,18 @@ MEMBER_DEF(eu3dialogtype, add_unknown_key(), "unknown_key");
 struct gui_file {
 	static std::set<std::string> unknown_keys;
 
-	global_consume_gui_item<guiButtonType> gui_button() { return global_consume_gui_item<guiButtonType>(); }
+	parsing_environment& env;
+	gui_file(parsing_environment& e) : env(e) {}
+
+	void gui_button(const guiButtonType& b) {
+		env.defs.buttons.emplace_back(b.internal_definition);
+		env.nmaps.button_names.emplace_back(b.name);
+	}
+	void gui_iconType(const iconType& b) {
+		env.defs.icons.emplace_back(b.internal_definition);
+		env.nmaps.icon_names.emplace_back(b.name);
+	}
 	global_consume_gui_item<eu3dialogtype> gui_eu3dialogtype() { return global_consume_gui_item<eu3dialogtype>(); }
-	global_consume_gui_item<iconType> gui_iconType() { return global_consume_gui_item<iconType>(); }
 	global_consume_gui_item<instantTextBoxType> gui_instantTextBoxType() { return global_consume_gui_item<instantTextBoxType>(); }
 	global_consume_gui_item<listBoxType> gui_listBoxType() { return global_consume_gui_item<listBoxType>(); }
 	global_consume_gui_item<positionType> gui_positionType() { return global_consume_gui_item<positionType>(); }
@@ -676,8 +891,8 @@ struct gui_file {
 std::set<std::string> gui_file::unknown_keys;
 
 
-MEMBER_DEF(gui_file, gui_button(), "guiButtonType");
-MEMBER_DEF(gui_file, gui_iconType(), "iconType");
+MEMBER_FDEF(gui_file, gui_button, "guiButtonType");
+MEMBER_FDEF(gui_file, gui_iconType, "iconType");
 MEMBER_DEF(gui_file, gui_eu3dialogtype(), "eu3dialogtype");
 MEMBER_DEF(gui_file, gui_instantTextBoxType(), "instantTextBoxType");
 MEMBER_DEF(gui_file, gui_listBoxType(), "listBoxType");
@@ -698,7 +913,7 @@ bool accept_all(const char*, const char*) {
 
 BEGIN_DOMAIN(gui_file_domain)
 EMPTY_TYPE(empty_type)
-	BEGIN_TYPE(xy_pair)
+	BEGIN_TYPE(ui::xy_pair)
 		MEMBER_ASSOCIATION("x", "x", value_from_rh<int>)
 		MEMBER_ASSOCIATION("y", "y", value_from_rh<int>)
 	END_TYPE
@@ -721,24 +936,24 @@ EMPTY_TYPE(empty_type)
 	    MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
 	END_TYPE
 	BEGIN_TYPE(guiButtonType)
-		MEMBER_TYPE_ASSOCIATION("position", "position", xy_pair)
-		MEMBER_TYPE_ASSOCIATION("size", "size", xy_pair)
-		MEMBER_ASSOCIATION("delayedtoottipText", "delayedtoottiptext", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("format", "format", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("spriteType", "spritetype", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("rotation", "rotation", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("shortcut", "shortcut", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("tooltip", "tooltip", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("tooltipText", "tooltiptext", value_from_rh<std::string>)
+		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
+		MEMBER_TYPE_ASSOCIATION("size", "size", ui::xy_pair)
+		MEMBER_ASSOCIATION("delayedtooltipText", "delayedtooltiptext", token_from_rh)
+		MEMBER_ASSOCIATION("format", "format", button_format_from_rh)
+		MEMBER_ASSOCIATION("spriteType", "spritetype", token_from_rh)
+		MEMBER_ASSOCIATION("rotation", "rotation", button_rotation_from_rh)
+		MEMBER_ASSOCIATION("shortcut", "shortcut", virtual_key_from_rh)
+		MEMBER_ASSOCIATION("tooltip", "tooltip", token_from_rh)
+		MEMBER_ASSOCIATION("tooltipText", "tooltiptext", token_from_rh)
 		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("quadTextureSprite", "quadtexturesprite", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("buttonText", "buttontext", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("buttonFont", "buttonfont", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("Orientation", "orientation", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("clicksound", "clicksound", value_from_rh<std::string>)
+		MEMBER_ASSOCIATION("quadTextureSprite", "quadtexturesprite", token_from_rh)
+		MEMBER_ASSOCIATION("buttonText", "buttontext", token_from_rh)
+		MEMBER_ASSOCIATION("buttonFont", "buttonfont", token_from_rh)
+		MEMBER_ASSOCIATION("Orientation", "orientation", button_orientation_from_rh)
+		MEMBER_ASSOCIATION("clicksound", "clicksound", token_from_rh)
 	    MEMBER_ASSOCIATION("parent", "parent", discard_from_rh)
-	    MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
-	    MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
+	    MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
+	    MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
 	END_TYPE
 	BEGIN_TYPE(eu3dialogtype)
 		MEMBER_ASSOCIATION("orientation", "orientation", value_from_rh<std::string>)
@@ -749,10 +964,10 @@ EMPTY_TYPE(empty_type)
 		MEMBER_ASSOCIATION("verticalBorder", "verticalBorder", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("moveable", "moveable", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
-		MEMBER_TYPE_ASSOCIATION("position", "position", xy_pair)
-		MEMBER_TYPE_ASSOCIATION("size", "size", xy_pair)
-		MEMBER_TYPE_ASSOCIATION("guiButtonType", "guibuttontype", guiButtonType)
-		MEMBER_TYPE_ASSOCIATION("iconType", "icontype", iconType)
+		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
+		MEMBER_TYPE_ASSOCIATION("size", "size", ui::xy_pair)
+		// MEMBER_TYPE_ASSOCIATION("guiButtonType", "guibuttontype", guiButtonType)
+		// MEMBER_TYPE_ASSOCIATION("iconType", "icontype", iconType)
 		MEMBER_TYPE_ASSOCIATION("instantTextBoxType", "instanttextboxtype", instantTextBoxType)
 		MEMBER_TYPE_ASSOCIATION("listBoxType", "listboxtype", listBoxType)
 		MEMBER_TYPE_ASSOCIATION("scrollbarType", "scrollbartype", scrollbarType)
@@ -763,16 +978,16 @@ EMPTY_TYPE(empty_type)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
 	END_TYPE
 	BEGIN_TYPE(iconType)
-		MEMBER_TYPE_ASSOCIATION("position", "position", xy_pair)
-		MEMBER_ASSOCIATION("orientation", "orientation", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("buttonMesh", "buttonmesh", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("frame", "frame", value_from_rh<std::string>)
+		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
+		MEMBER_ASSOCIATION("orientation", "orientation", icon_orientation_from_rh)
+		MEMBER_ASSOCIATION("buttonMesh", "buttonmesh", token_from_rh)
+		MEMBER_ASSOCIATION("frame", "frame", value_from_rh<uint8_t>)
 		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("spriteType", "spritetype", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("rotation", "rotation", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("scale", "scale", value_from_rh<std::string>)
-		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
+		MEMBER_ASSOCIATION("spriteType", "spritetype", token_from_rh)
+		MEMBER_ASSOCIATION("rotation", "rotation", icon_rotation_from_rh)
+		MEMBER_ASSOCIATION("scale", "scale", value_from_rh<float>)
+		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
 	END_TYPE
 	BEGIN_TYPE(instantTextBoxType)
 		MEMBER_ASSOCIATION("orientation", "orientation", value_from_rh<std::string>)
@@ -785,8 +1000,8 @@ EMPTY_TYPE(empty_type)
 		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("text", "text", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("textureFile", "texturefile", value_from_rh<std::string>)
-		MEMBER_TYPE_ASSOCIATION("position", "position", xy_pair)
-		MEMBER_TYPE_ASSOCIATION("borderSize", "bordersize", xy_pair)
+		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
+		MEMBER_TYPE_ASSOCIATION("borderSize", "bordersize", ui::xy_pair)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
 	END_TYPE
@@ -800,16 +1015,16 @@ EMPTY_TYPE(empty_type)
 		MEMBER_ASSOCIATION("scrollbartype", "scrollbartype", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("spacing", "spacing", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("step", "step", value_from_rh<std::string>)
-		MEMBER_TYPE_ASSOCIATION("position", "position", xy_pair)
-		MEMBER_TYPE_ASSOCIATION("size", "size", xy_pair)
-		MEMBER_TYPE_ASSOCIATION("bordersize", "bordersize", xy_pair)
-		MEMBER_TYPE_ASSOCIATION("offset", "offset", xy_pair)
+		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
+		MEMBER_TYPE_ASSOCIATION("size", "size", ui::xy_pair)
+		MEMBER_TYPE_ASSOCIATION("bordersize", "bordersize", ui::xy_pair)
+		MEMBER_TYPE_ASSOCIATION("offset", "offset", ui::xy_pair)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
 	END_TYPE
 	BEGIN_TYPE(positionType)
 		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
-		MEMBER_TYPE_ASSOCIATION("position", "position", xy_pair)
+		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
 	END_TYPE
@@ -832,9 +1047,9 @@ EMPTY_TYPE(empty_type)
 		MEMBER_ASSOCIATION("stepsize", "stepsize", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("track", "track", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("userangelimit", "userangelimit", value_from_rh<std::string>)
-		MEMBER_TYPE_ASSOCIATION("position", "position", xy_pair)
-		MEMBER_TYPE_ASSOCIATION("bordersize", "bordersize", xy_pair)
-		MEMBER_TYPE_ASSOCIATION("size", "size", xy_pair)
+		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
+		MEMBER_TYPE_ASSOCIATION("bordersize", "bordersize", ui::xy_pair)
+		MEMBER_TYPE_ASSOCIATION("size", "size", ui::xy_pair)
 		MEMBER_TYPE_ASSOCIATION("guiButtonType", "guibuttontype", guiButtonType)
 		MEMBER_TYPE_ASSOCIATION("iconType", "icontype", iconType)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
@@ -851,10 +1066,10 @@ EMPTY_TYPE(empty_type)
 		MEMBER_ASSOCIATION("verticalborder", "verticalborder", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("moveable", "moveable", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
-		MEMBER_TYPE_ASSOCIATION("position", "position", xy_pair)
-		MEMBER_TYPE_ASSOCIATION("size", "size", xy_pair)
-		MEMBER_TYPE_ASSOCIATION("guiButtonType", "guibuttontype", guiButtonType)
-		MEMBER_TYPE_ASSOCIATION("iconType", "icontype", iconType)
+		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
+		MEMBER_TYPE_ASSOCIATION("size", "size", ui::xy_pair)
+		// MEMBER_TYPE_ASSOCIATION("guiButtonType", "guibuttontype", guiButtonType)
+		// MEMBER_TYPE_ASSOCIATION("iconType", "icontype", iconType)
 		MEMBER_TYPE_ASSOCIATION("instantTextBoxType", "instanttextboxtype", instantTextBoxType)
 		MEMBER_TYPE_ASSOCIATION("listBoxType", "listboxtype", listBoxType)
 		MEMBER_TYPE_ASSOCIATION("scrollbarType", "scrollbartype", scrollbarType)
@@ -876,7 +1091,7 @@ EMPTY_TYPE(empty_type)
 		MEMBER_ASSOCIATION("shortcut", "shortcut", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("tooltip", "tooltip", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("tooltiptext", "tooltiptext", value_from_rh<std::string>)
-		MEMBER_TYPE_ASSOCIATION("position", "position", xy_pair)
+		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
 	END_TYPE
@@ -884,7 +1099,7 @@ EMPTY_TYPE(empty_type)
 		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("rotation", "rotation", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("spriteType", "spritetype", value_from_rh<std::string>)
-		MEMBER_TYPE_ASSOCIATION("position", "position", xy_pair)
+		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
 	END_TYPE
@@ -893,8 +1108,8 @@ EMPTY_TYPE(empty_type)
 		MEMBER_ASSOCIATION("format", "format", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("spacing", "spacing", value_from_rh<std::string>)
-		MEMBER_TYPE_ASSOCIATION("position", "position", xy_pair)
-		MEMBER_TYPE_ASSOCIATION("size", "size", xy_pair)
+		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
+		MEMBER_TYPE_ASSOCIATION("size", "size", ui::xy_pair)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
 	END_TYPE
@@ -904,9 +1119,9 @@ EMPTY_TYPE(empty_type)
 		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("text", "text", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("texturefile", "texturefile", value_from_rh<std::string>)
-		MEMBER_TYPE_ASSOCIATION("position", "position", xy_pair)
-		MEMBER_TYPE_ASSOCIATION("bordersize", "bordersize", xy_pair)
-		MEMBER_TYPE_ASSOCIATION("size", "size", xy_pair)
+		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
+		MEMBER_TYPE_ASSOCIATION("bordersize", "bordersize", ui::xy_pair)
+		MEMBER_TYPE_ASSOCIATION("size", "size", ui::xy_pair)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
 	END_TYPE
@@ -920,8 +1135,8 @@ EMPTY_TYPE(empty_type)
 		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("text", "text", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("texturefile", "texturefile", value_from_rh<std::string>)
-		MEMBER_TYPE_ASSOCIATION("position", "position", xy_pair)
-		MEMBER_TYPE_ASSOCIATION("bordersize", "bordersize", xy_pair)
+		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
+		MEMBER_TYPE_ASSOCIATION("bordersize", "bordersize", ui::xy_pair)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
 	END_TYPE

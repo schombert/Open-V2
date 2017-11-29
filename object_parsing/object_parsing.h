@@ -83,26 +83,31 @@ void move_to_member(std::vector<V, A>& member, T&& result) {
 #define END_DOMAIN            ;
 
 template<typename IDENT, typename CLASS>
-struct _get_member;
+struct _set_member;
 
 template<typename CLASS>
-struct _get_member<CT_STRING("this"), CLASS> {
-	static CLASS& get(CLASS& in) { return in; }
+struct _set_member<CT_STRING("this"), CLASS> {
+	template<typename T>
+	static void set(CLASS& in, T&& t) { move_to_member(in, std::forward<T>(t)); }
 };
 
 #define MEMBER_DEF(class_name, member, identifier) \
 template<> \
-struct _get_member<CT_STRING(identifier), class_name>{ \
-    template<typename T = decltype(std::declval<class_name>(). member), typename = std::enable_if_t<!std::is_same_v<T, decltype((std::declval<class_name>(). member))>>>\
-    static decltype(std::declval<class_name>().member)& get(class_name& class_passed) { \
-        return class_passed. member;\
-    } \
-    template<typename T = decltype(std::declval<class_name>(). member), typename = std::enable_if_t<std::is_same_v<T, decltype((std::declval<class_name>(). member))>>>\
-    static decltype(std::declval<class_name>().member) get(class_name& class_passed) { \
-        return class_passed. member;\
+struct _set_member<CT_STRING(identifier), class_name>{ \
+    template<typename V>\
+    static void set(class_name& class_passed, V&& v) { \
+        move_to_member( class_passed. member , std::forward<V>(v));\
     } \
 };
 
+#define MEMBER_FDEF(class_name, member, identifier) \
+template<> \
+struct _set_member<CT_STRING(identifier), class_name>{ \
+    template<typename V>\
+    static void set(class_name& class_passed, V&& v) { \
+        class_passed. member (std::forward<V>(v));\
+    } \
+};
 
 template<size_t nth, typename context>
 struct _get_nth_list {
@@ -121,9 +126,9 @@ bool try_and_fallback(const token_and_type& lhtoken, const T& f1, const U& f2) {
 }
 
 template<typename result_type, typename ... obj_params>
-result_type obj_construction_wrapper(const obj_params& ... params) {
+result_type obj_construction_wrapper(obj_params&& ... params) {
 	if constexpr(std::is_constructible_v<result_type, obj_params...>) {
-		return result_type(params...);
+		return result_type(std::forward<obj_params>(params)...);
 	} else {
 		return result_type();
 	}
@@ -262,7 +267,7 @@ struct function_and_tuple {
 	struct function_object {
 		template<typename in_class>
 		void operator()(in_class& cls, association_type b, const token_and_type& c) {
-			move_to_member(_get_member<member_ident, in_class>::get(cls), finstance(b, c, ARGS::value ...));
+			_set_member<member_ident, in_class>::set(cls, finstance(b, c, ARGS::value ...));
 		};
 	};
 };
@@ -274,7 +279,7 @@ struct function_and_object_tuple_ext {
 	struct function_object {
 		template<typename in_class, typename from>
 		void operator()(in_class& cls, const token_and_type& a, association_type b, from&& c) {
-			move_to_member(_get_member<member_ident, in_class>::get(cls), finstance(a, b, c, ARGS::value ...));
+			_set_member<member_ident, in_class>::set(cls, finstance(a, b, c, ARGS::value ...));
 		};
 	};
 };
@@ -286,7 +291,7 @@ struct function_and_object_tuple {
 	struct function_object {
 		template<typename in_class, typename from>
 		void operator()(in_class& cls, const token_and_type&, association_type, from&& c) {
-			move_to_member(_get_member<member_ident, in_class>::get(cls), c);
+			_set_member<member_ident, in_class>::set(cls, c);
 		};
 	};
 };
@@ -299,7 +304,7 @@ struct function_and_object_tuple_with_extra {
 		template<typename in_class, typename from>
 		void operator()(in_class& cls, const token_and_type&, association_type t, from&& c) {
 			finstance(c, t, ARGS::value ...);
-			move_to_member(_get_member<member_ident, in_class>::get(cls), c);
+			_set_member<member_ident, in_class>::set(cls, c);
 		};
 	};
 };
@@ -309,7 +314,7 @@ struct function_and_tuple_ext {
 	struct function_object {
 		template<typename in_class>
 		void operator()(in_class& cls, const token_and_type& a, association_type b, const token_and_type& c) {
-			move_to_member(_get_member<member_ident, in_class>::get(cls), finstance(a, b, c, ARGS::value ...));
+			_set_member<member_ident, in_class>::set(cls, finstance(a, b, c, ARGS::value ...));
 		};
 	};
 };
