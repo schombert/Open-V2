@@ -1426,11 +1426,11 @@ int __cdecl main() {
 
 
 		std::set<std::string> entries;
-		for (auto& i : instantTextBoxType::all_items) {
-			entries.insert(i.textureFile);
+		for (auto& i : textBoxType::all_items) {
+			entries.insert(i.texturefile);
 		}
 
-		std::cout << "instantTextBoxType.XXXX entries: " << std::endl;
+		std::cout << "checkboxType.XXXX entries: " << std::endl;
 
 		for (auto& k : entries) {
 			std::cout << k << std::endl;

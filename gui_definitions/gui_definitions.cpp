@@ -404,16 +404,9 @@ struct iconType {
 	ui::icon_def internal_definition;
 	const parsing_environment& env;
 
-	std::string orientation;
-	std::string buttonMesh;
-	std::string frame;
-	std::string name;
-	ui::xy_pair position;
-	std::string rotation;
-	std::string scale;
-	std::string spriteType;
-
 	iconType(const parsing_environment& e) : env(e) {};
+
+	std::string name;
 
 	void orientation_bits(std::optional<uint8_t> f) {
 		if (f)
@@ -445,43 +438,109 @@ MEMBER_DEF(iconType, internal_definition.scale, "scale");
 MEMBER_FDEF(iconType, gobj_handle, "spriteType");
 MEMBER_FDEF(iconType, add_unknown_key, "unknown_key");
 
-struct instantTextBoxType {
-	static std::set<std::string> unknown_keys;
-	static std::vector<instantTextBoxType> all_items;
+std::optional<uint16_t> textbox_orientation_from_rh(association_type, const token_and_type& t) {
+	if (is_fixed_token_ci(t, "center")) {
+		return ui::text_def::orientation_center;
+	} else if (is_fixed_token_ci(t, "lower_left")) {
+		return ui::text_def::orientation_lower_left;
+	} else if (is_fixed_token_ci(t, "lower_right")) {
+		return ui::text_def::orientation_lower_right;
+	} else if (is_fixed_token_ci(t, "upper_left")) {
+		return ui::text_def::orientation_upper_left;
+	} else if (is_fixed_token_ci(t, "upper_right")) {
+		return ui::text_def::orientation_upper_right;
+	} else if (is_fixed_token_ci(t, "center_up")) {
+		return ui::text_def::orientation_center_up;
+	} else if (is_fixed_token_ci(t, "center_down")) {
+		return ui::text_def::orientation_center_down;
+	}
+	return std::optional<uint16_t>();
+}
 
-	std::string orientation;
-	std::string alwaysTransparent;
-	ui::xy_pair borderSize;
-	std::string fixedSize;
-	std::string font;
-	std::string format;
-	std::string maxHeight;
-	std::string maxWidth;
+std::optional<uint16_t> textbox_format_from_rh(association_type, const token_and_type& t) {
+	if (is_fixed_token_ci(t, "centre") || is_fixed_token_ci(t, "center")) {
+		return ui::text_def::format_center;
+	} else if (is_fixed_token_ci(t, "left")) {
+		return ui::text_def::format_left;
+	} else if (is_fixed_token_ci(t, "right")) {
+		return ui::text_def::format_right;
+	} else if (is_fixed_token_ci(t, "justified")) {
+		return ui::text_def::format_justified;
+	}
+	return std::optional<uint16_t>();
+}
+
+std::optional<uint16_t> textbox_background_from_rh(association_type, const token_and_type& t) {
+	if (t.start == t.end) {
+		return ui::text_def::background_none_specified;
+	} else if (is_fixed_token_ci(t, "gfx\\interface\\tiles_dialog.tga")) {
+		return ui::text_def::background_tiles_dialog_tga;
+	} else if (is_fixed_token_ci(t, "gfx\\interface\\transparency.tga")) {
+		return ui::text_def::background_transparency_tga;
+	} else if (is_fixed_token_ci(t, "gfx\\interface\\small_tiles_dialog.tga")) {
+		return ui::text_def::background_small_tiles_dialog_tga;
+	}
+	return std::optional<uint16_t>();
+}
+
+struct allTextBoxType {
+	ui::text_def internal_definition;
+	const parsing_environment& env;
+
+	allTextBoxType(const parsing_environment& e) : env(e) {};
+
 	std::string name;
-	ui::xy_pair position;
-	std::string text;
-	std::string textureFile;
 
-	static void add_global(instantTextBoxType&& in) { all_items.emplace_back(std::move(in)); }
-	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
+	void orientation(std::optional<uint16_t> i) {
+		if (i)
+			internal_definition.flags |= *i;
+		else
+			env.errors_generated.emplace_back(env.file, ui::errors::unknown_text_orientation);
+	}
+	void format(std::optional<uint16_t> i) {
+		if (i)
+			internal_definition.flags |= *i;
+		else
+			env.errors_generated.emplace_back(env.file, ui::errors::unknown_text_format);
+	}
+	void background(std::optional<uint16_t> i) {
+		if (i)
+			internal_definition.flags |= *i;
+		else
+			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_text_background);
+	}
+	void text(const token_and_type& t) {
+		internal_definition.text_handle = env.th_f(t.start, t.end);
+	}
+	void font(const token_and_type& t) {
+		internal_definition.font_handle = env.fh_f(t.start, t.end);
+	}
+	void fixed_size(bool value) {
+		if (value)
+			internal_definition.flags |= ui::text_def::fixed_size;
+	}
+	void always_transparent(bool value) {
+		if (value)
+			internal_definition.flags |= ui::text_def::always_transparent;
+	}
+	void add_unknown_key(int) {
+		env.errors_generated.emplace_back(env.file, ui::errors::unexpected_text_attribute);
+	};
 };
 
-std::vector<instantTextBoxType> instantTextBoxType::all_items;
-std::set<std::string> instantTextBoxType::unknown_keys;
-
-MEMBER_DEF(instantTextBoxType, orientation, "orientation");
-MEMBER_DEF(instantTextBoxType, alwaysTransparent, "alwaysTransparent");
-MEMBER_DEF(instantTextBoxType, borderSize, "borderSize");
-MEMBER_DEF(instantTextBoxType, fixedSize, "fixedSize");
-MEMBER_DEF(instantTextBoxType, font, "font");
-MEMBER_DEF(instantTextBoxType, format, "format");
-MEMBER_DEF(instantTextBoxType, maxHeight, "maxHeight");
-MEMBER_DEF(instantTextBoxType, maxWidth, "maxWidth");
-MEMBER_DEF(instantTextBoxType, name, "name");
-MEMBER_DEF(instantTextBoxType, position, "position");
-MEMBER_DEF(instantTextBoxType, text, "text");
-MEMBER_DEF(instantTextBoxType, textureFile, "textureFile");
-MEMBER_DEF(instantTextBoxType, add_unknown_key(), "unknown_key");
+MEMBER_FDEF(allTextBoxType, orientation, "orientation");
+MEMBER_FDEF(allTextBoxType, always_transparent, "alwaysTransparent");
+MEMBER_DEF(allTextBoxType, internal_definition.border_size, "borderSize");
+MEMBER_FDEF(allTextBoxType, fixed_size, "fixedSize");
+MEMBER_FDEF(allTextBoxType, font, "font");
+MEMBER_FDEF(allTextBoxType, format, "format");
+MEMBER_DEF(allTextBoxType, internal_definition.max_height, "maxHeight");
+MEMBER_DEF(allTextBoxType, internal_definition.max_width, "maxWidth");
+MEMBER_DEF(allTextBoxType, name, "name");
+MEMBER_DEF(allTextBoxType, internal_definition.position, "position");
+MEMBER_FDEF(allTextBoxType, text, "text");
+MEMBER_FDEF(allTextBoxType, background, "textureFile");
+MEMBER_FDEF(allTextBoxType, add_unknown_key, "unknown_key");
 
 struct listBoxType {
 	static std::set<std::string> unknown_keys;
@@ -524,22 +583,21 @@ MEMBER_DEF(listBoxType, offset, "offset");
 MEMBER_DEF(listBoxType, add_unknown_key(), "unknown_key");
 
 struct positionType {
-	static std::set<std::string> unknown_keys;
-	static std::vector<positionType> all_items;
+	ui::position_def internal_definition;
+	const parsing_environment& env;
+
+	positionType(const parsing_environment& e) : env(e) {};
 
 	std::string name;
-	ui::xy_pair position;
-
-	static void add_global(positionType&& in) { all_items.emplace_back(std::move(in)); }
-	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
+	
+	void add_unknown_key(int) {
+		env.errors_generated.emplace_back(env.file, ui::errors::unexpected_position_attribute);
+	};
 };
 
-std::vector<positionType> positionType::all_items;
-std::set<std::string> positionType::unknown_keys;
-
 MEMBER_DEF(positionType, name, "name");
-MEMBER_DEF(positionType, position, "position");
-MEMBER_DEF(positionType, add_unknown_key(), "unknown_key");
+MEMBER_DEF(positionType, internal_definition.position, "position");
+MEMBER_FDEF(positionType, add_unknown_key, "unknown_key");
 
 struct scrollbarType {
 	static std::set<std::string> unknown_keys;
@@ -599,6 +657,7 @@ MEMBER_DEF(scrollbarType, gui_button(), "guiButtonType");
 MEMBER_DEF(scrollbarType, gui_iconType(), "iconType");
 MEMBER_DEF(scrollbarType, add_unknown_key(), "unknown_key");
 
+/*
 struct checkboxType {
 	static std::set<std::string> unknown_keys;
 	static std::vector<checkboxType> all_items;
@@ -632,7 +691,9 @@ MEMBER_DEF(checkboxType, tooltip, "tooltip");
 MEMBER_DEF(checkboxType, tooltiptext, "tooltiptext");
 MEMBER_DEF(checkboxType, position, "position");
 MEMBER_DEF(checkboxType, add_unknown_key(), "unknown_key");
+*/
 
+/*
 struct shieldtype {
 	static std::set<std::string> unknown_keys;
 	static std::vector<shieldtype> all_items;
@@ -654,6 +715,7 @@ MEMBER_DEF(shieldtype, rotation, "rotation");
 MEMBER_DEF(shieldtype, spriteType, "spriteType");
 MEMBER_DEF(shieldtype, position, "position");
 MEMBER_DEF(shieldtype, add_unknown_key(), "unknown_key");
+*/
 
 struct OverlappingElementsBoxType {
 	static std::set<std::string> unknown_keys;
@@ -681,6 +743,7 @@ MEMBER_DEF(OverlappingElementsBoxType, position, "position");
 MEMBER_DEF(OverlappingElementsBoxType, size, "size");
 MEMBER_DEF(OverlappingElementsBoxType, add_unknown_key(), "unknown_key");
 
+/*
 struct editBoxType {
 	static std::set<std::string> unknown_keys;
 	static std::vector<editBoxType> all_items;
@@ -746,6 +809,7 @@ MEMBER_DEF(textBoxType, texturefile, "texturefile");
 MEMBER_DEF(textBoxType, bordersize, "bordersize");
 MEMBER_DEF(textBoxType, position, "position");
 MEMBER_DEF(textBoxType, add_unknown_key(), "unknown_key");
+*/
 
 struct windowType {
 	static std::set<std::string> unknown_keys;
@@ -770,14 +834,14 @@ struct windowType {
 
 	global_consume_gui_item<guiButtonType> gui_button() { return global_consume_gui_item<guiButtonType>(); }
 	global_consume_gui_item<iconType> gui_iconType() { return global_consume_gui_item<iconType>(); }
-	global_consume_gui_item<instantTextBoxType> gui_instantTextBoxType() { return global_consume_gui_item<instantTextBoxType>(); }
+	//global_consume_gui_item<instantTextBoxType> gui_instantTextBoxType() { return global_consume_gui_item<instantTextBoxType>(); }
 	global_consume_gui_item<listBoxType> gui_listBoxType() { return global_consume_gui_item<listBoxType>(); }
 	global_consume_gui_item<scrollbarType> gui_scrollbarType() { return global_consume_gui_item<scrollbarType>(); }
 	global_consume_gui_item<windowType> gui_windowType() { return global_consume_gui_item<windowType>(); }
-	global_consume_gui_item<checkboxType> gui_checkboxType() { return global_consume_gui_item<checkboxType>(); }
+	//global_consume_gui_item<checkboxType> gui_checkboxType() { return global_consume_gui_item<checkboxType>(); }
 	global_consume_gui_item<OverlappingElementsBoxType> gui_OverlappingElementsBoxType() { return global_consume_gui_item<OverlappingElementsBoxType>(); }
-	global_consume_gui_item<editBoxType> gui_editBoxType() { return global_consume_gui_item<editBoxType>(); }
-	global_consume_gui_item<textBoxType> gui_textBoxType() { return global_consume_gui_item<textBoxType>(); }
+	//global_consume_gui_item<editBoxType> gui_editBoxType() { return global_consume_gui_item<editBoxType>(); }
+	//global_consume_gui_item<textBoxType> gui_textBoxType() { return global_consume_gui_item<textBoxType>(); }
 };
 
 std::vector<windowType> windowType::all_items;
@@ -797,14 +861,14 @@ MEMBER_DEF(windowType, position, "position");
 MEMBER_DEF(windowType, size, "size");
 // MEMBER_DEF(windowType, gui_button(), "guiButtonType");
 MEMBER_DEF(windowType, gui_iconType(), "iconType");
-MEMBER_DEF(windowType, gui_instantTextBoxType(), "instantTextBoxType");
+// MEMBER_DEF(windowType, gui_instantTextBoxType(), "instantTextBoxType");
 MEMBER_DEF(windowType, gui_listBoxType(), "listBoxType");
 MEMBER_DEF(windowType, gui_scrollbarType(), "scrollbarType");
 MEMBER_DEF(windowType, gui_windowType(), "windowType");
-MEMBER_DEF(windowType, gui_checkboxType(), "checkboxType");
+//MEMBER_DEF(windowType, gui_checkboxType(), "checkboxType");
 MEMBER_DEF(windowType, gui_OverlappingElementsBoxType(), "OverlappingElementsBoxType");
-MEMBER_DEF(windowType, gui_editBoxType(), "editBoxType");
-MEMBER_DEF(windowType, gui_textBoxType(), "textBoxType");
+// MEMBER_DEF(windowType, gui_editBoxType(), "editBoxType");
+// MEMBER_DEF(windowType, gui_textBoxType(), "textBoxType");
 MEMBER_DEF(windowType, add_unknown_key(), "unknown_key");
 
 struct eu3dialogtype {
@@ -827,12 +891,12 @@ struct eu3dialogtype {
 
 	global_consume_gui_item<guiButtonType> gui_button() { return global_consume_gui_item<guiButtonType>(); }
 	global_consume_gui_item<iconType> gui_iconType() { return global_consume_gui_item<iconType>(); }
-	global_consume_gui_item<instantTextBoxType> gui_instantTextBoxType() { return global_consume_gui_item<instantTextBoxType>(); }
+	//global_consume_gui_item<instantTextBoxType> gui_instantTextBoxType() { return global_consume_gui_item<instantTextBoxType>(); }
 	global_consume_gui_item<listBoxType> gui_listBoxType() { return global_consume_gui_item<listBoxType>(); }
 	global_consume_gui_item<scrollbarType> gui_scrollbarType() { return global_consume_gui_item<scrollbarType>(); }
 	global_consume_gui_item<windowType> gui_windowType() { return global_consume_gui_item<windowType>(); }
-	global_consume_gui_item<checkboxType> gui_checkboxType() { return global_consume_gui_item<checkboxType>(); }
-	global_consume_gui_item<shieldtype> gui_shieldtype() { return global_consume_gui_item<shieldtype>(); }
+	//global_consume_gui_item<checkboxType> gui_checkboxType() { return global_consume_gui_item<checkboxType>(); }
+	//global_consume_gui_item<shieldtype> gui_shieldtype() { return global_consume_gui_item<shieldtype>(); }
 };
 
 std::vector<eu3dialogtype> eu3dialogtype::all_items;
@@ -850,12 +914,12 @@ MEMBER_DEF(eu3dialogtype, position, "position");
 MEMBER_DEF(eu3dialogtype, size, "size");
 // MEMBER_DEF(eu3dialogtype, gui_button(), "guiButtonType");
 MEMBER_DEF(eu3dialogtype, gui_iconType(), "iconType");
-MEMBER_DEF(eu3dialogtype, gui_instantTextBoxType(), "instantTextBoxType");
+// MEMBER_DEF(eu3dialogtype, gui_instantTextBoxType(), "instantTextBoxType");
 MEMBER_DEF(eu3dialogtype, gui_listBoxType(), "listBoxType");
 MEMBER_DEF(eu3dialogtype, gui_scrollbarType(), "scrollbarType");
 MEMBER_DEF(eu3dialogtype, gui_windowType(), "windowType");
-MEMBER_DEF(eu3dialogtype, gui_checkboxType(), "checkboxType");
-MEMBER_DEF(eu3dialogtype, gui_shieldtype(), "shieldtype");
+//MEMBER_DEF(eu3dialogtype, gui_checkboxType(), "checkboxType");
+//MEMBER_DEF(eu3dialogtype, gui_shieldtype(), "shieldtype");
 MEMBER_DEF(eu3dialogtype, add_unknown_key(), "unknown_key");
 
 
@@ -873,17 +937,43 @@ struct gui_file {
 		env.defs.icons.emplace_back(b.internal_definition);
 		env.nmaps.icon_names.emplace_back(b.name);
 	}
+	void gui_instantTextBoxType(allTextBoxType&& b) {
+		b.internal_definition.flags |= ui::text_def::instant;
+		env.defs.text.emplace_back(b.internal_definition);
+		env.nmaps.text_names.emplace_back(b.name);
+	}
+	void gui_textBoxType(const allTextBoxType& b) {
+		env.defs.text.emplace_back(b.internal_definition);
+		env.nmaps.text_names.emplace_back(b.name);
+	}
+	void gui_positionType(const positionType& b) {
+		env.defs.positions.emplace_back(b.internal_definition);
+		env.nmaps.position_names.emplace_back(b.name);
+	}
+	void gui_checkboxType(guiButtonType&& b) {
+		b.internal_definition.flags |= ui::button_def::is_checkbox;
+		env.defs.buttons.emplace_back(b.internal_definition);
+		env.nmaps.button_names.emplace_back(b.name);
+	}
+
+	void gui_shieldtype(iconType&& b) {
+		b.internal_definition.flags |= ui::icon_def::is_shield;
+		env.defs.icons.emplace_back(b.internal_definition);
+		env.nmaps.icon_names.emplace_back(b.name);
+	}
+	void gui_editBoxType(allTextBoxType&& b) {
+		b.internal_definition.flags |= ui::text_def::is_edit_box;
+		env.defs.text.emplace_back(b.internal_definition);
+		env.nmaps.text_names.emplace_back(b.name);
+	}
+
 	global_consume_gui_item<eu3dialogtype> gui_eu3dialogtype() { return global_consume_gui_item<eu3dialogtype>(); }
-	global_consume_gui_item<instantTextBoxType> gui_instantTextBoxType() { return global_consume_gui_item<instantTextBoxType>(); }
 	global_consume_gui_item<listBoxType> gui_listBoxType() { return global_consume_gui_item<listBoxType>(); }
-	global_consume_gui_item<positionType> gui_positionType() { return global_consume_gui_item<positionType>(); }
 	global_consume_gui_item<scrollbarType> gui_scrollbarType() { return global_consume_gui_item<scrollbarType>(); }
 	global_consume_gui_item<windowType> gui_windowType() { return global_consume_gui_item<windowType>(); }
-	global_consume_gui_item<checkboxType> gui_checkboxType() { return global_consume_gui_item<checkboxType>(); }
-	global_consume_gui_item<shieldtype> gui_shieldtype() { return global_consume_gui_item<shieldtype>(); }
+	
 	global_consume_gui_item<OverlappingElementsBoxType> gui_OverlappingElementsBoxType() { return global_consume_gui_item<OverlappingElementsBoxType>(); }
-	global_consume_gui_item<editBoxType> gui_editBoxType() { return global_consume_gui_item<editBoxType>(); }
-	global_consume_gui_item<textBoxType> gui_textBoxType() { return global_consume_gui_item<textBoxType>(); }
+	
 
 	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
 };
@@ -894,16 +984,16 @@ std::set<std::string> gui_file::unknown_keys;
 MEMBER_FDEF(gui_file, gui_button, "guiButtonType");
 MEMBER_FDEF(gui_file, gui_iconType, "iconType");
 MEMBER_DEF(gui_file, gui_eu3dialogtype(), "eu3dialogtype");
-MEMBER_DEF(gui_file, gui_instantTextBoxType(), "instantTextBoxType");
+MEMBER_FDEF(gui_file, gui_instantTextBoxType, "instantTextBoxType");
 MEMBER_DEF(gui_file, gui_listBoxType(), "listBoxType");
-MEMBER_DEF(gui_file, gui_positionType(), "positionType");
+MEMBER_DEF(gui_file, gui_positionType, "positionType");
 MEMBER_DEF(gui_file, gui_scrollbarType(), "scrollbarType");
 MEMBER_DEF(gui_file, gui_windowType(), "windowType");
-MEMBER_DEF(gui_file, gui_checkboxType(), "checkboxType");
-MEMBER_DEF(gui_file, gui_shieldtype(), "shieldtype");
+MEMBER_FDEF(gui_file, gui_checkboxType, "checkboxType");
+MEMBER_FDEF(gui_file, gui_shieldtype, "shieldtype");
 MEMBER_DEF(gui_file, gui_OverlappingElementsBoxType(), "OverlappingElementsBoxType");
-MEMBER_DEF(gui_file, gui_editBoxType(), "editBoxType");
-MEMBER_DEF(gui_file, gui_textBoxType(), "textBoxType");
+MEMBER_FDEF(gui_file, gui_editBoxType, "editBoxType");
+MEMBER_FDEF(gui_file, gui_textBoxType, "textBoxType");
 MEMBER_DEF(gui_file, add_unknown_key(), "unknown_key");
 
 
@@ -921,16 +1011,16 @@ EMPTY_TYPE(empty_type)
 	    MEMBER_TYPE_ASSOCIATION("guiButtonType", "guibuttontype", guiButtonType)
     	MEMBER_TYPE_ASSOCIATION("eu3dialogtype", "eu3dialogtype", eu3dialogtype)
 	    MEMBER_TYPE_ASSOCIATION("iconType", "icontype", iconType)
-		MEMBER_TYPE_ASSOCIATION("instantTextBoxType", "instanttextboxtype", instantTextBoxType)
+		MEMBER_TYPE_ASSOCIATION("instantTextBoxType", "instanttextboxtype", allTextBoxType)
 		MEMBER_TYPE_ASSOCIATION("listBoxType", "listboxtype", listBoxType)
 		MEMBER_TYPE_ASSOCIATION("positionType", "positiontype", positionType)
 		MEMBER_TYPE_ASSOCIATION("scrollbarType", "scrollbartype", scrollbarType)
 		MEMBER_TYPE_ASSOCIATION("windowType", "windowtype", windowType)
-		MEMBER_TYPE_ASSOCIATION("checkboxType", "checkboxtype", checkboxType)
-		MEMBER_TYPE_ASSOCIATION("shieldtype", "shieldtype", shieldtype)
+		MEMBER_TYPE_ASSOCIATION("checkboxType", "checkboxtype", guiButtonType)
+		MEMBER_TYPE_ASSOCIATION("shieldtype", "shieldtype", iconType)
 		MEMBER_TYPE_ASSOCIATION("OverlappingElementsBoxType", "overlappingelementsboxtype", OverlappingElementsBoxType)
-		MEMBER_TYPE_ASSOCIATION("editBoxType", "editboxtype", editBoxType)
-		MEMBER_TYPE_ASSOCIATION("textBoxType", "textboxtype", textBoxType)
+		MEMBER_TYPE_ASSOCIATION("editBoxType", "editboxtype", allTextBoxType)
+		MEMBER_TYPE_ASSOCIATION("textBoxType", "textboxtype", allTextBoxType)
 	    MEMBER_TYPE_ASSOCIATION("this", "guitypes", gui_file)
 	    MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
 	    MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
@@ -968,12 +1058,12 @@ EMPTY_TYPE(empty_type)
 		MEMBER_TYPE_ASSOCIATION("size", "size", ui::xy_pair)
 		// MEMBER_TYPE_ASSOCIATION("guiButtonType", "guibuttontype", guiButtonType)
 		// MEMBER_TYPE_ASSOCIATION("iconType", "icontype", iconType)
-		MEMBER_TYPE_ASSOCIATION("instantTextBoxType", "instanttextboxtype", instantTextBoxType)
+		// MEMBER_TYPE_ASSOCIATION("instantTextBoxType", "instanttextboxtype", instantTextBoxType)
 		MEMBER_TYPE_ASSOCIATION("listBoxType", "listboxtype", listBoxType)
 		MEMBER_TYPE_ASSOCIATION("scrollbarType", "scrollbartype", scrollbarType)
 		MEMBER_TYPE_ASSOCIATION("windowType", "windowtype", windowType)
-		MEMBER_TYPE_ASSOCIATION("checkboxType", "checkboxtype", checkboxType)
-		MEMBER_TYPE_ASSOCIATION("shieldtype", "shieldtype", shieldtype)
+		// MEMBER_TYPE_ASSOCIATION("checkboxType", "checkboxtype", checkboxType)
+		// MEMBER_TYPE_ASSOCIATION("shieldtype", "shieldtype", shieldtype)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
 	END_TYPE
@@ -989,21 +1079,21 @@ EMPTY_TYPE(empty_type)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
 	END_TYPE
-	BEGIN_TYPE(instantTextBoxType)
-		MEMBER_ASSOCIATION("orientation", "orientation", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("alwaysTransparent", "allwaystransparent", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("fixedSize", "fixedsize", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("font", "font", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("format", "format", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("maxHeight", "maxheight", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("maxWidth", "maxwidth", value_from_rh<std::string>)
+	BEGIN_TYPE(allTextBoxType)
+		MEMBER_ASSOCIATION("orientation", "orientation", textbox_orientation_from_rh)
+		MEMBER_ASSOCIATION("alwaysTransparent", "allwaystransparent", value_from_rh<bool>)
+		MEMBER_ASSOCIATION("fixedSize", "fixedsize", value_from_rh<bool>)
+		MEMBER_ASSOCIATION("font", "font", token_from_rh)
+		MEMBER_ASSOCIATION("format", "format", textbox_format_from_rh)
+		MEMBER_ASSOCIATION("maxHeight", "maxheight", value_from_rh<uint16_t>)
+		MEMBER_ASSOCIATION("maxWidth", "maxwidth", value_from_rh<uint16_t>)
 		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("text", "text", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("textureFile", "texturefile", value_from_rh<std::string>)
+		MEMBER_ASSOCIATION("text", "text", token_from_rh)
+		MEMBER_ASSOCIATION("textureFile", "texturefile", textbox_background_from_rh)
 		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
 		MEMBER_TYPE_ASSOCIATION("borderSize", "bordersize", ui::xy_pair)
-		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
+		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
 	END_TYPE
 	BEGIN_TYPE(listBoxType)
 		MEMBER_ASSOCIATION("orientation", "orientation", value_from_rh<std::string>)
@@ -1025,8 +1115,8 @@ EMPTY_TYPE(empty_type)
 	BEGIN_TYPE(positionType)
 		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
 		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
-		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
+		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
 	END_TYPE
 	BEGIN_TYPE(scrollbarType)
 		MEMBER_ASSOCIATION("horizontal", "horizontal", value_from_rh<std::string>)
@@ -1070,36 +1160,14 @@ EMPTY_TYPE(empty_type)
 		MEMBER_TYPE_ASSOCIATION("size", "size", ui::xy_pair)
 		// MEMBER_TYPE_ASSOCIATION("guiButtonType", "guibuttontype", guiButtonType)
 		// MEMBER_TYPE_ASSOCIATION("iconType", "icontype", iconType)
-		MEMBER_TYPE_ASSOCIATION("instantTextBoxType", "instanttextboxtype", instantTextBoxType)
+		// MEMBER_TYPE_ASSOCIATION("instantTextBoxType", "instanttextboxtype", instantTextBoxType)
 		MEMBER_TYPE_ASSOCIATION("listBoxType", "listboxtype", listBoxType)
 		MEMBER_TYPE_ASSOCIATION("scrollbarType", "scrollbartype", scrollbarType)
 		MEMBER_TYPE_ASSOCIATION("windowType", "windowtype", windowType)
-		MEMBER_TYPE_ASSOCIATION("checkboxType", "checkboxtype", checkboxType)
+		// MEMBER_TYPE_ASSOCIATION("checkboxType", "checkboxtype", checkboxType)
 		MEMBER_TYPE_ASSOCIATION("OverlappingElementsBoxType", "overlappingelementsboxtype", OverlappingElementsBoxType)
-		MEMBER_TYPE_ASSOCIATION("editBoxType", "editboxtype", editBoxType)
-		MEMBER_TYPE_ASSOCIATION("textBoxType", "textboxtype", textBoxType)
-		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
-	END_TYPE
-	BEGIN_TYPE(checkboxType)
-		MEMBER_ASSOCIATION("orientation", "orientation", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("buttonfont", "buttonfont", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("buttontext", "buttontext", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("delayedtooltiptext", "delayedtooltiptext", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("quadtexturesprite", "quadtexturesprite", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("shortcut", "shortcut", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("tooltip", "tooltip", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("tooltiptext", "tooltiptext", value_from_rh<std::string>)
-		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
-		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
-	END_TYPE
-	BEGIN_TYPE(shieldtype)
-		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("rotation", "rotation", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("spriteType", "spritetype", value_from_rh<std::string>)
-		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
+		// MEMBER_TYPE_ASSOCIATION("editBoxType", "editboxtype", editBoxType)
+		// MEMBER_TYPE_ASSOCIATION("textBoxType", "textboxtype", textBoxType)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
 	END_TYPE
@@ -1110,33 +1178,6 @@ EMPTY_TYPE(empty_type)
 		MEMBER_ASSOCIATION("spacing", "spacing", value_from_rh<std::string>)
 		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
 		MEMBER_TYPE_ASSOCIATION("size", "size", ui::xy_pair)
-		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
-	END_TYPE
-	BEGIN_TYPE(editBoxType)
-		MEMBER_ASSOCIATION("orientation", "orientation", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("font", "font", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("text", "text", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("texturefile", "texturefile", value_from_rh<std::string>)
-		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
-		MEMBER_TYPE_ASSOCIATION("bordersize", "bordersize", ui::xy_pair)
-		MEMBER_TYPE_ASSOCIATION("size", "size", ui::xy_pair)
-		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
-	END_TYPE
-	BEGIN_TYPE(textBoxType)
-		MEMBER_ASSOCIATION("orientation", "orientation", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("fixedsize", "fixedsize", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("font", "font", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("format", "format", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("maxheight", "maxheight", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("maxwidth", "maxwidth", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("text", "text", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("texturefile", "texturefile", value_from_rh<std::string>)
-		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
-		MEMBER_TYPE_ASSOCIATION("bordersize", "bordersize", ui::xy_pair)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
 	END_TYPE

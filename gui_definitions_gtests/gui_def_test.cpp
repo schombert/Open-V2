@@ -51,6 +51,7 @@ TEST(basic_gui_button, gui_definitions_tests) {
 	EXPECT_EQ(ui::button_def::graphical_obj_qtex_type, defs.buttons[0].flags & ui::button_def::graphical_obj_type_mask);
 	EXPECT_EQ(ui::button_def::orientation_center, defs.buttons[0].flags & ui::button_def::orientation_mask);
 	EXPECT_EQ(ui::button_def::rotation_upright, defs.buttons[0].flags & ui::button_def::rotation_mask);
+	EXPECT_EQ(0, defs.buttons[0].flags & ui::button_def::is_checkbox);
 	EXPECT_EQ(1, defs.buttons[0].text_handle);
 	EXPECT_EQ(1, defs.buttons[0].font_handle);
 	EXPECT_EQ(1, defs.buttons[0].graphical_object_handle);
@@ -105,6 +106,62 @@ TEST(non_default_gui_button, gui_definitions_tests) {
 	EXPECT_EQ(ui::button_def::graphical_obj_sprite_type, defs.buttons[0].flags & ui::button_def::graphical_obj_type_mask);
 	EXPECT_EQ(ui::button_def::orientation_upper_left, defs.buttons[0].flags & ui::button_def::orientation_mask);
 	EXPECT_EQ(ui::button_def::rotation_90_right, defs.buttons[0].flags & ui::button_def::rotation_mask);
+	EXPECT_EQ(0, defs.buttons[0].flags & ui::button_def::is_checkbox);
+	EXPECT_EQ(1, defs.buttons[0].text_handle);
+	EXPECT_EQ(1, defs.buttons[0].font_handle);
+	EXPECT_EQ(1, defs.buttons[0].graphical_object_handle);
+	EXPECT_EQ(1, defs.buttons[0].clicksound_handle);
+	EXPECT_EQ(virtual_key::M, defs.buttons[0].shortcut);
+	EXPECT_EQ(10, defs.buttons[0].position.x);
+	EXPECT_EQ(20, defs.buttons[0].position.y);
+	EXPECT_EQ(30, defs.buttons[0].size.x);
+	EXPECT_EQ(40, defs.buttons[0].size.y);
+	EXPECT_EQ(ui::button_def::format_left, defs.buttons[0].flags & ui::button_def::format_left);
+}
+
+TEST(checkbox, gui_definitions_tests) {
+	ui::name_maps nmaps;
+	ui::definitions defs;
+	std::vector<std::pair<std::string, ui::errors>> errors_generated;
+	auto th = fake_text_handle_lookup();
+	auto fh = fake_font_handle_lookup();
+	auto qt = fake_gobj_lookup();
+	auto sl = fake_sound_lookup();
+
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	e.file = "fake_file";
+
+	gui_file container(e);
+
+	std::vector<token_group> parse_tree;
+	parse_pdx_file(parse_tree, RANGE(
+		"name = bname\n"
+		"buttonText = dummy\n"
+		"buttonFont = dummy\n"
+		"clicksound = dummy\n"
+		"tooltip = \"\"\n"
+		"rotation = 1.5708\n"
+		"orientation = UPPER_LEFT\n"
+		"shortcut = m\n"
+		"tooltipText = \"\"\n"
+		"delayedtooltipText = \"\"\n"
+		"spriteType = dummy\n"
+		"position = { x = 10 y = 20} \n"
+		"format = left\n"
+		"size = { x = 30 y = 40} \n"
+	));
+
+	if (parse_tree.size() > 0)
+		container.gui_checkboxType(parse_object<guiButtonType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
+
+	EXPECT_EQ(1, nmaps.button_names.size());
+	EXPECT_EQ(1, defs.buttons.size());
+	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(std::string("bname"), nmaps.button_names[0]);
+	EXPECT_EQ(ui::button_def::graphical_obj_sprite_type, defs.buttons[0].flags & ui::button_def::graphical_obj_type_mask);
+	EXPECT_EQ(ui::button_def::orientation_upper_left, defs.buttons[0].flags & ui::button_def::orientation_mask);
+	EXPECT_EQ(ui::button_def::rotation_90_right, defs.buttons[0].flags & ui::button_def::rotation_mask);
+	EXPECT_EQ(ui::button_def::is_checkbox, defs.buttons[0].flags & ui::button_def::is_checkbox);
 	EXPECT_EQ(1, defs.buttons[0].text_handle);
 	EXPECT_EQ(1, defs.buttons[0].font_handle);
 	EXPECT_EQ(1, defs.buttons[0].graphical_object_handle);
@@ -191,6 +248,8 @@ TEST(basic_gui_icon, gui_definitions_tests) {
 	EXPECT_EQ(std::string("iname"), nmaps.icon_names[0]);
 	EXPECT_EQ(ui::icon_def::orientation_center, defs.icons[0].flags & ui::icon_def::orientation_mask);
 	EXPECT_EQ(ui::icon_def::rotation_upright, defs.icons[0].flags & ui::icon_def::rotation_mask);
+	EXPECT_EQ(0, defs.icons[0].flags & ui::icon_def::is_shield);
+
 
 	EXPECT_EQ(0, defs.icons[0].frame);
 	EXPECT_EQ(1.0f, defs.icons[0].scale);
@@ -233,6 +292,50 @@ TEST(non_default_gui_icon, gui_definitions_tests) {
 	EXPECT_EQ(std::string("iname"), nmaps.icon_names[0]);
 	EXPECT_EQ(ui::icon_def::orientation_center_up, defs.icons[0].flags & ui::icon_def::orientation_mask);
 	EXPECT_EQ(ui::icon_def::rotation_90_left, defs.icons[0].flags & ui::icon_def::rotation_mask);
+	EXPECT_EQ(0, defs.icons[0].flags & ui::icon_def::is_shield);
+
+	EXPECT_EQ(6, defs.icons[0].frame);
+	EXPECT_EQ(0.5f, defs.icons[0].scale);
+	EXPECT_EQ(1, defs.icons[0].graphical_object_handle);
+	EXPECT_EQ(5, defs.icons[0].position.x);
+	EXPECT_EQ(10, defs.icons[0].position.y);
+}
+
+TEST(shield_gui_icon, gui_definitions_tests) {
+	ui::name_maps nmaps;
+	ui::definitions defs;
+	std::vector<std::pair<std::string, ui::errors>> errors_generated;
+	auto th = fake_text_handle_lookup();
+	auto fh = fake_font_handle_lookup();
+	auto qt = fake_gobj_lookup();
+	auto sl = fake_sound_lookup();
+
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	e.file = "fake_file";
+
+	gui_file container(e);
+
+	std::vector<token_group> parse_tree;
+	parse_pdx_file(parse_tree, RANGE(
+		"name = iname\n"
+		"scale = 0.5\n"
+		"buttonMesh = dummy\n"
+		"position = { x = 5 y = 10}\n"
+		"frame = 6\n"
+		"rotation = -1.5708\n"
+		"orientation = CENTER_UP\n"
+	));
+
+	if (parse_tree.size() > 0)
+		container.gui_shieldtype(parse_object<iconType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
+
+	EXPECT_EQ(1, nmaps.icon_names.size());
+	EXPECT_EQ(1, defs.icons.size());
+	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(std::string("iname"), nmaps.icon_names[0]);
+	EXPECT_EQ(ui::icon_def::orientation_center_up, defs.icons[0].flags & ui::icon_def::orientation_mask);
+	EXPECT_EQ(ui::icon_def::rotation_90_left, defs.icons[0].flags & ui::icon_def::rotation_mask);
+	EXPECT_EQ(ui::icon_def::is_shield, defs.icons[0].flags & ui::icon_def::is_shield);
 
 	EXPECT_EQ(6, defs.icons[0].frame);
 	EXPECT_EQ(0.5f, defs.icons[0].scale);
@@ -278,4 +381,285 @@ TEST(errors_gui_icon, gui_definitions_tests) {
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_icon_rotation), errors_generated[0]);
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unknown_icon_orientation), errors_generated[1]);
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_icon_attribute), errors_generated[2]);
+}
+
+TEST(basic_gui_text, gui_definitions_tests) {
+	ui::name_maps nmaps;
+	ui::definitions defs;
+	std::vector<std::pair<std::string, ui::errors>> errors_generated;
+	auto th = fake_text_handle_lookup();
+	auto fh = fake_font_handle_lookup();
+	auto qt = fake_gobj_lookup();
+	auto sl = fake_sound_lookup();
+
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	e.file = "fake_file";
+
+	gui_file container(e);
+
+	std::vector<token_group> parse_tree;
+	parse_pdx_file(parse_tree, RANGE(
+		"name = tname\n"
+	));
+
+	if (parse_tree.size() > 0)
+		container.gui_instantTextBoxType(parse_object<allTextBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
+
+	EXPECT_EQ(1, nmaps.text_names.size());
+	EXPECT_EQ(1, defs.text.size());
+	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(std::string("tname"), nmaps.text_names[0]);
+	EXPECT_EQ(0, defs.text[0].flags & ui::text_def::always_transparent);
+	EXPECT_EQ(0, defs.text[0].flags & ui::text_def::fixed_size);
+	EXPECT_EQ(ui::text_def::instant, defs.text[0].flags & ui::text_def::instant);
+	EXPECT_EQ(ui::text_def::background_none_specified, defs.text[0].flags & ui::text_def::background_mask);
+	EXPECT_EQ(ui::text_def::orientation_center, defs.text[0].flags & ui::text_def::orientation_mask);
+	EXPECT_EQ(ui::text_def::format_left, defs.text[0].flags & ui::text_def::format_mask);
+	EXPECT_EQ(0, defs.text[0].flags & ui::text_def::is_edit_box);
+
+
+	EXPECT_EQ(0, defs.text[0].font_handle);
+	EXPECT_EQ(0, defs.text[0].max_width);
+	EXPECT_EQ(0, defs.text[0].max_height);
+	EXPECT_EQ(0, defs.text[0].text_handle);
+	EXPECT_EQ(0, defs.text[0].position.x);
+	EXPECT_EQ(0, defs.text[0].position.y);
+	EXPECT_EQ(0, defs.text[0].border_size.x);
+	EXPECT_EQ(0, defs.text[0].border_size.y);
+}
+
+TEST(non_default_gui_text, gui_definitions_tests) {
+	ui::name_maps nmaps;
+	ui::definitions defs;
+	std::vector<std::pair<std::string, ui::errors>> errors_generated;
+	auto th = fake_text_handle_lookup();
+	auto fh = fake_font_handle_lookup();
+	auto qt = fake_gobj_lookup();
+	auto sl = fake_sound_lookup();
+
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	e.file = "fake_file";
+
+	gui_file container(e);
+
+	std::vector<token_group> parse_tree;
+	parse_pdx_file(parse_tree, RANGE(
+		"name = tname\n"
+		"allwaysTransparent = yes\n"
+		"fixedSize = yes\n"
+		"textureFile = \"gfx\\interface\\tiles_dialog.tga\"\n"
+		"Orientation = CENTER_UP\n"
+		"format = justified\n"
+		"font = some_font\n"
+		"text = dummy\n"
+		"borderSize = {x = 1, y = 2}\n"
+		"position = {x=10 y=20}\n"
+		"maxHeight = 8\n"
+		"maxWidth = 16\n"
+	));
+
+	if (parse_tree.size() > 0)
+		container.gui_textBoxType(parse_object<allTextBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
+
+	EXPECT_EQ(1, nmaps.text_names.size());
+	EXPECT_EQ(1, defs.text.size());
+	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(std::string("tname"), nmaps.text_names[0]);
+	EXPECT_EQ(ui::text_def::always_transparent, defs.text[0].flags & ui::text_def::always_transparent);
+	EXPECT_EQ(ui::text_def::fixed_size, defs.text[0].flags & ui::text_def::fixed_size);
+	EXPECT_EQ(0, defs.text[0].flags & ui::text_def::instant);
+	EXPECT_EQ(ui::text_def::background_tiles_dialog_tga, defs.text[0].flags & ui::text_def::background_mask);
+	EXPECT_EQ(ui::text_def::orientation_center_up, defs.text[0].flags & ui::text_def::orientation_mask);
+	EXPECT_EQ(ui::text_def::format_justified, defs.text[0].flags & ui::text_def::format_mask);
+	EXPECT_EQ(0, defs.text[0].flags & ui::text_def::is_edit_box);
+
+	EXPECT_EQ(1, defs.text[0].font_handle);
+	EXPECT_EQ(16, defs.text[0].max_width);
+	EXPECT_EQ(8, defs.text[0].max_height);
+	EXPECT_EQ(1, defs.text[0].text_handle);
+	EXPECT_EQ(10, defs.text[0].position.x);
+	EXPECT_EQ(20, defs.text[0].position.y);
+	EXPECT_EQ(1, defs.text[0].border_size.x);
+	EXPECT_EQ(2, defs.text[0].border_size.y);
+}
+
+TEST(edit_gui_text, gui_definitions_tests) {
+	ui::name_maps nmaps;
+	ui::definitions defs;
+	std::vector<std::pair<std::string, ui::errors>> errors_generated;
+	auto th = fake_text_handle_lookup();
+	auto fh = fake_font_handle_lookup();
+	auto qt = fake_gobj_lookup();
+	auto sl = fake_sound_lookup();
+
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	e.file = "fake_file";
+
+	gui_file container(e);
+
+	std::vector<token_group> parse_tree;
+	parse_pdx_file(parse_tree, RANGE(
+		"name = tname\n"
+		"allwaysTransparent = yes\n"
+		"fixedSize = yes\n"
+		"textureFile = \"gfx\\interface\\small_tiles_dialog.tga\"\n"
+		"Orientation = CENTER_DOWN\n"
+		"format = justified\n"
+		"font = some_font\n"
+		"text = dummy\n"
+		"borderSize = {x = 1, y = 2}\n"
+		"position = {x=10 y=20}\n"
+		"maxHeight = 8\n"
+		"maxWidth = 16\n"
+	));
+
+	if (parse_tree.size() > 0)
+		container.gui_editBoxType(parse_object<allTextBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
+
+	EXPECT_EQ(1, nmaps.text_names.size());
+	EXPECT_EQ(1, defs.text.size());
+	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(std::string("tname"), nmaps.text_names[0]);
+	EXPECT_EQ(ui::text_def::always_transparent, defs.text[0].flags & ui::text_def::always_transparent);
+	EXPECT_EQ(ui::text_def::fixed_size, defs.text[0].flags & ui::text_def::fixed_size);
+	EXPECT_EQ(0, defs.text[0].flags & ui::text_def::instant);
+	EXPECT_EQ(ui::text_def::background_small_tiles_dialog_tga, defs.text[0].flags & ui::text_def::background_mask);
+	EXPECT_EQ(ui::text_def::orientation_center_down, defs.text[0].flags & ui::text_def::orientation_mask);
+	EXPECT_EQ(ui::text_def::format_justified, defs.text[0].flags & ui::text_def::format_mask);
+	EXPECT_EQ(ui::text_def::is_edit_box, defs.text[0].flags & ui::text_def::is_edit_box);
+
+	EXPECT_EQ(1, defs.text[0].font_handle);
+	EXPECT_EQ(16, defs.text[0].max_width);
+	EXPECT_EQ(8, defs.text[0].max_height);
+	EXPECT_EQ(1, defs.text[0].text_handle);
+	EXPECT_EQ(10, defs.text[0].position.x);
+	EXPECT_EQ(20, defs.text[0].position.y);
+	EXPECT_EQ(1, defs.text[0].border_size.x);
+	EXPECT_EQ(2, defs.text[0].border_size.y);
+}
+
+TEST(errors_gui_text, gui_definitions_tests) {
+	ui::name_maps nmaps;
+	ui::definitions defs;
+	std::vector<std::pair<std::string, ui::errors>> errors_generated;
+	auto th = fake_text_handle_lookup();
+	auto fh = fake_font_handle_lookup();
+	auto qt = fake_gobj_lookup();
+	auto sl = fake_sound_lookup();
+
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	e.file = "fake_file";
+
+	gui_file container(e);
+
+	std::vector<token_group> parse_tree;
+	parse_pdx_file(parse_tree, RANGE(
+		"name = tname\n"
+		"allwaysTransparent = yes\n"
+		"fixedSize = yes\n"
+		"textureFile = \"gfx\\interface\\other.tga\"\n"
+		"Orientation = CENTER_OTHER\n"
+		"format = none\n"
+		"font = some_font\n"
+		"text = dummy\n"
+		"borderSize = {x = 1, y = 2}\n"
+		"position = {x=10 y=20}\n"
+		"maxHeight = 8\n"
+		"maxWidth = 16\n"
+		"badkey"
+	));
+
+	if (parse_tree.size() > 0)
+		container.gui_textBoxType(parse_object<allTextBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
+
+	EXPECT_EQ(1, nmaps.text_names.size());
+	EXPECT_EQ(1, defs.text.size());
+	EXPECT_EQ(4, errors_generated.size());
+
+	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unknown_text_orientation), errors_generated[1]);
+	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unknown_text_format), errors_generated[2]);
+	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_text_background), errors_generated[0]);
+	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_text_attribute), errors_generated[3]);
+
+	EXPECT_EQ(std::string("tname"), nmaps.text_names[0]);
+	EXPECT_EQ(ui::text_def::always_transparent, defs.text[0].flags & ui::text_def::always_transparent);
+	EXPECT_EQ(ui::text_def::fixed_size, defs.text[0].flags & ui::text_def::fixed_size);
+	EXPECT_EQ(0, defs.text[0].flags & ui::text_def::instant);
+	EXPECT_EQ(ui::text_def::orientation_center, defs.text[0].flags & ui::text_def::orientation_mask);
+	EXPECT_EQ(ui::text_def::format_left, defs.text[0].flags & ui::text_def::format_mask);
+	EXPECT_EQ(ui::text_def::background_none_specified, defs.text[0].flags & ui::text_def::background_mask);
+	EXPECT_EQ(0, defs.text[0].flags & ui::text_def::is_edit_box);
+
+	EXPECT_EQ(1, defs.text[0].font_handle);
+	EXPECT_EQ(16, defs.text[0].max_width);
+	EXPECT_EQ(8, defs.text[0].max_height);
+	EXPECT_EQ(1, defs.text[0].text_handle);
+	EXPECT_EQ(10, defs.text[0].position.x);
+	EXPECT_EQ(20, defs.text[0].position.y);
+	EXPECT_EQ(1, defs.text[0].border_size.x);
+	EXPECT_EQ(2, defs.text[0].border_size.y);
+}
+
+TEST(basic_gui_position, gui_definitions_tests) {
+	ui::name_maps nmaps;
+	ui::definitions defs;
+	std::vector<std::pair<std::string, ui::errors>> errors_generated;
+	auto th = fake_text_handle_lookup();
+	auto fh = fake_font_handle_lookup();
+	auto qt = fake_gobj_lookup();
+	auto sl = fake_sound_lookup();
+
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	e.file = "fake_file";
+
+	gui_file container(e);
+
+	std::vector<token_group> parse_tree;
+	parse_pdx_file(parse_tree, RANGE(
+		"name = pname\n"
+		"position = {x = 20 y = 10}"
+	));
+
+	if (parse_tree.size() > 0)
+		container.gui_positionType(parse_object<positionType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
+
+	EXPECT_EQ(1, nmaps.position_names.size());
+	EXPECT_EQ(1, defs.positions.size());
+	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(std::string("pname"), nmaps.position_names[0]);
+	EXPECT_EQ(20, defs.positions[0].position.x);
+	EXPECT_EQ(10, defs.positions[0].position.y);
+}
+
+TEST(errors_gui_position, gui_definitions_tests) {
+	ui::name_maps nmaps;
+	ui::definitions defs;
+	std::vector<std::pair<std::string, ui::errors>> errors_generated;
+	auto th = fake_text_handle_lookup();
+	auto fh = fake_font_handle_lookup();
+	auto qt = fake_gobj_lookup();
+	auto sl = fake_sound_lookup();
+
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	e.file = "fake_file";
+
+	gui_file container(e);
+
+	std::vector<token_group> parse_tree;
+	parse_pdx_file(parse_tree, RANGE(
+		"name = pname\n"
+		"badkey\n"
+		"position = {x = 20 y = 10}"
+	));
+
+	if (parse_tree.size() > 0)
+		container.gui_positionType(parse_object<positionType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
+
+	EXPECT_EQ(1, nmaps.position_names.size());
+	EXPECT_EQ(1, defs.positions.size());
+	EXPECT_EQ(1, errors_generated.size());
+	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_position_attribute), errors_generated[0]);
+	EXPECT_EQ(std::string("pname"), nmaps.position_names[0]);
+	EXPECT_EQ(20, defs.positions[0].position.x);
+	EXPECT_EQ(10, defs.positions[0].position.y);
 }
