@@ -483,6 +483,60 @@ TEST(non_default_gui_text, gui_definitions_tests) {
 	EXPECT_EQ(2, defs.text[0].border_size.y);
 }
 
+TEST(size_gui_text, gui_definitions_tests) {
+	ui::name_maps nmaps;
+	ui::definitions defs;
+	std::vector<std::pair<std::string, ui::errors>> errors_generated;
+	auto th = fake_text_handle_lookup();
+	auto fh = fake_font_handle_lookup();
+	auto qt = fake_gobj_lookup();
+	auto sl = fake_sound_lookup();
+
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	e.file = "fake_file";
+
+	gui_file container(e);
+
+	std::vector<token_group> parse_tree;
+	parse_pdx_file(parse_tree, RANGE(
+		"name = tname\n"
+		"allwaysTransparent = yes\n"
+		"fixedSize = yes\n"
+		"textureFile = \"gfx\\interface\\tiles_dialog.tga\"\n"
+		"Orientation = CENTER_UP\n"
+		"format = justified\n"
+		"font = some_font\n"
+		"text = dummy\n"
+		"borderSize = {x = 1, y = 2}\n"
+		"position = {x=10 y=20}\n"
+		"size = {x = 30 y = 40}\n"
+	));
+
+	if (parse_tree.size() > 0)
+		container.gui_textBoxType(parse_object<allTextBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
+
+	EXPECT_EQ(1, nmaps.text_names.size());
+	EXPECT_EQ(1, defs.text.size());
+	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(std::string("tname"), nmaps.text_names[0]);
+	EXPECT_EQ(ui::text_def::always_transparent, defs.text[0].flags & ui::text_def::always_transparent);
+	EXPECT_EQ(ui::text_def::fixed_size, defs.text[0].flags & ui::text_def::fixed_size);
+	EXPECT_EQ(0, defs.text[0].flags & ui::text_def::instant);
+	EXPECT_EQ(ui::text_def::background_tiles_dialog_tga, defs.text[0].flags & ui::text_def::background_mask);
+	EXPECT_EQ(ui::text_def::orientation_center_up, defs.text[0].flags & ui::text_def::orientation_mask);
+	EXPECT_EQ(ui::text_def::format_justified, defs.text[0].flags & ui::text_def::format_mask);
+	EXPECT_EQ(0, defs.text[0].flags & ui::text_def::is_edit_box);
+
+	EXPECT_EQ(1, defs.text[0].font_handle);
+	EXPECT_EQ(30, defs.text[0].max_width);
+	EXPECT_EQ(40, defs.text[0].max_height);
+	EXPECT_EQ(1, defs.text[0].text_handle);
+	EXPECT_EQ(10, defs.text[0].position.x);
+	EXPECT_EQ(20, defs.text[0].position.y);
+	EXPECT_EQ(1, defs.text[0].border_size.x);
+	EXPECT_EQ(2, defs.text[0].border_size.y);
+}
+
 TEST(edit_gui_text, gui_definitions_tests) {
 	ui::name_maps nmaps;
 	ui::definitions defs;
@@ -502,7 +556,7 @@ TEST(edit_gui_text, gui_definitions_tests) {
 		"name = tname\n"
 		"allwaysTransparent = yes\n"
 		"fixedSize = yes\n"
-		"textureFile = \"gfx\\interface\\small_tiles_dialog.tga\"\n"
+		"textureFile = \"gfx\\\\interface\\\\small_tiles_dialog.dds\"\n"
 		"Orientation = CENTER_DOWN\n"
 		"format = justified\n"
 		"font = some_font\n"
@@ -804,6 +858,7 @@ TEST(basic_listbox, gui_definitions_tests) {
 	std::vector<token_group> parse_tree;
 	parse_pdx_file(parse_tree, RANGE(
 		"name = lname\n"
+		"spacing = 0\n"
 	));
 
 	if (parse_tree.size() > 0)
@@ -1149,4 +1204,152 @@ TEST(errors_scrollbar, gui_definitions_tests) {
 	EXPECT_EQ(4, defs.scrollbars[0].slider);
 	EXPECT_EQ(2, defs.scrollbars[0].maximum_limit_icon);
 	EXPECT_EQ(0, defs.scrollbars[0].minimum_limit_icon);
+}
+
+TEST(basic_window, gui_definitions_tests) {
+	ui::name_maps nmaps;
+	ui::definitions defs;
+	std::vector<std::pair<std::string, ui::errors>> errors_generated;
+	auto th = fake_text_handle_lookup();
+	auto fh = fake_font_handle_lookup();
+	auto qt = fake_gobj_lookup();
+	auto sl = fake_sound_lookup();
+
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	e.file = "fake_file";
+
+	gui_file container(e);
+
+	std::vector<token_group> parse_tree;
+	parse_pdx_file(parse_tree, RANGE(
+		"name = wname\n"
+	));
+
+	if (parse_tree.size() > 0)
+		container.gui_windowType(parse_object<windowType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
+
+	EXPECT_EQ(1, nmaps.window_names.size());
+	EXPECT_EQ(1, defs.windows.size());
+	EXPECT_EQ(0, errors_generated.size());
+
+	EXPECT_EQ(std::string("wname"), nmaps.window_names[0]);
+	EXPECT_EQ(0, defs.windows[0].position.x);
+	EXPECT_EQ(0, defs.windows[0].position.y);
+	EXPECT_EQ(0, defs.windows[0].size.x);
+	EXPECT_EQ(0, defs.windows[0].size.y);
+	EXPECT_EQ(0, defs.windows[0].flags & ui::window_def::is_dialog);
+	EXPECT_EQ(0, defs.windows[0].flags & ui::window_def::is_fullscreen);
+	EXPECT_EQ(0, defs.windows[0].flags & ui::window_def::is_moveable);
+	EXPECT_EQ(ui::window_def::orientation_center, defs.windows[0].flags & ui::window_def::orientation_mask);
+	EXPECT_EQ(0, defs.windows[0].background_handle);
+	EXPECT_EQ(0, defs.windows[0].sub_object_definitions.size());
+}
+
+
+TEST(non_default_window, gui_definitions_tests) {
+	ui::name_maps nmaps;
+	ui::definitions defs;
+	std::vector<std::pair<std::string, ui::errors>> errors_generated;
+	auto th = fake_text_handle_lookup();
+	auto fh = fake_font_handle_lookup();
+	auto qt = fake_gobj_lookup();
+	auto sl = fake_sound_lookup();
+
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	e.file = "fake_file";
+
+	gui_file container(e);
+
+	std::vector<token_group> parse_tree;
+	parse_pdx_file(parse_tree, RANGE(
+		"name = wname\n"
+		"size = {x=1 y=2}\n"
+		"position = {x=4 y=5}\n"
+		"fullscreen = yes\n"
+		"moveable = 1\n"
+		"Orientation = UPPER_LEFT\n"
+		"guiButtonType = { name = x }\n"
+		"background = x\n"
+		"listBoxType = { name = l }\n"
+	));
+
+	if (parse_tree.size() > 0)
+		container.gui_eu3dialogtype(parse_object<windowType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
+
+	EXPECT_EQ(1, nmaps.window_names.size());
+	EXPECT_EQ(1, defs.windows.size());
+	EXPECT_EQ(1, defs.buttons.size());
+	EXPECT_EQ(1, defs.listboxes.size());
+	EXPECT_EQ(0, errors_generated.size());
+
+	EXPECT_EQ(std::string("wname"), nmaps.window_names[0]);
+	EXPECT_EQ(4, defs.windows[0].position.x);
+	EXPECT_EQ(5, defs.windows[0].position.y);
+	EXPECT_EQ(1, defs.windows[0].size.x);
+	EXPECT_EQ(2, defs.windows[0].size.y);
+	EXPECT_EQ(ui::window_def::is_dialog, defs.windows[0].flags & ui::window_def::is_dialog);
+	EXPECT_EQ(ui::window_def::is_fullscreen, defs.windows[0].flags & ui::window_def::is_fullscreen);
+	EXPECT_EQ(ui::window_def::is_moveable, defs.windows[0].flags & ui::window_def::is_moveable);
+	EXPECT_EQ(ui::window_def::orientation_upper_left, defs.windows[0].flags & ui::window_def::orientation_mask);
+	EXPECT_EQ(1, defs.windows[0].background_handle);
+	EXPECT_EQ(2, defs.windows[0].sub_object_definitions.size());
+	EXPECT_EQ(ui::pack_ui_definition_handle(ui::element_type::button, 1), defs.windows[0].sub_object_definitions[0]);
+	EXPECT_EQ(ui::pack_ui_definition_handle(ui::element_type::listbox, 1), defs.windows[0].sub_object_definitions[1]);
+}
+
+TEST(errors_window, gui_definitions_tests) {
+	ui::name_maps nmaps;
+	ui::definitions defs;
+	std::vector<std::pair<std::string, ui::errors>> errors_generated;
+	auto th = fake_text_handle_lookup();
+	auto fh = fake_font_handle_lookup();
+	auto qt = fake_gobj_lookup();
+	auto sl = fake_sound_lookup();
+
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	e.file = "fake_file";
+
+	gui_file container(e);
+
+	std::vector<token_group> parse_tree;
+	parse_pdx_file(parse_tree, RANGE(
+		"name = wname\n"
+		"basattribute\n"
+		"size = {x=1 y=2}\n"
+		"position = {x=4 y=5}\n"
+		"fullscreen = yes\n"
+		"moveable = 2\n"
+		"Orientation = CENTER_DOWN\n"
+		"guiButtonType = { name = x }\n"
+		"background = y\n"
+		"listBoxType = { name = l }\n"
+	));
+
+	if (parse_tree.size() > 0)
+		container.gui_eu3dialogtype(parse_object<windowType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
+
+	EXPECT_EQ(1, nmaps.window_names.size());
+	EXPECT_EQ(1, defs.windows.size());
+	EXPECT_EQ(1, defs.buttons.size());
+	EXPECT_EQ(1, defs.listboxes.size());
+	EXPECT_EQ(4, errors_generated.size());
+
+	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_window_attribute), errors_generated[0]);
+	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_window_moveable_value), errors_generated[1]);
+	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unknown_window_orientation), errors_generated[2]);
+	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::window_background_not_found), errors_generated[3]);
+
+	EXPECT_EQ(std::string("wname"), nmaps.window_names[0]);
+	EXPECT_EQ(4, defs.windows[0].position.x);
+	EXPECT_EQ(5, defs.windows[0].position.y);
+	EXPECT_EQ(1, defs.windows[0].size.x);
+	EXPECT_EQ(2, defs.windows[0].size.y);
+	EXPECT_EQ(ui::window_def::is_dialog, defs.windows[0].flags & ui::window_def::is_dialog);
+	EXPECT_EQ(ui::window_def::is_fullscreen, defs.windows[0].flags & ui::window_def::is_fullscreen);
+	EXPECT_EQ(0, defs.windows[0].flags & ui::window_def::is_moveable);
+	EXPECT_EQ(ui::window_def::orientation_center, defs.windows[0].flags & ui::window_def::orientation_mask);
+	EXPECT_EQ(0, defs.windows[0].background_handle);
+	EXPECT_EQ(2, defs.windows[0].sub_object_definitions.size());
+	EXPECT_EQ(ui::pack_ui_definition_handle(ui::element_type::button, 1), defs.windows[0].sub_object_definitions[0]);
+	EXPECT_EQ(ui::pack_ui_definition_handle(ui::element_type::listbox, 1), defs.windows[0].sub_object_definitions[1]);
 }

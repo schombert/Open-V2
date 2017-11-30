@@ -31,34 +31,9 @@ struct parsing_environment {
 	nmaps(a), defs(b), errors_generated(c), th_f(d), fh_f(e), gl_f(f), sl_f(h) {}
 };
 
-std::string label_empty_type(const token_and_type& a, association_type, empty_type&) {
-	return std::string(a.start, a.end);
-}
-
 int discard_empty_type(const token_and_type& a, association_type, empty_type&) {
 	return 0;
 }
-
-template<typename gui_item_type>
-struct global_consume_gui_item {
-	global_consume_gui_item() {}
-
-	global_consume_gui_item& operator=(gui_item_type&& in) {
-		gui_item_type::add_global(std::move(in));
-		return *this;
-	}
-};
-
-struct add_string_to_set {
-	std::set<std::string>& set_dest;
-
-	add_string_to_set(std::set<std::string>& s) : set_dest(s) {}
-
-	add_string_to_set& operator=(const std::string& in) {
-		set_dest.insert(in);
-		return *this;
-	}
-};
 
 MEMBER_DEF(ui::xy_pair, x, "x");
 MEMBER_DEF(ui::xy_pair, y, "y");
@@ -69,7 +44,7 @@ token_and_type token_from_rh(association_type, const token_and_type& t) {
 
 std::optional<virtual_key> virtual_key_from_rh(association_type, const token_and_type& t) {
 	if (t.start == t.end)
-		return std::optional<virtual_key>();
+		return virtual_key::NONE;
 	if (t.start + 1 == t.end) {
 		if ((*t.start >= 'a') & (*t.start <= 'z')) {
 			return virtual_key((uint8_t)virtual_key::A + (*t.start - 'a'));
@@ -377,7 +352,7 @@ std::optional<uint8_t> icon_orientation_from_rh(association_type, const token_an
 		return ui::icon_def::orientation_lower_left;
 	} else if (is_fixed_token_ci(t, "lower_right")) {
 		return ui::icon_def::orientation_lower_right;
-	} else if (is_fixed_token_ci(t, "upper_left")) {
+	} else if (is_fixed_token_ci(t, "upper_left") || is_fixed_token_ci(t, "upperl_left")) {
 		return ui::icon_def::orientation_upper_left;
 	} else if (is_fixed_token_ci(t, "upper_right")) {
 		return ui::icon_def::orientation_upper_right;
@@ -473,11 +448,11 @@ std::optional<uint16_t> textbox_format_from_rh(association_type, const token_and
 std::optional<uint16_t> textbox_background_from_rh(association_type, const token_and_type& t) {
 	if (t.start == t.end) {
 		return ui::text_def::background_none_specified;
-	} else if (is_fixed_token_ci(t, "gfx\\interface\\tiles_dialog.tga")) {
+	} else if (is_fixed_token_ci(t, "gfx\\\\interface\\\\tiles_dialog.tga")) {
 		return ui::text_def::background_tiles_dialog_tga;
-	} else if (is_fixed_token_ci(t, "gfx\\interface\\transparency.tga")) {
+	} else if (is_fixed_token_ci(t, "gfx\\\\interface\\\\transparency.tga")) {
 		return ui::text_def::background_transparency_tga;
-	} else if (is_fixed_token_ci(t, "gfx\\interface\\small_tiles_dialog.tga")) {
+	} else if (is_fixed_token_ci(t, "gfx\\\\interface\\\\small_tiles_dialog.dds")) {
 		return ui::text_def::background_small_tiles_dialog_tga;
 	}
 	return std::optional<uint16_t>();
@@ -496,6 +471,10 @@ struct allTextBoxType {
 			internal_definition.flags |= *i;
 		else
 			env.errors_generated.emplace_back(env.file, ui::errors::unknown_text_orientation);
+	}
+	void size(const ui::xy_pair& s) {
+		internal_definition.max_width = s.x;
+		internal_definition.max_height = s.y;
 	}
 	void format(std::optional<uint16_t> i) {
 		if (i)
@@ -534,6 +513,7 @@ MEMBER_DEF(allTextBoxType, internal_definition.border_size, "borderSize");
 MEMBER_FDEF(allTextBoxType, fixed_size, "fixedSize");
 MEMBER_FDEF(allTextBoxType, font, "font");
 MEMBER_FDEF(allTextBoxType, format, "format");
+MEMBER_FDEF(allTextBoxType, size, "size");
 MEMBER_DEF(allTextBoxType, internal_definition.max_height, "maxHeight");
 MEMBER_DEF(allTextBoxType, internal_definition.max_width, "maxWidth");
 MEMBER_DEF(allTextBoxType, name, "name");
@@ -586,7 +566,7 @@ struct listBoxType {
 			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_listbox_priority);
 	}
 	void spacing(int v) {
-		if (v <= 0 || v > 0x0F)
+		if (v < 0 || v > 0x0F)
 			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_listbox_spacing_value);
 		else
 			internal_definition.flags |= (uint8_t)(v & 0x0F);
@@ -786,8 +766,6 @@ struct scrollbarType {
 		if (v != 0)
 			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_scrollbar_minimum_value);
 	}
-	global_consume_gui_item<guiButtonType> gui_button() { return global_consume_gui_item<guiButtonType>(); }
-	global_consume_gui_item<iconType> gui_iconType() { return global_consume_gui_item<iconType>(); }
 
 	void ignore_value(int) {}
 	void add_unknown_key(int) {
@@ -875,124 +853,215 @@ MEMBER_DEF(OverlappingElementsBoxType, internal_definition.position, "position")
 MEMBER_DEF(OverlappingElementsBoxType, internal_definition.size, "size");
 MEMBER_FDEF(OverlappingElementsBoxType, add_unknown_key, "unknown_key");
 
+std::optional<uint8_t> window_orientation_from_rh(association_type, const token_and_type& t) {
+	if (is_fixed_token_ci(t, "center")) {
+		return ui::window_def::orientation_center;
+	} else if (is_fixed_token_ci(t, "upper_left")) {
+		return ui::window_def::orientation_upper_left;
+	} else if (is_fixed_token_ci(t, "upper_right")) {
+		return ui::window_def::orientation_upper_right;
+	} else if (is_fixed_token_ci(t, "lower_left")) {
+		return ui::window_def::orientation_lower_left;
+	} else if (is_fixed_token_ci(t, "lower_right")) {
+		return ui::window_def::orientation_lower_right;
+	}
+	return std::optional<uint8_t>();
+}
+
 struct windowType {
-	static std::set<std::string> unknown_keys;
-	static std::vector<windowType> all_items;
+	ui::window_def internal_definition;
+	const parsing_environment& env;
 
+	windowType(const parsing_environment& e) : env(e) {};
 
-	std::string orientation;
 	std::string background;
-	std::string dontrender;
-	std::string downsound;
-	std::string upsound;
-	std::string fullscreen;
-	std::string horizontalborder;
-	std::string verticalborder;
-	std::string moveable;
 	std::string name;
-	ui::xy_pair position;
-	ui::xy_pair size;
 
-	static void add_global(windowType&& in) { all_items.emplace_back(std::move(in)); }
-	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
+	void finalize() {
+		if (background.length() != 0) {
+			for (auto i : internal_definition.sub_object_definitions) {
+				auto [type, handle] = ui::unpack_ui_definition_handle(i);
+				if (type == ui::element_type::button && env.nmaps.button_names[handle - 1] == background) {
+					internal_definition.background_handle = handle;
+					break;
+				}
+			}
+			if (internal_definition.background_handle == 0) {
+				env.errors_generated.emplace_back(env.file, ui::errors::window_background_not_found);
+			}
+		}
+	}
+	void fullscreen(bool v) {
+		if(v)
+			internal_definition.flags |= ui::window_def::is_fullscreen;
+	}
+	void moveable(int v) {
+		if (v == 1)
+			internal_definition.flags |= ui::window_def::is_moveable;
+		else if (v == 0)
+			; // do nothing
+		else
+			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_window_moveable_value);
+	}
+	void orientation(std::optional<uint8_t> f) {
+		if (f)
+			internal_definition.flags |= *f;
+		else
+			env.errors_generated.emplace_back(env.file, ui::errors::unknown_window_orientation);
+	}
+	void discard_value(int) {
+	}
 
-	global_consume_gui_item<guiButtonType> gui_button() { return global_consume_gui_item<guiButtonType>(); }
-	global_consume_gui_item<iconType> gui_iconType() { return global_consume_gui_item<iconType>(); }
-	//global_consume_gui_item<instantTextBoxType> gui_instantTextBoxType() { return global_consume_gui_item<instantTextBoxType>(); }
-	global_consume_gui_item<listBoxType> gui_listBoxType() { return global_consume_gui_item<listBoxType>(); }
-	global_consume_gui_item<scrollbarType> gui_scrollbarType() { return global_consume_gui_item<scrollbarType>(); }
-	global_consume_gui_item<windowType> gui_windowType() { return global_consume_gui_item<windowType>(); }
-	//global_consume_gui_item<checkboxType> gui_checkboxType() { return global_consume_gui_item<checkboxType>(); }
-	global_consume_gui_item<OverlappingElementsBoxType> gui_OverlappingElementsBoxType() { return global_consume_gui_item<OverlappingElementsBoxType>(); }
-	//global_consume_gui_item<editBoxType> gui_editBoxType() { return global_consume_gui_item<editBoxType>(); }
-	//global_consume_gui_item<textBoxType> gui_textBoxType() { return global_consume_gui_item<textBoxType>(); }
+	void gui_button(const guiButtonType& b) {
+		env.defs.buttons.emplace_back(b.internal_definition);
+		env.nmaps.button_names.emplace_back(b.name);
+		internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::button,(uint16_t)env.defs.buttons.size()));
+	}
+	void gui_iconType(const iconType& b) {
+		env.defs.icons.emplace_back(b.internal_definition);
+		env.nmaps.icon_names.emplace_back(b.name);
+		internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::icon, (uint16_t)env.defs.icons.size()));
+	}
+	void gui_instantTextBoxType(allTextBoxType&& b) {
+		b.internal_definition.flags |= ui::text_def::instant;
+		env.defs.text.emplace_back(b.internal_definition);
+		env.nmaps.text_names.emplace_back(b.name);
+		internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::text, (uint16_t)env.defs.text.size()));
+	}
+	void gui_instantTextBoxType(allTextBoxType& b) {
+		b.internal_definition.flags |= ui::text_def::instant;
+		env.defs.text.emplace_back(b.internal_definition);
+		env.nmaps.text_names.emplace_back(b.name);
+		internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::text, (uint16_t)env.defs.text.size()));
+	}
+	void gui_textBoxType(const allTextBoxType& b) {
+		env.defs.text.emplace_back(b.internal_definition);
+		env.nmaps.text_names.emplace_back(b.name);
+		internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::text, (uint16_t)env.defs.text.size()));
+	}
+	void gui_checkboxType(guiButtonType&& b) {
+		b.internal_definition.flags |= ui::button_def::is_checkbox;
+		env.defs.buttons.emplace_back(b.internal_definition);
+		env.nmaps.button_names.emplace_back(b.name);
+		internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::button, (uint16_t)env.defs.buttons.size()));
+	}
+	void gui_checkboxType(guiButtonType& b) {
+		b.internal_definition.flags |= ui::button_def::is_checkbox;
+		env.defs.buttons.emplace_back(b.internal_definition);
+		env.nmaps.button_names.emplace_back(b.name);
+		internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::button, (uint16_t)env.defs.buttons.size()));
+	}
+	void gui_shieldtype(iconType&& b) {
+		b.internal_definition.flags |= ui::icon_def::is_shield;
+		env.defs.icons.emplace_back(b.internal_definition);
+		env.nmaps.icon_names.emplace_back(b.name);
+		internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::icon, (uint16_t)env.defs.icons.size()));
+	}
+	void gui_shieldtype(iconType& b) {
+		b.internal_definition.flags |= ui::icon_def::is_shield;
+		env.defs.icons.emplace_back(b.internal_definition);
+		env.nmaps.icon_names.emplace_back(b.name);
+		internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::icon, (uint16_t)env.defs.icons.size()));
+	}
+	void gui_editBoxType(allTextBoxType&& b) {
+		b.internal_definition.flags |= ui::text_def::is_edit_box;
+		env.defs.text.emplace_back(b.internal_definition);
+		env.nmaps.text_names.emplace_back(b.name);
+		internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::text, (uint16_t)env.defs.text.size()));
+	}
+	void gui_editBoxType(allTextBoxType& b) {
+		b.internal_definition.flags |= ui::text_def::is_edit_box;
+		env.defs.text.emplace_back(b.internal_definition);
+		env.nmaps.text_names.emplace_back(b.name);
+		internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::text, (uint16_t)env.defs.text.size()));
+	}
+	void gui_OverlappingElementsBoxType(const OverlappingElementsBoxType& b) {
+		env.defs.overlapping_regions.emplace_back(b.internal_definition);
+		env.nmaps.overlapping_region_names.emplace_back(b.name);
+		internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::overlapping_region, (uint16_t)env.defs.overlapping_regions.size()));
+	}
+	void gui_listBoxType(const listBoxType& b) {
+		env.defs.listboxes.emplace_back(b.internal_definition);
+		env.nmaps.listbox_names.emplace_back(b.name);
+		internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::listbox, (uint16_t)env.defs.listboxes.size()));
+	}
+	void gui_scrollbarType(scrollbarType&& b) {
+		b.finalize();
+		env.defs.scrollbars.emplace_back(b.internal_definition);
+		env.nmaps.scrollbar_names.emplace_back(b.name);
+		internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::scrollbar, (uint16_t)env.defs.scrollbars.size()));
+	}
+	void gui_scrollbarType(scrollbarType& b) {
+		b.finalize();
+		env.defs.scrollbars.emplace_back(b.internal_definition);
+		env.nmaps.scrollbar_names.emplace_back(b.name);
+		internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::scrollbar, (uint16_t)env.defs.scrollbars.size()));
+	}
+	void gui_eu3dialogtype(windowType&& b) {
+		b.finalize();
+		b.internal_definition.flags |= ui::window_def::is_dialog;
+		env.defs.windows.emplace_back(b.internal_definition);
+		env.nmaps.window_names.emplace_back(b.name);
+		internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::window, (uint16_t)env.defs.windows.size()));
+	}
+	void gui_eu3dialogtype(windowType& b) {
+		b.finalize();
+		b.internal_definition.flags |= ui::window_def::is_dialog;
+		env.defs.windows.emplace_back(b.internal_definition);
+		env.nmaps.window_names.emplace_back(b.name);
+		internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::window, (uint16_t)env.defs.windows.size()));
+	}
+	void gui_windowType(windowType&& b) {
+		b.finalize();
+		env.defs.windows.emplace_back(b.internal_definition);
+		env.nmaps.window_names.emplace_back(b.name);
+		internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::window, (uint16_t)env.defs.windows.size()));
+	}
+	void gui_windowType(windowType& b) {
+		b.finalize();
+		env.defs.windows.emplace_back(b.internal_definition);
+		env.nmaps.window_names.emplace_back(b.name);
+		internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::window, (uint16_t)env.defs.windows.size()));
+	}
+
+	void add_unknown_key(int) {
+		env.errors_generated.emplace_back(env.file, ui::errors::unexpected_window_attribute);
+	}
 };
 
-std::vector<windowType> windowType::all_items;
-std::set<std::string> windowType::unknown_keys;
 
-MEMBER_DEF(windowType, orientation, "orientation");
+MEMBER_FDEF(windowType, orientation, "orientation");
 MEMBER_DEF(windowType, background, "background");
-MEMBER_DEF(windowType, dontrender, "dontrender");
-MEMBER_DEF(windowType, downsound, "downsound");
-MEMBER_DEF(windowType, upsound, "upsound");
-MEMBER_DEF(windowType, fullscreen, "fullscreen");
-MEMBER_DEF(windowType, horizontalborder, "horizontalborder");
-MEMBER_DEF(windowType, verticalborder, "verticalborder");
-MEMBER_DEF(windowType, moveable, "moveable");
+MEMBER_FDEF(windowType, discard_value, "dontrender");
+MEMBER_FDEF(windowType, discard_value, "downsound");
+MEMBER_FDEF(windowType, discard_value, "upsound");
+MEMBER_FDEF(windowType, fullscreen, "fullscreen");
+MEMBER_FDEF(windowType, discard_value, "horizontalborder");
+MEMBER_FDEF(windowType, discard_value, "verticalborder");
+MEMBER_FDEF(windowType, moveable, "moveable");
 MEMBER_DEF(windowType, name, "name");
-MEMBER_DEF(windowType, position, "position");
-MEMBER_DEF(windowType, size, "size");
-// MEMBER_DEF(windowType, gui_button(), "guiButtonType");
-MEMBER_DEF(windowType, gui_iconType(), "iconType");
-// MEMBER_DEF(windowType, gui_instantTextBoxType(), "instantTextBoxType");
-// MEMBER_DEF(windowType, gui_listBoxType(), "listBoxType");
-MEMBER_DEF(windowType, gui_scrollbarType(), "scrollbarType");
-MEMBER_DEF(windowType, gui_windowType(), "windowType");
-//MEMBER_DEF(windowType, gui_checkboxType(), "checkboxType");
-MEMBER_DEF(windowType, gui_OverlappingElementsBoxType(), "OverlappingElementsBoxType");
-// MEMBER_DEF(windowType, gui_editBoxType(), "editBoxType");
-// MEMBER_DEF(windowType, gui_textBoxType(), "textBoxType");
-MEMBER_DEF(windowType, add_unknown_key(), "unknown_key");
-
-struct eu3dialogtype {
-	static std::set<std::string> unknown_keys;
-	static std::vector<eu3dialogtype> all_items;
-
-	std::string orientation;
-	std::string backGround;
-	std::string dontRender;
-	std::string fullScreen;
-	std::string horizontalBorder;
-	std::string verticalBorder;
-	std::string moveable;
-	std::string name;
-	ui::xy_pair position;
-	ui::xy_pair size;
-
-	static void add_global(eu3dialogtype&& in) { all_items.emplace_back(std::move(in)); }
-	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
-
-	global_consume_gui_item<guiButtonType> gui_button() { return global_consume_gui_item<guiButtonType>(); }
-	global_consume_gui_item<iconType> gui_iconType() { return global_consume_gui_item<iconType>(); }
-	//global_consume_gui_item<instantTextBoxType> gui_instantTextBoxType() { return global_consume_gui_item<instantTextBoxType>(); }
-	global_consume_gui_item<listBoxType> gui_listBoxType() { return global_consume_gui_item<listBoxType>(); }
-	global_consume_gui_item<scrollbarType> gui_scrollbarType() { return global_consume_gui_item<scrollbarType>(); }
-	global_consume_gui_item<windowType> gui_windowType() { return global_consume_gui_item<windowType>(); }
-	//global_consume_gui_item<checkboxType> gui_checkboxType() { return global_consume_gui_item<checkboxType>(); }
-	//global_consume_gui_item<shieldtype> gui_shieldtype() { return global_consume_gui_item<shieldtype>(); }
-};
-
-std::vector<eu3dialogtype> eu3dialogtype::all_items;
-std::set<std::string> eu3dialogtype::unknown_keys;
-
-MEMBER_DEF(eu3dialogtype, orientation, "orientation");
-MEMBER_DEF(eu3dialogtype, backGround, "backGround");
-MEMBER_DEF(eu3dialogtype, dontRender, "dontRender");
-MEMBER_DEF(eu3dialogtype, fullScreen, "fullScreen");
-MEMBER_DEF(eu3dialogtype, horizontalBorder, "horizontalBorder");
-MEMBER_DEF(eu3dialogtype, verticalBorder, "verticalBorder");
-MEMBER_DEF(eu3dialogtype, moveable, "moveable");
-MEMBER_DEF(eu3dialogtype, name, "name");
-MEMBER_DEF(eu3dialogtype, position, "position");
-MEMBER_DEF(eu3dialogtype, size, "size");
-// MEMBER_DEF(eu3dialogtype, gui_button(), "guiButtonType");
-MEMBER_DEF(eu3dialogtype, gui_iconType(), "iconType");
-// MEMBER_DEF(eu3dialogtype, gui_instantTextBoxType(), "instantTextBoxType");
-// MEMBER_DEF(eu3dialogtype, gui_listBoxType(), "listBoxType");
-MEMBER_DEF(eu3dialogtype, gui_scrollbarType(), "scrollbarType");
-MEMBER_DEF(eu3dialogtype, gui_windowType(), "windowType");
-//MEMBER_DEF(eu3dialogtype, gui_checkboxType(), "checkboxType");
-//MEMBER_DEF(eu3dialogtype, gui_shieldtype(), "shieldtype");
-MEMBER_DEF(eu3dialogtype, add_unknown_key(), "unknown_key");
-
+MEMBER_DEF(windowType, internal_definition.position, "position");
+MEMBER_DEF(windowType, internal_definition.size, "size");
+MEMBER_FDEF(windowType, gui_button, "guiButtonType");
+MEMBER_FDEF(windowType, gui_iconType, "iconType");
+MEMBER_FDEF(windowType, gui_instantTextBoxType, "instantTextBoxType");
+MEMBER_FDEF(windowType, gui_listBoxType, "listBoxType");
+MEMBER_FDEF(windowType, gui_scrollbarType, "scrollbarType");
+MEMBER_FDEF(windowType, gui_windowType, "windowType");
+MEMBER_FDEF(windowType, gui_checkboxType, "checkboxType");
+MEMBER_FDEF(windowType, gui_OverlappingElementsBoxType, "OverlappingElementsBoxType");
+MEMBER_FDEF(windowType, gui_editBoxType, "editBoxType");
+MEMBER_FDEF(windowType, gui_textBoxType, "textBoxType");
+MEMBER_FDEF(windowType, gui_shieldtype, "shieldtype");
+MEMBER_FDEF(windowType, add_unknown_key, "unknown_key");
+MEMBER_FDEF(windowType, gui_eu3dialogtype, "eu3dialogtype");
 
 struct gui_file {
-	static std::set<std::string> unknown_keys;
+	const parsing_environment& env;
+	gui_file(const parsing_environment& e) : env(e) {}
 
-	parsing_environment& env;
-	gui_file(parsing_environment& e) : env(e) {}
-
+	void sub_gui_file(const gui_file& b) {
+	}
 	void gui_button(const guiButtonType& b) {
 		env.defs.buttons.emplace_back(b.internal_definition);
 		env.nmaps.button_names.emplace_back(b.name);
@@ -1002,6 +1071,11 @@ struct gui_file {
 		env.nmaps.icon_names.emplace_back(b.name);
 	}
 	void gui_instantTextBoxType(allTextBoxType&& b) {
+		b.internal_definition.flags |= ui::text_def::instant;
+		env.defs.text.emplace_back(b.internal_definition);
+		env.nmaps.text_names.emplace_back(b.name);
+	}
+	void gui_instantTextBoxType(allTextBoxType& b) {
 		b.internal_definition.flags |= ui::text_def::instant;
 		env.defs.text.emplace_back(b.internal_definition);
 		env.nmaps.text_names.emplace_back(b.name);
@@ -1019,8 +1093,17 @@ struct gui_file {
 		env.defs.buttons.emplace_back(b.internal_definition);
 		env.nmaps.button_names.emplace_back(b.name);
 	}
-
+	void gui_checkboxType(guiButtonType& b) {
+		b.internal_definition.flags |= ui::button_def::is_checkbox;
+		env.defs.buttons.emplace_back(b.internal_definition);
+		env.nmaps.button_names.emplace_back(b.name);
+	}
 	void gui_shieldtype(iconType&& b) {
+		b.internal_definition.flags |= ui::icon_def::is_shield;
+		env.defs.icons.emplace_back(b.internal_definition);
+		env.nmaps.icon_names.emplace_back(b.name);
+	}
+	void gui_shieldtype(iconType& b) {
 		b.internal_definition.flags |= ui::icon_def::is_shield;
 		env.defs.icons.emplace_back(b.internal_definition);
 		env.nmaps.icon_names.emplace_back(b.name);
@@ -1030,7 +1113,11 @@ struct gui_file {
 		env.defs.text.emplace_back(b.internal_definition);
 		env.nmaps.text_names.emplace_back(b.name);
 	}
-
+	void gui_editBoxType(allTextBoxType& b) {
+		b.internal_definition.flags |= ui::text_def::is_edit_box;
+		env.defs.text.emplace_back(b.internal_definition);
+		env.nmaps.text_names.emplace_back(b.name);
+	}
 	void gui_OverlappingElementsBoxType(const OverlappingElementsBoxType& b) {
 		env.defs.overlapping_regions.emplace_back(b.internal_definition);
 		env.nmaps.overlapping_region_names.emplace_back(b.name);
@@ -1044,30 +1131,54 @@ struct gui_file {
 		env.defs.scrollbars.emplace_back(b.internal_definition);
 		env.nmaps.scrollbar_names.emplace_back(b.name);
 	}
-
-	global_consume_gui_item<eu3dialogtype> gui_eu3dialogtype() { return global_consume_gui_item<eu3dialogtype>(); }
-	global_consume_gui_item<windowType> gui_windowType() { return global_consume_gui_item<windowType>(); }
-
-	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
+	void gui_scrollbarType(scrollbarType& b) {
+		b.finalize();
+		env.defs.scrollbars.emplace_back(b.internal_definition);
+		env.nmaps.scrollbar_names.emplace_back(b.name);
+	}
+	void gui_eu3dialogtype(windowType&& b) {
+		b.finalize();
+		b.internal_definition.flags |= ui::window_def::is_dialog;
+		env.defs.windows.emplace_back(b.internal_definition);
+		env.nmaps.window_names.emplace_back(b.name);
+	}
+	void gui_eu3dialogtype(windowType& b) {
+		b.finalize();
+		b.internal_definition.flags |= ui::window_def::is_dialog;
+		env.defs.windows.emplace_back(b.internal_definition);
+		env.nmaps.window_names.emplace_back(b.name);
+	}
+	void gui_windowType(windowType&& b) {
+		b.finalize();
+		env.defs.windows.emplace_back(b.internal_definition);
+		env.nmaps.window_names.emplace_back(b.name);
+	}
+	void gui_windowType(windowType& b) {
+		b.finalize();
+		env.defs.windows.emplace_back(b.internal_definition);
+		env.nmaps.window_names.emplace_back(b.name);
+	}
+	void add_unknown_key(int) {
+		env.errors_generated.emplace_back(env.file, ui::errors::unknown_definition_type);
+	}
 };
-
-std::set<std::string> gui_file::unknown_keys;
 
 
 MEMBER_FDEF(gui_file, gui_button, "guiButtonType");
 MEMBER_FDEF(gui_file, gui_iconType, "iconType");
-MEMBER_DEF(gui_file, gui_eu3dialogtype(), "eu3dialogtype");
+MEMBER_FDEF(gui_file, gui_eu3dialogtype, "eu3dialogtype");
 MEMBER_FDEF(gui_file, gui_instantTextBoxType, "instantTextBoxType");
 MEMBER_FDEF(gui_file, gui_listBoxType, "listBoxType");
-MEMBER_DEF(gui_file, gui_positionType, "positionType");
+MEMBER_FDEF(gui_file, gui_positionType, "positionType");
 MEMBER_FDEF(gui_file, gui_scrollbarType, "scrollbarType");
-MEMBER_DEF(gui_file, gui_windowType(), "windowType");
+MEMBER_FDEF(gui_file, gui_windowType, "windowType");
 MEMBER_FDEF(gui_file, gui_checkboxType, "checkboxType");
 MEMBER_FDEF(gui_file, gui_shieldtype, "shieldtype");
 MEMBER_FDEF(gui_file, gui_OverlappingElementsBoxType, "OverlappingElementsBoxType");
 MEMBER_FDEF(gui_file, gui_editBoxType, "editBoxType");
 MEMBER_FDEF(gui_file, gui_textBoxType, "textBoxType");
-MEMBER_DEF(gui_file, add_unknown_key(), "unknown_key");
+MEMBER_FDEF(gui_file, sub_gui_file, "gui_file");
+MEMBER_FDEF(gui_file, add_unknown_key, "unknown_key");
 
 
 bool accept_all(const char*, const char*) {
@@ -1082,7 +1193,7 @@ EMPTY_TYPE(empty_type)
 	END_TYPE
 	BEGIN_TYPE(gui_file)
 	    MEMBER_TYPE_ASSOCIATION("guiButtonType", "guibuttontype", guiButtonType)
-    	MEMBER_TYPE_ASSOCIATION("eu3dialogtype", "eu3dialogtype", eu3dialogtype)
+    	MEMBER_TYPE_ASSOCIATION("eu3dialogtype", "eu3dialogtype", windowType)
 	    MEMBER_TYPE_ASSOCIATION("iconType", "icontype", iconType)
 		MEMBER_TYPE_ASSOCIATION("instantTextBoxType", "instanttextboxtype", allTextBoxType)
 		MEMBER_TYPE_ASSOCIATION("listBoxType", "listboxtype", listBoxType)
@@ -1094,9 +1205,9 @@ EMPTY_TYPE(empty_type)
 		MEMBER_TYPE_ASSOCIATION("OverlappingElementsBoxType", "overlappingelementsboxtype", OverlappingElementsBoxType)
 		MEMBER_TYPE_ASSOCIATION("editBoxType", "editboxtype", allTextBoxType)
 		MEMBER_TYPE_ASSOCIATION("textBoxType", "textboxtype", allTextBoxType)
-	    MEMBER_TYPE_ASSOCIATION("this", "guitypes", gui_file)
-	    MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
-	    MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
+	    MEMBER_TYPE_ASSOCIATION("gui_file", "guitypes", gui_file)
+	    MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
+	    MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
 	END_TYPE
 	BEGIN_TYPE(guiButtonType)
 		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
@@ -1117,28 +1228,6 @@ EMPTY_TYPE(empty_type)
 	    MEMBER_ASSOCIATION("parent", "parent", discard_from_rh)
 	    MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
 	    MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
-	END_TYPE
-	BEGIN_TYPE(eu3dialogtype)
-		MEMBER_ASSOCIATION("orientation", "orientation", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("backGround", "backGround", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("dontRender", "dontRender", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("fullScreen", "fullScreen", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("horizontalBorder", "horizontalBorder", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("verticalBorder", "verticalBorder", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("moveable", "moveable", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
-		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
-		MEMBER_TYPE_ASSOCIATION("size", "size", ui::xy_pair)
-		// MEMBER_TYPE_ASSOCIATION("guiButtonType", "guibuttontype", guiButtonType)
-		// MEMBER_TYPE_ASSOCIATION("iconType", "icontype", iconType)
-		// MEMBER_TYPE_ASSOCIATION("instantTextBoxType", "instanttextboxtype", instantTextBoxType)
-		// MEMBER_TYPE_ASSOCIATION("listBoxType", "listboxtype", listBoxType)
-		// MEMBER_TYPE_ASSOCIATION("scrollbarType", "scrollbartype", scrollbarType)
-		MEMBER_TYPE_ASSOCIATION("windowType", "windowtype", windowType)
-		// MEMBER_TYPE_ASSOCIATION("checkboxType", "checkboxtype", checkboxType)
-		// MEMBER_TYPE_ASSOCIATION("shieldtype", "shieldtype", shieldtype)
-		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
 	END_TYPE
 	BEGIN_TYPE(iconType)
 		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
@@ -1161,6 +1250,7 @@ EMPTY_TYPE(empty_type)
 		MEMBER_ASSOCIATION("maxHeight", "maxheight", value_from_rh<uint16_t>)
 		MEMBER_ASSOCIATION("maxWidth", "maxwidth", value_from_rh<uint16_t>)
 		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
+	    MEMBER_TYPE_ASSOCIATION("size", "size", ui::xy_pair)
 		MEMBER_ASSOCIATION("text", "text", token_from_rh)
 		MEMBER_ASSOCIATION("textureFile", "texturefile", textbox_background_from_rh)
 		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
@@ -1218,30 +1308,32 @@ EMPTY_TYPE(empty_type)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
 	END_TYPE
 	BEGIN_TYPE(windowType)
-		MEMBER_ASSOCIATION("orientation", "orientation", value_from_rh<std::string>)
+		MEMBER_ASSOCIATION("orientation", "orientation", window_orientation_from_rh)
 		MEMBER_ASSOCIATION("background", "background", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("dontrender", "dontrender", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("downsound", "downsound", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("upsound", "upsound", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("fullscreen", "fullscreen", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("horizontalborder", "horizontalborder", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("verticalborder", "verticalborder", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("moveable", "moveable", value_from_rh<std::string>)
+		MEMBER_ASSOCIATION("dontrender", "dontrender", value_from_rh<bool>)
+		MEMBER_ASSOCIATION("downsound", "downsound", discard_from_rh)
+		MEMBER_ASSOCIATION("upsound", "upsound", discard_from_rh)
+		MEMBER_ASSOCIATION("fullscreen", "fullscreen", value_from_rh<bool>)
+		MEMBER_ASSOCIATION("horizontalborder", "horizontalborder", discard_from_rh)
+		MEMBER_ASSOCIATION("verticalborder", "verticalborder", discard_from_rh)
+		MEMBER_ASSOCIATION("moveable", "moveable", value_from_rh<int>)
 		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
 		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
 		MEMBER_TYPE_ASSOCIATION("size", "size", ui::xy_pair)
-		// MEMBER_TYPE_ASSOCIATION("guiButtonType", "guibuttontype", guiButtonType)
-		// MEMBER_TYPE_ASSOCIATION("iconType", "icontype", iconType)
-		// MEMBER_TYPE_ASSOCIATION("instantTextBoxType", "instanttextboxtype", instantTextBoxType)
-		// MEMBER_TYPE_ASSOCIATION("listBoxType", "listboxtype", listBoxType)
-		// MEMBER_TYPE_ASSOCIATION("scrollbarType", "scrollbartype", scrollbarType)
+		MEMBER_TYPE_ASSOCIATION("eu3dialogtype", "eu3dialogtype", windowType)
+		MEMBER_TYPE_ASSOCIATION("shieldtype", "shieldtype", iconType)
+		MEMBER_TYPE_ASSOCIATION("guiButtonType", "guibuttontype", guiButtonType)
+		MEMBER_TYPE_ASSOCIATION("iconType", "icontype", iconType)
+		MEMBER_TYPE_ASSOCIATION("instantTextBoxType", "instanttextboxtype", allTextBoxType)
+		MEMBER_TYPE_ASSOCIATION("listBoxType", "listboxtype", listBoxType)
+		MEMBER_TYPE_ASSOCIATION("scrollbarType", "scrollbartype", scrollbarType)
 		MEMBER_TYPE_ASSOCIATION("windowType", "windowtype", windowType)
-		// MEMBER_TYPE_ASSOCIATION("checkboxType", "checkboxtype", checkboxType)
-		// MEMBER_TYPE_ASSOCIATION("OverlappingElementsBoxType", "overlappingelementsboxtype", OverlappingElementsBoxType)
-		// MEMBER_TYPE_ASSOCIATION("editBoxType", "editboxtype", editBoxType)
-		// MEMBER_TYPE_ASSOCIATION("textBoxType", "textboxtype", textBoxType)
-		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
+		MEMBER_TYPE_ASSOCIATION("checkboxType", "checkboxtype", guiButtonType)
+		MEMBER_TYPE_ASSOCIATION("OverlappingElementsBoxType", "overlappingelementsboxtype", OverlappingElementsBoxType)
+		MEMBER_TYPE_ASSOCIATION("editBoxType", "editboxtype", allTextBoxType)
+		MEMBER_TYPE_ASSOCIATION("textBoxType", "textboxtype", allTextBoxType)
+		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
 	END_TYPE
 	BEGIN_TYPE(OverlappingElementsBoxType)
 		MEMBER_ASSOCIATION("orientation", "orientation", overlapping_orientation_from_rh)
@@ -1254,3 +1346,127 @@ EMPTY_TYPE(empty_type)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
 	END_TYPE
 END_DOMAIN;
+
+
+void load_ui_definitions_from_directory(
+	const directory& source_directory,
+	ui::name_maps& nmaps,
+	ui::definitions& defs,
+	std::vector<std::pair<std::string,ui::errors>>& errors_generated,
+	const text_handle_lookup& th_f,
+	const font_handle_lookup& fh_f,
+	const gobj_lookup& qt_f,
+	const sound_lookup& sl_f) {
+
+	std::vector<token_group> parse_tree;
+
+	parsing_environment e(nmaps, defs, errors_generated, th_f, fh_f, qt_f, sl_f);
+
+	const auto gui_files = source_directory.list_files(u".gui");
+
+	for (const auto& f : gui_files) {
+		if (f.file_name() == u"battleplansinterface.gui" || f.file_name() == u"news.gui" || f.file_name() == u"nudge.gui"
+			|| f.file_name() == u"tutorial.gui" || f.file_name() == u"tutorial_control.gui") {
+			//skip
+		} else {
+			auto open_f = f.open_file();
+			if (open_f) {
+				e.file = std::string(f.file_name().begin(), f.file_name().end()); // just dropping unicode
+
+				const auto sz = open_f->size();
+				auto buffer = new char[sz];
+
+				open_f->read_to_buffer(buffer, sz);
+
+				parse_tree.clear();
+				parse_pdx_file(parse_tree, buffer, buffer + sz);
+
+				if (parse_tree.size() > 0)
+					parse_object<gui_file, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e);
+
+				delete[] buffer;
+			}
+		}
+	}
+}
+
+const char* ui::format_error(ui::errors  e) {
+	switch (e) {
+		case ui::errors::expected_tooltip_empty_for_button:
+			return "expected empty tooltip for button";
+		case ui::errors::expected_tooltiptext_empty_for_button:
+			return "expected empty tooltip text for button";
+		case ui::errors::expected_delayedtooltiptext_empty_for_button:
+			return "expected empty delayed tooltip text for button";
+		case ui::errors::expected_button_format_to_be_left:
+			return "expected button to have left format";
+		case ui::errors::unknown_button_orientation:
+			return "unknown button orientation";
+		case ui::errors::unknown_button_shortcut:
+			return "unknown shortcut for button";
+		case ui::errors::unexpected_button_rotation:
+			return "invalid rotation value for button";
+		case ui::errors::unexpected_button_attribute:
+			return "unexpected attribute for button";
+		case ui::errors::unknown_icon_orientation:
+			return "unknown icon orientation";
+		case ui::errors::unexpected_icon_rotation:
+			return "invalid rotation for icon";
+		case ui::errors::unexpected_icon_attribute:
+			return "unexpected attribute for icon";
+		case ui::errors::unknown_text_orientation:
+			return "unknown text orientation";
+		case ui::errors::unknown_text_format:
+			return "unknown text format";
+		case ui::errors::unexpected_text_attribute:
+			return "unexpected attribute for text type element";
+		case ui::errors::unexpected_text_background:
+			return "unknown background for text type element";
+		case ui::errors::unexpected_position_attribute:
+			return "unexpected attribute for position type element";
+		case ui::errors::unknown_overlapping_region_format:
+			return "unknown format for overlapping region";
+		case ui::errors::unknown_overlapping_region_orientation:
+			return "unknown orientation for overlapping region";
+		case ui::errors::unexpected_overlapping_region_attribute:
+			return "unexpected attribute for overlapping region";
+		case ui::errors::unsupported_listbox_scrollbar_type:
+			return "only the standard scrollbar is supported for listboxes";
+		case ui::errors::unexpected_listbox_step_value:
+			return "nonzero step value specified for listbox";
+		case ui::errors::unexpected_listbox_spacing_value:
+			return "spacing for listbox out of range";
+		case ui::errors::unexpected_listbox_priority:
+			return "priority other than 100 specified for listbox";
+		case ui::errors::unknown_listbox_orientation:
+			return "unknown orientation for listbox";
+		case ui::errors::horizontal_listboxes_not_supported:
+			return "horizontal listboxes are not supported";
+		case ui::errors::unexpected_listbox_attribute:
+			return "unexpected attribute for listbox";
+		case ui::errors::unexpected_scrollbar_priority:
+			return "priority other than 100 specified for scrollbar";
+		case ui::errors::unexpected_scrollbar_minimum_value:
+			return "minimum value other than 0 specified for scrollbar";
+		case ui::errors::unexpected_scrollbar_horizontal_value:
+			return "horizontal value other than 0 or 1 specified for scrollbar";
+		case ui::errors::unexpected_scrollbar_step_size:
+			return "step size for scrollbar not 2, 1, 0.1, 0.01, or 0.001";
+		case ui::errors::scrollbar_component_not_found:
+			return "scrollbar referenced a component it did not define";
+		case ui::errors::missing_necessary_scrollbar_component:
+			return "one of the necessary components for a scrollbar was undefined";
+		case ui::errors::unexpected_scrollbar_attribute:
+			return "unexpected attribute for scrollbar";
+		case ui::errors::unexpected_window_attribute:
+			return "unexpected attribute for window";
+		case ui::errors::unknown_window_orientation:
+			return "unknown orientation for window";
+		case ui::errors::window_background_not_found:
+			return "window referenced a background it did not define";
+		case ui::errors::unexpected_window_moveable_value:
+			return "moveable value other than 0 or 1 specified for window";
+		case ui::errors::unknown_definition_type:
+			return "unknown definition type found at top scope";
+	}
+}

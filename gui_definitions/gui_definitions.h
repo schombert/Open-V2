@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "common\\common.h"
 #include <vector>
+#include <string>
 #include <functional>
 #include "boost\\container\\flat_map.hpp"
 #include "simple_fs\\simple_fs.h"
@@ -40,13 +41,33 @@ namespace ui {
 		unexpected_scrollbar_step_size,
 		scrollbar_component_not_found,
 		missing_necessary_scrollbar_component,
-		unexpected_scrollbar_attribute
+		unexpected_scrollbar_attribute,
+		unexpected_window_attribute,
+		unknown_window_orientation,
+		window_background_not_found,
+		unexpected_window_moveable_value,
+		unknown_definition_type
 	};
 
-	enum class element_types : uint8_t {
-		button, icon, text, position, overlapping_region, listbox,
-		scrollbar
+	const char* format_error(errors  e);
+
+	enum class element_type : uint8_t {
+		button = 1,
+		icon = 2,
+		text = 3,
+		position = 4,
+		overlapping_region = 5,
+		listbox = 6,
+		scrollbar = 7,
+		window = 8
 	};
+
+	constexpr uint16_t pack_ui_definition_handle(element_type t, uint16_t handle) {
+		return (uint16_t)(((uint32_t)handle << 4) | (uint32_t)t);
+	}
+	constexpr std::pair<element_type, uint16_t> unpack_ui_definition_handle(uint16_t packed_handle) {
+		return std::make_pair((element_type)(packed_handle & 0x000F), (uint16_t)(packed_handle >> 4));
+	}
 
 	struct xy_pair {
 		int16_t x = 0;
@@ -60,6 +81,8 @@ namespace ui {
 		static constexpr uint8_t orientation_lower_right   = 0x02;
 		static constexpr uint8_t orientation_upper_left    = 0x03;
 		static constexpr uint8_t orientation_upper_right   = 0x04;
+		static constexpr uint8_t format_mask               = 0x08;
+		static constexpr uint8_t format_center             = 0x00;
 		static constexpr uint8_t format_left               = 0x08;
 		static constexpr uint8_t rotation_mask             = 0x30;
 		static constexpr uint8_t rotation_upright          = 0x00;
@@ -186,9 +209,9 @@ namespace ui {
 	};
 
 	struct scrollbar_def {
-		static constexpr uint8_t is_horizontal   = 0x01;
-		static constexpr uint8_t has_range_limit = 0x02;
-		static constexpr uint8_t is_lockable     = 0x04;
+		static constexpr uint8_t is_horizontal       = 0x01;
+		static constexpr uint8_t has_range_limit     = 0x02;
+		static constexpr uint8_t is_lockable         = 0x04;
 
 		static constexpr uint8_t step_mask           = 0xF0;
 		static constexpr uint8_t step_one            = 0x00;
@@ -210,6 +233,25 @@ namespace ui {
 		uint8_t flags = 0;
 	};
 
+	struct window_def {
+		static constexpr uint8_t is_dialog                = 0x01;
+		static constexpr uint8_t is_fullscreen            = 0x02;
+		static constexpr uint8_t is_moveable              = 0x04;
+
+		static constexpr uint8_t orientation_mask         = 0x70;
+		static constexpr uint8_t orientation_center       = 0x00;
+		static constexpr uint8_t orientation_lower_left   = 0x10;
+		static constexpr uint8_t orientation_lower_right  = 0x20;
+		static constexpr uint8_t orientation_upper_left   = 0x30;
+		static constexpr uint8_t orientation_upper_right  = 0x40;
+
+		std::vector<uint16_t> sub_object_definitions;
+		ui::xy_pair position;
+		ui::xy_pair size;
+		uint16_t background_handle = 0;
+		uint8_t flags = 0;
+	};
+
 	struct name_maps {
 		std::vector<std::string> button_names;
 		std::vector<std::string> icon_names;
@@ -218,23 +260,26 @@ namespace ui {
 		std::vector<std::string> overlapping_region_names;
 		std::vector<std::string> listbox_names;
 		std::vector<std::string> scrollbar_names;
+		std::vector<std::string> window_names;
 
-		const std::string& get_name(element_types t, uint16_t handle) {
+		const std::string& get_name(element_type t, uint16_t handle) {
 			switch (t) {
-				case element_types::button:
+				case element_type::button:
 					return button_names[handle - 1];
-				case element_types::icon:
+				case element_type::icon:
 					return icon_names[handle - 1];
-				case element_types::text:
+				case element_type::text:
 					return text_names[handle - 1];
-				case element_types::position:
+				case element_type::position:
 					return position_names[handle - 1];
-				case element_types::overlapping_region:
+				case element_type::overlapping_region:
 					return overlapping_region_names[handle - 1];
-				case element_types::listbox:
+				case element_type::listbox:
 					return listbox_names[handle - 1];
-				case element_types::scrollbar:
+				case element_type::scrollbar:
 					return scrollbar_names[handle - 1];
+				case element_type::window:
+					return window_names[handle - 1];
 			}
 		}
 	};
@@ -247,6 +292,7 @@ namespace ui {
 		std::vector<overlapping_region_def> overlapping_regions;
 		std::vector<listbox_def> listboxes;
 		std::vector<scrollbar_def> scrollbars;
+		std::vector<window_def> windows;
 	};
 };
 

@@ -8,6 +8,7 @@
 #include "graphics\\v2_window.hpp"
 #include "graphics\\test_helpers.h"
 #include <string>
+#include "gui_definitions\\gui_definitions.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -332,9 +333,6 @@ std::pair<association_type, double> double_and_association(association_type a, c
 	return std::make_pair(a, parse_double(t.start, t.end));
 };
 
-bool accept_all(const char*, const char*) {
-	return true;
-}
 
 std::pair<std::string, double> string_double_from_full_association(const token_and_type& t, association_type, const token_and_type& e) {
 	return make_pair(std::string(t.start, t.end), parse_double(e.start, e.end));
@@ -354,12 +352,6 @@ using vec_str_simple = std::vector<std::pair<std::string, simple_modifier_contai
 using vec_str_complex = std::vector<std::pair<std::string, complex_modifier_container>>;
 
 /*
-MEMBER_DEF(mod_description, name, "name");
-MEMBER_DEF(mod_description, path, "path");
-MEMBER_DEF(mod_description, user_dir, "user_dir");
-MEMBER_DEF(mod_description, dependencies, "dependencies");
-*/
-
 struct empty_type {
 
 };
@@ -395,6 +387,7 @@ struct discard_int {
 		return *this;
 	}
 };
+
 
 struct xy_pair {
 	int x;
@@ -1172,6 +1165,7 @@ EMPTY_TYPE(empty_type)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
 	END_TYPE
 END_DOMAIN;
+*/
 
 /*
 BEGIN_DOMAIN(mod_file_domain)
@@ -1393,6 +1387,19 @@ struct empty_window_handler {
 	}
 };
 
+auto fake_text_handle_lookup() {
+	return[i = 0ui16](const char*, const char*) mutable { return ++i; };
+}
+auto fake_font_handle_lookup() {
+	return[i = 0ui16](const char*, const char*) mutable { return ++i; };
+}
+auto fake_gobj_lookup() {
+	return[i = 0ui16](const char*, const char*) mutable { return ++i; };
+}
+auto fake_sound_lookup() {
+	return[i = 0ui16](const char*, const char*) mutable { return ++i; };
+}
+
 int __cdecl main() {
 	/*{
 		window<empty_window_handler> test_window(400, 400);
@@ -1409,6 +1416,23 @@ int __cdecl main() {
 		//fs.add_root(u"F:\\programs\\V2\\mod\\HPM\\interface");
 		const auto gui_files = fs.get_root().list_files(u".gui");
 
+		ui::name_maps nmaps;
+		ui::definitions defs;
+		std::vector<std::pair<std::string, ui::errors>> errors_generated;
+
+		load_ui_definitions_from_directory(
+			fs.get_root(), nmaps, defs, errors_generated,
+			fake_text_handle_lookup(),
+			fake_font_handle_lookup(),
+			fake_gobj_lookup(),
+			fake_sound_lookup());
+
+
+		std::cout << "errors in files: " << errors_generated.size() << std::endl;
+		for (auto & ep : errors_generated) {
+			std::cout << "in file: " << ep.first << ": " << ui::format_error(ep.second) << std::endl;
+		}
+		/*
 		std::vector<token_group> parse_tree;
 
 		std::cout << "files count: " << gui_files.size() << std::endl;
@@ -1431,10 +1455,9 @@ int __cdecl main() {
 			}
 		}
 
-
 		std::set<std::string> entries;
-		for (auto& i : scrollbarType::all_items) {
-			entries.insert(i.userangelimit);
+		for (auto& i : guiButtonType::all_buttons) {
+			entries.insert(i.clicksound);
 		}
 
 		std::cout << "checkboxType.XXXX entries: " << std::endl;
@@ -1511,6 +1534,7 @@ int __cdecl main() {
 		for (auto& k : gui_file::unknown_keys) {
 			std::cout << k << std::endl;
 		}
+		*/
 	}
 
 	/*{

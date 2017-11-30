@@ -91,7 +91,6 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\Parsers;$(ProjectDir)..\simple_fs;$(ProjectDir)..\object_parsing;$(ProjectDir)..\text_classifier;$(ProjectDir)..</AdditionalIncludeDirectories>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -161,6 +160,9 @@
   <ItemGroup>
     <ProjectReference Include="..\graphics\graphics.vcxproj">
       <Project>{30142af6-6972-4e2f-baa8-85361ce88f22}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\gui_definitions\gui_definitions.vcxproj">
+      <Project>{ff9513fe-8de3-4263-9d53-eaf04dc81c8c}</Project>
     </ProjectReference>
     <ProjectReference Include="..\object_parsing\object_parsing.vcxproj">
       <Project>{d1a6aa5f-9db4-4786-a0c3-0c67bf87547d}</Project>
