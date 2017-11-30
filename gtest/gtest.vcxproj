@@ -20,13 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="gtest-all.cc" />
-    <ClCompile Include="gtest-death-test.cc" />
-    <ClCompile Include="gtest-filepath.cc" />
-    <ClCompile Include="gtest-port.cc" />
-    <ClCompile Include="gtest-printers.cc" />
-    <ClCompile Include="gtest-test-part.cc" />
-    <ClCompile Include="gtest-typed-test.cc" />
-    <ClCompile Include="gtest.cc" />
     <ClCompile Include="gtest_main.cc" />
   </ItemGroup>
   <ItemGroup>

@@ -15,31 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="gtest.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="gtest_main.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="gtest-all.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="gtest-death-test.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="gtest-filepath.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="gtest-port.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="gtest-printers.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="gtest-test-part.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="gtest-typed-test.cc">
+    <ClCompile Include="gtest_main.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

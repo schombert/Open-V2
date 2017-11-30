@@ -542,45 +542,82 @@ MEMBER_FDEF(allTextBoxType, text, "text");
 MEMBER_FDEF(allTextBoxType, background, "textureFile");
 MEMBER_FDEF(allTextBoxType, add_unknown_key, "unknown_key");
 
+
+std::optional<uint8_t> listbox_orientation_from_rh(association_type, const token_and_type& t) {
+	if (is_fixed_token_ci(t, "center")) {
+		return ui::listbox_def::orientation_center;
+	} else if (is_fixed_token_ci(t, "upper_left")) {
+		return ui::listbox_def::orientation_upper_left;
+	} else if (is_fixed_token_ci(t, "upper_right")) {
+		return ui::listbox_def::orientation_upper_right;
+	} else if (is_fixed_token_ci(t, "center_down")) {
+		return ui::listbox_def::orientation_center_down;
+	}
+	return std::optional<uint8_t>();
+}
+
 struct listBoxType {
-	static std::set<std::string> unknown_keys;
-	static std::vector<listBoxType> all_items;
+	ui::listbox_def internal_definition;
+	const parsing_environment& env;
 
-	std::string orientation;
-	std::string alwaystransparent;
-	std::string background;
-	std::string horizontal;
+	listBoxType(const parsing_environment& e) : env(e) {};
+
 	std::string name;
-	std::string priority;
-	std::string scrollbartype;
-	std::string spacing;
-	std::string step;
-	ui::xy_pair size;
-	ui::xy_pair bordersize;
-	ui::xy_pair position;
-	ui::xy_pair offset;
 
-	static void add_global(listBoxType&& in) { all_items.emplace_back(std::move(in)); }
-	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
+	void orientation(std::optional<uint8_t> f) {
+		if (f)
+			internal_definition.flags |= *f;
+		else
+			env.errors_generated.emplace_back(env.file, ui::errors::unknown_listbox_orientation);
+	}
+	void background(const token_and_type& t) {
+		internal_definition.background_handle = env.gl_f(t.start, t.end);
+	}
+	void step(int v) {
+		if(v != 0)
+			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_listbox_step_value);
+	}
+	void scrollbar(const token_and_type& t) {
+		if(!is_fixed_token_ci(t, "standardlistbox_slider"))
+			env.errors_generated.emplace_back(env.file, ui::errors::unsupported_listbox_scrollbar_type);
+	}
+	void priority(int v) {
+		if (v != 100)
+			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_listbox_priority);
+	}
+	void spacing(int v) {
+		if (v <= 0 || v > 0x0F)
+			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_listbox_spacing_value);
+		else
+			internal_definition.flags |= (uint8_t)(v & 0x0F);
+	}
+	void horizontal(bool value) {
+		if (value)
+			env.errors_generated.emplace_back(env.file, ui::errors::horizontal_listboxes_not_supported);
+	}
+	void always_transparent(bool value) {
+		if (value)
+			internal_definition.flags |= ui::listbox_def::always_transparent;
+	}
+	void add_unknown_key(int) {
+		env.errors_generated.emplace_back(env.file, ui::errors::unexpected_listbox_attribute);
+	};
 };
 
-std::vector<listBoxType> listBoxType::all_items;
-std::set<std::string> listBoxType::unknown_keys;
-
-MEMBER_DEF(listBoxType, orientation, "orientation");
-MEMBER_DEF(listBoxType, alwaystransparent, "alwaystransparent");
-MEMBER_DEF(listBoxType, background, "background");
-MEMBER_DEF(listBoxType, horizontal, "horizontal");
+MEMBER_FDEF(listBoxType, orientation, "orientation");
+MEMBER_FDEF(listBoxType, always_transparent, "alwaystransparent");
+MEMBER_FDEF(listBoxType, background, "background");
+MEMBER_FDEF(listBoxType, horizontal, "horizontal");
 MEMBER_DEF(listBoxType, name, "name");
-MEMBER_DEF(listBoxType, priority, "priority");
-MEMBER_DEF(listBoxType, scrollbartype, "scrollbartype");
-MEMBER_DEF(listBoxType, spacing, "spacing");
-MEMBER_DEF(listBoxType, step, "step");
-MEMBER_DEF(listBoxType, size, "size");
-MEMBER_DEF(listBoxType, bordersize, "bordersize");
-MEMBER_DEF(listBoxType, position, "position");
-MEMBER_DEF(listBoxType, offset, "offset");
-MEMBER_DEF(listBoxType, add_unknown_key(), "unknown_key");
+MEMBER_FDEF(listBoxType, priority, "priority");
+MEMBER_FDEF(listBoxType, scrollbar, "scrollbartype");
+MEMBER_FDEF(listBoxType, spacing, "spacing");
+MEMBER_FDEF(listBoxType, step, "step");
+MEMBER_DEF(listBoxType, internal_definition.size, "size");
+MEMBER_DEF(listBoxType, internal_definition.border_size, "bordersize");
+MEMBER_DEF(listBoxType, internal_definition.position, "position");
+MEMBER_DEF(listBoxType, internal_definition.offset, "offset");
+MEMBER_FDEF(listBoxType, add_unknown_key, "unknown_key");
 
 struct positionType {
 	ui::position_def internal_definition;
@@ -600,216 +637,243 @@ MEMBER_DEF(positionType, internal_definition.position, "position");
 MEMBER_FDEF(positionType, add_unknown_key, "unknown_key");
 
 struct scrollbarType {
-	static std::set<std::string> unknown_keys;
-	static std::vector<scrollbarType> all_items;
+	ui::scrollbar_def internal_definition;
+	const parsing_environment& env;
 
-	std::string horizontal;
+	scrollbarType(const parsing_environment& e) : env(e) {};
+
 	std::string leftbutton;
-	std::string lockable;
-	std::string maxvalue;
-	std::string minvalue;
 	std::string name;
-	std::string priority;
-	std::string rangelimitmax;
-	std::string rangelimitmin;
 	std::string rangelimitmaxicon;
 	std::string rangelimitminicon;
 	std::string rightbutton;
 	std::string slider;
-	std::string startvalue;
-	std::string stepsize;
 	std::string track;
-	std::string userangelimit;
-	ui::xy_pair bordersize;
-	ui::xy_pair position;
-	ui::xy_pair size;
 
+	std::vector<uint16_t> buttons_added;
+	std::vector<uint16_t> icons_added;
+
+	void finalize() {
+		if (leftbutton.length() == 0) {
+			env.errors_generated.emplace_back(env.file, ui::errors::missing_necessary_scrollbar_component);
+		} else {
+			for (auto i : buttons_added) {
+				if (env.nmaps.button_names[i - 1] == leftbutton) {
+					internal_definition.minimum_button = i;
+					break;
+				}
+			}
+			if (internal_definition.minimum_button == 0) {
+				env.errors_generated.emplace_back(env.file, ui::errors::scrollbar_component_not_found);
+			}
+		}
+
+		if (rightbutton.length() == 0) {
+			env.errors_generated.emplace_back(env.file, ui::errors::missing_necessary_scrollbar_component);
+		} else {
+			for (auto i : buttons_added) {
+				if (env.nmaps.button_names[i - 1] == rightbutton) {
+					internal_definition.maximum_button = i;
+					break;
+				}
+			}
+			if (internal_definition.maximum_button == 0) {
+				env.errors_generated.emplace_back(env.file, ui::errors::scrollbar_component_not_found);
+			}
+		}
+
+		if (rangelimitmaxicon.length() != 0) {
+			for (auto i : icons_added) {
+				if (env.nmaps.icon_names[i - 1] == rangelimitmaxicon) {
+					internal_definition.maximum_limit_icon = i;
+					break;
+				}
+			}
+			if (internal_definition.maximum_limit_icon == 0) {
+				env.errors_generated.emplace_back(env.file, ui::errors::scrollbar_component_not_found);
+			}
+		}
+
+		if (rangelimitminicon.length() != 0) {
+			for (auto i : icons_added) {
+				if (env.nmaps.icon_names[i - 1] == rangelimitminicon) {
+					internal_definition.minimum_limit_icon = i;
+					break;
+				}
+			}
+			if (internal_definition.minimum_limit_icon == 0) {
+				env.errors_generated.emplace_back(env.file, ui::errors::scrollbar_component_not_found);
+			}
+		}
+
+		if (track.length() == 0) {
+			env.errors_generated.emplace_back(env.file, ui::errors::missing_necessary_scrollbar_component);
+		} else {
+			for (auto i : buttons_added) {
+				if (env.nmaps.button_names[i - 1] == track) {
+					internal_definition.track = i;
+					break;
+				}
+			}
+			if (internal_definition.track == 0) {
+				env.errors_generated.emplace_back(env.file, ui::errors::scrollbar_component_not_found);
+			}
+		}
+
+		if (slider.length() == 0) {
+			env.errors_generated.emplace_back(env.file, ui::errors::missing_necessary_scrollbar_component);
+		} else {
+			for (auto i : buttons_added) {
+				if (env.nmaps.button_names[i - 1] == slider) {
+					internal_definition.slider = i;
+					break;
+				}
+			}
+			if (internal_definition.slider == 0) {
+				env.errors_generated.emplace_back(env.file, ui::errors::scrollbar_component_not_found);
+			}
+		}
+	}
+
+	void gui_button(const guiButtonType& b) {
+		env.defs.buttons.emplace_back(b.internal_definition);
+		env.nmaps.button_names.emplace_back(b.name);
+		buttons_added.push_back((uint16_t)env.defs.buttons.size());
+	}
+	void gui_iconType(const iconType& b) {
+		env.defs.icons.emplace_back(b.internal_definition);
+		env.nmaps.icon_names.emplace_back(b.name);
+		icons_added.push_back((uint16_t)env.defs.icons.size());
+	}
+	void step_size(const token_and_type& t) {
+		if (is_fixed_token_ci(t, "1")) {
+			internal_definition.flags |= ui::scrollbar_def::step_one;
+		} else if (is_fixed_token_ci(t, "2")) {
+			internal_definition.flags |= ui::scrollbar_def::step_two;
+		} else if (is_fixed_token_ci(t, "0.1")) {
+			internal_definition.flags |= ui::scrollbar_def::step_one_tenth;
+		} else if (is_fixed_token_ci(t, "0.01")) {
+			internal_definition.flags |= ui::scrollbar_def::step_one_hundredth;
+		} else if (is_fixed_token_ci(t, "0.001")) {
+			internal_definition.flags |= ui::scrollbar_def::step_one_thousandth;
+		} else {
+			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_scrollbar_step_size);
+		}
+	}
+	void userangelimit(bool use) {
+		if (use) {
+			internal_definition.flags |= ui::scrollbar_def::has_range_limit;
+		}
+	}
+	void lockable(bool l) {
+		if (l) {
+			internal_definition.flags |= ui::scrollbar_def::is_lockable;
+		}
+	}
+	void priority(int v) {
+		if (v != 100)
+			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_scrollbar_priority);
+	}
+	void horizontal(int v) {
+		if (v == 1)
+			internal_definition.flags |= ui::scrollbar_def::is_horizontal;
+		else if (v == 0)
+			; //do nothing
+		else
+			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_scrollbar_horizontal_value);
+	}
+	void minvalue(int v) {
+		if (v != 0)
+			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_scrollbar_minimum_value);
+	}
 	global_consume_gui_item<guiButtonType> gui_button() { return global_consume_gui_item<guiButtonType>(); }
 	global_consume_gui_item<iconType> gui_iconType() { return global_consume_gui_item<iconType>(); }
-	static void add_global(scrollbarType&& in) { all_items.emplace_back(std::move(in)); }
-	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
+
+	void ignore_value(int) {}
+	void add_unknown_key(int) {
+		env.errors_generated.emplace_back(env.file, ui::errors::unexpected_scrollbar_attribute);
+	};
 };
 
-std::vector<scrollbarType> scrollbarType::all_items;
-std::set<std::string> scrollbarType::unknown_keys;
-
-MEMBER_DEF(scrollbarType, horizontal, "horizontal");
+MEMBER_FDEF(scrollbarType, horizontal, "horizontal");
 MEMBER_DEF(scrollbarType, leftbutton, "leftbutton");
-MEMBER_DEF(scrollbarType, lockable, "lockable");
-MEMBER_DEF(scrollbarType, maxvalue, "maxvalue");
-MEMBER_DEF(scrollbarType, minvalue, "minvalue");
+MEMBER_FDEF(scrollbarType, lockable, "lockable");
+MEMBER_DEF(scrollbarType, internal_definition.max_value, "maxvalue");
+MEMBER_FDEF(scrollbarType, minvalue, "minvalue");
 MEMBER_DEF(scrollbarType, name, "name");
-MEMBER_DEF(scrollbarType, priority, "priority");
-MEMBER_DEF(scrollbarType, rangelimitmax, "rangelimitmax");
-MEMBER_DEF(scrollbarType, rangelimitmin, "rangelimitmin");
+MEMBER_FDEF(scrollbarType, priority, "priority");
+MEMBER_FDEF(scrollbarType, ignore_value, "rangelimitmax");
+MEMBER_FDEF(scrollbarType, ignore_value, "rangelimitmin");
 MEMBER_DEF(scrollbarType, rangelimitmaxicon, "rangelimitmaxicon");
 MEMBER_DEF(scrollbarType, rangelimitminicon, "rangelimitminicon");
 MEMBER_DEF(scrollbarType, rightbutton, "rightbutton");
 MEMBER_DEF(scrollbarType, slider, "slider");
-MEMBER_DEF(scrollbarType, startvalue, "startvalue");
-MEMBER_DEF(scrollbarType, stepsize, "stepsize");
+MEMBER_FDEF(scrollbarType, ignore_value, "startvalue");
+MEMBER_FDEF(scrollbarType, step_size, "stepsize");
 MEMBER_DEF(scrollbarType, track, "track");
-MEMBER_DEF(scrollbarType, userangelimit, "userangelimit");
-MEMBER_DEF(scrollbarType, bordersize, "bordersize");
-MEMBER_DEF(scrollbarType, position, "position");
-MEMBER_DEF(scrollbarType, size, "size");
-MEMBER_DEF(scrollbarType, gui_button(), "guiButtonType");
-MEMBER_DEF(scrollbarType, gui_iconType(), "iconType");
-MEMBER_DEF(scrollbarType, add_unknown_key(), "unknown_key");
+MEMBER_FDEF(scrollbarType, userangelimit, "userangelimit");
+MEMBER_DEF(scrollbarType, internal_definition.border_size, "bordersize");
+MEMBER_DEF(scrollbarType, internal_definition.position, "position");
+MEMBER_DEF(scrollbarType, internal_definition.size, "size");
+MEMBER_FDEF(scrollbarType, gui_button, "guiButtonType");
+MEMBER_FDEF(scrollbarType, gui_iconType, "iconType");
+MEMBER_FDEF(scrollbarType, add_unknown_key, "unknown_key");
 
-/*
-struct checkboxType {
-	static std::set<std::string> unknown_keys;
-	static std::vector<checkboxType> all_items;
+std::optional<uint8_t> overlapping_orientation_from_rh(association_type, const token_and_type& t) {
+	if (is_fixed_token_ci(t, "center")) {
+		return ui::overlapping_region_def::orientation_center;
+	} else if (is_fixed_token_ci(t, "upper_left")) {
+		return ui::overlapping_region_def::orientation_upper_left;
+	} else if (is_fixed_token_ci(t, "upper_right")) {
+		return ui::overlapping_region_def::orientation_upper_right;
+	}
+	return std::optional<uint8_t>();
+}
 
-	std::string orientation;
-	std::string buttonfont;
-	std::string buttontext;
-	std::string delayedtooltiptext;
-	std::string name;
-	std::string quadtexturesprite;
-	std::string shortcut;
-	std::string tooltip;
-	std::string tooltiptext;
-	ui::xy_pair position;
-
-	static void add_global(checkboxType&& in) { all_items.emplace_back(std::move(in)); }
-	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
-};
-
-std::vector<checkboxType> checkboxType::all_items;
-std::set<std::string> checkboxType::unknown_keys;
-
-MEMBER_DEF(checkboxType, orientation, "orientation");
-MEMBER_DEF(checkboxType, buttonfont, "buttonfont");
-MEMBER_DEF(checkboxType, buttontext, "buttontext");
-MEMBER_DEF(checkboxType, delayedtooltiptext, "delayedtooltiptext");
-MEMBER_DEF(checkboxType, name, "name");
-MEMBER_DEF(checkboxType, quadtexturesprite, "quadtexturesprite");
-MEMBER_DEF(checkboxType, shortcut, "shortcut");
-MEMBER_DEF(checkboxType, tooltip, "tooltip");
-MEMBER_DEF(checkboxType, tooltiptext, "tooltiptext");
-MEMBER_DEF(checkboxType, position, "position");
-MEMBER_DEF(checkboxType, add_unknown_key(), "unknown_key");
-*/
-
-/*
-struct shieldtype {
-	static std::set<std::string> unknown_keys;
-	static std::vector<shieldtype> all_items;
-
-	std::string name;
-	std::string rotation;
-	std::string spriteType;
-	ui::xy_pair position;
-
-	static void add_global(shieldtype&& in) { all_items.emplace_back(std::move(in)); }
-	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
-};
-
-std::vector<shieldtype> shieldtype::all_items;
-std::set<std::string> shieldtype::unknown_keys;
-
-MEMBER_DEF(shieldtype, name, "name");
-MEMBER_DEF(shieldtype, rotation, "rotation");
-MEMBER_DEF(shieldtype, spriteType, "spriteType");
-MEMBER_DEF(shieldtype, position, "position");
-MEMBER_DEF(shieldtype, add_unknown_key(), "unknown_key");
-*/
+std::optional<uint16_t> overlapping_format_from_rh(association_type, const token_and_type& t) {
+	if (is_fixed_token_ci(t, "centre") || is_fixed_token_ci(t, "center")) {
+		return ui::overlapping_region_def::format_center;
+	} else if (is_fixed_token_ci(t, "left")) {
+		return ui::overlapping_region_def::format_left;
+	} else if (is_fixed_token_ci(t, "right")) {
+		return ui::overlapping_region_def::format_right;
+	}
+	return std::optional<uint16_t>();
+}
 
 struct OverlappingElementsBoxType {
-	static std::set<std::string> unknown_keys;
-	static std::vector<OverlappingElementsBoxType> all_items;
+	ui::overlapping_region_def internal_definition;
+	const parsing_environment& env;
 
-	std::string orientation;
-	std::string format;
+	OverlappingElementsBoxType(const parsing_environment& e) : env(e) {};
+
 	std::string name;
-	std::string spacing;
-	ui::xy_pair position;
-	ui::xy_pair size;
 
-	static void add_global(OverlappingElementsBoxType&& in) { all_items.emplace_back(std::move(in)); }
-	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
+	void orientation(std::optional<uint8_t> f) {
+		if (f)
+			internal_definition.flags |= *f;
+		else
+			env.errors_generated.emplace_back(env.file, ui::errors::unknown_overlapping_region_orientation);
+	}
+	void format(std::optional<uint8_t> f) {
+		if (f)
+			internal_definition.flags |= *f;
+		else
+			env.errors_generated.emplace_back(env.file, ui::errors::unknown_overlapping_region_format);
+	}
+
+	void add_unknown_key(int) {
+		env.errors_generated.emplace_back(env.file, ui::errors::unexpected_overlapping_region_attribute);
+	};
 };
 
-std::vector<OverlappingElementsBoxType> OverlappingElementsBoxType::all_items;
-std::set<std::string> OverlappingElementsBoxType::unknown_keys;
-
-MEMBER_DEF(OverlappingElementsBoxType, orientation, "orientation");
-MEMBER_DEF(OverlappingElementsBoxType, format, "format");
+MEMBER_FDEF(OverlappingElementsBoxType, orientation, "orientation");
+MEMBER_FDEF(OverlappingElementsBoxType, format, "format");
 MEMBER_DEF(OverlappingElementsBoxType, name, "name");
-MEMBER_DEF(OverlappingElementsBoxType, spacing, "spacing");
-MEMBER_DEF(OverlappingElementsBoxType, position, "position");
-MEMBER_DEF(OverlappingElementsBoxType, size, "size");
-MEMBER_DEF(OverlappingElementsBoxType, add_unknown_key(), "unknown_key");
-
-/*
-struct editBoxType {
-	static std::set<std::string> unknown_keys;
-	static std::vector<editBoxType> all_items;
-
-	std::string orientation;
-	std::string font;
-	std::string name;
-	std::string text;
-	std::string texturefile;
-	ui::xy_pair bordersize;
-	ui::xy_pair position;
-	ui::xy_pair size;
-
-	static void add_global(editBoxType&& in) { all_items.emplace_back(std::move(in)); }
-	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
-};
-
-std::vector<editBoxType> editBoxType::all_items;
-std::set<std::string> editBoxType::unknown_keys;
-
-MEMBER_DEF(editBoxType, orientation, "orientation");
-MEMBER_DEF(editBoxType, bordersize, "bordersize");
-MEMBER_DEF(editBoxType, font, "font");
-MEMBER_DEF(editBoxType, name, "name");
-MEMBER_DEF(editBoxType, text, "text");
-MEMBER_DEF(editBoxType, texturefile, "texturefile");
-MEMBER_DEF(editBoxType, position, "position");
-MEMBER_DEF(editBoxType, size, "size");
-MEMBER_DEF(editBoxType, add_unknown_key(), "unknown_key");
-
-struct textBoxType {
-	static std::set<std::string> unknown_keys;
-	static std::vector<textBoxType> all_items;
-
-	std::string orientation;
-	std::string fixedsize;
-	std::string font;
-	std::string format;
-	std::string maxheight;
-	std::string maxwidth;
-	std::string name;
-	std::string text;
-	std::string texturefile;
-	ui::xy_pair bordersize;
-	ui::xy_pair position;
-
-	static void add_global(textBoxType&& in) { all_items.emplace_back(std::move(in)); }
-	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
-};
-
-std::vector<textBoxType> textBoxType::all_items;
-std::set<std::string> textBoxType::unknown_keys;
-
-MEMBER_DEF(textBoxType, orientation, "orientation");
-MEMBER_DEF(textBoxType, fixedsize, "fixedsize");
-MEMBER_DEF(textBoxType, font, "font");
-MEMBER_DEF(textBoxType, format, "format");
-MEMBER_DEF(textBoxType, maxheight, "maxheight");
-MEMBER_DEF(textBoxType, maxwidth, "maxwidth");
-MEMBER_DEF(textBoxType, name, "name");
-MEMBER_DEF(textBoxType, text, "text");
-MEMBER_DEF(textBoxType, texturefile, "texturefile");
-MEMBER_DEF(textBoxType, bordersize, "bordersize");
-MEMBER_DEF(textBoxType, position, "position");
-MEMBER_DEF(textBoxType, add_unknown_key(), "unknown_key");
-*/
+MEMBER_DEF(OverlappingElementsBoxType, internal_definition.spacing, "spacing");
+MEMBER_DEF(OverlappingElementsBoxType, internal_definition.position, "position");
+MEMBER_DEF(OverlappingElementsBoxType, internal_definition.size, "size");
+MEMBER_FDEF(OverlappingElementsBoxType, add_unknown_key, "unknown_key");
 
 struct windowType {
 	static std::set<std::string> unknown_keys;
@@ -862,7 +926,7 @@ MEMBER_DEF(windowType, size, "size");
 // MEMBER_DEF(windowType, gui_button(), "guiButtonType");
 MEMBER_DEF(windowType, gui_iconType(), "iconType");
 // MEMBER_DEF(windowType, gui_instantTextBoxType(), "instantTextBoxType");
-MEMBER_DEF(windowType, gui_listBoxType(), "listBoxType");
+// MEMBER_DEF(windowType, gui_listBoxType(), "listBoxType");
 MEMBER_DEF(windowType, gui_scrollbarType(), "scrollbarType");
 MEMBER_DEF(windowType, gui_windowType(), "windowType");
 //MEMBER_DEF(windowType, gui_checkboxType(), "checkboxType");
@@ -915,7 +979,7 @@ MEMBER_DEF(eu3dialogtype, size, "size");
 // MEMBER_DEF(eu3dialogtype, gui_button(), "guiButtonType");
 MEMBER_DEF(eu3dialogtype, gui_iconType(), "iconType");
 // MEMBER_DEF(eu3dialogtype, gui_instantTextBoxType(), "instantTextBoxType");
-MEMBER_DEF(eu3dialogtype, gui_listBoxType(), "listBoxType");
+// MEMBER_DEF(eu3dialogtype, gui_listBoxType(), "listBoxType");
 MEMBER_DEF(eu3dialogtype, gui_scrollbarType(), "scrollbarType");
 MEMBER_DEF(eu3dialogtype, gui_windowType(), "windowType");
 //MEMBER_DEF(eu3dialogtype, gui_checkboxType(), "checkboxType");
@@ -967,13 +1031,22 @@ struct gui_file {
 		env.nmaps.text_names.emplace_back(b.name);
 	}
 
+	void gui_OverlappingElementsBoxType(const OverlappingElementsBoxType& b) {
+		env.defs.overlapping_regions.emplace_back(b.internal_definition);
+		env.nmaps.overlapping_region_names.emplace_back(b.name);
+	}
+	void gui_listBoxType(const listBoxType& b) {
+		env.defs.listboxes.emplace_back(b.internal_definition);
+		env.nmaps.listbox_names.emplace_back(b.name);
+	}
+	void gui_scrollbarType(scrollbarType&& b) {
+		b.finalize();
+		env.defs.scrollbars.emplace_back(b.internal_definition);
+		env.nmaps.scrollbar_names.emplace_back(b.name);
+	}
+
 	global_consume_gui_item<eu3dialogtype> gui_eu3dialogtype() { return global_consume_gui_item<eu3dialogtype>(); }
-	global_consume_gui_item<listBoxType> gui_listBoxType() { return global_consume_gui_item<listBoxType>(); }
-	global_consume_gui_item<scrollbarType> gui_scrollbarType() { return global_consume_gui_item<scrollbarType>(); }
 	global_consume_gui_item<windowType> gui_windowType() { return global_consume_gui_item<windowType>(); }
-	
-	global_consume_gui_item<OverlappingElementsBoxType> gui_OverlappingElementsBoxType() { return global_consume_gui_item<OverlappingElementsBoxType>(); }
-	
 
 	add_string_to_set add_unknown_key() { return add_string_to_set(unknown_keys); };
 };
@@ -985,13 +1058,13 @@ MEMBER_FDEF(gui_file, gui_button, "guiButtonType");
 MEMBER_FDEF(gui_file, gui_iconType, "iconType");
 MEMBER_DEF(gui_file, gui_eu3dialogtype(), "eu3dialogtype");
 MEMBER_FDEF(gui_file, gui_instantTextBoxType, "instantTextBoxType");
-MEMBER_DEF(gui_file, gui_listBoxType(), "listBoxType");
+MEMBER_FDEF(gui_file, gui_listBoxType, "listBoxType");
 MEMBER_DEF(gui_file, gui_positionType, "positionType");
-MEMBER_DEF(gui_file, gui_scrollbarType(), "scrollbarType");
+MEMBER_FDEF(gui_file, gui_scrollbarType, "scrollbarType");
 MEMBER_DEF(gui_file, gui_windowType(), "windowType");
 MEMBER_FDEF(gui_file, gui_checkboxType, "checkboxType");
 MEMBER_FDEF(gui_file, gui_shieldtype, "shieldtype");
-MEMBER_DEF(gui_file, gui_OverlappingElementsBoxType(), "OverlappingElementsBoxType");
+MEMBER_FDEF(gui_file, gui_OverlappingElementsBoxType, "OverlappingElementsBoxType");
 MEMBER_FDEF(gui_file, gui_editBoxType, "editBoxType");
 MEMBER_FDEF(gui_file, gui_textBoxType, "textBoxType");
 MEMBER_DEF(gui_file, add_unknown_key(), "unknown_key");
@@ -1059,8 +1132,8 @@ EMPTY_TYPE(empty_type)
 		// MEMBER_TYPE_ASSOCIATION("guiButtonType", "guibuttontype", guiButtonType)
 		// MEMBER_TYPE_ASSOCIATION("iconType", "icontype", iconType)
 		// MEMBER_TYPE_ASSOCIATION("instantTextBoxType", "instanttextboxtype", instantTextBoxType)
-		MEMBER_TYPE_ASSOCIATION("listBoxType", "listboxtype", listBoxType)
-		MEMBER_TYPE_ASSOCIATION("scrollbarType", "scrollbartype", scrollbarType)
+		// MEMBER_TYPE_ASSOCIATION("listBoxType", "listboxtype", listBoxType)
+		// MEMBER_TYPE_ASSOCIATION("scrollbarType", "scrollbartype", scrollbarType)
 		MEMBER_TYPE_ASSOCIATION("windowType", "windowtype", windowType)
 		// MEMBER_TYPE_ASSOCIATION("checkboxType", "checkboxtype", checkboxType)
 		// MEMBER_TYPE_ASSOCIATION("shieldtype", "shieldtype", shieldtype)
@@ -1096,21 +1169,21 @@ EMPTY_TYPE(empty_type)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
 	END_TYPE
 	BEGIN_TYPE(listBoxType)
-		MEMBER_ASSOCIATION("orientation", "orientation", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("alwaystransparent", "allwaystransparent", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("background", "background", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("horizontal", "horizontal", value_from_rh<std::string>)
+		MEMBER_ASSOCIATION("orientation", "orientation", listbox_orientation_from_rh)
+		MEMBER_ASSOCIATION("alwaystransparent", "allwaystransparent", value_from_rh<bool>)
+		MEMBER_ASSOCIATION("background", "background", token_from_rh)
+		MEMBER_ASSOCIATION("horizontal", "horizontal", value_from_rh<bool>)
 		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("priority", "priority", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("scrollbartype", "scrollbartype", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("spacing", "spacing", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("step", "step", value_from_rh<std::string>)
+		MEMBER_ASSOCIATION("priority", "priority", value_from_rh<int>)
+		MEMBER_ASSOCIATION("scrollbartype", "scrollbartype", token_from_rh)
+		MEMBER_ASSOCIATION("spacing", "spacing", value_from_rh<int>)
+		MEMBER_ASSOCIATION("step", "step", value_from_rh<int>)
 		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
 		MEMBER_TYPE_ASSOCIATION("size", "size", ui::xy_pair)
 		MEMBER_TYPE_ASSOCIATION("bordersize", "bordersize", ui::xy_pair)
 		MEMBER_TYPE_ASSOCIATION("offset", "offset", ui::xy_pair)
-		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
+		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
 	END_TYPE
 	BEGIN_TYPE(positionType)
 		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
@@ -1119,31 +1192,30 @@ EMPTY_TYPE(empty_type)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
 	END_TYPE
 	BEGIN_TYPE(scrollbarType)
-		MEMBER_ASSOCIATION("horizontal", "horizontal", value_from_rh<std::string>)
+		MEMBER_ASSOCIATION("horizontal", "horizontal", value_from_rh<int>)
 		MEMBER_ASSOCIATION("leftbutton", "leftbutton", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("horizontal", "horizontal", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("lockable", "lockable", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("maxvalue", "maxvalue", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("minvalue", "minvalue", value_from_rh<std::string>)
+		MEMBER_ASSOCIATION("lockable", "lockable", value_from_rh<bool>)
+		MEMBER_ASSOCIATION("maxvalue", "maxvalue", value_from_rh<uint16_t>)
+		MEMBER_ASSOCIATION("minvalue", "minvalue", value_from_rh<int>)
 		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("priority", "priority", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("rangelimitmax", "rangelimitmax", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("rangelimitmin", "rangelimitmin", value_from_rh<std::string>)
+		MEMBER_ASSOCIATION("priority", "priority", value_from_rh<int>)
+		MEMBER_ASSOCIATION("rangelimitmax", "rangelimitmax", discard_from_rh)
+		MEMBER_ASSOCIATION("rangelimitmin", "rangelimitmin", discard_from_rh)
 		MEMBER_ASSOCIATION("rangelimitmaxicon", "rangelimitmaxicon", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("rangelimitminicon", "rangelimitminicon", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("rightbutton", "rightbutton", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("slider", "slider", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("startvalue", "startvalue", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("stepsize", "stepsize", value_from_rh<std::string>)
+		MEMBER_ASSOCIATION("startvalue", "startvalue", discard_from_rh)
+		MEMBER_ASSOCIATION("stepsize", "stepsize", token_from_rh)
 		MEMBER_ASSOCIATION("track", "track", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("userangelimit", "userangelimit", value_from_rh<std::string>)
+		MEMBER_ASSOCIATION("userangelimit", "userangelimit", value_from_rh<bool>)
 		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
 		MEMBER_TYPE_ASSOCIATION("bordersize", "bordersize", ui::xy_pair)
 		MEMBER_TYPE_ASSOCIATION("size", "size", ui::xy_pair)
 		MEMBER_TYPE_ASSOCIATION("guiButtonType", "guibuttontype", guiButtonType)
 		MEMBER_TYPE_ASSOCIATION("iconType", "icontype", iconType)
-		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
+		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
 	END_TYPE
 	BEGIN_TYPE(windowType)
 		MEMBER_ASSOCIATION("orientation", "orientation", value_from_rh<std::string>)
@@ -1161,24 +1233,24 @@ EMPTY_TYPE(empty_type)
 		// MEMBER_TYPE_ASSOCIATION("guiButtonType", "guibuttontype", guiButtonType)
 		// MEMBER_TYPE_ASSOCIATION("iconType", "icontype", iconType)
 		// MEMBER_TYPE_ASSOCIATION("instantTextBoxType", "instanttextboxtype", instantTextBoxType)
-		MEMBER_TYPE_ASSOCIATION("listBoxType", "listboxtype", listBoxType)
-		MEMBER_TYPE_ASSOCIATION("scrollbarType", "scrollbartype", scrollbarType)
+		// MEMBER_TYPE_ASSOCIATION("listBoxType", "listboxtype", listBoxType)
+		// MEMBER_TYPE_ASSOCIATION("scrollbarType", "scrollbartype", scrollbarType)
 		MEMBER_TYPE_ASSOCIATION("windowType", "windowtype", windowType)
 		// MEMBER_TYPE_ASSOCIATION("checkboxType", "checkboxtype", checkboxType)
-		MEMBER_TYPE_ASSOCIATION("OverlappingElementsBoxType", "overlappingelementsboxtype", OverlappingElementsBoxType)
+		// MEMBER_TYPE_ASSOCIATION("OverlappingElementsBoxType", "overlappingelementsboxtype", OverlappingElementsBoxType)
 		// MEMBER_TYPE_ASSOCIATION("editBoxType", "editboxtype", editBoxType)
 		// MEMBER_TYPE_ASSOCIATION("textBoxType", "textboxtype", textBoxType)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
 	END_TYPE
 	BEGIN_TYPE(OverlappingElementsBoxType)
-		MEMBER_ASSOCIATION("orientation", "orientation", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("format", "format", value_from_rh<std::string>)
+		MEMBER_ASSOCIATION("orientation", "orientation", overlapping_orientation_from_rh)
+		MEMBER_ASSOCIATION("format", "format", overlapping_format_from_rh)
 		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("spacing", "spacing", value_from_rh<std::string>)
+		MEMBER_ASSOCIATION("spacing", "spacing", value_from_rh<float>)
 		MEMBER_TYPE_ASSOCIATION("position", "position", ui::xy_pair)
 		MEMBER_TYPE_ASSOCIATION("size", "size", ui::xy_pair)
-		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
+		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
 	END_TYPE
 END_DOMAIN;

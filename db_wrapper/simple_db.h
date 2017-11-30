@@ -432,7 +432,7 @@ public:
 #endif
 	}
 	table_bound_statement(const table_bound_statement&) = delete;
-	table_bound_statement(table_bound_statement&& i) {
+	table_bound_statement(table_bound_statement&& i) noexcept {
 		std::swap(stmt, i.stmt);
 	};
 	~table_bound_statement() {

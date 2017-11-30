@@ -23,11 +23,29 @@ namespace ui {
 		unknown_text_format,
 		unexpected_text_attribute,
 		unexpected_text_background,
-		unexpected_position_attribute
+		unexpected_position_attribute,
+		unknown_overlapping_region_format,
+		unknown_overlapping_region_orientation,
+		unexpected_overlapping_region_attribute,
+		unsupported_listbox_scrollbar_type,
+		unexpected_listbox_step_value,
+		unexpected_listbox_spacing_value,
+		unexpected_listbox_priority,
+		unknown_listbox_orientation,
+		horizontal_listboxes_not_supported,
+		unexpected_listbox_attribute,
+		unexpected_scrollbar_priority,
+		unexpected_scrollbar_minimum_value,
+		unexpected_scrollbar_horizontal_value,
+		unexpected_scrollbar_step_size,
+		scrollbar_component_not_found,
+		missing_necessary_scrollbar_component,
+		unexpected_scrollbar_attribute
 	};
 
 	enum class element_types : uint8_t {
-		button, icon, text, position
+		button, icon, text, position, overlapping_region, listbox,
+		scrollbar
 	};
 
 	struct xy_pair {
@@ -130,11 +148,76 @@ namespace ui {
 		xy_pair position;
 	};
 
+	struct overlapping_region_def {
+		static constexpr uint8_t orientation_mask         = 0x03;
+		static constexpr uint8_t orientation_center       = 0x00;
+		static constexpr uint8_t orientation_upper_left   = 0x01;
+		static constexpr uint8_t orientation_upper_right  = 0x02;
+
+		static constexpr uint8_t format_mask              = 0x0C;
+		static constexpr uint8_t format_center            = 0x00;
+		static constexpr uint8_t format_left              = 0x04;
+		static constexpr uint8_t format_right             = 0x08;
+
+		xy_pair position;
+		xy_pair size;
+		float spacing = 0.0;
+		uint8_t flags = 0;
+	};
+
+	struct listbox_def {
+		static constexpr uint8_t orientation_mask         = 0x30;
+		static constexpr uint8_t orientation_center       = 0x00;
+		static constexpr uint8_t orientation_upper_left   = 0x10;
+		static constexpr uint8_t orientation_upper_right  = 0x20;
+		static constexpr uint8_t orientation_center_down  = 0x30;
+
+		static constexpr uint8_t always_transparent       = 0x40;
+
+		static constexpr uint8_t spacing_mask             = 0x0F;
+
+		xy_pair position;
+		xy_pair size;
+		xy_pair offset;
+		xy_pair border_size;
+
+		uint16_t background_handle = 0;
+		uint8_t flags = 0;
+	};
+
+	struct scrollbar_def {
+		static constexpr uint8_t is_horizontal   = 0x01;
+		static constexpr uint8_t has_range_limit = 0x02;
+		static constexpr uint8_t is_lockable     = 0x04;
+
+		static constexpr uint8_t step_mask           = 0xF0;
+		static constexpr uint8_t step_one            = 0x00;
+		static constexpr uint8_t step_two            = 0x10;
+		static constexpr uint8_t step_one_tenth      = 0x20;
+		static constexpr uint8_t step_one_hundredth  = 0x30;
+		static constexpr uint8_t step_one_thousandth = 0x40;
+
+		xy_pair border_size;
+		xy_pair position;
+		xy_pair size;
+		uint16_t max_value = 1;
+		uint16_t minimum_button = 0;
+		uint16_t maximum_button = 0;
+		uint16_t track = 0;
+		uint16_t slider = 0;
+		uint16_t minimum_limit_icon = 0;
+		uint16_t maximum_limit_icon = 0;
+		uint8_t flags = 0;
+	};
+
 	struct name_maps {
 		std::vector<std::string> button_names;
 		std::vector<std::string> icon_names;
 		std::vector<std::string> text_names;
 		std::vector<std::string> position_names;
+		std::vector<std::string> overlapping_region_names;
+		std::vector<std::string> listbox_names;
+		std::vector<std::string> scrollbar_names;
 
 		const std::string& get_name(element_types t, uint16_t handle) {
 			switch (t) {
@@ -146,6 +229,12 @@ namespace ui {
 					return text_names[handle - 1];
 				case element_types::position:
 					return position_names[handle - 1];
+				case element_types::overlapping_region:
+					return overlapping_region_names[handle - 1];
+				case element_types::listbox:
+					return listbox_names[handle - 1];
+				case element_types::scrollbar:
+					return scrollbar_names[handle - 1];
 			}
 		}
 	};
@@ -155,6 +244,9 @@ namespace ui {
 		std::vector<icon_def> icons;
 		std::vector<text_def> text;
 		std::vector<position_def> positions;
+		std::vector<overlapping_region_def> overlapping_regions;
+		std::vector<listbox_def> listboxes;
+		std::vector<scrollbar_def> scrollbars;
 	};
 };
 

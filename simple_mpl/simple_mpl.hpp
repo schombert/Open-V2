@@ -74,11 +74,15 @@ struct compile_time_lex_compare_ci<ct_string<>> {
 	};
 };
 
+constexpr char to_lower_helper_char(const char c) {
+	return (c >= 'A' && c <= 'Z') ? c + ('a' - 'A') : c;
+}
+
 template<char f, char ...r>
 struct compile_time_lex_compare_ci<ct_string<f, r...>> {
 	static constexpr int value(const char* const as, const char* const ae) {
-		if (*as != f)
-			return std::tolower(*as) - (int)(f);
+		if (std::tolower(*as) != to_lower_helper_char(f))
+			return std::tolower(*as) - (int)(to_lower_helper_char(f));
 		else if (as + 1 != ae)
 			return compile_time_lex_compare_ci<ct_string<r...>>::value(as + 1, ae);
 		else

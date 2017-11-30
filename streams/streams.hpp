@@ -1,6 +1,7 @@
 #pragma once
 #include "streams.h"
 #include <type_traits>
+#include <tuple>
 
 template<typename A, typename B, typename NEXT>
 struct _has_yield : public std::false_type { };

@@ -95,7 +95,8 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <CallingConvention>
       </CallingConvention>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>
+      </LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -156,7 +157,8 @@
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>
+      </LanguageStandard>
       <CallingConvention>
       </CallingConvention>
       <AdditionalIncludeDirectories>$(ProjectDir)..\db_wrapper</AdditionalIncludeDirectories>

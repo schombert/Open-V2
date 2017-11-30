@@ -1,4 +1,5 @@
 #pragma once
+#include <type_traits>
 
 template<typename T, typename NEXT>
 struct ptr_range_source;

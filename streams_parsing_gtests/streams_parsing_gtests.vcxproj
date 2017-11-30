@@ -59,6 +59,9 @@
     <ProjectReference Include="..\Parsers\Parsers.vcxproj">
       <Project>{c8b537f7-6df3-4685-a7d7-0f30ce18176d}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\streams\streams.vcxproj">
+      <Project>{600d17cd-0bbe-4eac-9216-c2ccdc1c6b6f}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\streams_parsing\streams_parsing.vcxproj">
       <Project>{a193b6b3-83ba-47e6-8167-587f099f20fa}</Project>
     </ProjectReference>

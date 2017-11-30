@@ -18,7 +18,7 @@ public:
 
 	parse_result_holder() : buffer_ptr(nullptr) {};
 	parse_result_holder(const parse_result_holder& other) = delete;
-	parse_result_holder(parse_result_holder&& other) : parse_tree(std::move(other.parse_tree)) { buffer_ptr = other.buffer_ptr; other.buffer_ptr = nullptr; };
+	parse_result_holder(parse_result_holder&& other) noexcept : parse_tree(std::move(other.parse_tree)) { buffer_ptr = other.buffer_ptr; other.buffer_ptr = nullptr; };
 
 	~parse_result_holder() {
 		if (buffer_ptr)
@@ -604,6 +604,13 @@ struct scrollbarType {
 	xy_pair position;
 	xy_pair size;
 
+	void trap_min(const std::string& s) {
+		rangelimitmin = s;
+	}
+	void trap_max(const std::string& s) {
+		rangelimitmax = s;
+	}
+
 	global_consume_gui_item<guiButtonType> gui_button() { return global_consume_gui_item<guiButtonType>(); }
 	global_consume_gui_item<iconType> gui_iconType() { return global_consume_gui_item<iconType>(); }
 	static void add_global(scrollbarType&& in) { all_items.emplace_back(std::move(in)); }
@@ -620,8 +627,8 @@ MEMBER_DEF(scrollbarType, maxvalue, "maxvalue");
 MEMBER_DEF(scrollbarType, minvalue, "minvalue");
 MEMBER_DEF(scrollbarType, name, "name");
 MEMBER_DEF(scrollbarType, priority, "priority");
-MEMBER_DEF(scrollbarType, rangelimitmax, "rangelimitmax");
-MEMBER_DEF(scrollbarType, rangelimitmin, "rangelimitmin");
+MEMBER_FDEF(scrollbarType, trap_max, "rangelimitmax");
+MEMBER_FDEF(scrollbarType, trap_min, "rangelimitmin");
 MEMBER_DEF(scrollbarType, rangelimitmaxicon, "rangelimitmaxicon");
 MEMBER_DEF(scrollbarType, rangelimitminicon, "rangelimitminicon");
 MEMBER_DEF(scrollbarType, rightbutton, "rightbutton");
@@ -981,11 +988,11 @@ EMPTY_TYPE(empty_type)
 	END_TYPE
 	BEGIN_TYPE(eu3dialogtype)
 		MEMBER_ASSOCIATION("orientation", "orientation", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("backGround", "backGround", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("dontRender", "dontRender", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("fullScreen", "fullScreen", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("horizontalBorder", "horizontalBorder", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("verticalBorder", "verticalBorder", value_from_rh<std::string>)
+		MEMBER_ASSOCIATION("backGround", "background", value_from_rh<std::string>)
+		MEMBER_ASSOCIATION("dontRender", "dontrender", value_from_rh<std::string>)
+		MEMBER_ASSOCIATION("fullScreen", "fullscreen", value_from_rh<std::string>)
+		MEMBER_ASSOCIATION("horizontalBorder", "horizontalborder", value_from_rh<std::string>)
+		MEMBER_ASSOCIATION("verticalBorder", "verticalborder", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("moveable", "moveable", value_from_rh<std::string>)
 		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
 		MEMBER_TYPE_ASSOCIATION("position", "position", xy_pair)
@@ -1426,8 +1433,8 @@ int __cdecl main() {
 
 
 		std::set<std::string> entries;
-		for (auto& i : textBoxType::all_items) {
-			entries.insert(i.texturefile);
+		for (auto& i : scrollbarType::all_items) {
+			entries.insert(i.userangelimit);
 		}
 
 		std::cout << "checkboxType.XXXX entries: " << std::endl;

@@ -223,6 +223,11 @@ TEST(compile_time_tagged_member_test_b, object_parsing_tests) {
 	EXPECT_FALSE(results.c);
 }
 
+TEST(compile_time_string_comparison, object_parsing_tests) {
+	const auto comparison = compile_time_str_compare_ci<CT_STRING("rangelimitmin")>(RANGE("rangeLimitMax"));
+	EXPECT_NE(0, comparison);
+}
+
 
 TEST_METHOD(compile_time_vector_b, object_parsing_tests) {
 	std::vector<token_group> parse_results;

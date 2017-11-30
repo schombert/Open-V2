@@ -69,23 +69,23 @@ void set_default_root(directory_representation& d) {
 
 
 file::file(std::unique_ptr<_file> i) : impl(std::move(i)) {}
-file::file(file &&other) : impl(std::move(other.impl)) {}
+file::file(file &&other) noexcept : impl(std::move(other.impl)) {}
 
 unopened_file::unopened_file(std::unique_ptr<_unopened_file> i) : impl(std::move(i)) {}
 
 
 unopened_file::unopened_file(const unopened_file& other) : impl(std::make_unique<_unopened_file>(*(other.impl))) {}
-unopened_file::unopened_file(unopened_file&& other) : impl(std::move(other.impl)) {};
+unopened_file::unopened_file(unopened_file&& other) noexcept : impl(std::move(other.impl)) {};
 unopened_file& unopened_file::operator=(const unopened_file& other) {
 	impl = std::make_unique<_unopened_file>(*(other.impl));
 	return *this;
 }
-unopened_file& unopened_file::operator=(unopened_file&& other) {
+unopened_file& unopened_file::operator=(unopened_file&& other) noexcept {
 	impl = std::move(other.impl);
 	return *this;
 }
 
-file& file::operator=(file &&other) {
+file& file::operator=(file &&other) noexcept {
 	impl = std::move(other.impl);
 	return *this;
 };
@@ -104,12 +104,12 @@ void file_system::pop_root() {
 }
 
 file_system::file_system(const file_system& other) : impl(std::make_unique<_file_system>(*(other.impl))) {}
-file_system::file_system(file_system&& other) : impl(std::move(other.impl)) {};
+file_system::file_system(file_system&& other) noexcept : impl(std::move(other.impl)) {};
 file_system& file_system::operator=(const file_system& other) {
 	impl = std::make_unique<_file_system>(*(other.impl));
 	return *this;
 }
-file_system& file_system::operator=(file_system&& other) {
+file_system& file_system::operator=(file_system&& other) noexcept {
 	impl = std::move(other.impl);
 	return *this;
 }
@@ -226,12 +226,12 @@ const std::u16string& directory::name() const {
 }
 
 directory::directory(const directory& other) : impl(std::make_unique<_directory>(*(other.impl))) {}
-directory::directory(directory&& other) : impl(std::move(other.impl)) {};
+directory::directory(directory&& other) noexcept : impl(std::move(other.impl)) {};
 directory& directory::operator=(const directory& other) {
 	impl = std::make_unique<_directory>(*(other.impl));
 	return *this;
 }
-directory& directory::operator=(directory&& other) {
+directory& directory::operator=(directory&& other) noexcept {
 	impl = std::move(other.impl);
 	return *this;
 }

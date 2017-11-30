@@ -17,9 +17,9 @@ public:
 	std::unique_ptr<_file> impl;
 
 	file(std::unique_ptr<_file> i);
-	file(file &&other);
+	file(file &&other) noexcept;
 	file(const file& other) = delete;
-	file& operator=(file &&other);
+	file& operator=(file &&other) noexcept;
 
 	size_t size() const;
 	void read_to_buffer(char* buffer, size_t buffer_size) const;
@@ -33,9 +33,9 @@ public:
 
 	unopened_file(std::unique_ptr<_unopened_file> i);
 	unopened_file(const unopened_file& other);
-	unopened_file(unopened_file&& other);
+	unopened_file(unopened_file&& other) noexcept;
 	unopened_file& operator=(const unopened_file& other);
-	unopened_file& operator=(unopened_file&& other);
+	unopened_file& operator=(unopened_file&& other) noexcept;
 	~unopened_file();
 
 	std::optional<file> open_file() const;
@@ -60,9 +60,9 @@ public:
 
 	directory(std::unique_ptr<_directory> i);
 	directory(const directory& other);
-	directory(directory&& other);
+	directory(directory&& other) noexcept;
 	directory& operator=(const directory& other);
-	directory& operator=(directory&& other);
+	directory& operator=(directory&& other) noexcept;
 
 	std::vector<unopened_file> list_files(const char16_t* extension) const;
 	std::vector<directory> list_directories() const;
@@ -84,9 +84,9 @@ public:
 
 	file_system();
 	file_system(const file_system& other);
-	file_system(file_system&& other);
+	file_system(file_system&& other) noexcept;
 	file_system& operator=(const file_system& other);
-	file_system& operator=(file_system&& other);
+	file_system& operator=(file_system&& other) noexcept;
 	~file_system();
 
 	void set_root(const char* location, const char* location_t);
