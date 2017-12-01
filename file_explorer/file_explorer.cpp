@@ -857,6 +857,9 @@ struct empty_window_handler {
 	texture prog1;
 	texture prog2;
 	texture bord;
+	texture bar_tex;
+
+	lines graph;
 
 	font test_fallback;
 	font test_font;
@@ -869,9 +872,14 @@ struct empty_window_handler {
 		prog1("F:\\VS2007Projects\\open_v2_test_data\\progress1.tga"),
 		prog2("F:\\VS2007Projects\\open_v2_test_data\\progress2.tga"),
 		bord("F:\\VS2007Projects\\open_v2_test_data\\border.dds"),
+		bar_tex("F:\\VS2007Projects\\open_v2_test_data\\barchar.tga"),
+		graph(10),
 		test_fallback("F:\\VS2007Projects\\open_v2_test_data\\unifont-9.0.02.ttf"),
 		//test_font("F:\\VS2007Projects\\open_v2_test_data\\Primitive.ttf", test_fallback) {}
-		test_font("F:\\VS2007Projects\\open_v2_test_data\\CreteRound-Regular.otf", test_fallback) {}
+		test_font("F:\\VS2007Projects\\open_v2_test_data\\CreteRound-Regular.otf", test_fallback) {
+		float yval[] = { 0.3f, 0.6f, 0.5f, 1.0f, 0.4f, 0.5f, 0.0f, 0.3f, 0.2f, 0.6f};
+		graph.set_y(yval);
+	}
 
 	template<typename T>
 	void operator()(T&&, window_base& w) const {
@@ -908,6 +916,10 @@ struct empty_window_handler {
 		ogl.render_character(u'A', true, 10.0f, 138.0f, 512.0f, test_font);
 
 		ogl.render_bordered_rect(true, 32.0f, 70.0f, 50.0f, 350.0f, 150.0f, bord);
+
+		//ogl.render_piechart(true, 80.0f, 60.0f, 100.0f, test_tex);
+		ogl.render_linegraph(true, 80.0f, 60.0f, 100.0f, 75.0f, graph);
+		//ogl.render_barchart(true, 80.0f, 60.0f, 100.0f, 75.0f, bar_tex);
 		//ogl.render_textured_rect(true, 70.0f, 50.0f, 350.0f, 150.0f, bord);
 	}
 };

@@ -3,6 +3,7 @@
 #include <functional>
 #include "texture.h"
 #include "text.h"
+#include "lines.h"
 
 class _open_gl_wrapper;
 
@@ -38,7 +39,10 @@ public:
 	void clear();
 	void display();
 	void set_viewport(uint32_t width, uint32_t height);
+	void render_piechart(bool enabled, float x, float y, float size, texture& t);
 	void render_textured_rect(bool enabled, float x, float y, float width, float height, texture& t, rotation r = rotation::upright);
+	void render_barchart(bool enabled, float x, float y, float width, float height, texture& t, rotation r = rotation::upright);
+	void render_linegraph(bool enabled, float x, float y, float width, float height, lines& l);
 	void render_subsprite(bool enabled, int frame, int total_frames, float x, float y, float width, float height, texture& t, rotation r = rotation::upright);
 	void render_masked_rect(bool enabled, float x, float y, float width, float height, texture& t, texture& mask, rotation r = rotation::upright);
 	void render_progress_bar(bool enabled, float progress, float x, float y, float width, float height, texture& left, texture& right, rotation r = rotation::upright);

@@ -156,6 +156,7 @@
     <ClInclude Include="eglew.h" />
     <ClInclude Include="glew.h" />
     <ClInclude Include="glxew.h" />
+    <ClInclude Include="lines.h" />
     <ClInclude Include="open_gl_wrapper.h" />
     <ClInclude Include="open_gl_wrapper.hpp" />
     <ClInclude Include="test_helpers.h" />
@@ -166,6 +167,7 @@
     <ClInclude Include="wglew.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="lines.cpp" />
     <ClCompile Include="open_gl_wrapper.cpp" />
     <ClCompile Include="test_helpers.cpp" />
     <ClCompile Include="text.cpp" />

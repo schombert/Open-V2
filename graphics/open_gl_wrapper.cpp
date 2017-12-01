@@ -105,6 +105,9 @@ namespace parameters {
 	constexpr GLuint use_mask = 6;
 	constexpr GLuint progress_bar = 7;
 	constexpr GLuint frame_stretch = 8;
+	constexpr GLuint piechart = 9;
+	constexpr GLuint barchart = 10;
+	constexpr GLuint linegraph = 11;
 }
 
 char tquad_vertex_shader[] =
@@ -129,6 +132,7 @@ char tquad_vertex_shader[] =
 char tquad_fragment_shader[] =
 "#version 430 core\n"
 "\n"
+"#define M_PI 3.1415926535897932384626433832795\n"
 "subroutine vec4 color_function_class(vec4 color_in);\n"
 "layout(location = 0) subroutine uniform color_function_class coloring_function;\n"
 "\n"
@@ -205,6 +209,25 @@ char tquad_fragment_shader[] =
 "	else\n"
 "		yout = border_size / tsize.y + (1.0 - 2.0 * border_size / tsize.y) * (realy - border_size) / (d_rect.w * 2.0 * border_size);\n"
 "	return texture(texture_sampler, vec2(xout, yout));\n"
+"}\n"
+"\n"
+"layout(index = 9) subroutine(font_function_class)\n"
+"vec4 piechart(vec2 tc) {\n"
+"	if(((tc.x - 0.5) * (tc.x - 0.5) + (tc.y - 0.5) * (tc.y - 0.5)) > 0.25)\n"
+"		return vec4(0.0, 0.0, 0.0, 0.0);\n"
+"	else\n"
+"		return texture(texture_sampler, vec2((atan((tc.y - 0.5), (tc.x - 0.5) ) + M_PI) / (2.0 * M_PI), 0.5));\n"
+"}\n"
+"\n"
+"layout(index = 10) subroutine(font_function_class)\n"
+"vec4 barchart(vec2 tc) {\n"
+"	vec4 color_in = texture(texture_sampler, vec2(tc.x, 0.5));\n"
+"	return vec4(color_in.rgb, step(color_in.a, tc.y));\n"
+"}\n"
+"\n"
+"layout(index = 11) subroutine(font_function_class)\n"
+"vec4 linegraph(vec2 tc) {\n"
+"	return mix(vec4(1.0, 0.0, 0.0, 1.0), vec4(0.0, 1.0, 0.0, 1.0), tc.y);\n"
 "}\n"
 "\n"
 "layout(index = 3) subroutine(color_function_class)\n"
@@ -485,6 +508,7 @@ HGLRC setup_opengl_context(HWND hwnd, HDC window_dc) {
 		handle_to_ogl_dc = new_context;
 	}
 	
+	glEnable(GL_LINE_SMOOTH);
 
 	create_shaders();
 	create_global_square();
@@ -578,6 +602,60 @@ void open_gl_wrapper::render_textured_rect(bool enabled, float x, float y, float
 	glBindTexture(GL_TEXTURE_2D, t.handle());
 
 	GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::no_filter };
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
+
+void open_gl_wrapper::render_linegraph(bool enabled, float x, float y, float width, float height, lines& l) {
+	glBindVertexArray(global_square_vao);
+
+	l.bind_buffer();
+
+	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+	glLineWidth(2.0f);
+
+	GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::linegraph };
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+
+	glDrawArrays(GL_LINE_STRIP, 0, l.count);
+}
+
+void open_gl_wrapper::render_barchart(bool enabled, float x, float y, float width, float height, texture& t, rotation r) {
+	glBindVertexArray(global_square_vao);
+
+	switch (r) {
+		case rotation::upright:
+			glBindVertexBuffer(0, global_sqaure_buffer, 0, sizeof(GLfloat) * 4); break;
+		case rotation::left:
+			glBindVertexBuffer(0, global_sqaure_left_buffer, 0, sizeof(GLfloat) * 4); break;
+		case rotation::right:
+			glBindVertexBuffer(0, global_sqaure_right_buffer, 0, sizeof(GLfloat) * 4); break;
+	}
+
+
+	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, t.handle());
+
+	GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::barchart };
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
+
+void open_gl_wrapper::render_piechart(bool enabled, float x, float y, float size, texture& t) {
+	glBindVertexArray(global_square_vao);
+
+	glBindVertexBuffer(0, global_sqaure_buffer, 0, sizeof(GLfloat) * 4);
+
+	glUniform4f(parameters::drawing_rectangle, x, y, size, size);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, t.handle());
+
+	GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::piechart };
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
