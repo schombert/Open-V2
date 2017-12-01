@@ -157,11 +157,9 @@
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <LanguageStandard>
-      </LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <CallingConvention>
       </CallingConvention>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\db_wrapper</AdditionalIncludeDirectories>
       <ProgramDataBaseFileName />
     </ClCompile>
     <Link>

@@ -14,6 +14,12 @@ struct color {
 	float g = 0.0f;
 };
 
+enum class rotation {
+	upright,
+	left,
+	right
+};
+
 class open_gl_wrapper {
 private:
 	void set_render_thread(const std::function<void()>&);
@@ -32,7 +38,11 @@ public:
 	void clear();
 	void display();
 	void set_viewport(uint32_t width, uint32_t height);
-	void render_textured_rect(bool enabled, float x, float y, float width, float height, texture& t);
+	void render_textured_rect(bool enabled, float x, float y, float width, float height, texture& t, rotation r = rotation::upright);
+	void render_subsprite(bool enabled, int frame, int total_frames, float x, float y, float width, float height, texture& t, rotation r = rotation::upright);
+	void render_masked_rect(bool enabled, float x, float y, float width, float height, texture& t, texture& mask, rotation r = rotation::upright);
+	void render_progress_bar(bool enabled, float progress, float x, float y, float width, float height, texture& left, texture& right, rotation r = rotation::upright);
+	void render_bordered_rect(bool enabled, float border_size, float x, float y, float width, float height, texture& t, rotation r = rotation::upright);
 	void render_character(char16_t codepoint, bool enabled, float x, float y, float size, font& f);
 	void render_text(const char16_t* codepoints, uint32_t count, bool enabled, float x, float baseline_y, float size, const color& c, font& f);
 	void render_outlined_text(const char16_t* codepoints, uint32_t count, bool enabled, float x, float baseline_y, float size, const color& c, font& f);

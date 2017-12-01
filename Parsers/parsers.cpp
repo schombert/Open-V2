@@ -159,7 +159,7 @@ void parse_lua_file(std::vector<token_group>& results, const char* file_start, c
 }
 
 bool ignorable_char(char c) {
-	return isspace(c) | (c == ',');
+	return isspace(c) | (c == ',') | (c == ';');
 }
 
 bool breaking_char(char c) {

@@ -101,6 +101,10 @@ namespace parameters {
 	constexpr GLuint border_filter = 0;
 	constexpr GLuint filter = 1;
 	constexpr GLuint no_filter = 2;
+	constexpr GLuint sub_sprite = 5;
+	constexpr GLuint use_mask = 6;
+	constexpr GLuint progress_bar = 7;
+	constexpr GLuint frame_stretch = 8;
 }
 
 char tquad_vertex_shader[] =
@@ -128,18 +132,21 @@ char tquad_fragment_shader[] =
 "subroutine vec4 color_function_class(vec4 color_in);\n"
 "layout(location = 0) subroutine uniform color_function_class coloring_function;\n"
 "\n"
-"subroutine vec4 font_function_class(vec4 color_in);\n"
+"subroutine vec4 font_function_class(vec2 tc);\n"
 "layout(location = 1) subroutine uniform font_function_class font_function;\n"
 "\n"
 "in vec2 tex_coord;\n"
-"layout (location = 0) out vec4 frag_color;"
+"layout (location = 0) out vec4 frag_color;\n"
 "\n"
-"layout (binding = 0) uniform sampler2D texture_sampler;"
+"layout (binding = 0) uniform sampler2D texture_sampler;\n"
+"layout (binding = 1) uniform sampler2D secondary_texture_sampler;\n"
+"layout(location = 2) uniform vec4 d_rect;\n"
 "layout(location = 6) uniform float border_size;\n"
 "layout(location = 7) uniform vec3 inner_color;\n"
 "\n"
 "layout(index = 0) subroutine(font_function_class)\n"
-"vec4 border_filter(vec4 color_in) {\n"
+"vec4 border_filter(vec2 tc) {\n"
+"	vec4 color_in = texture(texture_sampler, tc);\n"
 "	if(color_in.r > 0.5 + border_size / 4.0) {"
 "		return vec4(inner_color, 1.0);\n"
 "	} else if(color_in.r > 0.5 - border_size / 2.0) {"
@@ -152,14 +159,52 @@ char tquad_fragment_shader[] =
 "}\n"
 "\n"
 "layout(index = 1) subroutine(font_function_class)\n"
-"vec4 color_filter(vec4 color_in) {\n"
+"vec4 color_filter(vec2 tc) {\n"
+"	vec4 color_in = texture(texture_sampler, tc);\n"
 "	float sm_val = smoothstep(0.5 - border_size / 2.0, 0.5 + border_size / 2.0, color_in.r);\n"
 "	return vec4(inner_color, sm_val);\n"
 "}\n"
 "\n"
 "layout(index = 2) subroutine(font_function_class)\n"
-"vec4 no_filter(vec4 color_in) {\n"
-"	return color_in;\n"
+"vec4 no_filter(vec2 tc) {\n"
+"	return texture(texture_sampler, tc);\n"
+"}\n"
+"\n"
+"layout(index = 5) subroutine(font_function_class)\n"
+"vec4 subsprite(vec2 tc) {\n"
+"	return texture(texture_sampler, vec2(tc.x * inner_color.y + inner_color.x, tc.y));\n"
+"}\n"
+"\n"
+"layout(index = 6) subroutine(font_function_class)\n"
+"vec4 use_mask(vec2 tc) {\n"
+"	return vec4(texture(texture_sampler, tc).rgb, texture(secondary_texture_sampler, tc).a);\n"
+"}\n"
+"\n"
+"layout(index = 7) subroutine(font_function_class)\n"
+"vec4 progress_bar(vec2 tc) {\n"
+"	return mix( texture(texture_sampler, tc), texture(secondary_texture_sampler, tc), step(border_size, tc.x));\n"
+"}\n"
+"\n"
+"layout(index = 8) subroutine(font_function_class)\n"
+"vec4 frame_stretch(vec2 tc) {\n"
+"	const float realx = tc.x * d_rect.z;\n"
+"	const float realy = tc.y * d_rect.w;\n"
+"	const vec2 tsize = textureSize(texture_sampler, 0);\n"
+"	float xout = 0.0;\n"
+"	float yout = 0.0;\n"
+"	if(realx <= border_size)\n"
+"		xout = realx / tsize.x;\n"
+"	else if(realx >= (d_rect.z - border_size))"
+"		xout = (1.0 - border_size / tsize.x) + (border_size - (d_rect.z - realx))  / tsize.x;\n"
+"	else\n"
+"		xout = border_size / tsize.x + (1.0 - 2.0 * border_size / tsize.x) * (realx - border_size) / (d_rect.z * 2.0 * border_size);\n"
+"	if(realy <= border_size)\n"
+"		yout = realy / tsize.y;\n"
+"	else if(realy >= (d_rect.w - border_size))"
+"		yout = (1.0 - border_size / tsize.y) + (border_size - (d_rect.w - realy))  / tsize.y;\n"
+"	else\n"
+"		yout = border_size / tsize.y + (1.0 - 2.0 * border_size / tsize.y) * (realy - border_size) / (d_rect.w * 2.0 * border_size);\n"
+"	return texture(texture_sampler, vec2(xout, yout));\n"
 "}\n"
 "\n"
 "layout(index = 3) subroutine(color_function_class)\n"
@@ -174,7 +219,7 @@ char tquad_fragment_shader[] =
 "}\n"
 "\n"
 "void main() {\n"
-"	frag_color = coloring_function(font_function(texture(texture_sampler, tex_coord)));\n"
+"	frag_color = coloring_function(font_function(tex_coord));\n"
 "}\n";
 
 /*
@@ -198,12 +243,28 @@ GLuint general_shader = 0;
 
 GLuint global_square_vao = 0;
 GLuint global_sqaure_buffer = 0;
+GLuint global_sqaure_right_buffer = 0;
+GLuint global_sqaure_left_buffer = 0;
 
 GLfloat global_square_data[] = {
 	0.0f, 0.0f, 0.0f, 0.0f,
 	0.0f, 1.0f, 0.0f, 1.0f,
 	1.0f, 1.0f, 1.0f, 1.0f,
 	1.0f, 0.0f, 1.0f, 0.0f
+};
+
+GLfloat global_square_right_data[] = {
+	0.0f, 0.0f, 0.0f, 1.0f,
+	0.0f, 1.0f, 1.0f, 1.0f,
+	1.0f, 1.0f, 1.0f, 0.0f,
+	1.0f, 0.0f, 0.0f, 0.0f
+};
+
+GLfloat global_square_left_data[] = {
+	0.0f, 0.0f, 1.0f, 0.0f,
+	0.0f, 1.0f, 0.0f, 0.0f,
+	1.0f, 1.0f, 0.0f, 1.0f,
+	1.0f, 0.0f, 1.0f, 1.0f
 };
 
 GLuint sub_sqaure_buffers[64] = { 0 };
@@ -226,6 +287,16 @@ void create_global_square() {
 	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 2); //texture coordinates
 	glVertexAttribBinding(0, 0); //position -> to array zero
 	glVertexAttribBinding(1, 0); //texture coordinates -> to array zero 
+
+
+	glGenBuffers(1, &global_sqaure_left_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, global_sqaure_left_buffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_left_data, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &global_sqaure_right_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, global_sqaure_right_buffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_right_data, GL_STATIC_DRAW);
+
 
 	glGenBuffers(64, sub_sqaure_buffers);
 	for (uint32_t i = 0; i < 64; ++i) {
@@ -488,20 +559,128 @@ void open_gl_wrapper::clear() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
-void open_gl_wrapper::render_textured_rect(bool enabled, float x, float y, float width, float height, texture& t) {
-	//glBindBuffer(GL_ARRAY_BUFFER, global_sqaure_buffer);
-	
+void open_gl_wrapper::render_textured_rect(bool enabled, float x, float y, float width, float height, texture& t, rotation r) {
 	glBindVertexArray(global_square_vao);
 
-	glBindVertexBuffer(0, global_sqaure_buffer, 0, sizeof(GLfloat) * 4);
+	switch (r) {
+		case rotation::upright:
+			glBindVertexBuffer(0, global_sqaure_buffer, 0, sizeof(GLfloat) * 4); break;
+		case rotation::left:
+			glBindVertexBuffer(0, global_sqaure_left_buffer, 0, sizeof(GLfloat) * 4); break;
+		case rotation::right:
+			glBindVertexBuffer(0, global_sqaure_right_buffer, 0, sizeof(GLfloat) * 4); break;
+	}
+	
 
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, t.handle());
 
-
 	GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::no_filter };
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
+
+void open_gl_wrapper::render_bordered_rect(bool enabled, float border_size, float x, float y, float width, float height, texture& t, rotation r) {
+	glBindVertexArray(global_square_vao);
+
+	switch (r) {
+		case rotation::upright:
+			glBindVertexBuffer(0, global_sqaure_buffer, 0, sizeof(GLfloat) * 4); break;
+		case rotation::left:
+			glBindVertexBuffer(0, global_sqaure_left_buffer, 0, sizeof(GLfloat) * 4); break;
+		case rotation::right:
+			glBindVertexBuffer(0, global_sqaure_right_buffer, 0, sizeof(GLfloat) * 4); break;
+	}
+
+
+	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+	glUniform1f(parameters::border_size, border_size);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, t.handle());
+
+	GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::frame_stretch };
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
+
+void open_gl_wrapper::render_masked_rect(bool enabled, float x, float y, float width, float height, texture& t, texture& mask, rotation r) {
+	glBindVertexArray(global_square_vao);
+
+	switch (r) {
+		case rotation::upright:
+			glBindVertexBuffer(0, global_sqaure_buffer, 0, sizeof(GLfloat) * 4); break;
+		case rotation::left:
+			glBindVertexBuffer(0, global_sqaure_left_buffer, 0, sizeof(GLfloat) * 4); break;
+		case rotation::right:
+			glBindVertexBuffer(0, global_sqaure_right_buffer, 0, sizeof(GLfloat) * 4); break;
+	}
+
+
+	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, t.handle());
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, mask.handle());
+
+	GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::use_mask };
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
+
+void open_gl_wrapper::render_progress_bar(bool enabled, float progress, float x, float y, float width, float height, texture& left, texture& right, rotation r) {
+	glBindVertexArray(global_square_vao);
+
+	switch (r) {
+		case rotation::upright:
+			glBindVertexBuffer(0, global_sqaure_buffer, 0, sizeof(GLfloat) * 4); break;
+		case rotation::left:
+			glBindVertexBuffer(0, global_sqaure_left_buffer, 0, sizeof(GLfloat) * 4); break;
+		case rotation::right:
+			glBindVertexBuffer(0, global_sqaure_right_buffer, 0, sizeof(GLfloat) * 4); break;
+	}
+
+
+	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+	glUniform1f(parameters::border_size, progress);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, left.handle());
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, right.handle());
+
+	GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::progress_bar };
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
+
+void open_gl_wrapper::render_subsprite(bool enabled, int frame, int total_frames, float x, float y, float width, float height, texture& t, rotation r) {
+	glBindVertexArray(global_square_vao);
+
+	switch (r) {
+		case rotation::upright:
+			glBindVertexBuffer(0, global_sqaure_buffer, 0, sizeof(GLfloat) * 4); break;
+		case rotation::left:
+			glBindVertexBuffer(0, global_sqaure_left_buffer, 0, sizeof(GLfloat) * 4); break;
+		case rotation::right:
+			glBindVertexBuffer(0, global_sqaure_right_buffer, 0, sizeof(GLfloat) * 4); break;
+	}
+
+	const auto scale = 1.0f / static_cast<float>(total_frames);
+	glUniform3f(parameters::inner_color, static_cast<float>(frame) * scale, scale, 0.0f);
+	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, t.handle());
+
+	GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::sub_sprite };
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);

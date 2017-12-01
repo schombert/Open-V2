@@ -21,6 +21,8 @@ void texture::load() {
 	unsigned char* expected = nullptr;
 	if (filedata.compare_exchange_strong(expected, (unsigned char*)1, std::memory_order::memory_order_release, std::memory_order::memory_order_acquire)) {
 		texture_handle = SOIL_load_OGL_texture(filename.c_str(), 0, 0, SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_DDS_LOAD_DIRECT);
+		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
+		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
 	} else {
 		const auto fdcopy = filedata.load(std::memory_order::memory_order_relaxed);
 
