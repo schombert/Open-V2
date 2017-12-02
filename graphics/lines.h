@@ -17,7 +17,7 @@ public:
 		buffer = new float[count * 4];
 		memcpy(buffer, o.buffer, count * 4 * sizeof(float));
 	}
-	lines(lines&& o) : buffer(o.buffer), count(o.count) {
+	lines(lines&& o) noexcept : buffer(o.buffer), count(o.count) {
 		o.buffer = nullptr;
 	}
 	lines& operator=(const lines& o) {

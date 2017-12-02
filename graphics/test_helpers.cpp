@@ -73,15 +73,15 @@ public:
 			ogl.display();
 
 			std::string test_file(file_base);
-			test_file += "_expected.bmp";
+			test_file += "_expected.tga";
 
 			std::string result_file(file_base);
-			result_file += "_test.bmp";
+			result_file += "_test.tga";
 
 			if (!file_exists(test_file.c_str())) {
-				SOIL_save_screenshot(test_file.c_str(), SOIL_SAVE_TYPE_BMP, x, y, w, h);
+				SOIL_save_screenshot(test_file.c_str(), SOIL_SAVE_TYPE_TGA, x, y, w, h);
 			}
-			SOIL_save_screenshot(result_file.c_str(), SOIL_SAVE_TYPE_BMP, x, y, w, h);
+			SOIL_save_screenshot(result_file.c_str(), SOIL_SAVE_TYPE_TGA, x, y, w, h);
 
 			run = true;
 		}
@@ -93,10 +93,10 @@ bool test_rendering(const char* base_file_name, uint32_t x, uint32_t y, uint32_t
 		window<render_once> test_window(x + w, y + h, base_file_name, x, y, w, h, f);
 	}
 	std::string test_file(base_file_name);
-	test_file += "_expected.bmp";
+	test_file += "_expected.tga";
 
 	std::string result_file(base_file_name);
-	result_file += "_test.bmp";
+	result_file += "_test.tga";
 
 	return compare_image_files(test_file.c_str(), result_file.c_str());
 }
