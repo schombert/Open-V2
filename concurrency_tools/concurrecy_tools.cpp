@@ -1,4 +1,4 @@
-#include "concurrency_tools.h"
+#include "concurrency_tools.hpp"
 #include <ppl.h>
 
 using namespace concurrency;
@@ -138,4 +138,12 @@ const char* concurrent_string::c_str() const {
 	} else {
 		return _data.remote_data.data;
 	}
+}
+
+__declspec(restrict) void* concurrent_alloc_wrapper(size_t sz) {
+	return concurrency::Alloc(sz);
+}
+
+void concurrent_free_wrapper(void* p) {
+	concurrency::Free(p);
 }
