@@ -1180,8 +1180,7 @@ MEMBER_FDEF(gui_file, gui_textBoxType, "textBoxType");
 MEMBER_FDEF(gui_file, sub_gui_file, "gui_file");
 MEMBER_FDEF(gui_file, add_unknown_key, "unknown_key");
 
-
-bool accept_all(const char*, const char*) {
+constexpr bool accept_all(const char*, const char*) {
 	return true;
 }
 

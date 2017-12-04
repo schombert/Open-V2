@@ -581,6 +581,7 @@ struct spritetypes {
 	void piechart(const piecharttype&) {};
 	void linechart(const linecharttype&) {};
 	void unknown_key(std::string&& s) { g.unknown_spritetypes_keys.insert(std::move(s)); };
+	void discard(const discard_type&) {}
 };
 
 MEMBER_FDEF(spritetypes, sprite, "sprite");
@@ -593,6 +594,7 @@ MEMBER_FDEF(spritetypes, barchart, "barchart");
 MEMBER_FDEF(spritetypes, piechart, "piechart");
 MEMBER_FDEF(spritetypes, linechart, "linechart");
 MEMBER_FDEF(spritetypes, unknown_key, "unknown_key");
+MEMBER_FDEF(spritetypes, discard, "discard");
 
 struct gfx_file {
 	gfx_container& g;
@@ -624,15 +626,16 @@ BEGIN_DOMAIN(gfx_file_domain)
 	    MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
 	END_TYPE
 	BEGIN_TYPE(spritetypes)
-	MEMBER_TYPE_ASSOCIATION("sprite", "spritetype", spritetype)
-	MEMBER_TYPE_ASSOCIATION("corneredtilesprite", "corneredtilespritetype", corneredtilespritetype)
-	MEMBER_TYPE_ASSOCIATION("barchart", "barcharttype", barcharttype)
-	MEMBER_TYPE_ASSOCIATION("maskedshield", "maskedshieldtype", maskedshieldtype)
-	MEMBER_TYPE_ASSOCIATION("piechart", "piecharttype", piecharttype)
-	MEMBER_TYPE_ASSOCIATION("progressbar", "progressbartype", progressbartype)
-	MEMBER_TYPE_ASSOCIATION("linechart", "linecharttype", linecharttype)
-	MEMBER_TYPE_ASSOCIATION("tilesprite", "tilespritetype", tilespritetype)
-	MEMBER_TYPE_ASSOCIATION("textsprite", "textspritetype", textspritetype)
+		MEMBER_TYPE_ASSOCIATION("sprite", "spritetype", spritetype)
+		MEMBER_TYPE_ASSOCIATION("corneredtilesprite", "corneredtilespritetype", corneredtilespritetype)
+		MEMBER_TYPE_ASSOCIATION("barchart", "barcharttype", barcharttype)
+		MEMBER_TYPE_ASSOCIATION("maskedshield", "maskedshieldtype", maskedshieldtype)
+		MEMBER_TYPE_ASSOCIATION("piechart", "piecharttype", piecharttype)
+		MEMBER_TYPE_ASSOCIATION("progressbar", "progressbartype", progressbartype)
+		MEMBER_TYPE_ASSOCIATION("linechart", "linecharttype", linecharttype)
+		MEMBER_TYPE_ASSOCIATION("tilesprite", "tilespritetype", tilespritetype)
+		MEMBER_TYPE_ASSOCIATION("textsprite", "textspritetype", textspritetype)
+	    MEMBER_TYPE_ASSOCIATION("discard", "scrollingsprite", discard_type)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, discard_type, label_discard_type)
 	END_TYPE
@@ -938,7 +941,7 @@ auto fake_sound_lookup() {
 }
 
 int __cdecl main() {
-	{
+	/*{
 		window<empty_window_handler> test_window(400, 400);
 
 
@@ -946,8 +949,8 @@ int __cdecl main() {
 		getchar();
 
 		test_window.close_window();
-	}
-	/*
+	}*/
+	
 	{
 		file_system fs;
 		fs.set_root(u"F:\\programs\\V2\\interface");
@@ -989,19 +992,19 @@ int __cdecl main() {
 		for (const auto& k : g.unknown_spritetypes_keys) {
 			std::cout << "\t" << k << std::endl;
 		}
-		std::cout << "spritetype keys:" << std::endl;
-		for (const auto& k : spritetype::keys) {
+		std::cout << "textspritetype keys:" << std::endl;
+		for (const auto& k : textspritetype::keys) {
 			std::cout << "\t" << k.first << std::endl;
 			if (k.first != "name" && k.first != "texturefile") {
 				for(const auto& l : k.second)
 					std::cout << "\t\t" << l << std::endl;
 			}
 		}
-		std::cout << "spritetype types:" << std::endl;
-		for (const auto& k : spritetype::unknown_types) {
+		std::cout << "textspritetype types:" << std::endl;
+		for (const auto& k : textspritetype::unknown_types) {
 			std::cout << "\t" << k << std::endl;
 		}
-	}*/
+	}
 
 	/*{
 		file_system fs;

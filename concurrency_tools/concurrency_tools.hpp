@@ -1,5 +1,6 @@
 #pragma once
 #include "concurrency_tools.h"
+#include <cstdlib>
 
 __declspec(restrict) void* concurrent_alloc_wrapper(size_t sz);
 void concurrent_free_wrapper(void* p);
@@ -15,13 +16,177 @@ void concurrent_allocator<T>::deallocate(T* p, size_t n) {
 	concurrent_free_wrapper(p);
 }
 
+constexpr uint32_t ct_log2(uint32_t n) {
+	return ((n < 2) ? 0 : 1 + ct_log2(n / 2));
+}
+
+template<typename T, uint32_t block, uint32_t index_sz>
+fixed_sz_list<T, block, index_sz>::fixed_sz_list() {
+	const auto created = (T*)_aligned_malloc(block * sizeof(T) + block * sizeof(std::atomic<uint32_t>), 64);
+	std::atomic<uint32_t>* const keys = (std::atomic<uint32_t>*)(created + block);
+
+	keys[block - 1].store((uint32_t)-1, std::memory_order_release);
+	for (int32_t i = block - 2; i >= 0; --i) {
+		keys[i].store(i + 1, std::memory_order_release);
+	}
+	index_array[0].store(created, std::memory_order_release);
+	first_free.store(0, std::memory_order_release);
+}
+
+template<typename T, uint32_t block, uint32_t index_sz>
+fixed_sz_list<T, block, index_sz>::~fixed_sz_list() {
+	auto p = first_in_list.load(std::memory_order_relaxed);
+	while (p != (uint32_t)-1) {
+		const auto block_num = p >> ct_log2(block);
+		const auto block_index = p & (block - 1);
+
+		const auto local_index = index_array[block_num].load(std::memory_order_relaxed);
+		std::atomic<uint32_t>* const keys = (std::atomic<uint32_t>*)(local_index + block);
+
+		local_index[block_index].~T();
+
+		p = keys[block_index].load(std::memory_order_relaxed);
+	}
+	for (int32_t i = first_free_index.load(std::memory_order_relaxed) - 1; i >= 0; --i) {
+		_aligned_free(index_array[i].load(std::memory_order_relaxed));
+	}
+}
+
+template<typename T, uint32_t block, uint32_t index_sz>
+template<typename ...P>
+void fixed_sz_list<T, block, index_sz>::emplace(P&& ... params) {
+	auto free_spot = first_free.load(std::memory_order_acquire);
+
+	while (free_spot != (uint32_t)-1) {
+		const auto block_num = free_spot >> ct_log2(block);
+		const auto block_index = free_spot & (block - 1);
+
+		const auto local_index = index_array[block_num].load(std::memory_order_acquire);
+		std::atomic<uint32_t>* const keys = (std::atomic<uint32_t>*)(local_index + block);
+
+		auto& this_spot = local_index[block_index];
+		const auto next_free = keys[block_index].load(std::memory_order_acquire);
+
+		if (first_free.compare_exchange_strong(free_spot, next_free, std::memory_order_release, std::memory_order_acquire)) {
+			new (&this_spot) T(std::forward<P>(params) ...);
+
+			auto expected_first_in_list = first_in_list.load(std::memory_order_acquire);
+			keys[block_index].store(expected_first_in_list, std::memory_order_release);
+
+			while (!first_in_list.compare_exchange_strong(expected_first_in_list, free_spot, std::memory_order_release, std::memory_order_acquire)) {
+				keys[block_index].store(expected_first_in_list, std::memory_order_release);
+			}
+			return;
+		}
+	}
+
+	const auto created = (T*)_aligned_malloc(block * sizeof(T) + block * sizeof(std::atomic<uint32_t>), 64);
+	std::atomic<uint32_t>* const ckeys = (std::atomic<uint32_t>*)(created + block);
+
+	const auto new_index = first_free_index.fetch_add(1, std::memory_order_acq_rel);
+
+	if (new_index >= index_sz) {
+		_aligned_free(created);
+		std::abort();
+	}
+
+	const auto block_num = new_index << ct_log2(block);
+
+	for (int32_t i = block - 2; i >= 0; --i) {
+		ckeys[i].store(block_num + i + 1, std::memory_order_release);
+	}
+
+	auto expected_first = first_free.load(std::memory_order_acquire);
+	ckeys[block - 1].store(expected_first, std::memory_order_release);
+
+	index_array[new_index].store(created, std::memory_order_release);
+
+	while (!first_free.compare_exchange_strong(expected_first, block_num + 1, std::memory_order_release, std::memory_order_acquire)) {
+		ckeys[block - 1].store(expected_first, std::memory_order_release);
+	}
+
+	new (&created[0]) T(std::forward<P>(params) ...);
+
+	auto expected_first_in_list = first_in_list.load(std::memory_order_acquire);
+	ckeys[0].store(expected_first_in_list, std::memory_order_release);
+
+	while (!first_in_list.compare_exchange_strong(expected_first_in_list, block_num, std::memory_order_release, std::memory_order_acquire)) {
+		ckeys[0].store(expected_first_in_list, std::memory_order_release);
+	}
+}
+
+template<typename T, uint32_t block, uint32_t index_sz>
+template<typename F>
+void fixed_sz_list<T, block, index_sz>::try_pop(const F& f) {
+	auto head = first_in_list.load(std::memory_order_acquire);
+
+	while (head != (uint32_t)-1) {
+
+		const auto block_num = head >> ct_log2(block);
+		const auto block_index = head & (block - 1);
+
+		const auto local_index = index_array[block_num].load(std::memory_order_acquire);
+		std::atomic<uint32_t>* const keys = (std::atomic<uint32_t>*)(local_index + block);
+
+		auto& this_spot = local_index[block_index];
+		auto expected_next = keys[block_index].load(std::memory_order_acquire);
+
+		if (first_in_list.compare_exchange_strong(head, expected_next, std::memory_order_release, std::memory_order_acquire)) {
+			f(this_spot);
+			this_spot.~T();
+
+			auto expected_first_free = first_free.load(std::memory_order_acquire);
+			keys[block_index].store(expected_first_free, std::memory_order_release);
+
+			while (!first_free.compare_exchange_strong(expected_first_free, head, std::memory_order_release, std::memory_order_acquire)) {
+				keys[block_index].store(expected_first_free, std::memory_order_release);
+			}
+
+			return;
+		}
+	}
+}
+
+template<typename T, uint32_t block, uint32_t index_sz>
+template<typename F>
+void fixed_sz_list<T, block, index_sz>::flush(const F& f) {
+	auto head = first_in_list.load(std::memory_order_acquire);
+
+	while (head != (uint32_t)-1) {
+
+		const auto block_num = head >> ct_log2(block);
+		const auto block_index = head & (block - 1);
+
+		const auto local_index = index_array[block_num].load(std::memory_order_acquire);
+		std::atomic<uint32_t>* const keys = (std::atomic<uint32_t>*)(local_index + block);
+
+		auto& this_spot = local_index[block_index];
+		auto expected_next = keys[block_index].load(std::memory_order_acquire);
+
+		if (first_in_list.compare_exchange_strong(head, expected_next, std::memory_order_release, std::memory_order_acquire)) {
+			f(this_spot);
+			this_spot.~T();
+
+			auto expected_first_free = first_free.load(std::memory_order_acquire);
+			keys[block_index].store(expected_first_free, std::memory_order_release);
+
+			while (!first_free.compare_exchange_strong(expected_first_free, head, std::memory_order_release, std::memory_order_acquire)) {
+				keys[block_index].store(expected_first_free, std::memory_order_release);
+			}
+
+			head = first_in_list.load(std::memory_order_acquire);
+		}
+	}
+}
+
 template<typename T, uint32_t block, uint32_t index_sz>
 fixed_sz_deque<T, block, index_sz>::fixed_sz_deque() {
-	const auto created = (entry_node*)new char[block * sizeof(entry_node)];
-	
-	created[block - 1].next_free.store((uint32_t)-1, std::memory_order_release);
+	const auto created = (T*)_aligned_malloc(block * sizeof(T) + block * sizeof(std::atomic<uint32_t>), 64);
+	std::atomic<uint32_t>* const keys = (std::atomic<uint32_t>*)(created + block);
+
+	keys[block - 1].store((uint32_t)-1, std::memory_order_release);
 	for (int32_t i = block - 2; i >= 0; --i) {
-		created[i].next_free.store(i+2, std::memory_order_release);
+		keys[i].store(i+2, std::memory_order_release);
 	}
 	index_array[0].store(created, std::memory_order_release);
 	first_free.store(1, std::memory_order_release);
@@ -31,16 +196,14 @@ template<typename T, uint32_t block, uint32_t index_sz>
 fixed_sz_deque<T, block, index_sz>::~fixed_sz_deque() {
 	for (int32_t i = first_free_index.load(std::memory_order_relaxed) - 1; i >= 0; --i) {
 		const auto p = index_array[i].load(std::memory_order_relaxed);
-		for (int32_t j = block - 1; j >= 0; --j) {
-			if (p[j].next_free.load(std::memory_order_relaxed) == 0)
-				p[j].e.~T();
-		}
-		delete[] p;
-	}
-}
+		std::atomic<uint32_t>* const keys = (std::atomic<uint32_t>*)(p + block);
 
-constexpr uint32_t ct_log2(uint32_t n) {
-	return ((n < 2) ? 0 : 1 + ct_log2(n / 2));
+		for (int32_t j = block - 1; j >= 0; --j) {
+			if (keys[j].load(std::memory_order_relaxed) == 0)
+				p[j].~T();
+		}
+		_aligned_free(p);
+	}
 }
 
 template<typename T, uint32_t block, uint32_t index_sz>
@@ -49,16 +212,37 @@ T& fixed_sz_deque<T, block, index_sz>::at(uint32_t index) const {
 	const auto block_index = index & (block - 1);
 
 	const auto local_index = index_array[block_num].load(std::memory_order_acquire);
-	return local_index[block_index].e;
+	return local_index[block_index];
 }
 
 template<typename T, uint32_t block, uint32_t index_sz>
-typename fixed_sz_deque<T, block, index_sz>::entry_node& fixed_sz_deque<T, block, index_sz>::node_at(uint32_t index) const {
+template<typename F>
+void fixed_sz_deque<T, block, index_sz>::visit(uint32_t index, const F& f) const {
 	const auto block_num = index >> ct_log2(block);
 	const auto block_index = index & (block - 1);
 
-	const auto local_index = index_array[block_num].load(std::memory_order_acquire);
-	return local_index[block_index];
+	if (block_num < index_sz) {
+		const auto local_index = index_array[block_num].load(std::memory_order_acquire);
+		std::atomic<uint32_t>* const keys = (std::atomic<uint32_t>*)(local_index + block);
+
+		if(local_index != nullptr && keys[block_index].load(std::memory_order::memory_order_acquire) == 0)
+			f(local_index[block_index]);
+	}
+}
+
+template<typename T, uint32_t block, uint32_t index_sz>
+T* fixed_sz_deque<T, block, index_sz>::safe_at(uint32_t index) const {
+	const auto block_num = index >> ct_log2(block);
+	const auto block_index = index & (block - 1);
+
+	if (block_num < index_sz) {
+		const auto local_index = index_array[block_num].load(std::memory_order_acquire);
+		std::atomic<uint32_t>* const keys = (std::atomic<uint32_t>*)(local_index + block);
+
+		if (local_index != nullptr && keys[block_index].load(std::memory_order::memory_order_acquire) == 0)
+			return &local_index[block_index];
+	}
+	return nullptr;
 }
 
 template<typename T, uint32_t block, uint32_t index_sz>
@@ -85,16 +269,18 @@ template<typename T, uint32_t block, uint32_t index_sz>
 void fixed_sz_deque<T, block, index_sz>::free(uint32_t index) {
 	const auto block_num = index >> ct_log2(block);
 	const auto block_index = index & (block - 1);
-	const auto local_index = index_array[block_num].load(std::memory_order_acquire);
 
-	local_index[block_index].e.~T();
+	const auto local_index = index_array[block_num].load(std::memory_order_acquire);
+	std::atomic<uint32_t>* const keys = (std::atomic<uint32_t>*)(local_index + block);
+
+	local_index[block_index].~T();
 
 	++index;
 
 	auto free_spot = first_free.load(std::memory_order_acquire);
-	local_index[block_index].next_free.store(free_spot, std::memory_order_release);
+	keys[block_index].store(free_spot, std::memory_order_release);
 	while (!first_free.compare_exchange_strong(free_spot, index, std::memory_order_release, std::memory_order_acquire)) {
-		local_index[block_index].next_free.store(free_spot, std::memory_order_release);
+		keys[block_index].store(free_spot, std::memory_order_release);
 	}
 }
 
@@ -108,41 +294,44 @@ uint32_t fixed_sz_deque<T, block, index_sz>::emplace_back(P&& ... params) {
 		const auto block_index = (free_spot - 1) & (block - 1);
 
 		const auto local_index = index_array[block_num].load(std::memory_order_acquire);
+		std::atomic<uint32_t>* const keys = (std::atomic<uint32_t>*)(local_index + block);
+
 		auto& this_spot = local_index[block_index];
-		const auto next_free = this_spot.next_free.load(std::memory_order_acquire);
+		const auto next_free = keys[block_index].load(std::memory_order_acquire);
 
 		if (first_free.compare_exchange_strong(free_spot, next_free, std::memory_order_release, std::memory_order_acquire)) {
-			new (&this_spot.e) T(std::forward<P>(params) ...);
-			this_spot.next_free.store(0, std::memory_order_release);
+			new (&this_spot) T(std::forward<P>(params) ...);
+			keys[block_index].store(0, std::memory_order_release);
 			return free_spot - 1;
 		}
 	}
 
-	const auto created = (entry_node*)new char[block * sizeof(entry_node)];
+	const auto created = (T*)_aligned_malloc(block * sizeof(T) + block * sizeof(std::atomic<uint32_t>), 64);
 	const auto new_index = first_free_index.fetch_add(1, std::memory_order_acq_rel);
 
 	if (new_index >= index_sz) {
-		delete[] created;
+		_aligned_free(created);
 		std::abort();
 	}
-		
+	
+	std::atomic<uint32_t>* const ckeys = (std::atomic<uint32_t>*)(created + block);
 	const auto block_num = new_index << ct_log2(block);
 
 	for (int32_t i = block - 2; i >= 0; --i) {
-		created[i].next_free.store(block_num + i + 2, std::memory_order_release);
+		ckeys[i].store(block_num + i + 2, std::memory_order_release);
 	}
 
 	auto expected_first = first_free.load(std::memory_order_acquire);
-	created[block - 1].next_free.store(expected_first, std::memory_order_release);
+	ckeys[block - 1].store(expected_first, std::memory_order_release);
 
 	index_array[new_index].store(created, std::memory_order_release);
 
 	while (!first_free.compare_exchange_strong(expected_first, block_num + 2, std::memory_order_release, std::memory_order_acquire)) {
-		created[block - 1].next_free.store(expected_first, std::memory_order_release);
+		ckeys[block - 1].store(expected_first, std::memory_order_release);
 	}
 
-	new (&created[0].e) T(std::forward<P>(params) ...);
-	created[0].next_free.store(0, std::memory_order_release);
+	new (&created[0]) T(std::forward<P>(params) ...);
+	ckeys[0].store(0, std::memory_order_release);
 
 	return block_num;
 }

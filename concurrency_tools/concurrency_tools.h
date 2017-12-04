@@ -58,26 +58,8 @@ class fixed_sz_deque_iterator;
 
 template<typename T, uint32_t block, uint32_t index_sz>
 class fixed_sz_deque {
-public:
-	struct entry_node {
-	private:
-		T e;
-		std::atomic<uint32_t> next_free;
-	public:
-		friend class fixed_sz_deque;
-		template<typename V>
-		void visit(const V& v) {
-			if (next_free.load(std::memory_order::memory_order_acquire) == 0)
-				v(e);
-		}
-		template<typename V>
-		void visit(const V& v) const {
-			if (next_free.load(std::memory_order::memory_order_acquire) == 0)
-				v(e);
-		}
-	};
 private:
-	std::atomic<entry_node*> index_array[index_sz] = { nullptr };
+	std::atomic<T*> index_array[index_sz] = { nullptr };
 	std::atomic<uint32_t> first_free = 0;
 	std::atomic<uint32_t> first_free_index = 1;
 public:
@@ -85,15 +67,36 @@ public:
 	~fixed_sz_deque();
 
 	T& at(uint32_t index) const;
-	entry_node& node_at(uint32_t index) const;
+	T* safe_at(uint32_t index) const;
 	void free(uint32_t index);
 	uint32_t past_end() const;
 
 	template<typename ...P>
 	uint32_t emplace_back(P&& ... params);
+	template<typename F>
+	void visit(uint32_t index, const F& f) const;
 
 	fixed_sz_deque_iterator<T, block, index_sz> begin() const;
 	fixed_sz_deque_iterator<T, block, index_sz> end() const;
+};
+
+template<typename T, uint32_t block, uint32_t index_sz>
+class fixed_sz_list {
+private:
+	std::atomic<T*> index_array[index_sz] = { nullptr };
+	std::atomic<uint32_t> first_free = (uint32_t)-1;
+	std::atomic<uint32_t> first_in_list = (uint32_t)-1;
+	std::atomic<uint32_t> first_free_index = 1;
+public:
+	fixed_sz_list();
+	~fixed_sz_list();
+
+	template<typename ...P>
+	void emplace(P&& ... params);
+	template<typename F>
+	void try_pop(const F& f);
+	template<typename F>
+	void flush(const F& f);
 };
 
 template<typename T, uint32_t block, uint32_t index_sz>
@@ -112,14 +115,14 @@ public:
 	bool operator!=(const fixed_sz_deque_iterator& o) const {
 		return position != o.position;
 	}
-	typename fixed_sz_deque<T, block, index_sz>::entry_node& operator*() const {
-		return parent->node_at(position);
+	T* operator*() const {
+		return parent->safe_at(position);
 	}
-	typename fixed_sz_deque<T, block, index_sz>::entry_node& operator[](int32_t offset) const {
-		return parent->node_at(position + offset);
+	T* operator[](int32_t offset) const {
+		return parent->safe_at(position + offset);
 	}
-	typename fixed_sz_deque<T, block, index_sz>::entry_node* operator->() const {
-		return &(parent->node_at(position));
+	T* operator->() const {
+		return parent->safe_at(position);
 	}
 	fixed_sz_deque_iterator& operator++() {
 		++position;
@@ -172,8 +175,8 @@ template<typename T, uint32_t block, uint32_t index_sz>
 class std::iterator_traits<fixed_sz_deque_iterator<T, block, index_sz>> {
 public:
 	using difference_type = int32_t;
-	using value_type = typename fixed_sz_deque<T, block, index_sz>::entry_node;
-	using pointer = typename fixed_sz_deque<T, block, index_sz>::entry_node*;
-	using reference = typename fixed_sz_deque<T, block, index_sz>::entry_node&;
+	using value_type = T;
+	using pointer = T*;
+	using reference = T*&;
 	using iterator_category = std::random_access_iterator_tag;
 };

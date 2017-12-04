@@ -108,6 +108,8 @@ TEST(fxd_deque, concurrency_tools) {
 	EXPECT_EQ(120, tv.at(120));
 	EXPECT_EQ(0, tv.at(0));
 	EXPECT_EQ(35, tv.at(35));
+	EXPECT_NE(nullptr, tv.safe_at(35));
+	EXPECT_EQ(35, *tv.safe_at(35));
 }
 
 TEST(fxd_deque_growing, concurrency_tools) {
@@ -131,6 +133,8 @@ TEST(fxd_deque_growing, concurrency_tools) {
 	tv.free(5);
 
 	EXPECT_EQ(128, tv.past_end());
+	EXPECT_EQ(nullptr, tv.safe_at(0));
+	EXPECT_EQ(nullptr, tv.safe_at(120));
 
 	tv.emplace_back(0);
 	tv.emplace_back(0);
@@ -138,6 +142,8 @@ TEST(fxd_deque_growing, concurrency_tools) {
 	tv.emplace_back(0);
 
 	EXPECT_EQ(128, tv.past_end());
+	EXPECT_NE(nullptr, tv.safe_at(0));
+	EXPECT_NE(nullptr, tv.safe_at(120));
 
 	tv.emplace_back(0);
 	EXPECT_EQ(64*3, tv.past_end());
@@ -153,8 +159,8 @@ TEST(fxd_deque_iterator, concurrency_tools) {
 
 	int32_t sz = 0;
 
-	for (const auto& e : tv) {
-		e.visit([&sz](int) { ++sz; });
+	for (const auto e : tv) {
+		if(e) ++sz;
 	}
 
 	EXPECT_EQ(64 * 2, sz);
@@ -165,8 +171,8 @@ TEST(fxd_deque_iterator, concurrency_tools) {
 	tv.free(5);
 
 	sz = 0;
-	for (const auto& e : tv) {
-		e.visit([&sz](int) { ++sz; });
+	for (const auto e : tv) {
+		if (e) ++sz;
 	}
 
 	EXPECT_EQ(64 * 2 - 4, sz);
@@ -177,8 +183,8 @@ TEST(fxd_deque_iterator, concurrency_tools) {
 	tv.emplace_back(0);
 
 	sz = 0;
-	for (const auto& e : tv) {
-		e.visit([&sz](int) { ++sz; });
+	for (const auto e : tv) {
+		if (e) ++sz;
 	}
 
 	EXPECT_EQ(64 * 2, sz);
@@ -192,8 +198,9 @@ TEST(fxd_deque_iterator_b, concurrency_tools) {
 	tv.emplace_back(3);
 
 	int32_t total = 0;
-	for (const auto& e : tv) {
-		e.visit([&total](int i) { total += i; });
+	for (const auto e : tv) {
+		if (e)
+			total += *e;
 	}
 
 	EXPECT_EQ(6, total);
@@ -201,9 +208,44 @@ TEST(fxd_deque_iterator_b, concurrency_tools) {
 	tv.free(1);
 
 	total = 0;
-	for (const auto& e : tv) {
-		e.visit([&total](int i) { total += i; });
+	for (const auto e : tv) {
+		if (e)
+			total += *e;
 	}
 
 	EXPECT_EQ(4, total);
+}
+
+TEST(fxd_list, concurrency_tools) {
+	fixed_sz_list<int, 16, 64> tv;
+
+	int32_t expected_size = 0;
+	for (int32_t i = 1; i < 30; ++i) {
+		tv.emplace(i);
+		expected_size += i;
+	}
+
+	int32_t popped_value = 0;
+	tv.try_pop([&popped_value](int i) { popped_value = i; });
+
+	EXPECT_NE(0, popped_value);
+
+	expected_size -= popped_value;
+
+	tv.emplace(30);
+	expected_size += 30;
+
+	int32_t popped_size = 0;
+	tv.flush([&popped_size](int i) { popped_size += i; });
+
+	EXPECT_EQ(expected_size, popped_size);
+
+	popped_size = 0;
+	tv.flush([&popped_size](int i) { popped_size += i; });
+
+	EXPECT_EQ(0, popped_size);
+
+	bool ran = false;
+	tv.try_pop([&ran](int) { ran = true; });
+	EXPECT_FALSE(ran);
 }
