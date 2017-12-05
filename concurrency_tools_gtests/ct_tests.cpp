@@ -69,6 +69,17 @@ TEST(clear_string, concurrency_tools) {
 	EXPECT_STREQ("", c.c_str());
 }
 
+TEST(string_expressions, concurrency_tools) {
+	std::string t = empty_string_expression();
+
+	EXPECT_EQ(0, t.length());
+
+	std::string u = empty_string_expression() + "uuu";
+
+	EXPECT_EQ(3, u.length());
+	EXPECT_EQ(u, "uuu");
+}
+
 TEST(allocator, concurrency_tools) {
 	std::vector<int, concurrent_allocator<int>> tv;
 	for (int i = 0; i < 8; ++i)

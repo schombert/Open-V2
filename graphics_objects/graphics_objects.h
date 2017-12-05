@@ -40,13 +40,13 @@ namespace graphics {
 
 		constexpr static uint8_t type_mask = 0x0F;
 
-		xy_pair size;
+		xy_pair size; //4bytes
 		
-		uint16_t primary_texture_handle = 0;
-		uint16_t type_dependant = 0; // secondary texture handle or border size
+		uint16_t primary_texture_handle = 0; //6bytes
+		uint16_t type_dependant = 0; // secondary texture handle or border size -- 8bytes
 
-		uint8_t flags = 0;
-		uint8_t number_of_frames = 1;
+		uint8_t flags = 0; //9bytes
+		uint8_t number_of_frames = 1; //10bytes
 	};
 
 	struct name_maps {
@@ -59,11 +59,12 @@ namespace graphics {
 };
 
 using texture_lookup = std::function<uint16_t(const char*, const char*)>;
-using special_object_lookup = std::function<uint16_t(int32_t type, const char*, const char*)>;
+using special_object_lookup = std::function<uint16_t(int32_t type)>;
 
 void load_graphics_object_definitions_from_directory(
 	const directory& source_directory,
 	graphics::name_maps& nmaps,
 	graphics::object_definitions& defs,
 	std::vector<std::pair<std::string, graphics::errors>>& errors_generated,
-	const texture_lookup& th_f);
+	const texture_lookup& th_f,
+	const special_object_lookup& sh_f);

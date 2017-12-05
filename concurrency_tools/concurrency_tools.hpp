@@ -2,9 +2,71 @@
 #include "concurrency_tools.h"
 #include <cstdlib>
 
+template<size_t N>
+uint32_t string_expression<const char[N]>::length() const {
+	return N - 1;
+}
+template<size_t N>
+char string_expression<const char[N]>::operator[](uint32_t i) const {
+	return base[i];
+}
+
 __declspec(restrict) void* concurrent_alloc_wrapper(size_t sz);
 void concurrent_free_wrapper(void* p);
 
+template<typename T>
+concurrent_string::concurrent_string(const string_expression<T>& t) {
+	const auto tsz = t.length();
+	if (tsz <= (internal_concurrent_string_size - 1)) {
+		for (int32_t i = tsz-1; i >= 0; --i)
+			_data.local_data[i] = t[i];
+		_data.local_data[tsz] = 0;
+		_data.local_data[internal_concurrent_string_size - 1] = (internal_concurrent_string_size - 1) - tsz;
+	} else {
+		_data.local_data[internal_concurrent_string_size - 1] = 127;
+		_data.remote_data.data = (char*)concurrent_alloc_wrapper(tsz + 1);
+		for (int32_t i = tsz - 1; i >= 0; --i)
+			_data.local_data[i] = t[i];
+		_data.remote_data.data[tsz] = 0;
+		_data.remote_data.length = tsz;
+	}
+}
+
+template<typename T>
+bool concurrent_string::operator==(const string_expression<T>& o) const {
+	const auto this_length = length();
+	if (this_length != o.length())
+		return false;
+	else {
+		const auto this_data = c_str();
+		for (int32_t i = (int32_t)this_length - 1; i >= 0; --i) {
+			if (this_data[i] != t[i])
+				return false;
+		}
+		return true;
+	}
+}
+
+template<typename T>
+concurrent_string& concurrent_string::operator=(const string_expression<T>& o) {
+	this->~concurrent_string();
+	new (this) concurrent_string(o);
+	return *this;
+}
+
+template<typename T>
+concurrent_string& concurrent_string::operator+=(const string_expression<T>& o) {
+	*this = *this + o;
+	return *this;
+}
+
+template <typename T>
+string_expression<T>::operator std::string() const {
+	std::string l(length(), 0);
+	for (int32_t i = (int32_t)length() - 1; i >= 0; --i)
+		l[i] = this->operator[](i);
+	return l;
+}
 
 template<typename T>
 T* concurrent_allocator<T>::allocate(size_t n) {

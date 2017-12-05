@@ -27,14 +27,16 @@ struct parsing_environment {
 	graphics::object_definitions& defs;
 	std::vector<std::pair<std::string, graphics::errors>>& errors_generated;
 	const texture_lookup th_f;
+	const special_object_lookup sh_f;
 	std::string file;
 
 	parsing_environment(
 		graphics::name_maps& a,
 		graphics::object_definitions& b,
 		std::vector<std::pair<std::string, graphics::errors>>& c,
-		const texture_lookup& d) :
-		nmaps(a), defs(b), errors_generated(c), th_f(d) {
+		const texture_lookup& d,
+		const special_object_lookup& e) :
+		nmaps(a), defs(b), errors_generated(c), th_f(d), sh_f(e) {
 	}
 };
 
@@ -125,68 +127,71 @@ struct spritetypes {
 
 	void sprite(const parsing_object& o) {
 		if (auto f = env.nmaps.names.find(o.name); f != env.nmaps.names.end()) {
-			env.defs.definitions[f->second] = o.internal_definition;
-			o.setup_textures(env.defs.definitions[f->second]);
-			env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::generic_sprite;
+			env.defs.definitions[f->second - 1] = o.internal_definition;
+			o.setup_textures(env.defs.definitions[f->second - 1]);
+			env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::generic_sprite;
 		}
 	}
 	void corneredtilesprite(const parsing_object& o) {
 		if (auto f = env.nmaps.names.find(o.name); f != env.nmaps.names.end()) {
-			env.defs.definitions[f->second] = o.internal_definition;
-			o.setup_textures(env.defs.definitions[f->second]);
-			env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::bordered_rect;
+			env.defs.definitions[f->second - 1] = o.internal_definition;
+			o.setup_textures(env.defs.definitions[f->second - 1]);
+			env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::bordered_rect;
 		}
 	}
 	void textsprite(const parsing_object& o) {
 		if (auto f = env.nmaps.names.find(o.name); f != env.nmaps.names.end()) {
-			env.defs.definitions[f->second] = o.internal_definition;
-			o.setup_textures(env.defs.definitions[f->second]);
-			env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::text_sprite;
+			env.defs.definitions[f->second - 1] = o.internal_definition;
+			o.setup_textures(env.defs.definitions[f->second - 1]);
+			env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::text_sprite;
 		}
 	}
 	void progressbar(const parsing_object& o) {
 		if (auto f = env.nmaps.names.find(o.name); f != env.nmaps.names.end()) {
-			env.defs.definitions[f->second] = o.internal_definition;
-			o.setup_textures(env.defs.definitions[f->second]);
+			env.defs.definitions[f->second - 1] = o.internal_definition;
+			o.setup_textures(env.defs.definitions[f->second - 1]);
 			if(o.horizontal)
-				env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::horizontal_progress_bar;
+				env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::horizontal_progress_bar;
 			else
-				env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::vertical_progress_bar;
+				env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::vertical_progress_bar;
 		}
 	}
 	void maskedshield(const parsing_object& o) {
 		if (auto f = env.nmaps.names.find(o.name); f != env.nmaps.names.end()) {
-			env.defs.definitions[f->second] = o.internal_definition;
-			o.setup_textures(env.defs.definitions[f->second]);
-			env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::flag_mask;
+			env.defs.definitions[f->second - 1] = o.internal_definition;
+			o.setup_textures(env.defs.definitions[f->second - 1]);
+			env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::flag_mask;
 		}
 	}
 	void tilesprite(const parsing_object& o) {
 		if (auto f = env.nmaps.names.find(o.name); f != env.nmaps.names.end()) {
-			env.defs.definitions[f->second] = o.internal_definition;
-			o.setup_textures(env.defs.definitions[f->second]);
-			env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::tile_sprite;
+			env.defs.definitions[f->second - 1] = o.internal_definition;
+			o.setup_textures(env.defs.definitions[f->second - 1]);
+			env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::tile_sprite;
 		}
 	}
 	void barchart(const parsing_object& o) {
 		if (auto f = env.nmaps.names.find(o.name); f != env.nmaps.names.end()) {
-			env.defs.definitions[f->second] = o.internal_definition;
-			o.setup_textures(env.defs.definitions[f->second]);
-			env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::barchart;
+			env.defs.definitions[f->second - 1] = o.internal_definition;
+			o.setup_textures(env.defs.definitions[f->second - 1]);
+			env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::barchart;
+			env.defs.definitions[f->second - 1].type_dependant = env.sh_f((int32_t)graphics::object_type::barchart);
 		}
 	}
 	void piechart(const parsing_object& o) {
 		if (auto f = env.nmaps.names.find(o.name); f != env.nmaps.names.end()) {
-			env.defs.definitions[f->second] = o.internal_definition;
-			o.setup_textures(env.defs.definitions[f->second]);
-			env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::piechart;
+			env.defs.definitions[f->second - 1] = o.internal_definition;
+			o.setup_textures(env.defs.definitions[f->second - 1]);
+			env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::piechart;
+			env.defs.definitions[f->second - 1].type_dependant = env.sh_f((int32_t)graphics::object_type::piechart);
 		}
 	}
 	void linechart(const parsing_object& o) {
 		if (auto f = env.nmaps.names.find(o.name); f != env.nmaps.names.end()) {
-			env.defs.definitions[f->second] = o.internal_definition;
-			o.setup_textures(env.defs.definitions[f->second]);
-			env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::linegraph;
+			env.defs.definitions[f->second - 1] = o.internal_definition;
+			o.setup_textures(env.defs.definitions[f->second - 1]);
+			env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::linegraph;
+			env.defs.definitions[f->second - 1].type_dependant = env.sh_f((int32_t)graphics::object_type::linegraph);
 		}
 	}
 	void unknown_key(int) {

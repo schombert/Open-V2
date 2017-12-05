@@ -3,10 +3,19 @@
 
 using namespace concurrency;
 
+uint32_t string_expression<const char*>::length() const {
+	return len;
+}
+
+char string_expression<const char*>::operator[](uint32_t i) const {
+	return base[i];
+}
+
 concurrent_string::concurrent_string() {
 	_data.local_data[0] = 0;
 	_data.local_data[internal_concurrent_string_size - 1] = internal_concurrent_string_size - 1;
 }
+
 concurrent_string::concurrent_string(const char* source) : concurrent_string(source, strlen(source)) {};
 
 concurrent_string::concurrent_string(const char* start, const char* end) : concurrent_string(start, end - start) {};
@@ -39,6 +48,10 @@ void concurrent_string::clear() {
 	}
 	_data.local_data[0] = 0;
 	_data.local_data[internal_concurrent_string_size - 1] = internal_concurrent_string_size - 1;
+}
+
+char concurrent_string::operator[](uint32_t i) const {
+	return c_str()[i];
 }
 
 concurrent_string::concurrent_string(const concurrent_string& o) : concurrent_string(o.c_str(), o.length()) {}
