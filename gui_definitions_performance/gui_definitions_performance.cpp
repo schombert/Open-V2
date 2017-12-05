@@ -11,9 +11,6 @@ auto fake_font_handle_lookup() {
 auto fake_gobj_lookup() {
 	return[i = 0ui16](const char*, const char*) mutable { return ++i; };
 }
-auto fake_sound_lookup() {
-	return[i = 0ui16](const char*, const char*) mutable { return ++i; };
-}
 
 class gui_definitions_perf  {
 public:
@@ -32,8 +29,7 @@ public:
 			fs.get_root(), nmaps, defs, errors_generated,
 			fake_text_handle_lookup(),
 			fake_font_handle_lookup(),
-			fake_gobj_lookup(),
-			fake_sound_lookup());
+			fake_gobj_lookup());
 
 		return (int)errors_generated.size();
 	}

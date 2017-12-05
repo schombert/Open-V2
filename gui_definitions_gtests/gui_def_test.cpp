@@ -23,9 +23,8 @@ TEST(basic_gui_button, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -48,14 +47,13 @@ TEST(basic_gui_button, gui_definitions_tests) {
 	EXPECT_EQ(1, defs.buttons.size());
 	EXPECT_EQ(0, errors_generated.size());
 	EXPECT_EQ(std::string("bname"), nmaps.button_names[0]);
-	EXPECT_EQ(ui::button_def::graphical_obj_qtex_type, defs.buttons[0].flags & ui::button_def::graphical_obj_type_mask);
+	EXPECT_EQ(ui::button_def::clicksound_none, defs.buttons[0].flags & ui::button_def::clicksound_mask);
 	EXPECT_EQ(ui::button_def::orientation_center, defs.buttons[0].flags & ui::button_def::orientation_mask);
 	EXPECT_EQ(ui::button_def::rotation_upright, defs.buttons[0].flags & ui::button_def::rotation_mask);
 	EXPECT_EQ(0, defs.buttons[0].flags & ui::button_def::is_checkbox);
 	EXPECT_EQ(1, defs.buttons[0].text_handle);
 	EXPECT_EQ(1, defs.buttons[0].font_handle);
 	EXPECT_EQ(1, defs.buttons[0].graphical_object_handle);
-	EXPECT_EQ(0, defs.buttons[0].clicksound_handle);
 	EXPECT_EQ(virtual_key::NONE, defs.buttons[0].shortcut);
 	EXPECT_EQ(0, defs.buttons[0].position.x);
 	EXPECT_EQ(0, defs.buttons[0].position.y);
@@ -71,9 +69,8 @@ TEST(non_default_gui_button, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -83,9 +80,9 @@ TEST(non_default_gui_button, gui_definitions_tests) {
 		"name = bname\n"
 		"buttonText = dummy\n"
 		"buttonFont = dummy\n"
-		"clicksound = dummy\n"
+		"clicksound = click\n"
 		"tooltip = \"\"\n"
-		"rotation = 1.5708\n"
+		"rotation = -1.5708\n"
 		"orientation = UPPER_LEFT\n"
 		"shortcut = m\n"
 		"tooltipText = \"\"\n"
@@ -103,14 +100,13 @@ TEST(non_default_gui_button, gui_definitions_tests) {
 	EXPECT_EQ(1, defs.buttons.size());
 	EXPECT_EQ(0, errors_generated.size());
 	EXPECT_EQ(std::string("bname"), nmaps.button_names[0]);
-	EXPECT_EQ(ui::button_def::graphical_obj_sprite_type, defs.buttons[0].flags & ui::button_def::graphical_obj_type_mask);
+	EXPECT_EQ(ui::button_def::clicksound_click, defs.buttons[0].flags & ui::button_def::clicksound_mask);
 	EXPECT_EQ(ui::button_def::orientation_upper_left, defs.buttons[0].flags & ui::button_def::orientation_mask);
-	EXPECT_EQ(ui::button_def::rotation_90_right, defs.buttons[0].flags & ui::button_def::rotation_mask);
+	EXPECT_EQ(ui::button_def::rotation_90_left, defs.buttons[0].flags & ui::button_def::rotation_mask);
 	EXPECT_EQ(0, defs.buttons[0].flags & ui::button_def::is_checkbox);
 	EXPECT_EQ(1, defs.buttons[0].text_handle);
 	EXPECT_EQ(1, defs.buttons[0].font_handle);
 	EXPECT_EQ(1, defs.buttons[0].graphical_object_handle);
-	EXPECT_EQ(1, defs.buttons[0].clicksound_handle);
 	EXPECT_EQ(virtual_key::M, defs.buttons[0].shortcut);
 	EXPECT_EQ(10, defs.buttons[0].position.x);
 	EXPECT_EQ(20, defs.buttons[0].position.y);
@@ -126,9 +122,8 @@ TEST(checkbox, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -138,9 +133,9 @@ TEST(checkbox, gui_definitions_tests) {
 		"name = bname\n"
 		"buttonText = dummy\n"
 		"buttonFont = dummy\n"
-		"clicksound = dummy\n"
+		"clicksound = close_window\n"
 		"tooltip = \"\"\n"
-		"rotation = 1.5708\n"
+		"rotation = -1.5708\n"
 		"orientation = UPPER_LEFT\n"
 		"shortcut = m\n"
 		"tooltipText = \"\"\n"
@@ -158,14 +153,13 @@ TEST(checkbox, gui_definitions_tests) {
 	EXPECT_EQ(1, defs.buttons.size());
 	EXPECT_EQ(0, errors_generated.size());
 	EXPECT_EQ(std::string("bname"), nmaps.button_names[0]);
-	EXPECT_EQ(ui::button_def::graphical_obj_sprite_type, defs.buttons[0].flags & ui::button_def::graphical_obj_type_mask);
+	EXPECT_EQ(ui::button_def::clicksound_close_window, defs.buttons[0].flags & ui::button_def::clicksound_mask);
 	EXPECT_EQ(ui::button_def::orientation_upper_left, defs.buttons[0].flags & ui::button_def::orientation_mask);
-	EXPECT_EQ(ui::button_def::rotation_90_right, defs.buttons[0].flags & ui::button_def::rotation_mask);
+	EXPECT_EQ(ui::button_def::rotation_90_left, defs.buttons[0].flags & ui::button_def::rotation_mask);
 	EXPECT_EQ(ui::button_def::is_checkbox, defs.buttons[0].flags & ui::button_def::is_checkbox);
 	EXPECT_EQ(1, defs.buttons[0].text_handle);
 	EXPECT_EQ(1, defs.buttons[0].font_handle);
 	EXPECT_EQ(1, defs.buttons[0].graphical_object_handle);
-	EXPECT_EQ(1, defs.buttons[0].clicksound_handle);
 	EXPECT_EQ(virtual_key::M, defs.buttons[0].shortcut);
 	EXPECT_EQ(10, defs.buttons[0].position.x);
 	EXPECT_EQ(20, defs.buttons[0].position.y);
@@ -181,9 +175,8 @@ TEST(bad_values_gui_button, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -211,13 +204,14 @@ TEST(bad_values_gui_button, gui_definitions_tests) {
 
 	EXPECT_EQ(1, nmaps.button_names.size());
 	EXPECT_EQ(1, defs.buttons.size());
-	EXPECT_EQ(6, errors_generated.size());
-	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::expected_tooltip_empty_for_button), errors_generated[0]);
-	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_button_rotation), errors_generated[1]);
-	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unknown_button_orientation), errors_generated[2]);
-	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::expected_tooltiptext_empty_for_button), errors_generated[3]);
-	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::expected_delayedtooltiptext_empty_for_button), errors_generated[4]);
-	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::expected_button_format_to_be_left), errors_generated[5]);
+	EXPECT_EQ(7, errors_generated.size());
+	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_button_clicksound), errors_generated[0]);
+	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::expected_tooltip_empty_for_button), errors_generated[1]);
+	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_button_rotation), errors_generated[2]);
+	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unknown_button_orientation), errors_generated[3]);
+	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::expected_tooltiptext_empty_for_button), errors_generated[4]);
+	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::expected_delayedtooltiptext_empty_for_button), errors_generated[5]);
+	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::expected_button_format_to_be_left), errors_generated[6]);
 }
 
 TEST(basic_gui_icon, gui_definitions_tests) {
@@ -227,9 +221,8 @@ TEST(basic_gui_icon, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -265,9 +258,8 @@ TEST(non_default_gui_icon, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -308,9 +300,8 @@ TEST(shield_gui_icon, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -351,9 +342,8 @@ TEST(errors_gui_icon, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -390,9 +380,8 @@ TEST(basic_gui_text, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -435,9 +424,8 @@ TEST(non_default_gui_text, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -447,7 +435,7 @@ TEST(non_default_gui_text, gui_definitions_tests) {
 		"name = tname\n"
 		"allwaysTransparent = yes\n"
 		"fixedSize = yes\n"
-		"textureFile = \"gfx\\interface\\tiles_dialog.tga\"\n"
+		"textureFile = \"gfx\\\\interface\\\\tiles_dialog.tga\"\n"
 		"Orientation = CENTER_UP\n"
 		"format = justified\n"
 		"font = some_font\n"
@@ -490,9 +478,8 @@ TEST(size_gui_text, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -502,7 +489,7 @@ TEST(size_gui_text, gui_definitions_tests) {
 		"name = tname\n"
 		"allwaysTransparent = yes\n"
 		"fixedSize = yes\n"
-		"textureFile = \"gfx\\interface\\tiles_dialog.tga\"\n"
+		"textureFile = \"gfx\\\\interface\\\\tiles_dialog.tga\"\n"
 		"Orientation = CENTER_UP\n"
 		"format = justified\n"
 		"font = some_font\n"
@@ -544,9 +531,8 @@ TEST(edit_gui_text, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -599,9 +585,8 @@ TEST(errors_gui_text, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -661,9 +646,8 @@ TEST(basic_gui_position, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -692,9 +676,8 @@ TEST(errors_gui_position, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -725,9 +708,8 @@ TEST(basic_overlapping_region, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -761,9 +743,8 @@ TEST(non_default_overlapping_region, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -802,9 +783,8 @@ TEST(errors_overlapping_region, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -848,9 +828,8 @@ TEST(basic_listbox, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -890,9 +869,8 @@ TEST(non_default_listbox, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -943,9 +921,8 @@ TEST(errors_listbox, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -1005,9 +982,8 @@ TEST(basic_scrollbar, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -1060,9 +1036,8 @@ TEST(nondefault_scrollbar, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -1133,9 +1108,8 @@ TEST(errors_scrollbar, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -1213,9 +1187,8 @@ TEST(basic_window, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -1253,9 +1226,8 @@ TEST(non_default_window, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);
@@ -1304,9 +1276,8 @@ TEST(errors_window, gui_definitions_tests) {
 	auto th = fake_text_handle_lookup();
 	auto fh = fake_font_handle_lookup();
 	auto qt = fake_gobj_lookup();
-	auto sl = fake_sound_lookup();
 
-	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt, sl);
+	parsing_environment e(nmaps, defs, errors_generated, th, fh, qt);
 	e.file = "fake_file";
 
 	gui_file container(e);

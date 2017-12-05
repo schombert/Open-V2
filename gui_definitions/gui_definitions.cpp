@@ -17,7 +17,6 @@ struct parsing_environment {
 	const text_handle_lookup th_f;
 	const font_handle_lookup fh_f;
 	const gobj_lookup gl_f;
-	const sound_lookup sl_f;
 	std::string file;
 
 	parsing_environment(
@@ -26,9 +25,8 @@ struct parsing_environment {
 		std::vector<std::pair<std::string, ui::errors>>& c,
 		const text_handle_lookup& d,
 		const font_handle_lookup& e,
-		const gobj_lookup& f,
-		const sound_lookup& h) : 
-	nmaps(a), defs(b), errors_generated(c), th_f(d), fh_f(e), gl_f(f), sl_f(h) {}
+		const gobj_lookup& f) : 
+	nmaps(a), defs(b), errors_generated(c), th_f(d), fh_f(e), gl_f(f) {}
 };
 
 int discard_empty_type(const token_and_type& a, association_type, empty_type&) {
@@ -37,10 +35,6 @@ int discard_empty_type(const token_and_type& a, association_type, empty_type&) {
 
 MEMBER_DEF(ui::xy_pair, x, "x");
 MEMBER_DEF(ui::xy_pair, y, "y");
-
-token_and_type token_from_rh(association_type, const token_and_type& t) {
-	return t;
-}
 
 std::optional<virtual_key> virtual_key_from_rh(association_type, const token_and_type& t) {
 	if (t.start == t.end)
@@ -251,8 +245,6 @@ std::optional<uint8_t> button_format_from_rh(association_type, const token_and_t
 std::optional<uint8_t> button_rotation_from_rh(association_type, const token_and_type& t) {
 	if (is_fixed_token_ci(t, "-1.5708")) {
 		return ui::button_def::rotation_90_left;
-	} else if (is_fixed_token_ci(t, "1.5708")) {
-		return ui::button_def::rotation_90_right;
 	} else if (token_to<double>(t) == 0.0) {
 		return ui::button_def::rotation_upright;
 	}
@@ -271,13 +263,20 @@ struct guiButtonType {
 		internal_definition.text_handle = env.th_f(t.start, t.end);
 	}
 	void clicksound(const token_and_type& t) {
-		internal_definition.clicksound_handle = env.sl_f(t.start, t.end);
+		if (is_fixed_token(t, "click")) {
+			internal_definition.flags |= ui::button_def::clicksound_click;
+		} else if (is_fixed_token(t, "close_window")) {
+			internal_definition.flags |= ui::button_def::clicksound_close_window;
+		} else if (is_fixed_token(t, "start_game")) {
+			internal_definition.flags |= ui::button_def::clicksound_start_game;
+		} else {
+			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_button_clicksound);
+		}
 	}
 	void quadTextureSprite(const token_and_type& t) {
 		internal_definition.graphical_object_handle = env.gl_f(t.start, t.end);
 	}
 	void spriteType(const token_and_type& t) {
-		internal_definition.flags |= ui::button_def::graphical_obj_sprite_type;
 		internal_definition.graphical_object_handle = env.gl_f(t.start, t.end);
 	}
 	void buttonFont(const token_and_type& t) {
@@ -1180,9 +1179,6 @@ MEMBER_FDEF(gui_file, gui_textBoxType, "textBoxType");
 MEMBER_FDEF(gui_file, sub_gui_file, "gui_file");
 MEMBER_FDEF(gui_file, add_unknown_key, "unknown_key");
 
-constexpr bool accept_all(const char*, const char*) {
-	return true;
-}
 
 BEGIN_DOMAIN(gui_file_domain)
 EMPTY_TYPE(empty_type)
@@ -1354,12 +1350,11 @@ void load_ui_definitions_from_directory(
 	std::vector<std::pair<std::string,ui::errors>>& errors_generated,
 	const text_handle_lookup& th_f,
 	const font_handle_lookup& fh_f,
-	const gobj_lookup& qt_f,
-	const sound_lookup& sl_f) {
+	const gobj_lookup& qt_f) {
 
 	std::vector<token_group> parse_tree;
 
-	parsing_environment e(nmaps, defs, errors_generated, th_f, fh_f, qt_f, sl_f);
+	parsing_environment e(nmaps, defs, errors_generated, th_f, fh_f, qt_f);
 
 	const auto gui_files = source_directory.list_files(u".gui");
 
@@ -1393,6 +1388,8 @@ const char* ui::format_error(ui::errors  e) {
 	switch (e) {
 		case ui::errors::expected_tooltip_empty_for_button:
 			return "expected empty tooltip for button";
+		case ui::errors::unexpected_button_clicksound:
+			return "unexpected clicksound for button";
 		case ui::errors::expected_tooltiptext_empty_for_button:
 			return "expected empty tooltip text for button";
 		case ui::errors::expected_delayedtooltiptext_empty_for_button:

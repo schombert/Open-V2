@@ -3,14 +3,6 @@
 
 using namespace concurrency;
 
-uint32_t string_expression<const char*>::length() const {
-	return len;
-}
-
-char string_expression<const char*>::operator[](uint32_t i) const {
-	return base[i];
-}
-
 concurrent_string::concurrent_string() {
 	_data.local_data[0] = 0;
 	_data.local_data[internal_concurrent_string_size - 1] = internal_concurrent_string_size - 1;

@@ -2,15 +2,6 @@
 #include "concurrency_tools.h"
 #include <cstdlib>
 
-template<size_t N>
-uint32_t string_expression<const char[N]>::length() const {
-	return N - 1;
-}
-template<size_t N>
-char string_expression<const char[N]>::operator[](uint32_t i) const {
-	return base[i];
-}
-
 __declspec(restrict) void* concurrent_alloc_wrapper(size_t sz);
 void concurrent_free_wrapper(void* p);
 
@@ -61,10 +52,10 @@ concurrent_string& concurrent_string::operator+=(const string_expression<T>& o) 
 }
 
 template <typename T>
-string_expression<T>::operator std::string() const {
-	std::string l(length(), 0);
-	for (int32_t i = (int32_t)length() - 1; i >= 0; --i)
-		l[i] = this->operator[](i);
+string_expression_support<T>::operator std::string() const {
+	std::string l(static_cast<const T*>(this)->length(), 0);
+	for (int32_t i = (int32_t)static_cast<const T*>(this)->length() - 1; i >= 0; --i)
+		l[i] = static_cast<const T*>(this)->operator[](i);
 	return l;
 }
 

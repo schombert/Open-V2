@@ -8,6 +8,8 @@
 #include "graphics\\v2_window.hpp"
 #include "graphics\\test_helpers.h"
 #include <string>
+#include "gui_definitions\\gui_definitions.h"
+#include "graphics_objects\\graphics_objects.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -350,17 +352,13 @@ using vec_str_double = std::vector<std::pair<std::string, double>>;
 using vec_str_simple = std::vector<std::pair<std::string, simple_modifier_container>>;
 using vec_str_complex = std::vector<std::pair<std::string, complex_modifier_container>>;
 
-
+/*
 struct empty_type {
 
 };
 
 std::string label_empty_type(const token_and_type& a, association_type, empty_type&) {
 	return std::string(a.start, a.end);
-}
-
-bool accept_all(const char*, const char*) {
-	return true;
 }
 
 struct gfx_container {
@@ -676,7 +674,7 @@ BEGIN_DOMAIN(gfx_file_domain)
 	MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_type", accept_all, discard_type, label_discard_type)
 	END_TYPE
 END_DOMAIN;
-
+*/
 
 /*
 BEGIN_DOMAIN(mod_file_domain)
@@ -936,9 +934,6 @@ auto fake_font_handle_lookup() {
 auto fake_gobj_lookup() {
 	return[i = 0ui16](const char*, const char*) mutable { return ++i; };
 }
-auto fake_sound_lookup() {
-	return[i = 0ui16](const char*, const char*) mutable { return ++i; };
-}
 
 int __cdecl main() {
 	/*{
@@ -951,6 +946,45 @@ int __cdecl main() {
 		test_window.close_window();
 	}*/
 	
+	file_system fs;
+	fs.set_root(u"F:\\programs\\V2\\interface");
+	const auto gui_files = fs.get_root().list_files(u".gui");
+
+	ui::name_maps nmaps;
+	ui::definitions defs;
+	std::vector<std::pair<std::string, ui::errors>> errors_generated;
+
+	graphics::name_maps gobj_nmaps;
+	graphics::object_definitions gobj_defs;
+	std::vector<std::pair<std::string, graphics::errors>> gobj_errors_generated;
+
+	load_ui_definitions_from_directory(
+		fs.get_root(), nmaps, defs, errors_generated,
+		fake_text_handle_lookup(),
+		fake_font_handle_lookup(),
+		[&gobj_nmaps](const char* a, const char* b) { return reserve_graphics_object(gobj_nmaps, a, b); });
+
+	for (auto& e : errors_generated) {
+		std::cout << e.first << ": " << ui::format_error(e.second) << std::endl;
+	}
+
+	std::cout << "done with " << defs.buttons.size() + defs.icons.size() + defs.listboxes.size() + defs.overlapping_regions.size() + defs.positions.size() + defs.scrollbars.size() + defs.text.size() + defs.windows.size() << " objects" << std::endl;
+	std::cout << gobj_nmaps.names.size() << " graphics objects pending" << std::endl;
+
+
+	load_graphics_object_definitions_from_directory(
+		fs.get_root(),
+		gobj_nmaps,
+		gobj_defs,
+		gobj_errors_generated,
+		fake_text_handle_lookup());
+
+	for (auto& e : gobj_errors_generated) {
+		std::cout << e.first << ": " << graphics::format_error(e.second) << std::endl;
+	}
+
+	std::cout << "finished" << std::endl;
+	/*
 	{
 		file_system fs;
 		fs.set_root(u"F:\\programs\\V2\\interface");
@@ -1004,7 +1038,7 @@ int __cdecl main() {
 		for (const auto& k : textspritetype::unknown_types) {
 			std::cout << "\t" << k << std::endl;
 		}
-	}
+	}*/
 
 	/*{
 		file_system fs;

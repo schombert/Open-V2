@@ -12,39 +12,30 @@ struct discard_type {
 int discard_to_int(const token_and_type&, association_type, const discard_type&) {
 	return 0;
 }
-int discard_from_full(const token_and_type&, association_type, const token_and_type&) {
-	return 0;
-}
-
-token_and_type token_from_rh(association_type, const token_and_type& t) {
-	return t;
-}
 
 MEMBER_FDEF(discard_type, any, "any");
 
-struct parsing_environment {
+struct gobj_parsing_environment {
 	graphics::name_maps& nmaps;
 	graphics::object_definitions& defs;
 	std::vector<std::pair<std::string, graphics::errors>>& errors_generated;
 	const texture_lookup th_f;
-	const special_object_lookup sh_f;
 	std::string file;
 
-	parsing_environment(
+	gobj_parsing_environment(
 		graphics::name_maps& a,
 		graphics::object_definitions& b,
 		std::vector<std::pair<std::string, graphics::errors>>& c,
-		const texture_lookup& d,
-		const special_object_lookup& e) :
-		nmaps(a), defs(b), errors_generated(c), th_f(d), sh_f(e) {
+		const texture_lookup& d) :
+		nmaps(a), defs(b), errors_generated(c), th_f(d) {
 	}
 };
 
 struct parsing_object {
 	graphics::object internal_definition;
-	const parsing_environment& env;
+	const gobj_parsing_environment& env;
 
-	parsing_object(const parsing_environment& e) : env(e) {};
+	parsing_object(const gobj_parsing_environment& e) : env(e) {};
 
 	std::string name;
 	token_and_type primary_texture;
@@ -86,8 +77,8 @@ struct parsing_object {
 			internal_definition.flags |= graphics::object::do_transparency_check;
 	}
 	void borderSize(const graphics::xy_pair& sz) {
-		if ((sz.x != sz.y) | sz.x <= 0) {
-			env.errors_generated.emplace_back(env.file, graphics::errors::invalid_number_of_frames);
+		if ((sz.x != sz.y) | (sz.x < 0)) {
+			env.errors_generated.emplace_back(env.file, graphics::errors::non_square_border_size);
 		} else {
 			internal_definition.type_dependant = (uint16_t)sz.x;
 		}
@@ -107,7 +98,7 @@ struct parsing_object {
 
 MEMBER_DEF(parsing_object, name, "name");
 MEMBER_DEF(parsing_object, horizontal, "horizontal");
-MEMBER_DEF(parsing_object, internal_defintion.size, "size");
+MEMBER_DEF(parsing_object, internal_definition.size, "size");
 MEMBER_FDEF(parsing_object, alwaystransparent, "allwaystransparent");
 MEMBER_FDEF(parsing_object, transparencecheck, "transparencecheck");
 MEMBER_FDEF(parsing_object, flipv, "flipv");
@@ -122,8 +113,8 @@ MEMBER_DEF(parsing_object, primary_texture, "primary_texture");
 MEMBER_DEF(parsing_object, secondary_texture, "secondary_texture");
 
 struct spritetypes {
-	const parsing_environment& env;
-	spritetypes(const parsing_environment& e) : env(e) {};
+	const gobj_parsing_environment& env;
+	spritetypes(const gobj_parsing_environment& e) : env(e) {};
 
 	void sprite(const parsing_object& o) {
 		if (auto f = env.nmaps.names.find(o.name); f != env.nmaps.names.end()) {
@@ -136,7 +127,10 @@ struct spritetypes {
 		if (auto f = env.nmaps.names.find(o.name); f != env.nmaps.names.end()) {
 			env.defs.definitions[f->second - 1] = o.internal_definition;
 			o.setup_textures(env.defs.definitions[f->second - 1]);
-			env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::bordered_rect;
+			if(o.internal_definition.type_dependant != 0)
+				env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::bordered_rect;
+			else
+				env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::generic_sprite;
 		}
 	}
 	void textsprite(const parsing_object& o) {
@@ -175,7 +169,6 @@ struct spritetypes {
 			env.defs.definitions[f->second - 1] = o.internal_definition;
 			o.setup_textures(env.defs.definitions[f->second - 1]);
 			env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::barchart;
-			env.defs.definitions[f->second - 1].type_dependant = env.sh_f((int32_t)graphics::object_type::barchart);
 		}
 	}
 	void piechart(const parsing_object& o) {
@@ -183,7 +176,6 @@ struct spritetypes {
 			env.defs.definitions[f->second - 1] = o.internal_definition;
 			o.setup_textures(env.defs.definitions[f->second - 1]);
 			env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::piechart;
-			env.defs.definitions[f->second - 1].type_dependant = env.sh_f((int32_t)graphics::object_type::piechart);
 		}
 	}
 	void linechart(const parsing_object& o) {
@@ -191,7 +183,6 @@ struct spritetypes {
 			env.defs.definitions[f->second - 1] = o.internal_definition;
 			o.setup_textures(env.defs.definitions[f->second - 1]);
 			env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::linegraph;
-			env.defs.definitions[f->second - 1].type_dependant = env.sh_f((int32_t)graphics::object_type::linegraph);
 		}
 	}
 	void unknown_key(int) {
@@ -213,8 +204,8 @@ MEMBER_FDEF(spritetypes, unknown_key, "unknown_key");
 MEMBER_FDEF(spritetypes, discard, "discard");
 
 struct gfx_file {
-	const parsing_environment& env;
-	gfx_file(const parsing_environment& e) : env(e) {};
+	const gobj_parsing_environment& env;
+	gfx_file(const gobj_parsing_environment& e) : env(e) {};
 
 	template<typename T>
 	void discard_result(T&&) {};
@@ -226,9 +217,6 @@ struct gfx_file {
 MEMBER_FDEF(gfx_file, unknown_key, "unknown_key");
 MEMBER_FDEF(gfx_file, discard_result, "discard");
 
-constexpr bool accept_all(const char*, const char*) {
-	return true;
-}
 
 BEGIN_DOMAIN(gfx_file_domain)
 BEGIN_TYPE(graphics::xy_pair)
@@ -278,11 +266,70 @@ BEGIN_TYPE(parsing_object)
 	MEMBER_TYPE_ASSOCIATION("size", "size", graphics::xy_pair)
 	MEMBER_TYPE_ASSOCIATION("ignore", "color", discard_type)
 	MEMBER_TYPE_ASSOCIATION("ignore", "color2", discard_type)
+	MEMBER_TYPE_ASSOCIATION("ignore", "colortwo", discard_type)
 	MEMBER_ASSOCIATION("ignore_int", "effectfile", discard_from_rh)
 	MEMBER_ASSOCIATION("ignore_int", "loadtype", discard_from_rh)
 	MEMBER_ASSOCIATION("ignore_int", "noreftype", discard_from_rh)
 	MEMBER_ASSOCIATION("ignore_int", "linewidth", discard_from_rh)
+	MEMBER_ASSOCIATION("ignore_int", "norefcount", discard_from_rh)
 	MEMBER_VARIABLE_ASSOCIATION("unknown", accept_all, discard_from_full)
 	MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown", accept_all, discard_type, discard_to_int)
 END_TYPE
 END_DOMAIN
+
+void load_graphics_object_definitions_from_directory(
+	const directory& source_directory,
+	graphics::name_maps& nmaps,
+	graphics::object_definitions& defs,
+	std::vector<std::pair<std::string, graphics::errors>>& errors_generated,
+	const texture_lookup& th_f) {
+
+	std::vector<token_group> parse_tree;
+	defs.definitions.resize(nmaps.names.size());
+
+	gobj_parsing_environment e(nmaps, defs, errors_generated, th_f);
+
+	const auto gui_files = source_directory.list_files(u".gfx");
+
+	for (const auto& f : gui_files) {
+		auto open_f = f.open_file();
+		if (open_f) {
+			e.file = std::string(f.file_name().begin(), f.file_name().end()); // just dropping unicode
+
+			const auto sz = open_f->size();
+			auto buffer = new char[sz];
+
+			open_f->read_to_buffer(buffer, sz);
+
+			parse_tree.clear();
+			parse_pdx_file(parse_tree, buffer, buffer + sz);
+
+			if (parse_tree.size() > 0)
+				parse_object<gfx_file, gfx_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e);
+
+			delete[] buffer;
+		}
+	}
+
+}
+
+uint16_t reserve_graphics_object(graphics::name_maps& nmaps, const char* name_start, const char* name_end) {
+	return nmaps.names.try_emplace(std::string(name_start, name_end), nmaps.names.size() + 1).first->second;
+}
+
+const char* graphics::format_error(graphics::errors  e) {
+	switch (e) {
+		case graphics::errors::unknown_attribute:
+			return "unknown attribute";
+		case graphics::errors::non_square_border_size:
+			return "non-square border size";
+		case graphics::errors::invalid_click_sound:
+			return "invalid click sound (not one of click, close_window, or start_game)";
+		case graphics::errors::invalid_number_of_frames:
+			return "invalid number of frames (less than 0 or greater than 255)";
+		case graphics::errors::unknown_file_level_type:
+			return "unknown type found at file level";
+		case graphics::errors::unknown_sprite_type:
+			return "unknown sprite type";
+	}
+}

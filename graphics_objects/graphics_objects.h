@@ -14,6 +14,8 @@ namespace graphics {
 		unknown_sprite_type
 	};
 
+	const char* format_error(errors  e);
+
 	enum class object_type : uint8_t {
 		 generic_sprite = 0x00,
 		 bordered_rect = 0x01,
@@ -59,12 +61,12 @@ namespace graphics {
 };
 
 using texture_lookup = std::function<uint16_t(const char*, const char*)>;
-using special_object_lookup = std::function<uint16_t(int32_t type)>;
+
+uint16_t reserve_graphics_object(graphics::name_maps& nmaps, const char* name_start, const char* name_end);
 
 void load_graphics_object_definitions_from_directory(
 	const directory& source_directory,
 	graphics::name_maps& nmaps,
 	graphics::object_definitions& defs,
 	std::vector<std::pair<std::string, graphics::errors>>& errors_generated,
-	const texture_lookup& th_f,
-	const special_object_lookup& sh_f);
+	const texture_lookup& th_f);

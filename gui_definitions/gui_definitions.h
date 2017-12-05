@@ -16,6 +16,7 @@ namespace ui {
 		unknown_button_orientation,
 		unknown_button_shortcut,
 		unexpected_button_rotation,
+		unexpected_button_clicksound,
 		unexpected_button_attribute,
 		unknown_icon_orientation,
 		unexpected_icon_rotation,
@@ -84,25 +85,25 @@ namespace ui {
 		static constexpr uint8_t format_mask               = 0x08;
 		static constexpr uint8_t format_center             = 0x00;
 		static constexpr uint8_t format_left               = 0x08;
-		static constexpr uint8_t rotation_mask             = 0x30;
+		static constexpr uint8_t clicksound_mask           = 0x30;
+		static constexpr uint8_t clicksound_none           = 0x00;
+		static constexpr uint8_t clicksound_click          = 0x10;
+		static constexpr uint8_t clicksound_close_window   = 0x20;
+		static constexpr uint8_t clicksound_start_game     = 0x30;
+		static constexpr uint8_t rotation_mask             = 0x40;
 		static constexpr uint8_t rotation_upright          = 0x00;
-		static constexpr uint8_t rotation_90_left          = 0x10;
-		static constexpr uint8_t rotation_90_right         = 0x20;
-		static constexpr uint8_t graphical_obj_type_mask   = 0x40;
-		static constexpr uint8_t graphical_obj_qtex_type   = 0x00;
-		static constexpr uint8_t graphical_obj_sprite_type = 0x40;
+		static constexpr uint8_t rotation_90_left          = 0x40;
 		static constexpr uint8_t is_checkbox               = 0x80;
 
-		xy_pair position;
-		xy_pair size;
+		xy_pair position; //4bytes
+		xy_pair size; //8bytes
 
-		uint16_t graphical_object_handle = 0;
-		uint16_t text_handle = 0;
-		uint16_t font_handle = 0;
-		uint16_t clicksound_handle = 0;
+		uint16_t graphical_object_handle = 0; //10bytes
+		uint16_t text_handle = 0; //12bytes
+		uint16_t font_handle = 0; //14bytes
 
-		uint8_t flags = 0;
-		virtual_key shortcut = virtual_key::NONE;
+		uint8_t flags = 0; //15 bytes
+		virtual_key shortcut = virtual_key::NONE; //16bytes
 	};
 
 	struct icon_def {
@@ -299,7 +300,6 @@ namespace ui {
 using text_handle_lookup = std::function<uint16_t(const char*, const char*)>;
 using font_handle_lookup = std::function<uint16_t(const char*, const char*)>;
 using gobj_lookup = std::function<uint16_t(const char*, const char*)>;
-using sound_lookup = std::function<uint16_t(const char*, const char*)>;
 
 void load_ui_definitions_from_directory(
 	const directory& source_directory,
@@ -308,5 +308,4 @@ void load_ui_definitions_from_directory(
 	std::vector<std::pair<std::string,ui::errors>>& errors_generated,
 	const text_handle_lookup& th_f,
 	const font_handle_lookup& fh_f,
-	const gobj_lookup& qt_f,
-	const sound_lookup& sl_f);
+	const gobj_lookup& qt_f);

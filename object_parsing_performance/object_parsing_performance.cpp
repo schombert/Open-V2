@@ -302,10 +302,6 @@ std::pair<association_type, double> double_and_association(association_type a, c
 	return std::make_pair(a, parse_double(t.start, t.end));
 };
 
-bool accept_all(const char*, const char*) {
-	return true;
-}
-
 std::pair<std::string, double> string_double_from_full_association(const token_and_type& t, association_type, const token_and_type& e) {
 	return make_pair(std::string(t.start, t.end), parse_double(e.start, e.end));
 };

@@ -57,6 +57,14 @@ std::pair<T,U> pair_from_lh_rh(const token_and_type& t, association_type, const 
 	return std::make_pair(token_to<T>(t), token_to<U>(u));
 };
 
+inline token_and_type token_from_rh(association_type, const token_and_type& t) {
+	return t;
+}
+
+constexpr bool accept_all(const char*, const char*) {
+	return true;
+}
+
 template<typename T, typename R>
 void move_to_member(T&& member, R&& result) {
 	member = std::move(result);

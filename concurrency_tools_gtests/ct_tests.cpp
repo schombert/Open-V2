@@ -74,10 +74,15 @@ TEST(string_expressions, concurrency_tools) {
 
 	EXPECT_EQ(0, t.length());
 
-	std::string u = empty_string_expression() + "uuu";
+	std::string u = empty_string_expression() + "uuu" + "vv";
 
-	EXPECT_EQ(3, u.length());
-	EXPECT_EQ(u, "uuu");
+	EXPECT_EQ(5, u.length());
+	EXPECT_EQ(u, "uuuvv");
+
+	std::string u2 = empty_string_expression() + std::string("uuu") + "vv";
+
+	EXPECT_EQ(5, u2.length());
+	EXPECT_EQ(u2, "uuuvv");
 }
 
 TEST(allocator, concurrency_tools) {
