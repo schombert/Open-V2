@@ -947,8 +947,82 @@ int __cdecl main() {
 	}*/
 	
 	file_system fs;
+	fs.set_root(u"F:\\programs\\V2\\localisation");
+	const auto csv_files = fs.get_root().list_files(u".csv");
+
+	std::cout << "file count: " << csv_files.size() << std::endl;
+
+	std::set<char> color_chars;
+	std::set<char> slash_chars;
+	std::set<char> non_ascii_chars;
+	std::set<std::string> dollar_values;
+
+	for (auto& f : csv_files) {
+		auto op = f.open_file();
+		if (op) {
+			const auto sz = op->size();
+			auto buffer = new char[sz];
+
+			op->read_to_buffer(buffer, sz);
+			auto start = (sz != 0 && buffer[0] == '#') ? csv_advance_to_next_line(buffer, buffer+sz) : buffer;
+
+			while (start < buffer + sz) {
+				start = parse_first_and_nth_csv_values(2, start, buffer + sz, ';', [&color_chars, &dollar_values, &slash_chars, &non_ascii_chars](const auto& pr_a, const auto& pr_b) {
+					char* string_start = nullptr;
+
+					for (auto firstchr = pr_b.first; firstchr != pr_b.second; ++firstchr) {
+						if ((*firstchr) == '\\' && firstchr + 1 != pr_b.second) {
+							slash_chars.insert(*(firstchr + 1));
+						} else if ((uint8_t)(*firstchr) == (uint8_t)(0xA7) && firstchr + 1 != pr_b.second) {
+							/*
+							if(*(firstchr + 1) == 'b')
+							std::cout << "b in: " << std::string(pr_a.first, pr_a.second)  << ";" << std::string(pr_b.first, pr_b.second) << std::endl;
+							*/
+							color_chars.insert(*(firstchr + 1));
+						} else if ((unsigned int)(*firstchr) > 127) {
+							const auto v = int((uint8_t)(*firstchr));
+							if(v == 163)
+								std::cout << "non ascii in: " << std::string(pr_a.first, pr_a.second) << ";" << std::string(pr_b.first, pr_b.second) << std::endl;
+							non_ascii_chars.insert(*(firstchr));
+						} else if (*firstchr == '$') {
+							if (string_start) {
+								dollar_values.insert(std::string(string_start, firstchr));
+								string_start = nullptr;
+							} else {
+								string_start = firstchr + 1;
+							}
+						}
+					}
+				});
+			}
+
+			delete[] buffer;
+		}
+	}
+	std::cout << "color values: " << std::endl;
+	for (auto c : color_chars)
+		std::cout << c << std::endl;
+	std::cout << std::endl;
+
+	std::cout << "escape values: " << std::endl;
+	for (auto c : slash_chars)
+		std::cout << c << std::endl;
+	std::cout << std::endl;
+
+	std::cout << "non-ascii values: " << std::endl;
+	for (auto c : non_ascii_chars)
+		std::cout << c << " = " << int((uint8_t)(c)) << std::endl;
+	std::cout << std::endl;
+
+	std::cout << "special values: " << std::endl;
+	for (auto& c : dollar_values) {
+		std::string lcopy(c);
+		std::transform(lcopy.begin(), lcopy.end(), lcopy.begin(), tolower);
+		std::cout << lcopy << ", ";
+	}
+	/*
+	file_system fs;
 	fs.set_root(u"F:\\programs\\V2\\interface");
-	const auto gui_files = fs.get_root().list_files(u".gui");
 
 	ui::name_maps nmaps;
 	ui::definitions defs;
@@ -982,8 +1056,9 @@ int __cdecl main() {
 	for (auto& e : gobj_errors_generated) {
 		std::cout << e.first << ": " << graphics::format_error(e.second) << std::endl;
 	}
-
 	std::cout << "finished" << std::endl;
+	*/
+
 	/*
 	{
 		file_system fs;

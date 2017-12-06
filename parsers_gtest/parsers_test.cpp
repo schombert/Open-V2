@@ -858,12 +858,14 @@ TEST_METHOD(csv_advance_to_nextline, parsers_test) {
 	char t3[] = "\r\nvalue;value";
 	char t4[] = "start \"\" middle\nline2";
 	char t5[] = "lead\"value; \nquoted\";\nthe next value";
+	char t6[] = "lead\"value; \nquoted\";\n###junk;;;\n##\nthe next value";
 
 	AreEqual(t1 + 11, csv_advance_to_next_line(RANGE(t1)));
 	AreEqual(t2 + 4, csv_advance_to_next_line(RANGE(t2)));
 	AreEqual(t3 + 2, csv_advance_to_next_line(RANGE(t3)));
 	AreEqual(t4 + 16, csv_advance_to_next_line(RANGE(t4)));
 	AreEqual(t5 + 22, csv_advance_to_next_line(RANGE(t5)));
+	AreEqual(t6 + 36, csv_advance_to_next_line(RANGE(t6)));
 }
 
 TEST_METHOD(csv_fixed_quantity_parse, parsers_test) {

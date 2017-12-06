@@ -169,7 +169,10 @@ T* CALL csv_advance_to_next_line(T* start, T* end) {
 	}
 	while (start != end && line_termination(*start))
 		++start;
-	return start;
+	if (start == end || *start != '#')
+		return start;
+	else
+		return csv_advance_to_next_line(start, end);
 }
 
 template<size_t count_values, typename T>
