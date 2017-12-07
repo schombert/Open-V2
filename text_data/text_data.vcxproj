@@ -151,6 +151,11 @@
     <ClCompile Include="text_data.cpp" />
     <ClCompile Include="text_data_type_classifier.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Parsers\Parsers.vcxproj">
+      <Project>{c8b537f7-6df3-4685-a7d7-0f30ce18176d}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

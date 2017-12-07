@@ -403,20 +403,9 @@ struct splice_s<type_list<A, T...>, type_list<B, U...>> {
 
 template<typename A, typename B>
 using splice = typename splice_s<A, B>::type;
-/*
-struct least<type_list<F, T...>> {
-using type = std::conditional_t <
-ct_string_compare<typename F::first, typename least<type_list<T ...>>::type::first> < 0,
-F,
-typename least<type_list<T ...>>::type >;
-*/
+
 template <typename ...T>
 struct sorted<type_list<T...>> {
-	//using least_in_list = least_t<type_list<F, T ...>>;
-	//using sub_sorted = typename sorted<
-	//	typename type_list<F, T...>::template without<least_in_list>
-	//>::type;
-	//using type = typename sub_sorted::template cons<least_in_list>;
 	constexpr static auto partition_value = type_list<T...>::length / 2ui64;
 	using type = splice<typename sorted<head_t<partition_value, type_list<T...>>>::type, typename sorted<rest_t<partition_value, type_list<T...>>>::type>;
 };
