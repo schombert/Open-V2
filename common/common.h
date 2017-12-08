@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <vector>
 
 #ifndef _DEBUG
 #define CALL __vectorcall
@@ -158,4 +159,147 @@ enum class virtual_key : uint8_t {
 	BACK_SLASH = 0xDC,
 	CLOSED_BRACKET = 0xDD,
 	QUOTE = 0xDE
+};
+
+
+inline char ascii_to_lower(char in) {
+	constexpr static char converted[256] = {
+		//      0      1      2      3      4      5      6      7      8      9      A      B      C      D      E      F
+		/*0*/'\x00','\x01','\x02','\x03','\x04','\x05','\x06','\x07','\x08','\x09','\x0A','\x0B','\x0C','\x0D','\x0E','\x0F',
+		/*1*/'\x10','\x11','\x12','\x13','\x14','\x15','\x16','\x17','\x18','\x19','\x1A','\x1B','\x1C','\x1D','\x1E','\x1F',
+		/*2*/  ' ' ,  '!' ,  '\"',  '#' ,  '$' ,  '%' ,  '&' ,  '\'',  '(' ,  ')' ,  '*' ,  '+' ,  ',' ,  '-' ,  '.' ,  '/' ,
+		/*3*/  '0' ,  '1' ,  '2' ,  '3' ,  '4' ,  '5' ,  '6' ,  '7' ,  '8' ,  '9' ,  ':' ,  ';' ,  '<' ,  '=' ,  '>' ,  '?' ,
+		/*4*/  '@' ,  'a' ,  'b' ,  'c' ,  'd' ,  'e' ,  'f' ,  'g' ,  'h' ,  'i' ,  'j' ,  'k' ,  'l' ,  'm' ,  'n' ,  'o' ,
+		/*5*/  'p' ,  'q' ,  'r' ,  's' ,  't' ,  'u' ,  'v' ,  'w' ,  'x' ,  'y' ,  'z' ,  '[' ,  '\\',  ']' ,  '^' ,  '_' ,
+		/*6*/  '`' ,  'a' ,  'b' ,  'c' ,  'd' ,  'e' ,  'f' ,  'g' ,  'h' ,  'i' ,  'j' ,  'k' ,  'l',   'm' ,  'n' ,  'o' ,
+		/*7*/  'p' ,  'q' ,  'r' ,  's' ,  't' ,  'u' ,  'v' ,  'w' ,  'x' ,  'y' ,  'z' ,  '{' ,  '|',   '}' ,  '~' ,'\x7F',
+		/*8*/'\x80','\x81','\x82','\x83','\x84','\x85','\x86','\x87','\x88','\x89','\x8A','\x8B','\x8C','\x8D','\x8E','\x8F',
+		/*9*/'\x90','\x91','\x92','\x93','\x94','\x95','\x96','\x97','\x98','\x99','\x9A','\x9B','\x9C','\x9D','\x9E','\x9F',
+		/*A*/'\xA0','\xA1','\xA2','\xA3','\xA4','\xA5','\xA6','\xA7','\xA8','\xA9','\xAA','\xAB','\xAC','\xAD','\xAE','\xAF',
+		/*B*/'\xB0','\xB1','\xB2','\xB3','\xB4','\xB5','\xB6','\xB7','\xB8','\xB9','\xBA','\xBB','\xBC','\xBD','\xBE','\xBF',
+		/*C*/'\xC0','\xC1','\xC2','\xC3','\xC4','\xC5','\xC6','\xC7','\xC8','\xC9','\xCA','\xCB','\xCC','\xCD','\xCE','\xCF',
+		/*D*/'\xD0','\xD1','\xD2','\xD3','\xD4','\xD5','\xD6','\xD7','\xD8','\xD9','\xDA','\xDB','\xDC','\xDD','\xDE','\xDF',
+		/*E*/'\xE0','\xE1','\xE2','\xE3','\xE4','\xE5','\xE6','\xE7','\xE8','\xE9','\xEA','\xEB','\xEC','\xED','\xEE','\xEF',
+		/*F*/'\xF0','\xF1','\xF2','\xF3','\xF4','\xF5','\xF6','\xF7','\xF8','\xF9','\xFA','\xFB','\xFC','\xFD','\xFE','\xFF'
+	};
+
+	return converted[(uint8_t)in];
+}
+
+struct vector_backed_string_data {
+	uint32_t offset;
+	uint16_t length;
+	uint16_t high_mask;
+};
+
+template<typename char_type>
+struct vector_backed_string {
+	union {
+		vector_backed_string_data vbs;
+		const char_type* ptr;
+	} data;
+	vector_backed_string() { data.vbs = vector_backed_string_data{0, 0, (uint16_t)(-1)}; };
+	vector_backed_string(const char_type* c) { data.ptr = c; };
+	vector_backed_string(const char_type* start, const char_type* end, std::vector<char_type>& vec) {
+		data.vbs.offset = vec.size();
+		data.vbs.length = (uint16_t)(end - start);
+		data.vbs.high_mask = (uint16_t)(-1);
+		vec.insert(vec.end(), start, end);
+	};
+	int32_t length() const {
+		return data.vbs.high_mask == (uint16_t)-1 ? data.vbs.length : strlen(data.ptr);
+	}
+	const char_type* get_str(const std::vector<char_type>& vec) const {
+		return data.vbs.high_mask == (uint16_t)-1 ? vec.data() + data.vbs.offset : data.ptr;
+	}
+};
+
+template<typename char_type>
+struct vector_backed_string_less {
+	const std::vector<char_type>& backing;
+	vector_backed_string_less(const std::vector<char_type>& b) : backing(b) {};
+	bool operator()(vector_backed_string<char_type> a, vector_backed_string<char_type> b) const {
+		const auto a_len = a.length();
+		const auto b_len = b.length();
+		if (a_len < b_len)
+			return true;
+		else if (a_len > b_len)
+			return false;
+		else {
+			const char_type* __restrict a_str = a.get_str(backing);
+			const char_type* __restrict b_str = b.get_str(backing);
+			for (int32_t i = a_len - 1; i >= 0; --i) {
+				if (a_str[i] < b_str[i])
+					return true;
+				if (a_str[i] > b_str[i])
+					return false;
+			}
+		}
+		return false;
+	}
+};
+
+struct vector_backed_string_less_ci {
+	const std::vector<char>& backing;
+	vector_backed_string_less_ci(const std::vector<char>& b) : backing(b) {};
+	bool operator()(vector_backed_string<char> a, vector_backed_string<char> b) const {
+		const auto a_len = a.length();
+		const auto b_len = b.length();
+		if (a_len < b_len)
+			return true;
+		else if (a_len > b_len)
+			return false;
+		else {
+			const char* __restrict a_str = a.get_str(backing);
+			const char* __restrict b_str = b.get_str(backing);
+			for (int32_t i = a_len - 1; i >= 0; --i) {
+				if (ascii_to_lower(a_str[i]) < ascii_to_lower(b_str[i]))
+					return true;
+				if (ascii_to_lower(a_str[i]) > ascii_to_lower(b_str[i]))
+					return false;
+			}
+		}
+		return false;
+	}
+};
+
+template<typename char_type>
+struct vector_backed_string_equality {
+	const std::vector<char_type>& backing;
+	vector_backed_string_equality(const std::vector<char_type>& b) : backing(b) {};
+	bool operator()(vector_backed_string<char_type> a, vector_backed_string<char_type> b) const {
+		const auto a_len = a.length();
+		const auto b_len = b.length();
+		if (a_len != b_len)
+			return false;
+		else {
+			const auto a_str = a.get_str(backing);
+			const auto b_str = b.get_str(backing);
+			for (int32_t i = a_len - 1; i >= 0; --i) {
+				if (a_str[i] != b_str[i])
+					return false;
+			}
+		}
+		return true;
+	}
+};
+
+struct vector_backed_string_equality_ci {
+	const std::vector<char>& backing;
+	vector_backed_string_equality_ci(const std::vector<char>& b) : backing(b) {};
+	bool operator()(vector_backed_string<char> a, vector_backed_string<char> b) const {
+		const auto a_len = a.length();
+		const auto b_len = b.length();
+		if (a_len != b_len)
+			return false;
+		else {
+			const auto a_str = a.get_str(backing);
+			const auto b_str = b.get_str(backing);
+			for (int32_t i = a_len - 1; i >= 0; --i) {
+				if (ascii_to_lower(a_str[i]) != ascii_to_lower(b_str[i]))
+					return false;
+			}
+		}
+		return true;
+	}
 };

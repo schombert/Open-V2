@@ -55,7 +55,7 @@ namespace text_data {
 	}
 
 	template<void (*add_text)(text_sequences&, const char*, const char*), bool(*is_section)(const char*, const char*), uint32_t section_char_size>
-	void add_generic_sequence(text_sequences& container, const char* key_start, const char* key_end, const char* seq_start, const char* seq_end) {
+	void add_generic_sequence(text_sequences& container, std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci>& temp_map, const char* key_start, const char* key_end, const char* seq_start, const char* seq_end) {
 		const char* section_start = seq_start;
 
 		const auto component_start_index = container.all_components.size();
@@ -93,14 +93,14 @@ namespace text_data {
 		add_text(container, section_start, seq_end);
 
 		container.all_sequences.emplace_back(text_sequence{ component_start_index, container.all_components.size() - component_start_index });
-		container.key_to_sequence_map.emplace(std::string(key_start, key_end), container.all_sequences.size() - 1);
+		temp_map.emplace(vector_backed_string<char>(key_start, key_end, container.key_data), container.all_sequences.size() - 1);
 	}
 
-	void add_win1250_sequence(text_sequences& container, const char* key_start, const char* key_end, const char* seq_start, const char* seq_end) {
-		add_generic_sequence<add_win1250_text_to_container, is_win1250_section, 1>(container, key_start, key_end, seq_start, seq_end);
+	void add_win1250_sequence(text_sequences& container, std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci>& temp_map, const char* key_start, const char* key_end, const char* seq_start, const char* seq_end) {
+		add_generic_sequence<add_win1250_text_to_container, is_win1250_section, 1>(container, temp_map, key_start, key_end, seq_start, seq_end);
 	}
-	void add_utf8_sequence(text_sequences& container, const char* key_start, const char* key_end, const char* seq_start, const char* seq_end) {
-		add_generic_sequence<add_utf8_text_to_container, is_utf8_section, 2>(container, key_start, key_end, seq_start, seq_end);
+	void add_utf8_sequence(text_sequences& container, std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci>& temp_map, const char* key_start, const char* key_end, const char* seq_start, const char* seq_end) {
+		add_generic_sequence<add_utf8_text_to_container, is_utf8_section, 2>(container, temp_map, key_start, key_end, seq_start, seq_end);
 	}
 
 	const char16_t* name_from_value_type(value_type v) {
@@ -479,8 +479,37 @@ namespace text_data {
 	}
 }
 
+uint16_t get_text_handle(text_data::text_sequences& container, const char* key_start, const char* key_end) {
+	if (key_start == key_end)
+		return 0;
+
+	char* const cpy = (char*)_alloca(key_end - key_start + 1);
+	memcpy(cpy, key_start, key_end - key_start);
+	cpy[key_end - key_start] = 0;
+	const auto find_result = container.key_to_sequence_map.find(cpy);
+	_freea(cpy);
+
+	if (find_result != container.key_to_sequence_map.end()) {
+		return (uint16_t)(find_result->second + 1);
+	} else {
+		text_data::add_win1250_text_to_container(container, key_start, key_end);
+		container.all_sequences.emplace_back(text_data::text_sequence{ container.all_components.size() - 1, 1 });
+
+		const auto new_key = container.all_sequences.size();
+		container.key_to_sequence_map.emplace(vector_backed_string<char>(key_start, key_end, container.key_data), new_key - 1);
+		return new_key;
+	}
+}
+
 void load_text_sequences_from_directory(const directory& source_directory, text_data::text_sequences& container) {
 	const auto csv_files = source_directory.list_files(u".csv");
+
+	container.all_components.reserve(34000);
+	container.all_sequences.reserve(22000);
+	container.text_data.reserve(1200000);
+	container.key_data.reserve(330000);
+
+	std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci> temp_map(vector_backed_string_less_ci(container.key_data));
 
 	for (auto& f : csv_files) {
 		auto op = f.open_file();
@@ -495,15 +524,15 @@ void load_text_sequences_from_directory(const directory& source_directory, text_
 			if (is_utf8) {
 				auto start = (sz > 3 && buffer[3] == '#') ? csv_advance_to_next_line(buffer + 3, buffer + sz) : buffer + 3;
 				while (start < buffer + sz) {
-					start = parse_first_and_nth_csv_values(2, start, buffer + sz, ';', [&container](const auto& pr_a, const auto& pr_b) {
-						add_utf8_sequence(container, pr_a.first, pr_a.second, pr_b.first, pr_b.second);
+					start = parse_first_and_nth_csv_values(2, start, buffer + sz, ';', [&container, &temp_map](const auto& pr_a, const auto& pr_b) {
+						add_utf8_sequence(container, temp_map, pr_a.first, pr_a.second, pr_b.first, pr_b.second);
 					});
 				}
 			} else {
 				auto start = (sz != 0 && buffer[0] == '#') ? csv_advance_to_next_line(buffer, buffer + sz) : buffer;
 				while (start < buffer + sz) {
-					start = parse_first_and_nth_csv_values(2, start, buffer + sz, ';', [&container](const auto& pr_a, const auto& pr_b) {
-						add_win1250_sequence(container, pr_a.first, pr_a.second, pr_b.first, pr_b.second);
+					start = parse_first_and_nth_csv_values(2, start, buffer + sz, ';', [&container, &temp_map](const auto& pr_a, const auto& pr_b) {
+						add_win1250_sequence(container, temp_map, pr_a.first, pr_a.second, pr_b.first, pr_b.second);
 					});
 				}
 			}
@@ -511,4 +540,7 @@ void load_text_sequences_from_directory(const directory& source_directory, text_
 			delete[] buffer;
 		}
 	}
+
+	container.key_to_sequence_map.~flat_map();
+	new (&container.key_to_sequence_map) boost::container::flat_map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci>(boost::container::ordered_unique_range_t(), temp_map.begin(), temp_map.end(), vector_backed_string_less_ci(container.key_data));
 }

@@ -4,6 +4,8 @@
 #include <vector>
 #include "boost\\container\\flat_map.hpp"
 #include "simple_fs\\simple_fs.h"
+#include <map>
+#include "common\\common.h"
 
 namespace text_data {
 	enum class text_color {
@@ -70,18 +72,23 @@ namespace text_data {
 
 	struct text_sequences {
 		std::vector<char16_t> text_data;
+		std::vector<char> key_data;
 		std::vector<text_component> all_components;
 		std::vector<text_sequence> all_sequences;
-		boost::container::flat_map<std::string, uint32_t> key_to_sequence_map;
+
+		boost::container::flat_map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci> key_to_sequence_map;
+
+		text_sequences() : key_to_sequence_map(vector_backed_string_less_ci(key_data)) {}
 	};
 	void add_win1250_text_to_container(text_sequences& container, const char* s, const char *e);
 	void add_utf8_text_to_container(text_sequences& container, const char* s, const char *e);
 	bool is_win1250_section(const char* start, const char* end);
 	bool is_utf8_section(const char* start, const char* end);
-	void add_utf8_sequence(text_sequences& container, const char* key_start, const char* key_end, const char* seq_start, const char* seq_end);
-	void add_win1250_sequence(text_sequences& container, const char* key_start, const char* key_end, const char* seq_start, const char* seq_end);
+	void add_utf8_sequence(text_sequences& container, std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci>& temp_map, const char* key_start, const char* key_end, const char* seq_start, const char* seq_end);
+	void add_win1250_sequence(text_sequences& container, std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci>& temp_map, const char* key_start, const char* key_end, const char* seq_start, const char* seq_end);
 	value_type value_type_from_name(const char* start, const char* end);
 	const char16_t* name_from_value_type(value_type v);
 }
 
+uint16_t get_text_handle(text_data::text_sequences& container, const char* key_start, const char* key_end);
 void load_text_sequences_from_directory(const directory& source_directory, text_data::text_sequences& container);

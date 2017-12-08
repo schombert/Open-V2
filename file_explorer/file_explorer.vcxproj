@@ -179,6 +179,9 @@
     <ProjectReference Include="..\text_classifier\text_classifier.vcxproj">
       <Project>{b1a194cb-c689-4816-bccd-f9b596d59327}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\text_data\text_data.vcxproj">
+      <Project>{ab9203fb-2ba5-4495-8f9e-78c21f15a8c6}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

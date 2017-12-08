@@ -2,19 +2,20 @@
 #include <cctype>
 #include <algorithm>
 #include <numeric>
+#include "common\\common.h"
 
 bool get_nth_bit(uint32_t nth, const char* start, const char* end) {
 	const uint32_t byte = nth / 5;
 	const uint32_t bit_in_byte = nth % 5;
 	const unsigned char mask = bit_in_byte == 0 ? 0x01 : (bit_in_byte == 1 ? 0x02 : (bit_in_byte == 2 ? 0x04 : (bit_in_byte == 3 ? 0x08 : 0x10)));
 
-	return ((end - start) <= byte) ? false : (((std::tolower(start[byte]) - '_') & mask) != 0);
+	return ((end - start) <= byte) ? false : (((ascii_to_lower(start[byte]) - '_') & mask) != 0);
 }
 
 auto get_nth_bit_function(uint32_t nth) {
 	const uint32_t bit_in_byte = nth % 5;
 	return [byte = uint32_t(nth / 5), mask = bit_in_byte == 0 ? 0x01 : (bit_in_byte == 1 ? 0x02 : (bit_in_byte == 2 ? 0x04 : (bit_in_byte == 3 ? 0x08 : 0x10)))](const char* start, const char* end) {
-		return ((end - start) <= byte) ? false : (((std::tolower(start[byte]) - '_') & mask) != 0);
+		return ((end - start) <= byte) ? false : (((ascii_to_lower(start[byte]) - '_') & mask) != 0);
 	};
 }
 
@@ -55,7 +56,7 @@ bool fixed_str_equality_ci(const char* as, const char* ae, const char* bs, const
 	if ((ae - as) != (be - bs))
 		return false;
 	while (as != ae) {
-		if (std::tolower(*(as++)) != *(bs++))
+		if (ascii_to_lower(*(as++)) != *(bs++))
 			return false;
 	}
 	return true;
@@ -128,7 +129,7 @@ int fixed_str_compare_ci(const char* as, const char* ae, const char* bs, const c
 	if (size_ordering != 0)
 		return size_ordering;
 	while (as != ae) {
-		const auto difference = std::tolower(*as) - *bs;
+		const auto difference = ascii_to_lower(*as) - *bs;
 		if (difference != 0)
 			return difference;
 		++as; ++bs;

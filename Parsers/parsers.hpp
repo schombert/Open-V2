@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <ctype.h>
 #include <string>
+#include "common\\common.h"
 
 template<>
 inline int32_t token_to<int32_t>(const token_and_type& in) {
@@ -216,7 +217,7 @@ bool is_fixed_token_ci(const char* start, const char* end, const char(&t)[N]) {
 	if (end - start != (N-1))
 		return false;
 	for (unsigned int i = 0; i < N-1; ++i) {
-		if (tolower(start[i]) != t[i])
+		if (ascii_to_lower(start[i]) != t[i])
 			return false;
 	}
 	return true;

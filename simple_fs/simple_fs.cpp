@@ -298,44 +298,70 @@ std::optional<file> directory::open_file_internal(const std::u16string& suffix_n
 
 	return std::optional<file>();
 }
+bool sfs_file_exists(const char16_t* szPath) {
+	DWORD dwAttrib = GetFileAttributes((const wchar_t*)szPath);
+	return dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY);
+}
+
+std::optional<unopened_file> directory::peek_file_internal(const std::u16string& suffix_name) const {
+	const auto all_paths = list_paths();
+	for (auto p = all_paths.crbegin(); p != all_paths.crend(); ++p) {
+		const auto full = *p + suffix_name;
+		if (sfs_file_exists(full.c_str())) {
+			return std::optional<unopened_file>(std::in_place_t(), std::make_unique<_unopened_file>(*p, suffix_name));
+		}
+	}
+	return std::optional<unopened_file>();
+}
+
+std::optional<unopened_file> directory::peek_file(const char* name, const char* name_t) const {
+	std::u16string suffix_name;
+	if (name != name_t && *name != '\\')
+		suffix_name += u'\\';
+
+	const auto size = MultiByteToWideChar(CP_UTF8, 0, name, (int)(name_t - name), nullptr, 0);
+	wchar_t* buffer = new wchar_t[size];
+	MultiByteToWideChar(CP_UTF8, 0, name, (int)(name_t - name), buffer, size);
+	suffix_name.append((char16_t*)buffer, (char16_t*)(buffer + size));
+	delete[] buffer;
+
+	return peek_file_internal(suffix_name);
+}
+
+std::optional<unopened_file> directory::peek_file(const char16_t* name, const char16_t* name_t) const {
+	return peek_file(std::u16string(name, name_t));
+}
+
+std::optional<unopened_file> directory::peek_file(const std::u16string& name) const {
+	if (name.length() != 0 && name[0] == u'\\')
+		return peek_file_internal(name);
+	else
+		return peek_file_internal(std::u16string(u"\\") + name);
+}
 
 std::optional<file> directory::open_file(const char* name, const char* name_t) const {
 	std::u16string suffix_name;
-	if (name != name_t && *name == '\\')
-		suffix_name.append(name, name_t);
-	else {
+	if (name != name_t && *name != '\\')
 		suffix_name += u'\\';
-		const auto size = MultiByteToWideChar(CP_UTF8, 0, name, (int)(name_t - name), nullptr, 0);
-		wchar_t* buffer = new wchar_t[size];
-		MultiByteToWideChar(CP_UTF8, 0, name, (int)(name_t - name), buffer, size);
-		suffix_name.append((char16_t*)buffer, (char16_t*)(buffer + size));
-		delete[] buffer;
-	}
+
+	const auto size = MultiByteToWideChar(CP_UTF8, 0, name, (int)(name_t - name), nullptr, 0);
+	wchar_t* buffer = new wchar_t[size];
+	MultiByteToWideChar(CP_UTF8, 0, name, (int)(name_t - name), buffer, size);
+	suffix_name.append((char16_t*)buffer, (char16_t*)(buffer + size));
+	delete[] buffer;
+
 	return open_file_internal(suffix_name);
 }
 
 std::optional<file> directory::open_file(const char16_t* name, const char16_t* name_t) const {
-	std::u16string suffix_name;
-	if (name != name_t && *name == u'\\')
-		suffix_name.append(name, name_t);
-	else {
-		suffix_name += u'\\';
-		suffix_name.append(name, name_t);
-	}
-
-	return open_file_internal(suffix_name);
+	return open_file(std::u16string(name, name_t));
 }
 
 std::optional<file> directory::open_file(const std::u16string& name) const {
-	std::u16string suffix_name;
 	if (name.length() != 0 && name[0] == u'\\')
-		suffix_name = name;
-	else {
-		suffix_name += u'\\';
-		suffix_name += name;
-	}
-
-	return open_file_internal(suffix_name);
+		return open_file_internal(name);
+	else
+		return open_file_internal(std::u16string(u"\\") + name);
 }
 
 std::u16string directory::to_string() const {

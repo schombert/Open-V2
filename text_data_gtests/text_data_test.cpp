@@ -38,10 +38,12 @@ TEST(adding_string_data, text_data_test) {
 
 TEST(single_newline, text_data_test) {
 	text_sequences seq_object;
+	std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci> temp_map(seq_object.key_data);
+
 	const char t1[] = "\\n";
 	const char test_key[] = "key";
 
-	add_utf8_sequence(seq_object, RANGE(test_key), RANGE(t1));
+	add_utf8_sequence(seq_object, temp_map, RANGE(test_key), RANGE(t1));
 
 	EXPECT_EQ(1, seq_object.all_components.size());
 	EXPECT_TRUE(std::holds_alternative<line_break>(seq_object.all_components[0]));
@@ -52,10 +54,12 @@ TEST(single_newline, text_data_test) {
 
 TEST(win1250_color, text_data_test) {
 	text_sequences seq_object;
+	std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci> temp_map(seq_object.key_data);
+
 	const char t1[] = "\xA7W";
 	const char test_key[] = "key";
 
-	add_win1250_sequence(seq_object, RANGE(test_key), RANGE(t1));
+	add_win1250_sequence(seq_object, temp_map, RANGE(test_key), RANGE(t1));
 
 	EXPECT_EQ(1, seq_object.all_components.size());
 	EXPECT_EQ(text_color::white, std::get<color_change>(seq_object.all_components[0]).color);
@@ -66,10 +70,12 @@ TEST(win1250_color, text_data_test) {
 
 TEST(utf8_color, text_data_test) {
 	text_sequences seq_object;
+	std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci> temp_map(seq_object.key_data);
+
 	const char t1[] = "\xC2\xA7W";
 	const char test_key[] = "key";
 
-	add_utf8_sequence(seq_object, RANGE(test_key), RANGE(t1));
+	add_utf8_sequence(seq_object, temp_map, RANGE(test_key), RANGE(t1));
 
 	EXPECT_EQ(1, seq_object.all_components.size());
 	EXPECT_EQ(text_color::white, std::get<color_change>(seq_object.all_components[0]).color);
@@ -80,10 +86,12 @@ TEST(utf8_color, text_data_test) {
 
 TEST(single_replacement, text_data_test) {
 	text_sequences seq_object;
+	std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci> temp_map(seq_object.key_data);
+
 	const char t1[] = "$Union$";
 	const char test_key[] = "key";
 
-	add_win1250_sequence(seq_object, RANGE(test_key), RANGE(t1));
+	add_win1250_sequence(seq_object, temp_map, RANGE(test_key), RANGE(t1));
 
 	EXPECT_EQ(1, seq_object.all_components.size());
 	EXPECT_EQ(value_type::vtype_union, std::get<value_placeholder>(seq_object.all_components[0]).value);
@@ -94,10 +102,12 @@ TEST(single_replacement, text_data_test) {
 
 TEST(single_bad_replacement, text_data_test) {
 	text_sequences seq_object;
+	std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci> temp_map(seq_object.key_data);
+
 	const char t1[] = "$xxxxx$";
 	const char test_key[] = "key";
 
-	add_win1250_sequence(seq_object, RANGE(test_key), RANGE(t1));
+	add_win1250_sequence(seq_object, temp_map, RANGE(test_key), RANGE(t1));
 
 	EXPECT_EQ(1, seq_object.all_components.size());
 	EXPECT_EQ(value_type::error_no_matching_value, std::get<value_placeholder>(seq_object.all_components[0]).value);
@@ -108,10 +118,12 @@ TEST(single_bad_replacement, text_data_test) {
 
 TEST(intervening_value, text_data_test) {
 	text_sequences seq_object;
+	std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci> temp_map(seq_object.key_data);
+
 	const char t1[] = "aaa$Union$bb bb";
 	const char test_key[] = "key";
 
-	add_utf8_sequence(seq_object, RANGE(test_key), RANGE(t1));
+	add_utf8_sequence(seq_object, temp_map, RANGE(test_key), RANGE(t1));
 
 	EXPECT_EQ(3, seq_object.all_components.size());
 	EXPECT_EQ(std::wstring(L"aaa"), get_string(seq_object, 0));
@@ -124,10 +136,12 @@ TEST(intervening_value, text_data_test) {
 
 TEST(string_color_value, text_data_test) {
 	text_sequences seq_object;
+	std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci> temp_map(seq_object.key_data);
+
 	const char t1[] = "aaa\xA7R$COUNT$";
 	const char test_key[] = "key";
 
-	add_win1250_sequence(seq_object, RANGE(test_key), RANGE(t1));
+	add_win1250_sequence(seq_object, temp_map, RANGE(test_key), RANGE(t1));
 
 	EXPECT_EQ(3, seq_object.all_components.size());
 	EXPECT_EQ(std::wstring(L"aaa"), get_string(seq_object, 0));
@@ -140,10 +154,12 @@ TEST(string_color_value, text_data_test) {
 
 TEST(two_keys, text_data_test) {
 	text_sequences seq_object;
+	std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci> temp_map(seq_object.key_data);
+
 	const char t1[] = "aaa\xA7R$COUNT$";
 	const char test_key[] = "key";
 
-	add_win1250_sequence(seq_object, RANGE(test_key), RANGE(t1));
+	add_win1250_sequence(seq_object, temp_map, RANGE(test_key), RANGE(t1));
 
 	EXPECT_EQ(3, seq_object.all_components.size());
 	EXPECT_EQ(std::wstring(L"aaa"), get_string(seq_object, 0));
@@ -156,7 +172,7 @@ TEST(two_keys, text_data_test) {
 	const char t2[] = "$COUNT$\xA7""btext";
 	const char test_key2[] = "key2";
 
-	add_win1250_sequence(seq_object, RANGE(test_key2), RANGE(t2));
+	add_win1250_sequence(seq_object, temp_map, RANGE(test_key2), RANGE(t2));
 
 	EXPECT_EQ(6, seq_object.all_components.size());
 	EXPECT_EQ(std::wstring(L"text"), get_string(seq_object, 5));
@@ -166,5 +182,5 @@ TEST(two_keys, text_data_test) {
 	EXPECT_EQ(3, seq_object.all_sequences[1].starting_component);
 	EXPECT_EQ(3, seq_object.all_sequences[1].component_count);
 
-	EXPECT_EQ(1, seq_object.key_to_sequence_map["key2"]);
+	EXPECT_EQ(1, temp_map["key2"]);
 }

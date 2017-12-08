@@ -50,6 +50,7 @@ class file_system;
 class directory {
 private:
 	std::optional<file> open_file_internal(const std::u16string& prefix_name) const;
+	std::optional<unopened_file> peek_file_internal(const std::u16string& prefix_name) const;
 public:
 	std::unique_ptr<_directory> impl;
 
@@ -72,6 +73,9 @@ public:
 	std::optional<file> open_file(const char* name, const char* name_t) const;
 	std::optional<file> open_file(const char16_t* name, const char16_t* name_t) const;
 	std::optional<file> open_file(const std::u16string& name) const;
+	std::optional<unopened_file> peek_file(const char* name, const char* name_t) const;
+	std::optional<unopened_file> peek_file(const char16_t* name, const char16_t* name_t) const;
+	std::optional<unopened_file> peek_file(const std::u16string& name) const;
 	std::vector<std::u16string> list_paths() const;
 	std::u16string to_string() const;
 	const std::u16string& name() const;

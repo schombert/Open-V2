@@ -1,6 +1,7 @@
 #pragma once
 #include <cctype>
 #include <type_traits>
+#include <common\\common.h>
 
 template<typename T>
 struct type_object {
@@ -81,8 +82,8 @@ constexpr char to_lower_helper_char(const char c) {
 template<char f, char ...r>
 struct compile_time_lex_compare_ci<ct_string<f, r...>> {
 	static constexpr int value(const char* const as, const char* const ae) {
-		if (std::tolower(*as) != to_lower_helper_char(f))
-			return std::tolower(*as) - (int)(to_lower_helper_char(f));
+		if (ascii_to_lower(*as) != to_lower_helper_char(f))
+			return ascii_to_lower(*as) - (int)(to_lower_helper_char(f));
 		else if (as + 1 != ae)
 			return compile_time_lex_compare_ci<ct_string<r...>>::value(as + 1, ae);
 		else

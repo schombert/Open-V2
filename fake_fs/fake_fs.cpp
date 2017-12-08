@@ -187,16 +187,10 @@ void file_system::add_root_relative(const std::u16string& location) {
 	std::vector<directory_representation*> new_roots;
 
 	for (auto d : impl->root_dir.impl->d) {
-		//const auto f = representation_from_full_path(*d, fname);
-		//if (f)
-		//	new_roots.emplace_back(f);
-		for (auto s : d->sub_dir) {
-			if (s->name == fname) {
-				new_roots.emplace_back(s);
-			}
-		}
+		const auto nr = representation_from_full_path(*d, fname);
+		if(nr)
+			new_roots.emplace_back(nr);
 	}
-
 	impl->root_dir.impl->d.insert(impl->root_dir.impl->d.end(), new_roots.begin(), new_roots.end());
 }
 
@@ -327,13 +321,34 @@ const std::u16string& unopened_file::file_name() const {
 
 
 std::optional<file> directory::open_file_internal(const std::u16string& suffix_name) const {
-	for (auto dit = impl->d.rbegin(); dit != impl->d.rend(); ++dit) {
-		for (auto f : (*dit)->files) {
-			if(f->name == suffix_name)
-				return std::optional<file>(std::in_place_t(), std::make_unique<_file>(f));
-		}
+	int32_t i = suffix_name.length();
+	for (; i >= 0; --i) {
+		if (suffix_name[i] == u'\\')
+			break;
 	}
-	return std::optional<file>();
+	if (i < 0) {
+		for (auto dit = impl->d.rbegin(); dit != impl->d.rend(); ++dit) {
+			for (auto f : (*dit)->files) {
+				if (f->name == suffix_name)
+					return std::optional<file>(std::in_place_t(), std::make_unique<_file>(f));
+			}
+		}
+		return std::optional<file>();
+	} else {
+		const auto dir_string = suffix_name.substr(0, i);
+		const auto prfxed_dir_string = (dir_string.length() > 0 && dir_string[0] == u'\\') ? dir_string : std::u16string(u"\\") + dir_string;
+		const auto file_string = suffix_name.substr(i + 1);
+		for (auto dit = impl->d.rbegin(); dit != impl->d.rend(); ++dit) {
+			const auto nr = representation_from_full_path(*(*dit), prfxed_dir_string);
+			if (nr) {
+				for (auto f : nr->files) {
+					if (f->name == file_string)
+						return std::optional<file>(std::in_place_t(), std::make_unique<_file>(f));
+				}
+			}
+		}
+		return std::optional<file>();
+	}
 }
 
 std::optional<file> directory::open_file(const char* name, const char* name_t) const {

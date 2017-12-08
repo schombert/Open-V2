@@ -189,3 +189,16 @@ TEST_METHOD(open_correct_version, simple_fs_tests) {
 	EXPECT_TRUE(afile->size() == 0);
 	EXPECT_TRUE(bfile->size() > 0);
 }
+
+TEST_METHOD(open_correct_nested_file_version, simple_fs_tests) {
+	test_file_structure real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:\\VS2007Projects\\open_v2_test_data\\directories"));
+	f.add_root_relative(RANGE("new_root"));
+
+	const auto afile = f.get_root().open_file(u"sub_dir_a\\a_file_a.txt");
+	const auto bfile = f.get_root().open_file(u"sub_dir_a\\a_file_b.txt");
+	EXPECT_TRUE(afile->size() == 0);
+	EXPECT_TRUE(bfile->size() > 0);
+}
