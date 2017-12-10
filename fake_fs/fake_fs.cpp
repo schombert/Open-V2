@@ -38,6 +38,8 @@ public:
 	_file_system(directory_representation* r) : root_dir(std::make_unique<_directory>()) {
 		root_dir.impl->d.push_back(r);
 	}
+	_file_system() : root_dir(std::make_unique<_directory>()) {
+	}
 };
 
 directory_representation* representation_from_full_path(directory_representation& root, const std::u16string& path) {
@@ -95,8 +97,9 @@ file_system::file_system() {
 	GetCurrentDirectory(MAX_PATH, buffer);
 	const auto f = representation_from_full_path(*default_root, (char16_t*)buffer);
 	if (!f)
-		std::abort();
-	impl = std::make_unique<_file_system>(f);
+		impl = std::make_unique<_file_system>();
+	else
+		impl = std::make_unique<_file_system>(f);
 }
 
 void file_system::pop_root() {
@@ -318,7 +321,54 @@ const std::u16string& unopened_file::file_name() const {
 	return impl->_file_name;
 }
 
+std::optional<unopened_file> directory::peek_file_internal(const std::u16string& suffix_name) const {
+	int32_t i = suffix_name.length();
+	for (; i >= 0; --i) {
+		if (suffix_name[i] == u'\\')
+			break;
+	}
+	if (i < 0) {
+		for (auto dit = impl->d.rbegin(); dit != impl->d.rend(); ++dit) {
+			for (auto f : (*dit)->files) {
+				if (f->name == suffix_name)
+					return std::optional<unopened_file>(std::in_place_t(), std::make_unique<_unopened_file>((*dit)->get_path(), f->name, f));
+			}
+		}
+		return std::optional<unopened_file>();
+	} else {
+		const auto dir_string = suffix_name.substr(0, i);
+		const auto prfxed_dir_string = (dir_string.length() > 0 && dir_string[0] == u'\\') ? dir_string : std::u16string(u"\\") + dir_string;
+		const auto file_string = suffix_name.substr(i + 1);
+		for (auto dit = impl->d.rbegin(); dit != impl->d.rend(); ++dit) {
+			const auto nr = representation_from_full_path(*(*dit), prfxed_dir_string);
+			if (nr) {
+				for (auto f : nr->files) {
+					if (f->name == file_string)
+						return std::optional<unopened_file>(std::in_place_t(), std::make_unique<_unopened_file>(nr->get_path(), f->name, f));
+				}
+			}
+		}
+		return std::optional<unopened_file>();
+	}
+}
 
+std::optional<unopened_file> directory::peek_file(const char* name, const char* name_t) const {
+	if (name != name_t && name[0] == '\\')
+		return peek_file_internal(std::u16string(name, name_t));
+	else
+		return peek_file_internal(std::u16string(u"\\") + std::u16string(name, name_t));
+}
+
+std::optional<unopened_file> directory::peek_file(const char16_t* name, const char16_t* name_t) const {
+	return peek_file(std::u16string(name, name_t));
+}
+
+std::optional<unopened_file> directory::peek_file(const std::u16string& name) const {
+	if (name.length() != 0 && name[0] == u'\\')
+		return peek_file_internal(name);
+	else
+		return peek_file_internal(std::u16string(u"\\") + name);
+}
 
 std::optional<file> directory::open_file_internal(const std::u16string& suffix_name) const {
 	int32_t i = suffix_name.length();

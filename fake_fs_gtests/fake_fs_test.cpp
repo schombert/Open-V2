@@ -202,3 +202,22 @@ TEST_METHOD(open_correct_nested_file_version, simple_fs_tests) {
 	EXPECT_TRUE(afile->size() == 0);
 	EXPECT_TRUE(bfile->size() > 0);
 }
+
+TEST_METHOD(peek_file, simple_fs_tests) {
+	test_file_structure real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:\\VS2007Projects\\open_v2_test_data\\directories"));
+	f.add_root_relative(RANGE("new_root"));
+
+	const auto ua = f.get_root().peek_file(u"sub_dir_a\\a_file_a.txt");
+	const auto ub = f.get_root().peek_file(u"sub_dir_a\\a_file_b.txt");
+
+	const auto afile = ua->open_file();
+	const auto bfile = ub->open_file();
+
+	EXPECT_TRUE(afile->size() == 0);
+	EXPECT_TRUE(bfile->size() > 0);
+
+	EXPECT_FALSE(bool(f.get_root().peek_file(u"bad_file_name.txt")));
+}

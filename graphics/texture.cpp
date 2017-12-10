@@ -11,6 +11,45 @@
 
 texture::texture(const std::string& fn) : filename(fn) {};
 
+
+void data_texture::create() {
+	if (texture_handle != 0)
+		return;
+
+	glGenTextures(1, &texture_handle);
+	glBindTexture(GL_TEXTURE_2D, texture_handle);
+
+	if (channels == 3) {
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, size, 1);
+	} else if (channels == 4) {
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, size, 1);
+	} else  if (channels == 2) {
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RG8, size, 1);
+	} else {
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, size, 1);
+	}
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+}
+
+uint32_t data_texture::handle() {
+	create();
+	bool expected = true;
+	if (write_pending.compare_exchange_strong(expected, false, std::memory_order_release, std::memory_order_acquire)) {
+		glBindTexture(GL_TEXTURE_2D, texture_handle);
+		if (channels == 3) {
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size, 1, GL_RGB, GL_UNSIGNED_BYTE, _data);
+		} else if (channels == 4) {
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size, 1, GL_RGBA, GL_UNSIGNED_BYTE, _data);
+		} else  if (channels == 2) {
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size, 1, GL_RG, GL_UNSIGNED_BYTE, _data);
+		} else {
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size, 1, GL_RED, GL_UNSIGNED_BYTE, _data);
+		}
+	}
+	return texture_handle;
+}
+
 void texture::free() {
 	glDeleteTextures(1, &texture_handle);
 }
@@ -20,7 +59,7 @@ void texture::load() {
 		return;
 
 	unsigned char* expected = nullptr;
-	if (filedata.compare_exchange_strong(expected, (unsigned char*)1, std::memory_order::memory_order_release, std::memory_order::memory_order_acquire)) {
+	if (filedata.compare_exchange_strong(expected, (unsigned char*)1, std::memory_order_release, std::memory_order_acquire)) {
 		texture_handle = SOIL_load_OGL_texture(filename.c_str(), 0, 0, SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_DDS_LOAD_DIRECT);
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
@@ -49,11 +88,11 @@ void texture::load() {
 }
 
 void texture::load_filedata() {
-	if (filedata.load(std::memory_order::memory_order_acquire) == nullptr) {
+	if (filedata.load(std::memory_order_acquire) == nullptr) {
 		auto data = SOIL_load_image(filename.c_str(), &width, &height, &channels, SOIL_LOAD_AUTO);
 
 		unsigned char* expected = nullptr;
-		if (!filedata.compare_exchange_strong(expected, data, std::memory_order::memory_order_release, std::memory_order::memory_order_acquire)) {
+		if (!filedata.compare_exchange_strong(expected, data, std::memory_order_release, std::memory_order_acquire)) {
 			SOIL_free_image_data(data);
 		}
 	}
@@ -64,16 +103,13 @@ uint32_t texture::handle() {
 	return texture_handle;
 }
 
-uint16_t texture_manager::retrieve_by_name(directory& root, const char* start, const char* end) {
+uint16_t texture_manager::retrieve_by_name(const directory& root, const char* start, const char* end) {
 	char* const temp_cpy = (char*)_alloca(end - start + 1);
 	uint32_t t_pos = 0;
 	for (uint32_t i = 0; i < (end - start); ++i, ++t_pos) {
-		if (start[i] != '\\')
-			temp_cpy[t_pos] = start[i];
-		else if (i + 1 < (end - start) && start[i+1] == '\\') {
-			temp_cpy[t_pos] = start[i];
+		temp_cpy[t_pos] = start[i];
+		if (start[i] == '\\' && i + 1 < (end - start) && start[i+1] == '\\') 
 			++i;
-		}
 	}
 	temp_cpy[t_pos] = 0;
 

@@ -1,5 +1,8 @@
 ﻿#include "pch.h"
 #include "graphics\\test_helpers.h"
+#include "fake_fs\\fake_fs.h"
+
+#define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
 TEST(texture_rendering, graphics_tests) {
 	EXPECT_TRUE(test_rendering("F:\\VS2007Projects\\open_v2_test_data\\texture", 0, 0, 80, 80, [](open_gl_wrapper& ogl) {
@@ -47,17 +50,40 @@ TEST(progress_bar, graphics_tests) {
 
 TEST(piechart, graphics_tests) {
 	EXPECT_TRUE(test_rendering("F:\\VS2007Projects\\open_v2_test_data\\t_piechart", 0, 0, 50, 50, [](open_gl_wrapper& ogl) {
-		texture test_tex("F:\\VS2007Projects\\open_v2_test_data\\test_tx.bmp");
 
-		ogl.render_piechart(true, 0.0f, 0.0f, 50.0f, test_tex);
+		data_texture dt(100, 3);
+		const auto ptr = dt.data();
+		for (int i = 0; i < 100; ++i) {
+			if (i < 25) {
+				ptr[i * 3] = 255; ptr[i * 3 + 1] = 0; ptr[i * 3 + 2] = 0;
+			} else if (i < 50) {
+				ptr[i * 3] = 0; ptr[i * 3 + 1] = 255; ptr[i * 3 + 2] = 0;
+			} else {
+				ptr[i * 3] = 0; ptr[i * 3 + 1] = 0; ptr[i * 3 + 2] = 255;
+			}
+		}
+		dt.data_ready();
+
+		ogl.render_piechart(true, 0.0f, 0.0f, 50.0f, dt);
 	}));
 }
 
 TEST(barchart, graphics_tests) {
 	EXPECT_TRUE(test_rendering("F:\\VS2007Projects\\open_v2_test_data\\t_barchart", 0, 0, 100, 75, [](open_gl_wrapper& ogl) {
-		texture bar_tex("F:\\VS2007Projects\\open_v2_test_data\\barchar.tga");
+		data_texture dt(100, 4);
+		const auto ptr = dt.data();
+		for (int i = 0; i < 100; ++i) {
+			if (i < 25) {
+				ptr[i * 4] = 255; ptr[i * 4 + 1] = 0; ptr[i * 4 + 2] = 0; ptr[i * 4 + 3] = 210;
+			} else if (i < 50) {
+				ptr[i * 4] = 0; ptr[i * 4 + 1] = 255; ptr[i * 4 + 2] = 0; ptr[i * 4 + 3] = 128;
+			} else {
+				ptr[i * 4] = 0; ptr[i * 4 + 1] = 0; ptr[i * 4 + 2] = 255; ptr[i * 4 + 3] = 64;
+			}
+		}
+		dt.data_ready();
 
-		ogl.render_barchart(true, 0.0f, 0.0f, 100.0f, 75.0f, bar_tex);
+		ogl.render_barchart(true, 0.0f, 0.0f, 100.0f, 75.0f, dt);
 	}));
 }
 
@@ -93,4 +119,50 @@ TEST(border_stretch, graphics_tests) {
 
 		ogl.render_bordered_rect(true, 32.0f, 0.0f, 0.0f, 350.0f, 150.0f, bord);
 	}));
+}
+
+class test_file_structure {
+public:
+	directory_representation f_root = directory_representation(u"F:");
+	directory_representation gfx_root = directory_representation(u"gfx", f_root);
+	directory_representation mod = directory_representation(u"mod", f_root);
+	directory_representation mod_gfx = directory_representation(u"gfx", mod);
+
+	file_representation alt_a_file_b = file_representation(u"file_a.tga", gfx_root, "");
+	file_representation a_file_a = file_representation(u"file_b.dds", gfx_root, "");
+
+	file_representation b_file_a = file_representation(u"file_a.tga", mod_gfx, "");
+
+	test_file_structure() {
+		set_default_root(f_root);
+	}
+};
+
+
+TEST(texture_manager_test, graphics_tests) {
+	test_file_structure real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:"));
+
+	texture_manager tm_a;
+	const auto handle_a = tm_a.retrieve_by_name(f.get_root(), RANGE("gfx\\file_a.tga"));
+	EXPECT_EQ(1, handle_a);
+	const auto handle_b = tm_a.retrieve_by_name(f.get_root(), RANGE("gfx\\\\file_b.tga"));
+	EXPECT_EQ(2, handle_b);
+
+	EXPECT_EQ(std::string("F:\\gfx\\file_a.tga"), tm_a.retrieve_by_key(handle_a).filename);
+	EXPECT_EQ(std::string("F:\\gfx\\file_b.dds"), tm_a.retrieve_by_key(handle_b).filename);
+
+	f.add_root(u"F:\\mod");
+
+	texture_manager tm_b;
+
+	const auto handle_c = tm_b.retrieve_by_name(f.get_root(), RANGE("gfx\\\\file_a.tga"));
+	EXPECT_EQ(1, handle_c);
+	const auto handle_d = tm_b.retrieve_by_name(f.get_root(), RANGE("gfx\\file_b.tga"));
+	EXPECT_EQ(2, handle_d);
+
+	EXPECT_EQ(std::string("F:\\mod\\gfx\\file_a.tga"), tm_b.retrieve_by_key(handle_c).filename);
+	EXPECT_EQ(std::string("F:\\gfx\\file_b.dds"), tm_b.retrieve_by_key(handle_d).filename);
 }

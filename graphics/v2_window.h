@@ -7,17 +7,6 @@
 #include "common\\common.h"
 #include "open_gl_wrapper.h"
 
-enum modifiers {
-	modifiers_none = 0x0,
-	modifiers_alt = 0x4,
-	modifiers_ctrl = 0x2,
-	modifiers_shift = 0x1,
-	modifiers_ctrl_shift = 0x3,
-	modifiers_ctrl_alt = 0x6,
-	modifiers_alt_shift = 0x5,
-	modifiers_all = 0x7
-};
-
 struct rbutton_down {
 	int x;
 	int y;

@@ -897,15 +897,15 @@ struct empty_window_handler {
 		//ogl.render_masked_rect(true, 0.0f, 0.0f, 40.0f, 80.0f, test_tex, mask_tex, rotation::right);
 
 		//ogl.render_subsprite(true, 2, 10, 50.0, 10.0, 36.0, 36.0, strip_tex, rotation::upright);
-		ogl.render_subsprite(true, 3, 10, 90.0, 10.0, 36.0, 36.0, strip_tex, rotation::right);
+		//ogl.render_subsprite(true, 3, 10, 90.0, 10.0, 36.0, 36.0, strip_tex, rotation::right);
 
 
-		//ogl.render_outlined_text(u"明Tast", 5, true, 80.0f, 40.0f, 16.0f, color{ 1.0f,1.0f,1.0f }, test_font);
+		ogl.render_outlined_text(u"明Tasy", 5, true, 80.0f, 40.0f, 32.0f, color{ 1.0f,1.0f,1.0f }, test_font);
 
-		ogl.render_outlined_text(u"明Test", 5, true, 80.0f, 80.0f, 16.0f, color{ 0.0f,0.0f,0.0f }, test_font);
-		ogl.render_text(u"明Tast", 5, true, 80.0f, 96.0f, 16.0f, color{ 1.0f,1.0f,1.0f }, test_font);
+		ogl.render_outlined_text(u"明Tesy", 5, true, 80.0f, 80.0f, 32.0f, color{ 0.0f,0.0f,0.0f }, test_font);
+		ogl.render_text(u"明Tasy", 5, true, 80.0f, 112.0f, 32.0f, color{ 1.0f,1.0f,1.0f }, test_font);
 
-		ogl.render_progress_bar(true, 0.33f, 0.5f, 0.5f, 80.0f, 20.0f, prog1, prog2);
+		//ogl.render_progress_bar(true, 0.33f, 0.5f, 0.5f, 80.0f, 20.0f, prog1, prog2);
 
 
 
@@ -917,10 +917,10 @@ struct empty_window_handler {
 		ogl.render_character(u'y', true, 140.0f, 60.0f, 128.0f, test_font);
 		ogl.render_character(u'A', true, 10.0f, 138.0f, 512.0f, test_font);
 
-		ogl.render_bordered_rect(true, 32.0f, 70.0f, 50.0f, 350.0f, 150.0f, bord);
+		//ogl.render_bordered_rect(true, 32.0f, 70.0f, 50.0f, 350.0f, 150.0f, bord);
 
 		//ogl.render_piechart(true, 80.0f, 60.0f, 100.0f, test_tex);
-		ogl.render_linegraph(true, 80.0f, 60.0f, 100.0f, 75.0f, graph);
+		//ogl.render_linegraph(true, 80.0f, 60.0f, 100.0f, 75.0f, graph);
 		//ogl.render_barchart(true, 80.0f, 60.0f, 100.0f, 75.0f, bar_tex);
 		//ogl.render_textured_rect(true, 70.0f, 50.0f, 350.0f, 150.0f, bord);
 	}
@@ -947,11 +947,14 @@ int __cdecl main() {
 		test_window.close_window();
 	}*/
 	
-	file_system fs_t;
-	fs_t.set_root(u"F:\\programs\\V2\\localisation");
+	file_system fs;
+	fs.set_root(u"F:\\programs\\V2");
+
+
+	auto localisation_directory = fs.get_root().get_directory(u"\\localisation");
 
 	text_data::text_sequences all_text;
-	load_text_sequences_from_directory(fs_t.get_root(), all_text);
+	load_text_sequences_from_directory(localisation_directory, all_text);
 
 	std::cout << all_text.all_sequences.size() << " total sequnces recorded" << std::endl;
 	std::cout << all_text.all_components.size() << " components recorded" << std::endl;
@@ -959,8 +962,11 @@ int __cdecl main() {
 	std::cout << all_text.key_data.size() << " characters of key data" << std::endl;
 	
 	
-	file_system fs;
-	fs.set_root(u"F:\\programs\\V2\\interface");
+	
+
+	auto interface_directory = fs.get_root().get_directory(u"\\interface");
+
+	texture_manager tm;
 
 	ui::name_maps nmaps;
 	ui::definitions defs;
@@ -971,7 +977,7 @@ int __cdecl main() {
 	std::vector<std::pair<std::string, graphics::errors>> gobj_errors_generated;
 
 	load_ui_definitions_from_directory(
-		fs.get_root(), nmaps, defs, errors_generated,
+		interface_directory, nmaps, defs, errors_generated,
 		[&all_text](const char* a, const char* b) { return get_text_handle(all_text, a, b); },
 		fake_font_handle_lookup(),
 		[&gobj_nmaps](const char* a, const char* b) { return reserve_graphics_object(gobj_nmaps, a, b); });
@@ -990,15 +996,16 @@ int __cdecl main() {
 	std::cout << gobj_nmaps.names.size() << " graphics objects pending" << std::endl;
 
 	load_graphics_object_definitions_from_directory(
-		fs.get_root(),
+		interface_directory,
 		gobj_nmaps,
 		gobj_defs,
 		gobj_errors_generated,
-		fake_text_handle_lookup());
+		[&tm, &fs](const char* a, const char* b) { return tm.retrieve_by_name(fs.get_root(),a,b); });
 
 	for (auto& e : gobj_errors_generated) {
 		std::cout << e.first << ": " << graphics::format_error(e.second) << std::endl;
 	}
+	std::cout << "textures in manager: " << tm.count() << std::endl;
 	std::cout << "finished" << std::endl;
 	
 

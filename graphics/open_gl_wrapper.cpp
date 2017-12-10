@@ -621,7 +621,7 @@ void open_gl_wrapper::render_linegraph(bool enabled, float x, float y, float wid
 	glDrawArrays(GL_LINE_STRIP, 0, l.count);
 }
 
-void open_gl_wrapper::render_barchart(bool enabled, float x, float y, float width, float height, texture& t, rotation r) {
+void open_gl_wrapper::render_barchart(bool enabled, float x, float y, float width, float height, data_texture& t, rotation r) {
 	glBindVertexArray(global_square_vao);
 
 	switch (r) {
@@ -645,7 +645,7 @@ void open_gl_wrapper::render_barchart(bool enabled, float x, float y, float widt
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
-void open_gl_wrapper::render_piechart(bool enabled, float x, float y, float size, texture& t) {
+void open_gl_wrapper::render_piechart(bool enabled, float x, float y, float size, data_texture& t) {
 	glBindVertexArray(global_square_vao);
 
 	glBindVertexBuffer(0, global_sqaure_buffer, 0, sizeof(GLfloat) * 4);
@@ -765,7 +765,7 @@ void open_gl_wrapper::render_subsprite(bool enabled, int frame, int total_frames
 }
 
 void open_gl_wrapper::render_character(char16_t codepoint, bool enabled, float x, float y, float size, font& f) {
-	const auto g = f.get_glyph(codepoint);
+	const auto g = f.get_render_glyph(codepoint);
 
 	glBindVertexBuffer(0, sub_sqaure_buffers[g.buffer], 0, sizeof(GLfloat) * 4);
 	glActiveTexture(GL_TEXTURE0);
@@ -787,7 +787,7 @@ void open_gl_wrapper::render_character(char16_t codepoint, bool enabled, float x
 
 void internal_text_render(const char16_t* codepoints, uint32_t count, float x, float baseline_y, float size, font& f, float extra) {
 	for (uint32_t i = 0; i < count; ++i) {
-		const auto g = f.get_glyph(codepoints[i]);
+		const auto g = f.get_render_glyph(codepoints[i]);
 
 		glBindVertexBuffer(0, sub_sqaure_buffers[g.buffer], 0, sizeof(GLfloat) * 4);
 		glActiveTexture(GL_TEXTURE0);
@@ -796,7 +796,7 @@ void internal_text_render(const char16_t* codepoints, uint32_t count, float x, f
 		glUniform4f(parameters::drawing_rectangle, x + g.x_offset * size / 64.0f, baseline_y + g.y_offset * size / 64.0f, size, size);
 
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		x += g.advance * size / 64.0f + extra;
+		x += g.advance * size / 64.0f + extra + ((i != count - 1) ? f.render_kerning(codepoints[i], codepoints[i+1]) * size / 64.0f : 0.0f);
 	}
 }
 

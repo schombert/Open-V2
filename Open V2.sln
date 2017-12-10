@@ -77,6 +77,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "text_data", "text_data\text
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "text_data_gtests", "text_data_gtests\text_data_gtests.vcxproj", "{20E7BDA5-FFC3-4CC5-A33C-8E472D855EF5}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gui", "gui\gui.vcxproj", "{CB808C07-06AD-424A-B9BF-C15B89ACD4EC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -381,6 +383,14 @@ Global
 		{20E7BDA5-FFC3-4CC5-A33C-8E472D855EF5}.Release|x64.Build.0 = Release|x64
 		{20E7BDA5-FFC3-4CC5-A33C-8E472D855EF5}.Release|x86.ActiveCfg = Release|Win32
 		{20E7BDA5-FFC3-4CC5-A33C-8E472D855EF5}.Release|x86.Build.0 = Release|Win32
+		{CB808C07-06AD-424A-B9BF-C15B89ACD4EC}.Debug|x64.ActiveCfg = Debug|x64
+		{CB808C07-06AD-424A-B9BF-C15B89ACD4EC}.Debug|x64.Build.0 = Debug|x64
+		{CB808C07-06AD-424A-B9BF-C15B89ACD4EC}.Debug|x86.ActiveCfg = Debug|Win32
+		{CB808C07-06AD-424A-B9BF-C15B89ACD4EC}.Debug|x86.Build.0 = Debug|Win32
+		{CB808C07-06AD-424A-B9BF-C15B89ACD4EC}.Release|x64.ActiveCfg = Release|x64
+		{CB808C07-06AD-424A-B9BF-C15B89ACD4EC}.Release|x64.Build.0 = Release|x64
+		{CB808C07-06AD-424A-B9BF-C15B89ACD4EC}.Release|x86.ActiveCfg = Release|Win32
+		{CB808C07-06AD-424A-B9BF-C15B89ACD4EC}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

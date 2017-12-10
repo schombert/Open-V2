@@ -319,6 +319,26 @@ uint32_t fixed_sz_deque<T, block, index_sz>::past_end() const {
 }
 
 template<typename T, uint32_t block, uint32_t index_sz>
+template<typename U>
+void fixed_sz_deque<T, block, index_sz>::free(uint32_t index, U& u) {
+	const auto block_num = index >> ct_log2(block);
+	const auto block_index = index & (block - 1);
+
+	const auto local_index = index_array[block_num].load(std::memory_order_acquire);
+	std::atomic<uint32_t>* const keys = (std::atomic<uint32_t>*)(local_index + block);
+
+	u.destroy(local_index[block_index]);
+
+	++index;
+
+	auto free_spot = first_free.load(std::memory_order_acquire);
+	keys[block_index].store(free_spot, std::memory_order_release);
+	while (!first_free.compare_exchange_strong(free_spot, index, std::memory_order_release, std::memory_order_acquire)) {
+		keys[block_index].store(free_spot, std::memory_order_release);
+	}
+}
+
+template<typename T, uint32_t block, uint32_t index_sz>
 void fixed_sz_deque<T, block, index_sz>::free(uint32_t index) {
 	const auto block_num = index >> ct_log2(block);
 	const auto block_index = index & (block - 1);

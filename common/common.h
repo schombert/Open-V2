@@ -9,6 +9,17 @@
 #define CALL
 #endif
 
+enum modifiers {
+	modifiers_none = 0x0,
+	modifiers_alt = 0x4,
+	modifiers_ctrl = 0x2,
+	modifiers_shift = 0x1,
+	modifiers_ctrl_shift = 0x3,
+	modifiers_ctrl_alt = 0x6,
+	modifiers_alt_shift = 0x5,
+	modifiers_all = 0x7
+};
+
 enum class virtual_key : uint8_t {
 	NONE = 0x00,
 	LBUTTON = 0x01,

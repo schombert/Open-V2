@@ -21,10 +21,12 @@
 
 class free_type_library {
 public:
-	FT_Library  library;
+	FT_Library render_library;
+	FT_Library metrics_library;
 
 	free_type_library() {
-		FT_Init_FreeType(&library);
+		FT_Init_FreeType(&render_library);
+		FT_Init_FreeType(&metrics_library);
 	}
 };
 
@@ -160,21 +162,32 @@ public:
 
 	_font* const parent;
 	boost::container::flat_map<char16_t, glyph> glyph_mappings;
+	boost::container::flat_map<char16_t, metrics_glyph> metrics_glyph_mappings;
 	std::vector<uint32_t> textures;
 
 	const std::string font_file;
 
 	FT_Face font_face;
+	FT_Face metrics_font_face;
 	uint32_t last_in_texture = 0;
 	float line_height = 0.0f;
 
 	void load() {
-		FT_New_Face(global_freetype.library, font_file.c_str(), 0, &font_face);
+		FT_New_Face(global_freetype.render_library, font_file.c_str(), 0, &font_face);
 		FT_Select_Charmap(font_face, FT_ENCODING_UNICODE);
 
 		FT_Set_Pixel_Sizes(font_face, 0, 64 * magnification_factor);
 
 		line_height = static_cast<float>(font_face->height) / static_cast<float>(1 << 6);
+	}
+
+	void load_metrics() {
+		FT_New_Face(global_freetype.metrics_library, font_file.c_str(), 0, &metrics_font_face);
+		FT_Select_Charmap(metrics_font_face, FT_ENCODING_UNICODE);
+
+		FT_Set_Pixel_Sizes(metrics_font_face, 0, 64 * magnification_factor);
+
+		line_height = static_cast<float>(metrics_font_face->height) / static_cast<float>(1 << 6);
 	}
 
 	_font(const char* filename, _font* p) : parent(p), font_file(filename) {
@@ -191,13 +204,23 @@ public:
 		return false;
 	}
 
-	std::optional<glyph> _getglyph(char16_t codepoint) {
+	std::optional<glyph> _get_glyph(char16_t codepoint) {
 		if (auto loc = glyph_mappings.find(codepoint);  loc != glyph_mappings.end()) {
 			return std::optional<glyph>(loc->second);
 		} else if (parent) {
-			return parent->_getglyph(codepoint);
+			return parent->_get_glyph(codepoint);
 		} else {
 			return std::optional<glyph>();
+		}
+	}
+
+	std::optional<metrics_glyph> _get_m_glyph(char16_t codepoint) {
+		if (auto loc = metrics_glyph_mappings.find(codepoint);  loc != metrics_glyph_mappings.end()) {
+			return std::optional<metrics_glyph>(loc->second);
+		} else if (parent) {
+			return parent->_get_m_glyph(codepoint);
+		} else {
+			return std::optional<metrics_glyph>();
 		}
 	}
 
@@ -215,13 +238,33 @@ public:
 		if (FT_HAS_KERNING(font_face)) {
 			FT_Vector kerning;
 			FT_Get_Kerning(font_face, index_a, index_b, FT_KERNING_DEFAULT, &kerning);
-			return static_cast<float>(kerning.x) / static_cast<float>(1 << 6);
+			return static_cast<float>(kerning.x) / static_cast<float>((1 << 6) * magnification_factor);
 		} else {
 			return 0.0f;
 		}
 	}
 
-	glyph makeglyph(char16_t codepoint) {
+	float metrics_kerning(char16_t codepoint_first, char16_t codepoint_second) const {
+		const auto index_a = FT_Get_Char_Index(metrics_font_face, codepoint_first);
+		const auto index_b = FT_Get_Char_Index(metrics_font_face, codepoint_second);
+
+		if ((index_a == 0) | (index_b == 0)) {
+			if (parent)
+				return parent->metrics_kerning(codepoint_first, codepoint_second);
+			else
+				return 0.0f;
+		}
+
+		if (FT_HAS_KERNING(metrics_font_face)) {
+			FT_Vector kerning;
+			FT_Get_Kerning(metrics_font_face, index_a, index_b, FT_KERNING_DEFAULT, &kerning);
+			return static_cast<float>(kerning.x) / static_cast<float>((1 << 6) * magnification_factor);
+		} else {
+			return 0.0f;
+		}
+	}
+
+	glyph make_glyph(char16_t codepoint) {
 		const auto index_in_this_font = FT_Get_Char_Index(font_face, codepoint);
 		if (index_in_this_font) {
 			FT_Load_Glyph(font_face, index_in_this_font, FT_LOAD_TARGET_NORMAL | FT_LOAD_RENDER);
@@ -300,32 +343,81 @@ public:
 
 			return created;
 		} else if(parent) {
-			return parent->makeglyph(codepoint);
+			return parent->make_glyph(codepoint);
 		} else {
 			// impossible to display this codepoint
 			return glyph();
 		}
 	}
 
-	glyph getglyph(char16_t codepoint) {
-		const auto found = _getglyph(codepoint);
+	metrics_glyph make_metrics_glyph(char16_t codepoint) {
+		const auto index_in_this_font = FT_Get_Char_Index(metrics_font_face, codepoint);
+		if (index_in_this_font) {
+			FT_Load_Glyph(metrics_font_face, index_in_this_font, FT_LOAD_TARGET_NORMAL);
+
+			FT_Glyph g_result;
+			FT_Get_Glyph(metrics_font_face->glyph, &g_result);
+
+			metrics_glyph created;
+			created.advance = static_cast<float>(metrics_font_face->glyph->metrics.horiAdvance) / static_cast<float>((1 << 6) * magnification_factor);
+			return created;
+		} else if (parent) {
+			return parent->make_metrics_glyph(codepoint);
+		} else {
+			return metrics_glyph();
+		}
+	}
+
+	glyph get_glyph(char16_t codepoint) {
+		const auto found = _get_glyph(codepoint);
 		if (found)
 			return *found;
 		else
-			return makeglyph(codepoint);
+			return make_glyph(codepoint);
+	}
+
+	metrics_glyph get_metrics_glyph(char16_t codepoint) {
+		const auto found = _get_m_glyph(codepoint);
+		if (found)
+			return *found;
+		else
+			return make_metrics_glyph(codepoint);
 	}
 };
 
-glyph font::get_glyph(char16_t codepoint) {
-	return impl->getglyph(codepoint);
+glyph font::get_render_glyph(char16_t codepoint) {
+	return impl->get_glyph(codepoint);
 }
 
-float font::kerning(char16_t codepoint_first, char16_t codepoint_second) const {
+metrics_glyph font::get_metrics_glyph(char16_t codepoint) {
+	return impl->get_metrics_glyph(codepoint);
+}
+
+float font::render_kerning(char16_t codepoint_first, char16_t codepoint_second) const {
 	return impl->kerning(codepoint_first, codepoint_second);
+}
+
+float font::metrics_kerning(char16_t codepoint_first, char16_t codepoint_second) const {
+	return impl->metrics_kerning(codepoint_first, codepoint_second);
 }
 
 void font::load_font(open_gl_wrapper&) {
 	impl->load();
+}
+
+void font::load_metrics_font() {
+	impl->load_metrics();
+}
+
+float font::metrics_text_extent(char16_t* codepoints, uint32_t count, float size, bool outlined) const {
+	float total = 0.0f;
+	for (int32_t i = count - 1; i >= 0; --i) {
+		total +=
+			impl->get_metrics_glyph(codepoints[i]).advance * size / 64.0f + 
+			(outlined ? 0.6f : 0.0f) + 
+			(i != 0) ? metrics_kerning(codepoints[i - 1], codepoints[i]) * size / 64.0f : 0.0f;
+	}
+	return total;
 }
 
 float font::line_height() const {

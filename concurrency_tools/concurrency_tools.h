@@ -181,6 +181,8 @@ public:
 	T& at(uint32_t index) const;
 	T* safe_at(uint32_t index) const;
 	void free(uint32_t index);
+	template<typename U>
+	void free(uint32_t index, U&);
 	uint32_t past_end() const;
 
 	template<typename ...P>

@@ -1305,7 +1305,7 @@ EMPTY_TYPE(empty_type)
 	BEGIN_TYPE(windowType)
 		MEMBER_ASSOCIATION("orientation", "orientation", window_orientation_from_rh)
 		MEMBER_ASSOCIATION("background", "background", value_from_rh<std::string>)
-		MEMBER_ASSOCIATION("dontrender", "dontrender", value_from_rh<bool>)
+		MEMBER_ASSOCIATION("dontrender", "dontrender", discard_from_rh)
 		MEMBER_ASSOCIATION("downsound", "downsound", discard_from_rh)
 		MEMBER_ASSOCIATION("upsound", "upsound", discard_from_rh)
 		MEMBER_ASSOCIATION("fullscreen", "fullscreen", value_from_rh<bool>)
@@ -1360,7 +1360,7 @@ void load_ui_definitions_from_directory(
 
 	for (const auto& f : gui_files) {
 		if (f.file_name() == u"battleplansinterface.gui" || f.file_name() == u"news.gui" || f.file_name() == u"nudge.gui"
-			|| f.file_name() == u"tutorial.gui" || f.file_name() == u"tutorial_control.gui") {
+			|| f.file_name() == u"tutorial.gui" || f.file_name() == u"tutorial_control.gui" || f.file_name() == u"metaserver.gui") {
 			//skip
 		} else {
 			auto open_f = f.open_file();

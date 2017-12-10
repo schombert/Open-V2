@@ -12,6 +12,11 @@ public:
 	uint32_t buffer = 0;
 };
 
+class metrics_glyph {
+public:
+	float advance = 0.0;
+};
+
 class open_gl_wrapper;
 
 class font {
@@ -23,7 +28,11 @@ public:
 	~font();
 
 	void load_font(open_gl_wrapper&);
-	glyph get_glyph(char16_t codepoint);
+	void load_metrics_font();
+	glyph get_render_glyph(char16_t codepoint);
+	metrics_glyph get_metrics_glyph(char16_t codepoint);
 	float line_height() const;
-	float kerning(char16_t codepoint_first, char16_t codepoint_second) const;
+	float render_kerning(char16_t codepoint_first, char16_t codepoint_second) const;
+	float metrics_kerning(char16_t codepoint_first, char16_t codepoint_second) const;
+	float metrics_text_extent(char16_t* codepoints, uint32_t count, float size, bool outlined = false) const;
 };
