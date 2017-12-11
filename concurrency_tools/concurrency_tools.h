@@ -202,9 +202,11 @@ template<typename T, uint32_t block, uint32_t index_sz>
 class fixed_sz_list {
 private:
 	std::atomic<T*> index_array[index_sz] = { nullptr };
-	std::atomic<uint32_t> first_free = (uint32_t)-1;
-	std::atomic<uint32_t> first_in_list = (uint32_t)-1;
+	std::atomic<uint64_t> first_free = 0;
+	std::atomic<uint64_t> first_in_list = 0;
 	std::atomic<uint32_t> first_free_index = 1;
+
+	void create_new_block();
 public:
 	fixed_sz_list();
 	~fixed_sz_list();
