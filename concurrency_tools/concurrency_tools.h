@@ -174,6 +174,8 @@ private:
 	std::atomic<T*> index_array[index_sz] = { nullptr };
 	std::atomic<uint32_t> first_free = 0;
 	std::atomic<uint32_t> first_free_index = 1;
+
+	void create_new_block();
 public:
 	fixed_sz_deque();
 	~fixed_sz_deque();
@@ -187,6 +189,8 @@ public:
 
 	template<typename ...P>
 	uint32_t emplace_back(P&& ... params);
+	template<typename ...P>
+	T& emplace_at(uint32_t location, P&& ... params); // not thread safe
 	template<typename F>
 	void visit(uint32_t index, const F& f) const;
 

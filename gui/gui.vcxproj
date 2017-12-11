@@ -146,6 +146,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="gui.h" />
+    <ClInclude Include="gui.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="gui.cpp" />
