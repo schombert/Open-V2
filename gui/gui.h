@@ -8,6 +8,8 @@ class texture;
 class font;
 class data_texture;
 class open_gl_wrapper;
+class lines;
+enum class rotation;
 
 namespace graphics {
 	struct object;
@@ -26,9 +28,13 @@ struct key_up;
 struct text_event;
 
 namespace ui {
+	enum class text_color : uint8_t {
+		black, white, red, green, yellow,
+		outlined_white, outlined_black
+	};
 	struct text_instance {
 		uint8_t font_handle;
-		uint8_t color;
+		text_color color = text_color::black;
 		uint8_t size; // *2 = display size
 		uint8_t length;
 		char16_t text[30];
@@ -79,7 +85,7 @@ namespace ui {
 		static constexpr uint16_t type_text_instance = 0x0002; // type_dependant_handle = text_instance
 		static constexpr uint16_t type_barchart = 0x0003; // type_dependant_handle = data_texture
 		static constexpr uint16_t type_piechart = 0x0004; // type_dependant_handle = data_texture
-		static constexpr uint16_t type_linegraph = 0x0005; // type_dependant_handle = data_texture
+		static constexpr uint16_t type_linegraph = 0x0005; // type_dependant_handle = lines
 		static constexpr uint16_t type_masked_flag = 0x0006; // type_dependant_handle = flag_instance
 
 		gui_behavior* associated_behavior = nullptr; //8bytes
@@ -97,9 +103,16 @@ namespace ui {
 		std::atomic<uint16_t> flags = 0; // 28 bytes
 
 		char padding[4]; //32 bytes
+
+		const rotation get_rotation() const;
 	};
 
 	class gui_manager {
+	private:
+		void render_object_type(open_gl_wrapper&, const gui_object&, ui::xy_pair position, uint32_t type);
+		void render_internal(open_gl_wrapper&, const gui_object&, ui::xy_pair position);
+		template<typename MESSAGE_FUNCTION, typename MESSAGE_TYPE>
+		bool dispatch_message_internal(MESSAGE_FUNCTION member_f, gui_object& obj, MESSAGE_TYPE message);
 	public:
 		fixed_sz_deque<gui_object, 128, 64> gui_objects;
 		fixed_sz_deque<text_instance, 128, 64> text_instances;
@@ -107,6 +120,7 @@ namespace ui {
 		fixed_sz_deque<flag_instance, 64, 64> flag_instances;
 		fixed_sz_deque<data_texture, 64, 16> data_textures;
 		fixed_sz_deque<font, 32, 8> fonts;
+		fixed_sz_deque<lines, 32, 8> lines_set;
 
 		gui_object& root;
 		gui_object& background;

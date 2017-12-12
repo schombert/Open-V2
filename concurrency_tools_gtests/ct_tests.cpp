@@ -115,9 +115,9 @@ TEST(fxd_deque, concurrency_tools) {
 
 
 	for (int i = 0; i < 127; ++i)
-		tv.emplace_back(i);
+		tv.emplace(i);
 
-	const auto li = tv.emplace_back(127);
+	const auto li = tv.emplace(127);
 
 	EXPECT_EQ(127, li);
 
@@ -134,12 +134,12 @@ TEST(fxd_deque_growing, concurrency_tools) {
 	EXPECT_EQ(64, tv.past_end());
 
 	for (int i = 0; i < 64; ++i)
-		tv.emplace_back(i);
+		tv.emplace(i);
 
 	EXPECT_EQ(64, tv.past_end());
 
 	for (int i = 64; i < 128; ++i)
-		tv.emplace_back(i);
+		tv.emplace(i);
 
 	EXPECT_EQ(128, tv.past_end());
 
@@ -152,16 +152,16 @@ TEST(fxd_deque_growing, concurrency_tools) {
 	EXPECT_EQ(nullptr, tv.safe_at(0));
 	EXPECT_EQ(nullptr, tv.safe_at(120));
 
-	tv.emplace_back(0);
-	tv.emplace_back(0);
-	tv.emplace_back(0);
-	tv.emplace_back(0);
+	tv.emplace(0);
+	tv.emplace(0);
+	tv.emplace(0);
+	tv.emplace(0);
 
 	EXPECT_EQ(128, tv.past_end());
 	EXPECT_NE(nullptr, tv.safe_at(0));
 	EXPECT_NE(nullptr, tv.safe_at(120));
 
-	tv.emplace_back(0);
+	tv.emplace(0);
 	EXPECT_EQ(64*3, tv.past_end());
 }
 
@@ -171,7 +171,7 @@ TEST(fxd_deque_iterator, concurrency_tools) {
 	EXPECT_EQ(64, tv.past_end());
 
 	for (int i = 0; i < 128; ++i)
-		tv.emplace_back(i);
+		tv.emplace(i);
 
 	int32_t sz = 0;
 
@@ -193,10 +193,10 @@ TEST(fxd_deque_iterator, concurrency_tools) {
 
 	EXPECT_EQ(64 * 2 - 4, sz);
 
-	tv.emplace_back(0);
-	tv.emplace_back(0);
-	tv.emplace_back(0);
-	tv.emplace_back(0);
+	tv.emplace(0);
+	tv.emplace(0);
+	tv.emplace(0);
+	tv.emplace(0);
 
 	sz = 0;
 	for (const auto e : tv) {
@@ -209,9 +209,9 @@ TEST(fxd_deque_iterator, concurrency_tools) {
 TEST(fxd_deque_iterator_b, concurrency_tools) {
 	fixed_sz_deque<int, 64, 64> tv;
 
-	tv.emplace_back(1);
-	tv.emplace_back(2);
-	tv.emplace_back(3);
+	tv.emplace(1);
+	tv.emplace(2);
+	tv.emplace(3);
 
 	int32_t total = 0;
 	for (const auto e : tv) {

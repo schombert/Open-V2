@@ -408,23 +408,25 @@ T& fixed_sz_deque<T, block, index_sz>::emplace_at(uint32_t location, P&& ... par
 	const auto local_index = index_array[block_num].load(std::memory_order_relaxed);
 	std::atomic<uint32_t>* const keys = (std::atomic<uint32_t>*)(local_index + block);
 
-	concurrent_key_pair_helper ff(first_free.load(std::memory_order_relaxed));
-	std::atomic<uint32_t>* current_key = (std::atomic<uint32_t>*)(index_array[ff.parts.index >> ct_log2(block)].load(std::memory_order_relaxed) + block)
-		+ ff.parts.index & (block - 1);
+	if (keys[block_index].load(std::memory_order_relaxed) != (uint32_t)-2) {
+		concurrent_key_pair_helper ff(first_free.load(std::memory_order_relaxed));
+		std::atomic<uint32_t>* current_key = (std::atomic<uint32_t>*)(index_array[ff.parts.index >> ct_log2(block)].load(std::memory_order_relaxed) + block)
+			+ ff.parts.index & (block - 1);
 
-	if (ff.parts.index == location) {
-		first_free.store(concurrent_key_pair_helper(current_key->load(std::memory_order_relaxed), ff.parts.counter + 1), std::memory_order_release);
-	} else {
-		while (current_key->load(std::memory_order_relaxed) != (uint32_t)-1) {
-			const auto current_key_position = current_key->load(std::memory_order_relaxed);
-			std::atomic<uint32_t>* next_key =
-				(std::atomic<uint32_t>*)(index_array[current_key_position >> ct_log2(block)].load(std::memory_order_relaxed) + block)
-				+ current_key_position & (block - 1);
-			if (current_key_position == location) {
-				current_key->store(next_key->load(std::memory_order_relaxed), std::memory_order_release);
-				break;
+		if (ff.parts.index == location) {
+			first_free.store(concurrent_key_pair_helper(current_key->load(std::memory_order_relaxed), ff.parts.counter + 1), std::memory_order_release);
+		} else {
+			while (current_key->load(std::memory_order_relaxed) != (uint32_t)-1) {
+				const auto current_key_position = current_key->load(std::memory_order_relaxed);
+				std::atomic<uint32_t>* next_key =
+					(std::atomic<uint32_t>*)(index_array[current_key_position >> ct_log2(block)].load(std::memory_order_relaxed) + block)
+					+ current_key_position & (block - 1);
+				if (current_key_position == location) {
+					current_key->store(next_key->load(std::memory_order_relaxed), std::memory_order_release);
+					break;
+				}
+				current_key = next_key;
 			}
-			current_key = next_key;
 		}
 	}
 
@@ -435,8 +437,28 @@ T& fixed_sz_deque<T, block, index_sz>::emplace_at(uint32_t location, P&& ... par
 }
 
 template<typename T, uint32_t block, uint32_t index_sz>
+T& fixed_sz_deque<T, block, index_sz>::ensure_reserved(uint32_t location) {
+	const auto block_num = (location) >> ct_log2(block);
+	const auto block_index = (location) & (block - 1);
+
+	while (first_free_index.load(std::memory_order_relaxed) < block_num) {
+		create_new_block();
+	}
+
+	const auto local_index = index_array[block_num].load(std::memory_order_aquire);
+	std::atomic<uint32_t>* const keys = (std::atomic<uint32_t>*)(local_index + block);
+
+	while (keys[block_index].load(std::memory_order_aquire) == (uint32_t)-2) {
+		emplace();
+	}
+
+	return local_index[block_index];
+}
+
+
+template<typename T, uint32_t block, uint32_t index_sz>
 template<typename ...P>
-uint32_t fixed_sz_deque<T, block, index_sz>::emplace_back(P&& ... params) {
+uint32_t fixed_sz_deque<T, block, index_sz>::emplace(P&& ... params) {
 	concurrent_key_pair_helper free_spot(first_free.load(std::memory_order_acquire));
 
 	while (true) {

@@ -415,7 +415,7 @@ float font::metrics_text_extent(char16_t* codepoints, uint32_t count, float size
 		total +=
 			impl->get_metrics_glyph(codepoints[i]).advance * size / 64.0f + 
 			(outlined ? 0.6f : 0.0f) + 
-			(i != 0) ? metrics_kerning(codepoints[i - 1], codepoints[i]) * size / 64.0f : 0.0f;
+			((i != 0) ? metrics_kerning(codepoints[i - 1], codepoints[i]) * size / 64.0f : 0.0f);
 	}
 	return total;
 }

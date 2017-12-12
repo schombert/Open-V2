@@ -21,6 +21,8 @@ class open_gl_wrapper;
 
 class font {
 public:
+	static constexpr float baseline_fraction = 0.75f;
+
 	const std::unique_ptr<_font> impl;
 
 	font(const char* filename, font& p);

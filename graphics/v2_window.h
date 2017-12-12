@@ -3,37 +3,33 @@
 #include <memory>
 #include <variant>
 #include <thread>
+#include <type_traits>
 
 #include "common\\common.h"
 #include "open_gl_wrapper.h"
 
-struct rbutton_down {
-	int x;
-	int y;
+struct message_with_location {
+	int32_t x;
+	int32_t y;
+};
+
+struct rbutton_down : public message_with_location {
 	modifiers mod;
 };
 
-struct mouse_move {
-	int x;
-	int y;
+struct mouse_move : public message_with_location {
 	modifiers mod;
 };
 
-struct mouse_drag {
-	int x;
-	int y;
+struct mouse_drag : public message_with_location{
 	modifiers mod;
 };
 
-struct rbutton_up {
-	int x;
-	int y;
+struct rbutton_up : public message_with_location {
 	modifiers mod;
 };
 
-struct lbutton_down {
-	int x;
-	int y;
+struct lbutton_down : public message_with_location {
 	modifiers mod;
 };
 
@@ -42,15 +38,11 @@ struct resize {
 	uint32_t height;
 };
 
-struct lbutton_up {
-	int x;
-	int y;
+struct lbutton_up : public message_with_location {
 	modifiers mod;
 };
 
-struct scroll {
-	int x;
-	int y;
+struct scroll : public message_with_location {
 	float amount;
 	modifiers mod;
 };
@@ -70,6 +62,26 @@ struct text_event {
 };
 
 struct creation {};
+
+template<typename T>
+T adjust_message_location(T message, int32_t delta_x, int32_t delta_y) {
+	if constexpr(std::is_base_of_v<message_with_location, T>) {
+		T new_message = message;
+		new_message.x += delta_x;
+		new_message.y += delta_y;
+		return new_message;
+	} else {
+		return message;
+	}
+}
+
+template<typename T>
+bool message_within_bounds(T message, int32_t x_max, int32_t y_max) {
+	if constexpr(std::is_base_of_v<message_with_location, T>)
+		return (new_message.x <= x_max) & (new_message.y <= y_max);
+	else
+		return true;
+}
 
 using message_variant = std::variant<int64_t, rbutton_down, rbutton_up, lbutton_down, lbutton_up, resize, scroll, key_down, key_up, text_event, mouse_move, mouse_drag, creation>;
 

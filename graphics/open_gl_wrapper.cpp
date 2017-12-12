@@ -800,7 +800,7 @@ void internal_text_render(const char16_t* codepoints, uint32_t count, float x, f
 	}
 }
 
-void open_gl_wrapper::render_outlined_text(const char16_t* codepoints, uint32_t count, bool enabled, float x, float baseline_y, float size, const color& c, font& f) {
+void open_gl_wrapper::render_outlined_text(const char16_t* codepoints, uint32_t count, bool enabled, float x, float y, float size, const color& c, font& f) {
 	GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::border_filter };
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
 
@@ -808,17 +808,17 @@ void open_gl_wrapper::render_outlined_text(const char16_t* codepoints, uint32_t 
 	glUniform1f(parameters::border_size, 0.08f * 16.0f / size); // for normal outlines
 	// glUniform1f(parameters::border_size, 0.16f * 16.0f / size); // for bold outlines
 
-	internal_text_render(codepoints, count, x, baseline_y, size, f, 0.6);
+	internal_text_render(codepoints, count, x, y + font::baseline_fraction * f.line_height() * size / 64.0f, size, f, 0.6);
 }
 
-void open_gl_wrapper::render_text(const char16_t* codepoints, uint32_t count, bool enabled, float x, float baseline_y, float size, const color& c, font& f) {
+void open_gl_wrapper::render_text(const char16_t* codepoints, uint32_t count, bool enabled, float x, float y, float size, const color& c, font& f) {
 	GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::filter };
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
 
 	glUniform3f(parameters::inner_color, c.r, c.b, c.g);
 	glUniform1f(parameters::border_size, 0.08f * 16.0f / size);
 
-	internal_text_render(codepoints, count, x, baseline_y, size, f, 0.0);
+	internal_text_render(codepoints, count, x, y + font::baseline_fraction * f.line_height() * size / 64.0f, size, f, 0.0);
 }
 
 void open_gl_wrapper::set_viewport(uint32_t width, uint32_t height) {

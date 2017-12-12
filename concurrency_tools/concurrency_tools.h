@@ -188,9 +188,10 @@ public:
 	uint32_t past_end() const;
 
 	template<typename ...P>
-	uint32_t emplace_back(P&& ... params);
+	uint32_t emplace(P&& ... params);
 	template<typename ...P>
 	T& emplace_at(uint32_t location, P&& ... params); // not thread safe
+	T& ensure_reserved(uint32_t location);
 	template<typename F>
 	void visit(uint32_t index, const F& f) const;
 

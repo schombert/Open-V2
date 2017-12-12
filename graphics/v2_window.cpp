@@ -66,19 +66,19 @@ message_variant yield_message(void* _hwnd, unsigned int uMsg, unsigned int* _wPa
 			return int64_t(1);
 		case WM_LBUTTONDOWN:
 			SetCapture(hwnd);
-			return lbutton_down{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), get_current_modifiers() };
+			return lbutton_down{ { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) }, get_current_modifiers() };
 		case WM_LBUTTONUP:
 			ReleaseCapture();
-			return lbutton_up{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), get_current_modifiers() };
+			return lbutton_up{ { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) }, get_current_modifiers() };
 		case WM_MOUSEMOVE:
 			if (wParam & MK_LBUTTON)
-				return mouse_drag{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), get_current_modifiers() };
+				return mouse_drag{ { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) }, get_current_modifiers() };
 			else
-				return mouse_move{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), get_current_modifiers() };
+				return mouse_move{ { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) }, get_current_modifiers() };
 		case WM_RBUTTONDOWN:
-			return rbutton_down{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), get_current_modifiers() };
+			return rbutton_down{ { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) }, get_current_modifiers() };
 		case WM_RBUTTONUP:
-			return rbutton_up{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), get_current_modifiers() };
+			return rbutton_up{ { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) }, get_current_modifiers() };
 		case WM_SIZING:
 		{
 			RECT* window_rect = (RECT*)lParam;
@@ -97,7 +97,7 @@ message_variant yield_message(void* _hwnd, unsigned int uMsg, unsigned int* _wPa
 				winbase->gl_wrapper.set_viewport(uint32_t(LOWORD(lParam)), uint32_t(HIWORD(lParam)));
 			return resize{ uint32_t(LOWORD(lParam)), uint32_t(HIWORD(lParam)) };
 		case WM_MOUSEWHEEL:
-			return scroll{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), (float)(GET_WHEEL_DELTA_WPARAM(wParam)) / 120.0, get_current_modifiers() };
+			return scroll{ { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) }, (float)(GET_WHEEL_DELTA_WPARAM(wParam)) / 120.0, get_current_modifiers() };
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
 			return key_down{ virtual_key(wParam), get_current_modifiers() };

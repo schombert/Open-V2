@@ -73,6 +73,10 @@ namespace ui {
 	struct xy_pair {
 		int16_t x = 0;
 		int16_t y = 0;
+
+		constexpr ui::xy_pair operator+(ui::xy_pair other) const {
+			return xy_pair{x+other.x, y+other.y};
+		}
 	};
 
 	struct button_def {
