@@ -51,20 +51,21 @@ namespace ui {
 	};
 
 	class gui_object;
+	class gui_manager;
 
 	class gui_behavior {
 	public:
-		virtual bool on_lclick(gui_object& owner, const lbutton_down&) { return false; };
-		virtual bool on_rclick(gui_object& owner, const rbutton_down&) { return false; };
-		virtual bool on_drag(gui_object& owner, const mouse_drag&) { return false; };
-		virtual bool on_keydown(gui_object& owner, const key_down&) { return false; };
-		virtual bool on_text(gui_object& owner, const text_event&) { return false; };
-		virtual bool on_scroll(gui_object& owner, const scroll&) { return false; };
-		virtual void on_get_focus(gui_object& owner) { };
-		virtual void on_lose_focus(gui_object& owner) { };
-		virtual void update_data(gui_object& owner) {};
-		virtual bool has_tooltip(gui_object& owner) { return false; };
-		virtual void create_tooltip(gui_object& owner, gui_object& tooltip_window) { };
+		virtual bool on_lclick(gui_object& owner, gui_manager& manager, const lbutton_down&) { return false; };
+		virtual bool on_rclick(gui_object& owner, gui_manager& manager, const rbutton_down&) { return false; };
+		virtual bool on_drag(gui_object& owner, gui_manager& manager, const mouse_drag&) { return false; };
+		virtual bool on_keydown(gui_object& owner, gui_manager& manager, const key_down&) { return false; };
+		virtual bool on_text(gui_object& owner, gui_manager& manager, const text_event&) { return false; };
+		virtual bool on_scroll(gui_object& owner, gui_manager& manager, const scroll&) { return false; };
+		virtual void on_get_focus(gui_object& owner, gui_manager& manager) { };
+		virtual void on_lose_focus(gui_object& owner, gui_manager& manager) { };
+		virtual void update_data(gui_object& owner, gui_manager& manager) {};
+		virtual bool has_tooltip(gui_object& owner, gui_manager& manager) { return false; };
+		virtual void create_tooltip(gui_object& owner, gui_manager& manager, gui_object& tooltip_window) { };
 		virtual ~gui_behavior() {};
 	};
 
@@ -112,7 +113,7 @@ namespace ui {
 		void render_object_type(open_gl_wrapper&, const gui_object&, ui::xy_pair position, uint32_t type);
 		void render_internal(open_gl_wrapper&, const gui_object&, ui::xy_pair position);
 		template<typename MESSAGE_FUNCTION, typename MESSAGE_TYPE>
-		bool dispatch_message_internal(MESSAGE_FUNCTION member_f, gui_object& obj, MESSAGE_TYPE message);
+		bool dispatch_message_internal(const MESSAGE_FUNCTION &member_f, gui_object& obj, const MESSAGE_TYPE& message);
 	public:
 		fixed_sz_deque<gui_object, 128, 64> gui_objects;
 		fixed_sz_deque<text_instance, 128, 64> text_instances;

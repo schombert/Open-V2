@@ -444,7 +444,7 @@ void create_shaders() {
 	//parameters::border_filter = glGetSubroutineIndex(general_shader, GL_FRAGMENT_SHADER, "border_filter");
 }
 
-HGLRC setup_opengl_context(HWND hwnd, HDC window_dc) {
+std::pair<HGLRC, HGLRC> setup_opengl_context(HWND hwnd, HDC window_dc) {
 
 	PIXELFORMATDESCRIPTOR pfd;
 	ZeroMemory(&pfd, sizeof(pfd));
@@ -485,8 +485,16 @@ HGLRC setup_opengl_context(HWND hwnd, HDC window_dc) {
 
 	if (wglewIsSupported("WGL_ARB_create_context") != 1) {
 		MessageBox(hwnd, L"WGL_ARB_create_context not supported", L"OpenGL error", MB_OK);
+		std::abort();
 	} else {
+		auto ui_context = wglCreateContextAttribsARB(window_dc, NULL, attribs);
 		auto new_context = wglCreateContextAttribsARB(window_dc, NULL, attribs);
+
+		if (wglShareLists(new_context, ui_context) == FALSE) {
+			MessageBox(hwnd, L"Unable to share contexts", L"OpenGL error", MB_OK);
+			std::abort();
+		}
+
 
 		wglMakeCurrent(window_dc, NULL);
 		wglDeleteContext(handle_to_ogl_dc);
@@ -505,15 +513,13 @@ HGLRC setup_opengl_context(HWND hwnd, HDC window_dc) {
 			MessageBox(hwnd, L"WGL_EXT_swap_control_tear and WGL_EXT_swap_control not supported", L"OpenGL error", MB_OK);
 		}
 
-		handle_to_ogl_dc = new_context;
+		glEnable(GL_LINE_SMOOTH);
+
+		create_shaders();
+		create_global_square();
+
+		return std::make_pair(new_context, ui_context);
 	}
-	
-	glEnable(GL_LINE_SMOOTH);
-
-	create_shaders();
-	create_global_square();
-
-	return handle_to_ogl_dc;
 }
 
 void release_opengl_context(void* _hwnd, HGLRC context) {
@@ -529,6 +535,7 @@ void release_opengl_context(void* _hwnd, HGLRC context) {
 class _open_gl_wrapper {
 public:
 	HGLRC context;
+	HGLRC ui_context;
 	HDC window_dc;
 	std::thread render_thread;
 
@@ -551,18 +558,23 @@ bool open_gl_wrapper::is_running() {
 
 void open_gl_wrapper::setup_context(void* hwnd) {
 	impl->window_dc = GetDC((HWND)hwnd);
-	impl->context = setup_opengl_context((HWND)hwnd, impl->window_dc);
+	std::tie(impl->context, impl->ui_context) = setup_opengl_context((HWND)hwnd, impl->window_dc);
 }
 
 void open_gl_wrapper::destory(void* hwnd) {
 	impl->active.store(false, std::memory_order::memory_order_release);
 	impl->render_thread.join();
 	release_opengl_context((HWND)hwnd, impl->context);
+	release_opengl_context((HWND)hwnd, impl->ui_context);
 	ReleaseDC((HWND)hwnd, impl->window_dc);
 }
 
 void open_gl_wrapper::bind_to_thread() {
 	wglMakeCurrent(impl->window_dc, impl->context);
+}
+
+void open_gl_wrapper::bind_to_ui_thread() {
+	wglMakeCurrent(impl->window_dc, impl->ui_context);
 }
 
 void open_gl_wrapper::display() {
@@ -808,7 +820,7 @@ void open_gl_wrapper::render_outlined_text(const char16_t* codepoints, uint32_t 
 	glUniform1f(parameters::border_size, 0.08f * 16.0f / size); // for normal outlines
 	// glUniform1f(parameters::border_size, 0.16f * 16.0f / size); // for bold outlines
 
-	internal_text_render(codepoints, count, x, y + font::baseline_fraction * f.line_height() * size / 64.0f, size, f, 0.6);
+	internal_text_render(codepoints, count, x, y + size, size, f, 0.6);
 }
 
 void open_gl_wrapper::render_text(const char16_t* codepoints, uint32_t count, bool enabled, float x, float y, float size, const color& c, font& f) {
@@ -818,7 +830,7 @@ void open_gl_wrapper::render_text(const char16_t* codepoints, uint32_t count, bo
 	glUniform3f(parameters::inner_color, c.r, c.b, c.g);
 	glUniform1f(parameters::border_size, 0.08f * 16.0f / size);
 
-	internal_text_render(codepoints, count, x, y + font::baseline_fraction * f.line_height() * size / 64.0f, size, f, 0.0);
+	internal_text_render(codepoints, count, x, y + size, size, f, 0.0);
 }
 
 void open_gl_wrapper::set_viewport(uint32_t width, uint32_t height) {

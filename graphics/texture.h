@@ -6,9 +6,16 @@
 #include "simple_fs\\simple_fs.h"
 #include <map>
 
+struct color_rgba {
+	uint8_t r = 0;
+	uint8_t g = 0;
+	uint8_t b = 0;
+	uint8_t a = 0;
+};
+
 class texture {
 private:
-	uint32_t texture_handle = 0;
+	std::atomic<uint32_t> texture_handle = 0;
 	int width = 0;
 	int height = 0;
 	int channels = 0;
@@ -17,10 +24,12 @@ public:
 	const std::string filename;
 	
 	texture(const std::string& fn);
-	texture(const texture& o) noexcept : texture_handle(o.texture_handle), width(o.width), height(o.height), channels(o.channels), filename(o.filename) {
+	texture(const texture& o) noexcept : width(o.width), height(o.height), channels(o.channels), filename(o.filename) {
+		texture_handle.store(o.texture_handle.load(std::memory_order_relaxed), std::memory_order_relaxed);
 		filedata.store(o.filedata.load(std::memory_order_relaxed), std::memory_order_relaxed);
 	}
-	texture(texture&& o) noexcept : texture_handle(o.texture_handle), width(o.width), height(o.height), channels(o.channels), filename(std::move(o.filename)) {
+	texture(texture&& o) noexcept :  width(o.width), height(o.height), channels(o.channels), filename(std::move(o.filename)) {
+		texture_handle.store(o.texture_handle.load(std::memory_order_relaxed), std::memory_order_relaxed);
 		filedata.store(o.filedata.load(std::memory_order_relaxed), std::memory_order_relaxed);
 	}
 	texture& operator=(const texture& o) noexcept {
@@ -34,6 +43,7 @@ public:
 		return *this;
 	}
 
+	color_rgba get_pixel(float x, float y);
 	uint32_t handle();
 	void load();
 	void load_filedata();

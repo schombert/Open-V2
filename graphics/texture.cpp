@@ -51,21 +51,25 @@ uint32_t data_texture::handle() {
 }
 
 void texture::free() {
-	glDeleteTextures(1, &texture_handle);
+	const auto th = texture_handle.load(std::memory_order_acquire);
+	texture_handle.store(0, std::memory_order_release);
+	glDeleteTextures(1, &th);
 }
 
 void texture::load() {
-	if (texture_handle != 0)
+	if (texture_handle.load(std::memory_order_acquire) != 0)
 		return;
 
 	unsigned char* expected = nullptr;
 	if (filedata.compare_exchange_strong(expected, (unsigned char*)1, std::memory_order_release, std::memory_order_acquire)) {
-		texture_handle = SOIL_load_OGL_texture(filename.c_str(), 0, 0, SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_DDS_LOAD_DIRECT);
+		unsigned int new_th = SOIL_load_OGL_texture(filename.c_str(), 0, 0, SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_DDS_LOAD_DIRECT);
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
+		texture_handle.store(new_th, std::memory_order_release);
 	} else {
-		glGenTextures(1, &texture_handle);
-		glBindTexture(GL_TEXTURE_2D, texture_handle);
+		unsigned int new_th;
+		glGenTextures(1, &new_th);
+		glBindTexture(GL_TEXTURE_2D, new_th);
 
 		if (channels == 3) {
 			glTexStorage2D(GL_TEXTURE_2D, 1, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, width, height);
@@ -83,6 +87,7 @@ void texture::load() {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
+		texture_handle.store(new_th, std::memory_order_release);
 		SOIL_free_image_data(expected);
 	}
 }
@@ -100,7 +105,18 @@ void texture::load_filedata() {
 
 uint32_t texture::handle() {
 	load();
-	return texture_handle;
+	return texture_handle.load(std::memory_order_acquire);
+}
+
+color_rgba texture::get_pixel(float x, float y) {
+	const auto h = texture_handle.load(std::memory_order_acquire);
+	if (h != 0) {
+		color_rgba result;
+		glTextureSubImage2D(h, 0, (GLint)(x * width), (GLint)(y * height), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &result);
+		return result;
+	} else {
+		return color_rgba{ 0,0,0,0 };
+	}
 }
 
 uint16_t texture_manager::retrieve_by_name(const directory& root, const char* start, const char* end) {

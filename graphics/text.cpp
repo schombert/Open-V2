@@ -178,7 +178,7 @@ public:
 
 		FT_Set_Pixel_Sizes(font_face, 0, 64 * magnification_factor);
 
-		line_height = static_cast<float>(font_face->height) / static_cast<float>(1 << 6);
+		line_height = static_cast<float>(font_face->size->metrics.height) / static_cast<float>((1 << 6) * magnification_factor);
 	}
 
 	void load_metrics() {
@@ -187,7 +187,7 @@ public:
 
 		FT_Set_Pixel_Sizes(metrics_font_face, 0, 64 * magnification_factor);
 
-		line_height = static_cast<float>(metrics_font_face->height) / static_cast<float>(1 << 6);
+		line_height = static_cast<float>(font_face->size->metrics.height) / static_cast<float>((1 << 6) * magnification_factor);
 	}
 
 	_font(const char* filename, _font* p) : parent(p), font_file(filename) {
@@ -420,8 +420,8 @@ float font::metrics_text_extent(char16_t* codepoints, uint32_t count, float size
 	return total;
 }
 
-float font::line_height() const {
-	return impl->line_height;
+float font::line_height(float size) const {
+	return impl->line_height * size / 64.0f;
 }
 
 font::font(const char* filename, font& p) : impl(std::make_unique<_font>(filename, p.impl.get())) {

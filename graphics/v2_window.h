@@ -64,7 +64,7 @@ struct text_event {
 struct creation {};
 
 template<typename T>
-T adjust_message_location(T message, int32_t delta_x, int32_t delta_y) {
+T adjust_message_location(const T& message, int32_t delta_x, int32_t delta_y) {
 	if constexpr(std::is_base_of_v<message_with_location, T>) {
 		T new_message = message;
 		new_message.x += delta_x;
@@ -76,7 +76,7 @@ T adjust_message_location(T message, int32_t delta_x, int32_t delta_y) {
 }
 
 template<typename T>
-bool message_within_bounds(T message, int32_t x_max, int32_t y_max) {
+bool message_within_bounds(const T& message, int32_t x_max, int32_t y_max) {
 	if constexpr(std::is_base_of_v<message_with_location, T>)
 		return (new_message.x <= x_max) & (new_message.y <= y_max);
 	else

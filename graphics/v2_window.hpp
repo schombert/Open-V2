@@ -15,6 +15,7 @@ long* __stdcall templated_win_proc(void* hwnd, unsigned int uMsg, unsigned int* 
 	} else if (std::holds_alternative<creation>(message_result)) {
 		window<HANDLER>* obj = (window<HANDLER>*)get_handler(hwnd);
 		obj->gl_wrapper.setup(hwnd, obj->h);
+		obj->gl_wrapper.bind_to_ui_thread();
 		obj->h(creation{}, *obj);
 		return 0;
 	} else {

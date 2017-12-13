@@ -11,8 +11,8 @@ class window_base;
 
 struct color {
 	float r = 0.0f;
-	float b = 0.0f;
 	float g = 0.0f;
+	float b = 0.0f;
 };
 
 enum class rotation {
@@ -36,6 +36,7 @@ public:
 	void setup(void* hwnd, T& base);
 	void destory(void* hwnd);
 	void bind_to_thread();
+	void bind_to_ui_thread();
 	void clear();
 	void display();
 	void set_viewport(uint32_t width, uint32_t height);

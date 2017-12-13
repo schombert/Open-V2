@@ -184,8 +184,60 @@ void ui::gui_manager::render_internal(open_gl_wrapper &ogl, const gui_object &ro
 }
 
 
+bool ui::gui_manager::on_lbutton_down(const lbutton_down& ld) {
+	return dispatch_message_internal([_this = this](ui::gui_object& obj, const lbutton_down& l) {
+		if (obj.associated_behavior)
+			return obj.associated_behavior->on_lclick(obj, *_this, l);
+		return false;
+	}, root, ld);
+}
+
+bool ui::gui_manager::on_rbutton_down(const rbutton_down& rd) {
+	return dispatch_message_internal([_this = this](ui::gui_object& obj, const rbutton_down& r) {
+		if (obj.associated_behavior)
+			return obj.associated_behavior->on_rclick(obj, *_this, r);
+		return false;
+	}, root, rd);
+}
+
+bool ui::gui_manager::on_mouse_move(const mouse_move& mm) {
+	return dispatch_message_internal([_this = this](ui::gui_object& obj, const mouse_move& m) {
+		//if (obj.associated_behavior)
+		//	return obj.associated_behavior->on_mouse_move(obj, *_this, m);
+		return false;
+	}, root, mm);
+}
+
+bool ui::gui_manager::on_mouse_drag(const mouse_drag& md) {
+	return dispatch_message_internal([_this = this](ui::gui_object& obj, const mouse_drag& m) {
+		if (obj.associated_behavior)
+			return obj.associated_behavior->on_drag(obj, *_this, m);
+		return false;
+	}, root, md);
+}
+
+bool ui::gui_manager::on_keydown(const key_down& kd) {
+	return dispatch_message_internal([_this = this](ui::gui_object& obj, const key_down& k) {
+		if (obj.associated_behavior)
+			return obj.associated_behavior->on_keydown(obj, *_this, k);
+		return false;
+	}, root, kd);
+}
+
+bool ui::gui_manager::on_scroll(const scroll& se) {
+	return dispatch_message_internal([_this = this](ui::gui_object& obj, const scroll& s) {
+		if (obj.associated_behavior)
+			return obj.associated_behavior->on_scroll(obj, *_this, s);
+		return false;
+	}, root, se);
+}
+
 bool ui::gui_manager::on_text(const text_event &te) {
-	return dispatch_message_internal(gui_behavior::on_text, root, te);
+	return dispatch_message_internal([_this = this](ui::gui_object& obj, const text_event& t) {
+		if (obj.associated_behavior)
+			return obj.associated_behavior->on_text(obj, *_this, t);
+		return false;
+	}, root, te);
 }
 
 void ui::gui_manager::render(open_gl_wrapper& ogl) {

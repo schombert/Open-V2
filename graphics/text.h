@@ -33,7 +33,7 @@ public:
 	void load_metrics_font();
 	glyph get_render_glyph(char16_t codepoint);
 	metrics_glyph get_metrics_glyph(char16_t codepoint);
-	float line_height() const;
+	float line_height(float size) const;
 	float render_kerning(char16_t codepoint_first, char16_t codepoint_second) const;
 	float metrics_kerning(char16_t codepoint_first, char16_t codepoint_second) const;
 	float metrics_text_extent(char16_t* codepoints, uint32_t count, float size, bool outlined = false) const;

@@ -3,7 +3,7 @@
 #include "graphics\\v2_window.h"
 
 template<typename MESSAGE_FUNCTION, typename MESSAGE_TYPE>
-bool ui::gui_manager::dispatch_message_internal(MESSAGE_FUNCTION member_f, gui_object& obj, MESSAGE_TYPE message) {
+bool ui::gui_manager::dispatch_message_internal(const MESSAGE_FUNCTION &member_f, ui::gui_object& obj, const MESSAGE_TYPE& message) {
 	auto relocated_message = adjust_message_location(message, -obj.position.x * scale, -obj.position.y * scale);
 
 	if (message_within_bounds(relocated_message, obj.size.x * scale, obj.size.y * scale)) {
@@ -26,10 +26,30 @@ bool ui::gui_manager::dispatch_message_internal(MESSAGE_FUNCTION member_f, gui_o
 			child = next_index;
 		}
 
-		if (obj.associated_behavior) {
-			if ((associated_behavior->*member_f)(obj, message))
-				return true;
+		if constexpr(std::is_base_of_v<message_with_location, MESSAGE_TYPE>) {
+			if ((obj.flags.load(std::memory_order_acquire) & ui::gui_object::type_mask) == ui::gui_object::type_graphics_object) {
+				const auto& gobj = graphics_instances.at(obj.type_dependant_handle.load(std::memory_order_acquire));
+				if ((gobj.graphics_object->flags & graphics::object::do_transparency_check) != 0) {
+					color_rgba pixel;
+
+					if (gobj.graphics_object->number_of_frames != 0) {
+						pixel = gobj.t->get_pixel(
+							(static_cast<float>(relocated_message.x) + scale * static_cast<float>(obj.size.x * gobj.frame)) / (static_cast<float>(obj.size.x * gobj.graphics_object->number_of_frames) * scale),
+							static_cast<float>(relocated_message.y) / (static_cast<float>(obj.size.y) * scale));
+					} else {
+						pixel = gobj.t->get_pixel(
+							static_cast<float>(relocated_message.x) / (static_cast<float>(obj.size.x) * scale),
+							static_cast<float>(relocated_message.y) / (static_cast<float>(obj.size.y) * scale));
+					}
+
+					if (pixel.a < 127)
+						return false;
+				}
+			}
 		}
+
+		if (member_f(obj, message))
+			return true;
 	}
 	return false;
 }

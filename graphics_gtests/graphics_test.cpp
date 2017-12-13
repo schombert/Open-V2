@@ -23,7 +23,7 @@ TEST(dds_texture_rendering, graphics_tests) {
 }
 
 TEST(text_rendering, graphics_tests) {
-	EXPECT_TRUE(test_rendering("F:\\VS2007Projects\\open_v2_test_data\\text", 0, 0, 128, 180, [](open_gl_wrapper& ogl) {
+	EXPECT_TRUE(test_rendering("F:\\VS2007Projects\\open_v2_test_data\\text", 0, 0, 128, 210, [](open_gl_wrapper& ogl) {
 		
 		font test_fallback("F:\\VS2007Projects\\open_v2_test_data\\unifont-9.0.02.ttf");
 		font test_font("F:\\VS2007Projects\\open_v2_test_data\\CreteRound-Regular.otf", test_fallback);
@@ -31,11 +31,12 @@ TEST(text_rendering, graphics_tests) {
 		test_fallback.load_font(ogl);
 		test_font.load_font(ogl);
 		
-		ogl.render_outlined_text(u"明Test", 5, true, 0.0f, 16.0f, 16.0f, color{ 0.0f,0.0f,0.0f }, test_font);
-		ogl.render_text(         u"明Test", 5, true, 0.0f, 32.0f, 16.0f, color{ 1.0f,1.0f,1.0f }, test_font);
-		ogl.render_outlined_text(u"明Test", 5, false, 0.0f, 48.0f, 16.0f, color{ 0.0f,0.0f,0.0f }, test_font);
-		ogl.render_text(         u"明Test", 5, false, 0.0f, 64.0f, 16.0f, color{ 1.0f,1.0f,1.0f }, test_font);
-		ogl.render_text(u"X", 1, true, 0.0f, 180.0f, 128.0f, color{ 0.0f,1.0f,1.0f }, test_font);
+		ogl.render_outlined_text(u"明Test", 5, true, 0.0f, 0.0f,                                 16.0f, color{ 0.0f,0.0f,0.0f }, test_font);
+		ogl.render_text(         u"明Test", 5, true, 0.0f, test_font.line_height(16.0f),         16.0f, color{ 1.0f,1.0f,1.0f }, test_font);
+		ogl.render_outlined_text(u"明Test", 5, false, 0.0f, 2.0f * test_font.line_height(16.0f), 16.0f, color{ 0.0f,0.0f,0.0f }, test_font);
+		ogl.render_text(         u"明Test", 5, false, 0.0f, 3.0f * test_font.line_height(16.0f), 16.0f, color{ 1.0f,1.0f,1.0f }, test_font);
+		ogl.render_text(u"明Test", 5, true, 0.0f, 4.0f * test_font.line_height(16.0f), 16.0f, color{ 1.0f,0.0f,0.0f }, test_font);
+		ogl.render_text(         u"Test",   4, true, 0.0f, 4.0f * test_font.line_height(16.0f), 128.0f, color{ 0.0f,1.0f,1.0f }, test_font);
 	}));
 }
 
