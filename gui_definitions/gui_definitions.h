@@ -258,33 +258,33 @@ namespace ui {
 	};
 
 	struct name_maps {
-		std::vector<std::string> button_names;
-		std::vector<std::string> icon_names;
-		std::vector<std::string> text_names;
-		std::vector<std::string> position_names;
-		std::vector<std::string> overlapping_region_names;
-		std::vector<std::string> listbox_names;
-		std::vector<std::string> scrollbar_names;
-		std::vector<std::string> window_names;
+		std::vector<vector_backed_string<char>> button_names;
+		std::vector<vector_backed_string<char>> icon_names;
+		std::vector<vector_backed_string<char>> text_names;
+		std::vector<vector_backed_string<char>> position_names;
+		std::vector<vector_backed_string<char>> overlapping_region_names;
+		std::vector<vector_backed_string<char>> listbox_names;
+		std::vector<vector_backed_string<char>> scrollbar_names;
+		std::vector<vector_backed_string<char>> window_names;
 
-		const std::string& get_name(element_type t, uint16_t handle) {
+		std::string get_name(element_type t, uint16_t handle, std::vector<char>& backing_data) {
 			switch (t) {
 				case element_type::button:
-					return button_names[handle - 1];
+					return button_names[handle - 1].get_string(backing_data);
 				case element_type::icon:
-					return icon_names[handle - 1];
+					return icon_names[handle - 1].get_string(backing_data);
 				case element_type::text:
-					return text_names[handle - 1];
+					return text_names[handle - 1].get_string(backing_data);
 				case element_type::position:
-					return position_names[handle - 1];
+					return position_names[handle - 1].get_string(backing_data);
 				case element_type::overlapping_region:
-					return overlapping_region_names[handle - 1];
+					return overlapping_region_names[handle - 1].get_string(backing_data);
 				case element_type::listbox:
-					return listbox_names[handle - 1];
+					return listbox_names[handle - 1].get_string(backing_data);
 				case element_type::scrollbar:
-					return scrollbar_names[handle - 1];
+					return scrollbar_names[handle - 1].get_string(backing_data);
 				case element_type::window:
-					return window_names[handle - 1];
+					return window_names[handle - 1].get_string(backing_data);
 			}
 		}
 	};
@@ -298,6 +298,11 @@ namespace ui {
 		std::vector<listbox_def> listboxes;
 		std::vector<scrollbar_def> scrollbars;
 		std::vector<window_def> windows;
+
+		std::vector<char> name_data;
+		boost::container::flat_map<vector_backed_string<char>, uint16_t, vector_backed_string_less_ci> name_to_element_map;
+
+		definitions() : name_to_element_map(vector_backed_string_less_ci(name_data)) {}
 	};
 };
 

@@ -61,7 +61,7 @@ namespace ui {
 		virtual bool on_keydown(gui_object& owner, gui_manager& manager, const key_down&) { return false; };
 		virtual bool on_text(gui_object& owner, gui_manager& manager, const text_event&) { return false; };
 		virtual bool on_scroll(gui_object& owner, gui_manager& manager, const scroll&) { return false; };
-		virtual void on_get_focus(gui_object& owner, gui_manager& manager) { };
+		virtual bool on_get_focus(gui_object& owner, gui_manager& manager) { return false; };
 		virtual void on_lose_focus(gui_object& owner, gui_manager& manager) { };
 		virtual void update_data(gui_object& owner, gui_manager& manager) {};
 		virtual bool has_tooltip(gui_object& owner, gui_manager& manager) { return false; };
@@ -126,6 +126,7 @@ namespace ui {
 		gui_object& root;
 		gui_object& background;
 		gui_object& foreground;
+		gui_object& tooltip_window;
 
 		gui_object* focus = nullptr;
 		gui_object* tooltip = nullptr;
@@ -145,6 +146,15 @@ namespace ui {
 
 		void render(open_gl_wrapper&);
 
+		void set_visible(gui_object& g, bool visible);
+		void set_enabled(gui_object& g, bool enabled);
+		void set_focus(gui_object& g);
+		void clear_focus();
+		void hide_tooltip();
+		void clear_children(gui_object& g);
+		void remove_object(gui_object& g);
+		void move_to_front(gui_object& g);
+		void move_to_back(gui_object& g);
 		void destroy(gui_object& g);
 		~gui_manager();
 	};

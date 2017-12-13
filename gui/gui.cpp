@@ -5,6 +5,12 @@
 ui::gui_manager::~gui_manager() {};
 
 void ui::gui_manager::destroy(gui_object & g) {
+	if (tooltip == &g) {
+		hide_tooltip();
+		tooltip = nullptr;
+	}
+	if (focus == &g)
+		focus = nullptr;
 	if (g.associated_behavior) {
 		if ((g.flags.load(std::memory_order_relaxed) & g.static_behavior) == 0) {
 			g.associated_behavior->~gui_behavior();
@@ -183,9 +189,161 @@ void ui::gui_manager::render_internal(open_gl_wrapper &ogl, const gui_object &ro
 	}
 }
 
+void ui::gui_manager::set_focus(gui_object& g) {
+	if (focus != &g) {
+		if (g.associated_behavior && g.associated_behavior->on_get_focus(g, *this)) {
+			if (focus && focus->associated_behavior) {
+				focus->associated_behavior->on_lose_focus(*focus, *this);
+			}
+			focus = &g;
+		}
+	}
+}
+
+void ui::gui_manager::clear_focus() {
+	if (focus) {
+		focus->associated_behavior->on_lose_focus(*focus, *this);
+		focus = nullptr;
+	}
+}
+
+void ui::gui_manager::set_visible(gui_object& g, bool visible) {
+	if (visible)
+		g.flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
+	else
+		g.flags.fetch_and(~ui::gui_object::visible, std::memory_order_acq_rel);
+}
+
+void ui::gui_manager::set_enabled(gui_object& g, bool enabled) {
+	if (enabled)
+		g.flags.fetch_or(ui::gui_object::enabled, std::memory_order_acq_rel);
+	else
+		g.flags.fetch_and(~ui::gui_object::enabled, std::memory_order_acq_rel);
+}
+
+void ui::gui_manager::hide_tooltip() {
+	set_visible(tooltip_window, false);
+}
+
+void ui::gui_manager::clear_children(gui_object& g) {
+	auto current_child = g.first_child.load(std::memory_order_acquire);
+	g.first_child.store(0, std::memory_order_release);
+
+	while (current_child != 0) {
+		auto& child_object = gui_objects.at(current_child);
+		const auto next_child = child_object.right_sibling.load(std::memory_order_acquire);
+
+		gui_objects.free(current_child, *this);
+		current_child = next_child;
+	}
+}
+
+void ui::gui_manager::remove_object(gui_object& g) {
+	const auto parent_id = g.parent.load(std::memory_order_acquire);
+	auto& parent_object = gui_objects.at(parent_id);
+	uint16_t this_id = 0;
+
+	auto current_parent_child = parent_object.first_child.load(std::memory_order_acquire);
+	while (current_parent_child != 0) {
+		auto& child_object = gui_objects.at(current_parent_child);
+		if (&g == &child_object) {
+			this_id = current_parent_child;
+			break;
+		}
+		current_parent_child = child_object.right_sibling.load(std::memory_order_acquire);
+	}
+
+	const auto left_sibling = g.left_sibling.load(std::memory_order_acquire);
+	const auto right_sibling = g.right_sibling.load(std::memory_order_acquire);
+
+	if (left_sibling == 0)
+		parent_object.first_child.store(right_sibling, std::memory_order_release);
+	else
+		gui_objects.at(left_sibling).right_sibling.store(right_sibling, std::memory_order_release);
+	
+	if (right_sibling != 0)
+		gui_objects.at(right_sibling).left_sibling.store(left_sibling, std::memory_order_release);
+
+	if (this_id != 0) {
+		gui_objects.free(this_id, *this);
+	}
+}
+
+void ui::gui_manager::move_to_front(gui_object& g) {
+	const auto left_sibling = g.left_sibling.load(std::memory_order_acquire);
+	const auto right_sibling = g.right_sibling.load(std::memory_order_acquire);
+
+	if (right_sibling == 0)
+		return;
+
+	const auto parent_id = g.parent.load(std::memory_order_acquire);
+	auto& parent_object = gui_objects.at(parent_id);
+
+	auto last_parent_child = parent_object.first_child.load(std::memory_order_acquire);
+	if (last_parent_child == 0)
+		return;
+
+	uint16_t this_id = 0;
+	while (true) {
+		auto& child_object = gui_objects.at(last_parent_child);
+		const auto next_child = child_object.right_sibling.load(std::memory_order_acquire);
+		if (&g == &child_object)
+			this_id = last_parent_child;
+		if (next_child == 0)
+			break;
+		last_parent_child = next_child;
+	}
+	if (this_id == 0)
+		return;
+
+	if (left_sibling == 0)
+		parent_object.first_child.store(right_sibling, std::memory_order_release);
+	else
+		gui_objects.at(left_sibling).right_sibling.store(right_sibling, std::memory_order_release);
+
+	gui_objects.at(right_sibling).left_sibling.store(left_sibling, std::memory_order_release);
+
+	g.left_sibling.store(last_parent_child, std::memory_order_release);
+	g.right_sibling.store(0, std::memory_order_release);
+	gui_objects.at(last_parent_child).right_sibling.store(this_id, std::memory_order_release);
+}
+
+void ui::gui_manager::move_to_back(gui_object& g) {
+	const auto left_sibling = g.left_sibling.load(std::memory_order_acquire);
+	const auto right_sibling = g.right_sibling.load(std::memory_order_acquire);
+
+	if (left_sibling == 0)
+		return;
+
+	const auto parent_id = g.parent.load(std::memory_order_acquire);
+	auto& parent_object = gui_objects.at(parent_id);
+
+	uint16_t this_id = 0;
+	auto current_parent_child = parent_object.first_child.load(std::memory_order_acquire);
+	while (current_parent_child != 0) {
+		auto& child_object = gui_objects.at(current_parent_child);
+		if (&g == &child_object) {
+			this_id = current_parent_child;
+			break;
+		}
+		current_parent_child = child_object.right_sibling.load(std::memory_order_acquire);
+	}
+
+	if (this_id == 0)
+		return;
+
+	gui_objects.at(left_sibling).right_sibling.store(right_sibling, std::memory_order_release);
+	if (right_sibling != 0)
+		gui_objects.at(right_sibling).left_sibling.store(left_sibling, std::memory_order_release);
+
+	g.left_sibling.store(0, std::memory_order_release);
+	g.right_sibling.store(parent_object.first_child.load(std::memory_order_acquire), std::memory_order_release);
+	parent_object.first_child.store(this_id, std::memory_order_release);
+}
 
 bool ui::gui_manager::on_lbutton_down(const lbutton_down& ld) {
 	return dispatch_message_internal([_this = this](ui::gui_object& obj, const lbutton_down& l) {
+		_this->set_focus(obj);
 		if (obj.associated_behavior)
 			return obj.associated_behavior->on_lclick(obj, *_this, l);
 		return false;
@@ -201,11 +359,27 @@ bool ui::gui_manager::on_rbutton_down(const rbutton_down& rd) {
 }
 
 bool ui::gui_manager::on_mouse_move(const mouse_move& mm) {
-	return dispatch_message_internal([_this = this](ui::gui_object& obj, const mouse_move& m) {
-		//if (obj.associated_behavior)
-		//	return obj.associated_behavior->on_mouse_move(obj, *_this, m);
+	const bool found_tooltip = dispatch_message_internal([_this = this](ui::gui_object& obj, const mouse_move& m) {
+		if (_this->tooltip != &obj) {
+			if (obj.associated_behavior) {
+				if (obj.associated_behavior->has_tooltip(obj, *_this)) {
+					_this->tooltip = &obj;
+					_this->clear_children(_this->tooltip_window);
+					obj.associated_behavior->create_tooltip(obj, *_this, _this->tooltip_window);
+					_this->set_visible(_this->tooltip_window, true);
+					return true;
+				}
+			}
+		}
 		return false;
 	}, root, mm);
+
+	if (!found_tooltip && tooltip) {
+		tooltip = nullptr;
+		set_visible(tooltip_window, false);
+	}
+
+	return found_tooltip;
 }
 
 bool ui::gui_manager::on_mouse_drag(const mouse_drag& md) {
@@ -233,11 +407,10 @@ bool ui::gui_manager::on_scroll(const scroll& se) {
 }
 
 bool ui::gui_manager::on_text(const text_event &te) {
-	return dispatch_message_internal([_this = this](ui::gui_object& obj, const text_event& t) {
-		if (obj.associated_behavior)
-			return obj.associated_behavior->on_text(obj, *_this, t);
+	if (focus && focus->associated_behavior)
+		return focus->associated_behavior->on_text(*focus, *this, te);
+	else
 		return false;
-	}, root, te);
 }
 
 void ui::gui_manager::render(open_gl_wrapper& ogl) {

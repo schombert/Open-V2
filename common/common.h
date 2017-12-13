@@ -217,11 +217,20 @@ struct vector_backed_string {
 		data.vbs.high_mask = (uint16_t)(-1);
 		vec.insert(vec.end(), start, end);
 	};
+	vector_backed_string(const std::basic_string<char_type>& str, std::vector<char_type>& vec) {
+		data.vbs.offset = vec.size();
+		data.vbs.length = (uint16_t)(str.length());
+		data.vbs.high_mask = (uint16_t)(-1);
+		vec.insert(vec.end(), str.begin(), str.end());
+	};
 	int32_t length() const {
 		return data.vbs.high_mask == (uint16_t)-1 ? data.vbs.length : strlen(data.ptr);
 	}
 	const char_type* get_str(const std::vector<char_type>& vec) const {
 		return data.vbs.high_mask == (uint16_t)-1 ? vec.data() + data.vbs.offset : data.ptr;
+	}
+	std::basic_string<char_type> get_string(const std::vector<char_type>& vec) const {
+		return data.vbs.high_mask == (uint16_t)-1 ? std::basic_string<char_type>(vec.data() + data.vbs.offset, size_t(data.vbs.length)) : std::basic_string<char_type>(data.ptr);
 	}
 };
 
