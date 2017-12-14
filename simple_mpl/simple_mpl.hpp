@@ -1,15 +1,31 @@
 #pragma once
 #include <cctype>
 #include <type_traits>
+#include <utility>
 #include <common\\common.h>
+
+template<char ...>
+struct ct_string {};
+
+template<typename A, typename B>
+struct ct_string_append;
+
+template<char ... a, char ... b>
+struct ct_string_append<ct_string<a...>, ct_string<b...>> {
+	using type = ct_string<a..., b...>;
+};
+
+template <typename CharT, CharT ...s>
+constexpr auto operator"" _s() {
+	return ct_string<s...>();
+}
+
+#define CT_S(x) decltype(x ## _s)
 
 template<typename T>
 struct type_object {
 	using type = T;
 };
-
-template<char ...>
-struct ct_string;
 
 template<size_t n, typename T>
 struct ct_str_get {

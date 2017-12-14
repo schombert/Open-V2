@@ -33,6 +33,7 @@
       <CallingConvention>
       </CallingConvention>
       <ProgramDataBaseFileName>$(SolutionDir)..\open_v2_test_data\$(Configuration)\$(ProjectName).pdb</ProgramDataBaseFileName>
+      <AdditionalOptions>-Wno-gnu-string-literal-operator-template -fuse-ld=lld %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

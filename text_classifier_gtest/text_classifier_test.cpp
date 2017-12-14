@@ -21,6 +21,8 @@ TEST_METHOD(compile_time_computations, text_classifier_tests) {
 	EXPECT_EQ(0, r3);
 	const auto r4 = compile_time_str_compare_ci<CT_STRING("lalala")>(RANGE("LALAla"));
 	EXPECT_EQ(0, r4);
+
+	static_assert(std::is_same_v<CT_S("lalala"), CT_STRING("lalala")>);
 }
 
 TEST_METHOD(empty_classifier_test, text_classifier_tests) {

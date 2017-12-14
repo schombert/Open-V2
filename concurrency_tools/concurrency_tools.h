@@ -168,6 +168,12 @@ constexpr bool operator!= (const concurrent_allocator<T>&, const concurrent_allo
 template<typename T, uint32_t block, uint32_t index_sz>
 class fixed_sz_deque_iterator;
 
+template<typename T>
+struct tagged_object {
+	T& object;
+	const uint32_t id;
+};
+
 template<typename T, uint32_t block, uint32_t index_sz>
 class fixed_sz_deque {
 private:
@@ -188,7 +194,7 @@ public:
 	uint32_t past_end() const;
 
 	template<typename ...P>
-	uint32_t emplace(P&& ... params);
+	tagged_object<T> emplace(P&& ... params);
 	template<typename ...P>
 	T& emplace_at(uint32_t location, P&& ... params); // not thread safe
 	T& ensure_reserved(uint32_t location);

@@ -26,6 +26,9 @@ message_variant yield_message(void* _hwnd, unsigned int uMsg, unsigned int* _wPa
 	const WPARAM wParam = (WPARAM)_wParam;
 	const LPARAM lParam = (LPARAM)_lParam;
 
+	static int drag_x_start = 0;
+	static int drag_y_start = 0;
+
 	window_base* winbase = (window_base*)GetWindowLongPtr((HWND)_hwnd, GWLP_USERDATA);
 
 	switch (uMsg) {
@@ -66,13 +69,15 @@ message_variant yield_message(void* _hwnd, unsigned int uMsg, unsigned int* _wPa
 			return int64_t(1);
 		case WM_LBUTTONDOWN:
 			SetCapture(hwnd);
+			drag_x_start = GET_X_LPARAM(lParam);
+			drag_y_start = GET_Y_LPARAM(lParam);
 			return lbutton_down{ { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) }, get_current_modifiers() };
 		case WM_LBUTTONUP:
 			ReleaseCapture();
 			return lbutton_up{ { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) }, get_current_modifiers() };
 		case WM_MOUSEMOVE:
 			if (wParam & MK_LBUTTON)
-				return mouse_drag{ { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) }, get_current_modifiers() };
+				return mouse_drag{ GET_X_LPARAM(lParam) - drag_x_start, GET_Y_LPARAM(lParam) - drag_y_start, get_current_modifiers() };
 			else
 				return mouse_move{ { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) }, get_current_modifiers() };
 		case WM_RBUTTONDOWN:

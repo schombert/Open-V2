@@ -11,6 +11,9 @@ namespace text_data {
 	enum class text_color {
 		black, white, red, green, yellow, unspecified
 	};
+	enum class alignment {
+		left, right, center, top_left, top_right, bottom_left, bottom_right, top_center, bottom_center
+	};
 	enum class value_type {
 		error_no_matching_value, action, active, actor, adj, against, agressor, allowed, amount,
 		anyprovince, army, army_name, astate, attacker, attunit, bac, badboy, badword, base,

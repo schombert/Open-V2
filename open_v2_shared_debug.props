@@ -42,7 +42,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\boost_1_65_1;$(ProjectDir)..</AdditionalIncludeDirectories>
-      <AdditionalOptions>-Wno-deprecated-declarations -Wno-unused-command-line-argument -fuse-ld=lld %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Wno-deprecated-declarations -Wno-unused-command-line-argument -Wno-gnu-string-literal-operator-template -fuse-ld=lld %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>

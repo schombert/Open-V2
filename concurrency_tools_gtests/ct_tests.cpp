@@ -119,7 +119,7 @@ TEST(fxd_deque, concurrency_tools) {
 
 	const auto li = tv.emplace(127);
 
-	EXPECT_EQ(127, li);
+	EXPECT_EQ(127, li.id);
 
 	EXPECT_EQ(120, tv.at(120));
 	EXPECT_EQ(0, tv.at(0));

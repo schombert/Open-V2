@@ -411,16 +411,16 @@ T& fixed_sz_deque<T, block, index_sz>::emplace_at(uint32_t location, P&& ... par
 	if (keys[block_index].load(std::memory_order_relaxed) != (uint32_t)-2) {
 		concurrent_key_pair_helper ff(first_free.load(std::memory_order_relaxed));
 		std::atomic<uint32_t>* current_key = (std::atomic<uint32_t>*)(index_array[ff.parts.index >> ct_log2(block)].load(std::memory_order_relaxed) + block)
-			+ ff.parts.index & (block - 1);
+			+ (ff.parts.index & (block - 1));
 
 		if (ff.parts.index == location) {
-			first_free.store(concurrent_key_pair_helper(current_key->load(std::memory_order_relaxed), ff.parts.counter + 1), std::memory_order_release);
+			first_free.store(concurrent_key_pair_helper(current_key->load(std::memory_order_relaxed), ff.parts.counter + 1).value, std::memory_order_release);
 		} else {
 			while (current_key->load(std::memory_order_relaxed) != (uint32_t)-1) {
 				const auto current_key_position = current_key->load(std::memory_order_relaxed);
 				std::atomic<uint32_t>* next_key =
 					(std::atomic<uint32_t>*)(index_array[current_key_position >> ct_log2(block)].load(std::memory_order_relaxed) + block)
-					+ current_key_position & (block - 1);
+					+ (current_key_position & (block - 1));
 				if (current_key_position == location) {
 					current_key->store(next_key->load(std::memory_order_relaxed), std::memory_order_release);
 					break;
@@ -458,7 +458,7 @@ T& fixed_sz_deque<T, block, index_sz>::ensure_reserved(uint32_t location) {
 
 template<typename T, uint32_t block, uint32_t index_sz>
 template<typename ...P>
-uint32_t fixed_sz_deque<T, block, index_sz>::emplace(P&& ... params) {
+tagged_object<T> fixed_sz_deque<T, block, index_sz>::emplace(P&& ... params) {
 	concurrent_key_pair_helper free_spot(first_free.load(std::memory_order_acquire));
 
 	while (true) {
@@ -479,7 +479,7 @@ uint32_t fixed_sz_deque<T, block, index_sz>::emplace(P&& ... params) {
 			if (first_free.compare_exchange_strong(free_spot.value, concurrent_key_pair_helper(next_free, free_spot.parts.counter + 1).value, std::memory_order_release, std::memory_order_acquire)) {
 				new (&this_spot) T(std::forward<P>(params) ...);
 				keys[block_index].store((uint32_t)-2, std::memory_order_release);
-				return free_spot.parts.index;
+				return tagged_object<T>{this_spot, free_spot.parts.index};
 			}
 		}
 	}
