@@ -3,8 +3,11 @@
 #include <functional>
 #include "simple_fs\\simple_fs.h"
 #include "boost\\container\\flat_map.hpp"
+#include "common\\common.h"
 
 namespace graphics {
+	using obj_definition_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 174634>>;
+
 	enum class errors {
 		unknown_attribute,
 		non_square_border_size,
@@ -52,17 +55,19 @@ namespace graphics {
 	};
 
 	struct name_maps {
-		boost::container::flat_map<std::string, uint16_t> names;
+		boost::container::flat_map<std::string, obj_definition_tag> names;
 	};
 
 	struct object_definitions {
-		std::vector<object> definitions;
+		tagged_vector<object, obj_definition_tag> definitions;
 	};
+
+	obj_definition_tag reserve_graphics_object(name_maps& nmaps, const char* name_start, const char* name_end);
 };
 
 using texture_lookup = std::function<uint16_t(const char*, const char*)>;
 
-uint16_t reserve_graphics_object(graphics::name_maps& nmaps, const char* name_start, const char* name_end);
+
 
 void load_graphics_object_definitions_from_directory(
 	const directory& source_directory,

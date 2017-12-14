@@ -118,71 +118,71 @@ struct spritetypes {
 
 	void sprite(const parsing_object& o) {
 		if (auto f = env.nmaps.names.find(o.name); f != env.nmaps.names.end()) {
-			env.defs.definitions[f->second - 1] = o.internal_definition;
-			o.setup_textures(env.defs.definitions[f->second - 1]);
-			env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::generic_sprite;
+			env.defs.definitions[f->second] = o.internal_definition;
+			o.setup_textures(env.defs.definitions[f->second]);
+			env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::generic_sprite;
 		}
 	}
 	void corneredtilesprite(const parsing_object& o) {
 		if (auto f = env.nmaps.names.find(o.name); f != env.nmaps.names.end()) {
-			env.defs.definitions[f->second - 1] = o.internal_definition;
-			o.setup_textures(env.defs.definitions[f->second - 1]);
+			env.defs.definitions[f->second] = o.internal_definition;
+			o.setup_textures(env.defs.definitions[f->second]);
 			if(o.internal_definition.type_dependant != 0)
-				env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::bordered_rect;
+				env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::bordered_rect;
 			else
-				env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::generic_sprite;
+				env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::generic_sprite;
 		}
 	}
 	void textsprite(const parsing_object& o) {
 		if (auto f = env.nmaps.names.find(o.name); f != env.nmaps.names.end()) {
-			env.defs.definitions[f->second - 1] = o.internal_definition;
-			o.setup_textures(env.defs.definitions[f->second - 1]);
-			env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::text_sprite;
+			env.defs.definitions[f->second] = o.internal_definition;
+			o.setup_textures(env.defs.definitions[f->second]);
+			env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::text_sprite;
 		}
 	}
 	void progressbar(const parsing_object& o) {
 		if (auto f = env.nmaps.names.find(o.name); f != env.nmaps.names.end()) {
-			env.defs.definitions[f->second - 1] = o.internal_definition;
-			o.setup_textures(env.defs.definitions[f->second - 1]);
+			env.defs.definitions[f->second] = o.internal_definition;
+			o.setup_textures(env.defs.definitions[f->second]);
 			if(o.horizontal)
-				env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::horizontal_progress_bar;
+				env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::horizontal_progress_bar;
 			else
-				env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::vertical_progress_bar;
+				env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::vertical_progress_bar;
 		}
 	}
 	void maskedshield(const parsing_object& o) {
 		if (auto f = env.nmaps.names.find(o.name); f != env.nmaps.names.end()) {
-			env.defs.definitions[f->second - 1] = o.internal_definition;
-			o.setup_textures(env.defs.definitions[f->second - 1]);
-			env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::flag_mask;
+			env.defs.definitions[f->second] = o.internal_definition;
+			o.setup_textures(env.defs.definitions[f->second]);
+			env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::flag_mask;
 		}
 	}
 	void tilesprite(const parsing_object& o) {
 		if (auto f = env.nmaps.names.find(o.name); f != env.nmaps.names.end()) {
-			env.defs.definitions[f->second - 1] = o.internal_definition;
-			o.setup_textures(env.defs.definitions[f->second - 1]);
-			env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::tile_sprite;
+			env.defs.definitions[f->second] = o.internal_definition;
+			o.setup_textures(env.defs.definitions[f->second]);
+			env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::tile_sprite;
 		}
 	}
 	void barchart(const parsing_object& o) {
 		if (auto f = env.nmaps.names.find(o.name); f != env.nmaps.names.end()) {
-			env.defs.definitions[f->second - 1] = o.internal_definition;
-			o.setup_textures(env.defs.definitions[f->second - 1]);
-			env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::barchart;
+			env.defs.definitions[f->second] = o.internal_definition;
+			o.setup_textures(env.defs.definitions[f->second]);
+			env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::barchart;
 		}
 	}
 	void piechart(const parsing_object& o) {
 		if (auto f = env.nmaps.names.find(o.name); f != env.nmaps.names.end()) {
-			env.defs.definitions[f->second - 1] = o.internal_definition;
-			o.setup_textures(env.defs.definitions[f->second - 1]);
-			env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::piechart;
+			env.defs.definitions[f->second] = o.internal_definition;
+			o.setup_textures(env.defs.definitions[f->second]);
+			env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::piechart;
 		}
 	}
 	void linechart(const parsing_object& o) {
 		if (auto f = env.nmaps.names.find(o.name); f != env.nmaps.names.end()) {
-			env.defs.definitions[f->second - 1] = o.internal_definition;
-			o.setup_textures(env.defs.definitions[f->second - 1]);
-			env.defs.definitions[f->second - 1].flags |= (uint8_t)graphics::object_type::linegraph;
+			env.defs.definitions[f->second] = o.internal_definition;
+			o.setup_textures(env.defs.definitions[f->second]);
+			env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::linegraph;
 		}
 	}
 	void unknown_key(int) {
@@ -313,8 +313,8 @@ void load_graphics_object_definitions_from_directory(
 
 }
 
-uint16_t reserve_graphics_object(graphics::name_maps& nmaps, const char* name_start, const char* name_end) {
-	return nmaps.names.try_emplace(std::string(name_start, name_end), nmaps.names.size() + 1).first->second;
+graphics::obj_definition_tag graphics::reserve_graphics_object(graphics::name_maps& nmaps, const char* name_start, const char* name_end) {
+	return nmaps.names.try_emplace(std::string(name_start, name_end), graphics::obj_definition_tag(nmaps.names.size())).first->second;
 }
 
 const char* graphics::format_error(graphics::errors  e) {

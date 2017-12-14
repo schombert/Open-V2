@@ -2,12 +2,175 @@
 
 #include <stdint.h>
 #include <vector>
+#include <atomic>
 
 #ifndef _DEBUG
 #define CALL __vectorcall
 #else
 #define CALL
 #endif
+
+template<typename T>
+constexpr T null_value_of = std::numeric_limits<T>::max();
+
+template<typename T>
+constexpr T to_index(T in) { return in; }
+
+template<typename T>
+constexpr bool is_valid_index(T in) { return in != std::numeric_limits<T>::max(); }
+
+template<typename T>
+struct value_base_of_s { using type = T; };
+
+template<typename T>
+struct zero_is_null_of_s { using type = std::false_type; };
+
+template<typename T>
+struct individuator_of_s { using type = std::false_type; };
+
+template<typename value_base, typename zero_is_null, typename individuator>
+struct tag_type {
+	static constexpr value_base null_value = std::is_same_v<std::true_type, zero_is_null> ? 0 : std::numeric_limits<value_base>::max();
+	using value_base_t = value_base;
+	using zero_is_null_t = zero_is_null;
+	using individuator_t = individuator;
+
+	value_base value;
+
+	explicit constexpr tag_type(value_base v) : value(v + (std::is_same_v<std::true_type, zero_is_null> ? 1 : 0)) {}
+	constexpr tag_type(const tag_type& v) : value(v.value) {}
+	explicit constexpr tag_type(value_base v, std::true_type) : value(v) {}
+
+	constexpr tag_type() : value(null_value) {}
+
+	constexpr value_base index() const {
+		if constexpr(std::is_same_v<std::true_type, zero_is_null>)
+			return value - 1;
+		else
+			return value;
+	}
+	constexpr bool is_valid() const {
+		if constexpr(std::is_same_v<std::true_type, zero_is_null>)
+			return value != 0;
+		else
+			return value != std::numeric_limits<value_base>::max();
+	}
+	template<typename T>
+	void operator=(T v) { value = to_index(v) + (std::is_same_v<std::true_type, zero_is_null> ? 1 : 0); }
+	void operator=(value_base v) { value = v + (std::is_same_v<std::true_type, zero_is_null> ? 1 : 0); }
+	void operator=(tag_type v) { value = v.value; }
+	template<typename T>
+	bool operator==(T v) const { return index() == to_index(v); }
+	constexpr bool operator==(tag_type v) const { return value == v.value; }
+	constexpr bool operator==(value_base v) const { return *this == tag_type(v); }
+};
+
+template<typename value_base, typename zero_is_null, typename individuator>
+constexpr value_base null_value_of<tag_type<value_base, zero_is_null, individuator>> = tag_type<value_base, zero_is_null, individuator>::null_value;
+
+template<typename value_base, typename zero_is_null, typename individuator>
+constexpr value_base to_index(tag_type<value_base, zero_is_null, individuator> in) { return in.index(); }
+
+template<typename value_base, typename zero_is_null, typename individuator>
+constexpr bool is_valid_index(tag_type<value_base, zero_is_null, individuator> in) { return in.is_valid(); }
+
+template<typename value_base, typename zero_is_null, typename individuator>
+struct value_base_of_s<tag_type<value_base, zero_is_null, individuator>> { using type = value_base; };
+
+template<typename value_base, typename zero_is_null, typename individuator>
+struct zero_is_null_of_s<tag_type<value_base, zero_is_null, individuator>> { using type = zero_is_null; };
+
+template<typename value_base, typename zero_is_null, typename individuator>
+struct individuator_of_s<tag_type<value_base, zero_is_null, individuator>> { using type = individuator; };
+
+template<typename T>
+using value_base_of = typename value_base_of_s<T>::type;
+
+template<typename T>
+using zero_is_null_of = typename zero_is_null_of_s<T>::type;
+
+template<typename T>
+using individuator_of = typename individuator_of_s<T>::type;
+
+template<typename tag_base>
+struct atomic_tag {
+	using value_base_t = value_base_of<tag_base>;
+	using zero_is_null_t = zero_is_null_of<tag_base>;
+	using individuator_t = individuator_of<tag_base>;
+
+	static constexpr value_base_t null_value = null_value_of<tag_base>;
+
+	std::atomic<value_base_t> value;
+
+	explicit atomic_tag(value_base_t v) : value(v + (std::is_same_v<std::true_type, zero_is_null_t> ? 1 : 0)) {}
+	explicit atomic_tag(tag_base v) : value(to_index(v) + (std::is_same_v<std::true_type, zero_is_null_t> ? 1 : 0)) {}
+	atomic_tag(const atomic_tag &v) : value(v.value.load(std::memory_order_acquire)) {}
+
+	atomic_tag() : value(null_value) {}
+
+	value_base_t index() const {
+		if constexpr(std::is_same_v<std::true_type, zero_is_null_t>)
+			return value.load(std::memory_order_acquire) - 1;
+		else
+			return value.load(std::memory_order_acquire);
+	}
+	bool is_valid() const {
+		if constexpr(std::is_same_v<std::true_type, zero_is_null_t>)
+			return value.load(std::memory_order_acquire) != 0;
+		else
+			return value.load(std::memory_order_acquire) != std::numeric_limits<value_base_t>::max();
+	}
+
+	void operator=(const atomic_tag &v) { value.store(v.value.load(std::memory_order_acquire), std::memory_order_release); }
+	template<typename T>
+	void operator=(T v) { value.store(to_index(v) + (std::is_same_v<std::true_type, zero_is_null_t> ? 1 : 0), std::memory_order_release); }
+
+	bool operator==(const atomic_tag &v) const { return value.load(std::memory_order_acquire) == v.value.load(std::memory_order_acquire); }
+	template<typename T>
+	bool operator==(T v) const { return index() == to_index(v); }
+	
+	operator tag_base() const { return tag_base(value.load(std::memory_order_acquire), std::true_type()); }
+};
+
+template<typename tag_base>
+constexpr typename atomic_tag<tag_base>::value_base_t null_value_of<atomic_tag<tag_base>> = atomic_tag<tag_base>::null_value;
+
+template<typename tag_base>
+constexpr typename atomic_tag<tag_base>::value_base_t to_index(const atomic_tag<tag_base>& in) { return in.index(); }
+
+template<typename tag_base>
+constexpr bool is_valid_index(const atomic_tag<tag_base>& in) { return in.is_valid(); }
+
+template<typename tag_base>
+struct value_base_of_s<atomic_tag<tag_base>> { using type = typename atomic_tag<tag_base>::value_base_t; };
+
+template<typename tag_base>
+struct zero_is_null_of_s<atomic_tag<tag_base>> { using type = typename atomic_tag<tag_base>::zero_is_null_t; };
+
+template<typename tag_base>
+struct individuator_of_s<atomic_tag<tag_base>> { using type = typename atomic_tag<tag_base>::individuator_t; };
+
+template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>>
+class tagged_vector {
+private:
+	std::vector<value_type, allocator> storage;
+public:
+	const value_type& operator[](tag_type t) const {
+		return storage[to_index(t)];
+	}
+	value_type& operator[](tag_type t) {
+		return storage[to_index(t)];
+	}
+	template<typename ...T>
+	tag_type emplace_back(T&& ... ts) {
+		storage.emplace_back(std::forward<T>(ts)...);
+		return tag_type(storage.size() - 1);
+	}
+	auto begin() const { return storage.begin(); }
+	auto end() const { return storage.end(); }
+	size_t size() const { return storage.size(); }
+	void resize(size_t size) { storage.resize(size); }
+};
 
 enum modifiers {
 	modifiers_none = 0x0,
