@@ -7,28 +7,28 @@
 #include "text_data\\text_data.h"
 #include "graphics_objects\\graphics_objects.h"
 
-class font;
-class open_gl_wrapper;
-class lines;
-enum class rotation;
-
 namespace graphics {
+	class font;
+	class open_gl_wrapper;
+	class lines;
+	enum class rotation;
+
 	struct object;
 }
 
-struct rbutton_down;
-struct mouse_move;
-struct mouse_drag;
-struct rbutton_up;
-struct lbutton_down;
-struct resize;
-struct lbutton_up;
-struct scroll;
-struct key_down;
-struct key_up;
-struct text_event;
-
 namespace ui {
+	struct rbutton_down;
+	struct mouse_move;
+	struct mouse_drag;
+	struct rbutton_up;
+	struct lbutton_down;
+	struct resize;
+	struct lbutton_up;
+	struct scroll;
+	struct key_down;
+	struct key_up;
+	struct text_event;
+
 	enum class text_color : uint8_t {
 		black, white, red, green, yellow,
 		outlined_white, outlined_black
@@ -43,14 +43,14 @@ namespace ui {
 		char16_t text[max_instance_length];
 	};
 	struct graphics_instance {
-		texture* t;
+		graphics::texture* t;
 		graphics::object* graphics_object;
 		int64_t frame;
 	};
 	struct flag_instance {
-		texture* flag;
-		texture* mask;
-		texture* overlay;
+		graphics::texture* flag;
+		graphics::texture* mask;
+		graphics::texture* overlay;
 	};
 
 	class gui_object;
@@ -110,20 +110,13 @@ namespace ui {
 
 		char padding[4]; //32 bytes
 
-		const rotation get_rotation() const;
+		const graphics::rotation get_rotation() const;
 	};
-
-	constexpr std::pair<uint32_t, uint32_t> unpack_font_handle(uint16_t handle) {
-		return std::make_pair(uint32_t((handle >> 8) & 0xFF), uint32_t((handle & 0xFF) * 2));
-	}
-	constexpr uint16_t pack_font_handle(uint32_t font_handle, uint32_t size) {
-		return uint16_t((font_handle << 8) | ((size / 2) & 0xFF));
-	}
 
 	class gui_manager {
 	private:
-		void render_object_type(open_gl_wrapper&, const gui_object&, ui::xy_pair position, uint32_t type, bool currently_enabled);
-		void render_internal(open_gl_wrapper&, const gui_object&, ui::xy_pair position, bool parent_enabled);
+		void render_object_type(graphics::open_gl_wrapper&, const gui_object&, ui::xy_pair position, uint32_t type, bool currently_enabled);
+		void render_internal(graphics::open_gl_wrapper&, const gui_object&, ui::xy_pair position, bool parent_enabled);
 
 		tagged_gui_object create_element_instance(uint16_t packed_handle);
 		void create_simple_single_line_text(tagged_gui_object container, uint16_t text_handle, ui::text_color default_color, text_data::alignment align, uint32_t font_handle, uint32_t font_size);
@@ -139,11 +132,11 @@ namespace ui {
 		fixed_sz_deque<text_instance, 128, 64> text_instances;
 		fixed_sz_deque<graphics_instance, 128, 64> graphics_instances;
 		fixed_sz_deque<flag_instance, 64, 64> flag_instances;
-		fixed_sz_deque<data_texture, 64, 16> data_textures;
-		fixed_sz_deque<font, 32, 8> fonts;
-		fixed_sz_deque<lines, 32, 8> lines_set;
+		fixed_sz_deque<graphics::data_texture, 64, 16> data_textures;
+		fixed_sz_deque<graphics::font, 32, 8> fonts;
+		fixed_sz_deque<graphics::lines, 32, 8> lines_set;
 
-		texture_manager textures;
+		graphics::texture_manager textures;
 		ui::definitions ui_definitions;
 		graphics::object_definitions graphics_object_definitions;
 		text_data::text_sequences text_data_sequences;
@@ -170,7 +163,7 @@ namespace ui {
 		bool on_text(const text_event&);
 		bool on_scroll(const scroll&);
 
-		void render(open_gl_wrapper&);
+		void render(graphics::open_gl_wrapper&);
 
 		void rescale(float new_scale);
 

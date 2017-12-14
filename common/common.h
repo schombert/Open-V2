@@ -10,6 +10,9 @@
 #define CALL
 #endif
 
+#undef max
+#undef min
+
 template<typename T>
 constexpr T null_value_of = std::numeric_limits<T>::max();
 

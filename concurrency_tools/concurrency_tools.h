@@ -165,16 +165,16 @@ constexpr bool operator!= (const concurrent_allocator<T>&, const concurrent_allo
 	return false;
 }
 
-template<typename T, uint32_t block, uint32_t index_sz>
+template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 class fixed_sz_deque_iterator;
 
-template<typename T>
+template<typename T, typename tag_type>
 struct tagged_object {
 	T& object;
-	const uint32_t id;
+	const tag_type id;
 };
 
-template<typename T, uint32_t block, uint32_t index_sz>
+template<typename T, uint32_t block, uint32_t index_sz, typename tag_type = uint32_t>
 class fixed_sz_deque {
 private:
 	std::atomic<T*> index_array[index_sz] = { nullptr };
@@ -186,23 +186,23 @@ public:
 	fixed_sz_deque();
 	~fixed_sz_deque();
 
-	T& at(uint32_t index) const;
-	T* safe_at(uint32_t index) const;
-	void free(uint32_t index);
+	T& at(tag_type index) const;
+	T* safe_at(tag_type index) const;
+	void free(tag_type index);
 	template<typename U>
-	void free(uint32_t index, U&);
+	void free(tag_type index, U&);
 	uint32_t past_end() const;
 
 	template<typename ...P>
-	tagged_object<T> emplace(P&& ... params);
+	tagged_object<T, tag_type> emplace(P&& ... params);
 	template<typename ...P>
-	T& emplace_at(uint32_t location, P&& ... params); // not thread safe
-	T& ensure_reserved(uint32_t location);
+	T& emplace_at(tag_type location, P&& ... params); // not thread safe
+	T& ensure_reserved(tag_type location);
 	template<typename F>
-	void visit(uint32_t index, const F& f) const;
+	void visit(tag_type location, const F& f) const;
 
-	fixed_sz_deque_iterator<T, block, index_sz> begin() const;
-	fixed_sz_deque_iterator<T, block, index_sz> end() const;
+	fixed_sz_deque_iterator<T, block, index_sz, tag_type> begin() const;
+	fixed_sz_deque_iterator<T, block, index_sz, tag_type> end() const;
 };
 
 template<typename T, uint32_t block, uint32_t index_sz>
@@ -226,7 +226,7 @@ public:
 	void flush(const F& f);
 };
 
-template<typename T, uint32_t block, uint32_t index_sz>
+template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 class fixed_sz_deque_iterator {
 private:
 	const fixed_sz_deque<T, block, index_sz>* parent;
@@ -243,13 +243,13 @@ public:
 		return position != o.position;
 	}
 	T* operator*() const {
-		return parent->safe_at(position);
+		return parent->safe_at(tag_type(position));
 	}
 	T* operator[](int32_t offset) const {
-		return parent->safe_at(position + offset);
+		return parent->safe_at(tag_type(position + offset));
 	}
 	T* operator->() const {
-		return parent->safe_at(position);
+		return parent->safe_at(tag_type(position));
 	}
 	fixed_sz_deque_iterator& operator++() {
 		++position;
@@ -298,8 +298,8 @@ public:
 	}
 };
 
-template<typename T, uint32_t block, uint32_t index_sz>
-class std::iterator_traits<fixed_sz_deque_iterator<T, block, index_sz>> {
+template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
+class std::iterator_traits<fixed_sz_deque_iterator<T, block, index_sz, tag_type>> {
 public:
 	using difference_type = int32_t;
 	using value_type = T;

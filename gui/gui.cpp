@@ -131,13 +131,14 @@ void ui::gui_manager::create_simple_single_line_text(tagged_gui_object container
 				new_gobj.object.type_dependant_handle.store(new_text_instance.id, std::memory_order_release);
 
 				auto last_in_chunk = (int32_t)std::min(position_in_chunk + ui::text_instance::max_instance_length, (uint32_t)chunk.length);
-				for (; last_in_chunk > position_in_chunk; --last_in_chunk) {
-					if (text_data_sequences.text_data[chunk.offset + last_in_chunk] == u' ')
-						break;
+				if (last_in_chunk != chunk.length) {
+					for (; last_in_chunk > position_in_chunk; --last_in_chunk) {
+						if (text_data_sequences.text_data[chunk.offset + last_in_chunk] == u' ')
+							break;
+					}
+					if (last_in_chunk == position_in_chunk)
+						last_in_chunk = (int32_t)std::min(position_in_chunk + ui::text_instance::max_instance_length, (uint32_t)chunk.length);
 				}
-				if (last_in_chunk == position_in_chunk)
-					last_in_chunk = (int32_t)std::min(position_in_chunk + ui::text_instance::max_instance_length, (uint32_t)chunk.length);
-
 				new_text_instance.object.color = current_color;
 				new_text_instance.object.font_handle = font_handle;
 				new_text_instance.object.size = font_size / 2;

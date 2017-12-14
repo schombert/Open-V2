@@ -2,6 +2,8 @@
 #include "graphics\\test_helpers.h"
 #include "fake_fs\\fake_fs.h"
 
+using namespace graphics;
+
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
 TEST(texture_rendering, graphics_tests) {

@@ -961,7 +961,7 @@ int __cdecl main() {
 	std::cout << all_text.text_data.size() << " characters of data" << std::endl;
 	std::cout << all_text.key_data.size() << " characters of key data" << std::endl;
 	
-	
+	std::set<std::string> font_list;
 	
 
 	auto interface_directory = fs.get_root().get_directory(u"\\interface");
@@ -979,8 +979,8 @@ int __cdecl main() {
 	load_ui_definitions_from_directory(
 		interface_directory, nmaps, defs, errors_generated,
 		[&all_text](const char* a, const char* b) { return get_text_handle(all_text, a, b); },
-		fake_font_handle_lookup(),
-		[&gobj_nmaps](const char* a, const char* b) { return reserve_graphics_object(gobj_nmaps, a, b); });
+		[&font_list](const char* a, const char* b) { font_list.insert(std::string(a,b)); return 0; },
+		[&gobj_nmaps](const char* a, const char* b) { return to_index(reserve_graphics_object(gobj_nmaps, a, b)); });
 
 	for (auto& e : errors_generated) {
 		std::cout << e.first << ": " << ui::format_error(e.second) << std::endl;
@@ -1008,6 +1008,8 @@ int __cdecl main() {
 	std::cout << "textures in manager: " << tm.count() << std::endl;
 	std::cout << "finished" << std::endl;
 	
+	for(auto& f : font_list)
+		std::cout << f << std::endl;
 
 	/*
 	{
