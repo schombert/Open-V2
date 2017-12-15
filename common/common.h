@@ -58,14 +58,13 @@ struct tag_type {
 		else
 			return value != std::numeric_limits<value_base>::max();
 	}
-	template<typename T>
-	void operator=(T v) { value = to_index(v) + (std::is_same_v<std::true_type, zero_is_null> ? 1 : 0); }
 	void operator=(value_base v) { value = v + (std::is_same_v<std::true_type, zero_is_null> ? 1 : 0); }
 	void operator=(tag_type v) { value = v.value; }
-	template<typename T>
-	bool operator==(T v) const { return index() == to_index(v); }
+
 	constexpr bool operator==(tag_type v) const { return value == v.value; }
 	constexpr bool operator==(value_base v) const { return *this == tag_type(v); }
+	constexpr bool operator!=(tag_type v) const { return value != v.value; }
+	constexpr bool operator!=(value_base v) const { return *this != tag_type(v); }
 };
 
 template<typename value_base, typename zero_is_null, typename individuator>
@@ -125,12 +124,12 @@ struct atomic_tag {
 	}
 
 	void operator=(const atomic_tag &v) { value.store(v.value.load(std::memory_order_acquire), std::memory_order_release); }
-	template<typename T>
-	void operator=(T v) { value.store(to_index(v) + (std::is_same_v<std::true_type, zero_is_null_t> ? 1 : 0), std::memory_order_release); }
+	void operator=(tag_base v) { value.store(to_index(v) + (std::is_same_v<std::true_type, zero_is_null_t> ? 1 : 0), std::memory_order_release); }
 
 	bool operator==(const atomic_tag &v) const { return value.load(std::memory_order_acquire) == v.value.load(std::memory_order_acquire); }
-	template<typename T>
-	bool operator==(T v) const { return index() == to_index(v); }
+	bool operator==(tag_base v) const { return index() == to_index(v); }
+	bool operator!=(const atomic_tag &v) const { return value.load(std::memory_order_acquire) != v.value.load(std::memory_order_acquire); }
+	bool operator!=(tag_base v) const { return index() != to_index(v); }
 	
 	operator tag_base() const { return tag_base(value.load(std::memory_order_acquire), std::true_type()); }
 };

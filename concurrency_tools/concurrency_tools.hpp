@@ -345,7 +345,7 @@ void fixed_sz_deque<T, block, index_sz, tag_type>::free(tag_type index, U& u) {
 	concurrent_key_pair_helper free_spot(first_free.load(std::memory_order_acquire));
 
 	keys[block_index].store(free_spot.value, std::memory_order_release);
-	while (!first_free.compare_exchange_strong(free_spot.value, concurrent_key_pair_helper(index, free_spot.parts.counter + 1).value, std::memory_order_release, std::memory_order_acquire)) {
+	while (!first_free.compare_exchange_strong(free_spot.value, concurrent_key_pair_helper(to_index(index), free_spot.parts.counter + 1).value, std::memory_order_release, std::memory_order_acquire)) {
 		keys[block_index].store(free_spot.parts.index, std::memory_order_release);
 	}
 }
@@ -363,7 +363,7 @@ void fixed_sz_deque<T, block, index_sz, tag_type>::free(tag_type index) {
 	concurrent_key_pair_helper free_spot (first_free.load(std::memory_order_acquire));
 
 	keys[block_index].store(free_spot.value, std::memory_order_release);
-	while (!first_free.compare_exchange_strong(free_spot.value, concurrent_key_pair_helper(index, free_spot.parts.counter + 1).value, std::memory_order_release, std::memory_order_acquire)) {
+	while (!first_free.compare_exchange_strong(free_spot.value, concurrent_key_pair_helper(to_index(index), free_spot.parts.counter + 1).value, std::memory_order_release, std::memory_order_acquire)) {
 		keys[block_index].store(free_spot.parts.index, std::memory_order_release);
 	}
 }

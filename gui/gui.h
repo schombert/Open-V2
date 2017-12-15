@@ -4,8 +4,10 @@
 #include "concurrency_tools\\concurrency_tools.h"
 #include "gui_definitions\\gui_definitions.h"
 #include "graphics\\texture.h"
+#include "graphics\\text.h"
 #include "text_data\\text_data.h"
 #include "graphics_objects\\graphics_objects.h"
+#include "common\\shared_tags.h"
 
 namespace graphics {
 	class font;
@@ -36,7 +38,7 @@ namespace ui {
 	struct text_instance {
 		static constexpr uint32_t max_instance_length = 30;
 
-		uint8_t font_handle;
+		graphics::font_tag font_handle;
 		text_color color = text_color::black;
 		uint8_t size; // *2 = display size
 		uint8_t length;
@@ -56,7 +58,7 @@ namespace ui {
 	class gui_object;
 	class gui_manager;
 
-	using tagged_gui_object = tagged_object<gui_object>;
+	using tagged_gui_object = tagged_object<gui_object, gui_object_tag>;
 
 	class gui_behavior {
 	public:
@@ -101,10 +103,10 @@ namespace ui {
 
 		std::atomic<uint16_t> type_dependant_handle; // 18bytes
 
-		std::atomic<uint16_t> parent = 0; //20bytes
-		std::atomic<uint16_t> first_child = 0; //22 bytes
-		std::atomic<uint16_t> left_sibling = 0; //24 bytes
-		std::atomic<uint16_t> right_sibling = 0; //26 bytes
+		atomic_tag<gui_object_tag> parent; //20bytes
+		atomic_tag<gui_object_tag> first_child; //22 bytes
+		atomic_tag<gui_object_tag> left_sibling; //24 bytes
+		atomic_tag<gui_object_tag> right_sibling; //26 bytes
 
 		std::atomic<uint16_t> flags = 0; // 28 bytes
 
@@ -119,7 +121,7 @@ namespace ui {
 		void render_internal(graphics::open_gl_wrapper&, const gui_object&, ui::xy_pair position, bool parent_enabled);
 
 		tagged_gui_object create_element_instance(uint16_t packed_handle);
-		void create_simple_single_line_text(tagged_gui_object container, uint16_t text_handle, ui::text_color default_color, text_data::alignment align, uint32_t font_handle, uint32_t font_size);
+		void create_simple_single_line_text(tagged_gui_object container, text_data::text_tag text_handle, ui::text_color default_color, text_data::alignment align, graphics::font_tag font_handle, uint32_t font_size);
 
 		template<typename MESSAGE_FUNCTION, typename MESSAGE_TYPE>
 		bool dispatch_message_internal(const MESSAGE_FUNCTION &member_f, tagged_gui_object obj, const MESSAGE_TYPE& message);
@@ -128,15 +130,16 @@ namespace ui {
 
 		float scale = 1.0f;
 	public:
-		fixed_sz_deque<gui_object, 128, 64> gui_objects;
-		fixed_sz_deque<text_instance, 128, 64> text_instances;
-		fixed_sz_deque<graphics_instance, 128, 64> graphics_instances;
-		fixed_sz_deque<flag_instance, 64, 64> flag_instances;
-		fixed_sz_deque<graphics::data_texture, 64, 16> data_textures;
-		fixed_sz_deque<graphics::font, 32, 8> fonts;
-		fixed_sz_deque<graphics::lines, 32, 8> lines_set;
+		fixed_sz_deque<gui_object, 128, 64, gui_object_tag> gui_objects;
+		fixed_sz_deque<text_instance, 128, 64, text_instance_tag> text_instances;
+		fixed_sz_deque<graphics_instance, 128, 64, graphics_instance_tag> graphics_instances;
+		fixed_sz_deque<flag_instance, 64, 64, flag_instance_tag> flag_instances;
+		fixed_sz_deque<graphics::data_texture, 64, 16, data_texture_tag> data_textures;
+		fixed_sz_deque<graphics::lines, 32, 8, lines_tag> lines_set;
 
 		graphics::texture_manager textures;
+		graphics::font_manager fonts;
+
 		ui::definitions ui_definitions;
 		graphics::object_definitions graphics_object_definitions;
 		text_data::text_sequences text_data_sequences;
@@ -146,8 +149,8 @@ namespace ui {
 		gui_object& foreground;
 		gui_object& tooltip_window;
 
-		uint32_t focus = 0;
-		uint32_t tooltip = 0;
+		gui_object_tag focus;
+		gui_object_tag tooltip;
 
 		
 

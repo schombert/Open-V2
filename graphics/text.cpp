@@ -481,6 +481,10 @@ namespace graphics {
 		return font_tag(map_functions<sorted_font_map_type>::bt_scan_ci(start, effective_end, 0));
 	}
 
+	font& font_manager::at(font_tag t) const {
+		return fonts.at(t);
+	}
+
 	uint32_t font_manager::find_font_size(const char* start, const char* end) {
 		const auto mapped_size = map_functions<sorted_font_size_map_type>::bt_scan_ci(start, end, 0);
 		if (mapped_size != 0)

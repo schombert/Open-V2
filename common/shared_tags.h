@@ -16,6 +16,13 @@ namespace ui {
 	using listbox_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 15361>>;
 	using scrollbar_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 15362>>;
 	using window_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 15363>>;
+
+	using gui_object_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 856623>>;
+	using text_instance_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 856624>>;
+	using graphics_instance_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 856625>>;
+	using flag_instance_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 856626>>;
+	using data_texture_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 856627>>;
+	using lines_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 856628>>;
 }
 
 namespace text_data {
