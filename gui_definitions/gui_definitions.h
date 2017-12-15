@@ -6,6 +6,7 @@
 #include <functional>
 #include "boost\\container\\flat_map.hpp"
 #include "simple_fs\\simple_fs.h"
+#include "common\\shared_tags.h"
 
 namespace ui {
 	enum class errors {
@@ -63,8 +64,9 @@ namespace ui {
 		window = 8
 	};
 
-	constexpr uint16_t pack_ui_definition_handle(element_type t, uint16_t handle) {
-		return (uint16_t)(((uint32_t)handle << 4) | (uint32_t)t);
+	template<typename T>
+	constexpr uint16_t pack_ui_definition_handle(element_type t, T handle) {
+		return (uint16_t)(((uint32_t)to_index(handle) << 4) | (uint32_t)t);
 	}
 	constexpr std::pair<element_type, uint16_t> unpack_ui_definition_handle(uint16_t packed_handle) {
 		return std::make_pair((element_type)(packed_handle & 0x000F), (uint16_t)(packed_handle >> 4));
@@ -102,8 +104,8 @@ namespace ui {
 		xy_pair position; //4bytes
 		xy_pair size; //8bytes
 
-		uint16_t graphical_object_handle = 0; //10bytes
-		uint16_t text_handle = 0; //12bytes
+		graphics::obj_definition_tag graphical_object_handle; //10bytes
+		text_data::text_tag text_handle; //12bytes
 		uint16_t font_handle = 0; //14bytes
 
 		uint8_t flags = 0; //15 bytes
@@ -129,7 +131,7 @@ namespace ui {
 
 		xy_pair position;
 		float scale = 1.0f;
-		uint16_t graphical_object_handle = 0;
+		graphics::obj_definition_tag graphical_object_handle;
 		uint8_t frame = 0;
 		uint8_t flags = 0;
 	};
@@ -168,7 +170,7 @@ namespace ui {
 		uint16_t font_handle = 0;
 		uint16_t max_height = 0;
 		uint16_t max_width = 0;
-		uint16_t text_handle = 0;
+		text_data::text_tag text_handle;
 		uint16_t flags = 0;
 	};
 
@@ -209,7 +211,7 @@ namespace ui {
 		xy_pair offset;
 		xy_pair border_size;
 
-		uint16_t background_handle = 0;
+		graphics::obj_definition_tag background_handle;
 		uint8_t flags = 0;
 	};
 
@@ -229,12 +231,12 @@ namespace ui {
 		xy_pair position;
 		xy_pair size;
 		uint16_t max_value = 1;
-		uint16_t minimum_button = 0;
-		uint16_t maximum_button = 0;
-		uint16_t track = 0;
-		uint16_t slider = 0;
-		uint16_t minimum_limit_icon = 0;
-		uint16_t maximum_limit_icon = 0;
+		button_tag minimum_button;
+		button_tag maximum_button;
+		button_tag track;
+		button_tag slider;
+		icon_tag minimum_limit_icon;
+		icon_tag maximum_limit_icon;
 		uint8_t flags = 0;
 	};
 
@@ -253,7 +255,7 @@ namespace ui {
 		std::vector<uint16_t> sub_object_definitions;
 		ui::xy_pair position;
 		ui::xy_pair size;
-		uint16_t background_handle = 0;
+		button_tag background_handle;
 		uint8_t flags = 0;
 	};
 
@@ -290,31 +292,32 @@ namespace ui {
 	};
 
 	struct definitions {
-		std::vector<button_def> buttons;
-		std::vector<icon_def> icons;
-		std::vector<text_def> text;
-		std::vector<position_def> positions;
-		std::vector<overlapping_region_def> overlapping_regions;
-		std::vector<listbox_def> listboxes;
-		std::vector<scrollbar_def> scrollbars;
-		std::vector<window_def> windows;
+		tagged_vector<button_def, button_tag> buttons;
+		tagged_vector<icon_def, icon_tag> icons;
+		tagged_vector<text_def, text_tag> text;
+		tagged_vector<position_def, position_tag> positions;
+		tagged_vector<overlapping_region_def, overlapping_region_tag> overlapping_regions;
+		tagged_vector<listbox_def, listbox_tag> listboxes;
+		tagged_vector<scrollbar_def, scrollbar_tag> scrollbars;
+		tagged_vector<window_def, window_tag> windows;
 
 		std::vector<char> name_data;
 		boost::container::flat_map<vector_backed_string<char>, uint16_t, vector_backed_string_less_ci> name_to_element_map;
 
 		definitions() : name_to_element_map(vector_backed_string_less_ci(name_data)) {}
 	};
+
+	using text_handle_lookup = std::function<text_data::text_tag(const char*, const char*)>;
+	using font_handle_lookup = std::function<uint16_t(const char*, const char*)>;
+	using gobj_lookup = std::function<graphics::obj_definition_tag(const char*, const char*)>;
+
+	void load_ui_definitions_from_directory(
+		const directory& source_directory,
+		ui::name_maps& nmaps,
+		ui::definitions& defs,
+		std::vector<std::pair<std::string, ui::errors>>& errors_generated,
+		const text_handle_lookup& th_f,
+		const font_handle_lookup& fh_f,
+		const gobj_lookup& qt_f);
 };
 
-using text_handle_lookup = std::function<uint16_t(const char*, const char*)>;
-using font_handle_lookup = std::function<uint16_t(const char*, const char*)>;
-using gobj_lookup = std::function<uint16_t(const char*, const char*)>;
-
-void load_ui_definitions_from_directory(
-	const directory& source_directory,
-	ui::name_maps& nmaps,
-	ui::definitions& defs,
-	std::vector<std::pair<std::string,ui::errors>>& errors_generated,
-	const text_handle_lookup& th_f,
-	const font_handle_lookup& fh_f,
-	const gobj_lookup& qt_f);

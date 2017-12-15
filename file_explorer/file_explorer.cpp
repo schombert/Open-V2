@@ -853,18 +853,18 @@ struct unknown_type {
 };
 
 struct empty_window_handler {
-	texture test_tex;
-	texture strip_tex;
-	texture mask_tex;
-	texture prog1;
-	texture prog2;
-	texture bord;
-	texture bar_tex;
+	graphics::texture test_tex;
+	graphics::texture strip_tex;
+	graphics::texture mask_tex;
+	graphics::texture prog1;
+	graphics::texture prog2;
+	graphics::texture bord;
+	graphics::texture bar_tex;
 
-	lines graph;
+	graphics::lines graph;
 
-	font test_fallback;
-	font test_font;
+	graphics::font test_fallback;
+	graphics::font test_font;
 	
 	empty_window_handler() :
 		//test_tex("F:\\VS2007Projects\\open_v2_test_data\\army_icon_2.dds"),
@@ -884,15 +884,15 @@ struct empty_window_handler {
 	}
 
 	template<typename T>
-	void operator()(T&&, window_base& w) const {
+	void operator()(T&&, ui::window_base& w) const {
 		// do nothing;
 	}
-	void initialize_graphics(open_gl_wrapper& ogl) {
+	void initialize_graphics(graphics::open_gl_wrapper& ogl) {
 		test_fallback.load_font(ogl);
 		test_font.load_font(ogl);
 	}
 
-	void render(open_gl_wrapper& ogl) {
+	void render(graphics::open_gl_wrapper& ogl) {
 
 		//ogl.render_masked_rect(true, 0.0f, 0.0f, 40.0f, 80.0f, test_tex, mask_tex, rotation::right);
 
@@ -900,10 +900,10 @@ struct empty_window_handler {
 		//ogl.render_subsprite(true, 3, 10, 90.0, 10.0, 36.0, 36.0, strip_tex, rotation::right);
 
 
-		ogl.render_outlined_text(u"明Tasy", 5, true, 80.0f, 40.0f, 32.0f, color{ 1.0f,1.0f,1.0f }, test_font);
+		ogl.render_outlined_text(u"明Tasy", 5, true, 80.0f, 40.0f, 32.0f, graphics::color{ 1.0f,1.0f,1.0f }, test_font);
 
-		ogl.render_outlined_text(u"明Tesy", 5, true, 80.0f, 80.0f, 32.0f, color{ 0.0f,0.0f,0.0f }, test_font);
-		ogl.render_text(u"明Tasy", 5, true, 80.0f, 112.0f, 32.0f, color{ 1.0f,1.0f,1.0f }, test_font);
+		ogl.render_outlined_text(u"明Tesy", 5, true, 80.0f, 80.0f, 32.0f, graphics::color{ 0.0f,0.0f,0.0f }, test_font);
+		ogl.render_text(u"明Tasy", 5, true, 80.0f, 112.0f, 32.0f, graphics::color{ 1.0f,1.0f,1.0f }, test_font);
 
 		//ogl.render_progress_bar(true, 0.33f, 0.5f, 0.5f, 80.0f, 20.0f, prog1, prog2);
 
@@ -961,12 +961,10 @@ int __cdecl main() {
 	std::cout << all_text.text_data.size() << " characters of data" << std::endl;
 	std::cout << all_text.key_data.size() << " characters of key data" << std::endl;
 	
-	std::set<std::string> font_list;
-	
-
 	auto interface_directory = fs.get_root().get_directory(u"\\interface");
 
-	texture_manager tm;
+	graphics::texture_manager tm;
+	graphics::font_manager fm;
 
 	ui::name_maps nmaps;
 	ui::definitions defs;
@@ -976,11 +974,11 @@ int __cdecl main() {
 	graphics::object_definitions gobj_defs;
 	std::vector<std::pair<std::string, graphics::errors>> gobj_errors_generated;
 
-	load_ui_definitions_from_directory(
+	ui::load_ui_definitions_from_directory(
 		interface_directory, nmaps, defs, errors_generated,
 		[&all_text](const char* a, const char* b) { return get_text_handle(all_text, a, b); },
-		[&font_list](const char* a, const char* b) { font_list.insert(std::string(a,b)); return 0; },
-		[&gobj_nmaps](const char* a, const char* b) { return to_index(reserve_graphics_object(gobj_nmaps, a, b)); });
+		[&fm](const char* a, const char* b) { return graphics::pack_font_handle(fm.find_font(a,b), fm.find_font_size(a,b)); },
+		[&gobj_nmaps](const char* a, const char* b) { return graphics::reserve_graphics_object(gobj_nmaps, a, b); });
 
 	for (auto& e : errors_generated) {
 		std::cout << e.first << ": " << ui::format_error(e.second) << std::endl;
@@ -995,7 +993,7 @@ int __cdecl main() {
 	
 	std::cout << gobj_nmaps.names.size() << " graphics objects pending" << std::endl;
 
-	load_graphics_object_definitions_from_directory(
+	graphics::load_graphics_object_definitions_from_directory(
 		interface_directory,
 		gobj_nmaps,
 		gobj_defs,
@@ -1007,9 +1005,6 @@ int __cdecl main() {
 	}
 	std::cout << "textures in manager: " << tm.count() << std::endl;
 	std::cout << "finished" << std::endl;
-	
-	for(auto& f : font_list)
-		std::cout << f << std::endl;
 
 	/*
 	{

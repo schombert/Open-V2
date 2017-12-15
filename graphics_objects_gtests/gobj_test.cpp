@@ -3,6 +3,8 @@
 
 #define RANGE(x) (x), (x) + ((sizeof(x)) / sizeof((x)[0])) - 1
 
+using namespace graphics;
+
 auto fake_texture_lookup() {
 	return[i = 0ui16](const char*, const char*) mutable { return ++i; };
 }

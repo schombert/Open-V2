@@ -175,6 +175,12 @@
     <ClCompile Include="v2_window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\concurrency_tools\concurrency_tools.vcxproj">
+      <Project>{12f547e0-13dc-4c35-96ab-950827192412}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Parsers\Parsers.vcxproj">
+      <Project>{c8b537f7-6df3-4685-a7d7-0f30ce18176d}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\soil\soil.vcxproj">
       <Project>{1630cf3a-c9bb-4d13-a8d3-7c74c801c86b}</Project>
     </ProjectReference>

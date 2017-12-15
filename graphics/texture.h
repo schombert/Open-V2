@@ -5,6 +5,7 @@
 #include "common\\common.h"
 #include "simple_fs\\simple_fs.h"
 #include <map>
+#include "common\\shared_tags.h"
 
 namespace graphics {
 	struct color_rgba {
@@ -79,14 +80,14 @@ namespace graphics {
 
 	class texture_manager {
 	private:
-		std::vector<texture> textures;
+		tagged_vector<texture, texture_tag> textures;
 		std::vector<char> file_names;
-		std::map<vector_backed_string<char>, uint16_t, vector_backed_string_less_ci> fname_map;
+		std::map<vector_backed_string<char>, texture_tag, vector_backed_string_less_ci> fname_map;
 	public:
 		texture_manager() : fname_map(vector_backed_string_less_ci(file_names)) {}
 		auto count() { return textures.size(); }
-		uint16_t retrieve_by_name(const directory& root, const char* start, const char* end);
-		texture& retrieve_by_key(uint16_t key);
+		texture_tag retrieve_by_name(const directory& root, const char* start, const char* end);
+		texture& retrieve_by_key(texture_tag key);
 		void load_all_texture_files();
 	};
 }

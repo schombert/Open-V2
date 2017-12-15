@@ -169,3 +169,22 @@ TEST(texture_manager_test, graphics_tests) {
 	EXPECT_EQ(std::string("F:\\mod\\gfx\\file_a.tga"), tm_b.retrieve_by_key(handle_c).filename);
 	EXPECT_EQ(std::string("F:\\gfx\\file_b.dds"), tm_b.retrieve_by_key(handle_d).filename);
 }
+
+TEST(font_manager_test, graphics_tests) {
+	font_manager fm;
+
+	const auto f1 = fm.find_font(RANGE("Arial_17_black"));
+	const auto f2 = fm.find_font(RANGE("ToolTip_Font"));
+	const auto f3 = fm.find_font(RANGE("unknownfont"));
+	const auto f4 = fm.find_font(RANGE("vic_32"));
+
+	EXPECT_EQ(f1, font_tag(1));
+	EXPECT_EQ(f2, font_tag(1));
+	EXPECT_EQ(f3, font_tag(0));
+	EXPECT_EQ(f4, font_tag(2));
+
+	EXPECT_EQ(18, fm.find_font_size(RANGE("Arial_17_black")));
+	EXPECT_EQ(14, fm.find_font_size(RANGE("FPS_Font")));
+	EXPECT_EQ(32, fm.find_font_size(RANGE("vic_32")));
+	EXPECT_EQ(16, fm.find_font_size(RANGE("unknownfont")));
+}

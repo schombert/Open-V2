@@ -3,10 +3,9 @@
 #include "common\\common.h"
 #include "concurrency_tools\\concurrency_tools.h"
 #include "simple_fs\\simple_fs.h"
+#include "common\\shared_tags.h"
 
 namespace graphics {
-	using font_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 860367>>;
-
 	class _font;
 
 	class glyph {
@@ -54,6 +53,9 @@ namespace graphics {
 
 	class font_manager {
 	public:
+		font_manager();
+		~font_manager();
+
 		fixed_sz_deque<font, 32, 8, font_tag> fonts;
 
 		font_tag find_font(const char* start, const char* end);

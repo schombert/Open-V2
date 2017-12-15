@@ -119,7 +119,7 @@ namespace graphics {
 		}
 	}
 
-	uint16_t texture_manager::retrieve_by_name(const directory& root, const char* start, const char* end) {
+	texture_tag texture_manager::retrieve_by_name(const directory& root, const char* start, const char* end) {
 		char* const temp_cpy = (char*)_alloca(end - start + 1);
 		uint32_t t_pos = 0;
 		for (uint32_t i = 0; i < (end - start); ++i, ++t_pos) {
@@ -134,12 +134,12 @@ namespace graphics {
 			_freea(temp_cpy);
 			return find_result->second;
 		} else {
-			const auto new_key = textures.size() + 1;
+			texture_tag new_key;
 
 			const auto full_fn = root.peek_file(temp_cpy, temp_cpy + t_pos);
 			if (full_fn) {
 				std::u16string full_path = full_fn->file_path() + u'\\' + full_fn->file_name();
-				textures.emplace_back(std::string(full_path.begin(), full_path.end()));
+				new_key = textures.emplace_back(std::string(full_path.begin(), full_path.end()));
 			} else if (t_pos > 3) {
 				temp_cpy[t_pos - 1] = 's';
 				temp_cpy[t_pos - 2] = 'd';
@@ -148,7 +148,7 @@ namespace graphics {
 				const auto full_fn_b = root.peek_file(temp_cpy, temp_cpy + t_pos);
 				if (full_fn_b) {
 					std::u16string full_path = full_fn_b->file_path() + u'\\' + full_fn_b->file_name();
-					textures.emplace_back(std::string(full_path.begin(), full_path.end()));
+					new_key = textures.emplace_back(std::string(full_path.begin(), full_path.end()));
 				} else {
 #ifdef _DEBUG
 					OutputDebugStringA("texture file not found: ");
@@ -156,7 +156,7 @@ namespace graphics {
 					OutputDebugStringA("\n");
 #endif
 					_freea(temp_cpy);
-					return 0;
+					return texture_tag();
 				}
 			}
 
@@ -167,8 +167,8 @@ namespace graphics {
 		}
 	}
 
-	texture& texture_manager::retrieve_by_key(uint16_t key) {
-		return textures[key - 1];
+	texture& texture_manager::retrieve_by_key(texture_tag key) {
+		return textures[key];
 	}
 
 	void texture_manager::load_all_texture_files() {

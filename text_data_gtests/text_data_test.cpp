@@ -38,7 +38,7 @@ TEST(adding_string_data, text_data_test) {
 
 TEST(single_newline, text_data_test) {
 	text_sequences seq_object;
-	std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci> temp_map(seq_object.key_data);
+	std::map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci> temp_map(seq_object.key_data);
 
 	const char t1[] = "\\n";
 	const char test_key[] = "key";
@@ -48,13 +48,13 @@ TEST(single_newline, text_data_test) {
 	EXPECT_EQ(1, seq_object.all_components.size());
 	EXPECT_TRUE(std::holds_alternative<line_break>(seq_object.all_components[0]));
 	EXPECT_EQ(1, seq_object.all_sequences.size());
-	EXPECT_EQ(0, seq_object.all_sequences[0].starting_component);
-	EXPECT_EQ(1, seq_object.all_sequences[0].component_count);
+	EXPECT_EQ(0, seq_object.all_sequences[text_tag(0)].starting_component);
+	EXPECT_EQ(1, seq_object.all_sequences[text_tag(0)].component_count);
 }
 
 TEST(win1250_color, text_data_test) {
 	text_sequences seq_object;
-	std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci> temp_map(seq_object.key_data);
+	std::map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci> temp_map(seq_object.key_data);
 
 	const char t1[] = "\xA7W";
 	const char test_key[] = "key";
@@ -64,13 +64,13 @@ TEST(win1250_color, text_data_test) {
 	EXPECT_EQ(1, seq_object.all_components.size());
 	EXPECT_EQ(text_color::white, std::get<color_change>(seq_object.all_components[0]).color);
 	EXPECT_EQ(1, seq_object.all_sequences.size());
-	EXPECT_EQ(0, seq_object.all_sequences[0].starting_component);
-	EXPECT_EQ(1, seq_object.all_sequences[0].component_count);
+	EXPECT_EQ(0, seq_object.all_sequences[text_tag(0)].starting_component);
+	EXPECT_EQ(1, seq_object.all_sequences[text_tag(0)].component_count);
 }
 
 TEST(utf8_color, text_data_test) {
 	text_sequences seq_object;
-	std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci> temp_map(seq_object.key_data);
+	std::map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci> temp_map(seq_object.key_data);
 
 	const char t1[] = "\xC2\xA7W";
 	const char test_key[] = "key";
@@ -80,13 +80,13 @@ TEST(utf8_color, text_data_test) {
 	EXPECT_EQ(1, seq_object.all_components.size());
 	EXPECT_EQ(text_color::white, std::get<color_change>(seq_object.all_components[0]).color);
 	EXPECT_EQ(1, seq_object.all_sequences.size());
-	EXPECT_EQ(0, seq_object.all_sequences[0].starting_component);
-	EXPECT_EQ(1, seq_object.all_sequences[0].component_count);
+	EXPECT_EQ(0, seq_object.all_sequences[text_tag(0)].starting_component);
+	EXPECT_EQ(1, seq_object.all_sequences[text_tag(0)].component_count);
 }
 
 TEST(single_replacement, text_data_test) {
 	text_sequences seq_object;
-	std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci> temp_map(seq_object.key_data);
+	std::map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci> temp_map(seq_object.key_data);
 
 	const char t1[] = "$Union$";
 	const char test_key[] = "key";
@@ -96,13 +96,13 @@ TEST(single_replacement, text_data_test) {
 	EXPECT_EQ(1, seq_object.all_components.size());
 	EXPECT_EQ(value_type::vtype_union, std::get<value_placeholder>(seq_object.all_components[0]).value);
 	EXPECT_EQ(1, seq_object.all_sequences.size());
-	EXPECT_EQ(0, seq_object.all_sequences[0].starting_component);
-	EXPECT_EQ(1, seq_object.all_sequences[0].component_count);
+	EXPECT_EQ(0, seq_object.all_sequences[text_tag(0)].starting_component);
+	EXPECT_EQ(1, seq_object.all_sequences[text_tag(0)].component_count);
 }
 
 TEST(single_bad_replacement, text_data_test) {
 	text_sequences seq_object;
-	std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci> temp_map(seq_object.key_data);
+	std::map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci> temp_map(seq_object.key_data);
 
 	const char t1[] = "$xxxxx$";
 	const char test_key[] = "key";
@@ -112,13 +112,13 @@ TEST(single_bad_replacement, text_data_test) {
 	EXPECT_EQ(1, seq_object.all_components.size());
 	EXPECT_EQ(value_type::error_no_matching_value, std::get<value_placeholder>(seq_object.all_components[0]).value);
 	EXPECT_EQ(1, seq_object.all_sequences.size());
-	EXPECT_EQ(0, seq_object.all_sequences[0].starting_component);
-	EXPECT_EQ(1, seq_object.all_sequences[0].component_count);
+	EXPECT_EQ(0, seq_object.all_sequences[text_tag(0)].starting_component);
+	EXPECT_EQ(1, seq_object.all_sequences[text_tag(0)].component_count);
 }
 
 TEST(intervening_value, text_data_test) {
 	text_sequences seq_object;
-	std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci> temp_map(seq_object.key_data);
+	std::map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci> temp_map(seq_object.key_data);
 
 	const char t1[] = "aaa$Union$bb bb";
 	const char test_key[] = "key";
@@ -130,13 +130,13 @@ TEST(intervening_value, text_data_test) {
 	EXPECT_EQ(value_type::vtype_union, std::get<value_placeholder>(seq_object.all_components[1]).value);
 	EXPECT_EQ(std::wstring(L"bb bb"), get_string(seq_object, 2));
 	EXPECT_EQ(1, seq_object.all_sequences.size());
-	EXPECT_EQ(0, seq_object.all_sequences[0].starting_component);
-	EXPECT_EQ(3, seq_object.all_sequences[0].component_count);
+	EXPECT_EQ(0, seq_object.all_sequences[text_tag(0)].starting_component);
+	EXPECT_EQ(3, seq_object.all_sequences[text_tag(0)].component_count);
 }
 
 TEST(string_color_value, text_data_test) {
 	text_sequences seq_object;
-	std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci> temp_map(seq_object.key_data);
+	std::map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci> temp_map(seq_object.key_data);
 
 	const char t1[] = "aaa\xA7R$COUNT$";
 	const char test_key[] = "key";
@@ -148,13 +148,13 @@ TEST(string_color_value, text_data_test) {
 	EXPECT_EQ(text_color::red, std::get<color_change>(seq_object.all_components[1]).color);
 	EXPECT_EQ(value_type::count, std::get<value_placeholder>(seq_object.all_components[2]).value);
 	EXPECT_EQ(1, seq_object.all_sequences.size());
-	EXPECT_EQ(0, seq_object.all_sequences[0].starting_component);
-	EXPECT_EQ(3, seq_object.all_sequences[0].component_count);
+	EXPECT_EQ(0, seq_object.all_sequences[text_tag(0)].starting_component);
+	EXPECT_EQ(3, seq_object.all_sequences[text_tag(0)].component_count);
 }
 
 TEST(two_keys, text_data_test) {
 	text_sequences seq_object;
-	std::map<vector_backed_string<char>, uint32_t, vector_backed_string_less_ci> temp_map(seq_object.key_data);
+	std::map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci> temp_map(seq_object.key_data);
 
 	const char t1[] = "aaa\xA7R$COUNT$";
 	const char test_key[] = "key";
@@ -166,8 +166,8 @@ TEST(two_keys, text_data_test) {
 	EXPECT_EQ(text_color::red, std::get<color_change>(seq_object.all_components[1]).color);
 	EXPECT_EQ(value_type::count, std::get<value_placeholder>(seq_object.all_components[2]).value);
 	EXPECT_EQ(1, seq_object.all_sequences.size());
-	EXPECT_EQ(0, seq_object.all_sequences[0].starting_component);
-	EXPECT_EQ(3, seq_object.all_sequences[0].component_count);
+	EXPECT_EQ(0, seq_object.all_sequences[text_tag(0)].starting_component);
+	EXPECT_EQ(3, seq_object.all_sequences[text_tag(0)].component_count);
 
 	const char t2[] = "$COUNT$\xA7""btext";
 	const char test_key2[] = "key2";
@@ -179,8 +179,8 @@ TEST(two_keys, text_data_test) {
 	EXPECT_EQ(text_color::black, std::get<color_change>(seq_object.all_components[4]).color);
 	EXPECT_EQ(value_type::count, std::get<value_placeholder>(seq_object.all_components[3]).value);
 	EXPECT_EQ(2, seq_object.all_sequences.size());
-	EXPECT_EQ(3, seq_object.all_sequences[1].starting_component);
-	EXPECT_EQ(3, seq_object.all_sequences[1].component_count);
+	EXPECT_EQ(3, seq_object.all_sequences[text_tag(1)].starting_component);
+	EXPECT_EQ(3, seq_object.all_sequences[text_tag(1)].component_count);
 
-	EXPECT_EQ(1, temp_map["key2"]);
+	EXPECT_EQ(text_tag(1), temp_map["key2"]);
 }

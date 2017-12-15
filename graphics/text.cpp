@@ -16,6 +16,7 @@
 #include "boost\\container\\\flat_map.hpp"
 
 #include "simple_mpl\\simple_mpl.hpp"
+#include "concurrency_tools\\concurrency_tools.hpp"
 #include "open_gl_wrapper.h"
 #include "Parsers\\parsers.hpp"
 
@@ -442,10 +443,10 @@ namespace graphics {
 	}
 
 	using font_map_type = type_list<
-		CT_STRING_INT("Arial", 1),
-		CT_STRING_INT("FPS", 1),
-		CT_STRING_INT("Main", 2),
-		CT_STRING_INT("ToolTip", 1),
+		CT_STRING_INT("arial", 1),
+		CT_STRING_INT("fps", 1),
+		CT_STRING_INT("main", 2),
+		CT_STRING_INT("tooltip", 1),
 		CT_STRING_INT("frangoth", 2),
 		CT_STRING_INT("garmond", 2),
 		CT_STRING_INT("impact", 2),
@@ -456,8 +457,8 @@ namespace graphics {
 	using sorted_font_map_type = typename sorted<font_map_type>::type;
 
 	using font_size_map_type = type_list<
-		CT_STRING_INT("FPS_Font", 14),
-		CT_STRING_INT("ToolTip_Font", 16),
+		CT_STRING_INT("fps_font", 14),
+		CT_STRING_INT("tooltip_font", 16),
 		CT_STRING_INT("frangoth_bold", 18),
 		CT_STRING_INT("impact_small", 24),
 		CT_STRING_INT("old_english", 50),
@@ -465,6 +466,9 @@ namespace graphics {
 		CT_STRING_INT("vic_title", 42)>;
 
 	using sorted_font_size_map_type = typename sorted<font_size_map_type>::type;
+
+	font_manager::font_manager() {};
+	font_manager::~font_manager() {};
 
 	font_tag font_manager::find_font(const char* start, const char* end) {
 		const char* effective_end = start;
@@ -476,6 +480,7 @@ namespace graphics {
 
 		return font_tag(map_functions<sorted_font_map_type>::bt_scan_ci(start, effective_end, 0));
 	}
+
 	uint32_t font_manager::find_font_size(const char* start, const char* end) {
 		const auto mapped_size = map_functions<sorted_font_size_map_type>::bt_scan_ci(start, end, 0);
 		if (mapped_size != 0)
@@ -512,6 +517,10 @@ namespace graphics {
 			const auto ufilename = full_fn->file_path() + u'\\' + full_fn->file_name();
 			const std::string afilename(ufilename.begin(), ufilename.end());
 			fonts.emplace_at(font_tag(0), afilename.c_str());
+		} else {
+#ifdef _DEBUG
+			OutputDebugStringA("unable to open font unifont-9.0.02.ttf\n");
+#endif
 		}
 
 		const auto full_fn_b = root.peek_file(sans_serif, sans_serif + sizeof(sans_serif) - 1);
@@ -519,6 +528,10 @@ namespace graphics {
 			const auto ufilename = full_fn_b->file_path() + u'\\' + full_fn_b->file_name();
 			const std::string afilename(ufilename.begin(), ufilename.end());
 			fonts.emplace_at(font_tag(1), afilename.c_str(), fonts.at(font_tag(0)));
+		} else {
+#ifdef _DEBUG
+			OutputDebugStringA("unable to open font NotoSans-Bold.ttf\n");
+#endif
 		}
 
 		const auto full_fn_c = root.peek_file(fancy_font, fancy_font + sizeof(fancy_font) - 1);
@@ -526,6 +539,10 @@ namespace graphics {
 			const auto ufilename = full_fn_c->file_path() + u'\\' + full_fn_c->file_name();
 			const std::string afilename(ufilename.begin(), ufilename.end());
 			fonts.emplace_at(font_tag(2), afilename.c_str(), fonts.at(font_tag(0)));
+		} else {
+#ifdef _DEBUG
+			OutputDebugStringA("unable to open font CreteRound-Regular.otf\n");
+#endif
 		}
 	}
 }

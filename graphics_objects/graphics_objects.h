@@ -4,10 +4,9 @@
 #include "simple_fs\\simple_fs.h"
 #include "boost\\container\\flat_map.hpp"
 #include "common\\common.h"
+#include "common\\shared_tags.h"
 
 namespace graphics {
-	using obj_definition_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 174634>>;
-
 	enum class errors {
 		unknown_attribute,
 		non_square_border_size,
@@ -47,7 +46,7 @@ namespace graphics {
 
 		xy_pair size; //4bytes
 		
-		uint16_t primary_texture_handle = 0; //6bytes
+		texture_tag primary_texture_handle; //6bytes
 		uint16_t type_dependant = 0; // secondary texture handle or border size -- 8bytes
 
 		uint8_t flags = 0; //9bytes
@@ -63,15 +62,14 @@ namespace graphics {
 	};
 
 	obj_definition_tag reserve_graphics_object(name_maps& nmaps, const char* name_start, const char* name_end);
+
+	using texture_lookup = std::function<texture_tag(const char*, const char*)>;
+
+	void load_graphics_object_definitions_from_directory(
+		const directory& source_directory,
+		graphics::name_maps& nmaps,
+		graphics::object_definitions& defs,
+		std::vector<std::pair<std::string, graphics::errors>>& errors_generated,
+		const texture_lookup& th_f);
 };
 
-using texture_lookup = std::function<uint16_t(const char*, const char*)>;
-
-
-
-void load_graphics_object_definitions_from_directory(
-	const directory& source_directory,
-	graphics::name_maps& nmaps,
-	graphics::object_definitions& defs,
-	std::vector<std::pair<std::string, graphics::errors>>& errors_generated,
-	const texture_lookup& th_f);

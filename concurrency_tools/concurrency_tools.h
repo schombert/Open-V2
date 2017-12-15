@@ -70,7 +70,7 @@ public:
 	empty_string_expression() {}
 	empty_string_expression(const string_expression<empty_string_expression>&) {}
 	uint32_t length() const { return 0; };
-	char operator[](uint32_t i) const { return 0; };
+	char operator[](uint32_t) const { return 0; };
 };
 
 template<typename E1, typename E2>

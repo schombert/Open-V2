@@ -1,16 +1,18 @@
 #include "pch.h"
 #include "gui_definitions\\gui_definitions.cpp"
 
+using namespace ui;
+
 #define RANGE(x) (x), (x) + ((sizeof(x)) / sizeof((x)[0])) - 1
 
 auto fake_text_handle_lookup() {
-	return [i = 0ui16](const char*, const char*) mutable { return ++i; };
+	return [i = 0ui16](const char*, const char*) mutable { return text_data::text_tag(i++); };
 }
 auto fake_font_handle_lookup() {
 	return[i = 0ui16](const char*, const char*) mutable { return ++i; };
 }
 auto fake_gobj_lookup() {
-	return[i = 0ui16](const char*, const char*) mutable { return ++i; };
+	return[i = 0ui16](const char*, const char*) mutable { return graphics::obj_definition_tag(i++); };
 }
 auto fake_sound_lookup() {
 	return[i = 0ui16](const char*, const char*) mutable { return ++i; };
@@ -47,19 +49,19 @@ TEST(basic_gui_button, gui_definitions_tests) {
 	EXPECT_EQ(1, defs.buttons.size());
 	EXPECT_EQ(0, errors_generated.size());
 	EXPECT_EQ(std::string("bname"), nmaps.button_names[0].get_string(defs.name_data));
-	EXPECT_EQ(ui::button_def::clicksound_none, defs.buttons[0].flags & ui::button_def::clicksound_mask);
-	EXPECT_EQ(ui::button_def::orientation_center, defs.buttons[0].flags & ui::button_def::orientation_mask);
-	EXPECT_EQ(ui::button_def::rotation_upright, defs.buttons[0].flags & ui::button_def::rotation_mask);
-	EXPECT_EQ(0, defs.buttons[0].flags & ui::button_def::is_checkbox);
-	EXPECT_EQ(1, defs.buttons[0].text_handle);
-	EXPECT_EQ(1, defs.buttons[0].font_handle);
-	EXPECT_EQ(1, defs.buttons[0].graphical_object_handle);
-	EXPECT_EQ(virtual_key::NONE, defs.buttons[0].shortcut);
-	EXPECT_EQ(0, defs.buttons[0].position.x);
-	EXPECT_EQ(0, defs.buttons[0].position.y);
-	EXPECT_EQ(0, defs.buttons[0].size.x);
-	EXPECT_EQ(0, defs.buttons[0].size.y);
-	EXPECT_EQ(0, defs.buttons[0].flags & ui::button_def::format_left);
+	EXPECT_EQ(ui::button_def::clicksound_none, defs.buttons[button_tag(0)].flags & ui::button_def::clicksound_mask);
+	EXPECT_EQ(ui::button_def::orientation_center, defs.buttons[button_tag(0)].flags & ui::button_def::orientation_mask);
+	EXPECT_EQ(ui::button_def::rotation_upright, defs.buttons[button_tag(0)].flags & ui::button_def::rotation_mask);
+	EXPECT_EQ(0, defs.buttons[button_tag(0)].flags & ui::button_def::is_checkbox);
+	EXPECT_EQ(text_data::text_tag(0), defs.buttons[button_tag(0)].text_handle);
+	EXPECT_EQ(1, defs.buttons[button_tag(0)].font_handle);
+	EXPECT_EQ(graphics::obj_definition_tag(0), defs.buttons[button_tag(0)].graphical_object_handle);
+	EXPECT_EQ(virtual_key::NONE, defs.buttons[button_tag(0)].shortcut);
+	EXPECT_EQ(0, defs.buttons[button_tag(0)].position.x);
+	EXPECT_EQ(0, defs.buttons[button_tag(0)].position.y);
+	EXPECT_EQ(0, defs.buttons[button_tag(0)].size.x);
+	EXPECT_EQ(0, defs.buttons[button_tag(0)].size.y);
+	EXPECT_EQ(0, defs.buttons[button_tag(0)].flags & ui::button_def::format_left);
 }
 
 TEST(non_default_gui_button, gui_definitions_tests) {
@@ -100,19 +102,19 @@ TEST(non_default_gui_button, gui_definitions_tests) {
 	EXPECT_EQ(1, defs.buttons.size());
 	EXPECT_EQ(0, errors_generated.size());
 	EXPECT_EQ(std::string("bname"), nmaps.button_names[0].get_string(defs.name_data));
-	EXPECT_EQ(ui::button_def::clicksound_click, defs.buttons[0].flags & ui::button_def::clicksound_mask);
-	EXPECT_EQ(ui::button_def::orientation_upper_left, defs.buttons[0].flags & ui::button_def::orientation_mask);
-	EXPECT_EQ(ui::button_def::rotation_90_left, defs.buttons[0].flags & ui::button_def::rotation_mask);
-	EXPECT_EQ(0, defs.buttons[0].flags & ui::button_def::is_checkbox);
-	EXPECT_EQ(1, defs.buttons[0].text_handle);
-	EXPECT_EQ(1, defs.buttons[0].font_handle);
-	EXPECT_EQ(1, defs.buttons[0].graphical_object_handle);
-	EXPECT_EQ(virtual_key::M, defs.buttons[0].shortcut);
-	EXPECT_EQ(10, defs.buttons[0].position.x);
-	EXPECT_EQ(20, defs.buttons[0].position.y);
-	EXPECT_EQ(30, defs.buttons[0].size.x);
-	EXPECT_EQ(40, defs.buttons[0].size.y);
-	EXPECT_EQ(ui::button_def::format_left, defs.buttons[0].flags & ui::button_def::format_left);
+	EXPECT_EQ(ui::button_def::clicksound_click, defs.buttons[button_tag(0)].flags & ui::button_def::clicksound_mask);
+	EXPECT_EQ(ui::button_def::orientation_upper_left, defs.buttons[button_tag(0)].flags & ui::button_def::orientation_mask);
+	EXPECT_EQ(ui::button_def::rotation_90_left, defs.buttons[button_tag(0)].flags & ui::button_def::rotation_mask);
+	EXPECT_EQ(0, defs.buttons[button_tag(0)].flags & ui::button_def::is_checkbox);
+	EXPECT_EQ(text_data::text_tag(0), defs.buttons[button_tag(0)].text_handle);
+	EXPECT_EQ(1, defs.buttons[button_tag(0)].font_handle);
+	EXPECT_EQ(graphics::obj_definition_tag(0), defs.buttons[button_tag(0)].graphical_object_handle);
+	EXPECT_EQ(virtual_key::M, defs.buttons[button_tag(0)].shortcut);
+	EXPECT_EQ(10, defs.buttons[button_tag(0)].position.x);
+	EXPECT_EQ(20, defs.buttons[button_tag(0)].position.y);
+	EXPECT_EQ(30, defs.buttons[button_tag(0)].size.x);
+	EXPECT_EQ(40, defs.buttons[button_tag(0)].size.y);
+	EXPECT_EQ(ui::button_def::format_left, defs.buttons[button_tag(0)].flags & ui::button_def::format_left);
 }
 
 TEST(checkbox, gui_definitions_tests) {
@@ -153,19 +155,19 @@ TEST(checkbox, gui_definitions_tests) {
 	EXPECT_EQ(1, defs.buttons.size());
 	EXPECT_EQ(0, errors_generated.size());
 	EXPECT_EQ(std::string("bname"), nmaps.button_names[0].get_string(defs.name_data));
-	EXPECT_EQ(ui::button_def::clicksound_close_window, defs.buttons[0].flags & ui::button_def::clicksound_mask);
-	EXPECT_EQ(ui::button_def::orientation_upper_left, defs.buttons[0].flags & ui::button_def::orientation_mask);
-	EXPECT_EQ(ui::button_def::rotation_90_left, defs.buttons[0].flags & ui::button_def::rotation_mask);
-	EXPECT_EQ(ui::button_def::is_checkbox, defs.buttons[0].flags & ui::button_def::is_checkbox);
-	EXPECT_EQ(1, defs.buttons[0].text_handle);
-	EXPECT_EQ(1, defs.buttons[0].font_handle);
-	EXPECT_EQ(1, defs.buttons[0].graphical_object_handle);
-	EXPECT_EQ(virtual_key::M, defs.buttons[0].shortcut);
-	EXPECT_EQ(10, defs.buttons[0].position.x);
-	EXPECT_EQ(20, defs.buttons[0].position.y);
-	EXPECT_EQ(30, defs.buttons[0].size.x);
-	EXPECT_EQ(40, defs.buttons[0].size.y);
-	EXPECT_EQ(ui::button_def::format_left, defs.buttons[0].flags & ui::button_def::format_left);
+	EXPECT_EQ(ui::button_def::clicksound_close_window, defs.buttons[button_tag(0)].flags & ui::button_def::clicksound_mask);
+	EXPECT_EQ(ui::button_def::orientation_upper_left, defs.buttons[button_tag(0)].flags & ui::button_def::orientation_mask);
+	EXPECT_EQ(ui::button_def::rotation_90_left, defs.buttons[button_tag(0)].flags & ui::button_def::rotation_mask);
+	EXPECT_EQ(ui::button_def::is_checkbox, defs.buttons[button_tag(0)].flags & ui::button_def::is_checkbox);
+	EXPECT_EQ(text_data::text_tag(0), defs.buttons[button_tag(0)].text_handle);
+	EXPECT_EQ(1, defs.buttons[button_tag(0)].font_handle);
+	EXPECT_EQ(graphics::obj_definition_tag(0), defs.buttons[button_tag(0)].graphical_object_handle);
+	EXPECT_EQ(virtual_key::M, defs.buttons[button_tag(0)].shortcut);
+	EXPECT_EQ(10, defs.buttons[button_tag(0)].position.x);
+	EXPECT_EQ(20, defs.buttons[button_tag(0)].position.y);
+	EXPECT_EQ(30, defs.buttons[button_tag(0)].size.x);
+	EXPECT_EQ(40, defs.buttons[button_tag(0)].size.y);
+	EXPECT_EQ(ui::button_def::format_left, defs.buttons[button_tag(0)].flags & ui::button_def::format_left);
 }
 
 TEST(bad_values_gui_button, gui_definitions_tests) {
@@ -239,16 +241,16 @@ TEST(basic_gui_icon, gui_definitions_tests) {
 	EXPECT_EQ(1, defs.icons.size());
 	EXPECT_EQ(0, errors_generated.size());
 	EXPECT_EQ(std::string("iname"), nmaps.icon_names[0].get_string(defs.name_data));
-	EXPECT_EQ(ui::icon_def::orientation_center, defs.icons[0].flags & ui::icon_def::orientation_mask);
-	EXPECT_EQ(ui::icon_def::rotation_upright, defs.icons[0].flags & ui::icon_def::rotation_mask);
-	EXPECT_EQ(0, defs.icons[0].flags & ui::icon_def::is_shield);
+	EXPECT_EQ(ui::icon_def::orientation_center, defs.icons[icon_tag(0)].flags & ui::icon_def::orientation_mask);
+	EXPECT_EQ(ui::icon_def::rotation_upright, defs.icons[icon_tag(0)].flags & ui::icon_def::rotation_mask);
+	EXPECT_EQ(0, defs.icons[icon_tag(0)].flags & ui::icon_def::is_shield);
 
 
-	EXPECT_EQ(0, defs.icons[0].frame);
-	EXPECT_EQ(1.0f, defs.icons[0].scale);
-	EXPECT_EQ(0, defs.icons[0].graphical_object_handle);
-	EXPECT_EQ(0, defs.icons[0].position.x);
-	EXPECT_EQ(0, defs.icons[0].position.y);
+	EXPECT_EQ(0, defs.icons[icon_tag(0)].frame);
+	EXPECT_EQ(1.0f, defs.icons[icon_tag(0)].scale);
+	EXPECT_EQ(graphics::obj_definition_tag(), defs.icons[icon_tag(0)].graphical_object_handle);
+	EXPECT_EQ(0, defs.icons[icon_tag(0)].position.x);
+	EXPECT_EQ(0, defs.icons[icon_tag(0)].position.y);
 }
 
 TEST(non_default_gui_icon, gui_definitions_tests) {
@@ -282,15 +284,15 @@ TEST(non_default_gui_icon, gui_definitions_tests) {
 	EXPECT_EQ(1, defs.icons.size());
 	EXPECT_EQ(0, errors_generated.size());
 	EXPECT_EQ(std::string("iname"), nmaps.icon_names[0].get_string(defs.name_data));
-	EXPECT_EQ(ui::icon_def::orientation_center_up, defs.icons[0].flags & ui::icon_def::orientation_mask);
-	EXPECT_EQ(ui::icon_def::rotation_90_left, defs.icons[0].flags & ui::icon_def::rotation_mask);
-	EXPECT_EQ(0, defs.icons[0].flags & ui::icon_def::is_shield);
+	EXPECT_EQ(ui::icon_def::orientation_center_up, defs.icons[icon_tag(0)].flags & ui::icon_def::orientation_mask);
+	EXPECT_EQ(ui::icon_def::rotation_90_left, defs.icons[icon_tag(0)].flags & ui::icon_def::rotation_mask);
+	EXPECT_EQ(0, defs.icons[icon_tag(0)].flags & ui::icon_def::is_shield);
 
-	EXPECT_EQ(6, defs.icons[0].frame);
-	EXPECT_EQ(0.5f, defs.icons[0].scale);
-	EXPECT_EQ(1, defs.icons[0].graphical_object_handle);
-	EXPECT_EQ(5, defs.icons[0].position.x);
-	EXPECT_EQ(10, defs.icons[0].position.y);
+	EXPECT_EQ(6, defs.icons[icon_tag(0)].frame);
+	EXPECT_EQ(0.5f, defs.icons[icon_tag(0)].scale);
+	EXPECT_EQ(graphics::obj_definition_tag(0), defs.icons[icon_tag(0)].graphical_object_handle);
+	EXPECT_EQ(5, defs.icons[icon_tag(0)].position.x);
+	EXPECT_EQ(10, defs.icons[icon_tag(0)].position.y);
 }
 
 TEST(shield_gui_icon, gui_definitions_tests) {
@@ -324,15 +326,15 @@ TEST(shield_gui_icon, gui_definitions_tests) {
 	EXPECT_EQ(1, defs.icons.size());
 	EXPECT_EQ(0, errors_generated.size());
 	EXPECT_EQ(std::string("iname"), nmaps.icon_names[0].get_string(defs.name_data));
-	EXPECT_EQ(ui::icon_def::orientation_center_up, defs.icons[0].flags & ui::icon_def::orientation_mask);
-	EXPECT_EQ(ui::icon_def::rotation_90_left, defs.icons[0].flags & ui::icon_def::rotation_mask);
-	EXPECT_EQ(ui::icon_def::is_shield, defs.icons[0].flags & ui::icon_def::is_shield);
+	EXPECT_EQ(ui::icon_def::orientation_center_up, defs.icons[icon_tag(0)].flags & ui::icon_def::orientation_mask);
+	EXPECT_EQ(ui::icon_def::rotation_90_left, defs.icons[icon_tag(0)].flags & ui::icon_def::rotation_mask);
+	EXPECT_EQ(ui::icon_def::is_shield, defs.icons[icon_tag(0)].flags & ui::icon_def::is_shield);
 
-	EXPECT_EQ(6, defs.icons[0].frame);
-	EXPECT_EQ(0.5f, defs.icons[0].scale);
-	EXPECT_EQ(1, defs.icons[0].graphical_object_handle);
-	EXPECT_EQ(5, defs.icons[0].position.x);
-	EXPECT_EQ(10, defs.icons[0].position.y);
+	EXPECT_EQ(6, defs.icons[icon_tag(0)].frame);
+	EXPECT_EQ(0.5f, defs.icons[icon_tag(0)].scale);
+	EXPECT_EQ(graphics::obj_definition_tag(0), defs.icons[icon_tag(0)].graphical_object_handle);
+	EXPECT_EQ(5, defs.icons[icon_tag(0)].position.x);
+	EXPECT_EQ(10, defs.icons[icon_tag(0)].position.y);
 }
 
 TEST(errors_gui_icon, gui_definitions_tests) {
@@ -398,23 +400,23 @@ TEST(basic_gui_text, gui_definitions_tests) {
 	EXPECT_EQ(1, defs.text.size());
 	EXPECT_EQ(0, errors_generated.size());
 	EXPECT_EQ(std::string("tname"), nmaps.text_names[0].get_string(defs.name_data));
-	EXPECT_EQ(0, defs.text[0].flags & ui::text_def::always_transparent);
-	EXPECT_EQ(0, defs.text[0].flags & ui::text_def::fixed_size);
-	EXPECT_EQ(ui::text_def::instant, defs.text[0].flags & ui::text_def::instant);
-	EXPECT_EQ(ui::text_def::background_none_specified, defs.text[0].flags & ui::text_def::background_mask);
-	EXPECT_EQ(ui::text_def::orientation_center, defs.text[0].flags & ui::text_def::orientation_mask);
-	EXPECT_EQ(ui::text_def::format_left, defs.text[0].flags & ui::text_def::format_mask);
-	EXPECT_EQ(0, defs.text[0].flags & ui::text_def::is_edit_box);
+	EXPECT_EQ(0, defs.text[text_tag(0)].flags & ui::text_def::always_transparent);
+	EXPECT_EQ(0, defs.text[text_tag(0)].flags & ui::text_def::fixed_size);
+	EXPECT_EQ(ui::text_def::instant, defs.text[text_tag(0)].flags & ui::text_def::instant);
+	EXPECT_EQ(ui::text_def::background_none_specified, defs.text[text_tag(0)].flags & ui::text_def::background_mask);
+	EXPECT_EQ(ui::text_def::orientation_center, defs.text[text_tag(0)].flags & ui::text_def::orientation_mask);
+	EXPECT_EQ(ui::text_def::format_left, defs.text[text_tag(0)].flags & ui::text_def::format_mask);
+	EXPECT_EQ(0, defs.text[text_tag(0)].flags & ui::text_def::is_edit_box);
 
 
-	EXPECT_EQ(0, defs.text[0].font_handle);
-	EXPECT_EQ(0, defs.text[0].max_width);
-	EXPECT_EQ(0, defs.text[0].max_height);
-	EXPECT_EQ(0, defs.text[0].text_handle);
-	EXPECT_EQ(0, defs.text[0].position.x);
-	EXPECT_EQ(0, defs.text[0].position.y);
-	EXPECT_EQ(0, defs.text[0].border_size.x);
-	EXPECT_EQ(0, defs.text[0].border_size.y);
+	EXPECT_EQ(0, defs.text[text_tag(0)].font_handle);
+	EXPECT_EQ(0, defs.text[text_tag(0)].max_width);
+	EXPECT_EQ(0, defs.text[text_tag(0)].max_height);
+	EXPECT_EQ(text_data::text_tag(), defs.text[text_tag(0)].text_handle);
+	EXPECT_EQ(0, defs.text[text_tag(0)].position.x);
+	EXPECT_EQ(0, defs.text[text_tag(0)].position.y);
+	EXPECT_EQ(0, defs.text[text_tag(0)].border_size.x);
+	EXPECT_EQ(0, defs.text[text_tag(0)].border_size.y);
 }
 
 TEST(non_default_gui_text, gui_definitions_tests) {
@@ -453,22 +455,22 @@ TEST(non_default_gui_text, gui_definitions_tests) {
 	EXPECT_EQ(1, defs.text.size());
 	EXPECT_EQ(0, errors_generated.size());
 	EXPECT_EQ(std::string("tname"), nmaps.text_names[0].get_string(defs.name_data));
-	EXPECT_EQ(ui::text_def::always_transparent, defs.text[0].flags & ui::text_def::always_transparent);
-	EXPECT_EQ(ui::text_def::fixed_size, defs.text[0].flags & ui::text_def::fixed_size);
-	EXPECT_EQ(0, defs.text[0].flags & ui::text_def::instant);
-	EXPECT_EQ(ui::text_def::background_tiles_dialog_tga, defs.text[0].flags & ui::text_def::background_mask);
-	EXPECT_EQ(ui::text_def::orientation_center_up, defs.text[0].flags & ui::text_def::orientation_mask);
-	EXPECT_EQ(ui::text_def::format_justified, defs.text[0].flags & ui::text_def::format_mask);
-	EXPECT_EQ(0, defs.text[0].flags & ui::text_def::is_edit_box);
+	EXPECT_EQ(ui::text_def::always_transparent, defs.text[text_tag(0)].flags & ui::text_def::always_transparent);
+	EXPECT_EQ(ui::text_def::fixed_size, defs.text[text_tag(0)].flags & ui::text_def::fixed_size);
+	EXPECT_EQ(0, defs.text[text_tag(0)].flags & ui::text_def::instant);
+	EXPECT_EQ(ui::text_def::background_tiles_dialog_tga, defs.text[text_tag(0)].flags & ui::text_def::background_mask);
+	EXPECT_EQ(ui::text_def::orientation_center_up, defs.text[text_tag(0)].flags & ui::text_def::orientation_mask);
+	EXPECT_EQ(ui::text_def::format_justified, defs.text[text_tag(0)].flags & ui::text_def::format_mask);
+	EXPECT_EQ(0, defs.text[text_tag(0)].flags & ui::text_def::is_edit_box);
 
-	EXPECT_EQ(1, defs.text[0].font_handle);
-	EXPECT_EQ(16, defs.text[0].max_width);
-	EXPECT_EQ(8, defs.text[0].max_height);
-	EXPECT_EQ(1, defs.text[0].text_handle);
-	EXPECT_EQ(10, defs.text[0].position.x);
-	EXPECT_EQ(20, defs.text[0].position.y);
-	EXPECT_EQ(1, defs.text[0].border_size.x);
-	EXPECT_EQ(2, defs.text[0].border_size.y);
+	EXPECT_EQ(1, defs.text[text_tag(0)].font_handle);
+	EXPECT_EQ(16, defs.text[text_tag(0)].max_width);
+	EXPECT_EQ(8, defs.text[text_tag(0)].max_height);
+	EXPECT_EQ(text_data::text_tag(0), defs.text[text_tag(0)].text_handle);
+	EXPECT_EQ(10, defs.text[text_tag(0)].position.x);
+	EXPECT_EQ(20, defs.text[text_tag(0)].position.y);
+	EXPECT_EQ(1, defs.text[text_tag(0)].border_size.x);
+	EXPECT_EQ(2, defs.text[text_tag(0)].border_size.y);
 }
 
 TEST(size_gui_text, gui_definitions_tests) {
@@ -506,22 +508,22 @@ TEST(size_gui_text, gui_definitions_tests) {
 	EXPECT_EQ(1, defs.text.size());
 	EXPECT_EQ(0, errors_generated.size());
 	EXPECT_EQ(std::string("tname"), nmaps.text_names[0].get_string(defs.name_data));
-	EXPECT_EQ(ui::text_def::always_transparent, defs.text[0].flags & ui::text_def::always_transparent);
-	EXPECT_EQ(ui::text_def::fixed_size, defs.text[0].flags & ui::text_def::fixed_size);
-	EXPECT_EQ(0, defs.text[0].flags & ui::text_def::instant);
-	EXPECT_EQ(ui::text_def::background_tiles_dialog_tga, defs.text[0].flags & ui::text_def::background_mask);
-	EXPECT_EQ(ui::text_def::orientation_center_up, defs.text[0].flags & ui::text_def::orientation_mask);
-	EXPECT_EQ(ui::text_def::format_justified, defs.text[0].flags & ui::text_def::format_mask);
-	EXPECT_EQ(0, defs.text[0].flags & ui::text_def::is_edit_box);
+	EXPECT_EQ(ui::text_def::always_transparent, defs.text[text_tag(0)].flags & ui::text_def::always_transparent);
+	EXPECT_EQ(ui::text_def::fixed_size, defs.text[text_tag(0)].flags & ui::text_def::fixed_size);
+	EXPECT_EQ(0, defs.text[text_tag(0)].flags & ui::text_def::instant);
+	EXPECT_EQ(ui::text_def::background_tiles_dialog_tga, defs.text[text_tag(0)].flags & ui::text_def::background_mask);
+	EXPECT_EQ(ui::text_def::orientation_center_up, defs.text[text_tag(0)].flags & ui::text_def::orientation_mask);
+	EXPECT_EQ(ui::text_def::format_justified, defs.text[text_tag(0)].flags & ui::text_def::format_mask);
+	EXPECT_EQ(0, defs.text[text_tag(0)].flags & ui::text_def::is_edit_box);
 
-	EXPECT_EQ(1, defs.text[0].font_handle);
-	EXPECT_EQ(30, defs.text[0].max_width);
-	EXPECT_EQ(40, defs.text[0].max_height);
-	EXPECT_EQ(1, defs.text[0].text_handle);
-	EXPECT_EQ(10, defs.text[0].position.x);
-	EXPECT_EQ(20, defs.text[0].position.y);
-	EXPECT_EQ(1, defs.text[0].border_size.x);
-	EXPECT_EQ(2, defs.text[0].border_size.y);
+	EXPECT_EQ(1, defs.text[text_tag(0)].font_handle);
+	EXPECT_EQ(30, defs.text[text_tag(0)].max_width);
+	EXPECT_EQ(40, defs.text[text_tag(0)].max_height);
+	EXPECT_EQ(text_data::text_tag(0), defs.text[text_tag(0)].text_handle);
+	EXPECT_EQ(10, defs.text[text_tag(0)].position.x);
+	EXPECT_EQ(20, defs.text[text_tag(0)].position.y);
+	EXPECT_EQ(1, defs.text[text_tag(0)].border_size.x);
+	EXPECT_EQ(2, defs.text[text_tag(0)].border_size.y);
 }
 
 TEST(edit_gui_text, gui_definitions_tests) {
@@ -560,22 +562,22 @@ TEST(edit_gui_text, gui_definitions_tests) {
 	EXPECT_EQ(1, defs.text.size());
 	EXPECT_EQ(0, errors_generated.size());
 	EXPECT_EQ(std::string("tname"), nmaps.text_names[0].get_string(defs.name_data));
-	EXPECT_EQ(ui::text_def::always_transparent, defs.text[0].flags & ui::text_def::always_transparent);
-	EXPECT_EQ(ui::text_def::fixed_size, defs.text[0].flags & ui::text_def::fixed_size);
-	EXPECT_EQ(0, defs.text[0].flags & ui::text_def::instant);
-	EXPECT_EQ(ui::text_def::background_small_tiles_dialog_tga, defs.text[0].flags & ui::text_def::background_mask);
-	EXPECT_EQ(ui::text_def::orientation_center_down, defs.text[0].flags & ui::text_def::orientation_mask);
-	EXPECT_EQ(ui::text_def::format_justified, defs.text[0].flags & ui::text_def::format_mask);
-	EXPECT_EQ(ui::text_def::is_edit_box, defs.text[0].flags & ui::text_def::is_edit_box);
+	EXPECT_EQ(ui::text_def::always_transparent, defs.text[text_tag(0)].flags & ui::text_def::always_transparent);
+	EXPECT_EQ(ui::text_def::fixed_size, defs.text[text_tag(0)].flags & ui::text_def::fixed_size);
+	EXPECT_EQ(0, defs.text[text_tag(0)].flags & ui::text_def::instant);
+	EXPECT_EQ(ui::text_def::background_small_tiles_dialog_tga, defs.text[text_tag(0)].flags & ui::text_def::background_mask);
+	EXPECT_EQ(ui::text_def::orientation_center_down, defs.text[text_tag(0)].flags & ui::text_def::orientation_mask);
+	EXPECT_EQ(ui::text_def::format_justified, defs.text[text_tag(0)].flags & ui::text_def::format_mask);
+	EXPECT_EQ(ui::text_def::is_edit_box, defs.text[text_tag(0)].flags & ui::text_def::is_edit_box);
 
-	EXPECT_EQ(1, defs.text[0].font_handle);
-	EXPECT_EQ(16, defs.text[0].max_width);
-	EXPECT_EQ(8, defs.text[0].max_height);
-	EXPECT_EQ(1, defs.text[0].text_handle);
-	EXPECT_EQ(10, defs.text[0].position.x);
-	EXPECT_EQ(20, defs.text[0].position.y);
-	EXPECT_EQ(1, defs.text[0].border_size.x);
-	EXPECT_EQ(2, defs.text[0].border_size.y);
+	EXPECT_EQ(1, defs.text[text_tag(0)].font_handle);
+	EXPECT_EQ(16, defs.text[text_tag(0)].max_width);
+	EXPECT_EQ(8, defs.text[text_tag(0)].max_height);
+	EXPECT_EQ(text_data::text_tag(0), defs.text[text_tag(0)].text_handle);
+	EXPECT_EQ(10, defs.text[text_tag(0)].position.x);
+	EXPECT_EQ(20, defs.text[text_tag(0)].position.y);
+	EXPECT_EQ(1, defs.text[text_tag(0)].border_size.x);
+	EXPECT_EQ(2, defs.text[text_tag(0)].border_size.y);
 }
 
 TEST(errors_gui_text, gui_definitions_tests) {
@@ -621,22 +623,22 @@ TEST(errors_gui_text, gui_definitions_tests) {
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_text_attribute), errors_generated[3]);
 
 	EXPECT_EQ(std::string("tname"), nmaps.text_names[0].get_string(defs.name_data));
-	EXPECT_EQ(ui::text_def::always_transparent, defs.text[0].flags & ui::text_def::always_transparent);
-	EXPECT_EQ(ui::text_def::fixed_size, defs.text[0].flags & ui::text_def::fixed_size);
-	EXPECT_EQ(0, defs.text[0].flags & ui::text_def::instant);
-	EXPECT_EQ(ui::text_def::orientation_center, defs.text[0].flags & ui::text_def::orientation_mask);
-	EXPECT_EQ(ui::text_def::format_left, defs.text[0].flags & ui::text_def::format_mask);
-	EXPECT_EQ(ui::text_def::background_none_specified, defs.text[0].flags & ui::text_def::background_mask);
-	EXPECT_EQ(0, defs.text[0].flags & ui::text_def::is_edit_box);
+	EXPECT_EQ(ui::text_def::always_transparent, defs.text[text_tag(0)].flags & ui::text_def::always_transparent);
+	EXPECT_EQ(ui::text_def::fixed_size, defs.text[text_tag(0)].flags & ui::text_def::fixed_size);
+	EXPECT_EQ(0, defs.text[text_tag(0)].flags & ui::text_def::instant);
+	EXPECT_EQ(ui::text_def::orientation_center, defs.text[text_tag(0)].flags & ui::text_def::orientation_mask);
+	EXPECT_EQ(ui::text_def::format_left, defs.text[text_tag(0)].flags & ui::text_def::format_mask);
+	EXPECT_EQ(ui::text_def::background_none_specified, defs.text[text_tag(0)].flags & ui::text_def::background_mask);
+	EXPECT_EQ(0, defs.text[text_tag(0)].flags & ui::text_def::is_edit_box);
 
-	EXPECT_EQ(1, defs.text[0].font_handle);
-	EXPECT_EQ(16, defs.text[0].max_width);
-	EXPECT_EQ(8, defs.text[0].max_height);
-	EXPECT_EQ(1, defs.text[0].text_handle);
-	EXPECT_EQ(10, defs.text[0].position.x);
-	EXPECT_EQ(20, defs.text[0].position.y);
-	EXPECT_EQ(1, defs.text[0].border_size.x);
-	EXPECT_EQ(2, defs.text[0].border_size.y);
+	EXPECT_EQ(1, defs.text[text_tag(0)].font_handle);
+	EXPECT_EQ(16, defs.text[text_tag(0)].max_width);
+	EXPECT_EQ(8, defs.text[text_tag(0)].max_height);
+	EXPECT_EQ(text_data::text_tag(0), defs.text[text_tag(0)].text_handle);
+	EXPECT_EQ(10, defs.text[text_tag(0)].position.x);
+	EXPECT_EQ(20, defs.text[text_tag(0)].position.y);
+	EXPECT_EQ(1, defs.text[text_tag(0)].border_size.x);
+	EXPECT_EQ(2, defs.text[text_tag(0)].border_size.y);
 }
 
 TEST(basic_gui_position, gui_definitions_tests) {
@@ -665,8 +667,8 @@ TEST(basic_gui_position, gui_definitions_tests) {
 	EXPECT_EQ(1, defs.positions.size());
 	EXPECT_EQ(0, errors_generated.size());
 	EXPECT_EQ(std::string("pname"), nmaps.position_names[0].get_string(defs.name_data));
-	EXPECT_EQ(20, defs.positions[0].position.x);
-	EXPECT_EQ(10, defs.positions[0].position.y);
+	EXPECT_EQ(20, defs.positions[position_tag(0)].position.x);
+	EXPECT_EQ(10, defs.positions[position_tag(0)].position.y);
 }
 
 TEST(errors_gui_position, gui_definitions_tests) {
@@ -697,8 +699,8 @@ TEST(errors_gui_position, gui_definitions_tests) {
 	EXPECT_EQ(1, errors_generated.size());
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_position_attribute), errors_generated[0]);
 	EXPECT_EQ(std::string("pname"), nmaps.position_names[0].get_string(defs.name_data));
-	EXPECT_EQ(20, defs.positions[0].position.x);
-	EXPECT_EQ(10, defs.positions[0].position.y);
+	EXPECT_EQ(20, defs.positions[position_tag(0)].position.x);
+	EXPECT_EQ(10, defs.positions[position_tag(0)].position.y);
 }
 
 TEST(basic_overlapping_region, gui_definitions_tests) {
@@ -727,13 +729,13 @@ TEST(basic_overlapping_region, gui_definitions_tests) {
 	EXPECT_EQ(0, errors_generated.size());
 
 	EXPECT_EQ(std::string("oname"), nmaps.overlapping_region_names[0].get_string(defs.name_data));
-	EXPECT_EQ(0, defs.overlapping_regions[0].position.x);
-	EXPECT_EQ(0, defs.overlapping_regions[0].position.y);
-	EXPECT_EQ(0, defs.overlapping_regions[0].size.x);
-	EXPECT_EQ(0, defs.overlapping_regions[0].size.y);
-	EXPECT_EQ(0.0f, defs.overlapping_regions[0].spacing);
-	EXPECT_EQ(ui::overlapping_region_def::orientation_center, defs.overlapping_regions[0].flags & ui::overlapping_region_def::orientation_mask);
-	EXPECT_EQ(ui::overlapping_region_def::format_center, defs.overlapping_regions[0].flags & ui::overlapping_region_def::format_mask);
+	EXPECT_EQ(0, defs.overlapping_regions[overlapping_region_tag(0)].position.x);
+	EXPECT_EQ(0, defs.overlapping_regions[overlapping_region_tag(0)].position.y);
+	EXPECT_EQ(0, defs.overlapping_regions[overlapping_region_tag(0)].size.x);
+	EXPECT_EQ(0, defs.overlapping_regions[overlapping_region_tag(0)].size.y);
+	EXPECT_EQ(0.0f, defs.overlapping_regions[overlapping_region_tag(0)].spacing);
+	EXPECT_EQ(ui::overlapping_region_def::orientation_center, defs.overlapping_regions[overlapping_region_tag(0)].flags & ui::overlapping_region_def::orientation_mask);
+	EXPECT_EQ(ui::overlapping_region_def::format_center, defs.overlapping_regions[overlapping_region_tag(0)].flags & ui::overlapping_region_def::format_mask);
 }
 
 TEST(non_default_overlapping_region, gui_definitions_tests) {
@@ -767,13 +769,13 @@ TEST(non_default_overlapping_region, gui_definitions_tests) {
 	EXPECT_EQ(0, errors_generated.size());
 
 	EXPECT_EQ(std::string("oname"), nmaps.overlapping_region_names[0].get_string(defs.name_data));
-	EXPECT_EQ(10, defs.overlapping_regions[0].position.x);
-	EXPECT_EQ(20, defs.overlapping_regions[0].position.y);
-	EXPECT_EQ(4, defs.overlapping_regions[0].size.x);
-	EXPECT_EQ(8, defs.overlapping_regions[0].size.y);
-	EXPECT_EQ(0.5f, defs.overlapping_regions[0].spacing);
-	EXPECT_EQ(ui::overlapping_region_def::orientation_upper_left, defs.overlapping_regions[0].flags & ui::overlapping_region_def::orientation_mask);
-	EXPECT_EQ(ui::overlapping_region_def::format_left, defs.overlapping_regions[0].flags & ui::overlapping_region_def::format_mask);
+	EXPECT_EQ(10, defs.overlapping_regions[overlapping_region_tag(0)].position.x);
+	EXPECT_EQ(20, defs.overlapping_regions[overlapping_region_tag(0)].position.y);
+	EXPECT_EQ(4, defs.overlapping_regions[overlapping_region_tag(0)].size.x);
+	EXPECT_EQ(8, defs.overlapping_regions[overlapping_region_tag(0)].size.y);
+	EXPECT_EQ(0.5f, defs.overlapping_regions[overlapping_region_tag(0)].spacing);
+	EXPECT_EQ(ui::overlapping_region_def::orientation_upper_left, defs.overlapping_regions[overlapping_region_tag(0)].flags & ui::overlapping_region_def::orientation_mask);
+	EXPECT_EQ(ui::overlapping_region_def::format_left, defs.overlapping_regions[overlapping_region_tag(0)].flags & ui::overlapping_region_def::format_mask);
 }
 
 TEST(errors_overlapping_region, gui_definitions_tests) {
@@ -812,13 +814,13 @@ TEST(errors_overlapping_region, gui_definitions_tests) {
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_overlapping_region_attribute), errors_generated[2]);
 
 	EXPECT_EQ(std::string("oname"), nmaps.overlapping_region_names[0].get_string(defs.name_data));
-	EXPECT_EQ(10, defs.overlapping_regions[0].position.x);
-	EXPECT_EQ(20, defs.overlapping_regions[0].position.y);
-	EXPECT_EQ(4, defs.overlapping_regions[0].size.x);
-	EXPECT_EQ(8, defs.overlapping_regions[0].size.y);
-	EXPECT_EQ(0.5f, defs.overlapping_regions[0].spacing);
-	EXPECT_EQ(ui::overlapping_region_def::orientation_center, defs.overlapping_regions[0].flags & ui::overlapping_region_def::orientation_mask);
-	EXPECT_EQ(ui::overlapping_region_def::format_center, defs.overlapping_regions[0].flags & ui::overlapping_region_def::format_mask);
+	EXPECT_EQ(10, defs.overlapping_regions[overlapping_region_tag(0)].position.x);
+	EXPECT_EQ(20, defs.overlapping_regions[overlapping_region_tag(0)].position.y);
+	EXPECT_EQ(4, defs.overlapping_regions[overlapping_region_tag(0)].size.x);
+	EXPECT_EQ(8, defs.overlapping_regions[overlapping_region_tag(0)].size.y);
+	EXPECT_EQ(0.5f, defs.overlapping_regions[overlapping_region_tag(0)].spacing);
+	EXPECT_EQ(ui::overlapping_region_def::orientation_center, defs.overlapping_regions[overlapping_region_tag(0)].flags & ui::overlapping_region_def::orientation_mask);
+	EXPECT_EQ(ui::overlapping_region_def::format_center, defs.overlapping_regions[overlapping_region_tag(0)].flags & ui::overlapping_region_def::format_mask);
 }
 
 TEST(basic_listbox, gui_definitions_tests) {
@@ -848,18 +850,18 @@ TEST(basic_listbox, gui_definitions_tests) {
 	EXPECT_EQ(0, errors_generated.size());
 
 	EXPECT_EQ(std::string("lname"), nmaps.listbox_names[0].get_string(defs.name_data));
-	EXPECT_EQ(0, defs.listboxes[0].position.x);
-	EXPECT_EQ(0, defs.listboxes[0].position.y);
-	EXPECT_EQ(0, defs.listboxes[0].size.x);
-	EXPECT_EQ(0, defs.listboxes[0].size.y);
-	EXPECT_EQ(0, defs.listboxes[0].flags & ui::listbox_def::always_transparent);
-	EXPECT_EQ(ui::listbox_def::orientation_center, defs.listboxes[0].flags & ui::listbox_def::orientation_mask);
-	EXPECT_EQ(0, defs.listboxes[0].flags & ui::listbox_def::spacing_mask);
-	EXPECT_EQ(0, defs.listboxes[0].border_size.x);
-	EXPECT_EQ(0, defs.listboxes[0].border_size.y);
-	EXPECT_EQ(0, defs.listboxes[0].offset.x);
-	EXPECT_EQ(0, defs.listboxes[0].offset.y);
-	EXPECT_EQ(0, defs.listboxes[0].background_handle);
+	EXPECT_EQ(0, defs.listboxes[listbox_tag(0)].position.x);
+	EXPECT_EQ(0, defs.listboxes[listbox_tag(0)].position.y);
+	EXPECT_EQ(0, defs.listboxes[listbox_tag(0)].size.x);
+	EXPECT_EQ(0, defs.listboxes[listbox_tag(0)].size.y);
+	EXPECT_EQ(0, defs.listboxes[listbox_tag(0)].flags & ui::listbox_def::always_transparent);
+	EXPECT_EQ(ui::listbox_def::orientation_center, defs.listboxes[listbox_tag(0)].flags & ui::listbox_def::orientation_mask);
+	EXPECT_EQ(0, defs.listboxes[listbox_tag(0)].flags & ui::listbox_def::spacing_mask);
+	EXPECT_EQ(0, defs.listboxes[listbox_tag(0)].border_size.x);
+	EXPECT_EQ(0, defs.listboxes[listbox_tag(0)].border_size.y);
+	EXPECT_EQ(0, defs.listboxes[listbox_tag(0)].offset.x);
+	EXPECT_EQ(0, defs.listboxes[listbox_tag(0)].offset.y);
+	EXPECT_EQ(graphics::obj_definition_tag(), defs.listboxes[listbox_tag(0)].background_handle);
 }
 
 TEST(non_default_listbox, gui_definitions_tests) {
@@ -900,18 +902,18 @@ TEST(non_default_listbox, gui_definitions_tests) {
 	EXPECT_EQ(0, errors_generated.size());
 
 	EXPECT_EQ(std::string("lname"), nmaps.listbox_names[0].get_string(defs.name_data));
-	EXPECT_EQ(15, defs.listboxes[0].position.x);
-	EXPECT_EQ(20, defs.listboxes[0].position.y);
-	EXPECT_EQ(10, defs.listboxes[0].size.x);
-	EXPECT_EQ(11, defs.listboxes[0].size.y);
-	EXPECT_EQ(ui::listbox_def::always_transparent, defs.listboxes[0].flags & ui::listbox_def::always_transparent);
-	EXPECT_EQ(ui::listbox_def::orientation_upper_right, defs.listboxes[0].flags & ui::listbox_def::orientation_mask);
-	EXPECT_EQ(5, defs.listboxes[0].flags & ui::listbox_def::spacing_mask);
-	EXPECT_EQ(1, defs.listboxes[0].border_size.x);
-	EXPECT_EQ(2, defs.listboxes[0].border_size.y);
-	EXPECT_EQ(3, defs.listboxes[0].offset.x);
-	EXPECT_EQ(4, defs.listboxes[0].offset.y);
-	EXPECT_EQ(1, defs.listboxes[0].background_handle);
+	EXPECT_EQ(15, defs.listboxes[listbox_tag(0)].position.x);
+	EXPECT_EQ(20, defs.listboxes[listbox_tag(0)].position.y);
+	EXPECT_EQ(10, defs.listboxes[listbox_tag(0)].size.x);
+	EXPECT_EQ(11, defs.listboxes[listbox_tag(0)].size.y);
+	EXPECT_EQ(ui::listbox_def::always_transparent, defs.listboxes[listbox_tag(0)].flags & ui::listbox_def::always_transparent);
+	EXPECT_EQ(ui::listbox_def::orientation_upper_right, defs.listboxes[listbox_tag(0)].flags & ui::listbox_def::orientation_mask);
+	EXPECT_EQ(5, defs.listboxes[listbox_tag(0)].flags & ui::listbox_def::spacing_mask);
+	EXPECT_EQ(1, defs.listboxes[listbox_tag(0)].border_size.x);
+	EXPECT_EQ(2, defs.listboxes[listbox_tag(0)].border_size.y);
+	EXPECT_EQ(3, defs.listboxes[listbox_tag(0)].offset.x);
+	EXPECT_EQ(4, defs.listboxes[listbox_tag(0)].offset.y);
+	EXPECT_EQ(graphics::obj_definition_tag(0), defs.listboxes[listbox_tag(0)].background_handle);
 }
 
 TEST(errors_listbox, gui_definitions_tests) {
@@ -961,18 +963,18 @@ TEST(errors_listbox, gui_definitions_tests) {
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_listbox_attribute), errors_generated[6]);
 
 	EXPECT_EQ(std::string("lname"), nmaps.listbox_names[0].get_string(defs.name_data));
-	EXPECT_EQ(15, defs.listboxes[0].position.x);
-	EXPECT_EQ(20, defs.listboxes[0].position.y);
-	EXPECT_EQ(10, defs.listboxes[0].size.x);
-	EXPECT_EQ(11, defs.listboxes[0].size.y);
-	EXPECT_EQ(ui::listbox_def::always_transparent, defs.listboxes[0].flags & ui::listbox_def::always_transparent);
-	EXPECT_EQ(ui::listbox_def::orientation_center, defs.listboxes[0].flags & ui::listbox_def::orientation_mask);
-	EXPECT_EQ(0, defs.listboxes[0].flags & ui::listbox_def::spacing_mask);
-	EXPECT_EQ(1, defs.listboxes[0].border_size.x);
-	EXPECT_EQ(2, defs.listboxes[0].border_size.y);
-	EXPECT_EQ(3, defs.listboxes[0].offset.x);
-	EXPECT_EQ(4, defs.listboxes[0].offset.y);
-	EXPECT_EQ(1, defs.listboxes[0].background_handle);
+	EXPECT_EQ(15, defs.listboxes[listbox_tag(0)].position.x);
+	EXPECT_EQ(20, defs.listboxes[listbox_tag(0)].position.y);
+	EXPECT_EQ(10, defs.listboxes[listbox_tag(0)].size.x);
+	EXPECT_EQ(11, defs.listboxes[listbox_tag(0)].size.y);
+	EXPECT_EQ(ui::listbox_def::always_transparent, defs.listboxes[listbox_tag(0)].flags & ui::listbox_def::always_transparent);
+	EXPECT_EQ(ui::listbox_def::orientation_center, defs.listboxes[listbox_tag(0)].flags & ui::listbox_def::orientation_mask);
+	EXPECT_EQ(0, defs.listboxes[listbox_tag(0)].flags & ui::listbox_def::spacing_mask);
+	EXPECT_EQ(1, defs.listboxes[listbox_tag(0)].border_size.x);
+	EXPECT_EQ(2, defs.listboxes[listbox_tag(0)].border_size.y);
+	EXPECT_EQ(3, defs.listboxes[listbox_tag(0)].offset.x);
+	EXPECT_EQ(4, defs.listboxes[listbox_tag(0)].offset.y);
+	EXPECT_EQ(graphics::obj_definition_tag(0), defs.listboxes[listbox_tag(0)].background_handle);
 }
 
 TEST(basic_scrollbar, gui_definitions_tests) {
@@ -1010,23 +1012,23 @@ TEST(basic_scrollbar, gui_definitions_tests) {
 	EXPECT_EQ(0, errors_generated.size());
 
 	EXPECT_EQ(std::string("sname"), nmaps.scrollbar_names[0].get_string(defs.name_data));
-	EXPECT_EQ(0, defs.scrollbars[0].position.x);
-	EXPECT_EQ(0, defs.scrollbars[0].position.y);
-	EXPECT_EQ(0, defs.scrollbars[0].size.x);
-	EXPECT_EQ(0, defs.scrollbars[0].size.y);
-	EXPECT_EQ(0, defs.scrollbars[0].border_size.x);
-	EXPECT_EQ(0, defs.scrollbars[0].border_size.y);
-	EXPECT_EQ(1, defs.scrollbars[0].max_value);
-	EXPECT_EQ(0, defs.scrollbars[0].flags & ui::scrollbar_def::is_horizontal);
-	EXPECT_EQ(0, defs.scrollbars[0].flags & ui::scrollbar_def::has_range_limit);
-	EXPECT_EQ(0, defs.scrollbars[0].flags & ui::scrollbar_def::is_lockable);
-	EXPECT_EQ(ui::scrollbar_def::step_one, defs.scrollbars[0].flags & ui::scrollbar_def::step_mask);
-	EXPECT_EQ(2, defs.scrollbars[0].maximum_button);
-	EXPECT_EQ(1, defs.scrollbars[0].minimum_button);
-	EXPECT_EQ(3, defs.scrollbars[0].track);
-	EXPECT_EQ(4, defs.scrollbars[0].slider);
-	EXPECT_EQ(0, defs.scrollbars[0].maximum_limit_icon);
-	EXPECT_EQ(0, defs.scrollbars[0].minimum_limit_icon);
+	EXPECT_EQ(0, defs.scrollbars[scrollbar_tag(0)].position.x);
+	EXPECT_EQ(0, defs.scrollbars[scrollbar_tag(0)].position.y);
+	EXPECT_EQ(0, defs.scrollbars[scrollbar_tag(0)].size.x);
+	EXPECT_EQ(0, defs.scrollbars[scrollbar_tag(0)].size.y);
+	EXPECT_EQ(0, defs.scrollbars[scrollbar_tag(0)].border_size.x);
+	EXPECT_EQ(0, defs.scrollbars[scrollbar_tag(0)].border_size.y);
+	EXPECT_EQ(1, defs.scrollbars[scrollbar_tag(0)].max_value);
+	EXPECT_EQ(0, defs.scrollbars[scrollbar_tag(0)].flags & ui::scrollbar_def::is_horizontal);
+	EXPECT_EQ(0, defs.scrollbars[scrollbar_tag(0)].flags & ui::scrollbar_def::has_range_limit);
+	EXPECT_EQ(0, defs.scrollbars[scrollbar_tag(0)].flags & ui::scrollbar_def::is_lockable);
+	EXPECT_EQ(ui::scrollbar_def::step_one, defs.scrollbars[scrollbar_tag(0)].flags & ui::scrollbar_def::step_mask);
+	EXPECT_EQ(button_tag(1), defs.scrollbars[scrollbar_tag(0)].maximum_button);
+	EXPECT_EQ(button_tag(0), defs.scrollbars[scrollbar_tag(0)].minimum_button);
+	EXPECT_EQ(button_tag(2), defs.scrollbars[scrollbar_tag(0)].track);
+	EXPECT_EQ(button_tag(3), defs.scrollbars[scrollbar_tag(0)].slider);
+	EXPECT_EQ(icon_tag(), defs.scrollbars[scrollbar_tag(0)].maximum_limit_icon);
+	EXPECT_EQ(icon_tag(), defs.scrollbars[scrollbar_tag(0)].minimum_limit_icon);
 }
 
 TEST(nondefault_scrollbar, gui_definitions_tests) {
@@ -1082,23 +1084,23 @@ TEST(nondefault_scrollbar, gui_definitions_tests) {
 	EXPECT_EQ(0, errors_generated.size());
 
 	EXPECT_EQ(std::string("sname"), nmaps.scrollbar_names[0].get_string(defs.name_data));
-	EXPECT_EQ(10, defs.scrollbars[0].position.x);
-	EXPECT_EQ(20, defs.scrollbars[0].position.y);
-	EXPECT_EQ(5, defs.scrollbars[0].size.x);
-	EXPECT_EQ(6, defs.scrollbars[0].size.y);
-	EXPECT_EQ(9, defs.scrollbars[0].border_size.x);
-	EXPECT_EQ(11, defs.scrollbars[0].border_size.y);
-	EXPECT_EQ(100, defs.scrollbars[0].max_value);
-	EXPECT_EQ(ui::scrollbar_def::is_horizontal, defs.scrollbars[0].flags & ui::scrollbar_def::is_horizontal);
-	EXPECT_EQ(ui::scrollbar_def::is_lockable, defs.scrollbars[0].flags & ui::scrollbar_def::is_lockable);
-	EXPECT_EQ(ui::scrollbar_def::has_range_limit, defs.scrollbars[0].flags & ui::scrollbar_def::has_range_limit);
-	EXPECT_EQ(ui::scrollbar_def::step_one_hundredth, defs.scrollbars[0].flags & ui::scrollbar_def::step_mask);
-	EXPECT_EQ(2, defs.scrollbars[0].maximum_button);
-	EXPECT_EQ(1, defs.scrollbars[0].minimum_button);
-	EXPECT_EQ(3, defs.scrollbars[0].track);
-	EXPECT_EQ(4, defs.scrollbars[0].slider);
-	EXPECT_EQ(2, defs.scrollbars[0].maximum_limit_icon);
-	EXPECT_EQ(1, defs.scrollbars[0].minimum_limit_icon);
+	EXPECT_EQ(10, defs.scrollbars[scrollbar_tag(0)].position.x);
+	EXPECT_EQ(20, defs.scrollbars[scrollbar_tag(0)].position.y);
+	EXPECT_EQ(5, defs.scrollbars[scrollbar_tag(0)].size.x);
+	EXPECT_EQ(6, defs.scrollbars[scrollbar_tag(0)].size.y);
+	EXPECT_EQ(9, defs.scrollbars[scrollbar_tag(0)].border_size.x);
+	EXPECT_EQ(11, defs.scrollbars[scrollbar_tag(0)].border_size.y);
+	EXPECT_EQ(100, defs.scrollbars[scrollbar_tag(0)].max_value);
+	EXPECT_EQ(ui::scrollbar_def::is_horizontal, defs.scrollbars[scrollbar_tag(0)].flags & ui::scrollbar_def::is_horizontal);
+	EXPECT_EQ(ui::scrollbar_def::is_lockable, defs.scrollbars[scrollbar_tag(0)].flags & ui::scrollbar_def::is_lockable);
+	EXPECT_EQ(ui::scrollbar_def::has_range_limit, defs.scrollbars[scrollbar_tag(0)].flags & ui::scrollbar_def::has_range_limit);
+	EXPECT_EQ(ui::scrollbar_def::step_one_hundredth, defs.scrollbars[scrollbar_tag(0)].flags & ui::scrollbar_def::step_mask);
+	EXPECT_EQ(button_tag(1), defs.scrollbars[scrollbar_tag(0)].maximum_button);
+	EXPECT_EQ(button_tag(0), defs.scrollbars[scrollbar_tag(0)].minimum_button);
+	EXPECT_EQ(button_tag(2), defs.scrollbars[scrollbar_tag(0)].track);
+	EXPECT_EQ(button_tag(3), defs.scrollbars[scrollbar_tag(0)].slider);
+	EXPECT_EQ(icon_tag(1), defs.scrollbars[scrollbar_tag(0)].maximum_limit_icon);
+	EXPECT_EQ(icon_tag(0), defs.scrollbars[scrollbar_tag(0)].minimum_limit_icon);
 }
 
 TEST(errors_scrollbar, gui_definitions_tests) {
@@ -1161,23 +1163,23 @@ TEST(errors_scrollbar, gui_definitions_tests) {
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::scrollbar_component_not_found), errors_generated[6]);
 
 	EXPECT_EQ(std::string("sname"), nmaps.scrollbar_names[0].get_string(defs.name_data));
-	EXPECT_EQ(10, defs.scrollbars[0].position.x);
-	EXPECT_EQ(20, defs.scrollbars[0].position.y);
-	EXPECT_EQ(5, defs.scrollbars[0].size.x);
-	EXPECT_EQ(6, defs.scrollbars[0].size.y);
-	EXPECT_EQ(9, defs.scrollbars[0].border_size.x);
-	EXPECT_EQ(11, defs.scrollbars[0].border_size.y);
-	EXPECT_EQ(1, defs.scrollbars[0].max_value);
-	EXPECT_EQ(0, defs.scrollbars[0].flags & ui::scrollbar_def::is_horizontal);
-	EXPECT_EQ(ui::scrollbar_def::is_lockable, defs.scrollbars[0].flags & ui::scrollbar_def::is_lockable);
-	EXPECT_EQ(ui::scrollbar_def::has_range_limit, defs.scrollbars[0].flags & ui::scrollbar_def::has_range_limit);
-	EXPECT_EQ(ui::scrollbar_def::step_one, defs.scrollbars[0].flags & ui::scrollbar_def::step_mask);
-	EXPECT_EQ(2, defs.scrollbars[0].maximum_button);
-	EXPECT_EQ(0, defs.scrollbars[0].minimum_button);
-	EXPECT_EQ(3, defs.scrollbars[0].track);
-	EXPECT_EQ(4, defs.scrollbars[0].slider);
-	EXPECT_EQ(2, defs.scrollbars[0].maximum_limit_icon);
-	EXPECT_EQ(0, defs.scrollbars[0].minimum_limit_icon);
+	EXPECT_EQ(10, defs.scrollbars[scrollbar_tag(0)].position.x);
+	EXPECT_EQ(20, defs.scrollbars[scrollbar_tag(0)].position.y);
+	EXPECT_EQ(5, defs.scrollbars[scrollbar_tag(0)].size.x);
+	EXPECT_EQ(6, defs.scrollbars[scrollbar_tag(0)].size.y);
+	EXPECT_EQ(9, defs.scrollbars[scrollbar_tag(0)].border_size.x);
+	EXPECT_EQ(11, defs.scrollbars[scrollbar_tag(0)].border_size.y);
+	EXPECT_EQ(1, defs.scrollbars[scrollbar_tag(0)].max_value);
+	EXPECT_EQ(0, defs.scrollbars[scrollbar_tag(0)].flags & ui::scrollbar_def::is_horizontal);
+	EXPECT_EQ(ui::scrollbar_def::is_lockable, defs.scrollbars[scrollbar_tag(0)].flags & ui::scrollbar_def::is_lockable);
+	EXPECT_EQ(ui::scrollbar_def::has_range_limit, defs.scrollbars[scrollbar_tag(0)].flags & ui::scrollbar_def::has_range_limit);
+	EXPECT_EQ(ui::scrollbar_def::step_one, defs.scrollbars[scrollbar_tag(0)].flags & ui::scrollbar_def::step_mask);
+	EXPECT_EQ(button_tag(1), defs.scrollbars[scrollbar_tag(0)].maximum_button);
+	EXPECT_EQ(button_tag(), defs.scrollbars[scrollbar_tag(0)].minimum_button);
+	EXPECT_EQ(button_tag(2), defs.scrollbars[scrollbar_tag(0)].track);
+	EXPECT_EQ(button_tag(3), defs.scrollbars[scrollbar_tag(0)].slider);
+	EXPECT_EQ(icon_tag(1), defs.scrollbars[scrollbar_tag(0)].maximum_limit_icon);
+	EXPECT_EQ(icon_tag(), defs.scrollbars[scrollbar_tag(0)].minimum_limit_icon);
 }
 
 TEST(basic_window, gui_definitions_tests) {
@@ -1206,16 +1208,16 @@ TEST(basic_window, gui_definitions_tests) {
 	EXPECT_EQ(0, errors_generated.size());
 
 	EXPECT_EQ(std::string("wname"), nmaps.window_names[0].get_string(defs.name_data));
-	EXPECT_EQ(0, defs.windows[0].position.x);
-	EXPECT_EQ(0, defs.windows[0].position.y);
-	EXPECT_EQ(0, defs.windows[0].size.x);
-	EXPECT_EQ(0, defs.windows[0].size.y);
-	EXPECT_EQ(0, defs.windows[0].flags & ui::window_def::is_dialog);
-	EXPECT_EQ(0, defs.windows[0].flags & ui::window_def::is_fullscreen);
-	EXPECT_EQ(0, defs.windows[0].flags & ui::window_def::is_moveable);
-	EXPECT_EQ(ui::window_def::orientation_center, defs.windows[0].flags & ui::window_def::orientation_mask);
-	EXPECT_EQ(0, defs.windows[0].background_handle);
-	EXPECT_EQ(0, defs.windows[0].sub_object_definitions.size());
+	EXPECT_EQ(0, defs.windows[window_tag(0)].position.x);
+	EXPECT_EQ(0, defs.windows[window_tag(0)].position.y);
+	EXPECT_EQ(0, defs.windows[window_tag(0)].size.x);
+	EXPECT_EQ(0, defs.windows[window_tag(0)].size.y);
+	EXPECT_EQ(0, defs.windows[window_tag(0)].flags & ui::window_def::is_dialog);
+	EXPECT_EQ(0, defs.windows[window_tag(0)].flags & ui::window_def::is_fullscreen);
+	EXPECT_EQ(0, defs.windows[window_tag(0)].flags & ui::window_def::is_moveable);
+	EXPECT_EQ(ui::window_def::orientation_center, defs.windows[window_tag(0)].flags & ui::window_def::orientation_mask);
+	EXPECT_EQ(button_tag(), defs.windows[window_tag(0)].background_handle);
+	EXPECT_EQ(0, defs.windows[window_tag(0)].sub_object_definitions.size());
 }
 
 
@@ -1255,18 +1257,18 @@ TEST(non_default_window, gui_definitions_tests) {
 	EXPECT_EQ(0, errors_generated.size());
 
 	EXPECT_EQ(std::string("wname"), nmaps.window_names[0].get_string(defs.name_data));
-	EXPECT_EQ(4, defs.windows[0].position.x);
-	EXPECT_EQ(5, defs.windows[0].position.y);
-	EXPECT_EQ(1, defs.windows[0].size.x);
-	EXPECT_EQ(2, defs.windows[0].size.y);
-	EXPECT_EQ(ui::window_def::is_dialog, defs.windows[0].flags & ui::window_def::is_dialog);
-	EXPECT_EQ(ui::window_def::is_fullscreen, defs.windows[0].flags & ui::window_def::is_fullscreen);
-	EXPECT_EQ(ui::window_def::is_moveable, defs.windows[0].flags & ui::window_def::is_moveable);
-	EXPECT_EQ(ui::window_def::orientation_upper_left, defs.windows[0].flags & ui::window_def::orientation_mask);
-	EXPECT_EQ(1, defs.windows[0].background_handle);
-	EXPECT_EQ(2, defs.windows[0].sub_object_definitions.size());
-	EXPECT_EQ(ui::pack_ui_definition_handle(ui::element_type::button, 1), defs.windows[0].sub_object_definitions[0]);
-	EXPECT_EQ(ui::pack_ui_definition_handle(ui::element_type::listbox, 1), defs.windows[0].sub_object_definitions[1]);
+	EXPECT_EQ(4, defs.windows[window_tag(0)].position.x);
+	EXPECT_EQ(5, defs.windows[window_tag(0)].position.y);
+	EXPECT_EQ(1, defs.windows[window_tag(0)].size.x);
+	EXPECT_EQ(2, defs.windows[window_tag(0)].size.y);
+	EXPECT_EQ(ui::window_def::is_dialog, defs.windows[window_tag(0)].flags & ui::window_def::is_dialog);
+	EXPECT_EQ(ui::window_def::is_fullscreen, defs.windows[window_tag(0)].flags & ui::window_def::is_fullscreen);
+	EXPECT_EQ(ui::window_def::is_moveable, defs.windows[window_tag(0)].flags & ui::window_def::is_moveable);
+	EXPECT_EQ(ui::window_def::orientation_upper_left, defs.windows[window_tag(0)].flags & ui::window_def::orientation_mask);
+	EXPECT_EQ(button_tag(0), defs.windows[window_tag(0)].background_handle);
+	EXPECT_EQ(2, defs.windows[window_tag(0)].sub_object_definitions.size());
+	EXPECT_EQ(ui::pack_ui_definition_handle(ui::element_type::button, button_tag(0)), defs.windows[window_tag(0)].sub_object_definitions[0]);
+	EXPECT_EQ(ui::pack_ui_definition_handle(ui::element_type::listbox, listbox_tag(0)), defs.windows[window_tag(0)].sub_object_definitions[1]);
 }
 
 TEST(errors_window, gui_definitions_tests) {
@@ -1311,16 +1313,16 @@ TEST(errors_window, gui_definitions_tests) {
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::window_background_not_found), errors_generated[3]);
 
 	EXPECT_EQ(std::string("wname"), nmaps.window_names[0].get_string(defs.name_data));
-	EXPECT_EQ(4, defs.windows[0].position.x);
-	EXPECT_EQ(5, defs.windows[0].position.y);
-	EXPECT_EQ(1, defs.windows[0].size.x);
-	EXPECT_EQ(2, defs.windows[0].size.y);
-	EXPECT_EQ(ui::window_def::is_dialog, defs.windows[0].flags & ui::window_def::is_dialog);
-	EXPECT_EQ(ui::window_def::is_fullscreen, defs.windows[0].flags & ui::window_def::is_fullscreen);
-	EXPECT_EQ(0, defs.windows[0].flags & ui::window_def::is_moveable);
-	EXPECT_EQ(ui::window_def::orientation_center, defs.windows[0].flags & ui::window_def::orientation_mask);
-	EXPECT_EQ(0, defs.windows[0].background_handle);
-	EXPECT_EQ(2, defs.windows[0].sub_object_definitions.size());
-	EXPECT_EQ(ui::pack_ui_definition_handle(ui::element_type::button, 1), defs.windows[0].sub_object_definitions[0]);
-	EXPECT_EQ(ui::pack_ui_definition_handle(ui::element_type::listbox, 1), defs.windows[0].sub_object_definitions[1]);
+	EXPECT_EQ(4, defs.windows[window_tag(0)].position.x);
+	EXPECT_EQ(5, defs.windows[window_tag(0)].position.y);
+	EXPECT_EQ(1, defs.windows[window_tag(0)].size.x);
+	EXPECT_EQ(2, defs.windows[window_tag(0)].size.y);
+	EXPECT_EQ(ui::window_def::is_dialog, defs.windows[window_tag(0)].flags & ui::window_def::is_dialog);
+	EXPECT_EQ(ui::window_def::is_fullscreen, defs.windows[window_tag(0)].flags & ui::window_def::is_fullscreen);
+	EXPECT_EQ(0, defs.windows[window_tag(0)].flags & ui::window_def::is_moveable);
+	EXPECT_EQ(ui::window_def::orientation_center, defs.windows[window_tag(0)].flags & ui::window_def::orientation_mask);
+	EXPECT_EQ(button_tag(), defs.windows[window_tag(0)].background_handle);
+	EXPECT_EQ(2, defs.windows[window_tag(0)].sub_object_definitions.size());
+	EXPECT_EQ(ui::pack_ui_definition_handle(ui::element_type::button, button_tag(0)), defs.windows[window_tag(0)].sub_object_definitions[0]);
+	EXPECT_EQ(ui::pack_ui_definition_handle(ui::element_type::listbox, listbox_tag(0)), defs.windows[window_tag(0)].sub_object_definitions[1]);
 }

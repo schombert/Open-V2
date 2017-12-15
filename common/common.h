@@ -171,8 +171,11 @@ public:
 	}
 	auto begin() const { return storage.begin(); }
 	auto end() const { return storage.end(); }
+	auto begin() { return storage.begin(); }
+	auto end() { return storage.end(); }
 	size_t size() const { return storage.size(); }
 	void resize(size_t size) { storage.resize(size); }
+	void reserve(size_t size) { storage.reserve(size); }
 };
 
 enum modifiers {
