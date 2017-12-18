@@ -1267,8 +1267,8 @@ TEST(non_default_window, gui_definitions_tests) {
 	EXPECT_EQ(ui::window_def::orientation_upper_left, defs.windows[window_tag(0)].flags & ui::window_def::orientation_mask);
 	EXPECT_EQ(button_tag(0), defs.windows[window_tag(0)].background_handle);
 	EXPECT_EQ(2, defs.windows[window_tag(0)].sub_object_definitions.size());
-	EXPECT_EQ(ui::pack_ui_definition_handle(ui::element_type::button, button_tag(0)), defs.windows[window_tag(0)].sub_object_definitions[0]);
-	EXPECT_EQ(ui::pack_ui_definition_handle(ui::element_type::listbox, listbox_tag(0)), defs.windows[window_tag(0)].sub_object_definitions[1]);
+	EXPECT_EQ(button_tag(0), std::get<button_tag>(defs.windows[window_tag(0)].sub_object_definitions[0]));
+	EXPECT_EQ(listbox_tag(0), std::get<listbox_tag>(defs.windows[window_tag(0)].sub_object_definitions[1]));
 }
 
 TEST(errors_window, gui_definitions_tests) {
@@ -1323,6 +1323,6 @@ TEST(errors_window, gui_definitions_tests) {
 	EXPECT_EQ(ui::window_def::orientation_center, defs.windows[window_tag(0)].flags & ui::window_def::orientation_mask);
 	EXPECT_EQ(button_tag(), defs.windows[window_tag(0)].background_handle);
 	EXPECT_EQ(2, defs.windows[window_tag(0)].sub_object_definitions.size());
-	EXPECT_EQ(ui::pack_ui_definition_handle(ui::element_type::button, button_tag(0)), defs.windows[window_tag(0)].sub_object_definitions[0]);
-	EXPECT_EQ(ui::pack_ui_definition_handle(ui::element_type::listbox, listbox_tag(0)), defs.windows[window_tag(0)].sub_object_definitions[1]);
+	EXPECT_EQ(button_tag(0), std::get<button_tag>(defs.windows[window_tag(0)].sub_object_definitions[0]));
+	EXPECT_EQ(listbox_tag(0), std::get<listbox_tag>(defs.windows[window_tag(0)].sub_object_definitions[1]));
 }

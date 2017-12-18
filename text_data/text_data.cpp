@@ -478,6 +478,30 @@ namespace text_data {
 		}
 	}
 
+	const replacement * find_replacement(value_placeholder placeholder, const replacement * candidates, uint32_t count) {
+		for (int32_t i = int32_t(count) - 1; i >= 0; --i) {
+			if (std::get<0>(candidates[i]) == placeholder.value)
+				return &(candidates[i]);
+		}
+		return nullptr;
+	}
+
+	std::pair<int32_t, int32_t> align_in_bounds(text_data::alignment align, int32_t width, int32_t height, int32_t bound_x, int32_t bound_y) {
+		int32_t y_offset = 0;
+		if ((align == text_data::alignment::bottom_center) | (align == text_data::alignment::bottom_right) | (align == text_data::alignment::bottom_left)) {
+			y_offset = bound_y - height;
+		} else if ((align == text_data::alignment::center) | (align == text_data::alignment::left) | (align == text_data::alignment::right)) {
+			y_offset = (bound_y - height) / 2;
+		}
+		int32_t x_offset = 0;
+		if ((align == text_data::alignment::right) | (align == text_data::alignment::bottom_right) | (align == text_data::alignment::top_right)) {
+			x_offset = bound_x - width;
+		} else if ((align == text_data::alignment::center) | (align == text_data::alignment::bottom_center) | (align == text_data::alignment::top_center)) {
+			x_offset = (bound_x - width) / 2;
+		}
+		return std::make_pair(x_offset, y_offset);
+	}
+
 
 	text_tag get_text_handle(text_data::text_sequences& container, const char* key_start, const char* key_end) {
 		if (key_start == key_end)

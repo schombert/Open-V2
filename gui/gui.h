@@ -49,10 +49,13 @@ namespace ui {
 		graphics::object* graphics_object;
 		int64_t frame;
 	};
-	struct flag_instance {
-		graphics::texture* flag;
-		graphics::texture* mask;
-		graphics::texture* overlay;
+	struct multi_texture_instance {
+		union {
+			graphics::texture* flag;
+			float progress;
+		} type_dependant;
+		graphics::texture* mask_or_primary;
+		graphics::texture* overlay_or_secondary;
 	};
 
 	class gui_object;
@@ -94,7 +97,8 @@ namespace ui {
 		static constexpr uint16_t type_barchart = 0x0003; // type_dependant_handle = data_texture
 		static constexpr uint16_t type_piechart = 0x0004; // type_dependant_handle = data_texture
 		static constexpr uint16_t type_linegraph = 0x0005; // type_dependant_handle = lines
-		static constexpr uint16_t type_masked_flag = 0x0006; // type_dependant_handle = flag_instance
+		static constexpr uint16_t type_masked_flag = 0x0006; // type_dependant_handle = multi_texture_instance
+		static constexpr uint16_t type_progress_bar = 0x0007; // type_dependant_handle = multi_texture_instance
 
 		gui_behavior* associated_behavior = nullptr; //8bytes
 
@@ -115,25 +119,52 @@ namespace ui {
 		const graphics::rotation get_rotation() const;
 	};
 
-	class gui_manager {
-	private:
-		void render_object_type(graphics::open_gl_wrapper&, const gui_object&, ui::xy_pair position, uint32_t type, bool currently_enabled);
-		void render_internal(graphics::open_gl_wrapper&, const gui_object&, ui::xy_pair position, bool parent_enabled);
+	struct text_format {
+		ui::text_color color;
+		graphics::font_tag font_handle;
+		uint32_t font_size;
+	};
 
-		tagged_gui_object create_element_instance(uint16_t packed_handle);
-		void create_simple_single_line_text(tagged_gui_object container, text_data::text_tag text_handle, ui::text_color default_color, text_data::alignment align, graphics::font_tag font_handle, uint32_t font_size);
+	class gui_manager;
+
+	namespace detail {
+		void render_object_type(const gui_manager& manager, graphics::open_gl_wrapper&, const gui_object&, ui::xy_pair position, uint32_t type, bool currently_enabled);
+		void render(const gui_manager& manager, graphics::open_gl_wrapper&, const gui_object&, ui::xy_pair position, bool parent_enabled);
+
+		void create_linear_text(gui_manager& manager, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format&, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
+		void create_multiline_text(gui_manager& manager, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format&, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
+
+		tagged_gui_object last_sibling_of(const gui_manager& manager, tagged_gui_object g);
+
+		tagged_gui_object create_element_instance(gui_manager& manager, button_tag handle);
+		void update(gui_manager& manager, tagged_gui_object obj);
 
 		template<typename MESSAGE_FUNCTION, typename MESSAGE_TYPE>
-		bool dispatch_message_internal(const MESSAGE_FUNCTION &member_f, tagged_gui_object obj, const MESSAGE_TYPE& message);
+		bool dispatch_message(const gui_manager& manager, const MESSAGE_FUNCTION &member_f, tagged_gui_object obj, const MESSAGE_TYPE& message);
+	}
 
-		tagged_gui_object last_sibling_of(tagged_gui_object g);
+	void clear_children(gui_manager& manager, tagged_gui_object g);
+	void remove_object(gui_manager& manager, tagged_gui_object g);
+	void move_to_front(const gui_manager& manager, tagged_gui_object g);
+	void move_to_back(const gui_manager& manager, tagged_gui_object g);
+	void add_to_front(const gui_manager& manager, tagged_gui_object parent, tagged_gui_object child);
+	void add_to_back(const gui_manager& manager, tagged_gui_object parent, tagged_gui_object child);
 
-		float scale = 1.0f;
+	void make_visible(gui_manager& manager, tagged_gui_object g);
+	void hide(tagged_gui_object g);
+	void set_enabled(tagged_gui_object g, bool enabled);
+
+	void render(const gui_manager& manager, graphics::open_gl_wrapper&);
+	void update(gui_manager& manager);
+
+	class gui_manager {
+	private:
+		float _scale = 1.0f;
 	public:
 		fixed_sz_deque<gui_object, 128, 64, gui_object_tag> gui_objects;
 		fixed_sz_deque<text_instance, 128, 64, text_instance_tag> text_instances;
 		fixed_sz_deque<graphics_instance, 128, 64, graphics_instance_tag> graphics_instances;
-		fixed_sz_deque<flag_instance, 64, 64, flag_instance_tag> flag_instances;
+		fixed_sz_deque<multi_texture_instance, 64, 64, multi_texture_instance_tag> multi_texture_instances;
 		fixed_sz_deque<graphics::data_texture, 64, 16, data_texture_tag> data_textures;
 		fixed_sz_deque<graphics::lines, 32, 8, lines_tag> lines_set;
 
@@ -152,10 +183,7 @@ namespace ui {
 		gui_object_tag focus;
 		gui_object_tag tooltip;
 
-		
-
 		gui_manager(int32_t width, int32_t height);
-
 		
 		void on_resize(const resize&);
 		bool on_lbutton_down(const lbutton_down&);
@@ -166,21 +194,13 @@ namespace ui {
 		bool on_text(const text_event&);
 		bool on_scroll(const scroll&);
 
-		void render(graphics::open_gl_wrapper&);
-
 		void rescale(float new_scale);
+		float scale() const { return _scale; }
 
-		void set_visible(tagged_gui_object g, bool visible);
-		void set_enabled(tagged_gui_object g, bool enabled);
 		void set_focus(tagged_gui_object g);
 		void clear_focus();
 		void hide_tooltip();
-		void clear_children(tagged_gui_object g);
-		void remove_object(tagged_gui_object g);
-		void move_to_front(tagged_gui_object g);
-		void move_to_back(tagged_gui_object g);
-		void add_to_front(tagged_gui_object parent, tagged_gui_object child);
-		void add_to_back(tagged_gui_object parent, tagged_gui_object child);
+		
 		void destroy(gui_object& g);
 		~gui_manager();
 	};

@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <vector>
 #include <atomic>
+#include <string>
 
 #ifndef _DEBUG
 #define CALL __vectorcall
@@ -151,6 +152,12 @@ struct zero_is_null_of_s<atomic_tag<tag_base>> { using type = typename atomic_ta
 
 template<typename tag_base>
 struct individuator_of_s<atomic_tag<tag_base>> { using type = typename atomic_tag<tag_base>::individuator_t; };
+
+template<typename T, typename tag_type>
+struct tagged_object {
+	T& object;
+	const tag_type id;
+};
 
 template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>>
 class tagged_vector {
@@ -384,15 +391,20 @@ struct vector_backed_string {
 		data.vbs.length = (uint16_t)(end - start);
 		data.vbs.high_mask = (uint16_t)(-1);
 		vec.insert(vec.end(), start, end);
-	};
+	}
+	vector_backed_string(uint32_t offset, uint16_t length) {
+		data.vbs.offset = offset;
+		data.vbs.length = length;
+		data.vbs.high_mask = (uint16_t)(-1);
+	}
 	vector_backed_string(const std::basic_string<char_type>& str, std::vector<char_type>& vec) {
 		data.vbs.offset = vec.size();
 		data.vbs.length = (uint16_t)(str.length());
 		data.vbs.high_mask = (uint16_t)(-1);
 		vec.insert(vec.end(), str.begin(), str.end());
-	};
+	}
 	int32_t length() const {
-		return data.vbs.high_mask == (uint16_t)-1 ? data.vbs.length : strlen(data.ptr);
+		return data.vbs.high_mask == (uint16_t)-1 ? data.vbs.length : std::char_traits<char_type>::length(data.ptr);
 	}
 	const char_type* get_str(const std::vector<char_type>& vec) const {
 		return data.vbs.high_mask == (uint16_t)-1 ? vec.data() + data.vbs.offset : data.ptr;

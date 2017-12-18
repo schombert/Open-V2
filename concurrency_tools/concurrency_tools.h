@@ -3,6 +3,7 @@
 #include <atomic>
 #include <string>
 #include <type_traits>
+#include "common\\common.h"
 
 template<typename E1, typename E2>
 class string_sum_expression;
@@ -167,12 +168,6 @@ constexpr bool operator!= (const concurrent_allocator<T>&, const concurrent_allo
 
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 class fixed_sz_deque_iterator;
-
-template<typename T, typename tag_type>
-struct tagged_object {
-	T& object;
-	const tag_type id;
-};
 
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type = uint32_t>
 class fixed_sz_deque {

@@ -64,14 +64,6 @@ namespace ui {
 		window = 8
 	};
 
-	template<typename T>
-	constexpr uint16_t pack_ui_definition_handle(element_type t, T handle) {
-		return (uint16_t)(((uint32_t)to_index(handle) << 4) | (uint32_t)t);
-	}
-	constexpr std::pair<element_type, uint16_t> unpack_ui_definition_handle(uint16_t packed_handle) {
-		return std::make_pair((element_type)(packed_handle & 0x000F), (uint16_t)(packed_handle >> 4));
-	}
-
 	struct xy_pair {
 		int16_t x = 0;
 		int16_t y = 0;
@@ -252,7 +244,7 @@ namespace ui {
 		static constexpr uint8_t orientation_upper_left   = 0x30;
 		static constexpr uint8_t orientation_upper_right  = 0x40;
 
-		std::vector<uint16_t> sub_object_definitions;
+		std::vector<element_tag> sub_object_definitions;
 		ui::xy_pair position;
 		ui::xy_pair size;
 		button_tag background_handle;
@@ -269,25 +261,25 @@ namespace ui {
 		std::vector<vector_backed_string<char>> scrollbar_names;
 		std::vector<vector_backed_string<char>> window_names;
 
-		std::string get_name(element_type t, uint16_t handle, std::vector<char>& backing_data) {
-			switch (t) {
-				case element_type::button:
-					return button_names[handle - 1].get_string(backing_data);
-				case element_type::icon:
-					return icon_names[handle - 1].get_string(backing_data);
-				case element_type::text:
-					return text_names[handle - 1].get_string(backing_data);
-				case element_type::position:
-					return position_names[handle - 1].get_string(backing_data);
-				case element_type::overlapping_region:
-					return overlapping_region_names[handle - 1].get_string(backing_data);
-				case element_type::listbox:
-					return listbox_names[handle - 1].get_string(backing_data);
-				case element_type::scrollbar:
-					return scrollbar_names[handle - 1].get_string(backing_data);
-				case element_type::window:
-					return window_names[handle - 1].get_string(backing_data);
-			}
+		std::string get_name(element_tag handle, std::vector<char>& backing_data) {
+			return std::visit([_this = this, &backing_data](auto tag) {
+				if constexpr(std::is_same_v<button_tag, decltype(tag)>)
+					return _this->button_names[to_index(tag)].get_string(backing_data);
+				else if constexpr(std::is_same_v<icon_tag, decltype(tag)>)
+					return _this->icon_names[to_index(tag)].get_string(backing_data);
+				else if constexpr(std::is_same_v<text_tag, decltype(tag)>)
+					return _this->text_names[to_index(tag)].get_string(backing_data);
+				else if constexpr(std::is_same_v<position_tag, decltype(tag)>)
+					return _this->position_names[to_index(tag)].get_string(backing_data);
+				else if constexpr(std::is_same_v<overlapping_region_tag, decltype(tag)>)
+					return _this->overlapping_region_names[to_index(tag)].get_string(backing_data);
+				else if constexpr(std::is_same_v<listbox_tag, decltype(tag)>)
+					return _this->listbox_names[to_index(tag)].get_string(backing_data);
+				else if constexpr(std::is_same_v<scrollbar_tag, decltype(tag)>)
+					return _this->scrollbar_names[to_index(tag)].get_string(backing_data);
+				else if constexpr(std::is_same_v<window_tag, decltype(tag)>)
+					return _this->window_names[to_index(tag)].get_string(backing_data);
+			}, handle);
 		}
 	};
 
@@ -302,7 +294,7 @@ namespace ui {
 		tagged_vector<window_def, window_tag> windows;
 
 		std::vector<char> name_data;
-		boost::container::flat_map<vector_backed_string<char>, uint16_t, vector_backed_string_less_ci> name_to_element_map;
+		boost::container::flat_map<vector_backed_string<char>, element_tag, vector_backed_string_less_ci> name_to_element_map;
 
 		definitions() : name_to_element_map(vector_backed_string_less_ci(name_data)) {}
 	};

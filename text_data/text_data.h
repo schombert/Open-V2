@@ -2,11 +2,16 @@
 #include <stdint.h>
 #include <variant>
 #include <vector>
+#include <functional>
 #include "boost\\container\\flat_map.hpp"
 #include "simple_fs\\simple_fs.h"
 #include <map>
 #include "common\\common.h"
 #include "common\\shared_tags.h"
+
+namespace ui {
+	class gui_object;
+}
 
 namespace text_data {
 	enum class text_color {
@@ -66,6 +71,8 @@ namespace text_data {
 	struct text_chunk {
 		uint32_t offset = 0;
 		uint16_t length = 0;
+
+		operator vector_backed_string<char16_t>() const { return vector_backed_string<char16_t>(offset, length); }
 	};
 	using text_component = std::variant<line_break, color_change, value_placeholder, text_chunk>;
 
@@ -84,6 +91,9 @@ namespace text_data {
 
 		text_sequences() : key_to_sequence_map(vector_backed_string_less_ci(key_data)) {}
 	};
+
+	using replacement = std::tuple<value_type, vector_backed_string<char16_t>, std::function<void(tagged_object<ui::gui_object, ui::gui_object_tag>)>>;
+
 	void add_win1250_text_to_container(text_sequences& container, const char* s, const char *e);
 	void add_utf8_text_to_container(text_sequences& container, const char* s, const char *e);
 	bool is_win1250_section(const char* start, const char* end);
@@ -92,6 +102,10 @@ namespace text_data {
 	void add_win1250_sequence(text_sequences& container, std::map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci>& temp_map, const char* key_start, const char* key_end, const char* seq_start, const char* seq_end);
 	value_type value_type_from_name(const char* start, const char* end);
 	const char16_t* name_from_value_type(value_type v);
+
+	const replacement* find_replacement(value_placeholder placeholder, const replacement* candidates, uint32_t count);
+
+	std::pair<int32_t, int32_t> align_in_bounds(text_data::alignment align, int32_t width, int32_t height, int32_t bound_x, int32_t bound_y);
 
 	text_tag get_text_handle(text_data::text_sequences& container, const char* key_start, const char* key_end);
 	void load_text_sequences_from_directory(const directory& source_directory, text_data::text_sequences& container);

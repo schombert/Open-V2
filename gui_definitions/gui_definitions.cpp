@@ -784,10 +784,8 @@ namespace ui {
 		void finalize() {
 			if (background.length() != 0) {
 				for (auto i : internal_definition.sub_object_definitions) {
-					auto[type, rh] = ui::unpack_ui_definition_handle(i);
-					button_tag handle(rh);
-					if (type == ui::element_type::button && env.nmaps.button_names[to_index(handle)].get_string(env.defs.name_data) == background) {
-						internal_definition.background_handle = handle;
+					if (std::holds_alternative<button_tag>(i) && env.nmaps.button_names[to_index(std::get<button_tag>(i))].get_string(env.defs.name_data) == background) {
+						internal_definition.background_handle = std::get<button_tag>(i);
 						break;
 					}
 				}
@@ -820,113 +818,113 @@ namespace ui {
 		void gui_button(const guiButtonType& b) {
 			const auto nt = env.defs.buttons.emplace_back(b.internal_definition);
 			env.nmaps.button_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::button, nt));
+			internal_definition.sub_object_definitions.push_back(nt);
 		}
 		void gui_iconType(const iconType& b) {
 			const auto nt = env.defs.icons.emplace_back(b.internal_definition);
 			env.nmaps.icon_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::icon, nt));
+			internal_definition.sub_object_definitions.push_back(nt);
 		}
 		void gui_instantTextBoxType(allTextBoxType&& b) {
 			b.internal_definition.flags |= ui::text_def::instant;
 			const auto nt = env.defs.text.emplace_back(b.internal_definition);
 			env.nmaps.text_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::text, nt));
+			internal_definition.sub_object_definitions.push_back(nt);
 		}
 		void gui_instantTextBoxType(allTextBoxType& b) {
 			b.internal_definition.flags |= ui::text_def::instant;
 			const auto nt = env.defs.text.emplace_back(b.internal_definition);
 			env.nmaps.text_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::text, nt));
+			internal_definition.sub_object_definitions.push_back(nt);
 		}
 		void gui_textBoxType(const allTextBoxType& b) {
 			const auto nt = env.defs.text.emplace_back(b.internal_definition);
 			env.nmaps.text_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::text, nt));
+			internal_definition.sub_object_definitions.push_back(nt);
 		}
 		void gui_checkboxType(guiButtonType&& b) {
 			b.internal_definition.flags |= ui::button_def::is_checkbox;
 			const auto nt = env.defs.buttons.emplace_back(b.internal_definition);
 			env.nmaps.button_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::button, nt));
+			internal_definition.sub_object_definitions.push_back(nt);
 		}
 		void gui_checkboxType(guiButtonType& b) {
 			b.internal_definition.flags |= ui::button_def::is_checkbox;
 			const auto nt = env.defs.buttons.emplace_back(b.internal_definition);
 			env.nmaps.button_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::button, nt));
+			internal_definition.sub_object_definitions.push_back(nt);
 		}
 		void gui_shieldtype(iconType&& b) {
 			b.internal_definition.flags |= ui::icon_def::is_shield;
 			const auto nt = env.defs.icons.emplace_back(b.internal_definition);
 			env.nmaps.icon_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::icon, nt));
+			internal_definition.sub_object_definitions.push_back(nt);
 		}
 		void gui_shieldtype(iconType& b) {
 			b.internal_definition.flags |= ui::icon_def::is_shield;
 			const auto nt = env.defs.icons.emplace_back(b.internal_definition);
 			env.nmaps.icon_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::icon, nt));
+			internal_definition.sub_object_definitions.push_back(nt);
 		}
 		void gui_editBoxType(allTextBoxType&& b) {
 			b.internal_definition.flags |= ui::text_def::is_edit_box;
 			const auto nt = env.defs.text.emplace_back(b.internal_definition);
 			env.nmaps.text_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::text, nt));
+			internal_definition.sub_object_definitions.push_back(nt);
 		}
 		void gui_editBoxType(allTextBoxType& b) {
 			b.internal_definition.flags |= ui::text_def::is_edit_box;
 			const auto nt = env.defs.text.emplace_back(b.internal_definition);
 			env.nmaps.text_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::text, nt));
+			internal_definition.sub_object_definitions.push_back(nt);
 		}
 		void gui_OverlappingElementsBoxType(const OverlappingElementsBoxType& b) {
 			const auto nt = env.defs.overlapping_regions.emplace_back(b.internal_definition);
 			env.nmaps.overlapping_region_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::overlapping_region, nt));
+			internal_definition.sub_object_definitions.push_back(nt);
 		}
 		void gui_listBoxType(const listBoxType& b) {
 			const auto nt = env.defs.listboxes.emplace_back(b.internal_definition);
 			env.nmaps.listbox_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::listbox, nt));
+			internal_definition.sub_object_definitions.push_back(nt);
 		}
 		void gui_scrollbarType(scrollbarType&& b) {
 			b.finalize();
 			const auto nt = env.defs.scrollbars.emplace_back(b.internal_definition);
 			env.nmaps.scrollbar_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::scrollbar, nt));
+			internal_definition.sub_object_definitions.push_back(nt);
 		}
 		void gui_scrollbarType(scrollbarType& b) {
 			b.finalize();
 			const auto nt = env.defs.scrollbars.emplace_back(b.internal_definition);
 			env.nmaps.scrollbar_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::scrollbar, nt));
+			internal_definition.sub_object_definitions.push_back(nt);
 		}
 		void gui_eu3dialogtype(windowType&& b) {
 			b.finalize();
 			b.internal_definition.flags |= ui::window_def::is_dialog;
 			const auto nt = env.defs.windows.emplace_back(b.internal_definition);
 			env.nmaps.window_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::window, nt));
+			internal_definition.sub_object_definitions.push_back(nt);
 		}
 		void gui_eu3dialogtype(windowType& b) {
 			b.finalize();
 			b.internal_definition.flags |= ui::window_def::is_dialog;
 			const auto nt = env.defs.windows.emplace_back(b.internal_definition);
 			env.nmaps.window_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::window, nt));
+			internal_definition.sub_object_definitions.push_back(nt);
 		}
 		void gui_windowType(windowType&& b) {
 			b.finalize();
 			const auto nt = env.defs.windows.emplace_back(b.internal_definition);
 			env.nmaps.window_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::window, nt));
+			internal_definition.sub_object_definitions.push_back(nt);
 		}
 		void gui_windowType(windowType& b) {
 			b.finalize();
 			const auto nt = env.defs.windows.emplace_back(b.internal_definition);
 			env.nmaps.window_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(ui::pack_ui_definition_handle(ui::element_type::window, nt));
+			internal_definition.sub_object_definitions.push_back(nt);
 		}
 
 		void add_unknown_key(int) {
@@ -1377,21 +1375,21 @@ namespace ui {
 		}
 
 		for(int32_t i = nmaps.button_names.size() - 1; i >= 0; --i)
-			defs.name_to_element_map.emplace(nmaps.button_names[i], ui::pack_ui_definition_handle(ui::element_type::button, i));
+			defs.name_to_element_map.emplace(nmaps.button_names[i], button_tag(i));
 		for (int32_t i = nmaps.icon_names.size() - 1; i >= 0; --i)
-			defs.name_to_element_map.emplace(nmaps.icon_names[i], ui::pack_ui_definition_handle(ui::element_type::icon, i));
+			defs.name_to_element_map.emplace(nmaps.icon_names[i], icon_tag(i));
 		for (int32_t i = nmaps.listbox_names.size() - 1; i >= 0; --i)
-			defs.name_to_element_map.emplace(nmaps.listbox_names[i], ui::pack_ui_definition_handle(ui::element_type::listbox, i));
+			defs.name_to_element_map.emplace(nmaps.listbox_names[i], listbox_tag(i));
 		for (int32_t i = nmaps.overlapping_region_names.size() - 1; i >= 0; --i)
-			defs.name_to_element_map.emplace(nmaps.overlapping_region_names[i], ui::pack_ui_definition_handle(ui::element_type::overlapping_region, i));
+			defs.name_to_element_map.emplace(nmaps.overlapping_region_names[i], overlapping_region_tag(i));
 		for (int32_t i = nmaps.position_names.size() - 1; i >= 0; --i)
-			defs.name_to_element_map.emplace(nmaps.position_names[i], ui::pack_ui_definition_handle(ui::element_type::position, i));
+			defs.name_to_element_map.emplace(nmaps.position_names[i], position_tag(i));
 		for (int32_t i = nmaps.scrollbar_names.size() - 1; i >= 0; --i)
-			defs.name_to_element_map.emplace(nmaps.scrollbar_names[i], ui::pack_ui_definition_handle(ui::element_type::scrollbar, i));
+			defs.name_to_element_map.emplace(nmaps.scrollbar_names[i], scrollbar_tag(i));
 		for (int32_t i = nmaps.text_names.size() - 1; i >= 0; --i)
-			defs.name_to_element_map.emplace(nmaps.text_names[i], ui::pack_ui_definition_handle(ui::element_type::text, i));
+			defs.name_to_element_map.emplace(nmaps.text_names[i], text_tag(i));
 		for (int32_t i = nmaps.window_names.size() - 1; i >= 0; --i)
-			defs.name_to_element_map.emplace(nmaps.window_names[i], ui::pack_ui_definition_handle(ui::element_type::window, i));
+			defs.name_to_element_map.emplace(nmaps.window_names[i], window_tag(i));
 	}
 
 	const char* format_error(ui::errors  e) {

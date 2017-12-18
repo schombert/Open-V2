@@ -415,7 +415,7 @@ namespace graphics {
 		impl->load_metrics();
 	}
 
-	float font::metrics_text_extent(char16_t* codepoints, uint32_t count, float size, bool outlined) const {
+	float font::metrics_text_extent(const char16_t* codepoints, uint32_t count, float size, bool outlined) const {
 		float total = 0.0f;
 		for (int32_t i = count - 1; i >= 0; --i) {
 			total +=

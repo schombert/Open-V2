@@ -41,7 +41,7 @@ namespace graphics {
 		float line_height(float size) const;
 		float render_kerning(char16_t codepoint_first, char16_t codepoint_second) const;
 		float metrics_kerning(char16_t codepoint_first, char16_t codepoint_second) const;
-		float metrics_text_extent(char16_t* codepoints, uint32_t count, float size, bool outlined = false) const;
+		float metrics_text_extent(const char16_t* codepoints, uint32_t count, float size, bool outlined = false) const;
 	};
 
 	constexpr std::pair<font_tag, uint32_t> unpack_font_handle(uint16_t handle) {
