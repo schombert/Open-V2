@@ -46,6 +46,7 @@ convert_image_to_DXT5
 );
 
 /**	A bunch of DirectDraw Surface structures and flags **/
+/*
 typedef struct
 {
     unsigned int    dwMagic;
@@ -58,7 +59,7 @@ typedef struct
     unsigned int    dwMipMapCount;
     unsigned int    dwReserved1[ 11 ];
 
-    /*  DDPIXELFORMAT	*/
+    //  DDPIXELFORMAT
     struct
     {
         unsigned int    dwSize;
@@ -72,7 +73,7 @@ typedef struct
     }
     sPixelFormat;
 
-    /*  DDCAPS2	*/
+    // DDCAPS2	
     struct
     {
         unsigned int    dwCaps1;
@@ -83,7 +84,7 @@ typedef struct
     sCaps;
     unsigned int    dwReserved2;
 }
-DDS_header ;
+DDS_header ;*/
 
 /*	the following constants were copied directly off the MSDN website	*/
 

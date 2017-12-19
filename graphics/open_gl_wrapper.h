@@ -22,6 +22,14 @@ namespace graphics {
 		right
 	};
 
+	class scissor_rect {
+	private:
+		int32_t oldrect[4];
+	public:
+		scissor_rect(int32_t x, int32_t y, int32_t width, int32_t height);
+		~scissor_rect();
+	};
+
 	class open_gl_wrapper {
 	private:
 		void set_render_thread(const std::function<void()>&);

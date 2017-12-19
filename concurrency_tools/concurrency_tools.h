@@ -224,12 +224,12 @@ public:
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 class fixed_sz_deque_iterator {
 private:
-	const fixed_sz_deque<T, block, index_sz>* parent;
+	const fixed_sz_deque<T, block, index_sz, tag_type>* parent;
 	int32_t position;
 public:
 	fixed_sz_deque_iterator() : parent(nullptr), position(0) {};
-	fixed_sz_deque_iterator(const fixed_sz_deque<T, block, index_sz>& p) : parent(&p), position(0) {};
-	fixed_sz_deque_iterator(const fixed_sz_deque<T, block, index_sz>& p, uint32_t o) : parent(&p), position(o) {};
+	fixed_sz_deque_iterator(const fixed_sz_deque<T, block, index_sz, tag_type>& p) : parent(&p), position(0) {};
+	fixed_sz_deque_iterator(const fixed_sz_deque<T, block, index_sz, tag_type>& p, uint32_t o) : parent(&p), position(o) {};
 
 	bool operator==(const fixed_sz_deque_iterator& o) const {
 		return position == o.position;

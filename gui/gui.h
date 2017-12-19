@@ -8,6 +8,7 @@
 #include "text_data\\text_data.h"
 #include "graphics_objects\\graphics_objects.h"
 #include "common\\shared_tags.h"
+#include "simple_fs\\simple_fs.h"
 
 namespace graphics {
 	class font;
@@ -65,17 +66,17 @@ namespace ui {
 
 	class gui_behavior {
 	public:
-		virtual bool on_lclick(tagged_gui_object owner, gui_manager& manager, const lbutton_down&) { return false; };
-		virtual bool on_rclick(tagged_gui_object owner, gui_manager& manager, const rbutton_down&) { return false; };
-		virtual bool on_drag(tagged_gui_object owner, gui_manager& manager, const mouse_drag&) { return false; };
-		virtual bool on_keydown(tagged_gui_object owner, gui_manager& manager, const key_down&) { return false; };
-		virtual bool on_text(tagged_gui_object owner, gui_manager& manager, const text_event&) { return false; };
-		virtual bool on_scroll(tagged_gui_object owner, gui_manager& manager, const scroll&) { return false; };
-		virtual bool on_get_focus(tagged_gui_object owner, gui_manager& manager) { return false; };
-		virtual void on_lose_focus(tagged_gui_object owner, gui_manager& manager) { };
-		virtual void update_data(tagged_gui_object owner, gui_manager& manager) {};
-		virtual bool has_tooltip(tagged_gui_object owner, gui_manager& manager) { return false; };
-		virtual void create_tooltip(tagged_gui_object owner, gui_manager& manager, tagged_gui_object tooltip_window) { };
+		virtual bool on_lclick(tagged_gui_object, gui_manager&, const lbutton_down&) { return false; };
+		virtual bool on_rclick(tagged_gui_object, gui_manager&, const rbutton_down&) { return false; };
+		virtual bool on_drag(tagged_gui_object, gui_manager&, const mouse_drag&) { return false; };
+		virtual bool on_keydown(tagged_gui_object, gui_manager&, const key_down&) { return false; };
+		virtual bool on_text(tagged_gui_object, gui_manager&, const text_event&) { return false; };
+		virtual bool on_scroll(tagged_gui_object, gui_manager&, const scroll&) { return false; };
+		virtual bool on_get_focus(tagged_gui_object, gui_manager&) { return false; };
+		virtual void on_lose_focus(tagged_gui_object, gui_manager&) { };
+		virtual void update_data(tagged_gui_object, gui_manager&) {};
+		virtual bool has_tooltip(tagged_gui_object, gui_manager&) { return false; };
+		virtual void create_tooltip(tagged_gui_object, gui_manager&, tagged_gui_object /*tooltip_window*/) { };
 		virtual ~gui_behavior() {};
 	};
 
@@ -112,11 +113,11 @@ namespace ui {
 		atomic_tag<gui_object_tag> left_sibling; //24 bytes
 		atomic_tag<gui_object_tag> right_sibling; //26 bytes
 
-		std::atomic<uint16_t> flags = 0; // 28 bytes
+		std::atomic<uint16_t> flags = visible | enabled; // 28 bytes
 
 		char padding[4]; //32 bytes
 
-		const graphics::rotation get_rotation() const;
+		graphics::rotation get_rotation() const;
 	};
 
 	struct text_format {
@@ -160,6 +161,8 @@ namespace ui {
 	class gui_manager {
 	private:
 		float _scale = 1.0f;
+		int32_t _width;
+		int32_t _height;
 	public:
 		fixed_sz_deque<gui_object, 128, 64, gui_object_tag> gui_objects;
 		fixed_sz_deque<text_instance, 128, 64, text_instance_tag> text_instances;
@@ -196,7 +199,8 @@ namespace ui {
 
 		void rescale(float new_scale);
 		float scale() const { return _scale; }
-
+		int32_t width() const { return _width; }
+		int32_t height() const { return _height; }
 		void set_focus(tagged_gui_object g);
 		void clear_focus();
 		void hide_tooltip();
@@ -204,4 +208,6 @@ namespace ui {
 		void destroy(gui_object& g);
 		~gui_manager();
 	};
+
+	void load_gui_from_directory(const directory& source_directory, gui_manager& manager);
 }

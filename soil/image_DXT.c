@@ -7,6 +7,7 @@
 	public domain
 */
 
+#include "stbi_DDS_aug.h"
 #include "image_DXT.h"
 #include <math.h>
 #include <stdlib.h>

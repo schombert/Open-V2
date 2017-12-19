@@ -41,6 +41,7 @@
 
 #include "stb_image.h"
 #include "stb_image_write.h"
+#include "stbi_DDS_aug_c.h"
 #include "image_helper.h"
 #include "image_DXT.h"
 
@@ -93,13 +94,15 @@ unsigned int SOIL_direct_load_DDS(
 		const char *filename,
 		unsigned int reuse_texture_ID,
 		int flags,
-		int loading_as_cubemap );
+		int loading_as_cubemap, int* width, int* height );
 unsigned int SOIL_direct_load_DDS_from_memory(
 		const unsigned char *const buffer,
 		int buffer_length,
 		unsigned int reuse_texture_ID,
 		int flags,
-		int loading_as_cubemap );
+		int loading_as_cubemap,
+	    int* width,
+	    int* height);
 /*	other functions	*/
 unsigned int
 	SOIL_internal_create_OGL_texture
@@ -134,7 +137,7 @@ unsigned int
 			note: direct uploading will only load what is in the
 			DDS file, no MIPmaps will be generated, the image will
 			not be flipped, etc.	*/
-		tex_id = SOIL_direct_load_DDS( filename, reuse_texture_ID, flags, 0 );
+		tex_id = SOIL_direct_load_DDS( filename, reuse_texture_ID, flags, 0, &width, &height );
 		if( tex_id )
 		{
 			/*	hey, it worked!!	*/
@@ -222,12 +225,14 @@ unsigned int
 		int buffer_length,
 		int force_channels,
 		unsigned int reuse_texture_ID,
-		unsigned int flags
+		unsigned int flags,
+		int* width,
+		int* height
 	)
 {
 	/*	variables	*/
 	unsigned char* img;
-	int width, height, channels;
+	int channels;
 	unsigned int tex_id;
 	/*	does the user want direct uploading of the image as a DDS file?	*/
 	if( flags & SOIL_FLAG_DDS_LOAD_DIRECT )
@@ -238,7 +243,7 @@ unsigned int
 			not be flipped, etc.	*/
 		tex_id = SOIL_direct_load_DDS_from_memory(
 				buffer, buffer_length,
-				reuse_texture_ID, flags, 0 );
+				reuse_texture_ID, flags, 0, width, height);
 		if( tex_id )
 		{
 			/*	hey, it worked!!	*/
@@ -248,7 +253,7 @@ unsigned int
 	/*	try to load the image	*/
 	img = SOIL_load_image_from_memory(
 					buffer, buffer_length,
-					&width, &height, &channels,
+					width, height, &channels,
 					force_channels );
 	/*	channels holds the original number of channels, which may have been forced	*/
 	if( (force_channels >= 1) && (force_channels <= 4) )
@@ -263,7 +268,7 @@ unsigned int
 	}
 	/*	OK, make it a texture!	*/
 	tex_id = SOIL_internal_create_OGL_texture(
-			img, width, height, channels,
+			img, *width, *height, channels,
 			reuse_texture_ID, flags,
 			GL_TEXTURE_2D, GL_TEXTURE_2D,
 			GL_MAX_TEXTURE_SIZE );
@@ -688,7 +693,7 @@ unsigned int
 			note: direct uploading will only load what is in the
 			DDS file, no MIPmaps will be generated, the image will
 			not be flipped, etc.	*/
-		tex_id = SOIL_direct_load_DDS( filename, reuse_texture_ID, flags, 1 );
+		tex_id = SOIL_direct_load_DDS( filename, reuse_texture_ID, flags, 1, &width, &height );
 		if( tex_id )
 		{
 			/*	hey, it worked!!	*/
@@ -776,7 +781,7 @@ unsigned int
 			not be flipped, etc.	*/
 		tex_id = SOIL_direct_load_DDS_from_memory(
 				buffer, buffer_length,
-				reuse_texture_ID, flags, 1 );
+				reuse_texture_ID, flags, 1, &width, &height);
 		if( tex_id )
 		{
 			/*	hey, it worked!!	*/
@@ -1335,15 +1340,42 @@ unsigned char*
 		int force_channels
 	)
 {
-	unsigned char *result = stbi_load( filename,
-			width, height, channels, force_channels );
-	if( result == NULL )
-	{
-		result_string_pointer = stbi_failure_reason();
-	} else
-	{
-		result_string_pointer = "Image loaded";
+
+	FILE *f;
+	unsigned char *buffer;
+	size_t buffer_length, bytes_read;
+
+	/*	error checks	*/
+	if (NULL == filename) {
+		result_string_pointer = "NULL filename";
+		return 0;
 	}
+	f = fopen(filename, "rb");
+	if (NULL == f) {
+		/*	the file doesn't seem to exist (or be open-able)	*/
+		result_string_pointer = "Can not find DDS file";
+		return 0;
+	}
+	fseek(f, 0, SEEK_END);
+	buffer_length = ftell(f);
+	fseek(f, 0, SEEK_SET);
+	buffer = (unsigned char *)malloc(buffer_length);
+	if (NULL == buffer) {
+		result_string_pointer = "malloc failed";
+		fclose(f);
+		return 0;
+	}
+	bytes_read = fread((void*)buffer, 1, buffer_length, f);
+	fclose(f);
+	if (bytes_read < buffer_length) {
+		/*	huh?	*/
+		buffer_length = bytes_read;
+	}
+
+	unsigned char *result = SOIL_load_image_from_memory(buffer, buffer_length, width, height, channels, force_channels);
+
+	free(buffer);
+
 	return result;
 }
 
@@ -1356,7 +1388,10 @@ unsigned char*
 		int force_channels
 	)
 {
-	unsigned char *result = stbi_load_from_memory(
+	unsigned char* result = stbi_dds_load_from_memory(buffer, buffer_length, width, height, channels, force_channels);
+	if (result)
+		return result;
+	 result = stbi_load_from_memory(
 				buffer, buffer_length,
 				width, height, channels,
 				force_channels );
@@ -1440,7 +1475,9 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 		int buffer_length,
 		unsigned int reuse_texture_ID,
 		int flags,
-		int loading_as_cubemap )
+		int loading_as_cubemap,
+	    int* width,
+	    int* height)
 {
 	/*	variables	*/
 	DDS_header header;
@@ -1451,7 +1488,6 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 	unsigned char *DDS_data;
 	unsigned int DDS_main_size;
 	unsigned int DDS_full_size;
-	unsigned int width, height;
 	int mipmaps, cubemap, uncompressed, block_size = 16;
 	unsigned int flag;
 	unsigned int cf_target, ogl_target_start, ogl_target_end;
@@ -1503,8 +1539,8 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 	}
 	/*	OK, validated the header, let's load the image data	*/
 	result_string_pointer = "DDS header loaded and validated";
-	width = header.dwWidth;
-	height = header.dwHeight;
+	*width = header.dwWidth;
+	*height = header.dwHeight;
 	uncompressed = 1 - (header.sPixelFormat.dwFlags & DDPF_FOURCC) / DDPF_FOURCC;
 	cubemap = (header.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP) / DDSCAPS2_CUBEMAP;
 	if( uncompressed )
@@ -1516,7 +1552,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 			S3TC_type = GL_RGBA8;
 			block_size = 4;
 		}
-		DDS_main_size = width * height * block_size;
+		DDS_main_size = (*width) * (*height) * block_size;
 	} else
 	{
 		/*	can we even handle direct uploading to OpenGL DXT compressed images?	*/
@@ -1542,7 +1578,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 			block_size = 16;
 			break;
 		}
-		DDS_main_size = ((width+3)>>2)*((height+3)>>2)*block_size;
+		DDS_main_size = (((*width)+3)>>2)*(((*height)+3)>>2)*block_size;
 	}
 	if( cubemap )
 	{
@@ -1610,18 +1646,18 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 
 				
 				if (S3TC_type == GL_RGBA8) {
-					glTexStorage2D(opengl_texture_type, mipmaps + 1, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, width, height);
-					glTexSubImage2D(opengl_texture_type, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, DDS_data);
+					glTexStorage2D(opengl_texture_type, mipmaps + 1, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, *width, *height);
+					glTexSubImage2D(opengl_texture_type, 0, 0, 0, *width, *height, GL_BGRA, GL_UNSIGNED_BYTE, DDS_data);
 				} else if (S3TC_type == GL_RGB8) {
-					glTexStorage2D(opengl_texture_type, mipmaps + 1, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, width, height);
-					glTexSubImage2D(opengl_texture_type, 0, 0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, DDS_data);
+					glTexStorage2D(opengl_texture_type, mipmaps + 1, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, *width, *height);
+					glTexSubImage2D(opengl_texture_type, 0, 0, 0, *width, *height, GL_BGR, GL_UNSIGNED_BYTE, DDS_data);
 				}
 
 			} else
 			{
 				soilGlCompressedTexImage2D(
 					cf_target, mipmaps,
-					S3TC_type, width, height, 0,
+					S3TC_type, *width, *height, 0,
 					DDS_main_size, DDS_data );
 			}
 			/*	upload the mipmaps, if we have them	*/
@@ -1677,7 +1713,7 @@ unsigned int SOIL_direct_load_DDS(
 		const char *filename,
 		unsigned int reuse_texture_ID,
 		int flags,
-		int loading_as_cubemap )
+		int loading_as_cubemap, int* width, int* height )
 {
 	FILE *f;
 	unsigned char *buffer;
@@ -1716,7 +1752,7 @@ unsigned int SOIL_direct_load_DDS(
 	/*	now try to do the loading	*/
 	tex_ID = SOIL_direct_load_DDS_from_memory(
 		(const unsigned char *const)buffer, buffer_length,
-		reuse_texture_ID, flags, loading_as_cubemap );
+		reuse_texture_ID, flags, loading_as_cubemap, width, height);
 	SOIL_free_image_data( buffer );
 	return tex_ID;
 }

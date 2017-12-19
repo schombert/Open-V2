@@ -429,6 +429,8 @@ T& fixed_sz_deque<T, block, index_sz, tag_type>::emplace_at(tag_type location, P
 				current_key = next_key;
 			}
 		}
+	} else {
+		local_index[block_index].~T();
 	}
 
 	new (&(local_index[block_index])) T(std::forward<P>(params) ...);

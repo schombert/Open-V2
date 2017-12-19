@@ -46,6 +46,9 @@ namespace graphics {
 		}
 
 		color_rgba get_pixel(float x, float y);
+		
+		int32_t get_width() const { return width; }
+		int32_t get_height() const { return height; }
 		uint32_t handle();
 		void load();
 		void load_filedata();

@@ -1,40 +1,7 @@
-
 ///	DDS file support, does decoding, _not_ direct uploading
 ///	(use SOIL for that ;-)
 
-///	A bunch of DirectDraw Surface structures and flags
-typedef struct {
-    unsigned int    dwMagic;
-    unsigned int    dwSize;
-    unsigned int    dwFlags;
-    unsigned int    dwHeight;
-    unsigned int    dwWidth;
-    unsigned int    dwPitchOrLinearSize;
-    unsigned int    dwDepth;
-    unsigned int    dwMipMapCount;
-    unsigned int    dwReserved1[ 11 ];
-
-    //  DDPIXELFORMAT
-    struct {
-      unsigned int    dwSize;
-      unsigned int    dwFlags;
-      unsigned int    dwFourCC;
-      unsigned int    dwRGBBitCount;
-      unsigned int    dwRBitMask;
-      unsigned int    dwGBitMask;
-      unsigned int    dwBBitMask;
-      unsigned int    dwAlphaBitMask;
-    }               sPixelFormat;
-
-    //  DDCAPS2
-    struct {
-      unsigned int    dwCaps1;
-      unsigned int    dwCaps2;
-      unsigned int    dwDDSX;
-      unsigned int    dwReserved;
-    }               sCaps;
-    unsigned int    dwReserved2;
-} DDS_header ;
+#include "stbi_DDS_aug.h"
 
 //	the following constants were copied directly off the MSDN website
 
@@ -71,23 +38,23 @@ typedef struct {
 #define DDSCAPS2_CUBEMAP_NEGATIVEZ	0x00008000
 #define DDSCAPS2_VOLUME	0x00200000
 
-static int dds_test(stbi *s)
+static int dds_test(stbi__context *s)
 {
 	//	check the magic number
-	if (get8(s) != 'D') return 0;
-	if (get8(s) != 'D') return 0;
-	if (get8(s) != 'S') return 0;
-	if (get8(s) != ' ') return 0;
+	if (stbi__get8(s) != 'D') return 0;
+	if (stbi__get8(s) != 'D') return 0;
+	if (stbi__get8(s) != 'S') return 0;
+	if (stbi__get8(s) != ' ') return 0;
 	//	check header size
-	if (get32le(s) != 124) return 0;
+	if (stbi__get32le(s) != 124) return 0;
 	return 1;
 }
 #ifndef STBI_NO_STDIO
 int      stbi_dds_test_file        (FILE *f)
 {
-   stbi s;
+	stbi__context s;
    int r,n = ftell(f);
-   start_file(&s,f);
+   stbi__start_file(&s,f);
    r = dds_test(&s);
    fseek(f,n,SEEK_SET);
    return r;
@@ -96,8 +63,8 @@ int      stbi_dds_test_file        (FILE *f)
 
 int      stbi_dds_test_memory      (stbi_uc const *buffer, int len)
 {
-   stbi s;
-   start_mem(&s,buffer, len);
+	stbi__context s;
+	stbi__start_mem(&s, buffer, len);
    return dds_test(&s);
 }
 
@@ -265,7 +232,7 @@ void stbi_decode_DXT_color_block(
 	}
 	//	done
 }
-static stbi_uc *dds_load(stbi *s, int *x, int *y, int *comp, int req_comp)
+static stbi_uc *dds_load(stbi__context *s, int *x, int *y, int *comp, int req_comp)
 {
 	//	all variables go up front
 	stbi_uc *dds_data = NULL;
@@ -282,7 +249,7 @@ static stbi_uc *dds_load(stbi *s, int *x, int *y, int *comp, int req_comp)
 	{
 		return NULL;
 	}
-	getn( s, (stbi_uc*)(&header), 128 );
+	stbi__getn( s, (stbi_uc*)(&header), 128 );
 	//	and do some checking
 	if( header.dwMagic != (('D' << 0) | ('D' << 8) | ('S' << 16) | (' ' << 24)) ) return NULL;
 	if( header.dwSize != 124 ) return NULL;
@@ -341,21 +308,21 @@ static stbi_uc *dds_load(stbi *s, int *x, int *y, int *comp, int req_comp)
 				if( DXT_family == 1 )
 				{
 					//	DXT1
-					getn( s, compressed, 8 );
+					stbi__getn( s, compressed, 8 );
 					stbi_decode_DXT1_block( block, compressed );
 				} else if( DXT_family < 4 )
 				{
 					//	DXT2/3
-					getn( s, compressed, 8 );
+					stbi__getn( s, compressed, 8 );
 					stbi_decode_DXT23_alpha_block ( block, compressed );
-					getn( s, compressed, 8 );
+					stbi__getn( s, compressed, 8 );
 					stbi_decode_DXT_color_block ( block, compressed );
 				} else
 				{
 					//	DXT4/5
-					getn( s, compressed, 8 );
+					stbi__getn( s, compressed, 8 );
 					stbi_decode_DXT45_alpha_block ( block, compressed );
-					getn( s, compressed, 8 );
+					stbi__getn( s, compressed, 8 );
 					stbi_decode_DXT_color_block ( block, compressed );
 				}
 				//	is this a partial block?
@@ -399,7 +366,7 @@ static stbi_uc *dds_load(stbi *s, int *x, int *y, int *comp, int req_comp)
 					{
 						my = 1;
 					}
-					skip( s, mx*my*block_size );
+					stbi__skip( s, mx*my*block_size );
 				}
 			}
 		}/* per cubemap face */
@@ -419,7 +386,7 @@ static stbi_uc *dds_load(stbi *s, int *x, int *y, int *comp, int req_comp)
 		for( cf = 0; cf < cubemap_faces; ++ cf )
 		{
 			/*	read the main image for this face	*/
-			getn( s, &dds_data[cf*s->img_x*s->img_y*s->img_n], s->img_x*s->img_y*s->img_n );
+			stbi__getn( s, &dds_data[cf*s->img_x*s->img_y*s->img_n], s->img_x*s->img_y*s->img_n );
 			/*	done reading and decoding the main image...
 				skip MIPmaps if present	*/
 			if( has_mipmap )
@@ -436,7 +403,7 @@ static stbi_uc *dds_load(stbi *s, int *x, int *y, int *comp, int req_comp)
 					{
 						my = 1;
 					}
-					skip( s, mx*my*s->img_n );
+					stbi__skip( s, mx*my*s->img_n );
 				}
 			}
 		}
@@ -468,7 +435,7 @@ static stbi_uc *dds_load(stbi *s, int *x, int *y, int *comp, int req_comp)
 		//	user has some requirements, meet them
 		if( req_comp != s->img_n )
 		{
-			dds_data = convert_format( dds_data, s->img_n, req_comp, s->img_x, s->img_y );
+			dds_data = stbi__convert_format( dds_data, s->img_n, req_comp, s->img_x, s->img_y );
 			*comp = s->img_n;
 		}
 	} else
@@ -476,7 +443,7 @@ static stbi_uc *dds_load(stbi *s, int *x, int *y, int *comp, int req_comp)
 		//	user had no requirements, only drop to RGB is no alpha
 		if( (has_alpha == 0) && (s->img_n == 4) )
 		{
-			dds_data = convert_format( dds_data, 4, 3, s->img_x, s->img_y );
+			dds_data = stbi__convert_format( dds_data, 4, 3, s->img_x, s->img_y );
 			*comp = 3;
 		}
 	}
@@ -487,8 +454,8 @@ static stbi_uc *dds_load(stbi *s, int *x, int *y, int *comp, int req_comp)
 #ifndef STBI_NO_STDIO
 stbi_uc *stbi_dds_load_from_file   (FILE *f,                  int *x, int *y, int *comp, int req_comp)
 {
-	stbi s;
-   start_file(&s,f);
+	stbi__context s;
+	stbi__start_file(&s,f);
    return dds_load(&s,x,y,comp,req_comp);
 }
 
@@ -505,7 +472,7 @@ stbi_uc *stbi_dds_load             (char *filename,           int *x, int *y, in
 
 stbi_uc *stbi_dds_load_from_memory (stbi_uc const *buffer, int len, int *x, int *y, int *comp, int req_comp)
 {
-	stbi s;
-   start_mem(&s,buffer, len);
+	stbi__context s;
+	stbi__start_mem(&s,buffer, len);
    return dds_load(&s,x,y,comp,req_comp);
 }

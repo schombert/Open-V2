@@ -150,9 +150,9 @@ TEST(texture_manager_test, graphics_tests) {
 
 	texture_manager tm_a;
 	const auto handle_a = tm_a.retrieve_by_name(f.get_root(), RANGE("gfx\\file_a.tga"));
-	EXPECT_EQ(1, handle_a);
+	EXPECT_EQ(texture_tag(0), handle_a);
 	const auto handle_b = tm_a.retrieve_by_name(f.get_root(), RANGE("gfx\\\\file_b.tga"));
-	EXPECT_EQ(2, handle_b);
+	EXPECT_EQ(texture_tag(1), handle_b);
 
 	EXPECT_EQ(std::string("F:\\gfx\\file_a.tga"), tm_a.retrieve_by_key(handle_a).filename);
 	EXPECT_EQ(std::string("F:\\gfx\\file_b.dds"), tm_a.retrieve_by_key(handle_b).filename);
@@ -162,9 +162,9 @@ TEST(texture_manager_test, graphics_tests) {
 	texture_manager tm_b;
 
 	const auto handle_c = tm_b.retrieve_by_name(f.get_root(), RANGE("gfx\\\\file_a.tga"));
-	EXPECT_EQ(1, handle_c);
+	EXPECT_EQ(texture_tag(0), handle_c);
 	const auto handle_d = tm_b.retrieve_by_name(f.get_root(), RANGE("gfx\\file_b.tga"));
-	EXPECT_EQ(2, handle_d);
+	EXPECT_EQ(texture_tag(1), handle_d);
 
 	EXPECT_EQ(std::string("F:\\mod\\gfx\\file_a.tga"), tm_b.retrieve_by_key(handle_c).filename);
 	EXPECT_EQ(std::string("F:\\gfx\\file_b.dds"), tm_b.retrieve_by_key(handle_d).filename);
@@ -187,4 +187,25 @@ TEST(font_manager_test, graphics_tests) {
 	EXPECT_EQ(14, fm.find_font_size(RANGE("FPS_Font")));
 	EXPECT_EQ(32, fm.find_font_size(RANGE("vic_32")));
 	EXPECT_EQ(16, fm.find_font_size(RANGE("unknownfont")));
+}
+
+TEST(clipping, graphics_tests) {
+	EXPECT_TRUE(test_rendering("F:\\VS2007Projects\\open_v2_test_data\\clipping_a", 0, 0, 80, 80, [](open_gl_wrapper& ogl) {
+		texture test_tex("F:\\VS2007Projects\\open_v2_test_data\\test_tx.bmp");
+
+		scissor_rect r1(10, 10, 60, 60);
+		ogl.render_textured_rect(true, 0.0f, 0.0f, 80.0f, 40.0f, test_tex);
+		ogl.render_textured_rect(false, 0.0f, 40.0f, 80.0f, 40.0f, test_tex);
+	}));
+
+	EXPECT_TRUE(test_rendering("F:\\VS2007Projects\\open_v2_test_data\\clipping_b", 0, 0, 80, 80, [](open_gl_wrapper& ogl) {
+		texture test_tex("F:\\VS2007Projects\\open_v2_test_data\\test_tx.bmp");
+
+		scissor_rect r1(10, 10, 60, 60);
+		{
+			scissor_rect r2(0, 00, 40, 80);
+			ogl.render_textured_rect(true, 0.0f, 0.0f, 80.0f, 40.0f, test_tex);
+		}
+		ogl.render_textured_rect(false, 0.0f, 40.0f, 80.0f, 40.0f, test_tex);
+	}));
 }

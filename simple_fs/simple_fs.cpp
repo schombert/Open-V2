@@ -308,7 +308,7 @@ std::optional<unopened_file> directory::peek_file_internal(const std::u16string&
 	for (auto p = all_paths.crbegin(); p != all_paths.crend(); ++p) {
 		const auto full = *p + suffix_name;
 		if (sfs_file_exists(full.c_str())) {
-			return std::optional<unopened_file>(std::in_place_t(), std::make_unique<_unopened_file>(*p, suffix_name));
+			return std::optional<unopened_file>(std::in_place_t(), std::make_unique<_unopened_file>(*p, suffix_name.substr(1)));
 		}
 	}
 	return std::optional<unopened_file>();

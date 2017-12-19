@@ -62,5 +62,7 @@ namespace graphics {
 		uint32_t find_font_size(const char* start, const char* end);
 		void load_standard_fonts(const directory& root);
 		font& at(font_tag t) const;
+		void load_fonts(open_gl_wrapper&) const;
+		void load_metrics_fonts() const;
 	};
 }

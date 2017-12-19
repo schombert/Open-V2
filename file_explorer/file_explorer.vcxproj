@@ -164,6 +164,9 @@
     <ProjectReference Include="..\graphics_objects\graphics_objects.vcxproj">
       <Project>{177b9639-7862-4ee8-a898-3560242ae429}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\gui\gui.vcxproj">
+      <Project>{cb808c07-06ad-424a-b9bf-c15b89acd4ec}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\gui_definitions\gui_definitions.vcxproj">
       <Project>{ff9513fe-8de3-4263-9d53-eaf04dc81c8c}</Project>
     </ProjectReference>

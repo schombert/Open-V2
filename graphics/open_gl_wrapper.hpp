@@ -5,8 +5,10 @@
 namespace graphics {
 	template<typename T>
 	void open_gl_wrapper::setup(void* hwnd, T& base) {
-		set_render_thread([hwnd, &base, _this = this]() {
-			_this->setup_context(hwnd);
+		setup_context(hwnd);
+
+		set_render_thread([&base, _this = this]() {
+			_this->bind_to_thread();
 
 			base.initialize_graphics(*_this);
 

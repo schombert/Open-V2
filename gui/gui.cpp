@@ -4,6 +4,12 @@
 #include <algorithm>
 #include "boost\\container\\small_vector.hpp"
 
+#ifdef _DEBUG
+#include "windows.h"
+#undef min
+#undef max
+#endif
+
 ui::gui_manager::~gui_manager() {};
 
 void ui::gui_manager::destroy(gui_object & g) {
@@ -334,18 +340,27 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 	new_gobj.object.position = def.position;
 	new_gobj.object.size = def.size;
 
-	if (button_graphic_def.primary_texture_handle != 0) {
+	if (is_valid_index(button_graphic_def.primary_texture_handle)) {
 		const auto button_graphic = manager.graphics_instances.emplace();
 
 		button_graphic.object.frame = 0;
 		button_graphic.object.graphics_object = &button_graphic_def;
 		button_graphic.object.t = &(manager.textures.retrieve_by_key(button_graphic_def.primary_texture_handle));
 
+		button_graphic.object.t->load_filedata();
+
+		if (new_gobj.object.size.y == 0)
+			new_gobj.object.size.y = button_graphic.object.t->get_height();
+		if (new_gobj.object.size.x == 0)
+			new_gobj.object.size.x = button_graphic.object.t->get_width();
+
 		new_gobj.object.type_dependant_handle.store(to_index(button_graphic.id), std::memory_order_release);
 	}
 
-	const auto [font_h, int_font_size] = graphics::unpack_font_handle(def.font_handle);
-	detail::create_linear_text(manager, new_gobj, def.text_handle, aligment_from_button_definition(def), text_format{ ui::text_color::black, font_h, int_font_size });
+	if (is_valid_index(def.text_handle)) {
+		const auto[font_h, int_font_size] = graphics::unpack_font_handle(def.font_handle);
+		detail::create_linear_text(manager, new_gobj, def.text_handle, aligment_from_button_definition(def), text_format{ ui::text_color::black, font_h, int_font_size });
+	}
 
 	return new_gobj;
 }
@@ -356,6 +371,8 @@ void ui::detail::render_object_type(const gui_manager& manager, graphics::open_g
 	const float effective_width = static_cast<float>(root_obj.size.x) * manager.scale();
 	const float effective_height = static_cast<float>(root_obj.size.y) * manager.scale();
 	const auto current_rotation = root_obj.get_rotation();
+
+	graphics::scissor_rect clip(std::lround(effective_position_x), manager.height() - std::lround(effective_position_y + effective_height), std::lround(effective_width), std::lround(effective_height));
 
 	switch (type) {
 		case ui::gui_object::type_barchart:
@@ -374,7 +391,7 @@ void ui::detail::render_object_type(const gui_manager& manager, graphics::open_g
 		case ui::gui_object::type_graphics_object:
 		{
 			auto& gi = manager.graphics_instances.at(graphics_instance_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
-			if (gi.graphics_object->number_of_frames != 0) {
+			if (gi.graphics_object->number_of_frames > 1) {
 				ogl.render_subsprite(
 					currently_enabled,
 					gi.frame,
@@ -759,12 +776,12 @@ void ui::update(gui_manager& manager) {
 }
 
 ui::gui_manager::gui_manager(int32_t width, int32_t height) :
+	_width(width), _height(height),
 	root(gui_objects.emplace_at(gui_object_tag(0))),
 	background(gui_objects.emplace_at(gui_object_tag(1))),
 	foreground(gui_objects.emplace_at(gui_object_tag(2))),
 	tooltip_window(gui_objects.emplace_at(gui_object_tag(3))) {
 
-	
 	on_resize(resize{ width , height });
 
 	hide(tagged_gui_object{ tooltip_window, gui_object_tag(3) });
@@ -774,6 +791,8 @@ ui::gui_manager::gui_manager(int32_t width, int32_t height) :
 void ui::gui_manager::on_resize(const resize& r) {
 	ui::xy_pair new_size{ static_cast<float>(r.width) / scale(), static_cast<float>(r.height) / scale() };
 
+	_width = r.width;
+	_height = r.height;
 	root.size = new_size;
 	foreground.size = new_size;
 	background.size = new_size;
@@ -791,7 +810,7 @@ void ui::render(const gui_manager& manager, graphics::open_gl_wrapper& ogl) {
 	detail::render(manager, ogl, manager.foreground, ui::xy_pair{ 0, 0 }, true);
 }
 
-const graphics::rotation ui::gui_object::get_rotation() const {
+graphics::rotation ui::gui_object::get_rotation() const {
 	const auto rotation_bits = flags.load(std::memory_order_acquire) & ui::gui_object::rotation_mask;
 	if (rotation_bits == ui::gui_object::rotation_left)
 		return graphics::rotation::left;
@@ -799,4 +818,58 @@ const graphics::rotation ui::gui_object::get_rotation() const {
 		return graphics::rotation::right;
 	else
 		return graphics::rotation::upright;
+}
+
+
+void ui::load_gui_from_directory(const directory& source_directory, gui_manager& manager) {
+	auto fonts_directory = source_directory.get_directory(u"\\gfx\\fonts");
+	manager.fonts.load_standard_fonts(fonts_directory);
+
+	manager.fonts.load_metrics_fonts();
+
+	auto localisation_directory = source_directory.get_directory(u"\\localisation");
+	load_text_sequences_from_directory(localisation_directory, manager.text_data_sequences);
+
+	auto interface_directory = source_directory.get_directory(u"\\interface");
+
+	graphics::texture_manager tm;
+	graphics::font_manager fm;
+
+	ui::name_maps nmaps;
+	ui::definitions defs;
+	std::vector<std::pair<std::string, ui::errors>> errors_generated;
+
+	graphics::name_maps gobj_nmaps;
+	std::vector<std::pair<std::string, graphics::errors>> gobj_errors_generated;
+
+	ui::load_ui_definitions_from_directory(
+		interface_directory, nmaps, manager.ui_definitions, errors_generated,
+		[&manager](const char* a, const char* b) { return text_data::get_text_handle(manager.text_data_sequences, a, b); },
+		[&manager](const char* a, const char* b) { return graphics::pack_font_handle(manager.fonts.find_font(a, b), manager.fonts.find_font_size(a, b)); },
+		[&gobj_nmaps](const char* a, const char* b) { return graphics::reserve_graphics_object(gobj_nmaps, a, b); });
+
+#ifdef _DEBUG
+	for (auto& e : errors_generated) {
+		OutputDebugStringA(e.first.c_str());
+		OutputDebugStringA(": ");
+		OutputDebugStringA(ui::format_error(e.second));
+		OutputDebugStringA("\n");
+	}
+#endif
+
+	graphics::load_graphics_object_definitions_from_directory(
+		interface_directory,
+		gobj_nmaps,
+		manager.graphics_object_definitions,
+		gobj_errors_generated,
+		[&manager, &source_directory](const char* a, const char* b) { return manager.textures.retrieve_by_name(source_directory, a, b); });
+
+#ifdef _DEBUG
+	for (auto& e : gobj_errors_generated) {
+		OutputDebugStringA(e.first.c_str());
+		OutputDebugStringA(": ");
+		OutputDebugStringA(graphics::format_error(e.second));
+		OutputDebugStringA("\n");
+	}
+#endif
 }

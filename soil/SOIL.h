@@ -238,7 +238,9 @@ unsigned int
 		int buffer_length,
 		int force_channels,
 		unsigned int reuse_texture_ID,
-		unsigned int flags
+		unsigned int flags,
+		int* width,
+		int* height
 	);
 
 /**

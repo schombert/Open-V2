@@ -8,10 +8,12 @@
 #include <string>
 #include <atomic>
 #include <thread>
-
+#include <algorithm>
 #include <chrono>
-
 #include "v2_window.hpp"
+
+#undef max
+#undef min
 
 namespace graphics {
 #ifdef _DEBUG
@@ -515,9 +517,12 @@ namespace graphics {
 			}
 
 			glEnable(GL_LINE_SMOOTH);
+			glEnable(GL_SCISSOR_TEST);
 
 			create_shaders();
 			create_global_square();
+
+			wglMakeCurrent(window_dc, NULL);
 
 			return std::make_pair(new_context, ui_context);
 		}
@@ -529,8 +534,6 @@ namespace graphics {
 
 		wglMakeCurrent(window_dc, NULL);
 		wglDeleteContext(context);
-
-		ReleaseDC(hwnd, window_dc);
 	}
 
 	class _open_gl_wrapper {
@@ -583,7 +586,8 @@ namespace graphics {
 	}
 
 	void open_gl_wrapper::clear() {
-		if (impl->update_viewport.load(std::memory_order::memory_order_acquire)) {
+		bool expected = true;
+		if(impl->update_viewport.compare_exchange_strong(expected, false, std::memory_order::memory_order_release, std::memory_order::memory_order_acquire)) {
 			impl->update_viewport.store(false, std::memory_order::memory_order_release);
 			glViewport(0, 0, impl->viewport_x, impl->viewport_y);
 			glDepthRange(-1.0, 1.0);
@@ -591,8 +595,9 @@ namespace graphics {
 			glUniform1f(parameters::screen_width, impl->viewport_x);
 			glUniform1f(parameters::screen_height, impl->viewport_y);
 		}
+		glScissor(0, 0, impl->viewport_x, impl->viewport_y);
 
-		//glClearColor(0.0, 0.0, 1.0, 0.0);
+		glClearColor(0.5, 0.5, 0.5, 0.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
 
@@ -838,6 +843,25 @@ namespace graphics {
 		impl->viewport_x = width;
 		impl->viewport_y = height;
 		impl->update_viewport.store(true, std::memory_order::memory_order_release);
+	}
+
+	scissor_rect::scissor_rect(int32_t x, int32_t y, int32_t width, int32_t height) {
+		glGetIntegerv(GL_SCISSOR_BOX, oldrect);
+
+		const auto x_begin = std::max(x, oldrect[0]);
+		const auto old_x_end = oldrect[0] + oldrect[2];
+		const auto new_x_end = x + width;
+
+		const auto y_begin = std::max(y, oldrect[1]);
+		const auto old_y_end = oldrect[1] + oldrect[3];
+		const auto new_y_end = y + height;
+
+		
+		glScissor(x_begin, y_begin, std::max(0, std::min(old_x_end, new_x_end) - x_begin), std::max(0, std::min(old_y_end, new_y_end) - y_begin));
+	}
+
+	scissor_rect::~scissor_rect() {
+		glScissor(oldrect[0], oldrect[1], oldrect[2], oldrect[3]);
 	}
 
 }

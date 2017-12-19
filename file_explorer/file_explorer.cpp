@@ -11,6 +11,7 @@
 #include "gui_definitions\\gui_definitions.h"
 #include "graphics_objects\\graphics_objects.h"
 #include "text_data\\text_data.h" 
+#include "gui\\gui.hpp"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -893,36 +894,42 @@ struct empty_window_handler {
 	}
 
 	void render(graphics::open_gl_wrapper& ogl) {
-
-		//ogl.render_masked_rect(true, 0.0f, 0.0f, 40.0f, 80.0f, test_tex, mask_tex, rotation::right);
-
-		//ogl.render_subsprite(true, 2, 10, 50.0, 10.0, 36.0, 36.0, strip_tex, rotation::upright);
-		//ogl.render_subsprite(true, 3, 10, 90.0, 10.0, 36.0, 36.0, strip_tex, rotation::right);
-
-
 		ogl.render_outlined_text(u"明Tasy", 5, true, 80.0f, 40.0f, 32.0f, graphics::color{ 1.0f,1.0f,1.0f }, test_font);
 
 		ogl.render_outlined_text(u"明Tesy", 5, true, 80.0f, 80.0f, 32.0f, graphics::color{ 0.0f,0.0f,0.0f }, test_font);
 		ogl.render_text(u"明Tasy", 5, true, 80.0f, 112.0f, 32.0f, graphics::color{ 1.0f,1.0f,1.0f }, test_font);
 
-		//ogl.render_progress_bar(true, 0.33f, 0.5f, 0.5f, 80.0f, 20.0f, prog1, prog2);
-
-
-
-		//ogl.render_character(u'T', true, 26.0f, 60.0f, 16.0f, test_font);
-
-		//ogl.render_character(u'a', true, 10.0f, 10.0f, 16.0f, test_font);
-
-		//ogl.render_character(u'A', true, 26.0f, 10.0f, 64.0f, test_font);
 		ogl.render_character(u'y', true, 140.0f, 60.0f, 128.0f, test_font);
 		ogl.render_character(u'A', true, 10.0f, 138.0f, 512.0f, test_font);
 
-		//ogl.render_bordered_rect(true, 32.0f, 70.0f, 50.0f, 350.0f, 150.0f, bord);
+	}
+};
 
-		//ogl.render_piechart(true, 80.0f, 60.0f, 100.0f, test_tex);
-		//ogl.render_linegraph(true, 80.0f, 60.0f, 100.0f, 75.0f, graph);
-		//ogl.render_barchart(true, 80.0f, 60.0f, 100.0f, 75.0f, bar_tex);
-		//ogl.render_textured_rect(true, 70.0f, 50.0f, 350.0f, 150.0f, bord);
+struct gui_window_handler {
+	ui::gui_manager& gui_m;
+
+	gui_window_handler(ui::gui_manager& m) : gui_m(m) {}
+
+	template<typename T>
+	void operator()(const T&, ui::window_base& w) const {
+		// do nothing;
+	}
+
+	void operator()(const ui::creation&, ui::window_base& w) {
+		const auto new_button = ui::detail::create_element_instance(gui_m, ui::button_tag(8));
+		ui::add_to_back(gui_m, ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, new_button);
+	}
+
+	void operator()(const ui::resize& r, ui::window_base& w) {
+		gui_m.on_resize(r);
+	}
+
+	void initialize_graphics(graphics::open_gl_wrapper& ogl) {
+		gui_m.fonts.load_fonts(ogl);
+	}
+
+	void render(graphics::open_gl_wrapper& ogl) {
+		ui::render(gui_m, ogl);
 	}
 };
 
@@ -947,10 +954,24 @@ int __cdecl main() {
 		test_window.close_window();
 	}*/
 	
+	
+
 	file_system fs;
 	fs.set_root(u"F:\\programs\\V2");
 
+	ui::gui_manager gui_m(850, 650);
+	ui::load_gui_from_directory(fs.get_root(), gui_m);
 
+	{
+		ui::window<gui_window_handler> test_window(850, 650, gui_m);
+
+		std::cout << "test window created" << std::endl;
+		getchar();
+
+		test_window.close_window();
+	}
+
+	/*
 	auto localisation_directory = fs.get_root().get_directory(u"\\localisation");
 
 	text_data::text_sequences all_text;
@@ -1005,6 +1026,7 @@ int __cdecl main() {
 	}
 	std::cout << "textures in manager: " << tm.count() << std::endl;
 	std::cout << "finished" << std::endl;
+	*/
 
 	/*
 	{

@@ -93,12 +93,14 @@ namespace graphics {
 	}
 
 	void texture::load_filedata() {
-		if (filedata.load(std::memory_order_acquire) == nullptr) {
-			auto data = SOIL_load_image(filename.c_str(), &width, &height, &channels, SOIL_LOAD_AUTO);
+		if (texture_handle.load(std::memory_order_acquire) == 0) {
+			if (filedata.load(std::memory_order_acquire) == nullptr) {
+				auto data = SOIL_load_image(filename.c_str(), &width, &height, &channels, SOIL_LOAD_AUTO | SOIL_FLAG_DDS_LOAD_DIRECT);
 
-			unsigned char* expected = nullptr;
-			if (!filedata.compare_exchange_strong(expected, data, std::memory_order_release, std::memory_order_acquire)) {
-				SOIL_free_image_data(data);
+				unsigned char* expected = nullptr;
+				if (!filedata.compare_exchange_strong(expected, data, std::memory_order_release, std::memory_order_acquire)) {
+					SOIL_free_image_data(data);
+				}
 			}
 		}
 	}

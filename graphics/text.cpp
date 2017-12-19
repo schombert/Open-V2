@@ -193,7 +193,7 @@ namespace graphics {
 
 			FT_Set_Pixel_Sizes(metrics_font_face, 0, 64 * magnification_factor);
 
-			line_height = static_cast<float>(font_face->size->metrics.height) / static_cast<float>((1 << 6) * magnification_factor);
+			line_height = static_cast<float>(metrics_font_face->size->metrics.height) / static_cast<float>((1 << 6) * magnification_factor);
 		}
 
 		_font(const char* filename, _font* p) : parent(p), font_file(filename) {
@@ -547,6 +547,19 @@ namespace graphics {
 #ifdef _DEBUG
 			OutputDebugStringA("unable to open font CreteRound-Regular.otf\n");
 #endif
+		}
+	}
+
+	void font_manager::load_fonts(open_gl_wrapper& ogl) const {
+		for (auto f : fonts) {
+			if (f)
+				f->load_font(ogl);
+		}
+	}
+	void font_manager::load_metrics_fonts() const {
+		for (auto f : fonts) {
+			if (f)
+				f->load_metrics_font();
 		}
 	}
 }
