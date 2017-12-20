@@ -918,6 +918,8 @@ struct gui_window_handler {
 	void operator()(const ui::creation&, ui::window_base& w) {
 		const auto new_button = ui::detail::create_element_instance(gui_m, ui::button_tag(8));
 		ui::add_to_back(gui_m, ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, new_button);
+		const auto new_icon = ui::detail::create_element_instance(gui_m, ui::icon_tag(19));
+		ui::add_to_back(gui_m, ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, new_icon);
 	}
 
 	void operator()(const ui::resize& r, ui::window_base& w) {

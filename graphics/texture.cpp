@@ -93,14 +93,12 @@ namespace graphics {
 	}
 
 	void texture::load_filedata() {
-		if (texture_handle.load(std::memory_order_acquire) == 0) {
-			if (filedata.load(std::memory_order_acquire) == nullptr) {
-				auto data = SOIL_load_image(filename.c_str(), &width, &height, &channels, SOIL_LOAD_AUTO | SOIL_FLAG_DDS_LOAD_DIRECT);
+		if (filedata.load(std::memory_order_acquire) == nullptr) {
+			auto data = SOIL_load_image(filename.c_str(), &width, &height, &channels, SOIL_LOAD_AUTO | SOIL_FLAG_DDS_LOAD_DIRECT);
 
-				unsigned char* expected = nullptr;
-				if (!filedata.compare_exchange_strong(expected, data, std::memory_order_release, std::memory_order_acquire)) {
-					SOIL_free_image_data(data);
-				}
+			unsigned char* expected = nullptr;
+			if (!filedata.compare_exchange_strong(expected, data, std::memory_order_release, std::memory_order_acquire)) {
+				SOIL_free_image_data(data);
 			}
 		}
 	}
@@ -121,6 +119,43 @@ namespace graphics {
 		}
 	}
 
+	texture_tag texture_manager::load_texture(const directory& root, const char* start, const char* end) {
+		texture_tag new_key;
+
+		const auto full_fn = root.peek_file(start, end);
+		if (full_fn) {
+			std::u16string full_path = full_fn->file_path() + u'\\' + full_fn->file_name();
+			new_key = textures.emplace_back(std::string(full_path.begin(), full_path.end()));
+		} else if ((end - start) > 3) {
+			const auto full_fn_b = root.peek_file(std::u16string(start, end - 3) + u"dds");
+			if (full_fn_b) {
+				std::u16string full_path = full_fn_b->file_path() + u'\\' + full_fn_b->file_name();
+				new_key = textures.emplace_back(std::string(full_path.begin(), full_path.end()));
+			} else {
+#ifdef _DEBUG
+				OutputDebugStringA("texture file not found: ");
+				OutputDebugStringA(std::string(start,end).c_str());
+				OutputDebugStringA("\n");
+#endif
+				return texture_tag();
+			}
+		}
+
+		fname_map.emplace(vector_backed_string<char>(start, end, file_names), new_key);
+		return new_key;
+	}
+
+	void texture_manager::load_standard_textures(const directory& root) {
+		static const char small_tiles_dialog[] = "gfx\\interface\\small_tiles_dialog.tga";
+		standard_small_tiles_dialog = load_texture(root, small_tiles_dialog, small_tiles_dialog + (sizeof(small_tiles_dialog) - 1));
+
+		static const char transparency[] = "gfx\\interface\\transparency.tga";
+		standard_transparency = load_texture(root, transparency, transparency + (sizeof(transparency) - 1));
+
+		static const char tiles_dialog[] = "gfx\\interface\\tiles_dialog.tga";
+		standard_tiles_dialog = load_texture(root, tiles_dialog, tiles_dialog + (sizeof(tiles_dialog) - 1));
+	}
+
 	texture_tag texture_manager::retrieve_by_name(const directory& root, const char* start, const char* end) {
 		char* const temp_cpy = (char*)_alloca(end - start + 1);
 		uint32_t t_pos = 0;
@@ -136,34 +171,7 @@ namespace graphics {
 			_freea(temp_cpy);
 			return find_result->second;
 		} else {
-			texture_tag new_key;
-
-			const auto full_fn = root.peek_file(temp_cpy, temp_cpy + t_pos);
-			if (full_fn) {
-				std::u16string full_path = full_fn->file_path() + u'\\' + full_fn->file_name();
-				new_key = textures.emplace_back(std::string(full_path.begin(), full_path.end()));
-			} else if (t_pos > 3) {
-				temp_cpy[t_pos - 1] = 's';
-				temp_cpy[t_pos - 2] = 'd';
-				temp_cpy[t_pos - 3] = 'd';
-
-				const auto full_fn_b = root.peek_file(temp_cpy, temp_cpy + t_pos);
-				if (full_fn_b) {
-					std::u16string full_path = full_fn_b->file_path() + u'\\' + full_fn_b->file_name();
-					new_key = textures.emplace_back(std::string(full_path.begin(), full_path.end()));
-				} else {
-#ifdef _DEBUG
-					OutputDebugStringA("texture file not found: ");
-					OutputDebugStringA(temp_cpy);
-					OutputDebugStringA("\n");
-#endif
-					_freea(temp_cpy);
-					return texture_tag();
-				}
-			}
-
-			fname_map.emplace(vector_backed_string<char>(temp_cpy, temp_cpy + t_pos, file_names), new_key);
-
+			const auto new_key = load_texture(root, temp_cpy, temp_cpy + t_pos);
 			_freea(temp_cpy);
 			return new_key;
 		}

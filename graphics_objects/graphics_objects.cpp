@@ -316,6 +316,8 @@ namespace graphics {
 			}
 		}
 
+		defs.standard_text_background = defs.definitions.emplace_back(object{ xy_pair{0, 0}, texture_tag(), 14, (uint8_t)object_type::bordered_rect, 1 });
+
 	}
 
 	obj_definition_tag reserve_graphics_object(name_maps& nmaps, const char* name_start, const char* name_end) {

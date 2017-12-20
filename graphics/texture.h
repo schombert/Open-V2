@@ -87,8 +87,14 @@ namespace graphics {
 		std::vector<char> file_names;
 		std::map<vector_backed_string<char>, texture_tag, vector_backed_string_less_ci> fname_map;
 	public:
+		texture_tag standard_tiles_dialog;
+		texture_tag standard_transparency;
+		texture_tag standard_small_tiles_dialog;
+
 		texture_manager() : fname_map(vector_backed_string_less_ci(file_names)) {}
 		auto count() { return textures.size(); }
+		texture_tag load_texture(const directory& root, const char* start, const char* end);
+		void load_standard_textures(const directory& root);
 		texture_tag retrieve_by_name(const directory& root, const char* start, const char* end);
 		texture& retrieve_by_key(texture_tag key);
 		void load_all_texture_files();

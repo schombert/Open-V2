@@ -41,22 +41,20 @@ namespace ui {
 
 		graphics::font_tag font_handle;
 		text_color color = text_color::black;
-		uint8_t size; // *2 = display size
-		uint8_t length;
-		char16_t text[max_instance_length];
+		uint8_t size = 8; // *2 = display size
+		uint8_t length = 0;
+		char16_t text[max_instance_length] = {0};
 	};
 	struct graphics_instance {
-		graphics::texture* t;
-		graphics::object* graphics_object;
-		int64_t frame;
+		graphics::texture* t = nullptr;
+		graphics::object* graphics_object = nullptr;
+		int64_t frame = 0;
 	};
 	struct multi_texture_instance {
-		union {
-			graphics::texture* flag;
-			float progress;
-		} type_dependant;
-		graphics::texture* mask_or_primary;
-		graphics::texture* overlay_or_secondary;
+		graphics::texture* flag = nullptr;
+		graphics::texture* mask_or_primary = nullptr;
+		graphics::texture* overlay_or_secondary = nullptr;
+		float progress = 0.0f;
 	};
 
 	class gui_object;
@@ -138,6 +136,9 @@ namespace ui {
 		tagged_gui_object last_sibling_of(const gui_manager& manager, tagged_gui_object g);
 
 		tagged_gui_object create_element_instance(gui_manager& manager, button_tag handle);
+		tagged_gui_object create_element_instance(gui_manager& manager, icon_tag handle);
+		tagged_gui_object create_element_instance(gui_manager& manager, ui::text_tag handle);
+
 		void update(gui_manager& manager, tagged_gui_object obj);
 
 		template<typename MESSAGE_FUNCTION, typename MESSAGE_TYPE>

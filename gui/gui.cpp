@@ -331,7 +331,7 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 	const auto new_gobj = manager.gui_objects.emplace();
 
 	const uint16_t rotation =
-		(def.flags & button_def::rotation_90_left) ?
+		(def.flags & button_def::rotation_mask) == button_def::rotation_90_left ?
 		gui_object::rotation_left :
 		gui_object::rotation_upright;
 
@@ -339,6 +339,8 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 	new_gobj.object.flags.store(gui_object::type_graphics_object | gui_object::visible | gui_object::enabled | rotation, std::memory_order_release);
 	new_gobj.object.position = def.position;
 	new_gobj.object.size = def.size;
+	if (new_gobj.object.size == ui::xy_pair{ 0,0 })
+		new_gobj.object.size = ui::xy_pair{ button_graphic_def.size.x, button_graphic_def.size.y };
 
 	if (is_valid_index(button_graphic_def.primary_texture_handle)) {
 		const auto button_graphic = manager.graphics_instances.emplace();
@@ -347,12 +349,11 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 		button_graphic.object.graphics_object = &button_graphic_def;
 		button_graphic.object.t = &(manager.textures.retrieve_by_key(button_graphic_def.primary_texture_handle));
 
-		button_graphic.object.t->load_filedata();
-
-		if (new_gobj.object.size.y == 0)
+		if (((int32_t)new_gobj.object.size.y | (int32_t)new_gobj.object.size.x) == 0) {
+			button_graphic.object.t->load_filedata();
 			new_gobj.object.size.y = button_graphic.object.t->get_height();
-		if (new_gobj.object.size.x == 0)
-			new_gobj.object.size.x = button_graphic.object.t->get_width();
+			new_gobj.object.size.x = button_graphic.object.t->get_width() / ((button_graphic_def.number_of_frames != 0) ? button_graphic_def.number_of_frames : 1);
+		}
 
 		new_gobj.object.type_dependant_handle.store(to_index(button_graphic.id), std::memory_order_release);
 	}
@@ -365,6 +366,91 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 	return new_gobj;
 }
 
+ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, icon_tag handle) {
+	const ui::icon_def& icon_def = manager.ui_definitions.icons[handle];
+	const auto new_gobj = manager.gui_objects.emplace();
+
+	const uint16_t rotation =
+		(icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_upright?
+		ui::gui_object::rotation_upright :
+		((icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_90_right ? ui::gui_object::rotation_right : ui::gui_object::rotation_left);
+
+	auto& graphic_object_def = manager.graphics_object_definitions.definitions[icon_def.graphical_object_handle];
+
+	new_gobj.object.position = icon_def.position;
+	if (new_gobj.object.size == ui::xy_pair{ 0,0 })
+		new_gobj.object.size = ui::xy_pair{ graphic_object_def.size.x, graphic_object_def.size.y };
+
+	if ((icon_def.flags & ui::icon_def::is_shield) == 0) {
+		new_gobj.object.flags.store(ui::gui_object::type_graphics_object | ui::gui_object::visible | ui::gui_object::enabled | rotation, std::memory_order_release);
+
+		if (is_valid_index(graphic_object_def.primary_texture_handle)) {
+			const auto icon_graphic = manager.graphics_instances.emplace();
+
+			icon_graphic.object.frame = icon_def.frame;
+			icon_graphic.object.graphics_object = &graphic_object_def;
+			icon_graphic.object.t = &(manager.textures.retrieve_by_key(graphic_object_def.primary_texture_handle));
+
+			if (((int32_t)new_gobj.object.size.y | (int32_t)new_gobj.object.size.x) == 0) {
+				icon_graphic.object.t->load_filedata();
+				new_gobj.object.size.y = icon_graphic.object.t->get_height();
+				new_gobj.object.size.x = icon_graphic.object.t->get_width() / ((graphic_object_def.number_of_frames != 0) ? graphic_object_def.number_of_frames : 1);
+			}
+
+			new_gobj.object.type_dependant_handle.store(to_index(icon_graphic.id), std::memory_order_release);
+		}
+	} else {
+		new_gobj.object.flags.store(ui::gui_object::type_masked_flag | ui::gui_object::visible | ui::gui_object::enabled | rotation, std::memory_order_release);
+
+		if (is_valid_index(graphic_object_def.primary_texture_handle) & is_valid_index(graphics::texture_tag(graphic_object_def.type_dependant))) {
+			const auto flag_graphic = manager.multi_texture_instances.emplace();
+
+			flag_graphic.object.flag = nullptr;
+			flag_graphic.object.mask_or_primary = &(manager.textures.retrieve_by_key(graphic_object_def.primary_texture_handle));
+			flag_graphic.object.overlay_or_secondary = &(manager.textures.retrieve_by_key(graphics::texture_tag(graphic_object_def.type_dependant)));
+
+			if (((int32_t)new_gobj.object.size.y | (int32_t)new_gobj.object.size.x) == 0) {
+				flag_graphic.object.overlay_or_secondary->load_filedata();
+				new_gobj.object.size.y = flag_graphic.object.overlay_or_secondary->get_height();
+				new_gobj.object.size.x = flag_graphic.object.overlay_or_secondary->get_width();
+			}
+
+			new_gobj.object.type_dependant_handle.store(to_index(flag_graphic.id), std::memory_order_release);
+		}
+	}
+
+	new_gobj.object.size.x *= icon_def.scale;
+	new_gobj.object.size.y *= icon_def.scale;
+
+	return new_gobj;
+}
+
+ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, ui::text_tag handle) {
+	const ui::text_def& text_def = manager.ui_definitions.text[handle];
+	const auto new_gobj = manager.gui_objects.emplace();
+	
+	new_gobj.object.position = text_def.position;
+	new_gobj.object.size = ui::xy_pair{ text_def.max_width, text_def.max_height };
+
+	const auto background = text_def.flags & text_def.background_mask;
+	if (background != ui::text_def::background_none_specified) {
+		new_gobj.object.flags.store(ui::gui_object::type_graphics_object | ui::gui_object::visible | ui::gui_object::enabled, std::memory_order_release);
+		new_gobj.object.type_dependant_handle = to_index(manager.graphics_object_definitions.standard_text_background);
+
+			const auto bg_graphic = manager.graphics_instances.emplace();
+
+			const auto texture =
+				(background == ui::text_def::background_small_tiles_dialog_tga) ? manager.textures.standard_small_tiles_dialog :
+				((background == ui::text_def::background_tiles_dialog_tga) ? manager.textures.standard_tiles_dialog : manager.textures.standard_transparency);
+
+			bg_graphic.object.frame = 0;
+			bg_graphic.object.graphics_object = &(manager.graphics_object_definitions.definitions[manager.graphics_object_definitions.standard_text_background]);
+			bg_graphic.object.t = &(manager.textures.retrieve_by_key(texture));
+
+			new_gobj.object.type_dependant_handle.store(to_index(bg_graphic.id), std::memory_order_release);
+	}
+}
+
 void ui::detail::render_object_type(const gui_manager& manager, graphics::open_gl_wrapper& ogl, const gui_object& root_obj, ui::xy_pair position, uint32_t type, bool currently_enabled) {
 	const float effective_position_x = static_cast<float>(position.x) + static_cast<float>(root_obj.position.x) * manager.scale();
 	const float effective_position_y = static_cast<float>(position.y) + static_cast<float>(root_obj.position.y) * manager.scale();
@@ -372,135 +458,172 @@ void ui::detail::render_object_type(const gui_manager& manager, graphics::open_g
 	const float effective_height = static_cast<float>(root_obj.size.y) * manager.scale();
 	const auto current_rotation = root_obj.get_rotation();
 
-	graphics::scissor_rect clip(std::lround(effective_position_x), manager.height() - std::lround(effective_position_y + effective_height), std::lround(effective_width), std::lround(effective_height));
-
 	switch (type) {
 		case ui::gui_object::type_barchart:
 		{
-			auto& dt = manager.data_textures.at(data_texture_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
-			ogl.render_barchart(
-				currently_enabled,
-				effective_position_x,
-				effective_position_y,
-				effective_width,
-				effective_height,
-				dt,
-				current_rotation);
+			auto dt = manager.data_textures.safe_at(data_texture_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
+			if (dt) {
+				ogl.render_barchart(
+					currently_enabled,
+					effective_position_x,
+					effective_position_y,
+					effective_width,
+					effective_height,
+					*dt,
+					current_rotation);
+			}
 			break;
 		}
 		case ui::gui_object::type_graphics_object:
 		{
-			auto& gi = manager.graphics_instances.at(graphics_instance_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
-			if (gi.graphics_object->number_of_frames > 1) {
-				ogl.render_subsprite(
-					currently_enabled,
-					gi.frame,
-					gi.graphics_object->number_of_frames,
-					effective_position_x,
-					effective_position_y,
-					effective_width,
-					effective_height,
-					*gi.t,
-					current_rotation);
-			} else {
-				ogl.render_textured_rect(
-					currently_enabled,
-					effective_position_x,
-					effective_position_y,
-					effective_width,
-					effective_height,
-					*gi.t,
-					current_rotation);
+			auto gi = manager.graphics_instances.safe_at(graphics_instance_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
+			if (gi) {
+				const auto t = gi->t;
+				if (t) {
+					if ((gi->graphics_object->flags & graphics::object::type_mask) == (uint8_t)graphics::object_type::bordered_rect) {
+						ogl.render_bordered_rect(
+							currently_enabled,
+							gi->graphics_object->type_dependant,
+							effective_position_x,
+							effective_position_y,
+							effective_width,
+							effective_height,
+							*t,
+							current_rotation);
+					} else if (gi->graphics_object->number_of_frames > 1) {
+						ogl.render_subsprite(
+							currently_enabled,
+							gi->frame,
+							gi->graphics_object->number_of_frames,
+							effective_position_x,
+							effective_position_y,
+							effective_width,
+							effective_height,
+							*t,
+							current_rotation);
+					} else {
+						ogl.render_textured_rect(
+							currently_enabled,
+							effective_position_x,
+							effective_position_y,
+							effective_width,
+							effective_height,
+							*t,
+							current_rotation);
+					}
+
+				}
 			}
 			break;
 		}
 		case ui::gui_object::type_linegraph:
 		{
-			auto& l = manager.lines_set.at(lines_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
-			ogl.render_linegraph(
-				currently_enabled,
-				effective_position_x,
-				effective_position_y,
-				effective_width,
-				effective_height,
-				l);
+			auto l = manager.lines_set.safe_at(lines_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
+			if (l) {
+				ogl.render_linegraph(
+					currently_enabled,
+					effective_position_x,
+					effective_position_y,
+					effective_width,
+					effective_height,
+					*l);
+			}
 			break;
 		}
 		case ui::gui_object::type_masked_flag:
 		{
-			auto& m = manager.multi_texture_instances.at(multi_texture_instance_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
-			ogl.render_masked_rect(
-				currently_enabled,
-				effective_position_x,
-				effective_position_y,
-				effective_width,
-				effective_height,
-				*m.type_dependant.flag,
-				*m.mask_or_primary,
-				current_rotation);
-			ogl.render_textured_rect(
-				currently_enabled,
-				effective_position_x,
-				effective_position_y,
-				effective_width,
-				effective_height,
-				*m.overlay_or_secondary,
-				current_rotation);
+			auto m = manager.multi_texture_instances.safe_at(multi_texture_instance_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
+			if (m) {
+				const auto flag = m->flag;
+				const auto mask = m->mask_or_primary;
+				const auto overlay = m->overlay_or_secondary;
+				if (flag && mask) {
+					ogl.render_masked_rect(
+						currently_enabled,
+						effective_position_x,
+						effective_position_y,
+						effective_width,
+						effective_height,
+						*flag,
+						*mask,
+						current_rotation);
+				}
+				if (overlay) {
+					ogl.render_textured_rect(
+						currently_enabled,
+						effective_position_x,
+						effective_position_y,
+						effective_width,
+						effective_height,
+						*overlay,
+						current_rotation);
+				}
+			}
 			break;
 		}
 		case ui::gui_object::type_progress_bar:
 		{
-			auto& m = manager.multi_texture_instances.at(multi_texture_instance_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
-			ogl.render_progress_bar(
-				currently_enabled,
-				m.type_dependant.progress,
-				effective_position_x,
-				effective_position_y,
-				effective_width,
-				effective_height,
-				*m.mask_or_primary,
-				*m.overlay_or_secondary,
-				current_rotation);
+			auto m = manager.multi_texture_instances.safe_at(multi_texture_instance_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
+			if (m) {
+				const auto primary = m->mask_or_primary;
+				const auto secondary = m->overlay_or_secondary;
+				if (primary && secondary) {
+					ogl.render_progress_bar(
+						currently_enabled,
+						m->progress,
+						effective_position_x,
+						effective_position_y,
+						effective_width,
+						effective_height,
+						*primary,
+						*secondary,
+						current_rotation);
+				}
+			}
 			break;
 		}
 		case ui::gui_object::type_piechart:
 		{
-			auto& dt = manager.data_textures.at(data_texture_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
-			ogl.render_piechart(
-				currently_enabled,
-				effective_position_x,
-				effective_position_y,
-				effective_width,
-				dt);
+			auto dt = manager.data_textures.safe_at(data_texture_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
+			if (dt) {
+				ogl.render_piechart(
+					currently_enabled,
+					effective_position_x,
+					effective_position_y,
+					effective_width,
+					*dt);
+			}
 			break;
 		}
 		case ui::gui_object::type_text_instance:
 		{
-			auto& ti = manager.text_instances.at(text_instance_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
-			auto& fnt = manager.fonts.at(ti.font_handle);
+			auto ti = manager.text_instances.safe_at(text_instance_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
+			if (ti) {
+				auto& fnt = manager.fonts.at(ti->font_handle);
 
-			switch (ti.color) {
-				case ui::text_color::black:
-					ogl.render_text(ti.text, ti.size, currently_enabled, effective_position_x, effective_position_y, ti.size * 2 * manager.scale(), graphics::color{ 0.0f, 0.0f, 0.0f }, fnt);
-					break;
-				case ui::text_color::green:
-					ogl.render_text(ti.text, ti.size, currently_enabled, effective_position_x, effective_position_y, ti.size * 2 * manager.scale(), graphics::color{ 0.0f, 0.623f, 0.01f }, fnt);
-					break;
-				case ui::text_color::outlined_black:
-					ogl.render_outlined_text(ti.text, ti.size, currently_enabled, effective_position_x, effective_position_y, ti.size * 2 * manager.scale(), graphics::color{ 0.0f, 0.0f, 0.0f }, fnt);
-					break;
-				case ui::text_color::outlined_white:
-					ogl.render_outlined_text(ti.text, ti.size, currently_enabled, effective_position_x, effective_position_y, ti.size * 2 * manager.scale(), graphics::color{ 1.0f, 1.0f, 1.0f }, fnt);
-					break;
-				case ui::text_color::red:
-					ogl.render_text(ti.text, ti.size, currently_enabled, effective_position_x, effective_position_y, ti.size * 2 * manager.scale(), graphics::color{ 1.0f, 0.2f, 0.2f }, fnt);
-					break;
-				case ui::text_color::white:
-					ogl.render_text(ti.text, ti.size, currently_enabled, effective_position_x, effective_position_y, ti.size * 2 * manager.scale(), graphics::color{ 1.0f, 1.0f, 1.0f }, fnt);
-					break;
-				case ui::text_color::yellow:
-					ogl.render_text(ti.text, ti.size, currently_enabled, effective_position_x, effective_position_y, ti.size * 2 * manager.scale(), graphics::color{ 1.0f, 0.75f, 1.0f }, fnt);
-					break;
+				switch (ti->color) {
+					case ui::text_color::black:
+						ogl.render_text(ti->text, ti->length, currently_enabled, effective_position_x, effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 0.0f, 0.0f, 0.0f }, fnt);
+						break;
+					case ui::text_color::green:
+						ogl.render_text(ti->text, ti->length, currently_enabled, effective_position_x, effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 0.0f, 0.623f, 0.01f }, fnt);
+						break;
+					case ui::text_color::outlined_black:
+						ogl.render_outlined_text(ti->text, ti->length, currently_enabled, effective_position_x, effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 0.0f, 0.0f, 0.0f }, fnt);
+						break;
+					case ui::text_color::outlined_white:
+						ogl.render_outlined_text(ti->text, ti->length, currently_enabled, effective_position_x, effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 1.0f, 1.0f, 1.0f }, fnt);
+						break;
+					case ui::text_color::red:
+						ogl.render_text(ti->text, ti->length, currently_enabled, effective_position_x, effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 1.0f, 0.2f, 0.2f }, fnt);
+						break;
+					case ui::text_color::white:
+						ogl.render_text(ti->text, ti->length, currently_enabled, effective_position_x, effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 1.0f, 1.0f, 1.0f }, fnt);
+						break;
+					case ui::text_color::yellow:
+						ogl.render_text(ti->text, ti->length, currently_enabled, effective_position_x, effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 1.0f, 0.75f, 1.0f }, fnt);
+						break;
+				}
 			}
 			break;
 		}
@@ -512,7 +635,11 @@ void ui::detail::render(const gui_manager& manager, graphics::open_gl_wrapper &o
 	
 	const float effective_position_x = static_cast<float>(position.x) + static_cast<float>(root_obj.position.x) * manager.scale();
 	const float effective_position_y = static_cast<float>(position.y) + static_cast<float>(root_obj.position.y) * manager.scale();
+	const float effective_width = static_cast<float>(root_obj.size.x) * manager.scale();
+	const float effective_height = static_cast<float>(root_obj.size.y) * manager.scale();
 	const bool currently_enabled = parent_enabled && ((root_obj.flags.load(std::memory_order_acquire) & ui::gui_object::enabled) != 0);
+
+	graphics::scissor_rect clip(std::lround(effective_position_x), manager.height() - std::lround(effective_position_y + effective_height), std::lround(effective_width), std::lround(effective_height));
 
 	detail::render_object_type(manager, ogl, root_obj, position, type, currently_enabled);
 	
@@ -827,13 +954,12 @@ void ui::load_gui_from_directory(const directory& source_directory, gui_manager&
 
 	manager.fonts.load_metrics_fonts();
 
+	manager.textures.load_standard_textures(source_directory);
+
 	auto localisation_directory = source_directory.get_directory(u"\\localisation");
 	load_text_sequences_from_directory(localisation_directory, manager.text_data_sequences);
 
 	auto interface_directory = source_directory.get_directory(u"\\interface");
-
-	graphics::texture_manager tm;
-	graphics::font_manager fm;
 
 	ui::name_maps nmaps;
 	ui::definitions defs;
