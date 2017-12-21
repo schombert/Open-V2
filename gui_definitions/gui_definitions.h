@@ -71,6 +71,10 @@ namespace ui {
 		constexpr ui::xy_pair operator+(ui::xy_pair other) const {
 			return xy_pair{x+other.x, y+other.y};
 		}
+		void operator+=(ui::xy_pair other) {
+			x += other.x;
+			y += other.y;
+		}
 		constexpr bool operator==(ui::xy_pair other) const {
 			return x == other.x && y == other.y;
 		}

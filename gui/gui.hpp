@@ -58,4 +58,58 @@ bool ui::detail::dispatch_message(const gui_manager& manager, const MESSAGE_FUNC
 	return false;
 }
 
+template<typename T>
+void ui::for_each_child(gui_manager& manager, tagged_gui_object parent, const T& f) {
+	gui_object_tag child = parent.object.first_child;
+	while (is_valid_index(child)) {
+		auto& current_obj = manager.gui_objects.at(child);
+		const gui_object_tag next_index = current_obj.right_sibling;
+		f(tagged_gui_object{ current_obj, child });
+		child = next_index;
+	}
+}
+
+namespace ui {
+	namespace detail {
+		template<typename A, typename B>
+		struct _has_shortcut : public std::false_type {};
+		template<typename A>
+		struct _has_shortcut<A, decltype(void(std::declval<A>().shortcut))> : public std::true_type {};
+		template<typename A>
+		constexpr bool has_shortcut = _has_shortcut<A, void>::value;
+	}
+}
+
+template<typename T, typename B>
+ui::tagged_gui_object ui::create_static_button(gui_manager& manager, T handle, tagged_gui_object parent, B& b) {
+	auto new_obj = ui::detail::create_element_instance(manager, handle);
+	new_obj.object.flags.fetch_or(gui_object::static_behavior, std::memory_order_acq_rel);
+	new_obj.object.associated_behavior = &b;
+
+	if constexpr(std::is_same_v<T, button_tag> && detail::has_shortcut<B>) {
+		auto& bdef = manager.ui_definitions.buttons[handle];
+		b.shortcut = bdef.shortcut;
+	}
+
+	ui::add_to_back(manager, parent, new_obj);
+
+	return new_obj;
+}
+
+template<typename BASE>
+bool ui::simple_button<BASE>::on_lclick(tagged_gui_object o, gui_manager & m, const lbutton_down &) {
+	static_cast<BASE*>(this)->button_function(o, m);
+	return true;
+}
+
+template<typename BASE>
+bool ui::simple_button<BASE>::on_keydown(tagged_gui_object o, gui_manager & m, const key_down & k) {
+	if (k.keycode == shortcut) {
+		static_cast<BASE*>(this)->button_function(o, m);
+		return true;
+	} else {
+		return false;
+	}
+}
+
 #include "concurrency_tools\\concurrency_tools.hpp"

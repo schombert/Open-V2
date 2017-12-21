@@ -57,20 +57,28 @@ void ui::gui_manager::destroy(gui_object & g) {
 }
 
 namespace ui {
-	text_data::alignment aligment_from_button_definition(const button_def& def) {
-		switch (def.flags & button_def::orientation_mask) {
-			case button_def::orientation_center:
+	text_data::alignment text_aligment_from_button_definition(const button_def& def) {
+		switch (def.flags & button_def::format_mask) {
+			case button_def::format_center:
 				return text_data::alignment::center;
-			case button_def::orientation_lower_left:
-				return text_data::alignment::bottom_left;
-			case button_def::orientation_lower_right:
-				return text_data::alignment::bottom_right;
-			case button_def::orientation_upper_left:
-				return text_data::alignment::top_left;
-			case button_def::orientation_upper_right:
-				return text_data::alignment::top_right;
+			case button_def::format_left:
+				return text_data::alignment::left;
 			default:
 				return text_data::alignment::center;
+		}
+	}
+	text_data::alignment text_aligment_from_text_definition(const text_def& def) {
+		switch (def.flags & text_def::format_mask) {
+			case text_def::format_center:
+				return text_data::alignment::top_center;
+			case text_def::format_left:
+				return text_data::alignment::top_left;
+			case text_def::format_right:
+				return text_data::alignment::top_right;
+			case text_def::format_justified:
+				return text_data::alignment::top_left;
+			default:
+				return text_data::alignment::top_left;
 		}
 	}
 	ui::text_color text_color_to_ui_text_color(text_data::text_color c) {
@@ -271,6 +279,7 @@ void ui::detail::create_multiline_text(gui_manager& manager, tagged_gui_object c
 	}
 
 	lm.finish_current_line();
+	container.object.size.y = position.y + this_font.line_height(fmt.font_size) + 0.5f;;
 }
 
 void ui::detail::create_linear_text(gui_manager& manager, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format& fmt, const text_data::replacement* candidates, uint32_t count) {
@@ -360,7 +369,7 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 
 	if (is_valid_index(def.text_handle)) {
 		const auto[font_h, int_font_size] = graphics::unpack_font_handle(def.font_handle);
-		detail::create_linear_text(manager, new_gobj, def.text_handle, aligment_from_button_definition(def), text_format{ ui::text_color::black, font_h, int_font_size });
+		detail::create_linear_text(manager, new_gobj, def.text_handle, text_aligment_from_button_definition(def), text_format{ ui::text_color::black, font_h, int_font_size });
 	}
 
 	return new_gobj;
@@ -425,30 +434,47 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 	return new_gobj;
 }
 
-ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, ui::text_tag handle) {
+ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, ui::text_tag handle, const text_data::replacement* candidates, uint32_t count) {
 	const ui::text_def& text_def = manager.ui_definitions.text[handle];
 	const auto new_gobj = manager.gui_objects.emplace();
 	
 	new_gobj.object.position = text_def.position;
-	new_gobj.object.size = ui::xy_pair{ text_def.max_width, text_def.max_height };
+	new_gobj.object.size = ui::xy_pair{ text_def.max_width, 0 };
 
 	const auto background = text_def.flags & text_def.background_mask;
-	if (background != ui::text_def::background_none_specified) {
+	if ((background != ui::text_def::background_none_specified) & (background != ui::text_def::background_transparency_tga)) {
 		new_gobj.object.flags.store(ui::gui_object::type_graphics_object | ui::gui_object::visible | ui::gui_object::enabled, std::memory_order_release);
 		new_gobj.object.type_dependant_handle = to_index(manager.graphics_object_definitions.standard_text_background);
 
-			const auto bg_graphic = manager.graphics_instances.emplace();
+		const auto bg_graphic = manager.graphics_instances.emplace();
 
-			const auto texture =
-				(background == ui::text_def::background_small_tiles_dialog_tga) ? manager.textures.standard_small_tiles_dialog :
-				((background == ui::text_def::background_tiles_dialog_tga) ? manager.textures.standard_tiles_dialog : manager.textures.standard_transparency);
+		const auto texture =
+			(background == ui::text_def::background_small_tiles_dialog_tga) ?
+			manager.textures.standard_small_tiles_dialog :
+			manager.textures.standard_tiles_dialog;
 
-			bg_graphic.object.frame = 0;
-			bg_graphic.object.graphics_object = &(manager.graphics_object_definitions.definitions[manager.graphics_object_definitions.standard_text_background]);
-			bg_graphic.object.t = &(manager.textures.retrieve_by_key(texture));
+		bg_graphic.object.frame = 0;
+		bg_graphic.object.graphics_object = &(manager.graphics_object_definitions.definitions[manager.graphics_object_definitions.standard_text_background]);
+		bg_graphic.object.t = &(manager.textures.retrieve_by_key(texture));
 
-			new_gobj.object.type_dependant_handle.store(to_index(bg_graphic.id), std::memory_order_release);
+		new_gobj.object.type_dependant_handle.store(to_index(bg_graphic.id), std::memory_order_release);
 	}
+
+	new_gobj.object.size.x -= text_def.border_size.x * 2;
+
+	if (is_valid_index(text_def.text_handle)) {
+		const auto[font_h, int_font_size] = graphics::unpack_font_handle(text_def.font_handle);
+		detail::create_multiline_text(manager, new_gobj, text_def.text_handle, text_aligment_from_text_definition(text_def), text_format{ ui::text_color::black, font_h, int_font_size }, candidates, count);
+	}
+
+	for_each_child(manager, new_gobj, [adjust = text_def.border_size](tagged_gui_object c) {
+		c.object.position += adjust;
+	});
+
+	new_gobj.object.size.x += text_def.border_size.x * 2;
+	new_gobj.object.size.y += text_def.border_size.y * 2;
+
+	return new_gobj;
 }
 
 void ui::detail::render_object_type(const gui_manager& manager, graphics::open_gl_wrapper& ogl, const gui_object& root_obj, ui::xy_pair position, uint32_t type, bool currently_enabled) {

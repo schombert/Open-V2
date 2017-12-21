@@ -905,8 +905,17 @@ struct empty_window_handler {
 	}
 };
 
+class mb_button {
+public:
+	void button_function(ui::tagged_gui_object, ui::gui_manager&) {
+		MessageBoxA(NULL, "MB A", "MB_A", MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONINFORMATION);
+	}
+};
+
 struct gui_window_handler {
 	ui::gui_manager& gui_m;
+
+	ui::simple_button<mb_button> mb_button_a;
 
 	gui_window_handler(ui::gui_manager& m) : gui_m(m) {}
 
@@ -915,15 +924,29 @@ struct gui_window_handler {
 		// do nothing;
 	}
 
-	void operator()(const ui::creation&, ui::window_base& w) {
-		const auto new_button = ui::detail::create_element_instance(gui_m, ui::button_tag(8));
-		ui::add_to_back(gui_m, ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, new_button);
+	void operator()(const ui::creation&, ui::window_base& ) {
+		ui::create_static_button(gui_m, ui::button_tag(8), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, mb_button_a);
+		mb_button_a.shortcut = virtual_key::A;
+
+		//const auto new_button = ui::detail::create_element_instance(gui_m, ui::button_tag(8));
+		//ui::add_to_back(gui_m, ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, new_button);
+
 		const auto new_icon = ui::detail::create_element_instance(gui_m, ui::icon_tag(19));
 		ui::add_to_back(gui_m, ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, new_icon);
+
+		const auto new_text = ui::detail::create_element_instance(gui_m, ui::text_tag(29));
+		ui::add_to_back(gui_m, ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, new_text);
 	}
 
-	void operator()(const ui::resize& r, ui::window_base& w) {
+	void operator()(const ui::resize& r, ui::window_base& ) {
 		gui_m.on_resize(r);
+	}
+
+	void operator()(const ui::lbutton_down& m, ui::window_base& ) {
+		gui_m.on_lbutton_down(m);
+	}
+	void operator()(const ui::key_down& m, ui::window_base& ) {
+		gui_m.on_keydown(m);
 	}
 
 	void initialize_graphics(graphics::open_gl_wrapper& ogl) {

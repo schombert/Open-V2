@@ -153,8 +153,8 @@ namespace ui {
 		windowClass.cbWndExtra = sizeof(void*);
 		windowClass.hInstance = GetModuleHandleW(NULL);
 		windowClass.hIcon = NULL;
-		windowClass.hCursor = 0;
-		windowClass.hbrBackground = 0;
+		windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+		windowClass.hbrBackground = NULL;
 		windowClass.lpszMenuName = NULL;
 		windowClass.hIconSm = NULL;
 		windowClass.lpszClassName = L"Open V2 Window";

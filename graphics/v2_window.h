@@ -81,7 +81,7 @@ namespace ui {
 	template<typename T>
 	bool message_within_bounds(const T& message, int32_t x_max, int32_t y_max) {
 		if constexpr(std::is_base_of_v<message_with_location, T>)
-			return (message.x <= x_max) & (message.y <= y_max);
+			return (message.x <= x_max) & (message.y <= y_max) & (message.x >= 0) & (message.y >= 0);
 		else
 			return true;
 	}
