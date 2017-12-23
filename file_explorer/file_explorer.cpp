@@ -912,6 +912,15 @@ public:
 	}
 };
 
+class debug_scollbar {
+public:
+	void on_position(int32_t pos) {
+		OutputDebugStringA("on_position; ");
+		OutputDebugStringA(std::to_string(pos).c_str());
+		OutputDebugStringA("\n");
+	}
+};
+
 struct gui_window_handler {
 	ui::gui_manager& gui_m;
 
@@ -936,6 +945,8 @@ struct gui_window_handler {
 
 		const auto new_text = ui::detail::create_element_instance(gui_m, ui::text_tag(29));
 		ui::add_to_back(gui_m, ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, new_text);
+
+		ui::create_fixed_sz_scrollbar<debug_scollbar>(gui_m, ui::scrollbar_tag(0), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, ui::xy_pair{ 30,30 }, 200);
 	}
 
 	void operator()(const ui::resize& r, ui::window_base& ) {
@@ -947,6 +958,9 @@ struct gui_window_handler {
 	}
 	void operator()(const ui::key_down& m, ui::window_base& ) {
 		gui_m.on_keydown(m);
+	}
+	void operator()(const ui::mouse_drag& m, ui::window_base&) {
+		gui_m.on_mouse_drag(m);
 	}
 
 	void initialize_graphics(graphics::open_gl_wrapper& ogl) {

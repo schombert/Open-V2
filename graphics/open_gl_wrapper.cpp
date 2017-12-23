@@ -248,23 +248,6 @@ namespace graphics {
 		"	frag_color = coloring_function(font_function(tex_coord));\n"
 		"}\n";
 
-	/*
-	glActiveTexture(GL_TEXTURE0);
-
-	to unbind ...
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, nullptr);
-	*/
-
-	/*
-	//texture to ...
-	int loc = glGetUniformLocation(programHandle, "texture_sampler");
-
-	glActiveTexture(GL_TEXTURE0);
-
-	glUniform1i(loc, 0); <- bind texture in slot zero to sampler
-	*/
-
 	GLuint general_shader = 0;
 
 	GLuint global_square_vao = 0;
@@ -439,12 +422,6 @@ namespace graphics {
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		//parameters::enabled = glGetSubroutineIndex(general_shader, GL_FRAGMENT_SHADER, "enabled_color");
-		//parameters::disabled = glGetSubroutineIndex(general_shader, GL_FRAGMENT_SHADER, "disabled_color");
-		//parameters::filter = glGetSubroutineIndex(general_shader, GL_FRAGMENT_SHADER, "color_filter");
-		//parameters::no_filter = glGetSubroutineIndex(general_shader, GL_FRAGMENT_SHADER, "no_filter");
-		//parameters::border_filter = glGetSubroutineIndex(general_shader, GL_FRAGMENT_SHADER, "border_filter");
 	}
 
 	std::pair<HGLRC, HGLRC> setup_opengl_context(HWND hwnd, HDC window_dc) {
@@ -506,6 +483,7 @@ namespace graphics {
 #ifdef _DEBUG
 			glDebugMessageCallback(debug_callback, nullptr);
 			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+			glDebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_OTHER, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_FALSE);
 #endif
 
 			if (wglewIsSupported("WGL_EXT_swap_control_tear") == 1) {

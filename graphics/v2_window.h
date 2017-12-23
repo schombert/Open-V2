@@ -79,6 +79,18 @@ namespace ui {
 	}
 
 	template<typename T>
+	T rescale_message(const T& message, float scale) {
+		if constexpr(std::is_base_of_v<message_with_location, T>) {
+			T new_message = message;
+			new_message.x /= scale;
+			new_message.y /= scale;
+			return new_message;
+		} else {
+			return message;
+		}
+	}
+
+	template<typename T>
 	bool message_within_bounds(const T& message, int32_t x_max, int32_t y_max) {
 		if constexpr(std::is_base_of_v<message_with_location, T>)
 			return (message.x <= x_max) & (message.y <= y_max) & (message.x >= 0) & (message.y >= 0);

@@ -23,7 +23,7 @@ void ui::gui_manager::destroy(gui_object & g) {
 	if (g.associated_behavior) {
 		if ((g.flags.load(std::memory_order_relaxed) & g.static_behavior) == 0) {
 			g.associated_behavior->~gui_behavior();
-			concurrent_allocator<gui_behavior>().deallocate(g.associated_behavior, 0);
+			concurrent_allocator<gui_behavior>().deallocate(g.associated_behavior, 1);
 		}
 		g.associated_behavior = nullptr;
 	}
@@ -682,20 +682,19 @@ void ui::detail::render(const gui_manager& manager, graphics::open_gl_wrapper &o
 void ui::gui_manager::set_focus(tagged_gui_object g) {
 	if (focus != g.id) {
 		if (g.object.associated_behavior && g.object.associated_behavior->on_get_focus(g, *this)) {
-			auto& with_focus = gui_objects.at(focus);
-			if (with_focus.associated_behavior) {
-				with_focus.associated_behavior->on_lose_focus(tagged_gui_object{ with_focus, focus }, *this);
-			}
+			clear_focus();
 			focus = g.id;
 		}
 	}
 }
 
 void ui::gui_manager::clear_focus() {
-	auto& with_focus = gui_objects.at(focus);
-	if (with_focus.associated_behavior) {
-		with_focus.associated_behavior->on_lose_focus(tagged_gui_object{ with_focus, focus }, *this);
-		focus = gui_object_tag();
+	if (is_valid_index(focus)) {
+		auto& with_focus = gui_objects.at(focus);
+		if (with_focus.associated_behavior) {
+			with_focus.associated_behavior->on_lose_focus(tagged_gui_object{ with_focus, focus }, *this);
+			focus = gui_object_tag();
+		}
 	}
 }
 
@@ -837,7 +836,7 @@ bool ui::gui_manager::on_lbutton_down(const lbutton_down& ld) {
 		if (obj.object.associated_behavior)
 			return obj.object.associated_behavior->on_lclick(obj, *_this, l);
 		return false;
-	}, tagged_gui_object{ root, gui_object_tag(0) }, ld);
+	}, tagged_gui_object{ root, gui_object_tag(0) }, ui::rescale_message(ld, _scale));
 }
 
 bool ui::gui_manager::on_rbutton_down(const rbutton_down& rd) {
@@ -845,7 +844,7 @@ bool ui::gui_manager::on_rbutton_down(const rbutton_down& rd) {
 		if (obj.object.associated_behavior)
 			return obj.object.associated_behavior->on_rclick(obj, *_this, r);
 		return false;
-	}, tagged_gui_object{ root,gui_object_tag(0) }, rd);
+	}, tagged_gui_object{ root,gui_object_tag(0) }, ui::rescale_message(rd, _scale));
 }
 
 bool ui::gui_manager::on_mouse_move(const mouse_move& mm) {
@@ -860,7 +859,7 @@ bool ui::gui_manager::on_mouse_move(const mouse_move& mm) {
 			return true;
 		}
 		return false;
-	}, tagged_gui_object{ root,gui_object_tag(0) }, mm);
+	}, tagged_gui_object{ root,gui_object_tag(0) }, ui::rescale_message(mm, _scale));
 
 	if (!found_tooltip && is_valid_index(tooltip)) {
 		tooltip = gui_object_tag();
@@ -871,13 +870,13 @@ bool ui::gui_manager::on_mouse_move(const mouse_move& mm) {
 }
 
 bool ui::gui_manager::on_mouse_drag(const mouse_drag& md) {
-	if (gui_objects.at(focus).associated_behavior) {
-		auto scaled_drag(md);
-		scaled_drag.x /= scale();
-		scaled_drag.y /= scale();
-		return gui_objects.at(focus).associated_behavior->on_drag(ui::tagged_gui_object{ gui_objects.at(focus), focus }, *this, scaled_drag);
-	} else
-		return false;
+	if (is_valid_index(focus)) {
+		if (gui_objects.at(focus).associated_behavior) {
+			return gui_objects.at(focus).associated_behavior->on_drag(ui::tagged_gui_object{ gui_objects.at(focus), focus }, *this, ui::rescale_message(md, _scale));
+		} else
+			return false;
+	}
+	return false;
 }
 
 bool ui::gui_manager::on_keydown(const key_down& kd) {
@@ -885,7 +884,7 @@ bool ui::gui_manager::on_keydown(const key_down& kd) {
 		if (obj.object.associated_behavior)
 			return obj.object.associated_behavior->on_keydown(obj, *_this, k);
 		return false;
-	}, tagged_gui_object{ root,gui_object_tag(0) }, kd);
+	}, tagged_gui_object{ root,gui_object_tag(0) }, ui::rescale_message(kd, _scale));
 }
 
 bool ui::gui_manager::on_scroll(const scroll& se) {
@@ -893,14 +892,17 @@ bool ui::gui_manager::on_scroll(const scroll& se) {
 		if (obj.object.associated_behavior)
 			return obj.object.associated_behavior->on_scroll(obj, *_this, s);
 		return false;
-	}, tagged_gui_object{ root,gui_object_tag(0) }, se);
+	}, tagged_gui_object{ root,gui_object_tag(0) }, ui::rescale_message(se, _scale));
 }
 
 bool ui::gui_manager::on_text(const text_event &te) {
-	if (gui_objects.at(focus).associated_behavior)
-		return gui_objects.at(focus).associated_behavior->on_text(ui::tagged_gui_object{ gui_objects.at(focus), focus }, *this, te);
-	else
-		return false;
+	if (is_valid_index(focus)) {
+		if (gui_objects.at(focus).associated_behavior)
+			return gui_objects.at(focus).associated_behavior->on_text(ui::tagged_gui_object{ gui_objects.at(focus), focus }, *this, te);
+		else
+			return false;
+	}
+	return false;
 }
 
 void ui::detail::update(gui_manager& manager, tagged_gui_object obj) {

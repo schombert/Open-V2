@@ -93,52 +93,77 @@ namespace ui {
 		virtual bool on_keydown(tagged_gui_object o, gui_manager& m, const key_down& k) override;
 	};
 
-	class scrollbar : public gui_behavior {
+	template<typename BASE>
+	class scrollbar : public gui_behavior, BASE {
 	private:
 		int32_t _position;
-		const int32_t maximum;
-		const int32_t minimum;
+		int32_t maximum;
+		int32_t minimum;
 		int32_t limt_maximum;
 		int32_t limit_minimum;
 		const int32_t _step_size;
-	public:
-		gui_object* minimum_limit_icon = nullptr;
-		gui_object* maximum_limit_icon = nullptr;
 
-		scrollbar(int32_t mini, int32_t maxi, int32_t step) : _position(mini), maximum(maxi), minimum(mini), limt_maximum(maxi), limit_minimum(mini), _step_size(step) {}
-		int32_t position() const { return _position; };
-		int32_t step_size() const { return _step_size; };
-		void adjust_position(int32_t position) { _position = std::min(limt_maximum, std::max(limit_minimum, position)); };
-		void set_limits(int32_t lmin, int32_t lmax) {
-			limt_maximum = std::min(lmax, maximum);
-			limit_minimum = std::max(lmin, minimum);
-		}
-		virtual bool on_lclick(tagged_gui_object o, gui_manager& m, const lbutton_down&) override;
+		void update_limit_icons(gui_manager& m);
+	public:
+		int32_t valid_start = 0;
+		int32_t valid_end = 0;
+
+		gui_object* minimum_limit_icon = nullptr;
+		gui_object_tag lmin_tag;
+		gui_object* maximum_limit_icon = nullptr;
+		gui_object_tag lmax_tag;
+		gui_object* slider = nullptr;
+
+		const bool vertical;
+
+		template<typename ... PARAMS>
+		scrollbar(bool vert, int32_t mini, int32_t maxi, int32_t step, PARAMS&& ... params);
+
+		int32_t position() const { return _position; }
+		std::pair<int32_t, int32_t> range() const { return std::make_pair(minimum, maximum); }
+		std::pair<int32_t, int32_t> track_range() const { return std::make_pair(valid_start, valid_end); }
+		int32_t step_size() const { return _step_size; }
+
+		void adjust_position(int32_t position); // will call BASE::on_position
+		void update_position(int32_t position); // will not call BASE::on_position
+		void set_limits(gui_manager& m, int32_t lmin, int32_t lmax);
+		void set_range(gui_manager& m, int32_t rmin, int32_t rmax);
 	};
+	template<typename BASE>
+	class scrollbar_track : public gui_behavior {
+	private:
+		scrollbar<BASE>& parent;
+	public:
+		scrollbar_track(scrollbar<BASE>& p) : parent(p) {}
+		virtual bool on_lclick(tagged_gui_object, gui_manager&, const lbutton_down& ld) override;
+	};
+	template<typename BASE>
 	class scrollbar_slider : public gui_behavior {
 	private:
-		scrollbar& parent;
+		scrollbar<BASE>& parent;
 		int32_t base_position;
 	public:
-		scrollbar_slider(scrollbar& p) : parent(p) {}
+		scrollbar_slider(scrollbar<BASE>& p) : parent(p), base_position(0) {}
 		virtual bool on_get_focus(tagged_gui_object, gui_manager&) override { return true; };
-		virtual bool on_lclick(tagged_gui_object, gui_manager&, const lbutton_down&) { base_position = parent.position(); return true; };
-		virtual bool on_drag(tagged_gui_object, gui_manager&, const mouse_drag&) override;
+		virtual bool on_lclick(tagged_gui_object, gui_manager&, const lbutton_down&) override { base_position = parent.position(); return true; };
+		virtual bool on_drag(tagged_gui_object, gui_manager&, const mouse_drag& md) override;
 	};
+	template<typename BASE>
 	class scrollbar_left_button {
 	private:
-		scrollbar& parent;
+		scrollbar<BASE>& parent;
 	public:
-		scrollbar_left_button(scrollbar& p) : parent(p) {}
+		scrollbar_left_button(scrollbar<BASE>& p) : parent(p) {}
 		void button_function(ui::tagged_gui_object, ui::gui_manager&) {
 			parent.adjust_position(parent.position() - parent.step_size());
 		}
 	};
+	template<typename BASE>
 	class scrollbar_right_button {
 	private:
-		scrollbar& parent;
+		scrollbar<BASE>& parent;
 	public:
-		scrollbar_right_button(scrollbar& p) : parent(p) {}
+		scrollbar_right_button(scrollbar<BASE>& p) : parent(p) {}
 		void button_function(ui::tagged_gui_object, ui::gui_manager&) {
 			parent.adjust_position(parent.position() + parent.step_size());
 		}
@@ -213,6 +238,12 @@ namespace ui {
 
 	template<typename T, typename B>
 	ui::tagged_gui_object create_static_button(gui_manager& manager, T handle, tagged_gui_object parent, B& b);
+	template<typename BEHAVIOR, typename T, typename ... PARAMS>
+	ui::tagged_gui_object create_dynamic_button(gui_manager& manager, T handle, tagged_gui_object parent, PARAMS&& ... params);
+	template<typename BEHAVIOR, typename ... PARAMS>
+	ui::tagged_gui_object create_scrollbar (gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, PARAMS&& ... params);
+	template<typename BEHAVIOR, typename ... PARAMS>
+	ui::tagged_gui_object create_fixed_sz_scrollbar(gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, ui::xy_pair position, int32_t extent, PARAMS&& ... params);
 
 	void clear_children(gui_manager& manager, tagged_gui_object g);
 	void remove_object(gui_manager& manager, tagged_gui_object g);
