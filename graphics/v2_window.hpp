@@ -29,13 +29,13 @@ namespace ui {
 
 	template<typename HANDLER>
 	template<typename ...T, typename>
-	window<HANDLER>::window(T&& ...args) : h(std::forward<T>(args)...) {
+	window<HANDLER>::window(T&& ...args) : window_base(true), h(std::forward<T>(args)...) {
 		generic_setup(templated_win_proc<HANDLER>, 0, 0);
 	}
 
 	template<typename HANDLER>
 	template<typename ...T>
-	window<HANDLER>::window(uint32_t x, uint32_t y, T&& ...args) : h(std::forward<T>(args)...) {
+	window<HANDLER>::window(uint32_t x, uint32_t y, T&& ...args) : window_base(x == 0), h(std::forward<T>(args)...) {
 		generic_setup(templated_win_proc<HANDLER>, x, y);
 	}
 

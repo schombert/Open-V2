@@ -925,6 +925,7 @@ struct gui_window_handler {
 	ui::gui_manager& gui_m;
 
 	ui::simple_button<mb_button> mb_button_a;
+	ui::scrollbar<debug_scollbar> test_sb;
 
 	gui_window_handler(ui::gui_manager& m) : gui_m(m) {}
 
@@ -946,7 +947,10 @@ struct gui_window_handler {
 		const auto new_text = ui::detail::create_element_instance(gui_m, ui::text_tag(29));
 		ui::add_to_back(gui_m, ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, new_text);
 
-		ui::create_fixed_sz_scrollbar<debug_scollbar>(gui_m, ui::scrollbar_tag(0), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, ui::xy_pair{ 30,30 }, 200);
+		ui::create_static_scrollbar(gui_m, ui::scrollbar_tag(10), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, test_sb);
+		test_sb.set_limits(gui_m, 0, 75);
+
+		ui::create_scrollable_text_block(gui_m, ui::text_tag(571), text_data::text_tag(1001), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) });
 	}
 
 	void operator()(const ui::resize& r, ui::window_base& ) {
@@ -958,6 +962,9 @@ struct gui_window_handler {
 	}
 	void operator()(const ui::key_down& m, ui::window_base& ) {
 		gui_m.on_keydown(m);
+	}
+	void operator()(const ui::scroll& s, ui::window_base&) {
+		gui_m.on_scroll(s);
 	}
 	void operator()(const ui::mouse_drag& m, ui::window_base&) {
 		gui_m.on_mouse_drag(m);

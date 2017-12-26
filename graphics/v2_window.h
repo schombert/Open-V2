@@ -113,8 +113,9 @@ namespace ui {
 		void* handle = nullptr;
 		graphics::open_gl_wrapper gl_wrapper;
 		std::thread message_thread;
+		const bool topmost;
 	public:
-		window_base();
+		window_base(bool t);
 		~window_base();
 
 		void generic_setup(long* (__stdcall *win_proc)(void*, unsigned int, unsigned int*, long*), uint32_t xsize, uint32_t ysize);

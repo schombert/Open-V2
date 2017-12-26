@@ -48,7 +48,8 @@ namespace ui {
 		unknown_window_orientation,
 		window_background_not_found,
 		unexpected_window_moveable_value,
-		unknown_definition_type
+		unknown_definition_type,
+		missing_standardlistbox_slider
 	};
 
 	const char* format_error(errors  e);
@@ -286,6 +287,8 @@ namespace ui {
 					return _this->scrollbar_names[to_index(tag)].get_string(backing_data);
 				else if constexpr(std::is_same_v<window_tag, decltype(tag)>)
 					return _this->window_names[to_index(tag)].get_string(backing_data);
+				else
+					return std::string();
 			}, handle);
 		}
 	};
@@ -299,6 +302,8 @@ namespace ui {
 		tagged_vector<listbox_def, listbox_tag> listboxes;
 		tagged_vector<scrollbar_def, scrollbar_tag> scrollbars;
 		tagged_vector<window_def, window_tag> windows;
+
+		scrollbar_tag standardlistbox_slider;
 
 		std::vector<char> name_data;
 		boost::container::flat_map<vector_backed_string<char>, element_tag, vector_backed_string_less_ci> name_to_element_map;

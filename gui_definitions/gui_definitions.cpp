@@ -1390,6 +1390,12 @@ namespace ui {
 			defs.name_to_element_map.emplace(nmaps.text_names[i], text_tag(i));
 		for (int32_t i = nmaps.window_names.size() - 1; i >= 0; --i)
 			defs.name_to_element_map.emplace(nmaps.window_names[i], window_tag(i));
+
+		const auto mapped_standardlistbox_slider = defs.name_to_element_map.find("standardlistbox_slider");
+		if (mapped_standardlistbox_slider != defs.name_to_element_map.end() && std::holds_alternative<scrollbar_tag>(mapped_standardlistbox_slider->second))
+			defs.standardlistbox_slider = std::get<scrollbar_tag>(mapped_standardlistbox_slider->second);
+		else
+			errors_generated.emplace_back("none", ui::errors::missing_standardlistbox_slider);
 	}
 
 	const char* format_error(ui::errors  e) {
@@ -1472,6 +1478,8 @@ namespace ui {
 				return "moveable value other than 0 or 1 specified for window";
 			case ui::errors::unknown_definition_type:
 				return "unknown definition type found at top scope";
+			case ui::errors::missing_standardlistbox_slider:
+				return "no definition found for standardlistbox_slider";
 		}
 	}
 }

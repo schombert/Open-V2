@@ -3,7 +3,7 @@
 #include <Windowsx.h>
 
 namespace ui {
-	window_base::window_base() {}
+	window_base::window_base(bool t) : topmost(t) {}
 
 	window_base::~window_base() {}
 
@@ -57,14 +57,12 @@ namespace ui {
 				return creation{};
 			}
 			case WM_SETFOCUS:
-			{
-				HDC screenDC = GetDC(NULL);
-				SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOREDRAW | SWP_NOSIZE | SWP_NOMOVE);
-				ReleaseDC(NULL, screenDC);
-			}
-			return int64_t(0);
+				if(winbase && winbase->topmost)
+					SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOREDRAW | SWP_NOSIZE | SWP_NOMOVE);
+				return int64_t(0);
 			case WM_KILLFOCUS:
-				SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOREDRAW | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+				if (winbase && winbase->topmost)
+					SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOREDRAW | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 				return int64_t(0);
 			case WM_ERASEBKGND:
 				return int64_t(1);
@@ -103,7 +101,12 @@ namespace ui {
 					winbase->gl_wrapper.set_viewport(uint32_t(LOWORD(lParam)), uint32_t(HIWORD(lParam)));
 				return resize{ uint32_t(LOWORD(lParam)), uint32_t(HIWORD(lParam)) };
 			case WM_MOUSEWHEEL:
-				return scroll{ { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) }, (float)(GET_WHEEL_DELTA_WPARAM(wParam)) / 120.0, get_current_modifiers() };
+			{
+				POINT location{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+				ScreenToClient(hwnd, &location);
+				return scroll{ { location.x, location.y }, (float)(GET_WHEEL_DELTA_WPARAM(wParam)) / 120.0, get_current_modifiers() };
+			}
+				
 			case WM_KEYDOWN:
 			case WM_SYSKEYDOWN:
 				return key_down{ virtual_key(wParam), get_current_modifiers() };

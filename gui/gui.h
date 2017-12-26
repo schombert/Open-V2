@@ -9,6 +9,7 @@
 #include "graphics_objects\\graphics_objects.h"
 #include "common\\shared_tags.h"
 #include "simple_fs\\simple_fs.h"
+#include "boost\\container\\small_vector.hpp"
 
 namespace graphics {
 	class font;
@@ -62,6 +63,12 @@ namespace ui {
 
 	using tagged_gui_object = tagged_object<gui_object, gui_object_tag>;
 
+	enum class tooltip_behavior {
+		tooltip,
+		no_tooltip,
+		transparent
+	};
+
 	class gui_behavior {
 	public:
 		virtual bool on_lclick(tagged_gui_object, gui_manager&, const lbutton_down&) { return false; };
@@ -73,13 +80,23 @@ namespace ui {
 		virtual bool on_get_focus(tagged_gui_object, gui_manager&) { return false; };
 		virtual void on_lose_focus(tagged_gui_object, gui_manager&) { };
 		virtual void update_data(tagged_gui_object, gui_manager&) {};
-		virtual bool has_tooltip(tagged_gui_object, gui_manager&) { return false; };
+		virtual tooltip_behavior has_tooltip(tagged_gui_object, gui_manager&) { return tooltip_behavior::transparent; };
 		virtual void create_tooltip(tagged_gui_object, gui_manager&, tagged_gui_object /*tooltip_window*/) { };
 		virtual ~gui_behavior() {};
 	};
 
+	class visible_region : public gui_behavior {
+	public:
+		virtual bool on_lclick(tagged_gui_object, gui_manager&, const lbutton_down&) override { return true; };
+		virtual bool on_rclick(tagged_gui_object, gui_manager&, const rbutton_down&) override { return true; };
+		virtual bool on_scroll(tagged_gui_object, gui_manager&, const scroll&) override { return true; };
+		virtual tooltip_behavior has_tooltip(tagged_gui_object, gui_manager&) override { return tooltip_behavior::no_tooltip; };
+	};
+
+	extern visible_region global_visible_region;
+
 	template<typename BASE>
-	class simple_button : public gui_behavior, BASE {
+	class simple_button : public visible_region, BASE {
 	public:
 		virtual_key shortcut = virtual_key::NONE;
 
@@ -91,19 +108,18 @@ namespace ui {
 
 		virtual bool on_lclick(tagged_gui_object o, gui_manager& m, const lbutton_down&) override;
 		virtual bool on_keydown(tagged_gui_object o, gui_manager& m, const key_down& k) override;
+		virtual void update_data(tagged_gui_object, gui_manager&) override;
 	};
 
 	template<typename BASE>
-	class scrollbar : public gui_behavior, BASE {
+	class scrollbar : public visible_region, BASE {
 	private:
-		int32_t _position;
-		int32_t maximum;
-		int32_t minimum;
-		int32_t limt_maximum;
-		int32_t limit_minimum;
-		const int32_t _step_size;
-
-		void update_limit_icons(gui_manager& m);
+		int32_t _position = 0;
+		int32_t maximum = 0;
+		int32_t minimum = 0;
+		int32_t limt_maximum = 0;
+		int32_t limit_minimum = 0;
+		int32_t _step_size = 1;
 	public:
 		int32_t valid_start = 0;
 		int32_t valid_end = 0;
@@ -114,59 +130,39 @@ namespace ui {
 		gui_object_tag lmax_tag;
 		gui_object* slider = nullptr;
 
-		const bool vertical;
+		bool vertical;
 
 		template<typename ... PARAMS>
 		scrollbar(bool vert, int32_t mini, int32_t maxi, int32_t step, PARAMS&& ... params);
+		template<typename ... PARAMS>
+		scrollbar(PARAMS&& ... params) : BASE(std::forward<PARAMS>(params)...) {};
 
 		int32_t position() const { return _position; }
 		std::pair<int32_t, int32_t> range() const { return std::make_pair(minimum, maximum); }
 		std::pair<int32_t, int32_t> track_range() const { return std::make_pair(valid_start, valid_end); }
 		int32_t step_size() const { return _step_size; }
 
+		void initialize(bool vert, int32_t mini, int32_t maxi, int32_t step);
+		void update_limit_icons(gui_manager& m);
 		void adjust_position(int32_t position); // will call BASE::on_position
 		void update_position(int32_t position); // will not call BASE::on_position
 		void set_limits(gui_manager& m, int32_t lmin, int32_t lmax);
 		void set_range(gui_manager& m, int32_t rmin, int32_t rmax);
+		void set_step(int32_t s) { _step_size = s; }
+
+		virtual bool on_scroll(tagged_gui_object, gui_manager&, const scroll&) override;
+		virtual void update_data(tagged_gui_object, gui_manager&) override;
 	};
-	template<typename BASE>
-	class scrollbar_track : public gui_behavior {
+
+	template<typename BASE, typename ELEMENT>
+	class managed_listbox : public visible_region, BASE {
 	private:
-		scrollbar<BASE>& parent;
+		gui_object* contents_frame = nullptr;
+		std::vector<ELEMENT, concurrent_allocator<ELEMENT>> contents;
+		std::vector<tagged_gui_object, concurrent_allocator<tagged_gui_object>> gui_items;
 	public:
-		scrollbar_track(scrollbar<BASE>& p) : parent(p) {}
-		virtual bool on_lclick(tagged_gui_object, gui_manager&, const lbutton_down& ld) override;
-	};
-	template<typename BASE>
-	class scrollbar_slider : public gui_behavior {
-	private:
-		scrollbar<BASE>& parent;
-		int32_t base_position;
-	public:
-		scrollbar_slider(scrollbar<BASE>& p) : parent(p), base_position(0) {}
-		virtual bool on_get_focus(tagged_gui_object, gui_manager&) override { return true; };
-		virtual bool on_lclick(tagged_gui_object, gui_manager&, const lbutton_down&) override { base_position = parent.position(); return true; };
-		virtual bool on_drag(tagged_gui_object, gui_manager&, const mouse_drag& md) override;
-	};
-	template<typename BASE>
-	class scrollbar_left_button {
-	private:
-		scrollbar<BASE>& parent;
-	public:
-		scrollbar_left_button(scrollbar<BASE>& p) : parent(p) {}
-		void button_function(ui::tagged_gui_object, ui::gui_manager&) {
-			parent.adjust_position(parent.position() - parent.step_size());
-		}
-	};
-	template<typename BASE>
-	class scrollbar_right_button {
-	private:
-		scrollbar<BASE>& parent;
-	public:
-		scrollbar_right_button(scrollbar<BASE>& p) : parent(p) {}
-		void button_function(ui::tagged_gui_object, ui::gui_manager&) {
-			parent.adjust_position(parent.position() + parent.step_size());
-		}
+		virtual bool on_scroll(tagged_gui_object, gui_manager&, const scroll&) override;
+		virtual void update_data(tagged_gui_object, gui_manager&) override;
 	};
 
 	class gui_object {
@@ -244,6 +240,44 @@ namespace ui {
 	ui::tagged_gui_object create_scrollbar (gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, PARAMS&& ... params);
 	template<typename BEHAVIOR, typename ... PARAMS>
 	ui::tagged_gui_object create_fixed_sz_scrollbar(gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, ui::xy_pair position, int32_t extent, PARAMS&& ... params);
+	template<typename BEHAVIOR>
+	ui::tagged_gui_object create_static_scrollbar(gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, scrollbar<BEHAVIOR>& b);
+	template<typename BEHAVIOR>
+	ui::tagged_gui_object create_static_fixed_sz_scrollbar(gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, ui::xy_pair position, int32_t extent, scrollbar<BEHAVIOR>& b);
+	template<typename FILL_FUNCTION>
+	ui::tagged_gui_object create_scrollable_region(gui_manager& manager, tagged_gui_object parent, ui::xy_pair position, int32_t height, int32_t step_size, graphics::obj_definition_tag bg, const FILL_FUNCTION& f);
+	ui::tagged_gui_object create_scrollable_text_block(gui_manager& manager, ui::text_tag handle, tagged_gui_object parent, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
+	ui::tagged_gui_object create_scrollable_text_block(gui_manager& manager, ui::text_tag handle, text_data::text_tag contents, tagged_gui_object parent, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
+
+	class line_manager {
+	private:
+		boost::container::small_vector<gui_object*, 16, concurrent_allocator<gui_object*>> current_line;
+		const text_data::alignment align;
+		const int32_t max_line_extent;
+	public:
+		line_manager(text_data::alignment a, int32_t m) : align(a), max_line_extent(m) {}
+		bool exceeds_extent(int32_t w) const;
+		void add_object(gui_object* o);
+		void finish_current_line();
+	};
+
+	class single_line_manager {
+	public:
+		bool exceeds_extent(int32_t) const { return false; };
+		void add_object(gui_object*) const {}
+		void finish_current_line() const {}
+	};
+
+	class null_behavior_creation {
+	public:
+		void operator()(tagged_gui_object) const {};
+	};
+	
+	void shorten_text_instance_to_space(ui::text_instance& txt);
+	float text_component_width(text_data::text_component& c, const std::vector<char16_t>& text_data, graphics::font& this_font, uint32_t font_size);
+
+	template<typename LM, typename BH = null_behavior_creation>
+	ui::xy_pair text_chunk_to_instances(ui::gui_manager& container, vector_backed_string<char16_t> text_source, tagged_gui_object parent_object, ui::xy_pair position, const text_format& fmt, LM& lm, const BH& behavior_creator = null_behavior_creation());
 
 	void clear_children(gui_manager& manager, tagged_gui_object g);
 	void remove_object(gui_manager& manager, tagged_gui_object g);
@@ -255,6 +289,10 @@ namespace ui {
 	void make_visible(gui_manager& manager, tagged_gui_object g);
 	void hide(tagged_gui_object g);
 	void set_enabled(tagged_gui_object g, bool enabled);
+	void shrink_to_children(gui_manager& manager, tagged_gui_object g);
+	void shrink_to_children(gui_manager& manager, tagged_gui_object g, int32_t border);
+
+	ui::xy_pair absolute_position(gui_manager& manager, tagged_gui_object g);
 
 	void render(const gui_manager& manager, graphics::open_gl_wrapper&);
 	void update(gui_manager& manager);
@@ -305,7 +343,7 @@ namespace ui {
 		float scale() const { return _scale; }
 		int32_t width() const { return _width; }
 		int32_t height() const { return _height; }
-		void set_focus(tagged_gui_object g);
+		bool set_focus(tagged_gui_object g);
 		void clear_focus();
 		void hide_tooltip();
 		
