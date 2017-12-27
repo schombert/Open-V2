@@ -912,6 +912,20 @@ public:
 	}
 };
 
+class tt_holder : public ui::draggable_region {
+public:
+	virtual ui::tooltip_behavior has_tooltip(ui::tagged_gui_object, ui::gui_manager&) override { return ui::tooltip_behavior::tooltip; };
+	virtual void create_tooltip(ui::tagged_gui_object, ui::gui_manager& m, ui::tagged_gui_object tw) override {
+		ui::text_chunk_to_instances(
+			m,
+			vector_backed_string<char16_t>(u"test tooltip"),
+			tw,
+			ui::xy_pair{ 0,0 },
+			ui::text_format{ui::text_color::white, graphics::font_tag(1), 16},
+			ui::single_line_manager());
+	};
+};
+
 class debug_scollbar {
 public:
 	void on_position(int32_t pos) {
@@ -924,7 +938,8 @@ public:
 struct gui_window_handler {
 	ui::gui_manager& gui_m;
 
-	ui::simple_button<mb_button> mb_button_a;
+	//ui::simple_button<mb_button> mb_button_a;
+	tt_holder mb_button_a;
 	ui::scrollbar<debug_scollbar> test_sb;
 
 	gui_window_handler(ui::gui_manager& m) : gui_m(m) {}
@@ -935,8 +950,8 @@ struct gui_window_handler {
 	}
 
 	void operator()(const ui::creation&, ui::window_base& ) {
-		ui::create_static_button(gui_m, ui::button_tag(8), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, mb_button_a);
-		mb_button_a.shortcut = virtual_key::A;
+		ui::create_static_element(gui_m, ui::button_tag(8), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, mb_button_a);
+		//mb_button_a.shortcut = virtual_key::A;
 
 		//const auto new_button = ui::detail::create_element_instance(gui_m, ui::button_tag(8));
 		//ui::add_to_back(gui_m, ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, new_button);
@@ -951,6 +966,8 @@ struct gui_window_handler {
 		test_sb.set_limits(gui_m, 0, 75);
 
 		ui::create_scrollable_text_block(gui_m, ui::text_tag(571), text_data::text_tag(1001), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) });
+
+		ui::create_dynamic_window(gui_m, ui::window_tag(8), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) });
 	}
 
 	void operator()(const ui::resize& r, ui::window_base& ) {
@@ -968,6 +985,9 @@ struct gui_window_handler {
 	}
 	void operator()(const ui::mouse_drag& m, ui::window_base&) {
 		gui_m.on_mouse_drag(m);
+	}
+	void operator()(const ui::mouse_move& m, ui::window_base&) {
+		gui_m.on_mouse_move(m);
 	}
 
 	void initialize_graphics(graphics::open_gl_wrapper& ogl) {

@@ -71,26 +71,46 @@ namespace ui {
 
 	class gui_behavior {
 	public:
-		virtual bool on_lclick(tagged_gui_object, gui_manager&, const lbutton_down&) { return false; };
-		virtual bool on_rclick(tagged_gui_object, gui_manager&, const rbutton_down&) { return false; };
-		virtual bool on_drag(tagged_gui_object, gui_manager&, const mouse_drag&) { return false; };
-		virtual bool on_keydown(tagged_gui_object, gui_manager&, const key_down&) { return false; };
-		virtual bool on_text(tagged_gui_object, gui_manager&, const text_event&) { return false; };
-		virtual bool on_scroll(tagged_gui_object, gui_manager&, const scroll&) { return false; };
-		virtual bool on_get_focus(tagged_gui_object, gui_manager&) { return false; };
-		virtual void on_lose_focus(tagged_gui_object, gui_manager&) { };
-		virtual void update_data(tagged_gui_object, gui_manager&) {};
-		virtual tooltip_behavior has_tooltip(tagged_gui_object, gui_manager&) { return tooltip_behavior::transparent; };
-		virtual void create_tooltip(tagged_gui_object, gui_manager&, tagged_gui_object /*tooltip_window*/) { };
+		virtual bool on_lclick(tagged_gui_object, gui_manager&, const lbutton_down&) { return false; }
+		virtual bool on_rclick(tagged_gui_object, gui_manager&, const rbutton_down&) { return false; }
+		virtual bool on_drag(tagged_gui_object, gui_manager&, const mouse_drag&) { return false; }
+		virtual bool on_keydown(tagged_gui_object, gui_manager&, const key_down&) { return false; }
+		virtual bool on_text(tagged_gui_object, gui_manager&, const text_event&) { return false; }
+		virtual bool on_scroll(tagged_gui_object, gui_manager&, const scroll&) { return false; }
+		virtual bool on_get_focus(tagged_gui_object, gui_manager&) { return false; }
+		virtual void on_lose_focus(tagged_gui_object, gui_manager&) { }
+		virtual void update_data(tagged_gui_object, gui_manager&) {}
+		virtual tooltip_behavior has_tooltip(tagged_gui_object, gui_manager&) { return tooltip_behavior::transparent; }
+		virtual void create_tooltip(tagged_gui_object, gui_manager&, tagged_gui_object /*tooltip_window*/) { }
 		virtual ~gui_behavior() {};
 	};
 
 	class visible_region : public gui_behavior {
 	public:
-		virtual bool on_lclick(tagged_gui_object, gui_manager&, const lbutton_down&) override { return true; };
-		virtual bool on_rclick(tagged_gui_object, gui_manager&, const rbutton_down&) override { return true; };
-		virtual bool on_scroll(tagged_gui_object, gui_manager&, const scroll&) override { return true; };
-		virtual tooltip_behavior has_tooltip(tagged_gui_object, gui_manager&) override { return tooltip_behavior::no_tooltip; };
+		virtual bool on_lclick(tagged_gui_object, gui_manager&, const lbutton_down&) override { return true; }
+		virtual bool on_rclick(tagged_gui_object, gui_manager&, const rbutton_down&) override { return true; }
+		virtual tooltip_behavior has_tooltip(tagged_gui_object, gui_manager&) override { return tooltip_behavior::no_tooltip; }
+	};
+
+	class draggable_region : public visible_region {
+	private:
+		ui::xy_pair base_position;
+	public:
+		virtual bool on_get_focus(tagged_gui_object, gui_manager&) override { return true; }
+		virtual bool on_scroll(tagged_gui_object, gui_manager&, const scroll&) override { return true; }
+		virtual bool on_drag(tagged_gui_object, gui_manager&, const mouse_drag&) override;
+		virtual bool on_lclick(tagged_gui_object, gui_manager&, const lbutton_down&) override;
+		virtual bool on_text(tagged_gui_object, gui_manager&, const text_event&) override { return true; }
+		virtual bool on_keydown(tagged_gui_object, gui_manager&, const key_down&) override { return true; }
+	};
+
+	class fixed_region : public visible_region {
+	public:
+		virtual bool on_get_focus(tagged_gui_object, gui_manager&) override { return true; }
+		virtual bool on_scroll(tagged_gui_object, gui_manager&, const scroll&) override { return true; }
+		virtual bool on_drag(tagged_gui_object, gui_manager&, const mouse_drag&) override { return true; }
+		virtual bool on_text(tagged_gui_object, gui_manager&, const text_event&) override { return true; }
+		virtual bool on_keydown(tagged_gui_object, gui_manager&, const key_down&) override { return true; }
 	};
 
 	extern visible_region global_visible_region;
@@ -101,14 +121,22 @@ namespace ui {
 		virtual_key shortcut = virtual_key::NONE;
 
 		template<typename ...P>
-		explicit simple_button(P&& ... params) : BASE(std::forward<P>(params)...) {};
+		explicit simple_button(P&& ... params) : BASE(std::forward<P>(params)...) {}
 
 		template<typename T>
-		simple_button(const T& f) : button_function(f) {};
+		simple_button(const T& f) : button_function(f) {}
 
 		virtual bool on_lclick(tagged_gui_object o, gui_manager& m, const lbutton_down&) override;
 		virtual bool on_keydown(tagged_gui_object o, gui_manager& m, const key_down& k) override;
 		virtual void update_data(tagged_gui_object, gui_manager&) override;
+	};
+
+	class piechart_behavior : public visible_region {
+	public:
+		virtual bool on_lclick(tagged_gui_object, gui_manager&, const lbutton_down&) override;
+		virtual bool on_rclick(tagged_gui_object, gui_manager&, const rbutton_down&) override;
+		virtual tooltip_behavior has_tooltip(tagged_gui_object, gui_manager&) override;
+		virtual void create_tooltip(tagged_gui_object, gui_manager&, tagged_gui_object /*tooltip_window*/) override;
 	};
 
 	template<typename BASE>
@@ -135,7 +163,7 @@ namespace ui {
 		template<typename ... PARAMS>
 		scrollbar(bool vert, int32_t mini, int32_t maxi, int32_t step, PARAMS&& ... params);
 		template<typename ... PARAMS>
-		scrollbar(PARAMS&& ... params) : BASE(std::forward<PARAMS>(params)...) {};
+		scrollbar(PARAMS&& ... params) : BASE(std::forward<PARAMS>(params)...) {}
 
 		int32_t position() const { return _position; }
 		std::pair<int32_t, int32_t> range() const { return std::make_pair(minimum, maximum); }
@@ -232,10 +260,11 @@ namespace ui {
 		bool dispatch_message(const gui_manager& manager, const MESSAGE_FUNCTION &member_f, tagged_gui_object obj, const MESSAGE_TYPE& message);
 	}
 
+	tagged_object<ui::text_instance, ui::text_instance_tag> create_text_instance(ui::gui_manager &container, tagged_gui_object new_gobj, const text_format& fmt);
 	template<typename T, typename B>
-	ui::tagged_gui_object create_static_button(gui_manager& manager, T handle, tagged_gui_object parent, B& b);
-	template<typename BEHAVIOR, typename T, typename ... PARAMS>
-	ui::tagged_gui_object create_dynamic_button(gui_manager& manager, T handle, tagged_gui_object parent, PARAMS&& ... params);
+	ui::tagged_gui_object create_static_element(gui_manager& manager, T handle, tagged_gui_object parent, B& b);
+	template<typename BEHAVIOR = ui::gui_behavior, typename T, typename ... PARAMS>
+	ui::tagged_gui_object create_dynamic_element(gui_manager& manager, T handle, tagged_gui_object parent, PARAMS&& ... params);
 	template<typename BEHAVIOR, typename ... PARAMS>
 	ui::tagged_gui_object create_scrollbar (gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, PARAMS&& ... params);
 	template<typename BEHAVIOR, typename ... PARAMS>
@@ -248,6 +277,7 @@ namespace ui {
 	ui::tagged_gui_object create_scrollable_region(gui_manager& manager, tagged_gui_object parent, ui::xy_pair position, int32_t height, int32_t step_size, graphics::obj_definition_tag bg, const FILL_FUNCTION& f);
 	ui::tagged_gui_object create_scrollable_text_block(gui_manager& manager, ui::text_tag handle, tagged_gui_object parent, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
 	ui::tagged_gui_object create_scrollable_text_block(gui_manager& manager, ui::text_tag handle, text_data::text_tag contents, tagged_gui_object parent, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
+	ui::tagged_gui_object create_dynamic_window(gui_manager& manager, window_tag t, tagged_gui_object parent);
 
 	class line_manager {
 	private:
@@ -276,8 +306,8 @@ namespace ui {
 	void shorten_text_instance_to_space(ui::text_instance& txt);
 	float text_component_width(text_data::text_component& c, const std::vector<char16_t>& text_data, graphics::font& this_font, uint32_t font_size);
 
-	template<typename LM, typename BH = null_behavior_creation>
-	ui::xy_pair text_chunk_to_instances(ui::gui_manager& container, vector_backed_string<char16_t> text_source, tagged_gui_object parent_object, ui::xy_pair position, const text_format& fmt, LM& lm, const BH& behavior_creator = null_behavior_creation());
+	template<typename LM = single_line_manager, typename BH = null_behavior_creation>
+	ui::xy_pair text_chunk_to_instances(ui::gui_manager& container, vector_backed_string<char16_t> text_source, tagged_gui_object parent_object, ui::xy_pair position, const text_format& fmt, LM&& lm = single_line_manager(), const BH& behavior_creator = null_behavior_creation());
 
 	void clear_children(gui_manager& manager, tagged_gui_object g);
 	void remove_object(gui_manager& manager, tagged_gui_object g);

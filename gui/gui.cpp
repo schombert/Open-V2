@@ -125,25 +125,34 @@ namespace ui {
 
 		current_line.clear();
 	}
-}
 
+	bool draggable_region::on_drag(tagged_gui_object t, gui_manager &, const mouse_drag &m) {
+		t.object.position.x = base_position.x + m.x;
+		t.object.position.y = base_position.y + m.y;
+		return true;
+	}
 
-
-namespace ui {
-	tagged_object<ui::text_instance, ui::text_instance_tag> create_text_instance(ui::gui_manager &container, tagged_gui_object new_gobj, const text_format& fmt) {
-		const auto new_text_instance = container.text_instances.emplace();
-
-		new_gobj.object.flags.store(gui_object::type_text_instance | gui_object::visible | gui_object::enabled, std::memory_order_release);
-		new_gobj.object.type_dependant_handle.store(to_index(new_text_instance.id), std::memory_order_release);
-
-		new_text_instance.object.color = fmt.color;
-		new_text_instance.object.font_handle = fmt.font_handle;
-		new_text_instance.object.size = fmt.font_size / 2;
-		new_text_instance.object.length = 0;
-
-		return new_text_instance;
+	bool draggable_region::on_lclick(tagged_gui_object t, gui_manager&, const lbutton_down&) {
+		base_position = t.object.position;
+		return true;
 	}
 }
+
+
+tagged_object<ui::text_instance, ui::text_instance_tag> ui::create_text_instance(ui::gui_manager &container, tagged_gui_object new_gobj, const text_format& fmt) {
+	const auto new_text_instance = container.text_instances.emplace();
+
+	new_gobj.object.flags.store(gui_object::type_text_instance | gui_object::visible | gui_object::enabled, std::memory_order_release);
+	new_gobj.object.type_dependant_handle.store(to_index(new_text_instance.id), std::memory_order_release);
+
+	new_text_instance.object.color = fmt.color;
+	new_text_instance.object.font_handle = fmt.font_handle;
+	new_text_instance.object.size = fmt.font_size / 2;
+	new_text_instance.object.length = 0;
+
+	return new_text_instance;
+}
+
 
 float ui::text_component_width(text_data::text_component& c, const std::vector<char16_t>& text_data, graphics::font& this_font, uint32_t font_size) {
 	if (std::holds_alternative<text_data::text_chunk>(c)) {
@@ -247,6 +256,87 @@ void ui::detail::create_linear_text(gui_manager& manager, tagged_gui_object cont
 	}
 }
 
+void instantiate_graphical_object(ui::gui_manager& manager, ui::tagged_gui_object container, graphics::obj_definition_tag gtag, int32_t frame = 0) {
+	auto& graphic_object_def = manager.graphics_object_definitions.definitions[gtag];
+
+	if (container.object.size == ui::xy_pair{ 0,0 })
+		container.object.size = ui::xy_pair{ graphic_object_def.size.x, graphic_object_def.size.y };
+
+	switch (graphics::object_type(graphic_object_def.flags & graphics::object::type_mask)) {
+		case graphics::object_type::bordered_rect:
+		case graphics::object_type::text_sprite:
+		case graphics::object_type::tile_sprite:
+		case graphics::object_type::generic_sprite:
+			if (is_valid_index(graphic_object_def.primary_texture_handle)) {
+				container.object.flags.fetch_or(ui::gui_object::type_graphics_object, std::memory_order_acq_rel);
+
+				const auto icon_graphic = manager.graphics_instances.emplace();
+
+				icon_graphic.object.frame = frame;
+				icon_graphic.object.graphics_object = &graphic_object_def;
+				icon_graphic.object.t = &(manager.textures.retrieve_by_key(graphic_object_def.primary_texture_handle));
+
+				if (((int32_t)container.object.size.y | (int32_t)container.object.size.x) == 0) {
+					icon_graphic.object.t->load_filedata();
+					container.object.size.y = icon_graphic.object.t->get_height();
+					container.object.size.x = icon_graphic.object.t->get_width() / ((graphic_object_def.number_of_frames != 0) ? graphic_object_def.number_of_frames : 1);
+				}
+
+				container.object.type_dependant_handle.store(to_index(icon_graphic.id), std::memory_order_release);
+			}
+			break;
+		case graphics::object_type::horizontal_progress_bar:
+			container.object.flags.fetch_or(ui::gui_object::type_progress_bar, std::memory_order_acq_rel);
+			//TODO
+			break;
+		case graphics::object_type::vertical_progress_bar:
+			container.object.flags.fetch_or(ui::gui_object::type_progress_bar | ui::gui_object::rotation_left, std::memory_order_acq_rel);
+			//TODO
+			break;
+		case graphics::object_type::flag_mask:
+			container.object.flags.fetch_or(ui::gui_object::type_masked_flag, std::memory_order_acq_rel);
+			//TODO
+			break;
+		case graphics::object_type::barchart:
+			if (is_valid_index(graphic_object_def.primary_texture_handle) & is_valid_index(graphics::texture_tag(graphic_object_def.type_dependant))) {
+				container.object.flags.fetch_or(ui::gui_object::type_barchart, std::memory_order_acq_rel);
+
+				const auto flag_graphic = manager.multi_texture_instances.emplace();
+
+				flag_graphic.object.flag = nullptr;
+				flag_graphic.object.mask_or_primary = &(manager.textures.retrieve_by_key(graphic_object_def.primary_texture_handle));
+				flag_graphic.object.overlay_or_secondary = &(manager.textures.retrieve_by_key(graphics::texture_tag(graphic_object_def.type_dependant)));
+
+				if (((int32_t)container.object.size.y | (int32_t)container.object.size.x) == 0) {
+					flag_graphic.object.overlay_or_secondary->load_filedata();
+					container.object.size.y = flag_graphic.object.overlay_or_secondary->get_height();
+					container.object.size.x = flag_graphic.object.overlay_or_secondary->get_width();
+				}
+
+				container.object.type_dependant_handle.store(to_index(flag_graphic.id), std::memory_order_release);
+			}
+			break;
+		case graphics::object_type::piechart:
+		{
+			container.object.flags.fetch_or(ui::gui_object::type_piechart, std::memory_order_acq_rel);
+			if (((int32_t)container.object.size.y | (int32_t)container.object.size.x) == 0) {
+				container.object.size.x = graphic_object_def.size.x * 2;
+				container.object.size.y = graphic_object_def.size.y * 2;
+			}
+			container.object.position.x -= graphic_object_def.size.x;
+
+			const auto new_dt = manager.data_textures.emplace(100, 3);
+
+			container.object.type_dependant_handle.store(to_index(new_dt.id), std::memory_order_release);
+		}
+			break;
+		case graphics::object_type::linegraph:
+			container.object.flags.fetch_or(ui::gui_object::type_linegraph, std::memory_order_acq_rel);
+			//TODO
+			break;
+	}
+}
+
 ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, button_tag handle) {
 	const button_def& def = manager.ui_definitions.buttons[handle];
 	const auto new_gobj = manager.gui_objects.emplace();
@@ -256,28 +346,11 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 		gui_object::rotation_left :
 		gui_object::rotation_upright;
 
-	auto& button_graphic_def = manager.graphics_object_definitions.definitions[def.graphical_object_handle];
-	new_gobj.object.flags.store(gui_object::type_graphics_object | gui_object::visible | gui_object::enabled | rotation, std::memory_order_release);
+	new_gobj.object.flags.store(gui_object::visible | gui_object::enabled | rotation, std::memory_order_release);
 	new_gobj.object.position = def.position;
 	new_gobj.object.size = def.size;
-	if (new_gobj.object.size == ui::xy_pair{ 0,0 })
-		new_gobj.object.size = ui::xy_pair{ button_graphic_def.size.x, button_graphic_def.size.y };
 
-	if (is_valid_index(button_graphic_def.primary_texture_handle)) {
-		const auto button_graphic = manager.graphics_instances.emplace();
-
-		button_graphic.object.frame = 0;
-		button_graphic.object.graphics_object = &button_graphic_def;
-		button_graphic.object.t = &(manager.textures.retrieve_by_key(button_graphic_def.primary_texture_handle));
-
-		if (((int32_t)new_gobj.object.size.y | (int32_t)new_gobj.object.size.x) == 0) {
-			button_graphic.object.t->load_filedata();
-			new_gobj.object.size.y = button_graphic.object.t->get_height();
-			new_gobj.object.size.x = button_graphic.object.t->get_width() / ((button_graphic_def.number_of_frames != 0) ? button_graphic_def.number_of_frames : 1);
-		}
-
-		new_gobj.object.type_dependant_handle.store(to_index(button_graphic.id), std::memory_order_release);
-	}
+	instantiate_graphical_object(manager, new_gobj, def.graphical_object_handle);
 
 	if (is_valid_index(def.text_handle)) {
 		const auto[font_h, int_font_size] = graphics::unpack_font_handle(def.font_handle);
@@ -286,6 +359,7 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 
 	return new_gobj;
 }
+
 
 ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, icon_tag handle) {
 	const ui::icon_def& icon_def = manager.ui_definitions.icons[handle];
@@ -296,49 +370,10 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 		ui::gui_object::rotation_upright :
 		((icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_90_right ? ui::gui_object::rotation_right : ui::gui_object::rotation_left);
 
-	auto& graphic_object_def = manager.graphics_object_definitions.definitions[icon_def.graphical_object_handle];
-
 	new_gobj.object.position = icon_def.position;
-	if (new_gobj.object.size == ui::xy_pair{ 0,0 })
-		new_gobj.object.size = ui::xy_pair{ graphic_object_def.size.x, graphic_object_def.size.y };
+	new_gobj.object.flags.fetch_or(rotation, std::memory_order_acq_rel);
 
-	if ((icon_def.flags & ui::icon_def::is_shield) == 0) {
-		new_gobj.object.flags.store(ui::gui_object::type_graphics_object | ui::gui_object::visible | ui::gui_object::enabled | rotation, std::memory_order_release);
-
-		if (is_valid_index(graphic_object_def.primary_texture_handle)) {
-			const auto icon_graphic = manager.graphics_instances.emplace();
-
-			icon_graphic.object.frame = icon_def.frame;
-			icon_graphic.object.graphics_object = &graphic_object_def;
-			icon_graphic.object.t = &(manager.textures.retrieve_by_key(graphic_object_def.primary_texture_handle));
-
-			if (((int32_t)new_gobj.object.size.y | (int32_t)new_gobj.object.size.x) == 0) {
-				icon_graphic.object.t->load_filedata();
-				new_gobj.object.size.y = icon_graphic.object.t->get_height();
-				new_gobj.object.size.x = icon_graphic.object.t->get_width() / ((graphic_object_def.number_of_frames != 0) ? graphic_object_def.number_of_frames : 1);
-			}
-
-			new_gobj.object.type_dependant_handle.store(to_index(icon_graphic.id), std::memory_order_release);
-		}
-	} else {
-		new_gobj.object.flags.store(ui::gui_object::type_masked_flag | ui::gui_object::visible | ui::gui_object::enabled | rotation, std::memory_order_release);
-
-		if (is_valid_index(graphic_object_def.primary_texture_handle) & is_valid_index(graphics::texture_tag(graphic_object_def.type_dependant))) {
-			const auto flag_graphic = manager.multi_texture_instances.emplace();
-
-			flag_graphic.object.flag = nullptr;
-			flag_graphic.object.mask_or_primary = &(manager.textures.retrieve_by_key(graphic_object_def.primary_texture_handle));
-			flag_graphic.object.overlay_or_secondary = &(manager.textures.retrieve_by_key(graphics::texture_tag(graphic_object_def.type_dependant)));
-
-			if (((int32_t)new_gobj.object.size.y | (int32_t)new_gobj.object.size.x) == 0) {
-				flag_graphic.object.overlay_or_secondary->load_filedata();
-				new_gobj.object.size.y = flag_graphic.object.overlay_or_secondary->get_height();
-				new_gobj.object.size.x = flag_graphic.object.overlay_or_secondary->get_width();
-			}
-
-			new_gobj.object.type_dependant_handle.store(to_index(flag_graphic.id), std::memory_order_release);
-		}
-	}
+	instantiate_graphical_object(manager, new_gobj, icon_def.graphical_object_handle, icon_def.frame);
 
 	new_gobj.object.size.x *= icon_def.scale;
 	new_gobj.object.size.y *= icon_def.scale;
@@ -779,7 +814,7 @@ bool ui::gui_manager::on_mouse_move(const mouse_move& mm) {
 					obj.object.associated_behavior->create_tooltip(obj, *_this, ui::tagged_gui_object{ _this->tooltip_window, gui_object_tag(3) });
 					ui::shrink_to_children(*_this, ui::tagged_gui_object{ _this->tooltip_window, gui_object_tag(3) }, 16);
 
-					_this->tooltip_window.position = ui::absolute_position(obj);
+					_this->tooltip_window.position = ui::absolute_position(*_this, obj);
 					if(_this->tooltip_window.position.y + obj.object.size.y + _this->tooltip_window.size.y <= _this->height())
 						_this->tooltip_window.position.y += obj.object.size.y;
 					else
@@ -1083,4 +1118,44 @@ void ui::shrink_to_children(gui_manager& manager, tagged_gui_object g, int32_t b
 
 	g.object.size.x = border * 2 + std::max(g.object.size.x - minimum_child.x, 0);
 	g.object.size.y = border * 2 + std::max(g.object.size.y - minimum_child.y, 0);
+}
+
+ui::tagged_gui_object ui::create_dynamic_window(gui_manager& manager, window_tag t, tagged_gui_object parent) {
+	const auto& definition = manager.ui_definitions.windows[t];
+
+	if (is_valid_index(definition.background_handle)) {
+		const auto window = ((definition.flags & (window_def::is_moveable | window_def::is_dialog)) != 0) ?
+			create_dynamic_element<draggable_region>(manager, definition.background_handle, parent) :
+			create_dynamic_element<fixed_region>(manager, definition.background_handle, parent);
+
+		window.object.size = definition.size;
+		window.object.position = definition.position;
+
+		return window;
+	} else {
+		const auto window = manager.gui_objects.emplace();
+
+		window.object.flags.fetch_or(ui::gui_object::type_graphics_object, std::memory_order_acq_rel);
+
+		const auto bg_graphic = manager.graphics_instances.emplace();
+		bg_graphic.object.frame = 0;
+		bg_graphic.object.graphics_object = &(manager.graphics_object_definitions.definitions[manager.graphics_object_definitions.standard_text_background]);
+		bg_graphic.object.t = &(manager.textures.retrieve_by_key(manager.textures.standard_tiles_dialog));
+
+		window.object.type_dependant_handle.store(to_index(bg_graphic.id), std::memory_order_release);
+
+		if ((definition.flags & (window_def::is_moveable | window_def::is_dialog)) != 0) {
+			window.object.associated_behavior = concurrent_allocator<draggable_region>().allocate(1);
+			new (window.object.associated_behavior)draggable_region();
+		} else {
+			window.object.associated_behavior = concurrent_allocator<fixed_region>().allocate(1);
+			new (window.object.associated_behavior)fixed_region();
+		}
+
+		window.object.size = definition.size;
+		window.object.position = definition.position;
+
+		add_to_back(manager, parent, window);
+		return window;
+	}
 }

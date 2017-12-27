@@ -75,11 +75,11 @@ namespace ui {
 
 	namespace detail {
 		template<typename LM, typename BH = null_behavior_creation>
-		std::pair<ui::xy_pair, uint32_t> text_chunk_to_single_instance(ui::gui_manager& container, vector_backed_string<char16_t> text_source, uint32_t offset_in_chunk, tagged_gui_object parent_object, ui::xy_pair position, const text_format& fmt, LM& lm, const BH& behavior_creator = null_behavior_creation()) {
+		std::pair<ui::xy_pair, uint32_t> text_chunk_to_single_instance(ui::gui_manager& container, vector_backed_string<char16_t> text_source, uint32_t offset_in_chunk, tagged_gui_object parent_object, ui::xy_pair position, const text_format& fmt, LM&& lm, const BH& behavior_creator = null_behavior_creation()) {
 			graphics::font& this_font = container.fonts.at(fmt.font_handle);
 
 			const auto new_gobj = container.gui_objects.emplace();
-			const auto new_text_instance = create_text_instance(container, new_gobj, fmt);
+			const auto new_text_instance = ui::create_text_instance(container, new_gobj, fmt);
 
 			new_text_instance.object.length = (uint8_t)std::min(ui::text_instance::max_instance_length, (uint32_t)(text_source.length()) - offset_in_chunk);
 			memcpy(new_text_instance.object.text, text_source.get_str(container.text_data_sequences.text_data) + offset_in_chunk, (new_text_instance.object.length) * sizeof(char16_t));
@@ -127,8 +127,8 @@ namespace ui {
 }
 
 template<typename LM, typename BH>
-ui::xy_pair ui::text_chunk_to_instances(ui::gui_manager& manager, vector_backed_string<char16_t> text_source, tagged_gui_object parent_object, ui::xy_pair position, const text_format& fmt, LM& lm, const BH& behavior_creator) {
-	uint32_t position_in_chunk = 0;
+ui::xy_pair ui::text_chunk_to_instances(ui::gui_manager& manager, vector_backed_string<char16_t> text_source, tagged_gui_object parent_object, ui::xy_pair position, const text_format& fmt, LM&& lm, const BH& behavior_creator) {
+	int32_t position_in_chunk = 0;
 
 	const auto chunk_size = text_source.length();
 	while (position_in_chunk < chunk_size) {
@@ -217,7 +217,7 @@ namespace ui {
 }
 
 template<typename T, typename B>
-ui::tagged_gui_object ui::create_static_button(gui_manager& manager, T handle, tagged_gui_object parent, B& b) {
+ui::tagged_gui_object ui::create_static_element(gui_manager& manager, T handle, tagged_gui_object parent, B& b) {
 	auto new_obj = ui::detail::create_element_instance(manager, handle);
 	new_obj.object.flags.fetch_or(gui_object::static_behavior, std::memory_order_acq_rel);
 	new_obj.object.associated_behavior = &b;
@@ -233,21 +233,22 @@ ui::tagged_gui_object ui::create_static_button(gui_manager& manager, T handle, t
 }
 
 template<typename BEHAVIOR, typename T, typename ... PARAMS>
-ui::tagged_gui_object ui::create_dynamic_button(gui_manager& manager, T handle, tagged_gui_object parent, PARAMS&& ... params) {
+ui::tagged_gui_object ui::create_dynamic_element(gui_manager& manager, T handle, tagged_gui_object parent, PARAMS&& ... params) {
 	auto new_obj = ui::detail::create_element_instance(manager, handle);
 
-	BEHAVIOR* b = concurrent_allocator<BEHAVIOR>().allocate(1);
-	new (b)BEHAVIOR(std::forward<PARAMS>(params) ...);
+	if constexpr(!std::is_same_v<BEHAVIOR, gui_behavior>) {
+		BEHAVIOR* b = concurrent_allocator<BEHAVIOR>().allocate(1);
+		new (b)BEHAVIOR(std::forward<PARAMS>(params) ...);
 
-	new_obj.object.associated_behavior = b;
+		new_obj.object.associated_behavior = b;
 
-	if constexpr(std::is_same_v<T, button_tag> && detail::has_shortcut<BEHAVIOR>) {
-		auto& bdef = manager.ui_definitions.buttons[handle];
-		b->shortcut = bdef.shortcut;
+		if constexpr(std::is_same_v<T, button_tag> && detail::has_shortcut<BEHAVIOR>) {
+			auto& bdef = manager.ui_definitions.buttons[handle];
+			b->shortcut = bdef.shortcut;
+		}
 	}
-
+	
 	ui::add_to_back(manager, parent, new_obj);
-
 	return new_obj;
 }
 
@@ -402,10 +403,8 @@ namespace ui {
 			scrollbar_obj.object.associated_behavior = &b;
 
 			if ((scrollbar_definition.flags & scrollbar_def::has_range_limit) != 0) {
-				const auto minimum_range = ui::detail::create_element_instance(manager, scrollbar_definition.minimum_limit_icon);
-				ui::add_to_back(manager, scrollbar_obj, minimum_range);
-				const auto maximum_range = ui::detail::create_element_instance(manager, scrollbar_definition.maximum_limit_icon);
-				ui::add_to_back(manager, scrollbar_obj, maximum_range);
+				const auto minimum_range = ui::create_dynamic_element(manager, scrollbar_definition.minimum_limit_icon, scrollbar_obj);
+				const auto maximum_range = ui::create_dynamic_element(manager, scrollbar_definition.maximum_limit_icon, scrollbar_obj);
 
 				ui::hide(minimum_range);
 				ui::hide(maximum_range);
@@ -413,12 +412,12 @@ namespace ui {
 				b.maximum_limit_icon = &maximum_range.object;
 			}
 
-			const auto slider = create_dynamic_button<scrollbar_slider<BEHAVIOR>>(manager, scrollbar_definition.slider, scrollbar_obj, b);
+			const auto slider = create_dynamic_element<scrollbar_slider<BEHAVIOR>>(manager, scrollbar_definition.slider, scrollbar_obj, b);
 			b.slider = &slider.object;
 
-			const auto left_button = create_dynamic_button<simple_button<scrollbar_left_button<BEHAVIOR>>>(manager, b.vertical ? scrollbar_definition.maximum_button : scrollbar_definition.minimum_button, scrollbar_obj, b);
-			const auto right_button = create_dynamic_button<simple_button<scrollbar_right_button<BEHAVIOR>>>(manager, b.vertical ? scrollbar_definition.minimum_button : scrollbar_definition.maximum_button, scrollbar_obj, b);
-			const auto track = create_dynamic_button<scrollbar_track<BEHAVIOR>>(manager, scrollbar_definition.track, scrollbar_obj, b);
+			const auto left_button = create_dynamic_element<simple_button<scrollbar_left_button<BEHAVIOR>>>(manager, b.vertical ? scrollbar_definition.maximum_button : scrollbar_definition.minimum_button, scrollbar_obj, b);
+			const auto right_button = create_dynamic_element<simple_button<scrollbar_right_button<BEHAVIOR>>>(manager, b.vertical ? scrollbar_definition.minimum_button : scrollbar_definition.maximum_button, scrollbar_obj, b);
+			const auto track = create_dynamic_element<scrollbar_track<BEHAVIOR>>(manager, scrollbar_definition.track, scrollbar_obj, b);
 
 			scrollbar_obj.object.size = b.vertical ? ui::xy_pair{ std::max(left_button.object.size.x, scrollbar_definition.size.x) , extent } : ui::xy_pair{ extent, std::max(left_button.object.size.y, scrollbar_definition.size.y)};
 			scrollbar_obj.object.position = position;
