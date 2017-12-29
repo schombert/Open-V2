@@ -1,6 +1,11 @@
 #pragma once
 #include "gui.h"
 #include "graphics\\v2_window.h"
+
+#ifdef _DEBUG
+#include <Windows.h>
+#endif
+
 #undef max
 #undef min
 
@@ -216,7 +221,7 @@ namespace ui {
 	}
 }
 
-template<typename T, typename B>
+template<typename B, typename T>
 ui::tagged_gui_object ui::create_static_element(gui_manager& manager, T handle, tagged_gui_object parent, B& b) {
 	auto new_obj = ui::detail::create_element_instance(manager, handle);
 	new_obj.object.flags.fetch_or(gui_object::static_behavior, std::memory_order_acq_rel);
@@ -492,11 +497,11 @@ ui::tagged_gui_object ui::create_scrollbar(gui_manager& manager, scrollbar_tag h
 	return ui::detail::create_scrollbar_internal<BEHAVIOR>(manager, *b, scrollbar_definition, parent, scrollbar_definition.position, std::max(scrollbar_definition.size.x, scrollbar_definition.size.y));
 }
 
-template<typename BEHAVIOR>
-ui::tagged_gui_object ui::create_static_scrollbar(gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, scrollbar<BEHAVIOR>& b) {
+template<typename B>
+ui::tagged_gui_object ui::create_static_element(gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, scrollbar<B>& b) {
 	const auto& scrollbar_definition = manager.ui_definitions.scrollbars[handle];
 	
-	const auto res = ui::detail::create_scrollbar_internal<BEHAVIOR>(manager, b, scrollbar_definition, parent, scrollbar_definition.position, std::max(scrollbar_definition.size.x, scrollbar_definition.size.y));
+	const auto res = ui::detail::create_scrollbar_internal<B>(manager, b, scrollbar_definition, parent, scrollbar_definition.position, std::max(scrollbar_definition.size.x, scrollbar_definition.size.y));
 	res.object.flags.fetch_or(ui::gui_object::static_behavior, std::memory_order_acq_rel);
 
 	return res;
@@ -540,6 +545,173 @@ ui::tagged_gui_object ui::create_scrollable_region(gui_manager& manager, tagged_
 
 	ui::add_to_back(manager, parent, new_gobj);
 	return new_gobj;
+}
+
+namespace ui {
+	namespace detail {
+		template<typename RESULT, typename tag_type, typename object_type>
+		struct can_create_s : public std::false_type {};
+		template<typename tag_type, typename object_type>
+		struct can_create_s<decltype(void(ui::create_static_element(std::declval<gui_manager&>(), tag_type(), std::declval<tagged_gui_object>(), std::declval<object_type&>()))), tag_type, object_type> : public std::true_type {};
+		template<typename tag_type, typename object_type>
+		constexpr bool can_create = can_create_s<void, tag_type, object_type>::value;
+	}
+}
+
+namespace ui {
+	namespace detail {
+		template<typename ...REST>
+		struct window_get {
+			template<typename T>
+			static T apply(T&&) {
+				static_assert(false, "no matching element found for that name");
+			}
+		};
+		template<typename i, typename INDEX, typename TYPE, typename ...REST>
+		struct window_get<i, INDEX, TYPE, REST...> {
+			static auto apply(gui_window<INDEX, TYPE, REST ...>& w) {
+				return window_get<i, REST...>::apply(w);
+			}
+			static auto apply(const gui_window<INDEX, TYPE, REST ...>& w) {
+				return window_get<i, REST...>::apply(w);
+			}
+		};
+		template<typename INDEX, typename TYPE, typename ...REST>
+		struct window_get<INDEX, INDEX, TYPE, REST...> {
+			static TYPE& apply(gui_window<INDEX, TYPE, REST ...>& w) {
+				return w.m_object;
+			}
+			static const TYPE& apply(const gui_window<INDEX, TYPE, REST ...>& w) {
+				return w.m_object;
+			}
+		};
+	}
+}
+
+template<typename INDEX, typename TYPE, typename ... REST>
+class ui::gui_window<INDEX, TYPE, REST ...> : public ui::gui_window<REST ...> {
+private:
+	TYPE m_object;
+	bool create_named_member(gui_manager& manager, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne);
+	ui::tagged_gui_object create_window(gui_manager& manager, const ui::window_def& def);
+public:
+	template<typename i>
+	auto get();
+	template<typename i>
+	auto get() const;
+	ui::tagged_gui_object create(gui_manager& manager, const ui::window_def& def);
+
+	friend struct ui::detail::window_get<INDEX, INDEX, TYPE, REST ...>;
+};
+
+template<typename BASE_BEHAVIOR>
+class ui::gui_window<BASE_BEHAVIOR> : public BASE_BEHAVIOR {
+private:
+	bool create_named_member(gui_manager& manager, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne);
+	ui::tagged_gui_object create_window(gui_manager& manager, const ui::window_def& def);
+public:
+	ui::gui_object_tag window_object;
+	ui::tagged_gui_object create(gui_manager& manager, const ui::window_def& def);
+};
+
+template<typename INDEX, typename TYPE, typename ...REST>
+template<typename i>
+auto ui::gui_window<INDEX, TYPE, REST...>::get() { return detail::window_get<i, INDEX, TYPE, REST...>::apply(*this); }
+
+template<typename INDEX, typename TYPE, typename ...REST>
+template<typename i>
+auto ui::gui_window<INDEX, TYPE, REST...>::get() const { return detail::window_get<i, INDEX, TYPE, REST...>::apply(*this); }
+
+template<typename INDEX, typename TYPE, typename ...REST>
+ui::tagged_gui_object ui::gui_window<INDEX, TYPE, REST...>::create_window(gui_manager & manager, const ui::window_def & def) {
+	return gui_window<REST...>::create_window(manager, def);
+}
+
+template<typename INDEX, typename TYPE, typename ...REST>
+bool ui::gui_window<INDEX, TYPE, REST...>::create_named_member(gui_manager& manager, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne) {
+	if (compile_time_str_compare_ci<INDEX>(rn_s, rn_e) == 0) {
+		std::visit([_this = this, &win, &manager](auto tag) {
+			if constexpr(ui::detail::can_create<decltype(tag), TYPE>)
+				ui::create_static_element(manager, tag, win, _this->m_object);
+			else {
+#ifdef _DEBUG
+				OutputDebugStringA("Unable to instantiate window element: bad tag type\n");
+#endif
+			}
+		}, t);
+		return true;
+	} else {
+		return gui_window<REST...>::create_named_member(manager, t, ns, ne);
+	}
+}
+
+template<typename INDEX, typename TYPE, typename ...REST>
+ui::tagged_gui_object ui::gui_window<INDEX, TYPE, REST...>::create(gui_manager & manager, const ui::window_def & definition) {
+	const auto win = create_window(manager, definition);
+	for (auto i = definition.sub_object_definitions.crbegin(); i != definition.sub_object_definitions.crend(); ++i) {
+		auto rn = manager.nmaps.get_raw_name(*i);
+		const char* rn_s = rn.get_str();
+		const char* rn_e = rn_s + rn.length();
+
+		if (!create_named_member(manager, win, *i, rn_s, rn_e)) {
+			std::visit([&manager, &win](auto tag) {
+				ui::create_dynamic_element(manager, tag, win);
+			}, *i);
+		}
+	}
+	return win;
+}
+
+template<typename BASE_BEHAVIOR>
+bool ui::gui_window<BASE_BEHAVIOR>::create_named_member(gui_manager& manager, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne) {
+	return false;
+}
+
+template<typename BASE_BEHAVIOR>
+ui::tagged_gui_object ui::gui_window<BASE_BEHAVIOR>::create_window(gui_manager & manager, const ui::window_def & definition) {
+	const auto window = manager.gui_objects.emplace();
+
+	window.object.flags.store(ui::gui_object::enabled | ui::gui_object::static_behavior, std::memory_order_release);
+
+	if (is_valid_index(definition.background_handle)) {
+		const auto& bgdefinition = manager.ui_definitions.buttons[definition.background_handle];
+		ui::detail::instantiate_graphical_object(manager, window, bgdefinition.graphical_object_handle);
+	} else {
+		container.object.flags.fetch_or(ui::gui_object::type_graphics_object, std::memory_order_acq_rel);
+
+		const auto bg_graphic = manager.graphics_instances.emplace();
+		bg_graphic.object.frame = 0;
+		bg_graphic.object.graphics_object = &(manager.graphics_object_definitions.definitions[manager.graphics_object_definitions.standard_text_background]);
+		bg_graphic.object.t = &(manager.textures.retrieve_by_key(manager.textures.standard_tiles_dialog));
+
+		window.object.type_dependant_handle.store(to_index(bg_graphic.id), std::memory_order_release);
+	}
+
+	window.object.associated_behavior = this;
+	window.object.size = definition.size;
+	window.object.position = definition.position;
+
+	return window;
+}
+
+template<typename BASE_BEHAVIOR>
+ui::tagged_gui_object ui::gui_window<BASE_BEHAVIOR>::create(gui_manager& manager, const ui::window_def& definition) {
+	const auto win = create_window(manager, definition);
+	for (auto i = definition.sub_object_definitions.crbegin(); i != definition.sub_object_definitions.crend(); ++i) {
+		std::visit([&manager, &win](auto tag) {
+			ui::create_dynamic_element(manager, tag, win);
+		}, *i);
+	}
+	return win;
+}
+
+template<typename ... REST>
+ui::tagged_gui_object ui::create_static_element(gui_manager& manager, window_tag handle, tagged_gui_object parent, gui_window<REST...>& b) {
+	const auto& window_definition = manager.ui_definitions.windows[handle];
+	const auto res = b.create(manager, window_definition);
+	res.object.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
+	ui::add_to_back(manager, parent, res);
+	return res;
 }
 
 #include "concurrency_tools\\concurrency_tools.hpp"

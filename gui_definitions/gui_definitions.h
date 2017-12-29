@@ -291,6 +291,29 @@ namespace ui {
 					return std::string();
 			}, handle);
 		}
+
+		vector_backed_string<char> get_raw_name(element_tag handle) {
+			return std::visit([_this = this](auto tag) {
+				if constexpr(std::is_same_v<button_tag, decltype(tag)>)
+					return _this->button_names[to_index(tag)];
+				else if constexpr(std::is_same_v<icon_tag, decltype(tag)>)
+					return _this->icon_names[to_index(tag)];
+				else if constexpr(std::is_same_v<text_tag, decltype(tag)>)
+					return _this->text_names[to_index(tag)];
+				else if constexpr(std::is_same_v<position_tag, decltype(tag)>)
+					return _this->position_names[to_index(tag)];
+				else if constexpr(std::is_same_v<overlapping_region_tag, decltype(tag)>)
+					return _this->overlapping_region_names[to_index(tag)];
+				else if constexpr(std::is_same_v<listbox_tag, decltype(tag)>)
+					return _this->listbox_names[to_index(tag)];
+				else if constexpr(std::is_same_v<scrollbar_tag, decltype(tag)>)
+					return _this->scrollbar_names[to_index(tag)];
+				else if constexpr(std::is_same_v<window_tag, decltype(tag)>)
+					return _this->window_names[to_index(tag)];
+				else
+					return vector_backed_string<char>();
+			}, handle);
+		}
 	};
 
 	struct definitions {

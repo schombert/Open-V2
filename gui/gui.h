@@ -33,6 +33,8 @@ namespace ui {
 	struct key_up;
 	struct text_event;
 
+	constexpr int32_t piechart_resolution = 100;
+
 	enum class text_color : uint8_t {
 		black, white, red, green, yellow,
 		outlined_white, outlined_black
@@ -65,6 +67,7 @@ namespace ui {
 
 	enum class tooltip_behavior {
 		tooltip,
+		variable_tooltip,
 		no_tooltip,
 		transparent
 	};
@@ -80,8 +83,8 @@ namespace ui {
 		virtual bool on_get_focus(tagged_gui_object, gui_manager&) { return false; }
 		virtual void on_lose_focus(tagged_gui_object, gui_manager&) { }
 		virtual void update_data(tagged_gui_object, gui_manager&) {}
-		virtual tooltip_behavior has_tooltip(tagged_gui_object, gui_manager&) { return tooltip_behavior::transparent; }
-		virtual void create_tooltip(tagged_gui_object, gui_manager&, tagged_gui_object /*tooltip_window*/) { }
+		virtual tooltip_behavior has_tooltip(tagged_gui_object, gui_manager&, const mouse_move&) { return tooltip_behavior::transparent; }
+		virtual void create_tooltip(tagged_gui_object, gui_manager&, const mouse_move&, tagged_gui_object /*tooltip_window*/) { }
 		virtual ~gui_behavior() {};
 	};
 
@@ -89,7 +92,7 @@ namespace ui {
 	public:
 		virtual bool on_lclick(tagged_gui_object, gui_manager&, const lbutton_down&) override { return true; }
 		virtual bool on_rclick(tagged_gui_object, gui_manager&, const rbutton_down&) override { return true; }
-		virtual tooltip_behavior has_tooltip(tagged_gui_object, gui_manager&) override { return tooltip_behavior::no_tooltip; }
+		virtual tooltip_behavior has_tooltip(tagged_gui_object, gui_manager&, const mouse_move&) override { return tooltip_behavior::no_tooltip; }
 	};
 
 	class draggable_region : public visible_region {
@@ -131,12 +134,24 @@ namespace ui {
 		virtual void update_data(tagged_gui_object, gui_manager&) override;
 	};
 
-	class piechart_behavior : public visible_region {
+	class piechart : public visible_region {
+	private:
+		vector_backed_string<char16_t> labels[piechart_resolution];
+		float fractions[piechart_resolution];
+		graphics::data_texture* dt = nullptr;
+		float fraction_used = 0.0f;
 	public:
+		piechart() {}
+
 		virtual bool on_lclick(tagged_gui_object, gui_manager&, const lbutton_down&) override;
 		virtual bool on_rclick(tagged_gui_object, gui_manager&, const rbutton_down&) override;
-		virtual tooltip_behavior has_tooltip(tagged_gui_object, gui_manager&) override;
-		virtual void create_tooltip(tagged_gui_object, gui_manager&, tagged_gui_object /*tooltip_window*/) override;
+		virtual tooltip_behavior has_tooltip(tagged_gui_object, gui_manager&, const mouse_move&) override;
+		virtual void create_tooltip(tagged_gui_object, gui_manager&, const mouse_move&, tagged_gui_object /*tooltip_window*/) override;
+
+		void associate(graphics::data_texture* d) { dt = d; }
+		void clear_entries();
+		void add_entry(vector_backed_string<char16_t> label, float fraction, graphics::color_rgb color);
+		void update_display() const;
 	};
 
 	template<typename BASE>
@@ -192,6 +207,9 @@ namespace ui {
 		virtual bool on_scroll(tagged_gui_object, gui_manager&, const scroll&) override;
 		virtual void update_data(tagged_gui_object, gui_manager&) override;
 	};
+
+	template<typename ... REST>
+	class gui_window;
 
 	class gui_object {
 	public:
@@ -250,6 +268,7 @@ namespace ui {
 
 		tagged_gui_object last_sibling_of(const gui_manager& manager, tagged_gui_object g);
 
+		void instantiate_graphical_object(ui::gui_manager& manager, ui::tagged_gui_object container, graphics::obj_definition_tag gtag, int32_t frame = 0);
 		tagged_gui_object create_element_instance(gui_manager& manager, button_tag handle);
 		tagged_gui_object create_element_instance(gui_manager& manager, icon_tag handle);
 		tagged_gui_object create_element_instance(gui_manager& manager, ui::text_tag handle, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
@@ -261,16 +280,22 @@ namespace ui {
 	}
 
 	tagged_object<ui::text_instance, ui::text_instance_tag> create_text_instance(ui::gui_manager &container, tagged_gui_object new_gobj, const text_format& fmt);
-	template<typename T, typename B>
+
+	template<typename B, typename T>
 	ui::tagged_gui_object create_static_element(gui_manager& manager, T handle, tagged_gui_object parent, B& b);
 	template<typename BEHAVIOR = ui::gui_behavior, typename T, typename ... PARAMS>
 	ui::tagged_gui_object create_dynamic_element(gui_manager& manager, T handle, tagged_gui_object parent, PARAMS&& ... params);
+
+	template<typename B>
+	ui::tagged_gui_object create_static_element(gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, scrollbar<B>& b);
+	ui::tagged_gui_object create_static_element(gui_manager& manager, icon_tag handle, tagged_gui_object parent, piechart& b);
+	template<typename ... REST>
+	ui::tagged_gui_object create_static_element(gui_manager& manager, window_tag handle, tagged_gui_object parent, gui_window<REST...>& b);
+
 	template<typename BEHAVIOR, typename ... PARAMS>
 	ui::tagged_gui_object create_scrollbar (gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, PARAMS&& ... params);
 	template<typename BEHAVIOR, typename ... PARAMS>
 	ui::tagged_gui_object create_fixed_sz_scrollbar(gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, ui::xy_pair position, int32_t extent, PARAMS&& ... params);
-	template<typename BEHAVIOR>
-	ui::tagged_gui_object create_static_scrollbar(gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, scrollbar<BEHAVIOR>& b);
 	template<typename BEHAVIOR>
 	ui::tagged_gui_object create_static_fixed_sz_scrollbar(gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, ui::xy_pair position, int32_t extent, scrollbar<BEHAVIOR>& b);
 	template<typename FILL_FUNCTION>
@@ -347,6 +372,7 @@ namespace ui {
 		graphics::font_manager fonts;
 
 		ui::definitions ui_definitions;
+		ui::name_maps nmaps;
 		graphics::object_definitions graphics_object_definitions;
 		text_data::text_sequences text_data_sequences;
 

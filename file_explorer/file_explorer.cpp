@@ -914,8 +914,8 @@ public:
 
 class tt_holder : public ui::draggable_region {
 public:
-	virtual ui::tooltip_behavior has_tooltip(ui::tagged_gui_object, ui::gui_manager&) override { return ui::tooltip_behavior::tooltip; };
-	virtual void create_tooltip(ui::tagged_gui_object, ui::gui_manager& m, ui::tagged_gui_object tw) override {
+	virtual ui::tooltip_behavior has_tooltip(ui::tagged_gui_object, ui::gui_manager&, const ui::mouse_move&) override { return ui::tooltip_behavior::tooltip; };
+	virtual void create_tooltip(ui::tagged_gui_object, ui::gui_manager& m, const ui::mouse_move&, ui::tagged_gui_object tw) override {
 		ui::text_chunk_to_instances(
 			m,
 			vector_backed_string<char16_t>(u"test tooltip"),

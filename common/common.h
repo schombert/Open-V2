@@ -372,6 +372,33 @@ inline char ascii_to_lower(char in) {
 	return converted[(uint8_t)in];
 }
 
+inline char16_t* _u16itoa(uint32_t i, char16_t* buffer) {
+	if (i >= 10) {
+		const auto num = i / 10;
+		const auto rem = i % 10;
+
+		const auto tail = _u16itoa(num, buffer);
+		tail[0] = u'0' + rem;
+		return tail + 1;
+	} else {
+		buffer[0] = u'0' + i;
+		return buffer + 1;
+	}
+}
+
+inline void u16itoa(int32_t i, char16_t* buffer) {
+	if (i < 0) {
+		buffer[0] = u'-';
+		const auto res = _u16itoa(uint32_t(-i), buffer + 1);
+		res[0] = 0;
+	} else {
+		const auto res = _u16itoa(uint32_t(i), buffer);
+		res[0] = 0;
+	}
+}
+
+
+
 struct vector_backed_string_data {
 	uint32_t offset;
 	uint16_t length;
@@ -404,13 +431,17 @@ struct vector_backed_string {
 		vec.insert(vec.end(), str.begin(), str.end());
 	}
 	int32_t length() const {
-		return data.vbs.high_mask == (uint16_t)-1 ? data.vbs.length : std::char_traits<char_type>::length(data.ptr);
+		return data.vbs.high_mask == (uint16_t)-1 ? data.vbs.length : (data.ptr ? std::char_traits<char_type>::length(data.ptr) : 0);
 	}
 	const char_type* get_str(const std::vector<char_type>& vec) const {
 		return data.vbs.high_mask == (uint16_t)-1 ? vec.data() + data.vbs.offset : data.ptr;
 	}
 	std::basic_string<char_type> get_string(const std::vector<char_type>& vec) const {
 		return data.vbs.high_mask == (uint16_t)-1 ? std::basic_string<char_type>(vec.data() + data.vbs.offset, size_t(data.vbs.length)) : std::basic_string<char_type>(data.ptr);
+	}
+	void operator=(vector_backed_string other) {
+		static_assert(sizeof(data.ptr) >= sizeof(data.vbs));
+		data.ptr = other.data.ptr;
 	}
 };
 
