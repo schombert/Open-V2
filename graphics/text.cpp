@@ -485,10 +485,17 @@ namespace graphics {
 		return fonts.at(t);
 	}
 
+	namespace detail {
+		int32_t font_size_adjustment(int32_t sz) {
+			const int32_t base = (sz * 2 + 2) / 3;
+			return base + (base & 1);
+		}
+	}
+
 	uint32_t font_manager::find_font_size(const char* start, const char* end) {
 		const auto mapped_size = map_functions<sorted_font_size_map_type>::bt_scan_ci(start, end, 0);
 		if (mapped_size != 0)
-			return mapped_size;
+			return detail::font_size_adjustment(mapped_size);
 
 		const char* first_int = start;
 		while (first_int != end) {
@@ -503,13 +510,9 @@ namespace graphics {
 			++last_int;
 		}
 		if (first_int == last_int)
-			return 16;
+			return 12;
 
-		const auto parsed_size = parse_uint(first_int, last_int);
-		if ((parsed_size % 2) == 1)
-			return parsed_size + 1;
-		else
-			return parsed_size;
+		return detail::font_size_adjustment(parse_uint(first_int, last_int));
 	}
 	void font_manager::load_standard_fonts(const directory& root) {
 		const char fallback[] = "unifont-9.0.02.ttf";

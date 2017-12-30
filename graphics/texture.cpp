@@ -94,7 +94,7 @@ namespace graphics {
 
 	void texture::load_filedata() {
 		if (filedata.load(std::memory_order_acquire) == nullptr) {
-			auto data = SOIL_load_image(filename.c_str(), &width, &height, &channels, SOIL_LOAD_AUTO | SOIL_FLAG_DDS_LOAD_DIRECT);
+			auto data = SOIL_load_image(filename.c_str(), &width, &height, &channels, SOIL_LOAD_AUTO);
 
 			unsigned char* expected = nullptr;
 			if (!filedata.compare_exchange_strong(expected, data, std::memory_order_release, std::memory_order_acquire)) {

@@ -935,12 +935,16 @@ public:
 	}
 };
 
+using budget_window_t = ui::gui_window<CT_STRING("chart_0"), ui::piechart, ui::draggable_region>;
+
 struct gui_window_handler {
 	ui::gui_manager& gui_m;
 
 	//ui::simple_button<mb_button> mb_button_a;
 	tt_holder mb_button_a;
 	ui::scrollbar<debug_scollbar> test_sb;
+
+	budget_window_t budget_window;
 
 	gui_window_handler(ui::gui_manager& m) : gui_m(m) {}
 
@@ -950,7 +954,15 @@ struct gui_window_handler {
 	}
 
 	void operator()(const ui::creation&, ui::window_base& ) {
-		ui::create_static_element(gui_m, ui::button_tag(8), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, mb_button_a);
+		ui::create_static_element(gui_m, std::get<ui::window_tag>(gui_m.ui_definitions.name_to_element_map["country_budget"]), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, budget_window);
+		auto& pc = budget_window.get<CT_STRING("chart_0")>();
+		pc.add_entry(vector_backed_string<char16_t>(u"category 1"), 0.4f, graphics::color_rgb{ 255,0,0 } );
+		pc.add_entry(vector_backed_string<char16_t>(u"category 2"), 0.1f, graphics::color_rgb{ 255,255,0 });
+		pc.add_entry(vector_backed_string<char16_t>(u"category 3"), 0.25f, graphics::color_rgb{ 255,0,255 });
+		pc.add_entry(vector_backed_string<char16_t>(u"category 4"), 0.25f, graphics::color_rgb{ 0,255,255 });
+		pc.update_display();
+
+		//ui::create_static_element(gui_m, ui::button_tag(8), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, mb_button_a);
 		//mb_button_a.shortcut = virtual_key::A;
 
 		//const auto new_button = ui::detail::create_element_instance(gui_m, ui::button_tag(8));
@@ -962,12 +974,12 @@ struct gui_window_handler {
 		const auto new_text = ui::detail::create_element_instance(gui_m, ui::text_tag(29));
 		ui::add_to_back(gui_m, ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, new_text);
 
-		ui::create_static_scrollbar(gui_m, ui::scrollbar_tag(10), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, test_sb);
+		ui::create_static_element(gui_m, ui::scrollbar_tag(10), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, test_sb);
 		test_sb.set_limits(gui_m, 0, 75);
 
 		ui::create_scrollable_text_block(gui_m, ui::text_tag(571), text_data::text_tag(1001), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) });
 
-		ui::create_dynamic_window(gui_m, ui::window_tag(8), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) });
+		//ui::create_dynamic_window(gui_m, ui::window_tag(8), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) });
 	}
 
 	void operator()(const ui::resize& r, ui::window_base& ) {

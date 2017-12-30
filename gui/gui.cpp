@@ -57,6 +57,66 @@ void ui::gui_manager::destroy(gui_object & g) {
 }
 
 namespace ui {
+	namespace detail {
+		enum class sub_alignment {
+			base, center, extreme
+		};
+
+		int32_t position_from_subalignment(int32_t container, int32_t base_position, sub_alignment align) {
+			switch (align) {
+				case sub_alignment::base:
+					return base_position;
+				case sub_alignment::center:
+					return container / 2 + base_position;
+				case sub_alignment::extreme:
+					return container + base_position;
+			}
+		}
+
+		sub_alignment vertical_subalign(ui::alignment align) {
+			switch (align) {
+				case alignment::top_left:
+				case alignment::top_center:
+				case alignment::top_right:
+					return sub_alignment::base;
+				case alignment::left:
+				case alignment::center:
+				case alignment::right:
+					return sub_alignment::center;
+				case alignment::bottom_left:
+				case alignment::bottom_center:
+				case alignment::bottom_right:
+					return sub_alignment::extreme;
+			}
+		}
+
+		sub_alignment horizontal_subalign(ui::alignment align) {
+			switch (align) {
+				case alignment::top_left:
+				case alignment::left:
+				case alignment::bottom_left:
+					return sub_alignment::base;
+				case alignment::top_center:
+				case alignment::center:
+				case alignment::bottom_center:
+					return sub_alignment::center;
+				case alignment::top_right:
+				case alignment::right:
+				case alignment::bottom_right:
+					return sub_alignment::extreme;
+			}
+		}
+	}
+}
+
+ui::xy_pair ui::detail::position_with_alignment(ui::xy_pair container_size, ui::xy_pair raw_position, ui::alignment align) {
+	return ui::xy_pair{
+		position_from_subalignment(container_size.x, raw_position.x, ui::detail::horizontal_subalign(align)), 
+		position_from_subalignment(container_size.y, raw_position.y, ui::detail::vertical_subalign(align))
+	};
+}
+
+namespace ui {
 	visible_region global_visible_region;
 
 	text_data::alignment text_aligment_from_button_definition(const button_def& def) {
@@ -132,7 +192,7 @@ namespace ui {
 		return true;
 	}
 
-	bool draggable_region::on_lclick(tagged_gui_object t, gui_manager& m, const lbutton_down&) {
+	bool draggable_region::on_get_focus(tagged_gui_object t, gui_manager& m) {
 		base_position = t.object.position;
 		ui::move_to_front(m, t);
 		return true;
@@ -430,10 +490,10 @@ void ui::detail::instantiate_graphical_object(ui::gui_manager& manager, ui::tagg
 		case graphics::object_type::piechart:
 		{
 			container.object.flags.fetch_or(ui::gui_object::type_piechart, std::memory_order_acq_rel);
-			if (((int32_t)container.object.size.y | (int32_t)container.object.size.x) == 0) {
-				container.object.size.x = graphic_object_def.size.x * 2;
-				container.object.size.y = graphic_object_def.size.y * 2;
-			}
+
+			container.object.size.x = graphic_object_def.size.x * 2;
+			container.object.size.y = graphic_object_def.size.y * 2;
+
 			container.object.position.x -= graphic_object_def.size.x;
 
 			const auto new_dt = manager.data_textures.emplace(ui::piechart_resolution, 3);
@@ -460,6 +520,7 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 	new_gobj.object.flags.store(gui_object::visible | gui_object::enabled | rotation, std::memory_order_release);
 	new_gobj.object.position = def.position;
 	new_gobj.object.size = def.size;
+	new_gobj.object.align = alignment_from_definition(def);
 
 	instantiate_graphical_object(manager, new_gobj, def.graphical_object_handle);
 
@@ -483,6 +544,7 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 
 	new_gobj.object.position = icon_def.position;
 	new_gobj.object.flags.fetch_or(rotation, std::memory_order_acq_rel);
+	new_gobj.object.align = alignment_from_definition(icon_def);
 
 	instantiate_graphical_object(manager, new_gobj, icon_def.graphical_object_handle, icon_def.frame);
 
@@ -498,6 +560,7 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 	
 	new_gobj.object.position = text_def.position;
 	new_gobj.object.size = ui::xy_pair{ text_def.max_width, 0 };
+	new_gobj.object.align = alignment_from_definition(text_def);
 
 	new_gobj.object.size.x -= text_def.border_size.x * 2;
 
@@ -516,11 +579,7 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 	return new_gobj;
 }
 
-void ui::detail::render_object_type(const gui_manager& manager, graphics::open_gl_wrapper& ogl, const gui_object& root_obj, ui::xy_pair position, uint32_t type, bool currently_enabled) {
-	const float effective_position_x = static_cast<float>(position.x) + static_cast<float>(root_obj.position.x) * manager.scale();
-	const float effective_position_y = static_cast<float>(position.y) + static_cast<float>(root_obj.position.y) * manager.scale();
-	const float effective_width = static_cast<float>(root_obj.size.x) * manager.scale();
-	const float effective_height = static_cast<float>(root_obj.size.y) * manager.scale();
+void ui::detail::render_object_type(const gui_manager& manager, graphics::open_gl_wrapper& ogl, const gui_object& root_obj, const screen_position& position, uint32_t type, bool currently_enabled) {
 	const auto current_rotation = root_obj.get_rotation();
 
 	switch (type) {
@@ -530,10 +589,10 @@ void ui::detail::render_object_type(const gui_manager& manager, graphics::open_g
 			if (dt) {
 				ogl.render_barchart(
 					currently_enabled,
-					effective_position_x,
-					effective_position_y,
-					effective_width,
-					effective_height,
+					position.effective_position_x,
+					position.effective_position_y,
+					position.effective_width,
+					position.effective_height,
 					*dt,
 					current_rotation);
 			}
@@ -549,10 +608,10 @@ void ui::detail::render_object_type(const gui_manager& manager, graphics::open_g
 						ogl.render_bordered_rect(
 							currently_enabled,
 							gi->graphics_object->type_dependant,
-							effective_position_x,
-							effective_position_y,
-							effective_width,
-							effective_height,
+							position.effective_position_x,
+							position.effective_position_y,
+							position.effective_width,
+							position.effective_height,
 							*t,
 							current_rotation);
 					} else if (gi->graphics_object->number_of_frames > 1) {
@@ -560,19 +619,19 @@ void ui::detail::render_object_type(const gui_manager& manager, graphics::open_g
 							currently_enabled,
 							gi->frame,
 							gi->graphics_object->number_of_frames,
-							effective_position_x,
-							effective_position_y,
-							effective_width,
-							effective_height,
+							position.effective_position_x,
+							position.effective_position_y,
+							position.effective_width,
+							position.effective_height,
 							*t,
 							current_rotation);
 					} else {
 						ogl.render_textured_rect(
 							currently_enabled,
-							effective_position_x,
-							effective_position_y,
-							effective_width,
-							effective_height,
+							position.effective_position_x,
+							position.effective_position_y,
+							position.effective_width,
+							position.effective_height,
 							*t,
 							current_rotation);
 					}
@@ -587,10 +646,10 @@ void ui::detail::render_object_type(const gui_manager& manager, graphics::open_g
 			if (l) {
 				ogl.render_linegraph(
 					currently_enabled,
-					effective_position_x,
-					effective_position_y,
-					effective_width,
-					effective_height,
+					position.effective_position_x,
+					position.effective_position_y,
+					position.effective_width,
+					position.effective_height,
 					*l);
 			}
 			break;
@@ -605,10 +664,10 @@ void ui::detail::render_object_type(const gui_manager& manager, graphics::open_g
 				if (flag && mask) {
 					ogl.render_masked_rect(
 						currently_enabled,
-						effective_position_x,
-						effective_position_y,
-						effective_width,
-						effective_height,
+						position.effective_position_x,
+						position.effective_position_y,
+						position.effective_width,
+						position.effective_height,
 						*flag,
 						*mask,
 						current_rotation);
@@ -616,10 +675,10 @@ void ui::detail::render_object_type(const gui_manager& manager, graphics::open_g
 				if (overlay) {
 					ogl.render_textured_rect(
 						currently_enabled,
-						effective_position_x,
-						effective_position_y,
-						effective_width,
-						effective_height,
+						position.effective_position_x,
+						position.effective_position_y,
+						position.effective_width,
+						position.effective_height,
 						*overlay,
 						current_rotation);
 				}
@@ -636,10 +695,10 @@ void ui::detail::render_object_type(const gui_manager& manager, graphics::open_g
 					ogl.render_progress_bar(
 						currently_enabled,
 						m->progress,
-						effective_position_x,
-						effective_position_y,
-						effective_width,
-						effective_height,
+						position.effective_position_x,
+						position.effective_position_y,
+						position.effective_width,
+						position.effective_height,
 						*primary,
 						*secondary,
 						current_rotation);
@@ -653,9 +712,9 @@ void ui::detail::render_object_type(const gui_manager& manager, graphics::open_g
 			if (dt) {
 				ogl.render_piechart(
 					currently_enabled,
-					effective_position_x,
-					effective_position_y,
-					effective_width,
+					position.effective_position_x,
+					position.effective_position_y,
+					position.effective_width,
 					*dt);
 			}
 			break;
@@ -668,25 +727,25 @@ void ui::detail::render_object_type(const gui_manager& manager, graphics::open_g
 
 				switch (ti->color) {
 					case ui::text_color::black:
-						ogl.render_text(ti->text, ti->length, currently_enabled, effective_position_x, effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 0.0f, 0.0f, 0.0f }, fnt);
+						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 0.0f, 0.0f, 0.0f }, fnt);
 						break;
 					case ui::text_color::green:
-						ogl.render_text(ti->text, ti->length, currently_enabled, effective_position_x, effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 0.0f, 0.623f, 0.01f }, fnt);
+						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 0.0f, 0.623f, 0.01f }, fnt);
 						break;
 					case ui::text_color::outlined_black:
-						ogl.render_outlined_text(ti->text, ti->length, currently_enabled, effective_position_x, effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 0.0f, 0.0f, 0.0f }, fnt);
+						ogl.render_outlined_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 0.0f, 0.0f, 0.0f }, fnt);
 						break;
 					case ui::text_color::outlined_white:
-						ogl.render_outlined_text(ti->text, ti->length, currently_enabled, effective_position_x, effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 1.0f, 1.0f, 1.0f }, fnt);
+						ogl.render_outlined_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 1.0f, 1.0f, 1.0f }, fnt);
 						break;
 					case ui::text_color::red:
-						ogl.render_text(ti->text, ti->length, currently_enabled, effective_position_x, effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 1.0f, 0.2f, 0.2f }, fnt);
+						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 1.0f, 0.2f, 0.2f }, fnt);
 						break;
 					case ui::text_color::white:
-						ogl.render_text(ti->text, ti->length, currently_enabled, effective_position_x, effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 1.0f, 1.0f, 1.0f }, fnt);
+						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 1.0f, 1.0f, 1.0f }, fnt);
 						break;
 					case ui::text_color::yellow:
-						ogl.render_text(ti->text, ti->length, currently_enabled, effective_position_x, effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 1.0f, 0.75f, 1.0f }, fnt);
+						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 1.0f, 0.75f, 1.0f }, fnt);
 						break;
 				}
 			}
@@ -695,43 +754,46 @@ void ui::detail::render_object_type(const gui_manager& manager, graphics::open_g
 	}
 }
 
-void ui::detail::render(const gui_manager& manager, graphics::open_gl_wrapper &ogl, const gui_object &root_obj, ui::xy_pair position, bool parent_enabled) {
+void ui::detail::render(const gui_manager& manager, graphics::open_gl_wrapper &ogl, const gui_object &root_obj, ui::xy_pair position, ui::xy_pair container_size, bool parent_enabled) {
 	const auto flags = root_obj.flags.load(std::memory_order_acquire);
 	if ((flags & ui::gui_object::visible) == 0)
 		return;
 
 	const auto type = flags & ui::gui_object::type_mask;
-	
-	const float effective_position_x = static_cast<float>(position.x) + static_cast<float>(root_obj.position.x) * manager.scale();
-	const float effective_position_y = static_cast<float>(position.y) + static_cast<float>(root_obj.position.y) * manager.scale();
-	const float effective_width = static_cast<float>(root_obj.size.x) * manager.scale();
-	const float effective_height = static_cast<float>(root_obj.size.y) * manager.scale();
+
+	const auto root_position = position + ui::detail::position_with_alignment(container_size, root_obj.position, root_obj.align);
+
+	screen_position screen_pos{
+		static_cast<float>(root_position.x) * manager.scale(),
+		static_cast<float>(root_position.y) * manager.scale(),
+		static_cast<float>(root_obj.size.x) * manager.scale(),
+		static_cast<float>(root_obj.size.y) * manager.scale()
+	};
+
 	const bool currently_enabled = parent_enabled && ((root_obj.flags.load(std::memory_order_acquire) & ui::gui_object::enabled) != 0);
 
-	graphics::scissor_rect clip(std::lround(effective_position_x), manager.height() - std::lround(effective_position_y + effective_height), std::lround(effective_width), std::lround(effective_height));
+	graphics::scissor_rect clip(std::lround(screen_pos.effective_position_x), manager.height() - std::lround(screen_pos.effective_position_y + screen_pos.effective_height), std::lround(screen_pos.effective_width), std::lround(screen_pos.effective_height));
 
-	detail::render_object_type(manager, ogl, root_obj, position, type, currently_enabled);
-	
-	const ui::xy_pair new_base_position{ int16_t(effective_position_x), int16_t(effective_position_y) };
+	detail::render_object_type(manager, ogl, root_obj, screen_pos, type, currently_enabled);
 
 	gui_object_tag current_child = root_obj.first_child;
 	while (is_valid_index(current_child)) {
 		const auto& child_object = manager.gui_objects.at(current_child);
-		detail::render(manager, ogl, child_object, new_base_position, currently_enabled);
+		detail::render(manager, ogl, child_object, root_position, root_obj.size, currently_enabled);
 		current_child = child_object.right_sibling;
 	}
 }
 
 bool ui::gui_manager::set_focus(tagged_gui_object g) {
-	if (focus != g.id) {
-		if (g.object.associated_behavior && g.object.associated_behavior->on_get_focus(g, *this)) {
+	
+	if (g.object.associated_behavior && g.object.associated_behavior->on_get_focus(g, *this)) {
+		if (focus != g.id) {
 			clear_focus();
 			focus = g.id;
-			return true;
 		}
-		return false;
-	} else
 		return true;
+	}
+	return false;
 }
 
 void ui::gui_manager::clear_focus() {
@@ -823,14 +885,21 @@ void ui::add_to_front(const gui_manager& manager, tagged_gui_object parent, tagg
 }
 
 ui::xy_pair ui::absolute_position(gui_manager& manager, tagged_gui_object g) {
-	ui::xy_pair sum = g.object.position;
+	ui::xy_pair sum{ 0, 0 };
+	ui::xy_pair child_position = g.object.position;
+	auto child_alignment = g.object.align;
 	gui_object_tag parent = g.object.parent;
 
 	while (is_valid_index(parent)) {
 		const auto& parent_object = manager.gui_objects.at(parent);
-		sum += parent_object.position;
+
+		sum += ui::detail::position_with_alignment(parent_object.size, child_position, child_alignment);
+		child_position = parent_object.position;
+		child_alignment = parent_object.align;
+
 		parent = parent_object.parent;
 	}
+	sum += child_position;
 
 	return sum;
 }
@@ -892,7 +961,7 @@ void ui::move_to_back(const gui_manager& manager, tagged_gui_object g) {
 bool ui::gui_manager::on_lbutton_down(const lbutton_down& ld) {
 	if (false == detail::dispatch_message(*this, [_this = this](ui::tagged_gui_object obj, const lbutton_down& l) {
 		return _this->set_focus(obj);
-	}, tagged_gui_object{ root, gui_object_tag(0) }, ui::rescale_message(ld, _scale))) {
+	}, tagged_gui_object{ root, gui_object_tag(0) }, root.size, ui::rescale_message(ld, _scale))) {
 		focus = gui_object_tag();
 	}
 
@@ -900,7 +969,7 @@ bool ui::gui_manager::on_lbutton_down(const lbutton_down& ld) {
 		if (obj.object.associated_behavior)
 			return obj.object.associated_behavior->on_lclick(obj, *_this, l);
 		return false;
-	}, tagged_gui_object{ root, gui_object_tag(0) }, ui::rescale_message(ld, _scale));
+	}, tagged_gui_object{ root, gui_object_tag(0) }, root.size, ui::rescale_message(ld, _scale));
 }
 
 bool ui::gui_manager::on_rbutton_down(const rbutton_down& rd) {
@@ -908,7 +977,7 @@ bool ui::gui_manager::on_rbutton_down(const rbutton_down& rd) {
 		if (obj.object.associated_behavior)
 			return obj.object.associated_behavior->on_rclick(obj, *_this, r);
 		return false;
-	}, tagged_gui_object{ root,gui_object_tag(0) }, ui::rescale_message(rd, _scale));
+	}, tagged_gui_object{ root,gui_object_tag(0) }, root.size, ui::rescale_message(rd, _scale));
 }
 
 bool ui::gui_manager::on_mouse_move(const mouse_move& mm) {
@@ -941,7 +1010,7 @@ bool ui::gui_manager::on_mouse_move(const mouse_move& mm) {
 			return true;
 		}
 		return false;
-	}, tagged_gui_object{ root,gui_object_tag(0) }, ui::rescale_message(mm, _scale));
+	}, tagged_gui_object{ root,gui_object_tag(0) }, root.size, ui::rescale_message(mm, _scale));
 
 	if (!found_tooltip && is_valid_index(tooltip)) {
 		tooltip = gui_object_tag();
@@ -966,7 +1035,7 @@ bool ui::gui_manager::on_keydown(const key_down& kd) {
 		if (obj.object.associated_behavior)
 			return obj.object.associated_behavior->on_keydown(obj, *_this, k);
 		return false;
-	}, tagged_gui_object{ root,gui_object_tag(0) }, ui::rescale_message(kd, _scale));
+	}, tagged_gui_object{ root,gui_object_tag(0) }, root.size, ui::rescale_message(kd, _scale));
 }
 
 bool ui::gui_manager::on_scroll(const scroll& se) {
@@ -974,7 +1043,7 @@ bool ui::gui_manager::on_scroll(const scroll& se) {
 		if (obj.object.associated_behavior)
 			return obj.object.associated_behavior->on_scroll(obj, *_this, s);
 		return false;
-	}, tagged_gui_object{ root,gui_object_tag(0) }, ui::rescale_message(se, _scale));
+	}, tagged_gui_object{ root,gui_object_tag(0) }, root.size, ui::rescale_message(se, _scale));
 }
 
 bool ui::gui_manager::on_text(const text_event &te) {
@@ -1042,9 +1111,9 @@ void ui::gui_manager::rescale(float new_scale) {
 }
 
 void ui::render(const gui_manager& manager, graphics::open_gl_wrapper& ogl) {
-	detail::render(manager, ogl, manager.background, ui::xy_pair{ 0, 0 }, true);
-	detail::render(manager, ogl, manager.root, ui::xy_pair{ 0, 0 }, true);
-	detail::render(manager, ogl, manager.foreground, ui::xy_pair{ 0, 0 }, true);
+	detail::render(manager, ogl, manager.background, ui::xy_pair{ 0, 0 }, manager.background.size, true);
+	detail::render(manager, ogl, manager.root, ui::xy_pair{ 0, 0 }, manager.root.size, true);
+	detail::render(manager, ogl, manager.foreground, ui::xy_pair{ 0, 0 }, manager.foreground.size, true);
 }
 
 graphics::rotation ui::gui_object::get_rotation() const {
@@ -1130,6 +1199,7 @@ ui::tagged_gui_object ui::create_scrollable_text_block(gui_manager& manager, ui:
 		[handle, candidates, count](gui_manager& m) {
 		return detail::create_element_instance(m, handle, candidates, count);
 	});
+	res.object.align = alignment_from_definition(text_def);
 
 	const auto background = text_def.flags & text_def.background_mask;
 	if ((background != ui::text_def::background_none_specified) & (background != ui::text_def::background_transparency_tga)) {
@@ -1184,6 +1254,7 @@ ui::tagged_gui_object ui::create_scrollable_text_block(gui_manager& manager, ui:
 
 		return new_gobj;
 	});
+	res.object.align = alignment_from_definition(text_def);
 
 	const auto background = text_def.flags & text_def.background_mask;
 	if ((background != ui::text_def::background_none_specified) & (background != ui::text_def::background_transparency_tga)) {
@@ -1239,6 +1310,7 @@ ui::tagged_gui_object ui::create_dynamic_window(gui_manager& manager, window_tag
 
 		window.object.size = definition.size;
 		window.object.position = definition.position;
+		window.object.align = alignment_from_definition(definition);
 
 		return window;
 	} else {
@@ -1263,6 +1335,7 @@ ui::tagged_gui_object ui::create_dynamic_window(gui_manager& manager, window_tag
 
 		window.object.size = definition.size;
 		window.object.position = definition.position;
+		window.object.align = alignment_from_definition(definition);
 
 		add_to_back(manager, parent, window);
 		return window;
@@ -1280,4 +1353,94 @@ ui::tagged_gui_object ui::create_static_element(gui_manager& manager, icon_tag h
 
 	ui::add_to_back(manager, parent, res);
 	return res;
+}
+
+ui::alignment ui::alignment_from_definition(const button_def& d) {
+	switch (d.flags & button_def::orientation_mask) {
+		case button_def::orientation_lower_left:
+			return alignment::bottom_left;
+		case button_def::orientation_lower_right:
+			return alignment::bottom_right;
+		case button_def::orientation_center:
+			return alignment::center;
+		case button_def::orientation_upper_right:
+			return alignment::top_right;
+	}
+	return alignment::top_left;
+}
+
+ui::alignment ui::alignment_from_definition(const icon_def& d) {
+	switch (d.flags & icon_def::orientation_mask) {
+		case icon_def::orientation_lower_left:
+			return alignment::bottom_left;
+		case icon_def::orientation_lower_right:
+			return alignment::bottom_right;
+		case icon_def::orientation_center:
+			return alignment::center;
+		case icon_def::orientation_upper_right:
+			return alignment::top_right;
+		case icon_def::orientation_center_down:
+			return alignment::bottom_center;
+		case icon_def::orientation_center_up:
+			return alignment::top_center;
+	}
+	return alignment::top_left;
+}
+
+ui::alignment ui::alignment_from_definition(const text_def& d) {
+	switch (d.flags & text_def::orientation_mask) {
+		case text_def::orientation_lower_left:
+			return alignment::bottom_left;
+		case text_def::orientation_lower_right:
+			return alignment::bottom_right;
+		case text_def::orientation_center:
+			return alignment::center;
+		case text_def::orientation_upper_right:
+			return alignment::top_right;
+		case text_def::orientation_center_down:
+			return alignment::bottom_center;
+		case text_def::orientation_center_up:
+			return alignment::top_center;
+	}
+	return alignment::top_left;
+}
+
+ui::alignment ui::alignment_from_definition(const overlapping_region_def& d) {
+	switch (d.flags & overlapping_region_def::orientation_mask) {
+		case overlapping_region_def::orientation_center:
+			return alignment::center;
+		case overlapping_region_def::orientation_upper_right:
+			return alignment::top_right;
+	}
+	return alignment::top_left;
+}
+
+ui::alignment ui::alignment_from_definition(const listbox_def& d) {
+	switch (d.flags & listbox_def::orientation_mask) {
+		case listbox_def::orientation_center:
+			return alignment::center;
+		case listbox_def::orientation_upper_right:
+			return alignment::top_right;
+		case listbox_def::orientation_center_down:
+			return alignment::bottom_center;
+	}
+	return alignment::top_left;
+}
+
+ui::alignment ui::alignment_from_definition(const scrollbar_def&) {
+	return alignment::top_left;
+}
+
+ui::alignment ui::alignment_from_definition(const window_def& d) {
+	switch (d.flags & window_def::orientation_mask) {
+		case window_def::orientation_center:
+			return alignment::center;
+		case window_def::orientation_upper_right:
+			return alignment::top_right;
+		case window_def::orientation_lower_left:
+			return alignment::bottom_left;
+		case window_def::orientation_lower_right:
+			return alignment::bottom_right;
+	}
+	return alignment::top_left;
 }

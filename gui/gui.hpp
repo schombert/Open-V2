@@ -144,8 +144,10 @@ ui::xy_pair ui::text_chunk_to_instances(ui::gui_manager& manager, vector_backed_
 
 
 template<typename MESSAGE_FUNCTION, typename MESSAGE_TYPE>
-bool ui::detail::dispatch_message(const gui_manager& manager, const MESSAGE_FUNCTION &member_f, ui::tagged_gui_object obj, const MESSAGE_TYPE& message) {
-	auto relocated_message = adjust_message_location(message, -obj.object.position.x, -obj.object.position.y);
+bool ui::detail::dispatch_message(const gui_manager& manager, const MESSAGE_FUNCTION &member_f, ui::tagged_gui_object obj, ui::xy_pair container_size, const MESSAGE_TYPE& message) {
+	const auto actual_position = ui::detail::position_with_alignment(container_size, obj.object.position, obj.object.align);
+
+	auto relocated_message = adjust_message_location(message, -actual_position.x, -actual_position.y);
 	const auto object_flags = obj.object.flags.load(std::memory_order_acquire);
 
 	if ((object_flags & ui::gui_object::visible) == 0)
@@ -161,7 +163,7 @@ bool ui::detail::dispatch_message(const gui_manager& manager, const MESSAGE_FUNC
 					auto& current_obj = manager.gui_objects.at(current_child);
 					const gui_object_tag next_index = current_obj.left_sibling;
 
-					if (dispatch_message(manager, member_f, tagged_gui_object{ current_obj, current_child }, relocated_message))
+					if (dispatch_message(manager, member_f, tagged_gui_object{ current_obj, current_child }, obj.object.size, relocated_message))
 						return true;
 
 					current_child = next_index;
@@ -221,25 +223,41 @@ namespace ui {
 	}
 }
 
-template<typename B, typename T>
-ui::tagged_gui_object ui::create_static_element(gui_manager& manager, T handle, tagged_gui_object parent, B& b) {
+template<typename B>
+ui::tagged_gui_object ui::create_static_element(gui_manager& manager, button_tag handle, tagged_gui_object parent, simple_button<B>& b) {
 	auto new_obj = ui::detail::create_element_instance(manager, handle);
 	new_obj.object.flags.fetch_or(gui_object::static_behavior, std::memory_order_acq_rel);
 	new_obj.object.associated_behavior = &b;
 
-	if constexpr(std::is_same_v<T, button_tag> && detail::has_shortcut<B>) {
-		auto& bdef = manager.ui_definitions.buttons[handle];
-		b.shortcut = bdef.shortcut;
-	}
+	auto& bdef = manager.ui_definitions.buttons[handle];
+	b.shortcut = bdef.shortcut;
 
 	ui::add_to_back(manager, parent, new_obj);
-
 	return new_obj;
+}
+
+namespace ui {
+	namespace detail {
+		template<typename RES, typename HANDLE>
+		struct can_create_instance_s : public std::false_type {};
+		template<typename HANDLE>
+		struct can_create_instance_s<decltype(create_element_instance(std::declval<gui_manager&>(), std::declval<HANDLE>())), HANDLE> : public std::true_type {};
+		template<typename HANDLE>
+		constexpr bool can_create_instance = can_create_instance_s<tagged_gui_object, HANDLE>::value;
+
+		template<typename T>
+		ui::tagged_gui_object safe_create_element_instance(gui_manager& manager, T handle) {
+			if constexpr(can_create_instance<T>)
+				return ui::detail::create_element_instance(manager, handle);
+			else
+				return manager.gui_objects.emplace();
+		}
+	}
 }
 
 template<typename BEHAVIOR, typename T, typename ... PARAMS>
 ui::tagged_gui_object ui::create_dynamic_element(gui_manager& manager, T handle, tagged_gui_object parent, PARAMS&& ... params) {
-	auto new_obj = ui::detail::create_element_instance(manager, handle);
+	auto new_obj = ui::detail::safe_create_element_instance(manager, handle);
 
 	if constexpr(!std::is_same_v<BEHAVIOR, gui_behavior>) {
 		BEHAVIOR* b = concurrent_allocator<BEHAVIOR>().allocate(1);
@@ -406,6 +424,7 @@ namespace ui {
 				(scrollbar_definition.flags & scrollbar_def::step_mask) == scrollbar_def::step_two ? 2 : 1);
 
 			scrollbar_obj.object.associated_behavior = &b;
+			scrollbar_obj.object.align = alignment_from_definition(scrollbar_definition);
 
 			if ((scrollbar_definition.flags & scrollbar_def::has_range_limit) != 0) {
 				const auto minimum_range = ui::create_dynamic_element(manager, scrollbar_definition.minimum_limit_icon, scrollbar_obj);
@@ -569,10 +588,10 @@ namespace ui {
 		};
 		template<typename i, typename INDEX, typename TYPE, typename ...REST>
 		struct window_get<i, INDEX, TYPE, REST...> {
-			static auto apply(gui_window<INDEX, TYPE, REST ...>& w) {
+			static auto& apply(gui_window<INDEX, TYPE, REST ...>& w) {
 				return window_get<i, REST...>::apply(w);
 			}
-			static auto apply(const gui_window<INDEX, TYPE, REST ...>& w) {
+			static auto& apply(const gui_window<INDEX, TYPE, REST ...>& w) {
 				return window_get<i, REST...>::apply(w);
 			}
 		};
@@ -590,15 +609,15 @@ namespace ui {
 
 template<typename INDEX, typename TYPE, typename ... REST>
 class ui::gui_window<INDEX, TYPE, REST ...> : public ui::gui_window<REST ...> {
-private:
+protected:
 	TYPE m_object;
 	bool create_named_member(gui_manager& manager, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne);
 	ui::tagged_gui_object create_window(gui_manager& manager, const ui::window_def& def);
 public:
 	template<typename i>
-	auto get();
+	auto& get();
 	template<typename i>
-	auto get() const;
+	auto& get() const;
 	ui::tagged_gui_object create(gui_manager& manager, const ui::window_def& def);
 
 	friend struct ui::detail::window_get<INDEX, INDEX, TYPE, REST ...>;
@@ -606,7 +625,7 @@ public:
 
 template<typename BASE_BEHAVIOR>
 class ui::gui_window<BASE_BEHAVIOR> : public BASE_BEHAVIOR {
-private:
+protected:
 	bool create_named_member(gui_manager& manager, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne);
 	ui::tagged_gui_object create_window(gui_manager& manager, const ui::window_def& def);
 public:
@@ -616,11 +635,11 @@ public:
 
 template<typename INDEX, typename TYPE, typename ...REST>
 template<typename i>
-auto ui::gui_window<INDEX, TYPE, REST...>::get() { return detail::window_get<i, INDEX, TYPE, REST...>::apply(*this); }
+auto& ui::gui_window<INDEX, TYPE, REST...>::get() { return detail::window_get<i, INDEX, TYPE, REST...>::apply(*this); }
 
 template<typename INDEX, typename TYPE, typename ...REST>
 template<typename i>
-auto ui::gui_window<INDEX, TYPE, REST...>::get() const { return detail::window_get<i, INDEX, TYPE, REST...>::apply(*this); }
+auto& ui::gui_window<INDEX, TYPE, REST...>::get() const { return detail::window_get<i, INDEX, TYPE, REST...>::apply(*this); }
 
 template<typename INDEX, typename TYPE, typename ...REST>
 ui::tagged_gui_object ui::gui_window<INDEX, TYPE, REST...>::create_window(gui_manager & manager, const ui::window_def & def) {
@@ -629,7 +648,7 @@ ui::tagged_gui_object ui::gui_window<INDEX, TYPE, REST...>::create_window(gui_ma
 
 template<typename INDEX, typename TYPE, typename ...REST>
 bool ui::gui_window<INDEX, TYPE, REST...>::create_named_member(gui_manager& manager, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne) {
-	if (compile_time_str_compare_ci<INDEX>(rn_s, rn_e) == 0) {
+	if (compile_time_str_compare_ci<INDEX>(ns, ne) == 0) {
 		std::visit([_this = this, &win, &manager](auto tag) {
 			if constexpr(ui::detail::can_create<decltype(tag), TYPE>)
 				ui::create_static_element(manager, tag, win, _this->m_object);
@@ -641,7 +660,7 @@ bool ui::gui_window<INDEX, TYPE, REST...>::create_named_member(gui_manager& mana
 		}, t);
 		return true;
 	} else {
-		return gui_window<REST...>::create_named_member(manager, t, ns, ne);
+		return gui_window<REST...>::create_named_member(manager, win, t, ns, ne);
 	}
 }
 
@@ -650,12 +669,13 @@ ui::tagged_gui_object ui::gui_window<INDEX, TYPE, REST...>::create(gui_manager &
 	const auto win = create_window(manager, definition);
 	for (auto i = definition.sub_object_definitions.crbegin(); i != definition.sub_object_definitions.crend(); ++i) {
 		auto rn = manager.nmaps.get_raw_name(*i);
-		const char* rn_s = rn.get_str();
+		const char* rn_s = rn.get_str(manager.ui_definitions.name_data);
 		const char* rn_e = rn_s + rn.length();
 
 		if (!create_named_member(manager, win, *i, rn_s, rn_e)) {
 			std::visit([&manager, &win](auto tag) {
-				ui::create_dynamic_element(manager, tag, win);
+				if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
+					ui::create_dynamic_element(manager, tag, win);
 			}, *i);
 		}
 	}
@@ -671,20 +691,22 @@ template<typename BASE_BEHAVIOR>
 ui::tagged_gui_object ui::gui_window<BASE_BEHAVIOR>::create_window(gui_manager & manager, const ui::window_def & definition) {
 	const auto window = manager.gui_objects.emplace();
 
-	window.object.flags.store(ui::gui_object::enabled | ui::gui_object::static_behavior, std::memory_order_release);
+	window.object.flags.store(ui::gui_object::enabled | ui::gui_object::visible | ui::gui_object::static_behavior, std::memory_order_release);
+	window.object.align = alignment_from_definition(definition);
 
 	if (is_valid_index(definition.background_handle)) {
 		const auto& bgdefinition = manager.ui_definitions.buttons[definition.background_handle];
 		ui::detail::instantiate_graphical_object(manager, window, bgdefinition.graphical_object_handle);
 	} else {
-		container.object.flags.fetch_or(ui::gui_object::type_graphics_object, std::memory_order_acq_rel);
+		//window.object.flags.fetch_or(ui::gui_object::type_graphics_object, std::memory_order_acq_rel);
 
-		const auto bg_graphic = manager.graphics_instances.emplace();
-		bg_graphic.object.frame = 0;
-		bg_graphic.object.graphics_object = &(manager.graphics_object_definitions.definitions[manager.graphics_object_definitions.standard_text_background]);
-		bg_graphic.object.t = &(manager.textures.retrieve_by_key(manager.textures.standard_tiles_dialog));
+		//const auto bg_graphic = manager.graphics_instances.emplace();
+		//bg_graphic.object.frame = 0;
+		//bg_graphic.object.graphics_object = &(manager.graphics_object_definitions.definitions[manager.graphics_object_definitions.standard_text_background]);
+		//bg_graphic.object.t = &(manager.textures.retrieve_by_key(manager.textures.standard_tiles_dialog));
 
-		window.object.type_dependant_handle.store(to_index(bg_graphic.id), std::memory_order_release);
+		//window.object.type_dependant_handle.store(to_index(bg_graphic.id), std::memory_order_release);
+		window.object.type_dependant_handle.store(0, std::memory_order_release);
 	}
 
 	window.object.associated_behavior = this;
@@ -709,7 +731,7 @@ template<typename ... REST>
 ui::tagged_gui_object ui::create_static_element(gui_manager& manager, window_tag handle, tagged_gui_object parent, gui_window<REST...>& b) {
 	const auto& window_definition = manager.ui_definitions.windows[handle];
 	const auto res = b.create(manager, window_definition);
-	res.object.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
+	res.object.flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
 	ui::add_to_back(manager, parent, res);
 	return res;
 }

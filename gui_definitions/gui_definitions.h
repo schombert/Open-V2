@@ -83,10 +83,10 @@ namespace ui {
 
 	struct button_def {
 		static constexpr uint8_t orientation_mask          = 0x07;
-		static constexpr uint8_t orientation_center        = 0x00;
+		static constexpr uint8_t orientation_upper_left    = 0x00;
 		static constexpr uint8_t orientation_lower_left    = 0x01;
 		static constexpr uint8_t orientation_lower_right   = 0x02;
-		static constexpr uint8_t orientation_upper_left    = 0x03;
+		static constexpr uint8_t orientation_center        = 0x03;
 		static constexpr uint8_t orientation_upper_right   = 0x04;
 		static constexpr uint8_t format_mask               = 0x08;
 		static constexpr uint8_t format_center             = 0x00;
@@ -114,10 +114,10 @@ namespace ui {
 
 	struct icon_def {
 		static constexpr uint8_t orientation_mask           = 0x07;
-		static constexpr uint8_t orientation_center         = 0x00;
+		static constexpr uint8_t orientation_upper_left     = 0x00;
 		static constexpr uint8_t orientation_lower_left     = 0x01;
 		static constexpr uint8_t orientation_lower_right    = 0x02;
-		static constexpr uint8_t orientation_upper_left     = 0x03;
+		static constexpr uint8_t orientation_center         = 0x03;
 		static constexpr uint8_t orientation_upper_right    = 0x04;
 		static constexpr uint8_t orientation_center_down    = 0x05;
 		static constexpr uint8_t orientation_center_up      = 0x06;
@@ -138,10 +138,10 @@ namespace ui {
 
 	struct text_def {
 		static constexpr uint16_t orientation_mask                  = 0x0007;
-		static constexpr uint16_t orientation_center                = 0x0000;
+		static constexpr uint16_t orientation_upper_left            = 0x0000;
 		static constexpr uint16_t orientation_lower_left            = 0x0001;
 		static constexpr uint16_t orientation_lower_right           = 0x0002;
-		static constexpr uint16_t orientation_upper_left            = 0x0003;
+		static constexpr uint16_t orientation_center                = 0x0003;
 		static constexpr uint16_t orientation_upper_right           = 0x0004;
 		static constexpr uint16_t orientation_center_up             = 0x0005;
 		static constexpr uint16_t orientation_center_down           = 0x0006;
@@ -180,8 +180,8 @@ namespace ui {
 
 	struct overlapping_region_def {
 		static constexpr uint8_t orientation_mask         = 0x03;
-		static constexpr uint8_t orientation_center       = 0x00;
-		static constexpr uint8_t orientation_upper_left   = 0x01;
+		static constexpr uint8_t orientation_upper_left   = 0x00;
+		static constexpr uint8_t orientation_center       = 0x01;
 		static constexpr uint8_t orientation_upper_right  = 0x02;
 
 		static constexpr uint8_t format_mask              = 0x0C;
@@ -197,8 +197,8 @@ namespace ui {
 
 	struct listbox_def {
 		static constexpr uint8_t orientation_mask         = 0x30;
-		static constexpr uint8_t orientation_center       = 0x00;
-		static constexpr uint8_t orientation_upper_left   = 0x10;
+		static constexpr uint8_t orientation_upper_left   = 0x00;
+		static constexpr uint8_t orientation_center       = 0x10;
 		static constexpr uint8_t orientation_upper_right  = 0x20;
 		static constexpr uint8_t orientation_center_down  = 0x30;
 
@@ -246,10 +246,10 @@ namespace ui {
 		static constexpr uint8_t is_moveable              = 0x04;
 
 		static constexpr uint8_t orientation_mask         = 0x70;
-		static constexpr uint8_t orientation_center       = 0x00;
+		static constexpr uint8_t orientation_upper_left   = 0x00;
 		static constexpr uint8_t orientation_lower_left   = 0x10;
 		static constexpr uint8_t orientation_lower_right  = 0x20;
-		static constexpr uint8_t orientation_upper_left   = 0x30;
+		static constexpr uint8_t orientation_center       = 0x30;
 		static constexpr uint8_t orientation_upper_right  = 0x40;
 
 		std::vector<element_tag> sub_object_definitions;

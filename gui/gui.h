@@ -99,10 +99,9 @@ namespace ui {
 	private:
 		ui::xy_pair base_position;
 	public:
-		virtual bool on_get_focus(tagged_gui_object, gui_manager&) override { return true; }
+		virtual bool on_get_focus(tagged_gui_object, gui_manager&) override;
 		virtual bool on_scroll(tagged_gui_object, gui_manager&, const scroll&) override { return true; }
 		virtual bool on_drag(tagged_gui_object, gui_manager&, const mouse_drag&) override;
-		virtual bool on_lclick(tagged_gui_object, gui_manager&, const lbutton_down&) override;
 		virtual bool on_text(tagged_gui_object, gui_manager&, const text_event&) override { return true; }
 		virtual bool on_keydown(tagged_gui_object, gui_manager&, const key_down&) override { return true; }
 	};
@@ -211,6 +210,18 @@ namespace ui {
 	template<typename ... REST>
 	class gui_window;
 
+	enum class alignment : uint8_t {
+		left, right, center, top_left, top_right, bottom_left, bottom_right, top_center, bottom_center
+	};
+	
+	alignment alignment_from_definition(const button_def&);
+	alignment alignment_from_definition(const icon_def&);
+	alignment alignment_from_definition(const text_def&);
+	alignment alignment_from_definition(const overlapping_region_def&);
+	alignment alignment_from_definition(const listbox_def&);
+	alignment alignment_from_definition(const scrollbar_def&);
+	alignment alignment_from_definition(const window_def&);
+
 	class gui_object {
 	public:
 		static constexpr uint16_t static_behavior = 0x0100;
@@ -246,10 +257,13 @@ namespace ui {
 
 		std::atomic<uint16_t> flags = visible | enabled; // 28 bytes
 
-		char padding[4]; //32 bytes
+		ui::alignment align = ui::alignment::top_left; //32 bytes
+		char padding[3];
 
 		graphics::rotation get_rotation() const;
 	};
+
+	static_assert(sizeof(gui_object) == 32);
 
 	struct text_format {
 		ui::text_color color;
@@ -260,8 +274,15 @@ namespace ui {
 	class gui_manager;
 
 	namespace detail {
-		void render_object_type(const gui_manager& manager, graphics::open_gl_wrapper&, const gui_object&, ui::xy_pair position, uint32_t type, bool currently_enabled);
-		void render(const gui_manager& manager, graphics::open_gl_wrapper&, const gui_object&, ui::xy_pair position, bool parent_enabled);
+		struct screen_position {
+			float effective_position_x;
+			float effective_position_y;
+			float effective_width;
+			float effective_height;
+		};
+
+		void render_object_type(const gui_manager& manager, graphics::open_gl_wrapper&, const gui_object&, const screen_position& position, uint32_t type, bool currently_enabled);
+		void render(const gui_manager& manager, graphics::open_gl_wrapper&, const gui_object&, ui::xy_pair position, ui::xy_pair container_size, bool parent_enabled);
 
 		void create_linear_text(gui_manager& manager, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format&, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
 		void create_multiline_text(gui_manager& manager, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format&, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
@@ -276,16 +297,19 @@ namespace ui {
 		void update(gui_manager& manager, tagged_gui_object obj);
 
 		template<typename MESSAGE_FUNCTION, typename MESSAGE_TYPE>
-		bool dispatch_message(const gui_manager& manager, const MESSAGE_FUNCTION &member_f, tagged_gui_object obj, const MESSAGE_TYPE& message);
+		bool dispatch_message(const gui_manager& manager, const MESSAGE_FUNCTION &member_f, tagged_gui_object obj, ui::xy_pair container_size, const MESSAGE_TYPE& message);
+
+		ui::xy_pair position_with_alignment(ui::xy_pair container_size, ui::xy_pair raw_position, ui::alignment align);
 	}
 
 	tagged_object<ui::text_instance, ui::text_instance_tag> create_text_instance(ui::gui_manager &container, tagged_gui_object new_gobj, const text_format& fmt);
 
-	template<typename B, typename T>
-	ui::tagged_gui_object create_static_element(gui_manager& manager, T handle, tagged_gui_object parent, B& b);
+	
 	template<typename BEHAVIOR = ui::gui_behavior, typename T, typename ... PARAMS>
 	ui::tagged_gui_object create_dynamic_element(gui_manager& manager, T handle, tagged_gui_object parent, PARAMS&& ... params);
 
+	template<typename B>
+	ui::tagged_gui_object create_static_element(gui_manager& manager, button_tag handle, tagged_gui_object parent, simple_button<B>& b);
 	template<typename B>
 	ui::tagged_gui_object create_static_element(gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, scrollbar<B>& b);
 	ui::tagged_gui_object create_static_element(gui_manager& manager, icon_tag handle, tagged_gui_object parent, piechart& b);
