@@ -4,6 +4,7 @@
 #include "concurrency_tools\\concurrency_tools.h"
 #include "simple_fs\\simple_fs.h"
 #include "common\\shared_tags.h"
+#include <tuple>
 
 namespace graphics {
 	class _font;
@@ -44,11 +45,11 @@ namespace graphics {
 		float metrics_text_extent(const char16_t* codepoints, uint32_t count, float size, bool outlined = false) const;
 	};
 
-	constexpr std::pair<font_tag, uint32_t> unpack_font_handle(uint16_t handle) {
-		return std::make_pair(font_tag(uint8_t((handle >> 8) & 0xFF)), uint32_t((handle & 0xFF) * 2));
+	constexpr std::tuple<font_tag, bool, uint32_t> unpack_font_handle(uint16_t handle) {
+		return std::make_tuple(font_tag(uint8_t((handle >> 9) & 0xFF)), ((handle >> 8) & 1) != 0, uint32_t((handle & 0xFF) * 2));
 	}
-	constexpr uint16_t pack_font_handle(font_tag font_handle, uint32_t size) {
-		return uint16_t((to_index(font_handle) << 8) | ((size / 2) & 0xFF));
+	constexpr uint16_t pack_font_handle(font_tag font_handle, bool black, uint32_t size) {
+		return uint16_t((to_index(font_handle) << 9) | (black ? (1 << 8) : 0) | ((size / 2) & 0xFF));
 	}
 
 	class font_manager {
@@ -60,6 +61,7 @@ namespace graphics {
 
 		font_tag find_font(const char* start, const char* end);
 		uint32_t find_font_size(const char* start, const char* end);
+		bool is_black(const char* start, const char* end);
 		void load_standard_fonts(const directory& root);
 		font& at(font_tag t) const;
 		void load_fonts(open_gl_wrapper&) const;

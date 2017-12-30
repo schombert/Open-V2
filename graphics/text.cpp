@@ -487,8 +487,9 @@ namespace graphics {
 
 	namespace detail {
 		int32_t font_size_adjustment(int32_t sz) {
-			const int32_t base = (sz * 2 + 2) / 3;
-			return base + (base & 1);
+			//const int32_t base = (sz * 2 + 2) / 3;
+			//return base + (base & 1);
+			return std::max(14, sz + (sz & 1));
 		}
 	}
 
@@ -510,10 +511,17 @@ namespace graphics {
 			++last_int;
 		}
 		if (first_int == last_int)
-			return 12;
+			return 14;
 
 		return detail::font_size_adjustment(parse_uint(first_int, last_int));
 	}
+
+	bool font_manager::is_black(const char* start, const char* end) {
+		if (end - start <= 5)
+			return false;
+		return compile_time_str_compare_ci<CT_STRING("black")>(end - 5, end) == 0;
+	}
+
 	void font_manager::load_standard_fonts(const directory& root) {
 		const char fallback[] = "unifont-9.0.02.ttf";
 		const char sans_serif[] = "NotoSans-Bold.ttf";

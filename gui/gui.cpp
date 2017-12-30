@@ -250,7 +250,7 @@ namespace ui {
 				vector_backed_string<char16_t>(u"<1% "),
 				tw,
 				ui::xy_pair{ 0,0 },
-				ui::text_format{ ui::text_color::white, graphics::font_tag(1), 14 });
+				ui::text_format{ ui::text_color::white, graphics::font_tag(1), 16 });
 		} else {
 			char16_t lbuffer[8] = { 0,0,0,0,0,0,0,0 };
 			u16itoa(std::min(int_amount, 100), lbuffer);
@@ -267,7 +267,7 @@ namespace ui {
 				vector_backed_string<char16_t>(lbuffer),
 				tw,
 				ui::xy_pair{ 0,0 },
-				ui::text_format{ ui::text_color::white, graphics::font_tag(1), 14 });
+				ui::text_format{ ui::text_color::white, graphics::font_tag(1), 16 });
 		}
 
 		ui::text_chunk_to_instances(
@@ -275,7 +275,7 @@ namespace ui {
 			label,
 			tw,
 			cursor,
-			ui::text_format{ ui::text_color::white, graphics::font_tag(1), 14 });
+			ui::text_format{ ui::text_color::white, graphics::font_tag(1), 16 });
 	}
 	void piechart::clear_entries() {
 		for (int32_t i = ui::piechart_resolution - 1; i >= 0; --i) {
@@ -328,7 +328,7 @@ tagged_object<ui::text_instance, ui::text_instance_tag> ui::create_text_instance
 float ui::text_component_width(text_data::text_component& c, const std::vector<char16_t>& text_data, graphics::font& this_font, uint32_t font_size) {
 	if (std::holds_alternative<text_data::text_chunk>(c)) {
 		const auto chunk = std::get<text_data::text_chunk>(c);
-		return this_font.metrics_text_extent(text_data.data() + chunk.offset, chunk.length, font_size, false);
+		return this_font.metrics_text_extent(text_data.data() + chunk.offset, chunk.length, ui::detail::font_size_to_render_size(this_font, font_size), false);
 	} else {
 		return 0.0f;
 	}
@@ -361,7 +361,7 @@ void ui::detail::create_multiline_text(gui_manager& manager, tagged_gui_object c
 		} else if (std::holds_alternative<text_data::line_break>(*component_i)) {
 			lm.finish_current_line();
 			position.x = 0;
-			position.y += this_font.line_height(fmt.font_size) + 0.5f;
+			position.y += this_font.line_height(ui::detail::font_size_to_render_size(this_font, fmt.font_size)) + 0.5f;
 		} else if (std::holds_alternative<text_data::value_placeholder>(*component_i)) {
 			const auto rep = text_data::find_replacement(std::get<text_data::value_placeholder>(*component_i), candidates, count);
 
@@ -381,7 +381,7 @@ void ui::detail::create_multiline_text(gui_manager& manager, tagged_gui_object c
 	}
 
 	lm.finish_current_line();
-	container.object.size.y = position.y + this_font.line_height(fmt.font_size) + 0.5f;;
+	container.object.size.y = position.y + this_font.line_height(ui::detail::font_size_to_render_size(this_font, fmt.font_size)) + 0.5f;;
 }
 
 void ui::detail::create_linear_text(gui_manager& manager, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format& fmt, const text_data::replacement* candidates, uint32_t count) {
@@ -401,7 +401,7 @@ void ui::detail::create_linear_text(gui_manager& manager, tagged_gui_object cont
 		x_extent += ui::text_component_width(*component_i, manager.text_data_sequences.text_data, this_font, fmt.font_size);
 	}
 
-	std::tie(position.x, position.y) = align_in_bounds(align, int32_t(x_extent + 0.5f), int32_t(this_font.line_height(fmt.font_size) + 0.5f), container.object.size.x, container.object.size.y);
+	std::tie(position.x, position.y) = align_in_bounds(align, int32_t(x_extent + 0.5f), int32_t(this_font.line_height(ui::detail::font_size_to_render_size(this_font, fmt.font_size)) + 0.5f), container.object.size.x, container.object.size.y);
 
 	for (auto component_i = components_start; component_i != components_end; ++component_i) {
 		if (std::holds_alternative<text_data::color_change>(*component_i)) {
@@ -525,8 +525,8 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 	instantiate_graphical_object(manager, new_gobj, def.graphical_object_handle);
 
 	if (is_valid_index(def.text_handle)) {
-		const auto[font_h, int_font_size] = graphics::unpack_font_handle(def.font_handle);
-		detail::create_linear_text(manager, new_gobj, def.text_handle, text_aligment_from_button_definition(def), text_format{ ui::text_color::black, font_h, int_font_size });
+		const auto[font_h, is_black, int_font_size] = graphics::unpack_font_handle(def.font_handle);
+		detail::create_linear_text(manager, new_gobj, def.text_handle, text_aligment_from_button_definition(def), text_format{ is_black ? ui::text_color::black : ui::text_color::white, font_h, int_font_size });
 	}
 
 	return new_gobj;
@@ -565,8 +565,8 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 	new_gobj.object.size.x -= text_def.border_size.x * 2;
 
 	if (is_valid_index(text_def.text_handle)) {
-		const auto[font_h, int_font_size] = graphics::unpack_font_handle(text_def.font_handle);
-		detail::create_multiline_text(manager, new_gobj, text_def.text_handle, text_aligment_from_text_definition(text_def), text_format{ ui::text_color::black, font_h, int_font_size }, candidates, count);
+		const auto[font_h, is_black, int_font_size] = graphics::unpack_font_handle(text_def.font_handle);
+		detail::create_multiline_text(manager, new_gobj, text_def.text_handle, text_aligment_from_text_definition(text_def), text_format{ is_black ? ui::text_color::black : ui::text_color::white, font_h, int_font_size }, candidates, count);
 	}
 
 	for_each_child(manager, new_gobj, [adjust = text_def.border_size](tagged_gui_object c) {
@@ -727,25 +727,25 @@ void ui::detail::render_object_type(const gui_manager& manager, graphics::open_g
 
 				switch (ti->color) {
 					case ui::text_color::black:
-						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 0.0f, 0.0f, 0.0f }, fnt);
+						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 0.0f, 0.0f, 0.0f }, fnt);
 						break;
 					case ui::text_color::green:
-						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 0.0f, 0.623f, 0.01f }, fnt);
+						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 0.0f, 0.623f, 0.01f }, fnt);
 						break;
 					case ui::text_color::outlined_black:
-						ogl.render_outlined_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 0.0f, 0.0f, 0.0f }, fnt);
+						ogl.render_outlined_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 0.0f, 0.0f, 0.0f }, fnt);
 						break;
 					case ui::text_color::outlined_white:
-						ogl.render_outlined_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 1.0f, 1.0f, 1.0f }, fnt);
+						ogl.render_outlined_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 1.0f, 1.0f, 1.0f }, fnt);
 						break;
 					case ui::text_color::red:
-						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 1.0f, 0.2f, 0.2f }, fnt);
+						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 1.0f, 0.2f, 0.2f }, fnt);
 						break;
 					case ui::text_color::white:
-						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 1.0f, 1.0f, 1.0f }, fnt);
+						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 1.0f, 1.0f, 1.0f }, fnt);
 						break;
 					case ui::text_color::yellow:
-						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ti->size * 2 * manager.scale(), graphics::color{ 1.0f, 0.75f, 1.0f }, fnt);
+						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 1.0f, 0.75f, 1.0f }, fnt);
 						break;
 				}
 			}
@@ -1149,7 +1149,7 @@ void ui::load_gui_from_directory(const directory& source_directory, gui_manager&
 	ui::load_ui_definitions_from_directory(
 		interface_directory, manager.nmaps, manager.ui_definitions, errors_generated,
 		[&manager](const char* a, const char* b) { return text_data::get_text_handle(manager.text_data_sequences, a, b); },
-		[&manager](const char* a, const char* b) { return graphics::pack_font_handle(manager.fonts.find_font(a, b), manager.fonts.find_font_size(a, b)); },
+		[&manager](const char* a, const char* b) { return graphics::pack_font_handle(manager.fonts.find_font(a, b), manager.fonts.is_black(a,b), manager.fonts.find_font_size(a, b)); },
 		[&gobj_nmaps](const char* a, const char* b) { return graphics::reserve_graphics_object(gobj_nmaps, a, b); });
 
 #ifdef _DEBUG
@@ -1187,14 +1187,15 @@ void ui::load_gui_from_directory(const directory& source_directory, gui_manager&
 
 ui::tagged_gui_object ui::create_scrollable_text_block(gui_manager& manager, ui::text_tag handle, tagged_gui_object parent, const text_data::replacement* candidates, uint32_t count) {
 	const ui::text_def& text_def = manager.ui_definitions.text[handle];
-	const auto[font_h, int_font_size] = graphics::unpack_font_handle(text_def.font_handle);
+	const auto[font_h, is_black, int_font_size] = graphics::unpack_font_handle(text_def.font_handle);
+	const auto& this_font = manager.fonts.at(font_h);
 
 	auto res = create_scrollable_region(
 		manager,
 		parent,
 		text_def.position,
 		text_def.max_height,
-		(int32_t)manager.fonts.at(font_h).line_height(int_font_size),
+		(int32_t)this_font.line_height(ui::detail::font_size_to_render_size(this_font, int_font_size)),
 		graphics::obj_definition_tag(),
 		[handle, candidates, count](gui_manager& m) {
 		return detail::create_element_instance(m, handle, candidates, count);
@@ -1223,14 +1224,15 @@ ui::tagged_gui_object ui::create_scrollable_text_block(gui_manager& manager, ui:
 
 ui::tagged_gui_object ui::create_scrollable_text_block(gui_manager& manager, ui::text_tag handle, text_data::text_tag contents, tagged_gui_object parent, const text_data::replacement* candidates, uint32_t count) {
 	const ui::text_def& text_def = manager.ui_definitions.text[handle];
-	const auto[font_h, int_font_size] = graphics::unpack_font_handle(text_def.font_handle);
+	const auto[font_h, is_black, int_font_size] = graphics::unpack_font_handle(text_def.font_handle);
+	const auto& this_font = manager.fonts.at(font_h);
 
 	auto res = create_scrollable_region(
 		manager,
 		parent,
 		text_def.position,
 		text_def.max_height,
-		(int32_t)manager.fonts.at(font_h).line_height(int_font_size),
+		(int32_t)this_font.line_height(ui::detail::font_size_to_render_size(this_font, int_font_size)),
 		graphics::obj_definition_tag(),
 		[handle, contents, candidates, count, &text_def](gui_manager& m) {
 		const auto new_gobj = m.gui_objects.emplace();
@@ -1241,8 +1243,8 @@ ui::tagged_gui_object ui::create_scrollable_text_block(gui_manager& manager, ui:
 		new_gobj.object.size.x -= text_def.border_size.x * 2;
 
 		if (is_valid_index(contents)) {
-			const auto[font_h, int_font_size] = graphics::unpack_font_handle(text_def.font_handle);
-			detail::create_multiline_text(m, new_gobj, contents, text_aligment_from_text_definition(text_def), text_format{ ui::text_color::black, font_h, int_font_size }, candidates, count);
+			const auto[font_h, is_black, int_font_size] = graphics::unpack_font_handle(text_def.font_handle);
+			detail::create_multiline_text(m, new_gobj, contents, text_aligment_from_text_definition(text_def), text_format{ is_black ? ui::text_color::black : ui::text_color::white, font_h, int_font_size }, candidates, count);
 		}
 
 		for_each_child(m, new_gobj, [adjust = text_def.border_size](tagged_gui_object c) {
@@ -1443,4 +1445,9 @@ ui::alignment ui::alignment_from_definition(const window_def& d) {
 			return alignment::bottom_right;
 	}
 	return alignment::top_left;
+}
+
+float ui::detail::font_size_to_render_size(const graphics::font& f, int32_t sz) {
+	const auto ft64_sz = f.line_height(64.0f);
+	return static_cast<float>(sz) * 64.0f / ft64_sz;
 }

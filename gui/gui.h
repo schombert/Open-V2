@@ -39,6 +39,9 @@ namespace ui {
 		black, white, red, green, yellow,
 		outlined_white, outlined_black
 	};
+	constexpr bool is_outlined_color(text_color c) {
+		return (c == text_color::outlined_white) | (c == text_color::outlined_black);
+	}
 	struct text_instance {
 		static constexpr uint32_t max_instance_length = 30;
 
@@ -280,6 +283,8 @@ namespace ui {
 			float effective_width;
 			float effective_height;
 		};
+
+		float font_size_to_render_size(const graphics::font& f, int32_t sz);
 
 		void render_object_type(const gui_manager& manager, graphics::open_gl_wrapper&, const gui_object&, const screen_position& position, uint32_t type, bool currently_enabled);
 		void render(const gui_manager& manager, graphics::open_gl_wrapper&, const gui_object&, ui::xy_pair position, ui::xy_pair container_size, bool parent_enabled);

@@ -96,7 +96,11 @@ namespace ui {
 
 			const auto original_length = new_text_instance.object.length;
 			auto previous_length = new_text_instance.object.length;
-			float new_size = this_font.metrics_text_extent(new_text_instance.object.text, new_text_instance.object.length, fmt.font_size, false);
+			float new_size = this_font.metrics_text_extent(
+				new_text_instance.object.text,
+				new_text_instance.object.length,
+				ui::detail::font_size_to_render_size(this_font, fmt.font_size),
+				is_outlined_color(fmt.color));
 
 			while (lm.exceeds_extent(position.x + int32_t(new_size + 0.5f))) {
 				shorten_text_instance_to_space(new_text_instance.object);
@@ -105,20 +109,24 @@ namespace ui {
 					if (position.x != 0) {
 						lm.finish_current_line();
 						position.x = 0;
-						position.y += this_font.line_height(fmt.font_size) + 0.5f;
+						position.y += this_font.line_height(ui::detail::font_size_to_render_size(this_font, fmt.font_size)) + 0.5f;
 						new_text_instance.object.length = original_length;
 					} else {
 						break;
 					}
 				}
 
-				new_size = this_font.metrics_text_extent(new_text_instance.object.text, new_text_instance.object.length, fmt.font_size, false);
+				new_size = this_font.metrics_text_extent(
+					new_text_instance.object.text,
+					new_text_instance.object.length,
+					ui::detail::font_size_to_render_size(this_font, fmt.font_size),
+					is_outlined_color(fmt.color));
 				previous_length = new_text_instance.object.length;
 			}
 
 			new_gobj.object.size = ui::xy_pair{
 				int16_t(new_size + 0.5f),
-				int16_t(this_font.line_height(fmt.font_size) + 0.5f) };
+				int16_t(this_font.line_height(ui::detail::font_size_to_render_size(this_font, fmt.font_size)) + 0.5f) };
 			new_gobj.object.position = position;
 
 			behavior_creator(new_gobj);
