@@ -525,7 +525,7 @@ namespace graphics {
 	void font_manager::load_standard_fonts(const directory& root) {
 		const char fallback[] = "unifont-9.0.02.ttf";
 		const char sans_serif[] = "NotoSans-Bold.ttf";
-		const char fancy_font[] = "CreteRound-Regular.otf";
+		const char fancy_font[] = "BioRhyme-Regular.otf";
 
 		const auto full_fn = root.peek_file(fallback, fallback + sizeof(fallback) - 1);
 		if (full_fn) {

@@ -145,10 +145,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="buttons.hpp" />
     <ClInclude Include="gui.h" />
     <ClInclude Include="gui.hpp" />
+    <ClInclude Include="gui_window.hpp" />
+    <ClInclude Include="piechart.hpp" />
+    <ClInclude Include="scrollbar.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="buttons.cpp" />
     <ClCompile Include="gui.cpp" />
   </ItemGroup>
   <ItemGroup>

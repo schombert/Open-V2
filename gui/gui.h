@@ -106,7 +106,6 @@ namespace ui {
 		virtual bool on_scroll(tagged_gui_object, gui_manager&, const scroll&) override { return true; }
 		virtual bool on_drag(tagged_gui_object, gui_manager&, const mouse_drag&) override;
 		virtual bool on_text(tagged_gui_object, gui_manager&, const text_event&) override { return true; }
-		virtual bool on_keydown(tagged_gui_object, gui_manager&, const key_down&) override { return true; }
 	};
 
 	class fixed_region : public visible_region {
@@ -115,7 +114,6 @@ namespace ui {
 		virtual bool on_scroll(tagged_gui_object, gui_manager&, const scroll&) override { return true; }
 		virtual bool on_drag(tagged_gui_object, gui_manager&, const mouse_drag&) override { return true; }
 		virtual bool on_text(tagged_gui_object, gui_manager&, const text_event&) override { return true; }
-		virtual bool on_keydown(tagged_gui_object, gui_manager&, const key_down&) override { return true; }
 	};
 
 	extern visible_region global_visible_region;
@@ -128,29 +126,31 @@ namespace ui {
 		template<typename ...P>
 		explicit simple_button(P&& ... params) : BASE(std::forward<P>(params)...) {}
 
-		template<typename T>
-		simple_button(const T& f) : button_function(f) {}
-
 		virtual bool on_lclick(tagged_gui_object o, gui_manager& m, const lbutton_down&) override;
 		virtual bool on_keydown(tagged_gui_object o, gui_manager& m, const key_down& k) override;
 		virtual void update_data(tagged_gui_object, gui_manager&) override;
+		virtual tooltip_behavior has_tooltip(tagged_gui_object, gui_manager&, const mouse_move&) override;
+		virtual void create_tooltip(tagged_gui_object, gui_manager&, const mouse_move&, tagged_gui_object /*tooltip_window*/) override;
 	};
 
-	class piechart : public visible_region {
+	template<typename BASE>
+	class piechart : public visible_region, BASE {
 	private:
 		vector_backed_string<char16_t> labels[piechart_resolution];
 		float fractions[piechart_resolution];
 		graphics::data_texture* dt = nullptr;
 		float fraction_used = 0.0f;
 	public:
-		piechart() {}
+		template<typename ...P>
+		piechart(P&& ... params) : BASE(std::forward<P>(params)...) {}
 
 		virtual bool on_lclick(tagged_gui_object, gui_manager&, const lbutton_down&) override;
 		virtual bool on_rclick(tagged_gui_object, gui_manager&, const rbutton_down&) override;
 		virtual tooltip_behavior has_tooltip(tagged_gui_object, gui_manager&, const mouse_move&) override;
 		virtual void create_tooltip(tagged_gui_object, gui_manager&, const mouse_move&, tagged_gui_object /*tooltip_window*/) override;
+		virtual void update_data(tagged_gui_object, gui_manager&) override;
 
-		void associate(graphics::data_texture* d) { dt = d; }
+		void associate(graphics::data_texture* d);
 		void clear_entries();
 		void add_entry(vector_backed_string<char16_t> label, float fraction, graphics::color_rgb color);
 		void update_display() const;
@@ -212,6 +212,39 @@ namespace ui {
 
 	template<typename ... REST>
 	class gui_window;
+
+	class button_group_common_base {
+	public:
+		uint32_t current_index = 0;
+		virtual void select(tagged_gui_object o, gui_manager&, uint32_t) = 0;
+		virtual tooltip_behavior has_tooltip(tagged_gui_object, gui_manager&, const mouse_move&, uint32_t) = 0;
+		virtual void create_tooltip(tagged_gui_object, gui_manager&, const mouse_move&, tagged_gui_object /*tooltip_window*/, uint32_t) = 0;
+	};
+
+	template<typename ... REST>
+	class button_group;
+
+	class button_group_member : public visible_region {
+	private:
+		uint32_t _index;
+		button_group_common_base* group;
+		graphics_instance* _associated = nullptr;
+	public:
+		virtual_key shortcut = virtual_key::NONE;
+
+		template<typename ...P>
+		explicit button_group_member(P&& ... params) {}
+
+		virtual bool on_lclick(tagged_gui_object o, gui_manager& m, const lbutton_down&) override;
+		virtual bool on_keydown(tagged_gui_object o, gui_manager& m, const key_down& k) override;
+		virtual tooltip_behavior has_tooltip(tagged_gui_object, gui_manager&, const mouse_move&) override;
+		virtual void create_tooltip(tagged_gui_object, gui_manager&, const mouse_move&, tagged_gui_object /*tooltip_window*/) override;
+
+		void set_group(button_group_common_base* g, uint32_t i);
+		uint32_t index() const { return _index; }
+		void associate(graphics_instance* a) { _associated = a; }
+		graphics_instance* associated() const { return _associated; }
+	};
 
 	enum class alignment : uint8_t {
 		left, right, center, top_left, top_right, bottom_left, bottom_right, top_center, bottom_center
@@ -317,9 +350,12 @@ namespace ui {
 	ui::tagged_gui_object create_static_element(gui_manager& manager, button_tag handle, tagged_gui_object parent, simple_button<B>& b);
 	template<typename B>
 	ui::tagged_gui_object create_static_element(gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, scrollbar<B>& b);
-	ui::tagged_gui_object create_static_element(gui_manager& manager, icon_tag handle, tagged_gui_object parent, piechart& b);
+	template<typename B>
+	ui::tagged_gui_object create_static_element(gui_manager& manager, icon_tag handle, tagged_gui_object parent, piechart<B>& b);
 	template<typename ... REST>
 	ui::tagged_gui_object create_static_element(gui_manager& manager, window_tag handle, tagged_gui_object parent, gui_window<REST...>& b);
+	
+	ui::tagged_gui_object create_static_element(gui_manager& manager, button_tag handle, tagged_gui_object parent, button_group_member& b);
 
 	template<typename BEHAVIOR, typename ... PARAMS>
 	ui::tagged_gui_object create_scrollbar (gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, PARAMS&& ... params);

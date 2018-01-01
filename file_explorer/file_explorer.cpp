@@ -905,10 +905,11 @@ struct empty_window_handler {
 	}
 };
 
+template<int n>
 class mb_button {
 public:
 	void button_function(ui::tagged_gui_object, ui::gui_manager&) {
-		MessageBoxA(NULL, "MB A", "MB_A", MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONINFORMATION);
+		MessageBoxA(NULL, std::to_string(n).c_str(), "MB_A", MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONINFORMATION);
 	}
 };
 
@@ -926,7 +927,7 @@ public:
 	};
 };
 
-class debug_scollbar {
+class debug_scrollbar {
 public:
 	void on_position(int32_t pos) {
 		OutputDebugStringA("on_position; ");
@@ -935,14 +936,49 @@ public:
 	}
 };
 
-using budget_window_t = ui::gui_window<CT_STRING("chart_0"), ui::piechart, ui::draggable_region>;
+class empty_gui_obj {
+
+};
+
+class simple_button_group {
+public:
+	void on_select(uint32_t i) {
+		MessageBoxA(NULL, std::to_string(i).c_str(), "GROUP BUTTON", MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONINFORMATION);
+	}
+};
+
+using budget_window_t = ui::gui_window<
+	CT_STRING("tab_takenloans"), ui::button_group_member,
+	CT_STRING("tab_givenloans"), ui::button_group_member,
+	CT_STRING("loans_tab_group"), ui::button_group<CT_STRING("tab_takenloans"), CT_STRING("tab_givenloans"), simple_button_group>,
+	CT_STRING("debt_sort_country"), ui::simple_button<mb_button<3>>,
+	CT_STRING("debt_sort_amount"), ui::simple_button<mb_button<4>>,
+	CT_STRING("tax_0_slider"), ui::scrollbar<debug_scrollbar>,
+	CT_STRING("tax_1_slider"), ui::scrollbar<debug_scrollbar>,
+	CT_STRING("tax_2_slider"), ui::scrollbar<debug_scrollbar>,
+	CT_STRING("land_stockpile_slider"), ui::scrollbar<debug_scrollbar>,
+	CT_STRING("naval_stockpile_slider"), ui::scrollbar<debug_scrollbar>,
+	CT_STRING("projects_stockpile_slider"), ui::scrollbar<debug_scrollbar>,
+	CT_STRING("exp_0_slider"), ui::scrollbar<debug_scrollbar>,
+	CT_STRING("exp_1_slider"), ui::scrollbar<debug_scrollbar>,
+	CT_STRING("exp_2_slider"), ui::scrollbar<debug_scrollbar>,
+	CT_STRING("exp_3_slider"), ui::scrollbar<debug_scrollbar>,
+	CT_STRING("tariff_slider"), ui::scrollbar<debug_scrollbar>,
+	CT_STRING("close_button"), ui::simple_button<mb_button<5>>,
+	CT_STRING("take_loan"), ui::simple_button<mb_button<6>>,
+	CT_STRING("repay_loan"), ui::simple_button<mb_button<7>>,
+	CT_STRING("chart_0"), ui::piechart<empty_gui_obj>,
+	CT_STRING("chart_1"), ui::piechart<empty_gui_obj>,
+	CT_STRING("chart_2"), ui::piechart<empty_gui_obj>,
+	CT_STRING("chart_debt"), ui::piechart<empty_gui_obj>,
+	ui::draggable_region>;
 
 struct gui_window_handler {
 	ui::gui_manager& gui_m;
 
 	//ui::simple_button<mb_button> mb_button_a;
 	tt_holder mb_button_a;
-	ui::scrollbar<debug_scollbar> test_sb;
+	ui::scrollbar<debug_scrollbar> test_sb;
 
 	budget_window_t budget_window;
 
