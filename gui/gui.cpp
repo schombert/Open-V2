@@ -21,7 +21,7 @@ void ui::gui_manager::destroy(gui_object & g) {
 		focus = gui_object_tag();
 
 	if (g.associated_behavior) {
-		if ((g.flags.load(std::memory_order_relaxed) & g.static_behavior) == 0) {
+		if ((g.flags.load(std::memory_order_relaxed) & gui_object::dynamic_behavior) != 0) {
 			g.associated_behavior->~gui_behavior();
 			concurrent_allocator<gui_behavior>().deallocate(g.associated_behavior, 1);
 		}
@@ -117,8 +117,6 @@ ui::xy_pair ui::detail::position_with_alignment(ui::xy_pair container_size, ui::
 }
 
 namespace ui {
-	visible_region global_visible_region;
-
 	text_data::alignment text_aligment_from_button_definition(const button_def& def) {
 		switch (def.flags & button_def::format_mask) {
 			case button_def::format_center:
@@ -186,15 +184,15 @@ namespace ui {
 		current_line.clear();
 	}
 
-	bool draggable_region::on_drag(tagged_gui_object t, gui_manager &, const mouse_drag &m) {
-		t.object.position.x = base_position.x + m.x;
-		t.object.position.y = base_position.y + m.y;
+	bool draggable_region::on_drag(gui_object_tag t, gui_manager &, const mouse_drag &m) {
+		associated_object->position.x = base_position.x + m.x;
+		associated_object->position.y = base_position.y + m.y;
 		return true;
 	}
 
-	bool draggable_region::on_get_focus(tagged_gui_object t, gui_manager& m) {
-		base_position = t.object.position;
-		ui::move_to_front(m, t);
+	bool draggable_region::on_get_focus(gui_object_tag t, gui_manager& m) {
+		base_position = associated_object->position;
+		ui::move_to_front(m, ui::tagged_gui_object{ *associated_object, t });
 		return true;
 	}
 }
@@ -676,7 +674,7 @@ void ui::detail::render(const gui_manager& manager, graphics::open_gl_wrapper &o
 
 bool ui::gui_manager::set_focus(tagged_gui_object g) {
 	
-	if (g.object.associated_behavior && g.object.associated_behavior->on_get_focus(g, *this)) {
+	if (g.object.associated_behavior && g.object.associated_behavior->on_get_focus(g.id, *this)) {
 		if (focus != g.id) {
 			clear_focus();
 			focus = g.id;
@@ -690,15 +688,17 @@ void ui::gui_manager::clear_focus() {
 	if (is_valid_index(focus)) {
 		auto& with_focus = gui_objects.at(focus);
 		if (with_focus.associated_behavior) {
-			with_focus.associated_behavior->on_lose_focus(tagged_gui_object{ with_focus, focus }, *this);
+			with_focus.associated_behavior->on_lose_focus(focus, *this);
 			focus = gui_object_tag();
 		}
 	}
 }
 
-void ui::make_visible(gui_manager& manager, tagged_gui_object g) {
+void ui::make_visible(gui_manager& manager, tagged_gui_object g, world_state& w) {
 	g.object.flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
-	detail::update(manager, g);
+	if (const auto b = g.object.associated_behavior; b)
+		b->on_visible(g.id, manager);
+	detail::update(manager, g, w);
 }
 
 void ui::hide(tagged_gui_object g) {
@@ -857,7 +857,7 @@ bool ui::gui_manager::on_lbutton_down(const lbutton_down& ld) {
 
 	return detail::dispatch_message(*this, [_this = this](ui::tagged_gui_object obj, const lbutton_down& l) {
 		if (obj.object.associated_behavior)
-			return obj.object.associated_behavior->on_lclick(obj, *_this, l);
+			return obj.object.associated_behavior->on_lclick(obj.id, *_this, l);
 		return false;
 	}, tagged_gui_object{ root, gui_object_tag(0) }, root.size, ui::rescale_message(ld, _scale));
 }
@@ -865,7 +865,7 @@ bool ui::gui_manager::on_lbutton_down(const lbutton_down& ld) {
 bool ui::gui_manager::on_rbutton_down(const rbutton_down& rd) {
 	return detail::dispatch_message(*this, [_this = this](ui::tagged_gui_object obj, const rbutton_down& r) {
 		if (obj.object.associated_behavior)
-			return obj.object.associated_behavior->on_rclick(obj, *_this, r);
+			return obj.object.associated_behavior->on_rclick(obj.id, *_this, r);
 		return false;
 	}, tagged_gui_object{ root,gui_object_tag(0) }, root.size, ui::rescale_message(rd, _scale));
 }
@@ -873,7 +873,7 @@ bool ui::gui_manager::on_rbutton_down(const rbutton_down& rd) {
 bool ui::gui_manager::on_mouse_move(const mouse_move& mm) {
 	const bool found_tooltip = detail::dispatch_message(*this, [_this = this](ui::tagged_gui_object obj, const mouse_move& m) {
 		if (obj.object.associated_behavior) {
-			const auto tt_behavior = obj.object.associated_behavior->has_tooltip(obj, *_this, m);
+			const auto tt_behavior = obj.object.associated_behavior->has_tooltip(obj.id, *_this, m);
 			if (tt_behavior == tooltip_behavior::transparent)
 				return false;
 			if (tt_behavior == tooltip_behavior::no_tooltip) {
@@ -884,7 +884,7 @@ bool ui::gui_manager::on_mouse_move(const mouse_move& mm) {
 			if ((_this->tooltip != obj.id) | (tt_behavior == tooltip_behavior::variable_tooltip)) {
 				_this->tooltip = obj.id;
 				clear_children(*_this, ui::tagged_gui_object{ _this->tooltip_window, gui_object_tag(3) });
-				obj.object.associated_behavior->create_tooltip(obj, *_this, m, ui::tagged_gui_object{ _this->tooltip_window, gui_object_tag(3) });
+				obj.object.associated_behavior->create_tooltip(obj.id, *_this, m, ui::tagged_gui_object{ _this->tooltip_window, gui_object_tag(3) });
 				ui::shrink_to_children(*_this, ui::tagged_gui_object{ _this->tooltip_window, gui_object_tag(3) }, 16);
 
 				_this->tooltip_window.position = ui::absolute_position(*_this, obj);
@@ -895,7 +895,7 @@ bool ui::gui_manager::on_mouse_move(const mouse_move& mm) {
 				_this->tooltip_window.position.x += obj.object.size.x / 2;
 				_this->tooltip_window.position.x -= _this->tooltip_window.size.x / 2;
 
-				make_visible(*_this, ui::tagged_gui_object{ _this->tooltip_window, gui_object_tag(3) });
+				_this->tooltip_window.flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
 			}
 			return true;
 		}
@@ -913,7 +913,7 @@ bool ui::gui_manager::on_mouse_move(const mouse_move& mm) {
 bool ui::gui_manager::on_mouse_drag(const mouse_drag& md) {
 	if (is_valid_index(focus)) {
 		if (gui_objects.at(focus).associated_behavior) {
-			return gui_objects.at(focus).associated_behavior->on_drag(ui::tagged_gui_object{ gui_objects.at(focus), focus }, *this, ui::rescale_message(md, _scale));
+			return gui_objects.at(focus).associated_behavior->on_drag(focus, *this, ui::rescale_message(md, _scale));
 		} else
 			return false;
 	}
@@ -923,7 +923,7 @@ bool ui::gui_manager::on_mouse_drag(const mouse_drag& md) {
 bool ui::gui_manager::on_keydown(const key_down& kd) {
 	return detail::dispatch_message(*this, [_this = this](ui::tagged_gui_object obj, const key_down& k) {
 		if (obj.object.associated_behavior)
-			return obj.object.associated_behavior->on_keydown(obj, *_this, k);
+			return obj.object.associated_behavior->on_keydown(obj.id, *_this, k);
 		return false;
 	}, tagged_gui_object{ root,gui_object_tag(0) }, root.size, ui::rescale_message(kd, _scale));
 }
@@ -931,7 +931,7 @@ bool ui::gui_manager::on_keydown(const key_down& kd) {
 bool ui::gui_manager::on_scroll(const scroll& se) {
 	return detail::dispatch_message(*this, [_this = this](ui::tagged_gui_object obj, const scroll& s) {
 		if (obj.object.associated_behavior)
-			return obj.object.associated_behavior->on_scroll(obj, *_this, s);
+			return obj.object.associated_behavior->on_scroll(obj.id, *_this, s);
 		return false;
 	}, tagged_gui_object{ root,gui_object_tag(0) }, root.size, ui::rescale_message(se, _scale));
 }
@@ -939,36 +939,36 @@ bool ui::gui_manager::on_scroll(const scroll& se) {
 bool ui::gui_manager::on_text(const text_event &te) {
 	if (is_valid_index(focus)) {
 		if (gui_objects.at(focus).associated_behavior)
-			return gui_objects.at(focus).associated_behavior->on_text(ui::tagged_gui_object{ gui_objects.at(focus), focus }, *this, te);
+			return gui_objects.at(focus).associated_behavior->on_text(focus, *this, te);
 		else
 			return false;
 	}
 	return false;
 }
 
-void ui::detail::update(gui_manager& manager, tagged_gui_object obj) {
+void ui::detail::update(gui_manager& manager, tagged_gui_object obj, world_state& w) {
 	const auto object_flags = obj.object.flags.load(std::memory_order_acquire);
 
 	if ((object_flags & ui::gui_object::visible) == 0)
 		return;
 
 	if (obj.object.associated_behavior)
-		obj.object.associated_behavior->update_data(obj, manager);
+		obj.object.associated_behavior->update_data(obj.id, manager, w);
 
 	gui_object_tag child = obj.object.first_child;
 	while (is_valid_index(child)) {
 		auto& child_object = manager.gui_objects.at(child);
 		const gui_object_tag next_index = child_object.right_sibling;
 
-		update(manager, tagged_gui_object{ child_object, child });
+		update(manager, tagged_gui_object{ child_object, child }, w);
 		child = next_index;
 	}
 }
 
-void ui::update(gui_manager& manager) {
-	detail::update(manager, tagged_gui_object{ manager.root, gui_object_tag(0) });
-	detail::update(manager, tagged_gui_object{ manager.background, gui_object_tag(1) });
-	detail::update(manager, tagged_gui_object{ manager.foreground, gui_object_tag(2) });
+void ui::update(gui_manager& manager, world_state& w) {
+	detail::update(manager, tagged_gui_object{ manager.root, gui_object_tag(0) }, w);
+	detail::update(manager, tagged_gui_object{ manager.background, gui_object_tag(1) }, w);
+	detail::update(manager, tagged_gui_object{ manager.foreground, gui_object_tag(2) }, w);
 }
 
 ui::gui_manager::gui_manager(int32_t width, int32_t height) :
@@ -1224,6 +1224,9 @@ ui::tagged_gui_object ui::create_dynamic_window(gui_manager& manager, window_tag
 			window.object.associated_behavior = concurrent_allocator<fixed_region>().allocate(1);
 			new (window.object.associated_behavior)fixed_region();
 		}
+
+		window.object.flags.fetch_or(ui::gui_object::dynamic_behavior, std::memory_order_acq_rel);
+		window.object.associated_behavior->associated_object = &window.object;
 
 		window.object.size = definition.size;
 		window.object.position = definition.position;

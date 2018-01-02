@@ -32,13 +32,6 @@ namespace ui {
 				return w.m_object;
 			}
 		};
-
-		template<typename A, typename B, typename ... C>
-		struct _has_initialize_in_window : std::false_type {};
-		template<typename A, typename ... C>
-		struct _has_initialize_in_window<A, decltype(void(std::declval<A>().initialize_in_window(std::declval<C>() ...))), C...> : std::true_type {};
-		template<typename A, typename ... C>
-		constexpr bool has_initialize_in_window = _has_initialize_in_window<A, void, C ...>::value;
 	}
 }
 
@@ -49,7 +42,7 @@ protected:
 	bool create_named_member(gui_manager& manager, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne);
 	ui::tagged_gui_object create_window(gui_manager& manager, const ui::window_def& def);
 	template<typename window_type>
-	void member_init_in_window(window_type& w);
+	void member_init_in_window(window_type& w, gui_manager& m);
 public:
 	template<typename ...PARAMS>
 	gui_window(PARAMS&& ... params) : gui_window<REST ...>(std::forward<PARAMS>(params) ...), m_object(std::forward<PARAMS>(params) ...) {}
@@ -70,7 +63,7 @@ protected:
 	bool create_named_member(gui_manager& manager, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne);
 	ui::tagged_gui_object create_window(gui_manager& manager, const ui::window_def& def);
 	template<typename window_type>
-	void member_init_in_window(window_type& w) {};
+	void member_init_in_window(window_type& w, gui_manager& m) {};
 public:
 	template<typename ...PARAMS>
 	gui_window(PARAMS&& ... params) {}
@@ -94,10 +87,10 @@ ui::tagged_gui_object ui::gui_window<INDEX, TYPE, REST...>::create_window(gui_ma
 
 template<typename INDEX, typename TYPE, typename ...REST>
 template<typename window_type>
-void ui::gui_window<INDEX, TYPE, REST...>::member_init_in_window(window_type& w) {
-	if constexpr(detail::has_initialize_in_window<TYPE, window_type&>)
-		m_object.initialize_in_window(w);
-	gui_window<REST...>::member_init_in_window(w);
+void ui::gui_window<INDEX, TYPE, REST...>::member_init_in_window(window_type& w, gui_manager& m) {
+	if constexpr(detail::has_initialize_in_window<TYPE, window_type&, gui_manager&>)
+		m_object.initialize_in_window(w, m);
+	gui_window<REST...>::member_init_in_window(w, m);
 }
 
 template<typename INDEX, typename TYPE, typename ...REST>
@@ -133,7 +126,7 @@ ui::tagged_gui_object ui::gui_window<INDEX, TYPE, REST...>::create(gui_manager &
 			}, *i);
 		}
 	}
-	member_init_in_window(*this);
+	member_init_in_window(*this, manager);
 	return win;
 }
 
@@ -146,7 +139,7 @@ template<typename BASE_BEHAVIOR>
 ui::tagged_gui_object ui::gui_window<BASE_BEHAVIOR>::create_window(gui_manager & manager, const ui::window_def & definition) {
 	const auto window = manager.gui_objects.emplace();
 
-	window.object.flags.store(ui::gui_object::enabled | ui::gui_object::visible | ui::gui_object::static_behavior, std::memory_order_release);
+	window.object.flags.store(ui::gui_object::enabled | ui::gui_object::visible, std::memory_order_release);
 	window.object.align = alignment_from_definition(definition);
 
 	if (is_valid_index(definition.background_handle)) {
@@ -157,6 +150,8 @@ ui::tagged_gui_object ui::gui_window<BASE_BEHAVIOR>::create_window(gui_manager &
 	}
 
 	window.object.associated_behavior = this;
+	BASE_BEHAVIOR::associated_object = &window.object;
+
 	window.object.size = definition.size;
 	window.object.position = definition.position;
 

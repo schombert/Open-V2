@@ -1,14 +1,14 @@
 #pragma once
-#include "gui.h"
+#include "gui.hpp"
 
 template<typename BASE>
-bool ui::simple_button<BASE>::on_lclick(tagged_gui_object o, gui_manager & m, const lbutton_down &) {
+bool ui::simple_button<BASE>::on_lclick(gui_object_tag o, gui_manager & m, const lbutton_down &) {
 	BASE::button_function(o, m);
 	return true;
 }
 
 template<typename BASE>
-bool ui::simple_button<BASE>::on_keydown(tagged_gui_object o, gui_manager & m, const key_down & k) {
+bool ui::simple_button<BASE>::on_keydown(gui_object_tag o, gui_manager & m, const key_down & k) {
 	if (k.keycode == shortcut) {
 		BASE::button_function(o, m);
 		return true;
@@ -18,17 +18,25 @@ bool ui::simple_button<BASE>::on_keydown(tagged_gui_object o, gui_manager & m, c
 }
 
 template<typename BASE>
-void ui::simple_button<BASE>::update_data(tagged_gui_object o, gui_manager& m) {
-	if constexpr(ui::detail::has_update<BASE, tagged_gui_object, gui_manager&>) {
-		BASE::update(o, m);
+void ui::simple_button<BASE>::update_data(gui_object_tag o, gui_manager& m, world_state& w) {
+	if constexpr(ui::detail::has_update<BASE, gui_object_tag, gui_manager&, world_state&>) {
+		BASE::update(o, m, w);
 	}
+}
+
+template<typename BASE>
+template<typename ...T>
+void ui::simple_button<BASE>::initialize_in_window(T& t) {
+	if constexpr(ui::detail::has_initialize_in_window<BASE, T&>)
+		BASE::initialize_in_window(t);
 }
 
 template<typename B>
 ui::tagged_gui_object ui::create_static_element(gui_manager& manager, button_tag handle, tagged_gui_object parent, simple_button<B>& b) {
 	auto new_obj = ui::detail::create_element_instance(manager, handle);
-	new_obj.object.flags.fetch_or(gui_object::static_behavior, std::memory_order_acq_rel);
+
 	new_obj.object.associated_behavior = &b;
+	b.associated_object = &new_obj.object;
 
 	auto& bdef = manager.ui_definitions.buttons[handle];
 	b.shortcut = bdef.shortcut;
@@ -63,21 +71,24 @@ namespace buttons_detail {
 		_button_group(PARAMS&& ... params) : BEHAVIOR(std::forward<PARAMS>(params) ...) {}
 
 		template<typename window_type>
-		void initialize_in_window(window_type& w) {};
+		void initialize_in_window(window_type& w, ui::gui_manager&) {
+			if constexpr(ui::detail::has_initialize_in_window<BEHAVIOR, window_type&>)
+				BEHAVIOR::initialize_in_window(w);
+		};
 
-		virtual void select(ui::tagged_gui_object o, ui::gui_manager&, uint32_t i) override {
-			if constexpr(buttons_detail::has_on_unselect<BEHAVIOR, uint32_t>)
-				BEHAVIOR::on_unselect(current_index);
+		virtual void select(ui::gui_manager& m, uint32_t i) override {
+			if constexpr(buttons_detail::has_on_unselect<BEHAVIOR, ui::gui_manager&, uint32_t>)
+				BEHAVIOR::on_unselect(m, current_index);
 			current_index = i;
-			BEHAVIOR::on_select(current_index);
+			BEHAVIOR::on_select(m, current_index);
 		}
-		virtual ui::tooltip_behavior has_tooltip(ui::tagged_gui_object, ui::gui_manager&, const ui::mouse_move&, uint32_t i) override {
+		virtual ui::tooltip_behavior has_tooltip(uint32_t i) override {
 			if constexpr(buttons_detail::has_has_tooltip<BEHAVIOR, uint32_t>)
 				return BEHAVIOR::has_tooltip(i);
 			else
 				return ui::tooltip_behavior::no_tooltip;
 		}
-		virtual void create_tooltip(ui::tagged_gui_object, ui::gui_manager& m, const ui::mouse_move&, ui::tagged_gui_object tw, uint32_t i) override {
+		virtual void create_tooltip(ui::gui_manager& m, ui::tagged_gui_object tw, uint32_t i) override {
 			if constexpr(buttons_detail::has_has_tooltip<BEHAVIOR, uint32_t>)
 				BEHAVIOR::create_tooltip(m, tw, i);
 		}
@@ -92,23 +103,27 @@ namespace buttons_detail {
 		_button_group(PARAMS&& ... params) : _button_group<count + 1, REST...>(std::forward<PARAMS>(params)...) {}
 
 		template<typename window_type>
-		void initialize_in_window(window_type& w) {
+		void initialize_in_window(window_type& w, ui::gui_manager& m) {
 			nth_button = &w.template get<FIRST>();
 			nth_button->set_group(this, count);
 
-			if constexpr(count == 0)
-				nth_button->associated()->frame = 1;
+			if constexpr(count == 0) {
+				if (const auto gi = m.graphics_instances.safe_at(ui::graphics_instance_tag(nth_button->associated_object->type_dependant_handle)); gi)
+					gi->frame = 1;
+			}
 
-			_button_group<count + 1, REST...>::initialize_in_window(w);
+			_button_group<count + 1, REST...>::initialize_in_window(w, m);
 		}
 
 
-		virtual void select(ui::tagged_gui_object o, ui::gui_manager& m, uint32_t i) override {
-			if (i == count)
-				nth_button->associated()->frame = 1;
-			else 
-				nth_button->associated()->frame = 0;
-			_button_group<count + 1, REST...>::select(o, m, i);
+		virtual void select(ui::gui_manager& m, uint32_t i) override {
+			if (const auto gi = m.graphics_instances.safe_at(ui::graphics_instance_tag(nth_button->associated_object->type_dependant_handle)); gi) {
+				if (i == count)
+					gi->frame = 1;
+				else
+					gi->frame = 0;
+			}
+			_button_group<count + 1, REST...>::select(m, i);
 		}
 	};
 }
@@ -122,7 +137,7 @@ public:
 };
 
 template<typename BASE>
-ui::tooltip_behavior ui::simple_button<BASE>::has_tooltip(tagged_gui_object, gui_manager&, const mouse_move&) {
+ui::tooltip_behavior ui::simple_button<BASE>::has_tooltip(gui_object_tag, gui_manager&, const mouse_move&) {
 	if constexpr(buttons_detail::has_has_tooltip<BASE>)
 		return BASE::has_tooltip();
 	else
@@ -130,9 +145,7 @@ ui::tooltip_behavior ui::simple_button<BASE>::has_tooltip(tagged_gui_object, gui
 }
 
 template<typename BASE>
-void ui::simple_button<BASE>::create_tooltip(tagged_gui_object o, gui_manager& m, const mouse_move&, tagged_gui_object tw) {
+void ui::simple_button<BASE>::create_tooltip(gui_object_tag o, gui_manager& m, const mouse_move&, tagged_gui_object tw) {
 	if constexpr(buttons_detail::has_has_tooltip<BASE>)
 		BASE::create_tooltip(m, tw);
 }
-
-#include "gui.hpp"

@@ -908,15 +908,15 @@ struct empty_window_handler {
 template<int n>
 class mb_button {
 public:
-	void button_function(ui::tagged_gui_object, ui::gui_manager&) {
+	void button_function(ui::gui_object_tag, ui::gui_manager&) {
 		MessageBoxA(NULL, std::to_string(n).c_str(), "MB_A", MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONINFORMATION);
 	}
 };
 
 class tt_holder : public ui::draggable_region {
 public:
-	virtual ui::tooltip_behavior has_tooltip(ui::tagged_gui_object, ui::gui_manager&, const ui::mouse_move&) override { return ui::tooltip_behavior::tooltip; };
-	virtual void create_tooltip(ui::tagged_gui_object, ui::gui_manager& m, const ui::mouse_move&, ui::tagged_gui_object tw) override {
+	virtual ui::tooltip_behavior has_tooltip(ui::gui_object_tag, ui::gui_manager&, const ui::mouse_move&) override { return ui::tooltip_behavior::tooltip; };
+	virtual void create_tooltip(ui::gui_object_tag, ui::gui_manager& m, const ui::mouse_move&, ui::tagged_gui_object tw) override {
 		ui::text_chunk_to_instances(
 			m,
 			vector_backed_string<char16_t>(u"test tooltip"),
@@ -942,7 +942,7 @@ class empty_gui_obj {
 
 class simple_button_group {
 public:
-	void on_select(uint32_t i) {
+	void on_select(ui::gui_manager&, uint32_t i) {
 		MessageBoxA(NULL, std::to_string(i).c_str(), "GROUP BUTTON", MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONINFORMATION);
 	}
 };
@@ -992,11 +992,11 @@ struct gui_window_handler {
 	void operator()(const ui::creation&, ui::window_base& ) {
 		ui::create_static_element(gui_m, std::get<ui::window_tag>(gui_m.ui_definitions.name_to_element_map["country_budget"]), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, budget_window);
 		auto& pc = budget_window.get<CT_STRING("chart_0")>();
-		pc.add_entry(vector_backed_string<char16_t>(u"category 1"), 0.4f, graphics::color_rgb{ 255,0,0 } );
-		pc.add_entry(vector_backed_string<char16_t>(u"category 2"), 0.1f, graphics::color_rgb{ 255,255,0 });
-		pc.add_entry(vector_backed_string<char16_t>(u"category 3"), 0.25f, graphics::color_rgb{ 255,0,255 });
-		pc.add_entry(vector_backed_string<char16_t>(u"category 4"), 0.25f, graphics::color_rgb{ 0,255,255 });
-		pc.update_display();
+		pc.add_entry(gui_m, vector_backed_string<char16_t>(u"category 1"), 0.4f, graphics::color_rgb{ 255,0,0 } );
+		pc.add_entry(gui_m, vector_backed_string<char16_t>(u"category 2"), 0.1f, graphics::color_rgb{ 255,255,0 });
+		pc.add_entry(gui_m, vector_backed_string<char16_t>(u"category 3"), 0.25f, graphics::color_rgb{ 255,0,255 });
+		pc.add_entry(gui_m, vector_backed_string<char16_t>(u"category 4"), 0.25f, graphics::color_rgb{ 0,255,255 });
+		pc.update_display(gui_m);
 
 		//ui::create_static_element(gui_m, ui::button_tag(8), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, mb_button_a);
 		//mb_button_a.shortcut = virtual_key::A;

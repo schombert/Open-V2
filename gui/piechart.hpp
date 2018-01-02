@@ -2,51 +2,45 @@
 #include "gui.h"
 
 template<typename BASE>
-void ui::piechart<BASE>::associate(graphics::data_texture* d) {
-	dt = d;
-	clear_entries();
-	update_display();
-}
-template<typename BASE>
-bool ui::piechart<BASE>::on_lclick(tagged_gui_object o, gui_manager &, const lbutton_down & m) {
+bool ui::piechart<BASE>::on_lclick(gui_object_tag, gui_manager &, const lbutton_down & m) {
 	if (fraction_used == 0.0f)
 		return false;
 
-	const auto xmod = m.x - int32_t(o.object.size.x) / 2;
-	const auto ymod = m.y - int32_t(o.object.size.y) / 2;
-	const float radius_sq = static_cast<float>(xmod * xmod + ymod * ymod) / static_cast<float>(int32_t(o.object.size.x) * int32_t(o.object.size.x) / 4);
+	const auto xmod = m.x - int32_t(associated_object->size.x) / 2;
+	const auto ymod = m.y - int32_t(associated_object->size.y) / 2;
+	const float radius_sq = static_cast<float>(xmod * xmod + ymod * ymod) / static_cast<float>(int32_t(associated_object->size.x) * int32_t(associated_object->size.x) / 4);
 
 	return radius_sq <= 1.0f;
 }
 template<typename BASE>
-bool ui::piechart<BASE>::on_rclick(tagged_gui_object o, gui_manager &, const rbutton_down &m) {
+bool ui::piechart<BASE>::on_rclick(gui_object_tag, gui_manager &, const rbutton_down &m) {
 	if (fraction_used == 0.0f)
 		return false;
 
-	const auto xmod = m.x - int32_t(o.object.size.x) / 2;
-	const auto ymod = m.y - int32_t(o.object.size.y) / 2;
-	const float radius_sq = static_cast<float>(xmod * xmod + ymod * ymod) / static_cast<float>(int32_t(o.object.size.x) * int32_t(o.object.size.x) / 4);
+	const auto xmod = m.x - int32_t(associated_object->size.x) / 2;
+	const auto ymod = m.y - int32_t(associated_object->size.y) / 2;
+	const float radius_sq = static_cast<float>(xmod * xmod + ymod * ymod) / static_cast<float>(int32_t(associated_object->size.x) * int32_t(associated_object->size.x) / 4);
 
 	return radius_sq <= 1.0f;
 }
 template<typename BASE>
-ui::tooltip_behavior ui::piechart<BASE>::has_tooltip(tagged_gui_object o, gui_manager &, const mouse_move& m) {
+ui::tooltip_behavior ui::piechart<BASE>::has_tooltip(gui_object_tag, gui_manager &, const mouse_move& m) {
 	constexpr double M_PI = 3.1415926535897932384626433832795;
 
 	if (fraction_used == 0.0f)
 		return tooltip_behavior::transparent;
 
-	const auto xmod = m.x - int32_t(o.object.size.x) / 2;
-	const auto ymod = m.y - int32_t(o.object.size.y) / 2;
-	const float radius_sq = static_cast<float>(xmod * xmod + ymod * ymod) / static_cast<float>(int32_t(o.object.size.x) * int32_t(o.object.size.x) / 4);
+	const auto xmod = m.x - int32_t(associated_object->size.x) / 2;
+	const auto ymod = m.y - int32_t(associated_object->size.y) / 2;
+	const float radius_sq = static_cast<float>(xmod * xmod + ymod * ymod) / static_cast<float>(int32_t(associated_object->size.x) * int32_t(associated_object->size.x) / 4);
 
 	if (radius_sq > 1.0f)
 		return tooltip_behavior::transparent;
 	else {
 		const double fraction =
 			(std::atan2(
-				static_cast<double>(m.y - int32_t(o.object.size.y) / 2),
-				static_cast<double>(m.x - int32_t(o.object.size.x) / 2)) + M_PI) / (2.0 * M_PI);
+				static_cast<double>(m.y - int32_t(associated_object->size.y) / 2),
+				static_cast<double>(m.x - int32_t(associated_object->size.x) / 2)) + M_PI) / (2.0 * M_PI);
 
 		const int32_t data_index = std::min(ui::piechart_resolution - 1, std::max(0, static_cast<int32_t>(fraction * static_cast<double>(ui::piechart_resolution))));
 		const auto label = labels[data_index];
@@ -58,13 +52,13 @@ ui::tooltip_behavior ui::piechart<BASE>::has_tooltip(tagged_gui_object o, gui_ma
 	}
 }
 template<typename BASE>
-void ui::piechart<BASE>::create_tooltip(tagged_gui_object o, gui_manager &m, const mouse_move& mm, tagged_gui_object tw) {
+void ui::piechart<BASE>::create_tooltip(gui_object_tag, gui_manager &m, const mouse_move& mm, tagged_gui_object tw) {
 	constexpr double M_PI = 3.1415926535897932384626433832795;
 
 	const double fraction =
 		(std::atan2(
-			static_cast<double>(mm.y - int32_t(o.object.size.y) / 2),
-			static_cast<double>(mm.x - int32_t(o.object.size.x) / 2)) + M_PI) / (2.0 * M_PI);
+			static_cast<double>(mm.y - int32_t(associated_object->size.y) / 2),
+			static_cast<double>(mm.x - int32_t(associated_object->size.x) / 2)) + M_PI) / (2.0 * M_PI);
 
 	const int32_t data_index = std::min(ui::piechart_resolution - 1, std::max(0, static_cast<int32_t>(fraction * static_cast<double>(ui::piechart_resolution))));
 	const float amount = fractions[data_index];
@@ -107,23 +101,23 @@ void ui::piechart<BASE>::create_tooltip(tagged_gui_object o, gui_manager &m, con
 		ui::text_format{ ui::text_color::white, graphics::font_tag(1), 16 });
 }
 template<typename BASE>
-void ui::piechart<BASE>::clear_entries() {
+void ui::piechart<BASE>::clear_entries(gui_manager& manager) {
 	for (int32_t i = ui::piechart_resolution - 1; i >= 0; --i) {
 		labels[i] = vector_backed_string<char16_t>(); // to ensure atomic assignment
 	}
 	memset(labels, 0, ui::piechart_resolution * sizeof(vector_backed_string<char16_t>));
 	memset(fractions, 0, ui::piechart_resolution * sizeof(float));
-	if (dt)
+	if (const auto dt = manager.data_textures.safe_at(data_texture_tag(associated_object->type_dependant_handle)); dt)
 		memset(dt->data(), 255, ui::piechart_resolution * 3);
 	fraction_used = 0.0f;
 }
 template<typename BASE>
-void ui::piechart<BASE>::add_entry(vector_backed_string<char16_t> label, float fraction, graphics::color_rgb color) {
+void ui::piechart<BASE>::add_entry(gui_manager& manager, vector_backed_string<char16_t> label, float fraction, graphics::color_rgb color) {
 	const int32_t last_entry = std::max(0, (int32_t)std::lround(fraction_used * static_cast<float>(ui::piechart_resolution)));
 	fraction_used += fraction;
 	const int32_t new_last_entry = std::min(ui::piechart_resolution - 1, static_cast<int32_t>(fraction_used * static_cast<float>(ui::piechart_resolution)));
 
-	if (dt) {
+	if (const auto dt = manager.data_textures.safe_at(data_texture_tag(associated_object->type_dependant_handle)); dt) {
 		const auto data = dt->data();
 		for (int32_t i = last_entry; i <= new_last_entry; ++i) {
 			fractions[i] = fraction;
@@ -136,15 +130,15 @@ void ui::piechart<BASE>::add_entry(vector_backed_string<char16_t> label, float f
 }
 
 template<typename BASE>
-void ui::piechart<BASE>::update_display() const {
-	if (dt)
+void ui::piechart<BASE>::update_display(gui_manager& manager) const {
+	if (const auto dt = manager.data_textures.safe_at(data_texture_tag(associated_object->type_dependant_handle)); dt)
 		dt->data_ready();
 }
 
 template<typename BASE>
-void ui::piechart<BASE>::update_data(tagged_gui_object o, gui_manager& m) {
-	if constexpr(ui::detail::has_update<BASE, ui::piechart<BASE>&, tagged_gui_object, gui_manager&>) {
-		BASE::update(*this, o, m);
+void ui::piechart<BASE>::update_data(gui_object_tag o, gui_manager& m, world_state& w) {
+	if constexpr(ui::detail::has_update<BASE, ui::piechart<BASE>&, tagged_gui_object, gui_manager&, world_state&>) {
+		BASE::update(*this, o, m, w);
 	}
 }
 
@@ -152,11 +146,11 @@ template<typename BASE>
 ui::tagged_gui_object ui::create_static_element(gui_manager& manager, icon_tag handle, tagged_gui_object parent, piechart<BASE>& b) {
 	const auto res = ui::detail::create_element_instance(manager, handle);
 
-	res.object.flags.fetch_or(ui::gui_object::static_behavior, std::memory_order_acq_rel);
 	res.object.associated_behavior = &b;
+	b.associated_object = &res.object;
 
-	if ((res.object.flags.load(std::memory_order_acquire) & ui::gui_object::type_mask) == ui::gui_object::type_piechart)
-		b.associate(manager.data_textures.safe_at(data_texture_tag(res.object.type_dependant_handle)));
+	b.clear_entries(manager);
+	b.update_display(manager);
 
 	ui::add_to_back(manager, parent, res);
 	return res;

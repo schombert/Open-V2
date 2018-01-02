@@ -12,7 +12,7 @@ namespace ui {
 		scrollbar<BASE>& parent;
 	public:
 		scrollbar_track(scrollbar<BASE>& p) : parent(p) {}
-		virtual bool on_lclick(tagged_gui_object, gui_manager&, const lbutton_down& ld) override;
+		virtual bool on_lclick(gui_object_tag, gui_manager&, const lbutton_down& ld) override;
 	};
 
 	template<typename BASE>
@@ -22,9 +22,9 @@ namespace ui {
 		int32_t base_position;
 	public:
 		scrollbar_slider(scrollbar<BASE>& p) : parent(p), base_position(0) {}
-		virtual bool on_get_focus(tagged_gui_object, gui_manager&) override { return true; };
-		virtual bool on_lclick(tagged_gui_object, gui_manager&, const lbutton_down&) override { base_position = parent.position(); return true; };
-		virtual bool on_drag(tagged_gui_object, gui_manager&, const mouse_drag& md) override;
+		virtual bool on_get_focus(gui_object_tag, gui_manager&) override { return true; };
+		virtual bool on_lclick(gui_object_tag, gui_manager&, const lbutton_down&) override { base_position = parent.position(); return true; };
+		virtual bool on_drag(gui_object_tag, gui_manager&, const mouse_drag& md) override;
 	};
 
 	template<typename BASE>
@@ -33,7 +33,7 @@ namespace ui {
 		scrollbar<BASE>& parent;
 	public:
 		scrollbar_left_button(scrollbar<BASE>& p) : parent(p) {}
-		void button_function(ui::tagged_gui_object, ui::gui_manager&) {
+		void button_function(gui_object_tag, ui::gui_manager&) {
 			parent.adjust_position(parent.position() - parent.step_size());
 		}
 	};
@@ -44,7 +44,7 @@ namespace ui {
 		scrollbar<BASE>& parent;
 	public:
 		scrollbar_right_button(scrollbar<BASE>& p) : parent(p) {}
-		void button_function(ui::tagged_gui_object, ui::gui_manager&) {
+		void button_function(gui_object_tag, ui::gui_manager&) {
 			parent.adjust_position(parent.position() + parent.step_size());
 		}
 	};
@@ -74,9 +74,9 @@ void ui::scrollbar<BASE>::adjust_position(int32_t position) {
 }
 
 template<typename BASE>
-void ui::scrollbar<BASE>::update_data(tagged_gui_object o, gui_manager& m) {
-	if constexpr(ui::detail::has_update<BASE, ui::scrollbar<BASE>&, tagged_gui_object, gui_manager&>) {
-		BASE::update(*this, o, m);
+void ui::scrollbar<BASE>::update_data(gui_object_tag o, gui_manager& m, world_state& w) {
+	if constexpr(ui::detail::has_update<BASE, ui::scrollbar<BASE>&, tagged_gui_object, gui_manager&, world_state&>) {
+		BASE::update(*this, o, m, w);
 	}
 }
 
@@ -98,7 +98,7 @@ namespace detail {
 }
 
 template<typename BASE>
-bool ui::scrollbar<BASE>::on_scroll(tagged_gui_object, gui_manager&, const scroll& s) {
+bool ui::scrollbar<BASE>::on_scroll(gui_object_tag, gui_manager&, const scroll& s) {
 	adjust_position(_position + (int32_t)::detail::round_away(static_cast<float>(_step_size) * -s.amount));
 	return true;
 }
@@ -112,7 +112,7 @@ void ui::scrollbar<BASE>::update_limit_icons(gui_manager& m) {
 			} else {
 				minimum_limit_icon->position.x = valid_start - slider->size.x / 2 + static_cast<int32_t>(static_cast<double>((valid_end - valid_start) * (limit_minimum - minimum)) / static_cast<double>(maximum - minimum));
 			}
-			ui::make_visible(m, ui::tagged_gui_object{ *minimum_limit_icon, lmin_tag });
+			minimum_limit_icon->flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
 		} else
 			ui::hide(ui::tagged_gui_object{ *minimum_limit_icon, lmin_tag });
 	}
@@ -123,7 +123,7 @@ void ui::scrollbar<BASE>::update_limit_icons(gui_manager& m) {
 			} else {
 				maximum_limit_icon->position.x = valid_start + static_cast<int32_t>(static_cast<double>((valid_end - valid_start) * (limt_maximum - minimum)) / static_cast<double>(maximum - minimum));
 			}
-			ui::make_visible(m, ui::tagged_gui_object{ *maximum_limit_icon, lmax_tag });
+			maximum_limit_icon->flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
 		} else
 			ui::hide(ui::tagged_gui_object{ *maximum_limit_icon, lmax_tag });
 	}
@@ -148,15 +148,15 @@ void ui::scrollbar<BASE>::set_range(gui_manager& m, int32_t rmin, int32_t rmax) 
 }
 
 template<typename BASE>
-bool ui::scrollbar_track<BASE>::on_lclick(tagged_gui_object track, gui_manager&, const lbutton_down& ld) {
+bool ui::scrollbar_track<BASE>::on_lclick(gui_object_tag track, gui_manager&, const lbutton_down& ld) {
 	const auto[valid_start, valid_end] = parent.track_range();
 	const auto[minimum, maximum] = parent.range();
-	parent.adjust_position(static_cast<int32_t>(static_cast<double>(((parent.vertical ? (ld.y + track.object.position.y) : (ld.x + track.object.position.x)) - valid_start) * (maximum - minimum)) / static_cast<double>(valid_end - valid_start)) + minimum);
+	parent.adjust_position(static_cast<int32_t>(static_cast<double>(((parent.vertical ? (ld.y + associated_object->position.y) : (ld.x + associated_object->position.x)) - valid_start) * (maximum - minimum)) / static_cast<double>(valid_end - valid_start)) + minimum);
 	return true;
 }
 
 template<typename BASE>
-bool ui::scrollbar_slider<BASE>::on_drag(tagged_gui_object, gui_manager&, const mouse_drag& md) {
+bool ui::scrollbar_slider<BASE>::on_drag(gui_object_tag, gui_manager&, const mouse_drag& md) {
 	const auto[valid_start, valid_end] = parent.track_range();
 	const auto[minimum, maximum] = parent.range();
 	parent.adjust_position(static_cast<int32_t>(static_cast<double>((parent.vertical ? md.y : md.x) * (maximum - minimum)) / static_cast<double>(valid_end - valid_start)) + base_position);
@@ -176,6 +176,8 @@ namespace ui {
 				(scrollbar_definition.flags & scrollbar_def::step_mask) == scrollbar_def::step_two ? 2 : 1);
 
 			scrollbar_obj.object.associated_behavior = &b;
+			b.associated_object = &scrollbar_obj.object;
+
 			scrollbar_obj.object.align = alignment_from_definition(scrollbar_definition);
 
 			if ((scrollbar_definition.flags & scrollbar_def::has_range_limit) != 0) {
@@ -256,7 +258,9 @@ ui::tagged_gui_object ui::create_fixed_sz_scrollbar(gui_manager& manager, scroll
 	ui::scrollbar<BEHAVIOR>* b = concurrent_allocator<ui::scrollbar<BEHAVIOR>>().allocate(1);
 	new (b) ui::scrollbar<BEHAVIOR>(std::forward<PARAMS>(params)...);
 
-	return ui::detail::create_scrollbar_internal<BEHAVIOR>(manager, *b, scrollbar_definition, parent, position, extent);
+	const auto res = ui::detail::create_scrollbar_internal<BEHAVIOR>(manager, *b, scrollbar_definition, parent, position, extent);
+	res.object.flags.fetch_or(ui::gui_object::dynamic_behavior, std::memory_order_acq_rel);
+	return res;
 }
 
 template<typename BEHAVIOR, typename ... PARAMS>
@@ -265,27 +269,24 @@ ui::tagged_gui_object ui::create_scrollbar(gui_manager& manager, scrollbar_tag h
 	ui::scrollbar<BEHAVIOR>* b = concurrent_allocator<ui::scrollbar<BEHAVIOR>>().allocate(1);
 	new (b) ui::scrollbar<BEHAVIOR>(std::forward<PARAMS>(params)...);
 
-	return ui::detail::create_scrollbar_internal<BEHAVIOR>(manager, *b, scrollbar_definition, parent, scrollbar_definition.position, std::max(scrollbar_definition.size.x, scrollbar_definition.size.y));
+	const auto res = ui::detail::create_scrollbar_internal<BEHAVIOR>(manager, *b, scrollbar_definition, parent, scrollbar_definition.position, std::max(scrollbar_definition.size.x, scrollbar_definition.size.y));
+	res.object.flags.fetch_or(ui::gui_object::dynamic_behavior, std::memory_order_acq_rel);
+	return res;
 }
 
 template<typename B>
 ui::tagged_gui_object ui::create_static_element(gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, scrollbar<B>& b) {
 	const auto& scrollbar_definition = manager.ui_definitions.scrollbars[handle];
 
-	const auto res = ui::detail::create_scrollbar_internal<B>(manager, b, scrollbar_definition, parent, scrollbar_definition.position, std::max(scrollbar_definition.size.x, scrollbar_definition.size.y));
-	res.object.flags.fetch_or(ui::gui_object::static_behavior, std::memory_order_acq_rel);
-
-	return res;
+	return ui::detail::create_scrollbar_internal<B>(manager, b, scrollbar_definition, parent, scrollbar_definition.position, std::max(scrollbar_definition.size.x, scrollbar_definition.size.y));
 }
 
 template<typename BEHAVIOR>
 ui::tagged_gui_object ui::create_static_fixed_sz_scrollbar(gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, ui::xy_pair position, int32_t extent, scrollbar<BEHAVIOR>& b) {
 	const auto& scrollbar_definition = manager.ui_definitions.scrollbars[handle];
 
-	const auto res = ui::detail::create_scrollbar_internal<BEHAVIOR>(manager, b, scrollbar_definition, parent, position, extent);
-	res.object.flags.fetch_or(ui::gui_object::static_behavior, std::memory_order_acq_rel);
-
-	return res;
+	return ui::detail::create_scrollbar_internal<BEHAVIOR>(manager, b, scrollbar_definition, parent, position, extent);
 }
 
+#include "buttons.hpp"
 #include "gui.hpp"
