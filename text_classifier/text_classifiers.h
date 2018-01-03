@@ -22,7 +22,7 @@ struct text_identifier {
 template<typename return_type, typename ... args>
 struct base_callable {
 	virtual return_type operator()(args ... a) = 0;
-	virtual ~base_callable() {};
+	virtual ~base_callable() {}
 };
 
 template<typename holds, typename return_type, typename ... args>
@@ -43,7 +43,7 @@ struct movable_function {
 private:
 	std::unique_ptr<base_callable<return_type, args...>> actual;
 public:
-	movable_function(movable_function&& other) : actual(std::move(other.actual)) {};
+	movable_function(movable_function&& other) : actual(std::move(other.actual)) {}
 	template<typename T>
 	movable_function(T&& t) : actual(std::make_unique<movable_function_actual<T, return_type, args...>>(std::move(t))) {}
 	return_type operator()(args ... a) const {
@@ -57,7 +57,7 @@ private:
 public:
 	binary_search_classifier(std::vector<text_identifier>&& o);
 	binary_search_classifier(const std::vector<text_identifier>& o);
-	binary_search_classifier() {};
+	binary_search_classifier() {}
 
 	void add_option(text_identifier opt);
 	unsigned char classify(const char* ts, const char* te) const;

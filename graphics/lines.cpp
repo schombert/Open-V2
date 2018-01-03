@@ -6,7 +6,7 @@
 
 namespace graphics {
 	void lines::set_y(float* v) {
-		for (int32_t i = 0; i < count; ++i) {
+		for (int32_t i = 0; i < static_cast<int32_t>(count); ++i) {
 			buffer[i * 4] = static_cast<float>(i) / static_cast<float>(count - 1);
 			buffer[i * 4 + 1] = 1.0f - v[i];
 			buffer[i * 4 + 2] = 0.5f;

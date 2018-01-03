@@ -156,6 +156,7 @@
   <ItemGroup>
     <ClCompile Include="buttons.cpp" />
     <ClCompile Include="gui.cpp" />
+    <ClCompile Include="listbox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\concurrency_tools\concurrency_tools.vcxproj">

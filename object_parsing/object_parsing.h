@@ -276,7 +276,7 @@ struct function_and_tuple {
 		template<typename in_class>
 		void operator()(in_class& cls, association_type b, const token_and_type& c) {
 			_set_member<member_ident, in_class>::set(cls, finstance(b, c, ARGS::value ...));
-		};
+		}
 	};
 };
 
@@ -288,7 +288,7 @@ struct function_and_object_tuple_ext {
 		template<typename in_class, typename from>
 		void operator()(in_class& cls, const token_and_type& a, association_type b, from&& c) {
 			_set_member<member_ident, in_class>::set(cls, finstance(a, b, c, ARGS::value ...));
-		};
+		}
 	};
 };
 
@@ -300,7 +300,7 @@ struct function_and_object_tuple {
 		template<typename in_class, typename from>
 		void operator()(in_class& cls, const token_and_type&, association_type, from&& c) {
 			_set_member<member_ident, in_class>::set(cls, c);
-		};
+		}
 	};
 };
 
@@ -313,7 +313,7 @@ struct function_and_object_tuple_with_extra {
 		void operator()(in_class& cls, const token_and_type&, association_type t, from&& c) {
 			finstance(c, t, ARGS::value ...);
 			_set_member<member_ident, in_class>::set(cls, c);
-		};
+		}
 	};
 };
 
@@ -323,6 +323,6 @@ struct function_and_tuple_ext {
 		template<typename in_class>
 		void operator()(in_class& cls, const token_and_type& a, association_type b, const token_and_type& c) {
 			_set_member<member_ident, in_class>::set(cls, finstance(a, b, c, ARGS::value ...));
-		};
+		}
 	};
 };

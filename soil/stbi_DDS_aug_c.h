@@ -61,7 +61,7 @@ int      stbi_dds_test_file        (FILE *f)
 }
 #endif
 
-int      stbi_dds_test_memory      (stbi_uc const *buffer, int len)
+int      stbi_dds_test_memory      (stbi_uc *buffer, int len)
 {
 	stbi__context s;
 	stbi__start_mem(&s, buffer, len);
@@ -69,6 +69,21 @@ int      stbi_dds_test_memory      (stbi_uc const *buffer, int len)
 }
 
 //	helper functions
+int stbi_convert_bit_range(int c, int from_bits, int to_bits);
+void stbi_rgb_888_from_565(unsigned int c, int *r, int *g, int *b);
+void stbi_decode_DXT1_block(
+	unsigned char uncompressed[16 * 4],
+	unsigned char compressed[8]);
+void stbi_decode_DXT23_alpha_block(
+	unsigned char uncompressed[16 * 4],
+	unsigned char compressed[8]);
+void stbi_decode_DXT45_alpha_block(
+	unsigned char uncompressed[16 * 4],
+	unsigned char compressed[8]);
+void stbi_decode_DXT_color_block(
+	unsigned char uncompressed[16 * 4],
+	unsigned char compressed[8]);
+
 int stbi_convert_bit_range( int c, int from_bits, int to_bits )
 {
 	int b = (1 << (from_bits - 1)) + c * ((1 << to_bits) - 1);
@@ -91,15 +106,15 @@ void stbi_decode_DXT1_block(
 	//	find the 2 primary colors
 	c0 = compressed[0] + (compressed[1] << 8);
 	c1 = compressed[2] + (compressed[3] << 8);
-	stbi_rgb_888_from_565( c0, &r, &g, &b );
-	decode_colors[0] = r;
-	decode_colors[1] = g;
-	decode_colors[2] = b;
+	stbi_rgb_888_from_565( (unsigned int)c0, &r, &g, &b );
+	decode_colors[0] = (unsigned char)r;
+	decode_colors[1] = (unsigned char)g;
+	decode_colors[2] = (unsigned char)b;
 	decode_colors[3] = 255;
-	stbi_rgb_888_from_565( c1, &r, &g, &b );
-	decode_colors[4] = r;
-	decode_colors[5] = g;
-	decode_colors[6] = b;
+	stbi_rgb_888_from_565((unsigned int)c1, &r, &g, &b );
+	decode_colors[4] = (unsigned char)r;
+	decode_colors[5] = (unsigned char)g;
+	decode_colors[6] = (unsigned char)b;
 	decode_colors[7] = 255;
 	if( c0 > c1 )
 	{
@@ -144,7 +159,7 @@ void stbi_decode_DXT23_alpha_block(
 	//	each alpha value gets 4 bits
 	for( i = 3; i < 16*4; i += 4 )
 	{
-		uncompressed[i] = stbi_convert_bit_range(
+		uncompressed[i] = (unsigned char)stbi_convert_bit_range(
 				(compressed[next_bit>>3] >> (next_bit&7)) & 15,
 				4, 8 );
 		next_bit += 4;
@@ -205,14 +220,14 @@ void stbi_decode_DXT_color_block(
 	//	find the 2 primary colors
 	c0 = compressed[0] + (compressed[1] << 8);
 	c1 = compressed[2] + (compressed[3] << 8);
-	stbi_rgb_888_from_565( c0, &r, &g, &b );
-	decode_colors[0] = r;
-	decode_colors[1] = g;
-	decode_colors[2] = b;
-	stbi_rgb_888_from_565( c1, &r, &g, &b );
-	decode_colors[3] = r;
-	decode_colors[4] = g;
-	decode_colors[5] = b;
+	stbi_rgb_888_from_565( (unsigned int)c0, &r, &g, &b );
+	decode_colors[0] = (unsigned char)r;
+	decode_colors[1] = (unsigned char)g;
+	decode_colors[2] = (unsigned char)b;
+	stbi_rgb_888_from_565((unsigned int)c1, &r, &g, &b );
+	decode_colors[3] = (unsigned char)r;
+	decode_colors[4] = (unsigned char)g;
+	decode_colors[5] = (unsigned char)b;
 	//	Like DXT1, but no choicees:
 	//	no alpha, 2 interpolated colors
 	decode_colors[6] = (2*decode_colors[0] + decode_colors[3]) / 3;
@@ -238,7 +253,8 @@ static stbi_uc *dds_load(stbi__context *s, int *x, int *y, int *comp, int req_co
 	stbi_uc *dds_data = NULL;
 	stbi_uc block[16*4];
 	stbi_uc compressed[8];
-	int flags, DXT_family;
+	unsigned int flags;
+	int DXT_family;
 	int has_alpha, has_mipmap;
 	int is_compressed, cubemap_faces;
 	int block_pitch, num_blocks;
@@ -276,10 +292,10 @@ static stbi_uc *dds_load(stbi__context *s, int *x, int *y, int *comp, int req_co
 	cubemap_faces *= 5;
 	cubemap_faces += 1;
 	block_pitch = (s->img_x+3) >> 2;
-	num_blocks = block_pitch * ((s->img_y+3) >> 2);
+	num_blocks = block_pitch * (((int)s->img_y+3) >> 2);
 	/*	let the user know what's going on	*/
-	*x = s->img_x;
-	*y = s->img_y;
+	*x = (int)s->img_x;
+	*y = (int)s->img_y;
 	*comp = s->img_n;
 	/*	is this uncompressed?	*/
 	if( is_compressed )
@@ -292,8 +308,8 @@ static stbi_uc *dds_load(stbi__context *s, int *x, int *y, int *comp, int req_co
 			those non-compliant writers leave
 			dwPitchOrLinearSize == 0	*/
 		//	passed all the tests, get the RAM for decoding
-		sz = (s->img_x)*(s->img_y)*4*cubemap_faces;
-		dds_data = (unsigned char*)malloc( sz );
+		sz = ((int)s->img_x)*((int)s->img_y)*4*cubemap_faces;
+		dds_data = (unsigned char*)malloc((size_t) sz );
 		/*	do this once for each face	*/
 		for( cf = 0; cf < cubemap_faces; ++ cf )
 		{
@@ -326,18 +342,18 @@ static stbi_uc *dds_load(stbi__context *s, int *x, int *y, int *comp, int req_co
 					stbi_decode_DXT_color_block ( block, compressed );
 				}
 				//	is this a partial block?
-				if( ref_x + 4 > s->img_x )
+				if( ref_x + 4 > (int)s->img_x )
 				{
-					bw = s->img_x - ref_x;
+					bw = (int)s->img_x - ref_x;
 				}
-				if( ref_y + 4 > s->img_y )
+				if( ref_y + 4 > (int)s->img_y )
 				{
-					bh = s->img_y - ref_y;
+					bh = (int)s->img_y - ref_y;
 				}
 				//	now drop our decompressed data into the buffer
 				for( by = 0; by < bh; ++by )
 				{
-					int idx = 4*((ref_y+by+cf*s->img_x)*s->img_x + ref_x);
+					int idx = 4*((ref_y+by+cf*(int)s->img_x)*(int)s->img_x + ref_x);
 					for( bx = 0; bx < bw*4; ++bx )
 					{
 
@@ -354,10 +370,10 @@ static stbi_uc *dds_load(stbi__context *s, int *x, int *y, int *comp, int req_co
 				{
 					block_size = 8;
 				}
-				for( i = 1; i < header.dwMipMapCount; ++i )
+				for( i = 1; i < (int)header.dwMipMapCount; ++i )
 				{
-					int mx = s->img_x >> (i + 2);
-					int my = s->img_y >> (i + 2);
+					int mx = (int)s->img_x >> (i + 2);
+					int my = (int)s->img_y >> (i + 2);
 					if( mx < 1 )
 					{
 						mx = 1;
@@ -380,21 +396,21 @@ static stbi_uc *dds_load(stbi__context *s, int *x, int *y, int *comp, int req_co
 			s->img_n = 4;
 		}
 		*comp = s->img_n;
-		sz = s->img_x*s->img_y*s->img_n*cubemap_faces;
-		dds_data = (unsigned char*)malloc( sz );
+		sz = (int)s->img_x*(int)s->img_y*s->img_n*cubemap_faces;
+		dds_data = (unsigned char*)malloc( (size_t)sz );
 		/*	do this once for each face	*/
 		for( cf = 0; cf < cubemap_faces; ++ cf )
 		{
 			/*	read the main image for this face	*/
-			stbi__getn( s, &dds_data[cf*s->img_x*s->img_y*s->img_n], s->img_x*s->img_y*s->img_n );
+			stbi__getn( s, &dds_data[cf*(int)s->img_x*(int)s->img_y*s->img_n], (int)s->img_x*(int)s->img_y*s->img_n );
 			/*	done reading and decoding the main image...
 				skip MIPmaps if present	*/
 			if( has_mipmap )
 			{
-				for( i = 1; i < header.dwMipMapCount; ++i )
+				for( i = 1; i < (int)header.dwMipMapCount; ++i )
 				{
-					int mx = s->img_x >> i;
-					int my = s->img_y >> i;
+					int mx = (int)s->img_x >> i;
+					int my = (int)s->img_y >> i;
 					if( mx < 1 )
 					{
 						mx = 1;
@@ -418,8 +434,8 @@ static stbi_uc *dds_load(stbi__context *s, int *x, int *y, int *comp, int req_co
 	/*	finished decompressing into RGBA,
 		adjust the y size if we have a cubemap
 		note: sz is already up to date	*/
-	s->img_y *= cubemap_faces;
-	*y = s->img_y;
+	s->img_y *= (unsigned int)cubemap_faces;
+	*y = (int)s->img_y;
 	//	did the user want something else, or
 	//	see if all the alpha values are 255 (i.e. no transparency)
 	has_alpha = 0;
@@ -470,7 +486,7 @@ stbi_uc *stbi_dds_load             (char *filename,           int *x, int *y, in
 }
 #endif
 
-stbi_uc *stbi_dds_load_from_memory (stbi_uc const *buffer, int len, int *x, int *y, int *comp, int req_comp)
+stbi_uc *stbi_dds_load_from_memory (stbi_uc *buffer, int len, int *x, int *y, int *comp, int req_comp)
 {
 	stbi__context s;
 	stbi__start_mem(&s,buffer, len);

@@ -174,15 +174,6 @@ typedef unsigned short wchar_t;
 #    define _W64
 #  endif
 #endif
-#if !defined(_PTRDIFF_T_DEFINED) && !defined(_PTRDIFF_T_) && !defined(__MINGW64__)
-#  ifdef _WIN64
-typedef __int64 ptrdiff_t;
-#  else
-typedef _W64 int ptrdiff_t;
-#  endif
-#  define _PTRDIFF_T_DEFINED
-#  define _PTRDIFF_T_
-#endif
 
 #ifndef GLAPI
 #  if defined(__MINGW32__) || defined(__CYGWIN__)
@@ -1200,9 +1191,9 @@ GLAPI void GLAPIENTRY glViewport (GLint x, GLint y, GLsizei width, GLsizei heigh
 #ifndef GLEW_NO_GLU
 /* this is where we can safely include GLU */
 #  if defined(__APPLE__) && defined(__MACH__)
-#    include <OpenGL/glu.h>
+#    include <OpenGL\glu.h>
 #  else
-#    include <GL/glu.h>
+#    include <gl\\GLU.h>
 #  endif
 #endif
 

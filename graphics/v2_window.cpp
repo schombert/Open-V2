@@ -1,8 +1,11 @@
 #include "v2_window.hpp"
 #include <Windows.h>
-#include <Windowsx.h>
+#include <windowsx.h>
 
 namespace ui {
+	modifiers get_current_modifiers();
+	void windowing_thread(long* (__stdcall *win_proc)(void*, unsigned int, unsigned int*, long*), uint32_t xsize, uint32_t ysize, window_base & container);
+
 	window_base::window_base(bool t) : topmost(t) {}
 
 	window_base::~window_base() {}
@@ -87,7 +90,7 @@ namespace ui {
 			{
 				RECT* window_rect = (RECT*)lParam;
 				RECT zero_rect = { 0, 0, 0, 0 };
-				AdjustWindowRectEx(&zero_rect, GetWindowLong(hwnd, GWL_STYLE), false, GetWindowLong(hwnd, GWL_EXSTYLE));
+				AdjustWindowRectEx(&zero_rect, (DWORD)GetWindowLong(hwnd, GWL_STYLE), false, (DWORD)GetWindowLong(hwnd, GWL_EXSTYLE));
 
 				if (winbase)
 					winbase->gl_wrapper.set_viewport(
@@ -104,7 +107,7 @@ namespace ui {
 			{
 				POINT location{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 				ScreenToClient(hwnd, &location);
-				return scroll{ { location.x, location.y }, (float)(GET_WHEEL_DELTA_WPARAM(wParam)) / 120.0, get_current_modifiers() };
+				return scroll{ { location.x, location.y }, (float)(GET_WHEEL_DELTA_WPARAM(wParam)) / 120.0f, get_current_modifiers() };
 			}
 				
 			case WM_KEYDOWN:
@@ -154,29 +157,29 @@ namespace ui {
 		windowClass.lpfnWndProc = (WNDPROC)win_proc;
 		windowClass.cbClsExtra = 0;
 		windowClass.cbWndExtra = sizeof(void*);
-		windowClass.hInstance = GetModuleHandleW(NULL);
-		windowClass.hIcon = NULL;
-		windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-		windowClass.hbrBackground = NULL;
-		windowClass.lpszMenuName = NULL;
-		windowClass.hIconSm = NULL;
+		windowClass.hInstance = GetModuleHandleW(nullptr);
+		windowClass.hIcon = nullptr;
+		windowClass.hCursor = LoadCursor(nullptr, IDC_ARROW);
+		windowClass.hbrBackground = nullptr;
+		windowClass.lpszMenuName = nullptr;
+		windowClass.hIconSm = nullptr;
 		windowClass.lpszClassName = L"Open V2 Window";
 		RegisterClassEx(&windowClass);
 
 
-		HDC screenDC = GetDC(NULL);
+		HDC screenDC = GetDC(nullptr);
 		int left = xsize != 0 ? GetDeviceCaps(screenDC, HORZRES) / 2 - static_cast<int>(xsize / 2) : 0;
 		int top = ysize != 0 ? GetDeviceCaps(screenDC, VERTRES) / 2 - static_cast<int>(ysize / 2) : 0;
-		int width = xsize != 0 ? xsize : GetDeviceCaps(screenDC, HORZRES);
-		int height = ysize != 0 ? ysize : GetDeviceCaps(screenDC, VERTRES);
-		ReleaseDC(NULL, screenDC);
+		int32_t width = xsize != 0 ? (int32_t)xsize : GetDeviceCaps(screenDC, HORZRES);
+		int32_t height = ysize != 0 ? (int32_t)ysize : GetDeviceCaps(screenDC, VERTRES);
+		ReleaseDC(nullptr, screenDC);
 
 		DWORD win32Style = xsize != 0 ?
 			WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_SYSMENU | WS_CLIPCHILDREN | WS_CLIPSIBLINGS :
 			WS_VISIBLE | WS_BORDER | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 
 		if (xsize != 0) {
-			RECT rectangle = { 0, 0, width, height };
+			RECT rectangle = { 0, 0, (LONG)width, (LONG)height };
 			AdjustWindowRectEx(&rectangle, win32Style, false, xsize != 0 ? 0 : WS_EX_TOPMOST);
 			width = rectangle.right - rectangle.left;
 			height = rectangle.bottom - rectangle.top;
@@ -188,7 +191,7 @@ namespace ui {
 			L"Open V2",
 			win32Style,
 			left, top, width, height,
-			NULL, NULL, GetModuleHandle(NULL), &container
+			nullptr, nullptr, GetModuleHandle(nullptr), &container
 		);
 
 		ShowWindow(handle, SW_SHOW);

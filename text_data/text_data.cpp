@@ -3,6 +3,8 @@
 #include <Windows.h>
 
 namespace text_data {
+	text_color char_to_color(char in);
+
 	text_color char_to_color(char in) {
 		switch (in) {
 			case 'W': return text_color::white;
@@ -16,27 +18,27 @@ namespace text_data {
 
 	void add_win1250_text_to_container(text_sequences& container, const char* s, const char *e) {
 		if (s < e) {
-			const auto offset = container.text_data.size();
+			const uint32_t offset = static_cast<uint32_t>(container.text_data.size());
 			for (auto i = s; i != e; ++i) {
 				container.text_data.push_back(win1250toUTF16(*i));
 			}
-			container.all_components.emplace_back(text_chunk{ offset, e - s });
+			container.all_components.emplace_back(text_chunk{ offset, static_cast<uint16_t>(e - s) });
 		}
 	}
 
 	void add_utf8_text_to_container(text_sequences& container, const char* s, const char *e) {
 		if (s < e) {
-			const auto offset = container.text_data.size();
+			const uint32_t offset = static_cast<uint32_t>(container.text_data.size());
 
 			const auto size = MultiByteToWideChar(CP_UTF8, 0, s, (int)(e - s), nullptr, 0);
-			char16_t* buffer = (char16_t*)_alloca((e - s) * sizeof(char16_t));
+			char16_t* buffer = (char16_t*)_alloca((size_t)(e - s) * sizeof(char16_t));
 
 			MultiByteToWideChar(CP_UTF8, 0, s, (int)(e - s), (wchar_t*)buffer, size);
 			container.text_data.insert(container.text_data.end(), buffer, buffer + size);
 
 			_freea(buffer);
 
-			container.all_components.emplace_back(text_chunk{ offset, size });
+			container.all_components.emplace_back(text_chunk{ offset, static_cast<uint16_t>(size) });
 		}
 	}
 
@@ -92,7 +94,10 @@ namespace text_data {
 
 		add_text(container, section_start, seq_end);
 
-		const auto nh = container.all_sequences.emplace_back(text_sequence{ component_start_index, container.all_components.size() - component_start_index });
+		const auto nh = container.all_sequences.emplace_back(
+			text_sequence{
+			static_cast<uint16_t>(component_start_index),
+			static_cast<uint16_t>(container.all_components.size() - component_start_index) });
 		temp_map.emplace(vector_backed_string<char>(key_start, key_end, container.key_data), nh);
 	}
 
@@ -507,8 +512,8 @@ namespace text_data {
 		if (key_start == key_end)
 			return text_tag();
 
-		char* const cpy = (char*)_alloca(key_end - key_start + 1);
-		memcpy(cpy, key_start, key_end - key_start);
+		char* const cpy = (char*)_alloca((size_t)(key_end - key_start + 1));
+		memcpy(cpy, key_start, (size_t)(key_end - key_start));
 		cpy[key_end - key_start] = 0;
 		const auto find_result = container.key_to_sequence_map.find(cpy);
 		_freea(cpy);
@@ -517,7 +522,7 @@ namespace text_data {
 			return find_result->second;
 		} else {
 			text_data::add_win1250_text_to_container(container, key_start, key_end);
-			const auto new_key = container.all_sequences.emplace_back(text_data::text_sequence{ container.all_components.size() - 1, 1 });
+			const auto new_key = container.all_sequences.emplace_back(text_data::text_sequence{ static_cast<uint16_t>(container.all_components.size() - 1), 1 });
 
 			container.key_to_sequence_map.emplace(vector_backed_string<char>(key_start, key_end, container.key_data), new_key);
 			return new_key;

@@ -25,7 +25,7 @@ void ui::simple_button<BASE>::update_data(gui_object_tag o, gui_manager& m, worl
 }
 
 template<typename BASE>
-template<typename ...T>
+template<typename T>
 void ui::simple_button<BASE>::initialize_in_window(T& t) {
 	if constexpr(ui::detail::has_initialize_in_window<BASE, T&>)
 		BASE::initialize_in_window(t);
@@ -74,7 +74,7 @@ namespace buttons_detail {
 		void initialize_in_window(window_type& w, ui::gui_manager&) {
 			if constexpr(ui::detail::has_initialize_in_window<BEHAVIOR, window_type&>)
 				BEHAVIOR::initialize_in_window(w);
-		};
+		}
 
 		virtual void select(ui::gui_manager& m, uint32_t i) override {
 			if constexpr(buttons_detail::has_on_unselect<BEHAVIOR, ui::gui_manager&, uint32_t>)

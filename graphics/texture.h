@@ -70,15 +70,15 @@ namespace graphics {
 		const uint16_t size = 0;
 		const uint16_t channels = 3;
 
-		data_texture(int s, int c) : _data(new uint8_t[s * c]), size(s), channels(c) {
+		data_texture(uint16_t s, uint16_t c) : _data(new uint8_t[s * c]), size(s), channels(c) {
 			memset(_data, 0, size * channels * sizeof(uint8_t));
-		};
+		}
 		data_texture(const data_texture& o) noexcept : _data(new uint8_t[o.size * o.channels]), size(o.size), channels(o.channels) {
 			memcpy(_data, o._data, size * channels * sizeof(uint8_t));
 		}
 		data_texture(data_texture&& o) noexcept : texture_handle(o.texture_handle), _data(o._data), size(o.size), channels(o.channels) { o._data = nullptr; }
-		data_texture& operator=(data_texture&& o) noexcept { this->~data_texture(), new (this) data_texture(std::move(o)); return *this; }
-		data_texture& operator=(const data_texture& o) noexcept { this->~data_texture(), new (this) data_texture(o); return *this; }
+		data_texture& operator=(data_texture&& o) noexcept { this->~data_texture(); new (this) data_texture(std::move(o)); return *this; }
+		data_texture& operator=(const data_texture& o) noexcept { this->~data_texture(); new (this) data_texture(o); return *this; }
 		~data_texture() { if (_data) delete[] _data; }
 
 		void create();

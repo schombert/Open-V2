@@ -20,9 +20,9 @@ public:
 	char* buffer_ptr = nullptr;
 	std::vector<token_group> parse_tree;
 
-	parse_result_holder() : buffer_ptr(nullptr) {};
+	parse_result_holder() : buffer_ptr(nullptr) {}
 	parse_result_holder(const parse_result_holder& other) = delete;
-	parse_result_holder(parse_result_holder&& other) noexcept : parse_tree(std::move(other.parse_tree)) { buffer_ptr = other.buffer_ptr; other.buffer_ptr = nullptr; };
+	parse_result_holder(parse_result_holder&& other) noexcept : parse_tree(std::move(other.parse_tree)) { buffer_ptr = other.buffer_ptr; other.buffer_ptr = nullptr; }
 
 	~parse_result_holder() {
 		if (buffer_ptr)
@@ -78,14 +78,7 @@ struct double_trigger {
 	}
 };
 
-double_trigger double_trigger_from_association(association_type a, const token_and_type& e, double_trigger::double_trigger_type type) {
-	if (is_fixed_token_ci(e.start, e.end, "this"))
-		return double_trigger{ type, a, 0.0, special_values::this_t };
-	else if (is_fixed_token_ci(e.start, e.end, "from"))
-		return double_trigger{ type, a, 0.0, special_values::from_t };
-	else 
-		return double_trigger{ type, a, parse_double(e.start, e.end), special_values::none };
-}
+
 
 struct int_trigger {
 	enum class int_trigger_type {
@@ -101,14 +94,7 @@ struct int_trigger {
 	}
 };
 
-int_trigger int_trigger_from_association(association_type a, const token_and_type& e, int_trigger::int_trigger_type type) {
-	if (is_fixed_token_ci(e.start, e.end, "this"))
-		return int_trigger{ type, a, 0, special_values::this_t };
-	else if (is_fixed_token_ci(e.start, e.end, "from"))
-		return int_trigger{ type, a, 0, special_values::from_t };
-	else
-		return int_trigger{ type, a, parse_int(e.start, e.end), special_values::none };
-}
+
 
 struct bool_trigger {
 	enum class bool_trigger_type {
@@ -124,15 +110,6 @@ struct bool_trigger {
 		return (type == other.type) & (value == other.value) & (special_value == other.special_value);
 	}
 };
-
-bool_trigger bool_trigger_from_association(association_type, const token_and_type& e, bool_trigger::bool_trigger_type type) {
-	if (is_fixed_token_ci(e.start, e.end, "this"))
-		return bool_trigger{ type, false, special_values::this_t };
-	else if (is_fixed_token_ci(e.start, e.end, "from"))
-		return bool_trigger{ type, false, special_values::from_t };
-	else
-		return bool_trigger{ type, parse_bool(e.start, e.end), special_values::none };
-}
 
 struct string_trigger {
 	enum class string_trigger_type {
@@ -151,9 +128,42 @@ struct string_trigger {
 	}
 };
 
+bool_trigger bool_trigger_from_association(association_type, const token_and_type& e, bool_trigger::bool_trigger_type type);
+double_trigger double_trigger_from_association(association_type a, const token_and_type& e, double_trigger::double_trigger_type type);
+int_trigger int_trigger_from_association(association_type a, const token_and_type& e, int_trigger::int_trigger_type type);
+string_trigger string_trigger_from_association(association_type a, const token_and_type& e, string_trigger::string_trigger_type type);
+
+double_trigger double_trigger_from_association(association_type a, const token_and_type& e, double_trigger::double_trigger_type type) {
+	if (is_fixed_token_ci(e.start, e.end, "this"))
+		return double_trigger{ type, a, 0.0, special_values::this_t };
+	else if (is_fixed_token_ci(e.start, e.end, "from"))
+		return double_trigger{ type, a, 0.0, special_values::from_t };
+	else
+		return double_trigger{ type, a, parse_double(e.start, e.end), special_values::none };
+}
+
+int_trigger int_trigger_from_association(association_type a, const token_and_type& e, int_trigger::int_trigger_type type) {
+	if (is_fixed_token_ci(e.start, e.end, "this"))
+		return int_trigger{ type, a, 0, special_values::this_t };
+	else if (is_fixed_token_ci(e.start, e.end, "from"))
+		return int_trigger{ type, a, 0, special_values::from_t };
+	else
+		return int_trigger{ type, a, parse_int(e.start, e.end), special_values::none };
+}
+
+bool_trigger bool_trigger_from_association(association_type, const token_and_type& e, bool_trigger::bool_trigger_type type) {
+	if (is_fixed_token_ci(e.start, e.end, "this"))
+		return bool_trigger{ type, false, special_values::this_t };
+	else if (is_fixed_token_ci(e.start, e.end, "from"))
+		return bool_trigger{ type, false, special_values::from_t };
+	else
+		return bool_trigger{ type, parse_bool(e.start, e.end), special_values::none };
+}
+
 string_trigger string_trigger_from_association(association_type a, const token_and_type& e, string_trigger::string_trigger_type type) {
 	return string_trigger{ type, a, std::string(e.start, e.end) };
 }
+
 
 template<typename value_type>
 struct value_association_pair {

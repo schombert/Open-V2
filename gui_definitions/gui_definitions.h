@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 #include <functional>
-#include "boost\\container\\flat_map.hpp"
 #include "simple_fs\\simple_fs.h"
 #include "common\\shared_tags.h"
 
@@ -70,7 +69,7 @@ namespace ui {
 		int16_t y = 0;
 
 		constexpr ui::xy_pair operator+(ui::xy_pair other) const {
-			return xy_pair{x+other.x, y+other.y};
+			return xy_pair{ static_cast<int16_t>(x+other.x), static_cast<int16_t>(y+other.y) };
 		}
 		void operator+=(ui::xy_pair other) {
 			x += other.x;

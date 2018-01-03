@@ -2,12 +2,12 @@
 #include "gui.hpp"
 
 template<typename BASE, typename ELEMENT>
-virtual bool ui::display_listbox<BASE, ELEMENT>::on_scroll(gui_object_tag, gui_manager&, const scroll&) {
+bool ui::display_listbox<BASE, ELEMENT>::on_scroll(gui_object_tag, gui_manager&, const scroll&) {
 
 }
 
 template<typename BASE, typename ELEMENT>
-virtual void ui::display_listbox<BASE, ELEMENT>::update_data(gui_object_tag, gui_manager&, world_state&) {
+void ui::display_listbox<BASE, ELEMENT>::update_data(gui_object_tag, gui_manager&, world_state&) {
 
 }
 

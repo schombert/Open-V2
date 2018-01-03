@@ -49,7 +49,7 @@ public:
 		if constexpr(has_yield_v<NEXT>)
 			return next.yield();
 	}
-	void reset() { next.reset();  };
+	void reset() { next.reset();  }
 };
 
 template<typename WRAPPED, typename NEXT>

@@ -7,11 +7,12 @@ namespace graphics {
 	struct discard_type {
 		void any(int) {}
 	};
+	int discard_to_int(const token_and_type&, association_type, const discard_type&);
+
 
 	int discard_to_int(const token_and_type&, association_type, const discard_type&) {
 		return 0;
 	}
-
 
 
 	struct gobj_parsing_environment {
@@ -34,7 +35,7 @@ namespace graphics {
 		graphics::object internal_definition;
 		const gobj_parsing_environment& env;
 
-		parsing_object(const gobj_parsing_environment& e) : env(e) {};
+		parsing_object(const gobj_parsing_environment& e) : env(e) {}
 
 		std::string name;
 		token_and_type primary_texture;
@@ -83,8 +84,8 @@ namespace graphics {
 			}
 		}
 		void single_size(int n) {
-			internal_definition.size.x = n;
-			internal_definition.size.y = n;
+			internal_definition.size.x = static_cast<int16_t>(n);
+			internal_definition.size.y = static_cast<int16_t>(n);
 		}
 		void unknown_attribute(int) {
 			env.errors_generated.emplace_back(env.file, graphics::errors::unknown_attribute);
@@ -99,7 +100,7 @@ namespace graphics {
 
 	struct spritetypes {
 		const gobj_parsing_environment& env;
-		spritetypes(const gobj_parsing_environment& e) : env(e) {};
+		spritetypes(const gobj_parsing_environment& e) : env(e) {}
 
 		void sprite(const parsing_object& o) {
 			if (auto f = env.nmaps.names.find(o.name); f != env.nmaps.names.end()) {
@@ -172,7 +173,7 @@ namespace graphics {
 		}
 		void unknown_key(int) {
 			env.errors_generated.emplace_back(env.file, graphics::errors::unknown_sprite_type);
-		};
+		}
 		void discard(const discard_type&) {}
 	};
 
@@ -180,13 +181,13 @@ namespace graphics {
 
 	struct gfx_file {
 		const gobj_parsing_environment& env;
-		gfx_file(const gobj_parsing_environment& e) : env(e) {};
+		gfx_file(const gobj_parsing_environment& e) : env(e) {}
 
 		template<typename T>
-		void discard_result(T&&) {};
+		void discard_result(T&&) {}
 		void unknown_key(int) {
 			env.errors_generated.emplace_back(env.file, graphics::errors::unknown_file_level_type);
-		};
+		}
 	};
 
 }
@@ -225,8 +226,8 @@ namespace graphics {
 namespace graphics {
 	BEGIN_DOMAIN(gfx_file_domain)
 		BEGIN_TYPE(graphics::xy_pair)
-		MEMBER_ASSOCIATION("x", "x", value_from_rh<int>)
-		MEMBER_ASSOCIATION("y", "y", value_from_rh<int>)
+		MEMBER_ASSOCIATION("x", "x", value_from_rh<int16_t>)
+		MEMBER_ASSOCIATION("y", "y", value_from_rh<int16_t>)
 		END_TYPE
 		BEGIN_TYPE(gfx_file)
 		MEMBER_TYPE_ASSOCIATION("discard", "bitmapfonts", discard_type)
@@ -321,7 +322,7 @@ namespace graphics {
 	}
 
 	obj_definition_tag reserve_graphics_object(name_maps& nmaps, const char* name_start, const char* name_end) {
-		return nmaps.names.try_emplace(std::string(name_start, name_end), obj_definition_tag(nmaps.names.size())).first->second;
+		return nmaps.names.try_emplace(std::string(name_start, name_end), obj_definition_tag(static_cast<value_base_of<obj_definition_tag>>(nmaps.names.size()))).first->second;
 	}
 
 	const char* format_error(errors  e) {

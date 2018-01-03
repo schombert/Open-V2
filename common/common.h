@@ -5,6 +5,15 @@
 #include <atomic>
 #include <string>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
+#pragma clang diagnostic ignored "-Wsign-conversion"
+#pragma clang diagnostic ignored "-Wunused-template"
+#pragma clang diagnostic ignored "-Wshadow"
+#include "boost\\container\\flat_map.hpp"
+#include "boost\\container\\small_vector.hpp"
+#pragma clang diagnostic pop
+
 #ifndef _DEBUG
 #define CALL __vectorcall
 #else
@@ -157,6 +166,13 @@ template<typename T, typename tag_type>
 struct tagged_object {
 	T& object;
 	const tag_type id;
+
+	operator T&() const {
+		return object;
+	}
+	operator tag_type() const {
+		return id;
+	}
 };
 
 template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>>
@@ -173,7 +189,7 @@ public:
 	template<typename ...T>
 	tag_type emplace_back(T&& ... ts) {
 		storage.emplace_back(std::forward<T>(ts)...);
-		return tag_type(storage.size() - 1);
+		return tag_type(static_cast<value_base_of<tag_type>>(storage.size() - 1));
 	}
 	auto begin() const { return storage.begin(); }
 	auto end() const { return storage.end(); }
@@ -378,10 +394,10 @@ inline char16_t* _u16itoa(uint32_t i, char16_t* buffer) {
 		const auto rem = i % 10;
 
 		const auto tail = _u16itoa(num, buffer);
-		tail[0] = u'0' + rem;
+		tail[0] = static_cast<char16_t>(u'0' + rem);
 		return tail + 1;
 	} else {
-		buffer[0] = u'0' + i;
+		buffer[0] = static_cast<char16_t>(u'0' + i);
 		return buffer + 1;
 	}
 }
@@ -411,10 +427,10 @@ struct vector_backed_string {
 		vector_backed_string_data vbs;
 		const char_type* ptr;
 	} data;
-	vector_backed_string() { data.vbs = vector_backed_string_data{0, 0, (uint16_t)(-1)}; };
-	vector_backed_string(const char_type* c) { data.ptr = c; };
+	vector_backed_string() { data.vbs = vector_backed_string_data{0, 0, (uint16_t)(-1)}; }
+	vector_backed_string(const char_type* c) { data.ptr = c; }
 	vector_backed_string(const char_type* start, const char_type* end, std::vector<char_type>& vec) {
-		data.vbs.offset = vec.size();
+		data.vbs.offset = static_cast<uint32_t>(vec.size());
 		data.vbs.length = (uint16_t)(end - start);
 		data.vbs.high_mask = (uint16_t)(-1);
 		vec.insert(vec.end(), start, end);
@@ -425,13 +441,13 @@ struct vector_backed_string {
 		data.vbs.high_mask = (uint16_t)(-1);
 	}
 	vector_backed_string(const std::basic_string<char_type>& str, std::vector<char_type>& vec) {
-		data.vbs.offset = vec.size();
+		data.vbs.offset = (uint32_t)vec.size();
 		data.vbs.length = (uint16_t)(str.length());
 		data.vbs.high_mask = (uint16_t)(-1);
 		vec.insert(vec.end(), str.begin(), str.end());
 	}
 	int32_t length() const {
-		return data.vbs.high_mask == (uint16_t)-1 ? data.vbs.length : (data.ptr ? std::char_traits<char_type>::length(data.ptr) : 0);
+		return data.vbs.high_mask == (uint16_t)-1 ? data.vbs.length : (data.ptr ? static_cast<int32_t>(std::char_traits<char_type>::length(data.ptr)) : 0);
 	}
 	const char_type* get_str(const std::vector<char_type>& vec) const {
 		return data.vbs.high_mask == (uint16_t)-1 ? vec.data() + data.vbs.offset : data.ptr;
@@ -448,7 +464,7 @@ struct vector_backed_string {
 template<typename char_type>
 struct vector_backed_string_less {
 	const std::vector<char_type>& backing;
-	vector_backed_string_less(const std::vector<char_type>& b) : backing(b) {};
+	vector_backed_string_less(const std::vector<char_type>& b) : backing(b) {}
 	bool operator()(vector_backed_string<char_type> a, vector_backed_string<char_type> b) const {
 		const auto a_len = a.length();
 		const auto b_len = b.length();
@@ -472,7 +488,7 @@ struct vector_backed_string_less {
 
 struct vector_backed_string_less_ci {
 	const std::vector<char>& backing;
-	vector_backed_string_less_ci(const std::vector<char>& b) : backing(b) {};
+	vector_backed_string_less_ci(const std::vector<char>& b) : backing(b) {}
 	bool operator()(vector_backed_string<char> a, vector_backed_string<char> b) const {
 		const auto a_len = a.length();
 		const auto b_len = b.length();
@@ -497,7 +513,7 @@ struct vector_backed_string_less_ci {
 template<typename char_type>
 struct vector_backed_string_equality {
 	const std::vector<char_type>& backing;
-	vector_backed_string_equality(const std::vector<char_type>& b) : backing(b) {};
+	vector_backed_string_equality(const std::vector<char_type>& b) : backing(b) {}
 	bool operator()(vector_backed_string<char_type> a, vector_backed_string<char_type> b) const {
 		const auto a_len = a.length();
 		const auto b_len = b.length();
@@ -517,7 +533,7 @@ struct vector_backed_string_equality {
 
 struct vector_backed_string_equality_ci {
 	const std::vector<char>& backing;
-	vector_backed_string_equality_ci(const std::vector<char>& b) : backing(b) {};
+	vector_backed_string_equality_ci(const std::vector<char>& b) : backing(b) {}
 	bool operator()(vector_backed_string<char> a, vector_backed_string<char> b) const {
 		const auto a_len = a.length();
 		const auto b_len = b.length();

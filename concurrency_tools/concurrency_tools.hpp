@@ -81,8 +81,8 @@ union concurrent_key_pair_helper {
 	} parts;
 	uint64_t value;
 
-	constexpr concurrent_key_pair_helper(uint32_t i, uint32_t c) : parts{ i, c } {};
-	constexpr concurrent_key_pair_helper(uint64_t v) : value{ v } {};
+	constexpr concurrent_key_pair_helper(uint32_t i, uint32_t c) : parts{ i, c } {}
+	constexpr concurrent_key_pair_helper(uint64_t v) : value{ v } {}
 };
 
 template<typename T, uint32_t block, uint32_t index_sz>
@@ -252,7 +252,7 @@ fixed_sz_deque<T, block, index_sz, tag_type>::fixed_sz_deque() {
 
 	keys[block - 1].store((uint32_t)-1, std::memory_order_release);
 	for (int32_t i = block - 2; i >= 0; --i) {
-		keys[i].store(i+1, std::memory_order_release);
+		keys[i].store(static_cast<uint32_t>(i+1), std::memory_order_release);
 	}
 	index_array[0].store(created, std::memory_order_release);
 	first_free.store(concurrent_key_pair_helper(0, 0).value, std::memory_order_release);
@@ -260,7 +260,7 @@ fixed_sz_deque<T, block, index_sz, tag_type>::fixed_sz_deque() {
 
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 fixed_sz_deque<T, block, index_sz, tag_type>::~fixed_sz_deque() {
-	for (int32_t i = first_free_index.load(std::memory_order_relaxed) - 1; i >= 0; --i) {
+	for (int32_t i = static_cast<int32_t>(first_free_index.load(std::memory_order_relaxed)) - 1; i >= 0; --i) {
 		const auto p = index_array[i].load(std::memory_order_relaxed);
 		std::atomic<uint32_t>* const keys = (std::atomic<uint32_t>*)(p + block);
 
@@ -318,12 +318,12 @@ fixed_sz_deque_iterator<T, block, index_sz, tag_type> fixed_sz_deque<T, block, i
 
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 fixed_sz_deque_iterator<T, block, index_sz, tag_type> fixed_sz_deque<T, block, index_sz, tag_type>::end() const {
-	return fixed_sz_deque_iterator<T, block, index_sz, tag_type>(*this, past_end());
+	return fixed_sz_deque_iterator<T, block, index_sz, tag_type>(*this, static_cast<int32_t>(past_end()));
 }
 
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 uint32_t fixed_sz_deque<T, block, index_sz, tag_type>::past_end() const {
-	for (int32_t i = 1; i < index_sz; ++i) {
+	for (uint32_t i = 1; i < index_sz; ++i) {
 		if (index_array[i].load(std::memory_order_acquire) == nullptr) {
 			return i << ct_log2(block);
 		}
@@ -382,7 +382,7 @@ void fixed_sz_deque<T, block, index_sz, tag_type>::create_new_block() {
 	const auto block_num = new_index << ct_log2(block);
 
 	for (int32_t i = block - 2; i >= 0; --i) {
-		ckeys[i].store(block_num + i + 1, std::memory_order_release);
+		ckeys[i].store(block_num + static_cast<uint32_t>(i) + 1, std::memory_order_release);
 	}
 
 	concurrent_key_pair_helper expected_first(first_free.load(std::memory_order_acquire));
@@ -399,8 +399,8 @@ void fixed_sz_deque<T, block, index_sz, tag_type>::create_new_block() {
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 template<typename ...P>
 T& fixed_sz_deque<T, block, index_sz, tag_type>::emplace_at(tag_type location, P&& ... params) {
-	const auto block_num = to_index(location) >> ct_log2(block);
-	const auto block_index = to_index(location) & (block - 1);
+	const uint32_t block_num = to_index(location) >> ct_log2(block);
+	const uint32_t block_index = to_index(location) & (block - 1);
 
 	while (first_free_index.load(std::memory_order_relaxed) < block_num) {
 		create_new_block();
@@ -441,8 +441,8 @@ T& fixed_sz_deque<T, block, index_sz, tag_type>::emplace_at(tag_type location, P
 
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 T& fixed_sz_deque<T, block, index_sz, tag_type>::ensure_reserved(tag_type location) {
-	const auto block_num = to_index(location) >> ct_log2(block);
-	const auto block_index = to_index(location) & (block - 1);
+	const uint32_t block_num = to_index(location) >> ct_log2(block);
+	const uint32_t block_index = to_index(location) & (block - 1);
 
 	while (first_free_index.load(std::memory_order_relaxed) < block_num) {
 		create_new_block();

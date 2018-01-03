@@ -144,7 +144,7 @@ int
 				{
 					sum_value += orig[index + v*width*channels + u*channels];
 				}
-				resampled[j*mip_width*channels + i*channels + c] = sum_value / block_area;
+				resampled[j*mip_width*channels + i*channels + c] = (unsigned char)(sum_value / block_area);
 			}
 		}
 	}
@@ -188,7 +188,8 @@ int
 	return 1;
 }
 
-unsigned char clamp_byte( int x ) { return ( (x) < 0 ? (0) : ( (x) > 255 ? 255 : (x) ) ); }
+unsigned char clamp_byte(int x);
+unsigned char clamp_byte( int x ) { return (unsigned char)( (x) < 0 ? (0) : ( (x) > 255 ? 255 : (x) ) ); }
 
 /*
 	This function takes the RGB components of the image
@@ -313,6 +314,13 @@ float
 find_max_RGBE
 (
 	unsigned char *image,
+	int width, int height
+);
+
+float
+find_max_RGBE
+(
+	unsigned char *image,
     int width, int height
 )
 {
@@ -322,7 +330,7 @@ find_max_RGBE
 	for( i = width * height; i > 0; --i )
 	{
 		/* float scale = powf( 2.0f, img[3] - 128.0f ) / 255.0f; */
-		float scale = ldexp( 1.0f / 255.0f, (int)(img[3]) - 128 );
+		float scale = (float)ldexp( 1.0 / 255.0, (int)(img[3]) - 128 );
 		for( j = 0; j < 3; ++j )
 		{
 			if( img[j] * scale > max_val )
@@ -356,14 +364,14 @@ RGBE_to_RGBdivA
 	/* convert (note: no negative numbers, but 0.0 is possible) */
 	if( rescale_to_max )
 	{
-		scale = 255.0f / find_max_RGBE( image, width, height );
+		scale = (float)(255.0f / find_max_RGBE( image, width, height ));
 	}
 	for( i = width * height; i > 0; --i )
 	{
 		/* decode this pixel, and find the max */
 		float r,g,b,e, m;
 		/* e = scale * powf( 2.0f, img[3] - 128.0f ) / 255.0f; */
-		e = scale * ldexp( 1.0f / 255.0f, (int)(img[3]) - 128 );
+		e = scale * (float)(ldexp( 1.0 / 255.0, (int)(img[3]) - 128 ));
 		r = e * img[0];
 		g = e * img[1];
 		b = e * img[2];
@@ -372,13 +380,13 @@ RGBE_to_RGBdivA
 		/* and encode it into RGBdivA */
 		iv = (m != 0.0f) ? (int)(255.0f / m) : 1.0f;
 		iv = (iv < 1) ? 1 : iv;
-		img[3] = (iv > 255) ? 255 : iv;
+		img[3] = (unsigned char)((iv > 255) ? 255 : iv);
 		iv = (int)(img[3] * r + 0.5f);
-		img[0] = (iv > 255) ? 255 : iv;
+		img[0] = (unsigned char)((iv > 255) ? 255 : iv);
 		iv = (int)(img[3] * g + 0.5f);
-		img[1] = (iv > 255) ? 255 : iv;
+		img[1] = (unsigned char)((iv > 255) ? 255 : iv);
 		iv = (int)(img[3] * b + 0.5f);
-		img[2] = (iv > 255) ? 255 : iv;
+		img[2] = (unsigned char)((iv > 255) ? 255 : iv);
 		/* and on to the next pixel */
 		img += 4;
 	}
@@ -412,22 +420,23 @@ RGBE_to_RGBdivA2
 		/* decode this pixel, and find the max */
 		float r,g,b,e, m;
 		/* e = scale * powf( 2.0f, img[3] - 128.0f ) / 255.0f; */
-		e = scale * ldexp( 1.0f / 255.0f, (int)(img[3]) - 128 );
+		e = scale * (float)(ldexp( 1.0 / 255.0, (int)(img[3]) - 128 ));
 		r = e * img[0];
 		g = e * img[1];
 		b = e * img[2];
 		m = (r > g) ? r : g;
 		m = (b > m) ? b : m;
 		/* and encode it into RGBdivA */
-		iv = (m != 0.0f) ? (int)sqrtf( 255.0f * 255.0f / m ) : 1.0f;
+		float sqresult = sqrtf(255.0f * 255.0f / m);
+		iv = (m != 0.0f) ? (int)sqresult : 1.0f;
 		iv = (iv < 1) ? 1 : iv;
-		img[3] = (iv > 255) ? 255 : iv;
+		img[3] = (unsigned char)((iv > 255) ? 255 : iv);
 		iv = (int)(img[3] * img[3] * r / 255.0f + 0.5f);
-		img[0] = (iv > 255) ? 255 : iv;
+		img[0] = (unsigned char)((iv > 255) ? 255 : iv);
 		iv = (int)(img[3] * img[3] * g / 255.0f + 0.5f);
-		img[1] = (iv > 255) ? 255 : iv;
+		img[1] = (unsigned char)((iv > 255) ? 255 : iv);
 		iv = (int)(img[3] * img[3] * b / 255.0f + 0.5f);
-		img[2] = (iv > 255) ? 255 : iv;
+		img[2] = (unsigned char)((iv > 255) ? 255 : iv);
 		/* and on to the next pixel */
 		img += 4;
 	}

@@ -45,9 +45,9 @@ private:
 	const char* base;
 	const uint32_t len = 0;
 public:
-	string_expression(const char* b) : base(b), len(strlen(b)) {}
-	uint32_t length() const { return len; };
-	char operator[](uint32_t i) const { return base[i]; };
+	string_expression(const char* b) : base(b), len(static_cast<uint32_t>(strlen(b))) {}
+	uint32_t length() const { return len; }
+	char operator[](uint32_t i) const { return base[i]; }
 };
 
 template<>
@@ -59,8 +59,8 @@ private:
 	const char* base;
 public:
 	string_expression(const char(&b)[N]) : base(b) {}
-	uint32_t length() const { return N - 1; };
-	char operator[](uint32_t i) const { return base[i]; };
+	uint32_t length() const { return N - 1; }
+	char operator[](uint32_t i) const { return base[i]; }
 };
 
 template<size_t N>
@@ -70,8 +70,8 @@ struct empty_string_expression : public string_expression_support<empty_string_e
 public:
 	empty_string_expression() {}
 	empty_string_expression(const string_expression<empty_string_expression>&) {}
-	uint32_t length() const { return 0; };
-	char operator[](uint32_t) const { return 0; };
+	uint32_t length() const { return 0; }
+	char operator[](uint32_t) const { return 0; }
 };
 
 template<typename E1, typename E2>
@@ -79,7 +79,7 @@ class string_sum_expression : public string_expression_support<string_sum_expres
 public:
 	const E1 a;
 	const E2 b;
-	string_sum_expression(const E1& aa, const E2& bb) : a(aa), b(bb) {};
+	string_sum_expression(const E1& aa, const E2& bb) : a(aa), b(bb) {}
 	uint32_t length() const {
 		return a.length() + b.length();
 	}
@@ -97,7 +97,7 @@ class string_sum_expression<empty_string_expression, E2> :
 	public string_expression_support<string_sum_expression<empty_string_expression, E2>>, public string_expression_common_base {
 public:
 	const E2 b;
-	string_sum_expression(const empty_string_expression&, const E2& bb) : b(bb) {};
+	string_sum_expression(const empty_string_expression&, const E2& bb) : b(bb) {}
 	uint32_t length() const {
 		return b.length();
 	}
@@ -149,9 +149,9 @@ public:
 template <typename T>
 struct concurrent_allocator {
 	using value_type = T;
-	concurrent_allocator() noexcept {};
+	concurrent_allocator() noexcept {}
 	template <typename U>
-	concurrent_allocator(const concurrent_allocator<U>&) noexcept {};
+	concurrent_allocator(const concurrent_allocator<U>&) noexcept {}
 	T* allocate(size_t n);
 	void deallocate(T* p, size_t n);
 };
@@ -227,9 +227,9 @@ private:
 	const fixed_sz_deque<T, block, index_sz, tag_type>* parent;
 	int32_t position;
 public:
-	fixed_sz_deque_iterator() : parent(nullptr), position(0) {};
-	fixed_sz_deque_iterator(const fixed_sz_deque<T, block, index_sz, tag_type>& p) : parent(&p), position(0) {};
-	fixed_sz_deque_iterator(const fixed_sz_deque<T, block, index_sz, tag_type>& p, uint32_t o) : parent(&p), position(o) {};
+	fixed_sz_deque_iterator() : parent(nullptr), position(0) {}
+	fixed_sz_deque_iterator(const fixed_sz_deque<T, block, index_sz, tag_type>& p) : parent(&p), position(0) {}
+	fixed_sz_deque_iterator(const fixed_sz_deque<T, block, index_sz, tag_type>& p, int32_t o) : parent(&p), position(o) {}
 
 	bool operator==(const fixed_sz_deque_iterator& o) const {
 		return position == o.position;
@@ -238,13 +238,13 @@ public:
 		return position != o.position;
 	}
 	T* operator*() const {
-		return parent->safe_at(tag_type(position));
+		return parent->safe_at(tag_type( static_cast<value_base_of<tag_type>>(position)));
 	}
 	T* operator[](int32_t offset) const {
-		return parent->safe_at(tag_type(position + offset));
+		return parent->safe_at(tag_type(static_cast<value_base_of<tag_type>>(position + offset)));
 	}
 	T* operator->() const {
-		return parent->safe_at(tag_type(position));
+		return parent->safe_at(tag_type(static_cast<value_base_of<tag_type>>(position)));
 	}
 	fixed_sz_deque_iterator& operator++() {
 		++position;

@@ -3,7 +3,6 @@
 #include <variant>
 #include <vector>
 #include <functional>
-#include "boost\\container\\flat_map.hpp"
 #include "simple_fs\\simple_fs.h"
 #include <map>
 #include "common\\common.h"

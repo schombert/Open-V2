@@ -5,7 +5,7 @@
 #include "boost\\container\\small_vector.hpp"
 
 #ifdef _DEBUG
-#include "windows.h"
+#include "Windows.h"
 #undef min
 #undef max
 #endif
@@ -62,6 +62,10 @@ namespace ui {
 			base, center, extreme
 		};
 
+		int32_t position_from_subalignment(int32_t container, int32_t base_position, sub_alignment align);
+		sub_alignment vertical_subalign(ui::alignment align);
+		sub_alignment horizontal_subalign(ui::alignment align);
+
 		int32_t position_from_subalignment(int32_t container, int32_t base_position, sub_alignment align) {
 			switch (align) {
 				case sub_alignment::base:
@@ -111,12 +115,16 @@ namespace ui {
 
 ui::xy_pair ui::detail::position_with_alignment(ui::xy_pair container_size, ui::xy_pair raw_position, ui::alignment align) {
 	return ui::xy_pair{
-		position_from_subalignment(container_size.x, raw_position.x, ui::detail::horizontal_subalign(align)), 
-		position_from_subalignment(container_size.y, raw_position.y, ui::detail::vertical_subalign(align))
+		(int16_t)position_from_subalignment(static_cast<int32_t>(container_size.x), static_cast<int32_t>(raw_position.x), ui::detail::horizontal_subalign(align)),
+		(int16_t)position_from_subalignment(static_cast<int32_t>(container_size.y), static_cast<int32_t>(raw_position.y), ui::detail::vertical_subalign(align))
 	};
 }
 
 namespace ui {
+	text_data::alignment text_aligment_from_button_definition(const button_def& def);
+	text_data::alignment text_aligment_from_text_definition(const text_def& def);
+	ui::text_color text_color_to_ui_text_color(text_data::text_color c);
+
 	text_data::alignment text_aligment_from_button_definition(const button_def& def) {
 		switch (def.flags & button_def::format_mask) {
 			case button_def::format_center:
@@ -159,7 +167,7 @@ namespace ui {
 	}
 
 	void unmanaged_region_scollbar::on_position(int32_t pos) {
-		contents_frame.position.y = -pos;
+		contents_frame.position.y = static_cast<int16_t>(-pos);
 	}
 
 	bool line_manager::exceeds_extent(int32_t w) const { return w > max_line_extent; }
@@ -184,9 +192,9 @@ namespace ui {
 		current_line.clear();
 	}
 
-	bool draggable_region::on_drag(gui_object_tag t, gui_manager &, const mouse_drag &m) {
-		associated_object->position.x = base_position.x + m.x;
-		associated_object->position.y = base_position.y + m.y;
+	bool draggable_region::on_drag(gui_object_tag , gui_manager &, const mouse_drag &m) {
+		associated_object->position.x = static_cast<int16_t>(base_position.x + m.x);
+		associated_object->position.y = static_cast<int16_t>(base_position.y + m.y);
 		return true;
 	}
 
@@ -206,7 +214,7 @@ tagged_object<ui::text_instance, ui::text_instance_tag> ui::create_text_instance
 
 	new_text_instance.object.color = fmt.color;
 	new_text_instance.object.font_handle = fmt.font_handle;
-	new_text_instance.object.size = fmt.font_size / 2;
+	new_text_instance.object.size = static_cast<uint8_t>(fmt.font_size / 2);
 	new_text_instance.object.length = 0;
 
 	return new_text_instance;
@@ -216,7 +224,7 @@ tagged_object<ui::text_instance, ui::text_instance_tag> ui::create_text_instance
 float ui::text_component_width(text_data::text_component& c, const std::vector<char16_t>& text_data, graphics::font& this_font, uint32_t font_size) {
 	if (std::holds_alternative<text_data::text_chunk>(c)) {
 		const auto chunk = std::get<text_data::text_chunk>(c);
-		return this_font.metrics_text_extent(text_data.data() + chunk.offset, chunk.length, ui::detail::font_size_to_render_size(this_font, font_size), false);
+		return this_font.metrics_text_extent(text_data.data() + chunk.offset, chunk.length, ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(font_size)), false);
 	} else {
 		return 0.0f;
 	}
@@ -229,7 +237,7 @@ void ui::shorten_text_instance_to_space(ui::text_instance& txt) {
 			break;
 	}
 	if (i >= 0)
-		txt.length = i + 1;
+		txt.length = static_cast<uint8_t>(i + 1);
 }
 void ui::detail::create_multiline_text(gui_manager& manager, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format& fmt, const text_data::replacement* candidates, uint32_t count) {
 	graphics::font& this_font = manager.fonts.at(fmt.font_handle);
@@ -249,7 +257,7 @@ void ui::detail::create_multiline_text(gui_manager& manager, tagged_gui_object c
 		} else if (std::holds_alternative<text_data::line_break>(*component_i)) {
 			lm.finish_current_line();
 			position.x = 0;
-			position.y += this_font.line_height(ui::detail::font_size_to_render_size(this_font, fmt.font_size)) + 0.5f;
+			position.y += this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size))) + 0.5f;
 		} else if (std::holds_alternative<text_data::value_placeholder>(*component_i)) {
 			const auto rep = text_data::find_replacement(std::get<text_data::value_placeholder>(*component_i), candidates, count);
 
@@ -269,7 +277,7 @@ void ui::detail::create_multiline_text(gui_manager& manager, tagged_gui_object c
 	}
 
 	lm.finish_current_line();
-	container.object.size.y = position.y + this_font.line_height(ui::detail::font_size_to_render_size(this_font, fmt.font_size)) + 0.5f;;
+	container.object.size.y = position.y + static_cast<int16_t>(this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size))) + 0.5f);
 }
 
 void ui::detail::create_linear_text(gui_manager& manager, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format& fmt, const text_data::replacement* candidates, uint32_t count) {
@@ -289,7 +297,7 @@ void ui::detail::create_linear_text(gui_manager& manager, tagged_gui_object cont
 		x_extent += ui::text_component_width(*component_i, manager.text_data_sequences.text_data, this_font, fmt.font_size);
 	}
 
-	std::tie(position.x, position.y) = align_in_bounds(align, int32_t(x_extent + 0.5f), int32_t(this_font.line_height(ui::detail::font_size_to_render_size(this_font, fmt.font_size)) + 0.5f), container.object.size.x, container.object.size.y);
+	std::tie(position.x, position.y) = align_in_bounds(align, int32_t(x_extent + 0.5f), int32_t(this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size))) + 0.5f), container.object.size.x, container.object.size.y);
 
 	for (auto component_i = components_start; component_i != components_end; ++component_i) {
 		if (std::holds_alternative<text_data::color_change>(*component_i)) {
@@ -337,8 +345,8 @@ void ui::detail::instantiate_graphical_object(ui::gui_manager& manager, ui::tagg
 
 				if (((int32_t)container.object.size.y | (int32_t)container.object.size.x) == 0) {
 					icon_graphic.object.t->load_filedata();
-					container.object.size.y = icon_graphic.object.t->get_height();
-					container.object.size.x = icon_graphic.object.t->get_width() / ((graphic_object_def.number_of_frames != 0) ? graphic_object_def.number_of_frames : 1);
+					container.object.size.y = static_cast<int16_t>(icon_graphic.object.t->get_height());
+					container.object.size.x = static_cast<int16_t>(icon_graphic.object.t->get_width() / ((graphic_object_def.number_of_frames != 0) ? graphic_object_def.number_of_frames : 1));
 				}
 
 				container.object.type_dependant_handle.store(to_index(icon_graphic.id), std::memory_order_release);
@@ -368,8 +376,8 @@ void ui::detail::instantiate_graphical_object(ui::gui_manager& manager, ui::tagg
 
 				if (((int32_t)container.object.size.y | (int32_t)container.object.size.x) == 0) {
 					flag_graphic.object.overlay_or_secondary->load_filedata();
-					container.object.size.y = flag_graphic.object.overlay_or_secondary->get_height();
-					container.object.size.x = flag_graphic.object.overlay_or_secondary->get_width();
+					container.object.size.y = static_cast<int16_t>(flag_graphic.object.overlay_or_secondary->get_height());
+					container.object.size.x = static_cast<int16_t>(flag_graphic.object.overlay_or_secondary->get_width());
 				}
 
 				container.object.type_dependant_handle.store(to_index(flag_graphic.id), std::memory_order_release);
@@ -447,7 +455,7 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 	const auto new_gobj = manager.gui_objects.emplace();
 	
 	new_gobj.object.position = text_def.position;
-	new_gobj.object.size = ui::xy_pair{ text_def.max_width, 0 };
+	new_gobj.object.size = ui::xy_pair{ static_cast<int16_t>(text_def.max_width), 0 };
 	new_gobj.object.align = alignment_from_definition(text_def);
 
 	new_gobj.object.size.x -= text_def.border_size.x * 2;
@@ -647,7 +655,7 @@ void ui::detail::render(const gui_manager& manager, graphics::open_gl_wrapper &o
 	if ((flags & ui::gui_object::visible) == 0)
 		return;
 
-	const auto type = flags & ui::gui_object::type_mask;
+	const uint16_t type = flags & ui::gui_object::type_mask;
 
 	const auto root_position = position + ui::detail::position_with_alignment(container_size, root_obj.position, root_obj.align);
 
@@ -694,22 +702,20 @@ void ui::gui_manager::clear_focus() {
 	}
 }
 
-void ui::make_visible(gui_manager& manager, tagged_gui_object g, world_state& w) {
-	g.object.flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
-	if (const auto b = g.object.associated_behavior; b)
-		b->on_visible(g.id, manager);
-	detail::update(manager, g, w);
+void ui::make_visible(gui_manager& manager, tagged_gui_object g) {
+	g.object.flags.fetch_or(ui::gui_object::visible_after_update, std::memory_order_acq_rel);
+	manager.flag_update();
 }
 
 void ui::hide(tagged_gui_object g) {
-	g.object.flags.fetch_and(~ui::gui_object::visible, std::memory_order_acq_rel);
+	g.object.flags.fetch_and((uint16_t)~ui::gui_object::visible, std::memory_order_acq_rel);
 }
 
 void ui::set_enabled(tagged_gui_object g, bool enabled) {
 	if (enabled)
 		g.object.flags.fetch_or(ui::gui_object::enabled, std::memory_order_acq_rel);
 	else
-		g.object.flags.fetch_and(~ui::gui_object::enabled, std::memory_order_acq_rel);
+		g.object.flags.fetch_and((uint16_t)~ui::gui_object::enabled, std::memory_order_acq_rel);
 }
 
 void ui::gui_manager::hide_tooltip() {
@@ -849,7 +855,7 @@ void ui::move_to_back(const gui_manager& manager, tagged_gui_object g) {
 }
 
 bool ui::gui_manager::on_lbutton_down(const lbutton_down& ld) {
-	if (false == detail::dispatch_message(*this, [_this = this](ui::tagged_gui_object obj, const lbutton_down& l) {
+	if (false == detail::dispatch_message(*this, [_this = this](ui::tagged_gui_object obj, const lbutton_down& ) {
 		return _this->set_focus(obj);
 	}, tagged_gui_object{ root, gui_object_tag(0) }, root.size, ui::rescale_message(ld, _scale))) {
 		focus = gui_object_tag();
@@ -949,8 +955,14 @@ bool ui::gui_manager::on_text(const text_event &te) {
 void ui::detail::update(gui_manager& manager, tagged_gui_object obj, world_state& w) {
 	const auto object_flags = obj.object.flags.load(std::memory_order_acquire);
 
-	if ((object_flags & ui::gui_object::visible) == 0)
+	if ((object_flags & ui::gui_object::visible_after_update) == 1) {
+		obj.object.flags.fetch_and((uint16_t)~ui::gui_object::visible_after_update, std::memory_order_acq_rel);
+		obj.object.flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
+		if (obj.object.associated_behavior)
+			obj.object.associated_behavior->on_visible(obj.id, manager, w);
+	} else if ((object_flags & ui::gui_object::visible) == 0) {
 		return;
+	}
 
 	if (obj.object.associated_behavior)
 		obj.object.associated_behavior->update_data(obj.id, manager, w);
@@ -966,9 +978,11 @@ void ui::detail::update(gui_manager& manager, tagged_gui_object obj, world_state
 }
 
 void ui::update(gui_manager& manager, world_state& w) {
-	detail::update(manager, tagged_gui_object{ manager.root, gui_object_tag(0) }, w);
-	detail::update(manager, tagged_gui_object{ manager.background, gui_object_tag(1) }, w);
-	detail::update(manager, tagged_gui_object{ manager.foreground, gui_object_tag(2) }, w);
+	if (manager.check_and_clear_update()) {
+		detail::update(manager, tagged_gui_object{ manager.root, gui_object_tag(0) }, w);
+		detail::update(manager, tagged_gui_object{ manager.background, gui_object_tag(1) }, w);
+		detail::update(manager, tagged_gui_object{ manager.foreground, gui_object_tag(2) }, w);
+	}
 }
 
 ui::gui_manager::gui_manager(int32_t width, int32_t height) :
@@ -978,14 +992,16 @@ ui::gui_manager::gui_manager(int32_t width, int32_t height) :
 	foreground(gui_objects.emplace_at(gui_object_tag(2))),
 	tooltip_window(gui_objects.emplace_at(gui_object_tag(3))) {
 
-	on_resize(resize{ width , height });
+	on_resize(resize{ static_cast<uint32_t>(width > 0 ? width : 0) , static_cast<uint32_t>(height > 0 ? height : 0) });
 	
 	hide(tagged_gui_object{ tooltip_window, gui_object_tag(3) });
 	add_to_back(*this, tagged_gui_object{ foreground, gui_object_tag(2) }, tagged_gui_object{ tooltip_window, gui_object_tag(3) });
 }
 
 void ui::gui_manager::on_resize(const resize& r) {
-	ui::xy_pair new_size{ static_cast<float>(r.width) / scale(), static_cast<float>(r.height) / scale() };
+	ui::xy_pair new_size{
+		static_cast<int16_t>(static_cast<float>(r.width) / scale()),
+		static_cast<int16_t>(static_cast<float>(r.height) / scale()) };
 
 	_width = r.width;
 	_height = r.height;

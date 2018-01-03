@@ -76,9 +76,9 @@ int
 	header.dwMagic = ('D' << 0) | ('D' << 8) | ('S' << 16) | (' ' << 24);
 	header.dwSize = 124;
 	header.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT | DDSD_LINEARSIZE;
-	header.dwWidth = width;
-	header.dwHeight = height;
-	header.dwPitchOrLinearSize = DDS_size;
+	header.dwWidth = (unsigned int)width;
+	header.dwHeight = (unsigned int)height;
+	header.dwPitchOrLinearSize = (unsigned int)DDS_size;
 	header.sPixelFormat.dwSize = 32;
 	header.sPixelFormat.dwFlags = DDPF_FOURCC;
 	if( (channels & 1) == 1 )
@@ -92,7 +92,7 @@ int
 	/*	write it out	*/
 	fout = fopen( filename, "wb");
 	fwrite( &header, sizeof( DDS_header ), 1, fout );
-	fwrite( DDS_data, 1, DDS_size, fout );
+	fwrite( DDS_data, (size_t)1, (size_t)DDS_size, fout );
 	fclose( fout );
 	/*	done	*/
 	free( DDS_data );
@@ -126,7 +126,7 @@ unsigned char* convert_image_to_DXT1(
 	/*	get the RAM for the compressed image
 		(8 bytes per 4x4 pixel block)	*/
 	*out_size = ((width+3) >> 2) * ((height+3) >> 2) * 8;
-	compressed = (unsigned char*)malloc( *out_size );
+	compressed = (unsigned char*)malloc((size_t)(*out_size) );
 	/*	go through each block	*/
 	for( j = 0; j < height; j += 4 )
 	{
@@ -209,7 +209,7 @@ unsigned char* convert_image_to_DXT5(
 	/*	get the RAM for the compressed image
 		(16 bytes per 4x4 pixel block)	*/
 	*out_size = ((width+3) >> 2) * ((height+3) >> 2) * 16;
-	compressed = (unsigned char*)malloc( *out_size );
+	compressed = (unsigned char*)malloc( (size_t)(*out_size) );
 	/*	go through each block	*/
 	for( j = 0; j < height; j += 4 )
 	{
@@ -233,9 +233,9 @@ unsigned char* convert_image_to_DXT5(
 					ublock[idx++] = uncompressed[(j+y)*width*channels+(i+x)*channels];
 					ublock[idx++] = uncompressed[(j+y)*width*channels+(i+x)*channels+chan_step];
 					ublock[idx++] = uncompressed[(j+y)*width*channels+(i+x)*channels+chan_step+chan_step];
-					ublock[idx++] =
+					ublock[idx++] = (unsigned char)(
 						has_alpha * uncompressed[(j+y)*width*channels+(i+x)*channels+channels-1]
-						+ (1-has_alpha)*255;
+						+ (1-has_alpha)*255);
 				}
 				for( x = mx; x < 4; ++x )
 				{
@@ -274,6 +274,18 @@ unsigned char* convert_image_to_DXT5(
 	}
 	return compressed;
 }
+
+int convert_bit_range(int c, int from_bits, int to_bits);
+int rgb_to_565(int r, int g, int b);
+void rgb_888_from_565(unsigned int c, int *r, int *g, int *b);
+void compute_color_line_STDEV(
+	const unsigned char *const uncompressed,
+	int channels,
+	float point[3], float direction[3]);
+void LSE_master_colors_max_min(
+	int *cmax, int *cmin,
+	int channels,
+	const unsigned char *const uncompressed);
 
 /********* Helper Functions *********/
 int convert_bit_range( int c, int from_bits, int to_bits )
@@ -528,8 +540,8 @@ void
 	compressed[6] = 0;
 	compressed[7] = 0;
 	/*	reconstitute the master color vectors	*/
-	rgb_888_from_565( enc_c0, &c0[0], &c0[1], &c0[2] );
-	rgb_888_from_565( enc_c1, &c1[0], &c1[1], &c1[2] );
+	rgb_888_from_565( (unsigned int)enc_c0, &c0[0], &c0[1], &c0[2] );
+	rgb_888_from_565((unsigned int)enc_c1, &c1[0], &c1[1], &c1[2] );
 	/*	the new vector	*/
 	vec_len2 = 0.0f;
 	for( i = 0; i < 3; ++i )
@@ -602,8 +614,8 @@ void
 		}
 	}
 	/*	store those limits, and zero the rest of the compressed dataset	*/
-	compressed[0] = a0;
-	compressed[1] = a1;
+	compressed[0] = (unsigned char)a0;
+	compressed[1] = (unsigned char)a1;
 	/*	zero out the compressed data	*/
 	compressed[2] = 0;
 	compressed[3] = 0;

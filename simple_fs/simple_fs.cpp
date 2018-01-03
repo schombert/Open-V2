@@ -6,7 +6,7 @@
 class _file {
 public:
 	void* handle;
-	_file(void* h) : handle(h) {};
+	_file(void* h) : handle(h) {}
 	~_file();
 };
 
@@ -16,6 +16,9 @@ _file::~_file() {
 	handle = nullptr;
 }
 
+
+bool sfs_file_exists(const char16_t* szPath);
+
 file::file(std::unique_ptr<_file> i) : impl(std::move(i)) {}
 file::file(file &&other) noexcept : impl(std::move(other.impl)) {}
 
@@ -24,7 +27,7 @@ public:
 	std::u16string _file_path;
 	std::u16string _file_name;
 
-	_unopened_file(const std::u16string &path, const std::u16string &name) : _file_path(path), _file_name(name) {};
+	_unopened_file(const std::u16string &path, const std::u16string &name) : _file_path(path), _file_name(name) {}
 };
 
 class _directory {
@@ -88,7 +91,7 @@ file_system& file_system::operator=(file_system&& other) noexcept {
 void file_system::set_root(const char* location, const char* location_t) {
 	impl->roots.clear();
 	const auto size = MultiByteToWideChar(CP_UTF8, 0, location, (int)(location_t - location), nullptr, 0);
-	wchar_t* buffer = new wchar_t[size];
+	wchar_t* buffer = new wchar_t[(size_t)size];
 	MultiByteToWideChar(CP_UTF8, 0, location, (int)(location_t - location), buffer, size);
 	impl->roots.emplace_back((char16_t*)buffer, size);
 	delete[] buffer;
@@ -106,7 +109,7 @@ void file_system::set_root(const std::u16string& location) {
 
 void file_system::add_root(const char* location, const char* location_t) {
 	const auto size = MultiByteToWideChar(CP_UTF8, 0, location, (int)(location_t - location), nullptr, 0);
-	wchar_t* buffer = new wchar_t[size];
+	wchar_t* buffer = new wchar_t[(size_t)size];
 	MultiByteToWideChar(CP_UTF8, 0, location, (int)(location_t - location), buffer, size);
 	impl->roots.emplace_back((char16_t*)buffer, size);
 	delete[] buffer;
@@ -128,9 +131,9 @@ void file_system::add_root_relative(const char* location, const char* location_t
 			first += u'\\';
 
 		const auto size = MultiByteToWideChar(CP_UTF8, 0, location, (int)(location_t - location), nullptr, 0);
-		wchar_t* buffer = new wchar_t[size];
+		wchar_t* buffer = new wchar_t[(size_t)size];
 		MultiByteToWideChar(CP_UTF8, 0, location, (int)(location_t - location), buffer, size);
-		first.append((char16_t*)buffer, size);
+		first.append((char16_t*)buffer, (size_t)size);
 		delete[] buffer;
 
 		impl->roots.emplace_back(std::move(first));
@@ -144,7 +147,7 @@ void file_system::add_root_relative(const char16_t* location, const char16_t* lo
 		if (location != location_t && *location != u'\\')
 			first += u'\\';
 
-		first.append(location, location_t - location);
+		first.append(location, (size_t)(location_t - location));
 		impl->roots.emplace_back(std::move(first));
 	}
 }
@@ -192,9 +195,9 @@ directory directory::get_directory(const char* name, const char* name_t) const {
 	} 
 	
 	const auto size = MultiByteToWideChar(CP_UTF8, 0, name, (int)(name_t - name), nullptr, 0);
-	wchar_t* buffer = new wchar_t[size];
+	wchar_t* buffer = new wchar_t[(size_t)size];
 	MultiByteToWideChar(CP_UTF8, 0, name, (int)(name_t - name), buffer, size);
-	full_name.append((char16_t*)buffer, size);
+	full_name.append((char16_t*)buffer, (size_t)size);
 	delete[] buffer;
 
 	return directory(*this, full_name);
@@ -225,7 +228,7 @@ std::vector<directory> directory::list_directories() const {
 	for (const auto& path : all_paths) {
 		const auto appended_path = path + u"\\*";
 		WIN32_FIND_DATA find_result;
-		auto find_handle = FindFirstFile((wchar_t*)(appended_path.c_str()), &find_result);
+		auto find_handle = FindFirstFile((const wchar_t*)(appended_path.c_str()), &find_result);
 		if (find_handle != INVALID_HANDLE_VALUE) {
 			do {
 				if (find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
@@ -249,7 +252,7 @@ std::vector<unopened_file> directory::list_files(const char16_t* extension) cons
 	for (const auto& path : all_paths) {
 		const auto appended_path = path + u"\\*" + extension;
 		WIN32_FIND_DATA find_result;
-		auto find_handle = FindFirstFile((wchar_t*)(appended_path.c_str()), &find_result);
+		auto find_handle = FindFirstFile((const wchar_t*)(appended_path.c_str()), &find_result);
 		if (find_handle != INVALID_HANDLE_VALUE) {
 			do {
 				if (!(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
@@ -271,7 +274,7 @@ std::vector<unopened_file> directory::list_files(const char16_t* extension) cons
 
 std::optional<file> unopened_file::open_file() const {
 	const auto full = impl->_file_path + u'\\' + impl->_file_name;
-	const auto handle = CreateFile((wchar_t*)full.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	const auto handle = CreateFile((const wchar_t*)full.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (handle != INVALID_HANDLE_VALUE) {
 		return std::optional<file>(std::in_place_t(), std::make_unique<_file>((void*)handle));
 	}
@@ -290,7 +293,7 @@ std::optional<file> directory::open_file_internal(const std::u16string& suffix_n
 	
 	for (auto p = all_paths.crbegin(); p != all_paths.crend(); ++p) {
 		const auto full = *p + suffix_name;
-		const auto handle = CreateFile((wchar_t*)full.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		const auto handle = CreateFile((const wchar_t*)full.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (handle != INVALID_HANDLE_VALUE) {
 			return std::optional<file>(std::in_place_t(), std::make_unique<_file>((void*)handle));
 		}
@@ -320,7 +323,7 @@ std::optional<unopened_file> directory::peek_file(const char* name, const char* 
 		suffix_name += u'\\';
 
 	const auto size = MultiByteToWideChar(CP_UTF8, 0, name, (int)(name_t - name), nullptr, 0);
-	wchar_t* buffer = new wchar_t[size];
+	wchar_t* buffer = new wchar_t[(size_t)size];
 	MultiByteToWideChar(CP_UTF8, 0, name, (int)(name_t - name), buffer, size);
 	suffix_name.append((char16_t*)buffer, (char16_t*)(buffer + size));
 	delete[] buffer;
@@ -345,7 +348,7 @@ std::optional<file> directory::open_file(const char* name, const char* name_t) c
 		suffix_name += u'\\';
 
 	const auto size = MultiByteToWideChar(CP_UTF8, 0, name, (int)(name_t - name), nullptr, 0);
-	wchar_t* buffer = new wchar_t[size];
+	wchar_t* buffer = new wchar_t[(size_t)size];
 	MultiByteToWideChar(CP_UTF8, 0, name, (int)(name_t - name), buffer, size);
 	suffix_name.append((char16_t*)buffer, (char16_t*)(buffer + size));
 	delete[] buffer;
@@ -377,12 +380,12 @@ struct overloaded;
 
 template<typename T, typename... REST>
 struct overloaded<T, REST...> : T, overloaded<REST...> {
-	overloaded(T t, REST ...rest) : T(t), overloaded<REST...>(rest...) {};
+	overloaded(T t, REST ...rest) : T(t), overloaded<REST...>(rest...) {}
 	using T::operator();
 	using overloaded<REST...>::operator();
 };
 template<>
-struct overloaded<> { void operator()() {}; };
+struct overloaded<> { void operator()() {} };
 
 template<typename... T>
 auto make_overloaded(T... t) {
@@ -409,10 +412,10 @@ std::vector<std::u16string> directory::list_paths() const {
 size_t file::size() const {
 	LARGE_INTEGER file_size;
 	GetFileSizeEx((HANDLE)(impl->handle), &file_size);
-	return file_size.QuadPart;
+	return (size_t)file_size.QuadPart;
 }
 void file::read_to_buffer(char* buffer, size_t buffer_size) const {
-	ReadFile((HANDLE)(impl->handle), buffer, (DWORD)buffer_size, NULL, NULL);
+	ReadFile((HANDLE)(impl->handle), buffer, (DWORD)buffer_size, nullptr, nullptr);
 }
 
 file::~file() {}

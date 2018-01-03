@@ -63,7 +63,7 @@ protected:
 	bool create_named_member(gui_manager& manager, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne);
 	ui::tagged_gui_object create_window(gui_manager& manager, const ui::window_def& def);
 	template<typename window_type>
-	void member_init_in_window(window_type& w, gui_manager& m) {};
+	void member_init_in_window(window_type& w, gui_manager& m) {}
 public:
 	template<typename ...PARAMS>
 	gui_window(PARAMS&& ... params) {}

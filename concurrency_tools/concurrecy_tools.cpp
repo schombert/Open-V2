@@ -8,15 +8,15 @@ concurrent_string::concurrent_string() {
 	_data.local_data[internal_concurrent_string_size - 1] = internal_concurrent_string_size - 1;
 }
 
-concurrent_string::concurrent_string(const char* source) : concurrent_string(source, strlen(source)) {};
+concurrent_string::concurrent_string(const char* source) : concurrent_string(source, static_cast<uint32_t>(strlen(source))) {};
 
-concurrent_string::concurrent_string(const char* start, const char* end) : concurrent_string(start, end - start) {};
+concurrent_string::concurrent_string(const char* start, const char* end) : concurrent_string(start, static_cast<uint32_t>(end - start)) {};
 
 concurrent_string::concurrent_string(const char* start, uint32_t size) {
 	if (size <= (internal_concurrent_string_size - 1)) {
 		memcpy(_data.local_data, start, size * sizeof(char));
 		_data.local_data[size] = 0;
-		_data.local_data[internal_concurrent_string_size - 1] = (internal_concurrent_string_size - 1) - size;
+		_data.local_data[internal_concurrent_string_size - 1] = static_cast<char>((internal_concurrent_string_size - 1) - size);
 	} else {
 		_data.local_data[internal_concurrent_string_size - 1] = 127;
 		_data.remote_data.data = (char*)concurrency::Alloc(size + 1);
@@ -90,7 +90,7 @@ concurrent_string& concurrent_string::operator+=(const concurrent_string& o) {
 	if (total_len <= (internal_concurrent_string_size - 1)) {
 		memcpy(_data.local_data + this_len, o._data.local_data, other_len);
 		_data.local_data[total_len] = 0;
-		_data.local_data[internal_concurrent_string_size - 1] = (internal_concurrent_string_size - 1) - (total_len);
+		_data.local_data[internal_concurrent_string_size - 1] = static_cast<char>((internal_concurrent_string_size - 1) - (total_len));
 	} else {
 		auto new_data = (char*)concurrency::Alloc(total_len + 1);
 		memcpy(new_data, c_str(), this_len);
@@ -113,7 +113,7 @@ concurrent_string& concurrent_string::operator+=(const char* o) {
 	if (total_len <= (internal_concurrent_string_size - 1)) {
 		memcpy(_data.local_data + this_len, o, other_len);
 		_data.local_data[total_len] = 0;
-		_data.local_data[internal_concurrent_string_size - 1] = (internal_concurrent_string_size - 1) - (total_len);
+		_data.local_data[internal_concurrent_string_size - 1] = static_cast<char>((internal_concurrent_string_size - 1) - (total_len));
 	} else {
 		auto new_data = (char*)concurrency::Alloc(total_len + 1);
 		memcpy(new_data, c_str(), this_len);
@@ -124,14 +124,14 @@ concurrent_string& concurrent_string::operator+=(const char* o) {
 
 		_data.local_data[internal_concurrent_string_size - 1] = 127;
 		_data.remote_data.data = new_data;
-		_data.remote_data.length = total_len;
+		_data.remote_data.length = static_cast<uint32_t>(total_len);
 	}
 	return *this;
 }
 
 uint32_t concurrent_string::length() const {
 	if (_data.local_data[internal_concurrent_string_size - 1] != 127) {
-		return internal_concurrent_string_size - (_data.local_data[internal_concurrent_string_size - 1] + 1);
+		return static_cast<uint32_t>(static_cast<int32_t>(internal_concurrent_string_size) - (_data.local_data[internal_concurrent_string_size - 1] + 1));
 	} else {
 		return _data.remote_data.length;
 	}

@@ -3,12 +3,12 @@
 #include "graphics_objects\\graphics_objects.h"
 #include "graphics\\open_gl_wrapper.h"
 
-bool ui::button_group_member::on_lclick(gui_object_tag o, gui_manager& m, const lbutton_down&) {
+bool ui::button_group_member::on_lclick(gui_object_tag , gui_manager& m, const lbutton_down&) {
 	group->select(m, _index);
 	return true;
 }
 
-bool ui::button_group_member::on_keydown(gui_object_tag o, gui_manager& m, const key_down& k) {
+bool ui::button_group_member::on_keydown(gui_object_tag , gui_manager& m, const key_down& k) {
 	if (k.keycode == shortcut) {
 		group->select(m, _index);
 		return true;
@@ -17,11 +17,11 @@ bool ui::button_group_member::on_keydown(gui_object_tag o, gui_manager& m, const
 	}
 }
 
-ui::tooltip_behavior ui::button_group_member::has_tooltip(gui_object_tag o, gui_manager& m, const mouse_move& mm) {
+ui::tooltip_behavior ui::button_group_member::has_tooltip(gui_object_tag , gui_manager& , const mouse_move& ) {
 	return group->has_tooltip(_index);
 }
 
-void ui::button_group_member::create_tooltip(gui_object_tag o, gui_manager& m, const mouse_move& mm, tagged_gui_object tw) {
+void ui::button_group_member::create_tooltip(gui_object_tag , gui_manager& m, const mouse_move& , tagged_gui_object tw) {
 	group->create_tooltip(m, tw, _index);
 }
 

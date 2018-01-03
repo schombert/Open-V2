@@ -13,6 +13,11 @@
 	* everybody at gamedev.net
 */
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types-discards-qualifiers"
+#pragma clang diagnostic ignored "-Wcast-qual"
+#pragma clang diagnostic ignored "-Wunused-parameter"
+
 #define SOIL_CHECK_FOR_GL_ERRORS 0
 #define GLEW_STATIC
 
@@ -20,10 +25,10 @@
 #include "wglew.h"
 
 #ifdef _WIN32
-	#define WIN32_LEAN_AND_MEAN
-	#include <windows.h>
+//	#define WIN32_LEAN_AND_MEAN
+	#include <Windows.h>
 	#include <wingdi.h>
-	#include <GL/gl.h>
+	#include <gl/GL.h>
 #elif defined(__APPLE__) || defined(__APPLE_CC__)
 	/*	I can't test this Apple stuff!	*/
 	#include <OpenGL/gl.h>
@@ -49,7 +54,7 @@
 #include <string.h>
 
 /*	error reporting	*/
-const char *result_string_pointer = "SOIL initialized";
+static const char *result_string_pointer = "SOIL initialized";
 
 /*	for loading cube maps	*/
 enum{
@@ -60,18 +65,18 @@ enum{
 static int has_cubemap_capability = SOIL_CAPABILITY_UNKNOWN;
 int query_cubemap_capability( void );
 #define SOIL_TEXTURE_WRAP_R					0x8072
-#define SOIL_CLAMP_TO_EDGE					0x812F
-#define SOIL_NORMAL_MAP						0x8511
-#define SOIL_REFLECTION_MAP					0x8512
+//#define SOIL_CLAMP_TO_EDGE					0x812F
+//#define SOIL_NORMAL_MAP						0x8511
+//#define SOIL_REFLECTION_MAP					0x8512
 #define SOIL_TEXTURE_CUBE_MAP				GL_TEXTURE_CUBE_MAP
-#define SOIL_TEXTURE_BINDING_CUBE_MAP		0x8514 
+// #define SOIL_TEXTURE_BINDING_CUBE_MAP		0x8514 
 #define SOIL_TEXTURE_CUBE_MAP_POSITIVE_X	GL_TEXTURE_CUBE_MAP_POSITIVE_X
 #define SOIL_TEXTURE_CUBE_MAP_NEGATIVE_X	GL_TEXTURE_CUBE_MAP_NEGATIVE_X
 #define SOIL_TEXTURE_CUBE_MAP_POSITIVE_Y	GL_TEXTURE_CUBE_MAP_POSITIVE_Y
 #define SOIL_TEXTURE_CUBE_MAP_NEGATIVE_Y	GL_TEXTURE_CUBE_MAP_NEGATIVE_Y
 #define SOIL_TEXTURE_CUBE_MAP_POSITIVE_Z	GL_TEXTURE_CUBE_MAP_POSITIVE_Z
 #define SOIL_TEXTURE_CUBE_MAP_NEGATIVE_Z	GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
-#define SOIL_PROXY_TEXTURE_CUBE_MAP			GL_PROXY_TEXTURE_CUBE_MAP
+// #define SOIL_PROXY_TEXTURE_CUBE_MAP			GL_PROXY_TEXTURE_CUBE_MAP
 #define SOIL_MAX_CUBE_MAP_TEXTURE_SIZE		0x851C
 /*	for non-power-of-two texture	*/
 static int has_NPOT_capability = SOIL_CAPABILITY_UNKNOWN;
@@ -80,16 +85,16 @@ int query_NPOT_capability( void );
 static int has_tex_rectangle_capability = SOIL_CAPABILITY_UNKNOWN;
 int query_tex_rectangle_capability( void );
 #define SOIL_TEXTURE_RECTANGLE_ARB				GL_TEXTURE_RECTANGLE
-#define SOIL_MAX_RECTANGLE_TEXTURE_SIZE_ARB		0x84F8
+// #define SOIL_MAX_RECTANGLE_TEXTURE_SIZE_ARB		0x84F8
 /*	for using DXT compression	*/
 static int has_DXT_capability = SOIL_CAPABILITY_UNKNOWN;
 int query_DXT_capability( void );
-#define SOIL_RGB_S3TC_DXT1		GL_COMPRESSED_RGB_S3TC_DXT1_EXT
+// #define SOIL_RGB_S3TC_DXT1		GL_COMPRESSED_RGB_S3TC_DXT1_EXT
 #define SOIL_RGBA_S3TC_DXT1		GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
 #define SOIL_RGBA_S3TC_DXT3		GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
 #define SOIL_RGBA_S3TC_DXT5		GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
 typedef void (APIENTRY * P_SOIL_GLCOMPRESSEDTEXIMAGE2DPROC) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const GLvoid * data);
-P_SOIL_GLCOMPRESSEDTEXIMAGE2DPROC soilGlCompressedTexImage2D = NULL;
+static P_SOIL_GLCOMPRESSEDTEXIMAGE2DPROC soilGlCompressedTexImage2D = NULL;
 unsigned int SOIL_direct_load_DDS(
 		const char *filename,
 		unsigned int reuse_texture_ID,
@@ -137,7 +142,7 @@ unsigned int
 			note: direct uploading will only load what is in the
 			DDS file, no MIPmaps will be generated, the image will
 			not be flipped, etc.	*/
-		tex_id = SOIL_direct_load_DDS( filename, reuse_texture_ID, flags, 0, &width, &height );
+		tex_id = SOIL_direct_load_DDS( filename, reuse_texture_ID, (int)flags, 0, &width, &height );
 		if( tex_id )
 		{
 			/*	hey, it worked!!	*/
@@ -243,7 +248,7 @@ unsigned int
 			not be flipped, etc.	*/
 		tex_id = SOIL_direct_load_DDS_from_memory(
 				buffer, buffer_length,
-				reuse_texture_ID, flags, 0, width, height);
+				reuse_texture_ID, (int)flags, 0, width, height);
 		if( tex_id )
 		{
 			/*	hey, it worked!!	*/
@@ -693,7 +698,7 @@ unsigned int
 			note: direct uploading will only load what is in the
 			DDS file, no MIPmaps will be generated, the image will
 			not be flipped, etc.	*/
-		tex_id = SOIL_direct_load_DDS( filename, reuse_texture_ID, flags, 1, &width, &height );
+		tex_id = SOIL_direct_load_DDS( filename, reuse_texture_ID, (int)flags, 1, &width, &height );
 		if( tex_id )
 		{
 			/*	hey, it worked!!	*/
@@ -781,7 +786,7 @@ unsigned int
 			not be flipped, etc.	*/
 		tex_id = SOIL_direct_load_DDS_from_memory(
 				buffer, buffer_length,
-				reuse_texture_ID, flags, 1, &width, &height);
+				reuse_texture_ID, (int)flags, 1, &width, &height);
 		if( tex_id )
 		{
 			/*	hey, it worked!!	*/
@@ -900,7 +905,7 @@ unsigned int
 		dh = width;
 	}
 	sz = dw+dh;
-	sub_img = (unsigned char *)malloc( sz*sz*channels );
+	sub_img = (unsigned char *)malloc( (size_t)(sz*sz*channels) );
 	/*	do the splitting and uploading	*/
 	tex_id = reuse_texture_ID;
 	for( i = 0; i < 6; ++i )
@@ -970,6 +975,8 @@ unsigned int
 				GL_MAX_TEXTURE_SIZE );
 }
 
+void check_for_GL_errors(const char* );
+
 #if SOIL_CHECK_FOR_GL_ERRORS
 void check_for_GL_errors( const char *calling_location )
 {
@@ -982,7 +989,7 @@ void check_for_GL_errors( const char *calling_location )
 	}
 }
 #else
-void check_for_GL_errors( const char *calling_location )
+void check_for_GL_errors( const char* calling_location)
 {
 	/*	no check for errors	*/
 }
@@ -1016,7 +1023,7 @@ unsigned int
 			if( opengl_texture_type == GL_TEXTURE_2D )
 			{
 				/*	clean out the flags that cannot be used with texture rectangles	*/
-				flags &= ~(
+				flags &= ~(unsigned int)(
 						SOIL_FLAG_POWER_OF_TWO | SOIL_FLAG_MIPMAPS |
 						SOIL_FLAG_TEXTURE_REPEATS
 					);
@@ -1026,7 +1033,7 @@ unsigned int
 			} else
 			{
 				/*	not allowed for any other uses (yes, I'm looking at you, cubemaps!)	*/
-				flags &= ~SOIL_FLAG_TEXTURE_RECTANGLE;
+				flags &= ~(unsigned int)SOIL_FLAG_TEXTURE_RECTANGLE;
 			}
 
 		} else
@@ -1037,8 +1044,8 @@ unsigned int
 		}
 	}
 	/*	create a copy the image data	*/
-	img = (unsigned char*)malloc( width*height*channels );
-	memcpy( img, data, width*height*channels );
+	img = (unsigned char*)malloc( (size_t)(width*height*channels) );
+	memcpy( img, data, (size_t)(width*height*channels) );
 	/*	does the user want me to invert the image?	*/
 	if( flags & SOIL_FLAG_INVERT_Y )
 	{
@@ -1119,7 +1126,7 @@ unsigned int
 		if( (new_width != width) || (new_height != height) )
 		{
 			/*	yep, resize	*/
-			unsigned char *resampled = (unsigned char*)malloc( channels*new_width*new_height );
+			unsigned char *resampled = (unsigned char*)malloc((size_t)(channels*new_width*new_height) );
 			up_scale_image(
 					img, width, height, channels,
 					resampled, new_width, new_height );
@@ -1154,7 +1161,7 @@ unsigned int
 		}
 		new_width = width / reduce_block_x;
 		new_height = height / reduce_block_y;
-		resampled = (unsigned char*)malloc( channels*new_width*new_height );
+		resampled = (unsigned char*)malloc((size_t)(channels*new_width*new_height) );
 		/*	perform the actual reduction	*/
 		mipmap_image(	img, width, height, channels,
 						resampled, reduce_block_x, reduce_block_y );
@@ -1251,13 +1258,12 @@ unsigned int
 		} else
 		{
 			/*	unsigned int clamp_mode = SOIL_CLAMP_TO_EDGE;	*/
-			unsigned int clamp_mode = GL_CLAMP;
-			glTexParameteri( opengl_texture_type, GL_TEXTURE_WRAP_S, clamp_mode );
-			glTexParameteri( opengl_texture_type, GL_TEXTURE_WRAP_T, clamp_mode );
+			glTexParameteri( opengl_texture_type, GL_TEXTURE_WRAP_S, GL_CLAMP);
+			glTexParameteri( opengl_texture_type, GL_TEXTURE_WRAP_T, GL_CLAMP);
 			if( opengl_texture_type == SOIL_TEXTURE_CUBE_MAP )
 			{
 				/*	SOIL_TEXTURE_WRAP_R is invalid if cubemaps aren't supported	*/
-				glTexParameteri( opengl_texture_type, SOIL_TEXTURE_WRAP_R, clamp_mode );
+				glTexParameteri( opengl_texture_type, SOIL_TEXTURE_WRAP_R, GL_CLAMP);
 			}
 			check_for_GL_errors( "GL_TEXTURE_WRAP_*" );
 		}
@@ -1303,7 +1309,7 @@ int
 	}
 
     /*  Get the data from OpenGL	*/
-    pixel_data = (unsigned char*)malloc( 3*width*height );
+    pixel_data = (unsigned char*)malloc( (size_t)(3*width*height) );
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glPixelStorei(GL_PACK_ROW_LENGTH, 0);
     glReadPixels (x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixel_data);
@@ -1357,7 +1363,7 @@ unsigned char*
 		return 0;
 	}
 	fseek(f, 0, SEEK_END);
-	buffer_length = ftell(f);
+	buffer_length = (size_t)ftell(f);
 	fseek(f, 0, SEEK_SET);
 	buffer = (unsigned char *)malloc(buffer_length);
 	if (NULL == buffer) {
@@ -1372,7 +1378,7 @@ unsigned char*
 		buffer_length = bytes_read;
 	}
 
-	unsigned char *result = SOIL_load_image_from_memory(buffer, buffer_length, width, height, channels, force_channels);
+	unsigned char *result = SOIL_load_image_from_memory(buffer, (int)buffer_length, width, height, channels, force_channels);
 
 	free(buffer);
 
@@ -1388,7 +1394,7 @@ unsigned char*
 		int force_channels
 	)
 {
-	unsigned char* result = stbi_dds_load_from_memory(buffer, buffer_length, width, height, channels, force_channels);
+	unsigned char* result = stbi_dds_load_from_memory((unsigned char *)(buffer), buffer_length, width, height, channels, force_channels);
 	if (result)
 		return result;
 	 result = stbi_load_from_memory(
@@ -1500,7 +1506,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 		result_string_pointer = "NULL buffer";
 		return 0;
 	}
-	if( buffer_length < sizeof( DDS_header ) )
+	if( buffer_length < (int)sizeof( DDS_header ) )
 	{
 		/*	we can't do it!	*/
 		result_string_pointer = "DDS file was too small to contain the DDS header";
@@ -1539,8 +1545,8 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 	}
 	/*	OK, validated the header, let's load the image data	*/
 	result_string_pointer = "DDS header loaded and validated";
-	*width = header.dwWidth;
-	*height = header.dwHeight;
+	*width = (int)header.dwWidth;
+	*height = (int)header.dwHeight;
 	uncompressed = 1 - (header.sPixelFormat.dwFlags & DDPF_FOURCC) / DDPF_FOURCC;
 	cubemap = (header.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP) / DDSCAPS2_CUBEMAP;
 	if( uncompressed )
@@ -1552,7 +1558,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 			S3TC_type = GL_RGBA8;
 			block_size = 4;
 		}
-		DDS_main_size = (*width) * (*height) * block_size;
+		DDS_main_size = (unsigned int)((*width) * (*height) * block_size);
 	} else
 	{
 		/*	can we even handle direct uploading to OpenGL DXT compressed images?	*/
@@ -1578,7 +1584,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 			block_size = 16;
 			break;
 		}
-		DDS_main_size = (((*width)+3)>>2)*(((*height)+3)>>2)*block_size;
+		DDS_main_size = (unsigned int)((((*width)+3)>>2)*(((*height)+3)>>2)*block_size);
 	}
 	if( cubemap )
 	{
@@ -1614,7 +1620,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 	}
 	if( (header.sCaps.dwCaps1 & DDSCAPS_MIPMAP) && (header.dwMipMapCount > 1) )
 	{
-		mipmaps = header.dwMipMapCount - 1;
+		mipmaps = (int)header.dwMipMapCount - 1;
 		DDS_full_size = DDS_main_size;
 	} else
 	{
@@ -1633,7 +1639,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 	/*	do this for each face of the cubemap!	*/
 	for( cf_target = ogl_target_start; cf_target <= ogl_target_end; ++cf_target )
 	{
-		if( buffer_index + DDS_full_size <= buffer_length )
+		if( (int)(buffer_index + DDS_full_size) <= buffer_length )
 		{
 
 			memcpy( (void*)DDS_data, (const void*)(&buffer[buffer_index]), DDS_full_size );
@@ -1658,7 +1664,8 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 				soilGlCompressedTexImage2D(
 					cf_target, mipmaps,
 					S3TC_type, *width, *height, 0,
-					DDS_main_size, DDS_data );
+					(int)DDS_main_size,
+					DDS_data );
 			}
 			/*	upload the mipmaps, if we have them	*/
 			if(mipmaps)
@@ -1697,10 +1704,9 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 		} else
 		{
 			/*	unsigned int clamp_mode = SOIL_CLAMP_TO_EDGE;	*/
-			unsigned int clamp_mode = GL_CLAMP;
-			glTexParameteri( opengl_texture_type, GL_TEXTURE_WRAP_S, clamp_mode );
-			glTexParameteri( opengl_texture_type, GL_TEXTURE_WRAP_T, clamp_mode );
-			glTexParameteri( opengl_texture_type, SOIL_TEXTURE_WRAP_R, clamp_mode );
+			glTexParameteri( opengl_texture_type, GL_TEXTURE_WRAP_S, GL_CLAMP);
+			glTexParameteri( opengl_texture_type, GL_TEXTURE_WRAP_T, GL_CLAMP);
+			glTexParameteri( opengl_texture_type, SOIL_TEXTURE_WRAP_R, GL_CLAMP);
 		}
 	}
 
@@ -1733,7 +1739,7 @@ unsigned int SOIL_direct_load_DDS(
 		return 0;
 	}
 	fseek( f, 0, SEEK_END );
-	buffer_length = ftell( f );
+	buffer_length = (size_t)ftell( f );
 	fseek( f, 0, SEEK_SET );
 	buffer = (unsigned char *) malloc( buffer_length );
 	if( NULL == buffer )
@@ -1751,7 +1757,7 @@ unsigned int SOIL_direct_load_DDS(
 	}
 	/*	now try to do the loading	*/
 	tex_ID = SOIL_direct_load_DDS_from_memory(
-		(const unsigned char *const)buffer, buffer_length,
+		buffer, (int)buffer_length,
 		reuse_texture_ID, flags, loading_as_cubemap, width, height);
 	SOIL_free_image_data( buffer );
 	return tex_ID;
@@ -1820,6 +1826,7 @@ int query_cubemap_capability( void )
 	return has_cubemap_capability;
 }
 
+void WINAPI soilGlCompressedTexImage2D_wrapper(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const GLvoid * data);
 void WINAPI soilGlCompressedTexImage2D_wrapper(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const GLvoid * data) {
 	glTexStorage2D(target, level+1, internalformat, width, height);
 	glCompressedTexSubImage2D(target, 0, 0, 0, width, height, internalformat, imageSize, data);
@@ -1899,3 +1906,5 @@ int query_DXT_capability( void )
 	/*	let the user know if we can do DXT or not	*/
 	return has_DXT_capability;
 }
+
+#pragma clang diagnostic pop

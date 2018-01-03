@@ -49,7 +49,7 @@ namespace graphics {
 		return std::make_tuple(font_tag(uint8_t((handle >> 9) & 0xFF)), ((handle >> 8) & 1) != 0, uint32_t((handle & 0xFF) * 2));
 	}
 	constexpr uint16_t pack_font_handle(font_tag font_handle, bool black, uint32_t size) {
-		return uint16_t((to_index(font_handle) << 9) | (black ? (1 << 8) : 0) | ((size / 2) & 0xFF));
+		return uint16_t((uint32_t)(to_index(font_handle) << 9) | (uint32_t)(black ? (1 << 8) : 0) | (uint32_t)((size / 2) & 0xFF));
 	}
 
 	class font_manager {

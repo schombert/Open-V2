@@ -22,8 +22,8 @@ namespace ui {
 		int32_t base_position;
 	public:
 		scrollbar_slider(scrollbar<BASE>& p) : parent(p), base_position(0) {}
-		virtual bool on_get_focus(gui_object_tag, gui_manager&) override { return true; };
-		virtual bool on_lclick(gui_object_tag, gui_manager&, const lbutton_down&) override { base_position = parent.position(); return true; };
+		virtual bool on_get_focus(gui_object_tag, gui_manager&) override { return true; }
+		virtual bool on_lclick(gui_object_tag, gui_manager&, const lbutton_down&) override { base_position = parent.position(); return true; }
 		virtual bool on_drag(gui_object_tag, gui_manager&, const mouse_drag& md) override;
 	};
 
@@ -84,9 +84,9 @@ template<typename BASE>
 void ui::scrollbar<BASE>::update_position(int32_t position) {
 	_position = std::min(limt_maximum, std::max(limit_minimum, position));
 	if (vertical) {
-		slider->position.y = valid_start - slider->size.y / 2 + static_cast<int32_t>(static_cast<double>((valid_end - valid_start) * (_position - minimum)) / static_cast<double>(maximum - minimum));
+		slider->position.y = static_cast<int16_t>(valid_start - slider->size.y / 2 + static_cast<int32_t>(static_cast<double>((valid_end - valid_start) * (_position - minimum)) / static_cast<double>(maximum - minimum)));
 	} else {
-		slider->position.x = valid_start - slider->size.x / 2 + static_cast<int32_t>(static_cast<double>((valid_end - valid_start) * (_position - minimum)) / static_cast<double>(maximum - minimum));
+		slider->position.x = static_cast<int16_t>(valid_start - slider->size.x / 2 + static_cast<int32_t>(static_cast<double>((valid_end - valid_start) * (_position - minimum)) / static_cast<double>(maximum - minimum)));
 	}
 }
 

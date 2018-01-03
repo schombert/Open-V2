@@ -7,6 +7,9 @@
 #include <Windows.h>
 
 namespace graphics {
+	bool file_exists(const char* szPath);
+	bool compare_image_files(const char* fna, const char* fnb);
+
 	bool file_exists(const char* szPath) {
 		DWORD dwAttrib = GetFileAttributesA(szPath);
 		return dwAttrib != INVALID_FILE_ATTRIBUTES &&
@@ -27,7 +30,7 @@ namespace graphics {
 		bool compare = true;
 
 		if (width_a == width_b && height_a == height_b) {
-			for (uint32_t i = 0; i < width_a * height_a * 3; ++i) {
+			for (int32_t i = 0; i < width_a * height_a * 3; ++i) {
 				if (data_b[i] != data_a[i]) {
 					compare = false;
 					break;
@@ -48,22 +51,22 @@ namespace graphics {
 		bool run = false;
 		const std::function<void(open_gl_wrapper&)> function;
 		const char* file_base = nullptr;
-		const uint32_t x = 0;
-		const uint32_t y = 0;
-		const uint32_t w = 0;
-		const uint32_t h = 0;
+		const int32_t x = 0;
+		const int32_t y = 0;
+		const int32_t w = 0;
+		const int32_t h = 0;
 	public:
-		render_once(const char* fb, uint32_t xi, uint32_t yi, uint32_t wi, uint32_t hi, const std::function<void(open_gl_wrapper&)>& f) :
+		render_once(const char* fb, int32_t xi, int32_t yi, int32_t wi, int32_t hi, const std::function<void(open_gl_wrapper&)>& f) :
 			function(f), file_base(fb), x(xi), y(yi), w(wi), h(hi) {
 		}
 		template<typename T>
-		void operator()(T&&, ui::window_base& w) const {
+		void operator()(const T&, ui::window_base& win) const {
 			// do nothing;
 		}
-		void operator()(ui::creation&&, ui::window_base& w) const {
-			w.close_window();
+		void operator()(const ui::creation&, ui::window_base& win) const {
+			win.close_window();
 		}
-		void initialize_graphics(open_gl_wrapper& ogl) {
+		void initialize_graphics(open_gl_wrapper& ) {
 		}
 
 		void render(open_gl_wrapper& ogl) {
@@ -91,7 +94,7 @@ namespace graphics {
 
 	bool test_rendering(const char* base_file_name, uint32_t x, uint32_t y, uint32_t w, uint32_t h, const std::function<void(open_gl_wrapper&)>& f) {
 		{
-			ui::window<render_once> test_window(x + w, y + h, base_file_name, x, y, w, h, f);
+			ui::window<render_once> test_window(x + w, y + h, base_file_name, (int32_t)x, (int32_t)y, (int32_t)w, (int32_t)h, f);
 		}
 		std::string test_file(base_file_name);
 		test_file += "_expected.tga";

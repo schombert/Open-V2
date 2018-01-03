@@ -171,9 +171,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="targetver.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="text_classifier_performance.cpp" />
   </ItemGroup>
   <ItemGroup>

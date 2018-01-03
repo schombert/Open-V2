@@ -4,6 +4,13 @@
 #include <numeric>
 #include "common\\common.h"
 
+bool get_nth_bit(uint32_t nth, const char* start, const char* end);
+auto get_nth_bit_function(uint32_t nth);
+uint32_t classifier_set_to_slot(const std::vector<std::function<bool(const char* start, const char* end)>> &vec, const char* ts, const char* te);
+uint32_t classifier_measure(uint32_t target_size, const std::vector<std::function<bool(const char* start, const char* end)>> &vec, const std::vector<text_identifier>& options);
+bool fixed_str_equality_ci(const char* as, const char* ae, const char* bs, const char* be);
+int fixed_str_compare_ci(const char* as, const char* ae, const char* bs, const char* be);
+
 bool get_nth_bit(uint32_t nth, const char* start, const char* end) {
 	const uint32_t byte = nth / 5;
 	const uint32_t bit_in_byte = nth % 5;
@@ -20,6 +27,9 @@ auto get_nth_bit_function(uint32_t nth) {
 }
 
 uint32_t count_by_bit_classifier(const decltype(get_nth_bit_function(0)) &fa,
+	const std::vector<text_identifier>& options);
+
+uint32_t count_by_bit_classifier(const decltype(get_nth_bit_function(0)) &fa,
 							   const std::vector<text_identifier>& options) {
 	uint32_t total = 0;
 	for (const auto& ident : options) {
@@ -33,7 +43,7 @@ uint32_t classifier_set_to_slot(const std::vector<std::function<bool(const char*
 	uint32_t slot = 0;
 	uint32_t count = 0;
 	for (const auto& fn : vec) {
-		slot |= (fn(ts, te) ? 1 : 0) << count++;
+		slot |= (uint32_t)(fn(ts, te) ? 1 : 0) << count++;
 	}
 	return slot;
 
@@ -89,9 +99,9 @@ movable_function<unsigned char, const char*, const char*> make_bit_function_clas
 						removed = false;
 						for (uint32_t u = 0; u < ok_vec.size(); ++u) {
 							std::vector<std::function<bool(const char* start, const char* end)>> subvector;
-							for (uint32_t v = 0; v < ok_vec.size(); ++v) {
-								if (v != u)
-									subvector.push_back(ok_vec[v]);
+							for (uint32_t w = 0; w < ok_vec.size(); ++w) {
+								if (w != u)
+									subvector.push_back(ok_vec[w]);
 							}
 							if (classifier_measure(1 << subvector.size(), subvector, options) == 0) {
 								ok_vec = std::move(subvector);
@@ -121,7 +131,7 @@ movable_function<unsigned char, const char*, const char*> make_bit_function_clas
 			}
 		}
 	}
-	return [options](const char* ts, const char* te) {return (unsigned char)(0); };
+	return [options](const char* , const char* ) {return (unsigned char)(0); };
 }
 
 int fixed_str_compare_ci(const char* as, const char* ae, const char* bs, const char* be) {

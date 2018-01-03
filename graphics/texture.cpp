@@ -157,7 +157,7 @@ namespace graphics {
 	}
 
 	texture_tag texture_manager::retrieve_by_name(const directory& root, const char* start, const char* end) {
-		char* const temp_cpy = (char*)_alloca(end - start + 1);
+		char* const temp_cpy = (char*)_alloca(static_cast<size_t>(end - start + 1));
 		uint32_t t_pos = 0;
 		for (uint32_t i = 0; i < (end - start); ++i, ++t_pos) {
 			temp_cpy[t_pos] = start[i];

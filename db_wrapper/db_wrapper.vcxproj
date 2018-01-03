@@ -181,7 +181,6 @@
     <ClInclude Include="simple_db.h" />
     <ClInclude Include="simple_db.hpp" />
     <ClInclude Include="sqlite3.h" />
-    <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="simple_db.cpp" />

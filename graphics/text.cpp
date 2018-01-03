@@ -10,12 +10,12 @@
 #include <math.h>
 #include <ctype.h>
 
+#include "common\\common.h"
 #include "ft2build.h"
 #include "freetype\\freetype.h"
 #include "freetype\\ftglyph.h"
-#include "boost\\container\\\flat_map.hpp"
-
 #include "simple_mpl\\simple_mpl.hpp"
+
 #include "concurrency_tools\\concurrency_tools.hpp"
 #include "open_gl_wrapper.h"
 #include "Parsers\\parsers.hpp"
@@ -24,6 +24,13 @@
 #undef max
 
 namespace graphics {
+	constexpr int magnification_factor = 4;
+	constexpr int dr_size = 64 * magnification_factor;
+
+	int transform_offset(int x, int y, int xoffset, int yoffset, int btmap_x_off, int btmap_y_off, int width, int height, int pitch);
+	int32_t transform_offset_b(int32_t x, int32_t y, int32_t btmap_x_off, int32_t btmap_y_off, uint32_t width, uint32_t height, uint32_t pitch);
+	void init_in_map(bool in_map[dr_size * dr_size], uint8_t* bmp_data, int32_t btmap_x_off, int32_t btmap_y_off, uint32_t width, uint32_t height, uint32_t pitch);
+	void dead_reckoning(float distance_map[dr_size * dr_size], const bool in_map[dr_size * dr_size]);
 
 	class free_type_library {
 	public:
@@ -36,9 +43,7 @@ namespace graphics {
 		}
 	};
 
-	free_type_library global_freetype;
-
-	static constexpr int magnification_factor = 4;
+	static free_type_library global_freetype;
 
 	int transform_offset(int x, int y, int xoffset, int yoffset, int btmap_x_off, int btmap_y_off, int width, int height, int pitch) {
 		int bmp_x = x * magnification_factor + xoffset - btmap_x_off;
@@ -54,18 +59,18 @@ namespace graphics {
 		int bmp_x = x - btmap_x_off;
 		int bmp_y = y - btmap_y_off;
 
-		if ((bmp_x < 0) | (bmp_x >= width) | (bmp_y < 0) | (bmp_y >= height))
+		if ((bmp_x < 0) | (bmp_x >= (int32_t)width) | (bmp_y < 0) | (bmp_y >= (int32_t)height))
 			return -1;
 		else
-			return bmp_x + bmp_y * pitch;
+			return bmp_x + bmp_y * (int32_t)pitch;
 	}
 
-	constexpr int dr_size = 64 * magnification_factor;
+	
 	constexpr float rt_2 = 1.41421356237309504f;
 
 	void init_in_map(bool in_map[dr_size * dr_size], uint8_t* bmp_data, int32_t btmap_x_off, int32_t btmap_y_off, uint32_t width, uint32_t height, uint32_t pitch) {
-		for (uint32_t j = 0; j < dr_size; ++j) {
-			for (uint32_t i = 0; i < dr_size; ++i) {
+		for (int32_t j = 0; j < dr_size; ++j) {
+			for (int32_t i = 0; i < dr_size; ++i) {
 				const auto boff = transform_offset_b(i, j, btmap_x_off, btmap_y_off, width, height, pitch);
 				in_map[i + dr_size * j] = (boff != -1) ? (bmp_data[boff] > 127) : false;
 			}
@@ -79,79 +84,79 @@ namespace graphics {
 		for (uint32_t i = 0; i < dr_size*dr_size; ++i) {
 			distance_map[i] = std::numeric_limits<float>::infinity();
 		}
-		for (uint32_t j = 1; j < dr_size - 1; ++j) {
-			for (uint32_t i = 1; i < dr_size - 1; ++i) {
+		for (int32_t j = 1; j < dr_size - 1; ++j) {
+			for (int32_t i = 1; i < dr_size - 1; ++i) {
 				if (in_map[i - 1 + dr_size * j] != in_map[i + dr_size * j] ||
 					in_map[i + 1 + dr_size * j] != in_map[i + dr_size * j] ||
 					in_map[i + dr_size * (j + 1)] != in_map[i + dr_size * j] ||
 					in_map[i + dr_size * (j - 1)] != in_map[i + dr_size * j]) {
 					distance_map[i + dr_size * j] = 0.0f;
-					yborder[i + dr_size * j] = j;
-					xborder[i + dr_size * j] = i;
+					yborder[i + dr_size * j] = static_cast<int16_t>(j);
+					xborder[i + dr_size * j] = static_cast<int16_t>(i);
 				}
 			}
 		}
-		for (uint32_t j = 1; j < dr_size - 1; ++j) {
-			for (uint32_t i = 1; i < dr_size - 1; ++i) {
+		for (int32_t j = 1; j < dr_size - 1; ++j) {
+			for (int32_t i = 1; i < dr_size - 1; ++i) {
 				if (distance_map[(i - 1) + dr_size * (j - 1)] + rt_2 < distance_map[(i)+dr_size * (j)]) {
 					yborder[i + dr_size * j] = yborder[(i - 1) + dr_size * (j - 1)];
 					xborder[i + dr_size * j] = xborder[(i - 1) + dr_size * (j - 1)];
 					distance_map[(i)+dr_size * (j)] =
-						std::sqrt((i - xborder[i + dr_size * j])*(i - xborder[i + dr_size * j]) +
+						(float)std::sqrt((i - xborder[i + dr_size * j])*(i - xborder[i + dr_size * j]) +
 						(j - yborder[i + dr_size * j])*(j - yborder[i + dr_size * j]));
 				}
 				if (distance_map[(i)+dr_size * (j - 1)] + 1.0f < distance_map[(i)+dr_size * (j)]) {
 					yborder[i + dr_size * j] = yborder[(i)+dr_size * (j - 1)];
 					xborder[i + dr_size * j] = xborder[(i)+dr_size * (j - 1)];
 					distance_map[(i)+dr_size * (j)] =
-						std::sqrt((i - xborder[i + dr_size * j])*(i - xborder[i + dr_size * j]) +
+						(float)std::sqrt((i - xborder[i + dr_size * j])*(i - xborder[i + dr_size * j]) +
 						(j - yborder[i + dr_size * j])*(j - yborder[i + dr_size * j]));
 				}
 				if (distance_map[(i + 1) + dr_size * (j - 1)] + rt_2 < distance_map[(i)+dr_size * (j)]) {
 					yborder[i + dr_size * j] = yborder[(i + 1) + dr_size * (j - 1)];
 					xborder[i + dr_size * j] = xborder[(i + 1) + dr_size * (j - 1)];
 					distance_map[(i)+dr_size * (j)] =
-						std::sqrt((i - xborder[i + dr_size * j])*(i - xborder[i + dr_size * j]) +
+						(float)std::sqrt((i - xborder[i + dr_size * j])*(i - xborder[i + dr_size * j]) +
 						(j - yborder[i + dr_size * j])*(j - yborder[i + dr_size * j]));
 				}
 				if (distance_map[(i - 1) + dr_size * (j)] + 1.0f < distance_map[(i)+dr_size * (j)]) {
 					yborder[i + dr_size * j] = yborder[(i - 1) + dr_size * (j)];
 					xborder[i + dr_size * j] = xborder[(i - 1) + dr_size * (j)];
 					distance_map[(i)+dr_size * (j)] =
-						std::sqrt((i - xborder[i + dr_size * j])*(i - xborder[i + dr_size * j]) +
+						(float)std::sqrt((i - xborder[i + dr_size * j])*(i - xborder[i + dr_size * j]) +
 						(j - yborder[i + dr_size * j])*(j - yborder[i + dr_size * j]));
 				}
 			}
 		}
 
-		for (uint32_t j = dr_size - 2; j > 0; --j) {
-			for (uint32_t i = dr_size - 2; i > 0; --i) {
+		for (int32_t j = dr_size - 2; j > 0; --j) {
+			for (int32_t i = dr_size - 2; i > 0; --i) {
 				if (distance_map[(i + 1) + dr_size * (j)] + 1.0f < distance_map[(i)+dr_size * (j)]) {
 					yborder[i + dr_size * j] = yborder[(i + 1) + dr_size * (j)];
 					xborder[i + dr_size * j] = xborder[(i + 1) + dr_size * (j)];
 					distance_map[(i)+dr_size * (j)] =
-						std::sqrt((i - xborder[i + dr_size * j])*(i - xborder[i + dr_size * j]) +
+						(float)std::sqrt((i - xborder[i + dr_size * j])*(i - xborder[i + dr_size * j]) +
 						(j - yborder[i + dr_size * j])*(j - yborder[i + dr_size * j]));
 				}
 				if (distance_map[(i - 1) + dr_size * (j + 1)] + rt_2 < distance_map[(i)+dr_size * (j)]) {
 					yborder[i + dr_size * j] = yborder[(i - 1) + dr_size * (j + 1)];
 					xborder[i + dr_size * j] = xborder[(i - 1) + dr_size * (j + 1)];
 					distance_map[(i)+dr_size * (j)] =
-						std::sqrt((i - xborder[i + dr_size * j])*(i - xborder[i + dr_size * j]) +
+						(float)std::sqrt((i - xborder[i + dr_size * j])*(i - xborder[i + dr_size * j]) +
 						(j - yborder[i + dr_size * j])*(j - yborder[i + dr_size * j]));
 				}
 				if (distance_map[(i)+dr_size * (j + 1)] + 1.0f < distance_map[(i)+dr_size * (j)]) {
 					yborder[i + dr_size * j] = yborder[(i)+dr_size * (j + 1)];
 					xborder[i + dr_size * j] = xborder[(i)+dr_size * (j + 1)];
 					distance_map[(i)+dr_size * (j)] =
-						std::sqrt((i - xborder[i + dr_size * j])*(i - xborder[i + dr_size * j]) +
+						(float)std::sqrt((i - xborder[i + dr_size * j])*(i - xborder[i + dr_size * j]) +
 						(j - yborder[i + dr_size * j])*(j - yborder[i + dr_size * j]));
 				}
 				if (distance_map[(i + 1) + dr_size * (j + 1)] + rt_2 < distance_map[(i)+dr_size * (j)]) {
 					yborder[i + dr_size * j] = yborder[(i + 1) + dr_size * (j + 1)];
 					xborder[i + dr_size * j] = xborder[(i + 1) + dr_size * (j + 1)];
 					distance_map[(i)+dr_size * (j)] =
-						std::sqrt((i - xborder[i + dr_size * j])*(i - xborder[i + dr_size * j]) +
+						(float)std::sqrt((i - xborder[i + dr_size * j])*(i - xborder[i + dr_size * j]) +
 						(j - yborder[i + dr_size * j])*(j - yborder[i + dr_size * j]));
 				}
 			}
@@ -316,14 +321,14 @@ namespace graphics {
 				bool in_map[dr_size * dr_size] = { false };
 				float distance_map[dr_size * dr_size];
 
-				init_in_map(in_map, bitmap.buffer, btmap_x_off, btmap_y_off, bitmap.width, bitmap.rows, bitmap.pitch);
+				init_in_map(in_map, bitmap.buffer, btmap_x_off, btmap_y_off, bitmap.width, bitmap.rows, (uint32_t)bitmap.pitch);
 				dead_reckoning(distance_map, in_map);
 
 
 				for (int y = 0; y < 64; ++y) {
 					for (int x = 0; x < 64; ++x) {
 
-						const size_t index = (x + y * 64);
+						const size_t index = static_cast<size_t>(x + y * 64);
 						const float distance_value = distance_map[
 							(x * magnification_factor + magnification_factor / 2) +
 								(y * magnification_factor + magnification_factor / 2)* dr_size]
@@ -417,7 +422,7 @@ namespace graphics {
 
 	float font::metrics_text_extent(const char16_t* codepoints, uint32_t count, float size, bool outlined) const {
 		float total = 0.0f;
-		for (int32_t i = count - 1; i >= 0; --i) {
+		for (int32_t i = static_cast<int32_t>(count) - 1; i >= 0; --i) {
 			total +=
 				impl->get_metrics_glyph(codepoints[i]).advance * size / 64.0f +
 				(outlined ? 0.6f : 0.0f) +
@@ -478,7 +483,7 @@ namespace graphics {
 			++effective_end;
 		}
 
-		return font_tag(map_functions<sorted_font_map_type>::bt_scan_ci(start, effective_end, 0));
+		return font_tag(map_functions<sorted_font_map_type>::bt_scan_ci(start, effective_end, 0ui8));
 	}
 
 	font& font_manager::at(font_tag t) const {
@@ -486,15 +491,17 @@ namespace graphics {
 	}
 
 	namespace detail {
-		int32_t font_size_adjustment(int32_t sz) {
+		uint32_t font_size_adjustment(uint32_t sz);
+
+		uint32_t font_size_adjustment(uint32_t sz) {
 			//const int32_t base = (sz * 2 + 2) / 3;
 			//return base + (base & 1);
-			return std::max(14, sz + (sz & 1));
+			return std::max(14ui32, sz + (sz & 1));
 		}
 	}
 
 	uint32_t font_manager::find_font_size(const char* start, const char* end) {
-		const auto mapped_size = map_functions<sorted_font_size_map_type>::bt_scan_ci(start, end, 0);
+		const uint32_t mapped_size = map_functions<sorted_font_size_map_type>::bt_scan_ci(start, end, 0ui32);
 		if (mapped_size != 0)
 			return detail::font_size_adjustment(mapped_size);
 

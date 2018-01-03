@@ -18,12 +18,12 @@ namespace ui {
 			obj->gl_wrapper.setup(hwnd, obj->h);
 			obj->gl_wrapper.bind_to_ui_thread();
 			obj->h(creation{}, *obj);
-			return 0;
+			return nullptr;
 		} else {
 			window<HANDLER>* obj = (window<HANDLER>*)get_handler(hwnd);
 			if (obj)
 				std::visit([obj](auto&& o) { obj->h(std::forward<decltype(o)>(o), *obj); }, message_result);
-			return 0;
+			return nullptr;
 		}
 	}
 

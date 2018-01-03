@@ -7,6 +7,8 @@
 #include <Windows.h>
 #endif
 
+std::pair<char*, char*> CALL csv_re_write_token(char* start, const char* end, char seperator);
+
 char16_t win1250toUTF16(char in) {
 	constexpr static char16_t converted[256] =
 //       0       1         2         3         4         5         6         7         8         9         A         B         C         D         E         F
@@ -69,8 +71,8 @@ float parse_float(const char* start, const char* end) {
 		OutputDebugStringA(" as a float\n");
 	}
 #endif
-	char* buf = (char*)_alloca(end - start + 1);
-	memcpy(buf, start, end - start);
+	char* buf = (char*)_alloca((size_t)(end - start + 1));
+	memcpy(buf, start, (size_t)(end - start));
 	char* out_ptr = nullptr;
 	buf[end - start] = 0;
 
@@ -88,8 +90,8 @@ double parse_double(const char* start, const char* end) {
 		OutputDebugStringA(" as a double\n");
 	}
 #endif
-	char* buf = (char*)_alloca(end - start + 1);
-	memcpy(buf, start, end - start);
+	char* buf = (char*)_alloca((size_t)(end - start + 1));
+	memcpy(buf, start, (size_t)(end - start));
 	char* out_ptr = nullptr;
 	buf[end - start] = 0;
 
@@ -108,8 +110,8 @@ int32_t parse_int(const char* start, const char* end) {
 	}
 #endif
 
-	char* buf = (char*)_alloca(end - start + 1);
-	memcpy(buf, start, end - start);
+	char* buf = (char*)_alloca((size_t)(end - start + 1));
+	memcpy(buf, start, (size_t)(end - start));
 	char* out_ptr = nullptr;
 	buf[end - start] = 0;
 
@@ -128,8 +130,8 @@ uint32_t parse_uint(const char* start, const char* end) {
 	}
 #endif
 
-	char* buf = (char*)_alloca(end - start + 1);
-	memcpy(buf, start, end - start);
+	char* buf = (char*)_alloca((size_t)(end - start + 1));
+	memcpy(buf, start, (size_t)(end - start));
 	char* out_ptr = nullptr;
 	buf[end - start] = 0;
 

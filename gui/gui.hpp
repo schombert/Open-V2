@@ -28,7 +28,7 @@ namespace ui {
 		scrollbar<unmanaged_region_scollbar> sb;
 
 		unmanaged_scrollable_region(gui_object& g) : sb(g) {}
-		virtual bool on_scroll(gui_object_tag o, gui_manager& m, const scroll& s) override { return sb.on_scroll(o, m, s); };
+		virtual bool on_scroll(gui_object_tag o, gui_manager& m, const scroll& s) override { return sb.on_scroll(o, m, s); }
 	};
 
 	namespace detail {

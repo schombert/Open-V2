@@ -16,21 +16,21 @@ auto stream_filter(const WRAPPED& w)->stream_filter_t<WRAPPED>;
 template<typename value>
 struct type_erased_stream {
 	virtual void operator()(const value& v) = 0;
-	virtual void yield() {};
-	virtual void reset() {};
-	virtual ~type_erased_stream() {};
+	virtual void yield() {}
+	virtual void reset() {}
+	virtual ~type_erased_stream() {}
 };
 
 template<typename value, typename stream_type>
 struct generic_stream_t : public type_erased_stream<value> {
 	stream_type member_stream;
-	generic_stream_t(const stream_type& i) : member_stream(i) {};
+	generic_stream_t(const stream_type& i) : member_stream(i) {}
 	template<typename ...T>
 	generic_stream_t(std::true_type, T&& ... args) : member_stream(make_stream(std::forward<T>(args)...)) {}
 
-	virtual void operator()(const value& v) override { member_stream(v); };
-	virtual void yield() override { member_stream.yield(); };
-	virtual void reset() override { member_stream.reset(); };
+	virtual void operator()(const value& v) override { member_stream(v); }
+	virtual void yield() override { member_stream.yield(); }
+	virtual void reset() override { member_stream.reset(); }
 };
 
 template<typename value, typename stream_type>

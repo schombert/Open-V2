@@ -81,14 +81,14 @@ template<typename T>
 struct compile_time_lex_compare_ci {
 	static constexpr int value(const char* const, const char* const) {
 		return 0;
-	};
+	}
 };
 
 template<>
 struct compile_time_lex_compare_ci<ct_string<>> {
 	static constexpr int value(const char* const, const char* const) {
 		return 0;
-	};
+	}
 };
 
 constexpr char to_lower_helper_char(const char c) {
@@ -126,7 +126,7 @@ struct ct_string<> {
 	template<typename T>
 	constexpr static bool equals = ct_str_eq<ct_string<>, T>::value;
 
-	constexpr ct_string() {};
+	constexpr ct_string() {}
 };
 
 template<typename A, typename B>
@@ -145,7 +145,7 @@ struct ct_string<f, c...> {
 	template<typename T>
 	constexpr static bool equals = ct_str_eq<ct_string<f, c...>, T>::value;
 
-	constexpr ct_string() {};
+	constexpr ct_string() {}
 };
 
 template<char ... c>

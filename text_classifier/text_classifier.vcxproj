@@ -151,7 +151,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="targetver.h" />
     <ClInclude Include="text_classifiers.h" />
   </ItemGroup>
   <ItemGroup>

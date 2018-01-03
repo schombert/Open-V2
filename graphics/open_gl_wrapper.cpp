@@ -16,15 +16,30 @@
 #undef min
 
 namespace graphics {
+	void create_global_square();
+	std::pair<HGLRC, HGLRC> setup_opengl_context(HWND hwnd, HDC window_dc);
+	void release_opengl_context(void* _hwnd, HGLRC context);
+	void create_shaders();
+	void internal_text_render(const char16_t* codepoints, uint32_t count, float x, float baseline_y, float size, font& f, float extra);
+
 #ifdef _DEBUG
 	void debug_callback(
 		GLenum source,
 		GLenum type,
 		GLuint id,
 		GLenum severity,
-		GLsizei length,
+		GLsizei ,
 		const GLchar* message,
-		const void* param) {
+		const void* );
+
+	void debug_callback(
+		GLenum source,
+		GLenum type,
+		GLuint id,
+		GLenum severity,
+		GLsizei , // length
+		const GLchar* message,
+		const void* ) {
 
 		std::string source_str;
 		switch (source) {
@@ -113,7 +128,7 @@ namespace graphics {
 		constexpr GLuint linegraph = 11;
 	}
 
-	char tquad_vertex_shader[] =
+	static char tquad_vertex_shader[] =
 		"#version 430 core\n"
 		"layout (location = 0) in vec2 vertex_position;\n"
 		"layout (location = 1) in vec2 v_tex_coord;\n"
@@ -132,7 +147,7 @@ namespace graphics {
 		"}\n";
 
 
-	char tquad_fragment_shader[] =
+	static char tquad_fragment_shader[] =
 		"#version 430 core\n"
 		"\n"
 		"#define M_PI 3.1415926535897932384626433832795\n"
@@ -248,35 +263,35 @@ namespace graphics {
 		"	frag_color = coloring_function(font_function(tex_coord));\n"
 		"}\n";
 
-	GLuint general_shader = 0;
+	static GLuint general_shader = 0;
 
-	GLuint global_square_vao = 0;
-	GLuint global_sqaure_buffer = 0;
-	GLuint global_sqaure_right_buffer = 0;
-	GLuint global_sqaure_left_buffer = 0;
+	static GLuint global_square_vao = 0;
+	static GLuint global_sqaure_buffer = 0;
+	static GLuint global_sqaure_right_buffer = 0;
+	static GLuint global_sqaure_left_buffer = 0;
 
-	GLfloat global_square_data[] = {
+	static GLfloat global_square_data[] = {
 		0.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 1.0f, 0.0f, 1.0f,
 		1.0f, 1.0f, 1.0f, 1.0f,
 		1.0f, 0.0f, 1.0f, 0.0f
 	};
 
-	GLfloat global_square_right_data[] = {
+	static GLfloat global_square_right_data[] = {
 		0.0f, 0.0f, 0.0f, 1.0f,
 		0.0f, 1.0f, 1.0f, 1.0f,
 		1.0f, 1.0f, 1.0f, 0.0f,
 		1.0f, 0.0f, 0.0f, 0.0f
 	};
 
-	GLfloat global_square_left_data[] = {
+	static GLfloat global_square_left_data[] = {
 		0.0f, 0.0f, 1.0f, 0.0f,
 		0.0f, 1.0f, 0.0f, 0.0f,
 		1.0f, 1.0f, 0.0f, 1.0f,
 		1.0f, 0.0f, 1.0f, 1.0f
 	};
 
-	GLuint sub_sqaure_buffers[64] = { 0 };
+	static GLuint sub_sqaure_buffers[64] = { 0 };
 
 	void create_global_square() {
 		glGenBuffers(1, &global_sqaure_buffer);
@@ -349,7 +364,7 @@ namespace graphics {
 			GLint logLen;
 			glGetShaderiv(general_vertex_shader, GL_INFO_LOG_LENGTH, &logLen);
 
-			char * log = new char[logLen];
+			char * log = new char[static_cast<size_t>(logLen)];
 			GLsizei written;
 			glGetShaderInfoLog(general_vertex_shader, logLen, &written, log);
 
@@ -374,7 +389,7 @@ namespace graphics {
 			GLint logLen;
 			glGetShaderiv(general_fragment_shader, GL_INFO_LOG_LENGTH, &logLen);
 
-			char * log = new char[logLen];
+			char * log = new char[static_cast<size_t>(logLen)];
 			GLsizei written;
 			glGetShaderInfoLog(general_fragment_shader, logLen, &written, log);
 
@@ -406,7 +421,7 @@ namespace graphics {
 			GLint logLen;
 			glGetProgramiv(general_shader, GL_INFO_LOG_LENGTH, &logLen);
 
-			char * log = new char[logLen];
+			char * log = new char[static_cast<size_t>(logLen)];
 			GLsizei written;
 			glGetProgramInfoLog(general_shader, logLen, &written, log);
 			MessageBoxA(nullptr, log, "OpenGL error", MB_OK);
@@ -467,8 +482,8 @@ namespace graphics {
 			MessageBox(hwnd, L"WGL_ARB_create_context not supported", L"OpenGL error", MB_OK);
 			std::abort();
 		} else {
-			auto ui_context = wglCreateContextAttribsARB(window_dc, NULL, attribs);
-			auto new_context = wglCreateContextAttribsARB(window_dc, NULL, attribs);
+			auto ui_context = wglCreateContextAttribsARB(window_dc, nullptr, attribs);
+			auto new_context = wglCreateContextAttribsARB(window_dc, nullptr, attribs);
 
 			if (wglShareLists(new_context, ui_context) == FALSE) {
 				MessageBox(hwnd, L"Unable to share contexts", L"OpenGL error", MB_OK);
@@ -476,7 +491,7 @@ namespace graphics {
 			}
 
 
-			wglMakeCurrent(window_dc, NULL);
+			wglMakeCurrent(window_dc, nullptr);
 			wglDeleteContext(handle_to_ogl_dc);
 			wglMakeCurrent(window_dc, new_context);
 
@@ -500,7 +515,7 @@ namespace graphics {
 			create_shaders();
 			create_global_square();
 
-			wglMakeCurrent(window_dc, NULL);
+			wglMakeCurrent(window_dc, nullptr);
 
 			return std::make_pair(new_context, ui_context);
 		}
@@ -510,7 +525,7 @@ namespace graphics {
 		HWND hwnd = (HWND)_hwnd;
 		HDC window_dc = GetDC(hwnd);
 
-		wglMakeCurrent(window_dc, NULL);
+		wglMakeCurrent(window_dc, nullptr);
 		wglDeleteContext(context);
 	}
 
@@ -567,13 +582,13 @@ namespace graphics {
 		bool expected = true;
 		if(impl->update_viewport.compare_exchange_strong(expected, false, std::memory_order::memory_order_release, std::memory_order::memory_order_acquire)) {
 			impl->update_viewport.store(false, std::memory_order::memory_order_release);
-			glViewport(0, 0, impl->viewport_x, impl->viewport_y);
+			glViewport(0, 0, static_cast<int32_t>(impl->viewport_x), static_cast<int32_t>(impl->viewport_y));
 			glDepthRange(-1.0, 1.0);
 
-			glUniform1f(parameters::screen_width, impl->viewport_x);
-			glUniform1f(parameters::screen_height, impl->viewport_y);
+			glUniform1f(parameters::screen_width, static_cast<float>(impl->viewport_x));
+			glUniform1f(parameters::screen_height, static_cast<float>(impl->viewport_y));
 		}
-		glScissor(0, 0, impl->viewport_x, impl->viewport_y);
+		glScissor(0, 0, static_cast<GLsizei>(impl->viewport_x), static_cast<GLsizei>(impl->viewport_y));
 
 		glClearColor(0.5, 0.5, 0.5, 0.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -614,7 +629,7 @@ namespace graphics {
 		GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::linegraph };
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
-		glDrawArrays(GL_LINE_STRIP, 0, l.count);
+		glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
 	}
 
 	void open_gl_wrapper::render_barchart(bool enabled, float x, float y, float width, float height, data_texture& t, rotation r) {
@@ -804,7 +819,7 @@ namespace graphics {
 		glUniform1f(parameters::border_size, 0.08f * 16.0f / size); // for normal outlines
 		// glUniform1f(parameters::border_size, 0.16f * 16.0f / size); // for bold outlines
 
-		internal_text_render(codepoints, count, x, y + size, size, f, 0.6);
+		internal_text_render(codepoints, count, x, y + size, size, f, 0.6f);
 	}
 
 	void open_gl_wrapper::render_text(const char16_t* codepoints, uint32_t count, bool enabled, float x, float y, float size, const color& c, font& f) {
@@ -814,7 +829,7 @@ namespace graphics {
 		glUniform3f(parameters::inner_color, c.r, c.b, c.g);
 		glUniform1f(parameters::border_size, 0.08f * 16.0f / size);
 
-		internal_text_render(codepoints, count, x, y + size, size, f, 0.0);
+		internal_text_render(codepoints, count, x, y + size, size, f, 0.0f);
 	}
 
 	void open_gl_wrapper::set_viewport(uint32_t width, uint32_t height) {

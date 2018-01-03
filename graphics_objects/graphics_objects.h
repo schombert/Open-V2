@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include <functional>
 #include "simple_fs\\simple_fs.h"
-#include "boost\\container\\flat_map.hpp"
 #include "common\\common.h"
 #include "common\\shared_tags.h"
 

@@ -11,6 +11,21 @@ namespace ui {
 	struct empty_type {
 
 	};
+	int discard_empty_type(const token_and_type&, association_type, empty_type&);
+	std::optional<virtual_key> virtual_key_from_rh(association_type, const token_and_type& t);
+	std::optional<uint8_t> button_orientation_from_rh(association_type, const token_and_type& t);
+	std::optional<uint8_t> button_format_from_rh(association_type, const token_and_type& t);
+	std::optional<uint8_t> button_rotation_from_rh(association_type, const token_and_type& t);
+	std::optional<uint8_t> icon_orientation_from_rh(association_type, const token_and_type& t);
+	std::optional<uint8_t> icon_rotation_from_rh(association_type, const token_and_type& t);
+	std::optional<uint16_t> textbox_orientation_from_rh(association_type, const token_and_type& t);
+	std::optional<uint16_t> textbox_format_from_rh(association_type, const token_and_type& t);
+	std::optional<uint16_t> textbox_format_from_rh(association_type, const token_and_type& t);
+	std::optional<uint16_t> textbox_background_from_rh(association_type, const token_and_type& t);
+	std::optional<uint8_t> listbox_orientation_from_rh(association_type, const token_and_type& t);
+	std::optional<uint8_t> overlapping_orientation_from_rh(association_type, const token_and_type& t);
+	std::optional<uint16_t> overlapping_format_from_rh(association_type, const token_and_type& t);
+	std::optional<uint8_t> window_orientation_from_rh(association_type, const token_and_type& t);
 
 	struct parsing_environment {
 		ui::name_maps& nmaps;
@@ -32,7 +47,7 @@ namespace ui {
 		}
 	};
 
-	int discard_empty_type(const token_and_type& a, association_type, empty_type&) {
+	int discard_empty_type(const token_and_type&, association_type, empty_type&) {
 		return 0;
 	}
 
@@ -255,7 +270,7 @@ namespace ui {
 		ui::button_def internal_definition;
 		const parsing_environment& env;
 
-		guiButtonType(const parsing_environment& e) : env(e) {};
+		guiButtonType(const parsing_environment& e) : env(e) {}
 
 		std::string name;
 
@@ -322,7 +337,7 @@ namespace ui {
 		}
 		void add_unknown_key(int) {
 			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_button_attribute);
-		};
+		}
 	};
 
 
@@ -360,7 +375,7 @@ namespace ui {
 		ui::icon_def internal_definition;
 		const parsing_environment& env;
 
-		iconType(const parsing_environment& e) : env(e) {};
+		iconType(const parsing_environment& e) : env(e) {}
 
 		std::string name;
 
@@ -381,7 +396,7 @@ namespace ui {
 		}
 		void add_unknown_key(int) {
 			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_icon_attribute);
-		};
+		}
 	};
 
 	std::optional<uint16_t> textbox_orientation_from_rh(association_type, const token_and_type& t) {
@@ -433,7 +448,7 @@ namespace ui {
 		ui::text_def internal_definition;
 		const parsing_environment& env;
 
-		allTextBoxType(const parsing_environment& e) : env(e) {};
+		allTextBoxType(const parsing_environment& e) : env(e) {}
 
 		std::string name;
 
@@ -444,8 +459,8 @@ namespace ui {
 				env.errors_generated.emplace_back(env.file, ui::errors::unknown_text_orientation);
 		}
 		void size(const ui::xy_pair& s) {
-			internal_definition.max_width = s.x;
-			internal_definition.max_height = s.y;
+			internal_definition.max_width = static_cast<uint16_t>(s.x);
+			internal_definition.max_height = static_cast<uint16_t>(s.y);
 		}
 		void format(std::optional<uint16_t> i) {
 			if (i)
@@ -475,7 +490,7 @@ namespace ui {
 		}
 		void add_unknown_key(int) {
 			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_text_attribute);
-		};
+		}
 	};
 
 	std::optional<uint8_t> listbox_orientation_from_rh(association_type, const token_and_type& t) {
@@ -495,7 +510,7 @@ namespace ui {
 		ui::listbox_def internal_definition;
 		const parsing_environment& env;
 
-		listBoxType(const parsing_environment& e) : env(e) {};
+		listBoxType(const parsing_environment& e) : env(e) {}
 
 		std::string name;
 
@@ -536,27 +551,27 @@ namespace ui {
 		}
 		void add_unknown_key(int) {
 			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_listbox_attribute);
-		};
+		}
 	};
 
 	struct positionType {
 		ui::position_def internal_definition;
 		const parsing_environment& env;
 
-		positionType(const parsing_environment& e) : env(e) {};
+		positionType(const parsing_environment& e) : env(e) {}
 
 		std::string name;
 
 		void add_unknown_key(int) {
 			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_position_attribute);
-		};
+		}
 	};
 
 	struct scrollbarType {
 		ui::scrollbar_def internal_definition;
 		const parsing_environment& env;
 
-		scrollbarType(const parsing_environment& e) : env(e) {};
+		scrollbarType(const parsing_environment& e) : env(e) {}
 
 		std::string leftbutton;
 		std::string name;
@@ -706,7 +721,7 @@ namespace ui {
 		void ignore_value(int) {}
 		void add_unknown_key(int) {
 			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_scrollbar_attribute);
-		};
+		}
 	};
 
 	std::optional<uint8_t> overlapping_orientation_from_rh(association_type, const token_and_type& t) {
@@ -735,7 +750,7 @@ namespace ui {
 		ui::overlapping_region_def internal_definition;
 		const parsing_environment& env;
 
-		OverlappingElementsBoxType(const parsing_environment& e) : env(e) {};
+		OverlappingElementsBoxType(const parsing_environment& e) : env(e) {}
 
 		std::string name;
 
@@ -754,7 +769,7 @@ namespace ui {
 
 		void add_unknown_key(int) {
 			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_overlapping_region_attribute);
-		};
+		}
 	};
 
 	std::optional<uint8_t> window_orientation_from_rh(association_type, const token_and_type& t) {
@@ -776,7 +791,7 @@ namespace ui {
 		ui::window_def internal_definition;
 		const parsing_environment& env;
 
-		windowType(const parsing_environment& e) : env(e) {};
+		windowType(const parsing_environment& e) : env(e) {}
 
 		std::string background;
 		std::string name;
@@ -936,7 +951,7 @@ namespace ui {
 		const parsing_environment& env;
 		gui_file(const parsing_environment& e) : env(e) {}
 
-		void sub_gui_file(const gui_file& b) {
+		void sub_gui_file(const gui_file&) {
 		}
 		void gui_button(const guiButtonType& b) {
 			env.defs.buttons.emplace_back(b.internal_definition);
@@ -1174,8 +1189,8 @@ namespace ui {
 	BEGIN_DOMAIN(gui_file_domain)
 	EMPTY_TYPE(empty_type)
 		BEGIN_TYPE(ui::xy_pair)
-			MEMBER_ASSOCIATION("x", "x", value_from_rh<int>)
-			MEMBER_ASSOCIATION("y", "y", value_from_rh<int>)
+			MEMBER_ASSOCIATION("x", "x", value_from_rh<int16_t>)
+			MEMBER_ASSOCIATION("y", "y", value_from_rh<int16_t>)
 		END_TYPE
 		BEGIN_TYPE(gui_file)
 			MEMBER_TYPE_ASSOCIATION("guiButtonType", "guibuttontype", guiButtonType)
@@ -1374,22 +1389,22 @@ namespace ui {
 			}
 		}
 
-		for(int32_t i = nmaps.button_names.size() - 1; i >= 0; --i)
-			defs.name_to_element_map.emplace(nmaps.button_names[i], button_tag(i));
-		for (int32_t i = nmaps.icon_names.size() - 1; i >= 0; --i)
-			defs.name_to_element_map.emplace(nmaps.icon_names[i], icon_tag(i));
-		for (int32_t i = nmaps.listbox_names.size() - 1; i >= 0; --i)
-			defs.name_to_element_map.emplace(nmaps.listbox_names[i], listbox_tag(i));
-		for (int32_t i = nmaps.overlapping_region_names.size() - 1; i >= 0; --i)
-			defs.name_to_element_map.emplace(nmaps.overlapping_region_names[i], overlapping_region_tag(i));
-		for (int32_t i = nmaps.position_names.size() - 1; i >= 0; --i)
-			defs.name_to_element_map.emplace(nmaps.position_names[i], position_tag(i));
-		for (int32_t i = nmaps.scrollbar_names.size() - 1; i >= 0; --i)
-			defs.name_to_element_map.emplace(nmaps.scrollbar_names[i], scrollbar_tag(i));
-		for (int32_t i = nmaps.text_names.size() - 1; i >= 0; --i)
-			defs.name_to_element_map.emplace(nmaps.text_names[i], text_tag(i));
-		for (int32_t i = nmaps.window_names.size() - 1; i >= 0; --i)
-			defs.name_to_element_map.emplace(nmaps.window_names[i], window_tag(i));
+		for(int32_t i = (int32_t)nmaps.button_names.size() - 1; i >= 0; --i)
+			defs.name_to_element_map.emplace(nmaps.button_names[(size_t)i], button_tag(static_cast<value_base_of<button_tag>>(i)));
+		for (int32_t i = (int32_t)nmaps.icon_names.size() - 1; i >= 0; --i)
+			defs.name_to_element_map.emplace(nmaps.icon_names[(size_t)i], icon_tag(static_cast<value_base_of<icon_tag>>(i)));
+		for (int32_t i = (int32_t)nmaps.listbox_names.size() - 1; i >= 0; --i)
+			defs.name_to_element_map.emplace(nmaps.listbox_names[(size_t)i], listbox_tag(static_cast<value_base_of<listbox_tag>>(i)));
+		for (int32_t i = (int32_t)nmaps.overlapping_region_names.size() - 1; i >= 0; --i)
+			defs.name_to_element_map.emplace(nmaps.overlapping_region_names[(size_t)i], overlapping_region_tag(static_cast<value_base_of<overlapping_region_tag>>(i)));
+		for (int32_t i = (int32_t)nmaps.position_names.size() - 1; i >= 0; --i)
+			defs.name_to_element_map.emplace(nmaps.position_names[(size_t)i], position_tag(static_cast<value_base_of<position_tag>>(i)));
+		for (int32_t i = (int32_t)nmaps.scrollbar_names.size() - 1; i >= 0; --i)
+			defs.name_to_element_map.emplace(nmaps.scrollbar_names[(size_t)i], scrollbar_tag(static_cast<value_base_of<scrollbar_tag>>(i)));
+		for (int32_t i = (int32_t)nmaps.text_names.size() - 1; i >= 0; --i)
+			defs.name_to_element_map.emplace(nmaps.text_names[(size_t)i], text_tag(static_cast<value_base_of<text_tag>>(i)));
+		for (int32_t i = (int32_t)nmaps.window_names.size() - 1; i >= 0; --i)
+			defs.name_to_element_map.emplace(nmaps.window_names[(size_t)i], window_tag(static_cast<value_base_of<window_tag>>(i)));
 
 		const auto mapped_standardlistbox_slider = defs.name_to_element_map.find("standardlistbox_slider");
 		if (mapped_standardlistbox_slider != defs.name_to_element_map.end() && std::holds_alternative<scrollbar_tag>(mapped_standardlistbox_slider->second))

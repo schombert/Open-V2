@@ -42,10 +42,10 @@ typedef struct {
 } DDS_header;
 
 //	is it a DDS file?
-extern int      stbi_dds_test_memory      (unsigned char const *buffer, int len);
+extern int      stbi_dds_test_memory      (unsigned char *buffer, int len);
 
 extern unsigned char *stbi_dds_load             (char *filename,           int *x, int *y, int *comp, int req_comp);
-extern unsigned char *stbi_dds_load_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *comp, int req_comp);
+extern unsigned char *stbi_dds_load_from_memory (unsigned char *buffer, int len, int *x, int *y, int *comp, int req_comp);
 #ifndef STBI_NO_STDIO
 extern int      stbi_dds_test_file        (FILE *f);
 extern unsigned char *stbi_dds_load_from_file   (FILE *f,                  int *x, int *y, int *comp, int req_comp);
