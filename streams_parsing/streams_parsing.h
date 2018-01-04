@@ -1,5 +1,4 @@
 #pragma once
-#include "stdafx.h"
 #include "Parsers\\parsers.h"
 #include "streams\\streams.h"
 #include "object_parsing\\\object_parsing.h"

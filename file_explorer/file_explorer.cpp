@@ -13,7 +13,7 @@
 #include "text_data\\text_data.h" 
 #include "gui\\gui.hpp"
 
-#define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
+// #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
 class parse_result_holder {
 public:
@@ -128,10 +128,105 @@ struct string_trigger {
 	}
 };
 
+template<typename value_type>
+struct value_association_pair {
+	association_type& assoc;
+	value_type& value;
+
+	value_association_pair(association_type& a, value_type& v) : assoc(a), value(v) {}
+
+	value_association_pair& operator=(const std::pair<association_type, value_type>& in) {
+		assoc = in.first;
+		value = in.second;
+		return *this;
+	}
+};
+
+struct unemployment_by_type_trigger {
+	std::string type;
+	double value = 0.0;
+	association_type value_association = association_type::eq_default;
+
+	bool operator==(const unemployment_by_type_trigger& other) const {
+		return (type == other.type) & (value_association == other.value_association) & (value == other.value);
+	}
+	auto associated_value() {
+		return value_association_pair<double>(value_association, value);
+	}
+};
+
+struct work_available_trigger {
+	std::string worker;
+	bool operator==(const work_available_trigger& other) const {
+		return (worker == other.worker);
+	}
+};
+
+struct trigger_group {
+	enum class trigger_group_type {
+		and_t, or_t, not_t, any_core, any_neighbor_country, any_owned_province, country, location, state_scope, unemployment_by_type
+	};
+	trigger_group_type type = trigger_group_type::and_t;
+	std::vector<std::variant<double_trigger, int_trigger, bool_trigger, string_trigger, unemployment_by_type_trigger, work_available_trigger, trigger_group>> members;
+
+	bool operator==(const trigger_group& other) const {
+		if (type == other.type) {
+			return members == other.members;
+		}
+		return false;
+	}
+};
+
+struct modifier : public trigger_group {
+	double factor = 0.0;
+
+	bool operator==(const modifier& other) const {
+		return factor == other.factor && trigger_group::operator==(other);
+	}
+};
+
+struct modifier_group {
+	std::vector<modifier> members;
+
+	bool operator==(const modifier_group& other) const {
+		return members == other.members;
+	}
+};
+
+struct simple_modifier_container {
+	double factor = 0.0;
+	std::vector<modifier> members;
+
+	bool operator==(const simple_modifier_container& other) const {
+		return factor == other.factor && members == other.members;
+	}
+};
+
+struct complex_modifier_container {
+	double factor = 0.0;
+	std::vector<modifier> members;
+	std::vector<modifier_group> group_members;
+
+	bool operator==(const complex_modifier_container& other) const {
+		return factor == other.factor && members == other.members && group_members == other.group_members;
+	}
+};
+
 bool_trigger bool_trigger_from_association(association_type, const token_and_type& e, bool_trigger::bool_trigger_type type);
 double_trigger double_trigger_from_association(association_type a, const token_and_type& e, double_trigger::double_trigger_type type);
 int_trigger int_trigger_from_association(association_type a, const token_and_type& e, int_trigger::int_trigger_type type);
 string_trigger string_trigger_from_association(association_type a, const token_and_type& e, string_trigger::string_trigger_type type);
+void post_process_trigger_group(trigger_group& g, association_type, trigger_group::trigger_group_type type);
+double double_from_association(association_type, const token_and_type& t);
+uint32_t uint_from_association(association_type, const token_and_type& t);
+int int_from_association(association_type, const token_and_type& t);
+int int_from_full_association(const token_and_type& t, association_type, const token_and_type&);
+bool bool_from_association(association_type, const token_and_type& t);
+std::string string_from_association(association_type, const token_and_type& t);
+std::pair<association_type, double> double_and_association(association_type a, const token_and_type& t);
+std::pair<std::string, double> string_double_from_full_association(const token_and_type& t, association_type, const token_and_type& e);
+std::pair<std::string, complex_modifier_container> label_complex_container(const token_and_type& a, association_type, complex_modifier_container& c);
+std::pair<std::string, simple_modifier_container> label_simple_container(const token_and_type& a, association_type, simple_modifier_container& c);
 
 double_trigger double_trigger_from_association(association_type a, const token_and_type& e, double_trigger::double_trigger_type type) {
 	if (is_fixed_token_ci(e.start, e.end, "this"))
@@ -165,59 +260,14 @@ string_trigger string_trigger_from_association(association_type a, const token_a
 }
 
 
-template<typename value_type>
-struct value_association_pair {
-	association_type& assoc;
-	value_type& value;
 
-	value_association_pair(association_type& a, value_type& v) : assoc(a), value(v) {}
-
-	value_association_pair& operator=(const std::pair<association_type, value_type>& in) {
-		assoc = in.first;
-		value = in.second;
-		return *this;
-	}
-};
-
-struct unemployment_by_type_trigger {
-	std::string type;
-	double value = 0.0;
-	association_type value_association = association_type::eq_default;
-
-	bool operator==(const unemployment_by_type_trigger& other) const {
-		return (type == other.type) & (value_association == other.value_association) & (value == other.value);
-	}
-	auto associated_value() {
-		return value_association_pair<double>(value_association, value);
-	}
-};
 
 MEMBER_DEF(unemployment_by_type_trigger, type, "type");
 MEMBER_DEF(unemployment_by_type_trigger, associated_value(), "value");
 
-struct work_available_trigger {
-	std::string worker;
-	bool operator==(const work_available_trigger& other) const {
-		return (worker == other.worker);
-	}
-};
 
 MEMBER_DEF(work_available_trigger, worker, "worker");
 
-struct trigger_group {
-	enum class trigger_group_type {
-		and_t, or_t, not_t, any_core, any_neighbor_country, any_owned_province, country, location, state_scope, unemployment_by_type
-	};
-	trigger_group_type type = trigger_group_type::and_t;
-	std::vector<std::variant<double_trigger, int_trigger, bool_trigger, string_trigger, unemployment_by_type_trigger, work_available_trigger, trigger_group>> members;
-
-	bool operator==(const trigger_group& other) const {
-		if (type == other.type) {
-			return members == other.members;
-		}
-		return false;
-	}
-};
 
 void post_process_trigger_group(trigger_group& g, association_type, trigger_group::trigger_group_type type) {
 	g.type = type;
@@ -225,48 +275,13 @@ void post_process_trigger_group(trigger_group& g, association_type, trigger_grou
 
 MEMBER_DEF(trigger_group, members, "trigger");
 
-struct modifier : public trigger_group {
-	double factor = 0.0;
-
-	bool operator==(const modifier& other) const {
-		return factor == other.factor && trigger_group::operator==(other);
-	}
-};
-
 MEMBER_DEF(modifier, members, "trigger");
 MEMBER_DEF(modifier, factor, "factor");
 
-struct modifier_group {
-	std::vector<modifier> members;
-
-	bool operator==(const modifier_group& other) const {
-		return members == other.members;
-	}
-};
-
 MEMBER_DEF(modifier_group, members, "modifier");
-
-struct simple_modifier_container {
-	double factor = 0.0;
-	std::vector<modifier> members;
-
-	bool operator==(const simple_modifier_container& other) const {
-		return factor == other.factor && members == other.members;
-	}
-};
 
 MEMBER_DEF(simple_modifier_container, members, "modifier");
 MEMBER_DEF(simple_modifier_container, factor, "factor");
-
-struct complex_modifier_container {
-	double factor = 0.0;
-	std::vector<modifier> members;
-	std::vector<modifier_group> group_members;
-
-	bool operator==(const complex_modifier_container& other) const {
-		return factor == other.factor && members == other.members && group_members == other.group_members;
-	}
-};
 
 MEMBER_DEF(complex_modifier_container, members, "modifier");
 MEMBER_DEF(complex_modifier_container, factor, "factor");
@@ -919,13 +934,13 @@ template<int n>
 class mb_button {
 public:
 	void button_function(ui::gui_object_tag, ui::gui_manager&) {
-		MessageBoxA(NULL, std::to_string(n).c_str(), "MB_A", MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONINFORMATION);
+		MessageBoxA(nullptr, std::to_string(n).c_str(), "MB_A", MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONINFORMATION);
 	}
 };
 
 class tt_holder : public ui::draggable_region {
 public:
-	virtual ui::tooltip_behavior has_tooltip(ui::gui_object_tag, ui::gui_manager&, const ui::mouse_move&) override { return ui::tooltip_behavior::tooltip; };
+	virtual ui::tooltip_behavior has_tooltip(ui::gui_object_tag, ui::gui_manager&, const ui::mouse_move&) override { return ui::tooltip_behavior::tooltip; }
 	virtual void create_tooltip(ui::gui_object_tag, ui::gui_manager& m, const ui::mouse_move&, ui::tagged_gui_object tw) override {
 		ui::text_chunk_to_instances(
 			m,
@@ -934,7 +949,7 @@ public:
 			ui::xy_pair{ 0,0 },
 			ui::text_format{ui::text_color::white, graphics::font_tag(1), 16},
 			ui::single_line_manager());
-	};
+	}
 };
 
 class debug_scrollbar {
@@ -953,7 +968,7 @@ class empty_gui_obj {
 class simple_button_group {
 public:
 	void on_select(ui::gui_manager&, uint32_t i) {
-		MessageBoxA(NULL, std::to_string(i).c_str(), "GROUP BUTTON", MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONINFORMATION);
+		MessageBoxA(nullptr, std::to_string(i).c_str(), "GROUP BUTTON", MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONINFORMATION);
 	}
 };
 
@@ -1056,6 +1071,10 @@ struct gui_window_handler {
 		ui::render(gui_m, ogl);
 	}
 };
+
+auto fake_text_handle_lookup();
+auto fake_font_handle_lookup();
+auto fake_gobj_lookup();
 
 auto fake_text_handle_lookup() {
 	return[i = 0ui16](const char*, const char*) mutable { return ++i; };

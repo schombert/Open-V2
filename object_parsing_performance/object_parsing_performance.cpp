@@ -1,13 +1,9 @@
-﻿// object_parsing_performance.cpp : Defines the entry point for the console application.
-//
-
-#include "stdafx.h"
-#include "performance_measurement\\performance.h"
+﻿#include "performance_measurement\\performance.h"
 #include "Parsers\\parsers.hpp"
 #include "object_parsing\\object_parsing.hpp"
 #include "streams_parsing\\streams_parsing.hpp"
 #include <variant>
-#include <windows.h>
+#include <Windows.h>
 #include <iostream>
 
 struct rebel_types {
@@ -45,6 +41,7 @@ struct double_trigger {
 	}
 };
 
+double_trigger double_trigger_from_association(association_type a, const token_and_type& e, double_trigger::double_trigger_type type);
 double_trigger double_trigger_from_association(association_type a, const token_and_type& e, double_trigger::double_trigger_type type) {
 	if (is_fixed_token_ci(e.start, e.end, "this"))
 		return double_trigger{ type, a, 0.0, special_values::this_t };
@@ -68,6 +65,7 @@ struct int_trigger {
 	}
 };
 
+int_trigger int_trigger_from_association(association_type a, const token_and_type& e, int_trigger::int_trigger_type type);
 int_trigger int_trigger_from_association(association_type a, const token_and_type& e, int_trigger::int_trigger_type type) {
 	if (is_fixed_token_ci(e.start, e.end, "this"))
 		return int_trigger{ type, a, 0, special_values::this_t };
@@ -92,7 +90,8 @@ struct bool_trigger {
 	}
 };
 
-bool_trigger bool_trigger_from_association(association_type a, const token_and_type& e, bool_trigger::bool_trigger_type type) {
+bool_trigger bool_trigger_from_association(association_type , const token_and_type& e, bool_trigger::bool_trigger_type type);
+bool_trigger bool_trigger_from_association(association_type , const token_and_type& e, bool_trigger::bool_trigger_type type) {
 	if (is_fixed_token_ci(e.start, e.end, "this"))
 		return bool_trigger{ type, false, special_values::this_t };
 	else if (is_fixed_token_ci(e.start, e.end, "from"))
@@ -118,6 +117,7 @@ struct string_trigger {
 	}
 };
 
+string_trigger string_trigger_from_association(association_type a, const token_and_type& e, string_trigger::string_trigger_type type);
 string_trigger string_trigger_from_association(association_type a, const token_and_type& e, string_trigger::string_trigger_type type) {
 	return string_trigger{ type, a, std::string(e.start, e.end) };
 }
@@ -176,6 +176,7 @@ struct trigger_group {
 	}
 };
 
+void post_process_trigger_group(trigger_group& g, association_type, trigger_group::trigger_group_type type);
 void post_process_trigger_group(trigger_group& g, association_type, trigger_group::trigger_group_type type) {
 	g.type = type;
 }
@@ -274,6 +275,17 @@ MEMBER_DEF(poptype_file, promote_to, "promote_to");
 MEMBER_DEF(poptype_file, ideologies, "ideologies");
 MEMBER_DEF(poptype_file, issues, "issues");
 
+double double_from_association(association_type, const token_and_type& t);
+uint32_t uint_from_association(association_type, const token_and_type& t);
+int int_from_association(association_type, const token_and_type& t);
+int int_from_full_association(const token_and_type& t, association_type, const token_and_type&);
+bool bool_from_association(association_type, const token_and_type& t);
+std::string string_from_association(association_type, const token_and_type& t);
+std::pair<association_type, double> double_and_association(association_type a, const token_and_type& t);
+std::pair<std::string, double> string_double_from_full_association(const token_and_type& t, association_type, const token_and_type& e);
+std::pair<std::string, complex_modifier_container> label_complex_container(const token_and_type& a, association_type , complex_modifier_container& c);
+std::pair<std::string, simple_modifier_container> label_simple_container(const token_and_type& a, association_type , simple_modifier_container& c);
+
 double double_from_association(association_type, const token_and_type& t) {
 	return parse_double(t.start, t.end);
 };
@@ -306,11 +318,11 @@ std::pair<std::string, double> string_double_from_full_association(const token_a
 	return make_pair(std::string(t.start, t.end), parse_double(e.start, e.end));
 };
 
-std::pair<std::string, complex_modifier_container> label_complex_container(const token_and_type& a, association_type b, complex_modifier_container& c) {
+std::pair<std::string, complex_modifier_container> label_complex_container(const token_and_type& a, association_type , complex_modifier_container& c) {
 	return std::pair<std::string, complex_modifier_container>(std::string(a.start, a.end), std::move(c));
 }
 
-std::pair<std::string, simple_modifier_container> label_simple_container(const token_and_type& a, association_type b, simple_modifier_container& c) {
+std::pair<std::string, simple_modifier_container> label_simple_container(const token_and_type& a, association_type , simple_modifier_container& c) {
 	return std::pair<std::string, simple_modifier_container>(std::string(a.start, a.end), std::move(c));
 }
 
@@ -462,7 +474,7 @@ public:
 	unsigned long long filesize = 0;
 
 	file_read_tester(const wchar_t* filename) {
-		HANDLE fin = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		fin = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (fin == INVALID_HANDLE_VALUE) {
 			std::cout << "Could not open file: " << filename << std::endl;
 			std::abort();
@@ -470,10 +482,10 @@ public:
 			LARGE_INTEGER file_size;
 			GetFileSizeEx(fin, &file_size);
 
-			fixed_copy = new char[file_size.QuadPart];
-			filesize = file_size.QuadPart;
+			fixed_copy = new char[(size_t)file_size.QuadPart];
+			filesize = (size_t)file_size.QuadPart;
 
-			ReadFile(fin, fixed_copy, (DWORD)filesize, NULL, NULL);
+			ReadFile(fin, fixed_copy, (DWORD)filesize, nullptr, nullptr);
 		}
 	}
 	~file_read_tester() {

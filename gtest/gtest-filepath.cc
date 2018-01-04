@@ -30,6 +30,16 @@
 //
 // Authors: keith.ray@gmail.com (Keith Ray)
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-variable-declarations"
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#pragma clang diagnostic ignored "-Wundef"
+#pragma clang diagnostic ignored "-Wsign-conversion"
+#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
+#pragma clang diagnostic ignored "-Wcovered-switch-default"
+#pragma clang diagnostic ignored "-Wswitch-enum"
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+
 #include "gtest/gtest-message.h"
 #include "gtest/internal/gtest-filepath.h"
 #include "gtest/internal/gtest-port.h"
@@ -386,3 +396,5 @@ void FilePath::Normalize() {
 
 }  // namespace internal
 }  // namespace testing
+
+#pragma clang diagnostic pop

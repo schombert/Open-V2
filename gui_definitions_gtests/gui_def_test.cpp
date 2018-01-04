@@ -5,6 +5,11 @@ using namespace ui;
 
 #define RANGE(x) (x), (x) + ((sizeof(x)) / sizeof((x)[0])) - 1
 
+auto fake_text_handle_lookup();
+auto fake_font_handle_lookup();
+auto fake_gobj_lookup();
+auto fake_sound_lookup();
+
 auto fake_text_handle_lookup() {
 	return [i = 0ui16](const char*, const char*) mutable { return text_data::text_tag(i++); };
 }
@@ -45,12 +50,12 @@ TEST(basic_gui_button, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_button(parse_object<guiButtonType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.button_names.size());
-	EXPECT_EQ(1, defs.buttons.size());
-	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.button_names.size());
+	EXPECT_EQ(1ui64, defs.buttons.size());
+	EXPECT_EQ(0ui64, errors_generated.size());
 	EXPECT_EQ(std::string("bname"), nmaps.button_names[0].get_string(defs.name_data));
 	EXPECT_EQ(ui::button_def::clicksound_none, defs.buttons[button_tag(0)].flags & ui::button_def::clicksound_mask);
-	EXPECT_EQ(ui::button_def::orientation_center, defs.buttons[button_tag(0)].flags & ui::button_def::orientation_mask);
+	EXPECT_EQ(ui::button_def::orientation_upper_left, defs.buttons[button_tag(0)].flags & ui::button_def::orientation_mask);
 	EXPECT_EQ(ui::button_def::rotation_upright, defs.buttons[button_tag(0)].flags & ui::button_def::rotation_mask);
 	EXPECT_EQ(0, defs.buttons[button_tag(0)].flags & ui::button_def::is_checkbox);
 	EXPECT_EQ(text_data::text_tag(0), defs.buttons[button_tag(0)].text_handle);
@@ -98,9 +103,9 @@ TEST(non_default_gui_button, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_button(parse_object<guiButtonType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.button_names.size());
-	EXPECT_EQ(1, defs.buttons.size());
-	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.button_names.size());
+	EXPECT_EQ(1ui64, defs.buttons.size());
+	EXPECT_EQ(0ui64, errors_generated.size());
 	EXPECT_EQ(std::string("bname"), nmaps.button_names[0].get_string(defs.name_data));
 	EXPECT_EQ(ui::button_def::clicksound_click, defs.buttons[button_tag(0)].flags & ui::button_def::clicksound_mask);
 	EXPECT_EQ(ui::button_def::orientation_upper_left, defs.buttons[button_tag(0)].flags & ui::button_def::orientation_mask);
@@ -151,9 +156,9 @@ TEST(checkbox, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_checkboxType(parse_object<guiButtonType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.button_names.size());
-	EXPECT_EQ(1, defs.buttons.size());
-	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.button_names.size());
+	EXPECT_EQ(1ui64, defs.buttons.size());
+	EXPECT_EQ(0ui64, errors_generated.size());
 	EXPECT_EQ(std::string("bname"), nmaps.button_names[0].get_string(defs.name_data));
 	EXPECT_EQ(ui::button_def::clicksound_close_window, defs.buttons[button_tag(0)].flags & ui::button_def::clicksound_mask);
 	EXPECT_EQ(ui::button_def::orientation_upper_left, defs.buttons[button_tag(0)].flags & ui::button_def::orientation_mask);
@@ -204,9 +209,9 @@ TEST(bad_values_gui_button, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_button(parse_object<guiButtonType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.button_names.size());
-	EXPECT_EQ(1, defs.buttons.size());
-	EXPECT_EQ(7, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.button_names.size());
+	EXPECT_EQ(1ui64, defs.buttons.size());
+	EXPECT_EQ(7ui64, errors_generated.size());
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_button_clicksound), errors_generated[0]);
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::expected_tooltip_empty_for_button), errors_generated[1]);
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_button_rotation), errors_generated[2]);
@@ -237,11 +242,11 @@ TEST(basic_gui_icon, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_iconType(parse_object<iconType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.icon_names.size());
-	EXPECT_EQ(1, defs.icons.size());
-	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.icon_names.size());
+	EXPECT_EQ(1ui64, defs.icons.size());
+	EXPECT_EQ(0ui64, errors_generated.size());
 	EXPECT_EQ(std::string("iname"), nmaps.icon_names[0].get_string(defs.name_data));
-	EXPECT_EQ(ui::icon_def::orientation_center, defs.icons[icon_tag(0)].flags & ui::icon_def::orientation_mask);
+	EXPECT_EQ(ui::icon_def::orientation_upper_left, defs.icons[icon_tag(0)].flags & ui::icon_def::orientation_mask);
 	EXPECT_EQ(ui::icon_def::rotation_upright, defs.icons[icon_tag(0)].flags & ui::icon_def::rotation_mask);
 	EXPECT_EQ(0, defs.icons[icon_tag(0)].flags & ui::icon_def::is_shield);
 
@@ -280,9 +285,9 @@ TEST(non_default_gui_icon, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_iconType(parse_object<iconType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.icon_names.size());
-	EXPECT_EQ(1, defs.icons.size());
-	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.icon_names.size());
+	EXPECT_EQ(1ui64, defs.icons.size());
+	EXPECT_EQ(0ui64, errors_generated.size());
 	EXPECT_EQ(std::string("iname"), nmaps.icon_names[0].get_string(defs.name_data));
 	EXPECT_EQ(ui::icon_def::orientation_center_up, defs.icons[icon_tag(0)].flags & ui::icon_def::orientation_mask);
 	EXPECT_EQ(ui::icon_def::rotation_90_left, defs.icons[icon_tag(0)].flags & ui::icon_def::rotation_mask);
@@ -322,9 +327,9 @@ TEST(shield_gui_icon, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_shieldtype(parse_object<iconType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.icon_names.size());
-	EXPECT_EQ(1, defs.icons.size());
-	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.icon_names.size());
+	EXPECT_EQ(1ui64, defs.icons.size());
+	EXPECT_EQ(0ui64, errors_generated.size());
 	EXPECT_EQ(std::string("iname"), nmaps.icon_names[0].get_string(defs.name_data));
 	EXPECT_EQ(ui::icon_def::orientation_center_up, defs.icons[icon_tag(0)].flags & ui::icon_def::orientation_mask);
 	EXPECT_EQ(ui::icon_def::rotation_90_left, defs.icons[icon_tag(0)].flags & ui::icon_def::rotation_mask);
@@ -365,9 +370,9 @@ TEST(errors_gui_icon, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_iconType(parse_object<iconType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.icon_names.size());
-	EXPECT_EQ(1, defs.icons.size());
-	EXPECT_EQ(3, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.icon_names.size());
+	EXPECT_EQ(1ui64, defs.icons.size());
+	EXPECT_EQ(3ui64, errors_generated.size());
 	EXPECT_EQ(std::string("iname"), nmaps.icon_names[0].get_string(defs.name_data));
 
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_icon_rotation), errors_generated[0]);
@@ -396,15 +401,15 @@ TEST(basic_gui_text, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_instantTextBoxType(parse_object<allTextBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.text_names.size());
-	EXPECT_EQ(1, defs.text.size());
-	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.text_names.size());
+	EXPECT_EQ(1ui64, defs.text.size());
+	EXPECT_EQ(0ui64, errors_generated.size());
 	EXPECT_EQ(std::string("tname"), nmaps.text_names[0].get_string(defs.name_data));
 	EXPECT_EQ(0, defs.text[text_tag(0)].flags & ui::text_def::always_transparent);
 	EXPECT_EQ(0, defs.text[text_tag(0)].flags & ui::text_def::fixed_size);
 	EXPECT_EQ(ui::text_def::instant, defs.text[text_tag(0)].flags & ui::text_def::instant);
 	EXPECT_EQ(ui::text_def::background_none_specified, defs.text[text_tag(0)].flags & ui::text_def::background_mask);
-	EXPECT_EQ(ui::text_def::orientation_center, defs.text[text_tag(0)].flags & ui::text_def::orientation_mask);
+	EXPECT_EQ(ui::text_def::orientation_upper_left, defs.text[text_tag(0)].flags & ui::text_def::orientation_mask);
 	EXPECT_EQ(ui::text_def::format_left, defs.text[text_tag(0)].flags & ui::text_def::format_mask);
 	EXPECT_EQ(0, defs.text[text_tag(0)].flags & ui::text_def::is_edit_box);
 
@@ -451,9 +456,9 @@ TEST(non_default_gui_text, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_textBoxType(parse_object<allTextBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.text_names.size());
-	EXPECT_EQ(1, defs.text.size());
-	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.text_names.size());
+	EXPECT_EQ(1ui64, defs.text.size());
+	EXPECT_EQ(0ui64, errors_generated.size());
 	EXPECT_EQ(std::string("tname"), nmaps.text_names[0].get_string(defs.name_data));
 	EXPECT_EQ(ui::text_def::always_transparent, defs.text[text_tag(0)].flags & ui::text_def::always_transparent);
 	EXPECT_EQ(ui::text_def::fixed_size, defs.text[text_tag(0)].flags & ui::text_def::fixed_size);
@@ -504,9 +509,9 @@ TEST(size_gui_text, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_textBoxType(parse_object<allTextBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.text_names.size());
-	EXPECT_EQ(1, defs.text.size());
-	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.text_names.size());
+	EXPECT_EQ(1ui64, defs.text.size());
+	EXPECT_EQ(0ui64, errors_generated.size());
 	EXPECT_EQ(std::string("tname"), nmaps.text_names[0].get_string(defs.name_data));
 	EXPECT_EQ(ui::text_def::always_transparent, defs.text[text_tag(0)].flags & ui::text_def::always_transparent);
 	EXPECT_EQ(ui::text_def::fixed_size, defs.text[text_tag(0)].flags & ui::text_def::fixed_size);
@@ -558,9 +563,9 @@ TEST(edit_gui_text, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_editBoxType(parse_object<allTextBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.text_names.size());
-	EXPECT_EQ(1, defs.text.size());
-	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.text_names.size());
+	EXPECT_EQ(1ui64, defs.text.size());
+	EXPECT_EQ(0ui64, errors_generated.size());
 	EXPECT_EQ(std::string("tname"), nmaps.text_names[0].get_string(defs.name_data));
 	EXPECT_EQ(ui::text_def::always_transparent, defs.text[text_tag(0)].flags & ui::text_def::always_transparent);
 	EXPECT_EQ(ui::text_def::fixed_size, defs.text[text_tag(0)].flags & ui::text_def::fixed_size);
@@ -613,9 +618,9 @@ TEST(errors_gui_text, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_textBoxType(parse_object<allTextBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.text_names.size());
-	EXPECT_EQ(1, defs.text.size());
-	EXPECT_EQ(4, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.text_names.size());
+	EXPECT_EQ(1ui64, defs.text.size());
+	EXPECT_EQ(4ui64, errors_generated.size());
 
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unknown_text_orientation), errors_generated[1]);
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unknown_text_format), errors_generated[2]);
@@ -626,7 +631,7 @@ TEST(errors_gui_text, gui_definitions_tests) {
 	EXPECT_EQ(ui::text_def::always_transparent, defs.text[text_tag(0)].flags & ui::text_def::always_transparent);
 	EXPECT_EQ(ui::text_def::fixed_size, defs.text[text_tag(0)].flags & ui::text_def::fixed_size);
 	EXPECT_EQ(0, defs.text[text_tag(0)].flags & ui::text_def::instant);
-	EXPECT_EQ(ui::text_def::orientation_center, defs.text[text_tag(0)].flags & ui::text_def::orientation_mask);
+	EXPECT_EQ(ui::text_def::orientation_upper_left, defs.text[text_tag(0)].flags & ui::text_def::orientation_mask);
 	EXPECT_EQ(ui::text_def::format_left, defs.text[text_tag(0)].flags & ui::text_def::format_mask);
 	EXPECT_EQ(ui::text_def::background_none_specified, defs.text[text_tag(0)].flags & ui::text_def::background_mask);
 	EXPECT_EQ(0, defs.text[text_tag(0)].flags & ui::text_def::is_edit_box);
@@ -663,9 +668,9 @@ TEST(basic_gui_position, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_positionType(parse_object<positionType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.position_names.size());
-	EXPECT_EQ(1, defs.positions.size());
-	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.position_names.size());
+	EXPECT_EQ(1ui64, defs.positions.size());
+	EXPECT_EQ(0ui64, errors_generated.size());
 	EXPECT_EQ(std::string("pname"), nmaps.position_names[0].get_string(defs.name_data));
 	EXPECT_EQ(20, defs.positions[position_tag(0)].position.x);
 	EXPECT_EQ(10, defs.positions[position_tag(0)].position.y);
@@ -694,9 +699,9 @@ TEST(errors_gui_position, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_positionType(parse_object<positionType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.position_names.size());
-	EXPECT_EQ(1, defs.positions.size());
-	EXPECT_EQ(1, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.position_names.size());
+	EXPECT_EQ(1ui64, defs.positions.size());
+	EXPECT_EQ(1ui64, errors_generated.size());
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_position_attribute), errors_generated[0]);
 	EXPECT_EQ(std::string("pname"), nmaps.position_names[0].get_string(defs.name_data));
 	EXPECT_EQ(20, defs.positions[position_tag(0)].position.x);
@@ -724,9 +729,9 @@ TEST(basic_overlapping_region, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_OverlappingElementsBoxType(parse_object<OverlappingElementsBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.overlapping_region_names.size());
-	EXPECT_EQ(1, defs.overlapping_regions.size());
-	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.overlapping_region_names.size());
+	EXPECT_EQ(1ui64, defs.overlapping_regions.size());
+	EXPECT_EQ(0ui64, errors_generated.size());
 
 	EXPECT_EQ(std::string("oname"), nmaps.overlapping_region_names[0].get_string(defs.name_data));
 	EXPECT_EQ(0, defs.overlapping_regions[overlapping_region_tag(0)].position.x);
@@ -734,7 +739,7 @@ TEST(basic_overlapping_region, gui_definitions_tests) {
 	EXPECT_EQ(0, defs.overlapping_regions[overlapping_region_tag(0)].size.x);
 	EXPECT_EQ(0, defs.overlapping_regions[overlapping_region_tag(0)].size.y);
 	EXPECT_EQ(0.0f, defs.overlapping_regions[overlapping_region_tag(0)].spacing);
-	EXPECT_EQ(ui::overlapping_region_def::orientation_center, defs.overlapping_regions[overlapping_region_tag(0)].flags & ui::overlapping_region_def::orientation_mask);
+	EXPECT_EQ(ui::overlapping_region_def::orientation_upper_left, defs.overlapping_regions[overlapping_region_tag(0)].flags & ui::overlapping_region_def::orientation_mask);
 	EXPECT_EQ(ui::overlapping_region_def::format_center, defs.overlapping_regions[overlapping_region_tag(0)].flags & ui::overlapping_region_def::format_mask);
 }
 
@@ -764,9 +769,9 @@ TEST(non_default_overlapping_region, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_OverlappingElementsBoxType(parse_object<OverlappingElementsBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.overlapping_region_names.size());
-	EXPECT_EQ(1, defs.overlapping_regions.size());
-	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.overlapping_region_names.size());
+	EXPECT_EQ(1ui64, defs.overlapping_regions.size());
+	EXPECT_EQ(0ui64, errors_generated.size());
 
 	EXPECT_EQ(std::string("oname"), nmaps.overlapping_region_names[0].get_string(defs.name_data));
 	EXPECT_EQ(10, defs.overlapping_regions[overlapping_region_tag(0)].position.x);
@@ -805,9 +810,9 @@ TEST(errors_overlapping_region, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_OverlappingElementsBoxType(parse_object<OverlappingElementsBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.overlapping_region_names.size());
-	EXPECT_EQ(1, defs.overlapping_regions.size());
-	EXPECT_EQ(3, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.overlapping_region_names.size());
+	EXPECT_EQ(1ui64, defs.overlapping_regions.size());
+	EXPECT_EQ(3ui64, errors_generated.size());
 
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unknown_overlapping_region_orientation), errors_generated[0]);
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unknown_overlapping_region_format), errors_generated[1]);
@@ -819,7 +824,7 @@ TEST(errors_overlapping_region, gui_definitions_tests) {
 	EXPECT_EQ(4, defs.overlapping_regions[overlapping_region_tag(0)].size.x);
 	EXPECT_EQ(8, defs.overlapping_regions[overlapping_region_tag(0)].size.y);
 	EXPECT_EQ(0.5f, defs.overlapping_regions[overlapping_region_tag(0)].spacing);
-	EXPECT_EQ(ui::overlapping_region_def::orientation_center, defs.overlapping_regions[overlapping_region_tag(0)].flags & ui::overlapping_region_def::orientation_mask);
+	EXPECT_EQ(ui::overlapping_region_def::orientation_upper_left, defs.overlapping_regions[overlapping_region_tag(0)].flags & ui::overlapping_region_def::orientation_mask);
 	EXPECT_EQ(ui::overlapping_region_def::format_center, defs.overlapping_regions[overlapping_region_tag(0)].flags & ui::overlapping_region_def::format_mask);
 }
 
@@ -845,9 +850,9 @@ TEST(basic_listbox, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_listBoxType(parse_object<listBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.listbox_names.size());
-	EXPECT_EQ(1, defs.listboxes.size());
-	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.listbox_names.size());
+	EXPECT_EQ(1ui64, defs.listboxes.size());
+	EXPECT_EQ(0ui64, errors_generated.size());
 
 	EXPECT_EQ(std::string("lname"), nmaps.listbox_names[0].get_string(defs.name_data));
 	EXPECT_EQ(0, defs.listboxes[listbox_tag(0)].position.x);
@@ -855,7 +860,7 @@ TEST(basic_listbox, gui_definitions_tests) {
 	EXPECT_EQ(0, defs.listboxes[listbox_tag(0)].size.x);
 	EXPECT_EQ(0, defs.listboxes[listbox_tag(0)].size.y);
 	EXPECT_EQ(0, defs.listboxes[listbox_tag(0)].flags & ui::listbox_def::always_transparent);
-	EXPECT_EQ(ui::listbox_def::orientation_center, defs.listboxes[listbox_tag(0)].flags & ui::listbox_def::orientation_mask);
+	EXPECT_EQ(ui::listbox_def::orientation_upper_left, defs.listboxes[listbox_tag(0)].flags & ui::listbox_def::orientation_mask);
 	EXPECT_EQ(0, defs.listboxes[listbox_tag(0)].flags & ui::listbox_def::spacing_mask);
 	EXPECT_EQ(0, defs.listboxes[listbox_tag(0)].border_size.x);
 	EXPECT_EQ(0, defs.listboxes[listbox_tag(0)].border_size.y);
@@ -897,9 +902,9 @@ TEST(non_default_listbox, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_listBoxType(parse_object<listBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.listbox_names.size());
-	EXPECT_EQ(1, defs.listboxes.size());
-	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.listbox_names.size());
+	EXPECT_EQ(1ui64, defs.listboxes.size());
+	EXPECT_EQ(0ui64, errors_generated.size());
 
 	EXPECT_EQ(std::string("lname"), nmaps.listbox_names[0].get_string(defs.name_data));
 	EXPECT_EQ(15, defs.listboxes[listbox_tag(0)].position.x);
@@ -950,9 +955,9 @@ TEST(errors_listbox, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_listBoxType(parse_object<listBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.listbox_names.size());
-	EXPECT_EQ(1, defs.listboxes.size());
-	EXPECT_EQ(7, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.listbox_names.size());
+	EXPECT_EQ(1ui64, defs.listboxes.size());
+	EXPECT_EQ(7ui64, errors_generated.size());
 
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unknown_listbox_orientation), errors_generated[0]);
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_listbox_spacing_value), errors_generated[1]);
@@ -968,7 +973,7 @@ TEST(errors_listbox, gui_definitions_tests) {
 	EXPECT_EQ(10, defs.listboxes[listbox_tag(0)].size.x);
 	EXPECT_EQ(11, defs.listboxes[listbox_tag(0)].size.y);
 	EXPECT_EQ(ui::listbox_def::always_transparent, defs.listboxes[listbox_tag(0)].flags & ui::listbox_def::always_transparent);
-	EXPECT_EQ(ui::listbox_def::orientation_center, defs.listboxes[listbox_tag(0)].flags & ui::listbox_def::orientation_mask);
+	EXPECT_EQ(ui::listbox_def::orientation_upper_left, defs.listboxes[listbox_tag(0)].flags & ui::listbox_def::orientation_mask);
 	EXPECT_EQ(0, defs.listboxes[listbox_tag(0)].flags & ui::listbox_def::spacing_mask);
 	EXPECT_EQ(1, defs.listboxes[listbox_tag(0)].border_size.x);
 	EXPECT_EQ(2, defs.listboxes[listbox_tag(0)].border_size.y);
@@ -1006,10 +1011,10 @@ TEST(basic_scrollbar, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_scrollbarType(parse_object<scrollbarType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.scrollbar_names.size());
-	EXPECT_EQ(1, defs.scrollbars.size());
-	EXPECT_EQ(4, defs.buttons.size());
-	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.scrollbar_names.size());
+	EXPECT_EQ(1ui64, defs.scrollbars.size());
+	EXPECT_EQ(4ui64, defs.buttons.size());
+	EXPECT_EQ(0ui64, errors_generated.size());
 
 	EXPECT_EQ(std::string("sname"), nmaps.scrollbar_names[0].get_string(defs.name_data));
 	EXPECT_EQ(0, defs.scrollbars[scrollbar_tag(0)].position.x);
@@ -1077,11 +1082,11 @@ TEST(nondefault_scrollbar, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_scrollbarType(parse_object<scrollbarType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.scrollbar_names.size());
-	EXPECT_EQ(1, defs.scrollbars.size());
-	EXPECT_EQ(4, defs.buttons.size());
-	EXPECT_EQ(2, defs.icons.size());
-	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.scrollbar_names.size());
+	EXPECT_EQ(1ui64, defs.scrollbars.size());
+	EXPECT_EQ(4ui64, defs.buttons.size());
+	EXPECT_EQ(2ui64, defs.icons.size());
+	EXPECT_EQ(0ui64, errors_generated.size());
 
 	EXPECT_EQ(std::string("sname"), nmaps.scrollbar_names[0].get_string(defs.name_data));
 	EXPECT_EQ(10, defs.scrollbars[scrollbar_tag(0)].position.x);
@@ -1148,11 +1153,11 @@ TEST(errors_scrollbar, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_scrollbarType(parse_object<scrollbarType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.scrollbar_names.size());
-	EXPECT_EQ(1, defs.scrollbars.size());
-	EXPECT_EQ(4, defs.buttons.size());
-	EXPECT_EQ(2, defs.icons.size());
-	EXPECT_EQ(7, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.scrollbar_names.size());
+	EXPECT_EQ(1ui64, defs.scrollbars.size());
+	EXPECT_EQ(4ui64, defs.buttons.size());
+	EXPECT_EQ(2ui64, defs.icons.size());
+	EXPECT_EQ(7ui64, errors_generated.size());
 
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_scrollbar_horizontal_value), errors_generated[0]);
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_scrollbar_priority), errors_generated[1]);
@@ -1203,9 +1208,9 @@ TEST(basic_window, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_windowType(parse_object<windowType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.window_names.size());
-	EXPECT_EQ(1, defs.windows.size());
-	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.window_names.size());
+	EXPECT_EQ(1ui64, defs.windows.size());
+	EXPECT_EQ(0ui64, errors_generated.size());
 
 	EXPECT_EQ(std::string("wname"), nmaps.window_names[0].get_string(defs.name_data));
 	EXPECT_EQ(0, defs.windows[window_tag(0)].position.x);
@@ -1215,9 +1220,9 @@ TEST(basic_window, gui_definitions_tests) {
 	EXPECT_EQ(0, defs.windows[window_tag(0)].flags & ui::window_def::is_dialog);
 	EXPECT_EQ(0, defs.windows[window_tag(0)].flags & ui::window_def::is_fullscreen);
 	EXPECT_EQ(0, defs.windows[window_tag(0)].flags & ui::window_def::is_moveable);
-	EXPECT_EQ(ui::window_def::orientation_center, defs.windows[window_tag(0)].flags & ui::window_def::orientation_mask);
+	EXPECT_EQ(ui::window_def::orientation_upper_left, defs.windows[window_tag(0)].flags & ui::window_def::orientation_mask);
 	EXPECT_EQ(button_tag(), defs.windows[window_tag(0)].background_handle);
-	EXPECT_EQ(0, defs.windows[window_tag(0)].sub_object_definitions.size());
+	EXPECT_EQ(0ui64, defs.windows[window_tag(0)].sub_object_definitions.size());
 }
 
 
@@ -1250,11 +1255,11 @@ TEST(non_default_window, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_eu3dialogtype(parse_object<windowType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.window_names.size());
-	EXPECT_EQ(1, defs.windows.size());
-	EXPECT_EQ(1, defs.buttons.size());
-	EXPECT_EQ(1, defs.listboxes.size());
-	EXPECT_EQ(0, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.window_names.size());
+	EXPECT_EQ(1ui64, defs.windows.size());
+	EXPECT_EQ(1ui64, defs.buttons.size());
+	EXPECT_EQ(1ui64, defs.listboxes.size());
+	EXPECT_EQ(0ui64, errors_generated.size());
 
 	EXPECT_EQ(std::string("wname"), nmaps.window_names[0].get_string(defs.name_data));
 	EXPECT_EQ(4, defs.windows[window_tag(0)].position.x);
@@ -1266,7 +1271,7 @@ TEST(non_default_window, gui_definitions_tests) {
 	EXPECT_EQ(ui::window_def::is_moveable, defs.windows[window_tag(0)].flags & ui::window_def::is_moveable);
 	EXPECT_EQ(ui::window_def::orientation_upper_left, defs.windows[window_tag(0)].flags & ui::window_def::orientation_mask);
 	EXPECT_EQ(button_tag(0), defs.windows[window_tag(0)].background_handle);
-	EXPECT_EQ(2, defs.windows[window_tag(0)].sub_object_definitions.size());
+	EXPECT_EQ(2ui64, defs.windows[window_tag(0)].sub_object_definitions.size());
 	EXPECT_EQ(button_tag(0), std::get<button_tag>(defs.windows[window_tag(0)].sub_object_definitions[0]));
 	EXPECT_EQ(listbox_tag(0), std::get<listbox_tag>(defs.windows[window_tag(0)].sub_object_definitions[1]));
 }
@@ -1301,11 +1306,11 @@ TEST(errors_window, gui_definitions_tests) {
 	if (parse_tree.size() > 0)
 		container.gui_eu3dialogtype(parse_object<windowType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
 
-	EXPECT_EQ(1, nmaps.window_names.size());
-	EXPECT_EQ(1, defs.windows.size());
-	EXPECT_EQ(1, defs.buttons.size());
-	EXPECT_EQ(1, defs.listboxes.size());
-	EXPECT_EQ(4, errors_generated.size());
+	EXPECT_EQ(1ui64, nmaps.window_names.size());
+	EXPECT_EQ(1ui64, defs.windows.size());
+	EXPECT_EQ(1ui64, defs.buttons.size());
+	EXPECT_EQ(1ui64, defs.listboxes.size());
+	EXPECT_EQ(4ui64, errors_generated.size());
 
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_window_attribute), errors_generated[0]);
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), ui::errors::unexpected_window_moveable_value), errors_generated[1]);
@@ -1320,9 +1325,9 @@ TEST(errors_window, gui_definitions_tests) {
 	EXPECT_EQ(ui::window_def::is_dialog, defs.windows[window_tag(0)].flags & ui::window_def::is_dialog);
 	EXPECT_EQ(ui::window_def::is_fullscreen, defs.windows[window_tag(0)].flags & ui::window_def::is_fullscreen);
 	EXPECT_EQ(0, defs.windows[window_tag(0)].flags & ui::window_def::is_moveable);
-	EXPECT_EQ(ui::window_def::orientation_center, defs.windows[window_tag(0)].flags & ui::window_def::orientation_mask);
+	EXPECT_EQ(ui::window_def::orientation_upper_left, defs.windows[window_tag(0)].flags & ui::window_def::orientation_mask);
 	EXPECT_EQ(button_tag(), defs.windows[window_tag(0)].background_handle);
-	EXPECT_EQ(2, defs.windows[window_tag(0)].sub_object_definitions.size());
+	EXPECT_EQ(2ui64, defs.windows[window_tag(0)].sub_object_definitions.size());
 	EXPECT_EQ(button_tag(0), std::get<button_tag>(defs.windows[window_tag(0)].sub_object_definitions[0]));
 	EXPECT_EQ(listbox_tag(0), std::get<listbox_tag>(defs.windows[window_tag(0)].sub_object_definitions[1]));
 }

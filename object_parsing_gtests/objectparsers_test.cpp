@@ -3,18 +3,18 @@
 #include "Parsers\\parsers.hpp"
 #include <numeric>
 
-char description_a[] = "a = exists\n"
+static char description_a[] = "a = exists\n"
 "b = yes\n"
 "d = yes\n";
 
-char description_b[] =
+static char description_b[] =
 "string_a\n"
 "\n"
 "string_b string_c\n";
 
-char description_c[] = "10 string 11 string 14";
+static char description_c[] = "10 string 11 string 14";
 
-char description_d[] =
+static char description_d[] =
 "a = yes\n"
 "x = yes\n"
 "c = { ignore ignore ignore } "
@@ -23,14 +23,14 @@ char description_d[] =
 "b = yes\n"
 "d = yes\n";
 
-char description_e[] =
+static char description_e[] =
 "a = yes\n"
 "x = yes\n"
 "k = { 1 2 3 } "
 "b = yes\n"
 "d = yes\n";
 
-char description_f[] =
+static char description_f[] =
 "a = yes\n"
 "x = yes\n"
 "k = { c = yes\n"
@@ -129,6 +129,9 @@ struct derived_parse : public base_parse {
 MEMBER_DEF(derived_parse, x, "x")
 MEMBER_DEF(derived_parse, svalue, "svalue")
 
+std::pair<association_type, int> rh_int_pair_from_sum(const token_and_type&, association_type a, int_vector_summation& t);
+bool accept_all_classifier(const char*, const char*);
+bool is_positive_int(const char* s, const char* e);
 
 std::pair<association_type, int> rh_int_pair_from_sum(const token_and_type&, association_type a, int_vector_summation& t) {
 	return std::make_pair(a, t.sum);
@@ -367,16 +370,16 @@ TEST_METHOD(tagged_member_test, object_parsing_tests) {
 	parse_pdx_file(parse_results, description_a, description_a + sizeof(description_a) - 1);
 
 	object_parser<three_bool> tbparser;
-	tbparser.add_case_handler("a", [](three_bool& r, const token_group& val, const token_group*, const token_group*) {
+	tbparser.add_case_handler("a", [](three_bool& r, const token_group& , const token_group*, const token_group*) {
 		r.a = true;
 	});
-	tbparser.add_case_handler("b", [](three_bool& r, const token_group& val, const token_group*, const token_group*) {
+	tbparser.add_case_handler("b", [](three_bool& r, const token_group& , const token_group*, const token_group*) {
 		r.b = true;
 	});
-	tbparser.add_case_handler("c", [](three_bool& r, const token_group& val, const token_group*, const token_group*) {
+	tbparser.add_case_handler("c", [](three_bool& r, const token_group& , const token_group*, const token_group*) {
 		r.c = true;
 	});
-	tbparser.add_case_handler("d", [](three_bool& r, const token_group& val, const token_group*, const token_group*) {
+	tbparser.add_case_handler("d", [](three_bool& r, const token_group& , const token_group*, const token_group*) {
 		r.d = true;
 	});
 
@@ -394,7 +397,7 @@ TEST_METHOD(resetted_default_handler, object_parsing_tests) {
 	parse_pdx_file(parse_results, description_b, description_b + sizeof(description_b) - 1);
 
 	object_parser<std::vector<std::string>> parse_string_list;
-	parse_string_list.reset_default_handler([](std::vector<std::string>& object, const token_group& v, auto s, auto e) {
+	parse_string_list.reset_default_handler([](std::vector<std::string>& object, const token_group& v, auto , auto ) {
 		object.emplace_back(v.token.start, v.token.end);
 	});
 
@@ -412,7 +415,7 @@ TEST_METHOD(special_case_handler, object_parsing_tests) {
 	object_parser<std::vector<std::string>> parse_string_list;
 	parse_string_list.add_special_case_handler(
 		[](auto s, auto e) { return is_integer(s, e); },
-		[](std::vector<std::string>& object, const token_group& v, auto s, auto e) {
+		[](std::vector<std::string>& object, const token_group& v, auto , auto ) {
 		object.emplace_back(v.token.start, v.token.end);
 	});
 
@@ -429,7 +432,7 @@ TEST_METHOD(associated_string_getter, object_parsing_tests) {
 	token_group im_proper_left_b{ token_and_type{ nullptr, nullptr, token_type::unknown }, association_type::eq, 0 };
 
 	char token_value[] = "token string";
-	token_group right[1] = { token_group{ token_and_type{RANGE(token_value),token_type::unknown }, association_type::none, 0 } };
+	token_group right[2] = { token_group{ token_and_type{RANGE(token_value),token_type::unknown }, association_type::none, 0 }, token_group{ token_and_type{ RANGE(token_value),token_type::unknown }, association_type::none, 0 } };
 
 	EXPECT_STREQ(token_value, associated_string(proper_left, right, right + 1).c_str());
 	EXPECT_STREQ("", associated_string(proper_left, right, right + 2).c_str());

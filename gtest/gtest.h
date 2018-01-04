@@ -273,7 +273,7 @@ class GTEST_API_ AssertionResult {
       const T& success,
       typename internal::EnableIf<
           !internal::ImplicitlyConvertible<T, AssertionResult>::value>::type*
-          /*enabler*/ = NULL)
+          /*enabler*/ = nullptr)
       : success_(success) {}
 
   GTEST_DISABLE_MSC_WARNINGS_POP_()
@@ -295,7 +295,7 @@ class GTEST_API_ AssertionResult {
   // assertion's expectation). When nothing has been streamed into the
   // object, returns an empty string.
   const char* message() const {
-    return message_.get() != NULL ?  message_->c_str() : "";
+    return message_.get() != nullptr ?  message_->c_str() : "";
   }
   // TODO(vladl@google.com): Remove this after making sure no clients use it.
   // Deprecated; please use message() instead.
@@ -318,7 +318,7 @@ class GTEST_API_ AssertionResult {
  private:
   // Appends the contents of message to message_.
   void AppendMessage(const Message& a_message) {
-    if (message_.get() == NULL)
+    if (message_.get() == nullptr)
       message_.reset(new ::std::string);
     message_->append(a_message.GetString().c_str());
   }
@@ -471,7 +471,7 @@ class GTEST_API_ Test {
   // If you see an error about overriding the following function or
   // about it being private, you have mis-spelled SetUp() as Setup().
   struct Setup_should_be_spelled_SetUp {};
-  virtual Setup_should_be_spelled_SetUp* Setup() { return NULL; }
+  virtual Setup_should_be_spelled_SetUp* Setup() { return nullptr; }
 
   // We disallow copying Tests.
   GTEST_DISALLOW_COPY_AND_ASSIGN_(Test);
@@ -656,17 +656,17 @@ class GTEST_API_ TestInfo {
   // Returns the name of the parameter type, or NULL if this is not a typed
   // or a type-parameterized test.
   const char* type_param() const {
-    if (type_param_.get() != NULL)
+    if (type_param_.get() != nullptr)
       return type_param_->c_str();
-    return NULL;
+    return nullptr;
   }
 
   // Returns the text representation of the value parameter, or NULL if this
   // is not a value-parameterized test.
   const char* value_param() const {
-    if (value_param_.get() != NULL)
+    if (value_param_.get() != nullptr)
       return value_param_->c_str();
-    return NULL;
+    return nullptr;
   }
 
   // Returns the file name where this test is defined.
@@ -802,9 +802,9 @@ class GTEST_API_ TestCase {
   // Returns the name of the parameter type, or NULL if this is not a
   // type-parameterized test case.
   const char* type_param() const {
-    if (type_param_.get() != NULL)
+    if (type_param_.get() != nullptr)
       return type_param_->c_str();
-    return NULL;
+    return nullptr;
   }
 
   // Returns true if any test in this test case should run.
@@ -983,7 +983,7 @@ class Environment {
   // If you see an error about overriding the following function or
   // about it being private, you have mis-spelled SetUp() as Setup().
   struct Setup_should_be_spelled_SetUp {};
-  virtual Setup_should_be_spelled_SetUp* Setup() { return NULL; }
+  virtual Setup_should_be_spelled_SetUp* Setup() { return nullptr; }
 };
 
 // The interface for tracing execution of tests. The methods are organized in
@@ -1455,7 +1455,7 @@ class EqHelper<true> {
       // expands to Compare("", "", NULL, my_ptr), which requires a conversion
       // to match the Secret* in the other overload, which would otherwise make
       // this template match better.
-      typename EnableIf<!is_pointer<T2>::value>::type* = 0) {
+      typename EnableIf<!is_pointer<T2>::value>::type* = nullptr) {
     return CmpHelperEQ(lhs_expression, rhs_expression, lhs, rhs);
   }
 
@@ -1475,7 +1475,7 @@ class EqHelper<true> {
       T* rhs) {
     // We already know that 'lhs' is a null pointer.
     return CmpHelperEQ(lhs_expression, rhs_expression,
-                       static_cast<T*>(NULL), rhs);
+                       static_cast<T*>(nullptr), rhs);
   }
 };
 
@@ -1818,6 +1818,35 @@ class TestWithParam : public Test, public WithParamInterface<T> {
 
 // Define this macro to 1 to omit the definition of FAIL(), which is a
 // generic name and clashes with some other libraries.
+#ifndef GTEST_DONT_DEFINE_FAIL
+#define GTEST_DONT_DEFINE_FAIL 0
+#endif
+#ifndef GTEST_DONT_DEFINE_SUCCEED
+#define GTEST_DONT_DEFINE_SUCCEED 0
+#endif
+#ifndef GTEST_DONT_DEFINE_ASSERT_EQ
+#define GTEST_DONT_DEFINE_ASSERT_EQ 0
+#endif
+#ifndef GTEST_DONT_DEFINE_ASSERT_NE
+#define GTEST_DONT_DEFINE_ASSERT_NE 0
+#endif
+#ifndef GTEST_DONT_DEFINE_ASSERT_LE
+#define GTEST_DONT_DEFINE_ASSERT_LE 0
+#endif
+#ifndef GTEST_DONT_DEFINE_ASSERT_LT
+#define GTEST_DONT_DEFINE_ASSERT_LT 0
+#endif
+#ifndef GTEST_DONT_DEFINE_ASSERT_GE
+#define GTEST_DONT_DEFINE_ASSERT_GE 0
+#endif
+#ifndef GTEST_DONT_DEFINE_ASSERT_GT
+#define GTEST_DONT_DEFINE_ASSERT_GT 0
+#endif
+#ifndef GTEST_DONT_DEFINE_TEST
+#define GTEST_DONT_DEFINE_TEST 0
+#endif
+
+
 #if !GTEST_DONT_DEFINE_FAIL
 # define FAIL() GTEST_FAIL()
 #endif
@@ -1919,9 +1948,12 @@ class TestWithParam : public Test, public WithParamInterface<T> {
 //   ASSERT_LT(i, array_size);
 //   ASSERT_GT(records.size(), 0) << "There is no record left.";
 
+template<typename T>
+constexpr bool is_nullptr_t = std::is_same_v<T, std::nullptr_t>;
+
 #define EXPECT_EQ(val1, val2) \
   EXPECT_PRED_FORMAT2(::testing::internal:: \
-                      EqHelper<GTEST_IS_NULL_LITERAL_(val1)>::Compare, \
+                      EqHelper<testing::is_nullptr_t<decltype(val1)>>::Compare, \
                       val1, val2)
 #define EXPECT_NE(val1, val2) \
   EXPECT_PRED_FORMAT2(::testing::internal::CmpHelperNE, val1, val2)
@@ -1936,7 +1968,7 @@ class TestWithParam : public Test, public WithParamInterface<T> {
 
 #define GTEST_ASSERT_EQ(val1, val2) \
   ASSERT_PRED_FORMAT2(::testing::internal:: \
-                      EqHelper<GTEST_IS_NULL_LITERAL_(val1)>::Compare, \
+                      EqHelper<testing::is_nullptr_t<decltype(val1)>>::Compare, \
                       val1, val2)
 #define GTEST_ASSERT_NE(val1, val2) \
   ASSERT_PRED_FORMAT2(::testing::internal::CmpHelperNE, val1, val2)

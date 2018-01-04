@@ -2,14 +2,18 @@
 #include "gui_definitions\\gui_definitions.h"
 #include <iostream>
 
+auto fake_text_handle_lookup();
+auto fake_font_handle_lookup();
+auto fake_gobj_lookup();
+
 auto fake_text_handle_lookup() {
-	return[i = 0ui16](const char*, const char*) mutable { return ++i; };
+	return[i = 0ui16](const char*, const char*) mutable { return text_data::text_tag(++i); };
 }
 auto fake_font_handle_lookup() {
 	return[i = 0ui16](const char*, const char*) mutable { return ++i; };
 }
 auto fake_gobj_lookup() {
-	return[i = 0ui16](const char*, const char*) mutable { return ++i; };
+	return[i = 0ui16](const char*, const char*) mutable { return graphics::obj_definition_tag(++i); };
 }
 
 class gui_definitions_perf  {
@@ -25,8 +29,11 @@ public:
 		ui::definitions defs;
 		std::vector<std::pair<std::string, ui::errors>> errors_generated;
 
-		load_ui_definitions_from_directory(
-			fs.get_root(), nmaps, defs, errors_generated,
+		ui::load_ui_definitions_from_directory(
+			fs.get_root(),
+			nmaps,
+			defs,
+			errors_generated,
 			fake_text_handle_lookup(),
 			fake_font_handle_lookup(),
 			fake_gobj_lookup());

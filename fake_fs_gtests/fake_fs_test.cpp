@@ -44,9 +44,9 @@ TEST_METHOD(default_root, simple_fs_tests) {
 	const auto path_list = f.get_root().list_paths();
 	EXPECT_EQ(1ui64, path_list.size());
 #ifdef _DEBUG
-	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data\\Debug", (wchar_t*)(path_list.front().c_str()));
+	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data\\Debug", (const wchar_t*)(path_list.front().c_str()));
 #else
-	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data\\Release", (wchar_t*)(path_list.front().c_str()));
+	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data\\Release", (const wchar_t*)(path_list.front().c_str()));
 #endif
 }
 
@@ -60,14 +60,14 @@ TEST_METHOD(set_root, simple_fs_tests) {
 
 	auto path_list = f.get_root().list_paths();
 	EXPECT_EQ(1ui64, path_list.size());
-	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data", (wchar_t*)(path_list.front().c_str()));
+	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data", (const wchar_t*)(path_list.front().c_str()));
 
 	
 	f.set_root(RANGE("F:\\VS2007Projects\\impossible"));
 
     path_list = f.get_root().list_paths();
 	EXPECT_EQ(1ui64, path_list.size());
-	EXPECT_STREQ(L"F:\\VS2007Projects\\impossible", (wchar_t*)(path_list.front().c_str()));
+	EXPECT_STREQ(L"F:\\VS2007Projects\\impossible", (const wchar_t*)(path_list.front().c_str()));
 }
 
 TEST_METHOD(adding_root, simple_fs_tests) {
@@ -80,11 +80,11 @@ TEST_METHOD(adding_root, simple_fs_tests) {
 
 	const auto path_list = f.get_root().list_paths();
 	EXPECT_EQ(2ui64, path_list.size());
-	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data", (wchar_t*)(path_list[0].c_str()));
-	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data\\mod", (wchar_t*)(path_list[1].c_str()));
+	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data", (const wchar_t*)(path_list[0].c_str()));
+	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data\\mod", (const wchar_t*)(path_list[1].c_str()));
 
 	const auto single_string = f.get_root().to_string();
-	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data;F:\\VS2007Projects\\open_v2_test_data\\mod", (wchar_t*)(single_string.c_str()));
+	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data;F:\\VS2007Projects\\open_v2_test_data\\mod", (const wchar_t*)(single_string.c_str()));
 }
 
 TEST_METHOD(directory_descent, simple_fs_tests) {
@@ -100,11 +100,11 @@ TEST_METHOD(directory_descent, simple_fs_tests) {
 
 	const auto path_list = sub_dir.list_paths();
 	EXPECT_EQ(2ui64, path_list.size());
-	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data\\sub", (wchar_t*)(path_list[0].c_str()));
-	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data\\mod\\sub", (wchar_t*)(path_list[1].c_str()));
+	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data\\sub", (const wchar_t*)(path_list[0].c_str()));
+	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data\\mod\\sub", (const wchar_t*)(path_list[1].c_str()));
 
 	const auto single_string = sub_dir.to_string();
-	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data\\sub;F:\\VS2007Projects\\open_v2_test_data\\mod\\sub", (wchar_t*)(single_string.c_str()));
+	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data\\sub;F:\\VS2007Projects\\open_v2_test_data\\mod\\sub", (const wchar_t*)(single_string.c_str()));
 }
 
 TEST_METHOD(list_dir, simple_fs_tests) {
@@ -128,12 +128,12 @@ TEST_METHOD(list_dir, simple_fs_tests) {
 TEST_METHOD(list_non_replaced_dir_files, simple_fs_tests) {
 	test_file_structure real_fs;
 
-	file_system f;
+	file_system fs;
 
-	f.set_root(RANGE(u"F:\\VS2007Projects\\open_v2_test_data\\directories"));
-	f.add_root_relative(RANGE("new_root"));
+	fs.set_root(RANGE(u"F:\\VS2007Projects\\open_v2_test_data\\directories"));
+	fs.add_root_relative(RANGE("new_root"));
 
-	const auto dirb = f.get_root().get_directory(u"sub_dir_b");
+	const auto dirb = fs.get_root().get_directory(u"sub_dir_b");
 	const auto dirb_contents = dirb.list_files(u".txt");
 	EXPECT_EQ(2ui64, dirb_contents.size());
 	EXPECT_TRUE(std::find_if(dirb_contents.begin(), dirb_contents.end(), [](const auto &f) { return f.file_name().compare(u"b_file_a.txt") == 0; }) != dirb_contents.end());
@@ -144,12 +144,12 @@ TEST_METHOD(list_non_replaced_dir_files, simple_fs_tests) {
 TEST_METHOD(list_replaced_dir_files, simple_fs_tests) {
 	test_file_structure real_fs;
 
-	file_system f;
+	file_system fs;
 
-	f.set_root(RANGE(u"F:\\VS2007Projects\\open_v2_test_data\\directories"));
-	f.add_root_relative(RANGE("new_root"));
+	fs.set_root(RANGE(u"F:\\VS2007Projects\\open_v2_test_data\\directories"));
+	fs.add_root_relative(RANGE("new_root"));
 
-	const auto dirb = f.get_root().get_directory(u"sub_dir_a");
+	const auto dirb = fs.get_root().get_directory(u"sub_dir_a");
 	const auto dirb_contents = dirb.list_files(u".txt");
 	EXPECT_EQ(2ui64, dirb_contents.size());
 	EXPECT_TRUE(std::find_if(dirb_contents.begin(), dirb_contents.end(), [](const auto &f) {

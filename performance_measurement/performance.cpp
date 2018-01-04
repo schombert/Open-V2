@@ -16,7 +16,7 @@ DB_TABLE(performance_logs, db_h_key, db_avg_microseconds, db_min_microseconds, d
 
 class private_db_type : public simple_db <db_performance_logs> {
 public:
-	private_db_type() {};
+	private_db_type() {}
 };
 
 logging_object::logging_object() : private_db(std::make_unique<private_db_type>()) {

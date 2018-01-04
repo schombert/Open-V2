@@ -2,18 +2,11 @@
 #include "streams_parsing\\\streams_parsing.hpp"
 #include <numeric>
 
-char description_a[] = "a = exists\n"
+static char description_a[] = "a = exists\n"
 "b = yes\n"
 "d = yes\n";
 
-char description_b[] =
-"string_a\n"
-"\n"
-"string_b string_c\n";
-
-char description_c[] = "10 string 11 string 14";
-
-char description_d[] =
+static char description_d[] =
 "a = yes\n"
 "x = yes\n"
 "c = { ignore ignore ignore } "
@@ -22,14 +15,14 @@ char description_d[] =
 "b = yes\n"
 "d = yes\n";
 
-char description_e[] =
+static char description_e[] =
 "a = yes\n"
 "x = yes\n"
 "k = { 1 2 3 } "
 "b = yes\n"
 "d = yes\n";
 
-char description_f[] =
+static char description_f[] =
 "a = yes\n"
 "x = yes\n"
 "k = { c = yes\n"
@@ -124,6 +117,15 @@ struct derived_parse : public base_parse {
 
 MEMBER_DEF(derived_parse, x, "x")
 MEMBER_DEF(derived_parse, svalue, "svalue")
+
+bool bool_from_association(association_type, const token_and_type& t);
+double double_from_association(association_type, const token_and_type& t);
+std::string string_from_association(association_type, const token_and_type& t);
+int int_from_full_association(const token_and_type& t, association_type, const token_and_type&);
+std::pair<association_type, int> rh_int_pair_from_full_association(const token_and_type&, association_type a, const token_and_type& t);
+std::pair<association_type, int> rh_int_pair_from_sum(const token_and_type&, association_type a, int_vector_summation& t);
+bool accept_all_classifier(const char*, const char*);
+bool is_positive_int(const char* s, const char* e);
 
 bool bool_from_association(association_type, const token_and_type& t) {
 	return parse_bool(t.start, t.end);
@@ -223,7 +225,7 @@ TEST(compile_time_tagged_member_test, object_parsing_tests) {
 
 	bool function_called = false;
 	const bool found_in_a = map_call_functions<tag_to_function>::template bt_scan_ci<bool>(RANGE("a"),
-		[&function_called](auto lambda_associated) {
+		[&function_called](auto ) {
 		function_called = true;
 		return true;
 	});
@@ -412,7 +414,7 @@ TEST_METHOD(default_list_associations, object_parsing_tests) {
 		r.contents.emplace_back(t, parse_int(i.start, i.end)); });
 	op.add_case_handler<std::vector<int>>("a",
 		vector_of_ints_operation(),
-		[](association_container& r, const token_and_type&, association_type t, std::vector<int>& i) {
+		[](association_container& , const token_and_type&, association_type , std::vector<int>& ) {
 		;
 	});
 	op.add_special_case_handler<std::vector<int>>([](const char* start, const char* end) { return parse_uint(start, end) >= 1; },
@@ -616,7 +618,7 @@ TEST_METHOD(basic_tokenizing_stream_braces_matching, parsers_test) {
 
 	int matched_braces_count = 0;
 	make_stream("  hhh {} iii} { } jj { } } kkk lll", tokenize_char_stream_operation(), end_brace_finder(),
-		[&matched_braces_count](int n) { ++matched_braces_count; }).yield();
+		[&matched_braces_count](int ) { ++matched_braces_count; }).yield();
 	EXPECT_EQ(2, matched_braces_count);
 }
 

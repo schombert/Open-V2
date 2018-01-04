@@ -40,6 +40,9 @@
 // files are expected to #include this.  Therefore, it cannot #include
 // any other Google Test header.
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundef"
+
 #ifndef GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PORT_H_
 #define GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PORT_H_
 
@@ -326,6 +329,10 @@
 // -std={c,gnu}++{0x,11} is passed.  The C++11 standard specifies a
 // value for __cplusplus, and recent versions of clang, gcc, and
 // probably other compilers set that too in C++11 mode.
+#ifndef __GXX_EXPERIMENTAL_CXX0X__
+#define __GXX_EXPERIMENTAL_CXX0X__ 0
+#endif
+
 # if __GXX_EXPERIMENTAL_CXX0X__ || __cplusplus >= 201103L
 // Compiling in at least C++11 mode.
 #  define GTEST_LANG_CXX11 1
@@ -393,6 +400,15 @@
 // Brings in definitions for functions used in the testing::internal::posix
 // namespace (read, write, close, chdir, isatty, stat). We do not currently
 // use them on Windows Mobile.
+#ifndef GTEST_OS_WINDOWS_MOBILE
+#define GTEST_OS_WINDOWS_MOBILE 0
+#endif
+#ifndef GTEST_OS_LINUX_ANDROID
+#define GTEST_OS_LINUX_ANDROID 0
+#endif
+#ifndef GTEST_OS_SOLARIS
+#define GTEST_OS_SOLARIS 0
+#endif
 #if GTEST_OS_WINDOWS
 # if !GTEST_OS_WINDOWS_MOBILE
 #  include <direct.h>
@@ -424,6 +440,10 @@ struct _RTL_CRITICAL_SECTION;
 # else
 #  define GTEST_HAS_POSIX_RE (!GTEST_OS_WINDOWS)
 # endif
+#endif
+
+#ifndef GTEST_USES_PCRE
+#define GTEST_USES_PCRE 0
 #endif
 
 #if GTEST_USES_PCRE
@@ -605,6 +625,24 @@ struct _RTL_CRITICAL_SECTION;
 //
 // To disable threading support in Google Test, add -DGTEST_HAS_PTHREAD=0
 // to your compiler flags.
+#ifndef GTEST_OS_LINUX
+#define GTEST_OS_LINUX 0
+#endif
+#ifndef GTEST_OS_MAC
+#define GTEST_OS_MAC 0
+#endif
+#ifndef GTEST_OS_HPUX
+#define GTEST_OS_HPUX 0
+#endif
+#ifndef GTEST_OS_QNX
+#define GTEST_OS_QNX 0
+#endif
+#ifndef GTEST_OS_FREEBSD
+#define GTEST_OS_FREEBSD 0
+#endif
+#ifndef GTEST_OS_NACL
+#define GTEST_OS_NACL 0
+#endif
 # define GTEST_HAS_PTHREAD (GTEST_OS_LINUX || GTEST_OS_MAC || GTEST_OS_HPUX \
     || GTEST_OS_QNX || GTEST_OS_FREEBSD || GTEST_OS_NACL)
 #endif  // GTEST_HAS_PTHREAD
@@ -1122,7 +1160,7 @@ class scoped_ptr {
  public:
   typedef T element_type;
 
-  explicit scoped_ptr(T* p = NULL) : ptr_(p) {}
+  explicit scoped_ptr(T* p = nullptr) : ptr_(p) {}
   ~scoped_ptr() { reset(); }
 
   T& operator*() const { return *ptr_; }
@@ -1131,11 +1169,11 @@ class scoped_ptr {
 
   T* release() {
     T* const ptr = ptr_;
-    ptr_ = NULL;
+    ptr_ = nullptr;
     return ptr;
   }
 
-  void reset(T* p = NULL) {
+  void reset(T* p = nullptr) {
     if (p != ptr_) {
       if (IsTrue(sizeof(T) > 0)) {  // Makes sure T is a complete type.
         delete ptr_;
@@ -1279,7 +1317,7 @@ class GTEST_API_ GTestLog {
                                   __FILE__, __LINE__).GetStream()
 
 inline void LogToStderr() {}
-inline void FlushInfoLog() { fflush(NULL); }
+inline void FlushInfoLog() { fflush(nullptr); }
 
 #endif  // !defined(GTEST_LOG_)
 
@@ -2414,7 +2452,7 @@ GTEST_DISABLE_MSC_WARNINGS_POP_()
 // imitation of standard behaviour.
 void Abort();
 #else
-inline void Abort() { abort(); }
+[[noreturn]] inline void Abort() { abort(); }
 #endif  // GTEST_OS_WINDOWS_MOBILE
 
 }  // namespace posix
@@ -2443,8 +2481,7 @@ inline void Abort() { abort(); }
 // We cannot rely on numeric_limits in STL, as __int64 and long long
 // are not part of standard C++ and numeric_limits doesn't need to be
 // defined for them.
-const BiggestInt kMaxBiggestInt =
-    ~(static_cast<BiggestInt>(1) << (8*sizeof(BiggestInt) - 1));
+const BiggestInt kMaxBiggestInt = std::numeric_limits<BiggestInt>::max();
 
 // This template class serves as a compile-time function from size to
 // type.  It maps a size in bytes to a primitive type with that
@@ -2559,3 +2596,6 @@ std::string StringFromGTestEnv(const char* flag, const char* default_val);
 }  // namespace testing
 
 #endif  // GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PORT_H_
+
+#pragma clang diagnostic pop
+

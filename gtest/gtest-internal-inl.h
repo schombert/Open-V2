@@ -65,7 +65,7 @@
 #endif
 
 #if GTEST_OS_WINDOWS
-# include <windows.h>  // NOLINT
+# include <Windows.h>  // NOLINT
 #endif  // GTEST_OS_WINDOWS
 
 #include "gtest/gtest.h"  // NOLINT
@@ -223,7 +223,7 @@ class GTestFlagSaver {
   internal::Int32 stack_trace_depth_;
   std::string stream_result_to_;
   bool throw_on_failure_;
-} GTEST_ATTRIBUTE_UNUSED_;
+};
 
 // Converts a Unicode code point to a narrow string in UTF-8 encoding.
 // code_point parameter is of type UInt32 because wchar_t may not be
@@ -577,14 +577,14 @@ class GTEST_API_ UnitTestImpl {
   // total_test_case_count() - 1. If i is not in that range, returns NULL.
   const TestCase* GetTestCase(int i) const {
     const int index = GetElementOr(test_case_indices_, i, -1);
-    return index < 0 ? NULL : test_cases_[i];
+    return index < 0 ? nullptr : test_cases_[(size_t)i];
   }
 
   // Gets the i-th test case among all the test cases. i can range from 0 to
   // total_test_case_count() - 1. If i is not in that range, returns NULL.
   TestCase* GetMutableTestCase(int i) {
     const int index = GetElementOr(test_case_indices_, i, -1);
-    return index < 0 ? NULL : test_cases_[index];
+    return index < 0 ? nullptr : test_cases_[(size_t)index];
   }
 
   // Provides access to the event listener list.

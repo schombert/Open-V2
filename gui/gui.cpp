@@ -392,7 +392,7 @@ void ui::detail::instantiate_graphical_object(ui::gui_manager& manager, ui::tagg
 
 			container.object.position.x -= graphic_object_def.size.x;
 
-			const auto new_dt = manager.data_textures.emplace(ui::piechart_resolution, 3);
+			const auto new_dt = manager.data_textures.emplace(ui::piechart_resolution, 3ui16);
 
 			container.object.type_dependant_handle.store(to_index(new_dt.id), std::memory_order_release);
 		}
@@ -1003,15 +1003,15 @@ void ui::gui_manager::on_resize(const resize& r) {
 		static_cast<int16_t>(static_cast<float>(r.width) / scale()),
 		static_cast<int16_t>(static_cast<float>(r.height) / scale()) };
 
-	_width = r.width;
-	_height = r.height;
+	_width = static_cast<int32_t>(r.width);
+	_height = static_cast<int32_t>(r.height);
 	root.size = new_size;
 	foreground.size = new_size;
 	background.size = new_size;
 }
 
 void ui::gui_manager::rescale(float new_scale) {
-	const resize new_size{ static_cast<float>(root.size.x) * scale(), static_cast<float>(root.size.y) * scale() };
+	const resize new_size{ static_cast<uint32_t>(static_cast<float>(root.size.x) * scale()), static_cast<uint32_t>(static_cast<float>(root.size.y) * scale()) };
 	_scale = new_scale;
 	on_resize(new_size);
 }
@@ -1101,7 +1101,7 @@ ui::tagged_gui_object ui::create_scrollable_text_block(gui_manager& manager, ui:
 		parent,
 		text_def.position,
 		text_def.max_height,
-		(int32_t)this_font.line_height(ui::detail::font_size_to_render_size(this_font, int_font_size)),
+		(int32_t)this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(int_font_size))),
 		graphics::obj_definition_tag(),
 		[handle, candidates, count](gui_manager& m) {
 		return detail::create_element_instance(m, handle, candidates, count);
@@ -1138,13 +1138,13 @@ ui::tagged_gui_object ui::create_scrollable_text_block(gui_manager& manager, ui:
 		parent,
 		text_def.position,
 		text_def.max_height,
-		(int32_t)this_font.line_height(ui::detail::font_size_to_render_size(this_font, int_font_size)),
+		(int32_t)this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(int_font_size))),
 		graphics::obj_definition_tag(),
 		[handle, contents, candidates, count, &text_def](gui_manager& m) {
 		const auto new_gobj = m.gui_objects.emplace();
 
 		new_gobj.object.position = ui::xy_pair{ 0, 0 };
-		new_gobj.object.size = ui::xy_pair{ text_def.max_width, 0 };
+		new_gobj.object.size = ui::xy_pair{ static_cast<int16_t>(text_def.max_width), 0 };
 
 		new_gobj.object.size.x -= text_def.border_size.x * 2;
 
@@ -1193,8 +1193,8 @@ void ui::shrink_to_children(gui_manager& manager, tagged_gui_object g, int32_t b
 	ui::xy_pair minimum_child{ std::numeric_limits<decltype(g.object.size.x)>::max(), std::numeric_limits<decltype(g.object.size.y)>::max() };
 
 	for_each_child(manager, g, [g, &minimum_child](tagged_gui_object child) {
-		g.object.size.x = std::max(int32_t(g.object.size.x), child.object.size.x + child.object.position.x);
-		g.object.size.y = std::max(int32_t(g.object.size.y), child.object.size.y + child.object.position.y);
+		g.object.size.x = static_cast<int16_t>(std::max(int32_t(g.object.size.x), child.object.size.x + child.object.position.x));
+		g.object.size.y = static_cast<int16_t>(std::max(int32_t(g.object.size.y), child.object.size.y + child.object.position.y));
 		minimum_child.x = std::min(minimum_child.x, child.object.position.x);
 		minimum_child.y = std::min(minimum_child.y, child.object.position.y);
 	});
@@ -1204,8 +1204,8 @@ void ui::shrink_to_children(gui_manager& manager, tagged_gui_object g, int32_t b
 		child.object.position.y += border - minimum_child.y;
 	});
 
-	g.object.size.x = border * 2 + std::max(g.object.size.x - minimum_child.x, 0);
-	g.object.size.y = border * 2 + std::max(g.object.size.y - minimum_child.y, 0);
+	g.object.size.x = static_cast<int16_t>(border * 2 + std::max(g.object.size.x - minimum_child.x, 0));
+	g.object.size.y = static_cast<int16_t>(border * 2 + std::max(g.object.size.y - minimum_child.y, 0));
 }
 
 ui::tagged_gui_object ui::create_dynamic_window(gui_manager& manager, window_tag t, tagged_gui_object parent) {

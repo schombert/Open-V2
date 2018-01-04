@@ -10,7 +10,7 @@
 class _file {
 public:
 	file_representation* const f;
-	_file(file_representation* i) : f(i) {};
+	_file(file_representation* i) : f(i) {}
 };
 
 
@@ -20,7 +20,7 @@ public:
 	const std::u16string _file_name;
 	file_representation* const target;
 
-	_unopened_file(const std::u16string &path, const std::u16string &name, file_representation* t) : _file_path(path), _file_name(name), target(t) {};
+	_unopened_file(const std::u16string &path, const std::u16string &name, file_representation* t) : _file_path(path), _file_name(name), target(t) {}
 };
 
 class _directory {
@@ -42,6 +42,8 @@ public:
 	}
 };
 
+directory_representation* representation_from_full_path(directory_representation& root, const std::u16string& path);
+
 directory_representation* representation_from_full_path(directory_representation& root, const std::u16string& path) {
 	directory_representation* cdir = &root;
 	for (auto first = std::find(path.begin(), path.end(), u'\\');
@@ -62,7 +64,7 @@ directory_representation* representation_from_full_path(directory_representation
 }
 
 
-directory_representation* default_root = nullptr;
+static directory_representation* default_root = nullptr;
 
 void set_default_root(directory_representation& d) {
 	default_root = &d;
@@ -122,10 +124,10 @@ void file_system::set_root(const char* location, const char* location_t) {
 	impl->root_dir.impl->d.clear();
 
 	const auto size = MultiByteToWideChar(CP_UTF8, 0, location, (int)(location_t - location), nullptr, 0);
-	wchar_t* buffer = new wchar_t[size];
+	wchar_t* buffer = new wchar_t[(size_t)size];
 	MultiByteToWideChar(CP_UTF8, 0, location, (int)(location_t - location), buffer, size);
 
-	const auto f = representation_from_full_path(*default_root, std::u16string((char16_t*)buffer, size));
+	const auto f = representation_from_full_path(*default_root, std::u16string((char16_t*)buffer, (size_t)size));
 	if (!f)
 		std::abort();
 	impl->root_dir.impl->d.emplace_back(f);
@@ -151,7 +153,7 @@ void file_system::set_root(const std::u16string& location) {
 
 void file_system::add_root(const char* location, const char* location_t) {
 	const auto size = MultiByteToWideChar(CP_UTF8, 0, location, (int)(location_t - location), nullptr, 0);
-	wchar_t* buffer = new wchar_t[size];
+	wchar_t* buffer = new wchar_t[(size_t)size];
 	MultiByteToWideChar(CP_UTF8, 0, location, (int)(location_t - location), buffer, size);
 
 	add_root((char16_t*)buffer);
@@ -169,10 +171,10 @@ void file_system::add_root(const std::u16string& location) {
 
 void file_system::add_root_relative(const char* location, const char* location_t) {
 	const auto size = MultiByteToWideChar(CP_UTF8, 0, location, (int)(location_t - location), nullptr, 0);
-	wchar_t* buffer = new wchar_t[size];
+	wchar_t* buffer = new wchar_t[(size_t)size];
 	MultiByteToWideChar(CP_UTF8, 0, location, (int)(location_t - location), buffer, size);
 
-	add_root_relative(std::u16string((char16_t*)buffer, size));
+	add_root_relative(std::u16string((char16_t*)buffer, (size_t)size));
 
 	delete[] buffer;
 }
@@ -240,9 +242,9 @@ directory directory::get_directory(const char* name, const char* name_t) const {
 	}
 
 	const auto size = MultiByteToWideChar(CP_UTF8, 0, name, (int)(name_t - name), nullptr, 0);
-	wchar_t* buffer = new wchar_t[size];
+	wchar_t* buffer = new wchar_t[(size_t)size];
 	MultiByteToWideChar(CP_UTF8, 0, name, (int)(name_t - name), buffer, size);
-	full_name += std::u16string((char16_t*)buffer, size);
+	full_name += std::u16string((char16_t*)buffer, (size_t)size);
 	delete[] buffer;
 
 	return directory(*this, full_name);
@@ -322,9 +324,9 @@ const std::u16string& unopened_file::file_name() const {
 }
 
 std::optional<unopened_file> directory::peek_file_internal(const std::u16string& suffix_name) const {
-	int32_t i = suffix_name.length();
+	int32_t i = static_cast<int32_t>(suffix_name.length());
 	for (; i >= 0; --i) {
-		if (suffix_name[i] == u'\\')
+		if (suffix_name[(size_t)i] == u'\\')
 			break;
 	}
 	if (i < 0) {
@@ -336,9 +338,9 @@ std::optional<unopened_file> directory::peek_file_internal(const std::u16string&
 		}
 		return std::optional<unopened_file>();
 	} else {
-		const auto dir_string = suffix_name.substr(0, i);
+		const auto dir_string = suffix_name.substr(0, (size_t)i);
 		const auto prfxed_dir_string = (dir_string.length() > 0 && dir_string[0] == u'\\') ? dir_string : std::u16string(u"\\") + dir_string;
-		const auto file_string = suffix_name.substr(i + 1);
+		const auto file_string = suffix_name.substr((size_t)(i + 1));
 		for (auto dit = impl->d.rbegin(); dit != impl->d.rend(); ++dit) {
 			const auto nr = representation_from_full_path(*(*dit), prfxed_dir_string);
 			if (nr) {
@@ -371,9 +373,9 @@ std::optional<unopened_file> directory::peek_file(const std::u16string& name) co
 }
 
 std::optional<file> directory::open_file_internal(const std::u16string& suffix_name) const {
-	int32_t i = suffix_name.length();
+	int32_t i = static_cast<int32_t>(suffix_name.length());
 	for (; i >= 0; --i) {
-		if (suffix_name[i] == u'\\')
+		if (suffix_name[(size_t)i] == u'\\')
 			break;
 	}
 	if (i < 0) {
@@ -385,9 +387,9 @@ std::optional<file> directory::open_file_internal(const std::u16string& suffix_n
 		}
 		return std::optional<file>();
 	} else {
-		const auto dir_string = suffix_name.substr(0, i);
+		const auto dir_string = suffix_name.substr(0, (size_t)i);
 		const auto prfxed_dir_string = (dir_string.length() > 0 && dir_string[0] == u'\\') ? dir_string : std::u16string(u"\\") + dir_string;
-		const auto file_string = suffix_name.substr(i + 1);
+		const auto file_string = suffix_name.substr((size_t)(i + 1));
 		for (auto dit = impl->d.rbegin(); dit != impl->d.rend(); ++dit) {
 			const auto nr = representation_from_full_path(*(*dit), prfxed_dir_string);
 			if (nr) {

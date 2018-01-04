@@ -30,6 +30,16 @@
 //
 // Author: wan@google.com (Zhanyong Wan)
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-variable-declarations"
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#pragma clang diagnostic ignored "-Wundef"
+#pragma clang diagnostic ignored "-Wsign-conversion"
+#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
+#pragma clang diagnostic ignored "-Wcovered-switch-default"
+#pragma clang diagnostic ignored "-Wswitch-enum"
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+
 #include "gtest/gtest-typed-test.h"
 #include "gtest/gtest.h"
 
@@ -49,7 +59,7 @@ static const char* SkipSpaces(const char* str) {
 static std::vector<std::string> SplitIntoTestNames(const char* src) {
   std::vector<std::string> name_vec;
   src = SkipSpaces(src);
-  for (; src != NULL; src = SkipComma(src)) {
+  for (; src != nullptr; src = SkipComma(src)) {
     name_vec.push_back(StripTrailingSpaces(GetPrefixUntilComma(src)));
   }
   return name_vec;
@@ -117,3 +127,5 @@ const char* TypedTestCasePState::VerifyRegisteredTestNames(
 
 }  // namespace internal
 }  // namespace testing
+
+#pragma clang diagnostic pop

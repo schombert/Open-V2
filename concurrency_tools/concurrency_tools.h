@@ -35,7 +35,7 @@ private:
 	const T& base;
 public:
 	string_expression(const T& b) : base(b) {}
-	uint32_t length() const { return base.length(); }
+	uint32_t length() const { return static_cast<uint32_t>(base.length()); }
 	char operator[](uint32_t i) const { return base[i]; }
 };
 

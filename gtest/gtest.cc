@@ -32,6 +32,17 @@
 //
 // The Google C++ Testing Framework (Google Test)
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-variable-declarations"
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#pragma clang diagnostic ignored "-Wundef"
+#pragma clang diagnostic ignored "-Wsign-conversion"
+#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
+#pragma clang diagnostic ignored "-Wcovered-switch-default"
+#pragma clang diagnostic ignored "-Wswitch-enum"
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+#pragma clang diagnostic ignored "-Wunused-member-function"
+
 #include "gtest/gtest.h"
 #include "gtest/internal/custom/gtest.h"
 #include "gtest/gtest-spi.h"
@@ -53,6 +64,16 @@
 #include <ostream>  // NOLINT
 #include <sstream>
 #include <vector>
+
+#ifndef GTEST_OS_ZOS
+#define GTEST_OS_ZOS 0
+#endif
+#ifndef GTEST_OS_WINDOWS_MINGW
+#define GTEST_OS_WINDOWS_MINGW 0
+#endif
+#ifndef GTEST_CAN_STREAM_RESULTS_
+#define GTEST_CAN_STREAM_RESULTS_ 0
+#endif
 
 #if GTEST_OS_LINUX
 
@@ -106,7 +127,7 @@
 
 // cpplint thinks that the header is already included, so we want to
 // silence it.
-# include <windows.h>  // NOLINT
+# include <Windows.h>  // NOLINT
 # undef min
 
 #else
@@ -414,10 +435,10 @@ FilePath GetCurrentExecutableName() {
 // Returns the output format, or "" for normal printed output.
 std::string UnitTestOptions::GetOutputFormat() {
   const char* const gtest_output_flag = GTEST_FLAG(output).c_str();
-  if (gtest_output_flag == NULL) return std::string("");
+  if (gtest_output_flag == nullptr) return std::string("");
 
   const char* const colon = strchr(gtest_output_flag, ':');
-  return (colon == NULL) ?
+  return (colon == nullptr) ?
       std::string(gtest_output_flag) :
       std::string(gtest_output_flag, colon - gtest_output_flag);
 }
@@ -426,11 +447,11 @@ std::string UnitTestOptions::GetOutputFormat() {
 // was explicitly specified.
 std::string UnitTestOptions::GetAbsolutePathToOutputFile() {
   const char* const gtest_output_flag = GTEST_FLAG(output).c_str();
-  if (gtest_output_flag == NULL)
+  if (gtest_output_flag == nullptr)
     return "";
 
   const char* const colon = strchr(gtest_output_flag, ':');
-  if (colon == NULL)
+  if (colon == nullptr)
     return internal::FilePath::ConcatPaths(
         internal::FilePath(
             UnitTest::GetInstance()->original_working_dir()),
@@ -489,7 +510,7 @@ bool UnitTestOptions::MatchesFilter(
     cur_pattern = strchr(cur_pattern, ':');
 
     // Returns if no more pattern can be found.
-    if (cur_pattern == NULL) {
+    if (cur_pattern == nullptr) {
       return false;
     }
 
@@ -510,7 +531,7 @@ bool UnitTestOptions::FilterMatchesTest(const std::string &test_case_name,
   const char* const dash = strchr(p, '-');
   std::string positive;
   std::string negative;
-  if (dash == NULL) {
+  if (dash == nullptr) {
     positive = GTEST_FLAG(filter).c_str();  // Whole string is a positive filter
     negative = "";
   } else {
@@ -655,7 +676,7 @@ AssertionResult HasOneFailure(const char* /* results_expr */,
                               << r;
   }
 
-  if (strstr(r.message(), substr.c_str()) == NULL) {
+  if (strstr(r.message(), substr.c_str()) == nullptr) {
     return AssertionFailure() << "Expected: " << expected << " containing \""
                               << substr << "\"\n"
                               << "  Actual:\n"
@@ -803,6 +824,10 @@ std::string UnitTestImpl::CurrentOsStackTraceExceptTop(int skip_count) {
       );  // NOLINT
 }
 
+#ifndef GTEST_OS_WINDOWS
+#define GTEST_OS_WINDOWS 0
+#endif
+
 // Returns the current time in milliseconds.
 TimeInMillis GetTimeInMillis() {
 #if GTEST_OS_WINDOWS_MOBILE || defined(__BORLANDC__)
@@ -893,9 +918,9 @@ const char* String::Utf16ToAnsi(LPCWSTR utf16_str)  {
 // C string is considered different to any non-NULL C string,
 // including the empty string.
 bool String::CStringEquals(const char * lhs, const char * rhs) {
-  if ( lhs == NULL ) return rhs == NULL;
+  if ( lhs == nullptr ) return rhs == nullptr;
 
-  if ( rhs == NULL ) return false;
+  if ( rhs == nullptr) return false;
 
   return strcmp(lhs, rhs) == 0;
 }
@@ -987,9 +1012,9 @@ std::string Message::GetString() const {
 // Used in EXPECT_TRUE/FALSE(assertion_result).
 AssertionResult::AssertionResult(const AssertionResult& other)
     : success_(other.success_),
-      message_(other.message_.get() != NULL ?
+      message_(other.message_.get() != nullptr ?
                new ::std::string(*other.message_) :
-               static_cast< ::std::string*>(NULL)) {
+               static_cast< ::std::string*>(nullptr)) {
 }
 
 // Swaps two AssertionResults.
@@ -1002,7 +1027,7 @@ void AssertionResult::swap(AssertionResult& other) {
 // Returns the assertion's negation. Used with EXPECT/ASSERT_FALSE.
 AssertionResult AssertionResult::operator!() const {
   AssertionResult negation(!success_);
-  if (message_.get() != NULL)
+  if (message_.get() != nullptr)
     negation << *message_;
   return negation;
 }
@@ -1556,17 +1581,17 @@ namespace {
 // only.
 
 bool IsSubstringPred(const char* needle, const char* haystack) {
-  if (needle == NULL || haystack == NULL)
+  if (needle == nullptr || haystack == nullptr)
     return needle == haystack;
 
-  return strstr(haystack, needle) != NULL;
+  return strstr(haystack, needle) != nullptr;
 }
 
 bool IsSubstringPred(const wchar_t* needle, const wchar_t* haystack) {
-  if (needle == NULL || haystack == NULL)
+  if (needle == nullptr || haystack == nullptr)
     return needle == haystack;
 
-  return wcsstr(haystack, needle) != NULL;
+  return wcsstr(haystack, needle) != nullptr;
 }
 
 // StringType here can be either ::std::string or ::std::wstring.
@@ -1680,12 +1705,12 @@ AssertionResult HRESULTFailureHelper(const char* expr,
   // Gets the system's human readable message string for this HRESULT.
   char error_text[kBufSize] = { '\0' };
   DWORD message_length = ::FormatMessageA(kFlags,
-                                          0,  // no source, we're asking system
-                                          hr,  // the error
-                                          0,  // no line width restrictions
+	  nullptr,  // no source, we're asking system
+                                          (DWORD)hr,  // the error
+	  0,  // no line width restrictions
                                           error_text,  // output buffer
                                           kBufSize,  // buf size
-                                          NULL);  // no arguments for inserts
+	  nullptr);  // no arguments for inserts
   // Trims tailing white space (FormatMessage leaves a trailing CR-LF)
   for (; message_length && IsSpace(error_text[message_length - 1]);
           --message_length) {
@@ -1847,7 +1872,7 @@ std::string WideStringToUtf8(const wchar_t* str, int num_chars) {
 // Converts a wide C string to an std::string using the UTF-8 encoding.
 // NULL will be converted to "(null)".
 std::string String::ShowWideCString(const wchar_t * wide_c_str) {
-  if (wide_c_str == NULL)  return "(null)";
+  if (wide_c_str == nullptr)  return "(null)";
 
   return internal::WideStringToUtf8(wide_c_str, -1);
 }
@@ -1859,9 +1884,9 @@ std::string String::ShowWideCString(const wchar_t * wide_c_str) {
 // C string is considered different to any non-NULL C string,
 // including the empty string.
 bool String::WideCStringEquals(const wchar_t * lhs, const wchar_t * rhs) {
-  if (lhs == NULL) return rhs == NULL;
+  if (lhs == nullptr) return rhs == nullptr;
 
-  if (rhs == NULL) return false;
+  if (rhs == nullptr) return false;
 
   return wcscmp(lhs, rhs) == 0;
 }
@@ -5387,3 +5412,5 @@ void InitGoogleTest(int* argc, wchar_t** argv) {
 }
 
 }  // namespace testing
+
+#pragma clang diagnostic pop

@@ -52,7 +52,7 @@ namespace ui {
 			float new_size = this_font.metrics_text_extent(
 				new_text_instance.object.text,
 				new_text_instance.object.length,
-				ui::detail::font_size_to_render_size(this_font, fmt.font_size),
+				ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size)),
 				is_outlined_color(fmt.color));
 
 			while (lm.exceeds_extent(position.x + int32_t(new_size + 0.5f))) {
@@ -62,7 +62,7 @@ namespace ui {
 					if (position.x != 0) {
 						lm.finish_current_line();
 						position.x = 0;
-						position.y += this_font.line_height(ui::detail::font_size_to_render_size(this_font, fmt.font_size)) + 0.5f;
+						position.y += this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size))) + 0.5f;
 						new_text_instance.object.length = original_length;
 					} else {
 						break;
@@ -72,14 +72,14 @@ namespace ui {
 				new_size = this_font.metrics_text_extent(
 					new_text_instance.object.text,
 					new_text_instance.object.length,
-					ui::detail::font_size_to_render_size(this_font, fmt.font_size),
+					ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size)),
 					is_outlined_color(fmt.color));
 				previous_length = new_text_instance.object.length;
 			}
 
 			new_gobj.object.size = ui::xy_pair{
 				int16_t(new_size + 0.5f),
-				int16_t(this_font.line_height(ui::detail::font_size_to_render_size(this_font, fmt.font_size)) + 0.5f) };
+				int16_t(this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size))) + 0.5f) };
 			new_gobj.object.position = position;
 
 			behavior_creator(new_gobj);
@@ -87,7 +87,7 @@ namespace ui {
 			add_to_back(container, parent_object, new_gobj);
 			lm.add_object(&(new_gobj.object));
 
-			return std::make_pair(ui::xy_pair{ position.x + new_gobj.object.size.x, position.y }, offset_in_chunk + new_text_instance.object.length);
+			return std::make_pair(ui::xy_pair{ static_cast<int16_t>(position.x + new_gobj.object.size.x), position.y }, offset_in_chunk + new_text_instance.object.length);
 		}
 	}
 }
@@ -98,7 +98,7 @@ ui::xy_pair ui::text_chunk_to_instances(ui::gui_manager& manager, vector_backed_
 
 	const auto chunk_size = text_source.length();
 	while (position_in_chunk < chunk_size) {
-		std::tie(position, position_in_chunk) = detail::text_chunk_to_single_instance(manager, text_source, position_in_chunk, parent_object, position, fmt, lm, behavior_creator);
+		std::tie(position, position_in_chunk) = detail::text_chunk_to_single_instance(manager, text_source, static_cast<uint32_t>(position_in_chunk), parent_object, position, fmt, lm, behavior_creator);
 	}
 	return position;
 }
@@ -241,13 +241,13 @@ ui::tagged_gui_object ui::create_dynamic_element(gui_manager& manager, T handle,
 }
 
 template<typename FILL_FUNCTION>
-ui::tagged_gui_object ui::create_scrollable_region(gui_manager& manager, tagged_gui_object parent, ui::xy_pair position, int32_t height, int32_t step_size, graphics::obj_definition_tag bg, const FILL_FUNCTION& f) {
+ui::tagged_gui_object ui::create_scrollable_region(gui_manager& manager, tagged_gui_object parent, ui::xy_pair position, int32_t height, int32_t step_size, graphics::obj_definition_tag , const FILL_FUNCTION& f) {
 	const auto new_gobj = manager.gui_objects.emplace();
 	new_gobj.object.position = position;
 
 	const auto inner_area = f(manager);
 	inner_area.object.position = ui::xy_pair{ 0,0 };
-	new_gobj.object.size = ui::xy_pair{ inner_area.object.size.x + 16, height };
+	new_gobj.object.size = ui::xy_pair{ static_cast<int16_t>(inner_area.object.size.x + 16), static_cast<int16_t>(height) };
 
 	ui::add_to_back(manager, new_gobj, inner_area);
 

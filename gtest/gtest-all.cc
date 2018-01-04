@@ -1,4 +1,3 @@
-#pragma once
 // Copyright 2008, Google Inc.
 // All rights reserved.
 //

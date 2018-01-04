@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
+//#define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
 class pair_reduction {
 public:
@@ -41,7 +41,7 @@ public:
 class fold_summation {
 public:
 	int value;
-	fold_summation(int v) : value(v) {};
+	fold_summation(int v) : value(v) {}
 
 	void operator()(const int i) {
 		value += i;

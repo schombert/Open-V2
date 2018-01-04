@@ -149,7 +149,6 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="streams.h" />
     <ClInclude Include="streams.hpp" />
-    <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="streams.cpp" />

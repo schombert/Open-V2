@@ -6,6 +6,8 @@
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
+bool inverse_ignorable(char n);
+
 bool inverse_ignorable(char n) {
 	return !ignorable_char(n);
 }
@@ -703,38 +705,38 @@ TEST_METHOD(element_if_forall_and_find, parsers_test) {
 	parse_token_list(r3_list, RANGE(nlist));
 
 	IsFalse(any_token(&r3_list[0], &r3_list[0] + 11,
-							  [](const token_group &n, const token_group *child_start, const token_group *child_end) {
+							  [](const token_group &n, const token_group *, const token_group *) {
 		return is_fixed_token(n.token, "s1"); }));
 	IsTrue(all_tokens(&r3_list[0], &r3_list[0] + 11,
-							  [](const token_group &n, const token_group *child_start, const token_group *child_end) {
+							  [](const token_group &n, const token_group *, const token_group *) {
 		return n.association == association_type::list || n.association == association_type::eq_default; }));
 	IsTrue(any_token_recursive(&r3_list[0], &r3_list[0] + 11,
-									   [](const token_group &n, const token_group *child_start, const token_group *child_end) {
+									   [](const token_group &n, const token_group *, const token_group *) {
 		return is_fixed_token(n.token, "s1"); }));
 	IsFalse(all_tokens_recursive(&r3_list[0], &r3_list[0] + 11,
-										 [](const token_group &n, const token_group *child_start, const token_group *child_end) {
+										 [](const token_group &n, const token_group *, const token_group *) {
 		return n.association == association_type::eq_default; }));
 	IsTrue(&r3_list[5] == find_token_recursive(&r3_list[0], &r3_list[0] + 11,
-													   [](const token_group &n, const token_group *child_start, const token_group *child_end) {
+													   [](const token_group &n, const token_group *, const token_group *) {
 		return is_fixed_token(n.token, "s1"); }));
 	IsTrue(&r3_list[0] + 11 == find_token(&r3_list[0], &r3_list[0] + 11,
-												  [](const token_group &n, const token_group *child_start, const token_group *child_end) {
+												  [](const token_group &n, const token_group *, const token_group *) {
 		return is_fixed_token(n.token, "s1"); }));
 
 	IsTrue(all_tokens(&r3_list[0], &r3_list[0] + 11,
-							  [](const token_group &n, const token_group *child_start, const token_group *child_end) {
+							  [](const token_group &, const token_group *child_start, const token_group *child_end) {
 		return child_start != child_end; }));
 	IsFalse(all_tokens_recursive(&r3_list[0], &r3_list[0] + 11,
-										 [](const token_group &n, const token_group *child_start, const token_group *child_end) {
+										 [](const token_group &, const token_group *child_start, const token_group *child_end) {
 		return child_start != child_end; }));
 
 	int countall = 0;
 	int countlevel = 0;
 	forall_tokens_recursive(&r3_list[0], &r3_list[0] + 11,
-							[&countall](const token_group &n, const token_group *child_start, const token_group *child_end) {++countall; });
+							[&countall](const token_group &, const token_group *, const token_group *) {++countall; });
 	AreEqual(11, countall);
 	forall_tokens(&r3_list[0], &r3_list[0] + 11,
-				  [&countlevel](const token_group &n, const token_group *child_start, const token_group *child_end) {++countlevel; });
+				  [&countlevel](const token_group &, const token_group *, const token_group *) {++countlevel; });
 	AreEqual(2, countlevel);
 }
 
@@ -758,11 +760,11 @@ TEST_METHOD(parse_lua_float, parsers_test) {
 	forall_tokens(&r3_list[0], &r3_list[0] + r3_list.size(),
 				  [&float_found, &diplomacy_count](const token_group &n, token_group *child_start, token_group *child_end) {
 		if (is_fixed_token(n.token, "diplomacy")) {
-			forall_tokens(child_start, child_end, [&float_found, &diplomacy_count](token_group &n, token_group *child_start, const token_group *child_end) {
+			forall_tokens(child_start, child_end, [&float_found, &diplomacy_count](token_group &nn, token_group *cs, const token_group *ce) {
 				++diplomacy_count;
-				if (is_fixed_token_ci(n.token, "prestige_reduction")) {
-					if (child_start != child_end) {
-						float_found = is_fp(child_start->token.start, child_start->token.end);
+				if (is_fixed_token_ci(nn.token, "prestige_reduction")) {
+					if (cs != ce) {
+						float_found = is_fp(cs->token.start, cs->token.end);
 					}
 				}
 			});

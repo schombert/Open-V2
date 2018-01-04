@@ -35,7 +35,7 @@ namespace ui {
 	struct key_up;
 	struct text_event;
 
-	constexpr int32_t piechart_resolution = 100;
+	constexpr uint16_t piechart_resolution = 100;
 
 	enum class text_color : uint8_t {
 		black, white, red, green, yellow,
@@ -44,15 +44,20 @@ namespace ui {
 	constexpr bool is_outlined_color(text_color c) {
 		return (c == text_color::outlined_white) | (c == text_color::outlined_black);
 	}
-	struct text_instance {
+	struct alignas(int32_t) text_instance {
 		static constexpr uint32_t max_instance_length = 30;
+
+		char16_t text[max_instance_length] = {0};
 
 		graphics::font_tag font_handle;
 		text_color color = text_color::black;
 		uint8_t size = 8; // *2 = display size
 		uint8_t length = 0;
-		char16_t text[max_instance_length] = {0};
 	};
+	static_assert(sizeof(graphics::font_tag) == 1);
+	static_assert(sizeof(text_color) == 1);
+	static_assert(sizeof(text_instance) == 64);
+
 	struct graphics_instance {
 		graphics::texture* t = nullptr;
 		graphics::object* graphics_object = nullptr;

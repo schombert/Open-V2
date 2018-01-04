@@ -91,7 +91,6 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\performance_measurement;$(ProjectDir)..\text_classifier;$(ProjectDir)..</AdditionalIncludeDirectories>
       <LanguageStandard>
       </LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -142,7 +141,6 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\performance_measurement;$(ProjectDir)..;$(ProjectDir)..\simple_mpl</AdditionalIncludeDirectories>
       <LanguageStandard>
       </LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

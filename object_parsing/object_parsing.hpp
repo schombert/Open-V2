@@ -16,11 +16,11 @@ result_type object_parser<result_type>::operator()(
 
 	result_type under_construction;
 
-	forall_tokens(start, end, [_this = this, &under_construction](const token_group& value, const token_group* start, const token_group* end) {
+	forall_tokens(start, end, [_this = this, &under_construction](const token_group& value, const token_group* s, const token_group* e) {
 		if (const auto tag = _this->tag_classifier.classify(value.token.start, value.token.end); tag != 0) {
-			_this->tag_handlers[tag - 1].second(under_construction, value, start, end);
+			_this->tag_handlers[tag - 1].second(under_construction, value, s, e);
 		} else {
-			_this->default_handler(under_construction, value, start, end);
+			_this->default_handler(under_construction, value, s, e);
 		}
 	});
 

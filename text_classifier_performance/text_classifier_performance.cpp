@@ -130,7 +130,7 @@ class test_movable_fn {
 public:
 	movable_function<unsigned char, const char*, const char*> function;
 
-	test_movable_fn(movable_function<unsigned char, const char*, const char*>&& s) : function(std::move(s)) {};
+	test_movable_fn(movable_function<unsigned char, const char*, const char*>&& s) : function(std::move(s)) {}
 
 	int test_function() {
 		int sum = 0;
@@ -145,7 +145,7 @@ class test_std_fn {
 public:
 	std::function<unsigned char(const char*, const char*)> function;
 
-	test_std_fn(const std::function<unsigned char(const char*, const char*)> &s) : function(s) {};
+	test_std_fn(const std::function<unsigned char(const char*, const char*)> &s) : function(s) {}
 
 	int test_function() {
 		int sum = 0;
@@ -205,7 +205,7 @@ class test_binary_search_classifier_class_a {
 public:
 	binary_search_classifier bsc;
 
-	test_binary_search_classifier_class_a() : bsc(test_set_a) {};
+	test_binary_search_classifier_class_a() : bsc(test_set_a) {}
 
 	int test_function() {
 		int sum = 0;
@@ -220,7 +220,7 @@ class test_binary_search_classifier_class_b {
 public:
 	binary_search_classifier bsc;
 
-	test_binary_search_classifier_class_b() : bsc(test_set_b) {};
+	test_binary_search_classifier_class_b() : bsc(test_set_b) {}
 
 	int test_function() {
 		int sum = 0;

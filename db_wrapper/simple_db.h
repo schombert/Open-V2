@@ -1,7 +1,10 @@
 #pragma once
 #pragma  warning(push)
 #pragma  warning(disable:4701)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundef"
 #include "sqlite3.h"
+#pragma clang diagnostic pop
 #pragma  warning(pop)
 #include <vector>
 #include <string>
@@ -9,7 +12,7 @@
 #include <algorithm>
 
 #ifdef _DEBUG
-#include<windows.h>
+#include<Windows.h>
 #undef min
 #undef max
 #endif
@@ -284,8 +287,8 @@ public:
 	static void get_value(sqlite3_stmt* stmt, std::vector<O, A>& vec) {
 		vec.clear();
 		const auto bytes = sqlite3_column_bytes(stmt, index);
-		const auto optr = (O*)sqlite3_column_blob(stmt, index);
-		vec.insert(vec.end(), optr, optr + bytes / sizeof(O));
+		const auto optr = (const O*)sqlite3_column_blob(stmt, index);
+		vec.insert(vec.end(), optr, optr + static_cast<size_t>(bytes) / sizeof(O));
 	}
 };
 
@@ -417,8 +420,8 @@ class table_bound_statement {
 private:
 	sqlite3_stmt* stmt;
 public:
-	table_bound_statement() : stmt(nullptr) {};
-	table_bound_statement(sqlite3_stmt* source) : stmt(source) {};
+	table_bound_statement() : stmt(nullptr) {}
+	table_bound_statement(sqlite3_stmt* source) : stmt(source) {}
 	table_bound_statement(sqlite3* db, const char* def) : stmt(nullptr){
 #ifdef _DEBUG
 		int res =
@@ -434,7 +437,7 @@ public:
 	table_bound_statement(const table_bound_statement&) = delete;
 	table_bound_statement(table_bound_statement&& i) noexcept {
 		std::swap(stmt, i.stmt);
-	};
+	}
 	~table_bound_statement() {
 		if(stmt)
 			sqlite3_finalize(stmt);

@@ -32,6 +32,16 @@
 //
 // This file implements death tests.
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-variable-declarations"
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#pragma clang diagnostic ignored "-Wundef"
+#pragma clang diagnostic ignored "-Wsign-conversion"
+#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
+#pragma clang diagnostic ignored "-Wcovered-switch-default"
+#pragma clang diagnostic ignored "-Wswitch-enum"
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+
 #include "gtest/gtest-death-test.h"
 #include "gtest/internal/gtest-port.h"
 #include "gtest/internal/custom/gtest.h"
@@ -53,7 +63,7 @@
 # include <stdarg.h>
 
 # if GTEST_OS_WINDOWS
-#  include <windows.h>
+#  include <Windows.h>
 # else
 #  include <sys/mman.h>
 #  include <sys/wait.h>
@@ -260,13 +270,13 @@ enum DeathTestOutcome { IN_PROGRESS, DIED, LIVED, RETURNED, THREW };
 // message is propagated back to the parent process.  Otherwise, the
 // message is simply printed to stderr.  In either case, the program
 // then exits with status 1.
-void DeathTestAbort(const std::string& message) {
+[[ noreturn ]] void DeathTestAbort(const std::string& message) {
   // On a POSIX system, this function may be called from a threadsafe-style
   // death test child process, which operates on a very small stack.  Use
   // the heap for any additional non-minuscule memory requirements.
   const InternalRunDeathTestFlag* const flag =
       GetUnitTestImpl()->internal_run_death_test_flag();
-  if (flag != NULL) {
+  if (flag != nullptr) {
     FILE* parent = posix::FDOpen(flag->write_fd(), "w");
     fputc(kDeathTestInternalError, parent);
     fprintf(parent, "%s", message.c_str());
@@ -700,7 +710,7 @@ DeathTest::TestRole WindowsDeathTest::AssumeRole() {
   const TestInfo* const info = impl->current_test_info();
   const int death_test_index = info->result()->death_test_count();
 
-  if (flag != NULL) {
+  if (flag != nullptr) {
     // ParseInternalRunDeathTestFlag() has performed all the necessary
     // processing.
     set_write_fd(flag->write_fd());
@@ -710,7 +720,7 @@ DeathTest::TestRole WindowsDeathTest::AssumeRole() {
   // WindowsDeathTest uses an anonymous pipe to communicate results of
   // a death test.
   SECURITY_ATTRIBUTES handles_are_inheritable = {
-    sizeof(SECURITY_ATTRIBUTES), NULL, TRUE };
+    sizeof(SECURITY_ATTRIBUTES), nullptr, TRUE };
   HANDLE read_handle, write_handle;
   GTEST_DEATH_TEST_CHECK_(
       ::CreatePipe(&read_handle, &write_handle, &handles_are_inheritable,
@@ -723,8 +733,8 @@ DeathTest::TestRole WindowsDeathTest::AssumeRole() {
       &handles_are_inheritable,
       TRUE,    // The event will automatically reset to non-signaled state.
       FALSE,   // The initial state is non-signalled.
-      NULL));  // The even is unnamed.
-  GTEST_DEATH_TEST_CHECK_(event_handle_.Get() != NULL);
+	  nullptr));  // The even is unnamed.
+  GTEST_DEATH_TEST_CHECK_(event_handle_.Get() != nullptr);
   const std::string filter_flag =
       std::string("--") + GTEST_FLAG_PREFIX_ + kFilterFlag + "=" +
       info->test_case_name() + "." + info->name();
@@ -741,7 +751,7 @@ DeathTest::TestRole WindowsDeathTest::AssumeRole() {
 
   char executable_path[_MAX_PATH + 1];  // NOLINT
   GTEST_DEATH_TEST_CHECK_(
-      _MAX_PATH + 1 != ::GetModuleFileNameA(NULL,
+      _MAX_PATH + 1 != ::GetModuleFileNameA(nullptr,
                                             executable_path,
                                             _MAX_PATH));
 
@@ -767,11 +777,11 @@ DeathTest::TestRole WindowsDeathTest::AssumeRole() {
   GTEST_DEATH_TEST_CHECK_(::CreateProcessA(
       executable_path,
       const_cast<char*>(command_line.c_str()),
-      NULL,   // Retuned process handle is not inheritable.
-      NULL,   // Retuned thread handle is not inheritable.
+	  nullptr,   // Retuned process handle is not inheritable.
+	  nullptr,   // Retuned thread handle is not inheritable.
       TRUE,   // Child inherits all inheritable handles (for write_handle_).
       0x0,    // Default creation flags.
-      NULL,   // Inherit the parent's environment.
+	  nullptr,   // Inherit the parent's environment.
       UnitTest::GetInstance()->original_working_dir(),
       &startup_info,
       &process_info) != FALSE);
@@ -1189,7 +1199,7 @@ bool DefaultDeathTestFactory::Create(const char* statement, const RE* regex,
 
     if (!(flag->file() == file && flag->line() == line &&
           flag->index() == death_test_index)) {
-      *test = NULL;
+      *test = nullptr;
       return true;
     }
   }
@@ -1293,7 +1303,7 @@ int GetStatusFileDescriptor(unsigned int parent_process_id,
 // initialized from the GTEST_FLAG(internal_run_death_test) flag if
 // the flag is specified; otherwise returns NULL.
 InternalRunDeathTestFlag* ParseInternalRunDeathTestFlag() {
-  if (GTEST_FLAG(internal_run_death_test) == "") return NULL;
+  if (GTEST_FLAG(internal_run_death_test) == "") return nullptr;
 
   // GTEST_HAS_DEATH_TEST implies that we have ::std::string, so we
   // can use it here.
@@ -1341,3 +1351,5 @@ InternalRunDeathTestFlag* ParseInternalRunDeathTestFlag() {
 #endif  // GTEST_HAS_DEATH_TEST
 
 }  // namespace testing
+
+#pragma clang diagnostic pop

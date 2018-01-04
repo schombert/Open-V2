@@ -32,6 +32,16 @@
 //
 // The Google C++ Testing Framework (Google Test)
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-variable-declarations"
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#pragma clang diagnostic ignored "-Wundef"
+#pragma clang diagnostic ignored "-Wsign-conversion"
+#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
+#pragma clang diagnostic ignored "-Wcovered-switch-default"
+#pragma clang diagnostic ignored "-Wswitch-enum"
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+
 #include "gtest/gtest-test-part.h"
 
 // Indicates that this translation unit is part of Google Test's
@@ -51,7 +61,7 @@ using internal::GetUnitTestImpl;
 // in it.
 std::string TestPartResult::ExtractSummary(const char* message) {
   const char* const stack_trace = strstr(message, internal::kStackTraceMarker);
-  return stack_trace == NULL ? message :
+  return stack_trace == nullptr ? message :
       std::string(message, stack_trace);
 }
 
@@ -109,3 +119,6 @@ void HasNewFatalFailureHelper::ReportTestPartResult(
 }  // namespace internal
 
 }  // namespace testing
+
+#pragma clang diagnostic pop
+

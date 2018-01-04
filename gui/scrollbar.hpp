@@ -108,9 +108,9 @@ void ui::scrollbar<BASE>::update_limit_icons(gui_manager& m) {
 	if (minimum_limit_icon) {
 		if (limit_minimum != minimum) {
 			if (vertical) {
-				minimum_limit_icon->position.y = valid_start - slider->size.y / 2 + static_cast<int32_t>(static_cast<double>((valid_end - valid_start) * (limit_minimum - minimum)) / static_cast<double>(maximum - minimum));
+				minimum_limit_icon->position.y = static_cast<int16_t>(valid_start - slider->size.y / 2 + static_cast<int32_t>(static_cast<double>((valid_end - valid_start) * (limit_minimum - minimum)) / static_cast<double>(maximum - minimum)));
 			} else {
-				minimum_limit_icon->position.x = valid_start - slider->size.x / 2 + static_cast<int32_t>(static_cast<double>((valid_end - valid_start) * (limit_minimum - minimum)) / static_cast<double>(maximum - minimum));
+				minimum_limit_icon->position.x = static_cast<int16_t>(valid_start - slider->size.x / 2 + static_cast<int32_t>(static_cast<double>((valid_end - valid_start) * (limit_minimum - minimum)) / static_cast<double>(maximum - minimum)));
 			}
 			minimum_limit_icon->flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
 		} else
@@ -119,9 +119,9 @@ void ui::scrollbar<BASE>::update_limit_icons(gui_manager& m) {
 	if (maximum_limit_icon) {
 		if (limt_maximum != maximum) {
 			if (vertical) {
-				maximum_limit_icon->position.y = valid_start + static_cast<int32_t>(static_cast<double>((valid_end - valid_start) * (limt_maximum - minimum)) / static_cast<double>(maximum - minimum));
+				maximum_limit_icon->position.y = static_cast<int16_t>(valid_start + static_cast<int32_t>(static_cast<double>((valid_end - valid_start) * (limt_maximum - minimum)) / static_cast<double>(maximum - minimum)));
 			} else {
-				maximum_limit_icon->position.x = valid_start + static_cast<int32_t>(static_cast<double>((valid_end - valid_start) * (limt_maximum - minimum)) / static_cast<double>(maximum - minimum));
+				maximum_limit_icon->position.x = static_cast<int16_t>(valid_start + static_cast<int32_t>(static_cast<double>((valid_end - valid_start) * (limt_maximum - minimum)) / static_cast<double>(maximum - minimum)));
 			}
 			maximum_limit_icon->flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
 		} else
@@ -197,7 +197,7 @@ namespace ui {
 			const auto right_button = create_dynamic_element<simple_button<scrollbar_right_button<BEHAVIOR>>>(manager, b.vertical ? scrollbar_definition.minimum_button : scrollbar_definition.maximum_button, scrollbar_obj, b);
 			const auto track = create_dynamic_element<scrollbar_track<BEHAVIOR>>(manager, scrollbar_definition.track, scrollbar_obj, b);
 
-			scrollbar_obj.object.size = b.vertical ? ui::xy_pair{ std::max(left_button.object.size.x, scrollbar_definition.size.x) , extent } : ui::xy_pair{ extent, std::max(left_button.object.size.y, scrollbar_definition.size.y) };
+			scrollbar_obj.object.size = b.vertical ? ui::xy_pair{ std::max(left_button.object.size.x, scrollbar_definition.size.x) , static_cast<int16_t>(extent) } : ui::xy_pair{ static_cast<int16_t>(extent), std::max(left_button.object.size.y, scrollbar_definition.size.y) };
 			scrollbar_obj.object.position = position;
 
 			if (track.object.position.x != 0)
@@ -206,44 +206,44 @@ namespace ui {
 				--track.object.position.y;
 			if (b.vertical) {
 				left_button.object.position.y = 0;
-				left_button.object.position.x = scrollbar_obj.object.size.x / 2 - left_button.object.size.x / 2;
+				left_button.object.position.x = static_cast<int16_t>(scrollbar_obj.object.size.x / 2 - left_button.object.size.x / 2);
 
-				right_button.object.position.y = scrollbar_obj.object.size.y - right_button.object.size.y;
-				right_button.object.position.x = scrollbar_obj.object.size.x / 2 - right_button.object.size.x / 2;
+				right_button.object.position.y = static_cast<int16_t>(scrollbar_obj.object.size.y - right_button.object.size.y);
+				right_button.object.position.x = static_cast<int16_t>(scrollbar_obj.object.size.x / 2 - right_button.object.size.x / 2);
 
-				slider.object.position.x = scrollbar_obj.object.size.x / 2 - slider.object.size.x / 2;
+				slider.object.position.x = static_cast<int16_t>(scrollbar_obj.object.size.x / 2 - slider.object.size.x / 2);
 				slider.object.position.y = left_button.object.size.y;
 
 				b.valid_start = left_button.object.size.y + slider.object.size.y / 2;
 				b.valid_end = scrollbar_obj.object.size.y - right_button.object.size.y - slider.object.size.y / 2;
 
-				track.object.size.y = scrollbar_obj.object.size.y - left_button.object.size.y / 2 - right_button.object.size.y / 2;
+				track.object.size.y = static_cast<int16_t>(scrollbar_obj.object.size.y - left_button.object.size.y / 2 - right_button.object.size.y / 2);
 				track.object.position.y = left_button.object.size.y / 2;
 
 				if (b.minimum_limit_icon)
-					b.minimum_limit_icon->position = ui::xy_pair{ scrollbar_obj.object.size.x / 2 - b.minimum_limit_icon->size.x / 2, left_button.object.size.y };
+					b.minimum_limit_icon->position = ui::xy_pair{ static_cast<int16_t>(scrollbar_obj.object.size.x / 2 - b.minimum_limit_icon->size.x / 2), left_button.object.size.y };
 				if (b.maximum_limit_icon)
-					b.maximum_limit_icon->position = ui::xy_pair{ scrollbar_obj.object.size.x / 2 - b.maximum_limit_icon->size.x / 2, scrollbar_obj.object.size.y - right_button.object.size.y - slider.object.size.y / 2 };
+					b.maximum_limit_icon->position = ui::xy_pair{ static_cast<int16_t>(scrollbar_obj.object.size.x / 2 - b.maximum_limit_icon->size.x / 2), static_cast<int16_t>(scrollbar_obj.object.size.y - right_button.object.size.y - slider.object.size.y / 2) };
 			} else {
 				left_button.object.position.x = 0;
-				left_button.object.position.y = scrollbar_obj.object.size.y / 2 - left_button.object.size.y / 2;
+				left_button.object.position.y = static_cast<int16_t>(scrollbar_obj.object.size.y / 2 - left_button.object.size.y / 2);
 
-				right_button.object.position.x = scrollbar_obj.object.size.x - right_button.object.size.x;
-				right_button.object.position.y = scrollbar_obj.object.size.y / 2 - right_button.object.size.y / 2;
+				right_button.object.position.x = static_cast<int16_t>(scrollbar_obj.object.size.x - right_button.object.size.x);
+				right_button.object.position.y = static_cast<int16_t>(scrollbar_obj.object.size.y / 2 - right_button.object.size.y / 2);
 
-				slider.object.position.y = scrollbar_obj.object.size.y / 2 - slider.object.size.y / 2;
+				slider.object.position.y = static_cast<int16_t>(scrollbar_obj.object.size.y / 2 - slider.object.size.y / 2);
 				slider.object.position.x = left_button.object.size.x;
 
 				b.valid_start = left_button.object.size.x + slider.object.size.x / 2;
 				b.valid_end = scrollbar_obj.object.size.x - right_button.object.size.x - slider.object.size.x / 2;
 
-				track.object.size.x = scrollbar_obj.object.size.x - left_button.object.size.x / 2 - right_button.object.size.x / 2;
-				track.object.position.x = left_button.object.size.x / 2;
+				track.object.size.x = static_cast<int16_t>(scrollbar_obj.object.size.x - left_button.object.size.x / 2 - right_button.object.size.x / 2);
+				track.object.position.x = static_cast<int16_t>(left_button.object.size.x / 2);
 
 				if (b.minimum_limit_icon)
-					b.minimum_limit_icon->position = ui::xy_pair{ left_button.object.size.x, scrollbar_obj.object.size.y / 2 - b.minimum_limit_icon->size.y / 2 };
+					b.minimum_limit_icon->position = ui::xy_pair{ left_button.object.size.x, static_cast<int16_t>(scrollbar_obj.object.size.y / 2 - b.minimum_limit_icon->size.y / 2) };
 				if (b.maximum_limit_icon)
-					b.maximum_limit_icon->position = ui::xy_pair{ scrollbar_obj.object.size.x - right_button.object.size.x - slider.object.size.x / 2, scrollbar_obj.object.size.y / 2 - b.maximum_limit_icon->size.y / 2 };
+					b.maximum_limit_icon->position = ui::xy_pair{ static_cast<int16_t>(scrollbar_obj.object.size.x - right_button.object.size.x - slider.object.size.x / 2), static_cast<int16_t>(scrollbar_obj.object.size.y / 2 - b.maximum_limit_icon->size.y / 2) };
 			}
 
 			ui::add_to_back(manager, parent, scrollbar_obj);

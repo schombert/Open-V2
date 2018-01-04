@@ -36,12 +36,13 @@ public:
 template<uint32_t outer_loops, uint32_t inner_loops, typename base_object>
 class test_object : public base_object {
 public:
-	test_object() : base_object() {};
+	test_object() : base_object() {}
 
+#ifndef _DEBUG
 	int log_function(logging_object& log, const char* test_name) {
 
 		int i_sum = 0;
-#ifndef _DEBUG
+
 		for (uint32_t a = 0; a < 3; ++a) {
 			for (uint32_t i = 0; i < inner_loops; ++i) {
 				i_sum += base_object::test_function();
@@ -60,9 +61,13 @@ public:
 		}
 
 		log.log_results(results, outer_loops, inner_loops, test_name);
-#endif
-		return i_sum;
 
+		return i_sum;
 	}
+#else
+	int log_function(logging_object&, const char*) {
+		return 0;
+	}
+#endif
 };
 

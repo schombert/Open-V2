@@ -1,7 +1,9 @@
-#include "performance.h"
-#include "parsers.hpp"
-#include <windows.h>
+#include "performance_measurement\\performance.h"
+#include "Parsers\\parsers.hpp"
+#include <Windows.h>
 #include <iostream>
+
+int parse_artisan(char* start, char* end);
 
 int parse_artisan(char* start, char* end) {
 	std::vector<token_group> results;
@@ -17,18 +19,18 @@ public:
 	unsigned long long filesize = 0;
 
 	file_read_tester(const wchar_t* filename) {
-		HANDLE fin = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		fin = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (fin == INVALID_HANDLE_VALUE) {
 			std::cout << "Could not open file: " << filename << std::endl;
 		} else {
 			LARGE_INTEGER file_size;
 			GetFileSizeEx(fin, &file_size);
 
-			fixed_copy = new char[file_size.QuadPart];
-			temp_copy = new char[file_size.QuadPart];
-			filesize = file_size.QuadPart;
+			fixed_copy = new char[(size_t)file_size.QuadPart];
+			temp_copy = new char[(size_t)file_size.QuadPart];
+			filesize = (size_t)file_size.QuadPart;
 
-			ReadFile(fin, fixed_copy, (DWORD)filesize, NULL, NULL);
+			ReadFile(fin, fixed_copy, (DWORD)filesize, nullptr, nullptr);
 		}
 	}
 	~file_read_tester() {
@@ -62,7 +64,7 @@ public:
 	int test_function() {
 		file_read_tester::test_function();
 		char* start = temp_copy;
-		int total;
+		int total = 0;
 		while (start != temp_copy + filesize) {
 			start = parse_first_and_nth_csv_values(2, start, temp_copy + filesize, ';', [&total](std::pair<char*, char*> tag, std::pair<char*, char*> value) {
 				total += (int)(tag.second - tag.first) + (int)(value.second - value.first);

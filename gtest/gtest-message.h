@@ -101,7 +101,12 @@ class GTEST_API_ Message {
   explicit Message(const char* str) : ss_(new ::std::stringstream) {
     *ss_ << str;
   }
-
+#ifndef GTEST_OS_SYMBIAN
+#define GTEST_OS_SYMBIAN 0
+#endif
+#ifndef GTEST_OS_CYGWIN
+#define GTEST_OS_CYGWIN 0
+#endif
 #if GTEST_OS_SYMBIAN
   // Streams a value (either a pointer or not) to this object.
   template <typename T>
@@ -147,7 +152,7 @@ class GTEST_API_ Message {
   // as "(null)".
   template <typename T>
   inline Message& operator <<(T* const& pointer) {  // NOLINT
-    if (pointer == NULL) {
+    if (pointer == nullptr) {
       *ss_ << "(null)";
     } else {
       *ss_ << pointer;

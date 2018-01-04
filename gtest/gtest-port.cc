@@ -30,6 +30,17 @@
 //
 // Author: wan@google.com (Zhanyong Wan)
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-variable-declarations"
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#pragma clang diagnostic ignored "-Wundef"
+#pragma clang diagnostic ignored "-Wsign-conversion"
+#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
+#pragma clang diagnostic ignored "-Wcovered-switch-default"
+#pragma clang diagnostic ignored "-Wswitch-enum"
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+#pragma clang diagnostic ignored "-Wunused-member-function"
+
 #include "gtest/internal/gtest-port.h"
 
 #include <limits.h>
@@ -39,7 +50,7 @@
 #include <fstream>
 
 #if GTEST_OS_WINDOWS
-# include <windows.h>
+# include <Windows.h>
 # include <io.h>
 # include <sys/stat.h>
 # include <map>  // Used in ThreadLocal.
@@ -1258,3 +1269,5 @@ std::string StringFromGTestEnv(const char* flag, const char* default_value) {
 
 }  // namespace internal
 }  // namespace testing
+
+#pragma clang diagnostic pop

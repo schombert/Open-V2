@@ -1,5 +1,4 @@
 #pragma once
-#include "stdafx.h"
 #include "streams_parsing.h"
 #include "streams\\streams.h"
 #include "text_classifier\\text_classifiers.h"
@@ -87,9 +86,9 @@ private:
 	const object_parsing_definition<result_type>* const definition;
 	result_type under_construction;
 public:
-	token_to_object_stream_operation(object_parsing_definition<result_type>& def) : definition(&def) {};
-	token_to_object_stream_operation(const token_to_object_stream_operation& o) : token_to_object_stream_operation_base(o), definition(o.definition), under_construction(o.under_construction) {};
-	token_to_object_stream_operation(token_to_object_stream_operation&& o) : token_to_object_stream_operation_base(std::move(o)), definition(o.definition), under_construction(std::move(o.under_construction)) {};
+	token_to_object_stream_operation(object_parsing_definition<result_type>& def) : definition(&def) {}
+	token_to_object_stream_operation(const token_to_object_stream_operation& o) : token_to_object_stream_operation_base(o), definition(o.definition), under_construction(o.under_construction) {}
+	token_to_object_stream_operation(token_to_object_stream_operation&& o) : token_to_object_stream_operation_base(std::move(o)), definition(o.definition), under_construction(std::move(o.under_construction)) {}
 	void reset();
 
 	template<typename NEXT>
@@ -295,14 +294,14 @@ public:
 	using output_type = result_type;
 
 	generic_object_parser() {}
-	generic_object_parser(const generic_object_parser& other) {};
+	generic_object_parser(const generic_object_parser& other) {}
 	generic_object_parser(generic_object_parser&& other) :
 		left(std::move(other.left)),
 		assoc(std::move(other.assoc)),
 		passthrough_function(std::move(other.passthrough_function)),
 		passthrough(other.passthrough),
 		under_construction(std::move(other.under_construction)) {
-	};
+	}
 
 	void reset();
 	void process_token(const token_and_type& left, association_type asc, const token_and_type& right);
@@ -380,8 +379,8 @@ void generic_object_parser<result_type, context>::process_list() {
 }
 
 template<typename result_type, typename context>
-void generic_object_parser<result_type, context>::process_token(const token_and_type& left, association_type asc, const token_and_type& right) {
-	const bool found_in_a = map_call_functions<tag_to_function>::template bt_scan_ci<bool>(left.start, left.end,
+void generic_object_parser<result_type, context>::process_token(const token_and_type& lt, association_type asc, const token_and_type& right) {
+	const bool found_in_a = map_call_functions<tag_to_function>::template bt_scan_ci<bool>(lt.start, lt.end,
 		[_this = this, asc, &right](auto t) {
 		using type_passed = typename decltype(t)::type;
 		typename type_passed::function_object()(
@@ -393,27 +392,27 @@ void generic_object_parser<result_type, context>::process_token(const token_and_
 	});
 	if (!found_in_a) {
 		const bool found_in_b = map_call_functions<function_to_function>::template scan_by_predicate<bool>(
-			[_this = this, &left, asc, &right](auto t) {
+			[_this = this, &lt, asc, &right](auto t) {
 			using type_passed = typename decltype(t)::type;
 			typename type_passed::function_object()(
 				_this->under_construction,
-				left,
+				lt,
 				asc,
 				right
 				);
 			return true;
-		}, left.start, left.end);
+		}, lt.start, lt.end);
 		if (!found_in_b) {
 #ifdef _DEBUG
 			if (right.start != right.end) {
 				OutputDebugStringA("Error: failed to find token-identifier pair association for token ");
-				OutputDebugStringA(std::string(left.start, left.end).c_str());
+				OutputDebugStringA(std::string(lt.start, lt.end).c_str());
 				OutputDebugStringA(" = ");
 				OutputDebugStringA(std::string(right.start, right.end).c_str());
 				OutputDebugStringA("\n");
 			} else {
 				OutputDebugStringA("Error: failed to find token-identifier association for free token ");
-				OutputDebugStringA(std::string(left.start, left.end).c_str());
+				OutputDebugStringA(std::string(lt.start, lt.end).c_str());
 				OutputDebugStringA("\n");
 			}
 #endif
@@ -470,7 +469,7 @@ private:
 		case internal_state::in_identifier: return token_type::identifier;
 		case internal_state::in_special_identifier: return token_type::special_identifier;
 		case internal_state::in_quoted_string: return token_type::quoted_string;
-		default: return token_type::unknown;
+		case internal_state::in_comment: return token_type::unknown;
 		}
 	}
 public:
