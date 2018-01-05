@@ -668,15 +668,26 @@ void ui::detail::render(const gui_manager& manager, graphics::open_gl_wrapper &o
 
 	const bool currently_enabled = parent_enabled && ((root_obj.flags.load(std::memory_order_acquire) & ui::gui_object::enabled) != 0);
 
-	graphics::scissor_rect clip(std::lround(screen_pos.effective_position_x), manager.height() - std::lround(screen_pos.effective_position_y + screen_pos.effective_height), std::lround(screen_pos.effective_width), std::lround(screen_pos.effective_height));
+	if ((flags & ui::gui_object::dont_clip_children) == 0) {
+		graphics::scissor_rect clip(std::lround(screen_pos.effective_position_x), manager.height() - std::lround(screen_pos.effective_position_y + screen_pos.effective_height), std::lround(screen_pos.effective_width), std::lround(screen_pos.effective_height));
 
-	detail::render_object_type(manager, ogl, root_obj, screen_pos, type, currently_enabled);
+		detail::render_object_type(manager, ogl, root_obj, screen_pos, type, currently_enabled);
 
-	gui_object_tag current_child = root_obj.first_child;
-	while (is_valid_index(current_child)) {
-		const auto& child_object = manager.gui_objects.at(current_child);
-		detail::render(manager, ogl, child_object, root_position, root_obj.size, currently_enabled);
-		current_child = child_object.right_sibling;
+		gui_object_tag current_child = root_obj.first_child;
+		while (is_valid_index(current_child)) {
+			const auto& child_object = manager.gui_objects.at(current_child);
+			detail::render(manager, ogl, child_object, root_position, root_obj.size, currently_enabled);
+			current_child = child_object.right_sibling;
+		}
+	} else {
+		detail::render_object_type(manager, ogl, root_obj, screen_pos, type, currently_enabled);
+
+		gui_object_tag current_child = root_obj.first_child;
+		while (is_valid_index(current_child)) {
+			const auto& child_object = manager.gui_objects.at(current_child);
+			detail::render(manager, ogl, child_object, root_position, root_obj.size, currently_enabled);
+			current_child = child_object.right_sibling;
+		}
 	}
 }
 

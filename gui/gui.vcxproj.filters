@@ -36,6 +36,9 @@
     <ClInclude Include="listbox.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="text_box.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="gui.cpp">

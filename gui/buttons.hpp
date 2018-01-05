@@ -24,12 +24,6 @@ void ui::simple_button<BASE>::update_data(gui_object_tag o, gui_manager& m, worl
 	}
 }
 
-template<typename BASE>
-template<typename T>
-void ui::simple_button<BASE>::initialize_in_window(T& t) {
-	if constexpr(ui::detail::has_initialize_in_window<BASE, T&>)
-		BASE::initialize_in_window(t);
-}
 
 template<typename B>
 ui::tagged_gui_object ui::create_static_element(gui_manager& manager, button_tag handle, tagged_gui_object parent, simple_button<B>& b) {

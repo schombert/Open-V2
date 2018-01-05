@@ -152,6 +152,7 @@
     <ClInclude Include="listbox.hpp" />
     <ClInclude Include="piechart.hpp" />
     <ClInclude Include="scrollbar.hpp" />
+    <ClInclude Include="text_box.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="buttons.cpp" />

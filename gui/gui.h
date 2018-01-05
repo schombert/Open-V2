@@ -70,6 +70,12 @@ namespace ui {
 		float progress = 0.0f;
 	};
 
+	struct text_format {
+		ui::text_color color;
+		graphics::font_tag font_handle;
+		uint32_t font_size;
+	};
+
 	class gui_object;
 	class gui_manager;
 
@@ -103,6 +109,8 @@ namespace ui {
 
 	class visible_region : public gui_behavior {
 	public:
+		template<typename ...P>
+		visible_region(P&& ...) {}
 		virtual bool on_lclick(gui_object_tag, gui_manager&, const lbutton_down&) override { return true; }
 		virtual bool on_rclick(gui_object_tag, gui_manager&, const rbutton_down&) override { return true; }
 		virtual tooltip_behavior has_tooltip(gui_object_tag, gui_manager&, const mouse_move&) override { return tooltip_behavior::no_tooltip; }
@@ -112,6 +120,8 @@ namespace ui {
 	private:
 		ui::xy_pair base_position;
 	public:
+		template<typename ...P>
+		draggable_region(P&& ... ) {}
 		virtual bool on_get_focus(gui_object_tag, gui_manager&) override;
 		virtual bool on_scroll(gui_object_tag, gui_manager&, const scroll&) override { return true; }
 		virtual bool on_drag(gui_object_tag, gui_manager&, const mouse_drag&) final override;
@@ -120,6 +130,8 @@ namespace ui {
 
 	class fixed_region : public visible_region {
 	public:
+		template<typename ...P>
+		fixed_region(P&& ... ) {}
 		virtual bool on_get_focus(gui_object_tag, gui_manager&) override { return true; }
 		virtual bool on_scroll(gui_object_tag, gui_manager&, const scroll&) override { return true; }
 		virtual bool on_drag(gui_object_tag, gui_manager&, const mouse_drag&) override { return true; }
@@ -139,9 +151,17 @@ namespace ui {
 		virtual void update_data(gui_object_tag, gui_manager&, world_state&) final override;
 		virtual tooltip_behavior has_tooltip(gui_object_tag, gui_manager&, const mouse_move&) final override;
 		virtual void create_tooltip(gui_object_tag, gui_manager&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
+	};
 
-		template<typename T>
-		void initialize_in_window(T&);
+	template<typename BASE>
+	class display_text : public visible_region, public BASE {
+	private:
+		text_format format;
+	public:
+		template<typename ...P>
+		display_text(P&& ... params) : BASE(std::forward<P>(params)...) {}
+
+		virtual void update_data(gui_object_tag, gui_manager&, world_state&) final override;
 	};
 
 	template<typename BASE>
@@ -216,15 +236,31 @@ namespace ui {
 		void associate(gui_object* g) { _content_frame = g; }
 	};
 
-	template<typename BASE, typename ELEMENT>
+	template<typename BASE, typename ELEMENT, int32_t left_expand = 0>
 	class display_listbox : public visible_region, public BASE {
 	private:
 		std::vector<ELEMENT, concurrent_allocator<ELEMENT>> contents;
-		std::vector<tagged_gui_object, concurrent_allocator<tagged_gui_object>> gui_items;
 		scrollbar<listbox_scrollbar> sb;
+
+		window_def* element_def = nullptr;
+		gui_object* _content_frame = nullptr;
+		gui_object_tag _content_frame_tag;
+		window_tag element_def_tag;
 	public:
+		template<typename ... PARAMS>
+		display_listbox(PARAMS&& ... params) : BASE(std::forward<PARAMS>(params)...) {}
+
 		virtual bool on_scroll(gui_object_tag, gui_manager&, const scroll&) final override;
 		virtual void update_data(gui_object_tag, gui_manager&, world_state&) final override;
+
+		void create_sub_elements(tagged_gui_object self, gui_manager&);
+		void set_element_definition(gui_manager&, window_tag);
+		void clear_items(gui_manager&);
+		void update_scroll_position(gui_manager&);
+		template<typename ... PARAMS>
+		void add_item(gui_manager&, PARAMS&& ...);
+		template<typename window_type>
+		void windowed_update(window_type&, gui_mananger&, world_state&);
 	};
 
 	template<typename ... REST>
@@ -279,6 +315,7 @@ namespace ui {
 		static constexpr uint16_t visible = 0x0200;
 		static constexpr uint16_t enabled = 0x0400;
 		static constexpr uint16_t visible_after_update = 0x0800;
+		static constexpr uint16_t dont_clip_children = 0x1000;
 
 		static constexpr uint16_t rotation_mask = 0x0030;
 		static constexpr uint16_t rotation_upright = 0x0000;
@@ -316,12 +353,6 @@ namespace ui {
 	};
 
 	static_assert(sizeof(gui_object) == 32);
-
-	struct text_format {
-		ui::text_color color;
-		graphics::font_tag font_handle;
-		uint32_t font_size;
-	};
 
 	class gui_manager;
 
@@ -368,10 +399,12 @@ namespace ui {
 	ui::tagged_gui_object create_static_element(gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, scrollbar<B>& b);
 	template<typename B>
 	ui::tagged_gui_object create_static_element(gui_manager& manager, icon_tag handle, tagged_gui_object parent, piechart<B>& b);
+	template<typename B>
+	ui::tagged_gui_object create_static_element(gui_manager& manager, ui::text_tag handle, tagged_gui_object parent, display_text<B>& b);
 	template<typename ... REST>
 	ui::tagged_gui_object create_static_element(gui_manager& manager, window_tag handle, tagged_gui_object parent, gui_window<REST...>& b);
-	template<typename B, typename ELEMENT>
-	ui::tagged_gui_object create_static_element(gui_manager& manager, listbox_tag handle, tagged_gui_object parent, display_listbox<B, ELEMENT>& b);
+	template<typename B, typename ELEMENT, int32_t left_expand>
+	ui::tagged_gui_object create_static_element(gui_manager& manager, listbox_tag handle, tagged_gui_object parent, ui::display_listbox<B, ELEMENT, left_expand>& b);
 
 	ui::tagged_gui_object create_static_element(gui_manager& manager, button_tag handle, tagged_gui_object parent, button_group_member& b);
 

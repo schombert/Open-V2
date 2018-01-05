@@ -43,6 +43,8 @@ protected:
 	ui::tagged_gui_object create_window(gui_manager& manager, const ui::window_def& def);
 	template<typename window_type>
 	void member_init_in_window(window_type& w, gui_manager& m);
+	template<typename window_type>
+	void member_update_in_window(window_type& w, gui_manager& m, world_state& s);
 public:
 	template<typename ...PARAMS>
 	gui_window(PARAMS&& ... params) : gui_window<REST ...>(std::forward<PARAMS>(params) ...), m_object(std::forward<PARAMS>(params) ...) {}
@@ -53,6 +55,7 @@ public:
 	auto& get() const;
 
 	ui::tagged_gui_object create(gui_manager& manager, const ui::window_def& def);
+	virtual void update_data(gui_object_tag, gui_manager&, world_state&) override;
 
 	friend struct ui::detail::window_get<INDEX, INDEX, TYPE, REST ...>;
 };
@@ -64,6 +67,8 @@ protected:
 	ui::tagged_gui_object create_window(gui_manager& manager, const ui::window_def& def);
 	template<typename window_type>
 	void member_init_in_window(window_type& w, gui_manager& m) {}
+	template<typename window_type>
+	void member_update_in_window(window_type& w, gui_manager& m, world_state& s) {}
 public:
 	template<typename ...PARAMS>
 	gui_window(PARAMS&& ... params) {}
@@ -86,9 +91,22 @@ ui::tagged_gui_object ui::gui_window<INDEX, TYPE, REST...>::create_window(gui_ma
 }
 
 template<typename INDEX, typename TYPE, typename ...REST>
+void ui::gui_window<INDEX, TYPE, REST...>::update_data(gui_object_tag o, gui_manager& m, world_state& w) {
+	member_update_in_window(*this, m, w);
+}
+
+template<typename INDEX, typename TYPE, typename ...REST>
+template<typename window_type>
+void ui::gui_window<INDEX, TYPE, REST...>::member_update_in_window(window_type& w, gui_manager& m, world_state& s) {
+	if constexpr(ui::detail::has_windowed_update<TYPE, window_type&, gui_manager&, world_state&>)
+		m_object.windowed_update(w, m, s);
+	gui_window<REST...>::member_update_in_window(w, m, s);
+}
+
+template<typename INDEX, typename TYPE, typename ...REST>
 template<typename window_type>
 void ui::gui_window<INDEX, TYPE, REST...>::member_init_in_window(window_type& w, gui_manager& m) {
-	if constexpr(detail::has_initialize_in_window<TYPE, window_type&, gui_manager&>)
+	if constexpr(ui::detail::has_initialize_in_window<TYPE, window_type&, gui_manager&>)
 		m_object.initialize_in_window(w, m);
 	gui_window<REST...>::member_init_in_window(w, m);
 }

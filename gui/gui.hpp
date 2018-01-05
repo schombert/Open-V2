@@ -189,6 +189,13 @@ namespace ui {
 		template<typename A, typename ... C>
 		constexpr bool has_initialize_in_window = _has_initialize_in_window<A, void, C ...>::value;
 
+		template<typename OBJ, typename RET, typename ... PARAMS>
+		struct has_windowed_update_s : public std::false_type {};
+		template<typename OBJ, typename ... PARAMS>
+		struct has_windowed_update_s<OBJ, decltype(void(std::declval<OBJ>().windowed_update(std::declval<PARAMS>() ...))), WTYPE> : public std::true_type {};
+		template<typename OBJ, typename ... PARAMS>
+		constexpr bool has_windowed_update = has_windowed_update_s<OBJ, void, PARAMS ...>::value;
+
 		template<typename RES, typename HANDLE>
 		struct can_create_instance_s : public std::false_type {};
 		template<typename HANDLE>
@@ -292,4 +299,6 @@ namespace ui {
 #include "scrollbar.hpp"
 #include "piechart.hpp"
 #include "gui_window.hpp"
+#include "text_box.hpp"
+#include "listbox.hpp"
 #include "concurrency_tools\\concurrency_tools.hpp"
