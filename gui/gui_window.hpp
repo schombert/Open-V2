@@ -91,7 +91,7 @@ ui::tagged_gui_object ui::gui_window<INDEX, TYPE, REST...>::create_window(gui_ma
 }
 
 template<typename INDEX, typename TYPE, typename ...REST>
-void ui::gui_window<INDEX, TYPE, REST...>::update_data(gui_object_tag o, gui_manager& m, world_state& w) {
+void ui::gui_window<INDEX, TYPE, REST...>::update_data(gui_object_tag , gui_manager& m, world_state& w) {
 	member_update_in_window(*this, m, w);
 }
 

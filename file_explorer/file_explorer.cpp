@@ -1023,6 +1023,9 @@ struct gui_window_handler {
 		pc.add_entry(gui_m, vector_backed_string<char16_t>(u"category 4"), 0.25f, graphics::color_rgb{ 0,255,255 });
 		pc.update_display(gui_m);
 
+		budget_window.get<CT_STRING("debt_sort_country")>().associated_object->flags.fetch_or(ui::gui_object::force_transparency_check, std::memory_order_acq_rel);
+		budget_window.get<CT_STRING("debt_sort_amount")>().associated_object->flags.fetch_or(ui::gui_object::force_transparency_check, std::memory_order_acq_rel);
+
 		//ui::create_static_element(gui_m, ui::button_tag(8), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, mb_button_a);
 		//mb_button_a.shortcut = virtual_key::A;
 

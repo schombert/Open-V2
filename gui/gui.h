@@ -260,7 +260,7 @@ namespace ui {
 		template<typename ... PARAMS>
 		void add_item(gui_manager&, PARAMS&& ...);
 		template<typename window_type>
-		void windowed_update(window_type&, gui_mananger&, world_state&);
+		void windowed_update(window_type&, gui_manager&, world_state&);
 	};
 
 	template<typename ... REST>
@@ -316,6 +316,7 @@ namespace ui {
 		static constexpr uint16_t enabled = 0x0400;
 		static constexpr uint16_t visible_after_update = 0x0800;
 		static constexpr uint16_t dont_clip_children = 0x1000;
+		static constexpr uint16_t force_transparency_check = 0x2000;
 
 		static constexpr uint16_t rotation_mask = 0x0030;
 		static constexpr uint16_t rotation_upright = 0x0000;

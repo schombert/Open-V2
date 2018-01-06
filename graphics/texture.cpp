@@ -111,9 +111,32 @@ namespace graphics {
 	color_rgba texture::get_pixel(float x, float y) {
 		const auto h = texture_handle.load(std::memory_order_acquire);
 		if (h != 0) {
-			color_rgba result;
-			glTextureSubImage2D(h, 0, (GLint)(x * width), (GLint)(y * height), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &result);
-			return result;
+			color_rgba* result = (color_rgba*)_alloca(sizeof(color_rgba) * static_cast<size_t>(width * height));
+			//glBindTexture(GL_TEXTURE_2D, h);
+			//glGetTextureSubImage(GL_TEXTURE_2D, 0, (GLint)(x * width), (GLint)(y * height), 0, 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, sizeof(result), result);
+			glGetTextureImage(h, 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<int32_t>(sizeof(color_rgba)) * width * height, result);
+			
+			/*const auto gl_result = glGetError();
+			OutputDebugStringA(std::to_string(h).c_str());
+			OutputDebugStringA("\n");
+			OutputDebugStringA(std::to_string(gl_result).c_str());
+			OutputDebugStringA("\n");
+			OutputDebugStringA(std::to_string(result[0].r).c_str());
+			OutputDebugStringA("\n");
+			OutputDebugStringA(std::to_string(result[0].g).c_str());
+			OutputDebugStringA("\n");
+			OutputDebugStringA(std::to_string(result[0].b).c_str());
+			OutputDebugStringA("\n");
+			OutputDebugStringA(std::to_string(result[0].a).c_str());
+			OutputDebugStringA("\n");
+			OutputDebugStringA(std::to_string(x).c_str());
+			OutputDebugStringA("\n");
+			OutputDebugStringA(std::to_string(y).c_str());
+			OutputDebugStringA("\n");*/
+
+			const auto final_result = result[width * static_cast<int32_t>(y * height) + static_cast<int32_t>(x * width)];
+			_freea(result);
+			return final_result;
 		} else {
 			return color_rgba{ 0,0,0,0 };
 		}

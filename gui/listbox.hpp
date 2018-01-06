@@ -17,7 +17,7 @@ void ui::display_listbox<BASE, ELEMENT, left_expand>::update_data(gui_object_tag
 
 template<typename BASE, typename ELEMENT, int32_t left_expand>
 template<typename window_type>
-void ui::display_listbox<BASE, ELEMENT, left_expand>::windowed_update(window_type& w, gui_mananger& m, world_state& s) {
+void ui::display_listbox<BASE, ELEMENT, left_expand>::windowed_update(window_type& w, gui_manager& m, world_state& s) {
 	if constexpr(ui::detail::has_windowed_update<BASE, window_type&, display_listbox<BASE, ELEMENT, left_expand>&, gui_manager&, world_state&>) {
 		clear_items(manager);
 		BASE::windowed_update(w, *this, m, s);

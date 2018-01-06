@@ -468,7 +468,7 @@ namespace graphics {
 		int attribs[] =
 		{
 			WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
-			WGL_CONTEXT_MINOR_VERSION_ARB, 4,
+			WGL_CONTEXT_MINOR_VERSION_ARB, 5,
 			WGL_CONTEXT_FLAGS_ARB,
 	#ifdef _DEBUG
 			WGL_CONTEXT_DEBUG_BIT_ARB |
@@ -482,23 +482,33 @@ namespace graphics {
 			MessageBox(hwnd, L"WGL_ARB_create_context not supported", L"OpenGL error", MB_OK);
 			std::abort();
 		} else {
-			auto ui_context = wglCreateContextAttribsARB(window_dc, nullptr, attribs);
 			auto new_context = wglCreateContextAttribsARB(window_dc, nullptr, attribs);
+			auto ui_context = wglCreateContextAttribsARB(window_dc, new_context, attribs);
+			
+			wglMakeCurrent(window_dc, nullptr);
+			wglDeleteContext(handle_to_ogl_dc);
 
-			if (wglShareLists(new_context, ui_context) == FALSE) {
+			wglMakeCurrent(window_dc, new_context);
+			if (wglShareLists(ui_context, new_context) == FALSE) {
 				MessageBox(hwnd, L"Unable to share contexts", L"OpenGL error", MB_OK);
 				std::abort();
 			}
 
 
-			wglMakeCurrent(window_dc, nullptr);
-			wglDeleteContext(handle_to_ogl_dc);
-			wglMakeCurrent(window_dc, new_context);
+			
 
 #ifdef _DEBUG
+			wglMakeCurrent(window_dc, ui_context);
 			glDebugMessageCallback(debug_callback, nullptr);
 			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 			glDebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_OTHER, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_FALSE);
+			glEnable(GL_TEXTURE_2D);
+			wglMakeCurrent(window_dc, new_context);
+			glDebugMessageCallback(debug_callback, nullptr);
+			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+			glDebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_OTHER, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_FALSE);
+#else
+			wglMakeCurrent(window_dc, new_context);
 #endif
 
 			if (wglewIsSupported("WGL_EXT_swap_control_tear") == 1) {
