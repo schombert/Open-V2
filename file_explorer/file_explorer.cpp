@@ -1044,8 +1044,8 @@ using debt_listitem_t = ui::gui_window<
 
 class debt_lb {
 public:
-	template<typename lb_type, typename window_type>
-	void windowed_update(lb_type& lb, window_type&, ui::gui_manager& m, world_state&) {
+	template<typename lb_type>
+	void populate_list(lb_type& lb, ui::gui_manager& m, world_state&) {
 		lb.add_item(m, 1);
 		lb.add_item(m, 2);
 		lb.add_item(m, 3);
@@ -1117,7 +1117,8 @@ struct gui_window_handler {
 
 		budget_window.get<CT_STRING("debt_listbox")>().set_element_definition(gui_m, std::get<ui::window_tag>(gui_m.ui_definitions.name_to_element_map["debt_listitem"]));
 
-		gui_m.flag_update();
+		ui::make_visible_and_update(gui_m, *(budget_window.get<CT_STRING("debt_listbox")>().associated_object));
+
 		//ui::create_static_element(gui_m, ui::button_tag(8), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, mb_button_a);
 		//mb_button_a.shortcut = virtual_key::A;
 
@@ -1166,6 +1167,10 @@ struct gui_window_handler {
 		if (gui_m.check_and_clear_update()) {
 			world_state w;
 			ui::update(gui_m, w);
+			return true;
+		} else if (gui_m.check_and_clear_minimal_update()) {
+			world_state w;
+			ui::minimal_update(gui_m, w);
 			return true;
 		} else {
 			return false;

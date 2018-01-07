@@ -7,15 +7,13 @@ bool ui::display_listbox<BASE, ELEMENT, left_expand>::on_scroll(gui_object_tag o
 }
 
 template<typename BASE, typename ELEMENT, int32_t left_expand>
-void ui::display_listbox<BASE, ELEMENT, left_expand>::update_data(gui_object_tag o, gui_manager& manager, world_state& w) {
-	if constexpr(ui::detail::has_update<BASE, display_listbox<BASE, ELEMENT, left_expand>&, gui_object_tag, gui_manager&, world_state&>) {
-		if (is_valid_index(element_def_tag)) {
-			clear_items(manager);
-			BASE::update(*this, o, manager, w);
-			update_scroll_position(manager);
-			for (auto& i : contents)
-				i.member_update_in_window(i, manager, w);
-		}
+void ui::display_listbox<BASE, ELEMENT, left_expand>::update_data(gui_object_tag, gui_manager& manager, world_state& w) {
+	if (is_valid_index(element_def_tag)) {
+		clear_items(manager);
+		BASE::populate_list(*this, manager, w);
+		update_scroll_position(manager);
+		for (auto& i : contents)
+			i.member_update_in_window(i, manager, w);
 	}
 }
 
@@ -26,6 +24,7 @@ void ui::display_listbox<BASE, ELEMENT, left_expand>::windowed_update(window_typ
 		if (is_valid_index(element_def_tag)) {
 			clear_items(m);
 			BASE::windowed_update(*this, w, m, s);
+			BASE::populate_list(*this, m, w);
 			update_scroll_position(m);
 			for (auto& i : contents)
 				i.member_update_in_window(i, m, s);

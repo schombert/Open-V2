@@ -400,6 +400,7 @@ namespace ui {
 		tagged_gui_object create_element_instance(gui_manager& manager, ui::text_tag handle, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
 
 		void update(gui_manager& manager, tagged_gui_object obj, world_state&);
+		void minimal_update(gui_manager& manager, tagged_gui_object obj, world_state&);
 
 		template<typename MESSAGE_FUNCTION, typename MESSAGE_TYPE>
 		bool dispatch_message(const gui_manager& manager, const MESSAGE_FUNCTION &member_f, tagged_gui_object obj, ui::xy_pair container_size, const MESSAGE_TYPE& message);
@@ -481,9 +482,9 @@ namespace ui {
 	void add_to_front(const gui_manager& manager, tagged_gui_object parent, tagged_gui_object child);
 	void add_to_back(const gui_manager& manager, tagged_gui_object parent, tagged_gui_object child);
 
-	void make_visible(gui_manager& manager, tagged_gui_object g);
-	void hide(tagged_gui_object g);
-	void set_enabled(tagged_gui_object g, bool enabled);
+	void make_visible_and_update(gui_manager& manager, gui_object& g);
+	void hide(gui_object& g);
+	void set_enabled(gui_object& g, bool enabled);
 	void shrink_to_children(gui_manager& manager, tagged_gui_object g);
 	void shrink_to_children(gui_manager& manager, tagged_gui_object g, int32_t border);
 
@@ -491,6 +492,7 @@ namespace ui {
 
 	void render(const gui_manager& manager, graphics::open_gl_wrapper&);
 	void update(gui_manager& manager, world_state&);
+	void minimal_update(gui_manager& manager, world_state&);
 
 	template<typename T>
 	void for_each_child(gui_manager& manager, tagged_gui_object parent, const T& f);
@@ -501,6 +503,7 @@ namespace ui {
 		int32_t _width;
 		int32_t _height;
 		std::atomic<bool> pending_update = false;
+		std::atomic<bool> pending_minimal_update = false;
 	public:
 		fixed_sz_deque<gui_object, 128, 64, gui_object_tag> gui_objects;
 		fixed_sz_deque<text_instance, 128, 64, text_instance_tag> text_instances;
@@ -545,7 +548,9 @@ namespace ui {
 		void hide_tooltip();
 		void flag_update() { pending_update.store(true, std::memory_order_release); }
 		bool check_and_clear_update() { bool expected = true; return pending_update.compare_exchange_strong(expected, false, std::memory_order_release, std::memory_order_acquire); }
-		
+		void flag_minimal_update() { pending_minimal_update.store(true, std::memory_order_release); }
+		bool check_and_clear_minimal_update() { bool expected = true; return pending_minimal_update.compare_exchange_strong(expected, false, std::memory_order_release, std::memory_order_acquire); }
+
 		void destroy(gui_object& g);
 		~gui_manager();
 	};

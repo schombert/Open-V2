@@ -713,20 +713,20 @@ void ui::gui_manager::clear_focus() {
 	}
 }
 
-void ui::make_visible(gui_manager& manager, tagged_gui_object g) {
-	g.object.flags.fetch_or(ui::gui_object::visible_after_update, std::memory_order_acq_rel);
-	manager.flag_update();
+void ui::make_visible_and_update(gui_manager& manager, gui_object& g) {
+	g.flags.fetch_or(ui::gui_object::visible_after_update, std::memory_order_acq_rel);
+	manager.flag_minimal_update();
 }
 
-void ui::hide(tagged_gui_object g) {
-	g.object.flags.fetch_and((uint16_t)~ui::gui_object::visible, std::memory_order_acq_rel);
+void ui::hide(gui_object& g) {
+	g.flags.fetch_and((uint16_t)~ui::gui_object::visible, std::memory_order_acq_rel);
 }
 
-void ui::set_enabled(tagged_gui_object g, bool enabled) {
+void ui::set_enabled(gui_object& g, bool enabled) {
 	if (enabled)
-		g.object.flags.fetch_or(ui::gui_object::enabled, std::memory_order_acq_rel);
+		g.flags.fetch_or(ui::gui_object::enabled, std::memory_order_acq_rel);
 	else
-		g.object.flags.fetch_and((uint16_t)~ui::gui_object::enabled, std::memory_order_acq_rel);
+		g.flags.fetch_and((uint16_t)~ui::gui_object::enabled, std::memory_order_acq_rel);
 }
 
 void ui::gui_manager::hide_tooltip() {
@@ -966,11 +966,12 @@ bool ui::gui_manager::on_text(const text_event &te) {
 void ui::detail::update(gui_manager& manager, tagged_gui_object obj, world_state& w) {
 	const auto object_flags = obj.object.flags.load(std::memory_order_acquire);
 
-	if ((object_flags & ui::gui_object::visible_after_update) == 1) {
+	if ((object_flags & ui::gui_object::visible_after_update) != 0) {
 		obj.object.flags.fetch_and((uint16_t)~ui::gui_object::visible_after_update, std::memory_order_acq_rel);
-		obj.object.flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
-		if (obj.object.associated_behavior)
+		if ((obj.object.associated_behavior != nullptr) & ((object_flags & ui::gui_object::visible) == 0)) {
 			obj.object.associated_behavior->on_visible(obj.id, manager, w);
+			obj.object.flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
+		}
 	} else if ((object_flags & ui::gui_object::visible) == 0) {
 		return;
 	}
@@ -978,17 +979,43 @@ void ui::detail::update(gui_manager& manager, tagged_gui_object obj, world_state
 	if (obj.object.associated_behavior)
 		obj.object.associated_behavior->update_data(obj.id, manager, w);
 
-	gui_object_tag child = obj.object.first_child;
-	while (is_valid_index(child)) {
-		auto& child_object = manager.gui_objects.at(child);
-		const gui_object_tag next_index = child_object.right_sibling;
+	ui::for_each_child(manager, obj, [&manager, &w](ui::tagged_gui_object child) {
+		update(manager, tagged_gui_object{ child, child }, w);
+	});
+}
 
-		update(manager, tagged_gui_object{ child_object, child }, w);
-		child = next_index;
+void ui::detail::minimal_update(gui_manager& manager, tagged_gui_object obj, world_state& w) {
+	const auto object_flags = obj.object.flags.load(std::memory_order_acquire);
+
+	if ((object_flags & ui::gui_object::visible_after_update) != 0) {
+		obj.object.flags.fetch_and((uint16_t)~ui::gui_object::visible_after_update, std::memory_order_acq_rel);
+		
+		if ((obj.object.associated_behavior != nullptr) & ((object_flags & ui::gui_object::visible) == 0)) {
+			obj.object.associated_behavior->on_visible(obj.id, manager, w);
+			obj.object.flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
+		}
+
+		if (obj.object.associated_behavior)
+			obj.object.associated_behavior->update_data(obj.id, manager, w);
+
+		ui::for_each_child(manager, obj, [&manager, &w](ui::tagged_gui_object child) {
+			minimal_update(manager, tagged_gui_object{ child, child }, w);
+		});
+	} else if ((object_flags & ui::gui_object::visible) != 0) {
+		ui::for_each_child(manager, obj, [&manager, &w](ui::tagged_gui_object child) {
+			minimal_update(manager, tagged_gui_object{ child, child }, w);
+		});
 	}
 }
 
+void ui::minimal_update(gui_manager& manager, world_state& w) {
+	detail::minimal_update(manager, tagged_gui_object{ manager.root, gui_object_tag(0) }, w);
+	detail::minimal_update(manager, tagged_gui_object{ manager.background, gui_object_tag(1) }, w);
+	detail::minimal_update(manager, tagged_gui_object{ manager.foreground, gui_object_tag(2) }, w);
+}
+
 void ui::update(gui_manager& manager, world_state& w) {
+	manager.check_and_clear_minimal_update();
 	detail::update(manager, tagged_gui_object{ manager.root, gui_object_tag(0) }, w);
 	detail::update(manager, tagged_gui_object{ manager.background, gui_object_tag(1) }, w);
 	detail::update(manager, tagged_gui_object{ manager.foreground, gui_object_tag(2) }, w);
