@@ -120,6 +120,8 @@ namespace ui {
 				return text_event{ char16_t(wParam) };
 			case WM_DPICHANGED:
 				return int64_t(0);
+			case WM_TIMER:
+				return idle{};
 		}
 		return int64_t(DefWindowProc(hwnd, uMsg, wParam, lParam));
 	}
@@ -198,9 +200,15 @@ namespace ui {
 		UpdateWindow(handle);
 
 		MSG msg;
-		while (GetMessage(&msg, nullptr, 0, 0)) {
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+		while (true) {
+			if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE | PM_QS_INPUT | PM_QS_PAINT | PM_QS_POSTMESSAGE | PM_QS_SENDMESSAGE)) {
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+				if (msg.message == WM_QUIT)
+					break;
+			}
+			if (win_proc(handle, WM_TIMER, nullptr, nullptr) == nullptr)
+				Sleep(1);
 		}
 	}
 

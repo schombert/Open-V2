@@ -972,6 +972,92 @@ public:
 	}
 };
 
+class debt_list_item_base : public ui::visible_region {
+public:
+	const int value;
+	debt_list_item_base(int v) : value(v) {}
+};
+
+class debt_tb_who {
+public:
+	template<typename ...PARAMS>
+	debt_tb_who(PARAMS&&...) {}
+
+	template<typename window_type>
+	void windowed_update(window_type& w, ui::tagged_gui_object obj, text_data::alignment align, ui::text_format& fmt, ui::gui_manager& m, world_state&) {
+		char16_t lbuffer[8] = { 0,0,0,0,0,0,0,0 };
+		u16itoa(w.value, lbuffer);
+
+		ui::line_manager lm(align, obj.object.size.x);
+		const auto cursor = ui::text_chunk_to_instances(
+			m,
+			vector_backed_string<char16_t>(u"who: "),
+			obj,
+			ui::xy_pair{ 0,0 },
+			fmt,
+			lm);
+		ui::text_chunk_to_instances(
+			m,
+			vector_backed_string<char16_t>(lbuffer),
+			obj,
+			cursor,
+			fmt,
+			lm);
+		lm.finish_current_line();
+	}
+};
+
+class debt_tb_amount {
+public:
+	template<typename ...PARAMS>
+	debt_tb_amount(PARAMS&&...) {}
+
+	template<typename window_type>
+	void windowed_update(window_type& w, ui::tagged_gui_object obj, text_data::alignment align, ui::text_format& fmt, ui::gui_manager& m, world_state&) {
+		char16_t lbuffer[8] = { 0,0,0,0,0,0,0,0 };
+		u16itoa(w.value, lbuffer);
+
+		ui::line_manager lm(align, obj.object.size.x);
+		const auto cursor = ui::text_chunk_to_instances(
+			m,
+			vector_backed_string<char16_t>(u"$"),
+			obj,
+			ui::xy_pair{ 0,0 },
+			fmt,
+			lm);
+		ui::text_chunk_to_instances(
+			m,
+			vector_backed_string<char16_t>(lbuffer),
+			obj,
+			cursor,
+			fmt,
+			lm);
+		lm.finish_current_line();
+	}
+};
+
+using debt_listitem_t = ui::gui_window<
+	CT_STRING("who"), ui::display_text<debt_tb_who>,
+	CT_STRING("debt"), ui::display_text<debt_tb_amount>,
+	debt_list_item_base
+>;
+
+class debt_lb {
+public:
+	template<typename lb_type, typename window_type>
+	void windowed_update(lb_type& lb, window_type&, ui::gui_manager& m, world_state&) {
+		lb.add_item(m, 1);
+		lb.add_item(m, 2);
+		lb.add_item(m, 3);
+		lb.add_item(m, 4);
+		lb.add_item(m, 5);
+		lb.add_item(m, 6);
+		lb.add_item(m, 7);
+		lb.add_item(m, 8);
+		lb.add_item(m, 9);
+	}
+};
+
 using budget_window_t = ui::gui_window<
 	CT_STRING("tab_takenloans"), ui::button_group_member,
 	CT_STRING("tab_givenloans"), ui::button_group_member,
@@ -996,7 +1082,10 @@ using budget_window_t = ui::gui_window<
 	CT_STRING("chart_1"), ui::piechart<empty_gui_obj>,
 	CT_STRING("chart_2"), ui::piechart<empty_gui_obj>,
 	CT_STRING("chart_debt"), ui::piechart<empty_gui_obj>,
+	CT_STRING("debt_listbox"), ui::display_listbox<debt_lb, debt_listitem_t, 56>,
 	ui::draggable_region>;
+
+class world_state {};
 
 struct gui_window_handler {
 	ui::gui_manager& gui_m;
@@ -1026,6 +1115,9 @@ struct gui_window_handler {
 		budget_window.get<CT_STRING("debt_sort_country")>().associated_object->flags.fetch_or(ui::gui_object::force_transparency_check, std::memory_order_acq_rel);
 		budget_window.get<CT_STRING("debt_sort_amount")>().associated_object->flags.fetch_or(ui::gui_object::force_transparency_check, std::memory_order_acq_rel);
 
+		budget_window.get<CT_STRING("debt_listbox")>().set_element_definition(gui_m, std::get<ui::window_tag>(gui_m.ui_definitions.name_to_element_map["debt_listitem"]));
+
+		gui_m.flag_update();
 		//ui::create_static_element(gui_m, ui::button_tag(8), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, mb_button_a);
 		//mb_button_a.shortcut = virtual_key::A;
 
@@ -1068,6 +1160,16 @@ struct gui_window_handler {
 
 	void initialize_graphics(graphics::open_gl_wrapper& ogl) {
 		gui_m.fonts.load_fonts(ogl);
+	}
+
+	bool on_idle() {
+		if (gui_m.check_and_clear_update()) {
+			world_state w;
+			ui::update(gui_m, w);
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	void render(graphics::open_gl_wrapper& ogl) {

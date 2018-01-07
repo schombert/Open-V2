@@ -91,6 +91,9 @@ namespace ui {
 	class gui_behavior {
 	public:
 		gui_object* associated_object = nullptr;
+		gui_behavior() noexcept {}
+		gui_behavior(const gui_behavior&) = default;
+		gui_behavior(gui_behavior&&) = default;
 
 		virtual bool on_lclick(gui_object_tag, gui_manager&, const lbutton_down&) { return false; }
 		virtual bool on_rclick(gui_object_tag, gui_manager&, const rbutton_down&) { return false; }
@@ -104,7 +107,7 @@ namespace ui {
 		virtual void update_data(gui_object_tag, gui_manager&, world_state&) {}
 		virtual tooltip_behavior has_tooltip(gui_object_tag, gui_manager&, const mouse_move&) { return tooltip_behavior::transparent; }
 		virtual void create_tooltip(gui_object_tag, gui_manager&, const mouse_move&, tagged_gui_object /*tooltip_window*/) { }
-		virtual ~gui_behavior() {}
+		virtual ~gui_behavior();
 	};
 
 	class visible_region : public gui_behavior {
@@ -157,9 +160,21 @@ namespace ui {
 	class display_text : public visible_region, public BASE {
 	private:
 		text_format format;
+		text_data::alignment align;
+		gui_object_tag self;
 	public:
 		template<typename ...P>
 		display_text(P&& ... params) : BASE(std::forward<P>(params)...) {}
+
+		template<typename window_type>
+		void windowed_update(window_type&, gui_manager&, world_state&);
+		void set_format(text_data::alignment a, const text_format& fmt) {
+			align = a;
+			format = fmt;
+		}
+		void set_self(gui_object_tag s) {
+			self = s;
+		}
 
 		virtual void update_data(gui_object_tag, gui_manager&, world_state&) final override;
 	};
@@ -224,6 +239,9 @@ namespace ui {
 		void set_range(gui_manager& m, int32_t rmin, int32_t rmax);
 		void set_step(int32_t s) { _step_size = s; }
 
+		template<typename window_type>
+		void windowed_update(window_type&, gui_manager&, world_state&);
+
 		virtual bool on_scroll(gui_object_tag, gui_manager&, const scroll&) final override;
 		virtual void update_data(gui_object_tag, gui_manager&, world_state&) final override;
 	};
@@ -232,6 +250,7 @@ namespace ui {
 	private:
 		gui_object* _content_frame = nullptr;
 	public:
+		int32_t factor = 1;
 		void on_position(int32_t pos) const;
 		void associate(gui_object* g) { _content_frame = g; }
 	};
@@ -420,6 +439,10 @@ namespace ui {
 	ui::tagged_gui_object create_scrollable_text_block(gui_manager& manager, ui::text_tag handle, tagged_gui_object parent, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
 	ui::tagged_gui_object create_scrollable_text_block(gui_manager& manager, ui::text_tag handle, text_data::text_tag contents, tagged_gui_object parent, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
 	ui::tagged_gui_object create_dynamic_window(gui_manager& manager, window_tag t, tagged_gui_object parent);
+
+	text_data::alignment text_aligment_from_button_definition(const button_def& def);
+	text_data::alignment text_aligment_from_text_definition(const text_def& def);
+	ui::text_color text_color_to_ui_text_color(text_data::text_color c);
 
 	class line_manager {
 	private:

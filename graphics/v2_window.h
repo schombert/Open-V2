@@ -65,6 +65,7 @@ namespace ui {
 	};
 
 	struct creation {};
+	struct idle {};
 
 	template<typename T>
 	T adjust_message_location(const T& message, int32_t delta_x, int32_t delta_y) {
@@ -98,7 +99,7 @@ namespace ui {
 			return true;
 	}
 
-	using message_variant = std::variant<int64_t, rbutton_down, rbutton_up, lbutton_down, lbutton_up, resize, scroll, key_down, key_up, text_event, mouse_move, mouse_drag, creation>;
+	using message_variant = std::variant<int64_t, rbutton_down, rbutton_up, lbutton_down, lbutton_up, resize, scroll, key_down, key_up, text_event, mouse_move, mouse_drag, creation, idle>;
 
 	message_variant yield_message(void* _hwnd, unsigned int uMsg, unsigned int* _wParam, long* _lParam);
 

@@ -75,9 +75,15 @@ void ui::scrollbar<BASE>::adjust_position(int32_t position) {
 
 template<typename BASE>
 void ui::scrollbar<BASE>::update_data(gui_object_tag o, gui_manager& m, world_state& w) {
-	if constexpr(ui::detail::has_update<BASE, ui::scrollbar<BASE>&, tagged_gui_object, gui_manager&, world_state&>) {
+	if constexpr(ui::detail::has_update<BASE, ui::scrollbar<BASE>&, tagged_gui_object, gui_manager&, world_state&>)
 		BASE::update(*this, o, m, w);
-	}
+}
+
+template<typename BASE>
+template<typename window_type>
+void ui::scrollbar<BASE>::windowed_update(window_type& w, gui_manager& m, world_state& s) {
+	if constexpr(ui::detail::has_windowed_update<BASE, ui::scrollbar<BASE>&, window_type&, gui_manager&, world_state&>)
+		BASE::windowed_update(*this, w, m, s);
 }
 
 template<typename BASE>

@@ -43,9 +43,13 @@ protected:
 	ui::tagged_gui_object create_window(gui_manager& manager, const ui::window_def& def);
 	template<typename window_type>
 	void member_init_in_window(window_type& w, gui_manager& m);
+public:
 	template<typename window_type>
 	void member_update_in_window(window_type& w, gui_manager& m, world_state& s);
-public:
+
+	gui_window(const ui::gui_window<INDEX, TYPE, REST ...>&) = default;
+	gui_window(ui::gui_window<INDEX, TYPE, REST ...>&&) = default;
+	gui_window(ui::gui_window<INDEX, TYPE, REST ...>& b) noexcept : gui_window<INDEX, TYPE, REST ...>(static_cast<const ui::gui_window<INDEX, TYPE, REST ...>&>(b)) {}
 	template<typename ...PARAMS>
 	gui_window(PARAMS&& ... params) : gui_window<REST ...>(std::forward<PARAMS>(params) ...), m_object(std::forward<PARAMS>(params) ...) {}
 
@@ -70,8 +74,11 @@ protected:
 	template<typename window_type>
 	void member_update_in_window(window_type& w, gui_manager& m, world_state& s) {}
 public:
+	gui_window(const ui::gui_window<BASE_BEHAVIOR>&) = default;
+	gui_window(ui::gui_window<BASE_BEHAVIOR>&&) = default;
+	gui_window(ui::gui_window<BASE_BEHAVIOR>& b) noexcept : BASE_BEHAVIOR(b) {}
 	template<typename ...PARAMS>
-	gui_window(PARAMS&& ... params) {}
+	gui_window(PARAMS&& ... params) : BASE_BEHAVIOR(std::forward<PARAMS>(params) ...) {}
 
 	ui::gui_object_tag window_object;
 	ui::tagged_gui_object create(gui_manager& manager, const ui::window_def& def);
@@ -191,7 +198,6 @@ template<typename ... REST>
 ui::tagged_gui_object ui::create_static_element(gui_manager& manager, window_tag handle, tagged_gui_object parent, gui_window<REST...>& b) {
 	const auto& window_definition = manager.ui_definitions.windows[handle];
 	const auto res = b.create(manager, window_definition);
-	res.object.flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
 	ui::add_to_back(manager, parent, res);
 	return res;
 }

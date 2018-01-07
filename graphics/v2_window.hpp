@@ -8,6 +8,14 @@
 namespace ui {
 	void* get_handler(void* _hwnd);
 
+	namespace detail {
+		template<typename BASE, typename RET>
+		struct has_on_idle_s : public std::false_type {};
+		template<typename BASE>
+		struct has_on_idle_s<BASE, decltype(void(std::declval<BASE>().on_idle()))> : public std::true_type {};
+		template<typename BASE>
+		constexpr bool has_on_idle = has_on_idle_s<BASE, void>::value;
+	}
 	template<typename HANDLER>
 	long* __stdcall templated_win_proc(void* hwnd, unsigned int uMsg, unsigned int* wParam, long* lParam) {
 		const auto message_result = yield_message(hwnd, uMsg, wParam, lParam);
@@ -18,6 +26,13 @@ namespace ui {
 			obj->gl_wrapper.setup(hwnd, obj->h);
 			obj->gl_wrapper.bind_to_ui_thread();
 			obj->h(creation{}, *obj);
+			return nullptr;
+		} else if (std::holds_alternative<idle>(message_result)) {
+			if constexpr(ui::detail::has_on_idle<HANDLER>) {
+				window<HANDLER>* obj = (window<HANDLER>*)get_handler(hwnd);
+				if (obj)
+					return (long*)obj->h.on_idle();
+			}
 			return nullptr;
 		} else {
 			window<HANDLER>* obj = (window<HANDLER>*)get_handler(hwnd);

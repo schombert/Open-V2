@@ -111,6 +111,10 @@ namespace ui {
 			}
 		}
 	}
+	gui_behavior::~gui_behavior() {
+		if (associated_object) associated_object->associated_behavior = nullptr;
+		associated_object = nullptr;
+	}
 }
 
 ui::xy_pair ui::detail::position_with_alignment(ui::xy_pair container_size, ui::xy_pair raw_position, ui::alignment align) {
@@ -121,10 +125,6 @@ ui::xy_pair ui::detail::position_with_alignment(ui::xy_pair container_size, ui::
 }
 
 namespace ui {
-	text_data::alignment text_aligment_from_button_definition(const button_def& def);
-	text_data::alignment text_aligment_from_text_definition(const text_def& def);
-	ui::text_color text_color_to_ui_text_color(text_data::text_color c);
-
 	text_data::alignment text_aligment_from_button_definition(const button_def& def) {
 		switch (def.flags & button_def::format_mask) {
 			case button_def::format_center:
@@ -989,11 +989,9 @@ void ui::detail::update(gui_manager& manager, tagged_gui_object obj, world_state
 }
 
 void ui::update(gui_manager& manager, world_state& w) {
-	if (manager.check_and_clear_update()) {
-		detail::update(manager, tagged_gui_object{ manager.root, gui_object_tag(0) }, w);
-		detail::update(manager, tagged_gui_object{ manager.background, gui_object_tag(1) }, w);
-		detail::update(manager, tagged_gui_object{ manager.foreground, gui_object_tag(2) }, w);
-	}
+	detail::update(manager, tagged_gui_object{ manager.root, gui_object_tag(0) }, w);
+	detail::update(manager, tagged_gui_object{ manager.background, gui_object_tag(1) }, w);
+	detail::update(manager, tagged_gui_object{ manager.foreground, gui_object_tag(2) }, w);
 }
 
 ui::gui_manager::gui_manager(int32_t width, int32_t height) :
