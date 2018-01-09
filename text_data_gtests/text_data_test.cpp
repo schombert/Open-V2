@@ -187,13 +187,6 @@ TEST(two_keys, text_data_test) {
 }
 
 TEST(text_alignment, text_data_test) {
-	const auto a1 = align_in_bounds(text_data::alignment::top_left, 20, 10, 40, 20);
-	EXPECT_EQ(0, a1.first);
-	EXPECT_EQ(0, a1.second);
-
-	const auto a2 = align_in_bounds(text_data::alignment::bottom_right, 20, 10, 40, 20);
-	EXPECT_EQ(20, a2.first);
-	EXPECT_EQ(10, a2.second);
 
 	const auto a3 = align_in_bounds(text_data::alignment::center, 20, 10, 40, 20);
 	EXPECT_EQ(10, a3.first);
@@ -206,20 +199,3 @@ TEST(text_alignment, text_data_test) {
 	const auto a9 = align_in_bounds(text_data::alignment::right, 20, 10, 40, 20);
 	EXPECT_EQ(20, a9.first);
 	EXPECT_EQ(5, a9.second);
-
-	const auto a4 = align_in_bounds(text_data::alignment::top_right, 20, 10, 40, 20);
-	EXPECT_EQ(20, a4.first);
-	EXPECT_EQ(0, a4.second);
-
-	const auto a5 = align_in_bounds(text_data::alignment::bottom_left, 20, 10, 40, 20);
-	EXPECT_EQ(0, a5.first);
-	EXPECT_EQ(10, a5.second);
-
-	const auto a6 = align_in_bounds(text_data::alignment::top_center, 20, 10, 40, 20);
-	EXPECT_EQ(10, a6.first);
-	EXPECT_EQ(0, a6.second);
-
-	const auto a7 = align_in_bounds(text_data::alignment::bottom_center, 20, 10, 40, 20);
-	EXPECT_EQ(10, a7.first);
-	EXPECT_EQ(10, a7.second);
-}

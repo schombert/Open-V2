@@ -976,6 +976,8 @@ class debt_list_item_base : public ui::visible_region {
 public:
 	const int value;
 	debt_list_item_base(int v) : value(v) {}
+	debt_list_item_base(debt_list_item_base&&) = default;
+	debt_list_item_base(debt_list_item_base& b) noexcept : debt_list_item_base(std::move(b)) {}
 };
 
 class debt_tb_who {
@@ -1056,6 +1058,9 @@ public:
 		lb.add_item(m, 8);
 		lb.add_item(m, 9);
 	}
+	ui::window_tag element_tag(ui::gui_manager& m) {
+		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["debt_listitem"]);
+	}
 };
 
 class hidden_icon {
@@ -1123,9 +1128,7 @@ struct gui_window_handler {
 		budget_window.get<CT_STRING("debt_sort_country")>().associated_object->flags.fetch_or(ui::gui_object::force_transparency_check, std::memory_order_acq_rel);
 		budget_window.get<CT_STRING("debt_sort_amount")>().associated_object->flags.fetch_or(ui::gui_object::force_transparency_check, std::memory_order_acq_rel);
 
-		budget_window.get<CT_STRING("debt_listbox")>().set_element_definition(gui_m, std::get<ui::window_tag>(gui_m.ui_definitions.name_to_element_map["debt_listitem"]));
-
-		ui::make_visible_and_update(gui_m, *(budget_window.get<CT_STRING("debt_listbox")>().associated_object));
+		//ui::make_visible_and_update(gui_m, *(budget_window.get<CT_STRING("debt_listbox")>().associated_object));
 
 		//ui::create_static_element(gui_m, ui::button_tag(8), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, mb_button_a);
 		//mb_button_a.shortcut = virtual_key::A;

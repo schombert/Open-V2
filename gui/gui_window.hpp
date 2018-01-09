@@ -47,9 +47,8 @@ public:
 	template<typename window_type>
 	void member_update_in_window(window_type& w, gui_manager& m, world_state& s);
 
-	gui_window(const ui::gui_window<INDEX, TYPE, REST ...>&) = default;
 	gui_window(ui::gui_window<INDEX, TYPE, REST ...>&&) = default;
-	gui_window(ui::gui_window<INDEX, TYPE, REST ...>& b) noexcept : gui_window<INDEX, TYPE, REST ...>(static_cast<const ui::gui_window<INDEX, TYPE, REST ...>&>(b)) {}
+	gui_window(ui::gui_window<INDEX, TYPE, REST ...>& b) noexcept : gui_window<INDEX, TYPE, REST ...>(std::move(b)) {}
 	template<typename ...PARAMS>
 	gui_window(PARAMS&& ... params) : gui_window<REST ...>(std::forward<PARAMS>(params) ...), m_object(std::forward<PARAMS>(params) ...) {}
 
@@ -74,9 +73,8 @@ protected:
 	template<typename window_type>
 	void member_update_in_window(window_type& w, gui_manager& m, world_state& s) {}
 public:
-	gui_window(const ui::gui_window<BASE_BEHAVIOR>&) = default;
 	gui_window(ui::gui_window<BASE_BEHAVIOR>&&) = default;
-	gui_window(ui::gui_window<BASE_BEHAVIOR>& b) noexcept : BASE_BEHAVIOR(b) {}
+	gui_window(ui::gui_window<BASE_BEHAVIOR>& b) noexcept : gui_window(std::move(b)) {}
 	template<typename ...PARAMS>
 	gui_window(PARAMS&& ... params) : BASE_BEHAVIOR(std::forward<PARAMS>(params) ...) {}
 
@@ -164,7 +162,6 @@ template<typename BASE_BEHAVIOR>
 ui::tagged_gui_object ui::gui_window<BASE_BEHAVIOR>::create_window(gui_manager & manager, const ui::window_def & definition) {
 	const auto window = manager.gui_objects.emplace();
 
-	window.object.flags.store(ui::gui_object::enabled | ui::gui_object::visible, std::memory_order_release);
 	window.object.align = alignment_from_definition(definition);
 
 	if (is_valid_index(definition.background_handle)) {
@@ -198,6 +195,7 @@ template<typename ... REST>
 ui::tagged_gui_object ui::create_static_element(gui_manager& manager, window_tag handle, tagged_gui_object parent, gui_window<REST...>& b) {
 	const auto& window_definition = manager.ui_definitions.windows[handle];
 	const auto res = b.create(manager, window_definition);
+	b.window_object = res.id;
 	ui::add_to_back(manager, parent, res);
 	manager.flag_minimal_update();
 	return res;

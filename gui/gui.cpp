@@ -13,11 +13,11 @@
 ui::gui_manager::~gui_manager() {};
 
 void ui::gui_manager::destroy(gui_object & g) {
-	if (&(gui_objects.at(tooltip)) == &g) {
+	if (gui_objects.safe_at(tooltip) == &g) {
 		hide_tooltip();
 		tooltip = gui_object_tag();
 	}
-	if (&(gui_objects.at(tooltip)) == &g)
+	if (gui_objects.safe_at(focus) == &g)
 		focus = gui_object_tag();
 
 	if (g.associated_behavior) {
@@ -111,8 +111,16 @@ namespace ui {
 			}
 		}
 	}
+
+	gui_behavior::gui_behavior(gui_behavior && o) noexcept {
+		associated_object = o.associated_object;
+		o.associated_object = nullptr;
+		if (associated_object)
+			associated_object->associated_behavior = this;
+	}
 	gui_behavior::~gui_behavior() {
-		if (associated_object) associated_object->associated_behavior = nullptr;
+		if (associated_object)
+			associated_object->associated_behavior = nullptr;
 		associated_object = nullptr;
 	}
 }
@@ -138,15 +146,27 @@ namespace ui {
 	text_data::alignment text_aligment_from_text_definition(const text_def& def) {
 		switch (def.flags & text_def::format_mask) {
 			case text_def::format_center:
-				return text_data::alignment::top_center;
+				return text_data::alignment::center;
 			case text_def::format_left:
-				return text_data::alignment::top_left;
+				return text_data::alignment::left;
 			case text_def::format_right:
-				return text_data::alignment::top_right;
+				return text_data::alignment::right;
 			case text_def::format_justified:
-				return text_data::alignment::top_left;
+				return text_data::alignment::left;
 			default:
-				return text_data::alignment::top_left;
+				return text_data::alignment::left;
+		}
+	}
+	text_data::alignment text_aligment_from_overlapping_definition(const overlapping_region_def& def) {
+		switch (def.flags & overlapping_region_def::format_mask) {
+			case overlapping_region_def::format_center:
+				return text_data::alignment::center;
+			case overlapping_region_def::format_left:
+				return text_data::alignment::left;
+			case overlapping_region_def::format_right:
+				return text_data::alignment::right;
+			default:
+				return text_data::alignment::left;
 		}
 	}
 	ui::text_color text_color_to_ui_text_color(text_data::text_color c) {
@@ -177,7 +197,7 @@ namespace ui {
 	}
 
 	void line_manager::finish_current_line() {
-		if ((align == text_data::alignment::bottom_left) | (align == text_data::alignment::top_left) | (align == text_data::alignment::left))
+		if (align == text_data::alignment::left)
 			return;
 
 		int32_t total_element_width = 0;
@@ -185,7 +205,7 @@ namespace ui {
 			total_element_width += p->size.x;
 
 		const int32_t adjustment = (max_line_extent - total_element_width) /
-			((align == text_data::alignment::bottom_right) | (align == text_data::alignment::top_right) | (align == text_data::alignment::right) ? 1 : 2);
+			(align == text_data::alignment::right ? 1 : 2);
 		for (auto p : current_line)
 			p->position.x += adjustment;
 
@@ -209,7 +229,7 @@ namespace ui {
 tagged_object<ui::text_instance, ui::text_instance_tag> ui::create_text_instance(ui::gui_manager &container, tagged_gui_object new_gobj, const text_format& fmt) {
 	const auto new_text_instance = container.text_instances.emplace();
 
-	new_gobj.object.flags.store(gui_object::type_text_instance | gui_object::visible | gui_object::enabled, std::memory_order_release);
+	new_gobj.object.flags.store(gui_object::type_text_instance | gui_object::enabled | gui_object::visible, std::memory_order_release);
 	new_gobj.object.type_dependant_handle.store(to_index(new_text_instance.id), std::memory_order_release);
 
 	new_text_instance.object.color = fmt.color;
@@ -413,7 +433,7 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 		gui_object::rotation_left :
 		gui_object::rotation_upright;
 
-	new_gobj.object.flags.store(gui_object::visible | gui_object::enabled | rotation, std::memory_order_release);
+	new_gobj.object.flags.store(gui_object::visible_after_update | gui_object::enabled | rotation, std::memory_order_release);
 	new_gobj.object.position = def.position;
 	new_gobj.object.size = def.size;
 	new_gobj.object.align = alignment_from_definition(def);
@@ -981,7 +1001,7 @@ void ui::detail::update(gui_manager& manager, tagged_gui_object obj, world_state
 		obj.object.associated_behavior->update_data(obj.id, manager, w);
 
 	ui::for_each_child(manager, obj, [&manager, &w](ui::tagged_gui_object child) {
-		update(manager, tagged_gui_object{ child, child }, w);
+		update(manager, child, w);
 	});
 }
 
@@ -996,15 +1016,16 @@ void ui::detail::minimal_update(gui_manager& manager, tagged_gui_object obj, wor
 				obj.object.associated_behavior->on_visible(obj.id, manager, w);
 			obj.object.flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
 		}
+
 		if (obj.object.associated_behavior)
 			obj.object.associated_behavior->update_data(obj.id, manager, w);
 
 		ui::for_each_child(manager, obj, [&manager, &w](ui::tagged_gui_object child) {
-			minimal_update(manager, tagged_gui_object{ child, child }, w);
+			minimal_update(manager, child, w);
 		});
 	} else if ((object_flags & ui::gui_object::visible) != 0) {
 		ui::for_each_child(manager, obj, [&manager, &w](ui::tagged_gui_object child) {
-			minimal_update(manager, tagged_gui_object{ child, child }, w);
+			minimal_update(manager, child, w);
 		});
 	}
 }

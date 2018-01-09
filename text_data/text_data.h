@@ -17,7 +17,7 @@ namespace text_data {
 		black, white, red, green, yellow, unspecified
 	};
 	enum class alignment {
-		left, right, center, top_left, top_right, bottom_left, bottom_right, top_center, bottom_center
+		left, right, center
 	};
 	enum class value_type {
 		error_no_matching_value, action, active, actor, adj, against, agressor, allowed, amount,

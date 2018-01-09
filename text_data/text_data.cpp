@@ -492,19 +492,13 @@ namespace text_data {
 	}
 
 	std::pair<int32_t, int32_t> align_in_bounds(text_data::alignment align, int32_t width, int32_t height, int32_t bound_x, int32_t bound_y) {
-		int32_t y_offset = 0;
-		if ((align == text_data::alignment::bottom_center) | (align == text_data::alignment::bottom_right) | (align == text_data::alignment::bottom_left)) {
-			y_offset = bound_y - height;
-		} else if ((align == text_data::alignment::center) | (align == text_data::alignment::left) | (align == text_data::alignment::right)) {
-			y_offset = (bound_y - height) / 2;
-		}
 		int32_t x_offset = 0;
-		if ((align == text_data::alignment::right) | (align == text_data::alignment::bottom_right) | (align == text_data::alignment::top_right)) {
+		if (align == text_data::alignment::right) {
 			x_offset = bound_x - width;
-		} else if ((align == text_data::alignment::center) | (align == text_data::alignment::bottom_center) | (align == text_data::alignment::top_center)) {
+		} else if (align == text_data::alignment::center) {
 			x_offset = (bound_x - width) / 2;
 		}
-		return std::make_pair(x_offset, y_offset);
+		return std::make_pair(x_offset, (bound_y - height) / 2);
 	}
 
 
