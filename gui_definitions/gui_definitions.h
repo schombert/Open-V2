@@ -315,6 +315,15 @@ namespace ui {
 		}
 	};
 
+	namespace detail {
+		template<typename B, typename R>
+		struct has_size_s : public std::false_type{};
+		template<typename B>
+		struct has_size_s<B, decltype(void(std::declval<B>().size))> : public std::true_type {};
+		template<typename B>
+		constexpr bool has_size = has_size_s<B, void>::value;
+	}
+
 	struct definitions {
 		tagged_vector<button_def, button_tag> buttons;
 		tagged_vector<icon_def, icon_tag> icons;
@@ -331,6 +340,32 @@ namespace ui {
 		boost::container::flat_map<vector_backed_string<char>, element_tag, vector_backed_string_less_ci> name_to_element_map;
 
 		definitions() : name_to_element_map(vector_backed_string_less_ci(name_data)) {}
+
+		template<typename F>
+		auto visit(element_tag t, const F& fun) {
+			return std::visit([&fun, _this = this](auto st) {
+				if constexpr(std::is_same_v<button_tag, decltype(st)>)
+					return fun(_this->buttons[st]);
+				if constexpr(std::is_same_v<icon_tag, decltype(st)>)
+					return fun(_this->icons[st]);
+				if constexpr(std::is_same_v<text_tag, decltype(st)>)
+					return fun(_this->text[st]);
+				if constexpr(std::is_same_v<position_tag, decltype(st)>)
+					return fun(_this->positions[st]);
+				if constexpr(std::is_same_v<overlapping_region_tag, decltype(st)>)
+					return fun(_this->overlapping_regions[st]);
+				if constexpr(std::is_same_v<listbox_tag, decltype(st)>)
+					return fun(_this->listboxes[st]);
+				if constexpr(std::is_same_v<scrollbar_tag, decltype(st)>)
+					return fun(_this->scrollbars[st]);
+				if constexpr(std::is_same_v<window_tag, decltype(st)>)
+					return fun(_this->windows[st]);
+				if constexpr(std::is_same_v<std::monostate, decltype(st)>)
+					return fun(std::monostate());
+			}, t);
+		}
+
+		ui::xy_pair get_size(element_tag t);
 	};
 
 	using text_handle_lookup = std::function<text_data::text_tag(const char*, const char*)>;

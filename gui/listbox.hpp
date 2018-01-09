@@ -1,6 +1,10 @@
 #pragma once
 #include "gui.hpp"
 
+#ifdef _DEBUG
+#include <Windows.h>
+#endif
+
 template<typename BASE, typename ELEMENT, int32_t left_expand>
 bool ui::display_listbox<BASE, ELEMENT, left_expand>::on_scroll(gui_object_tag o, gui_manager& m, const scroll& s) {
 	return sb.on_scroll(o, m, s);
@@ -126,6 +130,66 @@ ui::tagged_gui_object ui::create_static_element(gui_manager& manager, listbox_ta
 	b.create_sub_elements(new_obj, manager);
 
 	ui::add_to_back(manager, parent, new_obj);
-
+	manager.flag_minimal_update();
 	return new_obj;
+}
+
+template<typename BASE, typename ELEMENT>
+void ui::overlap_box<BASE, ELEMENT>::set_subelement_definition(gui_manager& m, element_tag t) {
+	element_def_tag = t;
+	subelement_width = m.ui_definitions.get_size(t).x;
+}
+
+template<typename BASE, typename ELEMENT>
+void void ui::overlap_box<BASE, ELEMENT>::set_subelement_alignment(text_data::alignment a) {
+	subelement_alignment = a;
+}
+
+template<typename BASE, typename ELEMENT>
+void void ui::overlap_box<BASE, ELEMENT>::clear_items(gui_manager& manager) {
+	if (is_valid_index(self)) {
+		ui::clear_children(manager, tagged_gui_object{ *associated_object, self });
+	}
+	contents.clear();
+}
+
+template<typename BASE, typename ELEMENT>
+template<typename ... PARAMS>
+void ui::overlap_box<BASE, ELEMENT>::add_item(gui_manager& manager, PARAMS&& ... params) {
+	if (is_valid_index(self) && is_valid_index(element_def_tag)) {
+		contents.emplace_back(std::forward<PARAMS>(params)...);
+		auto& n = contents.back();
+
+		std::visit([_this = this, &n, &manager](auto tag) {
+			if constexpr(ui::detail::can_create<decltype(tag), ELEMENT>)
+				ui::create_static_element(manager, tag, tagged_gui_object{ *(_this->associated_object), _this->self }, n);
+			else {
+#ifdef _DEBUG
+				OutputDebugStringA("Unable to instantiate overlapping element: bad tag type\n");
+#endif
+			}
+		}, element_def_tag);
+
+		//n.associated_object->position.x += static_cast<int16_t>(left_expand);
+		//n.associated_object->position.y = static_cast<int16_t>(element_def->size.y * static_cast<int32_t>((contents.size() - 1)));
+		//_content_frame->size.y = static_cast<int16_t>(element_def->size.y * static_cast<int32_t>(contents.size()));
+	}
+}
+
+template<typename BASE, typename ELEMENT>
+void ui::overlap_box<BASE, ELEMENT>::update_item_positions(gui_manager&) {
+	for (auto& i : contents) {
+
+	}
+}
+
+template<typename BASE, typename ELEMENT>
+template<typename window_type>
+void void ui::overlap_box<BASE, ELEMENT>::windowed_update(window_type&, gui_manager&, world_state&) {
+
+}
+
+template<typename BASE, typename ELEMENT>
+void ui::overlap_box<BASE, ELEMENT>::update_data(gui_object_tag o, gui_manager&, world_state&) {
+	self = o;
 }

@@ -1053,6 +1053,14 @@ namespace ui {
 			env.errors_generated.emplace_back(env.file, ui::errors::unknown_definition_type);
 		}
 	};
+	ui::xy_pair definitions::get_size(element_tag t) {
+		return visit(t, [](const auto& def) {
+			if constexpr(detail::has_size<decltype(def)>)
+				return def.size;
+			else
+				return ui::xy_pair{ 0,0 };
+		});
+	}
 }
 
 	MEMBER_DEF(ui::xy_pair, x, "x");

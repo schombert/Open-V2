@@ -40,6 +40,6 @@ ui::tagged_gui_object ui::create_static_element(gui_manager& manager, button_tag
 	b.shortcut = bdef.shortcut;
 
 	ui::add_to_back(manager, parent, new_obj);
-
+	manager.flag_minimal_update();
 	return new_obj;
 }

@@ -1058,6 +1058,13 @@ public:
 	}
 };
 
+class hidden_icon {
+public:
+	void update(ui::dynamic_icon<hidden_icon>& ico, ui::gui_manager& m, world_state&) {
+		ico.set_visibility(m, false);
+	}
+};
+
 using budget_window_t = ui::gui_window<
 	CT_STRING("tab_takenloans"), ui::button_group_member,
 	CT_STRING("tab_givenloans"), ui::button_group_member,
@@ -1083,6 +1090,7 @@ using budget_window_t = ui::gui_window<
 	CT_STRING("chart_2"), ui::piechart<empty_gui_obj>,
 	CT_STRING("chart_debt"), ui::piechart<empty_gui_obj>,
 	CT_STRING("debt_listbox"), ui::display_listbox<debt_lb, debt_listitem_t, 56>,
+	CT_STRING("gunboat_alert"), ui::dynamic_icon<hidden_icon>,
 	ui::draggable_region>;
 
 class world_state {};

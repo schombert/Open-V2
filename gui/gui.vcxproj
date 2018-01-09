@@ -149,6 +149,7 @@
     <ClInclude Include="gui.h" />
     <ClInclude Include="gui.hpp" />
     <ClInclude Include="gui_window.hpp" />
+    <ClInclude Include="icons.hpp" />
     <ClInclude Include="listbox.hpp" />
     <ClInclude Include="piechart.hpp" />
     <ClInclude Include="scrollbar.hpp" />

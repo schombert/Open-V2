@@ -39,6 +39,6 @@ ui::tagged_gui_object ui::create_static_element(gui_manager& manager, ui::text_t
 	new_gobj.object.align = alignment_from_definition(text_def);
 
 	ui::add_to_back(manager, parent, new_gobj);
-
+	manager.flag_minimal_update();
 	return new_gobj;
 }

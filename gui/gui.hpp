@@ -13,6 +13,13 @@ namespace ui {
 		struct _has_update<A, decltype(void(std::declval<A>().update(std::declval<C>() ...))), C...> : std::true_type {};
 		template<typename A, typename ... C>
 		constexpr bool has_update = _has_update<A, void, C ...>::value;
+
+		template<typename A, typename B, typename ... C>
+		struct _has_has_tooltip : std::false_type {};
+		template<typename A, typename ... C>
+		struct _has_has_tooltip<A, decltype(void(std::declval<A>().has_tooltip(std::declval<C>() ...))), C...> : std::true_type {};
+		template<typename A, typename ... C>
+		constexpr bool has_has_tooltip = _has_has_tooltip<A, void, C ...>::value;
 	}
 
 	class unmanaged_region_scollbar {
@@ -301,4 +308,5 @@ namespace ui {
 #include "gui_window.hpp"
 #include "text_box.hpp"
 #include "listbox.hpp"
+#include "icons.hpp"
 #include "concurrency_tools\\concurrency_tools.hpp"

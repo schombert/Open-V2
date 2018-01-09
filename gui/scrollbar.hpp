@@ -284,7 +284,9 @@ template<typename B>
 ui::tagged_gui_object ui::create_static_element(gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, scrollbar<B>& b) {
 	const auto& scrollbar_definition = manager.ui_definitions.scrollbars[handle];
 
-	return ui::detail::create_scrollbar_internal<B>(manager, b, scrollbar_definition, parent, scrollbar_definition.position, std::max(scrollbar_definition.size.x, scrollbar_definition.size.y));
+	const auto res = ui::detail::create_scrollbar_internal<B>(manager, b, scrollbar_definition, parent, scrollbar_definition.position, std::max(scrollbar_definition.size.x, scrollbar_definition.size.y));
+	manager.flag_minimal_update();
+	return res;
 }
 
 template<typename BEHAVIOR>

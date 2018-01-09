@@ -24,6 +24,20 @@ void ui::simple_button<BASE>::update_data(gui_object_tag o, gui_manager& m, worl
 	}
 }
 
+template<typename BASE>
+ui::tooltip_behavior ui::simple_button<BASE>::has_tooltip(gui_object_tag, gui_manager&, const mouse_move&) {
+	if constexpr(ui::detail::has_has_tooltip<BASE>)
+		return BASE::has_tooltip() ? tooltip_behavior::tooltip : tooltip_behavior::no_tooltip;
+	else
+		return tooltip_behavior::no_tooltip;
+}
+
+template<typename BASE>
+void ui::simple_button<BASE>::create_tooltip(gui_object_tag o, gui_manager& m, const mouse_move&, tagged_gui_object tw) {
+	if constexpr(ui::detail::has_has_tooltip<BASE>)
+		BASE::create_tooltip(m, tw);
+}
+
 
 template<typename B>
 ui::tagged_gui_object ui::create_static_element(gui_manager& manager, button_tag handle, tagged_gui_object parent, simple_button<B>& b) {
@@ -36,6 +50,7 @@ ui::tagged_gui_object ui::create_static_element(gui_manager& manager, button_tag
 	b.shortcut = bdef.shortcut;
 
 	ui::add_to_back(manager, parent, new_obj);
+	manager.flag_minimal_update();
 	return new_obj;
 }
 
@@ -46,14 +61,6 @@ namespace buttons_detail {
 	struct _has_on_unselect<A, decltype(void(std::declval<A>().on_unselect(std::declval<C>() ...))), C...> : std::true_type {};
 	template<typename A, typename ... C>
 	constexpr bool has_on_unselect = _has_on_unselect<A, void, C ...>::value;
-
-	template<typename A, typename B, typename ... C>
-	struct _has_has_tooltip : std::false_type {};
-	template<typename A, typename ... C>
-	struct _has_has_tooltip<A, decltype(void(std::declval<A>().has_tooltip(std::declval<C>() ...))), C...> : std::true_type {};
-	template<typename A, typename ... C>
-	constexpr bool has_has_tooltip = _has_has_tooltip<A, void, C ...>::value;
-
 
 	template<uint32_t count, typename ... R>
 	class _button_group;
@@ -77,13 +84,13 @@ namespace buttons_detail {
 			BEHAVIOR::on_select(m, current_index);
 		}
 		virtual ui::tooltip_behavior has_tooltip(uint32_t i) override {
-			if constexpr(buttons_detail::has_has_tooltip<BEHAVIOR, uint32_t>)
+			if constexpr(ui::detail::has_has_tooltip<BEHAVIOR, uint32_t>)
 				return BEHAVIOR::has_tooltip(i);
 			else
 				return ui::tooltip_behavior::no_tooltip;
 		}
 		virtual void create_tooltip(ui::gui_manager& m, ui::tagged_gui_object tw, uint32_t i) override {
-			if constexpr(buttons_detail::has_has_tooltip<BEHAVIOR, uint32_t>)
+			if constexpr(ui::detail::has_has_tooltip<BEHAVIOR, uint32_t>)
 				BEHAVIOR::create_tooltip(m, tw, i);
 		}
 	};
@@ -129,17 +136,3 @@ public:
 	button_group(PARAMS&& ... params) :
 		buttons_detail::_button_group<0, N...>(std::forward<PARAMS>(params) ...) {}
 };
-
-template<typename BASE>
-ui::tooltip_behavior ui::simple_button<BASE>::has_tooltip(gui_object_tag, gui_manager&, const mouse_move&) {
-	if constexpr(buttons_detail::has_has_tooltip<BASE>)
-		return BASE::has_tooltip();
-	else
-		return tooltip_behavior::no_tooltip;
-}
-
-template<typename BASE>
-void ui::simple_button<BASE>::create_tooltip(gui_object_tag o, gui_manager& m, const mouse_move&, tagged_gui_object tw) {
-	if constexpr(buttons_detail::has_has_tooltip<BASE>)
-		BASE::create_tooltip(m, tw);
-}

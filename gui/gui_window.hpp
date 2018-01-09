@@ -199,6 +199,7 @@ ui::tagged_gui_object ui::create_static_element(gui_manager& manager, window_tag
 	const auto& window_definition = manager.ui_definitions.windows[handle];
 	const auto res = b.create(manager, window_definition);
 	ui::add_to_back(manager, parent, res);
+	manager.flag_minimal_update();
 	return res;
 }
 

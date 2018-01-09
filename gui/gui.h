@@ -146,11 +146,31 @@ namespace ui {
 	public:
 		virtual_key shortcut = virtual_key::NONE;
 
+		simple_button(const simple_button&) = default;
+		simple_button(simple_button& i) noexcept : simple_button(static_cast<const simple_button&>(i)) {}
+		simple_button(simple_button&&) = default;
 		template<typename ...P>
 		explicit simple_button(P&& ... params) : BASE(std::forward<P>(params)...) {}
 
 		virtual bool on_lclick(gui_object_tag o, gui_manager& m, const lbutton_down&) final override;
 		virtual bool on_keydown(gui_object_tag o, gui_manager& m, const key_down& k) final override;
+		virtual void update_data(gui_object_tag, gui_manager&, world_state&) final override;
+		virtual tooltip_behavior has_tooltip(gui_object_tag, gui_manager&, const mouse_move&) final override;
+		virtual void create_tooltip(gui_object_tag, gui_manager&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
+	};
+
+	template<typename BASE>
+	class dynamic_icon : public visible_region, public BASE {
+	public:
+		dynamic_icon(const dynamic_icon&) = default;
+		dynamic_icon(dynamic_icon& i) noexcept : dynamic_icon(static_cast<const dynamic_icon&>(i)) {}
+		dynamic_icon(dynamic_icon&&) = default;
+		template<typename ...P>
+		explicit dynamic_icon(P&& ... params) : BASE(std::forward<P>(params)...) {}
+
+		void set_frame(gui_manager&, uint32_t frame_num);
+		void set_visibility(gui_manager&, bool visible);
+
 		virtual void update_data(gui_object_tag, gui_manager&, world_state&) final override;
 		virtual tooltip_behavior has_tooltip(gui_object_tag, gui_manager&, const mouse_move&) final override;
 		virtual void create_tooltip(gui_object_tag, gui_manager&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
@@ -163,6 +183,9 @@ namespace ui {
 		text_data::alignment align;
 		gui_object_tag self;
 	public:
+		display_text(const display_text&) = default;
+		display_text(display_text& i) noexcept : display_text(static_cast<const display_text&>(i)) {}
+		display_text(display_text&&) = default;
 		template<typename ...P>
 		display_text(P&& ... params) : BASE(std::forward<P>(params)...) {}
 
@@ -186,6 +209,9 @@ namespace ui {
 		float fractions[piechart_resolution];
 		float fraction_used = 0.0f;
 	public:
+		piechart(const piechart&) = default;
+		piechart(piechart& i) noexcept : piechart(static_cast<const piechart&>(i)) {}
+		piechart(piechart&&) = default;
 		template<typename ...P>
 		piechart(P&& ... params) : BASE(std::forward<P>(params)...) {}
 
@@ -221,6 +247,9 @@ namespace ui {
 
 		bool vertical;
 
+		scrollbar(const scrollbar&) = default;
+		scrollbar(scrollbar& i) noexcept : scrollbar(static_cast<const scrollbar&>(i)) {}
+		scrollbar(scrollbar&&) = default;
 		template<typename ... PARAMS>
 		scrollbar(bool vert, int32_t mini, int32_t maxi, int32_t step, PARAMS&& ... params);
 		template<typename ... PARAMS>
@@ -266,6 +295,9 @@ namespace ui {
 		gui_object_tag _content_frame_tag;
 		window_tag element_def_tag;
 	public:
+		display_listbox(const display_listbox&) = default;
+		display_listbox(display_listbox& i) noexcept : display_listbox(static_cast<const display_listbox&>(i)) {}
+		display_listbox(display_listbox&&) = default;
 		template<typename ... PARAMS>
 		display_listbox(PARAMS&& ... params) : BASE(std::forward<PARAMS>(params)...) {}
 
@@ -276,6 +308,34 @@ namespace ui {
 		void set_element_definition(gui_manager&, window_tag);
 		void clear_items(gui_manager&);
 		void update_scroll_position(gui_manager&);
+		template<typename ... PARAMS>
+		void add_item(gui_manager&, PARAMS&& ...);
+		template<typename window_type>
+		void windowed_update(window_type&, gui_manager&, world_state&);
+	};
+
+	template<typename BASE, typename ELEMENT>
+	class overlap_box : public visible_region, public BASE {
+	private:
+		std::vector<ELEMENT, concurrent_allocator<ELEMENT>> contents;
+		gui_object_tag self;
+
+		int32_t subelement_width;
+		text_data::alignment subelement_alignment;
+		element_tag element_def_tag;
+	public:
+		overlap_box(const overlap_box&) = default;
+		overlap_box(overlap_box& i) noexcept : overlap_box(static_cast<const overlap_box&>(i)) {}
+		overlap_box(overlap_box&&) = default;
+		template<typename ... PARAMS>
+		overlap_box(PARAMS&& ... params) : BASE(std::forward<PARAMS>(params)...) {}
+
+		virtual void update_data(gui_object_tag, gui_manager&, world_state&) final override;
+
+		void set_subelement_definition(gui_manager&, element_tag);
+		void set_subelement_alignment(text_data::alignment);
+		void clear_items(gui_manager&);
+		void update_item_positions(gui_manager&);
 		template<typename ... PARAMS>
 		void add_item(gui_manager&, PARAMS&& ...);
 		template<typename window_type>
@@ -304,6 +364,9 @@ namespace ui {
 	public:
 		virtual_key shortcut = virtual_key::NONE;
 
+		button_group_member(const button_group_member&) = default;
+		button_group_member(button_group_member& i) noexcept : button_group_member(static_cast<const button_group_member&>(i)) {}
+		button_group_member(button_group_member&&) = default;
 		template<typename ...P>
 		explicit button_group_member(P&& ... params) {}
 
@@ -364,7 +427,7 @@ namespace ui {
 		atomic_tag<gui_object_tag> left_sibling; //24 bytes
 		atomic_tag<gui_object_tag> right_sibling; //26 bytes
 
-		std::atomic<uint16_t> flags = visible | enabled; // 28 bytes
+		std::atomic<uint16_t> flags = visible_after_update | enabled; // 28 bytes
 
 		ui::alignment align = ui::alignment::top_left; //32 bytes
 		char padding[3];
@@ -422,10 +485,14 @@ namespace ui {
 	ui::tagged_gui_object create_static_element(gui_manager& manager, icon_tag handle, tagged_gui_object parent, piechart<B>& b);
 	template<typename B>
 	ui::tagged_gui_object create_static_element(gui_manager& manager, ui::text_tag handle, tagged_gui_object parent, display_text<B>& b);
+	template<typename B>
+	ui::tagged_gui_object create_static_element(gui_manager& manager, icon_tag handle, tagged_gui_object parent, dynamic_icon<B>& b);
 	template<typename ... REST>
 	ui::tagged_gui_object create_static_element(gui_manager& manager, window_tag handle, tagged_gui_object parent, gui_window<REST...>& b);
 	template<typename B, typename ELEMENT, int32_t left_expand>
 	ui::tagged_gui_object create_static_element(gui_manager& manager, listbox_tag handle, tagged_gui_object parent, ui::display_listbox<B, ELEMENT, left_expand>& b);
+	template<typename B, typename ELEMENT>
+	ui::tagged_gui_object create_static_element(gui_manager& manager, overlapping_region_tag handle, tagged_gui_object parent, ui::overlap_box<B, ELEMENT>& b);
 
 	ui::tagged_gui_object create_static_element(gui_manager& manager, button_tag handle, tagged_gui_object parent, button_group_member& b);
 

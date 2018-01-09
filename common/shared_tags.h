@@ -28,6 +28,15 @@ namespace ui {
 	using lines_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 856628>>;
 }
 
+inline bool is_valid_index(const ui::element_tag& et) {
+	return std::visit([](auto t) {
+		if constexpr(std::is_same_v<std::monostate, decltype(t)>)
+			return false;
+		else
+			return is_valid_index(t);
+	}, et);
+}
+
 namespace text_data {
 	using text_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 342678>>;
 }

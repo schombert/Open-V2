@@ -153,6 +153,7 @@ ui::tagged_gui_object ui::create_static_element(gui_manager& manager, icon_tag h
 	b.update_display(manager);
 
 	ui::add_to_back(manager, parent, res);
+	manager.flag_minimal_update();
 	return res;
 }
 

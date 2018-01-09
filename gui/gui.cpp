@@ -719,7 +719,7 @@ void ui::make_visible_and_update(gui_manager& manager, gui_object& g) {
 }
 
 void ui::hide(gui_object& g) {
-	g.flags.fetch_and((uint16_t)~ui::gui_object::visible, std::memory_order_acq_rel);
+	g.flags.fetch_and((uint16_t)(~ui::gui_object::visible & ~ui::gui_object::visible_after_update), std::memory_order_acq_rel);
 }
 
 void ui::set_enabled(gui_object& g, bool enabled) {
@@ -968,8 +968,9 @@ void ui::detail::update(gui_manager& manager, tagged_gui_object obj, world_state
 
 	if ((object_flags & ui::gui_object::visible_after_update) != 0) {
 		obj.object.flags.fetch_and((uint16_t)~ui::gui_object::visible_after_update, std::memory_order_acq_rel);
-		if ((obj.object.associated_behavior != nullptr) & ((object_flags & ui::gui_object::visible) == 0)) {
-			obj.object.associated_behavior->on_visible(obj.id, manager, w);
+		if ((object_flags & ui::gui_object::visible) == 0) {
+			if (obj.object.associated_behavior)
+				obj.object.associated_behavior->on_visible(obj.id, manager, w);
 			obj.object.flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
 		}
 	} else if ((object_flags & ui::gui_object::visible) == 0) {
@@ -990,11 +991,11 @@ void ui::detail::minimal_update(gui_manager& manager, tagged_gui_object obj, wor
 	if ((object_flags & ui::gui_object::visible_after_update) != 0) {
 		obj.object.flags.fetch_and((uint16_t)~ui::gui_object::visible_after_update, std::memory_order_acq_rel);
 		
-		if ((obj.object.associated_behavior != nullptr) & ((object_flags & ui::gui_object::visible) == 0)) {
-			obj.object.associated_behavior->on_visible(obj.id, manager, w);
+		if ((object_flags & ui::gui_object::visible) == 0) {
+			if (obj.object.associated_behavior) 
+				obj.object.associated_behavior->on_visible(obj.id, manager, w);
 			obj.object.flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
 		}
-
 		if (obj.object.associated_behavior)
 			obj.object.associated_behavior->update_data(obj.id, manager, w);
 
