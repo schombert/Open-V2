@@ -1053,7 +1053,7 @@ namespace ui {
 			env.errors_generated.emplace_back(env.file, ui::errors::unknown_definition_type);
 		}
 	};
-	ui::xy_pair definitions::get_size(element_tag t) {
+	ui::xy_pair definitions::get_size(element_tag t) const {
 		return visit(t, [](const auto& def) {
 			if constexpr(detail::has_size<decltype(def)>)
 				return def.size;

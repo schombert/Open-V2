@@ -157,6 +157,9 @@ namespace ui {
 		template<typename ...P>
 		explicit simple_button(P&& ... params) : BASE(std::forward<P>(params)...) {}
 
+		void set_frame(gui_manager&, uint32_t frame_num);
+		void set_visibility(gui_manager&, bool visible);
+
 		virtual bool on_lclick(gui_object_tag o, gui_manager& m, const lbutton_down&) final override;
 		virtual bool on_keydown(gui_object_tag o, gui_manager& m, const key_down& k) final override;
 		virtual void update_data(gui_object_tag, gui_manager&, world_state&) final override;
@@ -295,6 +298,8 @@ namespace ui {
 		gui_object* _content_frame = nullptr;
 		gui_object_tag _content_frame_tag;
 		window_tag element_def_tag;
+
+		void set_element_definition(gui_manager&);
 	public:
 		display_listbox(display_listbox&&) = default;
 		display_listbox(display_listbox& o) noexcept : display_listbox(std::move(o)) {}
@@ -305,7 +310,6 @@ namespace ui {
 		virtual void update_data(gui_object_tag, gui_manager&, world_state&) final override;
 
 		void create_sub_elements(tagged_gui_object self, gui_manager&);
-		void set_element_definition(gui_manager&, window_tag);
 		void clear_items(gui_manager&);
 		void update_scroll_position(gui_manager&);
 		template<typename ... PARAMS>
@@ -314,7 +318,7 @@ namespace ui {
 		void windowed_update(window_type&, gui_manager&, world_state&);
 	};
 
-	template<typename BASE, typename ELEMENT>
+	template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension = 0>
 	class overlap_box : public visible_region, public BASE {
 	private:
 		std::vector<ELEMENT, concurrent_allocator<ELEMENT>> contents;
@@ -323,7 +327,7 @@ namespace ui {
 		int32_t subelement_width = 1;
 		int32_t spacing = 0;
 		text_data::alignment subelement_alignment;
-		element_tag element_def_tag;
+		tag_type element_def_tag;
 	public:
 		overlap_box(overlap_box&&) = default;
 		overlap_box(overlap_box& o) noexcept : overlap_box(std::move(o)) {}
@@ -332,9 +336,7 @@ namespace ui {
 
 		virtual void update_data(gui_object_tag, gui_manager&, world_state&) final override;
 
-		void set_subelement_definition(gui_manager&, element_tag);
-		void set_subelement_alignment(text_data::alignment);
-		void set_self_information(gui_object_tag s, int32_t sp);
+		void set_self_information(gui_manager& m, gui_object_tag s, int32_t sp, text_data::alignment a);
 		void clear_items(gui_manager&);
 		void update_item_positions(gui_manager&);
 		template<typename ... PARAMS>
@@ -493,8 +495,8 @@ namespace ui {
 	ui::tagged_gui_object create_static_element(gui_manager& manager, window_tag handle, tagged_gui_object parent, gui_window<REST...>& b);
 	template<typename B, typename ELEMENT, int32_t left_expand>
 	ui::tagged_gui_object create_static_element(gui_manager& manager, listbox_tag handle, tagged_gui_object parent, ui::display_listbox<B, ELEMENT, left_expand>& b);
-	template<typename B, typename ELEMENT>
-	ui::tagged_gui_object create_static_element(gui_manager& manager, overlapping_region_tag handle, tagged_gui_object parent, ui::overlap_box<B, ELEMENT>& b);
+	template<typename B, typename tag_type, typename ELEMENT, int32_t vertical_extension>
+	ui::tagged_gui_object create_static_element(gui_manager& manager, overlapping_region_tag handle, tagged_gui_object parent, ui::overlap_box<B, tag_type, ELEMENT, vertical_extension>& b);
 
 	ui::tagged_gui_object create_static_element(gui_manager& manager, button_tag handle, tagged_gui_object parent, button_group_member& b);
 

@@ -199,3 +199,4 @@ TEST(text_alignment, text_data_test) {
 	const auto a9 = align_in_bounds(text_data::alignment::right, 20, 10, 40, 20);
 	EXPECT_EQ(20, a9.first);
 	EXPECT_EQ(5, a9.second);
+}

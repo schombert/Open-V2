@@ -3,6 +3,7 @@
 #include "graphics\\open_gl_wrapper.h"
 #include <algorithm>
 #include "boost\\container\\small_vector.hpp"
+#include "concurrency_tools\\concurrency_tools.hpp"
 
 #ifdef _DEBUG
 #include "Windows.h"

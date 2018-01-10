@@ -342,7 +342,7 @@ namespace ui {
 		definitions() : name_to_element_map(vector_backed_string_less_ci(name_data)) {}
 
 		template<typename F>
-		auto visit(element_tag t, const F& fun) {
+		auto visit(element_tag t, const F& fun) const {
 			return std::visit([&fun, _this = this](auto st) {
 				if constexpr(std::is_same_v<button_tag, decltype(st)>)
 					return fun(_this->buttons[st]);
@@ -365,7 +365,16 @@ namespace ui {
 			}, t);
 		}
 
-		ui::xy_pair get_size(element_tag t);
+		const button_def& get(button_tag t) const { return buttons[t]; }
+		const icon_def& get(icon_tag t) const { return icons[t]; }
+		const text_def& get(text_tag t) const { return text[t]; }
+		const position_def& get(position_tag t) const { return positions[t]; }
+		const overlapping_region_def& get(overlapping_region_tag t) const { return overlapping_regions[t]; }
+		const listbox_def& get(listbox_tag t) const { return listboxes[t]; }
+		const scrollbar_def& get(scrollbar_tag t) const { return scrollbars[t]; }
+		const window_def& get(window_tag t) const { return windows[t]; }
+
+		ui::xy_pair get_size(element_tag t) const;
 	};
 
 	using text_handle_lookup = std::function<text_data::text_tag(const char*, const char*)>;

@@ -19,8 +19,8 @@ bool ui::simple_button<BASE>::on_keydown(gui_object_tag o, gui_manager & m, cons
 
 template<typename BASE>
 void ui::simple_button<BASE>::update_data(gui_object_tag o, gui_manager& m, world_state& w) {
-	if constexpr(ui::detail::has_update<BASE, gui_object_tag, gui_manager&, world_state&>) {
-		BASE::update(o, m, w);
+	if constexpr(ui::detail::has_update<BASE, simple_button<BASE>&, gui_manager&, world_state&>) {
+		BASE::update(*this, m, w);
 	}
 }
 
@@ -38,6 +38,20 @@ void ui::simple_button<BASE>::create_tooltip(gui_object_tag o, gui_manager& m, c
 		BASE::create_tooltip(m, tw);
 }
 
+template<typename BASE>
+void ui::simple_button<BASE>::set_frame(gui_manager& m, uint32_t frame_num) {
+	if (const auto go = m.graphics_instances.safe_at(graphics_instance_tag(associated_object->type_dependant_handle)); go) {
+		go->frame = static_cast<int32_t>(frame_num);
+	}
+}
+
+template<typename BASE>
+void ui::simple_button<BASE>::set_visibility(gui_manager& m, bool visible) {
+	if (visible)
+		ui::make_visible_and_update(m, *associated_object);
+	else
+		ui::hide(*associated_object);
+}
 
 template<typename B>
 ui::tagged_gui_object ui::create_static_element(gui_manager& manager, button_tag handle, tagged_gui_object parent, simple_button<B>& b) {

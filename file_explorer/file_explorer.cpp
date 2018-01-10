@@ -1,19 +1,15 @@
 ﻿#include <iostream>
 #include "simple_fs\\simple_fs.h"
-#include "Parsers\\parsers.hpp"
 #include <map>
 #include <set>
-#include "object_parsing\\object_parsing.hpp"
-#include "fake_fs\\fake_fs.h"
 #include "graphics\\v2_window.hpp"
-#include "graphics\\test_helpers.h"
-#include <string>
-#include "gui_definitions\\gui_definitions.h"
-#include "graphics_objects\\graphics_objects.h"
-#include "text_data\\text_data.h" 
+#include "object_parsing\\object_parsing.hpp"
+#include "Parsers\\parsers.hpp"
 #include "gui\\gui.hpp"
 
 // #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
+
+int main(int, char**);
 
 class parse_result_holder {
 public:
@@ -647,8 +643,8 @@ BEGIN_DOMAIN(gfx_file_domain)
 		MEMBER_TYPE_ASSOCIATION("discard", "lighttypes", discard_type)
 		MEMBER_TYPE_ASSOCIATION("discard", "objecttypes", discard_type)
 		MEMBER_TYPE_ASSOCIATION("discard", "spritetypes", spritetypes)
-	    MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
-	    MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
+		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, label_empty_type)
 	END_TYPE
 	BEGIN_TYPE(spritetypes)
 		MEMBER_TYPE_ASSOCIATION("sprite", "spritetype", spritetype)
@@ -660,7 +656,7 @@ BEGIN_DOMAIN(gfx_file_domain)
 		MEMBER_TYPE_ASSOCIATION("linechart", "linecharttype", linecharttype)
 		MEMBER_TYPE_ASSOCIATION("tilesprite", "tilespritetype", tilespritetype)
 		MEMBER_TYPE_ASSOCIATION("textsprite", "textspritetype", textspritetype)
-	    MEMBER_TYPE_ASSOCIATION("discard", "scrollingsprite", discard_type)
+		MEMBER_TYPE_ASSOCIATION("discard", "scrollingsprite", discard_type)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, value_from_lh<std::string>)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, discard_type, label_discard_type)
 	END_TYPE
@@ -705,8 +701,8 @@ END_DOMAIN;
 
 /*
 BEGIN_DOMAIN(mod_file_domain)
-    BEGIN_TYPE(std::vector<std::string>)
-	    MEMBER_VARIABLE_ASSOCIATION("this", accept_all, value_from_lh<std::string>)
+	BEGIN_TYPE(std::vector<std::string>)
+		MEMBER_VARIABLE_ASSOCIATION("this", accept_all, value_from_lh<std::string>)
 	END_TYPE
 	BEGIN_TYPE(mod_description)
 		MEMBER_ASSOCIATION("name", "name", value_from_rh<std::string>)
@@ -728,11 +724,11 @@ BEGIN_DOMAIN(poptype_file_domain)
 		MEMBER_ASSOCIATION("type", "type", string_from_association)
 	END_TYPE
 	BEGIN_TYPE(work_available_trigger)
-	    MEMBER_ASSOCIATION("worker", "worker", string_from_association)
+		MEMBER_ASSOCIATION("worker", "worker", string_from_association)
 	END_TYPE
 	BEGIN_TYPE(trigger_group)
-	    MEMBER_ASSOCIATION_1("trigger", "voting_system", string_trigger_from_association, string_trigger::string_trigger_type::voting_system)
-	    MEMBER_ASSOCIATION_1("trigger", "wage_reform", string_trigger_from_association, string_trigger::string_trigger_type::wage_reform)
+		MEMBER_ASSOCIATION_1("trigger", "voting_system", string_trigger_from_association, string_trigger::string_trigger_type::voting_system)
+		MEMBER_ASSOCIATION_1("trigger", "wage_reform", string_trigger_from_association, string_trigger::string_trigger_type::wage_reform)
 		MEMBER_ASSOCIATION_1("trigger", "work_hours", string_trigger_from_association, string_trigger::string_trigger_type::work_hours)
 		MEMBER_ASSOCIATION_1("trigger", "vote_franschise", string_trigger_from_association, string_trigger::string_trigger_type::vote_franschise)
 		MEMBER_ASSOCIATION_1("trigger", "terrain", string_trigger_from_association, string_trigger::string_trigger_type::terrain)
@@ -813,11 +809,11 @@ BEGIN_DOMAIN(poptype_file_domain)
 		INHERIT_FROM(trigger_group)
 	END_TYPE
 	BEGIN_TYPE(modifier_group)
-	    MEMBER_TYPE_ASSOCIATION("modifier", "modifier", modifier)
+		MEMBER_TYPE_ASSOCIATION("modifier", "modifier", modifier)
 	END_TYPE
 	BEGIN_TYPE(simple_modifier_container)
-	    MEMBER_ASSOCIATION("factor", "factor", double_from_association)
-	    MEMBER_TYPE_ASSOCIATION("modifier", "modifier", modifier)
+		MEMBER_ASSOCIATION("factor", "factor", double_from_association)
+		MEMBER_TYPE_ASSOCIATION("modifier", "modifier", modifier)
 	END_TYPE
 	BEGIN_TYPE(complex_modifier_container)
 		MEMBER_ASSOCIATION("factor", "factor", double_from_association)
@@ -864,7 +860,7 @@ struct unknown_type {
 	void print_type() {
 		if (subtypes.size() != 0) {
 			std::cout << "\tsubtypes:" << std::endl;
-			for(const auto& s: subtypes)
+			for (const auto& s : subtypes)
 				std::cout << "\t\t" << s << std::endl;
 		}
 		if (associations.size() != 0) {
@@ -891,7 +887,7 @@ struct empty_window_handler {
 
 	graphics::font test_fallback;
 	graphics::font test_font;
-	
+
 	empty_window_handler() :
 		//test_tex("F:\\VS2007Projects\\open_v2_test_data\\army_icon_2.dds"),
 		test_tex("F:\\VS2007Projects\\open_v2_test_data\\test_tx.bmp"),
@@ -905,7 +901,7 @@ struct empty_window_handler {
 		test_fallback("F:\\VS2007Projects\\open_v2_test_data\\unifont-9.0.02.ttf"),
 		//test_font("F:\\VS2007Projects\\open_v2_test_data\\Primitive.ttf", test_fallback) {}
 		test_font("F:\\VS2007Projects\\open_v2_test_data\\CreteRound-Regular.otf", test_fallback) {
-		float yval[] = { 0.3f, 0.6f, 0.5f, 1.0f, 0.4f, 0.5f, 0.0f, 0.3f, 0.2f, 0.6f};
+		float yval[] = { 0.3f, 0.6f, 0.5f, 1.0f, 0.4f, 0.5f, 0.0f, 0.3f, 0.2f, 0.6f };
 		graph.set_y(yval);
 	}
 
@@ -947,7 +943,7 @@ public:
 			vector_backed_string<char16_t>(u"test tooltip"),
 			tw,
 			ui::xy_pair{ 0,0 },
-			ui::text_format{ui::text_color::white, graphics::font_tag(1), 16},
+			ui::text_format{ ui::text_color::white, graphics::font_tag(1), 16 },
 			ui::single_line_manager());
 	}
 };
@@ -1070,7 +1066,40 @@ public:
 	}
 };
 
-using budget_window_t = ui::gui_window<
+class frame_button {
+public:
+	const uint32_t n;
+
+	frame_button(uint32_t num) : n(num) {}
+	void update(ui::simple_button<frame_button>& ico, ui::gui_manager& m, world_state&) {
+		ico.set_frame(m, n);
+	}
+	void button_function(ui::gui_object_tag, ui::gui_manager&) {
+		MessageBoxA(nullptr, std::to_string(n).c_str(), "MB_FB", MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONINFORMATION);
+	}
+};
+
+using pop_item_t = ui::gui_window<
+	CT_STRING("pop"), ui::simple_button<frame_button>,
+	ui::visible_region
+>;
+
+class pop_type_a {
+public:
+	template<typename lb_type>
+	void populate_list(lb_type& lb, ui::gui_manager& m, world_state&) {
+		lb.add_item(m, 0ui32);
+		lb.add_item(m, 1ui32);
+		lb.add_item(m, 2ui32);
+		lb.add_item(m, 3ui32);
+		lb.add_item(m, 4ui32);
+	}
+	ui::window_tag element_tag(ui::gui_manager& m) {
+		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["pop_listitem"]);
+	}
+};
+
+using budget_window_t = ui::gui_window <
 	CT_STRING("tab_takenloans"), ui::button_group_member,
 	CT_STRING("tab_givenloans"), ui::button_group_member,
 	CT_STRING("loans_tab_group"), ui::button_group<CT_STRING("tab_takenloans"), CT_STRING("tab_givenloans"), simple_button_group>,
@@ -1096,7 +1125,8 @@ using budget_window_t = ui::gui_window<
 	CT_STRING("chart_debt"), ui::piechart<empty_gui_obj>,
 	CT_STRING("debt_listbox"), ui::display_listbox<debt_lb, debt_listitem_t, 56>,
 	CT_STRING("gunboat_alert"), ui::dynamic_icon<hidden_icon>,
-	ui::draggable_region>;
+	CT_STRING("tax_0_pops"), ui::overlap_box<pop_type_a, ui::window_tag, pop_item_t, 32>,
+	ui::draggable_region > ;
 
 class world_state {};
 
@@ -1116,10 +1146,10 @@ struct gui_window_handler {
 		// do nothing;
 	}
 
-	void operator()(const ui::creation&, ui::window_base& ) {
+	void operator()(const ui::creation&, ui::window_base&) {
 		ui::create_static_element(gui_m, std::get<ui::window_tag>(gui_m.ui_definitions.name_to_element_map["country_budget"]), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, budget_window);
 		auto& pc = budget_window.get<CT_STRING("chart_0")>();
-		pc.add_entry(gui_m, vector_backed_string<char16_t>(u"category 1"), 0.4f, graphics::color_rgb{ 255,0,0 } );
+		pc.add_entry(gui_m, vector_backed_string<char16_t>(u"category 1"), 0.4f, graphics::color_rgb{ 255,0,0 });
 		pc.add_entry(gui_m, vector_backed_string<char16_t>(u"category 2"), 0.1f, graphics::color_rgb{ 255,255,0 });
 		pc.add_entry(gui_m, vector_backed_string<char16_t>(u"category 3"), 0.25f, graphics::color_rgb{ 255,0,255 });
 		pc.add_entry(gui_m, vector_backed_string<char16_t>(u"category 4"), 0.25f, graphics::color_rgb{ 0,255,255 });
@@ -1150,14 +1180,14 @@ struct gui_window_handler {
 		//ui::create_dynamic_window(gui_m, ui::window_tag(8), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) });
 	}
 
-	void operator()(const ui::resize& r, ui::window_base& ) {
+	void operator()(const ui::resize& r, ui::window_base&) {
 		gui_m.on_resize(r);
 	}
 
-	void operator()(const ui::lbutton_down& m, ui::window_base& ) {
+	void operator()(const ui::lbutton_down& m, ui::window_base&) {
 		gui_m.on_lbutton_down(m);
 	}
-	void operator()(const ui::key_down& m, ui::window_base& ) {
+	void operator()(const ui::key_down& m, ui::window_base&) {
 		gui_m.on_keydown(m);
 	}
 	void operator()(const ui::scroll& s, ui::window_base&) {
@@ -1207,7 +1237,7 @@ auto fake_gobj_lookup() {
 	return[i = 0ui16](const char*, const char*) mutable { return ++i; };
 }
 
-int __cdecl main() {
+int main(int , char **) {
 	/*{
 		window<empty_window_handler> test_window(400, 400);
 
@@ -1217,8 +1247,8 @@ int __cdecl main() {
 
 		test_window.close_window();
 	}*/
-	
-	
+
+
 
 	file_system fs;
 	fs.set_root(u"F:\\programs\\V2");
@@ -1245,7 +1275,7 @@ int __cdecl main() {
 	std::cout << all_text.all_components.size() << " components recorded" << std::endl;
 	std::cout << all_text.text_data.size() << " characters of data" << std::endl;
 	std::cout << all_text.key_data.size() << " characters of key data" << std::endl;
-	
+
 	auto interface_directory = fs.get_root().get_directory(u"\\interface");
 
 	graphics::texture_manager tm;
@@ -1270,12 +1300,12 @@ int __cdecl main() {
 	}
 
 	std::cout << "done with " << defs.buttons.size() + defs.icons.size() + defs.listboxes.size() + defs.overlapping_regions.size() + defs.positions.size() + defs.scrollbars.size() + defs.text.size() + defs.windows.size() << " objects" << std::endl;
-	
+
 	std::cout << all_text.all_sequences.size() << " total sequnces recorded" << std::endl;
 	std::cout << all_text.all_components.size() << " components recorded" << std::endl;
 	std::cout << all_text.text_data.size() << " characters of data" << std::endl;
 	std::cout << all_text.key_data.size() << " characters of key data" << std::endl;
-	
+
 	std::cout << gobj_nmaps.names.size() << " graphics objects pending" << std::endl;
 
 	graphics::load_graphics_object_definitions_from_directory(
@@ -1299,7 +1329,7 @@ int __cdecl main() {
 		//fs.add_root(u"F:\\programs\\V2\\mod\\HPM\\interface");
 		const auto gfx_files = fs.get_root().list_files(u".gfx");
 
-		
+
 		std::vector<token_group> parse_tree;
 
 		std::cout << "files count: " << gfx_files.size() << std::endl;
@@ -1313,13 +1343,13 @@ int __cdecl main() {
 				auto buffer = new char[sz];
 
 				open_f->read_to_buffer(buffer, sz);
-				
+
 				parse_tree.clear();
 				parse_pdx_file(parse_tree, buffer, buffer + sz);
 
 				if (parse_tree.size() > 0) {
 					parse_object<gfx_file, gfx_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), &g);
-					
+
 				}
 
 				delete[] buffer;
@@ -1397,7 +1427,7 @@ int __cdecl main() {
 	{
 		/*
 		std::map<std::string, unknown_type> unknown_types;
-		
+
 		file_system fs;
 		fs.set_root(u"F:\\programs\\V2\\poptypes");
 
@@ -1409,7 +1439,7 @@ int __cdecl main() {
 			char* buffer = new char[file_size];
 			artisans->read_to_buffer(buffer, file_size);
 
-			
+
 			poptype_file destination_c;
 			std::vector<token_group> file_pdx_parse;
 			parse_pdx_file(file_pdx_parse, buffer, buffer + file_size);
@@ -1430,6 +1460,6 @@ int __cdecl main() {
 	}
 	getchar();
 
-    return 0;
+	return 0;
 }
 
