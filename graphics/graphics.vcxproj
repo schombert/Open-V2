@@ -165,6 +165,7 @@
     <ClInclude Include="v2_window.h" />
     <ClInclude Include="v2_window.hpp" />
     <ClInclude Include="wglew.h" />
+    <ClInclude Include="world_map.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lines.cpp" />
@@ -173,6 +174,7 @@
     <ClCompile Include="text.cpp" />
     <ClCompile Include="texture.cpp" />
     <ClCompile Include="v2_window.cpp" />
+    <ClCompile Include="world_map.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\concurrency_tools\concurrency_tools.vcxproj">

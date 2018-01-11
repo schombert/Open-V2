@@ -51,6 +51,9 @@
     <ClInclude Include="lines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="world_map.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="v2_window.cpp">
@@ -69,6 +72,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="lines.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="world_map.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
