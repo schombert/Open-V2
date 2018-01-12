@@ -1,7 +1,7 @@
 #include "gui.hpp"
+#include <algorithm>
 #include "graphics_objects\\graphics_objects.h"
 #include "graphics\\open_gl_wrapper.h"
-#include <algorithm>
 #include "boost\\container\\small_vector.hpp"
 #include "concurrency_tools\\concurrency_tools.hpp"
 
@@ -1076,6 +1076,7 @@ void ui::gui_manager::rescale(float new_scale) {
 }
 
 void ui::render(const gui_manager& manager, graphics::open_gl_wrapper& ogl) {
+	ogl.use_default_program();
 	detail::render(manager, ogl, manager.background, ui::xy_pair{ 0, 0 }, manager.background.size, true);
 	detail::render(manager, ogl, manager.root, ui::xy_pair{ 0, 0 }, manager.root.size, true);
 	detail::render(manager, ogl, manager.foreground, ui::xy_pair{ 0, 0 }, manager.foreground.size, true);

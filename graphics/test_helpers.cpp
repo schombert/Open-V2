@@ -71,6 +71,7 @@ namespace graphics {
 
 		void render(open_gl_wrapper& ogl) {
 			if (!run) {
+				ogl.use_default_program();
 				function(ogl);
 
 				ogl.display();

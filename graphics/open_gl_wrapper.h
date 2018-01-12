@@ -48,6 +48,7 @@ namespace graphics {
 		void bind_to_ui_thread();
 		void clear();
 		void display();
+		void use_default_program() const;
 		void set_viewport(uint32_t width, uint32_t height);
 		void render_piechart(bool enabled, float x, float y, float size, data_texture& t);
 		void render_textured_rect(bool enabled, float x, float y, float width, float height, texture& t, rotation r = rotation::upright);

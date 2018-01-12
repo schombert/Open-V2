@@ -502,7 +502,6 @@ namespace graphics {
 			glDebugMessageCallback(debug_callback, nullptr);
 			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 			glDebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_OTHER, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_FALSE);
-			glEnable(GL_TEXTURE_2D);
 			wglMakeCurrent(window_dc, new_context);
 			glDebugMessageCallback(debug_callback, nullptr);
 			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
@@ -521,6 +520,7 @@ namespace graphics {
 
 			glEnable(GL_LINE_SMOOTH);
 			glEnable(GL_SCISSOR_TEST);
+			glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
 
 			create_shaders();
 			create_global_square();
@@ -563,6 +563,13 @@ namespace graphics {
 		return impl->active.load(std::memory_order::memory_order_acquire);
 	}
 
+	void open_gl_wrapper::use_default_program() const {
+		glUseProgram(general_shader);
+		glUniform1f(parameters::screen_width, static_cast<float>(impl->viewport_x));
+		glUniform1f(parameters::screen_height, static_cast<float>(impl->viewport_y));
+		glScissor(0, 0, static_cast<GLsizei>(impl->viewport_x), static_cast<GLsizei>(impl->viewport_y));
+	}
+
 	void open_gl_wrapper::setup_context(void* hwnd) {
 		impl->window_dc = GetDC((HWND)hwnd);
 		std::tie(impl->context, impl->ui_context) = setup_opengl_context((HWND)hwnd, impl->window_dc);
@@ -594,9 +601,6 @@ namespace graphics {
 			impl->update_viewport.store(false, std::memory_order::memory_order_release);
 			glViewport(0, 0, static_cast<int32_t>(impl->viewport_x), static_cast<int32_t>(impl->viewport_y));
 			glDepthRange(-1.0, 1.0);
-
-			glUniform1f(parameters::screen_width, static_cast<float>(impl->viewport_x));
-			glUniform1f(parameters::screen_height, static_cast<float>(impl->viewport_y));
 		}
 		glScissor(0, 0, static_cast<GLsizei>(impl->viewport_x), static_cast<GLsizei>(impl->viewport_y));
 

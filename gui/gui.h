@@ -1,6 +1,6 @@
 #pragma once
-#include <atomic>
 #include "common\\common.h"
+#include <atomic>
 #include "concurrency_tools\\concurrency_tools.h"
 #include "gui_definitions\\gui_definitions.h"
 #include "graphics\\texture.h"

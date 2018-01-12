@@ -6,6 +6,8 @@
 #include "object_parsing\\object_parsing.hpp"
 #include "Parsers\\parsers.hpp"
 #include "gui\\gui.hpp"
+#include "soil\\SOIL.h"
+#include "graphics\\world_map.h"
 
 // #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -1132,6 +1134,7 @@ class world_state {};
 
 struct gui_window_handler {
 	ui::gui_manager& gui_m;
+	graphics::map_display map;
 
 	//ui::simple_button<mb_button> mb_button_a;
 	tt_holder mb_button_a;
@@ -1147,6 +1150,7 @@ struct gui_window_handler {
 	}
 
 	void operator()(const ui::creation&, ui::window_base&) {
+		/*
 		ui::create_static_element(gui_m, std::get<ui::window_tag>(gui_m.ui_definitions.name_to_element_map["country_budget"]), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, budget_window);
 		auto& pc = budget_window.get<CT_STRING("chart_0")>();
 		pc.add_entry(gui_m, vector_backed_string<char16_t>(u"category 1"), 0.4f, graphics::color_rgb{ 255,0,0 });
@@ -1158,13 +1162,7 @@ struct gui_window_handler {
 		budget_window.get<CT_STRING("debt_sort_country")>().associated_object->flags.fetch_or(ui::gui_object::force_transparency_check, std::memory_order_acq_rel);
 		budget_window.get<CT_STRING("debt_sort_amount")>().associated_object->flags.fetch_or(ui::gui_object::force_transparency_check, std::memory_order_acq_rel);
 
-		//ui::make_visible_and_update(gui_m, *(budget_window.get<CT_STRING("debt_listbox")>().associated_object));
-
-		//ui::create_static_element(gui_m, ui::button_tag(8), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, mb_button_a);
-		//mb_button_a.shortcut = virtual_key::A;
-
-		//const auto new_button = ui::detail::create_element_instance(gui_m, ui::button_tag(8));
-		//ui::add_to_back(gui_m, ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, new_button);
+		*/
 
 		const auto new_icon = ui::detail::create_element_instance(gui_m, ui::icon_tag(19));
 		ui::add_to_back(gui_m, ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, new_icon);
@@ -1176,8 +1174,6 @@ struct gui_window_handler {
 		test_sb.set_limits(gui_m, 0, 75);
 
 		ui::create_scrollable_text_block(gui_m, ui::text_tag(571), text_data::text_tag(1001), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) });
-
-		//ui::create_dynamic_window(gui_m, ui::window_tag(8), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) });
 	}
 
 	void operator()(const ui::resize& r, ui::window_base&) {
@@ -1202,6 +1198,17 @@ struct gui_window_handler {
 
 	void initialize_graphics(graphics::open_gl_wrapper& ogl) {
 		gui_m.fonts.load_fonts(ogl);
+
+		int32_t width = 0;
+		int32_t height = 0;
+		int32_t channels = 3;
+		uint8_t* map_data = SOIL_load_image("F:\\programs\\V2\\map\\provinces.bmp", &width, &height, &channels, 3);
+
+		boost::container::flat_map<uint32_t, uint16_t> colors_map;
+		map.colors.init_color_data(3349);
+		graphics::color_map_creation_stub(colors_map, map.colors, map_data, width, height);
+
+		map.initialize(ogl, colors_map, map_data, width, height, 0.0f, -1.2f, 1.2f);
 	}
 
 	bool on_idle() {
@@ -1219,6 +1226,7 @@ struct gui_window_handler {
 	}
 
 	void render(graphics::open_gl_wrapper& ogl) {
+		map.render(ogl, 1.0f, 1.5f, 0.0f, gui_m.width(), gui_m.height());
 		ui::render(gui_m, ogl);
 	}
 };
