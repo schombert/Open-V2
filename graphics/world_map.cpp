@@ -4,7 +4,10 @@
 #include "glew.h"
 #include "wglew.h"
 #include <Windows.h>
+#undef min
+#undef max
 #include <map>
+#include <deque>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
@@ -24,12 +27,25 @@ namespace graphics {
 		uint16_t value;
 	};
 
-	uint16_t get_value_from_data(int32_t i, int32_t j, uint16_t* data, int32_t width, int32_t height) {
+	struct map_vertex_data_3d {
+		float x;
+		float y;
+		float z;
+		uint16_t value;
+	};
+
+	uint16_t get_value_from_data(int32_t i, int32_t j, const uint16_t* data, int32_t width, int32_t height) {
 		if ((j < 0) | (j >= height)) {
 			return 0ui16;
 		}
 		if (i < 0)
 			i += width;
+		if (i >= width)
+			i -= width;
+		return data[i + j * width];
+	}
+
+	uint16_t get_value_from_data_h(int32_t i, int32_t j, const uint16_t* data, int32_t width) {
 		if (i >= width)
 			i -= width;
 		return data[i + j * width];
@@ -134,6 +150,722 @@ namespace graphics {
 		Eigen::Matrix3f m;
 		m = Eigen::AngleAxisf(lat_rotation, Eigen::Vector3f::UnitX()) * Eigen::AngleAxisf(long_rotation, Eigen::Vector3f::UnitZ());
 		return m;
+	}
+
+	constexpr int32_t block_size = 64;
+
+	inline uint32_t pair_to_border_index(uint32_t a, uint32_t b) {
+		return a == b ? 0 : (a < b ? ((a << 16) | b) : ((b << 16) | a));
+	}
+
+	map_vertex_data_3d generate_3d_map_point(int32_t x_off, int32_t y_off, float base_lat, float lat_step, float long_step, uint16_t value) {
+		const float vx_pos = x_off * long_step;
+		const float vy_pos = y_off * lat_step + base_lat;
+		const float cos_vy = cos(vy_pos);
+		const float sin_vy = sin(vy_pos);
+		return map_vertex_data_3d{ cos(vx_pos) * cos_vy , sin(vx_pos) * cos_vy, sin_vy, value };
+	}
+
+	//.....................
+
+	class i_block {
+	public:
+		boost::container::small_vector<uint32_t, 8, concurrent_allocator<uint32_t>> intersects[block_size];
+	};
+
+	uint32_t pack_ushort_pair(uint16_t x, uint16_t y) {
+		return (static_cast<uint32_t>(y) << 16) | static_cast<uint32_t>(x);
+	}
+	uint32_t pack_unordered_ushort_pair(uint16_t x, uint16_t y) {
+		return y < x ? ((static_cast<uint32_t>(y) << 16) | static_cast<uint32_t>(x)) : ((static_cast<uint32_t>(x) << 16) | static_cast<uint32_t>(y));
+	}
+	std::pair<uint16_t, uint16_t> unpack_ushort_pair(uint32_t v) {
+		return std::make_pair(static_cast<uint16_t>(v & 0xFFFF), static_cast<uint16_t>(v >> 16));
+	}
+
+	enum class slope_direction {
+		left = 1,
+		straight = 0,
+		right = 2
+	};
+	
+	uint16_t direction_pair_to_next_position(const std::pair<slope_direction, uint16_t>& in) {
+		switch (in.first) {
+			case slope_direction::left: return in.second - 1ui16;
+			case slope_direction::right: return in.second + 1ui16;
+			case slope_direction::straight: return in.second;
+		}
+	}
+	uint32_t pack_position_and_direction(slope_direction d, uint16_t p) {
+		return pack_ushort_pair(p, static_cast<uint16_t>(d));
+	}
+	std::pair<slope_direction, uint16_t> unpack_position_and_direction(uint32_t v) {
+		std::make_pair(static_cast<slope_direction>(v >> 16), static_cast<uint16_t>(v & 0xFFFF));
+	}
+
+	using block_set_t = boost::container::flat_map<uint32_t, i_block, concurrent_allocator<std::pair<uint32_t, i_block>>>;
+
+	void intersects_to_blocks(
+		v_vector<uint32_t> &intersects,
+		block_set_t& block_set) {
+
+		for (uint32_t it = 0; it < intersects.index.size(); ++it) {
+			uint16_t previous = (uint16_t )-1;
+			const auto bound = intersects.get_row(it);
+			for (auto iit = bound.first; iit != bound.second; ++iit) {
+				if (previous == (uint16_t)-1) {
+					const uint16_t xblock = unpack_position_and_direction(*iit).second / block_size;
+					auto& blk = block_set[pack_ushort_pair(xblock, static_cast<uint16_t>(it / block_size))];
+					blk.intersects[it % block_size].push_back(*iit);
+					previous = xblock;
+				} else {
+					const uint16_t xblock = unpack_position_and_direction(*iit).second / block_size;
+					if (xblock == previous) {
+						auto& blk = block_set[pack_ushort_pair(xblock, static_cast<uint16_t>(it / block_size))];
+						blk.intersects[it % block_size].push_back(*iit);
+						previous = (uint16_t)-1;
+					} else {
+						auto& prv = block_set[pack_ushort_pair(previous, static_cast<uint16_t>(it / block_size))];
+						prv.intersects[it % block_size].push_back(pack_position_and_direction(slope_direction::straight, previous * block_size + block_size));
+						for (uint16_t i = previous + 1; i < xblock; ++i) {
+							auto& blk = block_set[pack_ushort_pair(i, static_cast<uint16_t>(it / block_size))];
+							blk.intersects[it % block_size].push_back(pack_position_and_direction(slope_direction::straight, i*block_size));
+							blk.intersects[it % block_size].push_back(pack_position_and_direction(slope_direction::straight, i*block_size + block_size));
+						}
+						auto& blk = block_set[pack_ushort_pair(xblock, static_cast<uint16_t>(it / block_size))];
+						blk.intersects[it % block_size].push_back(pack_position_and_direction(slope_direction::straight, xblock * block_size));
+						blk.intersects[it % block_size].push_back(*iit);
+						previous = (uint16_t)-1;
+					}
+				}
+			}
+		}
+
+	}
+
+	struct i_polyline {
+		std::deque<uint32_t, concurrent_allocator<uint32_t>> points;
+	};
+
+	bool in_polyline_list(const std::vector<typename i_polyline, concurrent_allocator<i_polyline>>& plines, uint32_t in) noexcept {
+		for (const auto& pl : plines) {
+			if (std::find(pl.points.cbegin(), pl.points.cend(), in) != pl.points.cend())
+				return true;
+		}
+		return false;
+	}
+
+
+	void blocks_to_polylines(uint16_t top, const i_block& block, std::vector<i_polyline, concurrent_allocator<i_polyline>>& plines) noexcept {
+		int previoussize = 0;
+		std::vector<i_polyline> generatedlines;
+
+		for (uint16_t vertindex = 0; vertindex < block_size; ++vertindex) {
+			bool testcontinuity = false;
+			if (previoussize == (((block.intersects[vertindex].size() + 1) / 2) << 1)) {
+				int indx = 0;
+				for (const auto pt : block.intersects[vertindex]) {
+					const auto unpacked_pt = unpack_position_and_direction(pt);
+					if (indx % 2 == 0) {
+						const auto front_pair = unpack_ushort_pair(generatedlines[indx / 2].points.front());
+						if (unpacked_pt.second + 1 < front_pair.first || unpacked_pt.second > front_pair.first + 1) {
+							testcontinuity = true;
+							break;
+						}
+					} else {
+						const auto back_pair = unpack_ushort_pair(generatedlines[indx / 2].points.back());
+						if (unpacked_pt.second + 1 < back_pair.first || unpacked_pt.second > back_pair.first + 1) {
+							testcontinuity = true;
+							break;
+						}
+					}
+					++indx;
+				}
+			}
+
+			if (testcontinuity || previoussize != (((block.intersects[vertindex].size() + 1) / 2) << 1)) {
+				if (previoussize != 0) {
+					int indx = 0;
+					for (const auto& pt : block.intersects[vertindex - 1]) {
+						const auto unpacked_pt = unpack_position_and_direction(pt);
+						if (indx % 2 == 0)
+							generatedlines[indx / 2].points.push_front(pack_ushort_pair(direction_pair_to_next_position(unpacked_pt), vertindex + top));
+						else
+							generatedlines[indx / 2].points.push_back(pack_ushort_pair(direction_pair_to_next_position(unpacked_pt), vertindex + top));
+						++indx;
+					}
+					for (auto& gl : generatedlines)
+						plines.emplace_back(std::move(gl));
+					generatedlines.clear();
+				}
+				generatedlines.resize((block.intersects[vertindex].size() + 1) / 2);
+				previoussize = static_cast<int>(((block.intersects[vertindex].size() + 1) / 2) << 1);
+			}
+
+			int indx = 0;
+			for (const auto& pt : block.intersects[vertindex]) {
+				const auto unpacked_pt = unpack_position_and_direction(pt);
+				if (indx % 2 == 0) {
+					generatedlines[indx / 2].points.push_front(pack_ushort_pair(unpacked_pt.second, vertindex + top));
+					generatedlines[indx / 2].points.push_front(pack_ushort_pair(direction_pair_to_next_position(unpacked_pt), vertindex + 1 + top));
+				} else {
+					generatedlines[indx / 2].points.push_back(pack_ushort_pair(unpacked_pt.second, vertindex + top));
+					generatedlines[indx / 2].points.push_back(pack_ushort_pair(direction_pair_to_next_position(unpacked_pt), vertindex + 1 + top));
+				}
+				++indx;
+			}
+		}
+
+		if (previoussize != 0) {
+			int indx = 0;
+			for (const auto& pt : block.intersects[block_size - 1]) {
+				const auto unpacked_pt = unpack_position_and_direction(pt);
+				if (indx % 2 == 0)
+					generatedlines[indx / 2].points.push_front(pack_ushort_pair(direction_pair_to_next_position(unpacked_pt), block_size + top));
+				else
+					generatedlines[indx / 2].points.push_back(pack_ushort_pair(direction_pair_to_next_position(unpacked_pt), block_size + top));
+				++indx;
+			}
+			for (auto& gl : generatedlines)
+				plines.emplace_back(std::move(gl));
+		}
+	}
+
+
+	void reduce_polyline(i_polyline& ln) {
+		if (ln.points.size() < 4)
+			return;
+
+		bool up = true;
+		auto it = ln.points.begin();
+		auto last_point = unpack_ushort_pair(*it);
+		int slopex = block_size * 2;
+		int slopey = block_size * 2;
+
+		++it;
+		while (it != ln.points.end()) {
+			auto current_point = unpack_ushort_pair(*it);
+			if (current_point.first == last_point.first && current_point.second == last_point.second) {
+				--it;
+				it = ln.points.erase(it);
+			} else if (up && current_point.second < last_point.second) {
+				up = false;
+			} else if (current_point.first - last_point.first == slopex && current_point.second - last_point.second == slopey) {
+				--it;
+				it = ln.points.erase(it);
+			} else {
+				slopex = current_point.first - last_point.first;
+				slopey = current_point.second - last_point.second;
+			}
+			last_point = current_point;
+			++it;
+		}
+	}
+
+	int32_t inline triangle_sign(uint32_t packed_pt_1, uint32_t packed_pt_2, uint32_t packed_pt_3) {
+		const auto unpacked_pt_1 = unpack_ushort_pair(packed_pt_1);
+		const auto unpacked_pt_2 = unpack_ushort_pair(packed_pt_2);
+		const auto unpacked_pt_3 = unpack_ushort_pair(packed_pt_3);
+
+		return (static_cast<int32_t>(unpacked_pt_1.first) * static_cast<int32_t>(unpacked_pt_2.second)
+			- static_cast<int32_t>(unpacked_pt_2.first) * static_cast<int32_t>(unpacked_pt_1.second)
+			+ static_cast<int32_t>(unpacked_pt_2.first) * static_cast<int32_t>(unpacked_pt_3.second)
+			- static_cast<int32_t>(unpacked_pt_3.first) * static_cast<int32_t>(unpacked_pt_2.second)
+			+ static_cast<int32_t>(unpacked_pt_3.first) * static_cast<int32_t>(unpacked_pt_1.second)
+			- static_cast<int32_t>(unpacked_pt_1.first) * static_cast<int32_t>(unpacked_pt_3.second));
+	}
+
+	struct graphics_data_creation {
+		boost::container::flat_map<uint32_t, uint32_t> packed_coordinare_to_index;
+		std::vector<map_vertex_data_3d> vertices;
+		std::vector<uint32_t> indices;
+
+		void place_lead_point(uint32_t pt, uint16_t value, float base_lat, float lat_step, float long_step) {
+			if (auto it = packed_coordinare_to_index.find(pt); it != packed_coordinare_to_index.end()) {
+				if (vertices[it->second].value == (uint16_t)-1) {
+					vertices[it->second].value = value;
+					indices.emplace_back(it->second);
+				} else if(vertices[it->second].value == value) {
+					indices.emplace_back(it->second);
+				} else {
+					const auto unpacked = unpack_ushort_pair(pt);
+					vertices.emplace_back(generate_3d_map_point(static_cast<int32_t>(unpacked.first), static_cast<int32_t>(unpacked.second), base_lat, lat_step, long_step, value));
+					const auto new_index = static_cast<uint32_t>(vertices.size() - 1);
+					indices.emplace_back(new_index);
+				}
+			} else {
+				const auto unpacked = unpack_ushort_pair(pt);
+				vertices.emplace_back(generate_3d_map_point(static_cast<int32_t>(unpacked.first), static_cast<int32_t>(unpacked.second), base_lat, lat_step, long_step, value));
+				const auto new_index = static_cast<uint32_t>(vertices.size() - 1);
+				indices.emplace_back(new_index);
+				packed_coordinare_to_index.emplace(std::make_pair(pt, new_index));
+			}
+		}
+
+		void place_point(uint32_t pt, float base_lat, float lat_step, float long_step) {
+			if (auto it = packed_coordinare_to_index.find(pt); it != packed_coordinare_to_index.end()) {
+				indices.emplace_back(it->second);
+			} else {
+				const auto unpacked = unpack_ushort_pair(pt);
+				vertices.emplace_back(generate_3d_map_point(static_cast<int32_t>(unpacked.first), static_cast<int32_t>(unpacked.second), base_lat, lat_step, long_step, (uint16_t)-1));
+				const auto new_index = static_cast<uint32_t>(vertices.size() - 1);
+				indices.emplace_back(new_index);
+				packed_coordinare_to_index.emplace(std::make_pair(pt, new_index));
+			}
+		}
+	};
+
+	void monotone_to_triangles(graphics_data_creation& data_out, i_polyline& ln, uint16_t value, float base_lat, float lat_step, float long_step) {
+		if (ln.points.size() < 3)
+			return;
+
+		struct pointrecord {
+			uint32_t pt;
+			bool left;
+			pointrecord(uint32_t p, bool l) : pt(p), left(l) {}
+		};
+
+		std::vector<pointrecord> sorted;
+		bool left = true;
+		uint16_t lasty = unpack_ushort_pair(ln.points.front()).second;
+		auto it = ln.points.begin();
+		auto rit = it;
+		for (; it != ln.points.end(); ++it) {
+			const auto newy = unpack_ushort_pair(*it).second;
+			if (newy > lasty) {
+				--it;
+				rit = it;
+				break;
+			}
+			lasty = newy;
+		}
+
+		auto lit = decltype(ln.points)::reverse_iterator(rit);
+		while (lit != ln.points.rend() && rit != ln.points.end()) {
+			if (unpack_ushort_pair(*lit).second <= unpack_ushort_pair(*rit).second) {
+				sorted.emplace_back(*lit, true);
+				++lit;
+			} else {
+				sorted.emplace_back(*rit, false);
+				++rit;
+			}
+		}
+
+		while (lit != ln.points.rend()) {
+			sorted.emplace_back(*lit, true);
+			++lit;
+		}
+
+		while (rit != ln.points.end()) {
+			sorted.emplace_back(*rit, false);
+			++rit;
+		}
+
+		std::vector<pointrecord> stack;
+		size_t indx = 2;
+		stack.push_back(sorted[0]);
+		stack.push_back(sorted[1]);
+
+		while (indx < sorted.size()) {
+			if (stack.back().left != sorted[indx].left) {
+				pointrecord t = stack.back();
+
+				if (sorted[indx].left) {
+					while (stack.size() >= 2) {
+						data_out.place_lead_point(sorted[indx].pt, value, base_lat, lat_step, long_step);
+						data_out.place_point(stack.back().pt, base_lat, lat_step, long_step);
+						stack.pop_back();
+						data_out.place_point(stack.back().pt, base_lat, lat_step, long_step);
+					}
+				} else {
+					while (stack.size() >= 2) {
+						data_out.place_lead_point(stack.back().pt, value, base_lat, lat_step, long_step);
+						data_out.place_point(sorted[indx].pt, base_lat, lat_step, long_step);
+						stack.pop_back();
+						data_out.place_point(stack.back().pt, base_lat, lat_step, long_step);
+					}
+				}
+				stack.pop_back();
+				stack.push_back(t);
+				stack.push_back(sorted[indx]);
+			} else {
+				if (sorted[indx].left) {
+					while (stack.size() >= 2) {
+						pointrecord t = stack.back();
+						stack.pop_back();
+
+						if (triangle_sign(sorted[indx].pt, t.pt, stack.back().pt) > 0) {
+							data_out.place_lead_point(t.pt, value, base_lat, lat_step, long_step);
+							data_out.place_point(sorted[indx].pt, base_lat, lat_step, long_step);
+							data_out.place_point(stack.back().pt, base_lat, lat_step, long_step);
+						} else {
+							stack.push_back(t);
+							break;
+						}
+					}
+					stack.push_back(sorted[indx]);
+				} else {
+					while (stack.size() >= 2) {
+						pointrecord t = stack.back();
+						stack.pop_back();
+
+						if (triangle_sign(sorted[indx].pt, t.pt, stack.back().pt) < 0) {
+							data_out.place_lead_point(stack.back().pt, value, base_lat, lat_step, long_step);
+							data_out.place_point(sorted[indx].pt, base_lat, lat_step, long_step);
+							data_out.place_point(t.pt, base_lat, lat_step, long_step);
+						} else {
+							stack.push_back(t);
+							break;
+						}
+					}
+					stack.push_back(sorted[indx]);
+				}
+			}
+			++indx;
+		}
+	}
+
+	
+
+	void intersects_to_triangles(v_vector<uint32_t>& intersects, int top, graphics_data_creation& data_out) noexcept {
+		block_set_t block_set;
+		intersects_to_blocks(intersects, block_set);
+		std::vector<i_polyline, concurrent_allocator<i_polyline>> plines;
+		for (const auto& bk : block_set) {
+			blocks_to_polylines(top + bk.first.second * block_size, bk.second, plines);
+		}
+		for (auto& pl : plines) {
+			reduce_polyline(pl);
+			monotone_to_triangles(data_out, pl);
+		}
+	}
+
+	using edge = uint32_t;
+
+	uint64_t pack_unordered_uint_pair(uint32_t x, uint32_t y) {
+		return y < x ? ((static_cast<uint64_t>(y) << 32ui64) | static_cast<uint64_t>(x)) : ((static_cast<uint64_t>(x) << 32ui64) | static_cast<uint64_t>(y));
+	}
+	std::pair<uint32_t, uint32_t> unpack_uint_pair(uint64_t v) {
+		return std::make_pair(static_cast<uint32_t>(v & 0xFFFFFFFF), static_cast<uint32_t>(v >> 32));
+	}
+	uint64_t pack_unordered_coordindates_pairs(int32_t a, int32_t b, int32_t c, int32_t d) {
+		return pack_unordered_uint_pair(
+			pack_ushort_pair(static_cast<uint16_t>(a), static_cast<uint16_t>(b)),
+			pack_ushort_pair(static_cast<uint16_t>(c), static_cast<uint16_t>(d)));
+	}
+
+	void add_segment_to_map(boost::container::flat_map<uint32_t, std::vector<uint64_t>>& unordered_prov_pair_to_segments, uint32_t unordered_prov_pair, uint64_t packed_segment) {
+		if (unordered_prov_pair_to_segments.find(unordered_prov_pair) == unordered_prov_pair_to_segments.cend())
+			unordered_prov_pair_to_segments.emplace(unordered_prov_pair, std::vector<uint64_t>());
+		unordered_prov_pair_to_segments[unordered_prov_pair].push_back(packed_segment);
+	}
+
+	using borders_set = boost::container::flat_multimap<uint16_t, std::vector<uint32_t>>;
+
+	inline std::pair<uint16_t, uint16_t> adjust_for_edge(std::pair<uint16_t, uint16_t> in, int32_t edge_width, bool shift_to_zero) {
+		if (!shift_to_zero)
+			return in;
+		if (static_cast<int32_t>(in.second) != edge_width)
+			return in;
+		return std::make_pair(0ui16, in.second);
+	}
+
+	void make_intersects(v_vector<uint32_t> &intersect, decltype(std::declval<borders_set>().lower_bound(0ui16)) first_border, decltype(std::declval<borders_set>().upper_bound(0ui16)) last_border, int32_t edge_width) {
+		int32_t max_y = 0;
+		int32_t min_y = std::numeric_limits<int32_t>::max();
+		int32_t max_x = 0;
+		int32_t min_x = std::numeric_limits<int32_t>::max();
+		bool seen_max_width = false;
+		bool edge_width_moved_to_zero = false;
+
+		for (auto it = first_border; it != last_border; ++it) {
+			for (auto v : it->second) {
+				auto xy = unpack_ushort_pair(v);
+				max_y = std::max(max_y, static_cast<int32_t>(xy.second));
+				min_y = std::min(min_y, static_cast<int32_t>(xy.second));
+				if (static_cast<int32_t>(xy.first) != edge_width)
+					max_x = std::max(max_y, static_cast<int32_t>(xy.first));
+				else
+					seen_max_width = true;
+				min_x = std::min(min_y, static_cast<int32_t>(xy.first));
+			}
+		}
+		if (seen_max_width) {
+			if (max_x < edge_width / 2) {
+				min_x = 0;
+				edge_width_moved_to_zero = true;
+			} else {
+				max_x = edge_width;
+			}
+		}
+
+		for (auto it = first_border; it != last_border; ++it) {
+			const int32_t border_size = static_cast<int32_t>(it->second.size());
+
+			for (int32_t i = border_size - 2; i >= 0; --i) {
+				auto xy = adjust_for_edge(unpack_ushort_pair(it->second[i]), edge_width, edge_width_moved_to_zero);
+				auto next_xy = adjust_for_edge(unpack_ushort_pair(it->second[i + 1]), edge_width, edge_width_moved_to_zero);
+
+				if (xy.second > next_xy.second) {
+					if (next_xy.first < xy.first) {
+						for (int32_t k = 0; k < xy.second - next_xy.second; ++k)
+							intersect.add_to_row(next_xy.second - min_y + k, pack_position_and_direction(slope_direction::right, next_xy.first + k));
+					} else if (next_xy.first > xy.first) {
+						for (int32_t k = 0; k < xy.second - next_xy.second; ++k)
+							intersect.add_to_row(next_xy.second - min_y + k, pack_position_and_direction(slope_direction::left, next_xy.first - k));
+					} else {
+						for (int32_t k = 0; k < xy.second - next_xy.second; ++k)
+							intersect.add_to_row(next_xy.second - min_y + k, pack_position_and_direction(slope_direction::straight, next_xy.first));
+					}
+				} else if (xy.second < next_xy.second) {
+					if (next_xy.first < xy.first) {
+						for (int32_t k = 0; k < next_xy.second - xy.second; ++k)
+							intersect.add_to_row(next_xy.second - min_y + k, pack_position_and_direction(slope_direction::left, next_xy.first - k));
+					} else if (next_xy.first > xy.first) {
+						for (int32_t k = 0; k < next_xy.second - xy.second; ++k)
+							intersect.add_to_row(next_xy.second - min_y + k, pack_position_and_direction(slope_direction::right, next_xy.first + k));
+					} else {
+						for (int32_t k = 0; k < next_xy.second - xy.second; ++k)
+							intersect.add_to_row(next_xy.second - min_y + k, pack_position_and_direction(slope_direction::straight, next_xy.first));
+					}
+				}
+			}
+		}
+
+		for (int32_t i = static_cast<int32_t>(intersect.row_size()) - 1; i >= 0; --i) {
+			const auto bound = intersect.get_row(static_cast<uint32_t>(i));
+			std::sort(bound.first, bound.second, [](uint32_t a, uint32_t b) {return (a & 0xFFFF) < (b & 0xFFFF); });
+		}
+	}
+
+	void make_borders(
+		borders_set& borders,
+		const uint16_t* map_data, int32_t width, int32_t height) {
+
+		boost::container::flat_map<uint32_t, std::vector<uint64_t>> unordered_prov_pair_to_segments;
+
+		for (int32_t j = -1; j <= height; j++) {
+			for (int32_t i = 0; i <= width; i++) {
+				const uint16_t a = get_value_from_data(i, j, map_data, width, height);
+				const uint16_t b = get_value_from_data(i + 1, j, map_data, width, height);
+				const uint16_t c = get_value_from_data(i, j + 1, map_data, width, height);
+				const uint16_t d = get_value_from_data(i + 1, j + 1, map_data, width, height);
+
+				if (a == b && a == c && a == d) { // same, no connections
+
+				} else if (a == b && a == c) { //two colors
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(a, d),
+						pack_unordered_coordindates_pairs(i * 2 + 2, j * 2 + 3, i * 2 + 3, j * 2 + 2));
+				} else if (c == b && c == d) {
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(a, d),
+						pack_unordered_coordindates_pairs(i * 2 + 1, j * 2 + 2, i * 2 + 2, j * 2 + 1));
+				} else if (c == a && a == d) {
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(b, c),
+						pack_unordered_coordindates_pairs(i * 2 + 3, j * 2 + 2, i * 2 + 2, j * 2 + 1));
+				} else if (b == a && b == d) {
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(b, c),
+						pack_unordered_coordindates_pairs(i * 2 + 1, j * 2 + 2, i * 2 + 2, j * 2 + 3));
+				} else if (c == a && b == d) {
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(b, c),
+						pack_unordered_coordindates_pairs(i * 2 + 2, j * 2 + 1, i * 2 + 2, j * 2 + 3));
+				} else if (b == a && c == d) {
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(b, c),
+						pack_unordered_coordindates_pairs(i * 2 + 1, j * 2 + 2, i * 2 + 3, j * 2 + 2));
+				} else if (a == d && b == c) {
+					if ((j + i / 3) % 2 == 0) {
+						add_segment_to_map(
+							unordered_prov_pair_to_segments,
+							pack_unordered_ushort_pair(a, b),
+							pack_unordered_coordindates_pairs(i * 2 + 1, j * 2 + 2, i * 2 + 2, j * 2 + 3));
+						add_segment_to_map(
+							unordered_prov_pair_to_segments,
+							pack_unordered_ushort_pair(a, b),
+							pack_unordered_coordindates_pairs(i * 2 + 2, j * 2 + 1, i * 2 + 3, j * 2 + 2));
+					} else {
+						add_segment_to_map(
+							unordered_prov_pair_to_segments,
+							pack_unordered_ushort_pair(a, b),
+							pack_unordered_coordindates_pairs(i * 2 + 2, j * 2 + 1, i * 2 + 1, j * 2 + 2));
+						add_segment_to_map(
+							unordered_prov_pair_to_segments,
+							pack_unordered_ushort_pair(a, b),
+							pack_unordered_coordindates_pairs(i * 2 + 3, j * 2 + 2, i * 2 + 2, j * 2 + 3));
+					}
+				} else if (b == a) { // three colors
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(a, c),
+						pack_unordered_coordindates_pairs(i * 2 + 1, j * 2 + 2, i * 2 + 2, j * 2 + 2));
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(d, b),
+						pack_unordered_coordindates_pairs(i * 2 + 3, j * 2 + 2, i * 2 + 2, j * 2 + 2));
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(c, d),
+						pack_unordered_coordindates_pairs(i * 2 + 2, j * 2 + 3, i * 2 + 2, j * 2 + 2));
+				} else if (b == d) {
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(a, b),
+						pack_unordered_coordindates_pairs(i * 2 + 2, j * 2 + 1, i * 2 + 2, j * 2 + 2));
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(c, d),
+						pack_unordered_coordindates_pairs(i * 2 + 2, j * 2 + 3, i * 2 + 2, j * 2 + 2));
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(a, c),
+						pack_unordered_coordindates_pairs(i * 2 + 1, j * 2 + 2, i * 2 + 2, j * 2 + 2));
+				} else if (c == d) {
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(a, b),
+						pack_unordered_coordindates_pairs(i * 2 + 2, j * 2 + 1, i * 2 + 2, j * 2 + 2));
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(a, c),
+						pack_unordered_coordindates_pairs(i * 2 + 1, j * 2 + 2, i * 2 + 2, j * 2 + 2));
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(b, d),
+						pack_unordered_coordindates_pairs(i * 2 + 3, j * 2 + 2, i * 2 + 2, j * 2 + 2));
+				} else if (a == c) {
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(a, b),
+						pack_unordered_coordindates_pairs(i * 2 + 2, j * 2 + 1, i * 2 + 2, j * 2 + 2));
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(c, d),
+						pack_unordered_coordindates_pairs(i * 2 + 2, j * 2 + 3, i * 2 + 2, j * 2 + 2));
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(b, d),
+						pack_unordered_coordindates_pairs(i * 2 + 3, j * 2 + 2, i * 2 + 2, j * 2 + 2));
+				} else if (a == d) {
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(a, b),
+						pack_unordered_coordindates_pairs(i * 2 + 2, j * 2 + 1, i * 2 + 3, j * 2 + 2));
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(a, c),
+						pack_unordered_coordindates_pairs(i * 2 + 1, j * 2 + 2, i * 2 + 2, j * 2 + 3));
+				} else if (c == b) {
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(c, a),
+						pack_unordered_coordindates_pairs(i * 2 + 1, j * 2 + 2, i * 2 + 2, j * 2 + 1));
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(c, d),
+						pack_unordered_coordindates_pairs(i * 2 + 2, j * 2 + 3, i * 2 + 3, j * 2 + 2));
+				} else { //four colors
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(a, b),
+						pack_unordered_coordindates_pairs(i * 2 + 2, j * 2 + 1, i * 2 + 2, j * 2 + 2));
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(c, d),
+						pack_unordered_coordindates_pairs(i * 2 + 2, j * 2 + 3, i * 2 + 2, j * 2 + 2));
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(a, c),
+						pack_unordered_coordindates_pairs(i * 2 + 1, j * 2 + 2, i * 2 + 2, j * 2 + 2));
+					add_segment_to_map(
+						unordered_prov_pair_to_segments,
+						pack_unordered_ushort_pair(b, d),
+						pack_unordered_coordindates_pairs(i * 2 + 3, j * 2 + 2, i * 2 + 2, j * 2 + 2));
+				}
+			}
+		}
+
+		for (auto& t : unordered_prov_pair_to_segments) {
+			const auto[loca, locb] = unpack_ushort_pair(t.first);
+
+			for (uint32_t place = 0; place < t.second.size(); ++place) {
+				if (t.second[place] == uint32_t(-1)) {
+					continue;
+				}
+
+				auto[first_coordinate, second_coordinate] = unpack_uint_pair(t.second[place]);
+
+				std::deque<uint32_t> packed_v;
+
+				packed_v.push_back(first_coordinate);
+				packed_v.push_back(second_coordinate);
+
+				t.second[place] = uint32_t(-1);
+
+				for (uint32_t inx = place + 1; inx < t.second.size(); ++inx) {
+					const auto[inner_first_coordinate, inner_second_coordinate] = unpack_uint_pair(t.second[inx]);
+
+					if (inner_first_coordinate == first_coordinate) {
+						packed_v.push_front(inner_second_coordinate);
+						first_coordinate = inner_second_coordinate;
+						t.second[inx] = uint32_t(-1);
+						inx = place + 1;
+					} else if (inner_second_coordinate == first_coordinate) {
+						packed_v.push_front(inner_first_coordinate);
+						first_coordinate = inner_first_coordinate;
+						t.second[inx] = uint32_t(-1);
+						inx = place + 1;
+					}
+
+					if (inner_first_coordinate == second_coordinate) {
+						packed_v.push_back(inner_second_coordinate);
+						second_coordinate = inner_second_coordinate;
+						t.second[inx] = uint32_t(-1);
+						inx = place + 1;
+					} else if (inner_second_coordinate == second_coordinate) {
+						second_coordinate = inner_first_coordinate;
+						packed_v.push_back(inner_first_coordinate);
+						t.second[inx] = uint32_t(-1);
+						inx = place + 1;
+					}
+				}
+
+				borders.emplace(loca, std::vector<uint32_t>(packed_v.begin(), packed_v.end()));
+				borders.emplace(locb, std::vector<uint32_t>(packed_v.begin(), packed_v.end())); // one border for each
+			}
+		}
+
+	}
+
+	//......................
+
+	void create_block_borders(int32_t block_x, int32_t block_y, uint32_t* h_borders, uint32_t* v_borders, const uint16_t* map_data, int32_t width, int32_t height) {
+		const int32_t x_start = block_x * block_size;
+		const int32_t y_start = block_y * block_size;
+		const int32_t x_limit = std::min(width, (block_x + 1) * block_size + 1);
+		const int32_t y_limit = std::min(height - 1, (block_y + 1) * block_size + 1);
+
+		for (int32_t j = y_start; j < y_limit; ++j) {
+			for (int32_t i = x_start; i < x_limit; ++i) {
+				const uint16_t center_value = map_data[i + j * width];
+				const uint16_t right_value = get_value_from_data_h(i + 1, j, map_data, width);
+				const uint16_t bottom_value = map_data[i + (j + 1) * width];
+
+				const uint32_t dest_x = static_cast<uint32_t>(i - x_start);
+				const uint32_t dest_y = static_cast<uint32_t>(j - y_start);
+				h_borders[dest_x + dest_y * (block_size + 1)] = pair_to_border_index(center_value, right_value);
+				v_borders[dest_x + dest_y * (block_size + 1)] = pair_to_border_index(center_value, bottom_value);
+			}
+		}
 	}
 
 	void color_map_creation_stub(boost::container::flat_map<uint32_t, uint16_t>& color_mapping, color_maps& cm, uint8_t* color_data, int32_t width, int32_t height) {

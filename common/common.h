@@ -550,3 +550,105 @@ struct vector_backed_string_equality_ci {
 		return true;
 	}
 };
+
+
+template<typename T, typename I = uint32_t, typename allocator = std::allocator<T>>
+class v_vector {
+public:
+	std::vector<T, std::allocator_traits<allocator>::template rebind_alloc<T>> elements;
+	std::vector<I, std::allocator_traits<allocator>::template rebind_alloc<I>> index;
+
+	v_vector() {
+		index.push_back(0);
+	}
+
+	void clear() {
+		index.clear();
+		elements.clear();
+		index.push_back(I());
+	}
+
+	void insert(typename std::vector<T>::iterator it, T elem) {
+		size_t pos = std::distance(elements.begin(), it);
+		elements.insert(it, elem);
+		size_t i = 0;
+		const auto isize = index.size();
+		for (; index[i] < pos && i != isize; ++i)
+			;
+		if (i != isize && index[i] == pos)
+			++i;
+		for (; i != isize; ++i)
+			++index[i];
+	}
+
+	void new_row() {
+		index.push_back(static_cast<I>(elements.size()));
+	}
+
+	void expand_rows(size_t sz) {
+		if (index.size() < sz + 1)
+			index.resize(sz + 1, static_cast<I>(elements.size()));
+	}
+
+	size_t row_size() const {
+		return index.size();
+	}
+
+	std::pair<typename std::vector<T>::iterator, typename std::vector<T>::iterator> get_row(size_t i) {
+		std::pair<typename std::vector<T>::iterator, typename std::vector<T>::iterator> p;
+		p.first = elements.begin() + index[i];
+		if (i + 1 < index.size()) {
+			p.second = elements.begin() + index[i + 1];
+		} else {
+			p.second = elements.end();
+		}
+		return p;
+	}
+
+	std::pair<typename std::vector<T>::const_iterator, typename std::vector<T>::const_iterator> get_row(size_t i) const {
+		std::pair<typename std::vector<T>::const_iterator, typename std::vector<T>::const_iterator> p;
+		p.first = elements.cbegin() + index[i];
+		if (i + 1 < index.size()) {
+			p.second = elements.cbegin() + index[i + 1];
+		} else {
+			p.second = elements.cend();
+		}
+		return p;
+	}
+
+	T& get(size_t x, size_t y) {
+		auto it = elements.begin() + index[x] + y;
+		return *it;
+	}
+
+	const T& get(size_t x, size_t y) const {
+		const auto it = elements.cbegin() + index[x] + y;
+		return *it;
+	}
+
+	void push_back(const T& elem) {
+		elements.push_back(elem);
+	}
+
+	void add_to_row(size_t i, const T& elem) {
+		if (i >= index.size()) {
+			index.resize(i + 1, static_cast<I>(elements.size()));
+		}
+		elements.insert(elements.begin() + index[i], elem);
+		size_t sz = index.size();
+		for (++i; i < sz; ++i) {
+			++index[i];
+		}
+	}
+
+	void append_to_row(size_t i, const T& elem) {
+		size_t sz = index.size();
+		if (i + 1 < sz)
+			elements.insert(elements.begin() + index[i + 1], elem);
+		else
+			elements.push_back(elem);
+		for (++i; i < sz; ++i) {
+			++index[i];
+		}
+	}
+};
