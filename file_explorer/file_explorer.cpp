@@ -1226,7 +1226,7 @@ struct gui_window_handler {
 	}
 
 	void render(graphics::open_gl_wrapper& ogl) {
-		map.render(ogl, 1.0f, 1.5f, 0.0f, gui_m.width(), gui_m.height());
+		map.render(ogl, 2.0f, 1.5f, 0.0f, gui_m.width(), gui_m.height());
 		ui::render(gui_m, ogl);
 	}
 };

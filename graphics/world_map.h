@@ -44,7 +44,7 @@ namespace graphics {
 
 	struct map_data_textures {
 		uint16_t* primary_data = nullptr;
-		uint32_t primary_handle = 0;
+		uint32_t handle = 0;
 		int32_t width = 0;
 		int32_t height = 0;
 	};
@@ -56,10 +56,11 @@ namespace graphics {
 		uint32_t vao = 0;
 		uint32_t element_buffer = 0;
 		bool ready = false;
-		float top_lat;
-		float lat_step;
-		float left_long;
-		float long_step;
+		float top_lat = 0.0f;
+		float lat_step = 0.0f;
+		float left_long = 0.0f;
+		float long_step = 0.0f;
+		int32_t triangle_vertex_count = 0;
 	public:
 		color_maps colors;
 		map_data_textures data_textures;
