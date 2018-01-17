@@ -45,6 +45,7 @@ namespace graphics {
 	struct map_data_textures {
 		uint16_t* primary_data = nullptr;
 		uint32_t handle = 0;
+		uint32_t corner_handle = 0;
 		int32_t width = 0;
 		int32_t height = 0;
 	};
