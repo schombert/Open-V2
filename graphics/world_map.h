@@ -2,6 +2,18 @@
 #include "common\\common.h"
 #include "open_gl_wrapper.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
+#pragma clang diagnostic ignored "-Wsign-conversion"
+#pragma clang diagnostic ignored "-Wunused-template"
+#pragma clang diagnostic ignored "-Wcast-align"
+#pragma clang diagnostic ignored "-Wshadow"
+
+#include "Eigen\\Dense"
+#include "Eigen\\Geometry"
+
+#pragma clang diagnostic pop
+
 namespace graphics {
 	class color_maps {
 	private:
@@ -50,6 +62,32 @@ namespace graphics {
 		int32_t height = 0;
 	};
 
+	enum class projection_type {
+		standard_map,
+		spherical
+	};
+
+	struct map_state {
+	private:
+		Eigen::Matrix3f _rotation;
+		Eigen::Matrix3f inverse_rotation;
+
+		float _aspect = 1.0f;
+	public:
+		float scale = 1.0f;
+		projection_type projection = projection_type::standard_map;
+
+		map_state();
+		void resize(int32_t x, int32_t y);
+		void rotate(float longr, float latr);
+		const Eigen::Matrix3f& rotation() const { return _rotation; }
+		float aspect() const { return _aspect; }
+		std::pair<float, float> normalize_screen_coordinates(int32_t x, int32_t y, int32_t width, int32_t height) const;
+		void move_vector_to(const Eigen::Vector3f& start, const Eigen::Vector3f& destination);
+		Eigen::Vector3f get_vector_for(const std::pair<float, float>& in) const;
+		Eigen::Vector3f get_unrotated_vector_for(const std::pair<float, float>& in) const;
+	};
+
 	class map_display {
 	private:
 		uint32_t shader_handle = 0;
@@ -65,9 +103,10 @@ namespace graphics {
 	public:
 		color_maps colors;
 		map_data_textures data_textures;
+		map_state state;
 
 		void initialize(open_gl_wrapper&, const boost::container::flat_map<uint32_t, uint16_t>& colors_map, uint8_t* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude);
-		void render(open_gl_wrapper&, float scale, float long_rotation, float lat_rotation, int32_t width, int32_t height);
+		void render(open_gl_wrapper&);
 	};
 
 	uint16_t get_value_from_data(int32_t i, int32_t j, uint16_t* data, int32_t width, int32_t height);

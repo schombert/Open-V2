@@ -1135,6 +1135,9 @@ class world_state {};
 struct gui_window_handler {
 	ui::gui_manager& gui_m;
 	graphics::map_display map;
+	Eigen::Vector3f interest = Eigen::Vector3f::UnitX();
+	bool map_dragging = false;
+	std::pair<int32_t, int32_t> map_drag_start;
 
 	//ui::simple_button<mb_button> mb_button_a;
 	tt_holder mb_button_a;
@@ -1178,19 +1181,36 @@ struct gui_window_handler {
 
 	void operator()(const ui::resize& r, ui::window_base&) {
 		gui_m.on_resize(r);
+		map.state.resize(static_cast<int32_t>(r.width), static_cast<int32_t>(r.height));
 	}
 
 	void operator()(const ui::lbutton_down& m, ui::window_base&) {
-		gui_m.on_lbutton_down(m);
+		if (!gui_m.on_lbutton_down(m)) {
+			map_dragging = true;
+			map_drag_start = std::make_pair(m.x, m.y);
+			interest = map.state.get_vector_for(map.state.normalize_screen_coordinates(m.x, m.y, gui_m.width(), gui_m.height()));
+		}
+	}
+	void operator()(const ui::lbutton_up&, ui::window_base&) {
+		if (map_dragging)
+			map_dragging = false;
 	}
 	void operator()(const ui::key_down& m, ui::window_base&) {
 		gui_m.on_keydown(m);
 	}
 	void operator()(const ui::scroll& s, ui::window_base&) {
-		gui_m.on_scroll(s);
+		if (! gui_m.on_scroll(s)) {
+			map.state.scale *= float(pow(2, s.amount / 2.0f));
+			map.state.scale = std::clamp(map.state.scale, 1.0f, 18.0f);
+		}
 	}
 	void operator()(const ui::mouse_drag& m, ui::window_base&) {
-		gui_m.on_mouse_drag(m);
+		if (!map_dragging) {
+			gui_m.on_mouse_drag(m);
+		} else {
+			Eigen::Vector3f mouse_over = map.state.get_unrotated_vector_for(map.state.normalize_screen_coordinates(map_drag_start.first + m.x, map_drag_start.second + m.y, gui_m.width(), gui_m.height()));
+			map.state.move_vector_to(interest, mouse_over);
+		}
 	}
 	void operator()(const ui::mouse_move& m, ui::window_base&) {
 		gui_m.on_mouse_move(m);
@@ -1209,6 +1229,7 @@ struct gui_window_handler {
 		graphics::color_map_creation_stub(colors_map, map.colors, map_data, width, height);
 
 		map.initialize(ogl, colors_map, map_data, width, height, 0.0f, -1.2f, 1.2f);
+		map.state.resize(gui_m.width(), gui_m.height());
 	}
 
 	bool on_idle() {
@@ -1227,7 +1248,7 @@ struct gui_window_handler {
 
 	void render(graphics::open_gl_wrapper& ogl) {
 		//static float r = 0.0f;
-		map.render(ogl, 16.0f, 1.5, 0.0f, gui_m.width(), gui_m.height());
+		map.render(ogl);
 		ui::render(gui_m, ogl);
 	}
 };

@@ -10,17 +10,6 @@
 #include <map>
 #include <deque>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
-#pragma clang diagnostic ignored "-Wsign-conversion"
-#pragma clang diagnostic ignored "-Wunused-template"
-#pragma clang diagnostic ignored "-Wcast-align"
-
-#include "Eigen\\Dense"
-#include "Eigen\\Geometry"
-
-#pragma clang diagnostic pop
-
 namespace graphics {
 
 	struct map_vertex_data_3d {
@@ -75,13 +64,113 @@ namespace graphics {
 		constexpr GLuint rotation_matrix = 2;
 	}
 
-	//static map_vertex_data_3d test_data[] = {
-	//	map_vertex_data_3d{1.0f,0.0f,0.0,0},
-	//	map_vertex_data_3d{ 0.0f,1.0f,0.0,100},
-	//	map_vertex_data_3d{0.0f,0.0f,1.0f,0},
-	//	map_vertex_data_3d{ 0.0f,0.0f,-1.0f,0 }
-	//};
-	//static uint32_t test_indices[] = { 0, 1, 2, 1, 2, 3 };
+	Eigen::Vector3f projected_a_to_unrotated(float x, float y, float scale, float aspect);
+	Eigen::Vector3f projected_b_to_unrotated(float x, float y, float scale, float aspect);
+	std::pair<float, float> move_vector_to_vector(const Eigen::Vector3f &source, const Eigen::Vector3f &target);
+
+	//"   vec2 base_projection = vec2(atan(rotated_position.y, rotated_position.x), asin(rotated_position.z));\n"
+	//"	gl_Position = vec4(scale * base_projection.x * sqrt(1.0f - (3.0f*rdiv*rdiv)) / 3.14159265358f, base_projection.y * scale * aspect / 3.14159265358f, "
+	//"        (abs(base_projection.x))/16.0f + 0.5f, 1.0f);\n"
+	//
+
+	Eigen::Vector3f projected_a_to_unrotated(float x, float y, float scale, float aspect) {
+		const float projected_y = y * 3.14159265358f / (scale * aspect);
+		const float rdiv = projected_y / 3.14159265358f;
+		const float projected_x = x * 3.14159265358f / (scale * sqrt(std::max(0.0001f, 1.0f - (3.0f*rdiv*rdiv))));
+		const float sin_y = sin(projected_y);
+		const float cos_y = cos(projected_y);
+		Eigen::Vector3f r(cos(projected_x) * cos_y, sin(projected_x) * cos_y, sin_y);
+		r.normalize();
+		return r;
+	}
+
+	Eigen::Vector3f projected_b_to_unrotated(float x, float y, float scale, float aspect) {
+		const float unproj_y = x / scale;
+		const float unproj_z = y / (scale * aspect);
+		const float uproj_x = sqrt(std::max(0.0f, 1.0f - unproj_y * unproj_y + unproj_z * unproj_z));
+		Eigen::Vector3f r(uproj_x, unproj_y, unproj_z);
+		r.normalize();
+		return r;
+	}
+
+	inline float minimal_rotation(float start, float dest) {
+		if (dest < start) {
+			const float neg_rotation = dest - start;
+			const float pos_rotation = neg_rotation + 3.14159265358f * 2.0f;
+			return abs(neg_rotation) < abs(pos_rotation) ? neg_rotation : pos_rotation;
+		} else {
+			const float pos_rotation = dest - start;
+			const float neg_rotation = pos_rotation - 3.14159265358f * 2.0f;
+			return abs(neg_rotation) < abs(pos_rotation) ? neg_rotation : pos_rotation;
+		}
+	}
+
+	std::pair<float, float> move_vector_to_vector(const Eigen::Vector3f &source, const Eigen::Vector3f &target) {
+		const auto vertical_radius_squared = target.x() * target.x() + target.z() * target.z();
+
+		const auto intermediate_x_squared = std::max(0.0f, vertical_radius_squared - source.z() * source.z());
+		const auto intermediate_x = sqrt(intermediate_x_squared);
+
+		const auto first_angle_a = atan2(intermediate_x, target.y());
+		const auto first_angle_b = atan2(-intermediate_x, target.y());
+		const auto first_angle_initial = atan2(source.x(), source.y());
+
+		const auto first_rotation_a = minimal_rotation(first_angle_initial, first_angle_a);
+		const auto first_rotation_b = minimal_rotation(first_angle_initial, first_angle_b);
+
+		const auto second_angle_initial_a = atan2(source.z(), intermediate_x);
+		const auto second_angle_initial_b = atan2(source.z(), -intermediate_x);
+
+		const auto second_angle_target = atan2(target.z(), target.x());
+
+		const auto second_rotation_a = minimal_rotation(second_angle_initial_a, second_angle_target);
+		const auto second_rotation_b = minimal_rotation(second_angle_initial_b, second_angle_target);
+
+		//if (abs(second_angle_initial_a) < 3.14159265358f / 2.0f && abs(second_angle_initial_b) >= 3.14159265358f / 2.0f) {
+		//	return std::make_pair(-first_rotation_a, -second_rotation_a);
+		//} else if (abs(second_angle_initial_a) >= 3.14159265358f / 2.0f && abs(second_angle_initial_b) < 3.14159265358f / 2.0f) {
+		//	return std::make_pair(-first_rotation_b, -second_rotation_b);
+		//} else 
+		if (abs(second_rotation_a) < abs(second_rotation_b)) {
+			return std::make_pair(-first_rotation_a, -second_rotation_a);
+		} else {
+			return std::make_pair(-first_rotation_b, -second_rotation_b);
+		}
+	}
+
+	map_state::map_state() {
+		rotate(0.0f, 0.0f);
+	}
+	void map_state::resize(int32_t x, int32_t y) {
+		_aspect = static_cast<float>(x) / static_cast<float>(y);
+	}
+	void map_state::rotate(float longr, float latr) {
+		_rotation = Eigen::AngleAxisf(latr, Eigen::Vector3f::UnitY()) * Eigen::AngleAxisf(longr, Eigen::Vector3f::UnitZ());
+		inverse_rotation = Eigen::AngleAxisf(-longr, Eigen::Vector3f::UnitZ()) * Eigen::AngleAxisf(-latr, Eigen::Vector3f::UnitY());
+	}
+	std::pair<float, float> map_state::normalize_screen_coordinates(int32_t x, int32_t y, int32_t width, int32_t height) const {
+		return std::make_pair(float(x * 2) / float(width) - 1.0f, float(-y * 2) / float(height) + 1.0f);
+	}
+	void map_state::move_vector_to(const Eigen::Vector3f& start, const Eigen::Vector3f& destination) {
+		const auto [z_r, y_r] = move_vector_to_vector(start, destination);
+		rotate(z_r, y_r);
+	}
+	Eigen::Vector3f map_state::get_vector_for(const std::pair<float, float>& in) const {
+		switch (projection) {
+			case projection_type::standard_map:
+				return inverse_rotation * projected_a_to_unrotated(in.first, in.second, scale, _aspect);
+			case projection_type::spherical:
+				return inverse_rotation * projected_b_to_unrotated(in.first, in.second, scale, _aspect);
+		}
+	}
+	Eigen::Vector3f map_state::get_unrotated_vector_for(const std::pair<float, float>& in) const {
+		switch (projection) {
+			case projection_type::standard_map:
+				return  projected_a_to_unrotated(in.first, in.second, scale, _aspect);
+			case projection_type::spherical:
+				return  projected_b_to_unrotated(in.first, in.second, scale, _aspect);
+		}
+	}
 
 	static const char* map_vertex_shader =
 		"#version 430 core\n"
@@ -771,7 +860,7 @@ namespace graphics {
 	}
 
 	void inner_render(float scale, float long_rotation, float lat_rotation, int32_t width, int32_t height, int32_t vertex_count);
-	void inner_render_b(float scale, float long_rotation, float lat_rotation, int32_t width, int32_t height, int32_t vertex_count);
+	void inner_render_b(float scale, const Eigen::Matrix3f& rotation, float aspect, int32_t vertex_count);
 
 	void inner_render(float scale, float long_rotation, float lat_rotation, int32_t width, int32_t height, int32_t vertex_count) {
 		glUniform1f(map_parameters::aspect, static_cast<float>(width) / static_cast<float>(height));
@@ -793,13 +882,12 @@ namespace graphics {
 		glDisable(GL_DEPTH_TEST);
 	}
 
-	void inner_render_b(float scale, float long_rotation, float lat_rotation, int32_t width, int32_t height, int32_t vertex_count) {
-		glUniform1f(map_parameters_b::aspect, static_cast<float>(width) / static_cast<float>(height));
+	void inner_render_b(float scale, const Eigen::Matrix3f& rotation, float aspect, int32_t vertex_count) {
+		glUniform1f(map_parameters_b::aspect, aspect);
 		glUniform1f(map_parameters_b::scale, scale);
 
 
-		const auto m = generate_rotation_matrix(long_rotation, lat_rotation);
-		glUniformMatrix3fv(map_parameters_b::rotation_matrix, 1, GL_FALSE, m.data());
+		glUniformMatrix3fv(map_parameters_b::rotation_matrix, 1, GL_FALSE, rotation.data());
 
 		glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
 		glEnable(GL_DEPTH_TEST);
@@ -810,7 +898,7 @@ namespace graphics {
 		glDisable(GL_DEPTH_TEST);
 	}
 
-	void map_display::render(open_gl_wrapper &, float scale, float long_rotation, float lat_rotation, int32_t width, int32_t height) {
+	void map_display::render(open_gl_wrapper &) {
 		if (ready) {
 			glUseProgram(shader_handle);
 
@@ -827,7 +915,7 @@ namespace graphics {
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
 
 
-			inner_render_b(scale, long_rotation, lat_rotation, width, height, triangle_vertex_count);
+			inner_render_b(state.scale, state.rotation(), state.aspect(), triangle_vertex_count);
 		}
 	}
 
