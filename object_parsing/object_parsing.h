@@ -61,6 +61,10 @@ inline token_and_type token_from_rh(association_type, const token_and_type& t) {
 	return t;
 }
 
+inline token_and_type token_from_lh(const token_and_type& t, association_type, const token_and_type&) {
+	return t;
+}
+
 constexpr bool accept_all(const char*, const char*) {
 	return true;
 }

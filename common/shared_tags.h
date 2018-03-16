@@ -28,6 +28,12 @@ namespace ui {
 	using lines_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 856628>>;
 }
 
+namespace technologies {
+	using tech_category_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 72648>>;
+	using tech_subcategory_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 72649>>;
+	using tech_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 72650>>;
+}
+
 inline bool is_valid_index(const ui::element_tag& et) {
 	return std::visit([](auto t) {
 		if constexpr(std::is_same_v<std::monostate, decltype(t)>)

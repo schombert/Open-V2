@@ -8,6 +8,7 @@
 #include "gui\\gui.hpp"
 #include "soil\\SOIL.h"
 #include "graphics\\world_map.h"
+#include <Windows.h>
 
 // #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -1219,6 +1220,7 @@ struct gui_window_handler {
 	void initialize_graphics(graphics::open_gl_wrapper& ogl) {
 		gui_m.fonts.load_fonts(ogl);
 
+		
 		int32_t width = 0;
 		int32_t height = 0;
 		int32_t channels = 3;
@@ -1229,6 +1231,8 @@ struct gui_window_handler {
 		graphics::color_map_creation_stub(colors_map, map.colors, map_data, width, height);
 
 		map.initialize(ogl, colors_map, map_data, width, height, 0.0f, -1.2f, 1.2f);
+		
+
 		map.state.resize(gui_m.width(), gui_m.height());
 	}
 
@@ -1247,7 +1251,6 @@ struct gui_window_handler {
 	}
 
 	void render(graphics::open_gl_wrapper& ogl) {
-		//static float r = 0.0f;
 		map.render(ogl);
 		ui::render(gui_m, ogl);
 	}
@@ -1322,7 +1325,7 @@ int main(int , char **) {
 	ui::load_ui_definitions_from_directory(
 		interface_directory, nmaps, defs, errors_generated,
 		[&all_text](const char* a, const char* b) { return get_text_handle(all_text, a, b); },
-		[&fm](const char* a, const char* b) { return graphics::pack_font_handle(fm.find_font(a,b), fm.find_font_size(a,b)); },
+		[&fm](const char* a, const char* b) { return graphics::pack_font_handle(fm.find_font(a,b), fm.is_black(a,b), fm.find_font_size(a,b)); },
 		[&gobj_nmaps](const char* a, const char* b) { return graphics::reserve_graphics_object(gobj_nmaps, a, b); });
 
 	for (auto& e : errors_generated) {

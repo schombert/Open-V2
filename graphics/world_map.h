@@ -17,8 +17,8 @@
 namespace graphics {
 	class color_maps {
 	private:
-		uint8_t * primary_colors;
-		uint8_t* secondary_colors;
+		uint8_t* primary_colors = nullptr;
+		uint8_t* secondary_colors = nullptr;
 
 		uint32_t primary_handle = 0;
 		uint32_t secondary_handle = 0;
@@ -49,8 +49,10 @@ namespace graphics {
 			update_pending.store(true, std::memory_order_release);
 		}
 		~color_maps() {
-			delete[] primary_colors;
-			delete[] secondary_colors;
+			if (primary_colors)
+				delete[] primary_colors;
+			if(secondary_colors)
+				delete[] secondary_colors;
 		}
 	};
 

@@ -33,7 +33,8 @@
       <CallingConvention>
       </CallingConvention>
       <ProgramDataBaseFileName>$(SolutionDir)..\open_v2_test_data\$(Configuration)\$(ProjectName).pdb</ProgramDataBaseFileName>
-      <AdditionalOptions>-Wno-gnu-string-literal-operator-template -fuse-ld=lld %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Wno-gnu-string-literal-operator-template -fuse-ld=lld -Wno-deprecated-declarations -Wno-unused-command-line-argument -Wno-gnu-string-literal-operator-template -fuse-ld=lld  -Wno-clang-cl-pch -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-c++17-extensions -Wno-old-style-cast -Wno-reserved-id-macro -Wno-language-extension-token -Wno-disabled-macro-expansion -Wno-strict-prototypes -Wno-documentation-unknown-command -Wno-documentation -Wno-global-constructors -Wno-float-equal -Wno-exit-time-destructors -Wno-redundant-parens %(AdditionalOptions)</AdditionalOptions>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

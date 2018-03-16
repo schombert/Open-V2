@@ -186,7 +186,7 @@ TEST(font_manager_test, graphics_tests) {
 	EXPECT_EQ(18ui32, fm.find_font_size(RANGE("Arial_17_black")));
 	EXPECT_EQ(14ui32, fm.find_font_size(RANGE("FPS_Font")));
 	EXPECT_EQ(32ui32, fm.find_font_size(RANGE("vic_32")));
-	EXPECT_EQ(16ui32, fm.find_font_size(RANGE("unknownfont")));
+	EXPECT_EQ(14ui32, fm.find_font_size(RANGE("unknownfont")));
 }
 
 TEST(clipping, graphics_tests) {

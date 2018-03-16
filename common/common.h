@@ -75,6 +75,8 @@ struct tag_type {
 	constexpr bool operator==(value_base v) const { return *this == tag_type(v); }
 	constexpr bool operator!=(tag_type v) const { return value != v.value; }
 	constexpr bool operator!=(value_base v) const { return *this != tag_type(v); }
+	constexpr bool operator<(tag_type v) const { return value < v.value; }
+	constexpr bool operator<(value_base v) const { return *this < tag_type(v); }
 };
 
 template<typename value_base, typename zero_is_null, typename individuator>

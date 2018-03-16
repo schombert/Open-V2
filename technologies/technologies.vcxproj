@@ -20,9 +20,9 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{D1A6AA5F-9DB4-4786-A0C3-0C67BF87547D}</ProjectGuid>
+    <ProjectGuid>{4D657172-4C04-407B-B7AF-22B8706E456F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>objectparsing</RootNamespace>
+    <RootNamespace>technologies</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -91,7 +91,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\Parsers;$(ProjectDir)..;$(ProjectDir)..\streams;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -105,6 +105,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -120,6 +121,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -137,7 +139,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ProgramDataBaseFileName />
+      <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -147,22 +149,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="object_parsing.h" />
-    <ClInclude Include="object_parsing.hpp" />
+    <ClInclude Include="technologies.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="object_parsing.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Parsers\Parsers.vcxproj">
-      <Project>{c8b537f7-6df3-4685-a7d7-0f30ce18176d}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\streams\streams.vcxproj">
-      <Project>{600d17cd-0bbe-4eac-9216-c2ccdc1c6b6f}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\text_classifier\text_classifier.vcxproj">
-      <Project>{b1a194cb-c689-4816-bccd-f9b596d59327}</Project>
-    </ProjectReference>
+    <ClCompile Include="technologies.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
