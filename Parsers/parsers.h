@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <memory>
 #include "common\\common.h"
 
 enum class association_type : unsigned short { none, eq, lt, le, gt, ge, ne, eq_default, list};
@@ -23,6 +24,12 @@ public:
 	token_and_type token;
 	association_type association = association_type::none;
 	unsigned short group_size = 0;
+};
+
+class parsed_data {
+public:
+	std::vector<token_group> parse_results;
+	std::unique_ptr<char[]> parse_data;
 };
 
 template<typename T>

@@ -147,7 +147,7 @@ result_type obj_construction_wrapper(obj_params&& ... params) {
 }
 
 template<typename result_type, typename context, typename ... obj_params>
-result_type parse_object(const token_group* start, const token_group* end, const obj_params& ... params) {
+result_type parse_object(const token_group* start, const token_group* end, obj_params&& ... params) {
 	using this_in_context = type_map_get_t<context, result_type>;
 	using inheritance_list = type_list_get_t<4ui64, this_in_context>;
 
