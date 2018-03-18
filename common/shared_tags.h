@@ -39,6 +39,12 @@ namespace ideologies {
 	using ideology_group_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 785058>>;
 }
 
+namespace issues {
+	using issue_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 8563>>;
+	using unciv_issue_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 8564>>;
+	using option_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 8565>>;
+}
+
 inline bool is_valid_index(const ui::element_tag& et) {
 	return std::visit([](auto t) {
 		if constexpr(std::is_same_v<std::monostate, decltype(t)>)
