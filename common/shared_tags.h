@@ -32,6 +32,7 @@ namespace technologies {
 	using tech_category_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 72648>>;
 	using tech_subcategory_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 72649>>;
 	using tech_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 72650>>;
+	using tech_school_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 72651>>;
 }
 
 namespace ideologies {
@@ -43,6 +44,23 @@ namespace issues {
 	using issue_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 8563>>;
 	using unciv_issue_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 8564>>;
 	using option_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 8565>>;
+}
+
+namespace population {
+	using pop_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 395725>>;
+	using pop_tag = tag_type<uint32_t, std::true_type, std::integral_constant<size_t, 395726>>;
+}
+
+namespace economy {
+	using goods_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 7490175>>;
+	using goods_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 7490176>>;
+}
+
+namespace cultures {
+	using culture_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 7367521>>;
+	using culture_group_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 7367522>>;
+	using religion_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 7367523>>;
+	using national_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 7367524>>;
 }
 
 inline bool is_valid_index(const ui::element_tag& et) {

@@ -34,6 +34,8 @@ namespace technologies {
 	};
 
 	struct empty_type {
+		void add_unknown_key(int) {
+		}
 	};
 	
 	struct folder {
@@ -63,7 +65,7 @@ namespace technologies {
 
 	std::pair<token_and_type, folder> bind_folder(const token_and_type& t, association_type, folder& f);
 	int discard_empty_type(const token_and_type&, association_type, empty_type&);
-	token_and_type name_pre_parse_tech(const token_and_type& t, association_type, empty_type&);
+	token_and_type name_empty_type(const token_and_type& t, association_type, empty_type&);
 
 	struct folders {
 		parsing_environment& env;
@@ -94,11 +96,27 @@ namespace technologies {
 		return std::pair<token_and_type, folder>(t, std::move(f));
 	}
 
+	struct preparse_schools {
+		parsing_environment& env;
+
+		preparse_schools(parsing_environment& e) : env(e) {}
+
+		void add_school(const token_and_type& t) {
+			const auto name = env.text_lookup(t.start, t.end);
+			const auto new_st = env.manager.tech_schools.emplace_back();
+			auto& s = env.manager.tech_schools[new_st];
+			s.id = new_st;
+			s.name = name;
+			env.manager.named_tech_school_index.emplace(name, new_st);
+		}
+	};
+
 	struct technologies_file {
 		parsing_environment& env;
 
 		technologies_file(parsing_environment& e) : env(e) {}
 		void handle_folders(const folders&) {}
+		void handle_schools(const preparse_schools&) {}
 
 		void add_unknown_key(int) {
 		}
@@ -119,24 +137,35 @@ namespace technologies {
 
 			env.manager.named_technology_index.emplace(tech_name, tech_tag);
 		}
+
+		void add_unknown_key(int) {
+		}
 	};
 
 	int discard_empty_type(const token_and_type&, association_type, empty_type&) { return 0; }
-	token_and_type name_pre_parse_tech(const token_and_type& t, association_type, empty_type&) { return t; }
+	token_and_type name_empty_type(const token_and_type& t, association_type, empty_type&) { return t; }
 }
 
+MEMBER_FDEF(technologies::preparse_schools, add_school, "school");
 MEMBER_FDEF(technologies::folders, add_folder, "category");
 MEMBER_FDEF(technologies::folder, add_sub_category, "sub_category");
 MEMBER_FDEF(technologies::technologies_file, add_unknown_key, "unknown_key");
 MEMBER_FDEF(technologies::technologies_file, handle_folders, "folders");
+MEMBER_FDEF(technologies::technologies_file, handle_schools, "schools");
 MEMBER_FDEF(technologies::specific_tech_file, insert_tech, "technology");
+MEMBER_FDEF(technologies::specific_tech_file, add_unknown_key, "unknown_key");
+MEMBER_FDEF(technologies::empty_type, add_unknown_key, "unknown_key");
 
 
 namespace technologies {
 	BEGIN_DOMAIN(tech_pre_parsing_domain)
-		EMPTY_TYPE(empty_type)
+		BEGIN_TYPE(empty_type)
+		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
+		END_TYPE
 		BEGIN_TYPE(technologies_file)
 		MEMBER_TYPE_ASSOCIATION("folders", "folders", folders)
+		MEMBER_TYPE_ASSOCIATION("schools", "schools", preparse_schools)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
 		END_TYPE
@@ -146,12 +175,19 @@ namespace technologies {
 		BEGIN_TYPE(folder)
 		MEMBER_VARIABLE_ASSOCIATION("sub_category", accept_all, token_from_lh)
 		END_TYPE
+		BEGIN_TYPE(preparse_schools)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("school", accept_all, empty_type, name_empty_type)
+		END_TYPE
 	END_DOMAIN;
 
 	BEGIN_DOMAIN(tech_subfile_pre_parsing_domain)
-		EMPTY_TYPE(empty_type)
+		BEGIN_TYPE(empty_type)
+		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
+		END_TYPE
 		BEGIN_TYPE(specific_tech_file)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("technology", accept_all, empty_type, name_pre_parse_tech)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("technology", accept_all, empty_type, name_empty_type)
+		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
 		END_TYPE
 	END_DOMAIN;
 

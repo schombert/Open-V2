@@ -20,7 +20,8 @@ namespace issues {
 	parsing_state::~parsing_state() {}
 
 	struct empty_type {
-
+		void add_unknown_key(int) {
+		}
 	};
 
 	struct preparse_issue {
@@ -234,6 +235,7 @@ namespace issues {
 	std::pair<token_and_type, preparse_issue> bind_issue(const token_and_type& t, association_type, preparse_issue& f);
 	token_and_type name_pre_parse_option(const token_and_type& t, association_type, empty_type&);
 
+	inline int discard_empty_type(const token_and_type&, association_type, empty_type&) { return 0; }
 	token_and_type name_pre_parse_option(const token_and_type& t, association_type, empty_type&) { return t; }
 	std::pair<token_and_type, preparse_issue> bind_issue(const token_and_type& t, association_type, preparse_issue& f) {
 		return std::pair<token_and_type, preparse_issue>(t, std::move(f));
@@ -249,10 +251,14 @@ MEMBER_FDEF(issues::social_issues_group, add_issue, "issue");
 MEMBER_FDEF(issues::economic_issues_group, add_issue, "issue");
 MEMBER_FDEF(issues::military_issues_group, add_issue, "issue");
 MEMBER_FDEF(issues::preparse_issues_file, insert_issue_group, "group");
+MEMBER_FDEF(issues::empty_type, add_unknown_key, "unknown_key");
 
 namespace issues {
 	BEGIN_DOMAIN(issues_pre_parsing_domain)
-		EMPTY_TYPE(empty_type)
+		BEGIN_TYPE(empty_type)
+		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
+		END_TYPE
 		BEGIN_TYPE(preparse_issue)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("option", accept_all, empty_type, name_pre_parse_option)
 		MEMBER_ASSOCIATION("administrative", "administrative", value_from_rh<bool>)

@@ -561,7 +561,7 @@ public:
 	std::vector<I, typename std::allocator_traits<allocator>::template rebind_alloc<I>> index;
 
 	v_vector() {
-		index.push_back(0);
+		index.push_back(I());
 	}
 
 	void clear() {
@@ -654,3 +654,18 @@ public:
 		}
 	}
 };
+
+namespace graphics {
+	struct color_rgba {
+		uint8_t r = 0;
+		uint8_t g = 0;
+		uint8_t b = 0;
+		uint8_t a = 255;
+	};
+
+	struct color_rgb {
+		uint8_t r = 0;
+		uint8_t g = 0;
+		uint8_t b = 0;
+	};
+}

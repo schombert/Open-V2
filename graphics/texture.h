@@ -8,19 +8,6 @@
 #include "common\\shared_tags.h"
 
 namespace graphics {
-	struct color_rgba {
-		uint8_t r = 0;
-		uint8_t g = 0;
-		uint8_t b = 0;
-		uint8_t a = 255;
-	};
-
-	struct color_rgb {
-		uint8_t r = 0;
-		uint8_t g = 0;
-		uint8_t b = 0;
-	};
-
 	class texture {
 	private:
 		std::atomic<uint32_t> texture_handle = 0;

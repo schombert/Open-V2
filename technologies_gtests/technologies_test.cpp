@@ -37,6 +37,27 @@ const char fake_tech_file[] =
 "}\r\n"
 "}\r\n";
 
+const char fake_tech_file_b[] =
+"folders = {\r\n"
+"army_tech = {\r\n"
+"atech_a\r\n"
+"atech_b\r\n"
+"atech_c\r\n"
+"atech_d\r\n"
+"}\r\n"
+"navy_tech = {\r\n"
+"}\r\n"
+"}\r\n"
+"\r\n"
+"schools = {\r\n"
+"fake_school = {\r\n"
+"bonus = 0\r\n"
+"}\r\n"
+"fake_school_b = { \r\n"
+"bonus = 0\r\n"
+"}\r\n"
+"}\r\n";
+
 auto fake_text_handle_lookup();
 auto make_fake_tech_file_parse(int& counter);
 
@@ -116,23 +137,49 @@ TEST(technologies_tests, pre_parse_tech_file) {
 	parse_pdx_file(results, fake_tech_file, fake_tech_file + sizeof(fake_tech_file) - 1);
 	pre_parse_main_technology_file(manager, results, fake_text_handle_lookup(), make_fake_tech_file_parse(count_sub_files));
 
-	ASSERT_EQ(2, count_sub_files);
-	ASSERT_EQ(2ui64, manager.technology_categories.size());
-	ASSERT_EQ(4ui64, manager.technology_subcategories.size());
+	EXPECT_EQ(2, count_sub_files);
+	EXPECT_EQ(2ui64, manager.technology_categories.size());
+	EXPECT_EQ(4ui64, manager.technology_subcategories.size());
+	EXPECT_EQ(1ui64, manager.tech_schools.size());
 
-	ASSERT_EQ(tech_category_tag(0), manager.technology_categories[tech_category_tag(0)].id);
-	ASSERT_EQ(tech_category_tag(1), manager.technology_categories[tech_category_tag(1)].id);
+	EXPECT_EQ(tech_category_tag(0), manager.technology_categories[tech_category_tag(0)].id);
+	EXPECT_EQ(tech_category_tag(1), manager.technology_categories[tech_category_tag(1)].id);
 
-	ASSERT_EQ(tech_subcategory_tag(0), manager.technology_subcategories[tech_subcategory_tag(0)].id);
-	ASSERT_EQ(tech_subcategory_tag(1), manager.technology_subcategories[tech_subcategory_tag(1)].id);
-	ASSERT_EQ(tech_subcategory_tag(2), manager.technology_subcategories[tech_subcategory_tag(2)].id);
+	EXPECT_EQ(tech_subcategory_tag(0), manager.technology_subcategories[tech_subcategory_tag(0)].id);
+	EXPECT_EQ(tech_subcategory_tag(1), manager.technology_subcategories[tech_subcategory_tag(1)].id);
+	EXPECT_EQ(tech_subcategory_tag(2), manager.technology_subcategories[tech_subcategory_tag(2)].id);
 
-	ASSERT_EQ(tech_category_tag(0), manager.technology_subcategories[tech_subcategory_tag(0)].parent);
-	ASSERT_EQ(tech_category_tag(0), manager.technology_subcategories[tech_subcategory_tag(1)].parent);
-	ASSERT_EQ(tech_category_tag(0), manager.technology_subcategories[tech_subcategory_tag(2)].parent);
+	EXPECT_EQ(tech_category_tag(0), manager.technology_subcategories[tech_subcategory_tag(0)].parent);
+	EXPECT_EQ(tech_category_tag(0), manager.technology_subcategories[tech_subcategory_tag(1)].parent);
+	EXPECT_EQ(tech_category_tag(0), manager.technology_subcategories[tech_subcategory_tag(2)].parent);
 
-	ASSERT_EQ(2ui64, manager.named_category_index.size());
-	ASSERT_EQ(4ui64, manager.named_subcategory_index.size());
+	EXPECT_EQ(2ui64, manager.named_category_index.size());
+	EXPECT_EQ(4ui64, manager.named_subcategory_index.size());
+	EXPECT_EQ(1ui64, manager.named_tech_school_index.size());
+
+	EXPECT_EQ(tech_school_tag(0), manager.tech_schools[tech_school_tag(0)].id);
+	const auto fr = manager.named_tech_school_index[manager.tech_schools[tech_school_tag(0)].name];
+	EXPECT_EQ(fr, tech_school_tag(0));
+}
+
+TEST(technologies_tests, pre_parse_schools) {
+	int count_sub_files = 0;
+
+	std::vector<token_group> results;
+	technologies_manager manager;
+
+	parse_pdx_file(results, fake_tech_file_b, fake_tech_file_b + sizeof(fake_tech_file_b) - 1);
+	pre_parse_main_technology_file(manager, results, fake_text_handle_lookup(), make_fake_tech_file_parse(count_sub_files));
+
+	EXPECT_EQ(2ui64, manager.tech_schools.size());
+	EXPECT_EQ(2ui64, manager.named_tech_school_index.size());
+
+	EXPECT_EQ(tech_school_tag(0), manager.tech_schools[tech_school_tag(0)].id);
+	EXPECT_EQ(tech_school_tag(1), manager.tech_schools[tech_school_tag(1)].id);
+	const auto fr = manager.named_tech_school_index[manager.tech_schools[tech_school_tag(0)].name];
+	EXPECT_EQ(fr, tech_school_tag(0));
+	const auto frb = manager.named_tech_school_index[manager.tech_schools[tech_school_tag(1)].name];
+	EXPECT_EQ(frb, tech_school_tag(1));
 }
 
 TEST(technologies_tests, pre_parse_test) {

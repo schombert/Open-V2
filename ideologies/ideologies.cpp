@@ -20,7 +20,8 @@ namespace ideologies {
 	parsing_state::~parsing_state() {}
 	
 	struct empty_type {
-
+		void add_unknown_key(int) {
+		}
 	};
 
 	struct pre_parse_ideology_group {
@@ -60,19 +61,25 @@ namespace ideologies {
 
 	std::pair<token_and_type, pre_parse_ideology_group> bind_group(const token_and_type& t, association_type, pre_parse_ideology_group& f);
 	token_and_type name_pre_parse_ideology(const token_and_type& t, association_type, empty_type&);
+	int discard_empty_type(const token_and_type&, association_type, empty_type&);
 
 	token_and_type name_pre_parse_ideology(const token_and_type& t, association_type, empty_type&) { return t; }
 	std::pair<token_and_type, pre_parse_ideology_group> bind_group(const token_and_type& t, association_type, pre_parse_ideology_group& f) {
 		return std::pair<token_and_type, pre_parse_ideology_group>(t, std::move(f));
 	}
+	int discard_empty_type(const token_and_type&, association_type, empty_type&) { return 0; }
 }
 
 MEMBER_FDEF(ideologies::pre_parse_ideologies_file, add_group, "group");
 MEMBER_FDEF(ideologies::pre_parse_ideology_group, add_ideology, "ideology");
+MEMBER_FDEF(ideologies::empty_type, add_unknown_key, "unknown_key");
 
 namespace ideologies {
 	BEGIN_DOMAIN(ideologies_pre_parsing_domain)
-		EMPTY_TYPE(empty_type)
+		BEGIN_TYPE(empty_type)
+		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
+		END_TYPE
 		BEGIN_TYPE(pre_parse_ideologies_file)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("group", accept_all, pre_parse_ideology_group, bind_group)
 		END_TYPE
