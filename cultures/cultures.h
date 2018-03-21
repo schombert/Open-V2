@@ -22,9 +22,24 @@ namespace cultures {
 		graphics::color_rgb color;
 		text_data::text_tag name;
 		religion_tag id;
+		uint8_t icon;
+		bool pagan;
 	};
 	struct national_tag_object {
+		graphics::color_rgb color;
+		
+		text_data::text_tag name;
+		text_data::text_tag adjective;
+		text_data::text_tag democracy_name;
+		text_data::text_tag democracy_adjective;
+		text_data::text_tag proletarian_dictatorship_name;
+		text_data::text_tag proletarian_dictatorship_adjective;
+		text_data::text_tag absolute_monarchy_name;
+		text_data::text_tag absolute_monarchy_adjective;
+		text_data::text_tag prussian_constitutionalism_name;
+		text_data::text_tag prussian_constitutionalism_adjective;
 		national_tag id;
+
 		//eventually: flags
 	};
 
@@ -57,8 +72,8 @@ namespace cultures {
 		culture_manager& manager,
 		const directory& source_directory,
 		const text_handle_lookup& text_function);
-	void parse_national_tags(
+	tagged_vector<std::string, national_tag> parse_national_tags(
 		culture_manager& manager,
 		const directory& source_directory,
-		const text_handle_lookup& text_function); // invoke before parsing cultures
+		const text_handle_lookup& text_function); // invoke before parsing cultures, returns tag files array
 }

@@ -55,6 +55,8 @@ char* CALL parse_first_and_nth_csv_values(uint32_t nth, char* start, char* end, 
 association_type parse_association_type_b(const char* start, const char* end);
 
 char16_t win1250toUTF16(char in);
+std::u16string win1250toUTF16(const char* start, const char* end);
+std::u16string UTF8toUTF16(const char* start, const char* end);
 
 template<size_t N>
 bool is_fixed_token(const token_and_type& g, const char(&t)[N]);

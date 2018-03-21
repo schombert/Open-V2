@@ -193,6 +193,11 @@ public:
 		storage.emplace_back(std::forward<T>(ts)...);
 		return tag_type(static_cast<value_base_of<tag_type>>(storage.size() - 1));
 	}
+	value_type& safe_get(tag_type t) {
+		if (to_index(t) >= storage.size())
+			storage.resize(to_index(t) + 1);
+		return storage[to_index(t)];
+	}
 	auto begin() const { return storage.begin(); }
 	auto end() const { return storage.end(); }
 	auto begin() { return storage.begin(); }
@@ -200,6 +205,35 @@ public:
 	size_t size() const { return storage.size(); }
 	void resize(size_t size) { storage.resize(size); }
 	void reserve(size_t size) { storage.reserve(size); }
+};
+
+template<typename value_type, typename variable_tag_type, typename fixed_tag_type, typename allocator = std::allocator<value_type>>
+class tagged_fixed_2dvector {
+private:
+	std::vector<value_type, allocator> storage;
+	uint32_t _inner_size = 1;
+public:
+	value_type & get(variable_tag_type outer, fixed_tag_type inner) {
+		return storage[(uint32_t)to_index(inner) + (uint32_t)to_index(outer) * _inner_size];
+	}
+	const value_type & get(variable_tag_type outer, fixed_tag_type inner) const {
+		return storage[(uint32_t)to_index(inner) + (uint32_t)to_index(outer) * _inner_size];
+	}
+	value_type& safe_get(variable_tag_type outer, fixed_tag_type inner) {
+		const auto n2 = ((uint32_t)to_index(outer) + 1ui32) * _inner_size;
+		if (n2 >= storage.size())
+			storage.resize(n2);
+		return storage[(uint32_t)to_index(inner) + (uint32_t)to_index(outer) * _inner_size];
+	}
+	void reset(uint32_t new_inner_size) {
+		storage.clear();
+		_inner_size = new_inner_size;
+	}
+	size_t size() const { return storage.size(); }
+	size_t outer_size() const { return storage.size() / _inner_size; }
+	uint32_t inner_size() const { return _inner_size; }
+	void resize(size_t outer_size) { storage.resize(outer_size * _inner_size); }
+	void reserve(size_t outer_size) { storage.reserve(outer_size * _inner_size); }
 };
 
 enum modifiers {
@@ -415,7 +449,13 @@ inline void u16itoa(int32_t i, char16_t* buffer) {
 	}
 }
 
-
+inline std::pair<char*, bool> bom_test(char* buffer, size_t buffer_size) {
+	const bool is_utf8 = buffer_size >= 3 && (((uint8_t)buffer[0] == 0xEF) & ((uint8_t)buffer[1] == 0xBB) & ((uint8_t)buffer[2] == 0xBF));
+	if (is_utf8)
+		return std::make_pair(buffer + 3, true);
+	else
+		return std::make_pair(buffer, false);
+}
 
 struct vector_backed_string_data {
 	uint32_t offset;

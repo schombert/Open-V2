@@ -2,10 +2,10 @@
 #include <algorithm>
 #include <ctype.h>
 #include <cstdlib>
-
-#ifdef _DEBUG
 #include <Windows.h>
-#endif
+
+#undef min
+#undef max
 
 std::pair<char*, char*> CALL csv_re_write_token(char* start, const char* end, char seperator);
 
@@ -31,6 +31,22 @@ char16_t win1250toUTF16(char in) {
 	};
 
 	return converted[(uint8_t)in];
+}
+
+std::u16string win1250toUTF16(const char* start, const char* end) {
+	std::u16string result;
+	for (; start != end; ++start)
+		result += win1250toUTF16(*start);
+	return result;
+}
+
+std::u16string UTF8toUTF16(const char* start, const char* end) {
+	const auto size = MultiByteToWideChar(CP_UTF8, 0, start, (int)(end - start), nullptr, 0);
+	wchar_t* buffer = new wchar_t[(size_t)size];
+	MultiByteToWideChar(CP_UTF8, 0, start, (int)(end - start), buffer, size);
+	std::u16string result((char16_t*)buffer, (char16_t*)(buffer + size));
+	delete[] buffer;
+	return result;
 }
 
 struct pdx_comment_struct {

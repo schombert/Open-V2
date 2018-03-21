@@ -65,6 +65,10 @@ inline token_and_type token_from_lh(const token_and_type& t, association_type, c
 	return t;
 }
 
+inline std::pair<token_and_type, token_and_type> token_pair_from_full(const token_and_type& l, association_type, const token_and_type& r) {
+	return std::pair<token_and_type, token_and_type>(l,r);
+}
+
 constexpr bool accept_all(const char*, const char*) {
 	return true;
 }
