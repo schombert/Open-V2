@@ -44,6 +44,18 @@
     <ProjectReference Include="..\cultures\cultures.vcxproj">
       <Project>{cb6da773-046f-41e5-bdb5-8a7a8ce66261}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\fake_fs\fake_fs.vcxproj">
+      <Project>{c9607b1c-c139-4ca0-ae7d-3162e40c6838}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\gtest\gtest.vcxproj">
+      <Project>{bbf2a58d-64c2-4ad1-80ca-0bb65487311d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\object_parsing\object_parsing.vcxproj">
+      <Project>{d1a6aa5f-9db4-4786-a0c3-0c67bf87547d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Parsers\Parsers.vcxproj">
+      <Project>{c8b537f7-6df3-4685-a7d7-0f30ce18176d}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

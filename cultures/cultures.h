@@ -6,6 +6,10 @@
 #include "text_data\\text_data.h"
 #include <variant>
 
+namespace governments {
+	struct government_type;
+}
+
 namespace cultures {
 	struct culture {
 		graphics::color_rgb color;
@@ -22,22 +26,12 @@ namespace cultures {
 		graphics::color_rgb color;
 		text_data::text_tag name;
 		religion_tag id;
-		uint8_t icon;
-		bool pagan;
+		uint8_t icon = 0ui8;
+		bool pagan = false;
 	};
 	struct national_tag_object {
 		graphics::color_rgb color;
-		
-		text_data::text_tag name;
-		text_data::text_tag adjective;
-		text_data::text_tag democracy_name;
-		text_data::text_tag democracy_adjective;
-		text_data::text_tag proletarian_dictatorship_name;
-		text_data::text_tag proletarian_dictatorship_adjective;
-		text_data::text_tag absolute_monarchy_name;
-		text_data::text_tag absolute_monarchy_adjective;
-		text_data::text_tag prussian_constitutionalism_name;
-		text_data::text_tag prussian_constitutionalism_adjective;
+		uint32_t tag_code = 0ui32;
 		national_tag id;
 
 		//eventually: flags
@@ -60,7 +54,12 @@ namespace cultures {
 		boost::container::flat_map<uint32_t, national_tag> national_tags_index;
 	};
 
+	struct tag_as_text {
+		char tag[4];
+	};
+
 	uint32_t tag_to_encoding(const char* start, const char* end);
+	tag_as_text encoded_tag_to_text_tag(uint32_t tag_value);
 
 	using text_handle_lookup = std::function<text_data::text_tag(const char*, const char*)>;
 
@@ -74,6 +73,10 @@ namespace cultures {
 		const text_handle_lookup& text_function);
 	tagged_vector<std::string, national_tag> parse_national_tags(
 		culture_manager& manager,
-		const directory& source_directory,
-		const text_handle_lookup& text_function); // invoke before parsing cultures, returns tag files array
+		const directory& source_directory); // invoke before parsing cultures, returns tag files array
+
+	std::pair<text_data::text_tag, text_data::text_tag> get_name_and_adjective(
+		const national_tag_object&,
+		const governments::government_type&,
+		const text_data::text_sequences& );
 }

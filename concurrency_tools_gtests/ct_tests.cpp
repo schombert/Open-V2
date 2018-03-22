@@ -265,3 +265,16 @@ TEST(fxd_list, concurrency_tools) {
 	tv.try_pop([&ran](int) { ran = true; });
 	EXPECT_FALSE(ran);
 }
+
+TEST(unique_vector_backed_string, common_tests) {
+	std::vector<char> vec;
+	auto a = vector_backed_string<char>(std::string("test_a"), vec);
+	auto b = vector_backed_string<char>(std::string("test_b"), vec);
+	auto c = vector_backed_string<char>(std::string("test_c"), vec);
+
+	const auto pre_size = vec.size();
+	auto d = vector_backed_string<char>::create_unique(std::string("test_b"), vec);
+
+	EXPECT_EQ(b, d);
+	EXPECT_EQ(pre_size, vec.size());
+}

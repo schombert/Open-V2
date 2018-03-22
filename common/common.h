@@ -488,6 +488,22 @@ struct vector_backed_string {
 		data.vbs.high_mask = (uint16_t)(-1);
 		vec.insert(vec.end(), str.begin(), str.end());
 	}
+	static vector_backed_string<char_type> create_unique(const std::basic_string<char_type>& str, std::vector<char_type>& vec) {
+		const auto search_result = std::search(vec.begin(), vec.end(), str.begin(), str.end());
+		if (search_result != vec.end()) {
+			return vector_backed_string<char_type>(static_cast<uint32_t>(search_result - vec.begin()), static_cast<uint16_t>(str.length()));
+		} else {
+			return vector_backed_string<char_type>(str, vec);
+		}
+	}
+	static vector_backed_string<char_type> create_unique(const char_type* start, const char_type* end, std::vector<char_type>& vec) {
+		const auto search_result = std::search(vec.begin(), vec.end(), start, end);
+		if (search_result != vec.end()) {
+			return vector_backed_string<char_type>(static_cast<uint32_t>(search_result - vec.begin()), static_cast<uint16_t>(end - start));
+		} else {
+			return vector_backed_string<char_type>(start, end, vec);
+		}
+	}
 	int32_t length() const {
 		return data.vbs.high_mask == (uint16_t)-1 ? data.vbs.length : (data.ptr ? static_cast<int32_t>(std::char_traits<char_type>::length(data.ptr)) : 0);
 	}
@@ -500,6 +516,9 @@ struct vector_backed_string {
 	void operator=(vector_backed_string other) {
 		static_assert(sizeof(data.ptr) >= sizeof(data.vbs));
 		data.ptr = other.data.ptr;
+	}
+	bool operator==(vector_backed_string other) const {
+		return other.data.ptr == data.ptr;
 	}
 };
 
@@ -680,6 +699,19 @@ public:
 		size_t sz = index.size();
 		for (++i; i < sz; ++i) {
 			++index[i];
+		}
+	}
+
+	template<typename IT>
+	void add_range_to_row(uint32_t i, const IT& start, const IT& end) {
+		if (i >= index.size()) {
+			index.resize(i + 1, static_cast<I>(elements.size()));
+		}
+		elements.insert(elements.begin() + index[i], start, end);
+		const I num_added = static_cast<I>(end - start);
+		size_t sz = index.size();
+		for (++i; i < sz; ++i) {
+			index[i] += num_added;
 		}
 	}
 
