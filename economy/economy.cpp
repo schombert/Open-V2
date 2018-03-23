@@ -7,8 +7,6 @@ namespace economy {
 		text_handle_lookup text_lookup;
 		economic_scenario& manager;
 
-		parsed_data main_file_parse_tree;
-
 		parsing_environment(const text_handle_lookup& tl, economic_scenario& m) :
 			text_lookup(tl), manager(m) {
 		}
@@ -115,6 +113,169 @@ namespace economy {
 	inline std::pair<token_and_type, good_definition_builder> bind_good(const token_and_type& t, association_type, good_definition_builder& f) {
 		return std::pair<token_and_type, good_definition_builder>(t, std::move(f));
 	}
+
+	struct buildings_parsing_environment {
+		text_handle_lookup text_lookup;
+		economic_scenario& manager;
+		boost::container::flat_map<text_data::text_tag, factory_type_tag>& production_to_factory;
+
+		buildings_parsing_environment(const text_handle_lookup& tl, economic_scenario& m, boost::container::flat_map<text_data::text_tag, factory_type_tag>& map) :
+			text_lookup(tl), manager(m), production_to_factory(map) {
+		}
+	};
+
+	enum class building_type_enum {
+		infrastructure, factory, fort, naval_base
+	};
+	struct goods_cost_container {
+		buildings_parsing_environment& env;
+		goods_cost_container(buildings_parsing_environment& e) : env(e) {}
+
+		std::vector<std::pair<goods_tag, double>> cost_pairs;
+
+		void add_cost_pair(const std::pair<token_and_type, double>& p) {
+			const auto gtag = env.manager.named_goods_index[env.text_lookup(p.first.start, p.first.end)];
+			cost_pairs.emplace_back(gtag, p.second);
+		}
+
+	};
+
+	inline std::pair<token_and_type, double> bind_cost_pair(const token_and_type& l, association_type, const token_and_type& r) {
+		return std::pair<token_and_type, double>(l, token_to<double>(r));
+	}
+
+	struct building_obj {
+		building_type_enum type;
+		uint32_t cost;
+		std::vector<std::pair<goods_tag, double>> goods_cost;
+		uint32_t time;
+		uint32_t naval_capacity;
+		uint32_t max_level;
+		std::vector<int> colonial_points;
+		uint32_t colonial_range;
+		double local_ship_build;
+		double infrastructure;
+		double movement_cost;
+		text_data::text_tag production_type;
+		bool default_enabled = false;
+	};
+
+	struct building_obj_container : public building_obj {
+		buildings_parsing_environment& env;
+
+		building_obj_container(buildings_parsing_environment& e) : env(e) {}
+
+		void discard_attribute(int) {}
+
+		void set_goods_cost(goods_cost_container& c) {
+			goods_cost = std::move(c.cost_pairs);
+		}
+		void set_colonial_points(std::vector<int>& vec) {
+			colonial_points = std::move(vec);
+		}
+		void set_production_type(const token_and_type& t) {
+			production_type = env.text_lookup(t.start, t.end);
+		}
+		void set_type(const token_and_type& t) {
+			if (is_fixed_token_ci(t, "factory")) {
+				type = building_type_enum::factory;
+			} else if (is_fixed_token_ci(t, "fort")) {
+				type = building_type_enum::fort;
+			} else if (is_fixed_token_ci(t, "infrastructure")) {
+				type = building_type_enum::infrastructure;
+			} else if (is_fixed_token_ci(t, "naval_base")) {
+				type = building_type_enum::naval_base;
+			}
+		}
+		void discard(int) {}
+	};
+
+	inline std::pair<token_and_type, building_obj> bind_building(const token_and_type& t, association_type, building_obj_container& f) {
+		return std::pair<token_and_type, building_obj>(t, std::move(f));
+	}
+
+	struct buildings_file {
+		buildings_parsing_environment& env;
+		building_obj fort;
+		building_obj railroad;
+		building_obj naval_base;
+
+		buildings_file(buildings_parsing_environment& e) : env(e) {
+			e.manager.building_costs.reset(static_cast<uint32_t>(e.manager.goods.size()));
+		}
+
+		void add_building(std::pair<token_and_type, building_obj>&& b) {
+			if (b.second.type == building_type_enum::infrastructure) {
+				railroad = std::move(b.second);
+			} else if (b.second.type == building_type_enum::fort) {
+				fort = std::move(b.second);
+			} else if (b.second.type == building_type_enum::naval_base) {
+				naval_base = std::move(b.second);
+			} else {
+				const auto new_ftag = env.manager.factory_types.emplace_back();
+				const auto name = env.text_lookup(b.first.start, b.first.end);
+				auto& fac = env.manager.factory_types[new_ftag];
+
+				fac.id = new_ftag;
+				fac.name = name;
+				fac.building_time = b.second.time;
+				fac.default_enabled = b.second.default_enabled;
+				
+				env.production_to_factory.emplace(b.second.production_type, new_ftag);
+				env.manager.named_factory_types_index.emplace(name, new_ftag);
+				
+				env.manager.building_costs.safe_get(new_ftag, goods_tag(0));
+
+				for (const auto& cost : b.second.goods_cost) {
+					env.manager.building_costs.get(new_ftag, cost.first) = cost.second;
+				}
+			}
+		}
+
+		void finalize() {
+			const uint8_t num_factories = static_cast<uint8_t>(env.manager.factory_types.size());
+			const factory_type_tag fort_tag(num_factories + 0);
+			const factory_type_tag railroad_tag(num_factories + 1);
+			const factory_type_tag naval_base_tag(num_factories + 2);
+
+			env.manager.fort.cost_tag = fort_tag;
+			env.manager.fort.max_level = fort.max_level;
+			env.manager.fort.time = fort.time;
+
+			env.manager.building_costs.safe_get(fort_tag, goods_tag(0));
+			for (const auto& cost : fort.goods_cost) {
+				env.manager.building_costs.get(fort_tag, cost.first) = cost.second;
+			}
+
+			env.manager.railroad.cost_tag = railroad_tag;
+			env.manager.railroad.infrastructure = static_cast<float>(railroad.infrastructure);
+			env.manager.railroad.max_level = railroad.max_level;
+			env.manager.railroad.movement_cost = static_cast<float>(railroad.movement_cost);
+			env.manager.railroad.time = railroad.time;
+
+			env.manager.building_costs.safe_get(railroad_tag, goods_tag(0));
+			for (const auto& cost : railroad.goods_cost) {
+				env.manager.building_costs.get(railroad_tag, cost.first) = cost.second;
+			}
+
+			env.manager.naval_base.colonial_range = naval_base.colonial_range;
+			env.manager.naval_base.cost_tag = naval_base_tag;
+			env.manager.naval_base.extra_cost = naval_base.cost;
+			env.manager.naval_base.local_ship_build = static_cast<float>(naval_base.local_ship_build);
+			env.manager.naval_base.max_level = naval_base.max_level;
+			env.manager.naval_base.naval_capacity = naval_base.naval_capacity;
+			env.manager.naval_base.time = naval_base.time;
+
+			for (uint32_t i = 0; i < 8 && i < naval_base.colonial_points.size(); ++i) {
+				env.manager.naval_base.colonial_points[i] = static_cast<uint32_t>(naval_base.colonial_points[i]);
+			}
+
+			env.manager.building_costs.safe_get(naval_base_tag, goods_tag(0));
+			for (const auto& cost : naval_base.goods_cost) {
+				env.manager.building_costs.get(naval_base_tag, cost.first) = cost.second;
+			}
+		}
+	};
 }
 
 MEMBER_FDEF(economy::color_builder, add_value, "color");
@@ -126,7 +287,35 @@ MEMBER_FDEF(economy::good_definition_builder, set_available_from_start, "availab
 MEMBER_FDEF(economy::good_definition_builder, set_overseas_penalty, "overseas_penalty");
 MEMBER_FDEF(economy::good_definition_builder, set_cost, "cost");
 MEMBER_FDEF(economy::good_definition_builder, set_color, "color");
-
+MEMBER_DEF(economy::building_obj_container, cost, "cost");
+MEMBER_DEF(economy::building_obj_container, time, "time");
+MEMBER_FDEF(economy::building_obj_container, set_type, "type");
+MEMBER_FDEF(economy::building_obj_container, set_goods_cost, "goods_cost");
+MEMBER_DEF(economy::building_obj_container, naval_capacity, "naval_capacity");
+MEMBER_DEF(economy::building_obj_container, max_level, "max_level");
+MEMBER_FDEF(economy::building_obj_container, set_colonial_points, "colonial_points");
+MEMBER_DEF(economy::building_obj_container, colonial_range, "colonial_range");
+MEMBER_DEF(economy::building_obj_container, local_ship_build, "local_ship_build");
+MEMBER_DEF(economy::building_obj_container, infrastructure, "infrastructure");
+MEMBER_DEF(economy::building_obj_container, movement_cost, "movement_cost");
+MEMBER_FDEF(economy::building_obj_container, set_production_type, "production_type");
+MEMBER_FDEF(economy::building_obj_container, discard, "discard");
+MEMBER_DEF(economy::building_obj_container, default_enabled, "default_enabled");
+MEMBER_FDEF(economy::goods_cost_container, add_cost_pair, "cost_item");
+MEMBER_FDEF(economy::buildings_file, add_building, "building");
+/*
+building_type_enum type;
+uint32_t cost;
+std::vector<std::pair<goods_tag, double>> goods_cost;
+uint32_t time;
+uint32_t naval_capacity;
+uint32_t max_level;
+std::vector<int> colonial_points;
+uint32_t colonial_range;
+double local_ship_build;
+double infrastructure;
+double movement_cost;
+text_data::text_tag production_type;*/
 
 namespace economy {
 	BEGIN_DOMAIN(goods_file_domain)
@@ -146,6 +335,45 @@ namespace economy {
 		END_TYPE
 		BEGIN_TYPE(color_builder)
 			MEMBER_VARIABLE_ASSOCIATION("color", accept_all, value_from_lh<int>)
+		END_TYPE
+	END_DOMAIN;
+
+	BEGIN_DOMAIN(buildings_file_domain)
+		BEGIN_TYPE(std::vector<int>)
+		    MEMBER_VARIABLE_ASSOCIATION("this", accept_all, value_from_lh<int>)
+		END_TYPE
+		BEGIN_TYPE(buildings_file)
+		    MEMBER_VARIABLE_TYPE_ASSOCIATION("building", accept_all, building_obj_container, bind_building)
+		END_TYPE
+		BEGIN_TYPE(goods_cost_container)
+		    MEMBER_VARIABLE_ASSOCIATION("cost_item", accept_all, bind_cost_pair)
+		END_TYPE
+		BEGIN_TYPE(building_obj_container)
+			MEMBER_TYPE_ASSOCIATION("goods_cost", "goods_cost", goods_cost_container)
+			MEMBER_TYPE_ASSOCIATION("colonial_points", "colonial_points", std::vector<int>)
+			MEMBER_ASSOCIATION("discard", "port", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "visibility", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "onmap", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "capital", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "province", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "fort_level", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "pop_build_factory", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "spawn_railway_track", discard_from_rh)
+		    MEMBER_ASSOCIATION("discard", "strategic_factory", discard_from_rh)
+		    MEMBER_ASSOCIATION("discard", "advanced_factory", discard_from_rh)
+		    MEMBER_ASSOCIATION("discard", "on_completion", discard_from_rh)
+		    MEMBER_ASSOCIATION("discard", "completion_size", discard_from_rh)
+			MEMBER_ASSOCIATION("type", "type", token_from_rh)
+			MEMBER_ASSOCIATION("cost", "cost", value_from_rh<uint32_t>)
+			MEMBER_ASSOCIATION("time", "time", value_from_rh<uint32_t>)
+			MEMBER_ASSOCIATION("naval_capacity", "naval_capacity", value_from_rh<uint32_t>)
+			MEMBER_ASSOCIATION("max_level", "max_level", value_from_rh<uint32_t>)
+			MEMBER_ASSOCIATION("colonial_range", "colonial_range", value_from_rh<uint32_t>)
+			MEMBER_ASSOCIATION("local_ship_build", "local_ship_build", value_from_rh<double>)
+			MEMBER_ASSOCIATION("infrastructure", "infrastructure", value_from_rh<double>)
+			MEMBER_ASSOCIATION("movement_cost", "movement_cost", value_from_rh<double>)
+			MEMBER_ASSOCIATION("production_type", "production_type", token_from_rh)
+			MEMBER_ASSOCIATION("default_enabled", "default_enabled", value_from_rh<bool>)
 		END_TYPE
 	END_DOMAIN;
 
@@ -184,5 +412,39 @@ namespace economy {
 				}
 			}
 		}
+	}
+
+	boost::container::flat_map<text_data::text_tag, factory_type_tag> read_buildings(
+		economic_scenario& manager,
+		const directory& source_directory,
+		const text_handle_lookup& text_function
+	) {
+		boost::container::flat_map<text_data::text_tag, factory_type_tag> production_to_factory;
+
+		const auto common_dir = source_directory.get_directory(u"\\common");
+		const auto file = common_dir.open_file(u"buildings.txt");
+
+		buildings_parsing_environment return_state(text_function, manager, production_to_factory);
+
+		if (file) {
+			const auto sz = file->size();
+
+			std::vector<token_group> parse_results;
+			const auto parse_data = std::unique_ptr<char[]>(new char[sz]);
+
+			file->read_to_buffer(parse_data.get(), sz);
+			parse_pdx_file(parse_results, parse_data.get(), parse_data.get() + sz);
+
+			if (parse_results.size() > 0) {
+				auto r = parse_object<buildings_file, buildings_file_domain>(
+					&parse_results[0],
+					&parse_results[0] + parse_results.size(),
+					return_state);
+
+				r.finalize();
+			}
+		}
+
+		return production_to_factory;
 	}
 }

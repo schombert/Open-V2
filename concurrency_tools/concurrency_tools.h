@@ -166,6 +166,26 @@ constexpr bool operator!= (const concurrent_allocator<T>&, const concurrent_allo
 	return false;
 }
 
+template <typename T>
+struct aligned_allocator_32 {
+	using value_type = T;
+	aligned_allocator_32() noexcept {}
+	template <typename U>
+	aligned_allocator_32(const aligned_allocator_32<U>&) noexcept {}
+	T* allocate(size_t n);
+	void deallocate(T* p, size_t n);
+};
+
+template <typename T, typename U, size_t alignment>
+constexpr bool operator== (const aligned_allocator_32<T>&, const aligned_allocator_32<U>&) noexcept {
+	return true;
+}
+
+template <class T, class U, size_t alignment>
+constexpr bool operator!= (const aligned_allocator_32<T>&, const aligned_allocator_32<U>&) noexcept {
+	return false;
+}
+
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 class fixed_sz_deque_iterator;
 

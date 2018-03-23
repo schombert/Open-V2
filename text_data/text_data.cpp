@@ -523,6 +523,76 @@ namespace text_data {
 		}
 	}
 
+	text_tag get_thread_safe_text_handle(text_data::text_sequences& container, const char* key_start, const char* key_end) {
+		if (key_start == key_end)
+			return text_tag();
+
+		char* const cpy = (char*)_alloca((size_t)(key_end - key_start + 1));
+		memcpy(cpy, key_start, (size_t)(key_end - key_start));
+		cpy[key_end - key_start] = 0;
+
+		container.text_data_mutex.lock_shared();
+
+		const auto find_result = container.key_to_sequence_map.find(cpy);
+		_freea(cpy);
+
+		if (find_result != container.key_to_sequence_map.end()) {
+			const auto found_tag = find_result->second;
+			container.text_data_mutex.unlock_shared();
+			return found_tag;
+		} else {
+			container.text_data_mutex.unlock_shared();
+			container.text_data_mutex.lock();
+
+			text_data::add_win1250_text_to_container(container, key_start, key_end);
+			const auto new_key = container.all_sequences.emplace_back(text_data::text_sequence{ static_cast<uint16_t>(container.all_components.size() - 1), 1 });
+
+			container.key_to_sequence_map.emplace(vector_backed_string<char>(key_start, key_end, container.key_data), new_key);
+
+			container.text_data_mutex.unlock();
+			return new_key;
+		}
+	}
+
+	text_tag get_thread_safe_existing_text_handle(text_data::text_sequences& container, const char* key_start, const char* key_end) {
+		if (key_start == key_end)
+			return text_tag();
+
+		char* const cpy = (char*)_alloca((size_t)(key_end - key_start + 1));
+		memcpy(cpy, key_start, (size_t)(key_end - key_start));
+		cpy[key_end - key_start] = 0;
+
+		container.text_data_mutex.lock_shared();
+		const auto find_result = container.key_to_sequence_map.find(cpy);
+		_freea(cpy);
+
+		if (find_result != container.key_to_sequence_map.end()) {
+			const auto found_tag = find_result->second;
+			container.text_data_mutex.unlock_shared();
+			return found_tag;
+		} else {
+			container.text_data_mutex.unlock_shared();
+			return text_tag();
+		}
+	}
+
+	text_tag get_existing_text_handle(text_data::text_sequences& container, const char* key_start, const char* key_end) {
+		if (key_start == key_end)
+			return text_tag();
+
+		char* const cpy = (char*)_alloca((size_t)(key_end - key_start + 1));
+		memcpy(cpy, key_start, (size_t)(key_end - key_start));
+		cpy[key_end - key_start] = 0;
+		const auto find_result = container.key_to_sequence_map.find(cpy);
+		_freea(cpy);
+
+		if (find_result != container.key_to_sequence_map.end()) {
+			return find_result->second;
+		} else {
+			return text_tag();
+		}
+	}
+
 	void load_text_sequences_from_directory(const directory& source_directory, text_data::text_sequences& container) {
 		const auto csv_files = source_directory.list_files(u".csv");
 

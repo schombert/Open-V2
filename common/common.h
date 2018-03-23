@@ -236,6 +236,46 @@ public:
 	void reserve(size_t outer_size) { storage.reserve(outer_size * _inner_size); }
 };
 
+template<typename value_type, typename variable_tag_type, typename fixed_tag_type, typename allocator>
+class tagged_fixed_blocked_2dvector {
+public:
+	constexpr static size_t block_size = 32;
+private:
+	struct alignas(block_size) block_s {
+		unsigned char data[block_size];
+	};
+	std::vector<block_s, typename std::allocator_traits<allocator>::template rebind_alloc<block_s>> storage;
+	uint32_t _inner_size = 1;
+public:
+	value_type & get(variable_tag_type outer, fixed_tag_type inner) {
+		return *((value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size) + (uint32_t)to_index(inner));
+	}
+	const value_type & get(variable_tag_type outer, fixed_tag_type inner) const {
+		return *((const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size) + (uint32_t)to_index(inner));
+	}
+	value_type* get_row(variable_tag_type outer) {
+		return (value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size);
+	}
+	const value_type* get_row(variable_tag_type outer) const {
+		return (const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size);
+	}
+	value_type& safe_get(variable_tag_type outer, fixed_tag_type inner) {
+		const auto n2 = ((uint32_t)to_index(outer) + 1ui32) * _inner_size;
+		if (n2 >= storage.size())
+			storage.resize(n2);
+		return *((value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size) + (uint32_t)to_index(inner));
+	}
+	void reset(uint32_t new_inner_size) {
+		storage.clear();
+		_inner_size = (new_inner_size * sizeof(value_type) + (block_size - 1)) / block_size;
+	}
+	size_t size() const { return storage.size(); }
+	size_t outer_size() const { return storage.size() / _inner_size; }
+	uint32_t inner_size() const { return _inner_size * block_size / sizeof(value_type); }
+	void resize(size_t outer_size) { storage.resize(outer_size * _inner_size); }
+	void reserve(size_t outer_size) { storage.reserve(outer_size * _inner_size); }
+};
+
 enum modifiers {
 	modifiers_none = 0x0,
 	modifiers_alt = 0x4,

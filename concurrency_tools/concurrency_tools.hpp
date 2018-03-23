@@ -70,6 +70,16 @@ void concurrent_allocator<T>::deallocate(T* p, size_t n) {
 	concurrent_free_wrapper(p);
 }
 
+template<typename T>
+T* aligned_allocator_32<T>::allocate(size_t n) {
+	return (T*)_aligned_malloc(n * sizeof(T), 32);
+}
+
+template<typename T>
+void aligned_allocator_32<T>::deallocate(T* p, size_t n) {
+	_aligned_free(p);
+}
+
 constexpr uint32_t ct_log2(uint32_t n) {
 	return ((n < 2) ? 0 : 1 + ct_log2(n / 2));
 }

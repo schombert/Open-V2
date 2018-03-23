@@ -54,6 +54,8 @@ namespace population {
 namespace economy {
 	using goods_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 7490175>>;
 	using goods_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 7490176>>;
+	using factory_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 7490177>>;
+	using artisan_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 7490178>>;
 }
 
 namespace cultures {
