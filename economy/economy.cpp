@@ -1,6 +1,7 @@
 #include "economy.h"
 #include "Parsers\\parsers.hpp"
 #include "object_parsing\\object_parsing.hpp"
+#include "concurrency_tools\\concurrency_tools.hpp"
 
 namespace economy {
 	struct parsing_environment {
@@ -303,19 +304,6 @@ MEMBER_FDEF(economy::building_obj_container, discard, "discard");
 MEMBER_DEF(economy::building_obj_container, default_enabled, "default_enabled");
 MEMBER_FDEF(economy::goods_cost_container, add_cost_pair, "cost_item");
 MEMBER_FDEF(economy::buildings_file, add_building, "building");
-/*
-building_type_enum type;
-uint32_t cost;
-std::vector<std::pair<goods_tag, double>> goods_cost;
-uint32_t time;
-uint32_t naval_capacity;
-uint32_t max_level;
-std::vector<int> colonial_points;
-uint32_t colonial_range;
-double local_ship_build;
-double infrastructure;
-double movement_cost;
-text_data::text_tag production_type;*/
 
 namespace economy {
 	BEGIN_DOMAIN(goods_file_domain)

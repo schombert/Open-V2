@@ -41,6 +41,9 @@
     <ClCompile Include="economy_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\concurrency_tools\concurrency_tools.vcxproj">
+      <Project>{12f547e0-13dc-4c35-96ab-950827192412}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\economy\economy.vcxproj">
       <Project>{a3c129a9-de31-4318-9fa6-019a8435d902}</Project>
     </ProjectReference>

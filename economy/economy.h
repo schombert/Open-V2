@@ -5,7 +5,7 @@
 #include <vector>
 #include "Parsers\\parsers.hpp"
 #include "text_data\\text_data.h"
-#include "concurrency_tools\\concurrency_tools.h"
+#include "concurrency_tools\\concurrency_tools.hpp"
 
 namespace economy {
 	struct good_definition {

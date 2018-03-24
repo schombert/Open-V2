@@ -242,7 +242,7 @@ public:
 	constexpr static size_t block_size = 32;
 private:
 	struct alignas(block_size) block_s {
-		unsigned char data[block_size];
+		unsigned char data[block_size] = { 0 };
 	};
 	std::vector<block_s, typename std::allocator_traits<allocator>::template rebind_alloc<block_s>> storage;
 	uint32_t _inner_size = 1;
