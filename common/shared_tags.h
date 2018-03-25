@@ -69,6 +69,11 @@ namespace governments {
 	using government_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 30607523>>;
 }
 
+namespace military {
+	using unit_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 647474>>;
+	using cb_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 647475>>;
+}
+
 inline bool is_valid_index(const ui::element_tag& et) {
 	return std::visit([](auto t) {
 		if constexpr(std::is_same_v<std::monostate, decltype(t)>)
