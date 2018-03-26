@@ -3,7 +3,7 @@
 #include <windowsx.h>
 
 namespace ui {
-	modifiers get_current_modifiers();
+	key_modifiers get_current_modifiers();
 	void windowing_thread(long* (__stdcall *win_proc)(void*, unsigned int, unsigned int*, long*), uint32_t xsize, uint32_t ysize, window_base & container);
 
 	window_base::window_base(bool t) : topmost(t) {}
@@ -15,8 +15,8 @@ namespace ui {
 		SendMessage(hwnd, WM_CLOSE, 0, 0);
 	}
 
-	modifiers get_current_modifiers() {
-		return (modifiers)(((GetKeyState(VK_CONTROL) & 0x8000) ? modifiers_ctrl : modifiers_none) |
+	key_modifiers get_current_modifiers() {
+		return (key_modifiers)(((GetKeyState(VK_CONTROL) & 0x8000) ? modifiers_ctrl : modifiers_none) |
 			((GetKeyState(VK_MENU) & 0x8000) ? modifiers_alt : modifiers_none) |
 			((GetKeyState(VK_SHIFT) & 0x8000) ? modifiers_shift : modifiers_none));
 	}

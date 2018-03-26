@@ -15,25 +15,25 @@ namespace ui {
 	};
 
 	struct rbutton_down : public message_with_location {
-		modifiers mod;
+		key_modifiers mod;
 	};
 
 	struct mouse_move : public message_with_location {
-		modifiers mod;
+		key_modifiers mod;
 	};
 
 	struct mouse_drag {
 		int32_t x;
 		int32_t y;
-		modifiers mod;
+		key_modifiers mod;
 	};
 
 	struct rbutton_up : public message_with_location {
-		modifiers mod;
+		key_modifiers mod;
 	};
 
 	struct lbutton_down : public message_with_location {
-		modifiers mod;
+		key_modifiers mod;
 	};
 
 	struct resize {
@@ -42,22 +42,22 @@ namespace ui {
 	};
 
 	struct lbutton_up : public message_with_location {
-		modifiers mod;
+		key_modifiers mod;
 	};
 
 	struct scroll : public message_with_location {
 		float amount;
-		modifiers mod;
+		key_modifiers mod;
 	};
 
 	struct key_down {
 		virtual_key keycode;
-		modifiers mod;
+		key_modifiers mod;
 	};
 
 	struct key_up {
 		virtual_key keycode;
-		modifiers mod;
+		key_modifiers mod;
 	};
 
 	struct text_event {

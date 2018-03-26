@@ -32,7 +32,8 @@ namespace technologies {
 	using tech_category_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 72648>>;
 	using tech_subcategory_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 72649>>;
 	using tech_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 72650>>;
-	using tech_school_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 72651>>;
+	using invention_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 72651>>;
+	using tech_school_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 72652>>;
 }
 
 namespace ideologies {
@@ -49,6 +50,7 @@ namespace issues {
 namespace population {
 	using pop_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 395725>>;
 	using pop_tag = tag_type<uint32_t, std::true_type, std::integral_constant<size_t, 395726>>;
+	using rebel_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 395727>>;
 }
 
 namespace economy {
@@ -67,6 +69,11 @@ namespace cultures {
 
 namespace governments {
 	using government_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 30607523>>;
+}
+
+namespace modifiers {
+	using provincial_modifier_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 9478475>>;
+	using national_modifier_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 9478476>>;
 }
 
 namespace military {

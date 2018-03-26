@@ -87,6 +87,10 @@ public:
 	file_representation ta = file_representation(u"army_tech.txt", technologies, single_tech);
 	file_representation tb = file_representation(u"navy_tech.txt", technologies, two_techs);
 
+	directory_representation inventions = directory_representation(u"inventions", f_root);
+	file_representation ia = file_representation(u"army_tech.txt", inventions, "invention_a = {}\r\ninvention_b = { stuff }");
+	file_representation ib = file_representation(u"navy_tech.txt", inventions, "invention_c = { x = false }");
+
 	preparse_test_files() {
 		set_default_root(f_root);
 	}
@@ -101,14 +105,14 @@ TEST(technologies_tests, pre_parse_single_tech) {
 	parse_pdx_file(results, single_tech, single_tech + sizeof(single_tech) - 1);
 	parse_single_tech_file(fake_cat, fake_text_handle_lookup(), manager, results);
 
-	ASSERT_EQ(1ui64, manager.technologies_container.size());
-	ASSERT_EQ(tech_tag(0), manager.technologies_container[tech_tag(0)].id);
-	ASSERT_EQ(text_data::text_tag(0), manager.technologies_container[tech_tag(0)].name);
+	EXPECT_EQ(1ui64, manager.technologies_container.size());
+	EXPECT_EQ(tech_tag(0), manager.technologies_container[tech_tag(0)].id);
+	EXPECT_EQ(text_data::text_tag(0), manager.technologies_container[tech_tag(0)].name);
 
 	const auto find_result = manager.named_technology_index.find(text_data::text_tag(0));
 
-	ASSERT_NE(manager.named_technology_index.end(), find_result);
-	ASSERT_EQ(tech_tag(0), find_result->second);
+	EXPECT_NE(manager.named_technology_index.end(), find_result);
+	EXPECT_EQ(tech_tag(0), find_result->second);
 }
 
 TEST(technologies_tests, pre_parse_two_techs) {
@@ -182,7 +186,7 @@ TEST(technologies_tests, pre_parse_schools) {
 	EXPECT_EQ(frb, tech_school_tag(1));
 }
 
-TEST(technologies_tests, pre_parse_test) {
+TEST(technologies_tests, pre_parse_techs_test) {
 	preparse_test_files real_fs;
 	file_system f;
 
@@ -190,9 +194,39 @@ TEST(technologies_tests, pre_parse_test) {
 
 	technologies_manager manager;
 
-	auto result = pre_parse_technologies(manager, f.get_root(), fake_text_handle_lookup());
+	const auto tech_dir = f.get_root().get_directory(u"\\technologies");
 
-	ASSERT_EQ(3ui64, manager.technologies_container.size());
-	ASSERT_EQ(2ui64, manager.technology_categories.size());
-	ASSERT_EQ(4ui64, manager.technology_subcategories.size());
+	parsing_state state(fake_text_handle_lookup(), make_subfile_perparse_handler(tech_dir), manager);
+
+	pre_parse_technologies(state, f.get_root());
+
+	EXPECT_EQ(3ui64, manager.technologies_container.size());
+	EXPECT_EQ(2ui64, manager.technology_categories.size());
+	EXPECT_EQ(4ui64, manager.technology_subcategories.size());
+}
+
+TEST(technologies_tests, pre_parse_inventions_test) {
+	preparse_test_files real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:"));
+
+	technologies_manager manager;
+
+	const auto tech_dir = f.get_root().get_directory(u"\\technologies");
+
+	parsing_state state(fake_text_handle_lookup(), make_subfile_perparse_handler(tech_dir), manager);
+
+	pre_parse_inventions(state, f.get_root());
+
+	EXPECT_EQ(3ui64, manager.inventions.size());
+	EXPECT_EQ(3ui64, manager.named_invention_index.size());
+
+	EXPECT_EQ(invention_tag(0), manager.inventions[invention_tag(0)].id);
+	EXPECT_EQ(invention_tag(1), manager.inventions[invention_tag(1)].id);
+	EXPECT_EQ(invention_tag(2), manager.inventions[invention_tag(2)].id);
+
+	EXPECT_EQ(invention_tag(0), manager.named_invention_index[manager.inventions[invention_tag(0)].name]);
+	EXPECT_EQ(invention_tag(1), manager.named_invention_index[manager.inventions[invention_tag(1)].name]);
+	EXPECT_EQ(invention_tag(2), manager.named_invention_index[manager.inventions[invention_tag(2)].name]);
 }

@@ -29,6 +29,11 @@ namespace technologies {
 		tech_subcategory_tag parent;
 	};
 
+	struct invention {
+		text_data::text_tag name;
+		invention_tag id;
+	};
+
 	struct tech_school {
 		text_data::text_tag name;
 
@@ -41,12 +46,14 @@ namespace technologies {
 		boost::container::flat_map<text_data::text_tag, tech_subcategory_tag> named_subcategory_index;
 		boost::container::flat_map<text_data::text_tag, tech_tag> named_technology_index;
 		boost::container::flat_map<text_data::text_tag, tech_school_tag> named_tech_school_index;
+		boost::container::flat_map<text_data::text_tag, invention_tag> named_invention_index;
 
 
 		tagged_vector<technology_category, tech_category_tag> technology_categories;
 		tagged_vector<technology_subcategory, tech_subcategory_tag> technology_subcategories;
 		tagged_vector<technology, tech_tag> technologies_container;
 		tagged_vector<tech_school, tech_school_tag> tech_schools;
+		tagged_vector<invention, invention_tag> inventions;
 	};
 
 	using text_handle_lookup = std::function<text_data::text_tag(const char*, const char*)>;
@@ -72,8 +79,10 @@ namespace technologies {
 		~parsing_state();
 	};
 
-	parsing_state pre_parse_technologies(
-		technologies_manager& tech_manager,
-		const directory& source_directory,
-		const text_handle_lookup& text_function);
+	void pre_parse_technologies(
+		parsing_state& state,
+		const directory& source_directory);
+	void pre_parse_inventions(
+		parsing_state& state,
+		const directory& source_directory);
 };

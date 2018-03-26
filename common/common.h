@@ -276,7 +276,7 @@ public:
 	void reserve(size_t outer_size) { storage.reserve(outer_size * _inner_size); }
 };
 
-enum modifiers {
+enum key_modifiers {
 	modifiers_none = 0x0,
 	modifiers_alt = 0x4,
 	modifiers_ctrl = 0x2,

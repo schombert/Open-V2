@@ -11,6 +11,7 @@ namespace technologies {
 
 		parsed_data main_file_parse_tree;
 		std::vector<std::pair<tech_category_tag, parsed_data>> tech_files_parse_trees;
+		std::vector<parsed_data> inventions_parse_trees;
 
 		parsing_environment(const text_handle_lookup& tl, const tech_file_handler& fh, technologies_manager& m) :
 			text_lookup(tl), file_handler(fh), manager(m) {
@@ -63,10 +64,6 @@ namespace technologies {
 		}
 	};
 
-	std::pair<token_and_type, folder> bind_folder(const token_and_type& t, association_type, folder& f);
-	int discard_empty_type(const token_and_type&, association_type, empty_type&);
-	token_and_type name_empty_type(const token_and_type& t, association_type, empty_type&);
-
 	struct folders {
 		parsing_environment& env;
 
@@ -92,7 +89,7 @@ namespace technologies {
 		}
 	};
 
-	std::pair<token_and_type, folder> bind_folder(const token_and_type& t, association_type, folder& f) {
+	inline std::pair<token_and_type, folder> bind_folder(const token_and_type& t, association_type, folder& f) {
 		return std::pair<token_and_type, folder>(t, std::move(f));
 	}
 
@@ -129,21 +126,39 @@ namespace technologies {
 
 		void insert_tech(const token_and_type& t) {
 			const auto tech_name = env.text_lookup(t.start, t.end);
-			const auto tech_tag = env.manager.technologies_container.emplace_back();
-			auto& new_tech = env.manager.technologies_container[tech_tag];
+			const auto tag = env.manager.technologies_container.emplace_back();
+			auto& new_tech = env.manager.technologies_container[tag];
 
-			new_tech.id = tech_tag;
+			new_tech.id = tag;
 			new_tech.name = tech_name;
 
-			env.manager.named_technology_index.emplace(tech_name, tech_tag);
+			env.manager.named_technology_index.emplace(tech_name, tag);
 		}
 
 		void add_unknown_key(int) {
 		}
 	};
 
-	int discard_empty_type(const token_and_type&, association_type, empty_type&) { return 0; }
-	token_and_type name_empty_type(const token_and_type& t, association_type, empty_type&) { return t; }
+	struct inventions_pre_parse_file {
+		parsing_environment& env;
+
+		inventions_pre_parse_file(parsing_environment& e) : env(e) {}
+
+		void add_invention(const token_and_type& t) {
+			const auto name = env.text_lookup(t.start, t.end);
+			const auto tag = env.manager.inventions.emplace_back();
+			auto& new_i = env.manager.inventions[tag];
+
+			new_i.id = tag;
+			new_i.name = name;
+
+			env.manager.named_invention_index.emplace(name, tag);
+		}
+	};
+
+
+	inline int discard_empty_type(const token_and_type&, association_type, empty_type&) { return 0; }
+	inline token_and_type name_empty_type(const token_and_type& t, association_type, empty_type&) { return t; }
 }
 
 MEMBER_FDEF(technologies::preparse_schools, add_school, "school");
@@ -155,6 +170,7 @@ MEMBER_FDEF(technologies::technologies_file, handle_schools, "schools");
 MEMBER_FDEF(technologies::specific_tech_file, insert_tech, "technology");
 MEMBER_FDEF(technologies::specific_tech_file, add_unknown_key, "unknown_key");
 MEMBER_FDEF(technologies::empty_type, add_unknown_key, "unknown_key");
+MEMBER_FDEF(technologies::inventions_pre_parse_file, add_invention, "invention");
 
 
 namespace technologies {
@@ -188,6 +204,16 @@ namespace technologies {
 		BEGIN_TYPE(specific_tech_file)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("technology", accept_all, empty_type, name_empty_type)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
+		END_TYPE
+	END_DOMAIN;
+
+	BEGIN_DOMAIN(inventions_pre_parsing_domain)
+		BEGIN_TYPE(empty_type)
+		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
+		END_TYPE
+		BEGIN_TYPE(inventions_pre_parse_file)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("invention", accept_all, empty_type, name_empty_type)
 		END_TYPE
 	END_DOMAIN;
 
@@ -234,17 +260,14 @@ namespace technologies {
 		};
 	}
 
-	parsing_state pre_parse_technologies(
-		technologies_manager& tech_manager,
-		const directory& source_directory,
-		const text_handle_lookup& text_function) {
+	void pre_parse_technologies(
+		parsing_state& state,
+		const directory& source_directory) {
 
 		const auto common_dir = source_directory.get_directory(u"\\common");
 		const auto tech_dir = source_directory.get_directory(u"\\technologies");
 
-		parsing_state return_state(text_function, make_subfile_perparse_handler(tech_dir), tech_manager);
-
-		auto& main_results = return_state.impl->main_file_parse_tree;
+		auto& main_results = state.impl->main_file_parse_tree;
 
 		const auto tech_file = common_dir.open_file(u"technology.txt");
 
@@ -259,10 +282,36 @@ namespace technologies {
 				parse_object<technologies_file, tech_pre_parsing_domain>(
 					&main_results.parse_results[0],
 					&main_results.parse_results[0] + main_results.parse_results.size(),
-					*return_state.impl);
+					*state.impl);
 			}
 		}
+	}
 
-		return return_state;
+	void pre_parse_inventions(
+		parsing_state& state,
+		const directory& source_directory) {
+
+		const auto dir = source_directory.get_directory(u"\\inventions");
+		const auto files = dir.list_files(u".txt");
+		for (const auto& f : files) {
+			const auto fi = f.open_file();
+			if (fi) {
+				state.impl->inventions_parse_trees.emplace_back();
+				auto& iparse = state.impl->inventions_parse_trees.back();
+				
+				const auto sz = fi->size();
+				iparse.parse_data = std::unique_ptr<char[]>(new char[sz]);
+
+				fi->read_to_buffer(iparse.parse_data.get(), sz);
+				parse_pdx_file(iparse.parse_results, iparse.parse_data.get(), iparse.parse_data.get() + sz);
+
+				if (iparse.parse_results.size() > 0) {
+					parse_object<inventions_pre_parse_file, inventions_pre_parsing_domain>(
+						&iparse.parse_results[0],
+						&iparse.parse_results[0] + iparse.parse_results.size(),
+						*state.impl);
+				}
+			}
+		}
 	}
 };
