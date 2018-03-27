@@ -775,9 +775,50 @@ namespace graphics {
 		uint8_t a = 255;
 	};
 
+	inline uint32_t rgba_to_int(color_rgba c) {
+		union local_u {
+			color_rgba color;
+			uint32_t value;
+			local_u() {}
+		} u;
+		u.color = c;
+		return u.value;
+	}
+
+	inline color_rgba int_to_rgba(uint32_t v) {
+		union local_u {
+			color_rgba color;
+			uint32_t value;
+			local_u() {}
+		} u;
+		u.value = v;
+		return u.color;
+	}
+
 	struct color_rgb {
 		uint8_t r = 0;
 		uint8_t g = 0;
 		uint8_t b = 0;
 	};
+
+	inline uint32_t rgb_to_int(color_rgb c) {
+		union local_u {
+			color_rgb color;
+			uint32_t value;
+			local_u() {}
+		} u;
+		u.color = c;
+		return u.value;
+	}
+
+	inline color_rgb int_to_rgb(uint32_t v) {
+		union local_u {
+			color_rgb color;
+			uint32_t value;
+			local_u() {}
+		} u;
+		u.value = v;
+		return u.color;
+	}
+
 }

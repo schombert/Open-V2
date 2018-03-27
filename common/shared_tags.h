@@ -74,11 +74,17 @@ namespace governments {
 namespace modifiers {
 	using provincial_modifier_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 9478475>>;
 	using national_modifier_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 9478476>>;
+	using value_type = float;
 }
 
 namespace military {
 	using unit_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 647474>>;
 	using cb_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 647475>>;
+}
+
+namespace provinces {
+	using province_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 77325564>>;
+	using state_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 77325565>>;
 }
 
 inline bool is_valid_index(const ui::element_tag& et) {
