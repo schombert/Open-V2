@@ -779,7 +779,7 @@ namespace graphics {
 		union local_u {
 			color_rgba color;
 			uint32_t value;
-			local_u() {}
+			local_u() { value = 0; }
 		} u;
 		u.color = c;
 		return u.value;
@@ -789,7 +789,7 @@ namespace graphics {
 		union local_u {
 			color_rgba color;
 			uint32_t value;
-			local_u() {}
+			local_u() { value = 0; }
 		} u;
 		u.value = v;
 		return u.color;
@@ -805,7 +805,7 @@ namespace graphics {
 		union local_u {
 			color_rgb color;
 			uint32_t value;
-			local_u() {}
+			local_u() { value = 0; }
 		} u;
 		u.color = c;
 		return u.value;
@@ -815,7 +815,7 @@ namespace graphics {
 		union local_u {
 			color_rgb color;
 			uint32_t value;
-			local_u() {}
+			local_u() { value = 0; }
 		} u;
 		u.value = v;
 		return u.color;

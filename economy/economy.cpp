@@ -126,7 +126,7 @@ namespace economy {
 	};
 
 	enum class building_type_enum {
-		infrastructure, factory, fort, naval_base
+		infrastructure, factory, fort, naval_base, other
 	};
 	struct goods_cost_container {
 		buildings_parsing_environment& env;
@@ -146,7 +146,7 @@ namespace economy {
 	}
 
 	struct building_obj {
-		building_type_enum type;
+		building_type_enum type = building_type_enum::other;
 		uint32_t cost;
 		std::vector<std::pair<goods_tag, double>> goods_cost;
 		uint32_t time;
@@ -186,6 +186,8 @@ namespace economy {
 				type = building_type_enum::infrastructure;
 			} else if (is_fixed_token_ci(t, "naval_base")) {
 				type = building_type_enum::naval_base;
+			} else {
+				type = building_type_enum::other;
 			}
 		}
 		void discard(int) {}
@@ -212,7 +214,7 @@ namespace economy {
 				fort = std::move(b.second);
 			} else if (b.second.type == building_type_enum::naval_base) {
 				naval_base = std::move(b.second);
-			} else {
+			} else if (b.second.type == building_type_enum::factory) {
 				const auto new_ftag = env.manager.factory_types.emplace_back();
 				const auto name = env.text_lookup(b.first.start, b.first.end);
 				auto& fac = env.manager.factory_types[new_ftag];

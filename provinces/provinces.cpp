@@ -49,6 +49,8 @@ namespace provinces {
 		void discard_empty(const empty_type&) {}
 		void set_province_count(size_t v) {
 			env.manager.province_container.resize(v);
+			for (uint32_t i = 0; i < v; ++i)
+				env.manager.province_container[province_tag(static_cast<uint16_t>(i))].id = province_tag(static_cast<uint16_t>(i));
 		}
 		void handle_sea_starts(const sea_starts&) {}
 	};
@@ -345,7 +347,7 @@ namespace provinces {
 		END_TYPE
 	END_DOMAIN;
 
-	void parse_default_map_file(
+	void read_default_map_file(
 		parsing_state& state,
 		const directory& source_directory) {
 

@@ -38,7 +38,6 @@ namespace provinces {
 		boost::container::flat_multimap<state_tag, province_tag> states_to_province_index;
 
 		boost::container::flat_map<text_data::text_tag, state_tag> named_states_index;
-		boost::container::flat_map<uint32_t, modifiers::provincial_modifier_tag> color_to_terrain_index;
 	};
 
 	struct parsing_environment;
@@ -54,7 +53,7 @@ namespace provinces {
 		~parsing_state();
 	};
 
-	void parse_default_map_file(
+	void read_default_map_file(
 		parsing_state& state,
 		const directory& source_directory);
 
