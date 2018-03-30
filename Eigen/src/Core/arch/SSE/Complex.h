@@ -139,7 +139,7 @@ template<> EIGEN_STRONG_INLINE std::complex<float>  pfirst<Packet2cf>(const Pack
   _mm_store_ps((float*)res, a.v);
   return res[0];
   #else
-  std::complex<float> res;
+  std::complex<float> res __attribute__((__aligned__(8)));
   _mm_storel_pi((__m64*)&res, a.v);
   return res;
   #endif

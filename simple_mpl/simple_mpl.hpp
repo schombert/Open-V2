@@ -610,4 +610,4 @@ struct generic_tagged_type {
 	using tag = tag_t;
 };
 
-#define CT_STRING_INT(str, i) typepair< CT_STRING( str ), std::integral_constant<int, i > >
+#define CT_STRING_INT(str, i) typepair< CT_STRING( str ), std::integral_constant<decltype( i ), i > >

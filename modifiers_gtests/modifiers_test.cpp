@@ -76,3 +76,543 @@ TEST(modifiers_tests, nv_preparse) {
 	EXPECT_EQ(national_modifier_tag(1), m.named_national_modifiers_index[m.national_modifiers[national_modifier_tag(1)].name]);
 	EXPECT_EQ(national_modifier_tag(2), m.named_national_modifiers_index[m.national_modifiers[national_modifier_tag(2)].name]);
 }
+
+TEST(modifiers_tests, pack_unpack_offsets) {
+	const auto v1 = pack_offset_pair(1, 3);
+	EXPECT_EQ(1ui32, get_provincial_offset_from_packed(v1));
+	EXPECT_EQ(3ui32, get_national_offset_from_packed(v1));
+	const auto v2 = pack_offset_pair(bad_offset, 0);
+	EXPECT_EQ(static_cast<uint32_t>(bad_offset), get_provincial_offset_from_packed(v2));
+	EXPECT_EQ(0ui32, get_national_offset_from_packed(v2));
+}
+
+TEST(modifiers_tests, attribute_from_string) {
+	{
+		const char s[] = "supply_limit";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::supply_limit, v.first);
+		EXPECT_EQ(bad_offset, v.second);
+	}
+	{
+		const char s[] = "attrition";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::attrition, v.first);
+		EXPECT_EQ(bad_offset, v.second);
+	}
+	{
+		const char s[] = "max_attrition";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::max_attrition, v.first);
+		EXPECT_EQ(bad_offset, v.second);
+	}
+	{
+		const char s[] = "war_exhaustion";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::war_exhaustion, v.second);
+	}
+	{
+		const char s[] = "max_war_exhaustion";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::max_war_exhaustion, v.second);
+	}
+	{
+		const char s[] = "leadership";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::leadership, v.second);
+	}
+	{
+		const char s[] = "leadership_modifier";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::leadership_modifier, v.second);
+	}
+	{
+		const char s[] = "supply_consumption";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::supply_consumption, v.second);
+	}
+	{
+		const char s[] = "org_regain";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::org_regain, v.second);
+	}
+	{
+		const char s[] = "reinforce_speed";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::reinforce_speed, v.second);
+	}
+	{
+		const char s[] = "land_organisation";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::land_organisation, v.second);
+	}
+	{
+		const char s[] = "naval_organisation";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::naval_organisation, v.second);
+	}
+	{
+		const char s[] = "research_points";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::research_points, v.second);
+	}
+	{
+		const char s[] = "research_points_modifier";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::research_points_modifier, v.second);
+	}
+	{
+		const char s[] = "research_points_on_conquer";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::research_points_on_conquer, v.second);
+	}
+	{
+		const char s[] = "debt_default_to";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(bad_offset, v.second);
+	}
+	{
+		const char s[] = "import_cost";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::import_cost, v.second);
+	}
+	{
+		const char s[] = "loan_interest";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::loan_interest, v.second);
+	}
+	{
+		const char s[] = "tax_efficiency";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::tax_efficiency, v.second);
+	}
+	{
+		const char s[] = "min_tax";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::min_tax, v.second);
+	}
+	{
+		const char s[] = "max_tax";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::max_tax, v.second);
+	}
+	{
+		const char s[] = "min_military_spending";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::min_military_spending, v.second);
+	}
+	{
+		const char s[] = "max_military_spending";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::max_military_spending, v.second);
+	}
+	{
+		const char s[] = "min_social_spending";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::min_social_spending, v.second);
+	}
+	{
+		const char s[] = "max_social_spending";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::max_social_spending, v.second);
+	}
+	{
+		const char s[] = "factory_owner_cost";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::factory_owner_cost, v.second);
+	}
+	{
+		const char s[] = "min_tariff";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::min_tariff, v.second);
+	}
+	{
+		const char s[] = "max_tariff";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::max_tariff, v.second);
+	}
+	{
+		const char s[] = "ruling_party_support";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::ruling_party_support, v.second);
+	}
+	{
+		const char s[] = "local_ruling_party_support";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::local_ruling_party_support, v.first);
+		EXPECT_EQ(bad_offset, v.second);
+	}
+	{
+		const char s[] = "rich_vote";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::rich_vote, v.second);
+	}
+	{
+		const char s[] = "middle_vote";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::middle_vote, v.second);
+	}
+	{
+		const char s[] = "poor_vote";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::poor_vote, v.second);
+	}
+	{
+		const char s[] = "minimum_wage";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::minimum_wage, v.second);
+	}
+	{
+		const char s[] = "factory_maintenance";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::factory_maintenance, v.second);
+	}
+	{
+		const char s[] = "poor_life_needs";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::poor_life_needs, v.first);
+		EXPECT_EQ(national_offsets::poor_life_needs, v.second);
+	}
+	{
+		const char s[] = "rich_life_needs";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::rich_life_needs, v.first);
+		EXPECT_EQ(national_offsets::rich_life_needs, v.second);
+	}
+	{
+		const char s[] = "middle_life_needs";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::middle_life_needs, v.first);
+		EXPECT_EQ(national_offsets::middle_life_needs, v.second);
+	}
+	{
+		const char s[] = "poor_everyday_needs";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::poor_everyday_needs, v.first);
+		EXPECT_EQ(national_offsets::poor_everyday_needs, v.second);
+	}
+	{
+		const char s[] = "rich_everyday_needs";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::rich_everyday_needs, v.first);
+		EXPECT_EQ(national_offsets::rich_everyday_needs, v.second);
+	}
+	{
+		const char s[] = "middle_everyday_needs";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::middle_everyday_needs, v.first);
+		EXPECT_EQ(national_offsets::middle_everyday_needs, v.second);
+	}
+	{
+		const char s[] = "poor_luxury_needs";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::poor_luxury_needs, v.first);
+		EXPECT_EQ(national_offsets::poor_luxury_needs, v.second);
+	}
+	{
+		const char s[] = "middle_luxury_needs";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::middle_luxury_needs, v.first);
+		EXPECT_EQ(national_offsets::middle_luxury_needs, v.second);
+	}
+	{
+		const char s[] = "rich_luxury_needs";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::rich_luxury_needs, v.first);
+		EXPECT_EQ(national_offsets::rich_luxury_needs, v.second);
+	}
+	{
+		const char s[] = "unemployment_benefit";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::unemployment_benefit, v.second);
+	}
+	{
+		const char s[] = "pension_level";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::pension_level, v.second);
+	}
+	{
+		const char s[] = "population_growth";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::population_growth, v.first);
+		EXPECT_EQ(bad_offset, v.second);
+	}
+	{
+		const char s[] = "global_population_growth";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::global_population_growth, v.second);
+	}
+	{
+		const char s[] = "factory_input";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::factory_input, v.second);
+	}
+	{
+		const char s[] = "factory_output";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::factory_output, v.second);
+	}
+	{
+		const char s[] = "factory_throughput";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::factory_throughput, v.second);
+	}
+	{
+		const char s[] = "rgo_input";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::rgo_input, v.second);
+	}
+	{
+		const char s[] = "rgo_output";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::rgo_output, v.second);
+	}
+	{
+		const char s[] = "rgo_throughput";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::rgo_throughput, v.second);
+	}
+	{
+		const char s[] = "artisan_input";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::artisan_input, v.second);
+	}
+	{
+		const char s[] = "artisan_output";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::artisan_output, v.second);
+	}
+	{
+		const char s[] = "artisan_throughput";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::artisan_throughput, v.second);
+	}
+	{
+		const char s[] = "local_factory_input";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::local_factory_input, v.first);
+		EXPECT_EQ(bad_offset, v.second);
+	}
+	{
+		const char s[] = "local_factory_output";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::local_factory_output, v.first);
+		EXPECT_EQ(bad_offset, v.second);
+	}
+	{
+		const char s[] = "local_factory_throughput";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::local_factory_throughput, v.first);
+		EXPECT_EQ(bad_offset, v.second);
+	}
+	{
+		const char s[] = "local_rgo_input";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::local_rgo_input, v.first);
+		EXPECT_EQ(bad_offset, v.second);
+	}
+	{
+		const char s[] = "local_rgo_output";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::local_rgo_output, v.first);
+		EXPECT_EQ(bad_offset, v.second);
+	}
+	{
+		const char s[] = "local_rgo_throughput";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::local_rgo_throughput, v.first);
+		EXPECT_EQ(bad_offset, v.second);
+	}
+	{
+		const char s[] = "local_artisan_input";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::local_artisan_input, v.first);
+		EXPECT_EQ(bad_offset, v.second);
+	}
+	{
+		const char s[] = "local_artisan_output";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::local_artisan_output, v.first);
+		EXPECT_EQ(bad_offset, v.second);
+	}
+	{
+		const char s[] = "local_artisan_throughput";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::local_artisan_throughput, v.first);
+		EXPECT_EQ(bad_offset, v.second);
+	}
+	{
+		const char s[] = "number_of_voters";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::number_of_voters, v.first);
+		EXPECT_EQ(bad_offset, v.second);
+	}
+	{
+		const char s[] = "goods_demand";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::goods_demand, v.first);
+		EXPECT_EQ(national_offsets::goods_demand, v.second);
+	}
+	{
+		const char s[] = "badboy";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::badboy, v.second);
+	}
+	{
+		const char s[] = "assimilation_rate";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::assimilation_rate, v.first);
+		EXPECT_EQ(bad_offset, v.second);
+	}
+	{
+		const char s[] = "global_assimilation_rate";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::global_assimilation_rate, v.second);
+	}
+	{
+		const char s[] = "prestige";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::prestige, v.second);
+	}
+	{
+		const char s[] = "factory_cost";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::factory_cost, v.second);
+	}
+	{
+		const char s[] = "life_rating";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::life_rating, v.first);
+		EXPECT_EQ(bad_offset, v.second);
+	}
+	{
+		const char s[] = "farm_rgo_eff";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::farm_rgo_eff, v.first);
+		EXPECT_EQ(national_offsets::farm_rgo_eff, v.second);
+	}
+	{
+		const char s[] = "mine_rgo_eff";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::mine_rgo_eff, v.first);
+		EXPECT_EQ(national_offsets::mine_rgo_eff, v.second);
+	}
+	{
+		const char s[] = "farm_rgo_size";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::farm_rgo_size, v.first);
+		EXPECT_EQ(national_offsets::farm_rgo_size, v.second);
+	}
+	{
+		const char s[] = "mine_rgo_size";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::mine_rgo_size, v.first);
+		EXPECT_EQ(national_offsets::mine_rgo_size, v.second);
+	}
+	{
+		const char s[] = "issue_change_speed";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::issue_change_speed, v.second);
+	}
+	{
+		const char s[] = "social_reform_desire";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::social_reform_desire, v.second);
+	}
+	{
+		const char s[] = "political_reform_desire";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::political_reform_desire, v.second);
+	}
+	{
+		const char s[] = "literacy_con_impact";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(bad_offset, v.first);
+		EXPECT_EQ(national_offsets::literacy_con_impact, v.second);
+	}
+	{
+		const char s[] = "pop_militancy_modifier";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::pop_militancy_modifier, v.first);
+		EXPECT_EQ(bad_offset, v.second);
+	}
+	{
+		const char s[] = "pop_consciousness_modifier";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::pop_consciousness_modifier, v.first);
+		EXPECT_EQ(bad_offset, v.second);
+	}
+	{
+		const char s[] = "rich_income_modifier";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::rich_income_modifier, v.first);
+		EXPECT_EQ(national_offsets::rich_income_modifier, v.second);
+	}
+	{
+		const char s[] = "middle_income_modifier";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::middle_income_modifier, v.first);
+		EXPECT_EQ(national_offsets::middle_income_modifier, v.second);
+	}
+	{
+		const char s[] = "poor_income_modifier";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::poor_income_modifier, v.first);
+		EXPECT_EQ(national_offsets::poor_income_modifier, v.second);
+	}
+	{
+		const char s[] = "boost_strongest_party";
+		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+		EXPECT_EQ(provincial_offsets::boost_strongest_party, v.first);
+		EXPECT_EQ(bad_offset, v.second);
+	}
+}

@@ -196,9 +196,141 @@ namespace modifiers {
 			CT_STRING_INT("combat_width", pack_offset_pair(provincial_offsets::combat_width, bad_offset)),
 			CT_STRING_INT("min_build_naval_base", pack_offset_pair(provincial_offsets::min_build_naval_base, bad_offset)),
 			CT_STRING_INT("min_build_railroad", pack_offset_pair(provincial_offsets::min_build_railroad, bad_offset)),
-			CT_STRING_INT("min_build_fort", pack_offset_pair(provincial_offsets::min_build_fort, bad_offset))
+			CT_STRING_INT("min_build_fort", pack_offset_pair(provincial_offsets::min_build_fort, bad_offset)),
+			CT_STRING_INT("commerce_tech_research_bonus", pack_offset_pair(bad_offset, national_offsets::commerce_tech_research_bonus)),
+			CT_STRING_INT("army_tech_research_bonus", pack_offset_pair(bad_offset, national_offsets::army_tech_research_bonus)),
+			CT_STRING_INT("industry_tech_research_bonus", pack_offset_pair(bad_offset, national_offsets::industry_tech_research_bonus)),
+			CT_STRING_INT("navy_tech_research_bonus", pack_offset_pair(bad_offset, national_offsets::navy_tech_research_bonus)),
+			CT_STRING_INT("culture_tech_research_bonus", pack_offset_pair(bad_offset, national_offsets::culture_tech_research_bonus))
 		>;
 		using token_tree = typename sorted<token_tree_unsorted>::type;
+
+		const auto value = bt_find_value_or<token_tree, uint32_t>(s, e, pack_offset_pair(bad_offset, bad_offset));
+		return std::pair<uint32_t, uint32_t>(get_provincial_offset_from_packed(value), get_national_offset_from_packed(value));
+	}
+
+	provincial_modifier_tag add_provincial_modifier(text_data::text_tag name, modifier_reading_base& mod, modifiers_manager& manager) {
+		if (mod.total_attributes == 0)
+			return provincial_modifier_tag();
+
+		const auto pmtag = manager.fetch_unique_provincial_modifier(name);
+		auto& new_mod = manager.provincial_modifiers[pmtag];
+		new_mod.icon = mod.icon;
+
+		Eigen::Map<Eigen::VectorXf, Eigen::AlignmentType::Aligned32> dest_vector(manager.provincial_modifier_definitions.safe_get_row(pmtag), provincial_offsets::aligned_32_size);
+		Eigen::Map<Eigen::VectorXf, Eigen::AlignmentType::Aligned32> source_vector(mod.modifier_data.data(), provincial_offsets::aligned_32_size);
+
+		dest_vector = source_vector;
+
+		if (mod.count_unique_national != 0) {
+			mod.remove_shared_national_attributes();
+			const auto nat_result = add_national_modifier(text_data::text_tag(), mod, manager); // creates an unindexed national modifier as complement
+			new_mod.complement = nat_result;
+			manager.national_modifiers[nat_result].name = name;
+		}
+
+		return pmtag;
+	}
+	national_modifier_tag add_national_modifier(text_data::text_tag name, const modifier_reading_base& mod, modifiers_manager& manager) {
+		if (mod.total_attributes == 0)
+			return national_modifier_tag();
+
+		const auto pmtag = manager.fetch_unique_national_modifier(name);
+		auto& new_mod = manager.national_modifiers[pmtag];
+		new_mod.icon = mod.icon;
+
+		Eigen::Map<Eigen::VectorXf, Eigen::AlignmentType::Aligned32> dest_vector(manager.national_modifier_definitions.safe_get_row(pmtag), national_offsets::aligned_32_size);
+		Eigen::Map<const Eigen::VectorXf, Eigen::AlignmentType::Aligned32> source_vector(mod.modifier_data.data() + provincial_offsets::aligned_32_size, national_offsets::aligned_32_size);
+
+		dest_vector = source_vector;
+
+		return pmtag;
+	}
+	void add_indeterminate_modifier(text_data::text_tag name, modifier_reading_base& mod, modifiers_manager& manager) {
+		if (mod.total_attributes == 0)
+			return;
+		if (mod.count_unique_provincial != 0) {
+			// some attributes apply only to province
+			// conclude intent is provincial modifier with additional national properties
+			add_provincial_modifier(name, mod, manager);
+		} else if (mod.count_unique_national == mod.total_attributes) {
+			// all attributes apply only to nation
+			// conclude intent is national modifier
+			add_national_modifier(name, mod, manager);
+		} else {
+			//intent indeterminate: create first a national modifier (non destructive), then destructively create provincial and complement
+			add_national_modifier(name, mod, manager);
+			add_provincial_modifier(name, mod, manager);
+		}
+	}
+
+	void modifier_reading_base::add_attribute(const std::pair<token_and_type, float>& p) {
+		const auto offsets = get_provincial_and_national_offsets_from_token(p.first.start, p.first.end);
+		if (offsets.first != bad_offset) {
+			modifier_data[offsets.first] = p.second;
+			++count_unique_provincial;
+		}
+		if (offsets.second != bad_offset) {
+			modifier_data[provincial_offsets::aligned_32_size + offsets.second] = p.second;
+			++count_unique_national;
+		}
+		if ((offsets.first != bad_offset) & (offsets.second != bad_offset)) {
+			--count_unique_provincial;
+			--count_unique_national;
+		}
+		if ((offsets.first != bad_offset) | (offsets.second != bad_offset)) {
+			++total_attributes;
+		}
+	}
+	void modifier_reading_base::remove_shared_national_attributes() {
+		modifier_data[provincial_offsets::aligned_32_size + national_offsets::goods_demand] = 0.0f;
+
+		modifier_data[provincial_offsets::aligned_32_size + national_offsets::poor_life_needs] = 0.0f;
+		modifier_data[provincial_offsets::aligned_32_size + national_offsets::rich_life_needs] = 0.0f;
+		modifier_data[provincial_offsets::aligned_32_size + national_offsets::middle_life_needs] = 0.0f;
+
+		modifier_data[provincial_offsets::aligned_32_size + national_offsets::poor_luxury_needs] = 0.0f;
+		modifier_data[provincial_offsets::aligned_32_size + national_offsets::middle_luxury_needs] = 0.0f;
+		modifier_data[provincial_offsets::aligned_32_size + national_offsets::rich_luxury_needs] = 0.0f;
+
+		modifier_data[provincial_offsets::aligned_32_size + national_offsets::poor_everyday_needs] = 0.0f;
+		modifier_data[provincial_offsets::aligned_32_size + national_offsets::rich_everyday_needs] = 0.0f;
+		modifier_data[provincial_offsets::aligned_32_size + national_offsets::middle_everyday_needs] = 0.0f;
+
+		modifier_data[provincial_offsets::aligned_32_size + national_offsets::farm_rgo_eff] = 0.0f;
+		modifier_data[provincial_offsets::aligned_32_size + national_offsets::mine_rgo_eff] = 0.0f;
+		modifier_data[provincial_offsets::aligned_32_size + national_offsets::farm_rgo_size] = 0.0f;
+		modifier_data[provincial_offsets::aligned_32_size + national_offsets::mine_rgo_size] = 0.0f;
+
+		modifier_data[provincial_offsets::aligned_32_size + national_offsets::rich_income_modifier] = 0.0f;
+		modifier_data[provincial_offsets::aligned_32_size + national_offsets::middle_income_modifier] = 0.0f;
+		modifier_data[provincial_offsets::aligned_32_size + national_offsets::poor_income_modifier] = 0.0f;
+	}
+
+	national_modifier_tag modifiers_manager::fetch_unique_national_modifier(text_data::text_tag n) {
+		const auto f = named_national_modifiers_index.find(n);
+		if (f != named_national_modifiers_index.end())
+			return f->second;
+		const auto tag = national_modifiers.emplace_back();
+		auto& nm = national_modifiers[tag];
+		nm.id = tag;
+		nm.name = n;
+		if(is_valid_index(n))
+			named_national_modifiers_index.emplace(n, tag);
+		return tag;
+	}
+
+	provincial_modifier_tag modifiers_manager::fetch_unique_provincial_modifier(text_data::text_tag n) {
+		const auto f = named_provincial_modifiers_index.find(n);
+		if (f != named_provincial_modifiers_index.end())
+			return f->second;
+		const auto tag = provincial_modifiers.emplace_back();
+		auto& nm = provincial_modifiers[tag];
+		nm.id = tag;
+		nm.name = n;
+		if (is_valid_index(n))
+			named_provincial_modifiers_index.emplace(n, tag);
+		return tag;
 	}
 }
 

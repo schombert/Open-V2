@@ -6,14 +6,20 @@
 #include <vector>
 #include "Parsers\\parsers.hpp"
 #include "text_data\\text_data.h"
+#include "concurrency_tools\\concurrency_tools.hpp"
 
 namespace modifiers {
 	struct provincial_modifier {
+		uint32_t icon = 0;
+
 		text_data::text_tag name;
+		national_modifier_tag complement;
 		provincial_modifier_tag id;
 	};
 
 	struct national_modifier {
+		uint32_t icon = 0;
+
 		text_data::text_tag name;
 		national_modifier_tag id;
 	};
@@ -67,6 +73,9 @@ namespace modifiers {
 		constexpr static uint32_t min_build_naval_base = 45;
 		constexpr static uint32_t min_build_railroad = 46;
 		constexpr static uint32_t min_build_fort = 47;
+
+		constexpr static uint32_t count = 48;
+		constexpr static uint32_t aligned_32_size = ((static_cast<uint32_t>(sizeof(value_type)) * count + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(value_type));
 	}
 
 	namespace national_offsets {
@@ -167,7 +176,14 @@ namespace modifiers {
 		constexpr static uint32_t unciv_military_modifier = 94;
 		constexpr static uint32_t self_unciv_economic_modifier = 95;
 		constexpr static uint32_t self_unciv_military_modifier = 96;
-		constexpr static uint32_t research_bonus_start = 97;
+		constexpr static uint32_t commerce_tech_research_bonus = 97;
+		constexpr static uint32_t army_tech_research_bonus = 98;
+		constexpr static uint32_t industry_tech_research_bonus = 99;
+		constexpr static uint32_t navy_tech_research_bonus = 100;
+		constexpr static uint32_t culture_tech_research_bonus = 101;
+
+		constexpr static uint32_t count = 102;
+		constexpr static uint32_t aligned_32_size = ((static_cast<uint32_t>(sizeof(value_type)) * count + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(value_type));
 	}
 
 	constexpr uint16_t bad_offset = 1024;
@@ -191,6 +207,17 @@ namespace modifiers {
 
 		boost::container::flat_map<text_data::text_tag, national_modifier_tag> named_national_modifiers_index;
 		boost::container::flat_map<text_data::text_tag, provincial_modifier_tag> named_provincial_modifiers_index;
+
+		tagged_fixed_blocked_2dvector<value_type, national_modifier_tag, uint32_t, aligned_allocator_32<value_type>> national_modifier_definitions;
+		tagged_fixed_blocked_2dvector<value_type, provincial_modifier_tag, uint32_t, aligned_allocator_32<value_type>> provincial_modifier_definitions;
+
+		national_modifier_tag fetch_unique_national_modifier(text_data::text_tag n); // adds index only if valid text tag
+		provincial_modifier_tag fetch_unique_provincial_modifier(text_data::text_tag n); // adds index only if valid text tag
+
+		modifiers_manager() {
+			national_modifier_definitions.reset(national_offsets::count);
+			provincial_modifier_definitions.reset(provincial_offsets::count);
+		}
 	};
 
 	struct parsing_environment;
@@ -205,6 +232,23 @@ namespace modifiers {
 		parsing_state(parsing_state&&) noexcept;
 		~parsing_state();
 	};
+
+	class modifier_reading_base {
+	public:
+		std::vector<value_type, aligned_allocator_32<float>> modifier_data;
+		uint32_t icon = 0;
+		uint32_t count_unique_provincial = 0;
+		uint32_t count_unique_national = 0;
+		uint32_t total_attributes = 0;
+
+		modifier_reading_base() : modifier_data(provincial_offsets::aligned_32_size + national_offsets::aligned_32_size) {}
+		void add_attribute(const std::pair<token_and_type, float>& p);
+		void remove_shared_national_attributes();
+	};
+
+	provincial_modifier_tag add_provincial_modifier(text_data::text_tag name, modifier_reading_base& mod, modifiers_manager& manager);
+	national_modifier_tag add_national_modifier(text_data::text_tag name, const modifier_reading_base& mod, modifiers_manager& manager);
+	void add_indeterminate_modifier(text_data::text_tag name, modifier_reading_base& mod, modifiers_manager& manager);
 
 	void pre_parse_crimes(
 		parsing_state& state,

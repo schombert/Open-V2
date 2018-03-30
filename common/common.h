@@ -12,6 +12,7 @@
 #pragma clang diagnostic ignored "-Wshadow"
 #include "boost\\container\\flat_map.hpp"
 #include "boost\\container\\small_vector.hpp"
+#include "Eigen\\Dense"
 #pragma clang diagnostic pop
 
 #ifndef _DEBUG
@@ -257,6 +258,18 @@ public:
 		return (value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size);
 	}
 	const value_type* get_row(variable_tag_type outer) const {
+		return (const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size);
+	}
+	value_type* safe_get_row(variable_tag_type outer) {
+		const auto n2 = ((uint32_t)to_index(outer) + 1ui32) * _inner_size;
+		if (n2 >= storage.size())
+			storage.resize(n2);
+		return (value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size);
+	}
+	const value_type* safe_get_row(variable_tag_type outer) const {
+		const auto n2 = ((uint32_t)to_index(outer) + 1ui32) * _inner_size;
+		if (n2 >= storage.size())
+			storage.resize(n2);
 		return (const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size);
 	}
 	value_type& safe_get(variable_tag_type outer, fixed_tag_type inner) {
