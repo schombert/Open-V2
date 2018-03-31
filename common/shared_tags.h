@@ -87,6 +87,23 @@ namespace provinces {
 	using state_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 77325565>>;
 }
 
+namespace triggers {
+	using trigger_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 93484522>>;
+}
+
+namespace text_data {
+	using text_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 342678>>;
+}
+
+template<typename tag_type, typename T, typename U>
+inline tag_type tag_from_text(const boost::container::flat_map<text_data::text_tag, tag_type, T, U>& map, text_data::text_tag t) {
+	const auto f = map.find(t);
+	if (f != map.cend())
+		return f->second;
+	else
+		return tag_type()
+}
+
 inline bool is_valid_index(const ui::element_tag& et) {
 	return std::visit([](auto t) {
 		if constexpr(std::is_same_v<std::monostate, decltype(t)>)
@@ -94,8 +111,4 @@ inline bool is_valid_index(const ui::element_tag& et) {
 		else
 			return is_valid_index(t);
 	}, et);
-}
-
-namespace text_data {
-	using text_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 342678>>;
 }
