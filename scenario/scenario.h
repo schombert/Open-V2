@@ -9,6 +9,7 @@
 #include "provinces\\provinces.h"
 #include "technologies\\technologies.h"
 #include "text_data\\text_data.h"
+#include "variables\\variables.h"
 
 namespace scenario {
 	class scenario_manager {
@@ -22,6 +23,7 @@ namespace scenario {
 		modifiers::modifiers_manager modifiers_m;
 		provinces::province_manager province_m;
 		technologies::technologies_manager technology_m;
+		variables::variables_manager variables_m;
 
 		text_data::text_sequences& text_m;
 

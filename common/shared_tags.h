@@ -33,7 +33,6 @@ namespace technologies {
 	using tech_subcategory_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 72649>>;
 	using tech_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 72650>>;
 	using invention_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 72651>>;
-	using tech_school_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 72652>>;
 }
 
 namespace ideologies {
@@ -95,8 +94,13 @@ namespace text_data {
 	using text_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 342678>>;
 }
 
-template<typename tag_type, typename T, typename U>
-inline tag_type tag_from_text(const boost::container::flat_map<text_data::text_tag, tag_type, T, U>& map, text_data::text_tag t) {
+namespace variables {
+	using national_variable_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 4745824>>;
+	using global_variable_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 4745826>>;
+}
+
+template<typename tag_type, typename index_type, typename T, typename U>
+inline tag_type tag_from_text(const boost::container::flat_map<index_type, tag_type, T, U>& map, index_type t) {
 	const auto f = map.find(t);
 	if (f != map.cend())
 		return f->second;

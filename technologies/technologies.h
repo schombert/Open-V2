@@ -8,6 +8,10 @@
 #include "concurrency_tools\\concurrency_tools.h"
 #include "text_data\\text_data.h"
 
+namespace modifiers {
+	class modifiers_manager;
+}
+
 namespace technologies {
 	struct technology_category {
 		text_data::text_tag name;
@@ -34,25 +38,18 @@ namespace technologies {
 		invention_tag id;
 	};
 
-	struct tech_school {
-		text_data::text_tag name;
-
-		tech_school_tag id;
-	};
-
 	class technologies_manager {
 	public:
 		boost::container::flat_map<text_data::text_tag, tech_category_tag> named_category_index;
 		boost::container::flat_map<text_data::text_tag, tech_subcategory_tag> named_subcategory_index;
 		boost::container::flat_map<text_data::text_tag, tech_tag> named_technology_index;
-		boost::container::flat_map<text_data::text_tag, tech_school_tag> named_tech_school_index;
+		boost::container::flat_map<text_data::text_tag, modifiers::national_modifier_tag> named_tech_school_index;
 		boost::container::flat_map<text_data::text_tag, invention_tag> named_invention_index;
 
 
 		tagged_vector<technology_category, tech_category_tag> technology_categories;
 		tagged_vector<technology_subcategory, tech_subcategory_tag> technology_subcategories;
 		tagged_vector<technology, tech_tag> technologies_container;
-		tagged_vector<tech_school, tech_school_tag> tech_schools;
 		tagged_vector<invention, invention_tag> inventions;
 	};
 
@@ -66,7 +63,8 @@ namespace technologies {
 		technologies_manager& tech_manager,
 		std::vector<token_group>& parse_results,
 		const text_handle_lookup& text_function,
-		const tech_file_handler& file_function);
+		const tech_file_handler& file_function,
+		modifiers::modifiers_manager& mm);
 
 	struct parsing_environment;
 
@@ -74,7 +72,7 @@ namespace technologies {
 	public:
 		std::unique_ptr<parsing_environment> impl;
 
-		parsing_state(const text_handle_lookup& tl, const tech_file_handler& fh, technologies_manager& m);
+		parsing_state(const text_handle_lookup& tl, const tech_file_handler& fh, technologies_manager& m, modifiers::modifiers_manager& mm);
 		parsing_state(parsing_state&&) noexcept;
 		~parsing_state();
 	};

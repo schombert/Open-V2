@@ -20,9 +20,9 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{4D657172-4C04-407B-B7AF-22B8706E456F}</ProjectGuid>
+    <ProjectGuid>{90316E63-9CE3-4D2B-80AC-440903861B0D}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>technologies</RootNamespace>
+    <RootNamespace>variables</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -149,15 +149,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="technologies.h" />
+    <ClInclude Include="variables.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="technologies.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\modifiers\modifiers.vcxproj">
-      <Project>{54477a39-7934-4c4a-9744-17399338af31}</Project>
-    </ProjectReference>
+    <ClCompile Include="variables.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

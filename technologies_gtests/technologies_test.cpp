@@ -1,6 +1,7 @@
 #include "technologies\\technologies.h"
 #include "gtest/gtest.h"
 #include "fake_fs\\fake_fs.h"
+#include "modifiers\\modifiers.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -137,14 +138,15 @@ TEST(technologies_tests, pre_parse_tech_file) {
 
 	std::vector<token_group> results;
 	technologies_manager manager;
+	modifiers::modifiers_manager mm;
 
 	parse_pdx_file(results, fake_tech_file, fake_tech_file + sizeof(fake_tech_file) - 1);
-	pre_parse_main_technology_file(manager, results, fake_text_handle_lookup(), make_fake_tech_file_parse(count_sub_files));
+	pre_parse_main_technology_file(manager, results, fake_text_handle_lookup(), make_fake_tech_file_parse(count_sub_files), mm);
 
 	EXPECT_EQ(2, count_sub_files);
 	EXPECT_EQ(2ui64, manager.technology_categories.size());
 	EXPECT_EQ(4ui64, manager.technology_subcategories.size());
-	EXPECT_EQ(1ui64, manager.tech_schools.size());
+	EXPECT_EQ(1ui64, manager.named_tech_school_index.size());
 
 	EXPECT_EQ(tech_category_tag(0), manager.technology_categories[tech_category_tag(0)].id);
 	EXPECT_EQ(tech_category_tag(1), manager.technology_categories[tech_category_tag(1)].id);
@@ -161,9 +163,9 @@ TEST(technologies_tests, pre_parse_tech_file) {
 	EXPECT_EQ(4ui64, manager.named_subcategory_index.size());
 	EXPECT_EQ(1ui64, manager.named_tech_school_index.size());
 
-	EXPECT_EQ(tech_school_tag(0), manager.tech_schools[tech_school_tag(0)].id);
-	const auto fr = manager.named_tech_school_index[manager.tech_schools[tech_school_tag(0)].name];
-	EXPECT_EQ(fr, tech_school_tag(0));
+	EXPECT_EQ(modifiers::national_modifier_tag(0), mm.national_modifiers[modifiers::national_modifier_tag(0)].id);
+	const auto fr = manager.named_tech_school_index[mm.national_modifiers[modifiers::national_modifier_tag(0)].name];
+	EXPECT_EQ(modifiers::national_modifier_tag(0), fr);
 }
 
 TEST(technologies_tests, pre_parse_schools) {
@@ -171,19 +173,21 @@ TEST(technologies_tests, pre_parse_schools) {
 
 	std::vector<token_group> results;
 	technologies_manager manager;
+	modifiers::modifiers_manager mm;
 
 	parse_pdx_file(results, fake_tech_file_b, fake_tech_file_b + sizeof(fake_tech_file_b) - 1);
-	pre_parse_main_technology_file(manager, results, fake_text_handle_lookup(), make_fake_tech_file_parse(count_sub_files));
+	pre_parse_main_technology_file(manager, results, fake_text_handle_lookup(), make_fake_tech_file_parse(count_sub_files), mm);
 
-	EXPECT_EQ(2ui64, manager.tech_schools.size());
+	EXPECT_EQ(2ui64, mm.national_modifiers.size());
+	EXPECT_EQ(2ui64, mm.named_national_modifiers_index.size());
 	EXPECT_EQ(2ui64, manager.named_tech_school_index.size());
 
-	EXPECT_EQ(tech_school_tag(0), manager.tech_schools[tech_school_tag(0)].id);
-	EXPECT_EQ(tech_school_tag(1), manager.tech_schools[tech_school_tag(1)].id);
-	const auto fr = manager.named_tech_school_index[manager.tech_schools[tech_school_tag(0)].name];
-	EXPECT_EQ(fr, tech_school_tag(0));
-	const auto frb = manager.named_tech_school_index[manager.tech_schools[tech_school_tag(1)].name];
-	EXPECT_EQ(frb, tech_school_tag(1));
+	EXPECT_EQ(modifiers::national_modifier_tag(0), mm.national_modifiers[modifiers::national_modifier_tag(0)].id);
+	EXPECT_EQ(modifiers::national_modifier_tag(1), mm.national_modifiers[modifiers::national_modifier_tag(1)].id);
+	const auto fr = manager.named_tech_school_index[mm.national_modifiers[modifiers::national_modifier_tag(0)].name];
+	EXPECT_EQ(fr, modifiers::national_modifier_tag(0));
+	const auto frb = manager.named_tech_school_index[mm.national_modifiers[modifiers::national_modifier_tag(1)].name];
+	EXPECT_EQ(frb, modifiers::national_modifier_tag(1));
 }
 
 TEST(technologies_tests, pre_parse_techs_test) {
@@ -193,10 +197,11 @@ TEST(technologies_tests, pre_parse_techs_test) {
 	f.set_root(RANGE(u"F:"));
 
 	technologies_manager manager;
+	modifiers::modifiers_manager mm;
 
 	const auto tech_dir = f.get_root().get_directory(u"\\technologies");
 
-	parsing_state state(fake_text_handle_lookup(), make_subfile_perparse_handler(tech_dir), manager);
+	parsing_state state(fake_text_handle_lookup(), make_subfile_perparse_handler(tech_dir), manager, mm);
 
 	pre_parse_technologies(state, f.get_root());
 
@@ -212,10 +217,11 @@ TEST(technologies_tests, pre_parse_inventions_test) {
 	f.set_root(RANGE(u"F:"));
 
 	technologies_manager manager;
+	modifiers::modifiers_manager mm;
 
 	const auto tech_dir = f.get_root().get_directory(u"\\technologies");
 
-	parsing_state state(fake_text_handle_lookup(), make_subfile_perparse_handler(tech_dir), manager);
+	parsing_state state(fake_text_handle_lookup(), make_subfile_perparse_handler(tech_dir), manager, mm);
 
 	pre_parse_inventions(state, f.get_root());
 

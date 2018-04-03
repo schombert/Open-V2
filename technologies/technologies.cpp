@@ -1,6 +1,7 @@
 #include "technologies.h"
 #include "Parsers\\parsers.hpp"
 #include "object_parsing\\object_parsing.hpp"
+#include "modifiers\\modifiers.h"
 
 namespace technologies {
 	struct parsing_environment{
@@ -8,18 +9,19 @@ namespace technologies {
 		tech_file_handler file_handler;
 
 		technologies_manager& manager;
+		modifiers::modifiers_manager& mod_manager;
 
 		parsed_data main_file_parse_tree;
 		std::vector<std::pair<tech_category_tag, parsed_data>> tech_files_parse_trees;
 		std::vector<parsed_data> inventions_parse_trees;
 
-		parsing_environment(const text_handle_lookup& tl, const tech_file_handler& fh, technologies_manager& m) :
-			text_lookup(tl), file_handler(fh), manager(m) {
+		parsing_environment(const text_handle_lookup& tl, const tech_file_handler& fh, technologies_manager& m, modifiers::modifiers_manager& mm) :
+			text_lookup(tl), file_handler(fh), manager(m), mod_manager(mm) {
 		}
 	};
 
-	parsing_state::parsing_state(const text_handle_lookup& tl, const tech_file_handler& fh, technologies_manager& m) : 
-		impl(std::make_unique<parsing_environment>(tl, fh, m)) {}
+	parsing_state::parsing_state(const text_handle_lookup& tl, const tech_file_handler& fh, technologies_manager& m, modifiers::modifiers_manager& mm) :
+		impl(std::make_unique<parsing_environment>(tl, fh, m, mm)) {}
 	parsing_state::~parsing_state() {}
 
 	parsing_state::parsing_state(parsing_state&& o) noexcept : impl(std::move(o.impl)) {}
@@ -100,10 +102,7 @@ namespace technologies {
 
 		void add_school(const token_and_type& t) {
 			const auto name = env.text_lookup(t.start, t.end);
-			const auto new_st = env.manager.tech_schools.emplace_back();
-			auto& s = env.manager.tech_schools[new_st];
-			s.id = new_st;
-			s.name = name;
+			const auto new_st = env.mod_manager.fetch_unique_national_modifier(name);
 			env.manager.named_tech_school_index.emplace(name, new_st);
 		}
 	};
@@ -227,9 +226,10 @@ namespace technologies {
 		technologies_manager& tech_manager,
 		std::vector<token_group>& parse_results,
 		const text_handle_lookup& text_function,
-		const tech_file_handler& file_function) {
+		const tech_file_handler& file_function,
+		modifiers::modifiers_manager& mod_manager) {
 
-		parsing_environment e(text_function, file_function, tech_manager);
+		parsing_environment e(text_function, file_function, tech_manager, mod_manager);
 		if (parse_results.size() > 0)
 			parse_object<technologies_file, tech_pre_parsing_domain>(&parse_results[0], &parse_results[0] + parse_results.size(), e);
 	}
