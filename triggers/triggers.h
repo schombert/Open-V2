@@ -85,6 +85,9 @@ namespace triggers {
 		provinces::state_tag state;
 		text_data::text_tag text;
 		ideologies::ideology_tag ideology;
+		issues::issue_tag issue;
+		issues::option_identifier issue_option;
+		military::cb_type_tag cb_type;
 
 		trigger_bytecode(const trigger_bytecode& i) {
 			memcpy(this, &i, sizeof(trigger_bytecode));
@@ -109,7 +112,12 @@ namespace triggers {
 		trigger_bytecode(provinces::state_tag i) : state(i) {}
 		trigger_bytecode(text_data::text_tag i) : text(i) {}
 		trigger_bytecode(ideologies::ideology_tag i) : ideology(i) {}
+		trigger_bytecode(issues::issue_tag i) : issue(i) {}
+		trigger_bytecode(issues::option_identifier i) : issue_option(i) {}
+		trigger_bytecode(military::cb_type_tag i) : cb_type(i) {}
 	};
+
+	static_assert(sizeof(trigger_bytecode) == 4);
 
 	enum class trigger_slot_contents {
 		empty, province, state, pop, nation

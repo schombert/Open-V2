@@ -10,6 +10,7 @@
 #include "technologies\\technologies.h"
 #include "text_data\\text_data.h"
 #include "variables\\variables.h"
+#include "military\\military.h"
 
 namespace scenario {
 	class scenario_manager {
@@ -24,6 +25,7 @@ namespace scenario {
 		provinces::province_manager province_m;
 		technologies::technologies_manager technology_m;
 		variables::variables_manager variables_m;
+		military::military_manager military_m;
 
 		text_data::text_sequences& text_m;
 

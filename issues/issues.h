@@ -9,7 +9,7 @@
 #include <variant>
 
 namespace issues {
-	enum class issue_group {
+	enum class issue_group : uint8_t {
 		party,
 		social,
 		political,
@@ -48,12 +48,13 @@ namespace issues {
 		unciv_issue_tag id;
 	};
 	struct issue_idenfitier {
-		issue_group type;
 		std::variant<std::monostate, issue_tag, unciv_issue_tag> id;
+		issue_group type;
 	};
 	struct option_identifier : public issue_idenfitier {
 		option_tag option_id;
 	};
+	static_assert(sizeof(option_identifier) <= 4);
 
 	class issues_manager {
 	public:
