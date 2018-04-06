@@ -151,10 +151,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="codes.h" />
     <ClInclude Include="triggers.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="triggers.cpp" />
+    <ClCompile Include="trigger_reading.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

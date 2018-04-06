@@ -105,7 +105,7 @@ inline tag_type tag_from_text(const boost::container::flat_map<index_type, tag_t
 	if (f != map.cend())
 		return f->second;
 	else
-		return tag_type()
+		return tag_type();
 }
 
 inline bool is_valid_index(const ui::element_tag& et) {
