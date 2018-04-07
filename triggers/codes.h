@@ -1,15 +1,32 @@
 #pragma once
 #include <stdint.h>
+#include "Parsers\\parsers.h"
 
 namespace triggers {
 	namespace codes {
+		// flags
+		constexpr static uint16_t is_scope = 0x8000;
+		constexpr static uint16_t is_disjunctive_scope = 0x4000;
+		constexpr static uint16_t is_existance_scope = 0x2000;
+
+		constexpr static uint16_t association_mask = 0x7000;
+		constexpr static uint16_t association_eq = 0x1000;
+		constexpr static uint16_t association_gt = 0x2000;
+		constexpr static uint16_t association_ge = 0x3000;
+		constexpr static uint16_t association_lt = 0x4000;
+		constexpr static uint16_t association_le = 0x5000;
+		constexpr static uint16_t association_ne = 0x6000;
+
+		constexpr static uint16_t no_payload = 0x0800;
+		constexpr static uint16_t code_mask = 0x07FF;
+
 		// non scopes
 		constexpr uint16_t year = 0x0001;
 		constexpr uint16_t month = 0x0002;
 		constexpr uint16_t port = 0x0003;
 		constexpr uint16_t rank = 0x0004;
 		constexpr uint16_t invention = 0x0005;
-		constexpr uint16_t strata = 0x0006;
+		constexpr uint16_t strata_rich = 0x0006;
 		constexpr uint16_t life_rating_province = 0x0007;
 		constexpr uint16_t life_rating_state = 0x0008;
 		constexpr uint16_t has_empty_adjacent_state_province = 0x0009;
@@ -602,6 +619,11 @@ namespace triggers {
 		constexpr uint16_t variable_pop_type_name_province = 0x0250;
 		constexpr uint16_t variable_pop_type_name_pop = 0x0251;
 		constexpr uint16_t variable_good_name = 0x0252;
+
+		//misplaced
+		constexpr uint16_t strata_middle = 0x0253;
+		constexpr uint16_t strata_poor = 0x0254;
+
 		//technology name -- payload 1
 		//ideology name -- 4 varianets payload 2
 		//issue name -- 4 varianets payload 2
@@ -655,12 +677,44 @@ namespace triggers {
 		constexpr uint16_t tag_scope = 0x002A; // variable name
 		constexpr uint16_t integer_scope = 0x002B; // variable name
 
-		constexpr uint16_t placeholder_not_scope = trigger_code::code_mask;
+		constexpr uint16_t placeholder_not_scope = code_mask;
 
 		//variable
 		// region name = 1 variant, x type, payload 1
 		// tag = 1 variant, payload 1
 		// integer = 1 variant, payload 1
+	}
+
+	inline uint16_t association_to_trigger_code(association_type a) {
+		switch (a) {
+			case association_type::eq: return codes::association_eq;
+			case association_type::eq_default: return codes::association_ge;
+			case association_type::ge: return codes::association_ge;
+			case association_type::gt: return codes::association_gt;
+			case association_type::lt: return codes::association_lt;
+			case association_type::le: return codes::association_le;
+			case association_type::ne: return codes::association_ne;
+			case association_type::none: return codes::association_ge;
+			case association_type::list: return codes::association_ge;
+		}
+	}
+
+	inline uint16_t invert_association(uint16_t a) {
+		return static_cast<uint16_t>(0x7000) - a;
+	}
+
+	inline uint16_t association_to_bool_code(association_type a, const token_and_type& t) {
+		if (token_to<bool>(t)) {
+			if ((a == association_type::eq) | (a == association_type::eq_default))
+				return codes::association_eq;
+			else
+				return codes::association_ne;
+		} else {
+			if ((a == association_type::eq) | (a == association_type::eq_default))
+				return codes::association_ne;
+			else
+				return codes::association_eq;
+		}
 	}
 
 	constexpr bool scope_has_any_all(uint16_t code) {
@@ -674,7 +728,7 @@ namespace triggers {
 		1, //constexpr uint16_t port = 0x0003;
 		1, //constexpr uint16_t rank = 0x0004;
 		1, //constexpr uint16_t invention = 0x0005;
-		1, //constexpr uint16_t strata = 0x0006;
+		0, //constexpr uint16_t strata_rich = 0x0006;
 		2, //constexpr uint16_t life_rating_province = 0x0007;
 		2, //constexpr uint16_t life_rating_state = 0x0008;
 		0, //constexpr uint16_t has_empty_adjacent_state_province = 0x0009;
@@ -1267,5 +1321,7 @@ namespace triggers {
 		3, //constexpr uint16_t variable_pop_type_name_province = 0x0250;
 		3, //constexpr uint16_t variable_pop_type_name_pop = 0x0251;
 		3, //constexpr uint16_t variable_good_name = 0x0252;
-	}
+		0, //	constexpr uint16_t strata_middle = 0x0253;
+		0 //constexpr uint16_t strata_poor = 0x0254;
+	};
 }

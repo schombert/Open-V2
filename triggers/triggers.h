@@ -16,55 +16,6 @@ namespace scenario {
 }
 
 namespace triggers {
-	struct trigger_code {
-		constexpr static uint16_t is_scope = 0x8000;
-		constexpr static uint16_t is_disjunctive_scope = 0x4000;
-		constexpr static uint16_t is_existance_scope = 0x2000;
-
-		constexpr static uint16_t association_mask = 0x7000;
-		constexpr static uint16_t association_eq = 0x1000;
-		constexpr static uint16_t association_gt = 0x2000;
-		constexpr static uint16_t association_ge = 0x3000;
-		constexpr static uint16_t association_lt = 0x4000;
-		constexpr static uint16_t association_le = 0x5000;
-		constexpr static uint16_t association_ne = 0x6000;
-
-		constexpr static uint16_t code_mask = 0x0FFF;
-
-		uint16_t type;
-	};
-
-	inline uint16_t association_to_trigger_code(association_type a) {
-		switch (a) {
-			case association_type::eq: return trigger_code::association_eq;
-			case association_type::eq_default: return trigger_code::association_ge;
-			case association_type::ge: return trigger_code::association_ge;
-			case association_type::gt: return trigger_code::association_gt;
-			case association_type::lt: return trigger_code::association_lt;
-			case association_type::le: return trigger_code::association_le;
-			case association_type::ne: return trigger_code::association_ne;
-			case association_type::none: return trigger_code::association_ge;
-			case association_type::list: return trigger_code::association_ge;
-		}
-	}
-
-	inline uint16_t invert_association(uint16_t a) {
-		return static_cast<uint16_t>(0x7000) - a;
-	}
-
-	inline uint16_t association_to_bool_code(association_type a, const token_and_type& t) {
-		if (token_to<bool>(t)) {
-			if ((a == association_type::eq) | (a == association_type::eq_default))
-				return trigger_code::association_eq;
-			else
-				return trigger_code::association_ne;
-		} else {
-			if ((a == association_type::eq) | (a == association_type::eq_default))
-				return trigger_code::association_ne;
-			else
-				return trigger_code::association_eq;
-		}
-	}
 
 	union trigger_payload {
 		struct small_s {
@@ -78,6 +29,7 @@ namespace triggers {
 				issues::issue_tag issue;
 				military::cb_type_tag cb_type;
 				population::pop_type_tag pop_type;
+				issues::option_tag option;
 
 				inner_u(governments::government_tag i) : government(i) {}
 				inner_u(cultures::religion_tag i) : religion(i) {}
@@ -88,6 +40,7 @@ namespace triggers {
 				inner_u(issues::issue_tag i) : issue(i) {}
 				inner_u(military::cb_type_tag i) : cb_type(i) {}
 				inner_u(population::pop_type_tag i) : pop_type(i) {}
+				inner_u(issues::option_tag i) : option(i) {}
 			} values;
 			uint8_t padding;
 
@@ -100,7 +53,22 @@ namespace triggers {
 			small_s(issues::issue_tag i) : values(i), padding(0ui8) {}
 			small_s(military::cb_type_tag i) : values(i), padding(0ui8) {}
 			small_s(population::pop_type_tag i) : values(i), padding(0ui8) {}
+			small_s(issues::option_tag i) : values(i), padding(0ui8) {}
 		} small;
+		struct generic_issue_s {
+			union inner_u_b {
+				issues::issue_tag civ_issue;
+				issues::unciv_issue_tag unciv_issue;
+				inner_u_b() : civ_issue() {}
+			} values;
+			issues::issue_group group;
+			generic_issue_s(issues::issue_idenfitier i) : group(i.type) {
+				if (std::holds_alternative<issues::issue_tag>(i.id))
+					values.civ_issue = std::get<issues::issue_tag>(i.id);
+				else if (std::holds_alternative<issues::unciv_issue_tag>(i.id))
+					values.unciv_issue = std::get<issues::unciv_issue_tag>(i.id);
+			}
+		} generic_issue;
 
 		uint16_t value;
 		bool boolean_value;
@@ -115,6 +83,7 @@ namespace triggers {
 		provinces::state_tag state;
 		text_data::text_tag text;
 
+		trigger_payload(const trigger_payload &i) noexcept : value(i.value) {}
 		trigger_payload(uint16_t i) : value(i) {}
 		trigger_payload(bool i) : boolean_value(i) {}
 		trigger_payload(technologies::invention_tag i) : invention(i) {}
@@ -135,9 +104,9 @@ namespace triggers {
 		trigger_payload(issues::issue_tag i) : small(i) {}
 		trigger_payload(military::cb_type_tag i) : small(i) {}
 		trigger_payload(population::pop_type_tag i) : small(i) {}
+		trigger_payload(issues::option_tag i) : small(i) {}
+		trigger_payload(issues::issue_idenfitier id) : generic_issue(id) {}
 	};
-
-	using trigger_bytecode = std::variant<std::monostate, int32_t, float, issues::option_identifier, trigger_payload>;
 
 	static_assert(sizeof(trigger_payload) == 2);
 
@@ -154,7 +123,15 @@ namespace triggers {
 
 	class trigger_manager {
 	public:
-		std::vector<trigger_bytecode> trigger_data;
+		std::vector<trigger_payload> trigger_data;
 		tagged_vector<uint32_t, trigger_tag> trigger_offsets;
 	};
+
+	int32_t get_payload_size(uint16_t* data);
+	void add_float_to_payload(std::vector<uint16_t>& v, float f);
+	float read_float_from_payload(const uint16_t* data);
+	void add_int32_t_to_payload(std::vector<uint16_t>& v, int32_t i);
+	int32_t read_int32_t_from_payload(const uint16_t* data);
+	void add_option_identifier_to_payload(std::vector<uint16_t>& v, issues::option_identifier i);
+	issues::option_identifier read_option_identifier_from_payload(const uint16_t* data);
 }
