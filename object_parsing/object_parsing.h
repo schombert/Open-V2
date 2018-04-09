@@ -98,6 +98,14 @@ void move_to_member(std::vector<V, A>& member, T&& result) {
 #define END_TYPE                   > >
 #define END_DOMAIN            ;
 
+
+template<typename A, typename B>
+struct _has_parse_func : public std::false_type {};
+template<typename A>
+struct _has_parse_func<A, decltype(void(std::declval<typename A::parse_function_object>()))> : public std::true_type {};
+template<typename A>
+constexpr bool has_parse_func = _has_parse_func<A, void>::value;
+
 template<typename IDENT, typename CLASS>
 struct _set_member;
 
@@ -151,7 +159,12 @@ result_type obj_construction_wrapper(obj_params&& ... params) {
 }
 
 template<typename result_type, typename context, typename ... obj_params>
-result_type parse_object(const token_group* start, const token_group* end, obj_params&& ... params) {
+result_type parse_object(const token_group* start, const token_group* end, const token_and_type& name, obj_params&& ... params);
+template<typename result_type, typename context, typename ... obj_params>
+result_type parse_object(const token_group* start, const token_group* end, obj_params&& ... params);
+
+template<typename context, typename result_type, typename ... obj_params>
+void parse_constructed_object(const token_group* start, const token_group* end, result_type& result, obj_params&& ... params) {
 	using this_in_context = type_map_get_t<context, result_type>;
 	using inheritance_list = type_list_get_t<4ui64, this_in_context>;
 
@@ -193,8 +206,6 @@ result_type parse_object(const token_group* start, const token_group* end, obj_p
 		>
 		>
 		>;
-
-	result_type result = obj_construction_wrapper<result_type>(params...);
 
 	forall_tokens(start, end, [&result, &params ...](const token_group &n, const token_group *child_start, const token_group *child_end) {
 		if (n.association != association_type::list) {
@@ -254,17 +265,36 @@ result_type parse_object(const token_group* start, const token_group* end, obj_p
 		} else {
 			if (!try_and_fallback<tag_to_generator, function_to_generator>(n.token, [&result, &n, child_start, child_end, &params ...](const auto t) {
 				using type_passed = typename decltype(t)::type;
-				typename type_passed::function_object()(
-					result, n.token, n.association,
-					parse_object<typename type_passed::type, context>(child_start, child_end, params ...)
-					);
+				if constexpr(has_parse_func<type_passed>) {
+					typename type_passed::function_object()(
+						result, n.token, n.association,
+						typename type_passed::parse_function_object()(child_start, child_end, params ...)
+						);
+				} else {
+					typename type_passed::function_object()(
+						result, n.token, n.association,
+						parse_object<typename type_passed::type, context>(child_start, child_end, params ...)
+						);
+				}
 				return true;
 			}, [&result, &n, child_start, child_end, &params ...](const auto t) {
 				using type_passed = typename decltype(t)::type;
-				typename type_passed::function_object()(
-					result, n.token, n.association,
-					parse_object<typename type_passed::type, context>(child_start, child_end, params ...)
-					);
+				if constexpr(has_parse_func<type_passed>) {
+					typename type_passed::function_object()(
+						result, n.token, n.association,
+						typename type_passed::parse_function_object()(child_start, child_end, n.token, params ...)
+						);
+				} else if constexpr(std::is_constructible_v<typename type_passed::type, token_and_type, obj_params...>) {
+					typename type_passed::function_object()(
+						result, n.token, n.association,
+						parse_object<typename type_passed::type, context>(child_start, child_end, n.token, params ...)
+						);
+				} else {
+					typename type_passed::function_object()(
+						result, n.token, n.association,
+						parse_object<typename type_passed::type, context>(child_start, child_end, params ...)
+						);
+				}
 				return true;
 			})) {
 #ifdef _DEBUG
@@ -275,8 +305,23 @@ result_type parse_object(const token_group* start, const token_group* end, obj_p
 			}
 		}
 	});
+}
+
+
+template<typename result_type, typename context, typename ... obj_params>
+result_type parse_object(const token_group* start, const token_group* end, const token_and_type& name, obj_params&& ... params) {
+	result_type result = obj_construction_wrapper<result_type>(name, params...);
+	parse_constructed_object<context>(start, end, result, std::forward<obj_params>(params)...);
 	return result;
 }
+
+template<typename result_type, typename context, typename ... obj_params>
+result_type parse_object(const token_group* start, const token_group* end, obj_params&& ... params) {
+	result_type result = obj_construction_wrapper<result_type>(params...);
+	parse_constructed_object<context>(start, end, result, std::forward<obj_params>(params)...);
+	return result;
+}
+
 
 template<typename member_ident, typename function_type, function_type finstance, typename ... ARGS>
 struct function_and_tuple {
@@ -308,6 +353,44 @@ struct function_and_object_tuple {
 		template<typename in_class, typename from>
 		void operator()(in_class& cls, const token_and_type&, association_type, from&& c) {
 			_set_member<member_ident, in_class>::set(cls, c);
+		}
+	};
+};
+
+template<typename dest_type, typename member_ident, typename function_type, function_type parse_func>
+struct function_and_object_tuple_w_parse {
+	using type = dest_type;
+	using tag = member_ident;
+
+	struct function_object {
+		template<typename in_class, typename from>
+		void operator()(in_class& cls, const token_and_type&, association_type, from&& c) {
+			_set_member<member_ident, in_class>::set(cls, c);
+		}
+	};
+	struct parse_function_object {
+		template<typename ... PARAMS>
+		auto operator()(const token_group* start, const token_group* end, PARAMS&& ... params) {
+			return parse_func(start, end, std::forward<PARAMS>(params)...);
+		}
+	};
+};
+
+template<typename dest_type, typename member_ident, typename function_type, function_type finstance, typename function_type_b, function_type_b parse_func>
+struct function_and_object_tuple_ext_w_parse {
+	using type = dest_type;
+	using tag = member_ident;
+
+	struct function_object {
+		template<typename in_class, typename from>
+		void operator()(in_class& cls, const token_and_type& a, association_type b, from&& c) {
+			_set_member<member_ident, in_class>::set(cls, finstance(a, b, c, ARGS::value ...));
+		}
+	};
+	struct parse_function_object {
+		template<typename result_obj, typename ... PARAMS>
+		auto operator()(const token_group* start, const token_group* end, const token_and_type& name, PARAMS&& ... params) {
+			return parse_func(start, end, name, std::forward<PARAMS>(params)...);
 		}
 	};
 };

@@ -153,6 +153,7 @@
   <ItemGroup>
     <ClInclude Include="codes.h" />
     <ClInclude Include="triggers.h" />
+    <ClInclude Include="trigger_reading.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="triggers.cpp" />

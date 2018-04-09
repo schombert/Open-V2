@@ -1,4 +1,4 @@
-#include "triggers.h"
+#include "trigger_reading.h"
 #include "codes.h"
 #include "scenario\\scenario.h"
 #include <optional>
@@ -15,7 +15,7 @@ namespace triggers {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state&, association_type a, const token_and_type&) {
 			return uint16_t(codes::year | association_to_trigger_code(a));
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload(token_to<uint16_t>(t));
 		}
 	};
@@ -23,7 +23,7 @@ namespace triggers {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state&, association_type a, const token_and_type&) {
 			return uint16_t(codes::is_canal_enabled | association_to_trigger_code(a));
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload(token_to<uint16_t>(t));
 		}
 	};
@@ -31,7 +31,7 @@ namespace triggers {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state&, association_type a, const token_and_type&) {
 			return uint16_t(codes::month | association_to_trigger_code(a));
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload(token_to<uint16_t>(t));
 		}
 	};
@@ -39,7 +39,7 @@ namespace triggers {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state&, association_type a, const token_and_type& t) {
 			return uint16_t(codes::great_wars_enabled | association_to_bool_code(a, t));
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload(token_to<bool>(t) );
 		}
 	};
@@ -47,7 +47,7 @@ namespace triggers {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state&, association_type a, const token_and_type& t) {
 			return uint16_t(codes::world_wars_enabled | association_to_bool_code(a, t));
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -55,7 +55,7 @@ namespace triggers {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state&, association_type a, const token_and_type& t) {
 			return uint16_t(codes::crisis_exist | association_to_bool_code(a, t));
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -63,7 +63,7 @@ namespace triggers {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state&, association_type a, const token_and_type& t) {
 			return uint16_t(codes::is_liberation_crisis | association_to_bool_code(a, t));
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -71,7 +71,7 @@ namespace triggers {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state&, association_type a, const token_and_type& t) {
 			return uint16_t(codes::is_claim_crisis | association_to_bool_code(a, t));
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -83,7 +83,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -96,7 +96,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -107,7 +107,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -118,7 +118,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -129,7 +129,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -140,7 +140,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -151,7 +151,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -162,7 +162,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -173,7 +173,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -184,7 +184,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -195,7 +195,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -206,7 +206,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -217,7 +217,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -228,7 +228,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -239,7 +239,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -247,7 +247,7 @@ namespace triggers {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state&, association_type a, const token_and_type& t) {
 			return uint16_t(codes::always | association_to_bool_code(a, t));
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -265,7 +265,7 @@ namespace triggers {
 					return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -283,7 +283,7 @@ namespace triggers {
 					return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -294,7 +294,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -305,7 +305,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -316,7 +316,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -327,7 +327,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -342,7 +342,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -355,7 +355,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -368,7 +368,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -381,7 +381,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -392,7 +392,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -403,7 +403,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -414,7 +414,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -431,7 +431,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -446,7 +446,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -458,7 +458,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<uint16_t>(t) };
 		}
 	};
@@ -466,7 +466,7 @@ namespace triggers {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state&, association_type a, const token_and_type&) {
 			return uint16_t(codes::crisis_temperature | association_to_trigger_code(a));
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -477,7 +477,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<uint16_t>(t) };
 		}
 	};
@@ -488,7 +488,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<uint16_t>(t) };
 		}
 	};
@@ -499,7 +499,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<uint16_t>(t) };
 		}
 	};
@@ -510,7 +510,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<uint16_t>(t) };
 		}
 	};
@@ -521,7 +521,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<uint16_t>(t) };
 		}
 	};
@@ -532,7 +532,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -543,7 +543,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -554,7 +554,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -565,7 +565,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -576,7 +576,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -587,7 +587,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -598,7 +598,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -609,7 +609,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<uint16_t>(t) };
 		}
 	};
@@ -620,7 +620,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -631,7 +631,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -642,7 +642,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -659,7 +659,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -676,7 +676,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -693,7 +693,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -711,7 +711,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -728,7 +728,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -745,7 +745,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -763,7 +763,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -780,7 +780,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -797,7 +797,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -811,7 +811,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -828,7 +828,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -845,7 +845,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -862,7 +862,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -879,7 +879,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -896,7 +896,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -913,7 +913,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -930,7 +930,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -947,7 +947,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -964,7 +964,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -975,7 +975,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -990,7 +990,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -1007,7 +1007,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -1018,7 +1018,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -1029,7 +1029,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -1040,7 +1040,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -1051,7 +1051,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -1062,7 +1062,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<uint16_t>(t) };
 		}
 	};
@@ -1073,7 +1073,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.technology_m.named_invention_index,
@@ -1087,7 +1087,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.economy_m.named_goods_index,
@@ -1107,7 +1107,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type&, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type&, const scenario::scenario_manager&) {
 			return trigger_value();
 		}
 	};
@@ -1120,7 +1120,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -1133,7 +1133,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -1146,7 +1146,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<uint16_t>(t) };
 		}
 	};
@@ -1157,7 +1157,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -1174,7 +1174,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -1191,7 +1191,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -1202,7 +1202,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -1217,7 +1217,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -1230,7 +1230,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.governments_m.named_government_index,
@@ -1244,7 +1244,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.military_m.named_cb_type_index,
@@ -1258,7 +1258,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.economy_m.named_factory_types_index,
@@ -1272,7 +1272,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<uint16_t>(t) };
 		}
 	};
@@ -1283,7 +1283,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.technology_m.named_tech_school_index,
@@ -1297,7 +1297,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.named_culture_index,
@@ -1311,7 +1311,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.modifiers_m.named_provincial_modifiers_index,
@@ -1325,7 +1325,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.named_culture_index,
@@ -1343,7 +1343,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.named_religion_index,
@@ -1361,7 +1361,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.named_culture_index,
@@ -1381,7 +1381,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_value(
 				tag_from_text(
 					s.issues_m.named_option_index,
@@ -1401,7 +1401,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.ideologies_m.named_ideology_index,
@@ -1418,7 +1418,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.economy_m.named_goods_index,
@@ -1470,7 +1470,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.named_culture_index,
@@ -1507,7 +1507,7 @@ namespace triggers {
 					return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.named_culture_index,
@@ -1544,7 +1544,7 @@ namespace triggers {
 					return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.named_religion_index,
@@ -1605,7 +1605,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.named_culture_index,
@@ -1641,7 +1641,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.named_religion_index,
@@ -1659,7 +1659,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.modifiers_m.named_provincial_modifiers_index,
@@ -1673,7 +1673,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.economy_m.named_goods_index,
@@ -1689,7 +1689,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -1702,7 +1702,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.population_m.named_rebel_type_index,
@@ -1716,7 +1716,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -1757,7 +1757,7 @@ namespace triggers {
 					return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.national_tags_index,
@@ -1771,7 +1771,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -1784,7 +1784,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -1795,7 +1795,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -1806,7 +1806,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -1817,7 +1817,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -1828,7 +1828,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<uint16_t>(t) };
 		}
 	};
@@ -1868,7 +1868,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			if (is_integer(t.start, t.end)) {
 				return trigger_payload{ token_to<uint16_t>(t) };
 			} else {
@@ -1886,7 +1886,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<uint16_t>(t) };
 		}
 	};
@@ -1897,7 +1897,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -1927,7 +1927,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<uint16_t>(t) };
 		}
 	};
@@ -1938,7 +1938,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<uint16_t>(t) };
 		}
 	};
@@ -1949,7 +1949,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<uint16_t>(t) };
 		}
 	};
@@ -1960,7 +1960,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<uint16_t>(t) };
 		}
 	};
@@ -1990,7 +1990,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.national_tags_index,
@@ -2008,7 +2008,7 @@ namespace triggers {
 				return  uint16_t(codes::exists_tag | association_to_trigger_code(a));
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.national_tags_index,
@@ -2022,7 +2022,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, scenario::scenario_manager& s) {
 			return trigger_payload{
 				s.variables_m.get_named_national_variable(text_data::get_thread_safe_text_handle(s.text_m, t.start, t.end)) };
 		}
@@ -2031,7 +2031,7 @@ namespace triggers {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state&, association_type a, const token_and_type&) {
 			return  uint16_t(codes::has_global_flag | association_to_trigger_code(a));
 		}
-		trigger_value read_value(const token_and_type& t, scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, scenario::scenario_manager& s) {
 			return trigger_payload{
 				s.variables_m.get_named_global_variable(text_data::get_thread_safe_text_handle(s.text_m, t.start, t.end)) };
 		}
@@ -2098,7 +2098,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.modifiers_m.named_provincial_modifiers_index,
@@ -2131,7 +2131,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.national_tags_index,
@@ -2164,7 +2164,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.national_tags_index,
@@ -2197,7 +2197,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value(token_to<float>(t));
 		}
 	};
@@ -2208,7 +2208,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value(token_to<float>(t));
 		}
 	};
@@ -2228,7 +2228,7 @@ namespace triggers {
 			} else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.economy_m.named_factory_types_index,
@@ -2242,7 +2242,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -2253,7 +2253,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -2264,7 +2264,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.modifiers_m.named_national_modifiers_index,
@@ -2278,7 +2278,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.modifiers_m.named_provincial_modifiers_index,
@@ -2292,7 +2292,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.modifiers_m.named_national_modifiers_index,
@@ -2306,7 +2306,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.province_m.named_states_index,
@@ -2338,7 +2338,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.national_tags_index,
@@ -2365,7 +2365,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.national_tags_index,
@@ -2398,7 +2398,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload(token_to<uint16_t>(t));
 		}
 	};
@@ -2428,7 +2428,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.national_tags_index,
@@ -2442,7 +2442,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -2453,7 +2453,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<uint16_t>(t) };
 		}
 	};
@@ -2464,7 +2464,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -2475,7 +2475,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -2486,7 +2486,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -2499,7 +2499,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.ideologies_m.named_ideology_index,
@@ -2513,7 +2513,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(text_data::get_thread_safe_text_handle(s.text_m, t.start, t.end));
 		}
 	};
@@ -2524,7 +2524,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(text_data::get_thread_safe_text_handle(s.text_m, t.start, t.end));
 		}
 	};
@@ -2532,7 +2532,7 @@ namespace triggers {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state&, association_type a, const token_and_type&) {
 			return  uint16_t(codes::is_ideology_enabled | association_to_trigger_code(a));
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.ideologies_m.named_ideology_index,
@@ -2548,7 +2548,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value(token_to<float>(t));
 		}
 	};
@@ -2561,7 +2561,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value(token_to<float>(t));
 		}
 	};
@@ -2572,7 +2572,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<uint16_t>(t) };
 		}
 	};
@@ -2583,7 +2583,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -2594,7 +2594,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value{ token_to<float>(t) };
 		}
 	};
@@ -2609,7 +2609,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -2675,7 +2675,7 @@ namespace triggers {
 					return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -2691,7 +2691,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -2702,7 +2702,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -2732,7 +2732,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.national_tags_index,
@@ -2752,7 +2752,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.economy_m.named_goods_index,
@@ -2772,7 +2772,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.population_m.named_pop_type_index,
@@ -2792,7 +2792,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value(token_to<int32_t>(t));
 		}
 	};
@@ -2807,7 +2807,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value(token_to<float>(t));
 		}
 	};
@@ -2822,7 +2822,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value(token_to<float>(t));
 		}
 	};
@@ -2835,7 +2835,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_value(
 				tag_from_text(
 					s.issues_m.named_option_index,
@@ -2849,7 +2849,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value(token_to<float>(t));
 		}
 	};
@@ -2862,7 +2862,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value(token_to<float>(t));
 		}
 	};
@@ -2873,7 +2873,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -2884,7 +2884,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload(token_to<uint16_t>(t));
 		}
 	};
@@ -2895,7 +2895,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -2906,7 +2906,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload{ token_to<bool>(t) };
 		}
 	};
@@ -2943,7 +2943,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.national_tags_index,
@@ -2976,7 +2976,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.national_tags_index,
@@ -3009,7 +3009,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.national_tags_index,
@@ -3042,7 +3042,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.national_tags_index,
@@ -3075,7 +3075,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.national_tags_index,
@@ -3108,7 +3108,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.national_tags_index,
@@ -3141,7 +3141,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.national_tags_index,
@@ -3185,7 +3185,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.national_tags_index,
@@ -3218,7 +3218,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.national_tags_index,
@@ -3251,7 +3251,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.national_tags_index,
@@ -3284,7 +3284,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value(token_to<float>(t));
 		}
 	};
@@ -3314,7 +3314,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 			}
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_value(token_to<float>(t));
 		}
 	};
@@ -3325,7 +3325,7 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.national_tags_index,
@@ -3341,6 +3341,133 @@ namespace triggers {
 		}
 		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
 			return scope;
+		}
+	};
+
+	struct trigger_parsing_environment {
+		scenario::scenario_manager& s;
+		std::vector<uint16_t> data;
+		trigger_scope_state current_scope;
+	};
+
+	template<typename scope_trigger>
+	struct scope_reading_object;
+
+#ifdef _DEBUG
+	struct unknown_scope {};
+#endif
+
+
+	struct variable_name_scope_reading_object {
+		trigger_parsing_environment& env;
+		trigger_scope_state scope_state;
+		size_t payload_size_offset;
+		variable_name_scope_reading_object(const token_and_type& name, trigger_parsing_environment& e) : env(e) {
+			const auto left_handle = text_data::get_thread_safe_existing_text_handle(env.s.text_m, name.start, name.end);
+
+			if (const auto region = tag_from_text(env.s.province_m.named_states_index, left_handle); is_valid_index(region)) {
+				scope_state = trigger_scope_state{
+					trigger_slot_contents::state,
+					e.current_scope.this_slot,
+					e.current_scope.from_slot,
+					e.current_scope.contains_rebeltype };
+				e.current_scope = scope_state;
+				env.data.push_back(uint16_t(codes::x_provinces_in_variable_region | codes::is_scope));
+				env.data.push_back(1ui16);
+				payload_size_offset = e.data.size() - 1;
+				env.data.push_back(trigger_payload(region).value);
+			} else if (const auto tag = tag_from_text(e.s.culutre_m.national_tags_index, cultures::tag_to_encoding(name.start, name.end)); is_valid_index(tag)) {
+				scope_state = trigger_scope_state{
+					trigger_slot_contents::nation,
+					e.current_scope.this_slot,
+					e.current_scope.from_slot,
+					e.current_scope.contains_rebeltype };
+				e.current_scope = scope_state;
+				env.data.push_back(uint16_t(codes::tag_scope | codes::is_scope));
+				env.data.push_back(1ui16);
+				payload_size_offset = e.data.size() - 1;
+				env.data.push_back(trigger_payload(tag).value);
+			} else if (is_integer(name.start, name.end)) {
+				scope_state = trigger_scope_state{
+					trigger_slot_contents::province,
+					e.current_scope.this_slot,
+					e.current_scope.from_slot,
+					e.current_scope.contains_rebeltype };
+				e.current_scope = scope_state;
+				env.data.push_back(uint16_t(codes::integer_scope | codes::is_scope));
+				env.data.push_back(1ui16);
+				payload_size_offset = e.data.size() - 1;
+				env.data.push_back(token_to<uint16_t>(name));
+			} else {
+#ifdef _DEBUG
+				throw unknown_scope();
+#endif
+			}
+		}
+
+		void finalize() const {
+			env.data[payload_size_offset] = uint16_t(e.data.size() - payload_size_offset);
+		}
+		template<typename T>
+		void add_scope(const scope_reading_object<T>& other) {
+			other.finalize();
+			env.current_scope = scope_state;
+		}
+		void add_variable_scope(const variable_name_scope_reading_object& other) {
+			other.finalize();
+			env.current_scope = scope_state;
+		}
+
+		void add_simple_trigger_f(const std::tuple<token_and_type, association_type, token_and_type>& args) {
+			add_simple_trigger(
+				env.data,
+				env.s,
+				scope_state,
+				std::get<0>(args),
+				std::get<1>(args),
+				std::get<2>(args));
+		}
+	};
+
+	template<typename scope_trigger>
+	struct scope_reading_object {
+		trigger_parsing_environment& env;
+		trigger_scope_state scope_state;
+		size_t payload_size_offset;
+
+		scope_reading_object(trigger_parsing_environment& e) : env(e), scope_state(scope_trigger::produce_new_scope(e.current_scope)) {
+			e.current_scope = scope_state;
+
+			const auto code = scope_trigger::produce_code(scope_state);
+			if (code) {
+				e.data.push_back(uint16_t(*code | codes::is_scope));
+				e.data.push_back(1ui16);
+				payload_size_offset = e.data.size() - 1;
+			}
+		}
+
+		void finalize() const {
+			env.data[payload_size_offset] = uint16_t(e.data.size() - payload_size_offset);
+		}
+
+		template<typename T>
+		void add_scope(const scope_reading_object<T>& other) {
+			other.finalize();
+			env.current_scope = scope_state;
+		}
+		void add_variable_scope(const variable_name_scope_reading_object& other) {
+			other.finalize();
+			env.current_scope = scope_state;
+		}
+
+		void add_simple_trigger_f(const std::tuple<token_and_type, association_type, token_and_type>& args) {
+			add_simple_trigger(
+				env.data,
+				env.s,
+				scope_state,
+				std::get<0>(args),
+				std::get<1>(args),
+				std::get<2>(args));
 		}
 	};
 
@@ -3544,4 +3671,167 @@ namespace triggers {
 	>;
 
 	using trigger_map = typename sorted<unsorted_trigger_map>::type;
+
+#ifdef _DEBUG
+	struct no_code_value_found_for_scope_and_argument {};
+	struct no_payload_value {};
+	struct mismatched_payload_size {};
+	struct unknown_trigger {};
+#endif
+
+	//const trigger_scope_state& scope, association_type a, const token_and_type&
+	void add_simple_trigger(
+		std::vector<uint16_t>& data,
+		scenario::scenario_manager& s,
+		const trigger_scope_state& scope,
+		const token_and_type& trigger_name,
+		association_type a,
+		const token_and_type& trigger_value) {
+
+		if (!map_call_functions<trigger_map>::template bt_scan_ci<bool>(trigger_name.start, trigger_name.end,
+			[a, &trigger_value, &scope, &data, &s](auto type_arg) {
+			const auto code = decltype(type_arg)::type::produce_code(scope, a, trigger_value);
+			if (code) {
+				const auto data_size = code_data_sizes[*code & codes::code_mask];
+				if (data_size == 0) {
+					data.push_back(uint16_t(*code | codes::no_payload));
+				} else {
+					data.push_back(*code);
+					data.push_back(static_cast<uint16_t>(data_size + 1));
+
+					const auto payload = decltype(type_arg)::type::read_value(trigger_value, s);
+					//using trigger_value = std::variant<std::monostate, int32_t, float, issues::option_identifier, trigger_payload>;
+					if (std::holds_alternative<int32_t>(payload)) {
+						add_int32_t_to_payload(data, std::get<int32_t>(payload));
+#ifdef _DEBUG
+						if (data_size != 2)
+							throw mismatched_payload_size();
+#endif
+					} else if (std::holds_alternative<float>(payload)) {
+						add_float_to_payload(data, std::get<float>(payload));
+#ifdef _DEBUG
+						if (data_size != 2)
+							throw mismatched_payload_size();
+#endif
+					} else if (std::holds_alternative<issues::option_identifier>(payload)) {
+						add_option_identifier_to_payload(data, std::get<issues::option_identifier>(payload));
+#ifdef _DEBUG
+						if (data_size != 2)
+							throw mismatched_payload_size();
+#endif
+					} else if (std::holds_alternative<trigger_payload>(payload)) {
+						data.push_back(std::get<trigger_payload>(payload).value);
+#ifdef _DEBUG
+						if (data_size != 1)
+							throw mismatched_payload_size();
+#endif
+					} else {
+#ifdef _DEBUG
+						throw no_payload_value();
+#endif
+					}
+				}
+			} else {
+#ifdef _DEBUG
+				throw no_code_value_found_for_scope_and_argument();
+#endif
+			}
+			return true;
+		})) {
+			//not found in map
+			const auto left_handle = text_data::get_thread_safe_existing_text_handle(s.text_m, trigger_name.start, trigger_name.end);
+			//...
+			
+			if (const auto tech = tag_from_text(s.technology_m.named_technology_index, left_handle); is_valid_index(tech)) {
+				data.push_back(uint16_t(codes::variable_tech_name | association_to_bool_code(a, token_to<int32_t>(trigger_value) >= 1)));
+				data.push_back(2ui16);
+				data.push_back(trigger_payload(tech).value);
+			} else if (const auto ideology = tag_from_text(s.ideologies_m.named_ideology_index, left_handle); is_valid_index(ideology)) {
+				if(scope.main_slot == trigger_slot_contents::nation)
+					data.push_back(uint16_t(codes::variable_ideology_name_nation | association_to_trigger_code(a)));
+				else if (scope.main_slot == trigger_slot_contents::pop)
+					data.push_back(uint16_t(codes::variable_ideology_name_pop | association_to_trigger_code(a)));
+				else if (scope.main_slot == trigger_slot_contents::province)
+					data.push_back(uint16_t(codes::variable_ideology_name_province | association_to_trigger_code(a)));
+				else if (scope.main_slot == trigger_slot_contents::state)
+					data.push_back(uint16_t(codes::variable_ideology_name_state | association_to_trigger_code(a)));
+				else {
+#ifdef _DEBUG
+					throw no_code_value_found_for_scope_and_argument();
+#endif
+				}
+				data.push_back(4ui16);
+				data.push_back(trigger_payload(ideology).value);
+				add_float_to_payload(data, token_to<float>(trigger_value));
+			} else if (const auto ptype = tag_from_text(s.population_m.named_pop_type_index, left_handle); is_valid_index(ptype)) {
+				if (scope.main_slot == trigger_slot_contents::nation)
+					data.push_back(uint16_t(codes::variable_pop_type_name_nation | association_to_trigger_code(a)));
+				else if (scope.main_slot == trigger_slot_contents::pop)
+					data.push_back(uint16_t(codes::variable_pop_type_name_pop | association_to_trigger_code(a)));
+				else if (scope.main_slot == trigger_slot_contents::province)
+					data.push_back(uint16_t(codes::variable_pop_type_name_province | association_to_trigger_code(a)));
+				else if (scope.main_slot == trigger_slot_contents::state)
+					data.push_back(uint16_t(codes::variable_pop_type_name_state | association_to_trigger_code(a)));
+				else {
+#ifdef _DEBUG
+					throw no_code_value_found_for_scope_and_argument();
+#endif
+				}
+				data.push_back(4ui16);
+				data.push_back(trigger_payload(ptype).value);
+				add_float_to_payload(data, token_to<float>(trigger_value));
+			} else if (const auto good = tag_from_text(s.economy_m.named_goods_index, left_handle); is_valid_index(good)) {
+				if (scope.main_slot == trigger_slot_contents::nation)
+					data.push_back(uint16_t(codes::variable_good_name | association_to_trigger_code(a)));
+				else {
+#ifdef _DEBUG
+					throw no_code_value_found_for_scope_and_argument();
+#endif
+				}
+				data.push_back(4ui16);
+				data.push_back(trigger_payload(good).value);
+				add_float_to_payload(data, token_to<float>(trigger_value));
+			} else if (const auto issue_opt = tag_from_text(s.issues_m.named_option_index, left_handle); !std::holds_alternative<std::monostate>(issue_opt.id)) {
+				if (scope.main_slot == trigger_slot_contents::nation)
+					data.push_back(uint16_t(codes::variable_issue_name_nation | association_to_trigger_code(a)));
+				else if (scope.main_slot == trigger_slot_contents::pop)
+					data.push_back(uint16_t(codes::variable_issue_name_pop | association_to_trigger_code(a)));
+				else if (scope.main_slot == trigger_slot_contents::province)
+					data.push_back(uint16_t(codes::variable_issue_name_province | association_to_trigger_code(a)));
+				else if (scope.main_slot == trigger_slot_contents::state)
+					data.push_back(uint16_t(codes::variable_issue_name_state | association_to_trigger_code(a)));
+				else {
+#ifdef _DEBUG
+					throw no_code_value_found_for_scope_and_argument();
+#endif
+				}
+				data.push_back(5ui16);
+				add_option_identifier_to_payload(data, issue_opt);
+				add_float_to_payload(data, token_to<float>(trigger_value));
+			} else if (const auto issue = tag_from_text(s.issues_m.named_issue_index, left_handle); !std::holds_alternative<std::monostate>(issue.id)) {
+				if (scope.main_slot == trigger_slot_contents::nation)
+					data.push_back(uint16_t(codes::variable_issue_group_name_nation | association_to_trigger_code(a)));
+				else if (scope.main_slot == trigger_slot_contents::pop)
+					data.push_back(uint16_t(codes::variable_issue_group_name_pop | association_to_trigger_code(a)));
+				else if (scope.main_slot == trigger_slot_contents::province)
+					data.push_back(uint16_t(codes::variable_issue_group_name_province | association_to_trigger_code(a)));
+				else if (scope.main_slot == trigger_slot_contents::state)
+					data.push_back(uint16_t(codes::variable_issue_group_name_state | association_to_trigger_code(a)));
+				else {
+#ifdef _DEBUG
+					throw no_code_value_found_for_scope_and_argument();
+#endif
+				}
+				const auto right_handle = text_data::get_thread_safe_existing_text_handle(s.text_m, trigger_value.start, trigger_value.end);
+				const auto rh_issue_opt = tag_from_text(s.issues_m.named_option_index, right_handle);
+
+				data.push_back(3ui16);
+				add_option_identifier_to_payload(data, rh_issue_opt);
+			} else {
+#ifdef _DEBUG
+				throw unknown_trigger();
+#endif
+			}
+		}
+	}
 }

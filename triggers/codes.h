@@ -716,6 +716,19 @@ namespace triggers {
 				return codes::association_eq;
 		}
 	}
+	inline uint16_t association_to_bool_code(association_type a, bool v) {
+		if (v) {
+			if ((a == association_type::eq) | (a == association_type::eq_default))
+				return codes::association_eq;
+			else
+				return codes::association_ne;
+		} else {
+			if ((a == association_type::eq) | (a == association_type::eq_default))
+				return codes::association_ne;
+			else
+				return codes::association_eq;
+		}
+	}
 
 	constexpr bool scope_has_any_all(uint16_t code) {
 		return (code >= codes::x_neighbor_province_scope) & (code <= codes::x_provinces_in_variable_region);

@@ -71,7 +71,7 @@ namespace triggers {
 		trigger_payload high(data[0]);
 		issues::option_identifier result;
 
-		if ((low.generic_issue.group == issues::issue_group::military) | (low.generic_issue.group == issues::issue_group::economic))
+		if (issues::is_unciv_issue(low.generic_issue.group))
 			result.id = low.generic_issue.values.unciv_issue;
 		else
 			result.id = low.generic_issue.values.civ_issue;

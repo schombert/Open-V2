@@ -40,6 +40,11 @@ static char description_f[] =
 "b = yes\n"
 "d = yes\n";
 
+static char description_g[] =
+"set_a = {5 empty = {} }\r\n"
+"set_b = {1 2 3}";
+
+
 #define RANGE(x) (x), (x) + ((sizeof(x)) / sizeof((x)[0])) - 1
 
 class three_bool {
@@ -145,6 +150,45 @@ bool is_positive_int(const char* s, const char* e) {
 	return parse_int(s, e) > 0;
 }
 
+struct empty_sub {
+	int v;
+	empty_sub(int value) : v(value) {}
+};
+
+struct variable_named_set {
+	token_and_type name;
+	std::vector<int> v;
+	int value;
+
+	variable_named_set(const token_and_type& t, int) {
+		name = t;
+	}
+	void add_int(int i) {
+		v.push_back(i);
+	}
+	void add_empty(const empty_sub& e) {
+		v.push_back(e.v);
+	}
+};
+
+MEMBER_FDEF(variable_named_set, add_int, "int")
+MEMBER_FDEF(variable_named_set, add_empty, "empty")
+
+inline variable_named_set& get_set(const token_and_type&, association_type, variable_named_set& t) {
+	return t;
+};
+
+struct variable_named_set_container {
+	std::vector<variable_named_set> set_of_sets;
+
+	variable_named_set_container(int) {}
+	void add_set(variable_named_set& vin) {
+		set_of_sets.emplace_back(std::move(vin));
+	}
+};
+
+MEMBER_FDEF(variable_named_set_container, add_set, "set")
+
 BEGIN_DOMAIN(test_domain)
 	BEGIN_TYPE(three_bool)
 		MEMBER_ASSOCIATION("a", "a", value_from_rh<bool>)
@@ -185,11 +229,19 @@ BEGIN_DOMAIN(test_domain)
 		MEMBER_ASSOCIATION("svalue", "svalue", value_from_rh<std::string>)
 		INHERIT_FROM(base_parse)
 	END_TYPE
+	EMPTY_TYPE(empty_sub)
+	BEGIN_TYPE(variable_named_set)
+	MEMBER_VARIABLE_ASSOCIATION("int", accept_all_classifier, value_from_lh<int>)
+	MEMBER_TYPE_ASSOCIATION("empty", "empty", empty_sub)
+	END_TYPE
+	BEGIN_TYPE(variable_named_set_container)
+	MEMBER_VARIABLE_TYPE_ASSOCIATION("set", accept_all_classifier, variable_named_set, get_set)
+	END_TYPE
 END_DOMAIN
 
 #define TEST_METHOD(x, y) TEST(x, y)
 
-TEST(value_helpers, object_parsing_tests) {
+TEST(object_parsing_tests, value_helpers) {
 	EXPECT_EQ(5, value_from_rh<int>(association_type::none, token_and_type{ RANGE("5"), token_type::unknown }));
 	EXPECT_EQ(std::string("5"), value_from_rh<std::string>(association_type::none, token_and_type{ RANGE("5"), token_type::unknown }));
 	EXPECT_EQ(5, value_from_full_rh<int>(token_and_type{ RANGE("xxxx"), token_type::unknown }, association_type::none, token_and_type{ RANGE("5"), token_type::unknown }));
@@ -201,7 +253,7 @@ TEST(value_helpers, object_parsing_tests) {
 	EXPECT_EQ(lhpair, rhpair);
 }
 
-TEST(member_assignment_test, object_parsing_tests) {
+TEST(object_parsing_tests, member_assignment_test) {
 	three_bool test_obj;
 	test_obj.a = true;
 
@@ -214,7 +266,7 @@ TEST(member_assignment_test, object_parsing_tests) {
 
 
 
-TEST(compile_time_tagged_member_test_b, object_parsing_tests) {
+TEST(object_parsing_tests, compile_time_tagged_member_test_b) {
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, RANGE(description_d));
 
@@ -226,13 +278,13 @@ TEST(compile_time_tagged_member_test_b, object_parsing_tests) {
 	EXPECT_FALSE(results.c);
 }
 
-TEST(compile_time_string_comparison, object_parsing_tests) {
+TEST(object_parsing_tests, compile_time_string_comparison) {
 	const auto comparison = compile_time_str_compare_ci<CT_STRING("rangelimitmin")>(RANGE("rangeLimitMax"));
 	EXPECT_NE(0, comparison);
 }
 
 
-TEST_METHOD(compile_time_vector_b, object_parsing_tests) {
+TEST_METHOD(object_parsing_tests, compile_time_vector_b) {
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, RANGE("5 9 2"));
 
@@ -245,7 +297,7 @@ TEST_METHOD(compile_time_vector_b, object_parsing_tests) {
 }
 
 
-TEST_METHOD(compile_time_tagged_embedded_vector, object_parsing_tests) {
+TEST_METHOD(object_parsing_tests, compile_time_tagged_embedded_vector) {
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, RANGE(description_e));
 
@@ -261,7 +313,7 @@ TEST_METHOD(compile_time_tagged_embedded_vector, object_parsing_tests) {
 	EXPECT_FALSE(result.c);
 }
 
-TEST_METHOD(compile_time_default_associations, object_parsing_tests) {
+TEST_METHOD(object_parsing_tests, compile_time_default_associations) {
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, RANGE("0 <= 5 1 != 2 7 > -1 b = yes"));
 
@@ -277,7 +329,7 @@ TEST_METHOD(compile_time_default_associations, object_parsing_tests) {
 }
 
 
-TEST_METHOD(compile_time_default_list_associations, object_parsing_tests) {
+TEST_METHOD(object_parsing_tests, compile_time_default_list_associations) {
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, RANGE("0 <= 5 1 != {2 4 -8} 7 > -1 b = yes"));
 
@@ -313,7 +365,7 @@ MEMBER_ASSOCIATION("value", "v", value_from_rh<int>)
 END_TYPE
 END_DOMAIN
 
-TEST_METHOD(parse_with_default_constructor_argument, object_parsing_tests) {
+TEST_METHOD(object_parsing_tests, parse_with_default_constructor_argument) {
 
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, RANGE("v = 1 v = 3"));
@@ -323,7 +375,7 @@ TEST_METHOD(parse_with_default_constructor_argument, object_parsing_tests) {
 	EXPECT_EQ(8, result.stored);
 }
 
-TEST_METHOD(compile_tiime_derived_object_parsing, object_parsing_tests) {
+TEST_METHOD(object_parsing_tests, compile_tiime_derived_object_parsing) {
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, RANGE("x = 2.0 svalue = blah"));
 
@@ -336,7 +388,7 @@ TEST_METHOD(compile_tiime_derived_object_parsing, object_parsing_tests) {
 }
 
 
-TEST_METHOD(compile_time_tagged_recursive, object_parsing_tests) {
+TEST_METHOD(object_parsing_tests, compile_time_tagged_recursive) {
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, RANGE(description_f));
 
@@ -365,7 +417,7 @@ TEST_METHOD(compile_time_tagged_recursive, object_parsing_tests) {
 	EXPECT_FALSE(result.c);
 }
 
-TEST_METHOD(tagged_member_test, object_parsing_tests) {
+TEST_METHOD(object_parsing_tests, tagged_member_test) {
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, description_a, description_a + sizeof(description_a) - 1);
 
@@ -392,7 +444,7 @@ TEST_METHOD(tagged_member_test, object_parsing_tests) {
 
 
 
-TEST_METHOD(resetted_default_handler, object_parsing_tests) {
+TEST_METHOD(object_parsing_tests, resetted_default_handler) {
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, description_b, description_b + sizeof(description_b) - 1);
 
@@ -408,7 +460,7 @@ TEST_METHOD(resetted_default_handler, object_parsing_tests) {
 	EXPECT_STREQ("string_c", vector_results[2].c_str());
 }
 
-TEST_METHOD(special_case_handler, object_parsing_tests) {
+TEST_METHOD(object_parsing_tests, special_case_handler) {
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, description_c, description_c + sizeof(description_c) - 1);
 
@@ -426,7 +478,35 @@ TEST_METHOD(special_case_handler, object_parsing_tests) {
 	EXPECT_STREQ("14", vector_results[2].c_str());
 }
 
-TEST_METHOD(associated_string_getter, object_parsing_tests) {
+TEST_METHOD(object_parsing_tests, named_object_construction) {
+	std::vector<token_group> parse_results;
+	parse_pdx_file(parse_results, description_g, description_g + sizeof(description_g) - 1);
+
+	variable_named_set_container result = parse_object<variable_named_set_container, test_domain>(&parse_results[0], &parse_results[0] + parse_results.size(), 7);
+
+	static_assert(std::is_constructible_v<variable_named_set, token_and_type, int>);
+	static_assert(std::is_constructible_v<variable_named_set, token_and_type, int&>);
+	static_assert(std::is_constructible_v<variable_named_set, token_and_type, const int&>);
+	static_assert(std::is_constructible_v<variable_named_set, token_and_type, int&&>);
+	static_assert(std::is_constructible_v<variable_named_set, const token_and_type&, int>);
+	static_assert(std::is_constructible_v<variable_named_set, const token_and_type&, int&>);
+	static_assert(std::is_constructible_v<variable_named_set, const token_and_type&, const int&>);
+	static_assert(std::is_constructible_v<variable_named_set, const token_and_type&, int&&>);
+
+	EXPECT_EQ(2ui64, result.set_of_sets.size());
+	EXPECT_EQ(2ui64, result.set_of_sets[0].v.size());
+	EXPECT_EQ(5, result.set_of_sets[0].v[0]);
+	EXPECT_EQ(7, result.set_of_sets[0].v[1]);
+	EXPECT_TRUE(is_fixed_token_ci(result.set_of_sets[0].name, "set_a"));
+	EXPECT_EQ(3ui64, result.set_of_sets[1].v.size());
+	EXPECT_EQ(1, result.set_of_sets[1].v[0]);
+	EXPECT_EQ(2, result.set_of_sets[1].v[1]);
+	EXPECT_EQ(3, result.set_of_sets[1].v[2]);
+	EXPECT_TRUE(is_fixed_token_ci(result.set_of_sets[1].name, "set_b"));
+}
+
+
+TEST_METHOD(object_parsing_tests, associated_string_getter) {
 	token_group proper_left{ token_and_type{nullptr, nullptr, token_type::unknown }, association_type::eq, 1 };
 	token_group im_proper_left{ token_and_type{ nullptr, nullptr, token_type::unknown }, association_type::none, 1 };
 	token_group im_proper_left_b{ token_and_type{ nullptr, nullptr, token_type::unknown }, association_type::eq, 0 };

@@ -82,6 +82,7 @@ namespace triggers {
 		variables::global_variable_tag global_var;
 		provinces::state_tag state;
 		text_data::text_tag text;
+		technologies::tech_tag tech;
 
 		trigger_payload(const trigger_payload &i) noexcept : value(i.value) {}
 		trigger_payload(uint16_t i) : value(i) {}
@@ -97,6 +98,7 @@ namespace triggers {
 		trigger_payload(cultures::national_tag i) : tag(i) {}
 		trigger_payload(variables::national_variable_tag i) : nat_var(i) {}
 		trigger_payload(variables::global_variable_tag i) : global_var(i) {}
+		trigger_payload(technologies::tech_tag i) : tech(i) {}
 		trigger_payload(economy::factory_type_tag i) : small(i) {}
 		trigger_payload(provinces::state_tag i) : state(i) {}
 		trigger_payload(text_data::text_tag i) : text(i) {}
