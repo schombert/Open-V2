@@ -89,14 +89,19 @@ void move_to_member(std::vector<V, A>& member, T&& result) {
 #define MEMBER_ASSOCIATION(member_name, tag, generating_function) ::template append_to_member<0ui64, typepair<CT_STRING( tag ), function_and_tuple< CT_STRING( member_name ), decltype(generating_function), generating_function >>>
 #define MEMBER_ASSOCIATION_1(member_name, tag, generating_function, parameter) ::template append_to_member<0ui64, typepair<CT_STRING( tag ), function_and_tuple< CT_STRING( member_name ), decltype(generating_function), generating_function, generic_constant< decltype(parameter), parameter> > > >
 #define MEMBER_TYPE_ASSOCIATION(member_name, tag, to_type)   ::template append_to_member<1ui64, typepair<CT_STRING( tag ), function_and_object_tuple<to_type, CT_STRING(member_name)>>>
+#define MEMBER_TYPE_EXTERN(member_name, tag, to_type, function)   ::template append_to_member<1ui64, typepair<CT_STRING( tag ), function_and_object_tuple_w_parse<to_type, CT_STRING(member_name), decltype(function), function>>>
 #define MEMBER_TYPE_ASSOCIATION_EX0(member_name, tag, to_type, function)   ::template append_to_member<1ui64, typepair<CT_STRING( tag ), function_and_object_tuple_with_extra<to_type, CT_STRING(member_name), decltype(function), function>>>
 #define MEMBER_TYPE_ASSOCIATION_EX1(member_name, tag, to_type, function, parameter)   ::template append_to_member<1ui64, typepair<CT_STRING( tag ), function_and_object_tuple_with_extra<to_type, CT_STRING(member_name), decltype(function), function, generic_constant< decltype(parameter), parameter>>>>
 #define MEMBER_VARIABLE_ASSOCIATION(member_name, classifying_function, generating_function)   ::template append_to_member<2ui64, typepair<generic_function<decltype(classifying_function), classifying_function>, function_and_tuple_ext<CT_STRING(member_name), decltype(generating_function), generating_function>>>
 #define MEMBER_VARIABLE_ASSOCIATION_1(member_name, classifying_function, generating_function, parameter)   ::template append_to_member<2ui64, typepair<generic_function<decltype(classifying_function), classifying_function>, function_and_tuple_ext<CT_STRING(member_name), decltype(generating_function), generating_function, generic_constant< decltype(parameter), parameter>>>>
 #define MEMBER_VARIABLE_TYPE_ASSOCIATION(member_name, classifying_function, to_type, generating_function) ::template append_to_member<3ui64, typepair<generic_function<decltype(classifying_function), classifying_function>, function_and_object_tuple_ext<to_type, CT_STRING(member_name), decltype(generating_function), generating_function> >>
+#define MEMBER_VARIABLE_TYPE_EXTERN(member_name, classifying_function, to_type, function)   ::template append_to_member<3ui64, typepair<generic_function<decltype(classifying_function), classifying_function>, function_and_object_tuple_w_parse<to_type, CT_STRING(member_name), decltype(function), function>>>
 #define INHERIT_FROM(type)  ::template append_to_member<4ui64, type >
 #define END_TYPE                   > >
 #define END_DOMAIN            ;
+
+/*template<typename dest_type, typename member_ident, typename function_type, function_type parse_func>
+struct function_and_object_tuple_w_parse*/
 
 
 template<typename A, typename B>
@@ -267,7 +272,7 @@ void parse_constructed_object(const token_group* start, const token_group* end, 
 				using type_passed = typename decltype(t)::type;
 				if constexpr(has_parse_func<type_passed>) {
 					typename type_passed::function_object()(
-						result, n.token, n.association,
+						result,
 						typename type_passed::parse_function_object()(child_start, child_end, params ...)
 						);
 				} else {
@@ -281,7 +286,7 @@ void parse_constructed_object(const token_group* start, const token_group* end, 
 				using type_passed = typename decltype(t)::type;
 				if constexpr(has_parse_func<type_passed>) {
 					typename type_passed::function_object()(
-						result, n.token, n.association,
+						result,
 						typename type_passed::parse_function_object()(child_start, child_end, n.token, params ...)
 						);
 				} else if constexpr(std::is_constructible_v<typename type_passed::type, token_and_type, obj_params...>) {
@@ -364,7 +369,7 @@ struct function_and_object_tuple_w_parse {
 
 	struct function_object {
 		template<typename in_class, typename from>
-		void operator()(in_class& cls, const token_and_type&, association_type, from&& c) {
+		void operator()(in_class& cls, from&& c) {
 			_set_member<member_ident, in_class>::set(cls, c);
 		}
 	};
@@ -372,25 +377,6 @@ struct function_and_object_tuple_w_parse {
 		template<typename ... PARAMS>
 		auto operator()(const token_group* start, const token_group* end, PARAMS&& ... params) {
 			return parse_func(start, end, std::forward<PARAMS>(params)...);
-		}
-	};
-};
-
-template<typename dest_type, typename member_ident, typename function_type, function_type finstance, typename function_type_b, function_type_b parse_func>
-struct function_and_object_tuple_ext_w_parse {
-	using type = dest_type;
-	using tag = member_ident;
-
-	struct function_object {
-		template<typename in_class, typename from>
-		void operator()(in_class& cls, const token_and_type& a, association_type b, from&& c) {
-			_set_member<member_ident, in_class>::set(cls, finstance(a, b, c, ARGS::value ...));
-		}
-	};
-	struct parse_function_object {
-		template<typename result_obj, typename ... PARAMS>
-		auto operator()(const token_group* start, const token_group* end, const token_and_type& name, PARAMS&& ... params) {
-			return parse_func(start, end, name, std::forward<PARAMS>(params)...);
 		}
 	};
 };

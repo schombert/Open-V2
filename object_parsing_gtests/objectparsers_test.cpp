@@ -189,6 +189,22 @@ struct variable_named_set_container {
 
 MEMBER_FDEF(variable_named_set_container, add_set, "set")
 
+struct extern_reader {
+	three_bool m_a;
+	std::vector<variable_named_set> m_b;
+
+	extern_reader(int) {}
+	void add_three_bool(const three_bool& i) {
+		m_a = i;
+	}
+	void add_variable_named_set(variable_named_set& i) {
+		m_b.emplace_back(std::move(i));
+	}
+};
+
+MEMBER_FDEF(extern_reader, add_three_bool, "three_bool");
+MEMBER_FDEF(extern_reader, add_variable_named_set, "variable_named_set");
+
 BEGIN_DOMAIN(test_domain)
 	BEGIN_TYPE(three_bool)
 		MEMBER_ASSOCIATION("a", "a", value_from_rh<bool>)
@@ -237,7 +253,29 @@ BEGIN_DOMAIN(test_domain)
 	BEGIN_TYPE(variable_named_set_container)
 	MEMBER_VARIABLE_TYPE_ASSOCIATION("set", accept_all_classifier, variable_named_set, get_set)
 	END_TYPE
+END_DOMAIN;
+
+inline three_bool three_bool_read(const token_group* s, const token_group* e, int) {
+	return parse_object<three_bool, test_domain>(s, e);
+}
+inline variable_named_set variable_named_set_read(const token_group* s, const token_group* e, const token_and_type& n, int v) {
+	return parse_object<variable_named_set, test_domain>(s, e, n, v);
+}
+
+BEGIN_DOMAIN(test_domain_b)
+BEGIN_TYPE(extern_reader)
+MEMBER_TYPE_EXTERN("three_bool", "three_bool", three_bool, three_bool_read)
+MEMBER_VARIABLE_TYPE_EXTERN("variable_named_set", accept_all, three_bool, variable_named_set_read)
+END_TYPE
 END_DOMAIN
+
+static char extern_description[] =
+"set_a = {5 empty = {} }\r\n"
+"three_bool = {\r\n"
+"a = yes\r\n"
+"c = yes\r\n"
+"}\r\n"
+"set_b = {1 2 3}";
 
 #define TEST_METHOD(x, y) TEST(x, y)
 
@@ -503,6 +541,28 @@ TEST_METHOD(object_parsing_tests, named_object_construction) {
 	EXPECT_EQ(2, result.set_of_sets[1].v[1]);
 	EXPECT_EQ(3, result.set_of_sets[1].v[2]);
 	EXPECT_TRUE(is_fixed_token_ci(result.set_of_sets[1].name, "set_b"));
+}
+
+TEST_METHOD(object_parsing_tests, extern_object_construction) {
+	std::vector<token_group> parse_results;
+	parse_pdx_file(parse_results, extern_description, extern_description + sizeof(extern_description) - 1);
+
+	const auto result = parse_object<extern_reader, test_domain_b>(&parse_results[0], &parse_results[0] + parse_results.size(), 7);
+
+	EXPECT_EQ(true, result.m_a.a);
+	EXPECT_EQ(false, result.m_a.b);
+	EXPECT_EQ(true, result.m_a.c);
+	EXPECT_EQ(false, result.m_a.d);
+	EXPECT_EQ(2ui64, result.m_b.size());
+	EXPECT_EQ(2ui64, result.m_b[0].v.size());
+	EXPECT_EQ(5, result.m_b[0].v[0]);
+	EXPECT_EQ(7, result.m_b[0].v[1]);
+	EXPECT_TRUE(is_fixed_token_ci(result.m_b[0].name, "set_a"));
+	EXPECT_EQ(3ui64, result.m_b[1].v.size());
+	EXPECT_EQ(1, result.m_b[1].v[0]);
+	EXPECT_EQ(2, result.m_b[1].v[1]);
+	EXPECT_EQ(3, result.m_b[1].v[2]);
+	EXPECT_TRUE(is_fixed_token_ci(result.m_b[1].name, "set_b"));
 }
 
 

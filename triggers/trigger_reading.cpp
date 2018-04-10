@@ -3337,10 +3337,444 @@ namespace triggers {
 	//for scope triggers
 	struct or_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state&) {
-			return std::optional<uint16_t>();
+			return uint16_t(codes::is_disjunctive_scope | codes::generic_scope);
 		}
 		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
 			return scope;
+		}
+	};
+	struct and_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state&) {
+			return codes::generic_scope;
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return scope;
+		}
+	};
+	struct not_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state&) {
+			return codes::placeholder_not_scope;
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return scope;
+		}
+	};
+	struct any_neighbor_province_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state&) {
+			if (scope.main_slot == trigger_slot_contents::province)
+				return uint16_t(codes::x_neighbor_province_scope | codes::is_existance_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::province,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct any_neighbor_country_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(codes::x_neighbor_country_scope_nation | codes::is_existance_scope);
+			else if (scope.main_slot == trigger_slot_contents::pop)
+				return uint16_t(codes::x_neighbor_country_scope_pop | codes::is_existance_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct war_countries_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(codes::x_war_countries_scope_nation);
+			else if (scope.main_slot == trigger_slot_contents::pop)
+				return uint16_t(codes::x_war_countries_scope_pop);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct any_greater_power_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state&) {
+			return uint16_t(codes::x_greater_power_scope | codes::is_existance_scope);
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct any_owned_province_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(codes::x_owned_province_scope_nation | codes::is_existance_scope);
+			else if (scope.main_slot == trigger_slot_contents::state)
+				return uint16_t(codes::x_owned_province_scope_state | codes::is_existance_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::province,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+
+	struct any_core_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(codes::x_core_scope_nation | codes::is_existance_scope);
+			else if (scope.main_slot == trigger_slot_contents::province)
+				return uint16_t(codes::x_core_scope_province | codes::is_existance_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation) {
+				return trigger_scope_state{
+					trigger_slot_contents::province,
+					scope.this_slot,
+					scope.from_slot,
+					scope.contains_rebeltype };
+			} else {
+				return trigger_scope_state{
+					trigger_slot_contents::nation,
+					scope.this_slot,
+					scope.from_slot,
+					scope.contains_rebeltype };
+			}
+		}
+	};
+
+	struct all_core_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(codes::x_core_scope_nation);
+			else if (scope.main_slot == trigger_slot_contents::province)
+				return uint16_t(codes::x_core_scope_province);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation) {
+				return trigger_scope_state{
+					trigger_slot_contents::province,
+					scope.this_slot,
+					scope.from_slot,
+					scope.contains_rebeltype };
+			} else {
+				return trigger_scope_state{
+					trigger_slot_contents::nation,
+					scope.this_slot,
+					scope.from_slot,
+					scope.contains_rebeltype };
+			}
+		}
+	};
+	struct any_state_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(codes::x_state_scope | codes::is_existance_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::state,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct any_substate_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(codes::x_substate_scope | codes::is_existance_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct any_sphere_member_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(codes::x_sphere_member_scope | codes::is_existance_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct any_pop_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(codes::x_pop_scope_nation | codes::is_existance_scope);
+			else if (scope.main_slot == trigger_slot_contents::state)
+				return uint16_t(codes::x_pop_scope_state | codes::is_existance_scope);
+			else if (scope.main_slot == trigger_slot_contents::province)
+				return uint16_t(codes::x_pop_scope_province | codes::is_existance_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::pop,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct owner_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::state)
+				return uint16_t(codes::owner_scope_state);
+			else if (scope.main_slot == trigger_slot_contents::province)
+				return uint16_t(codes::owner_scope_province);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct controller_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::province)
+				return uint16_t(codes::controller_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct location_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::pop)
+				return uint16_t(codes::location_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::province,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct country_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::state)
+				return uint16_t(codes::country_scope_state);
+			else if (scope.main_slot == trigger_slot_contents::pop)
+				return uint16_t(codes::country_scope_pop);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct capital_scope_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(codes::capital_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::province,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct this_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.this_slot == trigger_slot_contents::nation)
+				return uint16_t(codes::this_scope_nation);
+			else if (scope.this_slot == trigger_slot_contents::province)
+				return uint16_t(codes::this_scope_province);
+			else if (scope.this_slot == trigger_slot_contents::state)
+				return uint16_t(codes::this_scope_state);
+			else if (scope.this_slot == trigger_slot_contents::pop)
+				return uint16_t(codes::this_scope_pop);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				scope.this_slot,
+				trigger_slot_contents::empty,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct from_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.from_slot == trigger_slot_contents::nation)
+				return uint16_t(codes::from_scope_nation);
+			else if (scope.from_slot == trigger_slot_contents::province)
+				return uint16_t(codes::from_scope_province);
+			else if (scope.from_slot == trigger_slot_contents::state)
+				return uint16_t(codes::from_scope_state);
+			else if (scope.from_slot == trigger_slot_contents::pop)
+				return uint16_t(codes::from_scope_pop);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				scope.from_slot,
+				scope.this_slot,
+				trigger_slot_contents::empty,
+				scope.contains_rebeltype };
+		}
+	};
+	struct sea_zone_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::province)
+				return uint16_t(codes::sea_zone_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return scope;
+		}
+	};
+	struct cultural_union_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(codes::cultural_union_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return scope;
+		}
+	};
+	struct overlord_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(codes::overlord_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return scope;
+		}
+	};
+	struct sphere_owner_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(codes::sphere_owner_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return scope;
+		}
+	};
+	struct independence_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.contains_rebeltype)
+				return uint16_t(codes::independence_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct flashpoint_tag_scope_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::state)
+				return uint16_t(codes::flashpoint_tag_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct crisis_state_scope_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			return uint16_t(codes::crisis_state_scope);
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::state,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct state_scope_trigger {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::pop)
+				return uint16_t(codes::state_scope_pop);
+			else if (scope.main_slot == trigger_slot_contents::province)
+				return uint16_t(codes::state_scope_province);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::state,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
 		}
 	};
 
@@ -3358,11 +3792,33 @@ namespace triggers {
 #endif
 
 
-	struct variable_name_scope_reading_object {
+	struct common_scope_base {
 		trigger_parsing_environment& env;
 		trigger_scope_state scope_state;
+
+		common_scope_base(trigger_parsing_environment& e) : env(e) {}
+
+		void add_simple_trigger_f(const std::tuple<token_and_type, association_type, token_and_type>& args) {
+			add_simple_trigger(
+				env.data,
+				env.s,
+				scope_state,
+				std::get<0>(args),
+				std::get<1>(args),
+				std::get<2>(args));
+		}
+
+		template<typename T>
+		void add_scope(const T& other) {
+			other.finalize();
+			env.current_scope = scope_state;
+		}
+	};
+
+	struct variable_name_scope_reading_object : public common_scope_base {
+		
 		size_t payload_size_offset;
-		variable_name_scope_reading_object(const token_and_type& name, trigger_parsing_environment& e) : env(e) {
+		variable_name_scope_reading_object(const token_and_type& name, trigger_parsing_environment& e) : common_scope_base(e) {
 			const auto left_handle = text_data::get_thread_safe_existing_text_handle(env.s.text_m, name.start, name.end);
 
 			if (const auto region = tag_from_text(env.s.province_m.named_states_index, left_handle); is_valid_index(region)) {
@@ -3408,34 +3864,15 @@ namespace triggers {
 		void finalize() const {
 			env.data[payload_size_offset] = uint16_t(e.data.size() - payload_size_offset);
 		}
-		template<typename T>
-		void add_scope(const scope_reading_object<T>& other) {
-			other.finalize();
-			env.current_scope = scope_state;
-		}
-		void add_variable_scope(const variable_name_scope_reading_object& other) {
-			other.finalize();
-			env.current_scope = scope_state;
-		}
 
-		void add_simple_trigger_f(const std::tuple<token_and_type, association_type, token_and_type>& args) {
-			add_simple_trigger(
-				env.data,
-				env.s,
-				scope_state,
-				std::get<0>(args),
-				std::get<1>(args),
-				std::get<2>(args));
-		}
+		
 	};
 
 	template<typename scope_trigger>
-	struct scope_reading_object {
-		trigger_parsing_environment& env;
-		trigger_scope_state scope_state;
+	struct scope_reading_object : public common_scope_base {
 		size_t payload_size_offset;
 
-		scope_reading_object(trigger_parsing_environment& e) : env(e), scope_state(scope_trigger::produce_new_scope(e.current_scope)) {
+		scope_reading_object(trigger_parsing_environment& e) : common_scope_base(e), scope_state(scope_trigger::produce_new_scope(e.current_scope)) {
 			e.current_scope = scope_state;
 
 			const auto code = scope_trigger::produce_code(scope_state);
@@ -3450,25 +3887,6 @@ namespace triggers {
 			env.data[payload_size_offset] = uint16_t(e.data.size() - payload_size_offset);
 		}
 
-		template<typename T>
-		void add_scope(const scope_reading_object<T>& other) {
-			other.finalize();
-			env.current_scope = scope_state;
-		}
-		void add_variable_scope(const variable_name_scope_reading_object& other) {
-			other.finalize();
-			env.current_scope = scope_state;
-		}
-
-		void add_simple_trigger_f(const std::tuple<token_and_type, association_type, token_and_type>& args) {
-			add_simple_trigger(
-				env.data,
-				env.s,
-				scope_state,
-				std::get<0>(args),
-				std::get<1>(args),
-				std::get<2>(args));
-		}
 	};
 
 #define TPAIR(x) typepair< CT_STRING( #x ), x ## _trigger>
