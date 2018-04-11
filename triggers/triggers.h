@@ -71,6 +71,7 @@ namespace triggers {
 		} generic_issue;
 
 		uint16_t value;
+		int16_t signed_value;
 		bool boolean_value;
 		technologies::invention_tag invention;
 		
@@ -86,6 +87,7 @@ namespace triggers {
 
 		trigger_payload(const trigger_payload &i) noexcept : value(i.value) {}
 		trigger_payload(uint16_t i) : value(i) {}
+		trigger_payload(int16_t i) : signed_value(i) {}
 		trigger_payload(bool i) : boolean_value(i) {}
 		trigger_payload(technologies::invention_tag i) : invention(i) {}
 		trigger_payload(governments::government_tag i) : small(i) {}

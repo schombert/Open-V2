@@ -623,6 +623,7 @@ namespace triggers {
 		//misplaced
 		constexpr uint16_t strata_middle = 0x0253;
 		constexpr uint16_t strata_poor = 0x0254;
+		constexpr uint16_t party_loyalty_from_province_scope_province = 0x0255;
 
 		//technology name -- payload 1
 		//ideology name -- 4 varianets payload 2

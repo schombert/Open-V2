@@ -8,6 +8,12 @@
 #include "simple_mpl\\simple_mpl.hpp"
 #include <variant>
 
+#ifdef _DEBUG
+#define TRIGGER_ERROR(type, environment) throw type ();
+#else
+#define TRIGGER_ERROR(type, environment) std::abort();
+#endif
+
 namespace triggers {
 	using trigger_value = std::variant<std::monostate, int32_t, float, issues::option_identifier, trigger_payload>;
 
@@ -3360,7 +3366,7 @@ namespace triggers {
 		}
 	};
 	struct any_neighbor_province_trigger {
-		static std::optional<uint16_t> produce_code(const trigger_scope_state&) {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
 			if (scope.main_slot == trigger_slot_contents::province)
 				return uint16_t(codes::x_neighbor_province_scope | codes::is_existance_scope);
 			else
@@ -3784,13 +3790,449 @@ namespace triggers {
 		trigger_scope_state current_scope;
 	};
 
-	template<typename scope_trigger>
-	struct scope_reading_object;
+
+#ifdef _DEBUG
+	struct no_code_value_found_for_scope_and_argument {};
+	struct no_payload_value {};
+	struct mismatched_payload_size {};
+	struct unknown_trigger {};
+#endif
+
+	struct diplomatic_influence_trigger {
+		trigger_parsing_environment& env;
+
+		uint16_t value = 0;
+		cultures::national_tag who;
+		bool from_v = false;
+		bool this_v = false;
+
+		diplomatic_influence_trigger(trigger_parsing_environment& e) : env(e) {}
+
+		void set_who(const token_and_type& t) {
+			if (is_fixed_token_ci(t, "this"))
+				this_v = true;
+			else if (is_fixed_token_ci(t, "from"))
+				from_v = true;
+			else
+				who = tag_from_text(env.s.culutre_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end));
+		}
+
+		void finalize() const {
+			if (env.current_scope.main_slot != trigger_slot_contents::nation)
+				throw no_code_value_found_for_scope_and_argument();
+			if (from_v) {
+				if(env.current_scope.from_slot == trigger_slot_contents::nation)
+					env.data.push_back(codes::diplomatic_influence_from_nation);
+				else if (env.current_scope.from_slot == trigger_slot_contents::province)
+					env.data.push_back(codes::diplomatic_influence_from_province);
+				else
+					throw no_code_value_found_for_scope_and_argument();
+
+				env.data.push_back(2ui16);
+				env.data.push_back(trigger_payload(value).value);
+			} else if (this_v) {
+				if (env.current_scope.this_slot == trigger_slot_contents::nation)
+					env.data.push_back(codes::diplomatic_influence_this_nation);
+				else if (env.current_scope.this_slot == trigger_slot_contents::province)
+					env.data.push_back(codes::diplomatic_influence_this_province);
+				else
+					throw no_code_value_found_for_scope_and_argument();
+
+				env.data.push_back(2ui16);
+				env.data.push_back(trigger_payload(value).value);
+			} else {
+				env.data.push_back(codes::diplomatic_influence_tag);
+				env.data.push_back(3ui16);
+				env.data.push_back(trigger_payload(value).value);
+				env.data.push_back(trigger_payload(who).value);
+			}
+		}
+	};
+
+	struct pop_unemployment_trigger {
+		trigger_parsing_environment& env;
+
+		float value = 0;
+		population::pop_type_tag type;
+		bool this_v = false;
+
+		pop_unemployment_trigger(trigger_parsing_environment& e) : env(e) {}
+
+		void set_type_or_pop(const token_and_type& t) {
+			if (is_fixed_token_ci(t, "this"))
+				this_v = true;
+			else
+				type = tag_from_text(
+					env.s.population_m.named_pop_type_index,
+					text_data::get_thread_safe_existing_text_handle(env.s.text_m, t.start, t.end));
+		}
+
+		void finalize() const {
+			if (env.current_scope.main_slot != trigger_slot_contents::nation)
+				throw no_code_value_found_for_scope_and_argument();
+			if (this_v) {
+				if(env.current_scope.this_slot != trigger_slot_contents::pop)
+					throw no_code_value_found_for_scope_and_argument();
+
+				if (env.current_scope.main_slot == trigger_slot_contents::nation)
+					env.data.push_back(codes::pop_unemployment_nation_this_pop);
+				else if (env.current_scope.main_slot == trigger_slot_contents::state)
+					env.data.push_back(codes::pop_unemployment_state_this_pop);
+				else if (env.current_scope.main_slot == trigger_slot_contents::province)
+					env.data.push_back(codes::pop_unemployment_province_this_pop);
+				else
+					throw no_code_value_found_for_scope_and_argument();
+
+				env.data.push_back(3ui16);
+				add_float_to_payload(env.data, value);
+			} else {
+				if (env.current_scope.main_slot == trigger_slot_contents::nation)
+					env.data.push_back(codes::pop_unemployment_nation);
+				else if (env.current_scope.main_slot == trigger_slot_contents::state)
+					env.data.push_back(codes::pop_unemployment_state);
+				else if (env.current_scope.main_slot == trigger_slot_contents::province)
+					env.data.push_back(codes::pop_unemployment_province);
+				else if(env.current_scope.main_slot == trigger_slot_contents::pop)
+					env.data.push_back(codes::pop_unemployment_pop);
+				else
+					throw no_code_value_found_for_scope_and_argument();
+
+				env.data.push_back(4ui16);
+				add_float_to_payload(env.data, value);
+				env.data.push_back(trigger_payload(type).value);
+			}
+		}
+	};
+
+	struct relation_trigger {
+		trigger_parsing_environment& env;
+
+		int16_t value = 0;
+		cultures::national_tag who;
+		bool from_v = false;
+		bool this_v = false;
+
+		relation_trigger(trigger_parsing_environment& e) : env(e) {}
+
+		void set_who(const token_and_type& t) {
+			if (is_fixed_token_ci(t, "this"))
+				this_v = true;
+			else if (is_fixed_token_ci(t, "from"))
+				from_v = true;
+			else
+				who = tag_from_text(env.s.culutre_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end));
+		}
+
+		void finalize() const {
+			if (env.current_scope.main_slot != trigger_slot_contents::nation)
+				throw no_code_value_found_for_scope_and_argument();
+			if (from_v) {
+				if (env.current_scope.from_slot == trigger_slot_contents::nation)
+					env.data.push_back(codes::relation_from_nation);
+				else if (env.current_scope.from_slot == trigger_slot_contents::province)
+					env.data.push_back(codes::relation_from_province);
+				else
+					throw no_code_value_found_for_scope_and_argument();
+
+				env.data.push_back(2ui16);
+				env.data.push_back(trigger_payload(value).value);
+			} else if (this_v) {
+				if (env.current_scope.this_slot == trigger_slot_contents::nation)
+					env.data.push_back(codes::relation_this_nation);
+				else if (env.current_scope.this_slot == trigger_slot_contents::province)
+					env.data.push_back(codes::relation_this_province);
+				else
+					throw no_code_value_found_for_scope_and_argument();
+
+				env.data.push_back(2ui16);
+				env.data.push_back(trigger_payload(value).value);
+			} else {
+				env.data.push_back(codes::relation_tag);
+				env.data.push_back(3ui16);
+				env.data.push_back(trigger_payload(value).value);
+				env.data.push_back(trigger_payload(who).value);
+			}
+		}
+	};
+	struct check_variable_trigger {
+		trigger_parsing_environment& env;
+
+		float value = 0.0f;
+		variables::national_variable_tag which;
+
+		check_variable_trigger(trigger_parsing_environment& e) : env(e) {}
+
+		void set_which(const token_and_type& t) {
+			which = env.s.variables_m.get_named_national_variable(text_data::get_thread_safe_text_handle(env.s.text_m, t.start, t.end));
+		}
+
+		void finalize() const {
+			if (env.current_scope.main_slot != trigger_slot_contents::nation)
+				throw no_code_value_found_for_scope_and_argument();
+			env.data.push_back(codes::check_variable);
+			env.data.push_back(4ui16);
+			add_float_to_payload(env.data, value);
+			env.data.push_back(trigger_payload(which).value);
+		}
+	};
+	struct upper_house_trigger {
+		trigger_parsing_environment& env;
+
+		float value = 0.0f;
+		ideologies::ideology_tag ideology;
+
+		upper_house_trigger(trigger_parsing_environment& e) : env(e) {}
+
+		void set_ideology(const token_and_type& t) {
+			ideology = tag_from_text(
+				env.s.ideologies_m.named_ideology_index,
+				text_data::get_thread_safe_existing_text_handle(env.s.text_m, t.start, t.end));
+		}
+
+		void finalize() const {
+			if (env.current_scope.main_slot != trigger_slot_contents::nation)
+				throw no_code_value_found_for_scope_and_argument();
+			env.data.push_back(codes::upper_house);
+			env.data.push_back(4ui16);
+			add_float_to_payload(env.data, value);
+			env.data.push_back(trigger_payload(ideology).value);
+		}
+	};
+	struct unemployment_by_type_trigger {
+		trigger_parsing_environment& env;
+
+		float value = 0.0f;
+		population::pop_type_tag type;
+
+		unemployment_by_type_trigger(trigger_parsing_environment& e) : env(e) {}
+
+		void set_type(const token_and_type& t) {
+			type = tag_from_text(
+				env.s.population_m.named_pop_type_index,
+				text_data::get_thread_safe_existing_text_handle(env.s.text_m, t.start, t.end));
+		}
+
+		void finalize() const {
+			if (env.current_scope.main_slot == trigger_slot_contents::nation)
+				env.data.push_back(codes::unemployment_by_type_nation);
+			else if (env.current_scope.main_slot == trigger_slot_contents::state)
+				env.data.push_back(codes::unemployment_by_type_state);
+			else if(env.current_scope.main_slot == trigger_slot_contents::province)
+				env.data.push_back(codes::unemployment_by_type_province);
+			else if(env.current_scope.main_slot == trigger_slot_contents::pop)
+				env.data.push_back(codes::unemployment_by_type_pop);
+			else
+				TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
+
+			env.data.push_back(4ui16);
+			add_float_to_payload(env.data, value);
+			env.data.push_back(trigger_payload(type).value);
+		}
+	};
+	struct party_loyalty_trigger {
+		trigger_parsing_environment& env;
+
+		float value = 0.0f;
+		ideologies::ideology_tag ideology;
+		std::optional<uint16_t> province_id;
+
+		party_loyalty_trigger(trigger_parsing_environment& e) : env(e) {}
+
+		void set_ideology(const token_and_type& t) {
+			ideology = tag_from_text(
+				env.s.ideologies_m.named_ideology_index,
+				text_data::get_thread_safe_existing_text_handle(env.s.text_m, t.start, t.end));
+		}
+
+		void finalize() const {
+			if (province_id) {
+				if(env.current_scope.main_slot == trigger_slot_contents::nation)
+					env.data.push_back(codes::party_loyalty_nation_province_id);
+				else if (env.current_scope.from_slot == trigger_slot_contents::nation)
+					env.data.push_back(codes::party_loyalty_from_nation_province_id);
+				else if (env.current_scope.main_slot == trigger_slot_contents::province)
+					env.data.push_back(codes::party_loyalty_province_province_id);
+				else if (env.current_scope.from_slot == trigger_slot_contents::province)
+					env.data.push_back(codes::party_loyalty_from_province_province_id);
+				else
+					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
+
+				env.data.push_back(5ui16);
+				env.data.push_back(*province_id);
+				add_float_to_payload(env.data, value);
+				env.data.push_back(trigger_payload(ideology).value);
+			} else {
+				if (env.current_scope.main_slot == trigger_slot_contents::province) {
+					if (env.current_scope.from_slot == trigger_slot_contents::nation)
+						env.data.push_back(codes::party_loyalty_from_nation_scope_province);
+					else if (env.current_scope.from_slot == trigger_slot_contents::province)
+						env.data.push_back(codes::party_loyalty_from_province_scope_province);
+					else
+						TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
+				} else {
+					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
+				}
+				env.data.push_back(4ui16);
+				add_float_to_payload(env.data, value);
+				env.data.push_back(trigger_payload(ideology).value);
+			}
+		}
+	};
+	enum class building_type_for_trigger {
+		none, railroad, naval_base, fort
+	};
+#ifdef _DEBUG
+	struct bad_building_type {};
+	struct no_building_specified {};
+#endif
+	struct can_build_in_province_trigger {
+		trigger_parsing_environment& env;
+
+		bool limit_to_world_greatest_level = false;
+		building_type_for_trigger type = building_type_for_trigger::none;
+
+		can_build_in_province_trigger(trigger_parsing_environment& e) : env(e) {}
+
+		void set_building(const token_and_type& t) {
+			if (is_fixed_token_ci(t, "railroad"))
+				type = building_type_for_trigger::railroad;
+			else if (is_fixed_token_ci(t, "fort"))
+				type = building_type_for_trigger::fort;
+			else if (is_fixed_token_ci(t, "naval_base"))
+				type = building_type_for_trigger::naval_base;
+			else
+				TRIGGER_ERROR(bad_building_type, env);
+		}
+
+		void finalize() const {
+			if(type == building_type_for_trigger::none)
+				TRIGGER_ERROR(no_building_specified, env);
+			if (env.current_scope.main_slot != trigger_slot_contents::province)
+				TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
+			if (limit_to_world_greatest_level) {
+				if (env.current_scope.this_slot == trigger_slot_contents::nation) {
+					if (type == building_type_for_trigger::railroad)
+						env.data.push_back(uint16_t(codes::can_build_in_province_railroad_yes_limit_this_nation | codes::no_payload));
+					else if (type == building_type_for_trigger::naval_base)
+						env.data.push_back(uint16_t(codes::can_build_in_province_naval_base_yes_limit_this_nation | codes::no_payload));
+					else if(type == building_type_for_trigger::fort)
+						env.data.push_back(uint16_t(codes::can_build_in_province_fort_yes_limit_this_nation | codes::no_payload));
+				} else if (env.current_scope.from_slot == trigger_slot_contents::nation) {
+					if (type == building_type_for_trigger::railroad)
+						env.data.push_back(uint16_t(codes::can_build_in_province_railroad_yes_limit_from_nation | codes::no_payload));
+					else if (type == building_type_for_trigger::naval_base)
+						env.data.push_back(uint16_t(codes::can_build_in_province_naval_base_yes_limit_from_nation | codes::no_payload));
+					else if (type == building_type_for_trigger::fort)
+						env.data.push_back(uint16_t(codes::can_build_in_province_fort_yes_limit_from_nation | codes::no_payload));
+				} else {
+					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
+				}
+			} else {
+				if (env.current_scope.this_slot == trigger_slot_contents::nation) {
+					if (type == building_type_for_trigger::railroad)
+						env.data.push_back(uint16_t(codes::can_build_in_province_railroad_no_limit_this_nation | codes::no_payload));
+					else if (type == building_type_for_trigger::naval_base)
+						env.data.push_back(uint16_t(codes::can_build_in_province_naval_base_no_limit_this_nation | codes::no_payload));
+					else if (type == building_type_for_trigger::fort)
+						env.data.push_back(uint16_t(codes::can_build_in_province_fort_no_limit_this_nation | codes::no_payload));
+				} else if (env.current_scope.from_slot == trigger_slot_contents::nation) {
+					if (type == building_type_for_trigger::railroad)
+						env.data.push_back(uint16_t(codes::can_build_in_province_railroad_no_limit_from_nation | codes::no_payload));
+					else if (type == building_type_for_trigger::naval_base)
+						env.data.push_back(uint16_t(codes::can_build_in_province_naval_base_no_limit_from_nation | codes::no_payload));
+					else if (type == building_type_for_trigger::fort)
+						env.data.push_back(uint16_t(codes::can_build_in_province_fort_no_limit_from_nation | codes::no_payload));
+				} else {
+					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
+				}
+			}
+		}
+	};
+	struct can_build_railway_in_capital_trigger {
+		trigger_parsing_environment& env;
+
+		bool in_whole_capital_state = false;
+		bool limit_to_world_greatest_level = false;
+
+		can_build_railway_in_capital_trigger(trigger_parsing_environment& e) : env(e) {}
+
+		void finalize() const {
+			if (env.current_scope.main_slot != trigger_slot_contents::nation)
+				TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
+			if (in_whole_capital_state) {
+				if(limit_to_world_greatest_level)
+					env.data.push_back(uint16_t(codes::can_build_railway_in_capital_yes_whole_state_yes_limit | codes::no_payload));
+				else
+					env.data.push_back(uint16_t(codes::can_build_railway_in_capital_yes_whole_state_no_limit | codes::no_payload));
+			} else {
+				if (limit_to_world_greatest_level)
+					env.data.push_back(uint16_t(codes::can_build_railway_in_capital_no_whole_state_yes_limit | codes::no_payload));
+				else
+					env.data.push_back(uint16_t(codes::can_build_railway_in_capital_no_whole_state_no_limit | codes::no_payload));
+			}
+		}
+	};
+	struct can_build_fort_in_capital_trigger {
+		trigger_parsing_environment& env;
+
+		bool in_whole_capital_state = false;
+		bool limit_to_world_greatest_level = false;
+
+		can_build_fort_in_capital_trigger(trigger_parsing_environment& e) : env(e) {}
+
+		void finalize() const {
+			if (env.current_scope.main_slot != trigger_slot_contents::nation)
+				TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
+			if (in_whole_capital_state) {
+				if (limit_to_world_greatest_level)
+					env.data.push_back(uint16_t(codes::can_build_fort_in_capital_yes_whole_state_yes_limit | codes::no_payload));
+				else
+					env.data.push_back(uint16_t(codes::can_build_fort_in_capital_yes_whole_state_no_limit | codes::no_payload));
+			} else {
+				if (limit_to_world_greatest_level)
+					env.data.push_back(uint16_t(codes::can_build_fort_in_capital_no_whole_state_yes_limit | codes::no_payload));
+				else
+					env.data.push_back(uint16_t(codes::can_build_fort_in_capital_no_whole_state_no_limit | codes::no_payload));
+			}
+		}
+	};
+#ifdef _DEBUG
+	struct no_worker_specified {};
+#endif
+	struct work_available_trigger {
+		trigger_parsing_environment& env;
+		std::vector<population::pop_type_tag> workers;
+
+		work_available_trigger(trigger_parsing_environment& e) : env(e) {}
+
+		void add_worker(const token_and_type& t) {
+			workers.push_back(tag_from_text(
+				env.s.population_m.named_pop_type_index,
+				text_data::get_thread_safe_existing_text_handle(env.s.text_m, t.start, t.end)));
+		}
+
+		void finalize() const {
+			if(workers.size() == 0ui64)
+				TRIGGER_ERROR(no_worker_specified, env);
+
+			if (env.current_scope.main_slot == trigger_slot_contents::nation)
+				env.data.push_back(codes::work_available_nation);
+			else if (env.current_scope.main_slot == trigger_slot_contents::state)
+				env.data.push_back(codes::work_available_state);
+			else if (env.current_scope.main_slot == trigger_slot_contents::province)
+				env.data.push_back(codes::work_available_province);
+			else
+				TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
+
+			env.data.push_back(uint16_t(workers.size() + 1));
+			for(auto w : workers)
+				env.data.push_back(trigger_payload(w).value);
+		}
+	};
 
 #ifdef _DEBUG
 	struct unknown_scope {};
 #endif
-
 
 	struct common_scope_base {
 		trigger_parsing_environment& env;
@@ -3815,6 +4257,25 @@ namespace triggers {
 		}
 	};
 
+}
+
+template<typename T>
+struct _set_member<CT_STRING("_add_trigger"), T> {
+	template<typename V>
+	static void set(T& class_passed, V&& v) {
+		class_passed.add_simple_trigger_f(std::forward<V>(v));
+	} 
+};
+template<typename T>
+struct _set_member<CT_STRING("_add_scope"), T> {
+	template<typename V>
+	static void set(T& class_passed, V&& v) {
+		class_passed.add_scope(std::forward<V>(v));
+	}
+};
+
+
+namespace triggers {
 	struct variable_name_scope_reading_object : public common_scope_base {
 		
 		size_t payload_size_offset;
@@ -3862,7 +4323,7 @@ namespace triggers {
 		}
 
 		void finalize() const {
-			env.data[payload_size_offset] = uint16_t(e.data.size() - payload_size_offset);
+			env.data[payload_size_offset] = uint16_t(env.data.size() - payload_size_offset);
 		}
 
 		
@@ -4089,13 +4550,6 @@ namespace triggers {
 	>;
 
 	using trigger_map = typename sorted<unsorted_trigger_map>::type;
-
-#ifdef _DEBUG
-	struct no_code_value_found_for_scope_and_argument {};
-	struct no_payload_value {};
-	struct mismatched_payload_size {};
-	struct unknown_trigger {};
-#endif
 
 	//const trigger_scope_state& scope, association_type a, const token_and_type&
 	void add_simple_trigger(
