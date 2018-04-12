@@ -3784,13 +3784,6 @@ namespace triggers {
 		}
 	};
 
-	struct trigger_parsing_environment {
-		scenario::scenario_manager& s;
-		std::vector<uint16_t> data;
-		trigger_scope_state current_scope;
-	};
-
-
 #ifdef _DEBUG
 	struct no_code_value_found_for_scope_and_argument {};
 	struct no_payload_value {};
@@ -3802,6 +3795,8 @@ namespace triggers {
 		trigger_parsing_environment& env;
 
 		uint16_t value = 0;
+		association_type a = association_type::eq_default;
+
 		cultures::national_tag who;
 		bool from_v = false;
 		bool this_v = false;
@@ -3816,15 +3811,19 @@ namespace triggers {
 			else
 				who = tag_from_text(env.s.culutre_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end));
 		}
+		void set_value(const std::pair<association_type, token_and_type>& p) {
+			a = p.first;
+			value = token_to<uint16_t>(p.second);
+		}
 
 		void finalize() const {
 			if (env.current_scope.main_slot != trigger_slot_contents::nation)
 				throw no_code_value_found_for_scope_and_argument();
 			if (from_v) {
 				if(env.current_scope.from_slot == trigger_slot_contents::nation)
-					env.data.push_back(codes::diplomatic_influence_from_nation);
+					env.data.push_back(uint16_t(codes::diplomatic_influence_from_nation | association_to_trigger_code(a)));
 				else if (env.current_scope.from_slot == trigger_slot_contents::province)
-					env.data.push_back(codes::diplomatic_influence_from_province);
+					env.data.push_back(uint16_t(codes::diplomatic_influence_from_province | association_to_trigger_code(a)));
 				else
 					throw no_code_value_found_for_scope_and_argument();
 
@@ -3832,16 +3831,16 @@ namespace triggers {
 				env.data.push_back(trigger_payload(value).value);
 			} else if (this_v) {
 				if (env.current_scope.this_slot == trigger_slot_contents::nation)
-					env.data.push_back(codes::diplomatic_influence_this_nation);
+					env.data.push_back(uint16_t(codes::diplomatic_influence_this_nation | association_to_trigger_code(a)));
 				else if (env.current_scope.this_slot == trigger_slot_contents::province)
-					env.data.push_back(codes::diplomatic_influence_this_province);
+					env.data.push_back(uint16_t(codes::diplomatic_influence_this_province | association_to_trigger_code(a)));
 				else
-					throw no_code_value_found_for_scope_and_argument();
+					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 
 				env.data.push_back(2ui16);
 				env.data.push_back(trigger_payload(value).value);
 			} else {
-				env.data.push_back(codes::diplomatic_influence_tag);
+				env.data.push_back(uint16_t(codes::diplomatic_influence_tag | association_to_trigger_code(a)));
 				env.data.push_back(3ui16);
 				env.data.push_back(trigger_payload(value).value);
 				env.data.push_back(trigger_payload(who).value);
@@ -3855,6 +3854,7 @@ namespace triggers {
 		float value = 0;
 		population::pop_type_tag type;
 		bool this_v = false;
+		association_type a;
 
 		pop_unemployment_trigger(trigger_parsing_environment& e) : env(e) {}
 
@@ -3866,36 +3866,40 @@ namespace triggers {
 					env.s.population_m.named_pop_type_index,
 					text_data::get_thread_safe_existing_text_handle(env.s.text_m, t.start, t.end));
 		}
+		void set_value(const std::pair<association_type, token_and_type>& p) {
+			a = p.first;
+			value = token_to<float>(p.second);
+		}
 
 		void finalize() const {
 			if (env.current_scope.main_slot != trigger_slot_contents::nation)
 				throw no_code_value_found_for_scope_and_argument();
 			if (this_v) {
 				if(env.current_scope.this_slot != trigger_slot_contents::pop)
-					throw no_code_value_found_for_scope_and_argument();
+					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 
 				if (env.current_scope.main_slot == trigger_slot_contents::nation)
-					env.data.push_back(codes::pop_unemployment_nation_this_pop);
+					env.data.push_back(uint16_t(codes::pop_unemployment_nation_this_pop | association_to_trigger_code(a)));
 				else if (env.current_scope.main_slot == trigger_slot_contents::state)
-					env.data.push_back(codes::pop_unemployment_state_this_pop);
+					env.data.push_back(uint16_t(codes::pop_unemployment_state_this_pop | association_to_trigger_code(a)));
 				else if (env.current_scope.main_slot == trigger_slot_contents::province)
-					env.data.push_back(codes::pop_unemployment_province_this_pop);
+					env.data.push_back(uint16_t(codes::pop_unemployment_province_this_pop | association_to_trigger_code(a)));
 				else
-					throw no_code_value_found_for_scope_and_argument();
+					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 
 				env.data.push_back(3ui16);
 				add_float_to_payload(env.data, value);
 			} else {
 				if (env.current_scope.main_slot == trigger_slot_contents::nation)
-					env.data.push_back(codes::pop_unemployment_nation);
+					env.data.push_back(uint16_t(codes::pop_unemployment_nation | association_to_trigger_code(a)));
 				else if (env.current_scope.main_slot == trigger_slot_contents::state)
-					env.data.push_back(codes::pop_unemployment_state);
+					env.data.push_back(uint16_t(codes::pop_unemployment_state | association_to_trigger_code(a)));
 				else if (env.current_scope.main_slot == trigger_slot_contents::province)
-					env.data.push_back(codes::pop_unemployment_province);
+					env.data.push_back(uint16_t(codes::pop_unemployment_province | association_to_trigger_code(a)));
 				else if(env.current_scope.main_slot == trigger_slot_contents::pop)
-					env.data.push_back(codes::pop_unemployment_pop);
+					env.data.push_back(uint16_t(codes::pop_unemployment_pop | association_to_trigger_code(a)));
 				else
-					throw no_code_value_found_for_scope_and_argument();
+					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 
 				env.data.push_back(4ui16);
 				add_float_to_payload(env.data, value);
@@ -3903,7 +3907,6 @@ namespace triggers {
 			}
 		}
 	};
-
 	struct relation_trigger {
 		trigger_parsing_environment& env;
 
@@ -3911,6 +3914,7 @@ namespace triggers {
 		cultures::national_tag who;
 		bool from_v = false;
 		bool this_v = false;
+		association_type a;
 
 		relation_trigger(trigger_parsing_environment& e) : env(e) {}
 
@@ -3922,32 +3926,36 @@ namespace triggers {
 			else
 				who = tag_from_text(env.s.culutre_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end));
 		}
+		void set_value(const std::pair<association_type, token_and_type>& p) {
+			a = p.first;
+			value = token_to<int16_t>(p.second);
+		}
 
 		void finalize() const {
 			if (env.current_scope.main_slot != trigger_slot_contents::nation)
 				throw no_code_value_found_for_scope_and_argument();
 			if (from_v) {
 				if (env.current_scope.from_slot == trigger_slot_contents::nation)
-					env.data.push_back(codes::relation_from_nation);
+					env.data.push_back(uint16_t(codes::relation_from_nation | association_to_trigger_code(a)));
 				else if (env.current_scope.from_slot == trigger_slot_contents::province)
-					env.data.push_back(codes::relation_from_province);
+					env.data.push_back(uint16_t(codes::relation_from_province | association_to_trigger_code(a)));
 				else
-					throw no_code_value_found_for_scope_and_argument();
+					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 
 				env.data.push_back(2ui16);
 				env.data.push_back(trigger_payload(value).value);
 			} else if (this_v) {
 				if (env.current_scope.this_slot == trigger_slot_contents::nation)
-					env.data.push_back(codes::relation_this_nation);
+					env.data.push_back(uint16_t(codes::relation_this_nation | association_to_trigger_code(a)));
 				else if (env.current_scope.this_slot == trigger_slot_contents::province)
-					env.data.push_back(codes::relation_this_province);
+					env.data.push_back(uint16_t(codes::relation_this_province | association_to_trigger_code(a)));
 				else
-					throw no_code_value_found_for_scope_and_argument();
+					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 
 				env.data.push_back(2ui16);
 				env.data.push_back(trigger_payload(value).value);
 			} else {
-				env.data.push_back(codes::relation_tag);
+				env.data.push_back(uint16_t(codes::relation_tag | association_to_trigger_code(a)));
 				env.data.push_back(3ui16);
 				env.data.push_back(trigger_payload(value).value);
 				env.data.push_back(trigger_payload(who).value);
@@ -3959,17 +3967,22 @@ namespace triggers {
 
 		float value = 0.0f;
 		variables::national_variable_tag which;
+		association_type a;
 
 		check_variable_trigger(trigger_parsing_environment& e) : env(e) {}
 
 		void set_which(const token_and_type& t) {
 			which = env.s.variables_m.get_named_national_variable(text_data::get_thread_safe_text_handle(env.s.text_m, t.start, t.end));
 		}
+		void set_value(const std::pair<association_type, token_and_type>& p) {
+			a = p.first;
+			value = token_to<float>(p.second);
+		}
 
 		void finalize() const {
 			if (env.current_scope.main_slot != trigger_slot_contents::nation)
-				throw no_code_value_found_for_scope_and_argument();
-			env.data.push_back(codes::check_variable);
+				TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
+			env.data.push_back(uint16_t(codes::check_variable | association_to_trigger_code(a)));
 			env.data.push_back(4ui16);
 			add_float_to_payload(env.data, value);
 			env.data.push_back(trigger_payload(which).value);
@@ -3980,6 +3993,7 @@ namespace triggers {
 
 		float value = 0.0f;
 		ideologies::ideology_tag ideology;
+		association_type a;
 
 		upper_house_trigger(trigger_parsing_environment& e) : env(e) {}
 
@@ -3988,11 +4002,15 @@ namespace triggers {
 				env.s.ideologies_m.named_ideology_index,
 				text_data::get_thread_safe_existing_text_handle(env.s.text_m, t.start, t.end));
 		}
+		void set_value(const std::pair<association_type, token_and_type>& p) {
+			a = p.first;
+			value = token_to<float>(p.second);
+		}
 
 		void finalize() const {
 			if (env.current_scope.main_slot != trigger_slot_contents::nation)
-				throw no_code_value_found_for_scope_and_argument();
-			env.data.push_back(codes::upper_house);
+				TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
+			env.data.push_back(uint16_t(codes::upper_house | association_to_trigger_code(a)));
 			env.data.push_back(4ui16);
 			add_float_to_payload(env.data, value);
 			env.data.push_back(trigger_payload(ideology).value);
@@ -4003,6 +4021,7 @@ namespace triggers {
 
 		float value = 0.0f;
 		population::pop_type_tag type;
+		association_type a;
 
 		unemployment_by_type_trigger(trigger_parsing_environment& e) : env(e) {}
 
@@ -4011,16 +4030,20 @@ namespace triggers {
 				env.s.population_m.named_pop_type_index,
 				text_data::get_thread_safe_existing_text_handle(env.s.text_m, t.start, t.end));
 		}
+		void set_value(const std::pair<association_type, token_and_type>& p) {
+			a = p.first;
+			value = token_to<float>(p.second);
+		}
 
 		void finalize() const {
 			if (env.current_scope.main_slot == trigger_slot_contents::nation)
-				env.data.push_back(codes::unemployment_by_type_nation);
+				env.data.push_back(uint16_t(codes::unemployment_by_type_nation | association_to_trigger_code(a)));
 			else if (env.current_scope.main_slot == trigger_slot_contents::state)
-				env.data.push_back(codes::unemployment_by_type_state);
+				env.data.push_back(uint16_t(codes::unemployment_by_type_state | association_to_trigger_code(a)));
 			else if(env.current_scope.main_slot == trigger_slot_contents::province)
-				env.data.push_back(codes::unemployment_by_type_province);
+				env.data.push_back(uint16_t(codes::unemployment_by_type_province | association_to_trigger_code(a)));
 			else if(env.current_scope.main_slot == trigger_slot_contents::pop)
-				env.data.push_back(codes::unemployment_by_type_pop);
+				env.data.push_back(uint16_t(codes::unemployment_by_type_pop | association_to_trigger_code(a)));
 			else
 				TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 
@@ -4035,6 +4058,7 @@ namespace triggers {
 		float value = 0.0f;
 		ideologies::ideology_tag ideology;
 		std::optional<uint16_t> province_id;
+		association_type a;
 
 		party_loyalty_trigger(trigger_parsing_environment& e) : env(e) {}
 
@@ -4043,17 +4067,21 @@ namespace triggers {
 				env.s.ideologies_m.named_ideology_index,
 				text_data::get_thread_safe_existing_text_handle(env.s.text_m, t.start, t.end));
 		}
+		void set_value(const std::pair<association_type, token_and_type>& p) {
+			a = p.first;
+			value = token_to<float>(p.second);
+		}
 
 		void finalize() const {
 			if (province_id) {
 				if(env.current_scope.main_slot == trigger_slot_contents::nation)
-					env.data.push_back(codes::party_loyalty_nation_province_id);
+					env.data.push_back(uint16_t(codes::party_loyalty_nation_province_id | association_to_trigger_code(a)));
 				else if (env.current_scope.from_slot == trigger_slot_contents::nation)
-					env.data.push_back(codes::party_loyalty_from_nation_province_id);
+					env.data.push_back(uint16_t(codes::party_loyalty_from_nation_province_id | association_to_trigger_code(a)));
 				else if (env.current_scope.main_slot == trigger_slot_contents::province)
-					env.data.push_back(codes::party_loyalty_province_province_id);
+					env.data.push_back(uint16_t(codes::party_loyalty_province_province_id | association_to_trigger_code(a)));
 				else if (env.current_scope.from_slot == trigger_slot_contents::province)
-					env.data.push_back(codes::party_loyalty_from_province_province_id);
+					env.data.push_back(uint16_t(codes::party_loyalty_from_province_province_id | association_to_trigger_code(a)));
 				else
 					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 
@@ -4064,9 +4092,9 @@ namespace triggers {
 			} else {
 				if (env.current_scope.main_slot == trigger_slot_contents::province) {
 					if (env.current_scope.from_slot == trigger_slot_contents::nation)
-						env.data.push_back(codes::party_loyalty_from_nation_scope_province);
+						env.data.push_back(uint16_t(codes::party_loyalty_from_nation_scope_province | association_to_trigger_code(a)));
 					else if (env.current_scope.from_slot == trigger_slot_contents::province)
-						env.data.push_back(codes::party_loyalty_from_province_scope_province);
+						env.data.push_back(uint16_t(codes::party_loyalty_from_province_scope_province | association_to_trigger_code(a)));
 					else
 						TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 				} else {
@@ -4112,36 +4140,36 @@ namespace triggers {
 			if (limit_to_world_greatest_level) {
 				if (env.current_scope.this_slot == trigger_slot_contents::nation) {
 					if (type == building_type_for_trigger::railroad)
-						env.data.push_back(uint16_t(codes::can_build_in_province_railroad_yes_limit_this_nation | codes::no_payload));
+						env.data.push_back(uint16_t(codes::can_build_in_province_railroad_yes_limit_this_nation | codes::association_eq | codes::no_payload));
 					else if (type == building_type_for_trigger::naval_base)
-						env.data.push_back(uint16_t(codes::can_build_in_province_naval_base_yes_limit_this_nation | codes::no_payload));
+						env.data.push_back(uint16_t(codes::can_build_in_province_naval_base_yes_limit_this_nation | codes::association_eq | codes::no_payload));
 					else if(type == building_type_for_trigger::fort)
-						env.data.push_back(uint16_t(codes::can_build_in_province_fort_yes_limit_this_nation | codes::no_payload));
+						env.data.push_back(uint16_t(codes::can_build_in_province_fort_yes_limit_this_nation | codes::association_eq | codes::no_payload));
 				} else if (env.current_scope.from_slot == trigger_slot_contents::nation) {
 					if (type == building_type_for_trigger::railroad)
-						env.data.push_back(uint16_t(codes::can_build_in_province_railroad_yes_limit_from_nation | codes::no_payload));
+						env.data.push_back(uint16_t(codes::can_build_in_province_railroad_yes_limit_from_nation | codes::association_eq | codes::no_payload));
 					else if (type == building_type_for_trigger::naval_base)
-						env.data.push_back(uint16_t(codes::can_build_in_province_naval_base_yes_limit_from_nation | codes::no_payload));
+						env.data.push_back(uint16_t(codes::can_build_in_province_naval_base_yes_limit_from_nation | codes::association_eq | codes::no_payload));
 					else if (type == building_type_for_trigger::fort)
-						env.data.push_back(uint16_t(codes::can_build_in_province_fort_yes_limit_from_nation | codes::no_payload));
+						env.data.push_back(uint16_t(codes::can_build_in_province_fort_yes_limit_from_nation | codes::association_eq | codes::no_payload));
 				} else {
 					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 				}
 			} else {
 				if (env.current_scope.this_slot == trigger_slot_contents::nation) {
 					if (type == building_type_for_trigger::railroad)
-						env.data.push_back(uint16_t(codes::can_build_in_province_railroad_no_limit_this_nation | codes::no_payload));
+						env.data.push_back(uint16_t(codes::can_build_in_province_railroad_no_limit_this_nation | codes::association_eq | codes::no_payload));
 					else if (type == building_type_for_trigger::naval_base)
-						env.data.push_back(uint16_t(codes::can_build_in_province_naval_base_no_limit_this_nation | codes::no_payload));
+						env.data.push_back(uint16_t(codes::can_build_in_province_naval_base_no_limit_this_nation | codes::association_eq | codes::no_payload));
 					else if (type == building_type_for_trigger::fort)
-						env.data.push_back(uint16_t(codes::can_build_in_province_fort_no_limit_this_nation | codes::no_payload));
+						env.data.push_back(uint16_t(codes::can_build_in_province_fort_no_limit_this_nation | codes::association_eq | codes::no_payload));
 				} else if (env.current_scope.from_slot == trigger_slot_contents::nation) {
 					if (type == building_type_for_trigger::railroad)
-						env.data.push_back(uint16_t(codes::can_build_in_province_railroad_no_limit_from_nation | codes::no_payload));
+						env.data.push_back(uint16_t(codes::can_build_in_province_railroad_no_limit_from_nation | codes::association_eq | codes::no_payload));
 					else if (type == building_type_for_trigger::naval_base)
-						env.data.push_back(uint16_t(codes::can_build_in_province_naval_base_no_limit_from_nation | codes::no_payload));
+						env.data.push_back(uint16_t(codes::can_build_in_province_naval_base_no_limit_from_nation | codes::association_eq | codes::no_payload));
 					else if (type == building_type_for_trigger::fort)
-						env.data.push_back(uint16_t(codes::can_build_in_province_fort_no_limit_from_nation | codes::no_payload));
+						env.data.push_back(uint16_t(codes::can_build_in_province_fort_no_limit_from_nation | codes::association_eq | codes::no_payload));
 				} else {
 					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 				}
@@ -4161,14 +4189,14 @@ namespace triggers {
 				TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 			if (in_whole_capital_state) {
 				if(limit_to_world_greatest_level)
-					env.data.push_back(uint16_t(codes::can_build_railway_in_capital_yes_whole_state_yes_limit | codes::no_payload));
+					env.data.push_back(uint16_t(codes::can_build_railway_in_capital_yes_whole_state_yes_limit | codes::association_eq | codes::no_payload));
 				else
-					env.data.push_back(uint16_t(codes::can_build_railway_in_capital_yes_whole_state_no_limit | codes::no_payload));
+					env.data.push_back(uint16_t(codes::can_build_railway_in_capital_yes_whole_state_no_limit | codes::association_eq | codes::no_payload));
 			} else {
 				if (limit_to_world_greatest_level)
-					env.data.push_back(uint16_t(codes::can_build_railway_in_capital_no_whole_state_yes_limit | codes::no_payload));
+					env.data.push_back(uint16_t(codes::can_build_railway_in_capital_no_whole_state_yes_limit | codes::association_eq | codes::no_payload));
 				else
-					env.data.push_back(uint16_t(codes::can_build_railway_in_capital_no_whole_state_no_limit | codes::no_payload));
+					env.data.push_back(uint16_t(codes::can_build_railway_in_capital_no_whole_state_no_limit | codes::association_eq | codes::no_payload));
 			}
 		}
 	};
@@ -4185,14 +4213,14 @@ namespace triggers {
 				TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 			if (in_whole_capital_state) {
 				if (limit_to_world_greatest_level)
-					env.data.push_back(uint16_t(codes::can_build_fort_in_capital_yes_whole_state_yes_limit | codes::no_payload));
+					env.data.push_back(uint16_t(codes::can_build_fort_in_capital_yes_whole_state_yes_limit | codes::association_eq | codes::no_payload));
 				else
-					env.data.push_back(uint16_t(codes::can_build_fort_in_capital_yes_whole_state_no_limit | codes::no_payload));
+					env.data.push_back(uint16_t(codes::can_build_fort_in_capital_yes_whole_state_no_limit | codes::association_eq | codes::no_payload));
 			} else {
 				if (limit_to_world_greatest_level)
-					env.data.push_back(uint16_t(codes::can_build_fort_in_capital_no_whole_state_yes_limit | codes::no_payload));
+					env.data.push_back(uint16_t(codes::can_build_fort_in_capital_no_whole_state_yes_limit | codes::association_eq | codes::no_payload));
 				else
-					env.data.push_back(uint16_t(codes::can_build_fort_in_capital_no_whole_state_no_limit | codes::no_payload));
+					env.data.push_back(uint16_t(codes::can_build_fort_in_capital_no_whole_state_no_limit | codes::association_eq | codes::no_payload));
 			}
 		}
 	};
@@ -4216,11 +4244,11 @@ namespace triggers {
 				TRIGGER_ERROR(no_worker_specified, env);
 
 			if (env.current_scope.main_slot == trigger_slot_contents::nation)
-				env.data.push_back(codes::work_available_nation);
+				env.data.push_back(uint16_t(codes::work_available_nation | codes::association_eq));
 			else if (env.current_scope.main_slot == trigger_slot_contents::state)
-				env.data.push_back(codes::work_available_state);
+				env.data.push_back(uint16_t(codes::work_available_state | codes::association_eq));
 			else if (env.current_scope.main_slot == trigger_slot_contents::province)
-				env.data.push_back(codes::work_available_province);
+				env.data.push_back(uint16_t(codes::work_available_province | codes::association_eq));
 			else
 				TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 
@@ -4229,7 +4257,32 @@ namespace triggers {
 				env.data.push_back(trigger_payload(w).value);
 		}
 	};
+}
 
+MEMBER_FDEF(triggers::diplomatic_influence_trigger, set_value, "value");
+MEMBER_FDEF(triggers::diplomatic_influence_trigger, set_who, "who");
+MEMBER_FDEF(triggers::party_loyalty_trigger, set_value, "value");
+MEMBER_FDEF(triggers::party_loyalty_trigger, set_ideology, "ideology");
+MEMBER_DEF(triggers::party_loyalty_trigger, province_id, "province_id");
+MEMBER_FDEF(triggers::unemployment_by_type_trigger, set_value, "value");
+MEMBER_FDEF(triggers::unemployment_by_type_trigger, set_type, "type");
+MEMBER_FDEF(triggers::upper_house_trigger, set_value, "value");
+MEMBER_FDEF(triggers::upper_house_trigger, set_ideology, "ideology");
+MEMBER_FDEF(triggers::check_variable_trigger, set_value, "value");
+MEMBER_FDEF(triggers::check_variable_trigger, set_which, "which");
+MEMBER_FDEF(triggers::relation_trigger, set_value, "value");
+MEMBER_FDEF(triggers::relation_trigger, set_who, "who");
+MEMBER_FDEF(triggers::pop_unemployment_trigger, set_value, "value");
+MEMBER_FDEF(triggers::pop_unemployment_trigger, set_type_or_pop, "type");
+MEMBER_DEF(triggers::can_build_in_province_trigger, limit_to_world_greatest_level, "limit_to_world_greatest_level");
+MEMBER_FDEF(triggers::can_build_in_province_trigger, set_building, "building");
+MEMBER_DEF(triggers::can_build_fort_in_capital_trigger, in_whole_capital_state, "in_whole_capital_state");
+MEMBER_DEF(triggers::can_build_fort_in_capital_trigger, limit_to_world_greatest_level, "limit_to_world_greatest_level");
+MEMBER_DEF(triggers::can_build_railway_in_capital_trigger, in_whole_capital_state, "in_whole_capital_state");
+MEMBER_DEF(triggers::can_build_railway_in_capital_trigger, limit_to_world_greatest_level, "limit_to_world_greatest_level");
+MEMBER_FDEF(triggers::work_available_trigger, add_worker, "worker");
+
+namespace triggers {
 #ifdef _DEBUG
 	struct unknown_scope {};
 #endif
@@ -4242,9 +4295,7 @@ namespace triggers {
 
 		void add_simple_trigger_f(const std::tuple<token_and_type, association_type, token_and_type>& args) {
 			add_simple_trigger(
-				env.data,
-				env.s,
-				scope_state,
+				env,
 				std::get<0>(args),
 				std::get<1>(args),
 				std::get<2>(args));
@@ -4254,6 +4305,10 @@ namespace triggers {
 		void add_scope(const T& other) {
 			other.finalize();
 			env.current_scope = scope_state;
+		}
+		template<typename T>
+		void add_complex_trigger(const T& other) {
+			other.finalize();
 		}
 	};
 
@@ -4265,6 +4320,13 @@ struct _set_member<CT_STRING("_add_trigger"), T> {
 	static void set(T& class_passed, V&& v) {
 		class_passed.add_simple_trigger_f(std::forward<V>(v));
 	} 
+};
+template<typename T>
+struct _set_member<CT_STRING("_add_complex_trigger"), T> {
+	template<typename V>
+	static void set(T& class_passed, V&& v) {
+		class_passed.add_complex_trigger(std::forward<V>(v));
+	}
 };
 template<typename T>
 struct _set_member<CT_STRING("_add_scope"), T> {
@@ -4316,9 +4378,7 @@ namespace triggers {
 				payload_size_offset = e.data.size() - 1;
 				env.data.push_back(token_to<uint16_t>(name));
 			} else {
-#ifdef _DEBUG
-				throw unknown_scope();
-#endif
+				TRIGGER_ERROR(unknown_scope, e);
 			}
 		}
 
@@ -4553,23 +4613,21 @@ namespace triggers {
 
 	//const trigger_scope_state& scope, association_type a, const token_and_type&
 	void add_simple_trigger(
-		std::vector<uint16_t>& data,
-		scenario::scenario_manager& s,
-		const trigger_scope_state& scope,
+		trigger_parsing_environment& env,
 		const token_and_type& trigger_name,
 		association_type a,
 		const token_and_type& trigger_value) {
 
 		if (!map_call_functions<trigger_map>::template bt_scan_ci<bool>(trigger_name.start, trigger_name.end,
-			[a, &trigger_value, &scope, &data, &s](auto type_arg) {
-			const auto code = decltype(type_arg)::type::produce_code(scope, a, trigger_value);
+			[a, &trigger_value, &env](auto type_arg) {
+			const auto code = decltype(type_arg)::type::produce_code(env.current_scope, a, trigger_value);
 			if (code) {
 				const auto data_size = code_data_sizes[*code & codes::code_mask];
 				if (data_size == 0) {
-					data.push_back(uint16_t(*code | codes::no_payload));
+					env.data.push_back(uint16_t(*code | codes::no_payload));
 				} else {
-					data.push_back(*code);
-					data.push_back(static_cast<uint16_t>(data_size + 1));
+					env.data.push_back(*code);
+					env.data.push_back(static_cast<uint16_t>(data_size + 1));
 
 					const auto payload = decltype(type_arg)::type::read_value(trigger_value, s);
 					//using trigger_value = std::variant<std::monostate, int32_t, float, issues::option_identifier, trigger_payload>;
@@ -4604,106 +4662,128 @@ namespace triggers {
 					}
 				}
 			} else {
-#ifdef _DEBUG
-				throw no_code_value_found_for_scope_and_argument();
-#endif
+				TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, e);
 			}
 			return true;
 		})) {
 			//not found in map
-			const auto left_handle = text_data::get_thread_safe_existing_text_handle(s.text_m, trigger_name.start, trigger_name.end);
+			const auto left_handle = text_data::get_thread_safe_existing_text_handle(env.s.text_m, trigger_name.start, trigger_name.end);
 			//...
 			
-			if (const auto tech = tag_from_text(s.technology_m.named_technology_index, left_handle); is_valid_index(tech)) {
-				data.push_back(uint16_t(codes::variable_tech_name | association_to_bool_code(a, token_to<int32_t>(trigger_value) >= 1)));
-				data.push_back(2ui16);
-				data.push_back(trigger_payload(tech).value);
-			} else if (const auto ideology = tag_from_text(s.ideologies_m.named_ideology_index, left_handle); is_valid_index(ideology)) {
-				if(scope.main_slot == trigger_slot_contents::nation)
-					data.push_back(uint16_t(codes::variable_ideology_name_nation | association_to_trigger_code(a)));
-				else if (scope.main_slot == trigger_slot_contents::pop)
-					data.push_back(uint16_t(codes::variable_ideology_name_pop | association_to_trigger_code(a)));
-				else if (scope.main_slot == trigger_slot_contents::province)
-					data.push_back(uint16_t(codes::variable_ideology_name_province | association_to_trigger_code(a)));
-				else if (scope.main_slot == trigger_slot_contents::state)
-					data.push_back(uint16_t(codes::variable_ideology_name_state | association_to_trigger_code(a)));
-				else {
-#ifdef _DEBUG
-					throw no_code_value_found_for_scope_and_argument();
-#endif
-				}
-				data.push_back(4ui16);
-				data.push_back(trigger_payload(ideology).value);
-				add_float_to_payload(data, token_to<float>(trigger_value));
-			} else if (const auto ptype = tag_from_text(s.population_m.named_pop_type_index, left_handle); is_valid_index(ptype)) {
-				if (scope.main_slot == trigger_slot_contents::nation)
-					data.push_back(uint16_t(codes::variable_pop_type_name_nation | association_to_trigger_code(a)));
-				else if (scope.main_slot == trigger_slot_contents::pop)
-					data.push_back(uint16_t(codes::variable_pop_type_name_pop | association_to_trigger_code(a)));
-				else if (scope.main_slot == trigger_slot_contents::province)
-					data.push_back(uint16_t(codes::variable_pop_type_name_province | association_to_trigger_code(a)));
-				else if (scope.main_slot == trigger_slot_contents::state)
-					data.push_back(uint16_t(codes::variable_pop_type_name_state | association_to_trigger_code(a)));
-				else {
-#ifdef _DEBUG
-					throw no_code_value_found_for_scope_and_argument();
-#endif
-				}
-				data.push_back(4ui16);
-				data.push_back(trigger_payload(ptype).value);
-				add_float_to_payload(data, token_to<float>(trigger_value));
-			} else if (const auto good = tag_from_text(s.economy_m.named_goods_index, left_handle); is_valid_index(good)) {
-				if (scope.main_slot == trigger_slot_contents::nation)
-					data.push_back(uint16_t(codes::variable_good_name | association_to_trigger_code(a)));
-				else {
-#ifdef _DEBUG
-					throw no_code_value_found_for_scope_and_argument();
-#endif
-				}
-				data.push_back(4ui16);
-				data.push_back(trigger_payload(good).value);
-				add_float_to_payload(data, token_to<float>(trigger_value));
-			} else if (const auto issue_opt = tag_from_text(s.issues_m.named_option_index, left_handle); !std::holds_alternative<std::monostate>(issue_opt.id)) {
-				if (scope.main_slot == trigger_slot_contents::nation)
-					data.push_back(uint16_t(codes::variable_issue_name_nation | association_to_trigger_code(a)));
-				else if (scope.main_slot == trigger_slot_contents::pop)
-					data.push_back(uint16_t(codes::variable_issue_name_pop | association_to_trigger_code(a)));
-				else if (scope.main_slot == trigger_slot_contents::province)
-					data.push_back(uint16_t(codes::variable_issue_name_province | association_to_trigger_code(a)));
-				else if (scope.main_slot == trigger_slot_contents::state)
-					data.push_back(uint16_t(codes::variable_issue_name_state | association_to_trigger_code(a)));
-				else {
-#ifdef _DEBUG
-					throw no_code_value_found_for_scope_and_argument();
-#endif
-				}
-				data.push_back(5ui16);
-				add_option_identifier_to_payload(data, issue_opt);
-				add_float_to_payload(data, token_to<float>(trigger_value));
-			} else if (const auto issue = tag_from_text(s.issues_m.named_issue_index, left_handle); !std::holds_alternative<std::monostate>(issue.id)) {
-				if (scope.main_slot == trigger_slot_contents::nation)
-					data.push_back(uint16_t(codes::variable_issue_group_name_nation | association_to_trigger_code(a)));
-				else if (scope.main_slot == trigger_slot_contents::pop)
-					data.push_back(uint16_t(codes::variable_issue_group_name_pop | association_to_trigger_code(a)));
-				else if (scope.main_slot == trigger_slot_contents::province)
-					data.push_back(uint16_t(codes::variable_issue_group_name_province | association_to_trigger_code(a)));
-				else if (scope.main_slot == trigger_slot_contents::state)
-					data.push_back(uint16_t(codes::variable_issue_group_name_state | association_to_trigger_code(a)));
-				else {
-#ifdef _DEBUG
-					throw no_code_value_found_for_scope_and_argument();
-#endif
-				}
-				const auto right_handle = text_data::get_thread_safe_existing_text_handle(s.text_m, trigger_value.start, trigger_value.end);
-				const auto rh_issue_opt = tag_from_text(s.issues_m.named_option_index, right_handle);
+			if (const auto tech = tag_from_text(env.s.technology_m.named_technology_index, left_handle); is_valid_index(tech)) {
+				env.data.push_back(uint16_t(codes::variable_tech_name | association_to_bool_code(a, token_to<int32_t>(trigger_value) >= 1)));
+				env.data.push_back(2ui16);
+				env.data.push_back(trigger_payload(tech).value);
+			} else if (const auto ideology = tag_from_text(env.s.ideologies_m.named_ideology_index, left_handle); is_valid_index(ideology)) {
+				if(env.current_scope.main_slot == trigger_slot_contents::nation)
+					env.data.push_back(uint16_t(codes::variable_ideology_name_nation | association_to_trigger_code(a)));
+				else if (env.current_scope.main_slot == trigger_slot_contents::pop)
+					env.data.push_back(uint16_t(codes::variable_ideology_name_pop | association_to_trigger_code(a)));
+				else if (env.current_scope.main_slot == trigger_slot_contents::province)
+					env.data.push_back(uint16_t(codes::variable_ideology_name_province | association_to_trigger_code(a)));
+				else if (env.current_scope.main_slot == trigger_slot_contents::state)
+					env.data.push_back(uint16_t(codes::variable_ideology_name_state | association_to_trigger_code(a)));
+				else 
+					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, e);
+				env.data.push_back(4ui16);
+				env.data.push_back(trigger_payload(ideology).value);
+				add_float_to_payload(env.data, token_to<float>(trigger_value));
+			} else if (const auto ptype = tag_from_text(env.s.population_m.named_pop_type_index, left_handle); is_valid_index(ptype)) {
+				if (env.current_scope.main_slot == trigger_slot_contents::nation)
+					env.data.push_back(uint16_t(codes::variable_pop_type_name_nation | association_to_trigger_code(a)));
+				else if (env.current_scope.main_slot == trigger_slot_contents::pop)
+					env.data.push_back(uint16_t(codes::variable_pop_type_name_pop | association_to_trigger_code(a)));
+				else if (env.current_scope.main_slot == trigger_slot_contents::province)
+					env.data.push_back(uint16_t(codes::variable_pop_type_name_province | association_to_trigger_code(a)));
+				else if (env.current_scope.main_slot == trigger_slot_contents::state)
+					env.data.push_back(uint16_t(codes::variable_pop_type_name_state | association_to_trigger_code(a)));
+				else
+					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
+				env.data.push_back(4ui16);
+				env.data.push_back(trigger_payload(ptype).value);
+				add_float_to_payload(env.data, token_to<float>(trigger_value));
+			} else if (const auto good = tag_from_text(env.s.economy_m.named_goods_index, left_handle); is_valid_index(good)) {
+				if (env.current_scope.main_slot == trigger_slot_contents::nation)
+					env.data.push_back(uint16_t(codes::variable_good_name | association_to_trigger_code(a)));
+				else
+					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
+				env.data.push_back(4ui16);
+				env.data.push_back(trigger_payload(good).value);
+				add_float_to_payload(env.data, token_to<float>(trigger_value));
+			} else if (const auto issue_opt = tag_from_text(env.s.issues_m.named_option_index, left_handle); !std::holds_alternative<std::monostate>(issue_opt.id)) {
+				if (env.current_scope.main_slot == trigger_slot_contents::nation)
+					env.data.push_back(uint16_t(codes::variable_issue_name_nation | association_to_trigger_code(a)));
+				else if (env.current_scope.main_slot == trigger_slot_contents::pop)
+					env.data.push_back(uint16_t(codes::variable_issue_name_pop | association_to_trigger_code(a)));
+				else if (env.current_scope.main_slot == trigger_slot_contents::province)
+					env.data.push_back(uint16_t(codes::variable_issue_name_province | association_to_trigger_code(a)));
+				else if (env.current_scope.main_slot == trigger_slot_contents::state)
+					env.data.push_back(uint16_t(codes::variable_issue_name_state | association_to_trigger_code(a)));
+				else
+					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
+				env.data.push_back(5ui16);
+				add_option_identifier_to_payload(env.data, issue_opt);
+				add_float_to_payload(env.data, token_to<float>(trigger_value));
+			} else if (const auto issue = tag_from_text(env.s.issues_m.named_issue_index, left_handle); !std::holds_alternative<std::monostate>(issue.id)) {
+				if (env.current_scope.main_slot == trigger_slot_contents::nation)
+					env.data.push_back(uint16_t(codes::variable_issue_group_name_nation | association_to_trigger_code(a)));
+				else if (env.current_scope.main_slot == trigger_slot_contents::pop)
+					env.data.push_back(uint16_t(codes::variable_issue_group_name_pop | association_to_trigger_code(a)));
+				else if (env.current_scope.main_slot == trigger_slot_contents::province)
+					env.data.push_back(uint16_t(codes::variable_issue_group_name_province | association_to_trigger_code(a)));
+				else if (env.current_scope.main_slot == trigger_slot_contents::state)
+					env.data.push_back(uint16_t(codes::variable_issue_group_name_state | association_to_trigger_code(a)));
+				else
+					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, e);
+				const auto right_handle = text_data::get_thread_safe_existing_text_handle(env.s.text_m, trigger_value.start, trigger_value.end);
+				const auto rh_issue_opt = tag_from_text(env.s.issues_m.named_option_index, right_handle);
 
-				data.push_back(3ui16);
-				add_option_identifier_to_payload(data, rh_issue_opt);
+				env.data.push_back(3ui16);
+				add_option_identifier_to_payload(env.data, rh_issue_opt);
 			} else {
-#ifdef _DEBUG
-				throw unknown_trigger();
-#endif
+				TRIGGER_ERROR(unknown_trigger, env);
 			}
 		}
 	}
+
+	/*
+	template<typename T>
+	struct _set_member<CT_STRING("_add_trigger"), T> {
+	template<typename V>
+	static void set(T& class_passed, V&& v) {
+	class_passed.add_simple_trigger_f(std::forward<V>(v));
+	}
+	};
+	template<typename T>
+	struct _set_member<CT_STRING("_add_complex_trigger"), T> {
+	template<typename V>
+	static void set(T& class_passed, V&& v) {
+	class_passed.add_complex_trigger(std::forward<V>(v));
+	}
+	};
+	template<typename T>
+	struct _set_member<CT_STRING("_add_scope"), T> {
+	template<typename V>
+	static void set(T& class_passed, V&& v) {
+	class_passed.add_scope(std::forward<V>(v));
+	}
+	};
+	*/
+
+	BEGIN_DOMAIN(trigger_reading)
+		BEGIN_TYPE(common_scope_base)
+		    MEMBER_VARIABLE_ASSOCIATION("_add_trigger", accept_all, yield_full)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_trigger", "diplomatic_influence", diplomatic_influence_trigger)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_trigger", "pop_unemployment", pop_unemployment_trigger)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_trigger", "relation", relation_trigger)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_trigger", "check_variable", check_variable_trigger)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_trigger", "upper_house", upper_house_trigger)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_trigger", "unemployment_by_type", unemployment_by_type_trigger)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_trigger", "party_loyalty", party_loyalty_trigger)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_trigger", "can_build_in_province", can_build_in_province_trigger)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_trigger", "can_build_railway_in_capital", can_build_railway_in_capital_trigger)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_trigger", "can_build_fort_in_capital", can_build_fort_in_capital_trigger)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_trigger", "work_available", work_available_trigger)
+		END_TYPE
+	END_DOMAIN
 }

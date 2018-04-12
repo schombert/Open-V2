@@ -32,6 +32,13 @@ T value_from_rh(association_type, const token_and_type& t) {
 inline int discard_from_rh(association_type, const token_and_type&) { return 0; }
 inline int discard_from_full(const token_and_type&, association_type, const token_and_type&) { return 0; }
 
+inline std::pair<association_type, token_and_type> yield_rh(association_type a, const token_and_type& t) {
+	return std::pair<association_type, token_and_type>(a, t);
+}
+inline std::tuple<token_and_type, association_type, token_and_type> yield_full(const token_and_type& l, association_type a, const token_and_type& r) {
+	return std::tuple<token_and_type, association_type, token_and_type>(l, a, r);
+}
+
 template<typename T>
 T value_from_full_rh(const token_and_type&, association_type, const token_and_type& t) {
 	return token_to<T>(t);
