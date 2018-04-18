@@ -18,4 +18,9 @@ namespace triggers {
 		const token_and_type& trigger_name,
 		association_type a,
 		const token_and_type& trigger_value);
+
+	void invert_trigger(uint16_t* source);
+	bool scope_is_empty(const uint16_t* source);
+	bool scope_has_single_member(const uint16_t* source); //precondition: scope known to not be empty
+	void simplify_trigger(uint16_t* source, uint32_t source_size);
 }

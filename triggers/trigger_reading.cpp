@@ -4352,7 +4352,7 @@ namespace triggers {
 					e.current_scope.contains_rebeltype };
 				e.current_scope = scope_state;
 				env.data.push_back(uint16_t(codes::x_provinces_in_variable_region | codes::is_scope));
-				env.data.push_back(1ui16);
+				env.data.push_back(2ui16);
 				payload_size_offset = e.data.size() - 1;
 				env.data.push_back(trigger_payload(region).value);
 			} else if (const auto tag = tag_from_text(e.s.culutre_m.national_tags_index, cultures::tag_to_encoding(name.start, name.end)); is_valid_index(tag)) {
@@ -4363,7 +4363,7 @@ namespace triggers {
 					e.current_scope.contains_rebeltype };
 				e.current_scope = scope_state;
 				env.data.push_back(uint16_t(codes::tag_scope | codes::is_scope));
-				env.data.push_back(1ui16);
+				env.data.push_back(2ui16);
 				payload_size_offset = e.data.size() - 1;
 				env.data.push_back(trigger_payload(tag).value);
 			} else if (is_integer(name.start, name.end)) {
@@ -4374,7 +4374,7 @@ namespace triggers {
 					e.current_scope.contains_rebeltype };
 				e.current_scope = scope_state;
 				env.data.push_back(uint16_t(codes::integer_scope | codes::is_scope));
-				env.data.push_back(1ui16);
+				env.data.push_back(2ui16);
 				payload_size_offset = e.data.size() - 1;
 				env.data.push_back(token_to<uint16_t>(name));
 			} else {
@@ -4746,29 +4746,10 @@ namespace triggers {
 		}
 	}
 
-	/*
-	template<typename T>
-	struct _set_member<CT_STRING("_add_trigger"), T> {
-	template<typename V>
-	static void set(T& class_passed, V&& v) {
-	class_passed.add_simple_trigger_f(std::forward<V>(v));
-	}
+	inline variable_name_scope_reading_object& get_vscope(const token_and_type&, association_type, variable_name_scope_reading_object& t) {
+		return t;
 	};
-	template<typename T>
-	struct _set_member<CT_STRING("_add_complex_trigger"), T> {
-	template<typename V>
-	static void set(T& class_passed, V&& v) {
-	class_passed.add_complex_trigger(std::forward<V>(v));
-	}
-	};
-	template<typename T>
-	struct _set_member<CT_STRING("_add_scope"), T> {
-	template<typename V>
-	static void set(T& class_passed, V&& v) {
-	class_passed.add_scope(std::forward<V>(v));
-	}
-	};
-	*/
+
 
 	BEGIN_DOMAIN(trigger_reading)
 		BEGIN_TYPE(common_scope_base)
@@ -4784,6 +4765,224 @@ namespace triggers {
 			MEMBER_TYPE_ASSOCIATION("_add_complex_trigger", "can_build_railway_in_capital", can_build_railway_in_capital_trigger)
 			MEMBER_TYPE_ASSOCIATION("_add_complex_trigger", "can_build_fort_in_capital", can_build_fort_in_capital_trigger)
 			MEMBER_TYPE_ASSOCIATION("_add_complex_trigger", "work_available", work_available_trigger)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "and", scope_reading_object<and_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "or", scope_reading_object<or_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "not", scope_reading_object<not_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "any_neighbor_province", scope_reading_object<any_neighbor_province_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "any_neighbor_country", scope_reading_object<any_neighbor_country_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "war_countries", scope_reading_object<war_countries_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "any_greater_power", scope_reading_object<any_greater_power_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "any_owned_province", scope_reading_object<any_owned_province_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "any_core", scope_reading_object<any_core_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "all_core", scope_reading_object<all_core_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "any_state", scope_reading_object<any_state_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "any_substate", scope_reading_object<any_substate_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "any_sphere_member", scope_reading_object<any_sphere_member_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "any_pop", scope_reading_object<any_pop_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "owner", scope_reading_object<owner_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "controller", scope_reading_object<controller_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "location", scope_reading_object<location_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "country", scope_reading_object<country_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "capital_scope", scope_reading_object<capital_scope_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "this", scope_reading_object<this_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "from", scope_reading_object<from_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "sea_zone", scope_reading_object<sea_zone_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "cultural_union", scope_reading_object<cultural_union_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "overlord", scope_reading_object<overlord_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "sphere_owner", scope_reading_object<sphere_owner_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "independence", scope_reading_object<independence_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "flashpoint_tag_scope", scope_reading_object<flashpoint_tag_scope_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "crisis_state_scope", scope_reading_object<crisis_state_scope_trigger>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "state_scope", scope_reading_object<state_scope_trigger>)
+			MEMBER_VARIABLE_TYPE_ASSOCIATION("_add_scope", accept_all, variable_name_scope_reading_object, get_vscope)
 		END_TYPE
-	END_DOMAIN
+		BEGIN_TYPE(diplomatic_influence_trigger)
+		    MEMBER_ASSOCIATION("value", "value", yield_rh)
+		    MEMBER_ASSOCIATION("who", "who", token_from_rh)
+		END_TYPE
+		BEGIN_TYPE(party_loyalty_trigger)
+			MEMBER_ASSOCIATION("value", "value", yield_rh)
+			MEMBER_ASSOCIATION("ideology", "ideology", token_from_rh)
+			MEMBER_ASSOCIATION("province_id", "province_id", token_to<uint16_t>)
+		END_TYPE
+		BEGIN_TYPE(unemployment_by_type_trigger)
+			MEMBER_ASSOCIATION("value", "value", yield_rh)
+			MEMBER_ASSOCIATION("type", "type", token_from_rh)
+		END_TYPE
+		BEGIN_TYPE(upper_house_trigger)
+			MEMBER_ASSOCIATION("value", "value", yield_rh)
+			MEMBER_ASSOCIATION("ideology", "ideology", token_from_rh)
+		END_TYPE
+		BEGIN_TYPE(check_variable_trigger)
+			MEMBER_ASSOCIATION("value", "value", yield_rh)
+			MEMBER_ASSOCIATION("which", "which", token_from_rh)
+		END_TYPE
+		BEGIN_TYPE(relation_trigger)
+			MEMBER_ASSOCIATION("value", "value", yield_rh)
+			MEMBER_ASSOCIATION("who", "who", token_from_rh)
+		END_TYPE
+		BEGIN_TYPE(pop_unemployment_trigger)
+			MEMBER_ASSOCIATION("value", "value", yield_rh)
+			MEMBER_ASSOCIATION("type", "type", token_from_rh)
+			MEMBER_ASSOCIATION("type", "pop", token_from_rh)
+		END_TYPE
+		BEGIN_TYPE(can_build_in_province_trigger)
+			MEMBER_ASSOCIATION("limit_to_world_greatest_level", "limit_to_world_greatest_level", token_to<bool>)
+			MEMBER_ASSOCIATION("building", "building", token_from_rh)
+		END_TYPE
+		BEGIN_TYPE(can_build_fort_in_capital_trigger)
+			MEMBER_ASSOCIATION("limit_to_world_greatest_level", "limit_to_world_greatest_level", token_to<bool>)
+			MEMBER_ASSOCIATION("in_whole_capital_state", "in_whole_capital_state", token_to<bool>)
+		END_TYPE
+		BEGIN_TYPE(can_build_railway_in_capital_trigger)
+			MEMBER_ASSOCIATION("limit_to_world_greatest_level", "limit_to_world_greatest_level", token_to<bool>)
+			MEMBER_ASSOCIATION("in_whole_capital_state", "in_whole_capital_state", token_to<bool>)
+		END_TYPE
+		BEGIN_TYPE(work_available_trigger)
+		    MEMBER_ASSOCIATION("worker", "worker", token_from_rh)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<and_trigger>)
+		    INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<or_trigger>)
+		    INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<not_trigger>)
+		    INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<any_neighbor_province_trigger>)
+		    INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<any_neighbor_country_trigger>)
+			INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<war_countries_trigger>)
+			INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<any_greater_power_trigger>)
+		    INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<any_owned_province_trigger>)
+		    INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<any_core_trigger>)
+		    INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<all_core_trigger>)
+		    INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<any_state_trigger>)
+			INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<any_substate_trigger>)
+			INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<any_sphere_member_trigger>)
+		    INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<any_pop_trigger>)
+		    INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<owner_trigger>)
+		    INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<controller_trigger>)
+		    INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<location_trigger>)
+			INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<country_trigger>)
+			INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<capital_scope_trigger>)
+		    INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<this_trigger>)
+		    INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<from_trigger>)
+		    INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<sea_zone_trigger>)
+		    INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<cultural_union_trigger>)
+			INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<overlord_trigger>)
+			INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<sphere_owner_trigger>)
+		    INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<independence_trigger>)
+		    INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<flashpoint_tag_scope_trigger>)
+		    INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<crisis_state_scope_trigger>)
+		    INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(scope_reading_object<state_scope_trigger>)
+			INHERIT_FROM(common_scope_base)
+		END_TYPE
+		BEGIN_TYPE(variable_name_scope_reading_object)
+			INHERIT_FROM(common_scope_base)
+		END_TYPE
+	END_DOMAIN;
+
+	uint32_t scope_data_payload(uint16_t code) {
+		if(((code & codes::code_mask) == codes::x_provinces_in_variable_region) |
+			((code & codes::code_mask) == codes::tag_scope) |
+			((code & codes::code_mask) == codes::integer_scope))
+			return 1ui32;
+		return 0ui32;
+	}
+
+	template<typename T>
+	void recurse_over_triggers(uint16_t* source, const T& f) {
+		f(source);
+
+		if ((source[0] & codes::is_scope) != 0) {
+			const auto source_size = 1 + get_payload_size(source);
+
+			auto sub_units_start = souce + 1ui32 + scope_data_payload(source[0]);
+			while (sub_units_start < source + source_size) {
+				recurse_over_trigger_scopes(sub_units_start, f);
+				sub_units_start += 1 + get_payload_size(sub_units_start);
+			}
+		}
+	}
+
+	void invert_trigger_internal(uint16_t* source) {
+		if ((source[0] & codes::is_scope) != 0) {
+			const auto neg_disjunctive_bit = codes::is_disjunctive_scope & ~source[0];
+			const auto neg_existence_bit = scope_has_any_all(source[0] & codes::code_mask) ? (codes::is_existance_scope & ~source[0]) : 0;
+			const auto masked_source = source[0] & ~(codes::is_disjunctive_scope | codes::is_existance_scope);
+
+			source[0] = uint16_t(masked_source | neg_disjunctive_bit | neg_existence_bit);
+		} else {
+			const auto inverse_association = invert_association(uint16_t(source[0] & codes::association_mask));
+			source[0] = uint16_t((source[0] & ~codes::association_mask) | inverse_association);
+		}
+	}
+
+	void invert_trigger(uint16_t* source) {
+		recurse_over_triggers(source, invert_trigger_internal);
+	}
+
+	bool scope_is_empty(const uint16_t* source) {
+		return get_payload_size(source) == 1ui32 + scope_data_payload(source[0]);
+	}
+	//precondition: scope known to not be empty
+	bool scope_has_single_member(const uint16_t* source) {
+		const auto data_offset = 1ui32 + scope_data_payload(source[0]);
+		return get_payload_size(source) == data_offset + 1 + get_payload_size(source + data_offset);
+	}
+
+	void simplify_trigger(uint16_t* source, uint32_t source_size) {
+
+	}
 }

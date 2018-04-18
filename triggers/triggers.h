@@ -131,7 +131,7 @@ namespace triggers {
 		tagged_vector<uint32_t, trigger_tag> trigger_offsets;
 	};
 
-	int32_t get_payload_size(uint16_t* data);
+	int32_t get_payload_size(const uint16_t* data);
 	void add_float_to_payload(std::vector<uint16_t>& v, float f);
 	float read_float_from_payload(const uint16_t* data);
 	void add_int32_t_to_payload(std::vector<uint16_t>& v, int32_t i);

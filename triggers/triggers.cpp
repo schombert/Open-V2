@@ -2,7 +2,7 @@
 #include "codes.h"
 
 namespace triggers {
-	int32_t get_payload_size(uint16_t* data) {
+	int32_t get_payload_size(const uint16_t* data) {
 		const auto payload_mask = uint16_t(-int16_t((codes::no_payload & data[0]) == 0));
 		return payload_mask & data[1];
 	}
