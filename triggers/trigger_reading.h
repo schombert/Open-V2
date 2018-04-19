@@ -22,5 +22,5 @@ namespace triggers {
 	void invert_trigger(uint16_t* source);
 	bool scope_is_empty(const uint16_t* source);
 	bool scope_has_single_member(const uint16_t* source); //precondition: scope known to not be empty
-	void simplify_trigger(uint16_t* source, uint32_t source_size);
+	int32_t simplify_trigger(uint16_t* source);
 }

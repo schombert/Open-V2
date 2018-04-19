@@ -3755,7 +3755,7 @@ namespace triggers {
 		}
 	};
 	struct crisis_state_scope_trigger {
-		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state&) {
 			return uint16_t(codes::crisis_state_scope);
 		}
 		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
@@ -4290,6 +4290,7 @@ namespace triggers {
 	struct common_scope_base {
 		trigger_parsing_environment& env;
 		trigger_scope_state scope_state;
+		size_t payload_size_offset = 0ui64;
 
 		common_scope_base(trigger_parsing_environment& e) : env(e) {}
 
@@ -4300,7 +4301,9 @@ namespace triggers {
 				std::get<1>(args),
 				std::get<2>(args));
 		}
-
+		void finalize() const {
+			env.data[payload_size_offset] = uint16_t(env.data.size() - payload_size_offset);
+		}
 		template<typename T>
 		void add_scope(const T& other) {
 			other.finalize();
@@ -4339,8 +4342,6 @@ struct _set_member<CT_STRING("_add_scope"), T> {
 
 namespace triggers {
 	struct variable_name_scope_reading_object : public common_scope_base {
-		
-		size_t payload_size_offset;
 		variable_name_scope_reading_object(const token_and_type& name, trigger_parsing_environment& e) : common_scope_base(e) {
 			const auto left_handle = text_data::get_thread_safe_existing_text_handle(env.s.text_m, name.start, name.end);
 
@@ -4381,18 +4382,10 @@ namespace triggers {
 				TRIGGER_ERROR(unknown_scope, e);
 			}
 		}
-
-		void finalize() const {
-			env.data[payload_size_offset] = uint16_t(env.data.size() - payload_size_offset);
-		}
-
-		
 	};
 
 	template<typename scope_trigger>
 	struct scope_reading_object : public common_scope_base {
-		size_t payload_size_offset;
-
 		scope_reading_object(trigger_parsing_environment& e) : common_scope_base(e), scope_state(scope_trigger::produce_new_scope(e.current_scope)) {
 			e.current_scope = scope_state;
 
@@ -4403,11 +4396,6 @@ namespace triggers {
 				payload_size_offset = e.data.size() - 1;
 			}
 		}
-
-		void finalize() const {
-			env.data[payload_size_offset] = uint16_t(e.data.size() - payload_size_offset);
-		}
-
 	};
 
 #define TPAIR(x) typepair< CT_STRING( #x ), x ## _trigger>
@@ -4629,28 +4617,28 @@ namespace triggers {
 					env.data.push_back(*code);
 					env.data.push_back(static_cast<uint16_t>(data_size + 1));
 
-					const auto payload = decltype(type_arg)::type::read_value(trigger_value, s);
+					const auto payload = decltype(type_arg)::type::read_value(trigger_value, env.s);
 					//using trigger_value = std::variant<std::monostate, int32_t, float, issues::option_identifier, trigger_payload>;
 					if (std::holds_alternative<int32_t>(payload)) {
-						add_int32_t_to_payload(data, std::get<int32_t>(payload));
+						add_int32_t_to_payload(env.data, std::get<int32_t>(payload));
 #ifdef _DEBUG
 						if (data_size != 2)
 							throw mismatched_payload_size();
 #endif
 					} else if (std::holds_alternative<float>(payload)) {
-						add_float_to_payload(data, std::get<float>(payload));
+						add_float_to_payload(env.data, std::get<float>(payload));
 #ifdef _DEBUG
 						if (data_size != 2)
 							throw mismatched_payload_size();
 #endif
 					} else if (std::holds_alternative<issues::option_identifier>(payload)) {
-						add_option_identifier_to_payload(data, std::get<issues::option_identifier>(payload));
+						add_option_identifier_to_payload(env.data, std::get<issues::option_identifier>(payload));
 #ifdef _DEBUG
 						if (data_size != 2)
 							throw mismatched_payload_size();
 #endif
 					} else if (std::holds_alternative<trigger_payload>(payload)) {
-						data.push_back(std::get<trigger_payload>(payload).value);
+						env.data.push_back(std::get<trigger_payload>(payload).value);
 #ifdef _DEBUG
 						if (data_size != 1)
 							throw mismatched_payload_size();
@@ -4933,12 +4921,12 @@ namespace triggers {
 		END_TYPE
 	END_DOMAIN;
 
-	uint32_t scope_data_payload(uint16_t code) {
+	inline int32_t scope_data_payload(uint16_t code) {
 		if(((code & codes::code_mask) == codes::x_provinces_in_variable_region) |
 			((code & codes::code_mask) == codes::tag_scope) |
 			((code & codes::code_mask) == codes::integer_scope))
-			return 1ui32;
-		return 0ui32;
+			return 1;
+		return 0;
 	}
 
 	template<typename T>
@@ -4948,15 +4936,15 @@ namespace triggers {
 		if ((source[0] & codes::is_scope) != 0) {
 			const auto source_size = 1 + get_payload_size(source);
 
-			auto sub_units_start = souce + 1ui32 + scope_data_payload(source[0]);
+			auto sub_units_start = source + 1ui32 + scope_data_payload(source[0]);
 			while (sub_units_start < source + source_size) {
-				recurse_over_trigger_scopes(sub_units_start, f);
+				recurse_over_triggers(sub_units_start, f);
 				sub_units_start += 1 + get_payload_size(sub_units_start);
 			}
 		}
 	}
 
-	void invert_trigger_internal(uint16_t* source) {
+	inline void invert_trigger_internal(uint16_t* source) {
 		if ((source[0] & codes::is_scope) != 0) {
 			const auto neg_disjunctive_bit = codes::is_disjunctive_scope & ~source[0];
 			const auto neg_existence_bit = scope_has_any_all(source[0] & codes::code_mask) ? (codes::is_existance_scope & ~source[0]) : 0;
@@ -4974,15 +4962,49 @@ namespace triggers {
 	}
 
 	bool scope_is_empty(const uint16_t* source) {
-		return get_payload_size(source) == 1ui32 + scope_data_payload(source[0]);
+		return get_payload_size(source) == 1 + scope_data_payload(source[0]);
 	}
 	//precondition: scope known to not be empty
 	bool scope_has_single_member(const uint16_t* source) {
-		const auto data_offset = 1ui32 + scope_data_payload(source[0]);
+		const auto data_offset = 1 + scope_data_payload(source[0]);
 		return get_payload_size(source) == data_offset + 1 + get_payload_size(source + data_offset);
 	}
 
-	void simplify_trigger(uint16_t* source, uint32_t source_size) {
+	//yields new source size
+	int32_t simplify_trigger(uint16_t* source) {
+		if ((source[0] & codes::is_scope) != 0) {
+			if (scope_is_empty(source)) {
+				return 0; // simplify an empty scope to nothing
+			}
 
+			//simplify each member
+			auto source_size = 1 + get_payload_size(source);
+
+			auto sub_units_start = source + 1ui32 + scope_data_payload(source[0]);
+			while (sub_units_start < source + source_size) {
+				const auto old_size = 1 + get_payload_size(sub_units_start);
+				const auto new_size = simplify_trigger(sub_units_start);
+				
+				if (new_size != old_size) { // has been simplified, assumes that new size always <= old size
+					std::copy(sub_units_start + old_size, source + source_size, sub_units_start + new_size);
+					source_size -= (old_size - new_size);
+				}
+				sub_units_start += new_size;
+			}
+
+			if ((source[0] & codes::code_mask) == codes::placeholder_not_scope) { // remove not scopes
+				invert_trigger(source);
+				source[0] = uint16_t((source[0] & ~codes::code_mask) | codes::generic_scope);
+			}
+
+			if ((source[0] & codes::code_mask) == codes::generic_scope && scope_has_single_member(source)) { // remove single-member generic scopes
+				std::copy(source + 2, source + source_size, source);
+				source_size -= 2;
+			}
+
+			return source_size;
+		} else {
+			return 1 + get_payload_size(source); // non scopes cannot be simplified
+		}
 	}
 }
