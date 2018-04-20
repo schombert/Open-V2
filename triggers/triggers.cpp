@@ -6,6 +6,13 @@ namespace triggers {
 		const auto payload_mask = uint16_t(-int16_t((codes::no_payload & data[0]) == 0));
 		return payload_mask & data[1];
 	}
+	int32_t scope_data_payload(uint16_t code) {
+		if (((code & codes::code_mask) == codes::x_provinces_in_variable_region) |
+			((code & codes::code_mask) == codes::tag_scope) |
+			((code & codes::code_mask) == codes::integer_scope))
+			return 1;
+		return 0;
+	}
 	void add_float_to_payload(std::vector<uint16_t>& v, float f) {
 		union {
 			struct {

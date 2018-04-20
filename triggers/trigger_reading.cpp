@@ -4921,29 +4921,6 @@ namespace triggers {
 		END_TYPE
 	END_DOMAIN;
 
-	inline int32_t scope_data_payload(uint16_t code) {
-		if(((code & codes::code_mask) == codes::x_provinces_in_variable_region) |
-			((code & codes::code_mask) == codes::tag_scope) |
-			((code & codes::code_mask) == codes::integer_scope))
-			return 1;
-		return 0;
-	}
-
-	template<typename T>
-	void recurse_over_triggers(uint16_t* source, const T& f) {
-		f(source);
-
-		if ((source[0] & codes::is_scope) != 0) {
-			const auto source_size = 1 + get_payload_size(source);
-
-			auto sub_units_start = source + 1ui32 + scope_data_payload(source[0]);
-			while (sub_units_start < source + source_size) {
-				recurse_over_triggers(sub_units_start, f);
-				sub_units_start += 1 + get_payload_size(sub_units_start);
-			}
-		}
-	}
-
 	inline void invert_trigger_internal(uint16_t* source) {
 		if ((source[0] & codes::is_scope) != 0) {
 			const auto neg_disjunctive_bit = codes::is_disjunctive_scope & ~source[0];
@@ -4962,12 +4939,12 @@ namespace triggers {
 	}
 
 	bool scope_is_empty(const uint16_t* source) {
-		return get_payload_size(source) == 1 + scope_data_payload(source[0]);
+		return get_payload_size(source) <= 1 + scope_data_payload(source[0]);
 	}
 	//precondition: scope known to not be empty
 	bool scope_has_single_member(const uint16_t* source) {
-		const auto data_offset = 1 + scope_data_payload(source[0]);
-		return get_payload_size(source) == data_offset + 1 + get_payload_size(source + data_offset);
+		const auto data_offset = 2 + scope_data_payload(source[0]);
+		return get_payload_size(source) == data_offset + get_payload_size(source + data_offset);
 	}
 
 	//yields new source size
@@ -4980,7 +4957,7 @@ namespace triggers {
 			//simplify each member
 			auto source_size = 1 + get_payload_size(source);
 
-			auto sub_units_start = source + 1ui32 + scope_data_payload(source[0]);
+			auto sub_units_start = source + 2 + scope_data_payload(source[0]);
 			while (sub_units_start < source + source_size) {
 				const auto old_size = 1 + get_payload_size(sub_units_start);
 				const auto new_size = simplify_trigger(sub_units_start);
@@ -4996,6 +4973,8 @@ namespace triggers {
 				invert_trigger(source);
 				source[0] = uint16_t((source[0] & ~codes::code_mask) | codes::generic_scope);
 			}
+
+			source[1] = uint16_t(source_size - 1);
 
 			if ((source[0] & codes::code_mask) == codes::generic_scope && scope_has_single_member(source)) { // remove single-member generic scopes
 				std::copy(source + 2, source + source_size, source);

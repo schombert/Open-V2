@@ -159,6 +159,17 @@
     <ClCompile Include="triggers.cpp" />
     <ClCompile Include="trigger_reading.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\cultures\cultures.vcxproj">
+      <Project>{cb6da773-046f-41e5-bdb5-8a7a8ce66261}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\text_data\text_data.vcxproj">
+      <Project>{ab9203fb-2ba5-4495-8f9e-78c21f15a8c6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\variables\variables.vcxproj">
+      <Project>{90316e63-9ce3-4d2b-80ac-440903861b0d}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
