@@ -27,7 +27,7 @@ namespace triggers {
 	};
 	struct is_canal_enabled_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state&, association_type a, const token_and_type&) {
-			return uint16_t(codes::is_canal_enabled | association_to_trigger_code(a));
+			return uint16_t(codes::is_canal_enabled | association_to_bool_code(a));
 		}
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
 			return trigger_payload(token_to<uint16_t>(t));
@@ -261,7 +261,7 @@ namespace triggers {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type& t) {
 			if (is_fixed_token_ci(t, "from")) {
 				if (scope.from_slot == trigger_slot_contents::nation)
-					return uint16_t(codes::is_releasable_vassal_from | association_to_trigger_code(a));
+					return uint16_t(codes::is_releasable_vassal_from | association_to_bool_code(a));
 				else
 					return std::optional<uint16_t>();
 			} else {
@@ -279,7 +279,7 @@ namespace triggers {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type& t) {
 			if (is_fixed_token_ci(t, "from")) {
 				if (scope.from_slot == trigger_slot_contents::nation)
-					return uint16_t(codes::someone_can_form_union_tag_from | association_to_trigger_code(a));
+					return uint16_t(codes::someone_can_form_union_tag_from | association_to_bool_code(a));
 				else
 					return std::optional<uint16_t>();
 			} else {
@@ -1064,7 +1064,7 @@ namespace triggers {
 	struct province_id_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::province)
-				return  uint16_t(codes::province_id | association_to_trigger_code(a));
+				return  uint16_t(codes::province_id | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1075,7 +1075,7 @@ namespace triggers {
 	struct invention_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::invention | association_to_trigger_code(a));
+				return  uint16_t(codes::invention | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1089,7 +1089,7 @@ namespace triggers {
 	struct big_producer_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::big_producer | association_to_trigger_code(a));
+				return  uint16_t(codes::big_producer | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1104,11 +1104,11 @@ namespace triggers {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type& t) {
 			if (scope.main_slot == trigger_slot_contents::pop) {
 				if (is_fixed_token_ci(t.start, t.end, "poor"))
-					return uint16_t(codes::strata_poor | association_to_trigger_code(a));
+					return uint16_t(codes::strata_poor | association_to_bool_code(a));
 				else if (is_fixed_token_ci(t.start, t.end, "rich"))
-					return uint16_t(codes::strata_rich | association_to_trigger_code(a));
+					return uint16_t(codes::strata_rich | association_to_bool_code(a));
 				else
-					return  uint16_t(codes::strata_middle | association_to_trigger_code(a));
+					return  uint16_t(codes::strata_middle | association_to_bool_code(a));
 			} else {
 				return std::optional<uint16_t>();
 			}
@@ -1146,9 +1146,9 @@ namespace triggers {
 	struct state_id_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::province)
-				return  uint16_t(codes::state_id_province | association_to_trigger_code(a));
+				return  uint16_t(codes::state_id_province | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::state)
-				return  uint16_t(codes::state_id_state | association_to_trigger_code(a));
+				return  uint16_t(codes::state_id_state | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1230,9 +1230,9 @@ namespace triggers {
 	struct government_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::government_nation | association_to_trigger_code(a));
+				return  uint16_t(codes::government_nation | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::pop)
-				return  uint16_t(codes::government_pop | association_to_trigger_code(a));
+				return  uint16_t(codes::government_pop | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1246,7 +1246,7 @@ namespace triggers {
 	struct constructing_cb_type_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::constructing_cb_type | association_to_trigger_code(a));
+				return  uint16_t(codes::constructing_cb_type | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1260,7 +1260,7 @@ namespace triggers {
 	struct can_build_factory_in_capital_state_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::can_build_factory_in_capital_state | association_to_trigger_code(a));
+				return  uint16_t(codes::can_build_factory_in_capital_state | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1274,7 +1274,7 @@ namespace triggers {
 	struct capital_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::capital | association_to_trigger_code(a));
+				return  uint16_t(codes::capital | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1285,7 +1285,7 @@ namespace triggers {
 	struct tech_school_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::tech_school | association_to_trigger_code(a));
+				return  uint16_t(codes::tech_school | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1299,7 +1299,7 @@ namespace triggers {
 	struct primary_culture_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::primary_culture | association_to_trigger_code(a));
+				return  uint16_t(codes::primary_culture | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1313,7 +1313,7 @@ namespace triggers {
 	struct has_crime_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::province)
-				return  uint16_t(codes::has_crime | association_to_trigger_code(a));
+				return  uint16_t(codes::has_crime | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1327,7 +1327,7 @@ namespace triggers {
 	struct accepted_culture_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::accepted_culture | association_to_trigger_code(a));
+				return  uint16_t(codes::accepted_culture | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1341,11 +1341,11 @@ namespace triggers {
 	struct pop_majority_religion_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::pop_majority_religion_nation | association_to_trigger_code(a));
+				return  uint16_t(codes::pop_majority_religion_nation | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::state)
-				return  uint16_t(codes::pop_majority_religion_state | association_to_trigger_code(a));
+				return  uint16_t(codes::pop_majority_religion_state | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::province)
-				return  uint16_t(codes::pop_majority_religion_province | association_to_trigger_code(a));
+				return  uint16_t(codes::pop_majority_religion_province | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1359,11 +1359,11 @@ namespace triggers {
 	struct pop_majority_culture_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::pop_majority_culture_nation | association_to_trigger_code(a));
+				return  uint16_t(codes::pop_majority_culture_nation | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::state)
-				return  uint16_t(codes::pop_majority_culture_state | association_to_trigger_code(a));
+				return  uint16_t(codes::pop_majority_culture_state | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::province)
-				return  uint16_t(codes::pop_majority_culture_province | association_to_trigger_code(a));
+				return  uint16_t(codes::pop_majority_culture_province | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1377,13 +1377,13 @@ namespace triggers {
 	struct pop_majority_issue_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::pop_majority_issue_nation | association_to_trigger_code(a));
+				return  uint16_t(codes::pop_majority_issue_nation | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::state)
-				return  uint16_t(codes::pop_majority_issue_state | association_to_trigger_code(a));
+				return  uint16_t(codes::pop_majority_issue_state | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::province)
-				return  uint16_t(codes::pop_majority_issue_province | association_to_trigger_code(a));
+				return  uint16_t(codes::pop_majority_issue_province | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::pop)
-				return  uint16_t(codes::pop_majority_issue_pop | association_to_trigger_code(a));
+				return  uint16_t(codes::pop_majority_issue_pop | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1397,13 +1397,13 @@ namespace triggers {
 	struct pop_majority_ideology_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::pop_majority_ideology_nation | association_to_trigger_code(a));
+				return  uint16_t(codes::pop_majority_ideology_nation | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::state)
-				return  uint16_t(codes::pop_majority_ideology_state | association_to_trigger_code(a));
+				return  uint16_t(codes::pop_majority_ideology_state | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::province)
-				return  uint16_t(codes::pop_majority_ideology_province | association_to_trigger_code(a));
+				return  uint16_t(codes::pop_majority_ideology_province | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::pop)
-				return  uint16_t(codes::pop_majority_ideology_pop | association_to_trigger_code(a));
+				return  uint16_t(codes::pop_majority_ideology_pop | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1417,9 +1417,9 @@ namespace triggers {
 	struct trade_goods_in_state_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::state)
-				return  uint16_t(codes::trade_goods_in_state_state | association_to_trigger_code(a));
+				return  uint16_t(codes::trade_goods_in_state_state | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::province)
-				return  uint16_t(codes::trade_goods_in_state_province | association_to_trigger_code(a));
+				return  uint16_t(codes::trade_goods_in_state_province | association_to_bool_code(a));
 
 			else
 				return std::optional<uint16_t>();
@@ -1436,13 +1436,13 @@ namespace triggers {
 			if (is_fixed_token_ci(t, "this")) {
 				if (scope.main_slot == trigger_slot_contents::pop) {
 					if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::culture_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::culture_this_nation | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::culture_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::culture_this_pop | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::culture_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::culture_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::culture_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::culture_this_province | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
@@ -1450,29 +1450,29 @@ namespace triggers {
 				}
 			} else if (is_fixed_token_ci(t, "from")) {
 				if (scope.main_slot == trigger_slot_contents::pop && scope.from_slot == trigger_slot_contents::nation)
-					return  uint16_t(codes::culture_from_nation | association_to_trigger_code(a));
+					return  uint16_t(codes::culture_from_nation | association_to_bool_code(a));
 				else
 					return std::optional<uint16_t>();
 			} else if (is_fixed_token_ci(t, "reb")) {
 				if (scope.contains_rebeltype == false)
 					return std::optional<uint16_t>();
 				else if (scope.main_slot == trigger_slot_contents::pop)
-					return  uint16_t(codes::culture_pop_reb | association_to_trigger_code(a));
+					return  uint16_t(codes::culture_pop_reb | association_to_bool_code(a));
 				else if (scope.main_slot == trigger_slot_contents::state)
-					return  uint16_t(codes::culture_state_reb | association_to_trigger_code(a));
+					return  uint16_t(codes::culture_state_reb | association_to_bool_code(a));
 				else if (scope.main_slot == trigger_slot_contents::province)
-					return  uint16_t(codes::culture_province_reb | association_to_trigger_code(a));
+					return  uint16_t(codes::culture_province_reb | association_to_bool_code(a));
 				else if (scope.main_slot == trigger_slot_contents::nation)
-					return  uint16_t(codes::culture_nation_reb | association_to_trigger_code(a));
+					return  uint16_t(codes::culture_nation_reb | association_to_bool_code(a));
 			}
 			if (scope.main_slot == trigger_slot_contents::pop)
-				return  uint16_t(codes::culture_pop | association_to_trigger_code(a));
+				return  uint16_t(codes::culture_pop | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::state)
-				return  uint16_t(codes::culture_state | association_to_trigger_code(a));
+				return  uint16_t(codes::culture_state | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::province)
-				return  uint16_t(codes::culture_province | association_to_trigger_code(a));
+				return  uint16_t(codes::culture_province | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::culture_nation | association_to_trigger_code(a));
+				return  uint16_t(codes::culture_nation | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1488,13 +1488,13 @@ namespace triggers {
 			if (is_fixed_token_ci(t, "this")) {
 				if (scope.this_slot == trigger_slot_contents::pop) {
 					if (scope.main_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::has_pop_culture_nation_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::has_pop_culture_nation_this_pop | association_to_bool_code(a));
 					else if (scope.main_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::has_pop_culture_pop_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::has_pop_culture_pop_this_pop | association_to_bool_code(a));
 					else if (scope.main_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::has_pop_culture_state_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::has_pop_culture_state_this_pop | association_to_bool_code(a));
 					else if (scope.main_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::has_pop_culture_province_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::has_pop_culture_province_this_pop | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
@@ -1502,13 +1502,13 @@ namespace triggers {
 				}
 			} else {
 				if (scope.main_slot == trigger_slot_contents::pop)
-					return  uint16_t(codes::has_pop_culture_pop | association_to_trigger_code(a));
+					return  uint16_t(codes::has_pop_culture_pop | association_to_bool_code(a));
 				else if (scope.main_slot == trigger_slot_contents::state)
-					return  uint16_t(codes::has_pop_culture_state | association_to_trigger_code(a));
+					return  uint16_t(codes::has_pop_culture_state | association_to_bool_code(a));
 				else if (scope.main_slot == trigger_slot_contents::province)
-					return  uint16_t(codes::has_pop_culture_province | association_to_trigger_code(a));
+					return  uint16_t(codes::has_pop_culture_province | association_to_bool_code(a));
 				else if (scope.main_slot == trigger_slot_contents::nation)
-					return  uint16_t(codes::has_pop_culture_nation | association_to_trigger_code(a));
+					return  uint16_t(codes::has_pop_culture_nation | association_to_bool_code(a));
 				else
 					return std::optional<uint16_t>();
 			}
@@ -1525,13 +1525,13 @@ namespace triggers {
 			if (is_fixed_token_ci(t, "this")) {
 				if (scope.this_slot == trigger_slot_contents::pop) {
 					if (scope.main_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::has_pop_religion_nation_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::has_pop_religion_nation_this_pop | association_to_bool_code(a));
 					else if (scope.main_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::has_pop_religion_pop_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::has_pop_religion_pop_this_pop | association_to_bool_code(a));
 					else if (scope.main_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::has_pop_religion_state_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::has_pop_religion_state_this_pop | association_to_bool_code(a));
 					else if (scope.main_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::has_pop_religion_province_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::has_pop_religion_province_this_pop | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
@@ -1539,13 +1539,13 @@ namespace triggers {
 				}
 			} else {
 				if (scope.main_slot == trigger_slot_contents::pop)
-					return  uint16_t(codes::has_pop_religion_pop | association_to_trigger_code(a));
+					return  uint16_t(codes::has_pop_religion_pop | association_to_bool_code(a));
 				else if (scope.main_slot == trigger_slot_contents::state)
-					return  uint16_t(codes::has_pop_religion_state | association_to_trigger_code(a));
+					return  uint16_t(codes::has_pop_religion_state | association_to_bool_code(a));
 				else if (scope.main_slot == trigger_slot_contents::province)
-					return  uint16_t(codes::has_pop_religion_province | association_to_trigger_code(a));
+					return  uint16_t(codes::has_pop_religion_province | association_to_bool_code(a));
 				else if (scope.main_slot == trigger_slot_contents::nation)
-					return  uint16_t(codes::has_pop_religion_nation | association_to_trigger_code(a));
+					return  uint16_t(codes::has_pop_religion_nation | association_to_bool_code(a));
 				else
 					return std::optional<uint16_t>();
 			}
@@ -1562,24 +1562,24 @@ namespace triggers {
 			if (is_fixed_token_ci(t, "this")) {
 				if (scope.main_slot == trigger_slot_contents::pop) {
 					if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::culture_group_pop_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::culture_group_pop_this_nation | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::culture_group_pop_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::culture_group_pop_this_pop | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::culture_group_pop_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::culture_group_pop_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::culture_group_pop_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::culture_group_pop_this_province | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (scope.main_slot == trigger_slot_contents::nation) {
 					if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::culture_group_nation_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::culture_group_nation_this_nation | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::culture_group_nation_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::culture_group_nation_this_pop | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::culture_group_nation_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::culture_group_nation_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::culture_group_nation_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::culture_group_nation_this_province | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
@@ -1588,9 +1588,9 @@ namespace triggers {
 			} else if (is_fixed_token_ci(t, "from")) {
 				if (scope.from_slot == trigger_slot_contents::nation) {
 					if (scope.main_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::culture_group_pop_from_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::culture_group_pop_from_nation | association_to_bool_code(a));
 					else if (scope.main_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::culture_group_nation_from_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::culture_group_nation_from_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
@@ -1600,14 +1600,14 @@ namespace triggers {
 				if (scope.contains_rebeltype == false)
 					return std::optional<uint16_t>();
 				else if (scope.main_slot == trigger_slot_contents::pop)
-					return  uint16_t(codes::culture_group_reb_pop | association_to_trigger_code(a));
+					return  uint16_t(codes::culture_group_reb_pop | association_to_bool_code(a));
 				else if (scope.main_slot == trigger_slot_contents::nation)
-					return  uint16_t(codes::culture_group_reb_nation | association_to_trigger_code(a));
+					return  uint16_t(codes::culture_group_reb_nation | association_to_bool_code(a));
 			}
 			if (scope.main_slot == trigger_slot_contents::pop)
-				return  uint16_t(codes::culture_group_pop | association_to_trigger_code(a));
+				return  uint16_t(codes::culture_group_pop | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::culture_group_nation | association_to_trigger_code(a));
+				return  uint16_t(codes::culture_group_nation | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1624,24 +1624,24 @@ namespace triggers {
 			if (scope.main_slot == trigger_slot_contents::pop) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::religion_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::religion_this_nation | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::religion_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::religion_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::religion_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::religion_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::religion_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::religion_this_pop | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::religion_from_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::religion_from_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "reb")) {
-					return  uint16_t(codes::religion_reb | association_to_trigger_code(a));
+					return  uint16_t(codes::religion_reb | association_to_bool_code(a));
 				} else {
-					return  uint16_t(codes::religion | association_to_trigger_code(a));
+					return  uint16_t(codes::religion | association_to_bool_code(a));
 				}
 			} else {
 				return std::optional<uint16_t>();
@@ -1658,9 +1658,9 @@ namespace triggers {
 	struct terrain_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::pop) {
-				return  uint16_t(codes::terrain_pop | association_to_trigger_code(a));
+				return  uint16_t(codes::terrain_pop | association_to_bool_code(a));
 			} else if (scope.main_slot == trigger_slot_contents::province) {
-				return  uint16_t(codes::terrain_province | association_to_trigger_code(a));
+				return  uint16_t(codes::terrain_province | association_to_bool_code(a));
 			} else {
 				return std::optional<uint16_t>();
 			}
@@ -1675,7 +1675,7 @@ namespace triggers {
 	struct trade_goods_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::province)
-				return  uint16_t(codes::trade_goods | association_to_trigger_code(a));
+				return  uint16_t(codes::trade_goods | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1702,9 +1702,9 @@ namespace triggers {
 	struct has_faction_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::pop)
-				return  uint16_t(codes::has_faction_pop | association_to_trigger_code(a));
+				return  uint16_t(codes::has_faction_pop | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::has_faction_nation | association_to_trigger_code(a));
+				return  uint16_t(codes::has_faction_nation | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1735,30 +1735,30 @@ namespace triggers {
 					return std::optional<uint16_t>();
 			} else if (is_fixed_token_ci(t, "this")) {
 				if (scope.main_slot == trigger_slot_contents::pop)
-					return  uint16_t(codes::is_cultural_union_this_self_pop | association_to_trigger_code(a));
+					return  uint16_t(codes::is_cultural_union_this_self_pop | association_to_bool_code(a));
 				else if (scope.this_slot == trigger_slot_contents::pop)
-					return  uint16_t(codes::is_cultural_union_this_pop | association_to_trigger_code(a));
+					return  uint16_t(codes::is_cultural_union_this_pop | association_to_bool_code(a));
 				else if (scope.this_slot == trigger_slot_contents::state)
-					return  uint16_t(codes::is_cultural_union_this_state | association_to_trigger_code(a));
+					return  uint16_t(codes::is_cultural_union_this_state | association_to_bool_code(a));
 				else if (scope.this_slot == trigger_slot_contents::province)
-					return  uint16_t(codes::is_cultural_union_this_province | association_to_trigger_code(a));
+					return  uint16_t(codes::is_cultural_union_this_province | association_to_bool_code(a));
 				else if (scope.this_slot == trigger_slot_contents::nation)
-					return  uint16_t(codes::is_cultural_union_this_nation | association_to_trigger_code(a));
+					return  uint16_t(codes::is_cultural_union_this_nation | association_to_bool_code(a));
 				else if (scope.contains_rebeltype)
-					return  uint16_t(codes::is_cultural_union_this_rebel | association_to_trigger_code(a));
+					return  uint16_t(codes::is_cultural_union_this_rebel | association_to_bool_code(a));
 				else
 					return std::optional<uint16_t>();
 			} else {
 				if (scope.main_slot == trigger_slot_contents::nation)
-					return  uint16_t(codes::is_cultural_union_tag_nation | association_to_trigger_code(a));
+					return  uint16_t(codes::is_cultural_union_tag_nation | association_to_bool_code(a));
 				else if (scope.this_slot == trigger_slot_contents::pop)
-					return  uint16_t(codes::is_cultural_union_tag_this_pop | association_to_trigger_code(a));
+					return  uint16_t(codes::is_cultural_union_tag_this_pop | association_to_bool_code(a));
 				else if (scope.this_slot == trigger_slot_contents::state)
-					return  uint16_t(codes::is_cultural_union_tag_this_state | association_to_trigger_code(a));
+					return  uint16_t(codes::is_cultural_union_tag_this_state | association_to_bool_code(a));
 				else if (scope.this_slot == trigger_slot_contents::province)
-					return  uint16_t(codes::is_cultural_union_tag_this_province | association_to_trigger_code(a));
+					return  uint16_t(codes::is_cultural_union_tag_this_province | association_to_bool_code(a));
 				else if (scope.this_slot == trigger_slot_contents::nation)
-					return  uint16_t(codes::is_cultural_union_tag_this_nation | association_to_trigger_code(a));
+					return  uint16_t(codes::is_cultural_union_tag_this_nation | association_to_bool_code(a));
 				else
 					return std::optional<uint16_t>();
 			}
@@ -1819,7 +1819,7 @@ namespace triggers {
 	struct owns_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::owns | association_to_trigger_code(a));
+				return  uint16_t(codes::owns | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1830,7 +1830,7 @@ namespace triggers {
 	struct controls_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::controls | association_to_trigger_code(a));
+				return  uint16_t(codes::controls | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1842,33 +1842,33 @@ namespace triggers {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type& t) {
 			if (is_integer(t.start, t.end)) {
 				if (scope.main_slot == trigger_slot_contents::nation)
-					return  uint16_t(codes::is_core_integer | association_to_trigger_code(a));
+					return  uint16_t(codes::is_core_integer | association_to_bool_code(a));
 				else
 					return std::optional<uint16_t>();
 			} else if (scope.main_slot == trigger_slot_contents::province) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::is_core_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::is_core_this_pop | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::is_core_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::is_core_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::is_core_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::is_core_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::is_core_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::is_core_this_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::is_core_from_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::is_core_from_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "reb")) {
 					if (scope.contains_rebeltype)
-						return  uint16_t(codes::is_core_reb | association_to_trigger_code(a));
+						return  uint16_t(codes::is_core_reb | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::is_core_tag | association_to_trigger_code(a));
+					return  uint16_t(codes::is_core_tag | association_to_bool_code(a));
 				}
 			} else {
 				return std::optional<uint16_t>();
@@ -1975,22 +1975,22 @@ namespace triggers {
 			if (scope.main_slot == trigger_slot_contents::province) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::owned_by_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::owned_by_this_pop | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::owned_by_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::owned_by_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::owned_by_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::owned_by_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::owned_by_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::owned_by_this_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::owned_by_from_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::owned_by_from_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::owned_by_tag | association_to_trigger_code(a));
+					return  uint16_t(codes::owned_by_tag | association_to_bool_code(a));
 				}
 			} else {
 				return std::optional<uint16_t>();
@@ -2011,7 +2011,7 @@ namespace triggers {
 				else
 					return std::optional<uint16_t>();
 			} else {
-				return  uint16_t(codes::exists_tag | association_to_trigger_code(a));
+				return  uint16_t(codes::exists_tag | association_to_bool_code(a));
 			}
 		}
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
@@ -2024,7 +2024,7 @@ namespace triggers {
 	struct has_country_flag_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::has_country_flag | association_to_trigger_code(a));
+				return  uint16_t(codes::has_country_flag | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -2035,7 +2035,7 @@ namespace triggers {
 	};
 	struct has_global_flag_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state&, association_type a, const token_and_type&) {
-			return  uint16_t(codes::has_global_flag | association_to_trigger_code(a));
+			return  uint16_t(codes::has_global_flag | association_to_bool_code(a));
 		}
 		static trigger_value read_value(const token_and_type& t, scenario::scenario_manager& s) {
 			return trigger_payload{
@@ -2047,58 +2047,58 @@ namespace triggers {
 			if (scope.main_slot == trigger_slot_contents::nation) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::continent_nation_this | association_to_trigger_code(a));
+						return  uint16_t(codes::continent_nation_this | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::continent_nation_from | association_to_trigger_code(a));
+						return  uint16_t(codes::continent_nation_from | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::continent_nation | association_to_trigger_code(a));
+					return  uint16_t(codes::continent_nation | association_to_bool_code(a));
 				}
 			} else if (scope.main_slot == trigger_slot_contents::state) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::continent_state_this | association_to_trigger_code(a));
+						return  uint16_t(codes::continent_state_this | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::continent_state_from | association_to_trigger_code(a));
+						return  uint16_t(codes::continent_state_from | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::continent_state | association_to_trigger_code(a));
+					return  uint16_t(codes::continent_state | association_to_bool_code(a));
 				}
 			} else if (scope.main_slot == trigger_slot_contents::province) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::continent_province_this | association_to_trigger_code(a));
+						return  uint16_t(codes::continent_province_this | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::continent_province_from | association_to_trigger_code(a));
+						return  uint16_t(codes::continent_province_from | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::continent_province | association_to_trigger_code(a));
+					return  uint16_t(codes::continent_province | association_to_bool_code(a));
 				}
 			} else if (scope.main_slot == trigger_slot_contents::pop) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::continent_pop_this | association_to_trigger_code(a));
+						return  uint16_t(codes::continent_pop_this | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::continent_pop_from | association_to_trigger_code(a));
+						return  uint16_t(codes::continent_pop_from | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::continent_pop | association_to_trigger_code(a));
+					return  uint16_t(codes::continent_pop | association_to_bool_code(a));
 				}
 			} else {
 				return std::optional<uint16_t>();
@@ -2116,22 +2116,22 @@ namespace triggers {
 			if (scope.main_slot == trigger_slot_contents::nation) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::casus_belli_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::casus_belli_this_pop | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::casus_belli_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::casus_belli_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::casus_belli_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::casus_belli_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::casus_belli_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::casus_belli_this_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::casus_belli_from | association_to_trigger_code(a));
+						return  uint16_t(codes::casus_belli_from | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::casus_belli_tag | association_to_trigger_code(a));
+					return  uint16_t(codes::casus_belli_tag | association_to_bool_code(a));
 				}
 			} else {
 				return std::optional<uint16_t>();
@@ -2149,22 +2149,22 @@ namespace triggers {
 			if (scope.main_slot == trigger_slot_contents::nation) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::military_access_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::military_access_this_pop | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::military_access_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::military_access_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::military_access_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::military_access_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::military_access_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::military_access_this_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::military_access_from | association_to_trigger_code(a));
+						return  uint16_t(codes::military_access_from | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::military_access_tag | association_to_trigger_code(a));
+					return  uint16_t(codes::military_access_tag | association_to_bool_code(a));
 				}
 			} else {
 				return std::optional<uint16_t>();
@@ -2221,14 +2221,14 @@ namespace triggers {
 	struct has_building_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type& t) {
 			if (scope.main_slot == trigger_slot_contents::state)
-				return  uint16_t(codes::has_building_state | association_to_trigger_code(a));
+				return  uint16_t(codes::has_building_state | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::province) {
 				if (is_fixed_token_ci(t, "fort"))
-					return  uint16_t(codes::has_building_fort | association_to_trigger_code(a));
+					return  uint16_t(codes::has_building_fort | association_to_bool_code(a));
 				else if (is_fixed_token_ci(t, "railroad"))
-					return  uint16_t(codes::has_building_railroad | association_to_trigger_code(a));
+					return  uint16_t(codes::has_building_railroad | association_to_bool_code(a));
 				else if (is_fixed_token_ci(t, "naval_base"))
-					return  uint16_t(codes::has_building_naval_base | association_to_trigger_code(a));
+					return  uint16_t(codes::has_building_naval_base | association_to_bool_code(a));
 				else
 					return std::optional<uint16_t>();
 			} else
@@ -2266,7 +2266,7 @@ namespace triggers {
 	struct has_country_modifier_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::has_country_modifier | association_to_trigger_code(a));
+				return  uint16_t(codes::has_country_modifier | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -2280,7 +2280,7 @@ namespace triggers {
 	struct has_province_modifier_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::province)
-				return  uint16_t(codes::has_province_modifier | association_to_trigger_code(a));
+				return  uint16_t(codes::has_province_modifier | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -2294,7 +2294,7 @@ namespace triggers {
 	struct nationalvalue_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::nationalvalue | association_to_trigger_code(a));
+				return  uint16_t(codes::nationalvalue | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -2308,7 +2308,7 @@ namespace triggers {
 	struct region_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::province)
-				return  uint16_t(codes::region | association_to_trigger_code(a));
+				return  uint16_t(codes::region | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -2325,20 +2325,20 @@ namespace triggers {
 			if (scope.main_slot == trigger_slot_contents::nation) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::tag_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::tag_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::tag_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::tag_this_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::tag_from_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::tag_from_nation | association_to_bool_code(a));
 					else if (scope.from_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::tag_from_province | association_to_trigger_code(a));
+						return  uint16_t(codes::tag_from_province | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::tag_tag | association_to_trigger_code(a));
+					return  uint16_t(codes::tag_tag | association_to_bool_code(a));
 				}
 			} else {
 				return std::optional<uint16_t>();
@@ -2356,16 +2356,16 @@ namespace triggers {
 			if (scope.main_slot == trigger_slot_contents::nation) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::neighbour_this | association_to_trigger_code(a));
+						return  uint16_t(codes::neighbour_this | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::neighbour_from | association_to_trigger_code(a));
+						return  uint16_t(codes::neighbour_from | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::neighbour_tag | association_to_trigger_code(a));
+					return  uint16_t(codes::neighbour_tag | association_to_bool_code(a));
 				}
 			} else {
 				return std::optional<uint16_t>();
@@ -2413,22 +2413,22 @@ namespace triggers {
 			if (scope.main_slot == trigger_slot_contents::nation) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::war_with_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::war_with_this_pop | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::war_with_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::war_with_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::war_with_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::war_with_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::war_with_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::war_with_this_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::war_with_from | association_to_trigger_code(a));
+						return  uint16_t(codes::war_with_from | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::war_with_tag | association_to_trigger_code(a));
+					return  uint16_t(codes::war_with_tag | association_to_bool_code(a));
 				}
 			} else {
 				return std::optional<uint16_t>();
@@ -2499,9 +2499,9 @@ namespace triggers {
 	struct ruling_party_ideology_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::ruling_party_ideology_nation | association_to_trigger_code(a));
+				return  uint16_t(codes::ruling_party_ideology_nation | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::pop)
-				return  uint16_t(codes::ruling_party_ideology_pop | association_to_trigger_code(a));
+				return  uint16_t(codes::ruling_party_ideology_pop | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -2515,7 +2515,7 @@ namespace triggers {
 	struct ruling_party_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::ruling_party | association_to_trigger_code(a));
+				return  uint16_t(codes::ruling_party | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -2526,7 +2526,7 @@ namespace triggers {
 	struct has_leader_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::has_leader | association_to_trigger_code(a));
+				return  uint16_t(codes::has_leader | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -2536,7 +2536,7 @@ namespace triggers {
 	};
 	struct is_ideology_enabled_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state&, association_type a, const token_and_type&) {
-			return  uint16_t(codes::is_ideology_enabled | association_to_trigger_code(a));
+			return  uint16_t(codes::is_ideology_enabled | association_to_bool_code(a));
 		}
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
@@ -2625,46 +2625,46 @@ namespace triggers {
 			if (is_fixed_token_ci(t, "this")) {
 				if (scope.main_slot == trigger_slot_contents::nation) {
 					if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::is_primary_culture_nation_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::is_primary_culture_nation_this_nation | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::is_primary_culture_nation_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::is_primary_culture_nation_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::is_primary_culture_nation_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::is_primary_culture_nation_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::is_primary_culture_nation_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::is_primary_culture_nation_this_pop | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (scope.main_slot == trigger_slot_contents::state) {
 					if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::is_primary_culture_state_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::is_primary_culture_state_this_nation | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::is_primary_culture_state_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::is_primary_culture_state_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::is_primary_culture_state_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::is_primary_culture_state_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::is_primary_culture_state_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::is_primary_culture_state_this_pop | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (scope.main_slot == trigger_slot_contents::province) {
 					if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::is_primary_culture_province_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::is_primary_culture_province_this_nation | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::is_primary_culture_province_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::is_primary_culture_province_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::is_primary_culture_province_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::is_primary_culture_province_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::is_primary_culture_province_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::is_primary_culture_province_this_pop | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (scope.main_slot == trigger_slot_contents::pop) {
 					if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::is_primary_culture_pop_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::is_primary_culture_pop_this_nation | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::is_primary_culture_pop_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::is_primary_culture_pop_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::is_primary_culture_pop_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::is_primary_culture_pop_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::is_primary_culture_pop_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::is_primary_culture_pop_this_pop | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
@@ -2717,22 +2717,22 @@ namespace triggers {
 			if (scope.main_slot == trigger_slot_contents::nation) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::in_sphere_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::in_sphere_this_pop | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::in_sphere_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::in_sphere_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::in_sphere_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::in_sphere_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::in_sphere_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::in_sphere_this_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::in_sphere_from | association_to_trigger_code(a));
+						return  uint16_t(codes::in_sphere_from | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::in_sphere_tag | association_to_trigger_code(a));
+					return  uint16_t(codes::in_sphere_tag | association_to_bool_code(a));
 				}
 			} else {
 				return std::optional<uint16_t>();
@@ -2748,13 +2748,13 @@ namespace triggers {
 	struct produces_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::produces_nation | association_to_trigger_code(a));
+				return  uint16_t(codes::produces_nation | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::province)
-				return  uint16_t(codes::produces_province | association_to_trigger_code(a));
+				return  uint16_t(codes::produces_province | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::state)
-				return  uint16_t(codes::produces_state | association_to_trigger_code(a));
+				return  uint16_t(codes::produces_state | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::pop)
-				return  uint16_t(codes::produces_pop | association_to_trigger_code(a));
+				return  uint16_t(codes::produces_pop | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -2768,13 +2768,13 @@ namespace triggers {
 	struct has_pop_type_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::has_pop_type_nation | association_to_trigger_code(a));
+				return  uint16_t(codes::has_pop_type_nation | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::province)
-				return  uint16_t(codes::has_pop_type_province | association_to_trigger_code(a));
+				return  uint16_t(codes::has_pop_type_province | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::state)
-				return  uint16_t(codes::has_pop_type_state | association_to_trigger_code(a));
+				return  uint16_t(codes::has_pop_type_state | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::pop)
-				return  uint16_t(codes::has_pop_type_pop | association_to_trigger_code(a));
+				return  uint16_t(codes::has_pop_type_pop | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -2835,9 +2835,9 @@ namespace triggers {
 	struct is_next_reform_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::is_next_reform_nation | association_to_trigger_code(a));
+				return  uint16_t(codes::is_next_reform_nation | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::pop)
-				return  uint16_t(codes::is_next_reform_pop | association_to_trigger_code(a));
+				return  uint16_t(codes::is_next_reform_pop | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -2921,29 +2921,29 @@ namespace triggers {
 			if (scope.main_slot == trigger_slot_contents::province) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::controlled_by_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::controlled_by_this_pop | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::controlled_by_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::controlled_by_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::controlled_by_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::controlled_by_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::controlled_by_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::controlled_by_this_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::controlled_by_from | association_to_trigger_code(a));
+						return  uint16_t(codes::controlled_by_from | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "owner")) {
-					return  uint16_t(codes::controlled_by_owner | association_to_trigger_code(a));
+					return  uint16_t(codes::controlled_by_owner | association_to_bool_code(a));
 				} else if (is_fixed_token_ci(t, "reb")) {
 					if (scope.contains_rebeltype)
-						return  uint16_t(codes::controlled_by_reb | association_to_trigger_code(a));
+						return  uint16_t(codes::controlled_by_reb | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::controlled_by_tag | association_to_trigger_code(a));
+					return  uint16_t(codes::controlled_by_tag | association_to_bool_code(a));
 				}
 			} else {
 				return std::optional<uint16_t>();
@@ -2961,22 +2961,22 @@ namespace triggers {
 			if (scope.main_slot == trigger_slot_contents::nation) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::truce_with_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::truce_with_this_pop | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::truce_with_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::truce_with_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::truce_with_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::truce_with_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::truce_with_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::truce_with_this_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::truce_with_from | association_to_trigger_code(a));
+						return  uint16_t(codes::truce_with_from | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::truce_with_tag | association_to_trigger_code(a));
+					return  uint16_t(codes::truce_with_tag | association_to_bool_code(a));
 				}
 			} else {
 				return std::optional<uint16_t>();
@@ -2994,22 +2994,22 @@ namespace triggers {
 			if (scope.main_slot == trigger_slot_contents::nation) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::is_sphere_leader_of_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::is_sphere_leader_of_this_pop | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::is_sphere_leader_of_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::is_sphere_leader_of_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::is_sphere_leader_of_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::is_sphere_leader_of_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::is_sphere_leader_of_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::is_sphere_leader_of_this_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::is_sphere_leader_of_from | association_to_trigger_code(a));
+						return  uint16_t(codes::is_sphere_leader_of_from | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::is_sphere_leader_of_tag | association_to_trigger_code(a));
+					return  uint16_t(codes::is_sphere_leader_of_tag | association_to_bool_code(a));
 				}
 			} else {
 				return std::optional<uint16_t>();
@@ -3027,22 +3027,22 @@ namespace triggers {
 			if (scope.main_slot == trigger_slot_contents::nation) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::constructing_cb_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::constructing_cb_this_pop | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::constructing_cb_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::constructing_cb_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::constructing_cb_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::constructing_cb_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::constructing_cb_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::constructing_cb_this_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::constructing_cb_from | association_to_trigger_code(a));
+						return  uint16_t(codes::constructing_cb_from | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::constructing_cb_tag | association_to_trigger_code(a));
+					return  uint16_t(codes::constructing_cb_tag | association_to_bool_code(a));
 				}
 			} else {
 				return std::optional<uint16_t>();
@@ -3060,22 +3060,22 @@ namespace triggers {
 			if (scope.main_slot == trigger_slot_contents::nation) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::vassal_of_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::vassal_of_this_pop | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::vassal_of_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::vassal_of_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::vassal_of_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::vassal_of_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::vassal_of_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::vassal_of_this_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::vassal_of_from | association_to_trigger_code(a));
+						return  uint16_t(codes::vassal_of_from | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::vassal_of_tag | association_to_trigger_code(a));
+					return  uint16_t(codes::vassal_of_tag | association_to_bool_code(a));
 				}
 			} else {
 				return std::optional<uint16_t>();
@@ -3093,22 +3093,22 @@ namespace triggers {
 			if (scope.main_slot == trigger_slot_contents::nation) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::substate_of_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::substate_of_this_pop | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::substate_of_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::substate_of_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::substate_of_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::substate_of_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::substate_of_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::substate_of_this_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::substate_of_from | association_to_trigger_code(a));
+						return  uint16_t(codes::substate_of_from | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::substate_of_tag | association_to_trigger_code(a));
+					return  uint16_t(codes::substate_of_tag | association_to_bool_code(a));
 				}
 			} else {
 				return std::optional<uint16_t>();
@@ -3126,22 +3126,22 @@ namespace triggers {
 			if (scope.main_slot == trigger_slot_contents::nation) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::is_our_vassal_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::is_our_vassal_this_pop | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::is_our_vassal_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::is_our_vassal_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::is_our_vassal_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::is_our_vassal_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::is_our_vassal_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::is_our_vassal_this_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::is_our_vassal_from | association_to_trigger_code(a));
+						return  uint16_t(codes::is_our_vassal_from | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::is_our_vassal_tag | association_to_trigger_code(a));
+					return  uint16_t(codes::is_our_vassal_tag | association_to_bool_code(a));
 				}
 			} else {
 				return std::optional<uint16_t>();
@@ -3159,33 +3159,33 @@ namespace triggers {
 			if (scope.main_slot == trigger_slot_contents::nation) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::this_culture_union_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::this_culture_union_this_pop | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::this_culture_union_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::this_culture_union_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::this_culture_union_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::this_culture_union_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::this_culture_union_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::this_culture_union_this_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "this_union")) {
 					if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::this_culture_union_this_union_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::this_culture_union_this_union_pop | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::this_culture_union_this_union_state | association_to_trigger_code(a));
+						return  uint16_t(codes::this_culture_union_this_union_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::this_culture_union_this_union_province | association_to_trigger_code(a));
+						return  uint16_t(codes::this_culture_union_this_union_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::this_culture_union_this_union_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::this_culture_union_this_union_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::this_culture_union_from | association_to_trigger_code(a));
+						return  uint16_t(codes::this_culture_union_from | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::this_culture_union_tag | association_to_trigger_code(a));
+					return  uint16_t(codes::this_culture_union_tag | association_to_bool_code(a));
 				}
 			} else {
 				return std::optional<uint16_t>();
@@ -3203,22 +3203,22 @@ namespace triggers {
 			if (scope.main_slot == trigger_slot_contents::nation) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::alliance_with_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::alliance_with_this_pop | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::alliance_with_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::alliance_with_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::alliance_with_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::alliance_with_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::alliance_with_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::alliance_with_this_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::alliance_with_from | association_to_trigger_code(a));
+						return  uint16_t(codes::alliance_with_from | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::alliance_with_tag | association_to_trigger_code(a));
+					return  uint16_t(codes::alliance_with_tag | association_to_bool_code(a));
 				}
 			} else {
 				return std::optional<uint16_t>();
@@ -3236,22 +3236,22 @@ namespace triggers {
 			if (scope.main_slot == trigger_slot_contents::nation) {
 				if (is_fixed_token_ci(t, "this")) {
 					if (scope.this_slot == trigger_slot_contents::pop)
-						return  uint16_t(codes::in_default_this_pop | association_to_trigger_code(a));
+						return  uint16_t(codes::in_default_this_pop | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::state)
-						return  uint16_t(codes::in_default_this_state | association_to_trigger_code(a));
+						return  uint16_t(codes::in_default_this_state | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::province)
-						return  uint16_t(codes::in_default_this_province | association_to_trigger_code(a));
+						return  uint16_t(codes::in_default_this_province | association_to_bool_code(a));
 					else if (scope.this_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::in_default_this_nation | association_to_trigger_code(a));
+						return  uint16_t(codes::in_default_this_nation | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "from")) {
 					if (scope.from_slot == trigger_slot_contents::nation)
-						return  uint16_t(codes::in_default_from | association_to_trigger_code(a));
+						return  uint16_t(codes::in_default_from | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
 				} else {
-					return  uint16_t(codes::in_default_tag | association_to_trigger_code(a));
+					return  uint16_t(codes::in_default_tag | association_to_bool_code(a));
 				}
 			} else {
 				return std::optional<uint16_t>();
@@ -3327,7 +3327,7 @@ namespace triggers {
 	struct is_possible_vassal_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(codes::is_possible_vassal | association_to_trigger_code(a));
+				return  uint16_t(codes::is_possible_vassal | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
@@ -4283,6 +4283,7 @@ MEMBER_DEF(triggers::can_build_railway_in_capital_trigger, limit_to_world_greate
 MEMBER_FDEF(triggers::work_available_trigger, add_worker, "worker");
 
 namespace triggers {
+
 #ifdef _DEBUG
 	struct unknown_scope {};
 #endif
@@ -4339,6 +4340,9 @@ struct _set_member<CT_STRING("_add_scope"), T> {
 	}
 };
 
+#ifdef _DEBUG
+struct no_code_for_scope_in_current_context {};
+#endif
 
 namespace triggers {
 	struct variable_name_scope_reading_object : public common_scope_base {
@@ -4379,14 +4383,15 @@ namespace triggers {
 				payload_size_offset = e.data.size() - 1;
 				env.data.push_back(token_to<uint16_t>(name));
 			} else {
-				TRIGGER_ERROR(unknown_scope, e);
+				TRIGGER_ERROR(no_code_for_scope_in_current_context, e);
 			}
 		}
 	};
 
 	template<typename scope_trigger>
 	struct scope_reading_object : public common_scope_base {
-		scope_reading_object(trigger_parsing_environment& e) : common_scope_base(e), scope_state(scope_trigger::produce_new_scope(e.current_scope)) {
+		scope_reading_object(trigger_parsing_environment& e) : common_scope_base(e) {
+			scope_state = scope_trigger::produce_new_scope(e.current_scope);
 			e.current_scope = scope_state;
 
 			const auto code = scope_trigger::produce_code(scope_state);
@@ -4394,6 +4399,8 @@ namespace triggers {
 				e.data.push_back(uint16_t(*code | codes::is_scope));
 				e.data.push_back(1ui16);
 				payload_size_offset = e.data.size() - 1;
+			} else {
+				TRIGGER_ERROR(unknown_scope, e);
 			}
 		}
 	};
@@ -4791,7 +4798,7 @@ namespace triggers {
 		BEGIN_TYPE(party_loyalty_trigger)
 			MEMBER_ASSOCIATION("value", "value", yield_rh)
 			MEMBER_ASSOCIATION("ideology", "ideology", token_from_rh)
-			MEMBER_ASSOCIATION("province_id", "province_id", token_to<uint16_t>)
+			MEMBER_ASSOCIATION("province_id", "province_id", value_from_rh<uint16_t>)
 		END_TYPE
 		BEGIN_TYPE(unemployment_by_type_trigger)
 			MEMBER_ASSOCIATION("value", "value", yield_rh)
@@ -4815,16 +4822,16 @@ namespace triggers {
 			MEMBER_ASSOCIATION("type", "pop", token_from_rh)
 		END_TYPE
 		BEGIN_TYPE(can_build_in_province_trigger)
-			MEMBER_ASSOCIATION("limit_to_world_greatest_level", "limit_to_world_greatest_level", token_to<bool>)
+			MEMBER_ASSOCIATION("limit_to_world_greatest_level", "limit_to_world_greatest_level", value_from_rh<bool>)
 			MEMBER_ASSOCIATION("building", "building", token_from_rh)
 		END_TYPE
 		BEGIN_TYPE(can_build_fort_in_capital_trigger)
-			MEMBER_ASSOCIATION("limit_to_world_greatest_level", "limit_to_world_greatest_level", token_to<bool>)
-			MEMBER_ASSOCIATION("in_whole_capital_state", "in_whole_capital_state", token_to<bool>)
+			MEMBER_ASSOCIATION("limit_to_world_greatest_level", "limit_to_world_greatest_level", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("in_whole_capital_state", "in_whole_capital_state", value_from_rh<bool>)
 		END_TYPE
 		BEGIN_TYPE(can_build_railway_in_capital_trigger)
-			MEMBER_ASSOCIATION("limit_to_world_greatest_level", "limit_to_world_greatest_level", token_to<bool>)
-			MEMBER_ASSOCIATION("in_whole_capital_state", "in_whole_capital_state", token_to<bool>)
+			MEMBER_ASSOCIATION("limit_to_world_greatest_level", "limit_to_world_greatest_level", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("in_whole_capital_state", "in_whole_capital_state", value_from_rh<bool>)
 		END_TYPE
 		BEGIN_TYPE(work_available_trigger)
 		    MEMBER_ASSOCIATION("worker", "worker", token_from_rh)
@@ -4985,5 +4992,13 @@ namespace triggers {
 		} else {
 			return 1 + get_payload_size(source); // non scopes cannot be simplified
 		}
+	}
+
+	std::vector<uint16_t> parse_trigger(scenario::scenario_manager& s, trigger_scope_state outer_scope, const token_group* start, const token_group* end) {
+		trigger_parsing_environment parse_env(s, outer_scope);
+		parse_object<scope_reading_object<and_trigger>, trigger_reading>(start, end, parse_env);
+		const auto new_size = simplify_trigger(parse_env.data.data());
+		parse_env.data.resize(static_cast<size_t>(new_size));
+		return std::move(parse_env.data);
 	}
 }

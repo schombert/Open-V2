@@ -53,6 +53,9 @@
     <ProjectReference Include="..\gtest\gtest.vcxproj">
       <Project>{bbf2a58d-64c2-4ad1-80ca-0bb65487311d}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\ideologies\ideologies.vcxproj">
+      <Project>{15b719aa-730d-4147-9106-a9b190e03066}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\object_parsing\object_parsing.vcxproj">
       <Project>{d1a6aa5f-9db4-4786-a0c3-0c67bf87547d}</Project>
     </ProjectReference>

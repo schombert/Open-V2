@@ -700,6 +700,20 @@ namespace triggers {
 		}
 	}
 
+	inline uint16_t association_to_bool_code(association_type a) {
+		switch (a) {
+			case association_type::eq: return codes::association_eq;
+			case association_type::eq_default: return codes::association_eq;
+			case association_type::ge: return codes::association_eq;
+			case association_type::gt: return codes::association_ne;
+			case association_type::lt: return codes::association_ne;
+			case association_type::le: return codes::association_eq;
+			case association_type::ne: return codes::association_ne;
+			case association_type::none: return codes::association_ge;
+			case association_type::list: return codes::association_ge;
+		}
+	}
+
 	inline uint16_t invert_association(uint16_t a) {
 		return static_cast<uint16_t>(0x7000) - a;
 	}

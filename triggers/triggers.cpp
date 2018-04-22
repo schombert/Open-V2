@@ -75,7 +75,7 @@ namespace triggers {
 	}
 	issues::option_identifier read_option_identifier_from_payload(const uint16_t* data) {
 		trigger_payload low(data[0]);
-		trigger_payload high(data[0]);
+		trigger_payload high(data[1]);
 		issues::option_identifier result;
 
 		if (issues::is_unciv_issue(low.generic_issue.group))
