@@ -7,6 +7,7 @@
 #include "text_classifier\\text_classifiers.h"
 #include "simple_mpl\\simple_mpl.hpp"
 #include <variant>
+#include <algorithm>
 
 #ifdef _DEBUG
 #define TRIGGER_ERROR(type, environment) throw type ();
@@ -4391,10 +4392,7 @@ namespace triggers {
 	template<typename scope_trigger>
 	struct scope_reading_object : public common_scope_base {
 		scope_reading_object(trigger_parsing_environment& e) : common_scope_base(e) {
-			scope_state = scope_trigger::produce_new_scope(e.current_scope);
-			e.current_scope = scope_state;
-
-			const auto code = scope_trigger::produce_code(scope_state);
+			const auto code = scope_trigger::produce_code(e.current_scope);
 			if (code) {
 				e.data.push_back(uint16_t(*code | codes::is_scope));
 				e.data.push_back(1ui16);
@@ -4402,11 +4400,23 @@ namespace triggers {
 			} else {
 				TRIGGER_ERROR(unknown_scope, e);
 			}
+
+			scope_state = scope_trigger::produce_new_scope(e.current_scope);
+			e.current_scope = scope_state;
 		}
 	};
 
+	struct factor_type_scope : public scope_reading_object<and_trigger> {
+		factor_type_scope(trigger_parsing_environment& e) : scope_reading_object<and_trigger>(e) {}
+		float factor = 0.0f;
+	};
+}
+
+MEMBER_DEF(triggers::factor_type_scope, factor, "factor");
+
 #define TPAIR(x) typepair< CT_STRING( #x ), x ## _trigger>
 
+namespace triggers {
 	using unsorted_trigger_map = type_list<
 		TPAIR(month),
 		TPAIR(port),
@@ -4657,7 +4667,7 @@ namespace triggers {
 					}
 				}
 			} else {
-				TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, e);
+				TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 			}
 			return true;
 		})) {
@@ -4926,6 +4936,10 @@ namespace triggers {
 		BEGIN_TYPE(variable_name_scope_reading_object)
 			INHERIT_FROM(common_scope_base)
 		END_TYPE
+		BEGIN_TYPE(factor_type_scope)
+			INHERIT_FROM(common_scope_base)
+			MEMBER_ASSOCIATION("factor", "factor", value_from_rh<float>)
+		END_TYPE
 	END_DOMAIN;
 
 	inline void invert_trigger_internal(uint16_t* source) {
@@ -4996,9 +5010,44 @@ namespace triggers {
 
 	std::vector<uint16_t> parse_trigger(scenario::scenario_manager& s, trigger_scope_state outer_scope, const token_group* start, const token_group* end) {
 		trigger_parsing_environment parse_env(s, outer_scope);
-		parse_object<scope_reading_object<and_trigger>, trigger_reading>(start, end, parse_env);
+
+		auto trigger = parse_object<scope_reading_object<and_trigger>, trigger_reading>(start, end, parse_env);
+		trigger.finalize();
+
 		const auto new_size = simplify_trigger(parse_env.data.data());
 		parse_env.data.resize(static_cast<size_t>(new_size));
 		return std::move(parse_env.data);
+	}
+
+	trigger_and_factor parse_trigger_and_factor(scenario::scenario_manager& s, trigger_scope_state outer_scope, const token_group* start, const token_group* end) {
+		trigger_and_factor result;
+		trigger_parsing_environment parse_env(s, outer_scope);
+
+		auto trigger = parse_object<factor_type_scope, trigger_reading>(start, end, parse_env);
+		trigger.finalize();
+
+		const auto new_size = simplify_trigger(parse_env.data.data());
+		parse_env.data.resize(static_cast<size_t>(new_size));
+		
+		result.data = std::move(parse_env.data);
+		result.factor = trigger.factor;
+
+		return result;
+	}
+
+	trigger_tag commit_trigger(trigger_manager& trigger_manager, const std::vector<uint16_t>& new_trigger) {
+		if (new_trigger.size() == 0ui64)
+			return trigger_tag();
+
+		const auto search_result = std::search(trigger_manager.trigger_data.begin(), trigger_manager.trigger_data.end(), new_trigger.begin(), new_trigger.end());
+		if (search_result != trigger_manager.trigger_data.end()) {
+			return trigger_tag(static_cast<value_base_of<trigger_tag>>(search_result - trigger_manager.trigger_data.begin()));
+		} else {
+			trigger_manager.trigger_data.pop_back();
+			const auto new_start_pos = trigger_manager.trigger_data.size();
+			trigger_manager.trigger_data.insert(trigger_manager.trigger_data.end(), new_trigger.begin(), new_trigger.end());
+			trigger_manager.trigger_data.push_back(0ui16);
+			return trigger_tag(static_cast<value_base_of<trigger_tag>>(new_start_pos));
+		}
 	}
 }

@@ -477,3 +477,190 @@ TEST(trigger_reading, variable_trigger) {
 	EXPECT_EQ(ideologies::ideology_tag(2), trigger_payload(parse_env.data[2]).small.values.ideology);
 	EXPECT_EQ(2.5f, read_float_from_payload(parse_env.data.data() + 3));
 }
+
+TEST(trigger_reading, basic_full_read) {
+	const char trigger[] = "always = no";
+
+	text_data::text_sequences ts;
+	scenario::scenario_manager sm(ts);
+
+	std::vector<token_group> parse_results;
+	parse_pdx_file(parse_results, RANGE(trigger));
+
+	auto data = parse_trigger(
+		sm,
+		trigger_scope_state{
+			trigger_slot_contents::empty,
+			trigger_slot_contents::empty,
+			trigger_slot_contents::empty,
+			false },
+		parse_results.data(),
+		parse_results.data() + parse_results.size());
+
+	EXPECT_EQ(1ui64, data.size());
+	EXPECT_EQ(uint16_t(codes::always | codes::no_payload | codes::association_ne), data[0]);
+}
+
+TEST(trigger_reading, complex_full_reduction) {
+	const char trigger[] = "NOT = { AND = { AND = { always = yes } any_core = { average_consciousness >= 1.0 } } }";
+
+	text_data::text_sequences ts;
+	scenario::scenario_manager sm(ts);
+
+	std::vector<token_group> parse_results;
+	parse_pdx_file(parse_results, RANGE(trigger));
+
+	auto data = parse_trigger(
+		sm,
+		trigger_scope_state{
+			trigger_slot_contents::nation,
+			trigger_slot_contents::empty,
+			trigger_slot_contents::empty,
+			false },
+			parse_results.data(),
+			parse_results.data() + parse_results.size());
+
+	EXPECT_EQ(9ui64, data.size());
+	EXPECT_EQ(data[0], uint16_t(codes::is_scope | codes::is_disjunctive_scope | codes::generic_scope));
+	EXPECT_EQ(data[1], 8ui16);
+	EXPECT_EQ(data[2], uint16_t(codes::association_ne | codes::no_payload | codes::always));
+	EXPECT_EQ(data[3], uint16_t(codes::is_scope | codes::is_disjunctive_scope | codes::x_core_scope_nation));
+	EXPECT_EQ(data[4], 5ui16);
+	EXPECT_EQ(data[5], uint16_t(codes::association_lt | codes::average_consciousness_province));
+	EXPECT_EQ(data[6], 3ui16);
+	EXPECT_EQ(1.0f, read_float_from_payload(data.data() + 7));
+}
+
+TEST(trigger_reading, multipart_trigger) {
+	const char trigger[] = "diplomatic_influence = { value > 5 who = GER }";
+
+	text_data::text_sequences ts;
+	scenario::scenario_manager sm(ts);
+
+	test_files real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:\\test1"));
+
+	cultures::parse_national_tags(sm.culutre_m, f.get_root());
+
+	std::vector<token_group> parse_results;
+	parse_pdx_file(parse_results, RANGE(trigger));
+
+	auto data = parse_trigger(
+		sm,
+		trigger_scope_state{
+			trigger_slot_contents::nation,
+			trigger_slot_contents::empty,
+			trigger_slot_contents::empty,
+			false },
+			parse_results.data(),
+			parse_results.data() + parse_results.size());
+
+	EXPECT_EQ(4ui64, data.size());
+	EXPECT_EQ(data[0], uint16_t(codes::association_gt | codes::diplomatic_influence_tag));
+	EXPECT_EQ(data[1], 3ui16);
+	EXPECT_EQ(trigger_payload(data[2]).value, 5ui16);
+	EXPECT_EQ(trigger_payload(data[3]).tag, cultures::national_tag(0));
+}
+
+
+TEST(trigger_reading, variable_scope) {
+	const char trigger[] = "6 = { average_consciousness >= 1.0 average_militancy != 0.5 }";
+
+	text_data::text_sequences ts;
+	scenario::scenario_manager sm(ts);
+
+	std::vector<token_group> parse_results;
+	parse_pdx_file(parse_results, RANGE(trigger));
+
+	auto data = parse_trigger(
+		sm,
+		trigger_scope_state{
+			trigger_slot_contents::nation,
+			trigger_slot_contents::empty,
+			trigger_slot_contents::empty,
+			false },
+			parse_results.data(),
+			parse_results.data() + parse_results.size());
+
+	EXPECT_EQ(11ui64, data.size());
+	EXPECT_EQ(data[0], uint16_t(codes::is_scope | codes::integer_scope));
+	EXPECT_EQ(data[1], 10ui16);
+	EXPECT_EQ(data[2], 6ui16);
+	EXPECT_EQ(data[3], uint16_t(codes::association_ge | codes::average_consciousness_province));
+	EXPECT_EQ(data[4], 3ui16);
+	EXPECT_EQ(1.0f, read_float_from_payload(data.data() + 5));
+	EXPECT_EQ(data[7], uint16_t(codes::association_ne | codes::average_militancy_province));
+	EXPECT_EQ(data[8], 3ui16);
+	EXPECT_EQ(0.5f, read_float_from_payload(data.data() + 9));
+}
+
+TEST(trigger_reading, basic_factor_trigger) {
+	const char trigger[] = "factor = 1.5 always = no";
+
+	text_data::text_sequences ts;
+	scenario::scenario_manager sm(ts);
+
+	std::vector<token_group> parse_results;
+	parse_pdx_file(parse_results, RANGE(trigger));
+
+	auto t_result = parse_trigger_and_factor(
+		sm,
+		trigger_scope_state{
+			trigger_slot_contents::empty,
+			trigger_slot_contents::empty,
+			trigger_slot_contents::empty,
+			false },
+			parse_results.data(),
+			parse_results.data() + parse_results.size());
+
+	EXPECT_EQ(1.5f, t_result.factor);
+	EXPECT_EQ(1ui64, t_result.data.size());
+	EXPECT_EQ(uint16_t(codes::always | codes::no_payload | codes::association_ne), t_result.data[0]);
+}
+
+TEST(trigger_reading, empty_trigger) {
+	const char trigger[] = "";
+
+	text_data::text_sequences ts;
+	scenario::scenario_manager sm(ts);
+
+	std::vector<token_group> parse_results;
+	parse_pdx_file(parse_results, RANGE(trigger));
+
+	auto t_result = parse_trigger(
+		sm,
+		trigger_scope_state{
+			trigger_slot_contents::empty,
+			trigger_slot_contents::empty,
+			trigger_slot_contents::empty,
+			false },
+			parse_results.data(),
+			parse_results.data() + parse_results.size());
+
+	EXPECT_EQ(0ui64, t_result.size());
+}
+
+TEST(trigger_reading, commit_trigger) {
+	trigger_manager m;
+	EXPECT_EQ(1ui64, m.trigger_data.size());
+
+	std::vector<uint16_t> a{ 1ui16, 2ui16, 3ui16 };
+
+	const auto atag = commit_trigger(m, a);
+	EXPECT_EQ(4ui64, m.trigger_data.size());
+	EXPECT_EQ(trigger_tag(0), atag);
+
+	std::vector<uint16_t> b{ 6ui16, 7ui16 };
+
+	const auto btag = commit_trigger(m, b);
+	EXPECT_EQ(6ui64, m.trigger_data.size());
+	EXPECT_EQ(trigger_tag(3), btag);
+
+	std::vector<uint16_t> c{ 2ui16, 3ui16, 6ui16 };
+
+	const auto ctag = commit_trigger(m, c);
+	EXPECT_EQ(6ui64, m.trigger_data.size());
+	EXPECT_EQ(trigger_tag(1), ctag);
+}

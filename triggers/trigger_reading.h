@@ -15,6 +15,11 @@ namespace triggers {
 		trigger_parsing_environment(scenario::scenario_manager& sm, trigger_scope_state scope) : s(sm), current_scope(scope) {}
 	};
 
+	struct trigger_and_factor {
+		std::vector<uint16_t> data;
+		float factor;
+	};
+
 	void add_simple_trigger(
 		trigger_parsing_environment& env,
 		const token_and_type& trigger_name,
@@ -26,4 +31,6 @@ namespace triggers {
 	bool scope_has_single_member(const uint16_t* source); //precondition: scope known to not be empty
 	int32_t simplify_trigger(uint16_t* source); //yields new source size
 	std::vector<uint16_t> parse_trigger(scenario::scenario_manager& s, trigger_scope_state outer_scope, const token_group* start, const token_group* end);
+	trigger_and_factor parse_trigger_and_factor(scenario::scenario_manager& s, trigger_scope_state outer_scope, const token_group* start, const token_group* end);
+	trigger_tag commit_trigger(trigger_manager& trigger_manager, const std::vector<uint16_t>& new_trigger);
 }

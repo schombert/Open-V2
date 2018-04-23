@@ -127,8 +127,10 @@ namespace triggers {
 
 	class trigger_manager {
 	public:
-		std::vector<trigger_payload> trigger_data;
-		tagged_vector<uint32_t, trigger_tag> trigger_offsets;
+		std::vector<uint16_t> trigger_data;
+		trigger_manager() {
+			trigger_data.push_back(0ui16);
+		}
 	};
 
 	int32_t get_payload_size(const uint16_t* data);
