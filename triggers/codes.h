@@ -3,22 +3,380 @@
 #include "Parsers\\parsers.h"
 
 namespace triggers {
-	namespace codes {
+	namespace effect_codes {
+		//flags
+		constexpr uint16_t is_scope = 0x8000;
+		constexpr uint16_t no_payload = 0x4000;
+		constexpr uint16_t is_random_scope = 0x2000;
+		constexpr uint16_t scope_has_limit = 0x1000;
+
+		constexpr uint16_t code_mask = 0x0FFF;
+
+		//non scopes
+		constexpr uint16_t capital = 0x0001;
+		constexpr uint16_t add_core_tag = 0x0002;
+		constexpr uint16_t add_core_int = 0x0003;
+		constexpr uint16_t add_core_this_nation = 0x0004;
+		constexpr uint16_t add_core_this_province = 0x0005;
+		constexpr uint16_t add_core_this_state = 0x0006;
+		constexpr uint16_t add_core_this_pop = 0x0007;
+		constexpr uint16_t add_core_from_province = 0x0008;
+		constexpr uint16_t add_core_from_nation = 0x0009;
+		constexpr uint16_t add_core_reb = 0x000A;
+		constexpr uint16_t remove_core_tag = 0x000B;
+		constexpr uint16_t remove_core_int = 0x000C;
+		constexpr uint16_t remove_core_this_nation = 0x000D;
+		constexpr uint16_t remove_core_this_province = 0x000E;
+		constexpr uint16_t remove_core_this_state = 0x000F;
+		constexpr uint16_t remove_core_this_pop = 0x0010;
+		constexpr uint16_t remove_core_from_province = 0x0011;
+		constexpr uint16_t remove_core_from_nation = 0x0012;
+		constexpr uint16_t remove_core_reb = 0x0013;
+		constexpr uint16_t change_region_name_state = 0x0014;
+		constexpr uint16_t change_region_name_province = 0x0015;
+		constexpr uint16_t trade_goods = 0x0016;
+		constexpr uint16_t add_accepted_culture = 0x0017;
+		constexpr uint16_t add_accepted_culture_union = 0x0018;
+		constexpr uint16_t primary_culture = 0x0019;
+		constexpr uint16_t primary_culture_this_nation = 0x001A;
+		constexpr uint16_t primary_culture_this_state = 0x001B;
+		constexpr uint16_t primary_culture_this_province = 0x001C;
+		constexpr uint16_t primary_culture_this_pop = 0x001D;
+		constexpr uint16_t primary_culture_from_nation = 0x001E;
+		constexpr uint16_t remove_accepted_culture = 0x001F;
+		constexpr uint16_t life_rating = 0x0020;
+		constexpr uint16_t religion = 0x0021;
+		constexpr uint16_t is_slave_state_yes = 0x0022;
+		constexpr uint16_t is_slave_pop_yes = 0x0023;
+		constexpr uint16_t research_points = 0x0024;
+		constexpr uint16_t tech_school = 0x0025;
+		constexpr uint16_t government = 0x0026;
+		constexpr uint16_t government_reb = 0x0027;
+		constexpr uint16_t treasury = 0x0028;
+		constexpr uint16_t war_exhaustion = 0x0029;
+		constexpr uint16_t prestige = 0x002A;
+		constexpr uint16_t change_tag = 0x002B;
+		constexpr uint16_t change_tag_culture = 0x002C;
+		constexpr uint16_t change_tag_no_core_switch = 0x002D;
+		constexpr uint16_t change_tag_no_core_switch_culture = 0x002E;
+		constexpr uint16_t set_country_flag = 0x002F;
+		constexpr uint16_t clr_country_flag = 0x0030;
+		constexpr uint16_t military_access = 0x0031;
+		constexpr uint16_t military_access_this_nation = 0x0032;
+		constexpr uint16_t military_access_this_province = 0x0033;
+		constexpr uint16_t military_access_from_nation = 0x0034;
+		constexpr uint16_t military_access_from_province = 0x0035;
+		constexpr uint16_t badboy = 0x0036;
+		constexpr uint16_t secede_province = 0x0037;
+		constexpr uint16_t secede_province_this_nation = 0x0038;
+		constexpr uint16_t secede_province_this_state = 0x0039;
+		constexpr uint16_t secede_province_this_province = 0x003A;
+		constexpr uint16_t secede_province_this_pop = 0x003B;
+		constexpr uint16_t secede_province_from_nation = 0x003C;
+		constexpr uint16_t secede_province_from_province = 0x003D;
+		constexpr uint16_t secede_province_reb = 0x003E;
+		constexpr uint16_t inherit = 0x003F;
+		constexpr uint16_t inherit_this_nation = 0x0040;
+		constexpr uint16_t inherit_this_state = 0x0041;
+		constexpr uint16_t inherit_this_province = 0x0042;
+		constexpr uint16_t inherit_this_pop = 0x0043;
+		constexpr uint16_t inherit_from_nation = 0x0044;
+		constexpr uint16_t inherit_from_province = 0x0045;
+		constexpr uint16_t annex_to = 0x0046;
+		constexpr uint16_t annex_to_this_nation = 0x0047;
+		constexpr uint16_t annex_to_this_state = 0x0048;
+		constexpr uint16_t annex_to_this_province = 0x0049;
+		constexpr uint16_t annex_to_this_pop = 0x004A;
+		constexpr uint16_t annex_to_from_nation = 0x004B;
+		constexpr uint16_t annex_to_from_province = 0x004C;
+		constexpr uint16_t release = 0x004D;
+		constexpr uint16_t release_this_nation = 0x004E;
+		constexpr uint16_t release_this_state = 0x004F;
+		constexpr uint16_t release_this_province = 0x0050;
+		constexpr uint16_t release_this_pop = 0x0051;
+		constexpr uint16_t release_from_nation = 0x0052;
+		constexpr uint16_t release_from_province = 0x0053;
+		constexpr uint16_t change_controller = 0x0031;
+		constexpr uint16_t change_controller_this_nation = 0x0032;
+		constexpr uint16_t change_controller_this_province = 0x0033;
+		constexpr uint16_t change_controller_from_nation = 0x0034;
+		constexpr uint16_t change_controller_from_province = 0x0035;
+		constexpr uint16_t infrastructure = 0x0036;
+		constexpr uint16_t money = 0x0037;
+		constexpr uint16_t leadership = 0x0038;
+		constexpr uint16_t create_vassal = 0x0039;
+		constexpr uint16_t create_vassal_this_nation = 0x003A;
+		constexpr uint16_t create_vassal_this_province = 0x003B;
+		constexpr uint16_t create_vassal_from_nation = 0x003C;
+		constexpr uint16_t create_vassal_from_province = 0x003D;
+		constexpr uint16_t end_military_access = 0x003E;
+		constexpr uint16_t end_military_access_this_nation = 0x003F;
+		constexpr uint16_t end_military_access_this_province = 0x0040;
+		constexpr uint16_t end_military_access_from_nation = 0x0041;
+		constexpr uint16_t end_military_access_from_province = 0x0042;
+		constexpr uint16_t leave_alliance = 0x0043;
+		constexpr uint16_t leave_alliance_this_nation = 0x0044;
+		constexpr uint16_t leave_alliance_this_province = 0x0045;
+		constexpr uint16_t leave_alliance_from_nation = 0x0046;
+		constexpr uint16_t leave_alliance_from_province = 0x0047;
+		constexpr uint16_t end_war = 0x0048;
+		constexpr uint16_t end_war_this_nation = 0x0049;
+		constexpr uint16_t end_war_this_province = 0x004A;
+		constexpr uint16_t end_war_from_nation = 0x004B;
+		constexpr uint16_t end_war_from_province = 0x004C;
+		constexpr uint16_t enable_ideology = 0x004D;
+		constexpr uint16_t ruling_party_ideology = 0x004E;
+		constexpr uint16_t plurality = 0x004F;
+		constexpr uint16_t remove_province_modifier = 0x0050;
+		constexpr uint16_t remove_country_modifier = 0x0051;
+		constexpr uint16_t create_alliance = 0x0052;
+		constexpr uint16_t create_alliance_this_nation = 0x0053;
+		constexpr uint16_t create_alliance_this_province = 0x0054;
+		constexpr uint16_t create_alliance_from_nation = 0x0055;
+		constexpr uint16_t create_alliance_from_province = 0x0056;
+		constexpr uint16_t release_vassal = 0x0057;
+		constexpr uint16_t release_vassal_this_nation = 0x0058;
+		constexpr uint16_t release_vassal_this_province = 0x0059;
+		constexpr uint16_t release_vassal_from_nation = 0x005A;
+		constexpr uint16_t release_vassal_from_province = 0x005B;
+		constexpr uint16_t release_vassal_reb = 0x005C;
+		constexpr uint16_t release_vassal_random = 0x005D;
+		constexpr uint16_t change_province_name = 0x005E;
+		constexpr uint16_t enable_canal = 0x005F;
+		constexpr uint16_t set_global_flag = 0x0060;
+		constexpr uint16_t clr_global_flag = 0x0061;
+		constexpr uint16_t nationalvalue_province = 0x0062;
+		constexpr uint16_t nationalvalue_nation = 0x0063;
+		constexpr uint16_t civilized_yes = 0x0064;
+		constexpr uint16_t civilized_no = 0x0065;
+		constexpr uint16_t is_slave_state_no = 0x0066;
+		constexpr uint16_t is_slave_pop_no = 0x0067;
+		constexpr uint16_t election = 0x0068;
+		constexpr uint16_t social_reform = 0x0069;
+		constexpr uint16_t political_reform = 0x006A;
+		constexpr uint16_t add_tax_relative_income = 0x006B;
+		constexpr uint16_t neutrality = 0x006C;
+		constexpr uint16_t reduce_pop = 0x006D;
+		constexpr uint16_t move_pop = 0x006E;
+		constexpr uint16_t pop_type = 0x006F;
+		constexpr uint16_t years_of_research = 0x0070;
+		constexpr uint16_t prestige_factor_positive = 0x0071;
+		constexpr uint16_t prestige_factor_negative = 0x0072;
+		constexpr uint16_t military_reform = 0x0073;
+		constexpr uint16_t economic_reform = 0x0074;
+		constexpr uint16_t remove_random_military_reforms = 0x0075;
+		constexpr uint16_t remove_random_economic_reforms = 0x0076;
+		constexpr uint16_t add_crime = 0x0077;
+		constexpr uint16_t add_crime_none = 0x0078;
+		constexpr uint16_t nationalize = 0x0079;
+		constexpr uint16_t build_factory_in_capital_state = 0x007A;
+		constexpr uint16_t activate_technology = 0x007B;
+		constexpr uint16_t great_wars_enabled_yes = 0x007C;
+		constexpr uint16_t great_wars_enabled_no = 0x007D;
+		constexpr uint16_t world_wars_enabled_yes = 0x007E;
+		constexpr uint16_t world_wars_enabled_no = 0x007F;
+		constexpr uint16_t assimilate_province = 0x0080;
+		constexpr uint16_t assimilate_pop = 0x0081;
+		constexpr uint16_t literacy = 0x0082;
+		constexpr uint16_t add_crisis_interest = 0x0083;
+		constexpr uint16_t flashpoint_tension = 0x0084;
+		constexpr uint16_t add_crisis_temperature = 0x0085;
+		constexpr uint16_t consciousness = 0x0086;
+		constexpr uint16_t militancy = 0x0087;
+		constexpr uint16_t rgo_size = 0x0088;
+		constexpr uint16_t fort = 0x0089;
+		constexpr uint16_t naval_base = 0x008A;
+
+		//discard only
+		//set_province_flag
+		//clr_province_flag
+
+		//complex
+		constexpr uint16_t trigger_revolt_nation = 0x008B;
+		constexpr uint16_t trigger_revolt_state = 0x008C;
+		constexpr uint16_t trigger_revolt_province = 0x008D;
+		constexpr uint16_t diplomatic_influence = 0x008E;
+		constexpr uint16_t diplomatic_influence_this_nation = 0x008F;
+		constexpr uint16_t diplomatic_influence_this_province = 0x0090;
+		constexpr uint16_t diplomatic_influence_from_nation = 0x0091;
+		constexpr uint16_t diplomatic_influence_from_province = 0x0092;
+		constexpr uint16_t relation = 0x0093;
+		constexpr uint16_t relation_this_nation = 0x0094;
+		constexpr uint16_t relation_this_province = 0x0095;
+		constexpr uint16_t relation_from_nation = 0x0096;
+		constexpr uint16_t relation_from_province = 0x0097;
+		constexpr uint16_t add_province_modifier = 0x0098;
+		constexpr uint16_t add_province_modifier_no_duration = 0x0099;
+		constexpr uint16_t add_country_modifier = 0x009A;
+		constexpr uint16_t add_country_modifier_no_duration = 0x009B;
+		constexpr uint16_t casus_belli_tag = 0x009C;
+		constexpr uint16_t casus_belli_int = 0x009D;
+		constexpr uint16_t casus_belli_this_nation = 0x009E;
+		constexpr uint16_t casus_belli_this_state = 0x009F;
+		constexpr uint16_t casus_belli_this_province = 0x00A0;
+		constexpr uint16_t casus_belli_this_pop = 0x00A1;
+		constexpr uint16_t casus_belli_from_nation = 0x00A2;
+		constexpr uint16_t casus_belli_from_province = 0x00A3;
+		constexpr uint16_t add_casus_belli_tag = 0x00A4;
+		constexpr uint16_t add_casus_belli_int = 0x00A5;
+		constexpr uint16_t add_casus_belli_this_nation = 0x00A6;
+		constexpr uint16_t add_casus_belli_this_state = 0x00A7;
+		constexpr uint16_t add_casus_belli_this_province = 0x00A8;
+		constexpr uint16_t add_casus_belli_this_pop = 0x00A9;
+		constexpr uint16_t add_casus_belli_from_nation = 0x00AA;
+		constexpr uint16_t add_casus_belli_from_province = 0x00AB;
+		constexpr uint16_t remove_casus_belli_tag = 0x00AC;
+		constexpr uint16_t remove_casus_belli_int = 0x00AD;
+		constexpr uint16_t remove_casus_belli_this_nation = 0x00AE;
+		constexpr uint16_t remove_casus_belli_this_state = 0x00AF;
+		constexpr uint16_t remove_casus_belli_this_province = 0x00B0;
+		constexpr uint16_t remove_casus_belli_this_pop = 0x00B1;
+		constexpr uint16_t remove_casus_belli_from_nation = 0x00B2;
+		constexpr uint16_t remove_casus_belli_from_province = 0x00B3;
+		constexpr uint16_t this_remove_casus_belli_tag = 0x00B4;
+		constexpr uint16_t this_remove_casus_belli_int = 0x00B5;
+		constexpr uint16_t this_remove_casus_belli_this_nation = 0x00B6;
+		constexpr uint16_t this_remove_casus_belli_this_state = 0x00B7;
+		constexpr uint16_t this_remove_casus_belli_this_province = 0x00B8;
+		constexpr uint16_t this_remove_casus_belli_this_pop = 0x00B9;
+		constexpr uint16_t this_remove_casus_belli_from_nation = 0x00BA;
+		constexpr uint16_t this_remove_casus_belli_from_province = 0x00BB;
+		constexpr uint16_t war_tag = 0x00BC;
+		constexpr uint16_t war_this_nation = 0x00BD;
+		constexpr uint16_t war_this_state = 0x00BE;
+		constexpr uint16_t war_this_province = 0x00BF;
+		constexpr uint16_t war_this_pop = 0x00C0;
+		constexpr uint16_t war_from_nation = 0x00C1;
+		constexpr uint16_t war_from_province = 0x00C2;
+		constexpr uint16_t war_no_ally_tag = 0x00C3;
+		constexpr uint16_t war_no_ally_this_nation = 0x00C4;
+		constexpr uint16_t war_no_ally_this_state = 0x00C5;
+		constexpr uint16_t war_no_ally_this_province = 0x00C6;
+		constexpr uint16_t war_no_ally_this_pop = 0x00C7;
+		constexpr uint16_t war_no_ally_from_nation = 0x00C8;
+		constexpr uint16_t war_no_ally_from_province = 0x00C9;
+		constexpr uint16_t country_event = 0x00CA;
+		constexpr uint16_t country_event_immediate = 0x00CB;
+		constexpr uint16_t province_event = 0x00CC;
+		constexpr uint16_t province_event_immediate = 0x00CD;
+		constexpr uint16_t sub_unit_int = 0x00CE;
+		constexpr uint16_t sub_unit_this = 0x00CF;
+		constexpr uint16_t sub_unit_from = 0x00D0;
+		constexpr uint16_t sub_unit_current = 0x00D1;
+		constexpr uint16_t set_variable = 0x00D2;
+		constexpr uint16_t change_variable = 0x00D3;
+		constexpr uint16_t ideology = 0x00D4;
+		constexpr uint16_t upper_house = 0x00D5;
+		constexpr uint16_t scaled_militancy_issue = 0x00D6;
+		constexpr uint16_t scaled_militancy_ideology = 0x00D7;
+		constexpr uint16_t scaled_militancy_unemployment = 0x00D8;
+		constexpr uint16_t scaled_consciousness_issue = 0x00D9;
+		constexpr uint16_t scaled_consciousness_ideology = 0x00DA;
+		constexpr uint16_t scaled_consciousness_unemployment = 0x00DB;
+		constexpr uint16_t define_general = 0x00DC;
+		constexpr uint16_t define_admiral = 0x00DD;
+		constexpr uint16_t dominant_issue = 0x00DE;
+		constexpr uint16_t add_war_goal = 0x00DF;
+		constexpr uint16_t move_issue_percentage_nation = 0x00E0;
+		constexpr uint16_t move_issue_percentage_state = 0x00E1;
+		constexpr uint16_t move_issue_percentage_province = 0x00E2;
+		constexpr uint16_t move_issue_percentage_pop = 0x00E3;
+		constexpr uint16_t party_loyalty_nation_from_province = 0x00E4;
+		constexpr uint16_t party_loyalty_province_from_nation = 0x00E5;
+		constexpr uint16_t party_loyalty_province_id_nation = 0x00E6;
+		constexpr uint16_t party_loyalty_province_id_from_nation = 0x00E7;
+		constexpr uint16_t build_railway_in_capital_yes_whole_state_yes_limit = 0x00E8;
+		constexpr uint16_t build_railway_in_capital_yes_whole_state_no_limit = 0x00E9;
+		constexpr uint16_t build_railway_in_capital_no_whole_state_yes_limit = 0x00EA;
+		constexpr uint16_t build_railway_in_capital_no_whole_state_no_limit = 0x00EB;
+		constexpr uint16_t build_fort_in_capital_yes_whole_state_yes_limit = 0x00EC;
+		constexpr uint16_t build_fort_in_capital_yes_whole_state_no_limit = 0x00ED;
+		constexpr uint16_t build_fort_in_capital_no_whole_state_yes_limit = 0x00EF;
+		constexpr uint16_t build_fort_in_capital_no_whole_state_no_limit = 0x00F0;
+		constexpr uint16_t modify_relation = 0x00F1;
+		constexpr uint16_t modify_relation_reb = 0x00F2;
+
+		//variable name
+		constexpr uint16_t variable_tech_name = 0x00F3;
+		constexpr uint16_t variable_good_name = 0x00F4;
+		
+		//scopes
+		constexpr uint16_t generic_scope = 0x0000; // default grouping of effects (or hidden_tooltip)
+		constexpr uint16_t x_neighbor_province_scope = 0x0001;
+		constexpr uint16_t x_neighbor_country_scope = 0x0002;
+		constexpr uint16_t x_country_scope = 0x0003;
+		constexpr uint16_t random_country_scope_nation = 0x0004;
+		constexpr uint16_t x_empty_neighbor_province_scope = 0x0005;
+		constexpr uint16_t x_greater_power_scope = 0x0006;
+		constexpr uint16_t poor_strata_scope_nation = 0x0007;
+		constexpr uint16_t poor_strata_scope_state = 0x0008;
+		constexpr uint16_t poor_strata_scope_province = 0x0009;
+		constexpr uint16_t middle_strata_scope_nation = 0x000A;
+		constexpr uint16_t middle_strata_scope_state = 0x000B;
+		constexpr uint16_t middle_strata_scope_province = 0x000C;
+		constexpr uint16_t rich_strata_scope_nation = 0x000D;
+		constexpr uint16_t rich_strata_scope_state = 0x000E;
+		constexpr uint16_t rich_strata_scope_province = 0x000F;
+		constexpr uint16_t x_pop_scope_nation = 0x0010;
+		constexpr uint16_t x_pop_scope_state = 0x0011;
+		constexpr uint16_t x_pop_scope_province = 0x0012;
+		constexpr uint16_t x_owned_scope_nation = 0x0013;
+		constexpr uint16_t x_owned_scope_state = 0x0014;
+		constexpr uint16_t x_core_scope = 0x0015;
+		constexpr uint16_t x_state_scope = 0x0016;
+		constexpr uint16_t random_list_scope = 0x0017;
+		constexpr uint16_t random_scope = 0x0018;
+		constexpr uint16_t owner_scope_state = 0x0019;
+		constexpr uint16_t owner_scope_province = 0x001A;
+		constexpr uint16_t controller_scope = 0x001B;
+		constexpr uint16_t location_scope = 0x001C;
+		constexpr uint16_t country_scope_pop = 0x001D;
+		constexpr uint16_t country_scope_state = 0x001E;
+		constexpr uint16_t capital_scope = 0x001F;
+		constexpr uint16_t this_scope_nation = 0x0020;
+		constexpr uint16_t this_scope_state = 0x0021;
+		constexpr uint16_t this_scope_province = 0x0022;
+		constexpr uint16_t this_scope_pop = 0x0023;
+		constexpr uint16_t from_scope_nation = 0x0024;
+		constexpr uint16_t from_scope_state = 0x0025;
+		constexpr uint16_t from_scope_province = 0x0026;
+		constexpr uint16_t from_scope_pop = 0x0027;
+		constexpr uint16_t sea_zone_scope = 0x0028;
+		constexpr uint16_t cultural_union_scope = 0x0029;
+		constexpr uint16_t overlord_scope = 0x002A;
+		constexpr uint16_t sphere_owner_scope = 0x002B;
+		constexpr uint16_t independence_scope = 0x002C;
+		constexpr uint16_t flashpoint_tag_scope = 0x002D;
+		constexpr uint16_t crisis_state_scope = 0x002E;
+		constexpr uint16_t state_scope_pop = 0x002F;
+		constexpr uint16_t state_scope_province = 0x0030;
+
+
+		//variable named scopes
+		constexpr uint16_t tag_scope = 0x0031;
+		constexpr uint16_t integer_scope = 0x0032;
+		constexpr uint16_t pop_type_scope_nation = 0x0033;
+		constexpr uint16_t pop_type_scope_state = 0x0034;
+		constexpr uint16_t pop_type_scope_province = 0x0035;
+		constexpr uint16_t region_scope = 0x0036;
+	}
+
+	namespace trigger_codes {
 		// flags
-		constexpr static uint16_t is_scope = 0x8000;
-		constexpr static uint16_t is_disjunctive_scope = 0x4000;
-		constexpr static uint16_t is_existance_scope = 0x2000;
+		constexpr uint16_t is_scope = 0x8000;
+		constexpr uint16_t is_disjunctive_scope = 0x4000;
+		constexpr uint16_t is_existance_scope = 0x2000;
 
-		constexpr static uint16_t association_mask = 0x7000;
-		constexpr static uint16_t association_eq = 0x1000;
-		constexpr static uint16_t association_gt = 0x2000;
-		constexpr static uint16_t association_ge = 0x3000;
-		constexpr static uint16_t association_lt = 0x4000;
-		constexpr static uint16_t association_le = 0x5000;
-		constexpr static uint16_t association_ne = 0x6000;
+		constexpr uint16_t association_mask = 0x7000;
+		constexpr uint16_t association_eq = 0x1000;
+		constexpr uint16_t association_gt = 0x2000;
+		constexpr uint16_t association_ge = 0x3000;
+		constexpr uint16_t association_lt = 0x4000;
+		constexpr uint16_t association_le = 0x5000;
+		constexpr uint16_t association_ne = 0x6000;
 
-		constexpr static uint16_t no_payload = 0x0800;
-		constexpr static uint16_t code_mask = 0x07FF;
+		constexpr uint16_t no_payload = 0x0800;
+		constexpr uint16_t code_mask = 0x07FF;
 
 		// non scopes
 		constexpr uint16_t year = 0x0001;
@@ -688,29 +1046,29 @@ namespace triggers {
 
 	inline uint16_t association_to_trigger_code(association_type a) {
 		switch (a) {
-			case association_type::eq: return codes::association_eq;
-			case association_type::eq_default: return codes::association_ge;
-			case association_type::ge: return codes::association_ge;
-			case association_type::gt: return codes::association_gt;
-			case association_type::lt: return codes::association_lt;
-			case association_type::le: return codes::association_le;
-			case association_type::ne: return codes::association_ne;
-			case association_type::none: return codes::association_ge;
-			case association_type::list: return codes::association_ge;
+			case association_type::eq: return trigger_codes::association_eq;
+			case association_type::eq_default: return trigger_codes::association_ge;
+			case association_type::ge: return trigger_codes::association_ge;
+			case association_type::gt: return trigger_codes::association_gt;
+			case association_type::lt: return trigger_codes::association_lt;
+			case association_type::le: return trigger_codes::association_le;
+			case association_type::ne: return trigger_codes::association_ne;
+			case association_type::none: return trigger_codes::association_ge;
+			case association_type::list: return trigger_codes::association_ge;
 		}
 	}
 
 	inline uint16_t association_to_bool_code(association_type a) {
 		switch (a) {
-			case association_type::eq: return codes::association_eq;
-			case association_type::eq_default: return codes::association_eq;
-			case association_type::ge: return codes::association_eq;
-			case association_type::gt: return codes::association_ne;
-			case association_type::lt: return codes::association_ne;
-			case association_type::le: return codes::association_eq;
-			case association_type::ne: return codes::association_ne;
-			case association_type::none: return codes::association_ge;
-			case association_type::list: return codes::association_ge;
+			case association_type::eq: return trigger_codes::association_eq;
+			case association_type::eq_default: return trigger_codes::association_eq;
+			case association_type::ge: return trigger_codes::association_eq;
+			case association_type::gt: return trigger_codes::association_ne;
+			case association_type::lt: return trigger_codes::association_ne;
+			case association_type::le: return trigger_codes::association_eq;
+			case association_type::ne: return trigger_codes::association_ne;
+			case association_type::none: return trigger_codes::association_ge;
+			case association_type::list: return trigger_codes::association_ge;
 		}
 	}
 
@@ -721,32 +1079,32 @@ namespace triggers {
 	inline uint16_t association_to_bool_code(association_type a, const token_and_type& t) {
 		if (token_to<bool>(t)) {
 			if ((a == association_type::eq) | (a == association_type::eq_default))
-				return codes::association_eq;
+				return trigger_codes::association_eq;
 			else
-				return codes::association_ne;
+				return trigger_codes::association_ne;
 		} else {
 			if ((a == association_type::eq) | (a == association_type::eq_default))
-				return codes::association_ne;
+				return trigger_codes::association_ne;
 			else
-				return codes::association_eq;
+				return trigger_codes::association_eq;
 		}
 	}
 	inline uint16_t association_to_bool_code(association_type a, bool v) {
 		if (v) {
 			if ((a == association_type::eq) | (a == association_type::eq_default))
-				return codes::association_eq;
+				return trigger_codes::association_eq;
 			else
-				return codes::association_ne;
+				return trigger_codes::association_ne;
 		} else {
 			if ((a == association_type::eq) | (a == association_type::eq_default))
-				return codes::association_ne;
+				return trigger_codes::association_ne;
 			else
-				return codes::association_eq;
+				return trigger_codes::association_eq;
 		}
 	}
 
 	constexpr bool scope_has_any_all(uint16_t code) {
-		return (code >= codes::x_neighbor_province_scope) & (code <= codes::x_provinces_in_variable_region);
+		return (code >= trigger_codes::x_neighbor_province_scope) & (code <= trigger_codes::x_provinces_in_variable_region);
 	}
 
 	inline const int32_t code_data_sizes[] = {

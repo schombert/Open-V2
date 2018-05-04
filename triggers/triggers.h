@@ -140,16 +140,16 @@ namespace triggers {
 	int32_t read_int32_t_from_payload(const uint16_t* data);
 	void add_option_identifier_to_payload(std::vector<uint16_t>& v, issues::option_identifier i);
 	issues::option_identifier read_option_identifier_from_payload(const uint16_t* data);
-	int32_t scope_data_payload(uint16_t code);
+	int32_t trigger_scope_data_payload(uint16_t code);
 
 	template<typename T>
 	void recurse_over_triggers(uint16_t* source, const T& f) {
 		f(source);
 
-		if ((source[0] & codes::is_scope) != 0) {
+		if ((source[0] & trigger_codes::is_scope) != 0) {
 			const auto source_size = 1 + get_payload_size(source);
 
-			auto sub_units_start = source + 2ui32 + scope_data_payload(source[0]);
+			auto sub_units_start = source + 2ui32 + trigger_scope_data_payload(source[0]);
 			while (sub_units_start < source + source_size) {
 				recurse_over_triggers(sub_units_start, f);
 				sub_units_start += 1 + get_payload_size(sub_units_start);

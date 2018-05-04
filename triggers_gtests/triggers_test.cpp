@@ -14,10 +14,10 @@ TEST(trigger_reading, trigger_size) {
 	std::vector<uint16_t> zero_t;
 	std::vector<uint16_t> one_t;
 
-	zero_t.push_back(uint16_t(codes::no_payload | codes::association_eq | codes::blockade));
+	zero_t.push_back(uint16_t(trigger_codes::no_payload | trigger_codes::association_eq | trigger_codes::blockade));
 	zero_t.push_back(7ui16);
 
-	one_t.push_back(uint16_t(codes::is_scope | codes::administration_spending_pop));
+	one_t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::administration_spending_pop));
 	one_t.push_back(7ui16);
 
 	EXPECT_EQ(0, get_payload_size(zero_t.data()));
@@ -28,16 +28,16 @@ TEST(trigger_reading, scope_recursion) {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(codes::is_scope | codes::generic_scope));
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::generic_scope));
 		t.push_back(11ui16);
-		t.push_back(uint16_t(codes::no_payload | codes::association_eq | codes::blockade));
-		t.push_back(uint16_t(codes::is_scope | codes::state_scope_pop));
+		t.push_back(uint16_t(trigger_codes::no_payload | trigger_codes::association_eq | trigger_codes::blockade));
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::state_scope_pop));
 		t.push_back(5ui16);
-		t.push_back(uint16_t(codes::association_eq | codes::blockade));
+		t.push_back(uint16_t(trigger_codes::association_eq | trigger_codes::blockade));
 		t.push_back(2ui16);
 		t.push_back(1ui16);
-		t.push_back(uint16_t(codes::no_payload | codes::association_eq | codes::blockade));
-		t.push_back(uint16_t(codes::association_eq | codes::blockade));
+		t.push_back(uint16_t(trigger_codes::no_payload | trigger_codes::association_eq | trigger_codes::blockade));
+		t.push_back(uint16_t(trigger_codes::association_eq | trigger_codes::blockade));
 		t.push_back(2ui16);
 		t.push_back(1ui16);
 
@@ -58,17 +58,17 @@ TEST(trigger_reading, scope_recursion) {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(codes::is_scope | codes::generic_scope));
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::generic_scope));
 		t.push_back(12ui16);
-		t.push_back(uint16_t(codes::no_payload | codes::association_eq | codes::blockade));
-		t.push_back(uint16_t(codes::is_scope | codes::integer_scope));
+		t.push_back(uint16_t(trigger_codes::no_payload | trigger_codes::association_eq | trigger_codes::blockade));
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::integer_scope));
 		t.push_back(6ui16);
 		t.push_back(100ui16);
-		t.push_back(uint16_t(codes::association_eq | codes::blockade));
+		t.push_back(uint16_t(trigger_codes::association_eq | trigger_codes::blockade));
 		t.push_back(2ui16);
 		t.push_back(1ui16);
-		t.push_back(uint16_t(codes::no_payload | codes::association_eq | codes::blockade));
-		t.push_back(uint16_t(codes::association_eq | codes::blockade));
+		t.push_back(uint16_t(trigger_codes::no_payload | trigger_codes::association_eq | trigger_codes::blockade));
+		t.push_back(uint16_t(trigger_codes::association_eq | trigger_codes::blockade));
 		t.push_back(2ui16);
 		t.push_back(1ui16);
 
@@ -92,17 +92,17 @@ TEST(trigger_reading, simple_inversion) {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(codes::is_scope | codes::placeholder_not_scope));
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::placeholder_not_scope));
 		t.push_back(4ui16);
-		t.push_back(uint16_t(codes::association_eq | codes::blockade));
+		t.push_back(uint16_t(trigger_codes::association_eq | trigger_codes::blockade));
 		t.push_back(2ui16);
 		t.push_back(1ui16);
 
 		invert_trigger(t.data());
 
-		EXPECT_EQ(t[0], uint16_t(codes::is_scope | codes::is_disjunctive_scope | codes::placeholder_not_scope));
+		EXPECT_EQ(t[0], uint16_t(trigger_codes::is_scope | trigger_codes::is_disjunctive_scope | trigger_codes::placeholder_not_scope));
 		EXPECT_EQ(t[1], 4ui16);
-		EXPECT_EQ(t[2], uint16_t(codes::association_ne | codes::blockade));
+		EXPECT_EQ(t[2], uint16_t(trigger_codes::association_ne | trigger_codes::blockade));
 		EXPECT_EQ(t[3], 2ui16);
 		EXPECT_EQ(t[4], 1ui16);
 	}
@@ -110,17 +110,17 @@ TEST(trigger_reading, simple_inversion) {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(codes::is_scope | codes::is_existance_scope | codes::is_disjunctive_scope | codes::x_core_scope_nation));
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::is_existance_scope | trigger_codes::is_disjunctive_scope | trigger_codes::x_core_scope_nation));
 		t.push_back(4ui16);
-		t.push_back(uint16_t(codes::association_ge | codes::blockade));
+		t.push_back(uint16_t(trigger_codes::association_ge | trigger_codes::blockade));
 		t.push_back(2ui16);
 		t.push_back(1ui16);
 
 		invert_trigger(t.data());
 
-		EXPECT_EQ(t[0], uint16_t(codes::is_scope | codes::x_core_scope_nation));
+		EXPECT_EQ(t[0], uint16_t(trigger_codes::is_scope | trigger_codes::x_core_scope_nation));
 		EXPECT_EQ(t[1], 4ui16);
-		EXPECT_EQ(t[2], uint16_t(codes::association_lt | codes::blockade));
+		EXPECT_EQ(t[2], uint16_t(trigger_codes::association_lt | trigger_codes::blockade));
 		EXPECT_EQ(t[3], 2ui16);
 		EXPECT_EQ(t[4], 1ui16);
 	}
@@ -130,9 +130,9 @@ TEST(trigger_reading, scope_sizing) {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(codes::is_scope | codes::placeholder_not_scope));
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::placeholder_not_scope));
 		t.push_back(4ui16);
-		t.push_back(uint16_t(codes::association_eq | codes::blockade));
+		t.push_back(uint16_t(trigger_codes::association_eq | trigger_codes::blockade));
 		t.push_back(2ui16);
 		t.push_back(1ui16);
 
@@ -143,12 +143,12 @@ TEST(trigger_reading, scope_sizing) {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(codes::is_scope | codes::placeholder_not_scope));
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::placeholder_not_scope));
 		t.push_back(5ui16);
-		t.push_back(uint16_t(codes::association_eq | codes::blockade));
+		t.push_back(uint16_t(trigger_codes::association_eq | trigger_codes::blockade));
 		t.push_back(2ui16);
 		t.push_back(1ui16);
-		t.push_back(uint16_t(codes::association_eq | codes::no_payload | codes::blockade));
+		t.push_back(uint16_t(trigger_codes::association_eq | trigger_codes::no_payload | trigger_codes::blockade));
 		t.push_back(0ui16);
 
 		EXPECT_FALSE(scope_is_empty(t.data()));
@@ -158,10 +158,10 @@ TEST(trigger_reading, scope_sizing) {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(codes::is_scope | codes::integer_scope));
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::integer_scope));
 		t.push_back(5ui16);
 		t.push_back(0ui16);
-		t.push_back(uint16_t(codes::association_eq | codes::blockade));
+		t.push_back(uint16_t(trigger_codes::association_eq | trigger_codes::blockade));
 		t.push_back(2ui16);
 		t.push_back(1ui16);
 
@@ -172,13 +172,13 @@ TEST(trigger_reading, scope_sizing) {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(codes::is_scope | codes::integer_scope));
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::integer_scope));
 		t.push_back(6ui16);
 		t.push_back(0ui16);
-		t.push_back(uint16_t(codes::association_eq | codes::blockade));
+		t.push_back(uint16_t(trigger_codes::association_eq | trigger_codes::blockade));
 		t.push_back(2ui16);
 		t.push_back(1ui16);
-		t.push_back(uint16_t(codes::association_eq | codes::no_payload | codes::blockade));
+		t.push_back(uint16_t(trigger_codes::association_eq | trigger_codes::no_payload | trigger_codes::blockade));
 		t.push_back(0ui16);
 
 		EXPECT_FALSE(scope_is_empty(t.data()));
@@ -188,7 +188,7 @@ TEST(trigger_reading, scope_sizing) {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(codes::is_scope | codes::placeholder_not_scope));
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::placeholder_not_scope));
 		t.push_back(1ui16);
 
 		EXPECT_TRUE(scope_is_empty(t.data()));
@@ -197,7 +197,7 @@ TEST(trigger_reading, scope_sizing) {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(codes::is_scope | codes::integer_scope));
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::integer_scope));
 		t.push_back(2ui16);
 		t.push_back(0ui16);
 
@@ -209,16 +209,16 @@ TEST(trigger_reading, simple_negation_removal) {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(codes::is_scope | codes::placeholder_not_scope));
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::placeholder_not_scope));
 		t.push_back(4ui16);
-		t.push_back(uint16_t(codes::association_eq | codes::blockade));
+		t.push_back(uint16_t(trigger_codes::association_eq | trigger_codes::blockade));
 		t.push_back(2ui16);
 		t.push_back(1ui16);
 
 		const auto new_size = simplify_trigger(t.data());
 
 		EXPECT_EQ(3, new_size);
-		EXPECT_EQ(t[0], uint16_t(codes::association_ne | codes::blockade));
+		EXPECT_EQ(t[0], uint16_t(trigger_codes::association_ne | trigger_codes::blockade));
 		EXPECT_EQ(t[1], 2ui16);
 		EXPECT_EQ(t[2], 1ui16);
 	}
@@ -228,17 +228,17 @@ TEST(trigger_reading, double_negation_removal) {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(codes::is_scope | codes::placeholder_not_scope));
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::placeholder_not_scope));
 		t.push_back(4ui16);
-		t.push_back(uint16_t(codes::is_scope | codes::placeholder_not_scope));
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::placeholder_not_scope));
 		t.push_back(2ui16);
-		t.push_back(uint16_t(codes::association_eq | codes::no_payload | codes::blockade));
+		t.push_back(uint16_t(trigger_codes::association_eq | trigger_codes::no_payload | trigger_codes::blockade));
 		t.push_back(0ui16);
 
 		const auto new_size = simplify_trigger(t.data());
 
 		EXPECT_EQ(1, new_size);
-		EXPECT_EQ(t[0], uint16_t(codes::association_eq | codes::no_payload | codes::blockade));
+		EXPECT_EQ(t[0], uint16_t(trigger_codes::association_eq | trigger_codes::no_payload | trigger_codes::blockade));
 	}
 }
 
@@ -246,28 +246,79 @@ TEST(trigger_reading, complex_inversion) {
 	{
 		std::vector<uint16_t> t;
 
-		t.push_back(uint16_t(codes::is_scope | codes::placeholder_not_scope));
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::placeholder_not_scope));
 		t.push_back(9ui16);
-		t.push_back(uint16_t(codes::is_scope | codes::generic_scope));
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::generic_scope));
 		t.push_back(2ui16);
-		t.push_back(uint16_t(codes::association_eq | codes::no_payload | codes::blockade));
-		t.push_back(uint16_t(codes::is_scope | codes::is_existance_scope | codes::is_disjunctive_scope | codes::x_core_scope_nation));
+		t.push_back(uint16_t(trigger_codes::association_eq | trigger_codes::no_payload | trigger_codes::blockade));
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::is_existance_scope | trigger_codes::is_disjunctive_scope | trigger_codes::x_core_scope_nation));
 		t.push_back(4ui16);
-		t.push_back(uint16_t(codes::association_ge | codes::blockade));
+		t.push_back(uint16_t(trigger_codes::association_ge | trigger_codes::blockade));
 		t.push_back(2ui16);
 		t.push_back(1ui16);
 
 		const auto new_size = simplify_trigger(t.data());
 
 		EXPECT_EQ(8, new_size);
-		EXPECT_EQ(t[0], uint16_t(codes::is_scope | codes::is_disjunctive_scope | codes::generic_scope));
+		EXPECT_EQ(t[0], uint16_t(trigger_codes::is_scope | trigger_codes::is_disjunctive_scope | trigger_codes::generic_scope));
 		EXPECT_EQ(t[1], 7ui16);
-		EXPECT_EQ(t[2], uint16_t(codes::association_ne | codes::no_payload | codes::blockade));
-		EXPECT_EQ(t[3], uint16_t(codes::is_scope | codes::x_core_scope_nation));
+		EXPECT_EQ(t[2], uint16_t(trigger_codes::association_ne | trigger_codes::no_payload | trigger_codes::blockade));
+		EXPECT_EQ(t[3], uint16_t(trigger_codes::is_scope | trigger_codes::x_core_scope_nation));
 		EXPECT_EQ(t[4], 4ui16);
-		EXPECT_EQ(t[5], uint16_t(codes::association_lt | codes::blockade));
+		EXPECT_EQ(t[5], uint16_t(trigger_codes::association_lt | trigger_codes::blockade));
 		EXPECT_EQ(t[6], 2ui16);
 		EXPECT_EQ(t[7], 1ui16);
+	}
+}
+
+TEST(trigger_reading, scope_absorbtion) {
+	{
+		std::vector<uint16_t> t;
+
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::x_neighbor_province_scope | trigger_codes::is_disjunctive_scope | trigger_codes::is_existance_scope));
+		t.push_back(7ui16);
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::generic_scope));
+		t.push_back(5ui16);
+		t.push_back(uint16_t(trigger_codes::association_eq | trigger_codes::blockade));
+		t.push_back(2ui16);
+		t.push_back(1ui16);
+		t.push_back(uint16_t(trigger_codes::association_eq | trigger_codes::no_payload | trigger_codes::blockade));
+		t.push_back(0ui16);
+
+		const auto new_size = simplify_trigger(t.data());
+
+		EXPECT_EQ(6, new_size);
+		EXPECT_EQ(t[0], uint16_t(trigger_codes::is_scope | trigger_codes::x_neighbor_province_scope | trigger_codes::is_existance_scope));
+		EXPECT_EQ(t[1], 5ui16);
+		EXPECT_EQ(t[2], uint16_t(trigger_codes::association_eq | trigger_codes::blockade));
+		EXPECT_EQ(t[3], 2ui16);
+		EXPECT_EQ(t[4], 1ui16);
+		EXPECT_EQ(t[5], uint16_t(trigger_codes::association_eq | trigger_codes::no_payload | trigger_codes::blockade));
+	}
+	{
+		std::vector<uint16_t> t;
+
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::integer_scope));
+		t.push_back(8ui16);
+		t.push_back(15ui16);
+		t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::generic_scope | trigger_codes::is_disjunctive_scope));
+		t.push_back(5ui16);
+		t.push_back(uint16_t(trigger_codes::association_eq | trigger_codes::blockade));
+		t.push_back(2ui16);
+		t.push_back(1ui16);
+		t.push_back(uint16_t(trigger_codes::association_eq | trigger_codes::no_payload | trigger_codes::blockade));
+		t.push_back(0ui16);
+
+		const auto new_size = simplify_trigger(t.data());
+
+		EXPECT_EQ(7, new_size);
+		EXPECT_EQ(t[0], uint16_t(trigger_codes::is_scope | trigger_codes::integer_scope | trigger_codes::is_disjunctive_scope));
+		EXPECT_EQ(t[1], 6ui16);
+		EXPECT_EQ(t[2], 15ui16);
+		EXPECT_EQ(t[3], uint16_t(trigger_codes::association_eq | trigger_codes::blockade));
+		EXPECT_EQ(t[4], 2ui16);
+		EXPECT_EQ(t[5], 1ui16);
+		EXPECT_EQ(t[6], uint16_t(trigger_codes::association_eq | trigger_codes::no_payload | trigger_codes::blockade));
 	}
 }
 
@@ -294,7 +345,7 @@ TEST(trigger_reading, simple_trigger) {
 		parse_results[1].token);
 
 	EXPECT_EQ(1ui64, parse_env.data.size());
-	EXPECT_EQ(uint16_t(codes::always | codes::no_payload | codes::association_ne), parse_env.data[0]);
+	EXPECT_EQ(uint16_t(trigger_codes::always | trigger_codes::no_payload | trigger_codes::association_ne), parse_env.data[0]);
 }
 
 TEST(trigger_reading, storing_data) {
@@ -352,7 +403,7 @@ TEST(trigger_reading, scope_dependant_trigger) {
 		parse_results[1].token);
 
 	EXPECT_EQ(4ui64, parse_env.data.size());
-	EXPECT_EQ(uint16_t(codes::militancy_province | codes::association_lt), parse_env.data[0]);
+	EXPECT_EQ(uint16_t(trigger_codes::militancy_province | trigger_codes::association_lt), parse_env.data[0]);
 	EXPECT_EQ(3ui16, parse_env.data[1]);
 	EXPECT_EQ(12.0f, read_float_from_payload(parse_env.data.data() + 2));
 }
@@ -434,7 +485,7 @@ TEST(trigger_reading, data_lookup_trigger) {
 		parse_results[1].token);
 
 	EXPECT_EQ(3ui64, parse_env.data.size());
-	EXPECT_EQ(uint16_t(codes::has_pop_culture_state | codes::association_eq), parse_env.data[0]);
+	EXPECT_EQ(uint16_t(trigger_codes::has_pop_culture_state | trigger_codes::association_eq), parse_env.data[0]);
 	EXPECT_EQ(2ui16, parse_env.data[1]);
 	EXPECT_EQ(cultures::culture_tag(1), trigger_payload(parse_env.data[2]).culture);
 }
@@ -472,7 +523,7 @@ TEST(trigger_reading, variable_trigger) {
 		parse_results[1].token);
 
 	EXPECT_EQ(5ui64, parse_env.data.size());
-	EXPECT_EQ(uint16_t(codes::variable_ideology_name_province | codes::association_ge), parse_env.data[0]);
+	EXPECT_EQ(uint16_t(trigger_codes::variable_ideology_name_province | trigger_codes::association_ge), parse_env.data[0]);
 	EXPECT_EQ(4ui16, parse_env.data[1]);
 	EXPECT_EQ(ideologies::ideology_tag(2), trigger_payload(parse_env.data[2]).small.values.ideology);
 	EXPECT_EQ(2.5f, read_float_from_payload(parse_env.data.data() + 3));
@@ -498,7 +549,7 @@ TEST(trigger_reading, basic_full_read) {
 		parse_results.data() + parse_results.size());
 
 	EXPECT_EQ(1ui64, data.size());
-	EXPECT_EQ(uint16_t(codes::always | codes::no_payload | codes::association_ne), data[0]);
+	EXPECT_EQ(uint16_t(trigger_codes::always | trigger_codes::no_payload | trigger_codes::association_ne), data[0]);
 }
 
 TEST(trigger_reading, complex_full_reduction) {
@@ -521,12 +572,12 @@ TEST(trigger_reading, complex_full_reduction) {
 			parse_results.data() + parse_results.size());
 
 	EXPECT_EQ(9ui64, data.size());
-	EXPECT_EQ(data[0], uint16_t(codes::is_scope | codes::is_disjunctive_scope | codes::generic_scope));
+	EXPECT_EQ(data[0], uint16_t(trigger_codes::is_scope | trigger_codes::is_disjunctive_scope | trigger_codes::generic_scope));
 	EXPECT_EQ(data[1], 8ui16);
-	EXPECT_EQ(data[2], uint16_t(codes::association_ne | codes::no_payload | codes::always));
-	EXPECT_EQ(data[3], uint16_t(codes::is_scope | codes::is_disjunctive_scope | codes::x_core_scope_nation));
+	EXPECT_EQ(data[2], uint16_t(trigger_codes::association_ne | trigger_codes::no_payload | trigger_codes::always));
+	EXPECT_EQ(data[3], uint16_t(trigger_codes::is_scope | trigger_codes::is_disjunctive_scope | trigger_codes::x_core_scope_nation));
 	EXPECT_EQ(data[4], 5ui16);
-	EXPECT_EQ(data[5], uint16_t(codes::association_lt | codes::average_consciousness_province));
+	EXPECT_EQ(data[5], uint16_t(trigger_codes::association_lt | trigger_codes::average_consciousness_province));
 	EXPECT_EQ(data[6], 3ui16);
 	EXPECT_EQ(1.0f, read_float_from_payload(data.data() + 7));
 }
@@ -558,7 +609,7 @@ TEST(trigger_reading, multipart_trigger) {
 			parse_results.data() + parse_results.size());
 
 	EXPECT_EQ(4ui64, data.size());
-	EXPECT_EQ(data[0], uint16_t(codes::association_gt | codes::diplomatic_influence_tag));
+	EXPECT_EQ(data[0], uint16_t(trigger_codes::association_gt | trigger_codes::diplomatic_influence_tag));
 	EXPECT_EQ(data[1], 3ui16);
 	EXPECT_EQ(trigger_payload(data[2]).value, 5ui16);
 	EXPECT_EQ(trigger_payload(data[3]).tag, cultures::national_tag(0));
@@ -585,13 +636,13 @@ TEST(trigger_reading, variable_scope) {
 			parse_results.data() + parse_results.size());
 
 	EXPECT_EQ(11ui64, data.size());
-	EXPECT_EQ(data[0], uint16_t(codes::is_scope | codes::integer_scope));
+	EXPECT_EQ(data[0], uint16_t(trigger_codes::is_scope | trigger_codes::integer_scope));
 	EXPECT_EQ(data[1], 10ui16);
 	EXPECT_EQ(data[2], 6ui16);
-	EXPECT_EQ(data[3], uint16_t(codes::association_ge | codes::average_consciousness_province));
+	EXPECT_EQ(data[3], uint16_t(trigger_codes::association_ge | trigger_codes::average_consciousness_province));
 	EXPECT_EQ(data[4], 3ui16);
 	EXPECT_EQ(1.0f, read_float_from_payload(data.data() + 5));
-	EXPECT_EQ(data[7], uint16_t(codes::association_ne | codes::average_militancy_province));
+	EXPECT_EQ(data[7], uint16_t(trigger_codes::association_ne | trigger_codes::average_militancy_province));
 	EXPECT_EQ(data[8], 3ui16);
 	EXPECT_EQ(0.5f, read_float_from_payload(data.data() + 9));
 }
@@ -617,7 +668,7 @@ TEST(trigger_reading, basic_factor_trigger) {
 
 	EXPECT_EQ(1.5f, t_result.factor);
 	EXPECT_EQ(1ui64, t_result.data.size());
-	EXPECT_EQ(uint16_t(codes::always | codes::no_payload | codes::association_ne), t_result.data[0]);
+	EXPECT_EQ(uint16_t(trigger_codes::always | trigger_codes::no_payload | trigger_codes::association_ne), t_result.data[0]);
 }
 
 TEST(trigger_reading, empty_trigger) {
