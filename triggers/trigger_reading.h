@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "triggers.h"
+#include "Parsers\\parsers.h"
 
 namespace scenario {
 	class scenario_manager;

@@ -12,6 +12,7 @@
 #pragma clang diagnostic ignored "-Wshadow"
 #include "boost\\container\\flat_map.hpp"
 #include "boost\\container\\small_vector.hpp"
+#include "boost\\container\\flat_set.hpp"
 #include "Eigen\\Dense"
 #pragma clang diagnostic pop
 

@@ -20,8 +20,8 @@ TEST(trigger_reading, trigger_size) {
 	one_t.push_back(uint16_t(trigger_codes::is_scope | trigger_codes::administration_spending_pop));
 	one_t.push_back(7ui16);
 
-	EXPECT_EQ(0, get_payload_size(zero_t.data()));
-	EXPECT_EQ(7, get_payload_size(one_t.data()));
+	EXPECT_EQ(0, get_trigger_payload_size(zero_t.data()));
+	EXPECT_EQ(7, get_trigger_payload_size(one_t.data()));
 }
 
 TEST(trigger_reading, scope_recursion) {
@@ -48,11 +48,11 @@ TEST(trigger_reading, scope_recursion) {
 		EXPECT_EQ(6, total);
 
 		int32_t no_payload_count = 0;
-		recurse_over_triggers(t.data(), [&no_payload_count](uint16_t* v) { if (get_payload_size(v) == 0) ++no_payload_count; });
+		recurse_over_triggers(t.data(), [&no_payload_count](uint16_t* v) { if (get_trigger_payload_size(v) == 0) ++no_payload_count; });
 		EXPECT_EQ(2, no_payload_count);
 
 		int32_t total_payload = 0;
-		recurse_over_triggers(t.data(), [&total_payload](uint16_t* v) { total_payload += get_payload_size(v); });
+		recurse_over_triggers(t.data(), [&total_payload](uint16_t* v) { total_payload += get_trigger_payload_size(v); });
 		EXPECT_EQ(20, total_payload);
 	}
 	{
@@ -79,11 +79,11 @@ TEST(trigger_reading, scope_recursion) {
 		EXPECT_EQ(6, total);
 
 		int32_t no_payload_count = 0;
-		recurse_over_triggers(t.data(), [&no_payload_count](uint16_t* v) { if (get_payload_size(v) == 0) ++no_payload_count; });
+		recurse_over_triggers(t.data(), [&no_payload_count](uint16_t* v) { if (get_trigger_payload_size(v) == 0) ++no_payload_count; });
 		EXPECT_EQ(2, no_payload_count);
 
 		int32_t total_payload = 0;
-		recurse_over_triggers(t.data(), [&total_payload](uint16_t* v) { total_payload += get_payload_size(v); });
+		recurse_over_triggers(t.data(), [&total_payload](uint16_t* v) { total_payload += get_trigger_payload_size(v); });
 		EXPECT_EQ(22, total_payload);
 	}
 }

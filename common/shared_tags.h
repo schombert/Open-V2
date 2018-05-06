@@ -89,6 +89,7 @@ namespace provinces {
 
 namespace triggers {
 	using trigger_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 93484522>>;
+	using effect_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 93484523>>;
 }
 
 namespace text_data {
@@ -98,6 +99,10 @@ namespace text_data {
 namespace variables {
 	using national_variable_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 4745824>>;
 	using global_variable_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 4745826>>;
+}
+
+namespace events {
+	using event_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 75935234>>;;
 }
 
 template<typename tag_type, typename index_type, typename T, typename U>

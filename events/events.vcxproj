@@ -20,9 +20,9 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{0225D28C-A6CC-4E23-84DC-9072AC5D7314}</ProjectGuid>
+    <ProjectGuid>{BCEC0678-5CCA-46BB-8486-A3E16EDC56DF}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>military</RootNamespace>
+    <RootNamespace>events</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -149,15 +149,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="military.h" />
+    <ClInclude Include="events.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="military.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\concurrency_tools\concurrency_tools.vcxproj">
-      <Project>{12f547e0-13dc-4c35-96ab-950827192412}</Project>
-    </ProjectReference>
+    <ClCompile Include="events.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

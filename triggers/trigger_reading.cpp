@@ -4960,12 +4960,12 @@ namespace triggers {
 	}
 
 	bool scope_is_empty(const uint16_t* source) {
-		return get_payload_size(source) <= 1 + trigger_scope_data_payload(source[0]);
+		return get_trigger_payload_size(source) <= 1 + trigger_scope_data_payload(source[0]);
 	}
 	//precondition: scope known to not be empty
 	bool scope_has_single_member(const uint16_t* source) {
 		const auto data_offset = 2 + trigger_scope_data_payload(source[0]);
-		return get_payload_size(source) == data_offset + get_payload_size(source + data_offset);
+		return get_trigger_payload_size(source) == data_offset + get_trigger_payload_size(source + data_offset);
 	}
 
 	//yields new source size
@@ -4976,13 +4976,13 @@ namespace triggers {
 			}
 
 			//simplify each member
-			auto source_size = 1 + get_payload_size(source);
+			auto source_size = 1 + get_trigger_payload_size(source);
 
 			const auto first_member = source + 2 + trigger_scope_data_payload(source[0]);
 			auto sub_units_start = first_member;
 
 			while (sub_units_start < source + source_size) {
-				const auto old_size = 1 + get_payload_size(sub_units_start);
+				const auto old_size = 1 + get_trigger_payload_size(sub_units_start);
 				const auto new_size = simplify_trigger(sub_units_start);
 				
 				if (new_size != old_size) { // has been simplified, assumes that new size always <= old size
@@ -5019,7 +5019,7 @@ namespace triggers {
 
 			return source_size;
 		} else {
-			return 1 + get_payload_size(source); // non scopes cannot be simplified
+			return 1 + get_trigger_payload_size(source); // non scopes cannot be simplified
 		}
 	}
 

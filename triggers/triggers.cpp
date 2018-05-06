@@ -2,14 +2,15 @@
 #include "codes.h"
 
 namespace triggers {
-	int32_t get_payload_size(const uint16_t* data) {
+	int32_t get_trigger_payload_size(const uint16_t* data) {
 		const auto payload_mask = uint16_t(-int16_t((trigger_codes::no_payload & data[0]) == 0));
 		return payload_mask & data[1];
 	}
 	int32_t trigger_scope_data_payload(uint16_t code) {
-		if (((code & trigger_codes::code_mask) == trigger_codes::x_provinces_in_variable_region) |
-			((code & trigger_codes::code_mask) == trigger_codes::tag_scope) |
-			((code & trigger_codes::code_mask) == trigger_codes::integer_scope))
+		const auto masked_code = code & trigger_codes::code_mask;
+		if ((masked_code == trigger_codes::x_provinces_in_variable_region) |
+			(masked_code == trigger_codes::tag_scope) |
+			(masked_code == trigger_codes::integer_scope))
 			return 1;
 		return 0;
 	}

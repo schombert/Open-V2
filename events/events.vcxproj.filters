@@ -15,33 +15,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="triggers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="codes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="trigger_reading.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="effects.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="effect_reading.h">
+    <ClInclude Include="events.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="triggers.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="trigger_reading.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="effects.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="effect_reading.cpp">
+    <ClCompile Include="events.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

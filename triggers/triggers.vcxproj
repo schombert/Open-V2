@@ -152,10 +152,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="codes.h" />
+    <ClInclude Include="effects.h" />
+    <ClInclude Include="effect_reading.h" />
     <ClInclude Include="triggers.h" />
     <ClInclude Include="trigger_reading.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="effects.cpp" />
+    <ClCompile Include="effect_reading.cpp" />
     <ClCompile Include="triggers.cpp" />
     <ClCompile Include="trigger_reading.cpp" />
   </ItemGroup>

@@ -4,12 +4,9 @@
 #include "simple_fs\\simple_fs.h"
 #include "common\\shared_tags.h"
 #include <vector>
-#include "Parsers\\parsers.hpp"
 #include "text_data\\text_data.h"
 #include "concurrency_tools\\concurrency_tools.hpp"
-#include "Parsers\\parsers.h"
 #include "issues\\issues.h"
-#include <variant>
 
 namespace scenario {
 	class scenario_manager;
@@ -30,6 +27,7 @@ namespace triggers {
 				military::cb_type_tag cb_type;
 				population::pop_type_tag pop_type;
 				issues::option_tag option;
+				military::leader_trait_tag leader_trait;
 
 				inner_u(governments::government_tag i) : government(i) {}
 				inner_u(cultures::religion_tag i) : religion(i) {}
@@ -41,6 +39,7 @@ namespace triggers {
 				inner_u(military::cb_type_tag i) : cb_type(i) {}
 				inner_u(population::pop_type_tag i) : pop_type(i) {}
 				inner_u(issues::option_tag i) : option(i) {}
+				inner_u(military::leader_trait_tag i) : leader_trait(i) {}
 			} values;
 			uint8_t padding;
 
@@ -54,6 +53,7 @@ namespace triggers {
 			small_s(military::cb_type_tag i) : values(i), padding(0ui8) {}
 			small_s(population::pop_type_tag i) : values(i), padding(0ui8) {}
 			small_s(issues::option_tag i) : values(i), padding(0ui8) {}
+			small_s(military::leader_trait_tag i) : values(i), padding(0ui8) {}
 		} small;
 		struct generic_issue_s {
 			union inner_u_b {
@@ -110,12 +110,17 @@ namespace triggers {
 		trigger_payload(population::pop_type_tag i) : small(i) {}
 		trigger_payload(issues::option_tag i) : small(i) {}
 		trigger_payload(issues::issue_idenfitier id) : generic_issue(id) {}
+		trigger_payload(military::leader_trait_tag i) : small(i) {}
 	};
 
 	static_assert(sizeof(trigger_payload) == 2);
 
 	enum class trigger_slot_contents {
-		empty, province, state, pop, nation
+		empty = 0,
+		province = 1,
+		state = 2,
+		pop = 3,
+		nation = 4
 	};
 
 	struct trigger_scope_state {
@@ -123,6 +128,10 @@ namespace triggers {
 		trigger_slot_contents this_slot = trigger_slot_contents::empty;
 		trigger_slot_contents from_slot = trigger_slot_contents::empty;
 		bool contains_rebeltype = false;
+
+		int32_t to_integer() const {
+			return int32_t(main_slot) + int32_t(this_slot) * 8 + int32_t(from_slot) * 8 * 8 + int32_t(contains_rebeltype) * 8 * 8 * 8;
+		}
 	};
 
 	class trigger_manager {
@@ -133,7 +142,7 @@ namespace triggers {
 		}
 	};
 
-	int32_t get_payload_size(const uint16_t* data);
+	int32_t get_trigger_payload_size(const uint16_t* data);
 	void add_float_to_payload(std::vector<uint16_t>& v, float f);
 	float read_float_from_payload(const uint16_t* data);
 	void add_int32_t_to_payload(std::vector<uint16_t>& v, int32_t i);
@@ -147,12 +156,12 @@ namespace triggers {
 		f(source);
 
 		if ((source[0] & trigger_codes::is_scope) != 0) {
-			const auto source_size = 1 + get_payload_size(source);
+			const auto source_size = 1 + get_trigger_payload_size(source);
 
-			auto sub_units_start = source + 2ui32 + trigger_scope_data_payload(source[0]);
+			auto sub_units_start = source + 2 + trigger_scope_data_payload(source[0]);
 			while (sub_units_start < source + source_size) {
 				recurse_over_triggers(sub_units_start, f);
-				sub_units_start += 1 + get_payload_size(sub_units_start);
+				sub_units_start += 1 + get_trigger_payload_size(sub_units_start);
 			}
 		}
 	}
