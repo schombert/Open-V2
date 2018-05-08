@@ -32,6 +32,8 @@ namespace events {
 
 		std::vector<std::pair<event_tag, triggers::trigger_tag>> country_events;
 		std::vector<std::pair<event_tag, triggers::trigger_tag>> province_events;
+
+		boost::container::flat_map<int32_t, event_tag> events_by_id;
 	};
 
 	struct token_group_range {

@@ -5,14 +5,19 @@
 namespace scenario {
 	class scenario_manager;
 }
+namespace events {
+	struct event_creation_manager;
+}
 
 namespace triggers {
 	struct effect_parsing_environment {
 		scenario::scenario_manager& s;
+		events::event_creation_manager& ecm;
+
 		std::vector<uint16_t> data;
 		trigger_scope_state current_scope;
 
-		effect_parsing_environment(scenario::scenario_manager& sm, trigger_scope_state scope) : s(sm), current_scope(scope) {}
+		effect_parsing_environment(scenario::scenario_manager& sm, events::event_creation_manager& e, trigger_scope_state scope) : s(sm), ecm(e), current_scope(scope) {}
 	};
 
 

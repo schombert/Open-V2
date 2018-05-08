@@ -11,6 +11,7 @@
 #include "text_data\\text_data.h"
 #include "variables\\variables.h"
 #include "military\\military.h"
+#include "events\\events.h"
 
 namespace scenario {
 	class scenario_manager {
@@ -26,6 +27,7 @@ namespace scenario {
 		technologies::technologies_manager technology_m;
 		variables::variables_manager variables_m;
 		military::military_manager military_m;
+		events::event_manager event_m;
 
 		text_data::text_sequences& text_m;
 
