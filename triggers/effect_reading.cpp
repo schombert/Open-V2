@@ -963,7 +963,7 @@ namespace triggers {
 			return effect_codes::enable_canal;
 		}
 		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
-			return token_to<uint16_t>(t);
+			return trigger_payload(token_to<uint16_t>(t));
 		}
 	};
 	struct set_global_flag_effect {
@@ -1015,6 +1015,344 @@ namespace triggers {
 		}
 		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
 			return trigger_payload(token_to<bool>(t));
+		}
+	};
+	struct election_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type& t) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return effect_codes::election;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
+			return trigger_payload(token_to<bool>(t));
+		}
+	};
+	struct social_reform_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type& t) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return effect_codes::social_reform;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
+			return tag_from_text(
+				s.issues_m.named_option_index,
+				text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end));
+		}
+	};
+	struct political_reform_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type& t) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return effect_codes::political_reform;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
+			return tag_from_text(
+				s.issues_m.named_option_index,
+				text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end));
+		}
+	};
+	struct add_tax_relative_income_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return effect_codes::add_tax_relative_income;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
+			return token_to<float>(t);
+		}
+	};
+	struct neutrality_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type& t) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return effect_codes::neutrality;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
+			return trigger_payload(token_to<bool>(t));
+		}
+	};
+	struct reduce_pop_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
+			if (scope.main_slot == trigger_slot_contents::pop)
+				return effect_codes::reduce_pop;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
+			return token_to<float>(t);
+		}
+	};
+	struct move_pop_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
+			if (scope.main_slot == trigger_slot_contents::pop)
+				return effect_codes::move_pop;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
+			return trigger_payload(token_to<uint16_t>(t));
+		}
+	};
+	struct pop_type_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type, const token_and_type&) {
+			if (scope.main_slot == trigger_slot_contents::pop)
+				return effect_codes::pop_type;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
+			return trigger_payload(
+				tag_from_text(
+					s.population_m.named_pop_type_index,
+					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+		}
+	};
+	struct years_of_research_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return effect_codes::years_of_research;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
+			return token_to<float>(t);
+		}
+	};
+	struct prestige_factor_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type& t) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				if(token_to<float>(t) >= 0.0f)
+					return effect_codes::prestige_factor_positive;
+				else
+					return effect_codes::prestige_factor_negative;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
+			return token_to<float>(t);
+		}
+	};
+	struct military_reform_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type& t) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return effect_codes::military_reform;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
+			return tag_from_text(
+				s.issues_m.named_option_index,
+				text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end));
+		}
+	};
+	struct economic_reform_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type& t) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return effect_codes::economic_reform;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
+			return tag_from_text(
+				s.issues_m.named_option_index,
+				text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end));
+		}
+	};
+	struct remove_random_military_reforms_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type& t) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return effect_codes::remove_random_military_reforms;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
+			return trigger_payload(token_to<uint16_t>(t));
+		}
+	};
+	struct remove_random_economic_reforms_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type& t) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return effect_codes::remove_random_economic_reforms;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
+			return trigger_payload(token_to<uint16_t>(t));
+		}
+	};
+	struct add_crime_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type, const token_and_type& t) {
+			if (scope.main_slot == trigger_slot_contents::province) {
+				if (is_fixed_token_ci(t, "none"))
+					return effect_codes::add_crime_none;
+				else
+					return effect_codes::add_crime;
+			} else {
+				return std::optional<uint16_t>();
+			}
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
+			return trigger_payload(
+				tag_from_text(
+					s.modifiers_m.named_provincial_modifiers_index,
+					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+		}
+	};
+	struct nationalize_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type& t) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return effect_codes::nationalize;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
+			return trigger_payload(token_to<bool>(t));
+		}
+	};
+	struct build_factory_in_capital_state_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type, const token_and_type& t) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return effect_codes::build_factory_in_capital_state;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
+			return trigger_payload(
+				tag_from_text(
+					s.economy_m.named_factory_types_index,
+					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+		}
+	};
+	struct activate_technology_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type, const token_and_type& t) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return effect_codes::activate_technology;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
+			return trigger_payload(
+				tag_from_text(
+					s.technology_m.named_technology_index,
+					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+		}
+	};
+	struct great_wars_enabled_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type& t) {
+			if (is_fixed_token_ci(t, "yes"))
+				return effect_codes::great_wars_enabled_yes;
+			else if (is_fixed_token_ci(t, "no"))
+				return effect_codes::great_wars_enabled_no;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
+			return trigger_payload(token_to<bool>(t));
+		}
+	};
+	struct world_wars_enabled_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type& t) {
+			if (is_fixed_token_ci(t, "yes"))
+				return effect_codes::world_wars_enabled_yes;
+			else if (is_fixed_token_ci(t, "no"))
+				return effect_codes::world_wars_enabled_no;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
+			return trigger_payload(token_to<bool>(t));
+		}
+	};
+	struct assimilate_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type& t) {
+			if (scope.main_slot == trigger_slot_contents::province)
+				return effect_codes::assimilate_province;
+			else if (scope.main_slot == trigger_slot_contents::pop)
+				return effect_codes::assimilate_pop;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
+			return trigger_payload(token_to<bool>(t));
+		}
+	};
+	struct literacy_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
+			if (scope.main_slot == trigger_slot_contents::pop)
+				return effect_codes::literacy;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
+			return token_to<float>(t);
+		}
+	};
+	struct add_crisis_interest_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type& t) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return effect_codes::add_crisis_interest;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
+			return trigger_payload(token_to<bool>(t));
+		}
+	};
+	struct flashpoint_tension_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
+			if (scope.main_slot == trigger_slot_contents::state)
+				return effect_codes::flashpoint_tension;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
+			return token_to<float>(t);
+		}
+	};
+	struct add_crisis_temperature_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
+			return effect_codes::add_crisis_temperature;
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
+			return token_to<float>(t);
+		}
+	};
+	struct consciousness_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
+			if (scope.main_slot == trigger_slot_contents::pop)
+				return effect_codes::consciousness;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
+			return token_to<float>(t);
+		}
+	};
+	struct militancy_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
+			if (scope.main_slot == trigger_slot_contents::pop)
+				return effect_codes::militancy;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
+			return token_to<float>(t);
+		}
+	};
+	struct rgo_size_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
+			if (scope.main_slot == trigger_slot_contents::province)
+				return effect_codes::rgo_size;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
+			return trigger_payload(token_to<int16_t>(t));
 		}
 	};
 }
