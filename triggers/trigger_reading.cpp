@@ -3819,14 +3819,14 @@ namespace triggers {
 
 		void finalize() const {
 			if (env.current_scope.main_slot != trigger_slot_contents::nation)
-				throw no_code_value_found_for_scope_and_argument();
+				TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 			if (from_v) {
 				if(env.current_scope.from_slot == trigger_slot_contents::nation)
 					env.data.push_back(uint16_t(trigger_codes::diplomatic_influence_from_nation | association_to_trigger_code(a)));
 				else if (env.current_scope.from_slot == trigger_slot_contents::province)
 					env.data.push_back(uint16_t(trigger_codes::diplomatic_influence_from_province | association_to_trigger_code(a)));
 				else
-					throw no_code_value_found_for_scope_and_argument();
+					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 
 				env.data.push_back(2ui16);
 				env.data.push_back(trigger_payload(value).value);

@@ -1,6 +1,6 @@
 #pragma once
 #include <stdint.h>
-#include "Parsers\\parsers.h"
+#include "Parsers\\parsers.hpp"
 
 namespace triggers {
 	namespace effect_codes {
