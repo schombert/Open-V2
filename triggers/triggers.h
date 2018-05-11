@@ -28,6 +28,7 @@ namespace triggers {
 				population::pop_type_tag pop_type;
 				issues::option_tag option;
 				military::leader_trait_tag leader_trait;
+				military::unit_type_tag unit_type;
 
 				inner_u(governments::government_tag i) : government(i) {}
 				inner_u(cultures::religion_tag i) : religion(i) {}
@@ -40,6 +41,7 @@ namespace triggers {
 				inner_u(population::pop_type_tag i) : pop_type(i) {}
 				inner_u(issues::option_tag i) : option(i) {}
 				inner_u(military::leader_trait_tag i) : leader_trait(i) {}
+				inner_u(military::unit_type_tag i) : unit_type(i) {}
 			} values;
 			uint8_t padding;
 
@@ -54,6 +56,7 @@ namespace triggers {
 			small_s(population::pop_type_tag i) : values(i), padding(0ui8) {}
 			small_s(issues::option_tag i) : values(i), padding(0ui8) {}
 			small_s(military::leader_trait_tag i) : values(i), padding(0ui8) {}
+			small_s(military::unit_type_tag i) : values(i), padding(0ui8) {}
 		} small;
 		struct generic_issue_s {
 			union inner_u_b {
@@ -112,6 +115,7 @@ namespace triggers {
 		trigger_payload(issues::option_tag i) : small(i) {}
 		trigger_payload(issues::issue_idenfitier id) : generic_issue(id) {}
 		trigger_payload(military::leader_trait_tag i) : small(i) {}
+		trigger_payload(military::unit_type_tag i) : small(i) {}
 		trigger_payload(events::event_tag id) : event(id) {}
 	};
 

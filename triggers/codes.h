@@ -293,12 +293,11 @@ namespace triggers {
 		constexpr uint16_t build_fort_in_capital_yes_whole_state_no_limit = 0x00ED;
 		constexpr uint16_t build_fort_in_capital_no_whole_state_yes_limit = 0x00EF;
 		constexpr uint16_t build_fort_in_capital_no_whole_state_no_limit = 0x00F0;
-		constexpr uint16_t modify_relation = 0x00F1;
-		constexpr uint16_t modify_relation_reb = 0x00F2;
+		constexpr uint16_t relation_reb = 0x00F1;
 
 		//variable name
-		constexpr uint16_t variable_tech_name = 0x00F3;
-		constexpr uint16_t variable_good_name = 0x00F4;
+		constexpr uint16_t variable_tech_name = 0x00F2;
+		constexpr uint16_t variable_good_name = 0x00F3;
 		
 		//scopes
 		constexpr uint16_t generic_scope = 0x0000; // default grouping of effects (or hidden_tooltip)
