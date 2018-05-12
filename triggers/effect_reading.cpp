@@ -10,6 +10,7 @@
 #include <algorithm>
 #include "effects.h"
 #include "events\\events.h"
+#include "trigger_reading.h"
 
 namespace triggers {
 	using effect_value = std::variant<std::monostate, int32_t, float, issues::option_identifier, trigger_payload>;
@@ -662,7 +663,29 @@ namespace triggers {
 				return std::optional<uint16_t>();
 		}
 		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
-			return token_to<float>(t);
+			return trigger_payload(token_to<int16_t>(t));
+		}
+	};
+	struct fort_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type, const token_and_type&) {
+			if (scope.main_slot == trigger_slot_contents::province)
+				return effect_codes::fort;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
+			return trigger_payload(token_to<int16_t>(t));
+		}
+	};
+	struct naval_base_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type, const token_and_type&) {
+			if (scope.main_slot == trigger_slot_contents::province)
+				return effect_codes::naval_base;
+			else
+				return std::optional<uint16_t>();
+		}
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
+			return trigger_payload(token_to<int16_t>(t));
 		}
 	};
 	struct money_effect {
@@ -2586,6 +2609,130 @@ namespace triggers {
 				env.data.push_back(uint16_t(effect_codes::build_fort_in_capital_no_whole_state_no_limit | effect_codes::no_payload));
 		}
 	};
+
+#ifdef _DEBUG
+	struct unknown_effect_scope {};
+#endif
+
+
+	inline trigger_tag read_limit_trigger(const token_group* s, const token_group* e, effect_parsing_environment& env) {
+		const auto trigger_data = parse_trigger(env.s, env.current_scope, s, e);
+		return commit_trigger(env.s.trigger_m, trigger_data);
+	}
+
+	struct common_effect_scope_base {
+		effect_parsing_environment& env;
+		trigger_scope_state scope_state;
+		size_t payload_size_offset = 0ui64;
+
+		common_effect_scope_base(effect_parsing_environment& e) : env(e) {}
+
+		void add_simple_effect_f(const std::tuple<token_and_type, association_type, token_and_type>& args) {
+			add_simple_effect(
+				env,
+				std::get<0>(args),
+				std::get<1>(args),
+				std::get<2>(args));
+		}
+		void finalize() const {
+			env.data[payload_size_offset] = uint16_t(env.data.size() - payload_size_offset);
+		}
+		void add_limit(trigger_tag limit) {
+			env.data[payload_size_offset + 1] = trigger_payload(limit).value;
+		}
+		template<typename T>
+		void add_scope(const T& other) {
+			other.finalize();
+			env.current_scope = scope_state;
+		}
+		template<typename T>
+		void add_complex_effect(const T& other) {
+			other.finalize();
+		}
+	};
+
+	 struct variable_name_scope_reading_object : public common_effect_scope_base {
+		variable_name_scope_reading_object(const token_and_type& name, effect_parsing_environment& e) : common_effect_scope_base(e) {
+			const auto left_handle = text_data::get_thread_safe_existing_text_handle(env.s.text_m, name.start, name.end);
+
+			if (const auto region = tag_from_text(env.s.province_m.named_states_index, left_handle); is_valid_index(region)) {
+				scope_state = trigger_scope_state{
+					trigger_slot_contents::province,
+					e.current_scope.this_slot,
+					e.current_scope.from_slot,
+					e.current_scope.contains_rebeltype };
+				e.current_scope = scope_state;
+				env.data.push_back(uint16_t(effect_codes::region_scope | effect_codes::is_scope | effect_codes::scope_has_limit));
+				env.data.push_back(2ui16);
+				payload_size_offset = e.data.size() - 1;
+				env.data.push_back(trigger_payload(trigger_tag()).value);
+				env.data.push_back(trigger_payload(region).value);
+			} else if (const auto pop_type = tag_from_text(env.s.population_m.named_pop_type_index, left_handle); is_valid_index(pop_type)) {
+				if(e.current_scope.main_slot == trigger_slot_contents::nation)
+					env.data.push_back(uint16_t(effect_codes::pop_type_scope_nation | effect_codes::is_scope | effect_codes::scope_has_limit));
+				else if (e.current_scope.main_slot == trigger_slot_contents::state)
+					env.data.push_back(uint16_t(effect_codes::pop_type_scope_state | effect_codes::is_scope | effect_codes::scope_has_limit));
+				else if (e.current_scope.main_slot == trigger_slot_contents::province)
+					env.data.push_back(uint16_t(effect_codes::pop_type_scope_province | effect_codes::is_scope | effect_codes::scope_has_limit));
+				else
+					EFFECT_ERROR(invalid_scope_for_effect, e);
+
+				scope_state = trigger_scope_state{
+					trigger_slot_contents::pop,
+					e.current_scope.this_slot,
+					e.current_scope.from_slot,
+					e.current_scope.contains_rebeltype };
+				e.current_scope = scope_state;
+
+				env.data.push_back(2ui16);
+				payload_size_offset = e.data.size() - 1;
+				env.data.push_back(trigger_payload(trigger_tag()).value);
+				env.data.push_back(trigger_payload(pop_type).value);
+			} else if (const auto tag = tag_from_text(e.s.culutre_m.national_tags_index, cultures::tag_to_encoding(name.start, name.end)); is_valid_index(tag)) {
+				scope_state = trigger_scope_state{
+					trigger_slot_contents::nation,
+					e.current_scope.this_slot,
+					e.current_scope.from_slot,
+					e.current_scope.contains_rebeltype };
+				e.current_scope = scope_state;
+				env.data.push_back(uint16_t(effect_codes::tag_scope | effect_codes::is_scope | effect_codes::scope_has_limit));
+				env.data.push_back(2ui16);
+				payload_size_offset = e.data.size() - 1;
+				env.data.push_back(trigger_payload(tag).value);
+			} else if (is_integer(name.start, name.end)) {
+				scope_state = trigger_scope_state{
+					trigger_slot_contents::province,
+					e.current_scope.this_slot,
+					e.current_scope.from_slot,
+					e.current_scope.contains_rebeltype };
+				e.current_scope = scope_state;
+				env.data.push_back(uint16_t(effect_codes::integer_scope | effect_codes::is_scope | effect_codes::scope_has_limit));
+				env.data.push_back(2ui16);
+				payload_size_offset = e.data.size() - 1;
+				env.data.push_back(trigger_payload(trigger_tag()).value);
+				env.data.push_back(token_to<uint16_t>(name));
+			} else {
+				EFFECT_ERROR(unknown_effect_scope, e);
+			}
+		}
+	};
+
+	template<typename scope_trigger>
+	struct scope_reading_object : public common_effect_scope_base {
+		scope_reading_object(trigger_parsing_environment& e) : common_scope_base(e) {
+			const auto code = scope_trigger::produce_code(e.current_scope);
+			if (code) {
+				e.data.push_back(uint16_t(*code | trigger_codes::is_scope));
+				e.data.push_back(1ui16);
+				payload_size_offset = e.data.size() - 1;
+			} else {
+				TRIGGER_ERROR(unknown_scope, e);
+			}
+
+			scope_state = scope_trigger::produce_new_scope(e.current_scope);
+			e.current_scope = scope_state;
+		}
+	};
 }
 
 MEMBER_FDEF(triggers::trigger_revolt_effect, set_culture, "culture");
@@ -2660,3 +2807,211 @@ MEMBER_DEF(triggers::build_railway_in_capital_effect, in_whole_capital_state, "i
 MEMBER_DEF(triggers::build_railway_in_capital_effect, limit_to_world_greatest_level, "limit_to_world_greatest_level");
 MEMBER_DEF(triggers::build_fort_in_capital_effect, in_whole_capital_state, "in_whole_capital_state");
 MEMBER_DEF(triggers::build_fort_in_capital_effect, limit_to_world_greatest_level, "limit_to_world_greatest_level");
+
+template<typename T>
+struct _set_member<CT_STRING("_add_effect"), T> {
+	template<typename V>
+	static void set(T& class_passed, V&& v) {
+		class_passed.add_simple_effect_f(std::forward<V>(v));
+	}
+};
+template<typename T>
+struct _set_member<CT_STRING("_add_complex_effect"), T> {
+	template<typename V>
+	static void set(T& class_passed, V&& v) {
+		class_passed.add_complex_effect(std::forward<V>(v));
+	}
+};
+template<typename T>
+struct _set_member<CT_STRING("_add_scope"), T> {
+	template<typename V>
+	static void set(T& class_passed, V&& v) {
+		class_passed.add_scope(std::forward<V>(v));
+	}
+};
+template<typename T>
+struct _set_member<CT_STRING("_add_limit"), T> {
+	static void set(T& class_passed, triggers::trigger_tag limit) {
+		class_passed.add_limit(limit);
+	}
+};
+
+#define EPAIR(x) typepair< CT_STRING( #x ), x ## _effect>
+
+namespace triggers {
+	using unsorted_effect_map = type_list <
+		EPAIR(capital),
+		EPAIR(add_core),
+		EPAIR(remove_core),
+		EPAIR(change_region_name),
+		EPAIR(trade_goods),
+		EPAIR(add_accepted_culture),
+		EPAIR(primary_culture),
+		EPAIR(remove_accepted_culture),
+		EPAIR(life_rating),
+		EPAIR(religion),
+		EPAIR(is_slave),
+		EPAIR(research_points),
+		EPAIR(tech_school),
+		EPAIR(government),
+		EPAIR(treasury),
+		EPAIR(war_exhaustion),
+		EPAIR(prestige),
+		EPAIR(change_tag),
+		EPAIR(change_tag_no_core_switch),
+		EPAIR(add_province_modifier),
+		EPAIR(add_country_modifier),
+		EPAIR(set_country_flag),
+		EPAIR(clr_country_flag),
+		EPAIR(country_event),
+		EPAIR(province_event),
+		EPAIR(military_access),
+		EPAIR(badboy),
+		EPAIR(secede_province),
+		EPAIR(inherit),
+		EPAIR(annex_to),
+		EPAIR(release),
+		EPAIR(change_controller),
+		EPAIR(infrastructure),
+		EPAIR(money),
+		EPAIR(leadership),
+		EPAIR(create_vassal),
+		EPAIR(end_military_access),
+		EPAIR(leave_alliance),
+		EPAIR(end_war),
+		EPAIR(enable_ideology),
+		EPAIR(ruling_party_ideology),
+		EPAIR(plurality),
+		EPAIR(remove_province_modifier),
+		EPAIR(remove_country_modifier),
+		EPAIR(create_alliance),
+		EPAIR(release_vassal),
+		EPAIR(change_province_name),
+		EPAIR(enable_canal),
+		EPAIR(set_global_flag),
+		EPAIR(clr_global_flag),
+		EPAIR(nationalvalue),
+		EPAIR(civilized),
+		EPAIR(election),
+		EPAIR(social_reform),
+		EPAIR(political_reform),
+		EPAIR(add_tax_relative_income),
+		EPAIR(neutrality),
+		EPAIR(reduce_pop),
+		EPAIR(move_pop),
+		EPAIR(pop_type),
+		EPAIR(years_of_research),
+		EPAIR(military_reform),
+		EPAIR(economic_reform),
+		EPAIR(remove_random_military_reforms),
+		EPAIR(remove_random_economic_reforms),
+		EPAIR(add_crime),
+		EPAIR(nationalize),
+		EPAIR(build_factory_in_capital_state),
+		EPAIR(activate_technology),
+		EPAIR(great_wars_enabled),
+		EPAIR(world_wars_enabled),
+		EPAIR(assimilate),
+		EPAIR(literacy),
+		EPAIR(add_crisis_interest),
+		EPAIR(flashpoint_tension),
+		EPAIR(add_crisis_temperature),
+		EPAIR(consciousness),
+		EPAIR(militancy),
+		EPAIR(rgo_size),
+		EPAIR(fort),
+		EPAIR(naval_base),
+		typepair<CT_STRING("railroad"), infrastructure_effect>
+	>;
+
+	using effect_map = typename sorted<unsorted_effect_map>::type;
+#ifdef _DEBUG
+	struct mismatched_effect_payload_size {};
+	struct no_effect_payload_value {};
+	struct unknown_effect {};
+#endif
+
+	void add_simple_effect(
+		effect_parsing_environment& env,
+		const token_and_type& effect_name,
+		association_type a,
+		const token_and_type& effect_value) {
+
+		if (!map_call_functions<effect_map>::template bt_scan_ci<bool>(effect_name.start, effect_name.end,
+			[a, &effect_value, &env](auto type_arg) {
+			const auto code = decltype(type_arg)::type::produce_code(env.current_scope, a, effect_value);
+			if (code) {
+				const auto data_size = effect_code_data_sizes[*code & effect_codes::code_mask];
+				if (data_size == 0) {
+					env.data.push_back(uint16_t(*code | effect_codes::no_payload));
+				} else {
+					env.data.push_back(*code);
+					env.data.push_back(static_cast<uint16_t>(data_size + 1));
+
+					const auto payload = decltype(type_arg)::type::read_value(effect_value, env.s, env.current_scope, env.ecm);
+
+					if (std::holds_alternative<int32_t>(payload)) {
+						add_int32_t_to_payload(env.data, std::get<int32_t>(payload));
+#ifdef _DEBUG
+						if (data_size != 2)
+							throw mismatched_effect_payload_size();
+#endif
+					} else if (std::holds_alternative<float>(payload)) {
+						add_float_to_payload(env.data, std::get<float>(payload));
+#ifdef _DEBUG
+						if (data_size != 2)
+							throw mismatched_effect_payload_size();
+#endif
+					} else if (std::holds_alternative<issues::option_identifier>(payload)) {
+						add_option_identifier_to_payload(env.data, std::get<issues::option_identifier>(payload));
+#ifdef _DEBUG
+						if (data_size != 2)
+							throw mismatched_effect_payload_size();
+#endif
+					} else if (std::holds_alternative<trigger_payload>(payload)) {
+						env.data.push_back(std::get<trigger_payload>(payload).value);
+#ifdef _DEBUG
+						if (data_size != 1)
+							throw mismatched_effect_payload_size();
+#endif
+					} else {
+#ifdef _DEBUG
+						throw no_effect_payload_value();
+#endif
+					}
+				}
+			} else {
+				EFFECT_ERROR(invalid_scope_for_effect, env);
+			}
+			return true;
+		})) {
+			//not found in map
+			if (is_fixed_token_ci(effect_name, "set_province_flag") || is_fixed_token_ci(effect_name, "clr_province_flag")) {
+				//discard
+			} else {
+				const auto left_handle = text_data::get_thread_safe_existing_text_handle(env.s.text_m, effect_name.start, effect_name.end);
+
+				if (const auto tech = tag_from_text(env.s.technology_m.named_technology_index, left_handle); is_valid_index(tech)) {
+					if (env.current_scope.main_slot == trigger_slot_contents::nation) {
+						env.data.push_back(effect_codes::variable_tech_name);
+						env.data.push_back(2ui16);
+						env.data.push_back(trigger_payload(tech).value);
+					} else {
+						EFFECT_ERROR(invalid_scope_for_effect, env);
+					}
+				} else if (const auto good = tag_from_text(env.s.economy_m.named_goods_index, left_handle); is_valid_index(good)) {
+					if (env.current_scope.main_slot == trigger_slot_contents::nation) {
+						env.data.push_back(effect_codes::variable_good_name);
+						env.data.push_back(4ui16);
+						env.data.push_back(trigger_payload(good).value);
+						add_float_to_payload(env.data, token_to<float>(effect_value));
+					} else {
+						EFFECT_ERROR(invalid_scope_for_effect, env);
+					}
+				} else {
+					EFFECT_ERROR(unknown_effect, env);
+				}
+			}
+		}
+	}
+}

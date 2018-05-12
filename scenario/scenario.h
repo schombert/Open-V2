@@ -12,6 +12,7 @@
 #include "variables\\variables.h"
 #include "military\\military.h"
 #include "events\\events.h"
+#include "triggers\\triggers.h"
 
 namespace scenario {
 	class scenario_manager {
@@ -28,6 +29,7 @@ namespace scenario {
 		variables::variables_manager variables_m;
 		military::military_manager military_m;
 		events::event_manager event_m;
+		triggers::trigger_manager trigger_m;
 
 		text_data::text_sequences& text_m;
 

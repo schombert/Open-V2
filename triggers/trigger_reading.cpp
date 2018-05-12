@@ -4352,7 +4352,7 @@ namespace triggers {
 
 			if (const auto region = tag_from_text(env.s.province_m.named_states_index, left_handle); is_valid_index(region)) {
 				scope_state = trigger_scope_state{
-					trigger_slot_contents::state,
+					trigger_slot_contents::province,
 					e.current_scope.this_slot,
 					e.current_scope.from_slot,
 					e.current_scope.contains_rebeltype };
@@ -4384,7 +4384,7 @@ namespace triggers {
 				payload_size_offset = e.data.size() - 1;
 				env.data.push_back(token_to<uint16_t>(name));
 			} else {
-				TRIGGER_ERROR(no_code_for_scope_in_current_context, e);
+				TRIGGER_ERROR(unknown_scope, e);
 			}
 		}
 	};
@@ -4676,9 +4676,13 @@ namespace triggers {
 			//...
 			
 			if (const auto tech = tag_from_text(env.s.technology_m.named_technology_index, left_handle); is_valid_index(tech)) {
-				env.data.push_back(uint16_t(trigger_codes::variable_tech_name | association_to_bool_code(a, token_to<int32_t>(trigger_value) >= 1)));
-				env.data.push_back(2ui16);
-				env.data.push_back(trigger_payload(tech).value);
+				if (env.current_scope.main_slot != trigger_slot_contents::nation) {
+					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, e);
+				} else {
+					env.data.push_back(uint16_t(trigger_codes::variable_tech_name | association_to_bool_code(a, token_to<int32_t>(trigger_value) >= 1)));
+					env.data.push_back(2ui16);
+					env.data.push_back(trigger_payload(tech).value);
+				}
 			} else if (const auto ideology = tag_from_text(env.s.ideologies_m.named_ideology_index, left_handle); is_valid_index(ideology)) {
 				if(env.current_scope.main_slot == trigger_slot_contents::nation)
 					env.data.push_back(uint16_t(trigger_codes::variable_ideology_name_nation | association_to_trigger_code(a)));

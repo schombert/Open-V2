@@ -88,6 +88,7 @@ namespace triggers {
 		text_data::text_tag text;
 		technologies::tech_tag tech;
 		events::event_tag event;
+		trigger_tag trigger;
 
 		trigger_payload(const trigger_payload &i) noexcept : value(i.value) {}
 		trigger_payload(uint16_t i) : value(i) {}
@@ -117,6 +118,7 @@ namespace triggers {
 		trigger_payload(military::leader_trait_tag i) : small(i) {}
 		trigger_payload(military::unit_type_tag i) : small(i) {}
 		trigger_payload(events::event_tag id) : event(id) {}
+		trigger_payload(trigger_tag id) : trigger(id) {}
 	};
 
 	static_assert(sizeof(trigger_payload) == 2);
