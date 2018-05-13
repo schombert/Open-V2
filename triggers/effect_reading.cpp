@@ -11,6 +11,7 @@
 #include "effects.h"
 #include "events\\events.h"
 #include "trigger_reading.h"
+#include "object_parsing\\object_parsing.hpp"
 
 namespace triggers {
 	using effect_value = std::variant<std::monostate, int32_t, float, issues::option_identifier, trigger_payload>;
@@ -1407,6 +1408,529 @@ namespace triggers {
 		}
 	};
 
+	//scope effect
+	struct generic_scope_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state&) {
+			return uint16_t(effect_codes::generic_scope);
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return scope;
+		}
+	};
+	struct any_neighbor_province_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::province)
+				return uint16_t(effect_codes::x_neighbor_province_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::province,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct any_neighbor_country_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(effect_codes::x_neighbor_country_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct any_country_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state&) {
+			return uint16_t(effect_codes::x_country_scope);
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct random_country_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(effect_codes::x_country_scope_nation | effect_codes::random_scope);
+			else
+				return uint16_t(effect_codes::x_country_scope | effect_codes::random_scope);
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct random_neighbor_province_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::province)
+				return uint16_t(effect_codes::x_neighbor_province_scope | effect_codes::random_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::province,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct random_empty_neighbor_province_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::province)
+				return uint16_t(effect_codes::x_empty_neighbor_province_scope | effect_codes::random_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::province,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct any_greater_power_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state&) {
+				return uint16_t(effect_codes::x_greater_power_scope);
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct poor_strata_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(effect_codes::poor_strata_scope_nation);
+			else if (scope.main_slot == trigger_slot_contents::state)
+				return uint16_t(effect_codes::poor_strata_scope_state);
+			else if (scope.main_slot == trigger_slot_contents::province)
+				return uint16_t(effect_codes::poor_strata_scope_province);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::pop,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct middle_strata_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(effect_codes::middle_strata_scope_nation);
+			else if (scope.main_slot == trigger_slot_contents::state)
+				return uint16_t(effect_codes::middle_strata_scope_state);
+			else if (scope.main_slot == trigger_slot_contents::province)
+				return uint16_t(effect_codes::middle_strata_scope_province);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::pop,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct rich_strata_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(effect_codes::rich_strata_scope_nation);
+			else if (scope.main_slot == trigger_slot_contents::state)
+				return uint16_t(effect_codes::rich_strata_scope_state);
+			else if (scope.main_slot == trigger_slot_contents::province)
+				return uint16_t(effect_codes::rich_strata_scope_province);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::pop,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct random_pop_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(effect_codes::x_pop_scope_nation | effect_codes::random_scope);
+			else if (scope.main_slot == trigger_slot_contents::state)
+				return uint16_t(effect_codes::x_pop_scope_state | effect_codes::random_scope);
+			else if (scope.main_slot == trigger_slot_contents::province)
+				return uint16_t(effect_codes::x_pop_scope_province | effect_codes::random_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::pop,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct random_owned_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(effect_codes::x_owned_scope_nation | effect_codes::random_scope);
+			else if (scope.main_slot == trigger_slot_contents::state)
+				return uint16_t(effect_codes::x_owned_scope_state | effect_codes::random_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::province,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct any_owned_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(effect_codes::x_owned_scope_nation);
+			else if (scope.main_slot == trigger_slot_contents::state)
+				return uint16_t(effect_codes::x_owned_scope_state);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::province,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct all_core_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(effect_codes::x_core_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::province,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct any_state_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(effect_codes::x_state_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::state,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct random_state_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(effect_codes::x_state_scope | effect_codes::random_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::state,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct any_pop_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(effect_codes::x_pop_scope_nation);
+			else if (scope.main_slot == trigger_slot_contents::state)
+				return uint16_t(effect_codes::x_pop_scope_state);
+			else if (scope.main_slot == trigger_slot_contents::province)
+				return uint16_t(effect_codes::x_pop_scope_province);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::pop,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct owner_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::state)
+				return uint16_t(effect_codes::owner_scope_state);
+			else if (scope.main_slot == trigger_slot_contents::province)
+				return uint16_t(effect_codes::owner_scope_province);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct controller_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::province)
+				return uint16_t(effect_codes::controller_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct location_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::pop)
+				return uint16_t(effect_codes::location_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::province,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct country_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::pop)
+				return uint16_t(effect_codes::country_scope_pop);
+			else if (scope.main_slot == trigger_slot_contents::state)
+				return uint16_t(effect_codes::country_scope_state);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct capital_scope_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(effect_codes::capital_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::province,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct this_scope_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.this_slot == trigger_slot_contents::nation)
+				return uint16_t(effect_codes::this_scope_nation);
+			else if (scope.this_slot == trigger_slot_contents::province)
+				return uint16_t(effect_codes::this_scope_province);
+			else if (scope.this_slot == trigger_slot_contents::state)
+				return uint16_t(effect_codes::this_scope_state);
+			else if (scope.this_slot == trigger_slot_contents::pop)
+				return uint16_t(effect_codes::this_scope_pop);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				scope.this_slot,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct from_scope_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.from_slot == trigger_slot_contents::nation)
+				return uint16_t(effect_codes::from_scope_nation);
+			else if (scope.from_slot == trigger_slot_contents::province)
+				return uint16_t(effect_codes::from_scope_province);
+			else if (scope.from_slot == trigger_slot_contents::state)
+				return uint16_t(effect_codes::from_scope_state);
+			else if (scope.from_slot == trigger_slot_contents::pop)
+				return uint16_t(effect_codes::from_scope_pop);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				scope.from_slot,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct sea_zone_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::province)
+				return uint16_t(effect_codes::sea_zone_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::province,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct cultural_union_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(effect_codes::cultural_union_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct overlord_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(effect_codes::overlord_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct sphere_owner_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::nation)
+				return uint16_t(effect_codes::sphere_owner_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct independence_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.contains_rebeltype)
+				return uint16_t(effect_codes::independence_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct flashpoint_tag_scope_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::state)
+				return uint16_t(effect_codes::flashpoint_tag_scope);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::nation,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct crisis_state_scope_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state&) {
+			return uint16_t(effect_codes::crisis_state_scope);
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::state,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+	struct state_scope_effect {
+		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
+			if (scope.main_slot == trigger_slot_contents::pop)
+				return uint16_t(effect_codes::state_scope_pop);
+			else if (scope.main_slot == trigger_slot_contents::province)
+				return uint16_t(effect_codes::state_scope_province);
+			else
+				return std::optional<uint16_t>();
+		}
+		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
+			return trigger_scope_state{
+				trigger_slot_contents::state,
+				scope.this_slot,
+				scope.from_slot,
+				scope.contains_rebeltype };
+		}
+	};
+
 #ifdef _DEBUG
 #define EFFECT_ERROR(type, environment) throw type ();
 #else
@@ -1595,7 +2119,7 @@ namespace triggers {
 	struct add_province_modifier_complex_effect {
 		effect_parsing_environment& env;
 
-		int16_t value = 0;
+		int16_t duration = 0;
 		modifiers::provincial_modifier_tag name;
 
 		add_province_modifier_complex_effect(effect_parsing_environment& e) : env(e) {}
@@ -1610,7 +2134,7 @@ namespace triggers {
 			if (env.current_scope.main_slot != trigger_slot_contents::province)
 				EFFECT_ERROR(invalid_scope_for_effect, env);
 
-			if (value <= 0) {
+			if (duration <= 0) {
 				env.data.push_back(effect_codes::add_province_modifier_no_duration);
 				env.data.push_back(2ui16);
 				env.data.push_back(trigger_payload(name).value);
@@ -1618,7 +2142,7 @@ namespace triggers {
 				env.data.push_back(effect_codes::add_province_modifier);
 				env.data.push_back(3ui16);
 				env.data.push_back(trigger_payload(name).value);
-				env.data.push_back(trigger_payload(value).value);
+				env.data.push_back(trigger_payload(duration).value);
 			}
 		}
 	};
@@ -1626,7 +2150,7 @@ namespace triggers {
 	struct add_country_modifier_complex_effect {
 		effect_parsing_environment& env;
 
-		int16_t value = 0;
+		int16_t duration = 0;
 		modifiers::national_modifier_tag name;
 
 		add_country_modifier_complex_effect(effect_parsing_environment& e) : env(e) {}
@@ -1641,7 +2165,7 @@ namespace triggers {
 			if (env.current_scope.main_slot != trigger_slot_contents::nation)
 				EFFECT_ERROR(invalid_scope_for_effect, env);
 
-			if (value <= 0) {
+			if (duration <= 0) {
 				env.data.push_back(effect_codes::add_country_modifier_no_duration);
 				env.data.push_back(2ui16);
 				env.data.push_back(trigger_payload(name).value);
@@ -1649,7 +2173,7 @@ namespace triggers {
 				env.data.push_back(effect_codes::add_country_modifier);
 				env.data.push_back(3ui16);
 				env.data.push_back(trigger_payload(name).value);
-				env.data.push_back(trigger_payload(value).value);
+				env.data.push_back(trigger_payload(duration).value);
 			}
 		}
 	};
@@ -1698,7 +2222,8 @@ namespace triggers {
 				else
 					EFFECT_ERROR(invalid_scope_for_effect, env);
 
-				env.data.push_back(2ui16);
+				env.data.push_back(3ui16);
+				env.data.push_back(trigger_payload(type).value);
 				env.data.push_back(trigger_payload(months).value);
 			} else if (this_target) {
 				if (env.current_scope.this_slot == trigger_slot_contents::nation)
@@ -1712,16 +2237,19 @@ namespace triggers {
 				else
 					EFFECT_ERROR(invalid_scope_for_effect, env);
 
-				env.data.push_back(2ui16);
+				env.data.push_back(3ui16);
+				env.data.push_back(trigger_payload(type).value);
 				env.data.push_back(trigger_payload(months).value);
 			} else if(is_valid_index(target_tag)) {
 				env.data.push_back(effect_codes::casus_belli_tag);
-				env.data.push_back(3ui16);
+				env.data.push_back(4ui16);
+				env.data.push_back(trigger_payload(type).value);
 				env.data.push_back(trigger_payload(months).value);
 				env.data.push_back(trigger_payload(target_tag).value);
 			} else {
 				env.data.push_back(effect_codes::casus_belli_int);
-				env.data.push_back(3ui16);
+				env.data.push_back(4ui16);
+				env.data.push_back(trigger_payload(type).value);
 				env.data.push_back(trigger_payload(months).value);
 				env.data.push_back(trigger_payload(province_target).value);
 			}
@@ -1772,7 +2300,8 @@ namespace triggers {
 				else
 					EFFECT_ERROR(invalid_scope_for_effect, env);
 
-				env.data.push_back(2ui16);
+				env.data.push_back(3ui16);
+				env.data.push_back(trigger_payload(type).value);
 				env.data.push_back(trigger_payload(months).value);
 			} else if (this_target) {
 				if (env.current_scope.this_slot == trigger_slot_contents::nation)
@@ -1786,16 +2315,19 @@ namespace triggers {
 				else
 					EFFECT_ERROR(invalid_scope_for_effect, env);
 
-				env.data.push_back(2ui16);
+				env.data.push_back(3ui16);
+				env.data.push_back(trigger_payload(type).value);
 				env.data.push_back(trigger_payload(months).value);
 			} else if (is_valid_index(target_tag)) {
 				env.data.push_back(effect_codes::add_casus_belli_tag);
-				env.data.push_back(3ui16);
+				env.data.push_back(4ui16);
+				env.data.push_back(trigger_payload(type).value);
 				env.data.push_back(trigger_payload(months).value);
 				env.data.push_back(trigger_payload(target_tag).value);
 			} else {
 				env.data.push_back(effect_codes::add_casus_belli_int);
-				env.data.push_back(3ui16);
+				env.data.push_back(4ui16);
+				env.data.push_back(trigger_payload(type).value);
 				env.data.push_back(trigger_payload(months).value);
 				env.data.push_back(trigger_payload(province_target).value);
 			}
@@ -1804,7 +2336,6 @@ namespace triggers {
 	struct remove_casus_belli_effect {
 		effect_parsing_environment& env;
 
-		int16_t months = 0;
 		uint16_t province_target = 0;
 		bool from_target = false;
 		bool this_target = false;
@@ -1847,7 +2378,7 @@ namespace triggers {
 					EFFECT_ERROR(invalid_scope_for_effect, env);
 
 				env.data.push_back(2ui16);
-				env.data.push_back(trigger_payload(months).value);
+				env.data.push_back(trigger_payload(type).value);
 			} else if (this_target) {
 				if (env.current_scope.this_slot == trigger_slot_contents::nation)
 					env.data.push_back(effect_codes::remove_casus_belli_this_nation);
@@ -1861,16 +2392,16 @@ namespace triggers {
 					EFFECT_ERROR(invalid_scope_for_effect, env);
 
 				env.data.push_back(2ui16);
-				env.data.push_back(trigger_payload(months).value);
+				env.data.push_back(trigger_payload(type).value);
 			} else if (is_valid_index(target_tag)) {
 				env.data.push_back(effect_codes::remove_casus_belli_tag);
 				env.data.push_back(3ui16);
-				env.data.push_back(trigger_payload(months).value);
+				env.data.push_back(trigger_payload(type).value);
 				env.data.push_back(trigger_payload(target_tag).value);
 			} else {
 				env.data.push_back(effect_codes::remove_casus_belli_int);
 				env.data.push_back(3ui16);
-				env.data.push_back(trigger_payload(months).value);
+				env.data.push_back(trigger_payload(type).value);
 				env.data.push_back(trigger_payload(province_target).value);
 			}
 		}
@@ -1878,7 +2409,6 @@ namespace triggers {
 	struct this_remove_casus_belli_effect {
 		effect_parsing_environment& env;
 
-		int16_t months = 0;
 		uint16_t province_target = 0;
 		bool from_target = false;
 		bool this_target = false;
@@ -1921,7 +2451,7 @@ namespace triggers {
 					EFFECT_ERROR(invalid_scope_for_effect, env);
 
 				env.data.push_back(2ui16);
-				env.data.push_back(trigger_payload(months).value);
+				env.data.push_back(trigger_payload(type).value);
 			} else if (this_target) {
 				if (env.current_scope.this_slot == trigger_slot_contents::nation)
 					env.data.push_back(effect_codes::this_remove_casus_belli_this_nation);
@@ -1935,16 +2465,16 @@ namespace triggers {
 					EFFECT_ERROR(invalid_scope_for_effect, env);
 
 				env.data.push_back(2ui16);
-				env.data.push_back(trigger_payload(months).value);
+				env.data.push_back(trigger_payload(type).value);
 			} else if (is_valid_index(target_tag)) {
 				env.data.push_back(effect_codes::this_remove_casus_belli_tag);
 				env.data.push_back(3ui16);
-				env.data.push_back(trigger_payload(months).value);
+				env.data.push_back(trigger_payload(type).value);
 				env.data.push_back(trigger_payload(target_tag).value);
 			} else {
 				env.data.push_back(effect_codes::this_remove_casus_belli_int);
 				env.data.push_back(3ui16);
-				env.data.push_back(trigger_payload(months).value);
+				env.data.push_back(trigger_payload(type).value);
 				env.data.push_back(trigger_payload(province_target).value);
 			}
 		}
@@ -2651,8 +3181,8 @@ namespace triggers {
 		}
 	};
 
-	 struct variable_name_scope_reading_object : public common_effect_scope_base {
-		variable_name_scope_reading_object(const token_and_type& name, effect_parsing_environment& e) : common_effect_scope_base(e) {
+	 struct variable_name_effect_scope_reading_object : public common_effect_scope_base {
+		 variable_name_effect_scope_reading_object(const token_and_type& name, effect_parsing_environment& e) : common_effect_scope_base(e) {
 			const auto left_handle = text_data::get_thread_safe_existing_text_handle(env.s.text_m, name.start, name.end);
 
 			if (const auto region = tag_from_text(env.s.province_m.named_states_index, left_handle); is_valid_index(region)) {
@@ -2663,7 +3193,7 @@ namespace triggers {
 					e.current_scope.contains_rebeltype };
 				e.current_scope = scope_state;
 				env.data.push_back(uint16_t(effect_codes::region_scope | effect_codes::is_scope | effect_codes::scope_has_limit));
-				env.data.push_back(2ui16);
+				env.data.push_back(3ui16);
 				payload_size_offset = e.data.size() - 1;
 				env.data.push_back(trigger_payload(trigger_tag()).value);
 				env.data.push_back(trigger_payload(region).value);
@@ -2684,7 +3214,7 @@ namespace triggers {
 					e.current_scope.contains_rebeltype };
 				e.current_scope = scope_state;
 
-				env.data.push_back(2ui16);
+				env.data.push_back(3ui16);
 				payload_size_offset = e.data.size() - 1;
 				env.data.push_back(trigger_payload(trigger_tag()).value);
 				env.data.push_back(trigger_payload(pop_type).value);
@@ -2696,8 +3226,9 @@ namespace triggers {
 					e.current_scope.contains_rebeltype };
 				e.current_scope = scope_state;
 				env.data.push_back(uint16_t(effect_codes::tag_scope | effect_codes::is_scope | effect_codes::scope_has_limit));
-				env.data.push_back(2ui16);
+				env.data.push_back(3ui16);
 				payload_size_offset = e.data.size() - 1;
+				env.data.push_back(trigger_payload(trigger_tag()).value);
 				env.data.push_back(trigger_payload(tag).value);
 			} else if (is_integer(name.start, name.end)) {
 				scope_state = trigger_scope_state{
@@ -2707,7 +3238,7 @@ namespace triggers {
 					e.current_scope.contains_rebeltype };
 				e.current_scope = scope_state;
 				env.data.push_back(uint16_t(effect_codes::integer_scope | effect_codes::is_scope | effect_codes::scope_has_limit));
-				env.data.push_back(2ui16);
+				env.data.push_back(3ui16);
 				payload_size_offset = e.data.size() - 1;
 				env.data.push_back(trigger_payload(trigger_tag()).value);
 				env.data.push_back(token_to<uint16_t>(name));
@@ -2718,20 +3249,73 @@ namespace triggers {
 	};
 
 	template<typename scope_trigger>
-	struct scope_reading_object : public common_effect_scope_base {
-		scope_reading_object(trigger_parsing_environment& e) : common_scope_base(e) {
+	struct effect_scope_reading_object : public common_effect_scope_base {
+		effect_scope_reading_object(trigger_parsing_environment& e) : common_effect_scope_base(e) {
 			const auto code = scope_trigger::produce_code(e.current_scope);
 			if (code) {
-				e.data.push_back(uint16_t(*code | trigger_codes::is_scope));
-				e.data.push_back(1ui16);
+				e.data.push_back(uint16_t(*code | effect_codes::is_scope | effect_codes::scope_has_limit));
+				e.data.push_back(2ui16);
 				payload_size_offset = e.data.size() - 1;
+				env.data.push_back(trigger_payload(trigger_tag()).value);
 			} else {
-				TRIGGER_ERROR(unknown_scope, e);
+				EFFECT_ERROR(unknown_effect_scope, e);
 			}
 
 			scope_state = scope_trigger::produce_new_scope(e.current_scope);
 			e.current_scope = scope_state;
 		}
+	};
+
+	struct random_effect : public common_effect_scope_base {
+		uint16_t chance = 0ui16;
+
+		random_effect(effect_parsing_environment& e) : common_effect_scope_base(e) {
+			e.data.push_back(uint16_t(effect_codes::random_scope | effect_codes::is_scope | effect_codes::scope_has_limit));
+			e.data.push_back(3ui16);
+			payload_size_offset = e.data.size() - 1;
+			env.data.push_back(trigger_payload(trigger_tag()).value);
+			env.data.push_back(0ui16);
+
+			scope_state = e.current_scope;
+		}
+		void finalize() const {
+			env.data[payload_size_offset] = uint16_t(env.data.size() - payload_size_offset);
+			env.data[payload_size_offset + 2] = chance;
+		}
+	};
+
+	struct random_list_effect : public common_effect_scope_base {
+		size_t last_subscope_start;
+
+		random_list_effect(effect_parsing_environment& e) : common_effect_scope_base(e) {
+			e.data.push_back(uint16_t(effect_codes::random_list_scope | effect_codes::is_scope));
+			e.data.push_back(3ui16);
+			payload_size_offset = e.data.size() - 1;
+			env.data.push_back(0ui16);
+
+			scope_state = e.current_scope;
+
+			env.data.push_back(0ui16);
+			last_subscope_start = e.data.size() - 1;
+		}
+		void add_list(uint16_t chance) {
+			env.data[last_subscope_start] = chance;
+			env.data.push_back(0ui16);
+			last_subscope_start = env.data.size() - 1;
+		}
+		void finalize() const {
+			env.data.pop_back();
+			env.data[payload_size_offset + 1] = uint16_t(get_random_list_effect_chances_sum(&env.data[payload_size_offset-1]));
+			env.data[payload_size_offset] = uint16_t(env.data.size() - payload_size_offset);
+		}
+	};
+
+	inline variable_name_effect_scope_reading_object& get_effect_vscope(const token_and_type&, association_type, variable_name_effect_scope_reading_object& t) {
+		return t;
+	};
+	inline uint16_t get_list_effect_chance(const token_and_type& t, association_type, const effect_scope_reading_object<generic_scope_effect>& sub_effect) {
+		sub_effect.finalize();
+		return token_to<uint16_t>(t);
 	};
 }
 
@@ -2744,9 +3328,9 @@ MEMBER_DEF(triggers::diplomatic_influence_effect, value, "value");
 MEMBER_FDEF(triggers::relation_effect, set_who, "who");
 MEMBER_DEF(triggers::relation_effect, value, "value");
 MEMBER_FDEF(triggers::add_province_modifier_complex_effect, set_name, "name");
-MEMBER_DEF(triggers::add_province_modifier_complex_effect, value, "value");
+MEMBER_DEF(triggers::add_province_modifier_complex_effect, duration, "duration");
 MEMBER_FDEF(triggers::add_country_modifier_complex_effect, set_name, "name");
-MEMBER_DEF(triggers::add_country_modifier_complex_effect, value, "value");
+MEMBER_DEF(triggers::add_country_modifier_complex_effect, duration, "duration");
 MEMBER_FDEF(triggers::casus_belli_effect, set_type, "type");
 MEMBER_FDEF(triggers::casus_belli_effect, set_target, "target");
 MEMBER_DEF(triggers::casus_belli_effect, months, "months");
@@ -2755,10 +3339,8 @@ MEMBER_FDEF(triggers::add_casus_belli_effect, set_target, "target");
 MEMBER_DEF(triggers::add_casus_belli_effect, months, "months");
 MEMBER_FDEF(triggers::remove_casus_belli_effect, set_type, "type");
 MEMBER_FDEF(triggers::remove_casus_belli_effect, set_target, "target");
-MEMBER_DEF(triggers::remove_casus_belli_effect, months, "months");
 MEMBER_FDEF(triggers::this_remove_casus_belli_effect, set_type, "type");
 MEMBER_FDEF(triggers::this_remove_casus_belli_effect, set_target, "target");
-MEMBER_DEF(triggers::this_remove_casus_belli_effect, months, "months");
 MEMBER_FDEF(triggers::limited_wg_reader, set_country, "country");
 MEMBER_FDEF(triggers::limited_wg_reader, set_casus_belli, "casus_belli");
 MEMBER_DEF(triggers::limited_wg_reader, state_province_id, "state_province_id");
@@ -2807,6 +3389,8 @@ MEMBER_DEF(triggers::build_railway_in_capital_effect, in_whole_capital_state, "i
 MEMBER_DEF(triggers::build_railway_in_capital_effect, limit_to_world_greatest_level, "limit_to_world_greatest_level");
 MEMBER_DEF(triggers::build_fort_in_capital_effect, in_whole_capital_state, "in_whole_capital_state");
 MEMBER_DEF(triggers::build_fort_in_capital_effect, limit_to_world_greatest_level, "limit_to_world_greatest_level");
+MEMBER_DEF(triggers::random_effect, chance, "chance");
+MEMBER_DEF(triggers::random_list_effect, add_list, "add_list");
 
 template<typename T>
 struct _set_member<CT_STRING("_add_effect"), T> {
@@ -3013,5 +3597,379 @@ namespace triggers {
 				}
 			}
 		}
+	}
+
+	BEGIN_DOMAIN(effect_reading)
+		BEGIN_TYPE(common_effect_scope_base)
+		    MEMBER_VARIABLE_ASSOCIATION("_add_effect", accept_all, yield_full)
+		    MEMBER_TYPE_EXTERN("_add_limit", "limit", trigger_tag, read_limit_trigger)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "trigger_revolt", trigger_revolt_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "diplomatic_influencw", diplomatic_influence_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "relation", relation_effect)
+		    MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "modify_relation", relation_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "add_province_modifier", add_province_modifier_complex_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "add_country_modifier", add_country_modifier_complex_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "casus_belli", casus_belli_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "add_casus_belli", add_casus_belli_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "remove_casus_belli", remove_casus_belli_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "this_remove_casus_belli", this_remove_casus_belli_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "war", war_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "country_event", country_event_complex_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "province_event", province_event_complex_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "sub_unit", sub_unit_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "set_variable", set_variable_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "change_variable", change_variable_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "ideology", ideology_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "dominant_issue", dominant_issue_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "upper_house", upper_house_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "scaled_militancy", scaled_militancy_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "scaled_consciousness", scaled_consciousness_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "define_general", define_general_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "define_admiral", define_admiral_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "add_war_goal", add_war_goal_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "move_issue_percentage", move_issue_percentage_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "party_loyalty", party_loyalty_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "build_railway_in_capital", build_railway_in_capital_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "build_fort_in_capital", build_fort_in_capital_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "hidden_tooltip", effect_scope_reading_object<generic_scope_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "any_neighbor_province", effect_scope_reading_object<any_neighbor_province_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "any_neighbor_country", effect_scope_reading_object<any_neighbor_country_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "any_country", effect_scope_reading_object<any_country_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "random_country", effect_scope_reading_object<random_country_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "random_neighbor_province", effect_scope_reading_object<random_neighbor_province_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "random_empty_neighbor_province", effect_scope_reading_object<random_empty_neighbor_province_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "any_greater_power", effect_scope_reading_object<any_greater_power_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "poor_strata", effect_scope_reading_object<poor_strata_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "middle_strata", effect_scope_reading_object<middle_strata_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "rich_strata", effect_scope_reading_object<rich_strata_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "random_pop", effect_scope_reading_object<random_pop_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "random_owned", effect_scope_reading_object<random_owned_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "random_province", effect_scope_reading_object<random_owned_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "any_owned", effect_scope_reading_object<any_owned_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "all_core", effect_scope_reading_object<all_core_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "any_state", effect_scope_reading_object<any_state_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "random_state", effect_scope_reading_object<random_state_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "any_pop", effect_scope_reading_object<any_pop_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "owner", effect_scope_reading_object<owner_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "controller", effect_scope_reading_object<controller_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "location", effect_scope_reading_object<location_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "country", effect_scope_reading_object<country_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "capital_scope", effect_scope_reading_object<capital_scope_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "this", effect_scope_reading_object<this_scope_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "from", effect_scope_reading_object<from_scope_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "sea_zone", effect_scope_reading_object<sea_zone_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "cultural_union", effect_scope_reading_object<cultural_union_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "overlord", effect_scope_reading_object<overlord_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "sphere_owner", effect_scope_reading_object<sphere_owner_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "independence", effect_scope_reading_object<independence_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "flashpoint_tag_scope", effect_scope_reading_object<flashpoint_tag_scope_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "crisis_state_scope", effect_scope_reading_object<crisis_state_scope_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "state_scope", effect_scope_reading_object<state_scope_effect>)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "random", random_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_scope", "random_list", random_list_effect)
+			MEMBER_VARIABLE_TYPE_ASSOCIATION("_add_scope", accept_all, variable_name_effect_scope_reading_object, get_effect_vscope)
+		END_TYPE
+		BEGIN_TYPE(random_list_effect)
+		    MEMBER_VARIABLE_TYPE_ASSOCIATION("add_list", accept_all, effect_scope_reading_object<generic_scope_effect>, get_list_effect_chance)
+		END_TYPE
+		BEGIN_TYPE(random_effect)
+		    INHERIT_FROM(common_effect_scope_base)
+		    MEMBER_ASSOCIATION("chance", "chance", value_from_rh<uint16_t>)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<any_neighbor_province_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<any_neighbor_country_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<any_country_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<random_country_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<random_neighbor_province_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<random_empty_neighbor_province_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<any_greater_power_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<poor_strata_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<middle_strata_effect>)
+			INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<rich_strata_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<random_pop_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<random_owned_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<any_owned_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<all_core_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<any_state_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<random_state_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<any_pop_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<owner_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<controller_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<location_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<country_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<capital_scope_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<this_scope_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<from_scope_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<sea_zone_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<cultural_union_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<overlord_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<sphere_owner_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<independence_effect>)
+		    INHERIT_FROM(independence_effect)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<flashpoint_tag_scope_effect>)
+		    INHERIT_FROM(flashpoint_tag_scope_effect)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<crisis_state_scope_effect>)
+		    INHERIT_FROM(flashpoint_tag_scope_effect)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<state_scope_effect>)
+		    INHERIT_FROM(flashpoint_tag_scope_effect)
+		END_TYPE
+		BEGIN_TYPE(trigger_revolt_effect)
+			MEMBER_ASSOCIATION("culture", "culture", token_from_rh)
+			MEMBER_ASSOCIATION("religion", "religion", token_from_rh)
+			MEMBER_ASSOCIATION("ideology", "ideology", token_from_rh)
+			MEMBER_ASSOCIATION("type", "type", token_from_rh)
+		END_TYPE
+		BEGIN_TYPE(diplomatic_influence_effect)
+			MEMBER_ASSOCIATION("who", "who", token_from_rh)
+			MEMBER_ASSOCIATION("value", "value", value_from_rh<int16_t>)
+		END_TYPE
+		BEGIN_TYPE(relation_effect)
+			MEMBER_ASSOCIATION("who", "who", token_from_rh)
+			MEMBER_ASSOCIATION("who", "tag", token_from_rh)
+			MEMBER_ASSOCIATION("who", "with", token_from_rh)
+			MEMBER_ASSOCIATION("value", "value", value_from_rh<int16_t>)
+			MEMBER_ASSOCIATION("value", "relation", value_from_rh<int16_t>)
+		END_TYPE
+		BEGIN_TYPE(add_province_modifier_complex_effect)
+			MEMBER_ASSOCIATION("name", "name", token_from_rh)
+			MEMBER_ASSOCIATION("duration", "duration", value_from_rh<int16_t>)
+		END_TYPE
+		BEGIN_TYPE(add_country_modifier_complex_effect)
+			MEMBER_ASSOCIATION("name", "name", token_from_rh)
+			MEMBER_ASSOCIATION("duration", "duration", value_from_rh<int16_t>)
+		END_TYPE
+		BEGIN_TYPE(casus_belli_effect)
+			MEMBER_ASSOCIATION("type", "type", token_from_rh)
+			MEMBER_ASSOCIATION("target", "target", token_from_rh)
+			MEMBER_ASSOCIATION("months", "months", value_from_rh<int16_t>)
+		END_TYPE
+		BEGIN_TYPE(add_casus_belli_effect)
+			MEMBER_ASSOCIATION("type", "type", token_from_rh)
+			MEMBER_ASSOCIATION("target", "target", token_from_rh)
+			MEMBER_ASSOCIATION("months", "months", value_from_rh<int16_t>)
+		END_TYPE
+		BEGIN_TYPE(remove_casus_belli_effect)
+			MEMBER_ASSOCIATION("type", "type", token_from_rh)
+			MEMBER_ASSOCIATION("target", "target", token_from_rh)
+		END_TYPE
+		BEGIN_TYPE(this_remove_casus_belli_effect)
+			MEMBER_ASSOCIATION("type", "type", token_from_rh)
+			MEMBER_ASSOCIATION("target", "target", token_from_rh)
+		END_TYPE
+		BEGIN_TYPE(limited_wg_reader)
+			MEMBER_ASSOCIATION("country", "country", token_from_rh)
+			MEMBER_ASSOCIATION("casus_belli", "casus_belli", token_from_rh)
+			MEMBER_ASSOCIATION("state_province_id", "state_province_id", value_from_rh<uint16_t>)
+		END_TYPE
+		BEGIN_TYPE(war_effect)
+			MEMBER_ASSOCIATION("target", "target", token_from_rh)
+			MEMBER_TYPE_ASSOCIATION("defender_goal", "defender_goal", limited_wg_reader)
+			MEMBER_TYPE_ASSOCIATION("attacker_goal", "attacker_goal", limited_wg_reader)
+			MEMBER_ASSOCIATION("call_ally", "call_ally", value_from_rh<bool>)
+		END_TYPE
+		BEGIN_TYPE(country_event_complex_effect)
+			MEMBER_ASSOCIATION("days", "days", value_from_rh<int16_t>)
+			MEMBER_ASSOCIATION("id", "id", value_from_rh<int32_t>)
+		END_TYPE
+		BEGIN_TYPE(province_event_complex_effect)
+			MEMBER_ASSOCIATION("days", "days", value_from_rh<int16_t>)
+			MEMBER_ASSOCIATION("id", "id", value_from_rh<int32_t>)
+		END_TYPE
+		BEGIN_TYPE(sub_unit_effect)
+			MEMBER_ASSOCIATION("type", "type", token_from_rh)
+			MEMBER_ASSOCIATION("value", "value", token_from_rh)
+		END_TYPE
+		BEGIN_TYPE(set_variable_effect)
+			MEMBER_ASSOCIATION("which", "which", token_from_rh)
+			MEMBER_ASSOCIATION("value", "value", value_from_rh<float>)
+		END_TYPE
+		BEGIN_TYPE(change_variable_effect)
+			MEMBER_ASSOCIATION("which", "which", token_from_rh)
+			MEMBER_ASSOCIATION("value", "value", value_from_rh<float>)
+		END_TYPE
+		BEGIN_TYPE(ideology_effect)
+			MEMBER_ASSOCIATION("value", "value", token_from_rh)
+			MEMBER_ASSOCIATION("factor", "factor", value_from_rh<float>)
+		END_TYPE
+		BEGIN_TYPE(dominant_issue_effect)
+			MEMBER_ASSOCIATION("value", "value", token_from_rh)
+			MEMBER_ASSOCIATION("factor", "factor", value_from_rh<float>)
+		END_TYPE
+		BEGIN_TYPE(upper_house_effect)
+			MEMBER_ASSOCIATION("ideology", "ideology", token_from_rh)
+			MEMBER_ASSOCIATION("value", "value", value_from_rh<float>)
+		END_TYPE
+		BEGIN_TYPE(scaled_militancy_effect)
+			MEMBER_ASSOCIATION("ideology", "ideology", token_from_rh)
+			MEMBER_ASSOCIATION("issue", "issue", token_from_rh)
+			MEMBER_ASSOCIATION("factor", "factor", value_from_rh<float>)
+			MEMBER_ASSOCIATION("factor", "value", value_from_rh<float>)
+			MEMBER_ASSOCIATION("unemployment", "unemployment", value_from_rh<float>)
+		END_TYPE
+		BEGIN_TYPE(scaled_consciousness_effect)
+			MEMBER_ASSOCIATION("ideology", "ideology", token_from_rh)
+			MEMBER_ASSOCIATION("issue", "issue", token_from_rh)
+			MEMBER_ASSOCIATION("factor", "factor", value_from_rh<float>)
+			MEMBER_ASSOCIATION("factor", "value", value_from_rh<float>)
+			MEMBER_ASSOCIATION("unemployment", "unemployment", value_from_rh<float>)
+		END_TYPE
+		BEGIN_TYPE(define_general_effect)
+			MEMBER_ASSOCIATION("name", "name", token_from_rh)
+			MEMBER_ASSOCIATION("background", "background", token_from_rh)
+			MEMBER_ASSOCIATION("personality", "personality", token_from_rh)
+		END_TYPE
+		BEGIN_TYPE(define_admiral_effect)
+			MEMBER_ASSOCIATION("name", "name", token_from_rh)
+			MEMBER_ASSOCIATION("background", "background", token_from_rh)
+			MEMBER_ASSOCIATION("personality", "personality", token_from_rh)
+		END_TYPE
+		BEGIN_TYPE(add_war_goal_effect)
+			MEMBER_ASSOCIATION("casus_belli", "casus_belli", token_from_rh)
+		END_TYPE
+		BEGIN_TYPE(move_issue_percentage_effect)
+			MEMBER_ASSOCIATION("from", "from", token_from_rh)
+			MEMBER_ASSOCIATION("to", "to", token_from_rh)
+			MEMBER_ASSOCIATION("value", "value", value_from_rh<float>)
+		END_TYPE
+		BEGIN_TYPE(party_loyalty_effect)
+			MEMBER_ASSOCIATION("ideology", "ideology", token_from_rh)
+			MEMBER_ASSOCIATION("province_id", "province_id", value_from_rh<uint16_t>)
+			MEMBER_ASSOCIATION("loyalty_value", "loyalty_value", value_from_rh<float>)
+		END_TYPE
+		BEGIN_TYPE(build_railway_in_capital_effect)
+			MEMBER_ASSOCIATION("in_whole_capital_state", "in_whole_capital_state", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("limit_to_world_greatest_level", "limit_to_world_greatest_level", value_from_rh<bool>)
+		END_TYPE
+		BEGIN_TYPE(build_fort_in_capital_effect)
+			MEMBER_ASSOCIATION("in_whole_capital_state", "in_whole_capital_state", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("limit_to_world_greatest_level", "limit_to_world_greatest_level", value_from_rh<bool>)
+		END_TYPE
+	END_DOMAIN;
+
+	int32_t strip_empty_limits(uint16_t* source) {
+		if ((source[0] & effect_codes::is_scope) != 0) {
+			auto source_size = 1 + get_effect_payload_size(source);
+
+			if ((source[0] & effect_codes::code_mask) == effect_codes::random_list_scope) {
+				auto sub_units_start = source + 4; // [code] + [payload size] + [chances total] + [first sub effect chance]
+
+				while (sub_units_start < source + source_size) {
+					const auto old_size = 1 + get_effect_payload_size(sub_units_start);
+					const auto new_size = strip_empty_limits(sub_units_start);
+
+					if (new_size != old_size) { // has been simplified, assumes that new size always <= old size
+						std::copy(sub_units_start + old_size, source + source_size, sub_units_start + new_size);
+						source_size -= (old_size - new_size);
+					}
+					sub_units_start += new_size + 1;
+				}
+				
+
+				
+			} else if (effect_scope_is_empty(source)) {
+				return 0; // simplify an empty scope to nothing
+			} else {
+				auto sub_units_start = source + 2 + effect_scope_data_payload(source[0]);
+
+				while (sub_units_start < source + source_size) {
+					const auto old_size = 1 + get_effect_payload_size(sub_units_start);
+					const auto new_size = strip_empty_limits(sub_units_start);
+
+					if (new_size != old_size) { // has been simplified, assumes that new size always <= old size
+						std::copy(sub_units_start + old_size, source + source_size, sub_units_start + new_size);
+						source_size -= (old_size - new_size);
+					}
+					sub_units_start += new_size;
+				}
+			}
+
+			if ((source[0] & effect_codes::scope_has_limit) != 0 && !is_valid_index(trigger_payload(source[2]).trigger)) {
+				std::copy(source + 2, source + 1, source + source_size - 1);
+				--source_size;
+				source[0] = uint16_t(source[0] & ~effect_codes::scope_has_limit);
+			}
+
+			source[1] = uint16_t(source_size - 1);
+
+			return source_size;
+		} else {
+			return 1 + get_trigger_payload_size(source); // non scopes cannot be simplified
+		}
+	}
+
+	std::vector<uint16_t> parse_effect(
+		scenario::scenario_manager& s,
+		events::event_creation_manager& ecm,
+		trigger_scope_state outer_scope,
+		const token_group* start,
+		const token_group* end) {
+
+		effect_parsing_environment parse_env(s, ecm, outer_scope);
+
+		auto effect = parse_object<effect_scope_reading_object<generic_scope_effect>, effect_reading>(start, end, parse_env);
+		effect.finalize();
+
+		const auto new_size = strip_empty_limits(parse_env.data.data());
+		parse_env.data.resize(static_cast<size_t>(new_size));
+		return std::move(parse_env.data);
 	}
 }

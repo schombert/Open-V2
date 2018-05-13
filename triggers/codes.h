@@ -304,7 +304,7 @@ namespace triggers {
 		constexpr uint16_t x_neighbor_province_scope = 0x0001;
 		constexpr uint16_t x_neighbor_country_scope = 0x0002;
 		constexpr uint16_t x_country_scope = 0x0003;
-		constexpr uint16_t random_country_scope_nation = 0x0004;
+		constexpr uint16_t x_country_scope_nation = 0x0004;
 		constexpr uint16_t x_empty_neighbor_province_scope = 0x0005;
 		constexpr uint16_t x_greater_power_scope = 0x0006;
 		constexpr uint16_t poor_strata_scope_nation = 0x0007;

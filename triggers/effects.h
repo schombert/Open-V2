@@ -26,7 +26,7 @@ namespace triggers {
 			} else {
 				const auto source_size = 1 + get_effect_payload_size(source);
 
-				auto sub_units_start = source + 2ui32 + effect_scope_data_payload(source[0]);
+				auto sub_units_start = source + 2 + effect_scope_data_payload(source[0]);
 				while (sub_units_start < source + source_size) {
 					recurse_over_effects(sub_units_start, f);
 					sub_units_start += 1 + get_effect_payload_size(sub_units_start);
