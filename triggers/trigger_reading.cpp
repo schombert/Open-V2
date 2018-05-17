@@ -4996,12 +4996,12 @@ namespace triggers {
 				sub_units_start += new_size;
 			}
 
+			source[1] = uint16_t(source_size - 1);
+
 			if ((source[0] & trigger_codes::code_mask) == trigger_codes::placeholder_not_scope) { // remove not scopes
 				invert_trigger(source);
 				source[0] = uint16_t((source[0] & ~trigger_codes::code_mask) | trigger_codes::generic_scope);
 			}
-
-			source[1] = uint16_t(source_size - 1);
 
 			if (scope_has_single_member(source)) {
 				
@@ -5032,6 +5032,7 @@ namespace triggers {
 
 		auto trigger = parse_object<scope_reading_object<and_trigger>, trigger_reading>(start, end, parse_env);
 		trigger.finalize();
+		parse_env.data.push_back(0ui16);
 
 		const auto new_size = simplify_trigger(parse_env.data.data());
 		parse_env.data.resize(static_cast<size_t>(new_size));
@@ -5044,6 +5045,7 @@ namespace triggers {
 
 		auto trigger = parse_object<factor_type_scope, trigger_reading>(start, end, parse_env);
 		trigger.finalize();
+		parse_env.data.push_back(0ui16);
 
 		const auto new_size = simplify_trigger(parse_env.data.data());
 		parse_env.data.resize(static_cast<size_t>(new_size));

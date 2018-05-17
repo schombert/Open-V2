@@ -47,6 +47,9 @@
     <ClCompile Include="triggers_test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\economy\economy.vcxproj">
+      <Project>{a3c129a9-de31-4318-9fa6-019a8435d902}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\fake_fs\fake_fs.vcxproj">
       <Project>{c9607b1c-c139-4ca0-ae7d-3162e40c6838}</Project>
     </ProjectReference>

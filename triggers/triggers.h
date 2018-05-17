@@ -145,8 +145,10 @@ namespace triggers {
 	class trigger_manager {
 	public:
 		std::vector<uint16_t> trigger_data;
+		std::vector<uint16_t> effect_data;
 		trigger_manager() {
 			trigger_data.push_back(0ui16);
+			effect_data.push_back(0ui16);
 		}
 	};
 

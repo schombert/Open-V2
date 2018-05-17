@@ -3250,7 +3250,7 @@ namespace triggers {
 
 	template<typename scope_trigger>
 	struct effect_scope_reading_object : public common_effect_scope_base {
-		effect_scope_reading_object(trigger_parsing_environment& e) : common_effect_scope_base(e) {
+		effect_scope_reading_object(effect_parsing_environment& e) : common_effect_scope_base(e) {
 			const auto code = scope_trigger::produce_code(e.current_scope);
 			if (code) {
 				e.data.push_back(uint16_t(*code | effect_codes::is_scope | effect_codes::scope_has_limit));
@@ -3390,7 +3390,7 @@ MEMBER_DEF(triggers::build_railway_in_capital_effect, limit_to_world_greatest_le
 MEMBER_DEF(triggers::build_fort_in_capital_effect, in_whole_capital_state, "in_whole_capital_state");
 MEMBER_DEF(triggers::build_fort_in_capital_effect, limit_to_world_greatest_level, "limit_to_world_greatest_level");
 MEMBER_DEF(triggers::random_effect, chance, "chance");
-MEMBER_DEF(triggers::random_list_effect, add_list, "add_list");
+MEMBER_FDEF(triggers::random_list_effect, add_list, "add_list");
 
 template<typename T>
 struct _set_member<CT_STRING("_add_effect"), T> {
@@ -3676,6 +3676,12 @@ namespace triggers {
 		    INHERIT_FROM(common_effect_scope_base)
 		    MEMBER_ASSOCIATION("chance", "chance", value_from_rh<uint16_t>)
 		END_TYPE
+		BEGIN_TYPE(variable_name_effect_scope_reading_object)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
+		BEGIN_TYPE(effect_scope_reading_object<generic_scope_effect>)
+		    INHERIT_FROM(common_effect_scope_base)
+		END_TYPE
 		BEGIN_TYPE(effect_scope_reading_object<any_neighbor_province_effect>)
 		    INHERIT_FROM(common_effect_scope_base)
 		END_TYPE
@@ -3761,16 +3767,16 @@ namespace triggers {
 		    INHERIT_FROM(common_effect_scope_base)
 		END_TYPE
 		BEGIN_TYPE(effect_scope_reading_object<independence_effect>)
-		    INHERIT_FROM(independence_effect)
+		    INHERIT_FROM(common_effect_scope_base)
 		END_TYPE
 		BEGIN_TYPE(effect_scope_reading_object<flashpoint_tag_scope_effect>)
-		    INHERIT_FROM(flashpoint_tag_scope_effect)
+		    INHERIT_FROM(common_effect_scope_base)
 		END_TYPE
 		BEGIN_TYPE(effect_scope_reading_object<crisis_state_scope_effect>)
-		    INHERIT_FROM(flashpoint_tag_scope_effect)
+		    INHERIT_FROM(common_effect_scope_base)
 		END_TYPE
 		BEGIN_TYPE(effect_scope_reading_object<state_scope_effect>)
-		    INHERIT_FROM(flashpoint_tag_scope_effect)
+		    INHERIT_FROM(common_effect_scope_base)
 		END_TYPE
 		BEGIN_TYPE(trigger_revolt_effect)
 			MEMBER_ASSOCIATION("culture", "culture", token_from_rh)
@@ -3905,7 +3911,12 @@ namespace triggers {
 		END_TYPE
 	END_DOMAIN;
 
-	int32_t strip_empty_limits(uint16_t* source) {
+	bool effect_scope_has_single_member(const uint16_t* source) { //precondition: scope known to not be empty
+		const auto data_offset = 2 + effect_scope_data_payload(source[0]);
+		return get_effect_payload_size(source) == data_offset + get_effect_payload_size(source + data_offset);
+	}
+
+	int32_t simplify_effect(uint16_t* source) {
 		if ((source[0] & effect_codes::is_scope) != 0) {
 			auto source_size = 1 + get_effect_payload_size(source);
 
@@ -3914,7 +3925,7 @@ namespace triggers {
 
 				while (sub_units_start < source + source_size) {
 					const auto old_size = 1 + get_effect_payload_size(sub_units_start);
-					const auto new_size = strip_empty_limits(sub_units_start);
+					const auto new_size = simplify_effect(sub_units_start);
 
 					if (new_size != old_size) { // has been simplified, assumes that new size always <= old size
 						std::copy(sub_units_start + old_size, source + source_size, sub_units_start + new_size);
@@ -3922,17 +3933,12 @@ namespace triggers {
 					}
 					sub_units_start += new_size + 1;
 				}
-				
-
-				
-			} else if (effect_scope_is_empty(source)) {
-				return 0; // simplify an empty scope to nothing
 			} else {
 				auto sub_units_start = source + 2 + effect_scope_data_payload(source[0]);
 
 				while (sub_units_start < source + source_size) {
 					const auto old_size = 1 + get_effect_payload_size(sub_units_start);
-					const auto new_size = strip_empty_limits(sub_units_start);
+					const auto new_size = simplify_effect(sub_units_start);
 
 					if (new_size != old_size) { // has been simplified, assumes that new size always <= old size
 						std::copy(sub_units_start + old_size, source + source_size, sub_units_start + new_size);
@@ -3942,17 +3948,27 @@ namespace triggers {
 				}
 			}
 
+			source[1] = uint16_t(source_size - 1);
+
 			if ((source[0] & effect_codes::scope_has_limit) != 0 && !is_valid_index(trigger_payload(source[2]).trigger)) {
-				std::copy(source + 2, source + 1, source + source_size - 1);
+				std::copy(source + 3, source + source_size, source + 2);
 				--source_size;
 				source[0] = uint16_t(source[0] & ~effect_codes::scope_has_limit);
+				source[1] = uint16_t(source_size - 1);
 			}
 
-			source[1] = uint16_t(source_size - 1);
+			if ((source[0] & effect_codes::code_mask) == effect_codes::generic_scope) {
+				if (source_size == 2) {
+					return 0; //simplify empty scope to nothing
+				} else if (((source[0] & effect_codes::scope_has_limit) == 0) && effect_scope_has_single_member(source)) {
+					std::copy(source + 2, source + source_size, source);
+					source_size -= 2;
+				}
+			}
 
 			return source_size;
 		} else {
-			return 1 + get_trigger_payload_size(source); // non scopes cannot be simplified
+			return 1 + get_effect_payload_size(source); // non scopes cannot be simplified
 		}
 	}
 
@@ -3967,9 +3983,26 @@ namespace triggers {
 
 		auto effect = parse_object<effect_scope_reading_object<generic_scope_effect>, effect_reading>(start, end, parse_env);
 		effect.finalize();
+		parse_env.data.push_back(0ui16);
 
-		const auto new_size = strip_empty_limits(parse_env.data.data());
+		const auto new_size = simplify_effect(parse_env.data.data());
 		parse_env.data.resize(static_cast<size_t>(new_size));
 		return std::move(parse_env.data);
+	}
+
+	effect_tag commit_effect(trigger_manager& trigger_manager, const std::vector<uint16_t>& new_effect) {
+		if (new_effect.size() == 0ui64)
+			return effect_tag();
+
+		const auto search_result = std::search(trigger_manager.effect_data.begin(), trigger_manager.effect_data.end(), new_effect.begin(), new_effect.end());
+		if (search_result != trigger_manager.effect_data.end()) {
+			return effect_tag(static_cast<value_base_of<trigger_tag>>(search_result - trigger_manager.effect_data.begin()));
+		} else {
+			trigger_manager.effect_data.pop_back();
+			const auto new_start_pos = trigger_manager.effect_data.size();
+			trigger_manager.effect_data.insert(trigger_manager.effect_data.end(), new_effect.begin(), new_effect.end());
+			trigger_manager.effect_data.push_back(0ui16);
+			return effect_tag(static_cast<value_base_of<trigger_tag>>(new_start_pos));
+		}
 	}
 }

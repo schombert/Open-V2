@@ -26,10 +26,14 @@ namespace triggers {
 		const token_and_type& effect_name,
 		association_type a,
 		const token_and_type& effect_value);
+	std::vector<uint16_t> parse_effect(
+		scenario::scenario_manager& s,
+		events::event_creation_manager& ecm,
+		trigger_scope_state outer_scope,
+		const token_group* start,
+		const token_group* end);
 
-	bool effect_scope_is_empty(const uint16_t* source);
 	bool effect_scope_has_single_member(const uint16_t* source); //precondition: scope known to not be empty
 	int32_t simplify_effect(uint16_t* source); //yields new source size
-	std::vector<uint16_t> parse_effect(scenario::scenario_manager& s, trigger_scope_state outer_scope, const token_group* start, const token_group* end);
 	effect_tag commit_effect(trigger_manager& trigger_manager, const std::vector<uint16_t>& new_effect);
 }
