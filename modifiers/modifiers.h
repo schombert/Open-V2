@@ -8,6 +8,10 @@
 #include "text_data\\text_data.h"
 #include "concurrency_tools\\concurrency_tools.hpp"
 
+namespace scenario {
+	class scenario_manager;
+}
+
 namespace modifiers {
 	struct provincial_modifier {
 		uint32_t icon = 0;
@@ -22,6 +26,26 @@ namespace modifiers {
 
 		text_data::text_tag name;
 		national_modifier_tag id;
+	};
+	
+	struct factor_modifier {
+		float factor = 0.0f;
+		float base = 0.0f;
+		uint16_t data_offset = 0ui16;
+		uint16_t data_length = 0ui16;
+
+		bool operator==(const factor_modifier& other) const {
+			return (factor == other.factor) & (base == other.base) & (data_offset == other.data_offset) & (data_length == other.data_length);
+		}
+	};
+
+	struct factor_segment {
+		float factor = 0.0f;
+		triggers::trigger_tag condition;
+
+		bool operator==(factor_segment other) const {
+			return (factor == other.factor) & (condition == other.condition);
+		}
 	};
 
 	namespace provincial_offsets {
@@ -204,6 +228,8 @@ namespace modifiers {
 	public:
 		tagged_vector<national_modifier, national_modifier_tag> national_modifiers;
 		tagged_vector<provincial_modifier, provincial_modifier_tag> provincial_modifiers;
+		tagged_vector<factor_modifier, factor_tag> factor_modifiers;
+		std::vector<factor_segment> factor_data;
 
 		boost::container::flat_map<text_data::text_tag, national_modifier_tag> named_national_modifiers_index;
 		boost::container::flat_map<text_data::text_tag, provincial_modifier_tag> named_provincial_modifiers_index;
@@ -249,6 +275,8 @@ namespace modifiers {
 	provincial_modifier_tag add_provincial_modifier(text_data::text_tag name, modifier_reading_base& mod, modifiers_manager& manager);
 	national_modifier_tag add_national_modifier(text_data::text_tag name, const modifier_reading_base& mod, modifiers_manager& manager);
 	void add_indeterminate_modifier(text_data::text_tag name, modifier_reading_base& mod, modifiers_manager& manager);
+	std::pair<uint16_t, bool> commit_factor(modifiers_manager& m, const std::vector<factor_segment>& factor);  // returns [offset into data, was newly added]
+
 
 	void pre_parse_crimes(
 		parsing_state& state,
@@ -256,4 +284,12 @@ namespace modifiers {
 	void pre_parse_national_values(
 		parsing_state& state,
 		const directory& source_directory);
+
+	factor_tag parse_modifier_factors(
+		scenario::scenario_manager& s,
+		triggers::trigger_scope_state modifier_scope,
+		float default_factor,
+		float default_base,
+		const token_group* start,
+		const token_group* end);
 }

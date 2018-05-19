@@ -4419,6 +4419,7 @@ MEMBER_DEF(triggers::factor_type_scope, factor, "factor");
 namespace triggers {
 	using unsorted_trigger_map = type_list<
 		TPAIR(month),
+		TPAIR(year),
 		TPAIR(port),
 		TPAIR(rank),
 		TPAIR(invention),

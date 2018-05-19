@@ -56,6 +56,9 @@
     <ProjectReference Include="..\Parsers\Parsers.vcxproj">
       <Project>{c8b537f7-6df3-4685-a7d7-0f30ce18176d}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\triggers\triggers.vcxproj">
+      <Project>{6a118b81-e7b9-4109-a8db-2fe3575fcff4}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

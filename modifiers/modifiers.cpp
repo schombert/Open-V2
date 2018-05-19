@@ -3,6 +3,8 @@
 #include "object_parsing\\object_parsing.hpp"
 #include "text_classifier\\text_classifiers.h"
 #include "simple_mpl\\simple_mpl.hpp"
+#include "triggers\\trigger_reading.h"
+#include "scenario\\scenario.h"
 
 namespace modifiers {
 	struct parsing_environment {
@@ -332,11 +334,80 @@ namespace modifiers {
 			named_provincial_modifiers_index.emplace(n, tag);
 		return tag;
 	}
+
+	std::pair<uint16_t, bool> commit_factor(modifiers_manager& m, const std::vector<factor_segment>& factor) {
+		if (factor.size() == 0ui64)
+			return std::pair<uint16_t, bool>(0ui16, false);
+
+		const auto search_result = std::search(m.factor_data.begin(), m.factor_data.end(), factor.begin(), factor.end());
+		if (search_result != m.factor_data.end()) {
+			return std::pair<uint16_t, bool>(static_cast<uint16_t>(search_result - m.factor_data.begin()), false);
+		} else {
+			const auto new_start_pos = m.factor_data.size();
+			m.factor_data.insert(m.factor_data.end(), factor.begin(), factor.end());
+			return std::pair<uint16_t, bool>(static_cast<uint16_t>(new_start_pos), true);
+		}
+	}
+	
+
+	struct factor_modifiers_parsing_state {
+		scenario::scenario_manager& s;
+		std::vector<factor_segment> data;
+		factor_modifier under_construction;
+		const triggers::trigger_scope_state modifier_scope;
+
+		factor_modifiers_parsing_state(scenario::scenario_manager& sm, triggers::trigger_scope_state scope) : s(sm), modifier_scope(scope) {}
+	};
+
+	inline triggers::trigger_and_factor read_factor_and_trigger(const token_group* s, const token_group* e, factor_modifiers_parsing_state& env) {
+		return parse_trigger_and_factor(env.s, env.modifier_scope, s, e);
+		
+	}
+
+	struct factor_modifier_group {
+		factor_modifiers_parsing_state& env;
+		factor_modifier_group(factor_modifiers_parsing_state& e) : env(e) {}
+
+		void add_modifier(const triggers::trigger_and_factor& t) {
+			const auto t_tag = triggers::commit_trigger(env.s.trigger_m, t.data);
+			env.data.emplace_back(factor_segment{ t.factor, t_tag });
+		}
+	};
+
+	struct outer_factor_modifier {
+		factor_modifiers_parsing_state& env;
+		
+
+		outer_factor_modifier(factor_modifiers_parsing_state& e) : env(e) {}
+
+		void set_factor(float f) { env.under_construction.factor = f; }
+		void set_base(float f) { env.under_construction.base = f; }
+		void set_days(int32_t d) { env.under_construction.factor = static_cast<float>(d); }
+		void set_months(int32_t m) { env.under_construction.factor = static_cast<float>(m * 30); }
+		void set_years(int32_t y) { env.under_construction.factor = static_cast<float>(y * 365); }
+
+		void add_group(const factor_modifier_group&) {}
+		void add_modifier(const triggers::trigger_and_factor& t) {
+			const auto t_tag = triggers::commit_trigger(env.s.trigger_m, t.data);
+			env.data.emplace_back(factor_segment{ t.factor, t_tag });
+		}
+	};
 }
 
 MEMBER_FDEF(modifiers::empty_type, add_unknown_key, "unknown_key");
 MEMBER_FDEF(modifiers::crimes_preparse_file, add_crime, "crime");
 MEMBER_FDEF(modifiers::nv_preparse_file, add_nv, "national_value");
+
+MEMBER_FDEF(modifiers::outer_factor_modifier, set_factor, "factor");
+MEMBER_FDEF(modifiers::outer_factor_modifier, set_base, "base");
+MEMBER_FDEF(modifiers::outer_factor_modifier, set_days, "days");
+MEMBER_FDEF(modifiers::outer_factor_modifier, set_months, "months");
+MEMBER_FDEF(modifiers::outer_factor_modifier, set_years, "years");
+MEMBER_FDEF(modifiers::outer_factor_modifier, add_group, "group");
+MEMBER_FDEF(modifiers::outer_factor_modifier, add_modifier, "modifier");
+MEMBER_FDEF(modifiers::factor_modifier_group, add_modifier, "modifier");
+
+
 
 namespace modifiers {
 	BEGIN_DOMAIN(crimes_pre_parsing_domain)
@@ -356,6 +427,21 @@ namespace modifiers {
 		END_TYPE
 		BEGIN_TYPE(nv_preparse_file)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("national_value", accept_all, empty_type, name_empty_type)
+		END_TYPE
+	END_DOMAIN;
+
+	BEGIN_DOMAIN(modifier_factors_parsing_domain)
+		BEGIN_TYPE(outer_factor_modifier)
+			MEMBER_ASSOCIATION("factor", "factor", value_from_rh<float>)
+			MEMBER_ASSOCIATION("base", "base", value_from_rh<float>)
+			MEMBER_ASSOCIATION("months", "months", value_from_rh<int32_t>)
+			MEMBER_ASSOCIATION("years", "years", value_from_rh<int32_t>)
+			MEMBER_ASSOCIATION("days", "days", value_from_rh<int32_t>)
+			MEMBER_TYPE_ASSOCIATION("group", "group", factor_modifier_group)
+			MEMBER_TYPE_EXTERN("modifier", "modifier", triggers::trigger_and_factor, read_factor_and_trigger)
+		END_TYPE
+		BEGIN_TYPE(factor_modifier_group)
+		    MEMBER_TYPE_EXTERN("modifier", "modifier", triggers::trigger_and_factor, read_factor_and_trigger)
 		END_TYPE
 	END_DOMAIN;
 
@@ -403,6 +489,40 @@ namespace modifiers {
 					&main_results.parse_results[0],
 					&main_results.parse_results[0] + main_results.parse_results.size(),
 					*state.impl);
+			}
+		}
+	}
+
+	factor_tag parse_modifier_factors(
+		scenario::scenario_manager& s,
+		triggers::trigger_scope_state modifier_scope,
+		float default_factor,
+		float default_base,
+		const token_group* start,
+		const token_group* end) {
+
+		factor_modifiers_parsing_state parse_state(s, modifier_scope);
+		parse_state.under_construction.factor = default_factor;
+		parse_state.under_construction.base = default_base;
+
+		parse_object<outer_factor_modifier, modifier_factors_parsing_domain>(
+			start,
+			end,
+			parse_state);
+		
+		auto[offset, is_new] = commit_factor(s.modifiers_m, parse_state.data);
+
+		parse_state.under_construction.data_length = static_cast<uint16_t>(parse_state.data.size());
+		parse_state.under_construction.data_offset = offset;
+
+		if (is_new) {
+			return s.modifiers_m.factor_modifiers.emplace_back(parse_state.under_construction);
+		} else {
+			if (auto fr = std::find(s.modifiers_m.factor_modifiers.begin(), s.modifiers_m.factor_modifiers.end(), parse_state.under_construction);
+			fr != s.modifiers_m.factor_modifiers.end()) {
+				return factor_tag(static_cast<value_base_of<factor_tag>>(fr - s.modifiers_m.factor_modifiers.begin()));
+			} else {
+				return s.modifiers_m.factor_modifiers.emplace_back(parse_state.under_construction);
 			}
 		}
 	}

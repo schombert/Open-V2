@@ -1,6 +1,8 @@
 #include "modifiers\\modifiers.h"
 #include "gtest\\gtest.h"
 #include "fake_fs\\fake_fs.h"
+#include "scenario\\scenario.h"
+#include "triggers\\codes.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -885,5 +887,136 @@ TEST(modifiers_tests, modifier_adding_indeterminate) {
 		EXPECT_EQ(0.0f, m.national_modifier_definitions.get(national_modifier_tag(1), national_offsets::rich_income_modifier));
 
 		EXPECT_EQ(national_modifier_tag(1), m.provincial_modifiers[provincial_modifier_tag(0)].complement);
+	}
+}
+
+TEST(modifiers_tests, commit_factor) {
+	modifiers_manager m;
+	EXPECT_EQ(0ui64, m.factor_data.size());
+
+	const auto etag = commit_factor(m, std::vector<factor_segment>());
+	EXPECT_EQ(0ui64, m.factor_data.size());
+	EXPECT_EQ(0ui16, etag.first);
+	EXPECT_EQ(false, etag.second);
+
+	std::vector<factor_segment> a{
+		factor_segment{0.0f, triggers::trigger_tag()},
+		factor_segment{1.0f, triggers::trigger_tag(0)},
+		factor_segment{10.0f, triggers::trigger_tag(2)}
+	};
+
+	const auto atag = commit_factor(m, a);
+	EXPECT_EQ(3ui64, m.factor_data.size());
+	EXPECT_EQ(0ui16, atag.first);
+	EXPECT_EQ(true, atag.second);
+
+	std::vector<factor_segment> b{ factor_segment{5.0f, triggers::trigger_tag(5)}, factor_segment{50.0f, triggers::trigger_tag(15)} };
+
+	const auto btag = commit_factor(m, b);
+	EXPECT_EQ(5ui64, m.factor_data.size());
+	EXPECT_EQ(3ui16, btag.first);
+	EXPECT_EQ(true, btag.second);
+
+	std::vector<factor_segment> c{
+		factor_segment{1.0f, triggers::trigger_tag(0)},
+		factor_segment{10.0f, triggers::trigger_tag(2)},
+		factor_segment{5.0f, triggers::trigger_tag(5)} };
+
+	const auto ctag = commit_factor(m, c);
+	EXPECT_EQ(5ui64, m.factor_data.size());
+	EXPECT_EQ(1ui16, ctag.first);
+	EXPECT_EQ(false, ctag.second);
+}
+
+TEST(modifiers_tests, modifier_factors) {
+	text_data::text_sequences ts;
+	scenario::scenario_manager sm(ts);
+
+	{
+		const char trigger[] = "factor = 1.5 modifier = { factor = 2 }";
+
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_modifier_factors(
+			sm,
+			triggers::trigger_scope_state{
+				triggers::trigger_slot_contents::empty,
+				triggers::trigger_slot_contents::empty,
+				triggers::trigger_slot_contents::empty,
+				false },
+				5.0f,
+				3.0f,
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+
+		EXPECT_EQ(factor_tag(0), t_result);
+		EXPECT_EQ(3.0f, sm.modifiers_m.factor_modifiers[t_result].base);
+		EXPECT_EQ(1.5f, sm.modifiers_m.factor_modifiers[t_result].factor);
+		EXPECT_EQ(0ui16, sm.modifiers_m.factor_modifiers[t_result].data_offset);
+		EXPECT_EQ(1ui16, sm.modifiers_m.factor_modifiers[t_result].data_length);
+		EXPECT_EQ(2.0f, sm.modifiers_m.factor_data[0].factor);
+		EXPECT_EQ(triggers::trigger_tag(), sm.modifiers_m.factor_data[0].condition);
+	}
+	{
+		const char trigger[] = "months = 2 base = 2.0 modifier = { factor = 2 year = 1 } modifier = { factor = 4 year = 1 }";
+
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_modifier_factors(
+			sm,
+			triggers::trigger_scope_state{
+				triggers::trigger_slot_contents::empty,
+				triggers::trigger_slot_contents::empty,
+				triggers::trigger_slot_contents::empty,
+				false },
+				5.0f,
+				3.0f,
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+
+		EXPECT_EQ(factor_tag(1), t_result);
+		EXPECT_EQ(2.0f, sm.modifiers_m.factor_modifiers[t_result].base);
+		EXPECT_EQ(60.0f, sm.modifiers_m.factor_modifiers[t_result].factor);
+		EXPECT_EQ(1ui16, sm.modifiers_m.factor_modifiers[t_result].data_offset);
+		EXPECT_EQ(2ui16, sm.modifiers_m.factor_modifiers[t_result].data_length);
+		EXPECT_EQ(2.0f, sm.modifiers_m.factor_data[1].factor);
+		EXPECT_EQ(triggers::trigger_tag(0), sm.modifiers_m.factor_data[1].condition);
+		EXPECT_EQ(4.0f, sm.modifiers_m.factor_data[2].factor);
+		EXPECT_EQ(triggers::trigger_tag(0), sm.modifiers_m.factor_data[2].condition);
+		EXPECT_EQ(uint16_t(triggers::trigger_codes::year | triggers::trigger_codes::association_ge), sm.trigger_m.trigger_data[0]);
+		EXPECT_EQ(2ui16, sm.trigger_m.trigger_data[1]);
+		EXPECT_EQ(1ui16, sm.trigger_m.trigger_data[2]);
+	}
+	{
+		const char trigger[] = "years = 1 group = { modifier = { factor = 2 year = 1 } modifier = { factor = 4 state_id = 1 } }";
+
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_modifier_factors(
+			sm,
+			triggers::trigger_scope_state{
+				triggers::trigger_slot_contents::state,
+				triggers::trigger_slot_contents::state,
+				triggers::trigger_slot_contents::empty,
+				false },
+				5.0f,
+				3.0f,
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+
+		EXPECT_EQ(factor_tag(2), t_result);
+		EXPECT_EQ(365.0f, sm.modifiers_m.factor_modifiers[t_result].factor);
+		EXPECT_EQ(3ui16, sm.modifiers_m.factor_modifiers[t_result].data_offset);
+		EXPECT_EQ(2ui16, sm.modifiers_m.factor_modifiers[t_result].data_length);
+		EXPECT_EQ(2.0f, sm.modifiers_m.factor_data[3].factor);
+		EXPECT_EQ(triggers::trigger_tag(0), sm.modifiers_m.factor_data[3].condition);
+		EXPECT_EQ(4.0f, sm.modifiers_m.factor_data[4].factor);
+		EXPECT_EQ(triggers::trigger_tag(3), sm.modifiers_m.factor_data[4].condition);
+		EXPECT_EQ(uint16_t(triggers::trigger_codes::state_id_state | triggers::trigger_codes::association_eq), sm.trigger_m.trigger_data[3]);
+		EXPECT_EQ(2ui16, sm.trigger_m.trigger_data[4]);
+		EXPECT_EQ(1ui16, sm.trigger_m.trigger_data[5]);
 	}
 }

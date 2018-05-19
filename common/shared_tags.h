@@ -73,6 +73,7 @@ namespace governments {
 namespace modifiers {
 	using provincial_modifier_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 9478475>>;
 	using national_modifier_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 9478476>>;
+	using factor_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 9478477>>;
 	using value_type = float;
 }
 
@@ -90,6 +91,25 @@ namespace provinces {
 namespace triggers {
 	using trigger_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 93484522>>;
 	using effect_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 93484523>>;
+
+	enum class trigger_slot_contents {
+		empty = 0,
+		province = 1,
+		state = 2,
+		pop = 3,
+		nation = 4
+	};
+
+	struct trigger_scope_state {
+		trigger_slot_contents main_slot = trigger_slot_contents::empty;
+		trigger_slot_contents this_slot = trigger_slot_contents::empty;
+		trigger_slot_contents from_slot = trigger_slot_contents::empty;
+		bool contains_rebeltype = false;
+
+		int32_t to_integer() const {
+			return int32_t(main_slot) + int32_t(this_slot) * 8 + int32_t(from_slot) * 8 * 8 + int32_t(contains_rebeltype) * 8 * 8 * 8;
+		}
+	};
 }
 
 namespace text_data {

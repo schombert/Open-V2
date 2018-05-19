@@ -1285,8 +1285,8 @@ namespace triggers {
 
 	inline const int32_t code_data_sizes[] = {
 		0, // none
-		2, // constexpr uint16_t year = 0x0001;
-		2, //constexpr uint16_t month = 0x0002;
+		1, // constexpr uint16_t year = 0x0001;
+		1, //constexpr uint16_t month = 0x0002;
 		1, //constexpr uint16_t port = 0x0003;
 		1, //constexpr uint16_t rank = 0x0004;
 		1, //constexpr uint16_t invention = 0x0005;
