@@ -24,7 +24,7 @@ TEST(trigger_reading, trigger_size) {
 
 	EXPECT_EQ(0, get_trigger_payload_size(zero_t.data()));
 	EXPECT_EQ(7, get_trigger_payload_size(one_t.data()));
-}
+} 
 
 TEST(trigger_reading, effect_size) {
 	std::vector<uint16_t> zero_t;
