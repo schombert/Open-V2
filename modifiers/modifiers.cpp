@@ -58,7 +58,7 @@ namespace modifiers {
 			auto& new_i = env.manager.national_modifiers[tag];
 
 			new_i.id = tag;
-			new_i.name = name;
+			new_i.name = name; 
 
 			env.manager.named_national_modifiers_index.emplace(name, tag);
 		}
