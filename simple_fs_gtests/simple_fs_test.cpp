@@ -12,9 +12,9 @@ TEST_METHOD(default_root, simple_fs_tests) {
 	const auto path_list = f.get_root().list_paths();
 	EXPECT_EQ(1ui64, path_list.size());
 #ifdef _DEBUG
-	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data\\Debug", (const wchar_t*)(path_list.front().c_str()));
+	EXPECT_STREQ(L"D:\\VS2007Projects\\open_v2_test_data\\Debug", (const wchar_t*)(path_list.front().c_str()));
 #else
-	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data\\Release", (const wchar_t*)(path_list.front().c_str()));
+	EXPECT_STREQ(L"D:\\VS2007Projects\\open_v2_test_data\\Release", (const wchar_t*)(path_list.front().c_str()));
 #endif
 }
 
@@ -22,38 +22,38 @@ TEST_METHOD(default_root, simple_fs_tests) {
 TEST_METHOD(set_root, simple_fs_tests) {
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\VS2007Projects\\open_v2_test_data"));
+	f.set_root(RANGE(u"D:\\VS2007Projects\\open_v2_test_data"));
 
 	auto path_list = f.get_root().list_paths();
 	EXPECT_EQ(1ui64, path_list.size());
-	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data", (const wchar_t*)(path_list.front().c_str()));
+	EXPECT_STREQ(L"D:\\VS2007Projects\\open_v2_test_data", (const wchar_t*)(path_list.front().c_str()));
 
-	f.set_root(RANGE("F:\\VS2007Projects\\impossible"));
+	f.set_root(RANGE("D:\\VS2007Projects\\impossible"));
 
 	path_list = f.get_root().list_paths();
 	EXPECT_EQ(1ui64, path_list.size());
-	EXPECT_STREQ(L"F:\\VS2007Projects\\impossible", (const wchar_t*)(path_list.front().c_str()));
+	EXPECT_STREQ(L"D:\\VS2007Projects\\impossible", (const wchar_t*)(path_list.front().c_str()));
 }
 
 TEST_METHOD(adding_root, simple_fs_tests) {
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\VS2007Projects\\open_v2_test_data"));
+	f.set_root(RANGE(u"D:\\VS2007Projects\\open_v2_test_data"));
 	f.add_root_relative(RANGE("mod"));
 
 	const auto path_list = f.get_root().list_paths();
 	EXPECT_EQ(2ui64, path_list.size());
-	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data", (const wchar_t*)(path_list[0].c_str()));
-	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data\\mod", (const wchar_t*)(path_list[1].c_str()));
+	EXPECT_STREQ(L"D:\\VS2007Projects\\open_v2_test_data", (const wchar_t*)(path_list[0].c_str()));
+	EXPECT_STREQ(L"D:\\VS2007Projects\\open_v2_test_data\\mod", (const wchar_t*)(path_list[1].c_str()));
 
 	const auto single_string = f.get_root().to_string();
-	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data;F:\\VS2007Projects\\open_v2_test_data\\mod", (const wchar_t*)(single_string.c_str()));
+	EXPECT_STREQ(L"D:\\VS2007Projects\\open_v2_test_data;D:\\VS2007Projects\\open_v2_test_data\\mod", (const wchar_t*)(single_string.c_str()));
 }
 
 TEST_METHOD(directory_descent, simple_fs_tests) {
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\VS2007Projects\\open_v2_test_data"));
+	f.set_root(RANGE(u"D:\\VS2007Projects\\open_v2_test_data"));
 	f.add_root_relative(RANGE("mod"));
 	const auto r = f.get_root();
 
@@ -61,17 +61,17 @@ TEST_METHOD(directory_descent, simple_fs_tests) {
 
 	const auto path_list = sub_dir.list_paths();
 	EXPECT_EQ(2ui64, path_list.size());
-	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data\\sub", (const wchar_t*)(path_list[0].c_str()));
-	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data\\mod\\sub", (const wchar_t*)(path_list[1].c_str()));
+	EXPECT_STREQ(L"D:\\VS2007Projects\\open_v2_test_data\\sub", (const wchar_t*)(path_list[0].c_str()));
+	EXPECT_STREQ(L"D:\\VS2007Projects\\open_v2_test_data\\mod\\sub", (const wchar_t*)(path_list[1].c_str()));
 
 	const auto single_string = sub_dir.to_string();
-	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data\\sub;F:\\VS2007Projects\\open_v2_test_data\\mod\\sub", (const wchar_t*)(single_string.c_str()));
+	EXPECT_STREQ(L"D:\\VS2007Projects\\open_v2_test_data\\sub;D:\\VS2007Projects\\open_v2_test_data\\mod\\sub", (const wchar_t*)(single_string.c_str()));
 }
 
 TEST_METHOD(list_dir, simple_fs_tests) {
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\VS2007Projects\\open_v2_test_data\\directories"));
+	f.set_root(RANGE(u"D:\\VS2007Projects\\open_v2_test_data\\directories"));
 	f.add_root_relative(RANGE("new_root"));
 
 	const auto sub_dir_list = f.get_root().list_directories();
@@ -87,7 +87,7 @@ TEST_METHOD(list_dir, simple_fs_tests) {
 TEST_METHOD(list_non_replaced_dir_files, simple_fs_tests) {
 	file_system fs;
 
-	fs.set_root(RANGE(u"F:\\VS2007Projects\\open_v2_test_data\\directories"));
+	fs.set_root(RANGE(u"D:\\VS2007Projects\\open_v2_test_data\\directories"));
 	fs.add_root_relative(RANGE("new_root"));
 
 	const auto dirb = fs.get_root().get_directory(u"sub_dir_b");
@@ -95,30 +95,30 @@ TEST_METHOD(list_non_replaced_dir_files, simple_fs_tests) {
 	EXPECT_EQ(2ui64, dirb_contents.size());
 	EXPECT_TRUE(std::find_if(dirb_contents.begin(), dirb_contents.end(), [](const auto &f) { return f.file_name().compare(u"b_file_a.txt") == 0; }) != dirb_contents.end());
 	EXPECT_TRUE(std::find_if(dirb_contents.begin(), dirb_contents.end(), [](const auto &f) { return f.file_name().compare(u"b_file_b.txt") == 0; }) != dirb_contents.end());
-	EXPECT_TRUE(std::find_if(dirb_contents.begin(), dirb_contents.end(), [](const auto &f) { return f.file_path().compare(u"F:\\VS2007Projects\\open_v2_test_data\\directories\\sub_dir_b") != 0; }) == dirb_contents.end());
+	EXPECT_TRUE(std::find_if(dirb_contents.begin(), dirb_contents.end(), [](const auto &f) { return f.file_path().compare(u"D:\\VS2007Projects\\open_v2_test_data\\directories\\sub_dir_b") != 0; }) == dirb_contents.end());
 }
 
 TEST_METHOD(list_replaced_dir_files, simple_fs_tests) {
 	file_system fs;
 
-	fs.set_root(RANGE(u"F:\\VS2007Projects\\open_v2_test_data\\directories"));
+	fs.set_root(RANGE(u"D:\\VS2007Projects\\open_v2_test_data\\directories"));
 	fs.add_root_relative(RANGE("new_root"));
 
 	const auto dirb = fs.get_root().get_directory(u"sub_dir_a");
 	const auto dirb_contents = dirb.list_files(u".txt");
 	EXPECT_EQ(2ui64, dirb_contents.size());
 	EXPECT_TRUE(std::find_if(dirb_contents.begin(), dirb_contents.end(), [](const auto &f) {
-		return f.file_name().compare(u"a_file_a.txt") == 0 && f.file_path().compare(u"F:\\VS2007Projects\\open_v2_test_data\\directories\\sub_dir_a") == 0;
+		return f.file_name().compare(u"a_file_a.txt") == 0 && f.file_path().compare(u"D:\\VS2007Projects\\open_v2_test_data\\directories\\sub_dir_a") == 0;
 	}) != dirb_contents.end());
 	EXPECT_TRUE(std::find_if(dirb_contents.begin(), dirb_contents.end(), [](const auto &f) {
-		return f.file_name().compare(u"a_file_b.txt") == 0 && f.file_path().compare(u"F:\\VS2007Projects\\open_v2_test_data\\directories\\new_root\\sub_dir_a") == 0;
+		return f.file_name().compare(u"a_file_b.txt") == 0 && f.file_path().compare(u"D:\\VS2007Projects\\open_v2_test_data\\directories\\new_root\\sub_dir_a") == 0;
 	}) != dirb_contents.end());
 }
 
 TEST_METHOD(open_existing_and_non_existing, simple_fs_tests) {
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\VS2007Projects\\open_v2_test_data\\directories"));
+	f.set_root(RANGE(u"D:\\VS2007Projects\\open_v2_test_data\\directories"));
 	f.add_root_relative(RANGE("new_root"));
 
 	const auto dirb = f.get_root().get_directory(u"sub_dir_a");
@@ -131,7 +131,7 @@ TEST_METHOD(open_existing_and_non_existing, simple_fs_tests) {
 TEST_METHOD(open_correct_version, simple_fs_tests) {
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\VS2007Projects\\open_v2_test_data\\directories"));
+	f.set_root(RANGE(u"D:\\VS2007Projects\\open_v2_test_data\\directories"));
 	f.add_root_relative(RANGE("new_root"));
 
 	const auto dirb = f.get_root().get_directory(u"sub_dir_a");
@@ -144,7 +144,7 @@ TEST_METHOD(open_correct_version, simple_fs_tests) {
 TEST_METHOD(open_correct_nested_file_version, simple_fs_tests) {
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\VS2007Projects\\open_v2_test_data\\directories"));
+	f.set_root(RANGE(u"D:\\VS2007Projects\\open_v2_test_data\\directories"));
 	f.add_root_relative(RANGE("new_root"));
 
 	const auto afile = f.get_root().open_file(u"sub_dir_a\\a_file_a.txt");
@@ -156,7 +156,7 @@ TEST_METHOD(open_correct_nested_file_version, simple_fs_tests) {
 TEST_METHOD(peek_file, simple_fs_tests) {
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\VS2007Projects\\open_v2_test_data\\directories"));
+	f.set_root(RANGE(u"D:\\VS2007Projects\\open_v2_test_data\\directories"));
 	f.add_root_relative(RANGE("new_root"));
 
 	const auto ua = f.get_root().peek_file(u"sub_dir_a\\a_file_a.txt");

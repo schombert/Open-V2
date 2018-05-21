@@ -3149,6 +3149,15 @@ namespace triggers {
 		const auto trigger_data = parse_trigger(env.s, env.current_scope, s, e);
 		return commit_trigger(env.s.trigger_m, trigger_data);
 	}
+	inline modifiers::factor_tag read_ai_chance(const token_group* s, const token_group* e, effect_parsing_environment& env) {
+		return modifiers::parse_modifier_factors(
+			env.s,
+			env.current_scope,
+			1.0f,
+			0.0f,
+			s,
+			e);
+	}
 
 	struct common_effect_scope_base {
 		effect_parsing_environment& env;
@@ -3263,6 +3272,17 @@ namespace triggers {
 
 			scope_state = scope_trigger::produce_new_scope(e.current_scope);
 			e.current_scope = scope_state;
+		}
+	};
+
+	struct option_reader : public effect_scope_reading_object<generic_scope_effect> {
+		text_data::text_tag name;
+		modifiers::factor_tag ai_chance;
+
+		option_reader(effect_parsing_environment& e) : effect_scope_reading_object<generic_scope_effect>(e) {}
+
+		void set_name(const token_and_type& t) {
+			name = text_data::get_thread_safe_text_handle(env.s.text_m, t.start, t.end);
 		}
 	};
 
@@ -3391,6 +3411,8 @@ MEMBER_DEF(triggers::build_fort_in_capital_effect, in_whole_capital_state, "in_w
 MEMBER_DEF(triggers::build_fort_in_capital_effect, limit_to_world_greatest_level, "limit_to_world_greatest_level");
 MEMBER_DEF(triggers::random_effect, chance, "chance");
 MEMBER_FDEF(triggers::random_list_effect, add_list, "add_list");
+MEMBER_FDEF(triggers::option_reader, set_name, "name");
+MEMBER_DEF(triggers::option_reader, ai_chance, "ai_chance");
 
 template<typename T>
 struct _set_member<CT_STRING("_add_effect"), T> {
@@ -3778,6 +3800,11 @@ namespace triggers {
 		BEGIN_TYPE(effect_scope_reading_object<state_scope_effect>)
 		    INHERIT_FROM(common_effect_scope_base)
 		END_TYPE
+		BEGIN_TYPE(option_reader)
+			INHERIT_FROM(common_effect_scope_base)
+			MEMBER_ASSOCIATION("name", "culture", token_from_rh)
+			MEMBER_TYPE_EXTERN("ai_chance", "ai_chance", modifiers::factor_tag, read_ai_chance)
+		END_TYPE
 		BEGIN_TYPE(trigger_revolt_effect)
 			MEMBER_ASSOCIATION("culture", "culture", token_from_rh)
 			MEMBER_ASSOCIATION("religion", "religion", token_from_rh)
@@ -4004,5 +4031,30 @@ namespace triggers {
 			trigger_manager.effect_data.push_back(0ui16);
 			return effect_tag(static_cast<value_base_of<trigger_tag>>(new_start_pos));
 		}
+	}
+
+	raw_event_option parse_option_effect(
+		scenario::scenario_manager& s,
+		events::event_creation_manager& ecm,
+		trigger_scope_state outer_scope,
+		const token_group* start,
+		const token_group* end) {
+
+		effect_parsing_environment parse_env(s, ecm, outer_scope);
+
+		auto effect = parse_object<option_reader, effect_reading>(start, end, parse_env);
+		effect.finalize();
+		parse_env.data.push_back(0ui16);
+
+		const auto new_size = simplify_effect(parse_env.data.data());
+		parse_env.data.resize(static_cast<size_t>(new_size));
+
+		raw_event_option result;
+
+		result.effect = commit_effect(s.trigger_m, parse_env.data);
+		result.ai_chance = effect.ai_chance;
+		result.name = effect.name;
+
+		return result;
 	}
 }

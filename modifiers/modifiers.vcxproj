@@ -154,6 +154,11 @@
   <ItemGroup>
     <ClCompile Include="modifiers.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\triggers\triggers.vcxproj">
+      <Project>{6a118b81-e7b9-4109-a8db-2fe3575fcff4}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

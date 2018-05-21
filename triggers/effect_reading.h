@@ -36,4 +36,17 @@ namespace triggers {
 	bool effect_scope_has_single_member(const uint16_t* source); //precondition: scope known to not be empty
 	int32_t simplify_effect(uint16_t* source); //yields new source size
 	effect_tag commit_effect(trigger_manager& trigger_manager, const std::vector<uint16_t>& new_effect);
+
+	struct raw_event_option {
+		text_data::text_tag name;
+		modifiers::factor_tag ai_chance;
+		effect_tag effect;
+	};
+
+	raw_event_option parse_option_effect(
+		scenario::scenario_manager& s,
+		events::event_creation_manager& ecm,
+		trigger_scope_state outer_scope,
+		const token_group* start,
+		const token_group* end);
 }
