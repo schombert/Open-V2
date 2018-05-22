@@ -2,6 +2,8 @@
 #include "common\\common.h"
 #include "common\\shared_tags.h"
 #include "Parsers\\parsers.h"
+#include "simple_fs\\simple_fs.h"
+#include "graphics\\texture.h"
 
 namespace scenario {
 	class scenario_manager;
@@ -27,13 +29,14 @@ namespace events {
 	};
 
 	struct event {
-		constexpr static uint8_t file_only_once = 0x0001;
+		constexpr static uint8_t fire_only_once = 0x0001;
 		constexpr static uint8_t is_major = 0x0002;
 
 		event_option options[6];
 
 		text_data::text_tag title;
 		text_data::text_tag body;
+		graphics::texture_tag picture;
 
 		modifiers::factor_tag mean_time_to_happen;
 		triggers::trigger_tag trigger;
@@ -80,11 +83,41 @@ namespace events {
 		boost::container::flat_map<int32_t, token_group_range> event_sources;
 		boost::container::flat_map<id_scope_pair, event_tag> pending_triggered_events;
 		boost::container::flat_map<id_scope_pair, event_tag> created_triggered_events;
+		std::vector<parsed_data> event_files_data;
 
 		event_tag register_triggered_event(event_manager& m, int32_t event_id, triggers::trigger_scope_state scope);
 	};
 
 	std::pair<int32_t, bool> pre_parse_event(const token_group* start, const token_group* end); // returns id &  bool is triggered
-	event_tag parse_single_event(scenario::scenario_manager& s, event_creation_manager& ecm, const triggers::trigger_scope_state& scope, const token_group* start, const token_group* end);
-	event_tag parse_or_defer_event(scenario::scenario_manager& s, event_creation_manager& ecm, const triggers::trigger_scope_state& scope, const token_group* start, const token_group* end);
+	event_tag parse_single_event(
+		scenario::scenario_manager& s,
+		graphics::texture_manager& t,
+		event_creation_manager& ecm,
+		const directory& pictures_root,
+		const triggers::trigger_scope_state& scope,
+		const token_group* start, const token_group* end);
+	event_tag parse_or_defer_event(
+		scenario::scenario_manager& s,
+		graphics::texture_manager& t,
+		event_creation_manager& ecm,
+		const directory& pictures_root,
+		const triggers::trigger_scope_state& scope,
+		const token_group* start, const token_group* end);
+	void parse_event_file(
+		scenario::scenario_manager& s,
+		graphics::texture_manager& t,
+		event_creation_manager& ecm,
+		const directory& pictures_root,
+		const token_group* start,
+		const token_group* end);
+	void parse_event_files(
+		scenario::scenario_manager& s,
+		graphics::texture_manager& t,
+		event_creation_manager& ecm,
+		const directory& source_directory);
+	void commit_pending_triggered_events(
+		scenario::scenario_manager& s,
+		graphics::texture_manager& t,
+		event_creation_manager& ecm,
+		const directory& pictures_root);
 }

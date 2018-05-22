@@ -22,7 +22,7 @@ public:
 	}
 	int test_function() {
 		file_system fs;
-		fs.set_root(u"F:\\programs\\V2\\interface");
+		fs.set_root(u"D:\\programs\\V2\\interface");
 		const auto gui_files = fs.get_root().list_files(u".gui");
 
 		ui::name_maps nmaps;

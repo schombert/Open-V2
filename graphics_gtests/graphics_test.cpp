@@ -1,12 +1,16 @@
-﻿#include "pch.h"
-#include "graphics\\test_helpers.h"
+﻿#include "graphics\\test_helpers.h"
 #include "fake_fs\\fake_fs.h"
+#include "gtest\\gtest.h"
+#include <mutex>
 
 using namespace graphics;
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
-TEST(texture_rendering, graphics_tests) {
+static std::mutex force_sequential;
+TEST(graphics_tests, texture_rendering) {
+	std::lock_guard l(force_sequential);
+
 	EXPECT_TRUE(test_rendering("D:\\VS2007Projects\\open_v2_test_data\\texture", 0, 0, 80, 80, [](open_gl_wrapper& ogl) {
 		texture test_tex("D:\\VS2007Projects\\open_v2_test_data\\test_tx.bmp");
 
@@ -15,7 +19,9 @@ TEST(texture_rendering, graphics_tests) {
 	}));
 }
 
-TEST(dds_texture_rendering, graphics_tests) {
+TEST(graphics_tests, dds_texture_rendering) {
+	std::lock_guard l(force_sequential);
+
 	EXPECT_TRUE(test_rendering("D:\\VS2007Projects\\open_v2_test_data\\dds", 0, 0, 48, 48, [](open_gl_wrapper& ogl) {
 		texture test_tex("D:\\VS2007Projects\\open_v2_test_data\\army_icon_2.dds");
 
@@ -24,7 +30,9 @@ TEST(dds_texture_rendering, graphics_tests) {
 	}));
 }
 
-TEST(text_rendering, graphics_tests) {
+TEST(graphics_tests, text_rendering) {
+	std::lock_guard l(force_sequential);
+
 	EXPECT_TRUE(test_rendering("D:\\VS2007Projects\\open_v2_test_data\\text", 0, 0, 128, 210, [](open_gl_wrapper& ogl) {
 		
 		font test_fallback("D:\\VS2007Projects\\open_v2_test_data\\unifont-9.0.02.ttf");
@@ -42,7 +50,9 @@ TEST(text_rendering, graphics_tests) {
 	}));
 }
 
-TEST(progress_bar, graphics_tests) {
+TEST(graphics_tests, progress_bar) {
+	std::lock_guard l(force_sequential);
+
 	EXPECT_TRUE(test_rendering("D:\\VS2007Projects\\open_v2_test_data\\t_progress", 0, 0, 80, 20, [](open_gl_wrapper& ogl) {
 		texture prog1("D:\\VS2007Projects\\open_v2_test_data\\progress1.tga");
 		texture prog2("D:\\VS2007Projects\\open_v2_test_data\\progress2.tga");
@@ -51,7 +61,9 @@ TEST(progress_bar, graphics_tests) {
 	}));
 }
 
-TEST(piechart, graphics_tests) {
+TEST(graphics_tests, piechart) {
+	std::lock_guard l(force_sequential);
+
 	EXPECT_TRUE(test_rendering("D:\\VS2007Projects\\open_v2_test_data\\t_piechart", 0, 0, 50, 50, [](open_gl_wrapper& ogl) {
 
 		data_texture dt(100, 3);
@@ -71,7 +83,9 @@ TEST(piechart, graphics_tests) {
 	}));
 }
 
-TEST(barchart, graphics_tests) {
+TEST(graphics_tests, barchart) {
+	std::lock_guard l(force_sequential);
+
 	EXPECT_TRUE(test_rendering("D:\\VS2007Projects\\open_v2_test_data\\t_barchart", 0, 0, 100, 75, [](open_gl_wrapper& ogl) {
 		data_texture dt(100, 4);
 		const auto ptr = dt.data();
@@ -90,7 +104,9 @@ TEST(barchart, graphics_tests) {
 	}));
 }
 
-TEST(linegraph, graphics_tests) {
+TEST(graphics_tests, linegraph) {
+	std::lock_guard l(force_sequential);
+
 	EXPECT_TRUE(test_rendering("D:\\VS2007Projects\\open_v2_test_data\\t_linegraph", 0, 0, 100, 75, [](open_gl_wrapper& ogl) {
 		lines graph(10);
 		float yval[] = { 0.3f, 0.6f, 0.5f, 1.0f, 0.4f, 0.5f, 0.0f, 0.3f, 0.2f, 0.6f };
@@ -99,7 +115,9 @@ TEST(linegraph, graphics_tests) {
 	}));
 }
 
-TEST(rotated_mask, graphics_tests) {
+TEST(graphics_tests, rotated_mask) {
+	std::lock_guard l(force_sequential);
+
 	EXPECT_TRUE(test_rendering("D:\\VS2007Projects\\open_v2_test_data\\t_rotated_mask", 0, 0, 40, 80, [](open_gl_wrapper& ogl) {
 		texture test_tex("D:\\VS2007Projects\\open_v2_test_data\\test_tx.bmp");
 		texture mask_tex("D:\\VS2007Projects\\open_v2_test_data\\mask.tga");
@@ -108,7 +126,9 @@ TEST(rotated_mask, graphics_tests) {
 	}));
 }
 
-TEST(sprite_fragment, graphics_tests) {
+TEST(graphics_tests, sprite_fragment) {
+	std::lock_guard l(force_sequential);
+
 	EXPECT_TRUE(test_rendering("D:\\VS2007Projects\\open_v2_test_data\\t_sprite_fragment", 0, 0, 36, 36, [](open_gl_wrapper& ogl) {
 		texture strip_tex("D:\\VS2007Projects\\open_v2_test_data\\strip10.dds");
 
@@ -116,7 +136,9 @@ TEST(sprite_fragment, graphics_tests) {
 	}));
 }
 
-TEST(border_stretch, graphics_tests) {
+TEST(graphics_tests, border_stretch) {
+	std::lock_guard l(force_sequential);
+
 	EXPECT_TRUE(test_rendering("D:\\VS2007Projects\\open_v2_test_data\\t_border", 0, 0, 60, 50, [](open_gl_wrapper& ogl) {
 		texture bord("D:\\VS2007Projects\\open_v2_test_data\\border.dds");
 
@@ -141,8 +163,7 @@ public:
 	}
 };
 
-
-TEST(texture_manager_test, graphics_tests) {
+TEST(graphics_tests, texture_manager_test) {
 	test_file_structure real_fs;
 	file_system f;
 
@@ -170,7 +191,20 @@ TEST(texture_manager_test, graphics_tests) {
 	EXPECT_EQ(std::string("F:\\gfx\\file_b.dds"), tm_b.retrieve_by_key(handle_d).filename);
 }
 
-TEST(font_manager_test, graphics_tests) {
+TEST(graphics_tests, texture_manager_unique) {
+	test_file_structure real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:"));
+
+	texture_manager tm_a;
+	const auto handle_a = tm_a.retrieve_by_name(f.get_root(), RANGE("gfx\\file_a.tga"));
+	EXPECT_EQ(texture_tag(0), handle_a);
+	const auto handle_b = tm_a.retrieve_by_name(f.get_root(), RANGE("gfx\\file_a.tga"));
+	EXPECT_EQ(texture_tag(0), handle_b);
+}
+
+TEST(graphics_tests, font_manager_test) {
 	font_manager fm;
 
 	const auto f1 = fm.find_font(RANGE("Arial_17_black"));
@@ -189,7 +223,9 @@ TEST(font_manager_test, graphics_tests) {
 	EXPECT_EQ(14ui32, fm.find_font_size(RANGE("unknownfont")));
 }
 
-TEST(clipping, graphics_tests) {
+TEST(graphics_tests, clipping) {
+	std::lock_guard l(force_sequential);
+
 	EXPECT_TRUE(test_rendering("D:\\VS2007Projects\\open_v2_test_data\\clipping_a", 0, 0, 80, 80, [](open_gl_wrapper& ogl) {
 		texture test_tex("D:\\VS2007Projects\\open_v2_test_data\\test_tx.bmp");
 

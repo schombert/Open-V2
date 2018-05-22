@@ -126,6 +126,7 @@ namespace graphics {
 
 	texture_tag texture_manager::load_texture(const directory& root, const char* start, const char* end) {
 		texture_tag new_key;
+		const auto file_name = vector_backed_string<char>::create_unique(start, end, file_names);
 
 		const auto full_fn = root.peek_file(start, end);
 		if (full_fn) {
@@ -146,7 +147,7 @@ namespace graphics {
 			}
 		}
 
-		fname_map.emplace(vector_backed_string<char>(start, end, file_names), new_key);
+		fname_map.emplace(file_name, new_key);
 		return new_key;
 	}
 

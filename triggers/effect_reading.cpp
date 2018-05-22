@@ -3802,7 +3802,7 @@ namespace triggers {
 		END_TYPE
 		BEGIN_TYPE(option_reader)
 			INHERIT_FROM(common_effect_scope_base)
-			MEMBER_ASSOCIATION("name", "culture", token_from_rh)
+			MEMBER_ASSOCIATION("name", "name", token_from_rh)
 			MEMBER_TYPE_EXTERN("ai_chance", "ai_chance", modifiers::factor_tag, read_ai_chance)
 		END_TYPE
 		BEGIN_TYPE(trigger_revolt_effect)

@@ -1130,6 +1130,48 @@ TEST(trigger_reading, effect_with_limit) {
 	EXPECT_EQ(0ui16, sm.trigger_m.trigger_data[1]);
 }
 
+TEST(trigger_reading, effect_option_reading) {
+	const char option[] =
+		"name = mmmm\r\n"
+		"ai_chance = { factor = 2 modifier = { factor = 3 year = 1 } }\r\n"
+		"capital = 6";
+
+	text_data::text_sequences ts;
+	scenario::scenario_manager sm(ts);
+	events::event_creation_manager ecm;
+
+	std::vector<token_group> parse_results;
+	parse_pdx_file(parse_results, RANGE(option));
+
+	auto opt = parse_option_effect(
+		sm,
+		ecm,
+		trigger_scope_state{
+			trigger_slot_contents::nation,
+			trigger_slot_contents::nation,
+			trigger_slot_contents::empty,
+			false },
+			parse_results.data(),
+			parse_results.data() + parse_results.size());
+
+	EXPECT_EQ(text_data::text_tag(0), opt.name);
+	EXPECT_EQ(effect_tag(0), opt.effect);
+	EXPECT_EQ(modifiers::factor_tag(0), opt.ai_chance);
+
+	EXPECT_EQ(2.0f, sm.modifiers_m.factor_modifiers[modifiers::factor_tag(0)].factor);
+	EXPECT_EQ(0ui16, sm.modifiers_m.factor_modifiers[modifiers::factor_tag(0)].data_offset);
+	EXPECT_EQ(1ui16, sm.modifiers_m.factor_modifiers[modifiers::factor_tag(0)].data_length);
+	EXPECT_EQ(3.0f, sm.modifiers_m.factor_data[0].factor);
+	EXPECT_EQ(trigger_tag(0), sm.modifiers_m.factor_data[0].condition);
+	EXPECT_EQ(uint16_t(trigger_codes::year | trigger_codes::association_ge), sm.trigger_m.trigger_data[0]);
+	EXPECT_EQ(2ui16, sm.trigger_m.trigger_data[1]);
+	EXPECT_EQ(1ui16, sm.trigger_m.trigger_data[2]);
+
+	EXPECT_EQ(uint16_t(effect_codes::capital), sm.trigger_m.effect_data[0]);
+	EXPECT_EQ(2ui16, sm.trigger_m.effect_data[1]);
+	EXPECT_EQ(6ui16, sm.trigger_m.effect_data[2]);
+}
+
 TEST(trigger_reading, basic_factor_trigger) {
 	const char trigger[] = "factor = 1.5 always = no";
 

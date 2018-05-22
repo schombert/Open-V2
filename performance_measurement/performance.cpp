@@ -20,13 +20,13 @@ public:
 };
 
 logging_object::logging_object() : private_db(std::make_unique<private_db_type>()) {
-	private_db->open_or_create("F:\\VS2007Projects\\open_v2_test_data\\perf.db");
+	private_db->open_or_create("D:\\VS2007Projects\\open_v2_test_data\\perf.db");
 	private_db->begin_transaction();
 }
 
 logging_object::~logging_object() {
 	private_db->end_transaction();
-	private_db->save_and_close("F:\\VS2007Projects\\open_v2_test_data\\perf.db");
+	private_db->save_and_close("D:\\VS2007Projects\\open_v2_test_data\\perf.db");
 }
 
 void logging_object::log_results(const intermediate_results& results, uint32_t outer_loops, uint32_t inner_loops, const char* test_name) {
