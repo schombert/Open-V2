@@ -135,6 +135,11 @@ namespace events {
 		}
 	};
 
+	struct issue_group_reader {
+		token_and_type issue_group;
+		void discard(int) {}
+	};
+
 	struct empty_type {
 		void discard(int) {}
 	};
@@ -181,6 +186,283 @@ namespace events {
 				false },
 				s, e);
 	}
+
+	struct on_actions_env {
+		scenario::scenario_manager& s;
+		event_creation_manager& ecm;
+
+		on_actions_env(scenario::scenario_manager& sc, event_creation_manager& e) :
+			s(sc), ecm(e) {}
+	};
+
+	struct on_crisis_declare_interest_s {
+		on_actions_env& env;
+		on_crisis_declare_interest_s(on_actions_env& e) : env(e) {}
+		void add_pair(const std::pair<uint16_t, int32_t>& p) {
+			const auto tag = env.ecm.register_triggered_event(
+				env.s.event_m,
+				p.second,
+				triggers::trigger_scope_state{
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::empty,
+					false
+				});
+			env.s.event_m.on_crisis_declare_interest.emplace_back(tag, p.first);
+		}
+	};
+	struct on_my_factories_nationalized_s {
+		on_actions_env& env;
+		on_my_factories_nationalized_s(on_actions_env& e) : env(e) {}
+		void add_pair(const std::pair<uint16_t, int32_t>& p) {
+			const auto tag = env.ecm.register_triggered_event(
+				env.s.event_m,
+				p.second,
+				triggers::trigger_scope_state{
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::nation,
+					false
+				});
+			env.s.event_m.on_my_factories_nationalized.emplace_back(tag, p.first);
+		}
+	};
+	struct on_civilize_s {
+		on_actions_env& env;
+		on_civilize_s(on_actions_env& e) : env(e) {}
+		void add_pair(const std::pair<uint16_t, int32_t>& p) {
+			const auto tag = env.ecm.register_triggered_event(
+				env.s.event_m,
+				p.second,
+				triggers::trigger_scope_state{
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::empty,
+					false
+				});
+			env.s.event_m.on_civilize.emplace_back(tag, p.first);
+		}
+	};
+	struct on_debtor_default_second_s {
+		on_actions_env& env;
+		on_debtor_default_second_s(on_actions_env& e) : env(e) {}
+		void add_pair(const std::pair<uint16_t, int32_t>& p) {
+			const auto tag = env.ecm.register_triggered_event(
+				env.s.event_m,
+				p.second,
+				triggers::trigger_scope_state{
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::nation,
+					false
+				});
+			env.s.event_m.on_debtor_default_second.emplace_back(tag, p.first);
+		}
+	};
+	struct on_debtor_default_small_s {
+		on_actions_env& env;
+		on_debtor_default_small_s(on_actions_env& e) : env(e) {}
+		void add_pair(const std::pair<uint16_t, int32_t>& p) {
+			const auto tag = env.ecm.register_triggered_event(
+				env.s.event_m,
+				p.second,
+				triggers::trigger_scope_state{
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::nation,
+					false
+				});
+			env.s.event_m.on_debtor_default_small.emplace_back(tag, p.first);
+		}
+	};
+	struct on_debtor_default_s {
+		on_actions_env& env;
+		on_debtor_default_s(on_actions_env& e) : env(e) {}
+		void add_pair(const std::pair<uint16_t, int32_t>& p) {
+			const auto tag = env.ecm.register_triggered_event(
+				env.s.event_m,
+				p.second,
+				triggers::trigger_scope_state{
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::nation,
+					false
+				});
+			env.s.event_m.on_debtor_default.emplace_back(tag, p.first);
+		}
+	};
+	struct on_battle_lost_s {
+		on_actions_env& env;
+		on_battle_lost_s(on_actions_env& e) : env(e) {}
+		void add_pair(const std::pair<uint16_t, int32_t>& p) {
+			const auto tag = env.ecm.register_triggered_event(
+				env.s.event_m,
+				p.second,
+				triggers::trigger_scope_state{
+					triggers::trigger_slot_contents::province,
+					triggers::trigger_slot_contents::province,
+					triggers::trigger_slot_contents::empty,
+					false
+				});
+			env.s.event_m.on_battle_lost.emplace_back(tag, p.first);
+		}
+	};
+	struct on_battle_won_s {
+		on_actions_env& env;
+		on_battle_won_s(on_actions_env& e) : env(e) {}
+		void add_pair(const std::pair<uint16_t, int32_t>& p) {
+			const auto tag = env.ecm.register_triggered_event(
+				env.s.event_m,
+				p.second,
+				triggers::trigger_scope_state{
+					triggers::trigger_slot_contents::province,
+					triggers::trigger_slot_contents::province,
+					triggers::trigger_slot_contents::empty,
+					false
+				});
+			env.s.event_m.on_battle_won.emplace_back(tag, p.first);
+		}
+	};
+	struct on_colony_to_state_free_slaves_s {
+		on_actions_env& env;
+		on_colony_to_state_free_slaves_s(on_actions_env& e) : env(e) {}
+		void add_pair(const std::pair<uint16_t, int32_t>& p) {
+			const auto tag = env.ecm.register_triggered_event(
+				env.s.event_m,
+				p.second,
+				triggers::trigger_scope_state{
+					triggers::trigger_slot_contents::state,
+					triggers::trigger_slot_contents::state,
+					triggers::trigger_slot_contents::empty,
+					false
+				});
+			env.s.event_m.on_colony_to_state_free_slaves.emplace_back(tag, p.first);
+		}
+	};
+	struct on_state_conquest_s {
+		on_actions_env& env;
+		on_state_conquest_s(on_actions_env& e) : env(e) {}
+		void add_pair(const std::pair<uint16_t, int32_t>& p) {
+			const auto tag = env.ecm.register_triggered_event(
+				env.s.event_m,
+				p.second,
+				triggers::trigger_scope_state{
+					triggers::trigger_slot_contents::state,
+					triggers::trigger_slot_contents::state,
+					triggers::trigger_slot_contents::empty,
+					false
+				});
+			env.s.event_m.on_state_conquest.emplace_back(tag, p.first);
+		}
+	};
+	struct on_colony_to_state_s {
+		on_actions_env& env;
+		on_colony_to_state_s(on_actions_env& e) : env(e) {}
+		void add_pair(const std::pair<uint16_t, int32_t>& p) {
+			const auto tag = env.ecm.register_triggered_event(
+				env.s.event_m,
+				p.second,
+				triggers::trigger_scope_state{
+					triggers::trigger_slot_contents::state,
+					triggers::trigger_slot_contents::state,
+					triggers::trigger_slot_contents::empty,
+					false
+				});
+			env.s.event_m.on_colony_to_state.emplace_back(tag, p.first);
+		}
+	};
+	struct on_election_tick_s {
+		on_actions_env& env;
+		on_election_tick_s(on_actions_env& e) : env(e) {}
+		void add_pair(const std::pair<uint16_t, int32_t>& p) {
+			const auto tag = env.ecm.register_triggered_event(
+				env.s.event_m,
+				p.second,
+				triggers::trigger_scope_state{
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::empty,
+					false
+				});
+			text_data::text_tag tt;
+			if(auto f = env.ecm.event_sources.find(p.second); f != env.ecm.event_sources.end()) {
+				const auto t = get_issue_group_for_event(f->second.start, f->second.end);
+				tt = text_data::get_thread_safe_text_handle(env.s.text_m, t.start, t.end);
+			}
+			env.s.event_m.on_election_tick.emplace_back(tag, p.first, tt);
+		}
+	};
+	struct on_new_great_nation_s {
+		on_actions_env& env;
+		on_new_great_nation_s(on_actions_env& e) : env(e) {}
+		void add_pair(const std::pair<uint16_t, int32_t>& p) {
+			const auto tag = env.ecm.register_triggered_event(
+				env.s.event_m,
+				p.second,
+				triggers::trigger_scope_state{
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::empty,
+					false
+				});
+			env.s.event_m.on_new_great_nation.emplace_back(tag, p.first);
+		}
+	};
+	struct on_lost_great_nation_s {
+		on_actions_env& env;
+		on_lost_great_nation_s(on_actions_env& e) : env(e) {}
+		void add_pair(const std::pair<uint16_t, int32_t>& p) {
+			const auto tag = env.ecm.register_triggered_event(
+				env.s.event_m,
+				p.second,
+				triggers::trigger_scope_state{
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::empty,
+					false
+				});
+			env.s.event_m.on_lost_great_nation.emplace_back(tag, p.first);
+		}
+	};
+	struct on_yearly_pulse_s {
+		on_actions_env& env;
+		on_yearly_pulse_s(on_actions_env& e) : env(e) {}
+		void add_pair(const std::pair<uint16_t, int32_t>& p) {
+			const auto tag = env.ecm.register_triggered_event(
+				env.s.event_m,
+				p.second,
+				triggers::trigger_scope_state{
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::empty,
+					false
+				});
+			env.s.event_m.on_yearly_pulse.emplace_back(tag, p.first);
+		}
+	};
+	struct on_quarterly_pulse_s {
+		on_actions_env& env;
+		on_quarterly_pulse_s(on_actions_env& e) : env(e) {}
+		void add_pair(const std::pair<uint16_t, int32_t>& p) {
+			const auto tag = env.ecm.register_triggered_event(
+				env.s.event_m,
+				p.second,
+				triggers::trigger_scope_state{
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::nation,
+					triggers::trigger_slot_contents::empty,
+					false
+				});
+			env.s.event_m.on_quarterly_pulse.emplace_back(tag, p.first);
+		}
+	};
+	struct on_actions_file {
+		on_actions_env& env;
+		on_actions_file(on_actions_env& e) : env(e) {}
+
+		template<typename T>
+		void one_sub_category(const T&) {}
+	};
 }
 
 MEMBER_FDEF(events::empty_type, discard, "unknown_key");
@@ -202,6 +484,9 @@ MEMBER_FDEF(events::event_reader, set_option, "option");
 MEMBER_FDEF(events::event_file, add_province_event, "province_event");
 MEMBER_FDEF(events::event_file, add_country_event, "country_event");
 
+MEMBER_DEF(events::issue_group_reader, issue_group, "issue_group");
+MEMBER_FDEF(events::issue_group_reader, discard, "unknown_key");
+
 namespace events {
 	BEGIN_DOMAIN(single_event_preparsing_domain)
 		BEGIN_TYPE(empty_type)
@@ -211,6 +496,18 @@ namespace events {
 		BEGIN_TYPE(event_preparse)
 		MEMBER_ASSOCIATION("id", "id", value_from_rh<int32_t>)
 		MEMBER_ASSOCIATION("is_triggered_only", "is_triggered_only", value_from_rh<bool>)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("discard", accept_all, empty_type, discard_empty_type)
+		MEMBER_VARIABLE_ASSOCIATION("discard", accept_all, discard_from_full)
+		END_TYPE
+	END_DOMAIN;
+
+	BEGIN_DOMAIN(get_issue_group_domain)
+		BEGIN_TYPE(empty_type)
+		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
+		END_TYPE
+		BEGIN_TYPE(issue_group_reader)
+		MEMBER_ASSOCIATION("issue_group", "issue_group", token_from_rh)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("discard", accept_all, empty_type, discard_empty_type)
 		MEMBER_VARIABLE_ASSOCIATION("discard", accept_all, discard_from_full)
 		END_TYPE
@@ -345,5 +642,9 @@ namespace events {
 
 			//loop until committing events creates no new pending events
 		}
+	}
+
+	token_and_type get_issue_group_for_event(const token_group* start, const token_group* end) {
+		return parse_object<issue_group_reader, get_issue_group_domain>(start, end).issue_group;
 	}
 }

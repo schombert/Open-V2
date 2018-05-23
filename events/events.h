@@ -89,6 +89,7 @@ namespace events {
 	};
 
 	std::pair<int32_t, bool> pre_parse_event(const token_group* start, const token_group* end); // returns id &  bool is triggered
+	token_and_type get_issue_group_for_event(const token_group* start, const token_group* end);
 	event_tag parse_single_event(
 		scenario::scenario_manager& s,
 		graphics::texture_manager& t,
