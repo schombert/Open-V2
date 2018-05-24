@@ -47,8 +47,22 @@ namespace events {
 		uint8_t flags = 0;
 	};
 
+	struct decision {
+		text_data::text_tag title;
+		text_data::text_tag body;
+		graphics::texture_tag picture;
+
+		triggers::effect_tag effect;
+		triggers::trigger_tag potential;
+		triggers::trigger_tag allow;
+		modifiers::factor_tag ai_will_do;
+
+		decision_tag id;
+	};
+
 	struct event_manager {
 		tagged_vector<event, event_tag> event_container;
+		tagged_vector<decision, decision_tag> decision_container;
 
 		std::vector<event_tag> country_events;
 		std::vector<event_tag> province_events;
@@ -121,4 +135,27 @@ namespace events {
 		graphics::texture_manager& t,
 		event_creation_manager& ecm,
 		const directory& pictures_root);
+	void parse_on_actions_file(
+		scenario::scenario_manager& s,
+		event_creation_manager& ecm,
+		const directory& source_directory);
+	decision_tag parse_decision(
+		scenario::scenario_manager& s,
+		event_creation_manager& ecm,
+		graphics::texture_manager& t,
+		const directory& pictures_root,
+		const token_group* start,
+		const token_group* end);
+	void parse_decision_file(
+		scenario::scenario_manager& s,
+		event_creation_manager& ecm,
+		graphics::texture_manager& t,
+		const directory& pictures_root,
+		const token_group* start,
+		const token_group* end);
+	void parse_decision_files(
+		scenario::scenario_manager& s,
+		event_creation_manager& ecm,
+		graphics::texture_manager& t,
+		const directory& root);
 }

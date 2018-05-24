@@ -2031,7 +2031,7 @@ namespace triggers {
 		}
 		static trigger_value read_value(const token_and_type& t, scenario::scenario_manager& s) {
 			return trigger_payload{
-				s.variables_m.get_named_national_variable(text_data::get_thread_safe_text_handle(s.text_m, t.start, t.end)) };
+				s.variables_m.get_named_national_flag(text_data::get_thread_safe_text_handle(s.text_m, t.start, t.end)) };
 		}
 	};
 	struct has_global_flag_trigger {

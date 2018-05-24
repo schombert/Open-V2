@@ -37,3 +37,20 @@ TEST(variables_tests, test_national_var) {
 	EXPECT_EQ(national_variable_tag(1), r2);
 	EXPECT_EQ(national_variable_tag(1), m.named_national_variables[text_data::text_tag(1)]);
 }
+
+TEST(variables_tests, test_national_flag) {
+	variables_manager m;
+
+	const auto r = m.get_named_national_flag(text_data::text_tag(0));
+
+	EXPECT_EQ(1ui32, m.count_national_flags);
+	EXPECT_EQ(0ui64, m.global_variables.size());
+	EXPECT_EQ(national_flag_tag(0), r);
+	EXPECT_EQ(national_flag_tag(0), m.named_national_flags[text_data::text_tag(0)]);
+
+	const auto r2 = m.get_named_national_flag(text_data::text_tag(1));
+
+	EXPECT_EQ(2ui32, m.count_national_flags);
+	EXPECT_EQ(national_flag_tag(1), r2);
+	EXPECT_EQ(national_flag_tag(1), m.named_national_flags[text_data::text_tag(1)]);
+}

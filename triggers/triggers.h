@@ -85,6 +85,7 @@ namespace triggers {
 		cultures::culture_tag culture;
 		cultures::national_tag tag;
 		variables::national_variable_tag nat_var;
+		variables::national_flag_tag nat_flag;
 		variables::global_variable_tag global_var;
 		provinces::state_tag state;
 		text_data::text_tag text;
@@ -106,6 +107,7 @@ namespace triggers {
 		trigger_payload(population::rebel_type_tag i) : small(i) {}
 		trigger_payload(cultures::national_tag i) : tag(i) {}
 		trigger_payload(variables::national_variable_tag i) : nat_var(i) {}
+		trigger_payload(variables::national_flag_tag i) : nat_flag(i) {}
 		trigger_payload(variables::global_variable_tag i) : global_var(i) {}
 		trigger_payload(technologies::tech_tag i) : tech(i) {}
 		trigger_payload(economy::factory_type_tag i) : small(i) {}

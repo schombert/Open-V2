@@ -393,7 +393,7 @@ namespace triggers {
 		}
 		static effect_value read_value(const token_and_type& t, scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
 			return trigger_payload(
-				s.variables_m.get_named_national_variable(text_data::get_thread_safe_text_handle(s.text_m, t.start, t.end)));
+				s.variables_m.get_named_national_flag(text_data::get_thread_safe_text_handle(s.text_m, t.start, t.end)));
 		}
 	};
 	struct clr_country_flag_effect {
@@ -405,7 +405,7 @@ namespace triggers {
 		}
 		static effect_value read_value(const token_and_type& t, scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
 			return trigger_payload(
-				s.variables_m.get_named_national_variable(text_data::get_thread_safe_text_handle(s.text_m, t.start, t.end)));
+				s.variables_m.get_named_national_flag(text_data::get_thread_safe_text_handle(s.text_m, t.start, t.end)));
 		}
 	};
 	struct country_event_effect {

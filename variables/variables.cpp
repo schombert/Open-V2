@@ -20,4 +20,13 @@ namespace variables {
 		named_national_variables.emplace(name, nt);
 		return nt;
 	}
+	national_flag_tag variables_manager::get_named_national_flag(text_data::text_tag name) {
+		const auto fr = named_national_flags.find(name);
+		if(fr != named_national_flags.end())
+			return fr->second;
+
+		const national_flag_tag nt(static_cast<national_flag_tag::value_base_t>(count_national_flags++));
+		named_national_flags.emplace(name, nt);
+		return nt;
+	}
 }

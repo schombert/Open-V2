@@ -118,11 +118,13 @@ namespace text_data {
 
 namespace variables {
 	using national_variable_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 4745824>>;
+	using national_flag_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 4745825>>;
 	using global_variable_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 4745826>>;
 }
 
 namespace events {
-	using event_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 75935234>>;;
+	using event_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 75935234>>;
+	using decision_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 75935235>>;
 }
 
 template<typename tag_type, typename index_type, typename T, typename U>

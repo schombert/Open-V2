@@ -26,15 +26,17 @@ public:
 	
 	directory_representation test2 = directory_representation(u"test2", f_root);
 	directory_representation gfx2 = directory_representation(u"gfx", test2);
+	directory_representation common2 = directory_representation(u"common", test2);
 	directory_representation pictures2 = directory_representation(u"pictures", gfx2);
 	directory_representation pic_events2 = directory_representation(u"events", pictures2);
 	directory_representation events2 = directory_representation(u"events", test2);
 	file_representation pic2 = file_representation(u"pic.tga", pic_events2, "");
 	file_representation file_c = file_representation(u"file_a.txt", events2,
-		"province_event = { id = 5 is_triggered_only = yes }\r\n"
+		"province_event = { id = 5 is_triggered_only = yes issue_group = test_group }\r\n"
 		"country_event = { id = 1 trigger = { is_mobilised = yes } is_triggered_only = yes }\r\n");
 	file_representation file_d = file_representation(u"file_b.txt", events2,
 		"province_event = { id = 2 trigger = { has_empty_adjacent_province = yes } is_triggered_only = yes }\r\n");
+	file_representation on_actions = file_representation(u"on_actions.txt", common2, "on_yearly_pulse = {} on_new_great_nation = {10 = 1} on_election_tick = { 100 = 5 }");
 
 	test_files() {
 		set_default_root(f_root);
@@ -384,5 +386,51 @@ TEST(event_tests, triggered_event_parsing) {
 
 		EXPECT_EQ(uint16_t(triggers::trigger_codes::is_mobilised | triggers::trigger_codes::association_eq | triggers::trigger_codes::no_payload), sm.trigger_m.trigger_data[to_index(sm.event_m.event_container[ev_1].trigger)]);
 		EXPECT_EQ(uint16_t(triggers::trigger_codes::has_empty_adjacent_province | triggers::trigger_codes::association_eq | triggers::trigger_codes::no_payload), sm.trigger_m.trigger_data[to_index(sm.event_m.event_container[ev_2].trigger)]);
+	}
+}
+
+TEST(event_tests, on_actions_parsing) {
+	text_data::text_sequences ts;
+	scenario::scenario_manager sm(ts);
+	graphics::texture_manager tex;
+	event_creation_manager ecm;
+
+	test_files real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:\\test2"));
+
+	{
+		parse_event_files(
+			sm,
+			tex,
+			ecm,
+			f.get_root());
+
+		EXPECT_EQ(0ui64, sm.event_m.country_events.size());
+		EXPECT_EQ(0ui64, sm.event_m.province_events.size());
+		EXPECT_EQ(0ui64, sm.event_m.events_by_id.size());
+
+		parse_on_actions_file(sm, ecm, f.get_root());
+
+		commit_pending_triggered_events(
+			sm,
+			tex,
+			ecm,
+			f.get_root());
+
+		EXPECT_EQ(0ui64, ecm.pending_triggered_events.size());
+		EXPECT_EQ(2ui64, ecm.created_triggered_events.size());
+
+		EXPECT_EQ(0ui64, sm.event_m.on_yearly_pulse.size());
+		EXPECT_EQ(1ui64, sm.event_m.on_new_great_nation.size());
+		EXPECT_EQ(1ui64, sm.event_m.on_election_tick.size());
+
+		EXPECT_EQ(10ui16, sm.event_m.on_new_great_nation[0].second);
+		EXPECT_NE(event_tag(), sm.event_m.on_new_great_nation[0].first);
+
+		EXPECT_EQ(100ui16, std::get<1>(sm.event_m.on_election_tick[0]));
+		EXPECT_NE(event_tag(), std::get<0>(sm.event_m.on_election_tick[0]));
+		EXPECT_NE(text_data::text_tag(), std::get<2>(sm.event_m.on_election_tick[0]));
 	}
 }
