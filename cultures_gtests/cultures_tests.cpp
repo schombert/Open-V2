@@ -58,6 +58,7 @@ public:
 		"leader = X\r\n"
 		"unit = Y\r\n"
 		"sub_culture_a = {\r\n"
+		"radicalism = 5\r\n"
 		"color = {10 20 30}\r\n"
 		"first_names = {a b c}\r\n"
 		"last_names = { d }\r\n"
@@ -70,10 +71,12 @@ public:
 		"last_names = { d e }\r\n"
 		"}\r\n"
 		"sub_culture_c = {\r\n"
+		"radicalism = 10\r\n"
 		"color = {50 60 70}\r\n"
 		"first_names = {asss bddd csss d}\r\n"
 		"last_names = { q x }\r\n"
 		"}\r\n"
+		"is_overseas = no\r\n"
 		"union = ENG\n"
 		"}");
 
@@ -174,6 +177,7 @@ TEST(cultures_tests, cultures_file) {
 	EXPECT_EQ(1ui64, m.named_culture_index.size());
 
 	EXPECT_EQ(culture_tag(0), m.culture_container[culture_tag(0)].id);
+	EXPECT_EQ(0.0f, m.culture_container[culture_tag(0)].radicalism);
 	EXPECT_EQ(culture_group_tag(0), m.culture_container[culture_tag(0)].group);
 	EXPECT_EQ(10ui8, m.culture_container[culture_tag(0)].color.r);
 	EXPECT_EQ(20ui8, m.culture_container[culture_tag(0)].color.g);
@@ -187,6 +191,7 @@ TEST(cultures_tests, cultures_file) {
 	EXPECT_EQ(1i64, ln.second - ln.first);
 
 	EXPECT_EQ(culture_group_tag(0), m.culture_groups[culture_group_tag(0)].id);
+	EXPECT_EQ(true, m.culture_groups[culture_group_tag(0)].is_overseas);
 	EXPECT_EQ(culture_group_tag(0), m.named_culture_group_index[m.culture_groups[culture_group_tag(0)].name]);
 	EXPECT_EQ(national_tag(0), m.culture_groups[culture_group_tag(0)].union_tag);
 }
@@ -213,6 +218,7 @@ TEST(multiple_cultures_tests, cultures_file) {
 	EXPECT_EQ(20ui8, m.culture_container[culture_tag(0)].color.g);
 	EXPECT_EQ(30ui8, m.culture_container[culture_tag(0)].color.b);
 	EXPECT_EQ(culture_tag(0), m.named_culture_index[m.culture_container[culture_tag(0)].name]);
+	EXPECT_EQ(5.0f, m.culture_container[culture_tag(0)].radicalism);
 
 	const auto fn = m.first_names_by_culture.get_row(to_index(culture_tag(0)));
 	const auto ln = m.last_names_by_culture.get_row(to_index(culture_tag(0)));
@@ -226,6 +232,7 @@ TEST(multiple_cultures_tests, cultures_file) {
 	EXPECT_EQ(30ui8, m.culture_container[culture_tag(1)].color.g);
 	EXPECT_EQ(40ui8, m.culture_container[culture_tag(1)].color.b);
 	EXPECT_EQ(culture_tag(1), m.named_culture_index[m.culture_container[culture_tag(1)].name]);
+	EXPECT_EQ(0.0f, m.culture_container[culture_tag(1)].radicalism);
 
 	const auto fn2 = m.first_names_by_culture.get_row(to_index(culture_tag(1)));
 	const auto ln2 = m.last_names_by_culture.get_row(to_index(culture_tag(1)));
@@ -239,6 +246,7 @@ TEST(multiple_cultures_tests, cultures_file) {
 	EXPECT_EQ(60ui8, m.culture_container[culture_tag(2)].color.g);
 	EXPECT_EQ(70ui8, m.culture_container[culture_tag(2)].color.b);
 	EXPECT_EQ(culture_tag(2), m.named_culture_index[m.culture_container[culture_tag(2)].name]);
+	EXPECT_EQ(10.0f, m.culture_container[culture_tag(2)].radicalism);
 
 	const auto fn3 = m.first_names_by_culture.get_row(to_index(culture_tag(2)));
 	const auto ln3 = m.last_names_by_culture.get_row(to_index(culture_tag(2)));
@@ -249,8 +257,10 @@ TEST(multiple_cultures_tests, cultures_file) {
 	EXPECT_EQ(culture_group_tag(0), m.culture_groups[culture_group_tag(0)].id);
 	EXPECT_EQ(culture_group_tag(0), m.named_culture_group_index[m.culture_groups[culture_group_tag(0)].name]);
 	EXPECT_EQ(national_tag(), m.culture_groups[culture_group_tag(0)].union_tag);
+	EXPECT_EQ(true, m.culture_groups[culture_group_tag(0)].is_overseas);
 
 	EXPECT_EQ(culture_group_tag(1), m.culture_groups[culture_group_tag(1)].id);
 	EXPECT_EQ(culture_group_tag(1), m.named_culture_group_index[m.culture_groups[culture_group_tag(1)].name]);
 	EXPECT_EQ(national_tag(1), m.culture_groups[culture_group_tag(1)].union_tag);
+	EXPECT_EQ(false, m.culture_groups[culture_group_tag(1)].is_overseas);
 }

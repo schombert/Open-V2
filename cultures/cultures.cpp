@@ -170,6 +170,9 @@ namespace cultures {
 		void add_last_names(const names_builder& names) {
 			env.manager.last_names_by_culture.add_range_to_row(to_index(ctag), names.names.begin(), names.names.end());
 		}
+		void set_radicalism(float f) {
+			c->radicalism = f;
+		}
 	};
 
 	struct culture_group_builder {
@@ -199,6 +202,9 @@ namespace cultures {
 			p.second.c->name = name;
 
 			env.manager.named_culture_index.emplace(name, p.second.ctag);
+		}
+		void set_is_overseas(bool v) {
+			group->is_overseas = v;
 		}
 	};
 
@@ -237,10 +243,12 @@ MEMBER_DEF(cultures::religion_builder, pagan, "pagan");
 MEMBER_FDEF(cultures::tags_file, add_tag, "tag");
 MEMBER_FDEF(cultures::cultures_file, add_group, "group");
 MEMBER_FDEF(cultures::culture_group_builder, add_culture, "culture");
+MEMBER_FDEF(cultures::culture_group_builder, set_is_overseas, "is_overseas");
 MEMBER_FDEF(cultures::culture_group_builder, add_leader, "leader");
 MEMBER_FDEF(cultures::culture_group_builder, add_unit, "unit");
 MEMBER_FDEF(cultures::culture_group_builder, add_union_tag, "union");
 MEMBER_FDEF(cultures::culture_builder, add_color, "color");
+MEMBER_FDEF(cultures::culture_builder, set_radicalism, "radicalism");
 MEMBER_FDEF(cultures::culture_builder, add_first_names, "first_names");
 MEMBER_FDEF(cultures::culture_builder, add_last_names, "last_names");
 MEMBER_FDEF(cultures::names_builder, add_name, "name");
@@ -278,11 +286,13 @@ namespace cultures {
 		MEMBER_ASSOCIATION("leader", "leader", token_from_rh)
 		MEMBER_ASSOCIATION("unit", "unit", token_from_rh)
 		MEMBER_ASSOCIATION("union", "union", token_from_rh)
+		MEMBER_ASSOCIATION("is_overseas", "is_overseas", value_from_rh<bool>)
 		END_TYPE
 		BEGIN_TYPE(culture_builder)
 		MEMBER_TYPE_ASSOCIATION("first_names", "first_names", names_builder)
 		MEMBER_TYPE_ASSOCIATION("last_names", "last_names", names_builder)
 		MEMBER_TYPE_ASSOCIATION("color", "color", color_builder)
+		MEMBER_ASSOCIATION("radicalism", "radicalism", value_from_rh<float> )
 		END_TYPE
 		BEGIN_TYPE(color_builder)
 		MEMBER_VARIABLE_ASSOCIATION("color", accept_all, value_from_lh<int>)

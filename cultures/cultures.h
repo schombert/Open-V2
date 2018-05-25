@@ -12,6 +12,7 @@ namespace governments {
 
 namespace cultures {
 	struct culture {
+		float radicalism = 0.0f;
 		graphics::color_rgb color;
 		text_data::text_tag name;
 		culture_tag id;
@@ -21,6 +22,7 @@ namespace cultures {
 		text_data::text_tag name;
 		national_tag union_tag;
 		culture_group_tag id;
+		bool is_overseas = true;
 	};
 	struct religion {
 		graphics::color_rgb color;
