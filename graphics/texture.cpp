@@ -138,11 +138,6 @@ namespace graphics {
 				std::u16string full_path = full_fn_b->file_path() + u'\\' + full_fn_b->file_name();
 				new_key = textures.emplace_back(std::string(full_path.begin(), full_path.end()));
 			} else {
-#ifdef _DEBUG
-				OutputDebugStringA("texture file not found: ");
-				OutputDebugStringA(std::string(start,end).c_str());
-				OutputDebugStringA("\n");
-#endif
 				return texture_tag();
 			}
 		}

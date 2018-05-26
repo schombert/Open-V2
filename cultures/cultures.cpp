@@ -2,6 +2,9 @@
 #include "Parsers\\parsers.hpp"
 #include "object_parsing\\object_parsing.hpp"
 #include <algorithm>
+#include <map>
+#include "graphics\\texture.h"
+#include "simple_fs\\simple_fs.h"
 
 #undef min
 #undef max
@@ -29,13 +32,26 @@ namespace cultures {
 	}
 
 	struct parsing_environment {
+		std::map<std::string, leader_picture_info> pictures_map;
+		text_handle_lookup text_lookup;
+		culture_manager& manager;
+		graphics::texture_manager& tm;
+		const directory root;
+		bool unicode = false;
+		
+
+		parsing_environment(const text_handle_lookup& tl, culture_manager& m, graphics::texture_manager& t, const directory& r, bool u = false) :
+			text_lookup(tl), manager(m), tm(t), root(r), unicode(u) {
+		}
+	};
+
+	struct religion_parsing_environment {
 		text_handle_lookup text_lookup;
 		culture_manager& manager;
 		bool unicode = false;
 
-		parsing_environment(const text_handle_lookup& tl, culture_manager& m, bool u = false) :
-			text_lookup(tl), manager(m), unicode(u) {
-		}
+		religion_parsing_environment(const text_handle_lookup& tl, culture_manager& m, bool u = false) :
+			text_lookup(tl), manager(m), unicode(u) {}
 	};
 
 	struct color_builder {
@@ -89,8 +105,8 @@ namespace cultures {
 	};
 
 	struct religions_group_s {
-		parsing_environment& env;
-		religions_group_s(parsing_environment& e) : env(e) {}
+		religion_parsing_environment& env;
+		religions_group_s(religion_parsing_environment& e) : env(e) {}
 		void add_religion(const std::pair<token_and_type, religion_builder>& p) {
 			const auto name = env.text_lookup(p.first.start, p.first.end);
 			const auto nt = env.manager.religions.emplace_back();
@@ -104,8 +120,8 @@ namespace cultures {
 		}
 	};
 	struct religions_file {
-		parsing_environment& env;
-		religions_file(parsing_environment& e) : env(e) {}
+		religion_parsing_environment& env;
+		religions_file(religion_parsing_environment& e) : env(e) {}
 		void add_group(int) {}
 	};
 
@@ -192,8 +208,48 @@ namespace cultures {
 		void add_unit(const token_and_type&) {
 
 		}
-		void add_leader(const token_and_type&) {
+		void add_leader(const token_and_type& t) {
+			std::string key(t.start, t.end);
+			if(auto f = env.pictures_map.find(key); f != env.pictures_map.end()) {
+				group->leader_pictures = f->second;
+			} else {
+				leader_picture_info i;
+				i.admiral_offset = static_cast<uint16_t>(env.manager.leader_pictures.size());
 
+				std::string cbase = std::string("\\gfx\\interface\\leaders\\") + key + "_admiral_";
+
+				int32_t count = 0;
+				std::string cname = cbase + std::to_string(count) + ".dds";
+				graphics::texture_tag current_tag = env.tm.retrieve_by_name(env.root, cname.c_str(), cname.c_str() + cname.length());
+
+				while(is_valid_index(current_tag)) {
+					env.manager.leader_pictures.push_back(current_tag);
+
+					++count;
+					cname = cbase + std::to_string(count) + ".dds";
+					current_tag = env.tm.retrieve_by_name(env.root, cname.c_str(), cname.c_str() + cname.length());
+				}
+				i.admiral_size = static_cast<uint16_t>(count);
+
+				i.general_offset = static_cast<uint16_t>(env.manager.leader_pictures.size());
+
+				cbase = std::string("\\gfx\\interface\\leaders\\") + key + "_general_";
+
+				count = 0;
+				cname = cbase + std::to_string(count) + ".dds";
+				current_tag = env.tm.retrieve_by_name(env.root, cname.c_str(), cname.c_str() + cname.length());
+				while(is_valid_index(current_tag)) {
+					env.manager.leader_pictures.push_back(current_tag);
+
+					++count;
+					cname = cbase + std::to_string(count) + ".dds";
+					current_tag = env.tm.retrieve_by_name(env.root, cname.c_str(), cname.c_str() + cname.length());
+				}
+				i.general_size = static_cast<uint16_t>(count);
+
+				group->leader_pictures = i;
+				env.pictures_map.emplace(key, i);
+			}
 		}
 		void add_culture(const std::pair<token_and_type, culture_builder>& p) {
 			const auto name = env.text_lookup(p.first.start, p.first.end);
@@ -310,7 +366,7 @@ namespace cultures {
 		const auto common_dir = source_directory.get_directory(u"\\common");
 		const auto file = common_dir.open_file(u"religion.txt");
 
-		parsing_environment return_state(text_function, manager);
+		religion_parsing_environment return_state(text_function, manager);
 
 		if (file) {
 			const auto sz = file->size();
@@ -332,6 +388,7 @@ namespace cultures {
 
 	void parse_cultures(
 		culture_manager& manager,
+		graphics::texture_manager &tm,
 		const directory& source_directory,
 		const text_handle_lookup& text_function) {
 
@@ -348,7 +405,7 @@ namespace cultures {
 
 			const auto[file_start, is_unicode] = bom_test(parse_data.get(), sz);
 
-			parsing_environment return_state(text_function, manager, is_unicode);
+			parsing_environment return_state(text_function, manager, tm, source_directory, is_unicode);
 			parse_pdx_file(parse_results, file_start, file_start + sz - (is_unicode ? 3 : 0));
 
 			if (parse_results.size() > 0) {
@@ -358,6 +415,9 @@ namespace cultures {
 					return_state);
 			}
 		}
+
+		std::string noleader_file = std::string("\\gfx\\interface\\leaders\\no_leader.dds");
+		manager.no_leader = tm.retrieve_by_name(source_directory, noleader_file.c_str(), noleader_file.c_str() + noleader_file.length());
 	}
 
 	tagged_vector<std::string, national_tag> parse_national_tags(

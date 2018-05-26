@@ -1,6 +1,7 @@
 #include "gtest\\gtest.h"
 #include "fake_fs\\fake_fs.h"
 #include "cultures\\cultures.h"
+#include "graphics\\texture.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -38,7 +39,6 @@ public:
 		"}");
 	file_representation cul1 = file_representation(u"cultures.txt", common1,
 		"group = {\r\n"
-		"leader = X\r\n"
 		"unit = Y\r\n"
 		"sub_culture_a = {\r\n"
 		"color = {10 20 30}\r\n"
@@ -55,7 +55,6 @@ public:
 		"ENG = \"countries/file 2.txt\"");
 	file_representation cul2 = file_representation(u"cultures.txt", common2,
 		"\xEF\xBB\xBFgroup = {\r\n"
-		"leader = X\r\n"
 		"unit = Y\r\n"
 		"sub_culture_a = {\r\n"
 		"radicalism = 5\r\n"
@@ -79,6 +78,52 @@ public:
 		"is_overseas = no\r\n"
 		"union = ENG\n"
 		"}");
+
+	directory_representation test3 = directory_representation(u"test3", f_root);
+	directory_representation gfx3 = directory_representation(u"gfx", test3);
+	directory_representation interface3 = directory_representation(u"interface", gfx3);
+	directory_representation leaders3 = directory_representation(u"leaders", interface3);
+	directory_representation common3 = directory_representation(u"common", test3);
+	file_representation countries3 = file_representation(u"countries.txt", common3,
+		"GER = \"countries/file 1.txt\"\r\n"
+		"ENG = \"countries/file 2.txt\"");
+	file_representation cul3 = file_representation(u"cultures.txt", common3,
+		"\xEF\xBB\xBFgroup = {\r\n"
+		"leader = t1\r\n"
+		"unit = Y\r\n"
+		"sub_culture_a = {\r\n"
+		"radicalism = 5\r\n"
+		"color = {10 20 30}\r\n"
+		"first_names = {a b c}\r\n"
+		"last_names = { d }\r\n"
+		"}\r\n"
+		"}\r\n"
+		"group_b = { \r\n"
+		"leader = t2\r\n"
+		"sub_culture_b = {\r\n"
+		"color = {20 30 40}\r\n"
+		"first_names = {a bddd}\r\n"
+		"last_names = { d e }\r\n"
+		"}\r\n"
+		"sub_culture_c = {\r\n"
+		"radicalism = 10\r\n"
+		"color = {50 60 70}\r\n"
+		"first_names = {asss bddd csss d}\r\n"
+		"last_names = { q x }\r\n"
+		"}\r\n"
+		"is_overseas = no\r\n"
+		"union = ENG\n"
+		"}\r\n"
+		"group_c = { \r\n"
+		"leader = t1\r\n"
+		"}\r\n");
+	file_representation no_leader = file_representation(u"no_leader.dds", leaders3, "");
+	file_representation l1 = file_representation(u"t1_admiral_0.dds", leaders3, "");
+	file_representation l2 = file_representation(u"t1_admiral_1.dds", leaders3, "");
+	file_representation l3 = file_representation(u"t1_general_0.dds", leaders3, "");
+	file_representation l4 = file_representation(u"t2_admiral_0.dds", leaders3, "");
+	file_representation l5 = file_representation(u"t2_general_0.dds", leaders3, "");
+	file_representation l6 = file_representation(u"t2_general_1.dds", leaders3, "");
 
 	test_files() {
 		set_default_root(f_root);
@@ -163,13 +208,14 @@ TEST(cultures_tests, religion_file) {
 TEST(cultures_tests, cultures_file) {
 	test_files real_fs;
 	file_system f;
+	graphics::texture_manager tm;
 
 	f.set_root(RANGE(u"F:\\test1"));
 
 	culture_manager m;
 
 	parse_national_tags(m, f.get_root());
-	parse_cultures(m, f.get_root(), fake_text_handle_lookup());
+	parse_cultures(m, tm, f.get_root(), fake_text_handle_lookup());
 
 	EXPECT_EQ(1ui64, m.culture_container.size());
 	EXPECT_EQ(1ui64, m.culture_groups.size());
@@ -196,16 +242,17 @@ TEST(cultures_tests, cultures_file) {
 	EXPECT_EQ(national_tag(0), m.culture_groups[culture_group_tag(0)].union_tag);
 }
 
-TEST(multiple_cultures_tests, cultures_file) {
+TEST(cultures_tests, multiple_cultures_tests) {
 	test_files real_fs;
 	file_system f;
+	graphics::texture_manager tm;
 
 	f.set_root(RANGE(u"F:\\test2"));
 
 	culture_manager m;
 
 	parse_national_tags(m, f.get_root());
-	parse_cultures(m, f.get_root(), fake_text_handle_lookup());
+	parse_cultures(m, tm, f.get_root(), fake_text_handle_lookup());
 
 	EXPECT_EQ(3ui64, m.culture_container.size());
 	EXPECT_EQ(2ui64, m.culture_groups.size());
@@ -263,4 +310,37 @@ TEST(multiple_cultures_tests, cultures_file) {
 	EXPECT_EQ(culture_group_tag(1), m.named_culture_group_index[m.culture_groups[culture_group_tag(1)].name]);
 	EXPECT_EQ(national_tag(1), m.culture_groups[culture_group_tag(1)].union_tag);
 	EXPECT_EQ(false, m.culture_groups[culture_group_tag(1)].is_overseas);
+
+	EXPECT_EQ(0ui16, m.culture_groups[culture_group_tag(0)].leader_pictures.admiral_offset);
+	EXPECT_EQ(0ui16, m.culture_groups[culture_group_tag(0)].leader_pictures.admiral_size);
+	EXPECT_EQ(0ui16, m.culture_groups[culture_group_tag(0)].leader_pictures.general_offset);
+	EXPECT_EQ(0ui16, m.culture_groups[culture_group_tag(0)].leader_pictures.general_size);
+}
+
+TEST(cultures_tests, leader_pictures) {
+	test_files real_fs;
+	file_system f;
+	graphics::texture_manager tm;
+
+	f.set_root(RANGE(u"F:\\test3"));
+
+	culture_manager m;
+
+	parse_national_tags(m, f.get_root());
+	parse_cultures(m, tm, f.get_root(), fake_text_handle_lookup());
+
+	EXPECT_NE(graphics::texture_tag(), m.no_leader);
+	EXPECT_EQ(6ui64, m.leader_pictures.size());
+	EXPECT_EQ(0ui16, m.culture_groups[culture_group_tag(0)].leader_pictures.admiral_offset);
+	EXPECT_EQ(2ui16, m.culture_groups[culture_group_tag(0)].leader_pictures.admiral_size);
+	EXPECT_EQ(2ui16, m.culture_groups[culture_group_tag(0)].leader_pictures.general_offset);
+	EXPECT_EQ(1ui16, m.culture_groups[culture_group_tag(0)].leader_pictures.general_size);
+	EXPECT_EQ(3ui16, m.culture_groups[culture_group_tag(1)].leader_pictures.admiral_offset);
+	EXPECT_EQ(1ui16, m.culture_groups[culture_group_tag(1)].leader_pictures.admiral_size);
+	EXPECT_EQ(4ui16, m.culture_groups[culture_group_tag(1)].leader_pictures.general_offset);
+	EXPECT_EQ(2ui16, m.culture_groups[culture_group_tag(1)].leader_pictures.general_size);
+	EXPECT_EQ(0ui16, m.culture_groups[culture_group_tag(2)].leader_pictures.admiral_offset);
+	EXPECT_EQ(2ui16, m.culture_groups[culture_group_tag(2)].leader_pictures.admiral_size);
+	EXPECT_EQ(2ui16, m.culture_groups[culture_group_tag(2)].leader_pictures.general_offset);
+	EXPECT_EQ(1ui16, m.culture_groups[culture_group_tag(2)].leader_pictures.general_size);
 }
