@@ -10,9 +10,14 @@
 #pragma clang diagnostic ignored "-Wsign-conversion"
 #pragma clang diagnostic ignored "-Wunused-template"
 #pragma clang diagnostic ignored "-Wshadow"
+#pragma clang diagnostic ignored "-Wundef"
+#pragma clang diagnostic ignored "-Wdeprecated-dynamic-exception-spec"
+#pragma clang diagnostic ignored "-Wdeprecated"
+#pragma clang diagnostic ignored "-Wswitch-enum"
 #include "boost\\container\\flat_map.hpp"
 #include "boost\\container\\small_vector.hpp"
 #include "boost\\container\\flat_set.hpp"
+#include "boost\date_time\\gregorian\\gregorian_types.hpp" 
 #include "Eigen\\Dense"
 #pragma clang diagnostic pop
 

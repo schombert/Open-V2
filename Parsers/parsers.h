@@ -2,6 +2,7 @@
 #include <vector>
 #include <memory>
 #include "common\\common.h"
+#include "common\\shared_tags.h"
 
 enum class association_type : unsigned short { none, eq, lt, le, gt, ge, ne, eq_default, list};
 
@@ -44,6 +45,7 @@ bool parse_bool(const char* start, const char* end);
 double parse_double(const char* start, const char* end);
 int32_t parse_int(const char* start, const char* end);
 uint32_t parse_uint(const char* start, const char* end);
+date_tag parse_date(const char* start, const char* end);
 
 void parse_pdx_file(std::vector<token_group>& results, const char* file_start, const char* file_end);
 void parse_lua_file(std::vector<token_group>& results, const char* file_start, const char* file_end);

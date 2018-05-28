@@ -8,6 +8,10 @@
 #include "concurrency_tools\\concurrency_tools.h"
 #include "text_data\\text_data.h"
 
+namespace scenario {
+	class scenario_manager;
+}
+
 namespace ideologies {
 	struct ideology_group {
 		text_data::text_tag name;
@@ -15,9 +19,18 @@ namespace ideologies {
 	};
 
 	struct ideology {
+		graphics::color_rgb color;
 		text_data::text_tag name;
+		date_tag enable_date;
+		modifiers::factor_tag add_political_reform;
+		modifiers::factor_tag add_social_reform;
+		modifiers::factor_tag remove_political_reform;
+		modifiers::factor_tag remove_social_reform;
+		modifiers::factor_tag add_military_reform;
+		modifiers::factor_tag add_economic_reform;
 		ideology_group_tag group;
 		ideology_tag id;
+		bool uncivilized = true;
 	};
 
 	class ideologies_manager {
@@ -27,6 +40,8 @@ namespace ideologies {
 
 		tagged_vector<ideology_group, ideology_group_tag> ideology_groups;
 		tagged_vector<ideology, ideology_tag> ideology_container;
+
+		ideology_tag conservative_ideology;
 	};
 
 	using text_handle_lookup = std::function<text_data::text_tag(const char*, const char*)>;
@@ -46,4 +61,6 @@ namespace ideologies {
 		ideologies_manager& manager,
 		const directory& source_directory,
 		const text_handle_lookup& text_function);
+	void parse_single_ideology(scenario::scenario_manager& s, ideology_tag tag, const token_group* start, const token_group* end);
+	void parse_ideologies(scenario::scenario_manager& s, const parsing_state& state);
 }

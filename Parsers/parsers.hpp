@@ -56,6 +56,10 @@ inline bool token_to<bool>(const token_and_type& in) {
 	return parse_bool(in.start, in.end);
 }
 
+template<>
+inline date_tag token_to<date_tag>(const token_and_type& in) {
+	return parse_date(in.start, in.end);
+}
 
 template<typename T>
 T* advance_position_to_non_whitespace(T* start, T* end) {

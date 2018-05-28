@@ -2,6 +2,18 @@
 #include "common.h"
 #include <variant>
 
+using date_tag = tag_type<int32_t, std::true_type, std::integral_constant<size_t, 42>>;
+
+inline const boost::gregorian::date base_date(1800, boost::gregorian::Jan, 1);
+
+inline date_tag date_to_tag(const boost::gregorian::date& d) {
+	return date_tag(static_cast<date_tag::value_base_t>((d - base_date).days()));
+}
+
+inline boost::gregorian::date tag_to_date(date_tag t) {
+	return base_date + boost::gregorian::days(to_index(t));
+}
+
 namespace graphics {
 	using obj_definition_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 174634>>;
 	using texture_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 74896>>;

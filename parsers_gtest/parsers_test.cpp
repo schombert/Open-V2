@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <vector>
 #include <string>
+#include "common\\shared_tags.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -17,12 +18,7 @@ bool inverse_ignorable(char n) {
 #define IsTrue EXPECT_TRUE
 #define IsFalse EXPECT_FALSE
 
-TEST(TestCaseName, TestName) {
-  EXPECT_EQ(1, 1);
-  EXPECT_TRUE(true);
-}
-
-TEST_METHOD(empty_file, parsers_test) {
+TEST_METHOD(parsers_test, empty_file) {
 	char tfile[] = "";
 	std::vector<token_group> results;
 	parse_pdx_file(results, tfile, tfile + sizeof(tfile) - 1);
@@ -30,7 +26,7 @@ TEST_METHOD(empty_file, parsers_test) {
 }
 
 
-TEST_METHOD(position_advancement, parsers_test) {
+TEST_METHOD(parsers_test, position_advancement) {
 	char str1[] = " \ttest=  ";
 	AreEqual(9Ui64, sizeof(str1) - 1);
 
@@ -60,7 +56,7 @@ TEST_METHOD(position_advancement, parsers_test) {
 	AreEqual(r8, str2 + sizeof(str2) - 1);
 }
 
-TEST_METHOD(newline_advancement, parsers_test) {
+TEST_METHOD(parsers_test, newline_advancement) {
 	char line[] = "1: line\n2: line\r\n";
 
 	char* r2 = advance_position_to_next_line(line, line + sizeof(line) - 1);
@@ -73,7 +69,7 @@ TEST_METHOD(newline_advancement, parsers_test) {
 	AreEqual(line + sizeof(line) - 1, r4);
 }
 
-TEST_METHOD(char_classes, parsers_test) {
+TEST_METHOD(parsers_test, char_classes) {
 	AreEqual(true, ignorable_char(' '));
 	AreEqual(true, ignorable_char('\r'));
 	AreEqual(true, ignorable_char('\n'));
@@ -124,7 +120,7 @@ TEST_METHOD(char_classes, parsers_test) {
 	AreEqual(false, single_quote_termination('\"'));
 }
 
-TEST_METHOD(numeric_parsing, parsers_test) {
+TEST_METHOD(parsers_test, numeric_parsing) {
 	AreEqual(1.5f, parse_float(RANGE("1.5")));
 	AreEqual(1.5, parse_double(RANGE("1.5")));
 	AreEqual(-1.5f, parse_float(RANGE("-1.5")));
@@ -146,7 +142,11 @@ TEST_METHOD(numeric_parsing, parsers_test) {
 	AreEqual(0ui32, parse_uint(RANGE("x")));
 }
 
-TEST_METHOD(bool_parsing, parsers_test) {
+TEST(parsers_test, date_parsing) {
+	EXPECT_EQ(date_to_tag(boost::gregorian::date(1820, 2, 4)), parse_date(RANGE("1820.2.4")));
+}
+
+TEST_METHOD(parsers_test, bool_parsing) {
 	IsTrue(parse_bool(RANGE("yes")));
 	IsTrue(parse_bool(RANGE("Yes")));
 	IsTrue(parse_bool(RANGE("1")));
@@ -163,7 +163,7 @@ TEST_METHOD(bool_parsing, parsers_test) {
 	IsFalse(parse_bool(RANGE("xxx")));
 }
 
-TEST_METHOD(token_parsing, parsers_test) {
+TEST_METHOD(parsers_test, token_parsing) {
 	EXPECT_EQ(1.5, token_to<double>(token_and_type{ RANGE("1.5"), token_type::unknown }));
 	EXPECT_EQ(1.5f, token_to<float>(token_and_type{ RANGE("1.5"), token_type::unknown }));
 	EXPECT_EQ(3, token_to<int>(token_and_type{ RANGE("3"), token_type::unknown }));
@@ -172,7 +172,7 @@ TEST_METHOD(token_parsing, parsers_test) {
 	EXPECT_EQ(true, token_to<bool>(token_and_type{ RANGE("yes"), token_type::unknown }));
 }
 
-TEST_METHOD(number_classification, parsers_test) {
+TEST_METHOD(parsers_test, number_classification) {
 	char pos_integer[] = "36";
 	char neg_integer[] = "-6934";
 	char deformed_neg[] = "-";
@@ -252,7 +252,7 @@ TEST_METHOD(number_classification, parsers_test) {
 	AreEqual(false, is_fp(RANGE(dbl_neg_integer)));
 }
 
-TEST_METHOD(advancing, parsers_test) {
+TEST_METHOD(parsers_test, advancing) {
 	char test_str[] = "-6934";
 	char* test_end = test_str + sizeof(test_str) - 1;
 	AreEqual(test_str + 3, safe_advance(2, test_str + 1, test_end));
@@ -260,7 +260,7 @@ TEST_METHOD(advancing, parsers_test) {
 	AreEqual(test_end, safe_advance(1, test_end, test_end));
 }
 
-TEST_METHOD(ignore_comments, parsers_test) {
+TEST_METHOD(parsers_test, ignore_comments) {
 	char test_str[] = "  #abc\n#def\n\t";
 	char* test_end = test_str + sizeof(test_str) - 1;
 	AreEqual(test_end, advance_position_to_non_comment(test_str, test_end));
@@ -274,7 +274,7 @@ TEST_METHOD(ignore_comments, parsers_test) {
 	AreEqual('n', *advance_position_to_non_comment(test_str3, test_str3_end));
 }
 
-TEST_METHOD(ignore_lua_comments, parsers_test) {
+TEST_METHOD(parsers_test, ignore_lua_comments) {
 	char test_str[] = "  --abc\n--def\n\t";
 	char* test_end = test_str + sizeof(test_str) - 1;
 	AreEqual(test_end, advance_position_to_non_lua_comment(test_str, test_end));
@@ -288,7 +288,7 @@ TEST_METHOD(ignore_lua_comments, parsers_test) {
 	AreEqual('n', *advance_position_to_non_lua_comment(test_str3, test_str3_end));
 }
 
-TEST_METHOD(token_comparison, parsers_test) {
+TEST_METHOD(parsers_test, token_comparison) {
 	char t1[] = "VAL";
 	char t2[] = "val";
 	char t3[] = "vAl";
@@ -316,7 +316,7 @@ TEST_METHOD(token_comparison, parsers_test) {
 	AreEqual(false, is_fixed_token_ci(t1, t1 + 2, "VALUE"));
 }
 
-TEST_METHOD(prefix_comparison, parsers_test) {
+TEST_METHOD(parsers_test, prefix_comparison) {
 	char t1[] = "value";
 	AreEqual(true, has_fixed_prefix(RANGE(t1), "val"));
 	AreEqual(true, has_fixed_prefix(RANGE(t1), "value"));
@@ -329,7 +329,7 @@ TEST_METHOD(prefix_comparison, parsers_test) {
 	AreEqual(false, starts_with(t1, t1, 'v'));
 }
 
-TEST_METHOD(consume_token, parsers_test) {
+TEST_METHOD(parsers_test, consume_token) {
 	char test_t1[] = "";
 	char test_t2[] = "single_token";
 	char test_t3[] = "double=token";
@@ -377,7 +377,7 @@ TEST_METHOD(consume_token, parsers_test) {
 	AreEqual(test_t7 + sizeof(test_t7) - 1, result7.token.end);
 }
 
-TEST_METHOD(association_types, parsers_test) {
+TEST_METHOD(parsers_test, association_types) {
 	char t1[] = "<= junk";
 	char t2[] = "<sdff";
 	char t3[] = "==adfsf";
@@ -430,7 +430,7 @@ TEST_METHOD(association_types, parsers_test) {
 	AreEqual(r10.second, t10);
 }
 
-TEST_METHOD(association_types_b, parsers_test) {
+TEST_METHOD(parsers_test, association_types_b) {
 	char t1[] = "<= junk";
 	char t2[] = "<sdff";
 	char t3[] = "==adfsf";
@@ -454,7 +454,7 @@ TEST_METHOD(association_types_b, parsers_test) {
 	AreEqual(parse_association_type_b(RANGE(t10)), association_type::none);
 }
 
-TEST_METHOD(unnested_token_lists, parsers_test) {
+TEST_METHOD(parsers_test, unnested_token_lists) {
 	char empty[] = "";
 
 	std::vector<token_group> r1_list;
@@ -496,7 +496,7 @@ TEST_METHOD(unnested_token_lists, parsers_test) {
 	IsTrue(is_fixed_token(r4_list[2].token, "cc ccc"));
 }
 
-TEST_METHOD(comments, parsers_test) {
+TEST_METHOD(parsers_test, comments) {
 
 	char flat_simple[] = " aaa b \"cc ccc\r\n"
 		"#}\tddd    \r\n"
@@ -513,7 +513,7 @@ TEST_METHOD(comments, parsers_test) {
 	IsTrue(is_fixed_token(r3_list[3].token, "eee"));
 }
 
-TEST_METHOD(lua_comments, parsers_test) {
+TEST_METHOD(parsers_test, lua_comments) {
 
 	char flat_simple[] = " aaa b \"cc ccc\r\n"
 		"--}\tddd    \r\n"
@@ -530,7 +530,7 @@ TEST_METHOD(lua_comments, parsers_test) {
 	IsTrue(is_fixed_token(r3_list[3].token, "eee"));
 }
 
-TEST_METHOD(typed_associated, parsers_test) {
+TEST_METHOD(parsers_test, typed_associated) {
 	char associtive_pair_eq[] = "value=0.5";
 
 	std::vector<token_group> r1_list;
@@ -574,7 +574,7 @@ TEST_METHOD(typed_associated, parsers_test) {
 	AreEqual(0ui16, r3_list[1].group_size);
 }
 
-TEST_METHOD(unassociated_list, parsers_test) {
+TEST_METHOD(parsers_test, unassociated_list) {
 	char associtive_pair_eq[] = "{0.5}";
 
 	std::vector<token_group> r1_list;
@@ -590,7 +590,7 @@ TEST_METHOD(unassociated_list, parsers_test) {
 	AreEqual(0ui16, r1_list[1].group_size);
 }
 
-TEST_METHOD(empty_associated_list, parsers_test) {
+TEST_METHOD(parsers_test, empty_associated_list) {
 	char associtive_pair_eq[] = "key ={ \r\n }";
 
 	std::vector<token_group> r1_list;
@@ -603,7 +603,7 @@ TEST_METHOD(empty_associated_list, parsers_test) {
 	AreEqual(0ui16, r1_list[0].group_size);
 }
 
-TEST_METHOD(associated_list, parsers_test) {
+TEST_METHOD(parsers_test, associated_list) {
 	char associtive_pair_eq[] = "key ={value \"b b\" \r\n c}";
 
 	std::vector<token_group> r1_list;
@@ -625,7 +625,7 @@ TEST_METHOD(associated_list, parsers_test) {
 	AreEqual(0ui16, r1_list[3].group_size);
 }
 
-TEST_METHOD(associated_list_of_pairs, parsers_test) {
+TEST_METHOD(parsers_test, associated_list_of_pairs) {
 	char associtive_pair_eq[] = "key ={value = \"b b\" \r\n c > 0}";
 
 	std::vector<token_group> r1_list;
@@ -650,7 +650,7 @@ TEST_METHOD(associated_list_of_pairs, parsers_test) {
 	AreEqual(0ui16, r1_list[4].group_size);
 }
 
-TEST_METHOD(nested_lists, parsers_test) {
+TEST_METHOD(parsers_test, nested_lists) {
 
 	char nlist[] = "l1 = { # level1\r\n"
 		"\tv1 = a\r\n"
@@ -690,7 +690,7 @@ TEST_METHOD(nested_lists, parsers_test) {
 	AreEqual(0ui16, r3_list[10].group_size);
 }
 
-TEST_METHOD(element_if_forall_and_find, parsers_test) {
+TEST_METHOD(parsers_test, element_if_forall_and_find) {
 
 	char nlist[] = "l1 = { # level1\r\n"
 		"\tv1 = a\r\n"
@@ -740,7 +740,7 @@ TEST_METHOD(element_if_forall_and_find, parsers_test) {
 	AreEqual(2, countlevel);
 }
 
-TEST_METHOD(parse_lua_float, parsers_test) {
+TEST_METHOD(parsers_test, parse_lua_float) {
 	char nlist[] = "diplomacy = {\r\n"
 		"\tPRESTIGE_REDUCTION_BASE = 25,\r\n"
 		"\tREPARATIONS_YEARS = 5,\r\n"
@@ -773,7 +773,7 @@ TEST_METHOD(parse_lua_float, parsers_test) {
 	IsTrue(float_found);
 }
 
-TEST_METHOD(csv_non_transformative_advance_t, parsers_test) {
+TEST_METHOD(parsers_test, csv_non_transformative_advance_t) {
 	char t1[] = "value start;value 2;;";
 	char t2[] = "";
 	char t3[] = "\r\nvalue;value";
@@ -791,7 +791,7 @@ TEST_METHOD(csv_non_transformative_advance_t, parsers_test) {
 	AreEqual(t7 + 5, csv_advance(RANGE(t7), ';'));
 }
 
-TEST_METHOD(csv_non_transformative_quote_advance_t, parsers_test) {
+TEST_METHOD(parsers_test, csv_non_transformative_quote_advance_t) {
 	char t1[] = "blah blah; blah\" post quote";
 	char t2[] = "";
 	char t3[] = "\r\n\"\"\t;;\" post quote";
@@ -800,7 +800,7 @@ TEST_METHOD(csv_non_transformative_quote_advance_t, parsers_test) {
 	AreEqual(t2, csv_advdance_to_quote_end(RANGE(t2)));
 	AreEqual(t3 + 8, csv_advdance_to_quote_end(RANGE(t3)));
 }
-TEST_METHOD(csv_transformative_get_value, parsers_test) {
+TEST_METHOD(parsers_test, csv_transformative_get_value) {
 	char t1[] = "value start;value 2;;";
 	char t2[] = "";
 	char t3[] = "\r\nvalue;value";
@@ -854,7 +854,7 @@ TEST_METHOD(csv_transformative_get_value, parsers_test) {
 	EXPECT_STREQ("\"value", t9);
 }
 
-TEST_METHOD(csv_advance_to_nextline, parsers_test) {
+TEST_METHOD(parsers_test, csv_advance_to_nextline) {
 	char t1[] = "single line";
 	char t2[] = "two\nlines";
 	char t3[] = "\r\nvalue;value";
@@ -870,7 +870,7 @@ TEST_METHOD(csv_advance_to_nextline, parsers_test) {
 	AreEqual(t6 + 36, csv_advance_to_next_line(RANGE(t6)));
 }
 
-TEST_METHOD(csv_fixed_quantity_parse, parsers_test) {
+TEST_METHOD(parsers_test, csv_fixed_quantity_parse) {
 	char lines[] = "line1a;\"line1;b\";value c;extra\n"
 		"line2a;line2\"\"b;value f";
 	const auto line_range = std::make_pair(RANGE(lines));
@@ -893,7 +893,7 @@ TEST_METHOD(csv_fixed_quantity_parse, parsers_test) {
 	AreEqual(line_range.second, last);
 }
 
-TEST_METHOD(csv_variable_quantity_parse, parsers_test) {
+TEST_METHOD(parsers_test, csv_variable_quantity_parse) {
 	char lines[] = "line1a;\"line1;b\";value c;extra\n"
 		"line2a;line2\"\"b;value f";
 	const auto line_range = std::make_pair(RANGE(lines));

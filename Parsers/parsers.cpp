@@ -157,6 +157,17 @@ uint32_t parse_uint(const char* start, const char* end) {
 	return result >= 0 ? (uint32_t)result : 0ui32;
 }
 
+date_tag parse_date(const char* start, const char* end) {
+	const auto first_dot = std::find(start, end, '.');
+	const auto second_dot = std::find(first_dot + 1, end, '.');
+
+	const auto year = static_cast<uint16_t>(parse_uint(start, first_dot));
+	const auto month = static_cast<uint16_t>(parse_uint(first_dot + 1, second_dot));
+	const auto day = static_cast<uint16_t>(parse_uint(second_dot + 1, end));
+
+	return date_to_tag(boost::gregorian::date(year, month, day));
+}
+
 association_type parse_association_type_b(const char* start, const char* end) {
 	if (has_fixed_prefix(start, end, "==")) {
 		return association_type::eq;
