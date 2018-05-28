@@ -59,7 +59,7 @@ namespace technologies {
 	tech_file_handler make_subfile_perparse_handler(directory tech_directory);
 	void parse_single_tech_file(tech_category_tag cat, const text_handle_lookup& tl, technologies_manager& m, std::vector<token_group>& results);
 
-	void pre_parse_main_technology_file(
+	void parse_main_technology_file(
 		technologies_manager& tech_manager,
 		std::vector<token_group>& parse_results,
 		const text_handle_lookup& text_function,
@@ -77,7 +77,7 @@ namespace technologies {
 		~parsing_state();
 	};
 
-	void pre_parse_technologies(
+	void parse_technologies(
 		parsing_state& state,
 		const directory& source_directory);
 	void pre_parse_inventions(

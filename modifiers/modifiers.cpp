@@ -48,21 +48,18 @@ namespace modifiers {
 		}
 	};
 
-	struct nv_preparse_file {
+	struct nv_file {
 		parsing_environment& env;
-		nv_preparse_file(parsing_environment& e) : env(e) {}
+		nv_file(parsing_environment& e) : env(e) {}
 
-		void add_nv(const token_and_type& t) {
-			const auto name = env.text_lookup(t.start, t.end);
-			const auto tag = env.manager.national_modifiers.emplace_back();
-			auto& new_i = env.manager.national_modifiers[tag];
-
-			new_i.id = tag;
-			new_i.name = name; 
-
-			env.manager.named_national_modifiers_index.emplace(name, tag);
-		}
+		void add_nv(int) { }
 	};
+
+	inline int read_single_national_value(const token_group* start, const token_group* end, const token_and_type& t, parsing_environment& env) {
+		const auto name = env.text_lookup(t.start, t.end);
+		parse_national_modifier(name, env.manager, start, end);
+		return 0;
+	}
 
 	inline int discard_empty_type(const token_and_type&, association_type, empty_type&) { return 0; }
 	inline token_and_type name_empty_type(const token_and_type& t, association_type, empty_type&) { return t; }
@@ -211,58 +208,75 @@ namespace modifiers {
 		return std::pair<uint32_t, uint32_t>(get_provincial_offset_from_packed(value), get_national_offset_from_packed(value));
 	}
 
-	provincial_modifier_tag add_provincial_modifier(text_data::text_tag name, modifier_reading_base& mod, modifiers_manager& manager) {
-		if (mod.total_attributes == 0)
-			return provincial_modifier_tag();
-
-		const auto pmtag = manager.fetch_unique_provincial_modifier(name);
-		auto& new_mod = manager.provincial_modifiers[pmtag];
+	void set_provincial_modifier(provincial_modifier_tag tag, modifier_reading_base& mod, modifiers_manager& manager) {
+		auto& new_mod = manager.provincial_modifiers[tag];
 		new_mod.icon = mod.icon;
 
-		Eigen::Map<Eigen::VectorXf, Eigen::AlignmentType::Aligned32> dest_vector(manager.provincial_modifier_definitions.safe_get_row(pmtag), provincial_offsets::aligned_32_size);
+		Eigen::Map<Eigen::VectorXf, Eigen::AlignmentType::Aligned32> dest_vector(manager.provincial_modifier_definitions.safe_get_row(tag), provincial_offsets::aligned_32_size);
 		Eigen::Map<Eigen::VectorXf, Eigen::AlignmentType::Aligned32> source_vector(mod.modifier_data.data(), provincial_offsets::aligned_32_size);
 
 		dest_vector = source_vector;
 
-		if (mod.count_unique_national != 0) {
+		if(mod.count_unique_national != 0) {
 			mod.remove_shared_national_attributes();
-			const auto nat_result = add_national_modifier(text_data::text_tag(), mod, manager); // creates an unindexed national modifier as complement
-			new_mod.complement = nat_result;
-			manager.national_modifiers[nat_result].name = name;
+			if(is_valid_index(new_mod.complement)) {
+				set_national_modifier(new_mod.complement, mod, manager);
+			} else {
+				const auto nat_result = add_national_modifier(text_data::text_tag(), mod, manager); // creates an unindexed national modifier as complement
+				new_mod.complement = nat_result;
+				manager.national_modifiers[nat_result].name = new_mod.name;
+			}
 		}
+	}
+
+	provincial_modifier_tag add_provincial_modifier(text_data::text_tag name, modifier_reading_base& mod, modifiers_manager& manager) {
+		if (mod.total_attributes == 0)
+			return provincial_modifier_tag();
+		
+		const auto pmtag = manager.fetch_unique_provincial_modifier(name);
+		set_provincial_modifier(pmtag, mod, manager);
+		manager.provincial_modifiers[pmtag].name = name;
 
 		return pmtag;
 	}
+
+	void set_national_modifier(national_modifier_tag tag, const modifier_reading_base& mod, modifiers_manager& manager) {
+		auto& new_mod = manager.national_modifiers[tag];
+		new_mod.icon = mod.icon;
+
+		Eigen::Map<Eigen::VectorXf, Eigen::AlignmentType::Aligned32> dest_vector(manager.national_modifier_definitions.safe_get_row(tag), national_offsets::aligned_32_size);
+		Eigen::Map<const Eigen::VectorXf, Eigen::AlignmentType::Aligned32> source_vector(mod.modifier_data.data() + provincial_offsets::aligned_32_size, national_offsets::aligned_32_size);
+
+		dest_vector = source_vector;
+	}
+
 	national_modifier_tag add_national_modifier(text_data::text_tag name, const modifier_reading_base& mod, modifiers_manager& manager) {
 		if (mod.total_attributes == 0)
 			return national_modifier_tag();
 
-		const auto pmtag = manager.fetch_unique_national_modifier(name);
-		auto& new_mod = manager.national_modifiers[pmtag];
-		new_mod.icon = mod.icon;
+		const auto nmtag = manager.fetch_unique_national_modifier(name);
+		set_national_modifier(nmtag, mod, manager);
+		manager.national_modifiers[nmtag].name = name;
 
-		Eigen::Map<Eigen::VectorXf, Eigen::AlignmentType::Aligned32> dest_vector(manager.national_modifier_definitions.safe_get_row(pmtag), national_offsets::aligned_32_size);
-		Eigen::Map<const Eigen::VectorXf, Eigen::AlignmentType::Aligned32> source_vector(mod.modifier_data.data() + provincial_offsets::aligned_32_size, national_offsets::aligned_32_size);
-
-		dest_vector = source_vector;
-
-		return pmtag;
+		return nmtag;
 	}
-	void add_indeterminate_modifier(text_data::text_tag name, modifier_reading_base& mod, modifiers_manager& manager) {
+	std::pair<provincial_modifier_tag, national_modifier_tag> add_indeterminate_modifier(text_data::text_tag name, modifier_reading_base& mod, modifiers_manager& manager) {
 		if (mod.total_attributes == 0)
-			return;
+			return std::pair<provincial_modifier_tag, national_modifier_tag>();
 		if (mod.count_unique_provincial != 0) {
 			// some attributes apply only to province
 			// conclude intent is provincial modifier with additional national properties
-			add_provincial_modifier(name, mod, manager);
+			return std::pair<provincial_modifier_tag, national_modifier_tag>(add_provincial_modifier(name, mod, manager), national_modifier_tag());
 		} else if (mod.count_unique_national == mod.total_attributes) {
 			// all attributes apply only to nation
 			// conclude intent is national modifier
-			add_national_modifier(name, mod, manager);
+			return std::pair<provincial_modifier_tag, national_modifier_tag>(provincial_modifier_tag(), add_national_modifier(name, mod, manager));
 		} else {
 			//intent indeterminate: create first a national modifier (non destructive), then destructively create provincial and complement
-			add_national_modifier(name, mod, manager);
-			add_provincial_modifier(name, mod, manager);
+			const auto nt = add_national_modifier(name, mod, manager);
+			const auto pt = add_provincial_modifier(name, mod, manager);
+
+			return std::pair<provincial_modifier_tag, national_modifier_tag>(pt, nt);
 		}
 	}
 
@@ -392,11 +406,17 @@ namespace modifiers {
 			env.data.emplace_back(factor_segment{ t.factor, t_tag });
 		}
 	};
+
+	inline std::pair<token_and_type, float> full_to_tf_pair(const token_and_type& t, association_type, const token_and_type& r) {
+		return std::pair<token_and_type, float>(t, token_to<float>(r));
+	}
 }
 
 MEMBER_FDEF(modifiers::empty_type, add_unknown_key, "unknown_key");
 MEMBER_FDEF(modifiers::crimes_preparse_file, add_crime, "crime");
-MEMBER_FDEF(modifiers::nv_preparse_file, add_nv, "national_value");
+MEMBER_FDEF(modifiers::nv_file, add_nv, "national_value");
+MEMBER_DEF(modifiers::modifier_reading_base, icon, "icon");
+MEMBER_FDEF(modifiers::modifier_reading_base, add_attribute, "attribute");
 
 MEMBER_FDEF(modifiers::outer_factor_modifier, set_factor, "factor");
 MEMBER_FDEF(modifiers::outer_factor_modifier, set_base, "base");
@@ -410,6 +430,13 @@ MEMBER_FDEF(modifiers::factor_modifier_group, add_modifier, "modifier");
 
 
 namespace modifiers {
+	BEGIN_DOMAIN(single_modifier_domain)
+		BEGIN_TYPE(modifier_reading_base)
+			MEMBER_ASSOCIATION("icon", "icon", value_from_rh<uint32_t>)
+			MEMBER_VARIABLE_ASSOCIATION("attribute", accept_all, full_to_tf_pair)
+		END_TYPE
+	END_DOMAIN;
+
 	BEGIN_DOMAIN(crimes_pre_parsing_domain)
 		BEGIN_TYPE(empty_type)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
@@ -420,13 +447,9 @@ namespace modifiers {
 		END_TYPE
 	END_DOMAIN;
 
-	BEGIN_DOMAIN(national_value_pre_parsing_domain)
-		BEGIN_TYPE(empty_type)
-		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
-		END_TYPE
-		BEGIN_TYPE(nv_preparse_file)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("national_value", accept_all, empty_type, name_empty_type)
+	BEGIN_DOMAIN(national_value_parsing_domain)
+		BEGIN_TYPE(nv_file)
+		MEMBER_VARIABLE_TYPE_EXTERN("national_value", accept_all, int, read_single_national_value)
 		END_TYPE
 	END_DOMAIN;
 
@@ -444,6 +467,37 @@ namespace modifiers {
 		    MEMBER_TYPE_EXTERN("modifier", "modifier", triggers::trigger_and_factor, read_factor_and_trigger)
 		END_TYPE
 	END_DOMAIN;
+
+
+	provincial_modifier_tag parse_provincial_modifier(
+		text_data::text_tag name,
+		modifiers_manager& manager,
+		const token_group* s,
+		const token_group* e) {
+
+		auto parsed_modifier = parse_object<modifier_reading_base, single_modifier_domain>(s, e);
+		return add_provincial_modifier(name, parsed_modifier, manager);
+	}
+
+	national_modifier_tag parse_national_modifier(
+		text_data::text_tag name,
+		modifiers_manager& manager,
+		const token_group* s,
+		const token_group* e) {
+
+		auto parsed_modifier = parse_object<modifier_reading_base, single_modifier_domain>(s, e);
+		return add_national_modifier(name, parsed_modifier, manager);
+	}
+
+	std::pair<provincial_modifier_tag, national_modifier_tag> parse_indeterminate_modifier(
+		text_data::text_tag name,
+		modifiers_manager& manager,
+		const token_group* s,
+		const token_group* e) {
+
+		auto parsed_modifier = parse_object<modifier_reading_base, single_modifier_domain>(s, e);
+		return add_indeterminate_modifier(name, parsed_modifier, manager);
+	}
 
 	void pre_parse_crimes(
 		parsing_state& state,
@@ -469,7 +523,7 @@ namespace modifiers {
 		}
 	}
 
-	void pre_parse_national_values(
+	void parse_national_values(
 		parsing_state& state,
 		const directory& source_directory) {
 
@@ -485,7 +539,7 @@ namespace modifiers {
 			parse_pdx_file(main_results.parse_results, main_results.parse_data.get(), main_results.parse_data.get() + sz);
 
 			if (main_results.parse_results.size() > 0) {
-				parse_object<nv_preparse_file, national_value_pre_parsing_domain>(
+				parse_object<nv_file, national_value_parsing_domain>(
 					&main_results.parse_results[0],
 					&main_results.parse_results[0] + main_results.parse_results.size(),
 					*state.impl);

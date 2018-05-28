@@ -34,7 +34,7 @@ const char fake_tech_file[] =
 "\r\n"
 "schools = {\r\n"
 "fake_school = {\r\n"
-"bonus = 0\r\n"
+"army_tech_research_bonus = 0\r\n"
 "}\r\n"
 "}\r\n";
 
@@ -52,10 +52,10 @@ const char fake_tech_file_b[] =
 "\r\n"
 "schools = {\r\n"
 "fake_school = {\r\n"
-"bonus = 0\r\n"
+"army_tech_research_bonus = 0\r\n"
 "}\r\n"
 "fake_school_b = { \r\n"
-"bonus = 0\r\n"
+"commerce_tech_research_bonus = 1\r\n"
 "}\r\n"
 "}\r\n";
 
@@ -141,7 +141,7 @@ TEST(technologies_tests, pre_parse_tech_file) {
 	modifiers::modifiers_manager mm;
 
 	parse_pdx_file(results, fake_tech_file, fake_tech_file + sizeof(fake_tech_file) - 1);
-	pre_parse_main_technology_file(manager, results, fake_text_handle_lookup(), make_fake_tech_file_parse(count_sub_files), mm);
+	parse_main_technology_file(manager, results, fake_text_handle_lookup(), make_fake_tech_file_parse(count_sub_files), mm);
 
 	EXPECT_EQ(2, count_sub_files);
 	EXPECT_EQ(2ui64, manager.technology_categories.size());
@@ -176,7 +176,7 @@ TEST(technologies_tests, pre_parse_schools) {
 	modifiers::modifiers_manager mm;
 
 	parse_pdx_file(results, fake_tech_file_b, fake_tech_file_b + sizeof(fake_tech_file_b) - 1);
-	pre_parse_main_technology_file(manager, results, fake_text_handle_lookup(), make_fake_tech_file_parse(count_sub_files), mm);
+	parse_main_technology_file(manager, results, fake_text_handle_lookup(), make_fake_tech_file_parse(count_sub_files), mm);
 
 	EXPECT_EQ(2ui64, mm.national_modifiers.size());
 	EXPECT_EQ(2ui64, mm.named_national_modifiers_index.size());
@@ -188,6 +188,8 @@ TEST(technologies_tests, pre_parse_schools) {
 	EXPECT_EQ(fr, modifiers::national_modifier_tag(0));
 	const auto frb = manager.named_tech_school_index[mm.national_modifiers[modifiers::national_modifier_tag(1)].name];
 	EXPECT_EQ(frb, modifiers::national_modifier_tag(1));
+
+	EXPECT_EQ(1.0f, mm.national_modifier_definitions.get(frb, modifiers::national_offsets::commerce_tech_research_bonus));
 }
 
 TEST(technologies_tests, pre_parse_techs_test) {
@@ -203,7 +205,7 @@ TEST(technologies_tests, pre_parse_techs_test) {
 
 	parsing_state state(fake_text_handle_lookup(), make_subfile_perparse_handler(tech_dir), manager, mm);
 
-	pre_parse_technologies(state, f.get_root());
+	parse_technologies(state, f.get_root());
 
 	EXPECT_EQ(3ui64, manager.technologies_container.size());
 	EXPECT_EQ(2ui64, manager.technology_categories.size());

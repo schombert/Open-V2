@@ -95,24 +95,27 @@ namespace technologies {
 		return std::pair<token_and_type, folder>(t, std::move(f));
 	}
 
-	struct preparse_schools {
+	struct parse_schools {
 		parsing_environment& env;
 
-		preparse_schools(parsing_environment& e) : env(e) {}
+		parse_schools(parsing_environment& e) : env(e) {}
 
-		void add_school(const token_and_type& t) {
-			const auto name = env.text_lookup(t.start, t.end);
-			const auto new_st = env.mod_manager.fetch_unique_national_modifier(name);
-			env.manager.named_tech_school_index.emplace(name, new_st);
+		void add_school(const std::pair<text_data::text_tag, modifiers::national_modifier_tag>& p) {
+			env.manager.named_tech_school_index.emplace(p.first, p.second);
 		}
 	};
+
+	inline std::pair<text_data::text_tag, modifiers::national_modifier_tag> read_school_modifier(const token_group* start, const token_group* end, const token_and_type& t, parsing_environment& env) {
+		const auto name = env.text_lookup(t.start, t.end);
+		return std::make_pair(name, modifiers::parse_national_modifier(name, env.mod_manager, start, end));
+	}
 
 	struct technologies_file {
 		parsing_environment& env;
 
 		technologies_file(parsing_environment& e) : env(e) {}
 		void handle_folders(const folders&) {}
-		void handle_schools(const preparse_schools&) {}
+		void handle_schools(const parse_schools&) {}
 
 		void add_unknown_key(int) {
 		}
@@ -160,7 +163,7 @@ namespace technologies {
 	inline token_and_type name_empty_type(const token_and_type& t, association_type, empty_type&) { return t; }
 }
 
-MEMBER_FDEF(technologies::preparse_schools, add_school, "school");
+MEMBER_FDEF(technologies::parse_schools, add_school, "school");
 MEMBER_FDEF(technologies::folders, add_folder, "category");
 MEMBER_FDEF(technologies::folder, add_sub_category, "sub_category");
 MEMBER_FDEF(technologies::technologies_file, add_unknown_key, "unknown_key");
@@ -173,14 +176,16 @@ MEMBER_FDEF(technologies::inventions_pre_parse_file, add_invention, "invention")
 
 
 namespace technologies {
-	BEGIN_DOMAIN(tech_pre_parsing_domain)
+	using name_mod_pair = std::pair<text_data::text_tag, modifiers::national_modifier_tag>;
+
+	BEGIN_DOMAIN(tech_parsing_domain)
 		BEGIN_TYPE(empty_type)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
 		END_TYPE
 		BEGIN_TYPE(technologies_file)
 		MEMBER_TYPE_ASSOCIATION("folders", "folders", folders)
-		MEMBER_TYPE_ASSOCIATION("schools", "schools", preparse_schools)
+		MEMBER_TYPE_ASSOCIATION("schools", "schools", parse_schools)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
 		END_TYPE
@@ -190,8 +195,8 @@ namespace technologies {
 		BEGIN_TYPE(folder)
 		MEMBER_VARIABLE_ASSOCIATION("sub_category", accept_all, token_from_lh)
 		END_TYPE
-		BEGIN_TYPE(preparse_schools)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("school", accept_all, empty_type, name_empty_type)
+		BEGIN_TYPE(parse_schools)
+		MEMBER_VARIABLE_TYPE_EXTERN("school", accept_all, name_mod_pair, read_school_modifier)
 		END_TYPE
 	END_DOMAIN;
 
@@ -222,7 +227,7 @@ namespace technologies {
 			parse_object<specific_tech_file, tech_subfile_pre_parsing_domain>(&results[0], &results[0] + results.size(), e);
 	}
 
-	void pre_parse_main_technology_file(
+	void parse_main_technology_file(
 		technologies_manager& tech_manager,
 		std::vector<token_group>& parse_results,
 		const text_handle_lookup& text_function,
@@ -231,7 +236,7 @@ namespace technologies {
 
 		parsing_environment e(text_function, file_function, tech_manager, mod_manager);
 		if (parse_results.size() > 0)
-			parse_object<technologies_file, tech_pre_parsing_domain>(&parse_results[0], &parse_results[0] + parse_results.size(), e);
+			parse_object<technologies_file, tech_parsing_domain>(&parse_results[0], &parse_results[0] + parse_results.size(), e);
 	}
 
 	tech_file_handler make_subfile_perparse_handler(directory tech_directory) {
@@ -260,7 +265,7 @@ namespace technologies {
 		};
 	}
 
-	void pre_parse_technologies(
+	void parse_technologies(
 		parsing_state& state,
 		const directory& source_directory) {
 
@@ -279,7 +284,7 @@ namespace technologies {
 			parse_pdx_file(main_results.parse_results, main_results.parse_data.get(), main_results.parse_data.get() + sz);
 
 			if (main_results.parse_results.size() > 0) {
-				parse_object<technologies_file, tech_pre_parsing_domain>(
+				parse_object<technologies_file, tech_parsing_domain>(
 					&main_results.parse_results[0],
 					&main_results.parse_results[0] + main_results.parse_results.size(),
 					*state.impl);

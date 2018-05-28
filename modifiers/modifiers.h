@@ -272,18 +272,30 @@ namespace modifiers {
 		void remove_shared_national_attributes();
 	};
 
+	void set_provincial_modifier(provincial_modifier_tag tag, modifier_reading_base& mod, modifiers_manager& manager);
+	void set_national_modifier(national_modifier_tag tag, const modifier_reading_base& mod, modifiers_manager& manager);
+
 	provincial_modifier_tag add_provincial_modifier(text_data::text_tag name, modifier_reading_base& mod, modifiers_manager& manager);
 	national_modifier_tag add_national_modifier(text_data::text_tag name, const modifier_reading_base& mod, modifiers_manager& manager);
-	void add_indeterminate_modifier(text_data::text_tag name, modifier_reading_base& mod, modifiers_manager& manager);
+	std::pair<provincial_modifier_tag, national_modifier_tag> add_indeterminate_modifier(text_data::text_tag name, modifier_reading_base& mod, modifiers_manager& manager);
 	std::pair<uint16_t, bool> commit_factor(modifiers_manager& m, const std::vector<factor_segment>& factor);  // returns [offset into data, was newly added]
+	
+	provincial_modifier_tag parse_provincial_modifier(text_data::text_tag name, modifiers_manager& manager, const token_group* s, const token_group* e);
+	national_modifier_tag parse_national_modifier(text_data::text_tag name, modifiers_manager& manager, const token_group* s, const token_group* e);
+	std::pair<provincial_modifier_tag, national_modifier_tag> parse_indeterminate_modifier(
+		text_data::text_tag name,
+		modifiers_manager& manager,
+		const token_group* s,
+		const token_group* e);
 
 
 	void pre_parse_crimes(
 		parsing_state& state,
 		const directory& source_directory);
-	void pre_parse_national_values(
+	void parse_national_values(
 		parsing_state& state,
 		const directory& source_directory);
+
 
 	factor_tag parse_modifier_factors(
 		scenario::scenario_manager& s,

@@ -21,9 +21,20 @@ public:
 	directory_representation f_root = directory_representation(u"F:");
 	directory_representation common = directory_representation(u"common", f_root);
 	file_representation nc = file_representation(u"nationalvalues.txt", common,
-		"nv_a = { stuff = x }\r\n"
-		"nv_x = { stuff = x }\r\n"
-		"nv_b = { stuff = y\r\n stuff = 0}\r\n");
+		"nnv_order = {\r\n"
+		"	mobilisation_size = 0.04\r\n"
+		"	mobilisation_economy_impact = 1.0\r\n"
+		"}\r\n"
+		"\r\n"
+		"nv_liberty = {\r\n"
+		"	mobilisation_size = 0.02\r\n"
+		"	mobilisation_economy_impact = 0.75\r\n"
+		"}\r\n"
+		"\r\n"
+		"nv_equality = {\r\n"
+		"	mobilisation_size = 0.06\r\n"
+		"	mobilisation_economy_impact = 1.25\r\n"
+		"}");
 	file_representation crime = file_representation(u"crime.txt", common,
 		"crime_a = { stuff = 0 }\r\n"
 		"crime_b = { stuff = 1 \r\n sub = { 0 0 0 } }\r\n");
@@ -56,7 +67,7 @@ TEST(modifiers_tests, crimes_preparse) {
 	EXPECT_EQ(provincial_modifier_tag(1), m.named_provincial_modifiers_index[m.provincial_modifiers[provincial_modifier_tag(1)].name]);
 }
 
-TEST(modifiers_tests, nv_preparse) {
+TEST(modifiers_tests, nv_parse) {
 	preparse_test_files real_fs;
 	file_system f;
 
@@ -66,7 +77,7 @@ TEST(modifiers_tests, nv_preparse) {
 	std::map<std::string, text_data::text_tag> v;
 	parsing_state state(fake_text_handle_lookup(v), m);
 
-	pre_parse_national_values(state, f.get_root());
+	parse_national_values(state, f.get_root());
 
 	EXPECT_EQ(3ui64, m.national_modifiers.size());
 	EXPECT_EQ(3ui64, m.named_national_modifiers_index.size());
@@ -77,6 +88,7 @@ TEST(modifiers_tests, nv_preparse) {
 	EXPECT_EQ(national_modifier_tag(0), m.named_national_modifiers_index[m.national_modifiers[national_modifier_tag(0)].name]);
 	EXPECT_EQ(national_modifier_tag(1), m.named_national_modifiers_index[m.national_modifiers[national_modifier_tag(1)].name]);
 	EXPECT_EQ(national_modifier_tag(2), m.named_national_modifiers_index[m.national_modifiers[national_modifier_tag(2)].name]);
+	EXPECT_EQ(0.75f, m.national_modifier_definitions.get(national_modifier_tag(1), modifiers::national_offsets::mobilisation_economy_impact));
 }
 
 TEST(modifiers_tests, pack_unpack_offsets) {
