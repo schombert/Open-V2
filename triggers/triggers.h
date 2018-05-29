@@ -26,9 +26,9 @@ namespace triggers {
 				economy::factory_type_tag factory;
 				ideologies::ideology_tag ideology;
 				issues::issue_tag issue;
+				issues::option_tag option;
 				military::cb_type_tag cb_type;
 				population::pop_type_tag pop_type;
-				issues::option_tag option;
 				military::leader_trait_tag leader_trait;
 				military::unit_type_tag unit_type;
 
@@ -60,20 +60,6 @@ namespace triggers {
 			small_s(military::leader_trait_tag i) : values(i), padding(0ui8) {}
 			small_s(military::unit_type_tag i) : values(i), padding(0ui8) {}
 		} small;
-		struct generic_issue_s {
-			union inner_u_b {
-				issues::issue_tag civ_issue;
-				issues::unciv_issue_tag unciv_issue;
-				inner_u_b() : civ_issue() {}
-			} values;
-			issues::issue_group group;
-			generic_issue_s(issues::issue_idenfitier i) : group(i.type) {
-				if (std::holds_alternative<issues::issue_tag>(i.id))
-					values.civ_issue = std::get<issues::issue_tag>(i.id);
-				else if (std::holds_alternative<issues::unciv_issue_tag>(i.id))
-					values.unciv_issue = std::get<issues::unciv_issue_tag>(i.id);
-			}
-		} generic_issue;
 
 		uint16_t value;
 		int16_t signed_value;
@@ -118,7 +104,6 @@ namespace triggers {
 		trigger_payload(military::cb_type_tag i) : small(i) {}
 		trigger_payload(population::pop_type_tag i) : small(i) {}
 		trigger_payload(issues::option_tag i) : small(i) {}
-		trigger_payload(issues::issue_idenfitier id) : generic_issue(id) {}
 		trigger_payload(military::leader_trait_tag i) : small(i) {}
 		trigger_payload(military::unit_type_tag i) : small(i) {}
 		trigger_payload(events::event_tag id) : event(id) {}
@@ -142,8 +127,6 @@ namespace triggers {
 	float read_float_from_payload(const uint16_t* data);
 	void add_int32_t_to_payload(std::vector<uint16_t>& v, int32_t i);
 	int32_t read_int32_t_from_payload(const uint16_t* data);
-	void add_option_identifier_to_payload(std::vector<uint16_t>& v, issues::option_identifier i);
-	issues::option_identifier read_option_identifier_from_payload(const uint16_t* data);
 	int32_t trigger_scope_data_payload(uint16_t code);
 
 	template<typename T>

@@ -16,7 +16,7 @@
 #endif
 
 namespace triggers {
-	using trigger_value = std::variant<std::monostate, int32_t, float, issues::option_identifier, trigger_payload>;
+	using trigger_value = std::variant<std::monostate, int32_t, float, trigger_payload>;
 
 	struct year_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state&, association_type a, const token_and_type&) {
@@ -4649,12 +4649,6 @@ namespace triggers {
 						if (data_size != 2)
 							throw mismatched_payload_size();
 #endif
-					} else if (std::holds_alternative<issues::option_identifier>(payload)) {
-						add_option_identifier_to_payload(env.data, std::get<issues::option_identifier>(payload));
-#ifdef _DEBUG
-						if (data_size != 2)
-							throw mismatched_payload_size();
-#endif
 					} else if (std::holds_alternative<trigger_payload>(payload)) {
 						env.data.push_back(std::get<trigger_payload>(payload).value);
 #ifdef _DEBUG
@@ -4720,7 +4714,7 @@ namespace triggers {
 				env.data.push_back(4ui16);
 				env.data.push_back(trigger_payload(good).value);
 				add_float_to_payload(env.data, token_to<float>(trigger_value));
-			} else if (const auto issue_opt = tag_from_text(env.s.issues_m.named_option_index, left_handle); !std::holds_alternative<std::monostate>(issue_opt.id)) {
+			} else if (const auto issue_opt = tag_from_text(env.s.issues_m.named_option_index, left_handle); is_valid_index(issue_opt)) {
 				if (env.current_scope.main_slot == trigger_slot_contents::nation)
 					env.data.push_back(uint16_t(trigger_codes::variable_issue_name_nation | association_to_trigger_code(a)));
 				else if (env.current_scope.main_slot == trigger_slot_contents::pop)
@@ -4731,10 +4725,10 @@ namespace triggers {
 					env.data.push_back(uint16_t(trigger_codes::variable_issue_name_state | association_to_trigger_code(a)));
 				else
 					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
-				env.data.push_back(5ui16);
-				add_option_identifier_to_payload(env.data, issue_opt);
+				env.data.push_back(4ui16);
+				env.data.push_back(trigger_payload(issue_opt).value);
 				add_float_to_payload(env.data, token_to<float>(trigger_value));
-			} else if (const auto issue = tag_from_text(env.s.issues_m.named_issue_index, left_handle); !std::holds_alternative<std::monostate>(issue.id)) {
+			} else if (const auto issue = tag_from_text(env.s.issues_m.named_issue_index, left_handle); is_valid_index(issue)) {
 				if (env.current_scope.main_slot == trigger_slot_contents::nation)
 					env.data.push_back(uint16_t(trigger_codes::variable_issue_group_name_nation | association_to_trigger_code(a)));
 				else if (env.current_scope.main_slot == trigger_slot_contents::pop)
@@ -4748,8 +4742,8 @@ namespace triggers {
 				const auto right_handle = text_data::get_thread_safe_existing_text_handle(env.s.text_m, trigger_value.start, trigger_value.end);
 				const auto rh_issue_opt = tag_from_text(env.s.issues_m.named_option_index, right_handle);
 
-				env.data.push_back(3ui16);
-				add_option_identifier_to_payload(env.data, rh_issue_opt);
+				env.data.push_back(2ui16);
+				env.data.push_back(trigger_payload(rh_issue_opt).value);
 			} else {
 				TRIGGER_ERROR(unknown_trigger, env);
 			}

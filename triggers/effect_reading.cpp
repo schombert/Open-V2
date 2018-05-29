@@ -14,7 +14,7 @@
 #include "object_parsing\\object_parsing.hpp"
 
 namespace triggers {
-	using effect_value = std::variant<std::monostate, int32_t, float, issues::option_identifier, trigger_payload>;
+	using effect_value = std::variant<std::monostate, int32_t, float, trigger_payload>;
 
 	struct capital_effect {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type, const token_and_type&) {
@@ -2794,7 +2794,7 @@ namespace triggers {
 		effect_parsing_environment& env;
 
 		float factor = 0.0f;
-		issues::option_identifier value;
+		issues::option_tag value;
 
 		dominant_issue_effect(effect_parsing_environment& e) : env(e) {}
 
@@ -2809,8 +2809,8 @@ namespace triggers {
 				EFFECT_ERROR(invalid_scope_for_effect, env);
 
 			env.data.push_back(effect_codes::dominant_issue);
-			env.data.push_back(5ui16);
-			add_option_identifier_to_payload(env.data, value);
+			env.data.push_back(4ui16);
+			env.data.push_back(trigger_payload(value).value);
 			add_float_to_payload(env.data, factor);
 		}
 	};
@@ -2844,7 +2844,7 @@ namespace triggers {
 		float factor = 0.0f;
 		float unemployment = 0.0f;
 		ideologies::ideology_tag ideology;
-		issues::option_identifier issue;
+		issues::option_tag issue;
 
 		scaled_militancy_effect(effect_parsing_environment& e) : env(e) {}
 
@@ -2868,10 +2868,10 @@ namespace triggers {
 				env.data.push_back(4ui16);
 				env.data.push_back(trigger_payload(ideology).value);
 				add_float_to_payload(env.data, factor);
-			} else if (is_valid_index(issue.type)) {
+			} else if (is_valid_index(issue)) {
 				env.data.push_back(effect_codes::scaled_militancy_issue);
-				env.data.push_back(5ui16);
-				add_option_identifier_to_payload(env.data, issue);
+				env.data.push_back(4ui16);
+				env.data.push_back(trigger_payload(issue).value);
 				add_float_to_payload(env.data, factor);
 			} else {
 				env.data.push_back(effect_codes::scaled_militancy_unemployment);
@@ -2886,7 +2886,7 @@ namespace triggers {
 		float factor = 0.0f;
 		float unemployment = 0.0f;
 		ideologies::ideology_tag ideology;
-		issues::option_identifier issue;
+		issues::option_tag issue;
 
 		scaled_consciousness_effect(effect_parsing_environment& e) : env(e) {}
 
@@ -2910,10 +2910,10 @@ namespace triggers {
 				env.data.push_back(4ui16);
 				env.data.push_back(trigger_payload(ideology).value);
 				add_float_to_payload(env.data, factor);
-			} else if (is_valid_index(issue.type)) {
+			} else if (is_valid_index(issue)) {
 				env.data.push_back(effect_codes::scaled_consciousness_issue);
-				env.data.push_back(5ui16);
-				add_option_identifier_to_payload(env.data, issue);
+				env.data.push_back(4ui16);
+				env.data.push_back(trigger_payload(issue).value);
 				add_float_to_payload(env.data, factor);
 			} else {
 				env.data.push_back(effect_codes::scaled_consciousness_unemployment);
@@ -3017,8 +3017,8 @@ namespace triggers {
 		effect_parsing_environment& env;
 
 		float value = 0.0f;
-		issues::option_identifier from;
-		issues::option_identifier to;
+		issues::option_tag from;
+		issues::option_tag to;
 
 		move_issue_percentage_effect(effect_parsing_environment& e) : env(e) {}
 
@@ -3045,9 +3045,9 @@ namespace triggers {
 			else
 				EFFECT_ERROR(invalid_scope_for_effect, env);
 			
-			env.data.push_back(7ui16);
-			add_option_identifier_to_payload(env.data, from);
-			add_option_identifier_to_payload(env.data, to);
+			env.data.push_back(5ui16);
+			env.data.push_back(trigger_payload(from).value);
+			env.data.push_back(trigger_payload(to).value);
 			add_float_to_payload(env.data, value);
 		}
 	};
@@ -3564,12 +3564,6 @@ namespace triggers {
 #endif
 					} else if (std::holds_alternative<float>(payload)) {
 						add_float_to_payload(env.data, std::get<float>(payload));
-#ifdef _DEBUG
-						if (data_size != 2)
-							throw mismatched_effect_payload_size();
-#endif
-					} else if (std::holds_alternative<issues::option_identifier>(payload)) {
-						add_option_identifier_to_payload(env.data, std::get<issues::option_identifier>(payload));
 #ifdef _DEBUG
 						if (data_size != 2)
 							throw mismatched_effect_payload_size();

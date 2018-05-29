@@ -70,22 +70,5 @@ namespace triggers {
 		return pack_int.i;
 	}
 
-	void add_option_identifier_to_payload(std::vector<uint16_t>& v, issues::option_identifier i) {
-		v.push_back(trigger_payload(i).value);
-		v.push_back(trigger_payload(i.option_id).value);
-	}
-	issues::option_identifier read_option_identifier_from_payload(const uint16_t* data) {
-		trigger_payload low(data[0]);
-		trigger_payload high(data[1]);
-		issues::option_identifier result;
-
-		if (issues::is_unciv_issue(low.generic_issue.group))
-			result.id = low.generic_issue.values.unciv_issue;
-		else
-			result.id = low.generic_issue.values.civ_issue;
-		result.type = low.generic_issue.group;
-		result.option_id = high.small.values.option;
-
-		return result;
-	}
+	
 }

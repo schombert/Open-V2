@@ -66,25 +66,23 @@ TEST(issues_tests, test_single_issue) {
 
 	EXPECT_EQ(1ui64, manager.party_issues.size());
 	EXPECT_EQ(1ui64, manager.issues_cotnainer.size());
+	EXPECT_EQ(2ui64, manager.options.size());
 
 	auto& issues = manager.issues_cotnainer[issue_tag(0)];
 
 	EXPECT_EQ(issue_tag(0), issues.id);
 	EXPECT_FALSE(issues.next_step_only);
 	EXPECT_FALSE(issues.administrative);
-	EXPECT_EQ(2ui64, issues.options.size());
 
-	EXPECT_EQ(option_tag(0), issues.options[option_tag(0)].id);
-	EXPECT_EQ(option_tag(1), issues.options[option_tag(1)].id);
+	EXPECT_EQ(option_tag(0), issues.options[0]);
+	EXPECT_EQ(option_tag(1), issues.options[1]);
+	EXPECT_EQ(option_tag(), issues.options[2]);
 
-	auto& fresult = manager.named_option_index[issues.options[option_tag(1)].name];
-	EXPECT_EQ(option_tag(1), fresult.option_id);
-	EXPECT_EQ(issue_group::party, fresult.type);
-	EXPECT_EQ(issue_tag(0), std::get<issue_tag>(fresult.id));
+	auto& fresult = manager.named_option_index[manager.options[option_tag(1)].name];
+	EXPECT_EQ(option_tag(1), fresult);
 
 	auto& fresultb = manager.named_issue_index[manager.issues_cotnainer[issue_tag(0)].name];
-	EXPECT_EQ(issue_group::party, fresultb.type);
-	EXPECT_EQ(issue_tag(0), std::get<issue_tag>(fresultb.id));
+	EXPECT_EQ(issue_tag(0), fresultb);
 
 }
 
@@ -104,6 +102,7 @@ TEST(issues_tests, test_multiple_issues) {
 	EXPECT_EQ(1ui64, manager.party_issues.size());
 	EXPECT_EQ(2ui64, manager.political_issues.size());
 	EXPECT_EQ(3ui64, manager.issues_cotnainer.size());
+	EXPECT_EQ(4ui64, manager.options.size());
 
 	EXPECT_EQ(issue_tag(1), manager.political_issues[0]);
 
@@ -114,33 +113,30 @@ TEST(issues_tests, test_multiple_issues) {
 	EXPECT_EQ(issue_tag(0), issuea.id);
 	EXPECT_FALSE(issuea.next_step_only);
 	EXPECT_FALSE(issuea.administrative);
-	EXPECT_EQ(2ui64, issuea.options.size());
-	EXPECT_EQ(option_tag(0), issuea.options[option_tag(0)].id);
-	EXPECT_EQ(option_tag(1), issuea.options[option_tag(1)].id);
+	EXPECT_EQ(option_tag(0), issuea.options[0]);
+	EXPECT_EQ(option_tag(1), issuea.options[1]);
+	EXPECT_EQ(option_tag(), issuea.options[2]);
 	EXPECT_EQ(issue_group::party, issuea.type);
 
 	EXPECT_EQ(issue_tag(1), issueb.id);
 	EXPECT_FALSE(issueb.next_step_only);
 	EXPECT_TRUE(issueb.administrative);
-	EXPECT_EQ(2ui64, issueb.options.size());
-	EXPECT_EQ(option_tag(0), issueb.options[option_tag(0)].id);
-	EXPECT_EQ(option_tag(1), issueb.options[option_tag(1)].id);
+	EXPECT_EQ(option_tag(2), issueb.options[0]);
+	EXPECT_EQ(option_tag(3), issueb.options[1]);
+	EXPECT_EQ(option_tag(), issueb.options[2]);
 	EXPECT_EQ(issue_group::political, issueb.type);
 
 	EXPECT_EQ(issue_tag(2), issuec.id);
 	EXPECT_TRUE(issuec.next_step_only);
 	EXPECT_FALSE(issuec.administrative);
-	EXPECT_EQ(0ui64, issuec.options.size());
+	EXPECT_EQ(option_tag(), issuec.options[0]);
 	EXPECT_EQ(issue_group::political, issuec.type);
 
-	auto& fresult = manager.named_option_index[issueb.options[option_tag(0)].name];
-	EXPECT_EQ(option_tag(0), fresult.option_id);
-	EXPECT_EQ(issue_group::political, fresult.type);
-	EXPECT_EQ(issue_tag(1), std::get<issue_tag>(fresult.id));
+	auto& fresult = manager.named_option_index[manager.options[issueb.options[1]].name];
+	EXPECT_EQ(option_tag(3), fresult);
 
 	auto& fresultb = manager.named_issue_index[manager.issues_cotnainer[issue_tag(2)].name];
-	EXPECT_EQ(issue_group::political, fresultb.type);
-	EXPECT_EQ(issue_tag(2), std::get<issue_tag>(fresultb.id));
+	EXPECT_EQ(issue_tag(2), fresultb);
 }
 
 TEST(issues_tests, unciv_issues) {
@@ -158,34 +154,46 @@ TEST(issues_tests, unciv_issues) {
 
 	EXPECT_EQ(1ui64, manager.party_issues.size());
 	EXPECT_EQ(2ui64, manager.economic_issues.size());
-	EXPECT_EQ(1ui64, manager.issues_cotnainer.size());
-	EXPECT_EQ(2ui64, manager.unciv_issues_cotnainer.size());
+	EXPECT_EQ(3ui64, manager.issues_cotnainer.size());
+	EXPECT_EQ(4ui64, manager.options.size());
 
-	EXPECT_EQ(unciv_issue_tag(0), manager.economic_issues[0]);
+	EXPECT_EQ(issue_tag(1), manager.economic_issues[0]);
 
-	auto& issueb = manager.unciv_issues_cotnainer[unciv_issue_tag(0)];
-	auto& issuec = manager.unciv_issues_cotnainer[unciv_issue_tag(1)];
+	auto& issueb = manager.issues_cotnainer[issue_tag(1)];
+	auto& issuec = manager.issues_cotnainer[issue_tag(2)];
 
-	EXPECT_EQ(unciv_issue_tag(0), issueb.id);
+	EXPECT_EQ(issue_tag(1), issueb.id);
 	EXPECT_FALSE(issueb.next_step_only);
 	EXPECT_TRUE(issueb.administrative);
-	EXPECT_EQ(2ui64, issueb.options.size());
-	EXPECT_EQ(option_tag(0), issueb.options[option_tag(0)].id);
-	EXPECT_EQ(option_tag(1), issueb.options[option_tag(1)].id);
+	EXPECT_EQ(option_tag(2), issueb.options[0]);
+	EXPECT_EQ(option_tag(3), issueb.options[1]);
+	EXPECT_EQ(option_tag(), issueb.options[2]);
 	EXPECT_EQ(issue_group::economic, issueb.type);
 
-	EXPECT_EQ(unciv_issue_tag(1), issuec.id);
+	EXPECT_EQ(issue_tag(2), issuec.id);
 	EXPECT_TRUE(issuec.next_step_only);
 	EXPECT_FALSE(issuec.administrative);
-	EXPECT_EQ(0ui64, issuec.options.size());
+	EXPECT_EQ(option_tag(), issuec.options[0]);
 	EXPECT_EQ(issue_group::economic, issuec.type);
 
-	auto& fresult = manager.named_option_index[issueb.options[option_tag(0)].name];
-	EXPECT_EQ(option_tag(0), fresult.option_id);
-	EXPECT_EQ(issue_group::economic, fresult.type);
-	EXPECT_EQ(unciv_issue_tag(0), std::get<unciv_issue_tag>(fresult.id));
+	auto& fresult = manager.named_option_index[manager.options[issueb.options[0]].name];
+	EXPECT_EQ(option_tag(2), fresult);
 
-	auto& fresultb = manager.named_issue_index[manager.unciv_issues_cotnainer[unciv_issue_tag(1)].name];
-	EXPECT_EQ(issue_group::economic, fresultb.type);
-	EXPECT_EQ(unciv_issue_tag(1), std::get<unciv_issue_tag>(fresultb.id));
+	auto& fresultb = manager.named_issue_index[manager.issues_cotnainer[issue_tag(1)].name];
+	EXPECT_EQ(issue_tag(1), fresultb);
+}
+
+TEST(issues_tests, rule_reading) {
+	const char text[] =
+		"pop_expand_factory = yes\r\n"
+		"all_voting = yes"
+		;
+
+	std::vector<token_group> parse_results;
+	parse_pdx_file(parse_results, RANGE(text));
+
+	auto result = read_rules(parse_results.data(), parse_results.data() + parse_results.size());
+
+	EXPECT_EQ(rules::pop_expand_factory | rules::all_voting, result.rules_settings.rules);
+	EXPECT_EQ(rules::pop_expand_factory | rules::citizens_rights_mask, result.rules_mask.rules);
 }

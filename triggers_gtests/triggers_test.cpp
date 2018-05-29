@@ -638,23 +638,6 @@ TEST(trigger_reading, storing_data) {
 		EXPECT_EQ(2ui64, t.size());
 		EXPECT_EQ(10002, read_int32_t_from_payload(t.data()));
 	}
-	{
-		std::vector<uint16_t> t;
-		issues::option_identifier opt;
-		
-		opt.id = issues::issue_tag(1);
-		opt.option_id = issues::option_tag(4);
-		opt.type = issues::issue_group::party;
-
-		add_option_identifier_to_payload(t, opt);
-		EXPECT_EQ(2ui64, t.size());
-
-		const auto res = read_option_identifier_from_payload(t.data());
-
-		EXPECT_EQ(opt.id, res.id);
-		EXPECT_EQ(opt.option_id, res.option_id);
-		EXPECT_EQ(opt.type, res.type);
-	}
 }
 
 TEST(trigger_reading, scope_dependant_trigger) {
@@ -753,6 +736,7 @@ TEST(trigger_reading, data_lookup_trigger) {
 
 	text_data::text_sequences ts;
 	scenario::scenario_manager sm(ts);
+	graphics::texture_manager tex;
 
 	test_files real_fs;
 	file_system f;
@@ -760,7 +744,7 @@ TEST(trigger_reading, data_lookup_trigger) {
 	f.set_root(RANGE(u"F:\\test1"));
 
 	cultures::parse_national_tags(sm.culutre_m, f.get_root());
-	cultures::parse_cultures(sm.culutre_m, f.get_root(),
+	cultures::parse_cultures(sm.culutre_m, tex, f.get_root(),
 		[&ts](const char* s, const char* e) {
 		    return text_data::get_text_handle(ts, s, e); });
 
@@ -793,6 +777,7 @@ TEST(trigger_reading, data_lookup_effect) {
 	text_data::text_sequences ts;
 	scenario::scenario_manager sm(ts);
 	events::event_creation_manager ecm;
+	graphics::texture_manager tex;
 
 	test_files real_fs;
 	file_system f;
@@ -800,7 +785,7 @@ TEST(trigger_reading, data_lookup_effect) {
 	f.set_root(RANGE(u"F:\\test1"));
 
 	cultures::parse_national_tags(sm.culutre_m, f.get_root());
-	cultures::parse_cultures(sm.culutre_m, f.get_root(),
+	cultures::parse_cultures(sm.culutre_m, tex, f.get_root(),
 		[&ts](const char* s, const char* e) {
 		return text_data::get_text_handle(ts, s, e); });
 
