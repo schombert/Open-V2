@@ -42,13 +42,11 @@ namespace provinces {
 
 	struct parsing_environment;
 
-	using text_handle_lookup = std::function<text_data::text_tag(const char*, const char*)>;
-
 	class parsing_state {
 	public:
 		std::unique_ptr<parsing_environment> impl;
 
-		parsing_state(const text_handle_lookup& tl, province_manager& m, modifiers::modifiers_manager& mm);
+		parsing_state(text_data::text_sequences& tl, province_manager& m, modifiers::modifiers_manager& mm);
 		parsing_state(parsing_state&&) noexcept;
 		~parsing_state();
 	};

@@ -59,23 +59,6 @@ const char fake_tech_file_b[] =
 "}\r\n"
 "}\r\n";
 
-auto fake_text_handle_lookup();
-auto make_fake_tech_file_parse(int& counter);
-
-auto fake_text_handle_lookup() {
-	return[i = 0ui16](const char*, const char*) mutable { return text_data::text_tag(i++); };
-}
-
-auto make_fake_tech_file_parse(int& counter) {
-	return [&counter](const token_and_type&,
-		tech_category_tag,
-		parsed_data&,
-		const text_handle_lookup&,
-		technologies_manager&) {
-		++counter;
-	};
-}
-
 
 class preparse_test_files {
 public:
@@ -102,9 +85,10 @@ TEST(technologies_tests, pre_parse_single_tech) {
 
 	tech_category_tag fake_cat(1);
 	technologies_manager manager;
+	text_data::text_sequences text;
 
 	parse_pdx_file(results, single_tech, single_tech + sizeof(single_tech) - 1);
-	parse_single_tech_file(fake_cat, fake_text_handle_lookup(), manager, results);
+	pre_parse_single_tech_file(fake_cat, text, manager, results.data(), results.data() + results.size());
 
 	EXPECT_EQ(1ui64, manager.technologies_container.size());
 	EXPECT_EQ(tech_tag(0), manager.technologies_container[tech_tag(0)].id);
@@ -121,9 +105,10 @@ TEST(technologies_tests, pre_parse_two_techs) {
 
 	tech_category_tag fake_cat(1);
 	technologies_manager manager;
+	text_data::text_sequences text;
 
 	parse_pdx_file(results, two_techs, two_techs + sizeof(two_techs) - 1);
-	parse_single_tech_file(fake_cat, fake_text_handle_lookup(), manager, results);
+	pre_parse_single_tech_file(fake_cat, text, manager, results.data(), results.data() + results.size());
 
 	ASSERT_EQ(2ui64, manager.technologies_container.size());
 
@@ -134,16 +119,20 @@ TEST(technologies_tests, pre_parse_two_techs) {
 }
 
 TEST(technologies_tests, pre_parse_tech_file) {
-	int count_sub_files = 0;
+
+	preparse_test_files real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:"));
 
 	std::vector<token_group> results;
 	technologies_manager manager;
 	modifiers::modifiers_manager mm;
+	text_data::text_sequences text;
 
 	parse_pdx_file(results, fake_tech_file, fake_tech_file + sizeof(fake_tech_file) - 1);
-	parse_main_technology_file(manager, results, fake_text_handle_lookup(), make_fake_tech_file_parse(count_sub_files), mm);
+	parse_main_technology_file(manager, results, text, f.get_root().get_directory(u"\\technologies"), mm);
 
-	EXPECT_EQ(2, count_sub_files);
 	EXPECT_EQ(2ui64, manager.technology_categories.size());
 	EXPECT_EQ(4ui64, manager.technology_subcategories.size());
 	EXPECT_EQ(1ui64, manager.named_tech_school_index.size());
@@ -169,14 +158,18 @@ TEST(technologies_tests, pre_parse_tech_file) {
 }
 
 TEST(technologies_tests, pre_parse_schools) {
-	int count_sub_files = 0;
+	preparse_test_files real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:"));
 
 	std::vector<token_group> results;
 	technologies_manager manager;
 	modifiers::modifiers_manager mm;
+	text_data::text_sequences text;
 
 	parse_pdx_file(results, fake_tech_file_b, fake_tech_file_b + sizeof(fake_tech_file_b) - 1);
-	parse_main_technology_file(manager, results, fake_text_handle_lookup(), make_fake_tech_file_parse(count_sub_files), mm);
+	parse_main_technology_file(manager, results, text, f.get_root().get_directory(u"\\technologies"), mm);
 
 	EXPECT_EQ(2ui64, mm.national_modifiers.size());
 	EXPECT_EQ(2ui64, mm.named_national_modifiers_index.size());
@@ -200,10 +193,11 @@ TEST(technologies_tests, pre_parse_techs_test) {
 
 	technologies_manager manager;
 	modifiers::modifiers_manager mm;
+	text_data::text_sequences text;
 
 	const auto tech_dir = f.get_root().get_directory(u"\\technologies");
 
-	parsing_state state(fake_text_handle_lookup(), make_subfile_perparse_handler(tech_dir), manager, mm);
+	parsing_state state(text, tech_dir, manager, mm);
 
 	parse_technologies(state, f.get_root());
 
@@ -220,10 +214,11 @@ TEST(technologies_tests, pre_parse_inventions_test) {
 
 	technologies_manager manager;
 	modifiers::modifiers_manager mm;
+	text_data::text_sequences text;
 
 	const auto tech_dir = f.get_root().get_directory(u"\\technologies");
 
-	parsing_state state(fake_text_handle_lookup(), make_subfile_perparse_handler(tech_dir), manager, mm);
+	parsing_state state(text, tech_dir, manager, mm);
 
 	pre_parse_inventions(state, f.get_root());
 

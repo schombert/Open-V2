@@ -8,19 +8,19 @@
 
 namespace modifiers {
 	struct parsing_environment {
-		text_handle_lookup text_lookup;
+		text_data::text_sequences& text_lookup;
 
 		modifiers_manager& manager;
 
 		parsed_data crimes_file;
 		parsed_data nv_file;
 
-		parsing_environment(const text_handle_lookup& tl, modifiers_manager& m) :
+		parsing_environment(text_data::text_sequences& tl, modifiers_manager& m) :
 			text_lookup(tl), manager(m) {
 		}
 	};
 
-	parsing_state::parsing_state(const text_handle_lookup& tl, modifiers_manager& m) :
+	parsing_state::parsing_state(text_data::text_sequences& tl, modifiers_manager& m) :
 		impl(std::make_unique<parsing_environment>(tl, m)) {
 	}
 	parsing_state::~parsing_state() {}
@@ -37,7 +37,7 @@ namespace modifiers {
 		crimes_preparse_file(parsing_environment& e) : env(e) {}
 
 		void add_crime(const token_and_type& t) {
-			const auto name = env.text_lookup(t.start, t.end);
+			const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
 			const auto tag = env.manager.provincial_modifiers.emplace_back();
 			auto& new_i = env.manager.provincial_modifiers[tag];
 
@@ -56,7 +56,7 @@ namespace modifiers {
 	};
 
 	inline int read_single_national_value(const token_group* start, const token_group* end, const token_and_type& t, parsing_environment& env) {
-		const auto name = env.text_lookup(t.start, t.end);
+		const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
 		parse_national_modifier(name, env.manager, start, end);
 		return 0;
 	}

@@ -33,24 +33,24 @@ namespace cultures {
 
 	struct parsing_environment {
 		std::map<std::string, leader_picture_info> pictures_map;
-		text_handle_lookup text_lookup;
+		text_data::text_sequences& text_lookup;
 		culture_manager& manager;
 		graphics::texture_manager& tm;
 		const directory root;
 		bool unicode = false;
 		
 
-		parsing_environment(const text_handle_lookup& tl, culture_manager& m, graphics::texture_manager& t, const directory& r, bool u = false) :
+		parsing_environment(text_data::text_sequences& tl, culture_manager& m, graphics::texture_manager& t, const directory& r, bool u = false) :
 			text_lookup(tl), manager(m), tm(t), root(r), unicode(u) {
 		}
 	};
 
 	struct religion_parsing_environment {
-		text_handle_lookup text_lookup;
+		text_data::text_sequences& text_lookup;
 		culture_manager& manager;
 		bool unicode = false;
 
-		religion_parsing_environment(const text_handle_lookup& tl, culture_manager& m, bool u = false) :
+		religion_parsing_environment(text_data::text_sequences& tl, culture_manager& m, bool u = false) :
 			text_lookup(tl), manager(m), unicode(u) {}
 	};
 
@@ -108,7 +108,7 @@ namespace cultures {
 		religion_parsing_environment& env;
 		religions_group_s(religion_parsing_environment& e) : env(e) {}
 		void add_religion(const std::pair<token_and_type, religion_builder>& p) {
-			const auto name = env.text_lookup(p.first.start, p.first.end);
+			const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, p.first.start, p.first.end);
 			const auto nt = env.manager.religions.emplace_back();
 			auto& nr = env.manager.religions[nt];
 			nr.id = nt;
@@ -252,7 +252,7 @@ namespace cultures {
 			}
 		}
 		void add_culture(const std::pair<token_and_type, culture_builder>& p) {
-			const auto name = env.text_lookup(p.first.start, p.first.end);
+			const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, p.first.start, p.first.end);
 
 			p.second.c->group = group_t;
 			p.second.c->name = name;
@@ -269,7 +269,7 @@ namespace cultures {
 		cultures_file(parsing_environment& e) : env(e) {}
 
 		void add_group(const std::pair<token_and_type, culture_group_builder>& p) {
-			const auto name = env.text_lookup(p.first.start, p.first.end);
+			const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, p.first.start, p.first.end);
 			p.second.group->name = name;
 			env.manager.named_culture_group_index.emplace(name, p.second.group_t);
 		}
@@ -361,7 +361,7 @@ namespace cultures {
 	void parse_religions(
 		culture_manager& manager,
 		const directory& source_directory,
-		const text_handle_lookup& text_function) {
+		text_data::text_sequences& text_function) {
 
 		const auto common_dir = source_directory.get_directory(u"\\common");
 		const auto file = common_dir.open_file(u"religion.txt");
@@ -390,7 +390,7 @@ namespace cultures {
 		culture_manager& manager,
 		graphics::texture_manager &tm,
 		const directory& source_directory,
-		const text_handle_lookup& text_function) {
+		text_data::text_sequences& text_function) {
 
 		const auto common_dir = source_directory.get_directory(u"\\common");
 		const auto file = common_dir.open_file(u"cultures.txt");

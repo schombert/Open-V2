@@ -5,10 +5,10 @@
 
 namespace economy {
 	struct parsing_environment {
-		text_handle_lookup text_lookup;
+		text_data::text_sequences& text_lookup;
 		economic_scenario& manager;
 
-		parsing_environment(const text_handle_lookup& tl, economic_scenario& m) :
+		parsing_environment(text_data::text_sequences& tl, economic_scenario& m) :
 			text_lookup(tl), manager(m) {
 		}
 	};
@@ -69,10 +69,10 @@ namespace economy {
 		void add_good(const std::pair<token_and_type, good_definition_builder>& v) {
 			if ((v.second.def.flags & good_definition::money) != 0) {
 				money = v.second.def;
-				const auto gname = env.text_lookup(v.first.start, v.first.end);
+				const auto gname = text_data::get_thread_safe_text_handle(env.text_lookup, v.first.start, v.first.end);
 				money.name = gname;
 			} else {
-				const auto gname = env.text_lookup(v.first.start, v.first.end);
+				const auto gname = text_data::get_thread_safe_text_handle(env.text_lookup, v.first.start, v.first.end);
 				const auto new_g_tag = env.manager.goods.emplace_back(v.second.def);
 				auto& new_g = env.manager.goods[new_g_tag];
 
@@ -93,7 +93,7 @@ namespace economy {
 		goods_file(parsing_environment& e) : env(e) {}
 
 		void add_group(const std::pair<token_and_type, goods_group>& v) {
-			const auto gname = env.text_lookup(v.first.start, v.first.end);
+			const auto gname = text_data::get_thread_safe_text_handle(env.text_lookup, v.first.start, v.first.end);
 			const auto new_g_tag = env.manager.good_type_names.emplace_back(gname);
 			
 			for (auto subgood : v.second.subgoods) {
@@ -116,11 +116,11 @@ namespace economy {
 	}
 
 	struct buildings_parsing_environment {
-		text_handle_lookup text_lookup;
+		text_data::text_sequences& text_lookup;
 		economic_scenario& manager;
 		boost::container::flat_map<text_data::text_tag, factory_type_tag>& production_to_factory;
 
-		buildings_parsing_environment(const text_handle_lookup& tl, economic_scenario& m, boost::container::flat_map<text_data::text_tag, factory_type_tag>& map) :
+		buildings_parsing_environment(text_data::text_sequences& tl, economic_scenario& m, boost::container::flat_map<text_data::text_tag, factory_type_tag>& map) :
 			text_lookup(tl), manager(m), production_to_factory(map) {
 		}
 	};
@@ -135,7 +135,7 @@ namespace economy {
 		std::vector<std::pair<goods_tag, double>> cost_pairs;
 
 		void add_cost_pair(const std::pair<token_and_type, double>& p) {
-			const auto gtag = env.manager.named_goods_index[env.text_lookup(p.first.start, p.first.end)];
+			const auto gtag = env.manager.named_goods_index[text_data::get_thread_safe_text_handle(env.text_lookup, p.first.start, p.first.end)];
 			cost_pairs.emplace_back(gtag, p.second);
 		}
 
@@ -175,7 +175,7 @@ namespace economy {
 			colonial_points = std::move(vec);
 		}
 		void set_production_type(const token_and_type& t) {
-			production_type = env.text_lookup(t.start, t.end);
+			production_type = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
 		}
 		void set_type(const token_and_type& t) {
 			if (is_fixed_token_ci(t, "factory")) {
@@ -216,7 +216,7 @@ namespace economy {
 				naval_base = std::move(b.second);
 			} else if (b.second.type == building_type_enum::factory) {
 				const auto new_ftag = env.manager.factory_types.emplace_back();
-				const auto name = env.text_lookup(b.first.start, b.first.end);
+				const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, b.first.start, b.first.end);
 				auto& fac = env.manager.factory_types[new_ftag];
 
 				fac.id = new_ftag;
@@ -370,7 +370,7 @@ namespace economy {
 	void read_goods(
 		economic_scenario& manager,
 		const directory& source_directory,
-		const text_handle_lookup& text_function) {
+		text_data::text_sequences& text_function) {
 
 		const auto common_dir = source_directory.get_directory(u"\\common");
 		const auto file = common_dir.open_file(u"goods.txt");
@@ -407,7 +407,7 @@ namespace economy {
 	boost::container::flat_map<text_data::text_tag, factory_type_tag> read_buildings(
 		economic_scenario& manager,
 		const directory& source_directory,
-		const text_handle_lookup& text_function
+		text_data::text_sequences& text_function
 	) {
 		boost::container::flat_map<text_data::text_tag, factory_type_tag> production_to_factory;
 

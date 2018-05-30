@@ -62,16 +62,6 @@ public:
 	}
 };
 
-inline auto fake_text_handle_lookup(std::map<std::string, text_data::text_tag>& values) {
-	return[j = 0ui16, &values](const char* s, const char* e) mutable {
-		const auto i = std::string(s, e);
-		if (values.find(i) == values.end()) {
-			values[i] = text_data::text_tag(j++);
-		}
-		return values[i];
-	};
-}
-
 using namespace provinces;
 using namespace modifiers;
 
@@ -83,9 +73,9 @@ TEST(provinces_test, default_map_read) {
 
 	province_manager m;
 	modifiers_manager mm;
-	std::map<std::string, text_data::text_tag> values;
+	text_data::text_sequences tex;;
 
-	provinces::parsing_state state(fake_text_handle_lookup(values), m, mm);
+	provinces::parsing_state state(tex, m, mm);
 
 	read_default_map_file(state, f.get_root());
 
@@ -104,9 +94,9 @@ TEST(provinces_test, climate_preparse) {
 
 	province_manager m;
 	modifiers_manager mm;
-	std::map<std::string, text_data::text_tag> values;
+	text_data::text_sequences tex;
 
-	provinces::parsing_state state(fake_text_handle_lookup(values), m, mm);
+	provinces::parsing_state state(tex, m, mm);
 
 	read_default_map_file(state, f.get_root());
 	pre_parse_climates(state, f.get_root());
@@ -115,7 +105,7 @@ TEST(provinces_test, climate_preparse) {
 	EXPECT_EQ(provincial_modifier_tag(0), mm.provincial_modifiers[provincial_modifier_tag(0)].id);
 	EXPECT_EQ(provincial_modifier_tag(1), mm.provincial_modifiers[provincial_modifier_tag(1)].id);
 	EXPECT_EQ(provincial_modifier_tag(0), mm.named_provincial_modifiers_index[mm.provincial_modifiers[provincial_modifier_tag(0)].name]);
-	EXPECT_EQ(provincial_modifier_tag(1), mm.named_provincial_modifiers_index[values[std::string("temperate_climate")]]);
+	EXPECT_EQ(provincial_modifier_tag(1), mm.named_provincial_modifiers_index[text_data::get_thread_safe_text_handle(tex, RANGE("temperate_climate"))]);
 
 	EXPECT_EQ(provincial_modifier_tag(1), m.province_container[province_tag(0)].climate);
 	EXPECT_EQ(provincial_modifier_tag(1), m.province_container[province_tag(4)].climate);
@@ -133,9 +123,9 @@ TEST(provinces_test, continent_preparse) {
 
 	province_manager m;
 	modifiers_manager mm;
-	std::map<std::string, text_data::text_tag> values;
+	text_data::text_sequences tex;
 
-	provinces::parsing_state state(fake_text_handle_lookup(values), m, mm);
+	provinces::parsing_state state(tex, m, mm);
 
 	read_default_map_file(state, f.get_root());
 	pre_parse_continents(state, f.get_root());
@@ -143,7 +133,7 @@ TEST(provinces_test, continent_preparse) {
 	EXPECT_EQ(2ui64, mm.provincial_modifiers.size());
 	EXPECT_EQ(provincial_modifier_tag(0), mm.provincial_modifiers[provincial_modifier_tag(0)].id);
 	EXPECT_EQ(provincial_modifier_tag(1), mm.provincial_modifiers[provincial_modifier_tag(1)].id);
-	EXPECT_EQ(provincial_modifier_tag(0), mm.named_provincial_modifiers_index[values[std::string("europe")]]);
+	EXPECT_EQ(provincial_modifier_tag(0), mm.named_provincial_modifiers_index[text_data::get_thread_safe_text_handle(tex, RANGE("europe"))]);
 	EXPECT_EQ(provincial_modifier_tag(1), mm.named_provincial_modifiers_index[mm.provincial_modifiers[provincial_modifier_tag(1)].name]);
 
 	EXPECT_EQ(provincial_modifier_tag(1), m.province_container[province_tag(1)].continent);
@@ -161,9 +151,9 @@ TEST(provinces_test, terrain_preparse) {
 
 	province_manager m;
 	modifiers_manager mm;
-	std::map<std::string, text_data::text_tag> values;
+	text_data::text_sequences tex;
 
-	provinces::parsing_state state(fake_text_handle_lookup(values), m, mm);
+	provinces::parsing_state state(tex, m, mm);
 
 	read_default_map_file(state, f.get_root());
 	auto t_map = pre_parse_terrain(state, f.get_root());
@@ -171,7 +161,7 @@ TEST(provinces_test, terrain_preparse) {
 	EXPECT_EQ(2ui64, mm.provincial_modifiers.size());
 	EXPECT_EQ(provincial_modifier_tag(0), mm.provincial_modifiers[provincial_modifier_tag(0)].id);
 	EXPECT_EQ(provincial_modifier_tag(1), mm.provincial_modifiers[provincial_modifier_tag(1)].id);
-	EXPECT_EQ(provincial_modifier_tag(0), mm.named_provincial_modifiers_index[values[std::string("ocean")]]);
+	EXPECT_EQ(provincial_modifier_tag(0), mm.named_provincial_modifiers_index[text_data::get_thread_safe_text_handle(tex, RANGE("ocean"))]);
 	EXPECT_EQ(provincial_modifier_tag(1), mm.named_provincial_modifiers_index[mm.provincial_modifiers[provincial_modifier_tag(1)].name]);
 
 	const auto va = t_map[graphics::rgb_to_int(graphics::color_rgb{ 0ui8, 0ui8, 255ui8 })];
@@ -188,9 +178,9 @@ TEST(provinces_test, region_read) {
 
 	province_manager m;
 	modifiers_manager mm;
-	std::map<std::string, text_data::text_tag> values;
+	text_data::text_sequences tex;
 
-	provinces::parsing_state state(fake_text_handle_lookup(values), m, mm);
+	provinces::parsing_state state(tex, m, mm);
 
 	read_default_map_file(state, f.get_root());
 	read_states(state, f.get_root());
@@ -224,6 +214,6 @@ TEST(provinces_test, region_read) {
 	EXPECT_EQ(false, tagged_provs_b[3]);
 	EXPECT_EQ(true, tagged_provs_b[4]);
 	
-	EXPECT_EQ(values[std::string("region_a")], m.state_names[state_tag(0)]);
-	EXPECT_EQ(values[std::string("region_b")], m.state_names[state_tag(1)]);
+	EXPECT_EQ(text_data::get_thread_safe_text_handle(tex, RANGE("region_a")), m.state_names[state_tag(0)]);
+	EXPECT_EQ(text_data::get_thread_safe_text_handle(tex, RANGE("region_b")), m.state_names[state_tag(1)]);
 }

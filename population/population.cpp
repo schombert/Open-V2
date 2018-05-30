@@ -4,18 +4,18 @@
 
 namespace population {
 	struct parsing_environment {
-		text_handle_lookup text_lookup;
+		text_data::text_sequences& text_lookup;
 
 		population_manager& manager;
 
 		parsed_data rebel_types_file;
 
-		parsing_environment(const text_handle_lookup& tl, population_manager& m) :
+		parsing_environment(text_data::text_sequences& tl, population_manager& m) :
 			text_lookup(tl), manager(m) {
 		}
 	};
 
-	parsing_state::parsing_state(const text_handle_lookup& tl, population_manager& m) :
+	parsing_state::parsing_state(text_data::text_sequences& tl, population_manager& m) :
 		impl(std::make_unique<parsing_environment>(tl, m)) {
 	}
 	parsing_state::~parsing_state() {}
@@ -27,7 +27,7 @@ namespace population {
 		rebel_types_pre_parse_file(parsing_environment& e) : env(e) {}
 
 		void add_rebel_type(const token_and_type& t) {
-			const auto name = env.text_lookup(t.start, t.end);
+			const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
 			const auto rtag = env.manager.rebel_types.emplace_back();
 			auto& reb = env.manager.rebel_types[rtag];
 			reb.id = rtag;
@@ -61,7 +61,7 @@ namespace population {
 	void pre_parse_pop_types(
 		population_manager& manager,
 		const directory& source_directory,
-		const text_handle_lookup& text_function) {
+		text_data::text_sequences& text_function) {
 
 		const auto poptype_dir = source_directory.get_directory(u"\\poptypes");
 		const auto poptype_files = poptype_dir.list_files(u".txt");
@@ -69,7 +69,7 @@ namespace population {
 		for (const auto& file : poptype_files) {
 			const auto fname = file.file_name();
 			const auto clipped_unicode = fname.size() >= 4ui64 ? std::string(fname.begin(), fname.end() - 4ui32) : std::string("");
-			const auto name_tag = text_function(clipped_unicode.c_str(), clipped_unicode.c_str() + clipped_unicode.size());
+			const auto name_tag = text_data::get_thread_safe_text_handle(text_function, clipped_unicode.c_str(), clipped_unicode.c_str() + clipped_unicode.size());
 
 			++manager.count_poptypes;
 			const auto new_ptype_tag = manager.pop_types.emplace_back();

@@ -4,19 +4,19 @@
 
 namespace military {
 	struct parsing_environment {
-		text_handle_lookup text_lookup;
+		text_data::text_sequences& text_lookup;
 
 		military_manager& manager;
 
 		parsed_data cb_file;
 		std::vector<parsed_data> unit_type_files;
 
-		parsing_environment(const text_handle_lookup& tl, military_manager& m) :
+		parsing_environment(text_data::text_sequences& tl, military_manager& m) :
 			text_lookup(tl), manager(m) {
 		}
 	};
 
-	parsing_state::parsing_state(const text_handle_lookup& tl, military_manager& m) :
+	parsing_state::parsing_state(text_data::text_sequences& tl, military_manager& m) :
 		impl(std::make_unique<parsing_environment>(tl, m)) {
 	}
 	parsing_state::~parsing_state() {}
@@ -27,7 +27,7 @@ namespace military {
 		parsing_environment& env;
 		unit_file(parsing_environment& e) : env(e) {}
 		void add_unit(const token_and_type& t) {
-			const auto uname = env.text_lookup(t.start, t.end);
+			const auto uname = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
 			const auto uid = env.manager.unit_types.emplace_back();
 			env.manager.unit_types[uid].id = uid;
 			env.manager.unit_types[uid].name = uname;
@@ -38,7 +38,7 @@ namespace military {
 		parsing_environment& env;
 		peace_order(parsing_environment& e) : env(e) {}
 		void add_cb(const token_and_type& t) {
-			const auto name = env.text_lookup(t.start, t.end);
+			const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
 			if (0 == env.manager.named_cb_type_index.count(name)) {
 				const auto cbid = env.manager.cb_types.emplace_back();
 				env.manager.cb_types[cbid].id = cbid;
@@ -52,7 +52,7 @@ namespace military {
 		cb_file(parsing_environment& e) : env(e) {}
 		void accept_peace_order(const peace_order&) {}
 		void add_cb(const token_and_type& t) {
-			const auto name = env.text_lookup(t.start, t.end);
+			const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
 			if (0 == env.manager.named_cb_type_index.count(name)) {
 				const auto cbid = env.manager.cb_types.emplace_back();
 				env.manager.cb_types[cbid].id = cbid;
@@ -102,7 +102,7 @@ namespace military {
 
 		void add_trait(const std::pair<token_and_type, trait>& t) {
 			const auto new_trait = add_trait_to_manager(env.manager, t.second);
-			const auto trait_name = env.text_lookup(t.first.start, t.first.end);
+			const auto trait_name = text_data::get_thread_safe_text_handle(env.text_lookup, t.first.start, t.first.end);
 			env.manager.leader_traits.safe_get(new_trait) = trait_name;
 
 			env.manager.personality_traits.push_back(new_trait);
@@ -112,7 +112,7 @@ namespace military {
 			const static char no_personality_string[] = "no_personality";
 
 			const auto new_trait = add_trait_to_manager(env.manager, t);
-			const auto trait_name = env.text_lookup(no_personality_string, no_personality_string + sizeof(no_personality_string) - 1);
+			const auto trait_name = text_data::get_thread_safe_text_handle(env.text_lookup, no_personality_string, no_personality_string + sizeof(no_personality_string) - 1);
 			env.manager.leader_traits.safe_get(new_trait) = trait_name;
 
 			env.manager.no_personality_trait = new_trait;
@@ -125,7 +125,7 @@ namespace military {
 
 		void add_trait(const std::pair<token_and_type, trait>& t) {
 			const auto new_trait = add_trait_to_manager(env.manager, t.second);
-			const auto trait_name = env.text_lookup(t.first.start, t.first.end);
+			const auto trait_name = text_data::get_thread_safe_text_handle(env.text_lookup, t.first.start, t.first.end);
 			env.manager.leader_traits.safe_get(new_trait) = trait_name;
 
 			env.manager.background_traits.push_back(new_trait);
@@ -135,7 +135,7 @@ namespace military {
 			const static char no_background_string[] = "no_background";
 
 			const auto new_trait = add_trait_to_manager(env.manager, t);
-			const auto trait_name = env.text_lookup(no_background_string, no_background_string + sizeof(no_background_string) - 1);
+			const auto trait_name = text_data::get_thread_safe_text_handle(env.text_lookup, no_background_string, no_background_string + sizeof(no_background_string) - 1);
 			env.manager.leader_traits.safe_get(new_trait) = trait_name;
 
 			env.manager.no_background_trait = new_trait;

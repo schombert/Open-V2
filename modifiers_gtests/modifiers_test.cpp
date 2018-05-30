@@ -6,16 +6,6 @@
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
-inline auto fake_text_handle_lookup(std::map<std::string, text_data::text_tag>& values) {
-	return[j = 0ui16, &values](const char* s, const char* e) mutable {
-		const auto i = std::string(s, e);
-		if (values.find(i) == values.end()) {
-			values[i] = text_data::text_tag(j++);
-		}
-		return values[i];
-	};
-}
-
 class preparse_test_files {
 public:
 	directory_representation f_root = directory_representation(u"F:");
@@ -53,8 +43,8 @@ TEST(modifiers_tests, crimes_preparse) {
 	f.set_root(RANGE(u"F:"));
 
 	modifiers_manager m;
-	std::map<std::string, text_data::text_tag> v;
-	parsing_state state(fake_text_handle_lookup(v), m);
+	text_data::text_sequences tex;
+	parsing_state state(tex, m);
 
 	pre_parse_crimes(state, f.get_root());
 
@@ -73,9 +63,9 @@ TEST(modifiers_tests, nv_parse) {
 
 	f.set_root(RANGE(u"F:"));
 
-	modifiers_manager m;
-	std::map<std::string, text_data::text_tag> v;
-	parsing_state state(fake_text_handle_lookup(v), m);
+	modifiers_manager m; 
+	text_data::text_sequences tex;
+	parsing_state state(tex, m);
 
 	parse_national_values(state, f.get_root());
 
@@ -941,8 +931,7 @@ TEST(modifiers_tests, commit_factor) {
 }
 
 TEST(modifiers_tests, modifier_factors) {
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 
 	{
 		const char trigger[] = "factor = 1.5 modifier = { factor = 2 }";

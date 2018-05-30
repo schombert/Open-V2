@@ -67,8 +67,9 @@ TEST(ideologies_tests, preparse_test) {
 	f.set_root(RANGE(u"F:"));
 
 	ideologies_manager manager;
+	text_data::text_sequences tex;
 
-	auto result = pre_parse_ideologies(manager, f.get_root(), fake_text_handle_lookup());
+	auto result = pre_parse_ideologies(manager, f.get_root(), tex);
 
 	ASSERT_EQ(3ui64, manager.ideology_container.size());
 	ASSERT_EQ(2ui64, manager.ideology_groups.size());
@@ -88,8 +89,7 @@ TEST(ideologies_tests, preparse_test) {
 }
 
 TEST(ideologies_tests, single_ideology) {
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 	graphics::texture_manager tex;
 
 	preparse_test_files real_fs;
@@ -158,15 +158,14 @@ TEST(ideologies_tests, single_ideology) {
 }
 
 TEST(ideologies_tests, full_file_parse) {
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 	graphics::texture_manager tex;
 
 	preparse_test_files real_fs;
 	file_system f;
 
 	f.set_root(RANGE(u"F:\\test1"));
-	auto result = pre_parse_ideologies(sm.ideologies_m, f.get_root(), [&ts](const char* s, const char*e) { return text_data::get_thread_safe_text_handle(ts, s, e); });
+	auto result = pre_parse_ideologies(sm.ideologies_m, f.get_root(), sm.gui_m.text_data_sequences);
 	parse_ideologies(sm, result);
 
 	EXPECT_EQ(ideology_tag(0), sm.ideologies_m.conservative_ideology);

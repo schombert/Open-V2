@@ -44,15 +44,13 @@ namespace ideologies {
 		ideology_tag conservative_ideology;
 	};
 
-	using text_handle_lookup = std::function<text_data::text_tag(const char*, const char*)>;
-
 	struct parsing_environment;
 
 	class parsing_state {
 	public:
 		std::unique_ptr<parsing_environment> impl;
 
-		parsing_state(const text_handle_lookup& tl, ideologies_manager& m);
+		parsing_state(text_data::text_sequences& tl, ideologies_manager& m);
 		parsing_state(parsing_state&&) noexcept;
 		~parsing_state();
 	};
@@ -60,7 +58,7 @@ namespace ideologies {
 	parsing_state pre_parse_ideologies(
 		ideologies_manager& manager,
 		const directory& source_directory,
-		const text_handle_lookup& text_function);
+		text_data::text_sequences& text_function);
 	void parse_single_ideology(scenario::scenario_manager& s, ideology_tag tag, const token_group* start, const token_group* end);
 	void parse_ideologies(scenario::scenario_manager& s, const parsing_state& state);
 }

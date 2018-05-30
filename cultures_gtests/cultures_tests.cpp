@@ -7,10 +7,6 @@
 
 using namespace cultures;
 
-inline auto fake_text_handle_lookup() {
-	return[i = 0ui16](const char*, const char*) mutable { return text_data::text_tag(i++); };
-}
-
 class test_files {
 public:
 	directory_representation f_root = directory_representation(u"F:");
@@ -178,7 +174,8 @@ TEST(cultures_tests, religion_file) {
 	f.set_root(RANGE(u"F:\\test1"));
 
 	culture_manager m;
-	parse_religions(m, f.get_root(), fake_text_handle_lookup());
+	text_data::text_sequences tex;
+	parse_religions(m, f.get_root(), tex);
 
 	EXPECT_EQ(3ui64, m.religions.size());
 	EXPECT_EQ(3ui64, m.named_religion_index.size());
@@ -213,9 +210,10 @@ TEST(cultures_tests, cultures_file) {
 	f.set_root(RANGE(u"F:\\test1"));
 
 	culture_manager m;
+	text_data::text_sequences tex;
 
 	parse_national_tags(m, f.get_root());
-	parse_cultures(m, tm, f.get_root(), fake_text_handle_lookup());
+	parse_cultures(m, tm, f.get_root(), tex);
 
 	EXPECT_EQ(1ui64, m.culture_container.size());
 	EXPECT_EQ(1ui64, m.culture_groups.size());
@@ -250,9 +248,10 @@ TEST(cultures_tests, multiple_cultures_tests) {
 	f.set_root(RANGE(u"F:\\test2"));
 
 	culture_manager m;
+	text_data::text_sequences tex;
 
 	parse_national_tags(m, f.get_root());
-	parse_cultures(m, tm, f.get_root(), fake_text_handle_lookup());
+	parse_cultures(m, tm, f.get_root(), tex);
 
 	EXPECT_EQ(3ui64, m.culture_container.size());
 	EXPECT_EQ(2ui64, m.culture_groups.size());
@@ -325,9 +324,10 @@ TEST(cultures_tests, leader_pictures) {
 	f.set_root(RANGE(u"F:\\test3"));
 
 	culture_manager m;
+	text_data::text_sequences tex;
 
 	parse_national_tags(m, f.get_root());
-	parse_cultures(m, tm, f.get_root(), fake_text_handle_lookup());
+	parse_cultures(m, tm, f.get_root(), tex);
 
 	EXPECT_NE(graphics::texture_tag(), m.no_leader);
 	EXPECT_EQ(6ui64, m.leader_pictures.size());

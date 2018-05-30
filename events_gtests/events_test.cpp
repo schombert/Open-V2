@@ -71,9 +71,7 @@ TEST(event_tests, preparse_events) {
 }
 
 TEST(event_tests, parse_single_event) {
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
-	graphics::texture_manager tex;
+	scenario::scenario_manager sm;
 	event_creation_manager ecm;
 
 	test_files real_fs;
@@ -124,7 +122,6 @@ TEST(event_tests, parse_single_event) {
 
 		const auto tag_a = parse_single_event(
 			sm,
-			tex,
 			ecm,
 			f.get_root(),
 			triggers::trigger_scope_state{ triggers::trigger_slot_contents::nation, triggers::trigger_slot_contents::nation, triggers::trigger_slot_contents::nation, false },
@@ -145,14 +142,12 @@ TEST(event_tests, parse_single_event) {
 		EXPECT_EQ(text_data::text_tag(), sm.event_m.event_container[event_tag(0)].options[2].name);
 		EXPECT_EQ(uint8_t(event::fire_only_once | event::is_major), sm.event_m.event_container[event_tag(0)].flags);
 		EXPECT_NE(graphics::texture_tag(), sm.event_m.event_container[event_tag(0)].picture);
-		EXPECT_EQ(std::string("F:\\test1\\gfx\\pictures\\events\\pic.tga"), tex.retrieve_by_key(sm.event_m.event_container[event_tag(0)].picture).filename);
+		EXPECT_EQ(std::string("F:\\test1\\gfx\\pictures\\events\\pic.tga"), sm.gui_m.textures.retrieve_by_key(sm.event_m.event_container[event_tag(0)].picture).filename);
 	}
 }
 
 TEST(event_tests, parse_or_defer) {
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
-	graphics::texture_manager tex;
+	scenario::scenario_manager sm;
 	event_creation_manager ecm;
 
 	test_files real_fs;
@@ -203,7 +198,6 @@ TEST(event_tests, parse_or_defer) {
 
 		const auto tag_a = parse_or_defer_event(
 			sm,
-			tex,
 			ecm,
 			f.get_root(),
 			triggers::trigger_scope_state{ triggers::trigger_slot_contents::nation, triggers::trigger_slot_contents::nation, triggers::trigger_slot_contents::nation, false },
@@ -224,7 +218,7 @@ TEST(event_tests, parse_or_defer) {
 		EXPECT_EQ(text_data::text_tag(), sm.event_m.event_container[event_tag(0)].options[2].name);
 		EXPECT_EQ(uint8_t(event::is_major), sm.event_m.event_container[event_tag(0)].flags);
 		EXPECT_NE(graphics::texture_tag(), sm.event_m.event_container[event_tag(0)].picture);
-		EXPECT_EQ(std::string("F:\\test1\\gfx\\pictures\\events\\pic.tga"), tex.retrieve_by_key(sm.event_m.event_container[event_tag(0)].picture).filename);
+		EXPECT_EQ(std::string("F:\\test1\\gfx\\pictures\\events\\pic.tga"), sm.gui_m.textures.retrieve_by_key(sm.event_m.event_container[event_tag(0)].picture).filename);
 
 		EXPECT_EQ(parse_results.data(), ecm.event_sources[1].start);
 		EXPECT_EQ(parse_results.data() + parse_results.size(), ecm.event_sources[1].end);
@@ -273,7 +267,6 @@ TEST(event_tests, parse_or_defer) {
 
 		const auto tag_a = parse_or_defer_event(
 			sm,
-			tex,
 			ecm,
 			f.get_root(),
 			triggers::trigger_scope_state{ triggers::trigger_slot_contents::nation, triggers::trigger_slot_contents::nation, triggers::trigger_slot_contents::nation, false },
@@ -288,8 +281,7 @@ TEST(event_tests, parse_or_defer) {
 }
 
 TEST(event_tests, event_file) {
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 	graphics::texture_manager tex;
 	event_creation_manager ecm;
 
@@ -309,7 +301,6 @@ TEST(event_tests, event_file) {
 
 		parse_event_file(
 			sm,
-			tex,
 			ecm,
 			f.get_root(),
 			parse_results.data(), parse_results.data() + parse_results.size());
@@ -321,9 +312,7 @@ TEST(event_tests, event_file) {
 }
 
 TEST(event_tests, event_files) {
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
-	graphics::texture_manager tex;
+	scenario::scenario_manager sm;
 	event_creation_manager ecm;
 
 	test_files real_fs;
@@ -334,7 +323,6 @@ TEST(event_tests, event_files) {
 	{
 		parse_event_files(
 			sm,
-			tex,
 			ecm,
 			f.get_root());
 
@@ -345,9 +333,7 @@ TEST(event_tests, event_files) {
 }
 
 TEST(event_tests, triggered_event_parsing) {
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
-	graphics::texture_manager tex;
+	scenario::scenario_manager sm;
 	event_creation_manager ecm;
 
 	test_files real_fs;
@@ -358,7 +344,6 @@ TEST(event_tests, triggered_event_parsing) {
 	{
 		parse_event_files(
 			sm,
-			tex,
 			ecm,
 			f.get_root());
 
@@ -378,7 +363,6 @@ TEST(event_tests, triggered_event_parsing) {
 
 		commit_pending_triggered_events(
 			sm,
-			tex,
 			ecm,
 			f.get_root());
 
@@ -395,9 +379,7 @@ TEST(event_tests, triggered_event_parsing) {
 }
 
 TEST(event_tests, on_actions_parsing) {
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
-	graphics::texture_manager tex;
+	scenario::scenario_manager sm;
 	event_creation_manager ecm;
 
 	test_files real_fs;
@@ -408,7 +390,6 @@ TEST(event_tests, on_actions_parsing) {
 	{
 		parse_event_files(
 			sm,
-			tex,
 			ecm,
 			f.get_root());
 
@@ -420,7 +401,6 @@ TEST(event_tests, on_actions_parsing) {
 
 		commit_pending_triggered_events(
 			sm,
-			tex,
 			ecm,
 			f.get_root());
 
@@ -441,9 +421,7 @@ TEST(event_tests, on_actions_parsing) {
 }
 
 TEST(event_tests, single_decision) {
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
-	graphics::texture_manager tex;
+	scenario::scenario_manager sm;
 	event_creation_manager ecm;
 
 	test_files real_fs;
@@ -466,7 +444,6 @@ TEST(event_tests, single_decision) {
 		const auto d_tag = parse_decision(
 			sm,
 			ecm,
-			tex,
 			f.get_root(),
 			parse_results.data(), parse_results.data() + parse_results.size());
 
@@ -484,8 +461,7 @@ TEST(event_tests, single_decision) {
 }
 
 TEST(event_tests, decision_file) {
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 	graphics::texture_manager tex;
 	event_creation_manager ecm;
 
@@ -514,7 +490,6 @@ TEST(event_tests, decision_file) {
 		parse_decision_file(
 			sm,
 			ecm,
-			tex,
 			f.get_root(),
 			parse_results.data(), parse_results.data() + parse_results.size());
 
@@ -532,15 +507,13 @@ TEST(event_tests, decision_file) {
 		EXPECT_NE(text_data::text_tag(), sm.event_m.decision_container[decision_tag(0)].title);
 		EXPECT_NE(sm.event_m.decision_container[decision_tag(0)].body, sm.event_m.decision_container[decision_tag(0)].title);
 
-		EXPECT_EQ(ts.key_to_sequence_map.find("name_a_desc")->second, sm.event_m.decision_container[decision_tag(0)].body);
-		EXPECT_EQ(ts.key_to_sequence_map.find("name_b_title")->second, sm.event_m.decision_container[decision_tag(1)].title);
+		EXPECT_EQ(sm.gui_m.text_data_sequences.key_to_sequence_map.find("name_a_desc")->second, sm.event_m.decision_container[decision_tag(0)].body);
+		EXPECT_EQ(sm.gui_m.text_data_sequences.key_to_sequence_map.find("name_b_title")->second, sm.event_m.decision_container[decision_tag(1)].title);
 	}
 }
 
 TEST(event_tests, decision_files) {
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
-	graphics::texture_manager tex;
+	scenario::scenario_manager sm;
 	event_creation_manager ecm;
 
 	test_files real_fs;
@@ -552,7 +525,6 @@ TEST(event_tests, decision_files) {
 		parse_decision_files(
 			sm,
 			ecm,
-			tex,
 			f.get_root());
 
 		EXPECT_EQ(3ui64, sm.event_m.decision_container.size());

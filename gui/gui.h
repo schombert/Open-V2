@@ -600,6 +600,7 @@ namespace ui {
 		gui_object_tag focus;
 		gui_object_tag tooltip;
 
+		gui_manager();
 		gui_manager(int32_t width, int32_t height);
 		
 		void on_resize(const resize&);

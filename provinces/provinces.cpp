@@ -6,7 +6,7 @@
 
 namespace provinces {
 	struct parsing_environment {
-		text_handle_lookup text_lookup;
+		text_data::text_sequences& text_lookup;
 
 		province_manager& manager;
 		modifiers::modifiers_manager& mod_manager;
@@ -15,12 +15,12 @@ namespace provinces {
 		parsed_data climate_file;
 		parsed_data terrain_file;
 
-		parsing_environment(const text_handle_lookup& tl, province_manager& m, modifiers::modifiers_manager& mm) :
+		parsing_environment(text_data::text_sequences& tl, province_manager& m, modifiers::modifiers_manager& mm) :
 			text_lookup(tl), manager(m), mod_manager(mm) {
 		}
 	};
 
-	parsing_state::parsing_state(const text_handle_lookup& tl, province_manager& m, modifiers::modifiers_manager& mm) :
+	parsing_state::parsing_state(text_data::text_sequences& tl, province_manager& m, modifiers::modifiers_manager& mm) :
 		impl(std::make_unique<parsing_environment>(tl, m, mm)) {
 	}
 	parsing_state::~parsing_state() {}
@@ -56,13 +56,13 @@ namespace provinces {
 	};
 
 	struct terrain_parsing_environment {
-		text_handle_lookup text_lookup;
+		text_data::text_sequences& text_lookup;
 
 		province_manager& manager;
 		modifiers::modifiers_manager& mod_manager;
 		boost::container::flat_map<uint32_t, modifiers::provincial_modifier_tag>& terrain_color_map;
 
-		terrain_parsing_environment(const text_handle_lookup& tl, province_manager& m, modifiers::modifiers_manager& mm, boost::container::flat_map<uint32_t, modifiers::provincial_modifier_tag>& tcm) :
+		terrain_parsing_environment(text_data::text_sequences& tl, province_manager& m, modifiers::modifiers_manager& mm, boost::container::flat_map<uint32_t, modifiers::provincial_modifier_tag>& tcm) :
 			text_lookup(tl), manager(m), mod_manager(mm), terrain_color_map(tcm) {
 		}
 	};
@@ -111,7 +111,7 @@ namespace provinces {
 		}
 
 		void add_category(const std::pair<token_and_type, modifiers::provincial_modifier_tag>& p) {
-			const auto name = env.text_lookup(p.first.start, p.first.end);
+			const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, p.first.start, p.first.end);
 			env.mod_manager.named_provincial_modifiers_index.emplace(name, p.second);
 			env.mod_manager.provincial_modifiers[p.second].name = name;
 		}
@@ -151,7 +151,7 @@ namespace provinces {
 		parsing_environment& env;
 		region_file(parsing_environment& e) : env(e) {}
 		void add_state(const std::pair<token_and_type, state_tag>& p) {
-			const auto name = env.text_lookup(p.first.start, p.first.end);
+			const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, p.first.start, p.first.end);
 			env.manager.state_names[p.second] = name;
 			env.manager.named_states_index.emplace(name, p.second);
 		}
@@ -185,7 +185,7 @@ namespace provinces {
 		continents_pre_parse_file(parsing_environment& e) : env(e) {}
 
 		void add_continent(const std::pair<token_and_type, modifiers::provincial_modifier_tag>& p) {
-			const auto name = env.text_lookup(p.first.start, p.first.end);
+			const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, p.first.start, p.first.end);
 			env.mod_manager.named_provincial_modifiers_index.emplace(name, p.second);
 			env.mod_manager.provincial_modifiers[p.second].name = name;
 		}
@@ -221,7 +221,7 @@ namespace provinces {
 		climate_pre_parse_file(parsing_environment& e) : env(e) {}
 
 		void add_climate(const std::pair<token_and_type, std::vector<uint16_t>>& p) {
-			const auto name = env.text_lookup(p.first.start, p.first.end);
+			const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, p.first.start, p.first.end);
 			const auto tag = get_or_make_prov_modifier(name, env.mod_manager);
 			for (auto i : p.second) {
 				env.manager.province_container[province_tag(i)].climate = tag;

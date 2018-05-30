@@ -554,7 +554,7 @@ namespace text_data {
 		}
 	}
 
-	text_tag get_thread_safe_existing_text_handle(text_data::text_sequences& container, const char* key_start, const char* key_end) {
+	text_tag get_thread_safe_existing_text_handle(const text_data::text_sequences& container, const char* key_start, const char* key_end) {
 		if (key_start == key_end)
 			return text_tag();
 
@@ -576,7 +576,7 @@ namespace text_data {
 		}
 	}
 
-	text_tag get_existing_text_handle(text_data::text_sequences& container, const char* key_start, const char* key_end) {
+	text_tag get_existing_text_handle(const text_data::text_sequences& container, const char* key_start, const char* key_end) {
 		if (key_start == key_end)
 			return text_tag();
 

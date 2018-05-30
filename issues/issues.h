@@ -37,6 +37,7 @@ namespace issues {
 		static constexpr uint32_t pop_open_factory_invest = 0x00020000;
 		static constexpr uint32_t allow_foreign_investment = 0x00040000;
 		static constexpr uint32_t slavery_allowed = 0x00080000;
+		static constexpr uint32_t build_railway = 0x04000000;
 
 		static constexpr uint32_t citizens_rights_mask = 0x00300000;
 
@@ -114,15 +115,13 @@ namespace issues {
 		option_tag jingoism;
 	};
 
-	using text_handle_lookup = std::function<text_data::text_tag(const char*, const char*)>;
-
 	struct parsing_environment;
 
 	class parsing_state {
 	public:
 		std::unique_ptr<parsing_environment> impl;
 
-		parsing_state(const text_handle_lookup& tl, issues_manager& m);
+		parsing_state(text_data::text_sequences& tl, issues_manager& m);
 		parsing_state(parsing_state&&) noexcept;
 		~parsing_state();
 	};
@@ -130,7 +129,7 @@ namespace issues {
 	parsing_state pre_parse_issues(
 		issues_manager& manager,
 		const directory& source_directory,
-		const text_handle_lookup& text_function);
+		text_data::text_sequences& text_function);
 
 	rules_set read_rules(const token_group* start, const token_group* end);
 	void read_issue_options(

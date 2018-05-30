@@ -2,12 +2,12 @@
 #include "Parsers\\parsers.hpp"
 #include "object_parsing\\object_parsing.hpp"
 #include "modifiers\\modifiers.h"
+#include "simple_fs\\simple_fs.h"
 
 namespace technologies {
 	struct parsing_environment{
-		text_handle_lookup text_lookup;
-		tech_file_handler file_handler;
-
+		text_data::text_sequences& text_lookup;
+		const directory& tech_directory;
 		technologies_manager& manager;
 		modifiers::modifiers_manager& mod_manager;
 
@@ -15,23 +15,23 @@ namespace technologies {
 		std::vector<std::pair<tech_category_tag, parsed_data>> tech_files_parse_trees;
 		std::vector<parsed_data> inventions_parse_trees;
 
-		parsing_environment(const text_handle_lookup& tl, const tech_file_handler& fh, technologies_manager& m, modifiers::modifiers_manager& mm) :
-			text_lookup(tl), file_handler(fh), manager(m), mod_manager(mm) {
+		parsing_environment(text_data::text_sequences& tl, const directory& tech_root, technologies_manager& m, modifiers::modifiers_manager& mm) :
+			text_lookup(tl), tech_directory(tech_root), manager(m), mod_manager(mm) {
 		}
 	};
 
-	parsing_state::parsing_state(const text_handle_lookup& tl, const tech_file_handler& fh, technologies_manager& m, modifiers::modifiers_manager& mm) :
-		impl(std::make_unique<parsing_environment>(tl, fh, m, mm)) {}
+	parsing_state::parsing_state(text_data::text_sequences& tl, const directory& tech_directory, technologies_manager& m, modifiers::modifiers_manager& mm) :
+		impl(std::make_unique<parsing_environment>(tl, tech_directory, m, mm)) {}
 	parsing_state::~parsing_state() {}
 
 	parsing_state::parsing_state(parsing_state&& o) noexcept : impl(std::move(o.impl)) {}
 
 	struct tech_file_parsing_environment {
 		tech_category_tag governing_category;
-		text_handle_lookup text_lookup;
+		text_data::text_sequences& text_lookup;
 		technologies_manager& manager;
 
-		tech_file_parsing_environment(tech_category_tag gc, const text_handle_lookup& tl, technologies_manager& m) :
+		tech_file_parsing_environment(tech_category_tag gc, text_data::text_sequences& tl, technologies_manager& m) :
 			governing_category(gc), text_lookup(tl), manager(m) {
 		}
 	};
@@ -49,7 +49,7 @@ namespace technologies {
 		folder(parsing_environment& e) : env(e) {}
 
 		void add_sub_category(const token_and_type& t) {
-			subcategories.push_back(env.text_lookup(t.start, t.end));
+			subcategories.push_back(text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end));
 		}
 
 		void commit_sub_categories(tech_category_tag folder_tag) const {
@@ -72,7 +72,7 @@ namespace technologies {
 		folders(parsing_environment& e) : env(e) {}
 
 		void add_folder(const std::pair<token_and_type, folder>& fp) {
-			const auto category_name = env.text_lookup(fp.first.start, fp.first.end);
+			const auto category_name = text_data::get_thread_safe_text_handle(env.text_lookup, fp.first.start, fp.first.end);
 			const auto new_category_tag = env.manager.technology_categories.emplace_back();
 			auto& new_category = env.manager.technology_categories[new_category_tag];
 
@@ -86,8 +86,25 @@ namespace technologies {
 			env.tech_files_parse_trees.emplace_back();
 			auto& file_pair = env.tech_files_parse_trees.back();
 			file_pair.first = new_category_tag;
+			auto& result = file_pair.second;
 
-			env.file_handler(fp.first, new_category_tag, file_pair.second, env.text_lookup, env.manager);
+			//read folder file
+
+			std::u16string folder_file(fp.first.start, fp.first.end);
+			folder_file += u".txt";
+
+			const auto tech_file = env.tech_directory.open_file(folder_file);
+
+			if(tech_file) {
+				const auto sz = tech_file->size();
+				result.parse_data = std::unique_ptr<char[]>(new char[sz]);
+
+				tech_file->read_to_buffer(result.parse_data.get(), sz);
+				parse_pdx_file(file_pair.second.parse_results, result.parse_data.get(), result.parse_data.get() + sz);
+
+				if(result.parse_results.size() != 0)
+					pre_parse_single_tech_file(new_category_tag, env.text_lookup, env.manager, result.parse_results.data(), result.parse_results.data() + result.parse_results.size());
+			}
 		}
 	};
 
@@ -106,7 +123,7 @@ namespace technologies {
 	};
 
 	inline std::pair<text_data::text_tag, modifiers::national_modifier_tag> read_school_modifier(const token_group* start, const token_group* end, const token_and_type& t, parsing_environment& env) {
-		const auto name = env.text_lookup(t.start, t.end);
+		const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
 		return std::make_pair(name, modifiers::parse_national_modifier(name, env.mod_manager, start, end));
 	}
 
@@ -127,7 +144,7 @@ namespace technologies {
 		specific_tech_file(const tech_file_parsing_environment& e) : env(e) {}
 
 		void insert_tech(const token_and_type& t) {
-			const auto tech_name = env.text_lookup(t.start, t.end);
+			const auto tech_name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
 			const auto tag = env.manager.technologies_container.emplace_back();
 			auto& new_tech = env.manager.technologies_container[tag];
 
@@ -147,7 +164,7 @@ namespace technologies {
 		inventions_pre_parse_file(parsing_environment& e) : env(e) {}
 
 		void add_invention(const token_and_type& t) {
-			const auto name = env.text_lookup(t.start, t.end);
+			const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
 			const auto tag = env.manager.inventions.emplace_back();
 			auto& new_i = env.manager.inventions[tag];
 
@@ -221,48 +238,21 @@ namespace technologies {
 		END_TYPE
 	END_DOMAIN;
 
-	void parse_single_tech_file(tech_category_tag cat, const text_handle_lookup& tl, technologies_manager& m, std::vector<token_group>& results) {
+	void pre_parse_single_tech_file(tech_category_tag cat, text_data::text_sequences& tl, technologies_manager& m, const token_group* start, const token_group* end) {
 		tech_file_parsing_environment e(cat, tl, m);
-		if (results.size() > 0)
-			parse_object<specific_tech_file, tech_subfile_pre_parsing_domain>(&results[0], &results[0] + results.size(), e);
+		parse_object<specific_tech_file, tech_subfile_pre_parsing_domain>(start, end, e);
 	}
 
 	void parse_main_technology_file(
 		technologies_manager& tech_manager,
 		std::vector<token_group>& parse_results,
-		const text_handle_lookup& text_function,
-		const tech_file_handler& file_function,
+		text_data::text_sequences& text_function,
+		const directory& tech_root,
 		modifiers::modifiers_manager& mod_manager) {
 
-		parsing_environment e(text_function, file_function, tech_manager, mod_manager);
+		parsing_environment e(text_function, tech_root, tech_manager, mod_manager);
 		if (parse_results.size() > 0)
 			parse_object<technologies_file, tech_parsing_domain>(&parse_results[0], &parse_results[0] + parse_results.size(), e);
-	}
-
-	tech_file_handler make_subfile_perparse_handler(directory tech_directory) {
-		return [dir = tech_directory](
-			const token_and_type& name,
-			tech_category_tag cat,
-			parsed_data& results,
-			const text_handle_lookup& tl,
-			technologies_manager& m) {
-
-			std::u16string folder_file(name.start, name.end);
-			folder_file += u".txt";
-
-			const auto tech_file = dir.open_file(folder_file);
-
-			if (tech_file) {
-				const auto sz = tech_file->size();
-				results.parse_data = std::unique_ptr<char[]>(new char[sz]);
-
-				tech_file->read_to_buffer(results.parse_data.get(), sz);
-
-				parse_pdx_file(results.parse_results, results.parse_data.get(), results.parse_data.get() + sz);
-
-				parse_single_tech_file(cat, tl, m, results.parse_results);
-			}
-		};
 	}
 
 	void parse_technologies(

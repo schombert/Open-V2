@@ -13,6 +13,7 @@
 #include "military\\military.h"
 #include "events\\events.h"
 #include "triggers\\triggers.h"
+#include "gui\\gui.h"
 
 namespace scenario {
 	class scenario_manager {
@@ -31,8 +32,8 @@ namespace scenario {
 		events::event_manager event_m;
 		triggers::trigger_manager trigger_m;
 
-		text_data::text_sequences& text_m;
+		ui::gui_manager gui_m;
 
-		scenario_manager(text_data::text_sequences& tm) : text_m(tm) {}
+		scenario_manager() {}
 	};
 }

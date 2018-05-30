@@ -6,17 +6,6 @@ using namespace economy;
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
-inline auto fake_text_handle_lookup(std::map<std::string, uint16_t>& values) {
-	return[j = 0ui16, &values](const char* s, const char* e) mutable {
-		const auto i = std::string(s, e);
-		if (values.find(i) == values.end()) {
-			values[i] = j++;
-		} 
-		return text_data::text_tag(values[i]);
-	};
-}
-
-
 const char gf3[] = 	"military_goods   = {\r\n"
 		"money_good = {\r\n"
 		"cost = 8\r\n"
@@ -169,9 +158,10 @@ TEST(economy_tests, single_good) {
 	f.set_root(RANGE(u"F:\\test1"));
 
 	economic_scenario m;
+	text_data::text_sequences tex;
 	std::map<std::string, uint16_t> v;
 
-	economy::read_goods(m, f.get_root(), fake_text_handle_lookup(v));
+	economy::read_goods(m, f.get_root(), tex);
 
 	EXPECT_EQ(1ui64, m.goods.size());
 	EXPECT_EQ(1ui64, m.good_type_names.size());
@@ -195,9 +185,10 @@ TEST(economy_tests, two_goods) {
 	f.set_root(RANGE(u"F:\\test2"));
 
 	economic_scenario m;
+	text_data::text_sequences tex;
 	std::map<std::string, uint16_t> v;
 
-	economy::read_goods(m, f.get_root(), fake_text_handle_lookup(v));
+	economy::read_goods(m, f.get_root(), tex);
 
 	EXPECT_EQ(2ui64, m.goods.size());
 	EXPECT_EQ(1ui64, m.good_type_names.size());
@@ -230,9 +221,10 @@ TEST(economy_tests, two_good_categories) {
 	f.set_root(RANGE(u"F:\\test3"));
 
 	economic_scenario m;
+	text_data::text_sequences tex;
 	std::map<std::string, uint16_t> v;
 
-	economy::read_goods(m, f.get_root(), fake_text_handle_lookup(v));
+	economy::read_goods(m, f.get_root(), tex);
 
 	EXPECT_EQ(3ui64, m.goods.size());
 	EXPECT_EQ(2ui64, m.good_type_names.size());
@@ -278,10 +270,10 @@ TEST(economy_tests, single_factory) {
 	const char pt[] = "aeroplane_factory";
 
 	economic_scenario m;
-	std::map<std::string, uint16_t> v;
+	text_data::text_sequences tex;
 
-	economy::read_goods(m, f.get_root(), fake_text_handle_lookup(v));
-	const auto map = economy::read_buildings(m, f.get_root(), fake_text_handle_lookup(v));
+	economy::read_goods(m, f.get_root(), tex);
+	const auto map = economy::read_buildings(m, f.get_root(), tex);
 
 	EXPECT_EQ(1ui64, m.factory_types.size());
 	EXPECT_EQ(1ui64, map.size());
@@ -293,7 +285,7 @@ TEST(economy_tests, single_factory) {
 	EXPECT_EQ(factory_type_tag(0), fa.id);
 	EXPECT_EQ(factory_type_tag(0), m.named_factory_types_index[fa.name]);
 	EXPECT_EQ(600.0, m.building_costs.get(factory_type_tag(0), goods_tag(0)));
-	const auto pt_tag = fake_text_handle_lookup(v)(RANGE(pt));
+	const auto pt_tag = text_data::get_thread_safe_text_handle(tex, RANGE(pt));
 	EXPECT_EQ(factory_type_tag(0), map.find(pt_tag)->second);
 }
 
@@ -304,10 +296,10 @@ TEST(economy_tests, special_buildings) {
 	f.set_root(RANGE(u"F:\\test4"));
 
 	economic_scenario m;
-	std::map<std::string, uint16_t> v;
+	text_data::text_sequences tex;
 
-	economy::read_goods(m, f.get_root(), fake_text_handle_lookup(v));
-	const auto map = economy::read_buildings(m, f.get_root(), fake_text_handle_lookup(v));
+	economy::read_goods(m, f.get_root(), tex);
+	const auto map = economy::read_buildings(m, f.get_root(), tex);
 
 	EXPECT_EQ(1ui64, m.factory_types.size());
 	EXPECT_EQ(1ui64, map.size());

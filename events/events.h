@@ -106,33 +106,28 @@ namespace events {
 	token_and_type get_issue_group_for_event(const token_group* start, const token_group* end);
 	event_tag parse_single_event(
 		scenario::scenario_manager& s,
-		graphics::texture_manager& t,
 		event_creation_manager& ecm,
 		const directory& pictures_root,
 		const triggers::trigger_scope_state& scope,
 		const token_group* start, const token_group* end);
 	event_tag parse_or_defer_event(
 		scenario::scenario_manager& s,
-		graphics::texture_manager& t,
 		event_creation_manager& ecm,
 		const directory& pictures_root,
 		const triggers::trigger_scope_state& scope,
 		const token_group* start, const token_group* end);
 	void parse_event_file(
 		scenario::scenario_manager& s,
-		graphics::texture_manager& t,
 		event_creation_manager& ecm,
 		const directory& pictures_root,
 		const token_group* start,
 		const token_group* end);
 	void parse_event_files(
 		scenario::scenario_manager& s,
-		graphics::texture_manager& t,
 		event_creation_manager& ecm,
 		const directory& source_directory);
 	void commit_pending_triggered_events(
 		scenario::scenario_manager& s,
-		graphics::texture_manager& t,
 		event_creation_manager& ecm,
 		const directory& pictures_root);
 	void parse_on_actions_file(
@@ -142,20 +137,17 @@ namespace events {
 	decision_tag parse_decision(
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
-		graphics::texture_manager& t,
 		const directory& pictures_root,
 		const token_group* start,
 		const token_group* end);
 	void parse_decision_file(
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
-		graphics::texture_manager& t,
 		const directory& pictures_root,
 		const token_group* start,
 		const token_group* end);
 	void parse_decision_files(
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
-		graphics::texture_manager& t,
 		const directory& root);
 }

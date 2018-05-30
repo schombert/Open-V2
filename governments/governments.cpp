@@ -5,11 +5,11 @@
 
 namespace governments {
 	struct parsing_environment {
-		text_handle_lookup text_lookup;
+		text_data::text_sequences& text_lookup;
 		governments_manager& manager;
 		const ideologies::ideologies_manager& ideologies_source;
 
-		parsing_environment(const text_handle_lookup& tl, governments_manager& m, const ideologies::ideologies_manager& im) :
+		parsing_environment(text_data::text_sequences& tl, governments_manager& m, const ideologies::ideologies_manager& im) :
 			text_lookup(tl), manager(m), ideologies_source(im) {
 		}
 	};
@@ -26,7 +26,7 @@ namespace governments {
 			flag = text_to_flag_type(t.start, t.end);
 		}
 		void set_ideology(const std::pair<token_and_type, bool> & p) {
-			const auto ideology_name = env.text_lookup(p.first.start, p.first.end);
+			const auto ideology_name = text_data::get_thread_safe_text_handle(env.text_lookup, p.first.start, p.first.end);
 			if (is_valid_index(ideology_name)) {
 				const auto itag = env.ideologies_source.named_ideology_index.find(ideology_name);
 				if (itag != env.ideologies_source.named_ideology_index.end() && is_valid_index(itag->second))
@@ -39,7 +39,7 @@ namespace governments {
 		governments_file(parsing_environment& e) : env(e) {}
 
 		void add_government(const std::pair<token_and_type, government_builder>& p) {
-			const auto gname = env.text_lookup(p.first.start, p.first.end);
+			const auto gname = text_data::get_thread_safe_text_handle(env.text_lookup, p.first.start, p.first.end);
 			auto& dest = env.manager.governments_container[p.second.id];
 			dest = p.second;
 			dest.name = gname;
@@ -103,7 +103,7 @@ namespace governments {
 	void read_governments(
 		governments_manager& manager,
 		const directory& source_directory,
-		const text_handle_lookup& text_function,
+		text_data::text_sequences& text_function,
 		const ideologies::ideologies_manager& ideologies_source) {
 
 		manager.permitted_ideologies.reset(static_cast<uint32_t>(ideologies_source.ideology_container.size()));

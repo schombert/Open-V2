@@ -89,7 +89,7 @@ namespace text_data {
 
 		boost::container::flat_map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci> key_to_sequence_map;
 
-		std::shared_mutex text_data_mutex;
+		mutable std::shared_mutex text_data_mutex;
 
 		text_sequences() : key_to_sequence_map(vector_backed_string_less_ci(key_data)) {}
 	};
@@ -111,8 +111,8 @@ namespace text_data {
 
 	text_tag get_text_handle(text_data::text_sequences& container, const char* key_start, const char* key_end);
 	text_tag get_thread_safe_text_handle(text_data::text_sequences& container, const char* key_start, const char* key_end);
-	text_tag get_existing_text_handle(text_data::text_sequences& container, const char* key_start, const char* key_end);
-	text_tag get_thread_safe_existing_text_handle(text_data::text_sequences& container, const char* key_start, const char* key_end);
+	text_tag get_existing_text_handle(const text_data::text_sequences& container, const char* key_start, const char* key_end);
+	text_tag get_thread_safe_existing_text_handle(const text_data::text_sequences& container, const char* key_start, const char* key_end);
 
 	void load_text_sequences_from_directory(const directory& source_directory, text_data::text_sequences& container);
 }

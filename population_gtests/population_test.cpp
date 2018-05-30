@@ -21,25 +21,6 @@ public:
 	}
 };
 
-inline auto fake_text_handle_lookup(int& outer_counter) {
-	return[i = 0ui16, &outer_counter](const char* s, const char* e) mutable {
-		std::string temp(s, e);
-		if (temp != "bureaucrats" && temp != "clergy" && temp != "aristocrats")
-			++outer_counter;
-		return text_data::text_tag(i++);
-	};
-}
-
-inline auto fake_text_handle_lookup_b(std::map<std::string, text_data::text_tag>& values) {
-	return[j = 0ui16, &values](const char* s, const char* e) mutable {
-		const auto i = std::string(s, e);
-		if (values.find(i) == values.end()) {
-			values[i] = text_data::text_tag(j++);
-		}
-		return values[i];
-	};
-}
-
 using namespace population;
 
 TEST(population_tests, test_pre_parse_file_scan) {
@@ -50,7 +31,8 @@ TEST(population_tests, test_pre_parse_file_scan) {
 	f.set_root(RANGE(u"F:"));
 
 	int bad_names = 0;
-	pre_parse_pop_types(manager, f.get_root(), fake_text_handle_lookup(bad_names));
+	text_data::text_sequences tex;
+	pre_parse_pop_types(manager, f.get_root(), tex);
 
 	EXPECT_EQ(0, bad_names);
 	EXPECT_EQ(3ui32, manager.count_poptypes);
@@ -68,8 +50,8 @@ TEST(population_tests, test_pre_parse_rebel_types) {
 	file_system f;
 	f.set_root(RANGE(u"F:"));
 
-	std::map<std::string, text_data::text_tag> text;
-	parsing_state env(fake_text_handle_lookup_b(text), manager);
+	text_data::text_sequences tex;
+	parsing_state env(tex, manager);
 
 	pre_parse_rebel_types(env, f.get_root());
 

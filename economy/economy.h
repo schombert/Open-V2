@@ -123,15 +123,13 @@ namespace economy {
 		boost::container::flat_map<text_data::text_tag, factory_type_tag> named_factory_types_index;
 	};
 
-	using text_handle_lookup = std::function<text_data::text_tag(const char*, const char*)>;
-
 	void read_goods(
 		economic_scenario& manager,
 		const directory& source_directory,
-		const text_handle_lookup& text_function);
+		text_data::text_sequences& text_function);
 	boost::container::flat_map<text_data::text_tag, factory_type_tag> read_buildings(
 		economic_scenario& manager,
 		const directory& source_directory,
-		const text_handle_lookup& text_function
+		text_data::text_sequences& text_function
 	); //invoke after reading goods, returns map of production type name -> factory building type
 }

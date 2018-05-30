@@ -59,6 +59,9 @@
     <ProjectReference Include="..\Parsers\Parsers.vcxproj">
       <Project>{c8b537f7-6df3-4685-a7d7-0f30ce18176d}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\text_data\text_data.vcxproj">
+      <Project>{ab9203fb-2ba5-4495-8f9e-78c21f15a8c6}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

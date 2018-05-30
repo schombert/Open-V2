@@ -38,11 +38,9 @@ namespace governments {
 		tagged_fixed_2dvector<uint8_t, government_tag, ideologies::ideology_tag> permitted_ideologies;
 	};
 
-	using text_handle_lookup = std::function<text_data::text_tag(const char*, const char*)>;
-
 	void read_governments(
 		governments_manager& manager,
 		const directory& source_directory,
-		const text_handle_lookup& text_function,
+		text_data::text_sequences& text_function,
 		const ideologies::ideologies_manager& ideologies_source);
 }

@@ -1044,6 +1044,8 @@ void ui::update(gui_manager& manager, world_state& w) {
 	detail::update(manager, tagged_gui_object{ manager.foreground, gui_object_tag(2) }, w);
 }
 
+ui::gui_manager::gui_manager() : gui_manager(1080, 640) {}
+
 ui::gui_manager::gui_manager(int32_t width, int32_t height) :
 	_width(width), _height(height),
 	root(gui_objects.emplace_at(gui_object_tag(0))),

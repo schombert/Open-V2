@@ -574,8 +574,7 @@ TEST(trigger_reading, effect_scope_absorbtion) {
 TEST(trigger_reading, simple_trigger) {
 	const char trigger[] = "always = no";
 
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 	trigger_parsing_environment parse_env(
 		sm,
 		trigger_scope_state{
@@ -600,9 +599,8 @@ TEST(trigger_reading, simple_trigger) {
 TEST(trigger_reading, simple_effect) {
 	const char trigger[] = "is_slave = yes";
 
-	text_data::text_sequences ts;
 	events::event_creation_manager ecm;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 	effect_parsing_environment parse_env(
 		sm,
 		ecm,
@@ -643,8 +641,7 @@ TEST(trigger_reading, storing_data) {
 TEST(trigger_reading, scope_dependant_trigger) {
 	const char trigger[] = "militancy < 12";
 
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 	trigger_parsing_environment parse_env(
 		sm,
 		trigger_scope_state{
@@ -734,8 +731,7 @@ public:
 TEST(trigger_reading, data_lookup_trigger) {
 	const char trigger[] = "has_pop_culture = sub_culture_b";
 
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 	graphics::texture_manager tex;
 
 	test_files real_fs;
@@ -744,9 +740,7 @@ TEST(trigger_reading, data_lookup_trigger) {
 	f.set_root(RANGE(u"F:\\test1"));
 
 	cultures::parse_national_tags(sm.culutre_m, f.get_root());
-	cultures::parse_cultures(sm.culutre_m, tex, f.get_root(),
-		[&ts](const char* s, const char* e) {
-		    return text_data::get_text_handle(ts, s, e); });
+	cultures::parse_cultures(sm.culutre_m, tex, f.get_root(), sm.gui_m.text_data_sequences);
 
 	trigger_parsing_environment parse_env(
 		sm,
@@ -774,8 +768,7 @@ TEST(trigger_reading, data_lookup_trigger) {
 TEST(trigger_reading, data_lookup_effect) {
 	const char trigger[] = "add_accepted_culture = sub_culture_b";
 
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 	events::event_creation_manager ecm;
 	graphics::texture_manager tex;
 
@@ -785,9 +778,7 @@ TEST(trigger_reading, data_lookup_effect) {
 	f.set_root(RANGE(u"F:\\test1"));
 
 	cultures::parse_national_tags(sm.culutre_m, f.get_root());
-	cultures::parse_cultures(sm.culutre_m, tex, f.get_root(),
-		[&ts](const char* s, const char* e) {
-		return text_data::get_text_handle(ts, s, e); });
+	cultures::parse_cultures(sm.culutre_m, tex, f.get_root(), sm.gui_m.text_data_sequences);
 
 	effect_parsing_environment parse_env(
 		sm,
@@ -816,17 +807,14 @@ TEST(trigger_reading, data_lookup_effect) {
 TEST(trigger_reading, variable_trigger) {
 	const char trigger[] = "member_3 = 2.5";
 
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 
 	test_files real_fs;
 	file_system f;
 
 	f.set_root(RANGE(u"F:\\test1"));
 
-	ideologies::pre_parse_ideologies(sm.ideologies_m, f.get_root(),
-		[&ts](const char* s, const char* e) {
-		return text_data::get_text_handle(ts, s, e); });
+	ideologies::pre_parse_ideologies(sm.ideologies_m, f.get_root(), sm.gui_m.text_data_sequences);
 
 	trigger_parsing_environment parse_env(
 		sm,
@@ -855,8 +843,7 @@ TEST(trigger_reading, variable_trigger) {
 TEST(trigger_reading, variable_effect) {
 	const char trigger[] = "glass = 5.5";
 
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 	events::event_creation_manager ecm;
 
 	test_files real_fs;
@@ -864,11 +851,8 @@ TEST(trigger_reading, variable_effect) {
 
 	f.set_root(RANGE(u"F:\\test1"));
 
-	ideologies::pre_parse_ideologies(sm.ideologies_m, f.get_root(),
-		[&ts](const char* s, const char* e) {
-		return text_data::get_text_handle(ts, s, e); });
-	economy::read_goods(sm.economy_m, f.get_root(), [&ts](const char* s, const char* e) {
-		return text_data::get_text_handle(ts, s, e); });
+	ideologies::pre_parse_ideologies(sm.ideologies_m, f.get_root(), sm.gui_m.text_data_sequences);
+	economy::read_goods(sm.economy_m, f.get_root(), sm.gui_m.text_data_sequences);
 
 	effect_parsing_environment parse_env(
 		sm,
@@ -898,8 +882,7 @@ TEST(trigger_reading, variable_effect) {
 TEST(trigger_reading, basic_full_read) {
 	const char trigger[] = "always = no";
 
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, RANGE(trigger));
@@ -921,8 +904,7 @@ TEST(trigger_reading, basic_full_read) {
 TEST(trigger_reading, complex_full_reduction) {
 	const char trigger[] = "NOT = { AND = { AND = { always = yes } any_core = { average_consciousness >= 1.0 } } }";
 
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, RANGE(trigger));
@@ -951,8 +933,7 @@ TEST(trigger_reading, complex_full_reduction) {
 TEST(trigger_reading, multipart_trigger) {
 	const char trigger[] = "diplomatic_influence = { value > 5 who = GER }";
 
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 
 	test_files real_fs;
 	file_system f;
@@ -984,8 +965,7 @@ TEST(trigger_reading, multipart_trigger) {
 TEST(trigger_reading, multipart_effect) {
 	const char trigger[] = "relation = { value = -10 who = THIS }";
 
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 	events::event_creation_manager ecm;
 
 	test_files real_fs;
@@ -1018,8 +998,7 @@ TEST(trigger_reading, multipart_effect) {
 TEST(trigger_reading, variable_scope) {
 	const char trigger[] = "6 = { average_consciousness >= 1.0 average_militancy != 0.5 }";
 
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, RANGE(trigger));
@@ -1049,8 +1028,7 @@ TEST(trigger_reading, variable_scope) {
 TEST(trigger_reading, variable_effect_scope) {
 	const char trigger[] = "6 = { owner = { capital = 1 treasury = 0.5 } }";
 
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 	events::event_creation_manager ecm;
 
 	std::vector<token_group> parse_results;
@@ -1084,8 +1062,7 @@ TEST(trigger_reading, variable_effect_scope) {
 TEST(trigger_reading, effect_with_limit) {
 	const char trigger[] = "any_country = { limit = { tag = this } capital = 1 }";
 
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 	events::event_creation_manager ecm;
 
 	std::vector<token_group> parse_results;
@@ -1121,8 +1098,7 @@ TEST(trigger_reading, effect_option_reading) {
 		"ai_chance = { factor = 2 modifier = { factor = 3 year = 1 } }\r\n"
 		"capital = 6";
 
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 	events::event_creation_manager ecm;
 
 	std::vector<token_group> parse_results;
@@ -1160,8 +1136,7 @@ TEST(trigger_reading, effect_option_reading) {
 TEST(trigger_reading, basic_factor_trigger) {
 	const char trigger[] = "factor = 1.5 always = no";
 
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, RANGE(trigger));
@@ -1184,8 +1159,7 @@ TEST(trigger_reading, basic_factor_trigger) {
 TEST(trigger_reading, empty_trigger) {
 	const char trigger[] = "";
 
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, RANGE(trigger));
@@ -1206,8 +1180,7 @@ TEST(trigger_reading, empty_trigger) {
 TEST(trigger_reading, empty_effect) {
 	const char trigger[] = "";
 
-	text_data::text_sequences ts;
-	scenario::scenario_manager sm(ts);
+	scenario::scenario_manager sm;
 	events::event_creation_manager ecm;
 
 	std::vector<token_group> parse_results;

@@ -4,16 +4,6 @@
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
-inline auto fake_text_handle_lookup(std::map<std::string, text_data::text_tag>& values) {
-	return[j = 0ui16, &values](const char* s, const char* e) mutable {
-		const auto i = std::string(s, e);
-		if (values.find(i) == values.end()) {
-			values[i] = text_data::text_tag(j++);
-		}
-		return values[i];
-	};
-}
-
 class preparse_test_files {
 public:
 	directory_representation f_root = directory_representation(u"F:");
@@ -56,8 +46,9 @@ TEST(military_tests, test_units_preparse) {
 	f.set_root(RANGE(u"F:"));
 
 	military_manager m;
-	std::map<std::string, text_data::text_tag> v;
-	parsing_state state(fake_text_handle_lookup(v), m);
+	text_data::text_sequences tex;
+
+	parsing_state state(tex, m);
 	
 	pre_parse_unit_types(state, f.get_root());
 
@@ -67,7 +58,7 @@ TEST(military_tests, test_units_preparse) {
 	EXPECT_EQ(unit_type_tag(0), m.unit_types[unit_type_tag(0)].id);
 	EXPECT_EQ(unit_type_tag(1), m.unit_types[unit_type_tag(1)].id);
 	EXPECT_EQ(unit_type_tag(2), m.unit_types[unit_type_tag(2)].id);
-	EXPECT_EQ(unit_type_tag(0), m.named_unit_type_index[v["dragoon"]]);
+	EXPECT_EQ(unit_type_tag(0), m.named_unit_type_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("dragoon"))]);
 	EXPECT_EQ(unit_type_tag(1), m.named_unit_type_index[m.unit_types[unit_type_tag(1)].name]);
 	EXPECT_EQ(unit_type_tag(2), m.named_unit_type_index[m.unit_types[unit_type_tag(2)].name]);
 }
@@ -79,8 +70,9 @@ TEST(military_tests, test_cb_preparse) {
 	f.set_root(RANGE(u"F:\\test1"));
 
 	military_manager m;
-	std::map<std::string, text_data::text_tag> v;
-	parsing_state state(fake_text_handle_lookup(v), m);
+	text_data::text_sequences tex;
+
+	parsing_state state(tex, m);
 
 	pre_parse_cb_types(state, f.get_root());
 
@@ -90,7 +82,7 @@ TEST(military_tests, test_cb_preparse) {
 	EXPECT_EQ(cb_type_tag(0), m.cb_types[cb_type_tag(0)].id);
 	EXPECT_EQ(cb_type_tag(1), m.cb_types[cb_type_tag(1)].id);
 	EXPECT_EQ(cb_type_tag(2), m.cb_types[cb_type_tag(2)].id);
-	EXPECT_EQ(cb_type_tag(0), m.named_cb_type_index[v["cb_a"]]);
+	EXPECT_EQ(cb_type_tag(0), m.named_cb_type_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("cb_a"))]);
 	EXPECT_EQ(cb_type_tag(1), m.named_cb_type_index[m.cb_types[cb_type_tag(1)].name]);
 	EXPECT_EQ(cb_type_tag(2), m.named_cb_type_index[m.cb_types[cb_type_tag(2)].name]);
 }
@@ -102,8 +94,8 @@ TEST(military_tests, traits_personality) {
 	f.set_root(RANGE(u"F:\\test2"));
 
 	military_manager m;
-	std::map<std::string, text_data::text_tag> v;
-	parsing_state state(fake_text_handle_lookup(v), m);
+	text_data::text_sequences tex;
+	parsing_state state(tex, m);
 
 	parse_leader_traits(state, f.get_root());
 
@@ -112,11 +104,11 @@ TEST(military_tests, traits_personality) {
 	EXPECT_EQ(0ui64, m.background_traits.size());
 	EXPECT_EQ(leader_trait_tag(), m.no_background_trait);
 	EXPECT_EQ(leader_trait_tag(0), m.no_personality_trait);
-	EXPECT_EQ(leader_trait_tag(0), m.named_leader_trait_index[v["no_personality"]]);
-	EXPECT_EQ(leader_trait_tag(1), m.named_leader_trait_index[v["test_personality"]]);
+	EXPECT_EQ(leader_trait_tag(0), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_personality"))]);
+	EXPECT_EQ(leader_trait_tag(1), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("test_personality"))]);
 	EXPECT_EQ(leader_trait_tag(1), m.personality_traits[0]);
-	EXPECT_EQ(v["no_personality"], m.leader_traits[leader_trait_tag(0)]);
-	EXPECT_EQ(v["test_personality"], m.leader_traits[leader_trait_tag(1)]);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_personality")), m.leader_traits[leader_trait_tag(0)]);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("test_personality")), m.leader_traits[leader_trait_tag(1)]);
 
 	EXPECT_EQ(0.5f, m.leader_trait_definitions.get(leader_trait_tag(0), traits::morale));
 	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(leader_trait_tag(0), traits::organisation));
@@ -131,8 +123,9 @@ TEST(military_tests, traits_mixed) {
 	f.set_root(RANGE(u"F:\\test3"));
 
 	military_manager m;
-	std::map<std::string, text_data::text_tag> v;
-	parsing_state state(fake_text_handle_lookup(v), m);
+	text_data::text_sequences tex;
+
+	parsing_state state(tex, m);
 
 	parse_leader_traits(state, f.get_root());
 
@@ -141,21 +134,21 @@ TEST(military_tests, traits_mixed) {
 	EXPECT_EQ(2ui64, m.background_traits.size());
 	EXPECT_EQ(leader_trait_tag(2), m.no_background_trait);
 	EXPECT_EQ(leader_trait_tag(0), m.no_personality_trait);
-	EXPECT_EQ(leader_trait_tag(0), m.named_leader_trait_index[v["no_personality"]]);
-	EXPECT_EQ(leader_trait_tag(1), m.named_leader_trait_index[v["test_personality"]]);
-	EXPECT_EQ(leader_trait_tag(2), m.named_leader_trait_index[v["no_background"]]);
-	EXPECT_EQ(leader_trait_tag(3), m.named_leader_trait_index[v["b1"]]);
-	EXPECT_EQ(leader_trait_tag(4), m.named_leader_trait_index[v["b2"]]);
+	EXPECT_EQ(leader_trait_tag(0), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_personality"))]);
+	EXPECT_EQ(leader_trait_tag(1), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("test_personality"))]);
+	EXPECT_EQ(leader_trait_tag(2), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_background"))]);
+	EXPECT_EQ(leader_trait_tag(3), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("b1"))]);
+	EXPECT_EQ(leader_trait_tag(4), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("b2"))]);
 
 	EXPECT_EQ(leader_trait_tag(1), m.personality_traits[0]);
 	EXPECT_EQ(leader_trait_tag(3), m.background_traits[0]);
 	EXPECT_EQ(leader_trait_tag(4), m.background_traits[1]);
 
-	EXPECT_EQ(v["no_personality"], m.leader_traits[leader_trait_tag(0)]);
-	EXPECT_EQ(v["test_personality"], m.leader_traits[leader_trait_tag(1)]);
-	EXPECT_EQ(v["no_background"], m.leader_traits[leader_trait_tag(2)]);
-	EXPECT_EQ(v["b1"], m.leader_traits[leader_trait_tag(3)]);
-	EXPECT_EQ(v["b2"], m.leader_traits[leader_trait_tag(4)]);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_personality")), m.leader_traits[leader_trait_tag(0)]);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("test_personality")), m.leader_traits[leader_trait_tag(1)]);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_background")), m.leader_traits[leader_trait_tag(2)]);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("b1")), m.leader_traits[leader_trait_tag(3)]);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("b2")), m.leader_traits[leader_trait_tag(4)]);
 
 	EXPECT_EQ(0.5f, m.leader_trait_definitions.get(leader_trait_tag(0), traits::morale));
 	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(leader_trait_tag(0), traits::organisation));

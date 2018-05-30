@@ -7,18 +7,6 @@
 
 using namespace governments;
 
-inline auto fake_text_handle_lookup() {
-	return[i = 100ui16](const char* s, const char* e) mutable {
-		if (is_fixed_token_ci(s, e, "ideology_1"))
-			return text_data::text_tag(0);
-		else if (is_fixed_token_ci(s, e, "ideology_2"))
-			return text_data::text_tag(1);
-		else if (is_fixed_token_ci(s, e, "ideology_3"))
-			return text_data::text_tag(2);
-		return text_data::text_tag(i++);
-	};
-}
-
 class test_files {
 public:
 	directory_representation f_root = directory_representation(u"F:");
@@ -82,11 +70,14 @@ TEST(governments_tests, test_flag_types) {
 	EXPECT_EQ(nullptr, flag_type_to_text(flag_type::not_specified));
 }
 
-inline void setup_test_ideologies(ideologies::ideologies_manager& m) {
+inline void setup_test_ideologies(text_data::text_sequences& ts, ideologies::ideologies_manager& m) {
 	m.ideology_container.resize(3);
-	m.named_ideology_index.emplace(text_data::text_tag(0), ideologies::ideology_tag(0));
-	m.named_ideology_index.emplace(text_data::text_tag(1), ideologies::ideology_tag(1));
-	m.named_ideology_index.emplace(text_data::text_tag(2), ideologies::ideology_tag(2));
+	static const char ideology_1[] = "ideology_1";
+	static const char ideology_2[] = "ideology_2";
+	static const char ideology_3[] = "ideology_3";
+	m.named_ideology_index.emplace(text_data::get_thread_safe_text_handle(ts, RANGE(ideology_1)), ideologies::ideology_tag(0));
+	m.named_ideology_index.emplace(text_data::get_thread_safe_text_handle(ts, RANGE(ideology_2)), ideologies::ideology_tag(1));
+	m.named_ideology_index.emplace(text_data::get_thread_safe_text_handle(ts, RANGE(ideology_3)), ideologies::ideology_tag(2));
 }
 
 TEST(governments_tests, test_single_government) {
@@ -96,10 +87,11 @@ TEST(governments_tests, test_single_government) {
 	f.set_root(RANGE(u"F:\\test1"));
 
 	governments_manager m;
+	text_data::text_sequences tex;
 	ideologies::ideologies_manager im;
-	setup_test_ideologies(im);
+	setup_test_ideologies(tex, im);
 
-	read_governments(m, f.get_root(), fake_text_handle_lookup(), im);
+	read_governments(m, f.get_root(), tex, im);
 
 	EXPECT_EQ(1ui64, m.governments_container.size());
 	EXPECT_EQ(1ui64, m.named_government_index.size());
@@ -128,9 +120,10 @@ TEST(governments_tests, test_single_ideology) {
 
 	governments_manager m;
 	ideologies::ideologies_manager im;
-	setup_test_ideologies(im);
+	text_data::text_sequences tex;
+	setup_test_ideologies(tex, im);
 
-	read_governments(m, f.get_root(), fake_text_handle_lookup(), im);
+	read_governments(m, f.get_root(), tex, im);
 
 	EXPECT_EQ(1ui64, m.governments_container.size());
 	EXPECT_EQ(1ui64, m.named_government_index.size());
@@ -158,10 +151,11 @@ TEST(governments_tests, test_multiple) {
 	f.set_root(RANGE(u"F:\\test3"));
 
 	governments_manager m;
+	text_data::text_sequences tex;
 	ideologies::ideologies_manager im;
-	setup_test_ideologies(im);
+	setup_test_ideologies(tex, im);
 
-	read_governments(m, f.get_root(), fake_text_handle_lookup(), im);
+	read_governments(m, f.get_root(), tex, im);
 
 	EXPECT_EQ(2ui64, m.governments_container.size());
 	EXPECT_EQ(2ui64, m.named_government_index.size());

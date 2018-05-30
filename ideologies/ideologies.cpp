@@ -6,18 +6,18 @@
 
 namespace ideologies {
 	struct parsing_environment {
-		text_handle_lookup text_lookup;
+		text_data::text_sequences& text_lookup;
 		ideologies_manager& manager;
 
 		parsed_data main_file_parse_tree;
 		boost::container::flat_map<ideology_tag, std::pair<const token_group*, const token_group*>> ideology_bodies_mapping;
 
-		parsing_environment(const text_handle_lookup& tl, ideologies_manager& m) :
+		parsing_environment(text_data::text_sequences& tl, ideologies_manager& m) :
 			text_lookup(tl), manager(m) {
 		}
 	};
 
-	parsing_state::parsing_state(const text_handle_lookup& tl, ideologies_manager& m) :
+	parsing_state::parsing_state(text_data::text_sequences& tl, ideologies_manager& m) :
 		impl(std::make_unique<parsing_environment>(tl, m)) {
 	}
 	parsing_state::~parsing_state() {}
@@ -110,7 +110,7 @@ namespace ideologies {
 		pre_parse_ideologies_file(parsing_environment& e) : env(e) {}
 
 		void add_group(const std::pair<token_and_type, pre_parse_ideology_group>& group) {
-			const auto name = env.text_lookup(group.first.start, group.first.end);
+			const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, group.first.start, group.first.end);
 			const auto new_ideology_group_tag = env.manager.ideology_groups.emplace_back();
 			auto& new_ideology_group = env.manager.ideology_groups[new_ideology_group_tag];
 			new_ideology_group.name = name;
@@ -138,7 +138,7 @@ namespace ideologies {
 	}
 
 	inline ideology_tag internal_reserve_ideology(const token_group* s, const token_group* e, const token_and_type& t, parsing_environment& env) {
-		const auto name = env.text_lookup(t.start, t.end);
+		const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
 		const auto new_ideology_tag = env.manager.ideology_container.emplace_back();
 		auto& new_ideology = env.manager.ideology_container[new_ideology_tag];
 		new_ideology.name = name;
@@ -198,7 +198,7 @@ namespace ideologies {
 	parsing_state pre_parse_ideologies(
 		ideologies_manager& manager,
 		const directory& source_directory,
-		const text_handle_lookup& text_function) {
+		text_data::text_sequences& text_function) {
 
 		const auto common_dir = source_directory.get_directory(u"\\common");
 		const auto file = common_dir.open_file(u"ideologies.txt");

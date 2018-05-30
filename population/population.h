@@ -34,15 +34,13 @@ namespace population {
 		uint32_t count_poptypes = 0;
 	};
 
-	using text_handle_lookup = std::function<text_data::text_tag(const char*, const char*)>;
-
 	struct parsing_environment;
 
 	class parsing_state {
 	public:
 		std::unique_ptr<parsing_environment> impl;
 
-		parsing_state(const text_handle_lookup& tl, population_manager& m);
+		parsing_state(text_data::text_sequences& tl, population_manager& m);
 		parsing_state(parsing_state&&) noexcept;
 		~parsing_state();
 	};
@@ -50,7 +48,7 @@ namespace population {
 	void pre_parse_pop_types(
 		population_manager& manager,
 		const directory& source_directory,
-		const text_handle_lookup& text_function);
+		text_data::text_sequences& text_function);
 
 	void pre_parse_rebel_types(
 		parsing_state& state,

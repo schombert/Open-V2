@@ -154,11 +154,6 @@
   <ItemGroup>
     <ClCompile Include="technologies.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\modifiers\modifiers.vcxproj">
-      <Project>{54477a39-7934-4c4a-9744-17399338af31}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

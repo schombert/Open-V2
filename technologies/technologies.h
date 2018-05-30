@@ -53,17 +53,19 @@ namespace technologies {
 		tagged_vector<invention, invention_tag> inventions;
 	};
 
-	using text_handle_lookup = std::function<text_data::text_tag(const char*, const char*)>;
-	using tech_file_handler = std::function<void(const token_and_type&, tech_category_tag, parsed_data&, const text_handle_lookup&, technologies_manager&)>;
-
-	tech_file_handler make_subfile_perparse_handler(directory tech_directory);
-	void parse_single_tech_file(tech_category_tag cat, const text_handle_lookup& tl, technologies_manager& m, std::vector<token_group>& results);
+	
+	void pre_parse_single_tech_file(
+		tech_category_tag cat,
+		text_data::text_sequences& tl,
+		technologies_manager& m,
+		const token_group* start,
+		const token_group* end);
 
 	void parse_main_technology_file(
 		technologies_manager& tech_manager,
 		std::vector<token_group>& parse_results,
-		const text_handle_lookup& text_function,
-		const tech_file_handler& file_function,
+		text_data::text_sequences& text_function,
+		const directory& tech_root,
 		modifiers::modifiers_manager& mm);
 
 	struct parsing_environment;
@@ -72,7 +74,7 @@ namespace technologies {
 	public:
 		std::unique_ptr<parsing_environment> impl;
 
-		parsing_state(const text_handle_lookup& tl, const tech_file_handler& fh, technologies_manager& m, modifiers::modifiers_manager& mm);
+		parsing_state(text_data::text_sequences& tl, const directory& tech_directory, technologies_manager& m, modifiers::modifiers_manager& mm);
 		parsing_state(parsing_state&&) noexcept;
 		~parsing_state();
 	};

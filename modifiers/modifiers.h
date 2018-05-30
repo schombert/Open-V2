@@ -248,13 +248,11 @@ namespace modifiers {
 
 	struct parsing_environment;
 
-	using text_handle_lookup = std::function<text_data::text_tag(const char*, const char*)>;
-
 	class parsing_state {
 	public:
 		std::unique_ptr<parsing_environment> impl;
 
-		parsing_state(const text_handle_lookup& tl, modifiers_manager& m);
+		parsing_state(text_data::text_sequences& tl, modifiers_manager& m);
 		parsing_state(parsing_state&&) noexcept;
 		~parsing_state();
 	};

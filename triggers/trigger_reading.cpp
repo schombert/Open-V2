@@ -1084,7 +1084,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.technology_m.named_invention_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct big_producer_trigger {
@@ -1098,7 +1098,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.economy_m.named_goods_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct strata_trigger {
@@ -1241,7 +1241,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.governments_m.named_government_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct constructing_cb_type_trigger {
@@ -1255,7 +1255,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.military_m.named_cb_type_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct can_build_factory_in_capital_state_trigger {
@@ -1269,7 +1269,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.economy_m.named_factory_types_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct capital_trigger {
@@ -1294,7 +1294,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.technology_m.named_tech_school_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct primary_culture_trigger {
@@ -1308,7 +1308,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.named_culture_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct has_crime_trigger {
@@ -1322,7 +1322,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.modifiers_m.named_provincial_modifiers_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct accepted_culture_trigger {
@@ -1336,7 +1336,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.named_culture_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct pop_majority_religion_trigger {
@@ -1354,7 +1354,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.named_religion_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct pop_majority_culture_trigger {
@@ -1372,7 +1372,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.named_culture_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct pop_majority_issue_trigger {
@@ -1392,7 +1392,7 @@ namespace triggers {
 			return trigger_value(
 				tag_from_text(
 					s.issues_m.named_option_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct pop_majority_ideology_trigger {
@@ -1412,7 +1412,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.ideologies_m.named_ideology_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct trade_goods_in_state_trigger {
@@ -1429,7 +1429,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.economy_m.named_goods_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct culture_trigger {
@@ -1481,7 +1481,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.named_culture_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct has_pop_culture_trigger {
@@ -1518,7 +1518,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.named_culture_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct has_pop_religion_trigger {
@@ -1555,7 +1555,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.named_religion_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct culture_group_trigger {
@@ -1616,7 +1616,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.named_culture_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 
@@ -1652,7 +1652,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.culutre_m.named_religion_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 
@@ -1670,7 +1670,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.modifiers_m.named_provincial_modifiers_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct trade_goods_trigger {
@@ -1684,7 +1684,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.economy_m.named_goods_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct is_secondary_power_trigger {
@@ -1713,7 +1713,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.population_m.named_rebel_type_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct has_unclaimed_cores_trigger {
@@ -2031,7 +2031,7 @@ namespace triggers {
 		}
 		static trigger_value read_value(const token_and_type& t, scenario::scenario_manager& s) {
 			return trigger_payload{
-				s.variables_m.get_named_national_flag(text_data::get_thread_safe_text_handle(s.text_m, t.start, t.end)) };
+				s.variables_m.get_named_national_flag(text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, t.start, t.end)) };
 		}
 	};
 	struct has_global_flag_trigger {
@@ -2040,7 +2040,7 @@ namespace triggers {
 		}
 		static trigger_value read_value(const token_and_type& t, scenario::scenario_manager& s) {
 			return trigger_payload{
-				s.variables_m.get_named_global_variable(text_data::get_thread_safe_text_handle(s.text_m, t.start, t.end)) };
+				s.variables_m.get_named_global_variable(text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, t.start, t.end)) };
 		}
 	};
 	struct continent_trigger {
@@ -2109,7 +2109,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.modifiers_m.named_provincial_modifiers_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct casus_belli_trigger {
@@ -2239,7 +2239,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.economy_m.named_factory_types_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct empty_trigger {
@@ -2275,7 +2275,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.modifiers_m.named_national_modifiers_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct has_province_modifier_trigger {
@@ -2289,7 +2289,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.modifiers_m.named_provincial_modifiers_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct nationalvalue_trigger {
@@ -2303,7 +2303,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.modifiers_m.named_national_modifiers_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct region_trigger {
@@ -2317,7 +2317,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.province_m.named_states_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 
@@ -2510,7 +2510,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.ideologies_m.named_ideology_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct ruling_party_trigger {
@@ -2520,8 +2520,8 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
-			return trigger_payload(text_data::get_thread_safe_text_handle(s.text_m, t.start, t.end));
+		static trigger_value read_value(const token_and_type& t, scenario::scenario_manager& s) {
+			return trigger_payload(text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, t.start, t.end));
 		}
 	};
 	struct has_leader_trigger {
@@ -2531,8 +2531,8 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
-			return trigger_payload(text_data::get_thread_safe_text_handle(s.text_m, t.start, t.end));
+		static trigger_value read_value(const token_and_type& t, scenario::scenario_manager& s) {
+			return trigger_payload(text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, t.start, t.end));
 		}
 	};
 	struct is_ideology_enabled_trigger {
@@ -2543,7 +2543,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.ideologies_m.named_ideology_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct political_reform_want_trigger {
@@ -2763,7 +2763,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.economy_m.named_goods_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct has_pop_type_trigger {
@@ -2783,7 +2783,7 @@ namespace triggers {
 			return trigger_payload(
 				tag_from_text(
 					s.population_m.named_pop_type_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct total_pops_trigger {
@@ -2846,7 +2846,7 @@ namespace triggers {
 			return trigger_value(
 				tag_from_text(
 					s.issues_m.named_option_index,
-					text_data::get_thread_safe_existing_text_handle(s.text_m, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
 	struct rebel_power_fraction_trigger {
@@ -3865,7 +3865,7 @@ namespace triggers {
 			else
 				type = tag_from_text(
 					env.s.population_m.named_pop_type_index,
-					text_data::get_thread_safe_existing_text_handle(env.s.text_m, t.start, t.end));
+					text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end));
 		}
 		void set_value(const std::pair<association_type, token_and_type>& p) {
 			a = p.first;
@@ -3973,7 +3973,7 @@ namespace triggers {
 		check_variable_trigger(trigger_parsing_environment& e) : env(e) {}
 
 		void set_which(const token_and_type& t) {
-			which = env.s.variables_m.get_named_national_variable(text_data::get_thread_safe_text_handle(env.s.text_m, t.start, t.end));
+			which = env.s.variables_m.get_named_national_variable(text_data::get_thread_safe_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end));
 		}
 		void set_value(const std::pair<association_type, token_and_type>& p) {
 			a = p.first;
@@ -4001,7 +4001,7 @@ namespace triggers {
 		void set_ideology(const token_and_type& t) {
 			ideology = tag_from_text(
 				env.s.ideologies_m.named_ideology_index,
-				text_data::get_thread_safe_existing_text_handle(env.s.text_m, t.start, t.end));
+				text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end));
 		}
 		void set_value(const std::pair<association_type, token_and_type>& p) {
 			a = p.first;
@@ -4029,7 +4029,7 @@ namespace triggers {
 		void set_type(const token_and_type& t) {
 			type = tag_from_text(
 				env.s.population_m.named_pop_type_index,
-				text_data::get_thread_safe_existing_text_handle(env.s.text_m, t.start, t.end));
+				text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end));
 		}
 		void set_value(const std::pair<association_type, token_and_type>& p) {
 			a = p.first;
@@ -4066,7 +4066,7 @@ namespace triggers {
 		void set_ideology(const token_and_type& t) {
 			ideology = tag_from_text(
 				env.s.ideologies_m.named_ideology_index,
-				text_data::get_thread_safe_existing_text_handle(env.s.text_m, t.start, t.end));
+				text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end));
 		}
 		void set_value(const std::pair<association_type, token_and_type>& p) {
 			a = p.first;
@@ -4237,7 +4237,7 @@ namespace triggers {
 		void add_worker(const token_and_type& t) {
 			workers.push_back(tag_from_text(
 				env.s.population_m.named_pop_type_index,
-				text_data::get_thread_safe_existing_text_handle(env.s.text_m, t.start, t.end)));
+				text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 
 		void finalize() const {
@@ -4348,7 +4348,7 @@ struct no_code_for_scope_in_current_context {};
 namespace triggers {
 	struct variable_name_scope_reading_object : public common_scope_base {
 		variable_name_scope_reading_object(const token_and_type& name, trigger_parsing_environment& e) : common_scope_base(e) {
-			const auto left_handle = text_data::get_thread_safe_existing_text_handle(env.s.text_m, name.start, name.end);
+			const auto left_handle = text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, name.start, name.end);
 
 			if (const auto region = tag_from_text(env.s.province_m.named_states_index, left_handle); is_valid_index(region)) {
 				scope_state = trigger_scope_state{
@@ -4667,7 +4667,7 @@ namespace triggers {
 			return true;
 		})) {
 			//not found in map
-			const auto left_handle = text_data::get_thread_safe_existing_text_handle(env.s.text_m, trigger_name.start, trigger_name.end);
+			const auto left_handle = text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, trigger_name.start, trigger_name.end);
 			//...
 			
 			if (const auto tech = tag_from_text(env.s.technology_m.named_technology_index, left_handle); is_valid_index(tech)) {
@@ -4739,7 +4739,7 @@ namespace triggers {
 					env.data.push_back(uint16_t(trigger_codes::variable_issue_group_name_state | association_to_trigger_code(a)));
 				else
 					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, e);
-				const auto right_handle = text_data::get_thread_safe_existing_text_handle(env.s.text_m, trigger_value.start, trigger_value.end);
+				const auto right_handle = text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, trigger_value.start, trigger_value.end);
 				const auto rh_issue_opt = tag_from_text(env.s.issues_m.named_option_index, right_handle);
 
 				env.data.push_back(2ui16);

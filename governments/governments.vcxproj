@@ -154,11 +154,6 @@
   <ItemGroup>
     <ClCompile Include="governments.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ideologies\ideologies.vcxproj">
-      <Project>{15b719aa-730d-4147-9106-a9b190e03066}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

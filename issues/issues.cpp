@@ -9,18 +9,18 @@
 
 namespace issues {
 	struct parsing_environment {
-		text_handle_lookup text_lookup;
+		text_data::text_sequences& text_lookup;
 		issues_manager& manager;
 
 		parsed_data main_file_parse_tree;
 		std::map<option_tag, std::pair<const token_group*, const token_group*>> parsed_options;
 
-		parsing_environment(const text_handle_lookup& tl, issues_manager& m) :
+		parsing_environment(text_data::text_sequences& tl, issues_manager& m) :
 			text_lookup(tl), manager(m) {
 		}
 	};
 
-	parsing_state::parsing_state(const text_handle_lookup& tl, issues_manager& m) :
+	parsing_state::parsing_state(text_data::text_sequences& tl, issues_manager& m) :
 		impl(std::make_unique<parsing_environment>(tl, m)) {
 	}
 	parsing_state::~parsing_state() {}
@@ -56,7 +56,7 @@ namespace issues {
 			}
 		}
 
-		opt.name = env.text_lookup(t.start, t.end);
+		opt.name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
 		opt.id = opt_tag;
 		opt.parent_issue = i.id;
 
@@ -71,7 +71,7 @@ namespace issues {
 		issue& i = env.manager.issues_cotnainer[issue_t];
 		i.id = issue_t;
 		i.type = type_constant;
-		i.name = env.text_lookup(t.start, t.end);
+		i.name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
 
 		if constexpr(type_constant == issue_group::party) {
 			env.manager.party_issues.push_back(issue_t);
@@ -272,6 +272,7 @@ namespace issues {
 		MEMBER_ASSOCIATION_2("rule", "rich_only", rule_value, rules::rich_only, rules::upper_house_composition_mask)
 		MEMBER_ASSOCIATION_2("rule", "state_vote", rule_value, rules::state_vote, rules::upper_house_composition_mask)
 		MEMBER_ASSOCIATION_2("rule", "population_vote", rule_value, rules::population_vote, rules::upper_house_composition_mask)
+		MEMBER_ASSOCIATION_2("rule", "build_railway", rule_value, rules::build_railway, rules::build_railway)
 		END_TYPE
 	END_DOMAIN;
 
@@ -329,7 +330,7 @@ namespace issues {
 	parsing_state pre_parse_issues(
 		issues_manager& manager,
 		const directory& source_directory,
-		const text_handle_lookup& text_function) {
+		text_data::text_sequences& text_function) {
 
 		const auto common_dir = source_directory.get_directory(u"\\common");
 		const auto file = common_dir.open_file(u"issues.txt");

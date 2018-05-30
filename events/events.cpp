@@ -22,12 +22,12 @@ namespace events {
 		return new_event_tag;
 	}
 
-	event_tag parse_or_defer_event(scenario::scenario_manager& s, graphics::texture_manager& t, event_creation_manager& ecm, const directory& pictures_root, const triggers::trigger_scope_state& scope, const token_group* start, const token_group* end) {
+	event_tag parse_or_defer_event(scenario::scenario_manager& s, event_creation_manager& ecm, const directory& pictures_root, const triggers::trigger_scope_state& scope, const token_group* start, const token_group* end) {
 		const auto[event_id, is_triggered] = pre_parse_event(start, end);
 		ecm.event_sources.emplace(event_id, token_group_range{start, end});
 
 		if(!is_triggered) {
-			const auto ev = parse_single_event(s, t, ecm, pictures_root, scope, start, end);
+			const auto ev = parse_single_event(s, ecm, pictures_root, scope, start, end);
 			s.event_m.events_by_id.emplace(event_id, ev);
 			return ev;
 		} else {
@@ -48,23 +48,21 @@ namespace events {
 
 	struct event_parse_env {
 		scenario::scenario_manager& s;
-		graphics::texture_manager& tm;
 		event_creation_manager& ecm;
 		const directory& pictures_root;
 		const triggers::trigger_scope_state scope;
 
-		event_parse_env(scenario::scenario_manager& sc, graphics::texture_manager& t, event_creation_manager& e, const directory& root, const triggers::trigger_scope_state& so) :
-			s(sc), tm(t), ecm(e), pictures_root(root), scope(so) {}
+		event_parse_env(scenario::scenario_manager& sc, event_creation_manager& e, const directory& root, const triggers::trigger_scope_state& so) :
+			s(sc), ecm(e), pictures_root(root), scope(so) {}
 	};
 
 	struct event_file_parse_env {
 		scenario::scenario_manager& s;
-		graphics::texture_manager& tm;
 		event_creation_manager& ecm;
 		const directory& pictures_root;
 
-		event_file_parse_env(scenario::scenario_manager& sc, graphics::texture_manager& t, event_creation_manager& e, const directory& root) :
-			s(sc), tm(t), ecm(e), pictures_root(root) {}
+		event_file_parse_env(scenario::scenario_manager& sc, event_creation_manager& e, const directory& root) :
+			s(sc), ecm(e), pictures_root(root) {}
 	};
 
 	struct event_reader {
@@ -83,14 +81,14 @@ namespace events {
 				under_construction.flags |= event::is_major;
 		}
 		void set_tile(const token_and_type& t) {
-			under_construction.title = text_data::get_thread_safe_text_handle(env.s.text_m, t.start, t.end);
+			under_construction.title = text_data::get_thread_safe_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end);
 		}
 		void set_desc(const token_and_type& t) {
-			under_construction.body = text_data::get_thread_safe_text_handle(env.s.text_m, t.start, t.end);
+			under_construction.body = text_data::get_thread_safe_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end);
 		}
 		void set_picture(const token_and_type& t) {
 			std::string name_with_ext = std::string("\\gfx\\pictures\\events\\") + std::string(t.start, t.end) + ".tga";
-			under_construction.picture = env.tm.retrieve_by_name(env.pictures_root, name_with_ext.c_str(), name_with_ext.c_str() + name_with_ext.length());
+			under_construction.picture = env.s.gui_m.textures.retrieve_by_name(env.pictures_root, name_with_ext.c_str(), name_with_ext.c_str() + name_with_ext.length());
 		}
 		void set_mtth(const modifiers::factor_tag mtth) {
 			under_construction.mean_time_to_happen = mtth;
@@ -163,7 +161,6 @@ namespace events {
 	inline event_tag read_province_event(const token_group* s, const token_group* e, event_file_parse_env& env) {
 		return parse_or_defer_event(
 			env.s,
-			env.tm,
 			env.ecm,
 			env.pictures_root,
 			triggers::trigger_scope_state{
@@ -176,7 +173,6 @@ namespace events {
 	inline event_tag read_country_event(const token_group* s, const token_group* e, event_file_parse_env& env) {
 		return parse_or_defer_event(
 			env.s,
-			env.tm,
 			env.ecm,
 			env.pictures_root,
 			triggers::trigger_scope_state{
@@ -387,7 +383,7 @@ namespace events {
 			text_data::text_tag tt;
 			if(auto f = env.ecm.event_sources.find(p.second); f != env.ecm.event_sources.end()) {
 				const auto t = get_issue_group_for_event(f->second.start, f->second.end);
-				tt = text_data::get_thread_safe_text_handle(env.s.text_m, t.start, t.end);
+				tt = text_data::get_thread_safe_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end);
 			}
 			env.s.event_m.on_election_tick.emplace_back(tag, p.first, tt);
 		}
@@ -481,7 +477,7 @@ namespace events {
 		}
 		void set_picture(const token_and_type& t) {
 			std::string name_with_ext = std::string("\\gfx\\pictures\\decisions\\") + std::string(t.start, t.end) + ".tga";
-			under_construction.picture = env.tm.retrieve_by_name(env.pictures_root, name_with_ext.c_str(), name_with_ext.c_str() + name_with_ext.length());
+			under_construction.picture = env.s.gui_m.textures.retrieve_by_name(env.pictures_root, name_with_ext.c_str(), name_with_ext.c_str() + name_with_ext.length());
 		}
 		void set_ai_will_do(modifiers::factor_tag m) {
 			under_construction.ai_will_do = m;
@@ -523,14 +519,14 @@ namespace events {
 			false }, 1.0f, 0.0f, s, e);
 	}
 	inline int inner_read_decision(const token_group* s, const token_group* e, const token_and_type& t, event_file_parse_env& env) {
-		const auto tag = parse_decision(env.s, env.ecm, env.tm, env.pictures_root, s, e);
+		const auto tag = parse_decision(env.s, env.ecm, env.pictures_root, s, e);
 		decision& new_decision = env.s.event_m.decision_container[tag];
 		
 		std::string token(t.start, t.end);
 		std::string s_title = token + "_title";
 		std::string s_desc = token + "_desc";
-		new_decision.title = text_data::get_thread_safe_text_handle(env.s.text_m, s_title.c_str(), s_title.c_str() + s_title.length());
-		new_decision.body = text_data::get_thread_safe_text_handle(env.s.text_m, s_desc.c_str(), s_desc.c_str() + s_desc.length());
+		new_decision.title = text_data::get_thread_safe_text_handle(env.s.gui_m.text_data_sequences, s_title.c_str(), s_title.c_str() + s_title.length());
+		new_decision.body = text_data::get_thread_safe_text_handle(env.s.gui_m.text_data_sequences, s_desc.c_str(), s_desc.c_str() + s_desc.length());
 		return 0;
 	}
 }
@@ -750,14 +746,13 @@ namespace events {
 
 	event_tag parse_single_event(
 		scenario::scenario_manager& s,
-		graphics::texture_manager& t,
 		event_creation_manager& ecm,
 		const directory& pictures_root,
 		const triggers::trigger_scope_state& scope,
 		const token_group* start,
 		const token_group* end) {
 		
-		event_parse_env env(s, t, ecm, pictures_root, scope);
+		event_parse_env env(s, ecm, pictures_root, scope);
 		const auto result = parse_object<event_reader, single_event_domain>(start, end, env);
 		const auto new_tag = s.event_m.event_container.emplace_back(result.under_construction);
 		s.event_m.event_container[new_tag].id = new_tag;
@@ -767,19 +762,17 @@ namespace events {
 
 	void parse_event_file(
 		scenario::scenario_manager& s,
-		graphics::texture_manager& t,
 		event_creation_manager& ecm,
 		const directory& pictures_root,
 		const token_group* start,
 		const token_group* end) {
 
-		event_file_parse_env env(s, t, ecm, pictures_root);
+		event_file_parse_env env(s, ecm, pictures_root);
 		parse_object<event_file, event_file_domain>(start, end, env);
 	}
 
 	void parse_event_files(
 		scenario::scenario_manager& s,
-		graphics::texture_manager& t,
 		event_creation_manager& ecm,
 		const directory& source_directory) {
 
@@ -799,7 +792,6 @@ namespace events {
 
 				parse_event_file(
 					s,
-					t,
 					ecm,
 					source_directory,
 					parse.parse_results.data(),
@@ -814,7 +806,6 @@ namespace events {
 
 	void commit_pending_triggered_events(
 		scenario::scenario_manager& s,
-		graphics::texture_manager& t,
 		event_creation_manager& ecm,
 		const directory& pictures_root) {
 
@@ -827,7 +818,7 @@ namespace events {
 				ecm.created_triggered_events.emplace(pr.first, pr.second);
 
 				if(const auto source = ecm.event_sources.find(pr.first.id); source != ecm.event_sources.end()) {
-					event_parse_env env(s, t, ecm, pictures_root, pr.first.scope);
+					event_parse_env env(s, ecm, pictures_root, pr.first.scope);
 					const auto result = parse_object<event_reader, single_event_domain>(source->second.start, source->second.end, env);
 
 					s.event_m.event_container[pr.second] = result.under_construction;
@@ -873,12 +864,11 @@ namespace events {
 	decision_tag parse_decision(
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
-		graphics::texture_manager& t,
 		const directory& pictures_root,
 		const token_group* start,
 		const token_group* end) {
 
-		event_file_parse_env env(s, t, ecm, pictures_root);
+		event_file_parse_env env(s, ecm, pictures_root);
 		const auto result = parse_object<decision_reader, single_decision_parse_domain>(start, end, env);
 		const auto new_tag = s.event_m.decision_container.emplace_back(result.under_construction);
 		s.event_m.decision_container[new_tag].id = new_tag;
@@ -889,19 +879,17 @@ namespace events {
 	void parse_decision_file(
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
-		graphics::texture_manager& t,
 		const directory& pictures_root,
 		const token_group* start,
 		const token_group* end) {
 
-		event_file_parse_env env(s, t, ecm, pictures_root);
+		event_file_parse_env env(s, ecm, pictures_root);
 		parse_object<decision_file, decision_file_domain>(start, end, env);
 	}
 
 	void parse_decision_files(
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
-		graphics::texture_manager& t,
 		const directory& root) {
 
 		const auto event_dir = root.get_directory(u"\\decisions");
@@ -920,7 +908,6 @@ namespace events {
 				parse_decision_file(
 					s,
 					ecm,
-					t,
 					root,
 					parse.parse_results.data(),
 					parse.parse_results.data() + parse.parse_results.size());
