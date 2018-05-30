@@ -89,6 +89,7 @@ namespace graphics {
 		texture_tag load_texture(const directory& root, const char* start, const char* end);
 		void load_standard_textures(const directory& root);
 		texture_tag retrieve_by_name(const directory& root, const char* start, const char* end);
+		const texture& retrieve_by_key(texture_tag key) const;
 		texture& retrieve_by_key(texture_tag key);
 		void load_all_texture_files();
 	};

@@ -18,9 +18,9 @@ bool ui::simple_button<BASE>::on_keydown(gui_object_tag o, gui_manager & m, cons
 }
 
 template<typename BASE>
-void ui::simple_button<BASE>::update_data(gui_object_tag o, gui_manager& m, world_state& w) {
-	if constexpr(ui::detail::has_update<BASE, simple_button<BASE>&, gui_manager&, world_state&>) {
-		BASE::update(*this, m, w);
+void ui::simple_button<BASE>::update_data(gui_object_tag o, gui_static& sm, gui_manager& m, world_state& w) {
+	if constexpr(ui::detail::has_update<BASE, simple_button<BASE>&, gui_static&, gui_manager&, world_state&>) {
+		BASE::update(*this, sm, m, w);
 	}
 }
 
@@ -33,9 +33,9 @@ ui::tooltip_behavior ui::simple_button<BASE>::has_tooltip(gui_object_tag, gui_ma
 }
 
 template<typename BASE>
-void ui::simple_button<BASE>::create_tooltip(gui_object_tag o, gui_manager& m, const mouse_move&, tagged_gui_object tw) {
+void ui::simple_button<BASE>::create_tooltip(gui_object_tag o, gui_manager& m, gui_static& sm, const mouse_move&, tagged_gui_object tw) {
 	if constexpr(ui::detail::has_has_tooltip<BASE>)
-		BASE::create_tooltip(m, tw);
+		BASE::create_tooltip(m, sm, tw);
 }
 
 template<typename BASE>
@@ -54,13 +54,13 @@ void ui::simple_button<BASE>::set_visibility(gui_manager& m, bool visible) {
 }
 
 template<typename B>
-ui::tagged_gui_object ui::create_static_element(gui_manager& manager, button_tag handle, tagged_gui_object parent, simple_button<B>& b) {
-	auto new_obj = ui::detail::create_element_instance(manager, handle);
+ui::tagged_gui_object ui::create_static_element(gui_static& static_manager, gui_manager& manager, button_tag handle, tagged_gui_object parent, simple_button<B>& b) {
+	auto new_obj = ui::detail::create_element_instance(static_manager, manager, handle);
 
 	new_obj.object.associated_behavior = &b;
 	b.associated_object = &new_obj.object;
 
-	auto& bdef = manager.ui_definitions.buttons[handle];
+	auto& bdef = static_manager.ui_definitions.buttons[handle];
 	b.shortcut = bdef.shortcut;
 
 	ui::add_to_back(manager, parent, new_obj);
@@ -103,9 +103,9 @@ namespace buttons_detail {
 			else
 				return ui::tooltip_behavior::no_tooltip;
 		}
-		virtual void create_tooltip(ui::gui_manager& m, ui::tagged_gui_object tw, uint32_t i) override {
+		virtual void create_tooltip(ui::gui_manager& m, ui::gui_static& sm, ui::tagged_gui_object tw, uint32_t i) override {
 			if constexpr(ui::detail::has_has_tooltip<BEHAVIOR, uint32_t>)
-				BEHAVIOR::create_tooltip(m, tw, i);
+				BEHAVIOR::create_tooltip(m, sm, tw, i);
 		}
 	};
 

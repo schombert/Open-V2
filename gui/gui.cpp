@@ -242,7 +242,7 @@ tagged_object<ui::text_instance, ui::text_instance_tag> ui::create_text_instance
 }
 
 
-float ui::text_component_width(text_data::text_component& c, const std::vector<char16_t>& text_data, graphics::font& this_font, uint32_t font_size) {
+float ui::text_component_width(const text_data::text_component& c, const std::vector<char16_t>& text_data, graphics::font& this_font, uint32_t font_size) {
 	if (std::holds_alternative<text_data::text_chunk>(c)) {
 		const auto chunk = std::get<text_data::text_chunk>(c);
 		return this_font.metrics_text_extent(text_data.data() + chunk.offset, chunk.length, ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(font_size)), false);
@@ -260,11 +260,11 @@ void ui::shorten_text_instance_to_space(ui::text_instance& txt) {
 	if (i >= 0)
 		txt.length = static_cast<uint8_t>(i + 1);
 }
-void ui::detail::create_multiline_text(gui_manager& manager, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format& fmt, const text_data::replacement* candidates, uint32_t count) {
-	graphics::font& this_font = manager.fonts.at(fmt.font_handle);
-	const auto& components = manager.text_data_sequences.all_sequences[text_handle];
+void ui::detail::create_multiline_text(gui_static& static_manager, gui_manager& manager, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format& fmt, const text_data::replacement* candidates, uint32_t count) {
+	graphics::font& this_font = static_manager.fonts.at(fmt.font_handle);
+	const auto& components = static_manager.text_data_sequences.all_sequences[text_handle];
 
-	const auto components_start = manager.text_data_sequences.all_components.data() + components.starting_component;
+	const auto components_start = static_manager.text_data_sequences.all_components.data() + components.starting_component;
 	const auto components_end = components_start + components.component_count;
 
 	ui::xy_pair position{ 0, 0 };
@@ -286,14 +286,14 @@ void ui::detail::create_multiline_text(gui_manager& manager, tagged_gui_object c
 
 			const text_format format{ current_color, fmt.font_handle, fmt.font_size };
 			if (rep) 
-				position = text_chunk_to_instances(manager, replacement_text, container, position, format, lm, std::get<2>(*rep));
+				position = text_chunk_to_instances(static_manager, manager, replacement_text, container, position, format, lm, std::get<2>(*rep));
 			else
-				position = text_chunk_to_instances(manager, replacement_text, container, position, format, lm);
+				position = text_chunk_to_instances(static_manager, manager, replacement_text, container, position, format, lm);
 		} else if (std::holds_alternative<text_data::text_chunk>(*component_i)) {
 			const auto chunk = std::get<text_data::text_chunk>(*component_i);
 			const text_format format{ current_color, fmt.font_handle, fmt.font_size };
 
-			position = text_chunk_to_instances(manager, chunk, container, position, format, lm);
+			position = text_chunk_to_instances(static_manager, manager, chunk, container, position, format, lm);
 		}
 	}
 
@@ -301,11 +301,11 @@ void ui::detail::create_multiline_text(gui_manager& manager, tagged_gui_object c
 	container.object.size.y = position.y + static_cast<int16_t>(this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size))) + 0.5f);
 }
 
-void ui::detail::create_linear_text(gui_manager& manager, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format& fmt, const text_data::replacement* candidates, uint32_t count) {
-	const auto& components = manager.text_data_sequences.all_sequences[text_handle];
-	graphics::font& this_font = manager.fonts.at(fmt.font_handle);
+void ui::detail::create_linear_text(gui_static& static_manager, gui_manager& manager, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format& fmt, const text_data::replacement* candidates, uint32_t count) {
+	const auto& components = static_manager.text_data_sequences.all_sequences[text_handle];
+	graphics::font& this_font = static_manager.fonts.at(fmt.font_handle);
 
-	const auto components_start = manager.text_data_sequences.all_components.data() + components.starting_component;
+	const auto components_start = static_manager.text_data_sequences.all_components.data() + components.starting_component;
 	const auto components_end = components_start + components.component_count;
 
 	ui::xy_pair position{ 0, 0 };
@@ -315,7 +315,7 @@ void ui::detail::create_linear_text(gui_manager& manager, tagged_gui_object cont
 
 	float x_extent = 0.0f;
 	for (auto component_i = components_start; component_i != components_end; ++component_i) {
-		x_extent += ui::text_component_width(*component_i, manager.text_data_sequences.text_data, this_font, fmt.font_size);
+		x_extent += ui::text_component_width(*component_i, static_manager.text_data_sequences.text_data, this_font, fmt.font_size);
 	}
 
 	std::tie(position.x, position.y) = align_in_bounds(align, int32_t(x_extent + 0.5f), int32_t(this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size))) + 0.5f), container.object.size.x, container.object.size.y);
@@ -331,21 +331,21 @@ void ui::detail::create_linear_text(gui_manager& manager, tagged_gui_object cont
 			const text_format format{ current_color, fmt.font_handle, fmt.font_size };
 
 			if (rep) 
-				position = text_chunk_to_instances(manager, replacement_text, container, position, format, lm, std::get<2>(*rep));
+				position = text_chunk_to_instances(static_manager, manager, replacement_text, container, position, format, lm, std::get<2>(*rep));
 			else 
-				position = text_chunk_to_instances(manager, replacement_text, container, position, format, lm);
+				position = text_chunk_to_instances(static_manager, manager, replacement_text, container, position, format, lm);
 
 		} else if (std::holds_alternative<text_data::text_chunk>(*component_i)) {
 			const auto chunk = std::get<text_data::text_chunk>(*component_i);
 			const text_format format{ current_color, fmt.font_handle, fmt.font_size };
 
-			position = text_chunk_to_instances(manager, chunk, container, position, format, lm);
+			position = text_chunk_to_instances(static_manager, manager, chunk, container, position, format, lm);
 		}
 	}
 }
 
-void ui::detail::instantiate_graphical_object(ui::gui_manager& manager, ui::tagged_gui_object container, graphics::obj_definition_tag gtag, int32_t frame) {
-	auto& graphic_object_def = manager.graphics_object_definitions.definitions[gtag];
+void ui::detail::instantiate_graphical_object(gui_static& static_manager, ui::gui_manager& manager, ui::tagged_gui_object container, graphics::obj_definition_tag gtag, int32_t frame) {
+	auto& graphic_object_def = static_manager.graphics_object_definitions.definitions[gtag];
 
 	if (container.object.size == ui::xy_pair{ 0,0 })
 		container.object.size = ui::xy_pair{ graphic_object_def.size.x, graphic_object_def.size.y };
@@ -362,7 +362,7 @@ void ui::detail::instantiate_graphical_object(ui::gui_manager& manager, ui::tagg
 
 				icon_graphic.object.frame = frame;
 				icon_graphic.object.graphics_object = &graphic_object_def;
-				icon_graphic.object.t = &(manager.textures.retrieve_by_key(graphic_object_def.primary_texture_handle));
+				icon_graphic.object.t = &(static_manager.textures.retrieve_by_key(graphic_object_def.primary_texture_handle));
 
 				if (((int32_t)container.object.size.y | (int32_t)container.object.size.x) == 0) {
 					icon_graphic.object.t->load_filedata();
@@ -392,8 +392,8 @@ void ui::detail::instantiate_graphical_object(ui::gui_manager& manager, ui::tagg
 				const auto flag_graphic = manager.multi_texture_instances.emplace();
 
 				flag_graphic.object.flag = nullptr;
-				flag_graphic.object.mask_or_primary = &(manager.textures.retrieve_by_key(graphic_object_def.primary_texture_handle));
-				flag_graphic.object.overlay_or_secondary = &(manager.textures.retrieve_by_key(graphics::texture_tag(graphic_object_def.type_dependant)));
+				flag_graphic.object.mask_or_primary = &(static_manager.textures.retrieve_by_key(graphic_object_def.primary_texture_handle));
+				flag_graphic.object.overlay_or_secondary = &(static_manager.textures.retrieve_by_key(graphics::texture_tag(graphic_object_def.type_dependant)));
 
 				if (((int32_t)container.object.size.y | (int32_t)container.object.size.x) == 0) {
 					flag_graphic.object.overlay_or_secondary->load_filedata();
@@ -425,8 +425,8 @@ void ui::detail::instantiate_graphical_object(ui::gui_manager& manager, ui::tagg
 	}
 }
 
-ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, button_tag handle) {
-	const button_def& def = manager.ui_definitions.buttons[handle];
+ui::tagged_gui_object ui::detail::create_element_instance(gui_static& static_manager, gui_manager& manager, button_tag handle) {
+	const button_def& def = static_manager.ui_definitions.buttons[handle];
 	const auto new_gobj = manager.gui_objects.emplace();
 
 	const uint16_t rotation =
@@ -439,19 +439,19 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 	new_gobj.object.size = def.size;
 	new_gobj.object.align = alignment_from_definition(def);
 
-	instantiate_graphical_object(manager, new_gobj, def.graphical_object_handle);
+	instantiate_graphical_object(static_manager, manager, new_gobj, def.graphical_object_handle);
 
 	if (is_valid_index(def.text_handle)) {
 		const auto[font_h, is_black, int_font_size] = graphics::unpack_font_handle(def.font_handle);
-		detail::create_linear_text(manager, new_gobj, def.text_handle, text_aligment_from_button_definition(def), text_format{ is_black ? ui::text_color::black : ui::text_color::white, font_h, int_font_size });
+		detail::create_linear_text(static_manager, manager, new_gobj, def.text_handle, text_aligment_from_button_definition(def), text_format{ is_black ? ui::text_color::black : ui::text_color::white, font_h, int_font_size });
 	}
 
 	return new_gobj;
 }
 
 
-ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, icon_tag handle) {
-	const ui::icon_def& icon_def = manager.ui_definitions.icons[handle];
+ui::tagged_gui_object ui::detail::create_element_instance(gui_static& static_manager, gui_manager& manager, icon_tag handle) {
+	const ui::icon_def& icon_def = static_manager.ui_definitions.icons[handle];
 	const auto new_gobj = manager.gui_objects.emplace();
 
 	const uint16_t rotation =
@@ -463,7 +463,7 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 	new_gobj.object.flags.fetch_or(rotation, std::memory_order_acq_rel);
 	new_gobj.object.align = alignment_from_definition(icon_def);
 
-	instantiate_graphical_object(manager, new_gobj, icon_def.graphical_object_handle, icon_def.frame);
+	instantiate_graphical_object(static_manager, manager, new_gobj, icon_def.graphical_object_handle, icon_def.frame);
 
 	new_gobj.object.size.x *= icon_def.scale;
 	new_gobj.object.size.y *= icon_def.scale;
@@ -471,8 +471,8 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 	return new_gobj;
 }
 
-ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, ui::text_tag handle, const text_data::replacement* candidates, uint32_t count) {
-	const ui::text_def& text_def = manager.ui_definitions.text[handle];
+ui::tagged_gui_object ui::detail::create_element_instance(gui_static& static_manager, gui_manager& manager, ui::text_tag handle, const text_data::replacement* candidates, uint32_t count) {
+	const ui::text_def& text_def = static_manager.ui_definitions.text[handle];
 	const auto new_gobj = manager.gui_objects.emplace();
 	
 	new_gobj.object.position = text_def.position;
@@ -483,7 +483,7 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 
 	if (is_valid_index(text_def.text_handle)) {
 		const auto[font_h, is_black, int_font_size] = graphics::unpack_font_handle(text_def.font_handle);
-		detail::create_multiline_text(manager, new_gobj, text_def.text_handle, text_aligment_from_text_definition(text_def), text_format{ is_black ? ui::text_color::black : ui::text_color::white, font_h, int_font_size }, candidates, count);
+		detail::create_multiline_text(static_manager, manager, new_gobj, text_def.text_handle, text_aligment_from_text_definition(text_def), text_format{ is_black ? ui::text_color::black : ui::text_color::white, font_h, int_font_size }, candidates, count);
 	}
 
 	for_each_child(manager, new_gobj, [adjust = text_def.border_size](tagged_gui_object c) {
@@ -496,7 +496,7 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_manager& manager, 
 	return new_gobj;
 }
 
-void ui::detail::render_object_type(const gui_manager& manager, graphics::open_gl_wrapper& ogl, const gui_object& root_obj, const screen_position& position, uint32_t type, bool currently_enabled) {
+void ui::detail::render_object_type(const gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper& ogl, const gui_object& root_obj, const screen_position& position, uint32_t type, bool currently_enabled) {
 	const auto current_rotation = root_obj.get_rotation();
 
 	switch (type) {
@@ -640,7 +640,7 @@ void ui::detail::render_object_type(const gui_manager& manager, graphics::open_g
 		{
 			auto ti = manager.text_instances.safe_at(text_instance_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
 			if (ti) {
-				auto& fnt = manager.fonts.at(ti->font_handle);
+				auto& fnt = static_manager.fonts.at(ti->font_handle);
 
 				switch (ti->color) {
 					case ui::text_color::black:
@@ -671,7 +671,7 @@ void ui::detail::render_object_type(const gui_manager& manager, graphics::open_g
 	}
 }
 
-void ui::detail::render(const gui_manager& manager, graphics::open_gl_wrapper &ogl, const gui_object &root_obj, ui::xy_pair position, ui::xy_pair container_size, bool parent_enabled) {
+void ui::detail::render(const gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper &ogl, const gui_object &root_obj, ui::xy_pair position, ui::xy_pair container_size, bool parent_enabled) {
 	const auto flags = root_obj.flags.load(std::memory_order_acquire);
 	if ((flags & ui::gui_object::visible) == 0)
 		return;
@@ -692,21 +692,21 @@ void ui::detail::render(const gui_manager& manager, graphics::open_gl_wrapper &o
 	if ((flags & ui::gui_object::dont_clip_children) == 0) {
 		graphics::scissor_rect clip(std::lround(screen_pos.effective_position_x), manager.height() - std::lround(screen_pos.effective_position_y + screen_pos.effective_height), std::lround(screen_pos.effective_width), std::lround(screen_pos.effective_height));
 
-		detail::render_object_type(manager, ogl, root_obj, screen_pos, type, currently_enabled);
+		detail::render_object_type(static_manager, manager, ogl, root_obj, screen_pos, type, currently_enabled);
 
 		gui_object_tag current_child = root_obj.first_child;
 		while (is_valid_index(current_child)) {
 			const auto& child_object = manager.gui_objects.at(current_child);
-			detail::render(manager, ogl, child_object, root_position, root_obj.size, currently_enabled);
+			detail::render(static_manager, manager, ogl, child_object, root_position, root_obj.size, currently_enabled);
 			current_child = child_object.right_sibling;
 		}
 	} else {
-		detail::render_object_type(manager, ogl, root_obj, screen_pos, type, currently_enabled);
+		detail::render_object_type(static_manager, manager, ogl, root_obj, screen_pos, type, currently_enabled);
 
 		gui_object_tag current_child = root_obj.first_child;
 		while (is_valid_index(current_child)) {
 			const auto& child_object = manager.gui_objects.at(current_child);
-			detail::render(manager, ogl, child_object, root_position, root_obj.size, currently_enabled);
+			detail::render(static_manager, manager, ogl, child_object, root_position, root_obj.size, currently_enabled);
 			current_child = child_object.right_sibling;
 		}
 	}
@@ -886,7 +886,7 @@ void ui::move_to_back(const gui_manager& manager, tagged_gui_object g) {
 	parent_object.first_child = g.id;
 }
 
-bool ui::gui_manager::on_lbutton_down(const lbutton_down& ld) {
+bool ui::gui_manager::on_lbutton_down(gui_static&, const lbutton_down& ld) {
 	if (false == detail::dispatch_message(*this, [_this = this](ui::tagged_gui_object obj, const lbutton_down& ) {
 		return _this->set_focus(obj);
 	}, tagged_gui_object{ root, gui_object_tag(0) }, root.size, ui::rescale_message(ld, _scale))) {
@@ -900,7 +900,7 @@ bool ui::gui_manager::on_lbutton_down(const lbutton_down& ld) {
 	}, tagged_gui_object{ root, gui_object_tag(0) }, root.size, ui::rescale_message(ld, _scale));
 }
 
-bool ui::gui_manager::on_rbutton_down(const rbutton_down& rd) {
+bool ui::gui_manager::on_rbutton_down(gui_static&, const rbutton_down& rd) {
 	return detail::dispatch_message(*this, [_this = this](ui::tagged_gui_object obj, const rbutton_down& r) {
 		if (obj.object.associated_behavior)
 			return obj.object.associated_behavior->on_rclick(obj.id, *_this, r);
@@ -908,8 +908,8 @@ bool ui::gui_manager::on_rbutton_down(const rbutton_down& rd) {
 	}, tagged_gui_object{ root,gui_object_tag(0) }, root.size, ui::rescale_message(rd, _scale));
 }
 
-bool ui::gui_manager::on_mouse_move(const mouse_move& mm) {
-	const bool found_tooltip = detail::dispatch_message(*this, [_this = this](ui::tagged_gui_object obj, const mouse_move& m) {
+bool ui::gui_manager::on_mouse_move(gui_static& static_manager, const mouse_move& mm) {
+	const bool found_tooltip = detail::dispatch_message(*this, [_this = this, &static_manager](ui::tagged_gui_object obj, const mouse_move& m) {
 		if (obj.object.associated_behavior) {
 			const auto tt_behavior = obj.object.associated_behavior->has_tooltip(obj.id, *_this, m);
 			if (tt_behavior == tooltip_behavior::transparent)
@@ -922,7 +922,7 @@ bool ui::gui_manager::on_mouse_move(const mouse_move& mm) {
 			if ((_this->tooltip != obj.id) | (tt_behavior == tooltip_behavior::variable_tooltip)) {
 				_this->tooltip = obj.id;
 				clear_children(*_this, ui::tagged_gui_object{ _this->tooltip_window, gui_object_tag(3) });
-				obj.object.associated_behavior->create_tooltip(obj.id, *_this, m, ui::tagged_gui_object{ _this->tooltip_window, gui_object_tag(3) });
+				obj.object.associated_behavior->create_tooltip(obj.id, *_this, static_manager, m, ui::tagged_gui_object{ _this->tooltip_window, gui_object_tag(3) });
 				ui::shrink_to_children(*_this, ui::tagged_gui_object{ _this->tooltip_window, gui_object_tag(3) }, 16);
 
 				_this->tooltip_window.position = ui::absolute_position(*_this, obj);
@@ -948,7 +948,7 @@ bool ui::gui_manager::on_mouse_move(const mouse_move& mm) {
 	return found_tooltip;
 }
 
-bool ui::gui_manager::on_mouse_drag(const mouse_drag& md) {
+bool ui::gui_manager::on_mouse_drag(gui_static&, const mouse_drag& md) {
 	if (is_valid_index(focus)) {
 		if (gui_objects.at(focus).associated_behavior) {
 			return gui_objects.at(focus).associated_behavior->on_drag(focus, *this, ui::rescale_message(md, _scale));
@@ -958,7 +958,7 @@ bool ui::gui_manager::on_mouse_drag(const mouse_drag& md) {
 	return false;
 }
 
-bool ui::gui_manager::on_keydown(const key_down& kd) {
+bool ui::gui_manager::on_keydown(gui_static&, const key_down& kd) {
 	return detail::dispatch_message(*this, [_this = this](ui::tagged_gui_object obj, const key_down& k) {
 		if (obj.object.associated_behavior)
 			return obj.object.associated_behavior->on_keydown(obj.id, *_this, k);
@@ -966,7 +966,7 @@ bool ui::gui_manager::on_keydown(const key_down& kd) {
 	}, tagged_gui_object{ root,gui_object_tag(0) }, root.size, ui::rescale_message(kd, _scale));
 }
 
-bool ui::gui_manager::on_scroll(const scroll& se) {
+bool ui::gui_manager::on_scroll(gui_static&, const scroll& se) {
 	return detail::dispatch_message(*this, [_this = this](ui::tagged_gui_object obj, const scroll& s) {
 		if (obj.object.associated_behavior)
 			return obj.object.associated_behavior->on_scroll(obj.id, *_this, s);
@@ -974,7 +974,7 @@ bool ui::gui_manager::on_scroll(const scroll& se) {
 	}, tagged_gui_object{ root,gui_object_tag(0) }, root.size, ui::rescale_message(se, _scale));
 }
 
-bool ui::gui_manager::on_text(const text_event &te) {
+bool ui::gui_manager::on_text(gui_static&, const text_event &te) {
 	if (is_valid_index(focus)) {
 		if (gui_objects.at(focus).associated_behavior)
 			return gui_objects.at(focus).associated_behavior->on_text(focus, *this, te);
@@ -984,7 +984,7 @@ bool ui::gui_manager::on_text(const text_event &te) {
 	return false;
 }
 
-void ui::detail::update(gui_manager& manager, tagged_gui_object obj, world_state& w) {
+void ui::detail::update(gui_static& static_manager, gui_manager& manager, tagged_gui_object obj, world_state& w) {
 	const auto object_flags = obj.object.flags.load(std::memory_order_acquire);
 
 	if ((object_flags & ui::gui_object::visible_after_update) != 0) {
@@ -999,14 +999,14 @@ void ui::detail::update(gui_manager& manager, tagged_gui_object obj, world_state
 	}
 
 	if (obj.object.associated_behavior)
-		obj.object.associated_behavior->update_data(obj.id, manager, w);
+		obj.object.associated_behavior->update_data(obj.id, static_manager, manager, w);
 
-	ui::for_each_child(manager, obj, [&manager, &w](ui::tagged_gui_object child) {
-		update(manager, child, w);
+	ui::for_each_child(manager, obj, [&manager, &static_manager, &w](ui::tagged_gui_object child) {
+		update(static_manager, manager, child, w);
 	});
 }
 
-void ui::detail::minimal_update(gui_manager& manager, tagged_gui_object obj, world_state& w) {
+void ui::detail::minimal_update(gui_static& static_manager, gui_manager& manager, tagged_gui_object obj, world_state& w) {
 	const auto object_flags = obj.object.flags.load(std::memory_order_acquire);
 
 	if ((object_flags & ui::gui_object::visible_after_update) != 0) {
@@ -1019,29 +1019,29 @@ void ui::detail::minimal_update(gui_manager& manager, tagged_gui_object obj, wor
 		}
 
 		if (obj.object.associated_behavior)
-			obj.object.associated_behavior->update_data(obj.id, manager, w);
+			obj.object.associated_behavior->update_data(obj.id, static_manager, manager, w);
 
-		ui::for_each_child(manager, obj, [&manager, &w](ui::tagged_gui_object child) {
-			minimal_update(manager, child, w);
+		ui::for_each_child(manager, obj, [&manager, &static_manager, &w](ui::tagged_gui_object child) {
+			minimal_update(static_manager, manager, child, w);
 		});
 	} else if ((object_flags & ui::gui_object::visible) != 0) {
-		ui::for_each_child(manager, obj, [&manager, &w](ui::tagged_gui_object child) {
-			minimal_update(manager, child, w);
+		ui::for_each_child(manager, obj, [&manager, &static_manager, &w](ui::tagged_gui_object child) {
+			minimal_update(static_manager, manager, child, w);
 		});
 	}
 }
 
-void ui::minimal_update(gui_manager& manager, world_state& w) {
-	detail::minimal_update(manager, tagged_gui_object{ manager.root, gui_object_tag(0) }, w);
-	detail::minimal_update(manager, tagged_gui_object{ manager.background, gui_object_tag(1) }, w);
-	detail::minimal_update(manager, tagged_gui_object{ manager.foreground, gui_object_tag(2) }, w);
+void ui::minimal_update(gui_static& static_manager, gui_manager& manager, world_state& w) {
+	detail::minimal_update(static_manager, manager, tagged_gui_object{ manager.root, gui_object_tag(0) }, w);
+	detail::minimal_update(static_manager, manager, tagged_gui_object{ manager.background, gui_object_tag(1) }, w);
+	detail::minimal_update(static_manager, manager, tagged_gui_object{ manager.foreground, gui_object_tag(2) }, w);
 }
 
-void ui::update(gui_manager& manager, world_state& w) {
+void ui::update(gui_static& static_manager, gui_manager& manager, world_state& w) {
 	manager.check_and_clear_minimal_update();
-	detail::update(manager, tagged_gui_object{ manager.root, gui_object_tag(0) }, w);
-	detail::update(manager, tagged_gui_object{ manager.background, gui_object_tag(1) }, w);
-	detail::update(manager, tagged_gui_object{ manager.foreground, gui_object_tag(2) }, w);
+	detail::update(static_manager, manager, tagged_gui_object{ manager.root, gui_object_tag(0) }, w);
+	detail::update(static_manager, manager, tagged_gui_object{ manager.background, gui_object_tag(1) }, w);
+	detail::update(static_manager, manager, tagged_gui_object{ manager.foreground, gui_object_tag(2) }, w);
 }
 
 ui::gui_manager::gui_manager() : gui_manager(1080, 640) {}
@@ -1077,11 +1077,11 @@ void ui::gui_manager::rescale(float new_scale) {
 	on_resize(new_size);
 }
 
-void ui::render(const gui_manager& manager, graphics::open_gl_wrapper& ogl) {
+void ui::render(const gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper& ogl) {
 	ogl.use_default_program();
-	detail::render(manager, ogl, manager.background, ui::xy_pair{ 0, 0 }, manager.background.size, true);
-	detail::render(manager, ogl, manager.root, ui::xy_pair{ 0, 0 }, manager.root.size, true);
-	detail::render(manager, ogl, manager.foreground, ui::xy_pair{ 0, 0 }, manager.foreground.size, true);
+	detail::render(static_manager, manager, ogl, manager.background, ui::xy_pair{ 0, 0 }, manager.background.size, true);
+	detail::render(static_manager, manager, ogl, manager.root, ui::xy_pair{ 0, 0 }, manager.root.size, true);
+	detail::render(static_manager, manager, ogl, manager.foreground, ui::xy_pair{ 0, 0 }, manager.foreground.size, true);
 }
 
 graphics::rotation ui::gui_object::get_rotation() const {
@@ -1095,7 +1095,7 @@ graphics::rotation ui::gui_object::get_rotation() const {
 }
 
 
-void ui::load_gui_from_directory(const directory& source_directory, gui_manager& manager) {
+void ui::load_gui_from_directory(const directory& source_directory, gui_static& manager) {
 	auto fonts_directory = source_directory.get_directory(u"\\gfx\\fonts");
 	manager.fonts.load_standard_fonts(fonts_directory);
 
@@ -1144,29 +1144,33 @@ void ui::load_gui_from_directory(const directory& source_directory, gui_manager&
 		OutputDebugStringA("\n");
 	}
 #endif
+	
+}
 
+void ui::init_tooltip_window(gui_static& static_manager, gui_manager& manager) {
 	manager.tooltip_window.flags.fetch_or(ui::gui_object::type_graphics_object, std::memory_order_acq_rel);
 	const auto bg_graphic = manager.graphics_instances.emplace();
 	bg_graphic.object.frame = 0;
-	bg_graphic.object.graphics_object = &(manager.graphics_object_definitions.definitions[manager.graphics_object_definitions.standard_text_background]);
-	bg_graphic.object.t = &(manager.textures.retrieve_by_key(manager.textures.standard_tiles_dialog));
+	bg_graphic.object.graphics_object = &(static_manager.graphics_object_definitions.definitions[static_manager.graphics_object_definitions.standard_text_background]);
+	bg_graphic.object.t = &(static_manager.textures.retrieve_by_key(static_manager.textures.standard_tiles_dialog));
 	manager.tooltip_window.type_dependant_handle.store(to_index(bg_graphic.id), std::memory_order_release);
 }
 
-ui::tagged_gui_object ui::create_scrollable_text_block(gui_manager& manager, ui::text_tag handle, tagged_gui_object parent, const text_data::replacement* candidates, uint32_t count) {
-	const ui::text_def& text_def = manager.ui_definitions.text[handle];
+ui::tagged_gui_object ui::create_scrollable_text_block(gui_static& static_manager, gui_manager& manager, ui::text_tag handle, tagged_gui_object parent, const text_data::replacement* candidates, uint32_t count) {
+	const ui::text_def& text_def = static_manager.ui_definitions.text[handle];
 	const auto[font_h, is_black, int_font_size] = graphics::unpack_font_handle(text_def.font_handle);
-	const auto& this_font = manager.fonts.at(font_h);
+	const auto& this_font = static_manager.fonts.at(font_h);
 
 	auto res = create_scrollable_region(
+		static_manager,
 		manager,
 		parent,
 		text_def.position,
 		text_def.max_height,
 		(int32_t)this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(int_font_size))),
 		graphics::obj_definition_tag(),
-		[handle, candidates, count](gui_manager& m) {
-		return detail::create_element_instance(m, handle, candidates, count);
+		[handle, candidates, count](gui_static& sm, gui_manager& m) {
+		return detail::create_element_instance(sm, m, handle, candidates, count);
 	});
 	res.object.align = alignment_from_definition(text_def);
 
@@ -1178,11 +1182,11 @@ ui::tagged_gui_object ui::create_scrollable_text_block(gui_manager& manager, ui:
 		const auto bg_graphic = manager.graphics_instances.emplace();
 		const auto texture =
 			(background == ui::text_def::background_small_tiles_dialog_tga) ?
-			manager.textures.standard_small_tiles_dialog :
-			manager.textures.standard_tiles_dialog;
+			static_manager.textures.standard_small_tiles_dialog :
+			static_manager.textures.standard_tiles_dialog;
 		bg_graphic.object.frame = 0;
-		bg_graphic.object.graphics_object = &(manager.graphics_object_definitions.definitions[manager.graphics_object_definitions.standard_text_background]);
-		bg_graphic.object.t = &(manager.textures.retrieve_by_key(texture));
+		bg_graphic.object.graphics_object = &(static_manager.graphics_object_definitions.definitions[static_manager.graphics_object_definitions.standard_text_background]);
+		bg_graphic.object.t = &(static_manager.textures.retrieve_by_key(texture));
 
 		res.object.type_dependant_handle.store(to_index(bg_graphic.id), std::memory_order_release);
 	}
@@ -1190,19 +1194,20 @@ ui::tagged_gui_object ui::create_scrollable_text_block(gui_manager& manager, ui:
 	return res;
 }
 
-ui::tagged_gui_object ui::create_scrollable_text_block(gui_manager& manager, ui::text_tag handle, text_data::text_tag contents, tagged_gui_object parent, const text_data::replacement* candidates, uint32_t count) {
-	const ui::text_def& text_def = manager.ui_definitions.text[handle];
+ui::tagged_gui_object ui::create_scrollable_text_block(gui_static& static_manager, gui_manager& manager, ui::text_tag handle, text_data::text_tag contents, tagged_gui_object parent, const text_data::replacement* candidates, uint32_t count) {
+	const ui::text_def& text_def = static_manager.ui_definitions.text[handle];
 	const auto[font_h, is_black, int_font_size] = graphics::unpack_font_handle(text_def.font_handle);
-	const auto& this_font = manager.fonts.at(font_h);
+	const auto& this_font = static_manager.fonts.at(font_h);
 
 	auto res = create_scrollable_region(
+		static_manager,
 		manager,
 		parent,
 		text_def.position,
 		text_def.max_height,
 		(int32_t)this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(int_font_size))),
 		graphics::obj_definition_tag(),
-		[handle, contents, candidates, count, &text_def](gui_manager& m) {
+		[handle, contents, candidates, count, &text_def](gui_static& sm, gui_manager& m) {
 		const auto new_gobj = m.gui_objects.emplace();
 
 		new_gobj.object.position = ui::xy_pair{ 0, 0 };
@@ -1212,7 +1217,7 @@ ui::tagged_gui_object ui::create_scrollable_text_block(gui_manager& manager, ui:
 
 		if (is_valid_index(contents)) {
 			const auto[font_h, is_black, int_font_size] = graphics::unpack_font_handle(text_def.font_handle);
-			detail::create_multiline_text(m, new_gobj, contents, text_aligment_from_text_definition(text_def), text_format{ is_black ? ui::text_color::black : ui::text_color::white, font_h, int_font_size }, candidates, count);
+			detail::create_multiline_text(sm, m, new_gobj, contents, text_aligment_from_text_definition(text_def), text_format{ is_black ? ui::text_color::black : ui::text_color::white, font_h, int_font_size }, candidates, count);
 		}
 
 		for_each_child(m, new_gobj, [adjust = text_def.border_size](tagged_gui_object c) {
@@ -1234,11 +1239,11 @@ ui::tagged_gui_object ui::create_scrollable_text_block(gui_manager& manager, ui:
 		const auto bg_graphic = manager.graphics_instances.emplace();
 		const auto texture =
 			(background == ui::text_def::background_small_tiles_dialog_tga) ?
-			manager.textures.standard_small_tiles_dialog :
-			manager.textures.standard_tiles_dialog;
+			static_manager.textures.standard_small_tiles_dialog :
+			static_manager.textures.standard_tiles_dialog;
 		bg_graphic.object.frame = 0;
-		bg_graphic.object.graphics_object = &(manager.graphics_object_definitions.definitions[manager.graphics_object_definitions.standard_text_background]);
-		bg_graphic.object.t = &(manager.textures.retrieve_by_key(texture));
+		bg_graphic.object.graphics_object = &(static_manager.graphics_object_definitions.definitions[static_manager.graphics_object_definitions.standard_text_background]);
+		bg_graphic.object.t = &(static_manager.textures.retrieve_by_key(texture));
 
 		res.object.type_dependant_handle.store(to_index(bg_graphic.id), std::memory_order_release);
 	}
@@ -1270,13 +1275,13 @@ void ui::shrink_to_children(gui_manager& manager, tagged_gui_object g, int32_t b
 	g.object.size.y = static_cast<int16_t>(border * 2 + std::max(g.object.size.y - minimum_child.y, 0));
 }
 
-ui::tagged_gui_object ui::create_dynamic_window(gui_manager& manager, window_tag t, tagged_gui_object parent) {
-	const auto& definition = manager.ui_definitions.windows[t];
+ui::tagged_gui_object ui::create_dynamic_window(gui_static& static_manager, gui_manager& manager, window_tag t, tagged_gui_object parent) {
+	const auto& definition = static_manager.ui_definitions.windows[t];
 
 	if (is_valid_index(definition.background_handle)) {
 		const auto window = ((definition.flags & (window_def::is_moveable | window_def::is_dialog)) != 0) ?
-			create_dynamic_element<draggable_region>(manager, definition.background_handle, parent) :
-			create_dynamic_element<fixed_region>(manager, definition.background_handle, parent);
+			create_dynamic_element<draggable_region>(static_manager, manager, definition.background_handle, parent) :
+			create_dynamic_element<fixed_region>(static_manager, manager, definition.background_handle, parent);
 
 		window.object.size = definition.size;
 		window.object.position = definition.position;
@@ -1290,8 +1295,8 @@ ui::tagged_gui_object ui::create_dynamic_window(gui_manager& manager, window_tag
 
 		const auto bg_graphic = manager.graphics_instances.emplace();
 		bg_graphic.object.frame = 0;
-		bg_graphic.object.graphics_object = &(manager.graphics_object_definitions.definitions[manager.graphics_object_definitions.standard_text_background]);
-		bg_graphic.object.t = &(manager.textures.retrieve_by_key(manager.textures.standard_tiles_dialog));
+		bg_graphic.object.graphics_object = &(static_manager.graphics_object_definitions.definitions[static_manager.graphics_object_definitions.standard_text_background]);
+		bg_graphic.object.t = &(static_manager.textures.retrieve_by_key(static_manager.textures.standard_tiles_dialog));
 
 		window.object.type_dependant_handle.store(to_index(bg_graphic.id), std::memory_order_release);
 

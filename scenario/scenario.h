@@ -32,7 +32,7 @@ namespace scenario {
 		events::event_manager event_m;
 		triggers::trigger_manager trigger_m;
 
-		ui::gui_manager gui_m;
+		ui::gui_static gui_m;
 
 		scenario_manager() {}
 	};

@@ -74,16 +74,16 @@ void ui::scrollbar<BASE>::adjust_position(int32_t position) {
 }
 
 template<typename BASE>
-void ui::scrollbar<BASE>::update_data(gui_object_tag o, gui_manager& m, world_state& w) {
-	if constexpr(ui::detail::has_update<BASE, ui::scrollbar<BASE>&, tagged_gui_object, gui_manager&, world_state&>)
-		BASE::update(*this, o, m, w);
+void ui::scrollbar<BASE>::update_data(gui_object_tag o, gui_static& sm, gui_manager& m, world_state& w) {
+	if constexpr(ui::detail::has_update<BASE, ui::scrollbar<BASE>&, tagged_gui_object, gui_static&, gui_manager&, world_state&>)
+		BASE::update(*this, o, sm, m, w);
 }
 
 template<typename BASE>
 template<typename window_type>
-void ui::scrollbar<BASE>::windowed_update(window_type& w, gui_manager& m, world_state& s) {
-	if constexpr(ui::detail::has_windowed_update<BASE, ui::scrollbar<BASE>&, window_type&, gui_manager&, world_state&>)
-		BASE::windowed_update(*this, w, m, s);
+void ui::scrollbar<BASE>::windowed_update(window_type& w, gui_static& sm, gui_manager& m, world_state& s) {
+	if constexpr(ui::detail::has_windowed_update<BASE, ui::scrollbar<BASE>&, window_type&, gui_static&, gui_manager&, world_state&>)
+		BASE::windowed_update(*this, w, sm, m, s);
 }
 
 template<typename BASE>
@@ -172,7 +172,7 @@ bool ui::scrollbar_slider<BASE>::on_drag(gui_object_tag, gui_manager&, const mou
 namespace ui {
 	namespace detail {
 		template<typename BEHAVIOR>
-		ui::tagged_gui_object create_scrollbar_internal(gui_manager& manager, ui::scrollbar<BEHAVIOR>& b, const scrollbar_def& scrollbar_definition, tagged_gui_object parent, ui::xy_pair position, int32_t extent) {
+		ui::tagged_gui_object create_scrollbar_internal(gui_static& static_manager, gui_manager& manager, ui::scrollbar<BEHAVIOR>& b, const scrollbar_def& scrollbar_definition, tagged_gui_object parent, ui::xy_pair position, int32_t extent) {
 
 			auto scrollbar_obj = manager.gui_objects.emplace();
 
@@ -187,8 +187,8 @@ namespace ui {
 			scrollbar_obj.object.align = alignment_from_definition(scrollbar_definition);
 
 			if ((scrollbar_definition.flags & scrollbar_def::has_range_limit) != 0) {
-				const auto minimum_range = ui::create_dynamic_element(manager, scrollbar_definition.minimum_limit_icon, scrollbar_obj);
-				const auto maximum_range = ui::create_dynamic_element(manager, scrollbar_definition.maximum_limit_icon, scrollbar_obj);
+				const auto minimum_range = ui::create_dynamic_element(static_manager, manager, scrollbar_definition.minimum_limit_icon, scrollbar_obj);
+				const auto maximum_range = ui::create_dynamic_element(static_manager, manager, scrollbar_definition.maximum_limit_icon, scrollbar_obj);
 
 				ui::hide(minimum_range);
 				ui::hide(maximum_range);
@@ -196,12 +196,12 @@ namespace ui {
 				b.maximum_limit_icon = &maximum_range.object;
 			}
 
-			const auto slider = create_dynamic_element<scrollbar_slider<BEHAVIOR>>(manager, scrollbar_definition.slider, scrollbar_obj, b);
+			const auto slider = create_dynamic_element<scrollbar_slider<BEHAVIOR>>(static_manager, manager, scrollbar_definition.slider, scrollbar_obj, b);
 			b.slider = &slider.object;
 
-			const auto left_button = create_dynamic_element<simple_button<scrollbar_left_button<BEHAVIOR>>>(manager, b.vertical ? scrollbar_definition.maximum_button : scrollbar_definition.minimum_button, scrollbar_obj, b);
-			const auto right_button = create_dynamic_element<simple_button<scrollbar_right_button<BEHAVIOR>>>(manager, b.vertical ? scrollbar_definition.minimum_button : scrollbar_definition.maximum_button, scrollbar_obj, b);
-			const auto track = create_dynamic_element<scrollbar_track<BEHAVIOR>>(manager, scrollbar_definition.track, scrollbar_obj, b);
+			const auto left_button = create_dynamic_element<simple_button<scrollbar_left_button<BEHAVIOR>>>(static_manager, manager, b.vertical ? scrollbar_definition.maximum_button : scrollbar_definition.minimum_button, scrollbar_obj, b);
+			const auto right_button = create_dynamic_element<simple_button<scrollbar_right_button<BEHAVIOR>>>(static_manager, manager, b.vertical ? scrollbar_definition.minimum_button : scrollbar_definition.maximum_button, scrollbar_obj, b);
+			const auto track = create_dynamic_element<scrollbar_track<BEHAVIOR>>(static_manager, manager, scrollbar_definition.track, scrollbar_obj, b);
 
 			scrollbar_obj.object.size = b.vertical ? ui::xy_pair{ std::max(left_button.object.size.x, scrollbar_definition.size.x) , static_cast<int16_t>(extent) } : ui::xy_pair{ static_cast<int16_t>(extent), std::max(left_button.object.size.y, scrollbar_definition.size.y) };
 			scrollbar_obj.object.position = position;
@@ -259,41 +259,41 @@ namespace ui {
 }
 
 template<typename BEHAVIOR, typename ... PARAMS>
-ui::tagged_gui_object ui::create_fixed_sz_scrollbar(gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, ui::xy_pair position, int32_t extent, PARAMS&& ... params) {
-	const auto& scrollbar_definition = manager.ui_definitions.scrollbars[handle];
+ui::tagged_gui_object ui::create_fixed_sz_scrollbar(gui_static& static_manager, gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, ui::xy_pair position, int32_t extent, PARAMS&& ... params) {
+	const auto& scrollbar_definition = static_manager.ui_definitions.scrollbars[handle];
 	ui::scrollbar<BEHAVIOR>* b = concurrent_allocator<ui::scrollbar<BEHAVIOR>>().allocate(1);
 	new (b) ui::scrollbar<BEHAVIOR>(std::forward<PARAMS>(params)...);
 
-	const auto res = ui::detail::create_scrollbar_internal<BEHAVIOR>(manager, *b, scrollbar_definition, parent, position, extent);
+	const auto res = ui::detail::create_scrollbar_internal<BEHAVIOR>(static_manager, manager, *b, scrollbar_definition, parent, position, extent);
 	res.object.flags.fetch_or(ui::gui_object::dynamic_behavior, std::memory_order_acq_rel);
 	return res;
 }
 
 template<typename BEHAVIOR, typename ... PARAMS>
-ui::tagged_gui_object ui::create_scrollbar(gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, PARAMS&& ... params) {
-	const auto& scrollbar_definition = manager.ui_definitions.scrollbars[handle];
+ui::tagged_gui_object ui::create_scrollbar(gui_static& static_manager, gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, PARAMS&& ... params) {
+	const auto& scrollbar_definition = static_manager.ui_definitions.scrollbars[handle];
 	ui::scrollbar<BEHAVIOR>* b = concurrent_allocator<ui::scrollbar<BEHAVIOR>>().allocate(1);
 	new (b) ui::scrollbar<BEHAVIOR>(std::forward<PARAMS>(params)...);
 
-	const auto res = ui::detail::create_scrollbar_internal<BEHAVIOR>(manager, *b, scrollbar_definition, parent, scrollbar_definition.position, std::max(scrollbar_definition.size.x, scrollbar_definition.size.y));
+	const auto res = ui::detail::create_scrollbar_internal<BEHAVIOR>(static_manager, manager, *b, scrollbar_definition, parent, scrollbar_definition.position, std::max(scrollbar_definition.size.x, scrollbar_definition.size.y));
 	res.object.flags.fetch_or(ui::gui_object::dynamic_behavior, std::memory_order_acq_rel);
 	return res;
 }
 
 template<typename B>
-ui::tagged_gui_object ui::create_static_element(gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, scrollbar<B>& b) {
-	const auto& scrollbar_definition = manager.ui_definitions.scrollbars[handle];
+ui::tagged_gui_object ui::create_static_element(gui_static& static_manager, gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, scrollbar<B>& b) {
+	const auto& scrollbar_definition = static_manager.ui_definitions.scrollbars[handle];
 
-	const auto res = ui::detail::create_scrollbar_internal<B>(manager, b, scrollbar_definition, parent, scrollbar_definition.position, std::max(scrollbar_definition.size.x, scrollbar_definition.size.y));
+	const auto res = ui::detail::create_scrollbar_internal<B>(static_manager, manager, b, scrollbar_definition, parent, scrollbar_definition.position, std::max(scrollbar_definition.size.x, scrollbar_definition.size.y));
 	manager.flag_minimal_update();
 	return res;
 }
 
 template<typename BEHAVIOR>
-ui::tagged_gui_object ui::create_static_fixed_sz_scrollbar(gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, ui::xy_pair position, int32_t extent, scrollbar<BEHAVIOR>& b) {
-	const auto& scrollbar_definition = manager.ui_definitions.scrollbars[handle];
+ui::tagged_gui_object ui::create_static_fixed_sz_scrollbar(gui_static& static_manager, gui_manager& manager, scrollbar_tag handle, tagged_gui_object parent, ui::xy_pair position, int32_t extent, scrollbar<BEHAVIOR>& b) {
+	const auto& scrollbar_definition = static_manager.ui_definitions.scrollbars[handle];
 
-	return ui::detail::create_scrollbar_internal<BEHAVIOR>(manager, b, scrollbar_definition, parent, position, extent);
+	return ui::detail::create_scrollbar_internal<BEHAVIOR>(static_manager, manager, b, scrollbar_definition, parent, position, extent);
 }
 
 #include "buttons.hpp"

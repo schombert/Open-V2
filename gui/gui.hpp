@@ -40,14 +40,14 @@ namespace ui {
 
 	namespace detail {
 		template<typename LM, typename BH = null_behavior_creation>
-		std::pair<ui::xy_pair, uint32_t> text_chunk_to_single_instance(ui::gui_manager& container, vector_backed_string<char16_t> text_source, uint32_t offset_in_chunk, tagged_gui_object parent_object, ui::xy_pair position, const text_format& fmt, LM&& lm, const BH& behavior_creator = null_behavior_creation()) {
-			graphics::font& this_font = container.fonts.at(fmt.font_handle);
+		std::pair<ui::xy_pair, uint32_t> text_chunk_to_single_instance(const gui_static& static_manager, ui::gui_manager& container, vector_backed_string<char16_t> text_source, uint32_t offset_in_chunk, tagged_gui_object parent_object, ui::xy_pair position, const text_format& fmt, LM&& lm, const BH& behavior_creator = null_behavior_creation()) {
+			graphics::font& this_font = static_manager.fonts.at(fmt.font_handle);
 
 			const auto new_gobj = container.gui_objects.emplace();
 			const auto new_text_instance = ui::create_text_instance(container, new_gobj, fmt);
 
 			new_text_instance.object.length = (uint8_t)std::min(ui::text_instance::max_instance_length, (uint32_t)(text_source.length()) - offset_in_chunk);
-			memcpy(new_text_instance.object.text, text_source.get_str(container.text_data_sequences.text_data) + offset_in_chunk, (new_text_instance.object.length) * sizeof(char16_t));
+			memcpy(new_text_instance.object.text, text_source.get_str(static_manager.text_data_sequences.text_data) + offset_in_chunk, (new_text_instance.object.length) * sizeof(char16_t));
 
 			if (new_text_instance.object.length == ui::text_instance::max_instance_length
 				&& new_text_instance.object.text[ui::text_instance::max_instance_length - 1] != u' ')
@@ -100,12 +100,12 @@ namespace ui {
 }
 
 template<typename LM, typename BH>
-ui::xy_pair ui::text_chunk_to_instances(ui::gui_manager& manager, vector_backed_string<char16_t> text_source, tagged_gui_object parent_object, ui::xy_pair position, const text_format& fmt, LM&& lm, const BH& behavior_creator) {
+ui::xy_pair ui::text_chunk_to_instances(gui_static& static_manager, ui::gui_manager& manager, vector_backed_string<char16_t> text_source, tagged_gui_object parent_object, ui::xy_pair position, const text_format& fmt, LM&& lm, const BH& behavior_creator) {
 	int32_t position_in_chunk = 0;
 
 	const auto chunk_size = text_source.length();
 	while (position_in_chunk < chunk_size) {
-		std::tie(position, position_in_chunk) = detail::text_chunk_to_single_instance(manager, text_source, static_cast<uint32_t>(position_in_chunk), parent_object, position, fmt, lm, behavior_creator);
+		std::tie(position, position_in_chunk) = detail::text_chunk_to_single_instance(static_manager, manager, text_source, static_cast<uint32_t>(position_in_chunk), parent_object, position, fmt, lm, behavior_creator);
 	}
 	return position;
 }
@@ -206,14 +206,14 @@ namespace ui {
 		template<typename RES, typename HANDLE>
 		struct can_create_instance_s : public std::false_type {};
 		template<typename HANDLE>
-		struct can_create_instance_s<decltype(create_element_instance(std::declval<gui_manager&>(), std::declval<HANDLE>())), HANDLE> : public std::true_type {};
+		struct can_create_instance_s<decltype(create_element_instance(std::declval<gui_static&>(), std::declval<gui_manager&>(), std::declval<HANDLE>())), HANDLE> : public std::true_type {};
 		template<typename HANDLE>
 		constexpr bool can_create_instance = can_create_instance_s<tagged_gui_object, HANDLE>::value;
 
 		template<typename T>
-		ui::tagged_gui_object safe_create_element_instance(gui_manager& manager, T handle) {
+		ui::tagged_gui_object safe_create_element_instance(gui_static& static_manager, gui_manager& manager, T handle) {
 			if constexpr(can_create_instance<T>)
-				return ui::detail::create_element_instance(manager, handle);
+				return ui::detail::create_element_instance(static_manager, manager, handle);
 			else
 				return manager.gui_objects.emplace();
 		}
@@ -221,24 +221,24 @@ namespace ui {
 		template<typename RES, typename HANDLE, typename TYPE>
 		struct can_create_static_s : public std::false_type {};
 		template<typename HANDLE, typename TYPE>
-		struct can_create_static_s<decltype(create_static_element(std::declval<gui_manager&>(), std::declval<HANDLE>(), std::declval<tagged_gui_object>(), std::declval<TYPE&>())), HANDLE, TYPE> : public std::true_type {};
+		struct can_create_static_s<decltype(create_static_element(std::declval<gui_static&>(), std::declval<gui_manager&>(), std::declval<HANDLE>(), std::declval<tagged_gui_object>(), std::declval<TYPE&>())), HANDLE, TYPE> : public std::true_type {};
 		template<typename HANDLE, typename TYPE>
 		constexpr bool can_create_static = can_create_static_s<tagged_gui_object, HANDLE, TYPE>::value;
 	}
 }
 
 template<typename BEHAVIOR, typename T, typename ... PARAMS>
-ui::tagged_gui_object ui::create_dynamic_element(gui_manager& manager, T handle, tagged_gui_object parent, PARAMS&& ... params) {
+ui::tagged_gui_object ui::create_dynamic_element(gui_static& static_manager, gui_manager& manager, T handle, tagged_gui_object parent, PARAMS&& ... params) {
 	if constexpr(!std::is_same_v<BEHAVIOR, gui_behavior>) {
 		BEHAVIOR* b = concurrent_allocator<BEHAVIOR>().allocate(1);
 		new (b)BEHAVIOR(std::forward<PARAMS>(params) ...);
 
 		if constexpr(detail::can_create_static<T, BEHAVIOR>) {
-			const auto new_obj = create_static_element(manager, handle, parent, *b);
+			const auto new_obj = create_static_element(static_manager, manager, handle, parent, *b);
 			new_obj.object.flags.fetch_or(ui::gui_object::dynamic_behavior, std::memory_order_acq_rel);
 			return new_obj;
 		} else {
-			auto new_obj = ui::detail::safe_create_element_instance(manager, handle);
+			auto new_obj = ui::detail::safe_create_element_instance(static_manager, manager, handle);
 			new_obj.object.flags.fetch_or(ui::gui_object::dynamic_behavior, std::memory_order_acq_rel);
 
 			new_obj.object.associated_behavior = b;
@@ -248,18 +248,18 @@ ui::tagged_gui_object ui::create_dynamic_element(gui_manager& manager, T handle,
 			return new_obj;
 		}
 	} else {
-		auto new_obj = ui::detail::safe_create_element_instance(manager, handle);
+		auto new_obj = ui::detail::safe_create_element_instance(static_manager, manager, handle);
 		ui::add_to_back(manager, parent, new_obj);
 		return new_obj;
 	}
 }
 
 template<typename FILL_FUNCTION>
-ui::tagged_gui_object ui::create_scrollable_region(gui_manager& manager, tagged_gui_object parent, ui::xy_pair position, int32_t height, int32_t step_size, graphics::obj_definition_tag , const FILL_FUNCTION& f) {
+ui::tagged_gui_object ui::create_scrollable_region(gui_static& static_manager, gui_manager& manager, tagged_gui_object parent, ui::xy_pair position, int32_t height, int32_t step_size, graphics::obj_definition_tag , const FILL_FUNCTION& f) {
 	const auto new_gobj = manager.gui_objects.emplace();
 	new_gobj.object.position = position;
 
-	const auto inner_area = f(manager);
+	const auto inner_area = f(static_manager, manager);
 	inner_area.object.position = ui::xy_pair{ 0,0 };
 	new_gobj.object.size = ui::xy_pair{ static_cast<int16_t>(inner_area.object.size.x + 16), static_cast<int16_t>(height) };
 
@@ -271,7 +271,7 @@ ui::tagged_gui_object ui::create_scrollable_region(gui_manager& manager, tagged_
 		
 
 		int32_t size_difference = inner_area.object.size.y - height;
-		ui::create_static_fixed_sz_scrollbar(manager, manager.ui_definitions.standardlistbox_slider, new_gobj, ui::xy_pair{ inner_area.object.size.x, 0 }, height, new_sr->sb);
+		ui::create_static_fixed_sz_scrollbar(static_manager, manager, static_manager.ui_definitions.standardlistbox_slider, new_gobj, ui::xy_pair{ inner_area.object.size.x, 0 }, height, new_sr->sb);
 		new_sr->sb.set_range(manager, 0, size_difference);
 		new_sr->sb.set_step(step_size);
 
@@ -296,7 +296,7 @@ namespace ui {
 		template<typename RESULT, typename tag_type, typename object_type>
 		struct can_create_s : public std::false_type {};
 		template<typename tag_type, typename object_type>
-		struct can_create_s<decltype(void(ui::create_static_element(std::declval<gui_manager&>(), tag_type(), std::declval<tagged_gui_object>(), std::declval<object_type&>()))), tag_type, object_type> : public std::true_type {};
+		struct can_create_s<decltype(void(ui::create_static_element(std::declval<gui_static&>(), std::declval<gui_manager&>(), tag_type(), std::declval<tagged_gui_object>(), std::declval<object_type&>()))), tag_type, object_type> : public std::true_type {};
 		template<typename tag_type, typename object_type>
 		constexpr bool can_create = can_create_s<void, tag_type, object_type>::value;
 	}

@@ -21,8 +21,8 @@ ui::tooltip_behavior ui::button_group_member::has_tooltip(gui_object_tag , gui_m
 	return group->has_tooltip(_index);
 }
 
-void ui::button_group_member::create_tooltip(gui_object_tag , gui_manager& m, const mouse_move& , tagged_gui_object tw) {
-	group->create_tooltip(m, tw, _index);
+void ui::button_group_member::create_tooltip(gui_object_tag , gui_manager& m, gui_static& sm, const mouse_move& , tagged_gui_object tw) {
+	group->create_tooltip(m, sm, tw, _index);
 }
 
 void ui::button_group_member::set_group(button_group_common_base* g, uint32_t i) {
@@ -30,13 +30,13 @@ void ui::button_group_member::set_group(button_group_common_base* g, uint32_t i)
 	_index = i;
 }
 
-ui::tagged_gui_object ui::create_static_element(gui_manager& manager, button_tag handle, tagged_gui_object parent, button_group_member& b) {
-	auto new_obj = ui::detail::create_element_instance(manager, handle);
+ui::tagged_gui_object ui::create_static_element(gui_static& static_manager, gui_manager& manager, button_tag handle, tagged_gui_object parent, button_group_member& b) {
+	auto new_obj = ui::detail::create_element_instance(static_manager, manager, handle);
 
 	new_obj.object.associated_behavior = &b;
 	b.associated_object = &new_obj.object;
 
-	auto& bdef = manager.ui_definitions.buttons[handle];
+	auto& bdef = static_manager.ui_definitions.buttons[handle];
 	b.shortcut = bdef.shortcut;
 
 	ui::add_to_back(manager, parent, new_obj);

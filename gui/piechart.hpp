@@ -52,7 +52,7 @@ ui::tooltip_behavior ui::piechart<BASE>::has_tooltip(gui_object_tag, gui_manager
 	}
 }
 template<typename BASE>
-void ui::piechart<BASE>::create_tooltip(gui_object_tag, gui_manager &m, const mouse_move& mm, tagged_gui_object tw) {
+void ui::piechart<BASE>::create_tooltip(gui_object_tag, gui_manager &m, gui_static& sm, const mouse_move& mm, tagged_gui_object tw) {
 	constexpr double M_PI = 3.1415926535897932384626433832795;
 
 	const double fraction =
@@ -69,6 +69,7 @@ void ui::piechart<BASE>::create_tooltip(gui_object_tag, gui_manager &m, const mo
 	int32_t int_amount = static_cast<int32_t>(amount * 100.0f);
 	if (int_amount <= 0) {
 		cursor = ui::text_chunk_to_instances(
+			sm,
 			m,
 			vector_backed_string<char16_t>(u"<1% "),
 			tw,
@@ -86,6 +87,7 @@ void ui::piechart<BASE>::create_tooltip(gui_object_tag, gui_manager &m, const mo
 			}
 		}
 		cursor = ui::text_chunk_to_instances(
+			sm,
 			m,
 			vector_backed_string<char16_t>(lbuffer),
 			tw,
@@ -94,6 +96,7 @@ void ui::piechart<BASE>::create_tooltip(gui_object_tag, gui_manager &m, const mo
 	}
 
 	ui::text_chunk_to_instances(
+		sm,
 		m,
 		label,
 		tw,
@@ -136,15 +139,15 @@ void ui::piechart<BASE>::update_display(gui_manager& manager) const {
 }
 
 template<typename BASE>
-void ui::piechart<BASE>::update_data(gui_object_tag o, gui_manager& m, world_state& w) {
-	if constexpr(ui::detail::has_update<BASE, ui::piechart<BASE>&, tagged_gui_object, gui_manager&, world_state&>) {
-		BASE::update(*this, o, m, w);
+void ui::piechart<BASE>::update_data(gui_object_tag o, gui_static& sm, gui_manager& m, world_state& w) {
+	if constexpr(ui::detail::has_update<BASE, ui::piechart<BASE>&, tagged_gui_object, gui_static&, gui_manager&, world_state&>) {
+		BASE::update(*this, o, sm, m, w);
 	}
 }
 
 template<typename BASE>
-ui::tagged_gui_object ui::create_static_element(gui_manager& manager, icon_tag handle, tagged_gui_object parent, piechart<BASE>& b) {
-	const auto res = ui::detail::create_element_instance(manager, handle);
+ui::tagged_gui_object ui::create_static_element(gui_static& static_manager, gui_manager& manager, icon_tag handle, tagged_gui_object parent, piechart<BASE>& b) {
+	const auto res = ui::detail::create_element_instance(static_manager, manager, handle);
 
 	res.object.associated_behavior = &b;
 	b.associated_object = &res.object;

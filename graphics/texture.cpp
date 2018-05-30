@@ -178,6 +178,9 @@ namespace graphics {
 		}
 	}
 
+	const texture& texture_manager::retrieve_by_key(texture_tag key) const {
+		return textures[key];
+	}
 	texture& texture_manager::retrieve_by_key(texture_tag key) {
 		return textures[key];
 	}

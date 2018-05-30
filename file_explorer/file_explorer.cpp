@@ -893,17 +893,17 @@ struct empty_window_handler {
 
 	empty_window_handler() :
 		//test_tex("F:\\VS2007Projects\\open_v2_test_data\\army_icon_2.dds"),
-		test_tex("F:\\VS2007Projects\\open_v2_test_data\\test_tx.bmp"),
-		strip_tex("F:\\VS2007Projects\\open_v2_test_data\\strip10.dds"),
-		mask_tex("F:\\VS2007Projects\\open_v2_test_data\\mask.tga"),
-		prog1("F:\\VS2007Projects\\open_v2_test_data\\progress1.tga"),
-		prog2("F:\\VS2007Projects\\open_v2_test_data\\progress2.tga"),
-		bord("F:\\VS2007Projects\\open_v2_test_data\\border.dds"),
-		bar_tex("F:\\VS2007Projects\\open_v2_test_data\\barchar.tga"),
+		test_tex("D:\\VS2007Projects\\open_v2_test_data\\test_tx.bmp"),
+		strip_tex("D:\\VS2007Projects\\open_v2_test_data\\strip10.dds"),
+		mask_tex("D:\\VS2007Projects\\open_v2_test_data\\mask.tga"),
+		prog1("D:\\VS2007Projects\\open_v2_test_data\\progress1.tga"),
+		prog2("D:\\VS2007Projects\\open_v2_test_data\\progress2.tga"),
+		bord("D:\\VS2007Projects\\open_v2_test_data\\border.dds"),
+		bar_tex("D:\\VS2007Projects\\open_v2_test_data\\barchar.tga"),
 		graph(10),
-		test_fallback("F:\\VS2007Projects\\open_v2_test_data\\unifont-9.0.02.ttf"),
+		test_fallback("D:\\VS2007Projects\\open_v2_test_data\\unifont-9.0.02.ttf"),
 		//test_font("F:\\VS2007Projects\\open_v2_test_data\\Primitive.ttf", test_fallback) {}
-		test_font("F:\\VS2007Projects\\open_v2_test_data\\CreteRound-Regular.otf", test_fallback) {
+		test_font("D:\\VS2007Projects\\open_v2_test_data\\CreteRound-Regular.otf", test_fallback) {
 		float yval[] = { 0.3f, 0.6f, 0.5f, 1.0f, 0.4f, 0.5f, 0.0f, 0.3f, 0.2f, 0.6f };
 		graph.set_y(yval);
 	}
@@ -940,8 +940,9 @@ public:
 class tt_holder : public ui::draggable_region {
 public:
 	virtual ui::tooltip_behavior has_tooltip(ui::gui_object_tag, ui::gui_manager&, const ui::mouse_move&) override { return ui::tooltip_behavior::tooltip; }
-	virtual void create_tooltip(ui::gui_object_tag, ui::gui_manager& m, const ui::mouse_move&, ui::tagged_gui_object tw) override {
+	virtual void create_tooltip(ui::gui_object_tag, ui::gui_manager& m, ui::gui_static& sm, const ui::mouse_move&, ui::tagged_gui_object tw) override {
 		ui::text_chunk_to_instances(
+			sm,
 			m,
 			vector_backed_string<char16_t>(u"test tooltip"),
 			tw,
@@ -985,12 +986,13 @@ public:
 	debt_tb_who(PARAMS&&...) {}
 
 	template<typename window_type>
-	void windowed_update(window_type& w, ui::tagged_gui_object obj, text_data::alignment align, ui::text_format& fmt, ui::gui_manager& m, world_state&) {
+	void windowed_update(window_type& w, ui::tagged_gui_object obj, text_data::alignment align, ui::text_format& fmt, ui::gui_static& sm, ui::gui_manager& m, world_state&) {
 		char16_t lbuffer[8] = { 0,0,0,0,0,0,0,0 };
 		u16itoa(w.value, lbuffer);
 
 		ui::line_manager lm(align, obj.object.size.x);
 		const auto cursor = ui::text_chunk_to_instances(
+			sm,
 			m,
 			vector_backed_string<char16_t>(u"who: "),
 			obj,
@@ -998,6 +1000,7 @@ public:
 			fmt,
 			lm);
 		ui::text_chunk_to_instances(
+			sm,
 			m,
 			vector_backed_string<char16_t>(lbuffer),
 			obj,
@@ -1014,12 +1017,13 @@ public:
 	debt_tb_amount(PARAMS&&...) {}
 
 	template<typename window_type>
-	void windowed_update(window_type& w, ui::tagged_gui_object obj, text_data::alignment align, ui::text_format& fmt, ui::gui_manager& m, world_state&) {
+	void windowed_update(window_type& w, ui::tagged_gui_object obj, text_data::alignment align, ui::text_format& fmt, ui::gui_static& sm, ui::gui_manager& m, world_state&) {
 		char16_t lbuffer[8] = { 0,0,0,0,0,0,0,0 };
 		u16itoa(w.value, lbuffer);
 
 		ui::line_manager lm(align, obj.object.size.x);
 		const auto cursor = ui::text_chunk_to_instances(
+			sm,
 			m,
 			vector_backed_string<char16_t>(u"$"),
 			obj,
@@ -1027,6 +1031,7 @@ public:
 			fmt,
 			lm);
 		ui::text_chunk_to_instances(
+			sm,
 			m,
 			vector_backed_string<char16_t>(lbuffer),
 			obj,
@@ -1046,25 +1051,25 @@ using debt_listitem_t = ui::gui_window<
 class debt_lb {
 public:
 	template<typename lb_type>
-	void populate_list(lb_type& lb, ui::gui_manager& m, world_state&) {
-		lb.add_item(m, 1);
-		lb.add_item(m, 2);
-		lb.add_item(m, 3);
-		lb.add_item(m, 4);
-		lb.add_item(m, 5);
-		lb.add_item(m, 6);
-		lb.add_item(m, 7);
-		lb.add_item(m, 8);
-		lb.add_item(m, 9);
+	void populate_list(lb_type& lb, ui::gui_static& sm, ui::gui_manager& m, world_state&) {
+		lb.add_item(sm, m, 1);
+		lb.add_item(sm, m, 2);
+		lb.add_item(sm, m, 3);
+		lb.add_item(sm, m, 4);
+		lb.add_item(sm, m, 5);
+		lb.add_item(sm, m, 6);
+		lb.add_item(sm, m, 7);
+		lb.add_item(sm, m, 8);
+		lb.add_item(sm, m, 9);
 	}
-	ui::window_tag element_tag(ui::gui_manager& m) {
+	ui::window_tag element_tag(ui::gui_static& m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["debt_listitem"]);
 	}
 };
 
 class hidden_icon {
 public:
-	void update(ui::dynamic_icon<hidden_icon>& ico, ui::gui_manager& m, world_state&) {
+	void update(ui::dynamic_icon<hidden_icon>& ico, ui::gui_static&, ui::gui_manager& m, world_state&) {
 		ico.set_visibility(m, false);
 	}
 };
@@ -1074,7 +1079,7 @@ public:
 	const uint32_t n;
 
 	frame_button(uint32_t num) : n(num) {}
-	void update(ui::simple_button<frame_button>& ico, ui::gui_manager& m, world_state&) {
+	void update(ui::simple_button<frame_button>& ico, ui::gui_static&, ui::gui_manager& m, world_state&) {
 		ico.set_frame(m, n);
 	}
 	void button_function(ui::gui_object_tag, ui::gui_manager&) {
@@ -1090,14 +1095,14 @@ using pop_item_t = ui::gui_window<
 class pop_type_a {
 public:
 	template<typename lb_type>
-	void populate_list(lb_type& lb, ui::gui_manager& m, world_state&) {
-		lb.add_item(m, 0ui32);
-		lb.add_item(m, 1ui32);
-		lb.add_item(m, 2ui32);
-		lb.add_item(m, 3ui32);
-		lb.add_item(m, 4ui32);
+	void populate_list(lb_type& lb, ui::gui_static& sm, ui::gui_manager& m, world_state&) {
+		lb.add_item(sm, m, 0ui32);
+		lb.add_item(sm, m, 1ui32);
+		lb.add_item(sm, m, 2ui32);
+		lb.add_item(sm, m, 3ui32);
+		lb.add_item(sm, m, 4ui32);
 	}
-	ui::window_tag element_tag(ui::gui_manager& m) {
+	ui::window_tag element_tag(ui::gui_static& m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["pop_listitem"]);
 	}
 };
@@ -1135,6 +1140,8 @@ class world_state {};
 
 struct gui_window_handler {
 	ui::gui_manager& gui_m;
+	ui::gui_static& static_m;
+
 	graphics::map_display map;
 	Eigen::Vector3f interest = Eigen::Vector3f::UnitX();
 	bool map_dragging = false;
@@ -1146,7 +1153,7 @@ struct gui_window_handler {
 
 	budget_window_t budget_window;
 
-	gui_window_handler(ui::gui_manager& m) : gui_m(m) {}
+	gui_window_handler(ui::gui_manager& m, ui::gui_static& sm) : gui_m(m), static_m(sm) {}
 
 	template<typename T>
 	void operator()(const T&, ui::window_base& w) const {
@@ -1154,8 +1161,8 @@ struct gui_window_handler {
 	}
 
 	void operator()(const ui::creation&, ui::window_base&) {
-		/*
-		ui::create_static_element(gui_m, std::get<ui::window_tag>(gui_m.ui_definitions.name_to_element_map["country_budget"]), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, budget_window);
+		
+		ui::create_static_element(static_m, gui_m, std::get<ui::window_tag>(static_m.ui_definitions.name_to_element_map["country_budget"]), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, budget_window);
 		auto& pc = budget_window.get<CT_STRING("chart_0")>();
 		pc.add_entry(gui_m, vector_backed_string<char16_t>(u"category 1"), 0.4f, graphics::color_rgb{ 255,0,0 });
 		pc.add_entry(gui_m, vector_backed_string<char16_t>(u"category 2"), 0.1f, graphics::color_rgb{ 255,255,0 });
@@ -1166,18 +1173,18 @@ struct gui_window_handler {
 		budget_window.get<CT_STRING("debt_sort_country")>().associated_object->flags.fetch_or(ui::gui_object::force_transparency_check, std::memory_order_acq_rel);
 		budget_window.get<CT_STRING("debt_sort_amount")>().associated_object->flags.fetch_or(ui::gui_object::force_transparency_check, std::memory_order_acq_rel);
 
-		*/
+		
 
-		const auto new_icon = ui::detail::create_element_instance(gui_m, ui::icon_tag(19));
+		const auto new_icon = ui::detail::create_element_instance(static_m, gui_m, ui::icon_tag(19));
 		ui::add_to_back(gui_m, ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, new_icon);
 
-		const auto new_text = ui::detail::create_element_instance(gui_m, ui::text_tag(29));
+		const auto new_text = ui::detail::create_element_instance(static_m, gui_m, ui::text_tag(29));
 		ui::add_to_back(gui_m, ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, new_text);
 
-		ui::create_static_element(gui_m, ui::scrollbar_tag(10), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, test_sb);
+		ui::create_static_element(static_m, gui_m, ui::scrollbar_tag(10), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) }, test_sb);
 		test_sb.set_limits(gui_m, 0, 75);
 
-		ui::create_scrollable_text_block(gui_m, ui::text_tag(571), text_data::text_tag(1001), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) });
+		ui::create_scrollable_text_block(static_m, gui_m, ui::text_tag(571), text_data::text_tag(1001), ui::tagged_gui_object{ gui_m.root, ui::gui_object_tag(0) });
 	}
 
 	void operator()(const ui::resize& r, ui::window_base&) {
@@ -1186,7 +1193,7 @@ struct gui_window_handler {
 	}
 
 	void operator()(const ui::lbutton_down& m, ui::window_base&) {
-		if (!gui_m.on_lbutton_down(m)) {
+		if (!gui_m.on_lbutton_down(static_m, m)) {
 			map_dragging = true;
 			map_drag_start = std::make_pair(m.x, m.y);
 			interest = map.state.get_vector_for(map.state.normalize_screen_coordinates(m.x, m.y, gui_m.width(), gui_m.height()));
@@ -1197,34 +1204,34 @@ struct gui_window_handler {
 			map_dragging = false;
 	}
 	void operator()(const ui::key_down& m, ui::window_base&) {
-		gui_m.on_keydown(m);
+		gui_m.on_keydown(static_m, m);
 	}
 	void operator()(const ui::scroll& s, ui::window_base&) {
-		if (! gui_m.on_scroll(s)) {
+		if (! gui_m.on_scroll(static_m, s)) {
 			map.state.scale *= float(pow(2, s.amount / 2.0f));
 			map.state.scale = std::clamp(map.state.scale, 1.0f, 18.0f);
 		}
 	}
 	void operator()(const ui::mouse_drag& m, ui::window_base&) {
 		if (!map_dragging) {
-			gui_m.on_mouse_drag(m);
+			gui_m.on_mouse_drag(static_m, m);
 		} else {
 			Eigen::Vector3f mouse_over = map.state.get_unrotated_vector_for(map.state.normalize_screen_coordinates(map_drag_start.first + m.x, map_drag_start.second + m.y, gui_m.width(), gui_m.height()));
 			map.state.move_vector_to(interest, mouse_over);
 		}
 	}
 	void operator()(const ui::mouse_move& m, ui::window_base&) {
-		gui_m.on_mouse_move(m);
+		gui_m.on_mouse_move(static_m, m);
 	}
 
 	void initialize_graphics(graphics::open_gl_wrapper& ogl) {
-		gui_m.fonts.load_fonts(ogl);
+		static_m.fonts.load_fonts(ogl);
 
 		
 		int32_t width = 0;
 		int32_t height = 0;
 		int32_t channels = 3;
-		uint8_t* map_data = SOIL_load_image("F:\\programs\\V2\\map\\provinces.bmp", &width, &height, &channels, 3);
+		uint8_t* map_data = SOIL_load_image("D:\\programs\\V2\\map\\provinces.bmp", &width, &height, &channels, 3);
 
 		boost::container::flat_map<uint32_t, uint16_t> colors_map;
 		map.colors.init_color_data(3349);
@@ -1239,11 +1246,11 @@ struct gui_window_handler {
 	bool on_idle() {
 		if (gui_m.check_and_clear_update()) {
 			world_state w;
-			ui::update(gui_m, w);
+			ui::update(static_m, gui_m, w);
 			return true;
 		} else if (gui_m.check_and_clear_minimal_update()) {
 			world_state w;
-			ui::minimal_update(gui_m, w);
+			ui::minimal_update(static_m, gui_m, w);
 			return true;
 		} else {
 			return false;
@@ -1252,7 +1259,7 @@ struct gui_window_handler {
 
 	void render(graphics::open_gl_wrapper& ogl) {
 		map.render(ogl);
-		ui::render(gui_m, ogl);
+		ui::render(static_m, gui_m, ogl);
 	}
 };
 
@@ -1284,13 +1291,16 @@ int main(int , char **) {
 
 
 	file_system fs;
-	fs.set_root(u"F:\\programs\\V2");
+	fs.set_root(u"D:\\programs\\V2");
 
 	ui::gui_manager gui_m(850, 650);
-	ui::load_gui_from_directory(fs.get_root(), gui_m);
+	ui::gui_static static_m;
+
+	ui::load_gui_from_directory(fs.get_root(), static_m);
+	init_tooltip_window(static_m, gui_m);
 
 	{
-		ui::window<gui_window_handler> test_window(850, 650, gui_m);
+		ui::window<gui_window_handler> test_window(850, 650, gui_m, static_m);
 
 		std::cout << "test window created" << std::endl;
 		getchar();

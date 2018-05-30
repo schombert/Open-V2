@@ -2,9 +2,9 @@
 #include "gui.hpp"
 
 template<typename BASE>
-void ui::dynamic_icon<BASE>::update_data(gui_object_tag, gui_manager& m, world_state& w) {
-	if constexpr(ui::detail::has_update<BASE, dynamic_icon<BASE>&, gui_manager&, world_state&>) {
-		BASE::update(*this, m, w);
+void ui::dynamic_icon<BASE>::update_data(gui_object_tag, gui_static& sm, gui_manager& m, world_state& w) {
+	if constexpr(ui::detail::has_update<BASE, dynamic_icon<BASE>&, gui_static&, gui_manager&, world_state&>) {
+		BASE::update(*this, sm, m, w);
 	}
 }
 
@@ -17,9 +17,9 @@ ui::tooltip_behavior ui::dynamic_icon<BASE>::has_tooltip(gui_object_tag, gui_man
 }
 
 template<typename BASE>
-void ui::dynamic_icon<BASE>::create_tooltip(gui_object_tag, gui_manager& m, const mouse_move&, tagged_gui_object tw) {
+void ui::dynamic_icon<BASE>::create_tooltip(gui_object_tag, gui_manager& m, gui_static& sm, const mouse_move&, tagged_gui_object tw) {
 	if constexpr(ui::detail::has_has_tooltip<BASE>)
-		BASE::create_tooltip(m, tw);
+		BASE::create_tooltip(m, sm, tw);
 }
 
 template<typename BASE>
@@ -38,8 +38,8 @@ void ui::dynamic_icon<BASE>::set_visibility(gui_manager& m, bool visible) {
 }
 
 template<typename B>
-ui::tagged_gui_object ui::create_static_element(gui_manager& manager, icon_tag handle, tagged_gui_object parent, dynamic_icon<B>& b) {
-	auto new_obj = ui::detail::create_element_instance(manager, handle);
+ui::tagged_gui_object ui::create_static_element(gui_static& static_manager, gui_manager& manager, icon_tag handle, tagged_gui_object parent, dynamic_icon<B>& b) {
+	auto new_obj = ui::detail::create_element_instance(static_manager, manager, handle);
 
 	new_obj.object.associated_behavior = &b;
 	b.associated_object = &new_obj.object;
