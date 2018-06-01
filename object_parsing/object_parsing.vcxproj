@@ -157,9 +157,6 @@
     <ProjectReference Include="..\Parsers\Parsers.vcxproj">
       <Project>{c8b537f7-6df3-4685-a7d7-0f30ce18176d}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\streams\streams.vcxproj">
-      <Project>{600d17cd-0bbe-4eac-9216-c2ccdc1c6b6f}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\text_classifier\text_classifier.vcxproj">
       <Project>{b1a194cb-c689-4816-bccd-f9b596d59327}</Project>
     </ProjectReference>

@@ -353,7 +353,7 @@ struct function_and_object_tuple_ext {
 	struct function_object {
 		template<typename in_class, typename from>
 		void operator()(in_class& cls, const token_and_type& a, association_type b, from&& c) {
-			_set_member<member_ident, in_class>::set(cls, finstance(a, b, c, ARGS::value ...));
+			_set_member<member_ident, in_class>::set(cls, finstance(a, b, std::forward<from>(c), ARGS::value ...));
 		}
 	};
 };
@@ -365,7 +365,7 @@ struct function_and_object_tuple {
 	struct function_object {
 		template<typename in_class, typename from>
 		void operator()(in_class& cls, const token_and_type&, association_type, from&& c) {
-			_set_member<member_ident, in_class>::set(cls, c);
+			_set_member<member_ident, in_class>::set(cls, std::forward<from>(c));
 		}
 	};
 };
@@ -378,7 +378,7 @@ struct function_and_object_tuple_w_parse {
 	struct function_object {
 		template<typename in_class, typename from>
 		void operator()(in_class& cls, from&& c) {
-			_set_member<member_ident, in_class>::set(cls, c);
+			_set_member<member_ident, in_class>::set(cls, std::forward<from>(c));
 		}
 	};
 	struct parse_function_object {
@@ -396,8 +396,8 @@ struct function_and_object_tuple_with_extra {
 	struct function_object {
 		template<typename in_class, typename from>
 		void operator()(in_class& cls, const token_and_type&, association_type t, from&& c) {
-			finstance(c, t, ARGS::value ...);
-			_set_member<member_ident, in_class>::set(cls, c);
+			finstance(std::forward<from>(c), t, ARGS::value ...);
+			_set_member<member_ident, in_class>::set(cls, std::forward<from>(c));
 		}
 	};
 };

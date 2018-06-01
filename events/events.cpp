@@ -142,7 +142,7 @@ namespace events {
 		void discard(int) {}
 	};
 
-	inline int discard_empty_type(const token_and_type&, association_type, empty_type&) { return 0; }
+	inline int discard_empty_type(const token_and_type&, association_type, const empty_type&) { return 0; }
 
 	inline triggers::effect_tag read_immediate_effect(const token_group* s, const token_group* e, event_parse_env& env) {
 		const auto effect_data = triggers::parse_effect(env.s, env.ecm, env.scope, s, e);

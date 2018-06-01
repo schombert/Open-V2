@@ -76,8 +76,8 @@ namespace military {
 		void add_unknown_key(int) {
 		}
 	};
-	inline token_and_type name_empty_type(const token_and_type& t, association_type, empty_type&) { return t; }
-	inline int discard_empty_type(const token_and_type&, association_type, empty_type&) { return 0; }
+	inline token_and_type name_empty_type(const token_and_type& t, association_type, const empty_type&) { return t; }
+	inline int discard_empty_type(const token_and_type&, association_type, const empty_type&) { return 0; }
 
 	struct trait {
 		float organisation = 0.0f;
@@ -162,7 +162,7 @@ namespace military {
 		void add_backgrounds(const backgrounds&) {}
 	};
 
-	inline std::pair<token_and_type, trait> name_trait(const token_and_type& t, association_type, trait& r) {
+	inline std::pair<token_and_type, trait> name_trait(const token_and_type& t, association_type, const trait& r) {
 		return std::pair<token_and_type, trait>(t, r);
 	}
 

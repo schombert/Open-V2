@@ -108,10 +108,10 @@ namespace economy {
 		}
 	};
 
-	inline std::pair<token_and_type, goods_group> bind_group(const token_and_type& t, association_type, goods_group& f) {
+	inline std::pair<token_and_type, goods_group> bind_group(const token_and_type& t, association_type, goods_group&& f) {
 		return std::pair<token_and_type, goods_group>(t, std::move(f));
 	}
-	inline std::pair<token_and_type, good_definition_builder> bind_good(const token_and_type& t, association_type, good_definition_builder& f) {
+	inline std::pair<token_and_type, good_definition_builder> bind_good(const token_and_type& t, association_type, good_definition_builder&& f) {
 		return std::pair<token_and_type, good_definition_builder>(t, std::move(f));
 	}
 
@@ -168,10 +168,10 @@ namespace economy {
 
 		void discard_attribute(int) {}
 
-		void set_goods_cost(goods_cost_container& c) {
+		void set_goods_cost(goods_cost_container&& c) {
 			goods_cost = std::move(c.cost_pairs);
 		}
-		void set_colonial_points(std::vector<int>& vec) {
+		void set_colonial_points(std::vector<int>&& vec) {
 			colonial_points = std::move(vec);
 		}
 		void set_production_type(const token_and_type& t) {
@@ -193,7 +193,7 @@ namespace economy {
 		void discard(int) {}
 	};
 
-	inline std::pair<token_and_type, building_obj> bind_building(const token_and_type& t, association_type, building_obj_container& f) {
+	inline std::pair<token_and_type, building_obj> bind_building(const token_and_type& t, association_type, building_obj_container&& f) {
 		return std::pair<token_and_type, building_obj>(t, std::move(f));
 	}
 

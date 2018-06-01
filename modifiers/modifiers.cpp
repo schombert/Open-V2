@@ -61,8 +61,8 @@ namespace modifiers {
 		return 0;
 	}
 
-	inline int discard_empty_type(const token_and_type&, association_type, empty_type&) { return 0; }
-	inline token_and_type name_empty_type(const token_and_type& t, association_type, empty_type&) { return t; }
+	inline int discard_empty_type(const token_and_type&, association_type, const empty_type&) { return 0; }
+	inline token_and_type name_empty_type(const token_and_type& t, association_type, const empty_type&) { return t; }
 
 	std::pair<uint32_t, uint32_t> get_provincial_and_national_offsets_from_token(const char* s, const char* e) {
 		using token_tree_unsorted = type_list<

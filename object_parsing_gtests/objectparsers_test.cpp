@@ -134,19 +134,15 @@ struct derived_parse : public base_parse {
 MEMBER_DEF(derived_parse, x, "x")
 MEMBER_DEF(derived_parse, svalue, "svalue")
 
-std::pair<association_type, int> rh_int_pair_from_sum(const token_and_type&, association_type a, int_vector_summation& t);
-bool accept_all_classifier(const char*, const char*);
-bool is_positive_int(const char* s, const char* e);
-
-std::pair<association_type, int> rh_int_pair_from_sum(const token_and_type&, association_type a, int_vector_summation& t) {
+inline std::pair<association_type, int> rh_int_pair_from_sum(const token_and_type&, association_type a, const int_vector_summation& t) {
 	return std::make_pair(a, t.sum);
 };
 
-bool accept_all_classifier(const char*, const char*) {
+inline bool accept_all_classifier(const char*, const char*) {
 	return true;
 }
 
-bool is_positive_int(const char* s, const char* e) {
+inline bool is_positive_int(const char* s, const char* e) {
 	return parse_int(s, e) > 0;
 }
 
@@ -174,15 +170,15 @@ struct variable_named_set {
 MEMBER_FDEF(variable_named_set, add_int, "int")
 MEMBER_FDEF(variable_named_set, add_empty, "empty")
 
-inline variable_named_set& get_set(const token_and_type&, association_type, variable_named_set& t) {
-	return t;
+inline variable_named_set&& get_set(const token_and_type&, association_type, variable_named_set&& t) {
+	return std::move(t);
 };
 
 struct variable_named_set_container {
 	std::vector<variable_named_set> set_of_sets;
 
 	variable_named_set_container(int) {}
-	void add_set(variable_named_set& vin) {
+	void add_set(variable_named_set&& vin) {
 		set_of_sets.emplace_back(std::move(vin));
 	}
 };
@@ -197,7 +193,7 @@ struct extern_reader {
 	void add_three_bool(const three_bool& i) {
 		m_a = i;
 	}
-	void add_variable_named_set(variable_named_set& i) {
+	void add_variable_named_set(variable_named_set&& i) {
 		m_b.emplace_back(std::move(i));
 	}
 };

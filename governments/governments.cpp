@@ -51,7 +51,7 @@ namespace governments {
 	inline std::pair<token_and_type, bool> bind_ideology_t(const token_and_type& l, association_type, const token_and_type& r) {
 		return std::pair<token_and_type, bool>(l, token_to<bool>(r));
 	}
-	inline std::pair<token_and_type, government_builder> bind_government(const token_and_type& t, association_type, government_builder& f) {
+	inline std::pair<token_and_type, government_builder> bind_government(const token_and_type& t, association_type, government_builder&& f) {
 		return std::pair<token_and_type, government_builder>(t, std::move(f));
 	}
 }

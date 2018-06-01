@@ -4750,7 +4750,7 @@ namespace triggers {
 		}
 	}
 
-	inline variable_name_scope_reading_object& get_vscope(const token_and_type&, association_type, variable_name_scope_reading_object& t) {
+	inline const variable_name_scope_reading_object& get_vscope(const token_and_type&, association_type, const variable_name_scope_reading_object& t) {
 		return t;
 	};
 

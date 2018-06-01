@@ -108,7 +108,7 @@ namespace technologies {
 		}
 	};
 
-	inline std::pair<token_and_type, folder> bind_folder(const token_and_type& t, association_type, folder& f) {
+	inline std::pair<token_and_type, folder> bind_folder(const token_and_type& t, association_type, folder&& f) {
 		return std::pair<token_and_type, folder>(t, std::move(f));
 	}
 
@@ -176,8 +176,8 @@ namespace technologies {
 	};
 
 
-	inline int discard_empty_type(const token_and_type&, association_type, empty_type&) { return 0; }
-	inline token_and_type name_empty_type(const token_and_type& t, association_type, empty_type&) { return t; }
+	inline int discard_empty_type(const token_and_type&, association_type, const empty_type&) { return 0; }
+	inline token_and_type name_empty_type(const token_and_type& t, association_type, const empty_type&) { return t; }
 }
 
 MEMBER_FDEF(technologies::parse_schools, add_school, "school");

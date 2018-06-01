@@ -1,7 +1,6 @@
 ﻿#include "performance_measurement\\performance.h"
 #include "Parsers\\parsers.hpp"
 #include "object_parsing\\object_parsing.hpp"
-#include "streams_parsing\\streams_parsing.hpp"
 #include <variant>
 #include <Windows.h>
 #include <iostream>
@@ -176,8 +175,7 @@ struct trigger_group {
 	}
 };
 
-void post_process_trigger_group(trigger_group& g, association_type, trigger_group::trigger_group_type type);
-void post_process_trigger_group(trigger_group& g, association_type, trigger_group::trigger_group_type type) {
+inline void post_process_trigger_group(trigger_group&& g, association_type, trigger_group::trigger_group_type type) {
 	g.type = type;
 }
 
@@ -283,8 +281,8 @@ bool bool_from_association(association_type, const token_and_type& t);
 std::string string_from_association(association_type, const token_and_type& t);
 std::pair<association_type, double> double_and_association(association_type a, const token_and_type& t);
 std::pair<std::string, double> string_double_from_full_association(const token_and_type& t, association_type, const token_and_type& e);
-std::pair<std::string, complex_modifier_container> label_complex_container(const token_and_type& a, association_type , complex_modifier_container& c);
-std::pair<std::string, simple_modifier_container> label_simple_container(const token_and_type& a, association_type , simple_modifier_container& c);
+std::pair<std::string, complex_modifier_container> label_complex_container(const token_and_type& a, association_type , complex_modifier_container&& c);
+std::pair<std::string, simple_modifier_container> label_simple_container(const token_and_type& a, association_type , simple_modifier_container&& c);
 
 double double_from_association(association_type, const token_and_type& t) {
 	return parse_double(t.start, t.end);
@@ -318,11 +316,11 @@ std::pair<std::string, double> string_double_from_full_association(const token_a
 	return make_pair(std::string(t.start, t.end), parse_double(e.start, e.end));
 };
 
-std::pair<std::string, complex_modifier_container> label_complex_container(const token_and_type& a, association_type , complex_modifier_container& c) {
+std::pair<std::string, complex_modifier_container> label_complex_container(const token_and_type& a, association_type , complex_modifier_container&& c) {
 	return std::pair<std::string, complex_modifier_container>(std::string(a.start, a.end), std::move(c));
 }
 
-std::pair<std::string, simple_modifier_container> label_simple_container(const token_and_type& a, association_type , simple_modifier_container& c) {
+std::pair<std::string, simple_modifier_container> label_simple_container(const token_and_type& a, association_type , simple_modifier_container&& c) {
 	return std::pair<std::string, simple_modifier_container>(std::string(a.start, a.end), std::move(c));
 }
 
@@ -465,7 +463,7 @@ MEMBER_TYPE_ASSOCIATION("promote_to", "promote_to", vec_str_complex)
 MEMBER_TYPE_ASSOCIATION("ideologies", "ideologies", vec_str_simple)
 MEMBER_TYPE_ASSOCIATION("issues", "issues", vec_str_simple)
 END_TYPE
-END_DOMAIN
+END_DOMAIN;
 
 class file_read_tester {
 public:
@@ -513,31 +511,9 @@ public:
 	}
 };
 
-class single_pass_object_parsing : public file_read_tester {
-public:
-	single_pass_object_parsing() : file_read_tester(TEXT("artisans.txt")) {
-	}
-	int test_function() {
-		file_read_tester::test_function();
-
-		poptype_file destination;
-
-		make_stream(std::make_pair(fixed_copy, fixed_copy + filesize),
-			tokenize_char_stream_operation(),
-			generic_object_parser<poptype_file, poptype_file_domain>(),
-			[&destination](poptype_file& r) { destination = std::move(r); }).yield();
-
-		return (int)destination.ideologies.size();
-	}
-};
-
 int main()
 {
 	logging_object log;
-	{
-		test_object<50, 20, single_pass_object_parsing> sp_to;
-		std::cout << sp_to.log_function(log, "single-pass object parsing on artisans.txt") << std::endl;
-	}
 	{
 		test_object<50, 20, two_pass_object_parsing> tp_to;
 		std::cout << tp_to.log_function(log, "two-pass object parsing on artisans.txt") << std::endl;

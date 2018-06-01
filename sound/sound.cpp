@@ -40,7 +40,7 @@ namespace sound {
 		}
 	};
 
-	inline std::pair<token_and_type, effect_reader> name_effect(const token_and_type& t, association_type, effect_reader& r) {
+	inline std::pair<token_and_type, effect_reader> name_effect(const token_and_type& t, association_type, effect_reader&& r) {
 		return std::pair<token_and_type, effect_reader>(t, std::move(r));
 	}
 }

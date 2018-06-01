@@ -3330,7 +3330,7 @@ namespace triggers {
 		}
 	};
 
-	inline variable_name_effect_scope_reading_object& get_effect_vscope(const token_and_type&, association_type, variable_name_effect_scope_reading_object& t) {
+	inline const variable_name_effect_scope_reading_object& get_effect_vscope(const token_and_type&, association_type, const variable_name_effect_scope_reading_object& t) {
 		return t;
 	};
 	inline uint16_t get_list_effect_chance(const token_and_type& t, association_type, const effect_scope_reading_object<generic_scope_effect>& sub_effect) {

@@ -278,13 +278,13 @@ namespace cultures {
 	inline int discard_group(const token_and_type&, association_type, const religions_group_s&) {
 		return 0;
 	}
-	inline std::pair<token_and_type, religion_builder> bind_religion(const token_and_type& t, association_type, religion_builder& f) {
+	inline std::pair<token_and_type, religion_builder> bind_religion(const token_and_type& t, association_type, religion_builder&& f) {
 		return std::pair<token_and_type, religion_builder>(t, std::move(f));
 	}
-	inline std::pair<token_and_type, culture_group_builder> bind_culture_group(const token_and_type& t, association_type, culture_group_builder& f) {
+	inline std::pair<token_and_type, culture_group_builder> bind_culture_group(const token_and_type& t, association_type, culture_group_builder&& f) {
 		return std::pair<token_and_type, culture_group_builder>(t, std::move(f));
 	}
-	inline std::pair<token_and_type, culture_builder> bind_culture(const token_and_type& t, association_type, culture_builder& f) {
+	inline std::pair<token_and_type, culture_builder> bind_culture(const token_and_type& t, association_type, culture_builder&& f) {
 		return std::pair<token_and_type, culture_builder>(t, std::move(f));
 	}
 }

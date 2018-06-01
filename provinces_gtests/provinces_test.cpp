@@ -27,11 +27,11 @@ public:
 	file_representation c = file_representation(u"continent.txt", map_dir,
 		"europe = {\r\n"
 		"\tprovinces = {3 4}\r\n"
-		"\tvalue = 0.0\r\n"
+		"assimilation_rate = 0.5\r\n"
 		"}\r\n"
 		"asia = {\r\n"
 		"\tprovinces = { 1 2 }\r\n"
-		"\tvalue = 6\r\n"
+		"mine_rgo_size = 10\r\n"
 		"}\r\n");
 	file_representation d = file_representation(u"region.txt", map_dir,
 		"region_a = { 1 3 }\r\n"
@@ -128,7 +128,7 @@ TEST(provinces_test, continent_preparse) {
 	provinces::parsing_state state(tex, m, mm);
 
 	read_default_map_file(state, f.get_root());
-	pre_parse_continents(state, f.get_root());
+	read_continents(state, f.get_root());
 
 	EXPECT_EQ(2ui64, mm.provincial_modifiers.size());
 	EXPECT_EQ(provincial_modifier_tag(0), mm.provincial_modifiers[provincial_modifier_tag(0)].id);
@@ -141,6 +141,9 @@ TEST(provinces_test, continent_preparse) {
 
 	EXPECT_EQ(provincial_modifier_tag(0), m.province_container[province_tag(3)].continent);
 	EXPECT_EQ(provincial_modifier_tag(0), m.province_container[province_tag(4)].continent);
+
+	EXPECT_EQ(0.5f, mm.provincial_modifier_definitions.get(provincial_modifier_tag(0), modifiers::provincial_offsets::assimilation_rate));
+	EXPECT_EQ(10.0f, mm.provincial_modifier_definitions.get(provincial_modifier_tag(1), modifiers::provincial_offsets::mine_rgo_size));
 }
 
 TEST(provinces_test, terrain_preparse) {

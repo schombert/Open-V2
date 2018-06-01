@@ -11,7 +11,6 @@ namespace ui {
 	struct empty_type {
 
 	};
-	int discard_empty_type(const token_and_type&, association_type, empty_type&);
 	std::optional<virtual_key> virtual_key_from_rh(association_type, const token_and_type& t);
 	std::optional<uint8_t> button_orientation_from_rh(association_type, const token_and_type& t);
 	std::optional<uint8_t> button_format_from_rh(association_type, const token_and_type& t);
@@ -47,7 +46,7 @@ namespace ui {
 		}
 	};
 
-	int discard_empty_type(const token_and_type&, association_type, empty_type&) {
+	inline int discard_empty_type(const token_and_type&, association_type, const empty_type&) {
 		return 0;
 	}
 
@@ -846,12 +845,6 @@ namespace ui {
 			env.nmaps.text_names.emplace_back(b.name, env.defs.name_data);
 			internal_definition.sub_object_definitions.push_back(nt);
 		}
-		void gui_instantTextBoxType(allTextBoxType& b) {
-			b.internal_definition.flags |= ui::text_def::instant;
-			const auto nt = env.defs.text.emplace_back(b.internal_definition);
-			env.nmaps.text_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(nt);
-		}
 		void gui_textBoxType(const allTextBoxType& b) {
 			const auto nt = env.defs.text.emplace_back(b.internal_definition);
 			env.nmaps.text_names.emplace_back(b.name, env.defs.name_data);
@@ -863,31 +856,13 @@ namespace ui {
 			env.nmaps.button_names.emplace_back(b.name, env.defs.name_data);
 			internal_definition.sub_object_definitions.push_back(nt);
 		}
-		void gui_checkboxType(guiButtonType& b) {
-			b.internal_definition.flags |= ui::button_def::is_checkbox;
-			const auto nt = env.defs.buttons.emplace_back(b.internal_definition);
-			env.nmaps.button_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(nt);
-		}
 		void gui_shieldtype(iconType&& b) {
 			b.internal_definition.flags |= ui::icon_def::is_shield;
 			const auto nt = env.defs.icons.emplace_back(b.internal_definition);
 			env.nmaps.icon_names.emplace_back(b.name, env.defs.name_data);
 			internal_definition.sub_object_definitions.push_back(nt);
 		}
-		void gui_shieldtype(iconType& b) {
-			b.internal_definition.flags |= ui::icon_def::is_shield;
-			const auto nt = env.defs.icons.emplace_back(b.internal_definition);
-			env.nmaps.icon_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(nt);
-		}
 		void gui_editBoxType(allTextBoxType&& b) {
-			b.internal_definition.flags |= ui::text_def::is_edit_box;
-			const auto nt = env.defs.text.emplace_back(b.internal_definition);
-			env.nmaps.text_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(nt);
-		}
-		void gui_editBoxType(allTextBoxType& b) {
 			b.internal_definition.flags |= ui::text_def::is_edit_box;
 			const auto nt = env.defs.text.emplace_back(b.internal_definition);
 			env.nmaps.text_names.emplace_back(b.name, env.defs.name_data);
@@ -909,20 +884,7 @@ namespace ui {
 			env.nmaps.scrollbar_names.emplace_back(b.name, env.defs.name_data);
 			internal_definition.sub_object_definitions.push_back(nt);
 		}
-		void gui_scrollbarType(scrollbarType& b) {
-			b.finalize();
-			const auto nt = env.defs.scrollbars.emplace_back(b.internal_definition);
-			env.nmaps.scrollbar_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(nt);
-		}
 		void gui_eu3dialogtype(windowType&& b) {
-			b.finalize();
-			b.internal_definition.flags |= ui::window_def::is_dialog;
-			const auto nt = env.defs.windows.emplace_back(b.internal_definition);
-			env.nmaps.window_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(nt);
-		}
-		void gui_eu3dialogtype(windowType& b) {
 			b.finalize();
 			b.internal_definition.flags |= ui::window_def::is_dialog;
 			const auto nt = env.defs.windows.emplace_back(b.internal_definition);
@@ -935,12 +897,7 @@ namespace ui {
 			env.nmaps.window_names.emplace_back(b.name, env.defs.name_data);
 			internal_definition.sub_object_definitions.push_back(nt);
 		}
-		void gui_windowType(windowType& b) {
-			b.finalize();
-			const auto nt = env.defs.windows.emplace_back(b.internal_definition);
-			env.nmaps.window_names.emplace_back(b.name, env.defs.name_data);
-			internal_definition.sub_object_definitions.push_back(nt);
-		}
+		
 
 		void add_unknown_key(int) {
 			env.errors_generated.emplace_back(env.file, ui::errors::unexpected_window_attribute);
@@ -966,11 +923,6 @@ namespace ui {
 			env.defs.text.emplace_back(b.internal_definition);
 			env.nmaps.text_names.emplace_back(b.name, env.defs.name_data);
 		}
-		void gui_instantTextBoxType(allTextBoxType& b) {
-			b.internal_definition.flags |= ui::text_def::instant;
-			env.defs.text.emplace_back(b.internal_definition);
-			env.nmaps.text_names.emplace_back(b.name, env.defs.name_data);
-		}
 		void gui_textBoxType(const allTextBoxType& b) {
 			env.defs.text.emplace_back(b.internal_definition);
 			env.nmaps.text_names.emplace_back(b.name, env.defs.name_data);
@@ -984,27 +936,12 @@ namespace ui {
 			env.defs.buttons.emplace_back(b.internal_definition);
 			env.nmaps.button_names.emplace_back(b.name, env.defs.name_data);
 		}
-		void gui_checkboxType(guiButtonType& b) {
-			b.internal_definition.flags |= ui::button_def::is_checkbox;
-			env.defs.buttons.emplace_back(b.internal_definition);
-			env.nmaps.button_names.emplace_back(b.name, env.defs.name_data);
-		}
 		void gui_shieldtype(iconType&& b) {
 			b.internal_definition.flags |= ui::icon_def::is_shield;
 			env.defs.icons.emplace_back(b.internal_definition);
 			env.nmaps.icon_names.emplace_back(b.name, env.defs.name_data);
 		}
-		void gui_shieldtype(iconType& b) {
-			b.internal_definition.flags |= ui::icon_def::is_shield;
-			env.defs.icons.emplace_back(b.internal_definition);
-			env.nmaps.icon_names.emplace_back(b.name, env.defs.name_data);
-		}
 		void gui_editBoxType(allTextBoxType&& b) {
-			b.internal_definition.flags |= ui::text_def::is_edit_box;
-			env.defs.text.emplace_back(b.internal_definition);
-			env.nmaps.text_names.emplace_back(b.name, env.defs.name_data);
-		}
-		void gui_editBoxType(allTextBoxType& b) {
 			b.internal_definition.flags |= ui::text_def::is_edit_box;
 			env.defs.text.emplace_back(b.internal_definition);
 			env.nmaps.text_names.emplace_back(b.name, env.defs.name_data);
@@ -1022,29 +959,13 @@ namespace ui {
 			env.defs.scrollbars.emplace_back(b.internal_definition);
 			env.nmaps.scrollbar_names.emplace_back(b.name, env.defs.name_data);
 		}
-		void gui_scrollbarType(scrollbarType& b) {
-			b.finalize();
-			env.defs.scrollbars.emplace_back(b.internal_definition);
-			env.nmaps.scrollbar_names.emplace_back(b.name, env.defs.name_data);
-		}
 		void gui_eu3dialogtype(windowType&& b) {
 			b.finalize();
 			b.internal_definition.flags |= ui::window_def::is_dialog;
 			env.defs.windows.emplace_back(b.internal_definition);
 			env.nmaps.window_names.emplace_back(b.name, env.defs.name_data);
 		}
-		void gui_eu3dialogtype(windowType& b) {
-			b.finalize();
-			b.internal_definition.flags |= ui::window_def::is_dialog;
-			env.defs.windows.emplace_back(b.internal_definition);
-			env.nmaps.window_names.emplace_back(b.name, env.defs.name_data);
-		}
 		void gui_windowType(windowType&& b) {
-			b.finalize();
-			env.defs.windows.emplace_back(b.internal_definition);
-			env.nmaps.window_names.emplace_back(b.name, env.defs.name_data);
-		}
-		void gui_windowType(windowType& b) {
 			b.finalize();
 			env.defs.windows.emplace_back(b.internal_definition);
 			env.nmaps.window_names.emplace_back(b.name, env.defs.name_data);

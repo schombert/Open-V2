@@ -64,7 +64,7 @@ namespace provinces {
 		parsing_state& state,
 		const directory& source_directory);
 
-	void pre_parse_continents(
+	void read_continents(
 		parsing_state& state,
 		const directory& source_directory); // adds provincial modifiers
 

@@ -123,11 +123,11 @@ namespace ideologies {
 		}
 	};
 
-	inline std::pair<token_and_type, pre_parse_ideology_group> bind_group(const token_and_type& t, association_type, pre_parse_ideology_group& f) {
+	inline std::pair<token_and_type, pre_parse_ideology_group> bind_group(const token_and_type& t, association_type, pre_parse_ideology_group&& f) {
 		return std::pair<token_and_type, pre_parse_ideology_group>(t, std::move(f));
 	}
 
-	inline int discard_empty_type(const token_and_type&, association_type, empty_type&) { return 0; }
+	inline int discard_empty_type(const token_and_type&, association_type, const empty_type&) { return 0; }
 
 	inline modifiers::factor_tag read_reform_factor(const token_group* s, const token_group* e, single_ideology_parse_state& env) {
 		return modifiers::parse_modifier_factors(env.s, triggers::trigger_scope_state{

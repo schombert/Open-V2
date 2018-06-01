@@ -40,8 +40,8 @@ namespace population {
 		void add_unknown_key(int) {
 		}
 	};
-	inline token_and_type name_empty_type(const token_and_type& t, association_type, empty_type&) { return t; }
-	inline int discard_empty_type(const token_and_type&, association_type, empty_type&) { return 0; }
+	inline token_and_type name_empty_type(const token_and_type& t, association_type, const empty_type&) { return t; }
+	inline int discard_empty_type(const token_and_type&, association_type, const empty_type&) { return 0; }
 }
 
 MEMBER_FDEF(population::rebel_types_pre_parse_file, add_rebel_type, "add_rebel_type");

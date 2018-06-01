@@ -11,7 +11,6 @@ namespace provinces {
 		province_manager& manager;
 		modifiers::modifiers_manager& mod_manager;
 
-		parsed_data continent_file;
 		parsed_data climate_file;
 		parsed_data terrain_file;
 
@@ -126,7 +125,7 @@ namespace provinces {
 		void discard(int) {}
 	};
 
-	inline int discard_empty_type(const token_and_type&, association_type, empty_type&) { return 0; }
+	inline int discard_empty_type(const token_and_type&, association_type, const empty_type&) { return 0; }
 	inline std::pair<token_and_type, modifiers::provincial_modifier_tag>
 		bind_terrain_category(const token_and_type& t, association_type, const preparse_terrain_category& f) {
 
@@ -163,11 +162,11 @@ namespace provinces {
 		return std::pair<token_and_type, state_tag>(t, f.tag);
 	}
 
-	struct pre_parse_continent {
+	struct parse_continent : public modifiers::modifier_reading_base {
 		parsing_environment& env;
 		modifiers::provincial_modifier_tag tag;
 
-		pre_parse_continent(parsing_environment& e) : env(e) {
+		parse_continent(parsing_environment& e) : env(e) {
 			tag = e.mod_manager.provincial_modifiers.emplace_back();
 			e.mod_manager.provincial_modifiers[tag].id = tag;
 		}
@@ -177,12 +176,11 @@ namespace provinces {
 				env.manager.province_container[province_tag(i)].continent = tag;
 			}
 		}
-		void discard(int) {}
 	};
 
-	struct continents_pre_parse_file {
+	struct continents_parse_file {
 		parsing_environment& env;
-		continents_pre_parse_file(parsing_environment& e) : env(e) {}
+		continents_parse_file(parsing_environment& e) : env(e) {}
 
 		void add_continent(const std::pair<token_and_type, modifiers::provincial_modifier_tag>& p) {
 			const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, p.first.start, p.first.end);
@@ -192,8 +190,9 @@ namespace provinces {
 	};
 
 	inline std::pair<token_and_type, modifiers::provincial_modifier_tag>
-		bind_continent(const token_and_type& t, association_type, const pre_parse_continent& f) {
+		bind_continent(const token_and_type& t, association_type, parse_continent&& f) {
 
+		modifiers::set_provincial_modifier(f.tag, f, f.env.mod_manager);
 		return std::pair<token_and_type, modifiers::provincial_modifier_tag>(t, f.tag);
 	}
 
@@ -236,9 +235,12 @@ namespace provinces {
 		}
 	}
 	inline std::pair<token_and_type, std::vector<uint16_t>>
-		bind_climate(const token_and_type& t, association_type, climate_province_values& f) {
+		bind_climate(const token_and_type& t, association_type, climate_province_values&& f) {
 
 		return std::pair<token_and_type, std::vector<uint16_t>>(t, std::move(f.values));
+	}
+	inline std::pair<token_and_type, float> full_to_tf_pair(const token_and_type& t, association_type, const token_and_type& r) {
+		return std::pair<token_and_type, float>(t, token_to<float>(r));
 	}
 }
 
@@ -256,9 +258,11 @@ MEMBER_FDEF(provinces::preparse_terrain_category, add_color, "color");
 MEMBER_FDEF(provinces::preparse_terrain_category, discard, "unknown_key");
 MEMBER_FDEF(provinces::region_file, add_state, "state");
 MEMBER_FDEF(provinces::state_parse, add_province, "province");
-MEMBER_FDEF(provinces::continents_pre_parse_file, add_continent, "continent");
-MEMBER_FDEF(provinces::pre_parse_continent, discard, "unknown_key");
-MEMBER_FDEF(provinces::pre_parse_continent, add_continent_provinces, "provinces");
+MEMBER_FDEF(provinces::continents_parse_file, add_continent, "continent");
+MEMBER_FDEF(provinces::parse_continent, discard, "unknown_key");
+MEMBER_FDEF(provinces::parse_continent, add_continent_provinces, "provinces");
+MEMBER_DEF(provinces::parse_continent, icon, "icon");
+MEMBER_FDEF(provinces::parse_continent, add_attribute, "attribute");
 MEMBER_FDEF(provinces::climate_pre_parse_file, add_climate, "climate");
 MEMBER_FDEF(provinces::climate_province_values, add_province, "value");
 
@@ -325,13 +329,14 @@ namespace provinces {
 		END_TYPE
 	END_DOMAIN;
 
-	BEGIN_DOMAIN(preparse_continents_domain)
-		BEGIN_TYPE(continents_pre_parse_file)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("continent", accept_all, pre_parse_continent, bind_continent)
+	BEGIN_DOMAIN(continents_domain)
+		BEGIN_TYPE(continents_parse_file)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("continent", accept_all, parse_continent, bind_continent)
 		END_TYPE
-		BEGIN_TYPE(pre_parse_continent)
+		BEGIN_TYPE(parse_continent)
 		MEMBER_TYPE_ASSOCIATION("provinces", "provinces", std::vector<uint16_t>)
-		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
+		MEMBER_ASSOCIATION("icon", "icon", value_from_rh<uint32_t>)
+		MEMBER_VARIABLE_ASSOCIATION("attribute", accept_all, full_to_tf_pair)
 		END_TYPE
 		BEGIN_TYPE(std::vector<uint16_t>)
 		MEMBER_VARIABLE_ASSOCIATION("this", accept_all, value_from_lh<uint16_t>)
@@ -428,12 +433,12 @@ namespace provinces {
 		}
 	}
 
-	void pre_parse_continents(
+	void read_continents(
 		parsing_state& state,
 		const directory& source_directory) {
 
 		const auto map_dir = source_directory.get_directory(u"\\map");
-		auto& main_results = state.impl->continent_file;
+		parsed_data main_results;
 
 		const auto fi = map_dir.open_file(u"continent.txt");
 
@@ -445,7 +450,7 @@ namespace provinces {
 			parse_pdx_file(main_results.parse_results, main_results.parse_data.get(), main_results.parse_data.get() + sz);
 
 			if (main_results.parse_results.size() > 0) {
-				parse_object<continents_pre_parse_file, preparse_continents_domain>(
+				parse_object<continents_parse_file, continents_domain>(
 					&main_results.parse_results[0],
 					&main_results.parse_results[0] + main_results.parse_results.size(),
 					*state.impl);
