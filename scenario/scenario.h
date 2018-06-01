@@ -14,6 +14,7 @@
 #include "events\\events.h"
 #include "triggers\\triggers.h"
 #include "gui\\gui.h"
+#include "sound\\sound.h"
 
 namespace scenario {
 	class scenario_manager {
@@ -33,6 +34,7 @@ namespace scenario {
 		triggers::trigger_manager trigger_m;
 
 		ui::gui_static gui_m;
+		sound::sound_manager sound_m;
 
 		scenario_manager() {}
 	};

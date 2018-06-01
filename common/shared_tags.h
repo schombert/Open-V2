@@ -20,6 +20,11 @@ namespace graphics {
 	using font_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 860367>>;
 }
 
+namespace sound {
+	using effect_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 370167>>;
+	using music_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 370168>>;
+}
+
 namespace ui {
 	using button_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 15356>>;
 	using icon_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 15357>>;
@@ -68,6 +73,9 @@ namespace economy {
 	using goods_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 7490176>>;
 	using factory_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 7490177>>;
 	using artisan_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 7490178>>;
+
+	using goods_qnty_type = double;
+	using money_qnty_type = double;
 }
 
 namespace cultures {

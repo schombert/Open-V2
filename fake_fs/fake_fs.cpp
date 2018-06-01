@@ -355,10 +355,7 @@ std::optional<unopened_file> directory::peek_file_internal(const std::u16string&
 }
 
 std::optional<unopened_file> directory::peek_file(const char* name, const char* name_t) const {
-	if (name != name_t && name[0] == '\\')
-		return peek_file_internal(std::u16string(name, name_t));
-	else
-		return peek_file_internal(std::u16string(u"\\") + std::u16string(name, name_t));
+	return peek_file_internal(std::u16string(name, name_t));
 }
 
 std::optional<unopened_file> directory::peek_file(const char16_t* name, const char16_t* name_t) const {
@@ -366,10 +363,7 @@ std::optional<unopened_file> directory::peek_file(const char16_t* name, const ch
 }
 
 std::optional<unopened_file> directory::peek_file(const std::u16string& name) const {
-	if (name.length() != 0 && name[0] == u'\\')
-		return peek_file_internal(name);
-	else
-		return peek_file_internal(std::u16string(u"\\") + name);
+	return peek_file_internal(name);
 }
 
 std::optional<file> directory::open_file_internal(const std::u16string& suffix_name) const {

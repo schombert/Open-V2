@@ -930,8 +930,8 @@ struct IsAProtocolMessage
 typedef int IsContainer;
 template <class C>
 IsContainer IsContainerTest(int /* dummy */,
-                            typename C::iterator* /* it */ = NULL,
-                            typename C::const_iterator* /* const_it */ = NULL) {
+                            typename C::iterator* /* it */ = nullptr,
+                            typename C::const_iterator* /* const_it */ = nullptr) {
   return 0;
 }
 

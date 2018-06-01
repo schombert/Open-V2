@@ -37,21 +37,7 @@ public:
 	}
 };
 
-TEST_METHOD(default_root, simple_fs_tests) {
-	test_file_structure real_fs;
-
-	file_system f;
-	const auto path_list = f.get_root().list_paths();
-	EXPECT_EQ(1ui64, path_list.size());
-#ifdef _DEBUG
-	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data\\Debug", (const wchar_t*)(path_list.front().c_str()));
-#else
-	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data\\Release", (const wchar_t*)(path_list.front().c_str()));
-#endif
-}
-
-
-TEST_METHOD(set_root, simple_fs_tests) {
+TEST_METHOD(fake_fs_tests, set_root) {
 	test_file_structure real_fs;
 
 	file_system f;
@@ -70,7 +56,7 @@ TEST_METHOD(set_root, simple_fs_tests) {
 	EXPECT_STREQ(L"F:\\VS2007Projects\\impossible", (const wchar_t*)(path_list.front().c_str()));
 }
 
-TEST_METHOD(adding_root, simple_fs_tests) {
+TEST_METHOD(fake_fs_tests, adding_root) {
 	test_file_structure real_fs;
 
 	file_system f;
@@ -87,7 +73,7 @@ TEST_METHOD(adding_root, simple_fs_tests) {
 	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data;F:\\VS2007Projects\\open_v2_test_data\\mod", (const wchar_t*)(single_string.c_str()));
 }
 
-TEST_METHOD(directory_descent, simple_fs_tests) {
+TEST_METHOD(fake_fs_tests, directory_descent) {
 	test_file_structure real_fs;
 
 	file_system f;
@@ -107,7 +93,7 @@ TEST_METHOD(directory_descent, simple_fs_tests) {
 	EXPECT_STREQ(L"F:\\VS2007Projects\\open_v2_test_data\\sub;F:\\VS2007Projects\\open_v2_test_data\\mod\\sub", (const wchar_t*)(single_string.c_str()));
 }
 
-TEST_METHOD(list_dir, simple_fs_tests) {
+TEST_METHOD(fake_fs_tests, list_dir) {
 	test_file_structure real_fs;
 
 	file_system f;
@@ -125,7 +111,7 @@ TEST_METHOD(list_dir, simple_fs_tests) {
 	EXPECT_TRUE(r3);
 }
 
-TEST_METHOD(list_non_replaced_dir_files, simple_fs_tests) {
+TEST_METHOD(fake_fs_tests, list_non_replaced_dir_files) {
 	test_file_structure real_fs;
 
 	file_system fs;
@@ -141,7 +127,7 @@ TEST_METHOD(list_non_replaced_dir_files, simple_fs_tests) {
 	EXPECT_TRUE(std::find_if(dirb_contents.begin(), dirb_contents.end(), [](const auto &f) { return f.file_path().compare(u"F:\\VS2007Projects\\open_v2_test_data\\directories\\sub_dir_b") != 0; }) == dirb_contents.end());
 }
 
-TEST_METHOD(list_replaced_dir_files, simple_fs_tests) {
+TEST_METHOD(fake_fs_tests, list_replaced_dir_files) {
 	test_file_structure real_fs;
 
 	file_system fs;
@@ -160,7 +146,7 @@ TEST_METHOD(list_replaced_dir_files, simple_fs_tests) {
 	}) != dirb_contents.end());
 }
 
-TEST_METHOD(open_existing_and_non_existing, simple_fs_tests) {
+TEST_METHOD(fake_fs_tests, open_existing_and_non_existing) {
 	test_file_structure real_fs;
 
 	file_system f;
@@ -175,7 +161,7 @@ TEST_METHOD(open_existing_and_non_existing, simple_fs_tests) {
 	EXPECT_FALSE(bfile.has_value());
 }
 
-TEST_METHOD(open_correct_version, simple_fs_tests) {
+TEST_METHOD(fake_fs_tests, open_correct_version) {
 	test_file_structure real_fs;
 
 	file_system f;
@@ -190,7 +176,7 @@ TEST_METHOD(open_correct_version, simple_fs_tests) {
 	EXPECT_TRUE(bfile->size() > 0);
 }
 
-TEST_METHOD(open_correct_nested_file_version, simple_fs_tests) {
+TEST_METHOD(fake_fs_tests, open_correct_nested_file_version) {
 	test_file_structure real_fs;
 	file_system f;
 
@@ -203,7 +189,7 @@ TEST_METHOD(open_correct_nested_file_version, simple_fs_tests) {
 	EXPECT_TRUE(bfile->size() > 0);
 }
 
-TEST_METHOD(peek_file, simple_fs_tests) {
+TEST_METHOD(fake_fs_tests, peek_file) {
 	test_file_structure real_fs;
 	file_system f;
 
@@ -213,6 +199,9 @@ TEST_METHOD(peek_file, simple_fs_tests) {
 	const auto ua = f.get_root().peek_file(u"sub_dir_a\\a_file_a.txt");
 	const auto ub = f.get_root().peek_file(u"sub_dir_a\\a_file_b.txt");
 
+	EXPECT_TRUE(bool(ua));
+	EXPECT_TRUE(bool(ub));
+
 	const auto afile = ua->open_file();
 	const auto bfile = ub->open_file();
 
@@ -220,4 +209,23 @@ TEST_METHOD(peek_file, simple_fs_tests) {
 	EXPECT_TRUE(bfile->size() > 0);
 
 	EXPECT_FALSE(bool(f.get_root().peek_file(u"bad_file_name.txt")));
+}
+
+TEST_METHOD(fake_fs_tests, peek_file_b) {
+	test_file_structure real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:\\VS2007Projects\\open_v2_test_data\\directories\\sub_dir_a"));
+
+	const auto ua = f.get_root().peek_file(u"a_file_a.txt");
+	const auto ub = f.get_root().peek_file(u"a_file_b.txt");
+
+	EXPECT_TRUE(bool(ua));
+	EXPECT_TRUE(bool(ub));
+
+	const auto afile = ua->open_file();
+	const auto bfile = ub->open_file();
+
+	EXPECT_TRUE(afile->size() == 0);
+	EXPECT_TRUE(bfile->size() == 0);
 }
