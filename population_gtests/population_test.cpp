@@ -1,6 +1,7 @@
 #include "gtest\\gtest.h"
 #include "fake_fs\\fake_fs.h"
 #include "population\\population.h"
+#include "scenario\\scenario.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -15,6 +16,43 @@ public:
 	file_representation rebel_types = file_representation(u"rebel_types.txt", common1, 
 		"rebel_ 1 = {}\r\n"
 		"rebel_2 = { stuff }");
+	file_representation pop_types = file_representation(u"pop_types.txt", common1, 
+		"demotion_chance =\r\n"
+		"{\r\n"
+		"	factor = 1\r\n"
+		"	modifier = {\r\n"
+		"		factor = -0.1\r\n"
+		"		not = { religion = this }\r\n"
+		"		strata = poor\r\n"
+		"	}"
+		"}\r\n"
+		"emigration_chance = \r\n"
+		"{\r\n"
+		"	factor = 0.5\r\n"
+		"	group = {\r\n"
+		"		modifier = {\r\n"
+		"			factor = 0.2\r\n"
+		"			militancy = 5\r\n"
+		"		}\r\n"
+		"		modifier = {\r\n"
+		"			factor = 0.2\r\n"
+		"			militancy = 6\r\n"
+		"		}\r\n"
+		"		modifier = {\r\n"
+		"			factor = 0.2\r\n"
+		"			militancy = 7\r\n"
+		"		}\r\n"
+		"		modifier = {\r\n"
+		"			factor = 0.2\r\n"
+		"			militancy = 8\r\n"
+		"		}\r\n"
+		"		modifier = {\r\n"
+		"			factor = 0.2\r\n"
+		"			militancy = 9\r\n"
+		"		}\r\n"
+		"	}\r\n"
+		"}\r\n"
+		);
 
 	preparse_test_files() {
 		set_default_root(f_root);
@@ -63,4 +101,18 @@ TEST(population_tests, test_pre_parse_rebel_types) {
 
 	EXPECT_EQ(rebel_type_tag(0), manager.named_rebel_type_index[manager.rebel_types[rebel_type_tag(0)].name]);
 	EXPECT_EQ(rebel_type_tag(1), manager.named_rebel_type_index[manager.rebel_types[rebel_type_tag(1)].name]);
+}
+
+TEST(population_tests, test_poptype_file_read) {
+	preparse_test_files real_fs;
+	file_system f;
+	f.set_root(RANGE(u"F:"));
+
+	scenario::scenario_manager s;
+
+	read_main_poptype_file(s, f.get_root());
+
+	EXPECT_NE(modifiers::factor_tag(), s.population_m.emigration_chance);
+	EXPECT_NE(modifiers::factor_tag(), s.population_m.demotion_chance);
+	EXPECT_EQ(modifiers::factor_tag(), s.population_m.colonialmigration_chance);
 }

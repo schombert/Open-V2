@@ -16,7 +16,7 @@ std::wstring get_string(text_sequences& s, uint32_t component_num) {
 	}, s.all_components[component_num]);
 }
 
-TEST(adding_string_data, text_data_test) {
+TEST(text_data_test, adding_string_data) {
 	text_sequences seq_object;
 
 	const char t1[] = "text text";
@@ -37,7 +37,7 @@ TEST(adding_string_data, text_data_test) {
 	EXPECT_EQ(19ui64, seq_object.text_data.size());
 }
 
-TEST(single_newline, text_data_test) {
+TEST(text_data_test, single_newline) {
 	text_sequences seq_object;
 	std::map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci> temp_map(seq_object.key_data);
 
@@ -53,7 +53,7 @@ TEST(single_newline, text_data_test) {
 	EXPECT_EQ(1ui16, seq_object.all_sequences[text_tag(0)].component_count);
 }
 
-TEST(win1250_color, text_data_test) {
+TEST(text_data_test, win1250_color) {
 	text_sequences seq_object;
 	std::map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci> temp_map(seq_object.key_data);
 
@@ -69,7 +69,7 @@ TEST(win1250_color, text_data_test) {
 	EXPECT_EQ(1ui16, seq_object.all_sequences[text_tag(0)].component_count);
 }
 
-TEST(utf8_color, text_data_test) {
+TEST(text_data_test, utf8_color) {
 	text_sequences seq_object;
 	std::map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci> temp_map(seq_object.key_data);
 
@@ -85,7 +85,7 @@ TEST(utf8_color, text_data_test) {
 	EXPECT_EQ(1ui16, seq_object.all_sequences[text_tag(0)].component_count);
 }
 
-TEST(single_replacement, text_data_test) {
+TEST(text_data_test, single_replacement) {
 	text_sequences seq_object;
 	std::map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci> temp_map(seq_object.key_data);
 
@@ -101,7 +101,7 @@ TEST(single_replacement, text_data_test) {
 	EXPECT_EQ(1ui16, seq_object.all_sequences[text_tag(0)].component_count);
 }
 
-TEST(single_bad_replacement, text_data_test) {
+TEST(text_data_test, single_bad_replacement) {
 	text_sequences seq_object;
 	std::map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci> temp_map(seq_object.key_data);
 
@@ -117,7 +117,7 @@ TEST(single_bad_replacement, text_data_test) {
 	EXPECT_EQ(1ui16, seq_object.all_sequences[text_tag(0)].component_count);
 }
 
-TEST(intervening_value, text_data_test) {
+TEST(text_data_test, intervening_value) {
 	text_sequences seq_object;
 	std::map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci> temp_map(seq_object.key_data);
 
@@ -135,7 +135,7 @@ TEST(intervening_value, text_data_test) {
 	EXPECT_EQ(3ui16, seq_object.all_sequences[text_tag(0)].component_count);
 }
 
-TEST(string_color_value, text_data_test) {
+TEST(text_data_test, string_color_value) {
 	text_sequences seq_object;
 	std::map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci> temp_map(seq_object.key_data);
 
@@ -153,7 +153,7 @@ TEST(string_color_value, text_data_test) {
 	EXPECT_EQ(3ui16, seq_object.all_sequences[text_tag(0)].component_count);
 }
 
-TEST(two_keys, text_data_test) {
+TEST(text_data_test, two_keys) {
 	text_sequences seq_object;
 	std::map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci> temp_map(seq_object.key_data);
 
@@ -186,7 +186,22 @@ TEST(two_keys, text_data_test) {
 	EXPECT_EQ(text_tag(1), temp_map["key2"]);
 }
 
-TEST(text_alignment, text_data_test) {
+TEST(text_data_test, text_to_string) {
+	text_sequences seq_object;
+	const char t1[] = "aaa\xA7R$COUNT$";
+	const char test_key[] = "key";
+	const char t2[] = "$COUNT$\xA7""btext";
+	const char test_key2[] = "key2";
+
+	std::map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci> temp_map(seq_object.key_data);
+
+	add_win1250_sequence(seq_object, temp_map, RANGE(test_key), RANGE(t1));
+	add_win1250_sequence(seq_object, temp_map, RANGE(test_key2), RANGE(t2));
+	EXPECT_EQ(std::u16string(u"aaa$count$"), to_string(seq_object, text_tag(0)));
+	EXPECT_EQ(std::u16string(u"$count$text"), to_string(seq_object, text_tag(1)));
+}
+
+TEST(text_data_test, text_alignment) {
 
 	const auto a3 = align_in_bounds(text_data::alignment::center, 20, 10, 40, 20);
 	EXPECT_EQ(10, a3.first);

@@ -593,6 +593,31 @@ namespace text_data {
 		}
 	}
 
+	std::u16string to_string(const text_sequences& container, text_data::text_tag tag) {
+		const auto& components = container.all_sequences[tag];
+
+		const auto components_start = container.all_components.data() + components.starting_component;
+		const auto components_end = components_start + components.component_count;
+
+		std::u16string result;
+
+		for(auto component_i = components_start; component_i != components_end; ++component_i) {
+			if(std::holds_alternative<text_data::line_break>(*component_i)) {
+				result += u"\r\n";
+			} else if(std::holds_alternative<text_data::value_placeholder>(*component_i)) {
+				const auto rep = std::get<text_data::value_placeholder>(*component_i);
+				result += u'$';
+				result += name_from_value_type(rep.value);
+				result += u'$';
+			} else if(std::holds_alternative<text_data::text_chunk>(*component_i)) {
+				const auto chunk = std::get<text_data::text_chunk>(*component_i);
+				result += std::u16string(container.text_data.data() + chunk.offset, container.text_data.data() + chunk.offset + chunk.length);
+			}
+		}
+
+		return result;
+	}
+
 	void load_text_sequences_from_directory(const directory& source_directory, text_data::text_sequences& container) {
 		const auto csv_files = source_directory.list_files(u".csv");
 
