@@ -316,8 +316,8 @@ namespace population {
 		}
 		void discard(int) {}
 		void set_unemployment(bool v) {
-			if(!v)
-				env.pt.flags |= pop_type::not_employable;
+			if(v)
+				env.pt.flags |= pop_type::is_employable;
 		}
 		void set_leadership(int32_t v) {
 			env.s.population_m.officer_leadership = v;
@@ -598,6 +598,24 @@ namespace population {
 
 		const auto poptype_files = poptype_dir.list_files(u".txt");
 
+		s.population_m.promote_to.reset(s.population_m.count_poptypes);
+		s.population_m.promote_to.resize(s.population_m.count_poptypes);
+
+		const auto goods_count = static_cast<uint32_t>(s.economy_m.goods.size());
+		s.population_m.everyday_needs.reset(goods_count);
+		s.population_m.everyday_needs.resize(s.population_m.count_poptypes);
+		s.population_m.life_needs.reset(goods_count);
+		s.population_m.life_needs.resize(s.population_m.count_poptypes);
+		s.population_m.luxury_needs.reset(goods_count);
+		s.population_m.luxury_needs.resize(s.population_m.count_poptypes);
+
+		s.population_m.rebel_units.reset(static_cast<uint32_t>(s.military_m.unit_types.size()));
+		s.population_m.rebel_units.resize(s.population_m.count_poptypes);
+		s.population_m.issue_inclination.reset(static_cast<uint32_t>(s.issues_m.options.size()));
+		s.population_m.issue_inclination.resize(s.population_m.count_poptypes);
+		s.population_m.ideological_inclination.reset(static_cast<uint32_t>(s.ideologies_m.ideology_container.size()));
+		s.population_m.ideological_inclination.resize(s.population_m.count_poptypes);
+
 		for(const auto& file : poptype_files) {
 			const auto fname = file.file_name();
 			const auto clipped_unicode = fname.size() >= 4ui64 ? std::string(fname.begin(), fname.end() - 4ui32) : std::string("");
@@ -634,6 +652,37 @@ namespace population {
 						s.population_m.soldier_pay = pr.poptype_pay;
 					}
 				}
+			}
+		}
+
+		populate_demote_to(s.population_m);
+	}
+
+	void populate_demote_to(population_manager& m) {
+		const auto poptype_count = m.promote_to.inner_size();
+		m.demote_to.reset(poptype_count);
+		m.demote_to.resize(poptype_count);
+
+		for(uint32_t i = 0; i < poptype_count; ++i) {
+			const auto outer_strata = m.pop_types[pop_type_tag(static_cast<pop_type_tag::value_base_t>(i))].flags & pop_type::strata_mask;
+
+			for(uint32_t j = 0; j < poptype_count; ++j) {
+				const auto inner_strata = m.pop_types[pop_type_tag(static_cast<pop_type_tag::value_base_t>(j))].flags & pop_type::strata_mask;
+				if(inner_strata <= outer_strata) {
+					m.demote_to.get(
+						pop_type_tag(static_cast<pop_type_tag::value_base_t>(i)),
+						pop_type_tag(static_cast<pop_type_tag::value_base_t>(j))) = 
+
+						m.promote_to.get(
+							pop_type_tag(static_cast<pop_type_tag::value_base_t>(i)), 
+							pop_type_tag(static_cast<pop_type_tag::value_base_t>(j)));
+
+					if(inner_strata != outer_strata)
+						m.promote_to.get(pop_type_tag(
+							static_cast<pop_type_tag::value_base_t>(i)),
+							pop_type_tag(static_cast<pop_type_tag::value_base_t>(j))) = modifiers::factor_tag();
+				}
+				
 			}
 		}
 	}

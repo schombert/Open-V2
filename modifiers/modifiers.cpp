@@ -15,6 +15,8 @@ namespace modifiers {
 		parsed_data crimes_file;
 		parsed_data nv_file;
 
+		std::vector<std::tuple<provincial_modifier_tag, const token_group*, const token_group*>> pending_crimes;
+
 		parsing_environment(text_data::text_sequences& tl, modifiers_manager& m) :
 			text_lookup(tl), manager(m) {
 		}
@@ -32,20 +34,26 @@ namespace modifiers {
 		}
 	};
 
+	inline int inner_crime_preparse(const token_group* start, const token_group* end, const token_and_type& t, parsing_environment& env) {
+		const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
+		const auto tag = env.manager.provincial_modifiers.emplace_back();
+		auto& new_i = env.manager.provincial_modifiers[tag];
+
+		new_i.id = tag;
+		new_i.name = name;
+
+		env.manager.named_provincial_modifiers_index.emplace(name, tag);
+		env.manager.crimes.emplace(tag, crime());
+		env.pending_crimes.emplace_back(tag, start, end);
+
+		return 0;
+	}
+
 	struct crimes_preparse_file {
 		parsing_environment& env;
 		crimes_preparse_file(parsing_environment& e) : env(e) {}
 
-		void add_crime(const token_and_type& t) {
-			const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
-			const auto tag = env.manager.provincial_modifiers.emplace_back();
-			auto& new_i = env.manager.provincial_modifiers[tag];
-
-			new_i.id = tag;
-			new_i.name = name;
-
-			env.manager.named_provincial_modifiers_index.emplace(name, tag);
-		}
+		void add_crime(int) {}
 	};
 
 	struct nv_file {
@@ -410,6 +418,35 @@ namespace modifiers {
 	inline std::pair<token_and_type, float> full_to_tf_pair(const token_and_type& t, association_type, const token_and_type& r) {
 		return std::pair<token_and_type, float>(t, token_to<float>(r));
 	}
+
+	struct crime_parse_env {
+		scenario::scenario_manager& s;
+		crime& c;
+		crime_parse_env(scenario::scenario_manager& sm, crime& cr) : s(sm), c(cr) {}
+	};
+
+	inline triggers::trigger_tag read_crime_trigger(const token_group* s, const token_group* e, crime_parse_env& env) {
+		const auto td = triggers::parse_trigger(env.s,
+			triggers::trigger_scope_state{
+				triggers::trigger_slot_contents::province,
+				triggers::trigger_slot_contents::province,
+				triggers::trigger_slot_contents::empty,
+				false },
+			s, e);
+		return triggers::commit_trigger(env.s.trigger_m, td);
+	}
+
+	class crime_modifier : public modifier_reading_base {
+	public:
+		crime_parse_env & env;
+		crime_modifier(crime_parse_env& e) : env(e) {}
+		void set_trigger(triggers::trigger_tag t) {
+			env.c.crime_trigger = t;
+		}
+		void set_active(bool v) {
+			env.c.default_active = v;
+		}
+	};
 }
 
 MEMBER_FDEF(modifiers::empty_type, add_unknown_key, "unknown_key");
@@ -417,6 +454,10 @@ MEMBER_FDEF(modifiers::crimes_preparse_file, add_crime, "crime");
 MEMBER_FDEF(modifiers::nv_file, add_nv, "national_value");
 MEMBER_DEF(modifiers::modifier_reading_base, icon, "icon");
 MEMBER_FDEF(modifiers::modifier_reading_base, add_attribute, "attribute");
+MEMBER_FDEF(modifiers::crime_modifier, set_trigger, "trigger");
+MEMBER_FDEF(modifiers::crime_modifier, set_active, "active");
+MEMBER_DEF(modifiers::crime_modifier, icon, "icon");
+MEMBER_FDEF(modifiers::crime_modifier, add_attribute, "attribute");
 
 MEMBER_FDEF(modifiers::outer_factor_modifier, set_factor, "factor");
 MEMBER_FDEF(modifiers::outer_factor_modifier, set_base, "base");
@@ -437,13 +478,18 @@ namespace modifiers {
 		END_TYPE
 	END_DOMAIN;
 
-	BEGIN_DOMAIN(crimes_pre_parsing_domain)
-		BEGIN_TYPE(empty_type)
-		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
+	BEGIN_DOMAIN(crime_modifier_domain)
+		BEGIN_TYPE(crime_modifier)
+		MEMBER_ASSOCIATION("icon", "icon", value_from_rh<uint32_t>)
+		MEMBER_ASSOCIATION("active", "active", value_from_rh<bool>)
+		MEMBER_TYPE_EXTERN("trigger", "trigger", triggers::trigger_tag, read_crime_trigger)
+		MEMBER_VARIABLE_ASSOCIATION("attribute", accept_all, full_to_tf_pair)
 		END_TYPE
+	END_DOMAIN;
+
+	BEGIN_DOMAIN(crimes_pre_parsing_domain)
 		BEGIN_TYPE(crimes_preparse_file)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("crime", accept_all, empty_type, name_empty_type)
+		MEMBER_VARIABLE_TYPE_EXTERN("crime", accept_all, int, inner_crime_preparse)
 		END_TYPE
 	END_DOMAIN;
 
@@ -520,6 +566,15 @@ namespace modifiers {
 					&main_results.parse_results[0] + main_results.parse_results.size(),
 					*state.impl);
 			}
+		}
+	}
+
+	void read_crimes(parsing_state& state, scenario::scenario_manager& s) {
+		for(const auto& t : state.impl->pending_crimes) {
+			crime& this_crime = s.modifiers_m.crimes[std::get<0>(t)];
+			crime_parse_env env(s, this_crime);
+			auto res = parse_object<crime_modifier, crime_modifier_domain>(std::get<1>(t), std::get<2>(t), env);
+			set_provincial_modifier(std::get<0>(t), res, s.modifiers_m);
 		}
 	}
 

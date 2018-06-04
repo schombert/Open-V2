@@ -30,7 +30,7 @@ namespace population {
 
 	struct pop_type {
 		static constexpr uint8_t cannot_vote = 0x04;
-		static constexpr uint8_t not_employable = 0x08;
+		static constexpr uint8_t is_employable = 0x08;
 		static constexpr uint8_t state_capital_only = 0x10;
 		static constexpr uint8_t demote_on_migration = 0x20;
 
@@ -147,4 +147,5 @@ namespace population {
 
 	void read_main_poptype_file(scenario::scenario_manager& s, const directory& root);
 	void read_poptypes(scenario::scenario_manager& s, const directory& root);
+	void populate_demote_to(population_manager& m);
 }

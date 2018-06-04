@@ -39,6 +39,11 @@ namespace modifiers {
 		}
 	};
 
+	struct crime {
+		triggers::trigger_tag crime_trigger;
+		bool default_active = false;
+	};
+
 	struct factor_segment {
 		float factor = 0.0f;
 		triggers::trigger_tag condition;
@@ -231,6 +236,8 @@ namespace modifiers {
 		tagged_vector<factor_modifier, factor_tag> factor_modifiers;
 		std::vector<factor_segment> factor_data;
 
+		boost::container::flat_map<provincial_modifier_tag, crime> crimes;
+
 		boost::container::flat_map<text_data::text_tag, national_modifier_tag> named_national_modifiers_index;
 		boost::container::flat_map<text_data::text_tag, provincial_modifier_tag> named_provincial_modifiers_index;
 
@@ -293,7 +300,7 @@ namespace modifiers {
 	void parse_national_values(
 		parsing_state& state,
 		const directory& source_directory);
-
+	void read_crimes(parsing_state& state, scenario::scenario_manager& s);
 
 	factor_tag parse_modifier_factors(
 		scenario::scenario_manager& s,

@@ -26,8 +26,8 @@ public:
 		"	mobilisation_economy_impact = 1.25\r\n"
 		"}");
 	file_representation crime = file_representation(u"crime.txt", common,
-		"crime_a = { stuff = 0 }\r\n"
-		"crime_b = { stuff = 1 \r\n sub = { 0 0 0 } }\r\n");
+		"crime_a = { active = yes icon = 4 boost_strongest_party = 5.0}\r\n"
+		"crime_b = { number_of_voters = 1.0 icon = 6 trigger = { life_rating > 10} }\r\n");
 
 	preparse_test_files() {
 		set_default_root(f_root);
@@ -55,6 +55,37 @@ TEST(modifiers_tests, crimes_preparse) {
 	EXPECT_EQ(provincial_modifier_tag(1), m.provincial_modifiers[provincial_modifier_tag(1)].id);
 	EXPECT_EQ(provincial_modifier_tag(0), m.named_provincial_modifiers_index[m.provincial_modifiers[provincial_modifier_tag(0)].name]);
 	EXPECT_EQ(provincial_modifier_tag(1), m.named_provincial_modifiers_index[m.provincial_modifiers[provincial_modifier_tag(1)].name]);
+}
+
+TEST(modifiers_tests, crimes_parse) {
+	preparse_test_files real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:"));
+
+	scenario::scenario_manager s;
+
+	parsing_state state(s.gui_m.text_data_sequences, s.modifiers_m);
+
+	pre_parse_crimes(state, f.get_root());
+	read_crimes(state, s);
+
+	EXPECT_EQ(2ui64, s.modifiers_m.provincial_modifiers.size());
+	EXPECT_EQ(2ui64, s.modifiers_m.named_provincial_modifiers_index.size());
+
+	EXPECT_EQ(provincial_modifier_tag(0), s.modifiers_m.provincial_modifiers[provincial_modifier_tag(0)].id);
+	EXPECT_EQ(provincial_modifier_tag(1), s.modifiers_m.provincial_modifiers[provincial_modifier_tag(1)].id);
+	EXPECT_EQ(provincial_modifier_tag(0), s.modifiers_m.named_provincial_modifiers_index[s.modifiers_m.provincial_modifiers[provincial_modifier_tag(0)].name]);
+	EXPECT_EQ(provincial_modifier_tag(1), s.modifiers_m.named_provincial_modifiers_index[s.modifiers_m.provincial_modifiers[provincial_modifier_tag(1)].name]);
+
+	EXPECT_EQ(5.0f, s.modifiers_m.provincial_modifier_definitions.get(provincial_modifier_tag(0), provincial_offsets::boost_strongest_party));
+	EXPECT_EQ(1.0f, s.modifiers_m.provincial_modifier_definitions.get(provincial_modifier_tag(1), provincial_offsets::number_of_voters));
+	EXPECT_EQ(4ui32, s.modifiers_m.provincial_modifiers[provincial_modifier_tag(0)].icon);
+	EXPECT_EQ(6ui32, s.modifiers_m.provincial_modifiers[provincial_modifier_tag(1)].icon);
+	EXPECT_EQ(true, s.modifiers_m.crimes[provincial_modifier_tag(0)].default_active);
+	EXPECT_EQ(false, s.modifiers_m.crimes[provincial_modifier_tag(1)].default_active);
+	EXPECT_EQ(triggers::trigger_tag(), s.modifiers_m.crimes[provincial_modifier_tag(0)].crime_trigger);
+	EXPECT_NE(triggers::trigger_tag(), s.modifiers_m.crimes[provincial_modifier_tag(1)].crime_trigger);
 }
 
 TEST(modifiers_tests, nv_parse) {
