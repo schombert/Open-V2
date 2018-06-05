@@ -2,6 +2,8 @@
 #include "Parsers\\parsers.hpp"
 #include "object_parsing\\object_parsing.hpp"
 #include "concurrency_tools\\concurrency_tools.hpp"
+#include "scenario\\scenario.h"
+#include "triggers\\trigger_reading.h"
 
 namespace economy {
 	struct parsing_environment {
@@ -51,7 +53,7 @@ namespace economy {
 			if (v)
 				def.flags |= good_definition::overseas_penalty;
 		}
-		void set_cost(double v) {
+		void set_cost(economy::money_qnty_type v) {
 			def.base_price = v;
 		}
 		void set_color(const color_builder& v) {
@@ -204,7 +206,7 @@ namespace economy {
 		building_obj naval_base;
 
 		buildings_file(buildings_parsing_environment& e) : env(e) {
-			e.manager.building_costs.reset(static_cast<uint32_t>(e.manager.goods.size()));
+			e.manager.building_costs.reset(e.manager.goods_count);
 		}
 
 		void add_building(std::pair<token_and_type, building_obj>&& b) {
@@ -279,7 +281,317 @@ namespace economy {
 			}
 		}
 	};
+
+	enum class production_type_type {
+		unknown, rgo, factory, artisan
+	};
+	struct owner_reader {
+		scenario::scenario_manager& env;
+		owner_data owner;
+
+		owner_reader(scenario::scenario_manager& e, const boost::container::flat_map<text_data::text_tag, factory_type_tag>&) : env(e) {}
+
+		void set_poptype(const token_and_type& t) {
+			owner.type = tag_from_text(
+				env.population_m.named_pop_type_index,
+				text_data::get_thread_safe_existing_text_handle(env.gui_m.text_data_sequences, t.start, t.end));
+		}
+		void set_effect(const token_and_type& t) {
+			if(is_fixed_token_ci(t, "input"))
+				owner.contribution = contribution_type::input;
+			else if(is_fixed_token_ci(t, "output"))
+				owner.contribution = contribution_type::output;
+			else if(is_fixed_token_ci(t, "throughput"))
+				owner.contribution = contribution_type::throughput;
+		}
+		void set_effect_multiplier(float v) {
+			owner.effect_multiplier = v;
+		}
+	};
+	struct employee_data_reader {
+		scenario::scenario_manager& env;
+		employee_data employee;
+
+		employee_data_reader(scenario::scenario_manager& e, const boost::container::flat_map<text_data::text_tag, factory_type_tag>&) : env(e) {}
+
+		void set_poptype(const token_and_type& t) {
+			employee.type = tag_from_text(
+				env.population_m.named_pop_type_index,
+				text_data::get_thread_safe_existing_text_handle(env.gui_m.text_data_sequences, t.start, t.end));
+		}
+		void set_effect(const token_and_type& t) {
+			if(is_fixed_token_ci(t, "input"))
+				employee.contribution = contribution_type::input;
+			else if(is_fixed_token_ci(t, "output"))
+				employee.contribution = contribution_type::output;
+			else if(is_fixed_token_ci(t, "throughput"))
+				employee.contribution = contribution_type::throughput;
+		}
+		void set_effect_multiplier(float v) {
+			employee.effect_multiplier = v;
+		}
+		void set_amount(float v) {
+			employee.amount = v;
+		}
+	};
+
+	inline employee_data_reader read_employee(const token_and_type&, association_type, const employee_data_reader& e) {
+		return e;
+	}
+
+	inline triggers::trigger_tag read_bonus_trigger(const token_group* s, const token_group* e, scenario::scenario_manager& env, const boost::container::flat_map<text_data::text_tag, factory_type_tag>&) {
+		const auto td = triggers::parse_trigger(env,
+			triggers::trigger_scope_state{
+				triggers::trigger_slot_contents::state,
+				triggers::trigger_slot_contents::state,
+				triggers::trigger_slot_contents::empty,
+				false},
+			s, e);
+		return triggers::commit_trigger(env.trigger_m, td);
+	}
+	struct bonus_reader {
+		scenario::scenario_manager& env;
+		bonus b;
+
+		bonus_reader(scenario::scenario_manager& e, const boost::container::flat_map<text_data::text_tag, factory_type_tag>&) : env(e) {}
+		void set_value(float v) {
+			b.value = v;
+		}
+		void set_trigger(triggers::trigger_tag t) {
+			b.condition = t;
+		}
+	};
+	inline std::pair<token_and_type, economy::goods_qnty_type> read_econ_pair(const token_and_type& l, association_type, const token_and_type& r) {
+		return std::pair<token_and_type, economy::goods_qnty_type>(l, token_to<economy::goods_qnty_type>(r));
+	}
+	struct goods_set_reader {
+		scenario::scenario_manager& env;
+		std::vector<std::pair<goods_tag, economy::goods_qnty_type>> data;
+		goods_set_reader(scenario::scenario_manager& e, const boost::container::flat_map<text_data::text_tag, factory_type_tag>&) : env(e) {}
+
+		void add_value(const std::pair<token_and_type, economy::goods_qnty_type>& p) {
+			const auto gt = tag_from_text(
+				env.economy_m.named_goods_index,
+				text_data::get_thread_safe_existing_text_handle(env.gui_m.text_data_sequences, p.first.start, p.first.end));
+			if(is_valid_index(gt))
+				data.emplace_back(gt, p.second);
+		}
+	};
+	struct employee_set {
+		scenario::scenario_manager& env;
+		employee_data workers[std::extent_v<decltype(factory_type::workers)>];
+
+		employee_set(scenario::scenario_manager& e, const boost::container::flat_map<text_data::text_tag, factory_type_tag>&) : env(e) {}
+
+		void add_employee(const employee_data_reader& v) {
+			for(uint32_t i = 0; i < std::extent_v<decltype(workers)>; ++i) {
+				if(!is_valid_index(workers[i].type)) {
+					workers[i] = v.employee;
+					break;
+				}
+			}
+		}
+	};
+	
+	struct production_type_reader {
+		scenario::scenario_manager& env;
+
+		text_data::text_tag template_name;
+		bool mine = false;
+		bool farm = false;
+		bool is_coastal = false;
+		owner_data owner;
+		employee_data workers[std::extent_v<decltype(factory_type::workers)>];
+		production_type_type type = production_type_type::unknown;
+		std::vector<std::pair<goods_tag, economy::goods_qnty_type>> efficiency_goods;
+		std::vector<std::pair<goods_tag, economy::goods_qnty_type>> input_goods;
+		economy::goods_qnty_type value = economy::goods_qnty_type(1);
+		goods_tag output_good;
+		uint32_t workforce = 0;
+		bonus bonuses[std::extent_v<decltype(factory_type::bonuses)>];
+
+		production_type_reader(scenario::scenario_manager& e, const boost::container::flat_map<text_data::text_tag, factory_type_tag>&) : env(e) {}
+
+		void set_owner(const owner_reader& v) {
+			owner = v.owner;
+		}
+		void set_employees(const employee_set& v) {
+			for(uint32_t i = 0; i < std::extent_v<decltype(workers)>; ++i)
+				workers[i] = v.workers[i];
+		}
+		void set_bonus(const bonus_reader& v) {
+			for(uint32_t i = 0; i < std::extent_v<decltype(bonuses)>; ++i) {
+				if(!is_valid_index(bonuses[i].condition)) {
+					bonuses[i] = v.b;
+					break;
+				}
+			}
+		}
+		void set_template(const token_and_type& t) {
+			template_name = text_data::get_thread_safe_text_handle(env.gui_m.text_data_sequences, t.start, t.end);
+		}
+		void set_output_goods(const token_and_type& t) {
+			output_good = tag_from_text(
+				env.economy_m.named_goods_index,
+				text_data::get_thread_safe_existing_text_handle(env.gui_m.text_data_sequences, t.start, t.end));
+		}
+		void set_efficiency(goods_set_reader&& v) {
+			efficiency_goods = std::move(v.data);
+		}
+		void set_input_goods(goods_set_reader&& v) {
+			input_goods = std::move(v.data);
+		}
+		void set_type(const token_and_type& t) {
+			if(is_fixed_token_ci(t, "rgo"))
+				type = production_type_type::rgo;
+			else if(is_fixed_token_ci(t, "factory"))
+				type = production_type_type::factory;
+			else if(is_fixed_token_ci(t, "artisan"))
+				type = production_type_type::artisan;
+		}
+	};
+
+	inline std::pair<token_and_type, production_type_reader> read_pt(const token_and_type& t, association_type, production_type_reader&& pt) {
+		return std::pair<token_and_type, production_type_reader>(t, std::move(pt));
+	}
+
+	struct production_reading {
+		scenario::scenario_manager& env;
+		boost::container::flat_map<text_data::text_tag, factory_type_tag>& factory_mapping;
+		text_data::text_tag RGO_template_farmers;
+		text_data::text_tag RGO_template_labourers;
+
+		boost::container::flat_map<text_data::text_tag, artisan_type_tag> artisan_templates;
+
+		production_reading(scenario::scenario_manager& e, boost::container::flat_map<text_data::text_tag, factory_type_tag>& m) : env(e), factory_mapping(m) {
+			static const char t1[] = "RGO_template_farmers";
+			static const char t2[] = "RGO_template_labourers";
+
+			RGO_template_farmers = text_data::get_thread_safe_text_handle(env.gui_m.text_data_sequences, t1, t1 + sizeof(t1) - 1);
+			RGO_template_labourers = text_data::get_thread_safe_text_handle(env.gui_m.text_data_sequences, t2, t2 + sizeof(t2) - 1);
+		}
+
+		void add_item(const std::pair<token_and_type, production_type_reader>& p) {
+			const auto name = text_data::get_thread_safe_text_handle(env.gui_m.text_data_sequences, p.first.start, p.first.end);
+
+			const bool factory_by_inference = is_valid_index(p.second.template_name) && factory_mapping.count(p.second.template_name) != 0;
+			const bool artisan_by_inference = is_valid_index(p.second.template_name) && artisan_templates.count(p.second.template_name) != 0;
+			const bool rgo_by_inference = p.second.template_name == RGO_template_farmers || p.second.template_name == RGO_template_labourers;
+
+			if(p.second.type == production_type_type::factory || factory_by_inference) {
+				const auto pre_mapped_ftag = tag_from_text(factory_mapping, name);
+				const auto ftag = is_valid_index(pre_mapped_ftag) ? pre_mapped_ftag : env.economy_m.factory_types.emplace_back();
+				factory_type& factory = env.economy_m.factory_types[ftag];
+
+				factory.workforce = p.second.workforce;
+				factory.owner = p.second.owner;
+				for(uint32_t i = 0; i < std::extent_v<decltype(factory.workers)>; ++i)
+					factory.workers[i] = p.second.workers[i];
+
+				if(is_valid_index(p.second.template_name)) {
+					const auto base_tag = tag_from_text(factory_mapping, p.second.template_name);
+					const auto old_name = factory.name;
+					const auto old_building_time = factory.building_time;
+					const auto old_default_enabled = factory.default_enabled;
+
+					if(is_valid_index(base_tag)) {
+						factory = env.economy_m.factory_types[base_tag];
+
+						Eigen::Map<const Eigen::VectorXd, Eigen::AlignmentType::Aligned32> source_vector(
+							env.economy_m.factory_efficiency_goods.safe_get_row(base_tag), env.economy_m.aligned_32_goods_count);
+						Eigen::Map<Eigen::VectorXd, Eigen::AlignmentType::Aligned32> dest_vector(
+							env.economy_m.factory_efficiency_goods.safe_get_row(ftag), env.economy_m.aligned_32_goods_count);
+
+						dest_vector = source_vector;
+					}
+					factory.name = old_name;
+					factory.building_time = old_building_time;
+					factory.default_enabled = old_default_enabled;
+				}
+
+				factory.id = ftag;
+				for(uint32_t i = 0; i < std::extent_v<decltype(factory.bonuses)>; ++i)
+					factory.bonuses[i] = p.second.bonuses[i];
+				factory.coastal = p.second.is_coastal;
+				factory.output_amount = p.second.value;
+				factory.output_good = p.second.output_good;
+
+				for(const auto& i : p.second.input_goods)
+					env.economy_m.factory_input_goods.safe_get(ftag, i.first) = i.second;
+				for(const auto& i : p.second.efficiency_goods)
+					env.economy_m.factory_efficiency_goods.safe_get(ftag, i.first) = i.second;
+
+				factory_mapping.emplace(name, ftag);
+			} else if(p.second.type == production_type_type::artisan || artisan_by_inference) {
+				const auto atag = env.economy_m.artisan_types.emplace_back();
+				artisan_type& artisan = env.economy_m.artisan_types[atag];
+
+				artisan.workforce = p.second.workforce;
+				artisan.artisan_contribution = p.second.owner.contribution;
+
+				if(is_valid_index(p.second.template_name)) {
+					const auto base_tag = tag_from_text(artisan_templates, p.second.template_name);
+					if(is_valid_index(base_tag))
+						artisan = env.economy_m.artisan_types[base_tag];
+				}
+
+				artisan.id = atag;
+				artisan.coastal = p.second.is_coastal;
+				artisan.name = name;
+				artisan.output_amount = p.second.value;
+				artisan.output_good = p.second.output_good;
+
+				for(const auto& i : p.second.input_goods)
+					env.economy_m.artisan_input_goods.safe_get(atag, i.first) = i.second;
+
+				artisan_templates.emplace(name, atag);
+			} else if(p.second.type == production_type_type::rgo || rgo_by_inference) {
+				if(name == RGO_template_farmers) {
+					env.economy_m.rgo_farm.owner = p.second.owner;
+					for(uint32_t i = 0; i < std::extent_v<decltype(env.economy_m.rgo_farm.workers)>; ++i)
+						env.economy_m.rgo_farm.workers[i] = p.second.workers[i];
+					env.economy_m.rgo_farm.workforce = p.second.workforce;
+				} else if(name == RGO_template_labourers) {
+					env.economy_m.rgo_mine.owner = p.second.owner;
+					for(uint32_t i = 0; i < std::extent_v<decltype(env.economy_m.rgo_mine.workers)>; ++i)
+						env.economy_m.rgo_mine.workers[i] = p.second.workers[i];
+					env.economy_m.rgo_mine.workforce = p.second.workforce;
+				} else if(is_valid_index(p.second.output_good)) {
+					good_definition& g = env.economy_m.goods[p.second.output_good];
+					g.base_rgo_value = p.second.value;
+					if(p.second.mine)
+						g.flags |= good_definition::mined;
+				}
+			}
+		}
+	};
 }
+
+MEMBER_FDEF(economy::production_reading, add_item, "item");
+MEMBER_FDEF(economy::employee_set, add_employee, "employee");
+MEMBER_FDEF(economy::production_type_reader, set_type, "type");
+MEMBER_DEF(economy::production_type_reader, value, "value");
+MEMBER_DEF(economy::production_type_reader, mine, "mine");
+MEMBER_DEF(economy::production_type_reader, farm, "farm");
+MEMBER_DEF(economy::production_type_reader, is_coastal, "is_coastal");
+MEMBER_DEF(economy::production_type_reader, workforce, "workforce");
+MEMBER_FDEF(economy::production_type_reader, set_owner, "owner");
+MEMBER_FDEF(economy::production_type_reader, set_employees, "employees");
+MEMBER_FDEF(economy::production_type_reader, set_bonus, "bonus");
+MEMBER_FDEF(economy::production_type_reader, set_template, "template");
+MEMBER_FDEF(economy::production_type_reader, set_output_goods, "output_goods");
+MEMBER_FDEF(economy::production_type_reader, set_efficiency, "efficiency");
+MEMBER_FDEF(economy::production_type_reader, set_input_goods, "input_goods");
+MEMBER_FDEF(economy::owner_reader, set_poptype, "poptype");
+MEMBER_FDEF(economy::owner_reader, set_effect, "effect");
+MEMBER_FDEF(economy::owner_reader, set_effect_multiplier, "effect_multiplier");
+MEMBER_FDEF(economy::employee_data_reader, set_poptype, "poptype");
+MEMBER_FDEF(economy::employee_data_reader, set_effect, "effect");
+MEMBER_FDEF(economy::employee_data_reader, set_effect_multiplier, "effect_multiplier");
+MEMBER_FDEF(economy::employee_data_reader, set_amount, "amount");
+MEMBER_FDEF(economy::bonus_reader, set_value, "value");
+MEMBER_FDEF(economy::bonus_reader, set_trigger, "trigger");
+MEMBER_FDEF(economy::goods_set_reader, add_value, "value");
 
 MEMBER_FDEF(economy::color_builder, add_value, "color");
 MEMBER_FDEF(economy::goods_file, add_group, "group");
@@ -308,6 +620,48 @@ MEMBER_FDEF(economy::goods_cost_container, add_cost_pair, "cost_item");
 MEMBER_FDEF(economy::buildings_file, add_building, "building");
 
 namespace economy {
+	BEGIN_DOMAIN(production_domain)
+		BEGIN_TYPE(production_type_reader)
+			MEMBER_ASSOCIATION("type", "type", token_from_rh)
+			MEMBER_ASSOCIATION("value", "value", value_from_rh<economy::goods_qnty_type>)
+			MEMBER_ASSOCIATION("mine", "mine", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("farm", "farm", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("is_coastal", "is_coastal", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("workforce", "workforce", value_from_rh<uint32_t>)
+			MEMBER_TYPE_ASSOCIATION("owner", "owner", owner_reader)
+			MEMBER_TYPE_ASSOCIATION("employees", "employees", employee_set)
+			MEMBER_TYPE_ASSOCIATION("bonus", "bonus", bonus_reader)
+			MEMBER_ASSOCIATION("template", "template", token_from_rh)
+			MEMBER_ASSOCIATION("output_goods", "output_goods", token_from_rh)
+			MEMBER_TYPE_ASSOCIATION("efficiency", "efficiency", goods_set_reader)
+			MEMBER_TYPE_ASSOCIATION("input_goods", "input_goods", goods_set_reader)
+		END_TYPE
+		BEGIN_TYPE(production_reading)
+			MEMBER_VARIABLE_TYPE_ASSOCIATION("item", accept_all, production_type_reader, read_pt)
+		END_TYPE
+		BEGIN_TYPE(goods_set_reader)
+			MEMBER_VARIABLE_ASSOCIATION("value", accept_all, read_econ_pair)
+		END_TYPE
+		BEGIN_TYPE(bonus_reader)
+			MEMBER_ASSOCIATION("value", "value", value_from_rh<float>)
+			MEMBER_TYPE_EXTERN("trigger", "trigger", triggers::trigger_tag, read_bonus_trigger)
+		END_TYPE
+		BEGIN_TYPE(employee_data_reader)
+			MEMBER_ASSOCIATION("poptype", "poptype", token_from_rh)
+			MEMBER_ASSOCIATION("effect_multiplier", "effect_multiplier", value_from_rh<float>)
+			MEMBER_ASSOCIATION("amount", "amount", value_from_rh<float>)
+			MEMBER_ASSOCIATION("effect", "effect", token_from_rh)
+		END_TYPE
+		BEGIN_TYPE(owner_reader)
+			MEMBER_ASSOCIATION("poptype", "poptype", token_from_rh)
+			MEMBER_ASSOCIATION("effect_multiplier", "effect_multiplier", value_from_rh<float>)
+			MEMBER_ASSOCIATION("effect", "effect", token_from_rh)
+		END_TYPE
+		BEGIN_TYPE(employee_set)
+			MEMBER_VARIABLE_TYPE_ASSOCIATION("employee", accept_all, employee_data_reader, read_employee)
+		END_TYPE
+	END_DOMAIN;
+	
 	BEGIN_DOMAIN(goods_file_domain)
 		BEGIN_TYPE(goods_file)
 		    MEMBER_VARIABLE_TYPE_ASSOCIATION("group", accept_all, goods_group, bind_group)
@@ -320,7 +674,7 @@ namespace economy {
 		    MEMBER_ASSOCIATION("money", "money", value_from_rh<bool>)
 		    MEMBER_ASSOCIATION("available_from_start", "available_from_start", value_from_rh<bool>)
 		    MEMBER_ASSOCIATION("overseas_penalty", "overseas_penalty", value_from_rh<bool>)
-		    MEMBER_ASSOCIATION("cost", "cost", value_from_rh<double>)
+		    MEMBER_ASSOCIATION("cost", "cost", value_from_rh<economy::money_qnty_type>)
 		    MEMBER_TYPE_ASSOCIATION("color", "color", color_builder)
 		END_TYPE
 		BEGIN_TYPE(color_builder)
@@ -353,6 +707,7 @@ namespace economy {
 		    MEMBER_ASSOCIATION("discard", "advanced_factory", discard_from_rh)
 		    MEMBER_ASSOCIATION("discard", "on_completion", discard_from_rh)
 		    MEMBER_ASSOCIATION("discard", "completion_size", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "one_per_state", discard_from_rh)
 			MEMBER_ASSOCIATION("type", "type", token_from_rh)
 			MEMBER_ASSOCIATION("cost", "cost", value_from_rh<uint32_t>)
 			MEMBER_ASSOCIATION("time", "time", value_from_rh<uint32_t>)
@@ -402,6 +757,46 @@ namespace economy {
 				}
 			}
 		}
+
+		manager.goods_count = static_cast<uint32_t>(manager.goods.size());
+		manager.aligned_32_goods_count = ((static_cast<uint32_t>(sizeof(goods_qnty_type)) * manager.goods_count + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(goods_qnty_type));
+
+		manager.factory_efficiency_goods.reset(manager.goods_count);
+		manager.factory_input_goods.reset(manager.goods_count);
+		manager.artisan_input_goods.reset(manager.goods_count);
+	}
+
+	void read_production_types(scenario::scenario_manager& s, boost::container::flat_map<text_data::text_tag, factory_type_tag> map, const directory& source_directory) {
+		const auto common_dir = source_directory.get_directory(u"\\common");
+		const auto file = common_dir.open_file(u"production_types.txt");
+
+		if(file) {
+			const auto sz = file->size();
+
+			std::vector<token_group> parse_results;
+			const auto parse_data = std::unique_ptr<char[]>(new char[sz]);
+
+			file->read_to_buffer(parse_data.get(), sz);
+			parse_pdx_file(parse_results, parse_data.get(), parse_data.get() + sz);
+
+			if(parse_results.size() > 0) {
+				parse_object<production_reading, production_domain>(
+					parse_results.data(),
+					parse_results.data() + parse_results.size(),
+					s, map);
+			}
+		}
+
+		for(int32_t i = int32_t(s.economy_m.factory_types.size()) - 1; i >= 0; --i) {
+			if(!is_valid_index(s.economy_m.factory_types[factory_type_tag(static_cast<factory_type_tag::value_base_t>(i))].output_good))
+				s.economy_m.factory_types.pop_back();
+			else
+				break;
+		}
+
+		s.economy_m.factory_input_goods.resize(s.economy_m.factory_types.size());
+		s.economy_m.factory_efficiency_goods.resize(s.economy_m.factory_types.size());
+		s.economy_m.artisan_input_goods.resize(s.economy_m.artisan_types.size());
 	}
 
 	boost::container::flat_map<text_data::text_tag, factory_type_tag> read_buildings(

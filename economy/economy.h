@@ -7,6 +7,9 @@
 #include "text_data\\text_data.h"
 #include "concurrency_tools\\concurrency_tools.hpp"
 
+namespace scenario {
+	class scenario_manager;
+}
 namespace economy {
 	struct good_definition {
 		static constexpr uint8_t not_available_from_start = 0x01;
@@ -14,10 +17,11 @@ namespace economy {
 		static constexpr uint8_t money                    = 0x04;
 		static constexpr uint8_t mined                    = 0x08;
 
-		double base_price = 1.0;
+		economy::money_qnty_type base_price = economy::money_qnty_type(1);
+		economy::goods_qnty_type base_rgo_value = economy::goods_qnty_type(1);
+
 		graphics::color_rgb color = {0, 0, 0};
 
-		float base_rgo_value = 1.0f;
 		text_data::text_tag name;
 
 		goods_tag id;
@@ -42,14 +46,21 @@ namespace economy {
 		contribution_type contribution = contribution_type::not_specified;
 	};
 
+	struct bonus {
+		float value = 0.0f;
+		triggers::trigger_tag condition;
+	};
+
 	struct factory_type {
-		owner_data owner;
+		
 		employee_data workers[3];
+		owner_data owner;
+		bonus bonuses[4];
+
+		economy::goods_qnty_type output_amount = economy::goods_qnty_type(1);
 
 		uint32_t workforce = 10000;
 		uint32_t building_time = 730;
-
-		float output_amount = 1.0f;
 
 		text_data::text_tag name;
 
@@ -58,6 +69,27 @@ namespace economy {
 		factory_type_tag id;
 		bool coastal = false;
 		bool default_enabled = false;
+	};
+
+	constexpr size_t fsize = sizeof(factory_type);
+
+	struct artisan_type {
+		economy::goods_qnty_type output_amount = economy::goods_qnty_type(1);
+
+		uint32_t workforce = 10000;
+
+		text_data::text_tag name;
+		goods_tag output_good;
+
+		contribution_type artisan_contribution = contribution_type::output;
+		bool coastal = false;
+		artisan_type_tag id;
+	};
+
+	struct rgo_information {
+		owner_data owner;
+		employee_data workers[3];
+		uint32_t workforce = 40000;
 	};
 
 	struct fort_information {
@@ -77,24 +109,6 @@ namespace economy {
 		uint32_t colonial_points[8] = {30,50,70,90,110,130,150,170};
 	};
 
-	struct artisan_type {
-		uint32_t workforce = 10000;
-
-		float output_amount = 1.0f;
-
-		text_data::text_tag name;
-		goods_tag output_good;
-		
-		contribution_type artisan_contribution = contribution_type::output;
-		artisan_type_tag id;
-	};
-
-	struct rgo_information {
-		owner_data owner;
-		employee_data workers[3];
-		uint32_t workforce = 40000;
-	};
-
 	class economic_scenario {
 	public:
 		tagged_vector<text_data::text_tag, goods_type_tag> good_type_names;
@@ -112,15 +126,18 @@ namespace economy {
 
 		goods_tag money;
 
-		tagged_fixed_blocked_2dvector<double, factory_type_tag, goods_tag, aligned_allocator_32<double>> factory_input_goods;
-		tagged_fixed_blocked_2dvector<double, artisan_type_tag, goods_tag, aligned_allocator_32<double>> artisan_input_goods;
-		//factory bonuses record
+		tagged_fixed_blocked_2dvector<economy::goods_qnty_type, factory_type_tag, goods_tag, aligned_allocator_32<economy::goods_qnty_type>> factory_input_goods;
+		tagged_fixed_blocked_2dvector<economy::goods_qnty_type, factory_type_tag, goods_tag, aligned_allocator_32<economy::goods_qnty_type>> factory_efficiency_goods;
+		tagged_fixed_blocked_2dvector<economy::goods_qnty_type, artisan_type_tag, goods_tag, aligned_allocator_32<economy::goods_qnty_type>> artisan_input_goods;
 		
-		tagged_fixed_blocked_2dvector<double, factory_type_tag, goods_tag, aligned_allocator_32<double>> building_costs;
+		tagged_fixed_blocked_2dvector<economy::goods_qnty_type, factory_type_tag, goods_tag, aligned_allocator_32<economy::goods_qnty_type>> building_costs;
 
 		boost::container::flat_map<text_data::text_tag, goods_tag> named_goods_index;
 		boost::container::flat_map<text_data::text_tag, goods_tag> goods_by_rgo_name_index;
 		boost::container::flat_map<text_data::text_tag, factory_type_tag> named_factory_types_index;
+
+		uint32_t goods_count = 0;
+		uint32_t aligned_32_goods_count = 0;
 	};
 
 	void read_goods(
@@ -132,4 +149,8 @@ namespace economy {
 		const directory& source_directory,
 		text_data::text_sequences& text_function
 	); //invoke after reading goods, returns map of production type name -> factory building type
+	void read_production_types(
+		scenario::scenario_manager& s,
+		boost::container::flat_map<text_data::text_tag, factory_type_tag> map,
+		const directory& source_directory);
 }

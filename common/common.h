@@ -212,6 +212,7 @@ public:
 	size_t size() const { return storage.size(); }
 	void resize(size_t size) { storage.resize(size); }
 	void reserve(size_t size) { storage.reserve(size); }
+	void pop_back() { storage.pop_back(); }
 };
 
 template<typename value_type, typename variable_tag_type, typename fixed_tag_type, typename allocator = std::allocator<value_type>>
