@@ -28,6 +28,67 @@ public:
 	file_representation crime = file_representation(u"crime.txt", common,
 		"crime_a = { active = yes icon = 4 boost_strongest_party = 5.0}\r\n"
 		"crime_b = { number_of_voters = 1.0 icon = 6 trigger = { life_rating > 10} }\r\n");
+	file_representation tm = file_representation(u"triggered_modifiers.txt", common,
+		"dutch_east_india = {\r\n"
+		"	trigger = {\r\n"
+		"		exists = yes\r\n"
+		"		capital_scope = { continent = europe }\r\n"
+		"		1413 = {\r\n"
+		"			is_colonial = yes\r\n"
+		"			owned_by = THIS\r\n"
+		"		}\r\n"
+		"		1418 = {\r\n"
+		"			is_colonial = yes\r\n"
+		"			owned_by = THIS\r\n"
+		"		}\r\n"
+		"	}\r\n"
+		"	research_points = 1\r\n"
+		"	icon = 19\r\n"
+		"}\r\n"
+		"vassal_nation = {\r\n"
+		"	trigger = {\r\n"
+		"		exists = yes\r\n"
+		"		is_vassal = yes\r\n"
+		"	}\r\n"
+		"	icon = 10\r\n"
+		"	prestige = -1\r\n"
+		"}\r\n"
+		);
+	file_representation sm = file_representation(u"static_modifiers.txt", common,
+		"infrastructure = {\r\n"
+		"	local_factory_throughput = 1	\r\n"
+		"	local_rgo_output = 1	\r\n"
+		"	supply_limit = 4\r\n"
+		"}\r\n"
+		"base_values = {\r\n"
+		"	supply_limit = 5\r\n"
+		"}\r\n"
+		"war = {\r\n"
+		"	max_war_exhaustion = 100\r\n"
+		"	supply_consumption = -0.5\r\n"
+		"	badboy = -0.5\r\n"
+		"}\r\n"
+		);
+	file_representation em = file_representation(u"event_modifiers.txt", common,
+		"warship_commissioned = {\r\n"
+		"	icon = 9\r\n"
+		"}\r\n"
+		"repatriation = {\r\n"
+		"	local_factory_input = 3.0\r\n"
+		"	local_factory_output = 3.0\r\n"
+		"	icon = 19\r\n"
+		"}\r\n"
+		"international_zone_modifier = {\r\n"
+		"	administrative_efficiency_modifier = 0.5\r\n"
+		"	tax_efficiency = 0.5\r\n"
+		"	research_points_modifier = -1.0\r\n"
+		"	education_efficiency_modifier = -0.5\r\n"
+		"	mobilisation_size = -4\r\n"
+		"	cb_generation_speed_modifier = 2\r\n"
+		"	diplomatic_points_modifier = -0.5\r\n"
+		"	icon = 7\r\n"
+		"}\r\n"
+		);
 
 	preparse_test_files() {
 		set_default_root(f_root);
@@ -110,6 +171,110 @@ TEST(modifiers_tests, nv_parse) {
 	EXPECT_EQ(national_modifier_tag(1), m.named_national_modifiers_index[m.national_modifiers[national_modifier_tag(1)].name]);
 	EXPECT_EQ(national_modifier_tag(2), m.named_national_modifiers_index[m.national_modifiers[national_modifier_tag(2)].name]);
 	EXPECT_EQ(0.75f, m.national_modifier_definitions.get(national_modifier_tag(1), modifiers::national_offsets::mobilisation_economy_impact));
+}
+
+TEST(modifiers_tests, event_modifiers) {
+	preparse_test_files real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:"));
+
+	modifiers_manager m;
+	text_data::text_sequences tex;
+	parsing_state state(tex, m);
+
+	read_event_modifiers(state, f.get_root());
+
+	EXPECT_EQ(2ui64, m.national_modifiers.size());
+	EXPECT_EQ(2ui64, m.named_national_modifiers_index.size());
+	EXPECT_EQ(2ui64, m.provincial_modifiers.size());
+	EXPECT_EQ(2ui64, m.named_provincial_modifiers_index.size());
+
+	EXPECT_EQ(national_modifier_tag(0), m.national_modifiers[national_modifier_tag(0)].id);
+	EXPECT_EQ(7ui32, m.national_modifiers[national_modifier_tag(1)].icon);
+	EXPECT_EQ(national_modifier_tag(0), m.named_national_modifiers_index[m.national_modifiers[national_modifier_tag(0)].name]);
+	EXPECT_EQ(provincial_modifier_tag(0), m.provincial_modifiers[provincial_modifier_tag(0)].id);
+	EXPECT_EQ(19ui32, m.provincial_modifiers[provincial_modifier_tag(1)].icon);
+	EXPECT_EQ(provincial_modifier_tag(0), m.named_provincial_modifiers_index[m.provincial_modifiers[provincial_modifier_tag(0)].name]);
+
+	EXPECT_EQ(0.5f, m.national_modifier_definitions.get(national_modifier_tag(1), modifiers::national_offsets::administrative_efficiency_modifier));
+	EXPECT_EQ(0.5f, m.national_modifier_definitions.get(national_modifier_tag(1), modifiers::national_offsets::tax_efficiency));
+	EXPECT_EQ(-1.0f, m.national_modifier_definitions.get(national_modifier_tag(1), modifiers::national_offsets::research_points_modifier));
+	EXPECT_EQ(-0.5f, m.national_modifier_definitions.get(national_modifier_tag(1), modifiers::national_offsets::education_efficiency_modifier));
+	EXPECT_EQ(-4.0f, m.national_modifier_definitions.get(national_modifier_tag(1), modifiers::national_offsets::mobilisation_size));
+	EXPECT_EQ(2.0f, m.national_modifier_definitions.get(national_modifier_tag(1), modifiers::national_offsets::cb_generation_speed_modifier));
+	EXPECT_EQ(-0.5f, m.national_modifier_definitions.get(national_modifier_tag(1), modifiers::national_offsets::diplomatic_points_modifier));
+
+	EXPECT_EQ(3.0f, m.provincial_modifier_definitions.get(provincial_modifier_tag(1), modifiers::provincial_offsets::local_factory_input));
+	EXPECT_EQ(3.0f, m.provincial_modifier_definitions.get(provincial_modifier_tag(1), modifiers::provincial_offsets::local_factory_output));
+}
+
+TEST(modifiers_tests, static_modifiers) {
+	preparse_test_files real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:"));
+
+	modifiers_manager m;
+	text_data::text_sequences tex;
+	parsing_state state(tex, m);
+
+	read_static_modifiers(state, f.get_root());
+
+	EXPECT_EQ(1ui64, m.national_modifiers.size());
+	EXPECT_EQ(1ui64, m.named_national_modifiers_index.size());
+	EXPECT_EQ(1ui64, m.provincial_modifiers.size());
+	EXPECT_EQ(1ui64, m.named_provincial_modifiers_index.size());
+
+	EXPECT_EQ(national_modifier_tag(0), m.static_modifiers.war);
+	EXPECT_EQ(provincial_modifier_tag(0), m.static_modifiers.infrastructure);
+
+	EXPECT_EQ(national_modifier_tag(0), m.national_modifiers[national_modifier_tag(0)].id);
+	EXPECT_EQ(national_modifier_tag(0), m.named_national_modifiers_index[m.national_modifiers[national_modifier_tag(0)].name]);
+	EXPECT_EQ(provincial_modifier_tag(0), m.provincial_modifiers[provincial_modifier_tag(0)].id);
+	EXPECT_EQ(provincial_modifier_tag(0), m.named_provincial_modifiers_index[m.provincial_modifiers[provincial_modifier_tag(0)].name]);
+
+	EXPECT_EQ(-0.5f, m.national_modifier_definitions.get(national_modifier_tag(0), modifiers::national_offsets::badboy));
+	EXPECT_EQ(-0.5f, m.national_modifier_definitions.get(national_modifier_tag(0), modifiers::national_offsets::supply_consumption));
+	EXPECT_EQ(100.0f, m.national_modifier_definitions.get(national_modifier_tag(0), modifiers::national_offsets::max_war_exhaustion));
+
+	EXPECT_EQ(1.0f, m.provincial_modifier_definitions.get(provincial_modifier_tag(0), modifiers::provincial_offsets::local_factory_throughput));
+	EXPECT_EQ(1.0f, m.provincial_modifier_definitions.get(provincial_modifier_tag(0), modifiers::provincial_offsets::local_rgo_output));
+	EXPECT_EQ(4.0f, m.provincial_modifier_definitions.get(provincial_modifier_tag(0), modifiers::provincial_offsets::supply_limit));
+}
+
+TEST(modifiers_tests, triggered_modifiers) {
+	preparse_test_files real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:"));
+
+	scenario::scenario_manager s;
+	parsing_state state(s.gui_m.text_data_sequences, s.modifiers_m);
+
+	pre_parse_triggered_modifiers(state, f.get_root());
+
+	EXPECT_EQ(2ui64, s.modifiers_m.national_modifiers.size());
+	EXPECT_EQ(2ui64, s.modifiers_m.named_national_modifiers_index.size());
+
+	EXPECT_EQ(national_modifier_tag(0), s.modifiers_m.national_modifiers[national_modifier_tag(0)].id);
+	EXPECT_EQ(national_modifier_tag(1), s.modifiers_m.national_modifiers[national_modifier_tag(1)].id);
+	EXPECT_EQ(19ui32, s.modifiers_m.national_modifiers[national_modifier_tag(0)].icon);
+	EXPECT_EQ(10ui32, s.modifiers_m.national_modifiers[national_modifier_tag(1)].icon);
+	EXPECT_EQ(national_modifier_tag(0), s.modifiers_m.named_national_modifiers_index[s.modifiers_m.national_modifiers[national_modifier_tag(0)].name]);
+	EXPECT_EQ(national_modifier_tag(1), s.modifiers_m.named_national_modifiers_index[s.modifiers_m.national_modifiers[national_modifier_tag(1)].name]);
+
+	EXPECT_EQ(-1.0f, s.modifiers_m.national_modifier_definitions.get(national_modifier_tag(1), modifiers::national_offsets::prestige));
+	EXPECT_EQ(1.0f, s.modifiers_m.national_modifier_definitions.get(national_modifier_tag(0), modifiers::national_offsets::research_points));
+
+	read_triggered_modifiers(state, s);
+
+	EXPECT_EQ(2ui64, s.modifiers_m.triggered_modifiers.size());
+	EXPECT_EQ(national_modifier_tag(0), s.modifiers_m.triggered_modifiers[0].first);
+	EXPECT_NE(triggers::trigger_tag(), s.modifiers_m.triggered_modifiers[0].second);
+	EXPECT_EQ(national_modifier_tag(1), s.modifiers_m.triggered_modifiers[1].first);
+	EXPECT_NE(triggers::trigger_tag(), s.modifiers_m.triggered_modifiers[1].second);
+	EXPECT_NE(s.modifiers_m.triggered_modifiers[0].second, s.modifiers_m.triggered_modifiers[1].second);
 }
 
 TEST(modifiers_tests, pack_unpack_offsets) {

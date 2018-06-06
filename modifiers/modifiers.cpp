@@ -14,7 +14,9 @@ namespace modifiers {
 
 		parsed_data crimes_file;
 		parsed_data nv_file;
+		parsed_data triggered_modifiers_file;
 
+		std::vector<std::tuple<national_modifier_tag, const token_group*, const token_group*>> pending_modifier_triggers;
 		std::vector<std::tuple<provincial_modifier_tag, const token_group*, const token_group*>> pending_crimes;
 
 		parsing_environment(text_data::text_sequences& tl, modifiers_manager& m) :
@@ -238,9 +240,6 @@ namespace modifiers {
 	}
 
 	provincial_modifier_tag add_provincial_modifier(text_data::text_tag name, modifier_reading_base& mod, modifiers_manager& manager) {
-		if (mod.total_attributes == 0)
-			return provincial_modifier_tag();
-		
 		const auto pmtag = manager.fetch_unique_provincial_modifier(name);
 		set_provincial_modifier(pmtag, mod, manager);
 		manager.provincial_modifiers[pmtag].name = name;
@@ -259,9 +258,6 @@ namespace modifiers {
 	}
 
 	national_modifier_tag add_national_modifier(text_data::text_tag name, const modifier_reading_base& mod, modifiers_manager& manager) {
-		if (mod.total_attributes == 0)
-			return national_modifier_tag();
-
 		const auto nmtag = manager.fetch_unique_national_modifier(name);
 		set_national_modifier(nmtag, mod, manager);
 		manager.national_modifiers[nmtag].name = name;
@@ -269,9 +265,11 @@ namespace modifiers {
 		return nmtag;
 	}
 	std::pair<provincial_modifier_tag, national_modifier_tag> add_indeterminate_modifier(text_data::text_tag name, modifier_reading_base& mod, modifiers_manager& manager) {
-		if (mod.total_attributes == 0)
-			return std::pair<provincial_modifier_tag, national_modifier_tag>();
-		if (mod.count_unique_provincial != 0) {
+		if(mod.total_attributes == 0) {
+			const auto nt = add_national_modifier(name, mod, manager);
+			const auto pt = add_provincial_modifier(name, mod, manager);
+			return std::pair<provincial_modifier_tag, national_modifier_tag>(pt, nt);
+		} else if(mod.count_unique_provincial != 0) {
 			// some attributes apply only to province
 			// conclude intent is provincial modifier with additional national properties
 			return std::pair<provincial_modifier_tag, national_modifier_tag>(add_provincial_modifier(name, mod, manager), national_modifier_tag());
@@ -447,8 +445,105 @@ namespace modifiers {
 			env.c.default_active = v;
 		}
 	};
+
+	inline std::pair<const token_group*, const token_group*> preparse_triggered_modifier_trigger(const token_group* start, const token_group* end, parsing_environment&) {
+		return std::make_pair(start, end);
+	}
+
+	class triggered_modifier : public modifier_reading_base {
+	public:
+		parsing_environment & env;
+		std::pair<const token_group*, const token_group*> trigger = std::pair<const token_group*, const token_group*>(nullptr, nullptr);
+
+		triggered_modifier(parsing_environment& e) : env(e) {}
+		void set_trigger(const std::pair<const token_group*, const token_group*>& t) {
+			trigger = t;
+		}
+	};
+
+	inline std::pair<token_and_type, triggered_modifier> read_triggered_modifier(const token_and_type& t, association_type, triggered_modifier&& tm) {
+		return std::pair<token_and_type, triggered_modifier>(t, std::move(tm));
+	}
+
+	class triggered_modifier_file {
+	public:
+		parsing_environment & env;
+
+		triggered_modifier_file(parsing_environment& e) : env(e) {}
+		void add_triggered_modifier(const std::pair<token_and_type, triggered_modifier>& p) {
+			const auto tag = add_national_modifier(text_data::get_thread_safe_text_handle(env.text_lookup, p.first.start, p.first.end), p.second, env.manager);
+			env.pending_modifier_triggers.emplace_back(tag, p.second.trigger.first, p.second.trigger.second);
+		}
+	};
+
+#define READ_PROV_MOD(name) inline int read_ ## name ## _mod(const token_group* s, const token_group* e, parsing_environment& env) { \
+	static const char str[] = # name ; \
+	const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, str, str + sizeof(str) - 1); \
+	const auto tag = parse_provincial_modifier(name, env.manager, s, e); \
+	env.manager.static_modifiers. name = tag; \
+	return 0; \
+}
+#define READ_NAT_MOD(name) inline int read_ ## name ## _mod(const token_group* s, const token_group* e, parsing_environment& env) { \
+	static const char str[] = # name ; \
+	const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, str, str + sizeof(str) - 1); \
+	const auto tag = parse_national_modifier(name, env.manager, s, e); \
+	env.manager.static_modifiers. name = tag; \
+	return 0; \
 }
 
+	inline int discard_mod(const token_group*, const token_group*, parsing_environment&) {
+		return 0;
+	}
+	inline int read_event_mod(const token_group* s, const token_group* e, const token_and_type& t, parsing_environment& env) {
+		const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
+		parse_indeterminate_modifier(name, env.manager, s, e);
+		return 0;
+	}
+
+	READ_PROV_MOD(overseas)
+	READ_PROV_MOD(coastal)
+	READ_PROV_MOD(non_coastal)
+	READ_PROV_MOD(coastal_sea)
+	READ_PROV_MOD(sea_zone)
+	READ_PROV_MOD(land_province)
+	READ_PROV_MOD(blockaded)
+	READ_PROV_MOD(no_adjacent_controlled)
+	READ_PROV_MOD(core)
+	READ_PROV_MOD(has_siege)
+	READ_PROV_MOD(occupied)
+	READ_PROV_MOD(nationalism)
+	READ_PROV_MOD(infrastructure)
+	READ_NAT_MOD(war)
+	READ_NAT_MOD(peace)
+	READ_NAT_MOD(disarming)
+	READ_NAT_MOD(war_exhaustion)
+	READ_NAT_MOD(badboy)
+	READ_NAT_MOD(debt_default_to)
+	READ_NAT_MOD(bad_debter)
+	READ_NAT_MOD(great_power)
+	READ_NAT_MOD(second_power)
+	READ_NAT_MOD(civ_nation)
+	READ_NAT_MOD(unciv_nation)
+	READ_NAT_MOD(average_literacy)
+	READ_NAT_MOD(plurality)
+	READ_NAT_MOD(generalised_debt_default)
+	READ_NAT_MOD(total_occupation)
+	READ_NAT_MOD(total_blockaded)
+	READ_NAT_MOD(in_bankrupcy)
+
+	struct static_modifiers_file {
+		parsing_environment& env;
+		static_modifiers_file(parsing_environment& e) : env(e) {}
+
+		void discard(int) {}
+	};
+}
+
+MEMBER_FDEF(modifiers::static_modifiers_file, discard, "modifier");
+MEMBER_FDEF(modifiers::triggered_modifier_file, add_triggered_modifier, "modifier");
+MEMBER_FDEF(modifiers::triggered_modifier, set_trigger, "trigger");
+MEMBER_DEF(modifiers::triggered_modifier, icon, "icon");
+MEMBER_FDEF(modifiers::triggered_modifier, add_attribute, "attribute");
 MEMBER_FDEF(modifiers::empty_type, add_unknown_key, "unknown_key");
 MEMBER_FDEF(modifiers::crimes_preparse_file, add_crime, "crime");
 MEMBER_FDEF(modifiers::nv_file, add_nv, "national_value");
@@ -471,10 +566,63 @@ MEMBER_FDEF(modifiers::factor_modifier_group, add_modifier, "modifier");
 
 
 namespace modifiers {
+	BEGIN_DOMAIN(event_modifiers_domain)
+		BEGIN_TYPE(static_modifiers_file)
+			MEMBER_VARIABLE_TYPE_EXTERN("modifier", accept_all, int, read_event_mod)
+		END_TYPE
+	END_DOMAIN;
+
+	BEGIN_DOMAIN(static_modifier_domain)
+		BEGIN_TYPE(static_modifiers_file)
+			MEMBER_TYPE_EXTERN("modifier", "overseas", int, read_overseas_mod)
+			MEMBER_TYPE_EXTERN("modifier", "coastal", int, read_coastal_mod)
+			MEMBER_TYPE_EXTERN("modifier", "non_coastal", int, read_non_coastal_mod)
+			MEMBER_TYPE_EXTERN("modifier", "coastal_sea", int, read_coastal_sea_mod)
+			MEMBER_TYPE_EXTERN("modifier", "sea_zone", int, read_sea_zone_mod)
+			MEMBER_TYPE_EXTERN("modifier", "land_province", int, read_land_province_mod)
+			MEMBER_TYPE_EXTERN("modifier", "blockaded", int, read_blockaded_mod)
+			MEMBER_TYPE_EXTERN("modifier", "no_adjacent_controlled", int, read_no_adjacent_controlled_mod)
+			MEMBER_TYPE_EXTERN("modifier", "core", int, read_core_mod)
+			MEMBER_TYPE_EXTERN("modifier", "has_siege", int, read_has_siege_mod)
+			MEMBER_TYPE_EXTERN("modifier", "occupied", int, read_occupied_mod)
+			MEMBER_TYPE_EXTERN("modifier", "nationalism", int, read_nationalism_mod)
+			MEMBER_TYPE_EXTERN("modifier", "infrastructure", int, read_infrastructure_mod)
+			MEMBER_TYPE_EXTERN("modifier", "war", int, read_war_mod)
+			MEMBER_TYPE_EXTERN("modifier", "peace", int, read_peace_mod)
+			MEMBER_TYPE_EXTERN("modifier", "disarming", int, read_disarming_mod)
+			MEMBER_TYPE_EXTERN("modifier", "war_exhaustion", int, read_war_exhaustion_mod)
+			MEMBER_TYPE_EXTERN("modifier", "badboy", int, read_badboy_mod)
+			MEMBER_TYPE_EXTERN("modifier", "debt_default_to", int, read_debt_default_to_mod)
+			MEMBER_TYPE_EXTERN("modifier", "bad_debter", int, read_bad_debter_mod)
+			MEMBER_TYPE_EXTERN("modifier", "great_power", int, read_great_power_mod)
+			MEMBER_TYPE_EXTERN("modifier", "second_power", int, read_second_power_mod)
+			MEMBER_TYPE_EXTERN("modifier", "civ_nation", int, read_civ_nation_mod)
+			MEMBER_TYPE_EXTERN("modifier", "unciv_nation", int, read_unciv_nation_mod)
+			MEMBER_TYPE_EXTERN("modifier", "average_literacy", int, read_average_literacy_mod)
+			MEMBER_TYPE_EXTERN("modifier", "plurality", int, read_plurality_mod)
+			MEMBER_TYPE_EXTERN("modifier", "generalised_debt_default", int, read_generalised_debt_default_mod)
+			MEMBER_TYPE_EXTERN("modifier", "total_occupation", int, read_total_occupation_mod)
+			MEMBER_TYPE_EXTERN("modifier", "total_blockaded", int, read_total_blockaded_mod)
+			MEMBER_TYPE_EXTERN("modifier", "in_bankrupcy", int, read_in_bankrupcy_mod)
+			MEMBER_TYPE_EXTERN("modifier", "base_values", int, discard_mod)
+		END_TYPE
+	END_DOMAIN;
+
 	BEGIN_DOMAIN(single_modifier_domain)
 		BEGIN_TYPE(modifier_reading_base)
 			MEMBER_ASSOCIATION("icon", "icon", value_from_rh<uint32_t>)
 			MEMBER_VARIABLE_ASSOCIATION("attribute", accept_all, full_to_tf_pair)
+		END_TYPE
+	END_DOMAIN;
+
+	BEGIN_DOMAIN(pre_parse_triggered_modifier_domain)
+		BEGIN_TYPE(triggered_modifier_file)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("modifier", accept_all, triggered_modifier, read_triggered_modifier)
+		END_TYPE
+		BEGIN_TYPE(triggered_modifier)
+		MEMBER_ASSOCIATION("icon", "icon", value_from_rh<uint32_t>)
+		MEMBER_TYPE_EXTERN("trigger", "trigger", triggers::trigger_tag, preparse_triggered_modifier_trigger)
+		MEMBER_VARIABLE_ASSOCIATION("attribute", accept_all, full_to_tf_pair)
 		END_TYPE
 	END_DOMAIN;
 
@@ -514,6 +662,53 @@ namespace modifiers {
 		END_TYPE
 	END_DOMAIN;
 
+	void read_static_modifiers(
+		parsing_state& state,
+		const directory& source_directory) {
+
+		const auto common_dir = source_directory.get_directory(u"\\common");
+		parsed_data main_results;
+		const auto fi = common_dir.open_file(u"static_modifiers.txt");
+
+		if(fi) {
+			const auto sz = fi->size();
+			main_results.parse_data = std::unique_ptr<char[]>(new char[sz]);
+
+			fi->read_to_buffer(main_results.parse_data.get(), sz);
+			parse_pdx_file(main_results.parse_results, main_results.parse_data.get(), main_results.parse_data.get() + sz);
+
+			if(main_results.parse_results.size() > 0) {
+				parse_object<static_modifiers_file, static_modifier_domain>(
+					main_results.parse_results.data(),
+					main_results.parse_results.data() + main_results.parse_results.size(),
+					*state.impl);
+			}
+		}
+	}
+
+	void read_event_modifiers(
+		parsing_state& state,
+		const directory& source_directory) {
+
+		const auto common_dir = source_directory.get_directory(u"\\common");
+		parsed_data main_results;
+		const auto fi = common_dir.open_file(u"event_modifiers.txt");
+
+		if(fi) {
+			const auto sz = fi->size();
+			main_results.parse_data = std::unique_ptr<char[]>(new char[sz]);
+
+			fi->read_to_buffer(main_results.parse_data.get(), sz);
+			parse_pdx_file(main_results.parse_results, main_results.parse_data.get(), main_results.parse_data.get() + sz);
+
+			if(main_results.parse_results.size() > 0) {
+				parse_object<static_modifiers_file, event_modifiers_domain>(
+					main_results.parse_results.data(),
+					main_results.parse_results.data() + main_results.parse_results.size(),
+					*state.impl);
+			}
+		}
+	}
 
 	provincial_modifier_tag parse_provincial_modifier(
 		text_data::text_tag name,
@@ -545,6 +740,27 @@ namespace modifiers {
 		return add_indeterminate_modifier(name, parsed_modifier, manager);
 	}
 
+	void pre_parse_triggered_modifiers(parsing_state& state, const directory& source_directory) {
+		const auto common_dir = source_directory.get_directory(u"\\common");
+		auto& main_results = state.impl->triggered_modifiers_file;
+		const auto fi = common_dir.open_file(u"triggered_modifiers.txt");
+
+		if(fi) {
+			const auto sz = fi->size();
+			main_results.parse_data = std::unique_ptr<char[]>(new char[sz]);
+
+			fi->read_to_buffer(main_results.parse_data.get(), sz);
+			parse_pdx_file(main_results.parse_results, main_results.parse_data.get(), main_results.parse_data.get() + sz);
+
+			if(main_results.parse_results.size() > 0) {
+				parse_object<triggered_modifier_file, pre_parse_triggered_modifier_domain>(
+					main_results.parse_results.data(),
+					main_results.parse_results.data() + main_results.parse_results.size(),
+					*state.impl);
+			}
+		}
+	}
+
 	void pre_parse_crimes(
 		parsing_state& state,
 		const directory& source_directory) {
@@ -562,8 +778,8 @@ namespace modifiers {
 
 			if (main_results.parse_results.size() > 0) {
 				parse_object<crimes_preparse_file, crimes_pre_parsing_domain>(
-					&main_results.parse_results[0],
-					&main_results.parse_results[0] + main_results.parse_results.size(),
+					main_results.parse_results.data(),
+					main_results.parse_results.data() + main_results.parse_results.size(),
 					*state.impl);
 			}
 		}
@@ -595,8 +811,8 @@ namespace modifiers {
 
 			if (main_results.parse_results.size() > 0) {
 				parse_object<nv_file, national_value_parsing_domain>(
-					&main_results.parse_results[0],
-					&main_results.parse_results[0] + main_results.parse_results.size(),
+					main_results.parse_results.data(),
+					main_results.parse_results.data() + main_results.parse_results.size(),
 					*state.impl);
 			}
 		}
@@ -632,6 +848,23 @@ namespace modifiers {
 				return factor_tag(static_cast<value_base_of<factor_tag>>(fr - s.modifiers_m.factor_modifiers.begin()));
 			} else {
 				return s.modifiers_m.factor_modifiers.emplace_back(parse_state.under_construction);
+			}
+		}
+	}
+
+	void read_triggered_modifiers(parsing_state& state, scenario::scenario_manager& s) {
+		for(const auto& t : state.impl->pending_modifier_triggers) {
+			if(std::get<1>(t) == std::get<2>(t)) {
+				s.modifiers_m.triggered_modifiers.emplace_back(std::get<0>(t), triggers::trigger_tag());
+			} else {
+				const auto td = triggers::parse_trigger(s,
+					triggers::trigger_scope_state{
+						triggers::trigger_slot_contents::nation,
+						triggers::trigger_slot_contents::nation,
+						triggers::trigger_slot_contents::empty,
+						false},
+					std::get<1>(t), std::get<2>(t));
+				s.modifiers_m.triggered_modifiers.emplace_back(std::get<0>(t), triggers::commit_trigger(s.trigger_m, td));
 			}
 		}
 	}

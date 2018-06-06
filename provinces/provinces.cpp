@@ -210,35 +210,20 @@ namespace provinces {
 	}
 	struct climate_province_values {
 		std::vector<uint16_t> values;
-		void add_province(std::optional<uint16_t> v) {
-			if (v)
-				values.push_back(*v);
+		void add_province(uint16_t v) {
+			values.push_back(v);
 		}
 	};
+
+	int add_individual_climate(const token_group* s, const token_group* e, const token_and_type& t, parsing_environment& env);
+
 	struct climate_pre_parse_file {
 		parsing_environment& env;
 		climate_pre_parse_file(parsing_environment& e) : env(e) {}
 
-		void add_climate(const std::pair<token_and_type, std::vector<uint16_t>>& p) {
-			const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, p.first.start, p.first.end);
-			const auto tag = get_or_make_prov_modifier(name, env.mod_manager);
-			for (auto i : p.second) {
-				env.manager.province_container[province_tag(i)].climate = tag;
-			}
-		}
+		void add_climate(int) { }
 	};
-	inline std::optional<uint16_t> get_free_values(const token_and_type& v, const association_type a, const token_and_type&) {
-		if (a == association_type::none) {
-			return std::optional<uint16_t>(token_to<uint16_t>(v));
-		} else {
-			return std::optional<uint16_t>();
-		}
-	}
-	inline std::pair<token_and_type, std::vector<uint16_t>>
-		bind_climate(const token_and_type& t, association_type, climate_province_values&& f) {
-
-		return std::pair<token_and_type, std::vector<uint16_t>>(t, std::move(f.values));
-	}
+	
 	inline std::pair<token_and_type, float> full_to_tf_pair(const token_and_type& t, association_type, const token_and_type& r) {
 		return std::pair<token_and_type, float>(t, token_to<float>(r));
 	}
@@ -345,12 +330,25 @@ namespace provinces {
 
 	BEGIN_DOMAIN(preparse_climate_domain)
 		BEGIN_TYPE(climate_pre_parse_file)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("climate", accept_all, climate_province_values, bind_climate)
+		MEMBER_VARIABLE_TYPE_EXTERN("climate", accept_all, int, add_individual_climate)
 		END_TYPE
 		BEGIN_TYPE(climate_province_values)
-		MEMBER_VARIABLE_ASSOCIATION("value", accept_all, get_free_values)
+		MEMBER_VARIABLE_ASSOCIATION("value", accept_all, value_from_lh<uint16_t>)
 		END_TYPE
 	END_DOMAIN;
+
+	int add_individual_climate(const token_group* s, const token_group* e, const token_and_type& t, parsing_environment& env) {
+		const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
+		const auto fr = env.mod_manager.named_provincial_modifiers_index.find(name);
+		if(fr == env.mod_manager.named_provincial_modifiers_index.end()) {
+			modifiers::parse_provincial_modifier(name, env.mod_manager, s, e);
+		} else {
+			const auto vals = parse_object<climate_province_values, preparse_climate_domain>(s, e, env);
+			for(auto v : vals.values)
+				env.manager.province_container[province_tag(v)].climate = fr->second;
+		}
+		return 0;
+	}
 
 	void read_default_map_file(
 		parsing_state& state,
@@ -458,7 +456,7 @@ namespace provinces {
 		}
 	}
 
-	void pre_parse_climates(
+	void read_climates(
 		parsing_state& state,
 		const directory& source_directory) {
 

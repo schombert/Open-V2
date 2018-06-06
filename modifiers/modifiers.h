@@ -236,6 +236,7 @@ namespace modifiers {
 		tagged_vector<factor_modifier, factor_tag> factor_modifiers;
 		std::vector<factor_segment> factor_data;
 
+		std::vector<std::pair<national_modifier_tag, triggers::trigger_tag>> triggered_modifiers;
 		boost::container::flat_map<provincial_modifier_tag, crime> crimes;
 
 		boost::container::flat_map<text_data::text_tag, national_modifier_tag> named_national_modifiers_index;
@@ -246,6 +247,40 @@ namespace modifiers {
 
 		national_modifier_tag fetch_unique_national_modifier(text_data::text_tag n); // adds index only if valid text tag
 		provincial_modifier_tag fetch_unique_provincial_modifier(text_data::text_tag n); // adds index only if valid text tag
+
+		struct {
+			provincial_modifier_tag overseas;
+			provincial_modifier_tag coastal;
+			provincial_modifier_tag non_coastal;
+			provincial_modifier_tag coastal_sea;
+			provincial_modifier_tag sea_zone;
+			provincial_modifier_tag land_province;
+			provincial_modifier_tag blockaded;
+			provincial_modifier_tag no_adjacent_controlled;
+			provincial_modifier_tag core;
+			provincial_modifier_tag has_siege;
+			provincial_modifier_tag occupied;
+			provincial_modifier_tag nationalism;
+			provincial_modifier_tag infrastructure;
+
+			national_modifier_tag war;
+			national_modifier_tag peace;
+			national_modifier_tag disarming;
+			national_modifier_tag war_exhaustion;
+			national_modifier_tag badboy;
+			national_modifier_tag debt_default_to;
+			national_modifier_tag bad_debter;
+			national_modifier_tag great_power;
+			national_modifier_tag second_power;
+			national_modifier_tag civ_nation;
+			national_modifier_tag unciv_nation;
+			national_modifier_tag average_literacy;
+			national_modifier_tag plurality;
+			national_modifier_tag generalised_debt_default;
+			national_modifier_tag total_occupation;
+			national_modifier_tag total_blockaded;
+			national_modifier_tag in_bankrupcy;
+		} static_modifiers;
 
 		modifiers_manager() {
 			national_modifier_definitions.reset(national_offsets::count);
@@ -297,10 +332,19 @@ namespace modifiers {
 	void pre_parse_crimes(
 		parsing_state& state,
 		const directory& source_directory);
+	void pre_parse_triggered_modifiers(parsing_state& state, const directory& source_directory);
 	void parse_national_values(
 		parsing_state& state,
 		const directory& source_directory);
+	void read_static_modifiers(
+		parsing_state& state,
+		const directory& source_directory);
+	void read_event_modifiers(
+		parsing_state& state,
+		const directory& source_directory);
+
 	void read_crimes(parsing_state& state, scenario::scenario_manager& s);
+	void read_triggered_modifiers(parsing_state& state, scenario::scenario_manager& s);
 
 	factor_tag parse_modifier_factors(
 		scenario::scenario_manager& s,

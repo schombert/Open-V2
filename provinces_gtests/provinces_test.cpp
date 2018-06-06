@@ -17,10 +17,10 @@ public:
 		"terrain_sheet_heights = { 500 }");
 	file_representation b = file_representation(u"climate.txt", map_dir,
 		"mild_climate = {\r\n"
-		"value = 0\r\n"
+		"farm_rgo_size = 0\r\n"
 		"}\r\n"
 		"temperate_climate  = {\r\n"
-		"value = 1\r\n"
+		"max_attrition = 1\r\n"
 		"}\r\n"
 		"mild_climate = { 1 2 3 }\r\n"
 		"temperate_climate = { 0 4 }\r\n");
@@ -86,7 +86,7 @@ TEST(provinces_test, default_map_read) {
 	EXPECT_EQ(province::sea, m.province_container[province_tag(4)].flags);
 }
 
-TEST(provinces_test, climate_preparse) {
+TEST(provinces_test, climate_read) {
 	preparse_test_files real_fs;
 	file_system f;
 
@@ -99,13 +99,15 @@ TEST(provinces_test, climate_preparse) {
 	provinces::parsing_state state(tex, m, mm);
 
 	read_default_map_file(state, f.get_root());
-	pre_parse_climates(state, f.get_root());
+	read_climates(state, f.get_root());
 
 	EXPECT_EQ(2ui64, mm.provincial_modifiers.size());
 	EXPECT_EQ(provincial_modifier_tag(0), mm.provincial_modifiers[provincial_modifier_tag(0)].id);
 	EXPECT_EQ(provincial_modifier_tag(1), mm.provincial_modifiers[provincial_modifier_tag(1)].id);
 	EXPECT_EQ(provincial_modifier_tag(0), mm.named_provincial_modifiers_index[mm.provincial_modifiers[provincial_modifier_tag(0)].name]);
 	EXPECT_EQ(provincial_modifier_tag(1), mm.named_provincial_modifiers_index[text_data::get_thread_safe_text_handle(tex, RANGE("temperate_climate"))]);
+
+	EXPECT_EQ(1.0f, mm.provincial_modifier_definitions.get(provincial_modifier_tag(1), modifiers::provincial_offsets::max_attrition));
 
 	EXPECT_EQ(provincial_modifier_tag(1), m.province_container[province_tag(0)].climate);
 	EXPECT_EQ(provincial_modifier_tag(1), m.province_container[province_tag(4)].climate);

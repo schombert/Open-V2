@@ -68,7 +68,7 @@ namespace provinces {
 		parsing_state& state,
 		const directory& source_directory); // adds provincial modifiers
 
-	void pre_parse_climates(
+	void read_climates(
 		parsing_state& state,
 		const directory& source_directory); // adds provincial modifiers
 }
