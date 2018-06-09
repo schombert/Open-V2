@@ -81,14 +81,22 @@ public:
 };
 
 TEST(technologies_tests, pre_parse_single_tech) {
+	preparse_test_files real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:"));
+
 	std::vector<token_group> results;
 
-	tech_category_tag fake_cat(1);
 	technologies_manager manager;
 	text_data::text_sequences text;
+	modifiers::modifiers_manager mm;
 
 	parse_pdx_file(results, single_tech, single_tech + sizeof(single_tech) - 1);
-	pre_parse_single_tech_file(fake_cat, text, manager, results.data(), results.data() + results.size());
+
+	parsing_state state(text, f.get_root(), manager, mm);
+
+	pre_parse_single_tech_file(*state.impl, results.data(), results.data() + results.size());
 
 	EXPECT_EQ(1ui64, manager.technologies_container.size());
 	EXPECT_EQ(tech_tag(0), manager.technologies_container[tech_tag(0)].id);
@@ -101,14 +109,21 @@ TEST(technologies_tests, pre_parse_single_tech) {
 }
 
 TEST(technologies_tests, pre_parse_two_techs) {
+	preparse_test_files real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:"));
+
 	std::vector<token_group> results;
 
-	tech_category_tag fake_cat(1);
 	technologies_manager manager;
 	text_data::text_sequences text;
+	modifiers::modifiers_manager mm;
 
 	parse_pdx_file(results, two_techs, two_techs + sizeof(two_techs) - 1);
-	pre_parse_single_tech_file(fake_cat, text, manager, results.data(), results.data() + results.size());
+
+	parsing_state state(text, f.get_root(), manager, mm);
+	pre_parse_single_tech_file(*state.impl, results.data(), results.data() + results.size());
 
 	ASSERT_EQ(2ui64, manager.technologies_container.size());
 
@@ -139,6 +154,12 @@ TEST(technologies_tests, pre_parse_tech_file) {
 
 	EXPECT_EQ(tech_category_tag(0), manager.technology_categories[tech_category_tag(0)].id);
 	EXPECT_EQ(tech_category_tag(1), manager.technology_categories[tech_category_tag(1)].id);
+
+	EXPECT_EQ(tech_subcategory_tag(0), manager.technology_categories[tech_category_tag(0)].subcategories[0]);
+	EXPECT_EQ(tech_subcategory_tag(1), manager.technology_categories[tech_category_tag(0)].subcategories[1]);
+	EXPECT_EQ(tech_subcategory_tag(2), manager.technology_categories[tech_category_tag(0)].subcategories[2]);
+	EXPECT_EQ(tech_subcategory_tag(3), manager.technology_categories[tech_category_tag(0)].subcategories[3]);
+	EXPECT_EQ(tech_subcategory_tag(), manager.technology_categories[tech_category_tag(0)].subcategories[4]);
 
 	EXPECT_EQ(tech_subcategory_tag(0), manager.technology_subcategories[tech_subcategory_tag(0)].id);
 	EXPECT_EQ(tech_subcategory_tag(1), manager.technology_subcategories[tech_subcategory_tag(1)].id);
@@ -223,13 +244,13 @@ TEST(technologies_tests, pre_parse_inventions_test) {
 	pre_parse_inventions(state, f.get_root());
 
 	EXPECT_EQ(3ui64, manager.inventions.size());
-	EXPECT_EQ(3ui64, manager.named_invention_index.size());
+	EXPECT_EQ(3ui64, manager.named_technology_index.size());
 
-	EXPECT_EQ(invention_tag(0), manager.inventions[invention_tag(0)].id);
-	EXPECT_EQ(invention_tag(1), manager.inventions[invention_tag(1)].id);
-	EXPECT_EQ(invention_tag(2), manager.inventions[invention_tag(2)].id);
+	EXPECT_EQ(tech_tag(0), manager.technologies_container[tech_tag(0)].id);
+	EXPECT_EQ(tech_tag(1), manager.technologies_container[tech_tag(1)].id);
+	EXPECT_EQ(tech_tag(2), manager.technologies_container[tech_tag(2)].id);
 
-	EXPECT_EQ(invention_tag(0), manager.named_invention_index[manager.inventions[invention_tag(0)].name]);
-	EXPECT_EQ(invention_tag(1), manager.named_invention_index[manager.inventions[invention_tag(1)].name]);
-	EXPECT_EQ(invention_tag(2), manager.named_invention_index[manager.inventions[invention_tag(2)].name]);
+	EXPECT_EQ(tech_tag(0), manager.named_technology_index[manager.technologies_container[tech_tag(0)].name]);
+	EXPECT_EQ(tech_tag(1), manager.named_technology_index[manager.technologies_container[tech_tag(1)].name]);
+	EXPECT_EQ(tech_tag(2), manager.named_technology_index[manager.technologies_container[tech_tag(2)].name]);
 }

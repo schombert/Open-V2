@@ -44,6 +44,9 @@
     <ProjectReference Include="..\cultures\cultures.vcxproj">
       <Project>{cb6da773-046f-41e5-bdb5-8a7a8ce66261}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\economy\economy.vcxproj">
+      <Project>{a3c129a9-de31-4318-9fa6-019a8435d902}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\fake_fs\fake_fs.vcxproj">
       <Project>{c9607b1c-c139-4ca0-ae7d-3162e40c6838}</Project>
     </ProjectReference>
@@ -56,6 +59,9 @@
     <ProjectReference Include="..\gui\gui.vcxproj">
       <Project>{cb808c07-06ad-424a-b9bf-c15b89acd4ec}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\ideologies\ideologies.vcxproj">
+      <Project>{15b719aa-730d-4147-9106-a9b190e03066}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\modifiers\modifiers.vcxproj">
       <Project>{54477a39-7934-4c4a-9744-17399338af31}</Project>
     </ProjectReference>
@@ -64,6 +70,9 @@
     </ProjectReference>
     <ProjectReference Include="..\Parsers\Parsers.vcxproj">
       <Project>{c8b537f7-6df3-4685-a7d7-0f30ce18176d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\population\population.vcxproj">
+      <Project>{6e58508b-fec4-4a2e-be9a-7f3b31bd1469}</Project>
     </ProjectReference>
     <ProjectReference Include="..\text_data\text_data.vcxproj">
       <Project>{ab9203fb-2ba5-4495-8f9e-78c21f15a8c6}</Project>

@@ -44,11 +44,17 @@
     <ProjectReference Include="..\concurrency_tools\concurrency_tools.vcxproj">
       <Project>{12f547e0-13dc-4c35-96ab-950827192412}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\cultures\cultures.vcxproj">
+      <Project>{cb6da773-046f-41e5-bdb5-8a7a8ce66261}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\economy\economy.vcxproj">
       <Project>{a3c129a9-de31-4318-9fa6-019a8435d902}</Project>
     </ProjectReference>
     <ProjectReference Include="..\fake_fs\fake_fs.vcxproj">
       <Project>{c9607b1c-c139-4ca0-ae7d-3162e40c6838}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\graphics\graphics.vcxproj">
+      <Project>{30142af6-6972-4e2f-baa8-85361ce88f22}</Project>
     </ProjectReference>
     <ProjectReference Include="..\gtest\gtest.vcxproj">
       <Project>{bbf2a58d-64c2-4ad1-80ca-0bb65487311d}</Project>
@@ -67,6 +73,12 @@
     </ProjectReference>
     <ProjectReference Include="..\text_data\text_data.vcxproj">
       <Project>{ab9203fb-2ba5-4495-8f9e-78c21f15a8c6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\triggers\triggers.vcxproj">
+      <Project>{6a118b81-e7b9-4109-a8db-2fe3575fcff4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\variables\variables.vcxproj">
+      <Project>{90316e63-9ce3-4d2b-80ac-440903861b0d}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

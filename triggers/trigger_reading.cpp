@@ -1076,14 +1076,14 @@ namespace triggers {
 	struct invention_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return  uint16_t(trigger_codes::invention | association_to_bool_code(a));
+				return  uint16_t(trigger_codes::technology | association_to_bool_code(a));
 			else
 				return std::optional<uint16_t>();
 		}
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.technology_m.named_invention_index,
+					s.technology_m.named_technology_index,
 					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
@@ -4674,7 +4674,7 @@ namespace triggers {
 				if (env.current_scope.main_slot != trigger_slot_contents::nation) {
 					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, e);
 				} else {
-					env.data.push_back(uint16_t(trigger_codes::variable_tech_name | association_to_bool_code(a, token_to<int32_t>(trigger_value) >= 1)));
+					env.data.push_back(uint16_t(trigger_codes::technology | association_to_bool_code(a, token_to<int32_t>(trigger_value) >= 1)));
 					env.data.push_back(2ui16);
 					env.data.push_back(trigger_payload(tech).value);
 				}

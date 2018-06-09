@@ -49,7 +49,6 @@ namespace technologies {
 	using tech_category_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 72648>>;
 	using tech_subcategory_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 72649>>;
 	using tech_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 72650>>;
-	using invention_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 72651>>;
 }
 
 namespace ideologies {
@@ -93,6 +92,7 @@ namespace modifiers {
 	using provincial_modifier_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 9478475>>;
 	using national_modifier_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 9478476>>;
 	using factor_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 9478477>>;
+	using national_focus_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 9478478>>;
 	using value_type = float;
 }
 

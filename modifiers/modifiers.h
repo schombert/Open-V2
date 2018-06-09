@@ -39,8 +39,30 @@ namespace modifiers {
 		}
 	};
 
+	struct national_focus {
+		float railroads = 0.0f;
+		float loyalty = 0.0f;
+		float pop_type_value = 0.0f;
+		float flashpoint_tension = 0.0f;
+
+		triggers::trigger_tag limit;
+		text_data::text_tag name;
+		provincial_modifier_tag modifier;
+		text_data::text_tag group;
+
+		population::pop_type_tag pop_type;
+		ideologies::ideology_tag ideology;
+		bool outliner_show_as_percent = false;
+		bool has_goods = false;
+
+		uint8_t icon;
+		national_focus_tag id;
+	};
+
 	struct crime {
+		text_data::text_tag name;
 		triggers::trigger_tag crime_trigger;
+		provincial_modifier_tag modifier;
 		bool default_active = false;
 	};
 
@@ -234,6 +256,8 @@ namespace modifiers {
 		tagged_vector<national_modifier, national_modifier_tag> national_modifiers;
 		tagged_vector<provincial_modifier, provincial_modifier_tag> provincial_modifiers;
 		tagged_vector<factor_modifier, factor_tag> factor_modifiers;
+		tagged_vector<national_focus, national_focus_tag> national_focuses;
+
 		std::vector<factor_segment> factor_data;
 
 		std::vector<std::pair<national_modifier_tag, triggers::trigger_tag>> triggered_modifiers;
@@ -245,8 +269,8 @@ namespace modifiers {
 		tagged_fixed_blocked_2dvector<value_type, national_modifier_tag, uint32_t, aligned_allocator_32<value_type>> national_modifier_definitions;
 		tagged_fixed_blocked_2dvector<value_type, provincial_modifier_tag, uint32_t, aligned_allocator_32<value_type>> provincial_modifier_definitions;
 
-		national_modifier_tag fetch_unique_national_modifier(text_data::text_tag n); // adds index only if valid text tag
-		provincial_modifier_tag fetch_unique_provincial_modifier(text_data::text_tag n); // adds index only if valid text tag
+		tagged_fixed_2dvector<float, national_focus_tag, economy::goods_tag> national_focus_goods_weights;
+		int32_t national_focus_group_count = 0;
 
 		struct {
 			provincial_modifier_tag overseas;
@@ -282,6 +306,9 @@ namespace modifiers {
 			national_modifier_tag in_bankrupcy;
 		} static_modifiers;
 
+		national_modifier_tag fetch_unique_national_modifier(text_data::text_tag n); // adds index only if valid text tag
+		provincial_modifier_tag fetch_unique_provincial_modifier(text_data::text_tag n); // adds index only if valid text tag
+
 		modifiers_manager() {
 			national_modifier_definitions.reset(national_offsets::count);
 			provincial_modifier_definitions.reset(provincial_offsets::count);
@@ -309,6 +336,7 @@ namespace modifiers {
 
 		modifier_reading_base() : modifier_data(provincial_offsets::aligned_32_size + national_offsets::aligned_32_size) {}
 		void add_attribute(const std::pair<token_and_type, float>& p);
+		void add_attribute(uint32_t provincial_offset, uint32_t national_offset, float v);
 		void remove_shared_national_attributes();
 	};
 
@@ -345,6 +373,8 @@ namespace modifiers {
 
 	void read_crimes(parsing_state& state, scenario::scenario_manager& s);
 	void read_triggered_modifiers(parsing_state& state, scenario::scenario_manager& s);
+
+	void read_national_focuses(scenario::scenario_manager& s, const directory& source_directory);
 
 	factor_tag parse_modifier_factors(
 		scenario::scenario_manager& s,

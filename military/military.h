@@ -22,7 +22,7 @@ namespace military {
 
 	using unit_attribute_type = float;
 
-	namespace unit_type_attribute {
+	namespace unit_attribute {
 		constexpr int32_t defense = 0;
 		constexpr int32_t hull = 0;
 		constexpr int32_t attack = 1;
@@ -40,21 +40,20 @@ namespace military {
 		constexpr int32_t strength = 9;
 		constexpr int32_t siege = 10;
 		constexpr int32_t discipline = 11;
+		constexpr int32_t enabled = 12;
 
-		constexpr int32_t count = 12;
+		constexpr int32_t count = 13;
 		constexpr static size_t aligned_32_size = ((sizeof(unit_attribute_type) * count + 31ui64) & ~31ui64) / sizeof(unit_attribute_type);
 	}
 
+	using unit_attribute_vector = Eigen::Matrix<unit_attribute_type, unit_attribute::aligned_32_size, 1>;
+
 	struct alignas(32) unit_type {
-		Eigen::Matrix<
-			unit_attribute_type,
-			unit_type_attribute::aligned_32_size,
-			1> base_attributes = Eigen::Matrix<unit_attribute_type, unit_type_attribute::aligned_32_size, 1>::Zero();
+		unit_attribute_vector base_attributes = unit_attribute_vector::Zero();
 
 		static constexpr uint8_t primary_culture = 0x10;
-		static constexpr uint8_t default_inactive = 0x20;
-		static constexpr uint8_t cant_build_overseas = 0x40;
-		static constexpr uint8_t is_sail = 0x80;
+		static constexpr uint8_t cant_build_overseas = 0x20;
+		static constexpr uint8_t is_sail = 0x40;
 
 		static constexpr uint8_t class_mask = 0x0F;
 
@@ -81,6 +80,10 @@ namespace military {
 		uint8_t flags = 0ui8; // 11 bytes
 
 		unit_type_tag id; // 12 bytes
+
+		unit_type() {
+			base_attributes[unit_attribute::enabled] = unit_attribute_type(1);
+		}
 	};
 
 	const size_t type_size = sizeof(unit_type);

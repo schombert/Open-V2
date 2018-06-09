@@ -89,6 +89,69 @@ public:
 		"	icon = 7\r\n"
 		"}\r\n"
 		);
+	file_representation nf = file_representation(u"national_focus.txt", common,
+		"rail_focus = {\r\n"
+		"	encourage_rail = {\r\n"
+		"		railroads = 0.5\r\n"
+		"		icon = 2\r\n"
+		"	}\r\n"
+		"}\r\n"
+		"immigration_focus = {\r\n"
+		"	immigration = {\r\n"
+		"		immigrant_attract = 0.2\r\n"
+		"		icon = 3\r\n"
+		"	}\r\n"
+		"}\r\n"
+		"diplomatic_focus = {\r\n"
+		"	increase_tension = {\r\n"
+		"		icon = 4\r\n"
+		"		has_flashpoint = yes\r\n"
+		"		own_provinces = no\r\n"
+		"		flashpoint_tension = 0.15\r\n"
+		"		limit = {\r\n"
+		"			is_core = THIS\r\n"
+		"			THIS = { is_greater_power = no }\r\n"
+		"		}\r\n"
+		"	}\r\n"
+		"}\r\n"
+		"promotion_focus = {\r\n"
+		"	promote_aristocrats = {\r\n"
+		"		capitalists = 0.20\r\n"
+		"		icon = 5\r\n"
+		"		outliner_show_as_percent = yes\r\n"
+		"	}\r\n"
+		"}\r\n"
+		"production_focus = {\r\n"
+		"	automation_focus = {\r\n"
+		"		ammunition = 18\r\n"
+		"		icon = 16\r\n"
+		"		limit = { year = 1880 }\r\n"
+		"	}\r\n"
+		"}\r\n"
+		"party_loyalty_focus = {\r\n"
+		"	fascist_focus = {\r\n"
+		"		ideology = member_1\r\n"
+		"		loyalty_value = 0.001 \r\n"
+		"		icon = 25\r\n"
+		"	}\r\n"
+		"}\r\n"
+		);
+	file_representation file = file_representation(u"ideologies.txt", common,
+		"group_a = {\r\n"
+		"member_1 = { stuff }\r\n"
+		"member_2 = {}\r\n"
+		"}\r\n"
+		"group_2 = { member_3 = { a b c } }");
+	directory_representation poptypes = directory_representation(u"poptypes", f_root);
+	file_representation p1 = file_representation(u"capitalists.txt", poptypes, "");
+	file_representation goods1 = file_representation(u"goods.txt", common,
+		"military_goods   = {\r\n"
+		"ammunition = {\r\n"
+		"cost = 17.50\r\n"
+		"color = { 208 202 127 }\r\n"
+		"available_from_start = no\r\n"
+		"}\r\n"
+		"}\r\n");
 
 	preparse_test_files() {
 		set_default_root(f_root);
@@ -97,6 +160,70 @@ public:
 
 using namespace modifiers;
 
+TEST(modifiers_tests, national_focus_test) {
+	preparse_test_files real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:"));
+
+	scenario::scenario_manager s;
+
+	economy::read_goods(s.economy_m, f.get_root(), s.gui_m.text_data_sequences);
+	population::pre_parse_pop_types(s.population_m, f.get_root(), s.gui_m.text_data_sequences);
+	ideologies::pre_parse_ideologies(s.ideologies_m, f.get_root(), s.gui_m.text_data_sequences);
+
+	read_national_focuses(s, f.get_root());
+
+	const auto ammunition_tag = tag_from_text(s.economy_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("ammunition")));
+
+	EXPECT_NE(economy::goods_tag(), ammunition_tag);
+
+	EXPECT_EQ(6, s.modifiers_m.national_focus_group_count);
+	EXPECT_EQ(1ui64, s.modifiers_m.provincial_modifiers.size());
+
+	EXPECT_EQ(2ui8, s.modifiers_m.national_focuses[national_focus_tag(0)].icon);
+	EXPECT_EQ(national_focus_tag(0), s.modifiers_m.national_focuses[national_focus_tag(0)].id);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("encourage_rail")), s.modifiers_m.national_focuses[national_focus_tag(0)].name);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("rail_focus")), s.modifiers_m.national_focuses[national_focus_tag(0)].group);
+	EXPECT_EQ(0.5f, s.modifiers_m.national_focuses[national_focus_tag(0)].railroads);
+
+	EXPECT_EQ(3ui8, s.modifiers_m.national_focuses[national_focus_tag(1)].icon);
+	EXPECT_EQ(national_focus_tag(1), s.modifiers_m.national_focuses[national_focus_tag(1)].id);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("immigration")), s.modifiers_m.national_focuses[national_focus_tag(1)].name);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("immigration_focus")), s.modifiers_m.national_focuses[national_focus_tag(1)].group);
+	EXPECT_NE(provincial_modifier_tag(), s.modifiers_m.national_focuses[national_focus_tag(1)].modifier);
+	EXPECT_EQ(0.2f, s.modifiers_m.provincial_modifier_definitions.get(s.modifiers_m.national_focuses[national_focus_tag(1)].modifier, provincial_offsets::immigrant_attract));
+
+	EXPECT_EQ(4ui8, s.modifiers_m.national_focuses[national_focus_tag(2)].icon);
+	EXPECT_EQ(national_focus_tag(2), s.modifiers_m.national_focuses[national_focus_tag(2)].id);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("increase_tension")), s.modifiers_m.national_focuses[national_focus_tag(2)].name);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("diplomatic_focus")), s.modifiers_m.national_focuses[national_focus_tag(2)].group);
+	EXPECT_EQ(0.15f, s.modifiers_m.national_focuses[national_focus_tag(2)].flashpoint_tension);
+	EXPECT_NE(triggers::trigger_tag(), s.modifiers_m.national_focuses[national_focus_tag(2)].limit);
+
+	EXPECT_EQ(5ui8, s.modifiers_m.national_focuses[national_focus_tag(3)].icon);
+	EXPECT_EQ(national_focus_tag(3), s.modifiers_m.national_focuses[national_focus_tag(3)].id);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("promote_aristocrats")), s.modifiers_m.national_focuses[national_focus_tag(3)].name);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("promotion_focus")), s.modifiers_m.national_focuses[national_focus_tag(3)].group);
+	EXPECT_EQ(population::pop_type_tag(0), s.modifiers_m.national_focuses[national_focus_tag(3)].pop_type);
+	EXPECT_EQ(0.2f, s.modifiers_m.national_focuses[national_focus_tag(3)].pop_type_value);
+	EXPECT_EQ(true, s.modifiers_m.national_focuses[national_focus_tag(3)].outliner_show_as_percent);
+
+	EXPECT_EQ(16ui8, s.modifiers_m.national_focuses[national_focus_tag(4)].icon);
+	EXPECT_EQ(national_focus_tag(4), s.modifiers_m.national_focuses[national_focus_tag(4)].id);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("automation_focus")), s.modifiers_m.national_focuses[national_focus_tag(4)].name);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("production_focus")), s.modifiers_m.national_focuses[national_focus_tag(4)].group);
+	EXPECT_NE(triggers::trigger_tag(), s.modifiers_m.national_focuses[national_focus_tag(4)].limit);
+	EXPECT_EQ(18.0f, s.modifiers_m.national_focus_goods_weights.get(national_focus_tag(4), ammunition_tag));
+	EXPECT_EQ(true, s.modifiers_m.national_focuses[national_focus_tag(4)].has_goods);
+
+	EXPECT_EQ(25ui8, s.modifiers_m.national_focuses[national_focus_tag(5)].icon);
+	EXPECT_EQ(national_focus_tag(5), s.modifiers_m.national_focuses[national_focus_tag(5)].id);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("fascist_focus")), s.modifiers_m.national_focuses[national_focus_tag(5)].name);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("party_loyalty_focus")), s.modifiers_m.national_focuses[national_focus_tag(5)].group);
+	EXPECT_EQ(0.001f, s.modifiers_m.national_focuses[national_focus_tag(5)].loyalty);
+	EXPECT_EQ(ideologies::ideology_tag(0), s.modifiers_m.national_focuses[national_focus_tag(5)].ideology);
+}
 TEST(modifiers_tests, crimes_preparse) {
 	preparse_test_files real_fs;
 	file_system f;

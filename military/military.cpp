@@ -215,40 +215,40 @@ namespace military {
 		void set_supply_cost(const unit_supply_cost&) {}
 
 		void set_attack_gun_power(float v) {
-			env.unit.base_attributes[unit_type_attribute::attack] = v;
+			env.unit.base_attributes[unit_attribute::attack] = v;
 		}
 		void set_maneuver_evasion(float v) {
-			env.unit.base_attributes[unit_type_attribute::maneuver] = v;
+			env.unit.base_attributes[unit_attribute::maneuver] = v;
 		}
 		void set_max_strength(float v) {
-			env.unit.base_attributes[unit_type_attribute::strength] = v;
+			env.unit.base_attributes[unit_attribute::strength] = v;
 		}
 		void set_default_organisation(float v) {
-			env.unit.base_attributes[unit_type_attribute::organization] = v;
+			env.unit.base_attributes[unit_attribute::organization] = v;
 		}
 		void set_build_time(float v) {
-			env.unit.base_attributes[unit_type_attribute::build_time] = v;
+			env.unit.base_attributes[unit_attribute::build_time] = v;
 		}
 		void set_maximum_speed(float v) {
-			env.unit.base_attributes[unit_type_attribute::speed] = v;
+			env.unit.base_attributes[unit_attribute::speed] = v;
 		}
 		void set_supply_consumption(float v) {
-			env.unit.base_attributes[unit_type_attribute::supply_consumption] = v;
+			env.unit.base_attributes[unit_attribute::supply_consumption] = v;
 		}
 		void set_defence_hull(float v) {
-			env.unit.base_attributes[unit_type_attribute::defense] = v;
+			env.unit.base_attributes[unit_attribute::defense] = v;
 		}
 		void set_reconnaissance_fire_range(float v) {
-			env.unit.base_attributes[unit_type_attribute::reconnaissance] = v;
+			env.unit.base_attributes[unit_attribute::reconnaissance] = v;
 		}
 		void set_discipline(float v) {
-			env.unit.base_attributes[unit_type_attribute::discipline] = v;
+			env.unit.base_attributes[unit_attribute::discipline] = v;
 		}
 		void set_support_torpedo_attack(float v) {
-			env.unit.base_attributes[unit_type_attribute::support] = v;
+			env.unit.base_attributes[unit_attribute::support] = v;
 		}
 		void set_siege(float v) {
-			env.unit.base_attributes[unit_type_attribute::siege] = v;
+			env.unit.base_attributes[unit_attribute::siege] = v;
 		}
 		void set_primary_culture(bool v) {
 			if(v)
@@ -256,7 +256,7 @@ namespace military {
 		}
 		void set_active(bool v) {
 			if(!v)
-				env.unit.flags |= unit_type::default_inactive;
+				env.unit.base_attributes[unit_attribute::enabled] = unit_attribute_type(0);
 		}
 		void set_can_build_overseas(bool v) {
 			if(!v)
@@ -509,8 +509,8 @@ namespace military {
 		env.manager.unit_types[unit_type_tag(1)].id = unit_type_tag(1);
 		env.manager.unit_types[unit_type_tag(0)].name = army_base_name;
 		env.manager.unit_types[unit_type_tag(1)].name = navy_base_name;
-		env.manager.unit_types[unit_type_tag(0)].flags = unit_type::default_inactive;
-		env.manager.unit_types[unit_type_tag(1)].flags = unit_type::default_inactive;
+		env.manager.unit_types[unit_type_tag(0)].base_attributes[unit_attribute::enabled] = unit_attribute_type(0);
+		env.manager.unit_types[unit_type_tag(1)].base_attributes[unit_attribute::enabled] = unit_attribute_type(0);
 
 		const auto unit_dir = source_directory.get_directory(u"\\units");
 		const auto unit_files = unit_dir.list_files(u".txt");

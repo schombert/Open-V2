@@ -18,6 +18,8 @@
 #include "boost\\container\\small_vector.hpp"
 #include "boost\\container\\flat_set.hpp"
 #include "boost\date_time\\gregorian\\gregorian_types.hpp" 
+#define EIGEN_INITIALIZE_MATRICES_BY_ZERO
+#define EIGEN_NO_MALLOC
 #include "Eigen\\Dense"
 #pragma clang diagnostic pop
 

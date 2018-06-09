@@ -382,7 +382,7 @@ namespace triggers {
 		constexpr uint16_t month = 0x0002;
 		constexpr uint16_t port = 0x0003;
 		constexpr uint16_t rank = 0x0004;
-		constexpr uint16_t invention = 0x0005;
+		constexpr uint16_t technology = 0x0005;
 		constexpr uint16_t strata_rich = 0x0006;
 		constexpr uint16_t life_rating_province = 0x0007;
 		constexpr uint16_t life_rating_state = 0x0008;
@@ -958,29 +958,29 @@ namespace triggers {
 		constexpr uint16_t work_available_province = 0x0240;
 
 		//variable name
-		constexpr uint16_t variable_tech_name = 0x0241;
-		constexpr uint16_t variable_ideology_name_nation = 0x0242;
-		constexpr uint16_t variable_ideology_name_state = 0x0243;
-		constexpr uint16_t variable_ideology_name_province = 0x0244;
-		constexpr uint16_t variable_ideology_name_pop = 0x0245;
-		constexpr uint16_t variable_issue_name_nation = 0x0246;
-		constexpr uint16_t variable_issue_name_state = 0x0247;
-		constexpr uint16_t variable_issue_name_province = 0x0248;
-		constexpr uint16_t variable_issue_name_pop = 0x0249;
-		constexpr uint16_t variable_issue_group_name_nation = 0x024A;
-		constexpr uint16_t variable_issue_group_name_state = 0x024B;
-		constexpr uint16_t variable_issue_group_name_province = 0x024C;
-		constexpr uint16_t variable_issue_group_name_pop = 0x024D;
-		constexpr uint16_t variable_pop_type_name_nation = 0x024E;
-		constexpr uint16_t variable_pop_type_name_state = 0x024F;
-		constexpr uint16_t variable_pop_type_name_province = 0x0250;
-		constexpr uint16_t variable_pop_type_name_pop = 0x0251;
-		constexpr uint16_t variable_good_name = 0x0252;
+		// constexpr uint16_t variable_tech_name = 0x0241; REMOVED
+		constexpr uint16_t variable_ideology_name_nation = 0x0241;
+		constexpr uint16_t variable_ideology_name_state = 0x0242;
+		constexpr uint16_t variable_ideology_name_province = 0x0243;
+		constexpr uint16_t variable_ideology_name_pop = 0x0244;
+		constexpr uint16_t variable_issue_name_nation = 0x0245;
+		constexpr uint16_t variable_issue_name_state = 0x0246;
+		constexpr uint16_t variable_issue_name_province = 0x0247;
+		constexpr uint16_t variable_issue_name_pop = 0x0248;
+		constexpr uint16_t variable_issue_group_name_nation = 0x0249;
+		constexpr uint16_t variable_issue_group_name_state = 0x024A;
+		constexpr uint16_t variable_issue_group_name_province = 0x024B;
+		constexpr uint16_t variable_issue_group_name_pop = 0x024C;
+		constexpr uint16_t variable_pop_type_name_nation = 0x024D;
+		constexpr uint16_t variable_pop_type_name_state = 0x024E;
+		constexpr uint16_t variable_pop_type_name_province = 0x024F;
+		constexpr uint16_t variable_pop_type_name_pop = 0x0250;
+		constexpr uint16_t variable_good_name = 0x0251;
 
 		//misplaced
-		constexpr uint16_t strata_middle = 0x0253;
-		constexpr uint16_t strata_poor = 0x0254;
-		constexpr uint16_t party_loyalty_from_province_scope_province = 0x0255;
+		constexpr uint16_t strata_middle = 0x0252;
+		constexpr uint16_t strata_poor = 0x0253;
+		constexpr uint16_t party_loyalty_from_province_scope_province = 0x0254;
 
 		//technology name -- payload 1
 		//ideology name -- 4 varianets payload 2
@@ -1865,7 +1865,6 @@ namespace triggers {
 		1, //constexpr uint16_t work_available_province = 0x0240;
 
 		//variable name
-		1, //constexpr uint16_t variable_tech_name = 0x0241;
 		3, //constexpr uint16_t variable_ideology_name_nation = 0x0242;
 		3, //constexpr uint16_t variable_ideology_name_state = 0x0243;
 		3, //constexpr uint16_t variable_ideology_name_province = 0x0244;
@@ -1884,6 +1883,7 @@ namespace triggers {
 		3, //constexpr uint16_t variable_pop_type_name_pop = 0x0251;
 		3, //constexpr uint16_t variable_good_name = 0x0252;
 		0, //	constexpr uint16_t strata_middle = 0x0253;
-		0 //constexpr uint16_t strata_poor = 0x0254;
+		0, //constexpr uint16_t strata_poor = 0x0254;
+		3	//constexpr uint16_t party_loyalty_from_province_scope_province = 0x0254;
 	};
 }

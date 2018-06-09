@@ -45,7 +45,7 @@ namespace modifiers {
 		new_i.name = name;
 
 		env.manager.named_provincial_modifiers_index.emplace(name, tag);
-		env.manager.crimes.emplace(tag, crime());
+		env.manager.crimes.emplace(tag, crime{name, triggers::trigger_tag (), tag, false});
 		env.pending_crimes.emplace_back(tag, start, end);
 
 		return 0;
@@ -73,6 +73,10 @@ namespace modifiers {
 
 	inline int discard_empty_type(const token_and_type&, association_type, const empty_type&) { return 0; }
 	inline token_and_type name_empty_type(const token_and_type& t, association_type, const empty_type&) { return t; }
+
+#ifdef _DEBUG
+	struct bad_modifier {};
+#endif
 
 	std::pair<uint32_t, uint32_t> get_provincial_and_national_offsets_from_token(const char* s, const char* e) {
 		using token_tree_unsorted = type_list<
@@ -164,6 +168,7 @@ namespace modifiers {
 			CT_STRING_INT("poor_income_modifier", pack_offset_pair(provincial_offsets::poor_income_modifier, national_offsets::poor_income_modifier)),
 			CT_STRING_INT("boost_strongest_party", pack_offset_pair(provincial_offsets::boost_strongest_party, bad_offset)),
 			CT_STRING_INT("global_immigrant_attract", pack_offset_pair(bad_offset, national_offsets::global_immigrant_attract)),
+			CT_STRING_INT("immigration", pack_offset_pair(provincial_offsets::immigrant_attract, bad_offset)),
 			CT_STRING_INT("immigrant_attract", pack_offset_pair(provincial_offsets::immigrant_attract, bad_offset)),
 			CT_STRING_INT("immigrant_push", pack_offset_pair(provincial_offsets::immigrant_push, bad_offset)),
 			CT_STRING_INT("local_repair", pack_offset_pair(provincial_offsets::local_repair, bad_offset)),
@@ -173,6 +178,8 @@ namespace modifiers {
 			CT_STRING_INT("diplomatic_points_modifier", pack_offset_pair(bad_offset, national_offsets::diplomatic_points_modifier)),
 			CT_STRING_INT("mobilisation_size", pack_offset_pair(bad_offset, national_offsets::mobilisation_size)),
 			CT_STRING_INT("mobilisation_economy_impact", pack_offset_pair(bad_offset, national_offsets::mobilisation_economy_impact)),
+			CT_STRING_INT("mobilization_size", pack_offset_pair(bad_offset, national_offsets::mobilisation_size)),
+			CT_STRING_INT("mobilization_economy_impact", pack_offset_pair(bad_offset, national_offsets::mobilisation_economy_impact)),
 			CT_STRING_INT("global_pop_militancy_modifier", pack_offset_pair(bad_offset, national_offsets::global_pop_militancy_modifier)),
 			CT_STRING_INT("global_pop_consciousness_modifier", pack_offset_pair(bad_offset, national_offsets::global_pop_consciousness_modifier)),
 			CT_STRING_INT("core_pop_militancy_modifier", pack_offset_pair(bad_offset, national_offsets::core_pop_militancy_modifier)),
@@ -181,6 +188,7 @@ namespace modifiers {
 			CT_STRING_INT("non_accepted_pop_consciousness_modifier", pack_offset_pair(bad_offset, national_offsets::non_accepted_pop_consciousness_modifier)),
 			CT_STRING_INT("cb_generation_speed_modifier", pack_offset_pair(bad_offset, national_offsets::cb_generation_speed_modifier)),
 			CT_STRING_INT("mobilization_impact", pack_offset_pair(bad_offset, national_offsets::mobilization_impact)),
+			CT_STRING_INT("mobilisation_impact", pack_offset_pair(bad_offset, national_offsets::mobilization_impact)),
 			CT_STRING_INT("suppression_points_modifier", pack_offset_pair(bad_offset, national_offsets::suppression_points_modifier)),
 			CT_STRING_INT("education_efficiency_modifier", pack_offset_pair(bad_offset, national_offsets::education_efficiency_modifier)),
 			CT_STRING_INT("civilization_progress_modifier", pack_offset_pair(bad_offset, national_offsets::civilization_progress_modifier)),
@@ -215,6 +223,10 @@ namespace modifiers {
 		using token_tree = typename sorted<token_tree_unsorted>::type;
 
 		const auto value = bt_find_value_or<token_tree, uint32_t>(s, e, pack_offset_pair(bad_offset, bad_offset));
+#ifdef _DEBUG
+		if(value == pack_offset_pair(bad_offset, bad_offset))
+			throw bad_modifier();
+#endif
 		return std::pair<uint32_t, uint32_t>(get_provincial_offset_from_packed(value), get_national_offset_from_packed(value));
 	}
 
@@ -286,24 +298,29 @@ namespace modifiers {
 		}
 	}
 
-	void modifier_reading_base::add_attribute(const std::pair<token_and_type, float>& p) {
-		const auto offsets = get_provincial_and_national_offsets_from_token(p.first.start, p.first.end);
-		if (offsets.first != bad_offset) {
-			modifier_data[offsets.first] = p.second;
+	void modifier_reading_base::add_attribute(uint32_t provincial_offset, uint32_t national_offset, float v) {
+		if(provincial_offset != bad_offset) {
+			modifier_data[provincial_offset] = v;
 			++count_unique_provincial;
 		}
-		if (offsets.second != bad_offset) {
-			modifier_data[provincial_offsets::aligned_32_size + offsets.second] = p.second;
+		if(national_offset != bad_offset) {
+			modifier_data[provincial_offsets::aligned_32_size + national_offset] = v;
 			++count_unique_national;
 		}
-		if ((offsets.first != bad_offset) & (offsets.second != bad_offset)) {
+		if((provincial_offset != bad_offset) & (national_offset != bad_offset)) {
 			--count_unique_provincial;
 			--count_unique_national;
 		}
-		if ((offsets.first != bad_offset) | (offsets.second != bad_offset)) {
+		if((provincial_offset != bad_offset) | (national_offset != bad_offset)) {
 			++total_attributes;
 		}
 	}
+
+	void modifier_reading_base::add_attribute(const std::pair<token_and_type, float>& p) {
+		const auto offsets = get_provincial_and_national_offsets_from_token(p.first.start, p.first.end);
+		add_attribute(offsets.first, offsets.second, p.second);
+	}
+
 	void modifier_reading_base::remove_shared_national_attributes() {
 		modifier_data[provincial_offsets::aligned_32_size + national_offsets::goods_demand] = 0.0f;
 
@@ -537,8 +554,133 @@ namespace modifiers {
 
 		void discard(int) {}
 	};
+
+	struct nf_environment {
+		scenario::scenario_manager& s;
+		text_data::text_tag group;
+
+		nf_environment(scenario::scenario_manager& sm, text_data::text_tag g) : s(sm), group(g) {}
+	};
+
+	inline triggers::trigger_tag read_nf_limit(const token_group* s, const token_group* e, nf_environment& env) {
+		const auto td = triggers::parse_trigger(env.s,
+			triggers::trigger_scope_state{
+				triggers::trigger_slot_contents::province,
+				triggers::trigger_slot_contents::nation,
+				triggers::trigger_slot_contents::empty,
+				false},
+			s, e);
+		return triggers::commit_trigger(env.s.trigger_m, td);
+	}
+
+	class nf_reader : public modifier_reading_base {
+	public:
+		nf_environment & env;
+
+		nf_reader(nf_environment& e) : env(e) {}
+
+		national_focus under_construction;
+		std::vector<std::pair<economy::goods_tag, float>> goods;
+
+		void set_icon(uint8_t v) {
+			under_construction.icon = v;
+		}
+		void set_railroads(float v) {
+			under_construction.railroads = v;
+		}
+		void set_limit(triggers::trigger_tag t) {
+			under_construction.limit = t;
+		}
+		void set_loyalty_value(float v) {
+			under_construction.loyalty = v;
+		}
+		void set_ideology(const token_and_type& t) {
+			under_construction.ideology = tag_from_text(
+				env.s.ideologies_m.named_ideology_index,
+				text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end));
+		}
+		void set_outliner_show_as_percent(bool v) {
+			under_construction.outliner_show_as_percent = v;
+		}
+		void set_flashpoint_tension(float f) {
+			under_construction.flashpoint_tension = f;
+		}
+		void set_variable(const std::pair<token_and_type, float>& p) {
+			const auto name = text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, p.first.start, p.first.end);
+			
+			if(const auto ptype = tag_from_text(env.s.population_m.named_pop_type_index, name); is_valid_index(ptype)) {
+				under_construction.pop_type = ptype;
+				under_construction.pop_type_value = p.second;
+			} else if(const auto gtype = tag_from_text(env.s.economy_m.named_goods_index, name); is_valid_index(gtype)) {
+				goods.emplace_back(gtype, p.second);
+			} else {
+				modifier_reading_base::add_attribute(p);
+			}
+		}
+		void discard(int) {}
+	};
+
+	inline std::pair<token_and_type, nf_reader> bind_nf(const token_and_type& l, association_type, nf_reader&& r) {
+		return std::pair<token_and_type, nf_reader>(l, std::move(r));
+	}
+
+	struct nf_group_reader {
+		nf_environment& env;
+
+		nf_group_reader(nf_environment& e) : env(e) {}
+
+		void read_nf(std::pair<token_and_type, nf_reader>&& p) {
+			const auto name = text_data::get_thread_safe_text_handle(env.s.gui_m.text_data_sequences, p.first.start, p.first.end);
+			const auto ptag = p.second.total_attributes != 0 ? add_provincial_modifier(name, p.second, env.s.modifiers_m) : provincial_modifier_tag();
+
+			const auto nf_tag = env.s.modifiers_m.national_focuses.emplace_back();
+			national_focus& new_nf = env.s.modifiers_m.national_focuses[nf_tag];
+			new_nf = p.second.under_construction;
+
+			new_nf.id = nf_tag;
+			new_nf.name = name;
+			new_nf.group = env.group;
+			new_nf.modifier = ptag;
+
+			env.s.modifiers_m.national_focus_goods_weights.resize(env.s.modifiers_m.national_focuses.size());
+			for(auto gp : p.second.goods) {
+				env.s.modifiers_m.national_focus_goods_weights.get(nf_tag, gp.first) = gp.second;
+			}
+			if(p.second.goods.size() != 0)
+				new_nf.has_goods = true;
+		}
+	};
+
+	void inner_read_nf_group(const token_group* s, const token_group* e, nf_environment& env);
+
+	inline int read_nf_group(const token_group* s, const token_group* e, const token_and_type& t, scenario::scenario_manager& env) {
+		const auto name = text_data::get_thread_safe_text_handle(env.gui_m.text_data_sequences, t.start, t.end);
+		nf_environment env_b(env, name);
+		inner_read_nf_group(s, e, env_b);
+		return 0;
+	}
+
+	struct national_focus_file {
+		scenario::scenario_manager& env;
+		national_focus_file(scenario::scenario_manager& e) : env(e) {}
+
+		void read_group(int) {
+			++env.modifiers_m.national_focus_group_count;
+		}
+	};
 }
 
+MEMBER_FDEF(modifiers::nf_reader, set_icon, "icon");
+MEMBER_FDEF(modifiers::nf_reader, set_railroads, "railroads");
+MEMBER_FDEF(modifiers::nf_reader, set_limit, "limit");
+MEMBER_FDEF(modifiers::nf_reader, set_loyalty_value, "loyalty_value");
+MEMBER_FDEF(modifiers::nf_reader, set_ideology, "ideology");
+MEMBER_FDEF(modifiers::nf_reader, set_outliner_show_as_percent, "outliner_show_as_percent");
+MEMBER_FDEF(modifiers::nf_reader, set_flashpoint_tension, "flashpoint_tension");
+MEMBER_FDEF(modifiers::nf_reader, set_variable, "variable");
+MEMBER_FDEF(modifiers::nf_reader, discard, "discard");
+MEMBER_FDEF(modifiers::nf_group_reader, read_nf, "nf");
+MEMBER_FDEF(modifiers::national_focus_file, read_group, "group");
 MEMBER_FDEF(modifiers::static_modifiers_file, discard, "modifier");
 MEMBER_FDEF(modifiers::triggered_modifier_file, add_triggered_modifier, "modifier");
 MEMBER_FDEF(modifiers::triggered_modifier, set_trigger, "trigger");
@@ -563,9 +705,35 @@ MEMBER_FDEF(modifiers::outer_factor_modifier, add_group, "group");
 MEMBER_FDEF(modifiers::outer_factor_modifier, add_modifier, "modifier");
 MEMBER_FDEF(modifiers::factor_modifier_group, add_modifier, "modifier");
 
-
-
 namespace modifiers {
+	BEGIN_DOMAIN(nf_group_domain)
+		BEGIN_TYPE(nf_group_reader)
+			MEMBER_VARIABLE_TYPE_ASSOCIATION("nf", accept_all, nf_reader, bind_nf)
+		END_TYPE
+		BEGIN_TYPE(nf_reader)
+			MEMBER_ASSOCIATION("icon", "icon", value_from_rh<uint8_t>)
+			MEMBER_ASSOCIATION("railroads", "railroads", value_from_rh<float>)
+			MEMBER_ASSOCIATION("loyalty_value", "loyalty_value", value_from_rh<float>)
+			MEMBER_ASSOCIATION("ideology", "ideology", token_from_rh)
+			MEMBER_ASSOCIATION("outliner_show_as_percent", "outliner_show_as_percent", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("flashpoint_tension", "flashpoint_tension", value_from_rh<float>)
+			MEMBER_TYPE_EXTERN("limit", "limit", triggers::trigger_tag, read_nf_limit)
+			MEMBER_VARIABLE_ASSOCIATION("variable", accept_all, full_to_tf_pair)
+			MEMBER_ASSOCIATION("discard", "only_great_power", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "uncolonized_province", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "increase_colony", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "colonial_validity_check", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "own_provinces", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "has_flashpoint", discard_from_rh)
+		END_TYPE
+	END_DOMAIN;
+
+	BEGIN_DOMAIN(nf_file_domain)
+		BEGIN_TYPE(national_focus_file)
+			MEMBER_VARIABLE_TYPE_EXTERN("group", accept_all, int, read_nf_group)
+		END_TYPE
+	END_DOMAIN
+
 	BEGIN_DOMAIN(event_modifiers_domain)
 		BEGIN_TYPE(static_modifiers_file)
 			MEMBER_VARIABLE_TYPE_EXTERN("modifier", accept_all, int, read_event_mod)
@@ -661,6 +829,31 @@ namespace modifiers {
 		    MEMBER_TYPE_EXTERN("modifier", "modifier", triggers::trigger_and_factor, read_factor_and_trigger)
 		END_TYPE
 	END_DOMAIN;
+
+	void inner_read_nf_group(const token_group* s, const token_group* e, nf_environment& env) {
+		parse_object<nf_group_reader, nf_group_domain>(s, e, env);
+	}
+
+	void read_national_focuses(scenario::scenario_manager& s, const directory& source_directory) {
+		const auto common_dir = source_directory.get_directory(u"\\common");
+		parsed_data main_results;
+		const auto fi = common_dir.open_file(u"national_focus.txt");
+
+		if(fi) {
+			const auto sz = fi->size();
+			main_results.parse_data = std::unique_ptr<char[]>(new char[sz]);
+
+			fi->read_to_buffer(main_results.parse_data.get(), sz);
+			parse_pdx_file(main_results.parse_results, main_results.parse_data.get(), main_results.parse_data.get() + sz);
+
+			if(main_results.parse_results.size() > 0) {
+				parse_object<national_focus_file, nf_file_domain>(
+					main_results.parse_results.data(),
+					main_results.parse_results.data() + main_results.parse_results.size(),
+					s);
+			}
+		}
+	}
 
 	void read_static_modifiers(
 		parsing_state& state,

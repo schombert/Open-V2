@@ -64,7 +64,6 @@ namespace triggers {
 		uint16_t value;
 		int16_t signed_value;
 		bool boolean_value;
-		technologies::invention_tag invention;
 		
 		modifiers::national_modifier_tag nat_mod;
 		modifiers::provincial_modifier_tag prov_mod;
@@ -83,7 +82,6 @@ namespace triggers {
 		trigger_payload(uint16_t i) : value(i) {}
 		trigger_payload(int16_t i) : signed_value(i) {}
 		trigger_payload(bool i) : boolean_value(i) {}
-		trigger_payload(technologies::invention_tag i) : invention(i) {}
 		trigger_payload(governments::government_tag i) : small(i) {}
 		trigger_payload(modifiers::national_modifier_tag i) : nat_mod(i) {}
 		trigger_payload(modifiers::provincial_modifier_tag i) : prov_mod(i) {}
