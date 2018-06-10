@@ -145,12 +145,7 @@ namespace technologies {
 
 	
 	
-	void parse_main_technology_file(
-		technologies_manager& tech_manager,
-		std::vector<token_group>& parse_results,
-		text_data::text_sequences& text_function,
-		const directory& tech_root,
-		modifiers::modifiers_manager& mm);
+	
 
 	struct parsing_environment;
 
@@ -164,13 +159,14 @@ namespace technologies {
 	};
 
 	void pre_parse_single_tech_file(parsing_environment& state, const token_group* start, const token_group* end);
-	void parse_technologies(
+	void pre_parse_technologies(
 		parsing_state& state,
 		const directory& source_directory);
 	void pre_parse_inventions(
 		parsing_state& state,
 		const directory& source_directory);
 
+	void prepare_technologies_read(scenario::scenario_manager& s);
 	void read_inventions(parsing_state const& state, scenario::scenario_manager& s);
 	void read_technologies(parsing_state const& state, scenario::scenario_manager& s);
 };

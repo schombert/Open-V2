@@ -7,10 +7,10 @@
 namespace population {
 	struct parsing_environment {
 		text_data::text_sequences& text_lookup;
-
 		population_manager& manager;
 
 		parsed_data rebel_types_file;
+		std::vector<std::tuple<rebel_type_tag, const token_group*, const token_group*>> pending_rebels;
 
 		parsing_environment(text_data::text_sequences& tl, population_manager& m) :
 			text_lookup(tl), manager(m) {
@@ -24,18 +24,48 @@ namespace population {
 
 	parsing_state::parsing_state(parsing_state&& o) noexcept : impl(std::move(o.impl)) {}
 
+	inline int inner_pre_parse_rebel(const token_group* s, const token_group* e, const token_and_type& t, parsing_environment& env) {
+		const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
+		const auto rtag = env.manager.rebel_types.emplace_back();
+		auto& reb = env.manager.rebel_types[rtag];
+		reb.id = rtag;
+		reb.name = name;
+		env.manager.named_rebel_type_index.emplace(name, rtag);
+		env.pending_rebels.emplace_back(rtag, s, e);
+		return 0;
+	}
+
 	struct rebel_types_pre_parse_file {
 		parsing_environment& env;
 		rebel_types_pre_parse_file(parsing_environment& e) : env(e) {}
 
-		void add_rebel_type(const token_and_type& t) {
-			const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
-			const auto rtag = env.manager.rebel_types.emplace_back();
-			auto& reb = env.manager.rebel_types[rtag];
-			reb.id = rtag;
-			reb.name = name;
-			env.manager.named_rebel_type_index.emplace(name, rtag);
-		}
+		void add_rebel_type(int) {}
+	};
+
+	inline modifiers::factor_tag read_rebel_spawn_factor(const token_group* s, const token_group* e, scenario::scenario_manager& env) {
+		return modifiers::parse_modifier_factors(
+			env,
+			triggers::trigger_scope_state{
+				triggers::trigger_slot_contents::pop,
+				triggers::trigger_slot_contents::pop,
+				triggers::trigger_slot_contents::empty,
+				true },
+				1.0f, 0.0f, s, e);
+	}
+	inline modifiers::factor_tag read_rebel_will_rise_factor(const token_group* s, const token_group* e, scenario::scenario_manager& env) {
+		return modifiers::parse_modifier_factors(
+			env,
+			triggers::trigger_scope_state{
+				triggers::trigger_slot_contents::nation,
+				triggers::trigger_slot_contents::nation,
+				triggers::trigger_slot_contents::empty,
+				true },
+				1.0f, 0.0f, s, e);
+	}
+
+	struct rebel_reader {
+		scenario::scenario_manager& s;
+		rebel_reader(scenario::scenario_manager& o) : s(o) {}
 	};
 
 	struct single_poptype_environment {
@@ -44,13 +74,6 @@ namespace population {
 
 		single_poptype_environment(scenario::scenario_manager& sm, pop_type& p) : s(sm), pt(p) {}
 	};
-
-	struct empty_type {
-		void add_unknown_key(int) {
-		}
-	};
-	inline token_and_type name_empty_type(const token_and_type& t, association_type, const empty_type&) { return t; }
-	inline int discard_empty_type(const token_and_type&, association_type, const empty_type&) { return 0; }
 
 	struct poptypes_file {
 		scenario::scenario_manager& env;
@@ -382,7 +405,6 @@ namespace population {
 }
 
 MEMBER_FDEF(population::rebel_types_pre_parse_file, add_rebel_type, "add_rebel_type");
-MEMBER_FDEF(population::empty_type, add_unknown_key, "unknown_key");
 MEMBER_FDEF(population::poptypes_file, set_promotion_chance, "promotion_chance");
 MEMBER_FDEF(population::poptypes_file, set_demotion_chance, "demotion_chance");
 MEMBER_FDEF(population::poptypes_file, set_migration_chance, "migration_chance");
@@ -503,12 +525,8 @@ namespace population {
 	END_DOMAIN;
 
 	BEGIN_DOMAIN(rebel_types_pre_parsing_domain)
-		BEGIN_TYPE(empty_type)
-		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
-		END_TYPE
 		BEGIN_TYPE(rebel_types_pre_parse_file)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("add_rebel_type", accept_all, empty_type, name_empty_type)
+		MEMBER_VARIABLE_TYPE_EXTERN("add_rebel_type", accept_all, int, inner_pre_parse_rebel)
 		END_TYPE
 	END_DOMAIN;
 

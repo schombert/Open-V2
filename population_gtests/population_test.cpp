@@ -164,7 +164,7 @@ public:
 	);
 	directory_representation common1 = directory_representation(u"common", f_root);
 	file_representation rebel_types = file_representation(u"rebel_types.txt", common1, 
-		"rebel_ 1 = {}\r\n"
+		"rebel_1 = {}\r\n"
 		"rebel_2 = { stuff }");
 	file_representation pop_types = file_representation(u"pop_types.txt", common1, 
 		"demotion_chance =\r\n"

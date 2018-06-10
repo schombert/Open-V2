@@ -56,8 +56,60 @@ namespace population {
 		pop_type_tag id;
 	};
 
+
 	struct rebel_type {
+		static constexpr uint16_t restrict_by_culture = 0x0001;
+		static constexpr uint16_t restrict_by_religion = 0x0002;
+		static constexpr uint16_t restrict_by_ideology = 0x0004;
+		static constexpr uint16_t restrict_by_culture_group = 0x0008;
+		static constexpr uint16_t break_alliance_on_win = 0x0080;
+
+		static constexpr uint16_t area_mask = 0x0070;
+
+		static constexpr uint16_t area_all = 0x0000;
+		static constexpr uint16_t area_nation = 0x0010;
+		static constexpr uint16_t area_culture = 0x0020;
+		static constexpr uint16_t area_nation_culture = 0x0030;
+		static constexpr uint16_t area_nation_religion = 0x0040;
+		static constexpr uint16_t area_religion = 0x0050;
+		static constexpr uint16_t area_culture_group = 0x0060;
+
+		static constexpr uint16_t defection_mask = 0x0700;
+
+		static constexpr uint16_t defection_none = 0x0000;
+		static constexpr uint16_t defection_culture = 0x0100;
+		static constexpr uint16_t defection_culture_group = 0x0200;
+		static constexpr uint16_t defection_religion = 0x0300;
+		static constexpr uint16_t defection_ideology = 0x0400;
+		static constexpr uint16_t defection_any = 0x0500;
+		static constexpr uint16_t defection_pan_nationalist = 0x0600;
+
+		static constexpr uint16_t independence_mask = 0x7000;
+
+		static constexpr uint16_t independence_none = 0x0000;
+		static constexpr uint16_t independence_culture = 0x1000;
+		static constexpr uint16_t independence_culture_group = 0x2000;
+		static constexpr uint16_t independence_religion = 0x3000;
+		static constexpr uint16_t independence_colonial = 0x4000;
+		static constexpr uint16_t independence_any = 0x5000;
+		static constexpr uint16_t independence_pan_nationalist = 0x6000;
+
+		float occupation_mult = 1.0f;
+
 		text_data::text_tag name;
+
+		modifiers::factor_tag spawn_chance;
+		modifiers::factor_tag will_rise;
+		triggers::trigger_tag siege_won_trigger;
+		triggers::effect_tag siege_won_effect;
+		triggers::trigger_tag demands_enforced_trigger;
+		triggers::effect_tag demands_enforced_effect;
+
+		uint16_t flags = 0ui16;
+
+		ideologies::ideology_tag ideology;
+
+		uint8_t icon = 0ui8;
 		rebel_type_tag id;
 	};
 
@@ -98,6 +150,8 @@ namespace population {
 		tagged_fixed_2dvector<modifiers::factor_tag, pop_type_tag, ideologies::ideology_tag> ideological_inclination;
 		tagged_fixed_2dvector<modifiers::factor_tag, pop_type_tag, pop_type_tag> promote_to;
 		tagged_fixed_2dvector<modifiers::factor_tag, pop_type_tag, pop_type_tag> demote_to;
+
+		tagged_fixed_2dvector<governments::government_tag, rebel_type_tag, governments::government_tag> rebel_change_government_to;
 
 		modifiers::factor_tag promotion_chance;
 		modifiers::factor_tag demotion_chance;

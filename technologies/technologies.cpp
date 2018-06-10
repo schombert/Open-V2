@@ -9,7 +9,7 @@
 namespace technologies {
 	struct parsing_environment{
 		text_data::text_sequences& text_lookup;
-		const directory& tech_directory;
+		const directory tech_directory;
 		technologies_manager& manager;
 		modifiers::modifiers_manager& mod_manager;
 
@@ -323,6 +323,7 @@ namespace technologies {
 			}
 #endif
 			env.s.technology_m.unit_type_adjustments.get(env.under_construction.id, ut) = p.second.attributes;
+			env.under_construction.flags |= technology::has_unit_adjustments;
 		}
 		void set_year(uint16_t v) {
 			env.under_construction.year = v;
@@ -398,6 +399,7 @@ namespace technologies {
 				throw bad_unit();
 #endif
 			}
+			env.under_construction.flags |= technology::has_unit_adjustments;
 		}
 		void deactivate_unit(const token_and_type& t) {
 			const auto name = text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end);
@@ -410,6 +412,7 @@ namespace technologies {
 				throw bad_unit();
 #endif
 			}
+			env.under_construction.flags |= technology::has_unit_adjustments;
 		}
 		void set_unciv_military(bool v) {
 			if(v)
@@ -442,6 +445,7 @@ namespace technologies {
 					env.s.technology_m.rebel_org_gain.get(env.under_construction.id, population::rebel_type_tag(i)) += v.value;
 				}
 			}
+			env.under_construction.flags |= technology::has_rebel_adjustments;
 		}
 		void set_max_national_focus(float v) {
 			env.under_construction.attributes[tech_offset::max_national_focus] = v;
@@ -451,54 +455,63 @@ namespace technologies {
 				env.s.technology_m.production_adjustments.get(
 					env.under_construction.id,
 					economy_tag_to_production_adjustment<production_adjustment::rgo_size>(p.first)) += p.second;
+			env.under_construction.flags |= technology::has_production_adjustments;
 		}
 		void set_factory_goods_input(const tech_goods_list& v) {
 			for(const auto& p : v.goods)
 				env.s.technology_m.production_adjustments.get(
 					env.under_construction.id,
 					economy_tag_to_production_adjustment<production_adjustment::factory_goods_input>(p.first)) += p.second;
+			env.under_construction.flags |= technology::has_production_adjustments;
 		}
 		void set_factory_goods_output(const tech_goods_list& v) {
 			for(const auto& p : v.goods)
 				env.s.technology_m.production_adjustments.get(
 					env.under_construction.id,
 					economy_tag_to_production_adjustment<production_adjustment::factory_goods_output>(p.first)) += p.second;
+			env.under_construction.flags |= technology::has_production_adjustments;
 		}
 		void set_factory_goods_throughput(const tech_goods_list& v) {
 			for(const auto& p : v.goods)
 				env.s.technology_m.production_adjustments.get(
 					env.under_construction.id,
 					economy_tag_to_production_adjustment<production_adjustment::factory_goods_throughput>(p.first)) += p.second;
+			env.under_construction.flags |= technology::has_production_adjustments;
 		}
 		void set_rgo_goods_output(const tech_goods_list& v) {
 			for(const auto& p : v.goods)
 				env.s.technology_m.production_adjustments.get(
 					env.under_construction.id,
 					economy_tag_to_production_adjustment<production_adjustment::rgo_goods_output>(p.first)) += p.second;
+			env.under_construction.flags |= technology::has_production_adjustments;
 		}
 		void set_rgo_goods_throughput(const tech_goods_list& v) {
 			for(const auto& p : v.goods)
 				env.s.technology_m.production_adjustments.get(
 					env.under_construction.id,
 					economy_tag_to_production_adjustment<production_adjustment::rgo_goods_throughput>(p.first)) += p.second;
+			env.under_construction.flags |= technology::has_production_adjustments;
 		}
 		void set_artisan_goods_input(const tech_goods_list& v) {
 			for(const auto& p : v.goods)
 				env.s.technology_m.production_adjustments.get(
 					env.under_construction.id,
 					economy_tag_to_production_adjustment<production_adjustment::artisan_goods_input>(p.first)) += p.second;
+			env.under_construction.flags |= technology::has_production_adjustments;
 		}
 		void set_artisan_goods_output(const tech_goods_list& v) {
 			for(const auto& p : v.goods)
 				env.s.technology_m.production_adjustments.get(
 					env.under_construction.id,
 					economy_tag_to_production_adjustment<production_adjustment::artisan_goods_output>(p.first)) += p.second;
+			env.under_construction.flags |= technology::has_production_adjustments;
 		}
 		void set_artisan_goods_throughput(const tech_goods_list& v) {
 			for(const auto& p : v.goods)
 				env.s.technology_m.production_adjustments.get(
 					env.under_construction.id,
 					economy_tag_to_production_adjustment<production_adjustment::artisan_goods_throughput>(p.first)) += p.second;
+			env.under_construction.flags |= technology::has_production_adjustments;
 		}
 		void set_war_exhaustion(float v) {
 			env.under_construction.attributes[tech_offset::war_exhaustion] = v;
@@ -822,16 +835,15 @@ namespace technologies {
 		parse_object<specific_tech_file, tech_subfile_pre_parsing_domain>(start, end, state);
 	}
 
-	void parse_main_technology_file(
-		technologies_manager& tech_manager,
-		std::vector<token_group>& parse_results,
-		text_data::text_sequences& text_function,
-		const directory& tech_root,
-		modifiers::modifiers_manager& mod_manager) {
+	void prepare_technologies_read(scenario::scenario_manager& s) {
+		const auto num_techs = s.technology_m.technologies_container.size();
 
-		parsing_environment e(text_function, tech_root, tech_manager, mod_manager);
-		if (parse_results.size() > 0)
-			parse_object<technologies_file, tech_parsing_domain>(&parse_results[0], &parse_results[0] + parse_results.size(), e);
+		s.technology_m.unit_type_adjustments.reset(static_cast<uint32_t>(s.military_m.unit_types.size()));
+		s.technology_m.unit_type_adjustments.resize(num_techs);
+		s.technology_m.rebel_org_gain.reset(static_cast<uint32_t>(s.population_m.rebel_types.size()));
+		s.technology_m.rebel_org_gain.resize(num_techs);
+		s.technology_m.production_adjustments.reset(s.economy_m.goods_count * uint32_t(production_adjustment::production_adjustment_count));
+		s.technology_m.production_adjustments.resize(num_techs);
 	}
 
 	void read_inventions(parsing_state const& state, scenario::scenario_manager& s) {
@@ -854,12 +866,11 @@ namespace technologies {
 		}
 	}
 
-	void parse_technologies(
+	void pre_parse_technologies(
 		parsing_state& state,
 		const directory& source_directory) {
 
 		const auto common_dir = source_directory.get_directory(u"\\common");
-		const auto tech_dir = source_directory.get_directory(u"\\technologies");
 
 		auto& main_results = state.impl->main_file_parse_tree;
 
