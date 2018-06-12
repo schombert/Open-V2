@@ -61,6 +61,11 @@ inline date_tag token_to<date_tag>(const token_and_type& in) {
 	return parse_date(in.start, in.end);
 }
 
+template<>
+inline token_and_type token_to<token_and_type>(const token_and_type& in) {
+	return in;
+}
+
 template<typename T>
 T* advance_position_to_non_whitespace(T* start, T* end) {
 	return std::find_if_not(start, end, ignorable_char);

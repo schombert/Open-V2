@@ -3,6 +3,8 @@
 #include "object_parsing\\object_parsing.hpp"
 #include "scenario\\scenario.h"
 #include "modifiers\\modifiers.h"
+#include "triggers\\trigger_reading.h"
+#include "triggers\\effect_reading.h"
 
 namespace population {
 	struct parsing_environment {
@@ -42,9 +44,20 @@ namespace population {
 		void add_rebel_type(int) {}
 	};
 
-	inline modifiers::factor_tag read_rebel_spawn_factor(const token_group* s, const token_group* e, scenario::scenario_manager& env) {
+	struct rebel_reading_env {
+		scenario::scenario_manager& s;
+		events::event_creation_manager& ecm;
+		rebel_type& under_construction;
+
+		rebel_reading_env(scenario::scenario_manager& sm, events::event_creation_manager& e, rebel_type& uc) : s(sm), ecm(e), under_construction(uc) {}
+	};
+
+	inline std::pair<token_and_type, token_and_type> get_tpair(token_and_type const& l, association_type, token_and_type const& r) {
+		return std::pair<token_and_type, token_and_type>(l, r);
+	}
+	inline modifiers::factor_tag read_rebel_spawn_factor(const token_group* s, const token_group* e, rebel_reading_env& env) {
 		return modifiers::parse_modifier_factors(
-			env,
+			env.s,
 			triggers::trigger_scope_state{
 				triggers::trigger_slot_contents::pop,
 				triggers::trigger_slot_contents::pop,
@@ -52,9 +65,19 @@ namespace population {
 				true },
 				1.0f, 0.0f, s, e);
 	}
-	inline modifiers::factor_tag read_rebel_will_rise_factor(const token_group* s, const token_group* e, scenario::scenario_manager& env) {
+	inline modifiers::factor_tag read_rebel_movement_evaluation_factor(const token_group* s, const token_group* e, rebel_reading_env& env) {
 		return modifiers::parse_modifier_factors(
-			env,
+			env.s,
+			triggers::trigger_scope_state{
+				triggers::trigger_slot_contents::province,
+				triggers::trigger_slot_contents::province,
+				triggers::trigger_slot_contents::empty,
+				true },
+				1.0f, 0.0f, s, e);
+	}
+	inline modifiers::factor_tag read_rebel_will_rise_factor(const token_group* s, const token_group* e, rebel_reading_env& env) {
+		return modifiers::parse_modifier_factors(
+			env.s,
 			triggers::trigger_scope_state{
 				triggers::trigger_slot_contents::nation,
 				triggers::trigger_slot_contents::nation,
@@ -62,10 +85,189 @@ namespace population {
 				true },
 				1.0f, 0.0f, s, e);
 	}
+	inline int discard_rebel_section(const token_group*, const token_group*, rebel_reading_env&) { return 0; }
+	inline triggers::trigger_tag read_rebel_siege_won_trigger(const token_group* s, const token_group* e, rebel_reading_env& env) {
+		const auto td = triggers::parse_trigger(env.s,
+			triggers::trigger_scope_state{
+				triggers::trigger_slot_contents::province,
+				triggers::trigger_slot_contents::province,
+				triggers::trigger_slot_contents::empty,
+				true }, s, e);
+		return triggers::commit_trigger(env.s.trigger_m, td);
+	}
+	inline triggers::effect_tag read_rebel_siege_won_effect(const token_group* s, const token_group* e, rebel_reading_env& env) {
+		const auto td = triggers::parse_effect(env.s, env.ecm,
+			triggers::trigger_scope_state{
+				triggers::trigger_slot_contents::province,
+				triggers::trigger_slot_contents::province,
+				triggers::trigger_slot_contents::empty,
+				true }, s, e);
+		return triggers::commit_effect(env.s.trigger_m, td);
+	}
+	inline triggers::trigger_tag read_rebel_demands_enforced_trigger(const token_group* s, const token_group* e, rebel_reading_env& env) {
+		const auto td = triggers::parse_trigger(env.s,
+			triggers::trigger_scope_state{
+				triggers::trigger_slot_contents::nation,
+				triggers::trigger_slot_contents::nation,
+				triggers::trigger_slot_contents::empty,
+				true }, s, e);
+		return triggers::commit_trigger(env.s.trigger_m, td);
+	}
+	inline triggers::effect_tag read_rebel_demands_enforced_effect(const token_group* s, const token_group* e, rebel_reading_env& env) {
+		const auto td = triggers::parse_effect(env.s, env.ecm,
+			triggers::trigger_scope_state{
+				triggers::trigger_slot_contents::nation,
+				triggers::trigger_slot_contents::nation,
+				triggers::trigger_slot_contents::empty,
+				true }, s, e);
+		return triggers::commit_effect(env.s.trigger_m, td);
+	}
+#ifdef _DEBUG
+	struct bad_government {};
+	struct bad_area {};
+	struct bad_defection {};
+	struct bad_independence {};
+#endif
+	struct rebel_gov_reader {
+		rebel_reading_env& env;
+
+		rebel_gov_reader(rebel_reading_env& e) : env(e) {}
+		void add_gov(std::pair<token_and_type, token_and_type> const& p) {
+			const auto l_name = text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, p.first.start, p.first.end);
+			const auto l_gtag = tag_from_text(env.s.governments_m.named_government_index, l_name);
+
+			const auto r_name = text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, p.second.start, p.second.end);
+			const auto r_gtag = tag_from_text(env.s.governments_m.named_government_index, r_name);
+#ifdef _DEBUG
+			if(!is_valid_index(l_gtag) | !is_valid_index(r_gtag))
+				throw bad_government();
+#endif
+			env.s.population_m.rebel_change_government_to.get(env.under_construction.id, l_gtag) = r_gtag;
+		}
+	};
 
 	struct rebel_reader {
-		scenario::scenario_manager& s;
-		rebel_reader(scenario::scenario_manager& o) : s(o) {}
+		rebel_reading_env& env;
+
+		rebel_reader(rebel_reading_env& e) : env(e) {}
+
+		void set_icon(uint8_t v) {
+			env.under_construction.icon = v;
+		}
+		void discard(int) {}
+		void set_will_rise(modifiers::factor_tag t) {
+			env.under_construction.will_rise = t;
+		}
+		void set_allow_all_cultures(bool v) {
+			if(!v)
+				env.under_construction.flags |= rebel_type::restrict_by_culture;
+		}
+		void set_allow_all_religions(bool v) {
+			if(!v)
+				env.under_construction.flags |= rebel_type::restrict_by_religion;
+		}
+		void set_allow_all_culture_groups(bool v) {
+			if(!v)
+				env.under_construction.flags |= rebel_type::restrict_by_culture_group;
+		}
+		void set_allow_all_ideologies(bool v) {
+			if(!v)
+				env.under_construction.flags |= rebel_type::restrict_by_ideology;
+		}
+		void set_break_alliance_on_win(bool v) {
+			if(v)
+				env.under_construction.flags |= rebel_type::break_alliance_on_win;
+		}
+		void set_ideology(const token_and_type& t) {
+			const auto name = text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end);
+			const auto itag = tag_from_text(env.s.ideologies_m.named_ideology_index, name);
+			env.under_construction.ideology = itag;
+		}
+		void set_spawn_chance(modifiers::factor_tag t) {
+			env.under_construction.spawn_chance = t;
+		}
+		void set_movement_evaluation(modifiers::factor_tag t) {
+			env.under_construction.movement_evaluation = t;
+		}
+		void read_government(rebel_gov_reader const&) {}
+		void set_area(const token_and_type& t) {
+			if(is_fixed_token_ci(t, "nation"))
+				env.under_construction.flags |= rebel_type::area_nation;
+			else if(is_fixed_token_ci(t, "culture"))
+				env.under_construction.flags |= rebel_type::area_culture;
+			else if(is_fixed_token_ci(t, "nation_culture"))
+				env.under_construction.flags |= rebel_type::area_nation_culture;
+			else if(is_fixed_token_ci(t, "nation_religion"))
+				env.under_construction.flags |= rebel_type::area_nation_religion;
+			else if(is_fixed_token_ci(t, "religion"))
+				env.under_construction.flags |= rebel_type::area_religion;
+			else if(is_fixed_token_ci(t, "culture_group"))
+				env.under_construction.flags |= rebel_type::area_culture_group;
+			else if(is_fixed_token_ci(t, "all"))
+				env.under_construction.flags |= rebel_type::area_all;
+#ifdef _DEBUG
+			else
+				throw bad_area();
+#endif
+		}
+		void set_defection(const token_and_type& t) {
+			if(is_fixed_token_ci(t, "ideology"))
+				env.under_construction.flags |= rebel_type::defection_ideology;
+			else if(is_fixed_token_ci(t, "culture"))
+				env.under_construction.flags |= rebel_type::defection_culture;
+			else if(is_fixed_token_ci(t, "any"))
+				env.under_construction.flags |= rebel_type::defection_any;
+			else if(is_fixed_token_ci(t, "none"))
+				env.under_construction.flags |= rebel_type::defection_none;
+			else if(is_fixed_token_ci(t, "religion"))
+				env.under_construction.flags |= rebel_type::defection_religion;
+			else if(is_fixed_token_ci(t, "culture_group"))
+				env.under_construction.flags |= rebel_type::defection_culture_group;
+			else if(is_fixed_token_ci(t, "pan_nationalist"))
+				env.under_construction.flags |= rebel_type::defection_pan_nationalist;
+#ifdef _DEBUG
+			else
+				throw bad_defection();
+#endif
+		}
+		void set_independence(const token_and_type& t) {
+			if(is_fixed_token_ci(t, "colonial"))
+				env.under_construction.flags |= rebel_type::independence_colonial;
+			else if(is_fixed_token_ci(t, "culture"))
+				env.under_construction.flags |= rebel_type::independence_culture;
+			else if(is_fixed_token_ci(t, "any"))
+				env.under_construction.flags |= rebel_type::independence_any;
+			else if(is_fixed_token_ci(t, "none"))
+				env.under_construction.flags |= rebel_type::independence_none;
+			else if(is_fixed_token_ci(t, "religion"))
+				env.under_construction.flags |= rebel_type::independence_religion;
+			else if(is_fixed_token_ci(t, "culture_group"))
+				env.under_construction.flags |= rebel_type::independence_culture_group;
+			else if(is_fixed_token_ci(t, "pan_nationalist"))
+				env.under_construction.flags |= rebel_type::independence_pan_nationalist;
+#ifdef _DEBUG
+			else
+				throw bad_independence();
+#endif
+		}
+		void set_defect_delay(uint8_t v) {
+			env.under_construction.defect_delay = v;
+		}
+		void set_siege_won_effect(triggers::effect_tag t) {
+			env.under_construction.siege_won_effect = t;
+		}
+		void set_siege_won_trigger(triggers::trigger_tag t) {
+			env.under_construction.siege_won_trigger = t;
+		}
+		void set_demands_enforced_effect(triggers::effect_tag t) {
+			env.under_construction.demands_enforced_effect = t;
+		}
+		void set_demands_enforced_trigger(triggers::trigger_tag t) {
+			env.under_construction.demands_enforced_trigger = t;
+		}
+		void set_occupation_mult(float v) {
+			env.under_construction.occupation_mult = v;
+		}
 	};
 
 	struct single_poptype_environment {
@@ -404,6 +606,29 @@ namespace population {
 	};
 }
 
+MEMBER_FDEF(population::rebel_gov_reader, add_gov, "gov");
+MEMBER_FDEF(population::rebel_reader, set_icon, "icon");
+MEMBER_FDEF(population::rebel_reader, discard, "discard");
+MEMBER_FDEF(population::rebel_reader, set_will_rise, "will_rise");
+MEMBER_FDEF(population::rebel_reader, set_movement_evaluation, "movement_evaluation");
+MEMBER_FDEF(population::rebel_reader, set_allow_all_cultures, "allow_all_cultures");
+MEMBER_FDEF(population::rebel_reader, set_allow_all_religions, "allow_all_religions");
+MEMBER_FDEF(population::rebel_reader, set_allow_all_culture_groups, "allow_all_culture_groups");
+MEMBER_FDEF(population::rebel_reader, set_allow_all_ideologies, "allow_all_ideologies");
+MEMBER_FDEF(population::rebel_reader, set_break_alliance_on_win, "break_alliance_on_win");
+MEMBER_FDEF(population::rebel_reader, set_ideology, "ideology");
+MEMBER_FDEF(population::rebel_reader, set_spawn_chance, "spawn_chance");
+MEMBER_FDEF(population::rebel_reader, read_government, "government");
+MEMBER_FDEF(population::rebel_reader, set_area, "area");
+MEMBER_FDEF(population::rebel_reader, set_defection, "defection");
+MEMBER_FDEF(population::rebel_reader, set_independence, "independence");
+MEMBER_FDEF(population::rebel_reader, set_defect_delay, "defect_delay");
+MEMBER_FDEF(population::rebel_reader, set_siege_won_effect, "siege_won_effect");
+MEMBER_FDEF(population::rebel_reader, set_siege_won_trigger, "siege_won_trigger");
+MEMBER_FDEF(population::rebel_reader, set_demands_enforced_effect, "demands_enforced_effect");
+MEMBER_FDEF(population::rebel_reader, set_demands_enforced_trigger, "demands_enforced_trigger");
+MEMBER_FDEF(population::rebel_reader, set_occupation_mult, "occupation_mult");
+
 MEMBER_FDEF(population::rebel_types_pre_parse_file, add_rebel_type, "add_rebel_type");
 MEMBER_FDEF(population::poptypes_file, set_promotion_chance, "promotion_chance");
 MEMBER_FDEF(population::poptypes_file, set_demotion_chance, "demotion_chance");
@@ -412,7 +637,6 @@ MEMBER_FDEF(population::poptypes_file, set_colonialmigration_chance, "colonialmi
 MEMBER_FDEF(population::poptypes_file, set_emigration_chance, "emigration_chance");
 MEMBER_FDEF(population::poptypes_file, set_assimilation_chance, "assimilation_chance");
 MEMBER_FDEF(population::poptypes_file, set_conversion_chance, "conversion_chance");
-
 
 MEMBER_FDEF(population::income, set_type, "type");
 MEMBER_DEF(population::income, weight, "weight");
@@ -451,6 +675,39 @@ MEMBER_FDEF(population::poptype_promote_to, discard, "discard");
 
 
 namespace population {
+	BEGIN_DOMAIN(single_rebel_domain)
+		BEGIN_TYPE(rebel_gov_reader)
+			MEMBER_VARIABLE_ASSOCIATION("gov", accept_all, get_tpair)
+		END_TYPE
+		BEGIN_TYPE(rebel_reader)
+			MEMBER_ASSOCIATION("icon", "icon", value_from_rh<uint8_t>)
+			MEMBER_ASSOCIATION("discard", "unit_transfer", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "general", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "resilient", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "reinforcing", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "smart", discard_from_rh)
+			MEMBER_TYPE_EXTERN("will_rise", "will_rise", modifiers::factor_tag, read_rebel_will_rise_factor)
+			MEMBER_TYPE_EXTERN("spawn_chance", "spawn_chance", modifiers::factor_tag, read_rebel_spawn_factor)
+			MEMBER_TYPE_EXTERN("movement_evaluation", "movement_evaluation", modifiers::factor_tag, read_rebel_movement_evaluation_factor)
+			MEMBER_ASSOCIATION("allow_all_cultures", "allow_all_cultures", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("allow_all_religions", "allow_all_religions", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("allow_all_culture_groups", "allow_all_culture_groups", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("allow_all_ideologies", "allow_all_ideologies", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("break_alliance_on_win", "break_alliance_on_win", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("ideology", "ideology", token_from_rh)
+			MEMBER_ASSOCIATION("area", "area", token_from_rh)
+			MEMBER_ASSOCIATION("defection", "defection", token_from_rh)
+			MEMBER_ASSOCIATION("independence", "independence", token_from_rh)
+			MEMBER_ASSOCIATION("defect_delay", "defect_delay", value_from_rh<uint8_t>)
+			MEMBER_ASSOCIATION("occupation_mult", "occupation_mult", value_from_rh<float>)
+			MEMBER_TYPE_EXTERN("siege_won_trigger", "siege_won_trigger", triggers::trigger_tag, read_rebel_siege_won_trigger)
+			MEMBER_TYPE_EXTERN("siege_won_effect", "siege_won_effect", triggers::trigger_tag, read_rebel_siege_won_effect)
+			MEMBER_TYPE_EXTERN("demands_enforced_trigger", "demands_enforced_trigger", triggers::trigger_tag, read_rebel_demands_enforced_trigger)
+			MEMBER_TYPE_EXTERN("demands_enforced_effect", "demands_enforced_effect", triggers::trigger_tag, read_rebel_demands_enforced_effect)
+			MEMBER_TYPE_ASSOCIATION("government", "government", rebel_gov_reader)
+		END_TYPE
+	END_DOMAIN;
+	
 	BEGIN_DOMAIN(poptype_file_domain)
 		BEGIN_TYPE(color_builder)
 		MEMBER_VARIABLE_ASSOCIATION("color", accept_all, value_from_lh<int>)
@@ -604,8 +861,8 @@ namespace population {
 
 			if(main_results.parse_results.size() > 0) {
 				parse_object<poptypes_file, poptypes_file_domain>(
-					&main_results.parse_results[0],
-					&main_results.parse_results[0] + main_results.parse_results.size(),
+					main_results.parse_results.data(),
+					main_results.parse_results.data() + main_results.parse_results.size(),
 					s);
 			}
 		}
@@ -702,6 +959,28 @@ namespace population {
 				}
 				
 			}
+		}
+	}
+
+	void read_rebel_types(parsing_state const& state, scenario::scenario_manager& s, events::event_creation_manager& ecm) {
+		const uint32_t num_governments = static_cast<uint32_t>(s.governments_m.governments_container.size());
+		const uint32_t num_rebels = static_cast<uint32_t>(s.population_m.rebel_types.size());
+
+		s.population_m.rebel_change_government_to.reset(num_governments);
+		s.population_m.rebel_change_government_to.resize(num_rebels);
+		for(uint32_t i = 0; i < num_rebels; ++i) {
+			for(uint32_t j = 0; j < num_governments; ++j) {
+				s.population_m.rebel_change_government_to.get(
+					rebel_type_tag(static_cast<rebel_type_tag::value_base_t>(i)),
+					governments::government_tag(static_cast<governments::government_tag::value_base_t>(j))) = 
+					governments::government_tag(static_cast<governments::government_tag::value_base_t>(j));
+			}
+		}
+
+		for(auto const& t : state.impl->pending_rebels) {
+			rebel_type& reb = s.population_m.rebel_types[std::get<0>(t)];
+			rebel_reading_env env(s, ecm, reb);
+			parse_object<rebel_reader, single_rebel_domain>(std::get<1>(t), std::get<2>(t), env);
 		}
 	}
 }

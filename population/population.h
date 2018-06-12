@@ -11,6 +11,9 @@
 namespace scenario {
 	class scenario_manager;
 }
+namespace events {
+	struct event_creation_manager;
+}
 
 namespace population {
 
@@ -100,6 +103,7 @@ namespace population {
 
 		modifiers::factor_tag spawn_chance;
 		modifiers::factor_tag will_rise;
+		modifiers::factor_tag movement_evaluation;
 		triggers::trigger_tag siege_won_trigger;
 		triggers::effect_tag siege_won_effect;
 		triggers::trigger_tag demands_enforced_trigger;
@@ -109,6 +113,7 @@ namespace population {
 
 		ideologies::ideology_tag ideology;
 
+		uint8_t defect_delay = 12ui8;
 		uint8_t icon = 0ui8;
 		rebel_type_tag id;
 	};
@@ -201,5 +206,6 @@ namespace population {
 
 	void read_main_poptype_file(scenario::scenario_manager& s, const directory& root);
 	void read_poptypes(scenario::scenario_manager& s, const directory& root);
+	void read_rebel_types(parsing_state const& state, scenario::scenario_manager& s, events::event_creation_manager& ecm);
 	void populate_demote_to(population_manager& m);
 }

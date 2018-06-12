@@ -4,6 +4,10 @@
 #include "economy\\economy.h"
 #include "text_data\\text_data.h"
 #include "sound\\sound.h"
+#include "events\\events.h"
+#include "scenario\\scenario.h"
+#include "triggers\\trigger_reading.h"
+#include "triggers\\effect_reading.h"
 
 namespace military {
 	struct parsing_environment {
@@ -13,7 +17,8 @@ namespace military {
 
 		parsed_data cb_file;
 		std::vector<parsed_data> unit_type_files;
-		std::vector<std::tuple<unit_type_tag, const token_group*, const token_group*>> pending_unit_parse;
+		std::vector<std::tuple<unit_type_tag, token_group const*, token_group const*>> pending_unit_parse;
+		std::vector<std::tuple<cb_type_tag, token_group const*, token_group const*>> pending_cb_parse;
 
 		parsing_environment(text_data::text_sequences& tl, military_manager& m) :
 			text_lookup(tl), manager(m) {
@@ -26,6 +31,203 @@ namespace military {
 	parsing_state::~parsing_state() {}
 
 	parsing_state::parsing_state(parsing_state&& o) noexcept : impl(std::move(o.impl)) {}
+
+
+	struct cb_environment {
+		scenario::scenario_manager& s;
+		events::event_creation_manager& ecm;
+		cb_type& under_construction;
+
+		cb_environment(scenario::scenario_manager& sm, events::event_creation_manager& e, cb_type& uc) : s(sm), ecm(e), under_construction(uc) {}
+	};
+
+	inline triggers::trigger_tag read_cb_state_trigger(token_group const* s, token_group const* e, cb_environment& env) {
+		const auto td = triggers::parse_trigger(env.s,
+			triggers::trigger_scope_state{
+				triggers::trigger_slot_contents::state,
+				triggers::trigger_slot_contents::nation,
+				triggers::trigger_slot_contents::nation, false }, s, e);
+		return triggers::commit_trigger(env.s.trigger_m, td);
+	}
+	inline triggers::trigger_tag read_cb_nation_trigger(token_group const* s, token_group const* e, cb_environment& env) {
+		const auto td = triggers::parse_trigger(env.s,
+			triggers::trigger_scope_state{
+				triggers::trigger_slot_contents::nation,
+				triggers::trigger_slot_contents::nation,
+				triggers::trigger_slot_contents::nation, false }, s, e);
+		return triggers::commit_trigger(env.s.trigger_m, td);
+	}
+
+	inline triggers::effect_tag read_cb_nation_effect(token_group const* s, token_group const* e, cb_environment& env) {
+		const auto td = triggers::parse_effect(env.s, env.ecm,
+			triggers::trigger_scope_state{
+				triggers::trigger_slot_contents::nation,
+				triggers::trigger_slot_contents::nation,
+				triggers::trigger_slot_contents::nation, false }, s, e);
+		return triggers::commit_effect(env.s.trigger_m, td);
+	}
+	inline int discard_section(token_group const*, token_group const*, cb_environment&) {
+		return 0;
+	}
+
+	struct single_cb {
+		cb_environment& env;
+		single_cb(cb_environment& e) : env(e) {
+			static const char free_peoples[] = "free_peoples";
+			static const char liberate_country[] = "liberate_country";
+			static const auto lib_name_a = text_data::get_thread_safe_text_handle(e.s.gui_m.text_data_sequences, free_peoples, free_peoples + sizeof(free_peoples) - 1);
+			static const auto lib_name_b = text_data::get_thread_safe_text_handle(e.s.gui_m.text_data_sequences, liberate_country, liberate_country + sizeof(liberate_country) - 1);
+			
+			if((e.under_construction.name == lib_name_a) | (e.under_construction.name == lib_name_b))
+				e.under_construction.flags |= cb_type::po_liberate;
+		}
+		void set_is_civil_war(bool v) {
+			if(v) env.under_construction.flags |= cb_type::is_civil_war;
+		}
+		void set_months(uint8_t v) {
+			env.under_construction.months = v;
+		}
+		void set_sprite_index(uint8_t v) {
+			env.under_construction.sprite_index = v;
+		}
+		void set_always(bool v) {
+			if(v) env.under_construction.flags |= cb_type::always;
+		}
+		void set_is_triggered_only(bool v) {
+			if(!v) env.under_construction.flags |= cb_type::is_not_triggered_only;
+		}
+		void set_constructing_cb(bool v) {
+			if(v) env.under_construction.flags |= cb_type::is_not_constructing_cb;
+		}
+		void set_allowed_states(triggers::trigger_tag t) {
+			env.under_construction.allowed_states = t;
+		}
+		void set_allowed_states_in_crisis(triggers::trigger_tag t) {
+			env.under_construction.allowed_states_in_crisis = t;
+		}
+		void set_allowed_substate_regions(triggers::trigger_tag t) {
+			env.under_construction.allowed_substate_regions = t;
+		}
+		void set_allowed_countries(triggers::trigger_tag t) {
+			env.under_construction.allowed_countries = t;
+		}
+		void set_can_use(triggers::trigger_tag t) {
+			env.under_construction.can_use = t;
+		}
+		void set_on_add(triggers::effect_tag t) {
+			env.under_construction.on_add = t;
+		}
+		void set_on_po_accepted(triggers::effect_tag t) {
+			env.under_construction.on_po_accepted = t;
+		}
+		void set_badboy_factor(float v) {
+			env.under_construction.badboy_factor = v;
+		}
+		void set_prestige_factor(float v) {
+			env.under_construction.prestige_factor = v;
+		}
+		void set_peace_cost_factor(float v) {
+			env.under_construction.peace_cost_factor = v;
+		}
+		void set_penalty_factor(float v) {
+			env.under_construction.penalty_factor = v;
+		}
+		void set_break_truce_prestige_factor(float v) {
+			env.under_construction.break_truce_prestige_factor = v;
+		}
+		void set_break_truce_infamy_factor(float v) {
+			env.under_construction.break_truce_infamy_factor = v;
+		}
+		void set_break_truce_militancy_factor(float v) {
+			env.under_construction.break_truce_militancy_factor = v;
+		}
+		void set_good_relation_prestige_factor(float v) {
+			env.under_construction.good_relation_prestige_factor = v;
+		}
+		void set_good_relation_infamy_factor(float v) {
+			env.under_construction.good_relation_infamy_factor = v;
+		}
+		void set_good_relation_militancy_factor(float v) {
+			env.under_construction.good_relation_militancy_factor = v;
+		}
+		void set_truce_months(uint8_t v) {
+			env.under_construction.truce_months = v;
+		}
+		void set_war_name(token_and_type const& t) {
+			env.under_construction.war_name = text_data::get_thread_safe_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end);
+		}
+		void set_construction_speed(float v) {
+			env.under_construction.construction_speed = v;
+		}
+		void set_tws_battle_factor(float v) {
+			env.under_construction.tws_battle_factor = v;
+		}
+		void set_great_war_obligatory(bool v) {
+			if(v) env.under_construction.flags |= cb_type::great_war_obligatory;
+		}
+		void set_all_allowed_states(bool v) {
+			if(v) env.under_construction.flags |= cb_type::all_allowed_states;
+		}
+		void set_crisis(bool v) {
+			if(!v) env.under_construction.flags |= cb_type::not_in_crisis;
+		}
+		void set_po_clear_union_sphere(bool v) {
+			if(v) env.under_construction.flags |= cb_type::po_clear_union_sphere;
+		}
+		void set_po_gunboat(bool v) {
+			if(v) env.under_construction.flags |= cb_type::po_gunboat;
+		}
+		void set_po_annex(bool v) {
+			if(v) env.under_construction.flags |= cb_type::po_annex;
+		}
+		void set_po_demand_state(bool v) {
+			if(v) env.under_construction.flags |= cb_type::po_demand_state;
+		}
+		void set_po_add_to_sphere(bool v) {
+			if(v) env.under_construction.flags |= cb_type::po_add_to_sphere;
+		}
+		void set_po_disarmament(bool v) {
+			if(v) env.under_construction.flags |= cb_type::po_disarmament;
+		}
+		void set_po_reparations(bool v) {
+			if(v) env.under_construction.flags |= cb_type::po_reparations;
+		}
+		void set_po_transfer_provinces(bool v) {
+			if(v) env.under_construction.flags |= cb_type::po_transfer_provinces;
+		}
+		void set_po_remove_prestige(bool v) {
+			if(v) env.under_construction.flags |= cb_type::po_remove_prestige;
+		}
+		void set_po_make_puppet(bool v) {
+			if(v) env.under_construction.flags |= cb_type::po_make_puppet;
+		}
+		void set_po_release_puppet(bool v) {
+			if(v) env.under_construction.flags |= cb_type::po_release_puppet;
+		}
+		void set_po_status_quo(bool v) {
+			if(v) env.under_construction.flags |= cb_type::po_status_quo;
+		}
+		void set_po_install_communist_gov_type(bool v) {
+			if(v) env.under_construction.flags |= cb_type::po_install_communist_gov_type;
+		}
+		void set_po_uninstall_communist_gov_type(bool v) {
+			if(v) env.under_construction.flags |= cb_type::po_uninstall_communist_gov_type;
+		}
+		void set_po_remove_cores(bool v) {
+			if(v) env.under_construction.flags |= cb_type::po_remove_cores;
+		}
+		void set_po_colony(bool v) {
+			if(v) env.under_construction.flags |= cb_type::po_colony;
+		}
+		void set_po_destroy_forts(bool v) {
+			if(v) env.under_construction.flags |= cb_type::po_destroy_forts;
+		}
+		void set_po_destroy_naval_bases(bool v) {
+			if(v) env.under_construction.flags |= cb_type::po_destroy_naval_bases;
+		}
+		void discard(int) {}
+	};
+
 
 	struct unit_file {
 		parsing_environment& env;
@@ -42,6 +244,22 @@ namespace military {
 		env.manager.named_unit_type_index.emplace(uname, uid);
 		env.pending_unit_parse.emplace_back(uid, start, end);
 
+		return 0;
+	}
+
+	inline int register_cb_type(token_group const* start, token_group const* end, token_and_type const& t, parsing_environment& env) {
+		const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
+		const auto cbtag = tag_from_text(env.manager.named_cb_type_index, name);
+		if(!is_valid_index(cbtag)) {
+			auto const cbid = env.manager.cb_types.emplace_back();
+			env.manager.cb_types[cbid].id = cbid;
+			env.manager.cb_types[cbid].name = name;
+			env.manager.named_cb_type_index.emplace(name, cbid);
+
+			env.pending_cb_parse.emplace_back(cbid, start, end);
+		} else {
+			env.pending_cb_parse.emplace_back(cbtag, start, end);
+		}
 		return 0;
 	}
 
@@ -62,22 +280,8 @@ namespace military {
 		parsing_environment& env;
 		cb_file(parsing_environment& e) : env(e) {}
 		void accept_peace_order(const peace_order&) {}
-		void add_cb(const token_and_type& t) {
-			const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
-			if (0 == env.manager.named_cb_type_index.count(name)) {
-				const auto cbid = env.manager.cb_types.emplace_back();
-				env.manager.cb_types[cbid].id = cbid;
-				env.manager.cb_types[cbid].name = name;
-				env.manager.named_cb_type_index.emplace(name, cbid);
-			}
-		}
+		void add_cb(int) {}
 	};
-	struct empty_type {
-		void add_unknown_key(int) {
-		}
-	};
-	inline token_and_type name_empty_type(const token_and_type& t, association_type, const empty_type&) { return t; }
-	inline int discard_empty_type(const token_and_type&, association_type, const empty_type&) { return 0; }
 
 	struct trait {
 		float organisation = 0.0f;
@@ -311,11 +515,60 @@ namespace military {
 	};
 }
 
+MEMBER_FDEF(military::single_cb, discard, "discard");
+MEMBER_FDEF(military::single_cb, set_is_civil_war, "is_civil_war");
+MEMBER_FDEF(military::single_cb, set_months, "months");
+MEMBER_FDEF(military::single_cb, set_truce_months, "truce_months");
+MEMBER_FDEF(military::single_cb, set_sprite_index, "sprite_index");
+MEMBER_FDEF(military::single_cb, set_always, "always");
+MEMBER_FDEF(military::single_cb, set_is_triggered_only, "is_triggered_only");
+MEMBER_FDEF(military::single_cb, set_constructing_cb, "constructing_cb");
+MEMBER_FDEF(military::single_cb, set_allowed_states, "allowed_states");
+MEMBER_FDEF(military::single_cb, set_allowed_states_in_crisis, "allowed_states_in_crisis");
+MEMBER_FDEF(military::single_cb, set_allowed_substate_regions, "allowed_substate_regions");
+MEMBER_FDEF(military::single_cb, set_allowed_countries, "allowed_countries");
+MEMBER_FDEF(military::single_cb, set_can_use, "can_use");
+MEMBER_FDEF(military::single_cb, set_on_add, "on_add");
+MEMBER_FDEF(military::single_cb, set_on_po_accepted, "on_po_accepted");
+MEMBER_FDEF(military::single_cb, set_badboy_factor, "badboy_factor");
+MEMBER_FDEF(military::single_cb, set_prestige_factor, "prestige_factor");
+MEMBER_FDEF(military::single_cb, set_peace_cost_factor, "peace_cost_factor");
+MEMBER_FDEF(military::single_cb, set_penalty_factor, "penalty_factor");
+MEMBER_FDEF(military::single_cb, set_break_truce_prestige_factor, "break_truce_prestige_factor");
+MEMBER_FDEF(military::single_cb, set_break_truce_infamy_factor, "break_truce_infamy_factor");
+MEMBER_FDEF(military::single_cb, set_break_truce_militancy_factor, "break_truce_militancy_factor");
+MEMBER_FDEF(military::single_cb, set_good_relation_prestige_factor, "good_relation_prestige_factor");
+MEMBER_FDEF(military::single_cb, set_good_relation_infamy_factor, "good_relation_infamy_factor");
+MEMBER_FDEF(military::single_cb, set_good_relation_militancy_factor, "good_relation_militancy_factor");
+MEMBER_FDEF(military::single_cb, set_war_name, "war_name");
+MEMBER_FDEF(military::single_cb, set_construction_speed, "construction_speed");
+MEMBER_FDEF(military::single_cb, set_tws_battle_factor, "tws_battle_factor");
+MEMBER_FDEF(military::single_cb, set_great_war_obligatory, "great_war_obligatory");
+MEMBER_FDEF(military::single_cb, set_all_allowed_states, "all_allowed_states");
+MEMBER_FDEF(military::single_cb, set_crisis, "crisis");
+MEMBER_FDEF(military::single_cb, set_po_clear_union_sphere, "po_clear_union_sphere");
+MEMBER_FDEF(military::single_cb, set_po_gunboat, "po_gunboat");
+MEMBER_FDEF(military::single_cb, set_po_annex, "po_annex");
+MEMBER_FDEF(military::single_cb, set_po_demand_state, "po_demand_state");
+MEMBER_FDEF(military::single_cb, set_po_add_to_sphere, "po_add_to_sphere");
+MEMBER_FDEF(military::single_cb, set_po_disarmament, "po_disarmament");
+MEMBER_FDEF(military::single_cb, set_po_reparations, "po_reparations");
+MEMBER_FDEF(military::single_cb, set_po_transfer_provinces, "po_transfer_provinces");
+MEMBER_FDEF(military::single_cb, set_po_remove_prestige, "po_remove_prestige");
+MEMBER_FDEF(military::single_cb, set_po_make_puppet, "po_make_puppet");
+MEMBER_FDEF(military::single_cb, set_po_release_puppet, "po_release_puppet");
+MEMBER_FDEF(military::single_cb, set_po_status_quo, "po_status_quo");
+MEMBER_FDEF(military::single_cb, set_po_install_communist_gov_type, "po_install_communist_gov_type");
+MEMBER_FDEF(military::single_cb, set_po_uninstall_communist_gov_type, "po_uninstall_communist_gov_type");
+MEMBER_FDEF(military::single_cb, set_po_remove_cores, "po_remove_cores");
+MEMBER_FDEF(military::single_cb, set_po_colony, "po_colony");
+MEMBER_FDEF(military::single_cb, set_po_destroy_forts, "po_destroy_forts");
+MEMBER_FDEF(military::single_cb, set_po_destroy_naval_bases, "po_destroy_naval_bases");
+
 MEMBER_FDEF(military::cb_file, add_cb, "add_cb");
 MEMBER_FDEF(military::cb_file, accept_peace_order, "peace_order");
 MEMBER_FDEF(military::peace_order, add_cb, "add_cb");
 MEMBER_FDEF(military::unit_file, add_unit, "add_unit");
-MEMBER_FDEF(military::empty_type, add_unknown_key, "unknown_key");
 MEMBER_DEF(military::trait, organisation, "organisation");
 MEMBER_DEF(military::trait, morale, "morale");
 MEMBER_DEF(military::trait, attack, "attack");
@@ -363,6 +616,61 @@ MEMBER_FDEF(military::unit_type_reader, set_limit_per_port, "limit_per_port");
 MEMBER_FDEF(military::unit_type_reader, set_supply_consumption_score, "supply_consumption_score");
 
 namespace military {
+	BEGIN_DOMAIN(single_cb_domain)
+		BEGIN_TYPE(single_cb)
+			MEMBER_ASSOCIATION("is_civil_war","is_civil_war",value_from_rh<bool>)
+			MEMBER_ASSOCIATION("months", "months", value_from_rh<uint8_t>)
+			MEMBER_ASSOCIATION("truce_months", "truce_months", value_from_rh<uint8_t>)
+			MEMBER_ASSOCIATION("sprite_index", "sprite_index", value_from_rh<uint8_t>)
+			MEMBER_ASSOCIATION("always", "always", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("is_triggered_only", "is_triggered_only", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("constructing_cb", "constructing_cb", value_from_rh<bool>)
+			MEMBER_TYPE_EXTERN("allowed_states", "allowed_states", triggers::trigger_tag, read_cb_state_trigger)
+			MEMBER_TYPE_EXTERN("allowed_states_in_crisis", "allowed_states_in_crisis", triggers::trigger_tag, read_cb_state_trigger)
+			MEMBER_TYPE_EXTERN("allowed_substate_regions", "allowed_substate_regions", triggers::trigger_tag, read_cb_state_trigger)
+			MEMBER_TYPE_EXTERN("allowed_countries", "allowed_countries", triggers::trigger_tag, read_cb_nation_trigger)
+			MEMBER_TYPE_EXTERN("can_use", "can_use", triggers::trigger_tag, read_cb_nation_trigger)
+			MEMBER_TYPE_EXTERN("on_add", "on_add", triggers::effect_tag, read_cb_nation_effect)
+			MEMBER_TYPE_EXTERN("on_po_accepted", "on_po_accepted", triggers::effect_tag, read_cb_nation_effect)
+			MEMBER_ASSOCIATION("badboy_factor", "badboy_factor", value_from_rh<float>)
+			MEMBER_ASSOCIATION("prestige_factor", "prestige_factor", value_from_rh<float>)
+			MEMBER_ASSOCIATION("peace_cost_factor", "peace_cost_factor", value_from_rh<float>)
+			MEMBER_ASSOCIATION("penalty_factor", "penalty_factor", value_from_rh<float>)
+			MEMBER_ASSOCIATION("break_truce_prestige_factor", "break_truce_prestige_factor", value_from_rh<float>)
+			MEMBER_ASSOCIATION("break_truce_infamy_factor", "break_truce_infamy_factor", value_from_rh<float>)
+			MEMBER_ASSOCIATION("break_truce_militancy_factor", "break_truce_militancy_factor", value_from_rh<float>)
+			MEMBER_ASSOCIATION("good_relation_prestige_factor", "good_relation_prestige_factor", value_from_rh<float>)
+			MEMBER_ASSOCIATION("good_relation_infamy_factor", "good_relation_infamy_factor", value_from_rh<float>)
+			MEMBER_ASSOCIATION("good_relation_militancy_factor", "good_relation_militancy_factor", value_from_rh<float>)
+			MEMBER_ASSOCIATION("war_name", "war_name", token_from_rh)
+			MEMBER_ASSOCIATION("construction_speed", "construction_speed", value_from_rh<float>)
+			MEMBER_ASSOCIATION("tws_battle_factor", "tws_battle_factor", value_from_rh<float>)
+			MEMBER_ASSOCIATION("great_war_obligatory", "great_war_obligatory", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("all_allowed_states", "all_allowed_states", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("crisis", "crisis", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("po_clear_union_sphere", "po_clear_union_sphere", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("po_gunboat", "po_gunboat", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("po_annex", "po_annex", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("po_demand_state", "po_demand_state", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("po_add_to_sphere", "po_add_to_sphere", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("po_disarmament", "po_disarmament", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("po_reparations", "po_reparations", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("po_transfer_provinces", "po_transfer_provinces", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("po_remove_prestige", "po_remove_prestige", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("po_make_puppet", "po_make_puppet", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("po_release_puppet", "po_release_puppet", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("po_status_quo", "po_status_quo", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("po_install_communist_gov_type", "po_install_communist_gov_type", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("po_uninstall_communist_gov_type", "po_uninstall_communist_gov_type", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("po_remove_cores", "po_remove_cores", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("po_colony", "po_colony", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("po_destroy_forts", "po_destroy_forts", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("po_destroy_naval_bases", "po_destroy_naval_bases", value_from_rh<bool>)
+			MEMBER_ASSOCIATION("discard", "mutual", discard_from_rh)
+			MEMBER_TYPE_EXTERN("discard", "is_valid", int, discard_section)
+		END_TYPE
+	END_DOMAIN;
+
 	BEGIN_DOMAIN(unit_type_parsing)
 		BEGIN_TYPE(unit_build_cost)
 		MEMBER_VARIABLE_ASSOCIATION("value", accept_all, get_econ_value)
@@ -427,13 +735,9 @@ namespace military {
 	END_DOMAIN;
 
 	BEGIN_DOMAIN(cb_types_pre_parsing_domain)
-		BEGIN_TYPE(empty_type)
-		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("unknown_key", accept_all, empty_type, discard_empty_type)
-		END_TYPE
 		BEGIN_TYPE(cb_file)
 		MEMBER_TYPE_ASSOCIATION("peace_order", "peace_order", peace_order)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("add_cb", accept_all, empty_type, name_empty_type)
+		MEMBER_VARIABLE_TYPE_EXTERN("add_cb", accept_all, int, register_cb_type)
 		END_TYPE
 		BEGIN_TYPE(peace_order)
 		MEMBER_VARIABLE_ASSOCIATION("add_cb", accept_all, token_from_lh)
@@ -464,6 +768,14 @@ namespace military {
 		MEMBER_ASSOCIATION("reliability", "reliability", value_from_rh<traits::value_type>)
 		END_TYPE
 	END_DOMAIN;
+
+
+	void read_cb_types(parsing_state const& state, scenario::scenario_manager& s, events::event_creation_manager& ecm) {
+		for(auto const& t : state.impl->pending_cb_parse) {
+			cb_environment env(s, ecm, s.military_m.cb_types[std::get<0>(t)]);
+			parse_object<single_cb, single_cb_domain>(std::get<1>(t), std::get<2>(t), env);
+		}
+	}
 
 	void read_unit_types(
 		parsing_state& state,

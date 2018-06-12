@@ -14,9 +14,71 @@ namespace economy {
 namespace sound {
 	class sound_manager;
 }
+namespace events {
+	struct event_creation_manager;
+}
+namespace scenario {
+	class scenario_manager;
+}
 namespace military {
 	struct cb_type {
+		static constexpr uint32_t is_civil_war						= 0x00000001;
+		static constexpr uint32_t always							= 0x00000002;
+		static constexpr uint32_t is_not_triggered_only				= 0x00000004;
+		static constexpr uint32_t is_not_constructing_cb			= 0x00000008;
+		static constexpr uint32_t great_war_obligatory				= 0x00000010;
+		static constexpr uint32_t all_allowed_states				= 0x00000020;
+		static constexpr uint32_t not_in_crisis						= 0x00000040;
+		static constexpr uint32_t po_clear_union_sphere				= 0x00000080;
+		static constexpr uint32_t po_gunboat						= 0x00000100;
+		static constexpr uint32_t po_annex							= 0x00000200;
+		static constexpr uint32_t po_demand_state					= 0x00000400;
+		static constexpr uint32_t po_add_to_sphere					= 0x00000800;
+		static constexpr uint32_t po_disarmament					= 0x00001000;
+		static constexpr uint32_t po_reparations					= 0x00002000;
+		static constexpr uint32_t po_transfer_provinces				= 0x00004000;
+		static constexpr uint32_t po_remove_prestige				= 0x00008000;
+		static constexpr uint32_t po_make_puppet					= 0x00010000;
+		static constexpr uint32_t po_release_puppet					= 0x00020000;
+		static constexpr uint32_t po_status_quo						= 0x00040000;
+		static constexpr uint32_t po_install_communist_gov_type		= 0x00080000;
+		static constexpr uint32_t po_uninstall_communist_gov_type	= 0x00100000;
+		static constexpr uint32_t po_remove_cores					= 0x00200000;
+		static constexpr uint32_t po_colony							= 0x00400000;
+		static constexpr uint32_t po_destroy_forts					= 0x00800000;
+		static constexpr uint32_t po_destroy_naval_bases			= 0x01000000;
+		static constexpr uint32_t po_liberate						= 0x02000000;
+		
+		uint32_t flags = 0;
+
+		float badboy_factor = 1.0f;
+		float prestige_factor = 1.0f;
+		float peace_cost_factor = 1.0f;
+		float penalty_factor = 1.0f;
+		float break_truce_prestige_factor = 1.0f;
+		float break_truce_infamy_factor = 1.0f;
+		float break_truce_militancy_factor = 1.0f;
+		float good_relation_prestige_factor = 0.0f;
+		float good_relation_infamy_factor = 0.0f;
+		float good_relation_militancy_factor = 0.0f;
+		float construction_speed = 1.0f;
+		float tws_battle_factor = 0.0f;
+
 		text_data::text_tag name;
+		text_data::text_tag war_name;
+		
+		triggers::trigger_tag allowed_states;
+		triggers::trigger_tag allowed_states_in_crisis;
+		triggers::trigger_tag allowed_substate_regions;
+		triggers::trigger_tag allowed_countries;
+		triggers::trigger_tag can_use;
+
+		triggers::effect_tag on_add;
+		triggers::effect_tag on_po_accepted;
+
+		uint8_t sprite_index = 0ui8;
+		uint8_t months = 12ui8;
+		uint8_t truce_months = 60ui8;
 		cb_type_tag id;
 	};
 
@@ -152,4 +214,5 @@ namespace military {
 		economy::economic_scenario& economy_m,
 		sound::sound_manager& sound_m,
 		text_data::text_sequences& text_m);
+	void read_cb_types(parsing_state const& state, scenario::scenario_manager& s, events::event_creation_manager& ecm);
 }

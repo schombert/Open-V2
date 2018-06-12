@@ -2,6 +2,7 @@
 #include "fake_fs\\fake_fs.h"
 #include "population\\population.h"
 #include "scenario\\scenario.h"
+#include "events\\events.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -163,9 +164,92 @@ public:
 		"strata = poor\r\n"
 	);
 	directory_representation common1 = directory_representation(u"common", f_root);
-	file_representation rebel_types = file_representation(u"rebel_types.txt", common1, 
-		"rebel_1 = {}\r\n"
-		"rebel_2 = { stuff }");
+	file_representation rebel_types = file_representation(u"rebel_types.txt", common1,
+		"rebel_1 = {\r\n"
+		"	icon = 5\r\n"
+		"	area = nation\r\n"
+		"	break_alliance_on_win = yes\r\n"
+		"	government = {\r\n"
+		"		proletarian_dictatorship = democracy\r\n"
+		"		absolute_monarchy = proletarian_dictatorship\r\n"
+		"	}\r\n"
+		"	defection = none\r\n"
+		"	independence = none	\r\n"
+		"	defect_delay = 18\r\n"
+		"	ideology = ideology_a\r\n"
+		"	allow_all_cultures = yes\r\n"
+		"	allow_all_religions = yes\r\n"
+		"	allow_all_ideologies = yes\r\n"
+		"	resilient = yes\r\n"
+		"	reinforcing = yes\r\n"
+		"	general = yes\r\n"
+		"	smart = yes\r\n"
+		"	unit_transfer = no	\r\n"
+		"	occupation_mult = 5.0\r\n"
+		"	will_rise = {\r\n"
+		"		factor = 0.1\r\n"
+		"		modifier = {\r\n"
+		"			war = yes\r\n"
+		"			factor = 0.8\r\n"
+		"		}\r\n"
+		"	}\r\n"
+		"	spawn_chance = {\r\n"
+		"		factor = 20\r\n"
+		"		modifier = {\r\n"
+		"			factor = 0\r\n"
+		"			country = { has_country_flag = sharing_power }\r\n"
+		"		}\r\n"
+		"	}\r\n"
+		"	movement_evaluation = {\r\n"
+		"		factor = 1\r\n"
+		"		modifier = {\r\n"
+		"			factor = 0.1\r\n"
+		"			units_in_province = 1\r\n"
+		"			NOT = { is_capital = yes }\r\n"
+		"		}\r\n"
+		"	}\r\n"
+		"	demands_enforced_trigger = {\r\n"
+		"		OR = {\r\n"
+		"			capital_scope = {\r\n"
+		"				controlled_by = REB\r\n"
+		"				province_control_days = 250\r\n"
+		"			}\r\n"
+		"			any_owned_province = {\r\n"
+		"				controlled_by = REB\r\n"
+		"				province_control_days = 730\r\n"
+		"			}\r\n"
+		"			NOT = {\r\n"
+		"				any_owned_province = {\r\n"
+		"					is_colonial = no\r\n"
+		"					controlled_by = THIS\r\n"
+		"				}\r\n"
+		"			}\r\n"
+		"		}\r\n"
+		"	}\r\n"
+		"	demands_enforced_effect = {\r\n"
+		"		clr_country_flag = theocratic_government\r\n"
+		"		war_exhaustion = 10\r\n"
+		"	}\r\n"
+		"	siege_won_trigger = {\r\n"
+		"		units_in_province = 1\r\n"
+		"	}\r\n"
+		"	siege_won_effect = {\r\n"
+		"		any_pop = {\r\n"
+		"			ideology = {\r\n"
+		"				value = ideology_a\r\n"
+		"				factor = 0.05\r\n"
+		"			}\r\n"
+		"		}\r\n"
+		"	}\r\n"
+		"}\r\n"
+		"rebel_2 = {\r\n"
+		"	area = religion\r\n"
+		"	icon = 3\r\n"
+		"	defection = pan_nationalist\r\n"
+		"	independence = culture_group\r\n"
+		"	allow_all_religions = no\r\n"
+		"	allow_all_ideologies = no\r\n"
+		"}");
 	file_representation pop_types = file_representation(u"pop_types.txt", common1, 
 		"demotion_chance =\r\n"
 		"{\r\n"
@@ -236,6 +320,14 @@ public:
 		"administrative = yes\r\n"
 		"}\r\n"
 		"}\r\n");
+	file_representation gov1 = file_representation(u"governments.txt", common1,
+		"proletarian_dictatorship  = {\r\n"
+		"}\r\n"
+		"absolute_monarchy  = {\r\n"
+		"}\r\n"
+		"democracy  = {\r\n"
+		"}\r\n");
+
 
 	preparse_test_files() {
 		set_default_root(f_root);
@@ -417,4 +509,62 @@ TEST(population_tests, test_individual_poptype) {
 	EXPECT_EQ(10ui8, s.population_m.pop_types[slaves_tag].sprite);
 	EXPECT_EQ(17ui8, s.population_m.pop_types[slaves_tag].color.g);
 	EXPECT_EQ(uint8_t(pop_type::strata_poor | pop_type::cannot_vote | pop_type::is_employable), s.population_m.pop_types[slaves_tag].flags);
+}
+
+TEST(population_tests, read_rebels) {
+	preparse_test_files real_fs;
+	file_system f;
+	f.set_root(RANGE(u"F:"));
+
+	scenario::scenario_manager s;
+
+	parsing_state env(s.gui_m.text_data_sequences, s.population_m);
+
+	pre_parse_rebel_types(env, f.get_root());
+
+	ideologies::pre_parse_ideologies(s.ideologies_m, f.get_root(), s.gui_m.text_data_sequences);
+	governments::read_governments(s.governments_m, f.get_root(), s.gui_m.text_data_sequences, s.ideologies_m);
+
+	events::event_creation_manager ecm;
+
+	read_rebel_types(env, s, ecm);
+
+	EXPECT_EQ(2ui64, s.population_m.rebel_types.size());
+	EXPECT_EQ(uint16_t(rebel_type::area_nation | rebel_type::defection_none | rebel_type::independence_none | rebel_type::break_alliance_on_win), s.population_m.rebel_types[rebel_type_tag(0)].flags);
+	EXPECT_EQ(rebel_type_tag(0), s.population_m.rebel_types[rebel_type_tag(0)].id);
+	EXPECT_EQ(tag_from_text(s.ideologies_m.named_ideology_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("ideology_a"))), s.population_m.rebel_types[rebel_type_tag(0)].ideology);
+	EXPECT_EQ(5.0f, s.population_m.rebel_types[rebel_type_tag(0)].occupation_mult);
+	EXPECT_EQ(5ui8, s.population_m.rebel_types[rebel_type_tag(0)].icon);
+	EXPECT_NE(modifiers::factor_tag(), s.population_m.rebel_types[rebel_type_tag(0)].will_rise);
+	EXPECT_NE(modifiers::factor_tag(), s.population_m.rebel_types[rebel_type_tag(0)].movement_evaluation);
+	EXPECT_NE(modifiers::factor_tag(), s.population_m.rebel_types[rebel_type_tag(0)].spawn_chance);
+	EXPECT_NE(triggers::trigger_tag(), s.population_m.rebel_types[rebel_type_tag(0)].siege_won_trigger);
+	EXPECT_NE(triggers::trigger_tag(), s.population_m.rebel_types[rebel_type_tag(0)].demands_enforced_trigger);
+	EXPECT_NE(triggers::effect_tag(), s.population_m.rebel_types[rebel_type_tag(0)].siege_won_effect);
+	EXPECT_NE(triggers::effect_tag(), s.population_m.rebel_types[rebel_type_tag(0)].demands_enforced_effect);
+
+	EXPECT_EQ(uint16_t(rebel_type::area_religion | rebel_type::defection_pan_nationalist | rebel_type::independence_culture_group | rebel_type::restrict_by_ideology | rebel_type::restrict_by_religion), s.population_m.rebel_types[rebel_type_tag(1)].flags);
+	EXPECT_EQ(rebel_type_tag(1), s.population_m.rebel_types[rebel_type_tag(1)].id);
+	EXPECT_EQ(ideologies::ideology_tag(), s.population_m.rebel_types[rebel_type_tag(1)].ideology);
+	EXPECT_EQ(1.0f, s.population_m.rebel_types[rebel_type_tag(1)].occupation_mult);
+	EXPECT_EQ(3ui8, s.population_m.rebel_types[rebel_type_tag(1)].icon);
+	EXPECT_EQ(modifiers::factor_tag(), s.population_m.rebel_types[rebel_type_tag(1)].will_rise);
+	EXPECT_EQ(modifiers::factor_tag(), s.population_m.rebel_types[rebel_type_tag(1)].movement_evaluation);
+	EXPECT_EQ(modifiers::factor_tag(), s.population_m.rebel_types[rebel_type_tag(1)].spawn_chance);
+	EXPECT_EQ(triggers::trigger_tag(), s.population_m.rebel_types[rebel_type_tag(1)].siege_won_trigger);
+	EXPECT_EQ(triggers::trigger_tag(), s.population_m.rebel_types[rebel_type_tag(1)].demands_enforced_trigger);
+	EXPECT_EQ(triggers::effect_tag(), s.population_m.rebel_types[rebel_type_tag(1)].siege_won_effect);
+	EXPECT_EQ(triggers::effect_tag(), s.population_m.rebel_types[rebel_type_tag(1)].demands_enforced_effect);
+
+	const auto proletarian_dictatorship = tag_from_text(s.governments_m.named_government_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("proletarian_dictatorship")));
+	const auto absolute_monarchy = tag_from_text(s.governments_m.named_government_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("absolute_monarchy")));
+	const auto democracy = tag_from_text(s.governments_m.named_government_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("democracy")));
+
+	EXPECT_EQ(democracy, s.population_m.rebel_change_government_to.get(rebel_type_tag(0), proletarian_dictatorship));
+	EXPECT_EQ(proletarian_dictatorship, s.population_m.rebel_change_government_to.get(rebel_type_tag(0), absolute_monarchy));
+	EXPECT_EQ(democracy, s.population_m.rebel_change_government_to.get(rebel_type_tag(0), democracy));
+
+	EXPECT_EQ(proletarian_dictatorship, s.population_m.rebel_change_government_to.get(rebel_type_tag(1), proletarian_dictatorship));
+	EXPECT_EQ(absolute_monarchy, s.population_m.rebel_change_government_to.get(rebel_type_tag(1), absolute_monarchy));
+	EXPECT_EQ(democracy, s.population_m.rebel_change_government_to.get(rebel_type_tag(1), democracy));
 }

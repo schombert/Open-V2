@@ -478,15 +478,32 @@ namespace graphics {
 		result.height = height;
 		result.primary_data = new uint16_t[static_cast<size_t>(width * height)];
 
-		for (int32_t t = width * height - 1; t >= 0; --t) {
+		const auto last = width * height - 1;
+		uint32_t previous_color_index =
+			static_cast<uint32_t>(color_data[last * 3 + 0]) +
+			(static_cast<uint32_t>(color_data[last * 3 + 1]) << 8) +
+			(static_cast<uint32_t>(color_data[last * 3 + 2]) << 16);
+		uint16_t prev_result = 0ui16;
+		if(auto it = color_mapping.find(previous_color_index); it != color_mapping.end()) {
+			prev_result = it->second;
+			result.primary_data[last] = it->second;
+		}
+
+		for (int32_t t = width * height - 2; t >= 0; --t) {
 			uint32_t color_index =
 				static_cast<uint32_t>(color_data[t * 3 + 0]) +
 				(static_cast<uint32_t>(color_data[t * 3 + 1]) << 8) +
 				(static_cast<uint32_t>(color_data[t * 3 + 2]) << 16);
-			if (auto it = color_mapping.find(color_index); it != color_mapping.end())
-				result.primary_data[t] = it->second;
-			else
-				result.primary_data[t] = 0;
+			if(color_index == previous_color_index) {
+				result.primary_data[t] = prev_result;
+			} else {
+				previous_color_index = color_index;
+				if(auto it = color_mapping.find(color_index); it != color_mapping.end())
+					result.primary_data[t] = it->second;
+				else
+					result.primary_data[t] = 0ui16;
+				prev_result = result.primary_data[t];
+			}
 		}
 
 		glGenTextures(1, &result.handle);

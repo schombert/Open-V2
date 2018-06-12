@@ -123,8 +123,8 @@ namespace governments {
 
 			if (parse_results.size() > 0) {
 				parse_object<governments_file, governments_file_domain>(
-					&parse_results[0],
-					&parse_results[0] + parse_results.size(),
+					parse_results.data(),
+					parse_results.data() + parse_results.size(),
 					e);
 			}
 		}

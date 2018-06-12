@@ -3,6 +3,8 @@
 #include "fake_fs\\fake_fs.h"
 #include "economy\\economy.h"
 #include "sound\\sound.h"
+#include "events\\events.h"
+#include "scenario\\scenario.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -14,11 +16,71 @@ public:
 	file_representation cb = file_representation(u"cb_types.txt", common,
 		"peace_order = {\r\n"
 		"cb_a\r\n"
-		"cb_b\r\n"
+		"liberate_country\r\n"
 		"}\r\n"
-		"cb_b = { stuff }\r\n"
-		"cb_a = { stuff }\r\n"
-		"cb_c = { stuff }\r\n");
+		"liberate_country = {\r\n"
+		"	sprite_index = 15\r\n"
+		"	is_triggered_only = yes\r\n"
+		"	months = 12\r\n"
+		"	badboy_factor = 2\r\n"
+		"	prestige_factor = 3\r\n"
+		"	peace_cost_factor = 4\r\n"
+		"	penalty_factor = 5\r\n"
+		"	break_truce_prestige_factor = 6\r\n"
+		"	break_truce_infamy_factor = 7\r\n"
+		"	break_truce_militancy_factor = 8\r\n"
+		"	truce_months = 48\r\n"
+		"	good_relation_prestige_factor = 9\r\n"
+		"	good_relation_infamy_factor = 10\r\n"
+		"	good_relation_militancy_factor = 11\r\n"
+		"	can_use = {\r\n"
+		"		NOT = {\r\n"
+		"			is_our_vassal = THIS\r\n"
+		"			has_country_modifier = neutrality\r\n"
+		"		}\r\n"
+		"		is_vassal = no\r\n"
+		"		OR = {\r\n"
+		"			war_with = THIS\r\n"
+		"			FROM = { involved_in_crisis = yes }\r\n"
+		"		}\r\n"
+		"	}\r\n"
+		"	all_allowed_states = yes\r\n"
+		"	po_transfer_provinces = yes\r\n"
+		"	war_name = WAR_LIBERATE_NAME\r\n"
+		"	on_add = {\r\n"
+		"		country_event =	2651\r\n"
+		"	}\r\n"
+		"}\r\n"
+		"cb_a = {\r\n"
+		"	always = yes\r\n"
+		"	is_valid = {\r\n"
+		"		this = { is_greater_power = yes }\r\n"
+		"		is_greater_power = no\r\n"
+		"	}\r\n"
+		"	allowed_countries = {\r\n"
+		"		is_sphere_leader_of = FROM\r\n"
+		"		OR = {\r\n"
+		"			FROM = { is_vassal = no }\r\n"
+		"			THIS = { is_our_vassal = FROM }\r\n"
+		"		}\r\n"
+		"	}\r\n"
+		"	allowed_substate_regions = {\r\n"
+		"		is_colonial = no\r\n"
+		"	}\r\n"
+		"	po_disarmament = yes\r\n"
+		"	po_reparations = yes\r\n"
+		"}\r\n"
+		"cb_c = {\r\n"
+		"	crisis = no\r\n"
+		"	construction_speed = 0.5\r\n"
+		"	tws_battle_factor = 2.0\r\n"
+		"	allowed_states = {\r\n"
+		"		any_owned_province = {\r\n"
+		"			is_core = THIS\r\n"
+		"		}\r\n"
+		"		not = { any_owned_province = { is_capital = yes } }\r\n"
+		"	}\r\n"
+		"}\r\n");
 	directory_representation units = directory_representation(u"units", f_root);
 	file_representation f1 = file_representation(u"dragoon.txt", units, "dragoon = { stuff }");
 	file_representation f2 = file_representation(u"airplane.txt", units, "plane_a = { stuff }\r\nplane_b = {}");
@@ -372,4 +434,55 @@ TEST(military_tests, full_unit_read) {
 	EXPECT_EQ(0.0, military_m.unit_build_costs.get(plane_tag, cement_tag));
 	EXPECT_EQ(0.0, military_m.unit_build_costs.get(plane_tag, canned_food_tag));
 	EXPECT_EQ(9.0, military_m.unit_base_supply_costs.get(plane_tag, canned_food_tag));
+}
+
+TEST(military_tests, full_cb_read) {
+	preparse_test_files real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:\\test1"));
+
+	scenario::scenario_manager s;
+	events::event_creation_manager ecm;
+
+	parsing_state state(s.gui_m.text_data_sequences, s.military_m);
+	pre_parse_cb_types(state, f.get_root());
+
+	read_cb_types(state, s, ecm);
+
+	EXPECT_EQ(3ui64, s.military_m.cb_types.size());
+
+	EXPECT_EQ(cb_type_tag(0), s.military_m.cb_types[cb_type_tag(0)].id);
+	EXPECT_EQ(cb_type::always | cb_type::po_disarmament | cb_type::po_reparations, s.military_m.cb_types[cb_type_tag(0)].flags);
+	EXPECT_NE(triggers::trigger_tag(), s.military_m.cb_types[cb_type_tag(0)].allowed_countries);
+	EXPECT_NE(triggers::trigger_tag(), s.military_m.cb_types[cb_type_tag(0)].allowed_substate_regions);
+	EXPECT_EQ(triggers::trigger_tag(), s.military_m.cb_types[cb_type_tag(0)].allowed_states_in_crisis);
+	EXPECT_EQ(triggers::trigger_tag(), s.military_m.cb_types[cb_type_tag(0)].allowed_states);
+
+	EXPECT_EQ(cb_type_tag(1), s.military_m.cb_types[cb_type_tag(1)].id);
+	EXPECT_EQ(cb_type::all_allowed_states | cb_type::po_transfer_provinces | cb_type::po_liberate, s.military_m.cb_types[cb_type_tag(1)].flags);
+	EXPECT_EQ(triggers::trigger_tag(), s.military_m.cb_types[cb_type_tag(1)].allowed_countries);
+	EXPECT_NE(triggers::effect_tag(), s.military_m.cb_types[cb_type_tag(1)].on_add);
+	EXPECT_NE(triggers::trigger_tag(), s.military_m.cb_types[cb_type_tag(1)].can_use);
+	EXPECT_NE(text_data::text_tag(), s.military_m.cb_types[cb_type_tag(1)].war_name);
+	EXPECT_EQ(15ui8, s.military_m.cb_types[cb_type_tag(1)].sprite_index);
+	EXPECT_EQ(12ui8, s.military_m.cb_types[cb_type_tag(1)].months);
+	EXPECT_EQ(48ui8, s.military_m.cb_types[cb_type_tag(1)].truce_months);
+	EXPECT_EQ(2.0f, s.military_m.cb_types[cb_type_tag(1)].badboy_factor);
+	EXPECT_EQ(3.0f, s.military_m.cb_types[cb_type_tag(1)].prestige_factor);
+	EXPECT_EQ(4.0f, s.military_m.cb_types[cb_type_tag(1)].peace_cost_factor);
+	EXPECT_EQ(5.0f, s.military_m.cb_types[cb_type_tag(1)].penalty_factor);
+	EXPECT_EQ(6.0f, s.military_m.cb_types[cb_type_tag(1)].break_truce_prestige_factor);
+	EXPECT_EQ(7.0f, s.military_m.cb_types[cb_type_tag(1)].break_truce_infamy_factor);
+	EXPECT_EQ(8.0f, s.military_m.cb_types[cb_type_tag(1)].break_truce_militancy_factor);
+	EXPECT_EQ(9.0f, s.military_m.cb_types[cb_type_tag(1)].good_relation_prestige_factor);
+	EXPECT_EQ(10.0f, s.military_m.cb_types[cb_type_tag(1)].good_relation_infamy_factor);
+	EXPECT_EQ(11.0f, s.military_m.cb_types[cb_type_tag(1)].good_relation_militancy_factor);
+
+	EXPECT_EQ(cb_type_tag(2), s.military_m.cb_types[cb_type_tag(2)].id);
+	EXPECT_EQ(cb_type::not_in_crisis, s.military_m.cb_types[cb_type_tag(2)].flags);
+	EXPECT_EQ(0.5f, s.military_m.cb_types[cb_type_tag(2)].construction_speed);
+	EXPECT_EQ(2.0f, s.military_m.cb_types[cb_type_tag(2)].tws_battle_factor);
+	EXPECT_NE(triggers::trigger_tag(), s.military_m.cb_types[cb_type_tag(2)].allowed_states);
+
 }
