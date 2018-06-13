@@ -668,8 +668,466 @@ namespace modifiers {
 			++env.modifiers_m.national_focus_group_count;
 		}
 	};
+
+	struct defines_reader {
+		defines& d;
+		defines_reader(defines& e) : d(e) {}
+
+		void recurse(defines_reader const&) {}
+		void add_value(std::pair<token_and_type, float> const& t) {
+			if(is_fixed_token_ci(t.first, "years_of_nationalism")) { d.years_of_nationalism = t.second; return; }
+			if(is_fixed_token_ci(t.first, "base_country_tax_efficiency")) { d.base_country_tax_efficiency = t.second; return; }
+			if(is_fixed_token_ci(t.first, "base_country_admin_efficiency")) { d.base_country_admin_efficiency = t.second; return; }
+			if(is_fixed_token_ci(t.first, "gold_to_cash_rate")) { d.gold_to_cash_rate = t.second; return; }
+			if(is_fixed_token_ci(t.first, "gold_to_worker_pay_rate")) { d.gold_to_worker_pay_rate = t.second; return; }
+			if(is_fixed_token_ci(t.first, "great_nations_count")) { d.great_nations_count = t.second; return; }
+			if(is_fixed_token_ci(t.first, "greatness_days")) { d.greatness_days = t.second; return; }
+			if(is_fixed_token_ci(t.first, "badboy_limit")) { d.badboy_limit = t.second; return; }
+			if(is_fixed_token_ci(t.first, "max_bureaucracy_percentage")) { d.max_bureaucracy_percentage = t.second; return; }
+			if(is_fixed_token_ci(t.first, "bureaucracy_percentage_increment")) { d.bureaucracy_percentage_increment = t.second; return; }
+			if(is_fixed_token_ci(t.first, "min_crimefight_percent")) { d.min_crimefight_percent = t.second; return; }
+			if(is_fixed_token_ci(t.first, "max_crimefight_percent")) { d.max_crimefight_percent = t.second; return; }
+			if(is_fixed_token_ci(t.first, "admin_efficiency_crimefight_percent")) { d.admin_efficiency_crimefight_percent = t.second; return; }
+			if(is_fixed_token_ci(t.first, "conservative_increase_after_reform")) { d.conservative_increase_after_reform = t.second; return; }
+			if(is_fixed_token_ci(t.first, "campaign_event_base_time")) { d.campaign_event_base_time = t.second; return; }
+			if(is_fixed_token_ci(t.first, "campaign_event_min_time")) { d.campaign_event_min_time = t.second; return; }
+			if(is_fixed_token_ci(t.first, "campaign_event_state_scale")) { d.campaign_event_state_scale = t.second; return; }
+			if(is_fixed_token_ci(t.first, "campaign_duration")) { d.campaign_duration = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonial_rank")) { d.colonial_rank = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colony_to_state_prestige_gain")) { d.colony_to_state_prestige_gain = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonial_liferating")) { d.colonial_liferating = t.second; return; }
+			if(is_fixed_token_ci(t.first, "base_greatpower_daily_influence")) { d.base_greatpower_daily_influence = t.second; return; }
+			if(is_fixed_token_ci(t.first, "ai_support_reform")) { d.ai_support_reform = t.second; return; }
+			if(is_fixed_token_ci(t.first, "base_monthly_diplopoints")) { d.base_monthly_diplopoints = t.second; return; }
+			if(is_fixed_token_ci(t.first, "diplomat_travel_time")) { d.diplomat_travel_time = t.second; return; }
+			if(is_fixed_token_ci(t.first, "province_overseas_penalty")) { d.province_overseas_penalty = t.second; return; }
+			if(is_fixed_token_ci(t.first, "noncore_tax_penalty")) { d.noncore_tax_penalty = t.second; return; }
+			if(is_fixed_token_ci(t.first, "base_tariff_efficiency")) { d.base_tariff_efficiency = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colony_formed_prestige")) { d.colony_formed_prestige = t.second; return; }
+			if(is_fixed_token_ci(t.first, "created_cb_valid_time")) { d.created_cb_valid_time = t.second; return; }
+			if(is_fixed_token_ci(t.first, "loyalty_boost_on_party_win")) { d.loyalty_boost_on_party_win = t.second; return; }
+			if(is_fixed_token_ci(t.first, "movement_radicalism_base")) { d.movement_radicalism_base = t.second; return; }
+			if(is_fixed_token_ci(t.first, "movement_radicalism_passed_reform_effect")) { d.movement_radicalism_passed_reform_effect = t.second; return; }
+			if(is_fixed_token_ci(t.first, "movement_radicalism_nationalism_factor")) { d.movement_radicalism_nationalism_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "suppression_points_gain_base")) { d.suppression_points_gain_base = t.second; return; }
+			if(is_fixed_token_ci(t.first, "suppress_bureaucrat_factor")) { d.suppress_bureaucrat_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "wrong_reform_militancy_impact")) { d.wrong_reform_militancy_impact = t.second; return; }
+			if(is_fixed_token_ci(t.first, "suppression_radicalisation_hit")) { d.suppression_radicalisation_hit = t.second; return; }
+			if(is_fixed_token_ci(t.first, "investment_score_factor")) { d.investment_score_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "unciv_tech_spread_max")) { d.unciv_tech_spread_max = t.second; return; }
+			if(is_fixed_token_ci(t.first, "unciv_tech_spread_min")) { d.unciv_tech_spread_min = t.second; return; }
+			if(is_fixed_token_ci(t.first, "min_delay_between_reforms")) { d.min_delay_between_reforms = t.second; return; }
+			if(is_fixed_token_ci(t.first, "economic_reform_uh_factor")) { d.economic_reform_uh_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "military_reform_uh_factor")) { d.military_reform_uh_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "wrong_reform_radical_impact")) { d.wrong_reform_radical_impact = t.second; return; }
+			if(is_fixed_token_ci(t.first, "tech_year_span")) { d.tech_year_span = t.second; return; }
+			if(is_fixed_token_ci(t.first, "tech_factor_vassal")) { d.tech_factor_vassal = t.second; return; }
+			if(is_fixed_token_ci(t.first, "max_suppression")) { d.max_suppression = t.second; return; }
+			if(is_fixed_token_ci(t.first, "prestige_hit_on_break_country")) { d.prestige_hit_on_break_country = t.second; return; }
+			if(is_fixed_token_ci(t.first, "min_mobilize_limit")) { d.min_mobilize_limit = t.second; return; }
+			if(is_fixed_token_ci(t.first, "pop_growth_country_cache_days")) { d.pop_growth_country_cache_days = t.second; return; }
+			if(is_fixed_token_ci(t.first, "newspaper_printing_frequency")) { d.newspaper_printing_frequency = t.second; return; }
+			if(is_fixed_token_ci(t.first, "newspaper_timeout_period")) { d.newspaper_timeout_period = t.second; return; }
+			if(is_fixed_token_ci(t.first, "newspaper_max_tension")) { d.newspaper_max_tension = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_base_supply_score_base")) { d.naval_base_supply_score_base = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_base_supply_score_empty")) { d.naval_base_supply_score_empty = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_base_non_core_supply_score")) { d.naval_base_non_core_supply_score = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonial_points_from_supply_factor")) { d.colonial_points_from_supply_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonial_points_for_non_core_base")) { d.colonial_points_for_non_core_base = t.second; return; }
+			if(is_fixed_token_ci(t.first, "mobilization_speed_base")) { d.mobilization_speed_base = t.second; return; }
+			if(is_fixed_token_ci(t.first, "mobilization_speed_rails_mult")) { d.mobilization_speed_rails_mult = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonization_interest_lead")) { d.colonization_interest_lead = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonization_influence_lead")) { d.colonization_influence_lead = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonization_months_to_colonize")) { d.colonization_months_to_colonize = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonization_days_between_investment")) { d.colonization_days_between_investment = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonization_days_for_initial_investment")) { d.colonization_days_for_initial_investment = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonization_protectorate_province_maintainance")) { d.colonization_protectorate_province_maintainance = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonization_colony_province_maintainance")) { d.colonization_colony_province_maintainance = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonization_colony_industry_maintainance")) { d.colonization_colony_industry_maintainance = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonization_colony_railway_maintainance")) { d.colonization_colony_railway_maintainance = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonization_interest_cost_initial")) { d.colonization_interest_cost_initial = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonization_interest_cost_neighbor_modifier")) { d.colonization_interest_cost_neighbor_modifier = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonization_interest_cost")) { d.colonization_interest_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonization_influence_cost")) { d.colonization_influence_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonization_extra_guard_cost")) { d.colonization_extra_guard_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonization_release_dominion_cost")) { d.colonization_release_dominion_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonization_create_state_cost")) { d.colonization_create_state_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonization_create_protectorate_cost")) { d.colonization_create_protectorate_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonization_create_colony_cost")) { d.colonization_create_colony_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonization_colony_state_distance")) { d.colonization_colony_state_distance = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonization_influence_temperature_per_day")) { d.colonization_influence_temperature_per_day = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colonization_influence_temperature_per_level")) { d.colonization_influence_temperature_per_level = t.second; return; }
+			if(is_fixed_token_ci(t.first, "party_loyalty_hit_on_war_loss")) { d.party_loyalty_hit_on_war_loss = t.second; return; }
+			if(is_fixed_token_ci(t.first, "research_points_on_conquer_mult")) { d.research_points_on_conquer_mult = t.second; return; }
+			if(is_fixed_token_ci(t.first, "max_research_points")) { d.max_research_points = t.second; return; }
+			if(is_fixed_token_ci(t.first, "max_daily_research")) { d.max_daily_research = t.second; return; }
+			if(is_fixed_token_ci(t.first, "loan_base_interest")) { d.loan_base_interest = t.second; return; }
+			if(is_fixed_token_ci(t.first, "bankruptcy_external_loan_years")) { d.bankruptcy_external_loan_years = t.second; return; }
+			if(is_fixed_token_ci(t.first, "bankruptcy_factor")) { d.bankruptcy_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "shadowy_financiers_max_loan_amount")) { d.shadowy_financiers_max_loan_amount = t.second; return; }
+			if(is_fixed_token_ci(t.first, "max_loan_cap_from_banks")) { d.max_loan_cap_from_banks = t.second; return; }
+			if(is_fixed_token_ci(t.first, "gunboat_low_tax_cap")) { d.gunboat_low_tax_cap = t.second; return; }
+			if(is_fixed_token_ci(t.first, "gunboat_high_tax_cap")) { d.gunboat_high_tax_cap = t.second; return; }
+			if(is_fixed_token_ci(t.first, "gunboat_fleet_size_factor")) { d.gunboat_fleet_size_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "province_size_divider")) { d.province_size_divider = t.second; return; }
+			if(is_fixed_token_ci(t.first, "capitalist_build_factory_state_employment_percent")) { d.capitalist_build_factory_state_employment_percent = t.second; return; }
+			if(is_fixed_token_ci(t.first, "goods_focus_swap_chance")) { d.goods_focus_swap_chance = t.second; return; }
+			if(is_fixed_token_ci(t.first, "num_closed_factories_per_state_lassiez_faire")) { d.num_closed_factories_per_state_lassiez_faire = t.second; return; }
+			if(is_fixed_token_ci(t.first, "min_num_factories_per_state_before_deleting_lassiez_faire")) { d.min_num_factories_per_state_before_deleting_lassiez_faire = t.second; return; }
+			if(is_fixed_token_ci(t.first, "bankrupcy_duration")) { d.bankrupcy_duration = t.second; return; }
+			if(is_fixed_token_ci(t.first, "second_rank_base_share_factor")) { d.second_rank_base_share_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "civ_base_share_factor")) { d.civ_base_share_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "unciv_base_share_factor")) { d.unciv_base_share_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "factory_paychecks_leftover_factor")) { d.factory_paychecks_leftover_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "max_factory_money_save")) { d.max_factory_money_save = t.second; return; }
+			if(is_fixed_token_ci(t.first, "small_debt_limit")) { d.small_debt_limit = t.second; return; }
+			if(is_fixed_token_ci(t.first, "factory_upgrade_employee_factor")) { d.factory_upgrade_employee_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "rgo_supply_demand_factor_hire_hi")) { d.rgo_supply_demand_factor_hire_hi = t.second; return; }
+			if(is_fixed_token_ci(t.first, "rgo_supply_demand_factor_hire_lo")) { d.rgo_supply_demand_factor_hire_lo = t.second; return; }
+			if(is_fixed_token_ci(t.first, "rgo_supply_demand_factor_fire")) { d.rgo_supply_demand_factor_fire = t.second; return; }
+			if(is_fixed_token_ci(t.first, "employment_hire_lowest")) { d.employment_hire_lowest = t.second; return; }
+			if(is_fixed_token_ci(t.first, "employment_fire_lowest")) { d.employment_fire_lowest = t.second; return; }
+			if(is_fixed_token_ci(t.first, "trade_cap_low_limit_land")) { d.trade_cap_low_limit_land = t.second; return; }
+			if(is_fixed_token_ci(t.first, "trade_cap_low_limit_naval")) { d.trade_cap_low_limit_naval = t.second; return; }
+			if(is_fixed_token_ci(t.first, "trade_cap_low_limit_constructions")) { d.trade_cap_low_limit_constructions = t.second; return; }
+			if(is_fixed_token_ci(t.first, "factory_purchase_min_factor")) { d.factory_purchase_min_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "factory_purchase_drawdown_factor")) { d.factory_purchase_drawdown_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "dig_in_increase_each_days")) { d.dig_in_increase_each_days = t.second; return; }
+			if(is_fixed_token_ci(t.first, "reinforce_speed")) { d.reinforce_speed = t.second; return; }
+			if(is_fixed_token_ci(t.first, "combat_difficulty_impact")) { d.combat_difficulty_impact = t.second; return; }
+			if(is_fixed_token_ci(t.first, "base_combat_width")) { d.base_combat_width = t.second; return; }
+			if(is_fixed_token_ci(t.first, "pop_min_size_for_regiment")) { d.pop_min_size_for_regiment = t.second; return; }
+			if(is_fixed_token_ci(t.first, "pop_size_per_regiment")) { d.pop_size_per_regiment = t.second; return; }
+			if(is_fixed_token_ci(t.first, "soldier_to_pop_damage")) { d.soldier_to_pop_damage = t.second; return; }
+			if(is_fixed_token_ci(t.first, "land_speed_modifier")) { d.land_speed_modifier = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_speed_modifier")) { d.naval_speed_modifier = t.second; return; }
+			if(is_fixed_token_ci(t.first, "exp_gain_div")) { d.exp_gain_div = t.second; return; }
+			if(is_fixed_token_ci(t.first, "leader_recruit_cost")) { d.leader_recruit_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "supply_range")) { d.supply_range = t.second; return; }
+			if(is_fixed_token_ci(t.first, "pop_min_size_for_regiment_protectorate_multiplier")) { d.pop_min_size_for_regiment_protectorate_multiplier = t.second; return; }
+			if(is_fixed_token_ci(t.first, "pop_min_size_for_regiment_colony_multiplier")) { d.pop_min_size_for_regiment_colony_multiplier = t.second; return; }
+			if(is_fixed_token_ci(t.first, "pop_min_size_for_regiment_noncore_multiplier")) { d.pop_min_size_for_regiment_noncore_multiplier = t.second; return; }
+			if(is_fixed_token_ci(t.first, "gas_attack_modifier")) { d.gas_attack_modifier = t.second; return; }
+			if(is_fixed_token_ci(t.first, "combatloss_war_exhaustion")) { d.combatloss_war_exhaustion = t.second; return; }
+			if(is_fixed_token_ci(t.first, "leader_max_random_prestige")) { d.leader_max_random_prestige = t.second; return; }
+			if(is_fixed_token_ci(t.first, "leader_age_death_factor")) { d.leader_age_death_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "leader_prestige_to_morale_factor")) { d.leader_prestige_to_morale_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "leader_prestige_to_max_org_factor")) { d.leader_prestige_to_max_org_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "leader_transfer_penalty_on_country_prestige")) { d.leader_transfer_penalty_on_country_prestige = t.second; return; }
+			if(is_fixed_token_ci(t.first, "leader_prestige_land_gain")) { d.leader_prestige_land_gain = t.second; return; }
+			if(is_fixed_token_ci(t.first, "leader_prestige_naval_gain")) { d.leader_prestige_naval_gain = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_combat_seeking_chance")) { d.naval_combat_seeking_chance = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_combat_seeking_chance_min")) { d.naval_combat_seeking_chance_min = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_combat_self_defence_chance")) { d.naval_combat_self_defence_chance = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_combat_shift_back_on_next_target")) { d.naval_combat_shift_back_on_next_target = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_combat_shift_back_duration_scale")) { d.naval_combat_shift_back_duration_scale = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_combat_speed_to_distance_factor")) { d.naval_combat_speed_to_distance_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_combat_change_target_chance")) { d.naval_combat_change_target_chance = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_combat_damage_org_mult")) { d.naval_combat_damage_org_mult = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_combat_damage_str_mult")) { d.naval_combat_damage_str_mult = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_combat_damage_mult_no_org")) { d.naval_combat_damage_mult_no_org = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_combat_retreat_chance")) { d.naval_combat_retreat_chance = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_combat_retreat_str_org_level")) { d.naval_combat_retreat_str_org_level = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_combat_retreat_speed_mod")) { d.naval_combat_retreat_speed_mod = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_combat_retreat_min_distance")) { d.naval_combat_retreat_min_distance = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_combat_damaged_target_selection")) { d.naval_combat_damaged_target_selection = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_combat_stacking_target_change")) { d.naval_combat_stacking_target_change = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_combat_stacking_target_select")) { d.naval_combat_stacking_target_select = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_combat_max_targets")) { d.naval_combat_max_targets = t.second; return; }
+			if(is_fixed_token_ci(t.first, "ai_bigship_proportion")) { d.ai_bigship_proportion = t.second; return; }
+			if(is_fixed_token_ci(t.first, "ai_lightship_proportion")) { d.ai_lightship_proportion = t.second; return; }
+			if(is_fixed_token_ci(t.first, "ai_transport_proportion")) { d.ai_transport_proportion = t.second; return; }
+			if(is_fixed_token_ci(t.first, "ai_cavalry_proportion")) { d.ai_cavalry_proportion = t.second; return; }
+			if(is_fixed_token_ci(t.first, "ai_support_proportion")) { d.ai_support_proportion = t.second; return; }
+			if(is_fixed_token_ci(t.first, "ai_special_proportion")) { d.ai_special_proportion = t.second; return; }
+			if(is_fixed_token_ci(t.first, "ai_escort_ratio")) { d.ai_escort_ratio = t.second; return; }
+			if(is_fixed_token_ci(t.first, "ai_army_taxbase_fraction")) { d.ai_army_taxbase_fraction = t.second; return; }
+			if(is_fixed_token_ci(t.first, "ai_navy_taxbase_fraction")) { d.ai_navy_taxbase_fraction = t.second; return; }
+			if(is_fixed_token_ci(t.first, "ai_blockade_range")) { d.ai_blockade_range = t.second; return; }
+			if(is_fixed_token_ci(t.first, "recon_unit_ratio")) { d.recon_unit_ratio = t.second; return; }
+			if(is_fixed_token_ci(t.first, "engineer_unit_ratio")) { d.engineer_unit_ratio = t.second; return; }
+			if(is_fixed_token_ci(t.first, "siege_brigades_min")) { d.siege_brigades_min = t.second; return; }
+			if(is_fixed_token_ci(t.first, "siege_brigades_max")) { d.siege_brigades_max = t.second; return; }
+			if(is_fixed_token_ci(t.first, "siege_brigades_bonus")) { d.siege_brigades_bonus = t.second; return; }
+			if(is_fixed_token_ci(t.first, "recon_siege_effect")) { d.recon_siege_effect = t.second; return; }
+			if(is_fixed_token_ci(t.first, "siege_attrition")) { d.siege_attrition = t.second; return; }
+			if(is_fixed_token_ci(t.first, "base_military_tactics")) { d.base_military_tactics = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_low_supply_damage_supply_status")) { d.naval_low_supply_damage_supply_status = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_low_supply_damage_days_delay")) { d.naval_low_supply_damage_days_delay = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_low_supply_damage_min_str")) { d.naval_low_supply_damage_min_str = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_low_supply_damage_per_day")) { d.naval_low_supply_damage_per_day = t.second; return; }
+			if(is_fixed_token_ci(t.first, "war_prestige_cost_base")) { d.war_prestige_cost_base = t.second; return; }
+			if(is_fixed_token_ci(t.first, "war_prestige_cost_high_prestige")) { d.war_prestige_cost_high_prestige = t.second; return; }
+			if(is_fixed_token_ci(t.first, "war_prestige_cost_neg_prestige")) { d.war_prestige_cost_neg_prestige = t.second; return; }
+			if(is_fixed_token_ci(t.first, "war_prestige_cost_truce")) { d.war_prestige_cost_truce = t.second; return; }
+			if(is_fixed_token_ci(t.first, "war_prestige_cost_honor_alliance")) { d.war_prestige_cost_honor_alliance = t.second; return; }
+			if(is_fixed_token_ci(t.first, "war_prestige_cost_honor_guarnatee")) { d.war_prestige_cost_honor_guarnatee = t.second; return; }
+			if(is_fixed_token_ci(t.first, "war_prestige_cost_uncivilized")) { d.war_prestige_cost_uncivilized = t.second; return; }
+			if(is_fixed_token_ci(t.first, "war_prestige_cost_core")) { d.war_prestige_cost_core = t.second; return; }
+			if(is_fixed_token_ci(t.first, "war_failed_goal_militancy")) { d.war_failed_goal_militancy = t.second; return; }
+			if(is_fixed_token_ci(t.first, "war_failed_goal_prestige_base")) { d.war_failed_goal_prestige_base = t.second; return; }
+			if(is_fixed_token_ci(t.first, "war_failed_goal_prestige")) { d.war_failed_goal_prestige = t.second; return; }
+			if(is_fixed_token_ci(t.first, "discredit_days")) { d.discredit_days = t.second; return; }
+			if(is_fixed_token_ci(t.first, "discredit_influence_cost_factor")) { d.discredit_influence_cost_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "discredit_influence_gain_factor")) { d.discredit_influence_gain_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "banembassy_days")) { d.banembassy_days = t.second; return; }
+			if(is_fixed_token_ci(t.first, "declarewar_relation_on_accept")) { d.declarewar_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "declarewar_diplomatic_cost")) { d.declarewar_diplomatic_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "addwargoal_relation_on_accept")) { d.addwargoal_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "addwargoal_diplomatic_cost")) { d.addwargoal_diplomatic_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "add_unjustified_goal_badboy")) { d.add_unjustified_goal_badboy = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_relation_on_accept")) { d.peace_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_relation_on_decline")) { d.peace_relation_on_decline = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_diplomatic_cost")) { d.peace_diplomatic_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "alliance_relation_on_accept")) { d.alliance_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "alliance_relation_on_decline")) { d.alliance_relation_on_decline = t.second; return; }
+			if(is_fixed_token_ci(t.first, "alliance_diplomatic_cost")) { d.alliance_diplomatic_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "cancelalliance_relation_on_accept")) { d.cancelalliance_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "cancelalliance_diplomatic_cost")) { d.cancelalliance_diplomatic_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "callally_relation_on_accept")) { d.callally_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "callally_relation_on_decline")) { d.callally_relation_on_decline = t.second; return; }
+			if(is_fixed_token_ci(t.first, "callally_diplomatic_cost")) { d.callally_diplomatic_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "askmilaccess_relation_on_accept")) { d.askmilaccess_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "askmilaccess_relation_on_decline")) { d.askmilaccess_relation_on_decline = t.second; return; }
+			if(is_fixed_token_ci(t.first, "askmilaccess_diplomatic_cost")) { d.askmilaccess_diplomatic_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "cancelaskmilaccess_relation_on_accept")) { d.cancelaskmilaccess_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "cancelaskmilaccess_diplomatic_cost")) { d.cancelaskmilaccess_diplomatic_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "givemilaccess_relation_on_accept")) { d.givemilaccess_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "givemilaccess_relation_on_decline")) { d.givemilaccess_relation_on_decline = t.second; return; }
+			if(is_fixed_token_ci(t.first, "givemilaccess_diplomatic_cost")) { d.givemilaccess_diplomatic_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "cancelgivemilaccess_relation_on_accept")) { d.cancelgivemilaccess_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "cancelgivemilaccess_diplomatic_cost")) { d.cancelgivemilaccess_diplomatic_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "warsubsidy_relation_on_accept")) { d.warsubsidy_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "warsubsidy_diplomatic_cost")) { d.warsubsidy_diplomatic_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "cancelwarsubsidy_relation_on_accept")) { d.cancelwarsubsidy_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "cancelwarsubsidy_diplomatic_cost")) { d.cancelwarsubsidy_diplomatic_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "discredit_relation_on_accept")) { d.discredit_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "discredit_influence_cost")) { d.discredit_influence_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "expeladvisors_relation_on_accept")) { d.expeladvisors_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "expeladvisors_influence_cost")) { d.expeladvisors_influence_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "ceasecolonization_relation_on_accept")) { d.ceasecolonization_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "ceasecolonization_relation_on_decline")) { d.ceasecolonization_relation_on_decline = t.second; return; }
+			if(is_fixed_token_ci(t.first, "ceasecolonization_diplomatic_cost")) { d.ceasecolonization_diplomatic_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "banembassy_relation_on_accept")) { d.banembassy_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "banembassy_influence_cost")) { d.banembassy_influence_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "increaserelation_relation_on_accept")) { d.increaserelation_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "increaserelation_relation_on_decline")) { d.increaserelation_relation_on_decline = t.second; return; }
+			if(is_fixed_token_ci(t.first, "increaserelation_diplomatic_cost")) { d.increaserelation_diplomatic_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "decreaserelation_relation_on_accept")) { d.decreaserelation_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "decreaserelation_diplomatic_cost")) { d.decreaserelation_diplomatic_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "addtosphere_relation_on_accept")) { d.addtosphere_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "addtosphere_influence_cost")) { d.addtosphere_influence_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "removefromsphere_relation_on_accept")) { d.removefromsphere_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "removefromsphere_influence_cost")) { d.removefromsphere_influence_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "removefromsphere_prestige_cost")) { d.removefromsphere_prestige_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "removefromsphere_infamy_cost")) { d.removefromsphere_infamy_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "increaseopinion_relation_on_accept")) { d.increaseopinion_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "increaseopinion_influence_cost")) { d.increaseopinion_influence_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "decreaseopinion_relation_on_accept")) { d.decreaseopinion_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "decreaseopinion_influence_cost")) { d.decreaseopinion_influence_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "make_cb_diplomatic_cost")) { d.make_cb_diplomatic_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "make_cb_relation_on_accept")) { d.make_cb_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "disarmament_army_hit")) { d.disarmament_army_hit = t.second; return; }
+			if(is_fixed_token_ci(t.first, "reparations_tax_hit")) { d.reparations_tax_hit = t.second; return; }
+			if(is_fixed_token_ci(t.first, "prestige_reduction_base")) { d.prestige_reduction_base = t.second; return; }
+			if(is_fixed_token_ci(t.first, "prestige_reduction")) { d.prestige_reduction = t.second; return; }
+			if(is_fixed_token_ci(t.first, "reparations_years")) { d.reparations_years = t.second; return; }
+			if(is_fixed_token_ci(t.first, "min_warscore_to_intervene")) { d.min_warscore_to_intervene = t.second; return; }
+			if(is_fixed_token_ci(t.first, "min_months_to_intervene")) { d.min_months_to_intervene = t.second; return; }
+			if(is_fixed_token_ci(t.first, "max_warscore_from_battles")) { d.max_warscore_from_battles = t.second; return; }
+			if(is_fixed_token_ci(t.first, "gunboat_diplomatic_cost")) { d.gunboat_diplomatic_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "gunboat_relation_on_accept")) { d.gunboat_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "wargoal_jingoism_requirement")) { d.wargoal_jingoism_requirement = t.second; return; }
+			if(is_fixed_token_ci(t.first, "liberate_state_relation_increase")) { d.liberate_state_relation_increase = t.second; return; }
+			if(is_fixed_token_ci(t.first, "dishonored_callally_prestige_penalty")) { d.dishonored_callally_prestige_penalty = t.second; return; }
+			if(is_fixed_token_ci(t.first, "base_truce_months")) { d.base_truce_months = t.second; return; }
+			if(is_fixed_token_ci(t.first, "max_influence")) { d.max_influence = t.second; return; }
+			if(is_fixed_token_ci(t.first, "warsubsidies_percent")) { d.warsubsidies_percent = t.second; return; }
+			if(is_fixed_token_ci(t.first, "neighbour_bonus_influence_percent")) { d.neighbour_bonus_influence_percent = t.second; return; }
+			if(is_fixed_token_ci(t.first, "sphere_neighbour_bonus_influence_percent")) { d.sphere_neighbour_bonus_influence_percent = t.second; return; }
+			if(is_fixed_token_ci(t.first, "other_continent_bonus_influence_percent")) { d.other_continent_bonus_influence_percent = t.second; return; }
+			if(is_fixed_token_ci(t.first, "puppet_bonus_influence_percent")) { d.puppet_bonus_influence_percent = t.second; return; }
+			if(is_fixed_token_ci(t.first, "release_nation_prestige")) { d.release_nation_prestige = t.second; return; }
+			if(is_fixed_token_ci(t.first, "release_nation_infamy")) { d.release_nation_infamy = t.second; return; }
+			if(is_fixed_token_ci(t.first, "good_peace_refusal_militancy")) { d.good_peace_refusal_militancy = t.second; return; }
+			if(is_fixed_token_ci(t.first, "good_peace_refusal_warexh")) { d.good_peace_refusal_warexh = t.second; return; }
+			if(is_fixed_token_ci(t.first, "cb_generation_base_speed")) { d.cb_generation_base_speed = t.second; return; }
+			if(is_fixed_token_ci(t.first, "cb_generation_speed_bonus_on_colony_competition")) { d.cb_generation_speed_bonus_on_colony_competition = t.second; return; }
+			if(is_fixed_token_ci(t.first, "cb_generation_speed_bonus_on_colony_competition_troops_presence")) { d.cb_generation_speed_bonus_on_colony_competition_troops_presence = t.second; return; }
+			if(is_fixed_token_ci(t.first, "make_cb_relation_limit")) { d.make_cb_relation_limit = t.second; return; }
+			if(is_fixed_token_ci(t.first, "cb_detection_chance_base")) { d.cb_detection_chance_base = t.second; return; }
+			if(is_fixed_token_ci(t.first, "investment_influence_defense")) { d.investment_influence_defense = t.second; return; }
+			if(is_fixed_token_ci(t.first, "relation_influence_modifier")) { d.relation_influence_modifier = t.second; return; }
+			if(is_fixed_token_ci(t.first, "on_cb_detected_relation_change")) { d.on_cb_detected_relation_change = t.second; return; }
+			if(is_fixed_token_ci(t.first, "gw_intervene_min_relations")) { d.gw_intervene_min_relations = t.second; return; }
+			if(is_fixed_token_ci(t.first, "gw_intervene_max_exhaustion")) { d.gw_intervene_max_exhaustion = t.second; return; }
+			if(is_fixed_token_ci(t.first, "gw_justify_cb_badboy_impact")) { d.gw_justify_cb_badboy_impact = t.second; return; }
+			if(is_fixed_token_ci(t.first, "gw_cb_construction_speed")) { d.gw_cb_construction_speed = t.second; return; }
+			if(is_fixed_token_ci(t.first, "gw_wargoal_jingoism_requirement_mod")) { d.gw_wargoal_jingoism_requirement_mod = t.second; return; }
+			if(is_fixed_token_ci(t.first, "gw_warscore_cost_mod")) { d.gw_warscore_cost_mod = t.second; return; }
+			if(is_fixed_token_ci(t.first, "gw_warscore_cost_mod_2")) { d.gw_warscore_cost_mod_2 = t.second; return; }
+			if(is_fixed_token_ci(t.first, "gw_warscore_2_threshold")) { d.gw_warscore_2_threshold = t.second; return; }
+			if(is_fixed_token_ci(t.first, "tension_decay")) { d.tension_decay = t.second; return; }
+			if(is_fixed_token_ci(t.first, "tension_from_cb")) { d.tension_from_cb = t.second; return; }
+			if(is_fixed_token_ci(t.first, "tension_from_movement")) { d.tension_from_movement = t.second; return; }
+			if(is_fixed_token_ci(t.first, "tension_from_movement_max")) { d.tension_from_movement_max = t.second; return; }
+			if(is_fixed_token_ci(t.first, "at_war_tension_decay")) { d.at_war_tension_decay = t.second; return; }
+			if(is_fixed_token_ci(t.first, "tension_on_cb_discovered")) { d.tension_on_cb_discovered = t.second; return; }
+			if(is_fixed_token_ci(t.first, "tension_on_revolt")) { d.tension_on_revolt = t.second; return; }
+			if(is_fixed_token_ci(t.first, "tension_while_crisis")) { d.tension_while_crisis = t.second; return; }
+			if(is_fixed_token_ci(t.first, "crisis_cooldown_months")) { d.crisis_cooldown_months = t.second; return; }
+			if(is_fixed_token_ci(t.first, "crisis_base_chance")) { d.crisis_base_chance = t.second; return; }
+			if(is_fixed_token_ci(t.first, "crisis_temperature_increase")) { d.crisis_temperature_increase = t.second; return; }
+			if(is_fixed_token_ci(t.first, "crisis_offer_diplomatic_cost")) { d.crisis_offer_diplomatic_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "crisis_offer_relation_on_accept")) { d.crisis_offer_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "crisis_offer_relation_on_decline")) { d.crisis_offer_relation_on_decline = t.second; return; }
+			if(is_fixed_token_ci(t.first, "crisis_did_not_take_side_prestige_factor_base")) { d.crisis_did_not_take_side_prestige_factor_base = t.second; return; }
+			if(is_fixed_token_ci(t.first, "crisis_did_not_take_side_prestige_factor_year")) { d.crisis_did_not_take_side_prestige_factor_year = t.second; return; }
+			if(is_fixed_token_ci(t.first, "crisis_winner_prestige_factor_base")) { d.crisis_winner_prestige_factor_base = t.second; return; }
+			if(is_fixed_token_ci(t.first, "crisis_winner_prestige_factor_year")) { d.crisis_winner_prestige_factor_year = t.second; return; }
+			if(is_fixed_token_ci(t.first, "crisis_winner_relations_impact")) { d.crisis_winner_relations_impact = t.second; return; }
+			if(is_fixed_token_ci(t.first, "back_crisis_diplomatic_cost")) { d.back_crisis_diplomatic_cost = t.second; return; }
+			if(is_fixed_token_ci(t.first, "back_crisis_relation_on_accept")) { d.back_crisis_relation_on_accept = t.second; return; }
+			if(is_fixed_token_ci(t.first, "back_crisis_relation_on_decline")) { d.back_crisis_relation_on_decline = t.second; return; }
+			if(is_fixed_token_ci(t.first, "crisis_temperature_on_offer_decline")) { d.crisis_temperature_on_offer_decline = t.second; return; }
+			if(is_fixed_token_ci(t.first, "crisis_temperature_participant_factor")) { d.crisis_temperature_participant_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "crisis_temperature_on_mobilize")) { d.crisis_temperature_on_mobilize = t.second; return; }
+			if(is_fixed_token_ci(t.first, "crisis_wargoal_infamy_mult")) { d.crisis_wargoal_infamy_mult = t.second; return; }
+			if(is_fixed_token_ci(t.first, "crisis_wargoal_prestige_mult")) { d.crisis_wargoal_prestige_mult = t.second; return; }
+			if(is_fixed_token_ci(t.first, "crisis_wargoal_militancy_mult")) { d.crisis_wargoal_militancy_mult = t.second; return; }
+			if(is_fixed_token_ci(t.first, "crisis_interest_war_exhaustion_limit")) { d.crisis_interest_war_exhaustion_limit = t.second; return; }
+			if(is_fixed_token_ci(t.first, "rank_1_tension_decay")) { d.rank_1_tension_decay = t.second; return; }
+			if(is_fixed_token_ci(t.first, "rank_2_tension_decay")) { d.rank_2_tension_decay = t.second; return; }
+			if(is_fixed_token_ci(t.first, "rank_3_tension_decay")) { d.rank_3_tension_decay = t.second; return; }
+			if(is_fixed_token_ci(t.first, "rank_4_tension_decay")) { d.rank_4_tension_decay = t.second; return; }
+			if(is_fixed_token_ci(t.first, "rank_5_tension_decay")) { d.rank_5_tension_decay = t.second; return; }
+			if(is_fixed_token_ci(t.first, "rank_6_tension_decay")) { d.rank_6_tension_decay = t.second; return; }
+			if(is_fixed_token_ci(t.first, "rank_7_tension_decay")) { d.rank_7_tension_decay = t.second; return; }
+			if(is_fixed_token_ci(t.first, "rank_8_tension_decay")) { d.rank_8_tension_decay = t.second; return; }
+			if(is_fixed_token_ci(t.first, "tws_fulfilled_speed")) { d.tws_fulfilled_speed = t.second; return; }
+			if(is_fixed_token_ci(t.first, "tws_not_fulfilled_speed")) { d.tws_not_fulfilled_speed = t.second; return; }
+			if(is_fixed_token_ci(t.first, "tws_grace_period_days")) { d.tws_grace_period_days = t.second; return; }
+			if(is_fixed_token_ci(t.first, "tws_cb_limit_default")) { d.tws_cb_limit_default = t.second; return; }
+			if(is_fixed_token_ci(t.first, "tws_fulfilled_idle_space")) { d.tws_fulfilled_idle_space = t.second; return; }
+			if(is_fixed_token_ci(t.first, "tws_battle_min_count")) { d.tws_battle_min_count = t.second; return; }
+			if(is_fixed_token_ci(t.first, "tws_battle_max_aspect")) { d.tws_battle_max_aspect = t.second; return; }
+			if(is_fixed_token_ci(t.first, "large_population_influence_penalty")) { d.large_population_influence_penalty = t.second; return; }
+			if(is_fixed_token_ci(t.first, "lone_backer_prestige_factor")) { d.lone_backer_prestige_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "base_clergy_for_literacy")) { d.base_clergy_for_literacy = t.second; return; }
+			if(is_fixed_token_ci(t.first, "max_clergy_for_literacy")) { d.max_clergy_for_literacy = t.second; return; }
+			if(is_fixed_token_ci(t.first, "literacy_change_speed")) { d.literacy_change_speed = t.second; return; }
+			if(is_fixed_token_ci(t.first, "assimilation_scale")) { d.assimilation_scale = t.second; return; }
+			if(is_fixed_token_ci(t.first, "conversion_scale")) { d.conversion_scale = t.second; return; }
+			if(is_fixed_token_ci(t.first, "immigration_scale")) { d.immigration_scale = t.second; return; }
+			if(is_fixed_token_ci(t.first, "promotion_scale")) { d.promotion_scale = t.second; return; }
+			if(is_fixed_token_ci(t.first, "promotion_assimilation_chance")) { d.promotion_assimilation_chance = t.second; return; }
+			if(is_fixed_token_ci(t.first, "luxury_threshold")) { d.luxury_threshold = t.second; return; }
+			if(is_fixed_token_ci(t.first, "base_goods_demand")) { d.base_goods_demand = t.second; return; }
+			if(is_fixed_token_ci(t.first, "base_popgrowth")) { d.base_popgrowth = t.second; return; }
+			if(is_fixed_token_ci(t.first, "min_life_rating_for_growth")) { d.min_life_rating_for_growth = t.second; return; }
+			if(is_fixed_token_ci(t.first, "life_rating_growth_bonus")) { d.life_rating_growth_bonus = t.second; return; }
+			if(is_fixed_token_ci(t.first, "life_need_starvation_limit")) { d.life_need_starvation_limit = t.second; return; }
+			if(is_fixed_token_ci(t.first, "mil_lack_everyday_need")) { d.mil_lack_everyday_need = t.second; return; }
+			if(is_fixed_token_ci(t.first, "mil_has_everyday_need")) { d.mil_has_everyday_need = t.second; return; }
+			if(is_fixed_token_ci(t.first, "mil_has_luxury_need")) { d.mil_has_luxury_need = t.second; return; }
+			if(is_fixed_token_ci(t.first, "mil_no_life_need")) { d.mil_no_life_need = t.second; return; }
+			if(is_fixed_token_ci(t.first, "mil_require_reform")) { d.mil_require_reform = t.second; return; }
+			if(is_fixed_token_ci(t.first, "mil_ideology")) { d.mil_ideology = t.second; return; }
+			if(is_fixed_token_ci(t.first, "mil_ruling_party")) { d.mil_ruling_party = t.second; return; }
+			if(is_fixed_token_ci(t.first, "mil_reform_impact")) { d.mil_reform_impact = t.second; return; }
+			if(is_fixed_token_ci(t.first, "mil_war_exhaustion")) { d.mil_war_exhaustion = t.second; return; }
+			if(is_fixed_token_ci(t.first, "mil_non_accepted")) { d.mil_non_accepted = t.second; return; }
+			if(is_fixed_token_ci(t.first, "con_literacy")) { d.con_literacy = t.second; return; }
+			if(is_fixed_token_ci(t.first, "con_luxury_goods")) { d.con_luxury_goods = t.second; return; }
+			if(is_fixed_token_ci(t.first, "con_poor_clergy")) { d.con_poor_clergy = t.second; return; }
+			if(is_fixed_token_ci(t.first, "con_midrich_clergy")) { d.con_midrich_clergy = t.second; return; }
+			if(is_fixed_token_ci(t.first, "con_reform_impact")) { d.con_reform_impact = t.second; return; }
+			if(is_fixed_token_ci(t.first, "con_colonial_factor")) { d.con_colonial_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "ruling_party_happy_change")) { d.ruling_party_happy_change = t.second; return; }
+			if(is_fixed_token_ci(t.first, "ruling_party_angry_change")) { d.ruling_party_angry_change = t.second; return; }
+			if(is_fixed_token_ci(t.first, "pdef_base_con")) { d.pdef_base_con = t.second; return; }
+			if(is_fixed_token_ci(t.first, "national_focus_divider")) { d.national_focus_divider = t.second; return; }
+			if(is_fixed_token_ci(t.first, "pop_savings")) { d.pop_savings = t.second; return; }
+			if(is_fixed_token_ci(t.first, "state_creation_admin_limit")) { d.state_creation_admin_limit = t.second; return; }
+			if(is_fixed_token_ci(t.first, "mil_to_join_rebel")) { d.mil_to_join_rebel = t.second; return; }
+			if(is_fixed_token_ci(t.first, "mil_to_join_rising")) { d.mil_to_join_rising = t.second; return; }
+			if(is_fixed_token_ci(t.first, "mil_to_autorise")) { d.mil_to_autorise = t.second; return; }
+			if(is_fixed_token_ci(t.first, "reduction_after_riseing")) { d.reduction_after_riseing = t.second; return; }
+			if(is_fixed_token_ci(t.first, "reduction_after_defeat")) { d.reduction_after_defeat = t.second; return; }
+			if(is_fixed_token_ci(t.first, "pop_to_leadership")) { d.pop_to_leadership = t.second; return; }
+			if(is_fixed_token_ci(t.first, "artisan_min_productivity")) { d.artisan_min_productivity = t.second; return; }
+			if(is_fixed_token_ci(t.first, "slave_growth_divisor")) { d.slave_growth_divisor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "mil_hit_from_conquest")) { d.mil_hit_from_conquest = t.second; return; }
+			if(is_fixed_token_ci(t.first, "luxury_con_change")) { d.luxury_con_change = t.second; return; }
+			if(is_fixed_token_ci(t.first, "invention_impact_on_demand")) { d.invention_impact_on_demand = t.second; return; }
+			if(is_fixed_token_ci(t.first, "artisan_suppressed_colonial_goods_category")) { d.artisan_suppressed_colonial_goods_category = t.second; return; }
+			if(is_fixed_token_ci(t.first, "issue_movement_join_limit")) { d.issue_movement_join_limit = t.second; return; }
+			if(is_fixed_token_ci(t.first, "issue_movement_leave_limit")) { d.issue_movement_leave_limit = t.second; return; }
+			if(is_fixed_token_ci(t.first, "movement_con_factor")) { d.movement_con_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "movement_lit_factor")) { d.movement_lit_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "mil_on_reb_move")) { d.mil_on_reb_move = t.second; return; }
+			if(is_fixed_token_ci(t.first, "population_suppression_factor")) { d.population_suppression_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "population_movement_radical_factor")) { d.population_movement_radical_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "nationalist_movement_mil_cap")) { d.nationalist_movement_mil_cap = t.second; return; }
+			if(is_fixed_token_ci(t.first, "movement_support_uh_factor")) { d.movement_support_uh_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "rebel_occupation_strength_bonus")) { d.rebel_occupation_strength_bonus = t.second; return; }
+			if(is_fixed_token_ci(t.first, "large_population_limit")) { d.large_population_limit = t.second; return; }
+			if(is_fixed_token_ci(t.first, "large_population_influence_penalty_chunk")) { d.large_population_influence_penalty_chunk = t.second; return; }
+			if(is_fixed_token_ci(t.first, "colony_weight")) { d.colony_weight = t.second; return; }
+			if(is_fixed_token_ci(t.first, "administrator_weight")) { d.administrator_weight = t.second; return; }
+			if(is_fixed_token_ci(t.first, "industryworker_weight")) { d.industryworker_weight = t.second; return; }
+			if(is_fixed_token_ci(t.first, "educator_weight")) { d.educator_weight = t.second; return; }
+			if(is_fixed_token_ci(t.first, "soldier_weight")) { d.soldier_weight = t.second; return; }
+			if(is_fixed_token_ci(t.first, "soldier_fraction")) { d.soldier_fraction = t.second; return; }
+			if(is_fixed_token_ci(t.first, "capitalist_fraction")) { d.capitalist_fraction = t.second; return; }
+			if(is_fixed_token_ci(t.first, "production_weight")) { d.production_weight = t.second; return; }
+			if(is_fixed_token_ci(t.first, "spam_penalty")) { d.spam_penalty = t.second; return; }
+			if(is_fixed_token_ci(t.first, "one_side_max_warscore")) { d.one_side_max_warscore = t.second; return; }
+			if(is_fixed_token_ci(t.first, "pop_project_investment_max_budget_factor")) { d.pop_project_investment_max_budget_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "relation_limit_no_alliance_offer")) { d.relation_limit_no_alliance_offer = t.second; return; }
+			if(is_fixed_token_ci(t.first, "naval_supply_penalty_limit")) { d.naval_supply_penalty_limit = t.second; return; }
+			if(is_fixed_token_ci(t.first, "chance_build_railroad")) { d.chance_build_railroad = t.second; return; }
+			if(is_fixed_token_ci(t.first, "chance_build_naval_base")) { d.chance_build_naval_base = t.second; return; }
+			if(is_fixed_token_ci(t.first, "chance_build_fort")) { d.chance_build_fort = t.second; return; }
+			if(is_fixed_token_ci(t.first, "chance_invest_pop_proj")) { d.chance_invest_pop_proj = t.second; return; }
+			if(is_fixed_token_ci(t.first, "chance_foreign_invest")) { d.chance_foreign_invest = t.second; return; }
+			if(is_fixed_token_ci(t.first, "tws_awareness_score_low_cap")) { d.tws_awareness_score_low_cap = t.second; return; }
+			if(is_fixed_token_ci(t.first, "tws_awareness_score_aspect")) { d.tws_awareness_score_aspect = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_base_reluctance")) { d.peace_base_reluctance = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_time_months")) { d.peace_time_months = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_time_factor")) { d.peace_time_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_time_factor_no_goals")) { d.peace_time_factor_no_goals = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_war_exhaustion_factor")) { d.peace_war_exhaustion_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_war_direction_factor")) { d.peace_war_direction_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_war_direction_winning_mult")) { d.peace_war_direction_winning_mult = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_force_balance_factor")) { d.peace_force_balance_factor = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_ally_base_reluctance_mult")) { d.peace_ally_base_reluctance_mult = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_ally_time_mult")) { d.peace_ally_time_mult = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_ally_war_exhaustion_mult")) { d.peace_ally_war_exhaustion_mult = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_ally_war_direction_mult")) { d.peace_ally_war_direction_mult = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_ally_force_balance_mult")) { d.peace_ally_force_balance_mult = t.second; return; }
+			if(is_fixed_token_ci(t.first, "aggression_base")) { d.aggression_base = t.second; return; }
+			if(is_fixed_token_ci(t.first, "aggression_unciv_bonus")) { d.aggression_unciv_bonus = t.second; return; }
+			if(is_fixed_token_ci(t.first, "fleet_size")) { d.fleet_size = t.second; return; }
+			if(is_fixed_token_ci(t.first, "min_fleets")) { d.min_fleets = t.second; return; }
+			if(is_fixed_token_ci(t.first, "max_fleets")) { d.max_fleets = t.second; return; }
+			if(is_fixed_token_ci(t.first, "months_before_disband")) { d.months_before_disband = t.second; return; }
+		}
+		void start_date(date_tag t) {
+			d.start_date = t;
+		}
+		void end_date(date_tag t) {
+			d.end_date = t;
+		}
+	};
+
+	inline defines_reader const& dr_from_full(token_and_type const&, association_type, defines_reader const& r) { return r; }
 }
 
+MEMBER_FDEF(modifiers::defines_reader, start_date, "start_date");
+MEMBER_FDEF(modifiers::defines_reader, end_date, "end_date");
+MEMBER_FDEF(modifiers::defines_reader, recurse, "recurse");
+MEMBER_FDEF(modifiers::defines_reader, add_value, "value");
 MEMBER_FDEF(modifiers::nf_reader, set_icon, "icon");
 MEMBER_FDEF(modifiers::nf_reader, set_railroads, "railroads");
 MEMBER_FDEF(modifiers::nf_reader, set_limit, "limit");
@@ -705,7 +1163,17 @@ MEMBER_FDEF(modifiers::outer_factor_modifier, add_group, "group");
 MEMBER_FDEF(modifiers::outer_factor_modifier, add_modifier, "modifier");
 MEMBER_FDEF(modifiers::factor_modifier_group, add_modifier, "modifier");
 
+
 namespace modifiers {
+	BEGIN_DOMAIN(defines_domain)
+		BEGIN_TYPE(defines_reader)
+		MEMBER_ASSOCIATION("start_date", "start_date", value_from_rh<date_tag>)
+		MEMBER_ASSOCIATION("end_date", "end_date", value_from_rh<date_tag>)
+		MEMBER_VARIABLE_ASSOCIATION("value", accept_all, full_to_tf_pair)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("recurse", accept_all, defines_reader, dr_from_full)
+		END_TYPE
+	END_DOMAIN;
+
 	BEGIN_DOMAIN(nf_group_domain)
 		BEGIN_TYPE(nf_group_reader)
 			MEMBER_VARIABLE_TYPE_ASSOCIATION("nf", accept_all, nf_reader, bind_nf)
@@ -832,6 +1300,24 @@ namespace modifiers {
 
 	void inner_read_nf_group(const token_group* s, const token_group* e, nf_environment& env) {
 		parse_object<nf_group_reader, nf_group_domain>(s, e, env);
+	}
+
+	void read_defines(modifiers_manager& m, const directory& source_directory) {
+		const auto common_dir = source_directory.get_directory(u"\\common");
+		const auto fi = common_dir.open_file(u"defines.lua");
+
+		if(fi) {
+			const auto sz = fi->size();
+			auto const parse_data = std::unique_ptr<char[]>(new char[sz]);
+			fi->read_to_buffer(parse_data.get(), sz);
+
+			std::vector<token_group> parse_results;
+			parse_lua_file(parse_results, parse_data.get(), parse_data.get() + sz);
+
+			if(parse_results.size() != 0) {
+				parse_object<defines_reader, defines_domain>(parse_results.data(), parse_results.data() + parse_results.size(), m.global_defines);
+			}
+		}
 	}
 
 	void read_national_focuses(scenario::scenario_manager& s, const directory& source_directory) {

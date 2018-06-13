@@ -152,6 +152,20 @@ public:
 		"available_from_start = no\r\n"
 		"}\r\n"
 		"}\r\n");
+	file_representation def = file_representation(u"defines.lua", common,
+		"defines = {\r\n"
+		"	start_date = '1870.1.1',\r\n"
+		"	end_date = '1930.11.10',\r\n"
+		"	country = {\r\n"
+		"		YEARS_OF_NATIONALISM = 1,   --Years of Nationalism\r\n"
+		"		MONTHS_UNTIL_BROKEN = 2,    --OBSOLETE!(Months until rebel held capital results in broken country.)\r\n"
+		"		REBEL_ACCEPTANCE_MONTHS = 3,\r\n"
+		"		BASE_COUNTRY_TAX_EFFICIENCY = 0.5, --Basic efficiency for taxes without 'crats and tech\r\n"
+		"		BASE_COUNTRY_ADMIN_EFFICIENCY = 0.8,\r\n"
+		"		GOLD_TO_CASH_RATE = 1.0, --Amount of money generated per gold unit\r\n"
+		"	}\r\n"
+		"}\r\n"
+	);
 
 	preparse_test_files() {
 		set_default_root(f_root);
@@ -505,10 +519,20 @@ TEST(modifiers_tests, attribute_from_string) {
 		EXPECT_EQ(national_offsets::research_points_on_conquer, v.second);
 	}
 	{
-		const char s[] = "debt_default_to";
-		const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
-		EXPECT_EQ(bad_offset, v.first);
-		EXPECT_EQ(bad_offset, v.second);
+#ifdef _DEBUG
+		bool exception_thrown = false;
+		try {
+#endif
+			const char s[] = "debt_default_to";
+			const auto v = get_provincial_and_national_offsets_from_token(RANGE(s));
+			EXPECT_EQ(bad_offset, v.first);
+			EXPECT_EQ(bad_offset, v.second);
+#ifdef _DEBUG
+		} catch(...) {
+			exception_thrown = true;
+		}
+		EXPECT_TRUE(exception_thrown);
+#endif
 	}
 	{
 		const char s[] = "import_cost";
@@ -997,7 +1021,18 @@ TEST(modifiers_tests, modifier_reader) {
 		EXPECT_EQ(1ui32, b.count_unique_provincial);
 		EXPECT_EQ(2ui32, b.total_attributes);
 
-		b.add_attribute(std::make_pair(t4, 10.0f));
+
+#ifdef _DEBUG
+		bool exception_thrown = false;
+		try {
+#endif
+			b.add_attribute(std::make_pair(t4, 10.0f));
+#ifdef _DEBUG
+		} catch(...) {
+			exception_thrown = true;
+		}
+		EXPECT_TRUE(exception_thrown);
+#endif
 
 		EXPECT_EQ(1ui32, b.count_unique_national);
 		EXPECT_EQ(1ui32, b.count_unique_provincial);
@@ -1343,4 +1378,23 @@ TEST(modifiers_tests, modifier_factors) {
 		EXPECT_EQ(2ui16, sm.trigger_m.trigger_data[4]);
 		EXPECT_EQ(1ui16, sm.trigger_m.trigger_data[5]);
 	}
+}
+
+TEST(modifiers_tests, defines_file_read) {
+	preparse_test_files real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:"));
+
+
+	modifiers_manager m;
+
+	read_defines(m, f.get_root());
+
+	EXPECT_EQ(date_to_tag(boost::gregorian::date(1870, boost::gregorian::Jan, 1)), m.global_defines.start_date);
+	EXPECT_EQ(date_to_tag(boost::gregorian::date(1930, boost::gregorian::Nov, 10)), m.global_defines.end_date);
+	EXPECT_EQ(1.0f, m.global_defines.years_of_nationalism);
+	EXPECT_EQ(0.5f, m.global_defines.base_country_tax_efficiency);
+	EXPECT_EQ(0.8f, m.global_defines.base_country_admin_efficiency);
+	EXPECT_EQ(1.0f, m.global_defines.gold_to_cash_rate);
 }

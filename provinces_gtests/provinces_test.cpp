@@ -10,6 +10,15 @@ public:
 	directory_representation f_root = directory_representation(u"F:");
 	directory_representation map_dir = directory_representation(u"map", f_root);
 
+	file_representation defintions = file_representation(u"definition.csv", map_dir,
+		"province;red;green;blue;x;x\r\n"
+		"1;204;229;152;Sitka;x\r\n"
+		"2;204;179;153;Yakutat;x\r\n"
+		"3;153;230;153;Kenai;x\r\n"
+		"4;192;0;0;Dutch Harbor;x\r\n"
+		";108;16;240;x\r\n"
+		";109;16;244;x\r\n"
+		);
 	file_representation a = file_representation(u"default.map", map_dir,
 		"max_provinces = 5\r\n"
 		"sea_starts = { 1 4 }\r\n"
@@ -221,4 +230,18 @@ TEST(provinces_test, region_read) {
 	
 	EXPECT_EQ(text_data::get_thread_safe_text_handle(tex, RANGE("region_a")), m.state_names[state_tag(0)]);
 	EXPECT_EQ(text_data::get_thread_safe_text_handle(tex, RANGE("region_b")), m.state_names[state_tag(1)]);
+}
+
+TEST(provinces_test, colors) {
+	preparse_test_files real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:"));
+
+	auto result = read_province_definition_file(f.get_root());
+	EXPECT_EQ(4ui64, result.size());
+	EXPECT_EQ(province_tag(1), result[rgb_to_prov_index(204ui8, 229ui8, 152ui8)]);
+	EXPECT_EQ(province_tag(2), result[rgb_to_prov_index(204ui8, 179ui8, 153ui8)]);
+	EXPECT_EQ(province_tag(3), result[rgb_to_prov_index(153ui8, 230ui8, 153ui8)]);
+	EXPECT_EQ(province_tag(4), result[rgb_to_prov_index(192ui8, 0ui8, 0ui8)]);
 }

@@ -10,6 +10,8 @@
 #include <map>
 #include <deque>
 
+#include "provinces\\provinces.h"
+
 namespace graphics {
 
 	struct map_vertex_data_3d {
@@ -452,10 +454,7 @@ namespace graphics {
 		const auto scolors = cm.secondary_color_data();
 
 		for (int32_t t = width * height - 1; t >= 0; --t) {
-			uint32_t color_index =
-				static_cast<uint32_t>(color_data[t * 3 + 0]) +
-				(static_cast<uint32_t>(color_data[t * 3 + 1]) << 8) +
-				(static_cast<uint32_t>(color_data[t * 3 + 2]) << 16);
+			uint32_t color_index = provinces::rgb_to_prov_index(color_data[t * 3 + 0], color_data[t * 3 + 1], color_data[t * 3 + 2]);
 			if (auto it = color_mapping.find(color_index); it == color_mapping.end()) {
 				const auto new_index = ++counter;
 				color_mapping.insert(std::make_pair(color_index, new_index));
@@ -479,10 +478,7 @@ namespace graphics {
 		result.primary_data = new uint16_t[static_cast<size_t>(width * height)];
 
 		const auto last = width * height - 1;
-		uint32_t previous_color_index =
-			static_cast<uint32_t>(color_data[last * 3 + 0]) +
-			(static_cast<uint32_t>(color_data[last * 3 + 1]) << 8) +
-			(static_cast<uint32_t>(color_data[last * 3 + 2]) << 16);
+		uint32_t previous_color_index = provinces::rgb_to_prov_index(color_data[last * 3 + 0], color_data[last * 3 + 1], color_data[last * 3 + 2]);
 		uint16_t prev_result = 0ui16;
 		if(auto it = color_mapping.find(previous_color_index); it != color_mapping.end()) {
 			prev_result = it->second;
@@ -490,10 +486,7 @@ namespace graphics {
 		}
 
 		for (int32_t t = width * height - 2; t >= 0; --t) {
-			uint32_t color_index =
-				static_cast<uint32_t>(color_data[t * 3 + 0]) +
-				(static_cast<uint32_t>(color_data[t * 3 + 1]) << 8) +
-				(static_cast<uint32_t>(color_data[t * 3 + 2]) << 16);
+			uint32_t color_index = provinces::rgb_to_prov_index(color_data[t * 3 + 0], color_data[t * 3 + 1], color_data[t * 3 + 2]);
 			if(color_index == previous_color_index) {
 				result.primary_data[t] = prev_result;
 			} else {

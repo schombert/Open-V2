@@ -51,6 +51,10 @@ namespace provinces {
 		~parsing_state();
 	};
 
+	constexpr uint32_t rgb_to_prov_index(uint8_t r, uint8_t g, uint8_t b) {
+		return static_cast<uint32_t>(r) | (static_cast<uint32_t>(g) << 8) | (static_cast<uint32_t>(b) << 16);
+	}
+
 	void read_default_map_file(
 		parsing_state& state,
 		const directory& source_directory);
@@ -59,16 +63,14 @@ namespace provinces {
 		pre_parse_terrain(
 		parsing_state& state,
 		const directory& source_directory); // returns color to terrain tag map; adds provincial modifiers
-
 	void read_states(
 		parsing_state& state,
 		const directory& source_directory);
-
 	void read_continents(
 		parsing_state& state,
 		const directory& source_directory); // adds provincial modifiers
-
 	void read_climates(
 		parsing_state& state,
 		const directory& source_directory); // adds provincial modifiers
+	boost::container::flat_map<uint32_t, province_tag> read_province_definition_file(directory const& source_directory);
 }

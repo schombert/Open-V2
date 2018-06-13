@@ -48,8 +48,15 @@ namespace provinces {
 		void discard_empty(const empty_type&) {}
 		void set_province_count(size_t v) {
 			env.manager.province_container.resize(v);
-			for (uint32_t i = 0; i < v; ++i)
-				env.manager.province_container[province_tag(static_cast<uint16_t>(i))].id = province_tag(static_cast<uint16_t>(i));
+			for(uint32_t i = 0; i < v; ++i) {
+				auto& p = env.manager.province_container[province_tag(static_cast<uint16_t>(i))];
+				p.id = province_tag(static_cast<uint16_t>(i));
+
+				std::string name_temp("PROV");
+				name_temp += std::to_string(i);
+
+				p.name = text_data::get_thread_safe_text_handle(env.text_lookup, name_temp.data(), name_temp.data() + name_temp.length());
+			}
 		}
 		void handle_sea_starts(const sea_starts&) {}
 	};
@@ -479,5 +486,34 @@ namespace provinces {
 					*state.impl);
 			}
 		}
+	}
+	boost::container::flat_map<uint32_t, province_tag> read_province_definition_file(directory const & source_directory) {
+		boost::container::flat_map<uint32_t, province_tag> t;
+
+		const auto map_dir = source_directory.get_directory(u"\\map");
+		const auto fi = map_dir.open_file(u"definition.csv");
+
+		if(fi) {
+			const auto sz = fi->size();
+			const auto parse_data = std::unique_ptr<char[]>(new char[sz]);
+			
+			char* position = parse_data.get();
+			fi->read_to_buffer(position, sz);
+
+			while(position < parse_data.get() + sz) {
+				position = parse_fixed_amount_csv_values<4>(position, parse_data.get() + sz, ';',
+					[&t](std::pair<char*, char*> const* values) {
+					if(is_integer(values[0].first, values[0].second)) {
+						t.emplace(rgb_to_prov_index(
+							uint8_t(parse_int(values[1].first, values[1].second)),
+							uint8_t(parse_int(values[2].first, values[2].second)),
+							uint8_t(parse_int(values[3].first, values[3].second))),
+						province_tag(province_tag::value_base_t(parse_int(values[0].first, values[0].second))));
+					}
+				});
+			}
+
+		}
+		return t;
 	}
 }

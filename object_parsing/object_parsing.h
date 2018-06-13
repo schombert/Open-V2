@@ -137,6 +137,8 @@ struct _set_member<CT_STRING(identifier), class_name>{ \
     } \
 };
 
+#define MEMBER_SAME_DEF(class_name, member) MEMBER_DEF(class_name, member, # member)
+
 #define MEMBER_FDEF(class_name, member, identifier) \
 template<> \
 struct _set_member<CT_STRING(identifier), class_name>{ \
