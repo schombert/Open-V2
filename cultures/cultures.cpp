@@ -5,6 +5,8 @@
 #include <map>
 #include "graphics\\texture.h"
 #include "simple_fs\\simple_fs.h"
+#include "scenario\\scenario.h"
+#include "governments\\governments.h"
 
 #undef min
 #undef max
@@ -73,6 +75,34 @@ namespace cultures {
 					break;
 			}
 			++current_color;
+		}
+	};
+
+	struct country_file_env {
+		national_tag_object& under_construction;
+		scenario::scenario_manager& s;
+		country_file_env(national_tag_object& uc, scenario::scenario_manager& sm) : under_construction(uc), s(sm) {}
+	};
+
+	inline int discard_country_section(token_group const*, token_group const*, country_file_env&) {
+		return 0;
+	}
+
+	inline governments::party_tag inner_read_party(token_group const* s, token_group const* e, country_file_env& env) {
+		return governments::read_party(s, e, env.s);
+	}
+
+	struct country_file {
+		country_file_env& env;
+		country_file(country_file_env& e) : env(e) {}
+		void set_color(color_builder const& c) {
+			env.under_construction.color = c.color;
+		}
+		void discard(int) {}
+		void add_party(governments::party_tag id) {
+			if(!is_valid_index(env.under_construction.first_party))
+				env.under_construction.first_party = id;
+			env.under_construction.last_party = id;
 		}
 	};
 
@@ -289,6 +319,9 @@ namespace cultures {
 	}
 }
 
+MEMBER_FDEF(cultures::country_file, set_color, "color");
+MEMBER_FDEF(cultures::country_file, add_party, "party");
+MEMBER_FDEF(cultures::country_file, discard, "discard");
 MEMBER_FDEF(cultures::color_builder, add_value, "color");
 MEMBER_FDEF(cultures::fp_color_builder, add_value, "color");
 MEMBER_FDEF(cultures::religions_file, add_group, "group");
@@ -310,6 +343,18 @@ MEMBER_FDEF(cultures::culture_builder, add_last_names, "last_names");
 MEMBER_FDEF(cultures::names_builder, add_name, "name");
 
 namespace cultures {
+	BEGIN_DOMAIN(culture_file_domain)
+		BEGIN_TYPE(color_builder)
+		MEMBER_VARIABLE_ASSOCIATION("color", accept_all, value_from_lh<int>)
+		END_TYPE
+		BEGIN_TYPE(country_file)
+		MEMBER_TYPE_EXTERN("discard", "unit_names", int, discard_country_section)
+		MEMBER_ASSOCIATION("discard", "graphical_culture", discard_from_rh)
+		MEMBER_TYPE_ASSOCIATION("color", "color", color_builder)
+		MEMBER_TYPE_EXTERN("party", "party", governments::party_tag, inner_read_party)
+		END_TYPE
+	END_DOMAIN;
+
 	BEGIN_DOMAIN(parse_religions_domain)
 		BEGIN_TYPE(religions_file)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("group", accept_all, religions_group_s, discard_group)
@@ -357,6 +402,87 @@ namespace cultures {
 		MEMBER_VARIABLE_ASSOCIATION("name", accept_all, token_from_lh)
 		END_TYPE
 	END_DOMAIN;
+
+
+	void read_flag_graphics(scenario::scenario_manager& s, const directory& source_directory) {
+		const auto gfx_dir = source_directory.get_directory(u"\\gfx");
+		const auto flag_dir = source_directory.get_directory(u"\\flags");
+
+		for(auto& nt : s.culutre_m.national_tags) {
+			auto tag_name = encoded_tag_to_text_tag(nt.tag_code);
+			
+			std::string base(tag_name.tag);
+			std::string communist = base + "_communist.tga";
+			std::string republic = base + "_republic.tga";
+			std::string fascist = base + "_fascist.tga";
+			std::string monarchy = base + "_monarchy.tga";
+			base += ".tga";
+
+			nt.base_flag = s.gui_m.textures.retrieve_by_name(flag_dir, base.c_str(), base.c_str() + base.length());
+			nt.communist_flag = s.gui_m.textures.retrieve_by_name(flag_dir, communist.c_str(), communist.c_str() + communist.length());
+			nt.republic_flag = s.gui_m.textures.retrieve_by_name(flag_dir, republic.c_str(), republic.c_str() + republic.length());
+			nt.fascist_flag = s.gui_m.textures.retrieve_by_name(flag_dir, fascist.c_str(), fascist.c_str() + fascist.length());
+			nt.monarchy_flag = s.gui_m.textures.retrieve_by_name(flag_dir, monarchy.c_str(), monarchy.c_str() + monarchy.length());
+		}
+	}
+
+	void populate_country_names(scenario::scenario_manager& s, tagged_vector<std::string, governments::government_tag> const& gbase_names) {
+		s.culutre_m.country_names_by_government.reset(static_cast<uint32_t>(s.governments_m.governments_container.size()));
+		s.culutre_m.country_names_by_government.resize(s.culutre_m.national_tags.size());
+
+		for(auto& nt : s.culutre_m.national_tags) {
+			auto tag_name = encoded_tag_to_text_tag(nt.tag_code);
+
+			std::string base(tag_name.tag);
+			std::string base_adj = base + "_ADJ";
+
+			nt.default_name.name = text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, base.c_str(), base.c_str() + base.length());
+			nt.default_name.adjective = text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, base_adj.c_str(), base_adj.c_str() + base_adj.length());
+
+			for(uint32_t i = 0; i < s.governments_m.governments_container.size(); ++i) {
+				const auto gtag = governments::government_tag(static_cast<governments::government_tag::value_base_t>(i));
+				
+				std::string base_plus = base + "_" + gbase_names[gtag];
+				std::string base_plus_adj = base_plus + "_ADJ";
+
+				auto& pr = s.culutre_m.country_names_by_government.get(nt.id, gtag);
+				pr.name = text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, base_plus.c_str(), base_plus.c_str() + base_plus.length());
+				pr.adjective = text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, base_plus_adj.c_str(), base_plus_adj.c_str() + base_plus_adj.length());
+			}
+		}
+	}
+
+	void read_country_files(tagged_vector<std::string, national_tag> const& v, scenario::scenario_manager& s, const directory& source_directory) {
+		const auto common_dir = source_directory.get_directory(u"\\common");
+		const auto country_dir = common_dir.get_directory(u"\\countries");
+
+		governments::ready_party_issues(s.governments_m, s.issues_m);
+
+		for(uint32_t i = 0; i < v.size(); ++i) {
+			const auto this_tag = national_tag(static_cast<national_tag::value_base_t>(i));
+
+			national_tag_object& uc = s.culutre_m.national_tags[this_tag];
+			const auto file = common_dir.open_file(v[this_tag].c_str(), v[this_tag].c_str() + v[this_tag].length());
+
+			if(file) {
+				const auto sz = file->size();
+
+				std::vector<token_group> parse_results;
+				const auto parse_data = std::unique_ptr<char[]>(new char[sz]);
+
+				file->read_to_buffer(parse_data.get(), sz);
+				parse_pdx_file(parse_results, parse_data.get(), parse_data.get() + sz);
+
+				if(parse_results.size() > 0) {
+					country_file_env env(uc, s);
+					parse_object<country_file, culture_file_domain>(
+						&parse_results[0],
+						&parse_results[0] + parse_results.size(),
+						env);
+				}
+			}
+		}
+	}
 
 	void parse_religions(
 		culture_manager& manager,

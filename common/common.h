@@ -207,6 +207,8 @@ public:
 			storage.resize(to_index(t) + 1);
 		return storage[to_index(t)];
 	}
+	auto data() const { return storage.data(); }
+	auto data() { return storage.data(); }
 	auto begin() const { return storage.begin(); }
 	auto end() const { return storage.end(); }
 	auto begin() { return storage.begin(); }
@@ -242,6 +244,12 @@ public:
 	size_t size() const { return storage.size(); }
 	size_t outer_size() const { return storage.size() / _inner_size; }
 	uint32_t inner_size() const { return _inner_size; }
+	auto data() const { return storage.data(); }
+	auto data() { return storage.data(); }
+	auto begin() const { return storage.begin(); }
+	auto end() const { return storage.end(); }
+	auto begin() { return storage.begin(); }
+	auto end() { return storage.end(); }
 	void resize(size_t outer_size) { storage.resize(outer_size * _inner_size); }
 	void reserve(size_t outer_size) { storage.reserve(outer_size * _inner_size); }
 };
@@ -250,10 +258,11 @@ template<typename value_type, typename variable_tag_type, typename fixed_tag_typ
 class tagged_fixed_blocked_2dvector {
 public:
 	constexpr static size_t block_size = 32;
-private:
+
 	struct alignas(block_size) block_s {
 		unsigned char data[block_size] = { 0 };
 	};
+private:
 	std::vector<block_s, typename std::allocator_traits<allocator>::template rebind_alloc<block_s>> storage;
 	uint32_t _inner_size = 1;
 public:
@@ -294,6 +303,8 @@ public:
 	size_t size() const { return storage.size(); }
 	size_t outer_size() const { return storage.size() / _inner_size; }
 	uint32_t inner_size() const { return _inner_size * block_size / sizeof(value_type); }
+	auto data() const { return storage.data(); }
+	auto data() { return storage.data(); }
 	void resize(size_t outer_size) { storage.resize(outer_size * _inner_size); }
 	void reserve(size_t outer_size) { storage.reserve(outer_size * _inner_size); }
 };

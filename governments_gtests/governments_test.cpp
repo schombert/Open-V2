@@ -2,6 +2,8 @@
 #include "fake_fs\\fake_fs.h"
 #include "governments\\governments.h"
 #include "ideologies\\ideologies.h"
+#include "issues\\issues.h"
+#include "scenario\\scenario.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -44,6 +46,17 @@ public:
 		"appoint_ruling_party  = no\r\n"
 		"flagType = communist\r\n"
 		"}\r\n");
+	file_representation issues1 = file_representation(u"issues.txt", common1,
+		"party_issues  = {\r\n"
+		"trade_policy  = { opt_a = { } opt_b = { } }\r\n"
+		"issue_b  = { opt_c = { } opt_d = { } }\r\n"
+		"}\r\n");
+	file_representation file = file_representation(u"ideologies.txt", common1,
+		"group_a = {\r\n"
+		"member_1 = { }\r\n"
+		"member_2 = { }\r\n"
+		"}\r\n"
+		"group_2 = { member_3 = { } }");
 
 	test_files() {
 		set_default_root(f_root);
@@ -91,7 +104,7 @@ TEST(governments_tests, test_single_government) {
 	ideologies::ideologies_manager im;
 	setup_test_ideologies(tex, im);
 
-	read_governments(m, f.get_root(), tex, im);
+	auto name_record = read_governments(m, f.get_root(), tex, im);
 
 	EXPECT_EQ(1ui64, m.governments_container.size());
 	EXPECT_EQ(1ui64, m.named_government_index.size());
@@ -104,7 +117,7 @@ TEST(governments_tests, test_single_government) {
 	EXPECT_EQ(10ui32, g.duration);
 	EXPECT_EQ(true, g.appoint_ruling_party);
 	EXPECT_EQ(true, g.election);
-	EXPECT_EQ(std::string("proletarian_dictatorship"), g.name_base);
+	EXPECT_EQ(std::string("proletarian_dictatorship"), name_record[government_tag(0)]);
 	EXPECT_EQ(government_tag(0), m.named_government_index[g.name]);
 
 	EXPECT_EQ(0ui8, m.permitted_ideologies.get(government_tag(0), ideologies::ideology_tag(0)));
@@ -123,7 +136,7 @@ TEST(governments_tests, test_single_ideology) {
 	text_data::text_sequences tex;
 	setup_test_ideologies(tex, im);
 
-	read_governments(m, f.get_root(), tex, im);
+	auto name_record = read_governments(m, f.get_root(), tex, im);
 
 	EXPECT_EQ(1ui64, m.governments_container.size());
 	EXPECT_EQ(1ui64, m.named_government_index.size());
@@ -136,7 +149,7 @@ TEST(governments_tests, test_single_ideology) {
 	EXPECT_EQ(48ui32, g.duration);
 	EXPECT_EQ(false, g.appoint_ruling_party);
 	EXPECT_EQ(false, g.election);
-	EXPECT_EQ(std::string("proletarian_dictatorship"), g.name_base);
+	EXPECT_EQ(std::string("proletarian_dictatorship"), name_record[government_tag(0)]);
 	EXPECT_EQ(government_tag(0), m.named_government_index[g.name]);
 
 	EXPECT_EQ(0ui8, m.permitted_ideologies.get(government_tag(0), ideologies::ideology_tag(0)));
@@ -155,7 +168,7 @@ TEST(governments_tests, test_multiple) {
 	ideologies::ideologies_manager im;
 	setup_test_ideologies(tex, im);
 
-	read_governments(m, f.get_root(), tex, im);
+	auto name_record = read_governments(m, f.get_root(), tex, im);
 
 	EXPECT_EQ(2ui64, m.governments_container.size());
 	EXPECT_EQ(2ui64, m.named_government_index.size());
@@ -168,7 +181,7 @@ TEST(governments_tests, test_multiple) {
 	EXPECT_EQ(48ui32, g.duration);
 	EXPECT_EQ(false, g.appoint_ruling_party);
 	EXPECT_EQ(false, g.election);
-	EXPECT_EQ(std::string("proletarian_dictatorship"), g.name_base);
+	EXPECT_EQ(std::string("proletarian_dictatorship"), name_record[government_tag(0)]);
 	EXPECT_EQ(government_tag(0), m.named_government_index[g.name]);
 
 	EXPECT_EQ(0ui8, m.permitted_ideologies.get(government_tag(0), ideologies::ideology_tag(0)));
@@ -181,10 +194,47 @@ TEST(governments_tests, test_multiple) {
 	EXPECT_EQ(48ui32, g2.duration);
 	EXPECT_EQ(false, g2.appoint_ruling_party);
 	EXPECT_EQ(true, g2.election);
-	EXPECT_EQ(std::string("type_b"), g2.name_base);
+	EXPECT_EQ(std::string("type_b"), name_record[government_tag(1)]);
 	EXPECT_EQ(government_tag(1), m.named_government_index[g2.name]);
 
 	EXPECT_EQ(1ui8, m.permitted_ideologies.get(government_tag(1), ideologies::ideology_tag(0)));
 	EXPECT_EQ(0ui8, m.permitted_ideologies.get(government_tag(1), ideologies::ideology_tag(1)));
 	EXPECT_EQ(1ui8, m.permitted_ideologies.get(government_tag(1), ideologies::ideology_tag(2)));
+}
+
+TEST(governments_tests, individual_party) {
+	test_files real_fs;
+	file_system f;
+
+	scenario::scenario_manager s;
+
+	f.set_root(RANGE(u"F:\\test1"));
+
+	issues::pre_parse_issues(s.issues_m, f.get_root(), s.gui_m.text_data_sequences);
+	ideologies::pre_parse_ideologies(s.ideologies_m, f.get_root(), s.gui_m.text_data_sequences);
+
+	const char party_contents[] = "start_date = 1846.1.2\r\n"
+		"end_date = 1991.1.10\r\n"
+		"ideology = member_1\r\n"
+		"name = \"BHO_liberal\"\r\n"
+		"issue_b = opt_c\r\n"
+		"trade_policy = opt_b";
+
+	std::vector<token_group> results;
+	parse_pdx_file(results, RANGE(party_contents));
+
+	ready_party_issues(s.governments_m, s.issues_m);
+
+	auto pt = read_party(results.data(), results.data() + results.size(), s);
+
+	EXPECT_EQ(party_tag(0), pt);
+	EXPECT_EQ(party_tag(0), s.governments_m.parties[party_tag(0)].id);
+	EXPECT_EQ(date_to_tag(boost::gregorian::date(1846, boost::gregorian::Jan, 2)), s.governments_m.parties[party_tag(0)].start_date);
+	EXPECT_EQ(date_to_tag(boost::gregorian::date(1991, boost::gregorian::Jan, 10)), s.governments_m.parties[party_tag(0)].end_date);
+	EXPECT_EQ(
+		tag_from_text(s.ideologies_m.named_ideology_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("member_1"))),
+		s.governments_m.parties[party_tag(0)].ideology);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("BHO_liberal")), s.governments_m.parties[party_tag(0)].name);
+	EXPECT_EQ(s.governments_m.party_issues.get(party_tag(0), 0), issues::option_tag(1));
+	EXPECT_EQ(s.governments_m.party_issues.get(party_tag(0), 1), issues::option_tag(2));
 }

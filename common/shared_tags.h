@@ -86,6 +86,7 @@ namespace cultures {
 
 namespace governments {
 	using government_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 30607523>>;
+	using party_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 30607524>>;
 }
 
 namespace modifiers {

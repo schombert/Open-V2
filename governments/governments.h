@@ -11,6 +11,12 @@
 namespace ideologies {
 	class ideologies_manager;
 }
+namespace issues {
+	class issues_manager;
+}
+namespace scenario {
+	class scenario_manager;
+}
 
 namespace governments {
 	enum class flag_type : uint8_t {
@@ -21,7 +27,6 @@ namespace governments {
 	const char* flag_type_to_text(flag_type t);
 
 	struct government_type {
-		std::string name_base;
 		text_data::text_tag name;
 		uint32_t duration = 48;
 		government_tag id;
@@ -30,17 +35,31 @@ namespace governments {
 		bool election = false;
 	};
 
+	struct party {
+		text_data::text_tag name;
+		date_tag start_date;
+		date_tag end_date;
+
+		party_tag id;
+
+		ideologies::ideology_tag ideology;
+	};
+
 	class governments_manager {
 	public:
 		boost::container::flat_map<text_data::text_tag, government_tag> named_government_index;
 
 		tagged_vector<government_type, government_tag> governments_container;
 		tagged_fixed_2dvector<uint8_t, government_tag, ideologies::ideology_tag> permitted_ideologies;
+		tagged_vector<party, party_tag> parties;
+		tagged_fixed_2dvector<issues::option_tag, party_tag, uint32_t> party_issues; // inner index = nth party issue
 	};
 
-	void read_governments(
+	tagged_vector<std::string, governments::government_tag> read_governments(
 		governments_manager& manager,
 		const directory& source_directory,
 		text_data::text_sequences& text_function,
 		const ideologies::ideologies_manager& ideologies_source);
+	void ready_party_issues(governments_manager& manager, issues::issues_manager& im);
+	party_tag read_party(token_group const* start, token_group const* end, scenario::scenario_manager& s);
 }
