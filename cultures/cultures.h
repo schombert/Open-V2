@@ -114,9 +114,4 @@ namespace cultures {
 	void read_country_files(tagged_vector<std::string, national_tag> const& v, scenario::scenario_manager& s, const directory& source_directory);
 	void read_flag_graphics(scenario::scenario_manager& s, const directory& source_directory);
 	void populate_country_names(scenario::scenario_manager& s, tagged_vector<std::string, governments::government_tag> const& gbase_names);
-
-	std::pair<text_data::text_tag, text_data::text_tag> get_name_and_adjective(
-		const national_tag_object&,
-		const governments::government_type&,
-		const text_data::text_sequences& );
 }

@@ -47,6 +47,9 @@
     <ProjectReference Include="..\fake_fs\fake_fs.vcxproj">
       <Project>{c9607b1c-c139-4ca0-ae7d-3162e40c6838}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\governments\governments.vcxproj">
+      <Project>{887ac5a7-b5b3-40bf-9249-58f68490ff9e}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\graphics\graphics.vcxproj">
       <Project>{30142af6-6972-4e2f-baa8-85361ce88f22}</Project>
     </ProjectReference>

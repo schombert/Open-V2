@@ -2,6 +2,7 @@
 #include "fake_fs\\fake_fs.h"
 #include "cultures\\cultures.h"
 #include "graphics\\texture.h"
+#include "scenario\\scenario.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -15,6 +16,44 @@ public:
 	file_representation countries1 = file_representation(u"countries.txt", common1,
 		"GER = \"countries/file 1.txt\"\r\n"
 		"ENG = \"countries/file 2.txt\"");
+	directory_representation countries_dir = directory_representation(u"countries", common1);
+	file_representation ger_file = file_representation(u"file 1.txt", countries_dir,
+		"color = { 154  129  35 }\r\n"
+		"graphical_culture = IndianGC\r\n"
+		"party = {\r\n"
+		"	name = party_a\r\n"
+		"}\r\n"
+		"party = {\r\n"
+		"	name = party_a\r\n"
+		"}\r\n"
+	);
+	file_representation eng_file = file_representation(u"file 2.txt", countries_dir,
+		"color = { 101  102  163 }\r\n"
+		"graphical_culture = SouthAmericanGC\r\n"
+		"party = {\r\n"
+		"	name = ARG_liberal_2\r\n"
+		"	start_date = 1835.1.1\r\n"
+		"	end_date = 1856.1.1\r\n"
+		"}\r\n"
+		"unit_names = {\r\n"
+		"	dreadnought = { \"ARA Alvea\" }\r\n"
+		"}"
+	);
+	directory_representation gfx1 = directory_representation(u"gfx", test1);
+	directory_representation flags1 = directory_representation(u"flags", gfx1);
+	file_representation ff1 = file_representation(u"GER.tga", flags1, "");
+	file_representation ff2 = file_representation(u"ENG_fascist.tga", flags1, "");
+	file_representation ff3 = file_representation(u"ENG_monarchy.tga", flags1, "");
+	file_representation gov3 = file_representation(u"governments.txt", common1,
+		"proletarian_dictatorship  = {\r\n"
+		"flagType = none\r\n"
+		"}\r\n"
+		"type_b  = {\r\n"
+		"flagType = communist\r\n"
+		"}\r\n"
+		"type_c  = {\r\n"
+		"flagType = communist\r\n"
+		"}\r\n");
 	file_representation rel1 = file_representation(u"religion.txt", common1,
 		"group_a = {\r\n"
 		"r1 = {\r\n"
@@ -343,4 +382,78 @@ TEST(cultures_tests, leader_pictures) {
 	EXPECT_EQ(2ui16, m.culture_groups[culture_group_tag(2)].leader_pictures.admiral_size);
 	EXPECT_EQ(2ui16, m.culture_groups[culture_group_tag(2)].leader_pictures.general_offset);
 	EXPECT_EQ(1ui16, m.culture_groups[culture_group_tag(2)].leader_pictures.general_size);
+}
+
+TEST(cultures_tests, government_names) {
+	test_files real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:\\test1"));
+
+	scenario::scenario_manager s;
+
+	const auto tvector = parse_national_tags(s.culutre_m, f.get_root());
+	const auto gbase_names = governments::read_governments(s.governments_m, f.get_root(), s.gui_m.text_data_sequences, s.ideologies_m);
+
+	auto const t1 = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, RANGE("ENG"));
+	auto const t2 = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, RANGE("ENG_ADJ"));
+
+	auto const t3 = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, RANGE("GER_type_b"));
+	auto const t4 = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, RANGE("GER_type_c_ADJ"));
+
+	auto const g1 = tag_from_text(s.governments_m.named_government_index, text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, RANGE("type_b")));
+	auto const g2 = tag_from_text(s.governments_m.named_government_index, text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, RANGE("type_c")));
+
+	populate_country_names(s, gbase_names);
+
+	EXPECT_EQ(t1, s.culutre_m.national_tags[national_tag(1)].default_name.name);
+	EXPECT_EQ(t2, s.culutre_m.national_tags[national_tag(1)].default_name.adjective);
+	EXPECT_EQ(text_data::text_tag(), s.culutre_m.national_tags[national_tag(0)].default_name.name);
+	EXPECT_EQ(text_data::text_tag(), s.culutre_m.national_tags[national_tag(0)].default_name.adjective);
+	EXPECT_EQ(t3, s.culutre_m.country_names_by_government.get(national_tag(0), g1).name);
+	EXPECT_EQ(t4, s.culutre_m.country_names_by_government.get(national_tag(0), g2).adjective);
+	EXPECT_EQ(text_data::text_tag(), s.culutre_m.country_names_by_government.get(national_tag(1), g1).name);
+	EXPECT_EQ(text_data::text_tag(), s.culutre_m.country_names_by_government.get(national_tag(1), g2).adjective);
+}
+
+TEST(cultures_tests, read_flags) {
+	test_files real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:\\test1"));
+
+	scenario::scenario_manager s;
+	const auto tvector = parse_national_tags(s.culutre_m, f.get_root());
+	read_flag_graphics(s, f.get_root());
+
+	EXPECT_NE(graphics::texture_tag(), s.culutre_m.national_tags[national_tag(0)].base_flag);
+	EXPECT_EQ(graphics::texture_tag(), s.culutre_m.national_tags[national_tag(0)].fascist_flag);
+	EXPECT_EQ(graphics::texture_tag(), s.culutre_m.national_tags[national_tag(0)].monarchy_flag);
+	EXPECT_EQ(graphics::texture_tag(), s.culutre_m.national_tags[national_tag(1)].base_flag);
+	EXPECT_NE(graphics::texture_tag(), s.culutre_m.national_tags[national_tag(1)].fascist_flag);
+	EXPECT_NE(graphics::texture_tag(), s.culutre_m.national_tags[national_tag(1)].monarchy_flag);
+}
+
+TEST(cultures_tests, read_country_files) {
+	test_files real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:\\test1"));
+
+	scenario::scenario_manager s;
+	const auto tvector = parse_national_tags(s.culutre_m, f.get_root());
+
+	read_country_files(tvector, s, f.get_root());
+
+	EXPECT_EQ(154ui8, s.culutre_m.national_tags[national_tag(0)].color.r);
+	EXPECT_EQ(129ui8, s.culutre_m.national_tags[national_tag(0)].color.g);
+	EXPECT_EQ(35ui8, s.culutre_m.national_tags[national_tag(0)].color.b);
+	EXPECT_EQ(governments::party_tag(0), s.culutre_m.national_tags[national_tag(0)].first_party);
+	EXPECT_EQ(governments::party_tag(1), s.culutre_m.national_tags[national_tag(0)].last_party);
+
+	EXPECT_EQ(101ui8, s.culutre_m.national_tags[national_tag(1)].color.r);
+	EXPECT_EQ(102ui8, s.culutre_m.national_tags[national_tag(1)].color.g);
+	EXPECT_EQ(163ui8, s.culutre_m.national_tags[national_tag(1)].color.b);
+	EXPECT_EQ(governments::party_tag(2), s.culutre_m.national_tags[national_tag(1)].first_party);
+	EXPECT_EQ(governments::party_tag(2), s.culutre_m.national_tags[national_tag(1)].last_party);
 }

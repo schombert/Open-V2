@@ -405,24 +405,23 @@ namespace cultures {
 
 
 	void read_flag_graphics(scenario::scenario_manager& s, const directory& source_directory) {
-		const auto gfx_dir = source_directory.get_directory(u"\\gfx");
-		const auto flag_dir = source_directory.get_directory(u"\\flags");
 
 		for(auto& nt : s.culutre_m.national_tags) {
 			auto tag_name = encoded_tag_to_text_tag(nt.tag_code);
 			
-			std::string base(tag_name.tag);
+			std::string base("\\gfx\\flags\\");
+			base += tag_name.tag;
 			std::string communist = base + "_communist.tga";
 			std::string republic = base + "_republic.tga";
 			std::string fascist = base + "_fascist.tga";
 			std::string monarchy = base + "_monarchy.tga";
 			base += ".tga";
 
-			nt.base_flag = s.gui_m.textures.retrieve_by_name(flag_dir, base.c_str(), base.c_str() + base.length());
-			nt.communist_flag = s.gui_m.textures.retrieve_by_name(flag_dir, communist.c_str(), communist.c_str() + communist.length());
-			nt.republic_flag = s.gui_m.textures.retrieve_by_name(flag_dir, republic.c_str(), republic.c_str() + republic.length());
-			nt.fascist_flag = s.gui_m.textures.retrieve_by_name(flag_dir, fascist.c_str(), fascist.c_str() + fascist.length());
-			nt.monarchy_flag = s.gui_m.textures.retrieve_by_name(flag_dir, monarchy.c_str(), monarchy.c_str() + monarchy.length());
+			nt.base_flag = s.gui_m.textures.retrieve_by_name(source_directory, base.c_str(), base.c_str() + base.length());
+			nt.communist_flag = s.gui_m.textures.retrieve_by_name(source_directory, communist.c_str(), communist.c_str() + communist.length());
+			nt.republic_flag = s.gui_m.textures.retrieve_by_name(source_directory, republic.c_str(), republic.c_str() + republic.length());
+			nt.fascist_flag = s.gui_m.textures.retrieve_by_name(source_directory, fascist.c_str(), fascist.c_str() + fascist.length());
+			nt.monarchy_flag = s.gui_m.textures.retrieve_by_name(source_directory, monarchy.c_str(), monarchy.c_str() + monarchy.length());
 		}
 	}
 
@@ -462,7 +461,7 @@ namespace cultures {
 			const auto this_tag = national_tag(static_cast<national_tag::value_base_t>(i));
 
 			national_tag_object& uc = s.culutre_m.national_tags[this_tag];
-			const auto file = common_dir.open_file(v[this_tag].c_str(), v[this_tag].c_str() + v[this_tag].length());
+			const auto file = country_dir.open_file(v[this_tag].c_str(), v[this_tag].c_str() + v[this_tag].length());
 
 			if(file) {
 				const auto sz = file->size();

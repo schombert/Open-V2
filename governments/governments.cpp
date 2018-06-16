@@ -64,7 +64,7 @@ namespace governments {
 
 		government_builder(parsing_environment& e) : env(e) {
 			id = e.manager.governments_container.emplace_back();
-			env.manager.permitted_ideologies.safe_get(id, ideologies::ideology_tag(0));
+			env.manager.permitted_ideologies.resize(to_index(id) + 1);
 		}
 
 		void set_flag_type(const token_and_type& t) {
