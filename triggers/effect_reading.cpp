@@ -319,6 +319,8 @@ namespace triggers {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
 				return effect_codes::treasury;
+			else if(scope.main_slot == trigger_slot_contents::province)
+				return effect_codes::treasury_province;
 			else
 				return std::optional<uint16_t>();
 		}
@@ -388,6 +390,8 @@ namespace triggers {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
 				return effect_codes::set_country_flag;
+			else if(scope.main_slot == trigger_slot_contents::province)
+				return effect_codes::set_country_flag_province;
 			else
 				return std::optional<uint16_t>();
 		}
@@ -695,6 +699,8 @@ namespace triggers {
 				return effect_codes::money;
 			else if (scope.main_slot == trigger_slot_contents::nation)
 				return effect_codes::treasury;
+			else if(scope.main_slot == trigger_slot_contents::province)
+				return effect_codes::treasury_province;
 			else
 				return std::optional<uint16_t>();
 		}
@@ -2079,39 +2085,74 @@ namespace triggers {
 		}
 
 		void finalize() const {
-			if (env.current_scope.main_slot != trigger_slot_contents::nation)
-				EFFECT_ERROR(invalid_scope_for_effect, env);
-			if (who_from) {
-				if (env.current_scope.from_slot == trigger_slot_contents::nation)
-					env.data.push_back(effect_codes::relation_from_nation);
-				else if (env.current_scope.from_slot == trigger_slot_contents::province)
-					env.data.push_back(effect_codes::relation_from_province);
-				else
-					EFFECT_ERROR(invalid_scope_for_effect, env);
+			if(env.current_scope.main_slot == trigger_slot_contents::nation) {
+				if(who_from) {
+					if(env.current_scope.from_slot == trigger_slot_contents::nation)
+						env.data.push_back(effect_codes::relation_from_nation);
+					else if(env.current_scope.from_slot == trigger_slot_contents::province)
+						env.data.push_back(effect_codes::relation_from_province);
+					else
+						EFFECT_ERROR(invalid_scope_for_effect, env);
 
-				env.data.push_back(2ui16);
-				env.data.push_back(trigger_payload(value).value);
-			} else if (who_this) {
-				if (env.current_scope.this_slot == trigger_slot_contents::nation)
-					env.data.push_back(effect_codes::relation_this_nation);
-				else if (env.current_scope.this_slot == trigger_slot_contents::province)
-					env.data.push_back(effect_codes::relation_this_province);
-				else
-					EFFECT_ERROR(invalid_scope_for_effect, env);
+					env.data.push_back(2ui16);
+					env.data.push_back(trigger_payload(value).value);
+				} else if(who_this) {
+					if(env.current_scope.this_slot == trigger_slot_contents::nation)
+						env.data.push_back(effect_codes::relation_this_nation);
+					else if(env.current_scope.this_slot == trigger_slot_contents::province)
+						env.data.push_back(effect_codes::relation_this_province);
+					else
+						EFFECT_ERROR(invalid_scope_for_effect, env);
 
-				env.data.push_back(2ui16);
-				env.data.push_back(trigger_payload(value).value);
-			} else if (who_reb) {
-				if (!env.current_scope.contains_rebeltype)
-					EFFECT_ERROR(invalid_scope_for_effect, env);
-				env.data.push_back(effect_codes::relation_reb);
-				env.data.push_back(2ui16);
-				env.data.push_back(trigger_payload(value).value);
+					env.data.push_back(2ui16);
+					env.data.push_back(trigger_payload(value).value);
+				} else if(who_reb) {
+					if(!env.current_scope.contains_rebeltype)
+						EFFECT_ERROR(invalid_scope_for_effect, env);
+					env.data.push_back(effect_codes::relation_reb);
+					env.data.push_back(2ui16);
+					env.data.push_back(trigger_payload(value).value);
+				} else {
+					env.data.push_back(effect_codes::relation);
+					env.data.push_back(3ui16);
+					env.data.push_back(trigger_payload(who_tag).value);
+					env.data.push_back(trigger_payload(value).value);
+				}
+			} else if(env.current_scope.main_slot == trigger_slot_contents::province) {
+				if(who_from) {
+					if(env.current_scope.from_slot == trigger_slot_contents::nation)
+						env.data.push_back(effect_codes::relation_province_from_nation);
+					else if(env.current_scope.from_slot == trigger_slot_contents::province)
+						env.data.push_back(effect_codes::relation_province_from_province);
+					else
+						EFFECT_ERROR(invalid_scope_for_effect, env);
+
+					env.data.push_back(2ui16);
+					env.data.push_back(trigger_payload(value).value);
+				} else if(who_this) {
+					if(env.current_scope.this_slot == trigger_slot_contents::nation)
+						env.data.push_back(effect_codes::relation_province_this_nation);
+					else if(env.current_scope.this_slot == trigger_slot_contents::province)
+						env.data.push_back(effect_codes::relation_province_this_province);
+					else
+						EFFECT_ERROR(invalid_scope_for_effect, env);
+
+					env.data.push_back(2ui16);
+					env.data.push_back(trigger_payload(value).value);
+				} else if(who_reb) {
+					if(!env.current_scope.contains_rebeltype)
+						EFFECT_ERROR(invalid_scope_for_effect, env);
+					env.data.push_back(effect_codes::relation_province_reb);
+					env.data.push_back(2ui16);
+					env.data.push_back(trigger_payload(value).value);
+				} else {
+					env.data.push_back(effect_codes::relation_province);
+					env.data.push_back(3ui16);
+					env.data.push_back(trigger_payload(who_tag).value);
+					env.data.push_back(trigger_payload(value).value);
+				}
 			} else {
-				env.data.push_back(effect_codes::relation);
-				env.data.push_back(3ui16);
-				env.data.push_back(trigger_payload(who_tag).value);
-				env.data.push_back(trigger_payload(value).value);
+				EFFECT_ERROR(invalid_scope_for_effect, env);
 			}
 		}
 	};
@@ -2162,18 +2203,30 @@ namespace triggers {
 		}
 
 		void finalize() const {
-			if (env.current_scope.main_slot != trigger_slot_contents::nation)
-				EFFECT_ERROR(invalid_scope_for_effect, env);
-
-			if (duration <= 0) {
-				env.data.push_back(effect_codes::add_country_modifier_no_duration);
-				env.data.push_back(2ui16);
-				env.data.push_back(trigger_payload(name).value);
+			if(env.current_scope.main_slot == trigger_slot_contents::nation) {
+				if(duration <= 0) {
+					env.data.push_back(effect_codes::add_country_modifier_no_duration);
+					env.data.push_back(2ui16);
+					env.data.push_back(trigger_payload(name).value);
+				} else {
+					env.data.push_back(effect_codes::add_country_modifier);
+					env.data.push_back(3ui16);
+					env.data.push_back(trigger_payload(name).value);
+					env.data.push_back(trigger_payload(duration).value);
+				}
+			} else if(env.current_scope.main_slot == trigger_slot_contents::province) {
+				if(duration <= 0) {
+					env.data.push_back(effect_codes::add_country_modifier_province_no_duration);
+					env.data.push_back(2ui16);
+					env.data.push_back(trigger_payload(name).value);
+				} else {
+					env.data.push_back(effect_codes::add_country_modifier_province);
+					env.data.push_back(3ui16);
+					env.data.push_back(trigger_payload(name).value);
+					env.data.push_back(trigger_payload(duration).value);
+				}
 			} else {
-				env.data.push_back(effect_codes::add_country_modifier);
-				env.data.push_back(3ui16);
-				env.data.push_back(trigger_payload(name).value);
-				env.data.push_back(trigger_payload(duration).value);
+				EFFECT_ERROR(invalid_scope_for_effect, env);
 			}
 		}
 	};
@@ -2805,13 +2858,19 @@ namespace triggers {
 		}
 
 		void finalize() const {
-			if (env.current_scope.main_slot != trigger_slot_contents::pop)
+			if(env.current_scope.main_slot == trigger_slot_contents::pop) {
+				env.data.push_back(effect_codes::dominant_issue);
+				env.data.push_back(4ui16);
+				env.data.push_back(trigger_payload(value).value);
+				add_float_to_payload(env.data, factor);
+			} else if(env.current_scope.main_slot == trigger_slot_contents::nation) {
+				env.data.push_back(effect_codes::dominant_issue_nation);
+				env.data.push_back(4ui16);
+				env.data.push_back(trigger_payload(value).value);
+				add_float_to_payload(env.data, factor);
+			} else {
 				EFFECT_ERROR(invalid_scope_for_effect, env);
-
-			env.data.push_back(effect_codes::dominant_issue);
-			env.data.push_back(4ui16);
-			env.data.push_back(trigger_payload(value).value);
-			add_float_to_payload(env.data, factor);
+			}
 		}
 	};
 	struct upper_house_effect {
@@ -2860,23 +2919,73 @@ namespace triggers {
 		}
 
 		void finalize() const {
-			if (env.current_scope.main_slot != trigger_slot_contents::pop)
+			if(env.current_scope.main_slot == trigger_slot_contents::pop) {
+				if(is_valid_index(ideology)) {
+					env.data.push_back(effect_codes::scaled_militancy_ideology);
+					env.data.push_back(4ui16);
+					env.data.push_back(trigger_payload(ideology).value);
+					add_float_to_payload(env.data, factor);
+				} else if(is_valid_index(issue)) {
+					env.data.push_back(effect_codes::scaled_militancy_issue);
+					env.data.push_back(4ui16);
+					env.data.push_back(trigger_payload(issue).value);
+					add_float_to_payload(env.data, factor);
+				} else {
+					env.data.push_back(effect_codes::scaled_militancy_unemployment);
+					env.data.push_back(3ui16);
+					add_float_to_payload(env.data, factor * unemployment);
+				}
+			} else if(env.current_scope.main_slot == trigger_slot_contents::nation) {
+				if(is_valid_index(ideology)) {
+					env.data.push_back(effect_codes::scaled_militancy_nation_ideology);
+					env.data.push_back(4ui16);
+					env.data.push_back(trigger_payload(ideology).value);
+					add_float_to_payload(env.data, factor);
+				} else if(is_valid_index(issue)) {
+					env.data.push_back(effect_codes::scaled_militancy_nation_issue);
+					env.data.push_back(4ui16);
+					env.data.push_back(trigger_payload(issue).value);
+					add_float_to_payload(env.data, factor);
+				} else {
+					env.data.push_back(effect_codes::scaled_militancy_nation_unemployment);
+					env.data.push_back(3ui16);
+					add_float_to_payload(env.data, factor * unemployment);
+				}
+			} else if(env.current_scope.main_slot == trigger_slot_contents::state) {
+				if(is_valid_index(ideology)) {
+					env.data.push_back(effect_codes::scaled_militancy_state_ideology);
+					env.data.push_back(4ui16);
+					env.data.push_back(trigger_payload(ideology).value);
+					add_float_to_payload(env.data, factor);
+				} else if(is_valid_index(issue)) {
+					env.data.push_back(effect_codes::scaled_militancy_state_issue);
+					env.data.push_back(4ui16);
+					env.data.push_back(trigger_payload(issue).value);
+					add_float_to_payload(env.data, factor);
+				} else {
+					env.data.push_back(effect_codes::scaled_militancy_state_unemployment);
+					env.data.push_back(3ui16);
+					add_float_to_payload(env.data, factor * unemployment);
+				}
+			} else if(env.current_scope.main_slot == trigger_slot_contents::province) {
+				if(is_valid_index(ideology)) {
+					env.data.push_back(effect_codes::scaled_militancy_province_ideology);
+					env.data.push_back(4ui16);
+					env.data.push_back(trigger_payload(ideology).value);
+					add_float_to_payload(env.data, factor);
+				} else if(is_valid_index(issue)) {
+					env.data.push_back(effect_codes::scaled_militancy_province_issue);
+					env.data.push_back(4ui16);
+					env.data.push_back(trigger_payload(issue).value);
+					add_float_to_payload(env.data, factor);
+				} else {
+					env.data.push_back(effect_codes::scaled_militancy_province_unemployment);
+					env.data.push_back(3ui16);
+					add_float_to_payload(env.data, factor * unemployment);
+				}
+			} else {
 				EFFECT_ERROR(invalid_scope_for_effect, env);
 
-			if (is_valid_index(ideology)) {
-				env.data.push_back(effect_codes::scaled_militancy_ideology);
-				env.data.push_back(4ui16);
-				env.data.push_back(trigger_payload(ideology).value);
-				add_float_to_payload(env.data, factor);
-			} else if (is_valid_index(issue)) {
-				env.data.push_back(effect_codes::scaled_militancy_issue);
-				env.data.push_back(4ui16);
-				env.data.push_back(trigger_payload(issue).value);
-				add_float_to_payload(env.data, factor);
-			} else {
-				env.data.push_back(effect_codes::scaled_militancy_unemployment);
-				env.data.push_back(3ui16);
-				add_float_to_payload(env.data, factor * unemployment);
 			}
 		}
 	};
@@ -2902,23 +3011,72 @@ namespace triggers {
 		}
 
 		void finalize() const {
-			if (env.current_scope.main_slot != trigger_slot_contents::pop)
-				EFFECT_ERROR(invalid_scope_for_effect, env);
-
-			if (is_valid_index(ideology)) {
-				env.data.push_back(effect_codes::scaled_consciousness_ideology);
-				env.data.push_back(4ui16);
-				env.data.push_back(trigger_payload(ideology).value);
-				add_float_to_payload(env.data, factor);
-			} else if (is_valid_index(issue)) {
-				env.data.push_back(effect_codes::scaled_consciousness_issue);
-				env.data.push_back(4ui16);
-				env.data.push_back(trigger_payload(issue).value);
-				add_float_to_payload(env.data, factor);
+			if(env.current_scope.main_slot == trigger_slot_contents::pop) {
+				if(is_valid_index(ideology)) {
+					env.data.push_back(effect_codes::scaled_consciousness_ideology);
+					env.data.push_back(4ui16);
+					env.data.push_back(trigger_payload(ideology).value);
+					add_float_to_payload(env.data, factor);
+				} else if(is_valid_index(issue)) {
+					env.data.push_back(effect_codes::scaled_consciousness_issue);
+					env.data.push_back(4ui16);
+					env.data.push_back(trigger_payload(issue).value);
+					add_float_to_payload(env.data, factor);
+				} else {
+					env.data.push_back(effect_codes::scaled_consciousness_unemployment);
+					env.data.push_back(3ui16);
+					add_float_to_payload(env.data, factor * unemployment);
+				}
+			} else if(env.current_scope.main_slot == trigger_slot_contents::nation) {
+				if(is_valid_index(ideology)) {
+					env.data.push_back(effect_codes::scaled_consciousness_nation_ideology);
+					env.data.push_back(4ui16);
+					env.data.push_back(trigger_payload(ideology).value);
+					add_float_to_payload(env.data, factor);
+				} else if(is_valid_index(issue)) {
+					env.data.push_back(effect_codes::scaled_consciousness_nation_issue);
+					env.data.push_back(4ui16);
+					env.data.push_back(trigger_payload(issue).value);
+					add_float_to_payload(env.data, factor);
+				} else {
+					env.data.push_back(effect_codes::scaled_consciousness_nation_unemployment);
+					env.data.push_back(3ui16);
+					add_float_to_payload(env.data, factor * unemployment);
+				}
+			} else if(env.current_scope.main_slot == trigger_slot_contents::state) {
+				if(is_valid_index(ideology)) {
+					env.data.push_back(effect_codes::scaled_consciousness_state_ideology);
+					env.data.push_back(4ui16);
+					env.data.push_back(trigger_payload(ideology).value);
+					add_float_to_payload(env.data, factor);
+				} else if(is_valid_index(issue)) {
+					env.data.push_back(effect_codes::scaled_consciousness_state_issue);
+					env.data.push_back(4ui16);
+					env.data.push_back(trigger_payload(issue).value);
+					add_float_to_payload(env.data, factor);
+				} else {
+					env.data.push_back(effect_codes::scaled_consciousness_state_unemployment);
+					env.data.push_back(3ui16);
+					add_float_to_payload(env.data, factor * unemployment);
+				}
+			} else if(env.current_scope.main_slot == trigger_slot_contents::province) {
+				if(is_valid_index(ideology)) {
+					env.data.push_back(effect_codes::scaled_consciousness_province_ideology);
+					env.data.push_back(4ui16);
+					env.data.push_back(trigger_payload(ideology).value);
+					add_float_to_payload(env.data, factor);
+				} else if(is_valid_index(issue)) {
+					env.data.push_back(effect_codes::scaled_consciousness_province_issue);
+					env.data.push_back(4ui16);
+					env.data.push_back(trigger_payload(issue).value);
+					add_float_to_payload(env.data, factor);
+				} else {
+					env.data.push_back(effect_codes::scaled_consciousness_province_unemployment);
+					env.data.push_back(3ui16);
+					add_float_to_payload(env.data, factor * unemployment);
+				}
 			} else {
-				env.data.push_back(effect_codes::scaled_consciousness_unemployment);
-				env.data.push_back(3ui16);
-				add_float_to_payload(env.data, factor * unemployment);
+				EFFECT_ERROR(invalid_scope_for_effect, env);
 			}
 		}
 	};
@@ -3480,6 +3638,7 @@ namespace triggers {
 		EPAIR(change_controller),
 		EPAIR(infrastructure),
 		EPAIR(money),
+		EPAIR(prestige_factor),
 		EPAIR(leadership),
 		EPAIR(create_vassal),
 		EPAIR(end_military_access),
@@ -3605,6 +3764,11 @@ namespace triggers {
 						env.data.push_back(4ui16);
 						env.data.push_back(trigger_payload(good).value);
 						add_float_to_payload(env.data, token_to<float>(effect_value));
+					} else if(env.current_scope.main_slot == trigger_slot_contents::province) {
+						env.data.push_back(effect_codes::variable_good_name_province);
+						env.data.push_back(4ui16);
+						env.data.push_back(trigger_payload(good).value);
+						add_float_to_payload(env.data, token_to<float>(effect_value));
 					} else {
 						EFFECT_ERROR(invalid_scope_for_effect, env);
 					}
@@ -3620,7 +3784,7 @@ namespace triggers {
 		    MEMBER_VARIABLE_ASSOCIATION("_add_effect", accept_all, yield_full)
 		    MEMBER_TYPE_EXTERN("_add_limit", "limit", trigger_tag, read_limit_trigger)
 			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "trigger_revolt", trigger_revolt_effect)
-			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "diplomatic_influencw", diplomatic_influence_effect)
+			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "diplomatic_influence", diplomatic_influence_effect)
 			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "relation", relation_effect)
 		    MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "modify_relation", relation_effect)
 			MEMBER_TYPE_ASSOCIATION("_add_complex_effect", "add_province_modifier", add_province_modifier_complex_effect)

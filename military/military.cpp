@@ -875,7 +875,7 @@ namespace military {
 		}
 	}
 
-	void parse_leader_traits(parsing_state& state,
+	void read_leader_traits(parsing_state& state,
 		const directory& source_directory) {
 
 		const auto common_dir = source_directory.get_directory(u"\\common");

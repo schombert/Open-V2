@@ -289,7 +289,7 @@ namespace economy {
 		scenario::scenario_manager& env;
 		owner_data owner;
 
-		owner_reader(scenario::scenario_manager& e, const boost::container::flat_map<text_data::text_tag, factory_type_tag>&) : env(e) {}
+		owner_reader(scenario::scenario_manager& e, boost::container::flat_map<text_data::text_tag, factory_type_tag> const&) : env(e) {}
 
 		void set_poptype(const token_and_type& t) {
 			owner.type = tag_from_text(
@@ -312,7 +312,7 @@ namespace economy {
 		scenario::scenario_manager& env;
 		employee_data employee;
 
-		employee_data_reader(scenario::scenario_manager& e, const boost::container::flat_map<text_data::text_tag, factory_type_tag>&) : env(e) {}
+		employee_data_reader(scenario::scenario_manager& e, boost::container::flat_map<text_data::text_tag, factory_type_tag> const&) : env(e) {}
 
 		void set_poptype(const token_and_type& t) {
 			employee.type = tag_from_text(
@@ -339,7 +339,7 @@ namespace economy {
 		return e;
 	}
 
-	inline triggers::trigger_tag read_bonus_trigger(const token_group* s, const token_group* e, scenario::scenario_manager& env, const boost::container::flat_map<text_data::text_tag, factory_type_tag>&) {
+	inline triggers::trigger_tag read_bonus_trigger(const token_group* s, const token_group* e, scenario::scenario_manager& env, boost::container::flat_map<text_data::text_tag, factory_type_tag> const&) {
 		const auto td = triggers::parse_trigger(env,
 			triggers::trigger_scope_state{
 				triggers::trigger_slot_contents::state,
@@ -381,7 +381,7 @@ namespace economy {
 		scenario::scenario_manager& env;
 		employee_data workers[std::extent_v<decltype(factory_type::workers)>];
 
-		employee_set(scenario::scenario_manager& e, const boost::container::flat_map<text_data::text_tag, factory_type_tag>&) : env(e) {}
+		employee_set(scenario::scenario_manager& e, boost::container::flat_map<text_data::text_tag, factory_type_tag>const &) : env(e) {}
 
 		void add_employee(const employee_data_reader& v) {
 			for(uint32_t i = 0; i < std::extent_v<decltype(workers)>; ++i) {
@@ -706,6 +706,8 @@ namespace economy {
 		    MEMBER_ASSOCIATION("discard", "strategic_factory", discard_from_rh)
 		    MEMBER_ASSOCIATION("discard", "advanced_factory", discard_from_rh)
 		    MEMBER_ASSOCIATION("discard", "on_completion", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "sail", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "steam", discard_from_rh)
 		    MEMBER_ASSOCIATION("discard", "completion_size", discard_from_rh)
 			MEMBER_ASSOCIATION("discard", "one_per_state", discard_from_rh)
 			MEMBER_ASSOCIATION("type", "type", token_from_rh)
@@ -766,7 +768,7 @@ namespace economy {
 		manager.artisan_input_goods.reset(manager.goods_count);
 	}
 
-	void read_production_types(scenario::scenario_manager& s, boost::container::flat_map<text_data::text_tag, factory_type_tag> map, const directory& source_directory) {
+	void read_production_types(scenario::scenario_manager& s, boost::container::flat_map<text_data::text_tag, factory_type_tag>& map, const directory& source_directory) {
 		const auto common_dir = source_directory.get_directory(u"\\common");
 		const auto file = common_dir.open_file(u"production_types.txt");
 

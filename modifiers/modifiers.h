@@ -805,7 +805,7 @@ namespace modifiers {
 		parsing_state& state,
 		const directory& source_directory);
 	void pre_parse_triggered_modifiers(parsing_state& state, const directory& source_directory);
-	void parse_national_values(
+	void read_national_values(
 		parsing_state& state,
 		const directory& source_directory);
 	void read_static_modifiers(

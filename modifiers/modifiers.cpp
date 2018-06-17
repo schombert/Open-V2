@@ -1210,6 +1210,14 @@ namespace modifiers {
 
 	BEGIN_DOMAIN(static_modifier_domain)
 		BEGIN_TYPE(static_modifiers_file)
+			MEMBER_TYPE_EXTERN("modifier", "very_easy_player", int, discard_mod)
+			MEMBER_TYPE_EXTERN("modifier", "easy_player", int, discard_mod)
+			MEMBER_TYPE_EXTERN("modifier", "hard_player", int, discard_mod)
+			MEMBER_TYPE_EXTERN("modifier", "very_hard_player", int, discard_mod)
+			MEMBER_TYPE_EXTERN("modifier", "very_easy_ai", int, discard_mod)
+			MEMBER_TYPE_EXTERN("modifier", "easy_ai", int, discard_mod)
+			MEMBER_TYPE_EXTERN("modifier", "hard_ai", int, discard_mod)
+			MEMBER_TYPE_EXTERN("modifier", "very_hard_ai", int, discard_mod)
 			MEMBER_TYPE_EXTERN("modifier", "overseas", int, read_overseas_mod)
 			MEMBER_TYPE_EXTERN("modifier", "coastal", int, read_coastal_mod)
 			MEMBER_TYPE_EXTERN("modifier", "non_coastal", int, read_non_coastal_mod)
@@ -1324,6 +1332,8 @@ namespace modifiers {
 		const auto common_dir = source_directory.get_directory(u"\\common");
 		parsed_data main_results;
 		const auto fi = common_dir.open_file(u"national_focus.txt");
+
+		s.modifiers_m.national_focus_goods_weights.reset(static_cast<uint32_t>(s.economy_m.goods.size()));
 
 		if(fi) {
 			const auto sz = fi->size();
@@ -1473,7 +1483,7 @@ namespace modifiers {
 		}
 	}
 
-	void parse_national_values(
+	void read_national_values(
 		parsing_state& state,
 		const directory& source_directory) {
 

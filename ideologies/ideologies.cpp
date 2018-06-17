@@ -225,14 +225,14 @@ namespace ideologies {
 		return return_state;
 	}
 
-	void parse_single_ideology(scenario::scenario_manager& s, ideology_tag tag, const token_group* start, const token_group* end) {
+	void read_single_ideology(scenario::scenario_manager& s, ideology_tag tag, const token_group* start, const token_group* end) {
 		single_ideology_parse_state env(s, s.ideologies_m.ideology_container[tag]);
 		parse_object<ideology_builder, single_ideology_parse_domain>(start, end, env);
 	}
 
-	void parse_ideologies(scenario::scenario_manager& s, const parsing_state& state) {
+	void read_ideologies(scenario::scenario_manager& s, const parsing_state& state) {
 		for(const auto& pr : state.impl->ideology_bodies_mapping) {
-			parse_single_ideology(s, pr.first, pr.second.first, pr.second.second);
+			read_single_ideology(s, pr.first, pr.second.first, pr.second.second);
 		}
 	}
 }

@@ -191,7 +191,7 @@ TEST(cultures_tests, tag_file) {
 	f.set_root(RANGE(u"F:\\test1"));
 
 	culture_manager m;
-	const auto tvector = parse_national_tags(m, f.get_root());
+	const auto tvector = read_national_tags(m, f.get_root());
 
 	EXPECT_EQ(2ui64, tvector.size());
 	EXPECT_EQ(2ui64, m.national_tags.size());
@@ -214,7 +214,7 @@ TEST(cultures_tests, religion_file) {
 
 	culture_manager m;
 	text_data::text_sequences tex;
-	parse_religions(m, f.get_root(), tex);
+	read_religions(m, f.get_root(), tex);
 
 	EXPECT_EQ(3ui64, m.religions.size());
 	EXPECT_EQ(3ui64, m.named_religion_index.size());
@@ -251,8 +251,8 @@ TEST(cultures_tests, cultures_file) {
 	culture_manager m;
 	text_data::text_sequences tex;
 
-	parse_national_tags(m, f.get_root());
-	parse_cultures(m, tm, f.get_root(), tex);
+	read_national_tags(m, f.get_root());
+	read_cultures(m, tm, f.get_root(), tex);
 
 	EXPECT_EQ(1ui64, m.culture_container.size());
 	EXPECT_EQ(1ui64, m.culture_groups.size());
@@ -289,8 +289,8 @@ TEST(cultures_tests, multiple_cultures_tests) {
 	culture_manager m;
 	text_data::text_sequences tex;
 
-	parse_national_tags(m, f.get_root());
-	parse_cultures(m, tm, f.get_root(), tex);
+	read_national_tags(m, f.get_root());
+	read_cultures(m, tm, f.get_root(), tex);
 
 	EXPECT_EQ(3ui64, m.culture_container.size());
 	EXPECT_EQ(2ui64, m.culture_groups.size());
@@ -365,8 +365,8 @@ TEST(cultures_tests, leader_pictures) {
 	culture_manager m;
 	text_data::text_sequences tex;
 
-	parse_national_tags(m, f.get_root());
-	parse_cultures(m, tm, f.get_root(), tex);
+	read_national_tags(m, f.get_root());
+	read_cultures(m, tm, f.get_root(), tex);
 
 	EXPECT_NE(graphics::texture_tag(), m.no_leader);
 	EXPECT_EQ(6ui64, m.leader_pictures.size());
@@ -392,7 +392,7 @@ TEST(cultures_tests, government_names) {
 
 	scenario::scenario_manager s;
 
-	const auto tvector = parse_national_tags(s.culutre_m, f.get_root());
+	const auto tvector = read_national_tags(s.culutre_m, f.get_root());
 	const auto gbase_names = governments::read_governments(s.governments_m, f.get_root(), s.gui_m.text_data_sequences, s.ideologies_m);
 
 	auto const t1 = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, RANGE("ENG"));
@@ -423,7 +423,7 @@ TEST(cultures_tests, read_flags) {
 	f.set_root(RANGE(u"F:\\test1"));
 
 	scenario::scenario_manager s;
-	const auto tvector = parse_national_tags(s.culutre_m, f.get_root());
+	const auto tvector = read_national_tags(s.culutre_m, f.get_root());
 	read_flag_graphics(s, f.get_root());
 
 	EXPECT_NE(graphics::texture_tag(), s.culutre_m.national_tags[national_tag(0)].base_flag);
@@ -441,7 +441,7 @@ TEST(cultures_tests, read_country_files) {
 	f.set_root(RANGE(u"F:\\test1"));
 
 	scenario::scenario_manager s;
-	const auto tvector = parse_national_tags(s.culutre_m, f.get_root());
+	const auto tvector = read_national_tags(s.culutre_m, f.get_root());
 
 	read_country_files(tvector, s, f.get_root());
 

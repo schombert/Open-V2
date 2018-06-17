@@ -70,7 +70,7 @@ TEST(event_tests, preparse_events) {
 	}
 }
 
-TEST(event_tests, parse_single_event) {
+TEST(event_tests, read_single_event) {
 	scenario::scenario_manager sm;
 	event_creation_manager ecm;
 
@@ -120,7 +120,7 @@ TEST(event_tests, parse_single_event) {
 		std::vector<token_group> parse_results;
 		parse_pdx_file(parse_results, RANGE(text));
 
-		const auto tag_a = parse_single_event(
+		const auto tag_a = read_single_event(
 			sm,
 			ecm,
 			f.get_root(),
@@ -196,7 +196,7 @@ TEST(event_tests, parse_or_defer) {
 		std::vector<token_group> parse_results;
 		parse_pdx_file(parse_results, RANGE(text));
 
-		const auto tag_a = parse_or_defer_event(
+		const auto tag_a = read_or_defer_event(
 			sm,
 			ecm,
 			f.get_root(),
@@ -265,7 +265,7 @@ TEST(event_tests, parse_or_defer) {
 		std::vector<token_group> parse_results;
 		parse_pdx_file(parse_results, RANGE(text));
 
-		const auto tag_a = parse_or_defer_event(
+		const auto tag_a = read_or_defer_event(
 			sm,
 			ecm,
 			f.get_root(),
@@ -299,7 +299,7 @@ TEST(event_tests, event_file) {
 		std::vector<token_group> parse_results;
 		parse_pdx_file(parse_results, RANGE(text));
 
-		parse_event_file(
+		read_event_file(
 			sm,
 			ecm,
 			f.get_root(),
@@ -321,7 +321,7 @@ TEST(event_tests, event_files) {
 	f.set_root(RANGE(u"F:\\test1"));
 
 	{
-		parse_event_files(
+		read_event_files(
 			sm,
 			ecm,
 			f.get_root());
@@ -342,7 +342,7 @@ TEST(event_tests, triggered_event_parsing) {
 	f.set_root(RANGE(u"F:\\test2"));
 
 	{
-		parse_event_files(
+		read_event_files(
 			sm,
 			ecm,
 			f.get_root());
@@ -388,7 +388,7 @@ TEST(event_tests, on_actions_parsing) {
 	f.set_root(RANGE(u"F:\\test2"));
 
 	{
-		parse_event_files(
+		read_event_files(
 			sm,
 			ecm,
 			f.get_root());
@@ -397,7 +397,7 @@ TEST(event_tests, on_actions_parsing) {
 		EXPECT_EQ(0ui64, sm.event_m.province_events.size());
 		EXPECT_EQ(0ui64, sm.event_m.events_by_id.size());
 
-		parse_on_actions_file(sm, ecm, f.get_root());
+		read_on_actions_file(sm, ecm, f.get_root());
 
 		commit_pending_triggered_events(
 			sm,
@@ -441,7 +441,7 @@ TEST(event_tests, single_decision) {
 		std::vector<token_group> parse_results;
 		parse_pdx_file(parse_results, RANGE(text));
 
-		const auto d_tag = parse_decision(
+		const auto d_tag = read_decision(
 			sm,
 			ecm,
 			f.get_root(),
@@ -487,7 +487,7 @@ TEST(event_tests, decision_file) {
 		std::vector<token_group> parse_results;
 		parse_pdx_file(parse_results, RANGE(text));
 
-		parse_decision_file(
+		read_decision_file(
 			sm,
 			ecm,
 			f.get_root(),
@@ -522,7 +522,7 @@ TEST(event_tests, decision_files) {
 	f.set_root(RANGE(u"F:\\test2"));
 
 	{
-		parse_decision_files(
+		read_decision_files(
 			sm,
 			ecm,
 			f.get_root());

@@ -58,6 +58,8 @@ namespace events {
 		modifiers::factor_tag ai_will_do;
 
 		decision_tag id;
+
+		bool no_alert = false;
 	};
 
 	struct event_manager {
@@ -104,25 +106,25 @@ namespace events {
 
 	std::pair<int32_t, bool> pre_parse_event(const token_group* start, const token_group* end); // returns id &  bool is triggered
 	token_and_type get_issue_group_for_event(const token_group* start, const token_group* end);
-	event_tag parse_single_event(
+	event_tag read_single_event(
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
 		const directory& pictures_root,
 		const triggers::trigger_scope_state& scope,
 		const token_group* start, const token_group* end);
-	event_tag parse_or_defer_event(
+	event_tag read_or_defer_event(
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
 		const directory& pictures_root,
 		const triggers::trigger_scope_state& scope,
 		const token_group* start, const token_group* end);
-	void parse_event_file(
+	void read_event_file(
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
 		const directory& pictures_root,
 		const token_group* start,
 		const token_group* end);
-	void parse_event_files(
+	void read_event_files(
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
 		const directory& source_directory);
@@ -130,23 +132,23 @@ namespace events {
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
 		const directory& pictures_root);
-	void parse_on_actions_file(
+	void read_on_actions_file(
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
 		const directory& source_directory);
-	decision_tag parse_decision(
+	decision_tag read_decision(
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
 		const directory& pictures_root,
 		const token_group* start,
 		const token_group* end);
-	void parse_decision_file(
+	void read_decision_file(
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
 		const directory& pictures_root,
 		const token_group* start,
 		const token_group* end);
-	void parse_decision_files(
+	void read_decision_files(
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
 		const directory& root);

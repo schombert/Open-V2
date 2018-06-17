@@ -300,7 +300,7 @@ TEST(modifiers_tests, nv_parse) {
 	text_data::text_sequences tex;
 	parsing_state state(tex, m);
 
-	parse_national_values(state, f.get_root());
+	read_national_values(state, f.get_root());
 
 	EXPECT_EQ(3ui64, m.national_modifiers.size());
 	EXPECT_EQ(3ui64, m.named_national_modifiers_index.size());

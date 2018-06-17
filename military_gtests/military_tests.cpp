@@ -277,7 +277,7 @@ TEST(military_tests, traits_personality) {
 	text_data::text_sequences tex;
 	parsing_state state(tex, m);
 
-	parse_leader_traits(state, f.get_root());
+	read_leader_traits(state, f.get_root());
 
 	EXPECT_EQ(2ui64, m.leader_traits.size());
 	EXPECT_EQ(1ui64, m.personality_traits.size());
@@ -307,7 +307,7 @@ TEST(military_tests, traits_mixed) {
 
 	parsing_state state(tex, m);
 
-	parse_leader_traits(state, f.get_root());
+	read_leader_traits(state, f.get_root());
 
 	EXPECT_EQ(5ui64, m.leader_traits.size());
 	EXPECT_EQ(1ui64, m.personality_traits.size());

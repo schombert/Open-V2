@@ -9,6 +9,7 @@
 #include "soil\\SOIL.h"
 #include "graphics\\world_map.h"
 #include <Windows.h>
+#include "scenario\\scenario.h"
 
 // #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -1294,13 +1295,20 @@ int main(int , char **) {
 	fs.set_root(u"D:\\programs\\V2");
 
 	ui::gui_manager gui_m(850, 650);
-	ui::gui_static static_m;
 
-	ui::load_gui_from_directory(fs.get_root(), static_m);
-	init_tooltip_window(static_m, gui_m);
+	scenario::scenario_manager s;
+
+	std::cout << "begin scenario read" << std::endl << std::flush;
+	scenario::read_scenario(s, fs.get_root());
+	std::cout << "end scenario read" << std::endl << std::flush;
+
+	//ui::gui_static static_m;
+	//ui::load_gui_from_directory(fs.get_root(), static_m);
+
+	init_tooltip_window(s.gui_m, gui_m);
 
 	{
-		ui::window<gui_window_handler> test_window(850, 650, gui_m, static_m);
+		ui::window<gui_window_handler> test_window(850, 650, gui_m, s.gui_m);
 
 		std::cout << "test window created" << std::endl;
 		getchar();

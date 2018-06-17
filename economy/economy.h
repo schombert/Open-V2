@@ -151,6 +151,6 @@ namespace economy {
 	); //invoke after reading goods, returns map of production type name -> factory building type
 	void read_production_types(
 		scenario::scenario_manager& s,
-		boost::container::flat_map<text_data::text_tag, factory_type_tag> map,
+		boost::container::flat_map<text_data::text_tag, factory_type_tag>& map,
 		const directory& source_directory);
 }

@@ -59,6 +59,6 @@ namespace ideologies {
 		ideologies_manager& manager,
 		const directory& source_directory,
 		text_data::text_sequences& text_function);
-	void parse_single_ideology(scenario::scenario_manager& s, ideology_tag tag, const token_group* start, const token_group* end);
-	void parse_ideologies(scenario::scenario_manager& s, const parsing_state& state);
+	void read_single_ideology(scenario::scenario_manager& s, ideology_tag tag, const token_group* start, const token_group* end);
+	void read_ideologies(scenario::scenario_manager& s, const parsing_state& state);
 }

@@ -298,7 +298,40 @@ namespace triggers {
 		//variable name
 		constexpr uint16_t variable_tech_name = 0x0114;
 		constexpr uint16_t variable_good_name = 0x0115;
-		
+
+		//misplaced
+		constexpr uint16_t set_country_flag_province = 0x0116;
+		constexpr uint16_t add_country_modifier_province = 0x0117;
+		constexpr uint16_t add_country_modifier_province_no_duration = 0x0118;
+		constexpr uint16_t dominant_issue_nation = 0x0119;
+		constexpr uint16_t relation_province = 0x011A;
+		constexpr uint16_t relation_province_this_nation = 0x011B;
+		constexpr uint16_t relation_province_this_province = 0x011C;
+		constexpr uint16_t relation_province_from_nation = 0x011D;
+		constexpr uint16_t relation_province_from_province = 0x011E;
+		constexpr uint16_t relation_province_reb = 0x011F;
+		constexpr uint16_t scaled_militancy_nation_issue = 0x0120;
+		constexpr uint16_t scaled_militancy_nation_ideology = 0x0121;
+		constexpr uint16_t scaled_militancy_nation_unemployment = 0x0122;
+		constexpr uint16_t scaled_consciousness_nation_issue = 0x0123;
+		constexpr uint16_t scaled_consciousness_nation_ideology = 0x0124;
+		constexpr uint16_t scaled_consciousness_nation_unemployment = 0x0125;
+		constexpr uint16_t scaled_militancy_state_issue = 0x0126;
+		constexpr uint16_t scaled_militancy_state_ideology = 0x0127;
+		constexpr uint16_t scaled_militancy_state_unemployment = 0x0128;
+		constexpr uint16_t scaled_consciousness_state_issue = 0x0129;
+		constexpr uint16_t scaled_consciousness_state_ideology = 0x012A;
+		constexpr uint16_t scaled_consciousness_state_unemployment = 0x012B;
+		constexpr uint16_t scaled_militancy_province_issue = 0x012C;
+		constexpr uint16_t scaled_militancy_province_ideology = 0x012D;
+		constexpr uint16_t scaled_militancy_province_unemployment = 0x012E;
+		constexpr uint16_t scaled_consciousness_province_issue = 0x012F;
+		constexpr uint16_t scaled_consciousness_province_ideology = 0x0130;
+		constexpr uint16_t scaled_consciousness_province_unemployment = 0x0131;
+		constexpr uint16_t variable_good_name_province = 0x0132;
+		constexpr uint16_t treasury_province = 0x0133;
+
+
 		//scopes
 		constexpr uint16_t generic_scope = 0x0000; // default grouping of effects (or hidden_tooltip)
 		constexpr uint16_t x_neighbor_province_scope = 0x0001;
@@ -463,10 +496,10 @@ namespace triggers {
 		constexpr uint16_t is_cultural_union_tag_this_state = 0x0053;
 		constexpr uint16_t is_cultural_union_tag_this_province = 0x0054;
 		constexpr uint16_t is_cultural_union_tag_this_nation = 0x0055;
-		constexpr uint16_t can_build_factory = 0x0056;
+		constexpr uint16_t can_build_factory_pop = 0x0056;
 		constexpr uint16_t war_pop = 0x0057;
 		constexpr uint16_t war_nation = 0x0058;
-		constexpr uint16_t war_exhaustion = 0x0059;
+		constexpr uint16_t war_exhaustion_nation = 0x0059;
 		constexpr uint16_t blockade = 0x005A;
 		constexpr uint16_t owns = 0x005B;
 		constexpr uint16_t controls = 0x005C;
@@ -689,7 +722,7 @@ namespace triggers {
 		constexpr uint16_t election = 0x0135;
 		constexpr uint16_t has_global_flag = 0x0136;
 		constexpr uint16_t is_capital = 0x0137;
-		constexpr uint16_t nationalvalue = 0x0138;
+		constexpr uint16_t nationalvalue_nation = 0x0138;
 		constexpr uint16_t industrial_score_value = 0x0139;
 		constexpr uint16_t industrial_score_from_nation = 0x013A;
 		constexpr uint16_t industrial_score_this_nation = 0x013B;
@@ -981,6 +1014,25 @@ namespace triggers {
 		constexpr uint16_t strata_middle = 0x0252;
 		constexpr uint16_t strata_poor = 0x0253;
 		constexpr uint16_t party_loyalty_from_province_scope_province = 0x0254;
+		constexpr uint16_t can_build_factory_nation = 0x0255;
+		constexpr uint16_t can_build_factory_province = 0x0256;
+		constexpr uint16_t nationalvalue_pop = 0x0257;
+		constexpr uint16_t nationalvalue_province = 0x0258;
+		constexpr uint16_t war_exhaustion_pop = 0x0259;
+		constexpr uint16_t has_culture_core_province_this_pop = 0x025A;
+		constexpr uint16_t tag_pop = 0x025B;
+		constexpr uint16_t has_country_flag_pop = 0x025C;
+		constexpr uint16_t has_country_flag_province = 0x025D;
+		constexpr uint16_t has_country_modifier_province = 0x025E;
+		constexpr uint16_t religion_nation = 0x025F;
+		constexpr uint16_t religion_nation_reb = 0x0260;
+		constexpr uint16_t religion_nation_from_nation = 0x0261;
+		constexpr uint16_t religion_nation_this_nation = 0x0262;
+		constexpr uint16_t religion_nation_this_state = 0x0263;
+		constexpr uint16_t religion_nation_this_province = 0x0264;
+		constexpr uint16_t religion_nation_this_pop = 0x0265;
+		constexpr uint16_t war_exhaustion_province = 0x0266;
+		constexpr uint16_t is_greater_power_province = 0x0267;
 
 		//technology name -- payload 1
 		//ideology name -- 4 varianets payload 2
@@ -1034,6 +1086,9 @@ namespace triggers {
 		constexpr uint16_t state_scope_province = 0x0029;
 		constexpr uint16_t tag_scope = 0x002A; // variable name
 		constexpr uint16_t integer_scope = 0x002B; // variable name
+		constexpr uint16_t country_scope_nation = 0x002C;
+		constexpr uint16_t country_scope_province = 0x002D;
+		constexpr uint16_t cultural_union_scope_pop = 0x002E;
 
 		constexpr uint16_t placeholder_not_scope = code_mask;
 
@@ -1139,7 +1194,7 @@ namespace triggers {
 		0, //constexpr uint16_t primary_culture_this_pop = 0x001D;
 		0, //constexpr uint16_t primary_culture_from_nation = 0x001E;
 		1, //constexpr uint16_t remove_accepted_culture = 0x001F;
-		2, //constexpr uint16_t life_rating = 0x0020;
+		1, //constexpr uint16_t life_rating = 0x0020;
 		1, //constexpr uint16_t religion = 0x0021;
 		0, //constexpr uint16_t is_slave_state_yes = 0x0022;
 		0, //constexpr uint16_t is_slave_pop_yes = 0x0023;
@@ -1247,8 +1302,8 @@ namespace triggers {
 		0, //constexpr uint16_t is_slave_state_no = 0x0066;
 		0, //constexpr uint16_t is_slave_pop_no = 0x0067;
 		0, //constexpr uint16_t election = 0x0068;
-		2, //constexpr uint16_t social_reform = 0x0069;
-		2, //constexpr uint16_t political_reform = 0x006A;
+		1, //constexpr uint16_t social_reform = 0x0069;
+		1, //constexpr uint16_t political_reform = 0x006A;
 		2, //constexpr uint16_t add_tax_relative_income = 0x006B;
 		0, //constexpr uint16_t neutrality = 0x006C;
 		2, //constexpr uint16_t reduce_pop = 0x006D;
@@ -1257,8 +1312,8 @@ namespace triggers {
 		2, //constexpr uint16_t years_of_research = 0x0070;
 		2, //constexpr uint16_t prestige_factor_positive = 0x0071;
 		2, //constexpr uint16_t prestige_factor_negative = 0x0072;
-		2, //constexpr uint16_t military_reform = 0x0073;
-		2, //constexpr uint16_t economic_reform = 0x0074;
+		1, //constexpr uint16_t military_reform = 0x0073;
+		1, //constexpr uint16_t economic_reform = 0x0074;
 		1, //constexpr uint16_t remove_random_military_reforms = 0x0075;
 		1, //constexpr uint16_t remove_random_economic_reforms = 0x0076;
 		1, //constexpr uint16_t add_crime = 0x0077;
@@ -1383,6 +1438,39 @@ namespace triggers {
 			1040,//constexpr uint16_t build_fort_in_capital_no_whole_state_yes_limit = 0x00EF;
 			1050,//constexpr uint16_t build_fort_in_capital_no_whole_state_no_limit = 0x00F0;
 			1060,//constexpr uint16_t relation_reb = 0x00F1;
+			1061, //constexpr uint16_t variable_tech_name = 0x0114;
+			1062, //constexpr uint16_t variable_good_name = 0x0115;
+				//misplaced
+			1,	//constexpr uint16_t set_country_flag_province = 0x0116;
+			1063, //constexpr uint16_t add_country_modifier_province = 0x0117;
+			1064, //constexpr uint16_t add_country_modifier_province_no_duration = 0x0118;
+			1065,	//constexpr uint16_t dominant_issue_nation = 0x0119;
+			1066, //constexpr uint16_t relation_province = 0x011A;
+			1067, //constexpr uint16_t relation_province_this_nation = 0x011B;
+			1068, //constexpr uint16_t relation_province_this_province = 0x011C;
+			1069, //constexpr uint16_t relation_province_from_nation = 0x011D;
+			1071, //constexpr uint16_t relation_province_from_province = 0x011E;
+			1072, //constexpr uint16_t relation_province_reb = 0x011F;
+			1073, //	constexpr uint16_t scaled_militancy_nation_issue = 0x0120;
+			1074, //constexpr uint16_t scaled_militancy_nation_ideology = 0x0121;
+			1075, //constexpr uint16_t scaled_militancy_nation_unemployment = 0x0122;
+			1076, //constexpr uint16_t scaled_consciousness_nation_issue = 0x0123;
+			1077, //constexpr uint16_t scaled_consciousness_nation_ideology = 0x0124;
+			1078, //constexpr uint16_t scaled_consciousness_nation_unemployment = 0x0125;
+			1073, //	constexpr uint16_t scaled_militancy_nation_issue = 0x0120;
+			1074, //constexpr uint16_t scaled_militancy_nation_ideology = 0x0121;
+			1075, //constexpr uint16_t scaled_militancy_nation_unemployment = 0x0122;
+			1076, //constexpr uint16_t scaled_consciousness_nation_issue = 0x0123;
+			1077, //constexpr uint16_t scaled_consciousness_nation_ideology = 0x0124;
+			1078, //constexpr uint16_t scaled_consciousness_nation_unemployment = 0x0125;
+			1073, //	constexpr uint16_t scaled_militancy_nation_issue = 0x0120;
+			1074, //constexpr uint16_t scaled_militancy_nation_ideology = 0x0121;
+			1075, //constexpr uint16_t scaled_militancy_nation_unemployment = 0x0122;
+			1076, //constexpr uint16_t scaled_consciousness_nation_issue = 0x0123;
+			1077, //constexpr uint16_t scaled_consciousness_nation_ideology = 0x0124;
+			1078, //constexpr uint16_t scaled_consciousness_nation_unemployment = 0x0125;
+			1079, //	constexpr uint16_t variable_good_name_province = 0x0132;
+			2 // constexpr uint16_t treasury_province = 0x0133;
 	};
 
 	inline const int32_t code_data_sizes[] = {
@@ -1472,10 +1560,10 @@ namespace triggers {
 		0, //constexpr uint16_t is_cultural_union_tag_this_state = 0x0053;
 		0, //constexpr uint16_t is_cultural_union_tag_this_province = 0x0054;
 		0, //constexpr uint16_t is_cultural_union_tag_this_nation = 0x0055;
-		0, //constexpr uint16_t can_build_factory = 0x0056;
+		0, //constexpr uint16_t can_build_factory_pop = 0x0056;
 		0, //constexpr uint16_t war_pop = 0x0057;
 		0, //constexpr uint16_t war_nation = 0x0058;
-		2, //constexpr uint16_t war_exhaustion = 0x0059;
+		2, //constexpr uint16_t war_exhaustion_nation = 0x0059;
 		2, //constexpr uint16_t blockade = 0x005A;
 		1, //constexpr uint16_t owns = 0x005B;
 		1, //constexpr uint16_t controls = 0x005C;
@@ -1625,8 +1713,8 @@ namespace triggers {
 		2, //constexpr uint16_t average_consciousness_nation = 0x00EC;
 		2, //constexpr uint16_t average_consciousness_state = 0x00ED;
 		2, //constexpr uint16_t average_consciousness_province = 0x00EE;
-		2, //constexpr uint16_t is_next_reform_nation = 0x00EF;
-		2, //constexpr uint16_t is_next_reform_pop = 0x00F0;
+		1, //constexpr uint16_t is_next_reform_nation = 0x00EF;
+		1, //constexpr uint16_t is_next_reform_pop = 0x00F0;
 		2, //constexpr uint16_t rebel_power_fraction = 0x00F1;
 		2, //constexpr uint16_t recruited_percentage_nation = 0x00F2;
 		2, //constexpr uint16_t recruited_percentage_pop = 0x00F3;
@@ -1698,7 +1786,7 @@ namespace triggers {
 		1, //constexpr uint16_t election = 0x0135;
 		1, //constexpr uint16_t has_global_flag = 0x0136;
 		0, //constexpr uint16_t is_capital = 0x0137;
-		1, //constexpr uint16_t nationalvalue = 0x0138;
+		1, //constexpr uint16_t nationalvalue_nation = 0x0138;
 		2, //constexpr uint16_t industrial_score_value = 0x0139;
 		0, //constexpr uint16_t industrial_score_from_nation = 0x013A;
 		0, //constexpr uint16_t industrial_score_this_nation = 0x013B;
@@ -1984,8 +2072,28 @@ namespace triggers {
 		3, //constexpr uint16_t variable_pop_type_name_province = 0x0250;
 		3, //constexpr uint16_t variable_pop_type_name_pop = 0x0251;
 		3, //constexpr uint16_t variable_good_name = 0x0252;
+			//misplaced
 		0, //	constexpr uint16_t strata_middle = 0x0253;
 		0, //constexpr uint16_t strata_poor = 0x0254;
-		3	//constexpr uint16_t party_loyalty_from_province_scope_province = 0x0254;
+		3,	//constexpr uint16_t party_loyalty_from_province_scope_province = 0x0254;
+		0, //	constexpr uint16_t can_build_factory_nation = 0x0255;
+		0, //	constexpr uint16_t can_build_factory_province = 0x0256;
+		1, //	constexpr uint16_t nationalvalue_pop = 0x0257;
+		1, //	constexpr uint16_t nationalvalue_province = 0x0258;
+		2, // constexpr uint16_t war_exhaustion_pop = 0x0259;
+		0, //constexpr uint16_t has_culture_core_province_this_pop = 0x025A;
+		1, //constexpr uint16_t tag_pop = 0x025B;
+		1,	//constexpr uint16_t has_country_flag_pop = 0x025C;
+		1, //constexpr uint16_t has_country_flag_province = 0x025D;
+		1,	//constexpr uint16_t has_country_modifier_province = 0x025E;
+		1, //	constexpr uint16_t religion_nation = 0x025F;
+		0, //constexpr uint16_t religion_nation_reb = 0x0260;
+		0, //constexpr uint16_t religion_nation_from_nation = 0x0261;
+		0, //constexpr uint16_t religion_nation_this_nation = 0x0262;
+		0, //constexpr uint16_t religion_nation_this_state = 0x0263;
+		0, //constexpr uint16_t religion_nation_this_province = 0x0264;
+		0, //constexpr uint16_t religion_nation_this_pop = 0x0265;
+		2, // constexpr uint16_t war_exhaustion_province = 0x0266;
+		0, //constexpr uint16_t is_greater_power_province = 0x0267;
 	};
 }

@@ -219,6 +219,7 @@ namespace cultures {
 		void set_radicalism(float f) {
 			c->radicalism = f;
 		}
+		void discard(int) {}
 	};
 
 	struct culture_group_builder {
@@ -340,6 +341,7 @@ MEMBER_FDEF(cultures::culture_builder, add_color, "color");
 MEMBER_FDEF(cultures::culture_builder, set_radicalism, "radicalism");
 MEMBER_FDEF(cultures::culture_builder, add_first_names, "first_names");
 MEMBER_FDEF(cultures::culture_builder, add_last_names, "last_names");
+MEMBER_FDEF(cultures::culture_builder, discard, "discard");
 MEMBER_FDEF(cultures::names_builder, add_name, "name");
 
 namespace cultures {
@@ -394,6 +396,7 @@ namespace cultures {
 		MEMBER_TYPE_ASSOCIATION("last_names", "last_names", names_builder)
 		MEMBER_TYPE_ASSOCIATION("color", "color", color_builder)
 		MEMBER_ASSOCIATION("radicalism", "radicalism", value_from_rh<float> )
+		MEMBER_ASSOCIATION("discard", "primary", discard_from_rh)
 		END_TYPE
 		BEGIN_TYPE(color_builder)
 		MEMBER_VARIABLE_ASSOCIATION("color", accept_all, value_from_lh<int>)
@@ -483,7 +486,7 @@ namespace cultures {
 		}
 	}
 
-	void parse_religions(
+	void read_religions(
 		culture_manager& manager,
 		const directory& source_directory,
 		text_data::text_sequences& text_function) {
@@ -511,7 +514,7 @@ namespace cultures {
 		}
 	}
 
-	void parse_cultures(
+	void read_cultures(
 		culture_manager& manager,
 		graphics::texture_manager &tm,
 		const directory& source_directory,
@@ -545,7 +548,7 @@ namespace cultures {
 		manager.no_leader = tm.retrieve_by_name(source_directory, noleader_file.c_str(), noleader_file.c_str() + noleader_file.length());
 	}
 
-	tagged_vector<std::string, national_tag> parse_national_tags(
+	tagged_vector<std::string, national_tag> read_national_tags(
 		culture_manager& manager,
 		const directory& source_directory) {
 

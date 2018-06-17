@@ -537,7 +537,7 @@ namespace technologies {
 		void set_repair_rate(float v) {
 			env.under_construction.attributes[tech_offset::repair_rate] = v;
 		}
-		void set_reinforce_rate_rate(float v) {
+		void set_reinforce_rate(float v) {
 			env.under_construction.attributes[tech_offset::reinforce_rate] = v;
 		}
 		void set_soldier_to_pop_loss(float v) {
@@ -592,6 +592,9 @@ namespace technologies {
 		}
 		void set_colonial_points(float v) {
 			env.under_construction.attributes[tech_offset::colonial_points] = v;
+		}
+		void set_cb_creation_speed(float v) {
+			env.under_construction.attributes[tech_offset::cb_creation_speed] = v;
 		}
 		void set_max_fort(float v) {
 			env.under_construction.attributes[tech_offset::max_fort] = v;
@@ -651,7 +654,7 @@ MEMBER_FDEF(technologies::tech_reader, set_combat_width, "combat_width");
 MEMBER_FDEF(technologies::tech_reader, set_dig_in_cap, "dig_in_cap");
 MEMBER_FDEF(technologies::tech_reader, set_influence, "influence");
 MEMBER_FDEF(technologies::tech_reader, set_repair_rate, "repair_rate");
-MEMBER_FDEF(technologies::tech_reader, set_reinforce_rate_rate, "reinforce_rate_rate");
+MEMBER_FDEF(technologies::tech_reader, set_reinforce_rate, "reinforce_rate");
 MEMBER_FDEF(technologies::tech_reader, set_soldier_to_pop_loss, "soldier_to_pop_loss");
 MEMBER_FDEF(technologies::tech_reader, set_regular_experience_level, "regular_experience_level");
 MEMBER_FDEF(technologies::tech_reader, set_colonial_life_rating, "colonial_life_rating");
@@ -669,6 +672,7 @@ MEMBER_FDEF(technologies::tech_reader, set_permanent_prestige, "permanent_presti
 MEMBER_FDEF(technologies::tech_reader, set_colonial_prestige, "colonial_prestige");
 MEMBER_FDEF(technologies::tech_reader, set_colonial_migration, "colonial_migration");
 MEMBER_FDEF(technologies::tech_reader, set_colonial_points, "colonial_points");
+MEMBER_FDEF(technologies::tech_reader, set_cb_creation_speed, "cb_creation_speed");
 MEMBER_FDEF(technologies::tech_reader, set_max_fort, "max_fort");
 MEMBER_FDEF(technologies::tech_reader, set_max_naval_base, "max_naval_base");
 MEMBER_FDEF(technologies::tech_reader, set_max_railroad, "max_railroad");
@@ -735,7 +739,7 @@ namespace technologies {
 			MEMBER_ASSOCIATION("dig_in_cap", "dig_in_cap", value_from_rh<float>)
 			MEMBER_ASSOCIATION("influence", "influence", value_from_rh<float>)
 			MEMBER_ASSOCIATION("repair_rate", "repair_rate", value_from_rh<float>)
-			MEMBER_ASSOCIATION("reinforce_rate_rate", "reinforce_rate_rate", value_from_rh<float>)
+			MEMBER_ASSOCIATION("reinforce_rate", "reinforce_rate", value_from_rh<float>)
 			MEMBER_ASSOCIATION("soldier_to_pop_loss", "soldier_to_pop_loss", value_from_rh<float>)
 			MEMBER_ASSOCIATION("regular_experience_level", "regular_experience_level", value_from_rh<float>)
 			MEMBER_ASSOCIATION("colonial_life_rating", "colonial_life_rating", value_from_rh<float>)
@@ -754,6 +758,7 @@ namespace technologies {
 			MEMBER_ASSOCIATION("colonial_prestige", "colonial_prestige", value_from_rh<float>)
 			MEMBER_ASSOCIATION("colonial_migration", "colonial_migration", value_from_rh<float>)
 			MEMBER_ASSOCIATION("colonial_points", "colonial_points", value_from_rh<float>)
+			MEMBER_ASSOCIATION("cb_creation_speed", "cb_creation_speed", value_from_rh<float>)
 			MEMBER_ASSOCIATION("max_fort", "max_fort", value_from_rh<float>)
 			MEMBER_ASSOCIATION("max_naval_base", "max_naval_base", value_from_rh<float>)
 			MEMBER_ASSOCIATION("max_railroad", "max_railroad", value_from_rh<float>)

@@ -206,7 +206,7 @@ namespace military {
 	void pre_parse_cb_types(
 		parsing_state& state,
 		const directory& source_directory);
-	void parse_leader_traits(parsing_state& state,
+	void read_leader_traits(parsing_state& state,
 		const directory& source_directory);
 	void read_unit_types(
 		parsing_state& state,

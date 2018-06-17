@@ -79,8 +79,8 @@ namespace population {
 		return modifiers::parse_modifier_factors(
 			env.s,
 			triggers::trigger_scope_state{
-				triggers::trigger_slot_contents::nation,
-				triggers::trigger_slot_contents::nation,
+				triggers::trigger_slot_contents::pop,
+				triggers::trigger_slot_contents::pop,
 				triggers::trigger_slot_contents::empty,
 				true },
 				1.0f, 0.0f, s, e);
@@ -747,6 +747,7 @@ namespace population {
 		MEMBER_ASSOCIATION("discard", "can_work_factory", discard_from_rh)
 		MEMBER_ASSOCIATION("discard", "rgo", discard_from_rh)
 		MEMBER_ASSOCIATION("discard", "can_work_rgo", discard_from_rh)
+		MEMBER_ASSOCIATION("discard", "max_size", discard_from_rh)
 		MEMBER_TYPE_ASSOCIATION("discard_type", "issues", poptype_issues)
 		MEMBER_TYPE_ASSOCIATION("discard_type", "ideologies", poptype_ideologies)
 		MEMBER_TYPE_ASSOCIATION("discard_type", "promote_to", poptype_promote_to)

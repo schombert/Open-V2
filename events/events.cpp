@@ -22,12 +22,12 @@ namespace events {
 		return new_event_tag;
 	}
 
-	event_tag parse_or_defer_event(scenario::scenario_manager& s, event_creation_manager& ecm, const directory& pictures_root, const triggers::trigger_scope_state& scope, const token_group* start, const token_group* end) {
+	event_tag read_or_defer_event(scenario::scenario_manager& s, event_creation_manager& ecm, const directory& pictures_root, const triggers::trigger_scope_state& scope, const token_group* start, const token_group* end) {
 		const auto[event_id, is_triggered] = pre_parse_event(start, end);
 		ecm.event_sources.emplace(event_id, token_group_range{start, end});
 
 		if(!is_triggered) {
-			const auto ev = parse_single_event(s, ecm, pictures_root, scope, start, end);
+			const auto ev = read_single_event(s, ecm, pictures_root, scope, start, end);
 			s.event_m.events_by_id.emplace(event_id, ev);
 			return ev;
 		} else {
@@ -159,7 +159,7 @@ namespace events {
 		return modifiers::parse_modifier_factors(env.s, env.scope, 1.0f, 0.0f, s, e);
 	}
 	inline event_tag read_province_event(const token_group* s, const token_group* e, event_file_parse_env& env) {
-		return parse_or_defer_event(
+		return read_or_defer_event(
 			env.s,
 			env.ecm,
 			env.pictures_root,
@@ -171,7 +171,7 @@ namespace events {
 			s, e);
 	}
 	inline event_tag read_country_event(const token_group* s, const token_group* e, event_file_parse_env& env) {
-		return parse_or_defer_event(
+		return read_or_defer_event(
 			env.s,
 			env.ecm,
 			env.pictures_root,
@@ -482,6 +482,9 @@ namespace events {
 		void set_ai_will_do(modifiers::factor_tag m) {
 			under_construction.ai_will_do = m;
 		}
+		void set_alert(bool v) {
+			under_construction.no_alert = !v;
+		}
 		void discard(int) {}
 	};
 	struct decision_class {
@@ -519,7 +522,7 @@ namespace events {
 			false }, 1.0f, 0.0f, s, e);
 	}
 	inline int inner_read_decision(const token_group* s, const token_group* e, const token_and_type& t, event_file_parse_env& env) {
-		const auto tag = parse_decision(env.s, env.ecm, env.pictures_root, s, e);
+		const auto tag = read_decision(env.s, env.ecm, env.pictures_root, s, e);
 		decision& new_decision = env.s.event_m.decision_container[tag];
 		
 		std::string token(t.start, t.end);
@@ -532,6 +535,7 @@ namespace events {
 }
 
 MEMBER_FDEF(events::decision_reader, set_allow, "allow");
+MEMBER_FDEF(events::decision_reader, set_alert, "alert");
 MEMBER_FDEF(events::decision_reader, discard, "discard");
 MEMBER_FDEF(events::decision_reader, set_potential, "potential");
 MEMBER_FDEF(events::decision_reader, set_effect, "effect");
@@ -590,6 +594,7 @@ namespace events {
 		MEMBER_TYPE_EXTERN("effect", "effect", triggers::effect_tag, read_decision_effect)
 		MEMBER_TYPE_EXTERN("ai_will_do", "ai_will_do", modifiers::factor_tag, read_ai_will_do)
 		MEMBER_ASSOCIATION("picture", "picture", token_from_rh)
+		MEMBER_ASSOCIATION("alert", "alert", value_from_rh<bool>)
 		MEMBER_ASSOCIATION("discard", "news", discard_from_rh)
 		MEMBER_ASSOCIATION("discard", "news_desc_long", discard_from_rh)
 		MEMBER_ASSOCIATION("discard", "news_desc_medium", discard_from_rh)
@@ -643,6 +648,7 @@ namespace events {
 		MEMBER_ASSOCIATION("discard", "news_desc_long", discard_from_rh)
 		MEMBER_ASSOCIATION("discard", "news_desc_medium", discard_from_rh)
 		MEMBER_ASSOCIATION("discard", "news_desc_short", discard_from_rh)
+		MEMBER_ASSOCIATION("discard", "news_title", discard_from_rh)
 		MEMBER_ASSOCIATION("discard", "news", discard_from_rh)
 		MEMBER_ASSOCIATION("title", "title", token_from_rh)
 		MEMBER_ASSOCIATION("desc", "desc", token_from_rh)
@@ -744,7 +750,7 @@ namespace events {
 		return std::pair<int32_t, bool>(result.id, result.is_triggered_only);
 	}
 
-	event_tag parse_single_event(
+	event_tag read_single_event(
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
 		const directory& pictures_root,
@@ -760,7 +766,7 @@ namespace events {
 		return new_tag;
 	}
 
-	void parse_event_file(
+	void read_event_file(
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
 		const directory& pictures_root,
@@ -771,7 +777,7 @@ namespace events {
 		parse_object<event_file, event_file_domain>(start, end, env);
 	}
 
-	void parse_event_files(
+	void read_event_files(
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
 		const directory& source_directory) {
@@ -790,7 +796,7 @@ namespace events {
 				f->read_to_buffer(parse.parse_data.get(), sz);
 				parse_pdx_file(parse.parse_results, parse.parse_data.get(), parse.parse_data.get() + sz);
 
-				parse_event_file(
+				read_event_file(
 					s,
 					ecm,
 					source_directory,
@@ -824,8 +830,10 @@ namespace events {
 					s.event_m.event_container[pr.second] = result.under_construction;
 					s.event_m.event_container[pr.second].id = pr.second;
 				} else {
+					s.event_m.event_container[pr.second].id = pr.second;
 #ifdef _DEBUG
-					throw event_source_missing();
+					OutputDebugStringA("event source missing\r\n");
+					//throw event_source_missing();
 #endif
 				}
 				
@@ -839,7 +847,7 @@ namespace events {
 		return parse_object<issue_group_reader, get_issue_group_domain>(start, end).issue_group;
 	}
 
-	void parse_on_actions_file(
+	void read_on_actions_file(
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
 		const directory& source_directory) {
@@ -861,7 +869,7 @@ namespace events {
 	}
 
 
-	decision_tag parse_decision(
+	decision_tag read_decision(
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
 		const directory& pictures_root,
@@ -876,7 +884,7 @@ namespace events {
 		return new_tag;
 	}
 
-	void parse_decision_file(
+	void read_decision_file(
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
 		const directory& pictures_root,
@@ -887,7 +895,7 @@ namespace events {
 		parse_object<decision_file, decision_file_domain>(start, end, env);
 	}
 
-	void parse_decision_files(
+	void read_decision_files(
 		scenario::scenario_manager& s,
 		event_creation_manager& ecm,
 		const directory& root) {
@@ -905,7 +913,7 @@ namespace events {
 				f->read_to_buffer(parse.parse_data.get(), sz);
 				parse_pdx_file(parse.parse_results, parse.parse_data.get(), parse.parse_data.get() + sz);
 
-				parse_decision_file(
+				read_decision_file(
 					s,
 					ecm,
 					root,

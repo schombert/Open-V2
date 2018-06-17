@@ -49,7 +49,7 @@ namespace issues {
 
 		static constexpr uint32_t largest_share = 0x00000000; //voting system
 		static constexpr uint32_t dhont = 0x00400000; //voting system
-		static constexpr uint32_t sainte_lauqe = 0x00800000; //voting system
+		static constexpr uint32_t sainte_laque = 0x00800000; //voting system
 
 		static constexpr uint32_t upper_house_composition_mask = 0x03000000;
 

@@ -98,16 +98,16 @@ namespace cultures {
 	uint32_t tag_to_encoding(const char* start, const char* end);
 	tag_as_text encoded_tag_to_text_tag(uint32_t tag_value);
 
-	void parse_religions(
+	void read_religions(
 		culture_manager& manager,
 		const directory& source_directory,
 		text_data::text_sequences& text);
-	void parse_cultures(
+	void read_cultures(
 		culture_manager& manager,
 		graphics::texture_manager &tm,
 		const directory& source_directory,
 		text_data::text_sequences& text);
-	tagged_vector<std::string, national_tag> parse_national_tags(
+	tagged_vector<std::string, national_tag> read_national_tags(
 		culture_manager& manager,
 		const directory& source_directory); // invoke before parsing cultures, returns tag files array
 

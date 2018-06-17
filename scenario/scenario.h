@@ -15,6 +15,7 @@
 #include "triggers\\triggers.h"
 #include "gui\\gui.h"
 #include "sound\\sound.h"
+#include "simple_fs\\simple_fs.h"
 
 namespace scenario {
 	class scenario_manager {
@@ -38,4 +39,6 @@ namespace scenario {
 
 		scenario_manager() {}
 	};
+
+	void read_scenario(scenario_manager& s, const directory& root);
 }

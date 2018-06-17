@@ -115,7 +115,7 @@ TEST(ideologies_tests, single_ideology) {
 		std::vector<token_group> parse_results;
 		parse_pdx_file(parse_results, RANGE(text));
 
-		parse_single_ideology(sm, ideology_tag(0), parse_results.data(), parse_results.data() + parse_results.size());
+		read_single_ideology(sm, ideology_tag(0), parse_results.data(), parse_results.data() + parse_results.size());
 
 		EXPECT_EQ(ideology_tag(0), sm.ideologies_m.conservative_ideology);
 		EXPECT_EQ(false, sm.ideologies_m.ideology_container[ideology_tag(0)].uncivilized);
@@ -145,7 +145,7 @@ TEST(ideologies_tests, single_ideology) {
 		std::vector<token_group> parse_results;
 		parse_pdx_file(parse_results, RANGE(text));
 
-		parse_single_ideology(sm, ideology_tag(1), parse_results.data(), parse_results.data() + parse_results.size());
+		read_single_ideology(sm, ideology_tag(1), parse_results.data(), parse_results.data() + parse_results.size());
 
 		EXPECT_EQ(ideology_tag(0), sm.ideologies_m.conservative_ideology);
 		EXPECT_EQ(true, sm.ideologies_m.ideology_container[ideology_tag(1)].uncivilized);
@@ -166,7 +166,7 @@ TEST(ideologies_tests, full_file_parse) {
 
 	f.set_root(RANGE(u"F:\\test1"));
 	auto result = pre_parse_ideologies(sm.ideologies_m, f.get_root(), sm.gui_m.text_data_sequences);
-	parse_ideologies(sm, result);
+	read_ideologies(sm, result);
 
 	EXPECT_EQ(ideology_tag(0), sm.ideologies_m.conservative_ideology);
 	EXPECT_EQ(false, sm.ideologies_m.ideology_container[ideology_tag(0)].uncivilized);

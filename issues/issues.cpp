@@ -267,7 +267,7 @@ namespace issues {
 		MEMBER_ASSOCIATION_2("rule", "all_voting", rule_value, rules::all_voting, rules::citizens_rights_mask)
 		MEMBER_ASSOCIATION_2("rule", "largest_share", rule_value, rules::largest_share, rules::voting_system_mask)
 		MEMBER_ASSOCIATION_2("rule", "dhont", rule_value, rules::dhont, rules::voting_system_mask)
-		MEMBER_ASSOCIATION_2("rule", "sainte_lauqe", rule_value, rules::sainte_lauqe, rules::voting_system_mask)
+		MEMBER_ASSOCIATION_2("rule", "sainte_laque", rule_value, rules::sainte_laque, rules::voting_system_mask)
 		MEMBER_ASSOCIATION_2("rule", "same_as_ruling_party", rule_value, rules::same_as_ruling_party, rules::upper_house_composition_mask)
 		MEMBER_ASSOCIATION_2("rule", "rich_only", rule_value, rules::rich_only, rules::upper_house_composition_mask)
 		MEMBER_ASSOCIATION_2("rule", "state_vote", rule_value, rules::state_vote, rules::upper_house_composition_mask)
