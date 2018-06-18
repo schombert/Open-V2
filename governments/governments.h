@@ -1,12 +1,8 @@
 #pragma once
 #include <stdint.h>
 #include "common\\common.h"
-#include "simple_fs\\simple_fs.h"
 #include "common\\shared_tags.h"
-#include <vector>
-#include "Parsers\\parsers.hpp"
-#include "text_data\\text_data.h"
-#include <variant>
+
 
 namespace ideologies {
 	class ideologies_manager;
@@ -54,12 +50,4 @@ namespace governments {
 		tagged_vector<party, party_tag> parties;
 		tagged_fixed_2dvector<issues::option_tag, party_tag, uint32_t> party_issues; // inner index = nth party issue
 	};
-
-	tagged_vector<std::string, governments::government_tag> read_governments(
-		governments_manager& manager,
-		const directory& source_directory,
-		text_data::text_sequences& text_function,
-		const ideologies::ideologies_manager& ideologies_source);
-	void ready_party_issues(governments_manager& manager, issues::issues_manager& im);
-	party_tag read_party(token_group const* start, token_group const* end, scenario::scenario_manager& s);
 }

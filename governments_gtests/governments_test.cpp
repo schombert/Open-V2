@@ -4,6 +4,7 @@
 #include "ideologies\\ideologies.h"
 #include "issues\\issues.h"
 #include "scenario\\scenario.h"
+#include "governments\\governments_io.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "gui_definitions\\gui_definitions.cpp"
+#include "gui_definitions\\gui_definitions_io.cpp"
 
 using namespace ui;
 

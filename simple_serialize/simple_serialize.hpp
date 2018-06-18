@@ -15,10 +15,7 @@ namespace serialization {
 
 	template<typename T>
 	size_t serialize_size(T const& obj) {
-		if constexpr(serializer<T>::has_static_size)
-			return serializer<T>::size();
-		else
-			return serializer<T>::size(obj);
+		return serializer<T>::size(obj);
 	}
 
 	template<typename T>
@@ -208,7 +205,7 @@ namespace serialization {
 		}
 		static size_t size(std::vector<T, ALLOC> const& obj) {
 			if constexpr(serializer<T>::has_static_size)
-				return sizeof(uint32_t) + serializer<T>::size() * obj.size();
+				return sizeof(uint32_t) + sizeof(T) * obj.size();
 			else
 				return sizeof(uint32_t) + std::accumulate(obj.begin(), obj.end(), size_t(0),
 					[](size_t val, T const& item) { return val + serializer<T>::size(item); });
@@ -237,6 +234,93 @@ namespace serialization {
 		}
 		static size_t size(std::basic_string<A, B, C> const& obj) {
 			return sizeof(uint32_t) + obj.length() * sizeof(A);
+		}
+	};
+
+	template<typename T, typename I, typename allocator>
+	class serializer<v_vector<T, I, allocator>> {
+	public:
+		static constexpr bool has_static_size = false;
+		static constexpr bool has_simple_serialize = false;
+
+		template<typename ... CONTEXT>
+		static void serialize_object(std::byte* &output, v_vector<T, I, allocator> const& obj, CONTEXT&& ... c) {
+			serialize(output, obj.elements);
+			serialize(output, obj.index);
+		}
+		template<typename ... CONTEXT>
+		static void deserialize_object(std::byte const* &input, v_vector<T, I, allocator>& obj, CONTEXT&& ... c) {
+			deserialize(input, obj.elements);
+			deserialize(input, obj.index);
+		}
+		static size_t size(v_vector<T, I, allocator> const& obj) {
+			return serialize_size(obj.elements) + serialize_size(obj.index);
+		}
+	};
+
+	template<typename A, typename B, typename compare, typename allocator>
+	class serializer<boost::container::flat_map<A, B, compare, allocator>> {
+	public:
+		static constexpr bool has_static_size = false;
+		static constexpr bool has_simple_serialize = false;
+
+		template<typename ... CONTEXT>
+		static void serialize_object(std::byte* &output, boost::container::flat_map<A, B, compare, allocator> const& obj, CONTEXT&& ... c) {
+			const uint32_t sz = uint32_t(obj.size());
+			serialize(output, sz);
+			for(auto const& pr : obj)
+				serialize(output, pr, std::forward<CONTEXT>(c)...);
+		}
+		template<typename ... CONTEXT>
+		static void deserialize_object(std::byte const* &input, boost::container::flat_map<A, B, compare, allocator>& obj, CONTEXT&& ... c) {
+			uint32_t sz = 0;
+			deserialize(input, sz);
+			for(; sz > 0; --sz) {
+				std::pair<A, B> local;
+				deserialize(input, local, std::forward<CONTEXT>(c)...);
+				obj.insert(local);
+			}
+		}
+		static size_t size(boost::container::flat_map<A, B, compare, allocator> const& obj) {
+			if constexpr(serializer<std::pair<A, B>>::has_static_size)
+				return sizeof(uint32_t) + obj.size() * sizeof(std::pair<A, B>);
+			else
+				return sizeof(uint32_t) + std::accumulate(obj.begin(), obj.end(), size_t(0),
+					[](size_t val, std::pair<A, B> const& item) { return val + serializer<std::pair<A, B>>::size(item); });
+		}
+	};
+
+	template<typename A, typename B>
+	class serializer<std::pair<A, B>> {
+	public:
+		static constexpr bool has_static_size = serializer<A>::has_static_size && serializer<B>::has_static_size;
+		static constexpr bool has_simple_serialize = serializer<A>::has_simple_serialize && serializer<B>::has_simple_serialize;
+
+		template<typename ... CONTEXT>
+		static void serialize_object(std::byte* &output, std::pair<A, B> const& obj, CONTEXT&& ... c) {
+			if constexpr(has_static_size && has_simple_serialize) {
+				memcpy(output, &obj, sizeof(std::pair<A, B>));
+				output += sizeof(std::pair<A, B>);
+			} else {
+				serialize(output, obj.first);
+				serialize(output, obj.second);
+			}
+		}
+		template<typename ... CONTEXT>
+		static void deserialize_object(std::byte const* &input, std::pair<A, B>& obj, CONTEXT&& ... c) {
+			if constexpr(has_static_size && has_simple_serialize) {
+				memcpy(&obj, input, sizeof(std::pair<A, B>));
+				input += sizeof(std::pair<A, B>);
+			} else {
+				deserialize(input, obj.first);
+				deserialize(input, obj.second);
+			}
+		}
+		static size_t size(std::pair<A, B> const& obj) {
+			if constexpr(has_static_size && has_simple_serialize)
+				return sizeof(std::pair<A, B>);
+			else
+				return serialize_size(obj.first) + serialize_size(obj.second);
 		}
 	};
 }

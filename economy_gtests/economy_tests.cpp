@@ -2,6 +2,7 @@
 #include "fake_fs\\fake_fs.h"
 #include "economy\\economy.h"
 #include "scenario\\scenario.h"
+#include "economy\\economy_io.h"
 
 using namespace economy;
 

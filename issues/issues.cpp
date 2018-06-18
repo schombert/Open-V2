@@ -6,6 +6,7 @@
 #include "scenario\\scenario.h"
 #include "triggers\\trigger_reading.h"
 #include "triggers\\effect_reading.h"
+#include "events\\events_io.h"
 
 namespace issues {
 	struct parsing_environment {

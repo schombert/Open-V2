@@ -150,9 +150,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="cultures.h" />
+    <ClInclude Include="cultures_io.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cultures.cpp" />
+    <ClCompile Include="cultures_io.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

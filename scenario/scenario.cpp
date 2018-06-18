@@ -1,5 +1,8 @@
 #include "common\\common.h"
 #include "scenario\\scenario.h"
+#include "cultures\\cultures_io.h"
+#include "economy\\economy_io.h"
+#include "events\\events_io.h"
 
 namespace scenario {
 	void read_scenario(scenario_manager& s, const directory& root) {
@@ -7,7 +10,7 @@ namespace scenario {
 		ui::load_gui_from_directory(root, s.gui_m);
 
 		//stage 2
-		auto const country_files = read_national_tags(s.culutre_m, root);
+		auto const country_files = cultures::read_national_tags(s.culutre_m, root);
 
 		cultures::read_religions(s.culutre_m, root, s.gui_m.text_data_sequences);
 		cultures::read_cultures(s.culutre_m, s.gui_m.textures, root, s.gui_m.text_data_sequences);

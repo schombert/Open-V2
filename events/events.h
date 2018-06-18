@@ -10,17 +10,6 @@ namespace scenario {
 }
 
 namespace events {
-	struct id_scope_pair {
-		int32_t id;
-		triggers::trigger_scope_state scope;
-
-		bool operator<(const id_scope_pair& other) const {
-			const int64_t this_value = (int64_t(id) << 32) | int64_t(scope.to_integer());
-			const int64_t other_value = (int64_t(other.id) << 32) | int64_t(other.scope.to_integer());
-
-			return this_value < other_value;
-		}
-	};
 
 	struct event_option {
 		text_data::text_tag name;
@@ -89,67 +78,4 @@ namespace events {
 
 		boost::container::flat_map<int32_t, event_tag> events_by_id;
 	};
-
-	struct token_group_range {
-		const token_group* start;
-		const token_group* end;
-	};
-
-	struct event_creation_manager {
-		boost::container::flat_map<int32_t, token_group_range> event_sources;
-		boost::container::flat_map<id_scope_pair, event_tag> pending_triggered_events;
-		boost::container::flat_map<id_scope_pair, event_tag> created_triggered_events;
-		std::vector<parsed_data> event_files_data;
-
-		event_tag register_triggered_event(event_manager& m, int32_t event_id, triggers::trigger_scope_state scope);
-	};
-
-	std::pair<int32_t, bool> pre_parse_event(const token_group* start, const token_group* end); // returns id &  bool is triggered
-	token_and_type get_issue_group_for_event(const token_group* start, const token_group* end);
-	event_tag read_single_event(
-		scenario::scenario_manager& s,
-		event_creation_manager& ecm,
-		const directory& pictures_root,
-		const triggers::trigger_scope_state& scope,
-		const token_group* start, const token_group* end);
-	event_tag read_or_defer_event(
-		scenario::scenario_manager& s,
-		event_creation_manager& ecm,
-		const directory& pictures_root,
-		const triggers::trigger_scope_state& scope,
-		const token_group* start, const token_group* end);
-	void read_event_file(
-		scenario::scenario_manager& s,
-		event_creation_manager& ecm,
-		const directory& pictures_root,
-		const token_group* start,
-		const token_group* end);
-	void read_event_files(
-		scenario::scenario_manager& s,
-		event_creation_manager& ecm,
-		const directory& source_directory);
-	void commit_pending_triggered_events(
-		scenario::scenario_manager& s,
-		event_creation_manager& ecm,
-		const directory& pictures_root);
-	void read_on_actions_file(
-		scenario::scenario_manager& s,
-		event_creation_manager& ecm,
-		const directory& source_directory);
-	decision_tag read_decision(
-		scenario::scenario_manager& s,
-		event_creation_manager& ecm,
-		const directory& pictures_root,
-		const token_group* start,
-		const token_group* end);
-	void read_decision_file(
-		scenario::scenario_manager& s,
-		event_creation_manager& ecm,
-		const directory& pictures_root,
-		const token_group* start,
-		const token_group* end);
-	void read_decision_files(
-		scenario::scenario_manager& s,
-		event_creation_manager& ecm,
-		const directory& root);
 }

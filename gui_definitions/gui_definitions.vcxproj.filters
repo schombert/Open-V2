@@ -18,9 +18,15 @@
     <ClInclude Include="gui_definitions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="gui_definitions_io.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="gui_definitions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gui_definitions_io.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -18,9 +18,15 @@
     <ClInclude Include="events.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="events_io.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="events.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="events_io.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

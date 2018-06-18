@@ -146,9 +146,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="gui_definitions.h" />
+    <ClInclude Include="gui_definitions_io.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="gui_definitions.cpp" />
+    <ClCompile Include="gui_definitions_io.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

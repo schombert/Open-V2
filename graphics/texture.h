@@ -6,6 +6,7 @@
 #include "simple_fs\\simple_fs.h"
 #include <map>
 #include "common\\shared_tags.h"
+#include "simple_serialize\\simple_serialize.hpp"
 
 namespace graphics {
 	class texture {
@@ -76,10 +77,11 @@ namespace graphics {
 
 	class texture_manager {
 	private:
-		tagged_vector<texture, texture_tag> textures;
 		std::vector<char> file_names;
 		std::map<vector_backed_string<char>, texture_tag, vector_backed_string_less_ci> fname_map;
 	public:
+		tagged_vector<texture, texture_tag> textures;
+
 		texture_tag standard_tiles_dialog;
 		texture_tag standard_transparency;
 		texture_tag standard_small_tiles_dialog;
@@ -94,3 +96,48 @@ namespace graphics {
 		void load_all_texture_files();
 	};
 }
+
+template<>
+class serialization::serializer<graphics::texture> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, graphics::texture const& obj) {
+		serialize(output, obj.filename);
+	}
+	template<typename ... CONTEXT>
+	static void deserialize_object(std::byte const* &input, graphics::texture& obj, CONTEXT&& ... c) {
+		deserialize(input, obj.filename);
+	}
+	static size_t size(graphics::texture const& obj) {
+		return serialize_size(obj.filename);
+	}
+};
+
+template<>
+class serialization::serializer<graphics::texture_manager> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, graphics::texture_manager const& obj) {
+		serialize(output, obj.textures);
+		serialize(output, obj.standard_tiles_dialog);
+		serialize(output, obj.standard_transparency);
+		serialize(output, obj.standard_small_tiles_dialog);
+	}
+	template<typename ... CONTEXT>
+	static void deserialize_object(std::byte const* &input, graphics::texture_manager& obj, CONTEXT&& ... c) {
+		deserialize(input, obj.textures);
+		deserialize(input, obj.standard_tiles_dialog);
+		deserialize(input, obj.standard_transparency);
+		deserialize(input, obj.standard_small_tiles_dialog);
+	}
+	static size_t size(graphics::texture_manager const& obj) {
+		return serialize_size(obj.textures) +
+			serialize_size(obj.standard_tiles_dialog) +
+			serialize_size(obj.standard_transparency) +
+			serialize_size(obj.standard_small_tiles_dialog);
+	}
+};

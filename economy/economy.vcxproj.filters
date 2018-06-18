@@ -18,9 +18,15 @@
     <ClInclude Include="economy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="economy_io.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="economy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="economy_io.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

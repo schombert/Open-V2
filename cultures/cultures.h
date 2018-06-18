@@ -97,21 +97,4 @@ namespace cultures {
 
 	uint32_t tag_to_encoding(const char* start, const char* end);
 	tag_as_text encoded_tag_to_text_tag(uint32_t tag_value);
-
-	void read_religions(
-		culture_manager& manager,
-		const directory& source_directory,
-		text_data::text_sequences& text);
-	void read_cultures(
-		culture_manager& manager,
-		graphics::texture_manager &tm,
-		const directory& source_directory,
-		text_data::text_sequences& text);
-	tagged_vector<std::string, national_tag> read_national_tags(
-		culture_manager& manager,
-		const directory& source_directory); // invoke before parsing cultures, returns tag files array
-
-	void read_country_files(tagged_vector<std::string, national_tag> const& v, scenario::scenario_manager& s, const directory& source_directory);
-	void read_flag_graphics(scenario::scenario_manager& s, const directory& source_directory);
-	void populate_country_names(scenario::scenario_manager& s, tagged_vector<std::string, governments::government_tag> const& gbase_names);
 }

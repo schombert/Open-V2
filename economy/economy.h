@@ -1,10 +1,7 @@
 #pragma once
 #include "common\\common.h"
-#include "simple_fs\\simple_fs.h"
+
 #include "common\\shared_tags.h"
-#include <vector>
-#include "Parsers\\parsers.hpp"
-#include "text_data\\text_data.h"
 #include "concurrency_tools\\concurrency_tools.hpp"
 
 namespace scenario {
@@ -23,6 +20,7 @@ namespace economy {
 		graphics::color_rgb color = {0, 0, 0};
 
 		text_data::text_tag name;
+		text_data::text_tag rgo_name;
 
 		goods_tag id;
 		goods_type_tag type;
@@ -133,24 +131,9 @@ namespace economy {
 		tagged_fixed_blocked_2dvector<economy::goods_qnty_type, factory_type_tag, goods_tag, aligned_allocator_32<economy::goods_qnty_type>> building_costs;
 
 		boost::container::flat_map<text_data::text_tag, goods_tag> named_goods_index;
-		boost::container::flat_map<text_data::text_tag, goods_tag> goods_by_rgo_name_index;
 		boost::container::flat_map<text_data::text_tag, factory_type_tag> named_factory_types_index;
 
 		uint32_t goods_count = 0;
 		uint32_t aligned_32_goods_count = 0;
 	};
-
-	void read_goods(
-		economic_scenario& manager,
-		const directory& source_directory,
-		text_data::text_sequences& text_function);
-	boost::container::flat_map<text_data::text_tag, factory_type_tag> read_buildings(
-		economic_scenario& manager,
-		const directory& source_directory,
-		text_data::text_sequences& text_function
-	); //invoke after reading goods, returns map of production type name -> factory building type
-	void read_production_types(
-		scenario::scenario_manager& s,
-		boost::container::flat_map<text_data::text_tag, factory_type_tag>& map,
-		const directory& source_directory);
 }

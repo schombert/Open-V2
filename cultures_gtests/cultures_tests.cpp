@@ -1,6 +1,7 @@
 #include "gtest\\gtest.h"
 #include "fake_fs\\fake_fs.h"
 #include "cultures\\cultures.h"
+#include "cultures\\cultures_io.h"
 #include "graphics\\texture.h"
 #include "scenario\\scenario.h"
 
@@ -456,4 +457,137 @@ TEST(cultures_tests, read_country_files) {
 	EXPECT_EQ(163ui8, s.culutre_m.national_tags[national_tag(1)].color.b);
 	EXPECT_EQ(governments::party_tag(2), s.culutre_m.national_tags[national_tag(1)].first_party);
 	EXPECT_EQ(governments::party_tag(2), s.culutre_m.national_tags[national_tag(1)].last_party);
+}
+
+TEST(cultures_tests, serialize) {
+	{
+		//religion_file
+		test_files real_fs;
+		file_system f;
+
+		f.set_root(RANGE(u"F:\\test1"));
+
+		culture_manager source;
+		text_data::text_sequences tex;
+		read_religions(source, f.get_root(), tex);
+
+		std::vector<std::byte> data(serialization::serialize_size(source));
+		auto inptr = data.data();
+		serialization::serialize(inptr, source);
+
+		std::byte const* outptr = data.data();
+		culture_manager m;
+		serialization::deserialize(outptr, m);
+
+
+		EXPECT_EQ(3ui64, m.religions.size());
+		EXPECT_EQ(3ui64, m.named_religion_index.size());
+		EXPECT_EQ(religion_tag(0), m.religions[religion_tag(0)].id);
+		EXPECT_EQ(religion_tag(1), m.religions[religion_tag(1)].id);
+		EXPECT_EQ(religion_tag(2), m.religions[religion_tag(2)].id);
+		EXPECT_EQ(1ui8, m.religions[religion_tag(0)].icon);
+		EXPECT_EQ(2ui8, m.religions[religion_tag(1)].icon);
+		EXPECT_EQ(6ui8, m.religions[religion_tag(2)].icon);
+		EXPECT_EQ(false, m.religions[religion_tag(0)].pagan);
+		EXPECT_EQ(false, m.religions[religion_tag(1)].pagan);
+		EXPECT_EQ(true, m.religions[religion_tag(2)].pagan);
+		EXPECT_EQ(static_cast<uint8_t>(0.5 * 255.0), m.religions[religion_tag(0)].color.r);
+		EXPECT_EQ(0ui8, m.religions[religion_tag(1)].color.r);
+		EXPECT_EQ(0ui8, m.religions[religion_tag(2)].color.r);
+		EXPECT_EQ(0ui8, m.religions[religion_tag(0)].color.g);
+		EXPECT_EQ(255ui8, m.religions[religion_tag(1)].color.g);
+		EXPECT_EQ(0ui8, m.religions[religion_tag(2)].color.g);
+		EXPECT_EQ(0ui8, m.religions[religion_tag(0)].color.b);
+		EXPECT_EQ(0ui8, m.religions[religion_tag(1)].color.b);
+		EXPECT_EQ(static_cast<uint8_t>(0.5 * 255.0), m.religions[religion_tag(2)].color.b);
+		EXPECT_EQ(religion_tag(0), m.named_religion_index[m.religions[religion_tag(0)].name]);
+		EXPECT_EQ(religion_tag(1), m.named_religion_index[m.religions[religion_tag(1)].name]);
+		EXPECT_EQ(religion_tag(2), m.named_religion_index[m.religions[religion_tag(2)].name]);
+	}
+
+	{
+		//cultures file
+		test_files real_fs;
+		file_system f;
+		graphics::texture_manager tm;
+
+		f.set_root(RANGE(u"F:\\test2"));
+		culture_manager source;
+		text_data::text_sequences tex;
+
+		read_national_tags(source, f.get_root());
+		read_cultures(source, tm, f.get_root(), tex);
+
+
+		std::vector<std::byte> data(serialization::serialize_size(source));
+		auto inptr = data.data();
+		serialization::serialize(inptr, source);
+
+		std::byte const* outptr = data.data();
+		culture_manager m;
+		serialization::deserialize(outptr, m);
+
+
+		EXPECT_EQ(3ui64, m.culture_container.size());
+		EXPECT_EQ(2ui64, m.culture_groups.size());
+		EXPECT_EQ(2ui64, m.named_culture_group_index.size());
+		EXPECT_EQ(3ui64, m.named_culture_index.size());
+
+		EXPECT_EQ(culture_tag(0), m.culture_container[culture_tag(0)].id);
+		EXPECT_EQ(culture_group_tag(0), m.culture_container[culture_tag(0)].group);
+		EXPECT_EQ(10ui8, m.culture_container[culture_tag(0)].color.r);
+		EXPECT_EQ(20ui8, m.culture_container[culture_tag(0)].color.g);
+		EXPECT_EQ(30ui8, m.culture_container[culture_tag(0)].color.b);
+		EXPECT_EQ(culture_tag(0), m.named_culture_index[m.culture_container[culture_tag(0)].name]);
+		EXPECT_EQ(5.0f, m.culture_container[culture_tag(0)].radicalism);
+
+		const auto fn = m.first_names_by_culture.get_row(to_index(culture_tag(0)));
+		const auto ln = m.last_names_by_culture.get_row(to_index(culture_tag(0)));
+
+		EXPECT_EQ(3i64, fn.second - fn.first);
+		EXPECT_EQ(1i64, ln.second - ln.first);
+
+		EXPECT_EQ(culture_tag(1), m.culture_container[culture_tag(1)].id);
+		EXPECT_EQ(culture_group_tag(1), m.culture_container[culture_tag(1)].group);
+		EXPECT_EQ(20ui8, m.culture_container[culture_tag(1)].color.r);
+		EXPECT_EQ(30ui8, m.culture_container[culture_tag(1)].color.g);
+		EXPECT_EQ(40ui8, m.culture_container[culture_tag(1)].color.b);
+		EXPECT_EQ(culture_tag(1), m.named_culture_index[m.culture_container[culture_tag(1)].name]);
+		EXPECT_EQ(0.0f, m.culture_container[culture_tag(1)].radicalism);
+
+		const auto fn2 = m.first_names_by_culture.get_row(to_index(culture_tag(1)));
+		const auto ln2 = m.last_names_by_culture.get_row(to_index(culture_tag(1)));
+
+		EXPECT_EQ(2i64, fn2.second - fn2.first);
+		EXPECT_EQ(2i64, ln2.second - ln2.first);
+
+		EXPECT_EQ(culture_tag(2), m.culture_container[culture_tag(2)].id);
+		EXPECT_EQ(culture_group_tag(1), m.culture_container[culture_tag(2)].group);
+		EXPECT_EQ(50ui8, m.culture_container[culture_tag(2)].color.r);
+		EXPECT_EQ(60ui8, m.culture_container[culture_tag(2)].color.g);
+		EXPECT_EQ(70ui8, m.culture_container[culture_tag(2)].color.b);
+		EXPECT_EQ(culture_tag(2), m.named_culture_index[m.culture_container[culture_tag(2)].name]);
+		EXPECT_EQ(10.0f, m.culture_container[culture_tag(2)].radicalism);
+
+		const auto fn3 = m.first_names_by_culture.get_row(to_index(culture_tag(2)));
+		const auto ln3 = m.last_names_by_culture.get_row(to_index(culture_tag(2)));
+
+		EXPECT_EQ(4i64, fn3.second - fn3.first);
+		EXPECT_EQ(2i64, ln3.second - ln3.first);
+
+		EXPECT_EQ(culture_group_tag(0), m.culture_groups[culture_group_tag(0)].id);
+		EXPECT_EQ(culture_group_tag(0), m.named_culture_group_index[m.culture_groups[culture_group_tag(0)].name]);
+		EXPECT_EQ(national_tag(), m.culture_groups[culture_group_tag(0)].union_tag);
+		EXPECT_EQ(true, m.culture_groups[culture_group_tag(0)].is_overseas);
+
+		EXPECT_EQ(culture_group_tag(1), m.culture_groups[culture_group_tag(1)].id);
+		EXPECT_EQ(culture_group_tag(1), m.named_culture_group_index[m.culture_groups[culture_group_tag(1)].name]);
+		EXPECT_EQ(national_tag(1), m.culture_groups[culture_group_tag(1)].union_tag);
+		EXPECT_EQ(false, m.culture_groups[culture_group_tag(1)].is_overseas);
+
+		EXPECT_EQ(0ui16, m.culture_groups[culture_group_tag(0)].leader_pictures.admiral_offset);
+		EXPECT_EQ(0ui16, m.culture_groups[culture_group_tag(0)].leader_pictures.admiral_size);
+		EXPECT_EQ(0ui16, m.culture_groups[culture_group_tag(0)].leader_pictures.general_offset);
+		EXPECT_EQ(0ui16, m.culture_groups[culture_group_tag(0)].leader_pictures.general_size);
+	}
 }

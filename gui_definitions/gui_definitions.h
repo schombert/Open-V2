@@ -1,10 +1,8 @@
 #pragma once
 #include <stdint.h>
 #include "common\\common.h"
-#include <vector>
 #include <string>
 #include <functional>
-#include "simple_fs\\simple_fs.h"
 #include "common\\shared_tags.h"
 
 namespace ui {
@@ -380,14 +378,5 @@ namespace ui {
 	using text_handle_lookup = std::function<text_data::text_tag(const char*, const char*)>;
 	using font_handle_lookup = std::function<uint16_t(const char*, const char*)>;
 	using gobj_lookup = std::function<graphics::obj_definition_tag(const char*, const char*)>;
-
-	void load_ui_definitions_from_directory(
-		const directory& source_directory,
-		ui::name_maps& nmaps,
-		ui::definitions& defs,
-		std::vector<std::pair<std::string, ui::errors>>& errors_generated,
-		const text_handle_lookup& th_f,
-		const font_handle_lookup& fh_f,
-		const gobj_lookup& qt_f);
 };
 

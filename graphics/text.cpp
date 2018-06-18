@@ -436,15 +436,15 @@ namespace graphics {
 	}
 
 	font::font(const char* filename, font& p) : impl(std::make_unique<_font>(filename, p.impl.get())) {
-
 	}
 
 	font::font(const char* filename) : impl(std::make_unique<_font>(filename, nullptr)) {
+	}
 
+	font::font(font&& other) noexcept : impl(std::move(other.impl)) {
 	}
 
 	font::~font() {
-
 	}
 
 	using font_map_type = type_list<
@@ -486,8 +486,11 @@ namespace graphics {
 		return font_tag(map_functions<sorted_font_map_type>::bt_scan_ci(start, effective_end, 0ui8));
 	}
 
-	font& font_manager::at(font_tag t) const {
-		return fonts.at(t);
+	font const& font_manager::at(font_tag t) const {
+		return fonts[t];
+	}
+	font& font_manager::at(font_tag t) {
+		return fonts[t];
 	}
 
 	namespace detail {
@@ -538,7 +541,7 @@ namespace graphics {
 		if (full_fn) {
 			const auto ufilename = full_fn->file_path() + u'\\' + full_fn->file_name();
 			const std::string afilename(ufilename.begin(), ufilename.end());
-			fonts.emplace_at(font_tag(0), afilename.c_str());
+			fonts.emplace_back(afilename.c_str());
 		} else {
 #ifdef _DEBUG
 			OutputDebugStringA("unable to open font unifont-9.0.02.ttf\n");
@@ -549,7 +552,7 @@ namespace graphics {
 		if (full_fn_b) {
 			const auto ufilename = full_fn_b->file_path() + u'\\' + full_fn_b->file_name();
 			const std::string afilename(ufilename.begin(), ufilename.end());
-			fonts.emplace_at(font_tag(1), afilename.c_str(), fonts.at(font_tag(0)));
+			fonts.emplace_back(afilename.c_str(), at(font_tag(0)));
 		} else {
 #ifdef _DEBUG
 			OutputDebugStringA("unable to open font NotoSans-Bold.ttf\n");
@@ -560,7 +563,7 @@ namespace graphics {
 		if (full_fn_c) {
 			const auto ufilename = full_fn_c->file_path() + u'\\' + full_fn_c->file_name();
 			const std::string afilename(ufilename.begin(), ufilename.end());
-			fonts.emplace_at(font_tag(2), afilename.c_str(), fonts.at(font_tag(0)));
+			fonts.emplace_back(afilename.c_str(), at(font_tag(0)));
 		} else {
 #ifdef _DEBUG
 			OutputDebugStringA("unable to open font CreteRound-Regular.otf\n");
@@ -568,16 +571,14 @@ namespace graphics {
 		}
 	}
 
-	void font_manager::load_fonts(open_gl_wrapper& ogl) const {
-		for (auto f : fonts) {
-			if (f)
-				f->load_font(ogl);
+	void font_manager::load_fonts(open_gl_wrapper& ogl) {
+		for (auto& f : fonts) {
+			f.load_font(ogl);
 		}
 	}
-	void font_manager::load_metrics_fonts() const {
-		for (auto f : fonts) {
-			if (f)
-				f->load_metrics_font();
+	void font_manager::load_metrics_fonts() {
+		for (auto& f : fonts) {
+			f.load_metrics_font();
 		}
 	}
 }

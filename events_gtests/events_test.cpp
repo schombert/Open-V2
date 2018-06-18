@@ -4,6 +4,7 @@
 #include "scenario\\scenario.h"
 #include "fake_fs\\fake_fs.h"
 #include "triggers\\codes.h"
+#include "events\\events_io.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 

@@ -1,0 +1,109 @@
+#pragma once
+#include "common\\common.h"
+#include "simple_serialize\\simple_serialize.hpp"
+#include "economy.h"
+#include "Parsers\\parsers.hpp"
+#include "text_data\\text_data.h"
+#include "simple_fs\\simple_fs.h"
+#include <ppl.h>
+
+template<>
+class serialization::serializer<economy::economic_scenario> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void rebuild_indexes(economy::economic_scenario& obj) {
+		for(auto const& i_good : obj.goods)
+			obj.named_goods_index.emplace(i_good.name, i_good.id);
+		for(auto const& i_factory : obj.factory_types)
+			obj.named_factory_types_index.emplace(i_factory.name, i_factory.id);
+		obj.goods_count = static_cast<uint32_t>(obj.goods.size());
+		obj.aligned_32_goods_count = ((static_cast<uint32_t>(sizeof(economy::goods_qnty_type)) * obj.goods_count + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::goods_qnty_type));
+	}
+
+	static void serialize_object(std::byte* &output, economy::economic_scenario const& obj) {
+		serialize(output, obj.good_type_names);
+		serialize(output, obj.goods);
+		serialize(output, obj.factory_types);
+		serialize(output, obj.artisan_types);
+		serialize(output, obj.rgo_mine);
+		serialize(output, obj.rgo_farm);
+		serialize(output, obj.fort);
+		serialize(output, obj.railroad);
+		serialize(output, obj.naval_base);
+		serialize(output, obj.money);
+		serialize(output, obj.factory_input_goods);
+		serialize(output, obj.factory_efficiency_goods);
+		serialize(output, obj.artisan_input_goods);
+		serialize(output, obj.building_costs);
+	}
+	static void deserialize_object(std::byte const* &input, economy::economic_scenario& obj) {
+		deserialize(input, obj.good_type_names);
+		deserialize(input, obj.goods);
+		deserialize(input, obj.factory_types);
+		deserialize(input, obj.artisan_types);
+		deserialize(input, obj.rgo_mine);
+		deserialize(input, obj.rgo_farm);
+		deserialize(input, obj.fort);
+		deserialize(input, obj.railroad);
+		deserialize(input, obj.naval_base);
+		deserialize(input, obj.money);
+		deserialize(input, obj.factory_input_goods);
+		deserialize(input, obj.factory_efficiency_goods);
+		deserialize(input, obj.artisan_input_goods);
+		deserialize(input, obj.building_costs);
+
+		rebuild_indexes(obj);
+	}
+	static void deserialize_object(std::byte const* &input, economy::economic_scenario& obj, concurrency::task_group& tg) {
+		deserialize(input, obj.good_type_names);
+		deserialize(input, obj.goods);
+		deserialize(input, obj.factory_types);
+		deserialize(input, obj.artisan_types);
+		deserialize(input, obj.rgo_mine);
+		deserialize(input, obj.rgo_farm);
+		deserialize(input, obj.fort);
+		deserialize(input, obj.railroad);
+		deserialize(input, obj.naval_base);
+		deserialize(input, obj.money);
+		deserialize(input, obj.factory_input_goods);
+		deserialize(input, obj.factory_efficiency_goods);
+		deserialize(input, obj.artisan_input_goods);
+		deserialize(input, obj.building_costs);
+
+		tg.run([&obj]() { rebuild_indexes(obj); });
+	}
+	static size_t size(economy::economic_scenario const& obj) {
+		return serialize_size(obj.good_type_names) +
+			serialize_size(obj.goods) +
+			serialize_size(obj.factory_types) +
+			serialize_size(obj.artisan_types) +
+			serialize_size(obj.rgo_mine) +
+			serialize_size(obj.rgo_farm) +
+			serialize_size(obj.fort) +
+			serialize_size(obj.railroad) +
+			serialize_size(obj.naval_base) +
+			serialize_size(obj.money) +
+			serialize_size(obj.factory_input_goods) +
+			serialize_size(obj.factory_efficiency_goods) +
+			serialize_size(obj.artisan_input_goods) +
+			serialize_size(obj.building_costs);
+	}
+};
+
+namespace economy {
+	void read_goods(
+		economic_scenario& manager,
+		const directory& source_directory,
+		text_data::text_sequences& text_function);
+	boost::container::flat_map<text_data::text_tag, factory_type_tag> read_buildings(
+		economic_scenario& manager,
+		const directory& source_directory,
+		text_data::text_sequences& text_function
+	); //invoke after reading goods, returns map of production type name -> factory building type
+	void read_production_types(
+		scenario::scenario_manager& s,
+		boost::container::flat_map<text_data::text_tag, factory_type_tag>& map,
+		const directory& source_directory);
+}

@@ -29,10 +29,11 @@ namespace graphics {
 	public:
 		static constexpr float baseline_fraction = 0.75f;
 
-		const std::unique_ptr<_font> impl;
+		std::unique_ptr<_font> impl;
 
 		font(const char* filename, font& p);
 		font(const char* filename);
+		font(font&& other) noexcept;
 		~font();
 
 		void load_font(open_gl_wrapper&);
@@ -57,14 +58,15 @@ namespace graphics {
 		font_manager();
 		~font_manager();
 
-		fixed_sz_deque<font, 32, 8, font_tag> fonts;
+		tagged_vector<font, font_tag> fonts;
 
 		font_tag find_font(const char* start, const char* end);
 		uint32_t find_font_size(const char* start, const char* end);
 		bool is_black(const char* start, const char* end);
 		void load_standard_fonts(const directory& root);
-		font& at(font_tag t) const;
-		void load_fonts(open_gl_wrapper&) const;
-		void load_metrics_fonts() const;
+		font const& at(font_tag t) const;
+		font& at(font_tag t);
+		void load_fonts(open_gl_wrapper&);
+		void load_metrics_fonts();
 	};
 }
