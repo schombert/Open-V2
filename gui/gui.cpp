@@ -496,7 +496,7 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_static& static_man
 	return new_gobj;
 }
 
-void ui::detail::render_object_type(const gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper& ogl, const gui_object& root_obj, const screen_position& position, uint32_t type, bool currently_enabled) {
+void ui::detail::render_object_type(gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper& ogl, const gui_object& root_obj, const screen_position& position, uint32_t type, bool currently_enabled) {
 	const auto current_rotation = root_obj.get_rotation();
 
 	switch (type) {
@@ -671,7 +671,7 @@ void ui::detail::render_object_type(const gui_static& static_manager, const gui_
 	}
 }
 
-void ui::detail::render(const gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper &ogl, const gui_object &root_obj, ui::xy_pair position, ui::xy_pair container_size, bool parent_enabled) {
+void ui::detail::render(gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper &ogl, const gui_object &root_obj, ui::xy_pair position, ui::xy_pair container_size, bool parent_enabled) {
 	const auto flags = root_obj.flags.load(std::memory_order_acquire);
 	if ((flags & ui::gui_object::visible) == 0)
 		return;
@@ -1077,7 +1077,7 @@ void ui::gui_manager::rescale(float new_scale) {
 	on_resize(new_size);
 }
 
-void ui::render(const gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper& ogl) {
+void ui::render(gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper& ogl) {
 	ogl.use_default_program();
 	detail::render(static_manager, manager, ogl, manager.background, ui::xy_pair{ 0, 0 }, manager.background.size, true);
 	detail::render(static_manager, manager, ogl, manager.root, ui::xy_pair{ 0, 0 }, manager.root.size, true);
@@ -1094,58 +1094,6 @@ graphics::rotation ui::gui_object::get_rotation() const {
 		return graphics::rotation::upright;
 }
 
-
-void ui::load_gui_from_directory(const directory& source_directory, gui_static& manager) {
-	auto fonts_directory = source_directory.get_directory(u"\\gfx\\fonts");
-	manager.fonts.load_standard_fonts(fonts_directory);
-
-	manager.fonts.load_metrics_fonts();
-
-	manager.textures.load_standard_textures(source_directory);
-
-	auto localisation_directory = source_directory.get_directory(u"\\localisation");
-	load_text_sequences_from_directory(localisation_directory, manager.text_data_sequences);
-
-	auto interface_directory = source_directory.get_directory(u"\\interface");
-
-	ui::definitions defs;
-	std::vector<std::pair<std::string, ui::errors>> errors_generated;
-
-	graphics::name_maps gobj_nmaps;
-	std::vector<std::pair<std::string, graphics::errors>> gobj_errors_generated;
-
-	ui::load_ui_definitions_from_directory(
-		interface_directory, manager.nmaps, manager.ui_definitions, errors_generated,
-		[&manager](const char* a, const char* b) { return text_data::get_text_handle(manager.text_data_sequences, a, b); },
-		[&manager](const char* a, const char* b) { return graphics::pack_font_handle(manager.fonts.find_font(a, b), manager.fonts.is_black(a,b), manager.fonts.find_font_size(a, b)); },
-		[&gobj_nmaps](const char* a, const char* b) { return graphics::reserve_graphics_object(gobj_nmaps, a, b); });
-
-#ifdef _DEBUG
-	for (auto& e : errors_generated) {
-		OutputDebugStringA(e.first.c_str());
-		OutputDebugStringA(": ");
-		OutputDebugStringA(ui::format_error(e.second));
-		OutputDebugStringA("\n");
-	}
-#endif
-
-	graphics::load_graphics_object_definitions_from_directory(
-		interface_directory,
-		gobj_nmaps,
-		manager.graphics_object_definitions,
-		gobj_errors_generated,
-		[&manager, &source_directory](const char* a, const char* b) { return manager.textures.retrieve_by_name(source_directory, a, b); });
-
-#ifdef _DEBUG
-	for (auto& e : gobj_errors_generated) {
-		OutputDebugStringA(e.first.c_str());
-		OutputDebugStringA(": ");
-		OutputDebugStringA(graphics::format_error(e.second));
-		OutputDebugStringA("\n");
-	}
-#endif
-	
-}
 
 void ui::init_tooltip_window(gui_static& static_manager, gui_manager& manager) {
 	manager.tooltip_window.flags.fetch_or(ui::gui_object::type_graphics_object, std::memory_order_acq_rel);

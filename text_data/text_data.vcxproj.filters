@@ -18,12 +18,18 @@
     <ClInclude Include="text_data.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="text_data_io.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="text_data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="text_data_type_classifier.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="text_data_io.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -2,6 +2,7 @@
 #include "fake_fs\\fake_fs.h"
 #include "ideologies\\ideologies.h"
 #include "scenario\\scenario.h"
+#include "ideologies\\ideologies_io.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 

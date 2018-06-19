@@ -1,9 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <variant>
-#include <vector>
 #include <functional>
-#include "simple_fs\\simple_fs.h"
 #include <map>
 #include "common\\common.h"
 #include "common\\shared_tags.h"
@@ -115,7 +113,5 @@ namespace text_data {
 	text_tag get_thread_safe_existing_text_handle(const text_data::text_sequences& container, const char* key_start, const char* key_end);
 
 	std::u16string to_string(const text_sequences& container, text_data::text_tag tag);
-
-	void load_text_sequences_from_directory(const directory& source_directory, text_data::text_sequences& container);
 }
 

@@ -18,9 +18,15 @@
     <ClInclude Include="graphics_objects.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="graphics_objects_io.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="graphics_objects.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics_objects_io.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

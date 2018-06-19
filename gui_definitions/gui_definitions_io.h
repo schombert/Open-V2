@@ -15,21 +15,45 @@ namespace ui {
 		const gobj_lookup& qt_f);
 }
 
-/*
-tagged_vector<button_def, button_tag> buttons;
-tagged_vector<icon_def, icon_tag> icons;
-tagged_vector<text_def, text_tag> text;
-tagged_vector<position_def, position_tag> positions;
-tagged_vector<overlapping_region_def, overlapping_region_tag> overlapping_regions;
-tagged_vector<listbox_def, listbox_tag> listboxes;
-tagged_vector<scrollbar_def, scrollbar_tag> scrollbars;
-tagged_vector<window_def, window_tag> windows;
+template<>
+class serialization::serializer<ui::name_maps> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
 
-scrollbar_tag standardlistbox_slider;
+	static void serialize_object(std::byte* &output, ui::name_maps const& obj) {
+		serialize(output, obj.button_names);
+		serialize(output, obj.icon_names);
+		serialize(output, obj.text_names);
+		serialize(output, obj.position_names);
+		serialize(output, obj.overlapping_region_names);
+		serialize(output, obj.listbox_names);
+		serialize(output, obj.scrollbar_names);
+		serialize(output, obj.window_names);
+	}
+	template<typename ... CONTEXT>
+	static void deserialize_object(std::byte const* &input, ui::name_maps& obj, CONTEXT&& ... c) {
+		deserialize(input, obj.button_names);
+		deserialize(input, obj.icon_names);
+		deserialize(input, obj.text_names);
+		deserialize(input, obj.position_names);
+		deserialize(input, obj.overlapping_region_names);
+		deserialize(input, obj.listbox_names);
+		deserialize(input, obj.scrollbar_names);
+		deserialize(input, obj.window_names);
+	}
+	static size_t size(ui::name_maps const& obj) {
+		return serialize_size(obj.button_names) +
+			serialize_size(obj.icon_names) +
+			serialize_size(obj.text_names) +
+			serialize_size(obj.position_names) +
+			serialize_size(obj.overlapping_region_names) +
+			serialize_size(obj.listbox_names) +
+			serialize_size(obj.scrollbar_names) +
+			serialize_size(obj.window_names);
+	}
+};
 
-std::vector<char> name_data;
-boost::container::flat_map<vector_backed_string<char>, element_tag, vector_backed_string_less_ci> name_to_element_map;
-*/
 template<>
 class serialization::serializer<ui::definitions> {
 public:

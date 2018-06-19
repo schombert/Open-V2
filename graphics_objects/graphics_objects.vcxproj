@@ -146,9 +146,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="graphics_objects.h" />
+    <ClInclude Include="graphics_objects_io.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="graphics_objects.cpp" />
+    <ClCompile Include="graphics_objects_io.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\object_parsing\object_parsing.vcxproj">

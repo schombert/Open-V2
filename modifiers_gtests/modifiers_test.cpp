@@ -3,6 +3,9 @@
 #include "fake_fs\\fake_fs.h"
 #include "scenario\\scenario.h"
 #include "triggers\\codes.h"
+#include "modifiers\\modifiers_io.h"
+#include "economy\\economy_io.h"
+#include "ideologies\\ideologies_io.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 

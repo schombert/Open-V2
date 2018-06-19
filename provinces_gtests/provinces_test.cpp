@@ -1,7 +1,7 @@
-#include "provinces\\provinces.h"
+#include "provinces\\provinces_io.h"
 #include "gtest\\gtest.h"
 #include "fake_fs\\fake_fs.h"
-#include "modifiers\\modifiers.h"
+#include "modifiers\\modifiers_io.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 

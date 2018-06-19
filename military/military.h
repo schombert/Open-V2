@@ -1,11 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include "common\\common.h"
-#include "simple_fs\\simple_fs.h"
 #include "common\\shared_tags.h"
-#include <vector>
-#include "Parsers\\parsers.hpp"
-#include "text_data\\text_data.h"
 #include "concurrency_tools\\concurrency_tools.hpp"
 
 namespace economy {
@@ -188,31 +184,4 @@ namespace military {
 		tagged_fixed_blocked_2dvector<economy::goods_qnty_type, unit_type_tag, economy::goods_tag, aligned_allocator_32<economy::goods_qnty_type>> unit_build_costs;
 		tagged_fixed_blocked_2dvector<economy::goods_qnty_type, unit_type_tag, economy::goods_tag, aligned_allocator_32<economy::goods_qnty_type>> unit_base_supply_costs;
 	};
-
-	struct parsing_environment;
-
-	class parsing_state {
-	public:
-		std::unique_ptr<parsing_environment> impl;
-
-		parsing_state(text_data::text_sequences& tl, military_manager& m);
-		parsing_state(parsing_state&&) noexcept;
-		~parsing_state();
-	};
-
-	void pre_parse_unit_types(
-		parsing_state& state,
-		const directory& source_directory);
-	void pre_parse_cb_types(
-		parsing_state& state,
-		const directory& source_directory);
-	void read_leader_traits(parsing_state& state,
-		const directory& source_directory);
-	void read_unit_types(
-		parsing_state& state,
-		military_manager& military_m,
-		economy::economic_scenario& economy_m,
-		sound::sound_manager& sound_m,
-		text_data::text_sequences& text_m);
-	void read_cb_types(parsing_state const& state, scenario::scenario_manager& s, events::event_creation_manager& ecm);
 }

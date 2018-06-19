@@ -148,6 +148,7 @@
     <ClInclude Include="buttons.hpp" />
     <ClInclude Include="gui.h" />
     <ClInclude Include="gui.hpp" />
+    <ClInclude Include="gui_io.h" />
     <ClInclude Include="gui_window.hpp" />
     <ClInclude Include="icons.hpp" />
     <ClInclude Include="listbox.hpp" />
@@ -158,6 +159,7 @@
   <ItemGroup>
     <ClCompile Include="buttons.cpp" />
     <ClCompile Include="gui.cpp" />
+    <ClCompile Include="gui_io.cpp" />
     <ClCompile Include="listbox.cpp" />
   </ItemGroup>
   <ItemGroup>

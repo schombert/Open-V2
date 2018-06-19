@@ -18,9 +18,15 @@
     <ClInclude Include="military.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="military_io.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="military.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="military_io.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

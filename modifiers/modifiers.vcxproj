@@ -150,9 +150,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="modifiers.h" />
+    <ClInclude Include="modifiers_io.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="modifiers.cpp" />
+    <ClCompile Include="modifiers_io.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -150,9 +150,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="military.h" />
+    <ClInclude Include="military_io.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="military.cpp" />
+    <ClCompile Include="military_io.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\concurrency_tools\concurrency_tools.vcxproj">

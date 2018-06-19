@@ -40,7 +40,7 @@ namespace ui {
 
 	namespace detail {
 		template<typename LM, typename BH = null_behavior_creation>
-		std::pair<ui::xy_pair, uint32_t> text_chunk_to_single_instance(const gui_static& static_manager, ui::gui_manager& container, vector_backed_string<char16_t> text_source, uint32_t offset_in_chunk, tagged_gui_object parent_object, ui::xy_pair position, const text_format& fmt, LM&& lm, const BH& behavior_creator = null_behavior_creation()) {
+		std::pair<ui::xy_pair, uint32_t> text_chunk_to_single_instance(gui_static& static_manager, ui::gui_manager& container, vector_backed_string<char16_t> text_source, uint32_t offset_in_chunk, tagged_gui_object parent_object, ui::xy_pair position, const text_format& fmt, LM&& lm, const BH& behavior_creator = null_behavior_creation()) {
 			graphics::font& this_font = static_manager.fonts.at(fmt.font_handle);
 
 			const auto new_gobj = container.gui_objects.emplace();

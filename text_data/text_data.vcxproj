@@ -146,9 +146,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="text_data.h" />
+    <ClInclude Include="text_data_io.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="text_data.cpp" />
+    <ClCompile Include="text_data_io.cpp" />
     <ClCompile Include="text_data_type_classifier.cpp" />
   </ItemGroup>
   <ItemGroup>

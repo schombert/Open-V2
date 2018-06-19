@@ -1,12 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include "common\\common.h"
-#include "simple_fs\\simple_fs.h"
 #include "common\\shared_tags.h"
-#include <vector>
-#include "Parsers\\parsers.hpp"
-#include "concurrency_tools\\concurrency_tools.h"
-#include "text_data\\text_data.h"
 
 namespace scenario {
 	class scenario_manager;
@@ -43,22 +38,4 @@ namespace ideologies {
 
 		ideology_tag conservative_ideology;
 	};
-
-	struct parsing_environment;
-
-	class parsing_state {
-	public:
-		std::unique_ptr<parsing_environment> impl;
-
-		parsing_state(text_data::text_sequences& tl, ideologies_manager& m);
-		parsing_state(parsing_state&&) noexcept;
-		~parsing_state();
-	};
-
-	parsing_state pre_parse_ideologies(
-		ideologies_manager& manager,
-		const directory& source_directory,
-		text_data::text_sequences& text_function);
-	void read_single_ideology(scenario::scenario_manager& s, ideology_tag tag, const token_group* start, const token_group* end);
-	void read_ideologies(scenario::scenario_manager& s, const parsing_state& state);
 }

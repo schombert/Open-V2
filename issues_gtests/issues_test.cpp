@@ -3,6 +3,8 @@
 #include "issues\\issues.h"
 #include "scenario\\scenario.h"
 #include "events\\events.h"
+#include "issues\\issues_io.h"
+#include "events\\events_io.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -150,10 +152,10 @@ TEST(issues_tests, test_single_issue) {
 	EXPECT_EQ(2ui64, manager.named_option_index.size());
 
 	EXPECT_EQ(1ui64, manager.party_issues.size());
-	EXPECT_EQ(1ui64, manager.issues_cotnainer.size());
+	EXPECT_EQ(1ui64, manager.issues_container.size());
 	EXPECT_EQ(2ui64, manager.options.size());
 
-	auto& issues = manager.issues_cotnainer[issue_tag(0)];
+	auto& issues = manager.issues_container[issue_tag(0)];
 
 	EXPECT_EQ(issue_tag(0), issues.id);
 	EXPECT_FALSE(issues.next_step_only);
@@ -166,7 +168,7 @@ TEST(issues_tests, test_single_issue) {
 	auto& fresult = manager.named_option_index[manager.options[option_tag(1)].name];
 	EXPECT_EQ(option_tag(1), fresult);
 
-	auto& fresultb = manager.named_issue_index[manager.issues_cotnainer[issue_tag(0)].name];
+	auto& fresultb = manager.named_issue_index[manager.issues_container[issue_tag(0)].name];
 	EXPECT_EQ(issue_tag(0), fresultb);
 
 }
@@ -187,14 +189,14 @@ TEST(issues_tests, test_multiple_issues) {
 
 	EXPECT_EQ(1ui64, manager.party_issues.size());
 	EXPECT_EQ(2ui64, manager.political_issues.size());
-	EXPECT_EQ(3ui64, manager.issues_cotnainer.size());
+	EXPECT_EQ(3ui64, manager.issues_container.size());
 	EXPECT_EQ(4ui64, manager.options.size());
 
 	EXPECT_EQ(issue_tag(1), manager.political_issues[0]);
 
-	auto& issuea = manager.issues_cotnainer[issue_tag(0)];
-	auto& issueb = manager.issues_cotnainer[issue_tag(1)];
-	auto& issuec = manager.issues_cotnainer[issue_tag(2)];
+	auto& issuea = manager.issues_container[issue_tag(0)];
+	auto& issueb = manager.issues_container[issue_tag(1)];
+	auto& issuec = manager.issues_container[issue_tag(2)];
 
 	EXPECT_EQ(issue_tag(0), issuea.id);
 	EXPECT_FALSE(issuea.next_step_only);
@@ -221,7 +223,7 @@ TEST(issues_tests, test_multiple_issues) {
 	auto& fresult = manager.named_option_index[manager.options[issueb.options[1]].name];
 	EXPECT_EQ(option_tag(3), fresult);
 
-	auto& fresultb = manager.named_issue_index[manager.issues_cotnainer[issue_tag(2)].name];
+	auto& fresultb = manager.named_issue_index[manager.issues_container[issue_tag(2)].name];
 	EXPECT_EQ(issue_tag(2), fresultb);
 }
 
@@ -241,13 +243,13 @@ TEST(issues_tests, unciv_issues) {
 
 	EXPECT_EQ(1ui64, manager.party_issues.size());
 	EXPECT_EQ(2ui64, manager.economic_issues.size());
-	EXPECT_EQ(3ui64, manager.issues_cotnainer.size());
+	EXPECT_EQ(3ui64, manager.issues_container.size());
 	EXPECT_EQ(4ui64, manager.options.size());
 
 	EXPECT_EQ(issue_tag(1), manager.economic_issues[0]);
 
-	auto& issueb = manager.issues_cotnainer[issue_tag(1)];
-	auto& issuec = manager.issues_cotnainer[issue_tag(2)];
+	auto& issueb = manager.issues_container[issue_tag(1)];
+	auto& issuec = manager.issues_container[issue_tag(2)];
 
 	EXPECT_EQ(issue_tag(1), issueb.id);
 	EXPECT_FALSE(issueb.next_step_only);
@@ -266,7 +268,7 @@ TEST(issues_tests, unciv_issues) {
 	auto& fresult = manager.named_option_index[manager.options[issueb.options[0]].name];
 	EXPECT_EQ(option_tag(2), fresult);
 
-	auto& fresultb = manager.named_issue_index[manager.issues_cotnainer[issue_tag(1)].name];
+	auto& fresultb = manager.named_issue_index[manager.issues_container[issue_tag(1)].name];
 	EXPECT_EQ(issue_tag(1), fresultb);
 }
 
@@ -297,7 +299,7 @@ TEST(issues_tests, full_parse) {
 	auto state = pre_parse_issues(sm.issues_m, f.get_root(), sm.gui_m.text_data_sequences);
 	read_issue_options(state, sm, ecm);
 
-	EXPECT_EQ(4ui64, sm.issues_m.issues_cotnainer.size());
+	EXPECT_EQ(4ui64, sm.issues_m.issues_container.size());
 	EXPECT_EQ(8ui64, sm.issues_m.options.size());
 	EXPECT_EQ(option_tag(2), sm.issues_m.jingoism);
 	EXPECT_EQ(1.0f, sm.issues_m.options[option_tag(3)].war_exhaustion_effect);
@@ -310,16 +312,16 @@ TEST(issues_tests, full_parse) {
 	EXPECT_NE(triggers::trigger_tag(), sm.issues_m.options[option_tag(4)].allow);
 	EXPECT_EQ(triggers::trigger_tag(), sm.issues_m.options[option_tag(1)].allow);
 	EXPECT_EQ(issue_tag(2), sm.issues_m.options[option_tag(4)].parent_issue);
-	EXPECT_EQ(true, sm.issues_m.issues_cotnainer[issue_tag(2)].next_step_only);
-	EXPECT_EQ(issue_group::political, sm.issues_m.issues_cotnainer[issue_tag(2)].type);
+	EXPECT_EQ(true, sm.issues_m.issues_container[issue_tag(2)].next_step_only);
+	EXPECT_EQ(issue_group::political, sm.issues_m.issues_container[issue_tag(2)].type);
 	EXPECT_NE(triggers::trigger_tag(), sm.issues_m.options[option_tag(7)].on_execute_trigger);
 	EXPECT_NE(triggers::effect_tag(), sm.issues_m.options[option_tag(7)].on_execute_effect);
 	EXPECT_EQ(triggers::trigger_tag(), sm.issues_m.options[option_tag(5)].on_execute_trigger);
 	EXPECT_EQ(triggers::effect_tag(), sm.issues_m.options[option_tag(5)].on_execute_effect);
 	EXPECT_EQ(issue_tag(3), sm.issues_m.options[option_tag(7)].parent_issue);
-	EXPECT_EQ(false, sm.issues_m.issues_cotnainer[issue_tag(3)].next_step_only);
-	EXPECT_EQ(issue_group::economic, sm.issues_m.issues_cotnainer[issue_tag(3)].type);
+	EXPECT_EQ(false, sm.issues_m.issues_container[issue_tag(3)].next_step_only);
+	EXPECT_EQ(issue_group::economic, sm.issues_m.issues_container[issue_tag(3)].type);
 	EXPECT_EQ(option_tag(7), sm.issues_m.options[option_tag(7)].id);
-	EXPECT_EQ(issue_tag(3), sm.issues_m.issues_cotnainer[issue_tag(3)].id);
+	EXPECT_EQ(issue_tag(3), sm.issues_m.issues_container[issue_tag(3)].id);
 	EXPECT_NE(text_data::text_tag(), sm.issues_m.options[option_tag(7)].name);
 }

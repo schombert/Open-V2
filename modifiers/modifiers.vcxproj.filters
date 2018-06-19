@@ -18,9 +18,15 @@
     <ClInclude Include="modifiers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="modifiers_io.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="modifiers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="modifiers_io.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

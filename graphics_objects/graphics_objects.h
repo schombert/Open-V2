@@ -1,7 +1,6 @@
 #pragma once
 #include <stdint.h>
 #include <functional>
-#include "simple_fs\\simple_fs.h"
 #include "common\\common.h"
 #include "common\\shared_tags.h"
 
@@ -65,12 +64,5 @@ namespace graphics {
 	obj_definition_tag reserve_graphics_object(name_maps& nmaps, const char* name_start, const char* name_end);
 
 	using texture_lookup = std::function<texture_tag(const char*, const char*)>;
-
-	void load_graphics_object_definitions_from_directory(
-		const directory& source_directory,
-		graphics::name_maps& nmaps,
-		graphics::object_definitions& defs,
-		std::vector<std::pair<std::string, graphics::errors>>& errors_generated,
-		const texture_lookup& th_f);
 };
 

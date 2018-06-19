@@ -18,9 +18,15 @@
     <ClInclude Include="provinces.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="provinces_io.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="provinces.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="provinces_io.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -42,6 +42,9 @@
     <ClInclude Include="icons.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="gui_io.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="gui.cpp">
@@ -51,6 +54,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="listbox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gui_io.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

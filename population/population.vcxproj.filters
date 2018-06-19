@@ -18,9 +18,15 @@
     <ClInclude Include="population.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="population_io.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="population.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="population_io.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

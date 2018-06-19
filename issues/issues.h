@@ -3,8 +3,7 @@
 #include "common\\common.h"
 #include "simple_fs\\simple_fs.h"
 #include "common\\shared_tags.h"
-#include "Parsers\\parsers.hpp"
-#include "text_data\\text_data.h"
+
 
 namespace scenario {
 	class scenario_manager;
@@ -104,7 +103,7 @@ namespace issues {
 		boost::container::flat_map<text_data::text_tag, issue_tag> named_issue_index;
 		boost::container::flat_map<text_data::text_tag, option_tag> named_option_index;
 
-		tagged_vector<issue, issue_tag> issues_cotnainer;
+		tagged_vector<issue, issue_tag> issues_container;
 		tagged_vector<issue_option, option_tag> options;
 		std::vector<issue_tag> party_issues;
 		std::vector<issue_tag> political_issues;
@@ -114,26 +113,4 @@ namespace issues {
 
 		option_tag jingoism;
 	};
-
-	struct parsing_environment;
-
-	class parsing_state {
-	public:
-		std::unique_ptr<parsing_environment> impl;
-
-		parsing_state(text_data::text_sequences& tl, issues_manager& m);
-		parsing_state(parsing_state&&) noexcept;
-		~parsing_state();
-	};
-
-	parsing_state pre_parse_issues(
-		issues_manager& manager,
-		const directory& source_directory,
-		text_data::text_sequences& text_function);
-
-	rules_set read_rules(const token_group* start, const token_group* end);
-	void read_issue_options(
-		const parsing_state& ps,
-		scenario::scenario_manager& s,
-		events::event_creation_manager& ecm);
 }

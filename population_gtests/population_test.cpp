@@ -2,7 +2,13 @@
 #include "fake_fs\\fake_fs.h"
 #include "population\\population.h"
 #include "scenario\\scenario.h"
-#include "events\\events.h"
+#include "events\\events_io.h"
+#include "military\\military_io.h"
+#include "economy\\economy_io.h"
+#include "ideologies\\ideologies_io.h"
+#include "population\\population_io.h"
+#include "issues\\issues_io.h"
+#include "governments\\governments_io.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 

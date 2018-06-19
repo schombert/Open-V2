@@ -18,9 +18,15 @@
     <ClInclude Include="ideologies.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ideologies_io.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ideologies.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ideologies_io.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

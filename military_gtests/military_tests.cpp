@@ -4,7 +4,10 @@
 #include "economy\\economy.h"
 #include "sound\\sound.h"
 #include "events\\events.h"
+#include "events\\events_io.h"
 #include "scenario\\scenario.h"
+#include "military\\military_io.h"
+#include "economy\\economy_io.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 

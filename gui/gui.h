@@ -8,7 +8,6 @@
 #include "text_data\\text_data.h"
 #include "graphics_objects\\graphics_objects.h"
 #include "common\\shared_tags.h"
-#include "simple_fs\\simple_fs.h"
 
 
 namespace graphics {
@@ -455,8 +454,8 @@ namespace ui {
 
 		float font_size_to_render_size(const graphics::font& f, int32_t sz);
 
-		void render_object_type(const gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper&, const gui_object&, const screen_position& position, uint32_t type, bool currently_enabled);
-		void render(const gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper&, const gui_object&, ui::xy_pair position, ui::xy_pair container_size, bool parent_enabled);
+		void render_object_type(gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper&, const gui_object&, const screen_position& position, uint32_t type, bool currently_enabled);
+		void render(gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper&, const gui_object&, ui::xy_pair position, ui::xy_pair container_size, bool parent_enabled);
 
 		void create_linear_text(gui_static& static_manager, gui_manager& manager, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format&, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
 		void create_multiline_text(gui_static& static_manager, gui_manager& manager, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format&, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
@@ -564,7 +563,7 @@ namespace ui {
 
 	ui::xy_pair absolute_position(gui_manager& manager, tagged_gui_object g);
 
-	void render(const gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper&);
+	void render(gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper&);
 	void update(gui_static& static_manager, gui_manager& manager, world_state&);
 	void minimal_update(gui_static& static_manager, gui_manager& manager, world_state&);
 
@@ -633,6 +632,5 @@ namespace ui {
 		~gui_manager();
 	};
 
-	void load_gui_from_directory(const directory& source_directory, gui_static& static_manager);
 	void init_tooltip_window(gui_static& static_manager, gui_manager& manager);
 }

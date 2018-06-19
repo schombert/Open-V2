@@ -13,6 +13,7 @@
 #include "trigger_reading.h"
 #include "object_parsing\\object_parsing.hpp"
 #include "events\\events_io.h"
+#include "modifiers\\modifiers_io.h"
 
 namespace triggers {
 	using effect_value = std::variant<std::monostate, int32_t, float, trigger_payload>;

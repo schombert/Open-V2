@@ -1,11 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include "common\\common.h"
-#include "simple_fs\\simple_fs.h"
 #include "common\\shared_tags.h"
-#include <vector>
-#include "Parsers\\parsers.hpp"
-#include "text_data\\text_data.h"
 #include "concurrency_tools\\concurrency_tools.hpp"
 
 namespace scenario {
@@ -758,73 +754,4 @@ namespace modifiers {
 			provincial_modifier_definitions.reset(provincial_offsets::count);
 		}
 	};
-
-	struct parsing_environment;
-
-	class parsing_state {
-	public:
-		std::unique_ptr<parsing_environment> impl;
-
-		parsing_state(text_data::text_sequences& tl, modifiers_manager& m);
-		parsing_state(parsing_state&&) noexcept;
-		~parsing_state();
-	};
-
-	class modifier_reading_base {
-	public:
-		std::vector<value_type, aligned_allocator_32<float>> modifier_data;
-		uint32_t icon = 0;
-		uint32_t count_unique_provincial = 0;
-		uint32_t count_unique_national = 0;
-		uint32_t total_attributes = 0;
-
-		modifier_reading_base() : modifier_data(provincial_offsets::aligned_32_size + national_offsets::aligned_32_size) {}
-		void add_attribute(const std::pair<token_and_type, float>& p);
-		void add_attribute(uint32_t provincial_offset, uint32_t national_offset, float v);
-		void remove_shared_national_attributes();
-	};
-
-	void set_provincial_modifier(provincial_modifier_tag tag, modifier_reading_base& mod, modifiers_manager& manager);
-	void set_national_modifier(national_modifier_tag tag, const modifier_reading_base& mod, modifiers_manager& manager);
-
-	provincial_modifier_tag add_provincial_modifier(text_data::text_tag name, modifier_reading_base& mod, modifiers_manager& manager);
-	national_modifier_tag add_national_modifier(text_data::text_tag name, const modifier_reading_base& mod, modifiers_manager& manager);
-	std::pair<provincial_modifier_tag, national_modifier_tag> add_indeterminate_modifier(text_data::text_tag name, modifier_reading_base& mod, modifiers_manager& manager);
-	std::pair<uint16_t, bool> commit_factor(modifiers_manager& m, const std::vector<factor_segment>& factor);  // returns [offset into data, was newly added]
-	
-	provincial_modifier_tag parse_provincial_modifier(text_data::text_tag name, modifiers_manager& manager, const token_group* s, const token_group* e);
-	national_modifier_tag parse_national_modifier(text_data::text_tag name, modifiers_manager& manager, const token_group* s, const token_group* e);
-	std::pair<provincial_modifier_tag, national_modifier_tag> parse_indeterminate_modifier(
-		text_data::text_tag name,
-		modifiers_manager& manager,
-		const token_group* s,
-		const token_group* e);
-
-	void read_defines(modifiers_manager& m, const directory& source_directory);
-	void pre_parse_crimes(
-		parsing_state& state,
-		const directory& source_directory);
-	void pre_parse_triggered_modifiers(parsing_state& state, const directory& source_directory);
-	void read_national_values(
-		parsing_state& state,
-		const directory& source_directory);
-	void read_static_modifiers(
-		parsing_state& state,
-		const directory& source_directory);
-	void read_event_modifiers(
-		parsing_state& state,
-		const directory& source_directory);
-
-	void read_crimes(parsing_state& state, scenario::scenario_manager& s);
-	void read_triggered_modifiers(parsing_state& state, scenario::scenario_manager& s);
-
-	void read_national_focuses(scenario::scenario_manager& s, const directory& source_directory);
-
-	factor_tag parse_modifier_factors(
-		scenario::scenario_manager& s,
-		triggers::trigger_scope_state modifier_scope,
-		float default_factor,
-		float default_base,
-		const token_group* start,
-		const token_group* end);
 }
