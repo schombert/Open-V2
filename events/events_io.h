@@ -5,6 +5,11 @@
 #include <ppl.h>
 
 template<>
+class serialization::serializer<events::event> : public serialization::memcpy_serializer<events::event> {};
+template<>
+class serialization::serializer<events::decision> : public serialization::memcpy_serializer<events::decision> {};
+
+template<>
 class serialization::serializer<events::event_manager> {
 public:
 	static constexpr bool has_static_size = false;

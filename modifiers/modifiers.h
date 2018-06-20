@@ -689,6 +689,40 @@ namespace modifiers {
 		float months_before_disband = 6.0f;
 	};
 
+	struct static_modifiers_s {
+		provincial_modifier_tag overseas;
+		provincial_modifier_tag coastal;
+		provincial_modifier_tag non_coastal;
+		provincial_modifier_tag coastal_sea;
+		provincial_modifier_tag sea_zone;
+		provincial_modifier_tag land_province;
+		provincial_modifier_tag blockaded;
+		provincial_modifier_tag no_adjacent_controlled;
+		provincial_modifier_tag core;
+		provincial_modifier_tag has_siege;
+		provincial_modifier_tag occupied;
+		provincial_modifier_tag nationalism;
+		provincial_modifier_tag infrastructure;
+
+		national_modifier_tag war;
+		national_modifier_tag peace;
+		national_modifier_tag disarming;
+		national_modifier_tag war_exhaustion;
+		national_modifier_tag badboy;
+		national_modifier_tag debt_default_to;
+		national_modifier_tag bad_debter;
+		national_modifier_tag great_power;
+		national_modifier_tag second_power;
+		national_modifier_tag civ_nation;
+		national_modifier_tag unciv_nation;
+		national_modifier_tag average_literacy;
+		national_modifier_tag plurality;
+		national_modifier_tag generalised_debt_default;
+		national_modifier_tag total_occupation;
+		national_modifier_tag total_blockaded;
+		national_modifier_tag in_bankrupcy;
+	};
+
 	class modifiers_manager {
 	public:
 		tagged_vector<national_modifier, national_modifier_tag> national_modifiers;
@@ -710,39 +744,7 @@ namespace modifiers {
 		tagged_fixed_2dvector<float, national_focus_tag, economy::goods_tag> national_focus_goods_weights;
 		int32_t national_focus_group_count = 0;
 
-		struct {
-			provincial_modifier_tag overseas;
-			provincial_modifier_tag coastal;
-			provincial_modifier_tag non_coastal;
-			provincial_modifier_tag coastal_sea;
-			provincial_modifier_tag sea_zone;
-			provincial_modifier_tag land_province;
-			provincial_modifier_tag blockaded;
-			provincial_modifier_tag no_adjacent_controlled;
-			provincial_modifier_tag core;
-			provincial_modifier_tag has_siege;
-			provincial_modifier_tag occupied;
-			provincial_modifier_tag nationalism;
-			provincial_modifier_tag infrastructure;
-
-			national_modifier_tag war;
-			national_modifier_tag peace;
-			national_modifier_tag disarming;
-			national_modifier_tag war_exhaustion;
-			national_modifier_tag badboy;
-			national_modifier_tag debt_default_to;
-			national_modifier_tag bad_debter;
-			national_modifier_tag great_power;
-			national_modifier_tag second_power;
-			national_modifier_tag civ_nation;
-			national_modifier_tag unciv_nation;
-			national_modifier_tag average_literacy;
-			national_modifier_tag plurality;
-			national_modifier_tag generalised_debt_default;
-			national_modifier_tag total_occupation;
-			national_modifier_tag total_blockaded;
-			national_modifier_tag in_bankrupcy;
-		} static_modifiers;
+		static_modifiers_s static_modifiers;
 
 		defines global_defines;
 

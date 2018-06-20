@@ -3,10 +3,13 @@
 #include "common\\shared_tags.h"
 
 namespace variables {
+	class variables_state {
+	public:
+		tagged_vector<float, global_variable_tag> global_variables;
+	};
 
 	class variables_manager {
 	public:
-		tagged_vector<float, global_variable_tag> global_variables;
 		uint32_t count_national_variables = 0;
 		uint32_t count_national_flags = 0;
 		uint32_t count_global_variables = 0;

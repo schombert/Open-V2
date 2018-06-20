@@ -1,6 +1,7 @@
 #include "gtest\\gtest.h"
 #include "sound\\sound.h"
 #include "fake_fs\\fake_fs.h"
+#include "sound\\sound_io.h"
 
 using namespace sound;
 

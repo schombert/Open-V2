@@ -30,6 +30,9 @@
     <ClInclude Include="effect_reading.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="triggers_io.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="triggers.cpp">

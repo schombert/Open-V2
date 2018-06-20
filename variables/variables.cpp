@@ -8,7 +8,6 @@ namespace variables {
 		
 		const global_variable_tag nt(static_cast<global_variable_tag::value_base_t>(count_global_variables++));
 		named_global_variables.emplace(name, nt);
-		global_variables.resize(count_global_variables);
 		return nt;
 	}
 	national_variable_tag  variables_manager::get_named_national_variable(text_data::text_tag name) {

@@ -4,6 +4,55 @@
 #include "simple_fs\\simple_fs.h"
 #include "simple_serialize\\simple_serialize.hpp"
 
+template<>
+class serialization::serializer<ui::element_tag> : public serialization::memcpy_serializer<ui::element_tag> {};
+template<>
+class serialization::serializer<ui::button_def> : public serialization::memcpy_serializer<ui::button_def> {};
+template<>
+class serialization::serializer<ui::icon_def> : public serialization::memcpy_serializer<ui::icon_def> {};
+template<>
+class serialization::serializer<ui::text_def> : public serialization::memcpy_serializer<ui::text_def> {};
+template<>
+class serialization::serializer<ui::position_def> : public serialization::memcpy_serializer<ui::position_def> {};
+template<>
+class serialization::serializer<ui::overlapping_region_def> : public serialization::memcpy_serializer<ui::overlapping_region_def> {};
+template<>
+class serialization::serializer<ui::listbox_def> : public serialization::memcpy_serializer<ui::listbox_def> {};
+template<>
+class serialization::serializer<ui::scrollbar_def> : public serialization::memcpy_serializer<ui::scrollbar_def> {};
+template<>
+class serialization::serializer<ui::xy_pair> : public serialization::memcpy_serializer<ui::xy_pair> {};
+
+template<>
+class serialization::serializer<ui::window_def> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, ui::window_def const& obj) {
+		serialize(output, obj.sub_object_definitions);
+		serialize(output, obj.position);
+		serialize(output, obj.size);
+		serialize(output, obj.background_handle);
+		serialize(output, obj.flags);
+	}
+	template<typename ... CONTEXT>
+	static void deserialize_object(std::byte const* &input, ui::window_def& obj, CONTEXT&& ... c) {
+		deserialize(input, obj.sub_object_definitions);
+		deserialize(input, obj.position);
+		deserialize(input, obj.size);
+		deserialize(input, obj.background_handle);
+		deserialize(input, obj.flags);
+	}
+	static size_t size(ui::window_def const& obj) {
+		return serialize_size(obj.sub_object_definitions) +
+			serialize_size(obj.position) +
+			serialize_size(obj.size) +
+			serialize_size(obj.background_handle) +
+			serialize_size(obj.flags);
+	}
+};
+
 namespace ui {
 	void load_ui_definitions_from_directory(
 		const directory& source_directory,

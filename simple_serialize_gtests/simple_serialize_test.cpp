@@ -28,6 +28,7 @@ TEST(serialize, serialize_int) {
 
 TEST(serialize, serialize_string) {
 	std::string i("text text string text string text other text padding padding padding");
+	std::string i_cpy(i);
 
 	const auto sz = serialize_size(i);
 
@@ -39,13 +40,16 @@ TEST(serialize, serialize_string) {
 	auto iptr = data_in.data();
 	serialize(iptr, i);
 
+	i[0] = 'k';
+
 	std::string output;
 
 	std::byte const* optr = data_in.data();
 	deserialize(optr, output);
 
-	EXPECT_EQ(i.length(), output.length());
-	EXPECT_EQ(i, output);
+
+	EXPECT_EQ(i_cpy.length(), output.length());
+	EXPECT_EQ(i_cpy, output);
 }
 
 TEST(serialize, serialize_empty_vector) {
@@ -95,6 +99,9 @@ struct tobj_a {
 	int32_t ival = 0;
 	float fval = 0.0f;
 };
+
+template<>
+class serializer<tobj_a> : public memcpy_serializer<tobj_a> {};
 
 TEST(serialize, serialize_simple_object_array) {
 	std::vector<tobj_a> ivec = { tobj_a{5, 0.75f}, tobj_a{-100, 1.5f}, tobj_a{ 42, 100.0f } };
@@ -279,6 +286,8 @@ TEST(serialize, serialize_complex_object_array) {
 	auto iptr = data_in.data();
 	serialize(iptr, ivec);
 
+	ivec[0].ivals[0] = 0;
+
 	std::byte const* optr = data_in.data();
 	std::vector<t_vec_container> ovec;
 	deserialize(optr, ovec);
@@ -336,4 +345,30 @@ TEST(serialize, serialize_complex_object_array_with_context) {
 	EXPECT_EQ(9, ovec[1].ivals[2]);
 	EXPECT_EQ(11, ovec[1].ivals[3]);
 	EXPECT_EQ(7ui64, counter.total_ints);
+}
+
+TEST(serialize, serialize_flat_map) {
+	boost::container::flat_map<int32_t, double> ivec;
+	ivec.emplace(10, 1.0);
+	ivec.emplace(-10, 2.5);
+	ivec.emplace(0, 3.0);
+
+	const auto sz = serialize_size(ivec);
+
+	EXPECT_EQ(sizeof(std::pair<int32_t, double>) * 3 + sizeof(uint32_t), sz);
+
+	std::vector<std::byte> data_in;
+	data_in.resize(sz);
+
+	auto iptr = data_in.data();
+	serialize(iptr, ivec);
+
+	std::byte const* optr = data_in.data();
+	boost::container::flat_map<int32_t, double> ovec;
+	deserialize(optr, ovec);
+
+	EXPECT_EQ(3ui64, ovec.size());
+	EXPECT_EQ(1.0, ovec[10]);
+	EXPECT_EQ(2.5, ovec[-10]);
+	EXPECT_EQ(3.0, ovec[0]);
 }

@@ -40,5 +40,5 @@ namespace scenario {
 		scenario_manager() {}
 	};
 
-	void read_scenario(scenario_manager& s, const directory& root);
+	void ready_scenario(scenario_manager& s, const directory& root);
 }

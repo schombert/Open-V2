@@ -8,6 +8,21 @@
 #include <ppl.h>
 
 template<>
+class serialization::serializer<economy::artisan_type> : public serialization::memcpy_serializer<economy::artisan_type> {};
+template<>
+class serialization::serializer<economy::factory_type> : public serialization::memcpy_serializer<economy::factory_type> {};
+template<>
+class serialization::serializer<economy::good_definition> : public serialization::memcpy_serializer<economy::good_definition> {};
+template<>
+class serialization::serializer<economy::rgo_information> : public serialization::memcpy_serializer<economy::rgo_information> {};
+template<>
+class serialization::serializer<economy::fort_information> : public serialization::memcpy_serializer<economy::fort_information> {};
+template<>
+class serialization::serializer<economy::railroad_information> : public serialization::memcpy_serializer<economy::railroad_information> {};
+template<>
+class serialization::serializer<economy::naval_base_information> : public serialization::memcpy_serializer<economy::naval_base_information> {};
+
+template<>
 class serialization::serializer<economy::economic_scenario> {
 public:
 	static constexpr bool has_static_size = false;

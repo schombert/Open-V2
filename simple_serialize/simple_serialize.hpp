@@ -19,7 +19,7 @@ namespace serialization {
 	}
 
 	template<typename T>
-	class serializer {
+	class memcpy_serializer {
 	public:
 		static constexpr bool has_static_size = true;
 		static constexpr bool has_simple_serialize = true;
@@ -37,6 +37,39 @@ namespace serialization {
 		static constexpr size_t size() { return sizeof(T); }
 		static constexpr size_t size(T const&) { return sizeof(T); }
 	};
+
+	template<>
+	class serializer<char> : public memcpy_serializer<char> {};
+	template<>
+	class serializer<char16_t> : public memcpy_serializer<char16_t> {};
+	template<>
+	class serializer<char32_t> : public memcpy_serializer<char32_t> {};
+	template<>
+	class serializer<int8_t> : public memcpy_serializer<int8_t> {};
+	template<>
+	class serializer<uint8_t> : public memcpy_serializer<uint8_t> {};
+	template<>
+	class serializer<int16_t> : public memcpy_serializer<int16_t> {};
+	template<>
+	class serializer<uint16_t> : public memcpy_serializer<uint16_t> {};
+	template<>
+	class serializer<int32_t> : public memcpy_serializer<int32_t> {};
+	template<>
+	class serializer<uint32_t> : public memcpy_serializer<uint32_t> {};
+	template<>
+	class serializer<int64_t> : public memcpy_serializer<int64_t> {};
+	template<>
+	class serializer<uint64_t> : public memcpy_serializer<uint64_t> {};
+	template<>
+	class serializer<float> : public memcpy_serializer<float> {};
+	template<>
+	class serializer<double> : public memcpy_serializer<double> {};
+
+	template<typename value_base, typename zero_is_null, typename individuator>
+	class serializer<tag_type<value_base, zero_is_null, individuator>> : public memcpy_serializer<tag_type<value_base, zero_is_null, individuator>> {};
+
+	template<typename char_type>
+	class serializer<vector_backed_string<char_type>> : public memcpy_serializer<vector_backed_string<char_type>> {};
 
 	template<typename IT, typename ... CONTEXT>
 	void deserialize_into_range(std::byte const* &input, IT const& start, IT const& end, CONTEXT&& ... c) {
@@ -143,7 +176,7 @@ namespace serialization {
 					[](size_t val, A const& item) { return val + serializer<A>::size(item); });
 		}
 	};
-
+	
 	template<typename A, typename B, typename C, typename D>
 	class serializer<tagged_fixed_blocked_2dvector<A, B, C, D>> {
 	public:
@@ -172,7 +205,7 @@ namespace serialization {
 			deserialize_array(input, obj.data(), obj.size());
 		}
 		static size_t size(tagged_fixed_blocked_2dvector<A, B, C, D> const& obj) {
-			return sizeof(uint32_t) + sizeof(uint32_t) + serializer<typename tagged_fixed_blocked_2dvector<A, B, C, D>::block_s>::size() * obj.size();
+			return sizeof(uint32_t) + sizeof(uint32_t) + sizeof(typename tagged_fixed_blocked_2dvector<A, B, C, D>::block_s) * obj.size();
 		}
 	};
 
@@ -321,6 +354,42 @@ namespace serialization {
 				return sizeof(std::pair<A, B>);
 			else
 				return serialize_size(obj.first) + serialize_size(obj.second);
+		}
+	};
+
+	template<typename A, typename B, typename C>
+	class serializer<std::tuple<A, B, C>> {
+	public:
+		static constexpr bool has_static_size = serializer<A>::has_static_size && serializer<B>::has_static_size && serializer<C>::has_static_size;
+		static constexpr bool has_simple_serialize = serializer<A>::has_simple_serialize && serializer<B>::has_simple_serialize && serializer<C>::has_simple_serialize;
+
+		template<typename ... CONTEXT>
+		static void serialize_object(std::byte* &output, std::tuple<A, B, C> const& obj, CONTEXT&& ... c) {
+			if constexpr(has_static_size && has_simple_serialize) {
+				memcpy(output, &obj, sizeof(std::tuple<A, B, C>));
+				output += sizeof(std::tuple<A, B, C>);
+			} else {
+				serialize(output, std::get<0>(obj));
+				serialize(output, std::get<1>(obj));
+				serialize(output, std::get<2>(obj));
+			}
+		}
+		template<typename ... CONTEXT>
+		static void deserialize_object(std::byte const* &input, std::tuple<A, B, C >& obj, CONTEXT&& ... c) {
+			if constexpr(has_static_size && has_simple_serialize) {
+				memcpy(&obj, input, sizeof(std::tuple<A, B, C>));
+				input += sizeof(std::tuple<A, B, C>);
+			} else {
+				deserialize(input, std::get<0>(obj));
+				deserialize(input, std::get<1>(obj));
+				deserialize(input, std::get<2>(obj));
+			}
+		}
+		static size_t size(std::tuple<A, B, C> const& obj) {
+			if constexpr(has_static_size && has_simple_serialize)
+				return sizeof(std::tuple<A, B, C>);
+			else
+				return serialize_size(std::get<0>(obj)) + serialize_size(std::get<1>(obj)) + serialize_size(std::get<2>(obj));
 		}
 	};
 }

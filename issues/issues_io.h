@@ -6,23 +6,10 @@
 #include "text_data\\text_data.h"
 #include <ppl.h>
 
-/*
-class issues_manager {
-public:
-boost::container::flat_map<text_data::text_tag, issue_tag> named_issue_index;
-boost::container::flat_map<text_data::text_tag, option_tag> named_option_index;
-
-tagged_vector<issue, issue_tag> issues_cotnainer;
-tagged_vector<issue_option, option_tag> options;
-std::vector<issue_tag> party_issues;
-std::vector<issue_tag> political_issues;
-std::vector<issue_tag> social_issues;
-std::vector<issue_tag> economic_issues;
-std::vector<issue_tag> military_issues;
-
-option_tag jingoism;
-};
-*/
+template<>
+class serialization::serializer<issues::issue_option> : public serialization::memcpy_serializer<issues::issue_option> {};
+template<>
+class serialization::serializer<issues::issue> : public serialization::memcpy_serializer<issues::issue> {};
 
 template<>
 class serialization::serializer<issues::issues_manager> {

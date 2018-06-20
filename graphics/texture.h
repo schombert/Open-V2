@@ -17,8 +17,9 @@ namespace graphics {
 		int channels = 0;
 		std::atomic<unsigned char*> filedata = nullptr;
 	public:
-		const std::string filename;
+		std::string filename;
 
+		texture() {}
 		texture(const std::string& fn);
 		texture(const texture& o) noexcept : width(o.width), height(o.height), channels(o.channels), filename(o.filename) {
 			texture_handle.store(o.texture_handle.load(std::memory_order_relaxed), std::memory_order_relaxed);

@@ -8,6 +8,11 @@
 #include <ppl.h>
 
 template<>
+class serialization::serializer<military::cb_type> : public serialization::memcpy_serializer<military::cb_type> {};
+template<>
+class serialization::serializer<military::unit_type> : public serialization::memcpy_serializer<military::unit_type> {};
+
+template<>
 class serialization::serializer<military::military_manager> {
 public:
 	static constexpr bool has_static_size = false;

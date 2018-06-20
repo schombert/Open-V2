@@ -8,6 +8,23 @@
 #include <ppl.h>
 
 template<>
+class serialization::serializer<modifiers::provincial_modifier> : public serialization::memcpy_serializer<modifiers::provincial_modifier> {};
+template<>
+class serialization::serializer<modifiers::national_modifier> : public serialization::memcpy_serializer<modifiers::national_modifier> {};
+template<>
+class serialization::serializer<modifiers::factor_modifier> : public serialization::memcpy_serializer<modifiers::factor_modifier> {};
+template<>
+class serialization::serializer<modifiers::national_focus> : public serialization::memcpy_serializer<modifiers::national_focus> {};
+template<>
+class serialization::serializer<modifiers::crime> : public serialization::memcpy_serializer<modifiers::crime> {};
+template<>
+class serialization::serializer<modifiers::factor_segment> : public serialization::memcpy_serializer<modifiers::factor_segment> {};
+template<>
+class serialization::serializer<modifiers::defines> : public serialization::memcpy_serializer<modifiers::defines> {};
+template<>
+class serialization::serializer<modifiers::static_modifiers_s> : public serialization::memcpy_serializer<modifiers::static_modifiers_s> {};
+
+template<>
 class serialization::serializer<modifiers::modifiers_manager> {
 public:
 	static constexpr bool has_static_size = false;

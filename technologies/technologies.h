@@ -1,12 +1,8 @@
 #pragma once
 #include <stdint.h>
 #include "common\\common.h"
-#include "simple_fs\\simple_fs.h"
 #include "common\\shared_tags.h"
-#include <vector>
-#include "Parsers\\parsers.hpp"
 #include "concurrency_tools\\concurrency_tools.h"
-#include "text_data\\text_data.h"
 #include "military\\military.h"
 
 namespace scenario {
@@ -143,31 +139,4 @@ namespace technologies {
 			unit_type_adjustments;
 		tagged_fixed_blocked_2dvector<float, tech_tag, population::rebel_type_tag, aligned_allocator_32<float>> rebel_org_gain;
 	};
-
-	
-	
-	
-
-	struct parsing_environment;
-
-	class parsing_state {
-	public:
-		std::unique_ptr<parsing_environment> impl;
-
-		parsing_state(text_data::text_sequences& tl, const directory& tech_directory, technologies_manager& m, modifiers::modifiers_manager& mm);
-		parsing_state(parsing_state&&) noexcept;
-		~parsing_state();
-	};
-
-	void pre_parse_single_tech_file(parsing_environment& state, const token_group* start, const token_group* end);
-	void pre_parse_technologies(
-		parsing_state& state,
-		const directory& source_directory);
-	void pre_parse_inventions(
-		parsing_state& state,
-		const directory& source_directory);
-
-	void prepare_technologies_read(scenario::scenario_manager& s);
-	void read_inventions(parsing_state const& state, scenario::scenario_manager& s);
-	void read_technologies(parsing_state const& state, scenario::scenario_manager& s);
-};
+}

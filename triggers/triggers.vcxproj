@@ -155,6 +155,7 @@
     <ClInclude Include="effects.h" />
     <ClInclude Include="effect_reading.h" />
     <ClInclude Include="triggers.h" />
+    <ClInclude Include="triggers_io.h" />
     <ClInclude Include="trigger_reading.h" />
   </ItemGroup>
   <ItemGroup>

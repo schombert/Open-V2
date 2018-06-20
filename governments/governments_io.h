@@ -8,6 +8,11 @@
 #include <ppl.h>
 
 template<>
+class serialization::serializer<governments::government_type> : public serialization::memcpy_serializer<governments::government_type> {};
+template<>
+class serialization::serializer<governments::party> : public serialization::memcpy_serializer<governments::party> {};
+
+template<>
 class serialization::serializer<governments::governments_manager> {
 public:
 	static constexpr bool has_static_size = false;

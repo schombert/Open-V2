@@ -7,16 +7,10 @@
 #include "text_data\\text_data.h"
 #include <ppl.h>
 
-
-/*
-boost::container::flat_map<text_data::text_tag, ideology_group_tag> named_group_index;
-boost::container::flat_map<text_data::text_tag, ideology_tag> named_ideology_index;
-
-tagged_vector<ideology_group, ideology_group_tag> ideology_groups;
-tagged_vector<ideology, ideology_tag> ideology_container;
-
-ideology_tag conservative_ideology;
-*/
+template<>
+class serialization::serializer<ideologies::ideology_group> : public serialization::memcpy_serializer<ideologies::ideology_group> {};
+template<>
+class serialization::serializer<ideologies::ideology> : public serialization::memcpy_serializer<ideologies::ideology> {};
 
 template<>
 class serialization::serializer<ideologies::ideologies_manager> {

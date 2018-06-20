@@ -182,12 +182,15 @@ namespace graphics {
 		FT_Face metrics_font_face;
 		uint32_t last_in_texture = 0;
 		float line_height = 0.0f;
+		bool ft_font_loaded = false;
+		bool ft_metrics_font_loaded = false;
+
 
 		void load() {
 			FT_New_Face(global_freetype.render_library, font_file.c_str(), 0, &font_face);
 			FT_Select_Charmap(font_face, FT_ENCODING_UNICODE);
-
 			FT_Set_Pixel_Sizes(font_face, 0, 64 * magnification_factor);
+			ft_font_loaded = true;
 
 			line_height = static_cast<float>(font_face->size->metrics.height) / static_cast<float>((1 << 6) * magnification_factor);
 		}
@@ -195,8 +198,8 @@ namespace graphics {
 		void load_metrics() {
 			FT_New_Face(global_freetype.metrics_library, font_file.c_str(), 0, &metrics_font_face);
 			FT_Select_Charmap(metrics_font_face, FT_ENCODING_UNICODE);
-
 			FT_Set_Pixel_Sizes(metrics_font_face, 0, 64 * magnification_factor);
+			ft_metrics_font_loaded = true;
 
 			line_height = static_cast<float>(metrics_font_face->size->metrics.height) / static_cast<float>((1 << 6) * magnification_factor);
 		}
@@ -206,7 +209,10 @@ namespace graphics {
 		}
 
 		~_font() {
-			FT_Done_Face(font_face);
+			if(ft_font_loaded)
+				FT_Done_Face(font_face);
+			if(ft_metrics_font_loaded)
+				FT_Done_Face(metrics_font_face);
 		}
 
 		bool glyph_stored(char16_t codepoint) {

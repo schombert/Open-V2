@@ -8,6 +8,9 @@
 #include <ppl.h>
 
 template<>
+class serialization::serializer<provinces::province> : public serialization::memcpy_serializer<provinces::province> {};
+
+template<>
 class serialization::serializer<provinces::province_manager> {
 public:
 	static constexpr bool has_static_size = false;

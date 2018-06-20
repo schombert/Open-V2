@@ -10,6 +10,8 @@
 #include "graphics\\world_map.h"
 #include <Windows.h>
 #include "scenario\\scenario.h"
+#include "scenario\\scenario_io.h"
+#include "simple_serialize\\simple_serialize.hpp"
 
 // #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -1296,19 +1298,36 @@ int main(int , char **) {
 
 	ui::gui_manager gui_m(850, 650);
 
-	scenario::scenario_manager s;
+	scenario::scenario_manager s1;
+	scenario::scenario_manager s2;
 
 	std::cout << "begin scenario read" << std::endl << std::flush;
-	scenario::read_scenario(s, fs.get_root());
+	scenario::read_scenario(s1, fs.get_root());
 	std::cout << "end scenario read" << std::endl << std::flush;
 
+	const auto s_size = serialization::serialize_size(s1);
+	std::cout << s_size << " bytes " << s_size / 1024 << " KB " << s_size / (1024 * 1024) << " MB" << std::endl;
 	//ui::gui_static static_m;
 	//ui::load_gui_from_directory(fs.get_root(), static_m);
 
-	init_tooltip_window(s.gui_m, gui_m);
+	std::vector<std::byte> sdata(s_size);
+	auto ptr = sdata.data();
+
+	std::cout << "begin serialize" << std::endl << std::flush;
+	serialization::serialize(ptr, s1);
+	std::cout << "end serialize" << std::endl << std::flush;
+
+	std::byte const* optr = sdata.data();
+	std::cout << "begin deserialize" << std::endl << std::flush;
+	serialization::deserialize(optr, s2);
+	std::cout << "end deserialize" << std::endl << std::flush;
+
+	scenario::ready_scenario(s2, fs.get_root());
+
+	init_tooltip_window(s2.gui_m, gui_m);
 
 	{
-		ui::window<gui_window_handler> test_window(850, 650, gui_m, s.gui_m);
+		ui::window<gui_window_handler> test_window(850, 650, gui_m, s2.gui_m);
 
 		std::cout << "test window created" << std::endl;
 		getchar();

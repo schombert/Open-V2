@@ -150,9 +150,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="sound.h" />
+    <ClInclude Include="sound_io.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="sound.cpp" />
+    <ClCompile Include="sound_io.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

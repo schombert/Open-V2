@@ -4,6 +4,11 @@
 #include "simple_serialize\\simple_serialize.hpp"
 
 template<>
+class serialization::serializer<text_data::text_component> : public serialization::memcpy_serializer<text_data::text_component> {};
+template<>
+class serialization::serializer<text_data::text_sequence> : public serialization::memcpy_serializer<text_data::text_sequence> {};
+
+template<>
 class serialization::serializer<text_data::text_sequences> {
 public:
 	static constexpr bool has_static_size = false;

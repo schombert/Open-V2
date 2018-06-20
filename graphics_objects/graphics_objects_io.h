@@ -5,6 +5,9 @@
 #include "simple_serialize\\simple_serialize.hpp"
 
 template<>
+class serialization::serializer<graphics::object> : public serialization::memcpy_serializer<graphics::object> {};
+
+template<>
 class serialization::serializer<graphics::object_definitions> {
 public:
 	static constexpr bool has_static_size = false;

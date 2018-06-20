@@ -5,6 +5,17 @@
 #include <ppl.h>
 
 template<>
+class serialization::serializer<cultures::culture> : public serialization::memcpy_serializer<cultures::culture> {};
+template<>
+class serialization::serializer<cultures::culture_group> : public serialization::memcpy_serializer<cultures::culture_group> {};
+template<>
+class serialization::serializer<cultures::religion> : public serialization::memcpy_serializer<cultures::religion> {};
+template<>
+class serialization::serializer<cultures::national_tag_object> : public serialization::memcpy_serializer<cultures::national_tag_object> {};
+template<>
+class serialization::serializer<cultures::name_pair> : public serialization::memcpy_serializer<cultures::name_pair> {};
+
+template<>
 class serialization::serializer<cultures::culture_manager> {
 public:
 	static constexpr bool has_static_size = false;

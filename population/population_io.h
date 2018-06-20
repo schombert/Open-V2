@@ -7,53 +7,12 @@
 #include "text_data\\text_data.h"
 #include <ppl.h>
 
-/*
-class population_manager {
-public:
-boost::container::flat_map<text_data::text_tag, pop_type_tag> named_pop_type_index;
-boost::container::flat_map<text_data::text_tag, rebel_type_tag> named_rebel_type_index;
-
-tagged_vector<pop_type, pop_type_tag> pop_types;
-tagged_vector<rebel_type, rebel_type_tag> rebel_types;
-
- life_needs;
-everyday_needs;
-luxury_needs;
-rebel_units;
-
-tagged_fixed_2dvector<modifiers::factor_tag, pop_type_tag, issues::option_tag> issue_inclination;
-tagged_fixed_2dvector<modifiers::factor_tag, pop_type_tag, ideologies::ideology_tag> ideological_inclination;
-tagged_fixed_2dvector<modifiers::factor_tag, pop_type_tag, pop_type_tag> promote_to;
-tagged_fixed_2dvector<modifiers::factor_tag, pop_type_tag, pop_type_tag> demote_to;
-
-tagged_fixed_2dvector<governments::government_tag, rebel_type_tag, governments::government_tag> rebel_change_government_to;
-
-modifiers::factor_tag promotion_chance;
-modifiers::factor_tag demotion_chance;
-modifiers::factor_tag migration_chance;
-modifiers::factor_tag colonialmigration_chance;
-modifiers::factor_tag emigration_chance;
-modifiers::factor_tag assimilation_chance;
-modifiers::factor_tag conversion_chance;
-
-government_employment clergy_pay;
-government_employment bureaucrat_pay;
-government_employment soldier_pay;
-government_employment officer_pay;
-
-int32_t officer_leadership = 2;
-
-pop_type_tag artisan;
-pop_type_tag capitalist;
-pop_type_tag clergy;
-pop_type_tag bureaucrat;
-pop_type_tag slave;
-pop_type_tag soldier;
-pop_type_tag officer;
-
-uint32_t count_poptypes = 0;
-};
-*/
+template<>
+class serialization::serializer<population::pop_type> : public serialization::memcpy_serializer<population::pop_type> {};
+template<>
+class serialization::serializer<population::rebel_type> : public serialization::memcpy_serializer<population::rebel_type> {};
+template<>
+class serialization::serializer<population::government_employment> : public serialization::memcpy_serializer<population::government_employment> {};
 
 template<>
 class serialization::serializer<population::population_manager> {

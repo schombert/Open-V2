@@ -150,6 +150,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="variables.h" />
+    <ClInclude Include="variables_io.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="variables.cpp" />
