@@ -56,14 +56,15 @@ public:
 		"arctic = { \r\n"
 		"	movement_cost = 1.0\r\n"
 		"	color = { 235 235 235 }\r\n"
-		"farm_rgo_size = -0.5\r\n"
-		"farm_rgo_eff = -0.2\r\n"
-		"mine_rgo_size = -0.0\r\n"
-		"mine_rgo_eff = -0.2\r\n"
-		"min_build_railroad = 1\r\n"
+		"	farm_rgo_size = -0.5\r\n"
+		"	farm_rgo_eff = -0.2\r\n"
+		"	mine_rgo_size = -0.0\r\n"
+		"	mine_rgo_eff = -0.2\r\n"
+		"	min_build_railroad = 1\r\n"
 		"}\r\n"
 		"}\r\n"
-		"junk = { stuff = x color = { 5 } priority = 	0 }");
+		"ocean1 = { type = ocean color = { 254 } has_texture = no priority = 	0 }"
+		"ocean2 = { type = arctic color = { 1 2 3 } has_texture = no priority = 	0 }");
 
 
 	preparse_test_files() {
@@ -170,7 +171,7 @@ TEST(provinces_test, terrain_preparse) {
 	provinces::parsing_state state(tex, m, mm);
 
 	read_default_map_file(state, f.get_root());
-	auto t_map = pre_parse_terrain(state, f.get_root());
+	auto t_map = read_terrain(state, f.get_root());
 
 	EXPECT_EQ(2ui64, mm.provincial_modifiers.size());
 	EXPECT_EQ(provincial_modifier_tag(0), mm.provincial_modifiers[provincial_modifier_tag(0)].id);
@@ -178,10 +179,13 @@ TEST(provinces_test, terrain_preparse) {
 	EXPECT_EQ(provincial_modifier_tag(0), mm.named_provincial_modifiers_index[text_data::get_thread_safe_text_handle(tex, RANGE("ocean"))]);
 	EXPECT_EQ(provincial_modifier_tag(1), mm.named_provincial_modifiers_index[mm.provincial_modifiers[provincial_modifier_tag(1)].name]);
 
-	const auto va = t_map[graphics::rgb_to_int(graphics::color_rgb{ 0ui8, 0ui8, 255ui8 })];
-	EXPECT_EQ(provincial_modifier_tag(0), va);
-	const auto vb = t_map[graphics::rgb_to_int(graphics::color_rgb{ 235ui8, 235ui8, 235ui8 })];
-	EXPECT_EQ(provincial_modifier_tag(1), vb);
+	EXPECT_EQ(provincial_modifier_tag(0), t_map.data[254]);
+	EXPECT_EQ(provincial_modifier_tag(1), t_map.data[1]);
+	EXPECT_EQ(provincial_modifier_tag(1), t_map.data[2]);
+	EXPECT_EQ(provincial_modifier_tag(1), t_map.data[3]);
+
+	EXPECT_EQ(1.0f, mm.provincial_modifier_definitions.get(provincial_modifier_tag(0), modifiers::provincial_offsets::movement_cost));
+	EXPECT_EQ(1.0f, mm.provincial_modifier_definitions.get(provincial_modifier_tag(1), modifiers::provincial_offsets::min_build_railroad));
 }
 
 TEST(provinces_test, region_read) {

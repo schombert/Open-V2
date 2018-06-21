@@ -1,8 +1,8 @@
 #include "gtest\\gtest.h"
 #include "fake_fs\\fake_fs.h"
 #include "governments\\governments.h"
-#include "ideologies\\ideologies.h"
-#include "issues\\issues.h"
+#include "ideologies\\ideologies_io.h"
+#include "issues\\issues_io.h"
 #include "scenario\\scenario.h"
 #include "governments\\governments_io.h"
 

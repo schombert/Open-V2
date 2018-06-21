@@ -1144,6 +1144,7 @@ class world_state {};
 struct gui_window_handler {
 	ui::gui_manager& gui_m;
 	ui::gui_static& static_m;
+	scenario::scenario_manager& s;
 
 	graphics::map_display map;
 	Eigen::Vector3f interest = Eigen::Vector3f::UnitX();
@@ -1156,7 +1157,7 @@ struct gui_window_handler {
 
 	budget_window_t budget_window;
 
-	gui_window_handler(ui::gui_manager& m, ui::gui_static& sm) : gui_m(m), static_m(sm) {}
+	gui_window_handler(ui::gui_manager& m, ui::gui_static& sm, scenario::scenario_manager& snm) : gui_m(m), static_m(sm), s(snm) {}
 
 	template<typename T>
 	void operator()(const T&, ui::window_base& w) const {
@@ -1209,9 +1210,9 @@ struct gui_window_handler {
 	void operator()(const ui::key_down& m, ui::window_base&) {
 		gui_m.on_keydown(static_m, m);
 	}
-	void operator()(const ui::scroll& s, ui::window_base&) {
-		if (! gui_m.on_scroll(static_m, s)) {
-			map.state.scale *= float(pow(2, s.amount / 2.0f));
+	void operator()(const ui::scroll& ss, ui::window_base&) {
+		if (! gui_m.on_scroll(static_m, ss)) {
+			map.state.scale *= float(pow(2, ss.amount / 2.0f));
 			map.state.scale = std::clamp(map.state.scale, 1.0f, 18.0f);
 		}
 	}
@@ -1230,18 +1231,33 @@ struct gui_window_handler {
 	void initialize_graphics(graphics::open_gl_wrapper& ogl) {
 		static_m.fonts.load_fonts(ogl);
 
-		
-		int32_t width = 0;
-		int32_t height = 0;
-		int32_t channels = 3;
-		uint8_t* map_data = SOIL_load_image("D:\\programs\\V2\\map\\provinces.bmp", &width, &height, &channels, 3);
+		map.colors.init_color_data(static_cast<uint32_t>(s.province_m.province_container.size()));
 
-		boost::container::flat_map<uint32_t, uint16_t> colors_map;
-		map.colors.init_color_data(3349);
-		graphics::color_map_creation_stub(colors_map, map.colors, map_data, width, height);
+		const auto pcolors = map.colors.primary_color_data();
+		const auto scolors = map.colors.secondary_color_data();
 
-		map.initialize(ogl, colors_map, map_data, width, height, 0.0f, -1.2f, 1.2f);
-		
+		for(size_t i = 0; i < s.province_m.province_container.size(); ++i) {
+			const provinces::province_tag this_province(static_cast<provinces::province_tag::value_base_t>(i));
+			const auto terrain = s.province_m.province_container[this_province].terrain;
+			if(!is_valid_index(terrain)) {
+				pcolors[i * 3 + 0] = 0ui8;
+				pcolors[i * 3 + 1] = 0ui8;
+				pcolors[i * 3 + 2] = 0ui8;
+				scolors[i * 3 + 0] = 0ui8;
+				scolors[i * 3 + 1] = 0ui8;
+				scolors[i * 3 + 2] = 0ui8;
+			} else {
+				pcolors[i * 3 + 0] = uint8_t(18 * (to_index(terrain) - 98));
+				pcolors[i * 3 + 1] = uint8_t(18 * (to_index(terrain) - 98));
+				pcolors[i * 3 + 2] = uint8_t(18 * (to_index(terrain) - 98));
+				scolors[i * 3 + 0] = uint8_t(18 * (to_index(terrain) - 98));
+				scolors[i * 3 + 1] = uint8_t(18 * (to_index(terrain) - 98));
+				scolors[i * 3 + 2] = uint8_t(18 * (to_index(terrain) - 98));
+			}
+		}
+		map.colors.update_ready();
+
+		map.initialize(ogl, s.province_m.province_map_data.data(), s.province_m.province_map_width, s.province_m.province_map_height, 0.0f, -1.2f, 1.2f);
 
 		map.state.resize(gui_m.width(), gui_m.height());
 	}
@@ -1300,15 +1316,43 @@ int main(int , char **) {
 
 	scenario::scenario_manager s1;
 	scenario::scenario_manager s2;
+	
+	/*
+	const auto map_dir = fs.get_root().get_directory(u"\\map");
+	auto fi = map_dir.open_file(u"terrain.bmp");
+	char* rd = new char[fi->size()];
+	fi->read_to_buffer(rd, fi->size());
+
+	BITMAPFILEHEADER header;
+	memcpy(&header, rd, sizeof(BITMAPFILEHEADER));
+	BITMAPINFOHEADER info_header;
+	memcpy(&info_header, rd + sizeof(BITMAPFILEHEADER), sizeof(BITMAPINFOHEADER));
+
+	std::cout << "bfType: " << header.bfType << std::endl;
+	std::cout << "bfSize: " << header.bfSize << std::endl;
+	std::cout << "bfReserved1: " << header.bfReserved1 << std::endl;
+	std::cout << "bfReserved2: " << header.bfReserved2 << std::endl;
+	std::cout << "bfOffBits: " << header.bfOffBits << std::endl;
+
+	std::cout << "biSize: " << info_header.biSize << std::endl;
+	std::cout << "biWidth: " << info_header.biWidth << std::endl;
+	std::cout << "biHeight: " << info_header.biHeight << std::endl;
+	std::cout << "biBitCount: " << info_header.biBitCount << std::endl;
+	std::cout << "biSizeImage: " << info_header.biSizeImage << std::endl;
+
+	delete[] rd;*/
 
 	std::cout << "begin scenario read" << std::endl << std::flush;
-	scenario::read_scenario(s1, fs.get_root());
+	auto const color_terrain_map = scenario::read_scenario(s1, fs.get_root());
 	std::cout << "end scenario read" << std::endl << std::flush;
+
+	std::cout << "begin map read" << std::endl << std::flush;
+	auto const p_to_t_vector = provinces::load_province_map_data(s1.province_m, fs.get_root());
+	provinces::assign_terrain_color(s1.province_m, p_to_t_vector, color_terrain_map);
+	std::cout << "end map read" << std::endl << std::flush;
 
 	const auto s_size = serialization::serialize_size(s1);
 	std::cout << s_size << " bytes " << s_size / 1024 << " KB " << s_size / (1024 * 1024) << " MB" << std::endl;
-	//ui::gui_static static_m;
-	//ui::load_gui_from_directory(fs.get_root(), static_m);
 
 	std::vector<std::byte> sdata(s_size);
 	auto ptr = sdata.data();
@@ -1327,7 +1371,7 @@ int main(int , char **) {
 	init_tooltip_window(s2.gui_m, gui_m);
 
 	{
-		ui::window<gui_window_handler> test_window(850, 650, gui_m, s2.gui_m);
+		ui::window<gui_window_handler> test_window(850, 650, gui_m, s2.gui_m, s2);
 
 		std::cout << "test window created" << std::endl;
 		getchar();

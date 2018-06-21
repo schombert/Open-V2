@@ -63,8 +63,11 @@ namespace Eigen {
 
 namespace internal {
 
-EIGEN_DEVICE_FUNC 
-[[noreturn]] inline void throw_std_bad_alloc()
+EIGEN_DEVICE_FUNC
+#ifdef EIGEN_EXCEPTIONS
+[[noreturn]]
+#endif
+inline void throw_std_bad_alloc()
 {
   #ifdef EIGEN_EXCEPTIONS
     throw std::bad_alloc();

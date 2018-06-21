@@ -448,56 +448,12 @@ namespace graphics {
 	//.....................
 
 
-	void color_map_creation_stub(boost::container::flat_map<uint32_t, uint16_t>& color_mapping, color_maps& cm, uint8_t* color_data, int32_t width, int32_t height) {
-		uint16_t counter = 0;
-		const auto pcolors = cm.primary_color_data();
-		const auto scolors = cm.secondary_color_data();
-
-		for (int32_t t = width * height - 1; t >= 0; --t) {
-			uint32_t color_index = provinces::rgb_to_prov_index(color_data[t * 3 + 0], color_data[t * 3 + 1], color_data[t * 3 + 2]);
-			if (auto it = color_mapping.find(color_index); it == color_mapping.end()) {
-				const auto new_index = ++counter;
-				color_mapping.insert(std::make_pair(color_index, new_index));
-				pcolors[new_index * 3 + 0] = color_data[t * 3 + 0];
-				pcolors[new_index * 3 + 1] = color_data[t * 3 + 1];
-				pcolors[new_index * 3 + 2] = color_data[t * 3 + 2];
-				scolors[new_index * 3 + 0] = static_cast<uint8_t>(255 - color_data[t * 3 + 0]);
-				scolors[new_index * 3 + 1] = static_cast<uint8_t>(255 - color_data[t * 3 + 1]);
-				scolors[new_index * 3 + 2] = static_cast<uint8_t>(255 - color_data[t * 3 + 2]);
-			}
-		}
-
-		cm.update_ready();
-	}
-
-
-	map_data_textures create_data_textures(const boost::container::flat_map<uint32_t, uint16_t>& color_mapping, uint8_t* color_data, int32_t width, int32_t height) {
+	map_data_textures create_data_textures(uint16_t const* map_data, int32_t width, int32_t height) {
 		map_data_textures result;
 		result.width = width;
 		result.height = height;
-		result.primary_data = new uint16_t[static_cast<size_t>(width * height)];
+		result.primary_data = map_data;
 
-		const auto last = width * height - 1;
-		uint32_t previous_color_index = provinces::rgb_to_prov_index(color_data[last * 3 + 0], color_data[last * 3 + 1], color_data[last * 3 + 2]);
-		uint16_t prev_result = 0ui16;
-		if(auto it = color_mapping.find(previous_color_index); it != color_mapping.end()) {
-			prev_result = it->second;
-			result.primary_data[last] = it->second;
-		}
-
-		for (int32_t t = width * height - 2; t >= 0; --t) {
-			uint32_t color_index = provinces::rgb_to_prov_index(color_data[t * 3 + 0], color_data[t * 3 + 1], color_data[t * 3 + 2]);
-			if(color_index == previous_color_index) {
-				result.primary_data[t] = prev_result;
-			} else {
-				previous_color_index = color_index;
-				if(auto it = color_mapping.find(color_index); it != color_mapping.end())
-					result.primary_data[t] = it->second;
-				else
-					result.primary_data[t] = 0ui16;
-				prev_result = result.primary_data[t];
-			}
-		}
 
 		glGenTextures(1, &result.handle);
 		glBindTexture(GL_TEXTURE_2D, result.handle);
@@ -841,7 +797,7 @@ namespace graphics {
 		return vao;
 	}
 
-	void map_display::initialize(open_gl_wrapper&, const boost::container::flat_map<uint32_t, uint16_t>& colors_map, uint8_t* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude) {
+	void map_display::initialize(open_gl_wrapper&, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude) {
 
 		glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
 		glEnable(GL_DEPTH_TEST);
@@ -854,7 +810,7 @@ namespace graphics {
 		long_step = 6.28318530718f / static_cast<float>(width);
 		left_long = left_longitude;
 
-		data_textures = create_data_textures(colors_map, map_data, width, height);
+		data_textures = create_data_textures(map_data, width, height);
 		colors.create_color_textures();
 
 		const auto [v, e, c] = create_patches_buffers_b(width, height, top_lat, lat_step, long_step);

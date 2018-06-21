@@ -59,6 +59,9 @@
     <ProjectReference Include="..\fake_fs\fake_fs.vcxproj">
       <Project>{c9607b1c-c139-4ca0-ae7d-3162e40c6838}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\governments\governments.vcxproj">
+      <Project>{887ac5a7-b5b3-40bf-9249-58f68490ff9e}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\graphics\graphics.vcxproj">
       <Project>{30142af6-6972-4e2f-baa8-85361ce88f22}</Project>
     </ProjectReference>
@@ -70,6 +73,9 @@
     </ProjectReference>
     <ProjectReference Include="..\ideologies\ideologies.vcxproj">
       <Project>{15b719aa-730d-4147-9106-a9b190e03066}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\issues\issues.vcxproj">
+      <Project>{fa3a5ff3-f7f6-4852-94f5-4975b6d07846}</Project>
     </ProjectReference>
     <ProjectReference Include="..\modifiers\modifiers.vcxproj">
       <Project>{54477a39-7934-4c4a-9744-17399338af31}</Project>

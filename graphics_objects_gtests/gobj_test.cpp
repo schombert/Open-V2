@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "graphics_objects\\graphics_objects.cpp"
+#include "graphics_objects\\graphics_objects_io.cpp"
+
 
 #define RANGE(x) (x), (x) + ((sizeof(x)) / sizeof((x)[0])) - 1
 

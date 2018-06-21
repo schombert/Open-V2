@@ -29,6 +29,12 @@
 #define CALL
 #endif
 
+#ifndef _DEBUG
+namespace boost {
+	inline void __cdecl throw_exception(std::exception const &) { std::abort(); }
+}
+#endif
+
 #undef max
 #undef min
 

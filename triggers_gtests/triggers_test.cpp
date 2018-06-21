@@ -1,12 +1,13 @@
 #include "gtest\\gtest.h"
 #include "triggers\\trigger_reading.h"
 #include "triggers\\codes.h"
-#include "scenario\\scenario.h"
+#include "scenario\\scenario_io.h"
 #include "issues\\issues.h"
 #include "simple_fs\\simple_fs.h"
 #include "fake_fs\\fake_fs.h"
 #include "triggers\\effects.h"
 #include "triggers\\effect_reading.h"
+#include "events\\events_io.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -702,6 +703,19 @@ public:
 		"member_2 = {}\r\n"
 		"}\r\n"
 		"group_2 = { member_3 = { a b c } }");
+	file_representation issues_file = file_representation(u"issues.txt", common2,
+		"party_issues = {\r\n"
+		"	public_meetings = {\r\n"
+		"		no_meeting = {\r\n"
+		"			#no immediate effect\r\n"
+		"		}\r\n"
+		"		yes_meeting = {\r\n"
+		"			issue_change_speed = 1\r\n"
+		"			global_immigrant_attract = 0.01\r\n"
+		"			suppression_points_modifier = -0.25\r\n"
+		"		}\r\n"
+		"	}\r\n"
+		"}\r\n");
 	file_representation goods_file = file_representation(u"goods.txt", common2,
 		"military_goods   = {\r\n"
 		"money_good = {\r\n"
@@ -1090,6 +1104,51 @@ TEST(trigger_reading, effect_with_limit) {
 	EXPECT_EQ(2ui64, sm.trigger_m.trigger_data.size());
 	EXPECT_EQ(uint16_t(trigger_codes::tag_this_province | trigger_codes::association_eq | trigger_codes::no_payload), sm.trigger_m.trigger_data[0]);
 	EXPECT_EQ(0ui16, sm.trigger_m.trigger_data[1]);
+}
+
+TEST(trigger_reading, with_named_issue) {
+	const char trigger[] =
+		"\t\t\tAI = no\r\n"
+		"\t\t\tpublic_meetings = no_meeting\r\n"
+		"\t\t\tconsciousness = 5\r\n"
+		"\t\t\tliteracy = 0.40\r\n"
+		"\t\t\tyes_meeting = 10\r\n"
+		"\t\t\tany_neighbor_country = {\r\n"
+		"\t\t\t\tpublic_meetings = yes_meeting\r\n"
+		"\t\t\t}\r\n"
+		"\t\t\tNOT = {\r\n"
+		"\t\t\t\tOR = {\r\n"
+		"\t\t\t\t\thas_country_flag = yes_meeting_noway\r\n"
+		"\t\t\t\t\thas_country_flag = yes_meeting_promised\r\n"
+		"\t\t\t\t}\r\n"
+		"\t\t\t}\r\n";
+
+
+	test_files real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:\\test1"));
+
+	scenario::scenario_manager sm;
+	events::event_creation_manager ecm;
+
+	const auto issues_state = issues::pre_parse_issues(sm.issues_m, f.get_root(), sm.gui_m.text_data_sequences);
+	issues::read_issue_options(issues_state, sm, ecm);
+
+	std::vector<token_group> parse_results;
+	parse_pdx_file(parse_results, RANGE(trigger));
+
+	auto data = parse_trigger(
+		sm,
+		trigger_scope_state{
+			trigger_slot_contents::nation,
+			trigger_slot_contents::nation,
+			trigger_slot_contents::empty,
+			false },
+			parse_results.data(),
+			parse_results.data() + parse_results.size());
+
+	EXPECT_NE(1ui64, data.size());
 }
 
 TEST(trigger_reading, effect_option_reading) {

@@ -3,6 +3,8 @@
 #include "economy\\economy.h"
 #include "scenario\\scenario.h"
 #include "economy\\economy_io.h"
+#include "ideologies\\ideologies_io.h"
+#include "population\\population_io.h"
 
 using namespace economy;
 

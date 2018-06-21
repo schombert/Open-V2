@@ -5,6 +5,7 @@
 #include "fake_fs\\fake_fs.h"
 #include "triggers\\codes.h"
 #include "events\\events_io.h"
+#include "issues\\issues_io.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -43,6 +44,82 @@ public:
 	file_representation on_actions = file_representation(u"on_actions.txt", common2, "on_yearly_pulse = {} on_new_great_nation = {10 = 1} on_election_tick = { 100 = 5 }");
 	file_representation file_e = file_representation(u"d1.txt", decisions2, "political_decisions = { first = {} second = {} }");
 	file_representation file_f = file_representation(u"d2.txt", decisions2, "political_decisions = { third = {} }");
+
+
+	directory_representation test3 = directory_representation(u"test3", f_root);
+	directory_representation gfx3 = directory_representation(u"gfx", test3);
+	directory_representation common3 = directory_representation(u"common", test3);
+	directory_representation pictures3 = directory_representation(u"pictures", gfx3);
+	directory_representation pic_events3 = directory_representation(u"events", pictures3);
+	directory_representation events3 = directory_representation(u"events", test3);
+	file_representation issues_file = file_representation(u"issues.txt", common3,
+		"party_issues = {\r\n"
+		"	public_meetings = {\r\n"
+		"		no_meeting = {\r\n"
+		"			#no immediate effect\r\n"
+		"		}\r\n"
+		"		yes_meeting = {\r\n"
+		"			issue_change_speed = 1\r\n"
+		"			global_immigrant_attract = 0.01\r\n"
+		"			suppression_points_modifier = -0.25\r\n"
+		"		}\r\n"
+		"	}\r\n"
+		"}\r\n");
+	file_representation file_g = file_representation(u"file_a.txt", events3,
+		"country_event = {\r\n"
+		"\t\r\n"
+		"	id = 90102\r\n"
+		"\r\n"
+		"	trigger = {\r\n"
+		"			AI = no\r\n"
+		"			public_meetings = no_meeting\r\n"
+		"			consciousness = 5\r\n"
+		"			literacy = 0.40\r\n"
+		"			yes_meeting = 10\r\n"
+		"			any_neighbor_country = {\r\n"
+		"				public_meetings = yes_meeting\r\n"
+		"			}\r\n"
+		"			NOT = {\r\n"
+		"				OR = {\r\n"
+		"				has_country_flag = yes_meeting_noway\r\n"
+		"				has_country_flag = yes_meeting_promised\r\n"
+		"				}\r\n"
+		"			}\r\n"
+		"	}\r\n"
+		" \r\n"
+		"	mean_time_to_happen = { \r\n"
+		"		months = 12\r\n"
+		"\r\n"
+		"		modifier = { \r\n"
+		"			factor = 0.8\r\n"
+		"			year = 1865\r\n"
+		"		}\r\n"
+		"	}\r\n"
+		"\r\n"
+		"	title = \"EVTNAME90102\"\r\n"
+		"	desc = \"EVTDESC90102\"\r\n"
+		"	picture = \"Demonstration\"\r\n"
+		"\t\r\n"
+		"\r\n"
+		"	option = {\r\n"
+		"		name = \"EVTOPTA90100\"\r\n"
+		"		any_pop = {\r\n"
+		"			dominant_issue = {\r\n"
+		"				factor = 0.1\r\n"
+		"				value = yes_meeting\r\n"
+		"			}\r\n"
+		"		}\r\n"
+		"		set_country_flag = free_press_promised\r\n"
+		"	}\r\n"
+		"	option = {\r\n"
+		"		name = \"EVTOPTB90100\"\r\n"
+		"		scaled_militancy = {\r\n"
+		"			issue = yes_meeting\r\n"
+		"			factor = 2\r\n"
+		"		}\r\n"
+		"		set_country_flag = yes_meeting_noway\r\n"
+		"	}\r\n"
+		"}");
 
 	test_files() {
 		set_default_root(f_root);
@@ -330,6 +407,30 @@ TEST(event_tests, event_files) {
 		EXPECT_EQ(1ui64, sm.event_m.country_events.size());
 		EXPECT_EQ(2ui64, sm.event_m.province_events.size());
 		EXPECT_EQ(3ui64, sm.event_m.events_by_id.size());
+	}
+}
+
+TEST(event_tests, event_files_b) {
+	scenario::scenario_manager sm;
+	event_creation_manager ecm;
+
+	test_files real_fs;
+	file_system f;
+
+	f.set_root(RANGE(u"F:\\test3"));
+
+	const auto issues_state = issues::pre_parse_issues(sm.issues_m, f.get_root(), sm.gui_m.text_data_sequences);
+	issues::read_issue_options(issues_state, sm, ecm);
+
+	{
+		read_event_files(
+			sm,
+			ecm,
+			f.get_root());
+
+		EXPECT_EQ(1ui64, sm.event_m.country_events.size());
+		EXPECT_EQ(0ui64, sm.event_m.province_events.size());
+		EXPECT_EQ(1ui64, sm.event_m.events_by_id.size());
 	}
 }
 

@@ -32,8 +32,15 @@ namespace provinces {
 		tagged_vector<text_data::text_tag, state_tag> state_names;
 
 		boost::container::flat_multimap<state_tag, province_tag> states_to_province_index;
-
 		boost::container::flat_map<text_data::text_tag, state_tag> named_states_index;
+
+		std::vector<uint16_t> province_map_data;
+		int32_t province_map_width = 0;
+		int32_t province_map_height = 0; 
+	};
+
+	struct color_to_terrain_map {
+		modifiers::provincial_modifier_tag data[256] = { modifiers::provincial_modifier_tag() };
 	};
 
 	constexpr uint32_t rgb_to_prov_index(uint8_t r, uint8_t g, uint8_t b) {

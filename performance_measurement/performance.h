@@ -36,7 +36,8 @@ public:
 template<uint32_t outer_loops, uint32_t inner_loops, typename base_object>
 class test_object : public base_object {
 public:
-	test_object() : base_object() {}
+	template<typename ... PARAMS>
+	test_object(PARAMS&& ... p) : base_object(std::forward<PARAMS>(p)...) {}
 
 #ifndef _DEBUG
 	int log_function(logging_object& log, const char* test_name) {

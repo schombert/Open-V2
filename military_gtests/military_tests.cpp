@@ -8,6 +8,7 @@
 #include "scenario\\scenario.h"
 #include "military\\military_io.h"
 #include "economy\\economy_io.h"
+#include "sound\\sound_io.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 

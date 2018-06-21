@@ -26,22 +26,34 @@ public:
 	static void serialize_object(std::byte* &output, provinces::province_manager const& obj) {
 		serialize(output, obj.province_container);
 		serialize(output, obj.state_names);
+		serialize(output, obj.province_map_data);
+		serialize(output, obj.province_map_width);
+		serialize(output, obj.province_map_height);
 	}
 	static void deserialize_object(std::byte const* &input, provinces::province_manager& obj) {
 		deserialize(input, obj.province_container);
 		deserialize(input, obj.state_names);
+		deserialize(input, obj.province_map_data);
+		deserialize(input, obj.province_map_width);
+		deserialize(input, obj.province_map_height);
 
 		rebuild_indexes(obj);
 	}
 	static void deserialize_object(std::byte const* &input, provinces::province_manager& obj, concurrency::task_group& tg) {
 		deserialize(input, obj.province_container);
 		deserialize(input, obj.state_names);
+		deserialize(input, obj.province_map_data);
+		deserialize(input, obj.province_map_width);
+		deserialize(input, obj.province_map_height);
 
 		tg.run([&obj]() { rebuild_indexes(obj); });
 	}
 	static size_t size(provinces::province_manager const& obj) {
 		return serialize_size(obj.province_container) +
-			serialize_size(obj.state_names);
+			serialize_size(obj.state_names) +
+			serialize_size(obj.province_map_data) +
+			serialize_size(obj.province_map_width) +
+			serialize_size(obj.province_map_height);
 	}
 };
 
@@ -61,10 +73,14 @@ namespace provinces {
 		parsing_state& state,
 		const directory& source_directory);
 
-	boost::container::flat_map<uint32_t, modifiers::provincial_modifier_tag>
-		pre_parse_terrain(
-			parsing_state& state,
-			const directory& source_directory); // returns color to terrain tag map; adds provincial modifiers
+	color_to_terrain_map
+		read_terrain(parsing_state& state, const directory& source_directory); // returns color to terrain tag map; adds provincial modifiers
+	
+	tagged_vector<uint8_t, province_tag> generate_province_terrain(size_t province_count, uint16_t const* province_map_data, uint8_t const* terrain_color_map_data, int32_t height, int32_t width);
+	tagged_vector<uint8_t, province_tag> generate_province_terrain_inverse(size_t province_count, uint16_t const* province_map_data, uint8_t const* terrain_color_map_data, int32_t height, int32_t width);
+	tagged_vector<uint8_t, province_tag> load_province_map_data(province_manager& m, directory const& root); // returns province to terrain color array
+	void assign_terrain_color(province_manager& m, tagged_vector<uint8_t, province_tag> const & terrain_colors, color_to_terrain_map const & terrain_map);
+	
 	void read_states(
 		parsing_state& state,
 		const directory& source_directory);

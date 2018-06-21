@@ -59,6 +59,9 @@
     <ProjectReference Include="..\gui\gui.vcxproj">
       <Project>{cb808c07-06ad-424a-b9bf-c15b89acd4ec}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\issues\issues.vcxproj">
+      <Project>{fa3a5ff3-f7f6-4852-94f5-4975b6d07846}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\modifiers\modifiers.vcxproj">
       <Project>{54477a39-7934-4c4a-9744-17399338af31}</Project>
     </ProjectReference>

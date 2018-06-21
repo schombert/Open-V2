@@ -3938,7 +3938,7 @@ namespace triggers {
 
 		void finalize() const {
 			if (env.current_scope.main_slot != trigger_slot_contents::nation)
-				throw no_code_value_found_for_scope_and_argument();
+				TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 			if (this_v) {
 				if(env.current_scope.this_slot != trigger_slot_contents::pop)
 					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
@@ -3998,7 +3998,7 @@ namespace triggers {
 
 		void finalize() const {
 			if (env.current_scope.main_slot != trigger_slot_contents::nation)
-				throw no_code_value_found_for_scope_and_argument();
+				TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 			if (from_v) {
 				if (env.current_scope.from_slot == trigger_slot_contents::nation)
 					env.data.push_back(uint16_t(trigger_codes::relation_from_nation | association_to_trigger_code(a)));

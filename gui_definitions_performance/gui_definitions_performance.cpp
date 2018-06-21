@@ -1,6 +1,9 @@
 ﻿#include "performance_measurement\\performance.h"
 #include "gui_definitions\\gui_definitions.h"
+#include "simple_fs\\simple_fs.h"
+#include "gui_definitions\\gui_definitions_io.h"
 #include <iostream>
+
 
 auto fake_text_handle_lookup();
 auto fake_font_handle_lookup();

@@ -57,7 +57,7 @@ namespace graphics {
 	};
 
 	struct map_data_textures {
-		uint16_t* primary_data = nullptr;
+		uint16_t const* primary_data = nullptr;
 		uint32_t handle = 0;
 		uint32_t corner_handle = 0;
 		int32_t width = 0;
@@ -107,11 +107,10 @@ namespace graphics {
 		map_data_textures data_textures;
 		map_state state;
 
-		void initialize(open_gl_wrapper&, const boost::container::flat_map<uint32_t, uint16_t>& colors_map, uint8_t* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude);
+		void initialize(open_gl_wrapper&, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude);
 		void render(open_gl_wrapper&);
 	};
 
 	uint16_t get_value_from_data(int32_t i, int32_t j, uint16_t* data, int32_t width, int32_t height);
-	void color_map_creation_stub(boost::container::flat_map<uint32_t, uint16_t>& color_mapping, color_maps& cm, uint8_t* color_data, int32_t width, int32_t height);
-	map_data_textures create_data_textures(const boost::container::flat_map<uint32_t, uint16_t>& color_mapping, uint8_t* color_data, int32_t width, int32_t height);
+	map_data_textures create_data_textures(uint16_t const* map_data, int32_t width, int32_t height);
 }

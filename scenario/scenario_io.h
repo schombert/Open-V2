@@ -83,5 +83,5 @@ public:
 };
 
 namespace scenario {
-	void read_scenario(scenario_manager& s, const directory& root);
+	provinces::color_to_terrain_map read_scenario(scenario_manager& s, const directory& root);
 }
