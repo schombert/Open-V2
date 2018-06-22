@@ -6,6 +6,7 @@
 #include "Parsers\\parsers.hpp"
 #include "text_data\\text_data.h"
 #include <ppl.h>
+#include <map>
 
 template<>
 class serialization::serializer<provinces::province> : public serialization::memcpy_serializer<provinces::province> {};
@@ -26,6 +27,9 @@ public:
 	static void serialize_object(std::byte* &output, provinces::province_manager const& obj) {
 		serialize(output, obj.province_container);
 		serialize(output, obj.state_names);
+		serialize(output, obj.same_type_adjacency);
+		serialize(output, obj.coastal_adjacency);
+		serialize(output, obj.canals);
 		serialize(output, obj.province_map_data);
 		serialize(output, obj.province_map_width);
 		serialize(output, obj.province_map_height);
@@ -33,6 +37,9 @@ public:
 	static void deserialize_object(std::byte const* &input, provinces::province_manager& obj) {
 		deserialize(input, obj.province_container);
 		deserialize(input, obj.state_names);
+		deserialize(input, obj.same_type_adjacency);
+		deserialize(input, obj.coastal_adjacency);
+		deserialize(input, obj.canals);
 		deserialize(input, obj.province_map_data);
 		deserialize(input, obj.province_map_width);
 		deserialize(input, obj.province_map_height);
@@ -42,6 +49,9 @@ public:
 	static void deserialize_object(std::byte const* &input, provinces::province_manager& obj, concurrency::task_group& tg) {
 		deserialize(input, obj.province_container);
 		deserialize(input, obj.state_names);
+		deserialize(input, obj.same_type_adjacency);
+		deserialize(input, obj.coastal_adjacency);
+		deserialize(input, obj.canals);
 		deserialize(input, obj.province_map_data);
 		deserialize(input, obj.province_map_width);
 		deserialize(input, obj.province_map_height);
@@ -51,6 +61,9 @@ public:
 	static size_t size(provinces::province_manager const& obj) {
 		return serialize_size(obj.province_container) +
 			serialize_size(obj.state_names) +
+			serialize_size(obj.same_type_adjacency) +
+			serialize_size(obj.coastal_adjacency) +
+			serialize_size(obj.canals) +
 			serialize_size(obj.province_map_data) +
 			serialize_size(obj.province_map_width) +
 			serialize_size(obj.province_map_height);
@@ -81,6 +94,11 @@ namespace provinces {
 	tagged_vector<uint8_t, province_tag> load_province_map_data(province_manager& m, directory const& root); // returns province to terrain color array
 	void assign_terrain_color(province_manager& m, tagged_vector<uint8_t, province_tag> const & terrain_colors, color_to_terrain_map const & terrain_map);
 	
+	std::map<province_tag, boost::container::flat_set<province_tag>> generate_map_adjacencies(uint16_t const* province_map_data, int32_t height, int32_t width);
+	void read_adjacnencies_file(std::map<province_tag, boost::container::flat_set<province_tag>>& adj_map, std::vector<std::pair<province_tag, province_tag>>& canals, directory const& root);
+	void make_lakes(std::map<province_tag, boost::container::flat_set<province_tag>>& adj_map, province_manager& m);
+	void make_adjacency(std::map<province_tag, boost::container::flat_set<province_tag>>& adj_map, province_manager& m);
+
 	void read_states(
 		parsing_state& state,
 		const directory& source_directory);

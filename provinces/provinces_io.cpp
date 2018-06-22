@@ -529,6 +529,9 @@ namespace provinces {
 			char* position = parse_data.get();
 			fi->read_to_buffer(position, sz);
 
+			if(sz != 0 && position[0] == '#')
+				position = csv_advance_to_next_line(position, parse_data.get() + sz);
+
 			while(position < parse_data.get() + sz) {
 				position = parse_fixed_amount_csv_values<4>(position, parse_data.get() + sz, ';',
 					[&t](std::pair<char*, char*> const* values) {
@@ -697,6 +700,135 @@ namespace provinces {
 			const auto this_province = province_tag(static_cast<province_tag::value_base_t>(i));
 			const auto this_t_color = terrain_colors[this_province];
 			m.province_container[this_province].terrain = terrain_map.data[this_t_color];
+		}
+	}
+
+	std::map<province_tag, boost::container::flat_set<province_tag>> generate_map_adjacencies(uint16_t const* province_map_data, int32_t height, int32_t width) {
+		std::map<province_tag, boost::container::flat_set<province_tag>> result;
+
+		for(int32_t j = height - 2; j >= 0; --j) {
+			for(int32_t i = width - 2; i >= 0; --i) {
+				const auto current_prov = province_map_data[i + j * width];
+				const auto rightwards = province_map_data[(i + 1) + j * width];
+				const auto downwards = province_map_data[i + (j + 1) * width];
+
+				if(rightwards != current_prov) {
+					result[province_tag(current_prov)].insert(province_tag(rightwards));
+					result[province_tag(rightwards)].insert(province_tag(current_prov));
+				}
+				if(downwards != current_prov) {
+					result[province_tag(current_prov)].insert(province_tag(downwards));
+					result[province_tag(downwards)].insert(province_tag(current_prov));
+				}
+			}
+		}
+
+		for(int32_t j = height - 2; j >= 0; --j) {
+			const auto current_prov = province_map_data[(width - 1) + j * width];
+
+			const auto rightwards = province_map_data[0 + j * width];
+			const auto downwards = province_map_data[(width - 1) + (j + 1) * width];
+
+			if(rightwards != current_prov) {
+				result[province_tag(current_prov)].insert(province_tag(rightwards));
+				result[province_tag(rightwards)].insert(province_tag(current_prov));
+			}
+			if(downwards != current_prov) {
+				result[province_tag(current_prov)].insert(province_tag(downwards));
+				result[province_tag(downwards)].insert(province_tag(current_prov));
+			}
+		}
+
+		return result;
+	}
+
+	void read_adjacnencies_file(std::map<province_tag, boost::container::flat_set<province_tag>>& adj_map, std::vector<std::pair<province_tag, province_tag>>& canals, directory const& root) {
+		const auto map_dir = root.get_directory(u"\\map");
+		const auto fi = map_dir.open_file(u"adjacencies.csv");
+
+		if(fi) {
+			const auto sz = fi->size();
+			const auto parse_data = std::unique_ptr<char[]>(new char[sz]);
+
+			char* position = parse_data.get();
+			fi->read_to_buffer(position, sz);
+
+			if(sz != 0 && position[0] == '#')
+				position = csv_advance_to_next_line(position, parse_data.get() + sz);
+
+			while(position < parse_data.get() + sz) {
+				position = parse_fixed_amount_csv_values<5>(position, parse_data.get() + sz, ';',
+					[&adj_map, &canals](std::pair<char*, char*> const* values) {
+					const auto prov_a = province_tag(uint16_t(parse_int(values[0].first, values[0].second)));
+					const auto prov_b = province_tag(uint16_t(parse_int(values[1].first, values[1].second)));
+
+					if(is_fixed_token_ci(values[2].first, values[2].second, "impassable")) {
+						adj_map[prov_b].erase(prov_a);
+						adj_map[prov_a].erase(prov_b);
+					} else if(is_fixed_token_ci(values[2].first, values[2].second, "canal")) {
+						const int32_t canal_index = parse_int(values[4].first, values[4].second) - 1;
+						if(static_cast<size_t>(canal_index) >= canals.size())
+							canals.resize(static_cast<size_t>(canal_index + 1));
+						if(canal_index >= 0)
+							canals[static_cast<size_t>(canal_index)] = std::make_pair(prov_a, prov_b);
+					} else {
+						adj_map[prov_a].insert(prov_b);
+						adj_map[prov_b].insert(prov_a);
+					}
+				});
+			}
+		}
+	}
+
+	void make_lakes(std::map<province_tag, boost::container::flat_set<province_tag>>& adj_map, province_manager& m) {
+		m.province_container[province_tag(0)].flags = uint16_t(province::lake | province::sea);
+		for(auto adj_p : adj_map[province_tag(0)])
+			adj_map[adj_p].erase(province_tag(0));
+		adj_map[province_tag(0)].clear();
+
+		for(uint16_t i = 1; i < m.province_container.size(); ++i) {
+			auto& this_province = m.province_container[province_tag(i)];
+			if(this_province.flags & province::sea) {
+				bool is_lake = true;
+				for(auto adj_p : adj_map[province_tag(i)]) {
+					if(m.province_container[adj_p].flags & province::sea)
+						is_lake = false;
+				}
+				if(is_lake) {
+					this_province.flags |= province::lake;
+					for(auto adj_p : adj_map[province_tag(i)])
+						adj_map[adj_p].erase(province_tag(i));
+					adj_map[province_tag(i)].clear();
+				}
+			}
+		}
+	}
+
+	void make_adjacency(std::map<province_tag, boost::container::flat_set<province_tag>>& adj_map, province_manager& m) {
+		m.same_type_adjacency.expand_rows(static_cast<uint32_t>(m.province_container.size()));
+		m.coastal_adjacency.expand_rows(static_cast<uint32_t>(m.province_container.size()));
+
+		for(auto const& adj_set : adj_map) {
+			auto& this_province = m.province_container[adj_set.first];
+			if(this_province.flags & province::sea) {
+				for(auto oprov : adj_set.second) {
+					if(m.province_container[oprov].flags & province::sea) {
+						m.same_type_adjacency.add_to_row(to_index(adj_set.first), to_index(oprov));
+					} else {
+						m.coastal_adjacency.add_to_row(to_index(adj_set.first), to_index(oprov));
+						this_province.flags |= province::coastal;
+					}
+				}
+			} else {
+				for(auto oprov : adj_set.second) {
+					if(m.province_container[oprov].flags & province::sea) {
+						m.coastal_adjacency.add_to_row(to_index(adj_set.first), to_index(oprov));
+						this_province.flags |= province::coastal;
+					} else {
+						m.same_type_adjacency.add_to_row(to_index(adj_set.first), to_index(oprov));
+					}
+				}
+			}
 		}
 	}
 }

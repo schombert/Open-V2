@@ -893,6 +893,31 @@ TEST_METHOD(parsers_test, csv_fixed_quantity_parse) {
 	AreEqual(line_range.second, last);
 }
 
+TEST_METHOD(parsers_test, csv_fixed_quantity_parse_b) {
+	char lines[] = "line1a;\"line1;b\";value c;extra\n"
+		"#dead line	a \r\n"
+		"#\n"
+		"line2a;line2\"\"b;value f";
+	const auto line_range = std::make_pair(RANGE(lines));
+	const auto next = parse_fixed_amount_csv_values<3>(lines, line_range.second, ';', [](std::pair<char*, char*> result[3]) {
+		*(result[0].second) = '\0';
+		*(result[1].second) = '\0';
+		*(result[2].second) = '\0';
+		EXPECT_STREQ("line1a", result[0].first);
+		EXPECT_STREQ("line1;b", result[1].first);
+		EXPECT_STREQ("value c", result[2].first);
+	});
+	const auto last = parse_fixed_amount_csv_values<3>(next, line_range.second, ';', [](std::pair<char*, char*> result[3]) {
+		*(result[0].second) = '\0';
+		*(result[1].second) = '\0';
+		*(result[2].second) = '\0';
+		EXPECT_STREQ("line2a", result[0].first);
+		EXPECT_STREQ("line2\"b", result[1].first);
+		EXPECT_STREQ("value f", result[2].first);
+	});
+	AreEqual(line_range.second, last);
+}
+
 TEST_METHOD(parsers_test, csv_variable_quantity_parse) {
 	char lines[] = "line1a;\"line1;b\";value c;extra\n"
 		"line2a;line2\"\"b;value f";

@@ -8,16 +8,38 @@ namespace modifiers {
 }
 
 namespace provinces {
+
+	struct province_state {
+		void* owner;
+		void* controller;
+		void* rebel_controller;
+
+		float nationalism = 0.0f;
+		
+		modifiers::provincial_modifier_tag crime;
+		modifiers::provincial_modifier_tag terrain;
+
+		date_tag last_controller_change;
+		int16_t life_rating = 0i16;
+
+		economy::goods_tag rgo_production;
+
+		uint8_t fort_level = 0ui8;
+		uint8_t railroad_level = 0ui8;
+		uint8_t naval_base_level = 0ui8;
+		uint8_t rgo_size = 1ui8;
+	};
+
 	struct province {
 		constexpr static uint16_t sea = 0x0001;
 		constexpr static uint16_t coastal = 0x0002;
+		constexpr static uint16_t lake = 0x0004;
 
-		modifiers::provincial_modifier_tag terrain;
+		//modifiers::provincial_modifier_tag terrain;
 		modifiers::provincial_modifier_tag continent;
 		modifiers::provincial_modifier_tag climate;
 
-		modifiers::provincial_modifier_tag crime;
-
+		
 		text_data::text_tag name;
 
 		state_tag state_id;
@@ -33,6 +55,10 @@ namespace provinces {
 
 		boost::container::flat_multimap<state_tag, province_tag> states_to_province_index;
 		boost::container::flat_map<text_data::text_tag, state_tag> named_states_index;
+
+		v_vector<province_tag::value_base_t, province_tag::value_base_t> same_type_adjacency;
+		v_vector<province_tag::value_base_t, province_tag::value_base_t> coastal_adjacency;
+		std::vector<std::pair<province_tag, province_tag>> canals;
 
 		std::vector<uint16_t> province_map_data;
 		int32_t province_map_width = 0;

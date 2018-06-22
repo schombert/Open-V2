@@ -1238,21 +1238,52 @@ struct gui_window_handler {
 
 		for(size_t i = 0; i < s.province_m.province_container.size(); ++i) {
 			const provinces::province_tag this_province(static_cast<provinces::province_tag::value_base_t>(i));
-			const auto terrain = s.province_m.province_container[this_province].terrain;
-			if(!is_valid_index(terrain)) {
+			provinces::province& province_object = s.province_m.province_container[this_province];
+			if(province_object.flags == uint16_t(provinces::province::lake | provinces::province::sea)) {
 				pcolors[i * 3 + 0] = 0ui8;
 				pcolors[i * 3 + 1] = 0ui8;
-				pcolors[i * 3 + 2] = 0ui8;
+				pcolors[i * 3 + 2] = 175ui8;
 				scolors[i * 3 + 0] = 0ui8;
 				scolors[i * 3 + 1] = 0ui8;
-				scolors[i * 3 + 2] = 0ui8;
+				scolors[i * 3 + 2] = 175ui8;
+			} else if(province_object.flags == provinces::province::sea) {
+				pcolors[i * 3 + 0] = 80ui8;
+				pcolors[i * 3 + 1] = 80ui8;
+				pcolors[i * 3 + 2] = 255ui8;
+				scolors[i * 3 + 0] = 80ui8;
+				scolors[i * 3 + 1] = 80ui8;
+				scolors[i * 3 + 2] = 255ui8;
+			} else if(province_object.flags == uint16_t(provinces::province::sea | provinces::province::coastal)) {
+				pcolors[i * 3 + 0] = 150ui8;
+				pcolors[i * 3 + 1] = 150ui8;
+				pcolors[i * 3 + 2] = 255ui8;
+				scolors[i * 3 + 0] = 150ui8;
+				scolors[i * 3 + 1] = 150ui8;
+				scolors[i * 3 + 2] = 255ui8;
+			} else if(province_object.flags == uint16_t(provinces::province::coastal)) {
+				pcolors[i * 3 + 0] = 150ui8;
+				pcolors[i * 3 + 1] = 255ui8;
+				pcolors[i * 3 + 2] = 150ui8;
+				scolors[i * 3 + 0] = 150ui8;
+				scolors[i * 3 + 1] = 255ui8;
+				scolors[i * 3 + 2] = 150ui8;
 			} else {
-				pcolors[i * 3 + 0] = uint8_t(18 * (to_index(terrain) - 98));
-				pcolors[i * 3 + 1] = uint8_t(18 * (to_index(terrain) - 98));
-				pcolors[i * 3 + 2] = uint8_t(18 * (to_index(terrain) - 98));
-				scolors[i * 3 + 0] = uint8_t(18 * (to_index(terrain) - 98));
-				scolors[i * 3 + 1] = uint8_t(18 * (to_index(terrain) - 98));
-				scolors[i * 3 + 2] = uint8_t(18 * (to_index(terrain) - 98));
+				const auto terrain = province_object.terrain;
+				if(!is_valid_index(terrain)) {
+					pcolors[i * 3 + 0] = 0ui8;
+					pcolors[i * 3 + 1] = 0ui8;
+					pcolors[i * 3 + 2] = 0ui8;
+					scolors[i * 3 + 0] = 0ui8;
+					scolors[i * 3 + 1] = 0ui8;
+					scolors[i * 3 + 2] = 0ui8;
+				} else {
+					pcolors[i * 3 + 0] = uint8_t(18 * (to_index(terrain) - 98));
+					pcolors[i * 3 + 1] = uint8_t(18 * (to_index(terrain) - 98));
+					pcolors[i * 3 + 2] = uint8_t(18 * (to_index(terrain) - 98));
+					scolors[i * 3 + 0] = uint8_t(18 * (to_index(terrain) - 98));
+					scolors[i * 3 + 1] = uint8_t(18 * (to_index(terrain) - 98));
+					scolors[i * 3 + 2] = uint8_t(18 * (to_index(terrain) - 98));
+				}
 			}
 		}
 		map.colors.update_ready();
@@ -1350,6 +1381,13 @@ int main(int , char **) {
 	auto const p_to_t_vector = provinces::load_province_map_data(s1.province_m, fs.get_root());
 	provinces::assign_terrain_color(s1.province_m, p_to_t_vector, color_terrain_map);
 	std::cout << "end map read" << std::endl << std::flush;
+
+	std::cout << "begin map adjacency" << std::endl << std::flush;
+	auto adj_map = provinces::generate_map_adjacencies(s1.province_m.province_map_data.data(), s1.province_m.province_map_height, s1.province_m.province_map_width);
+	provinces::read_adjacnencies_file(adj_map, s1.province_m.canals, fs.get_root());
+	provinces::make_lakes(adj_map, s1.province_m);
+	provinces::make_adjacency(adj_map, s1.province_m);
+	std::cout << "end map adjacency" << std::endl << std::flush;
 
 	const auto s_size = serialization::serialize_size(s1);
 	std::cout << s_size << " bytes " << s_size / 1024 << " KB " << s_size / (1024 * 1024) << " MB" << std::endl;

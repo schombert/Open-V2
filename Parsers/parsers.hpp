@@ -194,6 +194,7 @@ char* CALL parse_fixed_amount_csv_values(char* start, char* end, char seperator,
 		start = r.second;
 	}
 	function(values);
+
 	return csv_advance_to_next_line(start, end);
 }
 
