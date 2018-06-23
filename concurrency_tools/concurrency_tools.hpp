@@ -6,6 +6,87 @@
 __declspec(restrict) void* concurrent_alloc_wrapper(size_t sz);
 void concurrent_free_wrapper(void* p);
 
+template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
+stable_vector<object_type, index_type, block_size, index_size>::~stable_vector() {
+	for(i : index_array) {
+		if(i) {
+			for(int32_t j = static_cast<int32_t>(block_size) - 1; j >= 0; --j)
+				i[j]->~object_type();
+			_aligned_free(i);
+		}
+	}
+}
+
+template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
+stable_vector<object_type, index_type, block_size, index_size>::stable_vector() { }
+
+template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
+object_type& stable_vector<object_type, index_type, block_size, index_size>::get(index_type i) {
+	const auto block_num = to_index(i) >> ct_log2(block);
+	const auto block_index = to_index(i) & (block - 1);
+	return (index_array[block_num])[block_index];
+}
+
+template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
+bool stable_vector<object_type, index_type, block_size, index_size>::is_valid_index(index_type i) {
+	const auto block_num = to_index(i) >> ct_log2(block);
+	return is_valid_index(i) & (index_array[block_num] != nullptr);
+}
+
+template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
+object_type& stable_vector<object_type, index_type, block_size, index_size>::safe_get(index_type i) {
+	const auto block_num = to_index(i) >> ct_log2(block);
+	const auto block_index = to_index(i) & (block - 1);
+
+	if(index_array[block_num] == nullptr) {
+		object_type* new_block = (object_type*)_aligned_malloc(sizeof(object_type) * block_size, 64);
+		for(int32_t i = static_cast<int32_t>(block_size) - 1; i >= 0; --i)
+			new (new_block + i) object_type();
+		index_array[block_num] = new_block;
+	}
+
+	return (index_array[block_num])[block_index];
+}
+
+#ifdef _DEBUG
+struct stable_vector_full {};
+#endif
+
+template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
+object_type& stable_vector<object_type, index_type, block_size, index_size>::get_new() {
+	for(uint32_t i = 0; i < index_size; ++i) {
+		if(index_array[i]) {
+			for(int32_t j = static_cast<int32_t>(block_size) - 1; j >= 0; --j) {
+				if(!is_valid_index((index_array[i])[j].id)) {
+					(index_array[i])[j].id = index_type(static_cast<value_base_of<index_type>>(j + (i << ct_log2(block))));
+					return (index_array[i])[j];
+				}
+			}
+		} else {
+			object_type* new_block = (object_type*)_aligned_malloc(sizeof(object_type) * block_size, 64);
+			for(int32_t i = static_cast<int32_t>(block_size) - 1; i >= 0; --i)
+				new (new_block + i) object_type();
+			index_array[i] = new_block;
+			new_block[0].id = index_type(static_cast<value_base_of<index_type>>(i << ct_log2(block)));
+			return new_block[0];
+		}
+	}
+#ifdef _DEBUG
+	throw stable_vector_full();
+#else
+	std::abort();
+#endif
+}
+
+template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
+void stable_vector<object_type, index_type, block_size, index_size>::remove(index_type i) {
+	const auto block_num = to_index(i) >> ct_log2(block);
+	const auto block_index = to_index(i) & (block - 1);
+
+	(index_array[block_num])[block_index].~object_type();
+	new ((index_array[block_num]) + block_index) object_type();
+}
+
 template<typename T>
 concurrent_string::concurrent_string(const string_expression<T>& t) {
 	const auto tsz = t.length();

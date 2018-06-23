@@ -241,6 +241,102 @@ public:
 	void flush(const F& f);
 };
 
+template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
+class stable_vector {
+private:
+	object_type* index_array[index_size] = { nullptr };
+public:
+	stable_vector();
+	~stable_vector();
+
+	object_type& get(index_type i); // safe from any thread
+	bool is_valid_index(index_type i); //safe (but potentially inaccurate) from any thread, but if true, can use get without possible memory error
+
+	object_type& safe_get(index_type i); // single thread only
+	object_type& get_new(); // single thread only
+	void remove(index_type i); // single thread only
+};
+
+template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
+class stable_2d_vector {
+private:
+	object_type* index_array[index_size] = { nullptr };
+	uint32_t inner_size = 0;
+public:
+	stable_2d_vector();
+	~stable_2d_vector();
+
+	void reset(uint32_t inner_size); // single thread only
+	void ensure_capacity(uint32_t outer_size); // single thread only
+	void clear_row(outer_index_type i); // single thread only
+
+	object_type* get_row(outer_index_type i); // safe from any thread
+	object_type* safe_get_row(outer_index_type i); // single thread only
+	object_type& get(outer_index_type i, inner_index_type j); // safe from any thread
+	object_type& safe_get(outer_index_type i, inner_index_type j); // single thread only
+	bool is_valid_index(outer_index_type i); //safe from any thread; if true, can use get without possible memory error
+};
+
+struct stable_variable_vector_tag {
+	std::atomic<uint16_t> block_offset = 0ui16;
+	std::atomic<uint16_t> size = 0ui16;
+	std::atomic<uint16_t> capacity = 0ui16; //as item count
+};
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+class stable_variable_vector_storage {
+private:
+	object_type* index_array[index_size] = { nullptr };
+	bool block_reservations[index_size * contiguous_block_count] = { false };
+public:
+	stable_variable_vector_storage();
+	~stable_variable_vector_storage();
+
+	void increase_capacity(stable_variable_vector_tag& i, uint32_t new_capacity_in_blocks);
+	void grow(stable_variable_vector_tag& i);
+	void shrink_capacity(stable_variable_vector_tag& i);
+	void release(stable_variable_vector_tag& i);
+};
+
+//general interface, safe from any thread
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+std::pair<object_type*, object_type*> get_range(stable_variable_vector_tag& i, stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage);
+
+//unsorted interface
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void push_back(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void add_unordered_range(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type* first, object_type* last);
+
+//sorted interface
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void add_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void add_unique_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void add_ordered_range(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type* first, object_type* last);
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void add_unique_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void remove_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
+
+//sorted interface safe from any thread
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+bool contains_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
+
+
+/*
+concurrent_vector
+concurrent_2d_vector
+concurrent_variable_vector_tag
+concurrent_variable_vector_storage
+*/
+
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 class fixed_sz_deque_iterator {
 private:

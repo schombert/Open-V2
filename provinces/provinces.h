@@ -10,25 +10,31 @@ namespace modifiers {
 namespace provinces {
 
 	struct province_state {
-		void* owner;
-		void* controller;
-		void* rebel_controller;
+		void* owner = nullptr; // 8
+		void* controller = nullptr; // 16
+		void* rebel_controller = nullptr; // 24
+		void* state_instance = nullptr; // 32
 
-		float nationalism = 0.0f;
+		atomic_tag<date_tag> last_update; // 36
+		float nationalism = 0.0f; // 40
+		date_tag last_controller_change; // 44
+
+		modifiers::provincial_modifier_tag crime; // 46
+		modifiers::provincial_modifier_tag terrain; // 48
+
 		
-		modifiers::provincial_modifier_tag crime;
-		modifiers::provincial_modifier_tag terrain;
+		int16_t life_rating = 0i16; // 50
+		province_tag id; // 52
 
-		date_tag last_controller_change;
-		int16_t life_rating = 0i16;
+		economy::goods_tag rgo_production; // 53
 
-		economy::goods_tag rgo_production;
-
-		uint8_t fort_level = 0ui8;
-		uint8_t railroad_level = 0ui8;
-		uint8_t naval_base_level = 0ui8;
-		uint8_t rgo_size = 1ui8;
+		uint8_t fort_level = 0ui8; // 54
+		uint8_t railroad_level = 0ui8; // 55
+		uint8_t naval_base_level = 0ui8; // 56
+		uint8_t rgo_size = 1ui8; // 57
 	};
+
+	static_assert(sizeof(province_state) == 64); //IMPORTANT: 1 cache line
 
 	struct province {
 		constexpr static uint16_t sea = 0x0001;
