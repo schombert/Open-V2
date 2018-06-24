@@ -280,15 +280,16 @@ public:
 struct stable_variable_vector_tag {
 	std::atomic<uint16_t> block_offset = 0ui16;
 	std::atomic<uint16_t> size = 0ui16;
-	std::atomic<uint16_t> capacity = 0ui16; //as item count
 };
+
 
 template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
 class stable_variable_vector_storage {
-private:
-	object_type* index_array[index_size] = { nullptr };
-	bool block_reservations[index_size * contiguous_block_count] = { false };
+	static_assert(contiguous_block_count <= 256);
 public:
+	object_type* index_array[index_size] = { nullptr };
+	uint16_t free_lists[block_size] = { 0 };
+
 	stable_variable_vector_storage();
 	~stable_variable_vector_storage();
 
@@ -300,14 +301,23 @@ public:
 
 //general interface, safe from any thread
 template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
-std::pair<object_type*, object_type*> get_range(stable_variable_vector_tag& i, stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage);
+std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag const& i);
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+uint32_t get_capacity(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag const& i);
 
 //unsorted interface
 template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
 void push_back(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
 
 template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
-void add_unordered_range(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type* first, object_type* last);
+void pop_back(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void add_unordered_range(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type const* first, object_type const* last);
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void remove_unsorted_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
 
 //sorted interface
 template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
@@ -316,26 +326,24 @@ void add_item(stable_variable_vector_storage<object_type, block_size, contiguous
 template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
 void add_unique_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
 
+//range passed must already be sorted
 template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
-void add_ordered_range(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type* first, object_type* last);
+void add_ordered_range(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type const* first, object_type const* last);
 
 template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
 void add_unique_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
 
+//range passed must already be sorted and contain no duplicates
 template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
-void remove_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
+void add_unique_ordered_range(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type const* first, object_type const* last);
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void remove_sorted_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
 
 //sorted interface safe from any thread
 template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
 bool contains_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
 
-
-/*
-concurrent_vector
-concurrent_2d_vector
-concurrent_variable_vector_tag
-concurrent_variable_vector_storage
-*/
 
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 class fixed_sz_deque_iterator {

@@ -8,7 +8,7 @@ void concurrent_free_wrapper(void* p);
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
 stable_vector<object_type, index_type, block_size, index_size>::~stable_vector() {
-	for(i : index_array) {
+	for(auto i : index_array) {
 		if(i) {
 			for(int32_t j = static_cast<int32_t>(block_size) - 1; j >= 0; --j)
 				i[j]->~object_type();
@@ -85,6 +85,588 @@ void stable_vector<object_type, index_type, block_size, index_size>::remove(inde
 
 	(index_array[block_num])[block_index].~object_type();
 	new ((index_array[block_num]) + block_index) object_type();
+}
+
+#ifdef _DEBUG
+struct stable_2d_vector_full {};
+#endif
+
+template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
+stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::stable_2d_vector() {}
+
+template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
+stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::~stable_2d_vector() {
+	for(auto i : index_array) {
+		if(i) {
+			for(int32_t j = static_cast<int32_t>(block_size) * inner_size - 1; j >= 0; --j)
+				i[j]->~object_type();
+			_aligned_free(i);
+		}
+	}
+}
+
+template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
+void stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::reset(uint32_t new_inner_size) {
+	for(auto& i : index_array) {
+		if(i) {
+			for(int32_t j = static_cast<int32_t>(block_size) * inner_size - 1; j >= 0; --j)
+				i[j]->~object_type();
+			_aligned_free(i);
+			i = nullptr;
+		}
+	}
+	inner_size = new_inner_size;
+}
+
+template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
+void stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::ensure_capacity(uint32_t new_outer_size) {
+	const auto block_num = new_outer_size >> ct_log2(block);
+
+	if(block_num >= index_size) {
+#ifdef _DEBUG
+		throw stable_2d_vector_full();
+#else
+		std::abort();
+#endif
+	}
+
+	for(uint32_t i = 0; i <= block_num; ++i) {
+		if(index_array[i] == nullptr) {
+			object_type* new_block = (object_type*)_aligned_malloc(sizeof(object_type) * block_size * inner_size, 64);
+			for(int32_t i = static_cast<int32_t>(block_size) * inner_size - 1; i >= 0; --i)
+				new (new_block + i) object_type();
+			index_array[i] = new_block;
+		}
+	}
+}
+
+template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
+void stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::clear_row(outer_index_type i) {
+	const auto block_num = to_index(i) >> ct_log2(block);
+	const auto block_index = to_index(i) & (block - 1);
+
+	object_type* const block = index_array[block_num];
+	for(int32_t i = inner_size - 1; i >= 0; --i) {
+		block[block_index * inner_size + i].~object_type();
+		new (new_block + block_index * inner_size + i) object_type();
+	}
+}
+
+template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
+object_type* stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::get_row(outer_index_type i) {
+	const auto block_num = to_index(i) >> ct_log2(block);
+	const auto block_index = to_index(i) & (block - 1);
+
+	return index_array[block_num] + block_index * inner_size;
+}
+
+template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
+object_type* stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::safe_get_row(outer_index_type i) {
+	const auto block_num = to_index(i) >> ct_log2(block);
+	const auto block_index = to_index(i) & (block - 1);
+
+	if(block_num >= index_size) {
+#ifdef _DEBUG
+		throw stable_2d_vector_full();
+#else
+		std::abort();
+#endif
+	}
+
+	if(index_array[block_num] == nullptr) {
+		object_type* new_block = (object_type*)_aligned_malloc(sizeof(object_type) * block_size * inner_size, 64);
+		for(int32_t i = static_cast<int32_t>(block_size) * inner_size - 1; i >= 0; --i)
+			new (new_block + i) object_type();
+		index_array[block_num] = new_block;
+		return new_block + block_index * inner_size;
+	} else {
+		return index_array[block_num] + block_index * inner_size;
+	}
+}
+
+template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
+object_type& stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::get(outer_index_type i, inner_index_type j) {
+	const auto block_num = to_index(i) >> ct_log2(block);
+	const auto block_index = to_index(i) & (block - 1);
+
+	return *(index_array[block_num] + block_index * inner_size + to_index(j));
+}
+
+template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
+object_type& stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::safe_get(outer_index_type i, inner_index_type j) {
+	const auto block_num = to_index(i) >> ct_log2(block);
+	const auto block_index = to_index(i) & (block - 1);
+
+	if(block_num >= index_size) {
+#ifdef _DEBUG
+		throw stable_2d_vector_full();
+#else
+		std::abort();
+#endif
+	}
+
+	if(index_array[block_num] == nullptr) {
+		object_type* new_block = (object_type*)_aligned_malloc(sizeof(object_type) * block_size * inner_size, 64);
+		for(int32_t i = static_cast<int32_t>(block_size) * inner_size - 1; i >= 0; --i)
+			new (new_block + i) object_type();
+		index_array[block_num] = new_block;
+		return *(new_block + block_index * inner_size + to_index(j));
+	} else {
+		return *(index_array[block_num] + block_index * inner_size + to_index(j));
+	}
+}
+
+template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
+bool stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::is_valid_index(outer_index_type i) {
+	const auto block_num = to_index(i) >> ct_log2(block);
+	return index_array[block_num] != nullptr;
+}
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>::stable_variable_vector_storage() {}
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>::~stable_variable_vector_storage() {
+	for(auto i : index_array) {
+		if(i) {
+			for(int32_t j = static_cast<int32_t>(block_size * contiguous_block_count) - 1; j >= 0; --j)
+				i[j]->~object_type();
+			_aligned_free(i);
+		}
+	}
+}
+
+#ifdef _DEBUG
+struct stable_variable_vector_storage_full {};
+#endif
+
+#ifdef _DEBUG
+struct vector_too_big_for_stable_variable_vector_storage {};
+#endif
+
+namespace detail {
+	struct array_chunk {
+		uint16_t previous_in_free_list; // 0 = empty, subtract 1 for index
+		uint16_t next_in_free_list; // 0 = empty, subtract 1 for index
+
+		uint8_t local_left_chunk;
+		uint8_t local_right_chunk;
+		uint8_t size; // + 1 = real size (no size 0)
+		uint8_t is_free;
+	};
+
+	template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+	void pop_chunk_from_free_list(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, uint32_t size_in_blocks) {
+		const auto first_in_list = storage.index_array[size_in_blocks - 1];
+
+		const auto this_block_num = (first_in_list - 1) >> ct_log2(contiguous_block_count);
+		const auto this_block_index = (first_in_list - 1) & (contiguous_block_count - 1);
+
+		array_chunk* cstart = (array_chunk*)(storage.index_array[this_block_num] + block_size * contiguous_block_count);
+
+		storage.index_array[size_in_blocks - 1] = (cstart + this_block_index)->next_in_free_list;
+		(cstart + this_block_index)->next_in_free_list = 0ui16;
+		(cstart + this_block_index)->is_free = 0ui8;
+	}
+
+	template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+	void push_chunk_to_free_list(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, uint32_t chunk_index, array_chunk* chunk) {
+		const auto first_in_list = storage.index_array[chunk->size + 1 - 1];
+		chunk->next_in_free_list = first_in_list;
+
+		const auto this_block_num = (first_in_list - 1) >> ct_log2(contiguous_block_count);
+		const auto this_block_index = (first_in_list - 1) & (contiguous_block_count - 1);
+
+		array_chunk* cstart = (array_chunk*)(storage.index_array[this_block_num] + block_size * contiguous_block_count);
+
+		(cstart + this_block_index)->previous_in_free_list = chunk_index;
+	}
+
+	template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+	void remove_chunk_from_free_list(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, uint32_t chunk_index, array_chunk* chunk) {
+		//fix next
+		if(chunk->next_in_free_list != 0) {
+			const auto this_block_num = (chunk->next_in_free_list - 1) >> ct_log2(contiguous_block_count);
+			const auto this_block_index = (chunk->next_in_free_list - 1) & (contiguous_block_count - 1);
+
+			array_chunk* cstart = (array_chunk*)(storage.index_array[this_block_num] + block_size * contiguous_block_count);
+			(cstart + this_block_index)->previous_in_free_list = chunk->previous_in_free_list;
+		}
+		//fix previous
+		if(chunk->previous_in_free_list != 0) {
+			const auto this_block_num = (chunk->previous_in_free_list - 1) >> ct_log2(contiguous_block_count);
+			const auto this_block_index = (chunk->previous_in_free_list - 1) & (contiguous_block_count - 1);
+
+			array_chunk* cstart = (array_chunk*)(storage.index_array[this_block_num] + block_size * contiguous_block_count);
+			(cstart + this_block_index)->next_in_free_list = chunk->next_in_free_list;
+		} else {
+			//is head: pop
+			storage.index_array[chunk->size + 1 - 1] = chunk->next_in_free_list;
+		}
+		chunk->previous_in_free_list = 0ui16;
+		chunk->next_in_free_list = 0ui16;
+	}
+
+	template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+	void allocate_from_array_chunk(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, uint32_t chunk_index, uint32_t allocated_blocks) {
+		const auto this_block_num = (chunk_index - 1) >> ct_log2(contiguous_block_count);
+		const auto this_block_index = (chunk_index - 1) & (contiguous_block_count - 1);
+
+		array_chunk* cstart = (array_chunk*)(storage.index_array[this_block_num] + block_size * contiguous_block_count);
+		
+		array_chunk* allocated_portion = cstart + this_block_index;
+		array_chunk* new_free = cstart + this_block_index + allocated_blocks;
+
+		if(allocated_portion->local_right_chunk != 0ui8) {
+			array_chunk* old_right = cstart + allocated_portion->local_right_chunk;
+			old_right->local_left_chunk = uint8_t(this_block_index + allocated_blocks);
+		}
+
+		*new_free = array_chunk{0ui16, 0ui16, uint8_t(this_block_index), allocated_portion->local_right_chunk, uint8_t(allocated_portion->size - allocated_blocks), 1ui8 };
+		*allocated_portion = array_chunk{ 0ui16, 0ui16, allocated_portion->local_left_chunk, uint8_t(this_block_index + allocated_blocks), uint8_t(allocated_blocks - 1), 0ui8};
+
+		push_chunk_to_free_list(storage, chunk_index + allocated_blocks, new_free);
+	}
+
+	template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+	void free_chunk(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, uint32_t chunk_index) {
+		auto this_block_num = (chunk_index - 1) >> ct_log2(contiguous_block_count);
+		auto this_block_index = (chunk_index - 1) & (contiguous_block_count - 1);
+
+		array_chunk* cstart = (array_chunk*)(storage.index_array[this_block_num] + block_size * contiguous_block_count);
+		array_chunk* this_chunk = cstart + this_block_index;
+
+		this_chunk->is_free = 1ui8;
+
+		if(this_block_index != 0) {
+			//try to merge left
+			array_chunk* left_chunk = cstart + this_chunk->local_left_chunk;
+			if(left_chunk->is_free != 0) {
+				remove_chunk_from_free_list(storage, chunk_index - this_block_index + this_chunk->local_left_chunk, left_chunk);
+				left_chunk->local_right_chunk = this_chunk->local_right_chunk;
+				left_chunk->size += (this_chunk->size + 1);
+				
+				chunk_index += (this_chunk->local_left_chunk - this_block_index);
+				this_block_index = this_chunk->local_left_chunk;
+				this_chunk = left_chunk;
+			}
+		}
+		if(this_chunk->local_right_chunk != 0ui8) {
+			array_chunk* right_chunk = cstart + this_chunk->local_right_chunk;
+			if(right_chunk->is_free != 0ui8) {
+				if(right_chunk->local_right_chunk != 0ui8)
+					(cstart + right_chunk->local_right_chunk)->local_left_chunk = uint8_t(this_block_index);
+
+				remove_chunk_from_free_list(storage, chunk_index - this_block_index + this_chunk->local_right_chunk, right_chunk);
+				this_chunk->local_right_chunk = right_chunk->local_right_chunk;
+				this_chunk->size += (right_chunk->size + 1);
+			}
+		}
+		push_chunk_to_free_list(storage, chunk_index, this_chunk);
+	}
+
+	template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+	void make_new_backing_buffer(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, uint32_t index, uint32_t allocated_blocks) {
+		const auto new_mem = (object_type*)_aligned_malloc(sizeof(object_type) * block_size * contiguous_block_count + sizeof(array_chunk) * contiguous_block_count, 64);
+		storage.index_array[index] = new_mem;
+
+		for(int32_t i = static_cast<int32_t>(block_size * contiguous_block_count) - 1; i >= 0; --i)
+			new (new_mem + i) object_type();
+		
+		array_chunk* fblock = (array_chunk*)(new_mem + block_size * contiguous_block_count);
+
+		const auto this_block_index = (index << ct_log2(contiguous_block_count)) + 1;
+		if(allocated_blocks != contiguous_block_count) {
+			*fblock = array_chunk{ 0ui16, 0ui16, 0ui8, uint8_t(allocated_blocks), uint8_t(allocated_blocks - 1), 0ui8 };
+			*(fblock + allocated_blocks) = array_chunk{ storage.free_lists[contiguous_block_count - allocated_blocks - 1], 0ui16, 0ui8, uint8_t(allocated_blocks), uint8_t(contiguous_block_count - allocated_blocks - 1), 1ui8};
+			storage.free_lists[contiguous_block_count - allocated_blocks - 1] = uint16_t(this_block_index + allocated_blocks);
+		} else {
+			*fblock = array_chunk{ 0ui16, 0ui16, 0ui8, 0ui8, uint8_t(contiguous_block_count - 1), 0ui8 };
+		}
+	}
+
+	template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+	uint32_t allocate_blocks(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, uint32_t allocated_blocks) {
+		if(storage.free_lists[allocated_blocks - 1] != 0ui16) {
+			const auto allocated = storage.free_lists[allocated_blocks - 1];
+			pop_chunk_from_free_list(storage, allocated_blocks);
+			return allocated - 1;
+		}
+		for(uint32_t i = allocated_blocks; i < contiguous_block_count; ++i) {
+			if(storage.free_lists[i] != 0ui16) {
+				const auto allocated = storage.free_lists[i];
+				pop_chunk_from_free_list(storage, i + 1);
+				allocate_from_array_chunk(storage, allocated, allocated_blocks);
+				return allocated - 1;
+			}
+		}
+		for(uint32_t i = 0; i < index_size; ++i) {
+			if(storage.index_array[i] == nullptr) {
+				make_new_backing_buffer(storage, i, allocated_blocks);
+				return i << ct_log2(contiguous_block_count);
+			}
+		}
+#ifdef _DEBUG
+		throw stable_variable_vector_storage_full();
+#else
+		std::abort();
+#endif
+	}
+}
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+uint32_t get_capacity(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag const& i) {
+	const auto offset = i.block_offset.load(std::memory_order_acquire);
+
+	auto this_block_num = (offset) >> ct_log2(contiguous_block_count);
+	auto this_block_index = (offset) & (contiguous_block_count - 1);
+
+	detail::array_chunk* cstart = (detail::array_chunk*)(storage.index_array[this_block_num] + block_size * contiguous_block_count);
+	detail::array_chunk* this_chunk = cstart + this_block_index;
+
+	return uint32_t(this_chunk->size + 1) * block_size;
+}
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>::increase_capacity(stable_variable_vector_tag& index_obj, uint32_t new_capacity_in_blocks) {
+	if(new_capacity_in_blocks > contiguous_block_count) {
+#ifdef _DEBUG
+		throw vector_too_big_for_stable_variable_vector_storage();
+#else
+		std::abort();
+#endif
+	}
+
+	const auto old_block_capacity = get_capacity(*this, index_obj) / block_size;
+
+	if(old_block_capacity >= new_capacity_in_blocks)
+		return;
+
+	const auto old_range = get_range(*this, index_obj);
+	const auto new_offset = detail::allocate_blocks(*this, new_capacity_in_blocks);
+
+	const auto block_num = new_offset >> ct_log2(contiguous_block_count);
+	const auto block_index = new_offset & (contiguous_block_count - 1);
+	object_type* first = storage.index_array[block_num] + block_index * block_size;
+
+	std::copy(old_range.first, old_range.second, first);
+
+	index_obj.block_offset.store(new_offset, std::memory_order_release);
+}
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>::grow(stable_variable_vector_tag& index_obj) {
+	const auto old_block_capacity = get_capacity(*this, index_obj) / block_size;
+
+	if(old_block_capacity + 1 <= contiguous_block_count) {
+		const auto old_range = get_range(*this, index_obj);
+		const auto new_offset = detail::allocate_blocks(*this, new_capacity_in_blocks);
+
+		const auto block_num = new_offset >> ct_log2(contiguous_block_count);
+		const auto block_index = new_offset & (contiguous_block_count - 1);
+		object_type* first = storage.index_array[block_num] + block_index * block_size;
+
+		std::copy(old_range.first, old_range.second, first);
+
+		index_obj.block_offset.store(new_offset, std::memory_order_release);
+	} else {
+#ifdef _DEBUG
+			throw vector_too_big_for_stable_variable_vector_storage();
+#else
+			std::abort();
+#endif
+	}
+}
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>::shrink_capacity(stable_variable_vector_tag& index_obj) {
+
+	const auto old_block_capacity = get_capacity(*this, index_obj) / block_size;
+	const auto new_block_capacity = (index_obj.size.load(std::memory_order_relaxed) + (block_size - 1)) / block_size;
+
+	if(new_block_capacity < old_block_capacity) {
+		const auto new_block_offset = detail::allocate_blocks(*this, new_capacity_in_blocks);
+		const auto old_range = get_range(*this, index_obj);
+
+		const auto block_num = new_block_offset >> ct_log2(contiguous_block_count);
+		const auto block_index = new_block_offset & (contiguous_block_count - 1);
+
+		object_type* first = storage.index_array[block_num] + block_index * block_size;
+
+		std::copy(old_range.first, old_range.second, first);
+
+		detail::free_chunk(*this, index_obj.block_offset.load(std::memory_order_relaxed) + 1ui16);
+		index_obj.block_offset.store(new_block_offset, std::memory_order_release);
+	}
+}
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>::release(stable_variable_vector_tag& index_obj) {
+	detail::free_chunk(*this, index_obj.block_offset.load(std::memory_order_relaxed) + 1ui16);
+	index_obj.size.store(uint16_t(0), std::memory_order_release);
+}
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag const& i) {
+	const auto size = i.size.load(std::memory_order_acquire);
+	const auto offset = i.block_offset.load(std::memory_order_acquire));
+
+	const auto block_num = offset >> ct_log2(contiguous_block_count);
+	const auto block_index = offset & (contiguous_block_count - 1);
+	
+	object_type* first = storage.index_array[block_num] + block_index * block_size;
+	return std::pair<object_type*, object_type*>(first, first + size);
+}
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void push_back(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj) {
+	const auto size = i.size.load(std::memory_order_relaxed);
+	const auto capacity = get_capacity(storage, i);
+
+	if(size >= capacity)
+		storage.grow(storage);
+
+	const auto offset = i.block_offset.load(std::memory_order_relaxed));
+	const auto block_num = offset >> ct_log2(contiguous_block_count);
+	const auto block_index = offset & (contiguous_block_count - 1);
+
+	*(storage.index_array[block_num] + block_index * block_size + size) = obj;
+	i.size.store(size + 1, std::memory_order_release);
+}
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void add_unordered_range(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type const* first, object_type const* last) {
+	const uint32_t count = static_cast<uint32_t>(last - first);
+
+	const auto size = i.size.load(std::memory_order_relaxed);
+	const auto capacity = get_capacity(storage, i);
+
+	if(size + count > capacity) {
+		const uint32_t new_block_capacity = (size + count + block_size - 1) / block_size;
+		storage.increase_capacity(i, new_block_capacity);
+	}
+
+	const auto offset = i.block_offset.load(std::memory_order_relaxed));
+	const auto block_num = offset >> ct_log2(contiguous_block_count);
+	const auto block_index = offset & (contiguous_block_count - 1);
+
+	std::copy(first, last, storage.index_array[block_num] + block_index * block_size + size);
+
+	i.size.store(uint16_t(size + count), std::memory_order_release);
+}
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void add_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj) {
+	const auto size = i.size.load(std::memory_order_relaxed);
+	const auto capacity = get_capacity(storage, i);
+
+	if(size >= capacity)
+		storage.grow(storage);
+
+	const auto offset = i.block_offset.load(std::memory_order_relaxed));
+	const auto block_num = offset >> ct_log2(contiguous_block_count);
+	const auto block_index = offset & (contiguous_block_count - 1);
+
+	const auto start = storage.index_array[block_num] + block_index * block_size;
+	*(start + size) = obj;
+
+	i.size.store(size + 1, std::memory_order_release);
+
+	std::sort(start, start + size + 1);
+}
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+bool contains_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj) {
+	const auto range = get_range(storage, i);
+	return std::binary_search(range.first, range.second, obj);
+}
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void add_unique_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj) {
+	if(!contains_item(storage, i, obj))
+		add_item(storage, i, obj);
+}
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void add_ordered_range(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type const* first, object_type const* last) {
+	const uint32_t count = static_cast<uint32_t>(last - first);
+
+	const auto size = i.size.load(std::memory_order_relaxed);
+	const auto capacity = get_capacity(storage, i);
+
+	if(size + count > capacity) {
+		const uint32_t new_block_capacity = (size + count + block_size - 1) / block_size;
+		storage.increase_capacity(i, new_block_capacity);
+	}
+
+	const auto offset = i.block_offset.load(std::memory_order_relaxed));
+	const auto block_num = offset >> ct_log2(contiguous_block_count);
+	const auto block_index = offset & (contiguous_block_count - 1);
+
+	const auto first_item = storage.index_array[block_num] + block_index * block_size;
+	const auto temp_buffer = _alloca(sizeof(object_type) * size);
+
+	std::copy(first_item, first_item + size, temp_buffer);
+	std::merge(temp_buffer, temp_buffer + size, first, last, first_item);
+
+	i.size.store(uint16_t(size + count), std::memory_order_release);
+
+	_freea(temp_buffer);
+}
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void add_unique_ordered_range(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type const* first, object_type const* last) {
+	const uint32_t count = static_cast<uint32_t>(last - first);
+
+	const auto size = i.size.load(std::memory_order_relaxed);
+	const auto capacity = get_capacity(storage, i);
+
+	if(size + count > capacity) {
+		const uint32_t new_block_capacity = (size + count + block_size - 1) / block_size;
+		storage.increase_capacity(i, new_block_capacity);
+	}
+
+	const auto offset = i.block_offset.load(std::memory_order_relaxed));
+	const auto block_num = offset >> ct_log2(contiguous_block_count);
+	const auto block_index = offset & (contiguous_block_count - 1);
+
+	const auto first_item = storage.index_array[block_num] + block_index * block_size;
+	auto temp_buffer = _alloca(sizeof(object_type) * size);
+
+	std::copy(first_item, first_item + size, temp_buffer);
+	const auto new_last = std::set_union(temp_buffer, temp_buffer + size, first, last, first_item);
+
+	i.size.store(uint16_t(new_last - first_item), std::memory_order_release);
+
+	_freea(temp_buffer);
+}
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void remove_sorted_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj) {
+	const auto range = get_range(storage, i);
+	const auto lb = std::lower_bound(range.first, range.second, obj);
+	if(lb == range.second || *lb != obj)
+		return;
+	
+	std::copy(lb + 1, range.second, lb);
+	i.size.store(i.size.load(std::memory_order_relaxed) - 1, std::memory_order_release);
+}
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void remove_unsorted_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj) {
+	const auto range = get_range(storage, i);
+	const auto f = std::find(range.first, range.second, obj);
+	if(f == range.second)
+		return;
+	*f = *(range.second - 1);
+	i.size.store(i.size.load(std::memory_order_relaxed) - 1, std::memory_order_release);
+}
+
+template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
+void pop_back(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj) {
+	const auto old_size = i.size.load(std::memory_order_relaxed);
+	if(old_size != 0)
+		i.size.store(old_size - 1, std::memory_order_release);
 }
 
 template<typename T>

@@ -54,6 +54,11 @@ namespace provinces {
 		uint16_t flags = 0;
 	};
 
+	class provinces_state {
+	public:
+		tagged_vector<province_state, province_tag> province_state_container;
+	};
+
 	class province_manager {
 	public:
 		tagged_vector<province, province_tag> province_container;

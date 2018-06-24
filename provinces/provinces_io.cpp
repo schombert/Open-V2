@@ -552,9 +552,9 @@ namespace provinces {
 	tagged_vector<uint8_t, province_tag> load_province_map_data(province_manager& m, directory const& root) {
 		const auto map_dir = root.get_directory(u"\\map");
 		
-		auto map_peek = map_dir.peek_file(u"provinces.bmp");
+		auto map_peek = map_dir.peek_file(u"provinces.png");
 		if(!map_peek)
-			map_peek = map_dir.peek_file(u"provinces.png");
+			map_peek = map_dir.peek_file(u"provinces.bmp");
 		if(map_peek) {
 			auto fi = map_peek->open_file();
 			if(fi) {
@@ -595,7 +595,7 @@ namespace provinces {
 			}
 		}
 
-		auto terrain_peek = map_dir.peek_file(u"terrain.bmp");
+		auto terrain_peek = map_dir.peek_file(u"terrain.png");
 		if(terrain_peek) {
 			auto fi = terrain_peek->open_file();
 			if(fi) {
@@ -603,40 +603,38 @@ namespace provinces {
 				std::unique_ptr<char[]> file_data = std::unique_ptr<char[]>(new char[sz]);
 				fi->read_to_buffer(file_data.get(), sz);
 
-				BITMAPFILEHEADER header;
-				memcpy(&header, file_data.get(), sizeof(BITMAPFILEHEADER));
-				BITMAPINFOHEADER info_header;
-				memcpy(&info_header, file_data.get() + sizeof(BITMAPFILEHEADER), sizeof(BITMAPINFOHEADER));
+				int32_t terrain_width = 0;
+				int32_t terrain_height = 0;
+				int32_t channels = 1;
+				const auto raw_data = SOIL_load_image_from_memory((unsigned char*)(file_data.get()), static_cast<int32_t>(sz), &terrain_width, &terrain_height, &channels, 1);
 
-				if(info_header.biHeight != m.province_map_height || info_header.biWidth != m.province_map_width)
+				if(terrain_height != m.province_map_height || terrain_width != m.province_map_width)
 					std::abort();
 
-				return generate_province_terrain_inverse(m.province_container.size(), m.province_map_data.data(), (uint8_t const*)(file_data.get() + header.bfOffBits), info_header.biHeight, info_header.biWidth);
+				const auto t_vector = generate_province_terrain(m.province_container.size(), m.province_map_data.data(), (uint8_t const*)(raw_data), terrain_height, terrain_width);
 
+				SOIL_free_image_data(raw_data);
 
+				return t_vector;
 			}
 		} else {
-			terrain_peek = map_dir.peek_file(u"terrain.png");
 			if(terrain_peek) {
+				terrain_peek = map_dir.peek_file(u"terrain.bmp");
 				auto fi = terrain_peek->open_file();
 				if(fi) {
 					const auto sz = fi->size();
 					std::unique_ptr<char[]> file_data = std::unique_ptr<char[]>(new char[sz]);
 					fi->read_to_buffer(file_data.get(), sz);
 
-					int32_t terrain_width = 0;
-					int32_t terrain_height = 0;
-					int32_t channels = 1;
-					const auto raw_data = SOIL_load_image_from_memory((unsigned char*)(file_data.get()), static_cast<int32_t>(sz), &terrain_width, &terrain_height, &channels, 1);
+					BITMAPFILEHEADER header;
+					memcpy(&header, file_data.get(), sizeof(BITMAPFILEHEADER));
+					BITMAPINFOHEADER info_header;
+					memcpy(&info_header, file_data.get() + sizeof(BITMAPFILEHEADER), sizeof(BITMAPINFOHEADER));
 
-					if(terrain_height != m.province_map_height || terrain_width != m.province_map_width)
+					if(info_header.biHeight != m.province_map_height || info_header.biWidth != m.province_map_width)
 						std::abort();
 
-					const auto t_vector = generate_province_terrain(m.province_container.size(), m.province_map_data.data(), (uint8_t const*)(raw_data), terrain_height, terrain_width);
-
-					SOIL_free_image_data(raw_data);
-
-					return t_vector;
+					return generate_province_terrain_inverse(m.province_container.size(), m.province_map_data.data(), (uint8_t const*)(file_data.get() + header.bfOffBits), info_header.biHeight, info_header.biWidth);
 				}
 			}
 		}
@@ -694,12 +692,12 @@ namespace provinces {
 		return terrain_out;
 	}
 
-	void assign_terrain_color(province_manager& m, tagged_vector<uint8_t, province_tag> const & terrain_colors, color_to_terrain_map const & terrain_map) {
-		int32_t max_province = static_cast<int32_t>(m.province_container.size()) - 1;
+	void assign_terrain_color(provinces_state& m, tagged_vector<uint8_t, province_tag> const & terrain_colors, color_to_terrain_map const & terrain_map) {
+		int32_t max_province = static_cast<int32_t>(m.province_state_container.size()) - 1;
 		for(int32_t i = max_province; i >= 0; --i) {
 			const auto this_province = province_tag(static_cast<province_tag::value_base_t>(i));
 			const auto this_t_color = terrain_colors[this_province];
-			m.province_container[this_province].terrain = terrain_map.data[this_t_color];
+			m.province_state_container[this_province].terrain = terrain_map.data[this_t_color];
 		}
 	}
 
