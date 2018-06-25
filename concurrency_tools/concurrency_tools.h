@@ -243,9 +243,10 @@ public:
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
 class stable_vector {
-private:
-	object_type* index_array[index_size] = { nullptr };
 public:
+	object_type* index_array[index_size] = { nullptr };
+	uint32_t indices_in_use = 0ui32;
+
 	stable_vector();
 	~stable_vector();
 
@@ -259,10 +260,11 @@ public:
 
 template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
 class stable_2d_vector {
-private:
-	object_type* index_array[index_size] = { nullptr };
-	uint32_t inner_size = 0;
 public:
+	object_type* index_array[index_size] = { nullptr };
+	uint32_t inner_size = 0ui32;
+	uint32_t indices_in_use = 0ui32;
+
 	stable_2d_vector();
 	~stable_2d_vector();
 
@@ -282,13 +284,28 @@ struct stable_variable_vector_tag {
 	std::atomic<uint16_t> size = 0ui16;
 };
 
+constexpr uint32_t ct_log2(uint32_t n) {
+	return ((n < 2) ? 0 : 1 + ct_log2(n / 2));
+}
+
+inline uint32_t rt_log2(uint32_t n) {
+	return 31ui32 - uint32_t(__builtin_clz(n | 1ui32));
+}
+
+constexpr uint32_t ct_log2_round_up(uint32_t n) {
+	return ((1ui32 << ct_log2(n)) >= n) ? ct_log2(n) : ct_log2(n) + 1ui32;
+}
+
+inline uint32_t rt_log2_round_up(uint32_t n) {
+	return n > 1ui32 ? 32ui32 - uint32_t(__builtin_clz(n - 1ui32)) : 0ui32;
+}
 
 template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
 class stable_variable_vector_storage {
-	static_assert(contiguous_block_count <= 256);
 public:
 	object_type* index_array[index_size] = { nullptr };
-	uint16_t free_lists[block_size] = { 0 };
+	uint16_t free_lists[ct_log2(contiguous_block_count) + 1] = { 0ui16 };
+	uint32_t indices_in_use = 0ui32;
 
 	stable_variable_vector_storage();
 	~stable_variable_vector_storage();
