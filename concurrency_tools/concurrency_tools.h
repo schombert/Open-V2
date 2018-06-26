@@ -279,11 +279,6 @@ public:
 	bool is_valid_index(outer_index_type i); //safe from any thread; if true, can use get without possible memory error
 };
 
-struct stable_variable_vector_tag {
-	std::atomic<uint16_t> block_offset = 0ui16;
-	std::atomic<uint16_t> size = 0ui16;
-};
-
 constexpr uint32_t ct_log2(uint32_t n) {
 	return ((n < 2) ? 0 : 1 + ct_log2(n / 2));
 }
@@ -300,66 +295,76 @@ inline uint32_t rt_log2_round_up(uint32_t n) {
 	return n > 1ui32 ? 32ui32 - uint32_t(__builtin_clz(n - 1ui32)) : 0ui32;
 }
 
-template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
-class stable_variable_vector_storage {
+using stable_mk_2_tag = uint32_t;
+
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+class stable_variable_vector_storage_mk_2 {
 public:
-	object_type* index_array[index_size] = { nullptr };
-	uint16_t free_lists[ct_log2(contiguous_block_count) + 1] = { 0ui16 };
-	uint32_t indices_in_use = 0ui32;
+	uint64_t* backing_storage = nullptr;
+	uint32_t first_free = 0ui32;
 
-	stable_variable_vector_storage();
-	~stable_variable_vector_storage();
+	stable_mk_2_tag free_lists[17] = { null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, 
+		null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>,
+		null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, 
+		null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag> };
 
-	void increase_capacity(stable_variable_vector_tag& i, uint32_t new_capacity_in_blocks);
-	void grow(stable_variable_vector_tag& i);
-	void shrink_capacity(stable_variable_vector_tag& i);
-	void release(stable_variable_vector_tag& i);
+	stable_variable_vector_storage_mk_2();
+	~stable_variable_vector_storage_mk_2();
+
+	void reset();
+	stable_mk_2_tag make_new(uint32_t capacity);
+	void increase_capacity(stable_mk_2_tag& i, uint32_t new_capacity);
+	void shrink_capacity(stable_mk_2_tag& i);
+	void release(stable_mk_2_tag& i);
 };
 
 //general interface, safe from any thread
-template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
-std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag const& i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, stable_mk_2_tag i);
 
-template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
-uint32_t get_capacity(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag const& i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+object_type& get(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, stable_mk_2_tag i, uint32_t inner_index); // safe to read from any thread
+
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+uint32_t get_capacity(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, stable_mk_2_tag i);
+
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+uint32_t get_size(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, stable_mk_2_tag i);
 
 //unsorted interface
-template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
-void push_back(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void push_back(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag& i, object_type obj);
 
-template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
-void pop_back(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void pop_back(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag i);
 
-template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
-void add_unordered_range(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type const* first, object_type const* last);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void add_unordered_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag& i, object_type const* first, object_type const* last);
 
-template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
-void remove_unsorted_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void remove_unsorted_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag i, object_type obj);
 
 //sorted interface
-template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
-void add_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void add_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag& i, object_type obj);
 
-template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
-void add_unique_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void add_unique_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag& i, object_type obj);
 
 //range passed must already be sorted
-template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
-void add_ordered_range(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type const* first, object_type const* last);
-
-template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
-void add_unique_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void add_ordered_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag& i, object_type const* first, object_type const* last);
 
 //range passed must already be sorted and contain no duplicates
-template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
-void add_unique_ordered_range(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type const* first, object_type const* last);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void add_unique_ordered_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag& i, object_type const* first, object_type const* last);
 
-template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
-void remove_sorted_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void remove_sorted_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag i, object_type obj);
 
 //sorted interface safe from any thread
-template<typename object_type, uint32_t block_size, uint32_t contiguous_block_count, uint32_t index_size>
-bool contains_item(stable_variable_vector_storage<object_type, block_size, contiguous_block_count, index_size>& storage, stable_variable_vector_tag& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag i, object_type obj);
 
 
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>

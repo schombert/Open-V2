@@ -580,75 +580,285 @@ TEST(concurrency_tools, test_stable_2d_vector) {
 	EXPECT_EQ(1.5f, rowb[1]);
 }
 
-TEST(concurrency_tools, basic_level_stable_variable_vector_storage) {
+TEST(concurrency_tools, stable_variable_vector_storage_basic_test) {
+	stable_variable_vector_storage_mk_2<float, 4, 1024> test_vec;
+
+	EXPECT_EQ(0ui32, test_vec.first_free);
+
+	auto new_small = test_vec.make_new(1);
+	EXPECT_EQ(0ui32, new_small);
+	EXPECT_EQ(4ui32, get_capacity(test_vec, new_small));
+	EXPECT_EQ(0ui32, get_size(test_vec, new_small));
+
+	EXPECT_EQ(3ui32, test_vec.first_free);
+
+	EXPECT_EQ(null_value_of<decltype(new_small)>, test_vec.free_lists[2]);
+
+	auto new_small_range = get_range(test_vec, new_small);
+	EXPECT_EQ(new_small_range.first, new_small_range.second);
+	EXPECT_NE(nullptr, new_small_range.first);
+
+	push_back(test_vec, new_small, 1.0f);
+
+	EXPECT_EQ(0ui32, new_small);
+	EXPECT_EQ(4ui32, get_capacity(test_vec, new_small));
+	EXPECT_EQ(1ui32, get_size(test_vec, new_small));
+
+	push_back(test_vec, new_small, 2.0f);
+	push_back(test_vec, new_small, 3.0f);
+	push_back(test_vec, new_small, 4.0f);
+
+	EXPECT_EQ(0ui32, new_small);
+	EXPECT_EQ(4ui32, get_capacity(test_vec, new_small));
+	EXPECT_EQ(4ui32, get_size(test_vec, new_small));
+
+	auto new_small_range_b = get_range(test_vec, new_small);
+	EXPECT_NE(new_small_range_b.first, new_small_range_b.second);
+	EXPECT_EQ(ptrdiff_t(4), new_small_range_b.second - new_small_range_b.first);
+	EXPECT_EQ(1.0f, *(new_small_range_b.first));
+	EXPECT_EQ(2.0f, *(new_small_range_b.first + 1));
+	EXPECT_EQ(3.0f, *(new_small_range_b.first + 2));
+	EXPECT_EQ(4.0f, *(new_small_range_b.first + 3));
+
+	EXPECT_EQ(null_value_of<decltype(new_small)>, test_vec.free_lists[2]);
+
+	push_back(test_vec, new_small, 5.0f);
+
+	EXPECT_EQ(3ui32, new_small);
+	EXPECT_EQ(8ui32, get_capacity(test_vec, new_small));
+	EXPECT_EQ(5ui32, get_size(test_vec, new_small));
+
+	EXPECT_EQ(8ui32, test_vec.first_free);
+	EXPECT_EQ(0ui32, test_vec.free_lists[2]);
+
+	auto new_small_range_c = get_range(test_vec, new_small);
+	EXPECT_EQ(ptrdiff_t(5), new_small_range_c.second - new_small_range_c.first);
+
+	EXPECT_EQ(1.0f, *(new_small_range_c.first));
+	EXPECT_EQ(2.0f, *(new_small_range_c.first + 1));
+	EXPECT_EQ(3.0f, *(new_small_range_c.first + 2));
+	EXPECT_EQ(4.0f, *(new_small_range_c.first + 3));
+	EXPECT_EQ(5.0f, *(new_small_range_c.first + 4));
+}
+
+TEST(concurrency_tools, stable_variable_vector_storage_free_list) {
+	stable_variable_vector_storage_mk_2<float, 4, 1024> test_vec;
+
+	auto new_small = test_vec.make_new(4);
+	EXPECT_EQ(0ui32, new_small);
+	EXPECT_EQ(4ui32, get_capacity(test_vec, new_small));
+	EXPECT_EQ(0ui32, get_size(test_vec, new_small));
+	EXPECT_EQ(3ui32, test_vec.first_free);
+
+	auto new_small_b = test_vec.make_new(4);
+	EXPECT_EQ(3ui32, new_small_b);
+	EXPECT_EQ(6ui32, test_vec.first_free);
+
+	EXPECT_EQ(null_value_of<decltype(new_small)>, test_vec.free_lists[2]);
+
+	test_vec.release(new_small_b);
+	EXPECT_EQ(null_value_of<decltype(new_small)>, new_small_b);
+	EXPECT_EQ(3ui32, test_vec.free_lists[2]);
+
+	test_vec.release(new_small);
+	EXPECT_EQ(null_value_of<decltype(new_small)>, new_small);
+	EXPECT_EQ(0ui32, test_vec.free_lists[2]);
+
+	auto new_small_c = test_vec.make_new(1);
+	EXPECT_EQ(0ui32, new_small_c);
+	EXPECT_EQ(6ui32, test_vec.first_free);
+	EXPECT_EQ(3ui32, test_vec.free_lists[2]);
+
+	auto new_small_d = test_vec.make_new(1);
+	EXPECT_EQ(3ui32, new_small_d);
+	EXPECT_EQ(6ui32, test_vec.first_free);
+	EXPECT_EQ(null_value_of<decltype(new_small)>, test_vec.free_lists[2]);
+}
+
+TEST(concurrency_tools, stable_variable_vector_storage_unsorted_interface) {
+	stable_variable_vector_storage_mk_2<float, 4, 1024> test_vec;
+
+	auto new_small = test_vec.make_new(7);
+	EXPECT_EQ(0ui32, new_small);
+	EXPECT_EQ(8ui32, get_capacity(test_vec, new_small));
+	EXPECT_EQ(0ui32, get_size(test_vec, new_small));
+	EXPECT_EQ(5ui32, test_vec.first_free);
+
+	push_back(test_vec, new_small, 1.0f);
+
+	EXPECT_EQ(1ui32, get_size(test_vec, new_small));
+	EXPECT_EQ(8ui32, get_capacity(test_vec, new_small));
+	EXPECT_EQ(1.0f, get(test_vec, new_small, 0));
+
+	push_back(test_vec, new_small, 2.0f);
+	EXPECT_EQ(2ui32, get_size(test_vec, new_small));
+	EXPECT_EQ(8ui32, get_capacity(test_vec, new_small));
+	EXPECT_EQ(1.0f, get(test_vec, new_small, 0));
+	EXPECT_EQ(2.0f, get(test_vec, new_small, 1));
+
+	pop_back(test_vec, new_small);
+	EXPECT_EQ(1ui32, get_size(test_vec, new_small));
+	EXPECT_EQ(8ui32, get_capacity(test_vec, new_small));
+	EXPECT_EQ(1.0f, get(test_vec, new_small, 0));
+
+	float test_vals[] = { 4.0f, 8.0f, 16.0f, 32.0f, 1.0f, 2.0f, 3.0f, 4.0f };
+
+	add_unordered_range(test_vec, new_small, test_vals, test_vals + 8);
+	EXPECT_EQ(5ui32, new_small);
+	EXPECT_EQ(14ui32, test_vec.first_free);
+	EXPECT_EQ(0ui32, test_vec.free_lists[3]);
+
+	EXPECT_EQ(9ui32, get_size(test_vec, new_small));
+	EXPECT_EQ(16ui32, get_capacity(test_vec, new_small));
+	EXPECT_EQ(1.0f, get(test_vec, new_small, 0));
+	EXPECT_EQ(4.0f, get(test_vec, new_small, 1));
+	EXPECT_EQ(8.0f, get(test_vec, new_small, 2));
+	EXPECT_EQ(4.0f, get(test_vec, new_small, 8));
+
+	remove_unsorted_item(test_vec, new_small, 8.0f);
+
+	EXPECT_EQ(8ui32, get_size(test_vec, new_small));
+	EXPECT_EQ(16ui32, get_capacity(test_vec, new_small));
+	EXPECT_EQ(1.0f, get(test_vec, new_small, 0));
+	EXPECT_EQ(4.0f, get(test_vec, new_small, 1));
+	EXPECT_EQ(4.0f, get(test_vec, new_small, 2));
+	EXPECT_EQ(3.0f, get(test_vec, new_small, 7));
+
+	remove_unsorted_item(test_vec, new_small, 7.0f);
+
+	EXPECT_EQ(8ui32, get_size(test_vec, new_small));
+	EXPECT_EQ(16ui32, get_capacity(test_vec, new_small));
+	EXPECT_EQ(1.0f, get(test_vec, new_small, 0));
+	EXPECT_EQ(4.0f, get(test_vec, new_small, 1));
+	EXPECT_EQ(4.0f, get(test_vec, new_small, 2));
+	EXPECT_EQ(3.0f, get(test_vec, new_small, 7));
+}
+
+TEST(concurrency_tools, stable_variable_vector_storage_sorted_interface) {
+	stable_variable_vector_storage_mk_2<float, 4, 1024> test_vec;
+
 	{
-		stable_variable_vector_storage<float, 4, 8, 4> test_vec;
-		test_vec.index_array[0] = (float*)_aligned_malloc(sizeof(float) * 4 * 8 + sizeof(detail::array_chunk) * 8, 64);
+		//multimap
+		auto new_small = test_vec.make_new(7);
+		EXPECT_EQ(0ui32, new_small);
+		EXPECT_EQ(8ui32, get_capacity(test_vec, new_small));
+		EXPECT_EQ(0ui32, get_size(test_vec, new_small));
+		EXPECT_EQ(5ui32, test_vec.first_free);
 
-		detail::array_chunk* fblock = (detail::array_chunk*)(test_vec.index_array[0] + 4 * 8);
+		add_item(test_vec, new_small, 3.0f);
+		add_item(test_vec, new_small, 1.0f);
+		add_item(test_vec, new_small, 4.5f);
+		add_item(test_vec, new_small, 3.0f);
 
-		*fblock = detail::array_chunk{ 0ui16, 0ui16, 0ui16, 1ui16 };
+		EXPECT_EQ(0ui32, new_small);
+		EXPECT_EQ(8ui32, get_capacity(test_vec, new_small));
+		EXPECT_EQ(4ui32, get_size(test_vec, new_small));
+		EXPECT_EQ(1.0f, get(test_vec, new_small, 0));
+		EXPECT_EQ(3.0f, get(test_vec, new_small, 1));
+		EXPECT_EQ(3.0f, get(test_vec, new_small, 2));
+		EXPECT_EQ(4.5f, get(test_vec, new_small, 3));
 
-		detail::push_chunk_to_free_list(test_vec, 1ui16, fblock);
+		float test_vals[] = { 1.0f, 3.0f, 5.0f, 7.0f, 10.5f };
 
-		EXPECT_EQ(uint16_t( 1ui16 | detail::array_chunk::is_free), fblock->size_and_use);
-		EXPECT_EQ(1ui16, test_vec.free_lists[0]);
+		add_ordered_range(test_vec, new_small, test_vals, test_vals + 5);
 
-		*(fblock + 1) = detail::array_chunk{ 0ui16, 0ui16, 0ui16, 1ui16 };
-		detail::push_chunk_to_free_list(test_vec, 2ui16, fblock + 1);
+		EXPECT_EQ(5ui32, new_small);
+		EXPECT_EQ(16ui32, get_capacity(test_vec, new_small));
+		EXPECT_EQ(9ui32, get_size(test_vec, new_small));
 
-		EXPECT_EQ(uint16_t(1ui16 | detail::array_chunk::is_free), (fblock + 1)->size_and_use);
-		EXPECT_EQ(2ui16, test_vec.free_lists[0]);
-		EXPECT_EQ(2ui16, fblock->previous_in_free_list);
-		EXPECT_EQ(1ui16, (fblock + 1)->next_in_free_list);
+		EXPECT_EQ(1.0f, get(test_vec, new_small, 0));
+		EXPECT_EQ(1.0f, get(test_vec, new_small, 1));
+		EXPECT_EQ(3.0f, get(test_vec, new_small, 2));
+		EXPECT_EQ(3.0f, get(test_vec, new_small, 3));
+		EXPECT_EQ(3.0f, get(test_vec, new_small, 4));
+		EXPECT_EQ(4.5f, get(test_vec, new_small, 5));
+		EXPECT_EQ(5.0f, get(test_vec, new_small, 6));
+		EXPECT_EQ(7.0f, get(test_vec, new_small, 7));
+		EXPECT_EQ(10.5f, get(test_vec, new_small, 8));
 
-		*(fblock + 2) = detail::array_chunk{ 0ui16, 0ui16, 0ui16, 1ui16 };
-		detail::push_chunk_to_free_list(test_vec, 3ui16, fblock + 2);
+		EXPECT_EQ(true, contains_item(test_vec, new_small, 3.0f));
+		EXPECT_EQ(true, contains_item(test_vec, new_small, 1.0f));
+		EXPECT_EQ(true, contains_item(test_vec, new_small, 10.5f));
+		EXPECT_EQ(false, contains_item(test_vec, new_small, 0.0f));
+		EXPECT_EQ(false, contains_item(test_vec, new_small, 20.0f));
+		EXPECT_EQ(false, contains_item(test_vec, new_small, 6.0f));
 
-		detail::remove_chunk_from_free_list(test_vec, (fblock + 1));
+		remove_sorted_item(test_vec, new_small, 3.0f);
 
-		EXPECT_EQ(3ui16, test_vec.free_lists[0]);
-		EXPECT_EQ(3ui16, fblock->previous_in_free_list);
-		EXPECT_EQ(1ui16, (fblock + 2)->next_in_free_list);
+		EXPECT_EQ(8ui32, get_size(test_vec, new_small));
 
-		EXPECT_EQ(0ui16, (fblock + 1)->next_in_free_list);
-		EXPECT_EQ(0ui16, (fblock + 1)->previous_in_free_list);
-		EXPECT_EQ(1ui16, (fblock + 1)->size_and_use);
+		EXPECT_EQ(1.0f, get(test_vec, new_small, 0));
+		EXPECT_EQ(1.0f, get(test_vec, new_small, 1));
+		EXPECT_EQ(3.0f, get(test_vec, new_small, 2));
+		EXPECT_EQ(3.0f, get(test_vec, new_small, 3));
+		EXPECT_EQ(4.5f, get(test_vec, new_small, 4));
+		EXPECT_EQ(5.0f, get(test_vec, new_small, 5));
+		EXPECT_EQ(7.0f, get(test_vec, new_small, 6));
+		EXPECT_EQ(10.5f, get(test_vec, new_small, 7));
 
-		detail::remove_chunk_from_free_list(test_vec, (fblock + 2));
+		remove_sorted_item(test_vec, new_small, 10.5f);
 
-		EXPECT_EQ(1ui16, test_vec.free_lists[0]);
-		EXPECT_EQ(0ui16, fblock->previous_in_free_list);
+		EXPECT_EQ(7ui32, get_size(test_vec, new_small));
 
-		detail::push_chunk_to_free_list(test_vec, 2ui16, fblock + 1);
+		EXPECT_EQ(1.0f, get(test_vec, new_small, 0));
+		EXPECT_EQ(1.0f, get(test_vec, new_small, 1));
+		EXPECT_EQ(3.0f, get(test_vec, new_small, 2));
+		EXPECT_EQ(3.0f, get(test_vec, new_small, 3));
+		EXPECT_EQ(4.5f, get(test_vec, new_small, 4));
+		EXPECT_EQ(5.0f, get(test_vec, new_small, 5));
+		EXPECT_EQ(7.0f, get(test_vec, new_small, 6));
 
-		EXPECT_EQ(uint16_t(1ui16 | detail::array_chunk::is_free), (fblock + 1)->size_and_use);
-		EXPECT_EQ(2ui16, test_vec.free_lists[0]);
-		EXPECT_EQ(2ui16, fblock->previous_in_free_list);
-		EXPECT_EQ(1ui16, (fblock + 1)->next_in_free_list);
+		remove_sorted_item(test_vec, new_small, 1.0f);
+		remove_sorted_item(test_vec, new_small, 1.0f);
 
-		detail::pop_chunk_from_free_list(test_vec, 0);
+		EXPECT_EQ(5ui32, get_size(test_vec, new_small));
 
-		EXPECT_EQ(1ui16, test_vec.free_lists[0]);
-		EXPECT_EQ(0ui16, fblock->previous_in_free_list);
-		EXPECT_EQ(1ui16, (fblock + 1)->size_and_use);
+		EXPECT_EQ(3.0f, get(test_vec, new_small, 0));
+		EXPECT_EQ(3.0f, get(test_vec, new_small, 1));
+		EXPECT_EQ(4.5f, get(test_vec, new_small, 2));
+		EXPECT_EQ(5.0f, get(test_vec, new_small, 3));
+		EXPECT_EQ(7.0f, get(test_vec, new_small, 4));
 
-		detail::pop_chunk_from_free_list(test_vec, 0);
-		EXPECT_EQ(0ui16, test_vec.free_lists[0]);
-		EXPECT_EQ(1ui16, (fblock)->size_and_use);
+		EXPECT_EQ(true, contains_item(test_vec, new_small, 3.0f));
+		EXPECT_EQ(false, contains_item(test_vec, new_small, 1.0f));
+		EXPECT_EQ(false, contains_item(test_vec, new_small, 10.5f));
+
+		test_vec.release(new_small);
 	}
 
 	{
-		stable_variable_vector_storage<float, 4, 8, 4> test_vec;
-		detail::make_new_backing_buffer(test_vec, 0, 1);
+		auto new_small = test_vec.make_new(7);
+		EXPECT_EQ(0ui32, new_small);
+		EXPECT_EQ(8ui32, get_capacity(test_vec, new_small));
+		EXPECT_EQ(0ui32, get_size(test_vec, new_small));
 
-		EXPECT_NE(nullptr, test_vec.index_array[0]);
-		EXPECT_EQ(0.0f, test_vec.index_array[0][0]);
+		add_unique_item(test_vec, new_small, 3.0f);
+		add_unique_item(test_vec, new_small, 1.0f);
+		add_unique_item(test_vec, new_small, 4.5f);
+		add_unique_item(test_vec, new_small, 3.0f);
 
-		detail::array_chunk* fblock = (detail::array_chunk*)(test_vec.index_array[0] + 4 * 8);
-		EXPECT_EQ(0ui16, fblock->local_left_chunk);
-		EXPECT_EQ(0ui16, fblock->previous_in_free_list);
-		EXPECT_EQ(0ui16, fblock->next_in_free_list);
-		EXPECT_EQ(1ui16, fblock->size_and_use);
+		EXPECT_EQ(0ui32, new_small);
+		EXPECT_EQ(8ui32, get_capacity(test_vec, new_small));
+		EXPECT_EQ(3ui32, get_size(test_vec, new_small));
+		EXPECT_EQ(1.0f, get(test_vec, new_small, 0));
+		EXPECT_EQ(3.0f, get(test_vec, new_small, 1));
+		EXPECT_EQ(4.5f, get(test_vec, new_small, 2));
+
+		float test_vals[] = { 0.0f, 1.0f, 3.0f, 5.0f, 7.0f, 10.5f, 20.0f, 100.0f };
+
+		add_unique_ordered_range(test_vec, new_small, test_vals, test_vals + 8);
+
+		EXPECT_EQ(16ui32, get_capacity(test_vec, new_small));
+		EXPECT_EQ(9ui32, get_size(test_vec, new_small));
+
+		EXPECT_EQ(0.0f, get(test_vec, new_small, 0));
+		EXPECT_EQ(1.0f, get(test_vec, new_small, 1));
+		EXPECT_EQ(3.0f, get(test_vec, new_small, 2));
+		EXPECT_EQ(4.5f, get(test_vec, new_small, 3));
+		EXPECT_EQ(5.0f, get(test_vec, new_small, 4));
+		EXPECT_EQ(7.0f, get(test_vec, new_small, 5));
+		EXPECT_EQ(10.5f, get(test_vec, new_small, 6));
+		EXPECT_EQ(20.0f, get(test_vec, new_small, 7));
+		EXPECT_EQ(100.0f, get(test_vec, new_small, 8));
 	}
 }
