@@ -10,6 +10,9 @@ namespace scenario {
 namespace events {
 	struct event_creation_manager;
 }
+namespace nations {
+	struct nation;
+}
 
 namespace population {
 
@@ -117,6 +120,22 @@ namespace population {
 	struct pop {
 		pop_type_tag type;
 		pop_tag id;
+	};
+
+	struct rebel_faction {
+		set_tag<provinces::province_tag> controlled_provinces;
+
+		cultures::national_tag independence_tag; // or pan nationalist union tag
+
+		rebel_faction_tag id;
+		uint16_t flags = 0ui16; // copied from rebel type
+
+		uint8_t icon = 0ui8; // copied from rebel type
+		rebel_type_tag type;
+	};
+
+	class population_state {
+		stable_vector<rebel_faction, rebel_faction_tag, 2056, 16> rebel_factions;
 	};
 
 	class population_manager {

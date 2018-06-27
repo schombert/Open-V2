@@ -392,4 +392,37 @@ namespace serialization {
 				return serialize_size(std::get<0>(obj)) + serialize_size(std::get<1>(obj)) + serialize_size(std::get<2>(obj));
 		}
 	};
+
+	class serialize_file_wrapper {
+	private:
+		void* file_handle = nullptr;
+		void* mapping_handle = nullptr;
+		void* mapped_bytes = nullptr;
+	public:
+		serialize_file_wrapper(std::u16string const& file_name);
+		serialize_file_wrapper(std::u16string const& file_name, size_t size);
+		~serialize_file_wrapper();
+
+		std::byte* get_bytes() const;
+		bool file_valid() const;
+	};
+
+	template<typename T, typename ... CONTEXT>
+	void serialize_to_file(std::u16string const& file_name, T const& obj, CONTEXT&& ... c) {
+		const auto fsize = serialize_size(obj);
+		serialize_file_wrapper file(file_name, fsize);
+
+		auto ptr = file.get_bytes();
+		serialize(ptr, obj, std::forward<CONTEXT>(c) ...);
+	}
+
+	template<typename T, typename ... CONTEXT>
+	void deserialize_from_file(std::u16string const& file_name, T& obj, CONTEXT&& ... c) {
+		serialize_file_wrapper file(file_name);
+
+		if(file.file_valid()) {
+			std::byte const* ptr = file.get_bytes();
+			deserialize(ptr, obj, std::forward<CONTEXT>(c) ...);
+		}
+	}
 }

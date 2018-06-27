@@ -1381,6 +1381,8 @@ int main(int , char **) {
 
 	delete[] rd;*/
 
+	/*
+
 	std::cout << "begin scenario read" << std::endl << std::flush;
 	auto const color_terrain_map = scenario::read_scenario(s1, fs.get_root());
 	std::cout << "end scenario read" << std::endl << std::flush;
@@ -1391,70 +1393,6 @@ int main(int , char **) {
 	provinces::provinces_state pstate;
 	pstate.province_state_container.resize(s1.province_m.province_container.size());
 	provinces::assign_terrain_color(pstate, p_to_t_vector, color_terrain_map);
-
-	// BEGIN MAKING NEW TERRAIN MAP
-
-	/*
-	std::map<modifiers::provincial_modifier_tag, uint8_t> reverse_terrain_color_map;
-	for(uint32_t i = 0; i < 256; ++i) {
-		reverse_terrain_color_map[color_terrain_map.data[i]] = static_cast<uint8_t>(i);
-	}
-
-	const auto map_dir = fs.get_root().get_directory(u"\\map");
-	auto fi = map_dir.open_file(u"provinces_b.png");
-
-	if(fi) {
-		const auto sz = fi->size();
-		std::unique_ptr<char[]> file_data = std::unique_ptr<char[]>(new char[sz]);
-		fi->read_to_buffer(file_data.get(), sz);
-
-		int32_t channels = 3;
-		int32_t new_width = 0;
-		int32_t new_height = 0;
-		const auto raw_data = SOIL_load_image_from_memory((unsigned char*)(file_data.get()), static_cast<int32_t>(sz), &new_width, &new_height, &channels, 3);
-
-		std::unique_ptr<char[]> output_file_data = std::unique_ptr<char[]>(new char[size_t(new_width * new_height)]);
-		uint8_t* output_file_data_b = (uint8_t *)output_file_data.get();
-
-		const auto color_mapping = provinces::read_province_definition_file(fs.get_root());
-
-		const auto last = new_width * new_height - 1;
-		uint32_t previous_color_index = provinces::rgb_to_prov_index(raw_data[last * 3 + 0], raw_data[last * 3 + 1], raw_data[last * 3 + 2]);
-
-		uint8_t prev_result = 254ui8;
-
-		if(auto it = color_mapping.find(previous_color_index); it != color_mapping.end()) {
-			prev_result = reverse_terrain_color_map[pstate.province_state_container[it->second].terrain];
-			output_file_data_b[static_cast<size_t>(last)] = prev_result;
-		}
-
-		for(int32_t t = new_width * new_height - 2; t >= 0; --t) {
-			uint32_t color_index = provinces::rgb_to_prov_index(raw_data[t * 3 + 0], raw_data[t * 3 + 1], raw_data[t * 3 + 2]);
-			if(color_index == previous_color_index) {
-				output_file_data_b[static_cast<size_t>(t)] = prev_result;
-			} else {
-				previous_color_index = color_index;
-				if(auto it = color_mapping.find(color_index); it != color_mapping.end()) {
-					prev_result = reverse_terrain_color_map[pstate.province_state_container[it->second].terrain];
-					output_file_data_b[static_cast<size_t>(t)] = prev_result;
-				} else {
-					prev_result = 254ui8;
-					output_file_data_b[static_cast<size_t>(t)] = 254ui8;
-				}
-			}
-		}
-
-		SOIL_save_image(
-			"D:\\programs\\V2\\map\\new_terrain.bmp",
-			SOIL_SAVE_TYPE_BMP,
-			new_width, new_height, 1,
-			output_file_data_b
-		);
-
-		SOIL_free_image_data(raw_data);
-	}
-	*/
-	//END MAKING NEW TERRAIN MAP
 
 	std::cout << "end map read" << std::endl << std::flush;
 
@@ -1469,15 +1407,18 @@ int main(int , char **) {
 	std::cout << s_size << " bytes " << s_size / 1024 << " KB " << s_size / (1024 * 1024) << " MB" << std::endl;
 
 	std::vector<std::byte> sdata(s_size);
-	auto ptr = sdata.data();
+	//auto ptr = sdata.data();
 
 	std::cout << "begin serialize" << std::endl << std::flush;
-	serialization::serialize(ptr, s1);
+	//serialization::serialize(ptr, s1);
+	serialization::serialize_to_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", s1);
 	std::cout << "end serialize" << std::endl << std::flush;
+	*/
 
-	std::byte const* optr = sdata.data();
+	//std::byte const* optr = sdata.data();
 	std::cout << "begin deserialize" << std::endl << std::flush;
-	serialization::deserialize(optr, s2);
+	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", s2);
+	//serialization::deserialize(optr, s2);
 	std::cout << "end deserialize" << std::endl << std::flush;
 
 	scenario::ready_scenario(s2, fs.get_root());

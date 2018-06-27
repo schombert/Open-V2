@@ -2,22 +2,34 @@
 #include <stdint.h>
 #include "common\\common.h"
 #include "common\\shared_tags.h"
+#include "concurrency_tools\\concurrency_tools.hpp"
 
 namespace modifiers {
 	class modifiers_manager;
 }
 
+namespace nations {
+	struct nation;
+	struct state_instance;
+}
+
 namespace provinces {
 
 	struct province_state {
-		void* owner = nullptr; // 8
-		void* controller = nullptr; // 16
+		nations::nation* owner = nullptr; // 8
+		nations::nation* controller = nullptr; // 16
 		void* rebel_controller = nullptr; // 24
-		void* state_instance = nullptr; // 32
+		nations::state_instance* state_instance = nullptr; // 32
 
 		atomic_tag<date_tag> last_update; // 36
 		float nationalism = 0.0f; // 40
 		date_tag last_controller_change; // 44
+
+		set_tag<cultures::national_tag> cores;
+		stable_mk_2_tag units = null_value_of<stable_mk_2_tag>;
+		stable_mk_2_tag pops = null_value_of<stable_mk_2_tag>;
+		set_tag<modifiers::provincial_modifier_tag> static_modifiers;
+		array_tag<timed_provincial_modifier> timed_modifiers;
 
 		modifiers::provincial_modifier_tag crime; // 46
 		modifiers::provincial_modifier_tag terrain; // 48
@@ -34,7 +46,10 @@ namespace provinces {
 		uint8_t rgo_size = 1ui8; // 57
 	};
 
-	static_assert(sizeof(province_state) == 64); //IMPORTANT: 1 cache line
+	struct timed_provincial_modifier {
+		date_tag expiration;
+		modifiers::provincial_modifier_tag mod;
+	};
 
 	struct province {
 		constexpr static uint16_t sea = 0x0001;
@@ -54,9 +69,24 @@ namespace provinces {
 		uint16_t flags = 0;
 	};
 
+	
+
 	class provinces_state {
 	public:
 		tagged_vector<province_state, province_tag> province_state_container;
+		tagged_fixed_blocked_2dvector<modifiers::value_type, province_tag, uint32_t, aligned_allocator_32<modifiers::value_type>> provincial_modifiers;
+		tagged_fixed_2dvector<float, province_tag, ideologies::ideology_tag> party_loyalty;
+
+		stable_variable_vector_storage_mk_2<cultures::national_tag, 4, 8192> core_arrays;
+		stable_variable_vector_storage_mk_2<modifiers::provincial_modifier_tag, 4, 8192> static_modifier_arrays;
+		stable_variable_vector_storage_mk_2<timed_provincial_modifier, 4, 8192> timed_modifier_arrays;
+
+		stable_variable_vector_storage_mk_2<province_tag, 4, 8192> province_arrays;
+
+		// backs:
+		//  nation -> owned provinces
+		//  nation -> controlled provinces
+		//  tag -> core provinces
 	};
 
 	class province_manager {

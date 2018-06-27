@@ -137,6 +137,17 @@ object_type& stable_vector<object_type, index_type, block_size, index_size>::get
 }
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
+template<typename T>
+void stable_vector<object_type, index_type, block_size, index_size>::for_each(T const& f) {
+	for(uint32_t i = 0; i < indices_in_use; ++i) {
+		for(uint32_t j = 0; j < block_size; ++j) {
+			if(is_valid_index((index_array[i])[j].id))
+				f((index_array[i])[j]);
+		}
+	}
+}
+
+template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
 bool stable_vector<object_type, index_type, block_size, index_size>::is_valid_index(index_type i) {
 	const auto block_num = to_index(i) >> ct_log2(block_size);
 	return ::is_valid_index(i) & (block_num < indices_in_use);
@@ -298,6 +309,152 @@ bool stable_2d_vector<object_type, outer_index_type, inner_index_type, block_siz
 	return block_num < indices_in_use;
 }
 
+
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, set_tag<object_type> i) {
+	return get_range(storage, i.value);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type> i) {
+	return get_range(storage, i.value);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, array_tag<object_type> i) {
+	return get_range(storage, i.value);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+object_type& get(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, set_tag<object_type> i, uint32_t inner_index) {
+	return get(storage, i.value, inner_index);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+uint32_t get_capacity(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, set_tag<object_type> i) {
+	return get_capacity(storage, i.value);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+uint32_t get_size(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, set_tag<object_type> i) {
+	return get_size(storage, i.value);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+object_type& get(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type> i, uint32_t inner_index) {
+	return get(storage, i.value, inner_index);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+uint32_t get_capacity(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type> i) {
+	return get_capacity(storage, i.value);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+uint32_t get_size(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type> i) {
+	return get_size(storage, i.value);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+object_type& get(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, array_tag<object_type> i, uint32_t inner_index) {
+	return get(storage, i.value, inner_index);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+uint32_t get_capacity(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, array_tag<object_type> i) {
+	return get_capacity(storage, i.value);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+uint32_t get_size(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, array_tag<object_type> i) {
+	return get_size(storage, i.value);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void add_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i, object_type obj) {
+	push_back(storage, i.value, obj);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void add_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i, object_type obj) {
+	add_unique_item(storage, i.value, obj);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void add_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type obj) {
+	add_item(storage, i.value, obj);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void remove_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i, object_type obj) {
+	remove_unsorted_item(storage, i.value, obj);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void remove_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i, object_type obj) {
+	remove_sorted_item(storage, i.value, obj);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void remove_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type obj) {
+	remove_sorted_item(storage, i.value, obj);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i, object_type obj) {
+	const auto rng = get_range(storage, i.value);
+	return std::find(rng.first, rng.second, obj) != rng.second;
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i, object_type obj) {
+	return contains_item(storage, i.value, obj);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type obj) {
+	return contains_item(storage, i.value, obj);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void add_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i, object_type const* first, object_type const* last) {
+	add_unordered_range(storage, i.value, first, last);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void add_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i, object_type const* first, object_type const* last) {
+	add_unique_ordered_range(storage, i.value, first, last);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void add_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type const* first, object_type const* last) {
+	add_ordered_range(storage, i.value, first, last);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void clear(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i) {
+	storage.release(i.value);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void clear(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i) {
+	storage.release(i.value);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void clear(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i) {
+	storage.release(i.value);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void shrink(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i) {
+	storage.shrink_capacity(i.value);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void shrink(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i) {
+	storage.shrink_capacity(i.value);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void shrink(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i) {
+	storage.shrink_capacity(i.value);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i, object_type obj) {
+	const auto rng = get_range(storage, i.value);
+	const auto d = std::find(rng.first, rng.second, obj);
+	if(f == rng.second)
+		return nullptr;
+	return f;
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i, object_type obj) {
+	const auto rng = get_range(storage, i.value);
+	const auto lb = std::lower_bound(rng.first, rng.second, obj);
+	if(*lb == obj)
+		return lb;
+	return nullptr;
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+object_type& find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type obj) {
+	const auto rng = get_range(storage, i.value);
+	const auto lb = std::lower_bound(rng.first, rng.second, obj);
+	if(*lb == obj)
+		return lb;
+	return nullptr;
+}
 
 namespace detail {
 	struct alignas(8) mk_2_header {

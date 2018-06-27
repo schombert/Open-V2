@@ -256,6 +256,9 @@ public:
 	object_type& safe_get(index_type i); // single thread only
 	object_type& get_new(); // single thread only
 	void remove(index_type i); // single thread only
+
+	template<typename T>
+	void for_each(T const& f);
 };
 
 template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
@@ -366,6 +369,73 @@ void remove_sorted_item(stable_variable_vector_storage_mk_2<object_type, minimum
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag i, object_type obj);
 
+
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, set_tag<object_type> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, array_tag<object_type> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+object_type& get(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, set_tag<object_type> i, uint32_t inner_index);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+uint32_t get_capacity(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, set_tag<object_type> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+uint32_t get_size(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, set_tag<object_type> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+object_type& get(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type> i, uint32_t inner_index);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+uint32_t get_capacity(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+uint32_t get_size(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+object_type& get(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, array_tag<object_type> i, uint32_t inner_index);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+uint32_t get_capacity(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, array_tag<object_type> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+uint32_t get_size(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, array_tag<object_type> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void add_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void add_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void add_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void remove_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void remove_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void remove_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void add_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i, object_type const* first, object_type const* last);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void add_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i, object_type const* first, object_type const* last);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void add_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type const* first, object_type const* last);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void clear(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void clear(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void clear(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void shrink(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void shrink(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void shrink(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type obj);
 
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 class fixed_sz_deque_iterator {

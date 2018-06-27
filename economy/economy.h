@@ -51,9 +51,9 @@ namespace economy {
 
 	struct factory_type {
 		
-		employee_data workers[3];
+		employee_data workers[3] = {};
 		owner_data owner;
-		bonus bonuses[4];
+		bonus bonuses[4] = {};
 
 		economy::goods_qnty_type output_amount = economy::goods_qnty_type(1);
 
@@ -86,7 +86,7 @@ namespace economy {
 
 	struct rgo_information {
 		owner_data owner;
-		employee_data workers[3];
+		employee_data workers[3] = {};
 		uint32_t workforce = 40000;
 	};
 
@@ -105,6 +105,16 @@ namespace economy {
 		uint32_t colonial_range = 50;
 		float local_ship_build = -0.1f;
 		uint32_t colonial_points[8] = {30,50,70,90,110,130,150,170};
+	};
+
+	struct factory_instance {
+		factory_type* type = nullptr;
+		uint16_t level = 0;
+	};
+
+	class economic_state {
+	public:
+
 	};
 
 	class economic_scenario {

@@ -121,6 +121,47 @@ using zero_is_null_of = typename zero_is_null_of_s<T>::type;
 template<typename T>
 using individuator_of = typename individuator_of_s<T>::type;
 
+
+
+template<typename individuator>
+struct array_tag : public tag_type<uint32_t, std::false_type, individuator> {};
+
+template<typename individuator>
+constexpr uint32_t null_value_of<array_tag<individuator>> = std::numeric_limits<uint32_t>::max();
+
+template<typename individuator>
+constexpr uint32_t to_index(array_tag<individuator> in) { return in.value; }
+
+template<typename individuator>
+constexpr bool is_valid_index(array_tag<individuator> in) { return in.value != std::numeric_limits<uint32_t>::max(); }
+
+
+template<typename individuator>
+struct set_tag : public tag_type<uint32_t, std::false_type, individuator> {};
+
+template<typename individuator>
+constexpr uint32_t null_value_of<set_tag<individuator>> = std::numeric_limits<uint32_t>::max();
+
+template<typename individuator>
+constexpr uint32_t to_index(set_tag<individuator> in) { return in.value; }
+
+template<typename individuator>
+constexpr bool is_valid_index(set_tag<individuator> in) { return in.value != std::numeric_limits<uint32_t>::max(); }
+
+
+template<typename individuator>
+struct multiset_tag : public tag_type<uint32_t, std::false_type, individuator> {};
+
+template<typename individuator>
+constexpr uint32_t null_value_of<multiset_tag<individuator>> = std::numeric_limits<uint32_t>::max();
+
+template<typename individuator>
+constexpr uint32_t to_index(multiset_tag<individuator> in) { return in.value; }
+
+template<typename individuator>
+constexpr bool is_valid_index(multiset_tag<individuator> in) { return in.value != std::numeric_limits<uint32_t>::max(); }
+
+
 template<typename tag_base>
 struct atomic_tag {
 	using value_base_t = value_base_of<tag_base>;

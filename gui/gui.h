@@ -19,7 +19,10 @@ namespace graphics {
 	struct object;
 }
 
+
 class world_state;
+
+using world_state::world_state;
 
 namespace ui {
 	struct rbutton_down;

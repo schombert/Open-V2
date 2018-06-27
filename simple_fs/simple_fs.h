@@ -4,7 +4,7 @@
 #include <vector>
 #include <variant>
 #include <optional>
-
+#include "simple_serialize\\simple_serialize.hpp"
 
 class _file;
 class _unopened_file;
@@ -104,4 +104,37 @@ public:
 	void add_root_relative(const std::u16string& location);
 	void pop_root();
 	const directory& get_root() const;
+};
+
+template<>
+class serialization::serializer<file_system> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	template<typename ... CONTEXT>
+	static void serialize_object(std::byte* &output, file_system const& obj, CONTEXT&& ... c) {
+		const std::vector<std::u16string> dir_list = obj.get_root().list_paths();
+		serialize(output, dir_list);
+	}
+	template<typename ... CONTEXT>
+	static void deserialize_object(std::byte const* &input, file_system& obj, CONTEXT&& ... c) {
+		std::vector<std::u16string> list_out;
+		deserialize(input, list_out);
+		if(list_out.size() != 0) {
+			std::u16string& base = list_out.front();
+			const auto base_size = base.length();
+			for(uint32_t i = 1; i < list_out.size(); ++i) {
+				if(base == std::u16string_view(list_out[i].c_str(), base_size))
+					obj.add_root_relative(list_out[i].substr(base_size));
+				else
+					obj.add_root(list_out[i]);
+			}
+		}
+
+	}
+	static size_t size(file_system const& obj) {
+		const auto dir_list = obj.get_root().list_paths();
+		return serialize_size(dir_list);
+	}
 };

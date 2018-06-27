@@ -15,24 +15,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="provinces.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="provinces_io.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="province_functions.h">
+    <ClInclude Include="world_state.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="provinces.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="provinces_io.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="province_functions.cpp">
+    <ClCompile Include="world_state.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

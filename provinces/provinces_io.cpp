@@ -5,8 +5,163 @@
 #include "modifiers\\modifiers_io.h"
 #include "soil\\SOIL.h"
 #include <Windows.h>
+#include "scenario\\scenario.h"
 
 namespace provinces {
+	using factory_level_pair = std::pair<economy::factory_type_tag, int32_t>;
+	using ideology_loyalty_pair = std::pair<ideologies::ideology_tag, float>;
+
+	struct province_history_block;
+
+	void merge_province_history_blocks(province_history_block& base_block, province_history_block const& new_block);
+
+	struct province_history_environment {
+		scenario::scenario_manager& s;
+		date_tag target_date;
+	};
+
+	struct factory_pair_reader {
+		province_history_environment& env;
+		int32_t level = 0;
+		economy::factory_type_tag building;
+
+		factory_pair_reader(province_history_environment& e) : env(e) {}
+
+		void set_building(const token_and_type& t) {
+			building = tag_from_text(
+				env.s.economy_m.named_factory_types_index,
+				text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end));
+		}
+		void discard(int) {}
+	};
+
+	struct party_loyalty_reader {
+		province_history_environment& env;
+		float loyalty_value = 0.0f;
+		ideologies::ideology_tag ideology;
+
+		party_loyalty_reader(province_history_environment& e) : env(e) {}
+
+		void set_ideology(const token_and_type& t) {
+			ideology = tag_from_text(
+				env.s.ideologies_m.named_ideology_index,
+				text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end));
+		}
+	};
+
+	inline int discard_section(token_group const*, token_group const*, province_history_environment&) {
+		return 0;
+	}
+
+	struct province_history_block {
+		province_history_environment& env;
+		province_history_block(province_history_environment& e) : env(e) {}
+
+		economy::goods_tag trade_goods;
+		std::optional<float> life_rating = std::optional<float>();
+		cultures::national_tag owner;
+		cultures::national_tag controller;
+		modifiers::provincial_modifier_tag terrain;
+		std::vector<cultures::national_tag> add_cores;
+		std::vector<cultures::national_tag> remove_cores;
+		std::vector<factory_level_pair> factories;
+		std::optional<int32_t> fort_level = std::optional<int32_t>();
+		std::optional<int32_t> naval_base_level = std::optional<int32_t>();
+		std::optional<int32_t> railroad_level = std::optional<int32_t>();
+		std::vector<ideology_loyalty_pair> party_loyalty;
+		std::optional<int32_t> colony = std::optional<int32_t>();
+
+		void discard(int) {}
+		void add_dated_block(std::pair<token_and_type, province_history_block> const& p) {
+			const auto date_tag = parse_date(p.first.start, p.first.end);
+			if(!(env.target_date < date_tag))
+				merge_province_history_blocks(*this, p.second);
+		}
+		void set_trade_goods(const token_and_type& t) {
+			trade_goods = tag_from_text(
+				env.s.economy_m.named_goods_index,
+				text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end));
+		}
+		void set_owner(const token_and_type& t) {
+			owner = tag_from_text(
+				env.s.culutre_m.national_tags_index,
+				cultures::tag_to_encoding(t.start, t.end));
+		}
+		void set_controller(const token_and_type& t) {
+			controller = tag_from_text(
+				env.s.culutre_m.national_tags_index,
+				cultures::tag_to_encoding(t.start, t.end));
+		}
+		void set_terrain(const token_and_type& t) {
+			terrain = tag_from_text(
+				env.s.modifiers_m.named_provincial_modifiers_index,
+				text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end));
+		}
+		void add_core(const token_and_type& t) {
+			add_cores.push_back(tag_from_text(
+				env.s.culutre_m.national_tags_index,
+				cultures::tag_to_encoding(t.start, t.end)));
+		}
+		void remove_core(const token_and_type& t) {
+			remove_cores.push_back(tag_from_text(
+				env.s.culutre_m.national_tags_index,
+				cultures::tag_to_encoding(t.start, t.end)));
+		}
+		void add_factory_pair(factory_pair_reader const& fp) {
+			factories.emplace_back(fp.building, fp.level);
+		}
+	};
+
+	void merge_province_history_blocks(province_history_block& base_block, province_history_block const& new_block) {
+		if(is_valid_index(new_block.trade_goods))
+			base_block.trade_goods = new_block.trade_goods;
+		if(new_block.life_rating)
+			base_block.life_rating = new_block.life_rating;
+		if(is_valid_index(new_block.owner))
+			base_block.owner = new_block.owner;
+		if(is_valid_index(new_block.controller))
+			base_block.controller = new_block.controller;
+		if(is_valid_index(new_block.terrain))
+			base_block.terrain = new_block.terrain;
+
+		base_block.add_cores.insert(base_block.add_cores.end(), new_block.add_cores.begin(), new_block.add_cores.end());
+		for(auto c : new_block.remove_cores) {
+			if(auto fr = std::find(base_block.add_cores.begin(), base_block.add_cores.end(), c); fr != base_block.add_cores.end()) {
+				*fr = base_block.add_cores.back();
+				base_block.add_cores.pop_back();
+			}
+		}
+		for(auto fa : new_block.factories) {
+			if(auto efa =
+				std::find_if(base_block.factories.begin(), base_block.factories.end(),
+					[tag = fa.first](std::pair<economy::factory_type_tag, int32_t>& p) {return p.first == tag; });
+			efa != base_block.factories.end()) {
+				efa->second = fa.second;
+			} else {
+				base_block.factories.push_back(fa);
+			}
+		}
+		if(new_block.fort_level)
+			base_block.fort_level = new_block.fort_level;
+		if(new_block.naval_base_level)
+			base_block.fort_level = new_block.naval_base_level;
+		if(new_block.railroad_level)
+			base_block.fort_level = new_block.railroad_level;
+		if(new_block.colony)
+			base_block.colony = new_block.colony;
+
+		for(auto p : new_block.party_loyalty) {
+			if(auto epl =
+				std::find_if(base_block.party_loyalty.begin(), base_block.party_loyalty.end(),
+					[tag = p.first](std::pair<ideologies::ideology_tag, float>& ip) {return ip.first == tag; });
+			epl != base_block.party_loyalty.end()) {
+				epl->second = p.second;
+			} else {
+				base_block.party_loyalty.push_back(p);
+			}
+		}
+	}
+
 	struct parsing_environment {
 		text_data::text_sequences& text_lookup;
 

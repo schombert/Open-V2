@@ -188,3 +188,34 @@ TEST_METHOD(simple_fs_tests, peek_file_b) {
 	EXPECT_TRUE(afile->size() == 0);
 	EXPECT_TRUE(bfile->size() == 0);
 }
+
+TEST(simple_fs_tests, fs_serialize) {
+	file_system f;
+
+	f.set_root(RANGE(u"D:\\VS2007Projects\\open_v2_test_data\\directories"));
+	f.add_root_relative(RANGE("new_root"));
+
+	const auto fslist = f.get_root().list_paths();
+	EXPECT_EQ(2ui64, fslist.size());
+	EXPECT_EQ(std::u16string(u"D:\\VS2007Projects\\open_v2_test_data\\directories"), fslist[0]);
+	EXPECT_EQ(std::u16string(u"D:\\VS2007Projects\\open_v2_test_data\\directories\\new_root"), fslist[1]);
+
+	const auto ssize = serialization::serialize_size(f);
+	std::vector<std::byte> d;
+	d.resize(ssize);
+
+	std::byte* iptr = d.data();
+	serialization::serialize(iptr, f);
+
+	file_system fsb;
+
+	fsb.set_root(u"F:\\nloc");
+
+	std::byte const* optr = d.data();
+	serialization::deserialize(optr, fsb);
+
+	const auto fsblist = fsb.get_root().list_paths();
+	EXPECT_EQ(2ui64, fsblist.size());
+	EXPECT_EQ(std::u16string(u"F:\\nloc"), fsblist[0]);
+	EXPECT_EQ(std::u16string(u"F:\\nloc\\new_root"), fsblist[1]);
+}

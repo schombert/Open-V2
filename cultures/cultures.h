@@ -1,10 +1,8 @@
 #pragma once
 #include "common\\common.h"
-#include "simple_fs\\simple_fs.h"
 #include "common\\shared_tags.h"
-#include <vector>
-#include "text_data\\text_data.h"
-#include <variant>
+#include "concurrency_tools\\concurrency_tools.hpp"
+
 
 namespace graphics {
 	class texture_manager;
@@ -14,6 +12,9 @@ namespace scenario {
 }
 namespace governments {
 	struct government_type;
+}
+namespace nations {
+	struct nation;
 }
 
 namespace cultures {
@@ -67,7 +68,15 @@ namespace cultures {
 		graphics::texture_tag monarchy_flag;
 	};
 
+	struct national_tag_state {
+		nations::nation* holder = nullptr;
+		set_tag<provinces::province_tag> core_provinces;
+	};
 	
+	class cultures_state {
+	public:
+		tagged_vector<national_tag_state, national_tag> national_tags_state;
+	};
 
 	class culture_manager {
 	public:

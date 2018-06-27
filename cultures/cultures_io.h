@@ -1,6 +1,8 @@
 #pragma once
 #include "common\\common.h"
 #include "cultures.h"
+#include "simple_fs\\simple_fs.h"
+#include "text_data\\text_data.h"
 #include "simple_serialize\\simple_serialize.hpp"
 #include <ppl.h>
 

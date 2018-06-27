@@ -65,6 +65,7 @@ namespace population {
 	using pop_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 395725>>;
 	using pop_tag = tag_type<uint32_t, std::true_type, std::integral_constant<size_t, 395726>>;
 	using rebel_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 395727>>;
+	using rebel_faction_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 395728>>;
 }
 
 namespace economy {
@@ -82,6 +83,11 @@ namespace cultures {
 	using culture_group_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 7367522>>;
 	using religion_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 7367523>>;
 	using national_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 7367524>>;
+}
+
+namespace nations {
+	using country_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 22120424>>;
+	using state_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 22120425>>;
 }
 
 namespace governments {

@@ -15,24 +15,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="provinces.h">
+    <ClInclude Include="nations.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="provinces_io.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="province_functions.h">
+    <ClInclude Include="nations_functions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="provinces.cpp">
+    <ClCompile Include="nations.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="provinces_io.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="province_functions.cpp">
+    <ClCompile Include="nations_functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
