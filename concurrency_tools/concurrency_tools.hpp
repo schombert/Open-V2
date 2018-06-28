@@ -443,15 +443,15 @@ template<typename object_type, uint32_t minimum_size, size_t memory_size>
 object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i, object_type obj) {
 	const auto rng = get_range(storage, i.value);
 	const auto lb = std::lower_bound(rng.first, rng.second, obj);
-	if(*lb == obj)
+	if(lb != rng.second && *lb == obj)
 		return lb;
 	return nullptr;
 }
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
-object_type& find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type obj) {
+object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type obj) {
 	const auto rng = get_range(storage, i.value);
 	const auto lb = std::lower_bound(rng.first, rng.second, obj);
-	if(*lb == obj)
+	if(lb != rng.second && *lb == obj)
 		return lb;
 	return nullptr;
 }
@@ -578,16 +578,20 @@ void stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>
 
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 void stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>::increase_capacity(stable_mk_2_tag& i, uint32_t new_capacity) {
-	detail::mk_2_header* header = (detail::mk_2_header*)(backing_storage + i);
-	if(new_capacity > header->capacity) {
-		const auto new_item = make_new(new_capacity);
+	if(!is_valid_index(i)) {
+		i = make_new(new_capacity);
+	} else {
+		detail::mk_2_header* header = (detail::mk_2_header*)(backing_storage + i);
+		if(new_capacity > header->capacity) {
+			const auto new_item = make_new(new_capacity);
 
-		detail::mk_2_header* new_header = (detail::mk_2_header*)(backing_storage + new_item);
-		new_header->size = header->size;
-		std::copy((object_type*)(header + 1), ((object_type*)(header + 1)) + header->size, (object_type*)(new_header + 1));
+			detail::mk_2_header* new_header = (detail::mk_2_header*)(backing_storage + new_item);
+			new_header->size = header->size;
+			std::copy((object_type*)(header + 1), ((object_type*)(header + 1)) + header->size, (object_type*)(new_header + 1));
 
-		release(i);
-		i = new_item;
+			release(i);
+			i = new_item;
+		}
 	}
 }
 
@@ -631,7 +635,7 @@ template<typename object_type, uint32_t minimum_size, size_t memory_size>
 void push_back(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag& i, object_type obj) {
 	detail::mk_2_header* header = (detail::mk_2_header*)(storage.backing_storage + i);
 
-	if(header->size >= header->capacity) {
+	if(!is_valid_index(i) || header->size >= header->capacity) {
 		storage.increase_capacity(i, header->size + 1);
 		header = (detail::mk_2_header*)(storage.backing_storage + i);
 	} 
@@ -751,7 +755,7 @@ template<typename object_type, uint32_t minimum_size, size_t memory_size>
 void remove_sorted_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag i, object_type obj) {
 	const auto range = get_range(storage, i);
 	const auto lb = std::lower_bound(range.first, range.second, obj);
-	if(lb == range.second || *lb != obj)
+	if(lb == range.second || !(*lb == obj))
 		return;
 
 	std::copy(lb + 1, range.second, lb);

@@ -14,6 +14,10 @@ namespace nations {
 }
 
 namespace provinces {
+	struct timed_provincial_modifier {
+		date_tag expiration;
+		modifiers::provincial_modifier_tag mod;
+	};
 
 	struct province_state {
 		nations::nation* owner = nullptr; // 8
@@ -25,30 +29,25 @@ namespace provinces {
 		float nationalism = 0.0f; // 40
 		date_tag last_controller_change; // 44
 
-		set_tag<cultures::national_tag> cores;
-		stable_mk_2_tag units = null_value_of<stable_mk_2_tag>;
-		stable_mk_2_tag pops = null_value_of<stable_mk_2_tag>;
-		set_tag<modifiers::provincial_modifier_tag> static_modifiers;
-		array_tag<timed_provincial_modifier> timed_modifiers;
+		set_tag<cultures::national_tag> cores; // 48
+		stable_mk_2_tag units = null_value_of<stable_mk_2_tag>; // 52
+		stable_mk_2_tag pops = null_value_of<stable_mk_2_tag>; // 56
+		set_tag<modifiers::provincial_modifier_tag> static_modifiers; // 60
+		array_tag<timed_provincial_modifier> timed_modifiers; // 64
 
-		modifiers::provincial_modifier_tag crime; // 46
-		modifiers::provincial_modifier_tag terrain; // 48
+		text_data::text_tag name; // 66
+		modifiers::provincial_modifier_tag crime; // 68
+		modifiers::provincial_modifier_tag terrain; // 70
+		int16_t life_rating = 0i16; // 72
 
-		
-		int16_t life_rating = 0i16; // 50
-		province_tag id; // 52
+		province_tag id; // 74
 
-		economy::goods_tag rgo_production; // 53
+		economy::goods_tag rgo_production; // 75
 
-		uint8_t fort_level = 0ui8; // 54
-		uint8_t railroad_level = 0ui8; // 55
-		uint8_t naval_base_level = 0ui8; // 56
-		uint8_t rgo_size = 1ui8; // 57
-	};
-
-	struct timed_provincial_modifier {
-		date_tag expiration;
-		modifiers::provincial_modifier_tag mod;
+		uint8_t fort_level = 0ui8; // 76
+		uint8_t railroad_level = 0ui8; // 77
+		uint8_t naval_base_level = 0ui8; // 78
+		uint8_t rgo_size = 1ui8; // 79
 	};
 
 	struct province {
@@ -56,12 +55,8 @@ namespace provinces {
 		constexpr static uint16_t coastal = 0x0002;
 		constexpr static uint16_t lake = 0x0004;
 
-		//modifiers::provincial_modifier_tag terrain;
 		modifiers::provincial_modifier_tag continent;
 		modifiers::provincial_modifier_tag climate;
-
-		
-		text_data::text_tag name;
 
 		state_tag state_id;
 		province_tag id;

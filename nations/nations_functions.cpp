@@ -15,19 +15,19 @@ namespace nations {
 		tag_state.holder = &new_nation;
 		new_nation.tag = nt;
 		new_nation.name = fixed_tag.default_name.name;
-		new_nation.name = fixed_tag.default_name.adjective;
+		new_nation.adjective = fixed_tag.default_name.adjective;
 		new_nation.flag = fixed_tag.base_flag;
 
 		new_nation.current_color = fixed_tag.color;
 
-		ws.w.nation_s.active_parties.ensure_capacity(to_index(new_nation.id));
+		ws.w.nation_s.active_parties.ensure_capacity(to_index(new_nation.id) + 1);
 
 		return &new_nation;
 	}
 
 	bool is_state_empty(world_state& ws, nation* owner, provinces::state_tag region) {
-		for(auto& prov_in_region : ws.s.province_m.states_to_province_index) {
-			if(ws.w.province_s.province_state_container[prov_in_region.second].owner == owner)
+		for(auto prange = ws.s.province_m.states_to_province_index.equal_range(region); prange.first != prange.second; ++prange.first) {
+			if(ws.w.province_s.province_state_container[prange.first->second].owner == owner)
 				return false;
 		}
 		return true;
@@ -37,7 +37,7 @@ namespace nations {
 		ws.w.nation_s.states.remove(st);
 	}
 
-	void remove_province_from_state(world_state& ws, provinces::province_state& p) {
+	void remove_province_from_state(world_state&, provinces::province_state& p) {
 		p.state_instance = nullptr;
 	}
 
@@ -64,11 +64,13 @@ namespace nations {
 	}
 
 	void silent_set_province_owner(world_state& ws, nation* owner, provinces::province_tag prov) {
-		add_item(ws.w.province_s.province_arrays, owner->owned_provinces, prov);
-		if(ws.w.province_s.province_state_container[prov].owner != nullptr)
-			silent_remove_province_owner(ws, ws.w.province_s.province_state_container[prov].owner, prov);
-
 		auto& prov_state = ws.w.province_s.province_state_container[prov];
+
+		add_item(ws.w.province_s.province_arrays, owner->owned_provinces, prov);
+		if(prov_state.owner != nullptr)
+			silent_remove_province_owner(ws, prov_state.owner, prov);
+
+		
 		prov_state.owner = owner;
 		const auto region_id = ws.s.province_m.province_container[prov].state_id;
 
@@ -78,7 +80,7 @@ namespace nations {
 		} else {
 			state_instance* si = &(ws.w.nation_s.states.get_new());
 			prov_state.state_instance = si;
-			add_item(ws.w.nation_s.state_arrays, owner->member_states, region_state_pair{ region_id, state_tag() });
+			add_item(ws.w.nation_s.state_arrays, owner->member_states, region_state_pair{ region_id, si->id });
 		}
 	}
 

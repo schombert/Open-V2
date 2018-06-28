@@ -21,12 +21,18 @@
     <ClInclude Include="cultures_io.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="cultures_functions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cultures.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cultures_io.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cultures_functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

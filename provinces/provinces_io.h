@@ -11,6 +11,8 @@
 template<>
 class serialization::serializer<provinces::province> : public serialization::memcpy_serializer<provinces::province> {};
 
+class world_state;
+
 template<>
 class serialization::serializer<provinces::province_manager> {
 public:
@@ -109,4 +111,7 @@ namespace provinces {
 		parsing_state& state,
 		const directory& source_directory); // adds provincial modifiers
 	boost::container::flat_map<uint32_t, province_tag> read_province_definition_file(directory const& source_directory);
+
+	void read_province_history(world_state& ws, province_state& ps, date_tag target_date, token_group const* start, token_group const* end);
+	void read_province_histories(world_state& ws, const directory& root, date_tag target_date);
 }

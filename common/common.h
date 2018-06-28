@@ -569,6 +569,26 @@ inline void u16itoa(int32_t i, char16_t* buffer) {
 	}
 }
 
+inline int64_t u16atoui(char16_t* start, char16_t* end) {
+	int64_t value = 0;
+	for(; start != end; ++start) {
+		if((*start >= u'0') & (*start <= u'9')) {
+			value = value * 10i64 + int64_t(*start - u'0');
+		} else
+			return value;
+	}
+	return value;
+}
+
+inline int64_t u16atoi(char16_t* start, char16_t* end) {
+	if(start == end)
+		return 0i64;
+	if(*start == u'-')
+		return -1i64 * u16atoui(start + 1, end);
+	else
+		return u16atoui(start, end);
+}
+
 inline std::pair<char*, bool> bom_test(char* buffer, size_t buffer_size) {
 	const bool is_utf8 = buffer_size >= 3 && (((uint8_t)buffer[0] == 0xEF) & ((uint8_t)buffer[1] == 0xBB) & ((uint8_t)buffer[2] == 0xBF));
 	if (is_utf8)

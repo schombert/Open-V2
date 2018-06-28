@@ -14,6 +14,8 @@ namespace nations {
 	};
 
 	struct nation {
+		atomic_tag<date_tag> last_update;
+
 		set_tag<provinces::province_tag> owned_provinces;
 		set_tag<provinces::province_tag> controlled_provinces;
 		set_tag<region_state_pair> member_states;
@@ -30,6 +32,8 @@ namespace nations {
 
 	struct state_instance {
 		economy::factory_instance factories[8] = {};
+
+		atomic_tag<date_tag> last_update;
 
 		state_tag id;
 

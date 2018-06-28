@@ -6,6 +6,8 @@
 #include "soil\\SOIL.h"
 #include <Windows.h>
 #include "scenario\\scenario.h"
+#include "province_functions.h"
+#include "nations\\nations_functions.h"
 
 namespace provinces {
 	using factory_level_pair = std::pair<economy::factory_type_tag, int32_t>;
@@ -18,6 +20,8 @@ namespace provinces {
 	struct province_history_environment {
 		scenario::scenario_manager& s;
 		date_tag target_date;
+
+		province_history_environment(scenario::scenario_manager& sm, date_tag d) : s(sm), target_date(d) {}
 	};
 
 	struct factory_pair_reader {
@@ -49,16 +53,12 @@ namespace provinces {
 		}
 	};
 
-	inline int discard_section(token_group const*, token_group const*, province_history_environment&) {
-		return 0;
-	}
-
 	struct province_history_block {
 		province_history_environment& env;
 		province_history_block(province_history_environment& e) : env(e) {}
 
 		economy::goods_tag trade_goods;
-		std::optional<float> life_rating = std::optional<float>();
+		std::optional<int16_t> life_rating = std::optional<int16_t>();
 		cultures::national_tag owner;
 		cultures::national_tag controller;
 		modifiers::provincial_modifier_tag terrain;
@@ -103,12 +103,22 @@ namespace provinces {
 				cultures::tag_to_encoding(t.start, t.end)));
 		}
 		void remove_core(const token_and_type& t) {
-			remove_cores.push_back(tag_from_text(
+			const auto tag = tag_from_text(
 				env.s.culutre_m.national_tags_index,
-				cultures::tag_to_encoding(t.start, t.end)));
+				cultures::tag_to_encoding(t.start, t.end));
+
+			if(auto f = std::find(add_cores.begin(), add_cores.end(), tag); f != add_cores.end()) {
+				*f = add_cores.back();
+				add_cores.pop_back();
+			} else {
+				remove_cores.push_back(tag);
+			}
 		}
 		void add_factory_pair(factory_pair_reader const& fp) {
 			factories.emplace_back(fp.building, fp.level);
+		}
+		void add_loyalty_pair(party_loyalty_reader const& lp) {
+			party_loyalty.emplace_back(lp.ideology, lp.loyalty_value);
 		}
 	};
 
@@ -144,9 +154,9 @@ namespace provinces {
 		if(new_block.fort_level)
 			base_block.fort_level = new_block.fort_level;
 		if(new_block.naval_base_level)
-			base_block.fort_level = new_block.naval_base_level;
+			base_block.naval_base_level = new_block.naval_base_level;
 		if(new_block.railroad_level)
-			base_block.fort_level = new_block.railroad_level;
+			base_block.railroad_level = new_block.railroad_level;
 		if(new_block.colony)
 			base_block.colony = new_block.colony;
 
@@ -160,6 +170,13 @@ namespace provinces {
 				base_block.party_loyalty.push_back(p);
 			}
 		}
+	}
+
+	inline int discard_section(token_group const*, token_group const*, province_history_environment&) {
+		return 0;
+	}
+	inline std::pair<token_and_type, province_history_block> name_block(token_and_type const& l, association_type, province_history_block&& r) {
+		return std::pair<token_and_type, province_history_block>(l, std::move(r));
 	}
 
 	struct parsing_environment {
@@ -202,14 +219,11 @@ namespace provinces {
 		void discard_empty(const empty_type&) {}
 		void set_province_count(size_t v) {
 			env.manager.province_container.resize(v);
-			for(uint32_t i = 0; i < v; ++i) {
+
+			const auto prov_count = env.manager.province_container.size();
+			for(uint32_t i = 0; i < prov_count; ++i) {
 				auto& p = env.manager.province_container[province_tag(static_cast<uint16_t>(i))];
 				p.id = province_tag(static_cast<uint16_t>(i));
-
-				std::string name_temp("PROV");
-				name_temp += std::to_string(i);
-
-				p.name = text_data::get_thread_safe_text_handle(env.text_lookup, name_temp.data(), name_temp.data() + name_temp.length());
 			}
 		}
 		void handle_sea_starts(const sea_starts&) {}
@@ -407,6 +421,28 @@ namespace provinces {
 	}
 }
 
+MEMBER_DEF(provinces::province_history_block, life_rating, "life_rating");
+MEMBER_DEF(provinces::province_history_block, fort_level, "fort");
+MEMBER_DEF(provinces::province_history_block, naval_base_level, "naval_base");
+MEMBER_DEF(provinces::province_history_block, railroad_level, "railroad");
+MEMBER_DEF(provinces::province_history_block, colony, "colony");
+MEMBER_FDEF(provinces::province_history_block, discard, "discard");
+MEMBER_FDEF(provinces::province_history_block, add_dated_block, "dated_block");
+MEMBER_FDEF(provinces::province_history_block, set_trade_goods, "trade_goods");
+MEMBER_FDEF(provinces::province_history_block, set_owner, "owner");
+MEMBER_FDEF(provinces::province_history_block, set_controller, "controller");
+MEMBER_FDEF(provinces::province_history_block, set_terrain, "terrain");
+MEMBER_FDEF(provinces::province_history_block, add_core, "add_core");
+MEMBER_FDEF(provinces::province_history_block, remove_core, "remove_core");
+MEMBER_FDEF(provinces::province_history_block, add_factory_pair, "state_building");
+MEMBER_FDEF(provinces::province_history_block, add_loyalty_pair, "party_loyalty");
+MEMBER_DEF(provinces::factory_pair_reader, level, "level");
+MEMBER_FDEF(provinces::factory_pair_reader, discard, "discard");
+MEMBER_FDEF(provinces::factory_pair_reader, set_building, "building");
+MEMBER_DEF(provinces::party_loyalty_reader, loyalty_value, "loyalty_value");
+MEMBER_FDEF(provinces::party_loyalty_reader, set_ideology, "ideology");
+
+
 MEMBER_DEF(provinces::color_assignment, colors, "color");
 MEMBER_FDEF(provinces::color_assignment, discard, "discard");
 MEMBER_FDEF(provinces::color_assignment, set_type, "type");
@@ -436,8 +472,39 @@ MEMBER_FDEF(provinces::parse_continent, add_attribute, "attribute");
 MEMBER_FDEF(provinces::climate_pre_parse_file, add_climate, "climate");
 MEMBER_FDEF(provinces::climate_province_values, add_province, "value");
 
-
 namespace provinces {
+	BEGIN_DOMAIN(province_history_domain)
+		BEGIN_TYPE(party_loyalty_reader)
+			MEMBER_ASSOCIATION("ideology", "ideology", token_from_rh)
+			MEMBER_ASSOCIATION("loyalty_value", "loyalty_value", value_from_rh<float>)
+		END_TYPE
+		BEGIN_TYPE(factory_pair_reader)
+			MEMBER_ASSOCIATION("building", "building", token_from_rh)
+			MEMBER_ASSOCIATION("discard", "upgrade", discard_from_rh)
+			MEMBER_ASSOCIATION("level", "level", value_from_rh<int32_t>)
+		END_TYPE
+		BEGIN_TYPE(province_history_block)
+			MEMBER_ASSOCIATION("life_rating", "life_rating", value_from_rh<int16_t>)
+			MEMBER_ASSOCIATION("fort", "fort", value_from_rh<int32_t>)
+			MEMBER_ASSOCIATION("naval_base", "naval_base", value_from_rh<int32_t>)
+			MEMBER_ASSOCIATION("railroad", "railroad", value_from_rh<int32_t>)
+			MEMBER_ASSOCIATION("colony", "colony", value_from_rh<int32_t>)
+			MEMBER_ASSOCIATION("trade_goods", "trade_goods", token_from_rh)
+			MEMBER_ASSOCIATION("owner", "owner", token_from_rh)
+			MEMBER_ASSOCIATION("controller", "controller", token_from_rh)
+			MEMBER_ASSOCIATION("terrain", "terrain", token_from_rh)
+			MEMBER_ASSOCIATION("add_core", "add_core", token_from_rh)
+			MEMBER_ASSOCIATION("remove_core", "remove_core", token_from_rh)
+			MEMBER_TYPE_ASSOCIATION("party_loyalty", "party_loyalty", party_loyalty_reader)
+			MEMBER_TYPE_ASSOCIATION("state_building", "state_building", factory_pair_reader)
+			MEMBER_TYPE_EXTERN("discard", "revolt", int, discard_section)
+			MEMBER_ASSOCIATION("discard", "is_slave", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "set_province_flag", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "clr_province_flag", discard_from_rh)
+			MEMBER_VARIABLE_TYPE_ASSOCIATION("dated_block", accept_all, province_history_block, name_block)
+		END_TYPE
+	END_DOMAIN;
+
 	BEGIN_DOMAIN(default_map_domain)
 		BEGIN_TYPE(empty_type)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
@@ -528,6 +595,79 @@ namespace provinces {
 		MEMBER_VARIABLE_ASSOCIATION("value", accept_all, value_from_lh<uint16_t>)
 		END_TYPE
 		END_DOMAIN;
+
+	void read_province_history(world_state& ws, province_state& ps, date_tag target_date, token_group const* start, token_group const* end) {
+		province_history_environment env(ws.s, target_date);
+		province_history_block result = parse_object<province_history_block, province_history_domain>(start, end, env);
+
+		for(auto c : result.add_cores)
+			add_core(ws.w, ps.id, c);
+		if(is_valid_index(result.trade_goods))
+			ps.rgo_production = result.trade_goods;
+		if(is_valid_index(result.terrain))
+			ps.terrain = result.terrain;
+		if(result.life_rating)
+			ps.life_rating = *result.life_rating;
+		if(is_valid_index(result.owner))
+			nations::silent_set_province_owner(ws, nations::make_nation_for_tag(ws, result.owner), ps.id);
+		if(is_valid_index(result.controller))
+			nations::silent_set_province_controller(ws.w, nations::make_nation_for_tag(ws, result.controller), ps.id);
+		if(result.colony && ps.state_instance) {
+			if(*result.colony == 2)
+				ps.state_instance->flags |= nations::state_instance::is_colonial;
+			else if(*result.colony == 1)
+				ps.state_instance->flags |= nations::state_instance::is_protectorate;
+			else if(*result.colony == 0)
+				ps.state_instance->flags = decltype(ps.state_instance->flags)(0);
+		}
+		if(ps.state_instance) {
+			for(uint32_t i = 0; i < result.factories.size() && i < std::extent_v<decltype(ps.state_instance->factories)>; ++i) {
+				if(is_valid_index(result.factories[i].first)) {
+					ps.state_instance->factories[i].type = &(ws.s.economy_m.factory_types[result.factories[i].first]);
+					ps.state_instance->factories[i].level = uint16_t(result.factories[i].second);
+				}
+			}
+		}
+		if(result.railroad_level)
+			ps.railroad_level = uint8_t(*result.railroad_level);
+		if(result.fort_level)
+			ps.fort_level = uint8_t(*result.fort_level);
+		if(result.naval_base_level)
+			ps.naval_base_level = uint8_t(*result.naval_base_level);
+		for(auto p : result.party_loyalty)
+			ws.w.province_s.party_loyalty.get(ps.id, p.first) = p.second;
+	}
+
+	void read_province_histories(world_state& ws, const directory& root, date_tag target_date) {
+		const auto history_dir = root.get_directory(u"\\history");
+		const auto provinces_dir = history_dir.get_directory(u"\\provinces");
+
+		const auto sub_dirs = provinces_dir.list_directories();
+		for(auto& sd : sub_dirs) {
+			const auto province_files = sd.list_files(u".txt");
+			for(auto& pfile : province_files) {
+				auto file_name =  pfile.file_name();
+				auto name_break = std::find_if(file_name.begin(), file_name.end(), [](char16_t c) { return c == u' ' || c == u'-'; });
+				uint16_t prov_id = uint16_t(u16atoui(file_name.begin().operator->(), name_break.operator->()));
+
+				auto fi = pfile.open_file();
+				if(fi && prov_id != 0ui16 && prov_id < ws.s.province_m.province_container.size()) {
+					const auto sz = fi->size();
+					std::unique_ptr<char[]> parse_data = std::unique_ptr<char[]>(new char[sz]);
+					std::vector<token_group> presults;
+
+					fi->read_to_buffer(parse_data.get(), sz);
+					parse_pdx_file(presults, parse_data.get(), parse_data.get() + sz);
+
+					read_province_history(
+						ws,
+						ws.w.province_s.province_state_container[province_tag(prov_id)],
+						target_date,
+						presults.data(), presults.data() + presults.size());
+				}
+			}
+		}
+	}
 
 	int add_individual_climate(const token_group* s, const token_group* e, const token_and_type& t, parsing_environment& env) {
 		const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);

@@ -2,6 +2,9 @@
 #include "gtest\\gtest.h"
 #include "fake_fs\\fake_fs.h"
 #include "modifiers\\modifiers_io.h"
+#include "world_state\\world_state.h"
+#include "scenario\\scenario_io.h"
+#include "provinces\\province_functions.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -444,5 +447,131 @@ TEST(provinces_test, adjacent) {
 		EXPECT_EQ(0i64, diff_row.second - diff_row.first);
 
 		EXPECT_NE(same_row.second, std::find(same_row.first, same_row.second, 1ui16));
+	}
+}
+
+TEST(provinces_test, core_functions) {
+	world_state ws;
+	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s);
+	ready_world_state(ws);
+
+	auto ger_tag = tag_from_text(ws.s.culutre_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
+	auto usa_tag = tag_from_text(ws.s.culutre_m.national_tags_index, cultures::tag_to_encoding(RANGE("USA")));
+
+	province_tag prov_a(100ui16);
+	province_tag prov_b(101ui16);
+
+	EXPECT_EQ(false, province_has_core(ws.w, prov_a, ger_tag));
+
+	add_core(ws.w, prov_a, ger_tag);
+	EXPECT_EQ(true, province_has_core(ws.w, prov_a, ger_tag));
+	EXPECT_EQ(false, province_has_core(ws.w, prov_a, usa_tag));
+
+	add_core(ws.w, prov_a, usa_tag);
+	EXPECT_EQ(true, province_has_core(ws.w, prov_a, ger_tag));
+	EXPECT_EQ(true, province_has_core(ws.w, prov_a, usa_tag));
+
+	remove_core(ws.w, prov_a, usa_tag);
+	EXPECT_EQ(true, province_has_core(ws.w, prov_a, ger_tag));
+	EXPECT_EQ(false, province_has_core(ws.w, prov_a, usa_tag));
+
+	add_core(ws.w, prov_b, ger_tag);
+
+	EXPECT_EQ(2ui32, get_size(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[ger_tag].core_provinces));
+	EXPECT_EQ(0ui32, get_size(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[usa_tag].core_provinces));
+}
+
+TEST(provinces_test, single_province_read_state) {
+	world_state ws;
+	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s);
+	ready_world_state(ws);
+
+	const char test_data[] =
+		"owner = USA\r\n"
+		"controller = USA\r\n"
+		"add_core = USA\r\n"
+		"trade_goods = tobacco\r\n"
+		"life_rating = 35\r\n"		"railroad = 1\r\n"
+		"colony = 2\r\n"
+		"1861.1.1 = {\r\n"		"	owner = CSA\r\n"		"	controller = CSA\r\n"		"	add_core = CSA\r\n"
+		"	remove_core = USA\r\n"
+		"}\r\n"
+		"1861.1.1 = {\r\n"
+		"	railroad = 3\r\n"
+		"	terrain = ocean\r\n"
+		"	party_loyalty = {\r\n"
+		"		ideology = liberal\r\n"
+		"		loyalty_value = 10.5 # loyalty test\r\n"
+		"	}\r\n"
+		"}\r\n"
+		"1861.1.1 = {\r\n"
+		"	state_building = {\r\n"
+		"		level = 1\r\n"
+		"		building = steel_factory\r\n"
+		"		upgrade = yes\r\n"
+		"	}\r\n"
+		"	state_building = {\r\n"
+		"		level = 1\r\n"
+		"		building = steamer_shipyard\r\n"
+		"		upgrade = yes\r\n"
+		"	}\r\n"
+		"	colony = 0\r\n"
+		"}";
+
+	std::vector<token_group> presults;
+	parse_pdx_file(presults, RANGE(test_data));
+
+
+	auto usa_tag = tag_from_text(ws.s.culutre_m.national_tags_index, cultures::tag_to_encoding(RANGE("USA")));
+	auto csa_tag = tag_from_text(ws.s.culutre_m.national_tags_index, cultures::tag_to_encoding(RANGE("CSA")));
+
+	{
+		auto& ps = ws.w.province_s.province_state_container[province_tag(10ui16)];
+
+		read_province_history(
+			ws, ps, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)), presults.data(), presults.data() + presults.size());
+
+		EXPECT_EQ(ps.controller, ws.w.culture_s.national_tags_state[usa_tag].holder);
+		EXPECT_EQ(ps.owner, ws.w.culture_s.national_tags_state[usa_tag].holder);
+		EXPECT_EQ(ps.fort_level, 0ui8);
+		EXPECT_EQ(ps.railroad_level, 1ui8);
+		EXPECT_EQ(ps.naval_base_level, 0ui8);
+		EXPECT_EQ(35i16, ps.life_rating);
+		EXPECT_EQ(tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("tobacco"))), ps.rgo_production);
+
+		EXPECT_NE(0, ps.state_instance->flags & nations::state_instance::is_colonial);
+		EXPECT_EQ(true, province_has_core(ws.w, province_tag(10ui16), usa_tag));
+		EXPECT_EQ(false, province_has_core(ws.w, province_tag(10ui16), csa_tag));
+
+	}
+
+	{
+		auto& ps = ws.w.province_s.province_state_container[province_tag(11ui16)];
+
+		read_province_history(
+			ws, ps, date_to_tag(boost::gregorian::date(1866, boost::gregorian::Jan, 1)), presults.data(), presults.data() + presults.size());
+
+		EXPECT_EQ(ps.controller, ws.w.culture_s.national_tags_state[csa_tag].holder);
+		EXPECT_EQ(ps.owner, ws.w.culture_s.national_tags_state[csa_tag].holder);
+		EXPECT_EQ(ps.fort_level, 0ui8);
+		EXPECT_EQ(ps.railroad_level, 3ui8);
+		EXPECT_EQ(ps.naval_base_level, 0ui8);
+		EXPECT_EQ(35i16, ps.life_rating);
+		EXPECT_EQ(tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("tobacco"))), ps.rgo_production);
+		EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_provincial_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("ocean"))), ps.terrain);
+		EXPECT_EQ(ps.state_instance->factories[0].level, 1ui16);
+		EXPECT_EQ(ps.state_instance->factories[0].type->output_good,
+			tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("steel"))));
+		EXPECT_EQ(ps.state_instance->factories[1].level, 1ui16);
+		EXPECT_EQ(ps.state_instance->factories[1].type->output_good,
+			tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("steamer_convoy"))));
+		EXPECT_EQ(ps.state_instance->factories[2].level, 0ui16);
+		EXPECT_EQ(ps.state_instance->factories[2].type, nullptr);
+
+		EXPECT_EQ(ws.w.province_s.party_loyalty.get(province_tag(11ui16), tag_from_text(ws.s.ideologies_m.named_ideology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("liberal")))), 10.5f);
+
+		EXPECT_EQ(0, ps.state_instance->flags & nations::state_instance::is_colonial);
+		EXPECT_EQ(false, province_has_core(ws.w, province_tag(11ui16), usa_tag));
+		EXPECT_EQ(true, province_has_core(ws.w, province_tag(11ui16), csa_tag));
 	}
 }
