@@ -185,6 +185,9 @@
     <ProjectReference Include="..\modifiers\modifiers.vcxproj">
       <Project>{54477a39-7934-4c4a-9744-17399338af31}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\nations\nations.vcxproj">
+      <Project>{1eb2c8db-6174-4776-8918-0dc190192eb6}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\object_parsing\object_parsing.vcxproj">
       <Project>{d1a6aa5f-9db4-4786-a0c3-0c67bf87547d}</Project>
     </ProjectReference>

@@ -8,4 +8,8 @@ namespace population {
 		faction.icon = type.icon;
 		faction.flags = type.flags;
 	}
+
+	pop& make_new_pop(world_state& ws) {
+		return ws.w.population_s.pops.get_new();
+	}
 }

@@ -18,11 +18,12 @@ public:
 		for(uint32_t i = 0ui32; i < obj.indices_in_use; ++i) {
 			object_type* block = obj.index_array[i];
 			for(uint32_t j = 0; j < static_cast<int32_t>(block_size); ++j) {
-				if(is_valid_index(block[j].id)) {
+				if(is_valid_index(obj.get_id(block[j].id))) {
 					serialize(output, block[j].id);
 					serialize(output, block[j], std::forward<CONTEXT>(c) ...);
 				} else {
-					serialize(output, block[j].id);
+					index_type i();
+					serialize(output, i);
 				}
 			}
 		}
@@ -38,6 +39,8 @@ public:
 			_aligned_free(index_array[i]);
 			index_array[i] = nullptr;
 		}
+
+		obj.first_free = index_type(static_cast<value_base_of<index_type>>(to_index(index_type()) | high_bit_mask<index_type>));
 
 		for(uint32_t i = 0ui32; i < obj.indices_in_use; ++i) {
 			if(obj.index_array[i]) {
@@ -57,6 +60,8 @@ public:
 					deserialize(input, block[j], std::forward<CONTEXT>(c) ...)
 				} else {
 					new (new_block + j) object_type();
+					(new_block + j)->id = first_free;
+					first_free = index_type(static_cast<value_base_of<index_type>>(((i << ct_log2(block_size)) + j) | high_bit_mask<index_type>));
 				}
 			}
 		}
@@ -141,7 +146,7 @@ template<typename T>
 void stable_vector<object_type, index_type, block_size, index_size>::for_each(T const& f) {
 	for(uint32_t i = 0; i < indices_in_use; ++i) {
 		for(uint32_t j = 0; j < block_size; ++j) {
-			if(is_valid_index((index_array[i])[j].id))
+			if((((index_array[i])[j].id & high_bit_mask<index_type>) == 0) & ::is_valid_index((index_array[i])[j].id))
 				f((index_array[i])[j]);
 		}
 	}
@@ -149,27 +154,8 @@ void stable_vector<object_type, index_type, block_size, index_size>::for_each(T 
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
 bool stable_vector<object_type, index_type, block_size, index_size>::is_valid_index(index_type i) {
-	const auto block_num = to_index(i) >> ct_log2(block_size);
+	const auto block_num = uint32_t(to_index(i)) >> ct_log2(block_size);
 	return ::is_valid_index(i) & (block_num < indices_in_use);
-}
-
-template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
-object_type& stable_vector<object_type, index_type, block_size, index_size>::safe_get(index_type index) {
-	const auto block_num = to_index(index) >> ct_log2(block_size);
-	const auto block_index = to_index(index) & (block_size - 1);
-
-	if(block_num >= indices_in_use) {
-		for(uint32_t i = indices_in_use; i <= block_num; ++i) {
-			object_type* new_block = (object_type*)_aligned_malloc(sizeof(object_type) * block_size, 64);
-			for(int32_t j = static_cast<int32_t>(block_size) - 1; j >= 0; --j)
-				new (new_block + j) object_type();
-			index_array[i] = new_block;
-		}
-		indices_in_use = block_num + 1;
-	}
-
-	(index_array[block_num])[block_index].id = index;
-	return (index_array[block_num])[block_index];
 }
 
 #ifdef _DEBUG
@@ -178,24 +164,35 @@ struct stable_vector_full {};
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
 object_type& stable_vector<object_type, index_type, block_size, index_size>::get_new() {
-	for(uint32_t i = 0; i < index_size; ++i) {
-		if(index_array[i]) {
-			for(int32_t j = static_cast<int32_t>(block_size) - 1; j >= 0; --j) {
-				if(!::is_valid_index((index_array[i])[j].id)) {
-					(index_array[i])[j].id = index_type(static_cast<value_base_of<index_type>>(uint32_t(j) + (i << ct_log2(block_size))));
-					return (index_array[i])[j];
-				}
-			}
-		} else {
-			object_type* new_block = (object_type*)_aligned_malloc(sizeof(object_type) * block_size, 64);
-			for(int32_t j = static_cast<int32_t>(block_size) - 1; j >= 0; --j)
-				new (new_block + j) object_type();
-			index_array[i] = new_block;
-			indices_in_use = i + 1;
-			new_block[0].id = index_type(static_cast<value_base_of<index_type>>(i << ct_log2(block_size)));
-			return new_block[0];
-		}
+	if(first_free != index_type(static_cast<value_base_of<index_type>>(to_index(index_type()) | high_bit_mask<index_type>))) {
+		const auto real_ff = index_type(static_cast<value_base_of<index_type>>(to_index(first_free) & ~high_bit_mask<index_type>));
+		const auto block_num = to_index(real_ff) >> ct_log2(block_size);
+		const auto block_index = to_index(real_ff) & (block_size - 1);
+
+		first_free = (index_array[block_num])[block_index].id;
+		(index_array[block_num])[block_index].id = real_ff;
+
+		return (index_array[block_num])[block_index];
 	}
+	
+	if(indices_in_use < index_size) {
+		object_type* new_block = (object_type*)_aligned_malloc(sizeof(object_type) * block_size, 64);
+		for(int32_t j = static_cast<int32_t>(block_size) - 1; j > 0; --j) {
+			new (new_block + j) object_type();
+			(new_block + j)->id = first_free;
+			first_free = index_type(static_cast<value_base_of<index_type>>(((indices_in_use << ct_log2(block_size)) + uint32_t(j)) | high_bit_mask<index_type>));
+		}
+
+		index_array[indices_in_use] = new_block;
+		
+		new (new_block + 0) object_type();
+		new_block[0].id = index_type(static_cast<value_base_of<index_type>>(indices_in_use << ct_log2(block_size)));
+
+		++indices_in_use;
+
+		return new_block[0];
+	}
+
 #ifdef _DEBUG
 	throw stable_vector_full();
 #else
@@ -208,8 +205,15 @@ void stable_vector<object_type, index_type, block_size, index_size>::remove(inde
 	const auto block_num = to_index(i) >> ct_log2(block_size);
 	const auto block_index = to_index(i) & (block_size - 1);
 
-	(index_array[block_num])[block_index].~object_type();
-	new ((index_array[block_num]) + block_index) object_type();
+	if((to_index((index_array[block_num])[block_index].id) & high_bit_mask<index_type>) == 0) {
+		const auto old_index = (index_array[block_num])[block_index].id;
+
+		(index_array[block_num])[block_index].~object_type();
+		new ((index_array[block_num]) + block_index) object_type();
+
+		(index_array[block_num])[block_index].id = first_free;
+		first_free = index_type(static_cast<value_base_of<index_type>>(to_index(old_index) | high_bit_mask<index_type>));
+	}
 }
 
 #ifdef _DEBUG

@@ -66,6 +66,7 @@ namespace population {
 	using pop_tag = tag_type<uint32_t, std::true_type, std::integral_constant<size_t, 395726>>;
 	using rebel_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 395727>>;
 	using rebel_faction_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 395728>>;
+	using movement_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 395729>>;
 }
 
 namespace economy {

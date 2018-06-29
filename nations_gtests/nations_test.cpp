@@ -65,7 +65,7 @@ TEST(nations_tests, province_ownership) {
 	EXPECT_EQ(0ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
 	EXPECT_EQ(nullptr, ws.w.province_s.province_state_container[prov_tag].owner);
 	EXPECT_EQ(nullptr, ws.w.province_s.province_state_container[prov_tag].state_instance);
-	EXPECT_EQ(state_tag(), old_state_instance->id);
+	EXPECT_EQ(state_tag(), ws.w.nation_s.states.get_id(*old_state_instance));
 }
 
 TEST(nations_tests, adding_states) {

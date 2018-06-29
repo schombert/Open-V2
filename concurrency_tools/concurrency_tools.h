@@ -241,19 +241,33 @@ public:
 	void flush(const F& f);
 };
 
+template<typename T>
+constexpr value_base_of<T> high_bit_mask = value_base_of<T>(1ui64 << (sizeof(value_base_of<T>) * 8ui64 - 1ui64));
+
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
 class stable_vector {
 public:
 	object_type* index_array[index_size] = { nullptr };
 	uint32_t indices_in_use = 0ui32;
+	index_type first_free = index_type(static_cast<value_base_of<index_type>>(to_index(index_type()) | high_bit_mask<index_type>));
 
 	stable_vector();
 	~stable_vector();
 
+	static index_type get_id(object_type const& o) {
+		if((to_index(o.id) & high_bit_mask<index_type>) != 0)
+			return null_value_of<index_type>;
+		return o.id;
+	}
+	static index_type get_id(index_type i) {
+		if((to_index(i) & high_bit_mask<index_type>) != 0)
+			return null_value_of<index_type>;
+		return i;
+	}
+
 	object_type& get(index_type i); // safe from any thread
 	bool is_valid_index(index_type i); //safe (but potentially inaccurate) from any thread, but if true, can use get without possible memory error
 
-	object_type& safe_get(index_type i); // single thread only
 	object_type& get_new(); // single thread only
 	void remove(index_type i); // single thread only
 

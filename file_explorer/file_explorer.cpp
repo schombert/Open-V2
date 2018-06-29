@@ -12,6 +12,7 @@
 #include "scenario\\scenario.h"
 #include "scenario\\scenario_io.h"
 #include "simple_serialize\\simple_serialize.hpp"
+#include "world_state\\world_state.h"
 
 // #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -276,12 +277,10 @@ using budget_window_t = ui::gui_window <
 	CT_STRING("tax_0_pops"), ui::overlap_box<pop_type_a, ui::window_tag, pop_item_t, 32>,
 	ui::draggable_region > ;
 
-class world_state {};
-
 struct gui_window_handler {
 	ui::gui_manager& gui_m;
 	ui::gui_static& static_m;
-	scenario::scenario_manager& s;
+	world_state& s;
 
 	graphics::map_display map;
 	Eigen::Vector3f interest = Eigen::Vector3f::UnitX();
@@ -294,7 +293,7 @@ struct gui_window_handler {
 
 	budget_window_t budget_window;
 
-	gui_window_handler(ui::gui_manager& m, ui::gui_static& sm, scenario::scenario_manager& snm) : gui_m(m), static_m(sm), s(snm) {}
+	gui_window_handler(ui::gui_manager& m, ui::gui_static& sm, world_state& snm) : gui_m(m), static_m(sm), s(snm) {}
 
 	template<typename T>
 	void operator()(const T&, ui::window_base& w) const {
@@ -368,14 +367,14 @@ struct gui_window_handler {
 	void initialize_graphics(graphics::open_gl_wrapper& ogl) {
 		static_m.fonts.load_fonts(ogl);
 
-		map.colors.init_color_data(static_cast<uint32_t>(s.province_m.province_container.size()));
+		map.colors.init_color_data(static_cast<uint32_t>(s.s.province_m.province_container.size()));
 
 		const auto pcolors = map.colors.primary_color_data();
 		const auto scolors = map.colors.secondary_color_data();
 
-		for(size_t i = 0; i < s.province_m.province_container.size(); ++i) {
+		for(size_t i = 0; i < s.s.province_m.province_container.size(); ++i) {
 			const provinces::province_tag this_province(static_cast<provinces::province_tag::value_base_t>(i));
-			provinces::province& province_object = s.province_m.province_container[this_province];
+			provinces::province& province_object = s.s.province_m.province_container[this_province];
 			if(province_object.flags == uint16_t(provinces::province::lake | provinces::province::sea)) {
 				pcolors[i * 3 + 0] = 0ui8;
 				pcolors[i * 3 + 1] = 0ui8;
@@ -390,6 +389,14 @@ struct gui_window_handler {
 				scolors[i * 3 + 0] = 80ui8;
 				scolors[i * 3 + 1] = 80ui8;
 				scolors[i * 3 + 2] = 255ui8;
+			} else if(s.w.province_s.province_state_container[this_province].owner) {
+				auto owner = s.w.province_s.province_state_container[this_province].owner;
+				pcolors[i * 3 + 0] = owner->current_color.r;
+				pcolors[i * 3 + 1] = owner->current_color.g;
+				pcolors[i * 3 + 2] = owner->current_color.b;
+				scolors[i * 3 + 0] = owner->current_color.r;
+				scolors[i * 3 + 1] = owner->current_color.g;
+				scolors[i * 3 + 2] = owner->current_color.b;
 			} else if(province_object.flags == uint16_t(provinces::province::sea | provinces::province::coastal)) {
 				pcolors[i * 3 + 0] = 150ui8;
 				pcolors[i * 3 + 1] = 150ui8;
@@ -433,7 +440,7 @@ struct gui_window_handler {
 		map.colors.update_ready();
 
 		//map.initialize(ogl, s.province_m.province_map_data.data(), s.province_m.province_map_width, s.province_m.province_map_height, 0.0f, -1.2f, 1.2f);
-		map.initialize(ogl, s.province_m.province_map_data.data(), s.province_m.province_map_width, s.province_m.province_map_height, 0.0f, 1.57f, -1.57f);
+		map.initialize(ogl, s.s.province_m.province_map_data.data(), s.s.province_m.province_map_width, s.s.province_m.province_map_height, 0.0f, 1.57f, -1.57f);
 
 		map.state.resize(gui_m.width(), gui_m.height());
 	}
@@ -490,8 +497,9 @@ int main(int , char **) {
 	fs.add_root(u"D:\\programs\\V2\\mod\\OpenV2");
 	ui::gui_manager gui_m(850, 650);
 
+
+	/*
 	scenario::scenario_manager s1;
-	scenario::scenario_manager s2;
 
 	std::cout << "begin scenario read" << std::endl << std::flush;
 	auto const color_terrain_map = scenario::read_scenario(s1, fs.get_root());
@@ -516,27 +524,27 @@ int main(int , char **) {
 	const auto s_size = serialization::serialize_size(s1);
 	std::cout << s_size << " bytes " << s_size / 1024 << " KB " << s_size / (1024 * 1024) << " MB" << std::endl;
 
-	std::vector<std::byte> sdata(s_size);
-	//auto ptr = sdata.data();
 
 	std::cout << "begin serialize" << std::endl << std::flush;
-	//serialization::serialize(ptr, s1);
 	serialization::serialize_to_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", s1);
 	std::cout << "end serialize" << std::endl << std::flush;
-	
+	*/
 
-	//std::byte const* optr = sdata.data();
+	world_state ws;
+
 	std::cout << "begin deserialize" << std::endl << std::flush;
-	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", s2);
-	//serialization::deserialize(optr, s2);
+	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s);
 	std::cout << "end deserialize" << std::endl << std::flush;
 
-	scenario::ready_scenario(s2, fs.get_root());
+	ready_world_state(ws);
+	provinces::read_province_histories(ws, fs.get_root(), date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)));
 
-	init_tooltip_window(s2.gui_m, gui_m);
+	scenario::ready_scenario(ws.s, fs.get_root());
+
+	init_tooltip_window(ws.s.gui_m, gui_m);
 
 	{
-		ui::window<gui_window_handler> test_window(850, 650, gui_m, s2.gui_m, s2);
+		ui::window<gui_window_handler> test_window(850, 650, gui_m, ws.s.gui_m, ws);
 
 		std::cout << "test window created" << std::endl;
 		getchar();

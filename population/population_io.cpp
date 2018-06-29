@@ -6,8 +6,70 @@
 #include "modifiers\\modifiers_io.h"
 #include "triggers\\trigger_reading.h"
 #include "triggers\\effect_reading.h"
+#include "world_state\\world_state.h"
+#include "population_function.h"
 
 namespace population {
+	struct pops_in_province_environment {
+		world_state& ws;
+		provinces::province_tag prov;
+
+		pops_in_province_environment(world_state& s, provinces::province_tag p) : ws(s), prov(p) {}
+	};
+
+	struct pop_reader {
+		pops_in_province_environment& env;
+		cultures::culture_tag culture;
+		cultures::religion_tag religion;
+		uint32_t size = 0ui32;
+
+		pop_reader(pops_in_province_environment& e) : env(e) {}
+
+		void set_culture(token_and_type const& t) {
+			culture = tag_from_text(
+				env.ws.s.culutre_m.named_culture_index,
+				text_data::get_thread_safe_existing_text_handle(env.ws.s.gui_m.text_data_sequences, t.start, t.end));
+		}
+		void set_religion(token_and_type const& t) {
+			religion = tag_from_text(
+				env.ws.s.culutre_m.named_religion_index,
+				text_data::get_thread_safe_existing_text_handle(env.ws.s.gui_m.text_data_sequences, t.start, t.end));
+		}
+	};
+
+	inline std::pair<token_and_type, pop_reader> read_pop(token_and_type const& l, association_type, pop_reader const& r) {
+		return std::pair<token_and_type, pop_reader>(l, r);
+	}
+
+	struct pops_in_province_reader {
+		pops_in_province_environment& env;
+		pops_in_province_reader(pops_in_province_environment& e) : env(e) {}
+
+		void add_pop(std::pair<token_and_type, pop_reader> const& p) {
+			const auto pop_type = tag_from_text(
+				env.ws.s.population_m.named_pop_type_index,
+				text_data::get_thread_safe_existing_text_handle(env.ws.s.gui_m.text_data_sequences, p.first.start, p.first.end));
+			auto& new_pop = make_new_pop(env.ws);
+			new_pop.culture = p.second.culture;
+			new_pop.religion = p.second.religion;
+			new_pop.type = pop_type;
+			new_pop.size = p.second.size;
+			new_pop.location = env.prov;
+			add_item(env.ws.w.population_s.pop_arrays, env.ws.w.province_s.province_state_container[env.prov].pops, new_pop.id);
+		}
+	};
+
+	int read_pops_in_province(token_group const* s, token_group const* e, token_and_type const& pid, world_state& ws);
+
+	struct pop_file_reader {
+		world_state& env;
+		pop_file_reader(world_state& w) : env(w) {}
+
+		void discard(int) {}
+	};
+
+	int read_pops_in_province(token_group const* s, token_group const* e, token_and_type const& pid, world_state& ws);
+
 	struct parsing_environment {
 		text_data::text_sequences& text_lookup;
 		population_manager& manager;
@@ -605,6 +667,12 @@ namespace population {
 	};
 }
 
+MEMBER_DEF(population::pop_reader, size, "size");
+MEMBER_FDEF(population::pop_reader, set_religion, "religion");
+MEMBER_FDEF(population::pop_reader, set_culture, "culture");
+MEMBER_FDEF(population::pops_in_province_reader, add_pop, "add_pop");
+MEMBER_FDEF(population::pop_file_reader, discard, "discard");
+
 MEMBER_FDEF(population::rebel_gov_reader, add_gov, "gov");
 MEMBER_FDEF(population::rebel_reader, set_icon, "icon");
 MEMBER_FDEF(population::rebel_reader, discard, "discard");
@@ -671,9 +739,24 @@ MEMBER_FDEF(population::poptype_issues, discard, "discard");
 MEMBER_FDEF(population::poptype_ideologies, discard, "discard");
 MEMBER_FDEF(population::poptype_promote_to, discard, "discard");
 
-
-
 namespace population {
+	BEGIN_DOMAIN(pop_parsing_domain)
+		BEGIN_TYPE(pop_reader)
+		MEMBER_ASSOCIATION("size", "size", value_from_rh<uint32_t>)
+		MEMBER_ASSOCIATION("religion", "religion", token_from_rh)
+		MEMBER_ASSOCIATION("culture", "culture", token_from_rh)
+		END_TYPE
+		BEGIN_TYPE(pops_in_province_reader)
+		MEMBER_VARIABLE_TYPE_ASSOCIATION("add_pop", accept_all, pop_reader, read_pop)
+		END_TYPE
+	END_DOMAIN;
+
+	BEGIN_DOMAIN(pop_file_domain)
+		BEGIN_TYPE(pop_file_reader)
+		MEMBER_VARIABLE_TYPE_EXTERN("discard", accept_all, int, read_pops_in_province)
+		END_TYPE
+	END_DOMAIN
+
 	BEGIN_DOMAIN(single_rebel_domain)
 		BEGIN_TYPE(rebel_gov_reader)
 		MEMBER_VARIABLE_ASSOCIATION("gov", accept_all, get_tpair)
@@ -705,7 +788,7 @@ namespace population {
 		MEMBER_TYPE_EXTERN("demands_enforced_effect", "demands_enforced_effect", triggers::trigger_tag, read_rebel_demands_enforced_effect)
 		MEMBER_TYPE_ASSOCIATION("government", "government", rebel_gov_reader)
 		END_TYPE
-		END_DOMAIN;
+	END_DOMAIN;
 
 	BEGIN_DOMAIN(poptype_file_domain)
 		BEGIN_TYPE(color_builder)
@@ -779,13 +862,13 @@ namespace population {
 		MEMBER_ASSOCIATION("discard", "equivalent", discard_from_rh)
 		MEMBER_ASSOCIATION("state_capital_only", "state_capital_only", value_from_rh<bool>)
 		END_TYPE
-		END_DOMAIN;
+	END_DOMAIN;
 
 	BEGIN_DOMAIN(rebel_types_pre_parsing_domain)
 		BEGIN_TYPE(rebel_types_pre_parse_file)
 		MEMBER_VARIABLE_TYPE_EXTERN("add_rebel_type", accept_all, int, inner_pre_parse_rebel)
 		END_TYPE
-		END_DOMAIN;
+	END_DOMAIN;
 
 	BEGIN_DOMAIN(poptypes_file_domain)
 		BEGIN_TYPE(poptypes_file)
@@ -797,7 +880,60 @@ namespace population {
 		MEMBER_TYPE_EXTERN("assimilation_chance", "assimilation_chance", modifiers::factor_tag, read_poptype_file_modifier)
 		MEMBER_TYPE_EXTERN("conversion_chance", "conversion_chance", modifiers::factor_tag, read_poptype_file_modifier)
 		END_TYPE
-		END_DOMAIN;
+	END_DOMAIN;
+
+	int read_pops_in_province(token_group const* s, token_group const* e, token_and_type const& pid, world_state& ws) {
+		provinces::province_tag prov(token_to<uint16_t>(pid));
+
+		if(is_valid_index(prov) && to_index(prov) < ws.s.province_m.province_container.size()) {
+			pops_in_province_environment env(ws, prov);
+			parse_object<pops_in_province_reader, pop_parsing_domain>(s, e, env);
+		}
+
+		return 0;
+	}
+
+	void read_pop_file(token_group const* s, token_group const* e, world_state& ws) {
+		parse_object<pop_file_reader, pop_file_domain>(s, e, ws);
+	}
+
+	void read_all_pops(directory const& root, world_state& ws, date_tag target_date) {
+		const auto history_dir = root.get_directory(u"\\history");
+		const auto pop_dir = history_dir.get_directory(u"\\pops");
+
+		auto directories = pop_dir.list_directories();
+		if(directories.size() > 0) {
+			directory* best = &directories[0];
+			const auto fname = directories[0].name();
+			date_tag best_date = parse_date(fname.c_str() + 1, fname.c_str() + fname.length());
+
+			for(uint32_t i = 1; i < directories.size(); ++i) {
+				const auto iname = directories[i].name();
+				date_tag i_date = parse_date(iname.c_str() + 1, iname.c_str() + iname.length());
+
+				if((target_date < best_date || best_date < i_date) && i_date < target_date) {
+					best = &directories[i];
+					best_date = i_date;
+				}
+			}
+
+			auto pop_files = best->list_files(u".txt");
+			for(auto& f : pop_files) {
+				if(auto fi = f.open_file(); fi) {
+					const auto sz = fi->size();
+					std::unique_ptr<char[]> parse_data = std::unique_ptr<char[]>(new char[sz]);
+					fi->read_to_buffer(parse_data.get(), sz);
+
+					std::vector<token_group> parse_results;
+
+					parse_pdx_file(parse_results, parse_data.get(), parse_data.get() + sz);
+
+					if(parse_results.size() > 0) 
+						read_pop_file(parse_results.data(), parse_results.data() + parse_results.size(), ws);
+				}
+			}
+		}
+	}
 
 	void pre_parse_pop_types(
 		population_manager& manager,
@@ -839,8 +975,8 @@ namespace population {
 
 			if(main_results.parse_results.size() > 0) {
 				parse_object<rebel_types_pre_parse_file, rebel_types_pre_parsing_domain>(
-					&main_results.parse_results[0],
-					&main_results.parse_results[0] + main_results.parse_results.size(),
+					main_results.parse_results.data(),
+					main_results.parse_results.data() + main_results.parse_results.size(),
 					*state.impl);
 			}
 		}

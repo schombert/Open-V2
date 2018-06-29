@@ -118,12 +118,48 @@ namespace population {
 	};
 
 	struct pop {
-		pop_type_tag type;
-		pop_tag id;
+		pop_tag id; // 4
+
+		atomic_tag<date_tag> last_update; // 8
+		uint32_t size = 0ui32; // 12
+		uint32_t employed = 0ui32; // 16
+
+		uint32_t size_change_from_type_change = 0ui32; // promotion & demotion 20
+		uint32_t size_change_from_assimilation = 0ui32; //cultural and religion change 24
+		uint32_t size_change_from_local_migration = 0ui32; //moving from one state to another (includes colonial) 28
+		uint32_t size_change_from_emmigration = 0ui32; //moving from one country to anther 32
+
+		float money = 0.0f; // 36
+		float last_wages = 0.0f; // 40
+		float needs_satisfaction = 3.0f; // 44
+
+		uint16_t literacy = 0ui16; // 46 ( / uint16_t max * 10 = lit)
+		uint16_t militancy = 0ui16; // 48 ( / uint16_t max * 10 = con)
+		uint16_t consciousness = 0ui16; // 50 ( / uint16_t max * 10 = mil)
+		
+		// float last_artisan_expenses = 0.0f; --- compute from artisan option
+
+		provinces::province_tag location; // 52
+		cultures::culture_tag culture; // 54
+
+		rebel_faction_tag rebel_faction; // 56
+		movement_tag movement; // 58
+
+		cultures::religion_tag religion; // 59
+		pop_type_tag type; // 60
+	};
+
+	static_assert(sizeof(pop) <= 64);
+
+	struct pop_movement {
+		set_tag<pop_tag> member_pops;
+
+		movement_tag id;
 	};
 
 	struct rebel_faction {
 		set_tag<provinces::province_tag> controlled_provinces;
+		set_tag<pop_tag> member_pops;
 
 		cultures::national_tag independence_tag; // or pan nationalist union tag
 
@@ -135,7 +171,15 @@ namespace population {
 	};
 
 	class population_state {
+	public:
 		stable_vector<rebel_faction, rebel_faction_tag, 2056, 16> rebel_factions;
+		stable_vector<pop_movement, movement_tag, 2056, 16> pop_movements;
+
+		stable_vector<pop, pop_tag, 2056, 256> pops;
+		stable_2d_vector<uint32_t, pop_tag, issues::issue_tag, 2056, 256> pop_issue_support;
+		stable_2d_vector<uint32_t, pop_tag, ideologies::ideology_tag, 2056, 256> pop_ideology_support;
+
+		stable_variable_vector_storage_mk_2<pop_tag, 8, 65536> pop_arrays;
 	};
 
 	class population_manager {

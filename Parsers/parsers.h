@@ -46,6 +46,7 @@ double parse_double(const char* start, const char* end);
 int32_t parse_int(const char* start, const char* end);
 uint32_t parse_uint(const char* start, const char* end);
 date_tag parse_date(const char* start, const char* end);
+date_tag parse_date(const char16_t* start, const char16_t* end);
 
 void parse_pdx_file(std::vector<token_group>& results, const char* file_start, const char* file_end);
 void parse_lua_file(std::vector<token_group>& results, const char* file_start, const char* file_end);

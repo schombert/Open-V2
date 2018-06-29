@@ -27,27 +27,27 @@ namespace provinces {
 
 		atomic_tag<date_tag> last_update; // 36
 		float nationalism = 0.0f; // 40
-		date_tag last_controller_change; // 44
+		date_tag last_controller_change;
+		date_tag last_immigration;
 
-		set_tag<cultures::national_tag> cores; // 48
-		stable_mk_2_tag units = null_value_of<stable_mk_2_tag>; // 52
-		stable_mk_2_tag pops = null_value_of<stable_mk_2_tag>; // 56
-		set_tag<modifiers::provincial_modifier_tag> static_modifiers; // 60
-		array_tag<timed_provincial_modifier> timed_modifiers; // 64
+		set_tag<cultures::national_tag> cores;
+		array_tag<population::pop_tag> pops;
+		set_tag<modifiers::provincial_modifier_tag> static_modifiers;
+		array_tag<timed_provincial_modifier> timed_modifiers;
 
-		text_data::text_tag name; // 66
-		modifiers::provincial_modifier_tag crime; // 68
-		modifiers::provincial_modifier_tag terrain; // 70
-		int16_t life_rating = 0i16; // 72
+		text_data::text_tag name;
+		modifiers::provincial_modifier_tag crime;
+		modifiers::provincial_modifier_tag terrain;
+		int16_t life_rating = 0i16;
 
-		province_tag id; // 74
+		province_tag id;
 
-		economy::goods_tag rgo_production; // 75
+		economy::goods_tag rgo_production;
 
-		uint8_t fort_level = 0ui8; // 76
-		uint8_t railroad_level = 0ui8; // 77
-		uint8_t naval_base_level = 0ui8; // 78
-		uint8_t rgo_size = 1ui8; // 79
+		uint8_t fort_level = 0ui8;
+		uint8_t railroad_level = 0ui8;
+		uint8_t naval_base_level = 0ui8;
+		uint8_t rgo_size = 1ui8;
 	};
 
 	struct province {

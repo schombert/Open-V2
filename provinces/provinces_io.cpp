@@ -8,6 +8,7 @@
 #include "scenario\\scenario.h"
 #include "province_functions.h"
 #include "nations\\nations_functions.h"
+#include "world_state\\world_state.h"
 
 namespace provinces {
 	using factory_level_pair = std::pair<economy::factory_type_tag, int32_t>;

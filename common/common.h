@@ -95,7 +95,7 @@ struct tag_type {
 };
 
 template<typename value_base, typename zero_is_null, typename individuator>
-constexpr value_base null_value_of<tag_type<value_base, zero_is_null, individuator>> = tag_type<value_base, zero_is_null, individuator>::null_value;
+constexpr tag_type<value_base, zero_is_null, individuator> null_value_of<tag_type<value_base, zero_is_null, individuator>> = tag_type<value_base, zero_is_null, individuator>();
 
 template<typename value_base, typename zero_is_null, typename individuator>
 constexpr value_base to_index(tag_type<value_base, zero_is_null, individuator> in) { return in.index(); }
@@ -127,7 +127,7 @@ template<typename individuator>
 struct array_tag : public tag_type<uint32_t, std::false_type, individuator> {};
 
 template<typename individuator>
-constexpr uint32_t null_value_of<array_tag<individuator>> = std::numeric_limits<uint32_t>::max();
+constexpr array_tag<individuator> null_value_of<array_tag<individuator>> = array_tag<individuator>();
 
 template<typename individuator>
 constexpr uint32_t to_index(array_tag<individuator> in) { return in.value; }
@@ -140,7 +140,7 @@ template<typename individuator>
 struct set_tag : public tag_type<uint32_t, std::false_type, individuator> {};
 
 template<typename individuator>
-constexpr uint32_t null_value_of<set_tag<individuator>> = std::numeric_limits<uint32_t>::max();
+constexpr set_tag<individuator> null_value_of<set_tag<individuator>> = set_tag<individuator>();
 
 template<typename individuator>
 constexpr uint32_t to_index(set_tag<individuator> in) { return in.value; }
@@ -153,7 +153,7 @@ template<typename individuator>
 struct multiset_tag : public tag_type<uint32_t, std::false_type, individuator> {};
 
 template<typename individuator>
-constexpr uint32_t null_value_of<multiset_tag<individuator>> = std::numeric_limits<uint32_t>::max();
+constexpr multiset_tag<individuator> null_value_of<multiset_tag<individuator>> = multiset_tag<individuator>();
 
 template<typename individuator>
 constexpr uint32_t to_index(multiset_tag<individuator> in) { return in.value; }
@@ -168,7 +168,7 @@ struct atomic_tag {
 	using zero_is_null_t = zero_is_null_of<tag_base>;
 	using individuator_t = individuator_of<tag_base>;
 
-	static constexpr value_base_t null_value = null_value_of<tag_base>;
+	static constexpr value_base_t null_value = to_index(null_value_of<tag_base>);
 
 	std::atomic<value_base_t> value;
 
@@ -203,7 +203,7 @@ struct atomic_tag {
 };
 
 template<typename tag_base>
-constexpr typename atomic_tag<tag_base>::value_base_t null_value_of<atomic_tag<tag_base>> = atomic_tag<tag_base>::null_value;
+constexpr tag_base null_value_of<atomic_tag<tag_base>> = tag_base();
 
 template<typename tag_base>
 constexpr typename atomic_tag<tag_base>::value_base_t to_index(const atomic_tag<tag_base>& in) { return in.index(); }
@@ -569,7 +569,7 @@ inline void u16itoa(int32_t i, char16_t* buffer) {
 	}
 }
 
-inline int64_t u16atoui(char16_t* start, char16_t* end) {
+inline int64_t u16atoui(char16_t const* start, char16_t const* end) {
 	int64_t value = 0;
 	for(; start != end; ++start) {
 		if((*start >= u'0') & (*start <= u'9')) {
@@ -580,7 +580,7 @@ inline int64_t u16atoui(char16_t* start, char16_t* end) {
 	return value;
 }
 
-inline int64_t u16atoi(char16_t* start, char16_t* end) {
+inline int64_t u16atoi(char16_t const* start, char16_t const* end) {
 	if(start == end)
 		return 0i64;
 	if(*start == u'-')

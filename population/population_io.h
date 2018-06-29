@@ -7,6 +7,8 @@
 #include "text_data\\text_data.h"
 #include <ppl.h>
 
+class world_state;
+
 template<>
 class serialization::serializer<population::pop_type> : public serialization::memcpy_serializer<population::pop_type> {};
 template<>
@@ -188,4 +190,8 @@ namespace population {
 	void read_poptypes(scenario::scenario_manager& s, const directory& root);
 	void read_rebel_types(parsing_state const& state, scenario::scenario_manager& s, events::event_creation_manager& ecm);
 	void populate_demote_to(population_manager& m);
+
+	int read_pops_in_province(token_group const* s, token_group const* e, token_and_type const& pid, world_state& ws);
+	void read_pop_file(token_group const* s, token_group const* e, world_state& ws);
+	void read_all_pops(directory const& root, world_state& ws, date_tag target_date);
 }

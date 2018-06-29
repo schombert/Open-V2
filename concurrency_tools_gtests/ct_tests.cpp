@@ -1,4 +1,5 @@
 #include "common\\common.h"
+#include "common\\shared_tags.h"
 #include "gtest\\gtest.h"
 #include "concurrency_tools\\concurrency_tools.hpp"
 
@@ -429,7 +430,7 @@ TEST(concurrency_tools, test_stable_vector) {
 	EXPECT_EQ(nullptr, test_vec.index_array[3]);
 
 	EXPECT_EQ((test_vec.index_array[0])[0].id, 0ui32);
-	EXPECT_EQ((test_vec.index_array[0])[1].id, null_value_of<uint32_t>);
+	EXPECT_EQ(test_vec.get_id((test_vec.index_array[0])[1]), null_value_of<uint32_t>);
 
 	EXPECT_EQ(1.0f, test_vec.get(0ui32).base_f);
 
@@ -455,7 +456,7 @@ TEST(concurrency_tools, test_stable_vector) {
 	EXPECT_EQ((test_vec.index_array[0])[15].id, 15ui32);
 
 	test_vec.remove(1);
-	EXPECT_EQ((test_vec.index_array[0])[1].id, null_value_of<uint32_t>);
+	EXPECT_EQ(test_vec.get_id((test_vec.index_array[0])[1]), null_value_of<uint32_t>);
 
 	auto& fobj2 = test_vec.get_new();
 
@@ -465,7 +466,7 @@ TEST(concurrency_tools, test_stable_vector) {
 	EXPECT_EQ(nullptr, test_vec.index_array[3]);
 	EXPECT_EQ(fobj2.id, 1ui32);
 
-	auto& fobj3 = test_vec.safe_get(17);
+	auto& fobj3 = test_vec.get_new();
 	fobj3.base_f = 3.0f;
 
 	EXPECT_NE(nullptr, test_vec.index_array[0]);
@@ -478,35 +479,146 @@ TEST(concurrency_tools, test_stable_vector) {
 	EXPECT_EQ(true, test_vec.is_valid_index(16));
 	EXPECT_EQ(false, test_vec.is_valid_index(32));
 
-	EXPECT_EQ(17ui32, fobj3.id);
+	EXPECT_EQ(16ui32, fobj3.id);
 	EXPECT_EQ(3.0f, test_vec.get(fobj3.id).base_f);
 
-	EXPECT_EQ((test_vec.index_array[1])[0].id, null_value_of<uint32_t>);
-	EXPECT_EQ((test_vec.index_array[1])[1].id, 17ui32);
+	EXPECT_EQ(test_vec.get_id((test_vec.index_array[1])[1]), null_value_of<uint32_t>);
+	EXPECT_EQ(test_vec.get_id(((test_vec.index_array[1])[0])), 16ui32);
 
 	auto& fobj4 = test_vec.get_new();
 	EXPECT_NE(nullptr, test_vec.index_array[0]);
 	EXPECT_NE(nullptr, test_vec.index_array[1]);
 	EXPECT_EQ(nullptr, test_vec.index_array[2]);
 	EXPECT_EQ(nullptr, test_vec.index_array[3]);
-	EXPECT_EQ(31ui32, fobj4.id);
+	EXPECT_EQ(17ui32, fobj4.id);
 
-	EXPECT_EQ((test_vec.index_array[1])[15].id, 31ui32);
 	EXPECT_EQ((test_vec.index_array[1])[1].id, 17ui32);
+	EXPECT_EQ((test_vec.index_array[1])[0].id, 16ui32);
 
-	_aligned_free(test_vec.index_array[1]);
-	test_vec.index_array[1] = nullptr;
+	for(int32_t i = 0; i < 14; ++i) {
+		test_vec.get_new();
+	}
 
 	auto& fobj5 = test_vec.get_new();
-	EXPECT_EQ(16ui32, fobj5.id);
+	EXPECT_EQ(32ui32, fobj5.id);
+
+	EXPECT_NE(nullptr, test_vec.index_array[0]);
+	EXPECT_NE(nullptr, test_vec.index_array[1]);
+	EXPECT_NE(nullptr, test_vec.index_array[2]);
+	EXPECT_EQ(nullptr, test_vec.index_array[3]);
+
+	EXPECT_EQ((test_vec.index_array[2])[0].id, 32ui32);
+	EXPECT_EQ(test_vec.get_id((test_vec.index_array[2])[1]), null_value_of<uint32_t>);
+}
+
+struct test_f_struct_b {
+	provinces::province_tag id;
+	float base_f = 0.0f;
+};
+
+TEST(concurrency_tools, test_stable_vector_with_tag) {
+	stable_vector<test_f_struct_b, provinces::province_tag, 16, 4> test_vec;
+
+	EXPECT_EQ(nullptr, test_vec.index_array[0]);
+	EXPECT_EQ(nullptr, test_vec.index_array[1]);
+	EXPECT_EQ(nullptr, test_vec.index_array[2]);
+	EXPECT_EQ(nullptr, test_vec.index_array[3]);
+
+	EXPECT_EQ(false, test_vec.is_valid_index(provinces::province_tag(0ui16)));
+	EXPECT_EQ(false, test_vec.is_valid_index(provinces::province_tag(8ui16)));
+	EXPECT_EQ(false, test_vec.is_valid_index(provinces::province_tag(16ui16)));
+
+	auto& fobj = test_vec.get_new();
+	EXPECT_EQ(provinces::province_tag(0ui16), fobj.id);
+	EXPECT_EQ(0.0f, fobj.base_f);
+
+	fobj.base_f = 1.0f;
+
+	EXPECT_NE(nullptr, test_vec.index_array[0]);
+	EXPECT_EQ(nullptr, test_vec.index_array[1]);
+	EXPECT_EQ(nullptr, test_vec.index_array[2]);
+	EXPECT_EQ(nullptr, test_vec.index_array[3]);
+
+	EXPECT_EQ((test_vec.index_array[0])[0].id, provinces::province_tag(0ui16));
+	EXPECT_EQ(test_vec.get_id((test_vec.index_array[0])[1]), provinces::province_tag());
+
+	EXPECT_EQ(1.0f, test_vec.get(provinces::province_tag(0ui16)).base_f);
+
+	EXPECT_EQ(true, test_vec.is_valid_index(provinces::province_tag(0ui16)));
+	EXPECT_EQ(true, test_vec.is_valid_index(provinces::province_tag(8ui16)));
+	EXPECT_EQ(false, test_vec.is_valid_index(provinces::province_tag(16ui16)));
+
+	for(int32_t i = 0; i < 15; ++i) {
+		test_vec.get_new();
+	}
+
+	EXPECT_EQ(true, test_vec.is_valid_index(provinces::province_tag(0ui16)));
+	EXPECT_EQ(true, test_vec.is_valid_index(provinces::province_tag(8ui16)));
+	EXPECT_EQ(false, test_vec.is_valid_index(provinces::province_tag(16ui16)));
+
+	EXPECT_NE(nullptr, test_vec.index_array[0]);
+	EXPECT_EQ(nullptr, test_vec.index_array[1]);
+	EXPECT_EQ(nullptr, test_vec.index_array[2]);
+	EXPECT_EQ(nullptr, test_vec.index_array[3]);
+
+	EXPECT_EQ((test_vec.index_array[0])[0].id, provinces::province_tag(0ui16));
+	EXPECT_EQ((test_vec.index_array[0])[1].id, provinces::province_tag(1ui16));
+	EXPECT_EQ((test_vec.index_array[0])[15].id, provinces::province_tag(15ui16));
+
+	test_vec.remove(provinces::province_tag(1ui16));
+	EXPECT_EQ(test_vec.get_id((test_vec.index_array[0])[1]), provinces::province_tag());
+
+	auto& fobj2 = test_vec.get_new();
+
+	EXPECT_NE(nullptr, test_vec.index_array[0]);
+	EXPECT_EQ(nullptr, test_vec.index_array[1]);
+	EXPECT_EQ(nullptr, test_vec.index_array[2]);
+	EXPECT_EQ(nullptr, test_vec.index_array[3]);
+	EXPECT_EQ(fobj2.id, provinces::province_tag(1ui16));
+
+	auto& fobj3 = test_vec.get_new();
+	fobj3.base_f = 3.0f;
 
 	EXPECT_NE(nullptr, test_vec.index_array[0]);
 	EXPECT_NE(nullptr, test_vec.index_array[1]);
 	EXPECT_EQ(nullptr, test_vec.index_array[2]);
 	EXPECT_EQ(nullptr, test_vec.index_array[3]);
 
-	EXPECT_EQ((test_vec.index_array[1])[0].id, 16ui32);
-	EXPECT_EQ((test_vec.index_array[1])[1].id, null_value_of<uint32_t>);
+	EXPECT_EQ(true, test_vec.is_valid_index(provinces::province_tag(0ui16)));
+	EXPECT_EQ(true, test_vec.is_valid_index(provinces::province_tag(8ui16)));
+	EXPECT_EQ(true, test_vec.is_valid_index(provinces::province_tag(16ui16)));
+	EXPECT_EQ(false, test_vec.is_valid_index(provinces::province_tag(32ui16)));
+
+	EXPECT_EQ(provinces::province_tag(16ui16), fobj3.id);
+	EXPECT_EQ(3.0f, test_vec.get(fobj3.id).base_f);
+
+	EXPECT_EQ(test_vec.get_id((test_vec.index_array[1])[1]), provinces::province_tag());
+	EXPECT_EQ(test_vec.get_id(((test_vec.index_array[1])[0])), provinces::province_tag(16ui16));
+
+	auto& fobj4 = test_vec.get_new();
+	EXPECT_NE(nullptr, test_vec.index_array[0]);
+	EXPECT_NE(nullptr, test_vec.index_array[1]);
+	EXPECT_EQ(nullptr, test_vec.index_array[2]);
+	EXPECT_EQ(nullptr, test_vec.index_array[3]);
+	EXPECT_EQ(provinces::province_tag(17ui16), fobj4.id);
+
+	EXPECT_EQ((test_vec.index_array[1])[1].id, provinces::province_tag(17ui16));
+	EXPECT_EQ((test_vec.index_array[1])[0].id, provinces::province_tag(16ui16));
+
+	for(int32_t i = 0; i < 14; ++i) {
+		test_vec.get_new();
+	}
+
+	auto& fobj5 = test_vec.get_new();
+	EXPECT_EQ(provinces::province_tag(32ui16), fobj5.id);
+
+	EXPECT_NE(nullptr, test_vec.index_array[0]);
+	EXPECT_NE(nullptr, test_vec.index_array[1]);
+	EXPECT_NE(nullptr, test_vec.index_array[2]);
+	EXPECT_EQ(nullptr, test_vec.index_array[3]);
+
+	EXPECT_EQ((test_vec.index_array[2])[0].id, provinces::province_tag(32ui16));
+	EXPECT_EQ(test_vec.get_id((test_vec.index_array[2])[1]), provinces::province_tag());
 }
 
 TEST(concurrency_tools, test_stable_2d_vector) {
