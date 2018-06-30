@@ -753,8 +753,8 @@ TEST(trigger_reading, data_lookup_trigger) {
 
 	f.set_root(RANGE(u"F:\\test1"));
 
-	cultures::read_national_tags(sm.culutre_m, f.get_root());
-	cultures::read_cultures(sm.culutre_m, tex, f.get_root(), sm.gui_m.text_data_sequences);
+	cultures::read_national_tags(sm.culture_m, f.get_root());
+	cultures::read_cultures(sm.culture_m, tex, f.get_root(), sm.gui_m.text_data_sequences);
 
 	trigger_parsing_environment parse_env(
 		sm,
@@ -791,8 +791,8 @@ TEST(trigger_reading, data_lookup_effect) {
 
 	f.set_root(RANGE(u"F:\\test1"));
 
-	cultures::read_national_tags(sm.culutre_m, f.get_root());
-	cultures::read_cultures(sm.culutre_m, tex, f.get_root(), sm.gui_m.text_data_sequences);
+	cultures::read_national_tags(sm.culture_m, f.get_root());
+	cultures::read_cultures(sm.culture_m, tex, f.get_root(), sm.gui_m.text_data_sequences);
 
 	effect_parsing_environment parse_env(
 		sm,
@@ -954,7 +954,7 @@ TEST(trigger_reading, multipart_trigger) {
 
 	f.set_root(RANGE(u"F:\\test1"));
 
-	cultures::read_national_tags(sm.culutre_m, f.get_root());
+	cultures::read_national_tags(sm.culture_m, f.get_root());
 
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, RANGE(trigger));
@@ -987,7 +987,7 @@ TEST(trigger_reading, multipart_effect) {
 
 	f.set_root(RANGE(u"F:\\test1"));
 
-	cultures::read_national_tags(sm.culutre_m, f.get_root());
+	cultures::read_national_tags(sm.culture_m, f.get_root());
 
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, RANGE(trigger));

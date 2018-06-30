@@ -42,7 +42,11 @@ namespace provinces {
 
 		province_tag id;
 
+		cultures::culture_tag dominant_culture;
+
 		economy::goods_tag rgo_production;
+
+		cultures::religion_tag dominant_religion;
 
 		uint8_t fort_level = 0ui8;
 		uint8_t railroad_level = 0ui8;
@@ -71,6 +75,7 @@ namespace provinces {
 		tagged_vector<province_state, province_tag> province_state_container;
 		tagged_fixed_blocked_2dvector<modifiers::value_type, province_tag, uint32_t, aligned_allocator_32<modifiers::value_type>> provincial_modifiers;
 		tagged_fixed_2dvector<float, province_tag, ideologies::ideology_tag> party_loyalty;
+		tagged_fixed_blocked_2dvector<int32_t, province_tag, population::demo_tag, aligned_allocator_32<int32_t>> province_demographics;
 
 		stable_variable_vector_storage_mk_2<cultures::national_tag, 4, 8192> core_arrays;
 		stable_variable_vector_storage_mk_2<modifiers::provincial_modifier_tag, 4, 8192> static_modifier_arrays;

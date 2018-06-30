@@ -386,7 +386,7 @@ namespace cultures {
 
 	void read_flag_graphics(scenario::scenario_manager& s, const directory& source_directory) {
 
-		for(auto& nt : s.culutre_m.national_tags) {
+		for(auto& nt : s.culture_m.national_tags) {
 			auto tag_name = encoded_tag_to_text_tag(nt.tag_code);
 
 			std::string base("\\gfx\\flags\\");
@@ -406,10 +406,10 @@ namespace cultures {
 	}
 
 	void populate_country_names(scenario::scenario_manager& s, tagged_vector<std::string, governments::government_tag> const& gbase_names) {
-		s.culutre_m.country_names_by_government.reset(static_cast<uint32_t>(s.governments_m.governments_container.size()));
-		s.culutre_m.country_names_by_government.resize(s.culutre_m.national_tags.size());
+		s.culture_m.country_names_by_government.reset(static_cast<uint32_t>(s.governments_m.governments_container.size()));
+		s.culture_m.country_names_by_government.resize(s.culture_m.national_tags.size());
 
-		for(auto& nt : s.culutre_m.national_tags) {
+		for(auto& nt : s.culture_m.national_tags) {
 			auto tag_name = encoded_tag_to_text_tag(nt.tag_code);
 
 			std::string base(tag_name.tag);
@@ -424,7 +424,7 @@ namespace cultures {
 				std::string base_plus = base + "_" + gbase_names[gtag];
 				std::string base_plus_adj = base_plus + "_ADJ";
 
-				auto& pr = s.culutre_m.country_names_by_government.get(nt.id, gtag);
+				auto& pr = s.culture_m.country_names_by_government.get(nt.id, gtag);
 				pr.name = text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, base_plus.c_str(), base_plus.c_str() + base_plus.length());
 				pr.adjective = text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, base_plus_adj.c_str(), base_plus_adj.c_str() + base_plus_adj.length());
 			}
@@ -440,7 +440,7 @@ namespace cultures {
 		for(uint32_t i = 0; i < v.size(); ++i) {
 			const auto this_tag = national_tag(static_cast<national_tag::value_base_t>(i));
 
-			national_tag_object& uc = s.culutre_m.national_tags[this_tag];
+			national_tag_object& uc = s.culture_m.national_tags[this_tag];
 			const auto file = country_dir.open_file(v[this_tag].c_str(), v[this_tag].c_str() + v[this_tag].length());
 
 			if(file) {
@@ -489,6 +489,8 @@ namespace cultures {
 					return_state);
 			}
 		}
+
+		manager.count_religions = uint32_t(manager.religions.size());
 	}
 
 	void read_cultures(
@@ -523,6 +525,8 @@ namespace cultures {
 
 		std::string noleader_file = std::string("\\gfx\\interface\\leaders\\no_leader.dds");
 		manager.no_leader = tm.retrieve_by_name(source_directory, noleader_file.c_str(), noleader_file.c_str() + noleader_file.length());
+
+		manager.count_cultures = uint32_t(manager.culture_container.size());
 	}
 
 	tagged_vector<std::string, national_tag> read_national_tags(

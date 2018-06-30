@@ -168,7 +168,7 @@ struct atomic_tag {
 	using zero_is_null_t = zero_is_null_of<tag_base>;
 	using individuator_t = individuator_of<tag_base>;
 
-	static constexpr value_base_t null_value = to_index(null_value_of<tag_base>);
+	static constexpr value_base_t null_value = std::is_same_v<std::true_type, zero_is_null_t> ? value_base_t(0) : std::numeric_limits<value_base_t>::max();
 
 	std::atomic<value_base_t> value;
 

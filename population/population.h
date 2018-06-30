@@ -14,6 +14,8 @@ namespace nations {
 	struct nation;
 }
 
+class world_state;
+
 namespace population {
 
 	enum class income_type : uint8_t {
@@ -121,21 +123,21 @@ namespace population {
 		pop_tag id; // 4
 
 		atomic_tag<date_tag> last_update; // 8
-		uint32_t size = 0ui32; // 12
-		uint32_t employed = 0ui32; // 16
+		int32_t size = 0i32; // 12
+		int32_t employed = 0i32; // 16
 
-		uint32_t size_change_from_type_change = 0ui32; // promotion & demotion 20
-		uint32_t size_change_from_assimilation = 0ui32; //cultural and religion change 24
-		uint32_t size_change_from_local_migration = 0ui32; //moving from one state to another (includes colonial) 28
-		uint32_t size_change_from_emmigration = 0ui32; //moving from one country to anther 32
+		int32_t size_change_from_type_change = 0i32; // promotion & demotion 20
+		int32_t size_change_from_assimilation = 0i32; //cultural and religion change 24
+		int32_t size_change_from_local_migration = 0i32; //moving from one state to another (includes colonial) 28
+		int32_t size_change_from_emmigration = 0i32; //moving from one country to anther 32
 
 		float money = 0.0f; // 36
 		float last_wages = 0.0f; // 40
 		float needs_satisfaction = 3.0f; // 44
 
-		uint16_t literacy = 0ui16; // 46 ( / uint16_t max * 10 = lit)
-		uint16_t militancy = 0ui16; // 48 ( / uint16_t max * 10 = con)
-		uint16_t consciousness = 0ui16; // 50 ( / uint16_t max * 10 = mil)
+		uint16_t literacy = 0ui16; // 46 ( >>16 * 10 = lit)
+		uint16_t militancy = 0ui16; // 48 ( >>16 * 10 = con)
+		uint16_t consciousness = 0ui16; // 50 ( >>16 * 10 = mil)
 		
 		// float last_artisan_expenses = 0.0f; --- compute from artisan option
 
@@ -176,8 +178,7 @@ namespace population {
 		stable_vector<pop_movement, movement_tag, 2056, 16> pop_movements;
 
 		stable_vector<pop, pop_tag, 2056, 256> pops;
-		stable_2d_vector<uint32_t, pop_tag, issues::issue_tag, 2056, 256> pop_issue_support;
-		stable_2d_vector<uint32_t, pop_tag, ideologies::ideology_tag, 2056, 256> pop_ideology_support;
+		stable_2d_vector<int32_t, pop_tag, demo_tag, 2056, 256> pop_demographics;
 
 		stable_variable_vector_storage_mk_2<pop_tag, 8, 65536> pop_arrays;
 	};
@@ -242,4 +243,41 @@ namespace population {
 
 		uint32_t count_poptypes = 0;
 	};
+
+	demo_tag to_demo_tag(world_state const& ws, ideologies::ideology_tag t);
+	demo_tag to_demo_tag(world_state const& ws, issues::option_tag t);
+	demo_tag to_demo_tag(world_state const& ws, cultures::culture_tag t);
+	demo_tag to_demo_tag(world_state const& ws, cultures::religion_tag t);
+	demo_tag to_demo_tag(world_state const& ws, pop_type_tag t);
+	demo_tag to_employment_demo_tag(world_state const& ws, pop_type_tag t);
+
+	constexpr demo_tag total_population_tag = demo_tag(0ui32);
+
+	demo_tag militancy_demo_tag(world_state const& ws);
+	demo_tag consciousness_demo_tag(world_state const& ws);
+	demo_tag literacy_demo_tag(world_state const& ws);
+
+	demo_tag poor_population_demo_tag(world_state const& ws);
+	demo_tag middle_population_demo_tag(world_state const& ws);
+	demo_tag rich_population_demo_tag(world_state const& ws);
+
+	demo_tag poor_militancy_demo_tag(world_state const& ws);
+	demo_tag middle_militancy_demo_tag(world_state const& ws);
+	demo_tag rich_militancy_demo_tag(world_state const& ws);
+
+	demo_tag poor_life_needs_demo_tag(world_state const& ws);
+	demo_tag middle_life_needs_demo_tag(world_state const& ws);
+	demo_tag rich_life_needs_demo_tag(world_state const& ws);
+
+	demo_tag poor_everyday_needs_demo_tag(world_state const& ws);
+	demo_tag middle_everyday_needs_demo_tag(world_state const& ws);
+	demo_tag rich_everyday_needs_demo_tag(world_state const& ws);
+
+	demo_tag poor_luxury_needs_demo_tag(world_state const& ws);
+	demo_tag middle_luxury_needs_demo_tag(world_state const& ws);
+	demo_tag rich_luxury_needs_demo_tag(world_state const& ws);
+
+	uint32_t aligned_32_issues_ideology_demo_size(world_state const& ws);
+	uint32_t aligned_32_demo_size(world_state const& ws);
+	uint32_t aligned_64_demo_size(world_state const& ws);
 }

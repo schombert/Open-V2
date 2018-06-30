@@ -27,12 +27,12 @@ namespace population {
 
 		void set_culture(token_and_type const& t) {
 			culture = tag_from_text(
-				env.ws.s.culutre_m.named_culture_index,
+				env.ws.s.culture_m.named_culture_index,
 				text_data::get_thread_safe_existing_text_handle(env.ws.s.gui_m.text_data_sequences, t.start, t.end));
 		}
 		void set_religion(token_and_type const& t) {
 			religion = tag_from_text(
-				env.ws.s.culutre_m.named_religion_index,
+				env.ws.s.culture_m.named_religion_index,
 				text_data::get_thread_safe_existing_text_handle(env.ws.s.gui_m.text_data_sequences, t.start, t.end));
 		}
 	};
@@ -53,8 +53,11 @@ namespace population {
 			new_pop.culture = p.second.culture;
 			new_pop.religion = p.second.religion;
 			new_pop.type = pop_type;
-			new_pop.size = p.second.size;
+			new_pop.size = int32_t(p.second.size);
 			new_pop.location = env.prov;
+			
+			init_pop_demographics(env.ws, new_pop);
+
 			add_item(env.ws.w.population_s.pop_arrays, env.ws.w.province_s.province_state_container[env.prov].pops, new_pop.id);
 		}
 	};

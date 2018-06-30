@@ -85,12 +85,12 @@ namespace provinces {
 		}
 		void set_owner(const token_and_type& t) {
 			owner = tag_from_text(
-				env.s.culutre_m.national_tags_index,
+				env.s.culture_m.national_tags_index,
 				cultures::tag_to_encoding(t.start, t.end));
 		}
 		void set_controller(const token_and_type& t) {
 			controller = tag_from_text(
-				env.s.culutre_m.national_tags_index,
+				env.s.culture_m.national_tags_index,
 				cultures::tag_to_encoding(t.start, t.end));
 		}
 		void set_terrain(const token_and_type& t) {
@@ -100,12 +100,12 @@ namespace provinces {
 		}
 		void add_core(const token_and_type& t) {
 			add_cores.push_back(tag_from_text(
-				env.s.culutre_m.national_tags_index,
+				env.s.culture_m.national_tags_index,
 				cultures::tag_to_encoding(t.start, t.end)));
 		}
 		void remove_core(const token_and_type& t) {
 			const auto tag = tag_from_text(
-				env.s.culutre_m.national_tags_index,
+				env.s.culture_m.national_tags_index,
 				cultures::tag_to_encoding(t.start, t.end));
 
 			if(auto f = std::find(add_cores.begin(), add_cores.end(), tag); f != add_cores.end()) {

@@ -14,7 +14,7 @@ namespace issues {
 		issues_manager& manager;
 
 		parsed_data main_file_parse_tree;
-		std::map<option_tag, std::pair<const token_group*, const token_group*>> parsed_options;
+		std::vector<std::tuple<option_tag, const token_group*, const token_group*>> parsed_options;
 
 		parsing_environment(text_data::text_sequences& tl, issues_manager& m) :
 			text_lookup(tl), manager(m) {}
@@ -47,19 +47,15 @@ namespace issues {
 		const auto opt_tag = env.manager.options.emplace_back();
 		issue_option& opt = env.manager.options[opt_tag];
 
-		for(size_t j = 0; j < std::extent<decltype(i.options)>::value; ++j) {
-			if(!is_valid_index(i.options[j])) {
-				i.options[j] = opt_tag;
-				break;
-			}
-		}
-
 		opt.name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
 		opt.id = opt_tag;
 		opt.parent_issue = i.id;
 
-		env.parsed_options.emplace(opt_tag, std::make_pair(s, e));
+		env.parsed_options.emplace_back(opt_tag, s, e);
 		env.manager.named_option_index.emplace(opt.name, opt_tag);
+
+		if(i.type == issue_group::party)
+			++env.manager.party_issues_options_count;
 		return 0;
 	}
 
@@ -352,6 +348,24 @@ namespace issues {
 			}
 		}
 
+		std::sort(manager.options.begin(), manager.options.end(), [&manager](issue_option const& a, issue_option const& b) {
+			return manager.issues_container[a.parent_issue].type < manager.issues_container[b.parent_issue].type;
+		});
+		for(uint32_t i = 0; i < manager.options.size(); ++i) {
+			option_tag this_tag(static_cast<value_base_of<option_tag>>(i));
+			std::get<0>(return_state.impl->parsed_options[i]) = this_tag;
+			manager.options[this_tag].id = this_tag;
+
+			for(size_t j = 0; j < std::extent<decltype(manager.issues_container[manager.options[this_tag].parent_issue].options)>::value; ++j) {
+				if(!is_valid_index(manager.issues_container[manager.options[this_tag].parent_issue].options[j])) {
+					manager.issues_container[manager.options[this_tag].parent_issue].options[j] = this_tag;
+					break;
+				}
+			}
+		}
+
+		manager.options_count = uint32_t(manager.options.size());
+
 		return return_state;
 	}
 
@@ -365,9 +379,9 @@ namespace issues {
 		events::event_creation_manager& ecm) {
 
 		for(const auto& pending : ps.impl->parsed_options) {
-			issue_option& opt = s.issues_m.options[pending.first];
+			issue_option& opt = s.issues_m.options[std::get<0>(pending)];
 			option_parsing_env env(s, ecm, opt);
-			auto res = parse_object<option_reader, option_parsing_domain>(pending.second.first, pending.second.second, env);
+			auto res = parse_object<option_reader, option_parsing_domain>(std::get<1>(pending), std::get<2>(pending), env);
 			opt.modifier = modifiers::add_national_modifier(opt.name, res, s.modifiers_m);
 		}
 	}

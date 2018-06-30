@@ -23,6 +23,7 @@ public:
 			obj.named_group_index.emplace(i_group.name, i_group.id);
 		for(auto const& i_ideology : obj.ideology_container)
 			obj.named_ideology_index.emplace(i_ideology.name, i_ideology.id);
+		obj.ideologies_count = uint32_t(obj.ideology_container.size());
 	}
 
 	static void serialize_object(std::byte* &output, ideologies::ideologies_manager const& obj) {

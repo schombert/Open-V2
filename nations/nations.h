@@ -27,7 +27,11 @@ namespace nations {
 
 		graphics::color_rgb current_color;
 		country_tag id;
+
 		cultures::national_tag tag;
+
+		cultures::culture_tag dominant_culture;
+		cultures::religion_tag dominant_religion;
 	};
 
 	struct state_instance {
@@ -35,8 +39,11 @@ namespace nations {
 
 		atomic_tag<date_tag> last_update;
 
+		cultures::culture_tag dominant_culture;
+
 		state_tag id;
 
+		cultures::religion_tag dominant_religion;
 		uint8_t flags = 0ui8;
 
 		constexpr static uint8_t is_slave_state = 0x01;
@@ -51,5 +58,8 @@ namespace nations {
 
 		stable_2d_vector<governments::party_tag, country_tag, ideologies::ideology_tag, 512, 16> active_parties;
 		stable_variable_vector_storage_mk_2<region_state_pair, 2, 8192> state_arrays;
+
+		stable_2d_vector<int32_t, state_tag, population::demo_tag, 512, 16> state_demographics;
+		stable_2d_vector<int64_t, country_tag, population::demo_tag, 512, 16> nation_demographics;
 	};
 }

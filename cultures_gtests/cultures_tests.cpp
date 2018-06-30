@@ -394,7 +394,7 @@ TEST(cultures_tests, government_names) {
 
 	scenario::scenario_manager s;
 
-	const auto tvector = read_national_tags(s.culutre_m, f.get_root());
+	const auto tvector = read_national_tags(s.culture_m, f.get_root());
 	const auto gbase_names = governments::read_governments(s.governments_m, f.get_root(), s.gui_m.text_data_sequences, s.ideologies_m);
 
 	auto const t1 = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, RANGE("ENG"));
@@ -408,14 +408,14 @@ TEST(cultures_tests, government_names) {
 
 	populate_country_names(s, gbase_names);
 
-	EXPECT_EQ(t1, s.culutre_m.national_tags[national_tag(1)].default_name.name);
-	EXPECT_EQ(t2, s.culutre_m.national_tags[national_tag(1)].default_name.adjective);
-	EXPECT_EQ(text_data::text_tag(), s.culutre_m.national_tags[national_tag(0)].default_name.name);
-	EXPECT_EQ(text_data::text_tag(), s.culutre_m.national_tags[national_tag(0)].default_name.adjective);
-	EXPECT_EQ(t3, s.culutre_m.country_names_by_government.get(national_tag(0), g1).name);
-	EXPECT_EQ(t4, s.culutre_m.country_names_by_government.get(national_tag(0), g2).adjective);
-	EXPECT_EQ(text_data::text_tag(), s.culutre_m.country_names_by_government.get(national_tag(1), g1).name);
-	EXPECT_EQ(text_data::text_tag(), s.culutre_m.country_names_by_government.get(national_tag(1), g2).adjective);
+	EXPECT_EQ(t1, s.culture_m.national_tags[national_tag(1)].default_name.name);
+	EXPECT_EQ(t2, s.culture_m.national_tags[national_tag(1)].default_name.adjective);
+	EXPECT_EQ(text_data::text_tag(), s.culture_m.national_tags[national_tag(0)].default_name.name);
+	EXPECT_EQ(text_data::text_tag(), s.culture_m.national_tags[national_tag(0)].default_name.adjective);
+	EXPECT_EQ(t3, s.culture_m.country_names_by_government.get(national_tag(0), g1).name);
+	EXPECT_EQ(t4, s.culture_m.country_names_by_government.get(national_tag(0), g2).adjective);
+	EXPECT_EQ(text_data::text_tag(), s.culture_m.country_names_by_government.get(national_tag(1), g1).name);
+	EXPECT_EQ(text_data::text_tag(), s.culture_m.country_names_by_government.get(national_tag(1), g2).adjective);
 }
 
 TEST(cultures_tests, read_flags) {
@@ -425,15 +425,15 @@ TEST(cultures_tests, read_flags) {
 	f.set_root(RANGE(u"F:\\test1"));
 
 	scenario::scenario_manager s;
-	const auto tvector = read_national_tags(s.culutre_m, f.get_root());
+	const auto tvector = read_national_tags(s.culture_m, f.get_root());
 	read_flag_graphics(s, f.get_root());
 
-	EXPECT_NE(graphics::texture_tag(), s.culutre_m.national_tags[national_tag(0)].base_flag);
-	EXPECT_EQ(graphics::texture_tag(), s.culutre_m.national_tags[national_tag(0)].fascist_flag);
-	EXPECT_EQ(graphics::texture_tag(), s.culutre_m.national_tags[national_tag(0)].monarchy_flag);
-	EXPECT_EQ(graphics::texture_tag(), s.culutre_m.national_tags[national_tag(1)].base_flag);
-	EXPECT_NE(graphics::texture_tag(), s.culutre_m.national_tags[national_tag(1)].fascist_flag);
-	EXPECT_NE(graphics::texture_tag(), s.culutre_m.national_tags[national_tag(1)].monarchy_flag);
+	EXPECT_NE(graphics::texture_tag(), s.culture_m.national_tags[national_tag(0)].base_flag);
+	EXPECT_EQ(graphics::texture_tag(), s.culture_m.national_tags[national_tag(0)].fascist_flag);
+	EXPECT_EQ(graphics::texture_tag(), s.culture_m.national_tags[national_tag(0)].monarchy_flag);
+	EXPECT_EQ(graphics::texture_tag(), s.culture_m.national_tags[national_tag(1)].base_flag);
+	EXPECT_NE(graphics::texture_tag(), s.culture_m.national_tags[national_tag(1)].fascist_flag);
+	EXPECT_NE(graphics::texture_tag(), s.culture_m.national_tags[national_tag(1)].monarchy_flag);
 }
 
 TEST(cultures_tests, read_country_files) {
@@ -443,21 +443,21 @@ TEST(cultures_tests, read_country_files) {
 	f.set_root(RANGE(u"F:\\test1"));
 
 	scenario::scenario_manager s;
-	const auto tvector = read_national_tags(s.culutre_m, f.get_root());
+	const auto tvector = read_national_tags(s.culture_m, f.get_root());
 
 	read_country_files(tvector, s, f.get_root());
 
-	EXPECT_EQ(154ui8, s.culutre_m.national_tags[national_tag(0)].color.r);
-	EXPECT_EQ(129ui8, s.culutre_m.national_tags[national_tag(0)].color.g);
-	EXPECT_EQ(35ui8, s.culutre_m.national_tags[national_tag(0)].color.b);
-	EXPECT_EQ(governments::party_tag(0), s.culutre_m.national_tags[national_tag(0)].first_party);
-	EXPECT_EQ(governments::party_tag(1), s.culutre_m.national_tags[national_tag(0)].last_party);
+	EXPECT_EQ(154ui8, s.culture_m.national_tags[national_tag(0)].color.r);
+	EXPECT_EQ(129ui8, s.culture_m.national_tags[national_tag(0)].color.g);
+	EXPECT_EQ(35ui8, s.culture_m.national_tags[national_tag(0)].color.b);
+	EXPECT_EQ(governments::party_tag(0), s.culture_m.national_tags[national_tag(0)].first_party);
+	EXPECT_EQ(governments::party_tag(1), s.culture_m.national_tags[national_tag(0)].last_party);
 
-	EXPECT_EQ(101ui8, s.culutre_m.national_tags[national_tag(1)].color.r);
-	EXPECT_EQ(102ui8, s.culutre_m.national_tags[national_tag(1)].color.g);
-	EXPECT_EQ(163ui8, s.culutre_m.national_tags[national_tag(1)].color.b);
-	EXPECT_EQ(governments::party_tag(2), s.culutre_m.national_tags[national_tag(1)].first_party);
-	EXPECT_EQ(governments::party_tag(2), s.culutre_m.national_tags[national_tag(1)].last_party);
+	EXPECT_EQ(101ui8, s.culture_m.national_tags[national_tag(1)].color.r);
+	EXPECT_EQ(102ui8, s.culture_m.national_tags[national_tag(1)].color.g);
+	EXPECT_EQ(163ui8, s.culture_m.national_tags[national_tag(1)].color.b);
+	EXPECT_EQ(governments::party_tag(2), s.culture_m.national_tags[national_tag(1)].first_party);
+	EXPECT_EQ(governments::party_tag(2), s.culture_m.national_tags[national_tag(1)].last_party);
 }
 
 TEST(cultures_tests, serialize) {

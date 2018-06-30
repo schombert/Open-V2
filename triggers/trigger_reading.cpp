@@ -1309,7 +1309,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.named_culture_index,
+					s.culture_m.named_culture_index,
 					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
@@ -1337,7 +1337,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.named_culture_index,
+					s.culture_m.named_culture_index,
 					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
@@ -1355,7 +1355,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.named_religion_index,
+					s.culture_m.named_religion_index,
 					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
@@ -1373,7 +1373,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.named_culture_index,
+					s.culture_m.named_culture_index,
 					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
@@ -1482,7 +1482,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.named_culture_index,
+					s.culture_m.named_culture_index,
 					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
@@ -1519,7 +1519,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.named_culture_index,
+					s.culture_m.named_culture_index,
 					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
@@ -1556,7 +1556,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.named_religion_index,
+					s.culture_m.named_religion_index,
 					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
@@ -1617,7 +1617,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.named_culture_index,
+					s.culture_m.named_culture_index,
 					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
@@ -1681,7 +1681,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.named_religion_index,
+					s.culture_m.named_religion_index,
 					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};
@@ -1797,7 +1797,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.national_tags_index,
+					s.culture_m.national_tags_index,
 					cultures::tag_to_encoding(t.start, t.end)));
 		}
 	};
@@ -1919,7 +1919,7 @@ namespace triggers {
 			} else {
 				return trigger_payload(
 					tag_from_text(
-						s.culutre_m.national_tags_index,
+						s.culture_m.national_tags_index,
 						cultures::tag_to_encoding(t.start, t.end)));
 			}
 		}
@@ -2038,7 +2038,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.national_tags_index,
+					s.culture_m.national_tags_index,
 					cultures::tag_to_encoding(t.start, t.end)));
 		}
 	};
@@ -2056,7 +2056,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.national_tags_index,
+					s.culture_m.national_tags_index,
 					cultures::tag_to_encoding(t.start, t.end)));
 		}
 	};
@@ -2183,7 +2183,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.national_tags_index,
+					s.culture_m.national_tags_index,
 					cultures::tag_to_encoding(t.start, t.end)));
 		}
 	};
@@ -2216,7 +2216,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.national_tags_index,
+					s.culture_m.national_tags_index,
 					cultures::tag_to_encoding(t.start, t.end)));
 		}
 	};
@@ -2400,7 +2400,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.national_tags_index,
+					s.culture_m.national_tags_index,
 					cultures::tag_to_encoding(t.start, t.end)));
 		}
 	};
@@ -2427,7 +2427,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.national_tags_index,
+					s.culture_m.national_tags_index,
 					cultures::tag_to_encoding(t.start, t.end)));
 		}
 	};
@@ -2490,7 +2490,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.national_tags_index,
+					s.culture_m.national_tags_index,
 					cultures::tag_to_encoding(t.start, t.end)));
 		}
 	};
@@ -2794,7 +2794,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.national_tags_index,
+					s.culture_m.national_tags_index,
 					cultures::tag_to_encoding(t.start, t.end)));
 		}
 	};
@@ -3007,7 +3007,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.national_tags_index,
+					s.culture_m.national_tags_index,
 					cultures::tag_to_encoding(t.start, t.end)));
 		}
 	};
@@ -3040,7 +3040,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.national_tags_index,
+					s.culture_m.national_tags_index,
 					cultures::tag_to_encoding(t.start, t.end)));
 		}
 	};
@@ -3073,7 +3073,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.national_tags_index,
+					s.culture_m.national_tags_index,
 					cultures::tag_to_encoding(t.start, t.end)));
 		}
 	};
@@ -3106,7 +3106,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.national_tags_index,
+					s.culture_m.national_tags_index,
 					cultures::tag_to_encoding(t.start, t.end)));
 		}
 	};
@@ -3139,7 +3139,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.national_tags_index,
+					s.culture_m.national_tags_index,
 					cultures::tag_to_encoding(t.start, t.end)));
 		}
 	};
@@ -3172,7 +3172,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.national_tags_index,
+					s.culture_m.national_tags_index,
 					cultures::tag_to_encoding(t.start, t.end)));
 		}
 	};
@@ -3205,7 +3205,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.national_tags_index,
+					s.culture_m.national_tags_index,
 					cultures::tag_to_encoding(t.start, t.end)));
 		}
 	};
@@ -3249,7 +3249,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.national_tags_index,
+					s.culture_m.national_tags_index,
 					cultures::tag_to_encoding(t.start, t.end)));
 		}
 	};
@@ -3282,7 +3282,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.national_tags_index,
+					s.culture_m.national_tags_index,
 					cultures::tag_to_encoding(t.start, t.end)));
 		}
 	};
@@ -3315,7 +3315,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.national_tags_index,
+					s.culture_m.national_tags_index,
 					cultures::tag_to_encoding(t.start, t.end)));
 		}
 	};
@@ -3389,7 +3389,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.culutre_m.national_tags_index,
+					s.culture_m.national_tags_index,
 					cultures::tag_to_encoding(t.start, t.end)));
 		}
 	};
@@ -3874,7 +3874,7 @@ namespace triggers {
 			else if (is_fixed_token_ci(t, "from"))
 				from_v = true;
 			else
-				who = tag_from_text(env.s.culutre_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end));
+				who = tag_from_text(env.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end));
 		}
 		void set_value(const std::pair<association_type, token_and_type>& p) {
 			a = p.first;
@@ -3989,7 +3989,7 @@ namespace triggers {
 			else if (is_fixed_token_ci(t, "from"))
 				from_v = true;
 			else
-				who = tag_from_text(env.s.culutre_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end));
+				who = tag_from_text(env.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end));
 		}
 		void set_value(const std::pair<association_type, token_and_type>& p) {
 			a = p.first;
@@ -4425,7 +4425,7 @@ namespace triggers {
 				env.data.push_back(2ui16);
 				payload_size_offset = e.data.size() - 1;
 				env.data.push_back(trigger_payload(region).value);
-			} else if (const auto tag = tag_from_text(e.s.culutre_m.national_tags_index, cultures::tag_to_encoding(name.start, name.end)); is_valid_index(tag)) {
+			} else if (const auto tag = tag_from_text(e.s.culture_m.national_tags_index, cultures::tag_to_encoding(name.start, name.end)); is_valid_index(tag)) {
 				scope_state = trigger_scope_state{
 					trigger_slot_contents::nation,
 					e.current_scope.this_slot,

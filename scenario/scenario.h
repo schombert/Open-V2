@@ -21,7 +21,7 @@ namespace scenario {
 	class scenario_manager {
 	public:
 		population::population_manager population_m;
-		cultures::culture_manager culutre_m;
+		cultures::culture_manager culture_m;
 		economy::economic_scenario economy_m;
 		governments::governments_manager governments_m;
 		ideologies::ideologies_manager ideologies_m;

@@ -18,30 +18,37 @@ public:
 	static constexpr bool has_simple_serialize = false;
 
 	static void rebuild_indexes(issues::issues_manager& obj) {
-		for(auto const& i_issue : obj.issues_container)
+		obj.party_issues_options_count = 0ui32;
+
+		for(auto const& i_issue : obj.issues_container) {
 			obj.named_issue_index.emplace(i_issue.name, i_issue.id);
-		for(auto const& i_option : obj.options)
+			if(i_issue.type == issues::issue_group::party)
+				obj.party_issues.push_back(i_issue.id);
+			else if(i_issue.type == issues::issue_group::economic)
+				obj.economic_issues.push_back(i_issue.id);
+			else if(i_issue.type == issues::issue_group::military)
+				obj.military_issues.push_back(i_issue.id);
+			else if(i_issue.type == issues::issue_group::political)
+				obj.political_issues.push_back(i_issue.id);
+			else if(i_issue.type == issues::issue_group::social)
+				obj.social_issues.push_back(i_issue.id);
+		}
+		for(auto const& i_option : obj.options) {
 			obj.named_option_index.emplace(i_option.name, i_option.id);
+			if(obj.issues_container[i_option.parent_issue].type == issues::issue_group::party)
+				++obj.party_issues_options_count;
+		}
+		obj.options_count = uint32_t(obj.options.size());
 	}
 
 	static void serialize_object(std::byte* &output, issues::issues_manager const& obj) {
 		serialize(output, obj.issues_container);
 		serialize(output, obj.options);
-		serialize(output, obj.party_issues);
-		serialize(output, obj.political_issues);
-		serialize(output, obj.social_issues);
-		serialize(output, obj.economic_issues);
-		serialize(output, obj.military_issues);
 		serialize(output, obj.jingoism);
 	}
 	static void deserialize_object(std::byte const* &input, issues::issues_manager& obj) {
 		deserialize(input, obj.issues_container);
 		deserialize(input, obj.options);
-		deserialize(input, obj.party_issues);
-		deserialize(input, obj.political_issues);
-		deserialize(input, obj.social_issues);
-		deserialize(input, obj.economic_issues);
-		deserialize(input, obj.military_issues);
 		deserialize(input, obj.jingoism);
 
 		rebuild_indexes(obj);
@@ -49,11 +56,6 @@ public:
 	static void deserialize_object(std::byte const* &input, issues::issues_manager& obj, concurrency::task_group& tg) {
 		deserialize(input, obj.issues_container);
 		deserialize(input, obj.options);
-		deserialize(input, obj.party_issues);
-		deserialize(input, obj.political_issues);
-		deserialize(input, obj.social_issues);
-		deserialize(input, obj.economic_issues);
-		deserialize(input, obj.military_issues);
 		deserialize(input, obj.jingoism);
 
 		tg.run([&obj]() { rebuild_indexes(obj); });
@@ -61,11 +63,6 @@ public:
 	static size_t size(issues::issues_manager const& obj) {
 		return serialize_size(obj.issues_container) +
 			serialize_size(obj.options) +
-			serialize_size(obj.party_issues) +
-			serialize_size(obj.political_issues) +
-			serialize_size(obj.social_issues) +
-			serialize_size(obj.economic_issues) +
-			serialize_size(obj.military_issues) +
 			serialize_size(obj.jingoism);
 	}
 };

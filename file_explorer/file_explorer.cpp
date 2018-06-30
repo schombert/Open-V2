@@ -497,38 +497,38 @@ int main(int , char **) {
 	fs.add_root(u"D:\\programs\\V2\\mod\\OpenV2");
 	ui::gui_manager gui_m(850, 650);
 
+	DWORD dwAttrib = GetFileAttributes((const wchar_t*)(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin"));
+	if(dwAttrib == INVALID_FILE_ATTRIBUTES) {
+		scenario::scenario_manager s1;
 
-	/*
-	scenario::scenario_manager s1;
+		std::cout << "begin scenario read" << std::endl << std::flush;
+		auto const color_terrain_map = scenario::read_scenario(s1, fs.get_root());
+		std::cout << "end scenario read" << std::endl << std::flush;
 
-	std::cout << "begin scenario read" << std::endl << std::flush;
-	auto const color_terrain_map = scenario::read_scenario(s1, fs.get_root());
-	std::cout << "end scenario read" << std::endl << std::flush;
+		std::cout << "begin map read" << std::endl << std::flush;
+		auto const p_to_t_vector = provinces::load_province_map_data(s1.province_m, fs.get_root());
 
-	std::cout << "begin map read" << std::endl << std::flush;
-	auto const p_to_t_vector = provinces::load_province_map_data(s1.province_m, fs.get_root());
+		provinces::provinces_state pstate;
+		pstate.province_state_container.resize(s1.province_m.province_container.size());
+		provinces::assign_terrain_color(pstate, p_to_t_vector, color_terrain_map);
 
-	provinces::provinces_state pstate;
-	pstate.province_state_container.resize(s1.province_m.province_container.size());
-	provinces::assign_terrain_color(pstate, p_to_t_vector, color_terrain_map);
+		std::cout << "end map read" << std::endl << std::flush;
 
-	std::cout << "end map read" << std::endl << std::flush;
+		std::cout << "begin map adjacency" << std::endl << std::flush;
+		auto adj_map = provinces::generate_map_adjacencies(s1.province_m.province_map_data.data(), s1.province_m.province_map_height, s1.province_m.province_map_width);
+		provinces::read_adjacnencies_file(adj_map, s1.province_m.canals, fs.get_root());
+		provinces::make_lakes(adj_map, s1.province_m);
+		provinces::make_adjacency(adj_map, s1.province_m);
+		std::cout << "end map adjacency" << std::endl << std::flush;
 
-	std::cout << "begin map adjacency" << std::endl << std::flush;
-	auto adj_map = provinces::generate_map_adjacencies(s1.province_m.province_map_data.data(), s1.province_m.province_map_height, s1.province_m.province_map_width);
-	provinces::read_adjacnencies_file(adj_map, s1.province_m.canals, fs.get_root());
-	provinces::make_lakes(adj_map, s1.province_m);
-	provinces::make_adjacency(adj_map, s1.province_m);
-	std::cout << "end map adjacency" << std::endl << std::flush;
-
-	const auto s_size = serialization::serialize_size(s1);
-	std::cout << s_size << " bytes " << s_size / 1024 << " KB " << s_size / (1024 * 1024) << " MB" << std::endl;
+		const auto s_size = serialization::serialize_size(s1);
+		std::cout << s_size << " bytes " << s_size / 1024 << " KB " << s_size / (1024 * 1024) << " MB" << std::endl;
 
 
-	std::cout << "begin serialize" << std::endl << std::flush;
-	serialization::serialize_to_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", s1);
-	std::cout << "end serialize" << std::endl << std::flush;
-	*/
+		std::cout << "begin serialize" << std::endl << std::flush;
+		serialization::serialize_to_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", s1);
+		std::cout << "end serialize" << std::endl << std::flush;
+	}
 
 	world_state ws;
 

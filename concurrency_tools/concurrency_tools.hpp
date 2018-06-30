@@ -146,7 +146,7 @@ template<typename T>
 void stable_vector<object_type, index_type, block_size, index_size>::for_each(T const& f) {
 	for(uint32_t i = 0; i < indices_in_use; ++i) {
 		for(uint32_t j = 0; j < block_size; ++j) {
-			if((((index_array[i])[j].id & high_bit_mask<index_type>) == 0) & ::is_valid_index((index_array[i])[j].id))
+			if(((to_index((index_array[i])[j].id) & high_bit_mask<index_type>) == 0) & ::is_valid_index((index_array[i])[j].id))
 				f((index_array[i])[j]);
 		}
 	}
@@ -639,7 +639,10 @@ template<typename object_type, uint32_t minimum_size, size_t memory_size>
 void push_back(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag& i, object_type obj) {
 	detail::mk_2_header* header = (detail::mk_2_header*)(storage.backing_storage + i);
 
-	if(!is_valid_index(i) || header->size >= header->capacity) {
+	if(!is_valid_index(i)) {
+		storage.increase_capacity(i, 1);
+		header = (detail::mk_2_header*)(storage.backing_storage + i);
+	} else if(header->size >= header->capacity) {
 		storage.increase_capacity(i, header->size + 1);
 		header = (detail::mk_2_header*)(storage.backing_storage + i);
 	} 

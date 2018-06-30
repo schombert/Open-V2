@@ -6,10 +6,10 @@ namespace scenario {
 		ui::load_gui_from_directory(root, s.gui_m);
 
 		//stage 2
-		auto const country_files = cultures::read_national_tags(s.culutre_m, root);
+		auto const country_files = cultures::read_national_tags(s.culture_m, root);
 
-		cultures::read_religions(s.culutre_m, root, s.gui_m.text_data_sequences);
-		cultures::read_cultures(s.culutre_m, s.gui_m.textures, root, s.gui_m.text_data_sequences);
+		cultures::read_religions(s.culture_m, root, s.gui_m.text_data_sequences);
+		cultures::read_cultures(s.culture_m, s.gui_m.textures, root, s.gui_m.text_data_sequences);
 
 		economy::read_goods(s.economy_m, root, s.gui_m.text_data_sequences);
 		auto building_production_map = economy::read_buildings(s.economy_m, root, s.gui_m.text_data_sequences);

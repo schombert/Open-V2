@@ -9,6 +9,8 @@
 #include "population\\population_io.h"
 #include "issues\\issues_io.h"
 #include "governments\\governments_io.h"
+#include "world_state\\world_state.h"
+#include "scenario\\scenario_io.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -334,6 +336,39 @@ public:
 		"democracy  = {\r\n"
 		"}\r\n");
 
+	directory_representation history1 = directory_representation(u"history", f_root);
+	directory_representation pops1 = directory_representation(u"pops", history1);
+	directory_representation hd1 = directory_representation(u"1900.1.1", pops1);
+	directory_representation hd2 = directory_representation(u"1850.1.1", pops1);
+	directory_representation hd3 = directory_representation(u"1800.1.1", pops1);
+
+	file_representation hf1 = file_representation(u"file.txt", hd1,
+		"853 = {\r\n"
+		"	aristocrats = {\r\n"
+		"		culture = albanian\r\n"
+		"		religion = sunni\r\n"
+		"		size = 750\r\n"
+		"	}\r\n"
+		"}\r\n"
+		);
+	file_representation hf2 = file_representation(u"fileb.txt", hd2,
+		"853 = {\r\n"
+		"	clergymen = {\r\n"
+		"		culture = albanian\r\n"
+		"		religion = orthodox\r\n"
+		"		size = 50\r\n"
+		"	}\r\n"
+		"	farmers = {\r\n"
+		"		culture = albanian\r\n"
+		"		religion = orthodox\r\n"
+		"		size = 6750\r\n"
+		"	}\r\n"
+		"}\r\n");
+	file_representation hf3 = file_representation(u"file.txt", hd3,
+		"850 = { farmers =  { culture = beifaren religion = mahayana size = 5000 } }");
+	file_representation hf4 = file_representation(u"fileb.txt", hd3,
+		"851 = { officers = { culture = manchu religion = mahayana size = 50 } }");
+
 
 	preparse_test_files() {
 		set_default_root(f_root);
@@ -573,4 +608,98 @@ TEST(population_tests, read_rebels) {
 	EXPECT_EQ(proletarian_dictatorship, s.population_m.rebel_change_government_to.get(rebel_type_tag(1), proletarian_dictatorship));
 	EXPECT_EQ(absolute_monarchy, s.population_m.rebel_change_government_to.get(rebel_type_tag(1), absolute_monarchy));
 	EXPECT_EQ(democracy, s.population_m.rebel_change_government_to.get(rebel_type_tag(1), democracy));
+}
+
+TEST(population_tests, population_directory_selection) {
+	{
+		world_state ws;
+		serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s);
+		ready_world_state(ws);
+
+		preparse_test_files real_fs;
+		file_system f;
+		f.set_root(RANGE(u"F:"));
+
+		read_all_pops(f.get_root(), ws, date_to_tag(boost::gregorian::date(1901, boost::gregorian::Jan, 1)));
+		
+		EXPECT_EQ(1ui32, get_size(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(853)].pops));
+
+		auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(853)].pops, 0);
+		pop& pop_obj = ws.w.population_s.pops.get(popid);
+
+		EXPECT_EQ(750, pop_obj.size);
+		EXPECT_EQ(provinces::province_tag(853), pop_obj.location);
+		EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("albanian"))));
+		EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("sunni"))));
+		EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("aristocrats"))));
+	}
+
+	{
+		world_state ws;
+		serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s);
+		ready_world_state(ws);
+
+		preparse_test_files real_fs;
+		file_system f;
+		f.set_root(RANGE(u"F:"));
+
+		read_all_pops(f.get_root(), ws, date_to_tag(boost::gregorian::date(1851, boost::gregorian::Jan, 1)));
+
+		EXPECT_EQ(2ui32, get_size(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(853)].pops));
+
+		{
+			auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(853)].pops, 0);
+			pop& pop_obj = ws.w.population_s.pops.get(popid);
+
+			EXPECT_EQ(50, pop_obj.size);
+			EXPECT_EQ(provinces::province_tag(853), pop_obj.location);
+			EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("albanian"))));
+			EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("orthodox"))));
+			EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("clergymen"))));
+		}
+		{
+			auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(853)].pops, 1);
+			pop& pop_obj = ws.w.population_s.pops.get(popid);
+
+			EXPECT_EQ(6750, pop_obj.size);
+			EXPECT_EQ(provinces::province_tag(853), pop_obj.location);
+			EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("albanian"))));
+			EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("orthodox"))));
+			EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("farmers"))));
+		}
+	}
+	{
+		world_state ws;
+		serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s);
+		ready_world_state(ws);
+
+		preparse_test_files real_fs;
+		file_system f;
+		f.set_root(RANGE(u"F:"));
+
+		read_all_pops(f.get_root(), ws, date_to_tag(boost::gregorian::date(1801, boost::gregorian::Jan, 1)));
+
+		{
+			EXPECT_EQ(1ui32, get_size(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(850)].pops));
+			auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(850)].pops, 0);
+			pop& pop_obj = ws.w.population_s.pops.get(popid);
+
+			EXPECT_EQ(5000, pop_obj.size);
+			EXPECT_EQ(provinces::province_tag(850), pop_obj.location);
+			EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("beifaren"))));
+			EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("mahayana"))));
+			EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("farmers"))));
+		}
+		{
+			EXPECT_EQ(1ui32, get_size(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(851)].pops));
+			auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(851)].pops, 0);
+			pop& pop_obj = ws.w.population_s.pops.get(popid);
+
+			EXPECT_EQ(50, pop_obj.size);
+			EXPECT_EQ(provinces::province_tag(851), pop_obj.location);
+			EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("manchu"))));
+			EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("mahayana"))));
+			EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("officers"))));
+		}
+	}
 }

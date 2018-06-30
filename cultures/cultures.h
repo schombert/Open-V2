@@ -96,6 +96,9 @@ namespace cultures {
 		boost::container::flat_map<text_data::text_tag, religion_tag> named_religion_index;
 		boost::container::flat_map<text_data::text_tag, culture_group_tag> named_culture_group_index;
 		boost::container::flat_map<uint32_t, national_tag> national_tags_index;
+		
+		uint32_t count_cultures = 0ui32;
+		uint32_t count_religions = 0ui32;
 
 		graphics::texture_tag no_leader;
 	};

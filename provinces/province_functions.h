@@ -8,4 +8,5 @@ namespace provinces {
 	void remove_core(current_state::state& ws, province_tag prov, cultures::national_tag tag);
 	bool province_has_core(current_state::state& ws, province_tag prov, cultures::national_tag tag);
 	void init_ready_provinces(world_state& ws);
+	void update_province_demographics(world_state& ws);
 }

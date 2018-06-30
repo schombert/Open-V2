@@ -10,7 +10,7 @@ namespace nations {
 			return tag_state.holder;
 		nation& new_nation = ws.w.nation_s.nations.get_new();
 
-		auto& fixed_tag = ws.s.culutre_m.national_tags[nt];
+		auto& fixed_tag = ws.s.culture_m.national_tags[nt];
 
 		tag_state.holder = &new_nation;
 		new_nation.tag = nt;
@@ -21,6 +21,7 @@ namespace nations {
 		new_nation.current_color = fixed_tag.color;
 
 		ws.w.nation_s.active_parties.ensure_capacity(to_index(new_nation.id) + 1);
+		ws.w.nation_s.nation_demographics.ensure_capacity(to_index(new_nation.id) + 1);
 
 		return &new_nation;
 	}
@@ -79,6 +80,8 @@ namespace nations {
 			prov_state.state_instance = &(ws.w.nation_s.states.get(found->state_id));
 		} else {
 			state_instance* si = &(ws.w.nation_s.states.get_new());
+			ws.w.nation_s.state_demographics.ensure_capacity(to_index(si->id) + 1);
+
 			prov_state.state_instance = si;
 			add_item(ws.w.nation_s.state_arrays, owner->member_states, region_state_pair{ region_id, si->id });
 		}
@@ -89,5 +92,93 @@ namespace nations {
 		if(ws.province_s.province_state_container[prov].controller != nullptr)
 			silent_remove_province_controller(ws, ws.province_s.province_state_container[prov].controller, prov);
 		ws.province_s.province_state_container[prov].controller = controller;
+	}
+
+	void init_nations_state(world_state& ws) {
+		ws.w.nation_s.nation_demographics.reset(population::aligned_64_demo_size(ws));
+		ws.w.nation_s.state_demographics.reset(population::aligned_32_demo_size(ws));
+	}
+
+	void update_state_nation_demographics(world_state& ws) {
+		const auto full_vector_size = population::aligned_32_demo_size(ws);
+
+		ws.w.nation_s.nations.for_each([&ws, full_vector_size](nation& n) {
+			Eigen::Map<Eigen::Matrix<int64_t, -1, 1>, Eigen::AlignmentType::Aligned32> nation_demo(ws.w.nation_s.nation_demographics.get_row(n.id), full_vector_size);
+			nation_demo.setZero();
+
+			const auto state_range = get_range(ws.w.nation_s.state_arrays, n.member_states);
+
+			for(auto s = state_range.first; s != state_range.second; ++s) {
+				Eigen::Map<Eigen::Matrix<int32_t, -1, 1>, Eigen::AlignmentType::Aligned32> state_demo(ws.w.nation_s.state_demographics.get_row(s->state_id), full_vector_size);
+				auto& this_state = ws.w.nation_s.states.get(s->state_id);
+
+				state_demo.setZero();
+
+				const auto p_in_region_range = ws.s.province_m.states_to_province_index.equal_range(s->region_id);
+				for(auto p = p_in_region_range.first; p != p_in_region_range.second; ++p) {
+					if(ws.w.province_s.province_state_container[p->second].owner == &n) {
+						Eigen::Map<Eigen::Matrix<int32_t, -1, 1>, Eigen::AlignmentType::Aligned32> province_demo(ws.w.province_s.province_demographics.get_row(p->second), full_vector_size);
+						state_demo += province_demo;
+					}
+				}
+
+				{
+					const auto culture_offset = population::to_demo_tag(ws, cultures::culture_tag(0));
+
+					this_state.dominant_culture = cultures::culture_tag(0);
+					int32_t max_pop = state_demo[to_index(culture_offset)];
+
+					for(uint32_t i = 1ui32; i < ws.s.culture_m.count_cultures; ++i) {
+						if(state_demo[to_index(culture_offset) + i] > max_pop) {
+							max_pop = state_demo[to_index(culture_offset) + i];
+							this_state.dominant_culture = cultures::culture_tag(static_cast<value_base_of<cultures::culture_tag>>(i));
+						}
+					}
+				}
+
+				{
+					const auto religion_offset = population::to_demo_tag(ws, cultures::religion_tag(0));
+
+					this_state.dominant_religion = cultures::religion_tag(0);
+					int32_t max_pop = state_demo[to_index(religion_offset)];
+
+					for(uint32_t i = 1ui32; i < ws.s.culture_m.count_religions; ++i) {
+						if(state_demo[to_index(religion_offset) + i] > max_pop) {
+							max_pop = state_demo[to_index(religion_offset) + i];
+							this_state.dominant_religion = cultures::religion_tag(static_cast<value_base_of<cultures::religion_tag>>(i));
+						}
+					}
+				}
+				nation_demo += state_demo.cast<int64_t>();
+			}
+
+			{
+				const auto culture_offset = population::to_demo_tag(ws, cultures::culture_tag(0));
+
+				n.dominant_culture = cultures::culture_tag(0);
+				int64_t max_pop = nation_demo[to_index(culture_offset)];
+
+				for(uint32_t i = 1ui32; i < ws.s.culture_m.count_cultures; ++i) {
+					if(nation_demo[to_index(culture_offset) + i] > max_pop) {
+						max_pop = nation_demo[to_index(culture_offset) + i];
+						n.dominant_culture = cultures::culture_tag(static_cast<value_base_of<cultures::culture_tag>>(i));
+					}
+				}
+			}
+
+			{
+				const auto religion_offset = population::to_demo_tag(ws, cultures::religion_tag(0));
+
+				n.dominant_religion = cultures::religion_tag(0);
+				int64_t max_pop = nation_demo[to_index(religion_offset)];
+
+				for(uint32_t i = 1ui32; i < ws.s.culture_m.count_religions; ++i) {
+					if(nation_demo[to_index(religion_offset) + i] > max_pop) {
+						max_pop = nation_demo[to_index(religion_offset) + i];
+						n.dominant_religion = cultures::religion_tag(static_cast<value_base_of<cultures::religion_tag>>(i));
+					}
+				}
+			}
+		});
 	}
 }

@@ -30,7 +30,7 @@ public:
 
 	static void serialize_object(std::byte* &output, scenario::scenario_manager const& obj) {
 		serialize(output, obj.population_m);
-		serialize(output, obj.culutre_m);
+		serialize(output, obj.culture_m);
 		serialize(output, obj.economy_m);
 		serialize(output, obj.governments_m);
 		serialize(output, obj.ideologies_m);
@@ -48,7 +48,7 @@ public:
 	template<typename ... CONTEXT>
 	static void deserialize_object(std::byte const* &input, scenario::scenario_manager& obj, CONTEXT&& ... c) {
 		deserialize(input, obj.population_m, std::forward<CONTEXT>(c) ...);
-		deserialize(input, obj.culutre_m, std::forward<CONTEXT>(c) ...);
+		deserialize(input, obj.culture_m, std::forward<CONTEXT>(c) ...);
 		deserialize(input, obj.economy_m, std::forward<CONTEXT>(c) ...);
 		deserialize(input, obj.governments_m, std::forward<CONTEXT>(c) ...);
 		deserialize(input, obj.ideologies_m, std::forward<CONTEXT>(c) ...);
@@ -65,7 +65,7 @@ public:
 	}
 	static size_t size(scenario::scenario_manager const& obj) {
 		return serialize_size(obj.population_m) +
-			serialize_size(obj.culutre_m) +
+			serialize_size(obj.culture_m) +
 			serialize_size(obj.economy_m) +
 			serialize_size(obj.governments_m) +
 			serialize_size(obj.ideologies_m) +

@@ -14,19 +14,19 @@ TEST(nations_tests, nation_creation) {
 	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s);
 	ready_world_state(ws);
 
-	auto ger_tag = tag_from_text(ws.s.culutre_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
+	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
 	auto ger_nation = make_nation_for_tag(ws, ger_tag);
 	
 	EXPECT_NE(nullptr, ger_nation);
 	EXPECT_EQ(ger_nation->tag, ger_tag);
 	EXPECT_NE(country_tag(), ger_nation->id);
 
-	EXPECT_EQ(ws.s.culutre_m.national_tags[ger_tag].default_name.adjective, ger_nation->adjective);
-	EXPECT_EQ(ws.s.culutre_m.national_tags[ger_tag].default_name.name, ger_nation->name);
-	EXPECT_EQ(ws.s.culutre_m.national_tags[ger_tag].base_flag, ger_nation->flag);
-	EXPECT_EQ(ws.s.culutre_m.national_tags[ger_tag].color.g, ger_nation->current_color.g);
+	EXPECT_EQ(ws.s.culture_m.national_tags[ger_tag].default_name.adjective, ger_nation->adjective);
+	EXPECT_EQ(ws.s.culture_m.national_tags[ger_tag].default_name.name, ger_nation->name);
+	EXPECT_EQ(ws.s.culture_m.national_tags[ger_tag].base_flag, ger_nation->flag);
+	EXPECT_EQ(ws.s.culture_m.national_tags[ger_tag].color.g, ger_nation->current_color.g);
 
-	auto usa_tag = tag_from_text(ws.s.culutre_m.national_tags_index, cultures::tag_to_encoding(RANGE("USA")));
+	auto usa_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("USA")));
 	auto usa_nation = make_nation_for_tag(ws, usa_tag);
 
 	EXPECT_NE(nullptr, usa_nation);
@@ -40,7 +40,7 @@ TEST(nations_tests, province_ownership) {
 	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s);
 	ready_world_state(ws);
 
-	auto ger_tag = tag_from_text(ws.s.culutre_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
+	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
 	auto ger_nation = make_nation_for_tag(ws, ger_tag);
 
 	auto prov_tag = provinces::province_tag(104ui16);
@@ -73,7 +73,7 @@ TEST(nations_tests, adding_states) {
 	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s);
 	ready_world_state(ws);
 
-	auto ger_tag = tag_from_text(ws.s.culutre_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
+	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
 	auto ger_nation = make_nation_for_tag(ws, ger_tag);
 
 	auto prov_tag_a = provinces::province_tag(104ui16);
@@ -133,7 +133,7 @@ TEST(nations_tests, province_control) {
 	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s);
 	ready_world_state(ws);
 
-	auto ger_tag = tag_from_text(ws.s.culutre_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
+	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
 	auto ger_nation = make_nation_for_tag(ws, ger_tag);
 
 	auto prov_tag = provinces::province_tag(104ui16);

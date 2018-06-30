@@ -220,6 +220,8 @@ namespace ideologies {
 			}
 		}
 
+		manager.ideologies_count = uint32_t(manager.ideology_container.size());
+
 		return return_state;
 	}
 

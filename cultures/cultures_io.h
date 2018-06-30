@@ -32,6 +32,9 @@ public:
 			obj.named_religion_index.emplace(i_religion.name, i_religion.id);
 		for(auto const& i_tag : obj.national_tags)
 			obj.national_tags_index.emplace(i_tag.tag_code, i_tag.id);
+
+		obj.count_cultures = uint32_t(obj.culture_container.size());
+		obj.count_religions = uint32_t(obj.religions.size());
 	}
 
 	static void serialize_object(std::byte* &output, cultures::culture_manager const& obj) {

@@ -36,6 +36,8 @@ namespace ideologies {
 		tagged_vector<ideology_group, ideology_group_tag> ideology_groups;
 		tagged_vector<ideology, ideology_tag> ideology_container;
 
+		uint32_t ideologies_count = 0ui32;
+
 		ideology_tag conservative_ideology;
 	};
 }

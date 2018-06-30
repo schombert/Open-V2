@@ -62,11 +62,11 @@ namespace issues {
 		rules rules_mask;
 	};
 	enum class issue_group : uint8_t {
-		party,
-		social,
-		political,
-		economic,
-		military
+		party = 0ui8,
+		social = 1ui8,
+		political = 2ui8,
+		economic = 3ui8,
+		military = 4ui8
 	};
 	inline constexpr bool is_unciv_issue(issue_group type) {
 		return type == issue_group::economic || type == issue_group::military;
@@ -110,6 +110,9 @@ namespace issues {
 		std::vector<issue_tag> social_issues;
 		std::vector<issue_tag> economic_issues;
 		std::vector<issue_tag> military_issues;
+
+		uint32_t options_count = 0ui32;
+		uint32_t party_issues_options_count = 0ui32;
 
 		option_tag jingoism;
 	};

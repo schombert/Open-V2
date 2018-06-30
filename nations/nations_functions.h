@@ -18,4 +18,6 @@ namespace nations {
 	void silent_set_province_owner(world_state& ws, nation* owner, provinces::province_tag prov);
 	nation* make_nation_for_tag(world_state& ws, cultures::national_tag nt);
 	bool is_state_empty(world_state& ws, nation* owner, provinces::state_tag region);
+	void init_nations_state(world_state& ws);
+	void update_state_nation_demographics(world_state& ws);
 }

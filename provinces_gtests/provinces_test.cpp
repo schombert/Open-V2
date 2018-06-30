@@ -455,8 +455,8 @@ TEST(provinces_test, core_functions) {
 	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s);
 	ready_world_state(ws);
 
-	auto ger_tag = tag_from_text(ws.s.culutre_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
-	auto usa_tag = tag_from_text(ws.s.culutre_m.national_tags_index, cultures::tag_to_encoding(RANGE("USA")));
+	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
+	auto usa_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("USA")));
 
 	province_tag prov_a(100ui16);
 	province_tag prov_b(101ui16);
@@ -491,9 +491,13 @@ TEST(provinces_test, single_province_read_state) {
 		"controller = USA\r\n"
 		"add_core = USA\r\n"
 		"trade_goods = tobacco\r\n"
-		"life_rating = 35\r\n"		"railroad = 1\r\n"
+		"life_rating = 35\r\n"
+		"railroad = 1\r\n"
 		"colony = 2\r\n"
-		"1861.1.1 = {\r\n"		"	owner = CSA\r\n"		"	controller = CSA\r\n"		"	add_core = CSA\r\n"
+		"1861.1.1 = {\r\n"
+		"	owner = CSA\r\n"
+		"	controller = CSA\r\n"
+		"	add_core = CSA\r\n"
 		"	remove_core = USA\r\n"
 		"}\r\n"
 		"1861.1.1 = {\r\n"
@@ -522,8 +526,8 @@ TEST(provinces_test, single_province_read_state) {
 	parse_pdx_file(presults, RANGE(test_data));
 
 
-	auto usa_tag = tag_from_text(ws.s.culutre_m.national_tags_index, cultures::tag_to_encoding(RANGE("USA")));
-	auto csa_tag = tag_from_text(ws.s.culutre_m.national_tags_index, cultures::tag_to_encoding(RANGE("CSA")));
+	auto usa_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("USA")));
+	auto csa_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("CSA")));
 
 	{
 		auto& ps = ws.w.province_s.province_state_container[province_tag(10ui16)];
