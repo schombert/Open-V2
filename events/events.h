@@ -77,5 +77,6 @@ namespace events {
 
 
 		boost::container::flat_map<int32_t, event_tag> events_by_id;
+		boost::container::flat_map<text_data::text_tag, decision_tag> descisions_by_title_index;
 	};
 }

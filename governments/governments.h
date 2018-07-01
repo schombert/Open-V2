@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include "common\\common.h"
 #include "common\\shared_tags.h"
-
+#include "issues\\issues.h"
 
 namespace ideologies {
 	class ideologies_manager;
@@ -32,6 +32,8 @@ namespace governments {
 	};
 
 	struct party {
+		issues::rules party_rules;
+
 		text_data::text_tag name;
 		date_tag start_date;
 		date_tag end_date;

@@ -11,6 +11,7 @@
 #include "governments\\governments_io.h"
 #include "world_state\\world_state.h"
 #include "scenario\\scenario_io.h"
+#include <ppl.h>
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -613,7 +614,9 @@ TEST(population_tests, read_rebels) {
 TEST(population_tests, population_directory_selection) {
 	{
 		world_state ws;
-		serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s);
+		concurrency::task_group tg;
+		serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s, tg);
+		tg.wait();
 		ready_world_state(ws);
 
 		preparse_test_files real_fs;
@@ -636,7 +639,9 @@ TEST(population_tests, population_directory_selection) {
 
 	{
 		world_state ws;
-		serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s);
+		concurrency::task_group tg;
+		serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s, tg);
+		tg.wait();
 		ready_world_state(ws);
 
 		preparse_test_files real_fs;
@@ -670,7 +675,9 @@ TEST(population_tests, population_directory_selection) {
 	}
 	{
 		world_state ws;
-		serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s);
+		concurrency::task_group tg;
+		serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s, tg);
+		tg.wait();
 		ready_world_state(ws);
 
 		preparse_test_files real_fs;

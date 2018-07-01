@@ -4744,7 +4744,11 @@ namespace triggers {
 				if (env.current_scope.main_slot != trigger_slot_contents::nation) {
 					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, e);
 				} else {
-					env.data.push_back(uint16_t(trigger_codes::technology | association_to_bool_code(a, token_to<int32_t>(trigger_value) >= 1)));
+					bool value = false;
+					if(is_fixed_token_ci(trigger_value, "yes") || is_fixed_token_ci(trigger_value, "1"))
+						value = true;
+
+					env.data.push_back(uint16_t(trigger_codes::technology | association_to_bool_code(a, value)));
 					env.data.push_back(2ui16);
 					env.data.push_back(trigger_payload(tech).value);
 				}

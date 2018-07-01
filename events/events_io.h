@@ -15,6 +15,11 @@ public:
 	static constexpr bool has_static_size = false;
 	static constexpr bool has_simple_serialize = false;
 
+	static void rebuild_indexes(events::event_manager& obj) {
+		for(auto const& i_desc : obj.decision_container)
+			obj.descisions_by_title_index.emplace(i_desc.title, i_desc.id);
+	}
+
 	static void serialize_object(std::byte* &output, events::event_manager const& obj) {
 		serialize(output, obj.event_container);
 		serialize(output, obj.decision_container);
@@ -36,8 +41,7 @@ public:
 		serialize(output, obj.on_crisis_declare_interest);
 		serialize(output, obj.events_by_id);
 	}
-	template<typename ... CONTEXT>
-	static void deserialize_object(std::byte const* &input, events::event_manager& obj, CONTEXT&& ... c) {
+	static void deserialize_object(std::byte const* &input, events::event_manager& obj) {
 		deserialize(input, obj.event_container);
 		deserialize(input, obj.decision_container);
 		deserialize(input, obj.country_events);
@@ -57,6 +61,31 @@ public:
 		deserialize(input, obj.on_my_factories_nationalized);
 		deserialize(input, obj.on_crisis_declare_interest);
 		deserialize(input, obj.events_by_id);
+
+		rebuild_indexes(obj);
+	}
+	static void deserialize_object(std::byte const* &input, events::event_manager& obj, concurrency::task_group& tg) {
+		deserialize(input, obj.event_container);
+		deserialize(input, obj.decision_container);
+		deserialize(input, obj.country_events);
+		deserialize(input, obj.province_events);
+		deserialize(input, obj.on_yearly_pulse);
+		deserialize(input, obj.on_quarterly_pulse);
+		deserialize(input, obj.on_new_great_nation);
+		deserialize(input, obj.on_lost_great_nation);
+		deserialize(input, obj.on_election_tick);
+		deserialize(input, obj.on_colony_to_state);
+		deserialize(input, obj.on_battle_won);
+		deserialize(input, obj.on_battle_lost);
+		deserialize(input, obj.on_debtor_default);
+		deserialize(input, obj.on_debtor_default_small);
+		deserialize(input, obj.on_debtor_default_second);
+		deserialize(input, obj.on_civilize);
+		deserialize(input, obj.on_my_factories_nationalized);
+		deserialize(input, obj.on_crisis_declare_interest);
+		deserialize(input, obj.events_by_id);
+
+		tg.run([&obj]() { rebuild_indexes(obj); });
 	}
 	static size_t size(events::event_manager const& obj) {
 		return serialize_size(obj.event_container) +

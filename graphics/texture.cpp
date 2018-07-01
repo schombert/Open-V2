@@ -117,7 +117,6 @@ namespace graphics {
 			glGetTextureImage(h, 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<int32_t>(sizeof(color_rgba)) * width * height, result);
 
 			const auto final_result = result[width * static_cast<int32_t>(y * height) + static_cast<int32_t>(x * width)];
-			_freea(result);
 			return final_result;
 		} else {
 			return color_rgba{ 0,0,0,0 };
@@ -168,12 +167,10 @@ namespace graphics {
 		temp_cpy[t_pos] = 0;
 
 		const auto find_result = fname_map.find(temp_cpy);
-		if (find_result != fname_map.end()) {
-			_freea(temp_cpy);
+		if (find_result != fname_map.end()) {;
 			return find_result->second;
 		} else {
 			const auto new_key = load_texture(root, temp_cpy, temp_cpy + t_pos);
-			_freea(temp_cpy);
 			return new_key;
 		}
 	}

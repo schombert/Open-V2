@@ -4,6 +4,7 @@
 #include "scenario\\scenario.h"
 #include "scenario\\scenario_io.h"
 #include "world_state\\world_state.h"
+#include <ppl.h>
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -11,7 +12,11 @@ using namespace nations;
 
 TEST(nations_tests, nation_creation) {
 	world_state ws;
-	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s);
+
+	concurrency::task_group tg;
+	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s, tg);
+	tg.wait();
+
 	ready_world_state(ws);
 
 	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
@@ -37,7 +42,9 @@ TEST(nations_tests, nation_creation) {
 
 TEST(nations_tests, province_ownership) {
 	world_state ws;
-	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s);
+	concurrency::task_group tg;
+	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s, tg);
+	tg.wait();
 	ready_world_state(ws);
 
 	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
@@ -53,9 +60,9 @@ TEST(nations_tests, province_ownership) {
 	EXPECT_EQ(1ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(1ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
 	EXPECT_EQ(province_region, get(ws.w.nation_s.state_arrays, ger_nation->member_states, 0ui32).region_id);
-	EXPECT_NE(nations::state_tag(), get(ws.w.nation_s.state_arrays, ger_nation->member_states, 0ui32).state_id);
+	EXPECT_NE(nullptr, get(ws.w.nation_s.state_arrays, ger_nation->member_states, 0ui32).state);
 	EXPECT_EQ(ger_nation, ws.w.province_s.province_state_container[prov_tag].owner);
-	EXPECT_EQ(get(ws.w.nation_s.state_arrays, ger_nation->member_states, 0ui32).state_id, ws.w.province_s.province_state_container[prov_tag].state_instance->id);
+	EXPECT_EQ(get(ws.w.nation_s.state_arrays, ger_nation->member_states, 0ui32).state, ws.w.province_s.province_state_container[prov_tag].state_instance);
 
 	auto old_state_instance = ws.w.province_s.province_state_container[prov_tag].state_instance;
 
@@ -70,7 +77,9 @@ TEST(nations_tests, province_ownership) {
 
 TEST(nations_tests, adding_states) {
 	world_state ws;
-	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s);
+	concurrency::task_group tg;
+	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s, tg);
+	tg.wait();
 	ready_world_state(ws);
 
 	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
@@ -130,7 +139,9 @@ TEST(nations_tests, adding_states) {
 
 TEST(nations_tests, province_control) {
 	world_state ws;
-	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s);
+	concurrency::task_group tg;
+	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s, tg);
+	tg.wait();
 	ready_world_state(ws);
 
 	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));

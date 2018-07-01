@@ -92,6 +92,8 @@ struct tag_type {
 	constexpr bool operator!=(value_base v) const { return *this != tag_type(v); }
 	constexpr bool operator<(tag_type v) const { return value < v.value; }
 	constexpr bool operator<(value_base v) const { return *this < tag_type(v); }
+	constexpr bool operator<=(tag_type v) const { return value <= v.value; }
+	constexpr bool operator<=(value_base v) const { return *this <= tag_type(v); }
 };
 
 template<typename value_base, typename zero_is_null, typename individuator>
@@ -278,6 +280,12 @@ public:
 	const value_type & get(variable_tag_type outer, fixed_tag_type inner) const {
 		return storage[(uint32_t)to_index(inner) + (uint32_t)to_index(outer) * _inner_size];
 	}
+	value_type* get_row(variable_tag_type outer) {
+		return (value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size);
+	}
+	const value_type* get_row(variable_tag_type outer) const {
+		return (const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size);
+	}
 	value_type& safe_get(variable_tag_type outer, fixed_tag_type inner) {
 		const auto n2 = ((uint32_t)to_index(outer) + 1ui32) * _inner_size;
 		if (n2 >= storage.size())
@@ -355,6 +363,21 @@ public:
 	void resize(size_t outer_size) { storage.resize(outer_size * _inner_size); }
 	void reserve(size_t outer_size) { storage.reserve(outer_size * _inner_size); }
 };
+
+inline void bit_vector_set(uint64_t* v, uint32_t index, bool value) {
+	const uint32_t real_index = index >> 6ui32;
+	const uint32_t sub_index = index & 63ui32;
+	if(value) 
+		v[real_index] |= 1ui64 << uint64_t(sub_index);
+	else
+		v[real_index] &= ~(1ui64 << uint64_t(sub_index));
+}
+
+inline bool bit_vector_test(uint64_t* v, uint32_t index) {
+	const uint32_t real_index = index >> 6ui32;
+	const uint32_t sub_index = index & 63ui32;
+	return (v[real_index] & (1ui64 << uint64_t(sub_index))) != 0ui64;
+}
 
 enum key_modifiers {
 	modifiers_none = 0x0,
@@ -757,10 +780,10 @@ template<typename T, typename I = uint32_t, typename allocator = std::allocator<
 class v_vector {
 public:
 	std::vector<T, typename std::allocator_traits<allocator>::template rebind_alloc<T>> elements;
-	std::vector<I, typename std::allocator_traits<allocator>::template rebind_alloc<I>> index;
+	std::vector<uint32_t, typename std::allocator_traits<allocator>::template rebind_alloc<uint32_t>> index;
 
 	v_vector() {
-		index.push_back(I());
+		index.push_back(0ui32);
 	}
 
 	void clear() {
@@ -795,35 +818,35 @@ public:
 		return static_cast<uint32_t>(index.size());
 	}
 
-	std::pair<typename std::vector<T>::iterator, typename std::vector<T>::iterator> get_row(uint32_t i) {
+	std::pair<typename std::vector<T>::iterator, typename std::vector<T>::iterator> get_row(I i) {
 		std::pair<typename std::vector<T>::iterator, typename std::vector<T>::iterator> p;
-		p.first = elements.begin() + index[i];
-		if (i + 1 < index.size()) {
-			p.second = elements.begin() + index[i + 1];
+		p.first = elements.begin() + index[to_index(i)];
+		if (to_index(i) + 1 < index.size()) {
+			p.second = elements.begin() + index[to_index(i) + 1];
 		} else {
 			p.second = elements.end();
 		}
 		return p;
 	}
 
-	std::pair<typename std::vector<T>::const_iterator, typename std::vector<T>::const_iterator> get_row(uint32_t i) const {
+	std::pair<typename std::vector<T>::const_iterator, typename std::vector<T>::const_iterator> get_row(I i) const {
 		std::pair<typename std::vector<T>::const_iterator, typename std::vector<T>::const_iterator> p;
-		p.first = elements.cbegin() + index[i];
-		if (i + 1 < index.size()) {
-			p.second = elements.cbegin() + index[i + 1];
+		p.first = elements.cbegin() + index[to_index(i)];
+		if (to_index(i) + 1 < index.size()) {
+			p.second = elements.cbegin() + index[to_index(i) + 1];
 		} else {
 			p.second = elements.cend();
 		}
 		return p;
 	}
 
-	T& get(uint32_t x, uint32_t y) {
-		auto it = elements.begin() + index[x] + y;
+	T& get(I x, uint32_t y) {
+		auto it = elements.begin() + index[to_index(x)] + y;
 		return *it;
 	}
 
-	const T& get(uint32_t x, uint32_t y) const {
-		const auto it = elements.cbegin() + index[x] + y;
+	const T& get(I x, uint32_t y) const {
+		const auto it = elements.cbegin() + index[to_index(x)] + y;
 		return *it;
 	}
 
@@ -831,38 +854,38 @@ public:
 		elements.push_back(elem);
 	}
 
-	void add_to_row(uint32_t i, const T& elem) {
-		if (i >= index.size()) {
-			index.resize(i + 1, static_cast<I>(elements.size()));
+	void add_to_row(I i, const T& elem) {
+		if (to_index(i) >= index.size()) {
+			index.resize(to_index(i) + 1, uint32_t(elements.size()));
 		}
-		elements.insert(elements.begin() + index[i], elem);
+		elements.insert(elements.begin() + index[to_index(i)], elem);
 		size_t sz = index.size();
-		for (++i; i < sz; ++i) {
-			++index[i];
+		for (uint32_t j = uint32_t(to_index(i) + 1); j < sz; ++j) {
+			++index[j];
 		}
 	}
 
 	template<typename IT>
-	void add_range_to_row(uint32_t i, const IT& start, const IT& end) {
-		if (i >= index.size()) {
-			index.resize(i + 1, static_cast<I>(elements.size()));
+	void add_range_to_row(I i, const IT& start, const IT& end) {
+		if (to_index(i) >= index.size()) {
+			index.resize(to_index(i) + 1, uint32_t(elements.size()));
 		}
-		elements.insert(elements.begin() + index[i], start, end);
-		const I num_added = static_cast<I>(end - start);
+		elements.insert(elements.begin() + index[to_index(i)], start, end);
+		const uint32_t num_added(static_cast<uint32_t>(end - start));
 		size_t sz = index.size();
-		for (++i; i < sz; ++i) {
-			index[i] += num_added;
+		for (uint32_t j = uint32_t(to_index(i) + 1); j < sz; ++j) {
+			index[j] += num_added;
 		}
 	}
 
-	void append_to_row(uint32_t i, const T& elem) {
+	void append_to_row(I i, const T& elem) {
 		size_t sz = index.size();
-		if (i + 1 < sz)
-			elements.insert(elements.begin() + index[i + 1], elem);
+		if (to_index(i) + 1 < sz)
+			elements.insert(elements.begin() + index[to_index(i) + 1], elem);
 		else
 			elements.push_back(elem);
-		for (++i; i < sz; ++i) {
-			++index[i];
+		for (uint32_t j = uint32_t(to_index(i) + 1); j < sz; ++j) {
+			++index[j];
 		}
 	}
 };

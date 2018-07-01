@@ -533,7 +533,9 @@ int main(int , char **) {
 	world_state ws;
 
 	std::cout << "begin deserialize" << std::endl << std::flush;
-	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s);
+	concurrency::task_group tg;
+	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s, tg);
+	tg.wait();
 	std::cout << "end deserialize" << std::endl << std::flush;
 
 	ready_world_state(ws);

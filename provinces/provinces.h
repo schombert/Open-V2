@@ -94,7 +94,8 @@ namespace provinces {
 		tagged_vector<province, province_tag> province_container;
 		tagged_vector<text_data::text_tag, state_tag> state_names;
 
-		boost::container::flat_multimap<state_tag, province_tag> states_to_province_index;
+		v_vector<province_tag, state_tag> states_to_province_index;
+		//boost::container::flat_multimap<state_tag, province_tag> states_to_province_index;
 		boost::container::flat_map<text_data::text_tag, state_tag> named_states_index;
 
 		v_vector<province_tag::value_base_t, province_tag::value_base_t> same_type_adjacency;

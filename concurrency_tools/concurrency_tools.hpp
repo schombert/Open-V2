@@ -731,8 +731,6 @@ void add_ordered_range(stable_variable_vector_storage_mk_2<object_type, minimum_
 	std::merge(temp_buffer, temp_buffer + size, first, last, start);
 
 	header->size = uint16_t(size + count);
-
-	_freea(temp_buffer);
 }
 
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
@@ -754,8 +752,6 @@ void add_unique_ordered_range(stable_variable_vector_storage_mk_2<object_type, m
 	const auto new_last = std::set_union(temp_buffer, temp_buffer + size, first, last, first_item);
 
 	header->size = uint16_t(new_last - first_item);
-
-	_freea(temp_buffer);
 }
 
 template<typename object_type, uint32_t minimum_size, size_t memory_size>

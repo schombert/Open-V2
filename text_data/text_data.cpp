@@ -36,8 +36,6 @@ namespace text_data {
 			MultiByteToWideChar(CP_UTF8, 0, s, (int)(e - s), (wchar_t*)buffer, size);
 			container.text_data.insert(container.text_data.end(), buffer, buffer + size);
 
-			_freea(buffer);
-
 			container.all_components.emplace_back(text_chunk{ offset, static_cast<uint16_t>(size) });
 		}
 	}
@@ -510,7 +508,6 @@ namespace text_data {
 		memcpy(cpy, key_start, (size_t)(key_end - key_start));
 		cpy[key_end - key_start] = 0;
 		const auto find_result = container.key_to_sequence_map.find(cpy);
-		_freea(cpy);
 
 		if (find_result != container.key_to_sequence_map.end()) {
 			return find_result->second;
@@ -534,7 +531,6 @@ namespace text_data {
 		container.text_data_mutex.lock_shared();
 
 		const auto find_result = container.key_to_sequence_map.find(cpy);
-		_freea(cpy);
 
 		if (find_result != container.key_to_sequence_map.end()) {
 			const auto found_tag = find_result->second;
@@ -564,7 +560,6 @@ namespace text_data {
 
 		container.text_data_mutex.lock_shared();
 		const auto find_result = container.key_to_sequence_map.find(cpy);
-		_freea(cpy);
 
 		if (find_result != container.key_to_sequence_map.end()) {
 			const auto found_tag = find_result->second;
@@ -584,7 +579,6 @@ namespace text_data {
 		memcpy(cpy, key_start, (size_t)(key_end - key_start));
 		cpy[key_end - key_start] = 0;
 		const auto find_result = container.key_to_sequence_map.find(cpy);
-		_freea(cpy);
 
 		if (find_result != container.key_to_sequence_map.end()) {
 			return find_result->second;

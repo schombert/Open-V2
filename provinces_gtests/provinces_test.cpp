@@ -5,6 +5,7 @@
 #include "world_state\\world_state.h"
 #include "scenario\\scenario_io.h"
 #include "provinces\\province_functions.h"
+#include <ppl.h>
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -223,8 +224,8 @@ TEST(provinces_test, region_read) {
 	EXPECT_EQ(state_tag(1), m.province_container[province_tag(4)].state_id);
 
 	bool tagged_provs[5] = { false };
-	for (auto s1_range = m.states_to_province_index.equal_range(state_tag(0)); s1_range.first != s1_range.second; ++s1_range.first) {
-		tagged_provs[to_index(s1_range.first->second)] = true;
+	for (auto s1_range = m.states_to_province_index.get_row(state_tag(0)); s1_range.first != s1_range.second; ++s1_range.first) {
+		tagged_provs[to_index(*s1_range.first)] = true;
 	}
 	EXPECT_EQ(false, tagged_provs[0]);
 	EXPECT_EQ(true, tagged_provs[1]);
@@ -233,8 +234,8 @@ TEST(provinces_test, region_read) {
 	EXPECT_EQ(false, tagged_provs[4]);
 
 	bool tagged_provs_b[5] = { false };
-	for (auto s1_range = m.states_to_province_index.equal_range(state_tag(1)); s1_range.first != s1_range.second; ++s1_range.first) {
-		tagged_provs_b[to_index(s1_range.first->second)] = true;
+	for (auto s1_range = m.states_to_province_index.get_row(state_tag(1)); s1_range.first != s1_range.second; ++s1_range.first) {
+		tagged_provs_b[to_index(*s1_range.first)] = true;
 	}
 	EXPECT_EQ(false, tagged_provs_b[0]);
 	EXPECT_EQ(false, tagged_provs_b[1]);
@@ -452,7 +453,11 @@ TEST(provinces_test, adjacent) {
 
 TEST(provinces_test, core_functions) {
 	world_state ws;
-	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s);
+
+	concurrency::task_group tg;
+	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s, tg);
+	tg.wait();
+
 	ready_world_state(ws);
 
 	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
@@ -483,7 +488,11 @@ TEST(provinces_test, core_functions) {
 
 TEST(provinces_test, single_province_read_state) {
 	world_state ws;
-	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s);
+
+	concurrency::task_group tg;
+	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s, tg);
+	tg.wait();
+
 	ready_world_state(ws);
 
 	const char test_data[] =

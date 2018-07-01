@@ -94,7 +94,6 @@ float parse_float(const char* start, const char* end) {
 
 	float result = std::strtof(buf, &out_ptr);
 
-	_freea(buf);
 	return result;
 }
 
@@ -113,7 +112,6 @@ double parse_double(const char* start, const char* end) {
 
 	double result = std::strtod(buf, &out_ptr);
 
-	_freea(buf);
 	return result;
 }
 
@@ -133,7 +131,6 @@ int32_t parse_int(const char* start, const char* end) {
 
 	int32_t result = std::strtol(buf, &out_ptr, 10);
 
-	_freea(buf);
 	return result;
 }
 
@@ -153,7 +150,6 @@ uint32_t parse_uint(const char* start, const char* end) {
 
 	int32_t result = std::strtol(buf, &out_ptr, 10);
 
-	_freea(buf);
 	return result >= 0 ? (uint32_t)result : 0ui32;
 }
 

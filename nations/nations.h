@@ -5,9 +5,11 @@
 #include "economy\\economy.h"
 
 namespace nations {
+	struct state_instance;
+
 	struct region_state_pair {
 		provinces::state_tag region_id;
-		state_tag state_id;
+		state_instance* state;
 
 		bool operator<(region_state_pair other)  const noexcept { return region_id < other.region_id; }
 		bool operator==(region_state_pair other) const noexcept { return region_id == other.region_id; }
@@ -36,12 +38,13 @@ namespace nations {
 
 	struct state_instance {
 		economy::factory_instance factories[8] = {};
-
+		nation* owner;
 		atomic_tag<date_tag> last_update;
 
 		cultures::culture_tag dominant_culture;
 
 		state_tag id;
+		provinces::state_tag region_id;
 
 		cultures::religion_tag dominant_religion;
 		uint8_t flags = 0ui8;

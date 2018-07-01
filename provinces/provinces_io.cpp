@@ -335,7 +335,7 @@ namespace provinces {
 
 		void add_province(uint16_t v) {
 			env.manager.province_container[province_tag(v)].state_id = tag;
-			env.manager.states_to_province_index.emplace(tag, province_tag(v));
+			env.manager.states_to_province_index.add_to_row(tag, province_tag(v));
 		}
 	};
 
@@ -490,6 +490,7 @@ namespace provinces {
 			MEMBER_ASSOCIATION("naval_base", "naval_base", value_from_rh<int32_t>)
 			MEMBER_ASSOCIATION("railroad", "railroad", value_from_rh<int32_t>)
 			MEMBER_ASSOCIATION("colony", "colony", value_from_rh<int32_t>)
+			MEMBER_ASSOCIATION("colony", "colonial", value_from_rh<int32_t>)
 			MEMBER_ASSOCIATION("trade_goods", "trade_goods", token_from_rh)
 			MEMBER_ASSOCIATION("owner", "owner", token_from_rh)
 			MEMBER_ASSOCIATION("controller", "controller", token_from_rh)

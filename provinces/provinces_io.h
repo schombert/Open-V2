@@ -22,13 +22,12 @@ public:
 	static void rebuild_indexes(provinces::province_manager& obj) {
 		for(int32_t i = static_cast<int32_t>(obj.state_names.size()) - 1; i >= 0; --i)
 			obj.named_states_index.emplace(obj.state_names[provinces::state_tag(static_cast<provinces::state_tag::value_base_t>(i))], provinces::state_tag(static_cast<provinces::state_tag::value_base_t>(i)));
-		for(auto const& i_prov : obj.province_container)
-			obj.states_to_province_index.emplace(i_prov.state_id, i_prov.id);
 	}
 
 	static void serialize_object(std::byte* &output, provinces::province_manager const& obj) {
 		serialize(output, obj.province_container);
 		serialize(output, obj.state_names);
+		serialize(output, obj.states_to_province_index);
 		serialize(output, obj.same_type_adjacency);
 		serialize(output, obj.coastal_adjacency);
 		serialize(output, obj.canals);
@@ -39,6 +38,7 @@ public:
 	static void deserialize_object(std::byte const* &input, provinces::province_manager& obj) {
 		deserialize(input, obj.province_container);
 		deserialize(input, obj.state_names);
+		deserialize(input, obj.states_to_province_index);
 		deserialize(input, obj.same_type_adjacency);
 		deserialize(input, obj.coastal_adjacency);
 		deserialize(input, obj.canals);
@@ -51,6 +51,7 @@ public:
 	static void deserialize_object(std::byte const* &input, provinces::province_manager& obj, concurrency::task_group& tg) {
 		deserialize(input, obj.province_container);
 		deserialize(input, obj.state_names);
+		deserialize(input, obj.states_to_province_index);
 		deserialize(input, obj.same_type_adjacency);
 		deserialize(input, obj.coastal_adjacency);
 		deserialize(input, obj.canals);
@@ -63,6 +64,7 @@ public:
 	static size_t size(provinces::province_manager const& obj) {
 		return serialize_size(obj.province_container) +
 			serialize_size(obj.state_names) +
+			serialize_size(obj.states_to_province_index) +
 			serialize_size(obj.same_type_adjacency) +
 			serialize_size(obj.coastal_adjacency) +
 			serialize_size(obj.canals) +

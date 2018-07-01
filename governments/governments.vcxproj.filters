@@ -21,12 +21,18 @@
     <ClInclude Include="governments_io.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="governments_functions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="governments.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="governments_io.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="governments_functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

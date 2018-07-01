@@ -4,7 +4,7 @@
 #include "object_parsing\\object_parsing.hpp"
 #include "ideologies\\ideologies.h"
 #include "scenario\\scenario.h"
-
+#include "governments_functions.h"
 
 namespace governments {
 	struct parsing_environment {
@@ -213,5 +213,11 @@ namespace governments {
 		}
 
 		return base_names_result;
+	}
+
+	void setup_party_rules(scenario::scenario_manager& s) {
+		for(auto& p : s.governments_m.parties) {
+			p.party_rules = make_party_rules(p, s);
+		}
 	}
 }

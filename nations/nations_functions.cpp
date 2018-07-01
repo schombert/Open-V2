@@ -27,15 +27,15 @@ namespace nations {
 	}
 
 	bool is_state_empty(world_state& ws, nation* owner, provinces::state_tag region) {
-		for(auto prange = ws.s.province_m.states_to_province_index.equal_range(region); prange.first != prange.second; ++prange.first) {
-			if(ws.w.province_s.province_state_container[prange.first->second].owner == owner)
+		for(auto prange = ws.s.province_m.states_to_province_index.get_row(region); prange.first != prange.second; ++prange.first) {
+			if(ws.w.province_s.province_state_container[*prange.first].owner == owner)
 				return false;
 		}
 		return true;
 	}
 
-	void destroy_state_instance(world_state& ws, state_tag st) {
-		ws.w.nation_s.states.remove(st);
+	void destroy_state_instance(world_state& ws, state_instance& si) {
+		ws.w.nation_s.states.remove(si.id);
 	}
 
 	void remove_province_from_state(world_state&, provinces::province_state& p) {
@@ -48,14 +48,17 @@ namespace nations {
 		auto& prov_state = ws.w.province_s.province_state_container[prov];
 
 		prov_state.owner = nullptr;
+		state_instance* old_state = prov_state.state_instance;
+
 		remove_province_from_state(ws, prov_state);
 
 		const auto region_tag = ws.s.province_m.province_container[prov].state_id;
 		if(is_state_empty(ws, owner, region_tag)) {
-			region_state_pair* f = find(ws.w.nation_s.state_arrays, owner->member_states, region_state_pair{ region_tag, state_tag() });
-			if(f)
-				destroy_state_instance(ws, f->state_id);
-			remove_item(ws.w.nation_s.state_arrays, owner->member_states, region_state_pair{ region_tag, state_tag() });
+			remove_item(ws.w.nation_s.state_arrays, owner->member_states, region_state_pair{ old_state->region_id, nullptr });
+			if(old_state) {
+				destroy_state_instance(ws, *old_state);
+				remove_item(ws.w.nation_s.state_arrays, owner->member_states, region_state_pair{ old_state->region_id, nullptr });
+			}
 		}
 	}
 
@@ -75,15 +78,18 @@ namespace nations {
 		prov_state.owner = owner;
 		const auto region_id = ws.s.province_m.province_container[prov].state_id;
 
-		region_state_pair* found = find(ws.w.nation_s.state_arrays, owner->member_states, region_state_pair{ region_id, state_tag() });
+		region_state_pair* found = find(ws.w.nation_s.state_arrays, owner->member_states, region_state_pair{ region_id, nullptr });
 		if(found) {
-			prov_state.state_instance = &(ws.w.nation_s.states.get(found->state_id));
+			prov_state.state_instance = found->state;
 		} else {
 			state_instance* si = &(ws.w.nation_s.states.get_new());
+			si->owner = owner;
+			si->region_id = ws.s.province_m.province_container[prov].state_id;
+
 			ws.w.nation_s.state_demographics.ensure_capacity(to_index(si->id) + 1);
 
 			prov_state.state_instance = si;
-			add_item(ws.w.nation_s.state_arrays, owner->member_states, region_state_pair{ region_id, si->id });
+			add_item(ws.w.nation_s.state_arrays, owner->member_states, region_state_pair{ region_id, si });
 		}
 	}
 
@@ -109,15 +115,14 @@ namespace nations {
 			const auto state_range = get_range(ws.w.nation_s.state_arrays, n.member_states);
 
 			for(auto s = state_range.first; s != state_range.second; ++s) {
-				Eigen::Map<Eigen::Matrix<int32_t, -1, 1>, Eigen::AlignmentType::Aligned32> state_demo(ws.w.nation_s.state_demographics.get_row(s->state_id), full_vector_size);
-				auto& this_state = ws.w.nation_s.states.get(s->state_id);
+				Eigen::Map<Eigen::Matrix<int32_t, -1, 1>, Eigen::AlignmentType::Aligned32> state_demo(ws.w.nation_s.state_demographics.get_row(s->state->id), full_vector_size);
 
 				state_demo.setZero();
 
-				const auto p_in_region_range = ws.s.province_m.states_to_province_index.equal_range(s->region_id);
+				const auto p_in_region_range = ws.s.province_m.states_to_province_index.get_row(s->region_id);
 				for(auto p = p_in_region_range.first; p != p_in_region_range.second; ++p) {
-					if(ws.w.province_s.province_state_container[p->second].owner == &n) {
-						Eigen::Map<Eigen::Matrix<int32_t, -1, 1>, Eigen::AlignmentType::Aligned32> province_demo(ws.w.province_s.province_demographics.get_row(p->second), full_vector_size);
+					if(ws.w.province_s.province_state_container[*p].owner == &n) {
+						Eigen::Map<Eigen::Matrix<int32_t, -1, 1>, Eigen::AlignmentType::Aligned32> province_demo(ws.w.province_s.province_demographics.get_row(*p), full_vector_size);
 						state_demo += province_demo;
 					}
 				}
@@ -125,13 +130,13 @@ namespace nations {
 				{
 					const auto culture_offset = population::to_demo_tag(ws, cultures::culture_tag(0));
 
-					this_state.dominant_culture = cultures::culture_tag(0);
+					s->state->dominant_culture = cultures::culture_tag(0);
 					int32_t max_pop = state_demo[to_index(culture_offset)];
 
 					for(uint32_t i = 1ui32; i < ws.s.culture_m.count_cultures; ++i) {
 						if(state_demo[to_index(culture_offset) + i] > max_pop) {
 							max_pop = state_demo[to_index(culture_offset) + i];
-							this_state.dominant_culture = cultures::culture_tag(static_cast<value_base_of<cultures::culture_tag>>(i));
+							s->state->dominant_culture = cultures::culture_tag(static_cast<value_base_of<cultures::culture_tag>>(i));
 						}
 					}
 				}
@@ -139,13 +144,13 @@ namespace nations {
 				{
 					const auto religion_offset = population::to_demo_tag(ws, cultures::religion_tag(0));
 
-					this_state.dominant_religion = cultures::religion_tag(0);
+					s->state->dominant_religion = cultures::religion_tag(0);
 					int32_t max_pop = state_demo[to_index(religion_offset)];
 
 					for(uint32_t i = 1ui32; i < ws.s.culture_m.count_religions; ++i) {
 						if(state_demo[to_index(religion_offset) + i] > max_pop) {
 							max_pop = state_demo[to_index(religion_offset) + i];
-							this_state.dominant_religion = cultures::religion_tag(static_cast<value_base_of<cultures::religion_tag>>(i));
+							s->state->dominant_religion = cultures::religion_tag(static_cast<value_base_of<cultures::religion_tag>>(i));
 						}
 					}
 				}

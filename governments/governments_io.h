@@ -61,4 +61,5 @@ namespace governments {
 		const ideologies::ideologies_manager& ideologies_source);
 	void ready_party_issues(governments_manager& manager, issues::issues_manager& im);
 	party_tag read_party(token_group const* start, token_group const* end, scenario::scenario_manager& s);
+	void setup_party_rules(scenario::scenario_manager& s);
 }
