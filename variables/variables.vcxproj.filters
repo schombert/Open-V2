@@ -21,9 +21,15 @@
     <ClInclude Include="variables_io.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="variables_functions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="variables.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="variables_functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

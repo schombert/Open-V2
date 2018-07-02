@@ -22,6 +22,10 @@ namespace nations {
 
 		ws.w.nation_s.active_parties.ensure_capacity(to_index(new_nation.id) + 1);
 		ws.w.nation_s.nation_demographics.ensure_capacity(to_index(new_nation.id) + 1);
+		ws.w.nation_s.national_modifiers.ensure_capacity(to_index(new_nation.id) + 1);
+		ws.w.nation_s.upper_house.ensure_capacity(to_index(new_nation.id) + 1);
+		ws.w.nation_s.active_technologies.ensure_capacity(to_index(new_nation.id) + 1);
+		ws.w.nation_s.active_issue_options.ensure_capacity(to_index(new_nation.id) + 1);
 
 		return &new_nation;
 	}
@@ -103,6 +107,11 @@ namespace nations {
 	void init_nations_state(world_state& ws) {
 		ws.w.nation_s.nation_demographics.reset(population::aligned_64_demo_size(ws));
 		ws.w.nation_s.state_demographics.reset(population::aligned_32_demo_size(ws));
+		ws.w.nation_s.national_modifiers.reset(modifiers::national_offsets::aligned_32_size);
+		ws.w.nation_s.active_parties.reset(ws.s.ideologies_m.ideologies_count);
+		ws.w.nation_s.upper_house.reset(ws.s.ideologies_m.ideologies_count);
+		ws.w.nation_s.active_technologies.reset(uint32_t(ws.s.technology_m.technologies_container.size() >> 6ui32));
+		ws.w.nation_s.active_issue_options.reset(uint32_t(ws.s.issues_m.issues_container.size()));
 	}
 
 	void update_state_nation_demographics(world_state& ws) {
@@ -185,5 +194,43 @@ namespace nations {
 				}
 			}
 		});
+	}
+
+	provinces::province_tag find_best_capital(world_state& ws, nation& owner) {
+		if(is_valid_index(owner.tag)) {
+			const auto tag_capital = ws.w.culture_s.national_tags_state[owner.tag].capital;
+			if(is_valid_index(tag_capital) && ws.w.province_s.province_state_container[tag_capital].owner == &owner)
+				return tag_capital;
+
+			int32_t population = 0;
+			provinces::province_tag best_province;
+
+			const auto core_range = get_range(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[owner.tag].core_provinces);
+			for(auto c = core_range.first; c != core_range.second; ++c) {
+				if(ws.w.province_s.province_state_container[*c].owner == &owner) {
+					int32_t ppop = ws.w.province_s.province_demographics.get(*c, population::total_population_tag);
+					if(ppop > population) {
+						best_province = *c;
+						population = ppop;
+					}
+				}
+			}
+			if(is_valid_index(best_province))
+				return best_province;
+		}
+		
+		int32_t population = 0;
+		provinces::province_tag best_province;
+
+		const auto owned_range = get_range(ws.w.province_s.province_arrays, owner.owned_provinces);
+		for(auto c = owned_range.first; c != owned_range.second; ++c) {
+			int32_t ppop = ws.w.province_s.province_demographics.get(*c, population::total_population_tag);
+			if(ppop > population) {
+				best_province = *c;
+				population = ppop;
+			}
+		}
+
+		return best_province
 	}
 }

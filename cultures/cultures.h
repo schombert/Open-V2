@@ -71,11 +71,16 @@ namespace cultures {
 	struct national_tag_state {
 		nations::nation* holder = nullptr;
 		set_tag<provinces::province_tag> core_provinces;
+		provinces::province_tag capital;
+		bool is_not_releasable = false;
 	};
 	
 	class cultures_state {
 	public:
 		tagged_vector<national_tag_state, national_tag> national_tags_state;
+		tagged_fixed_2dvector<graphics::texture_tag, national_tag, governments::government_tag> country_flags_by_government;
+
+		stable_variable_vector_storage_mk_2<culture_tag, 4, 8192> culture_arrays;
 	};
 
 	class culture_manager {

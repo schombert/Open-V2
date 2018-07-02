@@ -1,11 +1,13 @@
 #pragma once
 #include "common\\common.h"
 #include "common\\shared_tags.h"
+#include "concurrency_tools\\concurrency_tools.hpp"
 
 namespace variables {
 	class variables_state {
 	public:
 		tagged_vector<float, global_variable_tag> global_variables;
+		stable_variable_vector_storage_mk_2<national_flag_tag, 4, 8192> national_flags_arrays;
 	};
 
 	class variables_manager {

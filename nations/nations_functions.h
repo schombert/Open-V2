@@ -20,4 +20,5 @@ namespace nations {
 	bool is_state_empty(world_state& ws, nation* owner, provinces::state_tag region);
 	void init_nations_state(world_state& ws);
 	void update_state_nation_demographics(world_state& ws);
+	provinces::province_tag find_best_capital(world_state& ws, nation& owner);
 }

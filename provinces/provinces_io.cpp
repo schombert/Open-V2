@@ -75,7 +75,7 @@ namespace provinces {
 		void discard(int) {}
 		void add_dated_block(std::pair<token_and_type, province_history_block> const& p) {
 			const auto date_tag = parse_date(p.first.start, p.first.end);
-			if(!(env.target_date < date_tag))
+			if(date_tag <= env.target_date)
 				merge_province_history_blocks(*this, p.second);
 		}
 		void set_trade_goods(const token_and_type& t) {

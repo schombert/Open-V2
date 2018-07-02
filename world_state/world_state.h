@@ -6,6 +6,7 @@
 #include "scenario\\scenario.h"
 #include "economy\\economy.h"
 #include "population\\population.h"
+#include "variables\\variables.h"
 
 namespace current_state {
 	class state {
@@ -15,6 +16,7 @@ namespace current_state {
 		nations::nations_state nation_s;
 		economy::economic_state economy_s;
 		population::population_state population_s;
+		variables::variables_state variable_s;
 	};
 }
 

@@ -2,13 +2,19 @@
 #include "world_state\\world_state.h"
 #include "Parsers\\parsers.hpp"
 #include "object_parsing\\object_parsing.hpp"
+#include "population\\population_function.h"
+#include "nations_functions.h"
+#include "governments\\governments_functions.h"
+
+#undef max
+#undef min
 
 namespace nations {
 	struct upper_house_parse_obj {
 		world_state& ws;
 		std::vector<uint32_t> upper_house;
 
-		upper_house_parse_obj(world_state& w) : ws(w) {
+		upper_house_parse_obj(world_state& w, date_tag) : ws(w) {
 			upper_house.resize(ws.s.ideologies_m.ideologies_count);
 		}
 		void set_upper_house_pair(std::pair<token_and_type, uint32_t> const& p) {
@@ -20,7 +26,7 @@ namespace nations {
 		world_state& ws;
 		std::vector<std::pair<cultures::national_tag, uint32_t>> investment;
 
-		investment_parse_obj(world_state& w) : ws(w) {}
+		investment_parse_obj(world_state& w, date_tag) : ws(w) {}
 		void set_upper_house_pair(std::pair<token_and_type, uint32_t> const& p) {
 			const auto ihandle = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(p.first.start, p.first.end));
 			investment.emplace_back(ihandle, p.second);
@@ -31,6 +37,7 @@ namespace nations {
 		governments::government_tag source;
 		governments::government_tag replacement;
 
+		govt_flag(world_state& w, date_tag) : ws(w) {}
 		void set_government(token_and_type const& t) {
 			source = tag_from_text(ws.s.governments_m.named_government_index, text_data::get_thread_safe_text_handle(ws.s.gui_m.text_data_sequences, t.start, t.end));
 		}
@@ -72,7 +79,9 @@ namespace nations {
 		std::vector<uint64_t> tech_bit_vector;
 		std::vector<issues::option_tag> set_options;
 
-		nation_parse_object(world_state& w) : ws(w) {
+		date_tag target_date;
+
+		nation_parse_object(world_state& w, date_tag t) : ws(w), target_date(t) {
 			tech_bit_vector.resize(ws.s.technology_m.technologies_container.size() >> 6ui64);
 			set_options.resize(ws.s.issues_m.issues_container.size());
 		}
@@ -149,7 +158,76 @@ namespace nations {
 			}
 			
 		}
+		void add_dated_block(std::pair<token_and_type, nation_parse_object>&& p) {
+			auto date = parse_date(p.first.start, p.first.end);
+			if(date <= target_date)
+				combine_nation_parse_object(*this, p.second);
+		}
 	};
+
+	void add_data_to_nation(world_state& ws, nation& target_nation, cultures::national_tag_state& nat_tag, cultures::national_tag nat_tag_id, nation_parse_object const& npo) {
+		nat_tag.capital = npo.capital;
+		target_nation.current_government = npo.gov;
+		
+		target_nation.primary_culture = npo.primary_culture;
+		for(auto c : npo.accepted_cultures)
+			add_item(ws.w.culture_s.culture_arrays, target_nation.accepted_cultures, c);
+		target_nation.national_religion = npo.religion;
+		for(auto f : npo.set_flags)
+			add_item(ws.w.variable_s.national_flags_arrays, target_nation.national_flags, f);
+		if(npo.upper_house.size() != 0) {
+			auto uh_row = ws.w.nation_s.upper_house.get_row(target_nation.id);
+			for(uint32_t i = 0; i < ws.s.ideologies_m.ideologies_count; ++i)
+				uh_row[i] = uint8_t(npo.upper_house[i]);
+		}
+		target_nation.last_election = npo.last_election;
+
+		auto owned_provs_range = get_range(ws.w.province_s.province_arrays, target_nation.owned_provinces);
+		for(auto i = owned_provs_range.first; i != owned_provs_range.second; ++i) {
+			auto pops_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[*i].pops);
+			for(auto j = pops_range.first; j < pops_range.second; ++j) {
+				auto& this_pop = ws.w.population_s.pops.get(*j);
+				if(population::is_pop_accepted(ws, this_pop, target_nation)) {
+					this_pop.literacy = npo.literacy ? static_cast<uint16_t>(*npo.literacy * float(std::numeric_limits<uint16_t>::max())) : 0ui16;
+					this_pop.consciousness = npo.consciousness ? static_cast<uint16_t>(*npo.consciousness * float(std::numeric_limits<uint16_t>::max() / 10.0f)) : 0ui16;
+				} else {
+					this_pop.literacy = npo.non_state_culture_literacy ? static_cast<uint16_t>(*npo.non_state_culture_literacy * float(std::numeric_limits<uint16_t>::max())) : 0ui16;
+					this_pop.consciousness = npo.nonstate_consciousness ? static_cast<uint16_t>(*npo.nonstate_consciousness * float(std::numeric_limits<uint16_t>::max() / 10.0f)) : 0ui16;
+				}
+			}
+		}
+		if(npo.plurality)
+			target_nation.plurality = *npo.plurality;
+		if(npo.prestige)
+			target_nation.prestige = *npo.prestige;
+		if(npo.civilized)
+			target_nation.is_civilized = *npo.civilized;
+		if(npo.is_releasbale_vassal)
+			nat_tag.is_not_releasable = !(*npo.is_releasbale_vassal);
+		target_nation.national_value = npo.nationalvalue;
+		target_nation.tech_school = npo.techschool;
+
+		for(auto& ip : npo.investment) {
+			auto holding_nation = make_nation_for_tag(ws, ip.first);
+			add_item(ws.w.nation_s.investment_arrays, target_nation.foreign_investment, investment_pair{ static_cast<float>(ip.second), holding_nation->id });
+		}
+
+		for(auto& ip : npo.govt_flags)
+			ws.w.culture_s.country_flags_by_government.get(nat_tag_id, ip.first) = ws.w.culture_s.country_flags_by_government.get(nat_tag_id, ip.second);
+
+		auto tech_row = ws.w.nation_s.active_technologies.get_row(target_nation.id);
+		for(uint32_t i = 0; i < ws.s.technology_m.technologies_container.size(); ++i)
+			tech_row[i] = npo.tech_bit_vector[i];
+
+		auto issues_row = ws.w.nation_s.active_issue_options.get_row(target_nation.id);
+		for(uint32_t i = 0; i < ws.s.issues_m.issues_container.size(); ++i)
+			issues_row[i] = npo.set_options[i];
+
+		if(is_valid_index(npo.ruling_party))
+			governments::silent_set_ruling_party(ws, target_nation, npo.ruling_party);
+			
+		//not used: decisions, oob_file
+	}
 
 	void combine_nation_parse_object(nation_parse_object& base, nation_parse_object& other) {
 		if(is_valid_index(other.capital))

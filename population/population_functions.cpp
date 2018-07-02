@@ -21,4 +21,8 @@ namespace population {
 		ws.w.population_s.pop_demographics.ensure_capacity(to_index(p.id) + 1);
 		ws.w.population_s.pop_demographics.get(p.id, total_population_tag) = p.size;
 	}
+
+	bool is_pop_accepted(world_state& ws, pop& p, nations::nation& n) {
+		return p.culture == n.primary_culture || contains_item(ws.w.culture_s.culture_arrays, n.accepted_cultures, p.culture);
+	}
 }

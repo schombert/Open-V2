@@ -150,10 +150,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="variables.h" />
+    <ClInclude Include="variables_functions.h" />
     <ClInclude Include="variables_io.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="variables.cpp" />
+    <ClCompile Include="variables_functions.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -19,11 +19,16 @@ namespace provinces {
 	void init_ready_provinces(world_state& ws) {
 		const auto prov_count = ws.s.province_m.province_container.size();
 		
-		ws.w.province_s.party_loyalty.reset(uint32_t(ws.s.ideologies_m.ideology_container.size()));
-		ws.w.province_s.party_loyalty.resize(prov_count);
-		ws.w.province_s.province_state_container.resize(prov_count);
-		ws.w.province_s.provincial_modifiers.reset(modifiers::provincial_offsets::count);
-		ws.w.province_s.provincial_modifiers.resize(prov_count);
+		if(ws.w.province_s.party_loyalty.inner_size() != uint32_t(ws.s.ideologies_m.ideology_container.size()))
+			ws.w.province_s.party_loyalty.reset(uint32_t(ws.s.ideologies_m.ideology_container.size()));
+		if(ws.w.province_s.party_loyalty.outer_size() != prov_count)
+			ws.w.province_s.party_loyalty.resize(prov_count);
+		if(ws.w.province_s.province_state_container.size() != prov_count)
+			ws.w.province_s.province_state_container.resize(prov_count);
+		if(ws.w.province_s.provincial_modifiers.inner_size() != modifiers::provincial_offsets::count)
+			ws.w.province_s.provincial_modifiers.reset(modifiers::provincial_offsets::count);
+		if(ws.w.province_s.provincial_modifiers.outer_size() != prov_count)
+			ws.w.province_s.provincial_modifiers.resize(prov_count);
 
 		for(uint32_t i = 0; i < prov_count; ++i) {
 			auto& p = ws.w.province_s.province_state_container[province_tag(static_cast<uint16_t>(i))];
@@ -37,8 +42,10 @@ namespace provinces {
 				p.controller = p.owner;
 		}
 
-		ws.w.province_s.province_demographics.reset(population::aligned_32_demo_size(ws));
-		ws.w.province_s.province_demographics.resize(prov_count);
+		if(ws.w.province_s.province_demographics.inner_size() != population::aligned_32_demo_size(ws))
+			ws.w.province_s.province_demographics.reset(population::aligned_32_demo_size(ws));
+		if(ws.w.province_s.province_demographics.outer_size() != prov_count)
+			ws.w.province_s.province_demographics.resize(prov_count);
 	}
 
 	void update_province_demographics(world_state& ws) {

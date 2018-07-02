@@ -1,12 +1,13 @@
 #include "common\\common.h"
 #include "governments_functions.h"
 #include "world_state\\world_state.h"
+#include "nations\\nations.h"
 
 namespace governments {
 	issues::rules make_party_rules(party& p, scenario::scenario_manager& s) {
 		issues::rules result;
 		issues::option_tag* opts = s.governments_m.party_issues.get_row(p.id);
-		for(uint32_t i = 0; i < s.issues_m.party_issues_options_count; ++i) {
+		for(uint32_t i = 0; i < s.governments_m.party_issues.inner_size(); ++i) {
 			if(is_valid_index(opts[i]))
 				result.rules |= s.issues_m.options[opts[i]].issue_rules.rules_settings.rules;
 		}
@@ -33,5 +34,16 @@ namespace governments {
 			}
 		}
 		
+	}
+
+	void silent_set_ruling_party(world_state& ws, nations::nation& this_nation, party_tag p) {
+		this_nation.ruling_party = p;
+		issues::option_tag* row = ws.s.governments_m.party_issues.get_row(p);
+		const auto sz_party_issues = ws.s.governments_m.party_issues.inner_size();
+
+		for(uint32_t i = 0; i < sz_party_issues; ++i) {
+			auto issue_tag = ws.s.issues_m.options[row[i]].parent_issue;
+			ws.w.nation_s.active_issue_options.get(this_nation.id, issue_tag) = row[i];
+		}
 	}
 }
