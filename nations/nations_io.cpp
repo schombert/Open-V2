@@ -49,6 +49,8 @@ namespace nations {
 	struct nation_parse_object;
 	void combine_nation_parse_object(nation_parse_object& base, nation_parse_object& other);
 
+	void add_data_to_nation(world_state& ws, nation& target_nation, cultures::national_tag_state& nat_tag, cultures::national_tag nat_tag_id, nation_parse_object const& npo);
+
 	struct nation_parse_object {
 		world_state& ws;
 		provinces::province_tag capital;
@@ -61,6 +63,7 @@ namespace nations {
 		std::vector<cultures::culture_tag> remove_accepted_cultures;
 		cultures::religion_tag religion;
 		std::vector<variables::national_flag_tag> set_flags;
+		std::vector<variables::global_variable_tag> global_flags;
 		std::vector<variables::national_flag_tag> clear_flags;
 		std::vector<uint32_t> upper_house;
 		date_tag last_election;
@@ -142,6 +145,9 @@ namespace nations {
 		void set_govt_flag(govt_flag const& o) {
 			govt_flags.emplace_back(o.source, o.replacement);
 		}
+		void add_global_flag(token_and_type const& t) {
+			global_flags.push_back(tag_from_text(ws.s.variables_m.named_global_variables, text_data::get_thread_safe_text_handle(ws.s.gui_m.text_data_sequences, t.start, t.end)));
+		}
 		void set_other(std::pair<token_and_type, token_and_type> const& p) {
 			const auto left_text = text_data::get_thread_safe_text_handle(ws.s.gui_m.text_data_sequences, p.first.start, p.first.end);
 			const auto tech = tag_from_text(ws.s.technology_m.named_technology_index, left_text);
@@ -175,6 +181,8 @@ namespace nations {
 		target_nation.national_religion = npo.religion;
 		for(auto f : npo.set_flags)
 			add_item(ws.w.variable_s.national_flags_arrays, target_nation.national_flags, f);
+		for(auto f : npo.global_flags)
+			ws.w.variable_s.global_variables[f] = 1.0f;
 		if(npo.upper_house.size() != 0) {
 			auto uh_row = ws.w.nation_s.upper_house.get_row(target_nation.id);
 			for(uint32_t i = 0; i < ws.s.ideologies_m.ideologies_count; ++i)
@@ -240,6 +248,8 @@ namespace nations {
 			if(std::find(base.decisions.begin(), base.decisions.end(), d) == base.decisions.end())
 				base.decisions.push_back(d);
 		}
+		for(auto f : other.global_flags)
+			base.global_flags.push_back(f);
 		if(other.oob_filename.length() != 0)
 			base.oob_filename = other.oob_filename;
 		if(is_valid_index(other.primary_culture))

@@ -110,6 +110,8 @@ namespace military {
 	using unit_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 647474>>;
 	using cb_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 647475>>;
 	using leader_trait_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 647476>>;
+	using unit_tag = tag_type<uint32_t, std::true_type, std::integral_constant<size_t, 647477>>;
+	using leader_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 647478>>;
 }
 
 namespace provinces {

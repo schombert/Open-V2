@@ -1,7 +1,35 @@
 #include "concurrency_tools.hpp"
 #include <ppl.h>
+#include <random>
 
 using namespace concurrency;
+
+jsf_prng& get_local_generator() {
+	static thread_local jsf_prng local_generator(std::random_device{}());
+	return local_generator;
+}
+
+jsf_prng::jsf_prng(uint32_t seed) {
+	a = 0xf1ea5eed;
+	b = c = d = seed;
+
+	for(size_t i = 0; i < 20; ++i)
+		(*this)();
+}
+
+
+#define rot32(x,k) (((x)<<(k))|((x)>>(32-(k))))
+
+uint32_t jsf_prng::operator()() {
+	uint32_t e = a - rot32(b, 27);
+	a = b ^ rot32(c, 17);
+	b = c + d;
+	c = d + e;
+	d = e + a;
+	return d;
+}
+
+#undef rot32
 
 concurrent_string::concurrent_string() {
 	_data.local_data[0] = 0;

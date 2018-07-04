@@ -34,8 +34,6 @@ public:
 		serialize(output, obj.leader_trait_definitions);
 		serialize(output, obj.personality_traits);
 		serialize(output, obj.background_traits);
-		serialize(output, obj.no_personality_trait);
-		serialize(output, obj.no_background_trait);
 		serialize(output, obj.unit_build_costs);
 		serialize(output, obj.unit_base_supply_costs);
 	}
@@ -46,8 +44,6 @@ public:
 		deserialize(input, obj.leader_trait_definitions);
 		deserialize(input, obj.personality_traits);
 		deserialize(input, obj.background_traits);
-		deserialize(input, obj.no_personality_trait);
-		deserialize(input, obj.no_background_trait);
 		deserialize(input, obj.unit_build_costs);
 		deserialize(input, obj.unit_base_supply_costs);
 
@@ -60,8 +56,6 @@ public:
 		deserialize(input, obj.leader_trait_definitions);
 		deserialize(input, obj.personality_traits);
 		deserialize(input, obj.background_traits);
-		deserialize(input, obj.no_personality_trait);
-		deserialize(input, obj.no_background_trait);
 		deserialize(input, obj.unit_build_costs);
 		deserialize(input, obj.unit_base_supply_costs);
 
@@ -74,8 +68,6 @@ public:
 			serialize_size(obj.leader_trait_definitions) +
 			serialize_size(obj.personality_traits) +
 			serialize_size(obj.background_traits) +
-			serialize_size(obj.no_personality_trait) +
-			serialize_size(obj.no_background_trait) +
 			serialize_size(obj.unit_build_costs) +
 			serialize_size(obj.unit_base_supply_costs);
 	}

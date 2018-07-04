@@ -3,6 +3,7 @@
 #include "common\\shared_tags.h"
 #include "concurrency_tools\\concurrency_tools.hpp"
 #include "economy\\economy.h"
+#include "issues\\issues.h"
 
 namespace nations {
 	struct state_instance;
@@ -50,6 +51,8 @@ namespace nations {
 		set_tag<variables::national_flag_tag> national_flags;
 		multiset_tag<modifiers::national_modifier_tag> static_modifiers;
 		array_tag<timed_national_modifier> timed_modifiers;
+		array_tag<military::leader_tag> generals;
+		array_tag<military::leader_tag> admirals;
 
 		text_data::text_tag name;
 		text_data::text_tag adjective;

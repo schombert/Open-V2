@@ -7,12 +7,14 @@
 #include "economy\\economy.h"
 #include "population\\population.h"
 #include "variables\\variables.h"
+#include "military\\military.h"
 
 namespace current_state {
 	class state {
 	public:
 		provinces::provinces_state province_s;
 		cultures::cultures_state culture_s;
+		military::military_state military_s;
 		nations::nations_state nation_s;
 		economy::economic_state economy_s;
 		population::population_state population_s;

@@ -310,6 +310,18 @@ namespace military {
 		return new_tag;
 	}
 
+	inline void add_trait_to_manager(military_manager& m, const trait& t, leader_trait_tag id) {
+		auto row_ptr = m.leader_trait_definitions.safe_get_row(id);
+		row_ptr[traits::organisation] = t.organisation;
+		row_ptr[traits::morale] = t.morale;
+		row_ptr[traits::attack] = t.attack;
+		row_ptr[traits::defence] = t.defence;
+		row_ptr[traits::reconnaissance] = t.reconnaissance;
+		row_ptr[traits::speed] = t.speed;
+		row_ptr[traits::experience] = t.experience;
+		row_ptr[traits::reliability] = t.reliability;
+	}
+
 	struct personalities {
 		parsing_environment& env;
 		personalities(parsing_environment& e) : env(e) {}
@@ -323,14 +335,7 @@ namespace military {
 			env.manager.named_leader_trait_index.emplace(trait_name, new_trait);
 		}
 		void add_no_personality(const trait& t) {
-			const static char no_personality_string[] = "no_personality";
-
-			const auto new_trait = add_trait_to_manager(env.manager, t);
-			const auto trait_name = text_data::get_thread_safe_text_handle(env.text_lookup, no_personality_string, no_personality_string + sizeof(no_personality_string) - 1);
-			env.manager.leader_traits.safe_get(new_trait) = trait_name;
-
-			env.manager.no_personality_trait = new_trait;
-			env.manager.named_leader_trait_index.emplace(trait_name, new_trait);
+			add_trait_to_manager(env.manager, t, env.manager.no_personality_trait);
 		}
 	};
 	struct backgrounds {
@@ -346,14 +351,7 @@ namespace military {
 			env.manager.named_leader_trait_index.emplace(trait_name, new_trait);
 		}
 		void add_no_background(const trait& t) {
-			const static char no_background_string[] = "no_background";
-
-			const auto new_trait = add_trait_to_manager(env.manager, t);
-			const auto trait_name = text_data::get_thread_safe_text_handle(env.text_lookup, no_background_string, no_background_string + sizeof(no_background_string) - 1);
-			env.manager.leader_traits.safe_get(new_trait) = trait_name;
-
-			env.manager.no_background_trait = new_trait;
-			env.manager.named_leader_trait_index.emplace(trait_name, new_trait);
+			add_trait_to_manager(env.manager, t, env.manager.no_background_trait);
 		}
 	};
 
@@ -880,6 +878,25 @@ namespace military {
 		const auto common_dir = source_directory.get_directory(u"\\common");
 
 		const auto fi = common_dir.open_file(u"traits.txt");
+
+		state.impl->manager.leader_trait_definitions.reset(traits::trait_count);
+		state.impl->manager.leader_trait_definitions.resize(2);
+		state.impl->manager.leader_traits.resize(2);
+
+		{
+			const static char no_personality_string[] = "no_personality";
+			const auto trait_name = text_data::get_thread_safe_text_handle(state.impl->text_lookup, no_personality_string, no_personality_string + sizeof(no_personality_string) - 1);
+
+			state.impl->manager.named_leader_trait_index.emplace(trait_name, state.impl->manager.no_personality_trait);
+			state.impl->manager.leader_traits[state.impl->manager.no_personality_trait] = trait_name;
+		}
+		{
+			const static char no_background_string[] = "no_background";
+			const auto trait_name = text_data::get_thread_safe_text_handle(state.impl->text_lookup, no_background_string, no_background_string + sizeof(no_background_string) - 1);
+
+			state.impl->manager.named_leader_trait_index.emplace(trait_name, state.impl->manager.no_background_trait);
+			state.impl->manager.leader_traits[state.impl->manager.no_background_trait] = trait_name;
+		}
 
 		if(fi) {
 			const auto sz = fi->size();

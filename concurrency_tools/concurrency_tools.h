@@ -5,6 +5,29 @@
 #include <type_traits>
 #include "common\\common.h"
 
+#undef min
+#undef max
+
+//source: Bob Jenkins
+class jsf_prng {
+private:
+	uint32_t a;
+	uint32_t b;
+	uint32_t c;
+	uint32_t d;
+public:
+	using result_type = uint32_t;
+
+	jsf_prng(uint32_t seed);
+	jsf_prng(jsf_prng const& o) noexcept : a(o.a), b(o.b), c(o.c), d(o.d) {}
+	jsf_prng(jsf_prng&& o) noexcept : a(o.a), b(o.b), c(o.c), d(o.d) {}
+	constexpr static uint32_t max() { return std::numeric_limits<uint32_t>::max(); }
+	constexpr static uint32_t min() { return std::numeric_limits<uint32_t>::min(); }
+	uint32_t operator()();
+};
+
+jsf_prng& get_local_generator();
+
 template<typename E1, typename E2>
 class string_sum_expression;
 

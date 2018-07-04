@@ -231,6 +231,6 @@ namespace nations {
 			}
 		}
 
-		return best_province
+		return best_province;
 	}
 }

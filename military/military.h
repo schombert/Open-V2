@@ -162,7 +162,54 @@ namespace military {
 		using value_type = float;
 	}
 
-	
+	struct ship {
+		unit_tag id;
+		uint16_t hull = 0ui16;
+		uint16_t org = 0ui16;
+		provinces::province_tag location;
+		unit_type_tag type;
+	};
+
+	struct regiment {
+		unit_tag id;
+		population::pop_tag base_pop;
+		uint16_t strength = 0ui16;
+		uint16_t org = 0ui16;
+		provinces::province_tag location;
+		bool assignment_blocked = false;
+	};
+
+	struct military_leader {
+		traits::value_type leader_traits[traits::trait_count] = { traits::value_type(0) };
+		vector_backed_string<char16_t> first_name;
+		vector_backed_string<char16_t> last_name;
+		date_tag creation_date;
+		graphics::texture_tag portrait;
+		leader_tag id;
+		leader_trait_tag personality;
+		leader_trait_tag background;
+	};
+
+	struct army_operation {
+		military_leader* leader;
+		array_tag<unit_tag> regiments;
+		
+		provinces::province_tag base;
+	};
+
+	struct naval_operation {
+		military_leader* leader;
+		array_tag<unit_tag> ships;
+
+		
+		provinces::province_tag base;
+	};
+
+	class military_state {
+	public:
+		stable_vector<military_leader, leader_tag, 1024, 16> leaders;
+		stable_variable_vector_storage_mk_2<leader_tag, 4, 8192> leader_arrays;
+	};
 
 	class military_manager {
 	public:
@@ -174,8 +221,8 @@ namespace military {
 
 		std::vector<leader_trait_tag> personality_traits;
 		std::vector<leader_trait_tag> background_traits;
-		leader_trait_tag no_personality_trait;
-		leader_trait_tag no_background_trait;
+		constexpr static leader_trait_tag no_personality_trait = leader_trait_tag(0);
+		constexpr static leader_trait_tag no_background_trait = leader_trait_tag(1);
 
 		boost::container::flat_map<text_data::text_tag, unit_type_tag> named_unit_type_index;
 		boost::container::flat_map<text_data::text_tag, cb_type_tag> named_cb_type_index;

@@ -283,21 +283,20 @@ TEST(military_tests, traits_personality) {
 
 	read_leader_traits(state, f.get_root());
 
-	EXPECT_EQ(2ui64, m.leader_traits.size());
+	EXPECT_EQ(3ui64, m.leader_traits.size());
 	EXPECT_EQ(1ui64, m.personality_traits.size());
 	EXPECT_EQ(0ui64, m.background_traits.size());
-	EXPECT_EQ(leader_trait_tag(), m.no_background_trait);
-	EXPECT_EQ(leader_trait_tag(0), m.no_personality_trait);
-	EXPECT_EQ(leader_trait_tag(0), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_personality"))]);
-	EXPECT_EQ(leader_trait_tag(1), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("test_personality"))]);
-	EXPECT_EQ(leader_trait_tag(1), m.personality_traits[0]);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_personality")), m.leader_traits[leader_trait_tag(0)]);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("test_personality")), m.leader_traits[leader_trait_tag(1)]);
 
-	EXPECT_EQ(0.5f, m.leader_trait_definitions.get(leader_trait_tag(0), traits::morale));
-	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(leader_trait_tag(0), traits::organisation));
-	EXPECT_EQ(1.0f, m.leader_trait_definitions.get(leader_trait_tag(1), traits::defence));
-	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(leader_trait_tag(1), traits::reliability));
+	EXPECT_EQ(m.no_personality_trait, m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_personality"))]);
+	EXPECT_EQ(leader_trait_tag(2), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("test_personality"))]);
+	EXPECT_EQ(leader_trait_tag(2), m.personality_traits[0]);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_personality")), m.leader_traits[m.no_personality_trait]);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("test_personality")), m.leader_traits[leader_trait_tag(2)]);
+
+	EXPECT_EQ(0.5f, m.leader_trait_definitions.get(m.no_personality_trait, traits::morale));
+	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(m.no_personality_trait, traits::organisation));
+	EXPECT_EQ(1.0f, m.leader_trait_definitions.get(leader_trait_tag(2), traits::defence));
+	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(leader_trait_tag(2), traits::reliability));
 }
 
 TEST(military_tests, traits_mixed) {
@@ -316,31 +315,29 @@ TEST(military_tests, traits_mixed) {
 	EXPECT_EQ(5ui64, m.leader_traits.size());
 	EXPECT_EQ(1ui64, m.personality_traits.size());
 	EXPECT_EQ(2ui64, m.background_traits.size());
-	EXPECT_EQ(leader_trait_tag(2), m.no_background_trait);
-	EXPECT_EQ(leader_trait_tag(0), m.no_personality_trait);
-	EXPECT_EQ(leader_trait_tag(0), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_personality"))]);
-	EXPECT_EQ(leader_trait_tag(1), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("test_personality"))]);
-	EXPECT_EQ(leader_trait_tag(2), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_background"))]);
+	EXPECT_EQ(m.no_personality_trait, m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_personality"))]);
+	EXPECT_EQ(leader_trait_tag(2), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("test_personality"))]);
+	EXPECT_EQ(m.no_background_trait, m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_background"))]);
 	EXPECT_EQ(leader_trait_tag(3), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("b1"))]);
 	EXPECT_EQ(leader_trait_tag(4), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("b2"))]);
 
-	EXPECT_EQ(leader_trait_tag(1), m.personality_traits[0]);
+	EXPECT_EQ(leader_trait_tag(2), m.personality_traits[0]);
 	EXPECT_EQ(leader_trait_tag(3), m.background_traits[0]);
 	EXPECT_EQ(leader_trait_tag(4), m.background_traits[1]);
 
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_personality")), m.leader_traits[leader_trait_tag(0)]);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("test_personality")), m.leader_traits[leader_trait_tag(1)]);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_background")), m.leader_traits[leader_trait_tag(2)]);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_personality")), m.leader_traits[m.no_personality_trait]);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("test_personality")), m.leader_traits[leader_trait_tag(2)]);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_background")), m.leader_traits[m.no_background_trait]);
 	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("b1")), m.leader_traits[leader_trait_tag(3)]);
 	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("b2")), m.leader_traits[leader_trait_tag(4)]);
 
-	EXPECT_EQ(0.5f, m.leader_trait_definitions.get(leader_trait_tag(0), traits::morale));
-	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(leader_trait_tag(0), traits::organisation));
-	EXPECT_EQ(1.0f, m.leader_trait_definitions.get(leader_trait_tag(1), traits::defence));
-	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(leader_trait_tag(1), traits::reliability));
+	EXPECT_EQ(0.5f, m.leader_trait_definitions.get(m.no_personality_trait, traits::morale));
+	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(m.no_personality_trait, traits::organisation));
+	EXPECT_EQ(1.0f, m.leader_trait_definitions.get(leader_trait_tag(2), traits::defence));
+	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(leader_trait_tag(2), traits::reliability));
 
-	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(leader_trait_tag(2), traits::morale));
-	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(leader_trait_tag(2), traits::organisation));
+	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(m.no_background_trait, traits::morale));
+	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(m.no_background_trait, traits::organisation));
 	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(leader_trait_tag(3), traits::defence));
 	EXPECT_EQ(2.0f, m.leader_trait_definitions.get(leader_trait_tag(3), traits::reliability));
 	EXPECT_EQ(4.0f, m.leader_trait_definitions.get(leader_trait_tag(3), traits::speed));

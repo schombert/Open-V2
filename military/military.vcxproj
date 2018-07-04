@@ -150,10 +150,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="military.h" />
+    <ClInclude Include="military_functions.h" />
     <ClInclude Include="military_io.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="military.cpp" />
+    <ClCompile Include="military_functions.cpp" />
     <ClCompile Include="military_io.cpp" />
   </ItemGroup>
   <ItemGroup>
