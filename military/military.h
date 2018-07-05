@@ -163,20 +163,10 @@ namespace military {
 	}
 
 	struct ship {
-		unit_tag id;
-		uint16_t hull = 0ui16;
-		uint16_t org = 0ui16;
+		float hull = 1.0f;
+		float org = 1.0f;
 		provinces::province_tag location;
 		unit_type_tag type;
-	};
-
-	struct regiment {
-		unit_tag id;
-		population::pop_tag base_pop;
-		uint16_t strength = 0ui16;
-		uint16_t org = 0ui16;
-		provinces::province_tag location;
-		bool assignment_blocked = false;
 	};
 
 	struct military_leader {
@@ -190,25 +180,50 @@ namespace military {
 		leader_trait_tag background;
 	};
 
-	struct army_operation {
-		military_leader* leader;
-		array_tag<unit_tag> regiments;
+	struct army {
+		military_leader* leader = nullptr;
+		void* current_orders = nullptr; // unknown type
+		float org = 1.0f;
+		uint32_t total_soldiers = 0ui32;
+		date_tag locked_date; // cannot be rebased until date
+
+		array_tag<population::pop_tag> backing_pops;
 		
+		//extern: unit type composition
+		//extern: supplies
+
+		army_tag id;
 		provinces::province_tag base;
 	};
 
-	struct naval_operation {
-		military_leader* leader;
-		array_tag<unit_tag> ships;
+	struct fleet {
+		military_leader* leader = nullptr;
+		void* current_orders = nullptr; // unknown type
+		date_tag locked_date; // cannot be rebased until date
 
-		
+		array_tag<ship> ships;
+
+		//extern: supplies
+
+		fleet_tag id;
 		provinces::province_tag base;
 	};
 
 	class military_state {
 	public:
 		stable_vector<military_leader, leader_tag, 1024, 16> leaders;
+		stable_vector<army, army_tag, 1024, 16> armies;
+		stable_vector<fleet, fleet_tag, 1024, 16> fleets;
+
+		stable_2d_vector<economy::goods_qnty_type, army_tag, economy::goods_tag, 1024, 16> army_supplies;
+		stable_2d_vector<uint16_t, army_tag, unit_type_tag, 1024, 16> unit_type_composition;
+		stable_2d_vector<economy::goods_qnty_type, army_tag, economy::goods_tag, 1024, 16> fleet_supplies;
+
 		stable_variable_vector_storage_mk_2<leader_tag, 4, 8192> leader_arrays;
+		stable_variable_vector_storage_mk_2<ship, 2, 8192> ship_arrays;
+		stable_variable_vector_storage_mk_2<army_tag, 4, 8192> army_arrays;
+		stable_variable_vector_storage_mk_2<fleet_tag, 4, 8192> fleet_arrays;
+
 	};
 
 	class military_manager {

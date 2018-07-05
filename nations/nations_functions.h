@@ -21,4 +21,11 @@ namespace nations {
 	void init_nations_state(world_state& ws);
 	void update_state_nation_demographics(world_state& ws);
 	provinces::province_tag find_best_capital(world_state& ws, nation& owner);
+	void set_relationship(world_state& ws, nation& a, nation& b, int32_t value);
+	int32_t get_relationship(world_state& ws, nation& a, country_tag b);
+	int32_t get_influence_value(world_state& ws, nation& a, country_tag b);
+	int32_t get_influence_level(world_state& ws, nation& a, country_tag b);
+	void set_influence(world_state& ws, nation& a, country_tag b, int32_t value, int32_t level);
+	float get_foreign_investment(world_state& ws, nation& a, country_tag b);
+	void set_foreign_investment(world_state& ws, nation& a, country_tag b, float value);
 }

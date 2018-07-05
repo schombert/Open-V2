@@ -9,8 +9,160 @@
 #include "scenario\\scenario.h"
 #include "triggers\\trigger_reading.h"
 #include "triggers\\effect_reading.h"
+#include "world_state\\world_state.h"
+#include "military_functions.h"
+#include "nations\\nations_functions.h"
+#include "population\\population_function.h"
 
 namespace military {
+	struct parsed_relation {
+		int32_t value = 0;
+		int32_t level = 2;
+		int32_t influence_value = 0;
+	};
+
+	inline std::pair<token_and_type, parsed_relation> name_relation(token_and_type const& t, association_type, parsed_relation const& r) {
+		return std::pair<token_and_type, parsed_relation>(t, r);
+	}
+
+	struct parsed_leader {
+		world_state& ws;
+		nations::nation& this_nation;
+
+		bool is_general = true;
+		date_tag creation_date;
+		leader_trait_tag personality;
+		leader_trait_tag background;
+
+		parsed_leader(world_state& w, nations::nation& n) : ws(w), this_nation(n) {}
+
+		void set_date(token_and_type const& t) {
+			creation_date = parse_date(t.start, t.end);
+		}
+		void set_type(token_and_type const& t) {
+			if(is_fixed_token_ci(t, "land"))
+				is_general = true;
+			else
+				is_general = false;
+		}
+		void set_personality(token_and_type const& t) {
+			personality = tag_from_text(ws.s.military_m.named_leader_trait_index, text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, t.start, t.end));
+		}
+		void set_background(token_and_type const& t) {
+			background = tag_from_text(ws.s.military_m.named_leader_trait_index, text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, t.start, t.end));
+		}
+		void discard(int) {}
+	};
+
+	struct parsed_regiment {
+		provinces::province_tag home;
+		void discard(int) {}
+		void set_home(uint16_t p) {
+			home = provinces::province_tag(p);
+		}
+	};
+
+	struct parsed_ship {
+		world_state& ws;
+		nations::nation& this_nation;
+
+		parsed_ship(world_state& w, nations::nation& n) : ws(w), this_nation(n) {}
+
+		unit_type_tag type;
+		void discard(int) {}
+		void set_type(token_and_type const& t) {
+			type = tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, t.start, t.end));
+		}
+	};
+
+	struct parsed_army_or_navy {
+		world_state& ws;
+		nations::nation& this_nation;
+
+		leader_tag set_leader;
+		provinces::province_tag location;
+		std::vector<provinces::province_tag> regiment_sources;
+		std::vector<unit_type_tag> ship_types;
+
+		parsed_army_or_navy(world_state& w, nations::nation& n) : ws(w), this_nation(n) {}
+
+		void add_leader(parsed_leader const& l) {
+			auto& new_leader = make_empty_leader(ws, this_nation.primary_culture, l.is_general);
+			new_leader.background = l.background;
+			new_leader.personality = l.personality;
+			new_leader.creation_date = l.creation_date;
+
+			calculate_leader_traits(ws, new_leader);
+
+			if(l.is_general)
+				add_item(ws.w.military_s.leader_arrays, this_nation.generals, new_leader.id);
+			else
+				add_item(ws.w.military_s.leader_arrays, this_nation.admirals, new_leader.id);
+
+			set_leader = new_leader.id;
+		}
+		void set_location(uint16_t p) {
+			location = provinces::province_tag(p);
+		}
+		void add_regiment(parsed_regiment const & r) {
+			regiment_sources.push_back(r.home);
+		}
+		void add_regiment(parsed_ship const & s) {
+			ship_types.push_back(s.type);
+		}
+		void discard(int) {}
+	};
+
+	struct oob_file {
+		world_state& ws;
+		nations::nation& this_nation;
+
+		oob_file(world_state& w, nations::nation& n) : ws(w), this_nation(n) {}
+
+		void add_relation(std::pair<token_and_type, parsed_relation> const& p) {
+			auto other_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(p.first.start, p.first.end));
+			auto other_nation = nations::make_nation_for_tag(ws, other_tag);
+			if(p.second.value != 0)
+				nations::set_relationship(ws, this_nation, *other_nation, p.second.value);
+			if(p.second.influence_value != 0 || p.second.level != 2)
+				nations::set_influence(ws, this_nation, other_nation->id, p.second.influence_value, p.second.level);
+		}
+		void add_leader(parsed_leader const& l) {
+			auto& new_leader = make_empty_leader(ws, this_nation.primary_culture, l.is_general);
+			new_leader.background = l.background;
+			new_leader.personality = l.personality;
+			new_leader.creation_date = l.creation_date;
+
+			calculate_leader_traits(ws, new_leader);
+
+			if(l.is_general)
+				add_item(ws.w.military_s.leader_arrays, this_nation.generals, new_leader.id);
+			else
+				add_item(ws.w.military_s.leader_arrays, this_nation.admirals, new_leader.id);
+		}
+		void add_army(parsed_army_or_navy&& a) {
+			if(!is_valid_index(a.location))
+				a.location = this_nation.current_capital;
+
+			auto& new_army = make_army(ws, this_nation, a.location);
+			if(is_valid_index(a.set_leader))
+				new_army.leader = &ws.w.military_s.leaders.get(a.set_leader);
+
+			for(auto p : a.regiment_sources) {
+				auto found_pop = population::get_unassigned_soldier_in_province(ws, p);
+				if(found_pop)
+					immediate_add_pop_to_army(ws, new_army, *found_pop);
+			}
+		}
+		void add_navy(parsed_army_or_navy const& n) {
+			auto& new_fleet = make_fleet(ws, this_nation, n.location);
+			if(is_valid_index(n.set_leader))
+				new_fleet.leader = &ws.w.military_s.leaders.get(n.set_leader);
+			for(auto s : n.ship_types)
+				add_item(ws.w.military_s.ship_arrays, new_fleet.ships, ship{ 1.0f, 1.0f, n.location, s });
+		}
+	};
+
 	struct parsing_environment {
 		text_data::text_sequences& text_lookup;
 

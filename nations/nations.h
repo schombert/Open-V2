@@ -16,12 +16,24 @@ namespace nations {
 		bool operator==(region_state_pair other) const noexcept { return region_id == other.region_id; }
 	};
 
-	struct investment_pair {
+	struct influence {
 		float investment_amount = 0.0f;
-		country_tag investment_target;
 
-		bool operator<(investment_pair other)  const noexcept { return investment_target < other.investment_target; }
-		bool operator==(investment_pair other) const noexcept { return investment_target == other.investment_target; }
+		country_tag target;
+
+		uint8_t amount = 0ui8; // up to 100
+		int8_t level = 2i8; // 0 to 5 (5 = in sphere, 2 = netural)
+
+		bool operator<(influence const& other)  const noexcept { return target < other.target; }
+		bool operator==(influence const& other) const noexcept { return target == other.target; }
+	};
+
+	struct relationship {
+		country_tag tag;
+		int16_t value = 0;
+
+		bool operator<(relationship const& other)  const noexcept { return tag < other.tag; }
+		bool operator==(relationship const& other) const noexcept { return tag == other.tag; }
 	};
 
 	struct timed_national_modifier {
@@ -47,12 +59,15 @@ namespace nations {
 		set_tag<country_tag> vassals;
 		set_tag<cultures::culture_tag> accepted_cultures;
 		set_tag<region_state_pair> member_states;
-		set_tag<investment_pair> foreign_investment;
+		set_tag<influence> gp_influence;
+		set_tag<relationship> relations;
 		set_tag<variables::national_flag_tag> national_flags;
 		multiset_tag<modifiers::national_modifier_tag> static_modifiers;
 		array_tag<timed_national_modifier> timed_modifiers;
 		array_tag<military::leader_tag> generals;
 		array_tag<military::leader_tag> admirals;
+		array_tag<military::army_tag> armies;
+		array_tag<military::fleet_tag> fleets;
 
 		text_data::text_tag name;
 		text_data::text_tag adjective;
@@ -112,8 +127,9 @@ namespace nations {
 		stable_2d_vector<modifiers::value_type, country_tag, uint32_t, 512, 16> national_modifiers;
 
 		stable_variable_vector_storage_mk_2<region_state_pair, 2, 8192> state_arrays;
-		stable_variable_vector_storage_mk_2<investment_pair, 2, 8192> investment_arrays;
+		stable_variable_vector_storage_mk_2<influence, 2, 8192> influence_arrays;
 		stable_variable_vector_storage_mk_2<country_tag, 4, 8192> nations_arrays;
+		stable_variable_vector_storage_mk_2<relationship, 4, 8192> relations_arrays;
 
 		stable_2d_vector<int32_t, state_tag, population::demo_tag, 512, 16> state_demographics;
 		stable_2d_vector<int64_t, country_tag, population::demo_tag, 512, 16> nation_demographics;

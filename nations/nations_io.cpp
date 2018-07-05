@@ -217,7 +217,7 @@ namespace nations {
 
 		for(auto& ip : npo.investment) {
 			auto holding_nation = make_nation_for_tag(ws, ip.first);
-			add_item(ws.w.nation_s.investment_arrays, target_nation.foreign_investment, investment_pair{ static_cast<float>(ip.second), holding_nation->id });
+			set_foreign_investment(ws, target_nation, holding_nation->id, static_cast<float>(ip.second));
 		}
 
 		for(auto& ip : npo.govt_flags)

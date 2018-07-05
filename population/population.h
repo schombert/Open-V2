@@ -126,6 +126,7 @@ namespace population {
 		int32_t size = 0i32; // 12
 		int32_t employed = 0i32; // 16
 
+		//missing: growth, starvation, combat losses
 		int32_t size_change_from_type_change = 0i32; // promotion & demotion 20
 		int32_t size_change_from_assimilation = 0i32; //cultural and religion change 24
 		int32_t size_change_from_local_migration = 0i32; //moving from one state to another (includes colonial) 28
@@ -146,9 +147,10 @@ namespace population {
 
 		rebel_faction_tag rebel_faction; // 56
 		movement_tag movement; // 58
+		military::army_tag associated_army; // 60
 
-		cultures::religion_tag religion; // 59
-		pop_type_tag type; // 60
+		cultures::religion_tag religion; // 61
+		pop_type_tag type; // 62
 	};
 
 	static_assert(sizeof(pop) <= 64);

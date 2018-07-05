@@ -5,6 +5,7 @@
 #include "cultures\\cultures_functions.h"
 #include "population\\population_function.h"
 #include "variables\\variables_functions.h"
+#include "military\\military_functions.h"
 
 void ready_world_state(world_state& ws) {
 	variables::init_variables_state(ws);
@@ -12,4 +13,5 @@ void ready_world_state(world_state& ws) {
 	cultures::init_cultures_state(ws);
 	population::init_population_state(ws);
 	nations::init_nations_state(ws);
+	military::init_military_state(ws);
 }

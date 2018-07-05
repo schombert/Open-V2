@@ -233,4 +233,51 @@ namespace nations {
 
 		return best_province;
 	}
+
+	void set_relationship(world_state& ws, nation& a, nation& b, int32_t value) {
+		if(auto f = find(ws.w.nation_s.relations_arrays, a.relations, relationship{ b.id, 0i16 }); f)
+			f->value = int16_t(value);
+		else
+			add_item(ws.w.nation_s.relations_arrays, a.relations, relationship{ b.id, int16_t(value) });
+
+		if(auto f = find(ws.w.nation_s.relations_arrays, b.relations, relationship{ a.id, 0i16 }); f)
+			f->value = int16_t(value);
+		else
+			add_item(ws.w.nation_s.relations_arrays, b.relations, relationship{ a.id, int16_t(value) });
+	}
+	int32_t get_relationship(world_state& ws, nation& a, country_tag b) {
+		if(auto f = find(ws.w.nation_s.relations_arrays, a.relations, relationship{ b, 0i16 }); f)
+			return f->value;
+		return 0;
+	}
+	int32_t get_influence_value(world_state& ws, nation& a, country_tag b) {
+		if(auto f = find(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, 0ui8, 0i8 }); f)
+			return f->amount;
+		return 0;
+	}
+	int32_t get_influence_level(world_state& ws, nation& a, country_tag b) {
+		if(auto f = find(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, 0ui8, 0i8 }); f)
+			return f->level;
+		return 0;
+	}
+	void set_influence(world_state& ws, nation& a, country_tag b, int32_t value, int32_t level) {
+		if(auto f = find(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, 0ui8, 0i8 }); f) {
+			f->amount = uint8_t(value);
+			f->level = int8_t(level);
+		} else {
+			add_item(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, uint8_t(value), int8_t(level) });
+		}
+	}
+	float get_foreign_investment(world_state& ws, nation& a, country_tag b) {
+		if(auto f = find(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, 0ui8, 0i8 }); f)
+			return f->investment_amount;
+		return 0.0f;
+	}
+	void set_foreign_investment(world_state& ws, nation& a, country_tag b, float value) {
+		if(auto f = find(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, 0ui8, 0i8 }); f) {
+			f->investment_amount = value;
+		} else {
+			add_item(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ value, b, 0ui8, 0i8 });
+		}
+	}
 }
