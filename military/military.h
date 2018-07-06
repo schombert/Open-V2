@@ -178,6 +178,7 @@ namespace military {
 		leader_tag id;
 		leader_trait_tag personality;
 		leader_trait_tag background;
+		bool attached = false;
 	};
 
 	struct army {

@@ -107,7 +107,7 @@ namespace military {
 		void add_regiment(parsed_regiment const & r) {
 			regiment_sources.push_back(r.home);
 		}
-		void add_regiment(parsed_ship const & s) {
+		void add_ship(parsed_ship const & s) {
 			ship_types.push_back(s.type);
 		}
 		void discard(int) {}
@@ -145,8 +145,10 @@ namespace military {
 				a.location = this_nation.current_capital;
 
 			auto& new_army = make_army(ws, this_nation, a.location);
-			if(is_valid_index(a.set_leader))
+			if(is_valid_index(a.set_leader)) {
 				new_army.leader = &ws.w.military_s.leaders.get(a.set_leader);
+				new_army.leader->attached = true;
+			}
 
 			for(auto p : a.regiment_sources) {
 				auto found_pop = population::get_unassigned_soldier_in_province(ws, p);
@@ -156,8 +158,10 @@ namespace military {
 		}
 		void add_navy(parsed_army_or_navy const& n) {
 			auto& new_fleet = make_fleet(ws, this_nation, n.location);
-			if(is_valid_index(n.set_leader))
+			if(is_valid_index(n.set_leader)) {
 				new_fleet.leader = &ws.w.military_s.leaders.get(n.set_leader);
+				new_fleet.leader->attached = true;
+			}
 			for(auto s : n.ship_types)
 				add_item(ws.w.military_s.ship_arrays, new_fleet.ships, ship{ 1.0f, 1.0f, n.location, s });
 		}
@@ -664,6 +668,28 @@ namespace military {
 	};
 }
 
+MEMBER_FDEF(military::oob_file, add_leader, "leader");
+MEMBER_FDEF(military::oob_file, add_relation, "relation");
+MEMBER_FDEF(military::oob_file, add_army, "army");
+MEMBER_FDEF(military::oob_file, add_navy, "navy");
+MEMBER_FDEF(military::parsed_army_or_navy, add_leader, "leader");
+MEMBER_FDEF(military::parsed_army_or_navy, set_location, "location");
+MEMBER_FDEF(military::parsed_army_or_navy, add_regiment, "regiment");
+MEMBER_FDEF(military::parsed_army_or_navy, add_ship, "ship");
+MEMBER_FDEF(military::parsed_army_or_navy, discard, "discard");
+MEMBER_FDEF(military::parsed_ship, set_type, "type");
+MEMBER_FDEF(military::parsed_ship, discard, "discard");
+MEMBER_FDEF(military::parsed_regiment, set_home, "home");
+MEMBER_FDEF(military::parsed_regiment, discard, "discard");
+MEMBER_FDEF(military::parsed_leader, set_date, "date");
+MEMBER_FDEF(military::parsed_leader, set_type, "type");
+MEMBER_FDEF(military::parsed_leader, set_personality, "personality");
+MEMBER_FDEF(military::parsed_leader, set_background, "background");
+MEMBER_FDEF(military::parsed_leader, discard, "discard");
+MEMBER_DEF(military::parsed_relation, value, "value");
+MEMBER_DEF(military::parsed_relation, level, "level");
+MEMBER_DEF(military::parsed_relation, influence_value, "influence_value");
+
 MEMBER_FDEF(military::single_cb, discard, "discard");
 MEMBER_FDEF(military::single_cb, set_is_civil_war, "is_civil_war");
 MEMBER_FDEF(military::single_cb, set_months, "months");
@@ -765,6 +791,45 @@ MEMBER_FDEF(military::unit_type_reader, set_limit_per_port, "limit_per_port");
 MEMBER_FDEF(military::unit_type_reader, set_supply_consumption_score, "supply_consumption_score");
 
 namespace military {
+	BEGIN_DOMAIN(oob_domain)
+		BEGIN_TYPE(parsed_relation)
+			MEMBER_ASSOCIATION("value", "value", value_from_rh<int32_t>)
+			MEMBER_ASSOCIATION("level", "level", value_from_rh<int32_t>)
+			MEMBER_ASSOCIATION("influence_value", "influence_value", value_from_rh<int32_t>)
+		END_TYPE
+		BEGIN_TYPE(parsed_leader)
+			MEMBER_ASSOCIATION("personality", "personality", token_from_rh)
+			MEMBER_ASSOCIATION("background", "background", token_from_rh)
+			MEMBER_ASSOCIATION("date", "date", token_from_rh)
+			MEMBER_ASSOCIATION("type", "type", token_from_rh)
+			MEMBER_ASSOCIATION("discard", "name", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "picture", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "prestige", discard_from_rh)
+		END_TYPE
+		BEGIN_TYPE(parsed_regiment)
+			MEMBER_ASSOCIATION("home", "home", value_from_rh<uint16_t>)
+			MEMBER_ASSOCIATION("discard", "name", discard_from_rh)
+			MEMBER_ASSOCIATION("discard", "type", discard_from_rh)
+		END_TYPE
+		BEGIN_TYPE(parsed_ship)
+			MEMBER_ASSOCIATION("type", "type", token_from_rh)
+			MEMBER_ASSOCIATION("discard", "name", discard_from_rh)
+		END_TYPE
+		BEGIN_TYPE(parsed_army_or_navy)
+			MEMBER_TYPE_ASSOCIATION("leader", "leader", parsed_leader)
+			MEMBER_TYPE_ASSOCIATION("ship", "ship", parsed_ship)
+			MEMBER_TYPE_ASSOCIATION("regiment", "regiment", parsed_regiment)
+			MEMBER_ASSOCIATION("location", "location", value_from_rh<uint16_t>)
+			MEMBER_ASSOCIATION("discard", "name", discard_from_rh)
+		END_TYPE
+		BEGIN_TYPE(oob_file)
+			MEMBER_TYPE_ASSOCIATION("leader", "leader", parsed_leader)
+			MEMBER_TYPE_ASSOCIATION("army", "army", parsed_army_or_navy)
+			MEMBER_TYPE_ASSOCIATION("navy", "navy", parsed_army_or_navy)
+			MEMBER_VARIABLE_TYPE_ASSOCIATION("relation", accept_all, parsed_relation, name_relation)
+		END_TYPE
+	END_DOMAIN;
+
 	BEGIN_DOMAIN(single_cb_domain)
 		BEGIN_TYPE(single_cb)
 		MEMBER_ASSOCIATION("is_civil_war", "is_civil_war", value_from_rh<bool>)
@@ -1064,5 +1129,9 @@ namespace military {
 					*state.impl);
 			}
 		}
+	}
+
+	void read_oob_file(world_state& ws, nations::nation& for_nation, token_group const* start, token_group const* end) {
+		parse_object<oob_file, oob_domain>(start, end, ws, for_nation);
 	}
 }

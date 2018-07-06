@@ -7,6 +7,12 @@
 #include "simple_serialize\\simple_serialize.hpp"
 #include <ppl.h>
 
+
+class world_state;
+namespace nations {
+	struct nation;
+}
+
 template<>
 class serialization::serializer<military::cb_type> : public serialization::memcpy_serializer<military::cb_type> {};
 template<>
@@ -100,4 +106,5 @@ namespace military {
 		sound::sound_manager& sound_m,
 		text_data::text_sequences& text_m);
 	void read_cb_types(parsing_state const& state, scenario::scenario_manager& s, events::event_creation_manager& ecm);
+	void read_oob_file(world_state& ws, nations::nation& for_nation, token_group const* start, token_group const* end);
 }
