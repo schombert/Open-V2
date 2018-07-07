@@ -258,14 +258,22 @@ namespace nations {
 	int32_t get_influence_level(world_state& ws, nation& a, country_tag b) {
 		if(auto f = find(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, 0ui8, 0i8 }); f)
 			return f->level;
-		return 0;
+		return 2;
 	}
 	void set_influence(world_state& ws, nation& a, country_tag b, int32_t value, int32_t level) {
 		if(auto f = find(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, 0ui8, 0i8 }); f) {
+			if(f->level == 5i8 && level != 5) {
+				ws.w.nation_s.nations.get(b).sphere_leader = nullptr;
+				remove_item(ws.w.nation_s.nations_arrays, a.sphere_members, b);
+			}
 			f->amount = uint8_t(value);
 			f->level = int8_t(level);
 		} else {
 			add_item(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, uint8_t(value), int8_t(level) });
+		}
+		if(level == 5) {
+			ws.w.nation_s.nations.get(b).sphere_leader = &a;
+			add_item(ws.w.nation_s.nations_arrays, a.sphere_members, b);
 		}
 	}
 	float get_foreign_investment(world_state& ws, nation& a, country_tag b) {

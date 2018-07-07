@@ -101,6 +101,9 @@
     <ProjectReference Include="..\scenario\scenario.vcxproj">
       <Project>{65dad1ba-bd41-406e-b738-5cfea1b0f042}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\simple_serialize\simple_serialize.vcxproj">
+      <Project>{e97eaa5f-e141-4da5-9f8b-37812f8f04d8}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\sound\sound.vcxproj">
       <Project>{483adac5-dd50-4fed-b08b-61349e1fc0b8}</Project>
     </ProjectReference>

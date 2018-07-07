@@ -9,6 +9,10 @@
 #include "military\\military_io.h"
 #include "economy\\economy_io.h"
 #include "sound\\sound_io.h"
+#include "world_state\\world_state.h"
+#include <ppl.h>
+#include "nations\\nations_functions.h"
+#include "scenario\\scenario_io.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -213,6 +217,33 @@ public:
 		"	discipline = 3\r\n"
 		"	support = 2\r\n"
 		"	maneuver = 2\r\n"
+		"}\r\n");
+
+		directory_representation history4 = directory_representation(u"history", test4);
+	directory_representation pops4 = directory_representation(u"pops", history4);
+	directory_representation hd3 = directory_representation(u"1800.1.1", pops4);
+
+	file_representation hf1 = file_representation(u"file.txt", hd3,
+		"220 = {\r\n"
+		"	soldiers = {\r\n"
+		"		culture = albanian\r\n"
+		"		religion = sunni\r\n"
+		"		size = 100\r\n"
+		"	}\r\n"
+		"}\r\n"
+		"243 = {\r\n"
+		"	soldiers = {\r\n"
+		"		culture = albanian\r\n"
+		"		religion = sunni\r\n"
+		"		size = 200\r\n"
+		"	}\r\n"
+		"}\r\n"
+		"232 = {\r\n"
+		"	soldiers = {\r\n"
+		"		culture = albanian\r\n"
+		"		religion = sunni\r\n"
+		"		size = 200\r\n"
+		"	}\r\n"
 		"}\r\n"
 	);
 
@@ -486,4 +517,170 @@ TEST(military_tests, full_cb_read) {
 	EXPECT_EQ(2.0f, s.military_m.cb_types[cb_type_tag(2)].tws_battle_factor);
 	EXPECT_NE(triggers::trigger_tag(), s.military_m.cb_types[cb_type_tag(2)].allowed_states);
 
+}
+
+TEST(military_tests, read_oob_test) {
+	char test_file[] =
+		"JAP = {\r\n"
+		"	value = 130\r\n"
+		"	level = 5\r\n"
+		"	influence_value = 25\r\n"
+		"}\r\n"
+		"MEX = {\r\n"
+		"	value = 150\r\n"
+		"	level = 3\r\n"
+		"	influence_value = 5\r\n"
+		"}\r\n"
+		"leader = {\r\n"
+		"	name = \"William T. Sherman\"\r\n"
+		"	type = land\r\n"
+		"	date = \"1846.1.1\"\r\n"
+		"	personality = audacious\r\n"
+		"	background = school_of_offense\r\n"
+		"	picture = \"european_general_31\"\r\n"
+		"}\r\n"
+		"leader = {\r\n"
+		"	name = \"Irvin McDowell\"\r\n"
+		"	type = sea\r\n"
+		"	date = \"1836.1.1\"\r\n"
+		"	personality = bastard\r\n"
+		"	background = generals_aide\r\n"
+		"	picture = \"european_general_52\"\r\n"
+		"}\r\n"
+		"army = {\r\n"
+		"	name = \"Washington Garrison\"\r\n"
+		"	leader = {\r\n"
+		"		name = \"Henry W. Halleck\"\r\n"
+		"		type = land\r\n"
+		"		date = \"1861.1.1\"\r\n"
+		"		prestige = 0.05\r\n"
+		"		personality = meticulous\r\n"
+		"		background = warmonger\r\n"
+		"		picture = \"european_general_6\"\r\n"
+		"	}\r\n"
+		"	location = 220\r\n"
+		"	regiment = {\r\n"
+		"		name = \"1st US Artillery\"\r\n"
+		"		type = artillery\r\n"
+		"		home = 220\r\n"
+		"	}\r\n"
+		"	regiment = {\r\n"
+		"		name = \"1st US Infantry\"\r\n"
+		"		type = infantry\r\n"
+		"		home = 243\r\n"
+		"	}\r\n"
+		"	regiment = {\r\n"
+		"		name = \"2nd US Infantry\"\r\n"
+		"		type = infantry\r\n"
+		"		home = 232\r\n"
+		"	}\r\n"
+		"}\r\n"
+		"navy = {\r\n"
+		"	name = \"Atlantic Blockading Squadron\"\r\n"
+		"	location = 219\r\n"
+		"	ship = {\r\n"
+		"		name = \"USS Potomac\"\r\n"
+		"		type = frigate\r\n"
+		"	}\r\n"
+		"	ship = {\r\n"
+		"		name = \"USS Sabine\"\r\n"
+		"		type = frigate\r\n"
+		"	}\r\n"
+		"	ship = {\r\n"
+		"		name = \"USS Congress\"\r\n"
+		"		type = frigate\r\n"
+		"	}\r\n"
+		"	ship = {\r\n"
+		"		name = \"USS Roanoke\"\r\n"
+		"		type = commerce_raider\r\n"
+		"	}\r\n"
+		"	ship = {\r\n"
+		"		name = \"USS Minnesota\"\r\n"
+		"		type = commerce_raider\r\n"
+		"	}\r\n"
+		"}\r\n"
+		;
+	std::vector<token_group> presults;
+	parse_pdx_file(presults, RANGE(test_file));
+
+	world_state ws;
+	concurrency::task_group tg;
+	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s, tg);
+	tg.wait();
+	ready_world_state(ws);
+
+	preparse_test_files real_fs;
+	file_system f;
+	f.set_root(RANGE(u"F:\\test4"));
+
+	population::read_all_pops(f.get_root(), ws, date_to_tag(boost::gregorian::date(1801, boost::gregorian::Jan, 1)));
+
+	nations::nation& usa = *nations::make_nation_for_tag(ws, ws.s.culture_m.national_tags_index[cultures::tag_to_encoding(RANGE("USA"))]);
+	usa.primary_culture = cultures::culture_tag(0ui16);
+
+	read_oob_file(ws, usa, presults.data(), presults.data() + presults.size());
+
+	EXPECT_EQ(1ui32, get_size(ws.w.nation_s.nations_arrays, usa.sphere_members));
+
+	nations::nation& jap = *nations::make_nation_for_tag(ws, ws.s.culture_m.national_tags_index[cultures::tag_to_encoding(RANGE("JAP"))]);
+
+	EXPECT_EQ(&usa, jap.sphere_leader);
+	EXPECT_EQ(25, nations::get_influence_value(ws, usa, jap.id));
+	EXPECT_EQ(5, nations::get_influence_level(ws, usa, jap.id));
+	EXPECT_EQ(130, nations::get_relationship(ws, usa, jap.id));
+	EXPECT_EQ(130, nations::get_relationship(ws, jap, usa.id));
+
+	nations::nation& mex = *nations::make_nation_for_tag(ws, ws.s.culture_m.national_tags_index[cultures::tag_to_encoding(RANGE("MEX"))]);
+
+	EXPECT_NE(&usa, mex.sphere_leader);
+	EXPECT_EQ(5, nations::get_influence_value(ws, usa, mex.id));
+	EXPECT_EQ(3, nations::get_influence_level(ws, usa, mex.id));
+	EXPECT_EQ(150, nations::get_relationship(ws, usa, mex.id));
+	EXPECT_EQ(150, nations::get_relationship(ws, mex, usa.id));
+
+	EXPECT_EQ(2ui32, get_size(ws.w.military_s.leader_arrays, usa.generals));
+	EXPECT_EQ(1ui32, get_size(ws.w.military_s.leader_arrays, usa.admirals));
+
+	EXPECT_EQ(1ui32, get_size(ws.w.military_s.army_arrays, usa.armies));
+	EXPECT_EQ(1ui32, get_size(ws.w.military_s.fleet_arrays, usa.fleets));
+
+	army& a = ws.w.military_s.armies.get(get(ws.w.military_s.army_arrays, usa.armies, 0ui32));
+
+	EXPECT_NE(nullptr, a.leader);
+	EXPECT_EQ(provinces::province_tag(220), a.base);
+	EXPECT_EQ(1.0f, a.org);
+	EXPECT_EQ(500ui32, a.total_soldiers);
+	EXPECT_EQ(3ui32, get_size(ws.w.population_s.pop_arrays, a.backing_pops));
+	auto prange = get_range(ws.w.population_s.pop_arrays, a.backing_pops);
+	EXPECT_EQ(a.id, ws.w.population_s.pops.get(*prange.first).associated_army);
+	EXPECT_EQ(a.id, ws.w.population_s.pops.get(*(prange.first + 1)).associated_army);
+	EXPECT_EQ(a.id, ws.w.population_s.pops.get(*(prange.first + 2)).associated_army);
+	EXPECT_EQ(a.leader->attached, true);
+	EXPECT_EQ(a.leader->background, tag_from_text(ws.s.military_m.named_leader_trait_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("warmonger"))));
+	EXPECT_EQ(a.leader->personality, tag_from_text(ws.s.military_m.named_leader_trait_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("meticulous"))));
+	EXPECT_EQ(a.leader->creation_date, date_to_tag(boost::gregorian::date(1861, boost::gregorian::Jan, 1)));
+
+	EXPECT_EQ(a.leader->leader_traits[traits::morale], -0.2f);
+	EXPECT_EQ(a.leader->leader_traits[traits::attack], 0.0f);
+	EXPECT_EQ(a.leader->leader_traits[traits::defence], 0.0f);
+	EXPECT_EQ(a.leader->leader_traits[traits::speed], 0.0f);
+	EXPECT_EQ(a.leader->leader_traits[traits::reconnaissance], 0.0f);
+	EXPECT_EQ(a.leader->leader_traits[traits::organisation], 0.0f);
+	EXPECT_EQ(a.leader->leader_traits[traits::experience], 0.0f);
+	EXPECT_EQ(a.leader->leader_traits[traits::reliability], 0.0f);
+
+	fleet& b = ws.w.military_s.fleets.get(get(ws.w.military_s.fleet_arrays, usa.fleets, 0ui32));
+	EXPECT_EQ(nullptr, b.leader);
+	EXPECT_EQ(provinces::province_tag(219), b.base);
+	EXPECT_EQ(5ui32, get_size(ws.w.military_s.ship_arrays, b.ships));
+
+	auto srange = get_range(ws.w.military_s.ship_arrays, b.ships);
+	EXPECT_EQ(srange.first->hull, 1.0f);
+	EXPECT_EQ(srange.first->org, 1.0f);
+	EXPECT_EQ(srange.first->location, provinces::province_tag(219));
+	EXPECT_EQ(srange.first->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("frigate"))));
+	EXPECT_EQ((srange.first+1)->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("frigate"))));
+	EXPECT_EQ((srange.first+2)->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("frigate"))));
+	EXPECT_EQ((srange.first + 3)->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("commerce_raider"))));
+	EXPECT_EQ((srange.first + 4)->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("commerce_raider"))));
 }
