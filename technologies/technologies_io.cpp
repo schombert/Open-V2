@@ -113,8 +113,7 @@ namespace technologies {
 
 		parse_schools(parsing_environment& e) : env(e) {}
 
-		void add_school(const std::pair<text_data::text_tag, modifiers::national_modifier_tag>& p) {
-			env.manager.named_tech_school_index.emplace(p.first, p.second);
+		void add_school(const std::pair<text_data::text_tag, modifiers::national_modifier_tag>&) {
 		}
 	};
 

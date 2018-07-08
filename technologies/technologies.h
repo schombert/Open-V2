@@ -127,7 +127,6 @@ namespace technologies {
 		boost::container::flat_map<text_data::text_tag, tech_category_tag> named_category_index;
 		boost::container::flat_map<text_data::text_tag, tech_subcategory_tag> named_subcategory_index;
 		boost::container::flat_map<text_data::text_tag, tech_tag> named_technology_index;
-		boost::container::flat_map<text_data::text_tag, modifiers::national_modifier_tag> named_tech_school_index;
 
 		tagged_vector<technology_category, tech_category_tag> technology_categories;
 		tagged_vector<technology_subcategory, tech_subcategory_tag> technology_subcategories;

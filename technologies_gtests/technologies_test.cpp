@@ -302,7 +302,7 @@ TEST(technologies_tests, pre_parse_tech_file) {
 
 	EXPECT_EQ(2ui64, manager.technology_categories.size());
 	EXPECT_EQ(4ui64, manager.technology_subcategories.size());
-	EXPECT_EQ(1ui64, manager.named_tech_school_index.size());
+	EXPECT_EQ(1ui64, mm.named_national_modifiers_index.size());
 
 	EXPECT_EQ(tech_category_tag(0), manager.technology_categories[tech_category_tag(0)].id);
 	EXPECT_EQ(tech_category_tag(1), manager.technology_categories[tech_category_tag(1)].id);
@@ -323,10 +323,10 @@ TEST(technologies_tests, pre_parse_tech_file) {
 
 	EXPECT_EQ(2ui64, manager.named_category_index.size());
 	EXPECT_EQ(4ui64, manager.named_subcategory_index.size());
-	EXPECT_EQ(1ui64, manager.named_tech_school_index.size());
+	EXPECT_EQ(1ui64, mm.named_national_modifiers_index.size());
 
 	EXPECT_EQ(modifiers::national_modifier_tag(0), mm.national_modifiers[modifiers::national_modifier_tag(0)].id);
-	const auto fr = manager.named_tech_school_index[mm.national_modifiers[modifiers::national_modifier_tag(0)].name];
+	const auto fr = mm.named_national_modifiers_index[mm.national_modifiers[modifiers::national_modifier_tag(0)].name];
 	EXPECT_EQ(modifiers::national_modifier_tag(0), fr);
 }
 
@@ -345,13 +345,13 @@ TEST(technologies_tests, pre_parse_schools) {
 
 	EXPECT_EQ(2ui64, mm.national_modifiers.size());
 	EXPECT_EQ(2ui64, mm.named_national_modifiers_index.size());
-	EXPECT_EQ(2ui64, manager.named_tech_school_index.size());
+	EXPECT_EQ(2ui64, mm.named_national_modifiers_index.size());
 
 	EXPECT_EQ(modifiers::national_modifier_tag(0), mm.national_modifiers[modifiers::national_modifier_tag(0)].id);
 	EXPECT_EQ(modifiers::national_modifier_tag(1), mm.national_modifiers[modifiers::national_modifier_tag(1)].id);
-	const auto fr = manager.named_tech_school_index[mm.national_modifiers[modifiers::national_modifier_tag(0)].name];
+	const auto fr = mm.named_national_modifiers_index[mm.national_modifiers[modifiers::national_modifier_tag(0)].name];
 	EXPECT_EQ(fr, modifiers::national_modifier_tag(0));
-	const auto frb = manager.named_tech_school_index[mm.national_modifiers[modifiers::national_modifier_tag(1)].name];
+	const auto frb = mm.named_national_modifiers_index[mm.national_modifiers[modifiers::national_modifier_tag(1)].name];
 	EXPECT_EQ(frb, modifiers::national_modifier_tag(1));
 
 	EXPECT_EQ(1.0f, mm.national_modifier_definitions.get(frb, modifiers::national_offsets::commerce_tech_research_bonus));

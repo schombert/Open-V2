@@ -1295,7 +1295,7 @@ namespace triggers {
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			return trigger_payload(
 				tag_from_text(
-					s.technology_m.named_tech_school_index,
+					s.modifiers_m.named_national_modifiers_index,
 					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 	};

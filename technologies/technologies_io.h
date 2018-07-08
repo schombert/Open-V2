@@ -30,7 +30,6 @@ public:
 	}
 
 	static void serialize_object(std::byte* &output, technologies::technologies_manager const& obj) {
-		serialize(output, obj.named_tech_school_index);
 		serialize(output, obj.technology_categories);
 		serialize(output, obj.technology_subcategories);
 		serialize(output, obj.technologies_container);
@@ -40,7 +39,6 @@ public:
 		serialize(output, obj.rebel_org_gain);
 	}
 	static void deserialize_object(std::byte const* &input, technologies::technologies_manager& obj) {
-		deserialize(input, obj.named_tech_school_index);
 		deserialize(input, obj.technology_categories);
 		deserialize(input, obj.technology_subcategories);
 		deserialize(input, obj.technologies_container);
@@ -52,7 +50,6 @@ public:
 		rebuild_indexes(obj);
 	}
 	static void deserialize_object(std::byte const* &input, technologies::technologies_manager& obj, concurrency::task_group& tg) {
-		deserialize(input, obj.named_tech_school_index);
 		deserialize(input, obj.technology_categories);
 		deserialize(input, obj.technology_subcategories);
 		deserialize(input, obj.technologies_container);
@@ -64,7 +61,7 @@ public:
 		tg.run([&obj]() { rebuild_indexes(obj); });
 	}
 	static size_t size(technologies::technologies_manager const& obj) {
-		return serialize_size(obj.named_tech_school_index) +
+		return 
 			serialize_size(obj.technology_categories) +
 			serialize_size(obj.technology_subcategories) +
 			serialize_size(obj.technologies_container) +

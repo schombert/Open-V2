@@ -153,6 +153,7 @@ namespace governments {
 
 		if(start != end) {
 			parse_object<party_reader, party_reading_domain>(start, end, s, uc);
+			s.governments_m.named_party_index.emplace(uc.name, ptag);
 		}
 
 		return ptag;

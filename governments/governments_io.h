@@ -21,6 +21,8 @@ public:
 	static void rebuild_indexes(governments::governments_manager& obj) {
 		for(auto const& i_government : obj.governments_container)
 			obj.named_government_index.emplace(i_government.name, i_government.id);
+		for(auto const& i_party : obj.parties)
+			obj.named_party_index.emplace(i_party.name, i_party.id);
 	}
 
 	static void serialize_object(std::byte* &output, governments::governments_manager const& obj) {

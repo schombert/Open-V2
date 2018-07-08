@@ -46,6 +46,7 @@ namespace governments {
 	class governments_manager {
 	public:
 		boost::container::flat_map<text_data::text_tag, government_tag> named_government_index;
+		boost::container::flat_map<text_data::text_tag, party_tag> named_party_index;
 
 		tagged_vector<government_type, government_tag> governments_container;
 		tagged_fixed_2dvector<uint8_t, government_tag, ideologies::ideology_tag> permitted_ideologies;
