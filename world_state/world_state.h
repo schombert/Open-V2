@@ -8,6 +8,7 @@
 #include "population\\population.h"
 #include "variables\\variables.h"
 #include "military\\military.h"
+#include "gui\\gui.h"
 
 namespace current_state {
 	class state {
@@ -19,6 +20,7 @@ namespace current_state {
 		economy::economic_state economy_s;
 		population::population_state population_s;
 		variables::variables_state variable_s;
+		ui::gui_manager gui_m;
 	};
 }
 

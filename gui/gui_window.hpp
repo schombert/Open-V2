@@ -39,13 +39,13 @@ template<typename INDEX, typename TYPE, typename ... REST>
 class ui::gui_window<INDEX, TYPE, REST ...> : public ui::gui_window<REST ...> {
 protected:
 	TYPE m_object;
-	bool create_named_member(gui_static&, gui_manager& manager, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne);
+	bool create_named_member(world_state& ws, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne);
 	ui::tagged_gui_object create_window(gui_static&, gui_manager& manager, const ui::window_def& def);
 	template<typename window_type>
-	void member_init_in_window(window_type& w, gui_manager& m);
+	void member_init_in_window(window_type& w, world_state& m);
 public:
 	template<typename window_type>
-	void member_update_in_window(window_type& w, gui_static&, gui_manager& m, world_state& s);
+	void member_update_in_window(window_type& w, world_state& s);
 
 	gui_window(ui::gui_window<INDEX, TYPE, REST ...>&&) = default;
 	gui_window(ui::gui_window<INDEX, TYPE, REST ...>& b) noexcept : gui_window<INDEX, TYPE, REST ...>(std::move(b)) {}
@@ -57,8 +57,8 @@ public:
 	template<typename i>
 	auto& get() const;
 
-	ui::tagged_gui_object create(gui_static&, gui_manager& manager, const ui::window_def& def);
-	virtual void update_data(gui_object_tag, gui_static&, gui_manager&, world_state&) override;
+	ui::tagged_gui_object create(world_state& manager, const ui::window_def& def);
+	virtual void update_data(gui_object_tag, world_state&) override;
 
 	friend struct ui::detail::window_get<INDEX, INDEX, TYPE, REST ...>;
 };
@@ -66,12 +66,12 @@ public:
 template<typename BASE_BEHAVIOR>
 class ui::gui_window<BASE_BEHAVIOR> : public BASE_BEHAVIOR {
 protected:
-	bool create_named_member(gui_static&, gui_manager& manager, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne);
+	bool create_named_member(world_state& ws, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne);
 	ui::tagged_gui_object create_window(gui_static&, gui_manager& manager, const ui::window_def& def);
 	template<typename window_type>
-	void member_init_in_window(window_type& w, gui_manager& m) {}
+	void member_init_in_window(window_type& w, world_state& m) {}
 	template<typename window_type>
-	void member_update_in_window(window_type& w, gui_static&, gui_manager& m, world_state& s) {}
+	void member_update_in_window(window_type& w, world_state& s) {}
 public:
 	gui_window(ui::gui_window<BASE_BEHAVIOR>&&) = default;
 	gui_window(ui::gui_window<BASE_BEHAVIOR>& b) noexcept : gui_window(std::move(b)) {}
@@ -79,7 +79,7 @@ public:
 	gui_window(PARAMS&& ... params) : BASE_BEHAVIOR(std::forward<PARAMS>(params) ...) {}
 
 	ui::gui_object_tag window_object;
-	ui::tagged_gui_object create(gui_static&, gui_manager& manager, const ui::window_def& def);
+	ui::tagged_gui_object create(world_state& manager, const ui::window_def& def);
 };
 
 template<typename INDEX, typename TYPE, typename ...REST>
@@ -96,32 +96,32 @@ ui::tagged_gui_object ui::gui_window<INDEX, TYPE, REST...>::create_window(gui_st
 }
 
 template<typename INDEX, typename TYPE, typename ...REST>
-void ui::gui_window<INDEX, TYPE, REST...>::update_data(gui_object_tag , gui_static& sm, gui_manager& m, world_state& w) {
-	member_update_in_window(*this, sm, m, w);
+void ui::gui_window<INDEX, TYPE, REST...>::update_data(gui_object_tag, world_state& w) {
+	member_update_in_window(*this, w);
 }
 
 template<typename INDEX, typename TYPE, typename ...REST>
 template<typename window_type>
-void ui::gui_window<INDEX, TYPE, REST...>::member_update_in_window(window_type& w, gui_static& sm, gui_manager& m, world_state& s) {
-	if constexpr(ui::detail::has_windowed_update<TYPE, window_type&, gui_static&, gui_manager&, world_state&>)
-		m_object.windowed_update(w, sm, m, s);
-	gui_window<REST...>::member_update_in_window(w, sm, m, s);
+void ui::gui_window<INDEX, TYPE, REST...>::member_update_in_window(window_type& w, world_state& s) {
+	if constexpr(ui::detail::has_windowed_update<TYPE, window_type&, world_state&>)
+		m_object.windowed_update(w, s);
+	gui_window<REST...>::member_update_in_window(w, s);
 }
 
 template<typename INDEX, typename TYPE, typename ...REST>
 template<typename window_type>
-void ui::gui_window<INDEX, TYPE, REST...>::member_init_in_window(window_type& w, gui_manager& m) {
-	if constexpr(ui::detail::has_initialize_in_window<TYPE, window_type&, gui_manager&>)
+void ui::gui_window<INDEX, TYPE, REST...>::member_init_in_window(window_type& w, world_state& m) {
+	if constexpr(ui::detail::has_initialize_in_window<TYPE, window_type&, world_state&>)
 		m_object.initialize_in_window(w, m);
 	gui_window<REST...>::member_init_in_window(w, m);
 }
 
 template<typename INDEX, typename TYPE, typename ...REST>
-bool ui::gui_window<INDEX, TYPE, REST...>::create_named_member(gui_static& sm, gui_manager& manager, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne) {
+bool ui::gui_window<INDEX, TYPE, REST...>::create_named_member(world_state& ws, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne) {
 	if (compile_time_str_compare_ci<INDEX>(ns, ne) == 0) {
-		std::visit([_this = this, &win, &sm, &manager](auto tag) {
+		std::visit([_this = this, &win, &ws](auto tag) {
 			if constexpr(ui::detail::can_create<decltype(tag), TYPE>)
-				ui::create_static_element(sm, manager, tag, win, _this->m_object);
+				ui::create_static_element(ws, tag, win, _this->m_object);
 			else {
 #ifdef _DEBUG
 				OutputDebugStringA("Unable to instantiate window element: bad tag type\n");
@@ -130,22 +130,22 @@ bool ui::gui_window<INDEX, TYPE, REST...>::create_named_member(gui_static& sm, g
 		}, t);
 		return true;
 	} else {
-		return gui_window<REST...>::create_named_member(sm, manager, win, t, ns, ne);
+		return gui_window<REST...>::create_named_member(ws, win, t, ns, ne);
 	}
 }
 
 template<typename INDEX, typename TYPE, typename ...REST>
-ui::tagged_gui_object ui::gui_window<INDEX, TYPE, REST...>::create(gui_static& static_manager, gui_manager & manager, const ui::window_def & definition) {
-	const auto win = create_window(static_manager, manager, definition);
+ui::tagged_gui_object ui::gui_window<INDEX, TYPE, REST...>::create(world_state& manager, const ui::window_def & definition) {
+	const auto win = create_window(manager.s.gui_m, manager.w.gui_m, definition);
 	for (auto i = definition.sub_object_definitions.crbegin(); i != definition.sub_object_definitions.crend(); ++i) {
-		auto rn = static_manager.nmaps.get_raw_name(*i);
-		const char* rn_s = rn.get_str(static_manager.ui_definitions.name_data);
+		auto rn = manager.s.gui_m.nmaps.get_raw_name(*i);
+		const char* rn_s = rn.get_str(manager.s.gui_m.ui_definitions.name_data);
 		const char* rn_e = rn_s + rn.length();
 
-		if (!create_named_member(static_manager, manager, win, *i, rn_s, rn_e)) {
-			std::visit([&manager, &static_manager, &win](auto tag) {
+		if (!create_named_member(manager, win, *i, rn_s, rn_e)) {
+			std::visit([&manager, &win](auto tag) {
 				if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-					ui::create_dynamic_element(static_manager, manager, tag, win);
+					ui::create_dynamic_element(manager, tag, win);
 			}, *i);
 		}
 	}
@@ -154,7 +154,7 @@ ui::tagged_gui_object ui::gui_window<INDEX, TYPE, REST...>::create(gui_static& s
 }
 
 template<typename BASE_BEHAVIOR>
-bool ui::gui_window<BASE_BEHAVIOR>::create_named_member(gui_static& static_manager, gui_manager& manager, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne) {
+bool ui::gui_window<BASE_BEHAVIOR>::create_named_member(world_state& ws, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne) {
 	return false;
 }
 
@@ -181,23 +181,23 @@ ui::tagged_gui_object ui::gui_window<BASE_BEHAVIOR>::create_window(gui_static& s
 }
 
 template<typename BASE_BEHAVIOR>
-ui::tagged_gui_object ui::gui_window<BASE_BEHAVIOR>::create(gui_static& static_manager, gui_manager& manager, const ui::window_def& definition) {
-	const auto win = create_window(static_manager, manager, definition);
+ui::tagged_gui_object ui::gui_window<BASE_BEHAVIOR>::create(world_state& ws, const ui::window_def& definition) {
+	const auto win = create_window(ws, definition);
 	for (auto i = definition.sub_object_definitions.crbegin(); i != definition.sub_object_definitions.crend(); ++i) {
-		std::visit([&manager, &win](auto tag) {
-			ui::create_dynamic_element(manager, tag, win);
+		std::visit([&ws, &win](auto tag) {
+			ui::create_dynamic_element(ws, tag, win);
 		}, *i);
 	}
 	return win;
 }
 
 template<typename ... REST>
-ui::tagged_gui_object ui::create_static_element(gui_static& static_manager, gui_manager& manager, window_tag handle, tagged_gui_object parent, gui_window<REST...>& b) {
-	const auto& window_definition = static_manager.ui_definitions.windows[handle];
-	const auto res = b.create(static_manager, manager, window_definition);
+ui::tagged_gui_object ui::create_static_element(world_state& ws, window_tag handle, tagged_gui_object parent, gui_window<REST...>& b) {
+	const auto& window_definition = ws.s.gui_m.ui_definitions.windows[handle];
+	const auto res = b.create(ws, window_definition);
 	b.window_object = res.id;
-	ui::add_to_back(manager, parent, res);
-	manager.flag_minimal_update();
+	ui::add_to_back(ws.w.gui_m, parent, res);
+	ws.w.gui_m.flag_minimal_update();
 	return res;
 }
 

@@ -95,6 +95,7 @@ namespace nations {
 		governments::government_tag current_government;
 
 		bool is_civilized = false;
+		bool is_substate = false;
 	};
 
 	struct state_instance {
@@ -104,6 +105,7 @@ namespace nations {
 
 		cultures::culture_tag dominant_culture;
 
+		cultures::national_tag crisis_tag;
 		state_tag id;
 		provinces::state_tag region_id;
 
@@ -113,6 +115,12 @@ namespace nations {
 		constexpr static uint8_t is_slave_state = 0x01;
 		constexpr static uint8_t is_colonial = 0x02;
 		constexpr static uint8_t is_protectorate = 0x02;
+	};
+
+	enum class crisis_type : int32_t {
+		none,
+		free_nation,
+		colonial_crisis
 	};
 
 	class nations_state {
@@ -133,5 +141,11 @@ namespace nations {
 
 		stable_2d_vector<int32_t, state_tag, population::demo_tag, 512, 16> state_demographics;
 		stable_2d_vector<int64_t, country_tag, population::demo_tag, 512, 16> nation_demographics;
+
+		//crisis information
+		int32_t crisis_temperature = 0;
+		state_tag crisis_state;
+		cultures::national_tag crisis_free_country;
+		crisis_type current_crisis_type = crisis_type::none;
 	};
 }

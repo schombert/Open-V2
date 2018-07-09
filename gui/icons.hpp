@@ -2,24 +2,24 @@
 #include "gui.hpp"
 
 template<typename BASE>
-void ui::dynamic_icon<BASE>::update_data(gui_object_tag, gui_static& sm, gui_manager& m, world_state& w) {
-	if constexpr(ui::detail::has_update<BASE, dynamic_icon<BASE>&, gui_static&, gui_manager&, world_state&>) {
-		BASE::update(*this, sm, m, w);
+void ui::dynamic_icon<BASE>::update_data(gui_object_tag, world_state& w) {
+	if constexpr(ui::detail::has_update<BASE, dynamic_icon<BASE>&, world_state&>) {
+		BASE::update(*this, w);
 	}
 }
 
 template<typename BASE>
-ui::tooltip_behavior ui::dynamic_icon<BASE>::has_tooltip(gui_object_tag, gui_manager&, const mouse_move&) {
-	if constexpr(ui::detail::has_has_tooltip<BASE>)
+ui::tooltip_behavior ui::dynamic_icon<BASE>::has_tooltip(gui_object_tag, world_state&, const mouse_move&) {
+	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&, tagged_gui_object>)
 		return BASE::has_tooltip() ? tooltip_behavior::tooltip : tooltip_behavior::no_tooltip;
 	else
 		return tooltip_behavior::no_tooltip;
 }
 
 template<typename BASE>
-void ui::dynamic_icon<BASE>::create_tooltip(gui_object_tag, gui_manager& m, gui_static& sm, const mouse_move&, tagged_gui_object tw) {
-	if constexpr(ui::detail::has_has_tooltip<BASE>)
-		BASE::create_tooltip(m, sm, tw);
+void ui::dynamic_icon<BASE>::create_tooltip(gui_object_tag, world_state& ws, const mouse_move&, tagged_gui_object tw) {
+	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&, tagged_gui_object>)
+		BASE::create_tooltip(ws, tw);
 }
 
 template<typename BASE>
@@ -38,13 +38,13 @@ void ui::dynamic_icon<BASE>::set_visibility(gui_manager& m, bool visible) {
 }
 
 template<typename B>
-ui::tagged_gui_object ui::create_static_element(gui_static& static_manager, gui_manager& manager, icon_tag handle, tagged_gui_object parent, dynamic_icon<B>& b) {
-	auto new_obj = ui::detail::create_element_instance(static_manager, manager, handle);
+ui::tagged_gui_object ui::create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, dynamic_icon<B>& b) {
+	auto new_obj = ui::detail::create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
 
 	new_obj.object.associated_behavior = &b;
 	b.associated_object = &new_obj.object;
 
-	ui::add_to_back(manager, parent, new_obj);
-	manager.flag_minimal_update();
+	ui::add_to_back(ws.w.gui_m, parent, new_obj);
+	ws.w.gui_m.flag_minimal_update();
 	return new_obj;
 }

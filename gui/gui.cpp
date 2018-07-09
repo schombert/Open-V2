@@ -4,6 +4,7 @@
 #include "graphics\\open_gl_wrapper.h"
 #include "boost\\container\\small_vector.hpp"
 #include "concurrency_tools\\concurrency_tools.hpp"
+#include "world_state\\world_state.h"
 
 #ifdef _DEBUG
 #include "Windows.h"
@@ -213,15 +214,15 @@ namespace ui {
 		current_line.clear();
 	}
 
-	bool draggable_region::on_drag(gui_object_tag , gui_manager &, const mouse_drag &m) {
+	bool draggable_region::on_drag(gui_object_tag , world_state &, const mouse_drag &m) {
 		associated_object->position.x = static_cast<int16_t>(base_position.x + m.x);
 		associated_object->position.y = static_cast<int16_t>(base_position.y + m.y);
 		return true;
 	}
 
-	bool draggable_region::on_get_focus(gui_object_tag t, gui_manager& m) {
+	bool draggable_region::on_get_focus(gui_object_tag t, world_state& m) {
 		base_position = associated_object->position;
-		ui::move_to_front(m, ui::tagged_gui_object{ *associated_object, t });
+		ui::move_to_front(m.w.gui_m, ui::tagged_gui_object{ *associated_object, t });
 		return true;
 	}
 }
@@ -712,24 +713,24 @@ void ui::detail::render(gui_static& static_manager, const gui_manager& manager, 
 	}
 }
 
-bool ui::gui_manager::set_focus(tagged_gui_object g) {
+bool ui::set_focus(world_state& ws, tagged_gui_object g) {
 	
-	if (g.object.associated_behavior && g.object.associated_behavior->on_get_focus(g.id, *this)) {
-		if (focus != g.id) {
-			clear_focus();
-			focus = g.id;
+	if (g.object.associated_behavior && g.object.associated_behavior->on_get_focus(g.id, ws)) {
+		if (ws.w.gui_m.focus != g.id) {
+			clear_focus(ws);
+			ws.w.gui_m.focus = g.id;
 		}
 		return true;
 	}
 	return false;
 }
 
-void ui::gui_manager::clear_focus() {
-	if (is_valid_index(focus)) {
-		auto& with_focus = gui_objects.at(focus);
+void ui::clear_focus(world_state& ws) {
+	if (is_valid_index(ws.w.gui_m.focus)) {
+		auto& with_focus = ws.w.gui_m.gui_objects.at(ws.w.gui_m.focus);
 		if (with_focus.associated_behavior) {
-			with_focus.associated_behavior->on_lose_focus(focus, *this);
-			focus = gui_object_tag();
+			with_focus.associated_behavior->on_lose_focus(ws.w.gui_m.focus, ws);
+			ws.w.gui_m.focus = gui_object_tag();
 		}
 	}
 }
@@ -886,54 +887,54 @@ void ui::move_to_back(const gui_manager& manager, tagged_gui_object g) {
 	parent_object.first_child = g.id;
 }
 
-bool ui::gui_manager::on_lbutton_down(gui_static&, const lbutton_down& ld) {
-	if (false == detail::dispatch_message(*this, [_this = this](ui::tagged_gui_object obj, const lbutton_down& ) {
-		return _this->set_focus(obj);
+bool ui::gui_manager::on_lbutton_down(world_state& ws, const lbutton_down& ld) {
+	if (false == detail::dispatch_message(*this, [&ws](ui::tagged_gui_object obj, const lbutton_down& ) {
+		return set_focus(ws, obj);
 	}, tagged_gui_object{ root, gui_object_tag(0) }, root.size, ui::rescale_message(ld, _scale))) {
 		focus = gui_object_tag();
 	}
 
-	return detail::dispatch_message(*this, [_this = this](ui::tagged_gui_object obj, const lbutton_down& l) {
+	return detail::dispatch_message(*this, [&ws](ui::tagged_gui_object obj, const lbutton_down& l) {
 		if (obj.object.associated_behavior)
-			return obj.object.associated_behavior->on_lclick(obj.id, *_this, l);
+			return obj.object.associated_behavior->on_lclick(obj.id, ws, l);
 		return false;
 	}, tagged_gui_object{ root, gui_object_tag(0) }, root.size, ui::rescale_message(ld, _scale));
 }
 
-bool ui::gui_manager::on_rbutton_down(gui_static&, const rbutton_down& rd) {
-	return detail::dispatch_message(*this, [_this = this](ui::tagged_gui_object obj, const rbutton_down& r) {
+bool ui::gui_manager::on_rbutton_down(world_state& ws, const rbutton_down& rd) {
+	return detail::dispatch_message(*this, [&ws](ui::tagged_gui_object obj, const rbutton_down& r) {
 		if (obj.object.associated_behavior)
-			return obj.object.associated_behavior->on_rclick(obj.id, *_this, r);
+			return obj.object.associated_behavior->on_rclick(obj.id, ws, r);
 		return false;
 	}, tagged_gui_object{ root,gui_object_tag(0) }, root.size, ui::rescale_message(rd, _scale));
 }
 
-bool ui::gui_manager::on_mouse_move(gui_static& static_manager, const mouse_move& mm) {
-	const bool found_tooltip = detail::dispatch_message(*this, [_this = this, &static_manager](ui::tagged_gui_object obj, const mouse_move& m) {
+bool ui::gui_manager::on_mouse_move(world_state& static_manager, const mouse_move& mm) {
+	const bool found_tooltip = detail::dispatch_message(*this, [&static_manager](ui::tagged_gui_object obj, const mouse_move& m) {
 		if (obj.object.associated_behavior) {
-			const auto tt_behavior = obj.object.associated_behavior->has_tooltip(obj.id, *_this, m);
+			const auto tt_behavior = obj.object.associated_behavior->has_tooltip(obj.id, static_manager, m);
 			if (tt_behavior == tooltip_behavior::transparent)
 				return false;
 			if (tt_behavior == tooltip_behavior::no_tooltip) {
-				ui::hide(ui::tagged_gui_object{ _this->tooltip_window, gui_object_tag(3) });
-				_this->tooltip = obj.id;
+				ui::hide(ui::tagged_gui_object{ static_manager.w.gui_m.tooltip_window, gui_object_tag(3) });
+				static_manager.w.gui_m.tooltip = obj.id;
 				return true;
 			}
-			if ((_this->tooltip != obj.id) | (tt_behavior == tooltip_behavior::variable_tooltip)) {
-				_this->tooltip = obj.id;
-				clear_children(*_this, ui::tagged_gui_object{ _this->tooltip_window, gui_object_tag(3) });
-				obj.object.associated_behavior->create_tooltip(obj.id, *_this, static_manager, m, ui::tagged_gui_object{ _this->tooltip_window, gui_object_tag(3) });
-				ui::shrink_to_children(*_this, ui::tagged_gui_object{ _this->tooltip_window, gui_object_tag(3) }, 16);
+			if ((static_manager.w.gui_m.tooltip != obj.id) | (tt_behavior == tooltip_behavior::variable_tooltip)) {
+				static_manager.w.gui_m.tooltip = obj.id;
+				clear_children(static_manager.w.gui_m, ui::tagged_gui_object{ static_manager.w.gui_m.tooltip_window, gui_object_tag(3) });
+				obj.object.associated_behavior->create_tooltip(obj.id, static_manager, m, ui::tagged_gui_object{ static_manager.w.gui_m.tooltip_window, gui_object_tag(3) });
+				ui::shrink_to_children(static_manager.w.gui_m, ui::tagged_gui_object{ static_manager.w.gui_m.tooltip_window, gui_object_tag(3) }, 16);
 
-				_this->tooltip_window.position = ui::absolute_position(*_this, obj);
-				if(_this->tooltip_window.position.y + obj.object.size.y + _this->tooltip_window.size.y <= _this->height())
-					_this->tooltip_window.position.y += obj.object.size.y;
+				static_manager.w.gui_m.tooltip_window.position = ui::absolute_position(static_manager.w.gui_m, obj);
+				if(static_manager.w.gui_m.tooltip_window.position.y + obj.object.size.y + static_manager.w.gui_m.tooltip_window.size.y <= static_manager.w.gui_m.height())
+					static_manager.w.gui_m.tooltip_window.position.y += obj.object.size.y;
 				else
-					_this->tooltip_window.position.y -= _this->tooltip_window.size.y;
-				_this->tooltip_window.position.x += obj.object.size.x / 2;
-				_this->tooltip_window.position.x -= _this->tooltip_window.size.x / 2;
+					static_manager.w.gui_m.tooltip_window.position.y -= static_manager.w.gui_m.tooltip_window.size.y;
+				static_manager.w.gui_m.tooltip_window.position.x += obj.object.size.x / 2;
+				static_manager.w.gui_m.tooltip_window.position.x -= static_manager.w.gui_m.tooltip_window.size.x / 2;
 
-				_this->tooltip_window.flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
+				static_manager.w.gui_m.tooltip_window.flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
 			}
 			return true;
 		}
@@ -948,50 +949,50 @@ bool ui::gui_manager::on_mouse_move(gui_static& static_manager, const mouse_move
 	return found_tooltip;
 }
 
-bool ui::gui_manager::on_mouse_drag(gui_static&, const mouse_drag& md) {
+bool ui::gui_manager::on_mouse_drag(world_state& ws, const mouse_drag& md) {
 	if (is_valid_index(focus)) {
 		if (gui_objects.at(focus).associated_behavior) {
-			return gui_objects.at(focus).associated_behavior->on_drag(focus, *this, ui::rescale_message(md, _scale));
+			return gui_objects.at(focus).associated_behavior->on_drag(focus, ws, ui::rescale_message(md, _scale));
 		} else
 			return false;
 	}
 	return false;
 }
 
-bool ui::gui_manager::on_keydown(gui_static&, const key_down& kd) {
-	return detail::dispatch_message(*this, [_this = this](ui::tagged_gui_object obj, const key_down& k) {
+bool ui::gui_manager::on_keydown(world_state& ws, const key_down& kd) {
+	return detail::dispatch_message(*this, [&ws](ui::tagged_gui_object obj, const key_down& k) {
 		if (obj.object.associated_behavior)
-			return obj.object.associated_behavior->on_keydown(obj.id, *_this, k);
+			return obj.object.associated_behavior->on_keydown(obj.id, ws, k);
 		return false;
 	}, tagged_gui_object{ root,gui_object_tag(0) }, root.size, ui::rescale_message(kd, _scale));
 }
 
-bool ui::gui_manager::on_scroll(gui_static&, const scroll& se) {
-	return detail::dispatch_message(*this, [_this = this](ui::tagged_gui_object obj, const scroll& s) {
+bool ui::gui_manager::on_scroll(world_state& ws, const scroll& se) {
+	return detail::dispatch_message(*this, [&ws](ui::tagged_gui_object obj, const scroll& s) {
 		if (obj.object.associated_behavior)
-			return obj.object.associated_behavior->on_scroll(obj.id, *_this, s);
+			return obj.object.associated_behavior->on_scroll(obj.id, ws, s);
 		return false;
 	}, tagged_gui_object{ root,gui_object_tag(0) }, root.size, ui::rescale_message(se, _scale));
 }
 
-bool ui::gui_manager::on_text(gui_static&, const text_event &te) {
+bool ui::gui_manager::on_text(world_state& ws, const text_event &te) {
 	if (is_valid_index(focus)) {
 		if (gui_objects.at(focus).associated_behavior)
-			return gui_objects.at(focus).associated_behavior->on_text(focus, *this, te);
+			return gui_objects.at(focus).associated_behavior->on_text(focus, ws, te);
 		else
 			return false;
 	}
 	return false;
 }
 
-void ui::detail::update(gui_static& static_manager, gui_manager& manager, tagged_gui_object obj, world_state& w) {
+void ui::detail::update(tagged_gui_object obj, world_state& w) {
 	const auto object_flags = obj.object.flags.load(std::memory_order_acquire);
 
 	if ((object_flags & ui::gui_object::visible_after_update) != 0) {
 		obj.object.flags.fetch_and((uint16_t)~ui::gui_object::visible_after_update, std::memory_order_acq_rel);
 		if ((object_flags & ui::gui_object::visible) == 0) {
 			if (obj.object.associated_behavior)
-				obj.object.associated_behavior->on_visible(obj.id, manager, w);
+				obj.object.associated_behavior->on_visible(obj.id, w);
 			obj.object.flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
 		}
 	} else if ((object_flags & ui::gui_object::visible) == 0) {
@@ -999,14 +1000,14 @@ void ui::detail::update(gui_static& static_manager, gui_manager& manager, tagged
 	}
 
 	if (obj.object.associated_behavior)
-		obj.object.associated_behavior->update_data(obj.id, static_manager, manager, w);
+		obj.object.associated_behavior->update_data(obj.id, w);
 
-	ui::for_each_child(manager, obj, [&manager, &static_manager, &w](ui::tagged_gui_object child) {
-		update(static_manager, manager, child, w);
+	ui::for_each_child(w.w.gui_m, obj, [&w](ui::tagged_gui_object child) {
+		update(child, w);
 	});
 }
 
-void ui::detail::minimal_update(gui_static& static_manager, gui_manager& manager, tagged_gui_object obj, world_state& w) {
+void ui::detail::minimal_update(tagged_gui_object obj, world_state& w) {
 	const auto object_flags = obj.object.flags.load(std::memory_order_acquire);
 
 	if ((object_flags & ui::gui_object::visible_after_update) != 0) {
@@ -1014,34 +1015,34 @@ void ui::detail::minimal_update(gui_static& static_manager, gui_manager& manager
 		
 		if ((object_flags & ui::gui_object::visible) == 0) {
 			if (obj.object.associated_behavior) 
-				obj.object.associated_behavior->on_visible(obj.id, manager, w);
+				obj.object.associated_behavior->on_visible(obj.id, w);
 			obj.object.flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
 		}
 
 		if (obj.object.associated_behavior)
-			obj.object.associated_behavior->update_data(obj.id, static_manager, manager, w);
+			obj.object.associated_behavior->update_data(obj.id, w);
 
-		ui::for_each_child(manager, obj, [&manager, &static_manager, &w](ui::tagged_gui_object child) {
-			minimal_update(static_manager, manager, child, w);
+		ui::for_each_child(w.w.gui_m, obj, [&w](ui::tagged_gui_object child) {
+			minimal_update(child, w);
 		});
 	} else if ((object_flags & ui::gui_object::visible) != 0) {
-		ui::for_each_child(manager, obj, [&manager, &static_manager, &w](ui::tagged_gui_object child) {
-			minimal_update(static_manager, manager, child, w);
+		ui::for_each_child(w.w.gui_m, obj, [&w](ui::tagged_gui_object child) {
+			minimal_update(child, w);
 		});
 	}
 }
 
-void ui::minimal_update(gui_static& static_manager, gui_manager& manager, world_state& w) {
-	detail::minimal_update(static_manager, manager, tagged_gui_object{ manager.root, gui_object_tag(0) }, w);
-	detail::minimal_update(static_manager, manager, tagged_gui_object{ manager.background, gui_object_tag(1) }, w);
-	detail::minimal_update(static_manager, manager, tagged_gui_object{ manager.foreground, gui_object_tag(2) }, w);
+void ui::minimal_update(world_state& w) {
+	detail::minimal_update(tagged_gui_object{ w.w.gui_m.root, gui_object_tag(0) }, w);
+	detail::minimal_update(tagged_gui_object{ w.w.gui_m.background, gui_object_tag(1) }, w);
+	detail::minimal_update(tagged_gui_object{ w.w.gui_m.foreground, gui_object_tag(2) }, w);
 }
 
-void ui::update(gui_static& static_manager, gui_manager& manager, world_state& w) {
-	manager.check_and_clear_minimal_update();
-	detail::update(static_manager, manager, tagged_gui_object{ manager.root, gui_object_tag(0) }, w);
-	detail::update(static_manager, manager, tagged_gui_object{ manager.background, gui_object_tag(1) }, w);
-	detail::update(static_manager, manager, tagged_gui_object{ manager.foreground, gui_object_tag(2) }, w);
+void ui::update(world_state& w) {
+	w.w.gui_m.check_and_clear_minimal_update();
+	detail::update(tagged_gui_object{ w.w.gui_m.root, gui_object_tag(0) }, w);
+	detail::update(tagged_gui_object{ w.w.gui_m.background, gui_object_tag(1) }, w);
+	detail::update(tagged_gui_object{ w.w.gui_m.foreground, gui_object_tag(2) }, w);
 }
 
 ui::gui_manager::gui_manager() : gui_manager(1080, 640) {}
@@ -1104,14 +1105,13 @@ void ui::init_tooltip_window(gui_static& static_manager, gui_manager& manager) {
 	manager.tooltip_window.type_dependant_handle.store(to_index(bg_graphic.id), std::memory_order_release);
 }
 
-ui::tagged_gui_object ui::create_scrollable_text_block(gui_static& static_manager, gui_manager& manager, ui::text_tag handle, tagged_gui_object parent, const text_data::replacement* candidates, uint32_t count) {
-	const ui::text_def& text_def = static_manager.ui_definitions.text[handle];
+ui::tagged_gui_object ui::create_scrollable_text_block(world_state& ws, ui::text_tag handle, tagged_gui_object parent, const text_data::replacement* candidates, uint32_t count) {
+	const ui::text_def& text_def = ws.s.gui_m.ui_definitions.text[handle];
 	const auto[font_h, is_black, int_font_size] = graphics::unpack_font_handle(text_def.font_handle);
-	const auto& this_font = static_manager.fonts.at(font_h);
+	const auto& this_font = ws.s.gui_m.fonts.at(font_h);
 
 	auto res = create_scrollable_region(
-		static_manager,
-		manager,
+		ws,
 		parent,
 		text_def.position,
 		text_def.max_height,
@@ -1127,14 +1127,14 @@ ui::tagged_gui_object ui::create_scrollable_text_block(gui_static& static_manage
 
 		res.object.flags.fetch_or(ui::gui_object::type_graphics_object, std::memory_order_acq_rel);
 
-		const auto bg_graphic = manager.graphics_instances.emplace();
+		const auto bg_graphic = ws.w.gui_m.graphics_instances.emplace();
 		const auto texture =
 			(background == ui::text_def::background_small_tiles_dialog_tga) ?
-			static_manager.textures.standard_small_tiles_dialog :
-			static_manager.textures.standard_tiles_dialog;
+			ws.s.gui_m.textures.standard_small_tiles_dialog :
+			ws.s.gui_m.textures.standard_tiles_dialog;
 		bg_graphic.object.frame = 0;
-		bg_graphic.object.graphics_object = &(static_manager.graphics_object_definitions.definitions[static_manager.graphics_object_definitions.standard_text_background]);
-		bg_graphic.object.t = &(static_manager.textures.retrieve_by_key(texture));
+		bg_graphic.object.graphics_object = &(ws.s.gui_m.graphics_object_definitions.definitions[ws.s.gui_m.graphics_object_definitions.standard_text_background]);
+		bg_graphic.object.t = &(ws.s.gui_m.textures.retrieve_by_key(texture));
 
 		res.object.type_dependant_handle.store(to_index(bg_graphic.id), std::memory_order_release);
 	}
@@ -1142,14 +1142,13 @@ ui::tagged_gui_object ui::create_scrollable_text_block(gui_static& static_manage
 	return res;
 }
 
-ui::tagged_gui_object ui::create_scrollable_text_block(gui_static& static_manager, gui_manager& manager, ui::text_tag handle, text_data::text_tag contents, tagged_gui_object parent, const text_data::replacement* candidates, uint32_t count) {
-	const ui::text_def& text_def = static_manager.ui_definitions.text[handle];
+ui::tagged_gui_object ui::create_scrollable_text_block(world_state& ws, ui::text_tag handle, text_data::text_tag contents, tagged_gui_object parent, const text_data::replacement* candidates, uint32_t count) {
+	const ui::text_def& text_def = ws.s.gui_m.ui_definitions.text[handle];
 	const auto[font_h, is_black, int_font_size] = graphics::unpack_font_handle(text_def.font_handle);
-	const auto& this_font = static_manager.fonts.at(font_h);
+	const auto& this_font = ws.s.gui_m.fonts.at(font_h);
 
 	auto res = create_scrollable_region(
-		static_manager,
-		manager,
+		ws,
 		parent,
 		text_def.position,
 		text_def.max_height,
@@ -1184,14 +1183,14 @@ ui::tagged_gui_object ui::create_scrollable_text_block(gui_static& static_manage
 
 		res.object.flags.fetch_or(ui::gui_object::type_graphics_object, std::memory_order_acq_rel);
 
-		const auto bg_graphic = manager.graphics_instances.emplace();
+		const auto bg_graphic = ws.w.gui_m.graphics_instances.emplace();
 		const auto texture =
 			(background == ui::text_def::background_small_tiles_dialog_tga) ?
-			static_manager.textures.standard_small_tiles_dialog :
-			static_manager.textures.standard_tiles_dialog;
+			ws.s.gui_m.textures.standard_small_tiles_dialog :
+			ws.s.gui_m.textures.standard_tiles_dialog;
 		bg_graphic.object.frame = 0;
-		bg_graphic.object.graphics_object = &(static_manager.graphics_object_definitions.definitions[static_manager.graphics_object_definitions.standard_text_background]);
-		bg_graphic.object.t = &(static_manager.textures.retrieve_by_key(texture));
+		bg_graphic.object.graphics_object = &(ws.s.gui_m.graphics_object_definitions.definitions[ws.s.gui_m.graphics_object_definitions.standard_text_background]);
+		bg_graphic.object.t = &(ws.s.gui_m.textures.retrieve_by_key(texture));
 
 		res.object.type_dependant_handle.store(to_index(bg_graphic.id), std::memory_order_release);
 	}
@@ -1223,13 +1222,13 @@ void ui::shrink_to_children(gui_manager& manager, tagged_gui_object g, int32_t b
 	g.object.size.y = static_cast<int16_t>(border * 2 + std::max(g.object.size.y - minimum_child.y, 0));
 }
 
-ui::tagged_gui_object ui::create_dynamic_window(gui_static& static_manager, gui_manager& manager, window_tag t, tagged_gui_object parent) {
-	const auto& definition = static_manager.ui_definitions.windows[t];
+ui::tagged_gui_object ui::create_dynamic_window(world_state& ws, window_tag t, tagged_gui_object parent) {
+	const auto& definition = ws.s.gui_m.ui_definitions.windows[t];
 
 	if (is_valid_index(definition.background_handle)) {
 		const auto window = ((definition.flags & (window_def::is_moveable | window_def::is_dialog)) != 0) ?
-			create_dynamic_element<draggable_region>(static_manager, manager, definition.background_handle, parent) :
-			create_dynamic_element<fixed_region>(static_manager, manager, definition.background_handle, parent);
+			create_dynamic_element<draggable_region>(ws, definition.background_handle, parent) :
+			create_dynamic_element<fixed_region>(ws, definition.background_handle, parent);
 
 		window.object.size = definition.size;
 		window.object.position = definition.position;
@@ -1237,14 +1236,14 @@ ui::tagged_gui_object ui::create_dynamic_window(gui_static& static_manager, gui_
 
 		return window;
 	} else {
-		const auto window = manager.gui_objects.emplace();
+		const auto window = ws.w.gui_m.gui_objects.emplace();
 
 		window.object.flags.fetch_or(ui::gui_object::type_graphics_object, std::memory_order_acq_rel);
 
-		const auto bg_graphic = manager.graphics_instances.emplace();
+		const auto bg_graphic = ws.w.gui_m.graphics_instances.emplace();
 		bg_graphic.object.frame = 0;
-		bg_graphic.object.graphics_object = &(static_manager.graphics_object_definitions.definitions[static_manager.graphics_object_definitions.standard_text_background]);
-		bg_graphic.object.t = &(static_manager.textures.retrieve_by_key(static_manager.textures.standard_tiles_dialog));
+		bg_graphic.object.graphics_object = &(ws.s.gui_m.graphics_object_definitions.definitions[ws.s.gui_m.graphics_object_definitions.standard_text_background]);
+		bg_graphic.object.t = &(ws.s.gui_m.textures.retrieve_by_key(ws.s.gui_m.textures.standard_tiles_dialog));
 
 		window.object.type_dependant_handle.store(to_index(bg_graphic.id), std::memory_order_release);
 
@@ -1263,7 +1262,7 @@ ui::tagged_gui_object ui::create_dynamic_window(gui_static& static_manager, gui_
 		window.object.position = definition.position;
 		window.object.align = alignment_from_definition(definition);
 
-		add_to_back(manager, parent, window);
+		add_to_back(ws.w.gui_m, parent, window);
 		return window;
 	}
 }

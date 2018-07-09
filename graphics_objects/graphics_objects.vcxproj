@@ -152,14 +152,6 @@
     <ClCompile Include="graphics_objects.cpp" />
     <ClCompile Include="graphics_objects_io.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\object_parsing\object_parsing.vcxproj">
-      <Project>{d1a6aa5f-9db4-4786-a0c3-0c67bf87547d}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Parsers\Parsers.vcxproj">
-      <Project>{c8b537f7-6df3-4685-a7d7-0f30ce18176d}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -119,16 +119,135 @@ namespace triggers {
 	bool tf_x_core_scope_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
 	bool tf_x_core_scope_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
 	bool tf_x_state_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_x_substate_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_x_sphere_member_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_x_pop_scope_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_x_pop_scope_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_x_pop_scope_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_x_provinces_in_variable_region(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_owner_scope_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_owner_scope_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_controller_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_location_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
+	bool tf_x_substate_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto nation_range = get_range(ws.w.nation_s.nations_arrays, ((nations::nation*)primary_slot)->vassals);
+		if(*tval & trigger_codes::is_existance_scope) {
+			for(auto i = nation_range.first; i != nation_range.second; ++i) {
+				auto& n = ws.w.nation_s.nations.get(*i);
+				if(n.is_substate && apply_subtriggers(tval, ws, &n, this_slot, from_slot, rebel_slot))
+					return true;
+			}
+			return false;
+		} else {
+			for(auto i = nation_range.first; i != nation_range.second; ++i) {
+				auto& n = ws.w.nation_s.nations.get(*i);
+				if(n.is_substate && !apply_subtriggers(tval, ws, &n, this_slot, from_slot, rebel_slot))
+					return false;
+			}
+			return true;
+		}
+	}
+	bool tf_x_sphere_member_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto nation_range = get_range(ws.w.nation_s.nations_arrays, ((nations::nation*)primary_slot)->sphere_members);
+		if(*tval & trigger_codes::is_existance_scope) {
+			for(auto i = nation_range.first; i != nation_range.second; ++i) {
+				if(apply_subtriggers(tval, ws, &(ws.w.nation_s.nations.get(*i)), this_slot, from_slot, rebel_slot))
+					return true;
+			}
+			return false;
+		} else {
+			for(auto i = nation_range.first; i != nation_range.second; ++i) {
+				if(!apply_subtriggers(tval, ws, &(ws.w.nation_s.nations.get(*i)), this_slot, from_slot, rebel_slot))
+					return false;
+			}
+			return true;
+		}
+	}
+	bool tf_x_pop_scope_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto pop_range = get_range(ws.w.population_s.pop_arrays, ((provinces::province_state*)primary_slot)->pops);
+		if(*tval & trigger_codes::is_existance_scope) {
+			for(auto i = pop_range.first; i != pop_range.second; ++i) {
+				if(apply_subtriggers(tval, ws, &(ws.w.population_s.pops.get(*i)), this_slot, from_slot, rebel_slot))
+					return true;
+			}
+			return false;
+		} else {
+			for(auto i = pop_range.first; i != pop_range.second; ++i) {
+				if(!apply_subtriggers(tval, ws, &(ws.w.population_s.pops.get(*i)), this_slot, from_slot, rebel_slot))
+					return false;
+			}
+			return true;
+		}
+	}
+	bool tf_x_pop_scope_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto province_range = ws.s.province_m.states_to_province_index.get_row(((nations::state_instance*)primary_slot)->region_id);
+		if(*tval & trigger_codes::is_existance_scope) {
+			for(auto j = province_range.first; j != province_range.second; ++j) {
+				auto& pstate = ws.w.province_s.province_state_container[*j];
+				if(pstate.owner == ((nations::state_instance*)primary_slot)->owner) {
+					auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[*j].pops);
+					for(auto i = pop_range.first; i != pop_range.second; ++i) {
+						if(apply_subtriggers(tval, ws, &(ws.w.population_s.pops.get(*i)), this_slot, from_slot, rebel_slot))
+							return true;
+					}
+				}
+			}
+			return false;
+		} else {
+			for(auto j = province_range.first; j != province_range.second; ++j) {
+				auto& pstate = ws.w.province_s.province_state_container[*j];
+				if(pstate.owner == ((nations::state_instance*)primary_slot)->owner) {
+					auto pop_range = get_range(ws.w.population_s.pop_arrays, pstate.pops);
+					for(auto i = pop_range.first; i != pop_range.second; ++i) {
+						if(!apply_subtriggers(tval, ws, &(ws.w.population_s.pops.get(*i)), this_slot, from_slot, rebel_slot))
+							return false;
+					}
+				}
+			}
+			return true;
+		}
+	}
+	bool tf_x_pop_scope_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto province_range = get_range(ws.w.province_s.province_arrays, ((nations::nation*)primary_slot)->owned_provinces);
+		if(*tval & trigger_codes::is_existance_scope) {
+			for(auto j = province_range.first; j != province_range.second; ++j) {
+				auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[*j].pops);
+				for(auto i = pop_range.first; i != pop_range.second; ++i) {
+					if(apply_subtriggers(tval, ws, &(ws.w.population_s.pops.get(*i)), this_slot, from_slot, rebel_slot))
+						return true;
+				}
+			}
+			return false;
+		} else {
+			for(auto j = province_range.first; j != province_range.second; ++j) {
+				auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[*j].pops);
+				for(auto i = pop_range.first; i != pop_range.second; ++i) {
+					if(!apply_subtriggers(tval, ws, &(ws.w.population_s.pops.get(*i)), this_slot, from_slot, rebel_slot))
+						return false;
+				}
+			}
+			return true;
+		}
+	}
+	bool tf_x_provinces_in_variable_region(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto region = trigger_payload(*(tval + 2)).state;
+		auto provinces = ws.s.province_m.states_to_province_index.get_row(region);
+		if(*tval & trigger_codes::is_existance_scope) {
+			for(auto i = provinces.first; i != provinces.second; ++i) {
+				if(apply_subtriggers(tval, ws, &(ws.w.province_s.province_state_container[*i]), this_slot, from_slot, rebel_slot))
+					return true;
+			}
+			return false;
+		} else {
+			for(auto i = provinces.first; i != provinces.second; ++i) {
+				if(!apply_subtriggers(tval, ws, &(ws.w.province_s.province_state_container[*i]), this_slot, from_slot, rebel_slot))
+					return false;
+			}
+			return true;
+		}
+	}
+	bool tf_owner_scope_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return apply_subtriggers(tval, ws, ((nations::state_instance*)primary_slot)->owner, this_slot, from_slot, rebel_slot);
+	}
+	bool tf_owner_scope_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return apply_subtriggers(tval, ws, ((provinces::province_state*)primary_slot)->owner, this_slot, from_slot, rebel_slot);
+	}
+	bool tf_controller_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return apply_subtriggers(tval, ws, ((provinces::province_state*)primary_slot)->controller, this_slot, from_slot, rebel_slot);
+	}
+	bool tf_location_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return apply_subtriggers(tval, ws, &(ws.w.province_s.province_state_container[((population::pop*)primary_slot)->location]), this_slot, from_slot, rebel_slot);
+	}
 	bool tf_country_scope_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		auto owner = ((nations::state_instance*)primary_slot)->owner;
 		if(owner)
@@ -157,7 +276,12 @@ namespace triggers {
 	bool tf_from_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		return apply_subtriggers(tval, ws, from_slot, this_slot, from_slot, rebel_slot);
 	}
-	bool tf_sea_zone_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
+	bool tf_sea_zone_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto sea_zones = ws.s.province_m.coastal_adjacency.get_row(to_index(((provinces::province_state*)primary_slot)->id));
+		if(sea_zones.first != sea_zones.second)
+			return apply_subtriggers(tval, ws, &(ws.w.province_s.province_state_container[provinces::province_tag(*sea_zones.first)]), this_slot, from_slot, rebel_slot);
+		return false;
+	}
 	bool tf_cultural_union_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		auto prim_culture = ((nations::nation*)primary_slot)->primary_culture;
 		auto culture_group = ws.s.culture_m.culture_container[prim_culture].group;
@@ -171,15 +295,42 @@ namespace triggers {
 		}
 		return false;
 	}
-	bool tf_overlord_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_sphere_owner_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_independence_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_flashpoint_tag_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_crisis_state_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
+	bool tf_overlord_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto so = ((nations::nation*)primary_slot)->overlord;
+		if(so)
+			return apply_subtriggers(tval, ws, so, this_slot, from_slot, rebel_slot);
+		return false;
+	}
+	bool tf_sphere_owner_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto so = ((nations::nation*)primary_slot)->sphere_leader;
+		if(so)
+			return apply_subtriggers(tval, ws, so, this_slot, from_slot, rebel_slot);
+		return false;
+	}
+	bool tf_independence_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto ination = ws.w.culture_s.national_tags_state[rebel_slot->independence_tag].holder;
+		if(ination)
+			return apply_subtriggers(tval, ws, ination, this_slot, from_slot, rebel_slot);
+		return false;
+	}
+	bool tf_flashpoint_tag_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto ctag = ((nations::state_instance*)primary_slot)->crisis_tag;
+		if(is_valid_index(ctag)) {
+			auto ctag_holder = ws.w.culture_s.national_tags_state[ctag].holder;
+			if(ctag_holder)
+				return apply_subtriggers(tval, ws, ctag_holder, this_slot, from_slot, rebel_slot);
+		}
+		return false;
+	}
+	bool tf_crisis_state_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		if(is_valid_index(ws.w.nation_s.crisis_state))
+			return apply_subtriggers(tval, ws, &(ws.w.nation_s.states.get(ws.w.nation_s.crisis_state)), this_slot, from_slot, rebel_slot);
+		return false;
+	}
 	bool tf_state_scope_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		auto pop_province = ((population::pop*)primary_slot)->location;
-		auto pov_state = &(ws.w.province_s.province_state_container[pop_province]);
-		return apply_subtriggers(tval, ws, pov_state, this_slot, from_slot, rebel_slot);
+		auto prov_state = &(ws.w.province_s.province_state_container[pop_province]);
+		return apply_subtriggers(tval, ws, prov_state, this_slot, from_slot, rebel_slot);
 	}
 	bool tf_state_scope_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		auto state_instance = ((provinces::province_state*)primary_slot)->state_instance;

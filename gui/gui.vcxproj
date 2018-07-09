@@ -162,20 +162,6 @@
     <ClCompile Include="gui_io.cpp" />
     <ClCompile Include="listbox.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\concurrency_tools\concurrency_tools.vcxproj">
-      <Project>{12f547e0-13dc-4c35-96ab-950827192412}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\graphics\graphics.vcxproj">
-      <Project>{30142af6-6972-4e2f-baa8-85361ce88f22}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\graphics_objects\graphics_objects.vcxproj">
-      <Project>{177b9639-7862-4ee8-a898-3560242ae429}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\gui_definitions\gui_definitions.vcxproj">
-      <Project>{ff9513fe-8de3-4263-9d53-eaf04dc81c8c}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

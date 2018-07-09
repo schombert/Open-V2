@@ -152,11 +152,13 @@
     <ClInclude Include="provinces.h" />
     <ClInclude Include="provinces_io.h" />
     <ClInclude Include="province_functions.h" />
+    <ClInclude Include="province_gui.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="provinces.cpp" />
     <ClCompile Include="provinces_io.cpp" />
     <ClCompile Include="province_functions.cpp" />
+    <ClCompile Include="province_gui.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

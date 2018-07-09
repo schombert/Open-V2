@@ -35,7 +35,7 @@ namespace ui {
 		scrollbar<unmanaged_region_scollbar> sb;
 
 		unmanaged_scrollable_region(gui_object& g) : sb(g) {}
-		virtual bool on_scroll(gui_object_tag o, gui_manager& m, const scroll& s) override { return sb.on_scroll(o, m, s); }
+		virtual bool on_scroll(gui_object_tag o, world_state& m, const scroll& s) override { return sb.on_scroll(o, m, s); }
 	};
 
 	namespace detail {
@@ -228,42 +228,42 @@ namespace ui {
 }
 
 template<typename BEHAVIOR, typename T, typename ... PARAMS>
-ui::tagged_gui_object ui::create_dynamic_element(gui_static& static_manager, gui_manager& manager, T handle, tagged_gui_object parent, PARAMS&& ... params) {
+ui::tagged_gui_object ui::create_dynamic_element(world_state& ws, T handle, tagged_gui_object parent, PARAMS&& ... params) {
 	if constexpr(!std::is_same_v<BEHAVIOR, gui_behavior>) {
 		BEHAVIOR* b = concurrent_allocator<BEHAVIOR>().allocate(1);
 		new (b)BEHAVIOR(std::forward<PARAMS>(params) ...);
 
 		if constexpr(detail::can_create_static<T, BEHAVIOR>) {
-			const auto new_obj = create_static_element(static_manager, manager, handle, parent, *b);
+			const auto new_obj = create_static_element(ws, handle, parent, *b);
 			new_obj.object.flags.fetch_or(ui::gui_object::dynamic_behavior, std::memory_order_acq_rel);
 			return new_obj;
 		} else {
-			auto new_obj = ui::detail::safe_create_element_instance(static_manager, manager, handle);
+			auto new_obj = ui::detail::safe_create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
 			new_obj.object.flags.fetch_or(ui::gui_object::dynamic_behavior, std::memory_order_acq_rel);
 
 			new_obj.object.associated_behavior = b;
 			b->associated_object = &new_obj.object;
 
-			ui::add_to_back(manager, parent, new_obj);
+			ui::add_to_back(ws.w.gui_m, parent, new_obj);
 			return new_obj;
 		}
 	} else {
-		auto new_obj = ui::detail::safe_create_element_instance(static_manager, manager, handle);
-		ui::add_to_back(manager, parent, new_obj);
+		auto new_obj = ui::detail::safe_create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
+		ui::add_to_back(ws.w.gui_m, parent, new_obj);
 		return new_obj;
 	}
 }
 
 template<typename FILL_FUNCTION>
-ui::tagged_gui_object ui::create_scrollable_region(gui_static& static_manager, gui_manager& manager, tagged_gui_object parent, ui::xy_pair position, int32_t height, int32_t step_size, graphics::obj_definition_tag , const FILL_FUNCTION& f) {
-	const auto new_gobj = manager.gui_objects.emplace();
+ui::tagged_gui_object ui::create_scrollable_region(world_state& ws, tagged_gui_object parent, ui::xy_pair position, int32_t height, int32_t step_size, graphics::obj_definition_tag , const FILL_FUNCTION& f) {
+	const auto new_gobj = ws.w.gui_m.gui_objects.emplace();
 	new_gobj.object.position = position;
 
-	const auto inner_area = f(static_manager, manager);
+	const auto inner_area = f(ws.s.gui_m, ws.w.gui_m);
 	inner_area.object.position = ui::xy_pair{ 0,0 };
 	new_gobj.object.size = ui::xy_pair{ static_cast<int16_t>(inner_area.object.size.x + 16), static_cast<int16_t>(height) };
 
-	ui::add_to_back(manager, new_gobj, inner_area);
+	ui::add_to_back(ws.w.gui_m, new_gobj, inner_area);
 
 	if (inner_area.object.size.y > height) {
 		unmanaged_scrollable_region* new_sr = concurrent_allocator<unmanaged_scrollable_region>().allocate(1);
@@ -271,8 +271,8 @@ ui::tagged_gui_object ui::create_scrollable_region(gui_static& static_manager, g
 		
 
 		int32_t size_difference = inner_area.object.size.y - height;
-		ui::create_static_fixed_sz_scrollbar(static_manager, manager, static_manager.ui_definitions.standardlistbox_slider, new_gobj, ui::xy_pair{ inner_area.object.size.x, 0 }, height, new_sr->sb);
-		new_sr->sb.set_range(manager, 0, size_difference);
+		ui::create_static_fixed_sz_scrollbar(ws, ws.s.gui_m.ui_definitions.standardlistbox_slider, new_gobj, ui::xy_pair{ inner_area.object.size.x, 0 }, height, new_sr->sb);
+		new_sr->sb.set_range(ws.w.gui_m, 0, size_difference);
 		new_sr->sb.set_step(step_size);
 
 		new_gobj.object.associated_behavior = new_sr;
@@ -287,7 +287,7 @@ ui::tagged_gui_object ui::create_scrollable_region(gui_static& static_manager, g
 		new_gobj.object.flags.fetch_or(ui::gui_object::dynamic_behavior, std::memory_order_acq_rel);
 	}
 
-	ui::add_to_back(manager, parent, new_gobj);
+	ui::add_to_back(ws.w.gui_m, parent, new_gobj);
 	return new_gobj;
 }
 
@@ -296,7 +296,7 @@ namespace ui {
 		template<typename RESULT, typename tag_type, typename object_type>
 		struct can_create_s : public std::false_type {};
 		template<typename tag_type, typename object_type>
-		struct can_create_s<decltype(void(ui::create_static_element(std::declval<gui_static&>(), std::declval<gui_manager&>(), tag_type(), std::declval<tagged_gui_object>(), std::declval<object_type&>()))), tag_type, object_type> : public std::true_type {};
+		struct can_create_s<decltype(void(ui::create_static_element(std::declval<world_state&>(), tag_type(), std::declval<tagged_gui_object>(), std::declval<object_type&>()))), tag_type, object_type> : public std::true_type {};
 		template<typename tag_type, typename object_type>
 		constexpr bool can_create = can_create_s<void, tag_type, object_type>::value;
 	}
