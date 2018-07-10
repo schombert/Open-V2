@@ -203,6 +203,13 @@ namespace ui {
 		template<typename OBJ, typename ... PARAMS>
 		constexpr bool has_windowed_update = has_windowed_update_s<OBJ, void, PARAMS ...>::value;
 
+		template<typename OBJ, typename RET, typename ... PARAMS>
+		struct has_on_create_s : public std::false_type {};
+		template<typename OBJ, typename ... PARAMS>
+		struct has_on_create_s<OBJ, decltype(void(std::declval<OBJ>().on_create(std::declval<PARAMS>() ...))), PARAMS ...> : public std::true_type {};
+		template<typename OBJ, typename ... PARAMS>
+		constexpr bool has_on_create = has_on_create_s<OBJ, void, PARAMS ...>::value;
+
 		template<typename RES, typename HANDLE>
 		struct can_create_instance_s : public std::false_type {};
 		template<typename HANDLE>

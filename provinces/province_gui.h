@@ -38,15 +38,66 @@ namespace provinces {
 
 	class close_province_window {
 	public:
-		void button_function(ui::gui_object_tag, ui::gui_manager&) {
-			//MessageBoxA(nullptr, std::to_string(n).c_str(), "MB_A", MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONINFORMATION);
+		void button_function(ui::gui_object_tag t, world_state& ws);
+	};
+	class terrain_icon {
+		void update(ui::dynamic_icon<terrain_icon>& ico, world_state& ws);
+	};
+
+	class province_name {
+	public:
+		template<typename ...PARAMS>
+		province_name(PARAMS&&...) {}
+
+		template<typename window_type>
+		void windowed_update(window_type& w, ui::tagged_gui_object obj, text_data::alignment align, ui::text_format& fmt, world_state& ws) {
+			auto selected = ws.w.province_window.selected_province;
+			if(is_valid_index(selected))
+				ui::detail::create_linear_text(ws.s.gui_m, ws.w.gui_m, obj, ws.w.province_s.province_state_container[selected].name, align, fmt, nullptr, 0ui32);
 		}
 	};
 
+	class province_state_name {
+	public:
+		template<typename ...PARAMS>
+		province_state_name(PARAMS&&...) {}
+
+		template<typename window_type>
+		void windowed_update(window_type& w, ui::tagged_gui_object obj, text_data::alignment align, ui::text_format& fmt, world_state& ws) {
+			auto selected = ws.w.province_window.selected_province;
+			if(is_valid_index(selected) && is_valid_index(ws.s.province_m.province_container[selected].state_id))
+				ui::detail::create_linear_text(ws.s.gui_m, ws.w.gui_m, obj, ws.s.province_m.state_names[ws.s.province_m.province_container[selected].state_id], align, fmt, nullptr, 0ui32);
+		}
+	};
+
+	class province_window_header_base : public ui::gui_behavior {
+	public:
+		province_tag selected_province;
+		date_tag last_update;
+
+		template<typename ...P>
+		explicit province_window_header_base(P&& ... params) {}
+		void on_create(world_state&);
+	};
+
 	using province_window_header = ui::gui_window<
-		ui::fixed_region>;
+		CT_STRING("prov_terrain"), ui::dynamic_icon<terrain_icon>,
+		CT_STRING("state_name"), ui::display_text<province_state_name>,
+		CT_STRING("province_name"), ui::display_text<province_name>,
+		province_window_header_base>;
+
+	class province_window_base : public ui::fixed_region {
+	public:
+		province_tag selected_province;
+		date_tag last_update;
+
+		template<typename ...P>
+		explicit province_window_base(P&& ... params) : ui::fixed_region(std::forward<P>(params)...){}
+		void on_create(world_state&);
+	};
 
 	using province_window_t = ui::gui_window <
 		CT_STRING("close_button"), ui::simple_button<close_province_window>,
-		ui::fixed_region>;
+		CT_STRING("province_view_header"), province_window_header,
+		province_window_base>;
 }

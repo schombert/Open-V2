@@ -1023,7 +1023,7 @@ void ui::detail::minimal_update(tagged_gui_object obj, world_state& w) {
 			obj.object.associated_behavior->update_data(obj.id, w);
 
 		ui::for_each_child(w.w.gui_m, obj, [&w](ui::tagged_gui_object child) {
-			minimal_update(child, w);
+			update(child, w);
 		});
 	} else if ((object_flags & ui::gui_object::visible) != 0) {
 		ui::for_each_child(w.w.gui_m, obj, [&w](ui::tagged_gui_object child) {

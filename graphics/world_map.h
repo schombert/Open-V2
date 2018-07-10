@@ -96,6 +96,8 @@ namespace graphics {
 		uint32_t vertex_buffer = 0;
 		uint32_t vao = 0;
 		uint32_t element_buffer = 0;
+		int32_t map_height = 0;
+		int32_t map_width = 0;
 		bool ready = false;
 		float top_lat = 0.0f;
 		float lat_step = 0.0f;
@@ -107,6 +109,7 @@ namespace graphics {
 		map_data_textures data_textures;
 		map_state state;
 
+		std::pair<int32_t, int32_t> map_coordinates_from_screen(std::pair<float, float> const& normalized_screen_coordinates) const;
 		void initialize(open_gl_wrapper&, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude);
 		void render(open_gl_wrapper&);
 	};

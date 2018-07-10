@@ -36,18 +36,18 @@ namespace graphics {
 	uint16_t get_value_from_data_h(int32_t i, int32_t j, const uint16_t* data, int32_t width);
 
 	uint16_t get_value_from_data(int32_t i, int32_t j, const uint16_t* data, int32_t width, int32_t height) {
-		if ((j < 0) | (j >= height)) {
+		if((j < 0) | (j >= height)) {
 			return 0ui16;
 		}
-		if (i < 0)
+		if(i < 0)
 			i += width;
-		if (i >= width)
+		if(i >= width)
 			i -= width;
 		return data[i + j * width];
 	}
 
 	uint16_t get_value_from_data_h(int32_t i, int32_t j, const uint16_t* data, int32_t width) {
-		if (i >= width)
+		if(i >= width)
 			i -= width;
 		return data[i + j * width];
 	}
@@ -70,11 +70,6 @@ namespace graphics {
 	Eigen::Vector3f projected_b_to_unrotated(float x, float y, float scale, float aspect);
 	std::pair<float, float> move_vector_to_vector(const Eigen::Vector3f &source, const Eigen::Vector3f &target);
 
-	//"   vec2 base_projection = vec2(atan(rotated_position.y, rotated_position.x), asin(rotated_position.z));\n"
-	//"	gl_Position = vec4(scale * base_projection.x * sqrt(1.0f - (3.0f*rdiv*rdiv)) / 3.14159265358f, base_projection.y * scale * aspect / 3.14159265358f, "
-	//"        (abs(base_projection.x))/16.0f + 0.5f, 1.0f);\n"
-	//
-
 	Eigen::Vector3f projected_a_to_unrotated(float x, float y, float scale, float aspect) {
 		const float projected_y = y * 3.14159265358f / (scale * aspect);
 		const float rdiv = projected_y / 3.14159265358f;
@@ -96,7 +91,7 @@ namespace graphics {
 	}
 
 	inline float minimal_rotation(float start, float dest) {
-		if (dest < start) {
+		if(dest < start) {
 			const float neg_rotation = dest - start;
 			const float pos_rotation = neg_rotation + 3.14159265358f * 2.0f;
 			return abs(neg_rotation) < abs(pos_rotation) ? neg_rotation : pos_rotation;
@@ -128,12 +123,7 @@ namespace graphics {
 		const auto second_rotation_a = minimal_rotation(second_angle_initial_a, second_angle_target);
 		const auto second_rotation_b = minimal_rotation(second_angle_initial_b, second_angle_target);
 
-		//if (abs(second_angle_initial_a) < 3.14159265358f / 2.0f && abs(second_angle_initial_b) >= 3.14159265358f / 2.0f) {
-		//	return std::make_pair(-first_rotation_a, -second_rotation_a);
-		//} else if (abs(second_angle_initial_a) >= 3.14159265358f / 2.0f && abs(second_angle_initial_b) < 3.14159265358f / 2.0f) {
-		//	return std::make_pair(-first_rotation_b, -second_rotation_b);
-		//} else 
-		if (abs(second_rotation_a) < abs(second_rotation_b)) {
+		if(abs(second_rotation_a) < abs(second_rotation_b)) {
 			return std::make_pair(-first_rotation_a, -second_rotation_a);
 		} else {
 			return std::make_pair(-first_rotation_b, -second_rotation_b);
@@ -154,11 +144,11 @@ namespace graphics {
 		return std::make_pair(float(x * 2) / float(width) - 1.0f, float(-y * 2) / float(height) + 1.0f);
 	}
 	void map_state::move_vector_to(const Eigen::Vector3f& start, const Eigen::Vector3f& destination) {
-		const auto [z_r, y_r] = move_vector_to_vector(start, destination);
+		const auto[z_r, y_r] = move_vector_to_vector(start, destination);
 		rotate(z_r, y_r);
 	}
 	Eigen::Vector3f map_state::get_vector_for(const std::pair<float, float>& in) const {
-		switch (projection) {
+		switch(projection) {
 			case projection_type::standard_map:
 				return inverse_rotation * projected_a_to_unrotated(in.first, in.second, scale, _aspect);
 			case projection_type::spherical:
@@ -166,12 +156,27 @@ namespace graphics {
 		}
 	}
 	Eigen::Vector3f map_state::get_unrotated_vector_for(const std::pair<float, float>& in) const {
-		switch (projection) {
+		switch(projection) {
 			case projection_type::standard_map:
 				return  projected_a_to_unrotated(in.first, in.second, scale, _aspect);
 			case projection_type::spherical:
 				return  projected_b_to_unrotated(in.first, in.second, scale, _aspect);
 		}
+	}
+
+
+	std::pair<int32_t, int32_t> map_display::map_coordinates_from_screen(std::pair<float, float> const& normalized_screen_coordinates) const {
+		auto vector = state.get_vector_for(normalized_screen_coordinates);
+
+		const auto vy_pos = asin(vector[2]);
+		const auto vx_pos = atan2(vector[1], vector[0]);
+		const auto x_off = (vx_pos - left_long) / long_step;
+		const auto y_off = (vy_pos - top_lat) / lat_step;
+
+		const int32_t final_yoff = std::clamp(int32_t(y_off), 0, map_height - 1);
+		const int32_t final_xoff = std::clamp(x_off < 0.0f ? int32_t(x_off) + map_width : int32_t(x_off), 0, map_width - 1);
+
+		return std::make_pair(final_xoff, final_yoff);
 	}
 
 	static const char* map_vertex_shader =
@@ -662,12 +667,20 @@ namespace graphics {
 
 	uint32_t compile_program_b() {
 		GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+
+#ifdef _DEBUG
+		if(vertex_shader == 0) {
+			MessageBox(nullptr, L"vertex shader creation failed", L"OpenGL error", MB_OK);
+			//std::abort();
+		}
+#endif
+
 		GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 
 #ifdef _DEBUG
-		if (vertex_shader == 0 || fragment_shader == 0) {
-			MessageBox(nullptr, L"shader creation failed", L"OpenGL error", MB_OK);
-			std::abort();
+		if (fragment_shader == 0) {
+			MessageBox(nullptr, L"fragment_shader shader creation failed", L"OpenGL error", MB_OK);
+			//std::abort();
 		}
 #endif
 		const GLchar* array_a[] = { map_vertex_shader_b };
@@ -725,7 +738,7 @@ namespace graphics {
 #ifdef _DEBUG
 		if (shader_handle == 0) {
 			MessageBox(nullptr, L"shader program creation failed", L"OpenGL error", MB_OK);
-			std::abort();
+			//std::abort();
 		}
 #endif
 
@@ -802,6 +815,8 @@ namespace graphics {
 		glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
 		glEnable(GL_DEPTH_TEST);
 
+		map_height = height;
+		map_width = width;
 
 		shader_handle = compile_program_b();
 

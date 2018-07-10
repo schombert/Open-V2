@@ -584,7 +584,31 @@ namespace graphics {
 	}
 
 	void open_gl_wrapper::bind_to_thread() {
+#ifdef _DEBUG
+		if(wglMakeCurrent(impl->window_dc, impl->context) == FALSE) {
+			LPTSTR errorText = nullptr;
+
+			FormatMessage(
+				FORMAT_MESSAGE_FROM_SYSTEM
+				| FORMAT_MESSAGE_ALLOCATE_BUFFER
+				| FORMAT_MESSAGE_IGNORE_INSERTS,
+				nullptr,
+				GetLastError(),
+				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+				(LPTSTR)&errorText, 
+				0, 
+				nullptr);
+			if(errorText) {
+				MessageBox(nullptr, errorText, L"Bind failed", MB_OK);
+				LocalFree(errorText);
+				errorText = nullptr;
+			} else {
+				MessageBox(nullptr, L"Format error failed", L"Bind failed", MB_OK);
+			}
+		}
+#else
 		wglMakeCurrent(impl->window_dc, impl->context);
+#endif
 	}
 
 	void open_gl_wrapper::bind_to_ui_thread() {
