@@ -18,7 +18,7 @@ bool ui::simple_button<BASE>::on_keydown(gui_object_tag o, world_state & m, cons
 }
 
 template<typename BASE>
-void ui::simple_button<BASE>::update_data(gui_object_tag o, world_state& w) {
+void ui::simple_button<BASE>::update_data(gui_object_tag, world_state& w) {
 	if constexpr(ui::detail::has_update<BASE, simple_button<BASE>&, world_state&>) {
 		BASE::update(*this, w);
 	}
@@ -34,7 +34,7 @@ ui::tooltip_behavior ui::simple_button<BASE>::has_tooltip(gui_object_tag, world_
 
 template<typename BASE>
 void ui::simple_button<BASE>::create_tooltip(gui_object_tag o, world_state& ws, const mouse_move&, tagged_gui_object tw) {
-	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&, tagged_gui_object>)
+	if constexpr(ui::detail::has_has_tooltip<BASE>)
 		BASE::create_tooltip(ws, tw);
 }
 

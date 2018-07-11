@@ -43,6 +43,8 @@ public:
 		serialize(output, obj.factor_modifiers);
 		serialize(output, obj.national_focuses);
 		serialize(output, obj.factor_data);
+		serialize(output, obj.province_offset_names);
+		serialize(output, obj.national_offset_names);
 		serialize(output, obj.triggered_modifiers);
 		serialize(output, obj.crimes);
 		serialize(output, obj.national_modifier_definitions);
@@ -58,6 +60,8 @@ public:
 		deserialize(input, obj.factor_modifiers);
 		deserialize(input, obj.national_focuses);
 		deserialize(input, obj.factor_data);
+		deserialize(input, obj.province_offset_names);
+		deserialize(input, obj.national_offset_names);
 		deserialize(input, obj.triggered_modifiers);
 		deserialize(input, obj.crimes);
 		deserialize(input, obj.national_modifier_definitions);
@@ -75,6 +79,8 @@ public:
 		deserialize(input, obj.factor_modifiers);
 		deserialize(input, obj.national_focuses);
 		deserialize(input, obj.factor_data);
+		deserialize(input, obj.province_offset_names);
+		deserialize(input, obj.national_offset_names);
 		deserialize(input, obj.triggered_modifiers);
 		deserialize(input, obj.crimes);
 		deserialize(input, obj.national_modifier_definitions);
@@ -92,6 +98,8 @@ public:
 			serialize_size(obj.factor_modifiers) +
 			serialize_size(obj.national_focuses) +
 			serialize_size(obj.factor_data) +
+			serialize_size(obj.province_offset_names) +
+			serialize_size(obj.national_offset_names) +
 			serialize_size(obj.triggered_modifiers) +
 			serialize_size(obj.crimes) +
 			serialize_size(obj.national_modifier_definitions) +
@@ -172,4 +180,6 @@ namespace modifiers {
 		float default_base,
 		const token_group* start,
 		const token_group* end);
+
+	void name_modifier_offset(modifiers_manager& m, text_data::text_sequences& text);
 }

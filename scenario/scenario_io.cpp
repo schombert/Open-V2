@@ -1,7 +1,7 @@
 #include "scenario_io.h"
 
 namespace scenario {
-	provinces::color_to_terrain_map read_scenario(scenario_manager& s, const directory& root) {
+	void read_scenario(scenario_manager& s, const directory& root) {
 		//stage 1
 		ui::load_gui_from_directory(root, s.gui_m);
 
@@ -40,7 +40,7 @@ namespace scenario {
 		provinces::parsing_state province_state(s.gui_m.text_data_sequences, s.province_m, s.modifiers_m);
 		provinces::read_default_map_file(province_state, root);
 
-		auto const color_to_terrain = provinces::read_terrain(province_state, root);
+		provinces::read_terrain_modifiers(s.gui_m.text_data_sequences, s.province_m, s.modifiers_m, root);
 		provinces::read_states(province_state, root);
 		provinces::read_continents(province_state, root);
 		provinces::read_climates(province_state, root);
@@ -93,7 +93,5 @@ namespace scenario {
 		// stage 4
 
 		commit_pending_triggered_events(s, ecm, root);
-
-		return color_to_terrain;
 	}
 }

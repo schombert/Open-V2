@@ -90,12 +90,21 @@ namespace provinces {
 		parsing_state& state,
 		const directory& source_directory);
 
-	color_to_terrain_map
-		read_terrain(parsing_state& state, const directory& source_directory); // returns color to terrain tag map; adds provincial modifiers
+	void read_terrain_modifiers(
+		text_data::text_sequences& text,
+		province_manager& pm,
+		modifiers::modifiers_manager& mm,
+		const directory& source_directory); // returns color to terrain tag map; adds provincial modifiers
+	color_to_terrain_map read_terrain_colors(
+		text_data::text_sequences& text,
+		province_manager& pm,
+		modifiers::modifiers_manager& mm,
+		const directory& source_directory);
 	
 	tagged_vector<uint8_t, province_tag> generate_province_terrain(size_t province_count, uint16_t const* province_map_data, uint8_t const* terrain_color_map_data, int32_t height, int32_t width);
 	tagged_vector<uint8_t, province_tag> generate_province_terrain_inverse(size_t province_count, uint16_t const* province_map_data, uint8_t const* terrain_color_map_data, int32_t height, int32_t width);
-	tagged_vector<uint8_t, province_tag> load_province_map_data(province_manager& m, directory const& root); // returns province to terrain color array
+	void load_province_map_data(province_manager& m, directory const& root); // returns province to terrain color array
+	tagged_vector<uint8_t, province_tag> load_province_terrain_data(province_manager& m, directory const& root);
 	void assign_terrain_color(provinces_state& m, tagged_vector<uint8_t, province_tag> const & terrain_colors, color_to_terrain_map const & terrain_map);
 	
 	std::map<province_tag, boost::container::flat_set<province_tag>> generate_map_adjacencies(uint16_t const* province_map_data, int32_t height, int32_t width);

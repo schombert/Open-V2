@@ -187,7 +187,6 @@ namespace provinces {
 		modifiers::modifiers_manager& mod_manager;
 
 		parsed_data climate_file;
-		parsed_data terrain_file;
 
 		parsing_environment(text_data::text_sequences& tl, province_manager& m, modifiers::modifiers_manager& mm) :
 			text_lookup(tl), manager(m), mod_manager(mm) {}
@@ -230,14 +229,24 @@ namespace provinces {
 		void handle_sea_starts(const sea_starts&) {}
 	};
 
-	struct terrain_parsing_environment {
+	struct terrain_modifier_parsing_environment {
+		text_data::text_sequences& text_lookup;
+
+		province_manager& manager;
+		modifiers::modifiers_manager& mod_manager;
+
+		terrain_modifier_parsing_environment(text_data::text_sequences& tl, province_manager& m, modifiers::modifiers_manager& mm) :
+			text_lookup(tl), manager(m), mod_manager(mm) {}
+	};
+
+	struct terrain_color_parsing_environment {
 		text_data::text_sequences& text_lookup;
 
 		province_manager& manager;
 		modifiers::modifiers_manager& mod_manager;
 		color_to_terrain_map& terrain_color_map;
 
-		terrain_parsing_environment(text_data::text_sequences& tl, province_manager& m, modifiers::modifiers_manager& mm, color_to_terrain_map& tcm) :
+		terrain_color_parsing_environment(text_data::text_sequences& tl, province_manager& m, modifiers::modifiers_manager& mm, color_to_terrain_map& tcm) :
 			text_lookup(tl), manager(m), mod_manager(mm), terrain_color_map(tcm) {}
 	};
 
@@ -269,12 +278,12 @@ namespace provinces {
 	};
 
 	struct color_assignment {
-		terrain_parsing_environment& env;
+		terrain_color_parsing_environment& env;
 
 		color_list_builder colors;
 		modifiers::provincial_modifier_tag tag;
 
-		color_assignment(terrain_parsing_environment& e) : env(e) {}
+		color_assignment(terrain_color_parsing_environment& e) : env(e) {}
 
 		void set_type(token_and_type const& t) {
 			const auto name = text_data::get_thread_safe_existing_text_handle(env.text_lookup, t.start, t.end);
@@ -288,17 +297,17 @@ namespace provinces {
 	}
 
 	struct preparse_terrain_category : public modifiers::modifier_reading_base {
-		terrain_parsing_environment& env;
+		terrain_modifier_parsing_environment& env;
 
-		preparse_terrain_category(terrain_parsing_environment& e) : env(e) {}
+		preparse_terrain_category(terrain_modifier_parsing_environment& e) : env(e) {}
 		void add_color(const color_builder& ) {}
 		void discard(int) {}
 	};
 
 	struct preparse_terrain_categories {
-		terrain_parsing_environment& env;
+		terrain_modifier_parsing_environment& env;
 
-		preparse_terrain_categories(terrain_parsing_environment& e) : env(e) {}
+		preparse_terrain_categories(terrain_modifier_parsing_environment& e) : env(e) {}
 
 		void add_category(std::pair<token_and_type, preparse_terrain_category>&& p) {
 			const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, p.first.start, p.first.end);
@@ -307,18 +316,30 @@ namespace provinces {
 
 	};
 
-	struct preparse_terrain_file {
-		terrain_parsing_environment& env;
-		preparse_terrain_file(terrain_parsing_environment& e) : env(e) {}
+	struct preparse_terrain_modifier_file {
+		terrain_modifier_parsing_environment& env;
+		preparse_terrain_modifier_file(terrain_modifier_parsing_environment& e) : env(e) {}
 
 		void add_categories(const preparse_terrain_categories&) {}
+		void discard(int) {}
+	};
+
+	struct preparse_terrain_color_file {
+		terrain_color_parsing_environment& env;
+		preparse_terrain_color_file(terrain_color_parsing_environment& e) : env(e) {}
+
 		void add_color_assignment(color_assignment const & a) {
 			for(auto v : a.colors.colors)
 				env.terrain_color_map.data[v] = a.tag;
 		}
 		void discard(int) {}
 	};
-
+	inline int discard_tc_section(token_group const*, token_group const*, terrain_color_parsing_environment&) {
+		return 0;
+	}
+	inline int discard_tm_section(token_group const*, token_group const*, token_and_type const&, terrain_modifier_parsing_environment&) {
+		return 0;
+	}
 	inline int discard_empty_type(const token_and_type&, association_type, const empty_type&) { return 0; }
 	inline std::pair<token_and_type, preparse_terrain_category>
 		bind_terrain_category(const token_and_type& t, association_type, const preparse_terrain_category& f) {
@@ -448,7 +469,8 @@ MEMBER_DEF(provinces::color_assignment, colors, "color");
 MEMBER_FDEF(provinces::color_assignment, discard, "discard");
 MEMBER_FDEF(provinces::color_assignment, set_type, "type");
 MEMBER_FDEF(provinces::color_list_builder, add_value, "value");
-MEMBER_FDEF(provinces::preparse_terrain_file, add_color_assignment, "color_assignment");
+MEMBER_FDEF(provinces::preparse_terrain_color_file, add_color_assignment, "color_assignment");
+MEMBER_FDEF(provinces::preparse_terrain_color_file, discard, "unknown_key");
 MEMBER_FDEF(provinces::empty_type, add_unknown_key, "unknown_key");
 MEMBER_FDEF(provinces::default_map_file, discard, "unknown_key");
 MEMBER_FDEF(provinces::default_map_file, discard_empty, "discard_empty");
@@ -456,8 +478,8 @@ MEMBER_FDEF(provinces::default_map_file, set_province_count, "max_provinces");
 MEMBER_FDEF(provinces::default_map_file, handle_sea_starts, "sea_starts");
 MEMBER_FDEF(provinces::sea_starts, add_sea_start, "add_sea_start");
 MEMBER_FDEF(provinces::color_builder, add_value, "color");
-MEMBER_FDEF(provinces::preparse_terrain_file, add_categories, "categories");
-MEMBER_FDEF(provinces::preparse_terrain_file, discard, "unknown_key");
+MEMBER_FDEF(provinces::preparse_terrain_modifier_file, add_categories, "categories");
+MEMBER_FDEF(provinces::preparse_terrain_modifier_file, discard, "unknown_key");
 MEMBER_FDEF(provinces::preparse_terrain_categories, add_category, "category");
 MEMBER_FDEF(provinces::preparse_terrain_category, add_color, "color");
 MEMBER_DEF(provinces::preparse_terrain_category, icon, "icon");
@@ -537,17 +559,28 @@ namespace provinces {
 		END_TYPE
 	END_DOMAIN;
 
-	BEGIN_DOMAIN(preparse_terrain_domain)
+	BEGIN_DOMAIN(preparse_terrain_color_domain)
 		BEGIN_TYPE(color_assignment)
 		MEMBER_ASSOCIATION("discard", "priority", discard_from_rh)
 		MEMBER_ASSOCIATION("discard", "has_texture", discard_from_rh)
 		MEMBER_ASSOCIATION("type", "type", token_from_rh)
 		MEMBER_TYPE_ASSOCIATION("color", "color", color_list_builder)
 		END_TYPE
-		BEGIN_TYPE(preparse_terrain_file)
-		MEMBER_TYPE_ASSOCIATION("categories", "categories", preparse_terrain_categories)
+		BEGIN_TYPE(preparse_terrain_color_file)
+		MEMBER_TYPE_EXTERN("unknown_key", "categories", int, discard_tc_section)
 		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("color_assignment", accept_all, color_assignment, get_color_assignment)
+		END_TYPE
+		BEGIN_TYPE(color_list_builder)
+		MEMBER_VARIABLE_ASSOCIATION("value", accept_all, value_from_lh<uint8_t>)
+		END_TYPE
+		END_DOMAIN;
+
+	BEGIN_DOMAIN(preparse_terrain_modifier_domain)
+		BEGIN_TYPE(preparse_terrain_modifier_file)
+		MEMBER_TYPE_ASSOCIATION("categories", "categories", preparse_terrain_categories)
+		MEMBER_VARIABLE_ASSOCIATION("unknown_key", accept_all, discard_from_full)
+		MEMBER_VARIABLE_TYPE_EXTERN("unknown_key", accept_all, int, discard_tm_section)
 		END_TYPE
 		BEGIN_TYPE(preparse_terrain_categories)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("category", accept_all, preparse_terrain_category, bind_terrain_category)
@@ -560,9 +593,6 @@ namespace provinces {
 		END_TYPE
 		BEGIN_TYPE(color_builder)
 		MEMBER_VARIABLE_ASSOCIATION("color", accept_all, value_from_lh<int>)
-		END_TYPE
-		BEGIN_TYPE(color_list_builder)
-		MEMBER_VARIABLE_ASSOCIATION("value", accept_all, value_from_lh<uint8_t>)
 		END_TYPE
 		END_DOMAIN;
 
@@ -709,15 +739,16 @@ namespace provinces {
 		}
 	}
 
-	color_to_terrain_map read_terrain(
-			parsing_state& state,
-			const directory& source_directory) {
+	void read_terrain_modifiers(
+		text_data::text_sequences& text,
+		province_manager& pm,
+		modifiers::modifiers_manager& mm,
+		const directory& source_directory) {
 
 		const auto map_dir = source_directory.get_directory(u"\\map");
-		auto& main_results = state.impl->terrain_file;
-		color_to_terrain_map result_map;
+		parsed_data main_results;
 
-		terrain_parsing_environment tstate(state.impl->text_lookup, state.impl->manager, state.impl->mod_manager, result_map);
+		terrain_modifier_parsing_environment tstate(text, pm, mm);
 
 		const auto fi = map_dir.open_file(u"terrain.txt");
 
@@ -729,7 +760,37 @@ namespace provinces {
 			parse_pdx_file(main_results.parse_results, main_results.parse_data.get(), main_results.parse_data.get() + sz);
 
 			if(main_results.parse_results.size() > 0) {
-				parse_object<preparse_terrain_file, preparse_terrain_domain>(
+				parse_object<preparse_terrain_modifier_file, preparse_terrain_modifier_domain>(
+					&main_results.parse_results[0],
+					&main_results.parse_results[0] + main_results.parse_results.size(),
+					tstate);
+			}
+		}
+	}
+
+	color_to_terrain_map read_terrain_colors(
+		text_data::text_sequences& text,
+		province_manager& pm,
+		modifiers::modifiers_manager& mm,
+		const directory& source_directory) {
+
+		const auto map_dir = source_directory.get_directory(u"\\map");
+		parsed_data main_results;
+		color_to_terrain_map result_map;
+
+		terrain_color_parsing_environment tstate(text, pm, mm, result_map);
+
+		const auto fi = map_dir.open_file(u"terrain.txt");
+
+		if(fi) {
+			const auto sz = fi->size();
+			main_results.parse_data = std::unique_ptr<char[]>(new char[sz]);
+
+			fi->read_to_buffer(main_results.parse_data.get(), sz);
+			parse_pdx_file(main_results.parse_results, main_results.parse_data.get(), main_results.parse_data.get() + sz);
+
+			if(main_results.parse_results.size() > 0) {
+				parse_object<preparse_terrain_color_file, preparse_terrain_color_domain>(
 					&main_results.parse_results[0],
 					&main_results.parse_results[0] + main_results.parse_results.size(),
 					tstate);
@@ -846,51 +907,8 @@ namespace provinces {
 		return t;
 	}
 
-	tagged_vector<uint8_t, province_tag> load_province_map_data(province_manager& m, directory const& root) {
+	tagged_vector<uint8_t, province_tag> load_province_terrain_data(province_manager& m, directory const& root) {
 		const auto map_dir = root.get_directory(u"\\map");
-		
-		auto map_peek = map_dir.peek_file(u"provinces.png");
-		if(!map_peek)
-			map_peek = map_dir.peek_file(u"provinces.bmp");
-		if(map_peek) {
-			auto fi = map_peek->open_file();
-			if(fi) {
-				const auto sz = fi->size();
-				std::unique_ptr<char[]> file_data = std::unique_ptr<char[]>(new char[sz]);
-				fi->read_to_buffer(file_data.get(), sz);
-
-				int32_t channels = 3;
-				const auto raw_data = SOIL_load_image_from_memory((unsigned char*)(file_data.get()), static_cast<int32_t>(sz), &m.province_map_width, &m.province_map_height, &channels, 3);
-				m.province_map_data.resize(static_cast<size_t>(m.province_map_width * m.province_map_height));
-
-				const auto color_mapping = read_province_definition_file(root);
-
-				const auto last = m.province_map_width * m.province_map_height - 1;
-				uint32_t previous_color_index = provinces::rgb_to_prov_index(raw_data[last * 3 + 0], raw_data[last * 3 + 1], raw_data[last * 3 + 2]);
-				province_tag prev_result = province_tag(0);
-				if(auto it = color_mapping.find(previous_color_index); it != color_mapping.end()) {
-					prev_result = it->second;
-					m.province_map_data[static_cast<size_t>(last)] = to_index(it->second);
-				}
-
-				for(int32_t t = m.province_map_width * m.province_map_height - 2; t >= 0; --t) {
-					uint32_t color_index = provinces::rgb_to_prov_index(raw_data[t * 3 + 0], raw_data[t * 3 + 1], raw_data[t * 3 + 2]);
-					if(color_index == previous_color_index) {
-						m.province_map_data[static_cast<size_t>(t)] = to_index(prev_result);
-					} else {
-						previous_color_index = color_index;
-						if(auto it = color_mapping.find(color_index); it != color_mapping.end())
-							m.province_map_data[static_cast<size_t>(t)] = to_index(it->second);
-						else
-							m.province_map_data[static_cast<size_t>(t)] = 0ui16;
-						prev_result = m.province_map_data[static_cast<size_t>(t)];
-					}
-				}
-
-
-				SOIL_free_image_data(raw_data);
-			}
-		}
 
 		auto terrain_peek = map_dir.peek_file(u"terrain.png");
 		if(terrain_peek) {
@@ -937,6 +955,55 @@ namespace provinces {
 		}
 
 		return tagged_vector<uint8_t, province_tag>();
+	}
+
+	void load_province_map_data(province_manager& m, directory const& root) {
+		const auto map_dir = root.get_directory(u"\\map");
+		
+		auto map_peek = map_dir.peek_file(u"provinces.png");
+		if(!map_peek)
+			map_peek = map_dir.peek_file(u"provinces.bmp");
+		if(map_peek) {
+			auto fi = map_peek->open_file();
+			if(fi) {
+				const auto sz = fi->size();
+				std::unique_ptr<char[]> file_data = std::unique_ptr<char[]>(new char[sz]);
+				fi->read_to_buffer(file_data.get(), sz);
+
+				int32_t channels = 3;
+				const auto raw_data = SOIL_load_image_from_memory((unsigned char*)(file_data.get()), static_cast<int32_t>(sz), &m.province_map_width, &m.province_map_height, &channels, 3);
+				m.province_map_data.resize(static_cast<size_t>(m.province_map_width * m.province_map_height));
+
+				const auto color_mapping = read_province_definition_file(root);
+
+				const auto last = m.province_map_width * m.province_map_height - 1;
+				uint32_t previous_color_index = provinces::rgb_to_prov_index(raw_data[last * 3 + 0], raw_data[last * 3 + 1], raw_data[last * 3 + 2]);
+				province_tag prev_result = province_tag(0);
+				if(auto it = color_mapping.find(previous_color_index); it != color_mapping.end()) {
+					prev_result = it->second;
+					m.province_map_data[static_cast<size_t>(last)] = to_index(it->second);
+				}
+
+				for(int32_t t = m.province_map_width * m.province_map_height - 2; t >= 0; --t) {
+					uint32_t color_index = provinces::rgb_to_prov_index(raw_data[t * 3 + 0], raw_data[t * 3 + 1], raw_data[t * 3 + 2]);
+					if(color_index == previous_color_index) {
+						m.province_map_data[static_cast<size_t>(t)] = to_index(prev_result);
+					} else {
+						previous_color_index = color_index;
+						if(auto it = color_mapping.find(color_index); it != color_mapping.end())
+							m.province_map_data[static_cast<size_t>(t)] = to_index(it->second);
+						else
+							m.province_map_data[static_cast<size_t>(t)] = 0ui16;
+						prev_result = m.province_map_data[static_cast<size_t>(t)];
+					}
+				}
+
+
+				SOIL_free_image_data(raw_data);
+			}
+		}
+
+		
 	}
 
 	tagged_vector<uint8_t, province_tag> generate_province_terrain_inverse(size_t province_count, uint16_t const* province_map_data, uint8_t const* terrain_color_map_data, int32_t height, int32_t width) {

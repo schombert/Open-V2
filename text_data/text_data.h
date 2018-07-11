@@ -112,6 +112,23 @@ namespace text_data {
 	text_tag get_existing_text_handle(const text_data::text_sequences& container, const char* key_start, const char* key_end);
 	text_tag get_thread_safe_existing_text_handle(const text_data::text_sequences& container, const char* key_start, const char* key_end);
 
+	template<size_t N>
+	text_tag get_thread_safe_existing_text_handle(const text_data::text_sequences& container, const char(&t)[N]) {
+		return get_thread_safe_existing_text_handle(container, t, t + N - 1);
+	}
+	template<size_t N>
+	text_tag get_existing_text_handle(const text_data::text_sequences& container, const char(&t)[N]) {
+		return get_existing_text_handle(container, t, t + N - 1);
+	}
+	template<size_t N>
+	text_tag get_thread_safe_text_handle(text_data::text_sequences& container, const char(&t)[N]) {
+		return get_thread_safe_text_handle(container, t, t + N - 1);
+	}
+	template<size_t N>
+	text_tag get_text_handle(text_data::text_sequences& container, const char(&t)[N]) {
+		return get_text_handle(container, t, t + N - 1);
+	}
+
 	std::u16string to_string(const text_sequences& container, text_data::text_tag tag);
 }
 

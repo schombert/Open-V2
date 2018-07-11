@@ -41,7 +41,10 @@ namespace provinces {
 		void button_function(ui::gui_object_tag t, world_state& ws);
 	};
 	class terrain_icon {
+	public:
 		void update(ui::dynamic_icon<terrain_icon>& ico, world_state& ws);
+		bool has_tooltip() { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	class province_name {

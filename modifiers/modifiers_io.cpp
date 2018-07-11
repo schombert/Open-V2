@@ -1323,6 +1323,164 @@ namespace modifiers {
 		}
 	}
 
+	void name_modifier_offset(modifiers_manager& m, text_data::text_sequences& text) {
+		m.province_offset_names.resize(provincial_offsets::count);
+		m.national_offset_names.resize(national_offsets::count);
+
+		m.province_offset_names[0] = text_data::get_thread_safe_text_handle(text, "SUPPLY_LIMIT");
+		m.province_offset_names[1] = text_data::get_thread_safe_text_handle(text, "ATTRITION");
+		m.province_offset_names[2] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MAX_ATTRITION");
+		m.province_offset_names[3] = text_data::get_thread_safe_text_handle(text, "MODIFIER_RULING_PARTY_SUPPORT");
+		m.province_offset_names[4] = text_data::get_thread_safe_text_handle(text, "MODIFIER_POOR_LIFE_NEEDS");
+		m.province_offset_names[5] = text_data::get_thread_safe_text_handle(text, "MODIFIER_RICH_LIFE_NEEDS");
+		m.province_offset_names[6] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MIDDLE_LIFE_NEEDS");
+		m.province_offset_names[7] = text_data::get_thread_safe_text_handle(text, "MODIFIER_POOR_EVERYDAY_NEEDS");
+		m.province_offset_names[8] = text_data::get_thread_safe_text_handle(text, "MODIFIER_RICH_EVERYDAY_NEEDS");
+		m.province_offset_names[9] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MIDDLE_EVERYDAY_NEEDS");
+		m.province_offset_names[10] = text_data::get_thread_safe_text_handle(text, "MODIFIER_POOR_LUXURY_NEEDS");
+		m.province_offset_names[11] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MIDDLE_LUXURY_NEEDS");
+		m.province_offset_names[12] = text_data::get_thread_safe_text_handle(text, "MODIFIER_RICH_LUXURY_NEEDS");
+		m.province_offset_names[13] = text_data::get_thread_safe_text_handle(text, "MODIFIER_POPULATION_GROWTH");
+		m.province_offset_names[14] = text_data::get_thread_safe_text_handle(text, "MODIFIER_FACTORY_INPUT");
+		m.province_offset_names[15] = text_data::get_thread_safe_text_handle(text, "MODIFIER_FACTORY_OUTPUT");
+		m.province_offset_names[16] = text_data::get_thread_safe_text_handle(text, "MODIFIER_FACTORY_THROUGHPUT");
+		m.province_offset_names[17] = text_data::get_thread_safe_text_handle(text, "MODIFIER_RGO_INPUT");
+		m.province_offset_names[18] = text_data::get_thread_safe_text_handle(text, "MODIFIER_RGO_OUTPUT");
+		m.province_offset_names[19] = text_data::get_thread_safe_text_handle(text, "MODIFIER_RGO_THROUGHPUT");
+		m.province_offset_names[20] = text_data::get_thread_safe_text_handle(text, "MODIFIER_ARTISAN_INPUT");
+		m.province_offset_names[21] = text_data::get_thread_safe_text_handle(text, "MODIFIER_ARTISAN_OUTPUT");
+		m.province_offset_names[22] = text_data::get_thread_safe_text_handle(text, "MODIFIER_ARTISAN_THROUGHPUT");
+		m.province_offset_names[23] = text_data::get_thread_safe_text_handle(text, "MODIFIER_NUMBER_OF_VOTERS");
+		m.province_offset_names[24] = text_data::get_thread_safe_text_handle(text, "MODIFIER_GOODS_DEMAND");
+		m.province_offset_names[25] = text_data::get_thread_safe_text_handle(text, "MODIFIER_ASSIMILATION_RATE");
+		m.province_offset_names[26] = text_data::get_thread_safe_text_handle(text, "MODIFIER_LIFE_RATING");
+		m.province_offset_names[27] = text_data::get_thread_safe_text_handle(text, "MODIFIER_FARM_EFFICIENCY");
+		m.province_offset_names[28] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MINE_EFFICIENCY");
+		m.province_offset_names[29] = text_data::get_thread_safe_text_handle(text, "MODIFIER_FARM_SIZE");
+		m.province_offset_names[30] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MINE_SIZE");
+		m.province_offset_names[31] = text_data::get_thread_safe_text_handle(text, "MODIFIER_POP_MILITANCY_MODIFIER");
+		m.province_offset_names[32] = text_data::get_thread_safe_text_handle(text, "MODIFIER_POP_CONSCIOUSNESS_MODIFIER");
+		m.province_offset_names[33] = text_data::get_thread_safe_text_handle(text, "MODIFIER_RICH_INCOME_MODIFIER");
+		m.province_offset_names[34] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MIDDLE_INCOME_MODIFIER");
+		m.province_offset_names[35] = text_data::get_thread_safe_text_handle(text, "MODIFIER_POOR_INCOME_MODIFIER");
+		m.province_offset_names[36] = text_data::get_thread_safe_text_handle(text, "MODIFIER_BOOST_STRONGEST_PARTY");
+		m.province_offset_names[37] = text_data::get_thread_safe_text_handle(text, "MODIFIER_IMMIGANT_ATTRACT");
+		m.province_offset_names[38] = text_data::get_thread_safe_text_handle(text, "MODIFIER_IMMIGANT_PUSH");
+		m.province_offset_names[39] = text_data::get_thread_safe_text_handle(text, "MODIFIER_LOCAL_REPAIR");
+		m.province_offset_names[40] = text_data::get_thread_safe_text_handle(text, "MODIFIER_LOCAL_SHIP_BUILD");
+		m.province_offset_names[41] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MOVEMENT_COST");
+		m.province_offset_names[42] = text_data::get_thread_safe_text_handle(text, "MODIFIER_LAND_DEFENSE");
+		m.province_offset_names[43] = text_data::get_thread_safe_text_handle(text, "MODIFIER_LAND_ATTACK");
+		m.province_offset_names[44] = text_data::get_thread_safe_text_handle(text, "MODIFIER_COMBAT_WIDTH");
+		m.province_offset_names[45] = text_data::get_thread_safe_text_handle(text, "NAVAL_BASE_LEVEL");
+		m.province_offset_names[46] = text_data::get_thread_safe_text_handle(text, "RAILROAD_LEVEL");
+		m.province_offset_names[47] = text_data::get_thread_safe_text_handle(text, "FORT_LEVEL");
+
+
+		m.national_offset_names[0] = text_data::get_thread_safe_text_handle(text, "WAR_EXHAUSTION");
+		m.national_offset_names[1] = text_data::get_thread_safe_text_handle(text, "MAX_WAR_EXHAUSTION");
+		m.national_offset_names[2] = text_data::get_thread_safe_text_handle(text, "LEADERSHIP");
+		m.national_offset_names[3] = text_data::get_thread_safe_text_handle(text, "MODIFIER_GLOBAL_LEADERSHIP_MODIFIER");
+		m.national_offset_names[4] = text_data::get_thread_safe_text_handle(text, "MODIFIER_SUPPLY_CONSUMPTION");
+		m.national_offset_names[5] = text_data::get_thread_safe_text_handle(text, "MODIFIER_ORG_REGAIN");
+		m.national_offset_names[6] = text_data::get_thread_safe_text_handle(text, "MODIFIER_REINFORCE_SPEED");
+		m.national_offset_names[7] = text_data::get_thread_safe_text_handle(text, "MODIFIER_LAND_ORGANISATION");
+		m.national_offset_names[8] = text_data::get_thread_safe_text_handle(text, "MODIFIER_NAVAL_ORGANISATION");
+		m.national_offset_names[9] = text_data::get_thread_safe_text_handle(text, "MODIFIER_RESEARCH_POINTS");
+		m.national_offset_names[10] = text_data::get_thread_safe_text_handle(text, "MODIFIER_RESEARCH_POINTS_MODIFIER");
+		m.national_offset_names[11] = text_data::get_thread_safe_text_handle(text, "MODIFIER_RESEARCH_POINTS_ON_CONQUER");
+		m.national_offset_names[12] = text_data::get_thread_safe_text_handle(text, "MODIFIER_IMPORT_COST");
+		m.national_offset_names[13] = text_data::get_thread_safe_text_handle(text, "MODIFIER_LOAN_INTEREST");
+		m.national_offset_names[14] = text_data::get_thread_safe_text_handle(text, "MODIFIER_TAX_EFFICIENCY");
+		m.national_offset_names[15] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MIN_TAX");
+		m.national_offset_names[16] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MAX_TAX");
+		m.national_offset_names[17] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MIN_MILITARY_SPENDING");
+		m.national_offset_names[18] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MAX_MILITARY_SPENDING");
+		m.national_offset_names[19] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MIN_SOCIAL_SPENDING");
+		m.national_offset_names[20] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MAX_SOCIAL_SPENDING");
+		m.national_offset_names[21] = text_data::get_thread_safe_text_handle(text, "MODIFIER_FACTORY_OWNER_COST");
+		m.national_offset_names[22] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MIN_TARIFF");
+		m.national_offset_names[23] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MAX_TARIFF");
+		m.national_offset_names[24] = text_data::get_thread_safe_text_handle(text, "MODIFIER_RULING_PARTY_SUPPORT");
+		m.national_offset_names[25] = text_data::get_thread_safe_text_handle(text, "MODIFIER_RICH_VOTE");
+		m.national_offset_names[26] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MIDDLE_VOTE");
+		m.national_offset_names[27] = text_data::get_thread_safe_text_handle(text, "MODIFIER_POOR_VOTE");
+		m.national_offset_names[28] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MINIMUN_WAGE");
+		m.national_offset_names[29] = text_data::get_thread_safe_text_handle(text, "MODIFIER_FACTORY_MAINTENANCE");
+		m.national_offset_names[30] = text_data::get_thread_safe_text_handle(text, "MODIFIER_POOR_LIFE_NEEDS");
+		m.national_offset_names[31] = text_data::get_thread_safe_text_handle(text, "MODIFIER_RICH_LIFE_NEEDS");
+		m.national_offset_names[32] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MIDDLE_LIFE_NEEDS");
+		m.national_offset_names[33] = text_data::get_thread_safe_text_handle(text, "MODIFIER_POOR_EVERYDAY_NEEDS");
+		m.national_offset_names[34] = text_data::get_thread_safe_text_handle(text, "MODIFIER_RICH_EVERYDAY_NEEDS");
+		m.national_offset_names[35] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MIDDLE_EVERYDAY_NEEDS");
+		m.national_offset_names[36] = text_data::get_thread_safe_text_handle(text, "MODIFIER_POOR_LUXURY_NEEDS");
+		m.national_offset_names[37] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MIDDLE_LUXURY_NEEDS");
+		m.national_offset_names[38] = text_data::get_thread_safe_text_handle(text, "MODIFIER_RICH_LUXURY_NEEDS");
+		m.national_offset_names[39] = text_data::get_thread_safe_text_handle(text, "MODIFIER_UNEMPLOYMENT_BENEFIT");
+		m.national_offset_names[40] = text_data::get_thread_safe_text_handle(text, "MODIFIER_PENSION_LEVEL");
+		m.national_offset_names[41] = text_data::get_thread_safe_text_handle(text, "MODIFIER_POPULATION_GROWTH");
+		m.national_offset_names[42] = text_data::get_thread_safe_text_handle(text, "MODIFIER_FACTORY_INPUT");
+		m.national_offset_names[43] = text_data::get_thread_safe_text_handle(text, "MODIFIER_FACTORY_OUTPUT");
+		m.national_offset_names[44] = text_data::get_thread_safe_text_handle(text, "MODIFIER_FACTORY_THROUGHPUT");
+		m.national_offset_names[45] = text_data::get_thread_safe_text_handle(text, "MODIFIER_RGO_INPUT");
+		m.national_offset_names[46] = text_data::get_thread_safe_text_handle(text, "MODIFIER_RGO_OUTPUT");
+		m.national_offset_names[47] = text_data::get_thread_safe_text_handle(text, "MODIFIER_RGO_THROUGHPUT");
+		m.national_offset_names[48] = text_data::get_thread_safe_text_handle(text, "MODIFIER_ARTISAN_INPUT");
+		m.national_offset_names[49] = text_data::get_thread_safe_text_handle(text, "MODIFIER_ARTISAN_OUTPUT");
+		m.national_offset_names[50] = text_data::get_thread_safe_text_handle(text, "MODIFIER_ARTISAN_THROUGHPUT");
+		m.national_offset_names[51] = text_data::get_thread_safe_text_handle(text, "MODIFIER_GOODS_DEMAND");
+		m.national_offset_names[52] = text_data::get_thread_safe_text_handle(text, "MODIFIER_BADBOY");
+		m.national_offset_names[53] = text_data::get_thread_safe_text_handle(text, "MODIFIER_ASSIMILATION_RATE");
+		m.national_offset_names[54] = text_data::get_thread_safe_text_handle(text, "MODIFIER_PRESTIGE");
+		m.national_offset_names[55] = text_data::get_thread_safe_text_handle(text, "MODIFIER_FACTORY_COST");
+		m.national_offset_names[56] = text_data::get_thread_safe_text_handle(text, "MODIFIER_FARM_EFFICIENCY");
+		m.national_offset_names[57] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MINE_EFFICIENCY");
+		m.national_offset_names[58] = text_data::get_thread_safe_text_handle(text, "MODIFIER_FARM_SIZE");
+		m.national_offset_names[59] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MINE_SIZE");
+		m.national_offset_names[60] = text_data::get_thread_safe_text_handle(text, "MODIFIER_ISSUE_CHANGE_SPEED");
+		m.national_offset_names[61] = text_data::get_thread_safe_text_handle(text, "MODIFIER_SOCIAL_REFORM_DESIRE");
+		m.national_offset_names[62] = text_data::get_thread_safe_text_handle(text, "MODIFIER_POLITICAL_REFORM_DESIRE");
+		m.national_offset_names[63] = text_data::get_thread_safe_text_handle(text, "MODIFIER_LITERACY_CON_IMPACT");
+		m.national_offset_names[64] = text_data::get_thread_safe_text_handle(text, "MODIFIER_RICH_INCOME_MODIFIER");
+		m.national_offset_names[65] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MIDDLE_INCOME_MODIFIER");
+		m.national_offset_names[66] = text_data::get_thread_safe_text_handle(text, "MODIFIER_POOR_INCOME_MODIFIER");
+		m.national_offset_names[67] = text_data::get_thread_safe_text_handle(text, "MODIFIER_IMMIGANT_ATTRACT");
+		m.national_offset_names[68] = text_data::get_thread_safe_text_handle(text, "MODIFIER_POOR_SAVINGS_MODIFIER");
+		m.national_offset_names[69] = text_data::get_thread_safe_text_handle(text, "MODIFIER_GREATPOWER_INFLUENCE_GAIN");
+		m.national_offset_names[70] = text_data::get_thread_safe_text_handle(text, "MODIFIER_DIPLOPOINTS_GAIN");
+		m.national_offset_names[71] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MOBILISATION_SIZE");
+		m.national_offset_names[72] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MOBILISATION_ECONOMY_IMPACT");
+		m.national_offset_names[73] = text_data::get_thread_safe_text_handle(text, "MODIFIER_GLOBAL_POP_MILITANCY_MODIFIER");
+		m.national_offset_names[74] = text_data::get_thread_safe_text_handle(text, "MODIFIER_GLOBAL_POP_CONSCIOUSNESS_MODIFIER");
+		m.national_offset_names[75] = text_data::get_thread_safe_text_handle(text, "MODIFIER_CORE_POP_MILITANCY_MODIFIER");
+		m.national_offset_names[76] = text_data::get_thread_safe_text_handle(text, "MODIFIER_CORE_POP_CONSCIOUSNESS_MODIFIER");
+		m.national_offset_names[77] = text_data::get_thread_safe_text_handle(text, "MODIFIER_NON_ACCEPTED_POP_MILITANCY_MODIFIER");
+		m.national_offset_names[78] = text_data::get_thread_safe_text_handle(text, "MODIFIER_NON_ACCEPTED_POP_CONSCIOUSNESS_MODIFIER");
+		m.national_offset_names[79] = text_data::get_thread_safe_text_handle(text, "MODIFIER_CB_GENERATION_SPEED_MODIFIER");
+		m.national_offset_names[80] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MOBILIZATION_IMPACT");
+		m.national_offset_names[81] = text_data::get_thread_safe_text_handle(text, "MODIFIER_SUPPRESSION_POINT_GAIN");
+		m.national_offset_names[82] = text_data::get_thread_safe_text_handle(text, "MODIFIER_EDUCATION_EFFICIENCY");
+		m.national_offset_names[83] = text_data::get_thread_safe_text_handle(text, "MODIFIER_CIVILIZATION_PROGRESS");
+		m.national_offset_names[84] = text_data::get_thread_safe_text_handle(text, "MODIFIER_ADMINISTRATIVE_EFFICIENCY");
+		m.national_offset_names[85] = text_data::get_thread_safe_text_handle(text, "MODIFIER_LAND_UNIT_START_EXPERIENCE");
+		m.national_offset_names[86] = text_data::get_thread_safe_text_handle(text, "MODIFIER_NAVAL_UNIT_START_EXPERIENCE");
+		m.national_offset_names[87] = text_data::get_thread_safe_text_handle(text, "MODIFIER_NAVAL_ATTACK");
+		m.national_offset_names[88] = text_data::get_thread_safe_text_handle(text, "MODIFIER_NAVAL_DEFENSE");
+		m.national_offset_names[89] = text_data::get_thread_safe_text_handle(text, "MODIFIER_LAND_ATTACK");
+		m.national_offset_names[90] = text_data::get_thread_safe_text_handle(text, "MODIFIER_LAND_DEFENSE");
+		m.national_offset_names[91] = text_data::get_thread_safe_text_handle(text, "MODIFIER_TARIFF_EFFICIENCY");
+		m.national_offset_names[92] = text_data::get_thread_safe_text_handle(text, "MODIFIER_MAX_LOAN_AMOUNT");
+		m.national_offset_names[93] = text_data::get_thread_safe_text_handle(text, "MODIFIER_UNCIV_ECONOMIC");
+		m.national_offset_names[94] = text_data::get_thread_safe_text_handle(text, "MODIFIER_UNCIV_MILITARY");
+		m.national_offset_names[95] = text_data::get_thread_safe_text_handle(text, "MODIFIER_SELF_UNCIV_ECONOMIC");
+		m.national_offset_names[96] = text_data::get_thread_safe_text_handle(text, "MODIFIER_SELF_UNCIV_MILITARY");
+		m.national_offset_names[97] = text_data::get_thread_safe_text_handle(text, "commerce_tech_research_bonus");
+		m.national_offset_names[98] = text_data::get_thread_safe_text_handle(text, "army_tech_research_bonus");
+		m.national_offset_names[99] = text_data::get_thread_safe_text_handle(text, "industry_tech_research_bonus");
+		m.national_offset_names[100] = text_data::get_thread_safe_text_handle(text, "navy_tech_research_bonus");
+		m.national_offset_names[101] = text_data::get_thread_safe_text_handle(text, "culture_tech_research_bonus");
+	}
+
 	void read_static_modifiers(
 		parsing_state& state,
 		const directory& source_directory) {
@@ -1345,6 +1503,7 @@ namespace modifiers {
 					*state.impl);
 			}
 		}
+		name_modifier_offset(state.impl->manager, state.impl->text_lookup);
 	}
 
 	void read_event_modifiers(

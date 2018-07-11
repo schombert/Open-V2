@@ -732,6 +732,9 @@ namespace modifiers {
 
 		std::vector<factor_segment> factor_data;
 
+		std::vector<text_data::text_tag> province_offset_names;
+		std::vector<text_data::text_tag> national_offset_names;
+
 		std::vector<std::pair<national_modifier_tag, triggers::trigger_tag>> triggered_modifiers;
 		boost::container::flat_map<provincial_modifier_tag, crime> crimes;
 

@@ -479,7 +479,6 @@ namespace ui {
 
 	tagged_object<ui::text_instance, ui::text_instance_tag> create_text_instance(ui::gui_manager &container, tagged_gui_object new_gobj, const text_format& fmt);
 
-	
 	template<typename BEHAVIOR = ui::gui_behavior, typename T, typename ... PARAMS>
 	ui::tagged_gui_object create_dynamic_element(world_state& ws, T handle, tagged_gui_object parent, PARAMS&& ... params);
 
@@ -521,14 +520,34 @@ namespace ui {
 
 	class line_manager {
 	private:
+		constexpr static int32_t indent_size = 15;
+
 		boost::container::small_vector<gui_object*, 16, concurrent_allocator<gui_object*>> current_line;
 		const text_data::alignment align;
 		const int32_t max_line_extent;
+		int32_t indent = 0;
 	public:
 		line_manager(text_data::alignment a, int32_t m) : align(a), max_line_extent(m) {}
 		bool exceeds_extent(int32_t w) const;
 		void add_object(gui_object* o);
 		void finish_current_line();
+		void increase_indent(int32_t n);
+		void decrease_indent(int32_t n);
+	};
+
+	class unlimited_line_manager {
+	private:
+		constexpr static int32_t indent_size = 15;
+
+		boost::container::small_vector<gui_object*, 16, concurrent_allocator<gui_object*>> current_line;
+		int32_t indent = 0;
+	public:
+		unlimited_line_manager() {}
+		bool exceeds_extent(int32_t) const { return false; }
+		void add_object(gui_object* o);
+		void finish_current_line();
+		void increase_indent(int32_t n);
+		void decrease_indent(int32_t n);
 	};
 
 	class single_line_manager {
@@ -543,6 +562,13 @@ namespace ui {
 		void operator()(tagged_gui_object) const {}
 	};
 	
+	xy_pair advance_cursor_to_newline(ui::xy_pair cursor, gui_static& manager, text_format const& fmt);
+	xy_pair advance_cursor_by_space(ui::xy_pair cursor, gui_static& manager, text_format const& fmt, int32_t count = 1);
+
+	template<typename LM = single_line_manager>
+	xy_pair add_linear_text(ui::xy_pair cursor, text_data::text_tag, text_format const& fmt, gui_static& static_manager, gui_manager& manager, tagged_gui_object container, LM&& lm = single_line_manager(), const text_data::replacement* candidates = nullptr, uint32_t count = 0);
+
+
 	void shorten_text_instance_to_space(ui::text_instance& txt);
 	float text_component_width(const text_data::text_component& c, const std::vector<char16_t>& text_data, graphics::font& this_font, uint32_t font_size);
 

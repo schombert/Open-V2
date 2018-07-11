@@ -192,26 +192,51 @@ namespace ui {
 		contents_frame.position.y = static_cast<int16_t>(-pos);
 	}
 
-	bool line_manager::exceeds_extent(int32_t w) const { return w > max_line_extent; }
+	bool line_manager::exceeds_extent(int32_t w) const { return (w + indent) > max_line_extent; }
 
 	void line_manager::add_object(gui_object * o) {
 		current_line.push_back(o);
 	}
 
 	void line_manager::finish_current_line() {
-		if (align == text_data::alignment::left)
-			return;
+		if(align == text_data::alignment::left) {
+			for(auto p : current_line)
+				p->position.x += indent;
+			current_line.clear();
+		} else {
+			int32_t total_element_width = 0;
+			for(auto p : current_line)
+				total_element_width += p->size.x;
+			total_element_width += indent;
+			const int32_t adjustment = (max_line_extent - total_element_width) /
+				(align == text_data::alignment::right ? 1 : 2);
+			for(auto p : current_line)
+				p->position.x += adjustment;
 
-		int32_t total_element_width = 0;
-		for (auto p : current_line)
-			total_element_width += p->size.x;
+			current_line.clear();
+		}
+	}
 
-		const int32_t adjustment = (max_line_extent - total_element_width) /
-			(align == text_data::alignment::right ? 1 : 2);
-		for (auto p : current_line)
-			p->position.x += adjustment;
+	void line_manager::increase_indent(int32_t n) {
+		indent += indent_size * n;
+	}
+	void line_manager::decrease_indent(int32_t n) {
+		indent -= indent_size * n;
+	}
 
+	void unlimited_line_manager::add_object(gui_object* o) {
+		current_line.push_back(o);
+	}
+	void unlimited_line_manager::finish_current_line() {
+		for(auto p : current_line)
+			p->position.x += indent;
 		current_line.clear();
+	}
+	void unlimited_line_manager::increase_indent(int32_t n) {
+		indent += indent_size * n;
+	}
+	void unlimited_line_manager::decrease_indent(int32_t n) {
+		indent -= indent_size * n;
 	}
 
 	bool draggable_region::on_drag(gui_object_tag , world_state &, const mouse_drag &m) {
@@ -261,6 +286,25 @@ void ui::shorten_text_instance_to_space(ui::text_instance& txt) {
 	if (i >= 0)
 		txt.length = static_cast<uint8_t>(i + 1);
 }
+
+ui::xy_pair ui::advance_cursor_to_newline(ui::xy_pair cursor, gui_static& manager, text_format const& fmt) {
+	graphics::font& this_font = manager.fonts.at(fmt.font_handle);
+
+	return ui::xy_pair{ 0i16,
+		int16_t(cursor.y + static_cast<int32_t>(this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size))) + 0.5f)) };
+}
+
+ui::xy_pair ui::advance_cursor_by_space(ui::xy_pair cursor, gui_static& manager, text_format const& fmt, int32_t count) {
+	graphics::font& this_font = manager.fonts.at(fmt.font_handle);
+
+	static char16_t space = u' ';
+
+	int32_t new_size = static_cast<int32_t>(0.5f + count * this_font.metrics_text_extent(
+		&space, 1, ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size)), is_outlined_color(fmt.color)));
+	return ui::xy_pair{ int16_t(cursor.x + new_size), cursor.y };
+}
+
+
 void ui::detail::create_multiline_text(gui_static& static_manager, gui_manager& manager, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format& fmt, const text_data::replacement* candidates, uint32_t count) {
 	graphics::font& this_font = static_manager.fonts.at(fmt.font_handle);
 	const auto& components = static_manager.text_data_sequences.all_sequences[text_handle];
@@ -303,46 +347,21 @@ void ui::detail::create_multiline_text(gui_static& static_manager, gui_manager& 
 }
 
 void ui::detail::create_linear_text(gui_static& static_manager, gui_manager& manager, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format& fmt, const text_data::replacement* candidates, uint32_t count) {
+	ui::xy_pair position{ 0, 0 };
+	
 	const auto& components = static_manager.text_data_sequences.all_sequences[text_handle];
 	graphics::font& this_font = static_manager.fonts.at(fmt.font_handle);
-
 	const auto components_start = static_manager.text_data_sequences.all_components.data() + components.starting_component;
 	const auto components_end = components_start + components.component_count;
 
-	ui::xy_pair position{ 0, 0 };
-	ui::text_color current_color = fmt.color;
-
-	ui::single_line_manager lm;
-
 	float x_extent = 0.0f;
-	for (auto component_i = components_start; component_i != components_end; ++component_i) {
+
+	for(auto component_i = components_start; component_i != components_end; ++component_i) {
 		x_extent += ui::text_component_width(*component_i, static_manager.text_data_sequences.text_data, this_font, fmt.font_size);
 	}
-
 	std::tie(position.x, position.y) = align_in_bounds(align, int32_t(x_extent + 0.5f), int32_t(this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size))) + 0.5f), container.object.size.x, container.object.size.y);
-
-	for (auto component_i = components_start; component_i != components_end; ++component_i) {
-		if (std::holds_alternative<text_data::color_change>(*component_i)) {
-			current_color = text_color_to_ui_text_color(std::get<text_data::color_change>(*component_i).color);
-		} else if (std::holds_alternative<text_data::value_placeholder>(*component_i)) {
-			const auto rep = text_data::find_replacement(std::get<text_data::value_placeholder>(*component_i), candidates, count);
-
-			const auto replacement_text = rep ? std::get<1>(*rep) : vector_backed_string<char16_t>(text_data::name_from_value_type(std::get<text_data::value_placeholder>(*component_i).value));
-
-			const text_format format{ current_color, fmt.font_handle, fmt.font_size };
-
-			if (rep) 
-				position = text_chunk_to_instances(static_manager, manager, replacement_text, container, position, format, lm, std::get<2>(*rep));
-			else 
-				position = text_chunk_to_instances(static_manager, manager, replacement_text, container, position, format, lm);
-
-		} else if (std::holds_alternative<text_data::text_chunk>(*component_i)) {
-			const auto chunk = std::get<text_data::text_chunk>(*component_i);
-			const text_format format{ current_color, fmt.font_handle, fmt.font_size };
-
-			position = text_chunk_to_instances(static_manager, manager, chunk, container, position, format, lm);
-		}
-	}
+	
+	add_linear_text(position, text_handle, fmt, static_manager, manager, container, ui::single_line_manager(), candidates, count);
 }
 
 void ui::detail::instantiate_graphical_object(gui_static& static_manager, ui::gui_manager& manager, ui::tagged_gui_object container, graphics::obj_definition_tag gtag, int32_t frame) {
@@ -648,7 +667,7 @@ void ui::detail::render_object_type(gui_static& static_manager, const gui_manage
 						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 0.0f, 0.0f, 0.0f }, fnt);
 						break;
 					case ui::text_color::green:
-						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 0.0f, 0.623f, 0.01f }, fnt);
+						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 0.2f, 0.823f, 0.2f }, fnt);
 						break;
 					case ui::text_color::outlined_black:
 						ogl.render_outlined_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 0.0f, 0.0f, 0.0f }, fnt);

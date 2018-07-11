@@ -506,15 +506,11 @@ int main(int , char **) {
 		scenario::scenario_manager s1;
 
 		std::cout << "begin scenario read" << std::endl << std::flush;
-		auto const color_terrain_map = scenario::read_scenario(s1, fs.get_root());
+		scenario::read_scenario(s1, fs.get_root());
 		std::cout << "end scenario read" << std::endl << std::flush;
 
 		std::cout << "begin map read" << std::endl << std::flush;
-		auto const p_to_t_vector = provinces::load_province_map_data(s1.province_m, fs.get_root());
-
-		provinces::provinces_state pstate;
-		pstate.province_state_container.resize(s1.province_m.province_container.size());
-		provinces::assign_terrain_color(pstate, p_to_t_vector, color_terrain_map);
+		provinces::load_province_map_data(s1.province_m, fs.get_root());
 
 		std::cout << "end map read" << std::endl << std::flush;
 
@@ -543,6 +539,10 @@ int main(int , char **) {
 	std::cout << "end deserialize" << std::endl << std::flush;
 
 	ready_world_state(ws);
+
+	auto const p_to_t_vector = provinces::load_province_terrain_data(ws.s.province_m, fs.get_root());
+	auto color_terrain_map = provinces::read_terrain_colors(ws.s.gui_m.text_data_sequences, ws.s.province_m, ws.s.modifiers_m, fs.get_root());
+	provinces::assign_terrain_color(ws.w.province_s, p_to_t_vector, color_terrain_map);
 	provinces::read_province_histories(ws, fs.get_root(), date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)));
 
 	scenario::ready_scenario(ws.s, fs.get_root());

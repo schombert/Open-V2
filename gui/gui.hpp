@@ -15,6 +15,13 @@ namespace ui {
 		constexpr bool has_update = _has_update<A, void, C ...>::value;
 
 		template<typename A, typename B, typename ... C>
+		struct _has_create_tooltip : std::false_type {};
+		template<typename A, typename ... C>
+		struct _has_create_tooltip<A, decltype(void(std::declval<A>().create_tooltip(std::declval<C>() ...))), C...> : std::true_type {};
+		template<typename A, typename ... C>
+		constexpr bool has_create_tooltip = _has_create_tooltip<A, void, C ...>::value;
+
+		template<typename A, typename B, typename ... C>
 		struct _has_has_tooltip : std::false_type {};
 		template<typename A, typename ... C>
 		struct _has_has_tooltip<A, decltype(void(std::declval<A>().has_tooltip(std::declval<C>() ...))), C...> : std::true_type {};
@@ -110,6 +117,40 @@ ui::xy_pair ui::text_chunk_to_instances(gui_static& static_manager, ui::gui_mana
 	return position;
 }
 
+template<typename LM>
+ui::xy_pair ui::add_linear_text(ui::xy_pair position, text_data::text_tag text_handle, text_format const& fmt, gui_static& static_manager, gui_manager& manager, tagged_gui_object container, LM&& lm, const text_data::replacement* candidates, uint32_t count) {
+	
+	auto& components = static_manager.text_data_sequences.all_sequences[text_handle];
+	const auto components_start = static_manager.text_data_sequences.all_components.data() + components.starting_component;
+	const auto components_end = components_start + components.component_count;
+
+	ui::text_color current_color = fmt.color;
+
+	for(auto component_i = components_start; component_i != components_end; ++component_i) {
+		if(std::holds_alternative<text_data::color_change>(*component_i)) {
+			current_color = text_color_to_ui_text_color(std::get<text_data::color_change>(*component_i).color);
+		} else if(std::holds_alternative<text_data::value_placeholder>(*component_i)) {
+			const auto rep = text_data::find_replacement(std::get<text_data::value_placeholder>(*component_i), candidates, count);
+
+			const auto replacement_text = rep ? std::get<1>(*rep) : vector_backed_string<char16_t>(text_data::name_from_value_type(std::get<text_data::value_placeholder>(*component_i).value));
+
+			const text_format format{ current_color, fmt.font_handle, fmt.font_size };
+
+			if(rep)
+				position = text_chunk_to_instances(static_manager, manager, replacement_text, container, position, format, lm, std::get<2>(*rep));
+			else
+				position = text_chunk_to_instances(static_manager, manager, replacement_text, container, position, format, lm);
+
+		} else if(std::holds_alternative<text_data::text_chunk>(*component_i)) {
+			const auto chunk = std::get<text_data::text_chunk>(*component_i);
+			const text_format format{ current_color, fmt.font_handle, fmt.font_size };
+
+			position = text_chunk_to_instances(static_manager, manager, chunk, container, position, format, lm);
+		}
+	}
+
+	return position;
+}
 
 template<typename MESSAGE_FUNCTION, typename MESSAGE_TYPE>
 bool ui::detail::dispatch_message(const gui_manager& manager, const MESSAGE_FUNCTION &member_f, ui::tagged_gui_object obj, ui::xy_pair container_size, const MESSAGE_TYPE& message) {
