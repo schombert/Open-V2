@@ -9,7 +9,7 @@
 #undef max
 #endif
 
-void ui::load_gui_from_directory(const directory& source_directory, gui_static& manager) {
+void ui::load_gui_from_directory(const directory& source_directory, gui_static& manager, graphics::name_maps& gobj_nmaps) {
 	auto fonts_directory = source_directory.get_directory(u"\\gfx\\fonts");
 	manager.fonts.load_standard_fonts(fonts_directory);
 
@@ -25,7 +25,6 @@ void ui::load_gui_from_directory(const directory& source_directory, gui_static& 
 	ui::definitions defs;
 	std::vector<std::pair<std::string, ui::errors>> errors_generated;
 
-	graphics::name_maps gobj_nmaps;
 	std::vector<std::pair<std::string, graphics::errors>> gobj_errors_generated;
 
 	ui::load_ui_definitions_from_directory(

@@ -5,6 +5,7 @@
 #include "simple_fs\\simple_fs.h"
 #include "Parsers\\parsers.hpp"
 #include "text_data\\text_data.h"
+#include "graphics_objects\\graphics_objects.h"
 #include <ppl.h>
 #include <map>
 
@@ -31,6 +32,7 @@ public:
 		serialize(output, obj.same_type_adjacency);
 		serialize(output, obj.coastal_adjacency);
 		serialize(output, obj.canals);
+		serialize(output, obj.terrain_graphics);
 		serialize(output, obj.province_map_data);
 		serialize(output, obj.province_map_width);
 		serialize(output, obj.province_map_height);
@@ -42,6 +44,7 @@ public:
 		deserialize(input, obj.same_type_adjacency);
 		deserialize(input, obj.coastal_adjacency);
 		deserialize(input, obj.canals);
+		deserialize(input, obj.terrain_graphics);
 		deserialize(input, obj.province_map_data);
 		deserialize(input, obj.province_map_width);
 		deserialize(input, obj.province_map_height);
@@ -55,6 +58,7 @@ public:
 		deserialize(input, obj.same_type_adjacency);
 		deserialize(input, obj.coastal_adjacency);
 		deserialize(input, obj.canals);
+		deserialize(input, obj.terrain_graphics);
 		deserialize(input, obj.province_map_data);
 		deserialize(input, obj.province_map_width);
 		deserialize(input, obj.province_map_height);
@@ -68,6 +72,7 @@ public:
 			serialize_size(obj.same_type_adjacency) +
 			serialize_size(obj.coastal_adjacency) +
 			serialize_size(obj.canals) +
+			serialize_size(obj.terrain_graphics) +
 			serialize_size(obj.province_map_data) +
 			serialize_size(obj.province_map_width) +
 			serialize_size(obj.province_map_height);
@@ -94,12 +99,13 @@ namespace provinces {
 		text_data::text_sequences& text,
 		province_manager& pm,
 		modifiers::modifiers_manager& mm,
-		const directory& source_directory); // returns color to terrain tag map; adds provincial modifiers
+		graphics::name_maps& gname_maps,
+		const directory& source_directory); // adds provincial modifiers
 	color_to_terrain_map read_terrain_colors(
 		text_data::text_sequences& text,
 		province_manager& pm,
 		modifiers::modifiers_manager& mm,
-		const directory& source_directory);
+		const directory& source_directory); // returns color to terrain tag map
 	
 	tagged_vector<uint8_t, province_tag> generate_province_terrain(size_t province_count, uint16_t const* province_map_data, uint8_t const* terrain_color_map_data, int32_t height, int32_t width);
 	tagged_vector<uint8_t, province_tag> generate_province_terrain_inverse(size_t province_count, uint16_t const* province_map_data, uint8_t const* terrain_color_map_data, int32_t height, int32_t width);

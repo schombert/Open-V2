@@ -62,39 +62,27 @@ namespace graphics {
 
 		unsigned char* expected = nullptr;
 		if (filedata.compare_exchange_strong(expected, (unsigned char*)1, std::memory_order_release, std::memory_order_acquire)) {
-			unsigned int new_th = SOIL_load_OGL_texture(filename.c_str(), 0, 0, SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_DDS_LOAD_DIRECT);
-			glBindTexture(GL_TEXTURE_2D, new_th);
-			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
-			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
-			texture_handle.store(new_th, std::memory_order_release);
-		} else {
-			unsigned int new_th;
-			glGenTextures(1, &new_th);
-			glBindTexture(GL_TEXTURE_2D, new_th);
-
-			//if (channels == 3) {
-			//	glTexStorage2D(GL_TEXTURE_2D, 1, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, width, height);
-			//	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, expected);
-			//} else if (channels == 4) {
-				glTexStorage2D(GL_TEXTURE_2D, 1, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, width, height);
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, expected);
-			//} else  if (channels == 2) {
-			//	glTexStorage2D(GL_TEXTURE_2D, 1, GL_COMPRESSED_RG11_EAC, width, height);
-			//	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RG, GL_UNSIGNED_BYTE, expected);
-			//} else {
-			//	glTexStorage2D(GL_TEXTURE_2D, 1, GL_COMPRESSED_R11_EAC, width, height);
-			//	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RED, GL_UNSIGNED_BYTE, expected);
-			//}
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-			texture_handle.store(new_th, std::memory_order_release);
-			SOIL_free_image_data(expected);
+			int channels = 4;
+			expected = SOIL_load_image(filename.c_str(), &width, &height, &channels, 4);
 		}
+		
+		unsigned int new_th;
+		glGenTextures(1, &new_th);
+		glBindTexture(GL_TEXTURE_2D, new_th);
+
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, width, height);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, expected);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+		texture_handle.store(new_th, std::memory_order_release);
+		SOIL_free_image_data(expected);
 	}
 
 	void texture::load_filedata() {
 		if (filedata.load(std::memory_order_acquire) == nullptr) {
+			int channels = 4;
 			auto data = SOIL_load_image(filename.c_str(), &width, &height, &channels, 4);
 
 			unsigned char* expected = nullptr;
@@ -113,8 +101,7 @@ namespace graphics {
 		const auto h = texture_handle.load(std::memory_order_acquire);
 		if (h != 0) {
 			color_rgba* result = (color_rgba*)_alloca(sizeof(color_rgba) * static_cast<size_t>(width * height));
-			//glBindTexture(GL_TEXTURE_2D, h);
-			//glGetTextureSubImage(GL_TEXTURE_2D, 0, (GLint)(x * width), (GLint)(y * height), 0, 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, sizeof(result), result);
+
 			glGetTextureImage(h, 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<int32_t>(sizeof(color_rgba)) * width * height, result);
 
 			const auto final_result = result[width * static_cast<int32_t>(y * height) + static_cast<int32_t>(x * width)];

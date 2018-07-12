@@ -234,9 +234,10 @@ namespace provinces {
 
 		province_manager& manager;
 		modifiers::modifiers_manager& mod_manager;
+		graphics::name_maps& gname_maps;
 
-		terrain_modifier_parsing_environment(text_data::text_sequences& tl, province_manager& m, modifiers::modifiers_manager& mm) :
-			text_lookup(tl), manager(m), mod_manager(mm) {}
+		terrain_modifier_parsing_environment(text_data::text_sequences& tl, province_manager& m, modifiers::modifiers_manager& mm, graphics::name_maps& nm) :
+			text_lookup(tl), manager(m), mod_manager(mm), gname_maps(nm) {}
 	};
 
 	struct terrain_color_parsing_environment {
@@ -244,6 +245,7 @@ namespace provinces {
 
 		province_manager& manager;
 		modifiers::modifiers_manager& mod_manager;
+		
 		color_to_terrain_map& terrain_color_map;
 
 		terrain_color_parsing_environment(text_data::text_sequences& tl, province_manager& m, modifiers::modifiers_manager& mm, color_to_terrain_map& tcm) :
@@ -311,7 +313,10 @@ namespace provinces {
 
 		void add_category(std::pair<token_and_type, preparse_terrain_category>&& p) {
 			const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, p.first.start, p.first.end);
-			modifiers::add_provincial_modifier(name, p.second, env.mod_manager);
+			const auto new_mod = modifiers::add_provincial_modifier(name, p.second, env.mod_manager);
+			if(auto fr = env.gname_maps.names.find(std::string("GFX_terrainimg_") + std::string(p.first.start, p.first.end)); fr != env.gname_maps.names.end()) {
+				env.manager.terrain_graphics.emplace(new_mod, fr->second);
+			}
 		}
 
 	};
@@ -743,12 +748,13 @@ namespace provinces {
 		text_data::text_sequences& text,
 		province_manager& pm,
 		modifiers::modifiers_manager& mm,
+		graphics::name_maps& gname_maps,
 		const directory& source_directory) {
 
 		const auto map_dir = source_directory.get_directory(u"\\map");
 		parsed_data main_results;
 
-		terrain_modifier_parsing_environment tstate(text, pm, mm);
+		terrain_modifier_parsing_environment tstate(text, pm, mm, gname_maps);
 
 		const auto fi = map_dir.open_file(u"terrain.txt");
 

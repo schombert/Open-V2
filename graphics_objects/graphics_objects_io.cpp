@@ -104,6 +104,11 @@ namespace graphics {
 				env.defs.definitions[f->second] = o.internal_definition;
 				o.setup_textures(env.defs.definitions[f->second]);
 				env.defs.definitions[f->second].flags |= (uint8_t)graphics::object_type::generic_sprite;
+			} else {
+				auto new_def = env.defs.definitions.emplace_back(o.internal_definition);
+				o.setup_textures(env.defs.definitions[new_def]);
+				env.defs.definitions[new_def].flags |= (uint8_t)graphics::object_type::generic_sprite;
+				env.nmaps.names.emplace(o.name, new_def);
 			}
 		}
 		void corneredtilesprite(const parsing_object& o) {

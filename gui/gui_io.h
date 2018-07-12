@@ -37,5 +37,5 @@ public:
 };
 
 namespace ui {
-	void load_gui_from_directory(const directory& source_directory, gui_static& static_manager);
+	void load_gui_from_directory(const directory& source_directory, gui_static& static_manager, graphics::name_maps& gobj_nmaps);
 }

@@ -101,6 +101,8 @@ namespace provinces {
 		v_vector<province_tag::value_base_t, province_tag::value_base_t> coastal_adjacency;
 		std::vector<std::pair<province_tag, province_tag>> canals;
 
+		boost::container::flat_map<modifiers::provincial_modifier_tag, graphics::obj_definition_tag> terrain_graphics;
+
 		std::vector<uint16_t> province_map_data;
 		int32_t province_map_width = 0;
 		int32_t province_map_height = 0; 

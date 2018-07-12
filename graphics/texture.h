@@ -14,18 +14,18 @@ namespace graphics {
 		std::atomic<uint32_t> texture_handle = 0;
 		int width = 0;
 		int height = 0;
-		int channels = 0;
+		//int channels = 0;
 		std::atomic<unsigned char*> filedata = nullptr;
 	public:
 		std::string filename;
 
 		texture() {}
 		texture(const std::string& fn);
-		texture(const texture& o) noexcept : width(o.width), height(o.height), channels(o.channels), filename(o.filename) {
+		texture(const texture& o) noexcept : width(o.width), height(o.height), filename(o.filename) {
 			texture_handle.store(o.texture_handle.load(std::memory_order_relaxed), std::memory_order_relaxed);
 			filedata.store(o.filedata.load(std::memory_order_relaxed), std::memory_order_relaxed);
 		}
-		texture(texture&& o) noexcept : width(o.width), height(o.height), channels(o.channels), filename(std::move(o.filename)) {
+		texture(texture&& o) noexcept : width(o.width), height(o.height), filename(std::move(o.filename)) {
 			texture_handle.store(o.texture_handle.load(std::memory_order_relaxed), std::memory_order_relaxed);
 			filedata.store(o.filedata.load(std::memory_order_relaxed), std::memory_order_relaxed);
 		}

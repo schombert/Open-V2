@@ -3,7 +3,9 @@
 namespace scenario {
 	void read_scenario(scenario_manager& s, const directory& root) {
 		//stage 1
-		ui::load_gui_from_directory(root, s.gui_m);
+
+		graphics::name_maps gobj_nmaps;
+		ui::load_gui_from_directory(root, s.gui_m, gobj_nmaps);
 
 		//stage 2
 		auto const country_files = cultures::read_national_tags(s.culture_m, root);
@@ -40,7 +42,7 @@ namespace scenario {
 		provinces::parsing_state province_state(s.gui_m.text_data_sequences, s.province_m, s.modifiers_m);
 		provinces::read_default_map_file(province_state, root);
 
-		provinces::read_terrain_modifiers(s.gui_m.text_data_sequences, s.province_m, s.modifiers_m, root);
+		provinces::read_terrain_modifiers(s.gui_m.text_data_sequences, s.province_m, s.modifiers_m, gobj_nmaps, root);
 		provinces::read_states(province_state, root);
 		provinces::read_continents(province_state, root);
 		provinces::read_climates(province_state, root);
