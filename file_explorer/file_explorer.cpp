@@ -13,6 +13,7 @@
 #include "scenario\\scenario_io.h"
 #include "simple_serialize\\simple_serialize.hpp"
 #include "world_state\\world_state.h"
+#include "provinces\\province_functions.h"
 
 // #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -546,6 +547,16 @@ int main(int , char **) {
 	provinces::read_province_histories(ws, fs.get_root(), date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)));
 
 	scenario::ready_scenario(ws.s, fs.get_root());
+
+	provinces::add_province_modifier(
+		ws,
+		ws.w.province_s.province_state_container[provinces::province_tag(78)],
+		modifiers::provincial_modifier_tag(1));
+	provinces::add_timed_province_modifier(
+		ws,
+		ws.w.province_s.province_state_container[provinces::province_tag(78)],
+		modifiers::provincial_modifier_tag(2),
+		date_to_tag(boost::gregorian::date(1900, boost::gregorian::Jan, 10)));
 
 	init_tooltip_window(ws.s.gui_m, ws.w.gui_m);
 	ws.w.gui_m.on_resize(ui::resize{ 850ui32, 650ui32 });

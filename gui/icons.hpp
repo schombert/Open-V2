@@ -9,16 +9,24 @@ void ui::dynamic_icon<BASE>::update_data(gui_object_tag, world_state& w) {
 }
 
 template<typename BASE>
-ui::tooltip_behavior ui::dynamic_icon<BASE>::has_tooltip(gui_object_tag, world_state&, const mouse_move&) {
-	if constexpr(ui::detail::has_has_tooltip<BASE>)
-		return BASE::has_tooltip() ? tooltip_behavior::tooltip : tooltip_behavior::no_tooltip;
+template<typename window_type>
+void ui::dynamic_icon<BASE>::windowed_update(window_type& w, world_state& s) {
+	if constexpr(ui::detail::has_windowed_update<BASE, dynamic_icon<BASE>&, window_type&, world_state&>) {
+		BASE::windowed_update(*this, w, s);
+	}
+}
+
+template<typename BASE>
+ui::tooltip_behavior ui::dynamic_icon<BASE>::has_tooltip(gui_object_tag, world_state& ws, const mouse_move&) {
+	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
+		return BASE::has_tooltip(ws) ? tooltip_behavior::tooltip : tooltip_behavior::no_tooltip;
 	else
 		return tooltip_behavior::no_tooltip;
 }
 
 template<typename BASE>
 void ui::dynamic_icon<BASE>::create_tooltip(gui_object_tag, world_state& ws, const mouse_move&, tagged_gui_object tw) {
-	if constexpr(ui::detail::has_has_tooltip<BASE>)
+	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
 		BASE::create_tooltip(ws, tw);
 }
 

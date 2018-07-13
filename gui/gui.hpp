@@ -22,6 +22,13 @@ namespace ui {
 		constexpr bool has_create_tooltip = _has_create_tooltip<A, void, C ...>::value;
 
 		template<typename A, typename B, typename ... C>
+		struct _has_button_function : std::false_type {};
+		template<typename A, typename ... C>
+		struct _has_button_function<A, decltype(void(std::declval<A>().button_function(std::declval<C>() ...))), C...> : std::true_type {};
+		template<typename A, typename ... C>
+		constexpr bool has_button_function = _has_button_function<A, void, C ...>::value;
+
+		template<typename A, typename B, typename ... C>
 		struct _has_has_tooltip : std::false_type {};
 		template<typename A, typename ... C>
 		struct _has_has_tooltip<A, decltype(void(std::declval<A>().has_tooltip(std::declval<C>() ...))), C...> : std::true_type {};
@@ -164,7 +171,7 @@ bool ui::detail::dispatch_message(const gui_manager& manager, const MESSAGE_FUNC
 	
 	if (message_within_bounds(relocated_message, obj.object.size.x, obj.object.size.y)) {
 	
-		if ((object_flags & ui::gui_object::enabled) != 0) {
+		if (std::is_same_v<MESSAGE_TYPE, ui::mouse_move> || (object_flags & ui::gui_object::enabled) != 0) {
 			const gui_object_tag child = obj.object.first_child;
 			if (is_valid_index(child)) {
 				gui_object_tag current_child = detail::last_sibling_of(manager, tagged_gui_object{ manager.gui_objects.at(child), child }).id;

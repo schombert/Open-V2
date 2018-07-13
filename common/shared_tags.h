@@ -10,6 +10,19 @@ inline date_tag date_to_tag(const boost::gregorian::date& d) {
 	return date_tag(static_cast<date_tag::value_base_t>((d - base_date).days()));
 }
 
+inline char16_t* u16_format_date(char16_t* dest, date_tag date) {
+	auto unpacked = base_date + boost::gregorian::days(to_index(date));
+	auto ymd = unpacked.year_month_day();
+
+	auto year_end = _u16itoa(uint32_t(ymd.year), dest);
+	*year_end = u'.';
+	auto month_end = _u16itoa(uint32_t(ymd.month), year_end + 1);
+	*month_end = u'.';
+	auto day_end = _u16itoa(uint32_t(ymd.day), month_end + 1);
+	*day_end = char16_t(0);
+	return day_end;
+}
+
 inline boost::gregorian::date tag_to_date(date_tag t) {
 	return base_date + boost::gregorian::days(to_index(t));
 }

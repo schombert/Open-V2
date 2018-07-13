@@ -28,4 +28,9 @@ namespace nations {
 	void set_influence(world_state& ws, nation& a, country_tag b, int32_t value, int32_t level);
 	float get_foreign_investment(world_state& ws, nation& a, country_tag b);
 	void set_foreign_investment(world_state& ws, nation& a, country_tag b, float value);
+
+	int32_t colonial_points_to_make_protectorate(world_state& ws, state_instance& si);
+	int32_t colonial_points_to_make_colony(world_state& ws, state_instance& si);
+	int32_t colonial_points_to_make_state(world_state& ws, state_instance& si);
+	int32_t free_colonial_points(world_state& ws, nation& n);
 }

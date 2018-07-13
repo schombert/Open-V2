@@ -483,7 +483,7 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_static& static_man
 	new_gobj.object.flags.fetch_or(rotation, std::memory_order_acq_rel);
 	new_gobj.object.align = alignment_from_definition(icon_def);
 
-	instantiate_graphical_object(static_manager, manager, new_gobj, icon_def.graphical_object_handle, icon_def.frame);
+	instantiate_graphical_object(static_manager, manager, new_gobj, icon_def.graphical_object_handle, icon_def.frame != 0 ? int32_t(icon_def.frame) - 1 : 0);
 
 	new_gobj.object.size.x *= icon_def.scale;
 	new_gobj.object.size.y *= icon_def.scale;
@@ -682,7 +682,7 @@ void ui::detail::render_object_type(gui_static& static_manager, const gui_manage
 						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 1.0f, 1.0f, 1.0f }, fnt);
 						break;
 					case ui::text_color::yellow:
-						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 1.0f, 0.75f, 1.0f }, fnt);
+						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 1.0f, 0.75f, 0.2f }, fnt);
 						break;
 				}
 			}
@@ -761,6 +761,10 @@ void ui::make_visible_and_update(gui_manager& manager, gui_object& g) {
 
 void ui::hide(gui_object& g) {
 	g.flags.fetch_and((uint16_t)(~ui::gui_object::visible & ~ui::gui_object::visible_after_update), std::memory_order_acq_rel);
+}
+
+void ui::make_visible_immediate(gui_object& g) {
+	g.flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
 }
 
 void ui::set_enabled(gui_object& g, bool enabled) {

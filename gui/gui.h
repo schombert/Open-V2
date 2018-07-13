@@ -76,6 +76,8 @@ namespace ui {
 		uint32_t font_size;
 	};
 
+	constexpr ui::text_format tooltip_text_format{ ui::text_color::white, graphics::font_tag(1), 16 };
+
 	class gui_object;
 	class gui_manager;
 	class gui_static;
@@ -95,6 +97,8 @@ namespace ui {
 		gui_behavior() noexcept {}
 		gui_behavior(gui_behavior&& o) noexcept;
 		gui_behavior(gui_behavior& o) noexcept : gui_behavior(std::move(o)) {}
+		template<typename ... PARAMS>
+		explicit gui_behavior(PARAMS&& ... params) {}
 
 		virtual bool on_lclick(gui_object_tag, world_state&, const lbutton_down&) { return false; }
 		virtual bool on_rclick(gui_object_tag, world_state&, const rbutton_down&) { return false; }
@@ -160,10 +164,13 @@ namespace ui {
 
 		void set_frame(gui_manager&, uint32_t frame_num);
 		void set_visibility(gui_manager&, bool visible);
+		void set_enabled(bool enabled);
 
 		virtual bool on_lclick(gui_object_tag o, world_state& m, const lbutton_down&) final override;
 		virtual bool on_keydown(gui_object_tag o, world_state& m, const key_down& k) final override;
 		virtual void update_data(gui_object_tag, world_state&) final override;
+		template<typename window_type>
+		void windowed_update(window_type& w, world_state& s);
 		virtual tooltip_behavior has_tooltip(gui_object_tag, world_state&, const mouse_move&) final override;
 		virtual void create_tooltip(gui_object_tag, world_state&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
 	};
@@ -180,6 +187,8 @@ namespace ui {
 		void set_visibility(gui_manager&, bool visible);
 
 		virtual void update_data(gui_object_tag, world_state&) final override;
+		template<typename window_type>
+		void windowed_update(window_type& w, world_state& s);
 		virtual tooltip_behavior has_tooltip(gui_object_tag, world_state&, const mouse_move&) final override;
 		virtual void create_tooltip(gui_object_tag, world_state&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
 	};
@@ -583,6 +592,7 @@ namespace ui {
 	void add_to_back(const gui_manager& manager, tagged_gui_object parent, tagged_gui_object child);
 
 	void make_visible_and_update(gui_manager& manager, gui_object& g);
+	void make_visible_immediate(gui_object& g);
 	void hide(gui_object& g);
 	void set_enabled(gui_object& g, bool enabled);
 	void shrink_to_children(gui_manager& manager, tagged_gui_object g);

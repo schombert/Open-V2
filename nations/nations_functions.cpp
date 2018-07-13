@@ -288,4 +288,17 @@ namespace nations {
 			add_item(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ value, b, 0ui8, 0i8 });
 		}
 	}
+
+	int32_t colonial_points_to_make_protectorate(world_state&, state_instance&) {
+		return 0;
+	}
+	int32_t colonial_points_to_make_colony(world_state&, state_instance&) {
+		return 0;
+	}
+	int32_t colonial_points_to_make_state(world_state&, state_instance&) {
+		return 0;
+	}
+	int32_t free_colonial_points(world_state&, nation&) {
+		return 0;
+	}
 }

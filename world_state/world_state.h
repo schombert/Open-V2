@@ -9,7 +9,7 @@
 #include "variables\\variables.h"
 #include "military\\military.h"
 #include "gui\\gui.h"
-#include "provinces\\province_gui.h"
+#include "provinces\\province_gui.hpp"
 
 namespace current_state {
 	class state {
@@ -25,6 +25,9 @@ namespace current_state {
 
 		//gui state
 		provinces::province_window_t province_window;
+
+		//player data
+		nations::nation* local_player_nation = nullptr;
 	};
 }
 

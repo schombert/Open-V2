@@ -44,6 +44,7 @@ public:
 		serialize(output, obj.trigger_m);
 		serialize(output, obj.gui_m);
 		serialize(output, obj.sound_m);
+		serialize(output, obj.fixed_ui_text);
 	}
 	template<typename ... CONTEXT>
 	static void deserialize_object(std::byte const* &input, scenario::scenario_manager& obj, CONTEXT&& ... c) {
@@ -62,6 +63,7 @@ public:
 		deserialize(input, obj.trigger_m, std::forward<CONTEXT>(c) ...);
 		deserialize(input, obj.gui_m, std::forward<CONTEXT>(c) ...);
 		deserialize(input, obj.sound_m, std::forward<CONTEXT>(c) ...);
+		deserialize(input, obj.fixed_ui_text, std::forward<CONTEXT>(c) ...);
 	}
 	static size_t size(scenario::scenario_manager const& obj) {
 		return serialize_size(obj.population_m) +
@@ -78,10 +80,12 @@ public:
 			serialize_size(obj.event_m) +
 			serialize_size(obj.trigger_m) +
 			serialize_size(obj.gui_m) +
-			serialize_size(obj.sound_m);
+			serialize_size(obj.sound_m) +
+			serialize_size(obj.fixed_ui_text);
 	}
 };
 
 namespace scenario {
 	void read_scenario(scenario_manager& s, const directory& root);
+	void prepare_fixed_ui_text(scenario_manager& s);
 }

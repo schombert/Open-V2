@@ -16,6 +16,14 @@ namespace provinces {
 		return contains_item(ws.province_s.core_arrays, ws.province_s.province_state_container[prov].cores, tag);
 	}
 
+	void add_province_modifier(world_state& ws, province_state& p, modifiers::provincial_modifier_tag t) {
+		add_item(ws.w.province_s.static_modifier_arrays, p.static_modifiers, t);
+	}
+
+	void add_timed_province_modifier(world_state& ws, province_state& p, modifiers::provincial_modifier_tag t, date_tag d) {
+		add_item(ws.w.province_s.timed_modifier_arrays, p.timed_modifiers, timed_provincial_modifier{ d, t });
+	}
+
 	void init_ready_provinces(world_state& ws) {
 		const auto prov_count = ws.s.province_m.province_container.size();
 		

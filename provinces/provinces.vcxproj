@@ -153,6 +153,7 @@
     <ClInclude Include="provinces_io.h" />
     <ClInclude Include="province_functions.h" />
     <ClInclude Include="province_gui.h" />
+    <ClInclude Include="province_gui.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="provinces.cpp" />

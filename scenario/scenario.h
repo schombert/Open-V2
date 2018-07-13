@@ -18,6 +18,17 @@
 #include "simple_fs\\simple_fs.h"
 
 namespace scenario {
+	namespace fixed_ui {
+		constexpr uint32_t expires_on = 0ui32;
+		constexpr uint32_t slave_state = 1ui32;
+		constexpr uint32_t colonial_province = 2ui32;
+		constexpr uint32_t protectorate_province = 3ui32;
+		constexpr uint32_t colonial_province_upgrade = 4ui32;
+		constexpr uint32_t protectorate_province_upgrade = 5ui32;
+
+		constexpr uint32_t count = 6ui32;
+	}
+
 	class scenario_manager {
 	public:
 		population::population_manager population_m;
@@ -36,6 +47,8 @@ namespace scenario {
 
 		ui::gui_static gui_m;
 		sound::sound_manager sound_m;
+
+		std::vector<text_data::text_tag> fixed_ui_text;
 
 		scenario_manager() {}
 	};

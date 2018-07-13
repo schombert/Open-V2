@@ -3,14 +3,16 @@
 
 template<typename BASE>
 bool ui::simple_button<BASE>::on_lclick(gui_object_tag o, world_state& m, const lbutton_down &) {
-	BASE::button_function(o, m);
+	if constexpr(ui::detail::has_button_function<BASE, gui_object_tag, world_state&>)
+		BASE::button_function(o, m);
 	return true;
 }
 
 template<typename BASE>
 bool ui::simple_button<BASE>::on_keydown(gui_object_tag o, world_state & m, const key_down & k) {
 	if (k.keycode == shortcut) {
-		BASE::button_function(o, m);
+		if constexpr(ui::detail::has_button_function<BASE, gui_object_tag, world_state&>)
+			BASE::button_function(o, m);
 		return true;
 	} else {
 		return false;
@@ -25,16 +27,24 @@ void ui::simple_button<BASE>::update_data(gui_object_tag, world_state& w) {
 }
 
 template<typename BASE>
-ui::tooltip_behavior ui::simple_button<BASE>::has_tooltip(gui_object_tag, world_state&, const mouse_move&) {
-	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&, tagged_gui_object>)
-		return BASE::has_tooltip() ? tooltip_behavior::tooltip : tooltip_behavior::no_tooltip;
+template<typename window_type>
+void ui::simple_button<BASE>::windowed_update(window_type& w, world_state& s) {
+	if constexpr(ui::detail::has_windowed_update<BASE, simple_button<BASE>&, window_type&, world_state&>) {
+		BASE::windowed_update(*this, w, s);
+	}
+}
+
+template<typename BASE>
+ui::tooltip_behavior ui::simple_button<BASE>::has_tooltip(gui_object_tag, world_state& ws, const mouse_move&) {
+	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
+		return BASE::has_tooltip(ws) ? tooltip_behavior::tooltip : tooltip_behavior::no_tooltip;
 	else
 		return tooltip_behavior::no_tooltip;
 }
 
 template<typename BASE>
 void ui::simple_button<BASE>::create_tooltip(gui_object_tag o, world_state& ws, const mouse_move&, tagged_gui_object tw) {
-	if constexpr(ui::detail::has_has_tooltip<BASE>)
+	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
 		BASE::create_tooltip(ws, tw);
 }
 
@@ -51,6 +61,11 @@ void ui::simple_button<BASE>::set_visibility(gui_manager& m, bool visible) {
 		ui::make_visible_and_update(m, *associated_object);
 	else
 		ui::hide(*associated_object);
+}
+
+template<typename BASE>
+void ui::simple_button<BASE>::set_enabled(bool enabled) {
+	ui::set_enabled(*associated_object, enabled);
 }
 
 template<typename B>

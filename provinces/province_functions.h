@@ -9,4 +9,6 @@ namespace provinces {
 	bool province_has_core(current_state::state& ws, province_tag prov, cultures::national_tag tag);
 	void init_ready_provinces(world_state& ws);
 	void update_province_demographics(world_state& ws);
+	void add_province_modifier(world_state& ws, province_state& p, modifiers::provincial_modifier_tag t);
+	void add_timed_province_modifier(world_state& ws, province_state& p, modifiers::provincial_modifier_tag t, date_tag d);
 }

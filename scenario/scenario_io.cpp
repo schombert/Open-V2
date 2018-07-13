@@ -95,5 +95,27 @@ namespace scenario {
 		// stage 4
 
 		commit_pending_triggered_events(s, ecm, root);
+
+		prepare_fixed_ui_text(s);
+	}
+
+	void prepare_fixed_ui_text(scenario_manager& s) {
+		s.fixed_ui_text.resize(fixed_ui::count);
+
+		s.fixed_ui_text[fixed_ui::expires_on] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "EXPIRES_ON");
+		s.fixed_ui_text[fixed_ui::slave_state] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PW_SLAVE_STATE");
+
+		/*
+		constexpr uint32_t colonial_province = 2ui32;
+		constexpr uint32_t protectorate_province = 3ui32;
+		constexpr uint32_t colonial_province_can_upgrade = 4ui32;
+		constexpr uint32_t protectorate_province_can_upgrade = 5ui32;
+		constexpr uint32_t colonial_province_cant_upgrade = 6ui32;
+		constexpr uint32_t protectorate_province_cant_upgrade = 7ui32;
+		*/
+		s.fixed_ui_text[fixed_ui::colonial_province] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PW_COLONY");
+		s.fixed_ui_text[fixed_ui::protectorate_province] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PW_PROTECTORATE");
+		s.fixed_ui_text[fixed_ui::colonial_province_upgrade] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PW_COLONY_STATE");
+		s.fixed_ui_text[fixed_ui::protectorate_province_upgrade] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PW_UPGRADE_TO_COLONY");
 	}
 }

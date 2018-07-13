@@ -169,8 +169,8 @@ void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::update_item_p
 		subelement_alignment == text_data::alignment::left ?
 		0 :
 		(subelement_alignment == text_data::alignment::right ?
-		    (associated_object->size.x - adjusted_space_consumed * amount) :
-			(associated_object->size.x - adjusted_space_consumed * amount) / 2);
+		    (associated_object->size.x - adjusted_space_consumed) :
+			(associated_object->size.x - adjusted_space_consumed) / 2);
 
 	for (int32_t n = amount - 1; n >= 0; -- n) {
 		contents[static_cast<uint32_t>(n)].associated_object->position.x = static_cast<int16_t>(base_offset + (subelement_width + spacing - overlap) * n);
