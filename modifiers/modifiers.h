@@ -751,6 +751,8 @@ namespace modifiers {
 
 		defines global_defines;
 
+		national_focus_tag flashpoint_tension_focus;
+
 		national_modifier_tag fetch_unique_national_modifier(text_data::text_tag n); // adds index only if valid text tag
 		provincial_modifier_tag fetch_unique_provincial_modifier(text_data::text_tag n); // adds index only if valid text tag
 

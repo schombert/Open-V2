@@ -67,6 +67,84 @@ namespace provinces {
 		}
 	}
 
+	void admin_icon::update(ui::dynamic_icon<admin_icon>& ico, world_state& ws) {
+		ico.set_frame(ws.w.gui_m, uint32_t(ws.s.population_m.pop_types[ws.s.population_m.bureaucrat].sprite) - 1ui32);
+	}
+
+	bool admin_icon::has_tooltip(world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			auto state = ws.w.province_s.province_state_container[selected_prov].state_instance;
+			if(state)
+				return true;
+		}
+		return false;
+	}
+
+	void admin_icon::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			auto state = ws.w.province_s.province_state_container[selected_prov].state_instance;
+			if(state) {
+				ui::unlimited_line_manager lm;
+				char16_t formatted_value[64];
+				ui::xy_pair cursor{ 0,0 };
+
+				u16itoa(int32_t(state->administrative_efficiency * 100.0f), formatted_value);
+				text_data::replacement value_rep(text_data::value_type::value, vector_backed_string<char16_t>(formatted_value), [](tagged_object<ui::gui_object, ui::gui_object_tag>) {});
+				cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::province_view_admin], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &value_rep, 1ui32);
+				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
+				lm.finish_current_line();
+
+				lm.increase_indent(1);
+
+				u16itoa(0, formatted_value);
+				cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::province_view_admin_base], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &value_rep, 1ui32);
+				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
+				lm.finish_current_line();
+
+				u16itoa(0, formatted_value);
+				cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::province_view_admin_pops], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &value_rep, 1ui32);
+				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
+				lm.finish_current_line();
+
+				u16itoa(0, formatted_value);
+				cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::province_view_admin_tech], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &value_rep, 1ui32);
+				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
+				lm.finish_current_line();
+			}
+		}
+	}
+
+	void admin_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		int32_t value = 0;
+
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			auto state = ws.w.province_s.province_state_container[selected_prov].state_instance;
+			if(state) {
+				value = int32_t(state->administrative_efficiency * 100.0f);
+			}
+		}
+
+		char16_t local_buf[64];
+
+		auto end = u16itoa(value, local_buf);
+		*end = u'%';
+		*(end + 1) = char16_t(0);
+
+		ui::text_chunk_to_instances(
+			ws.s.gui_m,
+			ws.w.gui_m,
+			vector_backed_string<char16_t>(local_buf),
+			box,
+			ui::xy_pair{0,0},
+			fmt,
+			lm);
+
+		lm.finish_current_line();
+	}
+
 	void terrain_icon::update(ui::dynamic_icon<terrain_icon>& ico, world_state& ws) {
 		auto selected_prov = ws.w.province_window.selected_province;
 		if(is_valid_index(selected_prov)) {

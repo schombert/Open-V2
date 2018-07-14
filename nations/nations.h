@@ -5,6 +5,10 @@
 #include "economy\\economy.h"
 #include "issues\\issues.h"
 
+namespace modifiers {
+	struct national_focus;
+}
+
 namespace nations {
 	struct state_instance;
 
@@ -61,6 +65,7 @@ namespace nations {
 		set_tag<region_state_pair> member_states;
 		set_tag<influence> gp_influence;
 		set_tag<relationship> relations;
+		set_tag<state_tag> national_focus_locations;
 		set_tag<variables::national_flag_tag> national_flags;
 		multiset_tag<modifiers::national_modifier_tag> static_modifiers;
 		array_tag<timed_national_modifier> timed_modifiers;
@@ -100,8 +105,12 @@ namespace nations {
 
 	struct state_instance {
 		economy::factory_instance factories[8] = {};
-		nation* owner;
+		nation* owner = nullptr;
+		modifiers::national_focus* owner_national_focus = nullptr;
+
 		atomic_tag<date_tag> last_update;
+		set_tag<country_tag> flashpoint_tension_focuses;
+		float administrative_efficiency = 0.0f;
 
 		cultures::culture_tag dominant_culture;
 
@@ -137,6 +146,7 @@ namespace nations {
 		stable_variable_vector_storage_mk_2<region_state_pair, 2, 8192> state_arrays;
 		stable_variable_vector_storage_mk_2<influence, 2, 8192> influence_arrays;
 		stable_variable_vector_storage_mk_2<country_tag, 4, 8192> nations_arrays;
+		stable_variable_vector_storage_mk_2<state_tag, 4, 8192> state_tag_arrays;
 		stable_variable_vector_storage_mk_2<relationship, 4, 8192> relations_arrays;
 
 		stable_2d_vector<int32_t, state_tag, population::demo_tag, 512, 16> state_demographics;

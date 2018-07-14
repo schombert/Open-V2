@@ -105,17 +105,14 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::expires_on] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "EXPIRES_ON");
 		s.fixed_ui_text[fixed_ui::slave_state] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PW_SLAVE_STATE");
 
-		/*
-		constexpr uint32_t colonial_province = 2ui32;
-		constexpr uint32_t protectorate_province = 3ui32;
-		constexpr uint32_t colonial_province_can_upgrade = 4ui32;
-		constexpr uint32_t protectorate_province_can_upgrade = 5ui32;
-		constexpr uint32_t colonial_province_cant_upgrade = 6ui32;
-		constexpr uint32_t protectorate_province_cant_upgrade = 7ui32;
-		*/
 		s.fixed_ui_text[fixed_ui::colonial_province] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PW_COLONY");
 		s.fixed_ui_text[fixed_ui::protectorate_province] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PW_PROTECTORATE");
 		s.fixed_ui_text[fixed_ui::colonial_province_upgrade] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PW_COLONY_STATE");
 		s.fixed_ui_text[fixed_ui::protectorate_province_upgrade] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PW_UPGRADE_TO_COLONY");
+
+		s.fixed_ui_text[fixed_ui::province_view_admin] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROVINCEVIEW_ADMIN");
+		s.fixed_ui_text[fixed_ui::province_view_admin_base] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROVINCEVIEW_ADMIN_BASE");
+		s.fixed_ui_text[fixed_ui::province_view_admin_tech] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROVINCEVIEW_ADMIN_TECH");
+		s.fixed_ui_text[fixed_ui::province_view_admin_pops] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROVINCEVIEW_ADMIN_POPS");
 	}
 }

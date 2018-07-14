@@ -25,8 +25,12 @@ namespace scenario {
 		constexpr uint32_t protectorate_province = 3ui32;
 		constexpr uint32_t colonial_province_upgrade = 4ui32;
 		constexpr uint32_t protectorate_province_upgrade = 5ui32;
+		constexpr uint32_t province_view_admin = 6ui32;
+		constexpr uint32_t province_view_admin_base = 7ui32;
+		constexpr uint32_t province_view_admin_tech = 8ui32;
+		constexpr uint32_t province_view_admin_pops = 9ui32;
 
-		constexpr uint32_t count = 6ui32;
+		constexpr uint32_t count = 10ui32;
 	}
 
 	class scenario_manager {

@@ -204,15 +204,49 @@ namespace ui {
 				p->position.x += indent;
 			current_line.clear();
 		} else {
-			int32_t total_element_width = 0;
+			int32_t max_right = 0;
 			for(auto p : current_line)
-				total_element_width += p->size.x;
-			total_element_width += indent;
+				max_right = std::max(max_right, p->position.x + p->size.x);
+			int32_t total_element_width = indent + max_right;
 			const int32_t adjustment = (max_line_extent - total_element_width) /
 				(align == text_data::alignment::right ? 1 : 2);
 			for(auto p : current_line)
 				p->position.x += adjustment;
 
+			current_line.clear();
+		}
+	}
+
+	void text_box_line_manager::add_object(gui_object * o) {
+		current_line.push_back(o);
+	}
+
+	void text_box_line_manager::finish_current_line() {
+		if(align == text_data::alignment::left) {
+			for(auto p : current_line) {
+				p->position.x += border_x;
+				p->position.y += border_y;
+			}
+			current_line.clear();
+		} else if(align == text_data::alignment::right) {
+			int32_t total_element_width = 0;
+			for(auto p : current_line)
+				total_element_width = std::max(total_element_width, p->position.x + p->size.x);
+			const int32_t adjustment = (max_line_extent - total_element_width - border_x);
+			for(auto p : current_line) {
+				p->position.x += adjustment;
+				p->position.y += border_y;
+			}
+			current_line.clear();
+		} else { // center
+			int32_t total_element_width = 0;
+			for(auto p : current_line)
+				total_element_width = std::max(total_element_width, p->position.x + p->size.x);
+			const int32_t adjustment = (max_line_extent - total_element_width) / 2;
+			for(auto p : current_line) {
+				p->position.x += adjustment;
+				p->position.y += border_y;
+			}
 			current_line.clear();
 		}
 	}
@@ -364,6 +398,54 @@ void ui::detail::create_linear_text(gui_static& static_manager, gui_manager& man
 	add_linear_text(position, text_handle, fmt, static_manager, manager, container, ui::single_line_manager(), candidates, count);
 }
 
+namespace {
+	inline void make_masked_flag(ui::gui_static& static_manager, ui::gui_manager& manager, ui::tagged_gui_object container, graphics::object const& graphic_object_def) {
+		const graphics::texture_tag main_texture = graphic_object_def.primary_texture_handle;
+		const graphics::texture_tag mask_texture(graphic_object_def.type_dependant);
+
+		auto main_texture_ptr = &(static_manager.textures.retrieve_by_key(main_texture)); //overlay
+		auto mask_texture_ptr = &(static_manager.textures.retrieve_by_key(mask_texture));
+
+		main_texture_ptr->load_filedata();
+		auto main_height = main_texture_ptr->get_height();
+		auto main_width = main_texture_ptr->get_width();
+
+		mask_texture_ptr->load_filedata();
+		auto mask_height = mask_texture_ptr->get_height();
+		auto mask_width = mask_texture_ptr->get_width();
+
+		container.object.size.x = int16_t(std::max(main_width, mask_width));
+		container.object.size.y = int16_t(std::max(main_height, mask_height));
+
+		const auto flag_gobj = manager.gui_objects.emplace();
+		const auto overlay_gobj = manager.gui_objects.emplace();
+
+		ui::add_to_back(manager, container, overlay_gobj);
+		ui::add_to_back(manager, container, flag_gobj);
+
+		flag_gobj.object.size = ui::xy_pair{ int16_t(mask_width), int16_t(mask_height) };
+		flag_gobj.object.position = ui::xy_pair{int16_t((container.object.size.x - mask_width) / 2), int16_t((container.object.size.y - mask_height) / 2) };
+		overlay_gobj.object.size = ui::xy_pair{ int16_t(main_width), int16_t(main_height) };
+		overlay_gobj.object.position = ui::xy_pair{ int16_t((container.object.size.x - main_width) / 2), int16_t((container.object.size.y - main_height) / 2) };
+
+		const auto overlay_graphic = manager.graphics_instances.emplace();
+
+		overlay_graphic.object.frame = 0;
+		overlay_graphic.object.graphics_object = &graphic_object_def;
+		overlay_graphic.object.t = main_texture_ptr;
+
+		overlay_gobj.object.type_dependant_handle.store(to_index(overlay_graphic.id), std::memory_order_release);
+		overlay_gobj.object.flags.fetch_or(ui::gui_object::type_graphics_object, std::memory_order_acq_rel);
+
+		const auto flag_graphics = manager.multi_texture_instances.emplace();
+		flag_graphics.object.mask_or_primary = mask_texture_ptr;
+		flag_graphics.object.flag_or_secondary = nullptr;
+
+		flag_gobj.object.type_dependant_handle.store(to_index(flag_graphics.id), std::memory_order_release);
+		flag_gobj.object.flags.fetch_or(ui::gui_object::type_masked_flag, std::memory_order_acq_rel);
+	}
+}
+
 void ui::detail::instantiate_graphical_object(gui_static& static_manager, ui::gui_manager& manager, ui::tagged_gui_object container, graphics::obj_definition_tag gtag, int32_t frame) {
 	auto& graphic_object_def = static_manager.graphics_object_definitions.definitions[gtag];
 
@@ -402,8 +484,7 @@ void ui::detail::instantiate_graphical_object(gui_static& static_manager, ui::gu
 			//TODO
 			break;
 		case graphics::object_type::flag_mask:
-			container.object.flags.fetch_or(ui::gui_object::type_masked_flag, std::memory_order_acq_rel);
-			//TODO
+			make_masked_flag(static_manager, manager, container, graphic_object_def);
 			break;
 		case graphics::object_type::barchart:
 			if (is_valid_index(graphic_object_def.primary_texture_handle) & is_valid_index(graphics::texture_tag(graphic_object_def.type_dependant))) {
@@ -411,14 +492,13 @@ void ui::detail::instantiate_graphical_object(gui_static& static_manager, ui::gu
 
 				const auto flag_graphic = manager.multi_texture_instances.emplace();
 
-				flag_graphic.object.flag = nullptr;
 				flag_graphic.object.mask_or_primary = &(static_manager.textures.retrieve_by_key(graphic_object_def.primary_texture_handle));
-				flag_graphic.object.overlay_or_secondary = &(static_manager.textures.retrieve_by_key(graphics::texture_tag(graphic_object_def.type_dependant)));
+				flag_graphic.object.flag_or_secondary = &(static_manager.textures.retrieve_by_key(graphics::texture_tag(graphic_object_def.type_dependant)));
 
 				if (((int32_t)container.object.size.y | (int32_t)container.object.size.x) == 0) {
-					flag_graphic.object.overlay_or_secondary->load_filedata();
-					container.object.size.y = static_cast<int16_t>(flag_graphic.object.overlay_or_secondary->get_height());
-					container.object.size.x = static_cast<int16_t>(flag_graphic.object.overlay_or_secondary->get_width());
+					flag_graphic.object.flag_or_secondary->load_filedata();
+					container.object.size.y = static_cast<int16_t>(flag_graphic.object.flag_or_secondary->get_height());
+					container.object.size.x = static_cast<int16_t>(flag_graphic.object.flag_or_secondary->get_width());
 				}
 
 				container.object.type_dependant_handle.store(to_index(flag_graphic.id), std::memory_order_release);
@@ -595,9 +675,8 @@ void ui::detail::render_object_type(gui_static& static_manager, const gui_manage
 		{
 			auto m = manager.multi_texture_instances.safe_at(multi_texture_instance_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
 			if (m) {
-				const auto flag = m->flag;
 				const auto mask = m->mask_or_primary;
-				const auto overlay = m->overlay_or_secondary;
+				const auto flag = m->flag_or_secondary;
 				if (flag && mask) {
 					ogl.render_masked_rect(
 						currently_enabled,
@@ -609,16 +688,6 @@ void ui::detail::render_object_type(gui_static& static_manager, const gui_manage
 						*mask,
 						current_rotation);
 				}
-				if (overlay) {
-					ogl.render_textured_rect(
-						currently_enabled,
-						position.effective_position_x,
-						position.effective_position_y,
-						position.effective_width,
-						position.effective_height,
-						*overlay,
-						current_rotation);
-				}
 			}
 			break;
 		}
@@ -627,7 +696,7 @@ void ui::detail::render_object_type(gui_static& static_manager, const gui_manage
 			auto m = manager.multi_texture_instances.safe_at(multi_texture_instance_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
 			if (m) {
 				const auto primary = m->mask_or_primary;
-				const auto secondary = m->overlay_or_secondary;
+				const auto secondary = m->flag_or_secondary;
 				if (primary && secondary) {
 					ogl.render_progress_bar(
 						currently_enabled,

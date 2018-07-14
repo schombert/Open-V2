@@ -64,9 +64,8 @@ namespace ui {
 		int32_t frame = 0;
 	};
 	struct multi_texture_instance {
-		graphics::texture* flag = nullptr;
 		graphics::texture* mask_or_primary = nullptr;
-		graphics::texture* overlay_or_secondary = nullptr;
+		graphics::texture* flag_or_secondary = nullptr;
 		float progress = 0.0f;
 	};
 
@@ -176,6 +175,34 @@ namespace ui {
 	};
 
 	template<typename BASE>
+	class masked_flag : public visible_region, public BASE {
+	private:
+		cultures::national_tag displayed_flag;
+		multi_texture_instance* underlying_obj = nullptr;
+	public:
+		virtual_key shortcut = virtual_key::NONE;
+		
+		masked_flag(masked_flag&&) = default;
+		masked_flag(masked_flag& o) noexcept : masked_flag(std::move(o)) {}
+		template<typename ...P>
+		explicit masked_flag(P&& ... params) : BASE(std::forward<P>(params)...) {}
+
+		void set_visibility(gui_manager&, bool visible);
+		void set_enabled(bool enabled);
+		void set_displayed_flag(world_state& ws, cultures::national_tag t);
+		cultures::national_tag get_displayed_flag();
+		void set_underlying_object(multi_texture_instance* o);
+
+		virtual bool on_lclick(gui_object_tag o, world_state& m, const lbutton_down&) final override;
+		virtual bool on_keydown(gui_object_tag o, world_state& m, const key_down& k) final override;
+		virtual void update_data(gui_object_tag, world_state&) final override;
+		template<typename window_type>
+		void windowed_update(window_type& w, world_state& s);
+		virtual tooltip_behavior has_tooltip(gui_object_tag, world_state&, const mouse_move&) final override;
+		virtual void create_tooltip(gui_object_tag, world_state&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
+	};
+
+	template<typename BASE>
 	class dynamic_icon : public visible_region, public BASE {
 	public:
 		dynamic_icon(dynamic_icon&&) = default;
@@ -193,13 +220,16 @@ namespace ui {
 		virtual void create_tooltip(gui_object_tag, world_state&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
 	};
 
-	template<typename BASE>
+	template<typename BASE, int32_t y_adjust = 0>
 	class display_text : public visible_region, public BASE {
 	private:
 		text_format format;
 		text_data::alignment align;
 		gui_object_tag self;
 	public:
+		int32_t border_x = 0;
+		int32_t border_y = 0;
+
 		display_text(display_text&&) = default;
 		display_text(display_text& o) noexcept : display_text(std::move(o)) {}
 		template<typename ...P>
@@ -494,11 +524,13 @@ namespace ui {
 	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, button_tag handle, tagged_gui_object parent, simple_button<B>& b);
 	template<typename B>
+	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, masked_flag<B>& b);
+	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, scrollbar_tag handle, tagged_gui_object parent, scrollbar<B>& b);
 	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, piechart<B>& b);
-	template<typename B>
-	ui::tagged_gui_object create_static_element(world_state& ws, ui::text_tag handle, tagged_gui_object parent, display_text<B>& b);
+	template<typename B, int32_t y_adjust>
+	ui::tagged_gui_object create_static_element(world_state& ws, ui::text_tag handle, tagged_gui_object parent, display_text<B, y_adjust>& b);
 	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, dynamic_icon<B>& b);
 	template<typename ... REST>
@@ -542,6 +574,20 @@ namespace ui {
 		void finish_current_line();
 		void increase_indent(int32_t n);
 		void decrease_indent(int32_t n);
+	};
+
+	class text_box_line_manager {
+	private:
+		boost::container::small_vector<gui_object*, 16, concurrent_allocator<gui_object*>> current_line;
+		const text_data::alignment align;
+		const int32_t max_line_extent;
+		const int32_t border_x = 0;
+		const int32_t border_y = 0;
+	public:
+		text_box_line_manager(text_data::alignment a, int32_t m, int32_t bx, int32_t by) : align(a), max_line_extent(m), border_x(bx), border_y(by) {}
+		bool exceeds_extent(int32_t) const { return false; }
+		void add_object(gui_object* o);
+		void finish_current_line();
 	};
 
 	class unlimited_line_manager {

@@ -35,6 +35,12 @@ public:
 			obj.named_national_modifiers_index.emplace(i_mod.name, i_mod.id);
 		for(auto const& i_mod : obj.provincial_modifiers)
 			obj.named_provincial_modifiers_index.emplace(i_mod.name, i_mod.id);
+		for(auto const& i_focus : obj.national_focuses) {
+			if(i_focus.flashpoint_tension > 0.0f) {
+				obj.flashpoint_tension_focus = i_focus.id;
+				break;
+			}
+		}
 	}
 
 	static void serialize_object(std::byte* &output, modifiers::modifiers_manager const& obj) {

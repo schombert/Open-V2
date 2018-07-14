@@ -85,6 +85,18 @@ namespace provinces {
 		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
+	class admin_icon {
+	public:
+		void update(ui::dynamic_icon<admin_icon>& ico, world_state& ws);
+		bool has_tooltip(world_state&);
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class admin_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
 	class slave_state_icon {
 	public:
 		template<typename window_type>
@@ -108,10 +120,11 @@ namespace provinces {
 		province_name(PARAMS&&...) {}
 
 		template<typename window_type>
-		void windowed_update(window_type& w, ui::tagged_gui_object obj, text_data::alignment align, ui::text_format& fmt, world_state& ws) {
+		void windowed_update(window_type& w, ui::tagged_gui_object obj, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 			auto selected = ws.w.province_window.selected_province;
 			if(is_valid_index(selected))
-				ui::detail::create_linear_text(ws.s.gui_m, ws.w.gui_m, obj, ws.w.province_s.province_state_container[selected].name, align, fmt, nullptr, 0ui32);
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.province_s.province_state_container[selected].name, fmt, ws.s.gui_m, ws.w.gui_m, obj, lm);
+			lm.finish_current_line();
 		}
 	};
 
@@ -121,10 +134,11 @@ namespace provinces {
 		province_state_name(PARAMS&&...) {}
 
 		template<typename window_type>
-		void windowed_update(window_type& w, ui::tagged_gui_object obj, text_data::alignment align, ui::text_format& fmt, world_state& ws) {
+		void windowed_update(window_type& w, ui::tagged_gui_object obj, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 			auto selected = ws.w.province_window.selected_province;
 			if(is_valid_index(selected) && is_valid_index(ws.s.province_m.province_container[selected].state_id))
-				ui::detail::create_linear_text(ws.s.gui_m, ws.w.gui_m, obj, ws.s.province_m.state_names[ws.s.province_m.province_container[selected].state_id], align, fmt, nullptr, 0ui32);
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.province_m.state_names[ws.s.province_m.province_container[selected].state_id], fmt, ws.s.gui_m, ws.w.gui_m, obj, lm);
+			lm.finish_current_line();
 		}
 	};
 
@@ -145,6 +159,8 @@ namespace provinces {
 		CT_STRING("province_modifiers"), ui::overlap_box<modifier_lb, ui::window_tag, modifier_item>,
 		CT_STRING("slave_state_icon"), ui::dynamic_icon<slave_state_icon>,
 		CT_STRING("colony_button"), ui::simple_button<colony_button>,
+		CT_STRING("admin_icon"), ui::dynamic_icon<admin_icon>,
+		CT_STRING("admin_efficiency"), ui::display_text<admin_text_box, -4>,
 		province_window_header_base>;
 
 	class province_window_base : public ui::fixed_region {

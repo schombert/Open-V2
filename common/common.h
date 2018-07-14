@@ -581,14 +581,16 @@ inline char16_t* _u16itoa(uint32_t i, char16_t* buffer) {
 	}
 }
 
-inline void u16itoa(int32_t i, char16_t* buffer) {
+inline char16_t* u16itoa(int32_t i, char16_t* buffer) {
 	if (i < 0) {
 		buffer[0] = u'-';
 		const auto res = _u16itoa(uint32_t(-i), buffer + 1);
-		res[0] = 0;
+		*res = char16_t(0);
+		return res;
 	} else {
 		const auto res = _u16itoa(uint32_t(i), buffer);
-		res[0] = 0;
+		*res = char16_t(0);
+		return res;
 	}
 }
 
