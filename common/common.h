@@ -614,6 +614,117 @@ inline int64_t u16atoi(char16_t const* start, char16_t const* end) {
 		return u16atoui(start, end);
 }
 
+enum class display_type : uint8_t {
+	integer,
+	fp_two_places,
+	fp_three_places,
+	percent,
+	netural_integer,
+	netural_percent
+};
+
+template<typename value_type>
+value_type wrapped_modf(value_type value_in, value_type* int_out) {
+	if constexpr(std::is_same_v<value_type, float> || std::is_same_v<value_type, double>)
+		return modf(value_in, int_out);
+	else {
+		*int_out = value_in;
+		return value_type(0);
+	}
+}
+
+template<typename value_type>
+inline char16_t* put_pos_value_in_buffer(char16_t* dest, display_type display_as, value_type value) {
+	switch(display_as) {
+		case display_type::netural_percent:
+		case display_type::percent:
+		{
+			uint32_t int_value = uint32_t(value_type(100.0) * value);
+			auto value_end = _u16itoa(int_value, dest);
+			*value_end = u'%';
+			*(value_end + 1) = char16_t(0);
+			return value_end + 1;
+		}
+		case display_type::integer:
+		case display_type::netural_integer:
+		{
+			uint32_t int_value = uint32_t(value);
+			auto value_end = _u16itoa(int_value, dest);
+			*value_end = char16_t(0);
+			return value_end;
+		}
+		case display_type::fp_two_places:
+		{
+			value_type integer_part = value_type(0);
+			value_type fractional_part = wrapped_modf(value, &integer_part);
+
+			uint32_t int_value = uint32_t(integer_part);
+			auto value_end = _u16itoa(int_value, dest);
+			*value_end = u'.';
+
+			uint32_t f_value = uint32_t(fractional_part * value_type(100));
+			if(f_value == 0ui32) {
+				*(value_end + 1) = u'0';
+				*(value_end + 2) = u'0';
+				*(value_end + 3) = char16_t(0);
+				return value_end + 3;
+			} else if(f_value < 10ui32) {
+				*(value_end + 1) = u'0';
+				auto new_value_end = _u16itoa(f_value, value_end + 2);
+				*new_value_end = char16_t(0);
+				return new_value_end;
+			} else {
+				auto new_value_end = _u16itoa(f_value, value_end + 1);
+				*new_value_end = char16_t(0);
+				return new_value_end;
+			}
+		}
+		case display_type::fp_three_places:
+		{
+			value_type integer_part = value_type(0);
+			value_type fractional_part = wrapped_modf(value, &integer_part);
+
+			uint32_t int_value = uint32_t(integer_part);
+			auto value_end = _u16itoa(int_value, dest);
+			*value_end = u'.';
+
+			uint32_t f_value = uint32_t(fractional_part * value_type(1000));
+			if(f_value == 0ui32) {
+				*(value_end + 1) = u'0';
+				*(value_end + 2) = u'0';
+				*(value_end + 3) = u'0';
+				*(value_end + 4) = char16_t(0);
+				return value_end + 4;
+			} else if(f_value < 10ui32) {
+				*(value_end + 1) = u'0';
+				*(value_end + 2) = u'0';
+				auto new_value_end = _u16itoa(f_value, value_end + 3);
+				*new_value_end = char16_t(0);
+				return new_value_end;
+			} else if(f_value < 100ui32) {
+				*(value_end + 1) = u'0';
+				auto new_value_end = _u16itoa(f_value, value_end + 2);
+				*new_value_end = char16_t(0);
+				return new_value_end;
+			} else {
+				auto new_value_end = _u16itoa(f_value, value_end + 1);
+				*new_value_end = char16_t(0);
+				return new_value_end;
+			}
+		}
+	}
+}
+
+template<typename value_type>
+inline char16_t* put_value_in_buffer(char16_t* dest, display_type display_as, value_type value) {
+	if(value < value_type(0)) {
+		*dest = u'-';
+		return put_pos_value_in_buffer(dest + 1, display_as, -value);
+	} else {
+		return put_pos_value_in_buffer(dest, display_as, value);
+	}
+}
+
 inline std::pair<char*, bool> bom_test(char* buffer, size_t buffer_size) {
 	const bool is_utf8 = buffer_size >= 3 && (((uint8_t)buffer[0] == 0xEF) & ((uint8_t)buffer[1] == 0xBB) & ((uint8_t)buffer[2] == 0xBF));
 	if (is_utf8)

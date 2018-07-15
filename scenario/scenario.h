@@ -29,8 +29,12 @@ namespace scenario {
 		constexpr uint32_t province_view_admin_base = 7ui32;
 		constexpr uint32_t province_view_admin_tech = 8ui32;
 		constexpr uint32_t province_view_admin_pops = 9ui32;
+		constexpr uint32_t controller = 10ui32;
+		constexpr uint32_t flashpoint_tension = 11ui32;
+		constexpr uint32_t has_no_flashpoint = 12ui32;
+		constexpr uint32_t province_liferating = 13ui32;
 
-		constexpr uint32_t count = 10ui32;
+		constexpr uint32_t count = 14ui32;
 	}
 
 	class scenario_manager {

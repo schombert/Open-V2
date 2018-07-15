@@ -476,12 +476,30 @@ void ui::detail::instantiate_graphical_object(gui_static& static_manager, ui::gu
 			}
 			break;
 		case graphics::object_type::horizontal_progress_bar:
+		{
+			const graphics::texture_tag primary_texture = graphic_object_def.primary_texture_handle;
+			const graphics::texture_tag secondary_texture(graphic_object_def.type_dependant);
+
+			const auto bar_graphics = manager.multi_texture_instances.emplace();
+			bar_graphics.object.mask_or_primary = &(static_manager.textures.retrieve_by_key(primary_texture));
+			bar_graphics.object.flag_or_secondary = &(static_manager.textures.retrieve_by_key(secondary_texture));
+
+			container.object.type_dependant_handle.store(to_index(bar_graphics.id), std::memory_order_release);
 			container.object.flags.fetch_or(ui::gui_object::type_progress_bar, std::memory_order_acq_rel);
-			//TODO
+		}
 			break;
 		case graphics::object_type::vertical_progress_bar:
+		{
+			const graphics::texture_tag primary_texture = graphic_object_def.primary_texture_handle;
+			const graphics::texture_tag secondary_texture(graphic_object_def.type_dependant);
+
+			const auto bar_graphics = manager.multi_texture_instances.emplace();
+			bar_graphics.object.mask_or_primary = &(static_manager.textures.retrieve_by_key(primary_texture));
+			bar_graphics.object.flag_or_secondary = &(static_manager.textures.retrieve_by_key(secondary_texture));
+
+			container.object.type_dependant_handle.store(to_index(bar_graphics.id), std::memory_order_release);
 			container.object.flags.fetch_or(ui::gui_object::type_progress_bar | ui::gui_object::rotation_left, std::memory_order_acq_rel);
-			//TODO
+		}
 			break;
 		case graphics::object_type::flag_mask:
 			make_masked_flag(static_manager, manager, container, graphic_object_def);
@@ -1025,6 +1043,7 @@ bool ui::gui_manager::on_mouse_move(world_state& static_manager, const mouse_mov
 					static_manager.w.gui_m.tooltip_window.position.y -= static_manager.w.gui_m.tooltip_window.size.y;
 				static_manager.w.gui_m.tooltip_window.position.x += obj.object.size.x / 2;
 				static_manager.w.gui_m.tooltip_window.position.x -= static_manager.w.gui_m.tooltip_window.size.x / 2;
+				static_manager.w.gui_m.tooltip_window.position.x = std::max(static_manager.w.gui_m.tooltip_window.position.x, 0i16);
 
 				static_manager.w.gui_m.tooltip_window.flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
 			}

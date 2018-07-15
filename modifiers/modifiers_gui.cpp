@@ -2,12 +2,7 @@
 #include "modifiers_gui.h"
 #include "world_state\\world_state.h"
 namespace modifiers {
-	enum class display_type : uint8_t {
-		integer,
-		fp_two_places,
-		fp_three_places,
-		percent
-	};
+	
 	struct modifier_display_details {
 		bool positive_is_green = true;
 		display_type display_as = display_type::percent;
@@ -170,66 +165,7 @@ namespace modifiers {
 		modifier_display_details{ true, display_type::percent }, // culture_tech_research_bonus 101
 	};
 
-	inline void put_pos_value_in_buffer(char16_t* dest, display_type display_as, value_type value) {
-		if(display_as == display_type::percent) {
-			uint32_t int_value = uint32_t(value_type(100.0) * value);
-			auto value_end = _u16itoa(int_value, dest);
-			*value_end = u'%';
-			*(value_end + 1) = char16_t(0);
-		} else if(display_as == display_type::integer) {
-			uint32_t int_value = uint32_t(value);
-			auto value_end = _u16itoa(int_value, dest);
-			*value_end = char16_t(0);
-		} else if(display_as == display_type::fp_two_places) {
-			value_type integer_part = value_type(0);
-			value_type fractional_part = modf(value, &integer_part);
-
-			uint32_t int_value = uint32_t(integer_part);
-			auto value_end = _u16itoa(int_value, dest);
-			*value_end = u'.';
-
-			uint32_t f_value = uint32_t(fractional_part * value_type(100));
-			if(f_value == 0ui32) {
-				*(value_end + 1) = u'0';
-				*(value_end + 2) = u'0';
-				*(value_end + 3) = char16_t(0);
-			} else if(f_value < 10ui32) {
-				*(value_end + 1) = u'0';
-				auto new_value_end = _u16itoa(f_value, value_end + 2);
-				*new_value_end = char16_t(0);
-			} else {
-				auto new_value_end = _u16itoa(f_value, value_end + 1);
-				*new_value_end = char16_t(0);
-			}
-		} else if(display_as == display_type::fp_three_places) {
-			value_type integer_part = value_type(0);
-			value_type fractional_part = modf(value, &integer_part);
-
-			uint32_t int_value = uint32_t(integer_part);
-			auto value_end = _u16itoa(int_value, dest);
-			*value_end = u'.';
-
-			uint32_t f_value = uint32_t(fractional_part * value_type(1000));
-			if(f_value == 0ui32) {
-				*(value_end + 1) = u'0';
-				*(value_end + 2) = u'0';
-				*(value_end + 3) = u'0';
-				*(value_end + 4) = char16_t(0);
-			} else if(f_value < 10ui32) {
-				*(value_end + 1) = u'0';
-				*(value_end + 2) = u'0';
-				auto new_value_end = _u16itoa(f_value, value_end + 3);
-				*new_value_end = char16_t(0);
-			} else if(f_value < 100ui32) {
-				*(value_end + 1) = u'0';
-				auto new_value_end = _u16itoa(f_value, value_end + 2);
-				*new_value_end = char16_t(0);
-			} else {
-				auto new_value_end = _u16itoa(f_value, value_end + 1);
-				*new_value_end = char16_t(0);
-			}
-		}
-	}
+	
 	
 	ui::xy_pair make_province_modifier_text_body(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, value_type* values) {
 		char16_t local_buf[64];

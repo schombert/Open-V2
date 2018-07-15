@@ -175,6 +175,28 @@ namespace ui {
 	};
 
 	template<typename BASE>
+	class progress_bar : public visible_region, public BASE {
+	private:
+		multi_texture_instance* underlying_obj = nullptr;
+	public:
+		progress_bar(progress_bar&&) = default;
+		progress_bar(progress_bar& o) noexcept : progress_bar(std::move(o)) {}
+		template<typename ...P>
+		explicit progress_bar(P&& ... params) : BASE(std::forward<P>(params)...) {}
+
+		void set_visibility(gui_manager&, bool visible);
+		void set_fraction(float fraction);
+		void get_fraction();
+		void set_underlying_obj(multi_texture_instance* o);
+
+		virtual void update_data(gui_object_tag, world_state&) final override;
+		template<typename window_type>
+		void windowed_update(window_type& w, world_state& s);
+		virtual tooltip_behavior has_tooltip(gui_object_tag, world_state&, const mouse_move&) final override;
+		virtual void create_tooltip(gui_object_tag, world_state&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
+	};
+
+	template<typename BASE>
 	class masked_flag : public visible_region, public BASE {
 	private:
 		cultures::national_tag displayed_flag;
@@ -521,6 +543,8 @@ namespace ui {
 	template<typename BEHAVIOR = ui::gui_behavior, typename T, typename ... PARAMS>
 	ui::tagged_gui_object create_dynamic_element(world_state& ws, T handle, tagged_gui_object parent, PARAMS&& ... params);
 
+	template<typename B>
+	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, progress_bar<B>& b);
 	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, button_tag handle, tagged_gui_object parent, simple_button<B>& b);
 	template<typename B>

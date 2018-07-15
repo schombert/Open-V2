@@ -9,7 +9,7 @@ bool ui::simple_button<BASE>::on_lclick(gui_object_tag o, world_state& m, const 
 }
 
 template<typename BASE>
-bool ui::masked_flag<BASE>::on_lclick(gui_object_tag o, world_state& m, const lbutton_down &) {
+bool ui::masked_flag<BASE>::on_lclick(gui_object_tag, world_state& m, const lbutton_down &) {
 	if constexpr(ui::detail::has_button_function<BASE, masked_flag<BASE>&, world_state&>)
 		BASE::button_function(*this, m);
 	return true;
@@ -27,7 +27,7 @@ bool ui::simple_button<BASE>::on_keydown(gui_object_tag o, world_state & m, cons
 }
 
 template<typename BASE>
-bool ui::masked_flag<BASE>::on_keydown(gui_object_tag o, world_state & m, const key_down & k) {
+bool ui::masked_flag<BASE>::on_keydown(gui_object_tag, world_state & m, const key_down & k) {
 	if(k.keycode == shortcut) {
 		if constexpr(ui::detail::has_button_function<BASE, masked_flag<BASE>&, world_state&>)
 			BASE::button_function(*this, m);
@@ -90,7 +90,7 @@ void ui::simple_button<BASE>::create_tooltip(gui_object_tag o, world_state& ws, 
 }
 
 template<typename BASE>
-void ui::masked_flag<BASE>::create_tooltip(gui_object_tag o, world_state& ws, const mouse_move&, tagged_gui_object tw) {
+void ui::masked_flag<BASE>::create_tooltip(gui_object_tag, world_state& ws, const mouse_move&, tagged_gui_object tw) {
 	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
 		BASE::create_tooltip(*this, ws, tw);
 }
@@ -103,7 +103,7 @@ void ui::simple_button<BASE>::set_frame(gui_manager& m, uint32_t frame_num) {
 }
 
 template<typename BASE>
-void ui::masked_flag<BASE>::set_visibility(gui_manager&, bool visible) {
+void ui::masked_flag<BASE>::set_visibility(gui_manager& m, bool visible) {
 	if(visible)
 		ui::make_visible_and_update(m, *associated_object);
 	else
@@ -159,15 +159,15 @@ void ui::simple_button<BASE>::set_enabled(bool enabled) {
 }
 
 template<typename B>
-ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, ui::masked_flag<B>& b) {
+ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, ui::masked_flag<B>& b) {
 	auto new_obj = ui::detail::create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
 
 	new_obj.object.associated_behavior = &b;
 	b.associated_object = &new_obj.object;
 
-	ui::for_each_child(ws.w.gui_m, new_obj, [&b, &ws](ui::tagged_gui_obj child) {
-		if((child.obj.flags & ui::gui_object::type_mask) == ui::gui_object::type_masked_flag) {
-			b.set_underlying_object(ws.w.gui_m.multi_texture_instances.safe_at(ui::multi_texture_instance_tag(child.obj.type_dependant_handle.load(std::memory_order_acquire))));
+	ui::for_each_child(ws.w.gui_m, new_obj, [&b, &ws](ui::tagged_gui_object child) {
+		if((child.object.flags & ui::gui_object::type_mask) == ui::gui_object::type_masked_flag) {
+			b.set_underlying_object(ws.w.gui_m.multi_texture_instances.safe_at(ui::multi_texture_instance_tag(child.object.type_dependant_handle.load(std::memory_order_acquire))));
 		}
 	});
 

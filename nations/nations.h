@@ -111,6 +111,7 @@ namespace nations {
 		atomic_tag<date_tag> last_update;
 		set_tag<country_tag> flashpoint_tension_focuses;
 		float administrative_efficiency = 0.0f;
+		float current_tension = 0.0f;
 
 		cultures::culture_tag dominant_culture;
 

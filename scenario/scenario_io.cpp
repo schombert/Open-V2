@@ -109,10 +109,15 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::protectorate_province] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PW_PROTECTORATE");
 		s.fixed_ui_text[fixed_ui::colonial_province_upgrade] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PW_COLONY_STATE");
 		s.fixed_ui_text[fixed_ui::protectorate_province_upgrade] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PW_UPGRADE_TO_COLONY");
-
 		s.fixed_ui_text[fixed_ui::province_view_admin] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROVINCEVIEW_ADMIN");
 		s.fixed_ui_text[fixed_ui::province_view_admin_base] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROVINCEVIEW_ADMIN_BASE");
 		s.fixed_ui_text[fixed_ui::province_view_admin_tech] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROVINCEVIEW_ADMIN_TECH");
 		s.fixed_ui_text[fixed_ui::province_view_admin_pops] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROVINCEVIEW_ADMIN_POPS");
+		s.fixed_ui_text[fixed_ui::controller] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PV_CONTROLLER");
+
+		s.fixed_ui_text[fixed_ui::flashpoint_tension] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "FLASHPOINT_TENSION");
+		s.fixed_ui_text[fixed_ui::has_no_flashpoint] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "HAS_NO_FLASHPOINT");
+		s.fixed_ui_text[fixed_ui::province_liferating] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROVINCEVIEW_LIFERATING");
+
 	}
 }

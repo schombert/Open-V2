@@ -201,4 +201,61 @@ namespace provinces {
 	ui::window_tag modifier_lb::element_tag(ui::gui_static & m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["prov_state_modifier"]);
 	}
+
+	void province_controller_flag::button_function(ui::masked_flag<province_controller_flag>&, world_state&) {}
+	void province_controller_flag::create_tooltip(ui::masked_flag<province_controller_flag>&, world_state& ws, ui::tagged_gui_object tw) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			auto controller = ws.w.province_s.province_state_container[selected_prov].controller;
+			if(controller) {
+				ui::unlimited_line_manager lm;
+				ui::xy_pair cursor{ 0,0 };
+
+				cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::controller], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+				cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+				cursor = ui::add_linear_text(cursor, controller->name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			}
+		}
+	}
+
+	void liferating_bar::update(ui::progress_bar<liferating_bar>& self, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			self.set_fraction(float(ws.w.province_s.province_state_container[selected_prov].life_rating) / 50.0f);
+		}
+	}
+
+	void flashpoint_icon::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			auto state = ws.w.province_s.province_state_container[selected_prov].state_instance;
+			if(state && is_valid_index(state->crisis_tag)) {
+				ui::unlimited_line_manager lm;
+				char16_t formatted_value[64];
+				ui::xy_pair cursor{ 0,0 };
+
+				put_value_in_buffer(formatted_value, display_type::fp_two_places, state->current_tension);
+
+				text_data::replacement value_rep(text_data::value_type::value, vector_backed_string<char16_t>(formatted_value), [](tagged_object<ui::gui_object, ui::gui_object_tag>) {});
+				ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::flashpoint_tension], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &value_rep, 1ui32);
+				return;
+			}
+		}
+
+		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::has_no_flashpoint], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+	}
+
+	void liferating_overlay::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			ui::unlimited_line_manager lm;
+			char16_t formatted_value[64];
+			ui::xy_pair cursor{ 0,0 };
+
+			put_value_in_buffer(formatted_value, display_type::integer, int32_t(ws.w.province_s.province_state_container[selected_prov].life_rating));
+
+			text_data::replacement value_rep(text_data::value_type::value, vector_backed_string<char16_t>(formatted_value), [](tagged_object<ui::gui_object, ui::gui_object_tag>) {});
+			ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::province_liferating], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &value_rep, 1ui32);
+		}
+	}
 }

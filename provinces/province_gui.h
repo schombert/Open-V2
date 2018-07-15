@@ -142,6 +142,26 @@ namespace provinces {
 		}
 	};
 
+	class province_controller_flag {
+	public:
+		void button_function(ui::masked_flag<province_controller_flag>&, world_state&);
+		template<typename W>
+		void windowed_update(ui::masked_flag<province_controller_flag>& self, W& w, world_state& ws) {
+			auto selected_prov = ws.w.province_window.selected_province;
+			if(is_valid_index(selected_prov)) {
+				auto controller = ws.w.province_s.province_state_container[selected_prov].controller;
+				if(controller) {
+					self.set_displayed_flag(ws, controller->tag);
+					ui::make_visible_immediate(*self.associated_object);
+					return;
+				}
+			}
+			self.set_visibility(ws.w.gui_m, false);
+		}
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(ui::masked_flag<province_controller_flag>& self, world_state& ws, ui::tagged_gui_object tw);
+	};
+
 	class province_window_header_base : public ui::gui_behavior {
 	public:
 		province_tag selected_province;
@@ -150,6 +170,23 @@ namespace provinces {
 		template<typename ...P>
 		explicit province_window_header_base(P&& ... params) {}
 		void on_create(world_state&);
+	};
+
+	class flashpoint_icon {
+	public:
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class liferating_bar {
+	public:
+		void update(ui::progress_bar<liferating_bar>& self, world_state& ws);
+	};
+
+	class liferating_overlay {
+	public:
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	using province_window_header = ui::gui_window<
@@ -161,6 +198,10 @@ namespace provinces {
 		CT_STRING("colony_button"), ui::simple_button<colony_button>,
 		CT_STRING("admin_icon"), ui::dynamic_icon<admin_icon>,
 		CT_STRING("admin_efficiency"), ui::display_text<admin_text_box, -4>,
+		CT_STRING("controller_flag"), ui::masked_flag<province_controller_flag>,
+		CT_STRING("flashpoint_indicator"), ui::dynamic_icon<flashpoint_icon>,
+		CT_STRING("liferating"), ui::progress_bar<liferating_bar>,
+		CT_STRING("liferating_overlay"), ui::dynamic_icon<liferating_overlay>,
 		province_window_header_base>;
 
 	class province_window_base : public ui::fixed_region {
