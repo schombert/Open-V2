@@ -84,7 +84,10 @@ namespace provinces {
 		const auto mxndt = population::middle_luxury_needs_demo_tag(ws);
 		const auto rxndt = population::rich_luxury_needs_demo_tag(ws);
 
-		for(auto& prov : ws.w.province_s.province_state_container) {
+		int32_t count_provs = int32_t(ws.w.province_s.province_state_container.size());
+		for(int32_t prov_index = count_provs - 1; prov_index > 0; --prov_index) {
+			auto& prov = ws.w.province_s.province_state_container[province_tag(uint16_t(prov_index))];
+
 			auto pop_range = get_range(ws.w.population_s.pop_arrays, prov.pops);
 
 			Eigen::Map<Eigen::Matrix<int32_t, -1, 1>, Eigen::AlignmentType::Aligned32> province_partial_demo(ws.w.province_s.province_demographics.get_row(prov.id), vector_size);
@@ -196,5 +199,9 @@ namespace provinces {
 				}
 			}
 		}
+	}
+
+	nations::country_tag get_province_seiger(world_state&, province_state&) {
+		return nations::country_tag();
 	}
 }

@@ -3,7 +3,7 @@
 
 namespace ui {
 	template<typename BASE>
-	void progress_bar<BASE>::set_visibility(gui_manager&, bool visible) {
+	void progress_bar<BASE>::set_visibility(gui_manager& m, bool visible) {
 		if(visible)
 			make_visible_and_update(m, *associated_object);
 		else

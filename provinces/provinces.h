@@ -27,6 +27,7 @@ namespace provinces {
 
 		atomic_tag<date_tag> last_update; // 36
 		float nationalism = 0.0f; // 40
+		float siege_progress = 0.0f;
 		date_tag last_controller_change;
 		date_tag last_immigration;
 
@@ -34,6 +35,7 @@ namespace provinces {
 		array_tag<population::pop_tag> pops;
 		set_tag<modifiers::provincial_modifier_tag> static_modifiers;
 		array_tag<timed_provincial_modifier> timed_modifiers;
+		//array of active plans involving this province
 
 		text_data::text_tag name;
 		modifiers::provincial_modifier_tag crime;

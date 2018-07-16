@@ -39,20 +39,7 @@ namespace provinces {
 	class modifier_lb {
 	public:
 		template<typename lb_type>
-		void populate_list(lb_type& lb, world_state& ws) {
-			auto selected = ws.w.province_window.selected_province;
-			if(is_valid_index(selected)) {
-				auto& pstate = ws.w.province_s.province_state_container[selected];
-				auto static_mod_range = get_range(ws.w.province_s.static_modifier_arrays, pstate.static_modifiers);
-				for(auto s = static_mod_range.first; s != static_mod_range.second; ++s) {
-					lb.add_item(ws, ws.s.modifiers_m.provincial_modifiers[*s].icon, *s, date_tag());
-				}
-				auto timed_mod_range = get_range(ws.w.province_s.timed_modifier_arrays, pstate.timed_modifiers);
-				for(auto s = timed_mod_range.first; s != timed_mod_range.second; ++s) {
-					lb.add_item(ws, ws.s.modifiers_m.provincial_modifiers[s->mod].icon, s->mod, s->expiration);
-				}
-			}
-		}
+		void populate_list(lb_type& lb, world_state& ws);
 		ui::window_tag element_tag(ui::gui_static& m);
 	};
 
@@ -118,46 +105,23 @@ namespace provinces {
 	public:
 		template<typename ...PARAMS>
 		province_name(PARAMS&&...) {}
-
 		template<typename window_type>
-		void windowed_update(window_type& w, ui::tagged_gui_object obj, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-			auto selected = ws.w.province_window.selected_province;
-			if(is_valid_index(selected))
-				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.province_s.province_state_container[selected].name, fmt, ws.s.gui_m, ws.w.gui_m, obj, lm);
-			lm.finish_current_line();
-		}
+		void windowed_update(window_type& w, ui::tagged_gui_object obj, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
 
 	class province_state_name {
 	public:
 		template<typename ...PARAMS>
 		province_state_name(PARAMS&&...) {}
-
 		template<typename window_type>
-		void windowed_update(window_type& w, ui::tagged_gui_object obj, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-			auto selected = ws.w.province_window.selected_province;
-			if(is_valid_index(selected) && is_valid_index(ws.s.province_m.province_container[selected].state_id))
-				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.province_m.state_names[ws.s.province_m.province_container[selected].state_id], fmt, ws.s.gui_m, ws.w.gui_m, obj, lm);
-			lm.finish_current_line();
-		}
+		void windowed_update(window_type& w, ui::tagged_gui_object obj, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
 
 	class province_controller_flag {
 	public:
 		void button_function(ui::masked_flag<province_controller_flag>&, world_state&);
 		template<typename W>
-		void windowed_update(ui::masked_flag<province_controller_flag>& self, W& w, world_state& ws) {
-			auto selected_prov = ws.w.province_window.selected_province;
-			if(is_valid_index(selected_prov)) {
-				auto controller = ws.w.province_s.province_state_container[selected_prov].controller;
-				if(controller) {
-					self.set_displayed_flag(ws, controller->tag);
-					ui::make_visible_immediate(*self.associated_object);
-					return;
-				}
-			}
-			self.set_visibility(ws.w.gui_m, false);
-		}
+		void windowed_update(ui::masked_flag<province_controller_flag>& self, W& w, world_state& ws);
 		bool has_tooltip(world_state&) { return true; }
 		void create_tooltip(ui::masked_flag<province_controller_flag>& self, world_state& ws, ui::tagged_gui_object tw);
 	};
@@ -189,6 +153,39 @@ namespace provinces {
 		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
+	class occupation_progress_bar {
+	public:
+		template<typename W>
+		void windowed_update(ui::progress_bar<occupation_progress_bar>& self, W& w, world_state& ws);
+	};
+
+	class occupation_icon {
+	public:
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<occupation_icon>&, window_type&, world_state&);
+	};
+
+	class occupation_flag {
+	public:
+		void button_function(ui::masked_flag<occupation_flag>&, world_state&);
+		template<typename W>
+		void windowed_update(ui::masked_flag<occupation_flag>& self, W& w, world_state& ws);
+	};
+
+	class owner_icon {
+	public:
+		void update(ui::dynamic_icon<owner_icon>& ico, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class owner_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
 	using province_window_header = ui::gui_window<
 		CT_STRING("prov_terrain"), ui::dynamic_icon<terrain_icon>,
 		CT_STRING("state_name"), ui::display_text<province_state_name>,
@@ -202,6 +199,11 @@ namespace provinces {
 		CT_STRING("flashpoint_indicator"), ui::dynamic_icon<flashpoint_icon>,
 		CT_STRING("liferating"), ui::progress_bar<liferating_bar>,
 		CT_STRING("liferating_overlay"), ui::dynamic_icon<liferating_overlay>,
+		CT_STRING("occupation_progress"), ui::progress_bar<occupation_progress_bar>,
+		CT_STRING("occupation_icon"), ui::dynamic_icon<occupation_icon>,
+		CT_STRING("occupation_flag"), ui::masked_flag<occupation_flag>,
+		CT_STRING("owner_icon"), ui::dynamic_icon<owner_icon>,
+		CT_STRING("owner_presence"), ui::display_text<owner_text_box, -4>,
 		province_window_header_base>;
 
 	class province_window_base : public ui::fixed_region {

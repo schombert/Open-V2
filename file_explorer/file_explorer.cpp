@@ -545,8 +545,12 @@ int main(int , char **) {
 	auto color_terrain_map = provinces::read_terrain_colors(ws.s.gui_m.text_data_sequences, ws.s.province_m, ws.s.modifiers_m, fs.get_root());
 	provinces::assign_terrain_color(ws.w.province_s, p_to_t_vector, color_terrain_map);
 	provinces::read_province_histories(ws, fs.get_root(), date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)));
+	population::read_all_pops(fs.get_root(), ws, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)));
 
 	scenario::ready_scenario(ws.s, fs.get_root());
+
+	provinces::update_province_demographics(ws);
+	nations::update_state_nation_demographics(ws);
 
 	provinces::add_province_modifier(
 		ws,

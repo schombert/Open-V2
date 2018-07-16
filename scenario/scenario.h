@@ -33,8 +33,10 @@ namespace scenario {
 		constexpr uint32_t flashpoint_tension = 11ui32;
 		constexpr uint32_t has_no_flashpoint = 12ui32;
 		constexpr uint32_t province_liferating = 13ui32;
+		constexpr uint32_t siege_progress = 14ui32;
+		constexpr uint32_t owner_presence = 15ui32;
 
-		constexpr uint32_t count = 14ui32;
+		constexpr uint32_t count = 16ui32;
 	}
 
 	class scenario_manager {

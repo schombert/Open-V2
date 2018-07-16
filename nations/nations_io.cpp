@@ -216,11 +216,15 @@ namespace nations {
 			for(auto j = pops_range.first; j < pops_range.second; ++j) {
 				auto& this_pop = ws.w.population_s.pops.get(*j);
 				if(population::is_pop_accepted(ws, this_pop, target_nation)) {
-					this_pop.literacy = npo.literacy ? static_cast<uint16_t>(*npo.literacy * float(std::numeric_limits<uint16_t>::max())) : 0ui16;
-					this_pop.consciousness = npo.consciousness ? static_cast<uint16_t>(*npo.consciousness * float(std::numeric_limits<uint16_t>::max() / 10.0f)) : 0ui16;
+					if(npo.literacy)
+						population::set_literacy_direct(this_pop, *npo.literacy);
+					if(npo.consciousness)
+						population::set_consciousness_direct(this_pop, *npo.consciousness);
 				} else {
-					this_pop.literacy = npo.non_state_culture_literacy ? static_cast<uint16_t>(*npo.non_state_culture_literacy * float(std::numeric_limits<uint16_t>::max())) : 0ui16;
-					this_pop.consciousness = npo.nonstate_consciousness ? static_cast<uint16_t>(*npo.nonstate_consciousness * float(std::numeric_limits<uint16_t>::max() / 10.0f)) : 0ui16;
+					if(npo.non_state_culture_literacy)
+						population::set_literacy_direct(this_pop, *npo.non_state_culture_literacy);
+					if(npo.nonstate_consciousness)
+						population::set_consciousness_direct(this_pop, *npo.nonstate_consciousness);
 				}
 			}
 		}

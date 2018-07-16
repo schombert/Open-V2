@@ -22,6 +22,7 @@ namespace population {
 		cultures::culture_tag culture;
 		cultures::religion_tag religion;
 		uint32_t size = 0ui32;
+		float militancy = 0.0f;
 
 		pop_reader(pops_in_province_environment& e) : env(e) {}
 
@@ -35,6 +36,7 @@ namespace population {
 				env.ws.s.culture_m.named_religion_index,
 				text_data::get_thread_safe_existing_text_handle(env.ws.s.gui_m.text_data_sequences, t.start, t.end));
 		}
+		void discard(int) {}
 	};
 
 	inline std::pair<token_and_type, pop_reader> read_pop(token_and_type const& l, association_type, pop_reader const& r) {
@@ -54,6 +56,7 @@ namespace population {
 			new_pop.religion = p.second.religion;
 			new_pop.type = pop_type;
 			new_pop.size = int32_t(p.second.size);
+			set_militancy_direct(new_pop, p.second.militancy);
 			new_pop.location = env.prov;
 			
 			init_pop_demographics(env.ws, new_pop);
@@ -673,6 +676,8 @@ namespace population {
 MEMBER_DEF(population::pop_reader, size, "size");
 MEMBER_FDEF(population::pop_reader, set_religion, "religion");
 MEMBER_FDEF(population::pop_reader, set_culture, "culture");
+MEMBER_DEF(population::pop_reader, militancy, "militancy");
+MEMBER_FDEF(population::pop_reader, discard, "discard");
 MEMBER_FDEF(population::pops_in_province_reader, add_pop, "add_pop");
 MEMBER_FDEF(population::pop_file_reader, discard, "discard");
 
@@ -746,8 +751,10 @@ namespace population {
 	BEGIN_DOMAIN(pop_parsing_domain)
 		BEGIN_TYPE(pop_reader)
 		MEMBER_ASSOCIATION("size", "size", value_from_rh<uint32_t>)
+		MEMBER_ASSOCIATION("militancy", "militancy", value_from_rh<float>)
 		MEMBER_ASSOCIATION("religion", "religion", token_from_rh)
 		MEMBER_ASSOCIATION("culture", "culture", token_from_rh)
+		MEMBER_ASSOCIATION("discard", "rebel_type", discard_from_rh)
 		END_TYPE
 		BEGIN_TYPE(pops_in_province_reader)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("add_pop", accept_all, pop_reader, read_pop)

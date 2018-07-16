@@ -11,4 +11,5 @@ namespace provinces {
 	void update_province_demographics(world_state& ws);
 	void add_province_modifier(world_state& ws, province_state& p, modifiers::provincial_modifier_tag t);
 	void add_timed_province_modifier(world_state& ws, province_state& p, modifiers::provincial_modifier_tag t, date_tag d);
+	nations::country_tag get_province_seiger(world_state& ws, province_state& p);
 }

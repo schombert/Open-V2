@@ -176,11 +176,11 @@ namespace population {
 
 	class population_state {
 	public:
-		stable_vector<rebel_faction, rebel_faction_tag, 2056, 16> rebel_factions;
-		stable_vector<pop_movement, movement_tag, 2056, 16> pop_movements;
+		stable_vector<rebel_faction, rebel_faction_tag, 2048, 16> rebel_factions;
+		stable_vector<pop_movement, movement_tag, 2048, 16> pop_movements;
 
-		stable_vector<pop, pop_tag, 2056, 256> pops;
-		stable_2d_vector<int32_t, pop_tag, demo_tag, 2056, 256> pop_demographics;
+		stable_vector<pop, pop_tag, 2048, 256> pops;
+		stable_2d_vector<int32_t, pop_tag, demo_tag, 2048, 256> pop_demographics;
 
 		stable_variable_vector_storage_mk_2<pop_tag, 8, 65536> pop_arrays;
 	};

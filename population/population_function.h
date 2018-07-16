@@ -14,4 +14,7 @@ namespace population {
 	void init_pop_demographics(world_state& ws, pop& p);
 	bool is_pop_accepted(world_state& ws, pop& p, nations::nation& n);
 	pop* get_unassigned_soldier_in_province(world_state& ws, provinces::province_tag prov);
+	void set_militancy_direct(pop &p, float v);
+	void set_literacy_direct(pop &p, float v);
+	void set_consciousness_direct(pop &p, float v);
 }

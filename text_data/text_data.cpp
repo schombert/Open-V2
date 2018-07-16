@@ -611,4 +611,18 @@ namespace text_data {
 
 		return result;
 	}
+
+	vector_backed_string<char16_t> text_tag_to_backing(const text_sequences& container, text_data::text_tag tag) {
+		const auto& components = container.all_sequences[tag];
+
+		if(components.component_count == 0)
+			return vector_backed_string<char16_t>();
+
+		const auto components_start = container.all_components.data() + components.starting_component;
+
+		if(std::holds_alternative<text_chunk>(*components_start))
+			return vector_backed_string<char16_t>(std::get<text_chunk>(*components_start));
+		else
+			return vector_backed_string<char16_t>();
+	}
 }

@@ -1,6 +1,8 @@
 #include "common\\common.h"
 #include "population_function.h"
 #include "world_state\\world_state.h"
+#undef min
+#undef max
 
 namespace population {
 	void init_rebel_faction_from_rebel_type(rebel_faction& faction, rebel_type& type) {
@@ -34,5 +36,14 @@ namespace population {
 				return &p;
 		}
 		return nullptr;
+	}
+	void set_militancy_direct(pop &p, float v) {
+		p.militancy = static_cast<uint16_t>(v * float(std::numeric_limits<uint16_t>::max()) / 10.0f);
+	}
+	void set_literacy_direct(pop &p, float v) {
+		p.literacy = static_cast<uint16_t>(v * float(std::numeric_limits<uint16_t>::max()));
+	}
+	void set_consciousness_direct(pop & p, float v) {
+		p.consciousness = static_cast<uint16_t>(v * float(std::numeric_limits<uint16_t>::max()) / 10.0f);
 	}
 }

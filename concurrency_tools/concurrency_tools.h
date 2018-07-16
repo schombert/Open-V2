@@ -28,6 +28,22 @@ public:
 
 jsf_prng& get_local_generator();
 
+constexpr uint32_t ct_log2(uint32_t n) {
+	return ((n < 2) ? 0 : 1 + ct_log2(n / 2));
+}
+
+inline uint32_t rt_log2(uint32_t n) {
+	return 31ui32 - uint32_t(__builtin_clz(n | 1ui32));
+}
+
+constexpr uint32_t ct_log2_round_up(uint32_t n) {
+	return ((1ui32 << ct_log2(n)) >= n) ? ct_log2(n) : ct_log2(n) + 1ui32;
+}
+
+inline uint32_t rt_log2_round_up(uint32_t n) {
+	return n > 1ui32 ? 32ui32 - uint32_t(__builtin_clz(n - 1ui32)) : 0ui32;
+}
+
 template<typename E1, typename E2>
 class string_sum_expression;
 
@@ -215,6 +231,8 @@ class fixed_sz_deque_iterator;
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type = uint32_t>
 class fixed_sz_deque {
 private:
+	static_assert(1ui64 << ct_log2(block) == block);
+
 	std::atomic<T*> index_array[index_sz] = { nullptr };
 	std::atomic<uint64_t> first_free = 0;
 	std::atomic<uint32_t> first_free_index = 1;
@@ -246,6 +264,8 @@ public:
 template<typename T, uint32_t block, uint32_t index_sz>
 class fixed_sz_list {
 private:
+	static_assert(1ui64 << ct_log2(block) == block);
+
 	std::atomic<T*> index_array[index_sz] = { nullptr };
 	std::atomic<uint64_t> first_free = 0;
 	std::atomic<uint64_t> first_in_list = 0;
@@ -270,6 +290,8 @@ constexpr value_base_of<T> high_bit_mask = value_base_of<T>(1ui64 << (sizeof(val
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
 class stable_vector {
 public:
+	static_assert(1ui64 << ct_log2(block_size) == block_size);
+
 	object_type* index_array[index_size] = { nullptr };
 	uint32_t indices_in_use = 0ui32;
 	index_type first_free = index_type(static_cast<value_base_of<index_type>>(to_index(index_type()) | high_bit_mask<index_type>));
@@ -301,6 +323,8 @@ public:
 template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
 class stable_2d_vector {
 public:
+	static_assert(1ui64 << ct_log2(block_size) == block_size);
+
 	object_type* index_array[index_size] = { nullptr };
 	uint32_t inner_size = 0ui32;
 	uint32_t indices_in_use = 0ui32;
@@ -318,22 +342,6 @@ public:
 	object_type& safe_get(outer_index_type i, inner_index_type j); // single thread only
 	bool is_valid_index(outer_index_type i); //safe from any thread; if true, can use get without possible memory error
 };
-
-constexpr uint32_t ct_log2(uint32_t n) {
-	return ((n < 2) ? 0 : 1 + ct_log2(n / 2));
-}
-
-inline uint32_t rt_log2(uint32_t n) {
-	return 31ui32 - uint32_t(__builtin_clz(n | 1ui32));
-}
-
-constexpr uint32_t ct_log2_round_up(uint32_t n) {
-	return ((1ui32 << ct_log2(n)) >= n) ? ct_log2(n) : ct_log2(n) + 1ui32;
-}
-
-inline uint32_t rt_log2_round_up(uint32_t n) {
-	return n > 1ui32 ? 32ui32 - uint32_t(__builtin_clz(n - 1ui32)) : 0ui32;
-}
 
 using stable_mk_2_tag = uint32_t;
 

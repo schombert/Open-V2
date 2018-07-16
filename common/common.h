@@ -639,7 +639,7 @@ inline char16_t* put_pos_value_in_buffer(char16_t* dest, display_type display_as
 		case display_type::netural_percent:
 		case display_type::percent:
 		{
-			uint32_t int_value = uint32_t(value_type(100.0) * value);
+			uint32_t int_value = uint32_t(value_type(100.0) * value + value_type(0.5));
 			auto value_end = _u16itoa(int_value, dest);
 			*value_end = u'%';
 			*(value_end + 1) = char16_t(0);
@@ -648,7 +648,7 @@ inline char16_t* put_pos_value_in_buffer(char16_t* dest, display_type display_as
 		case display_type::integer:
 		case display_type::netural_integer:
 		{
-			uint32_t int_value = uint32_t(value);
+			uint32_t int_value = uint32_t(value + value_type(0.5));
 			auto value_end = _u16itoa(int_value, dest);
 			*value_end = char16_t(0);
 			return value_end;
@@ -662,7 +662,7 @@ inline char16_t* put_pos_value_in_buffer(char16_t* dest, display_type display_as
 			auto value_end = _u16itoa(int_value, dest);
 			*value_end = u'.';
 
-			uint32_t f_value = uint32_t(fractional_part * value_type(100));
+			uint32_t f_value = uint32_t(fractional_part * value_type(100) + value_type(0.5));
 			if(f_value == 0ui32) {
 				*(value_end + 1) = u'0';
 				*(value_end + 2) = u'0';
@@ -688,7 +688,7 @@ inline char16_t* put_pos_value_in_buffer(char16_t* dest, display_type display_as
 			auto value_end = _u16itoa(int_value, dest);
 			*value_end = u'.';
 
-			uint32_t f_value = uint32_t(fractional_part * value_type(1000));
+			uint32_t f_value = uint32_t(fractional_part * value_type(1000) + value_type(0.5));
 			if(f_value == 0ui32) {
 				*(value_end + 1) = u'0';
 				*(value_end + 2) = u'0';

@@ -9,7 +9,7 @@ namespace population {
 		return demo_tag(static_cast<value_base_of<demo_tag>>(to_index(t) + 1 + ws.s.ideologies_m.ideologies_count));
 	}
 	demo_tag to_demo_tag(world_state const& ws, cultures::culture_tag t) {
-		return demo_tag(static_cast<value_base_of<demo_tag>>(to_index(t) + 1 + ws.s.ideologies_m.ideologies_count + ws.s.issues_m.options_count));
+		return demo_tag(static_cast<value_base_of<demo_tag>>(to_index(t) + 1 + ws.s.ideologies_m.ideologies_count + ws.s.issues_m.party_issues_options_count));
 	}
 	demo_tag to_demo_tag(world_state const& ws, cultures::religion_tag t) {
 		return demo_tag(static_cast<value_base_of<demo_tag>>(to_index(t) + 1 +
@@ -38,7 +38,7 @@ namespace population {
 			ws.s.issues_m.party_issues_options_count +
 			ws.s.culture_m.count_cultures +
 			ws.s.culture_m.count_religions +
-			ws.s.population_m.count_poptypes) * 2ui32);
+			ws.s.population_m.count_poptypes * 2ui32));
 	}
 	demo_tag middle_population_demo_tag(world_state const& ws) {
 		return demo_tag(static_cast<value_base_of<demo_tag>>(2 +
@@ -46,7 +46,7 @@ namespace population {
 			ws.s.issues_m.party_issues_options_count +
 			ws.s.culture_m.count_cultures +
 			ws.s.culture_m.count_religions +
-			ws.s.population_m.count_poptypes) * 2ui32);
+			ws.s.population_m.count_poptypes * 2ui32));
 	}
 	demo_tag rich_population_demo_tag(world_state const& ws) {
 		return demo_tag(static_cast<value_base_of<demo_tag>>(3 +
@@ -54,7 +54,7 @@ namespace population {
 			ws.s.issues_m.party_issues_options_count +
 			ws.s.culture_m.count_cultures +
 			ws.s.culture_m.count_religions +
-			ws.s.population_m.count_poptypes) * 2ui32);
+			ws.s.population_m.count_poptypes * 2ui32));
 	}
 
 	demo_tag militancy_demo_tag(world_state const& ws) {
@@ -63,7 +63,7 @@ namespace population {
 			ws.s.issues_m.party_issues_options_count +
 			ws.s.culture_m.count_cultures +
 			ws.s.culture_m.count_religions +
-			ws.s.population_m.count_poptypes) * 2ui32);
+			ws.s.population_m.count_poptypes * 2ui32));
 	}
 	demo_tag consciousness_demo_tag(world_state const& ws) {
 		return demo_tag(static_cast<value_base_of<demo_tag>>(5 +
@@ -71,7 +71,7 @@ namespace population {
 			ws.s.issues_m.party_issues_options_count +
 			ws.s.culture_m.count_cultures +
 			ws.s.culture_m.count_religions +
-			ws.s.population_m.count_poptypes) * 2ui32);
+			ws.s.population_m.count_poptypes * 2ui32));
 	}
 	demo_tag literacy_demo_tag(world_state const& ws) {
 		return demo_tag(static_cast<value_base_of<demo_tag>>(6 +
@@ -79,7 +79,7 @@ namespace population {
 			ws.s.issues_m.party_issues_options_count +
 			ws.s.culture_m.count_cultures +
 			ws.s.culture_m.count_religions +
-			ws.s.population_m.count_poptypes) * 2ui32);
+			ws.s.population_m.count_poptypes * 2ui32));
 	}
 
 	demo_tag poor_militancy_demo_tag(world_state const& ws) {
@@ -88,7 +88,7 @@ namespace population {
 			ws.s.issues_m.party_issues_options_count +
 			ws.s.culture_m.count_cultures +
 			ws.s.culture_m.count_religions +
-			ws.s.population_m.count_poptypes) * 2ui32);
+			ws.s.population_m.count_poptypes * 2ui32));
 	}
 	demo_tag middle_militancy_demo_tag(world_state const& ws) {
 		return demo_tag(static_cast<value_base_of<demo_tag>>(9 +
@@ -96,7 +96,7 @@ namespace population {
 			ws.s.issues_m.party_issues_options_count +
 			ws.s.culture_m.count_cultures +
 			ws.s.culture_m.count_religions +
-			ws.s.population_m.count_poptypes) * 2ui32);
+			ws.s.population_m.count_poptypes * 2ui32));
 	}
 	demo_tag rich_militancy_demo_tag(world_state const& ws) {
 		return demo_tag(static_cast<value_base_of<demo_tag>>(10 +
@@ -104,7 +104,7 @@ namespace population {
 			ws.s.issues_m.party_issues_options_count +
 			ws.s.culture_m.count_cultures +
 			ws.s.culture_m.count_religions +
-			ws.s.population_m.count_poptypes) * 2ui32);
+			ws.s.population_m.count_poptypes * 2ui32));
 	}
 
 	demo_tag poor_life_needs_demo_tag(world_state const& ws) {
@@ -113,7 +113,7 @@ namespace population {
 			ws.s.issues_m.party_issues_options_count +
 			ws.s.culture_m.count_cultures +
 			ws.s.culture_m.count_religions +
-			ws.s.population_m.count_poptypes) * 2ui32);
+			ws.s.population_m.count_poptypes * 2ui32));
 	}
 	demo_tag middle_life_needs_demo_tag(world_state const& ws) {
 		return demo_tag(static_cast<value_base_of<demo_tag>>(12 +
@@ -121,7 +121,7 @@ namespace population {
 			ws.s.issues_m.party_issues_options_count +
 			ws.s.culture_m.count_cultures +
 			ws.s.culture_m.count_religions +
-			ws.s.population_m.count_poptypes) * 2ui32);
+			ws.s.population_m.count_poptypes * 2ui32));
 	}
 	demo_tag rich_life_needs_demo_tag(world_state const& ws) {
 		return demo_tag(static_cast<value_base_of<demo_tag>>(13 +
@@ -129,7 +129,7 @@ namespace population {
 			ws.s.issues_m.party_issues_options_count +
 			ws.s.culture_m.count_cultures +
 			ws.s.culture_m.count_religions +
-			ws.s.population_m.count_poptypes) * 2ui32);
+			ws.s.population_m.count_poptypes * 2ui32));
 	}
 
 	demo_tag poor_everyday_needs_demo_tag(world_state const& ws) {
@@ -138,7 +138,7 @@ namespace population {
 			ws.s.issues_m.party_issues_options_count +
 			ws.s.culture_m.count_cultures +
 			ws.s.culture_m.count_religions +
-			ws.s.population_m.count_poptypes) * 2ui32);
+			ws.s.population_m.count_poptypes * 2ui32));
 	}
 	demo_tag middle_everyday_needs_demo_tag(world_state const& ws) {
 		return demo_tag(static_cast<value_base_of<demo_tag>>(15 +
@@ -146,7 +146,7 @@ namespace population {
 			ws.s.issues_m.party_issues_options_count +
 			ws.s.culture_m.count_cultures +
 			ws.s.culture_m.count_religions +
-			ws.s.population_m.count_poptypes) * 2ui32);
+			ws.s.population_m.count_poptypes * 2ui32));
 	}
 	demo_tag rich_everyday_needs_demo_tag(world_state const& ws) {
 		return demo_tag(static_cast<value_base_of<demo_tag>>(16 +
@@ -154,7 +154,7 @@ namespace population {
 			ws.s.issues_m.party_issues_options_count +
 			ws.s.culture_m.count_cultures +
 			ws.s.culture_m.count_religions +
-			ws.s.population_m.count_poptypes) * 2ui32);
+			ws.s.population_m.count_poptypes * 2ui32));
 	}
 
 	demo_tag poor_luxury_needs_demo_tag(world_state const& ws) {
@@ -163,7 +163,7 @@ namespace population {
 			ws.s.issues_m.party_issues_options_count +
 			ws.s.culture_m.count_cultures +
 			ws.s.culture_m.count_religions +
-			ws.s.population_m.count_poptypes) * 2ui32);
+			ws.s.population_m.count_poptypes * 2ui32));
 	}
 	demo_tag middle_luxury_needs_demo_tag(world_state const& ws) {
 		return demo_tag(static_cast<value_base_of<demo_tag>>(18 +
@@ -171,7 +171,7 @@ namespace population {
 			ws.s.issues_m.party_issues_options_count +
 			ws.s.culture_m.count_cultures +
 			ws.s.culture_m.count_religions +
-			ws.s.population_m.count_poptypes) * 2ui32);
+			ws.s.population_m.count_poptypes * 2ui32));
 	}
 	demo_tag rich_luxury_needs_demo_tag(world_state const& ws) {
 		return demo_tag(static_cast<value_base_of<demo_tag>>(19 +
@@ -179,7 +179,7 @@ namespace population {
 			ws.s.issues_m.party_issues_options_count +
 			ws.s.culture_m.count_cultures +
 			ws.s.culture_m.count_religions +
-			ws.s.population_m.count_poptypes) * 2ui32);
+			ws.s.population_m.count_poptypes * 2ui32));
 	}
 
 	uint32_t aligned_32_issues_ideology_demo_size(world_state const& ws) {
