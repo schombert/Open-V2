@@ -31,6 +31,9 @@ namespace provinces {
 		date_tag last_controller_change;
 		date_tag last_immigration;
 
+		int32_t employed_workers = 0; // in RGO
+		float last_produced = 0.0f; // in RGO
+
 		set_tag<cultures::national_tag> cores;
 		array_tag<population::pop_tag> pops;
 		set_tag<modifiers::provincial_modifier_tag> static_modifiers;

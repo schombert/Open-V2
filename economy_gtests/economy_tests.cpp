@@ -339,19 +339,19 @@ TEST(economy_tests, single_good) {
 
 	economy::read_goods(m, f.get_root(), tex);
 
-	EXPECT_EQ(1ui64, m.goods.size());
+	EXPECT_EQ(2ui64, m.goods.size());
 	EXPECT_EQ(1ui64, m.good_type_names.size());
 	EXPECT_EQ(1ui64, m.named_goods_index.size());
 
-	EXPECT_EQ(goods_tag(), m.money);
-	EXPECT_EQ(17.5, m.goods[goods_tag(0)].base_price);
-	EXPECT_EQ(goods_tag(0), m.goods[goods_tag(0)].id);
-	EXPECT_EQ(208ui8, m.goods[goods_tag(0)].color.r);
-	EXPECT_EQ(202ui8, m.goods[goods_tag(0)].color.g);
-	EXPECT_EQ(127ui8, m.goods[goods_tag(0)].color.b);
-	EXPECT_EQ(good_definition::not_available_from_start, m.goods[goods_tag(0)].flags);
-	EXPECT_EQ(goods_type_tag(0), m.goods[goods_tag(0)].type);
-	EXPECT_EQ(goods_tag(0), m.named_goods_index[m.goods[goods_tag(0)].name]);
+	EXPECT_EQ(17.5, m.goods[goods_tag(1)].base_price);
+	EXPECT_EQ(goods_tag(1), m.goods[goods_tag(1)].id);
+	EXPECT_EQ(208ui8, m.goods[goods_tag(1)].color.r);
+	EXPECT_EQ(202ui8, m.goods[goods_tag(1)].color.g);
+	EXPECT_EQ(127ui8, m.goods[goods_tag(1)].color.b);
+	EXPECT_EQ(good_definition::not_available_from_start, m.goods[goods_tag(1)].flags);
+	EXPECT_EQ(goods_type_tag(0), m.goods[goods_tag(1)].type);
+	EXPECT_EQ(goods_tag(1), m.named_goods_index[m.goods[goods_tag(1)].name]);
+	EXPECT_EQ(1ui8, m.goods[goods_tag(1)].icon);
 }
 
 TEST(economy_tests, two_goods) {
@@ -370,24 +370,25 @@ TEST(economy_tests, two_goods) {
 	EXPECT_EQ(1ui64, m.good_type_names.size());
 	EXPECT_EQ(2ui64, m.named_goods_index.size());
 
-	EXPECT_EQ(goods_tag(1), m.money);
-	EXPECT_EQ(17.5, m.goods[goods_tag(0)].base_price);
-	EXPECT_EQ(goods_tag(0), m.goods[goods_tag(0)].id);
-	EXPECT_EQ(208ui8, m.goods[goods_tag(0)].color.r);
-	EXPECT_EQ(202ui8, m.goods[goods_tag(0)].color.g);
-	EXPECT_EQ(127ui8, m.goods[goods_tag(0)].color.b);
-	EXPECT_EQ(good_definition::not_available_from_start, m.goods[goods_tag(0)].flags);
-	EXPECT_EQ(goods_type_tag(0), m.goods[goods_tag(0)].type);
-	EXPECT_EQ(goods_tag(0), m.named_goods_index[m.goods[goods_tag(0)].name]);
-
-	EXPECT_EQ(8.0, m.goods[goods_tag(1)].base_price);
+	EXPECT_EQ(17.5, m.goods[goods_tag(1)].base_price);
 	EXPECT_EQ(goods_tag(1), m.goods[goods_tag(1)].id);
-	EXPECT_EQ(0ui8, m.goods[goods_tag(1)].color.r);
-	EXPECT_EQ(0ui8, m.goods[goods_tag(1)].color.g);
-	EXPECT_EQ(0ui8, m.goods[goods_tag(1)].color.b);
-	EXPECT_EQ(good_definition::money | good_definition::overseas_penalty, m.goods[goods_tag(1)].flags);
+	EXPECT_EQ(208ui8, m.goods[goods_tag(1)].color.r);
+	EXPECT_EQ(202ui8, m.goods[goods_tag(1)].color.g);
+	EXPECT_EQ(127ui8, m.goods[goods_tag(1)].color.b);
+	EXPECT_EQ(good_definition::not_available_from_start, m.goods[goods_tag(1)].flags);
 	EXPECT_EQ(goods_type_tag(0), m.goods[goods_tag(1)].type);
 	EXPECT_EQ(goods_tag(1), m.named_goods_index[m.goods[goods_tag(1)].name]);
+	EXPECT_EQ(2ui8, m.goods[goods_tag(1)].icon);
+
+	EXPECT_EQ(8.0, m.goods[goods_tag(0)].base_price);
+	EXPECT_EQ(goods_tag(0), m.goods[goods_tag(0)].id);
+	EXPECT_EQ(0ui8, m.goods[goods_tag(0)].color.r);
+	EXPECT_EQ(0ui8, m.goods[goods_tag(0)].color.g);
+	EXPECT_EQ(0ui8, m.goods[goods_tag(0)].color.b);
+	EXPECT_EQ(good_definition::money | good_definition::overseas_penalty, m.goods[goods_tag(0)].flags);
+	EXPECT_EQ(goods_type_tag(0), m.goods[goods_tag(0)].type);
+	EXPECT_EQ(goods_tag(0), m.named_goods_index[m.goods[goods_tag(0)].name]);
+	EXPECT_EQ(1ui8, m.goods[goods_tag(0)].icon);
 }
 
 TEST(economy_tests, two_good_categories) {
@@ -406,34 +407,35 @@ TEST(economy_tests, two_good_categories) {
 	EXPECT_EQ(2ui64, m.good_type_names.size());
 	EXPECT_EQ(3ui64, m.named_goods_index.size());
 
-	EXPECT_EQ(goods_tag(2), m.money);
-
-	EXPECT_EQ(16.0, m.goods[goods_tag(0)].base_price);
-	EXPECT_EQ(goods_tag(0), m.goods[goods_tag(0)].id);
-	EXPECT_EQ(185ui8, m.goods[goods_tag(0)].color.r);
-	EXPECT_EQ(187ui8, m.goods[goods_tag(0)].color.g);
-	EXPECT_EQ(164ui8, m.goods[goods_tag(0)].color.b);
-	EXPECT_EQ(0ui8, m.goods[goods_tag(0)].flags);
-	EXPECT_EQ(goods_type_tag(1), m.goods[goods_tag(0)].type);
-	EXPECT_EQ(goods_tag(0), m.named_goods_index[m.goods[goods_tag(0)].name]);
-
-	EXPECT_DOUBLE_EQ(2.9, m.goods[goods_tag(1)].base_price);
+	EXPECT_EQ(16.0, m.goods[goods_tag(1)].base_price);
 	EXPECT_EQ(goods_tag(1), m.goods[goods_tag(1)].id);
-	EXPECT_EQ(201ui8, m.goods[goods_tag(1)].color.r);
-	EXPECT_EQ(200ui8, m.goods[goods_tag(1)].color.g);
-	EXPECT_EQ(199ui8, m.goods[goods_tag(1)].color.b);
+	EXPECT_EQ(185ui8, m.goods[goods_tag(1)].color.r);
+	EXPECT_EQ(187ui8, m.goods[goods_tag(1)].color.g);
+	EXPECT_EQ(164ui8, m.goods[goods_tag(1)].color.b);
 	EXPECT_EQ(0ui8, m.goods[goods_tag(1)].flags);
 	EXPECT_EQ(goods_type_tag(1), m.goods[goods_tag(1)].type);
 	EXPECT_EQ(goods_tag(1), m.named_goods_index[m.goods[goods_tag(1)].name]);
+	EXPECT_EQ(2ui8, m.goods[goods_tag(1)].icon);
 
-	EXPECT_EQ(8.0, m.goods[goods_tag(2)].base_price);
+	EXPECT_DOUBLE_EQ(2.9, m.goods[goods_tag(2)].base_price);
 	EXPECT_EQ(goods_tag(2), m.goods[goods_tag(2)].id);
-	EXPECT_EQ(0ui8, m.goods[goods_tag(2)].color.r);
-	EXPECT_EQ(0ui8, m.goods[goods_tag(2)].color.g);
-	EXPECT_EQ(0ui8, m.goods[goods_tag(2)].color.b);
-	EXPECT_EQ(good_definition::money | good_definition::overseas_penalty, m.goods[goods_tag(2)].flags);
-	EXPECT_EQ(goods_type_tag(0), m.goods[goods_tag(2)].type);
+	EXPECT_EQ(201ui8, m.goods[goods_tag(2)].color.r);
+	EXPECT_EQ(200ui8, m.goods[goods_tag(2)].color.g);
+	EXPECT_EQ(199ui8, m.goods[goods_tag(2)].color.b);
+	EXPECT_EQ(0ui8, m.goods[goods_tag(2)].flags);
+	EXPECT_EQ(goods_type_tag(1), m.goods[goods_tag(2)].type);
 	EXPECT_EQ(goods_tag(2), m.named_goods_index[m.goods[goods_tag(2)].name]);
+	EXPECT_EQ(3ui8, m.goods[goods_tag(2)].icon);
+
+	EXPECT_EQ(8.0, m.goods[goods_tag(0)].base_price);
+	EXPECT_EQ(goods_tag(0), m.goods[goods_tag(0)].id);
+	EXPECT_EQ(0ui8, m.goods[goods_tag(0)].color.r);
+	EXPECT_EQ(0ui8, m.goods[goods_tag(0)].color.g);
+	EXPECT_EQ(0ui8, m.goods[goods_tag(0)].color.b);
+	EXPECT_EQ(good_definition::money | good_definition::overseas_penalty, m.goods[goods_tag(0)].flags);
+	EXPECT_EQ(goods_type_tag(0), m.goods[goods_tag(0)].type);
+	EXPECT_EQ(goods_tag(0), m.named_goods_index[m.goods[goods_tag(0)].name]);
+	EXPECT_EQ(1ui8, m.goods[goods_tag(0)].icon);
 }
 
 TEST(economy_tests, single_factory) {
@@ -460,7 +462,7 @@ TEST(economy_tests, single_factory) {
 	EXPECT_EQ(false, fa.default_enabled);
 	EXPECT_EQ(factory_type_tag(0), fa.id);
 	EXPECT_EQ(factory_type_tag(0), m.named_factory_types_index[fa.name]);
-	EXPECT_EQ(600.0, m.building_costs.get(factory_type_tag(0), goods_tag(0)));
+	EXPECT_EQ(600.0, m.building_costs.get(factory_type_tag(0), goods_tag(1)));
 	const auto pt_tag = text_data::get_thread_safe_text_handle(tex, RANGE(pt));
 	EXPECT_EQ(factory_type_tag(0), map.find(pt_tag)->second);
 }
@@ -486,13 +488,13 @@ TEST(economy_tests, special_buildings) {
 	EXPECT_EQ(false, fa.default_enabled);
 	EXPECT_EQ(factory_type_tag(0), fa.id);
 	EXPECT_EQ(factory_type_tag(0), m.named_factory_types_index[fa.name]);
-	EXPECT_EQ(600.0, m.building_costs.get(factory_type_tag(0), goods_tag(0)));
+	EXPECT_EQ(600.0, m.building_costs.get(factory_type_tag(0), goods_tag(1)));
 
 	EXPECT_EQ(factory_type_tag(1), m.fort.cost_tag);
 	EXPECT_EQ(1ui32, m.fort.max_level);
 	EXPECT_EQ(10ui32, m.fort.time);
 
-	EXPECT_EQ(100.0, m.building_costs.get(factory_type_tag(1), goods_tag(0)));
+	EXPECT_EQ(100.0, m.building_costs.get(factory_type_tag(1), goods_tag(1)));
 
 	EXPECT_EQ(factory_type_tag(2), m.railroad.cost_tag);
 	EXPECT_EQ(3ui32, m.railroad.max_level);
@@ -500,7 +502,7 @@ TEST(economy_tests, special_buildings) {
 	EXPECT_EQ(0.5f, m.railroad.infrastructure);
 	EXPECT_EQ(-0.5f, m.railroad.movement_cost);
 
-	EXPECT_EQ(300.0, m.building_costs.get(factory_type_tag(2), goods_tag(0)));
+	EXPECT_EQ(300.0, m.building_costs.get(factory_type_tag(2), goods_tag(1)));
 
 	EXPECT_EQ(factory_type_tag(3), m.naval_base.cost_tag);
 	EXPECT_EQ(2ui32, m.naval_base.max_level);
@@ -512,7 +514,7 @@ TEST(economy_tests, special_buildings) {
 	EXPECT_EQ(-1.5f, m.naval_base.local_ship_build);
 	EXPECT_EQ(2ui32, m.naval_base.naval_capacity);
 
-	EXPECT_EQ(200.0, m.building_costs.get(factory_type_tag(3), goods_tag(0)));
+	EXPECT_EQ(200.0, m.building_costs.get(factory_type_tag(3), goods_tag(1)));
 }
 
 TEST(economy_tests, production_types) {

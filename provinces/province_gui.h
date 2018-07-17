@@ -128,9 +128,6 @@ namespace provinces {
 
 	class province_window_header_base : public ui::gui_behavior {
 	public:
-		province_tag selected_province;
-		date_tag last_update;
-
 		template<typename ...P>
 		explicit province_window_header_base(P&& ... params) {}
 		void on_create(world_state&);
@@ -206,6 +203,119 @@ namespace provinces {
 		CT_STRING("owner_presence"), ui::display_text<owner_text_box, -4>,
 		province_window_header_base>;
 
+	class province_statistics_base : public ui::gui_behavior {
+	public:
+		province_tag selected_province;
+		date_tag last_update;
+
+		template<typename ...P>
+		explicit province_statistics_base(P&& ... params) {}
+		void on_create(world_state&);
+	};
+
+	class produced_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class income_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class rgo_population_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class rgo_percent_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class goods_type_icon {
+	public:
+		void update(ui::dynamic_icon<goods_type_icon>& ico, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class employment_ratio {
+	public:
+		void update(ui::dynamic_icon<employment_ratio>& ico, world_state& ws);
+	};
+
+	class crime_icon {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<crime_icon>& ico, window_type const&, world_state& ws);
+	};
+
+	class crime_name {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class crimefight_percent_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class rebel_percent_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class total_population_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class migration_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class growth_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class poptype_pie_chart {
+	public:
+		void update(ui::piechart<poptype_pie_chart>& pie, world_state& ws);
+	};
+
+	class ideology_pie_chart {
+	public:
+		void update(ui::piechart<ideology_pie_chart>& pie, world_state& ws);
+	};
+
+	class culture_pie_chart {
+	public:
+		void update(ui::piechart<culture_pie_chart>& pie, world_state& ws);
+	};
+
+	using province_statistics = ui::gui_window<
+		CT_STRING("goods_type"), ui::dynamic_icon<goods_type_icon>,
+		CT_STRING("produced"), ui::display_text<produced_text_box>,
+		CT_STRING("income"), ui::display_text<income_text_box>,
+		CT_STRING("employment_ratio"), ui::dynamic_icon<employment_ratio>,
+		CT_STRING("rgo_population"), ui::display_text<rgo_population_text_box>,
+		CT_STRING("rgo_percent"), ui::display_text<rgo_percent_text_box>,
+		CT_STRING("crime_icon"), ui::dynamic_icon<crime_icon>,
+		CT_STRING("crime_name"), ui::display_text<crime_name>,
+		CT_STRING("crimefight_percent"), ui::display_text<crimefight_percent_text_box>,
+		CT_STRING("rebel_percent"), ui::display_text<rebel_percent_text_box>,
+		CT_STRING("total_population"), ui::display_text<total_population_text_box>,
+		CT_STRING("migration"), ui::display_text<migration_text_box>,
+		CT_STRING("growth"), ui::display_text<growth_text_box>,
+		CT_STRING("workforce_chart"), ui::piechart<poptype_pie_chart>,
+		CT_STRING("ideology_chart"), ui::piechart<ideology_pie_chart>,
+		CT_STRING("culture_chart"), ui::piechart<culture_pie_chart>,
+		province_statistics_base>;
+
 	class province_window_base : public ui::fixed_region {
 	public:
 		province_tag selected_province;
@@ -219,5 +329,6 @@ namespace provinces {
 	using province_window_t = ui::gui_window <
 		CT_STRING("close_button"), ui::simple_button<close_province_window>,
 		CT_STRING("province_view_header"), province_window_header,
+		CT_STRING("province_statistics"), province_statistics,
 		province_window_base>;
 }

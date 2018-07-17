@@ -35,8 +35,9 @@ namespace scenario {
 		constexpr uint32_t province_liferating = 13ui32;
 		constexpr uint32_t siege_progress = 14ui32;
 		constexpr uint32_t owner_presence = 15ui32;
+		constexpr uint32_t other = 16ui32;
 
-		constexpr uint32_t count = 16ui32;
+		constexpr uint32_t count = 17ui32;
 	}
 
 	class scenario_manager {

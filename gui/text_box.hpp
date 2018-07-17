@@ -26,6 +26,14 @@ void ui::display_text<BASE, y_adjust>::windowed_update(window_type& w, world_sta
 	}
 }
 
+template<typename BASE, int32_t y_adjust>
+void ui::display_text<BASE, y_adjust>::set_visibility(gui_manager& m, bool visible) {
+	if(visible)
+		ui::make_visible_and_update(m, *associated_object);
+	else
+		ui::hide(*associated_object);
+}
+
 template<typename B, int32_t y_adjust>
 ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::text_tag handle, tagged_gui_object parent, display_text<B, y_adjust>& b) {
 	const ui::text_def& text_def = ws.s.gui_m.ui_definitions.text[handle];

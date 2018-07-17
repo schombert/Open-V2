@@ -119,5 +119,6 @@ namespace scenario {
 
 		s.fixed_ui_text[fixed_ui::siege_progress] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PV_SIEGE_PROGRESS");
 		s.fixed_ui_text[fixed_ui::owner_presence] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROVINCEVIEW_RGOOWNER");
+		s.fixed_ui_text[fixed_ui::other] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POP_OTHER_CULT");
 	}
 }

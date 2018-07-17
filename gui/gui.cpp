@@ -531,7 +531,7 @@ void ui::detail::instantiate_graphical_object(gui_static& static_manager, ui::gu
 
 			container.object.position.x -= graphic_object_def.size.x;
 
-			const auto new_dt = manager.data_textures.emplace(ui::piechart_resolution, 3ui16);
+			const auto new_dt = manager.data_textures.emplace(uint16_t(ui::piechart_resolution), 3ui16);
 
 			container.object.type_dependant_handle.store(to_index(new_dt.id), std::memory_order_release);
 		}

@@ -35,7 +35,7 @@ namespace ui {
 	struct key_up;
 	struct text_event;
 
-	constexpr uint16_t piechart_resolution = 100;
+	constexpr int32_t piechart_resolution = 100;
 
 	enum class text_color : uint8_t {
 		black, white, red, green, yellow,
@@ -259,6 +259,7 @@ namespace ui {
 
 		template<typename window_type>
 		void windowed_update(window_type&, world_state&);
+		void set_visibility(gui_manager&, bool visible);
 		void set_format(text_data::alignment a, const text_format& fmt) {
 			align = a;
 			format = fmt;
@@ -275,7 +276,7 @@ namespace ui {
 	private:
 		vector_backed_string<char16_t> labels[piechart_resolution];
 		float fractions[piechart_resolution];
-		float fraction_used = 0.0f;
+		int32_t portion_used = 0;
 	public:
 		piechart(piechart&&) = default;
 		piechart(piechart& o) noexcept : piechart(std::move(o)) {}
@@ -290,6 +291,7 @@ namespace ui {
 
 		void clear_entries(gui_manager& manager);
 		void add_entry(gui_manager& manager, vector_backed_string<char16_t> label, float fraction, graphics::color_rgb color);
+		void fill_remainder(gui_manager& manager, vector_backed_string<char16_t> label, graphics::color_rgb color);
 		void update_display(gui_manager& manager) const;
 	};
 

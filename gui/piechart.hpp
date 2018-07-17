@@ -3,7 +3,7 @@
 
 template<typename BASE>
 bool ui::piechart<BASE>::on_lclick(gui_object_tag, world_state&, const lbutton_down & m) {
-	if (fraction_used == 0.0f)
+	if (portion_used == 0)
 		return false;
 
 	const auto xmod = m.x - int32_t(associated_object->size.x) / 2;
@@ -14,7 +14,7 @@ bool ui::piechart<BASE>::on_lclick(gui_object_tag, world_state&, const lbutton_d
 }
 template<typename BASE>
 bool ui::piechart<BASE>::on_rclick(gui_object_tag, world_state &, const rbutton_down &m) {
-	if (fraction_used == 0.0f)
+	if (portion_used == 0)
 		return false;
 
 	const auto xmod = m.x - int32_t(associated_object->size.x) / 2;
@@ -27,7 +27,7 @@ template<typename BASE>
 ui::tooltip_behavior ui::piechart<BASE>::has_tooltip(gui_object_tag, world_state &, const mouse_move& m) {
 	constexpr double M_PI = 3.1415926535897932384626433832795;
 
-	if (fraction_used == 0.0f)
+	if (portion_used == 0)
 		return tooltip_behavior::transparent;
 
 	const auto xmod = m.x - int32_t(associated_object->size.x) / 2;
@@ -112,18 +112,38 @@ void ui::piechart<BASE>::clear_entries(gui_manager& manager) {
 	memset(fractions, 0, ui::piechart_resolution * sizeof(float));
 	if (const auto dt = manager.data_textures.safe_at(data_texture_tag(associated_object->type_dependant_handle)); dt)
 		memset(dt->data(), 255, ui::piechart_resolution * 3);
-	fraction_used = 0.0f;
+	portion_used = 0;
 }
+
 template<typename BASE>
 void ui::piechart<BASE>::add_entry(gui_manager& manager, vector_backed_string<char16_t> label, float fraction, graphics::color_rgb color) {
-	const int32_t last_entry = std::max(0, (int32_t)std::lround(fraction_used * static_cast<float>(ui::piechart_resolution)));
-	fraction_used += fraction;
-	const int32_t new_last_entry = std::min(ui::piechart_resolution - 1, static_cast<int32_t>(fraction_used * static_cast<float>(ui::piechart_resolution)));
+	const int32_t last_entry = portion_used;
+	const float fraction_used = float(portion_used) / float(ui::piechart_resolution);
+	portion_used = std::min(ui::piechart_resolution, static_cast<int32_t>((fraction_used + fraction) * static_cast<float>(ui::piechart_resolution)));
 
 	if (const auto dt = manager.data_textures.safe_at(data_texture_tag(associated_object->type_dependant_handle)); dt) {
 		const auto data = dt->data();
-		for (int32_t i = last_entry; i <= new_last_entry; ++i) {
+		for (int32_t i = last_entry; i < portion_used; ++i) {
 			fractions[i] = fraction;
+			labels[i] = label;
+			data[i * 3 + 0] = color.r;
+			data[i * 3 + 1] = color.g;
+			data[i * 3 + 2] = color.b;
+		}
+	}
+}
+
+template<typename BASE>
+void ui::piechart<BASE>::fill_remainder(gui_manager& manager, vector_backed_string<char16_t> label, graphics::color_rgb color) {
+	const int32_t last_entry = portion_used;
+	const float unused = float(ui::piechart_resolution - portion_used) / float(ui::piechart_resolution);
+
+	portion_used = ui::piechart_resolution;
+	
+	if(const auto dt = manager.data_textures.safe_at(data_texture_tag(associated_object->type_dependant_handle)); dt) {
+		const auto data = dt->data();
+		for(int32_t i = last_entry; i < portion_used; ++i) {
+			fractions[i] = unused;
 			labels[i] = label;
 			data[i * 3 + 0] = color.r;
 			data[i * 3 + 1] = color.g;
@@ -139,9 +159,11 @@ void ui::piechart<BASE>::update_display(gui_manager& manager) const {
 }
 
 template<typename BASE>
-void ui::piechart<BASE>::update_data(gui_object_tag o, world_state& w) {
-	if constexpr(ui::detail::has_update<BASE, ui::piechart<BASE>&, tagged_gui_object, world_state&>) {
-		BASE::update(*this, o, w);
+void ui::piechart<BASE>::update_data(gui_object_tag, world_state& w) {
+	if constexpr(ui::detail::has_update<BASE, ui::piechart<BASE>&, world_state&>) {
+		clear_entries(w.w.gui_m);
+		BASE::update(*this, w);
+		update_display(w.w.gui_m);
 	}
 }
 

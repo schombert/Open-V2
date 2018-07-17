@@ -204,4 +204,8 @@ namespace provinces {
 	nations::country_tag get_province_seiger(world_state&, province_state&) {
 		return nations::country_tag();
 	}
+
+	int32_t get_province_rgo_employment_max(world_state&, province_state&) {
+		return 1;
+	}
 }

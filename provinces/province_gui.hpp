@@ -36,6 +36,21 @@ namespace provinces {
 		lm.finish_current_line();
 	}
 
+	template<typename window_type>
+	void crime_name::windowed_update(window_type& w, ui::tagged_gui_object obj, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			auto crime = ws.w.province_s.province_state_container[selected_prov].crime;
+			if(is_valid_index(crime)) {
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.modifiers_m.provincial_modifiers[crime].name, fmt, ws.s.gui_m, ws.w.gui_m, obj, lm);
+				lm.finish_current_line();
+				ui::make_visible_immediate(obj.object);
+				return;
+			}
+		}
+		ui::hide(obj.object);
+	}
+
 	template<typename W>
 	void province_controller_flag::windowed_update(ui::masked_flag<province_controller_flag>& self, W& w, world_state& ws) {
 		auto selected_prov = ws.w.province_window.selected_province;
@@ -74,6 +89,21 @@ namespace provinces {
 					ui::make_visible_immediate(*ico.associated_object);
 				else
 					ico.set_visibility(ws.w.gui_m, false);
+				return;
+			}
+		}
+		ico.set_visibility(ws.w.gui_m, false);
+	}
+
+
+	template<typename window_type>
+	void crime_icon::windowed_update(ui::dynamic_icon<crime_icon>& ico, window_type const&, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			auto crime = ws.w.province_s.province_state_container[selected_prov].crime;
+			if(is_valid_index(crime)) {
+				ico.set_frame(ws.w.gui_m, ws.s.modifiers_m.provincial_modifiers[crime].icon);
+				ui::make_visible_immediate(*ico.associated_object);
 				return;
 			}
 		}

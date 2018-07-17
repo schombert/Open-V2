@@ -3,6 +3,7 @@
 #include "world_state\\world_state.h"
 #include "modifiers\\modifiers_gui.h"
 #include "nations\\nations_functions.h"
+#include "province_functions.h"
 
 namespace provinces {
 	void close_province_window::button_function(ui::gui_object_tag, world_state& ws) {
@@ -67,6 +68,26 @@ namespace provinces {
 		}
 	}
 
+	void goods_type_icon::update(ui::dynamic_icon<goods_type_icon>& ico, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			auto rgo_type = ws.w.province_s.province_state_container[selected_prov].rgo_production;
+			if(is_valid_index(rgo_type))
+				ico.set_frame(ws.w.gui_m, uint32_t(ws.s.economy_m.goods[rgo_type].icon));
+			else
+				ico.set_frame(ws.w.gui_m, 0ui32);
+		}
+	}
+
+	void goods_type_icon::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			auto rgo_type = ws.w.province_s.province_state_container[selected_prov].rgo_production;
+			if(is_valid_index(rgo_type))
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.economy_m.goods[rgo_type].name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+		}
+	}
+
 	void owner_icon::update(ui::dynamic_icon<owner_icon>& ico, world_state& ws) {
 		auto selected_prov = ws.w.province_window.selected_province;
 		if(is_valid_index(selected_prov)) {
@@ -77,7 +98,6 @@ namespace provinces {
 				ico.set_frame(ws.w.gui_m, uint32_t(ws.s.population_m.pop_types[owner_type].sprite) - 1ui32);
 			}
 		}
-		
 	}
 
 	void owner_icon::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
@@ -280,8 +300,12 @@ namespace provinces {
 	}
 
 	void province_window_header_base::on_create(world_state&) {
-		associated_object->size = ui::xy_pair{ 406i16, 548i16 };
+		associated_object->size = ui::xy_pair{ 406i16, 200i16 };
 		associated_object->position += ui::xy_pair{ 0i16, 1i16 };
+	}
+
+	void province_statistics_base::on_create(world_state&) {
+		associated_object->size = ui::xy_pair{ 406i16, 230i16 };
 	}
 
 	ui::window_tag modifier_lb::element_tag(ui::gui_static & m) {
@@ -377,4 +401,207 @@ namespace provinces {
 			lm.finish_current_line();
 		}
 	}
+
+	
+	void produced_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			char16_t formatted_value[64];
+			put_value_in_buffer(formatted_value, display_type::fp_two_places, ws.w.province_s.province_state_container[selected_prov].last_produced);
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m,
+				ws.w.gui_m,
+				vector_backed_string<char16_t>(formatted_value),
+				box,
+				ui::xy_pair{ 0,0 },
+				fmt,
+				lm);
+
+			lm.finish_current_line();
+		}
+	}
+
+	void crimefight_percent_text_box::update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&) {
+
+	}
+
+	void rebel_percent_text_box::update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&) {
+
+	}
+
+	void migration_text_box::update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&) {
+
+	}
+
+	void growth_text_box::update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&) {
+
+	}
+
+	void total_population_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		int32_t value = 0;
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			auto demo_row = ws.w.province_s.province_demographics.get_row(selected_prov);
+			value = demo_row[to_index(population::total_population_tag)];
+		}
+		char16_t formatted_value[64];
+		put_value_in_buffer(formatted_value, display_type::integer, value);
+		ui::text_chunk_to_instances(
+			ws.s.gui_m,
+			ws.w.gui_m,
+			vector_backed_string<char16_t>(formatted_value),
+			box,
+			ui::xy_pair{ 0,0 },
+			fmt,
+			lm);
+		lm.finish_current_line();
+	}
+	
+	void poptype_pie_chart::update(ui::piechart<poptype_pie_chart>& pie, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			auto demo_row = ws.w.province_s.province_demographics.get_row(selected_prov);
+			const float total_pop = float(demo_row[to_index(population::total_population_tag)]);
+
+			if(total_pop != 0.0f) {
+				const auto ptype_offset = population::to_demo_tag(ws, population::pop_type_tag(0));
+
+				for(uint32_t i = 0ui32; i < ws.s.population_m.pop_types.size(); ++i) {
+					if(demo_row[to_index(ptype_offset) + i] != 0) {
+						float fraction = float(demo_row[to_index(ptype_offset) + i]) / total_pop;
+						pie.add_entry(
+							ws.w.gui_m,
+							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].name),
+							fraction,
+							ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].color);
+					}
+				}
+			}
+			pie.fill_remainder(ws.w.gui_m, text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::other]), graphics::color_rgb{ 255, 255, 255 });
+		}
+	}
+
+	void ideology_pie_chart::update(ui::piechart<ideology_pie_chart>& pie, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			auto demo_row = ws.w.province_s.province_demographics.get_row(selected_prov);
+			const float total_pop = float(demo_row[to_index(population::total_population_tag)]);
+
+			if(total_pop != 0.0f) {
+				const auto itype_offset = population::to_demo_tag(ws, ideologies::ideology_tag(0));
+
+				for(uint32_t i = 0ui32; i < ws.s.ideologies_m.ideologies_count; ++i) {
+					if(demo_row[to_index(itype_offset) + i] != 0) {
+						float fraction = float(demo_row[to_index(itype_offset) + i]) / total_pop;
+						pie.add_entry(
+							ws.w.gui_m,
+							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.ideologies_m.ideology_container[ideologies::ideology_tag(static_cast<ideologies::ideology_tag::value_base_t>(i))].name),
+							fraction,
+							ws.s.ideologies_m.ideology_container[ideologies::ideology_tag(static_cast<ideologies::ideology_tag::value_base_t>(i))].color);
+					}
+				}
+			}
+			pie.fill_remainder(ws.w.gui_m, text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::other]), graphics::color_rgb{ 255, 255, 255 });
+		}
+	}
+
+	void culture_pie_chart::update(ui::piechart<culture_pie_chart>& pie, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			auto demo_row = ws.w.province_s.province_demographics.get_row(selected_prov);
+			const float total_pop = float(demo_row[to_index(population::total_population_tag)]);
+
+			if(total_pop != 0.0f) {
+				const auto itype_offset = population::to_demo_tag(ws, cultures::culture_tag(0));
+
+				for(uint32_t i = 0ui32; i < ws.s.culture_m.count_cultures; ++i) {
+					if(demo_row[to_index(itype_offset) + i] != 0) {
+						float fraction = float(demo_row[to_index(itype_offset) + i]) / total_pop;
+						pie.add_entry(
+							ws.w.gui_m,
+							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.culture_m.culture_container[cultures::culture_tag(static_cast<cultures::culture_tag::value_base_t>(i))].name),
+							fraction,
+							ws.s.culture_m.culture_container[cultures::culture_tag(static_cast<cultures::culture_tag::value_base_t>(i))].color);
+					}
+				}
+			}
+			pie.fill_remainder(ws.w.gui_m, text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::other]), graphics::color_rgb{ 255, 255, 255 });
+		}
+	}
+
+	void income_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			char16_t formatted_value[64];
+			auto rgo_type = ws.w.province_s.province_state_container[selected_prov].rgo_production;
+			if(is_valid_index(rgo_type)) {
+				economy::money_qnty_type value = economy::money_qnty_type(ws.w.province_s.province_state_container[selected_prov].last_produced) * ws.w.economy_s.current_prices[rgo_type];
+				auto end_pos = put_value_in_buffer(formatted_value, display_type::fp_two_places, value);
+				*end_pos = u'\u00A3';
+				*(end_pos + 1) = char16_t(0);
+				ui::text_chunk_to_instances(
+					ws.s.gui_m,
+					ws.w.gui_m,
+					vector_backed_string<char16_t>(formatted_value),
+					box,
+					ui::xy_pair{ 0,0 },
+					fmt,
+					lm);
+
+				lm.finish_current_line();
+			}
+		}
+	}
+
+	
+	void rgo_population_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			char16_t formatted_value[64];
+			put_value_in_buffer(formatted_value, display_type::integer, ws.w.province_s.province_state_container[selected_prov].employed_workers);
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m,
+				ws.w.gui_m,
+				vector_backed_string<char16_t>(formatted_value),
+				box,
+				ui::xy_pair{ 0,0 },
+				fmt,
+				lm);
+
+			lm.finish_current_line();
+		}
+	}
+	
+
+	void rgo_percent_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			char16_t formatted_value[64];
+			put_value_in_buffer(formatted_value, display_type::percent, float(ws.w.province_s.province_state_container[selected_prov].employed_workers) / float(get_province_rgo_employment_max(ws, ws.w.province_s.province_state_container[selected_prov])));
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m,
+				ws.w.gui_m,
+				vector_backed_string<char16_t>(formatted_value),
+				box,
+				ui::xy_pair{ 0,0 },
+				fmt,
+				lm);
+
+			lm.finish_current_line();
+		}
+	}
+
+
+	void employment_ratio::update(ui::dynamic_icon<employment_ratio>& ico, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			float ratio = float(ws.w.province_s.province_state_container[selected_prov].employed_workers) / float(get_province_rgo_employment_max(ws, ws.w.province_s.province_state_container[selected_prov]));
+
+			ico.set_frame(ws.w.gui_m, uint32_t(ratio * 10.0f + 0.5f));
+		}
+	}
+	
 }

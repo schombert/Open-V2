@@ -10,6 +10,7 @@ namespace economy {
 	struct parsing_environment {
 		text_data::text_sequences& text_lookup;
 		economic_scenario& manager;
+		uint8_t icon_count = 0;
 
 		parsing_environment(text_data::text_sequences& tl, economic_scenario& m) :
 			text_lookup(tl), manager(m) {}
@@ -67,11 +68,14 @@ namespace economy {
 
 		goods_group(parsing_environment& e) : env(e) {}
 
-		void add_good(const std::pair<token_and_type, good_definition_builder>& v) {
+		void add_good(std::pair<token_and_type, good_definition_builder>&& v) {
+			v.second.def.icon = ++env.icon_count;
+
 			if((v.second.def.flags & good_definition::money) != 0) {
 				money = v.second.def;
 				const auto gname = text_data::get_thread_safe_text_handle(env.text_lookup, v.first.start, v.first.end);
 				money.name = gname;
+				env.manager.named_goods_index.emplace(gname, goods_tag(0));
 			} else {
 				const auto gname = text_data::get_thread_safe_text_handle(env.text_lookup, v.first.start, v.first.end);
 				const auto new_g_tag = env.manager.goods.emplace_back(v.second.def);
@@ -88,8 +92,6 @@ namespace economy {
 
 	struct goods_file {
 		parsing_environment& env;
-		good_definition money;
-		goods_type_tag money_group;
 
 		goods_file(parsing_environment& e) : env(e) {}
 
@@ -102,9 +104,9 @@ namespace economy {
 			}
 
 			if(v.second.money.flags != 0) {
-				money = v.second.money;
-				money_group = new_g_tag;
-				money.type = new_g_tag;
+				env.manager.goods[goods_tag(0)] = v.second.money;
+				env.manager.goods[goods_tag(0)].type = new_g_tag;
+				env.manager.goods[goods_tag(0)].id = goods_tag(0);
 			}
 		}
 	};
@@ -742,20 +744,13 @@ namespace economy {
 			file->read_to_buffer(parse_data.get(), sz);
 			parse_pdx_file(parse_results, parse_data.get(), parse_data.get() + sz);
 
+			manager.goods.resize(1ui64);
+
 			if(parse_results.size() > 0) {
-				goods_file r = parse_object<goods_file, goods_file_domain>(
+				parse_object<goods_file, goods_file_domain>(
 					&parse_results[0],
 					&parse_results[0] + parse_results.size(),
 					return_state);
-
-				if(r.money.flags != 0) {
-					const auto money_tag = manager.goods.emplace_back(r.money);
-					manager.named_goods_index.emplace(r.money.name, money_tag);
-					auto& m = manager.goods[money_tag];
-					m.id = money_tag;
-
-					manager.money = money_tag;
-				}
 			}
 		}
 

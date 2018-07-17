@@ -47,7 +47,6 @@ public:
 		serialize(output, obj.fort);
 		serialize(output, obj.railroad);
 		serialize(output, obj.naval_base);
-		serialize(output, obj.money);
 		serialize(output, obj.factory_input_goods);
 		serialize(output, obj.factory_efficiency_goods);
 		serialize(output, obj.artisan_input_goods);
@@ -63,7 +62,6 @@ public:
 		deserialize(input, obj.fort);
 		deserialize(input, obj.railroad);
 		deserialize(input, obj.naval_base);
-		deserialize(input, obj.money);
 		deserialize(input, obj.factory_input_goods);
 		deserialize(input, obj.factory_efficiency_goods);
 		deserialize(input, obj.artisan_input_goods);
@@ -81,7 +79,6 @@ public:
 		deserialize(input, obj.fort);
 		deserialize(input, obj.railroad);
 		deserialize(input, obj.naval_base);
-		deserialize(input, obj.money);
 		deserialize(input, obj.factory_input_goods);
 		deserialize(input, obj.factory_efficiency_goods);
 		deserialize(input, obj.artisan_input_goods);
@@ -99,7 +96,6 @@ public:
 			serialize_size(obj.fort) +
 			serialize_size(obj.railroad) +
 			serialize_size(obj.naval_base) +
-			serialize_size(obj.money) +
 			serialize_size(obj.factory_input_goods) +
 			serialize_size(obj.factory_efficiency_goods) +
 			serialize_size(obj.artisan_input_goods) +

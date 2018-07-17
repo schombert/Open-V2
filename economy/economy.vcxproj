@@ -150,10 +150,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="economy.h" />
+    <ClInclude Include="economy_functions.h" />
     <ClInclude Include="economy_io.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="economy.cpp" />
+    <ClCompile Include="economy_functions.cpp" />
     <ClCompile Include="economy_io.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

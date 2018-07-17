@@ -43,7 +43,7 @@ namespace modifiers {
 		new_i.name = name;
 
 		env.manager.named_provincial_modifiers_index.emplace(name, tag);
-		env.manager.crimes.emplace(tag, crime{ name, triggers::trigger_tag(), tag, false });
+		env.manager.crimes.emplace(tag, crime{ triggers::trigger_tag(), tag, false });
 		env.pending_crimes.emplace_back(tag, start, end);
 
 		return 0;

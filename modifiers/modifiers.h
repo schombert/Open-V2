@@ -56,7 +56,6 @@ namespace modifiers {
 	};
 
 	struct crime {
-		text_data::text_tag name;
 		triggers::trigger_tag crime_trigger;
 		provincial_modifier_tag modifier;
 		bool default_active = false;

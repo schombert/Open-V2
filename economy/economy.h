@@ -25,6 +25,7 @@ namespace economy {
 		goods_tag id;
 		goods_type_tag type;
 		uint8_t flags = 0;
+		uint8_t icon = 0;
 	};
 
 	enum class contribution_type : uint8_t {
@@ -114,7 +115,7 @@ namespace economy {
 
 	class economic_state {
 	public:
-
+		tagged_vector<economy::money_qnty_type, goods_tag> current_prices;
 	};
 
 	class economic_scenario {
@@ -131,8 +132,6 @@ namespace economy {
 		fort_information fort;
 		railroad_information railroad;
 		naval_base_information naval_base;
-
-		goods_tag money;
 
 		tagged_fixed_blocked_2dvector<economy::goods_qnty_type, factory_type_tag, goods_tag, aligned_allocator_32<economy::goods_qnty_type>> factory_input_goods;
 		tagged_fixed_blocked_2dvector<economy::goods_qnty_type, factory_type_tag, goods_tag, aligned_allocator_32<economy::goods_qnty_type>> factory_efficiency_goods;
