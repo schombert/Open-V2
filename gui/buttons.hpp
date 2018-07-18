@@ -177,6 +177,24 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::icon_tag ha
 }
 
 template<typename B>
+ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::button_tag handle, ui::tagged_gui_object parent, ui::masked_flag<B>& b) {
+	auto new_obj = ui::detail::create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
+
+	new_obj.object.associated_behavior = &b;
+	b.associated_object = &new_obj.object;
+
+	ui::for_each_child(ws.w.gui_m, new_obj, [&b, &ws](ui::tagged_gui_object child) {
+		if((child.object.flags & ui::gui_object::type_mask) == ui::gui_object::type_masked_flag) {
+			b.set_underlying_object(ws.w.gui_m.multi_texture_instances.safe_at(ui::multi_texture_instance_tag(child.object.type_dependant_handle.load(std::memory_order_acquire))));
+		}
+	});
+
+	ui::add_to_back(ws.w.gui_m, parent, new_obj);
+	ws.w.gui_m.flag_minimal_update();
+	return new_obj;
+}
+
+template<typename B>
 ui::tagged_gui_object ui::create_static_element(world_state& ws, button_tag handle, tagged_gui_object parent, simple_button<B>& b) {
 	auto new_obj = ui::detail::create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
 

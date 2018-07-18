@@ -169,4 +169,31 @@ namespace provinces {
 		}
 		self.set_visibility(ws.w.gui_m, false);
 	}
+
+	template<typename window_type>
+	void party_loyalty_icon::windowed_update(ui::dynamic_icon<party_loyalty_icon>& ico, window_type&, world_state& ws) {
+		ico.set_visibility(ws.w.gui_m, false);
+	}
+
+	template<typename lb_type>
+	void cores_lb::populate_list(lb_type& lb, world_state& ws) {
+		auto selected = ws.w.province_window.selected_province;
+		if(is_valid_index(selected)) {
+			auto core_range = get_range(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container[selected].cores);
+			for(auto i = core_range.first; i != core_range.second; ++i)
+				lb.add_item(ws, *i);
+		}
+	}
+
+	template<typename window_type>
+	void province_colony_base::windowed_update(window_type&, world_state& ws) {
+		auto selected = ws.w.province_window.selected_province;
+		if(is_valid_index(selected)) {
+			if(ws.w.province_s.province_state_container[selected].owner == nullptr) {
+				ui::make_visible_immediate(*associated_object);
+				return;
+			}
+		}
+		ui::hide(*associated_object);
+	}
 }

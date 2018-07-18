@@ -305,11 +305,19 @@ namespace provinces {
 	}
 
 	void province_statistics_base::on_create(world_state&) {
-		associated_object->size = ui::xy_pair{ 406i16, 230i16 };
+		associated_object->size = ui::xy_pair{ 406i16, 352i16 };
+	}
+
+	void province_colony_base::on_create(world_state&) {
+		associated_object->size = ui::xy_pair{ 380i16, 350i16 };
 	}
 
 	ui::window_tag modifier_lb::element_tag(ui::gui_static & m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["prov_state_modifier"]);
+	}
+
+	ui::window_tag cores_lb::element_tag(ui::gui_static & m) {
+		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["province_core"]);
 	}
 
 	void province_controller_flag::button_function(ui::masked_flag<province_controller_flag>&, world_state&) {
@@ -604,4 +612,45 @@ namespace provinces {
 		}
 	}
 	
+
+	void open_popscreen_button::button_function(ui::gui_object_tag, world_state&) {
+
+	}
+	void open_popscreen_button::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			text_data::replacement value_rep(
+				text_data::value_type::loc,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.province_s.province_state_container[selected_prov].name),
+				[](tagged_object<ui::gui_object, ui::gui_object_tag>) {});
+			ui::unlimited_line_manager lm;
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::open_pop_screen], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &value_rep, 1ui32);
+			lm.finish_current_line();
+		}
+	}
+
+	void build_factory_button::button_function(ui::gui_object_tag, world_state&) {
+	}
+	void build_factory_button::create_tooltip(world_state&, ui::tagged_gui_object) {
+	}
+	void party_loyalty_icon::create_tooltip(world_state&, ui::tagged_gui_object) {
+
+	}
+	void supply_limit_text_box::update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&) {
+
+	}
+
+	void core_flag_button::button_function(ui::masked_flag<core_flag_button>&, world_state&) {
+
+	}
+	void core_flag_button::update(ui::masked_flag<core_flag_button>& self, world_state& ws) {
+		self.set_displayed_flag(ws, core);
+	}
+	void core_flag_button::create_tooltip(ui::masked_flag<core_flag_button>&, world_state& ws, ui::tagged_gui_object tw) {
+		auto core_holder = ws.w.culture_s.national_tags_state[core].holder;
+		if(core_holder)
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, core_holder->name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+		else 
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.culture_m.national_tags[core].default_name.name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+	}
 }

@@ -5,37 +5,6 @@
 #include "simple_mpl\\simple_mpl.hpp"
 
 namespace provinces {
-	/*
-	using budget_window_t = ui::gui_window <
-	CT_STRING("tab_takenloans"), ui::button_group_member,
-	CT_STRING("tab_givenloans"), ui::button_group_member,
-	CT_STRING("loans_tab_group"), ui::button_group<CT_STRING("tab_takenloans"), CT_STRING("tab_givenloans"), simple_button_group>,
-	CT_STRING("debt_sort_country"), ui::simple_button<mb_button<3>>,
-	CT_STRING("debt_sort_amount"), ui::simple_button<mb_button<4>>,
-	CT_STRING("tax_0_slider"), ui::scrollbar<debug_scrollbar>,
-	CT_STRING("tax_1_slider"), ui::scrollbar<debug_scrollbar>,
-	CT_STRING("tax_2_slider"), ui::scrollbar<debug_scrollbar>,
-	CT_STRING("land_stockpile_slider"), ui::scrollbar<debug_scrollbar>,
-	CT_STRING("naval_stockpile_slider"), ui::scrollbar<debug_scrollbar>,
-	CT_STRING("projects_stockpile_slider"), ui::scrollbar<debug_scrollbar>,
-	CT_STRING("exp_0_slider"), ui::scrollbar<debug_scrollbar>,
-	CT_STRING("exp_1_slider"), ui::scrollbar<debug_scrollbar>,
-	CT_STRING("exp_2_slider"), ui::scrollbar<debug_scrollbar>,
-	CT_STRING("exp_3_slider"), ui::scrollbar<debug_scrollbar>,
-	CT_STRING("tariff_slider"), ui::scrollbar<debug_scrollbar>,
-	CT_STRING("close_button"), ui::simple_button<mb_button<5>>,
-	CT_STRING("take_loan"), ui::simple_button<mb_button<6>>,
-	CT_STRING("repay_loan"), ui::simple_button<mb_button<7>>,
-	CT_STRING("chart_0"), ui::piechart<empty_gui_obj>,
-	CT_STRING("chart_1"), ui::piechart<empty_gui_obj>,
-	CT_STRING("chart_2"), ui::piechart<empty_gui_obj>,
-	CT_STRING("chart_debt"), ui::piechart<empty_gui_obj>,
-	CT_STRING("debt_listbox"), ui::display_listbox<debt_lb, debt_listitem_t, 56>,
-	CT_STRING("gunboat_alert"), ui::dynamic_icon<hidden_icon>,
-	CT_STRING("tax_0_pops"), ui::overlap_box<pop_type_a, ui::window_tag, pop_item_t, 32>,
-	ui::draggable_region >
-	*/
-
 	class modifier_lb {
 	public:
 		template<typename lb_type>
@@ -297,6 +266,57 @@ namespace provinces {
 		void update(ui::piechart<culture_pie_chart>& pie, world_state& ws);
 	};
 
+	class open_popscreen_button {
+	public:
+		void button_function(ui::gui_object_tag t, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class build_factory_button {
+	public:
+		void button_function(ui::gui_object_tag t, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class party_loyalty_icon {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<party_loyalty_icon>& ico, window_type&, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class supply_limit_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class cores_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class core_flag_button {
+	public:
+		cultures::national_tag core;
+
+		core_flag_button(cultures::national_tag t) : core(t) {}
+
+		void button_function(ui::masked_flag<core_flag_button>&, world_state&);
+		void update(ui::masked_flag<core_flag_button>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(ui::masked_flag<core_flag_button>& self, world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	using core_flag = ui::gui_window<
+		CT_STRING("country_flag"), ui::masked_flag<core_flag_button>,
+		ui::gui_behavior
+	>;
+
 	using province_statistics = ui::gui_window<
 		CT_STRING("goods_type"), ui::dynamic_icon<goods_type_icon>,
 		CT_STRING("produced"), ui::display_text<produced_text_box>,
@@ -314,7 +334,24 @@ namespace provinces {
 		CT_STRING("workforce_chart"), ui::piechart<poptype_pie_chart>,
 		CT_STRING("ideology_chart"), ui::piechart<ideology_pie_chart>,
 		CT_STRING("culture_chart"), ui::piechart<culture_pie_chart>,
+		CT_STRING("open_popscreen"), ui::simple_button<open_popscreen_button>,
+		CT_STRING("build_factory_button"), ui::simple_button<build_factory_button>,
+		CT_STRING("party_loyalty"), ui::dynamic_icon<party_loyalty_icon>,
+		CT_STRING("supply_limit"), ui::display_text<supply_limit_text_box>,
+		CT_STRING("core_icons"), ui::overlap_box<cores_lb, ui::window_tag, core_flag>,
 		province_statistics_base>;
+
+	class province_colony_base : public ui::visible_region {
+	public:
+		template<typename ...P>
+		explicit province_colony_base(P&& ... params) {}
+		void on_create(world_state&);
+		template<typename window_type>
+		void windowed_update(window_type&, world_state&);
+	};
+
+	using province_colony = ui::gui_window<
+		province_colony_base>;
 
 	class province_window_base : public ui::fixed_region {
 	public:
@@ -330,5 +367,6 @@ namespace provinces {
 		CT_STRING("close_button"), ui::simple_button<close_province_window>,
 		CT_STRING("province_view_header"), province_window_header,
 		CT_STRING("province_statistics"), province_statistics,
+		CT_STRING("province_colony"), province_colony,
 		province_window_base>;
 }

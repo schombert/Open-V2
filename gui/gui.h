@@ -552,6 +552,8 @@ namespace ui {
 	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, masked_flag<B>& b);
 	template<typename B>
+	ui::tagged_gui_object create_static_element(world_state& ws, button_tag handle, tagged_gui_object parent, masked_flag<B>& b);
+	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, scrollbar_tag handle, tagged_gui_object parent, scrollbar<B>& b);
 	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, piechart<B>& b);
