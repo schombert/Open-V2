@@ -117,6 +117,9 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, listbox_tag han
 	new_obj.object.position.x -= static_cast<int16_t>(left_expand);
 	new_obj.object.size.x += static_cast<int16_t>(left_expand + 16);
 
+	if constexpr(ui::detail::has_on_create<B, ui::display_listbox<B, ELEMENT, left_expand>&, world_state&>)
+		b.on_create(b, ws);
+
 	b.create_sub_elements(new_obj, ws);
 
 	ui::add_to_back(ws.w.gui_m, parent, new_obj);
@@ -128,7 +131,6 @@ template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_ex
 void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::set_self_information(world_state& ws, gui_object_tag s, int32_t sp, text_data::alignment a) {
 	const auto t = BASE::element_tag(ws.s.gui_m);
 	element_def_tag = t;
-	subelement_width = ws.s.gui_m.ui_definitions.get(t).size.x;
 
 	self = s;
 	spacing = sp;
@@ -162,7 +164,10 @@ void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::update_item_p
 	if (amount == 0)
 		return;
 
-	const int32_t space_consumed = (subelement_width + spacing) * amount - spacing;
+	int32_t space_consumed = spacing * (amount - 1);
+	for(int32_t n = amount - 1; n >= 0; --n)
+		space_consumed += contents[static_cast<uint32_t>(n)].associated_object->size.x;
+
 	const int32_t overlap = space_consumed > associated_object->size.x ? (space_consumed - associated_object->size.x + amount - 1) / amount: 0;
 	const int32_t adjusted_space_consumed = space_consumed - overlap * amount;
 	const int32_t base_offset =
@@ -172,8 +177,10 @@ void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::update_item_p
 		    (associated_object->size.x - adjusted_space_consumed) :
 			(associated_object->size.x - adjusted_space_consumed) / 2);
 
-	for (int32_t n = amount - 1; n >= 0; -- n) {
-		contents[static_cast<uint32_t>(n)].associated_object->position.x = static_cast<int16_t>(base_offset + (subelement_width + spacing - overlap) * n);
+	int32_t current_off = base_offset;
+	for(int32_t n = 0; n < amount; ++n) {
+		contents[static_cast<uint32_t>(n)].associated_object->position.x = int16_t(current_off);
+		current_off += contents[static_cast<uint32_t>(n)].associated_object->size.x + spacing - overlap;
 	}
 }
 
@@ -212,6 +219,9 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, overlapping_reg
 	b.associated_object = &new_obj.object;
 
 	b.set_self_information(ws, new_obj.id, static_cast<int32_t>(definition.spacing), ui::text_aligment_from_overlapping_definition(definition));
+
+	if constexpr(ui::detail::has_on_create<B, ui::overlap_box<B, tag_type, ELEMENT, vertical_extension>&, world_state&>)
+		b.on_create(b, ws);
 
 	ui::add_to_back(ws.w.gui_m, parent, new_obj);
 	ws.w.gui_m.flag_minimal_update();

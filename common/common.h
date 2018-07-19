@@ -4,6 +4,7 @@
 #include <vector>
 #include <atomic>
 #include <string>
+#include <tuple>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
@@ -38,6 +39,15 @@ namespace boost {
 #undef max
 #undef min
 
+template<typename A, typename = typename std::iterator_traits<A>::iterator_category>
+auto begin(std::pair<A, A> const& p) {
+	return p.first;
+}
+template<typename A, typename = typename std::iterator_traits<A>::iterator_category>
+auto end(std::pair<A, A> const& p) {
+	return p.second;
+}
+
 template<typename T>
 constexpr T null_value_of = std::numeric_limits<T>::max();
 
@@ -65,35 +75,36 @@ struct tag_type {
 
 	value_base value;
 
-	explicit constexpr tag_type(value_base v) : value(v + (std::is_same_v<std::true_type, zero_is_null> ? 1 : 0)) {}
-	constexpr tag_type(const tag_type& v) : value(v.value) {}
-	explicit constexpr tag_type(value_base v, std::true_type) : value(v) {}
+	explicit constexpr tag_type(value_base v) noexcept : value(v + (std::is_same_v<std::true_type, zero_is_null> ? 1 : 0)) {}
+	constexpr tag_type(const tag_type& v) noexcept : value(v.value) {}
+	constexpr tag_type(tag_type&& v) noexcept : value(v.value) {}
+	explicit constexpr tag_type(value_base v, std::true_type) noexcept : value(v) {}
 
-	constexpr tag_type() : value(null_value) {}
+	constexpr tag_type() noexcept : value(null_value) {}
 
-	constexpr value_base index() const {
+	constexpr value_base index() const noexcept {
 		if constexpr(std::is_same_v<std::true_type, zero_is_null>)
 			return value - 1;
 		else
 			return value;
 	}
-	constexpr bool is_valid() const {
+	constexpr bool is_valid() const noexcept {
 		if constexpr(std::is_same_v<std::true_type, zero_is_null>)
 			return value != 0;
 		else
 			return value != std::numeric_limits<value_base>::max();
 	}
-	void operator=(value_base v) { value = v + (std::is_same_v<std::true_type, zero_is_null> ? 1 : 0); }
-	void operator=(tag_type v) { value = v.value; }
+	void operator=(value_base v) noexcept { value = v + (std::is_same_v<std::true_type, zero_is_null> ? 1 : 0); }
+	void operator=(tag_type v) noexcept { value = v.value; }
 
-	constexpr bool operator==(tag_type v) const { return value == v.value; }
-	constexpr bool operator==(value_base v) const { return *this == tag_type(v); }
-	constexpr bool operator!=(tag_type v) const { return value != v.value; }
-	constexpr bool operator!=(value_base v) const { return *this != tag_type(v); }
-	constexpr bool operator<(tag_type v) const { return value < v.value; }
-	constexpr bool operator<(value_base v) const { return *this < tag_type(v); }
-	constexpr bool operator<=(tag_type v) const { return value <= v.value; }
-	constexpr bool operator<=(value_base v) const { return *this <= tag_type(v); }
+	constexpr bool operator==(tag_type v) const noexcept { return value == v.value; }
+	constexpr bool operator==(value_base v) const noexcept { return *this == tag_type(v); }
+	constexpr bool operator!=(tag_type v) const noexcept { return value != v.value; }
+	constexpr bool operator!=(value_base v) const noexcept { return *this != tag_type(v); }
+	constexpr bool operator<(tag_type v) const noexcept { return value < v.value; }
+	constexpr bool operator<(value_base v) const noexcept { return *this < tag_type(v); }
+	constexpr bool operator<=(tag_type v) const noexcept { return value <= v.value; }
+	constexpr bool operator<=(value_base v) const noexcept { return *this <= tag_type(v); }
 };
 
 template<typename value_base, typename zero_is_null, typename individuator>
@@ -174,34 +185,35 @@ struct atomic_tag {
 
 	std::atomic<value_base_t> value;
 
-	explicit atomic_tag(value_base_t v) : value(v + (std::is_same_v<std::true_type, zero_is_null_t> ? 1 : 0)) {}
-	explicit atomic_tag(tag_base v) : value(to_index(v) + (std::is_same_v<std::true_type, zero_is_null_t> ? 1 : 0)) {}
-	atomic_tag(const atomic_tag &v) : value(v.value.load(std::memory_order_acquire)) {}
+	explicit atomic_tag(value_base_t v) noexcept : value(v + (std::is_same_v<std::true_type, zero_is_null_t> ? 1 : 0)) {}
+	explicit atomic_tag(tag_base v) noexcept : value(to_index(v) + (std::is_same_v<std::true_type, zero_is_null_t> ? 1 : 0)) {}
+	atomic_tag(const atomic_tag &v) noexcept : value(v.value.load(std::memory_order_acquire)) {}
+	atomic_tag(atomic_tag &&v) noexcept : value(v.value.load(std::memory_order_acquire)) {}
 
-	atomic_tag() : value(null_value) {}
+	atomic_tag() noexcept : value(null_value) {}
 
-	value_base_t index() const {
+	value_base_t index() const noexcept {
 		if constexpr(std::is_same_v<std::true_type, zero_is_null_t>)
 			return value.load(std::memory_order_acquire) - 1;
 		else
 			return value.load(std::memory_order_acquire);
 	}
-	bool is_valid() const {
+	bool is_valid() const noexcept {
 		if constexpr(std::is_same_v<std::true_type, zero_is_null_t>)
 			return value.load(std::memory_order_acquire) != 0;
 		else
 			return value.load(std::memory_order_acquire) != std::numeric_limits<value_base_t>::max();
 	}
 
-	void operator=(const atomic_tag &v) { value.store(v.value.load(std::memory_order_acquire), std::memory_order_release); }
-	void operator=(tag_base v) { value.store(to_index(v) + (std::is_same_v<std::true_type, zero_is_null_t> ? 1 : 0), std::memory_order_release); }
+	void operator=(const atomic_tag &v) noexcept { value.store(v.value.load(std::memory_order_acquire), std::memory_order_release); }
+	void operator=(tag_base v) noexcept { value.store(to_index(v) + (std::is_same_v<std::true_type, zero_is_null_t> ? 1 : 0), std::memory_order_release); }
 
-	bool operator==(const atomic_tag &v) const { return value.load(std::memory_order_acquire) == v.value.load(std::memory_order_acquire); }
-	bool operator==(tag_base v) const { return index() == to_index(v); }
-	bool operator!=(const atomic_tag &v) const { return value.load(std::memory_order_acquire) != v.value.load(std::memory_order_acquire); }
-	bool operator!=(tag_base v) const { return index() != to_index(v); }
+	bool operator==(const atomic_tag &v) const noexcept { return value.load(std::memory_order_acquire) == v.value.load(std::memory_order_acquire); }
+	bool operator==(tag_base v) const noexcept { return index() == to_index(v); }
+	bool operator!=(const atomic_tag &v) const noexcept { return value.load(std::memory_order_acquire) != v.value.load(std::memory_order_acquire); }
+	bool operator!=(tag_base v) const noexcept { return index() != to_index(v); }
 	
-	operator tag_base() const { return tag_base(value.load(std::memory_order_acquire), std::true_type()); }
+	operator tag_base() const noexcept { return tag_base(value.load(std::memory_order_acquire), std::true_type()); }
 };
 
 template<typename tag_base>
@@ -227,10 +239,10 @@ struct tagged_object {
 	T& object;
 	const tag_type id;
 
-	operator T&() const {
+	operator T&() const noexcept {
 		return object;
 	}
-	operator tag_type() const {
+	operator tag_type() const noexcept {
 		return id;
 	}
 };

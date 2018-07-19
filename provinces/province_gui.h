@@ -308,8 +308,6 @@ namespace provinces {
 
 		void button_function(ui::masked_flag<core_flag_button>&, world_state&);
 		void update(ui::masked_flag<core_flag_button>& self, world_state& ws);
-		bool has_tooltip(world_state&) { return true; }
-		void create_tooltip(ui::masked_flag<core_flag_button>& self, world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	using core_flag = ui::gui_window<
@@ -350,7 +348,142 @@ namespace provinces {
 		void windowed_update(window_type&, world_state&);
 	};
 
+	class uncolonized_phase_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class crisis_temperature_bar {
+	public:
+		void update(ui::progress_bar<crisis_temperature_bar>& self, world_state& ws);
+	};
+
+	class colonist_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m) {
+			return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["colonist_item"]);
+		}
+		template<typename lb_type>
+		void on_create(lb_type& lb, world_state&);
+	};
+
+	class colonist_list_item_base : public ui::visible_region {
+	public:
+		nations::country_tag colonizer;
+		int32_t stage = 0;
+
+		colonist_list_item_base(nations::country_tag c, int32_t s) : colonizer(c), stage(s) {}
+		colonist_list_item_base(colonist_list_item_base&&) = default;
+		colonist_list_item_base(colonist_list_item_base& b) noexcept : colonist_list_item_base(std::move(b)) {}
+
+		void on_create(world_state&);
+	};
+
+	class stage_list_item_base : public ui::visible_region {
+	public:
+		int32_t stage = 0;
+		int32_t required_points = 0;
+
+		stage_list_item_base(int32_t s, int32_t p) : stage(s), required_points(p) {}
+		stage_list_item_base(stage_list_item_base&&) = default;
+		stage_list_item_base(stage_list_item_base& b) noexcept : stage_list_item_base(std::move(b)) {}
+
+		void on_create(world_state&);
+	};
+
+	class stage_progress_icon {
+	public:
+		stage_progress_icon(int32_t, int32_t) {}
+
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<stage_progress_icon>& ico, window_type&, world_state& ws);
+	};
+
+	class stage_progress_button {
+	public:
+		int32_t req_pts;
+
+		stage_progress_button(int32_t, int32_t r) : req_pts(r) {}
+
+		void button_function(ui::gui_object_tag t, world_state& ws);
+		template<typename window_type>
+		void windowed_update(ui::simple_button<stage_progress_button>& ico, window_type&, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class stage_lb {
+	public:
+		nations::country_tag colonizer;
+		int32_t stage = 0;
+
+		stage_lb(nations::country_tag t, int32_t s) : colonizer(t), stage(s) {}
+
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m) {
+			return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["level_entry"]);
+		}
+	};
+
+	using stage_listitem_t = ui::gui_window<
+		CT_STRING("progress_icon"), ui::dynamic_icon<stage_progress_icon>,
+		CT_STRING("progress_button"), ui::simple_button<stage_progress_button>,
+		stage_list_item_base
+	>;
+
+	class progress_counter_text_box {
+	public:
+		progress_counter_text_box(nations::country_tag, int32_t) {}
+
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class colonist_controller_flag_button {
+	public:
+		nations::country_tag colonizer;
+
+		colonist_controller_flag_button(nations::country_tag t, int32_t) : colonizer(t) {}
+
+		void button_function(ui::masked_flag<colonist_controller_flag_button>&, world_state&);
+		void update(ui::masked_flag<colonist_controller_flag_button>& self, world_state& ws);
+	};
+
+	using colonist_listitem_t = ui::gui_window<
+		CT_STRING("controller_flag"), ui::masked_flag<colonist_controller_flag_button>,
+		CT_STRING("progress_counter"), ui::display_text<progress_counter_text_box>,
+		CT_STRING("levels"), ui::overlap_box<stage_lb, ui::window_tag, stage_listitem_t>,
+		colonist_list_item_base
+	>;
+
+	class colonize_button {
+	public:
+		void button_function(ui::gui_object_tag t, world_state& ws);
+		void update(ui::simple_button<colonize_button>& ico, world_state& ws);
+		bool has_tooltip(world_state&);
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class withdraw_button {
+	public:
+		void button_function(ui::gui_object_tag t, world_state& ws);
+		void update(ui::simple_button<withdraw_button>& ico, world_state& ws);
+		bool has_tooltip(world_state&);
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
 	using province_colony = ui::gui_window<
+		CT_STRING("uncolonized_phase"), ui::display_text<uncolonized_phase_text_box>,
+		CT_STRING("crisis_temperature"), ui::progress_bar<crisis_temperature_bar>,
+		CT_STRING("colonist_list"), ui::display_listbox<colonist_lb, colonist_listitem_t>,
+		CT_STRING("colonize_button"), ui::simple_button<colonize_button>,
+		CT_STRING("withdraw_button"), ui::simple_button<withdraw_button>,
+		CT_STRING("goods_type"), ui::dynamic_icon<goods_type_icon>,
+		CT_STRING("total_population"), ui::display_text<total_population_text_box>,
+		CT_STRING("culture_chart"), ui::piechart<culture_pie_chart>,
 		province_colony_base>;
 
 	class province_window_base : public ui::fixed_region {

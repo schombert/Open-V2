@@ -135,7 +135,10 @@ ui::xy_pair ui::add_linear_text(ui::xy_pair position, text_data::text_tag text_h
 
 	for(auto component_i = components_start; component_i != components_end; ++component_i) {
 		if(std::holds_alternative<text_data::color_change>(*component_i)) {
-			current_color = text_color_to_ui_text_color(std::get<text_data::color_change>(*component_i).color);
+			if(std::get<text_data::color_change>(*component_i).color == text_data::text_color::unspecified)
+				current_color = fmt.color;
+			else
+				current_color = text_color_to_ui_text_color(std::get<text_data::color_change>(*component_i).color);
 		} else if(std::holds_alternative<text_data::value_placeholder>(*component_i)) {
 			const auto rep = text_data::find_replacement(std::get<text_data::value_placeholder>(*component_i), candidates, count);
 

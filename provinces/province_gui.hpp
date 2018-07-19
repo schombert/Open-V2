@@ -196,4 +196,87 @@ namespace provinces {
 		}
 		ui::hide(*associated_object);
 	}
+
+	
+	template<typename lb_type>
+	void colonist_lb::populate_list(lb_type& lb, world_state& ws) {
+		auto selected = ws.w.province_window.selected_province;
+		if(is_valid_index(selected)) {
+			auto state = ws.w.province_s.province_state_container[selected].state_instance;
+			if(state) {
+				for(uint32_t i = 0; i < std::extent_v<decltype(state->colonizers)>; ++i) {
+					if(state->colonizers[i].second != 0)
+						lb.add_item(ws, state->colonizers[i].first, state->colonizers[i].second);
+				}
+			}
+		}
+	}
+
+	template<typename lb_type>
+	void stage_lb::populate_list(lb_type& lb, world_state& ws) {
+		if(ws.w.local_player_nation == nullptr || ws.w.local_player_nation->id != colonizer) {
+			for(int32_t i = 0; i < stage && i < 5; ++i) {
+				lb.add_item(ws, i, -1);
+			}
+		} else {
+			int32_t i = 0;
+			for(; i < (stage - 1) && i < 4; ++i) {
+				lb.add_item(ws, i, -1);
+			}
+			auto selected = ws.w.province_window.selected_province;
+			if(is_valid_index(selected)) {
+				auto state = ws.w.province_s.province_state_container[selected].state_instance;
+				if(state)
+					lb.add_item(ws, i, nations::points_for_next_colonial_stage(ws, *ws.w.local_player_nation, *state));
+			}
+		}
+	}
+
+	template<typename window_type>
+	void stage_progress_icon::windowed_update(ui::dynamic_icon<stage_progress_icon>& ico, window_type& w, world_state& ws) {
+		if(w.required_points == -1) {
+			ico.set_frame(ws.w.gui_m, uint32_t(w.stage));
+		} else {
+			ico.set_visibility(ws.w.gui_m, false);
+		}
+	}
+
+	template<typename window_type>
+	void stage_progress_button::windowed_update(ui::simple_button<stage_progress_button>& ico, window_type& w, world_state& ws) {
+		if(req_pts == -1) {
+			ico.set_visibility(ws.w.gui_m, false);
+		} else {
+			ico.set_frame(ws.w.gui_m, uint32_t(w.stage));
+			if(req_pts < nations::free_colonial_points(ws, *ws.w.local_player_nation)) {
+				ico.set_enabled(false);
+			} else {
+				ico.set_enabled(true);
+			}
+		}
+	}
+
+	template<typename window_type>
+	void progress_counter_text_box::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		
+		if(win.stage >= 5) {
+			char16_t formatted_value[64];
+			put_value_in_buffer(formatted_value, display_type::integer, win.stage);
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m,
+				ws.w.gui_m,
+				vector_backed_string<char16_t>(formatted_value),
+				box,
+				ui::xy_pair{ 0,0 },
+				fmt,
+				lm);
+
+			lm.finish_current_line();
+		}
+	}
+	
+	template<typename lb_type>
+	void colonist_lb::on_create(lb_type& lb, world_state&) {
+		lb.associated_object->size = ui::xy_pair{ 375i16, 250i16 };
+	}
 }

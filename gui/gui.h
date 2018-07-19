@@ -388,7 +388,6 @@ namespace ui {
 		std::vector<ELEMENT, concurrent_allocator<ELEMENT>> contents;
 		gui_object_tag self;
 
-		int32_t subelement_width = 1;
 		int32_t spacing = 0;
 		text_data::alignment subelement_alignment;
 		tag_type element_def_tag;

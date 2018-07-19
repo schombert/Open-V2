@@ -80,7 +80,7 @@ ui::tooltip_behavior ui::masked_flag<BASE>::has_tooltip(gui_object_tag, world_st
 	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
 		return BASE::has_tooltip(ws) ? tooltip_behavior::tooltip : tooltip_behavior::no_tooltip;
 	else
-		return tooltip_behavior::no_tooltip;
+		return tooltip_behavior::tooltip;
 }
 
 template<typename BASE>
@@ -91,8 +91,17 @@ void ui::simple_button<BASE>::create_tooltip(gui_object_tag o, world_state& ws, 
 
 template<typename BASE>
 void ui::masked_flag<BASE>::create_tooltip(gui_object_tag, world_state& ws, const mouse_move&, tagged_gui_object tw) {
-	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
+	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>) {
 		BASE::create_tooltip(*this, ws, tw);
+	} else {
+		if(is_valid_index(displayed_flag)) {
+			auto holder = ws.w.culture_s.national_tags_state[displayed_flag].holder;
+			if(holder)
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, holder->name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+			else
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.culture_m.national_tags[displayed_flag].default_name.name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+		}
+	}
 }
 
 template<typename BASE>

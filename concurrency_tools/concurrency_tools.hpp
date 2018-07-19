@@ -142,6 +142,11 @@ object_type& stable_vector<object_type, index_type, block_size, index_size>::get
 }
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
+object_type& stable_vector<object_type, index_type, block_size, index_size>::operator[](index_type i) {
+	return get(i);
+}
+
+template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
 template<typename T>
 void stable_vector<object_type, index_type, block_size, index_size>::for_each(T const& f) {
 	for(uint32_t i = 0; i < indices_in_use; ++i) {

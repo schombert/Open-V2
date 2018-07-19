@@ -105,6 +105,8 @@ namespace nations {
 
 	struct state_instance {
 		economy::factory_instance factories[8] = {};
+		std::pair<country_tag, int32_t> colonizers[4] = {};
+
 		nation* owner = nullptr;
 		modifiers::national_focus* owner_national_focus = nullptr;
 

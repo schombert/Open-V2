@@ -14,6 +14,7 @@
 #include "simple_serialize\\simple_serialize.hpp"
 #include "world_state\\world_state.h"
 #include "provinces\\province_functions.h"
+#include "nations\\nations_functions.h"
 
 // #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -546,11 +547,14 @@ int main(int , char **) {
 	provinces::assign_terrain_color(ws.w.province_s, p_to_t_vector, color_terrain_map);
 	provinces::read_province_histories(ws, fs.get_root(), date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)));
 	population::read_all_pops(fs.get_root(), ws, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)));
+	nations::init_empty_states(ws);
 
 	scenario::ready_scenario(ws.s, fs.get_root());
 
 	provinces::update_province_demographics(ws);
 	nations::update_state_nation_demographics(ws);
+
+	ws.w.local_player_nation = &ws.w.nation_s.nations[nations::country_tag(1)];
 
 	provinces::add_province_modifier(
 		ws,

@@ -312,6 +312,14 @@ namespace provinces {
 		associated_object->size = ui::xy_pair{ 380i16, 350i16 };
 	}
 
+	void colonist_list_item_base::on_create(world_state&) {
+		associated_object->size = ui::xy_pair{ 380i16, 50i16 };
+	}
+
+	void stage_list_item_base::on_create(world_state&) {
+		associated_object->size = ui::xy_pair{ 60i16, 48i16 };
+	}
+
 	ui::window_tag modifier_lb::element_tag(ui::gui_static & m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["prov_state_modifier"]);
 	}
@@ -319,6 +327,7 @@ namespace provinces {
 	ui::window_tag cores_lb::element_tag(ui::gui_static & m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["province_core"]);
 	}
+
 
 	void province_controller_flag::button_function(ui::masked_flag<province_controller_flag>&, world_state&) {
 	}
@@ -646,11 +655,48 @@ namespace provinces {
 	void core_flag_button::update(ui::masked_flag<core_flag_button>& self, world_state& ws) {
 		self.set_displayed_flag(ws, core);
 	}
-	void core_flag_button::create_tooltip(ui::masked_flag<core_flag_button>&, world_state& ws, ui::tagged_gui_object tw) {
-		auto core_holder = ws.w.culture_s.national_tags_state[core].holder;
-		if(core_holder)
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, core_holder->name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
-		else 
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.culture_m.national_tags[core].default_name.name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+	
+	void uncolonized_phase_text_box::update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&) {
+
 	}
+
+	void crisis_temperature_bar::update(ui::progress_bar<crisis_temperature_bar>&, world_state&) {
+
+	}
+
+	void stage_progress_button::button_function(ui::gui_object_tag, world_state&) {
+	}
+
+	void stage_progress_button::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
+		if(req_pts != -1) {
+			ui::unlimited_line_manager lm;
+			char16_t formatted_value[64];
+
+			put_value_in_buffer(formatted_value, display_type::integer, req_pts);
+			text_data::replacement value_rep(text_data::value_type::cost, vector_backed_string<char16_t>(formatted_value), [](tagged_object<ui::gui_object, ui::gui_object_tag>) {});
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::colonial_investment_cost], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &value_rep, 1ui32);
+		}
+	}
+
+
+	
+	void colonist_controller_flag_button::button_function(ui::masked_flag<colonist_controller_flag_button>&, world_state&) {
+
+	}
+	void colonist_controller_flag_button::update(ui::masked_flag<colonist_controller_flag_button>& self, world_state& ws) {
+		if(is_valid_index(colonizer))
+			self.set_displayed_flag(ws, ws.w.nation_s.nations.get(colonizer).tag);
+	}
+	
+
+	void colonize_button::button_function(ui::gui_object_tag, world_state&) {}
+	void colonize_button::update(ui::simple_button<colonize_button>&, world_state&) {}
+	bool colonize_button::has_tooltip(world_state&) { return false; }
+	void colonize_button::create_tooltip(world_state&, ui::tagged_gui_object) {}
+
+	void withdraw_button::button_function(ui::gui_object_tag, world_state&) {}
+	void withdraw_button::update(ui::simple_button<withdraw_button>&, world_state&) {}
+	bool withdraw_button::has_tooltip(world_state&) { return false; }
+	void withdraw_button::create_tooltip(world_state&, ui::tagged_gui_object) {}
+	
 }

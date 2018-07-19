@@ -104,6 +104,32 @@ namespace nations {
 		ws.province_s.province_state_container[prov].controller = controller;
 	}
 
+	void init_empty_states(world_state& ws) {
+		for(int32_t i = int32_t(ws.w.province_s.province_state_container.size()) - 1; i > 0; --i) {
+			const provinces::province_tag this_prov_id(static_cast<provinces::province_tag::value_base_t>(i));
+			auto& this_province = ws.w.province_s.province_state_container[this_prov_id];
+			if((this_province.owner == nullptr) &
+				((ws.s.province_m.province_container[this_prov_id].flags & provinces::province::sea) == 0) &
+				(this_province.state_instance == nullptr) &
+				is_valid_index(ws.s.province_m.province_container[this_prov_id].state_id)) {
+
+				state_instance* si = &(ws.w.nation_s.states.get_new());
+				si->region_id = ws.s.province_m.province_container[this_prov_id].state_id;
+				this_province.state_instance = si;
+
+				auto same_region_range = ws.s.province_m.states_to_province_index.get_row(si->region_id);
+				for(auto same_region_prov : same_region_range) {
+					auto& other_province = ws.w.province_s.province_state_container[same_region_prov];
+					if((other_province.owner == nullptr) &
+						((ws.s.province_m.province_container[same_region_prov].flags & provinces::province::sea) == 0) &
+						(other_province.state_instance == nullptr)) {
+						other_province.state_instance = si;
+					}
+				}
+			}
+		}
+	}
+
 	void init_nations_state(world_state& ws) {
 		ws.w.nation_s.nation_demographics.reset(population::aligned_64_demo_size(ws));
 		ws.w.nation_s.state_demographics.reset(population::aligned_32_demo_size(ws));
@@ -299,6 +325,9 @@ namespace nations {
 		return 0;
 	}
 	int32_t free_colonial_points(world_state&, nation&) {
+		return 0;
+	}
+	int32_t points_for_next_colonial_stage(world_state&, nation&, state_instance&) {
 		return 0;
 	}
 }

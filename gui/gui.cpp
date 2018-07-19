@@ -353,7 +353,10 @@ void ui::detail::create_multiline_text(gui_static& static_manager, gui_manager& 
 	
 	for (auto component_i = components_start; component_i != components_end; ++component_i) {
 		if (std::holds_alternative<text_data::color_change>(*component_i)) {
-			current_color = text_color_to_ui_text_color(std::get<text_data::color_change>(*component_i).color);
+			if(std::get<text_data::color_change>(*component_i).color == text_data::text_color::unspecified)
+				current_color = fmt.color;
+			else
+				current_color = text_color_to_ui_text_color(std::get<text_data::color_change>(*component_i).color);
 		} else if (std::holds_alternative<text_data::line_break>(*component_i)) {
 			lm.finish_current_line();
 			position.x = 0;

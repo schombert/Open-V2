@@ -311,6 +311,7 @@ public:
 	}
 
 	object_type& get(index_type i); // safe from any thread
+	object_type& operator[](index_type i); // safe from any thread
 	bool is_valid_index(index_type i); //safe (but potentially inaccurate) from any thread, but if true, can use get without possible memory error
 
 	object_type& get_new(); // single thread only
