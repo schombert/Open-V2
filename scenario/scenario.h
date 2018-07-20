@@ -38,8 +38,9 @@ namespace scenario {
 		constexpr uint32_t other = 16ui32;
 		constexpr uint32_t open_pop_screen = 17ui32;
 		constexpr uint32_t colonial_investment_cost = 18ui32;
+		constexpr uint32_t province_view_state_non_cores = 19ui32;
 
-		constexpr uint32_t count = 19ui32;
+		constexpr uint32_t count = 20ui32;
 	}
 
 	class scenario_manager {

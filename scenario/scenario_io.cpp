@@ -122,5 +122,6 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::other] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POP_OTHER_CULT");
 		s.fixed_ui_text[fixed_ui::open_pop_screen] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PW_OPEN_POPSCREEN");
 		s.fixed_ui_text[fixed_ui::colonial_investment_cost] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COLONY_INVEST_COST");
+		s.fixed_ui_text[fixed_ui::province_view_state_non_cores] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "STATE_NONCORES");
 	}
 }

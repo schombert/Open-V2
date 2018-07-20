@@ -218,6 +218,11 @@ namespace provinces {
 				cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::province_view_admin_tech], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &value_rep, 1ui32);
 				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 				lm.finish_current_line();
+
+				u16itoa(0, formatted_value);
+				cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::province_view_state_non_cores], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &value_rep, 1ui32);
+				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
+				lm.finish_current_line();
 			}
 		}
 	}
@@ -310,6 +315,10 @@ namespace provinces {
 
 	void province_colony_base::on_create(world_state&) {
 		associated_object->size = ui::xy_pair{ 380i16, 350i16 };
+	}
+
+	void province_other_base::on_create(world_state&) {
+		associated_object->size = ui::xy_pair{ 380i16, 343i16 };
 	}
 
 	void colonist_list_item_base::on_create(world_state&) {
@@ -698,5 +707,57 @@ namespace provinces {
 	void withdraw_button::update(ui::simple_button<withdraw_button>&, world_state&) {}
 	bool withdraw_button::has_tooltip(world_state&) { return false; }
 	void withdraw_button::create_tooltip(world_state&, ui::tagged_gui_object) {}
+	
+
+	void province_owner_flag::button_function(ui::masked_flag<province_owner_flag>&, world_state&) {}
+	void province_owner_flag::update(ui::masked_flag<province_owner_flag>& self, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			auto owner = ws.w.province_s.province_state_container[selected_prov].owner;
+			if(owner) {
+				self.set_displayed_flag(ws, owner->tag);
+			}
+		}
+	}
+
+	void relation_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		auto player = ws.w.local_player_nation;
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(player && is_valid_index(selected_prov)) {
+			auto owner = ws.w.province_s.province_state_container[selected_prov].owner;
+			if(owner) {
+				char16_t formatted_value[64];
+				put_value_in_buffer(formatted_value, display_type::integer, nations::get_relationship(ws, *player, owner->id));
+
+				ui::text_chunk_to_instances(
+					ws.s.gui_m,
+					ws.w.gui_m,
+					vector_backed_string<char16_t>(formatted_value),
+					box,
+					ui::xy_pair{ 0,0 },
+					fmt,
+					lm);
+
+				lm.finish_current_line();
+			}
+		}
+	}
+
+	void country_flag_frame::update(ui::dynamic_transparent_icon<country_flag_frame>& ico, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			auto owner = ws.w.province_s.province_state_container[selected_prov].owner;
+			if(owner) {
+				if(owner->is_civilized == false)
+					ico.set_frame(ws.w.gui_m, 3ui32);
+				else if(owner->overall_rank <= int16_t(ws.s.modifiers_m.global_defines.great_nations_count))
+					ico.set_frame(ws.w.gui_m, 0ui32);
+				else if(owner->overall_rank <= int16_t(ws.s.modifiers_m.global_defines.colonial_rank))
+					ico.set_frame(ws.w.gui_m, 1ui32);
+				else
+					ico.set_frame(ws.w.gui_m, 2ui32);
+			}
+		}
+	}
 	
 }

@@ -486,6 +486,48 @@ namespace provinces {
 		CT_STRING("culture_chart"), ui::piechart<culture_pie_chart>,
 		province_colony_base>;
 
+	class province_other_base : public ui::visible_region {
+	public:
+		template<typename ...P>
+		explicit province_other_base(P&& ... params) {}
+		void on_create(world_state&);
+		template<typename window_type>
+		void windowed_update(window_type&, world_state&);
+	};
+
+	class province_owner_flag {
+	public:
+		void button_function(ui::masked_flag<province_owner_flag>&, world_state&);
+		void update(ui::masked_flag<province_owner_flag>& self, world_state& ws);
+	};
+
+	class relation_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class country_flag_frame {
+	public:
+		void update(ui::dynamic_transparent_icon<country_flag_frame>& ico, world_state& ws);
+	};
+
+	class province_owner_name {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	using province_other = ui::gui_window<
+		CT_STRING("supply_limit"), ui::display_text<supply_limit_text_box>,
+		CT_STRING("core_icons"), ui::overlap_box<cores_lb, ui::window_tag, core_flag>,
+		CT_STRING("total_population"), ui::display_text<total_population_text_box>,
+		CT_STRING("workforce_chart"), ui::piechart<poptype_pie_chart>,
+		CT_STRING("ideology_chart"), ui::piechart<ideology_pie_chart>,
+		CT_STRING("culture_chart"), ui::piechart<culture_pie_chart>,
+		CT_STRING("country_flag"), ui::masked_flag<province_owner_flag>,
+		CT_STRING("our_relation"), ui::display_text<relation_text_box>,
+		CT_STRING("country_flag_overlay"), ui::dynamic_transparent_icon<country_flag_frame>,
+		province_other_base>;
+
 	class province_window_base : public ui::fixed_region {
 	public:
 		province_tag selected_province;
@@ -501,5 +543,6 @@ namespace provinces {
 		CT_STRING("province_view_header"), province_window_header,
 		CT_STRING("province_statistics"), province_statistics,
 		CT_STRING("province_colony"), province_colony,
+		CT_STRING("province_other"), province_other,
 		province_window_base>;
 }

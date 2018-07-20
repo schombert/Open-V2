@@ -197,6 +197,19 @@ namespace provinces {
 		ui::hide(*associated_object);
 	}
 
+	template<typename window_type>
+	void province_other_base::windowed_update(window_type&, world_state& ws) {
+		auto selected = ws.w.province_window.selected_province;
+		if(is_valid_index(selected)) {
+			auto owner = ws.w.province_s.province_state_container[selected].owner;
+			if(owner != nulltpr && owner != ws.w.local_player_nation) {
+				ui::make_visible_immediate(*associated_object);
+				return;
+			}
+		}
+		ui::hide(*associated_object);
+	}
+
 	
 	template<typename lb_type>
 	void colonist_lb::populate_list(lb_type& lb, world_state& ws) {

@@ -84,6 +84,13 @@ namespace nations {
 		graphics::color_rgb current_color;
 		country_tag id;
 
+		int16_t military_score = 0i16;
+		int16_t industrial_score = 0i16;
+		int16_t overall_rank = 0i16;
+		int16_t prestige_rank = 0i16;
+		int16_t military_rank = 0i16;
+		int16_t industrial_rank = 0i16;
+
 		uint16_t colonial_points = 0ui16;
 
 		governments::party_tag ruling_party;
