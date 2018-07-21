@@ -15,6 +15,7 @@
 #include "world_state\\world_state.h"
 #include "provinces\\province_functions.h"
 #include "nations\\nations_functions.h"
+#include "nations\\nations_io.h"
 
 // #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -548,6 +549,9 @@ int main(int , char **) {
 	provinces::read_province_histories(ws, fs.get_root(), date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)));
 	population::read_all_pops(fs.get_root(), ws, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)));
 	nations::init_empty_states(ws);
+	std::vector<std::pair<nations::country_tag, events::decision_tag>> decisions;
+	nations::read_nations_files(ws, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)), fs.get_root(), decisions);
+	
 
 	scenario::ready_scenario(ws.s, fs.get_root());
 

@@ -748,7 +748,7 @@ namespace provinces {
 		if(is_valid_index(selected_prov)) {
 			auto owner = ws.w.province_s.province_state_container[selected_prov].owner;
 			if(owner) {
-				if(owner->is_civilized == false)
+				if((owner->flags & nations::nation::is_civilized) == 0)
 					ico.set_frame(ws.w.gui_m, 3ui32);
 				else if(owner->overall_rank <= int16_t(ws.s.modifiers_m.global_defines.great_nations_count))
 					ico.set_frame(ws.w.gui_m, 0ui32);
@@ -760,4 +760,183 @@ namespace provinces {
 		}
 	}
 	
+	void province_owner_name::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			auto owner = ws.w.province_s.province_state_container[selected_prov].owner;
+			if(owner) {
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, owner->name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+
+	void country_status::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			auto owner = ws.w.province_s.province_state_container[selected_prov].owner;
+			if(owner) {
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, nations::get_nation_status_text(ws, *owner), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+
+	
+	void country_gov::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			auto owner = ws.w.province_s.province_state_container[selected_prov].owner;
+			if(owner) {
+				if(auto gov = owner->current_government; is_valid_index(gov)) {
+					ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.governments_m.governments_container[gov].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+					lm.finish_current_line();
+				}
+			}
+		}
+	}
+	
+	void country_party::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			auto owner = ws.w.province_s.province_state_container[selected_prov].owner;
+			if(owner) {
+				if(auto party = owner->ruling_party; is_valid_index(party)) {
+					ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.governments_m.parties[party].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+					lm.finish_current_line();
+				}
+			}
+		}
+	}
+	
+	void score_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+				char16_t formatted_value[64];
+				put_value_in_buffer(formatted_value, display_type::integer, owner->military_score + owner->industrial_score + int32_t(owner->prestige));
+
+				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(formatted_value), box, ui::xy_pair{ 0,0 }, fmt, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+	void rank_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+				char16_t formatted_value[64];
+				put_value_in_buffer(formatted_value, display_type::integer, owner->overall_rank);
+
+				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(formatted_value), box, ui::xy_pair{ 0,0 }, fmt, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+	void prestige_score_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+				char16_t formatted_value[64];
+				put_value_in_buffer(formatted_value, display_type::integer, int32_t(owner->prestige));
+
+				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(formatted_value), box, ui::xy_pair{ 0,0 }, fmt, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+	void prestige_rank_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+				char16_t formatted_value[64];
+				put_value_in_buffer(formatted_value, display_type::integer, int32_t(owner->prestige_rank));
+
+				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(formatted_value), box, ui::xy_pair{ 0,0 }, fmt, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+	void industrial_score_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+				char16_t formatted_value[64];
+				put_value_in_buffer(formatted_value, display_type::integer, int32_t(owner->industrial_score));
+
+				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(formatted_value), box, ui::xy_pair{ 0,0 }, fmt, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+	void industrial_rank_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+				char16_t formatted_value[64];
+				put_value_in_buffer(formatted_value, display_type::integer, int32_t(owner->industrial_rank));
+
+				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(formatted_value), box, ui::xy_pair{ 0,0 }, fmt, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+	void military_score_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+				char16_t formatted_value[64];
+				put_value_in_buffer(formatted_value, display_type::integer, int32_t(owner->military_score));
+
+				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(formatted_value), box, ui::xy_pair{ 0,0 }, fmt, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+	void military_rank_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+				char16_t formatted_value[64];
+				put_value_in_buffer(formatted_value, display_type::integer, int32_t(owner->military_rank));
+
+				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(formatted_value), box, ui::xy_pair{ 0,0 }, fmt, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+
+	void prestige_icon::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
+		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::prestige], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+	}
+
+	void industrial_icon::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
+		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::industrial_power], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+	}
+
+	void military_icon::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
+		ui::xy_pair cursor{ 0,0 };
+		cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::military_power], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+				if((owner->flags & nations::nation::is_mobilized) != 0) {
+					cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
+					ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::is_mobilized], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+				}
+			}
+		}
+	}
+
+	void military_icon::update(ui::dynamic_icon<military_icon>& ico, world_state& ws) {
+		auto selected_prov = ws.w.province_window.selected_province;
+		if(is_valid_index(selected_prov)) {
+			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+				if((owner->flags & nations::nation::is_mobilized) != 0)
+					ico.set_frame(ws.w.gui_m, 1ui32);
+				else
+					ico.set_frame(ws.w.gui_m, 0ui32);
+			}
+		}
+	}
 }

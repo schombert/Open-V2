@@ -202,7 +202,7 @@ namespace provinces {
 		auto selected = ws.w.province_window.selected_province;
 		if(is_valid_index(selected)) {
 			auto owner = ws.w.province_s.province_state_container[selected].owner;
-			if(owner != nulltpr && owner != ws.w.local_player_nation) {
+			if(owner != nullptr && owner != ws.w.local_player_nation) {
 				ui::make_visible_immediate(*associated_object);
 				return;
 			}

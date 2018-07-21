@@ -285,6 +285,8 @@ namespace ui {
 		}
 
 		virtual void update_data(gui_object_tag, world_state&) final override;
+		virtual tooltip_behavior has_tooltip(gui_object_tag, world_state&, const mouse_move&) final override;
+		virtual void create_tooltip(gui_object_tag, world_state&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
 	};
 
 	template<typename BASE>

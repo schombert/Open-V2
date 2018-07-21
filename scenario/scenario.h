@@ -39,8 +39,17 @@ namespace scenario {
 		constexpr uint32_t open_pop_screen = 17ui32;
 		constexpr uint32_t colonial_investment_cost = 18ui32;
 		constexpr uint32_t province_view_state_non_cores = 19ui32;
+		constexpr uint32_t great_power = 20ui32;
+		constexpr uint32_t secondary_power = 21ui32;
+		constexpr uint32_t civilized_nation = 22ui32;
+		constexpr uint32_t uncivilized_nation = 23ui32;
+		constexpr uint32_t partialy_civilized_nation = 24ui32;
+		constexpr uint32_t prestige = 25ui32;
+		constexpr uint32_t military_power = 26ui32;
+		constexpr uint32_t industrial_power = 27ui32;
+		constexpr uint32_t is_mobilized = 28ui32;
 
-		constexpr uint32_t count = 20ui32;
+		constexpr uint32_t count = 29ui32;
 	}
 
 	class scenario_manager {

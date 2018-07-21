@@ -106,8 +106,11 @@ namespace nations {
 
 		governments::government_tag current_government;
 
-		bool is_civilized = false;
-		bool is_substate = false;
+		uint8_t flags = 0ui8;
+
+		constexpr static uint8_t is_civilized = 0x01;
+		constexpr static uint8_t is_substate = 0x02;
+		constexpr static uint8_t is_mobilized = 0x04;
 	};
 
 	struct state_instance {

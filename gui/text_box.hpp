@@ -27,6 +27,20 @@ void ui::display_text<BASE, y_adjust>::windowed_update(window_type& w, world_sta
 }
 
 template<typename BASE, int32_t y_adjust>
+ui::tooltip_behavior ui::display_text<BASE, y_adjust>::has_tooltip(gui_object_tag, world_state& ws, const mouse_move&) {
+	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
+		return BASE::has_tooltip(ws) ? tooltip_behavior::tooltip : tooltip_behavior::no_tooltip;
+	else
+		return tooltip_behavior::no_tooltip;
+}
+
+template<typename BASE, int32_t y_adjust>
+void ui::display_text<BASE, y_adjust>::create_tooltip(gui_object_tag, world_state& ws, const mouse_move&, tagged_gui_object tw) {
+	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
+		BASE::create_tooltip(ws, tw);
+}
+
+template<typename BASE, int32_t y_adjust>
 void ui::display_text<BASE, y_adjust>::set_visibility(gui_manager& m, bool visible) {
 	if(visible)
 		ui::make_visible_and_update(m, *associated_object);

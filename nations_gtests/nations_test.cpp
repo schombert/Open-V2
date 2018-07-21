@@ -10,6 +10,9 @@
 #include "provinces\\province_functions.h"
 #include "nations\\nations_io.h"
 
+#undef min
+#undef max
+
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
 using namespace nations;
@@ -302,7 +305,7 @@ TEST(nations_tests, read_nations_files_simple) {
 	EXPECT_EQ(25.0f, ger_nation->plurality);
 	EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_national_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("nv_equality"))), ger_nation->national_value);
 	EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_national_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("commerce_tech_school"))), ger_nation->tech_school);
-	EXPECT_EQ(true, ger_nation->is_civilized);
+	EXPECT_EQ(nations::nation::is_civilized, ger_nation->flags);
 	EXPECT_EQ(40.0f, ger_nation->prestige);
 	EXPECT_EQ(tag_from_text(ws.s.governments_m.named_party_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("SPA_conservative"))), ger_nation->ruling_party);
 	EXPECT_EQ(date_to_tag(boost::gregorian::date(1834, boost::gregorian::Jan, 1)), ger_nation->last_election);
@@ -380,7 +383,7 @@ TEST(nations_tests, read_nations_files_layered) {
 	EXPECT_EQ(25.0f, ger_nation->plurality);
 	EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_national_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("nv_equality"))), ger_nation->national_value);
 	EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_national_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("commerce_tech_school"))), ger_nation->tech_school);
-	EXPECT_EQ(true, ger_nation->is_civilized);
+	EXPECT_EQ(nations::nation::is_civilized, ger_nation->flags);
 	EXPECT_EQ(40.0f, ger_nation->prestige);
 	EXPECT_EQ(tag_from_text(ws.s.governments_m.named_party_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("SPA_conservative"))), ger_nation->ruling_party);
 	EXPECT_EQ(date_to_tag(boost::gregorian::date(1834, boost::gregorian::Jan, 1)), ger_nation->last_election);

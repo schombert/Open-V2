@@ -516,6 +516,80 @@ namespace provinces {
 		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
 	};
 
+	class country_status {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class country_gov {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class country_party {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class score_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class rank_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class prestige_score_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class prestige_rank_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class industrial_score_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class industrial_rank_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class military_score_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class military_rank_text_box {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class military_icon {
+	public:
+		void update(ui::dynamic_icon<military_icon>& ico, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class prestige_icon {
+	public:
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class industrial_icon {
+	public:
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
 	using province_other = ui::gui_window<
 		CT_STRING("supply_limit"), ui::display_text<supply_limit_text_box>,
 		CT_STRING("core_icons"), ui::overlap_box<cores_lb, ui::window_tag, core_flag>,
@@ -526,6 +600,21 @@ namespace provinces {
 		CT_STRING("country_flag"), ui::masked_flag<province_owner_flag>,
 		CT_STRING("our_relation"), ui::display_text<relation_text_box>,
 		CT_STRING("country_flag_overlay"), ui::dynamic_transparent_icon<country_flag_frame>,
+		CT_STRING("country_name"), ui::display_text<province_owner_name, 4>,
+		CT_STRING("country_status"), ui::display_text<country_status, -1>,
+		CT_STRING("country_gov"), ui::display_text<country_gov, -1>,
+		CT_STRING("country_party"), ui::display_text<country_party, -1>,
+		CT_STRING("selected_prestige_icon"), ui::dynamic_icon<prestige_icon>,
+		CT_STRING("country_prestige"), ui::display_text<prestige_score_text_box, -3>,
+		CT_STRING("selected_prestige_rank"), ui::display_text<prestige_rank_text_box, -13>,
+		CT_STRING("selected_industry_icon"), ui::dynamic_icon<industrial_icon>,
+		CT_STRING("country_economic"), ui::display_text<industrial_score_text_box, -3>,
+		CT_STRING("selected_industry_rank"), ui::display_text<industrial_rank_text_box, -13>,
+		CT_STRING("selected_military_icon"), ui::dynamic_icon<military_icon>,
+		CT_STRING("country_military"), ui::display_text<military_score_text_box, -3>,
+		CT_STRING("selected_military_rank"), ui::display_text<military_rank_text_box, -13>,
+		CT_STRING("country_total"), ui::display_text<score_text_box, -3>,
+		CT_STRING("selected_total_rank"), ui::display_text<rank_text_box, -13>,
 		province_other_base>;
 
 	class province_window_base : public ui::fixed_region {

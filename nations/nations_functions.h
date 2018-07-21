@@ -35,4 +35,6 @@ namespace nations {
 	int32_t colonial_points_to_make_state(world_state& ws, state_instance& si);
 	int32_t free_colonial_points(world_state& ws, nation& n);
 	int32_t points_for_next_colonial_stage(world_state& ws, nation& n, state_instance& si);
+
+	text_data::text_tag get_nation_status_text(world_state& ws, nation& this_nation);
 }

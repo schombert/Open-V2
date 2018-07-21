@@ -232,8 +232,8 @@ namespace nations {
 			target_nation.plurality = *npo.plurality;
 		if(npo.prestige)
 			target_nation.prestige = *npo.prestige;
-		if(npo.civilized)
-			target_nation.is_civilized = *npo.civilized;
+		if(npo.civilized && *npo.civilized)
+			target_nation.flags |= nation::is_civilized;
 		if(npo.is_releasbale_vassal)
 			nat_tag.is_not_releasable = !(*npo.is_releasbale_vassal);
 		target_nation.national_value = npo.nationalvalue;

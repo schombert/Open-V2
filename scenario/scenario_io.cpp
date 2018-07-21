@@ -116,12 +116,20 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::flashpoint_tension] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "FLASHPOINT_TENSION");
 		s.fixed_ui_text[fixed_ui::has_no_flashpoint] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "HAS_NO_FLASHPOINT");
 		s.fixed_ui_text[fixed_ui::province_liferating] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROVINCEVIEW_LIFERATING");
-
 		s.fixed_ui_text[fixed_ui::siege_progress] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PV_SIEGE_PROGRESS");
 		s.fixed_ui_text[fixed_ui::owner_presence] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROVINCEVIEW_RGOOWNER");
 		s.fixed_ui_text[fixed_ui::other] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POP_OTHER_CULT");
 		s.fixed_ui_text[fixed_ui::open_pop_screen] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PW_OPEN_POPSCREEN");
 		s.fixed_ui_text[fixed_ui::colonial_investment_cost] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COLONY_INVEST_COST");
 		s.fixed_ui_text[fixed_ui::province_view_state_non_cores] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "STATE_NONCORES");
+		s.fixed_ui_text[fixed_ui::great_power] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "great_power");
+		s.fixed_ui_text[fixed_ui::secondary_power] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "second_power");
+		s.fixed_ui_text[fixed_ui::civilized_nation] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "civ_nation");
+		s.fixed_ui_text[fixed_ui::uncivilized_nation] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "unciv_nation");
+		s.fixed_ui_text[fixed_ui::partialy_civilized_nation] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "DIPLOMACY_ALMOST_WESTERN_NATION_STATUS");
+		s.fixed_ui_text[fixed_ui::prestige] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "RANK_PRESTIGE");
+		s.fixed_ui_text[fixed_ui::military_power] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "RANK_MILITARY");
+		s.fixed_ui_text[fixed_ui::industrial_power] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "RANK_INDUSTRY");
+		s.fixed_ui_text[fixed_ui::is_mobilized] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "IS_MOBILIZED_IRO");
 	}
 }
