@@ -5,6 +5,8 @@ template<typename BASE>
 bool ui::simple_button<BASE>::on_lclick(gui_object_tag o, world_state& m, const lbutton_down &) {
 	if constexpr(ui::detail::has_button_function<BASE, gui_object_tag, world_state&>)
 		BASE::button_function(o, m);
+	else if constexpr(ui::detail::has_button_function<BASE, ui::simple_button<BASE>&, world_state&>)
+		BASE::button_function(*this, m);
 	return true;
 }
 
@@ -20,6 +22,8 @@ bool ui::simple_button<BASE>::on_keydown(gui_object_tag o, world_state & m, cons
 	if (k.keycode == shortcut) {
 		if constexpr(ui::detail::has_button_function<BASE, gui_object_tag, world_state&>)
 			BASE::button_function(o, m);
+		else if constexpr(ui::detail::has_button_function<BASE, ui::simple_button<BASE>&, world_state&>)
+			BASE::button_function(*this, m);
 		return true;
 	} else {
 		return false;

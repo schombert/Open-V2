@@ -331,7 +331,7 @@ namespace nations {
 		return 0;
 	}
 
-	text_data::text_tag get_nation_status_text(world_state& ws, nation& this_nation) {
+	text_data::text_tag get_nation_status_text(world_state& ws, nation const& this_nation) {
 		auto this_id = this_nation.id;
 		if(ws.w.nation_s.nations.is_valid_index(this_id)) {
 			if((this_nation.flags & nation::is_civilized) == 0) {
@@ -339,7 +339,7 @@ namespace nations {
 					return ws.s.fixed_ui_text[scenario::fixed_ui::partialy_civilized_nation];
 				else
 					return ws.s.fixed_ui_text[scenario::fixed_ui::uncivilized_nation];
-			} else if(this_nation.overall_rank <= int16_t(ws.s.modifiers_m.global_defines.great_nations_count))
+			} else if(is_great_power(ws, this_nation))
 				return ws.s.fixed_ui_text[scenario::fixed_ui::great_power];
 			else if(this_nation.overall_rank <= int16_t(ws.s.modifiers_m.global_defines.colonial_rank))
 				return ws.s.fixed_ui_text[scenario::fixed_ui::secondary_power];
@@ -350,4 +350,7 @@ namespace nations {
 		}
 	}
 	
+	bool is_great_power(world_state&, nation const&) {
+		return false;
+	}
 }

@@ -131,5 +131,12 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::military_power] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "RANK_MILITARY");
 		s.fixed_ui_text[fixed_ui::industrial_power] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "RANK_INDUSTRY");
 		s.fixed_ui_text[fixed_ui::is_mobilized] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "IS_MOBILIZED_IRO");
+		s.fixed_ui_text[fixed_ui::sphere] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "DIPLOMACY_SPHERE_LABEL");
+		s.fixed_ui_text[fixed_ui::sphere_leader] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "SPHERE_LEADER");
+		s.fixed_ui_text[fixed_ui::puppets] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRY_PUPPETS_LIST");
+		s.fixed_ui_text[fixed_ui::liege] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "TRIGGER_OVERLORD");
+		s.fixed_ui_text[fixed_ui::fort] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PV_FORT");
+		s.fixed_ui_text[fixed_ui::naval_base] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PV_NAVALBASE");
+		s.fixed_ui_text[fixed_ui::railroad] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PV_RAILROAD");
 	}
 }

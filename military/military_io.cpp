@@ -19,6 +19,7 @@ namespace military {
 		int32_t value = 0;
 		int32_t level = 2;
 		int32_t influence_value = 0;
+		void discard(int) {}
 	};
 
 	inline std::pair<token_and_type, parsed_relation> name_relation(token_and_type const& t, association_type, parsed_relation const& r) {
@@ -689,6 +690,7 @@ MEMBER_FDEF(military::parsed_leader, discard, "discard");
 MEMBER_DEF(military::parsed_relation, value, "value");
 MEMBER_DEF(military::parsed_relation, level, "level");
 MEMBER_DEF(military::parsed_relation, influence_value, "influence_value");
+MEMBER_FDEF(military::parsed_relation, discard, "discard");
 
 MEMBER_FDEF(military::single_cb, discard, "discard");
 MEMBER_FDEF(military::single_cb, set_is_civil_war, "is_civil_war");
@@ -796,6 +798,7 @@ namespace military {
 			MEMBER_ASSOCIATION("value", "value", value_from_rh<int32_t>)
 			MEMBER_ASSOCIATION("level", "level", value_from_rh<int32_t>)
 			MEMBER_ASSOCIATION("influence_value", "influence_value", value_from_rh<int32_t>)
+			MEMBER_ASSOCIATION("discard", "military_access", discard_from_rh)
 		END_TYPE
 		BEGIN_TYPE(parsed_leader)
 			MEMBER_ASSOCIATION("personality", "personality", token_from_rh)

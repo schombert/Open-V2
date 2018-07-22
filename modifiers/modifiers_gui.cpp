@@ -1,6 +1,8 @@
 #include "common\\common.h"
 #include "modifiers_gui.h"
 #include "world_state\\world_state.h"
+#include "gui\\gui.hpp"
+
 namespace modifiers {
 	
 	struct modifier_display_details {

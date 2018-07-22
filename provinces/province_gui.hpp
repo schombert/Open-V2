@@ -6,7 +6,7 @@ namespace provinces {
 
 	template<typename lb_type>
 	void modifier_lb::populate_list(lb_type& lb, world_state& ws) {
-		auto selected = ws.w.province_window.selected_province;
+		auto selected = ws.w.selected_province;
 		if(is_valid_index(selected)) {
 			auto& pstate = ws.w.province_s.province_state_container[selected];
 			auto static_mod_range = get_range(ws.w.province_s.static_modifier_arrays, pstate.static_modifiers);
@@ -22,7 +22,7 @@ namespace provinces {
 
 	template<typename window_type>
 	void province_name::windowed_update(window_type& w, ui::tagged_gui_object obj, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		auto selected = ws.w.province_window.selected_province;
+		auto selected = ws.w.selected_province;
 		if(is_valid_index(selected))
 			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.province_s.province_state_container[selected].name, fmt, ws.s.gui_m, ws.w.gui_m, obj, lm);
 		lm.finish_current_line();
@@ -30,7 +30,7 @@ namespace provinces {
 
 	template<typename window_type>
 	void province_state_name::windowed_update(window_type& w, ui::tagged_gui_object obj, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		auto selected = ws.w.province_window.selected_province;
+		auto selected = ws.w.selected_province;
 		if(is_valid_index(selected) && is_valid_index(ws.s.province_m.province_container[selected].state_id))
 			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.province_m.state_names[ws.s.province_m.province_container[selected].state_id], fmt, ws.s.gui_m, ws.w.gui_m, obj, lm);
 		lm.finish_current_line();
@@ -38,7 +38,7 @@ namespace provinces {
 
 	template<typename window_type>
 	void crime_name::windowed_update(window_type& w, ui::tagged_gui_object obj, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		auto selected_prov = ws.w.province_window.selected_province;
+		auto selected_prov = ws.w.selected_province;
 		if(is_valid_index(selected_prov)) {
 			auto crime = ws.w.province_s.province_state_container[selected_prov].crime;
 			if(is_valid_index(crime)) {
@@ -53,7 +53,7 @@ namespace provinces {
 
 	template<typename W>
 	void province_controller_flag::windowed_update(ui::masked_flag<province_controller_flag>& self, W& w, world_state& ws) {
-		auto selected_prov = ws.w.province_window.selected_province;
+		auto selected_prov = ws.w.selected_province;
 		if(is_valid_index(selected_prov)) {
 			auto controller = ws.w.province_s.province_state_container[selected_prov].controller;
 			if(controller) {
@@ -67,7 +67,7 @@ namespace provinces {
 
 	template<typename W>
 	void occupation_flag::windowed_update(ui::masked_flag<occupation_flag>& self, W& w, world_state& ws) {
-		auto selected_prov = ws.w.province_window.selected_province;
+		auto selected_prov = ws.w.selected_province;
 		if(is_valid_index(selected_prov) && ws.w.province_s.province_state_container[selected_prov].siege_progress != 0.0f) {
 			auto sieging_nation = get_province_seiger(ws, ws.w.province_s.province_state_container[selected_prov]);
 			if(is_valid_index(sieging_nation)) {
@@ -81,7 +81,7 @@ namespace provinces {
 
 	template<typename window_type>
 	void slave_state_icon::windowed_update(ui::dynamic_icon<slave_state_icon>& ico, window_type const&, world_state& ws) {
-		auto selected_prov = ws.w.province_window.selected_province;
+		auto selected_prov = ws.w.selected_province;
 		if(is_valid_index(selected_prov)) {
 			auto state = ws.w.province_s.province_state_container[selected_prov].state_instance;
 			if(state) {
@@ -98,7 +98,7 @@ namespace provinces {
 
 	template<typename window_type>
 	void crime_icon::windowed_update(ui::dynamic_icon<crime_icon>& ico, window_type const&, world_state& ws) {
-		auto selected_prov = ws.w.province_window.selected_province;
+		auto selected_prov = ws.w.selected_province;
 		if(is_valid_index(selected_prov)) {
 			auto crime = ws.w.province_s.province_state_container[selected_prov].crime;
 			if(is_valid_index(crime)) {
@@ -112,7 +112,7 @@ namespace provinces {
 
 	template<typename window_type>
 	void colony_button::windowed_update(ui::simple_button<colony_button>& ico, window_type const&, world_state& ws) {
-		auto selected_prov = ws.w.province_window.selected_province;
+		auto selected_prov = ws.w.selected_province;
 		if(is_valid_index(selected_prov)) {
 			auto state = ws.w.province_s.province_state_container[selected_prov].state_instance;
 
@@ -150,7 +150,7 @@ namespace provinces {
 
 	template<typename W>
 	void occupation_progress_bar::windowed_update(ui::progress_bar<occupation_progress_bar>& self, W&, world_state& ws) {
-		auto selected_prov = ws.w.province_window.selected_province;
+		auto selected_prov = ws.w.selected_province;
 		if(is_valid_index(selected_prov) && ws.w.province_s.province_state_container[selected_prov].siege_progress != 0.0f) {
 			self.set_fraction(ws.w.province_s.province_state_container[selected_prov].siege_progress);
 			ui::make_visible_immediate(*self.associated_object);
@@ -162,7 +162,7 @@ namespace provinces {
 
 	template<typename window_type>
 	void occupation_icon::windowed_update(ui::dynamic_icon<occupation_icon>& self, window_type&, world_state& ws) {
-		auto selected_prov = ws.w.province_window.selected_province;
+		auto selected_prov = ws.w.selected_province;
 		if(is_valid_index(selected_prov) && ws.w.province_s.province_state_container[selected_prov].siege_progress != 0.0f) {
 			ui::make_visible_immediate(*self.associated_object);
 			return;
@@ -177,7 +177,7 @@ namespace provinces {
 
 	template<typename lb_type>
 	void cores_lb::populate_list(lb_type& lb, world_state& ws) {
-		auto selected = ws.w.province_window.selected_province;
+		auto selected = ws.w.selected_province;
 		if(is_valid_index(selected)) {
 			auto core_range = get_range(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container[selected].cores);
 			for(auto i = core_range.first; i != core_range.second; ++i)
@@ -187,7 +187,7 @@ namespace provinces {
 
 	template<typename window_type>
 	void province_colony_base::windowed_update(window_type&, world_state& ws) {
-		auto selected = ws.w.province_window.selected_province;
+		auto selected = ws.w.selected_province;
 		if(is_valid_index(selected)) {
 			if(ws.w.province_s.province_state_container[selected].owner == nullptr) {
 				ui::make_visible_immediate(*associated_object);
@@ -199,7 +199,7 @@ namespace provinces {
 
 	template<typename window_type>
 	void province_other_base::windowed_update(window_type&, world_state& ws) {
-		auto selected = ws.w.province_window.selected_province;
+		auto selected = ws.w.selected_province;
 		if(is_valid_index(selected)) {
 			auto owner = ws.w.province_s.province_state_container[selected].owner;
 			if(owner != nullptr && owner != ws.w.local_player_nation) {
@@ -210,10 +210,14 @@ namespace provinces {
 		ui::hide(*associated_object);
 	}
 
+	template<typename window_type>
+	void infrastructure_progress_base::windowed_update(window_type&, world_state& ws) {
+		ui::hide(*associated_object);
+	}
 	
 	template<typename lb_type>
 	void colonist_lb::populate_list(lb_type& lb, world_state& ws) {
-		auto selected = ws.w.province_window.selected_province;
+		auto selected = ws.w.selected_province;
 		if(is_valid_index(selected)) {
 			auto state = ws.w.province_s.province_state_container[selected].state_instance;
 			if(state) {
@@ -236,7 +240,7 @@ namespace provinces {
 			for(; i < (stage - 1) && i < 4; ++i) {
 				lb.add_item(ws, i, -1);
 			}
-			auto selected = ws.w.province_window.selected_province;
+			auto selected = ws.w.selected_province;
 			if(is_valid_index(selected)) {
 				auto state = ws.w.province_s.province_state_container[selected].state_instance;
 				if(state)
@@ -291,5 +295,62 @@ namespace provinces {
 	template<typename lb_type>
 	void colonist_lb::on_create(lb_type& lb, world_state&) {
 		lb.associated_object->size = ui::xy_pair{ 375i16, 250i16 };
+	}
+
+
+	template<typename lb_type>
+	void sphere_lb::populate_list(lb_type& lb, world_state& ws) {
+		if(auto selected_prov = ws.w.selected_province; is_valid_index(selected_prov)) {
+			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+				auto leader = owner->sphere_leader;
+				if(leader == nullptr) {
+					auto sphere_range = get_range(ws.w.nation_s.nations_arrays, owner->sphere_members);
+					for(auto i : sphere_range) {
+						if(is_valid_index(i))
+							lb.add_item(ws, ws.w.nation_s.nations[i].tag);
+					}
+				} else
+					lb.add_item(ws, leader->tag);
+			}
+		}
+	}
+
+	template<typename lb_type>
+	void puppets_lb::populate_list(lb_type& lb, world_state& ws) {
+		if(auto selected_prov = ws.w.selected_province; is_valid_index(selected_prov)) {
+			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+				auto leader = owner->overlord;
+				if(leader == nullptr) {
+					auto vassal_range = get_range(ws.w.nation_s.nations_arrays, owner->vassals);
+					for(auto i : vassal_range) {
+						if(is_valid_index(i))
+							lb.add_item(ws, ws.w.nation_s.nations[i].tag);
+					}
+				} else
+					lb.add_item(ws, leader->tag);
+			}
+		}
+	}
+
+	template<typename lb_type>
+	void allies_lb::populate_list(lb_type& lb, world_state& ws) {
+		if(auto selected_prov = ws.w.selected_province; is_valid_index(selected_prov)) {
+			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+				auto allies_range = get_range(ws.w.nation_s.nations_arrays, owner->allies);
+				for(auto i : allies_range) {
+					if(is_valid_index(i))
+						lb.add_item(ws, ws.w.nation_s.nations[i].tag);
+				}
+			}
+		}
+	}
+
+	template<typename lb_type>
+	void war_lb::populate_list(lb_type& lb, world_state& ws) {
+		//if(auto selected_prov = ws.w.selected_province; is_valid_index(selected_prov)) {
+		//	if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+				
+		//	}
+		//}
 	}
 }

@@ -590,6 +590,112 @@ namespace provinces {
 		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
+	class sphere_label {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class puppet_label {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class sphere_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m) {
+			return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["province_core"]);
+		}
+	};
+
+	class puppets_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m) {
+			return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["province_core"]);
+		}
+	};
+
+	class allies_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m) {
+			return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["province_core"]);
+		}
+	};
+
+	class war_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m) {
+			return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["province_core"]);
+		}
+	};
+
+	class send_diplomat {
+	public:
+		void button_function(ui::simple_button<send_diplomat>&, world_state&);
+	};
+
+	class fort_level_icon {
+	public:
+		void update(ui::dynamic_icon<fort_level_icon>& ico, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class naval_base_level_icon {
+	public:
+		void update(ui::dynamic_icon<naval_base_level_icon>& ico, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class railroad_level_icon {
+	public:
+		void update(ui::dynamic_icon<railroad_level_icon>& ico, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class foreign_invest_railroad {
+	public:
+		void update(ui::simple_button<foreign_invest_railroad>& ico, world_state& ws);
+		void button_function(ui::simple_button<foreign_invest_railroad>& ico, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class foreign_invest_factory {
+	public:
+		void update(ui::simple_button<foreign_invest_factory>& ico, world_state& ws);
+		void button_function(ui::simple_button<foreign_invest_factory>& ico, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class infrastructure_progress_base : public ui::visible_region {
+	public:
+		template<typename ...P>
+		explicit infrastructure_progress_base(P&& ... params) {}
+		void on_create(world_state&);
+		template<typename window_type>
+		void windowed_update(window_type&, world_state&);
+	};
+
+	class infrastructure_progress_bar {
+	public:
+		void update(ui::progress_bar<infrastructure_progress_bar>& self, world_state& ws);
+	};
+
+	using infrastructure_progress = ui::gui_window<
+		CT_STRING("building_progress"), ui::progress_bar<infrastructure_progress_bar>,
+		infrastructure_progress_base>;
+
 	using province_other = ui::gui_window<
 		CT_STRING("supply_limit"), ui::display_text<supply_limit_text_box>,
 		CT_STRING("core_icons"), ui::overlap_box<cores_lb, ui::window_tag, core_flag>,
@@ -615,11 +721,23 @@ namespace provinces {
 		CT_STRING("selected_military_rank"), ui::display_text<military_rank_text_box, -13>,
 		CT_STRING("country_total"), ui::display_text<score_text_box, -3>,
 		CT_STRING("selected_total_rank"), ui::display_text<rank_text_box, -13>,
+		CT_STRING("sphere_label"), ui::display_text<sphere_label, -2>,
+		CT_STRING("puppet_label"), ui::display_text<puppet_label, -2>,
+		CT_STRING("sphere_targets"), ui::overlap_box<sphere_lb, ui::window_tag, core_flag>,
+		CT_STRING("puppet_targets"), ui::overlap_box<puppets_lb, ui::window_tag, core_flag>,
+		CT_STRING("allied_targets"), ui::overlap_box<allies_lb, ui::window_tag, core_flag>,
+		CT_STRING("war_targets"), ui::overlap_box<war_lb, ui::window_tag, core_flag>,
+		CT_STRING("send_diplomat"), ui::simple_button<send_diplomat>,
+		CT_STRING("build_icon_fort"), ui::dynamic_icon<fort_level_icon>,
+		CT_STRING("build_icon_navalbase"), ui::dynamic_icon<naval_base_level_icon>,
+		CT_STRING("build_icon_infra"), ui::dynamic_icon<railroad_level_icon>,
+		CT_STRING("infra_progress_win"), infrastructure_progress,
+		CT_STRING("invest_build_infra"), ui::simple_button<foreign_invest_railroad>,
+		CT_STRING("invest_factory_button"), ui::simple_button<foreign_invest_factory>,
 		province_other_base>;
 
 	class province_window_base : public ui::fixed_region {
 	public:
-		province_tag selected_province;
 		date_tag last_update;
 
 		template<typename ...P>

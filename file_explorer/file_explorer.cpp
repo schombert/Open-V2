@@ -302,8 +302,8 @@ struct gui_window_handler {
 	}
 
 	void operator()(const ui::creation&, ui::window_base&) {
-		ui::create_static_element(s, std::get<ui::window_tag>(s.s.gui_m.ui_definitions.name_to_element_map["province_view"]), ui::tagged_gui_object{ s.w.gui_m.root, ui::gui_object_tag(0) }, s.w.province_window);
-		ui::hide(*s.w.province_window.associated_object);
+		s.w.init_gui_objects(s);
+		s.w.hide_province_window();
 
 		ui::create_static_element(s, std::get<ui::window_tag>(s.s.gui_m.ui_definitions.name_to_element_map["country_budget"]), ui::tagged_gui_object{ s.w.gui_m.root, ui::gui_object_tag(0) }, budget_window);
 		auto& pc = budget_window.get<CT_STRING("chart_0")>();
@@ -348,8 +348,7 @@ struct gui_window_handler {
 
 			auto map_coord = map.map_coordinates_from_screen(map.state.normalize_screen_coordinates(m.x, m.y, s.w.gui_m.width(), s.w.gui_m.height()));
 			auto id = s.s.province_m.province_map_data[size_t(map_coord.first + map_coord.second * s.s.province_m.province_map_width)];
-			s.w.province_window.selected_province = provinces::province_tag(id);
-			ui::make_visible_and_update(s.w.gui_m, *s.w.province_window.associated_object);
+			s.w.show_province_window(provinces::province_tag(id));
 		}
 	}
 	void operator()(const ui::key_down& m, ui::window_base&) {

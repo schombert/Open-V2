@@ -9,9 +9,12 @@
 #include "variables\\variables.h"
 #include "military\\military.h"
 #include "gui\\gui.h"
-#include "provinces\\province_gui.hpp"
+
+class world_state;
 
 namespace current_state {
+	class gui_state;
+
 	class state {
 	public:
 		provinces::provinces_state province_s;
@@ -24,10 +27,17 @@ namespace current_state {
 		ui::gui_manager gui_m;
 
 		//gui state
-		provinces::province_window_t province_window;
+		provinces::province_tag selected_province;
+		std::unique_ptr<gui_state> gui_objects;
 
 		//player data
 		nations::nation* local_player_nation = nullptr;
+
+		state();
+		~state();
+		void init_gui_objects(world_state& s);
+		void hide_province_window();
+		void show_province_window(provinces::province_tag p);
 	};
 }
 

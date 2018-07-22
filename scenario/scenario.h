@@ -48,8 +48,15 @@ namespace scenario {
 		constexpr uint32_t military_power = 26ui32;
 		constexpr uint32_t industrial_power = 27ui32;
 		constexpr uint32_t is_mobilized = 28ui32;
+		constexpr uint32_t sphere = 29ui32;
+		constexpr uint32_t sphere_leader = 30ui32;
+		constexpr uint32_t puppets = 31ui32;
+		constexpr uint32_t liege = 32ui32;
+		constexpr uint32_t fort = 33ui32;
+		constexpr uint32_t railroad = 34ui32;
+		constexpr uint32_t naval_base = 35ui32;
 
-		constexpr uint32_t count = 29ui32;
+		constexpr uint32_t count = 36ui32;
 	}
 
 	class scenario_manager {

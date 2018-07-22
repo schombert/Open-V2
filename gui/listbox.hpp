@@ -3,6 +3,8 @@
 
 #ifdef _DEBUG
 #include <Windows.h>
+#undef max
+#undef min
 #endif
 
 template<typename BASE, typename ELEMENT, int32_t left_expand>
@@ -168,8 +170,12 @@ void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::update_item_p
 	for(int32_t n = amount - 1; n >= 0; --n)
 		space_consumed += contents[static_cast<uint32_t>(n)].associated_object->size.x;
 
-	const int32_t overlap = space_consumed > associated_object->size.x ? (space_consumed - associated_object->size.x + amount - 1) / amount: 0;
-	const int32_t adjusted_space_consumed = space_consumed - overlap * amount;
+	const int32_t overlap = amount == 1 ?
+		0 :
+		(space_consumed > associated_object->size.x ? 
+			(space_consumed - associated_object->size.x + amount - 2) / (amount - 1) :
+			0);
+	const int32_t adjusted_space_consumed = space_consumed - overlap * (amount - 1);
 	const int32_t base_offset =
 		subelement_alignment == text_data::alignment::left ?
 		0 :

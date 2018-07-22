@@ -61,6 +61,7 @@ namespace nations {
 		set_tag<provinces::province_tag> controlled_provinces;
 		set_tag<country_tag> sphere_members;
 		set_tag<country_tag> vassals;
+		set_tag<country_tag> allies;
 		set_tag<cultures::culture_tag> accepted_cultures;
 		set_tag<region_state_pair> member_states;
 		set_tag<influence> gp_influence;
