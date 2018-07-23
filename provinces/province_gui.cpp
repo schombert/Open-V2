@@ -1005,4 +1005,18 @@ namespace provinces {
 
 	
 	void infrastructure_progress_bar::update(ui::progress_bar<infrastructure_progress_bar>&, world_state&) {}
+
+	void build_army_button::update(ui::simple_button<build_army_button>& ico, world_state&) {
+		ico.set_enabled(false);
+	}
+
+	void build_navy_button::update(ui::simple_button<build_navy_button>& ico, world_state&) {
+		ico.set_enabled(false);
+	}
+
+	void fort_expand_button::button_function(ui::simple_button<fort_expand_button>&, world_state&) {}
+
+	void naval_base_expand_button::button_function(ui::simple_button<naval_base_expand_button>&, world_state&) {}
+
+	void railroad_expand_button::button_function(ui::simple_button<railroad_expand_button>&, world_state&) {}
 }

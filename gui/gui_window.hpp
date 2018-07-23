@@ -43,6 +43,8 @@ protected:
 	ui::tagged_gui_object create_window(world_state& ws, const ui::window_def& def);
 	template<typename window_type>
 	void member_init_in_window(window_type& w, world_state& m);
+
+	void set_window_id(ui::gui_object_tag t) { ui::gui_window<REST ...>::set_window_id(t); }
 public:
 	template<typename window_type>
 	void member_update_in_window(window_type& w, world_state& s);
@@ -72,6 +74,8 @@ protected:
 	void member_init_in_window(window_type& w, world_state& m) {
 		if constexpr(ui::detail::has_on_create<BASE_BEHAVIOR, world_state&>) {
 			BASE_BEHAVIOR::on_create(m);
+		} else if constexpr(ui::detail::has_on_create<BASE_BEHAVIOR, window_type&, world_state&>) {
+			BASE_BEHAVIOR::on_create(w, m);
 		}
 	}
 	template<typename window_type>
@@ -84,6 +88,8 @@ public:
 
 	ui::gui_object_tag window_object;
 	ui::tagged_gui_object create(world_state& manager, const ui::window_def& def);
+protected:
+	void set_window_id(ui::gui_object_tag t) { window_object = t; }
 };
 
 template<typename INDEX, typename TYPE, typename ...REST>
@@ -153,6 +159,7 @@ ui::tagged_gui_object ui::gui_window<INDEX, TYPE, REST...>::create(world_state& 
 			}, *i);
 		}
 	}
+	set_window_id(win.id);
 	member_init_in_window(*this, manager);
 
 	return win;
@@ -193,7 +200,7 @@ ui::tagged_gui_object ui::gui_window<BASE_BEHAVIOR>::create(world_state& ws, con
 			ui::create_dynamic_element(ws, tag, win);
 		}, *i);
 	}
-
+	window_object = win.id;
 	if constexpr(ui::detail::has_on_create<BASE_BEHAVIOR, world_state&>) {
 		BASE_BEHAVIOR::on_create(ws);
 	}
@@ -204,7 +211,6 @@ template<typename ... REST>
 ui::tagged_gui_object ui::create_static_element(world_state& ws, window_tag handle, tagged_gui_object parent, gui_window<REST...>& b) {
 	const auto& window_definition = ws.s.gui_m.ui_definitions.windows[handle];
 	const auto res = b.create(ws, window_definition);
-	b.window_object = res.id;
 	ui::add_to_back(ws.w.gui_m, parent, res);
 	ws.w.gui_m.flag_minimal_update();
 	return res;

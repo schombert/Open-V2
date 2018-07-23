@@ -179,6 +179,7 @@ namespace ui {
 	private:
 		multi_texture_instance* underlying_obj = nullptr;
 	public:
+		progress_bar() : BASE() {}
 		progress_bar(progress_bar&&) = default;
 		progress_bar(progress_bar& o) noexcept : progress_bar(std::move(o)) {}
 		template<typename ...P>

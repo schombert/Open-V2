@@ -198,6 +198,28 @@ namespace provinces {
 	}
 
 	template<typename window_type>
+	void province_statistics_base::windowed_update(window_type&, world_state& ws) {
+		if(auto selected = ws.w.selected_province; is_valid_index(selected)) {
+			if(ws.w.province_s.province_state_container[selected].owner == ws.w.local_player_nation) {
+				ui::make_visible_immediate(*associated_object);
+				return;
+			}
+		}
+		ui::hide(*associated_object);
+	}
+
+	template<typename window_type>
+	void province_buildings_base::windowed_update(window_type&, world_state& ws) {
+		if(auto selected = ws.w.selected_province; is_valid_index(selected)) {
+			if(ws.w.province_s.province_state_container[selected].owner == ws.w.local_player_nation) {
+				ui::make_visible_immediate(*associated_object);
+				return;
+			}
+		}
+		ui::hide(*associated_object);
+	}
+
+	template<typename window_type>
 	void province_other_base::windowed_update(window_type&, world_state& ws) {
 		auto selected = ws.w.selected_province;
 		if(is_valid_index(selected)) {
@@ -352,5 +374,90 @@ namespace provinces {
 				
 		//	}
 		//}
+	}
+	
+	template<typename window_type>
+	void fort_progress_bar::windowed_update(window_type& win, ui::progress_bar<fort_progress_bar>& self, world_state& ws) {
+		ui::hide(*self.associated_object);
+		ui::hide(*win.fort_expand_text.associated_object);
+	}
+	
+	template<typename window_type>
+	void naval_base_progress_bar::windowed_update(window_type&, ui::progress_bar<naval_base_progress_bar>& self, world_state& ws) {
+		ui::hide(*self.associated_object);
+		ui::hide(*win.naval_base_expand_text.associated_object);
+	}
+	
+	template<typename window_type>
+	void railroad_progress_bar::windowed_update(window_type&, ui::progress_bar<railroad_progress_bar>& self, world_state& ws) {
+		ui::hide(*self.associated_object);
+		ui::hide(*win.railroad_expand_text.associated_object);
+	}
+
+
+	template<typename window_type>
+	void fort_expand_button::windowed_update(ui::simple_button<fort_expand_button>& self, window_type& w, world_state& ws) {}
+	template<typename window_type>
+	void naval_base_expand_button::windowed_update(ui::simple_button<naval_base_expand_button>& self, window_type& w, world_state& ws) {}
+	template<typename window_type>
+	void railroad_expand_button::windowed_update(ui::simple_button<railroad_expand_button>& self, window_type& w, world_state& ws) {}
+
+	template<typename window_type>
+	void province_buildings_base::on_create(window_type& win, world_state& ws) {
+		associated_object->position += ui::xy_pair{ 0i16, -10i16 };
+		associated_object->size += ui::xy_pair{ 0i16, 10i16 };
+		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
+			obj.object.position += ui::xy_pair{ 0i16, 10i16 };
+		});
+
+		const auto& window_definition = ws.s.gui_m.ui_definitions.windows[std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["building"])];
+		for(auto i = window_definition.sub_object_definitions.cbegin(); i != window_definition.sub_object_definitions.cend(); ++i) {
+			if(std::holds_alternative<ui::button_tag>(*i)) {
+				ui::create_static_element(ws, std::get<ui::button_tag>(*i), ui::tagged_gui_object{ *associated_object, win.window_object }, fort_button);
+				ui::create_static_element(ws, std::get<ui::button_tag>(*i), ui::tagged_gui_object{ *associated_object, win.window_object }, naval_base_button);
+				ui::create_static_element(ws, std::get<ui::button_tag>(*i), ui::tagged_gui_object{ *associated_object, win.window_object }, railroad_button);
+				break;
+			}
+		}
+
+		ui::create_static_element(ws, std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["build_icon0"]), ui::tagged_gui_object{ *associated_object, win.window_object }, fort_icon);
+		ui::create_static_element(ws, std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["build_icon1"]), ui::tagged_gui_object{ *associated_object, win.window_object }, naval_base_icon);
+		ui::create_static_element(ws, std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["build_icon2"]), ui::tagged_gui_object{ *associated_object, win.window_object }, railroad_icon);
+
+		ui::create_static_element(ws, std::get<ui::text_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["expand_text"]), ui::tagged_gui_object{ *associated_object, win.window_object }, fort_expand_text);
+		ui::create_static_element(ws, std::get<ui::text_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["expand_text"]), ui::tagged_gui_object{ *associated_object, win.window_object }, naval_base_expand_text);
+		ui::create_static_element(ws, std::get<ui::text_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["expand_text"]), ui::tagged_gui_object{ *associated_object, win.window_object }, railroad_expand_text);
+
+		ui::create_static_element(ws, std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["building_progress"]), ui::tagged_gui_object{ *associated_object, win.window_object }, fort_bar);
+		ui::create_static_element(ws, std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["building_progress"]), ui::tagged_gui_object{ *associated_object, win.window_object }, railroad_bar);
+		ui::create_static_element(ws, std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["building_progress"]), ui::tagged_gui_object{ *associated_object, win.window_object }, naval_base_bar);
+
+		ui::add_linear_text(ui::xy_pair{ 69ui16, 15ui16 }, ws.s.fixed_ui_text[scenario::fixed_ui::fort],
+			ui::text_format{ ui::text_color::black, graphics::font_tag(2), 20 }, ws.s.gui_m, ws.w.gui_m,
+			ui::tagged_gui_object{ *associated_object, win.window_object });
+
+		ui::add_linear_text(ui::xy_pair{ 69ui16, 50ui16 }, ws.s.fixed_ui_text[scenario::fixed_ui::naval_base],
+			ui::text_format{ ui::text_color::black, graphics::font_tag(2), 20 }, ws.s.gui_m, ws.w.gui_m,
+			ui::tagged_gui_object{ *associated_object, win.window_object });
+
+		ui::add_linear_text(ui::xy_pair{ 69ui16, 85ui16 }, ws.s.fixed_ui_text[scenario::fixed_ui::railroad],
+			ui::text_format{ ui::text_color::black, graphics::font_tag(2), 20 }, ws.s.gui_m, ws.w.gui_m,
+			ui::tagged_gui_object{ *associated_object, win.window_object });
+
+		fort_icon.associated_object->position.y = 7i16;
+		naval_base_icon.associated_object->position.y = 42i16;
+		railroad_icon.associated_object->position.y = 77i16;
+
+		fort_bar.associated_object->position.y = 15i16;
+		naval_base_bar.associated_object->position.y = 50i16;
+		railroad_bar.associated_object->position.y = 85i16;
+
+		fort_expand_text.associated_object->position.y = 15i16;
+		naval_base_expand_text.associated_object->position.y = 50i16;
+		railroad_expand_text.associated_object->position.y = 85i16;
+
+		fort_button.associated_object->position.y = 13i16;
+		naval_base_button.associated_object->position.y = 48i16;
+		railroad_button.associated_object->position.y = 83i16;
 	}
 }

@@ -174,11 +174,10 @@ namespace provinces {
 
 	class province_statistics_base : public ui::gui_behavior {
 	public:
-		province_tag selected_province;
-		date_tag last_update;
-
 		template<typename ...P>
 		explicit province_statistics_base(P&& ... params) {}
+		template<typename window_type>
+		void windowed_update(window_type&, world_state&);
 		void on_create(world_state&);
 	};
 
@@ -736,6 +735,88 @@ namespace provinces {
 		CT_STRING("invest_factory_button"), ui::simple_button<foreign_invest_factory>,
 		province_other_base>;
 
+	class fort_progress_bar {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::progress_bar<fort_progress_bar>& self, world_state& ws);
+	};
+
+	class naval_base_progress_bar {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::progress_bar<naval_base_progress_bar>& self, world_state& ws);
+	};
+
+	class railroad_progress_bar {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::progress_bar<railroad_progress_bar>& self, world_state& ws);
+	};
+
+	class expand_text {
+	};
+
+	class fort_expand_button {
+	public:
+		void button_function(ui::simple_button<fort_expand_button>&, world_state&);
+		template<typename window_type>
+		void windowed_update(ui::simple_button<fort_expand_button>& self, window_type& w, world_state& ws);
+	};
+
+	class naval_base_expand_button {
+	public:
+		void button_function(ui::simple_button<naval_base_expand_button>&, world_state&);
+		template<typename window_type>
+		void windowed_update(ui::simple_button<naval_base_expand_button>& self, window_type& w, world_state& ws);
+	};
+
+	class railroad_expand_button {
+	public:
+		void button_function(ui::simple_button<railroad_expand_button>&, world_state&);
+		template<typename window_type>
+		void windowed_update(ui::simple_button<railroad_expand_button>& self, window_type& w, world_state& ws);
+	};
+
+	class province_buildings_base : public ui::gui_behavior {
+	public:
+		ui::dynamic_icon<fort_level_icon> fort_icon;
+		ui::dynamic_icon<naval_base_level_icon> naval_base_icon;
+		ui::dynamic_icon<railroad_level_icon> railroad_icon;
+
+		ui::simple_button<fort_expand_button> fort_button;
+		ui::simple_button<naval_base_expand_button> naval_base_button;
+		ui::simple_button<railroad_expand_button> railroad_button;
+
+		ui::progress_bar<fort_progress_bar> fort_bar;
+		ui::progress_bar<naval_base_progress_bar> naval_base_bar;
+		ui::progress_bar<railroad_progress_bar> railroad_bar;
+
+		ui::display_text<expand_text> fort_expand_text;
+		ui::display_text<expand_text> naval_base_expand_text;
+		ui::display_text<expand_text> railroad_expand_text;
+
+		template<typename ...P>
+		explicit province_buildings_base(P&& ... params) {}
+		template<typename window_type>
+		void windowed_update(window_type&, world_state&);
+		template<typename window_type>
+		void on_create(window_type& win, world_state& ws);
+	};
+
+	class build_army_button {
+	public:
+		void update(ui::simple_button<build_army_button>& ico, world_state& ws);
+	};
+	class build_navy_button {
+	public:
+		void update(ui::simple_button<build_navy_button>& ico, world_state& ws);
+	};
+
+	using province_buildings = ui::gui_window<
+		CT_STRING("build_army"), ui::simple_button<build_army_button>,
+		CT_STRING("build_navy"), ui::simple_button<build_navy_button>,
+		province_buildings_base>;
+
 	class province_window_base : public ui::fixed_region {
 	public:
 		date_tag last_update;
@@ -751,5 +832,6 @@ namespace provinces {
 		CT_STRING("province_statistics"), province_statistics,
 		CT_STRING("province_colony"), province_colony,
 		CT_STRING("province_other"), province_other,
+		CT_STRING("province_buildings"), province_buildings,
 		province_window_base>;
 }
