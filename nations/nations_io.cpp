@@ -6,11 +6,48 @@
 #include "nations_functions.h"
 #include "governments\\governments_functions.h"
 #include "military\\military_io.h"
+#include "nations\\nations_functions.h"
 
 #undef max
 #undef min
 
 namespace nations {
+	struct relation_parse_obj {
+		world_state& ws;
+		date_tag start_date;
+		date_tag end_date;
+		cultures::national_tag first;
+		cultures::national_tag second;
+
+		relation_parse_obj(world_state& w, date_tag) : ws(w) {}
+
+		void set_first(token_and_type const& t) {
+			first = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end));
+		}
+		void set_second(token_and_type const& t) {
+			second = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end));
+		}
+	};
+	struct relation_file_reader {
+		world_state& ws;
+		date_tag filter_date;
+
+		relation_file_reader(world_state& w, date_tag d) : ws(w), filter_date(d) {}
+
+		void set_vassal(relation_parse_obj const& r) {
+			if(r.start_date <= filter_date && filter_date < r.end_date && is_valid_index(r.first) && is_valid_index(r.second))
+				silent_make_vassal(ws, *make_nation_for_tag(ws, r.first), *make_nation_for_tag(ws, r.second));
+		}
+		void set_substate(relation_parse_obj const& r) {
+			if(r.start_date <= filter_date && filter_date < r.end_date && is_valid_index(r.first) && is_valid_index(r.second))
+				silent_make_substate(ws, *make_nation_for_tag(ws, r.first), *make_nation_for_tag(ws, r.second));
+		}
+		void set_alliance(relation_parse_obj const& r) {
+			if(r.start_date <= filter_date && filter_date < r.end_date && is_valid_index(r.first) && is_valid_index(r.second))
+				silent_make_alliance(ws, *make_nation_for_tag(ws, r.first), *make_nation_for_tag(ws, r.second));
+		}
+	};
+
 	struct upper_house_parse_obj {
 		world_state& ws;
 		std::vector<uint32_t> upper_house;
@@ -360,11 +397,18 @@ namespace nations {
 	}
 }
 
+MEMBER_FDEF(nations::relation_file_reader, set_substate, "substate");
+MEMBER_FDEF(nations::relation_file_reader, set_vassal, "vassal");
+MEMBER_FDEF(nations::relation_file_reader, set_alliance, "alliance");
+MEMBER_DEF(nations::relation_parse_obj, start_date, "start_date");
+MEMBER_DEF(nations::relation_parse_obj, end_date, "end_date");
+MEMBER_FDEF(nations::relation_parse_obj, set_first, "first");
+MEMBER_FDEF(nations::relation_parse_obj, set_second, "second");
+
 MEMBER_FDEF(nations::upper_house_parse_obj, set_upper_house_pair, "upper_house_pair");
 MEMBER_FDEF(nations::investment_parse_obj, set_investment_pair, "investment_pair");
 MEMBER_FDEF(nations::govt_flag, set_government, "government");
 MEMBER_FDEF(nations::govt_flag, set_flag, "flag");
-
 MEMBER_FDEF(nations::nation_parse_object, set_capital, "capital");
 MEMBER_FDEF(nations::nation_parse_object, add_decision, "decision");
 MEMBER_FDEF(nations::nation_parse_object, set_primary_culture, "primary_culture");
@@ -395,6 +439,21 @@ MEMBER_FDEF(nations::nation_parse_object, set_ruling_party, "ruling_party");
 MEMBER_DEF(nations::nation_parse_object, is_releasbale_vassal, "is_releasbale_vassal");
 
 namespace nations {
+	BEGIN_DOMAIN(relation_file)
+		BEGIN_TYPE(relation_parse_obj)
+			MEMBER_ASSOCIATION("start_date", "start_date", value_from_rh<date_tag>)
+			MEMBER_ASSOCIATION("end_date", "end_date", value_from_rh<date_tag>)
+			MEMBER_ASSOCIATION("first", "first", token_from_rh)
+			MEMBER_ASSOCIATION("second", "second", token_from_rh)
+		END_TYPE
+		BEGIN_TYPE(relation_file_reader)
+			MEMBER_TYPE_ASSOCIATION("alliance", "alliance", relation_parse_obj)
+			MEMBER_TYPE_ASSOCIATION("substate", "substate", relation_parse_obj)
+			MEMBER_TYPE_ASSOCIATION("vassal", "vassal", relation_parse_obj)
+			MEMBER_TYPE_ASSOCIATION("vassal", "union", relation_parse_obj)
+		END_TYPE
+	END_DOMAIN;
+
 	BEGIN_DOMAIN(nation_file)
 		BEGIN_TYPE(upper_house_parse_obj)
 		MEMBER_VARIABLE_ASSOCIATION("upper_house_pair", accept_all, make_token_unit32_pair)
@@ -478,6 +537,25 @@ namespace nations {
 					}
 				}
 
+			}
+		}
+	}
+
+	void read_diplomacy_files(world_state& ws, date_tag target_date, directory const& root) {
+		auto history_dir = root.get_directory(u"\\history");
+		auto diplomacy_dir = history_dir.get_directory(u"\\diplomacy");
+
+		auto dip_files = diplomacy_dir.list_files(u".txt");
+		for(auto f : dip_files) {
+			if(auto open_file = f.open_file(); open_file) {
+				const auto sz = open_file->size();
+				std::unique_ptr<char[]> parse_data = std::unique_ptr<char[]>(new char[sz]);
+				std::vector<token_group> parse_results;
+
+				open_file->read_to_buffer(parse_data.get(), sz);
+				parse_pdx_file(parse_results, parse_data.get(), parse_data.get() + sz);
+
+				parse_object<relation_file_reader, relation_file>(parse_results.data(), parse_results.data() + parse_results.size(), ws, target_date);
 			}
 		}
 	}

@@ -550,7 +550,7 @@ int main(int , char **) {
 	nations::init_empty_states(ws);
 	std::vector<std::pair<nations::country_tag, events::decision_tag>> decisions;
 	nations::read_nations_files(ws, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)), fs.get_root(), decisions);
-	
+	nations::read_diplomacy_files(ws, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)), fs.get_root());
 
 	scenario::ready_scenario(ws.s, fs.get_root());
 

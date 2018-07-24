@@ -210,11 +210,46 @@ namespace military {
 		provinces::province_tag base;
 	};
 
+	struct war_goal {
+		date_tag date_added;
+		float ticking_war_score = 0.0f;
+
+		nations::country_tag from_country;
+
+		nations::state_tag target_state;
+		nations::country_tag target_country;
+		cultures::national_tag liberation_target;
+
+		cb_type_tag cb_type;
+
+		bool operator==(war_goal const& other) const noexcept {
+			return (from_country == other.from_country) &
+				(target_state == other.target_state) &
+				(liberation_target == other.liberation_target) &
+				(cb_type == other.cb_type);
+		}
+	};
+
+	struct war {
+		set_tag<nations::country_tag> attackers;
+		set_tag<nations::country_tag> defenders;
+
+		date_tag start_date;
+
+		nations::country_tag primary_attacker;
+		nations::country_tag primary_defender;
+
+		array_tag<war_goal> war_goals;
+
+		war_tag id;
+	};
+
 	class military_state {
 	public:
 		stable_vector<military_leader, leader_tag, 1024, 16> leaders;
 		stable_vector<army, army_tag, 1024, 16> armies;
 		stable_vector<fleet, fleet_tag, 1024, 16> fleets;
+		stable_vector<war, war_tag, 1024, 16> wars;
 
 		stable_2d_vector<economy::goods_qnty_type, army_tag, economy::goods_tag, 1024, 16> army_supplies;
 		stable_2d_vector<uint16_t, army_tag, unit_type_tag, 1024, 16> unit_type_composition;
@@ -224,6 +259,8 @@ namespace military {
 		stable_variable_vector_storage_mk_2<ship, 2, 8192> ship_arrays;
 		stable_variable_vector_storage_mk_2<army_tag, 4, 8192> army_arrays;
 		stable_variable_vector_storage_mk_2<fleet_tag, 4, 8192> fleet_arrays;
+
+		stable_variable_vector_storage_mk_2<war_goal, 1, 8192> war_goal_arrays;
 
 	};
 

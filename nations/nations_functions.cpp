@@ -353,4 +353,21 @@ namespace nations {
 	bool is_great_power(world_state&, nation const&) {
 		return false;
 	}
+
+	void silent_make_alliance(world_state& ws, nation& a, nation& b) {
+		add_item(ws.w.nation_s.nations_arrays, a.allies, b.id);
+		add_item(ws.w.nation_s.nations_arrays, b.allies, a.id);
+	}
+
+	void silent_make_vassal(world_state& ws, nation& overlord, nation& vassal) {
+		if(vassal.overlord == nullptr) {
+			vassal.overlord = &overlord;
+			add_item(ws.w.nation_s.nations_arrays, overlord.vassals, vassal.id);
+		}
+	}
+
+	void silent_make_substate(world_state& ws, nation& overlord, nation& vassal) {
+		silent_make_vassal(ws, overlord, vassal);
+		vassal.flags |= nation::is_substate;
+	}
 }
