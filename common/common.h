@@ -40,11 +40,20 @@ namespace boost {
 #undef min
 
 template<typename A, typename = typename std::iterator_traits<A>::iterator_category>
-auto begin(std::pair<A, A> const& p) {
+constexpr auto begin(std::pair<A, A> const& p) {
 	return p.first;
 }
 template<typename A, typename = typename std::iterator_traits<A>::iterator_category>
-auto end(std::pair<A, A> const& p) {
+constexpr auto end(std::pair<A, A> const& p) {
+	return p.second;
+}
+
+template<typename A>
+constexpr auto begin(std::pair<A*, A*> const& p) {
+	return p.first;
+}
+template<typename A>
+constexpr auto end(std::pair<A*, A*> const& p) {
 	return p.second;
 }
 

@@ -15,6 +15,100 @@
 #include "population\\population_function.h"
 
 namespace military {
+	struct war_goal_reader {
+		world_state& ws;
+		war_goal under_construction;
+
+		war_goal_reader(world_state& w, date_tag) : ws(w) {}
+		void set_actor(token_and_type const& t) {
+			under_construction.from_country = nations::make_nation_for_tag(ws, tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end)))->id;
+		}
+		void set_receiver(token_and_type const& t) {
+			under_construction.target_country = nations::make_nation_for_tag(ws, tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end)))->id;
+		}
+		void set_state(uint16_t v) {
+			auto state = ws.w.province_s.province_state_container[provinces::province_tag(v)].state_instance;
+			if(state)
+				under_construction.target_state = state->id;
+		}
+		void set_cb(token_and_type const& t) {
+			under_construction.cb_type = tag_from_text(ws.s.military_m.named_cb_type_index, text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, t.start, t.end));
+		}
+
+	};
+
+	struct war_date_block {
+		world_state& ws;
+		std::vector<nations::country_tag> attacker;
+		std::vector<nations::country_tag> defender;
+		std::vector<nations::country_tag> rem_attacker;
+		std::vector<nations::country_tag> rem_defender;
+		std::vector<war_goal> war_goals;
+
+		war_date_block(world_state& w, date_tag) : ws(w) {}
+
+		void add_attacker(token_and_type const& t) {
+			attacker.push_back(nations::make_nation_for_tag(ws, tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end)))->id);
+		}
+		void add_defender(token_and_type const& t) {
+			defender.push_back(nations::make_nation_for_tag(ws, tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end)))->id);
+		}
+		void remove_attacker(token_and_type const& t) {
+			rem_attacker.push_back(nations::make_nation_for_tag(ws, tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end)))->id);
+		}
+		void remove_defender(token_and_type const& t) {
+			rem_defender.push_back(nations::make_nation_for_tag(ws, tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end)))->id);
+		}
+		void add_war_goal(war_goal_reader const& wg) {
+			war_goals.push_back(wg.under_construction);
+		}
+	};
+
+	struct war_file {
+		world_state& ws;
+		date_tag filter_date;
+
+		std::vector<nations::country_tag> attacker;
+		std::vector<nations::country_tag> defender;
+		std::vector<war_goal> war_goals;
+
+		war_file(world_state& w, date_tag d) : ws(w), filter_date(d) {}
+
+		void discard(int) {}
+		void add_date_block(std::pair<date_tag, war_date_block> const& block) {
+			if(block.first <= filter_date) {
+				for(auto i : block.second.attacker)
+					attacker.push_back(i);
+				for(auto i : block.second.defender)
+					defender.push_back(i);
+				for(auto i : block.second.rem_attacker) {
+					for(int32_t j = int32_t(attacker.size()) - 1; j >= 0; --j) {
+						if(attacker[uint32_t(j)] == i) {
+							attacker[uint32_t(j)] = attacker.back();
+							attacker.pop_back();
+						}
+					}
+				}
+				for(auto i : block.second.rem_defender) {
+					for(int32_t j = int32_t(defender.size()) - 1; j >= 0; --j) {
+						if(defender[uint32_t(j)] == i) {
+							defender[uint32_t(j)] = defender.back();
+							defender.pop_back();
+						}
+					}
+				}
+				for(auto& i : block.second.war_goals) {
+					war_goals.push_back(i);
+					war_goals.back().date_added = block.first;
+				}
+			}
+		}
+	};
+
+	inline std::pair<date_tag, war_date_block> date_block(token_and_type const& t, association_type, war_date_block&& b) {
+		return std::pair<date_tag, war_date_block>(token_to<date_tag>(t), std::move(b));
+	}
+
 	struct parsed_relation {
 		int32_t value = 0;
 		int32_t level = 2;
@@ -669,6 +763,18 @@ namespace military {
 	};
 }
 
+MEMBER_FDEF(military::war_goal_reader, set_actor, "actor");
+MEMBER_FDEF(military::war_goal_reader, set_receiver, "receiver");
+MEMBER_FDEF(military::war_goal_reader, set_state, "state");
+MEMBER_FDEF(military::war_goal_reader, set_cb, "cb");
+MEMBER_FDEF(military::war_date_block, add_attacker, "add_attacker");
+MEMBER_FDEF(military::war_date_block, add_defender, "add_defender");
+MEMBER_FDEF(military::war_date_block, remove_attacker, "rem_attacker");
+MEMBER_FDEF(military::war_date_block, remove_defender, "rem_defender");
+MEMBER_FDEF(military::war_date_block, add_war_goal, "add_war_goal");
+MEMBER_FDEF(military::war_file, discard, "discard");
+MEMBER_FDEF(military::war_file, add_date_block, "date_block");
+
 MEMBER_FDEF(military::oob_file, add_leader, "leader");
 MEMBER_FDEF(military::oob_file, add_relation, "relation");
 MEMBER_FDEF(military::oob_file, add_army, "army");
@@ -793,6 +899,26 @@ MEMBER_FDEF(military::unit_type_reader, set_limit_per_port, "limit_per_port");
 MEMBER_FDEF(military::unit_type_reader, set_supply_consumption_score, "supply_consumption_score");
 
 namespace military {
+	BEGIN_DOMAIN(war_file_domain)
+		BEGIN_TYPE(war_goal_reader)
+			MEMBER_ASSOCIATION("state", "state_province_id", value_from_rh<uint16_t>)
+			MEMBER_ASSOCIATION("actor", "actor", token_from_rh)
+			MEMBER_ASSOCIATION("receiver", "receiver", token_from_rh)
+			MEMBER_ASSOCIATION("cb", "casus_belli", token_from_rh)
+		END_TYPE
+		BEGIN_TYPE(war_date_block)
+			MEMBER_ASSOCIATION("add_attacker", "add_attacker", token_from_rh)
+			MEMBER_ASSOCIATION("add_defender", "add_defender", token_from_rh)
+			MEMBER_ASSOCIATION("rem_attacker", "rem_attacker", token_from_rh)
+			MEMBER_ASSOCIATION("rem_defender", "rem_defender", token_from_rh)
+			MEMBER_TYPE_ASSOCIATION("add_war_goal", "war_goal", war_goal_reader)
+		END_TYPE
+		BEGIN_TYPE(war_file)
+			MEMBER_ASSOCIATION("discard", "name", discard_from_rh)
+			MEMBER_VARIABLE_TYPE_ASSOCIATION("date_block", accept_all, war_date_block, date_block)
+		END_TYPE
+	END_DOMAIN
+
 	BEGIN_DOMAIN(oob_domain)
 		BEGIN_TYPE(parsed_relation)
 			MEMBER_ASSOCIATION("value", "value", value_from_rh<int32_t>)
@@ -991,6 +1117,43 @@ namespace military {
 		for(auto const& t : state.impl->pending_cb_parse) {
 			cb_environment env(s, ecm, s.military_m.cb_types[std::get<0>(t)]);
 			parse_object<single_cb, single_cb_domain>(std::get<1>(t), std::get<2>(t), env);
+		}
+	}
+
+
+	void read_wars(world_state& ws, date_tag target_date, const directory& root) {
+		auto history_dir = root.get_directory(u"\\history");
+		auto wars_dir = history_dir.get_directory(u"\\wars");
+
+		auto dip_files = wars_dir.list_files(u".txt");
+		for(auto f : dip_files) {
+			if(auto open_file = f.open_file(); open_file) {
+				const auto sz = open_file->size();
+				std::unique_ptr<char[]> parse_data = std::unique_ptr<char[]>(new char[sz]);
+				std::vector<token_group> parse_results;
+
+				open_file->read_to_buffer(parse_data.get(), sz);
+				parse_pdx_file(parse_results, parse_data.get(), parse_data.get() + sz);
+
+				auto result = parse_object<war_file, war_file_domain>(parse_results.data(), parse_results.data() + parse_results.size(), ws, target_date);
+
+				if(result.attacker.size() != 0 && result.defender.size() != 0) {
+					auto& new_war = ws.w.military_s.wars.get_new();
+					new_war.primary_attacker = result.attacker[0];
+					new_war.primary_defender = result.defender[0];
+					for(auto i : result.attacker) {
+						add_item(ws.w.nation_s.nations_arrays, new_war.attackers, i);
+						add_item(ws.w.military_s.war_arrays, ws.w.nation_s.nations[i].wars_involved_in, war_identifier{ new_war.id, true });
+					}
+					for(auto i : result.defender) {
+						add_item(ws.w.nation_s.nations_arrays, new_war.defenders, i);
+						add_item(ws.w.military_s.war_arrays, ws.w.nation_s.nations[i].wars_involved_in, war_identifier{ new_war.id, false });
+					}
+					for(auto& wg : result.war_goals) {
+						add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals, wg);
+					}
+				}
+			}
 		}
 	}
 

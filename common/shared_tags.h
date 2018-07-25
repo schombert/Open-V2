@@ -127,6 +127,11 @@ namespace military {
 	using leader_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 647478>>;
 	using fleet_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 647479>>;
 	using war_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 647480>>;
+
+	struct war_identifier {
+		war_tag war_id;
+		bool is_attacker = false;
+	};
 }
 
 namespace provinces {

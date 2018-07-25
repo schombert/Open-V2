@@ -74,6 +74,7 @@ namespace nations {
 		array_tag<military::leader_tag> admirals;
 		array_tag<military::army_tag> armies;
 		array_tag<military::fleet_tag> fleets;
+		array_tag<military::war_identifier> wars_involved_in;
 
 		text_data::text_tag name;
 		text_data::text_tag adjective;

@@ -1,6 +1,7 @@
 #pragma once
 #include "province_gui.h"
 #include "nations\\nations_functions.h"
+#include "military\\military.h"
 
 namespace provinces {
 
@@ -369,11 +370,33 @@ namespace provinces {
 
 	template<typename lb_type>
 	void war_lb::populate_list(lb_type& lb, world_state& ws) {
-		//if(auto selected_prov = ws.w.selected_province; is_valid_index(selected_prov)) {
-		//	if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
-				
-		//	}
-		//}
+		if(auto selected_prov = ws.w.selected_province; is_valid_index(selected_prov)) {
+			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+				boost::container::small_vector<nations::country_tag, 32, concurrent_allocator<nations::country_tag>> opposing_countries;
+
+				auto owner_wars = get_range(ws.w.military_s.war_arrays, owner->wars_involved_in);
+				for(auto iwar = owner_wars.first; iwar != owner_wars.second; ++iwar) {
+					if(is_valid_index(iwar->war_id)) {
+						if(iwar->is_attacker) {
+							auto defender_range = get_range(ws.w.nation_s.nations_arrays, ws.w.military_s.wars[iwar->war_id].defenders);
+							for(auto d : defender_range) {
+								if(is_valid_index(d) && std::find(opposing_countries.begin(), opposing_countries.end(), d) == opposing_countries.end())
+									opposing_countries.push_back(d);
+							}
+						} else {
+							auto attacker_range = get_range(ws.w.nation_s.nations_arrays, ws.w.military_s.wars[iwar->war_id].attackers);
+							for(auto d : attacker_range) {
+								if(is_valid_index(d) && std::find(opposing_countries.begin(), opposing_countries.end(), d) == opposing_countries.end())
+									opposing_countries.push_back(d);
+							}
+						}
+					}
+				}
+
+				for(auto n : opposing_countries)
+					lb.add_item(ws, ws.w.nation_s.nations[n].tag);
+			}
+		}
 	}
 	
 	template<typename window_type>

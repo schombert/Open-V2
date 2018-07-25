@@ -16,6 +16,7 @@
 #include "provinces\\province_functions.h"
 #include "nations\\nations_functions.h"
 #include "nations\\nations_io.h"
+#include "military\\military_io.h"
 
 // #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -551,7 +552,7 @@ int main(int , char **) {
 	std::vector<std::pair<nations::country_tag, events::decision_tag>> decisions;
 	nations::read_nations_files(ws, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)), fs.get_root(), decisions);
 	nations::read_diplomacy_files(ws, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)), fs.get_root());
-
+	military::read_wars(ws, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)), fs.get_root());
 	scenario::ready_scenario(ws.s, fs.get_root());
 
 	provinces::update_province_demographics(ws);
