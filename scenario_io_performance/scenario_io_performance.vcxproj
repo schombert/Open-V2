@@ -152,6 +152,9 @@
     <ClCompile Include="scenario_io_performance.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\concurrency_tools\concurrency_tools.vcxproj">
+      <Project>{12f547e0-13dc-4c35-96ab-950827192412}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\cultures\cultures.vcxproj">
       <Project>{cb6da773-046f-41e5-bdb5-8a7a8ce66261}</Project>
     </ProjectReference>
@@ -166,6 +169,9 @@
     </ProjectReference>
     <ProjectReference Include="..\graphics\graphics.vcxproj">
       <Project>{30142af6-6972-4e2f-baa8-85361ce88f22}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\graphics_objects\graphics_objects.vcxproj">
+      <Project>{177b9639-7862-4ee8-a898-3560242ae429}</Project>
     </ProjectReference>
     <ProjectReference Include="..\gui\gui.vcxproj">
       <Project>{cb808c07-06ad-424a-b9bf-c15b89acd4ec}</Project>
@@ -226,6 +232,9 @@
     </ProjectReference>
     <ProjectReference Include="..\variables\variables.vcxproj">
       <Project>{90316e63-9ce3-4d2b-80ac-440903861b0d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\world_state\world_state.vcxproj">
+      <Project>{c5e3051d-19cb-4aa9-82d8-3123f77db9c2}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

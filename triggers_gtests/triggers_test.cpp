@@ -889,7 +889,7 @@ TEST(trigger_reading, variable_effect) {
 	EXPECT_EQ(5ui64, parse_env.data.size());
 	EXPECT_EQ(uint16_t(effect_codes::variable_good_name), parse_env.data[0]);
 	EXPECT_EQ(4ui16, parse_env.data[1]);
-	EXPECT_EQ(economy::goods_tag(1), trigger_payload(parse_env.data[2]).small.values.good);
+	EXPECT_EQ(economy::goods_tag(2), trigger_payload(parse_env.data[2]).small.values.good);
 	EXPECT_EQ(5.5f, read_float_from_payload(parse_env.data.data() + 3));
 }
 

@@ -182,13 +182,18 @@ TEST(provinces_test, terrain_preparse) {
 	provinces::parsing_state state(tex, m, mm);
 
 	read_default_map_file(state, f.get_root());
-	auto t_map = read_terrain(state, f.get_root());
+
+	graphics::name_maps gname_maps;
+
+	read_terrain_modifiers(tex, m, mm, gname_maps, f.get_root());
 
 	EXPECT_EQ(2ui64, mm.provincial_modifiers.size());
 	EXPECT_EQ(provincial_modifier_tag(0), mm.provincial_modifiers[provincial_modifier_tag(0)].id);
 	EXPECT_EQ(provincial_modifier_tag(1), mm.provincial_modifiers[provincial_modifier_tag(1)].id);
 	EXPECT_EQ(provincial_modifier_tag(0), mm.named_provincial_modifiers_index[text_data::get_thread_safe_text_handle(tex, RANGE("ocean"))]);
 	EXPECT_EQ(provincial_modifier_tag(1), mm.named_provincial_modifiers_index[mm.provincial_modifiers[provincial_modifier_tag(1)].name]);
+
+	auto t_map = read_terrain_colors(tex, m, mm, f.get_root());
 
 	EXPECT_EQ(provincial_modifier_tag(0), t_map.data[254]);
 	EXPECT_EQ(provincial_modifier_tag(1), t_map.data[1]);
@@ -384,70 +389,70 @@ TEST(provinces_test, adjacent) {
 	EXPECT_EQ(uint16_t(province::sea | province::lake), m.province_container[province_tag(5)].flags);
 
 	{
-		const auto same_row = m.same_type_adjacency.get_row(1ui16);
-		const auto diff_row = m.coastal_adjacency.get_row(1ui16);
+		const auto same_row = m.same_type_adjacency.get_row(province_tag(1));
+		const auto diff_row = m.coastal_adjacency.get_row(province_tag(1ui16));
 
 		EXPECT_EQ(1i64, same_row.second - same_row.first);
 		EXPECT_EQ(2i64, diff_row.second - diff_row.first);
 
-		EXPECT_NE(same_row.second, std::find(same_row.first, same_row.second, 7ui16));
-		EXPECT_NE(diff_row.second, std::find(diff_row.first, diff_row.second, 2ui16));
-		EXPECT_NE(diff_row.second, std::find(diff_row.first, diff_row.second, 4ui16));
+		EXPECT_NE(same_row.second, std::find(same_row.first, same_row.second, province_tag(7ui16)));
+		EXPECT_NE(diff_row.second, std::find(diff_row.first, diff_row.second, province_tag(2ui16)));
+		EXPECT_NE(diff_row.second, std::find(diff_row.first, diff_row.second, province_tag(4ui16)));
 	}
 	{
-		const auto same_row = m.same_type_adjacency.get_row(2ui16);
-		const auto diff_row = m.coastal_adjacency.get_row(2ui16);
+		const auto same_row = m.same_type_adjacency.get_row(province_tag(2ui16));
+		const auto diff_row = m.coastal_adjacency.get_row(province_tag(2ui16));
 
 		EXPECT_EQ(2i64, same_row.second - same_row.first);
 		EXPECT_EQ(1i64, diff_row.second - diff_row.first);
 
-		EXPECT_NE(same_row.second, std::find(same_row.first, same_row.second, 6ui16));
-		EXPECT_NE(same_row.second, std::find(same_row.first, same_row.second, 4ui16));
-		EXPECT_NE(diff_row.second, std::find(diff_row.first, diff_row.second, 1ui16));
+		EXPECT_NE(same_row.second, std::find(same_row.first, same_row.second, province_tag(6ui16)));
+		EXPECT_NE(same_row.second, std::find(same_row.first, same_row.second, province_tag(4ui16)));
+		EXPECT_NE(diff_row.second, std::find(diff_row.first, diff_row.second, province_tag(1ui16)));
 	}
 	{
-		const auto same_row = m.same_type_adjacency.get_row(3ui16);
-		const auto diff_row = m.coastal_adjacency.get_row(3ui16);
+		const auto same_row = m.same_type_adjacency.get_row(province_tag(3ui16));
+		const auto diff_row = m.coastal_adjacency.get_row(province_tag(3ui16));
 
 		EXPECT_EQ(0i64, same_row.second - same_row.first);
 		EXPECT_EQ(0i64, diff_row.second - diff_row.first);
 	}
 	{
-		const auto same_row = m.same_type_adjacency.get_row(4ui16);
-		const auto diff_row = m.coastal_adjacency.get_row(4ui16);
+		const auto same_row = m.same_type_adjacency.get_row(province_tag(4ui16));
+		const auto diff_row = m.coastal_adjacency.get_row(province_tag(4ui16));
 
 		EXPECT_EQ(2i64, same_row.second - same_row.first);
 		EXPECT_EQ(1i64, diff_row.second - diff_row.first);
 
-		EXPECT_NE(same_row.second, std::find(same_row.first, same_row.second, 6ui16));
-		EXPECT_NE(same_row.second, std::find(same_row.first, same_row.second, 2ui16));
-		EXPECT_NE(diff_row.second, std::find(diff_row.first, diff_row.second, 1ui16));
+		EXPECT_NE(same_row.second, std::find(same_row.first, same_row.second, province_tag(6ui16)));
+		EXPECT_NE(same_row.second, std::find(same_row.first, same_row.second, province_tag(2ui16)));
+		EXPECT_NE(diff_row.second, std::find(diff_row.first, diff_row.second, province_tag(1ui16)));
 	}
 	{
-		const auto same_row = m.same_type_adjacency.get_row(5ui16);
-		const auto diff_row = m.coastal_adjacency.get_row(5ui16);
+		const auto same_row = m.same_type_adjacency.get_row(province_tag(5ui16));
+		const auto diff_row = m.coastal_adjacency.get_row(province_tag(5ui16));
 
 		EXPECT_EQ(0i64, same_row.second - same_row.first);
 		EXPECT_EQ(0i64, diff_row.second - diff_row.first);
 	}
 	{
-		const auto same_row = m.same_type_adjacency.get_row(6ui16);
-		const auto diff_row = m.coastal_adjacency.get_row(6ui16);
+		const auto same_row = m.same_type_adjacency.get_row(province_tag(6ui16));
+		const auto diff_row = m.coastal_adjacency.get_row(province_tag(6ui16));
 
 		EXPECT_EQ(2i64, same_row.second - same_row.first);
 		EXPECT_EQ(0i64, diff_row.second - diff_row.first);
 
-		EXPECT_NE(same_row.second, std::find(same_row.first, same_row.second, 4ui16));
-		EXPECT_NE(same_row.second, std::find(same_row.first, same_row.second, 2ui16));
+		EXPECT_NE(same_row.second, std::find(same_row.first, same_row.second, province_tag(4ui16)));
+		EXPECT_NE(same_row.second, std::find(same_row.first, same_row.second, province_tag(2ui16)));
 	}
 	{
-		const auto same_row = m.same_type_adjacency.get_row(7ui16);
-		const auto diff_row = m.coastal_adjacency.get_row(7ui16);
+		const auto same_row = m.same_type_adjacency.get_row(province_tag(7ui16));
+		const auto diff_row = m.coastal_adjacency.get_row(province_tag(7ui16));
 
 		EXPECT_EQ(1i64, same_row.second - same_row.first);
 		EXPECT_EQ(0i64, diff_row.second - diff_row.first);
 
-		EXPECT_NE(same_row.second, std::find(same_row.first, same_row.second, 1ui16));
+		EXPECT_NE(same_row.second, std::find(same_row.first, same_row.second, province_tag(1ui16)));
 	}
 }
 

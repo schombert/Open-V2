@@ -1181,19 +1181,19 @@ namespace provinces {
 			if(this_province.flags & province::sea) {
 				for(auto oprov : adj_set.second) {
 					if(m.province_container[oprov].flags & province::sea) {
-						m.same_type_adjacency.add_to_row(to_index(adj_set.first), to_index(oprov));
+						m.same_type_adjacency.add_to_row(adj_set.first, oprov);
 					} else {
-						m.coastal_adjacency.add_to_row(to_index(adj_set.first), to_index(oprov));
+						m.coastal_adjacency.add_to_row(adj_set.first, oprov);
 						this_province.flags |= province::coastal;
 					}
 				}
 			} else {
 				for(auto oprov : adj_set.second) {
 					if(m.province_container[oprov].flags & province::sea) {
-						m.coastal_adjacency.add_to_row(to_index(adj_set.first), to_index(oprov));
+						m.coastal_adjacency.add_to_row(adj_set.first, oprov);
 						this_province.flags |= province::coastal;
 					} else {
-						m.same_type_adjacency.add_to_row(to_index(adj_set.first), to_index(oprov));
+						m.same_type_adjacency.add_to_row(adj_set.first, oprov);
 					}
 				}
 			}

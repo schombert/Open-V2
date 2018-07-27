@@ -451,13 +451,13 @@ TEST(cultures_tests, read_country_files) {
 	EXPECT_EQ(129ui8, s.culture_m.national_tags[national_tag(0)].color.g);
 	EXPECT_EQ(35ui8, s.culture_m.national_tags[national_tag(0)].color.b);
 	EXPECT_EQ(governments::party_tag(0), s.culture_m.national_tags[national_tag(0)].first_party);
-	EXPECT_EQ(governments::party_tag(1), s.culture_m.national_tags[national_tag(0)].last_party);
+	EXPECT_EQ(governments::party_tag(2), s.culture_m.national_tags[national_tag(0)].last_party);
 
 	EXPECT_EQ(101ui8, s.culture_m.national_tags[national_tag(1)].color.r);
 	EXPECT_EQ(102ui8, s.culture_m.national_tags[national_tag(1)].color.g);
 	EXPECT_EQ(163ui8, s.culture_m.national_tags[national_tag(1)].color.b);
 	EXPECT_EQ(governments::party_tag(2), s.culture_m.national_tags[national_tag(1)].first_party);
-	EXPECT_EQ(governments::party_tag(2), s.culture_m.national_tags[national_tag(1)].last_party);
+	EXPECT_EQ(governments::party_tag(3), s.culture_m.national_tags[national_tag(1)].last_party);
 }
 
 TEST(cultures_tests, serialize) {

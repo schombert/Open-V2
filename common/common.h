@@ -940,12 +940,12 @@ public:
 	}
 
 	void new_row() {
-		index.push_back(static_cast<I>(elements.size()));
+		index.push_back(static_cast<uint32_t>(elements.size()));
 	}
 
 	void expand_rows(uint32_t sz) {
 		if (index.size() < sz + 1)
-			index.resize(sz + 1, static_cast<I>(elements.size()));
+			index.resize(sz + 1, static_cast<uint32_t>(elements.size()));
 	}
 
 	uint32_t row_size() const {

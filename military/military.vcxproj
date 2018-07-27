@@ -158,11 +158,6 @@
     <ClCompile Include="military_functions.cpp" />
     <ClCompile Include="military_io.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\concurrency_tools\concurrency_tools.vcxproj">
-      <Project>{12f547e0-13dc-4c35-96ab-950827192412}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

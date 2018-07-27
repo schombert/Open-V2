@@ -102,8 +102,8 @@ namespace provinces {
 		v_vector<province_tag, state_tag> states_to_province_index;
 		boost::container::flat_map<text_data::text_tag, state_tag> named_states_index;
 
-		v_vector<province_tag::value_base_t, province_tag::value_base_t> same_type_adjacency;
-		v_vector<province_tag::value_base_t, province_tag::value_base_t> coastal_adjacency;
+		v_vector<province_tag, province_tag> same_type_adjacency;
+		v_vector<province_tag, province_tag> coastal_adjacency;
 		std::vector<std::pair<province_tag, province_tag>> canals;
 
 		boost::container::flat_map<modifiers::provincial_modifier_tag, graphics::obj_definition_tag> terrain_graphics;

@@ -98,37 +98,6 @@ TEST(unknown_spritetype_error, graphics_objects_tests) {
 	EXPECT_EQ(std::make_pair(std::string("fake_file"), graphics::errors::unknown_sprite_type), errors_generated[0]);
 }
 
-
-TEST(filter_unmentioned_items, graphics_objects_tests) {
-	graphics::name_maps nmaps;
-	graphics::object_definitions defs;
-	std::vector<std::pair<std::string, graphics::errors>> errors_generated;
-	auto th = fake_texture_lookup();
-
-	gobj_parsing_environment e(nmaps, defs, errors_generated, th);
-	e.file = "fake_file";
-
-	gfx_file container(e);
-
-	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
-		"spritetypes = {\n"
-		"spritetype = {}\n"
-		"spritetype = {name = unknown}\n"
-		"}\n"
-		"bitmapfonts = {}\n"
-		"fonts = {}\n"
-		"lighttypes = {}\n"
-		"objecttypes = {}\n"
-	));
-
-	if (parse_tree.size() > 0)
-		parse_object<gfx_file, gfx_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e);
-
-	EXPECT_EQ(0ui64, defs.definitions.size());
-	EXPECT_EQ(0ui64, errors_generated.size());
-}
-
 TEST(accept_mentioned_items, graphics_objects_tests) {
 	graphics::name_maps nmaps;
 	graphics::object_definitions defs;
@@ -158,7 +127,7 @@ TEST(accept_mentioned_items, graphics_objects_tests) {
 	if (parse_tree.size() > 0)
 		parse_object<gfx_file, gfx_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e);
 
-	EXPECT_EQ(1ui64, defs.definitions.size());
+	EXPECT_EQ(2ui64, defs.definitions.size());
 	EXPECT_EQ(0ui64, errors_generated.size());
 	EXPECT_EQ(0, defs.definitions[graphics::obj_definition_tag(0)].flags & graphics::object::always_transparent);
 	EXPECT_EQ(0, defs.definitions[graphics::obj_definition_tag(0)].flags & graphics::object::flip_v);
@@ -189,7 +158,6 @@ TEST(non_default_properties, graphics_objects_tests) {
 	std::vector<token_group> parse_tree;
 	parse_pdx_file(parse_tree, RANGE(
 		"spritetypes = {\n"
-		"spritetype = {name = unknown}\n"
 		"barcharttype = {\n"
 		"name = dummy\n"
 		"allwaystransparent = yes\n"
@@ -242,7 +210,6 @@ TEST(non_default_properties_b, graphics_objects_tests) {
 	std::vector<token_group> parse_tree;
 	parse_pdx_file(parse_tree, RANGE(
 		"spritetypes = {\n"
-		"spritetype = {name = unknown}\n"
 		"progressbartype = {\n"
 		"name = dummy\n"
 		"allwaystransparent = yes\n"
@@ -296,7 +263,6 @@ TEST(errors, graphics_objects_tests) {
 	std::vector<token_group> parse_tree;
 	parse_pdx_file(parse_tree, RANGE(
 		"spritetypes = {\n"
-		"spritetype = {name = unknown}\n"
 		"progressbartype = {\n"
 		"name = dummy\n"
 		"allwaystransparent = yes\n"

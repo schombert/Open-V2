@@ -26,6 +26,9 @@ namespace current_state {
 		variables::variables_state variable_s;
 		ui::gui_manager gui_m;
 
+		//other global state
+		date_tag current_date;
+
 		//gui state
 		provinces::province_tag selected_province;
 		std::unique_ptr<gui_state> gui_objects;

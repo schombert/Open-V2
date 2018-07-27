@@ -231,6 +231,8 @@ namespace military {
 	};
 
 	struct war {
+		date_tag last_update;
+
 		set_tag<nations::country_tag> attackers;
 		set_tag<nations::country_tag> defenders;
 

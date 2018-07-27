@@ -19,4 +19,5 @@ namespace military {
 	army& make_army(world_state& ws, nations::nation& n, provinces::province_tag location);
 	fleet& make_fleet(world_state& ws, nations::nation& n, provinces::province_tag location);
 	void immediate_add_pop_to_army(world_state& ws, army& target_army, population::pop& p);
+	void list_opposing_countries(world_state& ws, nations::nation& this_nation, boost::container::small_vector<nations::country_tag, 32, concurrent_allocator<nations::country_tag>>& result);
 }

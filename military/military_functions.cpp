@@ -86,4 +86,25 @@ namespace military {
 		add_item(ws.w.military_s.fleet_arrays, n.fleets , new_fleet.id);
 		return new_fleet;
 	}
+
+	void list_opposing_countries(world_state& ws, nations::nation& this_nation, boost::container::small_vector<nations::country_tag, 32, concurrent_allocator<nations::country_tag>>& result) {
+		auto owner_wars = get_range(ws.w.military_s.war_arrays, this_nation.wars_involved_in);
+		for(auto iwar = owner_wars.first; iwar != owner_wars.second; ++iwar) {
+			if(auto warid = iwar->war_id; ws.w.military_s.wars.is_valid_index(warid)) {
+				if(iwar->is_attacker) {
+					auto defender_range = get_range(ws.w.nation_s.nations_arrays, ws.w.military_s.wars[warid].defenders);
+					for(auto d : defender_range) {
+						if(is_valid_index(d) && std::find(result.begin(), result.end(), d) == result.end())
+							result.push_back(d);
+					}
+				} else {
+					auto attacker_range = get_range(ws.w.nation_s.nations_arrays, ws.w.military_s.wars[warid].attackers);
+					for(auto d : attacker_range) {
+						if(is_valid_index(d) && std::find(result.begin(), result.end(), d) == result.end())
+							result.push_back(d);
+					}
+				}
+			}
+		}
+	}
 }
