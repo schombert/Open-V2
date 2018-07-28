@@ -17,4 +17,5 @@ namespace population {
 	void set_militancy_direct(pop &p, float v);
 	void set_literacy_direct(pop &p, float v);
 	void set_consciousness_direct(pop &p, float v);
+	economy::money_qnty_type desired_needs_spending(world_state& ws, pop const& p);
 }

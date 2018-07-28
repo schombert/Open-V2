@@ -1130,7 +1130,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 		}
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
-			return trigger_value{ token_to<float>(t) };
+			return trigger_payload{ token_to<int16_t>(t) };
 		}
 	};
 	struct has_empty_adjacent_state_trigger {

@@ -3,6 +3,7 @@
 #include "world_state\\world_state.h"
 #include "nations\\nations_functions.h"
 #include "military\\military_functions.h"
+#include "population\\population_function.h"
 
 namespace triggers {
 	int32_t get_trigger_payload_size(const uint16_t* data) {
@@ -651,14 +652,76 @@ namespace triggers {
 		auto has_tech = bit_vector_test(tech_row, to_index(technology));
 		return compare_values(tval[0], has_tech, true);
 	}
-	bool tf_strata_rich(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_life_rating_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_life_rating_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_has_empty_adjacent_state_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_has_empty_adjacent_state_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_state_id_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_state_id_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_cash_reserves(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
+	bool tf_strata_rich(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto pop_type = ((population::pop*)primary_slot)->type;
+		return compare_values(tval[0], (ws.s.population_m.pop_types[pop_type].flags & population::pop_type::strata_mask) == population::pop_type::strata_rich, true);
+	}
+	bool tf_life_rating_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], ((provinces::province_state*)primary_slot)->life_rating, trigger_payload(tval[2]).signed_value);
+	}
+	bool tf_life_rating_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto state = (nations::state_instance*)primary_slot;
+		auto province_range = ws.s.province_m.states_to_province_index.get_row(state->region_id);
+		int32_t min_life_rating = std::numeric_limits<int32_t>::max();
+		for(auto p : province_range) {
+			auto& ps = ws.w.province_s.province_state_container[p];
+			if(ps.owner == state->owner)
+				min_life_rating = std::min(min_life_rating, int32_t(ps.life_rating));
+		}
+		return compare_values(tval[0], min_life_rating, int32_t(trigger_payload(tval[2]).signed_value));
+	}
+	bool tf_has_empty_adjacent_state_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		bool has_empty = false;
+		auto adj_range = ws.s.province_m.same_type_adjacency.get_row(((provinces::province_state*)primary_slot)->id);
+		for(auto p : adj_range) {
+			if(ws.w.province_s.province_state_container[p].owner == nullptr) {
+				has_empty = true;
+				break;
+			}
+		}
+		return compare_values(tval[0], has_empty, true);
+	}
+	bool tf_has_empty_adjacent_state_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto state = (nations::state_instance*)primary_slot;
+		auto province_range = ws.s.province_m.states_to_province_index.get_row(state->region_id);
+		auto state_owner = state->owner;
+
+		bool has_empty = [province_range, &ws, state_owner, state]() {
+			for(auto p : province_range) {
+				auto& ps = ws.w.province_s.province_state_container[p];
+
+				if(ps.owner == state_owner) {
+					auto adj_range = ws.s.province_m.same_type_adjacency.get_row(p);
+					for(auto q : adj_range) {
+						auto& qs = ws.w.province_s.province_state_container[p];
+						if((qs.owner == nullptr) & (qs.state_instance != state)) {
+							return true;
+						}
+					}
+				}
+			}
+			return false;
+		}();
+		return compare_values(tval[0], has_empty, true);
+	}
+	bool tf_state_id_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		provinces::province_tag pid(tval[2]);
+		auto current_prov = ((provinces::province_state*)primary_slot)->id;
+		auto same_region = ws.s.province_m.province_container[current_prov].state_id == ws.s.province_m.province_container[pid].state_id;
+		return compare_values(tval[0], same_region, true);
+	}
+	bool tf_state_id_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		provinces::province_tag pid(tval[2]);
+		auto current_region = ((nations::state_instance*)primary_slot)->region_id;
+		auto same_region = current_region == ws.s.province_m.province_container[pid].state_id;
+		return compare_values(tval[0], same_region, true);
+	}
+	bool tf_cash_reserves(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto ratio = economy::money_qnty_type(read_float_from_payload(tval + 2));
+		auto target = population::desired_needs_spending(ws, *((population::pop*)primary_slot));
+		auto money = economy::money_qnty_type(((population::pop*)primary_slot)->money);
+		return compare_values(tval[0], money / target, ratio);
+	}
 	bool tf_unemployment_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
 	bool tf_unemployment_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
 	bool tf_unemployment_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }

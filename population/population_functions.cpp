@@ -46,4 +46,7 @@ namespace population {
 	void set_consciousness_direct(pop & p, float v) {
 		p.consciousness = static_cast<uint16_t>(v * float(std::numeric_limits<uint16_t>::max()) / 10.0f);
 	}
+	economy::money_qnty_type desired_needs_spending(world_state&, pop const&) {
+		return economy::money_qnty_type(0);
+	}
 }

@@ -1481,8 +1481,8 @@ namespace triggers {
 		1, //constexpr uint16_t rank = 0x0004;
 		1, //constexpr uint16_t invention = 0x0005;
 		0, //constexpr uint16_t strata_rich = 0x0006;
-		2, //constexpr uint16_t life_rating_province = 0x0007;
-		2, //constexpr uint16_t life_rating_state = 0x0008;
+		1, //constexpr uint16_t life_rating_province = 0x0007;
+		1, //constexpr uint16_t life_rating_state = 0x0008;
 		0, //constexpr uint16_t has_empty_adjacent_state_province = 0x0009;
 		0, //constexpr uint16_t has_empty_adjacent_state_state = 0x000A;
 		1, //constexpr uint16_t state_id_province = 0x000B;
