@@ -123,10 +123,11 @@ namespace population {
 		pop_tag id; // 4
 
 		atomic_tag<date_tag> last_update; // 8
-		int32_t size = 0i32; // 12
-		int32_t employed = 0i32; // 16
+		//int32_t size = 0i32; // 12 -- moved to demographics arrays
+		//int32_t employed = 0i32; // 16 -- moved to demographics array
 
-		//missing: growth, starvation, combat losses
+		int32_t size_change_from_combat = 0i32; // combat losses 12
+		int32_t size_change_from_growth = 0i32; // growth & starvation 16
 		int32_t size_change_from_type_change = 0i32; // promotion & demotion 20
 		int32_t size_change_from_assimilation = 0i32; //cultural and religion change 24
 		int32_t size_change_from_local_migration = 0i32; //moving from one state to another (includes colonial) 28
@@ -136,7 +137,7 @@ namespace population {
 		float last_wages = 0.0f; // 40
 		float needs_satisfaction = 3.0f; // 44
 
-		uint16_t literacy = 0ui16; // 46 ( >>16 * 10 = lit)
+		uint16_t literacy = 0ui16; // 46 ( >>16 = lit)
 		uint16_t militancy = 0ui16; // 48 ( >>16 * 10 = con)
 		uint16_t consciousness = 0ui16; // 50 ( >>16 * 10 = mil)
 		
@@ -166,10 +167,12 @@ namespace population {
 		set_tag<pop_tag> member_pops;
 
 		cultures::national_tag independence_tag; // or pan nationalist union tag
+		cultures::culture_tag culture;
 
 		rebel_faction_tag id;
 		uint16_t flags = 0ui16; // copied from rebel type
 
+		cultures::religion_tag religion;
 		uint8_t icon = 0ui8; // copied from rebel type
 		rebel_type_tag type;
 	};
@@ -254,6 +257,7 @@ namespace population {
 	demo_tag to_employment_demo_tag(world_state const& ws, pop_type_tag t);
 
 	constexpr demo_tag total_population_tag = demo_tag(0ui32);
+	constexpr demo_tag total_employment_tag = demo_tag(1ui32);
 
 	demo_tag militancy_demo_tag(world_state const& ws);
 	demo_tag consciousness_demo_tag(world_state const& ws);

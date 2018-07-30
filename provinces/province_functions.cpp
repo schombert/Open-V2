@@ -101,70 +101,72 @@ namespace provinces {
 
 				population::pop& this_pop = ws.w.population_s.pops.get(*pop);
 
-				province_full_demo[to_index(population::to_demo_tag(ws, this_pop.culture))] += this_pop.size;
-				province_full_demo[to_index(population::to_demo_tag(ws, this_pop.religion))] += this_pop.size;
-				province_full_demo[to_index(population::to_demo_tag(ws, this_pop.type))] += this_pop.size;
-				province_full_demo[to_index(population::to_employment_demo_tag(ws, this_pop.type))] += this_pop.employed;
+				auto pop_size = pop_demo_source[to_index(population::total_population_tag)];
+
+				province_full_demo[to_index(population::to_demo_tag(ws, this_pop.culture))] += pop_size;
+				province_full_demo[to_index(population::to_demo_tag(ws, this_pop.religion))] += pop_size;
+				province_full_demo[to_index(population::to_demo_tag(ws, this_pop.type))] += pop_size;
+				province_full_demo[to_index(population::to_employment_demo_tag(ws, this_pop.type))] += pop_demo_source[to_index(population::total_employment_tag)];
 
 
-				province_full_demo[to_index(cdt)] += int32_t((uint64_t(this_pop.consciousness) * uint64_t(this_pop.size)) >> 16ui64);
-				province_full_demo[to_index(ldt)] += int32_t((uint64_t(this_pop.literacy) * uint64_t(this_pop.size)) >> 16ui64);
+				province_full_demo[to_index(cdt)] += int32_t((uint64_t(this_pop.consciousness) * uint64_t(pop_size)) >> 16ui64);
+				province_full_demo[to_index(ldt)] += int32_t((uint64_t(this_pop.literacy) * uint64_t(pop_size)) >> 16ui64);
 
-				const int32_t weighted_militancy = int32_t((uint64_t(this_pop.literacy) * uint64_t(this_pop.size)) >> 16ui64);
+				const int32_t weighted_militancy = int32_t((uint64_t(this_pop.literacy) * uint64_t(pop_size)) >> 16ui64);
 				province_full_demo[to_index(mdt)] += weighted_militancy;
 
 				const auto strata = ws.s.population_m.pop_types[this_pop.type].flags & population::pop_type::strata_mask;
 				if(strata == population::pop_type::strata_poor) {
 					province_full_demo[to_index(pmpdt)] += weighted_militancy;
-					province_full_demo[to_index(ppdt)] += this_pop.size;
+					province_full_demo[to_index(ppdt)] += pop_size;
 					if(this_pop.needs_satisfaction < 1.0f) {
-						province_full_demo[to_index(plndt)] += int32_t(float(this_pop.size) * this_pop.needs_satisfaction);
+						province_full_demo[to_index(plndt)] += int32_t(float(pop_size) * this_pop.needs_satisfaction);
 					} else {
-						province_full_demo[to_index(plndt)] += this_pop.size;
+						province_full_demo[to_index(plndt)] += pop_size;
 						if(this_pop.needs_satisfaction < 2.0f) {
-							province_full_demo[to_index(pendt)] += int32_t(float(this_pop.size) * (this_pop.needs_satisfaction - 1.0f));
+							province_full_demo[to_index(pendt)] += int32_t(float(pop_size) * (this_pop.needs_satisfaction - 1.0f));
 						} else {
-							province_full_demo[to_index(pendt)] += this_pop.size;
+							province_full_demo[to_index(pendt)] += pop_size;
 							if(this_pop.needs_satisfaction < 3.0f) {
-								province_full_demo[to_index(pxndt)] += int32_t(float(this_pop.size) * (this_pop.needs_satisfaction - 2.0f));
+								province_full_demo[to_index(pxndt)] += int32_t(float(pop_size) * (this_pop.needs_satisfaction - 2.0f));
 							} else {
-								province_full_demo[to_index(pxndt)] += this_pop.size;
+								province_full_demo[to_index(pxndt)] += pop_size;
 							}
 						}
 					}
 				} else if(strata == population::pop_type::strata_middle) {
 					province_full_demo[to_index(mmpdt)] += weighted_militancy;
-					province_full_demo[to_index(mpdt)] += this_pop.size;
+					province_full_demo[to_index(mpdt)] += pop_size;
 					if(this_pop.needs_satisfaction < 1.0f) {
-						province_full_demo[to_index(mlndt)] += int32_t(float(this_pop.size) * this_pop.needs_satisfaction);
+						province_full_demo[to_index(mlndt)] += int32_t(float(pop_size) * this_pop.needs_satisfaction);
 					} else {
-						province_full_demo[to_index(mlndt)] += this_pop.size;
+						province_full_demo[to_index(mlndt)] += pop_size;
 						if(this_pop.needs_satisfaction < 2.0f) {
-							province_full_demo[to_index(mendt)] += int32_t(float(this_pop.size) * (this_pop.needs_satisfaction - 1.0f));
+							province_full_demo[to_index(mendt)] += int32_t(float(pop_size) * (this_pop.needs_satisfaction - 1.0f));
 						} else {
-							province_full_demo[to_index(mendt)] += this_pop.size;
+							province_full_demo[to_index(mendt)] += pop_size;
 							if(this_pop.needs_satisfaction < 3.0f) {
-								province_full_demo[to_index(mxndt)] += int32_t(float(this_pop.size) * (this_pop.needs_satisfaction - 2.0f));
+								province_full_demo[to_index(mxndt)] += int32_t(float(pop_size) * (this_pop.needs_satisfaction - 2.0f));
 							} else {
-								province_full_demo[to_index(mxndt)] += this_pop.size;
+								province_full_demo[to_index(mxndt)] += pop_size;
 							}
 						}
 					}
 				} else if(strata == population::pop_type::strata_rich) {
 					province_full_demo[to_index(rmpdt)] += weighted_militancy;
-					province_full_demo[to_index(rpdt)] += this_pop.size;
+					province_full_demo[to_index(rpdt)] += pop_size;
 					if(this_pop.needs_satisfaction < 1.0f) {
-						province_full_demo[to_index(rlndt)] += int32_t(float(this_pop.size) * this_pop.needs_satisfaction);
+						province_full_demo[to_index(rlndt)] += int32_t(float(pop_size) * this_pop.needs_satisfaction);
 					} else {
-						province_full_demo[to_index(rlndt)] += this_pop.size;
+						province_full_demo[to_index(rlndt)] += pop_size;
 						if(this_pop.needs_satisfaction < 2.0f) {
-							province_full_demo[to_index(rendt)] += int32_t(float(this_pop.size) * (this_pop.needs_satisfaction - 1.0f));
+							province_full_demo[to_index(rendt)] += int32_t(float(pop_size) * (this_pop.needs_satisfaction - 1.0f));
 						} else {
-							province_full_demo[to_index(rendt)] += this_pop.size;
+							province_full_demo[to_index(rendt)] += pop_size;
 							if(this_pop.needs_satisfaction < 3.0f) {
-								province_full_demo[to_index(rxndt)] += int32_t(float(this_pop.size) * (this_pop.needs_satisfaction - 2.0f));
+								province_full_demo[to_index(rxndt)] += int32_t(float(pop_size) * (this_pop.needs_satisfaction - 2.0f));
 							} else {
-								province_full_demo[to_index(rxndt)] += this_pop.size;
+								province_full_demo[to_index(rxndt)] += pop_size;
 							}
 						}
 					}

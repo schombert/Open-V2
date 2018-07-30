@@ -55,11 +55,10 @@ namespace population {
 			new_pop.culture = p.second.culture;
 			new_pop.religion = p.second.religion;
 			new_pop.type = pop_type;
-			new_pop.size = int32_t(p.second.size);
 			set_militancy_direct(new_pop, p.second.militancy);
 			new_pop.location = env.prov;
 			
-			init_pop_demographics(env.ws, new_pop);
+			init_pop_demographics(env.ws, new_pop, int32_t(p.second.size));
 
 			add_item(env.ws.w.population_s.pop_arrays, env.ws.w.province_s.province_state_container[env.prov].pops, new_pop.id);
 		}

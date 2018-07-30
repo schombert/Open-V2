@@ -75,7 +75,7 @@ namespace military {
 	}
 
 	void immediate_add_pop_to_army(world_state& ws, army& target_army, population::pop& p) {
-		target_army.total_soldiers += uint32_t(p.size);
+		target_army.total_soldiers += uint32_t(ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag));
 		p.associated_army = target_army.id;
 		add_item(ws.w.population_s.pop_arrays, target_army.backing_pops, p.id);
 	}
