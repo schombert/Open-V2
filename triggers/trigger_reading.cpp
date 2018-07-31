@@ -1765,19 +1765,24 @@ namespace triggers {
 				else
 					return std::optional<uint16_t>();
 			} else if (is_fixed_token_ci(t, "this")) {
-				if (scope.main_slot == trigger_slot_contents::pop)
+				if (scope.main_slot == trigger_slot_contents::pop && scope.this_slot == trigger_slot_contents::nation)
 					return  uint16_t(trigger_codes::is_cultural_union_this_self_pop | association_to_bool_code(a));
-				else if (scope.this_slot == trigger_slot_contents::pop)
-					return  uint16_t(trigger_codes::is_cultural_union_this_pop | association_to_bool_code(a));
-				else if (scope.this_slot == trigger_slot_contents::state)
-					return  uint16_t(trigger_codes::is_cultural_union_this_state | association_to_bool_code(a));
-				else if (scope.this_slot == trigger_slot_contents::province)
-					return  uint16_t(trigger_codes::is_cultural_union_this_province | association_to_bool_code(a));
-				else if (scope.this_slot == trigger_slot_contents::nation)
-					return  uint16_t(trigger_codes::is_cultural_union_this_nation | association_to_bool_code(a));
-				else if (scope.contains_rebeltype)
-					return  uint16_t(trigger_codes::is_cultural_union_this_rebel | association_to_bool_code(a));
-				else
+				else if(scope.main_slot == trigger_slot_contents::pop && scope.this_slot == trigger_slot_contents::pop)
+					return uint16_t(trigger_codes::is_cultural_union_pop_this_pop | association_to_bool_code(a));
+				else if(scope.main_slot == trigger_slot_contents::nation) {
+					if(scope.this_slot == trigger_slot_contents::pop)
+						return  uint16_t(trigger_codes::is_cultural_union_this_pop | association_to_bool_code(a));
+					else if(scope.this_slot == trigger_slot_contents::state)
+						return  uint16_t(trigger_codes::is_cultural_union_this_state | association_to_bool_code(a));
+					else if(scope.this_slot == trigger_slot_contents::province)
+						return  uint16_t(trigger_codes::is_cultural_union_this_province | association_to_bool_code(a));
+					else if(scope.this_slot == trigger_slot_contents::nation)
+						return  uint16_t(trigger_codes::is_cultural_union_this_nation | association_to_bool_code(a));
+					else if(scope.contains_rebeltype)
+						return  uint16_t(trigger_codes::is_cultural_union_this_rebel | association_to_bool_code(a));
+					else
+						return std::optional<uint16_t>();
+				} else
 					return std::optional<uint16_t>();
 			} else {
 				if (scope.main_slot == trigger_slot_contents::nation)

@@ -56,6 +56,8 @@ namespace nations {
 		float plurality = 0.0f;
 		float revanchism = 0.0f;
 		float prestige = 0.0f;
+		float war_exhaustion = 0.0f;
+		float blockade_fraction = 0.0f;
 
 		set_tag<provinces::province_tag> owned_provinces;
 		set_tag<provinces::province_tag> controlled_provinces;
@@ -76,6 +78,7 @@ namespace nations {
 		array_tag<military::army_tag> armies;
 		array_tag<military::fleet_tag> fleets;
 		array_tag<military::war_identifier> wars_involved_in;
+		array_tag<population::rebel_faction_tag> active_rebel_factions;
 
 		text_data::text_tag name;
 		text_data::text_tag adjective;

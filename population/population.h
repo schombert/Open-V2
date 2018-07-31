@@ -186,6 +186,7 @@ namespace population {
 		stable_2d_vector<int32_t, pop_tag, demo_tag, 2048, 256> pop_demographics;
 
 		stable_variable_vector_storage_mk_2<pop_tag, 8, 65536> pop_arrays;
+		stable_variable_vector_storage_mk_2<rebel_faction_tag, 8, 65536> rebel_faction_arrays;
 	};
 
 	class population_manager {

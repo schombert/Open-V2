@@ -1033,6 +1033,7 @@ namespace triggers {
 		constexpr uint16_t religion_nation_this_pop = 0x0265;
 		constexpr uint16_t war_exhaustion_province = 0x0266;
 		constexpr uint16_t is_greater_power_province = 0x0267;
+		constexpr uint16_t is_cultural_union_pop_this_pop = 0x0268;
 
 		//technology name -- payload 1
 		//ideology name -- 4 varianets payload 2
@@ -1556,10 +1557,10 @@ namespace triggers {
 		0, //constexpr uint16_t is_cultural_union_this_nation = 0x004F;
 		0, //constexpr uint16_t is_cultural_union_this_rebel = 0x0050;
 		1, //constexpr uint16_t is_cultural_union_tag_nation = 0x0051;
-		0, //constexpr uint16_t is_cultural_union_tag_this_pop = 0x0052;
-		0, //constexpr uint16_t is_cultural_union_tag_this_state = 0x0053;
-		0, //constexpr uint16_t is_cultural_union_tag_this_province = 0x0054;
-		0, //constexpr uint16_t is_cultural_union_tag_this_nation = 0x0055;
+		1, //constexpr uint16_t is_cultural_union_tag_this_pop = 0x0052;
+		1, //constexpr uint16_t is_cultural_union_tag_this_state = 0x0053;
+		1, //constexpr uint16_t is_cultural_union_tag_this_province = 0x0054;
+		1, //constexpr uint16_t is_cultural_union_tag_this_nation = 0x0055;
 		0, //constexpr uint16_t can_build_factory_pop = 0x0056;
 		0, //constexpr uint16_t war_pop = 0x0057;
 		0, //constexpr uint16_t war_nation = 0x0058;
@@ -2095,5 +2096,6 @@ namespace triggers {
 		0, //constexpr uint16_t religion_nation_this_pop = 0x0265;
 		2, // constexpr uint16_t war_exhaustion_province = 0x0266;
 		0, //constexpr uint16_t is_greater_power_province = 0x0267;
+		0,	//constexpr uint16_t is_cultural_union_pop_this_pop = 0x0268;
 	};
 }

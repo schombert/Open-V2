@@ -370,4 +370,31 @@ namespace nations {
 		silent_make_vassal(ws, overlord, vassal);
 		vassal.flags |= nation::is_substate;
 	}
+
+	nations::nation* union_holder_for(world_state& ws, cultures::culture_tag pculture) {
+		auto cgroup = ws.s.culture_m.culture_container[pculture].group;
+		auto union_tag = ws.s.culture_m.culture_groups[cgroup].union_tag;
+		if(is_valid_index(union_tag))
+			return ws.w.culture_s.national_tags_state[union_tag].holder;
+		else
+			return nullptr;
+	}
+
+	cultures::national_tag union_tag_of(world_state& ws, nation const& this_nation) {
+		auto pculture = this_nation.primary_culture;
+		if(is_valid_index(pculture)) {
+			auto cgroup = ws.s.culture_m.culture_container[pculture].group;
+			return ws.s.culture_m.culture_groups[cgroup].union_tag;
+		}
+		else
+			cultures::national_tag();
+	}
+
+	nations::nation* union_holder_of(world_state& ws, nation const& this_nation) {
+		auto pculture = this_nation.primary_culture;
+		if(is_valid_index(pculture))
+			return union_holder_for(ws, pculture);
+		else
+			return nullptr;
+	}
 }
