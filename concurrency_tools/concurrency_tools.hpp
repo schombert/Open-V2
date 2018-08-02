@@ -135,14 +135,14 @@ template<typename object_type, typename index_type, uint32_t block_size, uint32_
 stable_vector<object_type, index_type, block_size, index_size>::stable_vector() { }
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
-object_type& stable_vector<object_type, index_type, block_size, index_size>::get(index_type i) {
+object_type& stable_vector<object_type, index_type, block_size, index_size>::get(index_type i) const {
 	const auto block_num = to_index(i) >> ct_log2(block_size);
 	const auto block_index = to_index(i) & (block_size - 1);
 	return (index_array[block_num])[block_index];
 }
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
-object_type& stable_vector<object_type, index_type, block_size, index_size>::operator[](index_type i) {
+object_type& stable_vector<object_type, index_type, block_size, index_size>::operator[](index_type i) const {
 	return get(i);
 }
 
@@ -158,7 +158,7 @@ void stable_vector<object_type, index_type, block_size, index_size>::for_each(T 
 }
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
-bool stable_vector<object_type, index_type, block_size, index_size>::is_valid_index(index_type i) {
+bool stable_vector<object_type, index_type, block_size, index_size>::is_valid_index(index_type i) const {
 	const auto block_num = uint32_t(to_index(i)) >> ct_log2(block_size);
 	return ::is_valid_index(i) & (block_num < indices_in_use);
 }

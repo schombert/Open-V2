@@ -630,7 +630,7 @@ TEST(population_tests, population_directory_selection) {
 		auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(853)].pops, 0);
 		pop& pop_obj = ws.w.population_s.pops.get(popid);
 
-		EXPECT_EQ(750, pop_obj.size);
+		EXPECT_EQ(750, ws.w.population_s.pop_demographics.get(popid, total_population_tag));
 		EXPECT_EQ(provinces::province_tag(853), pop_obj.location);
 		EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("albanian"))));
 		EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("sunni"))));
@@ -656,7 +656,7 @@ TEST(population_tests, population_directory_selection) {
 			auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(853)].pops, 0);
 			pop& pop_obj = ws.w.population_s.pops.get(popid);
 
-			EXPECT_EQ(50, pop_obj.size);
+			EXPECT_EQ(50, ws.w.population_s.pop_demographics.get(popid, total_population_tag));
 			EXPECT_EQ(provinces::province_tag(853), pop_obj.location);
 			EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("albanian"))));
 			EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("orthodox"))));
@@ -666,7 +666,7 @@ TEST(population_tests, population_directory_selection) {
 			auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(853)].pops, 1);
 			pop& pop_obj = ws.w.population_s.pops.get(popid);
 
-			EXPECT_EQ(6750, pop_obj.size);
+			EXPECT_EQ(6750, ws.w.population_s.pop_demographics.get(popid, total_population_tag));
 			EXPECT_EQ(provinces::province_tag(853), pop_obj.location);
 			EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("albanian"))));
 			EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("orthodox"))));
@@ -691,7 +691,7 @@ TEST(population_tests, population_directory_selection) {
 			auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(850)].pops, 0);
 			pop& pop_obj = ws.w.population_s.pops.get(popid);
 
-			EXPECT_EQ(5000, pop_obj.size);
+			EXPECT_EQ(5000, ws.w.population_s.pop_demographics.get(popid, total_population_tag));
 			EXPECT_EQ(provinces::province_tag(850), pop_obj.location);
 			EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("beifaren"))));
 			EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("mahayana"))));
@@ -702,7 +702,7 @@ TEST(population_tests, population_directory_selection) {
 			auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(851)].pops, 0);
 			pop& pop_obj = ws.w.population_s.pops.get(popid);
 
-			EXPECT_EQ(50, pop_obj.size);
+			EXPECT_EQ(50, ws.w.population_s.pop_demographics.get(popid, total_population_tag));
 			EXPECT_EQ(provinces::province_tag(851), pop_obj.location);
 			EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("manchu"))));
 			EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("mahayana"))));

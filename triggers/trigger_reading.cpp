@@ -2269,7 +2269,10 @@ namespace triggers {
 	struct has_building_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type& t) {
 			if (scope.main_slot == trigger_slot_contents::state)
-				return  uint16_t(trigger_codes::has_building_state | association_to_bool_code(a));
+				if(is_fixed_token_ci(t, "factory"))
+					return  uint16_t(trigger_codes::has_building_factory | association_to_bool_code(a));
+				else
+					return  uint16_t(trigger_codes::has_building_state | association_to_bool_code(a));
 			else if (scope.main_slot == trigger_slot_contents::province) {
 				if (is_fixed_token_ci(t, "fort"))
 					return  uint16_t(trigger_codes::has_building_fort | association_to_bool_code(a));
@@ -2277,8 +2280,10 @@ namespace triggers {
 					return  uint16_t(trigger_codes::has_building_railroad | association_to_bool_code(a));
 				else if (is_fixed_token_ci(t, "naval_base"))
 					return  uint16_t(trigger_codes::has_building_naval_base | association_to_bool_code(a));
+				else if(is_fixed_token_ci(t, "factory"))
+					return  uint16_t(trigger_codes::has_building_factory_from_province | association_to_bool_code(a));
 				else
-					return std::optional<uint16_t>();
+					return  uint16_t(trigger_codes::has_building_state_from_province | association_to_bool_code(a));
 			} else
 				return std::optional<uint16_t>();
 		}

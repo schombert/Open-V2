@@ -1034,6 +1034,9 @@ namespace triggers {
 		constexpr uint16_t war_exhaustion_province = 0x0266;
 		constexpr uint16_t is_greater_power_province = 0x0267;
 		constexpr uint16_t is_cultural_union_pop_this_pop = 0x0268;
+		constexpr uint16_t has_building_factory = 0x0269;
+		constexpr uint16_t has_building_state_from_province = 0x026A;
+		constexpr uint16_t has_building_factory_from_province = 0x026B;
 
 		//technology name -- payload 1
 		//ideology name -- 4 varianets payload 2
@@ -2097,5 +2100,8 @@ namespace triggers {
 		2, // constexpr uint16_t war_exhaustion_province = 0x0266;
 		0, //constexpr uint16_t is_greater_power_province = 0x0267;
 		0,	//constexpr uint16_t is_cultural_union_pop_this_pop = 0x0268;
+		0, //constexpr uint16_t has_building_factory = 0x0269;
+		1, //constexpr uint16_t has_building_state_from_province = 0x026A;
+		0, //constexpr uint16_t has_building_factory_from_province = 0x026B;
 	};
 }

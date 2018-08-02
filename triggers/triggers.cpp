@@ -1178,21 +1178,21 @@ namespace triggers {
 	bool tf_is_cultural_union_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		auto pop_owner = population::get_pop_owner(ws, *((population::pop*)this_slot));
 		if(pop_owner)
-			tf_is_cultural_union_this_nation(tval, ws, primary_slot, pop_owner, nullptr, nullptr);
+			return tf_is_cultural_union_this_nation(tval, ws, primary_slot, pop_owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_cultural_union_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		auto state_owner = ((nations::state_instance*)this_slot)->owner;
 		if(state_owner)
-			tf_is_cultural_union_this_nation(tval, ws, primary_slot, state_owner, nullptr, nullptr);
+			return tf_is_cultural_union_this_nation(tval, ws, primary_slot, state_owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_cultural_union_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		auto prov_owner = ((provinces::province_state*)this_slot)->owner;
 		if(prov_owner)
-			tf_is_cultural_union_this_nation(tval, ws, primary_slot, prov_owner, nullptr, nullptr);
+			return tf_is_cultural_union_this_nation(tval, ws, primary_slot, prov_owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
@@ -1277,70 +1277,340 @@ namespace triggers {
 		provinces::province_tag prov(tval[2]);
 		return compare_values(tval[0], ws.w.province_s.province_state_container[prov].controller == primary_slot, true);
 	}
-	bool tf_is_core_integer(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_is_core_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_is_core_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_is_core_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_is_core_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_is_core_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_is_core_reb(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_is_core_tag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_num_of_revolts(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_revolt_percentage(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_num_of_cities_int(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_num_of_cities_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_num_of_cities_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_num_of_cities_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_num_of_cities_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_num_of_cities_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_num_of_ports(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_num_of_allies(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_num_of_vassals(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_owned_by_tag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_owned_by_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_owned_by_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_owned_by_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_owned_by_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_owned_by_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_exists_bool(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_exists_tag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_has_country_flag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_continent_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_continent_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_continent_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_continent_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_continent_nation_this(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_continent_state_this(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_continent_province_this(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_continent_pop_this(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_continent_nation_from(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_continent_state_from(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_continent_province_from(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_continent_pop_from(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_casus_belli_tag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_casus_belli_from(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_casus_belli_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_casus_belli_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_casus_belli_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_casus_belli_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_military_access_tag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_military_access_from(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_military_access_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_military_access_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_military_access_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_military_access_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_prestige_value(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_prestige_from(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_prestige_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_prestige_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_prestige_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_prestige_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_badboy(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_has_building_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_has_building_fort(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_has_building_railroad(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_has_building_naval_base(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_empty(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
+	bool tf_is_core_integer(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		provinces::province_tag prov(tval[2]);
+		return compare_values(tval[0], contains_item(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container[prov].cores, ((nations::nation*)primary_slot)->tag), true);
+	}
+	bool tf_is_core_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], contains_item(ws.w.province_s.core_arrays, ((provinces::province_state*)primary_slot)->cores, ((nations::nation*)this_slot)->tag), true);
+	}
+	bool tf_is_core_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto owner = ((nations::state_instance*)this_slot)->owner;
+		if(owner)
+			return tf_is_core_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
+		else
+			return compare_values(tval[0], false, true);
+	}
+	bool tf_is_core_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto owner = ((provinces::province_state*)this_slot)->owner;
+		if(owner)
+			return tf_is_core_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
+		else
+			return compare_values(tval[0], false, true);
+	}
+	bool tf_is_core_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto owner = population::get_pop_owner(ws, *((population::pop*)this_slot));
+		if(owner)
+			return tf_is_core_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
+		else
+			return compare_values(tval[0], false, true);
+	}
+	bool tf_is_core_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return tf_is_core_this_nation(tval, ws, primary_slot, from_slot, nullptr, nullptr);
+	}
+	bool tf_is_core_reb(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], contains_item(ws.w.province_s.core_arrays, ((provinces::province_state*)primary_slot)->cores, rebel_slot->independence_tag), true);
+	}
+	bool tf_is_core_tag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], contains_item(ws.w.province_s.core_arrays, ((provinces::province_state*)primary_slot)->cores, trigger_payload(tval[2]).tag), true);
+	}
+	bool tf_num_of_revolts(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], uint16_t(((nations::nation*)primary_slot)->num_of_active_revolts), tval[2]);
+	}
+	bool tf_revolt_percentage(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], ((nations::nation*)primary_slot)->rebel_control_fraction, read_float_from_payload(tval + 2));
+	}
+	bool tf_num_of_cities_int(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], get_size(ws.w.province_s.province_arrays, ((nations::nation*)primary_slot)->owned_provinces), uint32_t(tval[2]));
+	}
+	bool tf_num_of_cities_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0],
+			get_size(ws.w.province_s.province_arrays, ((nations::nation*)primary_slot)->owned_provinces),
+			get_size(ws.w.province_s.province_arrays, ((nations::nation*)from_slot)->owned_provinces));
+	}
+	bool tf_num_of_cities_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0],
+			get_size(ws.w.province_s.province_arrays, ((nations::nation*)primary_slot)->owned_provinces),
+			get_size(ws.w.province_s.province_arrays, ((nations::nation*)this_slot)->owned_provinces));
+	}
+	bool tf_num_of_cities_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto owner = ((nations::state_instance*)this_slot)->owner;
+		if(owner)
+			return tf_num_of_cities_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
+		else
+			return compare_values(tval[0], get_size(ws.w.province_s.province_arrays, ((nations::nation*)primary_slot)->owned_provinces), 0ui32);
+	}
+	bool tf_num_of_cities_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto owner = ((provinces::province_state*)this_slot)->owner;
+		if(owner)
+			return tf_num_of_cities_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
+		else
+			return compare_values(tval[0], get_size(ws.w.province_s.province_arrays, ((nations::nation*)primary_slot)->owned_provinces), 0ui32);
+	}
+	bool tf_num_of_cities_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto owner = population::get_pop_owner(ws, *((population::pop*)this_slot));
+		if(owner)
+			return tf_num_of_cities_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
+		else
+			return compare_values(tval[0], get_size(ws.w.province_s.province_arrays, ((nations::nation*)primary_slot)->owned_provinces), 0ui32);
+	}
+	bool tf_num_of_ports(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], ((nations::nation*)primary_slot)->num_ports, tval[2]);
+	}
+	bool tf_num_of_allies(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], get_size(ws.w.nation_s.nations_arrays, ((nations::nation*)primary_slot)->allies), uint32_t(tval[2]));
+	}
+	bool tf_num_of_vassals(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], get_size(ws.w.nation_s.nations_arrays, ((nations::nation*)primary_slot)->vassals), uint32_t(tval[2]));
+	}
+	bool tf_owned_by_tag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+		return compare_values(tval[0], bool((holder != nullptr)  & (holder == ((provinces::province_state*)primary_slot)->owner)), true);
+	}
+	bool tf_owned_by_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], bool((this_slot != nullptr)  & (this_slot == ((provinces::province_state*)primary_slot)->owner)), true);
+	}
+	bool tf_owned_by_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return tf_owned_by_this_nation(tval, ws, primary_slot, from_slot, nullptr, nullptr);
+	}
+	bool tf_owned_by_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return tf_owned_by_this_nation(tval, ws, primary_slot, ((provinces::province_state*)this_slot)->owner, nullptr, nullptr);
+	}
+	bool tf_owned_by_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return tf_owned_by_this_nation(tval, ws, primary_slot, ((nations::state_instance*)this_slot)->owner, nullptr, nullptr);
+	}
+	bool tf_owned_by_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return tf_owned_by_this_nation(tval, ws, primary_slot, population::get_pop_owner(ws,*((population::pop*)this_slot)), nullptr, nullptr);
+	}
+	bool tf_exists_bool(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], get_size(ws.w.province_s.province_arrays, ((nations::nation*)primary_slot)->owned_provinces) != 0ui32, true);
+	}
+	bool tf_exists_tag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+		if(holder)
+			return compare_values(tval[0], get_size(ws.w.province_s.province_arrays, holder->owned_provinces) != 0ui32, true);
+		else
+			return compare_values(tval[0], false, true);
+	}
+	bool tf_has_country_flag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], contains_item(ws.w.variable_s.national_flags_arrays, ((nations::nation*)primary_slot)->national_flags, trigger_payload(tval[2]).nat_flag), true);
+	}
+	bool tf_has_country_flag_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto owner = population::get_pop_owner(ws, *((population::pop*)primary_slot));
+		if(owner)
+			return tf_has_country_flag(tval, ws, owner, nullptr, nullptr, nullptr);
+		else
+			return compare_values(tval[0], false, true);
+	}
+	bool tf_has_country_flag_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto owner = ((provinces::province_state*)primary_slot)->owner;
+		if(owner)
+			return tf_has_country_flag(tval, ws, owner, nullptr, nullptr, nullptr);
+		else
+			return compare_values(tval[0], false, true);
+	}
+	bool tf_continent_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto prov_id = ((provinces::province_state*)primary_slot)->id;
+		return compare_values(tval[0], ws.s.province_m.province_container[prov_id].continent == trigger_payload(tval[2]).prov_mod, true);
+	}
+	bool tf_continent_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto region_id = ((nations::state_instance*)primary_slot)->region_id;
+		if(is_valid_index(region_id)) {
+			auto prov_id = ws.s.province_m.states_to_province_index.get(region_id, 0);
+			return compare_values(tval[0], ws.s.province_m.province_container[prov_id].continent == trigger_payload(tval[2]).prov_mod, true);
+		} else {
+			return compare_values(tval[0], false, true);
+		}
+	}
+	bool tf_continent_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto prov_id = ((nations::nation*)primary_slot)->current_capital;
+		if(is_valid_index(prov_id))
+			return compare_values(tval[0], ws.s.province_m.province_container[prov_id].continent == trigger_payload(tval[2]).prov_mod, true);
+		else
+			return compare_values(tval[0], false, true);
+	}
+	bool tf_continent_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto prov_id = ((population::pop*)primary_slot)->location;
+		if(is_valid_index(prov_id))
+			return compare_values(tval[0], ws.s.province_m.province_container[prov_id].continent == trigger_payload(tval[2]).prov_mod, true);
+		else
+			return compare_values(tval[0], false, true);
+	}
+	bool tf_continent_nation_this(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return tf_continent_nation(tval, ws, this_slot, nullptr, nullptr, nullptr);
+	}
+	bool tf_continent_state_this(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return tf_continent_state(tval, ws, this_slot, nullptr, nullptr, nullptr);
+	}
+	bool tf_continent_province_this(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return tf_continent_province(tval, ws, this_slot, nullptr, nullptr, nullptr);
+	}
+	bool tf_continent_pop_this(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return tf_continent_pop(tval, ws, this_slot, nullptr, nullptr, nullptr);
+	}
+	bool tf_continent_nation_from(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return tf_continent_nation(tval, ws, from_slot, nullptr, nullptr, nullptr);
+	}
+	bool tf_continent_state_from(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return tf_continent_state(tval, ws, from_slot, nullptr, nullptr, nullptr);
+	}
+	bool tf_continent_province_from(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return tf_continent_province(tval, ws, from_slot, nullptr, nullptr, nullptr);
+	}
+	bool tf_continent_pop_from(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return tf_continent_pop(tval, ws, from_slot, nullptr, nullptr, nullptr);
+	}
+	bool tf_casus_belli_tag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto tag_holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+		if(tag_holder)
+			return compare_values(tval[0], military::can_make_or_use_cb_against(ws, *((nations::nation*)primary_slot), *tag_holder), true);
+		else
+			return compare_values(tval[0], false, true);
+	}
+	bool tf_casus_belli_from(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], military::can_make_or_use_cb_against(ws, *((nations::nation*)primary_slot), *((nations::nation*)from_slot)), true);
+	}
+	bool tf_casus_belli_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], military::can_make_or_use_cb_against(ws, *((nations::nation*)primary_slot), *((nations::nation*)this_slot)), true);
+	}
+	bool tf_casus_belli_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto owner = ((nations::state_instance*)this_slot)->owner;
+		if(owner)
+			return compare_values(tval[0], military::can_make_or_use_cb_against(ws, *((nations::nation*)primary_slot), *owner), true);
+		else
+			return compare_values(tval[0], false, true);
+	}
+	bool tf_casus_belli_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto owner = ((provinces::province_state*)this_slot)->owner;
+		if(owner)
+			return compare_values(tval[0], military::can_make_or_use_cb_against(ws, *((nations::nation*)primary_slot), *owner), true);
+		else
+			return compare_values(tval[0], false, true);
+	}
+	bool tf_casus_belli_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto owner = population::get_pop_owner(ws, *((population::pop*)this_slot));
+		if(owner)
+			return compare_values(tval[0], military::can_make_or_use_cb_against(ws, *((nations::nation*)primary_slot), *owner), true);
+		else
+			return compare_values(tval[0], false, true);
+	}
+	bool tf_military_access_tag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+		if(holder)
+			return compare_values(tval[0], military::has_military_access_with(ws, *((nations::nation*)primary_slot), *holder), true);
+		else
+			return compare_values(tval[0], false, true);
+	}
+	bool tf_military_access_from(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], military::has_military_access_with(ws, *((nations::nation*)primary_slot), *((nations::nation*)from_slot)), true);
+	}
+	bool tf_military_access_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], military::has_military_access_with(ws, *((nations::nation*)primary_slot), *((nations::nation*)this_slot)), true);
+	}
+	bool tf_military_access_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto owner = ((nations::state_instance*)this_slot)->owner;
+		if(owner)
+			return compare_values(tval[0], military::has_military_access_with(ws, *((nations::nation*)primary_slot), *owner), true);
+		else
+			return compare_values(tval[0], false, true);
+	}
+	bool tf_military_access_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto owner = ((provinces::province_state*)this_slot)->owner;
+		if(owner)
+			return compare_values(tval[0], military::has_military_access_with(ws, *((nations::nation*)primary_slot), *owner), true);
+		else
+			return compare_values(tval[0], false, true);
+	}
+	bool tf_military_access_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto owner = population::get_pop_owner(ws, *((population::pop*)this_slot));
+		if(owner)
+			return compare_values(tval[0], military::has_military_access_with(ws, *((nations::nation*)primary_slot), *owner), true);
+		else
+			return compare_values(tval[0], false, true);
+	}
+	bool tf_prestige_value(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], ((nations::nation*)primary_slot)->prestige, read_float_from_payload(tval + 2));
+	}
+	bool tf_prestige_from(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], ((nations::nation*)primary_slot)->prestige, ((nations::nation*)from_slot)->prestige);
+	}
+	bool tf_prestige_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], ((nations::nation*)primary_slot)->prestige, ((nations::nation*)this_slot)->prestige);
+	}
+	bool tf_prestige_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto owner = ((nations::state_instance*)this_slot)->owner;
+		if(owner)
+			return compare_values(tval[0], ((nations::nation*)primary_slot)->prestige, owner->prestige);
+		else
+			return compare_values(tval[0], ((nations::nation*)primary_slot)->prestige, 0.0f);
+	}
+	bool tf_prestige_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto owner = ((provinces::province_state*)this_slot)->owner;
+		if(owner)
+			return compare_values(tval[0], ((nations::nation*)primary_slot)->prestige, owner->prestige);
+		else
+			return compare_values(tval[0], ((nations::nation*)primary_slot)->prestige, 0.0f);
+	}
+	bool tf_prestige_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto owner = population::get_pop_owner(ws, *((population::pop*)this_slot));
+		if(owner)
+			return compare_values(tval[0], ((nations::nation*)primary_slot)->prestige, owner->prestige);
+		else
+			return compare_values(tval[0], ((nations::nation*)primary_slot)->prestige, 0.0f);
+	}
+	bool tf_badboy(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], ((nations::nation*)primary_slot)->infamy, read_float_from_payload(tval + 2));
+	}
+	bool tf_has_building_fort(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], ((provinces::province_state*)primary_slot)->fort_level != 0ui8, true);
+	}
+	bool tf_has_building_railroad(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], ((provinces::province_state*)primary_slot)->railroad_level != 0ui8, true);
+	}
+	bool tf_has_building_naval_base(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], ((provinces::province_state*)primary_slot)->railroad_level != 0ui8, true);
+	}
+
+	bool tf_has_building_factory(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto si = ((nations::state_instance*)primary_slot);
+		auto has_factories = [si]() {
+			for(uint32_t i = 0; i < std::extent_v<decltype(si->factories)>; ++i) {
+				if(si->factories[i].type)
+					return true;
+			}
+			return false;
+		}();
+		return compare_values(tval[0], has_factories, true);
+	}
+	bool tf_has_building_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto si = ((nations::state_instance*)primary_slot);
+		auto type = trigger_payload(tval[2]).small.values.factory;
+		auto has_factory = [si, type]() {
+			for(uint32_t i = 0; i < std::extent_v<decltype(si->factories)>; ++i) {
+				if(si->factories[i].type && si->factories[i].type->id == type)
+					return true;
+			}
+			return false;
+		}();
+		return compare_values(tval[0], has_factory, true);
+	}
+	bool tf_has_building_state_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto state = ((provinces::province_state*)primary_slot)->state_instance;
+		if(state)
+			return tf_has_building_state(tval, ws, state, nullptr, nullptr, nullptr);
+		else
+			return compare_values(tval[0], false, true);
+	}
+	bool tf_has_building_factory_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		auto state = ((provinces::province_state*)primary_slot)->state_instance;
+		if(state)
+			return tf_has_building_factory(tval, ws, state, nullptr, nullptr, nullptr);
+		else
+			return compare_values(tval[0], false, true);
+	}
+	bool tf_empty(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return compare_values(tval[0], ((provinces::province_state*)primary_slot)->owner == nullptr, true);
+	}
 	bool tf_is_blockaded(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
 	bool tf_has_country_modifier(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
 	bool tf_has_province_modifier(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
@@ -1786,8 +2056,6 @@ namespace triggers {
 	bool tf_war_exhaustion_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
 	bool tf_has_culture_core_province_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
 	bool tf_tag_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_has_country_flag_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
-	bool tf_has_country_flag_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
 	bool tf_has_country_modifier_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
 	bool tf_religion_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
 	bool tf_religion_nation_reb(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) { return false; }
@@ -2415,6 +2683,9 @@ namespace triggers {
 		tf_war_exhaustion_province,
 		tf_is_greater_power_province,
 		tf_is_cultural_union_pop_this_pop,
+		tf_has_building_factory,
+		tf_has_building_state_from_province,
+		tf_has_building_factory_from_province,
 	};
 	}
 

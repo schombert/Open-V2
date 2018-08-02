@@ -56,8 +56,10 @@ namespace nations {
 		float plurality = 0.0f;
 		float revanchism = 0.0f;
 		float prestige = 0.0f;
+		float infamy = 0.0f;
 		float war_exhaustion = 0.0f;
 		float blockade_fraction = 0.0f;
+		float rebel_control_fraction = 0.0f;
 
 		set_tag<provinces::province_tag> owned_provinces;
 		set_tag<provinces::province_tag> controlled_provinces;
@@ -98,6 +100,7 @@ namespace nations {
 		int16_t industrial_rank = 0i16;
 
 		uint16_t colonial_points = 0ui16;
+		uint16_t num_ports = 0ui16; // number of ports connected to capital by land
 
 		governments::party_tag ruling_party;
 		provinces::province_tag current_capital;
@@ -112,6 +115,7 @@ namespace nations {
 
 		governments::government_tag current_government;
 
+		uint8_t num_of_active_revolts;
 		uint8_t flags = 0ui8;
 
 		constexpr static uint8_t is_civilized = 0x01;

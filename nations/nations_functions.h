@@ -42,7 +42,7 @@ namespace nations {
 	void silent_make_alliance(world_state& ws, nation& a, nation& b);
 	void silent_make_vassal(world_state& ws, nation& overlord, nation& vassal);
 	void silent_make_substate(world_state& ws, nation& overlord, nation& vassal);
-	nations::nation* union_holder_of(world_state& ws, nation const& this_nation);
-	nations::nation* union_holder_for(world_state& ws, cultures::culture_tag);
+	nation* union_holder_of(world_state& ws, nation const& this_nation);
+	nation* union_holder_for(world_state& ws, cultures::culture_tag);
 	cultures::national_tag union_tag_of(world_state& ws, nation const& this_nation);
 }
