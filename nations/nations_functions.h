@@ -45,4 +45,7 @@ namespace nations {
 	nation* union_holder_of(world_state& ws, nation const& this_nation);
 	nation* union_holder_for(world_state& ws, cultures::culture_tag);
 	cultures::national_tag union_tag_of(world_state& ws, nation const& this_nation);
+
+	economy::goods_qnty_type national_treasury(world_state const& ws, country_tag id);
+	float fraction_of_cores_owned(world_state const& ws, nation const& this_nation);
 }

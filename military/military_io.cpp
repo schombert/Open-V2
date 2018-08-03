@@ -1164,7 +1164,7 @@ namespace military {
 		sound::sound_manager& sound_m,
 		text_data::text_sequences& text_m) {
 
-		const uint32_t goods_count = static_cast<uint32_t>(economy_m.goods.size());
+		const uint32_t goods_count = economy_m.aligned_32_goods_count;
 		military_m.unit_build_costs.reset(goods_count);
 		military_m.unit_base_supply_costs.reset(goods_count);
 

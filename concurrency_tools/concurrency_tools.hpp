@@ -285,7 +285,7 @@ void stable_2d_vector<object_type, outer_index_type, inner_index_type, block_siz
 }
 
 template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
-object_type* stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::get_row(outer_index_type i) {
+object_type* stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::get_row(outer_index_type i) const {
 	const auto block_num = to_index(i) >> ct_log2(block_size);
 	const auto block_index = to_index(i) & (block_size - 1);
 
@@ -299,7 +299,7 @@ object_type* stable_2d_vector<object_type, outer_index_type, inner_index_type, b
 }
 
 template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
-object_type& stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::get(outer_index_type i, inner_index_type j) {
+object_type& stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::get(outer_index_type i, inner_index_type j) const {
 	const auto block_num = to_index(i) >> ct_log2(block_size);
 	const auto block_index = to_index(i) & (block_size - 1);
 
@@ -313,7 +313,7 @@ object_type& stable_2d_vector<object_type, outer_index_type, inner_index_type, b
 }
 
 template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
-bool stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::is_valid_index(outer_index_type i) {
+bool stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::is_valid_index(outer_index_type i) const {
 	const auto block_num = to_index(i) >> ct_log2(block_size);
 	return block_num < indices_in_use;
 }
@@ -392,18 +392,19 @@ void remove_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, 
 	remove_sorted_item(storage, i.value, obj);
 }
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
-bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i, object_type obj) {
+bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, array_tag<object_type>& i, object_type obj) {
 	const auto rng = get_range(storage, i.value);
 	return std::find(rng.first, rng.second, obj) != rng.second;
 }
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
-bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i, object_type obj) {
+bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, set_tag<object_type>& i, object_type obj) {
 	return contains_item(storage, i.value, obj);
 }
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
-bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type obj) {
+bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type>& i, object_type obj) {
 	return contains_item(storage, i.value, obj);
 }
+
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 void add_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i, object_type const* first, object_type const* last) {
 	add_unordered_range(storage, i.value, first, last);
@@ -441,7 +442,7 @@ void shrink(stable_variable_vector_storage_mk_2<object_type, minimum_size, memor
 	storage.shrink_capacity(i.value);
 }
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
-object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i, object_type obj) {
+object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, array_tag<object_type>& i, object_type obj) {
 	const auto rng = get_range(storage, i.value);
 	const auto d = std::find(rng.first, rng.second, obj);
 	if(f == rng.second)
@@ -449,7 +450,7 @@ object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size,
 	return f;
 }
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
-object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i, object_type obj) {
+object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, set_tag<object_type>& i, object_type obj) {
 	const auto rng = get_range(storage, i.value);
 	const auto lb = std::lower_bound(rng.first, rng.second, obj);
 	if(lb != rng.second && *lb == obj)
@@ -457,7 +458,7 @@ object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size,
 	return nullptr;
 }
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
-object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type obj) {
+object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type>& i, object_type obj) {
 	const auto rng = get_range(storage, i.value);
 	const auto lb = std::lower_bound(rng.first, rng.second, obj);
 	if(lb != rng.second && *lb == obj)

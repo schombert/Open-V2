@@ -1021,7 +1021,7 @@ namespace population {
 		s.population_m.promote_to.reset(s.population_m.count_poptypes);
 		s.population_m.promote_to.resize(s.population_m.count_poptypes);
 
-		const auto goods_count = static_cast<uint32_t>(s.economy_m.goods.size());
+		const auto goods_count = s.economy_m.aligned_32_goods_count;
 		s.population_m.everyday_needs.reset(goods_count);
 		s.population_m.everyday_needs.resize(s.population_m.count_poptypes);
 		s.population_m.life_needs.reset(goods_count);

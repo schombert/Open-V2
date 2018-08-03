@@ -4692,7 +4692,8 @@ namespace triggers {
 		typepair<CT_STRING("is_culture_group"), culture_group_trigger>,
 		typepair<CT_STRING("country_units_in_province"), units_in_province_trigger>,
 		typepair<CT_STRING("type"), has_pop_type_trigger>,
-		typepair<CT_STRING("pop_type"), has_pop_type_trigger>
+		typepair<CT_STRING("pop_type"), has_pop_type_trigger>,
+		typepair<CT_STRING("neighbor"), neighbour_trigger>
 	>;
 
 	using trigger_map = typename sorted<unsorted_trigger_map>::type;

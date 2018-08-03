@@ -206,7 +206,7 @@ namespace economy {
 		building_obj naval_base;
 
 		buildings_file(buildings_parsing_environment& e) : env(e) {
-			e.manager.building_costs.reset(e.manager.goods_count);
+			e.manager.building_costs.reset(e.manager.aligned_32_goods_count);
 		}
 
 		void add_building(std::pair<token_and_type, building_obj>&& b) {
@@ -757,9 +757,9 @@ namespace economy {
 		manager.goods_count = static_cast<uint32_t>(manager.goods.size());
 		manager.aligned_32_goods_count = ((static_cast<uint32_t>(sizeof(goods_qnty_type)) * manager.goods_count + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(goods_qnty_type));
 
-		manager.factory_efficiency_goods.reset(manager.goods_count);
-		manager.factory_input_goods.reset(manager.goods_count);
-		manager.artisan_input_goods.reset(manager.goods_count);
+		manager.factory_efficiency_goods.reset(manager.aligned_32_goods_count);
+		manager.factory_input_goods.reset(manager.aligned_32_goods_count);
+		manager.artisan_input_goods.reset(manager.aligned_32_goods_count);
 	}
 
 	void read_production_types(scenario::scenario_manager& s, boost::container::flat_map<text_data::text_tag, factory_type_tag>& map, const directory& source_directory) {

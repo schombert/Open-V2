@@ -8,6 +8,8 @@ namespace scenario {
 	class scenario_manager;
 }
 namespace economy {
+	constexpr goods_tag money_good(0);
+
 	struct good_definition {
 		static constexpr uint8_t not_available_from_start = 0x01;
 		static constexpr uint8_t overseas_penalty         = 0x02;

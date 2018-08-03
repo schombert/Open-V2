@@ -43,6 +43,9 @@ namespace nations {
 	struct timed_national_modifier {
 		date_tag expiration;
 		modifiers::national_modifier_tag mod;
+
+		bool operator<(timed_national_modifier const& other)  const noexcept { return mod < other.mod; }
+		bool operator==(timed_national_modifier const& other) const noexcept { return mod == other.mod; }
 	};
 
 	struct nation {
@@ -74,7 +77,7 @@ namespace nations {
 		set_tag<state_tag> national_focus_locations;
 		set_tag<variables::national_flag_tag> national_flags;
 		multiset_tag<modifiers::national_modifier_tag> static_modifiers;
-		array_tag<timed_national_modifier> timed_modifiers;
+		set_tag<timed_national_modifier> timed_modifiers;
 		array_tag<military::leader_tag> generals;
 		array_tag<military::leader_tag> admirals;
 		array_tag<military::army_tag> armies;
@@ -167,6 +170,10 @@ namespace nations {
 		stable_2d_vector<uint64_t, country_tag, uint32_t, 512, 16> active_technologies;
 		stable_2d_vector<issues::option_tag, country_tag, issues::issue_tag, 512, 16> active_issue_options;
 		stable_2d_vector<modifiers::value_type, country_tag, uint32_t, 512, 16> national_modifiers;
+		stable_2d_vector<economy::goods_qnty_type, country_tag, economy::goods_tag, 512, 16> national_stockpiles;
+
+		stable_variable_vector_storage_mk_2<modifiers::national_modifier_tag, 4, 8192> static_modifier_arrays;
+		stable_variable_vector_storage_mk_2<timed_national_modifier, 4, 8192> timed_modifier_arrays;
 
 		stable_variable_vector_storage_mk_2<region_state_pair, 2, 8192> state_arrays;
 		stable_variable_vector_storage_mk_2<influence, 2, 8192> influence_arrays;

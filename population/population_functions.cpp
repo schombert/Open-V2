@@ -50,7 +50,7 @@ namespace population {
 		return economy::money_qnty_type(0);
 	}
 
-	nations::nation* get_pop_owner(world_state& ws, pop const& p) {
+	nations::nation* get_pop_owner(world_state const& ws, pop const& p) {
 		auto loc = p.location;
 		if(is_valid_index(loc))
 			return ws.w.province_s.province_state_container[loc].owner;

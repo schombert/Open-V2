@@ -17,6 +17,9 @@ namespace provinces {
 	struct timed_provincial_modifier {
 		date_tag expiration;
 		modifiers::provincial_modifier_tag mod;
+
+		bool operator<(timed_provincial_modifier const& other)  const noexcept { return mod < other.mod; }
+		bool operator==(timed_provincial_modifier const& other) const noexcept { return mod == other.mod; }
 	};
 
 	struct province_state {
@@ -37,7 +40,7 @@ namespace provinces {
 		set_tag<cultures::national_tag> cores;
 		array_tag<population::pop_tag> pops;
 		set_tag<modifiers::provincial_modifier_tag> static_modifiers;
-		array_tag<timed_provincial_modifier> timed_modifiers;
+		set_tag<timed_provincial_modifier> timed_modifiers;
 		//array of active plans involving this province
 
 		text_data::text_tag name;
@@ -57,6 +60,10 @@ namespace provinces {
 		uint8_t railroad_level = 0ui8;
 		uint8_t naval_base_level = 0ui8;
 		uint8_t rgo_size = 1ui8;
+
+		uint8_t flags = 0ui8;
+
+		constexpr static uint8_t is_blockaded = 0x01;
 	};
 
 	struct province {

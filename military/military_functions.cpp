@@ -130,12 +130,50 @@ namespace military {
 		return false;
 	}
 
+	bool in_war_against(world_state const& ws, nations::nation const& this_nation, nations::country_tag nation_against) {
+		auto owner_wars = get_range(ws.w.military_s.war_arrays, this_nation.wars_involved_in);
+		for(auto iwar = owner_wars.first; iwar != owner_wars.second; ++iwar) {
+			if(auto warid = iwar->war_id; ws.w.military_s.wars.is_valid_index(warid)) {
+				if(!(iwar->is_attacker)) {
+					auto attacker_range = get_range(ws.w.nation_s.nations_arrays, ws.w.military_s.wars[warid].attackers);
+					for(auto d : attacker_range) {
+						if(d == nation_against)
+							return true;
+					}
+				} else {
+					auto defender_range = get_range(ws.w.nation_s.nations_arrays, ws.w.military_s.wars[warid].defenders);
+					for(auto d : defender_range) {
+						if(d == nation_against)
+							return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
 	bool can_make_or_use_cb_against(world_state const& ws, nations::nation const& nation_by, nations::nation const& nation_target) {
 		return false;
 	}
 
+	bool has_units_in_province(world_state const& ws, nations::nation const& this_nation, provinces::province_state const& this_province) {
+		return false;
+	}
+
+	uint32_t total_units_in_province(world_state const& ws, provinces::province_state const& this_province) {
+		return 0;
+	}
+
+	bool province_is_contested(world_state const& ws, provinces::province_state const& this_province) {
+		return false;
+	}
+
+	uint32_t total_active_divisions(world_state const& ws, nations::nation const& this_nation) {
+		return 0;
+	}
+
 	bool has_military_access_with(world_state const& ws, nations::nation const& nation_by, nations::nation const& nation_target) {
-		if((nation_by.overlord == &nation_target) | (nation_target.overlord == &nation_by) | (nation_target.sphere_leader == &nation_by))
+		if((nation_by.overlord == &nation_target) | (nation_target.overlord == &nation_by))
 			return true;
 		if(in_war_with(ws, nation_by, nation_target.id))
 			return true;

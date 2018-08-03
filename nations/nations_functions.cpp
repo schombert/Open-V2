@@ -26,6 +26,7 @@ namespace nations {
 		ws.w.nation_s.upper_house.ensure_capacity(to_index(new_nation.id) + 1);
 		ws.w.nation_s.active_technologies.ensure_capacity(to_index(new_nation.id) + 1);
 		ws.w.nation_s.active_issue_options.ensure_capacity(to_index(new_nation.id) + 1);
+		ws.w.nation_s.national_stockpiles.ensure_capacity(to_index(new_nation.id) + 1);
 
 		return &new_nation;
 	}
@@ -138,6 +139,7 @@ namespace nations {
 		ws.w.nation_s.upper_house.reset(ws.s.ideologies_m.ideologies_count);
 		ws.w.nation_s.active_technologies.reset(uint32_t(ws.s.technology_m.technologies_container.size() >> 6ui32));
 		ws.w.nation_s.active_issue_options.reset(uint32_t(ws.s.issues_m.issues_container.size()));
+		ws.w.nation_s.national_stockpiles.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count));
 	}
 
 	void update_state_nation_demographics(world_state& ws) {
@@ -398,4 +400,22 @@ namespace nations {
 			return nullptr;
 	}
 
+	economy::goods_qnty_type national_treasury(world_state const& ws, country_tag id) {
+		return ws.w.nation_s.national_stockpiles.get(id, economy::money_good);
+	}
+
+	float fraction_of_cores_owned(world_state const& ws, nation const& this_nation) {
+		auto tag = this_nation.tag;
+		if(is_valid_index(tag)) {
+			auto cores_range = get_range(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[tag].core_provinces);
+			float cores_owned_count = 0.0f;
+			for(auto p : cores_range) {
+				if(ws.w.province_s.province_state_container[p].owner == &this_nation)
+					cores_owned_count += 1.0f;
+			}
+			return cores_owned_count / float(cores_range.second - cores_range.first);
+		} else {
+			return 1.0f;
+		}
+	}
 }
