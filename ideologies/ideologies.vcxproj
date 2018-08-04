@@ -148,10 +148,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="ideologies.h" />
+    <ClInclude Include="ideologies_functions.h" />
     <ClInclude Include="ideologies_io.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ideologies.cpp" />
+    <ClCompile Include="ideologies_functions.cpp" />
     <ClCompile Include="ideologies_io.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

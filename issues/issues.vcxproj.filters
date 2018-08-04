@@ -21,12 +21,21 @@
     <ClInclude Include="issues_io.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="issues_functions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="issues_funactions.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="issues.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="issues_io.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="issues_functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

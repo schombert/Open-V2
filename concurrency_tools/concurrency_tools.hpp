@@ -713,7 +713,7 @@ void add_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, mem
 }
 
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
-void add_unique_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag& i, object_type obj) {
+void add_unique_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, stable_mk_2_tag& i, object_type obj) {
 	if(!contains_item(storage, i, obj))
 		add_item(storage, i, obj);
 }
@@ -772,7 +772,7 @@ void remove_sorted_item(stable_variable_vector_storage_mk_2<object_type, minimum
 }
 
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
-bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag i, object_type obj) {
+bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, stable_mk_2_tag i, object_type obj) {
 	const auto range = get_range(storage, i);
 	return std::binary_search(range.first, range.second, obj);
 }

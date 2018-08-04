@@ -8,6 +8,7 @@
 #include "military\\military_functions.h"
 #include "economy\\economy_functions.h"
 #include "provinces\\province_gui.hpp"
+#include "ideologies\\ideologies_functions.h"
 
 void ready_world_state(world_state& ws) {
 	variables::init_variables_state(ws);
@@ -17,6 +18,7 @@ void ready_world_state(world_state& ws) {
 	nations::init_nations_state(ws);
 	military::init_military_state(ws);
 	economy::init_economic_scenario(ws);
+	ideologies::init_ideology_state(ws);
 }
 
 namespace current_state {

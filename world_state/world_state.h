@@ -9,6 +9,7 @@
 #include "variables\\variables.h"
 #include "military\\military.h"
 #include "gui\\gui.h"
+#include "ideologies\\ideologies.h"
 
 class world_state;
 
@@ -24,6 +25,7 @@ namespace current_state {
 		economy::economic_state economy_s;
 		population::population_state population_s;
 		variables::variables_state variable_s;
+		ideologies::ideologies_state ideology_s;
 		ui::gui_manager gui_m;
 
 		//other global state

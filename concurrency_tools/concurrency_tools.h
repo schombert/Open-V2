@@ -413,7 +413,7 @@ void remove_sorted_item(stable_variable_vector_storage_mk_2<object_type, minimum
 
 //sorted interface safe from any thread
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
-bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag i, object_type obj);
+bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, stable_mk_2_tag i, object_type obj);
 
 
 template<typename object_type, uint32_t minimum_size, size_t memory_size>

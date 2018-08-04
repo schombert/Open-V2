@@ -18,8 +18,6 @@ public:
 	static constexpr bool has_simple_serialize = false;
 
 	static void rebuild_indexes(issues::issues_manager& obj) {
-		obj.party_issues_options_count = 0ui32;
-
 		for(auto const& i_issue : obj.issues_container) {
 			obj.named_issue_index.emplace(i_issue.name, i_issue.id);
 			if(i_issue.type == issues::issue_group::party)
@@ -33,11 +31,22 @@ public:
 			else if(i_issue.type == issues::issue_group::social)
 				obj.social_issues.push_back(i_issue.id);
 		}
+
+		obj.party_issues_options_count = 0ui32;
+		obj.political_issues_options_count = 0ui32;
+		obj.social_issues_options_count = 0ui32;
+
 		for(auto const& i_option : obj.options) {
 			obj.named_option_index.emplace(i_option.name, i_option.id);
 			if(obj.issues_container[i_option.parent_issue].type == issues::issue_group::party)
 				++obj.party_issues_options_count;
+			else if(obj.issues_container[i_option.parent_issue].type == issues::issue_group::political)
+				++obj.political_issues_options_count;
+			else if(obj.issues_container[i_option.parent_issue].type == issues::issue_group::social)
+				++obj.social_issues_options_count;
 		}
+
+		obj.tracked_options_count = obj.party_issues_options_count + obj.political_issues_options_count + obj.social_issues_options_count;
 		obj.options_count = uint32_t(obj.options.size());
 	}
 

@@ -171,6 +171,9 @@ namespace military {
 	uint32_t total_active_divisions(world_state const& ws, nations::nation const& this_nation) {
 		return 0;
 	}
+	uint32_t total_active_ships(world_state const& ws, nations::nation const& this_nation) {
+		return 0;
+	}
 
 	bool has_military_access_with(world_state const& ws, nations::nation const& nation_by, nations::nation const& nation_target) {
 		if((nation_by.overlord == &nation_target) | (nation_target.overlord == &nation_by))

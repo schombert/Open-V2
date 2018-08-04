@@ -28,6 +28,11 @@ namespace ideologies {
 		bool uncivilized = true;
 	};
 
+	class ideologies_state {
+	public:
+		tagged_vector<bool, ideology_tag> ideology_enabled;
+	};
+
 	class ideologies_manager {
 	public:
 		boost::container::flat_map<text_data::text_tag, ideology_group_tag> named_group_index;

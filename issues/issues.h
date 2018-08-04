@@ -62,7 +62,7 @@ namespace issues {
 		rules rules_mask;
 	};
 	enum class issue_group : uint8_t {
-		party = 0ui8,
+		party = 0ui8, //note: order matters
 		social = 1ui8,
 		political = 2ui8,
 		economic = 3ui8,
@@ -112,7 +112,12 @@ namespace issues {
 		std::vector<issue_tag> military_issues;
 
 		uint32_t options_count = 0ui32;
+
 		uint32_t party_issues_options_count = 0ui32;
+		uint32_t political_issues_options_count = 0ui32;
+		uint32_t social_issues_options_count = 0ui32;
+
+		uint32_t tracked_options_count = 0ui32; // how many options are tracked in demographics arrays
 
 		option_tag jingoism;
 	};

@@ -413,7 +413,7 @@ namespace nations {
 				if(ws.w.province_s.province_state_container[p].owner == &this_nation)
 					cores_owned_count += 1.0f;
 			}
-			return cores_owned_count / float(cores_range.second - cores_range.first);
+			return (cores_range.second != cores_range.first) ? (cores_owned_count / float(cores_range.second - cores_range.first)) : 1.0f;
 		} else {
 			return 1.0f;
 		}

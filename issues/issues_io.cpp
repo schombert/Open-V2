@@ -56,6 +56,10 @@ namespace issues {
 
 		if(i.type == issue_group::party)
 			++env.manager.party_issues_options_count;
+		if(i.type == issue_group::social)
+			++env.manager.social_issues_options_count;
+		if(i.type == issue_group::political)
+			++env.manager.political_issues_options_count;
 		return 0;
 	}
 
@@ -364,6 +368,7 @@ namespace issues {
 			}
 		}
 
+		manager.tracked_options_count = manager.party_issues_options_count + manager.political_issues_options_count + manager.social_issues_options_count;
 		manager.options_count = uint32_t(manager.options.size());
 
 		return return_state;

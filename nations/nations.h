@@ -63,6 +63,9 @@ namespace nations {
 		float war_exhaustion = 0.0f;
 		float blockade_fraction = 0.0f;
 		float rebel_control_fraction = 0.0f;
+		float political_interest_fraction = 0.0f;
+		float social_interest_fraction = 0.0f;
+		float crime_fraction = 0.0f; //fraction of provinces with active crime
 
 		set_tag<provinces::province_tag> owned_provinces;
 		set_tag<provinces::province_tag> controlled_provinces;
