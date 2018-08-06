@@ -352,7 +352,7 @@ namespace issues {
 			}
 		}
 
-		std::sort(manager.options.begin(), manager.options.end(), [&manager](issue_option const& a, issue_option const& b) {
+		std::stable_sort(manager.options.begin(), manager.options.end(), [&manager](issue_option const& a, issue_option const& b) {
 			return manager.issues_container[a.parent_issue].type < manager.issues_container[b.parent_issue].type;
 		});
 		for(uint32_t i = 0; i < manager.options.size(); ++i) {

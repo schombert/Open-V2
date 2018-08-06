@@ -2862,7 +2862,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 		}
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
-			return trigger_value(token_to<int32_t>(t));
+			return trigger_value(token_to<float>(t));
 		}
 	};
 	struct average_militancy_trigger {

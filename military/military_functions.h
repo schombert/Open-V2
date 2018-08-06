@@ -26,7 +26,9 @@ namespace military {
 	bool in_war_against(world_state const& ws, nations::nation const& this_nation, nations::country_tag nation_against); // against = on opposing side of
 	bool has_units_in_province(world_state const& ws, nations::nation const& this_nation, provinces::province_state const& this_province);
 	bool province_is_contested(world_state const& ws, provinces::province_state const& this_province);
+	bool has_named_leader(world_state const& ws, nations::nation const& n, text_data::text_tag t);
 	uint32_t total_active_divisions(world_state const& ws, nations::nation const& this_nation);
 	uint32_t total_active_ships(world_state const& ws, nations::nation const& this_nation);
 	uint32_t total_units_in_province(world_state const& ws, provinces::province_state const& this_province);
+	float recruited_pop_fraction(world_state const& ws, nations::nation const& n);
 }

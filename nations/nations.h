@@ -40,6 +40,14 @@ namespace nations {
 		bool operator==(relationship const& other) const noexcept { return tag == other.tag; }
 	};
 
+	struct truce {
+		date_tag until;
+		country_tag tag;
+
+		bool operator<(truce const& other)  const noexcept { return tag < other.tag; }
+		bool operator==(truce const& other) const noexcept { return tag == other.tag; }
+	};
+
 	struct timed_national_modifier {
 		date_tag expiration;
 		modifiers::national_modifier_tag mod;
@@ -77,6 +85,7 @@ namespace nations {
 		set_tag<region_state_pair> member_states;
 		set_tag<influence> gp_influence;
 		set_tag<relationship> relations;
+		set_tag<truce> truces;
 		set_tag<state_tag> national_focus_locations;
 		set_tag<variables::national_flag_tag> national_flags;
 		multiset_tag<modifiers::national_modifier_tag> static_modifiers;
@@ -127,6 +136,7 @@ namespace nations {
 		constexpr static uint8_t is_civilized = 0x01;
 		constexpr static uint8_t is_substate = 0x02;
 		constexpr static uint8_t is_mobilized = 0x04;
+		constexpr static uint8_t is_not_ai_controlled = 0x08;
 	};
 
 	struct state_instance {
@@ -183,6 +193,7 @@ namespace nations {
 		stable_variable_vector_storage_mk_2<country_tag, 4, 8192> nations_arrays;
 		stable_variable_vector_storage_mk_2<state_tag, 4, 8192> state_tag_arrays;
 		stable_variable_vector_storage_mk_2<relationship, 4, 8192> relations_arrays;
+		stable_variable_vector_storage_mk_2<truce, 4, 8192> truce_arrays;
 
 		stable_2d_vector<int32_t, state_tag, population::demo_tag, 512, 16> state_demographics;
 		stable_2d_vector<int64_t, country_tag, population::demo_tag, 512, 16> nation_demographics;

@@ -25,7 +25,7 @@ namespace provinces {
 	struct province_state {
 		nations::nation* owner = nullptr; // 8
 		nations::nation* controller = nullptr; // 16
-		void* rebel_controller = nullptr; // 24
+		population::rebel_faction* rebel_controller = nullptr; // 24
 		nations::state_instance* state_instance = nullptr; // 32
 
 		atomic_tag<date_tag> last_update; // 36
@@ -53,6 +53,7 @@ namespace provinces {
 		cultures::culture_tag dominant_culture;
 
 		economy::goods_tag rgo_production;
+		economy::goods_tag artisan_production;
 
 		cultures::religion_tag dominant_religion;
 
@@ -64,6 +65,7 @@ namespace provinces {
 		uint8_t flags = 0ui8;
 
 		constexpr static uint8_t is_blockaded = 0x01;
+		constexpr static uint8_t is_overseas  = 0x02;
 	};
 
 	struct province {
@@ -88,6 +90,8 @@ namespace provinces {
 		tagged_fixed_blocked_2dvector<modifiers::value_type, province_tag, uint32_t, aligned_allocator_32<modifiers::value_type>> provincial_modifiers;
 		tagged_fixed_2dvector<float, province_tag, ideologies::ideology_tag> party_loyalty;
 		tagged_fixed_blocked_2dvector<int32_t, province_tag, population::demo_tag, aligned_allocator_32<int32_t>> province_demographics;
+
+		std::vector<uint8_t> is_canal_enabled;
 
 		stable_variable_vector_storage_mk_2<cultures::national_tag, 4, 8192> core_arrays;
 		stable_variable_vector_storage_mk_2<modifiers::provincial_modifier_tag, 4, 8192> static_modifier_arrays;

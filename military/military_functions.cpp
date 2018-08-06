@@ -152,27 +152,34 @@ namespace military {
 		return false;
 	}
 
-	bool can_make_or_use_cb_against(world_state const& ws, nations::nation const& nation_by, nations::nation const& nation_target) {
+	bool can_make_or_use_cb_against(world_state const&, nations::nation const&, nations::nation const&) {
 		return false;
 	}
 
-	bool has_units_in_province(world_state const& ws, nations::nation const& this_nation, provinces::province_state const& this_province) {
+	bool has_units_in_province(world_state const&, nations::nation const&, provinces::province_state const&) {
 		return false;
 	}
 
-	uint32_t total_units_in_province(world_state const& ws, provinces::province_state const& this_province) {
+	uint32_t total_units_in_province(world_state const&, provinces::province_state const&) {
 		return 0;
 	}
 
-	bool province_is_contested(world_state const& ws, provinces::province_state const& this_province) {
+	bool province_is_contested(world_state const&, provinces::province_state const&) {
 		return false;
 	}
 
-	uint32_t total_active_divisions(world_state const& ws, nations::nation const& this_nation) {
+	uint32_t total_active_divisions(world_state const&, nations::nation const&) {
 		return 0;
 	}
-	uint32_t total_active_ships(world_state const& ws, nations::nation const& this_nation) {
+	uint32_t total_active_ships(world_state const&, nations::nation const&) {
 		return 0;
+	}
+	float recruited_pop_fraction(world_state const&, nations::nation const&) {
+		return 0.0f
+	}
+
+	bool has_named_leader(world_state const&, nations::nation const&, text_data::text_tag) {
+		return true;
 	}
 
 	bool has_military_access_with(world_state const& ws, nations::nation const& nation_by, nations::nation const& nation_target) {

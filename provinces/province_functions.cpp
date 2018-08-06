@@ -37,6 +37,7 @@ namespace provinces {
 			ws.w.province_s.provincial_modifiers.reset(modifiers::provincial_offsets::count);
 		if(ws.w.province_s.provincial_modifiers.outer_size() != prov_count)
 			ws.w.province_s.provincial_modifiers.resize(prov_count);
+		ws.w.province_s.is_canal_enabled.resize(ws.s.province_m.canals.size());
 
 		for(uint32_t i = 0; i < prov_count; ++i) {
 			auto& p = ws.w.province_s.province_state_container[province_tag(static_cast<uint16_t>(i))];

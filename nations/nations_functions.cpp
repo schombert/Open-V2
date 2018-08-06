@@ -418,4 +418,22 @@ namespace nations {
 			return 1.0f;
 		}
 	}
+
+	bool can_release_as_vassal(world_state const& ws, nation const& this_nation, cultures::national_tag vassal) {
+		auto& vassal_tag_info = ws.w.culture_s.national_tags_state[vassal];
+
+		if(vassal_tag_info.is_not_releasable)
+			return false;
+
+		auto current_holder = vassal_tag_info.holder;
+		if(current_holder && 0 != get_size(ws.w.province_s.province_arrays, current_holder->owned_provinces))
+			return false; // national already exists
+
+		auto core_range = get_range(ws.w.province_s.province_arrays, vassal_tag_info.core_provinces);
+		for(auto p : core_range) {
+			if(contains_item(ws.w.province_s.province_arrays, this_nation.owned_provinces, p))
+				return true;
+		}
+		return false;
+	}
 }

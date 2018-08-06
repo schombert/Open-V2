@@ -453,11 +453,11 @@ void remove_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, 
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 void remove_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type obj);
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
-bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, array_tag<object_type>& i, object_type obj);
+bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, array_tag<object_type> i, object_type obj);
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
-bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, set_tag<object_type>& i, object_type obj);
+bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, set_tag<object_type> i, object_type obj);
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
-bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type>& i, object_type obj);
+bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type> i, object_type obj);
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 void add_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i, object_type const* first, object_type const* last);
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
@@ -477,11 +477,11 @@ void shrink(stable_variable_vector_storage_mk_2<object_type, minimum_size, memor
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 void shrink(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i);
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
-object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, array_tag<object_type>& i, object_type obj);
+object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, array_tag<object_type> i, object_type obj);
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
-object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, set_tag<object_type>& i, object_type obj);
+object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, set_tag<object_type> i, object_type obj);
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
-object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type>& i, object_type obj);
+object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type> i, object_type obj);
 
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 class fixed_sz_deque_iterator {
