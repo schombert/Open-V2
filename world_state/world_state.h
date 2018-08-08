@@ -30,6 +30,8 @@ namespace current_state {
 
 		//other global state
 		date_tag current_date;
+		bool great_wars_enabled = false;
+		bool world_wars_enabled = false;
 
 		//gui state
 		provinces::province_tag selected_province;

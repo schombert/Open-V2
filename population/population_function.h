@@ -19,4 +19,6 @@ namespace population {
 	void set_consciousness_direct(pop &p, float v);
 	economy::money_qnty_type desired_needs_spending(world_state& ws, pop const& p);
 	nations::nation* get_pop_owner(world_state const& ws, pop const& p);
+	bool is_dominant_issue(world_state const& ws, pop_tag id, issues::option_tag opt);
+	bool is_dominant_ideology(world_state const& ws, pop_tag id, ideologies::ideology_tag opt);
 }

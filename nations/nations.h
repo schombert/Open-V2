@@ -48,6 +48,14 @@ namespace nations {
 		bool operator==(truce const& other) const noexcept { return tag == other.tag; }
 	};
 
+	struct loan {
+		float amount;
+		country_tag tag;
+
+		bool operator<(loan const& other)  const noexcept { return tag < other.tag; }
+		bool operator==(loan const& other) const noexcept { return tag == other.tag; }
+	};
+
 	struct timed_national_modifier {
 		date_tag expiration;
 		modifiers::national_modifier_tag mod;
@@ -63,6 +71,7 @@ namespace nations {
 		issues::rules current_rules;
 		atomic_tag<date_tag> last_update;
 		date_tag last_election;
+		date_tag last_lost_war;
 
 		float plurality = 0.0f;
 		float revanchism = 0.0f;
@@ -86,6 +95,7 @@ namespace nations {
 		set_tag<influence> gp_influence;
 		set_tag<relationship> relations;
 		set_tag<truce> truces;
+		set_tag<loan> loans;
 		set_tag<state_tag> national_focus_locations;
 		set_tag<variables::national_flag_tag> national_flags;
 		multiset_tag<modifiers::national_modifier_tag> static_modifiers;
@@ -115,7 +125,13 @@ namespace nations {
 		int16_t industrial_rank = 0i16;
 
 		uint16_t colonial_points = 0ui16;
-		uint16_t num_ports = 0ui16; // number of ports connected to capital by land
+		uint16_t num_connected_ports = 0ui16; // number of ports connected to capital by land
+		uint16_t num_ports = 0ui16;
+
+		// CB construction info
+		float cb_construction_progress = 0.0f;
+		nations::country_tag cb_construction_target;
+		military::cb_type_tag cb_construction_type;
 
 		governments::party_tag ruling_party;
 		provinces::province_tag current_capital;
@@ -124,19 +140,36 @@ namespace nations {
 		cultures::culture_tag primary_culture;
 
 		cultures::culture_tag dominant_culture;
+		
+		issues::option_tag dominant_issue;
+		ideologies::ideology_tag dominant_ideology;
 		cultures::religion_tag dominant_religion;
 
 		cultures::religion_tag national_religion;
 
 		governments::government_tag current_government;
+		ideologies::ideology_tag ruling_ideology;
 
-		uint8_t num_of_active_revolts;
+		//budget items: in 1% increments
+		int8_t rich_tax = 0i8;
+		int8_t middle_tax = 0i8;
+		int8_t poor_tax = 0i8;
+		int8_t social_spending = 0i8;
+		int8_t administrative_spending = 0i8;
+		int8_t education_spending = 0i8;
+		int8_t military_spending = 0i8;
+
+		uint8_t num_of_active_revolts = 0ui8;
 		uint8_t flags = 0ui8;
 
 		constexpr static uint8_t is_civilized = 0x01;
 		constexpr static uint8_t is_substate = 0x02;
 		constexpr static uint8_t is_mobilized = 0x04;
 		constexpr static uint8_t is_not_ai_controlled = 0x08;
+		constexpr static uint8_t is_bankrupt = 0x10;
+		constexpr static uint8_t is_holding_election = 0x20;
+		constexpr static uint8_t is_colonial_nation = 0x40;
+		constexpr static uint8_t is_cb_construction_discovered = 0x80;
 	};
 
 	struct state_instance {
@@ -157,7 +190,10 @@ namespace nations {
 		state_tag id;
 		provinces::state_tag region_id;
 
+		issues::option_tag dominant_issue;
+		ideologies::ideology_tag dominant_ideology;
 		cultures::religion_tag dominant_religion;
+
 		uint8_t flags = 0ui8;
 
 		constexpr static uint8_t is_slave_state = 0x01;
@@ -194,6 +230,7 @@ namespace nations {
 		stable_variable_vector_storage_mk_2<state_tag, 4, 8192> state_tag_arrays;
 		stable_variable_vector_storage_mk_2<relationship, 4, 8192> relations_arrays;
 		stable_variable_vector_storage_mk_2<truce, 4, 8192> truce_arrays;
+		stable_variable_vector_storage_mk_2<loan, 4, 8192> loan_arrays;
 
 		stable_2d_vector<int32_t, state_tag, population::demo_tag, 512, 16> state_demographics;
 		stable_2d_vector<int64_t, country_tag, population::demo_tag, 512, 16> nation_demographics;

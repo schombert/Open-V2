@@ -38,6 +38,8 @@ namespace governments {
 
 	void silent_set_ruling_party(world_state& ws, nations::nation& this_nation, party_tag p) {
 		this_nation.ruling_party = p;
+		this_nation.ruling_ideology = ws.s.governments_m.parties[p].ideology;
+
 		issues::option_tag* row = ws.s.governments_m.party_issues.get_row(p);
 		const auto sz_party_issues = ws.s.governments_m.party_issues.inner_size();
 

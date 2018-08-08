@@ -55,6 +55,8 @@ namespace provinces {
 		economy::goods_tag rgo_production;
 		economy::goods_tag artisan_production;
 
+		issues::option_tag dominant_issue;
+		ideologies::ideology_tag dominant_ideology;
 		cultures::religion_tag dominant_religion;
 
 		uint8_t fort_level = 0ui8;

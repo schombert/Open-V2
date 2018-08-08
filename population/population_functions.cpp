@@ -57,4 +57,20 @@ namespace population {
 		else
 			return nullptr;
 	}
+
+	bool is_dominant_issue(world_state const& ws, pop_tag id, issues::option_tag opt) {
+		auto issue_offset =
+			ws.w.population_s.pop_demographics.get_row(id) +
+			to_index(population::to_demo_tag(ws, issues::option_tag(0)));
+		Eigen::Map<Eigen::Matrix<int32_t, -1, 1>> options_vector(issue_offset, ws.s.issues_m.tracked_options_count);
+		return options_vector.maxCoeff() == issue_offset[to_index(opt)];
+	}
+
+	bool is_dominant_ideology(world_state const& ws, pop_tag id, ideologies::ideology_tag opt) {
+		auto ideology_offset =
+			ws.w.population_s.pop_demographics.get_row(id) +
+			to_index(population::to_demo_tag(ws, ideologies::ideology_tag(0)));
+		Eigen::Map<Eigen::Matrix<int32_t, -1, 1>> ideology_vector(ideology_offset, ws.s.ideologies_m.ideologies_count);
+		return ideology_vector.maxCoeff() == ideology_offset[to_index(opt)];
+	}
 }

@@ -940,7 +940,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 		}
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
-			return trigger_value{ token_to<float>(t) };
+			return trigger_payload(int16_t(token_to<float>(t) * 100.0f));
 		}
 	};
 	struct administration_spending_trigger {
@@ -957,7 +957,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 		}
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
-			return trigger_value{ token_to<float>(t) };
+			return trigger_payload(int16_t(token_to<float>(t) * 100.0f));
 		}
 	};
 	struct education_spending_trigger {
@@ -974,7 +974,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 		}
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
-			return trigger_value{ token_to<float>(t) };
+			return trigger_payload(int16_t(token_to<float>(t) * 100.0f));
 		}
 	};
 	struct national_provinces_occupied_trigger {
@@ -1000,7 +1000,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 		}
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
-			return trigger_value{ token_to<float>(t) };
+			return trigger_payload(int16_t(token_to<float>(t) * 100.0f));
 		}
 	};
 	struct brigades_compare_trigger {
@@ -1028,7 +1028,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 		}
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
-			return trigger_value{ token_to<float>(t) };
+			return trigger_payload(int16_t(token_to<float>(t) * 100.0f));
 		}
 	};
 	struct middle_tax_trigger {
@@ -1039,7 +1039,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 		}
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
-			return trigger_value{ token_to<float>(t) };
+			return trigger_payload(int16_t(token_to<float>(t) * 100.0f));
 		}
 	};
 	struct poor_tax_trigger {
@@ -1050,7 +1050,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 		}
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
-			return trigger_value{ token_to<float>(t) };
+			return trigger_payload(int16_t(token_to<float>(t) * 100.0f));
 		}
 	};
 	struct mobilisation_size_trigger {
@@ -3356,7 +3356,7 @@ namespace triggers {
 			}
 		}
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
-			return trigger_value(token_to<float>(t));
+			return trigger_value(token_to<int16_t>(t));
 		}
 	};
 	struct military_score_trigger {
@@ -3386,7 +3386,7 @@ namespace triggers {
 			}
 		}
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
-			return trigger_value(token_to<float>(t));
+			return trigger_value(token_to<int16_t>(t));
 		}
 	};
 	struct is_possible_vassal_trigger {

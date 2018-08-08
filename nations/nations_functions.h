@@ -37,7 +37,7 @@ namespace nations {
 	int32_t points_for_next_colonial_stage(world_state& ws, nation& n, state_instance& si);
 
 	text_data::text_tag get_nation_status_text(world_state& ws, nation const& this_nation);
-	bool is_great_power(world_state& ws, nation const& this_nation);
+	bool is_great_power(world_state const& ws, nation const& this_nation);
 
 	void silent_make_alliance(world_state& ws, nation& a, nation& b);
 	void silent_make_vassal(world_state& ws, nation& overlord, nation& vassal);
