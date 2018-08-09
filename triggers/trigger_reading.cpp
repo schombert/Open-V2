@@ -482,7 +482,7 @@ namespace triggers {
 	struct has_recent_imigration_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::province)
-				return uint16_t(trigger_codes::has_recent_imigration | association_to_trigger_code(a));
+				return uint16_t(trigger_codes::has_recent_imigration | association_to_le_trigger_code(a));
 			else
 				return std::optional<uint16_t>();
 		}

@@ -72,6 +72,7 @@ namespace nations {
 		atomic_tag<date_tag> last_update;
 		date_tag last_election;
 		date_tag last_lost_war;
+		date_tag disarmed_until;
 
 		float plurality = 0.0f;
 		float revanchism = 0.0f;
@@ -84,6 +85,9 @@ namespace nations {
 		float social_interest_fraction = 0.0f;
 		float crime_fraction = 0.0f; //fraction of provinces with active crime
 
+		float social_movement_support = 0.0f; // sum of social movement supporters / total pop * defines factor
+		float political_movement_support = 0.0f; // sum of social movement supporters / total pop * defines factor
+
 		set_tag<provinces::province_tag> owned_provinces;
 		set_tag<provinces::province_tag> controlled_provinces;
 		set_tag<country_tag> sphere_members;
@@ -93,6 +97,7 @@ namespace nations {
 		set_tag<cultures::culture_tag> accepted_cultures;
 		set_tag<region_state_pair> member_states;
 		set_tag<influence> gp_influence;
+		set_tag<country_tag> influencers;  // nations nationally investing in or influencing this country
 		set_tag<relationship> relations;
 		set_tag<truce> truces;
 		set_tag<loan> loans;
@@ -106,6 +111,7 @@ namespace nations {
 		array_tag<military::fleet_tag> fleets;
 		array_tag<military::war_identifier> wars_involved_in;
 		array_tag<population::rebel_faction_tag> active_rebel_factions;
+		array_tag<population::movement_tag> active_movements;
 
 		text_data::text_tag name;
 		text_data::text_tag adjective;

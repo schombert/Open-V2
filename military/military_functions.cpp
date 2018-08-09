@@ -175,11 +175,15 @@ namespace military {
 		return 0;
 	}
 	float recruited_pop_fraction(world_state const&, nations::nation const&) {
-		return 0.0f
+		return 0.0f;
 	}
 
 	bool has_named_leader(world_state const&, nations::nation const&, text_data::text_tag) {
 		return true;
+	}
+
+	float get_warscore(world_state const&, war const&) {
+		return 0.0f;
 	}
 
 	bool has_military_access_with(world_state const& ws, nations::nation const& nation_by, nations::nation const& nation_target) {

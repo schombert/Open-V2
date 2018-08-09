@@ -31,4 +31,5 @@ namespace military {
 	uint32_t total_active_ships(world_state const& ws, nations::nation const& this_nation);
 	uint32_t total_units_in_province(world_state const& ws, provinces::province_state const& this_province);
 	float recruited_pop_fraction(world_state const& ws, nations::nation const& n);
+	float get_warscore(world_state const& ws, war const& this_war); // if attacker is winning, warscore is positive, negative if defender is winning
 }

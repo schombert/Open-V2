@@ -156,10 +156,26 @@ namespace population {
 
 	static_assert(sizeof(pop) <= 64);
 
-	struct pop_movement {
-		set_tag<pop_tag> member_pops;
+	enum class movement_type : uint8_t {
+		liberation,
+		social,
+		political,
+		none
+	};
 
+	struct pop_movement {
+		int64_t total_population_support;
+		float radicalism = 0.0f;
+		float radicalism_cache = 0.0f;
+
+		set_tag<pop_tag> member_pops;
+		nations::country_tag liberation_country;
+		
 		movement_tag id;
+
+		issues::option_tag associated_issue;
+
+		movement_type type = movement_type::none;
 	};
 
 	struct rebel_faction {

@@ -13,6 +13,10 @@ namespace nations {
 	struct state_instance;
 }
 
+namespace population {
+	struct rebel_faction;
+}
+
 namespace provinces {
 	struct timed_provincial_modifier {
 		date_tag expiration;

@@ -1116,6 +1116,20 @@ namespace triggers {
 		}
 	}
 
+	inline uint16_t association_to_le_trigger_code(association_type a) {
+		switch(a) {
+			case association_type::eq: return trigger_codes::association_eq;
+			case association_type::eq_default: return trigger_codes::association_le;
+			case association_type::ge: return trigger_codes::association_ge;
+			case association_type::gt: return trigger_codes::association_gt;
+			case association_type::lt: return trigger_codes::association_lt;
+			case association_type::le: return trigger_codes::association_le;
+			case association_type::ne: return trigger_codes::association_ne;
+			case association_type::none: return trigger_codes::association_le;
+			case association_type::list: return trigger_codes::association_le;
+		}
+	}
+
 	inline uint16_t association_to_bool_code(association_type a) {
 		switch (a) {
 			case association_type::eq: return trigger_codes::association_eq;

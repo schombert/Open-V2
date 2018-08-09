@@ -17,17 +17,18 @@ namespace nations {
 	void remove_province_from_state(world_state& ws, provinces::province_state& p);
 	void silent_set_province_owner(world_state& ws, nation* owner, provinces::province_tag prov);
 	nation* make_nation_for_tag(world_state& ws, cultures::national_tag nt);
-	bool is_state_empty(world_state& ws, nation* owner, provinces::state_tag region);
+	bool is_state_empty(world_state const& ws, nation const& owner, provinces::state_tag region);
 	void init_nations_state(world_state& ws);
 	void update_state_nation_demographics(world_state& ws);
-	provinces::province_tag find_best_capital(world_state& ws, nation& owner);
+	provinces::province_tag find_best_capital(world_state const& ws, nation const& owner);
 	void set_relationship(world_state& ws, nation& a, nation& b, int32_t value);
-	int32_t get_relationship(world_state& ws, nation& a, country_tag b);
-	int32_t get_influence_value(world_state& ws, nation& a, country_tag b);
-	int32_t get_influence_level(world_state& ws, nation& a, country_tag b);
+	int32_t get_relationship(world_state const& ws, nation const& a, country_tag b);
+	int32_t get_influence_value(world_state const& ws, nation const& a, country_tag b);
+	int32_t get_influence_level(world_state const& ws, nation const& a, country_tag b);
 	void set_influence(world_state& ws, nation& a, country_tag b, int32_t value, int32_t level);
-	float get_foreign_investment(world_state& ws, nation& a, country_tag b);
+	float get_foreign_investment(world_state const& ws, nation const& a, country_tag b);
 	void set_foreign_investment(world_state& ws, nation& a, country_tag b, float value);
+	void remove_investment_and_influence(world_state& ws, nation& nation_by, nation& nation_target);
 	void init_empty_states(world_state& ws);
 
 	int32_t colonial_points_to_make_protectorate(world_state& ws, state_instance& si);

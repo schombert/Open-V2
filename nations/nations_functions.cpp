@@ -31,9 +31,9 @@ namespace nations {
 		return &new_nation;
 	}
 
-	bool is_state_empty(world_state& ws, nation* owner, provinces::state_tag region) {
+	bool is_state_empty(world_state const& ws, nation const& owner, provinces::state_tag region) {
 		for(auto prange = ws.s.province_m.states_to_province_index.get_row(region); prange.first != prange.second; ++prange.first) {
-			if(ws.w.province_s.province_state_container[*prange.first].owner == owner)
+			if(ws.w.province_s.province_state_container[*prange.first].owner == &owner)
 				return false;
 		}
 		return true;
@@ -58,7 +58,7 @@ namespace nations {
 		remove_province_from_state(ws, prov_state);
 
 		const auto region_tag = ws.s.province_m.province_container[prov].state_id;
-		if(is_state_empty(ws, owner, region_tag)) {
+		if(is_state_empty(ws, *owner, region_tag)) {
 			remove_item(ws.w.nation_s.state_arrays, owner->member_states, region_state_pair{ old_state->region_id, nullptr });
 			if(old_state) {
 				destroy_state_instance(ws, *old_state);
@@ -254,7 +254,7 @@ namespace nations {
 				const auto ideology_offset = population::to_demo_tag(ws, ideologies::ideology_tag(0));
 
 				n.dominant_ideology = ideologies::ideology_tag(0);
-				int32_t max_pop = nation_demo[to_index(ideology_offset)];
+				int64_t max_pop = nation_demo[to_index(ideology_offset)];
 
 				for(uint32_t i = 1ui32; i < ws.s.ideologies_m.ideologies_count; ++i) {
 					if(nation_demo[to_index(ideology_offset) + i] > max_pop) {
@@ -268,7 +268,7 @@ namespace nations {
 				const auto options_offset = population::to_demo_tag(ws, issues::option_tag(0));
 
 				n.dominant_issue = issues::option_tag(0);
-				int32_t max_pop = nation_demo[to_index(options_offset)];
+				int64_t max_pop = nation_demo[to_index(options_offset)];
 
 				for(uint32_t i = 1ui32; i < ws.s.issues_m.tracked_options_count; ++i) {
 					if(nation_demo[to_index(options_offset) + i] > max_pop) {
@@ -280,7 +280,7 @@ namespace nations {
 		});
 	}
 
-	provinces::province_tag find_best_capital(world_state& ws, nation& owner) {
+	provinces::province_tag find_best_capital(world_state const& ws, nation const& owner) {
 		if(is_valid_index(owner.tag)) {
 			const auto tag_capital = ws.w.culture_s.national_tags_state[owner.tag].capital;
 			if(is_valid_index(tag_capital) && ws.w.province_s.province_state_container[tag_capital].owner == &owner)
@@ -329,17 +329,17 @@ namespace nations {
 		else
 			add_item(ws.w.nation_s.relations_arrays, b.relations, relationship{ a.id, int16_t(value) });
 	}
-	int32_t get_relationship(world_state& ws, nation& a, country_tag b) {
+	int32_t get_relationship(world_state const& ws, nation const& a, country_tag b) {
 		if(auto f = find(ws.w.nation_s.relations_arrays, a.relations, relationship{ b, 0i16 }); f)
 			return f->value;
 		return 0;
 	}
-	int32_t get_influence_value(world_state& ws, nation& a, country_tag b) {
+	int32_t get_influence_value(world_state const& ws, nation const& a, country_tag b) {
 		if(auto f = find(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, 0ui8, 0i8 }); f)
 			return f->amount;
 		return 0;
 	}
-	int32_t get_influence_level(world_state& ws, nation& a, country_tag b) {
+	int32_t get_influence_level(world_state const& ws, nation const& a, country_tag b) {
 		if(auto f = find(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, 0ui8, 0i8 }); f)
 			return f->level;
 		return 2;
@@ -354,13 +354,14 @@ namespace nations {
 			f->level = int8_t(level);
 		} else {
 			add_item(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, uint8_t(value), int8_t(level) });
+			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[b].influencers, a.id);
 		}
 		if(level == 5) {
 			ws.w.nation_s.nations.get(b).sphere_leader = &a;
 			add_item(ws.w.nation_s.nations_arrays, a.sphere_members, b);
 		}
 	}
-	float get_foreign_investment(world_state& ws, nation& a, country_tag b) {
+	float get_foreign_investment(world_state const& ws, nation const& a, country_tag b) {
 		if(auto f = find(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, 0ui8, 0i8 }); f)
 			return f->investment_amount;
 		return 0.0f;
@@ -370,7 +371,12 @@ namespace nations {
 			f->investment_amount = value;
 		} else {
 			add_item(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ value, b, 0ui8, 0i8 });
+			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[b].influencers, a.id);
 		}
+	}
+	void remove_investment_and_influence(world_state& ws, nation& nation_by, nation& nation_target) {
+		remove_item(ws.w.nation_s.influence_arrays, nation_by.gp_influence, influence{ 0.0f, nation_target.id, 0ui8, 0i8 });
+		remove_item(ws.w.nation_s.nations_arrays, nation_target.influencers, nation_by.id);
 	}
 
 	int32_t colonial_points_to_make_protectorate(world_state&, state_instance&) {
