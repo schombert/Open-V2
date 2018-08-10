@@ -23,11 +23,11 @@ namespace nations {
 	provinces::province_tag find_best_capital(world_state const& ws, nation const& owner);
 	void set_relationship(world_state& ws, nation& a, nation& b, int32_t value);
 	int32_t get_relationship(world_state const& ws, nation const& a, country_tag b);
-	int32_t get_influence_value(world_state const& ws, nation const& a, country_tag b);
-	int32_t get_influence_level(world_state const& ws, nation const& a, country_tag b);
-	void set_influence(world_state& ws, nation& a, country_tag b, int32_t value, int32_t level);
-	float get_foreign_investment(world_state const& ws, nation const& a, country_tag b);
-	void set_foreign_investment(world_state& ws, nation& a, country_tag b, float value);
+	int32_t get_influence_value(world_state const& ws, nation const& nation_by, country_tag nation_over);
+	int32_t get_influence_level(world_state const& ws, nation const& nation_by, country_tag nation_over);
+	void set_influence(world_state& ws, nation& nation_by, country_tag nation_over, int32_t value, int32_t level);
+	float get_foreign_investment(world_state const& ws, nation const& nation_by, country_tag nation_in);
+	void set_foreign_investment(world_state& ws, nation& nation_by, country_tag nation_in, float value);
 	void remove_investment_and_influence(world_state& ws, nation& nation_by, nation& nation_target);
 	void init_empty_states(world_state& ws);
 

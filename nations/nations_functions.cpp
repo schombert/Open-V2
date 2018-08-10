@@ -27,6 +27,7 @@ namespace nations {
 		ws.w.nation_s.active_technologies.ensure_capacity(to_index(new_nation.id) + 1);
 		ws.w.nation_s.active_issue_options.ensure_capacity(to_index(new_nation.id) + 1);
 		ws.w.nation_s.national_stockpiles.ensure_capacity(to_index(new_nation.id) + 1);
+		ws.w.nation_s.national_variables.ensure_capacity(to_index(new_nation.id) + 1);
 
 		return &new_nation;
 	}
@@ -140,6 +141,7 @@ namespace nations {
 		ws.w.nation_s.active_technologies.reset(uint32_t(ws.s.technology_m.technologies_container.size() >> 6ui32));
 		ws.w.nation_s.active_issue_options.reset(uint32_t(ws.s.issues_m.issues_container.size()));
 		ws.w.nation_s.national_stockpiles.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count));
+		ws.w.nation_s.national_variables.reset(ws.s.variables_m.count_national_variables);
 	}
 
 	void update_state_nation_demographics(world_state& ws) {

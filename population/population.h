@@ -137,9 +137,9 @@ namespace population {
 		float last_wages = 0.0f; // 40
 		float needs_satisfaction = 3.0f; // 44
 
-		uint16_t literacy = 0ui16; // 46 ( >>16 = lit)
-		uint16_t militancy = 0ui16; // 48 ( >>16 * 10 = con)
-		uint16_t consciousness = 0ui16; // 50 ( >>16 * 10 = mil)
+		uint16_t literacy = 0ui16; // 46 (/ max(uint16_t)  = lit)
+		uint16_t militancy = 0ui16; // 48 (/ max(uint16_t) * 10 = mil)
+		uint16_t consciousness = 0ui16; // 50 (/ max(uint16_t) * 10 = con)
 		
 		// float last_artisan_expenses = 0.0f; --- compute from artisan option
 

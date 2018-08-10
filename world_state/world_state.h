@@ -16,6 +16,14 @@ class world_state;
 namespace current_state {
 	class gui_state;
 
+	enum class crisis_type {
+		none,
+		liberation,
+		claim,
+		colonial,
+		influence
+	};
+
 	class state {
 	public:
 		provinces::provinces_state province_s;
@@ -27,6 +35,17 @@ namespace current_state {
 		variables::variables_state variable_s;
 		ideologies::ideologies_state ideology_s;
 		ui::gui_manager gui_m;
+
+		//crisis state
+		float crisis_temperature = 0.0f;
+		crisis_type current_crisis_type = crisis_type::none;
+		nations::nation* crisis_primary_attacker = nullptr;
+		nations::nation* crisis_primary_defender = nullptr;
+		nations::nation* crisis_target = nullptr;
+		set_tag<nations::country_tag> crisis_attackers;
+		set_tag<nations::country_tag> crisis_defenders;
+		set_tag<nations::country_tag> crisis_interested;
+		array_tag<military::war_goal> crisis_goals;
 
 		//other global state
 		date_tag current_date;

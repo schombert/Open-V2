@@ -1037,6 +1037,7 @@ namespace triggers {
 		constexpr uint16_t has_building_factory = 0x0269;
 		constexpr uint16_t has_building_state_from_province = 0x026A;
 		constexpr uint16_t has_building_factory_from_province = 0x026B;
+		constexpr uint16_t party_loyalty_generic = 0x026C;
 
 		//technology name -- payload 1
 		//ideology name -- 4 varianets payload 2
@@ -2117,5 +2118,6 @@ namespace triggers {
 		0, //constexpr uint16_t has_building_factory = 0x0269;
 		1, //constexpr uint16_t has_building_state_from_province = 0x026A;
 		0, //constexpr uint16_t has_building_factory_from_province = 0x026B;
+		0, //constexpr uint16_t party_loyalty_generic = 0x026C;
 	};
 }

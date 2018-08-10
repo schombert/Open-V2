@@ -226,6 +226,7 @@ namespace nations {
 		stable_2d_vector<issues::option_tag, country_tag, issues::issue_tag, 512, 16> active_issue_options;
 		stable_2d_vector<modifiers::value_type, country_tag, uint32_t, 512, 16> national_modifiers;
 		stable_2d_vector<economy::goods_qnty_type, country_tag, economy::goods_tag, 512, 16> national_stockpiles;
+		stable_2d_vector<float, country_tag, variables::national_variable_tag, 512, 16> national_variables;
 
 		stable_variable_vector_storage_mk_2<modifiers::national_modifier_tag, 4, 8192> static_modifier_arrays;
 		stable_variable_vector_storage_mk_2<timed_national_modifier, 4, 8192> timed_modifier_arrays;

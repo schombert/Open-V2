@@ -4171,7 +4171,7 @@ namespace triggers {
 					else if (env.current_scope.from_slot == trigger_slot_contents::province)
 						env.data.push_back(uint16_t(trigger_codes::party_loyalty_from_province_scope_province | association_to_trigger_code(a)));
 					else
-						TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
+						env.data.push_back(uint16_t(trigger_codes::party_loyalty_generic | association_to_trigger_code(a)));
 				} else {
 					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 				}

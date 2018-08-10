@@ -110,10 +110,10 @@ namespace provinces {
 				province_full_demo[to_index(population::to_employment_demo_tag(ws, this_pop.type))] += pop_demo_source[to_index(population::total_employment_tag)];
 
 
-				province_full_demo[to_index(cdt)] += int32_t((uint64_t(this_pop.consciousness) * uint64_t(pop_size)) >> 16ui64);
-				province_full_demo[to_index(ldt)] += int32_t((uint64_t(this_pop.literacy) * uint64_t(pop_size)) >> 16ui64);
+				province_full_demo[to_index(cdt)] += int32_t(((uint64_t(this_pop.consciousness) + 1ui64) * uint64_t(pop_size)) >> 16ui64);
+				province_full_demo[to_index(ldt)] += int32_t(((uint64_t(this_pop.literacy) + 1ui64) * uint64_t(pop_size)) >> 16ui64);
 
-				const int32_t weighted_militancy = int32_t((uint64_t(this_pop.literacy) * uint64_t(pop_size)) >> 16ui64);
+				const int32_t weighted_militancy = int32_t(((uint64_t(this_pop.literacy) + 1ui64) * uint64_t(pop_size)) >> 16ui64);
 				province_full_demo[to_index(mdt)] += weighted_militancy;
 
 				const auto strata = ws.s.population_m.pop_types[this_pop.type].flags & population::pop_type::strata_mask;
