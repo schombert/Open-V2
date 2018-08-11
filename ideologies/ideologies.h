@@ -30,7 +30,7 @@ namespace ideologies {
 
 	class ideologies_state {
 	public:
-		tagged_vector<bool, ideology_tag> ideology_enabled;
+		tagged_vector<uint8_t, ideology_tag> ideology_enabled;
 	};
 
 	class ideologies_manager {

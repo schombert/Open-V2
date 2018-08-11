@@ -62,6 +62,9 @@ namespace technologies {
 	using tech_category_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 72648>>;
 	using tech_subcategory_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 72649>>;
 	using tech_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 72650>>;
+	using rebel_adjustment_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 72651>>;
+	using production_adjustment_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 72652>>;
+	using unit_adjustment_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 72653>>;
 }
 
 namespace ideologies {

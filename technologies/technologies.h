@@ -68,18 +68,16 @@ namespace technologies {
 
 	using tech_attribute_vector = Eigen::Matrix<tech_attribute_type, tech_offset::aligned_32_size, 1>;
 
+
+
 	struct alignas(32) technology {
-		static constexpr uint16_t activate_railroad = 0x0001;
-		static constexpr uint16_t activate_fort = 0x0002;
-		static constexpr uint16_t activate_naval_base = 0x0004;
-		static constexpr uint16_t unciv_military = 0x0008;
+		static constexpr uint8_t activate_railroad = 0x01;
+		static constexpr uint8_t activate_fort = 0x02;
+		static constexpr uint8_t activate_naval_base = 0x04;
+		static constexpr uint8_t unciv_military = 0x08;
 
-		static constexpr uint16_t has_production_adjustments = 0x0010;
-		static constexpr uint16_t has_unit_adjustments = 0x0020;
-		static constexpr uint16_t has_rebel_adjustments = 0x0040;
-
-		static constexpr uint16_t gas_attack = 0x0080;
-		static constexpr uint16_t gas_defence = 0x0100;
+		static constexpr uint8_t gas_attack = 0x10;
+		static constexpr uint8_t gas_defence = 0x20;
 
 		tech_attribute_vector attributes = tech_attribute_vector::Zero();
 
@@ -89,6 +87,10 @@ namespace technologies {
 
 		text_data::text_tag name;
 
+		rebel_adjustment_tag rebel_adjustment;
+		production_adjustment_tag production_adjustment;
+		unit_adjustment_tag unit_adjustment;
+
 		triggers::trigger_tag allow;
 		modifiers::national_modifier_tag modifier;
 		modifiers::factor_tag ai_chance; // or: invention chance
@@ -97,7 +99,7 @@ namespace technologies {
 		modifiers::provincial_modifier_tag enable_crime;
 		tech_tag id;
 
-		uint16_t flags = 0ui16;
+		uint8_t flags = 0ui8;
 	};
 
 
@@ -133,9 +135,9 @@ namespace technologies {
 		tagged_vector<technology, tech_tag> technologies_container;
 		std::vector<tech_tag> inventions;
 
-		tagged_fixed_blocked_2dvector<float, tech_tag, adjusted_goods_tag, aligned_allocator_32<float>> production_adjustments;
-		tagged_fixed_blocked_2dvector<military::unit_attribute_vector, tech_tag, military::unit_type_tag, aligned_allocator_32<military::unit_attribute_vector>>
+		tagged_fixed_blocked_2dvector<float, production_adjustment_tag, adjusted_goods_tag, aligned_allocator_32<float>> production_adjustments;
+		tagged_fixed_blocked_2dvector<military::unit_attribute_vector, unit_adjustment_tag, military::unit_type_tag, aligned_allocator_32<military::unit_attribute_vector>>
 			unit_type_adjustments;
-		tagged_fixed_blocked_2dvector<float, tech_tag, population::rebel_type_tag, aligned_allocator_32<float>> rebel_org_gain;
+		tagged_fixed_blocked_2dvector<float, rebel_adjustment_tag, population::rebel_type_tag, aligned_allocator_32<float>> rebel_org_gain;
 	};
 }

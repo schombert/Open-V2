@@ -441,17 +441,20 @@ TEST(technologies_tests, read_technologies_test) {
 	const auto a_factory = tag_from_text(s.economy_m.named_factory_types_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("aeroplane_factory")));
 	const auto canned_food_tag = tag_from_text(s.economy_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("canned_food")));
 
-	EXPECT_EQ(2.0f, s.technology_m.unit_type_adjustments.get(tech_tag(0), dragoon_tag)[military::unit_attribute::attack]);
-	EXPECT_EQ(0.0f, s.technology_m.unit_type_adjustments.get(tech_tag(0), military::unit_type_tag(0))[military::unit_attribute::attack]);
-	EXPECT_EQ(0.0f, s.technology_m.unit_type_adjustments.get(tech_tag(0), military::unit_type_tag(1))[military::unit_attribute::attack]);
-	EXPECT_EQ(5.0f, s.technology_m.unit_type_adjustments.get(tech_tag(0), military::unit_type_tag(0))[military::unit_attribute::organization]);
-	EXPECT_EQ(0.1f, s.technology_m.unit_type_adjustments.get(tech_tag(0), military::unit_type_tag(0))[military::unit_attribute::supply_consumption]);
+	EXPECT_TRUE(is_valid_index(s.technology_m.technologies_container[tech_tag(0)].unit_adjustment));
+	EXPECT_FALSE(is_valid_index(s.technology_m.technologies_container[tech_tag(0)].rebel_adjustment));
+	EXPECT_FALSE(is_valid_index(s.technology_m.technologies_container[tech_tag(0)].production_adjustment));
+	EXPECT_EQ(2.0f, s.technology_m.unit_type_adjustments.get(s.technology_m.technologies_container[tech_tag(0)].unit_adjustment, dragoon_tag)[military::unit_attribute::attack]);
+	EXPECT_EQ(0.0f, s.technology_m.unit_type_adjustments.get(s.technology_m.technologies_container[tech_tag(0)].unit_adjustment, military::unit_type_tag(0))[military::unit_attribute::attack]);
+	EXPECT_EQ(0.0f, s.technology_m.unit_type_adjustments.get(s.technology_m.technologies_container[tech_tag(0)].unit_adjustment, military::unit_type_tag(1))[military::unit_attribute::attack]);
+	EXPECT_EQ(5.0f, s.technology_m.unit_type_adjustments.get(s.technology_m.technologies_container[tech_tag(0)].unit_adjustment, military::unit_type_tag(0))[military::unit_attribute::organization]);
+	EXPECT_EQ(0.1f, s.technology_m.unit_type_adjustments.get(s.technology_m.technologies_container[tech_tag(0)].unit_adjustment, military::unit_type_tag(0))[military::unit_attribute::supply_consumption]);
 	EXPECT_EQ(tech_tag(0), s.technology_m.technology_subcategories[atech_a_cat].member_techs[0]);
 	EXPECT_EQ(tech_tag(1), s.technology_m.technology_subcategories[atech_a_cat].member_techs[1]);
 	EXPECT_EQ(tech_tag(), s.technology_m.technology_subcategories[atech_a_cat].member_techs[2]);
 	EXPECT_EQ(1836ui16, s.technology_m.technologies_container[tech_tag(0)].year);
 	EXPECT_EQ(3600ui16, s.technology_m.technologies_container[tech_tag(0)].cost);
-	EXPECT_EQ(uint16_t(technology::has_unit_adjustments | technology::unciv_military | technology::activate_fort), s.technology_m.technologies_container[tech_tag(0)].flags);
+	EXPECT_EQ(uint8_t(technology::unciv_military | technology::activate_fort), s.technology_m.technologies_container[tech_tag(0)].flags);
 	EXPECT_EQ(1.0f, s.technology_m.technologies_container[tech_tag(0)].attributes[tech_offset::dig_in_cap]);
 	EXPECT_NE(modifiers::factor_tag(), s.technology_m.technologies_container[tech_tag(0)].ai_chance);
 	EXPECT_EQ(triggers::trigger_tag(), s.technology_m.technologies_container[tech_tag(0)].allow);
@@ -466,13 +469,16 @@ TEST(technologies_tests, read_technologies_test) {
 	EXPECT_EQ(0ui16, s.technology_m.technologies_container[tech_tag(1)].flags);
 	EXPECT_NE(modifiers::factor_tag(), s.technology_m.technologies_container[tech_tag(1)].ai_chance);
 
+	EXPECT_FALSE(is_valid_index(s.technology_m.technologies_container[tech_tag(2)].unit_adjustment));
+	EXPECT_FALSE(is_valid_index(s.technology_m.technologies_container[tech_tag(2)].rebel_adjustment));
+	EXPECT_TRUE(is_valid_index(s.technology_m.technologies_container[tech_tag(2)].production_adjustment));
 	EXPECT_EQ(1836ui16, s.technology_m.technologies_container[tech_tag(2)].year);
 	EXPECT_EQ(10800ui16, s.technology_m.technologies_container[tech_tag(2)].cost);
-	EXPECT_EQ(technology::has_production_adjustments, s.technology_m.technologies_container[tech_tag(2)].flags);
+	EXPECT_EQ(0ui8, s.technology_m.technologies_container[tech_tag(2)].flags);
 	EXPECT_NE(modifiers::factor_tag(), s.technology_m.technologies_container[tech_tag(2)].ai_chance);
-	EXPECT_EQ(0.1f, s.technology_m.production_adjustments.get(tech_tag(2), economy_tag_to_production_adjustment<production_adjustment::rgo_goods_output>(canned_food_tag)));
-	EXPECT_EQ(0.2f, s.technology_m.production_adjustments.get(tech_tag(2), economy_tag_to_production_adjustment<production_adjustment::rgo_size>(canned_food_tag)));
-	EXPECT_EQ(0.0f, s.technology_m.production_adjustments.get(tech_tag(2), economy_tag_to_production_adjustment<production_adjustment::rgo_goods_throughput>(canned_food_tag)));
+	EXPECT_EQ(0.1f, s.technology_m.production_adjustments.get(s.technology_m.technologies_container[tech_tag(2)].production_adjustment, economy_tag_to_production_adjustment<production_adjustment::rgo_goods_output>(canned_food_tag)));
+	EXPECT_EQ(0.2f, s.technology_m.production_adjustments.get(s.technology_m.technologies_container[tech_tag(2)].production_adjustment, economy_tag_to_production_adjustment<production_adjustment::rgo_size>(canned_food_tag)));
+	EXPECT_EQ(0.0f, s.technology_m.production_adjustments.get(s.technology_m.technologies_container[tech_tag(2)].production_adjustment, economy_tag_to_production_adjustment<production_adjustment::rgo_goods_throughput>(canned_food_tag)));
 }
 
 TEST(technologies_tests, read_inventions_test) {
@@ -513,19 +519,25 @@ TEST(technologies_tests, read_inventions_test) {
 	EXPECT_EQ(technology::gas_defence, s.technology_m.technologies_container[tech_tag(3)].flags);
 	EXPECT_EQ(modifiers::national_modifier_tag(), s.technology_m.technologies_container[tech_tag(3)].modifier);
 
+	EXPECT_FALSE(is_valid_index(s.technology_m.technologies_container[tech_tag(4)].unit_adjustment));
+	EXPECT_TRUE(is_valid_index(s.technology_m.technologies_container[tech_tag(4)].rebel_adjustment));
+	EXPECT_FALSE(is_valid_index(s.technology_m.technologies_container[tech_tag(4)].production_adjustment));
 	EXPECT_NE(triggers::trigger_tag(), s.technology_m.technologies_container[tech_tag(4)].allow);
 	EXPECT_NE(modifiers::factor_tag(), s.technology_m.technologies_container[tech_tag(4)].ai_chance);
-	EXPECT_EQ(technology::has_rebel_adjustments, s.technology_m.technologies_container[tech_tag(4)].flags);
+	EXPECT_EQ(0ui8, s.technology_m.technologies_container[tech_tag(4)].flags);
 	EXPECT_NE(modifiers::national_modifier_tag(), s.technology_m.technologies_container[tech_tag(4)].modifier);
 	EXPECT_EQ(2.5f, s.modifiers_m.national_modifier_definitions.get(s.technology_m.technologies_container[tech_tag(4)].modifier, modifiers::national_offsets::global_population_growth));
 	EXPECT_EQ(4.0f, s.modifiers_m.national_modifier_definitions.get(s.technology_m.technologies_container[tech_tag(4)].modifier, modifiers::national_offsets::farm_rgo_size));
-	EXPECT_EQ(-0.25f, s.technology_m.rebel_org_gain.get(tech_tag(4), population::rebel_type_tag(1)));
-	EXPECT_EQ(0.75f, s.technology_m.rebel_org_gain.get(tech_tag(4), rebel_tag));
+	EXPECT_EQ(-0.25f, s.technology_m.rebel_org_gain.get(s.technology_m.technologies_container[tech_tag(4)].rebel_adjustment, population::rebel_type_tag(1)));
+	EXPECT_EQ(0.75f, s.technology_m.rebel_org_gain.get(s.technology_m.technologies_container[tech_tag(4)].rebel_adjustment, rebel_tag));
 
+	EXPECT_FALSE(is_valid_index(s.technology_m.technologies_container[tech_tag(5)].unit_adjustment));
+	EXPECT_FALSE(is_valid_index(s.technology_m.technologies_container[tech_tag(5)].rebel_adjustment));
+	EXPECT_FALSE(is_valid_index(s.technology_m.technologies_container[tech_tag(5)].production_adjustment));
 	EXPECT_EQ(tech_tag(5), s.technology_m.technologies_container[tech_tag(5)].id);
 	EXPECT_EQ(triggers::trigger_tag(), s.technology_m.technologies_container[tech_tag(5)].allow);
 	EXPECT_EQ(modifiers::factor_tag(), s.technology_m.technologies_container[tech_tag(5)].ai_chance);
-	EXPECT_EQ(0ui16, s.technology_m.technologies_container[tech_tag(5)].flags);
+	EXPECT_EQ(0ui8, s.technology_m.technologies_container[tech_tag(5)].flags);
 	EXPECT_EQ(modifiers::national_modifier_tag(), s.technology_m.technologies_container[tech_tag(5)].modifier);
 	EXPECT_EQ(15.0f, s.technology_m.technologies_container[tech_tag(5)].shared_prestige);
 	EXPECT_EQ(1.0f, s.technology_m.technologies_container[tech_tag(5)].attributes[tech_offset::max_national_focus]);

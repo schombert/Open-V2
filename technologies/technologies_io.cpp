@@ -319,8 +319,12 @@ namespace technologies {
 				throw bad_unit();
 			}
 #endif
-			env.s.technology_m.unit_type_adjustments.get(env.under_construction.id, ut) = p.second.attributes;
-			env.under_construction.flags |= technology::has_unit_adjustments;
+			if(!is_valid_index(env.under_construction.unit_adjustment)) {
+				env.under_construction.unit_adjustment = 
+					unit_adjustment_tag(static_cast<unit_adjustment_tag::value_base_t>(env.s.technology_m.unit_type_adjustments.outer_size()));
+				env.s.technology_m.unit_type_adjustments.resize(to_index(env.under_construction.unit_adjustment) + 1);
+			}
+			env.s.technology_m.unit_type_adjustments.get(env.under_construction.unit_adjustment, ut) = p.second.attributes;
 		}
 		void set_year(uint16_t v) {
 			env.under_construction.year = v;
@@ -390,26 +394,34 @@ namespace technologies {
 			const auto ut = tag_from_text(env.s.military_m.named_unit_type_index, name);
 
 			if(is_valid_index(ut)) {
-				env.s.technology_m.unit_type_adjustments.get(env.under_construction.id, ut)[military::unit_attribute::enabled] = military::unit_attribute_type(1);
+				if(!is_valid_index(env.under_construction.unit_adjustment)) {
+					env.under_construction.unit_adjustment =
+						unit_adjustment_tag(static_cast<unit_adjustment_tag::value_base_t>(env.s.technology_m.unit_type_adjustments.outer_size()));
+					env.s.technology_m.unit_type_adjustments.resize(to_index(env.under_construction.unit_adjustment) + 1);
+				}
+				env.s.technology_m.unit_type_adjustments.get(env.under_construction.unit_adjustment, ut)[military::unit_attribute::enabled] = military::unit_attribute_type(1);
 			} else {
 #ifdef _DEBUG
 				throw bad_unit();
 #endif
 			}
-			env.under_construction.flags |= technology::has_unit_adjustments;
 		}
 		void deactivate_unit(const token_and_type& t) {
 			const auto name = text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end);
 			const auto ut = tag_from_text(env.s.military_m.named_unit_type_index, name);
 
 			if(is_valid_index(ut)) {
-				env.s.technology_m.unit_type_adjustments.get(env.under_construction.id, ut)[military::unit_attribute::enabled] = military::unit_attribute_type(-1);
+				if(!is_valid_index(env.under_construction.unit_adjustment)) {
+					env.under_construction.unit_adjustment =
+						unit_adjustment_tag(static_cast<unit_adjustment_tag::value_base_t>(env.s.technology_m.unit_type_adjustments.outer_size()));
+					env.s.technology_m.unit_type_adjustments.resize(to_index(env.under_construction.unit_adjustment) + 1);
+				}
+				env.s.technology_m.unit_type_adjustments.get(env.under_construction.unit_adjustment, ut)[military::unit_attribute::enabled] = military::unit_attribute_type(-1);
 			} else {
 #ifdef _DEBUG
 				throw bad_unit();
 #endif
 			}
-			env.under_construction.flags |= technology::has_unit_adjustments;
 		}
 		void set_unciv_military(bool v) {
 			if(v)
@@ -434,81 +446,136 @@ namespace technologies {
 			env.mod.add_attribute(modifiers::bad_offset, modifiers::national_offsets::tax_efficiency, v);
 		}
 		void set_rebel_org_gain(const rebel_org_gain& v) {
-			if(is_valid_index(v.faction))
-				env.s.technology_m.rebel_org_gain.get(env.under_construction.id, v.faction) += v.value;
-			else {
+			if(is_valid_index(v.faction)) {
+				if(!is_valid_index(env.under_construction.rebel_adjustment)) {
+					env.under_construction.rebel_adjustment =
+						rebel_adjustment_tag(static_cast<rebel_adjustment_tag::value_base_t>(env.s.technology_m.rebel_org_gain.outer_size()));
+					env.s.technology_m.rebel_org_gain.resize(to_index(env.under_construction.unit_adjustment) + 1);
+				}
+				env.s.technology_m.rebel_org_gain.get(env.under_construction.rebel_adjustment, v.faction) += v.value;
+			} else {
+				if(!is_valid_index(env.under_construction.rebel_adjustment)) {
+					env.under_construction.rebel_adjustment =
+						rebel_adjustment_tag(static_cast<rebel_adjustment_tag::value_base_t>(env.s.technology_m.rebel_org_gain.outer_size()));
+					env.s.technology_m.rebel_org_gain.resize(to_index(env.under_construction.unit_adjustment) + 1);
+				}
+
 				const auto max = static_cast<population::rebel_type_tag::value_base_t>(env.s.population_m.rebel_types.size());
 				for(population::rebel_type_tag::value_base_t i = 0; i < max; ++i) {
-					env.s.technology_m.rebel_org_gain.get(env.under_construction.id, population::rebel_type_tag(i)) += v.value;
+					env.s.technology_m.rebel_org_gain.get(env.under_construction.rebel_adjustment, population::rebel_type_tag(i)) += v.value;
 				}
 			}
-			env.under_construction.flags |= technology::has_rebel_adjustments;
 		}
 		void set_max_national_focus(float v) {
 			env.under_construction.attributes[tech_offset::max_national_focus] = v;
 		}
 		void set_rgo_size(const tech_goods_list& v) {
+			if(!is_valid_index(env.under_construction.production_adjustment)) {
+				env.under_construction.production_adjustment =
+					production_adjustment_tag(static_cast<production_adjustment_tag::value_base_t>(env.s.technology_m.production_adjustments.outer_size()));
+				env.s.technology_m.production_adjustments.resize(to_index(env.under_construction.unit_adjustment) + 1);
+			}
+
 			for(const auto& p : v.goods)
 				env.s.technology_m.production_adjustments.get(
-					env.under_construction.id,
+					env.under_construction.production_adjustment,
 					economy_tag_to_production_adjustment<production_adjustment::rgo_size>(p.first)) += p.second;
-			env.under_construction.flags |= technology::has_production_adjustments;
 		}
 		void set_factory_goods_input(const tech_goods_list& v) {
+			if(!is_valid_index(env.under_construction.production_adjustment)) {
+				env.under_construction.production_adjustment =
+					production_adjustment_tag(static_cast<production_adjustment_tag::value_base_t>(env.s.technology_m.production_adjustments.outer_size()));
+				env.s.technology_m.production_adjustments.resize(to_index(env.under_construction.unit_adjustment) + 1);
+			}
+
 			for(const auto& p : v.goods)
 				env.s.technology_m.production_adjustments.get(
-					env.under_construction.id,
+					env.under_construction.production_adjustment,
 					economy_tag_to_production_adjustment<production_adjustment::factory_goods_input>(p.first)) += p.second;
-			env.under_construction.flags |= technology::has_production_adjustments;
 		}
 		void set_factory_goods_output(const tech_goods_list& v) {
+			if(!is_valid_index(env.under_construction.production_adjustment)) {
+				env.under_construction.production_adjustment =
+					production_adjustment_tag(static_cast<production_adjustment_tag::value_base_t>(env.s.technology_m.production_adjustments.outer_size()));
+				env.s.technology_m.production_adjustments.resize(to_index(env.under_construction.unit_adjustment) + 1);
+			}
+
 			for(const auto& p : v.goods)
 				env.s.technology_m.production_adjustments.get(
-					env.under_construction.id,
+					env.under_construction.production_adjustment,
 					economy_tag_to_production_adjustment<production_adjustment::factory_goods_output>(p.first)) += p.second;
-			env.under_construction.flags |= technology::has_production_adjustments;
 		}
 		void set_factory_goods_throughput(const tech_goods_list& v) {
+			if(!is_valid_index(env.under_construction.production_adjustment)) {
+				env.under_construction.production_adjustment =
+					production_adjustment_tag(static_cast<production_adjustment_tag::value_base_t>(env.s.technology_m.production_adjustments.outer_size()));
+				env.s.technology_m.production_adjustments.resize(to_index(env.under_construction.unit_adjustment) + 1);
+			}
+
 			for(const auto& p : v.goods)
 				env.s.technology_m.production_adjustments.get(
-					env.under_construction.id,
+					env.under_construction.production_adjustment,
 					economy_tag_to_production_adjustment<production_adjustment::factory_goods_throughput>(p.first)) += p.second;
-			env.under_construction.flags |= technology::has_production_adjustments;
 		}
 		void set_rgo_goods_output(const tech_goods_list& v) {
+			if(!is_valid_index(env.under_construction.production_adjustment)) {
+				env.under_construction.production_adjustment =
+					production_adjustment_tag(static_cast<production_adjustment_tag::value_base_t>(env.s.technology_m.production_adjustments.outer_size()));
+				env.s.technology_m.production_adjustments.resize(to_index(env.under_construction.unit_adjustment) + 1);
+			}
+
 			for(const auto& p : v.goods)
 				env.s.technology_m.production_adjustments.get(
-					env.under_construction.id,
+					env.under_construction.production_adjustment,
 					economy_tag_to_production_adjustment<production_adjustment::rgo_goods_output>(p.first)) += p.second;
-			env.under_construction.flags |= technology::has_production_adjustments;
 		}
 		void set_rgo_goods_throughput(const tech_goods_list& v) {
+			if(!is_valid_index(env.under_construction.production_adjustment)) {
+				env.under_construction.production_adjustment =
+					production_adjustment_tag(static_cast<production_adjustment_tag::value_base_t>(env.s.technology_m.production_adjustments.outer_size()));
+				env.s.technology_m.production_adjustments.resize(to_index(env.under_construction.unit_adjustment) + 1);
+			}
+
 			for(const auto& p : v.goods)
 				env.s.technology_m.production_adjustments.get(
-					env.under_construction.id,
+					env.under_construction.production_adjustment,
 					economy_tag_to_production_adjustment<production_adjustment::rgo_goods_throughput>(p.first)) += p.second;
-			env.under_construction.flags |= technology::has_production_adjustments;
 		}
 		void set_artisan_goods_input(const tech_goods_list& v) {
+			if(!is_valid_index(env.under_construction.production_adjustment)) {
+				env.under_construction.production_adjustment =
+					production_adjustment_tag(static_cast<production_adjustment_tag::value_base_t>(env.s.technology_m.production_adjustments.outer_size()));
+				env.s.technology_m.production_adjustments.resize(to_index(env.under_construction.unit_adjustment) + 1);
+			}
+
 			for(const auto& p : v.goods)
 				env.s.technology_m.production_adjustments.get(
-					env.under_construction.id,
+					env.under_construction.production_adjustment,
 					economy_tag_to_production_adjustment<production_adjustment::artisan_goods_input>(p.first)) += p.second;
-			env.under_construction.flags |= technology::has_production_adjustments;
 		}
 		void set_artisan_goods_output(const tech_goods_list& v) {
+			if(!is_valid_index(env.under_construction.production_adjustment)) {
+				env.under_construction.production_adjustment =
+					production_adjustment_tag(static_cast<production_adjustment_tag::value_base_t>(env.s.technology_m.production_adjustments.outer_size()));
+				env.s.technology_m.production_adjustments.resize(to_index(env.under_construction.unit_adjustment) + 1);
+			}
+
 			for(const auto& p : v.goods)
 				env.s.technology_m.production_adjustments.get(
-					env.under_construction.id,
+					env.under_construction.production_adjustment,
 					economy_tag_to_production_adjustment<production_adjustment::artisan_goods_output>(p.first)) += p.second;
-			env.under_construction.flags |= technology::has_production_adjustments;
 		}
 		void set_artisan_goods_throughput(const tech_goods_list& v) {
+			if(!is_valid_index(env.under_construction.production_adjustment)) {
+				env.under_construction.production_adjustment =
+					production_adjustment_tag(static_cast<production_adjustment_tag::value_base_t>(env.s.technology_m.production_adjustments.outer_size()));
+				env.s.technology_m.production_adjustments.resize(to_index(env.under_construction.unit_adjustment) + 1);
+			}
+
 			for(const auto& p : v.goods)
 				env.s.technology_m.production_adjustments.get(
-					env.under_construction.id,
+					env.under_construction.production_adjustment,
 					economy_tag_to_production_adjustment<production_adjustment::artisan_goods_throughput>(p.first)) += p.second;
-			env.under_construction.flags |= technology::has_production_adjustments;
 		}
 		void set_war_exhaustion(float v) {
 			env.under_construction.attributes[tech_offset::war_exhaustion] = v;
@@ -838,14 +905,9 @@ namespace technologies {
 	}
 
 	void prepare_technologies_read(scenario::scenario_manager& s) {
-		const auto num_techs = s.technology_m.technologies_container.size();
-
 		s.technology_m.unit_type_adjustments.reset(static_cast<uint32_t>(s.military_m.unit_types.size()));
-		s.technology_m.unit_type_adjustments.resize(num_techs);
 		s.technology_m.rebel_org_gain.reset(static_cast<uint32_t>(s.population_m.rebel_types.size()));
-		s.technology_m.rebel_org_gain.resize(num_techs);
 		s.technology_m.production_adjustments.reset(s.economy_m.goods_count * uint32_t(production_adjustment::production_adjustment_count));
-		s.technology_m.production_adjustments.resize(num_techs);
 	}
 
 	void read_inventions(parsing_state const& state, scenario::scenario_manager& s) {

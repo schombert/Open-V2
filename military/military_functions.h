@@ -11,6 +11,10 @@ namespace population {
 	struct pop;
 }
 
+namespace provinces {
+	struct province_state;
+}
+
 namespace military {
 	void init_military_state(world_state& ws);
 	military_leader& make_empty_leader(world_state& ws, cultures::culture_tag culture, bool is_general);

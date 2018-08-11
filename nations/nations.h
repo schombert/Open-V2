@@ -4,6 +4,7 @@
 #include "concurrency_tools\\concurrency_tools.hpp"
 #include "economy\\economy.h"
 #include "issues\\issues.h"
+#include "technologies\\technologies.h"
 
 namespace modifiers {
 	struct national_focus;
@@ -64,7 +65,9 @@ namespace nations {
 		bool operator==(timed_national_modifier const& other) const noexcept { return mod == other.mod; }
 	};
 
-	struct nation {
+	struct alignas(32) nation {
+		technologies::tech_attribute_vector tech_attributes = technologies::tech_attribute_vector::Zero();
+
 		nation* sphere_leader = nullptr;
 		nation* overlord = nullptr;
 
@@ -204,7 +207,8 @@ namespace nations {
 
 		constexpr static uint8_t is_slave_state = 0x01;
 		constexpr static uint8_t is_colonial = 0x02;
-		constexpr static uint8_t is_protectorate = 0x02;
+		constexpr static uint8_t is_protectorate = 0x04;
+		constexpr static uint8_t contains_naval_base = 0x08;
 	};
 
 	enum class crisis_type : int32_t {
@@ -227,6 +231,10 @@ namespace nations {
 		stable_2d_vector<modifiers::value_type, country_tag, uint32_t, 512, 16> national_modifiers;
 		stable_2d_vector<economy::goods_qnty_type, country_tag, economy::goods_tag, 512, 16> national_stockpiles;
 		stable_2d_vector<float, country_tag, variables::national_variable_tag, 512, 16> national_variables;
+
+		stable_2d_vector<float, country_tag, technologies::adjusted_goods_tag, 512, 16> production_adjustments;
+		stable_2d_vector<military::unit_attribute_vector, country_tag, military::unit_type_tag, 512, 16> unit_stats;
+		stable_2d_vector<float, country_tag, population::rebel_type_tag, 512, 16> rebel_org_gain;
 
 		stable_variable_vector_storage_mk_2<modifiers::national_modifier_tag, 4, 8192> static_modifier_arrays;
 		stable_variable_vector_storage_mk_2<timed_national_modifier, 4, 8192> timed_modifier_arrays;
