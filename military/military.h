@@ -165,7 +165,6 @@ namespace military {
 	struct ship {
 		float hull = 1.0f;
 		float org = 1.0f;
-		provinces::province_tag location;
 		unit_type_tag type;
 	};
 
@@ -173,6 +172,9 @@ namespace military {
 		traits::value_type leader_traits[traits::trait_count] = { traits::value_type(0) };
 		vector_backed_string<char16_t> first_name;
 		vector_backed_string<char16_t> last_name;
+
+		date_tag last_update;
+
 		date_tag creation_date;
 		graphics::texture_tag portrait;
 		leader_tag id;
@@ -181,15 +183,47 @@ namespace military {
 		bool attached = false;
 	};
 
-	struct army {
+	enum class army_orders_type : uint8_t {
+		garrison = 0,
+		defend = 1,
+		attack = 2,
+		naval_invasion = 3
+	};
+
+	struct army_orders {
 		military_leader* leader = nullptr;
-		void* current_orders = nullptr; // unknown type
+
+		date_tag last_update;
+
+		set_tag<provinces::province_tag> involved_provinces;
+		set_tag<army_tag> involved_armies;
+
+		fleet_tag escort;
+		provinces::province_tag naval_invasion_target;
+
+		army_orders_tag id;
+
+		bool is_active = false;
+		army_orders_type type = army_orders_type::garrison;
+	};
+
+	struct alignas(32) army {
+		unit_attribute_vector total_attributes = unit_attribute_vector::Zero();
+
+		military_leader* leader = nullptr;
+		army_orders* current_orders = nullptr;
+
+		date_tag last_update;
+
+		uint32_t minimum_soldiers = 0ui32;
+
 		float org = 1.0f;
 		uint32_t total_soldiers = 0ui32;
 		date_tag locked_date; // cannot be rebased until date
 
-		array_tag<population::pop_tag> backing_pops;
-		
+		set_tag<population::pop_tag> backing_pops;
+		nations::country_tag owner;
+
 		//extern: unit type composition
 		//extern: supplies
 
@@ -197,9 +231,16 @@ namespace military {
 		provinces::province_tag base;
 	};
 
-	struct fleet {
+	enum class fleet_orders_type : uint8_t {
+		dock = 0,
+		patrol = 1,
+		escort = 2
+	};
+
+	struct alignas(32) fleet {
+		unit_attribute_vector total_attributes = unit_attribute_vector::Zero();
+
 		military_leader* leader = nullptr;
-		void* current_orders = nullptr; // unknown type
 		date_tag locked_date; // cannot be rebased until date
 
 		array_tag<ship> ships;
@@ -208,6 +249,25 @@ namespace military {
 
 		fleet_tag id;
 		provinces::province_tag base;
+
+		fleet_orders_type orders = fleet_orders_type::dock;
+	};
+
+	struct fleet_presence {
+		float patrol_chance = 0.0f;
+		fleet_tag tag;
+		nations::country_tag owner;
+
+		bool operator<(fleet_presence const& other)  const noexcept { return tag < other.tag; }
+		bool operator==(fleet_presence const& other) const noexcept { return tag == other.tag; }
+	};
+
+	struct naval_control {
+		float attacker_control = 0.0f; //from 1.0 = attacker has total control to -1.0 = defender has total control
+		provinces::province_tag location;
+
+		bool operator<(naval_control const& other)  const noexcept { return location < other.location; }
+		bool operator==(naval_control const& other) const noexcept { return location == other.location; }
 	};
 
 	struct war_goal {
@@ -235,8 +295,10 @@ namespace military {
 
 		set_tag<nations::country_tag> attackers;
 		set_tag<nations::country_tag> defenders;
+		set_tag<naval_control> naval_control_set;
 
 		date_tag start_date;
+		float current_war_score = 0.0f; // from 1.0f = 100% attacker, to -1.0 = 100% defender
 
 		nations::country_tag primary_attacker;
 		nations::country_tag primary_defender;
@@ -250,6 +312,7 @@ namespace military {
 	public:
 		stable_vector<military_leader, leader_tag, 1024, 16> leaders;
 		stable_vector<army, army_tag, 1024, 16> armies;
+		stable_vector<army_orders, army_orders_tag, 1024, 16> army_orders_container;
 		stable_vector<fleet, fleet_tag, 1024, 16> fleets;
 		stable_vector<war, war_tag, 1024, 16> wars;
 
@@ -264,7 +327,12 @@ namespace military {
 		stable_variable_vector_storage_mk_2<war_identifier, 1, 8192> war_arrays;
 		stable_variable_vector_storage_mk_2<war_goal, 1, 8192> war_goal_arrays;
 
+		stable_variable_vector_storage_mk_2<fleet_presence, 4, 8192> fleet_presence_arrays;
+		stable_variable_vector_storage_mk_2<naval_control, 32, 8192> naval_control_arrays;
 	};
+
+	constexpr unit_type_tag army_unit_base(0);
+	constexpr unit_type_tag naval_unit_base(1);
 
 	class military_manager {
 	public:
@@ -285,5 +353,7 @@ namespace military {
 
 		tagged_fixed_blocked_2dvector<economy::goods_qnty_type, unit_type_tag, economy::goods_tag, aligned_allocator_32<economy::goods_qnty_type>> unit_build_costs;
 		tagged_fixed_blocked_2dvector<economy::goods_qnty_type, unit_type_tag, economy::goods_tag, aligned_allocator_32<economy::goods_qnty_type>> unit_base_supply_costs;
+
+		uint32_t unit_types_count = 2ui32;
 	};
 }

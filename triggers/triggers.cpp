@@ -6,6 +6,7 @@
 #include "population\\population_function.h"
 #include "ideologies\\ideologies_functions.h"
 #include "issues\\issues_funactions.hpp"
+#include "provinces\\province_functions.h"
 
 namespace triggers {
 	int32_t get_trigger_payload_size(const uint16_t* data) {
@@ -167,8 +168,7 @@ namespace triggers {
 			return 0 == (*tval & trigger_codes::is_existance_scope);
 	}
 	bool tf_x_war_countries_scope_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
-		boost::container::small_vector<nations::country_tag, 32, concurrent_allocator<nations::country_tag>> opposing_countries;
-		military::list_opposing_countries(ws, *((nations::nation*) primary_slot), opposing_countries);
+		auto opposing_countries = get_range(ws.w.nation_s.nations_arrays, ((nations::nation*)primary_slot)->opponents_in_war);
 
 		if(*tval & trigger_codes::is_existance_scope) {
 			for(auto n : opposing_countries) {
@@ -734,7 +734,7 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_life_rating_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
-		return compare_values(tval[0], ((provinces::province_state*)primary_slot)->life_rating, trigger_payload(tval[2]).signed_value);
+		return compare_values(tval[0], provinces::get_life_rating(*((provinces::province_state*)primary_slot)), float(trigger_payload(tval[2]).signed_value));
 	}
 	bool tf_life_rating_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		auto state = (nations::state_instance*)primary_slot;
@@ -747,7 +747,7 @@ namespace triggers {
 		for(auto p : province_range) {
 			auto& ps = ws.w.province_s.province_state_container[p];
 			if(ps.owner == state->owner)
-				min_life_rating = std::min(min_life_rating, int32_t(ps.life_rating));
+				min_life_rating = std::min(min_life_rating, int32_t(provinces::get_life_rating(ps)));
 		}
 		return compare_values(tval[0], min_life_rating, int32_t(trigger_payload(tval[2]).signed_value));
 	}
@@ -2483,11 +2483,7 @@ namespace triggers {
 		return compare_values(tval[0], 0 != (((nations::nation*)primary_slot)->flags & nations::nation::is_mobilized), true);
 	}
 	bool tf_mobilisation_size(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
-		auto id = ((nations::nation*)primary_slot)->id;
-		if(ws.w.nation_s.nations.is_valid_index(id))
-			return compare_values(tval[0], ws.w.nation_s.national_modifiers.get(id, modifiers::national_offsets::mobilisation_size), read_float_from_payload(tval + 2));
-		else
-			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
+		return compare_values(tval[0], ((nations::nation*)primary_slot)->modifier_values[modifiers::national_offsets::mobilisation_size], read_float_from_payload(tval + 2));
 	}
 	bool tf_crime_higher_than_education_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		return compare_values(tval[0], ((nations::nation*)primary_slot)->administrative_spending >= ((nations::nation*)primary_slot)->education_spending, true);
@@ -3198,11 +3194,7 @@ namespace triggers {
 		return compare_values(tval[0], ((nations::nation*)primary_slot)->cb_construction_progress, read_float_from_payload(tval + 2));
 	}
 	bool tf_civilization_progress(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
-		auto id = ((nations::nation*)primary_slot)->id;
-		if(ws.w.nation_s.nations.is_valid_index(id))
-			return compare_values(tval[0], ws.w.nation_s.national_modifiers.get(id, modifiers::national_offsets::civilization_progress_modifier), read_float_from_payload(tval + 2));
-		else
-			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
+		return compare_values(tval[0], ((nations::nation*)primary_slot)->modifier_values[modifiers::national_offsets::civilization_progress_modifier], read_float_from_payload(tval + 2));
 	}
 	bool tf_constructing_cb_type(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		return compare_values(tval[0], ((nations::nation*)primary_slot)->cb_construction_type == trigger_payload(tval[2]).small.values.cb_type, true);
@@ -4123,28 +4115,28 @@ namespace triggers {
 	bool tf_can_build_in_province_railroad_no_limit_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		return compare_values(tval[0],
 			technologies::tech_attribute_type(((provinces::province_state*)primary_slot)->railroad_level) +
-			ws.w.province_s.provincial_modifiers.get(((provinces::province_state*)primary_slot)->id, modifiers::provincial_offsets::min_build_railroad) <
+			((provinces::province_state*)primary_slot)->modifier_values[modifiers::provincial_offsets::min_build_railroad] <
 				((nations::nation*)from_slot)->tech_attributes[technologies::tech_offset::max_railroad],
 			true);
 	}
 	bool tf_can_build_in_province_railroad_yes_limit_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		return compare_values(tval[0],
 			technologies::tech_attribute_type(((provinces::province_state*)primary_slot)->railroad_level) +
-			ws.w.province_s.provincial_modifiers.get(((provinces::province_state*)primary_slot)->id, modifiers::provincial_offsets::min_build_railroad) <
+			((provinces::province_state*)primary_slot)->modifier_values[modifiers::provincial_offsets::min_build_railroad] <
 				((nations::nation*)from_slot)->tech_attributes[technologies::tech_offset::max_railroad],
 			true);
 	}
 	bool tf_can_build_in_province_railroad_no_limit_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		return compare_values(tval[0],
 			technologies::tech_attribute_type(((provinces::province_state*)primary_slot)->railroad_level) +
-			ws.w.province_s.provincial_modifiers.get(((provinces::province_state*)primary_slot)->id, modifiers::provincial_offsets::min_build_railroad) <
+			((provinces::province_state*)primary_slot)->modifier_values[modifiers::provincial_offsets::min_build_railroad] <
 				((nations::nation*)this_slot)->tech_attributes[technologies::tech_offset::max_railroad],
 			true);
 	}
 	bool tf_can_build_in_province_railroad_yes_limit_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		return compare_values(tval[0],
 			technologies::tech_attribute_type(((provinces::province_state*)primary_slot)->railroad_level) +
-			ws.w.province_s.provincial_modifiers.get(((provinces::province_state*)primary_slot)->id, modifiers::provincial_offsets::min_build_railroad) <
+			((provinces::province_state*)primary_slot)->modifier_values[modifiers::provincial_offsets::min_build_railroad] <
 				((nations::nation*)this_slot)->tech_attributes[technologies::tech_offset::max_railroad],
 			true);
 	}

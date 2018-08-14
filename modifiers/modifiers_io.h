@@ -41,6 +41,7 @@ public:
 				break;
 			}
 		}
+		assert(obj.crimes.size() <= 64);
 	}
 
 	static void serialize_object(std::byte* &output, modifiers::modifiers_manager const& obj) {

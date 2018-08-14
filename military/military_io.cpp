@@ -258,7 +258,7 @@ namespace military {
 				new_fleet.leader->attached = true;
 			}
 			for(auto s : n.ship_types)
-				add_item(ws.w.military_s.ship_arrays, new_fleet.ships, ship{ 1.0f, 1.0f, n.location, s });
+				add_item(ws.w.military_s.ship_arrays, new_fleet.ships, ship{ 1.0f, 1.0f, s });
 		}
 	};
 
@@ -1194,15 +1194,15 @@ namespace military {
 		const auto army_base_name = text_data::get_thread_safe_text_handle(env.text_lookup, army_base, army_base + sizeof(army_base) - 1);
 		const auto navy_base_name = text_data::get_thread_safe_text_handle(env.text_lookup, navy_base, navy_base + sizeof(navy_base) - 1);
 
-		env.manager.named_unit_type_index.emplace(army_base_name, unit_type_tag(0));
-		env.manager.named_unit_type_index.emplace(navy_base_name, unit_type_tag(1));
+		env.manager.named_unit_type_index.emplace(army_base_name, army_unit_base);
+		env.manager.named_unit_type_index.emplace(navy_base_name, naval_unit_base);
 
-		env.manager.unit_types[unit_type_tag(0)].id = unit_type_tag(0);
-		env.manager.unit_types[unit_type_tag(1)].id = unit_type_tag(1);
-		env.manager.unit_types[unit_type_tag(0)].name = army_base_name;
-		env.manager.unit_types[unit_type_tag(1)].name = navy_base_name;
-		env.manager.unit_types[unit_type_tag(0)].base_attributes[unit_attribute::enabled] = unit_attribute_type(0);
-		env.manager.unit_types[unit_type_tag(1)].base_attributes[unit_attribute::enabled] = unit_attribute_type(0);
+		env.manager.unit_types[army_unit_base].id = army_unit_base;
+		env.manager.unit_types[naval_unit_base].id = unit_type_tag(1);
+		env.manager.unit_types[army_unit_base].name = army_base_name;
+		env.manager.unit_types[naval_unit_base].name = navy_base_name;
+		env.manager.unit_types[army_unit_base].base_attributes[unit_attribute::enabled] = unit_attribute_type(0);
+		env.manager.unit_types[naval_unit_base].base_attributes[unit_attribute::enabled] = unit_attribute_type(0);
 
 		const auto unit_dir = source_directory.get_directory(u"\\units");
 		const auto unit_files = unit_dir.list_files(u".txt");
@@ -1227,6 +1227,8 @@ namespace military {
 				}
 			}
 		}
+
+		env.manager.unit_types_count = uint32_t(env.manager.unit_types.size());
 	}
 
 	void pre_parse_cb_types(

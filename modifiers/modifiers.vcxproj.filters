@@ -24,6 +24,9 @@
     <ClInclude Include="modifiers_gui.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="modifier_functions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="modifiers.cpp">
@@ -33,6 +36,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="modifiers_gui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="modifier_functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

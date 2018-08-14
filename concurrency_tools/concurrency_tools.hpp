@@ -253,7 +253,7 @@ void stable_2d_vector<object_type, outer_index_type, inner_index_type, block_siz
 
 template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
 void stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::ensure_capacity(uint32_t new_outer_size) {
-	const auto block_num = (to_index(new_outer_size) - 1) >> ct_log2(block_size);
+	const auto block_num = new_outer_size != 0 ? (new_outer_size - 1) >> ct_log2(block_size) : 0;
 
 	if(block_num >= index_size) {
 #ifdef _DEBUG
@@ -403,6 +403,51 @@ bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type> i, object_type obj) {
 	return contains_item(storage, i.value, obj);
+}
+
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void resize(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i, uint32_t new_size) {
+	auto old_size = get_size(storage, i);
+	if(new_size < old_size) {
+		detail::mk_2_header* header = (detail::mk_2_header*)(storage.backing_storage + i.value);
+		header->size = uint16_t(new_size);
+	} else if(new_size > old_size) {
+		storage.increase_capacity(i.value, new_size);
+		detail::mk_2_header* header = (detail::mk_2_header*)(storage.backing_storage + i.value);
+		std::fill((object_type*)(header + 1) + header->size, (object_type*)(header + 1) + new_size, object_type());
+		header->size = uint16_t(new_size);
+	}
+
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void resize(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i, uint32_t new_size) {
+	auto old_size = get_size(storage, i);
+	if(new_size < old_size) {
+		detail::mk_2_header* header = (detail::mk_2_header*)(storage.backing_storage + i.value);
+		header->size = uint16_t(new_size);
+	} else if(new_size > old_size) {
+		storage.increase_capacity(i.value, new_size);
+	}
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void resize(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, uint32_t new_size) {
+	auto old_size = get_size(storage, i);
+	if(new_size < old_size) {
+		detail::mk_2_header* header = (detail::mk_2_header*)(storage.backing_storage + i.value);
+		header->size = uint16_t(new_size);
+	} else if(new_size > old_size) {
+		storage.increase_capacity(i.value, new_size);
+		detail::mk_2_header* header = (detail::mk_2_header*)(storage.backing_storage + i.value);
+		object_type* start = (object_type*)(header + 1);
+		if(old_size != 0) {
+			const auto insertion_pos = std::lower_bound(start, start + old_size, obj);
+			std::copy_backward(insertion_pos, start + size, start + new_size);
+			std::fill(insertion_pos, insertion_pos + (new_size - old_size), object_type());
+		} else {
+			std::fill(start, start + new_size, object_type());
+		}
+		header->size = uint16_t(new_size);
+	}
 }
 
 template<typename object_type, uint32_t minimum_size, size_t memory_size>

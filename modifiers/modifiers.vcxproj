@@ -150,11 +150,13 @@
     <ClInclude Include="modifiers.h" />
     <ClInclude Include="modifiers_gui.h" />
     <ClInclude Include="modifiers_io.h" />
+    <ClInclude Include="modifier_functions.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="modifiers.cpp" />
     <ClCompile Include="modifiers_gui.cpp" />
     <ClCompile Include="modifiers_io.cpp" />
+    <ClCompile Include="modifier_functions.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

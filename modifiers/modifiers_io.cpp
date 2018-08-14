@@ -18,7 +18,7 @@ namespace modifiers {
 		parsed_data triggered_modifiers_file;
 
 		std::vector<std::tuple<national_modifier_tag, const token_group*, const token_group*>> pending_modifier_triggers;
-		std::vector<std::tuple<provincial_modifier_tag, const token_group*, const token_group*>> pending_crimes;
+		std::vector<std::tuple<uint32_t, const token_group*, const token_group*>> pending_crimes;
 
 		parsing_environment(text_data::text_sequences& tl, modifiers_manager& m) :
 			text_lookup(tl), manager(m) {}
@@ -43,8 +43,9 @@ namespace modifiers {
 		new_i.name = name;
 
 		env.manager.named_provincial_modifiers_index.emplace(name, tag);
-		env.manager.crimes.emplace(tag, crime{ triggers::trigger_tag(), tag, false });
-		env.pending_crimes.emplace_back(tag, start, end);
+		uint32_t crime_id = uint32_t(env.manager.crimes.size());
+		env.manager.crimes.push_back(crime{ crime_id, triggers::trigger_tag(), tag, false });
+		env.pending_crimes.emplace_back(crime_id, start, end);
 
 		return 0;
 	}
@@ -232,7 +233,7 @@ namespace modifiers {
 		auto& new_mod = manager.provincial_modifiers[tag];
 		new_mod.icon = mod.icon;
 
-		Eigen::Map<Eigen::VectorXf, Eigen::AlignmentType::Aligned32> dest_vector(manager.provincial_modifier_definitions.safe_get_row(tag), provincial_offsets::aligned_32_size);
+		provincial_modifier_vector& dest_vector = manager.provincial_modifier_definitions.safe_get(tag);
 		Eigen::Map<Eigen::VectorXf, Eigen::AlignmentType::Aligned32> source_vector(mod.modifier_data.data(), provincial_offsets::aligned_32_size);
 
 		dest_vector = source_vector;
@@ -261,7 +262,7 @@ namespace modifiers {
 		auto& new_mod = manager.national_modifiers[tag];
 		new_mod.icon = mod.icon;
 
-		Eigen::Map<Eigen::VectorXf, Eigen::AlignmentType::Aligned32> dest_vector(manager.national_modifier_definitions.safe_get_row(tag), national_offsets::aligned_32_size);
+		national_modifier_vector& dest_vector = manager.national_modifier_definitions.safe_get(tag);
 		Eigen::Map<const Eigen::VectorXf, Eigen::AlignmentType::Aligned32> source_vector(mod.modifier_data.data() + provincial_offsets::aligned_32_size, national_offsets::aligned_32_size);
 
 		dest_vector = source_vector;
@@ -1610,7 +1611,7 @@ namespace modifiers {
 			crime& this_crime = s.modifiers_m.crimes[std::get<0>(t)];
 			crime_parse_env env(s, this_crime);
 			auto res = parse_object<crime_modifier, crime_modifier_domain>(std::get<1>(t), std::get<2>(t), env);
-			set_provincial_modifier(std::get<0>(t), res, s.modifiers_m);
+			set_provincial_modifier(this_crime.modifier, res, s.modifiers_m);
 		}
 	}
 

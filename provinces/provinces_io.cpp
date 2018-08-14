@@ -644,7 +644,7 @@ namespace provinces {
 		if(is_valid_index(result.terrain))
 			ps.terrain = result.terrain;
 		if(result.life_rating)
-			ps.life_rating = *result.life_rating;
+			ps.base_life_rating = *result.life_rating;
 		if(is_valid_index(result.owner))
 			nations::silent_set_province_owner(ws, nations::make_nation_for_tag(ws, result.owner), ps.id);
 		if(is_valid_index(result.controller))

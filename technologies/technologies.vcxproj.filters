@@ -21,12 +21,18 @@
     <ClInclude Include="technologies_io.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="technologies_functions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="technologies.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="technologies_io.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="technologies_functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

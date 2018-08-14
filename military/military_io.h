@@ -31,6 +31,7 @@ public:
 			obj.named_cb_type_index.emplace(i_cb.name, i_cb.id);
 		for(int32_t i = static_cast<int32_t>(obj.leader_traits.size()) - 1; i >= 0; --i)
 			obj.named_leader_trait_index.emplace(obj.leader_traits[military::leader_trait_tag(static_cast<military::leader_trait_tag::value_base_t>(i))], military::leader_trait_tag(static_cast<military::leader_trait_tag::value_base_t>(i)));
+		obj.unit_types_count = uint32_t(obj.unit_types.size());
 	}
 
 	static void serialize_object(std::byte* &output, military::military_manager const& obj) {

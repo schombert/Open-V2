@@ -307,8 +307,8 @@ TEST(issues_tests, full_parse) {
 	
 	EXPECT_EQ(rules::build_factory | rules::expand_factory | rules::open_factory | rules::destroy_factory | rules::build_railway | rules::factory_priority | rules::can_subsidise, sm.issues_m.options[option_tag(0)].issue_rules.rules_mask.rules);
 	EXPECT_EQ( rules::open_factory, sm.issues_m.options[option_tag(0)].issue_rules.rules_settings.rules);
-	EXPECT_EQ(-1.0f, sm.modifiers_m.national_modifier_definitions.get(sm.issues_m.options[option_tag(1)].modifier, modifiers::national_offsets::min_tariff));
-	EXPECT_NE(0.0f, sm.modifiers_m.national_modifier_definitions.get(sm.issues_m.options[option_tag(6)].modifier, modifiers::national_offsets::core_pop_militancy_modifier));
+	EXPECT_EQ(-1.0f, sm.modifiers_m.national_modifier_definitions[sm.issues_m.options[option_tag(1)].modifier][modifiers::national_offsets::min_tariff]);
+	EXPECT_NE(0.0f, sm.modifiers_m.national_modifier_definitions[sm.issues_m.options[option_tag(6)].modifier][modifiers::national_offsets::core_pop_militancy_modifier]);
 	EXPECT_NE(triggers::trigger_tag(), sm.issues_m.options[option_tag(4)].allow);
 	EXPECT_EQ(triggers::trigger_tag(), sm.issues_m.options[option_tag(1)].allow);
 	EXPECT_EQ(issue_tag(2), sm.issues_m.options[option_tag(4)].parent_issue);

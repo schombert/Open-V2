@@ -315,7 +315,7 @@ public:
 	}
 	void reset(uint32_t new_inner_size) {
 		storage.clear();
-		_inner_size = new_inner_size;
+		_inner_size = new_inner_size != 0 ? new_inner_size : 1;
 	}
 	size_t size() const { return storage.size(); }
 	size_t outer_size() const { return storage.size() / _inner_size; }

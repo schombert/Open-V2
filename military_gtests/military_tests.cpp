@@ -677,7 +677,6 @@ TEST(military_tests, read_oob_test) {
 	auto srange = get_range(ws.w.military_s.ship_arrays, b.ships);
 	EXPECT_EQ(srange.first->hull, 1.0f);
 	EXPECT_EQ(srange.first->org, 1.0f);
-	EXPECT_EQ(srange.first->location, provinces::province_tag(219));
 	EXPECT_EQ(srange.first->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("frigate"))));
 	EXPECT_EQ((srange.first+1)->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("frigate"))));
 	EXPECT_EQ((srange.first+2)->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("frigate"))));

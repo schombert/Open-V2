@@ -2,6 +2,7 @@
 #include "modifiers_gui.h"
 #include "world_state\\world_state.h"
 #include "gui\\gui.hpp"
+#include "nations\\nations_functions.h"
 
 namespace modifiers {
 	
@@ -169,7 +170,7 @@ namespace modifiers {
 
 	
 	
-	ui::xy_pair make_province_modifier_text_body(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, value_type* values) {
+	ui::xy_pair make_province_modifier_text_body(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, provincial_modifier_vector const& values) {
 		char16_t local_buf[64];
 		for(uint32_t i = 0; i < provincial_offsets::count; ++i) {
 			if(values[i] != value_type(0)) {
@@ -206,7 +207,7 @@ namespace modifiers {
 		return cursor_in;
 	}
 
-	ui::xy_pair make_national_modifier_text_body(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, value_type* values) {
+	ui::xy_pair make_national_modifier_text_body(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, national_modifier_vector const& values) {
 		char16_t local_buf[64];
 		for(uint32_t i = 0; i < national_offsets::count; ++i) {
 			if(values[i] != value_type(0)) {
@@ -250,7 +251,7 @@ namespace modifiers {
 			lm.finish_current_line();
 		}
 		lm.increase_indent(1);
-		cursor_in = make_province_modifier_text_body(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.provincial_modifier_definitions.get_row(t));
+		cursor_in = make_province_modifier_text_body(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.provincial_modifier_definitions[t]);
 		lm.decrease_indent(1);
 		return cursor_in;
 	}
@@ -262,9 +263,205 @@ namespace modifiers {
 			lm.finish_current_line();
 		}
 		lm.increase_indent(1);
-		cursor_in = make_national_modifier_text_body(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.national_modifier_definitions.get_row(t));
+		cursor_in = make_national_modifier_text_body(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.national_modifier_definitions[t]);
 		lm.decrease_indent(1);
 		return cursor_in;
 	}
 	
+	inline ui::xy_pair display_single_provincial_modifier_value(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, provincial_modifier_tag mod, uint32_t offset, value_type multiplier) {
+		char16_t local_buf[64];
+
+		if(!is_valid_index(mod) || multiplier == value_type(0) || ws.s.modifiers_m.provincial_modifier_definitions[mod][offset] == value_type(0))
+			return cursor_in;
+
+		if(ws.s.modifiers_m.provincial_modifier_definitions[mod][offset] * multiplier < value_type(0)) {
+			local_buf[0] = u'-';
+			put_pos_value_in_buffer(local_buf + 1, province_offset_display[offset].display_as, -ws.s.modifiers_m.provincial_modifier_definitions[mod][offset] * multiplier);
+			cursor_in = ui::text_chunk_to_instances(
+				ws.s.gui_m,
+				ws.w.gui_m,
+				vector_backed_string<char16_t>(local_buf),
+				container,
+				cursor_in,
+				ui::text_format{ province_offset_display[offset].positive_is_green ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size },
+				lm);
+		} else {
+			local_buf[0] = u'+';
+			put_pos_value_in_buffer(local_buf + 1, province_offset_display[offset].display_as, ws.s.modifiers_m.provincial_modifier_definitions[mod][offset] * multiplier);
+			cursor_in = ui::text_chunk_to_instances(
+				ws.s.gui_m,
+				ws.w.gui_m,
+				vector_backed_string<char16_t>(local_buf),
+				container,
+				cursor_in,
+				ui::text_format{ province_offset_display[offset].positive_is_green ? ui::text_color::green : ui::text_color::red, fmt.font_handle, fmt.font_size },
+				lm);
+		}
+
+		cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
+		if(is_valid_index(ws.s.modifiers_m.provincial_modifiers[mod].name))
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.modifiers_m.provincial_modifiers[mod].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+		
+		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+		lm.finish_current_line();
+
+		return cursor_in;
+	}
+
+	inline ui::xy_pair display_single_national_modifier_value(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, national_modifier_tag mod, uint32_t offset, value_type multiplier) {
+		char16_t local_buf[64];
+
+		if(!is_valid_index(mod) || multiplier == value_type(0) || ws.s.modifiers_m.national_modifier_definitions[mod][offset] == value_type(0))
+			return cursor_in;
+
+		if(ws.s.modifiers_m.national_modifier_definitions[mod][offset] * multiplier < value_type(0)) {
+			local_buf[0] = u'-';
+			put_pos_value_in_buffer(local_buf + 1, national_offset_display[offset].display_as, -ws.s.modifiers_m.national_modifier_definitions[mod][offset] * multiplier);
+			cursor_in = ui::text_chunk_to_instances(
+				ws.s.gui_m,
+				ws.w.gui_m,
+				vector_backed_string<char16_t>(local_buf),
+				container,
+				cursor_in,
+				ui::text_format{ national_offset_display[offset].positive_is_green ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size },
+				lm);
+		} else {
+			local_buf[0] = u'+';
+			put_pos_value_in_buffer(local_buf + 1, national_offset_display[offset].display_as, ws.s.modifiers_m.national_modifier_definitions[mod][offset] * multiplier);
+			cursor_in = ui::text_chunk_to_instances(
+				ws.s.gui_m,
+				ws.w.gui_m,
+				vector_backed_string<char16_t>(local_buf),
+				container,
+				cursor_in,
+				ui::text_format{ national_offset_display[offset].positive_is_green ? ui::text_color::green : ui::text_color::red, fmt.font_handle, fmt.font_size },
+				lm);
+		}
+
+		cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
+		if(is_valid_index(ws.s.modifiers_m.national_modifiers[mod].name))
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.modifiers_m.national_modifiers[mod].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+
+		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+		lm.finish_current_line();
+
+		return cursor_in;
+	}
+
+	ui::xy_pair explain_province_modifier(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, provinces::province_state const& this_province, uint32_t modifier_offset) {
+		auto& base_province = ws.s.province_m.province_container[this_province.id];
+		
+		auto static_range = get_range(ws.w.province_s.static_modifier_arrays, this_province.static_modifiers);
+		for(auto m : static_range)
+			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, m, modifier_offset, value_type(1));
+
+		auto timed_range = get_range(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers);
+		for(auto t = timed_range.first; t != timed_range.second; ++t)
+			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, t->mod, modifier_offset, value_type(1));
+
+		cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, this_province.terrain, modifier_offset, value_type(1));
+		cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, base_province.climate, modifier_offset, value_type(1));
+		cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, base_province.continent, modifier_offset, value_type(1));
+		cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, this_province.crime, modifier_offset, value_type(1));
+
+		if(auto si = this_province.state_instance; si) {
+			if(auto nf = si->owner_national_focus; nf)
+				cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, nf->modifier, modifier_offset, value_type(1));
+		}
+		cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.infrastructure, modifier_offset, ws.s.economy_m.railroad.infrastructure * float(this_province.railroad_level));
+		
+		if(this_province.siege_progress != 0.0f)
+			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.has_siege, modifier_offset, value_type(1));
+		if((this_province.flags & provinces::province_state::is_overseas) != 0)
+			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.overseas, modifier_offset, value_type(1));
+		if((this_province.flags & provinces::province_state::is_blockaded) != 0)
+			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.blockaded, modifier_offset, value_type(1));
+		if((this_province.flags & provinces::province_state::has_owner_core) != 0)
+			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.core, modifier_offset, value_type(1));
+		if((base_province.flags & provinces::province::sea) != 0) {
+			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.sea_zone, modifier_offset, value_type(1));
+			if((base_province.flags & provinces::province::coastal) != 0)
+				cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.coastal_sea, modifier_offset, value_type(1));
+			else
+				cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.non_coastal, modifier_offset, value_type(1));
+		} else {
+			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.land_province, modifier_offset, value_type(1));
+			if((base_province.flags & provinces::province::coastal) != 0)
+				cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.coastal, modifier_offset, value_type(1));
+			else
+				cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.non_coastal, modifier_offset, value_type(1));
+		}
+
+		cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.nationalism, modifier_offset, this_province.nationalism);
+		
+		return cursor_in;
+	}
+
+	ui::xy_pair explain_national_modifier(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, nations::nation const& this_nation, uint32_t modifier_offset) {
+		auto nation_id = this_nation.id;
+		if(!ws.w.nation_s.nations.is_valid_index(nation_id))
+			return cursor_in;
+
+		auto static_range = get_range(ws.w.nation_s.static_modifier_arrays, this_nation.static_modifiers);
+		for(auto m : static_range)
+			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, m, modifier_offset, value_type(1));
+
+		auto timed_range = get_range(ws.w.nation_s.timed_modifier_arrays, this_nation.timed_modifiers);
+		for(auto t = timed_range.first; t != timed_range.second; ++t)
+			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, t->mod, modifier_offset, value_type(1));
+		
+		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, this_nation.tech_school, modifier_offset, value_type(1));
+		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, this_nation.national_value, modifier_offset, value_type(1));
+
+		if((this_nation.flags & nations::nation::is_civilized) == 0)
+			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.unciv_nation, modifier_offset, value_type(1));
+		else if(nations::is_great_power(ws, this_nation))
+			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.great_power, modifier_offset, value_type(1));
+		else if(this_nation.overall_rank <= int16_t(ws.s.modifiers_m.global_defines.colonial_rank))
+			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.second_power, modifier_offset, value_type(1));
+		else
+			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.civ_nation, modifier_offset, value_type(1));
+		
+		auto set_options = ws.w.nation_s.active_issue_options.get_row(nation_id);
+		for(int32_t i = int32_t(ws.s.issues_m.issues_container.size()); i--; ) {
+			auto active_option = set_options[i];
+			if(is_valid_index(active_option))
+				cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.issues_m.options[active_option].modifier, modifier_offset, value_type(1));
+		}
+		auto active_techs = ws.w.nation_s.active_technologies.get_row(nation_id);
+		for(int32_t i = int32_t(ws.s.technology_m.technologies_container.size()); i--; ) {
+			technologies::tech_tag tag(static_cast<technologies::tech_tag::value_base_t>(i));
+			if(bit_vector_test(active_techs, uint32_t(i)))
+				cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.technology_m.technologies_container[tag].modifier, modifier_offset, value_type(1));
+		}
+
+		bool at_war = get_size(ws.w.military_s.war_arrays, this_nation.wars_involved_in) != 0;
+		if(at_war) {
+			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.war, modifier_offset, value_type(1));
+		} else {
+			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.peace, modifier_offset, value_type(1));
+			if(this_nation.rebel_control_fraction != 0.0f)
+				cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.total_occupation, modifier_offset, this_nation.rebel_control_fraction);
+		}
+
+		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.badboy, modifier_offset, this_nation.infamy);
+		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.total_blockaded, modifier_offset, this_nation.blockade_fraction);
+		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.war_exhaustion, modifier_offset, this_nation.war_exhaustion);
+		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.plurality, modifier_offset, this_nation.plurality);
+		
+		if(is_valid_index(this_nation.disarmed_until) & (ws.w.current_date < this_nation.disarmed_until))
+			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.disarming, modifier_offset, value_type(1));
+		
+		auto total_pop = ws.w.nation_s.nation_demographics.get(nation_id, population::total_population_tag);
+		auto literacy = ws.w.nation_s.nation_demographics.get(nation_id, population::literacy_demo_tag(ws));
+		if(total_pop != 0)
+			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.average_literacy, modifier_offset, float(literacy) / float(total_pop));
+
+		if((this_nation.flags & nations::nation::is_bankrupt) != 0) {
+			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.in_bankrupcy, modifier_offset, value_type(1));
+			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.generalised_debt_default, modifier_offset, value_type(1));
+		}
+
+		return cursor_in;
+	}
 }

@@ -3356,7 +3356,7 @@ namespace triggers {
 			}
 		}
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
-			return trigger_value(token_to<int16_t>(t));
+			return trigger_payload(token_to<int16_t>(t));
 		}
 	};
 	struct military_score_trigger {
@@ -3386,7 +3386,7 @@ namespace triggers {
 			}
 		}
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
-			return trigger_value(token_to<int16_t>(t));
+			return trigger_payload(token_to<int16_t>(t));
 		}
 	};
 	struct is_possible_vassal_trigger {

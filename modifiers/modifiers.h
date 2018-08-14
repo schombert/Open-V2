@@ -56,6 +56,7 @@ namespace modifiers {
 	};
 
 	struct crime {
+		uint32_t crime_id = 0;
 		triggers::trigger_tag crime_trigger;
 		provincial_modifier_tag modifier;
 		bool default_active = false;
@@ -123,6 +124,8 @@ namespace modifiers {
 		constexpr static uint32_t count = 48;
 		constexpr static uint32_t aligned_32_size = ((static_cast<uint32_t>(sizeof(value_type)) * count + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(value_type));
 	}
+
+	using provincial_modifier_vector = Eigen::Matrix<value_type, provincial_offsets::aligned_32_size, 1>;
 
 	namespace national_offsets {
 		constexpr static uint32_t war_exhaustion = 0;
@@ -231,6 +234,8 @@ namespace modifiers {
 		constexpr static uint32_t count = 102;
 		constexpr static uint32_t aligned_32_size = ((static_cast<uint32_t>(sizeof(value_type)) * count + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(value_type));
 	}
+
+	using national_modifier_vector = Eigen::Matrix < value_type, national_offsets::aligned_32_size, 1 > ;
 
 	constexpr uint16_t bad_offset = 1024;
 
@@ -735,13 +740,13 @@ namespace modifiers {
 		std::vector<text_data::text_tag> national_offset_names;
 
 		std::vector<std::pair<national_modifier_tag, triggers::trigger_tag>> triggered_modifiers;
-		boost::container::flat_map<provincial_modifier_tag, crime> crimes;
+		std::vector<crime> crimes;
 
 		boost::container::flat_map<text_data::text_tag, national_modifier_tag> named_national_modifiers_index;
 		boost::container::flat_map<text_data::text_tag, provincial_modifier_tag> named_provincial_modifiers_index;
 
-		tagged_fixed_blocked_2dvector<value_type, national_modifier_tag, uint32_t, aligned_allocator_32<value_type>> national_modifier_definitions;
-		tagged_fixed_blocked_2dvector<value_type, provincial_modifier_tag, uint32_t, aligned_allocator_32<value_type>> provincial_modifier_definitions;
+		tagged_vector<national_modifier_vector, national_modifier_tag> national_modifier_definitions;
+		tagged_vector<provincial_modifier_vector, provincial_modifier_tag> provincial_modifier_definitions;
 
 		tagged_fixed_2dvector<float, national_focus_tag, economy::goods_tag> national_focus_goods_weights;
 		int32_t national_focus_group_count = 0;
@@ -754,10 +759,5 @@ namespace modifiers {
 
 		national_modifier_tag fetch_unique_national_modifier(text_data::text_tag n); // adds index only if valid text tag
 		provincial_modifier_tag fetch_unique_provincial_modifier(text_data::text_tag n); // adds index only if valid text tag
-
-		modifiers_manager() {
-			national_modifier_definitions.reset(national_offsets::count);
-			provincial_modifier_definitions.reset(provincial_offsets::count);
-		}
 	};
 }

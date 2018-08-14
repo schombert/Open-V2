@@ -3,6 +3,7 @@
 #include "common\\common.h"
 #include "common\\shared_tags.h"
 #include "concurrency_tools\\concurrency_tools.hpp"
+#include "modifiers\\modifiers.h"
 
 namespace modifiers {
 	class modifiers_manager;
@@ -17,6 +18,11 @@ namespace population {
 	struct rebel_faction;
 }
 
+namespace military {
+	struct fleet_presence;
+	struct army_orders;
+}
+
 namespace provinces {
 	struct timed_provincial_modifier {
 		date_tag expiration;
@@ -27,13 +33,16 @@ namespace provinces {
 	};
 
 	struct province_state {
-		nations::nation* owner = nullptr; // 8
-		nations::nation* controller = nullptr; // 16
-		population::rebel_faction* rebel_controller = nullptr; // 24
-		nations::state_instance* state_instance = nullptr; // 32
+		modifiers::provincial_modifier_vector modifier_values = modifiers::provincial_modifier_vector::Zero();
 
-		atomic_tag<date_tag> last_update; // 36
-		float nationalism = 0.0f; // 40
+		nations::nation* owner = nullptr;
+		nations::nation* controller = nullptr;
+		population::rebel_faction* rebel_controller = nullptr;
+		nations::state_instance* state_instance = nullptr;
+		military::army_orders* orders = nullptr; // land provinces only
+
+		atomic_tag<date_tag> last_update;
+		float nationalism = 0.0f;
 		float siege_progress = 0.0f;
 		date_tag last_controller_change;
 		date_tag last_immigration;
@@ -43,6 +52,7 @@ namespace provinces {
 
 		set_tag<cultures::national_tag> cores;
 		array_tag<population::pop_tag> pops;
+		set_tag<military::fleet_presence> fleets; // for sea zones
 		set_tag<modifiers::provincial_modifier_tag> static_modifiers;
 		set_tag<timed_provincial_modifier> timed_modifiers;
 		//array of active plans involving this province
@@ -50,7 +60,7 @@ namespace provinces {
 		text_data::text_tag name;
 		modifiers::provincial_modifier_tag crime;
 		modifiers::provincial_modifier_tag terrain;
-		int16_t life_rating = 0i16;
+		int16_t base_life_rating = 0i16;
 
 		province_tag id;
 
@@ -72,6 +82,7 @@ namespace provinces {
 
 		constexpr static uint8_t is_blockaded = 0x01;
 		constexpr static uint8_t is_overseas  = 0x02;
+		constexpr static uint8_t has_owner_core = 0x04;
 	};
 
 	struct province {
@@ -93,7 +104,6 @@ namespace provinces {
 	class provinces_state {
 	public:
 		tagged_vector<province_state, province_tag> province_state_container;
-		tagged_fixed_blocked_2dvector<modifiers::value_type, province_tag, uint32_t, aligned_allocator_32<modifiers::value_type>> provincial_modifiers;
 		tagged_fixed_2dvector<float, province_tag, ideologies::ideology_tag> party_loyalty;
 		tagged_fixed_blocked_2dvector<int32_t, province_tag, population::demo_tag, aligned_allocator_32<int32_t>> province_demographics;
 

@@ -373,8 +373,7 @@ namespace provinces {
 	void war_lb::populate_list(lb_type& lb, world_state& ws) {
 		if(auto selected_prov = ws.w.selected_province; is_valid_index(selected_prov)) {
 			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
-				boost::container::small_vector<nations::country_tag, 32, concurrent_allocator<nations::country_tag>> opposing_countries;
-				military::list_opposing_countries(ws, *owner, opposing_countries);
+				auto opposing_countries = get_range(ws.w.nation_s.nations_arrays, owner->opponents_in_war);
 
 				for(auto n : opposing_countries)
 					lb.add_item(ws, ws.w.nation_s.nations[n].tag);

@@ -68,6 +68,27 @@ namespace serialization {
 	template<typename value_base, typename zero_is_null, typename individuator>
 	class serializer<tag_type<value_base, zero_is_null, individuator>> : public memcpy_serializer<tag_type<value_base, zero_is_null, individuator>> {};
 
+	template<typename value_type, int rows, int cols>
+	class serializer<Eigen::Matrix<value_type, rows, cols>> {
+		static_assert(rows > 0 && cols > 0);
+	public:
+		static constexpr bool has_static_size = true;
+		static constexpr bool has_simple_serialize = true;
+
+		template<typename ... CONTEXT>
+		static void serialize_object(std::byte* &output, Eigen::Matrix<value_type, rows, cols> const& obj, CONTEXT&& ... c) {
+			memcpy(output, obj.data(), sizeof(value_type) * size_t(rows * cols));
+			output += sizeof(value_type) * size_t(rows * cols);
+		}
+		template<typename ... CONTEXT>
+		static void deserialize_object(std::byte const* &input, Eigen::Matrix<value_type, rows, cols>& obj, CONTEXT&& ... c) {
+			memcpy(obj.data(), input, sizeof(value_type) * size_t(rows * cols));
+			input += sizeof(value_type) * size_t(rows * cols);
+		}
+		static constexpr size_t size() { return sizeof(value_type) * size_t(rows * cols); }
+		static constexpr size_t size(Eigen::Matrix<value_type, rows, cols> const&) { return sizeof(value_type) * size_t(rows * cols); }
+	};
+
 	template<typename char_type>
 	class serializer<vector_backed_string<char_type>> : public memcpy_serializer<vector_backed_string<char_type>> {};
 

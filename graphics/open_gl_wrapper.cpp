@@ -584,8 +584,7 @@ namespace graphics {
 	}
 
 	void open_gl_wrapper::bind_to_thread() {
-#ifdef _DEBUG
-		if(wglMakeCurrent(impl->window_dc, impl->context) == FALSE) {
+		while(wglMakeCurrent(impl->window_dc, impl->context) == FALSE) {
 			LPTSTR errorText = nullptr;
 
 			FormatMessage(
@@ -606,9 +605,6 @@ namespace graphics {
 				MessageBox(nullptr, L"Format error failed", L"Bind failed", MB_OK);
 			}
 		}
-#else
-		wglMakeCurrent(impl->window_dc, impl->context);
-#endif
 	}
 
 	void open_gl_wrapper::bind_to_ui_thread() {

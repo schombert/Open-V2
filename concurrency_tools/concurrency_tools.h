@@ -471,6 +471,12 @@ void clear(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 void clear(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i);
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void resize(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i, uint32_t new_size);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void resize(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i, uint32_t new_size);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void resize(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, uint32_t new_size);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
 void shrink(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i);
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 void shrink(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i);

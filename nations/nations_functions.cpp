@@ -22,9 +22,9 @@ namespace nations {
 
 		ws.w.nation_s.active_parties.ensure_capacity(to_index(new_nation.id) + 1);
 		ws.w.nation_s.nation_demographics.ensure_capacity(to_index(new_nation.id) + 1);
-		ws.w.nation_s.national_modifiers.ensure_capacity(to_index(new_nation.id) + 1);
 		ws.w.nation_s.upper_house.ensure_capacity(to_index(new_nation.id) + 1);
 		ws.w.nation_s.active_technologies.ensure_capacity(to_index(new_nation.id) + 1);
+		ws.w.nation_s.active_goods.ensure_capacity(to_index(new_nation.id) + 1);
 		ws.w.nation_s.active_issue_options.ensure_capacity(to_index(new_nation.id) + 1);
 		ws.w.nation_s.national_stockpiles.ensure_capacity(to_index(new_nation.id) + 1);
 		ws.w.nation_s.national_variables.ensure_capacity(to_index(new_nation.id) + 1);
@@ -139,10 +139,10 @@ namespace nations {
 	void init_nations_state(world_state& ws) {
 		ws.w.nation_s.nation_demographics.reset(population::aligned_64_demo_size(ws));
 		ws.w.nation_s.state_demographics.reset(population::aligned_32_demo_size(ws));
-		ws.w.nation_s.national_modifiers.reset(modifiers::national_offsets::aligned_32_size);
 		ws.w.nation_s.active_parties.reset(ws.s.ideologies_m.ideologies_count);
 		ws.w.nation_s.upper_house.reset(ws.s.ideologies_m.ideologies_count);
 		ws.w.nation_s.active_technologies.reset((uint32_t(ws.s.technology_m.technologies_container.size()) + 63ui32) / 64ui32);
+		ws.w.nation_s.active_goods.reset((ws.s.economy_m.goods_count + 63ui32) / 64ui32);
 		ws.w.nation_s.active_issue_options.reset(uint32_t(ws.s.issues_m.issues_container.size()));
 		ws.w.nation_s.national_stockpiles.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count));
 		ws.w.nation_s.national_variables.reset(ws.s.variables_m.count_national_variables);
@@ -406,22 +406,18 @@ namespace nations {
 	}
 
 	text_data::text_tag get_nation_status_text(world_state& ws, nation const& this_nation) {
-		auto this_id = this_nation.id;
-		if(ws.w.nation_s.nations.is_valid_index(this_id)) {
-			if((this_nation.flags & nation::is_civilized) == 0) {
-				if(ws.w.nation_s.national_modifiers.get(this_id, modifiers::national_offsets::civilization_progress_modifier) > modifiers::value_type(0))
-					return ws.s.fixed_ui_text[scenario::fixed_ui::partialy_civilized_nation];
-				else
-					return ws.s.fixed_ui_text[scenario::fixed_ui::uncivilized_nation];
-			} else if(is_great_power(ws, this_nation))
-				return ws.s.fixed_ui_text[scenario::fixed_ui::great_power];
-			else if(this_nation.overall_rank <= int16_t(ws.s.modifiers_m.global_defines.colonial_rank))
-				return ws.s.fixed_ui_text[scenario::fixed_ui::secondary_power];
+		if((this_nation.flags & nation::is_civilized) == 0) {
+			if(this_nation.modifier_values[modifiers::national_offsets::civilization_progress_modifier] > modifiers::value_type(0))
+				return ws.s.fixed_ui_text[scenario::fixed_ui::partialy_civilized_nation];
 			else
-				return ws.s.fixed_ui_text[scenario::fixed_ui::civilized_nation];
-		} else {
+				return ws.s.fixed_ui_text[scenario::fixed_ui::uncivilized_nation];
+		} else if(is_great_power(ws, this_nation))
+			return ws.s.fixed_ui_text[scenario::fixed_ui::great_power];
+		else if(this_nation.overall_rank <= int16_t(ws.s.modifiers_m.global_defines.colonial_rank))
+			return ws.s.fixed_ui_text[scenario::fixed_ui::secondary_power];
+		else
 			return ws.s.fixed_ui_text[scenario::fixed_ui::civilized_nation];
-		}
+		
 	}
 	
 	bool is_great_power(world_state const&, nation const&) {

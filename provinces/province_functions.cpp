@@ -33,10 +33,6 @@ namespace provinces {
 			ws.w.province_s.party_loyalty.resize(prov_count);
 		if(ws.w.province_s.province_state_container.size() != prov_count)
 			ws.w.province_s.province_state_container.resize(prov_count);
-		if(ws.w.province_s.provincial_modifiers.inner_size() != modifiers::provincial_offsets::count)
-			ws.w.province_s.provincial_modifiers.reset(modifiers::provincial_offsets::count);
-		if(ws.w.province_s.provincial_modifiers.outer_size() != prov_count)
-			ws.w.province_s.provincial_modifiers.resize(prov_count);
 		ws.w.province_s.is_canal_enabled.resize(ws.s.province_m.canals.size());
 
 		for(uint32_t i = 0; i < prov_count; ++i) {
@@ -238,5 +234,9 @@ namespace provinces {
 
 	int32_t get_province_rgo_employment_max(world_state&, province_state&) {
 		return 1;
+	}
+
+	float get_life_rating(province_state const& p) {
+		return float(p.base_life_rating) * (1.0f + p.modifier_values[modifiers::provincial_offsets::life_rating]);
 	}
 }

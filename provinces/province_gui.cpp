@@ -359,7 +359,7 @@ namespace provinces {
 	void liferating_bar::update(ui::progress_bar<liferating_bar>& self, world_state& ws) {
 		auto selected_prov = ws.w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			self.set_fraction(float(ws.w.province_s.province_state_container[selected_prov].life_rating) / 50.0f);
+			self.set_fraction(provinces::get_life_rating(ws.w.province_s.province_state_container[selected_prov]) / 50.0f);
 		}
 	}
 
@@ -390,10 +390,14 @@ namespace provinces {
 			char16_t formatted_value[64];
 			ui::xy_pair cursor{ 0,0 };
 
-			put_value_in_buffer(formatted_value, display_type::integer, int32_t(ws.w.province_s.province_state_container[selected_prov].life_rating));
+			put_value_in_buffer(formatted_value, display_type::integer, provinces::get_life_rating(ws.w.province_s.province_state_container[selected_prov]));
 
 			text_data::replacement value_rep(text_data::value_type::value, vector_backed_string<char16_t>(formatted_value), [](tagged_object<ui::gui_object, ui::gui_object_tag>) {});
 			ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::province_liferating], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &value_rep, 1ui32);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			lm.finish_current_line();
+			lm.increase_indent(1);
+			modifiers::explain_province_modifier(ws, tw, cursor, lm, ui::tooltip_text_format, ws.w.province_s.province_state_container[selected_prov], modifiers::provincial_offsets::life_rating);
 		}
 	}
 

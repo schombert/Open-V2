@@ -5,6 +5,7 @@
 #include "economy\\economy.h"
 #include "issues\\issues.h"
 #include "technologies\\technologies.h"
+#include "modifiers\\modifiers.h"
 
 namespace modifiers {
 	struct national_focus;
@@ -50,7 +51,7 @@ namespace nations {
 	};
 
 	struct loan {
-		float amount;
+		float amount = 0.0f;
 		country_tag tag;
 
 		bool operator<(loan const& other)  const noexcept { return tag < other.tag; }
@@ -67,9 +68,12 @@ namespace nations {
 
 	struct alignas(32) nation {
 		technologies::tech_attribute_vector tech_attributes = technologies::tech_attribute_vector::Zero();
+		modifiers::national_modifier_vector modifier_values = modifiers::national_modifier_vector::Zero();
 
 		nation* sphere_leader = nullptr;
 		nation* overlord = nullptr;
+
+		uint64_t enabled_crimes = 0ui64;
 
 		issues::rules current_rules;
 		atomic_tag<date_tag> last_update;
@@ -83,16 +87,20 @@ namespace nations {
 		float infamy = 0.0f;
 		float war_exhaustion = 0.0f;
 		float blockade_fraction = 0.0f;
-		float rebel_control_fraction = 0.0f;
+		float rebel_control_fraction = 0.0f; // of provinces connected to capital
 		float political_interest_fraction = 0.0f;
 		float social_interest_fraction = 0.0f;
 		float crime_fraction = 0.0f; //fraction of provinces with active crime
+		//float mobilization_impact = 0.0f; //= 1.0 - std::max(0.0f, this_nation.modifier_values[national_offsets::mobilisation_size]) * this_nation.modifier_values[national_offsets::mobilisation_economy_impact]; 
 
 		float social_movement_support = 0.0f; // sum of social movement supporters / total pop * defines factor
 		float political_movement_support = 0.0f; // sum of social movement supporters / total pop * defines factor
 
 		set_tag<provinces::province_tag> owned_provinces;
 		set_tag<provinces::province_tag> controlled_provinces;
+
+		set_tag<provinces::province_tag> naval_patrols; //sea provinces fleets will try to control
+
 		set_tag<country_tag> sphere_members;
 		set_tag<country_tag> vassals;
 		set_tag<country_tag> allies;
@@ -108,11 +116,17 @@ namespace nations {
 		set_tag<variables::national_flag_tag> national_flags;
 		multiset_tag<modifiers::national_modifier_tag> static_modifiers;
 		set_tag<timed_national_modifier> timed_modifiers;
+
 		array_tag<military::leader_tag> generals;
 		array_tag<military::leader_tag> admirals;
 		array_tag<military::army_tag> armies;
 		array_tag<military::fleet_tag> fleets;
+		
 		array_tag<military::war_identifier> wars_involved_in;
+		
+		set_tag<country_tag> opponents_in_war;
+		set_tag<country_tag> allies_in_war;
+
 		array_tag<population::rebel_faction_tag> active_rebel_factions;
 		array_tag<population::movement_tag> active_movements;
 
@@ -142,6 +156,8 @@ namespace nations {
 		nations::country_tag cb_construction_target;
 		military::cb_type_tag cb_construction_type;
 
+		uint16_t flags = 0ui16;
+
 		governments::party_tag ruling_party;
 		provinces::province_tag current_capital;
 		cultures::national_tag tag;
@@ -169,16 +185,18 @@ namespace nations {
 		int8_t military_spending = 0i8;
 
 		uint8_t num_of_active_revolts = 0ui8;
-		uint8_t flags = 0ui8;
+		
 
-		constexpr static uint8_t is_civilized = 0x01;
-		constexpr static uint8_t is_substate = 0x02;
-		constexpr static uint8_t is_mobilized = 0x04;
-		constexpr static uint8_t is_not_ai_controlled = 0x08;
-		constexpr static uint8_t is_bankrupt = 0x10;
-		constexpr static uint8_t is_holding_election = 0x20;
-		constexpr static uint8_t is_colonial_nation = 0x40;
-		constexpr static uint8_t is_cb_construction_discovered = 0x80;
+		constexpr static uint16_t is_civilized = 0x0001;
+		constexpr static uint16_t is_substate = 0x0002;
+		constexpr static uint16_t is_mobilized = 0x0004;
+		constexpr static uint16_t is_not_ai_controlled = 0x0008;
+		constexpr static uint16_t is_bankrupt = 0x0010;
+		constexpr static uint16_t is_holding_election = 0x0020;
+		constexpr static uint16_t is_colonial_nation = 0x0040;
+		constexpr static uint16_t is_cb_construction_discovered = 0x0080;
+		constexpr static uint16_t has_gas_attack = 0x0100;
+		constexpr static uint16_t has_gas_defence = 0x0200;
 	};
 
 	struct state_instance {
@@ -227,8 +245,8 @@ namespace nations {
 		stable_2d_vector<governments::party_tag, country_tag, ideologies::ideology_tag, 512, 16> active_parties;
 		stable_2d_vector<uint8_t, country_tag, ideologies::ideology_tag, 512, 16> upper_house;
 		stable_2d_vector<uint64_t, country_tag, uint32_t, 512, 16> active_technologies;
+		stable_2d_vector<uint64_t, country_tag, uint32_t, 512, 16> active_goods;
 		stable_2d_vector<issues::option_tag, country_tag, issues::issue_tag, 512, 16> active_issue_options;
-		stable_2d_vector<modifiers::value_type, country_tag, uint32_t, 512, 16> national_modifiers;
 		stable_2d_vector<economy::goods_qnty_type, country_tag, economy::goods_tag, 512, 16> national_stockpiles;
 		stable_2d_vector<float, country_tag, variables::national_variable_tag, 512, 16> national_variables;
 
