@@ -2,8 +2,160 @@
 #include "nations_functions.h"
 #include "world_state\\world_state.h"
 #include "scenario\\scenario.h"
+#include "military\\military_functions.h"
+#include "technologies\\technologies_functions.h"
+#include "governments\\governments_functions.h"
+#include "issues\\issues_functions.h"
+#include "population\\population_function.h"
 
 namespace nations {
+	void reset_nation(world_state& ws, nations::nation& new_nation) {
+		if(is_valid_index(new_nation.tag))
+			governments::get_best_parties_at_date(ws.w.nation_s.active_parties.get_row(new_nation.id), new_nation.tag, ws.w.current_date, ws.s);
+	
+		governments::reset_upper_house(ws, new_nation.id);
+		issues::reset_active_issues(ws, new_nation.id);
+		governments::update_current_rules(ws, new_nation);
+		military::reset_unit_stats(ws, new_nation.id);
+
+		Eigen::Map<Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::Aligned32>(
+			ws.w.nation_s.national_stockpiles.get_row(new_nation.id),
+			ws.s.economy_m.aligned_32_goods_count) =
+			Eigen::Matrix<economy::goods_qnty_type, -1, 1>::Zero(ws.s.economy_m.aligned_32_goods_count);
+
+		Eigen::Map<Eigen::Matrix<float, -1, 1>>(
+			ws.w.nation_s.national_variables.get_row(new_nation.id),
+			ws.s.variables_m.count_national_variables) =
+			Eigen::Matrix<float, -1, 1>::Zero(ws.s.variables_m.count_national_variables);
+
+		technologies::reset_technologies(ws, new_nation);
+	}
+
+	void destroy_nation(world_state& ws, nations::nation& new_nation) {
+		clear(ws.w.culture_s.culture_arrays, new_nation.accepted_cultures);
+
+		auto owned_range = get_range(ws.w.province_s.province_arrays, new_nation.owned_provinces);
+		for(auto p : owned_range)
+			ws.w.province_s.province_state_container[p].owner = nullptr;
+		clear(ws.w.province_s.province_arrays, new_nation.owned_provinces);
+
+		auto controlled_range = get_range(ws.w.province_s.province_arrays, new_nation.controlled_provinces);
+		for(auto p : controlled_range)
+			ws.w.province_s.province_state_container[p].controller = nullptr;
+		clear(ws.w.province_s.province_arrays, new_nation.controlled_provinces);
+
+		auto prange = get_range(ws.w.province_s.province_arrays, new_nation.naval_patrols);
+		for(auto p : prange) {
+			remove_item_if(ws.w.military_s.fleet_presence_arrays, ws.w.province_s.province_state_container[p].fleets,
+				[id = new_nation.id](military::fleet_presence const& fp) { return fp.owner == id; });
+		}
+		clear(ws.w.province_s.province_arrays, new_nation.naval_patrols);
+
+		auto vrange = get_range(ws.w.nation_s.nations_arrays, new_nation.vassals);
+		for(auto v : vrange)
+			ws.w.nation_s.nations[v].overlord = nullptr;
+		clear(ws.w.nation_s.nations_arrays, new_nation.vassals);
+
+		auto arange = get_range(ws.w.nation_s.nations_arrays, new_nation.allies);
+		for(auto a : arange)
+			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[a].allies, new_nation.id);
+		clear(ws.w.nation_s.nations_arrays, new_nation.allies);
+
+		auto srange = get_range(ws.w.nation_s.nations_arrays, new_nation.sphere_members);
+		for(auto s : srange)
+			ws.w.nation_s.nations[s].sphere_leader = nullptr;
+		clear(ws.w.nation_s.nations_arrays, new_nation.sphere_members);
+
+		auto nrange = get_range(ws.w.nation_s.nations_arrays, new_nation.neighboring_nations);
+		for(auto n : nrange)
+			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[n].neighboring_nations, new_nation.id);
+		clear(ws.w.nation_s.nations_arrays, new_nation.neighboring_nations);
+
+		if(new_nation.sphere_leader)
+			remove_item(ws.w.nation_s.nations_arrays, new_nation.sphere_leader->sphere_members, new_nation.id);
+		new_nation.sphere_leader = nullptr;
+
+		if(new_nation.overlord)
+			remove_item(ws.w.nation_s.nations_arrays, new_nation.overlord->vassals, new_nation.id);
+		new_nation.overlord = nullptr;
+
+		auto inf_range = get_range(ws.w.nation_s.influence_arrays, new_nation.gp_influence);
+		for(auto i = inf_range.first; i != inf_range.second; ++i)
+			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[i->target].influencers, new_nation.id);
+		clear(ws.w.nation_s.influence_arrays, new_nation.gp_influence);
+
+		auto rev_inf_range = get_range(ws.w.nation_s.nations_arrays, new_nation.influencers);
+		for(auto i : rev_inf_range)
+			remove_item(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations[i].gp_influence, influence{0.0f, new_nation.id, 0ui8, 0i8});
+		clear(ws.w.nation_s.nations_arrays, new_nation.influencers);
+		
+		auto rel_range = get_range(ws.w.nation_s.relations_arrays, new_nation.relations);
+		for(auto r = rel_range.first; r != rel_range.second; ++r)
+			remove_item(ws.w.nation_s.relations_arrays, ws.w.nation_s.nations[r->tag].relations, relationship{ new_nation.id, 0i16 });
+		clear(ws.w.nation_s.relations_arrays, new_nation.relations);
+
+		auto truce_range = get_range(ws.w.nation_s.truce_arrays, new_nation.truces);
+		for(auto t = truce_range.first; t != truce_range.second; ++t)
+			remove_item(ws.w.nation_s.truce_arrays, ws.w.nation_s.nations[t->tag].truces, truce{date_tag(), new_nation.id});
+		clear(ws.w.nation_s.truce_arrays, new_nation.truces);
+		
+		clear(ws.w.nation_s.loan_arrays, new_nation.loans);
+		clear(ws.w.variable_s.national_flags_arrays, new_nation.national_flags);
+		clear(ws.w.nation_s.static_modifier_arrays, new_nation.static_modifiers);
+		clear(ws.w.nation_s.timed_modifier_arrays, new_nation.timed_modifiers);
+
+		auto movements = get_range(ws.w.population_s.pop_movement_arrays, new_nation.active_movements);
+		for(auto m : movements) {
+			population::destroy_pop_movement(ws, ws.w.population_s.pop_movements[m]);
+			ws.w.population_s.pop_movements.remove(m);
+		}
+		clear(ws.w.population_s.pop_movement_arrays, new_nation.active_movements);
+
+		auto factions = get_range(ws.w.population_s.rebel_faction_arrays, new_nation.active_rebel_factions);
+		for(auto rf : factions) {
+			population::destroy_rebel_faction(ws, ws.w.population_s.rebel_factions[rf]);
+			ws.w.population_s.rebel_factions.remove(rf);
+		}
+		clear(ws.w.population_s.rebel_faction_arrays, new_nation.active_rebel_factions);
+
+		auto wally_range = get_range(ws.w.nation_s.nations_arrays, new_nation.allies_in_war);
+		for(auto n : wally_range)
+			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[n].allies_in_war, new_nation.id);
+		clear(ws.w.nation_s.nations_arrays, new_nation.allies_in_war);
+
+		auto wopp_range = get_range(ws.w.nation_s.nations_arrays, new_nation.opponents_in_war);
+		for(auto n : wopp_range)
+			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[n].opponents_in_war, new_nation.id);
+		clear(ws.w.nation_s.nations_arrays, new_nation.opponents_in_war);
+
+		auto war_range = get_range(ws.w.military_s.war_arrays, new_nation.wars_involved_in);
+		for(auto w = war_range.first; w != war_range.second; ++w)
+			military::silent_remove_from_war(ws, ws.w.military_s.wars[w->war_id], new_nation.id);
+		clear(ws.w.military_s.war_arrays, new_nation.wars_involved_in);
+
+		auto order_range = get_range(ws.w.military_s.orders_arrays, new_nation.active_orders);
+		for(auto o : order_range)
+			military::partial_destroy_orders(ws, ws.w.military_s.army_orders_container[o]);
+		clear(ws.w.military_s.orders_arrays, new_nation.active_orders);
+
+		auto army_range = get_range(ws.w.military_s.army_arrays, new_nation.armies);
+		for(auto a : army_range)
+			military::partial_destroy_army(ws, ws.w.military_s.armies[a]);
+		clear(ws.w.military_s.army_arrays, new_nation.armies);
+
+		auto fleet_range = get_range(ws.w.military_s.fleet_arrays, new_nation.fleets);
+		for(auto f : fleet_range)
+			military::partial_destroy_fleet(ws, ws.w.military_s.fleets[f]);
+		clear(ws.w.military_s.fleet_arrays, new_nation.fleets);
+
+
+		//set_tag<region_state_pair> member_states;
+		//set_tag<state_tag> national_focus_locations;
+
+		//array_tag<military::leader_tag> generals;
+		//array_tag<military::leader_tag> admirals;
+	}
+
 	nation* make_nation_for_tag(world_state& ws, cultures::national_tag nt) {
 		cultures::national_tag_state& tag_state = ws.w.culture_s.national_tags_state[nt];
 		if(tag_state.holder)
@@ -32,6 +184,8 @@ namespace nations {
 		ws.w.nation_s.unit_stats.ensure_capacity(to_index(new_nation.id) + 1);
 		ws.w.nation_s.rebel_org_gain.ensure_capacity(to_index(new_nation.id) + 1);
 		ws.w.nation_s.production_adjustments.ensure_capacity(to_index(new_nation.id) + 1);
+
+		reset_nation(ws, new_nation);
 
 		return &new_nation;
 	}
@@ -121,6 +275,9 @@ namespace nations {
 
 				state_instance* si = &(ws.w.nation_s.states.get_new());
 				si->region_id = ws.s.province_m.province_container[this_prov_id].state_id;
+
+				ws.w.nation_s.state_demographics.ensure_capacity(to_index(si->id) + 1);
+
 				this_province.state_instance = si;
 
 				auto same_region_range = ws.s.province_m.states_to_province_index.get_row(si->region_id);

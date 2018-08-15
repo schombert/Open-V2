@@ -73,4 +73,23 @@ namespace population {
 		Eigen::Map<Eigen::Matrix<int32_t, -1, 1>> ideology_vector(ideology_offset, ws.s.ideologies_m.ideologies_count);
 		return ideology_vector.maxCoeff() == ideology_offset[to_index(opt)];
 	}
+
+	void destroy_pop_movement(world_state& ws, pop_movement& m) {
+		auto prange = get_range(ws.w.population_s.pop_arrays, m.member_pops);
+		for(auto p : prange)
+			ws.w.population_s.pops[p].movement = movement_tag();
+		clear(ws.w.population_s.pop_arrays, m.member_pops);
+	}
+
+	void destroy_rebel_faction(world_state& ws, rebel_faction& r) {
+		auto prange = get_range(ws.w.population_s.pop_arrays, r.member_pops);
+		for(auto p : prange)
+			ws.w.population_s.pops[p].rebel_faction = rebel_faction_tag();
+		clear(ws.w.population_s.pop_arrays, r.member_pops);
+
+		auto prov_range = get_range(ws.w.province_s.province_arrays, r.controlled_provinces);
+		for(auto p : prov_range)
+			ws.w.province_s.province_state_container[p].rebel_controller = nullptr;
+		clear(ws.w.province_s.province_arrays, r.controlled_provinces);
+	}
 }

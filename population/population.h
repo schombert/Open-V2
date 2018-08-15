@@ -203,6 +203,7 @@ namespace population {
 
 		stable_variable_vector_storage_mk_2<pop_tag, 8, 65536> pop_arrays;
 		stable_variable_vector_storage_mk_2<rebel_faction_tag, 8, 65536> rebel_faction_arrays;
+		stable_variable_vector_storage_mk_2<movement_tag, 8, 65536> pop_movement_arrays;
 	};
 
 	class population_manager {

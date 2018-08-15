@@ -21,4 +21,6 @@ namespace population {
 	nations::nation* get_pop_owner(world_state const& ws, pop const& p);
 	bool is_dominant_issue(world_state const& ws, pop_tag id, issues::option_tag opt);
 	bool is_dominant_ideology(world_state const& ws, pop_tag id, ideologies::ideology_tag opt);
+	void destroy_pop_movement(world_state& ws, pop_movement& m);
+	void destroy_rebel_faction(world_state& ws, rebel_faction& r);
 }

@@ -391,6 +391,40 @@ template<typename object_type, uint32_t minimum_size, size_t memory_size>
 void remove_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type obj) {
 	remove_sorted_item(storage, i.value, obj);
 }
+
+template<typename object_type, uint32_t minimum_size, size_t memory_size, typename FUNC>
+void remove_item_if(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i, FUNC const& f) {
+	const auto range = get_range(storage, i);
+	auto size = range.second - range.first;
+
+	for(int32_t i = int32_t(size); i--; ) {
+		if(f(range.first[i])) {
+			range.first[i] = std::move(range.first[size - 1]);
+			--size;
+		}
+	}
+
+	detail::mk_2_header* header = (detail::mk_2_header*)(storage.backing_storage + i.value);
+	header->size = uint16_t(size);
+}
+
+template<typename object_type, uint32_t minimum_size, size_t memory_size, typename FUNC>
+void remove_item_if(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i, FUNC const& f) {
+	const auto range = get_range(storage, i);
+	const auto new_end = std::remove_if(range.first, range.second, f);
+	
+	detail::mk_2_header* header = (detail::mk_2_header*)(storage.backing_storage + i.value);
+	header->size = uint16_t(new_end - range.first);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size, typename FUNC>
+void remove_item_if(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, FUNC const& f) {
+	const auto range = get_range(storage, i);
+	const auto new_end = std::remove_if(range.first, range.second, f);
+
+	detail::mk_2_header* header = (detail::mk_2_header*)(storage.backing_storage + i.value);
+	header->size = uint16_t(new_end - range.first);
+}
+
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, array_tag<object_type> i, object_type obj) {
 	const auto rng = get_range(storage, i.value);

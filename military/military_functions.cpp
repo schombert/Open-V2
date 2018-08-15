@@ -67,6 +67,13 @@ namespace military {
 		dest_vec = source_a + source_b;
 	}
 
+	void reset_unit_stats(world_state& ws, nations::country_tag nation_for) {
+		auto unit_type_count = ws.s.military_m.unit_types_count;
+		for(uint32_t i = 0; i < unit_type_count; ++i) {
+			ws.w.nation_s.unit_stats.get(nation_for, unit_type_tag(static_cast<unit_type_tag::value_base_t>(i))) = ws.s.military_m.unit_types[unit_type_tag(static_cast<unit_type_tag::value_base_t>(i))].base_attributes;
+		}
+	}
+
 	void update_army_attributes(world_state& ws, nations::nation const& owning_nation, army& this_army) {
 		uint16_t* count = ws.w.military_s.unit_type_composition.get_row(this_army.id);
 		auto nation_id = owning_nation.id;
@@ -260,5 +267,148 @@ namespace military {
 		if(in_war_with(ws, nation_by, nation_target.id))
 			return true;
 		return false;
+	}
+
+
+	void silent_remove_from_war(world_state& ws, war& this_war, nations::country_tag to_remove) {
+		remove_item_if(ws.w.military_s.war_goal_arrays, this_war.war_goals,
+			[to_remove](war_goal const& wg) { return wg.from_country == to_remove || wg.target_country == to_remove; });
+		remove_item(ws.w.nation_s.nations_arrays, this_war.attackers, to_remove);
+		remove_item(ws.w.nation_s.nations_arrays, this_war.defenders, to_remove);
+
+		if(this_war.primary_attacker == to_remove) {
+			nations::country_tag best = nations::country_tag();
+			int16_t best_rank = std::numeric_limits<int16_t>::max();
+
+			auto attackers = get_range(ws.w.nation_s.nations_arrays, this_war.attackers);
+			for(auto n : attackers) {
+				if(ws.w.nation_s.nations[n].overall_rank < best_rank) {
+					best_rank = ws.w.nation_s.nations[n].overall_rank;
+					best = n;
+				}
+			}
+
+			this_war.primary_attacker = best;
+		} else if(this_war.primary_defender == to_remove) {
+			nations::country_tag best = nations::country_tag();
+			int16_t best_rank = std::numeric_limits<int16_t>::max();
+
+			auto defenders = get_range(ws.w.nation_s.nations_arrays, this_war.defenders);
+			for(auto n : defenders) {
+				if(ws.w.nation_s.nations[n].overall_rank < best_rank) {
+					best_rank = ws.w.nation_s.nations[n].overall_rank;
+					best = n;
+				}
+			}
+
+			this_war.primary_defender = best;
+		}
+	}
+
+	void destroy_army(world_state& ws, army& a, nations::nation& owner) {
+		auto pop_range = get_range(ws.w.population_s.pop_arrays, a.backing_pops);
+		for(auto p : pop_range)
+			ws.w.population_s.pops[p].associated_army = army_tag();
+		clear(ws.w.population_s.pop_arrays, a.backing_pops);
+
+		remove_item(ws.w.military_s.army_arrays, owner.armies, a.id);
+		if(a.current_orders) {
+			remove_item(ws.w.military_s.army_arrays, a.current_orders->involved_armies, a.id);
+			a.current_orders = nullptr;
+		}
+		if(a.leader) {
+			a.leader->attached = false;
+			a.leader = nullptr;
+		}
+	}
+
+	void destroy_fleet(world_state& ws, fleet& f, nations::nation& owner) {
+		clear(ws.w.military_s.ship_arrays, f.ships);
+		remove_item(ws.w.military_s.fleet_arrays, owner.fleets, f.id);
+
+		if(f.leader) {
+			f.leader->attached = false;
+			f.leader = nullptr;
+		}
+	}
+
+	void partial_destroy_fleet(world_state& ws, fleet& f) {
+		clear(ws.w.military_s.ship_arrays, f.ships);
+
+		if(f.leader) {
+			f.leader->attached = false;
+			f.leader = nullptr;
+		}
+	}
+
+	void partial_destroy_army(world_state& ws, army& a) {
+		auto pop_range = get_range(ws.w.population_s.pop_arrays, a.backing_pops);
+		for(auto p : pop_range)
+			ws.w.population_s.pops[p].associated_army = army_tag();
+		clear(ws.w.population_s.pop_arrays, a.backing_pops);
+
+		if(a.leader) {
+			a.leader->attached = false;
+			a.leader = nullptr;
+		}
+	}
+
+	void destroy_orders(world_state& ws, army_orders& o, nations::nation& owner) {
+		if(o.leader) {
+			o.leader->attached = false;
+			o.leader = nullptr;
+		}
+		auto army_range = get_range(ws.w.military_s.army_arrays, o.involved_armies);
+		for(auto a : army_range) 
+			ws.w.military_s.armies[a].current_orders = nullptr;
+		clear(ws.w.military_s.army_arrays, o.involved_armies);
+
+		remove_item(ws.w.military_s.orders_arrays, owner.active_orders, o.id);
+
+		auto prange = get_range(ws.w.province_s.province_arrays, o.involved_provinces);
+		for(auto p : prange)
+			ws.w.province_s.province_state_container[p].orders = nullptr;
+		clear(ws.w.province_s.province_arrays, o.involved_provinces);
+	}
+
+	void partial_destroy_orders(world_state& ws, army_orders& o) {
+		if(o.leader) {
+			o.leader->attached = false;
+			o.leader = nullptr;
+		}
+
+		auto army_range = get_range(ws.w.military_s.army_arrays, o.involved_armies);
+		clear(ws.w.military_s.army_arrays, o.involved_armies);
+
+		auto prange = get_range(ws.w.province_s.province_arrays, o.involved_provinces);
+		for(auto p : prange)
+			ws.w.province_s.province_state_container[p].orders = nullptr;
+		clear(ws.w.province_s.province_arrays, o.involved_provinces);
+	}
+
+	void destroy_admiral(world_state& ws, military_leader& l, nations::nation& owner) {
+		if(l.attached) {
+			auto fr = get_range(ws.w.military_s.fleet_arrays, owner.fleets);
+			for(auto fl : fr) {
+				if(ws.w.military_s.fleets[fl].leader == &l)
+					ws.w.military_s.fleets[fl].leader = nullptr;
+			}
+		}
+	}
+
+	void destroy_general(world_state& ws, military_leader& l, nations::nation& owner) {
+		if(l.attached) {
+			auto ar = get_range(ws.w.military_s.army_arrays, owner.armies);
+			for(auto a : ar) {
+				if(ws.w.military_s.armies[a].leader == &l)
+					ws.w.military_s.armies[a].leader = nullptr;
+			}
+
+			auto or = get_range(ws.w.military_s.orders_arrays, owner.active_orders);
+			for(auto o : or ) {
+				if(ws.w.military_s.army_orders_container[o].leader == &l)
+					ws.w.military_s.army_orders_container[o].leader = nullptr;
+			}
+		}
 	}
 }

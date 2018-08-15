@@ -543,6 +543,7 @@ int main(int , char **) {
 
 	ready_world_state(ws);
 
+	ws.w.current_date = date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1));
 	auto const p_to_t_vector = provinces::load_province_terrain_data(ws.s.province_m, fs.get_root());
 	auto color_terrain_map = provinces::read_terrain_colors(ws.s.gui_m.text_data_sequences, ws.s.province_m, ws.s.modifiers_m, fs.get_root());
 	provinces::assign_terrain_color(ws.w.province_s, p_to_t_vector, color_terrain_map);

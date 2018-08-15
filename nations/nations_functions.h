@@ -30,6 +30,8 @@ namespace nations {
 	void set_foreign_investment(world_state& ws, nation& nation_by, country_tag nation_in, float value);
 	void remove_investment_and_influence(world_state& ws, nation& nation_by, nation& nation_target);
 	void init_empty_states(world_state& ws);
+	void reset_nation(world_state& ws, nations::nation& new_nation);
+	//void destroy_nation(world_state& ws, nations::nation& new_nation);
 
 	int32_t colonial_points_to_make_protectorate(world_state& ws, state_instance& si);
 	int32_t colonial_points_to_make_colony(world_state& ws, state_instance& si);

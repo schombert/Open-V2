@@ -47,5 +47,29 @@ namespace governments {
 			auto issue_tag = ws.s.issues_m.options[row[i]].parent_issue;
 			ws.w.nation_s.active_issue_options.get(this_nation.id, issue_tag) = row[i];
 		}
+
+		update_current_rules(ws, this_nation);
+	}
+
+	void reset_upper_house(world_state& ws, nations::country_tag id) {
+		auto upper_house = ws.w.nation_s.upper_house.get_row(id);
+
+		Eigen::Map<Eigen::Matrix<uint8_t, -1, 1>>(upper_house, ws.s.ideologies_m.ideologies_count) =
+			Eigen::Matrix<uint8_t, -1, 1>::Zero(ws.s.ideologies_m.ideologies_count);
+
+		upper_house[to_index(ws.s.ideologies_m.conservative_ideology)] = 100ui8;
+	}
+
+	void update_current_rules(world_state& ws, nations::nation& this_nation) {
+		this_nation.current_rules.rules = 0ui32;
+
+		uint32_t max_issues = uint32_t(ws.s.issues_m.issues_container.size());
+		auto issues_row = ws.w.nation_s.active_issue_options.get_row(this_nation.id);
+
+		for(uint32_t i = 0; i < max_issues; ++i) {
+			if(is_valid_index(issues_row[i])) {
+				this_nation.current_rules.rules |= ws.s.issues_m.options[issues_row[i]].issue_rules.rules_settings.rules;
+			}
+		}
 	}
 }
