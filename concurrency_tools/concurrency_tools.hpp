@@ -397,9 +397,9 @@ void remove_item_if(stable_variable_vector_storage_mk_2<object_type, minimum_siz
 	const auto range = get_range(storage, i);
 	auto size = range.second - range.first;
 
-	for(int32_t i = int32_t(size); i--; ) {
-		if(f(range.first[i])) {
-			range.first[i] = std::move(range.first[size - 1]);
+	for(int32_t j = int32_t(size); j--; ) {
+		if(f(range.first[j])) {
+			range.first[j] = std::move(range.first[size - 1]);
 			--size;
 		}
 	}
@@ -629,6 +629,9 @@ stable_mk_2_tag stable_variable_vector_storage_mk_2<object_type, minimum_size, m
 
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 void stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>::release(stable_mk_2_tag& i) {
+	if(!is_valid_index(i))
+		return;
+
 	detail::mk_2_header* header = (detail::mk_2_header*)(backing_storage + i);
 
 	const uint32_t free_list_pos = rt_log2(header->capacity);

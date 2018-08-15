@@ -95,6 +95,9 @@
     <ProjectReference Include="..\sound\sound.vcxproj">
       <Project>{483adac5-dd50-4fed-b08b-61349e1fc0b8}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\technologies\technologies.vcxproj">
+      <Project>{4d657172-4c04-407b-b7af-22b8706e456f}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\text_data\text_data.vcxproj">
       <Project>{ab9203fb-2ba5-4495-8f9e-78c21f15a8c6}</Project>
     </ProjectReference>

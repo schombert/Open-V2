@@ -148,12 +148,18 @@ namespace nations {
 			military::partial_destroy_fleet(ws, ws.w.military_s.fleets[f]);
 		clear(ws.w.military_s.fleet_arrays, new_nation.fleets);
 
+		clear(ws.w.military_s.leader_arrays, new_nation.generals);
+		clear(ws.w.military_s.leader_arrays, new_nation.admirals);
 
-		//set_tag<region_state_pair> member_states;
-		//set_tag<state_tag> national_focus_locations;
+		auto focus_range = get_range(ws.w.nation_s.state_tag_arrays, new_nation.national_focus_locations);
+		for(auto s : focus_range)
+			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.states[s].flashpoint_tension_focuses, new_nation.id);
+		clear(ws.w.nation_s.state_tag_arrays, new_nation.national_focus_locations);
 
-		//array_tag<military::leader_tag> generals;
-		//array_tag<military::leader_tag> admirals;
+		auto ms_range = get_range(ws.w.nation_s.state_arrays, new_nation.member_states);
+		for(auto s = ms_range.first; s != ms_range.second; ++s)
+			partial_destroy_state_instance(ws, *(s->state));
+		clear(ws.w.nation_s.state_arrays, new_nation.member_states);
 	}
 
 	nation* make_nation_for_tag(world_state& ws, cultures::national_tag nt) {
@@ -198,8 +204,21 @@ namespace nations {
 		return true;
 	}
 
-	void destroy_state_instance(world_state& ws, state_instance& si) {
-		ws.w.nation_s.states.remove(si.id);
+	void partial_destroy_state_instance(world_state& ws, state_instance& si) {
+		auto ft_range = get_range(ws.w.nation_s.nations_arrays, si.flashpoint_tension_focuses);
+		for(auto n : ft_range)
+			remove_item(ws.w.nation_s.state_tag_arrays, ws.w.nation_s.nations[n].national_focus_locations, si.id);
+		clear(ws.w.nation_s.nations_arrays, si.flashpoint_tension_focuses);
+
+		for(auto prange = ws.s.province_m.states_to_province_index.get_row(si.region_id); prange.first != prange.second; ++prange.first) {
+			if(ws.w.province_s.province_state_container[*prange.first].state_instance == &si)
+				ws.w.province_s.province_state_container[*prange.first].state_instance = nullptr;
+		}
+	}
+
+	void destroy_state_instance(world_state& ws, state_instance& si, nation& owner) {
+		partial_destroy_state_instance(ws, si);
+		remove_item(ws.w.nation_s.state_arrays, owner.member_states, region_state_pair{ si.region_id, nullptr });
 	}
 
 	void remove_province_from_state(world_state&, provinces::province_state& p) {
@@ -220,8 +239,8 @@ namespace nations {
 		if(is_state_empty(ws, *owner, region_tag)) {
 			remove_item(ws.w.nation_s.state_arrays, owner->member_states, region_state_pair{ old_state->region_id, nullptr });
 			if(old_state) {
-				destroy_state_instance(ws, *old_state);
-				remove_item(ws.w.nation_s.state_arrays, owner->member_states, region_state_pair{ old_state->region_id, nullptr });
+				destroy_state_instance(ws, *old_state, *owner);
+				ws.w.nation_s.states.remove(old_state->id);
 			}
 		}
 	}

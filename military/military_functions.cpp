@@ -377,7 +377,6 @@ namespace military {
 			o.leader = nullptr;
 		}
 
-		auto army_range = get_range(ws.w.military_s.army_arrays, o.involved_armies);
 		clear(ws.w.military_s.army_arrays, o.involved_armies);
 
 		auto prange = get_range(ws.w.province_s.province_arrays, o.involved_provinces);
@@ -404,8 +403,8 @@ namespace military {
 					ws.w.military_s.armies[a].leader = nullptr;
 			}
 
-			auto or = get_range(ws.w.military_s.orders_arrays, owner.active_orders);
-			for(auto o : or ) {
+			auto order_range = get_range(ws.w.military_s.orders_arrays, owner.active_orders);
+			for(auto o : order_range) {
 				if(ws.w.military_s.army_orders_container[o].leader == &l)
 					ws.w.military_s.army_orders_container[o].leader = nullptr;
 			}

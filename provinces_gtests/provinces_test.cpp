@@ -554,7 +554,7 @@ TEST(provinces_test, single_province_read_state) {
 		EXPECT_EQ(ps.fort_level, 0ui8);
 		EXPECT_EQ(ps.railroad_level, 1ui8);
 		EXPECT_EQ(ps.naval_base_level, 0ui8);
-		EXPECT_EQ(35i16, ps.life_rating);
+		EXPECT_EQ(35i16, ps.base_life_rating);
 		EXPECT_EQ(tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("tobacco"))), ps.rgo_production);
 
 		EXPECT_NE(0, ps.state_instance->flags & nations::state_instance::is_colonial);
@@ -574,7 +574,7 @@ TEST(provinces_test, single_province_read_state) {
 		EXPECT_EQ(ps.fort_level, 0ui8);
 		EXPECT_EQ(ps.railroad_level, 3ui8);
 		EXPECT_EQ(ps.naval_base_level, 0ui8);
-		EXPECT_EQ(35i16, ps.life_rating);
+		EXPECT_EQ(35i16, ps.base_life_rating);
 		EXPECT_EQ(tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("tobacco"))), ps.rgo_production);
 		EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_provincial_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("ocean"))), ps.terrain);
 		EXPECT_EQ(ps.state_instance->factories[0].level, 1ui16);

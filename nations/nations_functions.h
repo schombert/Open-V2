@@ -13,7 +13,6 @@ namespace nations {
 	void silent_remove_province_owner(world_state& ws, nation* owner, provinces::province_tag prov);
 	void silent_remove_province_controller(current_state::state& ws, nation* controller, provinces::province_tag prov);
 	void silent_set_province_controller(current_state::state& ws, nation* controller, provinces::province_tag prov);
-	void destroy_state_instance(world_state& ws, state_instance& si);
 	void remove_province_from_state(world_state& ws, provinces::province_state& p);
 	void silent_set_province_owner(world_state& ws, nation* owner, provinces::province_tag prov);
 	nation* make_nation_for_tag(world_state& ws, cultures::national_tag nt);
@@ -31,7 +30,10 @@ namespace nations {
 	void remove_investment_and_influence(world_state& ws, nation& nation_by, nation& nation_target);
 	void init_empty_states(world_state& ws);
 	void reset_nation(world_state& ws, nations::nation& new_nation);
-	//void destroy_nation(world_state& ws, nations::nation& new_nation);
+	
+	void destroy_state_instance(world_state& ws, state_instance& si, nation& owner);
+	void partial_destroy_state_instance(world_state& ws, state_instance& si);
+	void destroy_nation(world_state& ws, nations::nation& new_nation);
 
 	int32_t colonial_points_to_make_protectorate(world_state& ws, state_instance& si);
 	int32_t colonial_points_to_make_colony(world_state& ws, state_instance& si);

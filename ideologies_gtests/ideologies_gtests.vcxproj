@@ -65,6 +65,9 @@
     <ProjectReference Include="..\ideologies\ideologies.vcxproj">
       <Project>{15b719aa-730d-4147-9106-a9b190e03066}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\issues\issues.vcxproj">
+      <Project>{fa3a5ff3-f7f6-4852-94f5-4975b6d07846}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\military\military.vcxproj">
       <Project>{0225d28c-a6cc-4e23-84dc-9072ac5d7314}</Project>
     </ProjectReference>
