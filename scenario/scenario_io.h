@@ -47,7 +47,10 @@ public:
 		serialize(output, obj.fixed_ui_text);
 	}
 	template<typename ... CONTEXT>
-	static void deserialize_object(std::byte const* &input, scenario::scenario_manager& obj, CONTEXT&& ... c) {
+	static void deserialize_object(std::byte const* &input, scenario::scenario_manager& obj, uint64_t version, CONTEXT&& ... c) {
+		if(version != 1ui64)
+			std::abort();
+
 		deserialize(input, obj.population_m, std::forward<CONTEXT>(c) ...);
 		deserialize(input, obj.culture_m, std::forward<CONTEXT>(c) ...);
 		deserialize(input, obj.economy_m, std::forward<CONTEXT>(c) ...);

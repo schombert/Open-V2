@@ -83,7 +83,7 @@ namespace nations {
 
 		float plurality = 0.0f;
 		float revanchism = 0.0f;
-		float prestige = 0.0f;
+		float base_prestige = 0.0f;
 		float infamy = 0.0f;
 		float war_exhaustion = 0.0f;
 		float blockade_fraction = 0.0f;
@@ -148,7 +148,7 @@ namespace nations {
 		int16_t military_rank = 0i16;
 		int16_t industrial_rank = 0i16;
 
-		uint16_t colonial_points = 0ui16;
+		int16_t base_colonial_points = 0ui16; // add to tech for actual
 		uint16_t num_connected_ports = 0ui16; // number of ports connected to capital by land
 		uint16_t num_ports = 0ui16;
 
@@ -230,12 +230,6 @@ namespace nations {
 		constexpr static uint8_t contains_naval_base = 0x08;
 	};
 
-	enum class crisis_type : int32_t {
-		none,
-		free_nation,
-		colonial_crisis
-	};
-
 	class nations_state {
 	public:
 		array_tag<country_tag> nations_by_rank;
@@ -268,11 +262,5 @@ namespace nations {
 
 		stable_2d_vector<int32_t, state_tag, population::demo_tag, 512, 16> state_demographics;
 		stable_2d_vector<int64_t, country_tag, population::demo_tag, 512, 16> nation_demographics;
-
-		//crisis information
-		int32_t crisis_temperature = 0;
-		state_tag crisis_state;
-		cultures::national_tag crisis_free_country;
-		crisis_type current_crisis_type = crisis_type::none;
 	};
 }

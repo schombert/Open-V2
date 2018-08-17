@@ -173,7 +173,7 @@ namespace military {
 		vector_backed_string<char16_t> first_name;
 		vector_backed_string<char16_t> last_name;
 
-		date_tag last_update;
+		atomic_tag<date_tag> last_update;
 
 		date_tag creation_date;
 		graphics::texture_tag portrait;
@@ -193,7 +193,7 @@ namespace military {
 	struct army_orders {
 		military_leader* leader = nullptr;
 
-		date_tag last_update;
+		atomic_tag<date_tag> last_update;
 
 		set_tag<provinces::province_tag> involved_provinces;
 		set_tag<army_tag> involved_armies;
@@ -213,7 +213,7 @@ namespace military {
 		military_leader* leader = nullptr;
 		army_orders* current_orders = nullptr;
 
-		date_tag last_update;
+		atomic_tag<date_tag> last_update;
 
 		uint32_t minimum_soldiers = 0ui32;
 

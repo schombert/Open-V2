@@ -134,21 +134,34 @@ namespace nations {
 		clear(ws.w.military_s.war_arrays, new_nation.wars_involved_in);
 
 		auto order_range = get_range(ws.w.military_s.orders_arrays, new_nation.active_orders);
-		for(auto o : order_range)
+		for(auto o : order_range) {
 			military::partial_destroy_orders(ws, ws.w.military_s.army_orders_container[o]);
+			ws.w.military_s.army_orders_container.remove(o);
+		}
 		clear(ws.w.military_s.orders_arrays, new_nation.active_orders);
 
 		auto army_range = get_range(ws.w.military_s.army_arrays, new_nation.armies);
-		for(auto a : army_range)
+		for(auto a : army_range) {
 			military::partial_destroy_army(ws, ws.w.military_s.armies[a]);
+			ws.w.military_s.armies.remove(a);
+		}
 		clear(ws.w.military_s.army_arrays, new_nation.armies);
 
 		auto fleet_range = get_range(ws.w.military_s.fleet_arrays, new_nation.fleets);
-		for(auto f : fleet_range)
+		for(auto f : fleet_range) {
 			military::partial_destroy_fleet(ws, ws.w.military_s.fleets[f]);
+			ws.w.military_s.fleets.remove(f);
+		}
 		clear(ws.w.military_s.fleet_arrays, new_nation.fleets);
 
+		auto gen_range = get_range(ws.w.military_s.leader_arrays, new_nation.generals);
+		for(auto g : gen_range)
+			ws.w.military_s.leaders.remove(g);
 		clear(ws.w.military_s.leader_arrays, new_nation.generals);
+
+		auto adm_range = get_range(ws.w.military_s.leader_arrays, new_nation.admirals);
+		for(auto a : adm_range)
+			ws.w.military_s.leaders.remove(a);
 		clear(ws.w.military_s.leader_arrays, new_nation.admirals);
 
 		auto focus_range = get_range(ws.w.nation_s.state_tag_arrays, new_nation.national_focus_locations);
@@ -157,8 +170,10 @@ namespace nations {
 		clear(ws.w.nation_s.state_tag_arrays, new_nation.national_focus_locations);
 
 		auto ms_range = get_range(ws.w.nation_s.state_arrays, new_nation.member_states);
-		for(auto s = ms_range.first; s != ms_range.second; ++s)
+		for(auto s = ms_range.first; s != ms_range.second; ++s) {
 			partial_destroy_state_instance(ws, *(s->state));
+			ws.w.nation_s.states.remove(s->state->id);
+		}
 		clear(ws.w.nation_s.state_arrays, new_nation.member_states);
 	}
 
@@ -679,5 +694,12 @@ namespace nations {
 				return true;
 		}
 		return false;
+	}
+
+	float get_prestige(nations::nation const& n) {
+		return n.base_prestige + n.tech_attributes[technologies::tech_offset::permanent_prestige];
+	}
+	int32_t get_colonial_points(nations::nation const& n) {
+		return int32_t(n.base_colonial_points) + int32_t(n.tech_attributes[technologies::tech_offset::colonial_points]);
 	}
 }

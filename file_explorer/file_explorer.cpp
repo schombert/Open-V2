@@ -504,7 +504,7 @@ int main(int , char **) {
 	fs.add_root(u"D:\\programs\\V2\\mod\\OpenV2");
 	//ui::gui_manager gui_m(850, 650);
 
-	DWORD dwAttrib = GetFileAttributes((const wchar_t*)(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin"));
+	DWORD dwAttrib = GetFileAttributes((const wchar_t*)(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario_cmp.bin"));
 	if(dwAttrib == INVALID_FILE_ATTRIBUTES) {
 		scenario::scenario_manager s1;
 
@@ -529,7 +529,8 @@ int main(int , char **) {
 
 
 		std::cout << "begin serialize" << std::endl << std::flush;
-		serialization::serialize_to_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", s1);
+		serialization::serialize_file_header dummy;
+		serialization::serialize_to_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario_cmp.bin", true, dummy, s1);
 		std::cout << "end serialize" << std::endl << std::flush;
 	}
 
@@ -537,7 +538,7 @@ int main(int , char **) {
 
 	std::cout << "begin deserialize" << std::endl << std::flush;
 	concurrency::task_group tg;
-	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s, tg);
+	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario_cmp.bin", ws.s, tg);
 	tg.wait();
 	std::cout << "end deserialize" << std::endl << std::flush;
 

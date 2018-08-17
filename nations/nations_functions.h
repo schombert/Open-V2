@@ -54,4 +54,7 @@ namespace nations {
 	economy::goods_qnty_type national_treasury(world_state const& ws, country_tag id);
 	float fraction_of_cores_owned(world_state const& ws, nation const& this_nation);
 	bool can_release_as_vassal(world_state const& ws, nation const& this_nation, cultures::national_tag vassal);  // checks for target already existing, allowed by scenario, & core owned by nation
+
+	float get_prestige(nations::nation const& n);
+	int32_t get_colonial_points(nations::nation const& n);
 }

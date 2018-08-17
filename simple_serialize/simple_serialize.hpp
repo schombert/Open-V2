@@ -13,9 +13,9 @@ namespace serialization {
 		serializer<T>::deserialize_object(input, obj, std::forward<CONTEXT>(c)...);
 	}
 
-	template<typename T>
-	size_t serialize_size(T const& obj) {
-		return serializer<T>::size(obj);
+	template<typename T, typename ... CONTEXT>
+	size_t serialize_size(T const& obj, CONTEXT&& ... c) {
+		return serializer<T>::size(obj, std::forward<CONTEXT>(c)...);
 	}
 
 	template<typename T>
@@ -35,7 +35,8 @@ namespace serialization {
 			input += sizeof(T);
 		}
 		static constexpr size_t size() { return sizeof(T); }
-		static constexpr size_t size(T const&) { return sizeof(T); }
+		template<typename ... CONTEXT>
+		static constexpr size_t size(T const&, CONTEXT&& ... c) { return sizeof(T); }
 	};
 
 	template<>
@@ -64,6 +65,8 @@ namespace serialization {
 	class serializer<float> : public memcpy_serializer<float> {};
 	template<>
 	class serializer<double> : public memcpy_serializer<double> {};
+	template<>
+	class serializer<serialize_file_header> : public memcpy_serializer<serialize_file_header> {};
 
 	template<typename value_base, typename zero_is_null, typename individuator>
 	class serializer<tag_type<value_base, zero_is_null, individuator>> : public memcpy_serializer<tag_type<value_base, zero_is_null, individuator>> {};
@@ -86,7 +89,8 @@ namespace serialization {
 			input += sizeof(value_type) * size_t(rows * cols);
 		}
 		static constexpr size_t size() { return sizeof(value_type) * size_t(rows * cols); }
-		static constexpr size_t size(Eigen::Matrix<value_type, rows, cols> const&) { return sizeof(value_type) * size_t(rows * cols); }
+		template<typename ... CONTEXT>
+		static constexpr size_t size(Eigen::Matrix<value_type, rows, cols> const&, CONTEXT&& ... c) { return sizeof(value_type) * size_t(rows * cols); }
 	};
 
 	template<typename char_type>
@@ -147,12 +151,13 @@ namespace serialization {
 			else
 				deserialize_into_range(input, obj.begin(), obj.end(), std::forward<CONTEXT>(c)...);
 		}
-		static size_t size(tagged_vector<A, B, C> const& obj) {
+		template<typename ... CONTEXT>
+		static size_t size(tagged_vector<A, B, C> const& obj, CONTEXT&& ... c) {
 			if constexpr(serializer<A>::has_static_size)
 				return sizeof(uint32_t) + serializer<A>::size() * obj.size();
 			else
 				return sizeof(uint32_t) + std::accumulate(obj.begin(), obj.end(), size_t(0),
-					[](size_t val, A const& item) { return val + serializer<A>::size(item); });
+					[&](size_t val, A const& item) { return val + serializer<A>::size(item, std::forward<CONTEXT>(c)...); });
 		}
 	};
 
@@ -189,12 +194,13 @@ namespace serialization {
 			else
 				deserialize_into_range(input, obj.begin(), obj.end(), std::forward<CONTEXT>(c)...);
 		}
-		static size_t size(tagged_fixed_2dvector<A, B, C, D> const& obj) {
+		template<typename ... CONTEXT>
+		static size_t size(tagged_fixed_2dvector<A, B, C, D> const& obj, CONTEXT&& ... c) {
 			if constexpr(serializer<A>::has_static_size)
 				return sizeof(uint32_t) + sizeof(uint32_t) + serializer<A>::size() * obj.size();
 			else
 				return sizeof(uint32_t) + sizeof(uint32_t) + std::accumulate(obj.begin(), obj.end(), size_t(0),
-					[](size_t val, A const& item) { return val + serializer<A>::size(item); });
+					[&](size_t val, A const& item) { return val + serializer<A>::size(item, std::forward<CONTEXT>(c)...); });
 		}
 	};
 	
@@ -225,7 +231,8 @@ namespace serialization {
 
 			deserialize_array(input, obj.data(), obj.size());
 		}
-		static size_t size(tagged_fixed_blocked_2dvector<A, B, C, D> const& obj) {
+		template<typename ... CONTEXT>
+		static size_t size(tagged_fixed_blocked_2dvector<A, B, C, D> const& obj, CONTEXT&& ... c) {
 			return sizeof(uint32_t) + sizeof(uint32_t) + sizeof(typename tagged_fixed_blocked_2dvector<A, B, C, D>::block_s) * obj.size();
 		}
 	};
@@ -257,12 +264,13 @@ namespace serialization {
 			else
 				deserialize_into_range(input, obj.begin(), obj.end(), std::forward<CONTEXT>(c)...);
 		}
-		static size_t size(std::vector<T, ALLOC> const& obj) {
+		template<typename ... CONTEXT>
+		static size_t size(std::vector<T, ALLOC> const& obj, CONTEXT&& ... c) {
 			if constexpr(serializer<T>::has_static_size)
 				return sizeof(uint32_t) + sizeof(T) * obj.size();
 			else
 				return sizeof(uint32_t) + std::accumulate(obj.begin(), obj.end(), size_t(0),
-					[](size_t val, T const& item) { return val + serializer<T>::size(item); });
+					[&](size_t val, T const& item) { return val + serializer<T>::size(item, std::forward<CONTEXT>(c)...); });
 		}
 	};
 
@@ -286,7 +294,8 @@ namespace serialization {
 			obj.resize(size);
 			deserialize_array(input, obj.data(), size);
 		}
-		static size_t size(std::basic_string<A, B, C> const& obj) {
+		template<typename ... CONTEXT>
+		static size_t size(std::basic_string<A, B, C> const& obj, CONTEXT&& ... c) {
 			return sizeof(uint32_t) + obj.length() * sizeof(A);
 		}
 	};
@@ -307,7 +316,8 @@ namespace serialization {
 			deserialize(input, obj.elements);
 			deserialize(input, obj.index);
 		}
-		static size_t size(v_vector<T, I, allocator> const& obj) {
+		template<typename ... CONTEXT>
+		static size_t size(v_vector<T, I, allocator> const& obj, CONTEXT&& ... c) {
 			return serialize_size(obj.elements) + serialize_size(obj.index);
 		}
 	};
@@ -335,12 +345,13 @@ namespace serialization {
 				obj.insert(local);
 			}
 		}
-		static size_t size(boost::container::flat_map<A, B, compare, allocator> const& obj) {
+		template<typename ... CONTEXT>
+		static size_t size(boost::container::flat_map<A, B, compare, allocator> const& obj, CONTEXT&& ... c) {
 			if constexpr(serializer<std::pair<A, B>>::has_static_size)
 				return sizeof(uint32_t) + obj.size() * sizeof(std::pair<A, B>);
 			else
 				return sizeof(uint32_t) + std::accumulate(obj.begin(), obj.end(), size_t(0),
-					[](size_t val, std::pair<A, B> const& item) { return val + serializer<std::pair<A, B>>::size(item); });
+					[&](size_t val, std::pair<A, B> const& item) { return val + serializer<std::pair<A, B>>::size(item, std::forward<CONTEXT>(c)...); });
 		}
 	};
 
@@ -356,8 +367,8 @@ namespace serialization {
 				memcpy(output, &obj, sizeof(std::pair<A, B>));
 				output += sizeof(std::pair<A, B>);
 			} else {
-				serialize(output, obj.first);
-				serialize(output, obj.second);
+				serialize(output, obj.first, std::forward<CONTEXT>(c)...);
+				serialize(output, obj.second, std::forward<CONTEXT>(c)...);
 			}
 		}
 		template<typename ... CONTEXT>
@@ -366,15 +377,16 @@ namespace serialization {
 				memcpy(&obj, input, sizeof(std::pair<A, B>));
 				input += sizeof(std::pair<A, B>);
 			} else {
-				deserialize(input, obj.first);
-				deserialize(input, obj.second);
+				deserialize(input, obj.first, std::forward<CONTEXT>(c)...);
+				deserialize(input, obj.second, std::forward<CONTEXT>(c)...);
 			}
 		}
-		static size_t size(std::pair<A, B> const& obj) {
+		template<typename ... CONTEXT>
+		static size_t size(std::pair<A, B> const& obj, CONTEXT&& ... c) {
 			if constexpr(has_static_size && has_simple_serialize)
 				return sizeof(std::pair<A, B>);
 			else
-				return serialize_size(obj.first) + serialize_size(obj.second);
+				return serialize_size(obj.first, std::forward<CONTEXT>(c)...) + serialize_size(obj.second, std::forward<CONTEXT>(c)...);
 		}
 	};
 
@@ -390,9 +402,9 @@ namespace serialization {
 				memcpy(output, &obj, sizeof(std::tuple<A, B, C>));
 				output += sizeof(std::tuple<A, B, C>);
 			} else {
-				serialize(output, std::get<0>(obj));
-				serialize(output, std::get<1>(obj));
-				serialize(output, std::get<2>(obj));
+				serialize(output, std::get<0>(obj), std::forward<CONTEXT>(c)...);
+				serialize(output, std::get<1>(obj), std::forward<CONTEXT>(c)...);
+				serialize(output, std::get<2>(obj), std::forward<CONTEXT>(c)...);
 			}
 		}
 		template<typename ... CONTEXT>
@@ -401,16 +413,19 @@ namespace serialization {
 				memcpy(&obj, input, sizeof(std::tuple<A, B, C>));
 				input += sizeof(std::tuple<A, B, C>);
 			} else {
-				deserialize(input, std::get<0>(obj));
-				deserialize(input, std::get<1>(obj));
-				deserialize(input, std::get<2>(obj));
+				deserialize(input, std::get<0>(obj), std::forward<CONTEXT>(c)...);
+				deserialize(input, std::get<1>(obj), std::forward<CONTEXT>(c)...);
+				deserialize(input, std::get<2>(obj), std::forward<CONTEXT>(c)...);
 			}
 		}
-		static size_t size(std::tuple<A, B, C> const& obj) {
+		template<typename ... CONTEXT>
+		static size_t size(std::tuple<A, B, C> const& obj, CONTEXT&& ... c) {
 			if constexpr(has_static_size && has_simple_serialize)
 				return sizeof(std::tuple<A, B, C>);
 			else
-				return serialize_size(std::get<0>(obj)) + serialize_size(std::get<1>(obj)) + serialize_size(std::get<2>(obj));
+				return serialize_size(std::get<0>(obj), std::forward<CONTEXT>(c)...) +
+					serialize_size(std::get<1>(obj), std::forward<CONTEXT>(c)...) +
+					serialize_size(std::get<2>(obj), std::forward<CONTEXT>(c)...);
 		}
 	};
 
@@ -419,22 +434,58 @@ namespace serialization {
 		void* file_handle = nullptr;
 		void* mapping_handle = nullptr;
 		void* mapped_bytes = nullptr;
+		uint64_t final_size = 0ui64;
 	public:
 		serialize_file_wrapper(std::u16string const& file_name);
 		serialize_file_wrapper(std::u16string const& file_name, size_t size);
 		~serialize_file_wrapper();
 
 		std::byte* get_bytes() const;
+		uint64_t get_size() const;
 		bool file_valid() const;
+		void set_final_size(uint64_t s) { final_size = s; }
 	};
 
-	template<typename T, typename ... CONTEXT>
-	void serialize_to_file(std::u16string const& file_name, T const& obj, CONTEXT&& ... c) {
-		const auto fsize = serialize_size(obj);
-		serialize_file_wrapper file(file_name, fsize);
+	uint64_t impl_get_compressed_upper_bound(uint64_t source_size);
+	uint64_t impl_compress(uint64_t source_size, std::byte* source, std::byte* dest); // returns actual size used
+	void impl_decompress(uint64_t source_size, std::byte const* source, uint64_t dest_size, std::byte* dest);
 
-		auto ptr = file.get_bytes();
-		serialize(ptr, obj, std::forward<CONTEXT>(c) ...);
+	template<typename T, typename ... CONTEXT>
+	void serialize_to_file(std::u16string const& file_name, bool compress, serialize_file_header& header, T const& obj, CONTEXT&& ... c) {
+		const auto fsize = serialize_size(obj, std::forward<CONTEXT>(c) ...);
+		const auto header_size = serialize_size(header);
+
+		header.version = 1ui64;
+
+		if(!compress) {
+			header.decompressed_size = 0ui64;
+
+			serialize_file_wrapper file(file_name, header_size + fsize);
+
+			auto ptr = file.get_bytes();
+
+			serialize(ptr, header);
+			serialize(ptr, obj, std::forward<CONTEXT>(c) ...);
+		} else {
+			header.decompressed_size = fsize;
+
+			auto compressed_size = impl_get_compressed_upper_bound(fsize);
+
+			serialize_file_wrapper file(file_name, header_size + compressed_size);
+
+			auto ptr = file.get_bytes();
+			serialize(ptr, header);
+
+			std::byte* temp = new std::byte[fsize];
+			std::byte* temp_ptr = temp;
+
+			serialize(temp_ptr, obj, std::forward<CONTEXT>(c) ...);
+
+			auto actual_size = impl_compress(fsize, temp, ptr);
+			file.set_final_size(actual_size + header_size);
+
+			delete[] temp;
+		}
 	}
 
 	template<typename T, typename ... CONTEXT>
@@ -443,7 +494,22 @@ namespace serialization {
 
 		if(file.file_valid()) {
 			std::byte const* ptr = file.get_bytes();
-			deserialize(ptr, obj, std::forward<CONTEXT>(c) ...);
+			
+			serialize_file_header header_out;
+			deserialize(ptr, header_out);
+
+			if(header_out.decompressed_size == 0) {
+				deserialize(ptr, obj, header_out.version, std::forward<CONTEXT>(c) ...);
+			} else {
+				std::byte* temp = new std::byte[header_out.decompressed_size];
+				std::byte const* temp_ptr = temp;
+
+				impl_decompress(file.get_size() - serialize_size(header_out), ptr, header_out.decompressed_size, temp);
+
+				deserialize(temp_ptr, obj, header_out.version, std::forward<CONTEXT>(c) ...);
+				delete[] temp;
+			}
+
 		}
 	}
 }

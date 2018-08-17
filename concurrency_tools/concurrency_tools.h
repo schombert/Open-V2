@@ -316,6 +316,7 @@ public:
 
 	object_type& get_new(); // single thread only
 	void remove(index_type i); // single thread only
+	object_type* get_location(index_type i); // single thread only, forces storage to expand
 
 	template<typename T>
 	void for_each(T const& f);
@@ -494,6 +495,15 @@ template<typename object_type, uint32_t minimum_size, size_t memory_size>
 object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, set_tag<object_type> i, object_type obj);
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type> i, object_type obj);
+
+namespace serialization {
+	template<typename object_type, uint32_t minimum_size, size_t memory_size, typename type_tag>
+	void serialize_stable_array(std::byte* &output, stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, type_tag i);
+	template<typename object_type, uint32_t minimum_size, size_t memory_size, typename type_tag>
+	void deserialize_stable_array(std::byte const* &input, stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, type_tag& i);
+	template<typename object_type, uint32_t minimum_size, size_t memory_size, typename type_tag>
+	size_t serialize_stable_array_size(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, type_tag i);
+}
 
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 class fixed_sz_deque_iterator {

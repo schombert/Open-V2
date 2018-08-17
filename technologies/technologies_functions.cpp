@@ -100,7 +100,7 @@ namespace technologies {
 		const auto production_adjustment_count = ws.s.economy_m.goods_count * uint32_t(production_adjustment::production_adjustment_count);
 		Eigen::Map<Eigen::Matrix<float, -1, 1>>(
 			ws.w.nation_s.production_adjustments.get_row(this_nation.id),
-			production_adjustment_count) +=
+			production_adjustment_count) =
 			Eigen::Matrix<float, -1, 1>::Zero(production_adjustment_count);
 
 		const auto rebel_types_count = int32_t(ws.s.population_m.rebel_types.size());
@@ -113,7 +113,7 @@ namespace technologies {
 		auto tech_row = ws.w.nation_s.active_technologies.get_row(this_nation.id);
 		for(int32_t i = int32_t(ws.s.technology_m.technologies_container.size()); i--; ) {
 			if(bit_vector_test(tech_row, uint32_t(i))) {
-				apply_single_technology(ws, this_nation, tech_tag(static_cast<tech_tag::value_base_t>(i)));
+				apply_technology(ws, this_nation, tech_tag(static_cast<tech_tag::value_base_t>(i)));
 			}
 		}
 
