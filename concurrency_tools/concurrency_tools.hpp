@@ -19,12 +19,12 @@ public:
 			object_type* block = obj.index_array[i];
 			for(uint32_t j = 0; j < static_cast<int32_t>(block_size); ++j) {
 				if(is_valid_index(obj.get_id(block[j].id))) {
-					bool i = true;
-					serialize(output, i);
+					bool b = true;
+					serialize(output, b);
 					serialize(output, block[j], std::forward<CONTEXT>(c) ...);
 				} else {
-					bool i = false;
-					serialize(output, i);
+					bool b = false;
+					serialize(output, b);
 				}
 			}
 		}
@@ -33,16 +33,16 @@ public:
 	static void deserialize_object(std::byte const* &input, stable_vector<object_type, index_type, block_size, index_size>& obj, CONTEXT&& ... c) {
 		// clear existing blocks
 		for(uint32_t i = 0ui32; i < obj.indices_in_use; ++i) {
-			object_type* new_block = obj.index_array[i];
-			for(uint32_t j = 0; j < static_cast<int32_t>(block_size); ++j) {
-				new_block[j].~object_type();
+			object_type* block = obj.index_array[i];
+			for(int32_t j = 0; j < static_cast<int32_t>(block_size); ++j) {
+				block[j].~object_type();
 				new (block + j) object_type();
 			}
 			
 		}
 		
 		const auto old_in_use = obj.indices_in_use;
-		auto uint32_t new_in_use = 0;
+		uint32_t new_in_use = 0;
 		deserialize(input, new_in_use);
 
 		// ensure indices in use has correct value
@@ -63,8 +63,8 @@ public:
 		for(uint32_t i = new_in_use; i < old_in_use; ++i) {
 			object_type* block = obj.index_array[i];
 			for(uint32_t j = 0; j < static_cast<int32_t>(block_size); ++j) {
-				(block + j)->id = first_free;
-				first_free = index_type(static_cast<value_base_of<index_type>>(((i << ct_log2(block_size)) + j) | high_bit_mask<index_type>));
+				(block + j)->id = obj.first_free;
+				obj.first_free = index_type(static_cast<value_base_of<index_type>>(((i << ct_log2(block_size)) + j) | high_bit_mask<index_type>));
 			}
 		}
 
@@ -76,11 +76,11 @@ public:
 				bool item_exists = false;
 				deserialize(input, item_exists);
 				if(item_exists) {
-					(new_block + j)->id = index_type(static_cast<value_base_of<index_type>>(((i << ct_log2(block_size)) + j)));
-					deserialize(input, block[j], std::forward<CONTEXT>(c) ...)
+					(block + j)->id = index_type(static_cast<value_base_of<index_type>>(((i << ct_log2(block_size)) + j)));
+					deserialize(input, block[j], std::forward<CONTEXT>(c) ...);
 				} else {
-					(new_block + j)->id = first_free;
-					first_free = index_type(static_cast<value_base_of<index_type>>(((i << ct_log2(block_size)) + j) | high_bit_mask<index_type>));
+					(block + j)->id = obj.first_free;
+					obj.first_free = index_type(static_cast<value_base_of<index_type>>(((i << ct_log2(block_size)) + j) | high_bit_mask<index_type>));
 				}
 			}
 		}
@@ -195,7 +195,7 @@ object_type* stable_vector<object_type, index_type, block_size, index_size>::get
 	const auto block_num = to_index(i) >> ct_log2(block_size);
 	const auto block_index = to_index(i) & (block_size - 1);
 
-	while(indices_in_use <= block_num) {
+	while(indices_in_use <= uint32_t(block_num)) {
 		object_type* new_block = (object_type*)_aligned_malloc(sizeof(object_type) * block_size, 64);
 		for(int32_t j = static_cast<int32_t>(block_size); j--; ) {
 			new (new_block + j) object_type();
@@ -206,7 +206,7 @@ object_type* stable_vector<object_type, index_type, block_size, index_size>::get
 		index_array[indices_in_use] = new_block;
 		++indices_in_use;
 	}
-	return (index_array[block_num])[block_index];
+	return (index_array[block_num]) + block_index;
 }
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
@@ -506,8 +506,8 @@ void resize(stable_variable_vector_storage_mk_2<object_type, minimum_size, memor
 		detail::mk_2_header* header = (detail::mk_2_header*)(storage.backing_storage + i.value);
 		object_type* start = (object_type*)(header + 1);
 		if(old_size != 0) {
-			const auto insertion_pos = std::lower_bound(start, start + old_size, obj);
-			std::copy_backward(insertion_pos, start + size, start + new_size);
+			const auto insertion_pos = std::lower_bound(start, start + old_size, object_type());
+			std::copy_backward(insertion_pos, start + old_size, start + new_size);
 			std::fill(insertion_pos, insertion_pos + (new_size - old_size), object_type());
 		} else {
 			std::fill(start, start + new_size, object_type());
@@ -526,8 +526,8 @@ void resize(stable_variable_vector_storage_mk_2<object_type, minimum_size, memor
 		detail::mk_2_header* header = (detail::mk_2_header*)(storage.backing_storage + i.value);
 		object_type* start = (object_type*)(header + 1);
 		if(old_size != 0) {
-			const auto insertion_pos = std::lower_bound(start, start + old_size, obj);
-			std::copy_backward(insertion_pos, start + size, start + new_size);
+			const auto insertion_pos = std::lower_bound(start, start + old_size, object_type());
+			std::copy_backward(insertion_pos, start + old_size, start + new_size);
 			std::fill(insertion_pos, insertion_pos + (new_size - old_size), object_type());
 		} else {
 			std::fill(start, start + new_size, object_type());
@@ -614,7 +614,7 @@ namespace serialization {
 
 	template<typename object_type, uint32_t minimum_size, size_t memory_size, typename type_tag>
 	size_t serialize_stable_array_size(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, type_tag i) {
-		return serialize_size(uint16_t) + sizeof(object_type) * get_size(storage, i);
+		return sizeof(uint16_t) + sizeof(object_type) * get_size(storage, i);
 	}
 }
 

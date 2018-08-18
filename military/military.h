@@ -291,7 +291,7 @@ namespace military {
 	};
 
 	struct war {
-		date_tag last_update;
+		atomic_tag<date_tag> last_update;
 
 		set_tag<nations::country_tag> attackers;
 		set_tag<nations::country_tag> defenders;
@@ -318,7 +318,7 @@ namespace military {
 
 		stable_2d_vector<economy::goods_qnty_type, army_tag, economy::goods_tag, 1024, 16> army_supplies;
 		stable_2d_vector<uint16_t, army_tag, unit_type_tag, 1024, 16> unit_type_composition;
-		stable_2d_vector<economy::goods_qnty_type, army_tag, economy::goods_tag, 1024, 16> fleet_supplies;
+		stable_2d_vector<economy::goods_qnty_type, fleet_tag, economy::goods_tag, 1024, 16> fleet_supplies;
 
 		stable_variable_vector_storage_mk_2<leader_tag, 4, 8192> leader_arrays;
 		stable_variable_vector_storage_mk_2<ship, 2, 8192> ship_arrays;

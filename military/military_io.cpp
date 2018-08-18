@@ -14,6 +14,217 @@
 #include "nations\\nations_functions.h"
 #include "population\\population_function.h"
 
+void serialization::serializer<military::army_orders>::serialize_object(std::byte *& output, military::army_orders const & obj, world_state const &) {
+	auto leader_id = obj.leader ? obj.leader->id : military::leader_tag();
+	serialize(output, leader_id);
+	serialize(output, obj.escort);
+	serialize(output, obj.naval_invasion_target);
+	serialize(output, obj.is_active);
+
+	uint8_t type = uint8_t(obj.type);
+	serialize(output, type);
+}
+
+void serialization::serializer<military::army_orders>::deserialize_object(std::byte const *& input, military::army_orders & obj, world_state & ws) {
+	military::leader_tag leader_id;
+	deserialize(input, leader_id);
+	obj.leader = ws.w.military_s.leaders.get_location(leader_id);
+
+	deserialize(input, obj.escort);
+	deserialize(input, obj.naval_invasion_target);
+	deserialize(input, obj.is_active);
+
+	uint8_t type = 0ui8;
+	deserialize(input, type);
+	obj.type = military::army_orders_type(type);
+
+	obj.last_update = ws.w.current_date;
+
+	//final patching TODO:
+	//
+	// rebuild list of armies from armies
+	// rebuild list of provinces from provinces
+}
+
+size_t serialization::serializer<military::army_orders>::size(military::army_orders const &, world_state const &) {
+	return sizeof(military::leader_tag) + sizeof(military::fleet_tag) + sizeof(provinces::province_tag) + sizeof(bool);
+}
+
+size_t serialization::serializer<military::army_orders>::size() {
+	return sizeof(military::leader_tag) + sizeof(military::fleet_tag) + sizeof(provinces::province_tag) + sizeof(bool);
+}
+
+void serialization::serializer<military::army>::serialize_object(std::byte *& output, military::army const & obj, world_state const & ws) {
+	auto leader_id = obj.leader ? obj.leader->id : military::leader_tag();
+	serialize(output, leader_id);
+
+	auto orders_id = obj.current_orders ? obj.current_orders->id : military::army_orders_tag();
+	serialize(output, orders_id);
+
+	serialize(output, obj.org);
+	serialize(output, obj.locked_date);
+	serialize(output, obj.owner);
+	serialize(output, obj.base);
+
+	auto supplies = ws.w.military_s.army_supplies.get_row(obj.id);
+	serialize_array(output, supplies, ws.s.economy_m.aligned_32_goods_count);
+
+	auto composition = ws.w.military_s.unit_type_composition.get_row(obj.id);
+	serialize_array(output, composition, uint32_t(ws.s.military_m.unit_types.size()));
+	//uint32_t(ws.s.military_m.unit_types.size())
+}
+
+void serialization::serializer<military::army>::deserialize_object(std::byte const *& input, military::army & obj, world_state & ws) {
+	ws.w.military_s.army_supplies.ensure_capacity(to_index(obj.id) + 1);
+	ws.w.military_s.unit_type_composition.ensure_capacity(to_index(obj.id) + 1);
+
+	military::leader_tag leader_id;
+	deserialize(input, leader_id);
+	obj.leader = ws.w.military_s.leaders.get_location(leader_id);
+
+	military::army_orders_tag orders_id;
+	deserialize(input, orders_id);
+	obj.current_orders = ws.w.military_s.army_orders_container.get_location(orders_id);
+
+	deserialize(input, obj.org);
+	deserialize(input, obj.locked_date);
+	deserialize(input, obj.owner);
+	deserialize(input, obj.base);
+
+	auto supplies = ws.w.military_s.army_supplies.get_row(obj.id);
+	deserialize_array(input, supplies, ws.s.economy_m.aligned_32_goods_count);
+
+	auto composition = ws.w.military_s.unit_type_composition.get_row(obj.id);
+	deserialize_array(input, composition, uint32_t(ws.s.military_m.unit_types.size()));
+
+	obj.last_update = ws.w.current_date;
+
+	//final patching TODO:
+	//
+	// rebuild backing pops from pops
+	// rebuild total attributes
+	// recalculate total soldiers
+	// recalculate minimum soldiers
+}
+
+size_t serialization::serializer<military::army>::size(military::army const & obj, world_state const & ws) {
+	return sizeof(military::leader_tag) + sizeof(military::army_orders_tag) + sizeof(obj.org) + sizeof(obj.locked_date) +
+		sizeof(obj.owner) + sizeof(obj.base) +
+		sizeof(economy::goods_qnty_type) * ws.s.economy_m.aligned_32_goods_count +
+		sizeof(uint16_t) * ws.s.military_m.unit_types.size();
+}
+
+void serialization::serializer<military::fleet>::serialize_object(std::byte *& output, military::fleet const & obj, world_state const & ws) {
+	auto leader_id = obj.leader ? obj.leader->id : military::leader_tag();
+	serialize(output, leader_id);
+
+	uint8_t orders = uint8_t(obj.orders);
+	serialize(output, orders);
+
+	serialize(output, obj.locked_date);
+	serialize(output, obj.base);
+
+	auto supplies = ws.w.military_s.fleet_supplies.get_row(obj.id);
+	serialize_array(output, supplies, ws.s.economy_m.aligned_32_goods_count);
+
+	serialize_stable_array(output, ws.w.military_s.ship_arrays, obj.ships);
+}
+
+void serialization::serializer<military::fleet>::deserialize_object(std::byte const *& input, military::fleet & obj, world_state & ws) {
+	ws.w.military_s.fleet_supplies.ensure_capacity(to_index(obj.id) + 1);
+
+	military::leader_tag leader_id;
+	deserialize(input, leader_id);
+	obj.leader = ws.w.military_s.leaders.get_location(leader_id);
+
+	uint8_t orders = 0ui8;
+	deserialize(input, orders);
+	obj.orders = military::fleet_orders_type(orders);
+
+	deserialize(input, obj.locked_date);
+	deserialize(input, obj.base);
+
+	auto supplies = ws.w.military_s.fleet_supplies.get_row(obj.id);
+	deserialize_array(input, supplies, ws.s.economy_m.aligned_32_goods_count);
+
+	deserialize_stable_array(input, ws.w.military_s.ship_arrays, obj.ships);
+	//final patching TODO:
+	//
+	// rebuild total attributes
+}
+
+size_t serialization::serializer<military::fleet>::size(military::fleet const & obj, world_state const & ws) {
+	return sizeof(military::leader_tag) +
+		sizeof(uint8_t) +
+		serialize_size(obj.locked_date) +
+		serialize_size(obj.base) +
+		sizeof(economy::goods_qnty_type) * ws.s.economy_m.aligned_32_goods_count +
+		serialize_stable_array_size(ws.w.military_s.ship_arrays, obj.ships)
+		;
+}
+
+void serialization::serializer<military::war>::serialize_object(std::byte *& output, military::war const & obj, world_state const & ws) {
+	serialize(output, obj.start_date);
+	serialize(output, obj.current_war_score);
+	serialize(output, obj.primary_attacker);
+	serialize(output, obj.primary_defender);
+
+	serialize_stable_array(output, ws.w.nation_s.nations_arrays, obj.attackers);
+	serialize_stable_array(output, ws.w.nation_s.nations_arrays, obj.defenders);
+	serialize_stable_array(output, ws.w.military_s.naval_control_arrays, obj.naval_control_set);
+	serialize_stable_array(output, ws.w.military_s.war_goal_arrays, obj.war_goals);
+}
+
+void serialization::serializer<military::war>::deserialize_object(std::byte const *& input, military::war & obj, world_state & ws) {
+	deserialize(input, obj.start_date);
+	deserialize(input, obj.current_war_score);
+	deserialize(input, obj.primary_attacker);
+	deserialize(input, obj.primary_defender);
+
+	deserialize_stable_array(input, ws.w.nation_s.nations_arrays, obj.attackers);
+	deserialize_stable_array(input, ws.w.nation_s.nations_arrays, obj.defenders);
+	deserialize_stable_array(input, ws.w.military_s.naval_control_arrays, obj.naval_control_set);
+	deserialize_stable_array(input, ws.w.military_s.war_goal_arrays, obj.war_goals);
+
+	obj.last_update = ws.w.current_date;
+}
+
+size_t serialization::serializer<military::war>::size(military::war const & obj, world_state const & ws) {
+	return serialize_size(obj.start_date) +
+		serialize_size(obj.current_war_score) +
+		serialize_size(obj.primary_attacker) +
+		serialize_size(obj.primary_defender) +
+		serialize_stable_array_size(ws.w.nation_s.nations_arrays, obj.attackers) +
+		serialize_stable_array_size(ws.w.nation_s.nations_arrays, obj.defenders) +
+		serialize_stable_array_size(ws.w.military_s.naval_control_arrays, obj.naval_control_set) +
+		serialize_stable_array_size(ws.w.military_s.war_goal_arrays, obj.war_goals)
+		;
+}
+
+void serialization::serializer<military::military_state>::serialize_object(std::byte *& output, military::military_state const & obj, world_state const & ws) {
+	serialize(output, obj.leaders, ws);
+	serialize(output, obj.armies, ws);
+	serialize(output, obj.army_orders_container, ws);
+	serialize(output, obj.fleets, ws);
+	serialize(output, obj.wars, ws);
+}
+
+void serialization::serializer<military::military_state>::deserialize_object(std::byte const *& input, military::military_state & obj, world_state & ws) {
+	deserialize(input, obj.leaders, ws);
+	deserialize(input, obj.armies, ws);
+	deserialize(input, obj.army_orders_container, ws);
+	deserialize(input, obj.fleets, ws);
+	deserialize(input, obj.wars, ws);
+}
+
+size_t serialization::serializer<military::military_state>::size(military::military_state const & obj, world_state const & ws) {
+	return serialize_size(obj.leaders, ws) +
+		serialize_size(obj.armies, ws) +
+		serialize_size(obj.army_orders_container, ws) +
+		serialize_size(obj.fleets, ws) +
+		serialize_size(obj.wars, ws);
+}
+
 namespace military {
 	struct war_goal_reader {
 		world_state& ws;

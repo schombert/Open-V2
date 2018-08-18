@@ -36,9 +36,11 @@ namespace serialization {
 		}
 		static constexpr size_t size() { return sizeof(T); }
 		template<typename ... CONTEXT>
-		static constexpr size_t size(T const&, CONTEXT&& ... c) { return sizeof(T); }
+		static constexpr size_t size(T const&, CONTEXT&& ...) { return sizeof(T); }
 	};
 
+	template<>
+	class serializer<bool> : public memcpy_serializer<bool> {};
 	template<>
 	class serializer<char> : public memcpy_serializer<char> {};
 	template<>
@@ -67,6 +69,10 @@ namespace serialization {
 	class serializer<double> : public memcpy_serializer<double> {};
 	template<>
 	class serializer<serialize_file_header> : public memcpy_serializer<serialize_file_header> {};
+	template<>
+	class serializer<graphics::color_rgb> : public memcpy_serializer<graphics::color_rgb> {};
+	template<>
+	class serializer<graphics::color_rgba> : public memcpy_serializer<graphics::color_rgba> {};
 
 	template<typename value_base, typename zero_is_null, typename individuator>
 	class serializer<tag_type<value_base, zero_is_null, individuator>> : public memcpy_serializer<tag_type<value_base, zero_is_null, individuator>> {};
@@ -90,7 +96,7 @@ namespace serialization {
 		}
 		static constexpr size_t size() { return sizeof(value_type) * size_t(rows * cols); }
 		template<typename ... CONTEXT>
-		static constexpr size_t size(Eigen::Matrix<value_type, rows, cols> const&, CONTEXT&& ... c) { return sizeof(value_type) * size_t(rows * cols); }
+		static constexpr size_t size(Eigen::Matrix<value_type, rows, cols> const&, CONTEXT&& ... ) { return sizeof(value_type) * size_t(rows * cols); }
 	};
 
 	template<typename char_type>

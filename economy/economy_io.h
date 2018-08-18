@@ -7,6 +7,8 @@
 #include "simple_fs\\simple_fs.h"
 #include <ppl.h>
 
+class world_state;
+
 template<>
 class serialization::serializer<economy::artisan_type> : public serialization::memcpy_serializer<economy::artisan_type> {};
 template<>
@@ -21,6 +23,23 @@ template<>
 class serialization::serializer<economy::railroad_information> : public serialization::memcpy_serializer<economy::railroad_information> {};
 template<>
 class serialization::serializer<economy::naval_base_information> : public serialization::memcpy_serializer<economy::naval_base_information> {};
+
+template<>
+class serialization::serializer<economy::economic_state> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, economy::economic_state const& obj, world_state const&) {
+		serialize(output, obj.current_prices);
+	}
+	static void deserialize_object(std::byte const* &input, economy::economic_state& obj, world_state&) {
+		deserialize(input, obj.current_prices);
+	}
+	static size_t size(economy::economic_state const& obj, world_state const&) {
+		return serialize_size(obj.current_prices);
+	}
+};
 
 template<>
 class serialization::serializer<economy::economic_scenario> {

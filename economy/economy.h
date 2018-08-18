@@ -7,6 +7,7 @@
 namespace scenario {
 	class scenario_manager;
 }
+
 namespace economy {
 	constexpr goods_tag money_good(0);
 

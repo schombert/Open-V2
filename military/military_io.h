@@ -14,9 +14,74 @@ namespace nations {
 }
 
 template<>
+class serialization::serializer<military::ship> : public serialization::memcpy_serializer<military::ship> {};
+template<>
+class serialization::serializer<military::military_leader> : public serialization::memcpy_serializer<military::military_leader> {};
+template<>
+class serialization::serializer<military::war_goal> : public serialization::memcpy_serializer<military::war_goal> {};
+template<>
+class serialization::serializer<military::naval_control> : public serialization::memcpy_serializer<military::war_goal> {};
+
+template<>
 class serialization::serializer<military::cb_type> : public serialization::memcpy_serializer<military::cb_type> {};
 template<>
 class serialization::serializer<military::unit_type> : public serialization::memcpy_serializer<military::unit_type> {};
+
+template<>
+class serialization::serializer<military::army_orders> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, military::army_orders const& obj, world_state const&);
+	static void deserialize_object(std::byte const* &input, military::army_orders& obj, world_state& ws);
+	static size_t size(military::army_orders const&, world_state const&);
+	static size_t size();
+};
+
+template<>
+class serialization::serializer<military::army> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, military::army const& obj, world_state const& ws);
+	static void deserialize_object(std::byte const* &input, military::army& obj, world_state& ws);
+	static size_t size(military::army const& obj, world_state const& ws);
+};
+
+template<>
+class serialization::serializer<military::fleet> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, military::fleet const& obj, world_state const& ws);
+	static void deserialize_object(std::byte const* &input, military::fleet& obj, world_state& ws);
+	static size_t size(military::fleet const& obj, world_state const& ws);
+};
+
+template<>
+class serialization::serializer<military::war> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, military::war const& obj, world_state const& ws);
+	static void deserialize_object(std::byte const* &input, military::war& obj, world_state& ws);
+	static size_t size(military::war const& obj, world_state const& ws);
+};
+
+template<>
+class serialization::serializer<military::military_state> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, military::military_state const& obj, world_state const& ws);
+	static void deserialize_object(std::byte const* &input, military::military_state& obj, world_state& ws);
+	static size_t size(military::military_state const& obj, world_state const& ws);
+};
 
 template<>
 class serialization::serializer<military::military_manager> {

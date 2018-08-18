@@ -6,6 +6,9 @@
 #include "simple_serialize\\simple_serialize.hpp"
 #include <ppl.h>
 
+
+class world_state;
+
 template<>
 class serialization::serializer<cultures::culture> : public serialization::memcpy_serializer<cultures::culture> {};
 template<>
@@ -16,6 +19,40 @@ template<>
 class serialization::serializer<cultures::national_tag_object> : public serialization::memcpy_serializer<cultures::national_tag_object> {};
 template<>
 class serialization::serializer<cultures::name_pair> : public serialization::memcpy_serializer<cultures::name_pair> {};
+
+template<>
+class serialization::serializer<cultures::national_tag_state> {
+public:
+	static constexpr bool has_static_size = true;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, cultures::national_tag_state const& obj, world_state const&);
+	static void deserialize_object(std::byte const* &input, cultures::national_tag_state& obj, world_state&);
+	static size_t size();
+};
+
+template<>
+class serialization::serializer<cultures::cultures_state> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, cultures::cultures_state const& obj, world_state const& ws) {
+		serialize(output, obj.national_tags_state, ws);
+		serialize(output, obj.country_flags_by_government);
+	}
+	static void deserialize_object(std::byte const* &input, cultures::cultures_state& obj, world_state& ws) {
+		deserialize(input, obj.national_tags_state, ws);
+		deserialize(input, obj.country_flags_by_government);
+
+		//final patching TODO:
+		//
+		// rebuild cores list in tag from province cores
+	}
+	static size_t size(cultures::cultures_state const& obj, world_state const& ws) {
+		return serialize_size(obj.national_tags_state, ws) + serialize_size(obj.country_flags_by_government);
+	}
+};
 
 template<>
 class serialization::serializer<cultures::culture_manager> {

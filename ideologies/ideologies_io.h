@@ -7,6 +7,25 @@
 #include "text_data\\text_data.h"
 #include <ppl.h>
 
+class world_state;
+
+template<>
+class serialization::serializer<ideologies::ideologies_state> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, ideologies::ideologies_state const& obj, world_state const&) {
+		serialize(output, obj.ideology_enabled);
+	}
+	static void deserialize_object(std::byte const* &input, ideologies::ideologies_state& obj, world_state&) {
+		deserialize(input, obj.ideology_enabled);
+	}
+	static size_t size(ideologies::ideologies_state const& obj, world_state const&) {
+		return serialize_size(obj.ideology_enabled);
+	}
+};
+
 template<>
 class serialization::serializer<ideologies::ideology_group> : public serialization::memcpy_serializer<ideologies::ideology_group> {};
 template<>

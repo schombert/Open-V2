@@ -9,6 +9,190 @@
 #include "world_state\\world_state.h"
 #include "population_function.h"
 
+void serialization::serializer<population::pop>::serialize_object(std::byte *& output, population::pop const & obj) {
+	serialize(output, obj.size_change_from_combat);
+	serialize(output, obj.size_change_from_growth);
+	serialize(output, obj.size_change_from_type_change);
+	serialize(output, obj.size_change_from_assimilation);
+	serialize(output, obj.size_change_from_local_migration);
+	serialize(output, obj.size_change_from_emmigration);
+	serialize(output, obj.money);
+	serialize(output, obj.last_wages);
+	serialize(output, obj.needs_satisfaction);
+	serialize(output, obj.literacy);
+	serialize(output, obj.militancy);
+	serialize(output, obj.consciousness);
+	serialize(output, obj.location);
+	serialize(output, obj.culture);
+	serialize(output, obj.rebel_faction);
+	serialize(output, obj.movement);
+	serialize(output, obj.associated_army);
+	serialize(output, obj.religion);
+	serialize(output, obj.type);
+}
+
+void serialization::serializer<population::pop>::deserialize_object(std::byte const *& input, population::pop & obj, world_state & ws) {
+	ws.w.population_s.pop_demographics.ensure_capacity(to_index(obj.id) + 1);
+
+	deserialize(input, obj.size_change_from_combat);
+	deserialize(input, obj.size_change_from_growth);
+	deserialize(input, obj.size_change_from_type_change);
+	deserialize(input, obj.size_change_from_assimilation);
+	deserialize(input, obj.size_change_from_local_migration);
+	deserialize(input, obj.size_change_from_emmigration);
+	deserialize(input, obj.money);
+	deserialize(input, obj.last_wages);
+	deserialize(input, obj.needs_satisfaction);
+	deserialize(input, obj.literacy);
+	deserialize(input, obj.militancy);
+	deserialize(input, obj.consciousness);
+	deserialize(input, obj.location);
+	deserialize(input, obj.culture);
+	deserialize(input, obj.rebel_faction);
+	deserialize(input, obj.movement);
+	deserialize(input, obj.associated_army);
+	deserialize(input, obj.religion);
+	deserialize(input, obj.type);
+
+	obj.last_update = ws.w.current_date;
+}
+
+size_t serialization::serializer<population::pop>::size(population::pop const & obj) {
+	return serialize_size(obj.size_change_from_combat) +
+		serialize_size(obj.size_change_from_growth) +
+		serialize_size(obj.size_change_from_type_change) +
+		serialize_size(obj.size_change_from_assimilation) +
+		serialize_size(obj.size_change_from_local_migration) +
+		serialize_size(obj.size_change_from_emmigration) +
+		serialize_size(obj.money) +
+		serialize_size(obj.last_wages) +
+		serialize_size(obj.needs_satisfaction) +
+		serialize_size(obj.literacy) +
+		serialize_size(obj.militancy) +
+		serialize_size(obj.consciousness) +
+		serialize_size(obj.location) +
+		serialize_size(obj.culture) +
+		serialize_size(obj.rebel_faction) +
+		serialize_size(obj.movement) +
+		serialize_size(obj.associated_army) +
+		serialize_size(obj.religion) +
+		serialize_size(obj.type);
+}
+
+size_t serialization::serializer<population::pop>::size() {
+	return sizeof(std::declval<population::pop>().size_change_from_combat) +
+		sizeof(std::declval<population::pop>().size_change_from_growth) +
+		sizeof(std::declval<population::pop>().size_change_from_type_change) +
+		sizeof(std::declval<population::pop>().size_change_from_assimilation) +
+		sizeof(std::declval<population::pop>().size_change_from_local_migration) +
+		sizeof(std::declval<population::pop>().size_change_from_emmigration) +
+		sizeof(std::declval<population::pop>().money) +
+		sizeof(std::declval<population::pop>().last_wages) +
+		sizeof(std::declval<population::pop>().needs_satisfaction) +
+		sizeof(std::declval<population::pop>().literacy) +
+		sizeof(std::declval<population::pop>().militancy) +
+		sizeof(std::declval<population::pop>().consciousness) +
+		sizeof(std::declval<population::pop>().location) +
+		sizeof(std::declval<population::pop>().culture) +
+		sizeof(std::declval<population::pop>().rebel_faction) +
+		sizeof(std::declval<population::pop>().movement) +
+		sizeof(std::declval<population::pop>().associated_army) +
+		sizeof(std::declval<population::pop>().religion) +
+		sizeof(std::declval<population::pop>().type);
+}
+
+void serialization::serializer<population::pop_movement>::serialize_object(std::byte *& output, population::pop_movement const & obj) {
+	serialize(output, obj.radicalism);
+	serialize(output, obj.radicalism_cache);
+	serialize(output, obj.liberation_country);
+	serialize(output, obj.associated_issue);
+
+	uint8_t type = uint8_t(obj.type);
+	serialize(output, type);
+}
+
+void serialization::serializer<population::pop_movement>::deserialize_object(std::byte const *& input, population::pop_movement & obj) {
+	deserialize(input, obj.radicalism);
+	deserialize(input, obj.radicalism_cache);
+	deserialize(input, obj.liberation_country);
+	deserialize(input, obj.associated_issue);
+
+	uint8_t type = 0ui8;
+	deserialize(input, type);
+	obj.type = population::movement_type(type);
+
+	// todo
+	// rebuild list of pops, total pop support, from pops
+}
+
+size_t serialization::serializer<population::pop_movement>::size(population::pop_movement const & obj) {
+	return serialize_size(obj.radicalism) +
+		serialize_size(obj.radicalism_cache) +
+		serialize_size(obj.liberation_country) +
+		serialize_size(obj.associated_issue) +
+		sizeof(uint8_t);
+}
+
+size_t serialization::serializer<population::pop_movement>::size() {
+	return sizeof(float) +
+		sizeof(float) +
+		sizeof(nations::country_tag) +
+		sizeof(issues::option_tag) +
+		sizeof(uint8_t);
+}
+
+void serialization::serializer<population::population_state>::serialize_object(std::byte *& output, population::population_state const & obj, world_state const &) {
+	serialize(output, obj.rebel_factions);
+	serialize(output, obj.pop_movements);
+	serialize(output, obj.pops);
+}
+
+void serialization::serializer<population::population_state>::deserialize_object(std::byte const *& input, population::population_state & obj, world_state & ws) {
+	deserialize(input, obj.rebel_factions, ws);
+	deserialize(input, obj.pop_movements);
+	deserialize(input, obj.pops, ws);
+}
+
+size_t serialization::serializer<population::population_state>::size(population::population_state const & obj, world_state const &) {
+	return serialize_size(obj.rebel_factions) +
+		serialize_size(obj.pop_movements) +
+		serialize_size(obj.pops);
+}
+
+void serialization::serializer<population::rebel_faction>::serialize_object(std::byte *& output, population::rebel_faction const & obj) {
+	serialize(output, obj.independence_tag);
+	serialize(output, obj.culture);
+	serialize(output, obj.religion);
+	serialize(output, obj.type);
+}
+
+void serialization::serializer<population::rebel_faction>::deserialize_object(std::byte const *& input, population::rebel_faction & obj, world_state & ws) {
+	deserialize(input, obj.independence_tag);
+	deserialize(input, obj.culture);
+	deserialize(input, obj.religion);
+	deserialize(input, obj.type);
+
+	obj.flags = ws.s.population_m.rebel_types[obj.type].flags;
+	obj.icon = ws.s.population_m.rebel_types[obj.type].icon;
+
+	// todo
+	// rebuild list of pops & controlled_provinces from pops and provinces
+}
+
+size_t serialization::serializer<population::rebel_faction>::size(population::rebel_faction const & obj) {
+	return serialize_size(obj.independence_tag) +
+		serialize_size(obj.culture) +
+		serialize_size(obj.religion) +
+		serialize_size(obj.type);
+}
+
+size_t serialization::serializer<population::rebel_faction>::size() {
+	return sizeof(nations::country_tag) +
+		sizeof(cultures::culture_tag) +
+		sizeof(cultures::religion_tag) +
+		sizeof(population::rebel_type_tag);
+}
+
 namespace population {
 	struct pops_in_province_environment {
 		world_state& ws;

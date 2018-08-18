@@ -17,6 +17,53 @@ template<>
 class serialization::serializer<population::government_employment> : public serialization::memcpy_serializer<population::government_employment> {};
 
 template<>
+class serialization::serializer<population::pop> {
+public:
+	static constexpr bool has_static_size = true;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, population::pop const& obj);
+	static void deserialize_object(std::byte const* &input, population::pop& obj, world_state& ws);
+	static size_t size(population::pop const& obj);
+	static size_t size();
+};
+
+template<>
+class serialization::serializer<population::pop_movement> {
+public:
+	static constexpr bool has_static_size = true;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, population::pop_movement const& obj);
+	static void deserialize_object(std::byte const* &input, population::pop_movement& obj);
+	static size_t size(population::pop_movement const& obj);
+	static size_t size();
+};
+
+template<>
+class serialization::serializer<population::rebel_faction> {
+public:
+	static constexpr bool has_static_size = true;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, population::rebel_faction const& obj);
+	static void deserialize_object(std::byte const* &input, population::rebel_faction& obj, world_state& ws);
+	static size_t size(population::rebel_faction const& obj);
+	static size_t size();
+};
+
+template<>
+class serialization::serializer<population::population_state> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, population::population_state const& obj, world_state const&);
+	static void deserialize_object(std::byte const* &input, population::population_state& obj, world_state& ws);
+	static size_t size(population::population_state const& obj, world_state const&);
+};
+
+template<>
 class serialization::serializer<population::population_manager> {
 public:
 	static constexpr bool has_static_size = false;
