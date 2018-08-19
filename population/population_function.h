@@ -8,9 +8,10 @@ namespace nations {
 }
 
 namespace population {
+	void init_population_state(world_state& ws);
+	void reset_state(population_state& s);
 	void init_rebel_faction_from_rebel_type(rebel_faction&, rebel_type&);
 	pop& make_new_pop(world_state& ws);
-	void init_population_state(world_state& ws);
 	void init_pop_demographics(world_state& ws, pop& p, int32_t size);
 	bool is_pop_accepted(world_state& ws, pop& p, nations::nation& n);
 	pop* get_unassigned_soldier_in_province(world_state& ws, provinces::province_tag prov);

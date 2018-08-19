@@ -19,6 +19,12 @@ namespace population {
 		ws.w.population_s.pop_demographics.reset(aligned_32_issues_ideology_demo_size(ws));
 	}
 
+	void reset_state(population_state& s) {
+		s.pop_arrays.reset();
+		s.rebel_faction_arrays.reset();
+		s.pop_movement_arrays.reset();
+	}
+
 	void init_pop_demographics(world_state& ws, pop& p, int32_t size) {
 		ws.w.population_s.pop_demographics.ensure_capacity(to_index(p.id) + 1);
 		ws.w.population_s.pop_demographics.get(p.id, total_population_tag) = size;

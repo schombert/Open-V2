@@ -4,6 +4,13 @@
 #include "population\\population_function.h"
 
 namespace provinces {
+	void reset_state(provinces_state& s) {
+		s.core_arrays.reset();
+		s.static_modifier_arrays.reset();
+		s.timed_modifier_arrays.reset();
+		s.province_arrays.reset();
+	}
+
 	void add_core(current_state::state& ws, province_tag prov, cultures::national_tag tag) {
 		add_item(ws.province_s.core_arrays, ws.province_s.province_state_container[prov].cores, tag);
 		add_item(ws.province_s.province_arrays, ws.culture_s.national_tags_state[tag].core_provinces, prov);

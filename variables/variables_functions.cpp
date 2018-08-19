@@ -7,4 +7,7 @@ namespace variables {
 		if(ws.w.variable_s.global_variables.size() != ws.s.variables_m.count_global_variables)
 			ws.w.variable_s.global_variables.resize(ws.s.variables_m.count_global_variables);
 	}
+	void reset_state(variables_state& s) {
+		s.national_flags_arrays.reset();
+	}
 }

@@ -3,6 +3,10 @@
 #include "world_state\\world_state.h"
 
 namespace cultures {
+	void reset_state(cultures_state& s) {
+		s.culture_arrays.reset();
+	}
+
 	void init_cultures_state(world_state& ws) {
 		if(ws.w.culture_s.national_tags_state.size() != ws.s.culture_m.national_tags.size())
 			ws.w.culture_s.national_tags_state.resize(ws.s.culture_m.national_tags.size());

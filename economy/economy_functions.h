@@ -6,4 +6,5 @@ class world_state;
 
 namespace economy {
 	void init_economic_scenario(world_state& ws);
+	void reset_state(economic_state& s);
 }

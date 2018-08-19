@@ -7,6 +7,8 @@
 #include "governments\\governments_functions.h"
 #include "military\\military_io.h"
 #include "nations\\nations_functions.h"
+#include "technologies\\technologies_functions.h"
+#include "military\\military_functions.h"
 
 #undef max
 #undef min
@@ -67,12 +69,6 @@ void serialization::serializer<nations::state_instance>::deserialize_object(std:
 	deserialize_stable_array(input, ws.w.nation_s.nations_arrays, obj.flashpoint_tension_focuses);
 
 	obj.last_update = ws.w.current_date;
-
-	//final patching TODO:
-	//
-	// add states to owner's member states list
-	// calculate administrative efficiency
-	// rebuild demographics
 }
 
 size_t serialization::serializer<nations::state_instance>::size(nations::state_instance const & obj, world_state const& ws) {
@@ -183,6 +179,9 @@ void serialization::serializer<nations::nation>::deserialize_object(std::byte co
 	ws.w.nation_s.rebel_org_gain.ensure_capacity(to_index(obj.id) + 1);
 	ws.w.nation_s.production_adjustments.ensure_capacity(to_index(obj.id) + 1);
 
+	technologies::reset_technologies(ws, obj);
+	military::reset_unit_stats(ws, obj.id);
+
 	nations::country_tag overlord_id;
 	deserialize(input, overlord_id);
 	if(is_valid_index(overlord_id)) {
@@ -280,12 +279,7 @@ void serialization::serializer<nations::nation>::deserialize_object(std::byte co
 
 	//final patching TODO:
 	//
-	// rebuild
-	// set_tag<country_tag> opponents_in_war;
-	// set_tag<country_tag> allies_in_war; -- update_at_war_with_and_against -- after military reloaded
-	// array tag armies -- update from owners of armies
 	//
-	//calculate derived values:
 	//float blockade_fraction = 0.0f;
 	//float rebel_control_fraction = 0.0f; // of provinces connected to capital
 	//float political_interest_fraction = 0.0f;
@@ -293,12 +287,8 @@ void serialization::serializer<nations::nation>::deserialize_object(std::byte co
 	//float crime_fraction = 0.0f; //fraction of provinces with active crime
 	//float social_movement_support = 0.0f; // sum of social movement supporters / total pop * defines factor
 	//float political_movement_support = 0.0f; // sum of social movement supporters / total pop * defines factor
+
 	//uint8_t num_of_active_revolts = 0ui8;
-	//ideologies::ideology_tag ruling_ideology;
-	//issues::option_tag dominant_issue;
-	//ideologies::ideology_tag dominant_ideology;
-	//cultures::religion_tag dominant_religion;
-	//cultures::culture_tag dominant_culture;
 	//uint16_t num_connected_ports = 0ui16; // number of ports connected to capital by land
 	//uint16_t num_ports = 0ui16;
 	//int16_t military_score = 0i16;
@@ -308,19 +298,10 @@ void serialization::serializer<nations::nation>::deserialize_object(std::byte co
 	//int16_t military_rank = 0i16;
 	//int16_t industrial_rank = 0i16;
 	//
-	//fill owned and controlled arrays from province state
 	//
 	//set_tag<country_tag> neighboring_nations;
 	//
-	//determine tag from national tags -> holders value
-	//graphics::texture_tag flag; -- from tag
-	//text_data::text_tag name; -- from tag
-	//text_data::text_tag adjective; -- from tag
 	//
-	// technologies::reset_technologies(ws, obj); ... then
-	//reapply all technologies (only after units have been loaded)
-	//
-	//update demographics
 }
 
 inline size_t serialization::serializer<nations::nation>::size(nations::nation const & obj, world_state const& ws) {

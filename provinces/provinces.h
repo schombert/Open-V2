@@ -55,7 +55,6 @@ namespace provinces {
 		set_tag<military::fleet_presence> fleets; // for sea zones
 		set_tag<modifiers::provincial_modifier_tag> static_modifiers;
 		set_tag<timed_provincial_modifier> timed_modifiers;
-		//array of active plans involving this province
 
 		text_data::text_tag name;
 		modifiers::provincial_modifier_tag crime;

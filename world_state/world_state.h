@@ -16,7 +16,7 @@ class world_state;
 namespace current_state {
 	class gui_state;
 
-	enum class crisis_type {
+	enum class crisis_type : uint8_t {
 		none,
 		liberation,
 		claim,

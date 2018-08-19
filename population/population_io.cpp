@@ -9,7 +9,7 @@
 #include "world_state\\world_state.h"
 #include "population_function.h"
 
-void serialization::serializer<population::pop>::serialize_object(std::byte *& output, population::pop const & obj) {
+void serialization::serializer<population::pop>::serialize_object(std::byte *& output, population::pop const & obj, world_state const& ws) {
 	serialize(output, obj.size_change_from_combat);
 	serialize(output, obj.size_change_from_growth);
 	serialize(output, obj.size_change_from_type_change);
@@ -29,6 +29,9 @@ void serialization::serializer<population::pop>::serialize_object(std::byte *& o
 	serialize(output, obj.associated_army);
 	serialize(output, obj.religion);
 	serialize(output, obj.type);
+
+	auto demographics = ws.w.population_s.pop_demographics.get_row(obj.id);
+	serialize_array(output, demographics, population::aligned_32_issues_ideology_demo_size(ws));
 }
 
 void serialization::serializer<population::pop>::deserialize_object(std::byte const *& input, population::pop & obj, world_state & ws) {
@@ -54,10 +57,13 @@ void serialization::serializer<population::pop>::deserialize_object(std::byte co
 	deserialize(input, obj.religion);
 	deserialize(input, obj.type);
 
+	auto demographics = ws.w.population_s.pop_demographics.get_row(obj.id);
+	deserialize_array(input, demographics, population::aligned_32_issues_ideology_demo_size(ws));
+
 	obj.last_update = ws.w.current_date;
 }
 
-size_t serialization::serializer<population::pop>::size(population::pop const & obj) {
+size_t serialization::serializer<population::pop>::size(population::pop const & obj, world_state const& ws) {
 	return serialize_size(obj.size_change_from_combat) +
 		serialize_size(obj.size_change_from_growth) +
 		serialize_size(obj.size_change_from_type_change) +
@@ -76,29 +82,8 @@ size_t serialization::serializer<population::pop>::size(population::pop const & 
 		serialize_size(obj.movement) +
 		serialize_size(obj.associated_army) +
 		serialize_size(obj.religion) +
-		serialize_size(obj.type);
-}
-
-size_t serialization::serializer<population::pop>::size() {
-	return sizeof(std::declval<population::pop>().size_change_from_combat) +
-		sizeof(std::declval<population::pop>().size_change_from_growth) +
-		sizeof(std::declval<population::pop>().size_change_from_type_change) +
-		sizeof(std::declval<population::pop>().size_change_from_assimilation) +
-		sizeof(std::declval<population::pop>().size_change_from_local_migration) +
-		sizeof(std::declval<population::pop>().size_change_from_emmigration) +
-		sizeof(std::declval<population::pop>().money) +
-		sizeof(std::declval<population::pop>().last_wages) +
-		sizeof(std::declval<population::pop>().needs_satisfaction) +
-		sizeof(std::declval<population::pop>().literacy) +
-		sizeof(std::declval<population::pop>().militancy) +
-		sizeof(std::declval<population::pop>().consciousness) +
-		sizeof(std::declval<population::pop>().location) +
-		sizeof(std::declval<population::pop>().culture) +
-		sizeof(std::declval<population::pop>().rebel_faction) +
-		sizeof(std::declval<population::pop>().movement) +
-		sizeof(std::declval<population::pop>().associated_army) +
-		sizeof(std::declval<population::pop>().religion) +
-		sizeof(std::declval<population::pop>().type);
+		serialize_size(obj.type) +
+		population::aligned_32_issues_ideology_demo_size(ws) * sizeof(int32_t);
 }
 
 void serialization::serializer<population::pop_movement>::serialize_object(std::byte *& output, population::pop_movement const & obj) {
@@ -141,10 +126,10 @@ size_t serialization::serializer<population::pop_movement>::size() {
 		sizeof(uint8_t);
 }
 
-void serialization::serializer<population::population_state>::serialize_object(std::byte *& output, population::population_state const & obj, world_state const &) {
+void serialization::serializer<population::population_state>::serialize_object(std::byte *& output, population::population_state const & obj, world_state const & ws) {
 	serialize(output, obj.rebel_factions);
 	serialize(output, obj.pop_movements);
-	serialize(output, obj.pops);
+	serialize(output, obj.pops, ws);
 }
 
 void serialization::serializer<population::population_state>::deserialize_object(std::byte const *& input, population::population_state & obj, world_state & ws) {
@@ -153,10 +138,10 @@ void serialization::serializer<population::population_state>::deserialize_object
 	deserialize(input, obj.pops, ws);
 }
 
-size_t serialization::serializer<population::population_state>::size(population::population_state const & obj, world_state const &) {
+size_t serialization::serializer<population::population_state>::size(population::population_state const & obj, world_state const & ws) {
 	return serialize_size(obj.rebel_factions) +
 		serialize_size(obj.pop_movements) +
-		serialize_size(obj.pops);
+		serialize_size(obj.pops, ws);
 }
 
 void serialization::serializer<population::rebel_faction>::serialize_object(std::byte *& output, population::rebel_faction const & obj) {

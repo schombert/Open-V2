@@ -13,6 +13,18 @@ namespace military {
 			ws.w.military_s.unit_type_composition.reset(uint32_t(ws.s.military_m.unit_types.size()));
 	}
 
+	void reset_state(military_state& s) {
+		s.leader_arrays.reset();
+		s.ship_arrays.reset();
+		s.army_arrays.reset();
+		s.orders_arrays.reset();
+		s.fleet_arrays.reset();
+		s.war_arrays.reset();
+		s.war_goal_arrays.reset();
+		s.fleet_presence_arrays.reset();
+		s.naval_control_arrays.reset();
+	}
+
 	military_leader& make_empty_leader(world_state& ws, cultures::culture_tag culture, bool is_general) {
 		military_leader& new_leader = ws.w.military_s.leaders.get_new();
 		auto& culture_obj = ws.s.culture_m.culture_container[culture];
@@ -61,8 +73,8 @@ namespace military {
 	void calculate_leader_traits(world_state& ws, military_leader& l) {
 		Eigen::Map<Eigen::Matrix<traits::value_type, traits::trait_count, 1>> dest_vec(l.leader_traits);
 
-		Eigen::Map<Eigen::Matrix<traits::value_type, traits::trait_count, 1>, Eigen::Aligned32> source_a(ws.s.military_m.leader_trait_definitions.get_row(l.background));
-		Eigen::Map<Eigen::Matrix<traits::value_type, traits::trait_count, 1>, Eigen::Aligned32> source_b(ws.s.military_m.leader_trait_definitions.get_row(l.personality));
+		Eigen::Map<Eigen::Matrix<traits::value_type, traits::trait_count, 1>> source_a(ws.s.military_m.leader_trait_definitions.get_row(l.background));
+		Eigen::Map<Eigen::Matrix<traits::value_type, traits::trait_count, 1>> source_b(ws.s.military_m.leader_trait_definitions.get_row(l.personality));
 
 		dest_vec = source_a + source_b;
 	}
@@ -409,5 +421,11 @@ namespace military {
 					ws.w.military_s.army_orders_container[o].leader = nullptr;
 			}
 		}
+	}
+
+	uint32_t calculate_minimum_soldiers(world_state const& ws, army_tag a) {
+		Eigen::Map<Eigen::Matrix<uint16_t, -1, 1>> composition(ws.w.military_s.unit_type_composition.get_row(a), ws.s.military_m.unit_types_count);
+		auto count_brigades = composition.sum();
+		return uint32_t(ws.s.modifiers_m.global_defines.pop_size_per_regiment) * count_brigades;
 	}
 }

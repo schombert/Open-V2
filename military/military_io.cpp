@@ -39,11 +39,6 @@ void serialization::serializer<military::army_orders>::deserialize_object(std::b
 	obj.type = military::army_orders_type(type);
 
 	obj.last_update = ws.w.current_date;
-
-	//final patching TODO:
-	//
-	// rebuild list of armies from armies
-	// rebuild list of provinces from provinces
 }
 
 size_t serialization::serializer<military::army_orders>::size(military::army_orders const &, world_state const &) {
@@ -71,7 +66,6 @@ void serialization::serializer<military::army>::serialize_object(std::byte *& ou
 
 	auto composition = ws.w.military_s.unit_type_composition.get_row(obj.id);
 	serialize_array(output, composition, uint32_t(ws.s.military_m.unit_types.size()));
-	//uint32_t(ws.s.military_m.unit_types.size())
 }
 
 void serialization::serializer<military::army>::deserialize_object(std::byte const *& input, military::army & obj, world_state & ws) {
@@ -97,14 +91,9 @@ void serialization::serializer<military::army>::deserialize_object(std::byte con
 	auto composition = ws.w.military_s.unit_type_composition.get_row(obj.id);
 	deserialize_array(input, composition, uint32_t(ws.s.military_m.unit_types.size()));
 
-	obj.last_update = ws.w.current_date;
+	obj.minimum_soldiers = military::calculate_minimum_soldiers(ws, obj.id);
 
-	//final patching TODO:
-	//
-	// rebuild backing pops from pops
-	// rebuild total attributes
-	// recalculate total soldiers
-	// recalculate minimum soldiers
+	obj.last_update = ws.w.current_date;
 }
 
 size_t serialization::serializer<military::army>::size(military::army const & obj, world_state const & ws) {
@@ -148,9 +137,6 @@ void serialization::serializer<military::fleet>::deserialize_object(std::byte co
 	deserialize_array(input, supplies, ws.s.economy_m.aligned_32_goods_count);
 
 	deserialize_stable_array(input, ws.w.military_s.ship_arrays, obj.ships);
-	//final patching TODO:
-	//
-	// rebuild total attributes
 }
 
 size_t serialization::serializer<military::fleet>::size(military::fleet const & obj, world_state const & ws) {

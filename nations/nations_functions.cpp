@@ -31,6 +31,18 @@ namespace nations {
 		technologies::reset_technologies(ws, new_nation);
 	}
 
+	void reset_state(nations_state& s) {
+		s.static_modifier_arrays.reset();
+		s.timed_modifier_arrays.reset();
+		s.state_arrays.reset();
+		s.influence_arrays.reset();
+		s.nations_arrays.reset();
+		s.state_tag_arrays.reset();
+		s.relations_arrays.reset();
+		s.truce_arrays.reset();
+		s.loan_arrays.reset();
+	}
+
 	void destroy_nation(world_state& ws, nations::nation& new_nation) {
 		clear(ws.w.culture_s.culture_arrays, new_nation.accepted_cultures);
 
@@ -701,5 +713,10 @@ namespace nations {
 	}
 	int32_t get_colonial_points(nations::nation const& n) {
 		return int32_t(n.base_colonial_points) + int32_t(n.tech_attributes[technologies::tech_offset::colonial_points]);
+	}
+
+	float calculate_state_administrative_efficiency(world_state const& ws, nations::state_instance& si) {
+		//stub
+		return 0.0f;
 	}
 }

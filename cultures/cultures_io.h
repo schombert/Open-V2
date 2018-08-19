@@ -44,10 +44,6 @@ public:
 	static void deserialize_object(std::byte const* &input, cultures::cultures_state& obj, world_state& ws) {
 		deserialize(input, obj.national_tags_state, ws);
 		deserialize(input, obj.country_flags_by_government);
-
-		//final patching TODO:
-		//
-		// rebuild cores list in tag from province cores
 	}
 	static size_t size(cultures::cultures_state const& obj, world_state const& ws) {
 		return serialize_size(obj.national_tags_state, ws) + serialize_size(obj.country_flags_by_government);

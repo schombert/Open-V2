@@ -17,6 +17,7 @@ namespace provinces {
 
 namespace military {
 	void init_military_state(world_state& ws);
+	void reset_state(military_state& s);
 	military_leader& make_empty_leader(world_state& ws, cultures::culture_tag culture, bool is_general);
 	leader_tag make_auto_leader(world_state& ws, cultures::culture_tag culture, bool is_general, date_tag creation_date);
 	void calculate_leader_traits(world_state& ws, military_leader& l);
@@ -53,4 +54,5 @@ namespace military {
 	void partial_destroy_orders(world_state& ws, army_orders& o); // does not remove armies or from nation
 	void destroy_admiral(world_state& ws, military_leader& l, nations::nation& owner);
 	void destroy_general(world_state& ws, military_leader& l, nations::nation& owner);
+	uint32_t calculate_minimum_soldiers(world_state const& ws, army_tag a);
 }

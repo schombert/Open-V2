@@ -12,7 +12,32 @@
 template<>
 class serialization::serializer<provinces::province> : public serialization::memcpy_serializer<provinces::province> {};
 
+template<>
+class serialization::serializer<provinces::timed_provincial_modifier> : public serialization::memcpy_serializer<provinces::timed_provincial_modifier> {};
+
 class world_state;
+
+template<>
+class serialization::serializer<provinces::province_state> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, provinces::province_state const& obj, world_state const& ws);
+	static void deserialize_object(std::byte const* &input, provinces::province_state& obj, world_state& ws);
+	static size_t size(provinces::province_state const& obj, world_state const& ws);
+};
+
+template<>
+class serialization::serializer<provinces::provinces_state> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, provinces::provinces_state const& obj, world_state const& ws);
+	static void deserialize_object(std::byte const* &input, provinces::provinces_state& obj, world_state& ws);
+	static size_t size(provinces::provinces_state const& obj, world_state const& ws);
+};
 
 template<>
 class serialization::serializer<provinces::province_manager> {

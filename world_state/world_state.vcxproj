@@ -148,9 +148,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="world_state.h" />
+    <ClInclude Include="world_state_io.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="world_state.cpp" />
+    <ClCompile Include="world_state_io.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

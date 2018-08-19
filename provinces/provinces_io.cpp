@@ -10,6 +10,142 @@
 #include "nations\\nations_functions.h"
 #include "world_state\\world_state.h"
 
+void serialization::serializer<provinces::province_state>::serialize_object(std::byte *& output, provinces::province_state const & obj, world_state const & ws) {
+	auto owner_tag = obj.owner ? obj.owner->id : nations::country_tag();
+	serialize(output, owner_tag);
+
+	auto controller_tag = obj.controller ? obj.controller->id : nations::country_tag();
+	serialize(output, controller_tag);
+
+	auto reb_controller_tag = obj.rebel_controller ? obj.rebel_controller->id : population::rebel_faction_tag();
+	serialize(output, reb_controller_tag);
+
+	auto si_tag = obj.state_instance ? obj.state_instance->id : nations::state_tag();
+	serialize(output, si_tag);
+
+	auto orders_tag = obj.orders ? obj.orders->id : military::army_orders_tag();
+	serialize(output, orders_tag);
+
+	serialize(output, obj.nationalism);
+	serialize(output, obj.siege_progress);
+	serialize(output, obj.last_controller_change);
+	serialize(output, obj.last_immigration);
+	serialize(output, obj.employed_workers);
+	serialize(output, obj.last_produced);
+	serialize(output, obj.name);
+	serialize(output, obj.crime);
+	serialize(output, obj.terrain);
+	serialize(output, obj.base_life_rating);
+	serialize(output, obj.rgo_production);
+	serialize(output, obj.artisan_production);
+	serialize(output, obj.fort_level);
+	serialize(output, obj.railroad_level);
+	serialize(output, obj.naval_base_level);
+	serialize(output, obj.rgo_size);
+	serialize(output, obj.flags);
+
+	serialize_stable_array(output, ws.w.province_s.core_arrays, obj.cores);
+	serialize_stable_array(output, ws.w.province_s.static_modifier_arrays, obj.static_modifiers);
+	serialize_stable_array(output, ws.w.province_s.timed_modifier_arrays, obj.timed_modifiers);
+}
+
+void serialization::serializer<provinces::province_state>::deserialize_object(std::byte const *& input, provinces::province_state & obj, world_state & ws) {
+	nations::country_tag owner_tag;
+	deserialize(input, owner_tag);
+	obj.owner = ws.w.nation_s.nations.get_location(owner_tag);
+
+	nations::country_tag controller_tag;
+	deserialize(input, controller_tag);
+	obj.controller = ws.w.nation_s.nations.get_location(controller_tag);
+
+	population::rebel_faction_tag reb_controller_tag;
+	deserialize(input, reb_controller_tag);
+	obj.rebel_controller = ws.w.population_s.rebel_factions.get_location(reb_controller_tag);
+
+	nations::state_tag si_tag;
+	deserialize(input, si_tag);
+	obj.state_instance = ws.w.nation_s.states.get_location(si_tag);
+
+	military::army_orders_tag orders_tag;
+	deserialize(input, orders_tag);
+	obj.orders = ws.w.military_s.army_orders_container.get_location(orders_tag);
+
+	deserialize(input, obj.nationalism);
+	deserialize(input, obj.siege_progress);
+	deserialize(input, obj.last_controller_change);
+	deserialize(input, obj.last_immigration);
+	deserialize(input, obj.employed_workers);
+	deserialize(input, obj.last_produced);
+	deserialize(input, obj.name);
+	deserialize(input, obj.crime);
+	deserialize(input, obj.terrain);
+	deserialize(input, obj.base_life_rating);
+	deserialize(input, obj.rgo_production);
+	deserialize(input, obj.artisan_production);
+	deserialize(input, obj.fort_level);
+	deserialize(input, obj.railroad_level);
+	deserialize(input, obj.naval_base_level);
+	deserialize(input, obj.rgo_size);
+	deserialize(input, obj.flags);
+
+	deserialize_stable_array(input, ws.w.province_s.core_arrays, obj.cores);
+	deserialize_stable_array(input, ws.w.province_s.static_modifier_arrays, obj.static_modifiers);
+	deserialize_stable_array(input, ws.w.province_s.timed_modifier_arrays, obj.timed_modifiers);
+
+	obj.last_update = ws.w.current_date;
+
+	// todo
+	// rebuild list of pops
+	// rebuild fleet presence
+}
+
+size_t serialization::serializer<provinces::province_state>::size(provinces::province_state const & obj, world_state const & ws) {
+	return sizeof(nations::country_tag) + // owner
+		sizeof(nations::country_tag) + // controller
+		sizeof(population::rebel_faction_tag) + // rebel controller
+		sizeof(nations::state_tag) + // state
+		sizeof(military::army_orders_tag) + // army orders
+		serialize_size(obj.nationalism) +
+		serialize_size(obj.siege_progress) +
+		serialize_size(obj.last_controller_change) +
+		serialize_size(obj.last_immigration) +
+		serialize_size(obj.employed_workers) +
+		serialize_size(obj.last_produced) +
+		serialize_size(obj.name) +
+		serialize_size(obj.crime) +
+		serialize_size(obj.terrain) +
+		serialize_size(obj.base_life_rating) +
+		serialize_size(obj.rgo_production) +
+		serialize_size(obj.artisan_production) +
+		serialize_size(obj.fort_level) +
+		serialize_size(obj.railroad_level) +
+		serialize_size(obj.naval_base_level) +
+		serialize_size(obj.rgo_size) +
+		serialize_size(obj.flags) +
+		serialize_stable_array_size(ws.w.province_s.core_arrays, obj.cores) +
+		serialize_stable_array_size(ws.w.province_s.static_modifier_arrays, obj.static_modifiers) +
+		serialize_stable_array_size(ws.w.province_s.timed_modifier_arrays, obj.timed_modifiers)
+		;
+}
+
+void serialization::serializer<provinces::provinces_state>::serialize_object(std::byte *& output, provinces::provinces_state const & obj, world_state const & ws) {
+	serialize(output, obj.province_state_container, ws);
+	serialize(output, obj.party_loyalty);
+	serialize(output, obj.is_canal_enabled);
+}
+
+void serialization::serializer<provinces::provinces_state>::deserialize_object(std::byte const *& input, provinces::provinces_state & obj, world_state & ws) {
+	deserialize(input, obj.province_state_container, ws);
+	deserialize(input, obj.party_loyalty);
+	deserialize(input, obj.is_canal_enabled);
+}
+
+size_t serialization::serializer<provinces::provinces_state>::size(provinces::provinces_state const & obj, world_state const & ws) {
+	return serialize_size(obj.province_state_container, ws) +
+		serialize_size(obj.party_loyalty) +
+		serialize_size(obj.is_canal_enabled);
+}
+
 namespace provinces {
 	using factory_level_pair = std::pair<economy::factory_type_tag, int32_t>;
 	using ideology_loyalty_pair = std::pair<ideologies::ideology_tag, float>;

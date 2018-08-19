@@ -14,4 +14,5 @@ namespace provinces {
 	nations::country_tag get_province_seiger(world_state& ws, province_state& p);
 	int32_t get_province_rgo_employment_max(world_state& ws, province_state& p);
 	float get_life_rating(province_state const& p);
+	void reset_state(provinces_state& s);
 }

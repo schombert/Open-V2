@@ -10,6 +10,8 @@ class world_state;
 
 
 namespace nations {
+	void init_nations_state(world_state& ws);
+	void reset_state(nations_state& s);
 	void silent_remove_province_owner(world_state& ws, nation* owner, provinces::province_tag prov);
 	void silent_remove_province_controller(current_state::state& ws, nation* controller, provinces::province_tag prov);
 	void silent_set_province_controller(current_state::state& ws, nation* controller, provinces::province_tag prov);
@@ -17,7 +19,6 @@ namespace nations {
 	void silent_set_province_owner(world_state& ws, nation* owner, provinces::province_tag prov);
 	nation* make_nation_for_tag(world_state& ws, cultures::national_tag nt);
 	bool is_state_empty(world_state const& ws, nation const& owner, provinces::state_tag region);
-	void init_nations_state(world_state& ws);
 	void update_state_nation_demographics(world_state& ws);
 	provinces::province_tag find_best_capital(world_state const& ws, nation const& owner);
 	void set_relationship(world_state& ws, nation& a, nation& b, int32_t value);
@@ -57,4 +58,5 @@ namespace nations {
 
 	float get_prestige(nations::nation const& n);
 	int32_t get_colonial_points(nations::nation const& n);
+	float calculate_state_administrative_efficiency(world_state const& ws, nations::state_instance& si);
 }

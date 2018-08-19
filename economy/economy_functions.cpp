@@ -9,4 +9,7 @@ namespace economy {
 			ws.w.economy_s.current_prices[g.id] = g.base_price;
 		}
 	}
+
+	void reset_state(economic_state& ) {
+	}
 }

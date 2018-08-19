@@ -6,4 +6,5 @@ class world_state;
 
 namespace variables {
 	void init_variables_state(world_state& ws);
+	void reset_state(variables_state& s);
 }

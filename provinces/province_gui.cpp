@@ -815,7 +815,7 @@ namespace provinces {
 		if(is_valid_index(selected_prov)) {
 			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
 				char16_t formatted_value[64];
-				put_value_in_buffer(formatted_value, display_type::integer, owner->military_score + owner->industrial_score + int32_t(owner->prestige));
+				put_value_in_buffer(formatted_value, display_type::integer, owner->military_score + owner->industrial_score + int32_t(nations::get_prestige(*owner)));
 
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(formatted_value), box, ui::xy_pair{ 0,0 }, fmt, lm);
 				lm.finish_current_line();
@@ -839,7 +839,7 @@ namespace provinces {
 		if(is_valid_index(selected_prov)) {
 			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
 				char16_t formatted_value[64];
-				put_value_in_buffer(formatted_value, display_type::integer, int32_t(owner->prestige));
+				put_value_in_buffer(formatted_value, display_type::integer, int32_t(nations::get_prestige(*owner)));
 
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(formatted_value), box, ui::xy_pair{ 0,0 }, fmt, lm);
 				lm.finish_current_line();
