@@ -55,4 +55,5 @@ namespace military {
 	void destroy_admiral(world_state& ws, military_leader& l, nations::nation& owner);
 	void destroy_general(world_state& ws, military_leader& l, nations::nation& owner);
 	uint32_t calculate_minimum_soldiers(world_state const& ws, army_tag a);
+	void rebuild_fleet_presence(world_state& ws, nations::nation& owner);
 }

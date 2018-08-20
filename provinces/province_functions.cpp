@@ -5,6 +5,17 @@
 
 namespace provinces {
 	void reset_state(provinces_state& s) {
+		for(auto& ps : s.province_state_container) {
+			ps.cores = set_tag<cultures::national_tag>();
+			ps.fleets = set_tag<military::fleet_presence>();
+			ps.orders = nullptr;
+			ps.owner = nullptr;
+			ps.controller = nullptr;
+			ps.orders = nullptr;
+			ps.static_modifiers = set_tag<modifiers::provincial_modifier_tag>();
+			ps.timed_modifiers = set_tag<provinces::timed_provincial_modifier>();
+			ps.pops = array_tag<population::pop_tag>();
+		}
 		s.core_arrays.reset();
 		s.static_modifier_arrays.reset();
 		s.timed_modifier_arrays.reset();

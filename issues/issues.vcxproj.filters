@@ -24,7 +24,7 @@
     <ClInclude Include="issues_functions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="issues_funactions.hpp">
+    <ClInclude Include="issues_functions.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

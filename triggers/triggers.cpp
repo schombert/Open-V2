@@ -5,7 +5,7 @@
 #include "military\\military_functions.h"
 #include "population\\population_function.h"
 #include "ideologies\\ideologies_functions.h"
-#include "issues\\issues_funactions.hpp"
+#include "issues\\issues_functions.hpp"
 #include "provinces\\province_functions.h"
 
 namespace triggers {
@@ -556,7 +556,7 @@ namespace triggers {
 		return false;
 	}
 	bool tf_crisis_state_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
-		auto cstate = ws.w.nation_s.crisis_state;
+		auto cstate = ws.w.crisis_state;
 		if(is_valid_index(cstate))
 			return apply_subtriggers(tval, ws, &(ws.w.nation_s.states.get(cstate)), this_slot, from_slot, rebel_slot);
 		return false;
@@ -1286,7 +1286,11 @@ namespace triggers {
 			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_blockade(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
-		return compare_values(tval[0], ((nations::nation*)primary_slot)->blockade_fraction, read_float_from_payload(tval + 2));
+		auto cpc = float(((nations::nation*)primary_slot)->central_province_count);
+		if(cpc != 0.0f)
+			return compare_values(tval[0], float(((nations::nation*)primary_slot)->blockaded_count) / cpc, read_float_from_payload(tval + 2));
+		else
+			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_owns(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		provinces::province_tag prov(tval[2]);
@@ -1334,10 +1338,14 @@ namespace triggers {
 		return compare_values(tval[0], contains_item(ws.w.province_s.core_arrays, ((provinces::province_state*)primary_slot)->cores, trigger_payload(tval[2]).tag), true);
 	}
 	bool tf_num_of_revolts(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
-		return compare_values(tval[0], uint16_t(((nations::nation*)primary_slot)->num_of_active_revolts), tval[2]);
+		return compare_values(tval[0], ((nations::nation*)primary_slot)->rebel_controlled_provinces, tval[2]);
 	}
 	bool tf_revolt_percentage(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
-		return compare_values(tval[0], ((nations::nation*)primary_slot)->rebel_control_fraction, read_float_from_payload(tval + 2));
+		auto cpc = float(((nations::nation*)primary_slot)->central_province_count);
+		if(cpc != 0.0f)
+			return compare_values(tval[0], float(((nations::nation*)primary_slot)->rebel_controlled_provinces) / cpc, read_float_from_payload(tval + 2));
+		else
+			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_num_of_cities_int(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		return compare_values(tval[0], get_size(ws.w.province_s.province_arrays, ((nations::nation*)primary_slot)->owned_provinces), uint32_t(tval[2]));
@@ -1548,34 +1556,34 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_prestige_value(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
-		return compare_values(tval[0], ((nations::nation*)primary_slot)->prestige, read_float_from_payload(tval + 2));
+		return compare_values(tval[0], nations::get_prestige(*((nations::nation*)primary_slot)), read_float_from_payload(tval + 2));
 	}
 	bool tf_prestige_from(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
-		return compare_values(tval[0], ((nations::nation*)primary_slot)->prestige, ((nations::nation*)from_slot)->prestige);
+		return compare_values(tval[0], nations::get_prestige(*((nations::nation*)primary_slot)), nations::get_prestige(*((nations::nation*)from_slot)));
 	}
 	bool tf_prestige_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
-		return compare_values(tval[0], ((nations::nation*)primary_slot)->prestige, ((nations::nation*)this_slot)->prestige);
+		return compare_values(tval[0], nations::get_prestige(*((nations::nation*)primary_slot)), nations::get_prestige(*((nations::nation*)this_slot)));
 	}
 	bool tf_prestige_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		auto owner = ((nations::state_instance*)this_slot)->owner;
 		if(owner)
-			return compare_values(tval[0], ((nations::nation*)primary_slot)->prestige, owner->prestige);
+			return compare_values(tval[0], nations::get_prestige(*((nations::nation*)primary_slot)), nations::get_prestige(*owner));
 		else
-			return compare_values(tval[0], ((nations::nation*)primary_slot)->prestige, 0.0f);
+			return compare_values(tval[0], nations::get_prestige(*((nations::nation*)primary_slot)), 0.0f);
 	}
 	bool tf_prestige_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		auto owner = ((provinces::province_state*)this_slot)->owner;
 		if(owner)
-			return compare_values(tval[0], ((nations::nation*)primary_slot)->prestige, owner->prestige);
+			return compare_values(tval[0], nations::get_prestige(*((nations::nation*)primary_slot)), nations::get_prestige(*owner));
 		else
-			return compare_values(tval[0], ((nations::nation*)primary_slot)->prestige, 0.0f);
+			return compare_values(tval[0], nations::get_prestige(*((nations::nation*)primary_slot)), 0.0f);
 	}
 	bool tf_prestige_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		auto owner = population::get_pop_owner(ws, *((population::pop*)this_slot));
 		if(owner)
-			return compare_values(tval[0], ((nations::nation*)primary_slot)->prestige, owner->prestige);
+			return compare_values(tval[0], nations::get_prestige(*((nations::nation*)primary_slot)), nations::get_prestige(*owner));
 		else
-			return compare_values(tval[0], ((nations::nation*)primary_slot)->prestige, 0.0f);
+			return compare_values(tval[0], nations::get_prestige(*((nations::nation*)primary_slot)), 0.0f);
 	}
 	bool tf_badboy(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		return compare_values(tval[0], ((nations::nation*)primary_slot)->infamy, read_float_from_payload(tval + 2));
@@ -1836,7 +1844,11 @@ namespace triggers {
 		return compare_values(tval[0], ((nations::nation*)primary_slot)->plurality, read_float_from_payload(tval + 2));
 	}
 	bool tf_corruption(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
-		return compare_values(tval[0], ((nations::nation*)primary_slot)->crime_fraction, read_float_from_payload(tval + 2));
+		auto cpc = float(((nations::nation*)primary_slot)->central_province_count);
+		if(cpc != 0.0f)
+			return compare_values(tval[0], float(((nations::nation*)primary_slot)->crime_count) / cpc, read_float_from_payload(tval + 2));
+		else
+			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_is_state_religion_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		auto owner = population::get_pop_owner(ws, *((population::pop*)primary_slot));

@@ -319,7 +319,7 @@ public:
 	object_type* get_location(index_type i); // single thread only, forces storage to expand
 
 	template<typename T>
-	void for_each(T const& f);
+	void for_each(T&& f);
 };
 
 template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>

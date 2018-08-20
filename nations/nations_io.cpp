@@ -194,7 +194,7 @@ void serialization::serializer<nations::nation>::deserialize_object(std::byte co
 	deserialize(input, sphere_leader_id);
 	if(is_valid_index(sphere_leader_id)) {
 		obj.sphere_leader = &ws.w.nation_s.nations.get(sphere_leader_id);
-		add_item(ws.w.nation_s.nations_arrays, obj.overlord->sphere_members, obj.id);
+		add_item(ws.w.nation_s.nations_arrays, obj.sphere_leader->sphere_members, obj.id);
 	}
 
 	obj.last_update = ws.w.current_date;
@@ -276,35 +276,9 @@ void serialization::serializer<nations::nation>::deserialize_object(std::byte co
 	deserialize_stable_array(input, ws.w.military_s.war_arrays, obj.wars_involved_in);
 	deserialize_stable_array(input, ws.w.population_s.rebel_faction_arrays, obj.active_rebel_factions);
 	deserialize_stable_array(input, ws.w.population_s.pop_movement_arrays, obj.active_movements);
-
-	//final patching TODO:
-	//
-	//
-	//float blockade_fraction = 0.0f;
-	//float rebel_control_fraction = 0.0f; // of provinces connected to capital
-	//float political_interest_fraction = 0.0f;
-	//float social_interest_fraction = 0.0f;
-	//float crime_fraction = 0.0f; //fraction of provinces with active crime
-	//float social_movement_support = 0.0f; // sum of social movement supporters / total pop * defines factor
-	//float political_movement_support = 0.0f; // sum of social movement supporters / total pop * defines factor
-
-	//uint8_t num_of_active_revolts = 0ui8;
-	//uint16_t num_connected_ports = 0ui16; // number of ports connected to capital by land
-	//uint16_t num_ports = 0ui16;
-	//int16_t military_score = 0i16;
-	//int16_t industrial_score = 0i16;
-	//int16_t overall_rank = 0i16;
-	//int16_t prestige_rank = 0i16;
-	//int16_t military_rank = 0i16;
-	//int16_t industrial_rank = 0i16;
-	//
-	//
-	//set_tag<country_tag> neighboring_nations;
-	//
-	//
 }
 
-inline size_t serialization::serializer<nations::nation>::size(nations::nation const & obj, world_state const& ws) {
+size_t serialization::serializer<nations::nation>::size(nations::nation const & obj, world_state const& ws) {
 	return
 		sizeof(nations::country_tag) + // overlord id
 		sizeof(nations::country_tag) + // sphere leader tag

@@ -440,12 +440,13 @@ namespace modifiers {
 			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.war, modifier_offset, value_type(1));
 		} else {
 			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.peace, modifier_offset, value_type(1));
-			if(this_nation.rebel_control_fraction != 0.0f)
-				cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.total_occupation, modifier_offset, this_nation.rebel_control_fraction);
+			if(this_nation.rebel_controlled_provinces != 0 && this_nation.central_province_count != 0)
+				cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.total_occupation, modifier_offset, float(this_nation.rebel_controlled_provinces) / float(this_nation.central_province_count));
 		}
 
 		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.badboy, modifier_offset, this_nation.infamy);
-		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.total_blockaded, modifier_offset, this_nation.blockade_fraction);
+		if(this_nation.central_province_count != 0)
+			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.total_blockaded, modifier_offset, float(this_nation.blockaded_count) / float(this_nation.central_province_count));
 		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.war_exhaustion, modifier_offset, this_nation.war_exhaustion);
 		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.plurality, modifier_offset, this_nation.plurality);
 		

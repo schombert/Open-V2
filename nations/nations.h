@@ -86,11 +86,9 @@ namespace nations {
 		float base_prestige = 0.0f;
 		float infamy = 0.0f;
 		float war_exhaustion = 0.0f;
-		float blockade_fraction = 0.0f;
-		float rebel_control_fraction = 0.0f; // of provinces connected to capital
+		
 		float political_interest_fraction = 0.0f;
 		float social_interest_fraction = 0.0f;
-		float crime_fraction = 0.0f; //fraction of provinces with active crime
 		//float mobilization_impact = 0.0f; //= 1.0 - std::max(0.0f, this_nation.modifier_values[national_offsets::mobilisation_size]) * this_nation.modifier_values[national_offsets::mobilisation_economy_impact]; 
 
 		float social_movement_support = 0.0f; // sum of social movement supporters / total pop * defines factor
@@ -148,6 +146,11 @@ namespace nations {
 		int16_t military_rank = 0i16;
 		int16_t industrial_rank = 0i16;
 
+		uint16_t central_province_count = 0ui16; // connected to the capital
+		uint16_t rebel_controlled_provinces = 0ui16; // connected to the capital only
+		uint16_t blockaded_count = 0ui16; // connected to the capital only
+		uint16_t crime_count = 0ui16; // connected to the capital only
+
 		int16_t base_colonial_points = 0ui16; // add to tech for actual
 		uint16_t num_connected_ports = 0ui16; // number of ports connected to capital by land
 		uint16_t num_ports = 0ui16;
@@ -184,8 +187,6 @@ namespace nations {
 		int8_t administrative_spending = 0i8;
 		int8_t education_spending = 0i8;
 		int8_t military_spending = 0i8;
-
-		uint8_t num_of_active_revolts = 0ui8;
 		
 
 		constexpr static uint16_t is_civilized = 0x0001;

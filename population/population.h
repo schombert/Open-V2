@@ -259,6 +259,7 @@ namespace population {
 		pop_type_tag artisan;
 		pop_type_tag capitalist;
 		pop_type_tag clergy;
+		pop_type_tag craftsman;
 		pop_type_tag bureaucrat;
 		pop_type_tag slave;
 		pop_type_tag soldier;

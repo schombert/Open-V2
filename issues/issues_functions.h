@@ -11,4 +11,5 @@ namespace issues {
 	float calculate_social_interest(world_state const& ws, value_type* demographics_array);
 
 	void reset_active_issues(world_state& ws, nations::country_tag nation_for);
+	float administrative_requirement(world_state const& ws, nations::country_tag nation_for);
 }

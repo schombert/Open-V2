@@ -122,6 +122,7 @@ namespace military {
 	army& make_army(world_state& ws, nations::nation& n, provinces::province_tag location) {
 		army& new_army = ws.w.military_s.armies.get_new();
 		new_army.base = location;
+		new_army.owner = n.id;
 		add_item(ws.w.military_s.army_arrays, n.armies, new_army.id);
 		ws.w.military_s.army_supplies.ensure_capacity(to_index(new_army.id));
 		ws.w.military_s.unit_type_composition.ensure_capacity(to_index(new_army.id));
@@ -427,5 +428,9 @@ namespace military {
 		Eigen::Map<Eigen::Matrix<uint16_t, -1, 1>> composition(ws.w.military_s.unit_type_composition.get_row(a), ws.s.military_m.unit_types_count);
 		auto count_brigades = composition.sum();
 		return uint32_t(ws.s.modifiers_m.global_defines.pop_size_per_regiment) * count_brigades;
+	}
+
+	void rebuild_fleet_presence(world_state&, nations::nation&) {
+		//stub
 	}
 }

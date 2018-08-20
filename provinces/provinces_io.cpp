@@ -93,10 +93,6 @@ void serialization::serializer<provinces::province_state>::deserialize_object(st
 	deserialize_stable_array(input, ws.w.province_s.timed_modifier_arrays, obj.timed_modifiers);
 
 	obj.last_update = ws.w.current_date;
-
-	// todo
-	// rebuild list of pops
-	// rebuild fleet presence
 }
 
 size_t serialization::serializer<provinces::province_state>::size(provinces::province_state const & obj, world_state const & ws) {

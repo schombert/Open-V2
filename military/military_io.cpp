@@ -92,7 +92,7 @@ void serialization::serializer<military::army>::deserialize_object(std::byte con
 	deserialize_array(input, composition, uint32_t(ws.s.military_m.unit_types.size()));
 
 	obj.minimum_soldiers = military::calculate_minimum_soldiers(ws, obj.id);
-
+	obj.total_soldiers = 0;
 	obj.last_update = ws.w.current_date;
 }
 

@@ -106,8 +106,7 @@ void serialization::serializer<population::pop_movement>::deserialize_object(std
 	deserialize(input, type);
 	obj.type = population::movement_type(type);
 
-	// todo
-	// rebuild list of pops, total pop support, from pops
+	obj.total_population_support = 0;
 }
 
 size_t serialization::serializer<population::pop_movement>::size(population::pop_movement const & obj) {
@@ -159,9 +158,6 @@ void serialization::serializer<population::rebel_faction>::deserialize_object(st
 
 	obj.flags = ws.s.population_m.rebel_types[obj.type].flags;
 	obj.icon = ws.s.population_m.rebel_types[obj.type].icon;
-
-	// todo
-	// rebuild list of pops & controlled_provinces from pops and provinces
 }
 
 size_t serialization::serializer<population::rebel_faction>::size(population::rebel_faction const & obj) {
@@ -806,6 +802,10 @@ namespace population {
 			if(v)
 				env.s.population_m.capitalist = env.pt.id;
 		}
+		void set_can_work_factory(bool v) {
+			if(v)
+				env.s.population_m.craftsman = env.pt.id;
+		}
 		void set_demote_migrant(bool v) {
 			if(v)
 				env.pt.flags |= pop_type::demote_on_migration;
@@ -899,6 +899,7 @@ MEMBER_FDEF(population::poptype_file, set_research_optimum, "research_optimum");
 MEMBER_FDEF(population::poptype_file, set_administrative_efficiency, "administrative_efficiency");
 MEMBER_FDEF(population::poptype_file, set_can_be_recruited, "can_be_recruited");
 MEMBER_FDEF(population::poptype_file, set_can_build, "can_build");
+MEMBER_FDEF(population::poptype_file, set_can_work_factory, "can_work_factory");
 MEMBER_FDEF(population::poptype_file, set_demote_migrant, "demote_migrant");
 MEMBER_FDEF(population::poptype_file, set_is_artisan, "is_artisan");
 MEMBER_FDEF(population::poptype_file, set_country_migration_target, "country_migration_target");
@@ -933,7 +934,7 @@ namespace population {
 		BEGIN_TYPE(pop_file_reader)
 		MEMBER_VARIABLE_TYPE_EXTERN("discard", accept_all, int, read_pops_in_province)
 		END_TYPE
-	END_DOMAIN
+	END_DOMAIN;
 
 	BEGIN_DOMAIN(single_rebel_domain)
 		BEGIN_TYPE(rebel_gov_reader)
@@ -1004,7 +1005,7 @@ namespace population {
 		MEMBER_ASSOCIATION("is_slave", "is_slave", value_from_rh<bool>)
 		MEMBER_ASSOCIATION("strata", "strata", token_from_rh)
 		MEMBER_ASSOCIATION("discard", "factory", discard_from_rh)
-		MEMBER_ASSOCIATION("discard", "can_work_factory", discard_from_rh)
+		MEMBER_ASSOCIATION("can_work_factory", "can_work_factory", value_from_rh<bool>)
 		MEMBER_ASSOCIATION("discard", "rgo", discard_from_rh)
 		MEMBER_ASSOCIATION("discard", "can_work_rgo", discard_from_rh)
 		MEMBER_ASSOCIATION("discard", "max_size", discard_from_rh)

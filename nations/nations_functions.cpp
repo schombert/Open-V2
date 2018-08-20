@@ -5,7 +5,7 @@
 #include "military\\military_functions.h"
 #include "technologies\\technologies_functions.h"
 #include "governments\\governments_functions.h"
-#include "issues\\issues_functions.h"
+#include "issues\\issues_functions.hpp"
 #include "population\\population_function.h"
 
 namespace nations {
@@ -490,6 +490,9 @@ namespace nations {
 					}
 				}
 			}
+
+			n.political_interest_fraction = issues::calculate_political_interest(ws, nation_demo.data());
+			n.social_interest_fraction = issues::calculate_social_interest(ws, nation_demo.data());
 		});
 	}
 
@@ -715,8 +718,273 @@ namespace nations {
 		return int32_t(n.base_colonial_points) + int32_t(n.tech_attributes[technologies::tech_offset::colonial_points]);
 	}
 
-	float calculate_state_administrative_efficiency(world_state const& ws, nations::state_instance& si) {
+	float calculate_state_administrative_efficiency(world_state const& ws, nations::state_instance& this_state, float admin_requirement) {
+		if(this_state.owner == nullptr)
+			return 0.0f;
+
+		int32_t count_non_core = 0;
+
+		auto region_provs = ws.s.province_m.states_to_province_index.get_row(this_state.region_id);
+		for(auto p : region_provs) {
+			auto& ps = ws.w.province_s.province_state_container[p];
+			if((ps.state_instance == &this_state) & ((ps.flags & provinces::province_state::has_owner_core) == 0))
+				++count_non_core;
+		}
 		//stub
-		return 0.0f;
+		return std::clamp(
+			float(count_non_core) * ws.s.modifiers_m.global_defines.noncore_tax_penalty +
+			ws.s.modifiers_m.global_defines.base_country_admin_efficiency + 
+			this_state.owner->modifier_values[modifiers::national_offsets::administrative_efficiency_modifier] +
+			float(ws.w.nation_s.state_demographics.get(this_state.id, population::to_demo_tag(ws, ws.s.population_m.bureaucrat))) /
+			(float(ws.w.nation_s.state_demographics.get(this_state.id, population::total_population_tag)) * admin_requirement),
+			0.0f, 1.0f);
 	}
+
+	void update_neighbors(world_state& ws, nations::nation& this_nation) {
+		resize(ws.w.nation_s.nations_arrays, this_nation.neighboring_nations, 0ui32);
+
+		auto owned_range = get_range(ws.w.province_s.province_arrays, this_nation.owned_provinces);
+		for(auto p : owned_range) {
+			auto adj_range = ws.s.province_m.same_type_adjacency.get_row(p);
+			for(auto a : adj_range) {
+				auto& adj = ws.w.province_s.province_state_container[a];
+				if(adj.owner != nullptr && adj.owner != &this_nation) {
+					add_item(ws.w.nation_s.nations_arrays, this_nation.neighboring_nations, adj.owner->id);
+				}
+			}
+		}
+	}
+
+	uint32_t calculate_blockaded_count(world_state const& ws, nations::nation const& this_nation) {
+		auto owned_range = get_range(ws.w.province_s.province_arrays, this_nation.owned_provinces);
+		uint32_t total = 0ui32;
+
+		for(auto p : owned_range) {
+			auto& ps = ws.w.province_s.province_state_container[p];
+			if((ps.flags & (provinces::province_state::is_overseas | provinces::province_state::is_blockaded)) == provinces::province_state::is_blockaded)
+				++total;
+		}
+		return total;
+	}
+
+	uint32_t calculate_crime_count(world_state const& ws, nations::nation const& this_nation) {
+		auto owned_range = get_range(ws.w.province_s.province_arrays, this_nation.owned_provinces);
+		uint32_t total = 0ui32;
+
+		for(auto p : owned_range) {
+			auto& ps = ws.w.province_s.province_state_container[p];
+			if((ps.flags & provinces::province_state::is_overseas) == 0 && is_valid_index(ps.crime))
+				++total;
+		}
+		return total;
+	}
+
+	uint32_t calculate_rebel_controlled_count(world_state const& ws, nations::nation const& this_nation) {
+		auto owned_range = get_range(ws.w.province_s.province_arrays, this_nation.owned_provinces);
+		uint32_t total = 0ui32;
+
+		for(auto p : owned_range) {
+			auto& ps = ws.w.province_s.province_state_container[p];
+			if((ps.flags & provinces::province_state::is_overseas) == 0 && bool(ps.rebel_controller))
+				++total;
+		}
+		return total;
+	}
+
+	void update_province_counts(world_state& ws, nations::nation& this_nation) {
+		this_nation.central_province_count = 0ui16;
+		this_nation.blockaded_count = 0ui16;
+		this_nation.crime_count = 0ui16;
+		this_nation.rebel_controlled_provinces = 0ui16;
+		this_nation.num_ports = 0ui16;
+		this_nation.num_connected_ports = 0ui16;
+
+		if(!is_valid_index(this_nation.current_capital))
+			return;
+
+		auto owned_range = get_range(ws.w.province_s.province_arrays, this_nation.owned_provinces);
+		for(auto p : owned_range) {
+			auto& ps = ws.w.province_s.province_state_container[p];
+			ps.flags &= ~provinces::province_state::is_overseas;
+			if(ps.naval_base_level != 0)
+				++this_nation.num_ports;
+		}
+
+		boost::container::flat_set<provinces::province_tag> already_added;
+		boost::container::flat_set<provinces::province_tag> pending_neighbor_check;
+
+		pending_neighbor_check.insert(this_nation.current_capital);
+
+		while(pending_neighbor_check.size() != 0) {
+			auto tp = *(pending_neighbor_check.end() - 1);
+			pending_neighbor_check.erase(pending_neighbor_check.end() - 1);
+			already_added.insert(tp);
+
+			auto& ps = ws.w.province_s.province_state_container[tp];
+			++this_nation.central_province_count;
+			if(ps.naval_base_level != 0)
+				++this_nation.num_connected_ports;
+			if(ps.rebel_controller)
+				++this_nation.rebel_controlled_provinces;
+			if(is_valid_index(ps.crime))
+				++this_nation.crime_count;
+			if((ps.flags & provinces::province_state::is_blockaded) != 0)
+				++this_nation.blockaded_count;
+
+			auto adj_range = ws.s.province_m.same_type_adjacency.get_row(tp);
+			for(auto a : adj_range) {
+				if(ws.w.province_s.province_state_container[a].owner == &this_nation && already_added.count(a) == 0 && pending_neighbor_check.count(a) == 0)
+					pending_neighbor_check.insert(a);
+			}
+		}
+	}
+
+	void update_movement_support(world_state& ws, nations::nation& this_nation) {
+		float total_pop = float(ws.w.nation_s.nation_demographics.get(this_nation.id, population::total_population_tag));
+		if(total_pop == 0.0f) {
+			this_nation.social_movement_support = 0.0f;
+			this_nation.political_movement_support = 0.0f;
+			return;
+		}
+
+		auto movements = get_range(ws.w.population_s.pop_movement_arrays, this_nation.active_movements);
+		int64_t total_social_support = 0;
+		int64_t total_political_support = 0;
+		for(auto m : movements) {
+			if(ws.w.population_s.pop_movements[m].type == population::movement_type::political) {
+				total_political_support += ws.w.population_s.pop_movements[m].total_population_support;
+			} else if(ws.w.population_s.pop_movements[m].type == population::movement_type::social) {
+				total_social_support += ws.w.population_s.pop_movements[m].total_population_support;
+			}
+		}
+
+		
+		this_nation.social_movement_support = std::min(1.0f, (float(total_social_support) / total_pop) * ws.s.modifiers_m.global_defines.movement_support_uh_factor);
+		this_nation.political_movement_support = std::min(1.0f, (float(total_political_support) / total_pop) * ws.s.modifiers_m.global_defines.movement_support_uh_factor);
+	}
+
+	int32_t calculate_industrial_score(world_state const& ws, nations::nation const& this_nation) {
+		float total = 0;
+		auto states = get_range(ws.w.nation_s.state_arrays, this_nation.member_states);
+		for(auto s = states.first; s != states.second; ++s) {
+			auto state_worker_pop = float(ws.w.nation_s.state_demographics.get(s->state->id, population::to_demo_tag(ws, ws.s.population_m.craftsman)));
+			if(state_worker_pop != 0.0f) {
+				auto state_worker_employed = ws.w.nation_s.state_demographics.get(s->state->id, population::to_employment_demo_tag(ws, ws.s.population_m.craftsman));
+
+				int32_t total_flevels_x_4 = 0;
+				for(uint32_t i = 0; i < std::extent_v<decltype(s->state->factories)>; ++i) {
+					total_flevels_x_4 += 4 * s->state->factories[i].level;
+				}
+
+				total += float(total_flevels_x_4 * state_worker_employed) / state_worker_pop;
+			}
+		}
+
+		auto investment = get_range(ws.w.nation_s.influence_arrays, this_nation.gp_influence);
+		for(auto v = investment.first; v != investment.second; ++v) {
+			total += v->investment_amount * ws.s.modifiers_m.global_defines.investment_score_factor * 0.01f;
+		}
+		return int32_t(total);
+	}
+
+	int32_t calculate_military_score(world_state const& ws, nations::nation const& this_nation) {
+		float* unit_type_scores = (float*)_alloca(sizeof(float) * ws.s.military_m.unit_types_count);
+		std::fill_n(unit_type_scores, ws.s.military_m.unit_types_count, 0.0f);
+
+		auto unit_attributes_row = ws.w.nation_s.unit_stats.get_row(this_nation.id);
+		float land_unit_type_count = 0.0f;
+		float land_uint_score = 0.0f;
+
+		for(uint32_t i = 0; i < ws.s.military_m.unit_types_count; ++i) {
+			military::unit_type_tag this_tag(static_cast<military::unit_type_tag::value_base_t>(i));
+			auto masked_type = ws.s.military_m.unit_types[this_tag].flags & military::unit_type::class_mask;
+			if(masked_type == military::unit_type::class_big_ship) {
+				// capital ship
+				unit_type_scores[i] =
+					(unit_attributes_row[i][military::unit_attribute::hull] + this_nation.modifier_values[modifiers::national_offsets::naval_defense_modifier]) *
+					(unit_attributes_row[i][military::unit_attribute::gun_power] + this_nation.modifier_values[modifiers::national_offsets::naval_attack_modifier]) /
+					250.0f;
+			} else if(masked_type == military::unit_type::class_light_ship || masked_type == military::unit_type::class_transport) {
+				// other naval
+			} else {
+				// land
+				land_uint_score +=
+					(unit_attributes_row[i][military::unit_attribute::attack] +
+					this_nation.modifier_values[modifiers::national_offsets::land_attack_modifier] +
+					unit_attributes_row[i][military::unit_attribute::defense] +
+					this_nation.modifier_values[modifiers::national_offsets::land_defense_modifier]) * 
+					unit_attributes_row[i][military::unit_attribute::discipline];
+				++land_unit_type_count;
+			}
+		}
+		bool is_disarmed = is_valid_index(this_nation.disarmed_until) && ws.w.current_date < this_nation.disarmed_until;
+
+		float total_active_regiments = 0.0f;
+		auto armies = get_range(ws.w.military_s.army_arrays, this_nation.armies);
+		for(auto a : armies)
+			total_active_regiments += float(ws.w.military_s.armies[a].total_soldiers);
+		total_active_regiments /= ws.s.modifiers_m.global_defines.pop_size_per_regiment;
+
+		float total_possible_regiments =
+			float(ws.w.nation_s.nation_demographics.get(this_nation.id, population::to_demo_tag(ws, ws.s.population_m.soldier))) /
+			ws.s.modifiers_m.global_defines.pop_size_per_regiment;
+
+		float total_sum = ((land_uint_score / land_unit_type_count) *
+			(is_disarmed ? ws.s.modifiers_m.global_defines.disarmament_army_hit : 1.0f) *
+			std::max(0.0f, (this_nation.modifier_values[modifiers::national_offsets::supply_consumption] + 1.0f)) *
+			std::min(total_active_regiments * 4.0f, total_possible_regiments)) / 7.0f; // = land contribution
+
+		auto fleets = get_range(ws.w.military_s.fleet_arrays, this_nation.fleets);
+		for(auto f : fleets) {
+			auto ships = get_range(ws.w.military_s.ship_arrays, ws.w.military_s.fleets[f].ships);
+			for(auto s = ships.first; s != ships.second; ++s) {
+				total_sum += unit_type_scores[to_index(s->type)];
+			}
+		}
+
+		total_sum += std::min(float(get_size(ws.w.military_s.leader_arrays, this_nation.admirals) + get_size(ws.w.military_s.leader_arrays, this_nation.generals)), total_active_regiments);
+
+		return int32_t(total_sum);
+	}
+
+	void update_nation_ranks(world_state& ws) {
+		uint32_t nations_count = 0;
+		ws.w.nation_s.nations.for_each([&nations_count](nations::nation const&) { ++nations_count; });
+
+		nations::nation** temp_buf = (nations::nation**)_alloca(sizeof(nations::nation*) * nations_count);
+
+		ws.w.nation_s.nations.for_each([temp_buf, temp_count = 0](nations::nation& n) mutable {
+			temp_buf[temp_count] = &n;
+			++temp_count;
+		});
+
+		std::sort(temp_buf, temp_buf + nations_count, [](nations::nation const* a, nations::nation const* b) {
+			return a->industrial_score > b->industrial_score;
+		});
+		for(uint32_t i = 0; i < nations_count; ++i)
+			temp_buf[i]->industrial_rank = int16_t(i + 1);
+		std::sort(temp_buf, temp_buf + nations_count, [](nations::nation const* a, nations::nation const* b) {
+			return a->military_score > b->military_score;
+		});
+		for(uint32_t i = 0; i < nations_count; ++i)
+			temp_buf[i]->military_rank = int16_t(i + 1);
+		std::sort(temp_buf, temp_buf + nations_count, [](nations::nation const* a, nations::nation const* b) {
+			return nations::get_prestige(*a) > nations::get_prestige(*b);
+		});
+		for(uint32_t i = 0; i < nations_count; ++i)
+			temp_buf[i]->prestige_rank = int16_t(i + 1);
+
+		std::sort(temp_buf, temp_buf + nations_count, [](nations::nation const* a, nations::nation const* b) {
+			return (nations::get_prestige(*a) + a->military_score + a->industrial_score) > (nations::get_prestige(*b) + b->military_score + b->industrial_score);
+		});
+		std::stable_partition(temp_buf, temp_buf + nations_count, [](nations::nation const* a) { return a->overlord == nullptr; });
+		std::stable_partition(temp_buf, temp_buf + nations_count, [](nations::nation const* a) { return (a->flags & nations::nation::is_civilized) != 0; });
+
+		resize(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank, nations_count);
+		for(uint32_t i = 0; i < nations_count; ++i) {
+			temp_buf[i]->overall_rank = int16_t(i + 1);
+			get(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank, i) = temp_buf[i]->id;
+		}
+	}
+
 }

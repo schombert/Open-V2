@@ -17,6 +17,7 @@
 #include "nations\\nations_functions.h"
 #include "nations\\nations_io.h"
 #include "military\\military_io.h"
+#include "world_state\\world_state_io.h"
 
 // #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -504,8 +505,7 @@ int main(int , char **) {
 	fs.add_root(u"D:\\programs\\V2\\mod\\OpenV2");
 	//ui::gui_manager gui_m(850, 650);
 
-	DWORD dwAttrib = GetFileAttributes((const wchar_t*)(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario_cmp.bin"));
-	if(dwAttrib == INVALID_FILE_ATTRIBUTES) {
+	if(DWORD dwAttrib = GetFileAttributes((const wchar_t*)(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario_cmp.bin")); dwAttrib == INVALID_FILE_ATTRIBUTES) {
 		scenario::scenario_manager s1;
 
 		std::cout << "begin scenario read" << std::endl << std::flush;
@@ -542,35 +542,46 @@ int main(int , char **) {
 	tg.wait();
 	std::cout << "end deserialize" << std::endl << std::flush;
 
+	scenario::ready_scenario(ws.s, fs.get_root()); // ready gui fonts and sound
 	ready_world_state(ws);
 
-	ws.w.current_date = date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1));
-	auto const p_to_t_vector = provinces::load_province_terrain_data(ws.s.province_m, fs.get_root());
-	auto color_terrain_map = provinces::read_terrain_colors(ws.s.gui_m.text_data_sequences, ws.s.province_m, ws.s.modifiers_m, fs.get_root());
-	provinces::assign_terrain_color(ws.w.province_s, p_to_t_vector, color_terrain_map);
-	provinces::read_province_histories(ws, fs.get_root(), date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)));
-	population::read_all_pops(fs.get_root(), ws, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)));
-	nations::init_empty_states(ws);
-	std::vector<std::pair<nations::country_tag, events::decision_tag>> decisions;
-	nations::read_nations_files(ws, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)), fs.get_root(), decisions);
-	nations::read_diplomacy_files(ws, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)), fs.get_root());
-	military::read_wars(ws, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)), fs.get_root());
-	scenario::ready_scenario(ws.s, fs.get_root());
+	if(DWORD dwAttrib = GetFileAttributes((const wchar_t*)(u"D:\\VS2007Projects\\open_v2_test_data\\test_save_cmp.bin")); dwAttrib == INVALID_FILE_ATTRIBUTES) {
 
-	provinces::update_province_demographics(ws);
-	nations::update_state_nation_demographics(ws);
+		ws.w.current_date = date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1));
+		auto const p_to_t_vector = provinces::load_province_terrain_data(ws.s.province_m, fs.get_root());
+		auto color_terrain_map = provinces::read_terrain_colors(ws.s.gui_m.text_data_sequences, ws.s.province_m, ws.s.modifiers_m, fs.get_root());
+		provinces::assign_terrain_color(ws.w.province_s, p_to_t_vector, color_terrain_map);
+		provinces::read_province_histories(ws, fs.get_root(), date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)));
+		population::read_all_pops(fs.get_root(), ws, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)));
+		nations::init_empty_states(ws);
+		std::vector<std::pair<nations::country_tag, events::decision_tag>> decisions;
+		nations::read_nations_files(ws, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)), fs.get_root(), decisions);
+		nations::read_diplomacy_files(ws, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)), fs.get_root());
+		military::read_wars(ws, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)), fs.get_root());
+		
+		provinces::update_province_demographics(ws);
+		nations::update_state_nation_demographics(ws);
 
-	ws.w.local_player_nation = &ws.w.nation_s.nations[nations::country_tag(1)];
+		ws.w.local_player_nation = &ws.w.nation_s.nations[nations::country_tag(1)];
 
-	provinces::add_province_modifier(
-		ws,
-		ws.w.province_s.province_state_container[provinces::province_tag(78)],
-		modifiers::provincial_modifier_tag(1));
-	provinces::add_timed_province_modifier(
-		ws,
-		ws.w.province_s.province_state_container[provinces::province_tag(78)],
-		modifiers::provincial_modifier_tag(2),
-		date_to_tag(boost::gregorian::date(1900, boost::gregorian::Jan, 10)));
+		provinces::add_province_modifier(
+			ws,
+			ws.w.province_s.province_state_container[provinces::province_tag(78)],
+			modifiers::provincial_modifier_tag(1));
+		provinces::add_timed_province_modifier(
+			ws,
+			ws.w.province_s.province_state_container[provinces::province_tag(78)],
+			modifiers::provincial_modifier_tag(2),
+			date_to_tag(boost::gregorian::date(1900, boost::gregorian::Jan, 10)));
+
+
+		{
+			serialization::serialize_file_header dummy;
+			serialization::serialize_to_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_save_cmp.bin", true, dummy, ws.w, ws);
+		}
+	}
+
+	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_save_cmp.bin", ws.w, ws);
 
 	init_tooltip_window(ws.s.gui_m, ws.w.gui_m);
 	ws.w.gui_m.on_resize(ui::resize{ 850ui32, 650ui32 });

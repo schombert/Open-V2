@@ -70,14 +70,14 @@ namespace modifiers {
 			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.war];
 		} else {
 			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.peace];
-			if(this_nation.rebel_control_fraction != 0.0f)
-				this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.total_occupation] * this_nation.rebel_control_fraction;
+			if(this_nation.rebel_controlled_provinces != 0 && this_nation.central_province_count != 0)
+				this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.total_occupation] * (float(this_nation.rebel_controlled_provinces) / float(this_nation.central_province_count));
 		}
 		
 		if(this_nation.infamy != 0.0f)
 			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.badboy] * this_nation.infamy;
-		if(this_nation.blockade_fraction != 0.0f)
-			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.total_blockaded] * this_nation.blockade_fraction;
+		if(this_nation.blockaded_count != 0 && this_nation.central_province_count != 0)
+			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.total_blockaded] * (float(this_nation.blockaded_count) / float(this_nation.central_province_count));
 		if(this_nation.war_exhaustion != 0.0f)
 			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.war_exhaustion] * this_nation.war_exhaustion;
 		if(this_nation.plurality != 0.0f)
@@ -108,9 +108,12 @@ namespace modifiers {
 		for(auto t = timed_range.first; t != timed_range.second; ++t)
 			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[t->mod];
 
-		this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[this_province.terrain];
-		this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[base_province.climate];
-		this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[base_province.continent];
+		if(is_valid_index(this_province.terrain))
+			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[this_province.terrain];
+		if(is_valid_index(base_province.climate))
+			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[base_province.climate];
+		if(is_valid_index(base_province.continent))
+			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[base_province.continent];
 
 		if(is_valid_index(this_province.crime))
 			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[this_province.crime];

@@ -17,4 +17,18 @@ namespace issues {
 			}
 		}
 	}
+
+	float administrative_requirement(world_state const& ws, nations::country_tag nation_for) {
+		int32_t sum_multiplier = 0;
+		
+		uint32_t max_issues = uint32_t(ws.s.issues_m.issues_container.size());
+
+		auto active_options = ws.w.nation_s.active_issue_options.get_row(nation_for);
+		for(uint32_t i = 0; i < max_issues; ++i) {
+			if(is_valid_index(active_options[i]))
+				sum_multiplier += ws.s.issues_m.options[active_options[i]].administrative_multiplier;
+		}
+
+		return float(sum_multiplier) * ws.s.modifiers_m.global_defines.bureaucracy_percentage_increment + ws.s.modifiers_m.global_defines.max_bureaucracy_percentage;
+	}
 }

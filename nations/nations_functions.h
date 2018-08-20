@@ -58,5 +58,18 @@ namespace nations {
 
 	float get_prestige(nations::nation const& n);
 	int32_t get_colonial_points(nations::nation const& n);
-	float calculate_state_administrative_efficiency(world_state const& ws, nations::state_instance& si);
+	float calculate_state_administrative_efficiency(world_state const& ws, nations::state_instance& si, float admin_requirement);
+	void update_neighbors(world_state& ws, nations::nation& this_nation);
+
+	uint32_t calculate_blockaded_count(world_state const& ws, nations::nation const& this_nation);
+	uint32_t calculate_crime_count(world_state const& ws, nations::nation const& this_nation);
+	uint32_t calculate_rebel_controlled_count(world_state const& ws, nations::nation const& this_nation);
+
+	void update_province_counts(world_state& ws, nations::nation& this_nation); // marks provinces, updates count of central provinces, blockaded, with crime, rebel controlled, ports
+	void update_movement_support(world_state& ws, nations::nation& this_nation);
+
+	int32_t calculate_industrial_score(world_state const& ws, nations::nation const& this_nation);
+	int32_t calculate_military_score(world_state const& ws, nations::nation const& this_nation);
+
+	void update_nation_ranks(world_state& ws);
 }

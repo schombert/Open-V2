@@ -11,7 +11,7 @@ public:
 	static constexpr bool has_simple_serialize = false;
 
 	static void serialize_object(std::byte* &output, current_state::state const& obj, world_state const& ws);
-	static void deserialize_object(std::byte const* &input, current_state::state& obj, world_state& ws);
+	static void deserialize_object(std::byte const* &input, current_state::state& obj, uint64_t version, world_state& ws);
 	static size_t size(current_state::state const& obj, world_state const& ws);
 };
 

@@ -46,6 +46,7 @@ namespace current_state {
 		set_tag<nations::country_tag> crisis_defenders;
 		set_tag<nations::country_tag> crisis_interested;
 		array_tag<military::war_goal> crisis_goals;
+		nations::state_tag crisis_state;
 
 		//other global state
 		date_tag current_date;
