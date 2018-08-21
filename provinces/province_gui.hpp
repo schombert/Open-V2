@@ -202,7 +202,7 @@ namespace provinces {
 	template<typename window_type>
 	void province_statistics_base::windowed_update(window_type&, world_state& ws) {
 		if(auto selected = ws.w.selected_province; is_valid_index(selected)) {
-			if(ws.w.province_s.province_state_container[selected].owner == ws.w.local_player_nation) {
+			if(ws.w.province_s.province_state_container[selected].owner == ws.w.local_player_nation && ws.w.local_player_nation != nullptr) {
 				ui::make_visible_immediate(*associated_object);
 				return;
 			}
@@ -213,7 +213,7 @@ namespace provinces {
 	template<typename window_type>
 	void province_buildings_base::windowed_update(window_type&, world_state& ws) {
 		if(auto selected = ws.w.selected_province; is_valid_index(selected)) {
-			if(ws.w.province_s.province_state_container[selected].owner == ws.w.local_player_nation) {
+			if(ws.w.province_s.province_state_container[selected].owner == ws.w.local_player_nation && ws.w.local_player_nation != nullptr) {
 				ui::make_visible_immediate(*associated_object);
 				return;
 			}

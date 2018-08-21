@@ -8,6 +8,9 @@
 #include "triggers\\effects.h"
 #include "triggers\\effect_reading.h"
 #include "events\\events_io.h"
+#include "world_state\\world_state.h"
+#include "world_state\\world_state_io.h"
+#include "scenario\\scenario_io.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -1311,4 +1314,472 @@ TEST(trigger_reading, commit_effect) {
 	const auto ctag = commit_effect(m, c);
 	EXPECT_EQ(6ui64, m.effect_data.size());
 	EXPECT_EQ(effect_tag(1), ctag);
+}
+
+TEST(trigger_execution, set_a) {
+	world_state ws;
+
+	concurrency::task_group tg;
+	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario_cmp.bin", ws.s, tg);
+	tg.wait();
+
+	ready_world_state(ws);
+
+	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_save_cmp.bin", ws.w, ws);
+
+	{
+		const char trigger[] = "GER = { exists = yes }";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_FALSE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "USA = { exists = yes }";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_TRUE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "exists = USA";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_TRUE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "exists = GER";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_FALSE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "NOT = { GER = { exists = yes } }";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_TRUE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "OR = { GER = { exists = yes } USA = { exists = yes } }";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_TRUE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "AND = { GER = { exists = yes } USA = { exists = yes } }";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_FALSE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "year == 1836";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_TRUE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "year <= 1836";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_TRUE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "year > 1836";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_FALSE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "month = 1";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_TRUE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "month = 2";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_FALSE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "NOT = { month = 2 }";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_TRUE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "78 = { port = yes }";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_TRUE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "96 = { port = no }";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_TRUE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "ENG = { rank = 1 }";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_TRUE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "USA = { rank = 20 }";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_TRUE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "USA = { rank = 1 }";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_FALSE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "USA = { post_napoleonic_thought = 1 }";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_TRUE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "USA = { authoritarianism = yes }";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_TRUE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "USA = { army_decision_making = 1 }";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_FALSE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "USA = { army_decision_making = 0 }";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_TRUE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "NOT = { 2133 = { any_pop = { strata = rich } } }";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_TRUE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+
+	{
+		const char trigger[] = "NOT = { 2133 = { any_pop = { strata = poor } } }";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, RANGE(trigger));
+
+		auto t_result = parse_trigger(
+			ws.s,
+			trigger_scope_state{
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		t_result.push_back(0ui16);
+
+		EXPECT_FALSE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
 }

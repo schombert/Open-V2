@@ -47,6 +47,9 @@
     <ClCompile Include="triggers_test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\concurrency_tools\concurrency_tools.vcxproj">
+      <Project>{12f547e0-13dc-4c35-96ab-950827192412}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\cultures\cultures.vcxproj">
       <Project>{cb6da773-046f-41e5-bdb5-8a7a8ce66261}</Project>
     </ProjectReference>
@@ -98,6 +101,12 @@
     <ProjectReference Include="..\provinces\provinces.vcxproj">
       <Project>{8a9f75f9-8f7e-4953-99ac-f34a2345ee2f}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\scenario\scenario.vcxproj">
+      <Project>{65dad1ba-bd41-406e-b738-5cfea1b0f042}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\simple_serialize\simple_serialize.vcxproj">
+      <Project>{e97eaa5f-e141-4da5-9f8b-37812f8f04d8}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\sound\sound.vcxproj">
       <Project>{483adac5-dd50-4fed-b08b-61349e1fc0b8}</Project>
     </ProjectReference>
@@ -112,6 +121,9 @@
     </ProjectReference>
     <ProjectReference Include="..\variables\variables.vcxproj">
       <Project>{90316e63-9ce3-4d2b-80ac-440903861b0d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\world_state\world_state.vcxproj">
+      <Project>{c5e3051d-19cb-4aa9-82d8-3123f77db9c2}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

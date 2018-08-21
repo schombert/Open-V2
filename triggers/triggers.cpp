@@ -112,6 +112,10 @@ namespace triggers {
 #pragma clang diagnostic ignored "-Wmissing-prototypes"
 #pragma clang diagnostic ignored "-Wunused-parameter"
 
+	bool tf_none(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return true;
+	}
+
 	bool tf_generic_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		return apply_subtriggers(tval, ws, primary_slot, this_slot, from_slot, rebel_slot);
 	}
@@ -4517,6 +4521,7 @@ namespace triggers {
 	}
 
 	static bool(*trigger_functions[])(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) = {
+		tf_none,
 		tf_year,
 		tf_month,
 		tf_port,

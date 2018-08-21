@@ -102,7 +102,7 @@ void serialization::serializer<current_state::state>::deserialize_object(std::by
 
 	nations::country_tag player_tag;
 	deserialize(input, player_tag);
-	obj.local_player_nation = ws.w.nation_s.nations.get_location(pattacker_tag);
+	obj.local_player_nation = ws.w.nation_s.nations.get_location(player_tag);
 
 	deserialize_stable_array(input, ws.w.nation_s.nations_arrays, obj.crisis_attackers);
 	deserialize_stable_array(input, ws.w.nation_s.nations_arrays, obj.crisis_defenders);

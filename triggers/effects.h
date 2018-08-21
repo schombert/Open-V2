@@ -2,7 +2,13 @@
 #include <stdint.h>
 #include "common\\common.h"
 #include "common\\shared_tags.h"
-#include <vector>
+#include "concurrency_tools\\concurrency_tools.h"
+
+class world_state;
+
+namespace population {
+	struct rebel_faction;
+}
 
 namespace triggers {
 	int32_t get_effect_payload_size(const uint16_t* data);
@@ -34,4 +40,13 @@ namespace triggers {
 			}
 		}
 	}
+
+	void execute_effect(
+		uint16_t const* tval,
+		world_state& ws,
+		void* primary_slot,
+		void* this_slot,
+		void* from_slot,
+		population::rebel_faction* rebel_slot,
+		jsf_prng generator_copy);
 }
