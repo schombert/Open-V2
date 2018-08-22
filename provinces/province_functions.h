@@ -15,4 +15,7 @@ namespace provinces {
 	int32_t get_province_rgo_employment_max(world_state& ws, province_state& p);
 	float get_life_rating(province_state const& p);
 	void reset_state(provinces_state& s);
+
+	template<typename F>
+	void for_each_pop(world_state const& ws, provinces::province_state const& s, F&& f);
 }

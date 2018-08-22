@@ -1470,9 +1470,9 @@ namespace triggers {
 	struct random_country_effect {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return uint16_t(effect_codes::x_country_scope_nation | effect_codes::random_scope);
+				return uint16_t(effect_codes::x_country_scope_nation | effect_codes::is_random_scope);
 			else
-				return uint16_t(effect_codes::x_country_scope | effect_codes::random_scope);
+				return uint16_t(effect_codes::x_country_scope | effect_codes::is_random_scope);
 		}
 		static trigger_scope_state produce_new_scope(const trigger_scope_state& scope) {
 			return trigger_scope_state{
@@ -1485,7 +1485,7 @@ namespace triggers {
 	struct random_neighbor_province_effect {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
 			if (scope.main_slot == trigger_slot_contents::province)
-				return uint16_t(effect_codes::x_neighbor_province_scope | effect_codes::random_scope);
+				return uint16_t(effect_codes::x_neighbor_province_scope | effect_codes::is_random_scope);
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1500,7 +1500,7 @@ namespace triggers {
 	struct random_empty_neighbor_province_effect {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
 			if (scope.main_slot == trigger_slot_contents::province)
-				return uint16_t(effect_codes::x_empty_neighbor_province_scope | effect_codes::random_scope);
+				return uint16_t(effect_codes::x_empty_neighbor_province_scope | effect_codes::is_random_scope);
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1584,11 +1584,11 @@ namespace triggers {
 	struct random_pop_effect {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return uint16_t(effect_codes::x_pop_scope_nation | effect_codes::random_scope);
+				return uint16_t(effect_codes::x_pop_scope_nation | effect_codes::is_random_scope);
 			else if (scope.main_slot == trigger_slot_contents::state)
-				return uint16_t(effect_codes::x_pop_scope_state | effect_codes::random_scope);
+				return uint16_t(effect_codes::x_pop_scope_state | effect_codes::is_random_scope);
 			else if (scope.main_slot == trigger_slot_contents::province)
-				return uint16_t(effect_codes::x_pop_scope_province | effect_codes::random_scope);
+				return uint16_t(effect_codes::x_pop_scope_province | effect_codes::is_random_scope);
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1603,9 +1603,9 @@ namespace triggers {
 	struct random_owned_effect {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return uint16_t(effect_codes::x_owned_scope_nation | effect_codes::random_scope);
+				return uint16_t(effect_codes::x_owned_scope_nation | effect_codes::is_random_scope);
 			else if (scope.main_slot == trigger_slot_contents::state)
-				return uint16_t(effect_codes::x_owned_scope_state | effect_codes::random_scope);
+				return uint16_t(effect_codes::x_owned_scope_state | effect_codes::is_random_scope);
 			else
 				return std::optional<uint16_t>();
 		}
@@ -1667,7 +1667,7 @@ namespace triggers {
 	struct random_state_effect {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
 			if (scope.main_slot == trigger_slot_contents::nation)
-				return uint16_t(effect_codes::x_state_scope | effect_codes::random_scope);
+				return uint16_t(effect_codes::x_state_scope | effect_codes::is_random_scope);
 			else
 				return std::optional<uint16_t>();
 		}

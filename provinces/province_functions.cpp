@@ -1,5 +1,5 @@
 #include "common\\common.h"
-#include "province_functions.h"
+#include "province_functions.hpp"
 #include "modifiers\\modifiers.h"
 #include "population\\population_function.h"
 

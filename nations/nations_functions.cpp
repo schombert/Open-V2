@@ -1,5 +1,5 @@
 #include "common\\common.h"
-#include "nations_functions.h"
+#include "nations_functions.hpp"
 #include "world_state\\world_state.h"
 #include "scenario\\scenario.h"
 #include "military\\military_functions.h"

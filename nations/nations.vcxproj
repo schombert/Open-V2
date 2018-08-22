@@ -149,6 +149,7 @@
   <ItemGroup>
     <ClInclude Include="nations.h" />
     <ClInclude Include="nations_functions.h" />
+    <ClInclude Include="nations_functions.hpp" />
     <ClInclude Include="nations_io.h" />
   </ItemGroup>
   <ItemGroup>

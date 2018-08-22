@@ -6,6 +6,7 @@
 namespace current_state {
 	class state;
 }
+
 class world_state;
 
 
@@ -72,4 +73,15 @@ namespace nations {
 	int32_t calculate_military_score(world_state const& ws, nations::nation const& this_nation);
 
 	void update_nation_ranks(world_state& ws);
+
+	template<typename F>
+	void for_each_province(world_state& ws, nations::state_instance const& s, F&& f);
+	template<typename F>
+	void for_each_province(world_state& ws, nations::nation const& s, F&& f);
+	template<typename F>
+	void for_each_state(world_state& ws, nations::nation const& s, F&& f);
+	template<typename F>
+	void for_each_pop(world_state& ws, nations::state_instance const& s, F&& f);
+	template<typename F>
+	void for_each_pop(world_state& ws, nations::nation const& s, F&& f);
 }
