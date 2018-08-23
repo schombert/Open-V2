@@ -72,4 +72,44 @@ namespace governments {
 			}
 		}
 	}
+
+	void silent_set_government(world_state& ws, nations::nation& this_nation, government_tag g) {
+		auto& gov = ws.s.governments_m.governments_container[g];
+
+		this_nation.current_government = g;
+
+		if(gov.election == false)
+			this_nation.flags &= ~nations::nation::is_holding_election;
+		
+		if(ws.s.governments_m.permitted_ideologies.get(g, this_nation.ruling_ideology) == 0) {
+			ideologies::ideology_tag best_fit;
+			int32_t best_support = 0;
+			for(uint32_t i = 0; i < ws.s.ideologies_m.ideologies_count; ++i) {
+				ideologies::ideology_tag ctag(static_cast<ideologies::ideology_tag::value_base_t>(i));
+				if(ws.s.governments_m.permitted_ideologies.get(g, ctag) != 0 &&
+					int32_t(ws.w.nation_s.upper_house.get(this_nation.id, ctag)) > best_support) {
+					best_support = int32_t(ws.w.nation_s.upper_house.get(this_nation.id, ctag));
+					best_fit = ctag;
+				}
+			}
+
+			silent_set_ruling_party(ws, this_nation, ws.w.nation_s.active_parties.get(this_nation.id, best_fit));
+		}
+
+		if(is_valid_index(this_nation.tag)) {
+			auto names = ws.s.culture_m.country_names_by_government.get(this_nation.tag, g);
+
+			if(is_valid_index(names.name))
+				this_nation.name = names.name;
+			else
+				this_nation.name = ws.s.culture_m.national_tags[this_nation.tag].default_name.name;
+
+			if(is_valid_index(names.adjective))
+				this_nation.adjective = names.adjective;
+			else
+				this_nation.adjective = ws.s.culture_m.national_tags[this_nation.tag].default_name.adjective;
+
+			this_nation.flag = ws.w.culture_s.country_flags_by_government.get(this_nation.tag, g);
+		}
+	}
 }

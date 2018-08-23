@@ -57,8 +57,10 @@ public:
 	static constexpr bool has_simple_serialize = false;
 
 	static void rebuild_indexes(cultures::culture_manager& obj) {
-		for(auto const& i_culture : obj.culture_container)
+		for(auto const& i_culture : obj.culture_container) {
 			obj.named_culture_index.emplace(i_culture.name, i_culture.id);
+			obj.culture_by_culture_group.add_to_row(i_culture.group, i_culture.id);
+		}
 		for(auto const& i_culture_group : obj.culture_groups)
 			obj.named_culture_group_index.emplace(i_culture_group.name, i_culture_group.id);
 		for(auto const& i_religion : obj.religions)

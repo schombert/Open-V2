@@ -14,4 +14,5 @@ namespace governments {
 	void silent_set_ruling_party(world_state& ws, nations::nation& this_nation, party_tag p); // does not update effects of changing party issues
 	void reset_upper_house(world_state& ws, nations::country_tag id);
 	void update_current_rules(world_state& ws, nations::nation& this_nation);
+	void silent_set_government(world_state& ws, nations::nation& this_nation, government_tag g);
 }

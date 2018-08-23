@@ -30,6 +30,7 @@ void serialization::serializer<nations::state_instance>::serialize_object(std::b
 	serialize_array(output, obj.colonizers, std::extent_v<decltype(obj.colonizers)>);
 
 	serialize(output, obj.current_tension);
+	serialize(output, obj.name);
 	serialize(output, obj.crisis_tag);
 	serialize(output, obj.region_id);
 	serialize(output, obj.flags);
@@ -62,6 +63,7 @@ void serialization::serializer<nations::state_instance>::deserialize_object(std:
 	deserialize_array(input, obj.colonizers, std::extent_v<decltype(obj.colonizers)>);
 
 	deserialize(input, obj.current_tension);
+	deserialize(input, obj.name);
 	deserialize(input, obj.crisis_tag);
 	deserialize(input, obj.region_id);
 	deserialize(input, obj.flags);
@@ -78,6 +80,7 @@ size_t serialization::serializer<nations::state_instance>::size(nations::state_i
 		(sizeof(economy::factory_type_tag) + sizeof(obj.factories[0].level)) * std::extent_v<decltype(obj.factories)> + // factories
 		sizeof(obj.colonizers[0]) * std::extent_v<decltype(obj.colonizers)> + // colonizers
 		sizeof(obj.current_tension) +
+		sizeof(obj.name) +
 		sizeof(obj.crisis_tag) +
 		sizeof(obj.region_id) +
 		sizeof(obj.flags) +
@@ -122,6 +125,7 @@ void serialization::serializer<nations::nation>::serialize_object(std::byte *& o
 	serialize(output, obj.cb_construction_target);
 	serialize(output, obj.cb_construction_type);
 
+	serialize(output, obj.research_points);
 	serialize(output, obj.base_colonial_points);
 	serialize(output, obj.current_color);
 
@@ -229,6 +233,7 @@ void serialization::serializer<nations::nation>::deserialize_object(std::byte co
 	deserialize(input, obj.cb_construction_target);
 	deserialize(input, obj.cb_construction_type);
 
+	deserialize(input, obj.research_points);
 	deserialize(input, obj.base_colonial_points);
 	deserialize(input, obj.current_color);
 
@@ -294,6 +299,7 @@ size_t serialization::serializer<nations::nation>::size(nations::nation const & 
 		sizeof(obj.cb_construction_progress) +
 		sizeof(obj.cb_construction_target) +
 		sizeof(obj.cb_construction_type) +
+		sizeof(obj.research_points) +
 		sizeof(obj.base_colonial_points) +
 		sizeof(obj.current_color) +
 		sizeof(obj.national_value) +

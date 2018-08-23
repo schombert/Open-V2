@@ -35,4 +35,18 @@ namespace cultures {
 			}
 		}
 	}
+
+	void replace_cores(world_state& ws, national_tag replace_from, national_tag replace_to) {
+		auto& core_from = ws.w.culture_s.national_tags_state[replace_from];
+		auto& core_to = ws.w.culture_s.national_tags_state[replace_to];
+
+		auto old_core_range = get_range(ws.w.province_s.province_arrays, core_from.core_provinces);
+		for(auto o : old_core_range) {
+			auto& ps = ws.w.province_s.province_state_container[o];
+			remove_item(ws.w.province_s.core_arrays, ps.cores, replace_from);
+			add_item(ws.w.province_s.core_arrays, ps.cores, replace_to);
+			add_item(ws.w.province_s.province_arrays, core_to.core_provinces, o);
+		}
+		clear(ws.w.province_s.province_arrays, core_from.core_provinces);
+	}
 }

@@ -295,6 +295,8 @@ namespace nations {
 			state_instance* si = &(ws.w.nation_s.states.get_new());
 			si->owner = owner;
 			si->region_id = ws.s.province_m.province_container[prov].state_id;
+			si->name = ws.s.province_m.state_names[si->region_id];
+
 
 			ws.w.nation_s.state_demographics.ensure_capacity(to_index(si->id) + 1);
 
@@ -314,13 +316,16 @@ namespace nations {
 		for(int32_t i = int32_t(ws.w.province_s.province_state_container.size()) - 1; i > 0; --i) {
 			const provinces::province_tag this_prov_id(static_cast<provinces::province_tag::value_base_t>(i));
 			auto& this_province = ws.w.province_s.province_state_container[this_prov_id];
+			auto state_id = ws.s.province_m.province_container[this_prov_id].state_id;
+
 			if((this_province.owner == nullptr) &
 				((ws.s.province_m.province_container[this_prov_id].flags & provinces::province::sea) == 0) &
 				(this_province.state_instance == nullptr) &
-				is_valid_index(ws.s.province_m.province_container[this_prov_id].state_id)) {
+				is_valid_index(state_id)) {
 
 				state_instance* si = &(ws.w.nation_s.states.get_new());
-				si->region_id = ws.s.province_m.province_container[this_prov_id].state_id;
+				si->region_id = state_id;
+				si->name = ws.s.province_m.state_names[state_id];
 
 				ws.w.nation_s.state_demographics.ensure_capacity(to_index(si->id) + 1);
 
@@ -987,4 +992,16 @@ namespace nations {
 		}
 	}
 
+	void change_tag(world_state& ws, nations::nation& this_nation, cultures::national_tag new_tag) {
+		auto& new_tag_state = ws.w.culture_s.national_tags_state[new_tag];
+
+		if(is_valid_index(this_nation.tag))
+			ws.w.culture_s.national_tags_state[this_nation.tag].holder = new_tag_state.holder;
+
+		if(new_tag_state.holder)
+			new_tag_state.holder->tag = this_nation.tag;
+
+		new_tag_state.holder = &this_nation;
+		this_nation.tag = new_tag;
+	}
 }

@@ -33,8 +33,12 @@ namespace provinces {
 	template<typename window_type>
 	void province_state_name::windowed_update(window_type& w, ui::tagged_gui_object obj, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		auto selected = ws.w.selected_province;
-		if(is_valid_index(selected) && is_valid_index(ws.s.province_m.province_container[selected].state_id))
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.province_m.state_names[ws.s.province_m.province_container[selected].state_id], fmt, ws.s.gui_m, ws.w.gui_m, obj, lm);
+		if(is_valid_index(selected)) {
+			if(auto si = ws.w.province_s.province_state_container[selected].state_instance; si)
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, si->name, fmt, ws.s.gui_m, ws.w.gui_m, obj, lm);
+			if(is_valid_index(ws.s.province_m.province_container[selected].state_id))
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.province_m.state_names[ws.s.province_m.province_container[selected].state_id], fmt, ws.s.gui_m, ws.w.gui_m, obj, lm);
+		}
 		lm.finish_current_line();
 	}
 

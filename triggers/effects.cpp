@@ -5,6 +5,8 @@
 #include "nations\\nations_functions.hpp"
 #include "provinces\\province_functions.hpp"
 #include "population\\population_function.h"
+#include "governments\\governments_functions.h"
+#include "cultures\\cultures_functions.h"
 
 namespace triggers {
 	int32_t get_effect_payload_size(const uint16_t* data) {
@@ -1111,50 +1113,209 @@ namespace triggers {
 				add_item(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[tag].core_provinces, ((provinces::province_state*)primary_slot)->id);
 			}
 		}
-		void ef_remove_core_tag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_remove_core_int(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_remove_core_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_remove_core_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_remove_core_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_remove_core_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_remove_core_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_remove_core_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_remove_core_reb(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_change_region_name_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_change_region_name_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_trade_goods(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_add_accepted_culture(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_add_accepted_culture_union(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_primary_culture(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_primary_culture_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_primary_culture_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_primary_culture_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_primary_culture_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_primary_culture_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_remove_accepted_culture(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_life_rating(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_religion(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_is_slave_state_yes(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_is_slave_pop_yes(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_research_points(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_tech_school(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_government(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_government_reb(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_treasury(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_war_exhaustion(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_prestige(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_change_tag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_change_tag_culture(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_change_tag_no_core_switch(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_change_tag_no_core_switch_culture(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_set_country_flag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_clr_country_flag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_military_access(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_military_access_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_military_access_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_military_access_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_military_access_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_badboy(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
+		void ef_remove_core_tag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto tag = trigger_payload(tval[2]).tag;
+			remove_item(ws.w.province_s.core_arrays, ((provinces::province_state*)primary_slot)->cores, tag);
+			remove_item(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[tag].core_provinces, ((provinces::province_state*)primary_slot)->id);
+		}
+		void ef_remove_core_int(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto tag = ((nations::nation*)primary_slot)->tag;
+			provinces::province_tag prov(tval[2]);
+			if(is_valid_index(tag)) {
+				remove_item(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container[prov].cores, tag);
+				remove_item(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[tag].core_provinces, prov);
+			}
+		}
+		void ef_remove_core_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto tag = ((nations::nation*)this_slot)->tag;
+			if(is_valid_index(tag)) {
+				remove_item(ws.w.province_s.core_arrays, ((provinces::province_state*)primary_slot)->cores, tag);
+				remove_item(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[tag].core_provinces, ((provinces::province_state*)primary_slot)->id);
+			}
+		}
+		void ef_remove_core_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto owner = ((provinces::province_state*)this_slot)->owner;
+			if(owner)
+				ef_remove_core_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+		}
+		void ef_remove_core_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto owner = ((nations::state_instance*)this_slot)->owner;
+			if(owner)
+				ef_remove_core_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+		}
+		void ef_remove_core_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto owner = population::get_pop_owner(ws, *((population::pop*)this_slot));
+			if(owner)
+				ef_remove_core_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+		}
+		void ef_remove_core_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto owner = ((provinces::province_state*)from_slot)->owner;
+			if(owner)
+				ef_remove_core_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+		}
+		void ef_remove_core_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			ef_remove_core_this_nation(tval, ws, primary_slot, from_slot, nullptr, nullptr, gen);
+		}
+		void ef_remove_core_reb(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto tag = rebel_slot->independence_tag;
+			if(is_valid_index(tag)) {
+				remove_item(ws.w.province_s.core_arrays, ((provinces::province_state*)primary_slot)->cores, tag);
+				remove_item(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[tag].core_provinces, ((provinces::province_state*)primary_slot)->id);
+			}
+		}
+		void ef_change_region_name_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			((nations::state_instance*)primary_slot)->name = trigger_payload(tval[2]).text;
+		}
+		void ef_change_region_name_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto si = ((provinces::province_state*)primary_slot)->state_instance;
+			if(si)
+				si->name = trigger_payload(tval[2]).text;
+		}
+		void ef_trade_goods(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			((provinces::province_state*)primary_slot)->rgo_production = trigger_payload(tval[2]).small.values.good;
+		}
+		void ef_add_accepted_culture(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			add_item(ws.w.culture_s.culture_arrays, ((nations::nation*)primary_slot)->accepted_cultures, trigger_payload(tval[2]).culture);
+		}
+		void ef_add_accepted_culture_union(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto prim_culture = ((nations::nation*)primary_slot)->primary_culture;
+			if(is_valid_index(prim_culture)) {
+				auto cg_t = ws.s.culture_m.culture_container[prim_culture].group;
+				auto g_range = ws.s.culture_m.culture_by_culture_group.get_row(cg_t);
+				for(auto c : g_range)
+					add_item(ws.w.culture_s.culture_arrays, ((nations::nation*)primary_slot)->accepted_cultures, c);
+			}
+		}
+		void ef_primary_culture(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			((nations::nation*)primary_slot)->primary_culture = trigger_payload(tval[2]).culture;
+		}
+		void ef_primary_culture_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			((nations::nation*)primary_slot)->primary_culture = ((nations::nation*)this_slot)->primary_culture;
+		}
+		void ef_primary_culture_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto owner = ((nations::state_instance*)this_slot)->owner;
+			if(owner)
+				((nations::nation*)primary_slot)->primary_culture = owner->primary_culture;
+		}
+		void ef_primary_culture_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto owner = ((provinces::province_state*)this_slot)->owner;
+			if(owner)
+				((nations::nation*)primary_slot)->primary_culture = owner->primary_culture;
+		}
+		void ef_primary_culture_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto owner = population::get_pop_owner(ws, *((population::pop*)this_slot));
+			if(owner)
+				((nations::nation*)primary_slot)->primary_culture = owner->primary_culture;
+		}
+		void ef_primary_culture_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			((nations::nation*)primary_slot)->primary_culture = ((nations::nation*)from_slot)->primary_culture;
+		}
+		void ef_remove_accepted_culture(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			remove_item(ws.w.culture_s.culture_arrays, ((nations::nation*)primary_slot)->accepted_cultures, trigger_payload(tval[2]).culture);
+		}
+		void ef_life_rating(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			((provinces::province_state*)primary_slot)->base_life_rating += trigger_payload(tval[2]).signed_value;
+		}
+		void ef_religion(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			((nations::nation*)primary_slot)->national_religion = trigger_payload(tval[2]).small.values.religion;
+		}
+		void ef_is_slave_state_yes(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			((nations::state_instance*)primary_slot)->flags |= nations::state_instance::is_slave_state;
+		}
+		void ef_is_slave_pop_yes(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			((population::pop*)primary_slot)->type = ws.s.population_m.slave;
+			//TODO fix employment?
+		}
+		void ef_research_points(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			((nations::nation*)primary_slot)->research_points += trigger_payload(tval[2]).signed_value;
+		}
+		void ef_tech_school(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			((nations::nation*)primary_slot)->tech_school = trigger_payload(tval[2]).nat_mod;
+		}
+		void ef_government(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			governments::silent_set_government(ws, *((nations::nation*)primary_slot), trigger_payload(tval[2]).small.values.government);
+		}
+		void ef_government_reb(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			governments::silent_set_government(ws, *((nations::nation*)primary_slot),
+				ws.s.population_m.rebel_change_government_to.get(rebel_slot->type, ((nations::nation*)primary_slot)->current_government));
+		}
+		void ef_treasury(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			ws.w.nation_s.national_stockpiles.get(((nations::nation*)primary_slot)->id, economy::money_good) += economy::goods_qnty_type(read_float_from_payload(tval + 2));
+		}
+		void ef_war_exhaustion(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			((nations::nation*)primary_slot)->war_exhaustion = std::clamp(((nations::nation*)primary_slot)->war_exhaustion + read_float_from_payload(tval + 2), 0.0f, 1.0f);
+		}
+		void ef_prestige(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			((nations::nation*)primary_slot)->base_prestige = std::max(
+				0.0f,
+				((nations::nation*)primary_slot)->base_prestige + read_float_from_payload(tval + 2) / 100.0f * (((nations::nation*)primary_slot)->tech_attributes[technologies::tech_offset::prestige] + 1.0f));
+		}
+		void ef_change_tag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(is_valid_index(((nations::nation*)primary_slot)->tag))
+				cultures::replace_cores(ws, ((nations::nation*)primary_slot)->tag, trigger_payload(tval[2]).tag);
+			nations::change_tag(ws, *((nations::nation*)primary_slot), trigger_payload(tval[2]).tag);
+		}
+		void ef_change_tag_culture(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto prim_culture = ((nations::nation*)primary_slot)->primary_culture;
+			if(is_valid_index(prim_culture)) {
+				auto cg_t = ws.s.culture_m.culture_container[prim_culture].group;
+				auto u = ws.s.culture_m.culture_groups[cg_t].union_tag;
+				if(is_valid_index(u)) {
+					if(is_valid_index(((nations::nation*)primary_slot)->tag))
+						cultures::replace_cores(ws, ((nations::nation*)primary_slot)->tag, u);
+					nations::change_tag(ws, *((nations::nation*)primary_slot), u);
+				}
+			}
+		}
+		void ef_change_tag_no_core_switch(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(ws.w.local_player_nation == primary_slot) {
+				if(auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder; holder) {
+					ws.w.local_player_nation->flags &= ~nations::nation::is_not_ai_controlled;
+					holder->flags |= nations::nation::is_not_ai_controlled;
+					ws.w.local_player_nation = holder;
+				}
+			}
+		}
+		void ef_change_tag_no_core_switch_culture(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(ws.w.local_player_nation == primary_slot) {
+				auto prim_culture = ((nations::nation*)primary_slot)->primary_culture;
+				if(is_valid_index(prim_culture)) {
+					auto cg_t = ws.s.culture_m.culture_container[prim_culture].group;
+					auto u = ws.s.culture_m.culture_groups[cg_t].union_tag;
+					if(is_valid_index(u)) {
+						if(auto holder = ws.w.culture_s.national_tags_state[u].holder; holder) {
+							ws.w.local_player_nation->flags &= ~nations::nation::is_not_ai_controlled;
+							holder->flags |= nations::nation::is_not_ai_controlled;
+							ws.w.local_player_nation = holder;
+						}
+					}
+				}
+			}
+		}
+		void ef_set_country_flag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			add_item(ws.w.variable_s.national_flags_arrays, ((nations::nation*)primary_slot)->national_flags, trigger_payload(tval[2]).nat_flag);
+		}
+		void ef_clr_country_flag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			remove_item(ws.w.variable_s.national_flags_arrays, ((nations::nation*)primary_slot)->national_flags, trigger_payload(tval[2]).nat_flag);
+		}
+		void ef_military_access(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			// do nothing
+		}
+		void ef_military_access_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			// do nothing
+		}
+		void ef_military_access_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			// do nothing
+		}
+		void ef_military_access_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			// do nothing
+		}
+		void ef_military_access_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			// do nothing
+		}
+		void ef_badboy(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			((nations::nation*)primary_slot)->infamy = std::max(0.0f, ((nations::nation*)primary_slot)->infamy + read_float_from_payload(tval + 2));
+		}
 		void ef_secede_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
 		void ef_secede_province_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
 		void ef_secede_province_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}

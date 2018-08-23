@@ -32,6 +32,7 @@ namespace nations {
 	void remove_investment_and_influence(world_state& ws, nation& nation_by, nation& nation_target);
 	void init_empty_states(world_state& ws);
 	void reset_nation(world_state& ws, nations::nation& new_nation);
+	void change_tag(world_state& ws, nations::nation& this_nation, cultures::national_tag new_tag);
 	
 	void destroy_state_instance(world_state& ws, state_instance& si, nation& owner);
 	void partial_destroy_state_instance(world_state& ws, state_instance& si);

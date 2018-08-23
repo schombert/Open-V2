@@ -92,8 +92,10 @@ namespace cultures {
 
 		std::vector<graphics::texture_tag> leader_pictures;
 		std::vector<char16_t> name_data;
-		v_vector<vector_backed_string<char16_t>, value_base_of<culture_tag>> first_names_by_culture;
-		v_vector<vector_backed_string<char16_t>, value_base_of<culture_tag>> last_names_by_culture;
+		v_vector<vector_backed_string<char16_t>, culture_tag> first_names_by_culture;
+		v_vector<vector_backed_string<char16_t>, culture_tag> last_names_by_culture;
+
+		v_vector<culture_tag, culture_group_tag> culture_by_culture_group;
 
 		tagged_fixed_2dvector<name_pair, national_tag, governments::government_tag> country_names_by_government;
 

@@ -1217,7 +1217,7 @@ namespace triggers {
 		1, //constexpr uint16_t religion = 0x0021;
 		0, //constexpr uint16_t is_slave_state_yes = 0x0022;
 		0, //constexpr uint16_t is_slave_pop_yes = 0x0023;
-		2, //constexpr uint16_t research_points = 0x0024;
+		1, //constexpr uint16_t research_points = 0x0024;
 		1, //constexpr uint16_t tech_school = 0x0025;
 		1, //constexpr uint16_t government = 0x0026;
 		0, //constexpr uint16_t government_reb = 0x0027;

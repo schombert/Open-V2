@@ -209,10 +209,10 @@ namespace cultures {
 		}
 
 		void add_first_names(const names_builder& names) {
-			env.manager.first_names_by_culture.add_range_to_row(to_index(ctag), names.names.begin(), names.names.end());
+			env.manager.first_names_by_culture.add_range_to_row(ctag, names.names.begin(), names.names.end());
 		}
 		void add_last_names(const names_builder& names) {
-			env.manager.last_names_by_culture.add_range_to_row(to_index(ctag), names.names.begin(), names.names.end());
+			env.manager.last_names_by_culture.add_range_to_row(ctag, names.names.begin(), names.names.end());
 		}
 		void set_radicalism(float f) {
 			c->radicalism = f;
@@ -542,6 +542,10 @@ namespace cultures {
 					&parse_results[0] + parse_results.size(),
 					return_state);
 			}
+		}
+
+		for(auto const& i_culture : manager.culture_container) {
+			manager.culture_by_culture_group.add_to_row(i_culture.group, i_culture.id);
 		}
 
 		std::string noleader_file = std::string("\\gfx\\interface\\leaders\\no_leader.dds");
