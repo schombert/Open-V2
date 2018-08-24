@@ -718,7 +718,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 		}
 		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
-			return token_to<float>(t);
+			return token_to<int16_t>(t);
 		}
 	};
 	struct create_vassal_effect {

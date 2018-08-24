@@ -1272,7 +1272,7 @@ namespace triggers {
 		0, //constexpr uint16_t change_controller_from_province = 0x0058;
 		1, //constexpr uint16_t infrastructure = 0x0059;
 		2, //constexpr uint16_t money = 0x005A;
-		2, //constexpr uint16_t leadership = 0x005B;
+		1, //constexpr uint16_t leadership = 0x005B;
 		1, //constexpr uint16_t create_vassal = 0x005C;
 		0, //constexpr uint16_t create_vassal_this_nation = 0x005D;
 		0, //constexpr uint16_t create_vassal_this_province = 0x005E;

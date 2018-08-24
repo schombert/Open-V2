@@ -152,6 +152,7 @@ namespace nations {
 		uint16_t crime_count = 0ui16; // connected to the capital only
 
 		int16_t research_points = 0i16;
+		int16_t leadership_points = 0i16;
 		int16_t base_colonial_points = 0ui16; // add to tech for actual
 		uint16_t num_connected_ports = 0ui16; // number of ports connected to capital by land
 		uint16_t num_ports = 0ui16;

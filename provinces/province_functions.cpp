@@ -2,6 +2,7 @@
 #include "province_functions.hpp"
 #include "modifiers\\modifiers.h"
 #include "population\\population_function.h"
+#include "nations\\nations_functions.h"
 
 namespace provinces {
 	void reset_state(provinces_state& s) {
@@ -256,5 +257,99 @@ namespace provinces {
 
 	float get_life_rating(province_state const& p) {
 		return float(p.base_life_rating) * (1.0f + p.modifier_values[modifiers::provincial_offsets::life_rating]);
+	}
+
+
+	void silent_remove_province_owner(world_state& ws, provinces::province_state& prov_state) {
+		if(prov_state.owner) {
+			remove_item(ws.w.province_s.province_arrays, prov_state.owner->owned_provinces, prov_state.id);
+
+			auto smod = get_range(ws.w.province_s.static_modifier_arrays, prov_state.static_modifiers);
+			for(auto m : smod) {
+				if(auto nm = ws.s.modifiers_m.provincial_modifiers[m].complement; is_valid_index(nm)) {
+					remove_item(ws.w.nation_s.static_modifier_arrays, prov_state.owner->static_modifiers, nm);
+				}
+			}
+
+			auto tmod = get_range(ws.w.province_s.timed_modifier_arrays, prov_state.timed_modifiers);
+			for(auto m = tmod.first; m != tmod.second; ++m) {
+				if(auto nm = ws.s.modifiers_m.provincial_modifiers[m->mod].complement; is_valid_index(nm)) {
+					remove_item(ws.w.nation_s.timed_modifier_arrays, prov_state.owner->timed_modifiers, nations::timed_national_modifier{ date_tag(), nm });
+				}
+			}
+		}
+
+		prov_state.owner = nullptr;
+		nations::state_instance* old_state = prov_state.state_instance;
+
+		if(prov_state.state_instance) {
+			auto old_state = prov_state.state_instance;
+			nations::remove_province_from_state(ws, prov_state);
+
+			if(nations::is_state_empty(ws, *old_state)) {
+				nations::destroy_state_instance(ws, *old_state);
+				ws.w.nation_s.states.remove(old_state->id);
+			}
+		}
+	}
+
+	void silent_remove_province_controller(world_state& ws, provinces::province_state& prov) {
+		if(prov.controller) {
+			remove_item(ws.w.province_s.province_arrays, prov.controller->controlled_provinces, prov.id);
+			prov.controller = nullptr;
+		}
+	}
+
+	void silent_set_province_controller(world_state& ws, nations::nation& new_controller, provinces::province_state& prov) {
+		add_item(ws.w.province_s.province_arrays, new_controller.controlled_provinces, prov.id);
+		if(prov.controller != nullptr)
+			silent_remove_province_controller(ws, prov);
+		prov.controller = &new_controller;
+	}
+
+	void silent_set_province_owner(world_state& ws, nations::nation& new_owner, provinces::province_state& prov) {
+		add_item(ws.w.province_s.province_arrays, new_owner.owned_provinces, prov.id);
+		silent_remove_province_owner(ws, prov);
+
+		auto smod = get_range(ws.w.province_s.static_modifier_arrays, prov.static_modifiers);
+		for(auto m : smod) {
+			if(auto nm = ws.s.modifiers_m.provincial_modifiers[m].complement; is_valid_index(nm)) {
+				add_item(ws.w.nation_s.static_modifier_arrays, prov.owner->static_modifiers, nm);
+			}
+		}
+
+		auto tmod = get_range(ws.w.province_s.timed_modifier_arrays, prov.timed_modifiers);
+		for(auto m = tmod.first; m != tmod.second; ++m) {
+			if(auto nm = ws.s.modifiers_m.provincial_modifiers[m->mod].complement; is_valid_index(nm)) {
+				add_item(ws.w.nation_s.timed_modifier_arrays, prov.owner->timed_modifiers, nations::timed_national_modifier{ m->expiration, nm });
+			}
+		}
+
+		prov.owner = &new_owner;
+		const auto region_id = ws.s.province_m.province_container[prov.id].state_id;
+
+		nations::region_state_pair* found = find(ws.w.nation_s.state_arrays, new_owner.member_states, nations::region_state_pair{ region_id, nullptr });
+		if(found) {
+			prov.state_instance = found->state;
+		} else {
+			nations::state_instance* si = &(ws.w.nation_s.states.get_new());
+			si->owner = &new_owner;
+			si->region_id = ws.s.province_m.province_container[prov].state_id;
+			si->name = ws.s.province_m.state_names[si->region_id];
+
+			ws.w.nation_s.state_demographics.ensure_capacity(to_index(si->id) + 1);
+
+			prov.state_instance = si;
+			add_item(ws.w.nation_s.state_arrays, new_owner.member_states, nations::region_state_pair{ region_id, si });
+		}
+	}
+
+	void silent_on_conquer_province(world_state& ws, provinces::province_state& prov) {
+		auto owner = prov.owner;
+		auto owner_tag = owner->tag;
+		if(is_valid_index(owner_tag)) {
+			if(prov.id == ws.w.culture_s.national_tags_state[owner_tag].capital)
+				owner->current_capital = prov.id;
+		}
 	}
 }

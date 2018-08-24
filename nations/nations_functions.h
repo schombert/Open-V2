@@ -13,13 +13,9 @@ class world_state;
 namespace nations {
 	void init_nations_state(world_state& ws);
 	void reset_state(nations_state& s);
-	void silent_remove_province_owner(world_state& ws, nation* owner, provinces::province_tag prov);
-	void silent_remove_province_controller(current_state::state& ws, nation* controller, provinces::province_tag prov);
-	void silent_set_province_controller(current_state::state& ws, nation* controller, provinces::province_tag prov);
 	void remove_province_from_state(world_state& ws, provinces::province_state& p);
-	void silent_set_province_owner(world_state& ws, nation* owner, provinces::province_tag prov);
 	nation* make_nation_for_tag(world_state& ws, cultures::national_tag nt);
-	bool is_state_empty(world_state const& ws, nation const& owner, provinces::state_tag region);
+	bool is_state_empty(world_state const& ws, state_instance const& s);
 	void update_state_nation_demographics(world_state& ws);
 	provinces::province_tag find_best_capital(world_state const& ws, nation const& owner);
 	void set_relationship(world_state& ws, nation& a, nation& b, int32_t value);
@@ -33,8 +29,11 @@ namespace nations {
 	void init_empty_states(world_state& ws);
 	void reset_nation(world_state& ws, nations::nation& new_nation);
 	void change_tag(world_state& ws, nations::nation& this_nation, cultures::national_tag new_tag);
-	
-	void destroy_state_instance(world_state& ws, state_instance& si, nation& owner);
+	void annex_nation(world_state& ws, nations::nation& this_nation, nations::nation& to_annex);
+	void liberate_uncored_cores(world_state& ws, nations::nation& from, cultures::national_tag);
+	void liberate_all_cores(world_state& ws, nations::nation& from, cultures::national_tag);
+
+	void destroy_state_instance(world_state& ws, state_instance& si);
 	void partial_destroy_state_instance(world_state& ws, state_instance& si);
 	void destroy_nation(world_state& ws, nations::nation& new_nation);
 

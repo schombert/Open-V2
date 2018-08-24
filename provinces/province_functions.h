@@ -1,7 +1,12 @@
 #pragma once
 #include "common\\common.h"
 #include "provinces.h"
-#include "world_state\\world_state.h"
+
+namespace nations {
+	struct nation;
+}
+
+class world_state;
 
 namespace provinces {
 	void add_core(current_state::state& ws, province_tag prov, cultures::national_tag tag);
@@ -18,4 +23,10 @@ namespace provinces {
 
 	template<typename F>
 	void for_each_pop(world_state const& ws, provinces::province_state const& s, F&& f);
+
+	void silent_remove_province_owner(world_state& ws, provinces::province_state& prov);
+	void silent_remove_province_controller(world_state& ws, provinces::province_state& prov);
+	void silent_set_province_owner(world_state& ws, nations::nation& new_owner, provinces::province_state& prov);
+	void silent_set_province_controller(world_state& ws, nations::nation& new_controller, provinces::province_state& prov);
+	void silent_on_conquer_province(world_state& ws, provinces::province_state& prov);
 }

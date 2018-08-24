@@ -126,6 +126,7 @@ void serialization::serializer<nations::nation>::serialize_object(std::byte *& o
 	serialize(output, obj.cb_construction_type);
 
 	serialize(output, obj.research_points);
+	serialize(output, obj.leadership_points);
 	serialize(output, obj.base_colonial_points);
 	serialize(output, obj.current_color);
 
@@ -234,6 +235,7 @@ void serialization::serializer<nations::nation>::deserialize_object(std::byte co
 	deserialize(input, obj.cb_construction_type);
 
 	deserialize(input, obj.research_points);
+	deserialize(input, obj.leadership_points);
 	deserialize(input, obj.base_colonial_points);
 	deserialize(input, obj.current_color);
 
@@ -300,6 +302,7 @@ size_t serialization::serializer<nations::nation>::size(nations::nation const & 
 		sizeof(obj.cb_construction_target) +
 		sizeof(obj.cb_construction_type) +
 		sizeof(obj.research_points) +
+		sizeof(obj.leadership_points) +
 		sizeof(obj.base_colonial_points) +
 		sizeof(obj.current_color) +
 		sizeof(obj.national_value) +

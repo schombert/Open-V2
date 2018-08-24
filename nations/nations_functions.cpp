@@ -7,6 +7,7 @@
 #include "governments\\governments_functions.h"
 #include "issues\\issues_functions.hpp"
 #include "population\\population_function.h"
+#include "provinces\\province_functions.h"
 
 namespace nations {
 	void reset_nation(world_state& ws, nations::nation& new_nation) {
@@ -189,6 +190,62 @@ namespace nations {
 		clear(ws.w.nation_s.state_arrays, new_nation.member_states);
 	}
 
+
+	void annex_nation(world_state& ws, nations::nation& this_nation, nations::nation& to_annex) {
+		boost::container::small_vector<provinces::province_tag, 64> owned_copy;
+		auto target_owned = get_range(ws.w.province_s.province_arrays, to_annex.owned_provinces);
+		for(auto p : target_owned)
+			owned_copy.push_back(p);
+
+		for(auto p : owned_copy) {
+			auto& state = ws.w.province_s.province_state_container[p];
+			provinces::silent_set_province_owner(ws, this_nation, state);
+			provinces::silent_on_conquer_province(ws, state);
+		}
+
+		destroy_nation(ws, to_annex);
+	}
+
+	void liberate_uncored_cores(world_state& ws, nations::nation& from, cultures::national_tag t) {
+		auto liberation_target = make_nation_for_tag(ws, t);
+		
+		boost::container::small_vector<provinces::province_tag, 64> owned_copy;
+		auto target_owned = get_range(ws.w.province_s.province_arrays, from.owned_provinces);
+		for(auto p : target_owned)
+			owned_copy.push_back(p);
+
+		for(auto p : owned_copy) {
+			auto& state = ws.w.province_s.province_state_container[p];
+			if(contains_item(ws.w.province_s.core_arrays, state.cores, t) && !contains_item(ws.w.province_s.core_arrays, state.cores, from.tag)) {
+				provinces::silent_set_province_owner(ws, *liberation_target, state);
+				provinces::silent_on_conquer_province(ws, state);
+			}
+		}
+
+		if(get_size(ws.w.province_s.province_arrays, from.owned_provinces) == 0)
+			destroy_nation(ws, from);
+	}
+
+	void liberate_all_cores(world_state& ws, nations::nation& from, cultures::national_tag t) {
+		auto liberation_target = make_nation_for_tag(ws, t);
+
+		boost::container::small_vector<provinces::province_tag, 64> owned_copy;
+		auto target_owned = get_range(ws.w.province_s.province_arrays, from.owned_provinces);
+		for(auto p : target_owned)
+			owned_copy.push_back(p);
+
+		for(auto p : owned_copy) {
+			auto& state = ws.w.province_s.province_state_container[p];
+			if(contains_item(ws.w.province_s.core_arrays, state.cores, t)) {
+				provinces::silent_set_province_owner(ws, *liberation_target, state);
+				provinces::silent_on_conquer_province(ws, state);
+			}
+		}
+
+		if(get_size(ws.w.province_s.province_arrays, from.owned_provinces) == 0)
+			destroy_nation(ws, from);
+	}
+
 	nation* make_nation_for_tag(world_state& ws, cultures::national_tag nt) {
 		cultures::national_tag_state& tag_state = ws.w.culture_s.national_tags_state[nt];
 		if(tag_state.holder)
@@ -223,9 +280,9 @@ namespace nations {
 		return &new_nation;
 	}
 
-	bool is_state_empty(world_state const& ws, nation const& owner, provinces::state_tag region) {
-		for(auto prange = ws.s.province_m.states_to_province_index.get_row(region); prange.first != prange.second; ++prange.first) {
-			if(ws.w.province_s.province_state_container[*prange.first].owner == &owner)
+	bool is_state_empty(world_state const& ws, state_instance const& s) {
+		for(auto prange = ws.s.province_m.states_to_province_index.get_row(s.region_id); prange.first != prange.second; ++prange.first) {
+			if(ws.w.province_s.province_state_container[*prange.first].state_instance == &s)
 				return false;
 		}
 		return true;
@@ -243,74 +300,18 @@ namespace nations {
 		}
 	}
 
-	void destroy_state_instance(world_state& ws, state_instance& si, nation& owner) {
+	void destroy_state_instance(world_state& ws, state_instance& si) {
 		partial_destroy_state_instance(ws, si);
-		remove_item(ws.w.nation_s.state_arrays, owner.member_states, region_state_pair{ si.region_id, nullptr });
+		if(si.owner) {
+			remove_item(ws.w.nation_s.state_arrays, si.owner->member_states, region_state_pair{ si.region_id, nullptr });
+			si.owner = nullptr;
+		}
 	}
 
 	void remove_province_from_state(world_state&, provinces::province_state& p) {
 		p.state_instance = nullptr;
 	}
 
-	void silent_remove_province_owner(world_state& ws, nation* owner, provinces::province_tag prov) {
-		remove_item(ws.w.province_s.province_arrays, owner->owned_provinces, prov);
-
-		auto& prov_state = ws.w.province_s.province_state_container[prov];
-
-		prov_state.owner = nullptr;
-		state_instance* old_state = prov_state.state_instance;
-
-		remove_province_from_state(ws, prov_state);
-
-		const auto region_tag = ws.s.province_m.province_container[prov].state_id;
-		if(is_state_empty(ws, *owner, region_tag)) {
-			remove_item(ws.w.nation_s.state_arrays, owner->member_states, region_state_pair{ old_state->region_id, nullptr });
-			if(old_state) {
-				destroy_state_instance(ws, *old_state, *owner);
-				ws.w.nation_s.states.remove(old_state->id);
-			}
-		}
-	}
-
-	void silent_remove_province_controller(current_state::state& ws, nation* controller, provinces::province_tag prov) {
-		remove_item(ws.province_s.province_arrays, controller->controlled_provinces, prov);
-		ws.province_s.province_state_container[prov].controller = nullptr;
-	}
-
-	void silent_set_province_owner(world_state& ws, nation* owner, provinces::province_tag prov) {
-		auto& prov_state = ws.w.province_s.province_state_container[prov];
-
-		add_item(ws.w.province_s.province_arrays, owner->owned_provinces, prov);
-		if(prov_state.owner != nullptr)
-			silent_remove_province_owner(ws, prov_state.owner, prov);
-
-		
-		prov_state.owner = owner;
-		const auto region_id = ws.s.province_m.province_container[prov].state_id;
-
-		region_state_pair* found = find(ws.w.nation_s.state_arrays, owner->member_states, region_state_pair{ region_id, nullptr });
-		if(found) {
-			prov_state.state_instance = found->state;
-		} else {
-			state_instance* si = &(ws.w.nation_s.states.get_new());
-			si->owner = owner;
-			si->region_id = ws.s.province_m.province_container[prov].state_id;
-			si->name = ws.s.province_m.state_names[si->region_id];
-
-
-			ws.w.nation_s.state_demographics.ensure_capacity(to_index(si->id) + 1);
-
-			prov_state.state_instance = si;
-			add_item(ws.w.nation_s.state_arrays, owner->member_states, region_state_pair{ region_id, si });
-		}
-	}
-
-	void silent_set_province_controller(current_state::state& ws, nation* controller, provinces::province_tag prov) {
-		add_item(ws.province_s.province_arrays, controller->controlled_provinces, prov);
-		if(ws.province_s.province_state_container[prov].controller != nullptr)
-			silent_remove_province_controller(ws, ws.province_s.province_state_container[prov].controller, prov);
-		ws.province_s.province_state_container[prov].controller = controller;
-	}
 
 	void init_empty_states(world_state& ws) {
 		for(int32_t i = int32_t(ws.w.province_s.province_state_container.size()) - 1; i > 0; --i) {
