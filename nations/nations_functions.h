@@ -30,8 +30,10 @@ namespace nations {
 	void reset_nation(world_state& ws, nations::nation& new_nation);
 	void change_tag(world_state& ws, nations::nation& this_nation, cultures::national_tag new_tag);
 	void annex_nation(world_state& ws, nations::nation& this_nation, nations::nation& to_annex);
-	void liberate_uncored_cores(world_state& ws, nations::nation& from, cultures::national_tag);
-	void liberate_all_cores(world_state& ws, nations::nation& from, cultures::national_tag);
+	nations::nation& liberate_uncored_cores(world_state& ws, nations::nation& from, cultures::national_tag); // returns new nation
+	nations::nation& liberate_all_cores(world_state& ws, nations::nation& from, cultures::national_tag); // returns new nation
+	void make_vassal(world_state& ws, nations::nation& overlord, nations::nation& vassal);
+	void free_vassal(world_state& ws, nations::nation& vassal);
 
 	void destroy_state_instance(world_state& ws, state_instance& si);
 	void partial_destroy_state_instance(world_state& ws, state_instance& si);
@@ -47,6 +49,8 @@ namespace nations {
 	bool is_great_power(world_state const& ws, nation const& this_nation);
 
 	void silent_make_alliance(world_state& ws, nation& a, nation& b);
+	void make_alliance(world_state& ws, nation& a, nation& b);
+	void end_alliance(world_state& ws, nation& a, nation& b);
 	void silent_make_vassal(world_state& ws, nation& overlord, nation& vassal);
 	void silent_make_substate(world_state& ws, nation& overlord, nation& vassal);
 	nation* union_holder_of(world_state& ws, nation const& this_nation);

@@ -1492,41 +1492,123 @@ namespace triggers {
 		void ef_leadership(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			((nations::nation*)primary_slot)->leadership_points += trigger_payload(tval[2]).signed_value;
 		}
-		void ef_create_vassal(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_create_vassal_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_create_vassal_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_create_vassal_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_create_vassal_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_end_military_access(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_end_military_access_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_end_military_access_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_end_military_access_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_end_military_access_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_leave_alliance(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_leave_alliance_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_leave_alliance_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_leave_alliance_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_leave_alliance_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
+		void ef_create_vassal(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+			if(holder && get_size(ws.w.province_s.province_arrays, holder->owned_provinces) != 0)
+				nations::make_vassal(ws, *((nations::nation*)primary_slot), *holder);
+		}
+		void ef_create_vassal_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(get_size(ws.w.province_s.province_arrays, ((nations::nation*)this_slot)->owned_provinces) != 0)
+				nations::make_vassal(ws, *((nations::nation*)primary_slot), *((nations::nation*)this_slot));
+		}
+		void ef_create_vassal_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto owner = ((provinces::province_state*)this_slot)->owner;
+			if(owner)
+				ef_create_vassal_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+		}
+		void ef_create_vassal_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(get_size(ws.w.province_s.province_arrays, ((nations::nation*)from_slot)->owned_provinces) != 0)
+				nations::make_vassal(ws, *((nations::nation*)primary_slot), *((nations::nation*)from_slot));
+		}
+		void ef_create_vassal_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto owner = ((provinces::province_state*)from_slot)->owner;
+			if(owner)
+				ef_create_vassal_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+		}
+		void ef_end_military_access(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			// do nothing
+		}
+		void ef_end_military_access_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			// do nothing
+		}
+		void ef_end_military_access_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			// do nothing
+		}
+		void ef_end_military_access_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			// do nothing
+		}
+		void ef_end_military_access_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			// do nothing
+		}
+		void ef_leave_alliance(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+			if(holder)
+				nations::end_alliance(ws, *((nations::nation*)primary_slot), *holder);
+		}
+		void ef_leave_alliance_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			nations::end_alliance(ws, *((nations::nation*)primary_slot), *((nations::nation*)this_slot));
+		}
+		void ef_leave_alliance_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto owner = ((provinces::province_state*)this_slot)->owner;
+			if(owner)
+				nations::end_alliance(ws, *((nations::nation*)primary_slot), *owner);
+		}
+		void ef_leave_alliance_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			nations::end_alliance(ws, *((nations::nation*)primary_slot), *((nations::nation*)from_slot));
+		}
+		void ef_leave_alliance_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto owner = ((provinces::province_state*)from_slot)->owner;
+			if(owner)
+				nations::end_alliance(ws, *((nations::nation*)primary_slot), *owner);
+		}
 		void ef_end_war(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
 		void ef_end_war_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
 		void ef_end_war_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
 		void ef_end_war_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
 		void ef_end_war_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_enable_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
+		void ef_enable_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			ws.w.ideology_s.ideology_enabled[trigger_payload(tval[2]).small.values.ideology] = 1ui8;
+		}
 		void ef_ruling_party_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
 		void ef_plurality(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
 		void ef_remove_province_modifier(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
 		void ef_remove_country_modifier(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_create_alliance(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_create_alliance_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_create_alliance_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_create_alliance_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_create_alliance_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_release_vassal(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_release_vassal_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_release_vassal_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_release_vassal_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_release_vassal_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
+		void ef_create_alliance(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+			if(holder)
+				nations::make_alliance(ws, *((nations::nation*)primary_slot), *holder);
+		}
+		void ef_create_alliance_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			nations::make_alliance(ws, *((nations::nation*)primary_slot), *((nations::nation*)this_slot));
+		}
+		void ef_create_alliance_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto owner = ((provinces::province_state*)this_slot)->owner;
+			if(owner)
+				nations::make_alliance(ws, *((nations::nation*)primary_slot), *owner);
+		}
+		void ef_create_alliance_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			nations::make_alliance(ws, *((nations::nation*)primary_slot), *((nations::nation*)from_slot));
+		}
+		void ef_create_alliance_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto owner = ((provinces::province_state*)from_slot)->owner;
+			if(owner)
+				nations::make_alliance(ws, *((nations::nation*)primary_slot), *owner);
+		}
+		void ef_release_vassal(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto& new_nation = nations::liberate_uncored_cores(ws, *((nations::nation*)primary_slot), trigger_payload(tval[2]).tag);
+			if(get_size(ws.w.province_s.province_arrays, new_nation.owned_provinces) != 0)
+				nations::make_vassal(ws, *((nations::nation*)primary_slot), new_nation);
+		}
+		void ef_release_vassal_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto& new_nation = nations::liberate_uncored_cores(ws, *((nations::nation*)primary_slot), ((nations::nation*)this_slot)->tag);
+			if(get_size(ws.w.province_s.province_arrays, new_nation.owned_provinces) != 0)
+				nations::make_vassal(ws, *((nations::nation*)primary_slot), new_nation);
+		}
+		void ef_release_vassal_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto owner = ((provinces::province_state*)this_slot)->owner;
+			if(owner)
+				ef_release_vassal_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+		}
+		void ef_release_vassal_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto& new_nation = nations::liberate_uncored_cores(ws, *((nations::nation*)primary_slot), ((nations::nation*)from_slot)->tag);
+			if(get_size(ws.w.province_s.province_arrays, new_nation.owned_provinces) != 0)
+				nations::make_vassal(ws, *((nations::nation*)primary_slot), new_nation);
+		}
+		void ef_release_vassal_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto owner = ((provinces::province_state*)from_slot)->owner;
+			if(owner)
+				ef_release_vassal_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+		}
 		void ef_release_vassal_reb(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
 		void ef_release_vassal_random(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
 		void ef_change_province_name(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}

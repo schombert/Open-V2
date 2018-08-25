@@ -113,7 +113,7 @@ namespace nations {
 		set_tag<state_tag> national_focus_locations;
 		set_tag<variables::national_flag_tag> national_flags;
 		multiset_tag<modifiers::national_modifier_tag> static_modifiers;
-		set_tag<timed_national_modifier> timed_modifiers;
+		multiset_tag<timed_national_modifier> timed_modifiers;
 
 		array_tag<military::leader_tag> generals;
 		array_tag<military::leader_tag> admirals;

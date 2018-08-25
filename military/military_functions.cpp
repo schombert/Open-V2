@@ -318,6 +318,49 @@ namespace military {
 		}
 	}
 
+	void remove_from_war(world_state& ws, war& this_war, nations::country_tag to_remove) {
+		silent_remove_from_war(ws, this_war, to_remove);
+		remove_item_if(ws.w.military_s.war_arrays, ws.w.nation_s.nations[to_remove].wars_involved_in, [wid = this_war.id](war_identifier const& wi) { return wi.war_id == wid; });
+	}
+	void add_to_war(world_state& ws, war& this_war, bool attacker, nations::nation& to_add) {
+		if(attacker) {
+			auto attacker_range = get_range(ws.w.nation_s.nations_arrays, this_war.attackers);
+			for(auto a : attacker_range) {
+				add_item(ws.w.nation_s.nations_arrays, to_add.allies_in_war, a);
+				add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[a].allies_in_war, to_add.id);
+			}
+			auto defender_range = get_range(ws.w.nation_s.nations_arrays, this_war.defenders);
+			for(auto a : defender_range) {
+				add_item(ws.w.nation_s.nations_arrays, to_add.opponents_in_war, a);
+				add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[a].opponents_in_war, to_add.id);
+			}
+			add_item(ws.w.nation_s.nations_arrays, this_war.attackers, to_add.id);
+			add_item(ws.w.military_s.war_arrays, to_add.wars_involved_in, war_identifier{ this_war.id, true });
+		} else {
+			auto attacker_range = get_range(ws.w.nation_s.nations_arrays, this_war.attackers);
+			for(auto a : attacker_range) {
+				add_item(ws.w.nation_s.nations_arrays, to_add.opponents_in_war, a);
+				add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[a].opponents_in_war, to_add.id);
+			}
+			auto defender_range = get_range(ws.w.nation_s.nations_arrays, this_war.defenders);
+			for(auto a : defender_range) {
+				add_item(ws.w.nation_s.nations_arrays, to_add.allies_in_war, a);
+				add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[a].allies_in_war, to_add.id);
+			}
+			add_item(ws.w.nation_s.nations_arrays, this_war.defenders, to_add.id);
+			add_item(ws.w.military_s.war_arrays, to_add.wars_involved_in, war_identifier{ this_war.id, false });
+		}
+	}
+
+	bool is_target_of_war_goal(world_state const& ws, war const& this_war, nations::country_tag target) {
+		auto wg_range = get_range(ws.w.military_s.war_goal_arrays, this_war.war_goals);
+		for(auto wg = wg_range.first; wg != wg_range.second; ++wg) {
+			if(wg->target_country == target)
+				return true;
+		}
+		return false;
+	}
+
 	void destroy_army(world_state& ws, army& a, nations::nation& owner) {
 		auto pop_range = get_range(ws.w.population_s.pop_arrays, a.backing_pops);
 		for(auto p : pop_range)

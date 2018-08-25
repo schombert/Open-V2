@@ -45,7 +45,11 @@ namespace military {
 	float recruited_pop_fraction(world_state const& ws, nations::nation const& n);
 	float get_warscore(world_state const& ws, war const& this_war); // if attacker is winning, warscore is positive, negative if defender is winning
 
+	bool is_target_of_war_goal(world_state const& ws, war const& this_war, nations::country_tag target);
 	void silent_remove_from_war(world_state& ws, war& this_war, nations::country_tag to_remove); // NOTE: does not affect refence to war in nation object
+	void remove_from_war(world_state& ws, war& this_war, nations::country_tag to_remove);
+	void add_to_war(world_state& ws, war& this_war, bool attacker, nations::nation& to_add);
+
 	void destroy_army(world_state& ws, army& a, nations::nation& owner);
 	void destroy_fleet(world_state& ws, fleet& f, nations::nation& owner);
 	void partial_destroy_fleet(world_state& ws, fleet& f); // does not remove from nation

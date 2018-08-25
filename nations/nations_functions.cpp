@@ -206,7 +206,10 @@ namespace nations {
 		destroy_nation(ws, to_annex);
 	}
 
-	void liberate_uncored_cores(world_state& ws, nations::nation& from, cultures::national_tag t) {
+	nations::nation& liberate_uncored_cores(world_state& ws, nations::nation& from, cultures::national_tag t) {
+		if(from.tag == t)
+			return from;
+
 		auto liberation_target = make_nation_for_tag(ws, t);
 		
 		boost::container::small_vector<provinces::province_tag, 64> owned_copy;
@@ -224,9 +227,14 @@ namespace nations {
 
 		if(get_size(ws.w.province_s.province_arrays, from.owned_provinces) == 0)
 			destroy_nation(ws, from);
+
+		return *liberation_target;
 	}
 
-	void liberate_all_cores(world_state& ws, nations::nation& from, cultures::national_tag t) {
+	nations::nation& liberate_all_cores(world_state& ws, nations::nation& from, cultures::national_tag t) {
+		if(from.tag == t)
+			return from;
+
 		auto liberation_target = make_nation_for_tag(ws, t);
 
 		boost::container::small_vector<provinces::province_tag, 64> owned_copy;
@@ -244,6 +252,58 @@ namespace nations {
 
 		if(get_size(ws.w.province_s.province_arrays, from.owned_provinces) == 0)
 			destroy_nation(ws, from);
+
+		return *liberation_target;
+	}
+
+	void make_vassal(world_state& ws, nations::nation& overlord, nations::nation& vassal) {
+		if(&overlord == &vassal || vassal.overlord == &overlord)
+			return;
+
+		if(overlord.overlord) {
+			make_vassal(ws, *overlord.overlord, vassal);
+		} else {
+			if(vassal.overlord)
+				free_vassal(ws, vassal);
+
+			vassal.overlord = &overlord;
+			add_item(ws.w.nation_s.nations_arrays, overlord.vassals, vassal.id);
+
+			auto allies_range = get_range(ws.w.nation_s.nations_arrays, vassal.allies);
+			for(auto a : allies_range)
+				remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[a].allies, vassal.id);
+			clear(ws.w.nation_s.nations_arrays, vassal.allies);
+
+			auto war_range = get_range(ws.w.military_s.war_arrays, vassal.wars_involved_in);
+			boost::container::small_vector<military::war_identifier, 8> wars_copy(war_range.first, war_range.second);
+			for(auto w : wars_copy) {
+				auto& this_war = ws.w.military_s.wars[w.war_id];
+				if(!military::is_target_of_war_goal(ws, this_war, vassal.id))
+					military::remove_from_war(ws, this_war, vassal.id);
+			}
+
+			auto overlord_war_range = get_range(ws.w.military_s.war_arrays, overlord.wars_involved_in);
+			for(auto w = overlord_war_range.first; w != overlord_war_range.second; ++w)
+				military::add_to_war(ws, ws.w.military_s.wars[w->war_id], w->is_attacker, vassal);
+
+			governments::silent_set_government(ws, vassal, overlord.current_government);
+		}
+	}
+	void free_vassal(world_state& ws, nations::nation& vassal) {
+		if(!vassal.overlord)
+			return;
+
+		remove_item(ws.w.nation_s.nations_arrays, vassal.overlord->vassals, vassal.id);
+		vassal.overlord = nullptr;
+		vassal.flags &= ~nations::nation::is_substate;
+
+		auto war_range = get_range(ws.w.military_s.war_arrays, vassal.wars_involved_in);
+		boost::container::small_vector<military::war_identifier, 8> wars_copy(war_range.first, war_range.second);
+		for(auto w : wars_copy) {
+			auto& this_war = ws.w.military_s.wars[w.war_id];
+			if(!military::is_target_of_war_goal(ws, this_war, vassal.id))
+				military::remove_from_war(ws, this_war, vassal.id);
+		}
 	}
 
 	nation* make_nation_for_tag(world_state& ws, cultures::national_tag nt) {
@@ -639,6 +699,14 @@ namespace nations {
 	void silent_make_alliance(world_state& ws, nation& a, nation& b) {
 		add_item(ws.w.nation_s.nations_arrays, a.allies, b.id);
 		add_item(ws.w.nation_s.nations_arrays, b.allies, a.id);
+	}
+
+	void make_alliance(world_state& ws, nation& a, nation& b) {
+		silent_make_alliance(ws, a, b);
+	}
+	void end_alliance(world_state& ws, nation& a, nation& b) {
+		remove_item(ws.w.nation_s.nations_arrays, a.allies, b.id);
+		remove_item(ws.w.nation_s.nations_arrays, b.allies, a.id);
 	}
 
 	void silent_make_vassal(world_state& ws, nation& overlord, nation& vassal) {

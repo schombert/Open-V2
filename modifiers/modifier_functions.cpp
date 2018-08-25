@@ -4,6 +4,12 @@
 #include "nations\\nations_functions.h"
 
 namespace modifiers {
+	void add_unique_static_modifier_to_nation(world_state& ws, nations::nation& this_nation, national_modifier_tag mod) {
+		if(contains_item(ws.w.nation_s.static_modifier_arrays, this_nation.static_modifiers, mod) == false) {
+			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[mod];
+			add_item(ws.w.nation_s.static_modifier_arrays, this_nation.static_modifiers, mod);
+		}
+	}
 	void add_static_modifier_to_nation(world_state& ws, nations::nation& this_nation, national_modifier_tag mod) {
 		this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[mod];
 		add_item(ws.w.nation_s.static_modifier_arrays, this_nation.static_modifiers, mod);
