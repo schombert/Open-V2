@@ -3,6 +3,7 @@
 #include "modifiers\\modifiers.h"
 #include "population\\population_function.h"
 #include "nations\\nations_functions.h"
+#include "modifiers\\modifier_functions.h"
 
 namespace provinces {
 	void reset_state(provinces_state& s) {
@@ -14,7 +15,7 @@ namespace provinces {
 			ps.controller = nullptr;
 			ps.orders = nullptr;
 			ps.static_modifiers = set_tag<modifiers::provincial_modifier_tag>();
-			ps.timed_modifiers = set_tag<provinces::timed_provincial_modifier>();
+			ps.timed_modifiers = multiset_tag<provinces::timed_provincial_modifier>();
 			ps.pops = array_tag<population::pop_tag>();
 		}
 		s.core_arrays.reset();
@@ -263,20 +264,7 @@ namespace provinces {
 	void silent_remove_province_owner(world_state& ws, provinces::province_state& prov_state) {
 		if(prov_state.owner) {
 			remove_item(ws.w.province_s.province_arrays, prov_state.owner->owned_provinces, prov_state.id);
-
-			auto smod = get_range(ws.w.province_s.static_modifier_arrays, prov_state.static_modifiers);
-			for(auto m : smod) {
-				if(auto nm = ws.s.modifiers_m.provincial_modifiers[m].complement; is_valid_index(nm)) {
-					remove_item(ws.w.nation_s.static_modifier_arrays, prov_state.owner->static_modifiers, nm);
-				}
-			}
-
-			auto tmod = get_range(ws.w.province_s.timed_modifier_arrays, prov_state.timed_modifiers);
-			for(auto m = tmod.first; m != tmod.second; ++m) {
-				if(auto nm = ws.s.modifiers_m.provincial_modifiers[m->mod].complement; is_valid_index(nm)) {
-					remove_item(ws.w.nation_s.timed_modifier_arrays, prov_state.owner->timed_modifiers, nations::timed_national_modifier{ date_tag(), nm });
-				}
-			}
+			modifiers::detach_province_modifiers(ws, prov_state, *prov_state.owner);
 		}
 
 		prov_state.owner = nullptr;
@@ -311,19 +299,7 @@ namespace provinces {
 		add_item(ws.w.province_s.province_arrays, new_owner.owned_provinces, prov.id);
 		silent_remove_province_owner(ws, prov);
 
-		auto smod = get_range(ws.w.province_s.static_modifier_arrays, prov.static_modifiers);
-		for(auto m : smod) {
-			if(auto nm = ws.s.modifiers_m.provincial_modifiers[m].complement; is_valid_index(nm)) {
-				add_item(ws.w.nation_s.static_modifier_arrays, prov.owner->static_modifiers, nm);
-			}
-		}
-
-		auto tmod = get_range(ws.w.province_s.timed_modifier_arrays, prov.timed_modifiers);
-		for(auto m = tmod.first; m != tmod.second; ++m) {
-			if(auto nm = ws.s.modifiers_m.provincial_modifiers[m->mod].complement; is_valid_index(nm)) {
-				add_item(ws.w.nation_s.timed_modifier_arrays, prov.owner->timed_modifiers, nations::timed_national_modifier{ m->expiration, nm });
-			}
-		}
+		modifiers::attach_province_modifiers(ws, prov, new_owner);
 
 		prov.owner = &new_owner;
 		const auto region_id = ws.s.province_m.province_container[prov.id].state_id;
@@ -334,7 +310,7 @@ namespace provinces {
 		} else {
 			nations::state_instance* si = &(ws.w.nation_s.states.get_new());
 			si->owner = &new_owner;
-			si->region_id = ws.s.province_m.province_container[prov].state_id;
+			si->region_id = ws.s.province_m.province_container[prov.id].state_id;
 			si->name = ws.s.province_m.state_names[si->region_id];
 
 			ws.w.nation_s.state_demographics.ensure_capacity(to_index(si->id) + 1);

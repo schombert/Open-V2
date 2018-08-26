@@ -29,7 +29,7 @@ namespace provinces {
 		modifiers::provincial_modifier_tag mod;
 
 		bool operator<(timed_provincial_modifier const& other)  const noexcept { return mod < other.mod; }
-		bool operator==(timed_provincial_modifier const& other) const noexcept { return mod == other.mod; }
+		bool operator==(timed_provincial_modifier const& other) const noexcept { return mod == other.mod && expiration == other.expiration; }
 	};
 
 	struct province_state {
@@ -54,7 +54,7 @@ namespace provinces {
 		array_tag<population::pop_tag> pops;
 		set_tag<military::fleet_presence> fleets; // for sea zones
 		set_tag<modifiers::provincial_modifier_tag> static_modifiers;
-		set_tag<timed_provincial_modifier> timed_modifiers;
+		multiset_tag<timed_provincial_modifier> timed_modifiers;
 
 		text_data::text_tag name;
 		modifiers::provincial_modifier_tag crime;

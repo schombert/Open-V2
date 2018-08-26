@@ -135,6 +135,9 @@ namespace military {
 	struct war_identifier {
 		war_tag war_id;
 		bool is_attacker = false;
+
+		bool operator<(war_identifier const& other)  const noexcept { return war_id < other.war_id; }
+		bool operator==(war_identifier const& other) const noexcept { return war_id == other.war_id; }
 	};
 }
 

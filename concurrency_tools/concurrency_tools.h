@@ -412,6 +412,12 @@ void add_unique_ordered_range(stable_variable_vector_storage_mk_2<object_type, m
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 void remove_sorted_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag i, object_type obj);
 
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void remove_multisorted_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag i, object_type obj);
+
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void remove_subitem_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag i, object_type obj);
+
 //sorted interface safe from any thread
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, stable_mk_2_tag i, object_type obj);
@@ -421,6 +427,8 @@ template<typename object_type, uint32_t minimum_size, size_t memory_size>
 std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, set_tag<object_type> i);
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+std::pair<object_type*, object_type*> get_subrange(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type> i, object_type obj);
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, array_tag<object_type> i);
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
@@ -453,18 +461,26 @@ template<typename object_type, uint32_t minimum_size, size_t memory_size>
 void remove_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i, object_type obj);
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 void remove_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void remove_single_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void remove_subrange(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type obj);
 template<typename object_type, uint32_t minimum_size, size_t memory_size, typename FUNC>
 void remove_item_if(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i, FUNC const& f);
 template<typename object_type, uint32_t minimum_size, size_t memory_size, typename FUNC>
 void remove_item_if(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, set_tag<object_type>& i, FUNC const& f);
 template<typename object_type, uint32_t minimum_size, size_t memory_size, typename FUNC>
 void remove_item_if(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, FUNC const& f);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, typename FUNC>
+void remove_subitem_if(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type key, FUNC const& f);
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, array_tag<object_type> i, object_type obj);
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, set_tag<object_type> i, object_type obj);
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type> i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+bool contains_subitem(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type> i, object_type obj);
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 void add_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, array_tag<object_type>& i, object_type const* first, object_type const* last);
 template<typename object_type, uint32_t minimum_size, size_t memory_size>

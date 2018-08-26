@@ -5,17 +5,13 @@
 
 namespace modifiers {
 	void add_unique_static_modifier_to_nation(world_state& ws, nations::nation& this_nation, national_modifier_tag mod) {
-		if(contains_item(ws.w.nation_s.static_modifier_arrays, this_nation.static_modifiers, mod) == false) {
-			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[mod];
+		if(contains_item(ws.w.nation_s.static_modifier_arrays, this_nation.static_modifiers, mod) == false)
 			add_item(ws.w.nation_s.static_modifier_arrays, this_nation.static_modifiers, mod);
-		}
 	}
 	void add_static_modifier_to_nation(world_state& ws, nations::nation& this_nation, national_modifier_tag mod) {
-		this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[mod];
 		add_item(ws.w.nation_s.static_modifier_arrays, this_nation.static_modifiers, mod);
 	}
 	void add_static_modifier_to_province(world_state& ws, provinces::province_state& this_province, provincial_modifier_tag mod) {
-		this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[mod];
 		add_item(ws.w.province_s.static_modifier_arrays, this_province.static_modifiers, mod);
 		
 		auto nat_mod = ws.s.modifiers_m.provincial_modifiers[mod].complement;
@@ -81,7 +77,7 @@ namespace modifiers {
 		}
 		
 		if(this_nation.infamy != 0.0f)
-			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.badboy] * this_nation.infamy;
+			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.badboy] * this_nation.infamy / ws.s.modifiers_m.global_defines.badboy_limit;
 		if(this_nation.blockaded_count != 0 && this_nation.central_province_count != 0)
 			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.total_blockaded] * (float(this_nation.blockaded_count) / float(this_nation.central_province_count));
 		if(this_nation.war_exhaustion != 0.0f)
@@ -156,5 +152,100 @@ namespace modifiers {
 
 		if(this_province.nationalism != 0.0f)
 			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.nationalism] * this_province.nationalism;
+	}
+
+	void add_timed_modifier_to_nation(world_state& ws, nations::nation& this_nation, national_modifier_tag mod, date_tag expiration) {
+		add_item(ws.w.nation_s.timed_modifier_arrays, this_nation.timed_modifiers, nations::timed_national_modifier{ expiration, mod });
+	}
+	void add_timed_modifier_to_province(world_state& ws, provinces::province_state& this_province, provincial_modifier_tag mod, date_tag expiration) {
+		add_item(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers, provinces::timed_provincial_modifier{ expiration, mod });
+
+		auto nat_mod = ws.s.modifiers_m.provincial_modifiers[mod].complement;
+		if(is_valid_index(nat_mod) && this_province.owner) {
+			add_timed_modifier_to_nation(ws, *this_province.owner, nat_mod, expiration);
+		}
+	}
+	void remove_static_modifier_from_nation(world_state& ws, nations::nation& this_nation, national_modifier_tag mod) {
+		remove_single_item(ws.w.nation_s.static_modifier_arrays, this_nation.static_modifiers, mod);
+	}
+	void remove_static_modifier_from_province(world_state& ws, provinces::province_state& this_province, provincial_modifier_tag mod) {
+		remove_item(ws.w.province_s.static_modifier_arrays, this_province.static_modifiers, mod);
+
+		auto nat_mod = ws.s.modifiers_m.provincial_modifiers[mod].complement;
+		if(is_valid_index(nat_mod) && this_province.owner) {
+			remove_static_modifier_from_nation(ws, *this_province.owner, nat_mod);
+		}
+	}
+	void remove_timed_modifier_from_nation(world_state& ws, nations::nation& this_nation, national_modifier_tag mod, date_tag expiration) {
+		remove_single_item(ws.w.nation_s.timed_modifier_arrays, this_nation.timed_modifiers, nations::timed_national_modifier{ expiration, mod });
+	}
+	void remove_timed_modifier_from_province(world_state& ws, provinces::province_state& this_province, provincial_modifier_tag mod, date_tag expiration) {
+		remove_single_item(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers, provinces::timed_provincial_modifier{ expiration, mod });
+
+		auto nat_mod = ws.s.modifiers_m.provincial_modifiers[mod].complement;
+		if(is_valid_index(nat_mod) && this_province.owner) {
+			remove_timed_modifier_from_nation(ws, *this_province.owner, nat_mod, expiration);
+		}
+	}
+
+	void remove_all_static_modifiers_from_nation(world_state& ws, nations::nation& this_nation, national_modifier_tag mod) {
+		remove_item(ws.w.nation_s.static_modifier_arrays, this_nation.static_modifiers, mod);
+	}
+	void remove_all_timed_modifiers_from_nation(world_state& ws, nations::nation& this_nation, national_modifier_tag mod) {
+		remove_subrange(ws.w.nation_s.timed_modifier_arrays, this_nation.timed_modifiers, nations::timed_national_modifier{ date_tag(), mod });
+	}
+	void remove_all_timed_modifiers_from_province(world_state& ws, provinces::province_state& this_province, provincial_modifier_tag mod) {
+		auto nat_mod = ws.s.modifiers_m.provincial_modifiers[mod].complement;
+		if(is_valid_index(nat_mod) && this_province.owner) {
+			auto nm_range = get_subrange(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers, provinces::timed_provincial_modifier{ date_tag(), mod });
+			for(auto nm = nm_range.first; nm != nm_range.second; ++nm) {
+				remove_timed_modifier_from_nation(ws, *this_province.owner, nat_mod, nm->expiration);
+			}
+		}
+		remove_subrange(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers, provinces::timed_provincial_modifier{ date_tag(), mod });
+	}
+
+	void detach_province_modifiers(world_state& ws, provinces::province_state& this_province, nations::nation& nation_from) {
+		auto smod = get_range(ws.w.province_s.static_modifier_arrays, this_province.static_modifiers);
+		for(auto m : smod) {
+			if(auto nm = ws.s.modifiers_m.provincial_modifiers[m].complement; is_valid_index(nm)) {
+				remove_single_item(ws.w.nation_s.static_modifier_arrays, nation_from.static_modifiers, nm);
+				nation_from.modifier_values -= ws.s.modifiers_m.national_modifier_definitions[nm];
+			}
+		}
+
+		auto tmod = get_range(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers);
+		for(auto m = tmod.first; m != tmod.second; ++m) {
+			if(auto nm = ws.s.modifiers_m.provincial_modifiers[m->mod].complement; is_valid_index(nm)) {
+				remove_single_item(ws.w.nation_s.timed_modifier_arrays, nation_from.timed_modifiers, nations::timed_national_modifier{ m->expiration, nm });
+				nation_from.modifier_values -= ws.s.modifiers_m.national_modifier_definitions[nm];
+			}
+		}
+	}
+	void attach_province_modifiers(world_state& ws, provinces::province_state& this_province, nations::nation& nation_to) {
+		auto smod = get_range(ws.w.province_s.static_modifier_arrays, this_province.static_modifiers);
+		for(auto m : smod) {
+			if(auto nm = ws.s.modifiers_m.provincial_modifiers[m].complement; is_valid_index(nm)) {
+				add_item(ws.w.nation_s.static_modifier_arrays, nation_to.static_modifiers, nm);
+				nation_to.modifier_values += ws.s.modifiers_m.national_modifier_definitions[nm];
+			}
+		}
+
+		auto tmod = get_range(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers);
+		for(auto m = tmod.first; m != tmod.second; ++m) {
+			if(auto nm = ws.s.modifiers_m.provincial_modifiers[m->mod].complement; is_valid_index(nm)) {
+				add_item(ws.w.nation_s.timed_modifier_arrays, nation_to.timed_modifiers, nations::timed_national_modifier{ m->expiration, nm });
+				nation_to.modifier_values += ws.s.modifiers_m.national_modifier_definitions[nm];
+			}
+		}
+	}
+
+	bool has_provincial_modifier(world_state const& ws, provinces::province_state const& this_province, provincial_modifier_tag mod) {
+		return contains_item(ws.w.province_s.static_modifier_arrays, this_province.static_modifiers, mod) ||
+			contains_item(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers, provinces::timed_provincial_modifier{ date_tag(), mod });
+	}
+	bool has_national_modifier(world_state const& ws, nations::nation const& this_nation, national_modifier_tag mod) {
+		return contains_item(ws.w.nation_s.static_modifier_arrays, this_nation.static_modifiers, mod) ||
+			contains_item(ws.w.nation_s.timed_modifier_arrays, this_nation.timed_modifiers, nations::timed_national_modifier{ date_tag(), mod });
 	}
 }

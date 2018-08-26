@@ -49,6 +49,7 @@ namespace military {
 	void silent_remove_from_war(world_state& ws, war& this_war, nations::country_tag to_remove); // NOTE: does not affect refence to war in nation object
 	void remove_from_war(world_state& ws, war& this_war, nations::country_tag to_remove);
 	void add_to_war(world_state& ws, war& this_war, bool attacker, nations::nation& to_add);
+	war* get_war_between(world_state& ws, nations::nation& a, nations::country_tag b);
 
 	void destroy_army(world_state& ws, army& a, nations::nation& owner);
 	void destroy_fleet(world_state& ws, fleet& f, nations::nation& owner);
@@ -58,6 +59,8 @@ namespace military {
 	void partial_destroy_orders(world_state& ws, army_orders& o); // does not remove armies or from nation
 	void destroy_admiral(world_state& ws, military_leader& l, nations::nation& owner);
 	void destroy_general(world_state& ws, military_leader& l, nations::nation& owner);
+
+	void destroy_war(world_state& ws, war& this_war);
 	uint32_t calculate_minimum_soldiers(world_state const& ws, army_tag a);
 	void rebuild_fleet_presence(world_state& ws, nations::nation& owner);
 }

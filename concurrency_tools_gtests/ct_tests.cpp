@@ -974,3 +974,252 @@ TEST(concurrency_tools, stable_variable_vector_storage_sorted_interface) {
 		EXPECT_EQ(100.0f, get(test_vec, new_small, 8));
 	}
 }
+
+TEST(concurrency_tools, set_tags_interface) {
+	stable_variable_vector_storage_mk_2<int, 4, 1024> test_vec;
+	set_tag<int> set_a;
+
+	EXPECT_EQ(0ui32, get_capacity(test_vec, set_a));
+	EXPECT_EQ(0ui32, get_size(test_vec, set_a));
+	EXPECT_EQ(nullptr, get_range(test_vec, set_a).first);
+
+	add_item(test_vec, set_a, 1);
+	add_item(test_vec, set_a, 1);
+
+	EXPECT_EQ(1ui32, get_size(test_vec, set_a));
+	EXPECT_EQ(1, get(test_vec, set_a, 0));
+	EXPECT_TRUE(contains_item(test_vec, set_a, 1));
+	EXPECT_EQ(1, *find(test_vec, set_a, 1));
+
+	resize(test_vec, set_a, 0ui32);
+
+	EXPECT_NE(0ui32, get_capacity(test_vec, set_a));
+	EXPECT_EQ(0ui32, get_size(test_vec, set_a));
+	EXPECT_EQ(get_range(test_vec, set_a).second, get_range(test_vec, set_a).first);
+	EXPECT_FALSE(contains_item(test_vec, set_a, 1));
+	EXPECT_EQ(nullptr, find(test_vec, set_a, 1));
+
+	add_item(test_vec, set_a, 1);
+	add_item(test_vec, set_a, 5);
+
+	EXPECT_EQ(2ui32, get_size(test_vec, set_a));
+	EXPECT_EQ(1, get(test_vec, set_a, 0));
+	EXPECT_EQ(5, get(test_vec, set_a, 1));
+	EXPECT_EQ(5, *find(test_vec, set_a, 5));
+
+	add_item(test_vec, set_a, 7);
+
+	EXPECT_EQ(3ui32, get_size(test_vec, set_a));
+
+	remove_item(test_vec, set_a, 5);
+
+	EXPECT_EQ(2ui32, get_size(test_vec, set_a));
+	EXPECT_EQ(1, get(test_vec, set_a, 0));
+	EXPECT_EQ(7, get(test_vec, set_a, 1));
+
+	add_item(test_vec, set_a, 10);
+
+	remove_item_if(test_vec, set_a, [](int i) { return i < 5; });
+
+	EXPECT_EQ(2ui32, get_size(test_vec, set_a));
+	EXPECT_EQ(7, get(test_vec, set_a, 0));
+	EXPECT_EQ(10, get(test_vec, set_a, 1));
+
+	int vals[2] = { 8, 9 };
+	add_range(test_vec, set_a, vals, vals + 2);
+
+	EXPECT_EQ(4ui32, get_size(test_vec, set_a));
+	EXPECT_EQ(7, get(test_vec, set_a, 0));
+	EXPECT_EQ(8, get(test_vec, set_a, 1));
+	EXPECT_EQ(9, get(test_vec, set_a, 2));
+	EXPECT_EQ(10, get(test_vec, set_a, 3));
+}
+
+TEST(concurrency_tools, array_tags_interface) {
+	stable_variable_vector_storage_mk_2<int, 4, 1024> test_vec;
+	array_tag<int> array_a;
+
+	EXPECT_EQ(0ui32, get_capacity(test_vec, array_a));
+	EXPECT_EQ(0ui32, get_size(test_vec, array_a));
+	EXPECT_EQ(nullptr, get_range(test_vec, array_a).first);
+
+	add_item(test_vec, array_a, 3);
+	add_item(test_vec, array_a, 5);
+	add_item(test_vec, array_a, 6);
+
+	EXPECT_EQ(3ui32, get_size(test_vec, array_a));
+	EXPECT_EQ(3, get(test_vec, array_a, 0));
+	EXPECT_EQ(5, get(test_vec, array_a, 1));
+	EXPECT_EQ(6, get(test_vec, array_a, 2));
+
+	remove_item(test_vec, array_a, 3);
+
+	EXPECT_EQ(2ui32, get_size(test_vec, array_a));
+	EXPECT_EQ(6, get(test_vec, array_a, 0));
+	EXPECT_EQ(5, get(test_vec, array_a, 1));
+
+	int vals[4] = { 8, 9, 1, 3 };
+	add_range(test_vec, array_a, vals, vals + 4);
+
+	EXPECT_EQ(6ui32, get_size(test_vec, array_a));
+
+	EXPECT_EQ(6, get(test_vec, array_a, 0));
+	EXPECT_EQ(5, get(test_vec, array_a, 1));
+	EXPECT_EQ(1, get(test_vec, array_a, 4));
+	EXPECT_EQ(3, get(test_vec, array_a, 5));
+
+	EXPECT_TRUE(contains_item(test_vec, array_a, 1));
+	EXPECT_FALSE(contains_item(test_vec, array_a, 7));
+
+	remove_item_if(test_vec, array_a, [](int i) { return i % 2 == 1; });
+
+	EXPECT_EQ(2ui32, get_size(test_vec, array_a));
+	EXPECT_EQ(6, get(test_vec, array_a, 0));
+	EXPECT_EQ(8, get(test_vec, array_a, 1));
+
+	resize(test_vec, array_a, 4);
+	EXPECT_EQ(4ui32, get_size(test_vec, array_a));
+	EXPECT_EQ(6, get(test_vec, array_a, 0));
+	EXPECT_EQ(8, get(test_vec, array_a, 1));
+	EXPECT_EQ(0, get(test_vec, array_a, 2));
+	EXPECT_EQ(0, get(test_vec, array_a, 3));
+
+	EXPECT_EQ(8, *find(test_vec, array_a, 8));
+
+	clear(test_vec, array_a);
+	EXPECT_EQ(0ui32, get_size(test_vec, array_a));
+}
+
+struct if_pair {
+	int i = 0;
+	float f = 0.0f;
+
+	constexpr bool operator<(if_pair const& other) const noexcept { return i < other.i; }
+	constexpr bool operator==(if_pair const& other) const noexcept { return i == other.i && f == other.f; }
+};
+
+TEST(concurrency_tools, multiset_tags_interface) {
+	stable_variable_vector_storage_mk_2<if_pair, 4, 1024> test_vec;
+	multiset_tag<if_pair> set_a;
+
+	EXPECT_EQ(0ui32, get_capacity(test_vec, set_a));
+	EXPECT_EQ(0ui32, get_size(test_vec, set_a));
+	EXPECT_EQ(nullptr, get_range(test_vec, set_a).first);
+
+	add_item(test_vec, set_a, if_pair{ 1, 0.5f });
+	add_item(test_vec, set_a, if_pair{ 0, 1.5f });
+	add_item(test_vec, set_a, if_pair{ 1, 2.5f });
+	add_item(test_vec, set_a, if_pair{ 3, 3.0f });
+
+	EXPECT_EQ(4ui32, get_size(test_vec, set_a));
+
+	auto sr = get_subrange(test_vec, set_a, if_pair{1, 0.0f});
+
+	EXPECT_EQ(2, sr.second - sr.first);
+	EXPECT_TRUE(sr.first->f == 0.5f || (sr.first + 1)->f == 0.5f);
+	EXPECT_TRUE(sr.first->f == 2.5f || (sr.first + 1)->f == 2.5f);
+	EXPECT_TRUE(sr.first->i == 1 && (sr.first + 1)->i == 1);
+
+	EXPECT_TRUE(contains_item(test_vec, set_a, if_pair{ 1, 0.0f }));
+	EXPECT_TRUE(contains_item(test_vec, set_a, if_pair{ 0, 0.0f }));
+	EXPECT_TRUE(contains_item(test_vec, set_a, if_pair{ 3, 0.0f }));
+	EXPECT_FALSE(contains_item(test_vec, set_a, if_pair{ 2, 0.0f }));
+
+	EXPECT_FALSE(contains_subitem(test_vec, set_a, if_pair{ 1, 0.0f }));
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 1, 0.5f }));
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 1, 2.5f }));
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 3, 3.0f }));
+	EXPECT_FALSE(contains_subitem(test_vec, set_a, if_pair{ 3, 0.0f }));
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 0, 1.5f }));
+	EXPECT_FALSE(contains_subitem(test_vec, set_a, if_pair{ 0, 0.0f }));
+
+	remove_subrange(test_vec, set_a, if_pair{ 1, 0.0f });
+
+	EXPECT_EQ(2ui32, get_size(test_vec, set_a));
+
+	EXPECT_FALSE(contains_item(test_vec, set_a, if_pair{ 1, 0.0f }));
+	EXPECT_TRUE(contains_item(test_vec, set_a, if_pair{ 0, 0.0f }));
+	EXPECT_TRUE(contains_item(test_vec, set_a, if_pair{ 3, 0.0f }));
+	EXPECT_FALSE(contains_item(test_vec, set_a, if_pair{ 2, 0.0f }));
+
+	EXPECT_FALSE(contains_subitem(test_vec, set_a, if_pair{ 1, 0.5f }));
+	EXPECT_FALSE(contains_subitem(test_vec, set_a, if_pair{ 1, 2.5f }));
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 3, 3.0f }));
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 0, 1.5f }));
+
+	add_item(test_vec, set_a, if_pair{ 3, 3.0f });
+	add_item(test_vec, set_a, if_pair{ 3, 5.0f });
+	add_item(test_vec, set_a, if_pair{ 1, 0.0f });
+	add_item(test_vec, set_a, if_pair{ 10, 10.0f });
+
+	EXPECT_EQ(6ui32, get_size(test_vec, set_a));
+
+	auto sr_a = get_subrange(test_vec, set_a, if_pair{ 3, 0.0f });
+
+	EXPECT_EQ(3, sr_a.second - sr_a.first);
+	EXPECT_EQ(1.5f, find(test_vec, set_a, if_pair{ 0, 0.0f })->f);
+
+	remove_item(test_vec, set_a, if_pair{ 3, 3.0f });
+
+	EXPECT_EQ(4ui32, get_size(test_vec, set_a));
+	EXPECT_EQ(5.0f, find(test_vec, set_a, if_pair{ 3, 0.0f })->f);
+
+	auto sr_b = get_subrange(test_vec, set_a, if_pair{ 3, 0.0f });
+	EXPECT_EQ(1, sr_b.second - sr_b.first);
+
+	EXPECT_TRUE(contains_item(test_vec, set_a, if_pair{ 1, 0.0f }));
+	EXPECT_TRUE(contains_item(test_vec, set_a, if_pair{ 0, 0.0f }));
+	EXPECT_TRUE(contains_item(test_vec, set_a, if_pair{ 3, 0.0f }));
+	EXPECT_TRUE(contains_item(test_vec, set_a, if_pair{ 10, 0.0f }));
+
+	add_item(test_vec, set_a, if_pair{ 3, 3.0f });
+	add_item(test_vec, set_a, if_pair{ 3, 3.0f });
+
+	EXPECT_EQ(6ui32, get_size(test_vec, set_a));
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 3, 3.0f }));
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 3, 5.0f }));
+
+	remove_single_item(test_vec, set_a, if_pair{ 3, 3.0f });
+
+	EXPECT_EQ(5ui32, get_size(test_vec, set_a));
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 3, 3.0f }));
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 3, 5.0f }));
+	EXPECT_TRUE(contains_item(test_vec, set_a, if_pair{ 10, 0.0f }));
+
+	resize(test_vec, set_a, 0ui32);
+	EXPECT_EQ(0ui32, get_size(test_vec, set_a));
+
+	add_item(test_vec, set_a, if_pair{ 3, 1.0f });
+	add_item(test_vec, set_a, if_pair{ 10, 2.0f });
+
+	if_pair rng[] = { if_pair{1, 0.0f}, if_pair{7, 1.0f}, if_pair{7, 2.0f} };
+
+	add_range(test_vec, set_a, rng, rng + 3);
+	EXPECT_EQ(5ui32, get_size(test_vec, set_a));
+
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 3, 1.0f }));
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 10, 2.0f }));
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 1, 0.0f }));
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 7, 1.0f }));
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 7, 2.0f }));
+
+	remove_item_if(test_vec, set_a, [](if_pair p) { return p.f == 0.0f; });
+
+	EXPECT_EQ(4ui32, get_size(test_vec, set_a));
+
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 3, 1.0f }));
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 10, 2.0f }));
+	EXPECT_FALSE(contains_subitem(test_vec, set_a, if_pair{ 1, 0.0f }));
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 7, 1.0f }));
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 7, 2.0f }));
+
+	remove_subitem_if(test_vec, set_a, if_pair{ 7, 0.0f }, [](if_pair p) { return p.f == 1.0f; });
+
+	EXPECT_EQ(3ui32, get_size(test_vec, set_a));
+
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 3, 1.0f }));
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 10, 2.0f }));
+	EXPECT_FALSE(contains_subitem(test_vec, set_a, if_pair{ 1, 0.0f }));
+	EXPECT_FALSE(contains_subitem(test_vec, set_a, if_pair{ 7, 1.0f }));
+	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 7, 2.0f }));
+}

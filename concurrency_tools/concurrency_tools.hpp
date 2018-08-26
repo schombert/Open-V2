@@ -373,6 +373,13 @@ template<typename object_type, uint32_t minimum_size, size_t memory_size>
 std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, array_tag<object_type> i) {
 	return get_range(storage, i.value);
 }
+
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+std::pair<object_type*, object_type*> get_subrange(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type> i, object_type obj) {
+	auto range = get_range(storage, i.value);
+	return std::pair<object_type*, object_type*>(std::lower_bound(range.first, range.second, obj), std::upper_bound(range.first, range.second, obj));
+}
+
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 object_type& get(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, set_tag<object_type> i, uint32_t inner_index) {
 	return get(storage, i.value, inner_index);
@@ -431,7 +438,26 @@ void remove_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, 
 }
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 void remove_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type obj) {
-	remove_sorted_item(storage, i.value, obj);
+	remove_multisorted_item(storage, i.value, obj);
+}
+
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void remove_single_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type obj) {
+	const auto range = get_range(storage, i);
+	const auto lb = std::lower_bound(range.first, range.second, obj);
+	const auto ub = std::upper_bound(range.first, range.second, obj);
+	
+	auto fr = std::find(lb, ub, obj);
+	if(fr == ub)
+		return;
+
+	std::copy(fr + 1, range.second, fr);
+	pop_back(storage, i.value);
+}
+
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void remove_subrange(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type obj) {
+	remove_subitem_range(storage, i.value, obj);
 }
 
 template<typename object_type, uint32_t minimum_size, size_t memory_size, typename FUNC>
@@ -467,6 +493,19 @@ void remove_item_if(stable_variable_vector_storage_mk_2<object_type, minimum_siz
 	header->size = uint16_t(new_end - range.first);
 }
 
+template<typename object_type, uint32_t minimum_size, size_t memory_size, typename FUNC>
+void remove_subitem_if(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type key, FUNC const& f) {
+	const auto range = get_range(storage, i);
+	auto lb = std::lower_bound(range.first, range.second, key);
+	auto ub = std::upper_bound(range.first, range.second, key);
+
+	const auto new_end = std::remove_if(lb, ub, f);
+	std::copy(ub, range.second, new_end);
+
+	detail::mk_2_header* header = (detail::mk_2_header*)(storage.backing_storage + i.value);
+	header->size = uint16_t(header->size - (ub - new_end));
+}
+
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, array_tag<object_type> i, object_type obj) {
 	const auto rng = get_range(storage, i.value);
@@ -479,6 +518,11 @@ bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type> i, object_type obj) {
 	return contains_item(storage, i.value, obj);
+}
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+bool contains_subitem(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type> i, object_type obj) {
+	const auto range = get_subrange(storage, i, obj);
+	return std::find(range.first, range.second, obj) != range.second;
 }
 
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
@@ -575,7 +619,7 @@ void shrink(stable_variable_vector_storage_mk_2<object_type, minimum_size, memor
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, array_tag<object_type> i, object_type obj) {
 	const auto rng = get_range(storage, i.value);
-	const auto d = std::find(rng.first, rng.second, obj);
+	const auto f = std::find(rng.first, rng.second, obj);
 	if(f == rng.second)
 		return nullptr;
 	return f;
@@ -592,7 +636,8 @@ template<typename object_type, uint32_t minimum_size, size_t memory_size>
 object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size> const& storage, multiset_tag<object_type> i, object_type obj) {
 	const auto rng = get_range(storage, i.value);
 	const auto lb = std::lower_bound(rng.first, rng.second, obj);
-	if(lb != rng.second && *lb == obj)
+	const auto ub = std::upper_bound(rng.first, rng.second, obj);
+	if(lb != ub)
 		return lb;
 	return nullptr;
 }
@@ -927,6 +972,34 @@ void remove_sorted_item(stable_variable_vector_storage_mk_2<object_type, minimum
 
 	std::copy(lb + 1, range.second, lb);
 	pop_back(storage, i);
+}
+
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void remove_multisorted_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag i, object_type obj) {
+	const auto range = get_range(storage, i);
+	const auto lb = std::lower_bound(range.first, range.second, obj);
+	const auto ub = std::upper_bound(range.first, range.second, obj);
+
+	const auto new_end = std::remove(lb, ub, obj);
+	std::copy(ub, range.second, new_end);
+
+	detail::mk_2_header* header = (detail::mk_2_header*)(storage.backing_storage + i);
+	header->size = uint16_t(header->size - (ub - new_end));
+}
+
+template<typename object_type, uint32_t minimum_size, size_t memory_size>
+void remove_subitem_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, stable_mk_2_tag i, object_type obj) {
+	const auto range = get_range(storage, i);
+	const auto lb = std::lower_bound(range.first, range.second, obj);
+	const auto ub = std::upper_bound(range.first, range.second, obj);
+
+	if(lb == ub)
+		return;
+
+	std::copy(ub, range.second, lb);
+
+	detail::mk_2_header* header = (detail::mk_2_header*)(storage.backing_storage + i);
+	header->size = uint16_t(std::max(0, int32_t(header->size) - int32_t(ub - lb)));
 }
 
 template<typename object_type, uint32_t minimum_size, size_t memory_size>

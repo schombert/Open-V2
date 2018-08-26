@@ -7,6 +7,8 @@
 #include "population\\population_function.h"
 #include "governments\\governments_functions.h"
 #include "cultures\\cultures_functions.h"
+#include "military\\military_functions.h"
+#include "modifiers\\modifier_functions.h"
 
 namespace triggers {
 	int32_t get_effect_payload_size(const uint16_t* data) {
@@ -1551,18 +1553,61 @@ namespace triggers {
 			if(owner)
 				nations::end_alliance(ws, *((nations::nation*)primary_slot), *owner);
 		}
-		void ef_end_war(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_end_war_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_end_war_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_end_war_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_end_war_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
+		void ef_end_war(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+			if(holder) {
+				auto war_between = military::get_war_between(ws, *((nations::nation*)primary_slot), holder->id);
+				if(war_between) {
+					military::destroy_war(ws, *war_between);
+					ws.w.military_s.wars.remove(war_between->id);
+				}
+			}
+		}
+		void ef_end_war_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto war_between = military::get_war_between(ws, *((nations::nation*)primary_slot), ((nations::nation*)this_slot)->id);
+			if(war_between) {
+				military::destroy_war(ws, *war_between);
+				ws.w.military_s.wars.remove(war_between->id);
+			}
+		}
+		void ef_end_war_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto owner = ((provinces::province_state*)this_slot)->owner;
+			if(owner)
+				ef_end_war_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+		}
+		void ef_end_war_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto war_between = military::get_war_between(ws, *((nations::nation*)primary_slot), ((nations::nation*)from_slot)->id);
+			if(war_between) {
+				military::destroy_war(ws, *war_between);
+				ws.w.military_s.wars.remove(war_between->id);
+			}
+		}
+		void ef_end_war_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto owner = ((provinces::province_state*)from_slot)->owner;
+			if(owner)
+				ef_end_war_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+		}
 		void ef_enable_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			ws.w.ideology_s.ideology_enabled[trigger_payload(tval[2]).small.values.ideology] = 1ui8;
 		}
-		void ef_ruling_party_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_plurality(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_remove_province_modifier(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_remove_country_modifier(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
+		void ef_ruling_party_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto new_party = ws.w.nation_s.active_parties.get(((nations::nation*)primary_slot)->id, trigger_payload(tval[2]).small.values.ideology);
+			if(is_valid_index(new_party) && new_party != ((nations::nation*)primary_slot)->ruling_party)
+				governments::silent_set_ruling_party(ws, *((nations::nation*)primary_slot), new_party);
+		}
+		void ef_plurality(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			((nations::nation*)primary_slot)->plurality = std::clamp(((nations::nation*)primary_slot)->plurality + read_float_from_payload(tval + 2), 0.0f, 1.0f);
+		}
+		void ef_remove_province_modifier(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto pmod = trigger_payload(tval[2]).prov_mod;
+			modifiers::remove_static_modifier_from_province(ws, *((provinces::province_state*)primary_slot), pmod);
+			modifiers::remove_all_timed_modifiers_from_province(ws, *((provinces::province_state*)primary_slot), pmod);
+		}
+		void ef_remove_country_modifier(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto nmod = trigger_payload(tval[2]).nat_mod;
+			modifiers::remove_all_static_modifiers_from_nation(ws, *((nations::nation*)primary_slot), nmod);
+			modifiers::remove_all_timed_modifiers_from_nation(ws, *((nations::nation*)primary_slot), nmod);
+		}
 		void ef_create_alliance(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
 			if(holder)

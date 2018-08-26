@@ -1846,7 +1846,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 		}
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
-			return trigger_value{ token_to<float>(t) };
+			return trigger_value{ token_to<float>(t) / 100.0f };
 		}
 	};
 	struct blockade_trigger {
@@ -2653,7 +2653,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 		}
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
-			return trigger_value{ token_to<float>(t) };
+			return trigger_value{ token_to<float>(t) / 100.0f };
 		}
 	};
 	struct corruption_trigger {

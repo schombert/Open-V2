@@ -7,6 +7,7 @@
 #include "ideologies\\ideologies_functions.h"
 #include "issues\\issues_functions.hpp"
 #include "provinces\\province_functions.h"
+#include "modifiers\\modifier_functions.h"
 
 namespace triggers {
 	int32_t get_trigger_payload_size(const uint16_t* data) {
@@ -1650,8 +1651,7 @@ namespace triggers {
 	bool tf_has_country_modifier(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		const auto mod = trigger_payload(tval[2]).nat_mod;
 		return compare_values(tval[0],
-			contains_item(ws.w.nation_s.static_modifier_arrays, ((nations::nation*)primary_slot)->static_modifiers, mod) ||
-			contains_item(ws.w.nation_s.timed_modifier_arrays, ((nations::nation*)primary_slot)->timed_modifiers, nations::timed_national_modifier { date_tag(), mod }),
+			modifiers::has_national_modifier(ws, *((nations::nation*)primary_slot), mod),
 			true);
 	}
 	bool tf_has_country_modifier_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
@@ -1664,8 +1664,7 @@ namespace triggers {
 	bool tf_has_province_modifier(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		const auto mod = trigger_payload(tval[2]).prov_mod;
 		return compare_values(tval[0],
-			contains_item(ws.w.province_s.static_modifier_arrays, ((provinces::province_state*)primary_slot)->static_modifiers, mod) ||
-			contains_item(ws.w.province_s.timed_modifier_arrays, ((provinces::province_state*)primary_slot)->timed_modifiers, provinces::timed_provincial_modifier { date_tag(), mod }),
+			modifiers::has_provincial_modifier(ws, *((provinces::province_state*)primary_slot), mod),
 			true);
 	}
 	bool tf_region(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {

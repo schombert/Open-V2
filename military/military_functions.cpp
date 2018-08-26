@@ -40,8 +40,8 @@ namespace military {
 			new_leader.portrait = ws.s.culture_m.leader_pictures[size_t(cgroup.leader_pictures.admiral_offset + r(local_generator))];
 		}
 
-		auto first_name_range = ws.s.culture_m.first_names_by_culture.get_row(to_index(culture));
-		auto last_name_range = ws.s.culture_m.first_names_by_culture.get_row(to_index(culture));
+		auto first_name_range = ws.s.culture_m.first_names_by_culture.get_row(culture);
+		auto last_name_range = ws.s.culture_m.first_names_by_culture.get_row(culture);
 
 		std::uniform_int_distribution<int32_t> fn(0, int32_t(first_name_range.second - first_name_range.first) - 1);
 		std::uniform_int_distribution<int32_t> ln(0, int32_t(last_name_range.second - last_name_range.first) - 1);
@@ -320,7 +320,7 @@ namespace military {
 
 	void remove_from_war(world_state& ws, war& this_war, nations::country_tag to_remove) {
 		silent_remove_from_war(ws, this_war, to_remove);
-		remove_item_if(ws.w.military_s.war_arrays, ws.w.nation_s.nations[to_remove].wars_involved_in, [wid = this_war.id](war_identifier const& wi) { return wi.war_id == wid; });
+		remove_item_if(ws.w.military_s.war_arrays, ws.w.nation_s.nations[to_remove].wars_involved_in, war_identifier{ this_war.id, false });
 	}
 	void add_to_war(world_state& ws, war& this_war, bool attacker, nations::nation& to_add) {
 		if(attacker) {
@@ -475,5 +475,36 @@ namespace military {
 
 	void rebuild_fleet_presence(world_state&, nations::nation&) {
 		//stub
+	}
+
+
+	void destroy_war(world_state& ws, war& this_war) {
+		auto attacker_range = get_range(ws.w.nation_s.nations_arrays, this_war.attackers);
+		for(auto a : attacker_range)
+			remove_item(ws.w.military_s.war_arrays, ws.w.nation_s.nations[a].wars_involved_in, military::war_identifier{ this_war.id, false });
+		
+		auto defender_range = get_range(ws.w.nation_s.nations_arrays, this_war.defenders);
+		for(auto a : defender_range)
+			remove_item(ws.w.military_s.war_arrays, ws.w.nation_s.nations[a].wars_involved_in, military::war_identifier{ this_war.id, false });
+
+		clear(ws.w.nation_s.nations_arrays, this_war.attackers);
+		clear(ws.w.nation_s.nations_arrays, this_war.defenders);
+		clear(ws.w.military_s.naval_control_arrays, this_war.naval_control_set);
+		clear(ws.w.military_s.war_goal_arrays, this_war.war_goals);
+	}
+
+	war* get_war_between(world_state& ws, nations::nation& a, nations::country_tag b) {
+		auto wars = get_range(ws.w.military_s.war_arrays, a.wars_involved_in);
+		for(auto w = wars.first; w != wars.second; ++w) {
+			war& this_war = ws.w.military_s.wars[w->war_id];
+			if(w->is_attacker) {
+				if(contains_item(ws.w.nation_s.nations_arrays, this_war.defenders, b))
+					return &this_war;
+			} else {
+				if(contains_item(ws.w.nation_s.nations_arrays, this_war.attackers, b))
+					return &this_war;
+			}
+		}
+		return nullptr;
 	}
 }

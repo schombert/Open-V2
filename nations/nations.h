@@ -63,7 +63,7 @@ namespace nations {
 		modifiers::national_modifier_tag mod;
 
 		bool operator<(timed_national_modifier const& other)  const noexcept { return mod < other.mod; }
-		bool operator==(timed_national_modifier const& other) const noexcept { return mod == other.mod; }
+		bool operator==(timed_national_modifier const& other) const noexcept { return mod == other.mod && expiration == other.expiration; }
 	};
 
 	struct alignas(32) nation {
@@ -121,7 +121,7 @@ namespace nations {
 		array_tag<military::fleet_tag> fleets;
 		array_tag<military::army_orders_tag> active_orders;
 		
-		array_tag<military::war_identifier> wars_involved_in;
+		set_tag<military::war_identifier> wars_involved_in;
 		
 		set_tag<country_tag> opponents_in_war;
 		set_tag<country_tag> allies_in_war;
