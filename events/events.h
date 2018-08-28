@@ -9,6 +9,8 @@ namespace scenario {
 	class scenario_manager;
 }
 
+class world_state;
+
 namespace events {
 
 	struct event_option {
@@ -79,4 +81,9 @@ namespace events {
 		boost::container::flat_map<int32_t, event_tag> events_by_id;
 		boost::container::flat_map<text_data::text_tag, decision_tag> descisions_by_title_index;
 	};
+
+	using event_slot_content = std::variant<std::monostate, nations::country_tag, provinces::province_tag, population::pop_tag, nations::state_tag>;
+
+	void fire_event(world_state& ws, event_tag e, event_slot_content primary_contents, event_slot_content from);
+	void fire_event_from_list(world_state& ws, std::vector<std::pair<event_tag, uint16_t>> const& event_list, event_slot_content primary_contents, event_slot_content from);
 }

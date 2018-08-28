@@ -24,7 +24,7 @@ namespace military {
 	army& make_army(world_state& ws, nations::nation& n, provinces::province_tag location);
 	fleet& make_fleet(world_state& ws, nations::nation& n, provinces::province_tag location);
 	void immediate_add_pop_to_army(world_state& ws, army& target_army, population::pop& p);
-	bool can_make_or_use_cb_against(world_state const& ws, nations::nation const& nation_by, nations::nation const& nation_target);
+	bool can_use_cb_against(world_state& ws, nations::nation& nation_by, nations::nation& nation_target);
 	bool has_military_access_with(world_state const& ws, nations::nation const& nation_by, nations::nation const& nation_target);
 
 	bool in_war_with(world_state const& ws, nations::nation const& this_nation, nations::country_tag nation_with); // with = on the same side as
@@ -63,4 +63,6 @@ namespace military {
 	void destroy_war(world_state& ws, war& this_war);
 	uint32_t calculate_minimum_soldiers(world_state const& ws, army_tag a);
 	void rebuild_fleet_presence(world_state& ws, nations::nation& owner);
+
+	war& create_war(world_state& ws, nations::nation& attacker, nations::nation& defender, bool call_willing_attacker_allies);
 }

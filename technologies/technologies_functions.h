@@ -13,4 +13,6 @@ namespace technologies {
 	void apply_single_technology(world_state& ws, nations::nation& this_nation, tech_tag tech);
 	void restore_technologies(world_state& ws, nations::nation& this_nation); // reset technologies and base unit stats first
 	void reset_technologies(world_state& ws, nations::nation& this_nation);
+
+	float daily_research_points(world_state const& ws, nations::nation const& this_nation);
 }

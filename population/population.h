@@ -189,6 +189,7 @@ namespace population {
 		uint16_t flags = 0ui16; // copied from rebel type
 
 		cultures::religion_tag religion;
+		ideologies::ideology_tag ideology; // copied from rebel type
 		uint8_t icon = 0ui8; // copied from rebel type
 		rebel_type_tag type;
 	};

@@ -328,4 +328,8 @@ namespace provinces {
 				owner->current_capital = prov.id;
 		}
 	}
+
+	void enable_canal(world_state& ws, uint32_t canal_id) {
+		ws.w.province_s.is_canal_enabled[canal_id] = 1ui8;
+	}
 }

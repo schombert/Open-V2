@@ -158,6 +158,7 @@ void serialization::serializer<population::rebel_faction>::deserialize_object(st
 
 	obj.flags = ws.s.population_m.rebel_types[obj.type].flags;
 	obj.icon = ws.s.population_m.rebel_types[obj.type].icon;
+	obj.ideology = ws.s.population_m.rebel_types[obj.type].ideology;
 }
 
 size_t serialization::serializer<population::rebel_faction>::size(population::rebel_faction const & obj) {

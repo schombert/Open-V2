@@ -327,6 +327,7 @@ namespace military {
 		stable_variable_vector_storage_mk_2<fleet_tag, 4, 8192> fleet_arrays;
 		stable_variable_vector_storage_mk_2<war_identifier, 1, 8192> war_arrays;
 		stable_variable_vector_storage_mk_2<war_goal, 1, 8192> war_goal_arrays;
+		stable_variable_vector_storage_mk_2<pending_cb, 1, 8192> cb_arrays;
 
 		stable_variable_vector_storage_mk_2<fleet_presence, 4, 8192> fleet_presence_arrays;
 		stable_variable_vector_storage_mk_2<naval_control, 32, 8192> naval_control_arrays;

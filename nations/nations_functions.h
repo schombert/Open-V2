@@ -20,9 +20,12 @@ namespace nations {
 	provinces::province_tag find_best_capital(world_state const& ws, nation const& owner);
 	void set_relationship(world_state& ws, nation& a, nation& b, int32_t value);
 	int32_t get_relationship(world_state const& ws, nation const& a, country_tag b);
+	void adjust_relationship(world_state& ws, nation& a, nation& b, int32_t value);
+	nations::influence get_influence(world_state const& ws, nation const& nation_by, country_tag nation_over);
 	int32_t get_influence_value(world_state const& ws, nation const& nation_by, country_tag nation_over);
 	int32_t get_influence_level(world_state const& ws, nation const& nation_by, country_tag nation_over);
-	void set_influence(world_state& ws, nation& nation_by, country_tag nation_over, int32_t value, int32_t level);
+	void set_influence(world_state& ws, nation& nation_by, country_tag nation_over, int32_t value, int32_t level); // will not remove from some else's sphere
+	void set_influence_value(world_state& ws, nation& nation_by, country_tag nation_over, int32_t value);
 	float get_foreign_investment(world_state const& ws, nation const& nation_by, country_tag nation_in);
 	void set_foreign_investment(world_state& ws, nation& nation_by, country_tag nation_in, float value);
 	void remove_investment_and_influence(world_state& ws, nation& nation_by, nation& nation_target);
@@ -34,6 +37,8 @@ namespace nations {
 	nations::nation& liberate_all_cores(world_state& ws, nations::nation& from, cultures::national_tag); // returns new nation
 	void make_vassal(world_state& ws, nations::nation& overlord, nations::nation& vassal);
 	void free_vassal(world_state& ws, nations::nation& vassal);
+
+	void adjust_influence(world_state& ws, nation& nation_by, nations::country_tag nation_target, int32_t amount); // will also adjust influence level on overflow / underflow
 
 	void destroy_state_instance(world_state& ws, state_instance& si);
 	void partial_destroy_state_instance(world_state& ws, state_instance& si);
@@ -77,6 +82,12 @@ namespace nations {
 	int32_t calculate_military_score(world_state const& ws, nations::nation const& this_nation);
 
 	void update_nation_ranks(world_state& ws);
+	void civilize_nation(world_state& ws, nations::nation& this_nation);
+	void uncivilize_nation(world_state& ws, nations::nation& this_nation);
+	void perform_nationalization(world_state& ws, nations::nation& this_nation);
+
+	void make_slave_state(world_state& ws, nations::state_instance& this_state);
+	void unmake_slave_state(world_state& ws, nations::state_instance& this_state);
 
 	template<typename F>
 	void for_each_province(world_state& ws, nations::state_instance const& s, F&& f);

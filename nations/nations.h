@@ -75,6 +75,8 @@ namespace nations {
 
 		uint64_t enabled_crimes = 0ui64;
 
+		economy::money_qnty_type last_income = economy::money_qnty_type(0); // income only, not expenses
+
 		issues::rules current_rules;
 		atomic_tag<date_tag> last_update;
 		date_tag last_election;
@@ -120,6 +122,7 @@ namespace nations {
 		array_tag<military::army_tag> armies;
 		array_tag<military::fleet_tag> fleets;
 		array_tag<military::army_orders_tag> active_orders;
+		array_tag<military::pending_cb> active_cbs;
 		
 		set_tag<military::war_identifier> wars_involved_in;
 		

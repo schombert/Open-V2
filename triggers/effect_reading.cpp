@@ -2593,6 +2593,8 @@ namespace triggers {
 			if (env.current_scope.main_slot != trigger_slot_contents::nation)
 				EFFECT_ERROR(invalid_scope_for_effect, env);
 
+			bool use_target_tag = !from_target && !this_target;
+
 			if (call_ally) {
 				if (from_target) {
 					if (env.current_scope.from_slot == trigger_slot_contents::nation)
@@ -2639,7 +2641,9 @@ namespace triggers {
 				}
 			}
 
-			env.data.push_back(uint16_t(3 + 3 * attacker_goals.size() + 3 * defender_goals.size()));
+			env.data.push_back(uint16_t(3 + (use_target_tag  ? 1 : 0) + 3 * attacker_goals.size() + 3 * defender_goals.size()));
+			if(use_target_tag)
+				env.data.push_back(trigger_payload(target_tag).value);
 			env.data.push_back(uint16_t(attacker_goals.size()));
 			for (const auto& wg : attacker_goals) {
 				env.data.push_back(trigger_payload(wg.casus_belli).value);

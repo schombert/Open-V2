@@ -112,4 +112,9 @@ namespace governments {
 			this_nation.flag = ws.w.culture_s.country_flags_by_government.get(this_nation.tag, g);
 		}
 	}
+
+	void start_election(world_state& ws, nations::nation& this_nation) {
+		this_nation.flags |= nations::nation::is_holding_election;
+		this_nation.last_election = ws.w.current_date;
+	}
 }

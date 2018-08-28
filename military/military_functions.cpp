@@ -177,7 +177,18 @@ namespace military {
 		}
 	}
 
-	bool can_make_or_use_cb_against(world_state const&, nations::nation const&, nations::nation const&) {
+	bool can_use_cb_against(world_state& ws, nations::nation& nation_by, nations::nation& nation_target) {
+		auto pending_range = get_range(ws.w.military_s.cb_arrays, nation_by.active_cbs);
+		for(auto c = pending_range.first; c != pending_range.second; ++c) {
+			if(c->target == nation_target.id)
+				return true;
+		}
+		for(auto& c : ws.s.military_m.cb_types) {
+			if((c.flags & cb_type::is_not_triggered_only) == 0 &&
+				is_valid_index(c.can_use) &&
+				triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(c.can_use), ws, &nation_target, &nation_by, nullptr, nullptr))
+				return true;
+		}
 		return false;
 	}
 
@@ -506,5 +517,22 @@ namespace military {
 			}
 		}
 		return nullptr;
+	}
+
+	war& create_war(world_state& ws, nations::nation& attacker, nations::nation& defender, bool call_willing_attacker_allies) {
+		auto& new_war = ws.w.military_s.wars.get_new();
+		new_war.primary_attacker = attacker.id;
+		new_war.primary_defender = defender.id;
+		add_item(ws.w.nation_s.nations_arrays, new_war.attackers, attacker.id);
+		add_item(ws.w.nation_s.nations_arrays, new_war.defenders, defender.id);
+
+		new_war.start_date = ws.w.current_date;
+		new_war.last_update = ws.w.current_date;
+
+		// todo: call defender allies
+		// todo: call attacker allies
+		// todo: populate naval control
+
+		return new_war;
 	}
 }

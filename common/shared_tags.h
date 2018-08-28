@@ -139,6 +139,14 @@ namespace military {
 		bool operator<(war_identifier const& other)  const noexcept { return war_id < other.war_id; }
 		bool operator==(war_identifier const& other) const noexcept { return war_id == other.war_id; }
 	};
+
+	struct pending_cb {
+		nations::country_tag target;
+		military::cb_type_tag type;
+		date_tag expiration;
+
+		bool operator==(pending_cb const& other) const noexcept { return target == other.target && type == other.type; }
+	};
 }
 
 namespace provinces {

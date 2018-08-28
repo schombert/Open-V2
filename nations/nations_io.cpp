@@ -95,6 +95,7 @@ void serialization::serializer<nations::nation>::serialize_object(std::byte *& o
 	auto sphere_leader_id = obj.sphere_leader ? obj.sphere_leader->id : nations::country_tag();
 	serialize(output, sphere_leader_id);
 
+	serialize(output, obj.last_income);
 	serialize(output, obj.last_election);
 	serialize(output, obj.last_lost_war);
 	serialize(output, obj.disarmed_until);
@@ -166,6 +167,7 @@ void serialization::serializer<nations::nation>::serialize_object(std::byte *& o
 	serialize_stable_array(output, ws.w.military_s.leader_arrays, obj.admirals);
 	serialize_stable_array(output, ws.w.military_s.fleet_arrays, obj.fleets);
 	serialize_stable_array(output, ws.w.military_s.orders_arrays, obj.active_orders);
+	serialize_stable_array(output, ws.w.military_s.orders_arrays, obj.active_cbs);
 	serialize_stable_array(output, ws.w.military_s.war_arrays, obj.wars_involved_in);
 	serialize_stable_array(output, ws.w.population_s.rebel_faction_arrays, obj.active_rebel_factions);
 	serialize_stable_array(output, ws.w.population_s.pop_movement_arrays, obj.active_movements);
@@ -204,6 +206,7 @@ void serialization::serializer<nations::nation>::deserialize_object(std::byte co
 
 	obj.last_update = ws.w.current_date;
 
+	deserialize(input, obj.last_income);
 	deserialize(input, obj.last_election);
 	deserialize(input, obj.last_lost_war);
 	deserialize(input, obj.disarmed_until);
@@ -280,6 +283,7 @@ void serialization::serializer<nations::nation>::deserialize_object(std::byte co
 	deserialize_stable_array(input, ws.w.military_s.leader_arrays, obj.admirals);
 	deserialize_stable_array(input, ws.w.military_s.fleet_arrays, obj.fleets);
 	deserialize_stable_array(input, ws.w.military_s.orders_arrays, obj.active_orders);
+	deserialize_stable_array(input, ws.w.military_s.orders_arrays, obj.active_cbs);
 	deserialize_stable_array(input, ws.w.military_s.war_arrays, obj.wars_involved_in);
 	deserialize_stable_array(input, ws.w.population_s.rebel_faction_arrays, obj.active_rebel_factions);
 	deserialize_stable_array(input, ws.w.population_s.pop_movement_arrays, obj.active_movements);
@@ -289,6 +293,7 @@ size_t serialization::serializer<nations::nation>::size(nations::nation const & 
 	return
 		sizeof(nations::country_tag) + // overlord id
 		sizeof(nations::country_tag) + // sphere leader tag
+		sizeof(obj.last_income) +
 		sizeof(date_tag) * 3 + // last election, last lost war, disarmed until
 		sizeof(float) * 5 + // plurality ... war exhaustion
 		sizeof(int8_t) * 7 + // budget items
@@ -328,6 +333,7 @@ size_t serialization::serializer<nations::nation>::size(nations::nation const & 
 		serialize_stable_array_size(ws.w.military_s.leader_arrays, obj.admirals) +
 		serialize_stable_array_size(ws.w.military_s.fleet_arrays, obj.fleets) +
 		serialize_stable_array_size(ws.w.military_s.orders_arrays, obj.active_orders) +
+		serialize_stable_array_size(ws.w.military_s.orders_arrays, obj.active_cbs) +
 		serialize_stable_array_size(ws.w.military_s.war_arrays, obj.wars_involved_in) +
 		serialize_stable_array_size(ws.w.population_s.rebel_faction_arrays, obj.active_rebel_factions) +
 		serialize_stable_array_size(ws.w.population_s.pop_movement_arrays, obj.active_movements)

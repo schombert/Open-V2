@@ -1497,34 +1497,34 @@ namespace triggers {
 	bool tf_casus_belli_tag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		auto tag_holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
 		if(tag_holder)
-			return compare_values(tval[0], military::can_make_or_use_cb_against(ws, *((nations::nation*)primary_slot), *tag_holder), true);
+			return compare_values(tval[0], military::can_use_cb_against(ws, *((nations::nation*)primary_slot), *tag_holder), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_casus_belli_from(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
-		return compare_values(tval[0], military::can_make_or_use_cb_against(ws, *((nations::nation*)primary_slot), *((nations::nation*)from_slot)), true);
+		return compare_values(tval[0], military::can_use_cb_against(ws, *((nations::nation*)primary_slot), *((nations::nation*)from_slot)), true);
 	}
 	bool tf_casus_belli_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
-		return compare_values(tval[0], military::can_make_or_use_cb_against(ws, *((nations::nation*)primary_slot), *((nations::nation*)this_slot)), true);
+		return compare_values(tval[0], military::can_use_cb_against(ws, *((nations::nation*)primary_slot), *((nations::nation*)this_slot)), true);
 	}
 	bool tf_casus_belli_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		auto owner = ((nations::state_instance*)this_slot)->owner;
 		if(owner)
-			return compare_values(tval[0], military::can_make_or_use_cb_against(ws, *((nations::nation*)primary_slot), *owner), true);
+			return compare_values(tval[0], military::can_use_cb_against(ws, *((nations::nation*)primary_slot), *owner), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_casus_belli_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		auto owner = ((provinces::province_state*)this_slot)->owner;
 		if(owner)
-			return compare_values(tval[0], military::can_make_or_use_cb_against(ws, *((nations::nation*)primary_slot), *owner), true);
+			return compare_values(tval[0], military::can_use_cb_against(ws, *((nations::nation*)primary_slot), *owner), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_casus_belli_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		auto owner = population::get_pop_owner(ws, *((population::pop*)this_slot));
 		if(owner)
-			return compare_values(tval[0], military::can_make_or_use_cb_against(ws, *((nations::nation*)primary_slot), *owner), true);
+			return compare_values(tval[0], military::can_use_cb_against(ws, *((nations::nation*)primary_slot), *owner), true);
 		else
 			return compare_values(tval[0], false, true);
 	}

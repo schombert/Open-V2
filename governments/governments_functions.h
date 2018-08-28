@@ -15,4 +15,5 @@ namespace governments {
 	void reset_upper_house(world_state& ws, nations::country_tag id);
 	void update_current_rules(world_state& ws, nations::nation& this_nation);
 	void silent_set_government(world_state& ws, nations::nation& this_nation, government_tag g);
+	void start_election(world_state& ws, nations::nation& this_nation);
 }

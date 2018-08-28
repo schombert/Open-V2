@@ -29,4 +29,5 @@ namespace provinces {
 	void silent_set_province_owner(world_state& ws, nations::nation& new_owner, provinces::province_state& prov);
 	void silent_set_province_controller(world_state& ws, nations::nation& new_controller, provinces::province_state& prov);
 	void silent_on_conquer_province(world_state& ws, provinces::province_state& prov);
+	void enable_canal(world_state& ws, uint32_t canal_id);
 }

@@ -18,10 +18,19 @@ namespace population {
 	void set_militancy_direct(pop &p, float v);
 	void set_literacy_direct(pop &p, float v);
 	void set_consciousness_direct(pop &p, float v);
+	float get_militancy_direct(pop const& p);
+	float get_literacy_direct(pop const& p);
+	float get_consciousness_direct(pop const& p);
 	economy::money_qnty_type desired_needs_spending(world_state& ws, pop const& p);
 	nations::nation* get_pop_owner(world_state const& ws, pop const& p);
 	bool is_dominant_issue(world_state const& ws, pop_tag id, issues::option_tag opt);
 	bool is_dominant_ideology(world_state const& ws, pop_tag id, ideologies::ideology_tag opt);
 	void destroy_pop_movement(world_state& ws, pop_movement& m);
 	void destroy_rebel_faction(world_state& ws, rebel_faction& r);
+	void change_pop_type(world_state& ws, pop& this_pop, pop_type_tag new_type);
+	void change_pop_size(world_state& ws, pop& this_pop, int32_t new_size);
+	void change_pop_location(world_state& ws, pop& this_pop, provinces::province_tag new_location);
+	void remove_pop_from_province(world_state& ws, pop& this_pop);
+	void free_slave(world_state& ws, pop& this_pop);
+	void trigger_rising(world_state& ws, rebel_faction& faction, nations::nation& in_nation);
 }
