@@ -2477,18 +2477,91 @@ namespace triggers {
 			if(auto owner = ((provinces::province_state*)from_slot)->owner; owner)
 				ef_war_no_ally_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
 		}
-		void ef_country_event(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_country_event_immediate(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_province_event(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_province_event_immediate(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_sub_unit_int(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_sub_unit_this(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_sub_unit_from(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_sub_unit_current(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_set_variable(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_change_variable(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_upper_house(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
+		void ef_country_event_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], ((nations::nation*)primary_slot)->id, ((nations::nation*)this_slot)->id);
+		}
+		void ef_country_event_immediate_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			events::fire_event(ws, trigger_payload(tval[2]).event, ((nations::nation*)primary_slot)->id, ((nations::nation*)this_slot)->id);
+		}
+		void ef_province_event_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], ((provinces::province_state*)primary_slot)->id, ((nations::nation*)this_slot)->id);
+		}
+		void ef_province_event_immediate_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			events::fire_event(ws, trigger_payload(tval[2]).event, ((provinces::province_state*)primary_slot)->id, ((nations::nation*)this_slot)->id);
+		}
+		void ef_country_event_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], ((nations::nation*)primary_slot)->id, ((nations::state_instance*)this_slot)->id);
+		}
+		void ef_country_event_immediate_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			events::fire_event(ws, trigger_payload(tval[2]).event, ((nations::nation*)primary_slot)->id, ((nations::state_instance*)this_slot)->id);
+		}
+		void ef_province_event_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], ((provinces::province_state*)primary_slot)->id, ((nations::state_instance*)this_slot)->id);
+		}
+		void ef_province_event_immediate_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			events::fire_event(ws, trigger_payload(tval[2]).event, ((provinces::province_state*)primary_slot)->id, ((nations::state_instance*)this_slot)->id);
+		}
+		void ef_country_event_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], ((nations::nation*)primary_slot)->id, ((provinces::province_state*)this_slot)->id);
+		}
+		void ef_country_event_immediate_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			events::fire_event(ws, trigger_payload(tval[2]).event, ((nations::nation*)primary_slot)->id, ((provinces::province_state*)this_slot)->id);
+		}
+		void ef_province_event_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], ((provinces::province_state*)primary_slot)->id, ((provinces::province_state*)this_slot)->id);
+		}
+		void ef_province_event_immediate_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			events::fire_event(ws, trigger_payload(tval[2]).event, ((provinces::province_state*)primary_slot)->id, ((provinces::province_state*)this_slot)->id);
+		}
+		void ef_country_event_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], ((nations::nation*)primary_slot)->id, ((population::pop*)this_slot)->id);
+		}
+		void ef_country_event_immediate_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			events::fire_event(ws, trigger_payload(tval[2]).event, ((nations::nation*)primary_slot)->id, ((population::pop*)this_slot)->id);
+		}
+		void ef_province_event_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], ((provinces::province_state*)primary_slot)->id, ((population::pop*)this_slot)->id);
+		}
+		void ef_province_event_immediate_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			events::fire_event(ws, trigger_payload(tval[2]).event, ((provinces::province_state*)primary_slot)->id, ((population::pop*)this_slot)->id);
+		}
+		void ef_sub_unit_int(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			// do nothing
+		}
+		void ef_sub_unit_this(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			//do nothing
+		}
+		void ef_sub_unit_from(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			// do nothing
+		}
+		void ef_sub_unit_current(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			// do nothing
+		}
+		void ef_set_variable(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			ws.w.nation_s.national_variables.get(((nations::nation*)primary_slot)->id, trigger_payload(tval[2]).nat_var) = read_float_from_payload(tval + 3);
+		}
+		void ef_change_variable(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			ws.w.nation_s.national_variables.get(((nations::nation*)primary_slot)->id, trigger_payload(tval[2]).nat_var) += read_float_from_payload(tval + 3);
+		}
+		void ef_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto ideology = trigger_payload(tval[2]).small.values.ideology;
+			auto factor = read_float_from_payload(tval + 3);
+
+			auto pop_id = ((population::pop*)primary_slot)->id;
+			auto total_pop = ws.w.population_s.pop_demographics.get(pop_id, population::total_population_tag);
+			auto support = ws.w.population_s.pop_demographics.get_row(pop_id) + to_index(population::to_demo_tag(ws, ideologies::ideology_tag(0)));
+
+			support[to_index(ideology)] = std::max(0, support[to_index(ideology)] + int32_t(total_pop * factor));
+			normalize_integer_vector(support, ws.s.ideologies_m.ideologies_count, total_pop);
+		}
+		void ef_upper_house(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto ideology = trigger_payload(tval[2]).small.values.ideology;
+			auto amount = trigger_payload(tval[3]).signed_value;
+			auto upper_house = ws.w.nation_s.upper_house.get_row(((nations::nation*)primary_slot)->id);
+
+			upper_house[to_index(ideology)] = uint8_t(std::clamp(int32_t(upper_house[to_index(ideology)]) + amount, 0, 255));
+			normalize_integer_vector(upper_house, ws.s.ideologies_m.ideologies_count, 100ui8);
+		}
 		void ef_scaled_militancy_issue(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
 		void ef_scaled_militancy_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
 		void ef_scaled_militancy_unemployment(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
@@ -2858,6 +2931,18 @@ namespace triggers {
 			ef_scaled_consciousness_province_unemployment,
 			ef_variable_good_name_province,
 			ef_treasury_province,
+			ef_country_event_this_state,
+			ef_country_event_immediate_this_state,
+			ef_province_event_this_state,
+			ef_province_event_immediate_this_state,
+			ef_country_event_this_province,
+			ef_country_event_immediate_this_province,
+			ef_province_event_this_province,
+			ef_province_event_immediate_this_province,
+			ef_country_event_this_pop,
+			ef_country_event_immediate_this_pop,
+			ef_province_event_this_pop,
+			ef_province_event_immediate_this_pop,
 		};
 	}
 

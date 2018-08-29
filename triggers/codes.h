@@ -255,10 +255,10 @@ namespace triggers {
 		constexpr uint16_t war_no_ally_this_pop = 0x00EA;
 		constexpr uint16_t war_no_ally_from_nation = 0x00EB;
 		constexpr uint16_t war_no_ally_from_province = 0x00EC;
-		constexpr uint16_t country_event = 0x00ED;
-		constexpr uint16_t country_event_immediate = 0x00EE;
-		constexpr uint16_t province_event = 0x00EF;
-		constexpr uint16_t province_event_immediate = 0x00F0;
+		constexpr uint16_t country_event_this_nation = 0x00ED;
+		constexpr uint16_t country_event_immediate_this_nation = 0x00EE;
+		constexpr uint16_t province_event_this_nation = 0x00EF;
+		constexpr uint16_t province_event_immediate_this_nation = 0x00F0;
 		constexpr uint16_t sub_unit_int = 0x00F1;
 		constexpr uint16_t sub_unit_this = 0x00F2;
 		constexpr uint16_t sub_unit_from = 0x00F3;
@@ -330,6 +330,18 @@ namespace triggers {
 		constexpr uint16_t scaled_consciousness_province_unemployment = 0x0131;
 		constexpr uint16_t variable_good_name_province = 0x0132;
 		constexpr uint16_t treasury_province = 0x0133;
+		constexpr uint16_t country_event_this_state = 0x0134;
+		constexpr uint16_t country_event_immediate_this_state = 0x0135;
+		constexpr uint16_t province_event_this_state = 0x0136;
+		constexpr uint16_t province_event_immediate_this_state = 0x0137;
+		constexpr uint16_t country_event_this_province = 0x0138;
+		constexpr uint16_t country_event_immediate_this_province = 0x0139;
+		constexpr uint16_t province_event_this_province = 0x013A;
+		constexpr uint16_t province_event_immediate_this_province = 0x013B;
+		constexpr uint16_t country_event_this_pop = 0x013C;
+		constexpr uint16_t country_event_immediate_this_pop = 0x013D;
+		constexpr uint16_t province_event_this_pop = 0x013E;
+		constexpr uint16_t province_event_immediate_this_pop = 0x013F;
 
 
 		//scopes
@@ -1489,7 +1501,19 @@ namespace triggers {
 			1077, //constexpr uint16_t scaled_consciousness_nation_ideology = 0x0124;
 			1078, //constexpr uint16_t scaled_consciousness_nation_unemployment = 0x0125;
 			1079, //	constexpr uint16_t variable_good_name_province = 0x0132;
-			2 // constexpr uint16_t treasury_province = 0x0133;
+			2, // constexpr uint16_t treasury_province = 0x0133;
+			0, //	constexpr uint16_t country_event_this_state = 0x0134;
+			1, //constexpr uint16_t country_event_immediate_this_state = 0x0135;
+			0, //constexpr uint16_t province_event_this_state = 0x0136;
+			1, //constexpr uint16_t province_event_immediate_this_state = 0x0137;
+			0, //constexpr uint16_t country_event_this_province = 0x0138;
+			1, //constexpr uint16_t country_event_immediate_this_province = 0x0139;
+			0, //constexpr uint16_t province_event_this_province = 0x013A;
+			1, //constexpr uint16_t province_event_immediate_this_province = 0x013B;
+			0, //constexpr uint16_t country_event_this_pop = 0x013C;
+			1, //constexpr uint16_t country_event_immediate_this_pop = 0x013D;
+			0, //constexpr uint16_t province_event_this_pop = 0x013E;
+			1, //constexpr uint16_t province_event_immediate_this_pop = 0x013F;
 	};
 
 	inline const int32_t code_data_sizes[] = {

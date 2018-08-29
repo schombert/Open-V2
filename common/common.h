@@ -5,6 +5,7 @@
 #include <atomic>
 #include <string>
 #include <tuple>
+#include <numeric>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
@@ -74,6 +75,21 @@ struct zero_is_null_of_s { using type = std::false_type; };
 
 template<typename T>
 struct individuator_of_s { using type = std::false_type; };
+
+template<typename T>
+void normalize_integer_vector(T* vec, uint32_t count, T sum) {
+	int32_t current_sum = std::accumulate(vec, vec + count, 0);
+	float factor = float(sum) / float(current_sum);
+
+	float fractional_part = 0.0f;
+
+	for(uint32_t i = 0; i < count; ++i) {
+		float integral_point = 0.0f;
+		fractional_part = std::modf(factor * float(vec[i]) + fractional_part, &integral_point);
+		vec[i] = T(integral_point);
+	}
+	vec[0] += T(int32_t(sum) - std::accumulate(vec, vec + count, 0));
+}
 
 template<typename value_base, typename zero_is_null, typename individuator>
 struct tag_type {
