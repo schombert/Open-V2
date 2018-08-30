@@ -23,6 +23,7 @@ namespace military {
 		s.war_goal_arrays.reset();
 		s.fleet_presence_arrays.reset();
 		s.naval_control_arrays.reset();
+		s.cb_arrays.reset();
 	}
 
 	military_leader& make_empty_leader(world_state& ws, cultures::culture_tag culture, bool is_general) {
@@ -331,7 +332,7 @@ namespace military {
 
 	void remove_from_war(world_state& ws, war& this_war, nations::country_tag to_remove) {
 		silent_remove_from_war(ws, this_war, to_remove);
-		remove_item_if(ws.w.military_s.war_arrays, ws.w.nation_s.nations[to_remove].wars_involved_in, war_identifier{ this_war.id, false });
+		remove_item(ws.w.military_s.war_arrays, ws.w.nation_s.nations[to_remove].wars_involved_in, war_identifier{ this_war.id, false });
 	}
 	void add_to_war(world_state& ws, war& this_war, bool attacker, nations::nation& to_add) {
 		if(attacker) {
@@ -519,7 +520,7 @@ namespace military {
 		return nullptr;
 	}
 
-	war& create_war(world_state& ws, nations::nation& attacker, nations::nation& defender, bool call_willing_attacker_allies) {
+	war& create_war(world_state& ws, nations::nation& attacker, nations::nation& defender, bool /*call_willing_attacker_allies*/) {
 		auto& new_war = ws.w.military_s.wars.get_new();
 		new_war.primary_attacker = attacker.id;
 		new_war.primary_defender = defender.id;

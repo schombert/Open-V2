@@ -79,7 +79,7 @@ struct individuator_of_s { using type = std::false_type; };
 template<typename T>
 void normalize_integer_vector(T* vec, uint32_t count, T sum) {
 	int32_t current_sum = std::accumulate(vec, vec + count, 0);
-	float factor = float(sum) / float(current_sum);
+	float factor = current_sum != 0 ? float(sum) / float(current_sum) : 0.0f;
 
 	float fractional_part = 0.0f;
 

@@ -10,6 +10,9 @@ namespace nations {
 namespace provinces {
 	struct province_state;
 }
+namespace population {
+	struct rebel_faction;
+}
 
 namespace modifiers {
 	void add_unique_static_modifier_to_nation(world_state& ws, nations::nation& this_nation, national_modifier_tag mod);
@@ -34,4 +37,7 @@ namespace modifiers {
 	void set_default_crimes(world_state const& ws, nations::nation& this_nation);
 	void reset_national_modifier(world_state const& ws, nations::nation& this_nation);
 	void reset_provincial_modifier(world_state const& ws, provinces::province_state& this_province);
+	
+	float test_multiplicative_factor(factor_tag t, world_state& ws, void* primary_slot, void* from_slot, population::rebel_faction* rebel_slot);
+	float test_multiplicative_factor(factor_modifier const& f, world_state& ws, void* primary_slot, void* from_slot, population::rebel_faction* rebel_slot);
 }

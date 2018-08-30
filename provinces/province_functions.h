@@ -5,7 +5,9 @@
 namespace nations {
 	struct nation;
 }
-
+namespace current_state {
+	class state;
+}
 class world_state;
 
 namespace provinces {

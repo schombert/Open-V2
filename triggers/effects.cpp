@@ -1633,14 +1633,22 @@ namespace triggers {
 				nations::make_alliance(ws, *((nations::nation*)primary_slot), *owner);
 		}
 		void ef_release_vassal(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
-			auto& new_nation = nations::liberate_uncored_cores(ws, *((nations::nation*)primary_slot), trigger_payload(tval[2]).tag);
-			if(get_size(ws.w.province_s.province_arrays, new_nation.owned_provinces) != 0)
-				nations::make_vassal(ws, *((nations::nation*)primary_slot), new_nation);
+			if(auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder; bool(holder) && get_size(ws.w.province_s.province_arrays, holder->owned_provinces) != 0) {
+				nations::free_vassal(ws, *holder);
+			} else {
+				auto& new_nation = nations::liberate_uncored_cores(ws, *((nations::nation*)primary_slot), trigger_payload(tval[2]).tag);
+				if(get_size(ws.w.province_s.province_arrays, new_nation.owned_provinces) != 0)
+					nations::make_vassal(ws, *((nations::nation*)primary_slot), new_nation);
+			}
 		}
 		void ef_release_vassal_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
-			auto& new_nation = nations::liberate_uncored_cores(ws, *((nations::nation*)primary_slot), ((nations::nation*)this_slot)->tag);
-			if(get_size(ws.w.province_s.province_arrays, new_nation.owned_provinces) != 0)
-				nations::make_vassal(ws, *((nations::nation*)primary_slot), new_nation);
+			if(get_size(ws.w.province_s.province_arrays, ((nations::nation*)this_slot)->owned_provinces) != 0) {
+				nations::free_vassal(ws, *((nations::nation*)this_slot));
+			} else {
+				auto& new_nation = nations::liberate_uncored_cores(ws, *((nations::nation*)primary_slot), ((nations::nation*)this_slot)->tag);
+				if(get_size(ws.w.province_s.province_arrays, new_nation.owned_provinces) != 0)
+					nations::make_vassal(ws, *((nations::nation*)primary_slot), new_nation);
+			}
 		}
 		void ef_release_vassal_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			auto owner = ((provinces::province_state*)this_slot)->owner;
@@ -1648,9 +1656,7 @@ namespace triggers {
 				ef_release_vassal_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
 		}
 		void ef_release_vassal_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
-			auto& new_nation = nations::liberate_uncored_cores(ws, *((nations::nation*)primary_slot), ((nations::nation*)from_slot)->tag);
-			if(get_size(ws.w.province_s.province_arrays, new_nation.owned_provinces) != 0)
-				nations::make_vassal(ws, *((nations::nation*)primary_slot), new_nation);
+			ef_release_vassal_this_nation(tval, ws, primary_slot, from_slot, nullptr, nullptr, gen);
 		}
 		void ef_release_vassal_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			auto owner = ((provinces::province_state*)from_slot)->owner;
@@ -2292,7 +2298,7 @@ namespace triggers {
 					}();
 
 					add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-						military::war_goal{ ws.w.current_date, 0.0f, ((nations::nation*)primary_slot)->id, state, target->id, liberate_country_tag });
+						military::war_goal{ ws.w.current_date, 0.0f, ((nations::nation*)primary_slot)->id, state, target->id, liberate_country_tag, cb_type });
 					payload_index += 3;
 				}
 
@@ -2310,7 +2316,7 @@ namespace triggers {
 					}();
 
 					add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-						military::war_goal{ ws.w.current_date, 0.0f, target->id, state, ((nations::nation*)primary_slot)->id, liberate_country_tag });
+						military::war_goal{ ws.w.current_date, 0.0f, target->id, state, ((nations::nation*)primary_slot)->id, liberate_country_tag, cb_type });
 					payload_index += 3;
 				}
 			}
@@ -2334,7 +2340,7 @@ namespace triggers {
 				}();
 
 				add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-					military::war_goal{ ws.w.current_date, 0.0f, ((nations::nation*)primary_slot)->id, state, target->id, liberate_country_tag });
+					military::war_goal{ ws.w.current_date, 0.0f, ((nations::nation*)primary_slot)->id, state, target->id, liberate_country_tag, cb_type });
 				payload_index += 3;
 			}
 
@@ -2352,7 +2358,7 @@ namespace triggers {
 				}();
 
 				add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-					military::war_goal{ ws.w.current_date, 0.0f, target->id, state, ((nations::nation*)primary_slot)->id, liberate_country_tag });
+					military::war_goal{ ws.w.current_date, 0.0f, target->id, state, ((nations::nation*)primary_slot)->id, liberate_country_tag, cb_type });
 				payload_index += 3;
 			}
 		}
@@ -2394,7 +2400,7 @@ namespace triggers {
 					}();
 
 					add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-						military::war_goal{ ws.w.current_date, 0.0f, ((nations::nation*)primary_slot)->id, state, target->id, liberate_country_tag });
+						military::war_goal{ ws.w.current_date, 0.0f, ((nations::nation*)primary_slot)->id, state, target->id, liberate_country_tag, cb_type });
 					payload_index += 3;
 				}
 
@@ -2412,7 +2418,7 @@ namespace triggers {
 					}();
 
 					add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-						military::war_goal{ ws.w.current_date, 0.0f, target->id, state, ((nations::nation*)primary_slot)->id, liberate_country_tag });
+						military::war_goal{ ws.w.current_date, 0.0f, target->id, state, ((nations::nation*)primary_slot)->id, liberate_country_tag, cb_type });
 					payload_index += 3;
 				}
 			}
@@ -2436,7 +2442,7 @@ namespace triggers {
 				}();
 
 				add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-					military::war_goal{ ws.w.current_date, 0.0f, ((nations::nation*)primary_slot)->id, state, target->id, liberate_country_tag });
+					military::war_goal{ ws.w.current_date, 0.0f, ((nations::nation*)primary_slot)->id, state, target->id, liberate_country_tag, cb_type });
 				payload_index += 3;
 			}
 
@@ -2454,7 +2460,7 @@ namespace triggers {
 				}();
 
 				add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-					military::war_goal{ ws.w.current_date, 0.0f, target->id, state, ((nations::nation*)primary_slot)->id, liberate_country_tag });
+					military::war_goal{ ws.w.current_date, 0.0f, target->id, state, ((nations::nation*)primary_slot)->id, liberate_country_tag, cb_type });
 				payload_index += 3;
 			}
 		}
@@ -2525,6 +2531,39 @@ namespace triggers {
 		void ef_province_event_immediate_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			events::fire_event(ws, trigger_payload(tval[2]).event, ((provinces::province_state*)primary_slot)->id, ((population::pop*)this_slot)->id);
 		}
+		void ef_country_event_province_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
+				ef_country_event_this_nation(tval, ws, owner, this_slot, nullptr, nullptr, gen);
+		}
+		void ef_country_event_immediate_province_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
+				ef_country_event_immediate_this_nation(tval, ws, owner, this_slot, nullptr, nullptr, gen);
+		}
+		void ef_country_event_province_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
+				ef_country_event_this_state(tval, ws, owner, this_slot, nullptr, nullptr, gen);
+		}
+		void ef_country_event_immediate_province_this_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
+				ef_country_event_immediate_this_state(tval, ws, owner, this_slot, nullptr, nullptr, gen);
+		}
+		void ef_country_event_province_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
+				ef_country_event_this_province(tval, ws, owner, this_slot, nullptr, nullptr, gen);
+		}
+		void ef_country_event_immediate_province_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
+				ef_country_event_immediate_this_province(tval, ws, owner, this_slot, nullptr, nullptr, gen);
+		}
+		void ef_country_event_province_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
+				ef_country_event_this_pop(tval, ws, owner, this_slot, nullptr, nullptr, gen);
+		}
+		void ef_country_event_immediate_province_this_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
+				ef_country_event_immediate_this_pop(tval, ws, owner, this_slot, nullptr, nullptr, gen);
+		}
+		
 		void ef_sub_unit_int(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			// do nothing
 		}
@@ -2562,65 +2601,555 @@ namespace triggers {
 			upper_house[to_index(ideology)] = uint8_t(std::clamp(int32_t(upper_house[to_index(ideology)]) + amount, 0, 255));
 			normalize_integer_vector(upper_house, ws.s.ideologies_m.ideologies_count, 100ui8);
 		}
-		void ef_scaled_militancy_issue(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_militancy_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_militancy_unemployment(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_consciousness_issue(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_consciousness_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_consciousness_unemployment(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_define_general(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_define_admiral(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_dominant_issue(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_add_war_goal(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_move_issue_percentage_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_move_issue_percentage_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_move_issue_percentage_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_move_issue_percentage_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_party_loyalty_nation_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_party_loyalty_province_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_party_loyalty_province_id_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_party_loyalty_province_id_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_build_railway_in_capital_yes_whole_state_yes_limit(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_build_railway_in_capital_yes_whole_state_no_limit(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_build_railway_in_capital_no_whole_state_yes_limit(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_build_railway_in_capital_no_whole_state_no_limit(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_build_fort_in_capital_yes_whole_state_yes_limit(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_build_fort_in_capital_yes_whole_state_no_limit(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_build_fort_in_capital_no_whole_state_yes_limit(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_build_fort_in_capital_no_whole_state_no_limit(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_relation_reb(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_variable_tech_name(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_variable_good_name(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_set_country_flag_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_add_country_modifier_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_add_country_modifier_province_no_duration(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_dominant_issue_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_relation_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_relation_province_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_relation_province_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_relation_province_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_relation_province_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_relation_province_reb(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_militancy_nation_issue(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_militancy_nation_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_militancy_nation_unemployment(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_consciousness_nation_issue(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_consciousness_nation_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_consciousness_nation_unemployment(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_militancy_state_issue(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_militancy_state_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_militancy_state_unemployment(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_consciousness_state_issue(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_consciousness_state_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_consciousness_state_unemployment(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_militancy_province_issue(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_militancy_province_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_militancy_province_unemployment(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_consciousness_province_issue(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_consciousness_province_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_scaled_consciousness_province_unemployment(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_variable_good_name_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
-		void ef_treasury_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {}
+		void ef_scaled_militancy_issue(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto issue_demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
+			auto pop_size = ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, population::total_population_tag);
+			
+			if(pop_size != 0) {
+				auto support = ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, issue_demo_tag);
+				float adjustment = read_float_from_payload(tval + 3) * float(support) / float(pop_size);
+				population::set_militancy_direct(*((population::pop*)primary_slot), std::clamp(adjustment + population::get_militancy_direct(*((population::pop*)primary_slot)), 0.0f, 1.0f));
+			}
+		}
+		void ef_scaled_militancy_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto ideology_demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology);
+			auto pop_size = ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, population::total_population_tag);
+
+			if(pop_size != 0) {
+				auto support = ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, ideology_demo_tag);
+				float adjustment = read_float_from_payload(tval + 3) * float(support) / float(pop_size);
+				population::set_militancy_direct(*((population::pop*)primary_slot), std::clamp(adjustment + population::get_militancy_direct(*((population::pop*)primary_slot)), 0.0f, 1.0f));
+			}
+		}
+		void ef_scaled_militancy_unemployment(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto pop_size = ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, population::total_population_tag);
+
+			if(pop_size != 0) {
+				auto unemployed = pop_size - ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, population::total_employment_tag);
+				float adjustment = read_float_from_payload(tval + 2) * float(unemployed) / float(pop_size);
+				population::set_militancy_direct(*((population::pop*)primary_slot), std::clamp(adjustment + population::get_militancy_direct(*((population::pop*)primary_slot)), 0.0f, 1.0f));
+			}
+		}
+		void ef_scaled_consciousness_issue(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto issue_demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
+			auto pop_size = ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, population::total_population_tag);
+
+			if(pop_size != 0) {
+				auto support = ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, issue_demo_tag);
+				float adjustment = read_float_from_payload(tval + 3) * float(support) / float(pop_size);
+				population::set_consciousness_direct(*((population::pop*)primary_slot), std::clamp(adjustment + population::get_consciousness_direct(*((population::pop*)primary_slot)), 0.0f, 1.0f));
+			}
+		}
+		void ef_scaled_consciousness_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto ideology_demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology);
+			auto pop_size = ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, population::total_population_tag);
+
+			if(pop_size != 0) {
+				auto support = ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, ideology_demo_tag);
+				float adjustment = read_float_from_payload(tval + 3) * float(support) / float(pop_size);
+				population::set_consciousness_direct(*((population::pop*)primary_slot), std::clamp(adjustment + population::get_consciousness_direct(*((population::pop*)primary_slot)), 0.0f, 1.0f));
+			}
+		}
+		void ef_scaled_consciousness_unemployment(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto pop_size = ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, population::total_population_tag);
+
+			if(pop_size != 0) {
+				auto unemployed = pop_size - ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, population::total_employment_tag);
+				float adjustment = read_float_from_payload(tval + 2) * float(unemployed) / float(pop_size);
+				population::set_consciousness_direct(*((population::pop*)primary_slot), std::clamp(adjustment + population::get_consciousness_direct(*((population::pop*)primary_slot)), 0.0f, 1.0f));
+			}
+		}
+		void ef_scaled_militancy_nation_issue(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
+			auto factor = read_float_from_payload(tval + 3);
+
+			nations::for_each_pop(ws, *((nations::nation*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
+				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
+
+				if(pop_size != 0) {
+					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
+					float adjustment = factor * float(support) / float(pop_size);
+					population::set_militancy_direct(p, std::clamp(adjustment + population::get_militancy_direct(p), 0.0f, 1.0f));
+				}
+			});
+		}
+		void ef_scaled_militancy_nation_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology);
+			auto factor = read_float_from_payload(tval + 3);
+
+			nations::for_each_pop(ws, *((nations::nation*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
+				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
+
+				if(pop_size != 0) {
+					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
+					float adjustment = factor * float(support) / float(pop_size);
+					population::set_militancy_direct(p, std::clamp(adjustment + population::get_militancy_direct(p), 0.0f, 1.0f));
+				}
+			});
+		}
+		void ef_scaled_militancy_nation_unemployment(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto factor = read_float_from_payload(tval + 2);
+
+			nations::for_each_pop(ws, *((nations::nation*)primary_slot), [&ws, factor](population::pop& p) {
+				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
+
+				if(pop_size != 0) {
+					auto support = pop_size - ws.w.population_s.pop_demographics.get(p.id, population::total_employment_tag);
+					float adjustment = factor * float(support) / float(pop_size);
+					population::set_militancy_direct(p, std::clamp(adjustment + population::get_militancy_direct(p), 0.0f, 1.0f));
+				}
+			});
+		}
+		void ef_scaled_consciousness_nation_issue(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
+			auto factor = read_float_from_payload(tval + 3);
+
+			nations::for_each_pop(ws, *((nations::nation*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
+				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
+
+				if(pop_size != 0) {
+					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
+					float adjustment = factor * float(support) / float(pop_size);
+					population::set_consciousness_direct(p, std::clamp(adjustment + population::get_consciousness_direct(p), 0.0f, 1.0f));
+				}
+			});
+		}
+		void ef_scaled_consciousness_nation_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology);
+			auto factor = read_float_from_payload(tval + 3);
+
+			nations::for_each_pop(ws, *((nations::nation*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
+				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
+
+				if(pop_size != 0) {
+					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
+					float adjustment = factor * float(support) / float(pop_size);
+					population::set_consciousness_direct(p, std::clamp(adjustment + population::get_consciousness_direct(p), 0.0f, 1.0f));
+				}
+			});
+		}
+		void ef_scaled_consciousness_nation_unemployment(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto factor = read_float_from_payload(tval + 2);
+
+			nations::for_each_pop(ws, *((nations::nation*)primary_slot), [&ws, factor](population::pop& p) {
+				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
+
+				if(pop_size != 0) {
+					auto support = pop_size - ws.w.population_s.pop_demographics.get(p.id, population::total_employment_tag);
+					float adjustment = factor * float(support) / float(pop_size);
+					population::set_consciousness_direct(p, std::clamp(adjustment + population::get_consciousness_direct(p), 0.0f, 1.0f));
+				}
+			});
+		}
+		void ef_scaled_militancy_state_issue(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
+			auto factor = read_float_from_payload(tval + 3);
+
+			nations::for_each_pop(ws, *((nations::state_instance*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
+				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
+
+				if(pop_size != 0) {
+					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
+					float adjustment = factor * float(support) / float(pop_size);
+					population::set_militancy_direct(p, std::clamp(adjustment + population::get_militancy_direct(p), 0.0f, 1.0f));
+				}
+			});
+		}
+		void ef_scaled_militancy_state_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology);
+			auto factor = read_float_from_payload(tval + 3);
+
+			nations::for_each_pop(ws, *((nations::state_instance*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
+				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
+
+				if(pop_size != 0) {
+					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
+					float adjustment = factor * float(support) / float(pop_size);
+					population::set_militancy_direct(p, std::clamp(adjustment + population::get_militancy_direct(p), 0.0f, 1.0f));
+				}
+			});
+		}
+		void ef_scaled_militancy_state_unemployment(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto factor = read_float_from_payload(tval + 2);
+
+			nations::for_each_pop(ws, *((nations::state_instance*)primary_slot), [&ws, factor](population::pop& p) {
+				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
+
+				if(pop_size != 0) {
+					auto support = pop_size - ws.w.population_s.pop_demographics.get(p.id, population::total_employment_tag);
+					float adjustment = factor * float(support) / float(pop_size);
+					population::set_militancy_direct(p, std::clamp(adjustment + population::get_militancy_direct(p), 0.0f, 1.0f));
+				}
+			});
+		}
+		void ef_scaled_consciousness_state_issue(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
+			auto factor = read_float_from_payload(tval + 3);
+
+			nations::for_each_pop(ws, *((nations::state_instance*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
+				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
+
+				if(pop_size != 0) {
+					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
+					float adjustment = factor * float(support) / float(pop_size);
+					population::set_consciousness_direct(p, std::clamp(adjustment + population::get_consciousness_direct(p), 0.0f, 1.0f));
+				}
+			});
+		}
+		void ef_scaled_consciousness_state_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology);
+			auto factor = read_float_from_payload(tval + 3);
+
+			nations::for_each_pop(ws, *((nations::state_instance*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
+				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
+
+				if(pop_size != 0) {
+					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
+					float adjustment = factor * float(support) / float(pop_size);
+					population::set_consciousness_direct(p, std::clamp(adjustment + population::get_consciousness_direct(p), 0.0f, 1.0f));
+				}
+			});
+		}
+		void ef_scaled_consciousness_state_unemployment(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto factor = read_float_from_payload(tval + 2);
+
+			nations::for_each_pop(ws, *((nations::state_instance*)primary_slot), [&ws, factor](population::pop& p) {
+				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
+
+				if(pop_size != 0) {
+					auto support = pop_size - ws.w.population_s.pop_demographics.get(p.id, population::total_employment_tag);
+					float adjustment = factor * float(support) / float(pop_size);
+					population::set_consciousness_direct(p, std::clamp(adjustment + population::get_consciousness_direct(p), 0.0f, 1.0f));
+				}
+			});
+		}
+		void ef_scaled_militancy_province_issue(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
+			auto factor = read_float_from_payload(tval + 3);
+
+			provinces::for_each_pop(ws, *((provinces::province_state*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
+				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
+
+				if(pop_size != 0) {
+					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
+					float adjustment = factor * float(support) / float(pop_size);
+					population::set_militancy_direct(p, std::clamp(adjustment + population::get_militancy_direct(p), 0.0f, 1.0f));
+				}
+			});
+		}
+		void ef_scaled_militancy_province_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology);
+			auto factor = read_float_from_payload(tval + 3);
+
+			provinces::for_each_pop(ws, *((provinces::province_state*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
+				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
+
+				if(pop_size != 0) {
+					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
+					float adjustment = factor * float(support) / float(pop_size);
+					population::set_militancy_direct(p, std::clamp(adjustment + population::get_militancy_direct(p), 0.0f, 1.0f));
+				}
+			});
+		}
+		void ef_scaled_militancy_province_unemployment(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto factor = read_float_from_payload(tval + 2);
+
+			provinces::for_each_pop(ws, *((provinces::province_state*)primary_slot), [&ws, factor](population::pop& p) {
+				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
+
+				if(pop_size != 0) {
+					auto support = pop_size - ws.w.population_s.pop_demographics.get(p.id, population::total_employment_tag);
+					float adjustment = factor * float(support) / float(pop_size);
+					population::set_militancy_direct(p, std::clamp(adjustment + population::get_militancy_direct(p), 0.0f, 1.0f));
+				}
+			});
+		}
+		void ef_scaled_consciousness_province_issue(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
+			auto factor = read_float_from_payload(tval + 3);
+
+			provinces::for_each_pop(ws, *((provinces::province_state*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
+				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
+
+				if(pop_size != 0) {
+					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
+					float adjustment = factor * float(support) / float(pop_size);
+					population::set_consciousness_direct(p, std::clamp(adjustment + population::get_consciousness_direct(p), 0.0f, 1.0f));
+				}
+			});
+		}
+		void ef_scaled_consciousness_province_ideology(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology);
+			auto factor = read_float_from_payload(tval + 3);
+
+			provinces::for_each_pop(ws, *((provinces::province_state*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
+				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
+
+				if(pop_size != 0) {
+					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
+					float adjustment = factor * float(support) / float(pop_size);
+					population::set_consciousness_direct(p, std::clamp(adjustment + population::get_consciousness_direct(p), 0.0f, 1.0f));
+				}
+			});
+		}
+		void ef_scaled_consciousness_province_unemployment(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto factor = read_float_from_payload(tval + 2);
+
+			provinces::for_each_pop(ws, *((provinces::province_state*)primary_slot), [&ws, factor](population::pop& p) {
+				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
+
+				if(pop_size != 0) {
+					auto support = pop_size - ws.w.population_s.pop_demographics.get(p.id, population::total_employment_tag);
+					float adjustment = factor * float(support) / float(pop_size);
+					population::set_consciousness_direct(p, std::clamp(adjustment + population::get_consciousness_direct(p), 0.0f, 1.0f));
+				}
+			});
+		}
+		void ef_variable_good_name(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			ws.w.nation_s.national_stockpiles.get(((nations::nation*)primary_slot)->id, trigger_payload(tval[2]).small.values.good) += economy::goods_qnty_type(read_float_from_payload(tval + 3));
+		}
+		void ef_variable_good_name_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
+				ws.w.nation_s.national_stockpiles.get(owner->id, trigger_payload(tval[2]).small.values.good) += economy::goods_qnty_type(read_float_from_payload(tval + 3));
+		}
+		void ef_define_general(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto& new_leader = military::make_empty_leader(ws, ((nations::nation*)primary_slot)->primary_culture, true);
+			new_leader.creation_date = ws.w.current_date;
+			new_leader.personality = trigger_payload(tval[3]).small.values.leader_trait;
+			new_leader.background = trigger_payload(tval[4]).small.values.leader_trait;
+			military::calculate_leader_traits(ws, new_leader);
+
+			add_item(ws.w.military_s.leader_arrays, ((nations::nation*)primary_slot)->generals, new_leader.id);
+		}
+		void ef_define_admiral(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto& new_leader = military::make_empty_leader(ws, ((nations::nation*)primary_slot)->primary_culture, false);
+			new_leader.creation_date = ws.w.current_date;
+			new_leader.personality = trigger_payload(tval[3]).small.values.leader_trait;
+			new_leader.background = trigger_payload(tval[4]).small.values.leader_trait;
+			military::calculate_leader_traits(ws, new_leader);
+
+			add_item(ws.w.military_s.leader_arrays, ((nations::nation*)primary_slot)->admirals, new_leader.id);
+		}
+		void ef_dominant_issue(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto opt = trigger_payload(tval[2]).small.values.option;
+			auto factor = read_float_from_payload(tval + 3);
+
+			auto pop_id = ((population::pop*)primary_slot)->id;
+			auto total_pop = ws.w.population_s.pop_demographics.get(pop_id, population::total_population_tag);
+			auto support = ws.w.population_s.pop_demographics.get_row(pop_id) + to_index(population::to_demo_tag(ws, issues::option_tag(0)));
+
+			support[to_index(opt)] = std::max(0, support[to_index(opt)] + int32_t(total_pop * factor));
+			normalize_integer_vector(support, ws.s.issues_m.tracked_options_count, total_pop);
+		}
+		void ef_dominant_issue_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto opt = trigger_payload(tval[2]).small.values.option;
+			auto factor = read_float_from_payload(tval + 3);
+			auto first_issue_index = to_index(population::to_demo_tag(ws, issues::option_tag(0)));
+
+			nations::for_each_pop(ws, *((nations::nation*)primary_slot), [&ws, opt, factor, first_issue_index](population::pop& p) {
+				auto total_pop = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
+				auto support = ws.w.population_s.pop_demographics.get_row(p.id) + first_issue_index;
+
+				support[to_index(opt)] = std::max(0, support[to_index(opt)] + int32_t(total_pop * factor));
+				normalize_integer_vector(support, ws.s.issues_m.tracked_options_count, total_pop);
+			});
+		}
+		void ef_add_war_goal(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(auto w = military::get_war_between(ws, *((nations::nation*)primary_slot), ((nations::nation*)from_slot)->id); w) {
+				add_item(ws.w.military_s.war_goal_arrays, w->war_goals,
+					military::war_goal{
+						ws.w.current_date,
+						0.0f,
+						((nations::nation*)from_slot)->id,
+						nations::state_tag(),
+						((nations::nation*)primary_slot)->id,
+						cultures::national_tag(),
+						trigger_payload(tval[2]).small.values.cb_type});
+			}
+		}
+		void ef_move_issue_percentage_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto from_issue = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
+			auto to_issue = population::to_demo_tag(ws, trigger_payload(tval[3]).small.values.option);
+			auto amount = read_float_from_payload(tval + 4);
+
+			nations::for_each_pop(ws, *((nations::nation*)primary_slot), [&ws, from_issue, to_issue, amount](population::pop& p) {
+				auto subtract = int32_t(ws.w.population_s.pop_demographics.get(p.id, from_issue) * amount);
+				ws.w.population_s.pop_demographics.get(p.id, from_issue) -= subtract;
+				ws.w.population_s.pop_demographics.get(p.id, to_issue) += subtract;
+			});
+		}
+		void ef_move_issue_percentage_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto from_issue = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
+			auto to_issue = population::to_demo_tag(ws, trigger_payload(tval[3]).small.values.option);
+			auto amount = read_float_from_payload(tval + 4);
+
+			nations::for_each_pop(ws, *((nations::state_instance*)primary_slot), [&ws, from_issue, to_issue, amount](population::pop& p) {
+				auto subtract = int32_t(ws.w.population_s.pop_demographics.get(p.id, from_issue) * amount);
+				ws.w.population_s.pop_demographics.get(p.id, from_issue) -= subtract;
+				ws.w.population_s.pop_demographics.get(p.id, to_issue) += subtract;
+			});
+		}
+		void ef_move_issue_percentage_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto from_issue = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
+			auto to_issue = population::to_demo_tag(ws, trigger_payload(tval[3]).small.values.option);
+			auto amount = read_float_from_payload(tval + 4);
+
+			provinces::for_each_pop(ws, *((provinces::province_state*)primary_slot), [&ws, from_issue, to_issue, amount](population::pop& p) {
+				auto subtract = int32_t(ws.w.population_s.pop_demographics.get(p.id, from_issue) * amount);
+				ws.w.population_s.pop_demographics.get(p.id, from_issue) -= subtract;
+				ws.w.population_s.pop_demographics.get(p.id, to_issue) += subtract;
+			});
+		}
+		void ef_move_issue_percentage_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto from_issue = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
+			auto to_issue = population::to_demo_tag(ws, trigger_payload(tval[3]).small.values.option);
+			auto amount = read_float_from_payload(tval + 4);
+
+			auto subtract = int32_t(ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, from_issue) * amount);
+			ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, from_issue) -= subtract;
+			ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, to_issue) += subtract;
+		}
+		void ef_party_loyalty_nation_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto ideology = trigger_payload(tval[2]).small.values.ideology;
+			auto amount = read_float_from_payload(tval + 3);
+			ws.w.province_s.party_loyalty.get(((provinces::province*)from_slot)->id, ideology) += amount;
+		}
+		void ef_party_loyalty_province_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto ideology = trigger_payload(tval[2]).small.values.ideology;
+			auto amount = read_float_from_payload(tval + 3);
+			ws.w.province_s.party_loyalty.get(((provinces::province*)primary_slot)->id, ideology) += amount;
+		}
+		void ef_party_loyalty_province_id_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			provinces::province_tag prov(tval[2]);
+			auto ideology = trigger_payload(tval[3]).small.values.ideology;
+			auto amount = read_float_from_payload(tval + 4);
+			ws.w.province_s.party_loyalty.get(prov, ideology) += amount;
+		}
+		void ef_party_loyalty_province_id_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			provinces::province_tag prov(tval[2]);
+			auto ideology = trigger_payload(tval[3]).small.values.ideology;
+			auto amount = read_float_from_payload(tval + 4);
+			ws.w.province_s.party_loyalty.get(prov, ideology) += amount;
+		}
+		void ef_build_railway_in_capital_yes_whole_state_yes_limit(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto capital = ((nations::nation*)primary_slot)->current_capital;
+			if(is_valid_index(capital)) {
+				if(auto si = ws.w.province_s.province_state_container[capital].state_instance; si) {
+					nations::for_each_province(ws, *si, [](provinces::province_state& p) {
+						if(p.modifier_values[modifiers::provincial_offsets::min_build_railroad] <= 1.0f)
+							++p.railroad_level;
+					});
+				}
+			}
+		}
+		void ef_build_railway_in_capital_yes_whole_state_no_limit(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto capital = ((nations::nation*)primary_slot)->current_capital;
+			if(is_valid_index(capital)) {
+				if(auto si = ws.w.province_s.province_state_container[capital].state_instance; si) {
+					nations::for_each_province(ws, *si, [](provinces::province_state& p) {
+						if(p.modifier_values[modifiers::provincial_offsets::min_build_railroad] <= 1.0f)
+							++p.railroad_level;
+					});
+				}
+			}
+		}
+		void ef_build_railway_in_capital_no_whole_state_yes_limit(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto capital = ((nations::nation*)primary_slot)->current_capital;
+			if(is_valid_index(capital)) {
+				auto& p = ws.w.province_s.province_state_container[capital];
+				if(p.modifier_values[modifiers::provincial_offsets::min_build_railroad] <= 1.0f)
+					++p.railroad_level;
+			}
+		}
+		void ef_build_railway_in_capital_no_whole_state_no_limit(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto capital = ((nations::nation*)primary_slot)->current_capital;
+			if(is_valid_index(capital)) {
+				auto& p = ws.w.province_s.province_state_container[capital];
+				if(p.modifier_values[modifiers::provincial_offsets::min_build_railroad] <= 1.0f)
+					++p.railroad_level;
+			}
+		}
+		void ef_build_fort_in_capital_yes_whole_state_yes_limit(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto capital = ((nations::nation*)primary_slot)->current_capital;
+			if(is_valid_index(capital)) {
+				if(auto si = ws.w.province_s.province_state_container[capital].state_instance; si) {
+					nations::for_each_province(ws, *si, [](provinces::province_state& p) {
+						++p.fort_level;
+					});
+				}
+			}
+		}
+		void ef_build_fort_in_capital_yes_whole_state_no_limit(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto capital = ((nations::nation*)primary_slot)->current_capital;
+			if(is_valid_index(capital)) {
+				if(auto si = ws.w.province_s.province_state_container[capital].state_instance; si) {
+					nations::for_each_province(ws, *si, [](provinces::province_state& p) {
+						++p.fort_level;
+					});
+				}
+			}
+		}
+		void ef_build_fort_in_capital_no_whole_state_yes_limit(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto capital = ((nations::nation*)primary_slot)->current_capital;
+			if(is_valid_index(capital)) {
+				auto& p = ws.w.province_s.province_state_container[capital];
+				++p.fort_level;
+			}
+		}
+		void ef_build_fort_in_capital_no_whole_state_no_limit(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			auto capital = ((nations::nation*)primary_slot)->current_capital;
+			if(is_valid_index(capital)) {
+				auto& p = ws.w.province_s.province_state_container[capital];
+				++p.fort_level;
+			}
+		}
+		void ef_relation_reb(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(auto holder = ws.w.culture_s.national_tags_state[rebel_slot->independence_tag].holder; holder)
+				nations::adjust_relationship(ws, *((nations::nation*)primary_slot), *holder, trigger_payload(tval[3]).signed_value);
+		}
+		void ef_variable_tech_name(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			technologies::apply_single_technology(ws, *((nations::nation*)primary_slot), trigger_payload(tval[2]).tech);
+		}
+		void ef_set_country_flag_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
+				ef_set_country_flag(tval, ws, owner, nullptr, nullptr, nullptr, gen);
+		}
+		void ef_add_country_modifier_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
+				ef_add_country_modifier(tval, ws, owner, nullptr, nullptr, nullptr, gen);
+		}
+		void ef_add_country_modifier_province_no_duration(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
+				ef_add_country_modifier_no_duration(tval, ws, owner, nullptr, nullptr, nullptr, gen);
+		}
+		void ef_relation_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
+				ef_relation(tval, ws, owner, nullptr, nullptr, nullptr, gen);
+		}
+		void ef_relation_province_this_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
+				ef_relation_this_nation(tval, ws, owner, this_slot, nullptr, nullptr, gen);
+		}
+		void ef_relation_province_this_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
+				ef_relation_this_province(tval, ws, owner, this_slot, nullptr, nullptr, gen);
+		}
+		void ef_relation_province_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
+				ef_relation_this_nation(tval, ws, owner, from_slot, nullptr, nullptr, gen);
+		}
+		void ef_relation_province_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
+				ef_relation_this_province(tval, ws, owner, from_slot, nullptr, nullptr, gen);
+		}
+		void ef_relation_province_reb(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
+				ef_relation_reb(tval, ws, owner, nullptr, nullptr, rebel_slot, gen);
+		}
+		void ef_treasury_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
+			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
+				ef_treasury(tval, ws, owner, this_slot, nullptr, nullptr, gen);
+		}
 
 		static void(*effect_functions[])(uint16_t const*, world_state&, void*, void*, void*, population::rebel_faction*, jsf_prng&) = {
 			ef_none,
@@ -2860,10 +3389,10 @@ namespace triggers {
 			ef_war_no_ally_this_pop,
 			ef_war_no_ally_from_nation,
 			ef_war_no_ally_from_province,
-			ef_country_event,
-			ef_country_event_immediate,
-			ef_province_event,
-			ef_province_event_immediate,
+			ef_country_event_this_nation,
+			ef_country_event_immediate_this_nation,
+			ef_province_event_this_nation,
+			ef_province_event_immediate_this_nation,
 			ef_sub_unit_int,
 			ef_sub_unit_this,
 			ef_sub_unit_from,
@@ -2943,6 +3472,14 @@ namespace triggers {
 			ef_country_event_immediate_this_pop,
 			ef_province_event_this_pop,
 			ef_province_event_immediate_this_pop,
+			ef_country_event_province_this_nation,
+			ef_country_event_immediate_province_this_nation,
+			ef_country_event_province_this_state,
+			ef_country_event_immediate_province_this_state,
+			ef_country_event_province_this_province,
+			ef_country_event_immediate_province_this_province,
+			ef_country_event_province_this_pop,
+			ef_country_event_immediate_province_this_pop,
 		};
 	}
 

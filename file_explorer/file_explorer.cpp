@@ -18,6 +18,8 @@
 #include "nations\\nations_io.h"
 #include "military\\military_io.h"
 #include "world_state\\world_state_io.h"
+#include "ideologies\\ideologies_functions.h"
+#include "population\\population_function.h"
 
 // #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -559,6 +561,9 @@ int main(int , char **) {
 		nations::read_diplomacy_files(ws, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)), fs.get_root());
 		military::read_wars(ws, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)), fs.get_root());
 		
+		ideologies::set_default_enabled_ideologies(ws);
+		population::default_initialize_world_issues_and_ideology(ws);
+
 		provinces::update_province_demographics(ws);
 		nations::update_state_nation_demographics(ws);
 

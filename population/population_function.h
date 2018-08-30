@@ -33,4 +33,6 @@ namespace population {
 	void remove_pop_from_province(world_state& ws, pop& this_pop);
 	void free_slave(world_state& ws, pop& this_pop);
 	void trigger_rising(world_state& ws, rebel_faction& faction, nations::nation& in_nation);
+	void default_initialize_issues_and_ideology(world_state& ws, pop& this_pop);
+	void default_initialize_world_issues_and_ideology(world_state& ws);
 }

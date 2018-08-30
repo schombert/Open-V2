@@ -778,9 +778,9 @@ namespace provinces {
 		if(result.life_rating)
 			ps.base_life_rating = *result.life_rating;
 		if(is_valid_index(result.owner))
-			nations::silent_set_province_owner(ws, nations::make_nation_for_tag(ws, result.owner), ps.id);
+			provinces::silent_set_province_owner(ws, *nations::make_nation_for_tag(ws, result.owner), ps);
 		if(is_valid_index(result.controller))
-			nations::silent_set_province_controller(ws.w, nations::make_nation_for_tag(ws, result.controller), ps.id);
+			provinces::silent_set_province_controller(ws, *nations::make_nation_for_tag(ws, result.controller), ps);
 		if(result.colony && ps.state_instance) {
 			if(*result.colony == 2)
 				ps.state_instance->flags |= nations::state_instance::is_colonial;

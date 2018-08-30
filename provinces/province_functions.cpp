@@ -268,7 +268,6 @@ namespace provinces {
 		}
 
 		prov_state.owner = nullptr;
-		nations::state_instance* old_state = prov_state.state_instance;
 
 		if(prov_state.state_instance) {
 			auto old_state = prov_state.state_instance;

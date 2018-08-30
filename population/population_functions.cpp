@@ -1,6 +1,9 @@
 #include "common\\common.h"
 #include "population_function.h"
 #include "world_state\\world_state.h"
+#include "modifiers\\modifier_functions.h"
+#include <ppl.h>
+
 #undef min
 #undef max
 
@@ -110,7 +113,7 @@ namespace population {
 		clear(ws.w.province_s.province_arrays, r.controlled_provinces);
 	}
 
-	void change_pop_type(world_state& ws, pop& this_pop, pop_type_tag new_type) {
+	void change_pop_type(world_state&, pop& this_pop, pop_type_tag new_type) {
 		// todo: fix employment
 		this_pop.type = new_type;
 	}
@@ -142,7 +145,51 @@ namespace population {
 		change_pop_type(ws, this_pop, is_mine ? ws.s.economy_m.rgo_mine.workers[0].type : ws.s.economy_m.rgo_farm.workers[0].type);
 	}
 
-	void trigger_rising(world_state& ws, rebel_faction& faction, nations::nation& in_nation) {
+	void trigger_rising(world_state&, rebel_faction&, nations::nation&) {
 		// todo
+	}
+
+	void default_initialize_issues_and_ideology(world_state& ws, pop& this_pop) {
+		auto ideology_demo = ws.w.population_s.pop_demographics.get_row(this_pop.id) + to_index(to_demo_tag(ws, ideologies::ideology_tag(0)));
+		auto issues_demo = ws.w.population_s.pop_demographics.get_row(this_pop.id) + to_index(to_demo_tag(ws, issues::option_tag(0)));
+		auto total_pop_size = ws.w.population_s.pop_demographics.get(this_pop.id, total_population_tag);
+
+		for(uint32_t i = 0; i < ws.s.ideologies_m.ideologies_count; ++i) {
+			ideologies::ideology_tag this_tag(static_cast<ideologies::ideology_tag::value_base_t>(i));
+			if(ws.w.ideology_s.ideology_enabled[this_tag] != 0ui8) {
+				auto pop_incl = ws.s.population_m.ideological_inclination.get(this_pop.type, this_tag);
+				if(is_valid_index(pop_incl)) {
+					if(ws.s.ideologies_m.ideology_container[this_tag].uncivilized) {
+						ideology_demo[i] = int32_t(1000.0f * modifiers::test_multiplicative_factor(pop_incl, ws, &this_pop, nullptr, nullptr));
+					} else if(auto owner = get_pop_owner(ws, this_pop); bool(owner) && ((owner->flags & nations::nation::is_civilized) != 0)) {
+						ideology_demo[i] = int32_t(1000.0f * modifiers::test_multiplicative_factor(pop_incl, ws, &this_pop, nullptr, nullptr));
+					} else {
+						ideology_demo[i] = 0;
+					}
+				} else {
+					ideology_demo[i] = 0;
+				}
+			}
+		}
+		normalize_integer_vector(ideology_demo, ws.s.ideologies_m.ideologies_count, total_pop_size);
+
+		for(uint32_t i = 0; i < ws.s.issues_m.tracked_options_count; ++i) {
+			issues::option_tag this_tag(static_cast<issues::option_tag::value_base_t>(i));
+			auto pop_incl = ws.s.population_m.issue_inclination.get(this_pop.type, this_tag);
+			if(is_valid_index(pop_incl))
+				issues_demo[i] = int32_t(1000.0f * modifiers::test_multiplicative_factor(pop_incl, ws, &this_pop, nullptr, nullptr));
+			else
+				issues_demo[i] = 0;
+		}
+		normalize_integer_vector(issues_demo, ws.s.issues_m.tracked_options_count, total_pop_size);
+	}
+
+	void default_initialize_world_issues_and_ideology(world_state& ws) {
+		concurrency::parallel_for(0ui32, ws.w.population_s.pops.size_upper_bound(), [&ws](uint32_t i) {
+			pop_tag pt(static_cast<pop_tag::value_base_t>(i));
+			pop& this_pop = ws.w.population_s.pops[pt];
+			if(this_pop.id == pt)
+				default_initialize_issues_and_ideology(ws, this_pop);
+		});
 	}
 }

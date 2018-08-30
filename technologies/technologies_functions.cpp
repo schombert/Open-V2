@@ -120,7 +120,7 @@ namespace technologies {
 		military::update_all_unit_attributes(ws, this_nation);
 	}
 
-	float daily_research_points(world_state const& ws, nations::nation const& this_nation) {
+	float daily_research_points(world_state const&, nations::nation const&) {
 		// todo
 		return 0.0f;
 	}

@@ -5,6 +5,10 @@
 namespace cultures {
 	void reset_state(cultures_state& s) {
 		s.culture_arrays.reset();
+		for(auto& nt : s.national_tags_state) {
+			nt.holder = nullptr;
+			nt.core_provinces = set_tag<provinces::province_tag>();
+		}
 	}
 
 	void init_cultures_state(world_state& ws) {

@@ -1112,7 +1112,7 @@ namespace nations {
 		this_nation.flags |= nations::nation::is_civilized;
 
 		auto issue_opts = ws.w.nation_s.active_issue_options.get_row(this_nation.id);
-		for(uint32_t i = int32_t(ws.s.issues_m.issues_container.size()); i--; ) {
+		for(int32_t i = int32_t(ws.s.issues_m.issues_container.size()); i--; ) {
 			issues::issue_tag this_issue_tag(static_cast<issues::issue_tag::value_base_t>(i));
 			auto& this_issue = ws.s.issues_m.issues_container[this_issue_tag];
 			if(this_issue.type == issues::issue_group::military || this_issue.type == issues::issue_group::economic) {
@@ -1138,7 +1138,7 @@ namespace nations {
 		this_nation.flags &= ~nations::nation::is_civilized;
 
 		auto issue_opts = ws.w.nation_s.active_issue_options.get_row(this_nation.id);
-		for(uint32_t i = int32_t(ws.s.issues_m.issues_container.size()); i--; ) {
+		for(int32_t i = int32_t(ws.s.issues_m.issues_container.size()); i--; ) {
 			issues::issue_tag this_issue_tag(static_cast<issues::issue_tag::value_base_t>(i));
 			auto& this_issue = ws.s.issues_m.issues_container[this_issue_tag];
 			if(this_issue.type == issues::issue_group::military || this_issue.type == issues::issue_group::economic) {
@@ -1147,7 +1147,7 @@ namespace nations {
 		}
 	}
 
-	void make_slave_state(world_state& ws, nations::state_instance& this_state) {
+	void make_slave_state(world_state&, nations::state_instance& this_state) {
 		this_state.flags |= nations::state_instance::is_slave_state;
 	}
 	void unmake_slave_state(world_state& ws, nations::state_instance& this_state) {

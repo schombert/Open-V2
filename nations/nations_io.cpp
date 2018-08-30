@@ -167,7 +167,7 @@ void serialization::serializer<nations::nation>::serialize_object(std::byte *& o
 	serialize_stable_array(output, ws.w.military_s.leader_arrays, obj.admirals);
 	serialize_stable_array(output, ws.w.military_s.fleet_arrays, obj.fleets);
 	serialize_stable_array(output, ws.w.military_s.orders_arrays, obj.active_orders);
-	serialize_stable_array(output, ws.w.military_s.orders_arrays, obj.active_cbs);
+	serialize_stable_array(output, ws.w.military_s.cb_arrays, obj.active_cbs);
 	serialize_stable_array(output, ws.w.military_s.war_arrays, obj.wars_involved_in);
 	serialize_stable_array(output, ws.w.population_s.rebel_faction_arrays, obj.active_rebel_factions);
 	serialize_stable_array(output, ws.w.population_s.pop_movement_arrays, obj.active_movements);
@@ -283,7 +283,7 @@ void serialization::serializer<nations::nation>::deserialize_object(std::byte co
 	deserialize_stable_array(input, ws.w.military_s.leader_arrays, obj.admirals);
 	deserialize_stable_array(input, ws.w.military_s.fleet_arrays, obj.fleets);
 	deserialize_stable_array(input, ws.w.military_s.orders_arrays, obj.active_orders);
-	deserialize_stable_array(input, ws.w.military_s.orders_arrays, obj.active_cbs);
+	deserialize_stable_array(input, ws.w.military_s.cb_arrays, obj.active_cbs);
 	deserialize_stable_array(input, ws.w.military_s.war_arrays, obj.wars_involved_in);
 	deserialize_stable_array(input, ws.w.population_s.rebel_faction_arrays, obj.active_rebel_factions);
 	deserialize_stable_array(input, ws.w.population_s.pop_movement_arrays, obj.active_movements);
@@ -333,7 +333,7 @@ size_t serialization::serializer<nations::nation>::size(nations::nation const & 
 		serialize_stable_array_size(ws.w.military_s.leader_arrays, obj.admirals) +
 		serialize_stable_array_size(ws.w.military_s.fleet_arrays, obj.fleets) +
 		serialize_stable_array_size(ws.w.military_s.orders_arrays, obj.active_orders) +
-		serialize_stable_array_size(ws.w.military_s.orders_arrays, obj.active_cbs) +
+		serialize_stable_array_size(ws.w.military_s.cb_arrays, obj.active_cbs) +
 		serialize_stable_array_size(ws.w.military_s.war_arrays, obj.wars_involved_in) +
 		serialize_stable_array_size(ws.w.population_s.rebel_faction_arrays, obj.active_rebel_factions) +
 		serialize_stable_array_size(ws.w.population_s.pop_movement_arrays, obj.active_movements)

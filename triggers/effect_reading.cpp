@@ -279,7 +279,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 		}
 		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
-			return token_to<int16_t>(t);
+			return trigger_payload(token_to<int16_t>(t));
 		}
 	};
 	struct tech_school_effect {
@@ -425,6 +425,19 @@ namespace triggers {
 					return effect_codes::country_event_immediate_this_state;
 				else if(scope.this_slot == trigger_slot_contents::pop)
 					return effect_codes::country_event_immediate_this_pop;
+				else
+					return std::optional<uint16_t>();
+			} else if(scope.main_slot == trigger_slot_contents::province) {
+				if(scope.this_slot == trigger_slot_contents::nation)
+					return effect_codes::country_event_immediate_province_this_nation;
+				else if(scope.this_slot == trigger_slot_contents::province)
+					return effect_codes::country_event_immediate_province_this_province;
+				else if(scope.this_slot == trigger_slot_contents::state)
+					return effect_codes::country_event_immediate_province_this_state;
+				else if(scope.this_slot == trigger_slot_contents::pop)
+					return effect_codes::country_event_immediate_province_this_pop;
+				else
+					return std::optional<uint16_t>();
 			} else
 				return std::optional<uint16_t>();
 		}
@@ -447,6 +460,8 @@ namespace triggers {
 					return effect_codes::province_event_immediate_this_province;
 				else if(scope.this_slot == trigger_slot_contents::pop)
 					return effect_codes::province_event_immediate_this_pop;
+				else
+					return std::optional<uint16_t>();
 			} else
 				return std::optional<uint16_t>();
 		}
@@ -732,7 +747,7 @@ namespace triggers {
 				return std::optional<uint16_t>();
 		}
 		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
-			return token_to<int16_t>(t);
+			return trigger_payload(token_to<int16_t>(t));
 		}
 	};
 	struct create_vassal_effect {
@@ -2682,46 +2697,86 @@ namespace triggers {
 		country_event_complex_effect(effect_parsing_environment& e) : env(e) {}
 
 		void finalize() const {
-			if(env.current_scope.main_slot != trigger_slot_contents::nation)
-				EFFECT_ERROR(invalid_scope_for_effect, env);
+			if(env.current_scope.main_slot == trigger_slot_contents::nation) {
+				if(days <= 0) {
+					if(env.current_scope.this_slot == trigger_slot_contents::nation)
+						env.data.push_back(effect_codes::country_event_immediate_this_nation);
+					else if(env.current_scope.this_slot == trigger_slot_contents::state)
+						env.data.push_back(effect_codes::country_event_immediate_this_state);
+					else if(env.current_scope.this_slot == trigger_slot_contents::province)
+						env.data.push_back(effect_codes::country_event_immediate_this_province);
+					else if(env.current_scope.this_slot == trigger_slot_contents::pop)
+						env.data.push_back(effect_codes::country_event_immediate_this_pop);
+					else
+						EFFECT_ERROR(invalid_scope_for_effect, env);
 
-			if (days <= 0) {
-				if(env.current_scope.this_slot == trigger_slot_contents::nation)
-					env.data.push_back(effect_codes::country_event_immediate_this_nation);
-				else if(env.current_scope.this_slot == trigger_slot_contents::state)
-					env.data.push_back(effect_codes::country_event_immediate_this_state);
-				else if(env.current_scope.this_slot == trigger_slot_contents::province)
-					env.data.push_back(effect_codes::country_event_immediate_this_province);
-				else if(env.current_scope.this_slot == trigger_slot_contents::pop)
-					env.data.push_back(effect_codes::country_event_immediate_this_pop);
-				else
-					EFFECT_ERROR(invalid_scope_for_effect, env);
+					env.data.push_back(2ui16);
+					env.data.push_back(trigger_payload(
+						env.ecm.register_triggered_event(
+							env.s.event_m,
+							id,
+							trigger_scope_state{ trigger_slot_contents::nation, trigger_slot_contents::nation, env.current_scope.this_slot, false })).value);
+				} else {
+					if(env.current_scope.this_slot == trigger_slot_contents::nation)
+						env.data.push_back(effect_codes::country_event_this_nation);
+					else if(env.current_scope.this_slot == trigger_slot_contents::state)
+						env.data.push_back(effect_codes::country_event_this_state);
+					else if(env.current_scope.this_slot == trigger_slot_contents::province)
+						env.data.push_back(effect_codes::country_event_this_province);
+					else if(env.current_scope.this_slot == trigger_slot_contents::pop)
+						env.data.push_back(effect_codes::country_event_this_pop);
+					else
+						EFFECT_ERROR(invalid_scope_for_effect, env);
 
-				env.data.push_back(2ui16);
-				env.data.push_back(trigger_payload(
-					env.ecm.register_triggered_event(
-						env.s.event_m,
-						id,
-						trigger_scope_state{ trigger_slot_contents::nation, trigger_slot_contents::nation, env.current_scope.this_slot, false })).value);
+					env.data.push_back(3ui16);
+					env.data.push_back(trigger_payload(
+						env.ecm.register_triggered_event(
+							env.s.event_m,
+							id,
+							trigger_scope_state{ trigger_slot_contents::nation, trigger_slot_contents::nation, env.current_scope.this_slot, false })).value);
+					env.data.push_back(uint16_t(days));
+				}
+			} else if(env.current_scope.main_slot == trigger_slot_contents::province) {
+				if(days <= 0) {
+					if(env.current_scope.this_slot == trigger_slot_contents::nation)
+						env.data.push_back(effect_codes::country_event_immediate_province_this_nation);
+					else if(env.current_scope.this_slot == trigger_slot_contents::state)
+						env.data.push_back(effect_codes::country_event_immediate_province_this_state);
+					else if(env.current_scope.this_slot == trigger_slot_contents::province)
+						env.data.push_back(effect_codes::country_event_immediate_province_this_province);
+					else if(env.current_scope.this_slot == trigger_slot_contents::pop)
+						env.data.push_back(effect_codes::country_event_immediate_province_this_pop);
+					else
+						EFFECT_ERROR(invalid_scope_for_effect, env);
+
+					env.data.push_back(2ui16);
+					env.data.push_back(trigger_payload(
+						env.ecm.register_triggered_event(
+							env.s.event_m,
+							id,
+							trigger_scope_state{ trigger_slot_contents::nation, trigger_slot_contents::nation, env.current_scope.this_slot, false })).value);
+				} else {
+					if(env.current_scope.this_slot == trigger_slot_contents::nation)
+						env.data.push_back(effect_codes::country_event_province_this_nation);
+					else if(env.current_scope.this_slot == trigger_slot_contents::state)
+						env.data.push_back(effect_codes::country_event_province_this_state);
+					else if(env.current_scope.this_slot == trigger_slot_contents::province)
+						env.data.push_back(effect_codes::country_event_province_this_province);
+					else if(env.current_scope.this_slot == trigger_slot_contents::pop)
+						env.data.push_back(effect_codes::country_event_province_this_pop);
+					else
+						EFFECT_ERROR(invalid_scope_for_effect, env);
+
+					env.data.push_back(3ui16);
+					env.data.push_back(trigger_payload(
+						env.ecm.register_triggered_event(
+							env.s.event_m,
+							id,
+							trigger_scope_state{ trigger_slot_contents::nation, trigger_slot_contents::nation, env.current_scope.this_slot, false })).value);
+					env.data.push_back(uint16_t(days));
+				}
 			} else {
-				if(env.current_scope.this_slot == trigger_slot_contents::nation)
-					env.data.push_back(effect_codes::country_event_this_nation);
-				else if(env.current_scope.this_slot == trigger_slot_contents::state)
-					env.data.push_back(effect_codes::country_event_this_state);
-				else if(env.current_scope.this_slot == trigger_slot_contents::province)
-					env.data.push_back(effect_codes::country_event_this_province);
-				else if(env.current_scope.this_slot == trigger_slot_contents::pop)
-					env.data.push_back(effect_codes::country_event_this_pop);
-				else
-					EFFECT_ERROR(invalid_scope_for_effect, env);
-
-				env.data.push_back(3ui16);
-				env.data.push_back(trigger_payload(
-					env.ecm.register_triggered_event(
-						env.s.event_m,
-						id,
-						trigger_scope_state{ trigger_slot_contents::nation, trigger_slot_contents::nation, env.current_scope.this_slot, false })).value);
-				env.data.push_back(uint16_t(days));
+				EFFECT_ERROR(invalid_scope_for_effect, env);
 			}
 		}
 	};
@@ -3304,10 +3359,10 @@ namespace triggers {
 				env.data.push_back(trigger_payload(ideology).value);
 				add_float_to_payload(env.data, loyalty_value);
 			} else {
-				if (env.current_scope.main_slot == trigger_slot_contents::nation && env.current_scope.from_slot == trigger_slot_contents::province)
-					env.data.push_back(effect_codes::party_loyalty_nation_from_province);
-				else if (env.current_scope.main_slot == trigger_slot_contents::province && env.current_scope.from_slot == trigger_slot_contents::nation)
+				if (env.current_scope.main_slot == trigger_slot_contents::province /*&& env.current_scope.from_slot == trigger_slot_contents::nation*/)
 					env.data.push_back(effect_codes::party_loyalty_province_from_nation);
+				else if(/*env.current_scope.main_slot == trigger_slot_contents::nation &&*/ env.current_scope.from_slot == trigger_slot_contents::province)
+					env.data.push_back(effect_codes::party_loyalty_nation_from_province);
 				else
 					EFFECT_ERROR(invalid_scope_for_effect, env);
 

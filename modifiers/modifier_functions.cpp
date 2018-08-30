@@ -248,4 +248,18 @@ namespace modifiers {
 		return contains_item(ws.w.nation_s.static_modifier_arrays, this_nation.static_modifiers, mod) ||
 			contains_item(ws.w.nation_s.timed_modifier_arrays, this_nation.timed_modifiers, nations::timed_national_modifier{ date_tag(), mod });
 	}
+
+	float test_multiplicative_factor(factor_tag t, world_state& ws, void* primary_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		return test_multiplicative_factor(ws.s.modifiers_m.factor_modifiers[t], ws, primary_slot, from_slot, rebel_slot);
+	}
+
+	float test_multiplicative_factor(factor_modifier const& f, world_state& ws, void* primary_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		float accumulated = f.factor;
+		for(uint32_t i = 0; i < f.data_length; ++i) {
+			auto segment = ws.s.modifiers_m.factor_data[f.data_offset + i];
+			if(triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(segment.condition), ws, primary_slot, primary_slot, from_slot, rebel_slot))
+				accumulated *= segment.factor;
+		}
+		return accumulated;
+	}
 }

@@ -310,6 +310,10 @@ public:
 		return i;
 	}
 
+	uint32_t size_upper_bound() const {
+		return block_size * indices_in_use;
+	}
+
 	object_type& get(index_type i) const; // safe from any thread
 	object_type& operator[](index_type i) const; // safe from any thread
 	bool is_valid_index(index_type i) const; //safe (but potentially inaccurate) from any thread, but if true, can use get without possible memory error
