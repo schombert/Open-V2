@@ -1331,4 +1331,34 @@ namespace provinces {
 			}
 		}
 	}
+
+	void calculate_province_areas(province_manager& m) {
+		double surface_area_x_2pi_x_percent_of_width = 510'072'000.0 * 2.0 * 3.1415926 / double(m.province_map_width);
+		double quarter_circumfrance = double(m.province_map_width) / 4.0;
+		int32_t half_height = m.province_map_height / 2;
+
+		for(int32_t y = 0; y < m.province_map_height; ++y) {
+			double pixel_area = surface_area_x_2pi_x_percent_of_width *
+				(abs(sin((double(abs(y - half_height)) * 3.1415926) / (quarter_circumfrance * 2.0)) - sin((double(abs(y + 1 - half_height)) * 3.1415926) / (quarter_circumfrance * 2.0))));
+			for(int32_t x = 0; x < m.province_map_width; ++x) {
+				auto province_id = m.province_map_data[uint32_t(x + y * m.province_map_width)];
+				m.province_container[province_tag(province_id)].area += pixel_area;
+			}
+		}
+	}
+
+	void set_base_rgo_size(world_state& ws) {
+		for(auto& ps : ws.w.province_s.province_state_container) {
+			auto size = ws.s.province_m.province_container[ps.id].area;
+			if(size <= 145'000.0)
+				ps.rgo_size = 1ui8;
+			else if(size <= 580'000.0)
+				ps.rgo_size = 2ui8;
+			else if(size <= 1'300'000.0)
+				ps.rgo_size = 3ui8;
+			else
+				ps.rgo_size = 4ui8;
+		}
+
+	}
 }

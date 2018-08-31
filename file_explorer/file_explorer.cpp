@@ -526,6 +526,8 @@ int main(int , char **) {
 		provinces::make_adjacency(adj_map, s1.province_m);
 		std::cout << "end map adjacency" << std::endl << std::flush;
 
+		provinces::calculate_province_areas(s1.province_m);
+
 		const auto s_size = serialization::serialize_size(s1);
 		std::cout << s_size << " bytes " << s_size / 1024 << " KB " << s_size / (1024 * 1024) << " MB" << std::endl;
 
@@ -548,6 +550,7 @@ int main(int , char **) {
 	ready_world_state(ws);
 
 	if(DWORD dwAttrib = GetFileAttributes((const wchar_t*)(u"D:\\VS2007Projects\\open_v2_test_data\\test_save_cmp.bin")); dwAttrib == INVALID_FILE_ATTRIBUTES) {
+		provinces::set_base_rgo_size(ws);
 
 		ws.w.current_date = date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1));
 		auto const p_to_t_vector = provinces::load_province_terrain_data(ws.s.province_m, fs.get_root());

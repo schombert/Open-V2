@@ -89,6 +89,8 @@ namespace provinces {
 		constexpr static uint16_t coastal = 0x0002;
 		constexpr static uint16_t lake = 0x0004;
 
+		double area = 0.0; // in km squared
+
 		modifiers::provincial_modifier_tag continent;
 		modifiers::provincial_modifier_tag climate;
 

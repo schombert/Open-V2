@@ -156,4 +156,6 @@ namespace provinces {
 
 	void read_province_history(world_state& ws, province_state& ps, date_tag target_date, token_group const* start, token_group const* end);
 	void read_province_histories(world_state& ws, const directory& root, date_tag target_date);
+	void calculate_province_areas(province_manager& m);
+	void set_base_rgo_size(world_state& ws);
 }
