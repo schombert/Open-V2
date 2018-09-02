@@ -4,6 +4,7 @@
 #include "common\\shared_tags.h"
 #include "concurrency_tools\\concurrency_tools.hpp"
 #include "modifiers\\modifiers.h"
+#include "economy\\economy.h"
 
 namespace modifiers {
 	class modifiers_manager;
@@ -47,7 +48,7 @@ namespace provinces {
 		date_tag last_controller_change;
 		date_tag last_immigration;
 
-		int32_t employed_workers = 0; // in RGO
+		economy::worked_instance rgo_worker_data;
 		float last_produced = 0.0f; // in RGO
 
 		set_tag<cultures::national_tag> cores;

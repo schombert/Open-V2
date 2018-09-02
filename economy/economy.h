@@ -53,15 +53,21 @@ namespace economy {
 		triggers::trigger_tag condition;
 	};
 
-	struct factory_type {
-		
-		employee_data workers[3] = {};
+	constexpr uint32_t max_worker_types = 3;
+
+	struct workers_information {
 		owner_data owner;
+		employee_data workers[max_worker_types] = {};
+		int32_t workforce = 40000;
+	};
+
+	struct factory_type {
+		workers_information factory_workers;
+
 		bonus bonuses[4] = {};
 
 		economy::goods_qnty_type output_amount = economy::goods_qnty_type(1);
 
-		uint32_t workforce = 10000;
 		uint32_t building_time = 730;
 
 		text_data::text_tag name;
@@ -78,7 +84,7 @@ namespace economy {
 	struct artisan_type {
 		economy::goods_qnty_type output_amount = economy::goods_qnty_type(1);
 
-		uint32_t workforce = 10000;
+		int32_t workforce = 10000;
 
 		text_data::text_tag name;
 		goods_tag output_good;
@@ -88,11 +94,7 @@ namespace economy {
 		artisan_type_tag id;
 	};
 
-	struct rgo_information {
-		owner_data owner;
-		employee_data workers[3] = {};
-		uint32_t workforce = 40000;
-	};
+	using rgo_information = workers_information;
 
 	struct fort_information {
 		uint32_t max_level = 6;
@@ -111,8 +113,19 @@ namespace economy {
 		uint32_t colonial_points[8] = {30,50,70,90,110,130,150,170};
 	};
 
+	struct worked_instance {
+		int32_t worker_populations[max_worker_types] = { 0 };
+	};
+
+	struct production_modifiers {
+		float input_modifier = 0.0f;
+		float output_modifier = 0.0f;
+		float throughput_modifier = 0.0f;
+	};
+
 	struct factory_instance {
 		factory_type* type = nullptr;
+		worked_instance worker_data;
 		uint16_t level = 0;
 	};
 

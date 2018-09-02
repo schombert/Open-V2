@@ -5,10 +5,15 @@
 #include "modifiers\\modifiers_io.h"
 #include "soil\\SOIL.h"
 #include <Windows.h>
+#undef max
+#undef min
 #include "scenario\\scenario.h"
 #include "province_functions.h"
 #include "nations\\nations_functions.h"
 #include "world_state\\world_state.h"
+
+template<>
+class serialization::serializer<economy::worked_instance> : public serialization::memcpy_serializer<economy::worked_instance> {};
 
 void serialization::serializer<provinces::province_state>::serialize_object(std::byte *& output, provinces::province_state const & obj, world_state const & ws) {
 	auto owner_tag = obj.owner ? obj.owner->id : nations::country_tag();
@@ -30,7 +35,7 @@ void serialization::serializer<provinces::province_state>::serialize_object(std:
 	serialize(output, obj.siege_progress);
 	serialize(output, obj.last_controller_change);
 	serialize(output, obj.last_immigration);
-	serialize(output, obj.employed_workers);
+	serialize(output, obj.rgo_worker_data);
 	serialize(output, obj.last_produced);
 	serialize(output, obj.name);
 	serialize(output, obj.crime);
@@ -74,7 +79,7 @@ void serialization::serializer<provinces::province_state>::deserialize_object(st
 	deserialize(input, obj.siege_progress);
 	deserialize(input, obj.last_controller_change);
 	deserialize(input, obj.last_immigration);
-	deserialize(input, obj.employed_workers);
+	deserialize(input, obj.rgo_worker_data);
 	deserialize(input, obj.last_produced);
 	deserialize(input, obj.name);
 	deserialize(input, obj.crime);
@@ -105,7 +110,7 @@ size_t serialization::serializer<provinces::province_state>::size(provinces::pro
 		serialize_size(obj.siege_progress) +
 		serialize_size(obj.last_controller_change) +
 		serialize_size(obj.last_immigration) +
-		serialize_size(obj.employed_workers) +
+		serialize_size(obj.rgo_worker_data) +
 		serialize_size(obj.last_produced) +
 		serialize_size(obj.name) +
 		serialize_size(obj.crime) +
@@ -1358,6 +1363,28 @@ namespace provinces {
 				ps.rgo_size = 3ui8;
 			else
 				ps.rgo_size = 4ui8;
+
+			if((ws.s.economy_m.goods[ps.rgo_production].flags & economy::good_definition::mined) != 0) {
+				for(uint32_t i = 0; i < std::extent_v<decltype(ws.s.economy_m.rgo_mine.workers)>; ++i) {
+					if(is_valid_index(ws.s.economy_m.rgo_farm.workers[i].type)) {
+						auto worker_population = ws.w.province_s.province_demographics.get(ps.id, population::to_demo_tag(ws, ws.s.economy_m.rgo_mine.workers[i].type));
+						auto size_to_support = int32_t(std::ceil(float(worker_population) / (ws.s.economy_m.rgo_mine.workers[i].amount * ws.s.economy_m.rgo_mine.workforce * (ps.modifier_values[modifiers::provincial_offsets::mine_rgo_size] + 1.0f))));
+
+						ps.rgo_size = uint8_t(std::max(size_to_support, int32_t(ps.rgo_size)));
+					}
+				}
+			} else {
+				for(uint32_t i = 0; i < std::extent_v<decltype(ws.s.economy_m.rgo_farm.workers)>; ++i) {
+					if(is_valid_index(ws.s.economy_m.rgo_farm.workers[i].type)) {
+						auto worker_population = ws.w.province_s.province_demographics.get(ps.id, population::to_demo_tag(ws, ws.s.economy_m.rgo_farm.workers[i].type));
+						auto size_to_support = int32_t(std::ceil(float(worker_population) / (ws.s.economy_m.rgo_farm.workers[i].amount * ws.s.economy_m.rgo_farm.workforce * (ps.modifier_values[modifiers::provincial_offsets::farm_rgo_size] + 1.0f))));
+
+						ps.rgo_size = uint8_t(std::max(size_to_support, int32_t(ps.rgo_size)));
+					}
+				}
+			}
+
+			ps.rgo_size = uint8_t(std::clamp((int32_t(ps.rgo_size) * 3) / 2, 1, 255));
 		}
 
 	}

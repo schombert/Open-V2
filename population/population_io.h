@@ -69,8 +69,13 @@ public:
 	static constexpr bool has_simple_serialize = false;
 
 	static void rebuild_indexes(population::population_manager& obj) {
-		for(auto const& i_pop : obj.pop_types)
+		obj.factory_workers.clear();
+
+		for(auto const& i_pop : obj.pop_types) {
 			obj.named_pop_type_index.emplace(i_pop.name, i_pop.id);
+			if((i_pop.flags & population::pop_type::factory_worker) != 0)
+				obj.factory_workers.push_back(i_pop.id);
+		}
 		for(auto const& i_rebel : obj.rebel_types)
 			obj.named_rebel_type_index.emplace(i_rebel.name, i_rebel.id);
 		obj.count_poptypes = static_cast<uint32_t>(obj.pop_types.size());
@@ -103,7 +108,6 @@ public:
 		serialize(output, obj.artisan);
 		serialize(output, obj.capitalist);
 		serialize(output, obj.clergy);
-		serialize(output, obj.craftsman);
 		serialize(output, obj.bureaucrat);
 		serialize(output, obj.slave);
 		serialize(output, obj.soldier);
@@ -136,7 +140,6 @@ public:
 		deserialize(input, obj.artisan);
 		deserialize(input, obj.capitalist);
 		deserialize(input, obj.clergy);
-		deserialize(input, obj.craftsman);
 		deserialize(input, obj.bureaucrat);
 		deserialize(input, obj.slave);
 		deserialize(input, obj.soldier);
@@ -171,7 +174,6 @@ public:
 		deserialize(input, obj.artisan);
 		deserialize(input, obj.capitalist);
 		deserialize(input, obj.clergy);
-		deserialize(input, obj.craftsman);
 		deserialize(input, obj.bureaucrat);
 		deserialize(input, obj.slave);
 		deserialize(input, obj.soldier);
@@ -207,7 +209,6 @@ public:
 			serialize_size(obj.artisan) +
 			serialize_size(obj.capitalist) +
 			serialize_size(obj.clergy) +
-			serialize_size(obj.craftsman) +
 			serialize_size(obj.bureaucrat) +
 			serialize_size(obj.slave) +
 			serialize_size(obj.soldier) +

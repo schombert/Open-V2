@@ -252,10 +252,6 @@ namespace provinces {
 		return nations::country_tag();
 	}
 
-	int32_t get_province_rgo_employment_max(world_state&, province_state&) {
-		return 1;
-	}
-
 	float get_life_rating(province_state const& p) {
 		return float(p.base_life_rating) * (1.0f + p.modifier_values[modifiers::provincial_offsets::life_rating]);
 	}

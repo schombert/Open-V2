@@ -974,10 +974,20 @@ namespace nations {
 	int32_t calculate_industrial_score(world_state const& ws, nations::nation const& this_nation) {
 		float total = 0;
 		auto states = get_range(ws.w.nation_s.state_arrays, this_nation.member_states);
+
+		boost::container::small_vector<population::demo_tag, 8> factory_demo_tags;
+		boost::container::small_vector<population::demo_tag, 8> factory_employment_tags;
+		for(auto ct : ws.s.population_m.factory_workers) {
+			factory_demo_tags.push_back(population::to_demo_tag(ws, ct));
+			factory_employment_tags.push_back(population::to_employment_demo_tag(ws, ct));
+		}
+
 		for(auto s = states.first; s != states.second; ++s) {
-			auto state_worker_pop = float(ws.w.nation_s.state_demographics.get(s->state->id, population::to_demo_tag(ws, ws.s.population_m.craftsman)));
+			auto state_worker_pop = std::accumulate(factory_demo_tags.begin(), factory_demo_tags.end(), 0.0f,
+				[&ws, sid = s->state->id](float sum, population::demo_tag t) { return sum + float(ws.w.nation_s.state_demographics.get(sid, t)); });
 			if(state_worker_pop != 0.0f) {
-				auto state_worker_employed = ws.w.nation_s.state_demographics.get(s->state->id, population::to_employment_demo_tag(ws, ws.s.population_m.craftsman));
+				auto state_worker_employed = std::accumulate(factory_employment_tags.begin(), factory_employment_tags.end(), 0.0f,
+					[&ws, sid = s->state->id](float sum, population::demo_tag t) { return sum + float(ws.w.nation_s.state_demographics.get(sid, t)); });
 
 				int32_t total_flevels_x_4 = 0;
 				for(uint32_t i = 0; i < std::extent_v<decltype(s->state->factories)>; ++i) {

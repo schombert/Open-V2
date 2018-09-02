@@ -804,8 +804,10 @@ namespace population {
 				env.s.population_m.capitalist = env.pt.id;
 		}
 		void set_can_work_factory(bool v) {
-			if(v)
-				env.s.population_m.craftsman = env.pt.id;
+			if(v) {
+				env.pt.flags |= pop_type::factory_worker;
+				env.s.population_m.factory_workers.push_back(env.pt.id);
+			}
 		}
 		void set_demote_migrant(bool v) {
 			if(v)

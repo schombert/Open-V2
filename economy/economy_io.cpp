@@ -379,7 +379,7 @@ namespace economy {
 	};
 	struct employee_set {
 		scenario::scenario_manager& env;
-		employee_data workers[std::extent_v<decltype(factory_type::workers)>];
+		employee_data workers[max_worker_types];
 
 		employee_set(scenario::scenario_manager& e, boost::container::flat_map<text_data::text_tag, factory_type_tag>const &) : env(e) {}
 
@@ -401,13 +401,13 @@ namespace economy {
 		bool farm = false;
 		bool is_coastal = false;
 		owner_data owner;
-		employee_data workers[std::extent_v<decltype(factory_type::workers)>];
+		employee_data workers[max_worker_types];
 		production_type_type type = production_type_type::unknown;
 		std::vector<std::pair<goods_tag, economy::goods_qnty_type>> efficiency_goods;
 		std::vector<std::pair<goods_tag, economy::goods_qnty_type>> input_goods;
 		economy::goods_qnty_type value = economy::goods_qnty_type(1);
 		goods_tag output_good;
-		uint32_t workforce = 0;
+		int32_t workforce = 0;
 		bonus bonuses[std::extent_v<decltype(factory_type::bonuses)>];
 
 		production_type_reader(scenario::scenario_manager& e, const boost::container::flat_map<text_data::text_tag, factory_type_tag>&) : env(e) {}
@@ -483,10 +483,10 @@ namespace economy {
 				const auto ftag = is_valid_index(pre_mapped_ftag) ? pre_mapped_ftag : env.economy_m.factory_types.emplace_back();
 				factory_type& factory = env.economy_m.factory_types[ftag];
 
-				factory.workforce = p.second.workforce;
-				factory.owner = p.second.owner;
-				for(uint32_t i = 0; i < std::extent_v<decltype(factory.workers)>; ++i)
-					factory.workers[i] = p.second.workers[i];
+				factory.factory_workers.workforce = p.second.workforce;
+				factory.factory_workers.owner = p.second.owner;
+				for(uint32_t i = 0; i < std::extent_v<decltype(factory.factory_workers.workers)>; ++i)
+					factory.factory_workers.workers[i] = p.second.workers[i];
 
 				if(is_valid_index(p.second.template_name)) {
 					const auto base_tag = tag_from_text(factory_mapping, p.second.template_name);
@@ -628,7 +628,7 @@ namespace economy {
 		MEMBER_ASSOCIATION("mine", "mine", value_from_rh<bool>)
 		MEMBER_ASSOCIATION("farm", "farm", value_from_rh<bool>)
 		MEMBER_ASSOCIATION("is_coastal", "is_coastal", value_from_rh<bool>)
-		MEMBER_ASSOCIATION("workforce", "workforce", value_from_rh<uint32_t>)
+		MEMBER_ASSOCIATION("workforce", "workforce", value_from_rh<int32_t>)
 		MEMBER_TYPE_ASSOCIATION("owner", "owner", owner_reader)
 		MEMBER_TYPE_ASSOCIATION("employees", "employees", employee_set)
 		MEMBER_TYPE_ASSOCIATION("bonus", "bonus", bonus_reader)

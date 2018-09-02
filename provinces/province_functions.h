@@ -19,7 +19,6 @@ namespace provinces {
 	void add_province_modifier(world_state& ws, province_state& p, modifiers::provincial_modifier_tag t);
 	void add_timed_province_modifier(world_state& ws, province_state& p, modifiers::provincial_modifier_tag t, date_tag d);
 	nations::country_tag get_province_seiger(world_state& ws, province_state& p);
-	int32_t get_province_rgo_employment_max(world_state& ws, province_state& p);
 	float get_life_rating(province_state const& p);
 	void reset_state(provinces_state& s);
 

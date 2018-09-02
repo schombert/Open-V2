@@ -37,6 +37,7 @@ namespace population {
 		static constexpr uint8_t is_employable = 0x08;
 		static constexpr uint8_t state_capital_only = 0x10;
 		static constexpr uint8_t demote_on_migration = 0x20;
+		static constexpr uint8_t factory_worker = 0x40;
 
 		static constexpr uint8_t strata_mask = 0x03;
 		static constexpr uint8_t strata_poor = 0x00;
@@ -257,10 +258,11 @@ namespace population {
 
 		int32_t officer_leadership = 2;
 
+		std::vector<pop_type_tag> factory_workers;
+
 		pop_type_tag artisan;
 		pop_type_tag capitalist;
 		pop_type_tag clergy;
-		pop_type_tag craftsman;
 		pop_type_tag bureaucrat;
 		pop_type_tag slave;
 		pop_type_tag soldier;
