@@ -20,6 +20,7 @@
 #include "world_state\\world_state_io.h"
 #include "ideologies\\ideologies_functions.h"
 #include "population\\population_function.h"
+#include "economy\\economy_functions.h"
 
 // #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -550,7 +551,7 @@ int main(int , char **) {
 	ready_world_state(ws);
 
 	if(DWORD dwAttrib = GetFileAttributes((const wchar_t*)(u"D:\\VS2007Projects\\open_v2_test_data\\test_save_cmp.bin")); dwAttrib == INVALID_FILE_ATTRIBUTES) {
-		provinces::set_base_rgo_size(ws);
+		
 
 		ws.w.current_date = date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1));
 		auto const p_to_t_vector = provinces::load_province_terrain_data(ws.s.province_m, fs.get_root());
@@ -565,6 +566,23 @@ int main(int , char **) {
 		military::read_wars(ws, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)), fs.get_root());
 		
 		ideologies::set_default_enabled_ideologies(ws);
+
+		for(auto& ps : ws.w.province_s.province_state_container) {
+			if(is_valid_index(ps.rgo_production))
+				economy::match_rgo_worker_type(ws, ps);
+		}
+
+		provinces::update_province_demographics(ws);
+		nations::update_state_nation_demographics(ws);
+
+		provinces::set_base_rgo_size(ws);
+
+		for(auto& ps : ws.w.province_s.province_state_container) {
+			if(ps.owner && ps.state_instance) 
+				economy::update_rgo_employment(ws, ps);
+		}
+		economy::init_factory_employment(ws);
+
 		population::default_initialize_world_issues_and_ideology(ws);
 
 		provinces::update_province_demographics(ws);

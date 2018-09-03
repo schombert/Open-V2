@@ -3,6 +3,7 @@
 #include "world_state\\world_state.h"
 #include "provinces\\province_functions.hpp"
 #include "nations\\nations_functions.hpp"
+#include "population\\population_function.h"
 
 namespace economy {
 	void init_economic_scenario(world_state& ws) {
@@ -10,6 +11,7 @@ namespace economy {
 		for(auto& g : ws.s.economy_m.goods) {
 			ws.w.economy_s.current_prices[g.id] = g.base_price;
 		}
+		ws.w.economy_s.current_prices[economy::money_good] = economy::money_qnty_type(1);
 	}
 
 	void reset_state(economic_state& ) {
@@ -53,8 +55,8 @@ namespace economy {
 			}
 		}
 
-		float total_pop = float(ws.w.province_s.province_demographics.get(in_province.id, population::total_population_tag));
-		float owner_effect = total_pop != 0.0f ? workers_info.owner.effect_multiplier * (ws.w.province_s.province_demographics.get(in_province.id, population::to_demo_tag(ws, workers_info.owner.type))) / total_pop : 0.0f;
+		float total_pop = float(ws.w.nation_s.state_demographics.get(in_province.state_instance->id, population::total_population_tag));
+		float owner_effect = total_pop != 0.0f ? workers_info.owner.effect_multiplier * (ws.w.nation_s.state_demographics.get(in_province.state_instance->id, population::to_demo_tag(ws, workers_info.owner.type))) / total_pop : 0.0f;
 
 		result.input_modifier *=  std::max(0.0f, (
 			in_province.modifier_values[modifiers::provincial_offsets::local_rgo_input] + 
@@ -146,10 +148,10 @@ namespace economy {
 		if(!is_valid_index(production)) return 1;
 
 		auto owner = ps.owner;
-		if(!owner) return 1;
+		if(!owner) return 0;
 
 		auto owner_id = owner->id;
-		if(!ws.w.nation_s.nations.is_valid_index(owner_id)) return 1;
+		if(!ws.w.nation_s.nations.is_valid_index(owner_id)) return 0;
 
 		bool is_mined = (ws.s.economy_m.goods[production].flags & economy::good_definition::mined) != 0;
 		float total_workforce = float((is_mined ? ws.s.economy_m.rgo_mine.workforce : ws.s.economy_m.rgo_farm.workforce) * int32_t(ps.rgo_size)) *
@@ -158,7 +160,27 @@ namespace economy {
 				ps.modifier_values[modifiers::provincial_offsets::farm_rgo_size] + owner->modifier_values[modifiers::national_offsets::farm_rgo_size]) +
 				ws.w.nation_s.production_adjustments.get(owner_id, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::rgo_size>(production)) +
 				1.0f);
-		return std::max(1, int32_t(total_workforce));
+		return std::max(0, int32_t(total_workforce));
+	}
+
+	void match_rgo_worker_type(world_state& ws, provinces::province_state& ps) {
+		bool is_mined = (ws.s.economy_m.goods[ps.rgo_production].flags & economy::good_definition::mined) != 0;
+		
+		if(is_mined) {
+			provinces::for_each_pop(ws, ps, [&ws](population::pop& p) {
+				for(uint32_t i = 0; i < std::extent_v<decltype(ws.s.economy_m.rgo_farm.workers)>; ++i) {
+					if(p.type == ws.s.economy_m.rgo_farm.workers[i].type && is_valid_index(ws.s.economy_m.rgo_mine.workers[i].type) && p.type != ws.s.economy_m.rgo_mine.workers[i].type)
+						population::change_pop_type(ws, p, ws.s.economy_m.rgo_mine.workers[i].type);
+				}
+			});
+		} else {
+			provinces::for_each_pop(ws, ps, [&ws](population::pop& p) {
+				for(uint32_t i = 0; i < std::extent_v<decltype(ws.s.economy_m.rgo_farm.workers)>; ++i) {
+					if(p.type == ws.s.economy_m.rgo_mine.workers[i].type && is_valid_index(ws.s.economy_m.rgo_farm.workers[i].type) && p.type != ws.s.economy_m.rgo_farm.workers[i].type)
+						population::change_pop_type(ws, p, ws.s.economy_m.rgo_farm.workers[i].type);
+				}
+			});
+		}
 	}
 
 	void update_rgo_employment(world_state& ws, provinces::province_state& ps) {
@@ -174,8 +196,6 @@ namespace economy {
 						if(p.type == ws.s.economy_m.rgo_mine.workers[i].type)
 							ws.w.population_s.pop_demographics.get(p.id, population::total_employment_tag) = 0;
 					}
-					if(p.type == ws.s.economy_m.rgo_mine.owner.type)
-						ws.w.population_s.pop_demographics.get(p.id, population::total_employment_tag) = 0;
 				});
 			} else {
 				provinces::for_each_pop(ws, ps, [&ws](population::pop& p) {
@@ -183,8 +203,6 @@ namespace economy {
 						if(p.type == ws.s.economy_m.rgo_farm.workers[i].type)
 							ws.w.population_s.pop_demographics.get(p.id, population::total_employment_tag) = 0;
 					}
-					if(p.type == ws.s.economy_m.rgo_farm.owner.type)
-						ws.w.population_s.pop_demographics.get(p.id, population::total_employment_tag) = 0;
 				});
 			}
 			return;
@@ -213,8 +231,6 @@ namespace economy {
 					if(p.type == ws.s.economy_m.rgo_mine.workers[i].type)
 						ws.w.population_s.pop_demographics.get(p.id, population::total_employment_tag) = int32_t(percentage_by_type[i] * ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag));
 				}
-				if(p.type == ws.s.economy_m.rgo_mine.owner.type)
-					ws.w.population_s.pop_demographics.get(p.id, population::total_employment_tag) = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
 			});
 		} else {
 			boost::container::small_vector<float, 8> percentage_by_type;
@@ -232,8 +248,6 @@ namespace economy {
 					if(p.type == ws.s.economy_m.rgo_farm.workers[i].type)
 						ws.w.population_s.pop_demographics.get(p.id, population::total_employment_tag) = int32_t(percentage_by_type[i] * ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag));
 				}
-				if(p.type == ws.s.economy_m.rgo_farm.owner.type)
-					ws.w.population_s.pop_demographics.get(p.id, population::total_employment_tag) = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
 			});
 		}
 	}
@@ -299,8 +313,32 @@ namespace economy {
 	}
 
 
-	float get_per_worker_profit(world_state const& ws, nations::state_instance const& si, factory_instance const& fi) {
-		// todo
-		return 0.0f;
+	float get_per_worker_profit(world_state const& ws, nations::state_instance const&, factory_instance const& f) {
+		if(!f.type)
+			return std::numeric_limits<float>::min();
+
+		Eigen::Map<const Eigen::Matrix<economy::money_qnty_type, -1, 1>, Eigen::Aligned32> prices(ws.w.economy_s.current_prices.data(), ws.s.economy_m.aligned_32_goods_count);
+		Eigen::Map<const Eigen::Matrix<economy::money_qnty_type, -1, 1>, Eigen::Aligned32> inputs(ws.s.economy_m.factory_input_goods.get_row(f.type->id), ws.s.economy_m.aligned_32_goods_count);
+
+		auto inputs_cost = prices.dot(inputs);
+
+		return float(ws.w.economy_s.current_prices[f.type->output_good] * f.type->output_amount - inputs_cost);
+	}
+
+	void init_factory_employment(world_state& ws) {
+		ws.w.nation_s.states.for_each([&ws](nations::state_instance& si) {
+			if(si.owner) {
+				for(uint32_t i = 0; i < std::extent_v<decltype(si.factories)>; ++i) {
+					if(si.factories[i].type && si.factories[i].level != 0) {
+						for(uint32_t j = 0; j < std::extent_v<decltype(si.factories[i].type->factory_workers.workers)>; ++j) {
+							if(is_valid_index(si.factories[i].type->factory_workers.workers[j].type))
+								si.factories[i].worker_data.worker_populations[j] = 100;
+						}
+					}
+				}
+
+				update_factories_employment(ws, si);
+			}
+		});
 	}
 }

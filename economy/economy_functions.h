@@ -37,8 +37,12 @@ namespace economy {
 		economy::goods_tag production,
 		float mobilization_effect);
 
-	void update_rgo_employment(world_state const& ws, provinces::province_state& ps);
+	void match_rgo_worker_type(world_state& ws, provinces::province_state& ps);
+
+	void update_rgo_employment(world_state& ws, provinces::province_state& ps);
+	void update_factories_employment(world_state& ws, nations::state_instance& si);
 	int32_t rgo_max_employment(world_state const& ws, provinces::province_state& ps);
 
+	void init_factory_employment(world_state& ws);
 	float get_per_worker_profit(world_state const& ws, nations::state_instance const& si, factory_instance const& fi);
 }

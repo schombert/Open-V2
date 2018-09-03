@@ -11,6 +11,7 @@
 #include "modifiers\\modifier_functions.h"
 #include "issues\\issues_functions.h"
 #include "technologies\\technologies_functions.h"
+#include "economy\\economy_functions.h"
 
 namespace triggers {
 	int32_t get_effect_payload_size(const uint16_t* data) {
@@ -1177,6 +1178,7 @@ namespace triggers {
 		}
 		void ef_trade_goods(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			((provinces::province_state*)primary_slot)->rgo_production = trigger_payload(tval[2]).small.values.good;
+			economy::match_rgo_worker_type(ws, *((provinces::province_state*)primary_slot));
 		}
 		void ef_add_accepted_culture(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			add_item(ws.w.culture_s.culture_arrays, ((nations::nation*)primary_slot)->accepted_cultures, trigger_payload(tval[2]).culture);

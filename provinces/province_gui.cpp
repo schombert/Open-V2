@@ -612,7 +612,7 @@ namespace provinces {
 		if(is_valid_index(selected_prov)) {
 			char16_t formatted_value[64];
 			int32_t worker_sum = std::accumulate(std::begin(ws.w.province_s.province_state_container[selected_prov].rgo_worker_data.worker_populations), std::end(ws.w.province_s.province_state_container[selected_prov].rgo_worker_data.worker_populations), 0);
-			put_value_in_buffer(formatted_value, display_type::percent, float(worker_sum) / float(economy::rgo_max_employment(ws, ws.w.province_s.province_state_container[selected_prov])));
+			put_value_in_buffer(formatted_value, display_type::percent, float(worker_sum) / std::max(1.0f, float(economy::rgo_max_employment(ws, ws.w.province_s.province_state_container[selected_prov]))));
 
 			ui::text_chunk_to_instances(
 				ws.s.gui_m,
@@ -632,7 +632,7 @@ namespace provinces {
 		auto selected_prov = ws.w.selected_province;
 		if(is_valid_index(selected_prov)) {
 			int32_t worker_sum = std::accumulate(std::begin(ws.w.province_s.province_state_container[selected_prov].rgo_worker_data.worker_populations), std::end(ws.w.province_s.province_state_container[selected_prov].rgo_worker_data.worker_populations), 0);
-			float ratio = float(worker_sum) / float(economy::rgo_max_employment(ws, ws.w.province_s.province_state_container[selected_prov]));
+			float ratio = float(worker_sum) / std::max(1.0f, float(economy::rgo_max_employment(ws, ws.w.province_s.province_state_container[selected_prov])));
 
 			ico.set_frame(ws.w.gui_m, uint32_t(ratio * 10.0f + 0.5f));
 		}
