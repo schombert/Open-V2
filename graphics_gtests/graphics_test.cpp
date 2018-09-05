@@ -146,6 +146,18 @@ TEST(graphics_tests, border_stretch) {
 	}));
 }
 
+TEST(graphics_tests, sprite_tinting) {
+	std::lock_guard l(force_sequential);
+
+	EXPECT_TRUE(test_rendering("D:\\VS2007Projects\\open_v2_test_data\\t_tint", 0, 0, 60, 50, [](open_gl_wrapper& ogl) {
+		texture ico("D:\\VS2007Projects\\open_v2_test_data\\legend_icon.dds");
+
+		ogl.render_tinted_textured_rect(0.0f, 0.0f, 24.0f, 24.0f, 1.0f, 0.5f, 0.0f, ico);
+		ogl.render_tinted_textured_rect(24.0f, 0.0f, 24.0f, 24.0f, 0.2f, 0.2f, 1.0f, ico);
+		ogl.render_tinted_textured_rect(0.0f, 24.0f, 24.0f, 24.0f, 1.0f, 1.0f, 1.0f, ico);
+	}));
+}
+
 class test_file_structure {
 public:
 	directory_representation f_root = directory_representation(u"F:");

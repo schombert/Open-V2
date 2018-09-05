@@ -126,6 +126,7 @@ namespace graphics {
 		constexpr GLuint piechart = 9;
 		constexpr GLuint barchart = 10;
 		constexpr GLuint linegraph = 11;
+		constexpr GLuint tint = 12;
 	}
 
 	static char tquad_vertex_shader[] =
@@ -252,6 +253,11 @@ namespace graphics {
 		"vec4 disabled_color(vec4 color_in) {\n"
 		"	const float amount = (color_in.r + color_in.g + color_in.b) / 4.0;\n"
 		"	return vec4(amount, amount, amount, color_in.a);\n"
+		"}\n"
+		"\n"
+		"layout(index = 12) subroutine(color_function_class)\n"
+		"vec4 tint_color(vec4 color_in) {\n"
+		"	return vec4(color_in.r * inner_color.r, color_in.g * inner_color.g, color_in.b * inner_color.b, color_in.a);\n"
 		"}\n"
 		"\n"
 		"layout(index = 4) subroutine(color_function_class)\n"
@@ -779,6 +785,30 @@ namespace graphics {
 		glBindTexture(GL_TEXTURE_2D, right.handle());
 
 		GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::progress_bar };
+		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	}
+
+	void open_gl_wrapper::render_tinted_textured_rect(float x, float y, float width, float height, float r, float g, float b, texture& t, rotation rot) {
+		glBindVertexArray(global_square_vao);
+
+		switch(rot) {
+			case rotation::upright:
+				glBindVertexBuffer(0, global_sqaure_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::left:
+				glBindVertexBuffer(0, global_sqaure_left_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::right:
+				glBindVertexBuffer(0, global_sqaure_right_buffer, 0, sizeof(GLfloat) * 4); break;
+		}
+
+		glUniform3f(parameters::inner_color, r, g, b);
+		glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, t.handle());
+
+		GLuint subroutines[2] = { parameters::tint, parameters::no_filter };
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);

@@ -70,7 +70,7 @@ namespace graphics {
 		glGenTextures(1, &new_th);
 		glBindTexture(GL_TEXTURE_2D, new_th);
 
-		glTexStorage2D(GL_TEXTURE_2D, 1, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, width, height);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, expected);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

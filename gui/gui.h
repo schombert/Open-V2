@@ -68,7 +68,13 @@ namespace ui {
 		graphics::texture* flag_or_secondary = nullptr;
 		float progress = 0.0f;
 	};
-
+	struct tinted_icon_instance {
+		graphics::texture* t = nullptr;
+		const graphics::object* graphics_object = nullptr;
+		float r = 1.0f;
+		float g = 1.0f;
+		float b = 1.0f;
+	};
 	struct text_format {
 		ui::text_color color;
 		graphics::font_tag font_handle;
@@ -96,6 +102,7 @@ namespace ui {
 		gui_behavior() noexcept {}
 		gui_behavior(gui_behavior&& o) noexcept;
 		gui_behavior(gui_behavior& o) noexcept : gui_behavior(std::move(o)) {}
+		gui_behavior(const gui_behavior& o) = delete;
 		template<typename ... PARAMS>
 		explicit gui_behavior(PARAMS&& ... params) {}
 
@@ -244,6 +251,24 @@ namespace ui {
 	};
 
 	template<typename BASE>
+	class tinted_icon : public visible_region, public BASE {
+	public:
+		tinted_icon(dynamic_icon&&) = default;
+		tinted_icon(dynamic_icon& o) noexcept : tinted_icon(std::move(o)) {}
+		template<typename ...P>
+		explicit tinted_icon(P&& ... params) : BASE(std::forward<P>(params)...) {}
+
+		void set_color(gui_manager&, float r, float g, float b);
+		void set_visibility(gui_manager&, bool visible);
+
+		virtual void update_data(gui_object_tag, world_state&) final override;
+		template<typename window_type>
+		void windowed_update(window_type& w, world_state& s);
+		virtual tooltip_behavior has_tooltip(gui_object_tag, world_state&, const mouse_move&) final override;
+		virtual void create_tooltip(gui_object_tag, world_state&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
+	};
+
+	template<typename BASE>
 	class dynamic_transparent_icon : public gui_behavior, public BASE {
 	public:
 		dynamic_transparent_icon(dynamic_transparent_icon&&) = default;
@@ -349,7 +374,7 @@ namespace ui {
 
 		void initialize(bool vert, int32_t mini, int32_t maxi, int32_t step);
 		void update_limit_icons(gui_manager& m);
-		void adjust_position(int32_t position); // will call BASE::on_position
+		void adjust_position(world_state& ws, int32_t position); // will call BASE::on_position
 		void update_position(int32_t position); // will not call BASE::on_position
 		void set_limits(gui_manager& m, int32_t lmin, int32_t lmax);
 		void set_range(gui_manager& m, int32_t rmin, int32_t rmax);
@@ -399,6 +424,48 @@ namespace ui {
 		void add_item(world_state&, PARAMS&& ...);
 		template<typename window_type>
 		void windowed_update(window_type&, world_state&);
+	};
+
+	class discrete_listbox_scrollbar {
+	private:
+		uint32_t* offset = nullptr;
+	public:
+		void on_position(world_state& ws, scrollbar<discrete_listbox_scrollbar>& obj, int32_t pos) const;
+		void associate(uint32_t* g) { offset = g; }
+	};
+
+	template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand = 0>
+	class discrete_listbox : public visible_region, public BASE {
+	private:
+		std::vector<ELEMENT, concurrent_allocator<ELEMENT>> display_list;
+		std::vector<std::optional<value_type>, concurrent_allocator<std::optional<value_type>>> values_list;
+		uint32_t offset = 0;
+
+		scrollbar<discrete_listbox_scrollbar> sb;
+
+		window_def* element_def = nullptr;
+		window_tag element_def_tag;
+
+		void set_element_definition(gui_static& manager);
+	public:
+		discrete_listbox(discrete_listbox&& o) noexcept : 
+			visible_region(std::move(o)), sb(std::move(other.sb)), element_def(o.element_def), element_def_tag(o.element_def_tag),
+			display_list(std::move(o.display_list)), values_list(std::move(o.values_list)) {
+			sb.associate(&offset); o.sb.associate(nullptr);
+		}
+		discrete_listbox(discrete_listbox& o) noexcept : discrete_listbox(std::move(o)) {}
+		template<typename ... PARAMS>
+		discrete_listbox(PARAMS&& ... params) : BASE(std::forward<PARAMS>(params)...) {}
+
+		virtual bool on_scroll(gui_object_tag, world_state&, const scroll&) final override;
+		virtual void update_data(gui_object_tag, world_state&) final override;
+		template<typename window_type>
+		void windowed_update(window_type&, world_state&);
+
+		void create_sub_elements(tagged_gui_object self, world_state&);
+		void update_scroll_position(gui_manager&);
+		void new_list(value_type* first, value_type* last);
+		void update_list(value_type* first, value_type* last);
 	};
 
 	template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension = 0>
@@ -483,6 +550,7 @@ namespace ui {
 		static constexpr uint16_t visible_after_update = 0x0800;
 		static constexpr uint16_t dont_clip_children = 0x1000;
 		static constexpr uint16_t force_transparency_check = 0x2000;
+		static constexpr uint16_t display_as_disabled = 0x4000;
 
 		static constexpr uint16_t rotation_mask = 0x0030;
 		static constexpr uint16_t rotation_upright = 0x0000;
@@ -498,6 +566,7 @@ namespace ui {
 		static constexpr uint16_t type_linegraph = 0x0005; // type_dependant_handle = lines
 		static constexpr uint16_t type_masked_flag = 0x0006; // type_dependant_handle = multi_texture_instance
 		static constexpr uint16_t type_progress_bar = 0x0007; // type_dependant_handle = multi_texture_instance
+		static constexpr uint16_t type_tinted_icon = 0x0008; // type_dependant_handle = tinted_icon_instance
 
 		gui_behavior* associated_behavior = nullptr; //8bytes
 
@@ -544,7 +613,7 @@ namespace ui {
 
 		tagged_gui_object last_sibling_of(const gui_manager& manager, tagged_gui_object g);
 
-		void instantiate_graphical_object(gui_static& static_manager, ui::gui_manager& manager, ui::tagged_gui_object container, graphics::obj_definition_tag gtag, int32_t frame = 0);
+		void instantiate_graphical_object(gui_static& static_manager, ui::gui_manager& manager, ui::tagged_gui_object container, graphics::obj_definition_tag gtag, int32_t frame = 0, bool force_tinted = false);
 		tagged_gui_object create_element_instance(gui_static& static_manager, gui_manager& manager, button_tag handle);
 		tagged_gui_object create_element_instance(gui_static& static_manager, gui_manager& manager, icon_tag handle);
 		tagged_gui_object create_element_instance(gui_static& static_manager, gui_manager& manager, ui::text_tag handle, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
@@ -579,6 +648,8 @@ namespace ui {
 	ui::tagged_gui_object create_static_element(world_state& ws, ui::text_tag handle, tagged_gui_object parent, display_text<B, y_adjust>& b);
 	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, dynamic_icon<B>& b);
+	template<typename B>
+	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, tinted_icon<B>& b);
 	template<typename ... REST>
 	ui::tagged_gui_object create_static_element(world_state& ws, window_tag handle, tagged_gui_object parent, gui_window<REST...>& b);
 	template<typename B, typename ELEMENT, int32_t left_expand>
@@ -725,6 +796,7 @@ namespace ui {
 		fixed_sz_deque<gui_object, 128, 64, gui_object_tag> gui_objects;
 		fixed_sz_deque<text_instance, 128, 64, text_instance_tag> text_instances;
 		fixed_sz_deque<graphics_instance, 128, 64, graphics_instance_tag> graphics_instances;
+		fixed_sz_deque<tinted_icon_instance, 128, 64, tinted_icon_instance_tag> tinted_icon_instances;
 		fixed_sz_deque<multi_texture_instance, 64, 64, multi_texture_instance_tag> multi_texture_instances;
 		fixed_sz_deque<graphics::data_texture, 64, 16, data_texture_tag> data_textures;
 		fixed_sz_deque<graphics::lines, 32, 8, lines_tag> lines_set;

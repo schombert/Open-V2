@@ -34,7 +34,7 @@ namespace ui {
 	public:
 		scrollbar_left_button(scrollbar<BASE>& p) : parent(p) {}
 		void button_function(gui_object_tag, world_state&) {
-			parent.adjust_position(parent.position() - parent.step_size());
+			parent.adjust_position(ws, parent.position() - parent.step_size());
 		}
 	};
 
@@ -45,7 +45,7 @@ namespace ui {
 	public:
 		scrollbar_right_button(scrollbar<BASE>& p) : parent(p) {}
 		void button_function(gui_object_tag, world_state&) {
-			parent.adjust_position(parent.position() + parent.step_size());
+			parent.adjust_position(ws, parent.position() + parent.step_size());
 		}
 	};
 }
@@ -66,11 +66,15 @@ void ui::scrollbar<BASE>::initialize(bool vert, int32_t mini, int32_t maxi, int3
 }
 
 template<typename BASE>
-void ui::scrollbar<BASE>::adjust_position(int32_t position) {
+void ui::scrollbar<BASE>::adjust_position(world_state& ws, int32_t position) {
 	const auto old_position = _position;
 	update_position(position);
-	if (old_position != _position)
-		BASE::on_position(_position);
+	if(old_position != _position) {
+		if constexpr (ui::detail::has_on_position<BASE, int32_t>)
+			BASE::on_position(_position);
+		else
+			BASE::on_position(ws, *this, _position);
+	}
 }
 
 template<typename BASE>
@@ -104,8 +108,8 @@ namespace detail {
 }
 
 template<typename BASE>
-bool ui::scrollbar<BASE>::on_scroll(gui_object_tag, world_state&, const scroll& s) {
-	adjust_position(_position + (int32_t)::detail::round_away(static_cast<float>(_step_size) * -s.amount));
+bool ui::scrollbar<BASE>::on_scroll(gui_object_tag, world_state& ws, const scroll& s) {
+	adjust_position(ws, _position + (int32_t)::detail::round_away(static_cast<float>(_step_size) * -s.amount));
 	return true;
 }
 
@@ -154,18 +158,18 @@ void ui::scrollbar<BASE>::set_range(gui_manager& m, int32_t rmin, int32_t rmax) 
 }
 
 template<typename BASE>
-bool ui::scrollbar_track<BASE>::on_lclick(gui_object_tag track, world_state&, const lbutton_down& ld) {
+bool ui::scrollbar_track<BASE>::on_lclick(gui_object_tag track, world_state& ws, const lbutton_down& ld) {
 	const auto[valid_start, valid_end] = parent.track_range();
 	const auto[minimum, maximum] = parent.range();
-	parent.adjust_position(static_cast<int32_t>(static_cast<double>(((parent.vertical ? (ld.y + associated_object->position.y) : (ld.x + associated_object->position.x)) - valid_start) * (maximum - minimum)) / static_cast<double>(valid_end - valid_start)) + minimum);
+	parent.adjust_position(ws, static_cast<int32_t>(static_cast<double>(((parent.vertical ? (ld.y + associated_object->position.y) : (ld.x + associated_object->position.x)) - valid_start) * (maximum - minimum)) / static_cast<double>(valid_end - valid_start)) + minimum);
 	return true;
 }
 
 template<typename BASE>
-bool ui::scrollbar_slider<BASE>::on_drag(gui_object_tag, world_state&, const mouse_drag& md) {
+bool ui::scrollbar_slider<BASE>::on_drag(gui_object_tag, world_state& ws, const mouse_drag& md) {
 	const auto[valid_start, valid_end] = parent.track_range();
 	const auto[minimum, maximum] = parent.range();
-	parent.adjust_position(static_cast<int32_t>(static_cast<double>((parent.vertical ? md.y : md.x) * (maximum - minimum)) / static_cast<double>(valid_end - valid_start)) + base_position);
+	parent.adjust_position(ws, static_cast<int32_t>(static_cast<double>((parent.vertical ? md.y : md.x) * (maximum - minimum)) / static_cast<double>(valid_end - valid_start)) + base_position);
 	return true;
 }
 

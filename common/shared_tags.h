@@ -56,6 +56,7 @@ namespace ui {
 	using multi_texture_instance_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 856626>>;
 	using data_texture_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 856627>>;
 	using lines_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 856628>>;
+	using tinted_icon_instance_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 856629>>;
 }
 
 namespace technologies {

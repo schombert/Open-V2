@@ -29,6 +29,13 @@ namespace ui {
 		constexpr bool has_button_function = _has_button_function<A, void, C ...>::value;
 
 		template<typename A, typename B, typename ... C>
+		struct _has_on_position : std::false_type {};
+		template<typename A, typename ... C>
+		struct _has_on_position<A, decltype(void(std::declval<A>().on_position(std::declval<C>() ...))), C...> : std::true_type {};
+		template<typename A, typename ... C>
+		constexpr bool has_on_position = _has_on_position<A, void, C ...>::value;
+
+		template<typename A, typename B, typename ... C>
 		struct _has_has_tooltip : std::false_type {};
 		template<typename A, typename ... C>
 		struct _has_has_tooltip<A, decltype(void(std::declval<A>().has_tooltip(std::declval<C>() ...))), C...> : std::true_type {};

@@ -61,5 +61,6 @@ namespace graphics {
 		void render_character(char16_t codepoint, bool enabled, float x, float y, float size, font& f);
 		void render_text(const char16_t* codepoints, uint32_t count, bool enabled, float x, float baseline_y, float size, const color& c, font& f);
 		void render_outlined_text(const char16_t* codepoints, uint32_t count, bool enabled, float x, float baseline_y, float size, const color& c, font& f);
+		void render_tinted_textured_rect(float x, float y, float width, float height, float r, float g, float b, texture& t, rotation rot = rotation::upright);
 	};
 }

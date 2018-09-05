@@ -12,10 +12,31 @@ bool ui::display_listbox<BASE, ELEMENT, left_expand>::on_scroll(gui_object_tag o
 	return sb.on_scroll(o, m, s);
 }
 
+template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>
+bool ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::on_scroll(gui_object_tag o, world_state& m, const scroll& s) {
+	return sb.on_scroll(o, m, s);
+}
+
 template<typename BASE, typename ELEMENT, int32_t left_expand>
 void ui::display_listbox<BASE, ELEMENT, left_expand>::update_data(gui_object_tag, world_state& ws) {
 	clear_items(ws.w.gui_m);
 	BASE::populate_list(*this, ws);
+	update_scroll_position(ws.w.gui_m);
+}
+
+template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>
+void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::update_data(gui_object_tag, world_state& ws) {
+	BASE::populate_list(*this, ws);
+
+	for(int32_t i = 0; i < display_list.size(); ++i) {
+		if(i + offset < values_list.size() && bool(values_list[i + offset])) {
+			display_list[i].set_value(*(values_list[i + offset]));
+			ui::make_visible_and_update(ws.w.gui_m, *(display_list[i].associated_object));
+		} else {
+			ui::hide(*(display_list[i].associated_object));
+		}
+	}
+
 	update_scroll_position(ws.w.gui_m);
 }
 
@@ -30,12 +51,39 @@ void ui::display_listbox<BASE, ELEMENT, left_expand>::windowed_update(window_typ
 	}
 }
 
+template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>
+template<typename window_type>
+void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::windowed_update(window_type& w, world_state& s) {
+	if constexpr(ui::detail::has_windowed_update<BASE, display_listbox<BASE, ELEMENT, left_expand>&, window_type&, world_state&>) {
+		BASE::windowed_update(*this, w, s);
+		BASE::populate_list(*this, w, s);
+
+		for(int32_t i = 0; i < display_list.size(); ++i) {
+			if(i + offset < values_list.size() && bool(values_list[i + offset])) {
+				display_list[i].set_value(*(values_list[i + offset]));
+				ui::make_visible_and_update(ws.w.gui_m, *(display_list[i].associated_object));
+			} else {
+				ui::hide(*(display_list[i].associated_object));
+			}
+		}
+
+		update_scroll_position(s.w.gui_m);
+	}
+}
+
 template<typename BASE, typename ELEMENT, int32_t left_expand>
 void ui::display_listbox<BASE, ELEMENT, left_expand>::set_element_definition(gui_static& manager) {
 	const auto t = BASE::element_tag(manager);
 	element_def_tag = t;
 	element_def = &manager.ui_definitions.windows[t];
 	sb.factor = element_def->size.y;
+}
+
+template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>
+void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::set_element_definition(gui_static& manager) {
+	const auto t = BASE::element_tag(manager);
+	element_def_tag = t;
+	element_def = &manager.ui_definitions.windows[t];
 }
 
 template<typename BASE, typename ELEMENT, int32_t left_expand>
@@ -49,13 +97,29 @@ template<typename BASE, typename ELEMENT, int32_t left_expand>
 void ui::display_listbox<BASE, ELEMENT, left_expand>::update_scroll_position(gui_manager& manager) {
 	const int32_t extra = std::max(0, static_cast<int32_t>(_content_frame ->size.y - associated_object->size.y));
 
-	if (sb.position() * sb.factor > (extra + sb.factor - 1)) {
-		sb.update_position((extra + sb.factor - 1) / sb.factor);
-	}
 	sb.set_range(manager, 0, (extra + sb.factor - 1) / sb.factor);
-	if (extra > 0) {
+	if (extra > 0) 
 		ui::make_visible_and_update(manager, *(sb.associated_object));
-	}
+	
+	if(sb.position() * sb.factor > (extra + sb.factor - 1)) 
+		sb.update_position((extra + sb.factor - 1) / sb.factor);
+}
+
+template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>
+void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::update_scroll_position(gui_manager& manager) {
+	if(!element_def || !sb.associated_object)
+		return;
+
+	const int32_t extra = std::max(0, static_cast<int32_t>(values_list.size() - associated_object->size.y / element_def->size.y));
+	sb.set_range(manager, 0, extra);
+
+	if(extra > 0)
+		ui::make_visible_and_update(manager, *(sb.associated_object));
+	else
+		ui::hide(*sb.associated_object);
+
+	if(sb.position() > extra)
+		sb.update_position(extra);
 }
 
 template<typename BASE, typename ELEMENT, int32_t left_expand>
@@ -98,6 +162,48 @@ void ui::display_listbox<BASE, ELEMENT, left_expand>::create_sub_elements(tagged
 
 	sb.associate(&inner_area.object);
 	ui::hide(*(sb.associated_object));
+}
+
+template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>
+void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::create_sub_elements(tagged_gui_object self, world_state& ws) {
+	set_element_definition(ws.s.gui_m);
+
+	const int32_t element_count = std::max(1, static_cast<int32_t> associated_object->size.y / element_def->size.y);
+	display_list.resize(element_count);
+
+	for(int32_t i = 0; i < element_count; ++i) {
+		auto new_obj = create_static_element(ws, element_def_tag, self, display_list[i]);
+		ui::hide(new_obj.object);
+	}
+
+	ui::create_static_fixed_sz_scrollbar(
+		ws,
+		ws.s.gui_m.ui_definitions.standardlistbox_slider,
+		self,
+		ui::xy_pair{ static_cast<int16_t>(associated_object->size.x - 16), 0i16 },
+		associated_object->size.y,
+		sb);
+
+	sb.associate(&offset);
+	ui::hide(*(sb.associated_object));
+}
+
+template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>
+void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::new_list(value_type* first, value_type* last) {
+	values_list.clear();
+	values_list.insert(values_list.end(), first, last);
+}
+
+template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>
+void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::update_list(value_type* first, value_type* last) {
+	for(auto& opt_v : values_list) {
+		if(opt_v && std::find(first, last, *opt_v) == last)
+			opt_v = std::optional<value_type>();
+	}
+	for(auto it = first; it != last ++it) {
+		if(std::find(values_list.begin(), values_list.end(), std::optional<value_type>(*it)) == values_list.end())
+			values_list.push_back(std::optional<value_type>(*it));
+	}
 }
 
 template<typename B, typename ELEMENT, int32_t left_expand>

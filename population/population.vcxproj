@@ -149,11 +149,14 @@
   <ItemGroup>
     <ClInclude Include="population.h" />
     <ClInclude Include="population_function.h" />
+    <ClInclude Include="population_gui.h" />
+    <ClInclude Include="population_gui.hpp" />
     <ClInclude Include="population_io.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="population.cpp" />
     <ClCompile Include="population_functions.cpp" />
+    <ClCompile Include="population_gui.cpp" />
     <ClCompile Include="population_io.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

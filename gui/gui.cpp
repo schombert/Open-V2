@@ -449,11 +449,32 @@ namespace {
 	}
 }
 
-void ui::detail::instantiate_graphical_object(gui_static& static_manager, ui::gui_manager& manager, ui::tagged_gui_object container, graphics::obj_definition_tag gtag, int32_t frame) {
+void ui::detail::instantiate_graphical_object(gui_static& static_manager, ui::gui_manager& manager, ui::tagged_gui_object container, graphics::obj_definition_tag gtag, int32_t frame, bool force_tinted) {
 	auto& graphic_object_def = static_manager.graphics_object_definitions.definitions[gtag];
 
 	if (container.object.size == ui::xy_pair{ 0,0 })
 		container.object.size = ui::xy_pair{ graphic_object_def.size.x, graphic_object_def.size.y };
+
+	if(force_tinted) {
+		if(is_valid_index(graphic_object_def.primary_texture_handle)) {
+			container.object.flags.fetch_or(ui::gui_object::type_tinted_icon, std::memory_order_acq_rel);
+
+			const auto icon_graphic = manager.tinted_icon_instances.emplace();
+
+			icon_graphic.object.graphics_object = &graphic_object_def;
+			icon_graphic.object.t = &(static_manager.textures.retrieve_by_key(graphic_object_def.primary_texture_handle));
+
+			if(((int32_t)container.object.size.y | (int32_t)container.object.size.x) == 0) {
+				icon_graphic.object.t->load_filedata();
+				container.object.size.y = static_cast<int16_t>(icon_graphic.object.t->get_height());
+				container.object.size.x = static_cast<int16_t>(icon_graphic.object.t->get_width() / ((graphic_object_def.number_of_frames != 0) ? graphic_object_def.number_of_frames : 1));
+			}
+
+			container.object.type_dependant_handle.store(to_index(icon_graphic.id), std::memory_order_release);
+		}
+
+		return;
+	}
 
 	switch (graphics::object_type(graphic_object_def.flags & graphics::object::type_mask)) {
 		case graphics::object_type::bordered_rect:
@@ -678,6 +699,24 @@ void ui::detail::render_object_type(gui_static& static_manager, const gui_manage
 			}
 			break;
 		}
+		case ui::gui_object::type_tinted_icon:
+		{
+			auto ti = manager.tinted_icon_instances.safe_at(tinted_icon_instance_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
+			if(ti) {
+				ogl.render_tinted_textured_rect(
+					position.effective_position_x,
+					position.effective_position_y,
+					position.effective_width,
+					position.effective_height,
+					ti->r,
+					ti->g,
+					ti->b,
+					*(ti->t),
+					current_rotation
+				);
+			}
+			break;
+		}
 		case ui::gui_object::type_linegraph:
 		{
 			auto l = manager.lines_set.safe_at(lines_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
@@ -797,12 +836,12 @@ void ui::detail::render(gui_static& static_manager, const gui_manager& manager, 
 		static_cast<float>(root_obj.size.y) * manager.scale()
 	};
 
-	const bool currently_enabled = parent_enabled && ((root_obj.flags.load(std::memory_order_acquire) & ui::gui_object::enabled) != 0);
+	const bool currently_enabled = parent_enabled && ((flags & ui::gui_object::enabled) != 0);
 
 	if ((flags & ui::gui_object::dont_clip_children) == 0) {
 		graphics::scissor_rect clip(std::lround(screen_pos.effective_position_x), manager.height() - std::lround(screen_pos.effective_position_y + screen_pos.effective_height), std::lround(screen_pos.effective_width), std::lround(screen_pos.effective_height));
 
-		detail::render_object_type(static_manager, manager, ogl, root_obj, screen_pos, type, currently_enabled);
+		detail::render_object_type(static_manager, manager, ogl, root_obj, screen_pos, type, currently_enabled && ((flags & ui::gui_object::display_as_disabled) == 0));
 
 		gui_object_tag current_child = root_obj.first_child;
 		while (is_valid_index(current_child)) {
@@ -811,7 +850,7 @@ void ui::detail::render(gui_static& static_manager, const gui_manager& manager, 
 			current_child = child_object.right_sibling;
 		}
 	} else {
-		detail::render_object_type(static_manager, manager, ogl, root_obj, screen_pos, type, currently_enabled);
+		detail::render_object_type(static_manager, manager, ogl, root_obj, screen_pos, type, currently_enabled && ((flags & ui::gui_object::display_as_disabled) == 0));
 
 		gui_object_tag current_child = root_obj.first_child;
 		while (is_valid_index(current_child)) {
