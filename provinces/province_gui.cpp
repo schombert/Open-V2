@@ -638,10 +638,13 @@ namespace provinces {
 		}
 	}
 
-
-	void open_popscreen_button::button_function(ui::gui_object_tag, world_state&) {
-
+	void open_popscreen_button::button_function(ui::gui_object_tag, world_state& ws) {
+		auto selected_prov = ws.w.selected_province;
+		if(is_valid_index(selected_prov))
+			ws.w.show_population_window(selected_prov);
+		ws.w.hide_province_window();
 	}
+
 	void open_popscreen_button::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
 		auto selected_prov = ws.w.selected_province;
 		if(is_valid_index(selected_prov)) {

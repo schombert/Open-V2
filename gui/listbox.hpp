@@ -28,7 +28,7 @@ template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expa
 void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::update_data(gui_object_tag, world_state& ws) {
 	BASE::populate_list(*this, ws);
 
-	for(int32_t i = 0; i < display_list.size(); ++i) {
+	for(uint32_t i = 0; i < display_list.size(); ++i) {
 		if(i + offset < values_list.size() && bool(values_list[i + offset])) {
 			display_list[i].set_value(*(values_list[i + offset]));
 			ui::make_visible_and_update(ws.w.gui_m, *(display_list[i].associated_object));
@@ -58,10 +58,10 @@ void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::windowed_upda
 		BASE::windowed_update(*this, w, s);
 		BASE::populate_list(*this, w, s);
 
-		for(int32_t i = 0; i < display_list.size(); ++i) {
+		for(uint32_t i = 0; i < display_list.size(); ++i) {
 			if(i + offset < values_list.size() && bool(values_list[i + offset])) {
 				display_list[i].set_value(*(values_list[i + offset]));
-				ui::make_visible_and_update(ws.w.gui_m, *(display_list[i].associated_object));
+				ui::make_visible_and_update(s.w.gui_m, *(display_list[i].associated_object));
 			} else {
 				ui::hide(*(display_list[i].associated_object));
 			}
@@ -110,7 +110,7 @@ void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::update_scroll
 	if(!element_def || !sb.associated_object)
 		return;
 
-	const int32_t extra = std::max(0, static_cast<int32_t>(values_list.size() - associated_object->size.y / element_def->size.y));
+	const int32_t extra = std::max(0, static_cast<int32_t>(int32_t(values_list.size()) - associated_object->size.y / element_def->size.y));
 	sb.set_range(manager, 0, extra);
 
 	if(extra > 0)

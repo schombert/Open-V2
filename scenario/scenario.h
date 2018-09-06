@@ -55,8 +55,14 @@ namespace scenario {
 		constexpr uint32_t fort = 33ui32;
 		constexpr uint32_t railroad = 34ui32;
 		constexpr uint32_t naval_base = 35ui32;
+		constexpr uint32_t workforce = 36ui32;
+		constexpr uint32_t religion = 37ui32;
+		constexpr uint32_t ideology = 38ui32;
+		constexpr uint32_t nationality = 39ui32;
+		constexpr uint32_t dominant_issues = 40ui32;
+		constexpr uint32_t electorate = 41ui32;
 
-		constexpr uint32_t count = 36ui32;
+		constexpr uint32_t count = 42ui32;
 	}
 
 	class scenario_manager {

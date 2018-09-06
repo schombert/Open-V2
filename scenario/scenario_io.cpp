@@ -138,5 +138,11 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::fort] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PV_FORT");
 		s.fixed_ui_text[fixed_ui::naval_base] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PV_NAVALBASE");
 		s.fixed_ui_text[fixed_ui::railroad] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PV_RAILROAD");
+		s.fixed_ui_text[fixed_ui::workforce] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "WORKFORCE_DISTTITLE");
+		s.fixed_ui_text[fixed_ui::religion] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "RELIGION_DISTTITLE");
+		s.fixed_ui_text[fixed_ui::ideology] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "IDEOLOGY_DISTTITLE");
+		s.fixed_ui_text[fixed_ui::nationality] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NATIONALITY_DISTTITLE");
+		s.fixed_ui_text[fixed_ui::dominant_issues] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "DOMINANT_ISSUES_DISTTITLE");
+		s.fixed_ui_text[fixed_ui::electorate] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "ELECTORATE_DISTTITLE");
 	}
 }

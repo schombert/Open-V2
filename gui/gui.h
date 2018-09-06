@@ -253,8 +253,8 @@ namespace ui {
 	template<typename BASE>
 	class tinted_icon : public visible_region, public BASE {
 	public:
-		tinted_icon(dynamic_icon&&) = default;
-		tinted_icon(dynamic_icon& o) noexcept : tinted_icon(std::move(o)) {}
+		tinted_icon(tinted_icon&&) = default;
+		tinted_icon(tinted_icon& o) noexcept : tinted_icon(std::move(o)) {}
 		template<typename ...P>
 		explicit tinted_icon(P&& ... params) : BASE(std::forward<P>(params)...) {}
 
@@ -449,8 +449,9 @@ namespace ui {
 		void set_element_definition(gui_static& manager);
 	public:
 		discrete_listbox(discrete_listbox&& o) noexcept : 
-			visible_region(std::move(o)), sb(std::move(other.sb)), element_def(o.element_def), element_def_tag(o.element_def_tag),
-			display_list(std::move(o.display_list)), values_list(std::move(o.values_list)) {
+			visible_region(std::move(o)),
+			display_list(std::move(o.display_list)), values_list(std::move(o.values_list)), sb(std::move(o.sb)),
+			element_def(o.element_def), element_def_tag(o.element_def_tag) {
 			sb.associate(&offset); o.sb.associate(nullptr);
 		}
 		discrete_listbox(discrete_listbox& o) noexcept : discrete_listbox(std::move(o)) {}

@@ -33,7 +33,7 @@ namespace ui {
 		scrollbar<BASE>& parent;
 	public:
 		scrollbar_left_button(scrollbar<BASE>& p) : parent(p) {}
-		void button_function(gui_object_tag, world_state&) {
+		void button_function(gui_object_tag, world_state& ws) {
 			parent.adjust_position(ws, parent.position() - parent.step_size());
 		}
 	};
@@ -44,7 +44,7 @@ namespace ui {
 		scrollbar<BASE>& parent;
 	public:
 		scrollbar_right_button(scrollbar<BASE>& p) : parent(p) {}
-		void button_function(gui_object_tag, world_state&) {
+		void button_function(gui_object_tag, world_state& ws) {
 			parent.adjust_position(ws, parent.position() + parent.step_size());
 		}
 	};

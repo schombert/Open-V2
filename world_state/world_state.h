@@ -24,6 +24,13 @@ namespace current_state {
 		influence
 	};
 
+	enum class population_display : uint8_t {
+		none,
+		province,
+		state,
+		nation,
+	};
+
 	class state {
 	public:
 		provinces::provinces_state province_s;
@@ -55,6 +62,14 @@ namespace current_state {
 
 		//gui state
 		provinces::province_tag selected_province;
+
+		struct {
+			population_display display_type = population_display::none;
+			provinces::province_tag population_for_province;
+			nations::state_tag population_for_state;
+			nations::country_tag population_for_nation;
+		} selected_population;
+
 		std::unique_ptr<gui_state> gui_objects;
 
 		//player data
@@ -65,6 +80,8 @@ namespace current_state {
 		void init_gui_objects(world_state& s);
 		void hide_province_window();
 		void show_province_window(provinces::province_tag p);
+		void hide_population_window();
+		void show_population_window(provinces::province_tag p);
 	};
 }
 

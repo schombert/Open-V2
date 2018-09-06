@@ -297,7 +297,7 @@ struct gui_window_handler {
 	tt_holder mb_button_a;
 	ui::scrollbar<debug_scrollbar> test_sb;
 
-	budget_window_t budget_window;
+	//budget_window_t budget_window;
 
 	gui_window_handler(world_state& snm) : s(snm) {}
 
@@ -310,29 +310,29 @@ struct gui_window_handler {
 		s.w.init_gui_objects(s);
 		s.w.hide_province_window();
 
-		ui::create_static_element(s, std::get<ui::window_tag>(s.s.gui_m.ui_definitions.name_to_element_map["country_budget"]), ui::tagged_gui_object{ s.w.gui_m.root, ui::gui_object_tag(0) }, budget_window);
-		auto& pc = budget_window.get<CT_STRING("chart_0")>();
-		pc.add_entry(s.w.gui_m, vector_backed_string<char16_t>(u"category 1"), 0.4f, graphics::color_rgb{ 255,0,0 });
-		pc.add_entry(s.w.gui_m, vector_backed_string<char16_t>(u"category 2"), 0.1f, graphics::color_rgb{ 255,255,0 });
-		pc.add_entry(s.w.gui_m, vector_backed_string<char16_t>(u"category 3"), 0.25f, graphics::color_rgb{ 255,0,255 });
-		pc.add_entry(s.w.gui_m, vector_backed_string<char16_t>(u"category 4"), 0.25f, graphics::color_rgb{ 0,255,255 });
-		pc.update_display(s.w.gui_m);
+		//ui::create_static_element(s, std::get<ui::window_tag>(s.s.gui_m.ui_definitions.name_to_element_map["country_budget"]), ui::tagged_gui_object{ s.w.gui_m.root, ui::gui_object_tag(0) }, budget_window);
+		//auto& pc = budget_window.get<CT_STRING("chart_0")>();
+		//pc.add_entry(s.w.gui_m, vector_backed_string<char16_t>(u"category 1"), 0.4f, graphics::color_rgb{ 255,0,0 });
+		//pc.add_entry(s.w.gui_m, vector_backed_string<char16_t>(u"category 2"), 0.1f, graphics::color_rgb{ 255,255,0 });
+		//pc.add_entry(s.w.gui_m, vector_backed_string<char16_t>(u"category 3"), 0.25f, graphics::color_rgb{ 255,0,255 });
+		//pc.add_entry(s.w.gui_m, vector_backed_string<char16_t>(u"category 4"), 0.25f, graphics::color_rgb{ 0,255,255 });
+		//pc.update_display(s.w.gui_m);
 
-		budget_window.get<CT_STRING("debt_sort_country")>().associated_object->flags.fetch_or(ui::gui_object::force_transparency_check, std::memory_order_acq_rel);
-		budget_window.get<CT_STRING("debt_sort_amount")>().associated_object->flags.fetch_or(ui::gui_object::force_transparency_check, std::memory_order_acq_rel);
+		//budget_window.get<CT_STRING("debt_sort_country")>().associated_object->flags.fetch_or(ui::gui_object::force_transparency_check, std::memory_order_acq_rel);
+		//budget_window.get<CT_STRING("debt_sort_amount")>().associated_object->flags.fetch_or(ui::gui_object::force_transparency_check, std::memory_order_acq_rel);
 
 		
 
-		const auto new_icon = ui::detail::create_element_instance(s.s.gui_m, s.w.gui_m, ui::icon_tag(19));
-		ui::add_to_back(s.w.gui_m, ui::tagged_gui_object{ s.w.gui_m.root, ui::gui_object_tag(0) }, new_icon);
+		//const auto new_icon = ui::detail::create_element_instance(s.s.gui_m, s.w.gui_m, ui::icon_tag(19));
+		//ui::add_to_back(s.w.gui_m, ui::tagged_gui_object{ s.w.gui_m.root, ui::gui_object_tag(0) }, new_icon);
 
-		const auto new_text = ui::detail::create_element_instance(s.s.gui_m, s.w.gui_m, ui::text_tag(29));
-		ui::add_to_back(s.w.gui_m, ui::tagged_gui_object{ s.w.gui_m.root, ui::gui_object_tag(0) }, new_text);
+		//const auto new_text = ui::detail::create_element_instance(s.s.gui_m, s.w.gui_m, ui::text_tag(29));
+		//ui::add_to_back(s.w.gui_m, ui::tagged_gui_object{ s.w.gui_m.root, ui::gui_object_tag(0) }, new_text);
 
-		ui::create_static_element(s, ui::scrollbar_tag(10), ui::tagged_gui_object{ s.w.gui_m.root, ui::gui_object_tag(0) }, test_sb);
-		test_sb.set_limits(s.w.gui_m, 0, 75);
+		//ui::create_static_element(s, ui::scrollbar_tag(10), ui::tagged_gui_object{ s.w.gui_m.root, ui::gui_object_tag(0) }, test_sb);
+		//test_sb.set_limits(s.w.gui_m, 0, 75);
 
-		ui::create_scrollable_text_block(s, ui::text_tag(571), text_data::text_tag(1001), ui::tagged_gui_object{ s.w.gui_m.root, ui::gui_object_tag(0) });
+		//ui::create_scrollable_text_block(s, ui::text_tag(571), text_data::text_tag(1001), ui::tagged_gui_object{ s.w.gui_m.root, ui::gui_object_tag(0) });
 	}
 
 	void operator()(const ui::resize& r, ui::window_base&) {
