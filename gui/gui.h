@@ -35,7 +35,7 @@ namespace ui {
 	struct key_up;
 	struct text_event;
 
-	constexpr int32_t piechart_resolution = 100;
+	constexpr int32_t piechart_resolution = 200;
 
 	enum class text_color : uint8_t {
 		black, white, red, green, yellow,
@@ -321,6 +321,7 @@ namespace ui {
 		vector_backed_string<char16_t> labels[piechart_resolution];
 		float fractions[piechart_resolution];
 		int32_t portion_used = 0;
+		float remainder = 0.0f;
 	public:
 		piechart(piechart&&) = default;
 		piechart(piechart& o) noexcept : piechart(std::move(o)) {}
@@ -655,6 +656,8 @@ namespace ui {
 	ui::tagged_gui_object create_static_element(world_state& ws, window_tag handle, tagged_gui_object parent, gui_window<REST...>& b);
 	template<typename B, typename ELEMENT, int32_t left_expand>
 	ui::tagged_gui_object create_static_element(world_state& ws, listbox_tag handle, tagged_gui_object parent, ui::display_listbox<B, ELEMENT, left_expand>& b);
+	template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>
+	ui::tagged_gui_object create_static_element(world_state& ws, listbox_tag handle, tagged_gui_object parent, discrete_listbox<BASE, ELEMENT, value_type, left_expand>& b);
 	template<typename B, typename tag_type, typename ELEMENT, int32_t vertical_extension>
 	ui::tagged_gui_object create_static_element(world_state& ws, overlapping_region_tag handle, tagged_gui_object parent, ui::overlap_box<B, tag_type, ELEMENT, vertical_extension>& b);
 	template<typename B>

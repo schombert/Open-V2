@@ -12,9 +12,9 @@ namespace population {
 	public:
 		graphics::color_rgb color;
 		text_data::text_tag legend_name;
-		int32_t percentage = 0;
+		float percentage = 0;
 
-		void set_value(std::tuple<graphics::color_rgb, text_data::text_tag, int32_t> const& t) {
+		void set_value(std::tuple<graphics::color_rgb, text_data::text_tag, float> const& t) {
 			color = std::get<0>(t);
 			legend_name = std::get<1>(t);
 			percentage = std::get<2>(t);
@@ -42,7 +42,7 @@ namespace population {
 	using legend_item = ui::gui_window<
 		CT_STRING("legend_color"), ui::tinted_icon<legend_icon>,
 		CT_STRING("legend_title"), ui::display_text<legend_label>,
-		CT_STRING("legend_value"), ui::display_text<legend_percentage>,
+		CT_STRING("legend_value"), ui::display_text<legend_percentage, -20>,
 		legend_item_base
 	>;
 
@@ -64,9 +64,9 @@ namespace population {
 	};
 
 	using workforce_details_window = ui::gui_window <
-		CT_STRING("item_name"), ui::display_text<workforce_title>,
+		CT_STRING("item_name"), ui::display_text<workforce_title, -22>,
 		CT_STRING("chart"), ui::piechart<workforce_chart>,
-		CT_STRING("member_names"), ui::discrete_listbox<workforce_lb, legend_item, std::tuple<graphics::color_rgb, text_data::text_tag, int32_t>>,
+		CT_STRING("member_names"), ui::discrete_listbox<workforce_lb, legend_item, std::tuple<graphics::color_rgb, text_data::text_tag, float>, 7>,
 		ui::visible_region
 	> ;
 

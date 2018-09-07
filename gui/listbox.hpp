@@ -168,13 +168,8 @@ template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expa
 void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::create_sub_elements(tagged_gui_object self, world_state& ws) {
 	set_element_definition(ws.s.gui_m);
 
-	const int32_t element_count = std::max(1, static_cast<int32_t> associated_object->size.y / element_def->size.y);
+	const uint32_t element_count = uint32_t(std::max(1, static_cast<int32_t>(associated_object->size.y / element_def->size.y)));
 	display_list.resize(element_count);
-
-	for(int32_t i = 0; i < element_count; ++i) {
-		auto new_obj = create_static_element(ws, element_def_tag, self, display_list[i]);
-		ui::hide(new_obj.object);
-	}
 
 	ui::create_static_fixed_sz_scrollbar(
 		ws,
@@ -183,6 +178,16 @@ void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::create_sub_el
 		ui::xy_pair{ static_cast<int16_t>(associated_object->size.x - 16), 0i16 },
 		associated_object->size.y,
 		sb);
+
+	for(uint32_t i = 0; i < element_count; ++i) {
+		auto new_obj = create_static_element(ws, element_def_tag, self, display_list[i]);
+		new_obj.object.position.y = static_cast<int16_t>(int32_t(i) * element_def->size.y);
+		if constexpr(left_expand != 0) {
+			new_obj.object.flags.fetch_or(gui_object::dont_clip_children, std::memory_order_acq_rel);
+			new_obj.object.position.x += left_expand;
+		}
+		ui::hide(new_obj.object);
+	}
 
 	sb.associate(&offset);
 	ui::hide(*(sb.associated_object));
@@ -226,6 +231,35 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, listbox_tag han
 	new_obj.object.size.x += static_cast<int16_t>(left_expand + 16);
 
 	if constexpr(ui::detail::has_on_create<B, ui::display_listbox<B, ELEMENT, left_expand>&, world_state&>)
+		b.on_create(b, ws);
+
+	b.create_sub_elements(new_obj, ws);
+
+	ui::add_to_back(ws.w.gui_m, parent, new_obj);
+	ws.w.gui_m.flag_minimal_update();
+	return new_obj;
+}
+
+template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>
+ui::tagged_gui_object ui::create_static_element(world_state& ws, listbox_tag handle, tagged_gui_object parent, discrete_listbox<BASE, ELEMENT, value_type, left_expand>& b) {
+	const ui::listbox_def& definition = ws.s.gui_m.ui_definitions.listboxes[handle];
+
+	const auto new_obj = ws.w.gui_m.gui_objects.emplace();
+
+	new_obj.object.position = definition.position;
+	new_obj.object.size = definition.size;
+
+	new_obj.object.associated_behavior = &b;
+	b.associated_object = &new_obj.object;
+
+	if(is_valid_index(definition.background_handle)) {
+		ui::detail::instantiate_graphical_object(ws.s.gui_m, ws.w.gui_m, new_obj, definition.background_handle);
+	}
+
+	new_obj.object.position.x -= static_cast<int16_t>(left_expand);
+	new_obj.object.size.x += static_cast<int16_t>(left_expand + 16);
+
+	if constexpr(ui::detail::has_on_create<BASE, discrete_listbox<BASE, ELEMENT, value_type, left_expand>&, world_state&>)
 		b.on_create(b, ws);
 
 	b.create_sub_elements(new_obj, ws);

@@ -12,6 +12,10 @@
 #include "population\\population_gui.hpp"
 
 void ready_world_state(world_state& ws) {
+	ws.w.selected_population.filtered_pop_types.resize(ws.s.population_m.count_poptypes);
+	for(uint32_t i = 0; i < ws.s.population_m.count_poptypes; ++i)
+		ws.w.selected_population.filtered_pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))] = 1ui8;
+
 	variables::init_variables_state(ws);
 	provinces::init_ready_provinces(ws);
 	cultures::init_cultures_state(ws);

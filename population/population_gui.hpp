@@ -1,12 +1,14 @@
 #pragma once
 #include "common\\common.h"
 #include "population_gui.h"
+#include "provinces\\province_functions.hpp"
+#include "nations\\nations_functions.hpp"
 
 namespace population {
 
 	template<typename W>
 	void legend_icon::windowed_update(ui::tinted_icon<legend_icon>& self, W& w, world_state& ws) {
-		self.set_color(ws.w.gui_m, w.color.r, w.color.g, w.color.b);
+		self.set_color(ws.w.gui_m, float(w.color.r) / 255.0f, float(w.color.g) / 255.0f, float(w.color.b) / 255.0f);
 	}
 
 	template<typename window_type>
@@ -32,6 +34,58 @@ namespace population {
 		lm.finish_current_line();
 	}
 
+	// returns: total pop
+
+	template<typename tag_type, typename FUNC>
+	void generic_for_each_pop(world_state& ws, tag_type tag, FUNC&& f) {
+		if constexpr(std::is_same_v<tag_type, nations::country_tag>) {
+			if(ws.w.nation_s.nations.is_valid_index(tag))
+				nations::for_each_pop(ws, ws.w.nation_s.nations[tag], f);
+		} else if constexpr(std::is_same_v<tag_type, nations::state_tag>) {
+			if(ws.w.nation_s.states.is_valid_index(tag))
+				nations::for_each_pop(ws, ws.w.nation_s.states[tag], f);
+		} else if constexpr(std::is_same_v<tag_type, provinces::province_tag>) {
+			if(is_valid_index(tag))
+				provinces::for_each_pop(ws, ws.w.province_s.province_state_container[tag], f);
+		}
+	}
+
+	template<typename category_type, typename tag_type>
+	int64_t sum_filtered_demo_data(world_state& ws, int64_t* sums_out, tag_type tag) {
+		int64_t total = 0;
+		generic_for_each_pop(ws, tag, [sums_out, &ws, &total](population::pop& p) {
+			auto pop_id = p.id;
+			auto ptype = p.type;
+			if(ws.w.population_s.pops.is_valid_index(pop_id) && is_valid_index(ptype) && ws.w.selected_population.filtered_pop_types[ptype] != 0) {
+				auto size = ws.w.population_s.pop_demographics.get(pop_id, population::total_population_tag);
+				total += size;
+				if constexpr(std::is_same_v<category_type, cultures::culture_tag>) {
+					auto c = p.culture;
+					if(is_valid_index(c))
+						sums_out[to_index(c)] += size;
+				} else if constexpr(std::is_same_v<category_type, cultures::religion_tag>) {
+					auto c = p.religion;
+					if(is_valid_index(c))
+						sums_out[to_index(c)] += size;
+				} else if constexpr(std::is_same_v<category_type, population::pop_type_tag>) {
+					sums_out[to_index(ptype)] += size;
+				} else if constexpr(std::is_same_v<category_type, ideologies::ideology_tag>) {
+					for(uint32_t i = 0; i < ws.s.ideologies_m.ideologies_count; ++i) {
+						sums_out[i] += ws.w.population_s.pop_demographics.get(pop_id, population::to_demo_tag(ws, tag_type(static_cast<ideologies::ideology_tag::value_base_t>(i))));
+					}
+				} else if constexpr(std::is_same_v<category_type, issues::option_tag>) {
+					for(uint32_t i = 0; i < ws.s.issues_m.tracked_options_count; ++i) {
+						sums_out[i] += ws.w.population_s.pop_demographics.get(pop_id, population::to_demo_tag(ws, tag_type(static_cast<issues::option_tag::value_base_t>(i))));
+					}
+				} else {
+					std::abort(); // called with wrong category type
+				}
+			}
+		});
+		return total;
+	}
+	
+
 	template<typename W>
 	void population_window_base::on_create(W& w, world_state& ws) {
 		associated_object->size = ui::xy_pair{ 1017i16, 636i16 };
@@ -45,7 +99,11 @@ namespace population {
 			std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["distribution_window"]),
 			ui::tagged_gui_object{ *associated_object, w.window_object },
 			workforce);
-		workforce.associated_object->position = ui::xy_pair{ 268i16, 90i16 };
+		auto& wpie = workforce.template get<CT_STRING("chart")>();
+		wpie.associated_object->size.x *= 2;
+		wpie.associated_object->size.y *= 2;
+		workforce.associated_object->position = ui::xy_pair{ 253i16, 92i16 };
+		workforce.associated_object->size = ui::xy_pair{ 255i16, 95i16 };
 		ui::move_to_front(ws.w.gui_m, wwin);
 
 		auto& close_button = w.template get<CT_STRING("close_button")>();
@@ -118,59 +176,29 @@ namespace population {
 
 	template<typename lb_type>
 	void workforce_lb::populate_list(lb_type& lb, world_state & ws) {
-		boost::container::small_vector<std::tuple<graphics::color_rgb, text_data::text_tag, int32_t>, 32> data;
+		boost::container::small_vector<std::tuple<graphics::color_rgb, text_data::text_tag, float>, 32> data;
 
+		int64_t* sums_out = (int64_t*)_alloca(sizeof(int64_t) * ws.s.population_m.count_poptypes);
+		int64_t total_size = 0;
+		std::fill_n(sums_out, ws.s.population_m.count_poptypes, 0);
+		
 		if(ws.w.selected_population.display_type == current_state::population_display::nation) {
-			auto selected = ws.w.selected_population.population_for_nation;
-			if(!ws.w.nation_s.nations.is_valid_index(selected))
-				return;
-			auto total_pop = float(ws.w.nation_s.nation_demographics.get(selected, population::total_population_tag));
-			if(total_pop == 0.0f)
-				return;
-			auto poptypes = ws.w.nation_s.nation_demographics.get_row(selected) + to_index(population::to_demo_tag(ws, population::pop_type_tag(0)));
-			for(uint32_t i = 0; i < ws.s.population_m.count_poptypes; ++i) {
-				auto pop_of_type = poptypes[i];
-
-				if(pop_of_type != 0)
-					data.emplace_back(
-						ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].color,
-						ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].name,
-						int32_t(100.0f * float(pop_of_type) / total_pop));
-			}
+			total_size = sum_filtered_demo_data<population::pop_type_tag>(ws, sums_out, ws.w.selected_population.population_for_nation);
 		} else if(ws.w.selected_population.display_type == current_state::population_display::state) {
-			auto selected = ws.w.selected_population.population_for_state;
-			if(!ws.w.nation_s.states.is_valid_index(selected))
-				return;
-			auto total_pop = float(ws.w.nation_s.state_demographics.get(selected, population::total_population_tag));
-			if(total_pop == 0.0f)
-				return;
-			auto poptypes = ws.w.nation_s.state_demographics.get_row(selected) + to_index(population::to_demo_tag(ws, population::pop_type_tag(0)));
-			for(uint32_t i = 0; i < ws.s.population_m.count_poptypes; ++i) {
-				auto pop_of_type = poptypes[i];
-
-				if(pop_of_type != 0)
-					data.emplace_back(
-						ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].color,
-						ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].name,
-						int32_t(100.0f * float(pop_of_type) / total_pop));
-			}
+			total_size = sum_filtered_demo_data<population::pop_type_tag>(ws, sums_out, ws.w.selected_population.population_for_state);
 		} else if(ws.w.selected_population.display_type == current_state::population_display::province) {
-			auto selected = ws.w.selected_population.population_for_province;
-			if(!is_valid_index(selected))
-				return;
-			auto total_pop = float(ws.w.province_s.province_demographics.get(selected, population::total_population_tag));
-			if(total_pop == 0.0f)
-				return;
-			auto poptypes = ws.w.province_s.province_demographics.get_row(selected) + to_index(population::to_demo_tag(ws, population::pop_type_tag(0)));
-			for(uint32_t i = 0; i < ws.s.population_m.count_poptypes; ++i) {
-				auto pop_of_type = poptypes[i];
+			total_size = sum_filtered_demo_data<population::pop_type_tag>(ws, sums_out, ws.w.selected_population.population_for_province);
+		}
 
-				if(pop_of_type != 0)
-					data.emplace_back(
-						ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].color,
-						ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].name,
-						int32_t(100.0f * float(pop_of_type) / total_pop));
-			}
+		if(total_size == 0)
+			return;
+
+		for(uint32_t i = 0; i < ws.s.population_m.count_poptypes; ++i) {
+			if(sums_out[i] != 0)
+				data.emplace_back(
+					ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].color,
+					ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].name,
+					float(sums_out[i]) / float(total_size));
 		}
 
 		lb.new_list(data.begin().get_ptr(), data.end().get_ptr());

@@ -68,6 +68,8 @@ namespace current_state {
 			provinces::province_tag population_for_province;
 			nations::state_tag population_for_state;
 			nations::country_tag population_for_nation;
+
+			tagged_vector<uint8_t, population::pop_type_tag> filtered_pop_types;
 		} selected_population;
 
 		std::unique_ptr<gui_state> gui_objects;

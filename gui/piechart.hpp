@@ -66,42 +66,24 @@ void ui::piechart<BASE>::create_tooltip(gui_object_tag, world_state& ws, const m
 
 
 	ui::xy_pair cursor{ 0,0 };
-	int32_t int_amount = static_cast<int32_t>(amount * 100.0f);
-	if (int_amount <= 0) {
-		cursor = ui::text_chunk_to_instances(
-			ws.s.gui_m,
-			ws.w.gui_m,
-			vector_backed_string<char16_t>(u"<1% "),
-			tw,
-			ui::xy_pair{ 0,0 },
-			ui::text_format{ ui::text_color::white, graphics::font_tag(1), 16 });
-	} else {
-		char16_t lbuffer[8] = { 0,0,0,0,0,0,0,0 };
-		u16itoa(std::min(int_amount, 100), lbuffer);
-		for (int32_t i = 0; i < 8; ++i) {
-			if (lbuffer[i] == 0) {
-				lbuffer[i] = u'%';
-				lbuffer[i + 1] = u' ';
-				lbuffer[i + 2] = 0;
-				break;
-			}
-		}
-		cursor = ui::text_chunk_to_instances(
-			ws.s.gui_m,
-			ws.w.gui_m,
-			vector_backed_string<char16_t>(lbuffer),
-			tw,
-			ui::xy_pair{ 0,0 },
-			ui::text_format{ ui::text_color::white, graphics::font_tag(1), 16 });
-	}
-
+	
+	char16_t lbuffer[8] = { 0,0,0,0,0,0,0,0 };
+	put_value_in_buffer(lbuffer, display_type::percent, amount);
+	cursor = ui::text_chunk_to_instances(
+		ws.s.gui_m,
+		ws.w.gui_m,
+		vector_backed_string<char16_t>(lbuffer),
+		tw,
+		ui::xy_pair{ 0,0 },
+		ui::tooltip_text_format);
+	cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
 	ui::text_chunk_to_instances(
 		ws.s.gui_m,
 		ws.w.gui_m,
 		label,
 		tw,
 		cursor,
-		ui::text_format{ ui::text_color::white, graphics::font_tag(1), 16 });
+		ui::tooltip_text_format);
 }
 template<typename BASE>
 void ui::piechart<BASE>::clear_entries(gui_manager& manager) {
@@ -113,13 +95,16 @@ void ui::piechart<BASE>::clear_entries(gui_manager& manager) {
 	if (const auto dt = manager.data_textures.safe_at(data_texture_tag(associated_object->type_dependant_handle)); dt)
 		memset(dt->data(), 255, ui::piechart_resolution * 3);
 	portion_used = 0;
+	remainder = 0.0f;
 }
 
 template<typename BASE>
 void ui::piechart<BASE>::add_entry(gui_manager& manager, vector_backed_string<char16_t> label, float fraction, graphics::color_rgb color) {
 	const int32_t last_entry = portion_used;
-	const float fraction_used = float(portion_used) / float(ui::piechart_resolution);
-	portion_used = std::min(ui::piechart_resolution, static_cast<int32_t>((fraction_used + fraction) * static_cast<float>(ui::piechart_resolution)));
+
+	float adjusted_amount = 0.0f;
+	remainder = std::modf(float(portion_used) + remainder + fraction * static_cast<float>(ui::piechart_resolution), &adjusted_amount);
+	portion_used = std::min(ui::piechart_resolution, static_cast<int32_t>(adjusted_amount));
 
 	if (const auto dt = manager.data_textures.safe_at(data_texture_tag(associated_object->type_dependant_handle)); dt) {
 		const auto data = dt->data();
@@ -136,9 +121,10 @@ void ui::piechart<BASE>::add_entry(gui_manager& manager, vector_backed_string<ch
 template<typename BASE>
 void ui::piechart<BASE>::fill_remainder(gui_manager& manager, vector_backed_string<char16_t> label, graphics::color_rgb color) {
 	const int32_t last_entry = portion_used;
-	const float unused = float(ui::piechart_resolution - portion_used) / float(ui::piechart_resolution);
+	const float unused = (float(ui::piechart_resolution - portion_used) - remainder) / float(ui::piechart_resolution);
 
 	portion_used = ui::piechart_resolution;
+	remainder = 0.0f;
 	
 	if(const auto dt = manager.data_textures.safe_at(data_texture_tag(associated_object->type_dependant_handle)); dt) {
 		const auto data = dt->data();

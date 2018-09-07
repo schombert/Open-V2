@@ -61,60 +61,28 @@ namespace population {
 	}
 
 	void workforce_chart::update(ui::piechart<workforce_chart>& pie, world_state & ws) {
+		int64_t* sums_out = (int64_t*)_alloca(sizeof(int64_t) * ws.s.population_m.count_poptypes);
+		int64_t total_size = 0;
+		std::fill_n(sums_out, ws.s.population_m.count_poptypes, 0);
+
 		if(ws.w.selected_population.display_type == current_state::population_display::nation) {
-			auto selected = ws.w.selected_population.population_for_nation;
-			if(!ws.w.nation_s.nations.is_valid_index(selected))
-				return;
-			auto total_pop = float(ws.w.nation_s.nation_demographics.get(selected, population::total_population_tag));
-			if(total_pop == 0.0f)
-				return;
-			auto poptypes = ws.w.nation_s.nation_demographics.get_row(selected) + to_index(population::to_demo_tag(ws, population::pop_type_tag(0)));
-			for(uint32_t i = 0; i < ws.s.population_m.count_poptypes; ++i) {
-				auto pop_of_type = poptypes[i];
-
-				if(pop_of_type != 0)
-					pie.add_entry(
-						ws.w.gui_m,
-						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].name),
-						float(pop_of_type) / total_pop,
-						ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].color);
-			}
+			total_size = sum_filtered_demo_data<population::pop_type_tag>(ws, sums_out, ws.w.selected_population.population_for_nation);
 		} else if(ws.w.selected_population.display_type == current_state::population_display::state) {
-			auto selected = ws.w.selected_population.population_for_state;
-			if(!ws.w.nation_s.states.is_valid_index(selected))
-				return;
-			auto total_pop = float(ws.w.nation_s.state_demographics.get(selected, population::total_population_tag));
-			if(total_pop == 0.0f)
-				return;
-			auto poptypes = ws.w.nation_s.state_demographics.get_row(selected) + to_index(population::to_demo_tag(ws, population::pop_type_tag(0)));
-			for(uint32_t i = 0; i < ws.s.population_m.count_poptypes; ++i) {
-				auto pop_of_type = poptypes[i];
-
-				if(pop_of_type != 0)
-					pie.add_entry(
-						ws.w.gui_m,
-						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].name),
-						float(pop_of_type) / total_pop,
-						ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].color);
-			}
+			total_size = sum_filtered_demo_data<population::pop_type_tag>(ws, sums_out, ws.w.selected_population.population_for_state);
 		} else if(ws.w.selected_population.display_type == current_state::population_display::province) {
-			auto selected = ws.w.selected_population.population_for_province;
-			if(!is_valid_index(selected))
-				return;
-			auto total_pop = float(ws.w.province_s.province_demographics.get(selected, population::total_population_tag));
-			if(total_pop == 0.0f)
-				return;
-			auto poptypes = ws.w.province_s.province_demographics.get_row(selected) + to_index(population::to_demo_tag(ws, population::pop_type_tag(0)));
-			for(uint32_t i = 0; i < ws.s.population_m.count_poptypes; ++i) {
-				auto pop_of_type = poptypes[i];
+			total_size = sum_filtered_demo_data<population::pop_type_tag>(ws, sums_out, ws.w.selected_population.population_for_province);
+		}
 
-				if(pop_of_type != 0)
-					pie.add_entry(
-						ws.w.gui_m,
-						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].name),
-						float(pop_of_type) / total_pop,
-						ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].color);
-			}
+		if(total_size == 0)
+			return;
+
+		for(uint32_t i = 0; i < ws.s.population_m.count_poptypes; ++i) {
+			if(sums_out[i] != 0)
+				pie.add_entry(
+					ws.w.gui_m,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].name),
+					float(sums_out[i]) / float(total_size),
+					ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].color);
 		}
 	}
 	ui::window_tag workforce_lb::element_tag(ui::gui_static& m) {

@@ -677,10 +677,18 @@ inline char16_t* put_pos_value_in_buffer(char16_t* dest, display_type display_as
 		case display_type::percent:
 		{
 			uint32_t int_value = uint32_t(value_type(100.0) * value + value_type(0.5));
-			auto value_end = _u16itoa(int_value, dest);
-			*value_end = u'%';
-			*(value_end + 1) = char16_t(0);
-			return value_end + 1;
+			if(int_value == 0 && value != value_type(0)) {
+				dest[0] = u'<';
+				dest[1] = u'1';
+				dest[2] = u'%';
+				dest[3] = char16_t(0);
+				return dest + 3;
+			} else {
+				auto value_end = _u16itoa(int_value, dest);
+				*value_end = u'%';
+				*(value_end + 1) = char16_t(0);
+				return value_end + 1;
+			}
 		}
 		case display_type::integer:
 		case display_type::netural_integer:
@@ -847,8 +855,8 @@ struct vector_backed_string_less {
 		else if (a_len > b_len)
 			return false;
 		else {
-			const char_type* __restrict a_str = a.get_str(backing);
-			const char_type* __restrict b_str = b.get_str(backing);
+			const char_type* a_str = a.get_str(backing);
+			const char_type* b_str = b.get_str(backing);
 			for (int32_t i = a_len - 1; i >= 0; --i) {
 				if (a_str[i] < b_str[i])
 					return true;
@@ -871,8 +879,8 @@ struct vector_backed_string_less_ci {
 		else if (a_len > b_len)
 			return false;
 		else {
-			const char* __restrict a_str = a.get_str(backing);
-			const char* __restrict b_str = b.get_str(backing);
+			const char* a_str = a.get_str(backing);
+			const char* b_str = b.get_str(backing);
 			for (int32_t i = a_len - 1; i >= 0; --i) {
 				if (ascii_to_lower(a_str[i]) < ascii_to_lower(b_str[i]))
 					return true;

@@ -10,7 +10,7 @@ void ui::dynamic_icon<BASE>::update_data(gui_object_tag, world_state& w) {
 
 template<typename BASE>
 void ui::tinted_icon<BASE>::update_data(gui_object_tag, world_state& w) {
-	if constexpr(ui::detail::has_update<BASE, dynamic_icon<BASE>&, world_state&>) {
+	if constexpr(ui::detail::has_update<BASE, tinted_icon<BASE>&, world_state&>) {
 		BASE::update(*this, w);
 	}
 }
@@ -26,7 +26,7 @@ void ui::dynamic_icon<BASE>::windowed_update(window_type& w, world_state& s) {
 template<typename BASE>
 template<typename window_type>
 void ui::tinted_icon<BASE>::windowed_update(window_type& w, world_state& s) {
-	if constexpr(ui::detail::has_windowed_update<BASE, dynamic_icon<BASE>&, window_type&, world_state&>) {
+	if constexpr(ui::detail::has_windowed_update<BASE, tinted_icon<BASE>&, window_type&, world_state&>) {
 		BASE::windowed_update(*this, w, s);
 	}
 }
@@ -105,9 +105,9 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, icon_tag handle
 
 template<typename B>
 ui::tagged_gui_object ui::create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, tinted_icon<B>& b) {
-	const auto new_gobj = manager.gui_objects.emplace();
+	const auto new_gobj = ws.w.gui_m.gui_objects.emplace();
 
-	const ui::icon_def& icon_def = static_manager.ui_definitions.icons[handle];
+	const ui::icon_def& icon_def = ws.s.gui_m.ui_definitions.icons[handle];
 
 	const uint16_t rotation =
 		(icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_upright ?
@@ -118,7 +118,7 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, icon_tag handle
 	new_gobj.object.flags.fetch_or(rotation, std::memory_order_acq_rel);
 	new_gobj.object.align = alignment_from_definition(icon_def);
 
-	instantiate_graphical_object(static_manager, manager, new_gobj, 0, true);
+	ui::detail::instantiate_graphical_object(ws.s.gui_m, ws.w.gui_m, new_gobj, icon_def.graphical_object_handle, 0, true);
 
 	new_gobj.object.size.x *= icon_def.scale;
 	new_gobj.object.size.y *= icon_def.scale;
