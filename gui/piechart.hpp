@@ -154,6 +154,16 @@ void ui::piechart<BASE>::update_data(gui_object_tag, world_state& w) {
 }
 
 template<typename BASE>
+template<typename window_type>
+void ui::piechart<BASE>::windowed_update(window_type& w, world_state& s) {
+	if constexpr(ui::detail::has_windowed_update<BASE, ui::piechart<BASE>&, window_type&, world_state&>) {
+		clear_entries(w.w.gui_m);
+		BASE::windowed_update(*this, w, s);
+		update_display(w.w.gui_m);
+	}
+}
+
+template<typename BASE>
 ui::tagged_gui_object ui::create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, piechart<BASE>& b) {
 	const auto res = ui::detail::create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
 

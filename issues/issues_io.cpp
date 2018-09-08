@@ -9,6 +9,17 @@
 #include "events\\events_io.h"
 
 namespace issues {
+	inline void generate_options_colors(issues_manager& m) {
+		int32_t total_number_of_options = int32_t(m.options.size());
+		int32_t rel_prime = find_best_relative_prime(total_number_of_options);
+
+		int32_t current_val = 0;
+		for(int32_t i = 0; i < total_number_of_options; ++i) {
+			m.options[option_tag(static_cast<option_tag::value_base_t>(i))].color = graphics::hue_to_rgb(float(current_val) / float(total_number_of_options));
+			current_val = (current_val + rel_prime) % total_number_of_options;
+		}
+	}
+
 	struct parsing_environment {
 		text_data::text_sequences& text_lookup;
 		issues_manager& manager;
@@ -389,5 +400,7 @@ namespace issues {
 			auto res = parse_object<option_reader, option_parsing_domain>(std::get<1>(pending), std::get<2>(pending), env);
 			opt.modifier = modifiers::add_national_modifier(opt.name, res, s.modifiers_m);
 		}
+
+		generate_options_colors(s.issues_m);
 	}
 }

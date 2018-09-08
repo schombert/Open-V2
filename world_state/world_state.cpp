@@ -59,4 +59,7 @@ namespace current_state {
 		selected_population.display_type = population_display::province;
 		ui::make_visible_and_update(gui_m, *(gui_objects->population_window.associated_object));
 	}
+	void state::update_population_window() {
+		ui::make_visible_and_update(gui_m, *(gui_objects->population_window.associated_object));
+	}
 }

@@ -73,6 +73,8 @@ namespace issues {
 	}
 	struct issue_option {
 		rules_set issue_rules;
+		graphics::color_rgb color;
+
 		int32_t technology_cost = 0;
 		float war_exhaustion_effect = 1.0f;
 		int16_t administrative_multiplier = 0;

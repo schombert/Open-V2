@@ -159,7 +159,7 @@ namespace ui {
 	};
 
 	template<typename BASE>
-	class simple_button : public visible_region, public BASE {
+	class simple_button : public gui_behavior, public BASE {
 	public:
 		virtual_key shortcut = virtual_key::NONE;
 
@@ -182,7 +182,7 @@ namespace ui {
 	};
 
 	template<typename BASE>
-	class progress_bar : public visible_region, public BASE {
+	class progress_bar : public gui_behavior, public BASE {
 	private:
 		multi_texture_instance* underlying_obj = nullptr;
 	public:
@@ -205,7 +205,7 @@ namespace ui {
 	};
 
 	template<typename BASE>
-	class masked_flag : public visible_region, public BASE {
+	class masked_flag : public gui_behavior, public BASE {
 	private:
 		cultures::national_tag displayed_flag;
 		multi_texture_instance* underlying_obj = nullptr;
@@ -233,7 +233,7 @@ namespace ui {
 	};
 
 	template<typename BASE>
-	class dynamic_icon : public visible_region, public BASE {
+	class dynamic_icon : public gui_behavior, public BASE {
 	public:
 		dynamic_icon(dynamic_icon&&) = default;
 		dynamic_icon(dynamic_icon& o) noexcept : dynamic_icon(std::move(o)) {}
@@ -251,7 +251,7 @@ namespace ui {
 	};
 
 	template<typename BASE>
-	class tinted_icon : public visible_region, public BASE {
+	class tinted_icon : public gui_behavior, public BASE {
 	public:
 		tinted_icon(tinted_icon&&) = default;
 		tinted_icon(tinted_icon& o) noexcept : tinted_icon(std::move(o)) {}
@@ -285,7 +285,7 @@ namespace ui {
 	};
 
 	template<typename BASE, int32_t y_adjust = 0>
-	class display_text : public visible_region, public BASE {
+	class display_text : public gui_behavior, public BASE {
 	private:
 		text_format format;
 		text_data::alignment align;
@@ -334,6 +334,8 @@ namespace ui {
 		virtual void create_tooltip(gui_object_tag, world_state&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
 		virtual void update_data(gui_object_tag, world_state&) final override;
 
+		template<typename window_type>
+		void windowed_update(window_type&, world_state&);
 		void clear_entries(gui_manager& manager);
 		void add_entry(gui_manager& manager, vector_backed_string<char16_t> label, float fraction, graphics::color_rgb color);
 		void fill_remainder(gui_manager& manager, vector_backed_string<char16_t> label, graphics::color_rgb color);

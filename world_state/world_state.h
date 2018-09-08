@@ -84,6 +84,7 @@ namespace current_state {
 		void show_province_window(provinces::province_tag p);
 		void hide_population_window();
 		void show_population_window(provinces::province_tag p);
+		void update_population_window();
 	};
 }
 

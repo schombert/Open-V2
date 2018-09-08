@@ -8,6 +8,222 @@ class world_state;
 
 namespace population {
 
+	class pop_list_item_base : public ui::visible_region {
+	public:
+		pop_tag tag;
+
+		void set_value(pop_tag t) {
+			tag = t;
+		}
+	};
+
+	class pop_size {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class pop_type_button {
+	public:
+		template<typename W>
+		void windowed_update(ui::simple_button<pop_type_button>&, W& w, world_state& ws);
+		void button_function(ui::simple_button<pop_type_button>&, world_state&) {}
+	};
+
+	class pop_producing_icon {
+	public:
+		template<typename W>
+		void windowed_update(ui::dynamic_icon<pop_producing_icon>&, W& w, world_state& ws);
+	};
+
+	class pop_culture {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class pop_religion {
+	public:
+		template<typename W>
+		void windowed_update(ui::dynamic_icon<pop_religion>&, W& w, world_state& ws);
+
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+	};
+
+	class pop_location {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class pop_militancy {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class pop_consciousness {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class pop_ideology {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::piechart<pop_ideology>& pie, window_type&, world_state& ws);
+	};
+
+	class pop_issues {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::piechart<pop_issues>& pie, window_type&, world_state& ws);
+	};
+
+	class pop_unemployment_bar {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::progress_bar<pop_unemployment_bar>& bar, window_type&, world_state& ws);
+	};
+
+	class pop_cash {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class lifeneed_progress {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::progress_bar<lifeneed_progress>& bar, window_type&, world_state& ws);
+	};
+	class eveneed_progress {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::progress_bar<eveneed_progress>& bar, window_type&, world_state& ws);
+	};
+	class luxneed_progress {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::progress_bar<luxneed_progress>& bar, window_type&, world_state& ws);
+	};
+
+	class pops_unempl_overlay {
+	public:
+		template<typename W>
+		void windowed_update(ui::dynamic_icon<pops_unempl_overlay>&, W& w, world_state& ws);
+
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+	};
+
+	class lifeneed_progress_overlay {
+	public:
+		template<typename W>
+		void windowed_update(ui::dynamic_icon<lifeneed_progress_overlay>&, W& w, world_state& ws);
+
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+	};
+
+	class eveneed_progress_overlay {
+	public:
+		template<typename W>
+		void windowed_update(ui::dynamic_icon<eveneed_progress_overlay>&, W& w, world_state& ws);
+
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+	};
+	class luxneed_progress_overlay {
+	public:
+		template<typename W>
+		void windowed_update(ui::dynamic_icon<luxneed_progress_overlay>&, W& w, world_state& ws);
+
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+	};
+
+	class pop_literacy {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class pop_revolt {
+	public:
+		template<typename W>
+		void windowed_update(ui::dynamic_icon<pop_revolt>&, W& w, world_state& ws);
+
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+	};
+
+	class pop_movement_social {
+	public:
+		template<typename W>
+		void windowed_update(ui::dynamic_icon<pop_movement_social>&, W& w, world_state& ws);
+
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+	};
+
+	class pop_movement_political {
+	public:
+		template<typename W>
+		void windowed_update(ui::dynamic_icon<pop_movement_political>&, W& w, world_state& ws);
+
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+	};
+
+	class pop_movement_flag {
+	public:
+		template<typename W>
+		void windowed_update(ui::masked_flag<pop_movement_flag>& self, W& w, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(ui::masked_flag<pop_movement_flag>& self, world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	using pop_list_item = ui::gui_window<
+		CT_STRING("pop_size"), ui::display_text<pop_size>,
+		CT_STRING("pop_type"), ui::simple_button<pop_type_button>,
+		CT_STRING("pop_producing_icon"), ui::dynamic_icon<pop_producing_icon>,
+		CT_STRING("pop_nation"), ui::display_text<pop_culture>,
+		CT_STRING("pop_religion"), ui::dynamic_icon<pop_religion>,
+		CT_STRING("pop_location"), ui::display_text<pop_location>,
+		CT_STRING("pop_mil"), ui::display_text<pop_militancy>,
+		CT_STRING("pop_con"), ui::display_text<pop_consciousness>,
+		CT_STRING("pop_ideology"), ui::piechart<pop_ideology>,
+		CT_STRING("pop_issues"), ui::piechart<pop_issues>,
+		CT_STRING("pop_unemployment_bar"), ui::progress_bar<pop_unemployment_bar>,
+		CT_STRING("pop_cash"), ui::display_text<pop_cash>,
+		CT_STRING("lifeneed_progress"), ui::progress_bar<lifeneed_progress>,
+		CT_STRING("eveneed_progress"), ui::progress_bar<eveneed_progress>,
+		CT_STRING("luxneed_progress"), ui::progress_bar<luxneed_progress>,
+		CT_STRING("pops_unempl_overlay"), ui::dynamic_icon<pops_unempl_overlay>,
+		CT_STRING("lifeneed_progress_overlay"), ui::dynamic_icon<lifeneed_progress_overlay>,
+		CT_STRING("eveneed_progress_overlay"), ui::dynamic_icon<eveneed_progress_overlay>,
+		CT_STRING("luxneed_progress_overlay"), ui::dynamic_icon<luxneed_progress_overlay>,
+		CT_STRING("pop_revolt"), ui::dynamic_icon<pop_revolt>,
+		CT_STRING("pop_movement_social"), ui::dynamic_icon<pop_movement_social>,
+		CT_STRING("pop_movement_political"), ui::dynamic_icon<pop_movement_political>,
+		CT_STRING("pop_movement_flag"), ui::masked_flag<pop_movement_flag>,
+		CT_STRING("pop_literacy"), ui::display_text<pop_literacy>,
+		pop_list_item_base
+	>;
+
+	class pop_filter_button {
+	public:
+		pop_type_tag type;
+
+		pop_filter_button(pop_type_tag t) : type(t) {}
+		void button_function(ui::simple_button<pop_filter_button>&, world_state&);
+		void update(ui::simple_button<pop_filter_button>&, world_state&);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+	};
+
 	class legend_item_base : public ui::visible_region {
 	public:
 		graphics::color_rgb color;
@@ -68,11 +284,138 @@ namespace population {
 		CT_STRING("chart"), ui::piechart<workforce_chart>,
 		CT_STRING("member_names"), ui::discrete_listbox<workforce_lb, legend_item, std::tuple<graphics::color_rgb, text_data::text_tag, float>, 7>,
 		ui::visible_region
-	> ;
+	>;
 
-	class population_window_base : public ui::visible_region {
+	class religion_title {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class religion_chart {
+	public:
+		void update(ui::piechart<religion_chart>& pie, world_state& ws);
+	};
+
+	class religion_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	using religion_details_window = ui::gui_window <
+		CT_STRING("item_name"), ui::display_text<religion_title, -22>,
+		CT_STRING("chart"), ui::piechart<religion_chart>,
+		CT_STRING("member_names"), ui::discrete_listbox<religion_lb, legend_item, std::tuple<graphics::color_rgb, text_data::text_tag, float>, 7>,
+		ui::visible_region
+	>;
+
+	class culture_title {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class culture_chart {
+	public:
+		void update(ui::piechart<culture_chart>& pie, world_state& ws);
+	};
+
+	class culture_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	using culture_details_window = ui::gui_window <
+		CT_STRING("item_name"), ui::display_text<culture_title, -22>,
+		CT_STRING("chart"), ui::piechart<culture_chart>,
+		CT_STRING("member_names"), ui::discrete_listbox<culture_lb, legend_item, std::tuple<graphics::color_rgb, text_data::text_tag, float>, 7>,
+		ui::visible_region
+	>;
+
+	class ideology_title {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class ideology_chart {
+	public:
+		void update(ui::piechart<ideology_chart>& pie, world_state& ws);
+	};
+
+	class ideology_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	using ideology_details_window = ui::gui_window <
+		CT_STRING("item_name"), ui::display_text<ideology_title, -22>,
+		CT_STRING("chart"), ui::piechart<ideology_chart>,
+		CT_STRING("member_names"), ui::discrete_listbox<ideology_lb, legend_item, std::tuple<graphics::color_rgb, text_data::text_tag, float>, 7>,
+		ui::visible_region
+	>;
+
+	class issues_title {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class issues_chart {
+	public:
+		void update(ui::piechart<issues_chart>& pie, world_state& ws);
+	};
+
+	class issues_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	using issues_details_window = ui::gui_window <
+		CT_STRING("item_name"), ui::display_text<issues_title, -22>,
+		CT_STRING("chart"), ui::piechart<issues_chart>,
+		CT_STRING("member_names"), ui::discrete_listbox<issues_lb, legend_item, std::tuple<graphics::color_rgb, text_data::text_tag, float>, 7>,
+		ui::visible_region
+	>;
+
+	class electorate_title {
+	public:
+		void update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class electorate_chart {
+	public:
+		void update(ui::piechart<electorate_chart>& pie, world_state& ws);
+	};
+
+	class electorate_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	using electorate_details_window = ui::gui_window <
+		CT_STRING("item_name"), ui::display_text<electorate_title, -22>,
+		CT_STRING("chart"), ui::piechart<electorate_chart>,
+		CT_STRING("member_names"), ui::discrete_listbox<electorate_lb, legend_item, std::tuple<graphics::color_rgb, text_data::text_tag, float>, 7>,
+		ui::visible_region
+	>;
+
+	class population_window_base : public ui::draggable_region {
 	public:
 		workforce_details_window workforce;
+		culture_details_window cultures_w;
+		ideology_details_window ideologies_w;
+		issues_details_window issues_w;
+		religion_details_window religions_w;
+		electorate_details_window electorate_w;
+
+		std::vector<ui::simple_button<pop_filter_button>> filter_buttons;
 
 		population_window_base() {}
 		population_window_base(population_window_base&&) = default;

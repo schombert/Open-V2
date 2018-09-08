@@ -1048,6 +1048,23 @@ public:
 	}
 };
 
+inline int32_t find_best_relative_prime(int32_t prime_to) {
+	int32_t base = (prime_to* 4 + 1) / 5;
+
+	if(std::gcd(prime_to, base) == 1)
+		return base;
+
+	int32_t n = 1;
+	while(true) {
+		if(std::gcd(prime_to, base + n) == 1)
+			return base + n;
+		if(std::gcd(prime_to, base - n) == 1)
+			return base - n;
+
+		++n;
+	}
+}
+
 namespace graphics {
 	struct color_rgba {
 		uint8_t r = 0;
@@ -1100,6 +1117,25 @@ namespace graphics {
 		} u;
 		u.value = v;
 		return u.color;
+	}
+
+	namespace detail {
+		inline float hue_helper(float v) {
+			if(v < 0.0f) v += 1.0;
+			if(v > 1.0f) v -= 1.0;
+			if(v < 1.0f / 6.0f) return 6.0f * v;
+			if(v < 0.5f) return 1.0f;
+			if(v < 2.0f / 3.0f) return (2.0f / 3.0f - v) * 6.0f;
+			return 0.0f;
+		}
+	}
+
+	inline color_rgb hue_to_rgb(float h) {
+		float r = detail::hue_helper(h + 1.0f / 3.0f);
+		float g = detail::hue_helper(h);
+		float b = detail::hue_helper(h - 1.0f / 3.0f);
+
+		return color_rgb{ uint8_t(r * 255.0f + 0.5f),  uint8_t(g * 255.0f + 0.5f),  uint8_t(b * 255.0f + 0.5f) };
 	}
 
 }

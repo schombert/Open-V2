@@ -273,9 +273,17 @@ namespace ui {
 		indent -= indent_size * n;
 	}
 
-	bool draggable_region::on_drag(gui_object_tag , world_state &, const mouse_drag &m) {
-		associated_object->position.x = static_cast<int16_t>(base_position.x + m.x);
-		associated_object->position.y = static_cast<int16_t>(base_position.y + m.y);
+	bool draggable_region::on_drag(gui_object_tag t, world_state& ws, const mouse_drag &m) {
+		auto& obj = ws.w.gui_m.gui_objects.at(t);
+		if(is_valid_index(obj.parent)) {
+			auto& parent = ws.w.gui_m.gui_objects.at(obj.parent);
+
+			associated_object->position.x = static_cast<int16_t>(std::clamp(base_position.x + m.x, 0, parent.size.x - obj.size.x));
+			associated_object->position.y = static_cast<int16_t>(std::clamp(base_position.y + m.y, 0, parent.size.y - obj.size.y));
+		} else {
+			associated_object->position.x = static_cast<int16_t>(base_position.x + m.x);
+			associated_object->position.y = static_cast<int16_t>(base_position.y + m.y);
+		}
 		return true;
 	}
 

@@ -3,18 +3,25 @@
 
 template<typename BASE>
 bool ui::simple_button<BASE>::on_lclick(gui_object_tag o, world_state& m, const lbutton_down &) {
-	if constexpr(ui::detail::has_button_function<BASE, gui_object_tag, world_state&>)
+	if constexpr(ui::detail::has_button_function<BASE, gui_object_tag, world_state&>) {
 		BASE::button_function(o, m);
-	else if constexpr(ui::detail::has_button_function<BASE, ui::simple_button<BASE>&, world_state&>)
+		return true;
+	} else if constexpr(ui::detail::has_button_function<BASE, ui::simple_button<BASE>&, world_state&>) {
 		BASE::button_function(*this, m);
-	return true;
+		return true;
+	} else {
+		return false;
+	}
 }
 
 template<typename BASE>
 bool ui::masked_flag<BASE>::on_lclick(gui_object_tag, world_state& m, const lbutton_down &) {
-	if constexpr(ui::detail::has_button_function<BASE, masked_flag<BASE>&, world_state&>)
+	if constexpr(ui::detail::has_button_function<BASE, masked_flag<BASE>&, world_state&>) {
 		BASE::button_function(*this, m);
-	return true;
+		return true;
+	} else {
+		return false;
+	}
 }
 
 template<typename BASE>

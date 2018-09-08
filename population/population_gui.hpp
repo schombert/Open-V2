@@ -3,6 +3,7 @@
 #include "population_gui.h"
 #include "provinces\\province_functions.hpp"
 #include "nations\\nations_functions.hpp"
+#include "population_function.h"
 
 namespace population {
 
@@ -71,11 +72,11 @@ namespace population {
 					sums_out[to_index(ptype)] += size;
 				} else if constexpr(std::is_same_v<category_type, ideologies::ideology_tag>) {
 					for(uint32_t i = 0; i < ws.s.ideologies_m.ideologies_count; ++i) {
-						sums_out[i] += ws.w.population_s.pop_demographics.get(pop_id, population::to_demo_tag(ws, tag_type(static_cast<ideologies::ideology_tag::value_base_t>(i))));
+						sums_out[i] += ws.w.population_s.pop_demographics.get(pop_id, population::to_demo_tag(ws, ideologies::ideology_tag(static_cast<ideologies::ideology_tag::value_base_t>(i))));
 					}
 				} else if constexpr(std::is_same_v<category_type, issues::option_tag>) {
 					for(uint32_t i = 0; i < ws.s.issues_m.tracked_options_count; ++i) {
-						sums_out[i] += ws.w.population_s.pop_demographics.get(pop_id, population::to_demo_tag(ws, tag_type(static_cast<issues::option_tag::value_base_t>(i))));
+						sums_out[i] += ws.w.population_s.pop_demographics.get(pop_id, population::to_demo_tag(ws, issues::option_tag(static_cast<issues::option_tag::value_base_t>(i))));
 					}
 				} else {
 					std::abort(); // called with wrong category type
@@ -94,17 +95,102 @@ namespace population {
 		});
 
 
-		auto wwin = ui::create_static_element(
-			ws,
-			std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["distribution_window"]),
-			ui::tagged_gui_object{ *associated_object, w.window_object },
-			workforce);
-		auto& wpie = workforce.template get<CT_STRING("chart")>();
-		wpie.associated_object->size.x *= 2;
-		wpie.associated_object->size.y *= 2;
-		workforce.associated_object->position = ui::xy_pair{ 253i16, 92i16 };
-		workforce.associated_object->size = ui::xy_pair{ 255i16, 95i16 };
-		ui::move_to_front(ws.w.gui_m, wwin);
+		{
+			auto wwin = ui::create_static_element(
+				ws,
+				std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["distribution_window"]),
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				workforce);
+			auto& pie = workforce.template get<CT_STRING("chart")>();
+			pie.associated_object->size.x *= 2;
+			pie.associated_object->size.y *= 2;
+			workforce.associated_object->position = ui::xy_pair{ 253i16, 92i16 };
+			workforce.associated_object->size = ui::xy_pair{ 255i16, 95i16 };
+			ui::move_to_front(ws.w.gui_m, wwin);
+		}
+
+		{
+			auto wwin = ui::create_static_element(
+				ws,
+				std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["distribution_window"]),
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				cultures_w);
+			auto& pie = cultures_w.template get<CT_STRING("chart")>();
+			pie.associated_object->size.x *= 2;
+			pie.associated_object->size.y *= 2;
+			cultures_w.associated_object->position = ui::xy_pair{ int16_t(253 + 243), int16_t(92) };
+			cultures_w.associated_object->size = ui::xy_pair{ 255i16, 95i16 };
+			ui::move_to_front(ws.w.gui_m, wwin);
+		}
+
+		{
+			auto wwin = ui::create_static_element(
+				ws,
+				std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["distribution_window"]),
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				religions_w);
+			auto& pie = religions_w.template get<CT_STRING("chart")>();
+			pie.associated_object->size.x *= 2;
+			pie.associated_object->size.y *= 2;
+			religions_w.associated_object->position = ui::xy_pair{ int16_t(253 + 2 * 243), int16_t(92) };
+			religions_w.associated_object->size = ui::xy_pair{ 255i16, 95i16 };
+			ui::move_to_front(ws.w.gui_m, wwin);
+		}
+
+		{
+			auto wwin = ui::create_static_element(
+				ws,
+				std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["distribution_window"]),
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				ideologies_w);
+			auto& pie = ideologies_w.template get<CT_STRING("chart")>();
+			pie.associated_object->size.x *= 2;
+			pie.associated_object->size.y *= 2;
+			ideologies_w.associated_object->position = ui::xy_pair{ int16_t(253 + 0 * 243), int16_t(92 + 101) };
+			ideologies_w.associated_object->size = ui::xy_pair{ 255i16, 95i16 };
+			ui::move_to_front(ws.w.gui_m, wwin);
+		}
+
+		{
+			auto wwin = ui::create_static_element(
+				ws,
+				std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["distribution_window"]),
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				issues_w);
+			auto& pie = issues_w.template get<CT_STRING("chart")>();
+			pie.associated_object->size.x *= 2;
+			pie.associated_object->size.y *= 2;
+			issues_w.associated_object->position = ui::xy_pair{ int16_t(253 + 1 * 243), int16_t(92 + 101) };
+			issues_w.associated_object->size = ui::xy_pair{ 255i16, 95i16 };
+			ui::move_to_front(ws.w.gui_m, wwin);
+		}
+
+		{
+			auto wwin = ui::create_static_element(
+				ws,
+				std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["distribution_window"]),
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				electorate_w);
+			auto& pie = electorate_w.template get<CT_STRING("chart")>();
+			pie.associated_object->size.x *= 2;
+			pie.associated_object->size.y *= 2;
+			electorate_w.associated_object->position = ui::xy_pair{ int16_t(253 + 2 * 243), int16_t(92 + 101) };
+			electorate_w.associated_object->size = ui::xy_pair{ 255i16, 95i16 };
+			ui::move_to_front(ws.w.gui_m, wwin);
+		}
+
+		for(uint32_t i = 0; i < ws.s.population_m.count_poptypes; ++i) {
+			filter_buttons.emplace_back(pop_type_tag(static_cast<pop_type_tag::value_base_t>(i)));
+
+			auto fb = ui::create_static_element(
+				ws,
+				std::get<ui::button_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["pop_filter_button"]),
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				filter_buttons.back());
+			fb.object.position = ui::xy_pair{ int16_t(285 + 32 * i), int16_t(25) };
+			ui::move_to_front(ws.w.gui_m, fb);
+		}
+
 
 		auto& close_button = w.template get<CT_STRING("close_button")>();
 		close_button.associated_object->position = ui::xy_pair{ -31i16, -1i16 };
@@ -190,14 +276,146 @@ namespace population {
 			total_size = sum_filtered_demo_data<population::pop_type_tag>(ws, sums_out, ws.w.selected_population.population_for_province);
 		}
 
-		if(total_size == 0)
+		if(total_size == 0) {
+			lb.new_list(nullptr, nullptr);
 			return;
+		}
 
 		for(uint32_t i = 0; i < ws.s.population_m.count_poptypes; ++i) {
 			if(sums_out[i] != 0)
 				data.emplace_back(
 					ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].color,
 					ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].name,
+					float(sums_out[i]) / float(total_size));
+		}
+
+		lb.new_list(data.begin().get_ptr(), data.end().get_ptr());
+	}
+
+	template<typename lb_type>
+	void religion_lb::populate_list(lb_type& lb, world_state & ws) {
+		boost::container::small_vector<std::tuple<graphics::color_rgb, text_data::text_tag, float>, 32> data;
+
+		int64_t* sums_out = (int64_t*)_alloca(sizeof(int64_t) * ws.s.culture_m.count_religions);
+		int64_t total_size = 0;
+		std::fill_n(sums_out, ws.s.culture_m.count_religions, 0);
+
+		if(ws.w.selected_population.display_type == current_state::population_display::nation) {
+			total_size = sum_filtered_demo_data<cultures::religion_tag>(ws, sums_out, ws.w.selected_population.population_for_nation);
+		} else if(ws.w.selected_population.display_type == current_state::population_display::state) {
+			total_size = sum_filtered_demo_data<cultures::religion_tag>(ws, sums_out, ws.w.selected_population.population_for_state);
+		} else if(ws.w.selected_population.display_type == current_state::population_display::province) {
+			total_size = sum_filtered_demo_data<cultures::religion_tag>(ws, sums_out, ws.w.selected_population.population_for_province);
+		}
+
+		if(total_size == 0) {
+			lb.new_list(nullptr, nullptr);
+			return;
+		}
+
+		for(uint32_t i = 0; i < ws.s.culture_m.count_religions; ++i) {
+			if(sums_out[i] != 0)
+				data.emplace_back(
+					ws.s.culture_m.religions[cultures::religion_tag(static_cast<cultures::religion_tag::value_base_t>(i))].color,
+					ws.s.culture_m.religions[cultures::religion_tag(static_cast<cultures::religion_tag::value_base_t>(i))].name,
+					float(sums_out[i]) / float(total_size));
+		}
+
+		lb.new_list(data.begin().get_ptr(), data.end().get_ptr());
+	}
+
+	template<typename lb_type>
+	void ideology_lb::populate_list(lb_type& lb, world_state & ws) {
+		boost::container::small_vector<std::tuple<graphics::color_rgb, text_data::text_tag, float>, 32> data;
+
+		int64_t* sums_out = (int64_t*)_alloca(sizeof(int64_t) * ws.s.ideologies_m.ideologies_count);
+		int64_t total_size = 0;
+		std::fill_n(sums_out, ws.s.ideologies_m.ideologies_count, 0);
+
+		if(ws.w.selected_population.display_type == current_state::population_display::nation) {
+			total_size = sum_filtered_demo_data<ideologies::ideology_tag>(ws, sums_out, ws.w.selected_population.population_for_nation);
+		} else if(ws.w.selected_population.display_type == current_state::population_display::state) {
+			total_size = sum_filtered_demo_data<ideologies::ideology_tag>(ws, sums_out, ws.w.selected_population.population_for_state);
+		} else if(ws.w.selected_population.display_type == current_state::population_display::province) {
+			total_size = sum_filtered_demo_data<ideologies::ideology_tag>(ws, sums_out, ws.w.selected_population.population_for_province);
+		}
+
+		if(total_size == 0) {
+			lb.new_list(nullptr, nullptr);
+			return;
+		}
+
+		for(uint32_t i = 0; i < ws.s.ideologies_m.ideologies_count; ++i) {
+			if(sums_out[i] != 0)
+				data.emplace_back(
+					ws.s.ideologies_m.ideology_container[ideologies::ideology_tag(static_cast<ideologies::ideology_tag::value_base_t>(i))].color,
+					ws.s.ideologies_m.ideology_container[ideologies::ideology_tag(static_cast<ideologies::ideology_tag::value_base_t>(i))].name,
+					float(sums_out[i]) / float(total_size));
+		}
+
+		lb.new_list(data.begin().get_ptr(), data.end().get_ptr());
+	}
+
+	template<typename lb_type>
+	void electorate_lb::populate_list(lb_type&, world_state&) {
+	}
+
+	template <typename lb_type>
+	void culture_lb::populate_list(lb_type& lb, world_state & ws) {
+		boost::container::small_vector<std::tuple<graphics::color_rgb, text_data::text_tag, float>, 32> data;
+
+		std::vector<int64_t, concurrent_allocator<int64_t>> sums_out(ws.s.culture_m.count_cultures);
+		int64_t total_size = 0;
+
+		if(ws.w.selected_population.display_type == current_state::population_display::nation) {
+			total_size = sum_filtered_demo_data<cultures::culture_tag>(ws, sums_out.data(), ws.w.selected_population.population_for_nation);
+		} else if(ws.w.selected_population.display_type == current_state::population_display::state) {
+			total_size = sum_filtered_demo_data<cultures::culture_tag>(ws, sums_out.data(), ws.w.selected_population.population_for_state);
+		} else if(ws.w.selected_population.display_type == current_state::population_display::province) {
+			total_size = sum_filtered_demo_data<cultures::culture_tag>(ws, sums_out.data(), ws.w.selected_population.population_for_province);
+		}
+
+		if(total_size == 0) {
+			lb.new_list(nullptr, nullptr);
+			return;
+		}
+
+		for(uint32_t i = 0; i < ws.s.culture_m.count_cultures; ++i) {
+			if(sums_out[i] != 0)
+				data.emplace_back(
+					ws.s.culture_m.culture_container[cultures::culture_tag(static_cast<cultures::culture_tag::value_base_t>(i))].color,
+					ws.s.culture_m.culture_container[cultures::culture_tag(static_cast<cultures::culture_tag::value_base_t>(i))].name,
+					float(sums_out[i]) / float(total_size));
+		}
+
+		lb.new_list(data.begin().get_ptr(), data.end().get_ptr());
+	}
+
+	template <typename lb_type>
+	void issues_lb::populate_list(lb_type& lb, world_state & ws) {
+		boost::container::small_vector<std::tuple<graphics::color_rgb, text_data::text_tag, float>, 32> data;
+
+		std::vector<int64_t, concurrent_allocator<int64_t>> sums_out(ws.s.issues_m.tracked_options_count);
+		int64_t total_size = 0;
+
+		if(ws.w.selected_population.display_type == current_state::population_display::nation) {
+			total_size = sum_filtered_demo_data<issues::option_tag>(ws, sums_out.data(), ws.w.selected_population.population_for_nation);
+		} else if(ws.w.selected_population.display_type == current_state::population_display::state) {
+			total_size = sum_filtered_demo_data<issues::option_tag>(ws, sums_out.data(), ws.w.selected_population.population_for_state);
+		} else if(ws.w.selected_population.display_type == current_state::population_display::province) {
+			total_size = sum_filtered_demo_data<issues::option_tag>(ws, sums_out.data(), ws.w.selected_population.population_for_province);
+		}
+
+		if(total_size == 0) {
+			lb.new_list(nullptr, nullptr);
+			return;
+		}
+
+		for(uint32_t i = 0; i < ws.s.issues_m.tracked_options_count; ++i) {
+			if(sums_out[i] != 0)
+				data.emplace_back(
+					ws.s.issues_m.options[issues::option_tag(static_cast<issues::option_tag::value_base_t>(i))].color,
+					ws.s.issues_m.options[issues::option_tag(static_cast<issues::option_tag::value_base_t>(i))].name,
 					float(sums_out[i]) / float(total_size));
 		}
 
