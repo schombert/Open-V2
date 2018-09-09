@@ -144,5 +144,9 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::nationality] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NATIONALITY_DISTTITLE");
 		s.fixed_ui_text[fixed_ui::dominant_issues] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "DOMINANT_ISSUES_DISTTITLE");
 		s.fixed_ui_text[fixed_ui::electorate] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "ELECTORATE_DISTTITLE");
+		s.fixed_ui_text[fixed_ui::unemployment] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "UNEMPLOYMENT");
+		s.fixed_ui_text[fixed_ui::life_needs] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "LIFE_NEEDS");
+		s.fixed_ui_text[fixed_ui::everyday_needs] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "EVERYDAY_NEEDS");
+		s.fixed_ui_text[fixed_ui::luxury_needs] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "LUXURY_NEEDS");
 	}
 }

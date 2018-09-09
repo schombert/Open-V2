@@ -88,6 +88,20 @@ namespace population {
 	
 
 	template<typename W>
+	void pop_list_item_base::on_create(W& w, world_state&) {
+		{
+			auto& pie = w.template get<CT_STRING("pop_ideology")>();
+			pie.associated_object->size.x *= 2;
+			pie.associated_object->size.y *= 2;
+		}
+		{
+			auto& pie = w.template get<CT_STRING("pop_issues")>();
+			pie.associated_object->size.x *= 2;
+			pie.associated_object->size.y *= 2;
+		}
+	}
+
+	template<typename W>
 	void population_window_base::on_create(W& w, world_state& ws) {
 		associated_object->size = ui::xy_pair{ 1017i16, 636i16 };
 		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
@@ -261,6 +275,35 @@ namespace population {
 	}
 
 	template<typename lb_type>
+	void population_lb::populate_list(lb_type& lb, world_state& ws) {
+		boost::container::small_vector<pop_tag, 64, concurrent_allocator<pop_tag>> data;
+
+		if(ws.w.selected_population.display_type == current_state::population_display::nation) {
+			generic_for_each_pop(ws, ws.w.selected_population.population_for_nation, [&ws, &data](population::pop& p) {
+				auto id = p.id;
+				if(ws.w.population_s.pops.is_valid_index(id))
+					data.push_back(id);
+			});
+		} else if(ws.w.selected_population.display_type == current_state::population_display::state) {
+			generic_for_each_pop(ws, ws.w.selected_population.population_for_state, [&ws, &data](population::pop& p) {
+				auto id = p.id;
+				if(ws.w.population_s.pops.is_valid_index(id))
+					data.push_back(id);
+			});
+		} else if(ws.w.selected_population.display_type == current_state::population_display::province) {
+			generic_for_each_pop(ws, ws.w.selected_population.population_for_province, [&ws, &data](population::pop& p) {
+				auto id = p.id;
+				if(ws.w.population_s.pops.is_valid_index(id))
+					data.push_back(id);
+			});
+		}
+
+		//do sorting
+
+		lb.new_list(data.begin().get_ptr(), data.end().get_ptr());
+	}
+
+	template<typename lb_type>
 	void workforce_lb::populate_list(lb_type& lb, world_state & ws) {
 		boost::container::small_vector<std::tuple<graphics::color_rgb, text_data::text_tag, float>, 32> data;
 
@@ -420,5 +463,250 @@ namespace population {
 		}
 
 		lb.new_list(data.begin().get_ptr(), data.end().get_ptr());
+	}
+
+	template<typename window_type>
+	void pop_size::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		char16_t local_buf[32];
+		put_value_in_buffer(local_buf, display_type::integer, int32_t(ws.w.population_s.pop_demographics.get(w.tag, total_population_tag)));
+
+		ui::text_chunk_to_instances(
+			ws.s.gui_m,
+			ws.w.gui_m,
+			vector_backed_string<char16_t>(local_buf),
+			box,
+			ui::xy_pair{ 0,0 },
+			fmt,
+			lm);
+		lm.finish_current_line();
+	}
+
+	template<typename window_type>
+	void pop_culture::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		cultures::culture_tag c = ws.w.population_s.pops[w.tag].culture;
+		if(is_valid_index(c))
+			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.s.culture_m.culture_container[c].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		lm.finish_current_line();
+	}
+
+	template<typename window_type>
+	void pop_location::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		provinces::province_tag p = ws.w.population_s.pops[w.tag].location;
+		if(is_valid_index(p))
+			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.w.province_s.province_state_container[p].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		lm.finish_current_line();
+	}
+
+	template<typename window_type>
+	void pop_militancy::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		float mil = population::get_militancy_direct(ws.w.population_s.pops[w.tag]);
+
+		char16_t local_buf[32];
+		put_value_in_buffer(local_buf, display_type::fp_two_places, mil);
+
+		ui::text_chunk_to_instances(
+			ws.s.gui_m,
+			ws.w.gui_m,
+			vector_backed_string<char16_t>(local_buf),
+			box,
+			ui::xy_pair{ 0,0 },
+			fmt,
+			lm);
+
+		lm.finish_current_line();
+	}
+
+	template<typename window_type>
+	void pop_consciousness::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		float mil = population::get_consciousness_direct(ws.w.population_s.pops[w.tag]);
+
+		char16_t local_buf[32];
+		put_value_in_buffer(local_buf, display_type::fp_two_places, mil);
+
+		ui::text_chunk_to_instances(
+			ws.s.gui_m,
+			ws.w.gui_m,
+			vector_backed_string<char16_t>(local_buf),
+			box,
+			ui::xy_pair{ 0,0 },
+			fmt,
+			lm);
+
+		lm.finish_current_line();
+	}
+
+	template<typename window_type>
+	void pop_literacy::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		float mil = population::get_literacy_direct(ws.w.population_s.pops[w.tag]);
+
+		char16_t local_buf[32];
+		put_value_in_buffer(local_buf, display_type::percent, mil);
+
+		ui::text_chunk_to_instances(
+			ws.s.gui_m,
+			ws.w.gui_m,
+			vector_backed_string<char16_t>(local_buf),
+			box,
+			ui::xy_pair{ 0,0 },
+			fmt,
+			lm);
+
+		lm.finish_current_line();
+	}
+
+	template<typename window_type>
+	void pop_cash::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		float money = ws.w.population_s.pops[w.tag].money;
+
+		char16_t local_buf[32];
+		put_value_in_buffer(local_buf, display_type::fp_two_places, money);
+
+		ui::text_chunk_to_instances(
+			ws.s.gui_m,
+			ws.w.gui_m,
+			vector_backed_string<char16_t>(local_buf),
+			box,
+			ui::xy_pair{ 0,0 },
+			fmt,
+			lm);
+
+		lm.finish_current_line();
+	}
+
+	template<typename window_type>
+	void pop_ideology::windowed_update(ui::piechart<pop_ideology>& pie, window_type& w, world_state& ws) {
+		int32_t* demo = ws.w.population_s.pop_demographics.get_row(w.tag);
+		int32_t* ideologies_values = demo + to_index(to_demo_tag(ws, ideologies::ideology_tag(0)));
+
+		float size = float(demo[to_index(total_population_tag)]);
+		if(size != 0.0f) {
+			for(uint32_t i = 0; i < ws.s.ideologies_m.ideologies_count; ++i) {
+				if(ideologies_values[i] != 0)
+					pie.add_entry(
+						ws.w.gui_m,
+						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.ideologies_m.ideology_container[ideologies::ideology_tag(static_cast<ideologies::ideology_tag::value_base_t>(i))].name),
+						float(ideologies_values[i]) / size,
+						ws.s.ideologies_m.ideology_container[ideologies::ideology_tag(static_cast<ideologies::ideology_tag::value_base_t>(i))].color);
+			}
+		}
+	}
+
+	template<typename window_type>
+	void pop_issues::windowed_update(ui::piechart<pop_issues>& pie, window_type& w, world_state& ws) {
+		int32_t* demo = ws.w.population_s.pop_demographics.get_row(w.tag);
+		int32_t* issues_values = demo + to_index(to_demo_tag(ws, issues::option_tag(0)));
+
+		float size = float(demo[to_index(total_population_tag)]);
+		if(size != 0.0f) {
+			for(uint32_t i = 0; i < ws.s.issues_m.tracked_options_count; ++i) {
+				if(issues_values[i] != 0)
+					pie.add_entry(
+						ws.w.gui_m,
+						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.issues_m.options[issues::option_tag(static_cast<issues::option_tag::value_base_t>(i))].name),
+						float(issues_values[i]) / size,
+						ws.s.issues_m.options[issues::option_tag(static_cast<issues::option_tag::value_base_t>(i))].color);
+			}
+		}
+	}
+
+	template<typename W>
+	void pop_type_button::windowed_update(ui::simple_button<pop_type_button>& b, W& w, world_state& ws) {
+		auto& pop = ws.w.population_s.pops[w.tag];
+		type = pop.type;
+		if(is_valid_index(type)) 
+			b.set_frame(ws.w.gui_m, ws.s.population_m.pop_types[type].sprite - 1ui32);
+	}
+
+	template<typename W>
+	void pop_producing_icon::windowed_update(ui::dynamic_icon<pop_producing_icon>& self, W& w, world_state& ws) {
+		ui::hide(*self.associated_object);
+	}
+
+	template<typename W>
+	void pop_religion::windowed_update(ui::dynamic_icon<pop_religion>& ico, W& w, world_state& ws) {
+		religion = ws.w.population_s.pops[w.tag].religion;
+		if(is_valid_index(religion))
+			ico.set_frame(ws.w.gui_m, uint32_t(ws.s.culture_m.religions[religion].icon) - 1ui32);
+	}
+
+	template<typename window_type>
+	void pop_unemployment_bar::windowed_update(ui::progress_bar<pop_unemployment_bar>& bar, window_type& w, world_state& ws) {
+		float size = float(ws.w.population_s.pop_demographics.get(w.tag, total_population_tag));
+		float employed = float(ws.w.population_s.pop_demographics.get(w.tag, total_employment_tag));
+
+		if(size != 0.0f) 
+			bar.set_fraction(1.0f - employed / size);
+		else 
+			bar.set_fraction(0.0f);
+	}
+
+	template<typename W>
+	void pops_unempl_overlay::windowed_update(ui::dynamic_icon<pops_unempl_overlay>&, W& w, world_state& ws) {
+		float size = float(ws.w.population_s.pop_demographics.get(w.tag, total_population_tag));
+		float employed = float(ws.w.population_s.pop_demographics.get(w.tag, total_employment_tag));
+
+		if(size != 0.0f)
+			value = 1.0f - employed / size;
+		else
+			value = 0.0f;
+	}
+
+	template<typename window_type>
+	void lifeneed_progress::windowed_update(ui::progress_bar<lifeneed_progress>& bar, window_type& w, world_state& ws) {
+		float needs = ws.w.population_s.pops[w.tag].needs_satisfaction;
+
+		if(needs >= 1.0f) 
+			bar.set_fraction(1.0f);
+		else 
+			bar.set_fraction(needs);
+	}
+
+	template<typename W>
+	void lifeneed_progress_overlay::windowed_update(ui::dynamic_icon<lifeneed_progress_overlay>&, W& w, world_state& ws) {
+		value = std::min(1.0f, ws.w.population_s.pops[w.tag].needs_satisfaction);
+	}
+
+	template<typename window_type>
+	void eveneed_progress::windowed_update(ui::progress_bar<eveneed_progress>& bar, window_type& w, world_state& ws) {
+		float needs = ws.w.population_s.pops[w.tag].needs_satisfaction;
+
+		bar.set_fraction(std::clamp(needs - 1.0f, 0.0f, 1.0f));
+	}
+
+	template<typename W>
+	void eveneed_progress_overlay::windowed_update(ui::dynamic_icon<eveneed_progress_overlay>&, W& w, world_state& ws) {
+		value = std::clamp(ws.w.population_s.pops[w.tag].needs_satisfaction - 1.0f, 0.0f, 1.0f);
+	}
+
+	template<typename window_type>
+	void luxneed_progress::windowed_update(ui::progress_bar<luxneed_progress>& bar, window_type& w, world_state& ws) {
+		float needs = ws.w.population_s.pops[w.tag].needs_satisfaction;
+
+		bar.set_fraction(std::clamp(needs - 2.0f, 0.0f, 1.0f));
+	}
+
+	template<typename W>
+	void luxneed_progress_overlay::windowed_update(ui::dynamic_icon<luxneed_progress_overlay>&, W& w, world_state& ws) {
+		value = std::clamp(ws.w.population_s.pops[w.tag].needs_satisfaction - 2.0f, 0.0f, 1.0f);
+	}
+
+	template<typename W>
+	void pop_revolt::windowed_update(ui::dynamic_icon<pop_revolt>& ico, W& w, world_state& ws) {
+		ui::hide(*ico.associated_object);
+	}
+
+	template<typename W>
+	void pop_movement_social::windowed_update(ui::dynamic_icon<pop_movement_social>& ico, W& w, world_state& ws) {
+		ui::hide(*ico.associated_object);
+	}
+
+	template<typename W>
+	void pop_movement_political::windowed_update(ui::dynamic_icon<pop_movement_political>& ico, W& w, world_state& ws) {
+		ui::hide(*ico.associated_object);
+	}
+
+	template<typename W>
+	void pop_movement_flag::windowed_update(ui::masked_flag<pop_movement_flag>& ico, W& w, world_state& ws) {
+		ui::hide(*ico.associated_object);
 	}
 }

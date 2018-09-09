@@ -629,6 +629,7 @@ namespace ui {
 		bool dispatch_message(const gui_manager& manager, const MESSAGE_FUNCTION &member_f, tagged_gui_object obj, ui::xy_pair container_size, const MESSAGE_TYPE& message);
 
 		ui::xy_pair position_with_alignment(ui::xy_pair container_size, ui::xy_pair raw_position, ui::alignment align);
+		std::pair<ui::xy_pair, ui::xy_pair> position_bounds_with_alignment(ui::xy_pair container_size, ui::xy_pair size, ui::alignment align);
 	}
 
 	tagged_object<ui::text_instance, ui::text_instance_tag> create_text_instance(ui::gui_manager &container, tagged_gui_object new_gobj, const text_format& fmt);
@@ -660,6 +661,8 @@ namespace ui {
 	ui::tagged_gui_object create_static_element(world_state& ws, listbox_tag handle, tagged_gui_object parent, ui::display_listbox<B, ELEMENT, left_expand>& b);
 	template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>
 	ui::tagged_gui_object create_static_element(world_state& ws, listbox_tag handle, tagged_gui_object parent, discrete_listbox<BASE, ELEMENT, value_type, left_expand>& b);
+	template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>
+	ui::tagged_gui_object create_static_element(world_state& ws, window_tag handle, tagged_gui_object parent, discrete_listbox<BASE, ELEMENT, value_type, left_expand>& b);
 	template<typename B, typename tag_type, typename ELEMENT, int32_t vertical_extension>
 	ui::tagged_gui_object create_static_element(world_state& ws, overlapping_region_tag handle, tagged_gui_object parent, ui::overlap_box<B, tag_type, ELEMENT, vertical_extension>& b);
 	template<typename B>

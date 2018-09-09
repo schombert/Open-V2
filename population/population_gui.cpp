@@ -241,6 +241,9 @@ namespace population {
 	ui::window_tag electorate_lb::element_tag(ui::gui_static& m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["pop_legend_item"]);
 	}
+	ui::window_tag population_lb::element_tag(ui::gui_static& m) {
+		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["popinfomember_popview"]);
+	}
 
 	void pop_filter_button::button_function(ui::simple_button<pop_filter_button>& self, world_state& ws) {
 		if(ws.w.selected_population.filtered_pop_types[type] == 0) {
@@ -263,5 +266,100 @@ namespace population {
 	void pop_filter_button::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
 		ui::unlimited_line_manager lm;
 		ui::add_linear_text(ui::xy_pair{0, 0}, ws.s.population_m.pop_types[type].name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+		lm.finish_current_line();
+	}
+
+	void pop_type_button::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
+		ui::unlimited_line_manager lm;
+		if(is_valid_index(type))
+			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.s.population_m.pop_types[type].name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+		lm.finish_current_line();
+	}
+
+	void pop_religion::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
+		ui::unlimited_line_manager lm;
+		if(is_valid_index(religion))
+			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.s.culture_m.religions[religion].name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+		lm.finish_current_line();
+	}
+
+	void pops_unempl_overlay::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
+		ui::unlimited_line_manager lm;
+		auto cursor = ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.s.fixed_ui_text[scenario::fixed_ui::unemployment], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+
+		char16_t local_buf[32];
+		put_value_in_buffer(local_buf, display_type::percent, value);
+
+		ui::text_chunk_to_instances(
+			ws.s.gui_m,
+			ws.w.gui_m,
+			vector_backed_string<char16_t>(local_buf),
+			tw,
+			cursor,
+			ui::tooltip_text_format,
+			lm);
+
+		lm.finish_current_line();
+	}
+
+	void lifeneed_progress_overlay::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
+		ui::unlimited_line_manager lm;
+		auto cursor = ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.s.fixed_ui_text[scenario::fixed_ui::life_needs], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+
+		char16_t local_buf[32];
+		put_value_in_buffer(local_buf, display_type::percent, value);
+
+		ui::text_chunk_to_instances(
+			ws.s.gui_m,
+			ws.w.gui_m,
+			vector_backed_string<char16_t>(local_buf),
+			tw,
+			cursor,
+			ui::tooltip_text_format,
+			lm);
+
+		lm.finish_current_line();
+	}
+
+	void eveneed_progress_overlay::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
+		ui::unlimited_line_manager lm;
+		auto cursor = ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.s.fixed_ui_text[scenario::fixed_ui::everyday_needs], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+
+		char16_t local_buf[32];
+		put_value_in_buffer(local_buf, display_type::percent, value);
+
+		ui::text_chunk_to_instances(
+			ws.s.gui_m,
+			ws.w.gui_m,
+			vector_backed_string<char16_t>(local_buf),
+			tw,
+			cursor,
+			ui::tooltip_text_format,
+			lm);
+
+		lm.finish_current_line();
+	}
+
+	void luxneed_progress_overlay::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
+		ui::unlimited_line_manager lm;
+		auto cursor = ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.s.fixed_ui_text[scenario::fixed_ui::luxury_needs], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+
+		char16_t local_buf[32];
+		put_value_in_buffer(local_buf, display_type::percent, value);
+
+		ui::text_chunk_to_instances(
+			ws.s.gui_m,
+			ws.w.gui_m,
+			vector_backed_string<char16_t>(local_buf),
+			tw,
+			cursor,
+			ui::tooltip_text_format,
+			lm);
+
+		lm.finish_current_line();
 	}
 }

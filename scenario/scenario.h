@@ -61,8 +61,12 @@ namespace scenario {
 		constexpr uint32_t nationality = 39ui32;
 		constexpr uint32_t dominant_issues = 40ui32;
 		constexpr uint32_t electorate = 41ui32;
+		constexpr uint32_t unemployment = 42ui32;
+		constexpr uint32_t life_needs = 43ui32;
+		constexpr uint32_t everyday_needs = 44ui32;
+		constexpr uint32_t luxury_needs = 45ui32;
 
-		constexpr uint32_t count = 42ui32;
+		constexpr uint32_t count = 46ui32;
 	}
 
 	class scenario_manager {

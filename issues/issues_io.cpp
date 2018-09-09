@@ -10,7 +10,7 @@
 
 namespace issues {
 	inline void generate_options_colors(issues_manager& m) {
-		int32_t total_number_of_options = int32_t(m.options.size());
+		int32_t total_number_of_options = int32_t(m.tracked_options_count);
 		int32_t rel_prime = find_best_relative_prime(total_number_of_options);
 
 		int32_t current_val = 0;

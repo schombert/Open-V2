@@ -15,6 +15,8 @@ namespace population {
 		void set_value(pop_tag t) {
 			tag = t;
 		}
+		template<typename W>
+		void on_create(W& w, world_state&);
 	};
 
 	class pop_size {
@@ -25,15 +27,18 @@ namespace population {
 
 	class pop_type_button {
 	public:
+		pop_type_tag type;
+		
 		template<typename W>
 		void windowed_update(ui::simple_button<pop_type_button>&, W& w, world_state& ws);
-		void button_function(ui::simple_button<pop_type_button>&, world_state&) {}
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	class pop_producing_icon {
 	public:
 		template<typename W>
-		void windowed_update(ui::dynamic_icon<pop_producing_icon>&, W& w, world_state& ws);
+		void windowed_update(ui::dynamic_icon<pop_producing_icon>& self, W& w, world_state& ws);
 	};
 
 	class pop_culture {
@@ -44,6 +49,8 @@ namespace population {
 
 	class pop_religion {
 	public:
+		cultures::religion_tag religion;
+
 		template<typename W>
 		void windowed_update(ui::dynamic_icon<pop_religion>&, W& w, world_state& ws);
 
@@ -111,6 +118,8 @@ namespace population {
 
 	class pops_unempl_overlay {
 	public:
+		float value = 0.0f;
+
 		template<typename W>
 		void windowed_update(ui::dynamic_icon<pops_unempl_overlay>&, W& w, world_state& ws);
 
@@ -120,6 +129,8 @@ namespace population {
 
 	class lifeneed_progress_overlay {
 	public:
+		float value = 0.0f;
+
 		template<typename W>
 		void windowed_update(ui::dynamic_icon<lifeneed_progress_overlay>&, W& w, world_state& ws);
 
@@ -129,6 +140,8 @@ namespace population {
 
 	class eveneed_progress_overlay {
 	public:
+		float value = 0.0f;
+
 		template<typename W>
 		void windowed_update(ui::dynamic_icon<eveneed_progress_overlay>&, W& w, world_state& ws);
 
@@ -137,6 +150,8 @@ namespace population {
 	};
 	class luxneed_progress_overlay {
 	public:
+		float value = 0.0f;
+
 		template<typename W>
 		void windowed_update(ui::dynamic_icon<luxneed_progress_overlay>&, W& w, world_state& ws);
 
@@ -155,8 +170,8 @@ namespace population {
 		template<typename W>
 		void windowed_update(ui::dynamic_icon<pop_revolt>&, W& w, world_state& ws);
 
-		bool has_tooltip(world_state&) { return true; }
-		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+		//bool has_tooltip(world_state&) { return true; }
+		//void create_tooltip(world_state&, ui::tagged_gui_object tw);
 	};
 
 	class pop_movement_social {
@@ -164,8 +179,8 @@ namespace population {
 		template<typename W>
 		void windowed_update(ui::dynamic_icon<pop_movement_social>&, W& w, world_state& ws);
 
-		bool has_tooltip(world_state&) { return true; }
-		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+		//bool has_tooltip(world_state&) { return true; }
+		//void create_tooltip(world_state&, ui::tagged_gui_object tw);
 	};
 
 	class pop_movement_political {
@@ -173,16 +188,16 @@ namespace population {
 		template<typename W>
 		void windowed_update(ui::dynamic_icon<pop_movement_political>&, W& w, world_state& ws);
 
-		bool has_tooltip(world_state&) { return true; }
-		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+		//bool has_tooltip(world_state&) { return true; }
+		//void create_tooltip(world_state&, ui::tagged_gui_object tw);
 	};
 
 	class pop_movement_flag {
 	public:
 		template<typename W>
 		void windowed_update(ui::masked_flag<pop_movement_flag>& self, W& w, world_state& ws);
-		bool has_tooltip(world_state&) { return true; }
-		void create_tooltip(ui::masked_flag<pop_movement_flag>& self, world_state& ws, ui::tagged_gui_object tw);
+		//bool has_tooltip(world_state&) { return true; }
+		//void create_tooltip(ui::masked_flag<pop_movement_flag>& self, world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	using pop_list_item = ui::gui_window<
@@ -212,6 +227,13 @@ namespace population {
 		CT_STRING("pop_literacy"), ui::display_text<pop_literacy>,
 		pop_list_item_base
 	>;
+
+	class population_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
 
 	class pop_filter_button {
 	public:
@@ -516,7 +538,7 @@ namespace population {
 	using population_window_t = ui::gui_window<
 		CT_STRING("popfilter_ALL"), ui::simple_button<popfilter_all_button>,
 		CT_STRING("popfilter_DESELECT_ALL"), ui::simple_button<popfilter_none_button>,
-
+		CT_STRING("pop_list"), ui::discrete_listbox<population_lb, pop_list_item, pop_tag>,
 		CT_STRING("external_scroll_slider"), ui::scrollbar<dummy_scrollbar>,
 		CT_STRING("sortby_size_button"), ui::simple_button<sortby_size_button>,
 		CT_STRING("sortby_type_button"), ui::simple_button<sortby_type_button>,

@@ -269,6 +269,35 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, listbox_tag han
 	return new_obj;
 }
 
+template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>
+ui::tagged_gui_object ui::create_static_element(world_state& ws, window_tag handle, tagged_gui_object parent, discrete_listbox<BASE, ELEMENT, value_type, left_expand>& b) {
+	const ui::window_def& definition = ws.s.gui_m.ui_definitions.windows[handle];
+
+	const auto new_obj = ws.w.gui_m.gui_objects.emplace();
+
+	new_obj.object.position = definition.position;
+	new_obj.object.size = definition.size;
+
+	new_obj.object.associated_behavior = &b;
+	b.associated_object = &new_obj.object;
+
+	if(is_valid_index(definition.background_handle)) {
+		//ui::detail::instantiate_graphical_object(ws.s.gui_m, ws.w.gui_m, new_obj, definition.background_handle);
+	}
+
+	new_obj.object.position.x -= static_cast<int16_t>(left_expand);
+	new_obj.object.size.x += static_cast<int16_t>(left_expand + 16);
+
+	if constexpr(ui::detail::has_on_create<BASE, discrete_listbox<BASE, ELEMENT, value_type, left_expand>&, world_state&>)
+		b.on_create(b, ws);
+
+	b.create_sub_elements(new_obj, ws);
+
+	ui::add_to_back(ws.w.gui_m, parent, new_obj);
+	ws.w.gui_m.flag_minimal_update();
+	return new_obj;
+}
+
 template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension>
 void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::set_self_information(world_state& ws, gui_object_tag s, int32_t sp, text_data::alignment a) {
 	const auto t = BASE::element_tag(ws.s.gui_m);

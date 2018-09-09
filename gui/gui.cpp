@@ -64,11 +64,7 @@ namespace ui {
 			base, center, extreme
 		};
 
-		int32_t position_from_subalignment(int32_t container, int32_t base_position, sub_alignment align);
-		sub_alignment vertical_subalign(ui::alignment align);
-		sub_alignment horizontal_subalign(ui::alignment align);
-
-		int32_t position_from_subalignment(int32_t container, int32_t base_position, sub_alignment align) {
+		inline int32_t position_from_subalignment(int32_t container, int32_t base_position, sub_alignment align) {
 			switch (align) {
 				case sub_alignment::base:
 					return base_position;
@@ -79,7 +75,18 @@ namespace ui {
 			}
 		}
 
-		sub_alignment vertical_subalign(ui::alignment align) {
+		inline std::pair<int32_t, int32_t> bounds_from_subalignment(int32_t container, sub_alignment align) {
+			switch(align) {
+				case sub_alignment::base:
+					return std::pair<int32_t, int32_t>(0, container);
+				case sub_alignment::center:
+					return std::pair<int32_t, int32_t>(-container / 2, container / 2);
+				case sub_alignment::extreme:
+					return std::pair<int32_t, int32_t>(-container, 0);
+			}
+		}
+
+		inline sub_alignment vertical_subalign(ui::alignment align) {
 			switch (align) {
 				case alignment::top_left:
 				case alignment::top_center:
@@ -96,7 +103,7 @@ namespace ui {
 			}
 		}
 
-		sub_alignment horizontal_subalign(ui::alignment align) {
+		inline sub_alignment horizontal_subalign(ui::alignment align) {
 			switch (align) {
 				case alignment::top_left:
 				case alignment::left:
@@ -127,11 +134,20 @@ namespace ui {
 	}
 }
 
+
 ui::xy_pair ui::detail::position_with_alignment(ui::xy_pair container_size, ui::xy_pair raw_position, ui::alignment align) {
 	return ui::xy_pair{
 		(int16_t)position_from_subalignment(static_cast<int32_t>(container_size.x), static_cast<int32_t>(raw_position.x), ui::detail::horizontal_subalign(align)),
 		(int16_t)position_from_subalignment(static_cast<int32_t>(container_size.y), static_cast<int32_t>(raw_position.y), ui::detail::vertical_subalign(align))
 	};
+}
+
+std::pair<ui::xy_pair, ui::xy_pair> ui::detail::position_bounds_with_alignment(ui::xy_pair container_size, ui::xy_pair size, ui::alignment align) {
+	auto h_bound = bounds_from_subalignment(container_size.x, ui::detail::horizontal_subalign(align));
+	auto v_bound = bounds_from_subalignment(container_size.y, ui::detail::vertical_subalign(align));
+	
+	return std::pair<ui::xy_pair, ui::xy_pair>(ui::xy_pair{ int16_t(h_bound.first), int16_t(v_bound.first) },
+		ui::xy_pair{ int16_t(std::max(h_bound.first, h_bound.second - size.x)), int16_t(std::max(v_bound.first, v_bound.second - size.y))});
 }
 
 namespace ui {
@@ -277,9 +293,10 @@ namespace ui {
 		auto& obj = ws.w.gui_m.gui_objects.at(t);
 		if(is_valid_index(obj.parent)) {
 			auto& parent = ws.w.gui_m.gui_objects.at(obj.parent);
+			auto bounds = ui::detail::position_bounds_with_alignment(parent.size, obj.size, obj.align);
 
-			associated_object->position.x = static_cast<int16_t>(std::clamp(base_position.x + m.x, 0, parent.size.x - obj.size.x));
-			associated_object->position.y = static_cast<int16_t>(std::clamp(base_position.y + m.y, 0, parent.size.y - obj.size.y));
+			associated_object->position.x = std::clamp(int16_t(base_position.x + m.x), bounds.first.x, bounds.second.x);
+			associated_object->position.y = std::clamp(int16_t(base_position.y + m.y), bounds.first.y, bounds.second.y);
 		} else {
 			associated_object->position.x = static_cast<int16_t>(base_position.x + m.x);
 			associated_object->position.y = static_cast<int16_t>(base_position.y + m.y);
