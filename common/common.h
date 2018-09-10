@@ -6,6 +6,9 @@
 #include <string>
 #include <tuple>
 #include <numeric>
+#include <variant>
+#include <optional>
+#include <tuple>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"

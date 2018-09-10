@@ -29,6 +29,7 @@ void serialization::serializer<nations::state_instance>::serialize_object(std::b
 
 	serialize_array(output, obj.colonizers, std::extent_v<decltype(obj.colonizers)>);
 
+	serialize(output, obj.last_population_growth);
 	serialize(output, obj.current_tension);
 	serialize(output, obj.name);
 	serialize(output, obj.crisis_tag);
@@ -62,6 +63,7 @@ void serialization::serializer<nations::state_instance>::deserialize_object(std:
 
 	deserialize_array(input, obj.colonizers, std::extent_v<decltype(obj.colonizers)>);
 
+	deserialize(input, obj.last_population_growth);
 	deserialize(input, obj.current_tension);
 	deserialize(input, obj.name);
 	deserialize(input, obj.crisis_tag);
@@ -69,8 +71,6 @@ void serialization::serializer<nations::state_instance>::deserialize_object(std:
 	deserialize(input, obj.flags);
 
 	deserialize_stable_array(input, ws.w.nation_s.nations_arrays, obj.flashpoint_tension_focuses);
-
-	obj.last_update = ws.w.current_date;
 }
 
 size_t serialization::serializer<nations::state_instance>::size(nations::state_instance const & obj, world_state const& ws) {
@@ -79,6 +79,7 @@ size_t serialization::serializer<nations::state_instance>::size(nations::state_i
 		sizeof(modifiers::national_focus_tag) + // national focus
 		(sizeof(economy::factory_type_tag) + sizeof(obj.factories[0].level)) * std::extent_v<decltype(obj.factories)> + // factories
 		sizeof(obj.colonizers[0]) * std::extent_v<decltype(obj.colonizers)> + // colonizers
+		sizeof(obj.last_population_growth) +
 		sizeof(obj.current_tension) +
 		sizeof(obj.name) +
 		sizeof(obj.crisis_tag) +
@@ -96,6 +97,7 @@ void serialization::serializer<nations::nation>::serialize_object(std::byte *& o
 	serialize(output, sphere_leader_id);
 
 	serialize(output, obj.last_income);
+	serialize(output, obj.last_population_growth);
 	serialize(output, obj.last_election);
 	serialize(output, obj.last_lost_war);
 	serialize(output, obj.disarmed_until);
@@ -204,9 +206,8 @@ void serialization::serializer<nations::nation>::deserialize_object(std::byte co
 		add_item(ws.w.nation_s.nations_arrays, obj.sphere_leader->sphere_members, obj.id);
 	}
 
-	obj.last_update = ws.w.current_date;
-
 	deserialize(input, obj.last_income);
+	deserialize(input, obj.last_population_growth);
 	deserialize(input, obj.last_election);
 	deserialize(input, obj.last_lost_war);
 	deserialize(input, obj.disarmed_until);
@@ -294,6 +295,7 @@ size_t serialization::serializer<nations::nation>::size(nations::nation const & 
 		sizeof(nations::country_tag) + // overlord id
 		sizeof(nations::country_tag) + // sphere leader tag
 		sizeof(obj.last_income) +
+		sizeof(obj.last_population_growth) +
 		sizeof(date_tag) * 3 + // last election, last lost war, disarmed until
 		sizeof(float) * 5 + // plurality ... war exhaustion
 		sizeof(int8_t) * 7 + // budget items

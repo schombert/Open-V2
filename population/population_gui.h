@@ -8,6 +8,181 @@ class world_state;
 
 namespace population {
 
+	class pop_country_base : public ui::visible_region {
+	public:
+		nations::country_tag tag;
+
+		void set_value(size_t, nations::country_tag t) {
+			tag = t;
+		}
+	};
+
+	class pop_country_open_button {
+	public:
+		nations::country_tag tag;
+
+		template<typename W>
+		void windowed_update(ui::simple_button<pop_country_open_button>&, W& w, world_state& ws);
+		void button_function(ui::simple_button<pop_country_open_button>&, world_state&);
+	};
+
+	class pop_country_name {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class pop_country_size {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class pop_country_growth {
+	public:
+		template<typename W>
+		void windowed_update(ui::dynamic_icon<pop_country_growth>&, W& w, world_state& ws);
+	};
+
+	using pop_country_item = ui::gui_window <
+		CT_STRING("poplistbutton"), ui::simple_button<pop_country_open_button>,
+		CT_STRING("poplist_name"), ui::display_text<pop_country_name, 2>,
+		CT_STRING("poplist_numpops"), ui::display_text<pop_country_size>,
+		CT_STRING("growth_indicator"), ui::dynamic_icon<pop_country_growth>,
+		pop_country_base
+	> ;
+
+	class pop_state_base : public ui::visible_region {
+	public:
+		nations::state_tag tag;
+
+		void set_value(size_t, nations::state_tag t) {
+			tag = t;
+		}
+		template<typename W>
+		void on_create(W& w, world_state&);
+	};
+
+	class pop_state_open_button {
+	public:
+		nations::state_tag tag;
+
+		template<typename W>
+		void windowed_update(ui::simple_button<pop_state_open_button>&, W& w, world_state& ws);
+		void button_function(ui::simple_button<pop_state_open_button>&, world_state&);
+	};
+
+	class pop_state_name {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class pop_state_focus_button {
+	public:
+		nations::state_tag tag;
+
+		template<typename W>
+		void windowed_update(ui::simple_button<pop_state_focus_button>&, W& w, world_state& ws);
+		void button_function(ui::simple_button<pop_state_focus_button>&, world_state&);
+	};
+
+	class pop_colonial_state_button {
+	public:
+		template<typename W>
+		void windowed_update(ui::simple_button<pop_colonial_state_button>&, W& w, world_state& ws);
+	};
+
+	class pop_state_size {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class pop_state_expand_button {
+	public:
+		nations::state_tag tag;
+
+		template<typename W>
+		void windowed_update(ui::simple_button<pop_state_expand_button>&, W& w, world_state& ws);
+		void button_function(ui::simple_button<pop_state_expand_button>&, world_state&);
+		void on_create(ui::simple_button<pop_state_expand_button>&, world_state&);
+	};
+
+	class pop_state_growth {
+	public:
+		template<typename W>
+		void windowed_update(ui::dynamic_icon<pop_state_growth>&, W& w, world_state& ws);
+	};
+
+	using pop_state_item = ui::gui_window <
+		CT_STRING("poplistbutton"), ui::simple_button<pop_state_open_button>,
+		CT_STRING("poplist_name"), ui::display_text<pop_state_name, 6>,
+		CT_STRING("colonial_state_icon"), ui::simple_button<pop_colonial_state_button>,
+		CT_STRING("state_focus"), ui::simple_button<pop_state_focus_button>,
+		CT_STRING("poplist_numpops"), ui::display_text<pop_state_size>,
+		CT_STRING("expand"), ui::simple_button<pop_state_expand_button>,
+		CT_STRING("growth_indicator"), ui::dynamic_icon<pop_state_growth>,
+		pop_state_base
+	>;
+
+	class pop_province_base : public ui::visible_region {
+	public:
+		provinces::province_tag tag;
+
+		void set_value(size_t, provinces::province_tag t) {
+			tag = t;
+		}
+		template<typename W>
+		void on_create(W& w, world_state&);
+	};
+
+	class pop_province_open_button {
+	public:
+		provinces::province_tag tag;
+
+		template<typename W>
+		void windowed_update(ui::simple_button<pop_province_open_button>&, W& w, world_state& ws);
+		void button_function(ui::simple_button<pop_province_open_button>&, world_state&);
+	};
+
+	class pop_province_name {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class pop_province_size {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+
+	class pop_province_growth {
+	public:
+		template<typename W>
+		void windowed_update(ui::dynamic_icon<pop_province_growth>&, W& w, world_state& ws);
+	};
+
+	using pop_province_item = ui::gui_window <
+		CT_STRING("poplistbutton"), ui::simple_button<pop_province_open_button>,
+		CT_STRING("poplist_name"), ui::display_text<pop_province_name>,
+		CT_STRING("poplist_numpops"), ui::display_text<pop_province_size>,
+		CT_STRING("growth_indicator"), ui::dynamic_icon<pop_province_growth>,
+		pop_province_base
+	>;
+
+	class pop_tree_view {
+	public:
+		static ui::window_tag element_tag(size_t level, ui::gui_static& gui_m);
+
+		std::vector<nations::country_tag, concurrent_allocator<nations::country_tag>> base_list(world_state& ws);
+		template<size_t level>
+		std::vector<nations::state_tag, concurrent_allocator<nations::state_tag>> sub_list(nations::country_tag t, world_state& ws);
+		template<size_t level>
+		std::vector<provinces::province_tag, concurrent_allocator<provinces::province_tag>> sub_list(nations::state_tag t, world_state& ws);
+	};
+
 	class pop_list_item_base : public ui::visible_region {
 	public:
 		pop_tag tag;
@@ -538,6 +713,10 @@ namespace population {
 	using population_window_t = ui::gui_window<
 		CT_STRING("popfilter_ALL"), ui::simple_button<popfilter_all_button>,
 		CT_STRING("popfilter_DESELECT_ALL"), ui::simple_button<popfilter_none_button>,
+		CT_STRING("pop_province_list"),
+			ui::tree_view<pop_tree_view,
+				type_list<nations::country_tag, nations::state_tag, provinces::province_tag>,
+				type_list<pop_country_item, pop_state_item, pop_province_item>>,
 		CT_STRING("pop_list"), ui::discrete_listbox<population_lb, pop_list_item, pop_tag>,
 		CT_STRING("external_scroll_slider"), ui::scrollbar<dummy_scrollbar>,
 		CT_STRING("sortby_size_button"), ui::simple_button<sortby_size_button>,

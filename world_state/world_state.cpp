@@ -55,11 +55,26 @@ namespace current_state {
 			ui::hide(*gobj);
 	}
 	void state::show_population_window(provinces::province_tag p) {
+		if(local_player_nation)
+			gui_objects->population_window.template get<CT_STRING("pop_province_list")>().force_open(local_player_nation->id);
+		if(is_valid_index(p)) {
+			if(auto si = province_s.province_state_container[p].state_instance; si)
+				gui_objects->population_window.template get<CT_STRING("pop_province_list")>().force_open(si->id);
+		}
 		selected_population.population_for_province = p;
 		selected_population.display_type = population_display::province;
 		ui::make_visible_and_update(gui_m, *(gui_objects->population_window.associated_object));
 	}
 	void state::update_population_window() {
 		ui::make_visible_and_update(gui_m, *(gui_objects->population_window.associated_object));
+	}
+
+	bool state::population_window_has_state_expanded(nations::state_tag t) {
+		auto& poptree = gui_objects->population_window.template get<CT_STRING("pop_province_list")>();
+		return poptree.is_open(t);
+	}
+	void state::population_window_set_state_expanded(nations::state_tag t, bool expand) {
+		auto& poptree = gui_objects->population_window.template get<CT_STRING("pop_province_list")>();
+		poptree.set_open(t, expand, gui_m);
 	}
 }

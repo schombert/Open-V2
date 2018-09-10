@@ -99,6 +99,14 @@ namespace population {
 			pie.associated_object->size.x *= 2;
 			pie.associated_object->size.y *= 2;
 		}
+		{
+			auto& bar = w.template get<CT_STRING("lifeneed_progress")>();
+			bar.associated_object->position.x += 1;
+		}
+		{
+			auto& bar = w.template get<CT_STRING("eveneed_progress")>();
+			bar.associated_object->position.x += 3;
+		}
 	}
 
 	template<typename W>
@@ -708,5 +716,206 @@ namespace population {
 	template<typename W>
 	void pop_movement_flag::windowed_update(ui::masked_flag<pop_movement_flag>& ico, W& w, world_state& ws) {
 		ui::hide(*ico.associated_object);
+	}
+
+	template<typename W>
+	void pop_country_open_button::windowed_update(ui::simple_button<pop_country_open_button>& button, W& w, world_state& ws) {
+		tag = w.tag;
+
+		if(ws.w.selected_population.display_type == current_state::population_display::nation && tag == ws.w.selected_population.population_for_nation)
+			button.set_frame(ws.w.gui_m, 1ui32);
+		else
+			button.set_frame(ws.w.gui_m, 0ui32);
+	}
+
+	template<typename W>
+	void pop_state_open_button::windowed_update(ui::simple_button<pop_state_open_button>& button, W& w, world_state& ws) {
+		tag = w.tag;
+
+		if(ws.w.selected_population.display_type == current_state::population_display::state && tag == ws.w.selected_population.population_for_state)
+			button.set_frame(ws.w.gui_m, 1ui32);
+		else
+			button.set_frame(ws.w.gui_m, 0ui32);
+	}
+
+	template<typename W>
+	void pop_province_open_button::windowed_update(ui::simple_button<pop_province_open_button>& button, W& w, world_state& ws) {
+		tag = w.tag;
+
+		if(ws.w.selected_population.display_type == current_state::population_display::province && tag == ws.w.selected_population.population_for_province)
+			button.set_frame(ws.w.gui_m, 1ui32);
+		else
+			button.set_frame(ws.w.gui_m, 0ui32);
+	}
+
+	template<typename window_type>
+	void pop_country_name::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		if(is_valid_index(win.tag)) {
+			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.w.nation_s.nations[win.tag].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			lm.finish_current_line();
+		}
+	}
+
+	template<typename window_type>
+	void pop_state_name::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		if(is_valid_index(win.tag)) {
+			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.w.nation_s.states[win.tag].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			lm.finish_current_line();
+		}
+	}
+
+	template<typename window_type>
+	void pop_province_name::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		if(is_valid_index(win.tag)) {
+			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.w.province_s.province_state_container[win.tag].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			lm.finish_current_line();
+		}
+	}
+
+	template<typename window_type>
+	void pop_country_size::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		if(ws.w.nation_s.nations.is_valid_index(win.tag)) {
+			char16_t local_buf[32];
+			put_value_in_buffer(local_buf, display_type::integer, ws.w.nation_s.nation_demographics.get(win.tag, total_population_tag));
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m,
+				ws.w.gui_m,
+				vector_backed_string<char16_t>(local_buf),
+				box,
+				ui::xy_pair{ 0,0 },
+				fmt,
+				lm);
+
+			lm.finish_current_line();
+		}
+	}
+
+	template<typename W>
+	void pop_country_growth::windowed_update(ui::dynamic_icon<pop_country_growth>& ico, W& w, world_state& ws) {
+		if(is_valid_index(w.tag)) {
+			auto growth = ws.w.nation_s.nations[w.tag].last_population_growth;
+			if(growth > 0)
+				ico.set_frame(ws.w.gui_m, 0ui32);
+			else if(growth == 0)
+				ico.set_frame(ws.w.gui_m, 1ui32);
+			else
+				ico.set_frame(ws.w.gui_m, 2ui32);
+		}
+	}
+
+	template<typename window_type>
+	void pop_state_size::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		if(ws.w.nation_s.states.is_valid_index(win.tag)) {
+			char16_t local_buf[32];
+			put_value_in_buffer(local_buf, display_type::integer, ws.w.nation_s.state_demographics.get(win.tag, total_population_tag));
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m,
+				ws.w.gui_m,
+				vector_backed_string<char16_t>(local_buf),
+				box,
+				ui::xy_pair{ 0,0 },
+				fmt,
+				lm);
+
+			lm.finish_current_line();
+		}
+	}
+
+	template<typename W>
+	void pop_state_growth::windowed_update(ui::dynamic_icon<pop_state_growth>& ico, W& w, world_state& ws) {
+		if(is_valid_index(w.tag)) {
+			auto growth = ws.w.nation_s.states[w.tag].last_population_growth;
+			if(growth > 0)
+				ico.set_frame(ws.w.gui_m, 0ui32);
+			else if(growth == 0)
+				ico.set_frame(ws.w.gui_m, 1ui32);
+			else
+				ico.set_frame(ws.w.gui_m, 2ui32);
+		}
+	}
+
+	template<typename W>
+	void pop_colonial_state_button::windowed_update(ui::simple_button<pop_colonial_state_button>& ico, W& w, world_state& ws) {
+		if(is_valid_index(w.tag)) {
+			if((ws.w.nation_s.states[w.tag].flags & (nations::state_instance::is_colonial | nations::state_instance::is_protectorate)) != 0) {
+				ui::make_visible_immediate(*ico.associated_object);
+			} else {
+				ui::hide(*ico.associated_object);
+			}
+		}
+	}
+
+	template<typename W>
+	void pop_state_focus_button::windowed_update(ui::simple_button<pop_state_focus_button>&, W& w, world_state& ws) {
+		tag = w.tag;
+	}
+
+	template<typename W>
+	void pop_state_expand_button::windowed_update(ui::simple_button<pop_state_expand_button>& button, W& w, world_state& ws) {
+		tag = w.tag;
+		if(ws.w.population_window_has_state_expanded(tag))
+			button.set_frame(ws.w.gui_m, 1ui32);
+		else
+			button.set_frame(ws.w.gui_m, 0ui32);
+	}
+
+	template<typename window_type>
+	void pop_province_size::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		if(is_valid_index(win.tag)) {
+			char16_t local_buf[32];
+			put_value_in_buffer(local_buf, display_type::integer, ws.w.province_s.province_demographics.get(win.tag, total_population_tag));
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m,
+				ws.w.gui_m,
+				vector_backed_string<char16_t>(local_buf),
+				box,
+				ui::xy_pair{ 0,0 },
+				fmt,
+				lm);
+
+			lm.finish_current_line();
+		}
+	}
+
+	template<typename W>
+	void pop_province_growth::windowed_update(ui::dynamic_icon<pop_province_growth>& ico, W& w, world_state& ws) {
+		if(is_valid_index(w.tag)) {
+			auto growth = ws.w.province_s.province_state_container[w.tag].last_population_growth;
+			if(growth > 0)
+				ico.set_frame(ws.w.gui_m, 0ui32);
+			else if(growth == 0)
+				ico.set_frame(ws.w.gui_m, 1ui32);
+			else
+				ico.set_frame(ws.w.gui_m, 2ui32);
+		}
+	}
+
+	template<size_t level>
+	std::vector<nations::state_tag, concurrent_allocator<nations::state_tag>> pop_tree_view::sub_list(nations::country_tag t, world_state& ws) {
+		std::vector<nations::state_tag, concurrent_allocator<nations::state_tag>> result;
+		nations::for_each_state(ws, ws.w.nation_s.nations[t], [&result, &ws](nations::state_instance& si) {
+			auto id = si.id;
+			if(ws.w.nation_s.states.is_valid_index(id))
+				result.push_back(id);
+		});
+		return result;
+	}
+	template<size_t level>
+	std::vector<provinces::province_tag, concurrent_allocator<provinces::province_tag>> pop_tree_view::sub_list(nations::state_tag t, world_state& ws) {
+		std::vector<provinces::province_tag, concurrent_allocator<provinces::province_tag>> result;
+		nations::for_each_province(ws, ws.w.nation_s.states[t], [&result](provinces::province_state& p) { result.push_back(p.id); });
+		return result;
+	}
+
+	template<typename W>
+	void pop_state_base::on_create(W& w, world_state&) {
+		w.associated_object->size.x = 215i16;
+	}
+	template<typename W>
+	void pop_province_base::on_create(W& w, world_state&) {
+		w.associated_object->size.x = 220i16;
 	}
 }

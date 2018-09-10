@@ -241,6 +241,40 @@ template<size_t n, typename T>
 using type_list_get_t = typename type_list_get<n, T>::type;
 
 
+template<typename T>
+struct type_list_to_tuple_s {};
+
+template<typename ... list>
+struct type_list_to_tuple_s<type_list<list ...>>{
+	using type = std::tuple< list ... >;
+};
+
+template<typename T>
+using type_list_to_tuple = typename type_list_to_tuple_s<T>::type;
+
+template<typename T>
+struct type_list_to_variant_s {};
+
+template<typename ... list>
+struct type_list_to_variant_s<type_list<list ...>> {
+	using type = std::variant<std::monostate, list ... >;
+};
+
+template<typename T>
+using type_list_to_variant = typename type_list_to_variant_s<T>::type;
+
+template<typename T>
+struct type_list_size_s {};
+
+template<typename ... list>
+struct type_list_size_s<type_list<list ...>> {
+	constexpr static size_t sz = sizeof...(list);
+};
+
+template<typename T>
+constexpr size_t type_list_size = type_list_size_s<T>::sz;
+
+
 template<typename ...T>
 struct merge_lists_s;
 

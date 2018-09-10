@@ -85,6 +85,8 @@ namespace current_state {
 		void hide_population_window();
 		void show_population_window(provinces::province_tag p);
 		void update_population_window();
+		bool population_window_has_state_expanded(nations::state_tag t);
+		void population_window_set_state_expanded(nations::state_tag t, bool expand);
 	};
 }
 

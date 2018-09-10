@@ -17,6 +17,11 @@ bool ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::on_scroll(gui
 	return sb.on_scroll(o, m, s);
 }
 
+template<typename BASE, typename data_type_list, typename gui_type_list>
+bool ui::tree_view<BASE, data_type_list, gui_type_list>::on_scroll(gui_object_tag o, world_state& m, const scroll& s) {
+	return sb.on_scroll(o, m, s);
+}
+
 template<typename BASE, typename ELEMENT, int32_t left_expand>
 void ui::display_listbox<BASE, ELEMENT, left_expand>::update_data(gui_object_tag, world_state& ws) {
 	clear_items(ws.w.gui_m);
@@ -28,6 +33,8 @@ template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expa
 void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::update_data(gui_object_tag, world_state& ws) {
 	BASE::populate_list(*this, ws);
 
+	update_scroll_position(ws.w.gui_m);
+
 	for(uint32_t i = 0; i < display_list.size(); ++i) {
 		if(i + offset < values_list.size() && bool(values_list[i + offset])) {
 			display_list[i].set_value(*(values_list[i + offset]));
@@ -36,9 +43,110 @@ void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::update_data(g
 			ui::hide(*(display_list[i].associated_object));
 		}
 	}
+}
+
+namespace ui {
+	namespace detail {
+		template<typename A, typename B, typename ... C>
+		struct _has_set_value : std::false_type {};
+		template<typename A, typename ... C>
+		struct _has_set_value<A, decltype(void(std::declval<A>().set_value(std::declval<C>() ...))), C...> : std::true_type {};
+		template<typename A, typename ... C>
+		constexpr bool has_set_value = _has_set_value<A, void, C ...>::value;
+
+		template<size_t index, typename ... gui_types, typename ... variant_types>
+		void helper_display_nth(std::tuple<gui_types...>& tu, std::variant<variant_types...> const& v, world_state& ws) {
+			if(v.index() == index + 1) {
+				if constexpr(has_set_value<decltype(std::get<index>(tu)), size_t, decltype(std::get<index + 1>(v))>)
+					std::get<index>(tu).set_value(index, std::get<index + 1>(v));
+				ui::make_visible_and_update(ws.w.gui_m, *(std::get<index>(tu).associated_object));
+			} else {
+				ui::hide(*(std::get<index>(tu).associated_object));
+			}
+			if constexpr(index > 0)
+				helper_display_nth<index - 1ui64>(tu, v, ws);
+		}
+	}
+}
+
+template<typename BASE, typename data_type_list, typename gui_type_list>
+void ui::tree_view<BASE, data_type_list, gui_type_list>::force_open(type_list_to_variant<data_type_list> const& v) {
+	force_visible.push_back(v);
+}
+
+template<typename BASE, typename data_type_list, typename gui_type_list>
+bool ui::tree_view<BASE, data_type_list, gui_type_list>::is_open(type_list_to_variant<data_type_list> const& v) const {
+	if(std::find(force_visible.begin(), force_visible.end(), v) != force_visible.end())
+		return true;
+	for(auto& vp : values_list) {
+		if(vp.first == v)
+			return vp.second;
+	}
+	return false;
+}
+
+template<typename BASE, typename data_type_list, typename gui_type_list>
+void ui::tree_view<BASE, data_type_list, gui_type_list>::set_open(type_list_to_variant<data_type_list> const& v, bool o, ui::gui_manager& m) {
+	for(auto& vp : values_list) {
+		if(vp.first == v) {
+			if(vp.second != o) {
+				vp.second = o;
+				ui::make_visible_and_update(m, *associated_object);
+			}
+			return;
+		}
+	}
+}
+
+namespace ui {
+	namespace detail {
+		template<size_t level, typename data_type_list, typename BASE, typename VTYPE, typename value_type>
+		void fill_vector_helper(BASE& base_obj, VTYPE& vector_out, value_type v_obj, world_state& ws) {
+			if constexpr(level < type_list_size<data_type_list>) {
+				auto list_for = base_obj.template sub_list<level>(v_obj, ws);
+
+				for(auto v : list_for) {
+					bool is_open = base_obj.is_open(v);
+					vector_out.emplace_back(v, is_open);
+
+					if(is_open)
+						fill_vector_helper<level + 1, data_type_list>(base_obj, vector_out, v, ws);
+				}
+			}
+		}
+
+		template<typename data_type_list, typename BASE, typename VTYPE>
+		void fill_vector_helper_base(BASE& base_obj, VTYPE& vector_out, world_state& ws) {
+			auto list_for = base_obj.base_list(ws);
+			for(auto v : list_for) {
+				bool is_open = base_obj.is_open(v);
+				vector_out.emplace_back(v, is_open);
+
+				if(is_open)
+					fill_vector_helper<1, data_type_list>(base_obj, vector_out, v, ws);
+			}
+		}
+	}
+}
+
+template<typename BASE, typename data_type_list, typename gui_type_list>
+void ui::tree_view<BASE, data_type_list, gui_type_list>::update_data(gui_object_tag, world_state& ws) {
+	{
+		decltype(values_list) new_values_list;
+		detail::fill_vector_helper_base<data_type_list>(*this, new_values_list, ws);
+		values_list = std::move(new_values_list);
+		force_visible.clear();
+	}
 
 	update_scroll_position(ws.w.gui_m);
+
+	for(uint32_t i = 0; i < display_list.size(); ++i) {
+		if(i + offset < values_list.size()) {
+			detail::helper_display_nth<type_list_size<data_type_list> - 1ui64>(display_list[i], values_list[i + offset].first, ws);
+		}
+	}
 }
+
 
 template<typename BASE, typename ELEMENT, int32_t left_expand>
 template<typename window_type>
@@ -58,6 +166,8 @@ void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::windowed_upda
 		BASE::windowed_update(*this, w, s);
 		BASE::populate_list(*this, w, s);
 
+		update_scroll_position(s.w.gui_m);
+
 		for(uint32_t i = 0; i < display_list.size(); ++i) {
 			if(i + offset < values_list.size() && bool(values_list[i + offset])) {
 				display_list[i].set_value(*(values_list[i + offset]));
@@ -66,8 +176,6 @@ void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::windowed_upda
 				ui::hide(*(display_list[i].associated_object));
 			}
 		}
-
-		update_scroll_position(s.w.gui_m);
 	}
 }
 
@@ -84,6 +192,15 @@ void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::set_element_d
 	const auto t = BASE::element_tag(manager);
 	element_def_tag = t;
 	element_def = &manager.ui_definitions.windows[t];
+}
+
+template<typename BASE, typename data_type_list, typename gui_type_list>
+void ui::tree_view<BASE, data_type_list, gui_type_list>::set_element_definition(gui_static& manager) {
+	for(uint32_t i = 0; i < type_list_size<gui_type_list>; ++i) {
+		const auto t = BASE::element_tag(i, manager);
+		element_def_tag[i] = t;
+		element_def[i] = &manager.ui_definitions.windows[t];
+	}
 }
 
 template<typename BASE, typename ELEMENT, int32_t left_expand>
@@ -112,6 +229,37 @@ void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::update_scroll
 
 	const int32_t extra = std::max(0, static_cast<int32_t>(int32_t(values_list.size()) - associated_object->size.y / element_def->size.y));
 	sb.set_range(manager, 0, extra);
+
+	if(extra > 0)
+		ui::make_visible_and_update(manager, *(sb.associated_object));
+	else
+		ui::hide(*sb.associated_object);
+
+	offset = std::min(offset, uint32_t(extra));
+
+	if(sb.position() > extra)
+		sb.update_position(extra);
+}
+
+template<typename BASE, typename data_type_list, typename gui_type_list>
+int32_t ui::tree_view<BASE, data_type_list, gui_type_list>::get_max_element_height() {
+	int32_t max = 1;
+	for(uint32_t i = 0; i < type_list_size<gui_type_list>; ++i) {
+		if(element_def[i])
+			max = std::max(max, int32_t(element_def[i]->size.y));
+	}
+	return max;
+}
+
+template<typename BASE, typename data_type_list, typename gui_type_list>
+void ui::tree_view<BASE, data_type_list, gui_type_list>::update_scroll_position(gui_manager& manager) {
+	if(!sb.associated_object)
+		return;
+
+	const int32_t extra = std::max(0, static_cast<int32_t>(int32_t(values_list.size()) - associated_object->size.y / get_max_element_height()));
+	sb.set_range(manager, 0, extra);
+
+	offset = std::min(offset, uint32_t(extra));
 
 	if(extra > 0)
 		ui::make_visible_and_update(manager, *(sb.associated_object));
@@ -187,6 +335,45 @@ void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::create_sub_el
 			new_obj.object.position.x += left_expand;
 		}
 		ui::hide(new_obj.object);
+	}
+
+	sb.associate(&offset);
+	ui::hide(*(sb.associated_object));
+}
+
+namespace ui {
+	namespace detail {
+		template<size_t nth, typename tuple_type>
+		void create_nth_ui_element(tuple_type& tuple, int32_t yoffset, ui::tagged_gui_object self, ui::window_tag const* defs, world_state& ws) {
+			if constexpr(nth < std::tuple_size_v<tuple_type>) {
+				auto new_obj = create_static_element(ws, defs[nth], self, std::get<nth>(tuple));
+				ui::hide(new_obj.object);
+				new_obj.object.position.y = static_cast<int16_t>(yoffset);
+
+				create_nth_ui_element<nth + 1>(tuple, yoffset, self, defs, ws);
+			}
+		}
+	}
+}
+
+template<typename BASE, typename data_type_list, typename gui_type_list>
+void ui::tree_view<BASE, data_type_list, gui_type_list>::create_sub_elements(tagged_gui_object self, world_state& ws) {
+	set_element_definition(ws.s.gui_m);
+
+	const auto element_size = get_max_element_height();
+	const uint32_t element_count = uint32_t(std::max(1, static_cast<int32_t>(associated_object->size.y / element_size)));
+	display_list.resize(element_count);
+
+	ui::create_static_fixed_sz_scrollbar(
+		ws,
+		ws.s.gui_m.ui_definitions.standardlistbox_slider,
+		self,
+		ui::xy_pair{ static_cast<int16_t>(associated_object->size.x - 16), 0i16 },
+		associated_object->size.y,
+		sb);
+
+	for(uint32_t i = 0; i < element_count; ++i) {
+		ui::detail::create_nth_ui_element<0>(display_list[i], int32_t(i) * element_size, self, element_def_tag, ws);
 	}
 
 	sb.associate(&offset);
@@ -289,6 +476,35 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, window_tag hand
 	new_obj.object.size.x += static_cast<int16_t>(left_expand + 16);
 
 	if constexpr(ui::detail::has_on_create<BASE, discrete_listbox<BASE, ELEMENT, value_type, left_expand>&, world_state&>)
+		b.on_create(b, ws);
+
+	b.create_sub_elements(new_obj, ws);
+
+	ui::add_to_back(ws.w.gui_m, parent, new_obj);
+	ws.w.gui_m.flag_minimal_update();
+	return new_obj;
+}
+
+
+template<typename BASE, typename data_type_list, typename gui_type_list>
+ui::tagged_gui_object ui::create_static_element(world_state& ws, listbox_tag handle, tagged_gui_object parent, tree_view<BASE, data_type_list, gui_type_list>& b) {
+	const ui::listbox_def& definition = ws.s.gui_m.ui_definitions.listboxes[handle];
+
+	const auto new_obj = ws.w.gui_m.gui_objects.emplace();
+
+	new_obj.object.position = definition.position;
+	new_obj.object.size = definition.size;
+
+	new_obj.object.associated_behavior = &b;
+	b.associated_object = &new_obj.object;
+
+	if(is_valid_index(definition.background_handle)) {
+		ui::detail::instantiate_graphical_object(ws.s.gui_m, ws.w.gui_m, new_obj, definition.background_handle);
+	}
+
+	new_obj.object.size.x += static_cast<int16_t>(16);
+
+	if constexpr(ui::detail::has_on_create<BASE, tree_view<BASE, data_type_list, gui_type_list>&, world_state&>)
 		b.on_create(b, ws);
 
 	b.create_sub_elements(new_obj, ws);

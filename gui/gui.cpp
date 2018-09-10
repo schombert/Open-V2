@@ -132,6 +132,8 @@ namespace ui {
 			associated_object->associated_behavior = nullptr;
 		associated_object = nullptr;
 	}
+	unmanaged_scrollable_region::unmanaged_scrollable_region(gui_object & g) : sb(g) {}
+	bool unmanaged_scrollable_region::on_scroll(gui_object_tag o, world_state & m, const scroll & s) { return sb.on_scroll(o, m, s); }
 }
 
 
@@ -208,6 +210,8 @@ namespace ui {
 		contents_frame.position.y = static_cast<int16_t>(-pos);
 	}
 
+	line_manager::line_manager(text_data::alignment a, int32_t m) : align(a), max_line_extent(m) {}
+
 	bool line_manager::exceeds_extent(int32_t w) const { return (w + indent) > max_line_extent; }
 
 	void line_manager::add_object(gui_object * o) {
@@ -232,6 +236,8 @@ namespace ui {
 			current_line.clear();
 		}
 	}
+
+	text_box_line_manager::text_box_line_manager(text_data::alignment a, int32_t m, int32_t bx, int32_t by) : align(a), max_line_extent(m), border_x(bx), border_y(by) {}
 
 	void text_box_line_manager::add_object(gui_object * o) {
 		current_line.push_back(o);
@@ -273,6 +279,8 @@ namespace ui {
 	void line_manager::decrease_indent(int32_t n) {
 		indent -= indent_size * n;
 	}
+
+	unlimited_line_manager::unlimited_line_manager() {}
 
 	void unlimited_line_manager::add_object(gui_object* o) {
 		current_line.push_back(o);
@@ -632,6 +640,13 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_static& static_man
 
 	instantiate_graphical_object(static_manager, manager, new_gobj, icon_def.graphical_object_handle, icon_def.frame != 0 ? int32_t(icon_def.frame) - 1 : 0);
 
+	if(rotation == ui::gui_object::rotation_right) {
+		new_gobj.object.position = ui::xy_pair{
+			int16_t(new_gobj.object.position.x - new_gobj.object.size.y),
+			int16_t(new_gobj.object.position.y + new_gobj.object.size.y - new_gobj.object.size.x) };
+		new_gobj.object.size = ui::xy_pair{new_gobj.object.size.y, new_gobj.object.size.x};
+	}
+
 	new_gobj.object.size.x *= icon_def.scale;
 	new_gobj.object.size.y *= icon_def.scale;
 
@@ -661,6 +676,16 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_static& static_man
 	new_gobj.object.size.y += text_def.border_size.y * 2;
 
 	return new_gobj;
+}
+
+namespace ui {
+	inline graphics::rotation reverse_rotation(graphics::rotation r) {
+		switch(r) {
+			case graphics::rotation::upright: return graphics::rotation::upright;
+			case graphics::rotation::right: return graphics::rotation::left;
+			case graphics::rotation::left: return graphics::rotation::right;
+		}
+	}
 }
 
 void ui::detail::render_object_type(gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper& ogl, const gui_object& root_obj, const screen_position& position, uint32_t type, bool currently_enabled) {
@@ -792,7 +817,7 @@ void ui::detail::render_object_type(gui_static& static_manager, const gui_manage
 						position.effective_height,
 						*primary,
 						*secondary,
-						current_rotation);
+						reverse_rotation(current_rotation));
 				}
 			}
 			break;

@@ -192,12 +192,16 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::icon_tag ha
 	});
 
 	ui::add_to_back(ws.w.gui_m, parent, new_obj);
+
+	if constexpr(ui::detail::has_on_create<masked_flag<B>, masked_flag<B>&, world_state&>)
+		b.on_create(b, ws);
+
 	ws.w.gui_m.flag_minimal_update();
 	return new_obj;
 }
 
 template<typename B>
-ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::button_tag handle, ui::tagged_gui_object parent, ui::masked_flag<B>& b) {
+ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::button_tag handle, ui::tagged_gui_object parent, masked_flag<B>& b) {
 	auto new_obj = ui::detail::create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
 
 	new_obj.object.associated_behavior = &b;
@@ -210,6 +214,10 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::button_tag 
 	});
 
 	ui::add_to_back(ws.w.gui_m, parent, new_obj);
+
+	if constexpr(ui::detail::has_on_create<masked_flag<B>, masked_flag<B>&, world_state&>)
+		b.on_create(b, ws);
+
 	ws.w.gui_m.flag_minimal_update();
 	return new_obj;
 }
@@ -225,6 +233,10 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, button_tag hand
 	b.shortcut = bdef.shortcut;
 
 	ui::add_to_back(ws.w.gui_m, parent, new_obj);
+
+	if constexpr(ui::detail::has_on_create<simple_button<B>, simple_button<B>&, world_state&>)
+		b.on_create(b, ws);
+
 	ws.w.gui_m.flag_minimal_update();
 	return new_obj;
 }

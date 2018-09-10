@@ -1068,7 +1068,7 @@ T* concurrent_allocator<T>::allocate(size_t n) {
 }
 
 template<typename T>
-void concurrent_allocator<T>::deallocate(T* p, size_t n) {
+void concurrent_allocator<T>::deallocate(T* p, size_t) {
 	concurrent_free_wrapper(p);
 }
 

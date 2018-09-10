@@ -50,7 +50,6 @@ public:
 	void member_update_in_window(window_type& w, world_state& s);
 
 	gui_window(ui::gui_window<INDEX, TYPE, REST ...>&&) = default;
-	gui_window(ui::gui_window<INDEX, TYPE, REST ...>& b) noexcept : gui_window<INDEX, TYPE, REST ...>(std::move(b)) {}
 	template<typename ...PARAMS>
 	gui_window(PARAMS&& ... params) : gui_window<REST ...>(std::forward<PARAMS>(params) ...), m_object(std::forward<PARAMS>(params) ...) {}
 
@@ -82,7 +81,6 @@ protected:
 	void member_update_in_window(window_type& w, world_state& s) {}
 public:
 	gui_window(ui::gui_window<BASE_BEHAVIOR>&&) = default;
-	gui_window(ui::gui_window<BASE_BEHAVIOR>& b) noexcept : gui_window(std::move(b)) {}
 	template<typename ...PARAMS>
 	gui_window(PARAMS&& ... params) : BASE_BEHAVIOR(std::forward<PARAMS>(params) ...) {}
 

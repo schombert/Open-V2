@@ -78,7 +78,7 @@ namespace nations {
 		economy::money_qnty_type last_income = economy::money_qnty_type(0); // income only, not expenses
 
 		issues::rules current_rules;
-		atomic_tag<date_tag> last_update;
+		int32_t last_population_growth = 0;
 		date_tag last_election;
 		date_tag last_lost_war;
 		date_tag disarmed_until;
@@ -213,7 +213,7 @@ namespace nations {
 		nation* owner = nullptr;
 		modifiers::national_focus* owner_national_focus = nullptr;
 
-		atomic_tag<date_tag> last_update;
+		int32_t last_population_growth = 0;
 		set_tag<country_tag> flashpoint_tension_focuses;
 		float administrative_efficiency = 0.0f;
 		float current_tension = 0.0f;

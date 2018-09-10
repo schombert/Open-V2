@@ -8,7 +8,7 @@
 #include "text_data\\text_data.h"
 #include "graphics_objects\\graphics_objects.h"
 #include "common\\shared_tags.h"
-
+#include "simple_mpl\\simple_mpl.hpp"
 
 namespace graphics {
 	class font;
@@ -101,7 +101,6 @@ namespace ui {
 		gui_object* associated_object = nullptr;
 		gui_behavior() noexcept {}
 		gui_behavior(gui_behavior&& o) noexcept;
-		gui_behavior(gui_behavior& o) noexcept : gui_behavior(std::move(o)) {}
 		gui_behavior(const gui_behavior& o) = delete;
 		template<typename ... PARAMS>
 		explicit gui_behavior(PARAMS&& ... params) {}
@@ -124,7 +123,6 @@ namespace ui {
 	class visible_region : public gui_behavior {
 	public:
 		visible_region(visible_region&&) = default;
-		visible_region(visible_region& o) noexcept : visible_region(std::move(o)) {}
 		template<typename ...P>
 		explicit visible_region(P&& ...) {}
 		virtual bool on_lclick(gui_object_tag, world_state&, const lbutton_down&) override { return true; }
@@ -137,7 +135,6 @@ namespace ui {
 		ui::xy_pair base_position;
 	public:
 		draggable_region(draggable_region&&) = default;
-		draggable_region(draggable_region& o) noexcept : draggable_region(std::move(o)) {}
 		template<typename ...P>
 		explicit draggable_region(P&& ... ) {}
 		virtual bool on_get_focus(gui_object_tag, world_state&) override;
@@ -149,7 +146,6 @@ namespace ui {
 	class fixed_region : public visible_region {
 	public:
 		fixed_region(fixed_region&&) = default;
-		fixed_region(fixed_region& o) noexcept : fixed_region(std::move(o)) {}
 		template<typename ...P>
 		explicit fixed_region(P&& ... ) {}
 		virtual bool on_get_focus(gui_object_tag, world_state&) override { return true; }
@@ -164,7 +160,6 @@ namespace ui {
 		virtual_key shortcut = virtual_key::NONE;
 
 		simple_button(simple_button&&) = default;
-		simple_button(simple_button& o) noexcept : simple_button(std::move(o)) {}
 		template<typename ...P>
 		explicit simple_button(P&& ... params) : BASE(std::forward<P>(params)...) {}
 
@@ -188,7 +183,6 @@ namespace ui {
 	public:
 		progress_bar() : BASE() {}
 		progress_bar(progress_bar&&) = default;
-		progress_bar(progress_bar& o) noexcept : progress_bar(std::move(o)) {}
 		template<typename ...P>
 		explicit progress_bar(P&& ... params) : BASE(std::forward<P>(params)...) {}
 
@@ -213,7 +207,6 @@ namespace ui {
 		virtual_key shortcut = virtual_key::NONE;
 		
 		masked_flag(masked_flag&&) = default;
-		masked_flag(masked_flag& o) noexcept : masked_flag(std::move(o)) {}
 		template<typename ...P>
 		explicit masked_flag(P&& ... params) : BASE(std::forward<P>(params)...) {}
 
@@ -236,7 +229,6 @@ namespace ui {
 	class dynamic_icon : public gui_behavior, public BASE {
 	public:
 		dynamic_icon(dynamic_icon&&) = default;
-		dynamic_icon(dynamic_icon& o) noexcept : dynamic_icon(std::move(o)) {}
 		template<typename ...P>
 		explicit dynamic_icon(P&& ... params) : BASE(std::forward<P>(params)...) {}
 
@@ -254,7 +246,6 @@ namespace ui {
 	class tinted_icon : public gui_behavior, public BASE {
 	public:
 		tinted_icon(tinted_icon&&) = default;
-		tinted_icon(tinted_icon& o) noexcept : tinted_icon(std::move(o)) {}
 		template<typename ...P>
 		explicit tinted_icon(P&& ... params) : BASE(std::forward<P>(params)...) {}
 
@@ -272,7 +263,6 @@ namespace ui {
 	class dynamic_transparent_icon : public gui_behavior, public BASE {
 	public:
 		dynamic_transparent_icon(dynamic_transparent_icon&&) = default;
-		dynamic_transparent_icon(dynamic_transparent_icon& o) noexcept : dynamic_transparent_icon(std::move(o)) {}
 		template<typename ...P>
 		explicit dynamic_transparent_icon(P&& ... params) : BASE(std::forward<P>(params)...) {}
 
@@ -295,7 +285,6 @@ namespace ui {
 		int32_t border_y = 0;
 
 		display_text(display_text&&) = default;
-		display_text(display_text& o) noexcept : display_text(std::move(o)) {}
 		template<typename ...P>
 		display_text(P&& ... params) : BASE(std::forward<P>(params)...) {}
 
@@ -324,7 +313,6 @@ namespace ui {
 		float remainder = 0.0f;
 	public:
 		piechart(piechart&&) = default;
-		piechart(piechart& o) noexcept : piechart(std::move(o)) {}
 		template<typename ...P>
 		piechart(P&& ... params) : BASE(std::forward<P>(params)...) {}
 
@@ -364,7 +352,6 @@ namespace ui {
 		bool vertical;
 
 		scrollbar(scrollbar&&) = default;
-		scrollbar(scrollbar& o) noexcept : scrollbar(std::move(o)) {}
 		template<typename ... PARAMS>
 		scrollbar(bool vert, int32_t mini, int32_t maxi, int32_t step, PARAMS&& ... params);
 		template<typename ... PARAMS>
@@ -413,7 +400,6 @@ namespace ui {
 		void set_element_definition(gui_static& manager);
 	public:
 		display_listbox(display_listbox&&) = default;
-		display_listbox(display_listbox& o) noexcept : display_listbox(std::move(o)) {}
 		template<typename ... PARAMS>
 		display_listbox(PARAMS&& ... params) : BASE(std::forward<PARAMS>(params)...) {}
 
@@ -457,7 +443,6 @@ namespace ui {
 			element_def(o.element_def), element_def_tag(o.element_def_tag) {
 			sb.associate(&offset); o.sb.associate(nullptr);
 		}
-		discrete_listbox(discrete_listbox& o) noexcept : discrete_listbox(std::move(o)) {}
 		template<typename ... PARAMS>
 		discrete_listbox(PARAMS&& ... params) : BASE(std::forward<PARAMS>(params)...) {}
 
@@ -472,6 +457,33 @@ namespace ui {
 		void update_list(value_type* first, value_type* last);
 	};
 
+	template<typename BASE, typename data_type_list, typename gui_type_list>
+	class tree_view : public visible_region, public BASE {
+	private:
+		std::vector<type_list_to_tuple<gui_type_list>, concurrent_allocator<type_list_to_tuple<gui_type_list>>> display_list;
+		std::vector<std::pair<type_list_to_variant<data_type_list>, bool>, concurrent_allocator<std::pair<type_list_to_variant<data_type_list>, bool>>> values_list;
+		std::vector<type_list_to_variant<data_type_list>, concurrent_allocator<type_list_to_variant<data_type_list>>> force_visible;
+
+		uint32_t offset = 0;
+
+		scrollbar<discrete_listbox_scrollbar> sb;
+
+		window_def* element_def[type_list_size<gui_type_list>] = { nullptr };
+		window_tag element_def_tag[type_list_size<gui_type_list>];
+
+		void set_element_definition(gui_static& manager);
+		int32_t get_max_element_height();
+	public:
+		virtual bool on_scroll(gui_object_tag, world_state&, const scroll&) final override;
+		virtual void update_data(gui_object_tag, world_state&) final override;
+
+		void create_sub_elements(tagged_gui_object self, world_state&);
+		void update_scroll_position(gui_manager&);
+		bool is_open(type_list_to_variant<data_type_list> const& v) const;
+		void set_open(type_list_to_variant<data_type_list> const& v, bool o, ui::gui_manager& ws);
+		void force_open(type_list_to_variant<data_type_list> const& v);
+	};
+
 	template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension = 0>
 	class overlap_box : public visible_region, public BASE {
 	private:
@@ -483,7 +495,6 @@ namespace ui {
 		tag_type element_def_tag;
 	public:
 		overlap_box(overlap_box&&) = default;
-		overlap_box(overlap_box& o) noexcept : overlap_box(std::move(o)) {}
 		template<typename ... PARAMS>
 		overlap_box(PARAMS&& ... params) : BASE(std::forward<PARAMS>(params)...) {}
 
@@ -521,7 +532,6 @@ namespace ui {
 		virtual_key shortcut = virtual_key::NONE;
 
 		button_group_member(button_group_member&&) = default;
-		button_group_member(button_group_member& o) noexcept : button_group_member(std::move(o)) {}
 		template<typename ...P>
 		explicit button_group_member(P&& ... params) {}
 
@@ -663,6 +673,8 @@ namespace ui {
 	ui::tagged_gui_object create_static_element(world_state& ws, listbox_tag handle, tagged_gui_object parent, discrete_listbox<BASE, ELEMENT, value_type, left_expand>& b);
 	template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>
 	ui::tagged_gui_object create_static_element(world_state& ws, window_tag handle, tagged_gui_object parent, discrete_listbox<BASE, ELEMENT, value_type, left_expand>& b);
+	template<typename BASE, typename data_type_list, typename gui_type_list>
+	ui::tagged_gui_object create_static_element(world_state& ws, listbox_tag handle, tagged_gui_object parent, tree_view<BASE, data_type_list, gui_type_list>& b);
 	template<typename B, typename tag_type, typename ELEMENT, int32_t vertical_extension>
 	ui::tagged_gui_object create_static_element(world_state& ws, overlapping_region_tag handle, tagged_gui_object parent, ui::overlap_box<B, tag_type, ELEMENT, vertical_extension>& b);
 	template<typename B>
@@ -695,7 +707,7 @@ namespace ui {
 		const int32_t max_line_extent;
 		int32_t indent = 0;
 	public:
-		line_manager(text_data::alignment a, int32_t m) : align(a), max_line_extent(m) {}
+		line_manager(text_data::alignment a, int32_t m);
 		bool exceeds_extent(int32_t w) const;
 		void add_object(gui_object* o);
 		void finish_current_line();
@@ -711,7 +723,7 @@ namespace ui {
 		const int32_t border_x = 0;
 		const int32_t border_y = 0;
 	public:
-		text_box_line_manager(text_data::alignment a, int32_t m, int32_t bx, int32_t by) : align(a), max_line_extent(m), border_x(bx), border_y(by) {}
+		text_box_line_manager(text_data::alignment a, int32_t m, int32_t bx, int32_t by);
 		bool exceeds_extent(int32_t) const { return false; }
 		void add_object(gui_object* o);
 		void finish_current_line();
@@ -724,7 +736,7 @@ namespace ui {
 		boost::container::small_vector<gui_object*, 16, concurrent_allocator<gui_object*>> current_line;
 		int32_t indent = 0;
 	public:
-		unlimited_line_manager() {}
+		unlimited_line_manager();
 		bool exceeds_extent(int32_t) const { return false; }
 		void add_object(gui_object* o);
 		void finish_current_line();

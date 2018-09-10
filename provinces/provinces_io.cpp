@@ -31,6 +31,7 @@ void serialization::serializer<provinces::province_state>::serialize_object(std:
 	auto orders_tag = obj.orders ? obj.orders->id : military::army_orders_tag();
 	serialize(output, orders_tag);
 
+	serialize(output, obj.last_population_growth);
 	serialize(output, obj.nationalism);
 	serialize(output, obj.siege_progress);
 	serialize(output, obj.last_controller_change);
@@ -75,6 +76,7 @@ void serialization::serializer<provinces::province_state>::deserialize_object(st
 	deserialize(input, orders_tag);
 	obj.orders = ws.w.military_s.army_orders_container.get_location(orders_tag);
 
+	deserialize(input, obj.last_population_growth);
 	deserialize(input, obj.nationalism);
 	deserialize(input, obj.siege_progress);
 	deserialize(input, obj.last_controller_change);
@@ -96,8 +98,6 @@ void serialization::serializer<provinces::province_state>::deserialize_object(st
 	deserialize_stable_array(input, ws.w.province_s.core_arrays, obj.cores);
 	deserialize_stable_array(input, ws.w.province_s.static_modifier_arrays, obj.static_modifiers);
 	deserialize_stable_array(input, ws.w.province_s.timed_modifier_arrays, obj.timed_modifiers);
-
-	obj.last_update = ws.w.current_date;
 }
 
 size_t serialization::serializer<provinces::province_state>::size(provinces::province_state const & obj, world_state const & ws) {
@@ -106,6 +106,7 @@ size_t serialization::serializer<provinces::province_state>::size(provinces::pro
 		sizeof(population::rebel_faction_tag) + // rebel controller
 		sizeof(nations::state_tag) + // state
 		sizeof(military::army_orders_tag) + // army orders
+		serialize_size(obj.last_population_growth) +
 		serialize_size(obj.nationalism) +
 		serialize_size(obj.siege_progress) +
 		serialize_size(obj.last_controller_change) +

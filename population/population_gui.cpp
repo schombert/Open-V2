@@ -362,4 +362,58 @@ namespace population {
 
 		lm.finish_current_line();
 	}
+
+
+	void pop_country_open_button::button_function(ui::simple_button<pop_country_open_button>&, world_state& ws) {
+		ws.w.selected_population.population_for_nation = tag;
+		ws.w.selected_population.display_type = current_state::population_display::nation;
+		
+		ws.w.update_population_window();
+	}
+
+	void pop_state_open_button::button_function(ui::simple_button<pop_state_open_button>&, world_state& ws) {
+		ws.w.selected_population.population_for_state = tag;
+		ws.w.selected_population.display_type = current_state::population_display::state;
+
+		ws.w.update_population_window();
+	}
+
+	void pop_province_open_button::button_function(ui::simple_button<pop_province_open_button>&, world_state& ws) {
+		ws.w.selected_population.population_for_province = tag;
+		ws.w.selected_population.display_type = current_state::population_display::province;
+
+		ws.w.update_population_window();
+	}
+
+	void pop_state_focus_button::button_function(ui::simple_button<pop_state_focus_button>&, world_state&) {
+
+	}
+
+	void pop_state_expand_button::button_function(ui::simple_button<pop_state_expand_button>&, world_state& ws) {
+		if(ws.w.population_window_has_state_expanded(tag))
+			ws.w.population_window_set_state_expanded(tag, false);
+		else
+			ws.w.population_window_set_state_expanded(tag, true);
+	}
+
+	void pop_state_expand_button::on_create(ui::simple_button<pop_state_expand_button>& b, world_state& ws) {
+		ui::clear_children(ws.w.gui_m, ui::tagged_gui_object{ *b.associated_object, ui::gui_object_tag() });
+	}
+
+	ui::window_tag pop_tree_view::element_tag(size_t level, ui::gui_static& gui_m) {
+		if(level == 0)
+			return std::get<ui::window_tag>(gui_m.ui_definitions.name_to_element_map["poplistitem_country"]);
+		else if(level == 1)
+			return std::get<ui::window_tag>(gui_m.ui_definitions.name_to_element_map["poplistitem_state"]);
+		else if(level == 2)
+			return std::get<ui::window_tag>(gui_m.ui_definitions.name_to_element_map["poplistitem_province"]);
+		return ui::window_tag();
+	}
+
+	std::vector<nations::country_tag, concurrent_allocator<nations::country_tag>> pop_tree_view::base_list(world_state& ws) {
+		std::vector<nations::country_tag, concurrent_allocator<nations::country_tag>> result;
+		if(ws.w.local_player_nation)
+			result.push_back(ws.w.local_player_nation->id);
+		return result;
+	}
 }
