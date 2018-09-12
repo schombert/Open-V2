@@ -11,7 +11,8 @@ namespace economy {
 		for(auto& g : ws.s.economy_m.goods) {
 			ws.w.economy_s.current_prices[g.id] = g.base_price;
 		}
-		ws.w.economy_s.current_prices[economy::money_good] = economy::money_qnty_type(1);
+		if(ws.s.economy_m.aligned_32_goods_count != 0)
+			ws.w.economy_s.current_prices[economy::money_good] = economy::money_qnty_type(1);
 	}
 
 	void reset_state(economic_state& ) {

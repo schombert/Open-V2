@@ -348,6 +348,10 @@ namespace nations {
 		return true;
 	}
 
+	bool is_colonial_or_protectorate(state_instance const& s) {
+		return (s.flags & (state_instance::is_protectorate | state_instance::is_colonial)) != 0;
+	}
+
 	void partial_destroy_state_instance(world_state& ws, state_instance& si) {
 		auto ft_range = get_range(ws.w.nation_s.nations_arrays, si.flashpoint_tension_focuses);
 		for(auto n : ft_range)
@@ -498,7 +502,8 @@ namespace nations {
 						}
 					}
 				}
-				nation_demo += state_demo.cast<int64_t>();
+				if(!nations::is_colonial_or_protectorate(*s->state))
+					nation_demo += state_demo.cast<int64_t>();
 			}
 
 			{

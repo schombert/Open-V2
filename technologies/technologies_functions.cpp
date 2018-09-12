@@ -120,8 +120,24 @@ namespace technologies {
 		military::update_all_unit_attributes(ws, this_nation);
 	}
 
-	float daily_research_points(world_state const&, nations::nation const&) {
-		// todo
-		return 0.0f;
+	float daily_research_points(world_state const& ws, nations::nation const& n) {
+		auto id = n.id;
+		if(!ws.w.nation_s.nations.is_valid_index(id))
+			return 0.0f;
+
+		int64_t total_pop = ws.w.nation_s.nation_demographics.get(id, population::total_population_tag);
+		int64_t* pop_by_type = ws.w.nation_s.nation_demographics.get_row(id) + to_index(population::to_demo_tag(ws, population::pop_type_tag(0)));
+
+		float points_by_type = 0.0f;
+		if(total_pop != 0)
+			for(uint32_t i = 0; i < ws.s.population_m.count_poptypes; ++i) {
+				population::pop_type_tag this_tag(static_cast<population::pop_type_tag::value_base_t>(i));
+				auto& pt = ws.s.population_m.pop_types[this_tag];
+				if(pt.research_points != 0 && pt.research_optimum != 0.0f) {
+					points_by_type += float(pt.research_points) * std::min(1.0f, (float(pop_by_type[i]) / float(total_pop)) / ws.s.population_m.pop_types[this_tag].research_optimum);
+				}
+			}
+
+		return (n.modifier_values[modifiers::national_offsets::research_points] + points_by_type) * (1.0f + n.modifier_values[modifiers::national_offsets::research_points_modifier]);
 	}
 }

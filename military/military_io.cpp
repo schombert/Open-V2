@@ -601,7 +601,8 @@ namespace military {
 			env.under_construction.truce_months = v;
 		}
 		void set_war_name(token_and_type const& t) {
-			env.under_construction.war_name = text_data::get_thread_safe_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end);
+			std::string prepended = std::string("NORMAL_") + std::string(t.start, t.end);
+			env.under_construction.war_name = text_data::get_thread_safe_text_handle(env.s.gui_m.text_data_sequences, prepended.c_str(), prepended.c_str() + prepended.length());
 		}
 		void set_construction_speed(float v) {
 			env.under_construction.construction_speed = v;

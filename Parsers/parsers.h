@@ -52,14 +52,17 @@ void parse_pdx_file(std::vector<token_group>& results, const char* file_start, c
 void parse_lua_file(std::vector<token_group>& results, const char* file_start, const char* file_end);
 
 template<size_t count_values, typename T>
-char* CALL parse_fixed_amount_csv_values(char* start, char* end, char seperator, const T& function);
+const char* CALL parse_fixed_amount_csv_values(char const* start, char const* end, char seperator, const T& function);
 template<typename T>
-char* CALL parse_first_and_nth_csv_values(uint32_t nth, char* start, char* end, char seperator, const T& function);
+const char* CALL parse_first_and_nth_csv_values(uint32_t nth, char const* start, char const* end, char seperator, const T& function);
 association_type parse_association_type_b(const char* start, const char* end);
 
 char16_t win1250toUTF16(char in);
 std::u16string win1250toUTF16(const char* start, const char* end);
 std::u16string UTF8toUTF16(const char* start, const char* end);
+std::string UTF16toUTF8(const char16_t* start, const char16_t* end);
+std::u16string UTF8toUTF16(std::string const& str);
+std::string UTF16toUTF8(std::u16string const& str);
 
 template<size_t N>
 bool is_fixed_token(const token_and_type& g, const char(&t)[N]);

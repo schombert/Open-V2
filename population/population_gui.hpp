@@ -113,7 +113,7 @@ namespace population {
 	void population_window_base::on_create(W& w, world_state& ws) {
 		associated_object->size = ui::xy_pair{ 1017i16, 636i16 };
 		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
-			obj.object.position += ui::xy_pair{ -2i16, 4i16 };
+			obj.object.position += ui::xy_pair{ -3i16, 3i16 };
 		});
 
 
@@ -126,7 +126,7 @@ namespace population {
 			auto& pie = workforce.template get<CT_STRING("chart")>();
 			pie.associated_object->size.x *= 2;
 			pie.associated_object->size.y *= 2;
-			workforce.associated_object->position = ui::xy_pair{ 253i16, 92i16 };
+			workforce.associated_object->position = ui::xy_pair{ 252i16, 91i16 };
 			workforce.associated_object->size = ui::xy_pair{ 255i16, 95i16 };
 			ui::move_to_front(ws.w.gui_m, wwin);
 		}
@@ -140,7 +140,7 @@ namespace population {
 			auto& pie = cultures_w.template get<CT_STRING("chart")>();
 			pie.associated_object->size.x *= 2;
 			pie.associated_object->size.y *= 2;
-			cultures_w.associated_object->position = ui::xy_pair{ int16_t(253 + 243), int16_t(92) };
+			cultures_w.associated_object->position = ui::xy_pair{ int16_t(252 + 243), int16_t(91) };
 			cultures_w.associated_object->size = ui::xy_pair{ 255i16, 95i16 };
 			ui::move_to_front(ws.w.gui_m, wwin);
 		}
@@ -154,7 +154,7 @@ namespace population {
 			auto& pie = religions_w.template get<CT_STRING("chart")>();
 			pie.associated_object->size.x *= 2;
 			pie.associated_object->size.y *= 2;
-			religions_w.associated_object->position = ui::xy_pair{ int16_t(253 + 2 * 243), int16_t(92) };
+			religions_w.associated_object->position = ui::xy_pair{ int16_t(252 + 2 * 243), int16_t(91) };
 			religions_w.associated_object->size = ui::xy_pair{ 255i16, 95i16 };
 			ui::move_to_front(ws.w.gui_m, wwin);
 		}
@@ -168,7 +168,7 @@ namespace population {
 			auto& pie = ideologies_w.template get<CT_STRING("chart")>();
 			pie.associated_object->size.x *= 2;
 			pie.associated_object->size.y *= 2;
-			ideologies_w.associated_object->position = ui::xy_pair{ int16_t(253 + 0 * 243), int16_t(92 + 101) };
+			ideologies_w.associated_object->position = ui::xy_pair{ int16_t(252 + 0 * 243), int16_t(91 + 101) };
 			ideologies_w.associated_object->size = ui::xy_pair{ 255i16, 95i16 };
 			ui::move_to_front(ws.w.gui_m, wwin);
 		}
@@ -182,7 +182,7 @@ namespace population {
 			auto& pie = issues_w.template get<CT_STRING("chart")>();
 			pie.associated_object->size.x *= 2;
 			pie.associated_object->size.y *= 2;
-			issues_w.associated_object->position = ui::xy_pair{ int16_t(253 + 1 * 243), int16_t(92 + 101) };
+			issues_w.associated_object->position = ui::xy_pair{ int16_t(252 + 1 * 243), int16_t(91 + 101) };
 			issues_w.associated_object->size = ui::xy_pair{ 255i16, 95i16 };
 			ui::move_to_front(ws.w.gui_m, wwin);
 		}
@@ -196,7 +196,7 @@ namespace population {
 			auto& pie = electorate_w.template get<CT_STRING("chart")>();
 			pie.associated_object->size.x *= 2;
 			pie.associated_object->size.y *= 2;
-			electorate_w.associated_object->position = ui::xy_pair{ int16_t(253 + 2 * 243), int16_t(92 + 101) };
+			electorate_w.associated_object->position = ui::xy_pair{ int16_t(252 + 2 * 243), int16_t(91 + 101) };
 			electorate_w.associated_object->size = ui::xy_pair{ 255i16, 95i16 };
 			ui::move_to_front(ws.w.gui_m, wwin);
 		}
@@ -209,7 +209,7 @@ namespace population {
 				std::get<ui::button_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["pop_filter_button"]),
 				ui::tagged_gui_object{ *associated_object, w.window_object },
 				filter_buttons.back());
-			fb.object.position = ui::xy_pair{ int16_t(285 + 32 * i), int16_t(25) };
+			fb.object.position = ui::xy_pair{ int16_t(284 + 32 * i), int16_t(24) };
 			ui::move_to_front(ws.w.gui_m, fb);
 		}
 
@@ -280,6 +280,8 @@ namespace population {
 			b.associated_object->position += ui::xy_pair{ 0i16, -1i16 };
 			ui::clear_children(ws.w.gui_m, ui::tagged_gui_object{ *b.associated_object, ui::gui_object_tag(0) });
 		}
+
+		ui::hide(*associated_object);
 	}
 
 	template<typename lb_type>
@@ -289,26 +291,133 @@ namespace population {
 		if(ws.w.selected_population.display_type == current_state::population_display::nation) {
 			generic_for_each_pop(ws, ws.w.selected_population.population_for_nation, [&ws, &data](population::pop& p) {
 				auto id = p.id;
-				if(ws.w.population_s.pops.is_valid_index(id))
-					data.push_back(id);
+				if(ws.w.population_s.pops.is_valid_index(id)) {
+					auto type = ws.w.population_s.pops[id].type;
+					if(is_valid_index(type) && ws.w.selected_population.filtered_pop_types[type] != 0)
+						data.push_back(id);
+				}
 			});
 		} else if(ws.w.selected_population.display_type == current_state::population_display::state) {
 			generic_for_each_pop(ws, ws.w.selected_population.population_for_state, [&ws, &data](population::pop& p) {
 				auto id = p.id;
-				if(ws.w.population_s.pops.is_valid_index(id))
-					data.push_back(id);
+				if(ws.w.population_s.pops.is_valid_index(id)) {
+					auto type = ws.w.population_s.pops[id].type;
+					if(is_valid_index(type) && ws.w.selected_population.filtered_pop_types[type] != 0)
+						data.push_back(id);
+				}
 			});
 		} else if(ws.w.selected_population.display_type == current_state::population_display::province) {
 			generic_for_each_pop(ws, ws.w.selected_population.population_for_province, [&ws, &data](population::pop& p) {
 				auto id = p.id;
-				if(ws.w.population_s.pops.is_valid_index(id))
-					data.push_back(id);
+				if(ws.w.population_s.pops.is_valid_index(id)) {
+					auto type = ws.w.population_s.pops[id].type;
+					if(is_valid_index(type) && ws.w.selected_population.filtered_pop_types[type] != 0)
+						data.push_back(id);
+				}
 			});
 		}
 
 		//do sorting
+		switch(ws.w.selected_population.sort_type) {
+			case current_state::population_sort::none: break;
+			case current_state::population_sort::size:
+				std::sort(data.begin(), data.end(), [&ws](pop_tag a, pop_tag b) {
+					return ws.w.population_s.pop_demographics.get(a, total_population_tag) > ws.w.population_s.pop_demographics.get(b, total_population_tag);
+				});
+				break;
+			case current_state::population_sort::type:
+				std::sort(data.begin(), data.end(), [&ws](pop_tag a, pop_tag b) {
+					return ws.w.population_s.pops[a].type < ws.w.population_s.pops[b].type;
+				});
+				break;
+			case current_state::population_sort::culture:
+			{
+				vector_backed_string_lex_less<char16_t> lss(ws.s.gui_m.text_data_sequences.text_data);
+				std::sort(data.begin(), data.end(), [&ws, &lss](pop_tag a, pop_tag b) {
+					auto a_culture = ws.w.population_s.pops[a].culture;
+					auto b_culture = ws.w.population_s.pops[b].culture;
+					return lss(
+						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
+							is_valid_index(a_culture) ? ws.s.culture_m.culture_container[a_culture].name : text_data::text_tag()),
+						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
+							is_valid_index(b_culture) ? ws.s.culture_m.culture_container[b_culture].name : text_data::text_tag()));
+				});
+			}
+				break;
+			case current_state::population_sort::religion:
+			{
+				vector_backed_string_lex_less<char16_t> lss(ws.s.gui_m.text_data_sequences.text_data);
+				std::sort(data.begin(), data.end(), [&ws, &lss](pop_tag a, pop_tag b) {
+					auto a_rel = ws.w.population_s.pops[a].religion;
+					auto b_rel = ws.w.population_s.pops[b].religion;
+					return lss(
+						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
+							is_valid_index(a_rel) ? ws.s.culture_m.religions[a_rel].name : text_data::text_tag()),
+						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
+							is_valid_index(b_rel) ? ws.s.culture_m.religions[b_rel].name : text_data::text_tag()));
+				});
+			}
+				break;
+			case current_state::population_sort::location:
+			{
+				vector_backed_string_lex_less<char16_t> lss(ws.s.gui_m.text_data_sequences.text_data);
+				std::sort(data.begin(), data.end(), [&ws, &lss](pop_tag a, pop_tag b) {
+					auto a_loc = ws.w.population_s.pops[a].location;
+					auto b_loc = ws.w.population_s.pops[b].location;
+					return lss(
+						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
+							is_valid_index(a_loc) ? ws.w.province_s.province_state_container[a_loc].name : text_data::text_tag()),
+						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
+							is_valid_index(b_loc) ? ws.w.province_s.province_state_container[b_loc].name : text_data::text_tag()));
+				});
+			}
+				break;
+			case current_state::population_sort::militancy:
+				std::sort(data.begin(), data.end(), [&ws](pop_tag a, pop_tag b) {
+					return ws.w.population_s.pops[a].militancy < ws.w.population_s.pops[b].militancy;
+				});
+				break;
+			case current_state::population_sort::consciousness:
+				std::sort(data.begin(), data.end(), [&ws](pop_tag a, pop_tag b) {
+					return ws.w.population_s.pops[a].consciousness < ws.w.population_s.pops[b].consciousness;
+				});
+				break;
+			case current_state::population_sort::ideoology: break;
+			case current_state::population_sort::issues: break;
+			case current_state::population_sort::unemployment:
+				std::sort(data.begin(), data.end(), [&ws](pop_tag a, pop_tag b) {
+					auto a_size = float(std::max(1, ws.w.population_s.pop_demographics.get(a, total_population_tag)));
+					auto b_size = float(std::max(1, ws.w.population_s.pop_demographics.get(b, total_population_tag)));
+					return float(ws.w.population_s.pop_demographics.get(a, total_employment_tag)) / a_size <
+						float(ws.w.population_s.pop_demographics.get(b, total_employment_tag)) / b_size;
+				});
+				break;
+			case current_state::population_sort::cash:
+				std::sort(data.begin(), data.end(), [&ws](pop_tag a, pop_tag b) {
+					return ws.w.population_s.pops[a].money < ws.w.population_s.pops[b].money;
+				});
+				break;
+			case current_state::population_sort::life_needs: // fall through
+			case current_state::population_sort::everyday_needs: // fall through
+			case current_state::population_sort::luxury_needs:
+				std::sort(data.begin(), data.end(), [&ws](pop_tag a, pop_tag b) {
+					return ws.w.population_s.pops[a].needs_satisfaction < ws.w.population_s.pops[b].needs_satisfaction;
+				});
+				break;
+			case current_state::population_sort::revolt_risk: break;
+			case current_state::population_sort::size_change:
+				std::sort(data.begin(), data.end(), [&ws](pop_tag a, pop_tag b) {
+					return total_size_change(ws.w.population_s.pops[a]) < total_size_change(ws.w.population_s.pops[b]);
+				});
+				break;
+			case current_state::population_sort::literacy:
+				std::sort(data.begin(), data.end(), [&ws](pop_tag a, pop_tag b) {
+					return ws.w.population_s.pops[a].literacy < ws.w.population_s.pops[b].literacy;
+				});
+				break;
+		}
 
-		lb.new_list(data.begin().get_ptr(), data.end().get_ptr());
+		lb.update_list(data.begin().get_ptr(), data.end().get_ptr());
 	}
 
 	template<typename lb_type>
@@ -476,7 +585,7 @@ namespace population {
 	template<typename window_type>
 	void pop_size::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		char16_t local_buf[32];
-		put_value_in_buffer(local_buf, display_type::integer, int32_t(ws.w.population_s.pop_demographics.get(w.tag, total_population_tag)));
+		put_value_in_buffer(local_buf, display_type::exact_integer, int32_t(ws.w.population_s.pop_demographics.get(w.tag, total_population_tag)));
 
 		ui::text_chunk_to_instances(
 			ws.s.gui_m,
@@ -794,7 +903,7 @@ namespace population {
 	template<typename W>
 	void pop_country_growth::windowed_update(ui::dynamic_icon<pop_country_growth>& ico, W& w, world_state& ws) {
 		if(is_valid_index(w.tag)) {
-			auto growth = ws.w.nation_s.nations[w.tag].last_population_growth;
+			auto growth = ws.w.nation_s.nation_demographics.get(w.tag, total_population_tag) - ws.w.nation_s.nations[w.tag].last_population;
 			if(growth > 0)
 				ico.set_frame(ws.w.gui_m, 0ui32);
 			else if(growth == 0)
@@ -802,6 +911,18 @@ namespace population {
 			else
 				ico.set_frame(ws.w.gui_m, 2ui32);
 		}
+	}
+
+	template<typename W>
+	void pop_growth::windowed_update(ui::dynamic_icon<pop_growth>& ico, W& w, world_state& ws) {
+		auto total_growth = total_size_change(ws.w.population_s.pops[w.tag]);
+
+		if(total_growth > 0)
+			ico.set_frame(ws.w.gui_m, 0ui32);
+		else if(total_growth == 0)
+			ico.set_frame(ws.w.gui_m, 1ui32);
+		else
+			ico.set_frame(ws.w.gui_m, 2ui32);
 	}
 
 	template<typename window_type>
@@ -826,7 +947,7 @@ namespace population {
 	template<typename W>
 	void pop_state_growth::windowed_update(ui::dynamic_icon<pop_state_growth>& ico, W& w, world_state& ws) {
 		if(is_valid_index(w.tag)) {
-			auto growth = ws.w.nation_s.states[w.tag].last_population_growth;
+			auto growth = ws.w.nation_s.state_demographics.get(w.tag, total_population_tag) - ws.w.nation_s.states[w.tag].last_population;
 			if(growth > 0)
 				ico.set_frame(ws.w.gui_m, 0ui32);
 			else if(growth == 0)
@@ -883,7 +1004,7 @@ namespace population {
 	template<typename W>
 	void pop_province_growth::windowed_update(ui::dynamic_icon<pop_province_growth>& ico, W& w, world_state& ws) {
 		if(is_valid_index(w.tag)) {
-			auto growth = ws.w.province_s.province_state_container[w.tag].last_population_growth;
+			auto growth = ws.w.province_s.province_demographics.get(w.tag, total_population_tag) - ws.w.province_s.province_state_container[w.tag].last_population;
 			if(growth > 0)
 				ico.set_frame(ws.w.gui_m, 0ui32);
 			else if(growth == 0)
@@ -900,6 +1021,14 @@ namespace population {
 			auto id = si.id;
 			if(ws.w.nation_s.states.is_valid_index(id))
 				result.push_back(id);
+		});
+		vector_backed_string_lex_less<char16_t> lss(ws.s.gui_m.text_data_sequences.text_data);
+		std::sort(result.begin(), result.end(), [&ws, &lss](nations::state_tag a, nations::state_tag b) {
+			return lss(text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.states[a].name),
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.states[b].name));
+		});
+		std::stable_sort(result.begin(), result.end(), [&ws](nations::state_tag a, nations::state_tag b) {
+			return int32_t(nations::is_colonial_or_protectorate(ws.w.nation_s.states[a])) < int32_t(nations::is_colonial_or_protectorate(ws.w.nation_s.states[b]));
 		});
 		return result;
 	}

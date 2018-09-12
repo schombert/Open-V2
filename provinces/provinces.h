@@ -42,7 +42,7 @@ namespace provinces {
 		nations::state_instance* state_instance = nullptr;
 		military::army_orders* orders = nullptr; // land provinces only
 
-		int32_t last_population_growth = 0;
+		int32_t last_population = 0;
 		float nationalism = 0.0f;
 		float siege_progress = 0.0f;
 		date_tag last_controller_change;

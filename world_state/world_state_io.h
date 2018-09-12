@@ -3,6 +3,8 @@
 #include "world_state.h"
 #include "simple_serialize\\simple_serialize.hpp"
 
+template<>
+class serialization::serializer<current_state::player_net_income_history> : public serialization::memcpy_serializer<current_state::player_net_income_history> {};
 
 template<>
 class serialization::serializer<current_state::state> {

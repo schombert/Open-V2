@@ -1,7 +1,9 @@
 #include "pch.h"
 #include "text_data\\text_data.h"
+#include "text_data\\text_data_io.h"
 #include <string>
 #include <variant>
+#include "simple_fs\\simple_fs.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 using namespace text_data;
@@ -214,4 +216,33 @@ TEST(text_data_test, text_alignment) {
 	const auto a9 = align_in_bounds(text_data::alignment::right, 20, 10, 40, 20);
 	EXPECT_EQ(20, a9.first);
 	EXPECT_EQ(5, a9.second);
+}
+
+TEST(text_data_test, newtext_file) {
+	text_data::text_sequences container;
+	std::map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci> temp_map(vector_backed_string_less_ci(container.key_data));
+
+	file_system fs;
+	fs.set_root(u"D:\\programs\\V2\\localisation");
+	auto op = fs.get_root().open_file(u"newtext.csv");
+
+	EXPECT_TRUE(bool(op));
+
+	text_data::load_single_text_file(*op, container, temp_map);
+
+	container.key_to_sequence_map.~flat_map();
+	new (&container.key_to_sequence_map) boost::container::flat_map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci>(boost::container::ordered_unique_range_t(), temp_map.begin(), temp_map.end(), vector_backed_string_less_ci(container.key_data));
+
+	EXPECT_NE(text_data::text_tag(), text_data::get_existing_text_handle(container, RANGE("EVTNAME5002")));
+	EXPECT_NE(text_data::text_tag(), text_data::get_existing_text_handle(container, RANGE("ADD_WARGOAL_DESC")));
+	EXPECT_NE(text_data::text_tag(), text_data::get_existing_text_handle(container, RANGE("adopt_die_stem_desc")));
+
+	EXPECT_NE(text_data::text_tag(), text_data::get_existing_text_handle(container, RANGE("found_the_bbc_title")));
+	EXPECT_NE(text_data::text_tag(), text_data::get_existing_text_handle(container, RANGE("found_the_bbc_desc")));
+	EXPECT_NE(text_data::text_tag(), text_data::get_existing_text_handle(container, RANGE("establish_the_sovnarkom_title")));
+	EXPECT_NE(text_data::text_tag(), text_data::get_existing_text_handle(container, RANGE("establish_the_sovnarkom_desc")));
+
+	EXPECT_NE(text_data::text_tag(), text_data::get_existing_text_handle(container, RANGE("EVTDESC2060")));
+	EXPECT_NE(text_data::text_tag(), text_data::get_existing_text_handle(container, RANGE("niederwald_denkmal_desc")));
+	EXPECT_NE(text_data::text_tag(), text_data::get_existing_text_handle(container, RANGE("EVTNAME16250")));
 }

@@ -14,13 +14,13 @@ namespace graphics {
 
 			do {
 				//if we want to slow down to 30 fps ...
-				//const auto start_time = std::chrono::high_resolution_clock::now();
+				//const auto start_time = std::chrono::steady_clock::now();
 
 				_this->clear();
 				base.render(*_this);
 				_this->display();
 
-				//const auto end_time = std::chrono::high_resolution_clock::now();
+				//const auto end_time = std::chrono::steady_clock::now();
 				//const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
 				//if (elapsed < (1000 / 30)) {
 				//	Sleep((1000 / 30) - elapsed);

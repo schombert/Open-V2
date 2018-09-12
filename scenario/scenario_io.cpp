@@ -148,5 +148,12 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::life_needs] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "LIFE_NEEDS");
 		s.fixed_ui_text[fixed_ui::everyday_needs] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "EVERYDAY_NEEDS");
 		s.fixed_ui_text[fixed_ui::luxury_needs] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "LUXURY_NEEDS");
+		s.fixed_ui_text[fixed_ui::no_closed_factories] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_NO_HasClosedFactories");
+		s.fixed_ui_text[fixed_ui::closed_factories] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_HasClosedFactories");
+		s.fixed_ui_text[fixed_ui::unemployed_workers] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_HasUnemployedWorkers");
+		s.fixed_ui_text[fixed_ui::no_unemployed_workers] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_NO_HasUnemployedWorkers");
+		s.fixed_ui_text[fixed_ui::building_factories] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_IsBuildingFactories");
+		s.fixed_ui_text[fixed_ui::not_building_factories] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_NO_IsBuildingFactories");
+		s.fixed_ui_text[fixed_ui::no_research] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "TECHNOLOGYVIEW_NO_RESEARCH");
 	}
 }

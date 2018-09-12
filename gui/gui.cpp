@@ -595,7 +595,10 @@ void ui::detail::instantiate_graphical_object(gui_static& static_manager, ui::gu
 			break;
 		case graphics::object_type::linegraph:
 			container.object.flags.fetch_or(ui::gui_object::type_linegraph, std::memory_order_acq_rel);
-			//TODO
+
+			const auto new_lines = manager.lines_set.emplace(uint32_t(frame));
+			container.object.type_dependant_handle.store(to_index(new_lines.id), std::memory_order_release);
+
 			break;
 	}
 }

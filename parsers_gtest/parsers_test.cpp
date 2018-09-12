@@ -778,43 +778,31 @@ TEST_METHOD(parsers_test, csv_non_transformative_advance_t) {
 	char t2[] = "";
 	char t3[] = "\r\nvalue;value";
 	char t4[] = ";";
-	char t5[] = "\"value; \nquoted\";next value";
-	char t6[] = "\"value; \"\"quoted\";next value";
+
+	char t6[] = "\"valu \"\"quoted\";next value";
 	char t7[] = "value\nvalue";
 
 	AreEqual(t1 + 12, csv_advance(RANGE(t1), ';'));
 	AreEqual(t2, csv_advance(RANGE(t2), ';'));
 	AreEqual(t3, csv_advance(RANGE(t3), ';'));
 	AreEqual(t4 + 1, csv_advance(RANGE(t4), ';'));
-	AreEqual(t5 + 17, csv_advance(RANGE(t5), ';'));
-	AreEqual(t6 + 18, csv_advance(RANGE(t6), ';'));
+
+	AreEqual(t6 + 16, csv_advance(RANGE(t6), ';'));
 	AreEqual(t7 + 5, csv_advance(RANGE(t7), ';'));
-}
-
-TEST_METHOD(parsers_test, csv_non_transformative_quote_advance_t) {
-	char t1[] = "blah blah; blah\" post quote";
-	char t2[] = "";
-	char t3[] = "\r\n\"\"\t;;\" post quote";
-
-	AreEqual(t1 + 16, csv_advdance_to_quote_end(RANGE(t1)));
-	AreEqual(t2, csv_advdance_to_quote_end(RANGE(t2)));
-	AreEqual(t3 + 8, csv_advdance_to_quote_end(RANGE(t3)));
 }
 TEST_METHOD(parsers_test, csv_transformative_get_value) {
 	char t1[] = "value start;value 2;;";
 	char t2[] = "";
 	char t3[] = "\r\nvalue;value";
 	char t4[] = ";";
-	char t5[] = "\"value; \nquoted\";next value";
-	char t6[] = "\"value; \"\"quoted\";next value";
+
 	char t7[] = "value\nvalue";
 	char t8[] = "\"value\"\nvalue";
 	char t9[] = "\"\"value\nvalue";
 
 	const auto r1 = csv_consume_token(RANGE(t1), ';');
 	AreEqual(t1 + 12, r1.second);
-	*(r1.first) = '\0';
-	EXPECT_STREQ("value start", t1);
+	EXPECT_EQ(std::string("value start"), std::string((char const*)t1, r1.first));
 
 	const auto r2 = csv_consume_token(RANGE(t2), ';');
 	AreEqual(t2, r2.second);
@@ -828,30 +816,17 @@ TEST_METHOD(parsers_test, csv_transformative_get_value) {
 	AreEqual(t4 + 1, r4.second);
 	AreEqual(t4, r4.first);
 
-	const auto r5 = csv_consume_token(RANGE(t5), ';');
-	AreEqual(t5 + 17, r5.second);
-	*(r5.first) = '\0';
-	EXPECT_STREQ("value; \nquoted", t5);
-
-	const auto r6 = csv_consume_token(RANGE(t6), ';');
-	AreEqual(t6 + 18, r6.second);
-	*(r6.first) = '\0';
-	EXPECT_STREQ("value; \"quoted", t6);
-
 	const auto r7 = csv_consume_token(RANGE(t7), ';');
 	AreEqual(t7 + 5, r7.second);
-	*(r7.first) = '\0';
-	EXPECT_STREQ("value", t7);
+	EXPECT_EQ(std::string("value"), std::string((char const*)t7, r7.first));
 
 	const auto r8 = csv_consume_token(RANGE(t8), ';');
 	AreEqual(t8 + 7, r8.second);
-	*(r8.first) = '\0';
-	EXPECT_STREQ("value", t8);
+	EXPECT_EQ(std::string("\"value\""), std::string((char const*)t8, r8.first));
 
 	const auto r9 = csv_consume_token(RANGE(t9), ';');
 	AreEqual(t9 + 7, r9.second);
-	*(r9.first) = '\0';
-	EXPECT_STREQ("\"value", t9);
+	EXPECT_EQ(std::string("\"\"value"), std::string((char const*)t9, r9.first));
 }
 
 TEST_METHOD(parsers_test, csv_advance_to_nextline) {
@@ -859,80 +834,80 @@ TEST_METHOD(parsers_test, csv_advance_to_nextline) {
 	char t2[] = "two\nlines";
 	char t3[] = "\r\nvalue;value";
 	char t4[] = "start \"\" middle\nline2";
-	char t5[] = "lead\"value; \nquoted\";\nthe next value";
-	char t6[] = "lead\"value; \nquoted\";\n###junk;;;\n##\nthe next value";
+	char t5[] = "lead\"value; \\nquoted\";\r\nthe next value";
+	char t6[] = "lead\"value; \\nquoted\";\n###junk;;;\n##\nthe next value";
 
 	AreEqual(t1 + 11, csv_advance_to_next_line(RANGE(t1)));
 	AreEqual(t2 + 4, csv_advance_to_next_line(RANGE(t2)));
 	AreEqual(t3 + 2, csv_advance_to_next_line(RANGE(t3)));
 	AreEqual(t4 + 16, csv_advance_to_next_line(RANGE(t4)));
-	AreEqual(t5 + 22, csv_advance_to_next_line(RANGE(t5)));
-	AreEqual(t6 + 36, csv_advance_to_next_line(RANGE(t6)));
+	AreEqual(t5 + 24, csv_advance_to_next_line(RANGE(t5)));
+	AreEqual(t6 + 37, csv_advance_to_next_line(RANGE(t6)));
 }
 
 TEST_METHOD(parsers_test, csv_fixed_quantity_parse) {
-	char lines[] = "line1a;\"line1;b\";value c;extra\n"
+	char lines[] = "line1a;\"line1b\";value c;extra\r\n"
 		"line2a;line2\"\"b;value f";
 	const auto line_range = std::make_pair(RANGE(lines));
-	const auto next = parse_fixed_amount_csv_values<3>(lines, line_range.second, ';', [](std::pair<char*, char*> result[3]) {
-		*(result[0].second) = '\0';
-		*(result[1].second) = '\0';
-		*(result[2].second) = '\0';
-		EXPECT_STREQ("line1a", result[0].first);
-		EXPECT_STREQ("line1;b", result[1].first);
-		EXPECT_STREQ("value c", result[2].first);
+	const auto next = parse_fixed_amount_csv_values<3>(lines, line_range.second, ';', [](std::pair<char const*, char const*> result[3]) {
+
+		EXPECT_EQ(std::string(result[0].first, result[0].second), "line1a");
+		EXPECT_EQ(std::string(result[1].first, result[1].second), "\"line1b\"");
+		EXPECT_EQ(std::string(result[2].first, result[2].second), "value c");
 	});
-	const auto last = parse_fixed_amount_csv_values<3>(next, line_range.second, ';', [](std::pair<char*, char*> result[3]) {
-		*(result[0].second) = '\0';
-		*(result[1].second) = '\0';
-		*(result[2].second) = '\0';
-		EXPECT_STREQ("line2a", result[0].first);
-		EXPECT_STREQ("line2\"b", result[1].first);
-		EXPECT_STREQ("value f", result[2].first);
+	const auto last = parse_fixed_amount_csv_values<3>(next, line_range.second, ';', [](std::pair<char const*, char const*> result[3]) {
+		EXPECT_EQ(std::string(result[0].first, result[0].second), "line2a");
+		EXPECT_EQ(std::string(result[1].first, result[1].second), "line2\"\"b");
+		EXPECT_EQ(std::string(result[2].first, result[2].second), "value f");
 	});
 	AreEqual(line_range.second, last);
 }
 
 TEST_METHOD(parsers_test, csv_fixed_quantity_parse_b) {
-	char lines[] = "line1a;\"line1;b\";value c;extra\n"
+	char lines[] = "line1a;\"line1b\";value c;extra\n"
 		"#dead line	a \r\n"
 		"#\n"
-		"line2a;line2\"\"b;value f";
+		"line2a;line2\"b;value f";
 	const auto line_range = std::make_pair(RANGE(lines));
-	const auto next = parse_fixed_amount_csv_values<3>(lines, line_range.second, ';', [](std::pair<char*, char*> result[3]) {
-		*(result[0].second) = '\0';
-		*(result[1].second) = '\0';
-		*(result[2].second) = '\0';
-		EXPECT_STREQ("line1a", result[0].first);
-		EXPECT_STREQ("line1;b", result[1].first);
-		EXPECT_STREQ("value c", result[2].first);
+	const auto next = parse_fixed_amount_csv_values<3>(lines, line_range.second, ';', [](std::pair<char const*, char const*> result[3]) {
+		EXPECT_EQ(std::string(result[0].first, result[0].second), "line1a");
+		EXPECT_EQ(std::string(result[1].first, result[1].second), "\"line1b\"");
+		EXPECT_EQ(std::string(result[2].first, result[2].second), "value c");
 	});
-	const auto last = parse_fixed_amount_csv_values<3>(next, line_range.second, ';', [](std::pair<char*, char*> result[3]) {
-		*(result[0].second) = '\0';
-		*(result[1].second) = '\0';
-		*(result[2].second) = '\0';
-		EXPECT_STREQ("line2a", result[0].first);
-		EXPECT_STREQ("line2\"b", result[1].first);
-		EXPECT_STREQ("value f", result[2].first);
+	const auto last = parse_fixed_amount_csv_values<3>(next, line_range.second, ';', [](std::pair<char const*, char const*> result[3]) {
+		EXPECT_EQ(std::string(result[0].first, result[0].second), "line2a");
+		EXPECT_EQ(std::string(result[1].first, result[1].second), "line2\"b");
+		EXPECT_EQ(std::string(result[2].first, result[2].second), "value f");
 	});
 	AreEqual(line_range.second, last);
 }
 
 TEST_METHOD(parsers_test, csv_variable_quantity_parse) {
-	char lines[] = "line1a;\"line1;b\";value c;extra\n"
+	char lines[] = "line1a;\"line1b\";value c;extra\r\n"
 		"line2a;line2\"\"b;value f";
 	const auto line_range = std::make_pair(RANGE(lines));
-	const auto next = parse_first_and_nth_csv_values(3, lines, line_range.second, ';', [](std::pair<char*, char*> a, std::pair<char*, char*> b) {
-		*(a.second) = '\0';
-		*(b.second) = '\0';
-		EXPECT_STREQ("line1a", a.first);
-		EXPECT_STREQ("value c", b.first);
+	const auto next = parse_first_and_nth_csv_values(3, lines, line_range.second, ';', [](std::pair<char const*, char const*> a, std::pair<char const*, char const*> b) {
+		EXPECT_EQ(std::string(a.first, a.second), "line1a");
+		EXPECT_EQ(std::string(b.first, b.second), "value c");
 	});
-	const auto last = parse_first_and_nth_csv_values(3, next, line_range.second, ';', [](std::pair<char*, char*> a, std::pair<char*, char*> b) {
-		*(a.second) = '\0';
-		*(b.second) = '\0';
-		EXPECT_STREQ("line2a", a.first);
-		EXPECT_STREQ("value f", b.first);
+	const auto last = parse_first_and_nth_csv_values(3, next, line_range.second, ';', [](std::pair<char const*, char const*> a, std::pair<char const*, char const*> b) {
+		EXPECT_EQ(std::string(a.first, a.second), "line2a");
+		EXPECT_EQ(std::string(b.first, b.second), "value f");
+	});
+	AreEqual(line_range.second, last);
+}
+
+TEST_METHOD(parsers_test, csv_variable_quantity_parse_b) {
+	char lines[] = "line1a;la\\n\"li\"\"ne\\n1\"\";b la;value c;extra\r\n"
+		"line2a;line2\"\"b;value f";
+	const auto line_range = std::make_pair(RANGE(lines));
+	const auto next = parse_first_and_nth_csv_values(4, lines, line_range.second, ';', [](std::pair<char const*, char const*> a, std::pair<char const*, char const*> b) {
+		EXPECT_EQ(std::string(a.first, a.second), "line1a");
+		EXPECT_EQ(std::string(b.first, b.second), "value c");
+	});
+	const auto last = parse_first_and_nth_csv_values(3, next, line_range.second, ';', [](std::pair<char const*, char const*> a, std::pair<char const*, char const*> b) {
+		EXPECT_EQ(std::string(a.first, a.second), "line2a");
+		EXPECT_EQ(std::string(b.first, b.second), "value f");
 	});
 	AreEqual(line_range.second, last);
 }

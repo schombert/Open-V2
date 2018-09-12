@@ -392,7 +392,7 @@ void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::update_list(v
 		if(opt_v && std::find(first, last, *opt_v) == last)
 			opt_v = std::optional<value_type>();
 	}
-	for(auto it = first; it != last ++it) {
+	for(auto it = first; it != last; ++it) {
 		if(std::find(values_list.begin(), values_list.end(), std::optional<value_type>(*it)) == values_list.end())
 			values_list.push_back(std::optional<value_type>(*it));
 	}

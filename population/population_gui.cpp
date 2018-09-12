@@ -29,39 +29,90 @@ namespace population {
 		ws.w.update_population_window();
 	}
 
-	void sortby_size_button::button_function(ui::simple_button<sortby_size_button>&, world_state &) {}
+	void sortby_size_button::button_function(ui::simple_button<sortby_size_button>&, world_state & ws) {
+		ws.w.selected_population.sort_type = current_state::population_sort::size;
+		ws.w.update_population_window();
+	}
 
-	void sortby_type_button::button_function(ui::simple_button<sortby_type_button>&, world_state &) {}
+	void sortby_type_button::button_function(ui::simple_button<sortby_type_button>&, world_state & ws) {
+		ws.w.selected_population.sort_type = current_state::population_sort::type;
+		ws.w.update_population_window();
+	}
 
-	void sortby_nationality_button::button_function(ui::simple_button<sortby_nationality_button>&, world_state &) {}
+	void sortby_nationality_button::button_function(ui::simple_button<sortby_nationality_button>&, world_state &ws) {
+		ws.w.selected_population.sort_type = current_state::population_sort::culture;
+		ws.w.update_population_window();
+	}
 
-	void sortby_religion_button::button_function(ui::simple_button<sortby_religion_button>&, world_state &) {}
+	void sortby_religion_button::button_function(ui::simple_button<sortby_religion_button>&, world_state &ws) {
+		ws.w.selected_population.sort_type = current_state::population_sort::religion;
+		ws.w.update_population_window();
+	}
 
-	void sortby_location_button::button_function(ui::simple_button<sortby_location_button>&, world_state &) {}
+	void sortby_location_button::button_function(ui::simple_button<sortby_location_button>&, world_state & ws) {
+		ws.w.selected_population.sort_type = current_state::population_sort::location;
+		ws.w.update_population_window();
+	}
 
-	void sortby_mil_button::button_function(ui::simple_button<sortby_mil_button>&, world_state &) {}
+	void sortby_mil_button::button_function(ui::simple_button<sortby_mil_button>&, world_state & ws) {
+		ws.w.selected_population.sort_type = current_state::population_sort::militancy;
+		ws.w.update_population_window();
+	}
 
-	void sortby_con_button::button_function(ui::simple_button<sortby_con_button>&, world_state &) {}
+	void sortby_con_button::button_function(ui::simple_button<sortby_con_button>&, world_state & ws) {
+		ws.w.selected_population.sort_type = current_state::population_sort::consciousness;
+		ws.w.update_population_window();
+	}
 
-	void sortby_ideology_button::button_function(ui::simple_button<sortby_ideology_button>&, world_state &) {}
+	void sortby_ideology_button::button_function(ui::simple_button<sortby_ideology_button>&, world_state &ws) {
+		ws.w.selected_population.sort_type = current_state::population_sort::ideoology;
+		ws.w.update_population_window();
+	}
 
-	void sortby_issues_button::button_function(ui::simple_button<sortby_issues_button>&, world_state &) {}
+	void sortby_issues_button::button_function(ui::simple_button<sortby_issues_button>&, world_state & ws) {
+		ws.w.selected_population.sort_type = current_state::population_sort::issues;
+		ws.w.update_population_window();
+	}
 
-	void sortby_unemployment_button::button_function(ui::simple_button<sortby_unemployment_button>&, world_state &) {}
+	void sortby_unemployment_button::button_function(ui::simple_button<sortby_unemployment_button>&, world_state & ws) {
+		ws.w.selected_population.sort_type = current_state::population_sort::unemployment;
+		ws.w.update_population_window();
+	}
 
-	void sortby_cash_button::button_function(ui::simple_button<sortby_cash_button>&, world_state &) {}
+	void sortby_cash_button::button_function(ui::simple_button<sortby_cash_button>&, world_state & ws) {
+		ws.w.selected_population.sort_type = current_state::population_sort::cash;
+		ws.w.update_population_window();
+	}
 
-	void sortby_subsistence_button::button_function(ui::simple_button<sortby_subsistence_button>&, world_state &) {}
+	void sortby_subsistence_button::button_function(ui::simple_button<sortby_subsistence_button>&, world_state & ws) {
+		ws.w.selected_population.sort_type = current_state::population_sort::life_needs;
+		ws.w.update_population_window();
+	}
 
-	void sortby_eve_button::button_function(ui::simple_button<sortby_eve_button>&, world_state &) {}
+	void sortby_eve_button::button_function(ui::simple_button<sortby_eve_button>&, world_state & ws) {
+		ws.w.selected_population.sort_type = current_state::population_sort::everyday_needs;
+		ws.w.update_population_window();
+	}
 
-	void sortby_luxury_button::button_function(ui::simple_button<sortby_luxury_button>&, world_state &) {}
+	void sortby_luxury_button::button_function(ui::simple_button<sortby_luxury_button>&, world_state & ws) {
+		ws.w.selected_population.sort_type = current_state::population_sort::luxury_needs;
+		ws.w.update_population_window();
+	}
 
-	void sortby_revoltrisk_button::button_function(ui::simple_button<sortby_revoltrisk_button>&, world_state &) {}
+	void sortby_revoltrisk_button::button_function(ui::simple_button<sortby_revoltrisk_button>&, world_state &ws) {
+		ws.w.selected_population.sort_type = current_state::population_sort::revolt_risk;
+		ws.w.update_population_window();
+	}
 
-	void sortby_change_button::button_function(ui::simple_button<sortby_change_button>&, world_state &) {}
+	void sortby_change_button::button_function(ui::simple_button<sortby_change_button>&, world_state &ws) {
+		ws.w.selected_population.sort_type = current_state::population_sort::size_change;
+		ws.w.update_population_window();
+	}
 
-	void sortby_literacy_button::button_function(ui::simple_button<sortby_literacy_button>&, world_state &) {}
+	void sortby_literacy_button::button_function(ui::simple_button<sortby_literacy_button>&, world_state &ws) {
+		ws.w.selected_population.sort_type = current_state::population_sort::literacy;
+		ws.w.update_population_window();
+	}
 
 	void workforce_title::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::workforce], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
@@ -365,24 +416,15 @@ namespace population {
 
 
 	void pop_country_open_button::button_function(ui::simple_button<pop_country_open_button>&, world_state& ws) {
-		ws.w.selected_population.population_for_nation = tag;
-		ws.w.selected_population.display_type = current_state::population_display::nation;
-		
-		ws.w.update_population_window();
+		ws.w.show_population_window(tag);
 	}
 
 	void pop_state_open_button::button_function(ui::simple_button<pop_state_open_button>&, world_state& ws) {
-		ws.w.selected_population.population_for_state = tag;
-		ws.w.selected_population.display_type = current_state::population_display::state;
-
-		ws.w.update_population_window();
+		ws.w.show_population_window(tag);
 	}
 
 	void pop_province_open_button::button_function(ui::simple_button<pop_province_open_button>&, world_state& ws) {
-		ws.w.selected_population.population_for_province = tag;
-		ws.w.selected_population.display_type = current_state::population_display::province;
-
-		ws.w.update_population_window();
+		ws.w.show_population_window(tag);
 	}
 
 	void pop_state_focus_button::button_function(ui::simple_button<pop_state_focus_button>&, world_state&) {

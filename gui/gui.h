@@ -330,6 +330,23 @@ namespace ui {
 		void update_display(gui_manager& manager) const;
 	};
 
+	template<typename BASE, int32_t horizontal_resolution>
+	class linechart : public gui_behavior, public BASE {
+	public:
+		linechart(linechart&&) = default;
+		template<typename ...P>
+		linechart(P&& ... params) : BASE(std::forward<P>(params)...) {}
+
+		virtual tooltip_behavior has_tooltip(gui_object_tag, world_state&, const mouse_move&) final override;
+		virtual void create_tooltip(gui_object_tag, world_state&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
+		virtual void update_data(gui_object_tag, world_state&) final override;
+
+		template<typename window_type>
+		void windowed_update(window_type&, world_state&);
+
+		void set_values(ui::gui_manager& manager, float* values);
+	};
+
 	template<typename BASE>
 	class scrollbar : public visible_region, public BASE {
 	private:
@@ -652,6 +669,8 @@ namespace ui {
 	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, button_tag handle, tagged_gui_object parent, simple_button<B>& b);
 	template<typename B>
+	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, simple_button<B>& b);
+	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, masked_flag<B>& b);
 	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, button_tag handle, tagged_gui_object parent, masked_flag<B>& b);
@@ -659,6 +678,8 @@ namespace ui {
 	ui::tagged_gui_object create_static_element(world_state& ws, scrollbar_tag handle, tagged_gui_object parent, scrollbar<B>& b);
 	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, piechart<B>& b);
+	template<typename BASE, int32_t horizontal_resolution>
+	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, linechart<BASE, horizontal_resolution>& b);
 	template<typename B, int32_t y_adjust>
 	ui::tagged_gui_object create_static_element(world_state& ws, ui::text_tag handle, tagged_gui_object parent, display_text<B, y_adjust>& b);
 	template<typename B>

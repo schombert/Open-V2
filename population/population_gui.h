@@ -375,6 +375,15 @@ namespace population {
 		//void create_tooltip(ui::masked_flag<pop_movement_flag>& self, world_state& ws, ui::tagged_gui_object tw);
 	};
 
+	class pop_growth {
+	public:
+		template<typename W>
+		void windowed_update(ui::dynamic_icon<pop_growth>&, W& w, world_state& ws);
+
+		//bool has_tooltip(world_state&) { return true; }
+		//void create_tooltip(world_state&, ui::tagged_gui_object tw);
+	};
+
 	using pop_list_item = ui::gui_window<
 		CT_STRING("pop_size"), ui::display_text<pop_size>,
 		CT_STRING("pop_type"), ui::simple_button<pop_type_button>,
@@ -399,6 +408,7 @@ namespace population {
 		CT_STRING("pop_movement_social"), ui::dynamic_icon<pop_movement_social>,
 		CT_STRING("pop_movement_political"), ui::dynamic_icon<pop_movement_political>,
 		CT_STRING("pop_movement_flag"), ui::masked_flag<pop_movement_flag>,
+		CT_STRING("growth_indicator"), ui::dynamic_icon<pop_growth>,
 		CT_STRING("pop_literacy"), ui::display_text<pop_literacy>,
 		pop_list_item_base
 	>;

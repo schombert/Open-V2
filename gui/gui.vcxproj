@@ -151,6 +151,7 @@
     <ClInclude Include="gui_io.h" />
     <ClInclude Include="gui_window.hpp" />
     <ClInclude Include="icons.hpp" />
+    <ClInclude Include="linechart.hpp" />
     <ClInclude Include="listbox.hpp" />
     <ClInclude Include="piechart.hpp" />
     <ClInclude Include="progress_bar.hpp" />

@@ -16,6 +16,7 @@ namespace nations {
 	void remove_province_from_state(world_state& ws, provinces::province_state& p);
 	nation* make_nation_for_tag(world_state& ws, cultures::national_tag nt);
 	bool is_state_empty(world_state const& ws, state_instance const& s);
+	bool is_colonial_or_protectorate(state_instance const& s);
 	void update_state_nation_demographics(world_state& ws);
 	provinces::province_tag find_best_capital(world_state const& ws, nation const& owner);
 	void set_relationship(world_state& ws, nation& a, nation& b, int32_t value);

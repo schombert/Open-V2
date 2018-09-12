@@ -45,6 +45,8 @@ void serialization::serializer<current_state::state>::serialize_object(std::byte
 	serialize(output, obj.great_wars_enabled);
 	serialize(output, obj.world_wars_enabled);
 
+	serialize(output, obj.local_player_income_history);
+
 	auto player_tag = obj.local_player_nation ? obj.local_player_nation->id : nations::country_tag();
 	serialize(output, player_tag);
 
@@ -100,6 +102,8 @@ void serialization::serializer<current_state::state>::deserialize_object(std::by
 	deserialize(input, obj.great_wars_enabled);
 	deserialize(input, obj.world_wars_enabled);
 
+	deserialize(input, obj.local_player_income_history);
+
 	nations::country_tag player_tag;
 	deserialize(input, player_tag);
 	obj.local_player_nation = ws.w.nation_s.nations.get_location(player_tag);
@@ -130,6 +134,7 @@ size_t serialization::serializer<current_state::state>::size(current_state::stat
 		serialize_size(obj.current_date) +
 		serialize_size(obj.great_wars_enabled) +
 		serialize_size(obj.world_wars_enabled) +
+		serialize_size(obj.local_player_income_history) +
 		sizeof(nations::country_tag) +
 		serialize_stable_array_size(ws.w.nation_s.nations_arrays, obj.crisis_attackers) +
 		serialize_stable_array_size(ws.w.nation_s.nations_arrays, obj.crisis_defenders) +

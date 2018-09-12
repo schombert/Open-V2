@@ -13,6 +13,7 @@ namespace graphics {
 
 		lines(uint32_t c) : count(c) {
 			buffer = new float[count * 4];
+			set_default_y();
 		}
 		lines(const lines& o) : count(o.count) {
 			buffer = new float[count * 4];
@@ -26,9 +27,12 @@ namespace graphics {
 			return *this;
 		}
 		~lines() {
-			if (buffer)
+			if(buffer) {
 				delete[] buffer;
+				buffer = nullptr;
+			}
 		}
+		void set_default_y();
 		void set_y(float* v);
 		void bind_buffer();
 	};

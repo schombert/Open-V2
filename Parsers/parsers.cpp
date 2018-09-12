@@ -49,6 +49,22 @@ std::u16string UTF8toUTF16(const char* start, const char* end) {
 	return result;
 }
 
+std::string UTF16toUTF8(const char16_t* start, const char16_t* end) {
+	const auto size = WideCharToMultiByte(CP_UTF8, 0, (wchar_t const*)start, (int)(end - start), nullptr, 0, nullptr, nullptr);
+	char* buffer = new char[(size_t)size];
+	WideCharToMultiByte(CP_UTF8, 0, (wchar_t const*)start, (int)(end - start), buffer, size, nullptr, nullptr);
+	std::string result(buffer, buffer + size);
+	delete[] buffer;
+	return result;
+}
+
+std::u16string UTF8toUTF16(std::string const& str) {
+	return UTF8toUTF16(str.c_str(), str.c_str() + str.length());
+}
+std::string UTF16toUTF8(std::u16string const& str) {
+	return UTF16toUTF8(str.c_str(), str.c_str() + str.length());
+}
+
 struct pdx_comment_struct {
 	template<typename T>
 	static T* comment_filter(T* a, T* b) {
@@ -358,53 +374,57 @@ const char* parse_lua_token_list(std::vector<token_group>& results, const char* 
 	return _parse_token_list<lua_comment_struct>(results, start, end);
 }
 
-std::pair<char*, char*> CALL csv_re_write_token(char* start, const char* end, char seperator) {
-	char* write_pos = start;
-	bool terminate_on_seperator = true;
-
-	if (start + 1 == end) {
-		return std::make_pair(write_pos, start + 1);
-	} else if (*(start + 1) == '\"') {
-		++start;
-		*(write_pos++) = *(start++);
-	} else {
-		terminate_on_seperator = !terminate_on_seperator;
-		++start;
-	}
-
-	*(write_pos++) = *(start++);
-	
-	while (start != end) {
-		if (line_termination(*start) & terminate_on_seperator)
-			return std::make_pair(write_pos, start);
-		else if (*start == '\"') {
-			if (start + 1 == end) {
-				return std::make_pair(write_pos, start + 1);
-			} else if (*(start + 1) == '\"') {
-				++start;
-				*(write_pos++) = *(start++);
-			} else {
-				terminate_on_seperator = !terminate_on_seperator;
-				++start;
-			}
-		} else if ((*start == seperator) & terminate_on_seperator)
-			return std::make_pair(write_pos, start + 1);
-		else
-			*(write_pos++) = *(start++);
-	}
-	return std::make_pair(write_pos, start);
-}
-
-std::pair<char*, char*> CALL csv_consume_token(char* start, const char* end, char seperator) {
+std::pair<char const*, char const*> CALL csv_consume_token(char const* start, const char* end, char seperator) {
 	while (start != end) {
 		if (line_termination(*start))
 			return std::make_pair(start, start);
-		else if (*start == '\"')
-			return csv_re_write_token(start, end, seperator);
 		else if (*start == seperator)
 			return std::make_pair(start, start + 1);
 		else
 			++start;
 	}
 	return std::make_pair(start, start);
+}
+
+char const* csv_advance(char const* start, char const* end, char seperator) {
+	while(start != end) {
+		if(line_termination(*start))
+			return start;
+		else if(*start == seperator)
+			return start + 1;
+		else
+			++start;
+	}
+	return start;
+}
+
+char const* csv_advance_n(uint32_t n, char const* start, char const* end, char seperator) {
+	if(n == 0)
+		return start;
+	--n;
+
+	while(start != end) {
+		if(line_termination(*start))
+			return start;
+		else if(*start == seperator) {
+			if(n == 0)
+				return start + 1;
+			else
+				--n;
+		}
+		++start;
+	}
+	return start;
+}
+
+char const* csv_advance_to_next_line(char const* start, char const* end) {
+	while(start != end && !line_termination(*start)) {
+		++start;
+	}
+	while(start != end && line_termination(*start))
+		++start;
+	if(start == end || *start != '#')
+		return start;
+	else
+		return csv_advance_to_next_line(start, end);
 }

@@ -31,7 +31,7 @@ void serialization::serializer<provinces::province_state>::serialize_object(std:
 	auto orders_tag = obj.orders ? obj.orders->id : military::army_orders_tag();
 	serialize(output, orders_tag);
 
-	serialize(output, obj.last_population_growth);
+	serialize(output, obj.last_population);
 	serialize(output, obj.nationalism);
 	serialize(output, obj.siege_progress);
 	serialize(output, obj.last_controller_change);
@@ -76,7 +76,7 @@ void serialization::serializer<provinces::province_state>::deserialize_object(st
 	deserialize(input, orders_tag);
 	obj.orders = ws.w.military_s.army_orders_container.get_location(orders_tag);
 
-	deserialize(input, obj.last_population_growth);
+	deserialize(input, obj.last_population);
 	deserialize(input, obj.nationalism);
 	deserialize(input, obj.siege_progress);
 	deserialize(input, obj.last_controller_change);
@@ -106,7 +106,7 @@ size_t serialization::serializer<provinces::province_state>::size(provinces::pro
 		sizeof(population::rebel_faction_tag) + // rebel controller
 		sizeof(nations::state_tag) + // state
 		sizeof(military::army_orders_tag) + // army orders
-		serialize_size(obj.last_population_growth) +
+		serialize_size(obj.last_population) +
 		serialize_size(obj.nationalism) +
 		serialize_size(obj.siege_progress) +
 		serialize_size(obj.last_controller_change) +
@@ -1030,13 +1030,14 @@ namespace provinces {
 
 			char* position = parse_data.get();
 			fi->read_to_buffer(position, sz);
+			const char* cpos = position;
 
 			if(sz != 0 && position[0] == '#')
-				position = csv_advance_to_next_line(position, parse_data.get() + sz);
+				cpos = csv_advance_to_next_line(cpos, parse_data.get() + sz);
 
-			while(position < parse_data.get() + sz) {
-				position = parse_fixed_amount_csv_values<4>(position, parse_data.get() + sz, ';',
-					[&t](std::pair<char*, char*> const* values) {
+			while(cpos < parse_data.get() + sz) {
+				cpos = parse_fixed_amount_csv_values<4>(cpos, parse_data.get() + sz, ';',
+					[&t](std::pair<char const*, char const*> const* values) {
 					if(is_integer(values[0].first, values[0].second)) {
 						t.emplace(rgb_to_prov_index(
 							uint8_t(parse_int(values[1].first, values[1].second)),
@@ -1258,13 +1259,14 @@ namespace provinces {
 
 			char* position = parse_data.get();
 			fi->read_to_buffer(position, sz);
+			char const* cpos = position;
 
 			if(sz != 0 && position[0] == '#')
-				position = csv_advance_to_next_line(position, parse_data.get() + sz);
+				cpos = csv_advance_to_next_line(cpos, parse_data.get() + sz);
 
-			while(position < parse_data.get() + sz) {
-				position = parse_fixed_amount_csv_values<5>(position, parse_data.get() + sz, ';',
-					[&adj_map, &canals](std::pair<char*, char*> const* values) {
+			while(cpos < parse_data.get() + sz) {
+				cpos = parse_fixed_amount_csv_values<5>(cpos, parse_data.get() + sz, ';',
+					[&adj_map, &canals](std::pair<char const*, char const*> const* values) {
 					const auto prov_a = province_tag(uint16_t(parse_int(values[0].first, values[0].second)));
 					const auto prov_b = province_tag(uint16_t(parse_int(values[1].first, values[1].second)));
 

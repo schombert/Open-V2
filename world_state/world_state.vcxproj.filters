@@ -21,12 +21,21 @@
     <ClInclude Include="world_state_io.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="topbar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="topbar.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="world_state.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="world_state_io.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="topbar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

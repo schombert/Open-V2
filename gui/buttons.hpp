@@ -241,6 +241,22 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, button_tag hand
 	return new_obj;
 }
 
+template<typename B>
+ui::tagged_gui_object ui::create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, simple_button<B>& b) {
+	auto new_obj = ui::detail::create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
+
+	new_obj.object.associated_behavior = &b;
+	b.associated_object = &new_obj.object;
+
+	ui::add_to_back(ws.w.gui_m, parent, new_obj);
+
+	if constexpr(ui::detail::has_on_create<simple_button<B>, simple_button<B>&, world_state&>)
+		b.on_create(b, ws);
+
+	ws.w.gui_m.flag_minimal_update();
+	return new_obj;
+}
+
 namespace buttons_detail {
 	template<typename A, typename B, typename ... C>
 	struct _has_on_unselect : std::false_type {};

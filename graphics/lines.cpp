@@ -15,6 +15,16 @@ namespace graphics {
 		pending_date_update.store(true, std::memory_order::memory_order_release);
 	}
 
+	void lines::set_default_y() {
+		for(int32_t i = 0; i < static_cast<int32_t>(count); ++i) {
+			buffer[i * 4] = static_cast<float>(i) / static_cast<float>(count - 1);
+			buffer[i * 4 + 1] = 0.5f;
+			buffer[i * 4 + 2] = 0.5f;
+			buffer[i * 4 + 3] = 0.5f;
+		}
+		pending_date_update.store(true, std::memory_order::memory_order_release);
+	}
+
 	void lines::bind_buffer() {
 		if (buffer_handle == 0) {
 			glGenBuffers(1, &buffer_handle);

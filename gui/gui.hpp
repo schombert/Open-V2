@@ -375,4 +375,5 @@ namespace ui {
 #include "listbox.hpp"
 #include "icons.hpp"
 #include "progress_bar.hpp"
+#include "linechart.hpp"
 #include "concurrency_tools\\concurrency_tools.hpp"

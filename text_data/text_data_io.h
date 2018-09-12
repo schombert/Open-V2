@@ -40,4 +40,5 @@ public:
 
 namespace text_data {
 	void load_text_sequences_from_directory(const directory& source_directory, text_data::text_sequences& container);
+	void load_single_text_file(file& op, text_data::text_sequences& container, std::map<vector_backed_string<char>, text_tag, vector_backed_string_less_ci>& temp_map);
 }

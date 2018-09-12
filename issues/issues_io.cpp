@@ -63,7 +63,6 @@ namespace issues {
 		opt.parent_issue = i.id;
 
 		env.parsed_options.emplace_back(opt_tag, s, e);
-		env.manager.named_option_index.emplace(opt.name, opt_tag);
 
 		if(i.type == issue_group::party)
 			++env.manager.party_issues_options_count;
@@ -370,6 +369,7 @@ namespace issues {
 			option_tag this_tag(static_cast<value_base_of<option_tag>>(i));
 			std::get<0>(return_state.impl->parsed_options[i]) = this_tag;
 			manager.options[this_tag].id = this_tag;
+			manager.named_option_index.emplace(manager.options[this_tag].name, this_tag);
 
 			for(size_t j = 0; j < std::extent<decltype(manager.issues_container[manager.options[this_tag].parent_issue].options)>::value; ++j) {
 				if(!is_valid_index(manager.issues_container[manager.options[this_tag].parent_issue].options[j])) {

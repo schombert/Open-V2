@@ -660,7 +660,8 @@ enum class display_type : uint8_t {
 	fp_three_places,
 	percent,
 	netural_integer,
-	netural_percent
+	netural_percent,
+	exact_integer
 };
 
 template<typename value_type>
@@ -693,24 +694,59 @@ inline char16_t* put_pos_value_in_buffer(char16_t* dest, display_type display_as
 				return value_end + 1;
 			}
 		}
-		case display_type::integer:
-		case display_type::netural_integer:
+		case display_type::exact_integer:
 		{
 			uint32_t int_value = uint32_t(value + value_type(0.5));
 			auto value_end = _u16itoa(int_value, dest);
 			*value_end = char16_t(0);
 			return value_end;
 		}
+		case display_type::integer:
+		case display_type::netural_integer:
+		{
+			uint64_t int_value = uint64_t(value + value_type(0.5));
+			if(int_value < 10'000) {
+				auto value_end = _u16itoa(uint32_t(int_value), dest);
+				*value_end = char16_t(0);
+				return value_end;
+			} else if(int_value < 1'000'000) {
+				int_value /= 1'000;
+				auto value_end = _u16itoa(uint32_t(int_value), dest);
+				*value_end = u'k';
+				*(value_end+1) = char16_t(0);
+				return value_end + 1;
+			} else {
+				double integer_part = 0.0;
+				double fractional_part = modf(double(value) / double(1'000'000) + 0.05, &integer_part);
+
+				auto value_end = _u16itoa(uint32_t(integer_part), dest);
+				*value_end = u'.';
+
+				uint32_t f_value = uint32_t(fractional_part * 10.0);
+
+				if(f_value == 0ui32) {
+					*(value_end + 1) = u'0';
+					*(value_end + 2) = u'M';
+					*(value_end + 3) = char16_t(0);
+					return value_end + 3;
+				} else {
+					auto new_value_end = _u16itoa(f_value, value_end + 1);
+					*new_value_end = u'M';
+					*(new_value_end + 1) = char16_t(0);
+					return new_value_end + 1;
+				}
+			}
+		}
 		case display_type::fp_two_places:
 		{
 			value_type integer_part = value_type(0);
-			value_type fractional_part = wrapped_modf(value, &integer_part);
+			value_type fractional_part = wrapped_modf(value_type(value + value_type(0.005)), &integer_part);
 
 			uint32_t int_value = uint32_t(integer_part);
 			auto value_end = _u16itoa(int_value, dest);
 			*value_end = u'.';
 
-			uint32_t f_value = uint32_t(fractional_part * value_type(100) + value_type(0.5));
+			uint32_t f_value = uint32_t(fractional_part * value_type(100));
 			if(f_value == 0ui32) {
 				*(value_end + 1) = u'0';
 				*(value_end + 2) = u'0';
@@ -730,13 +766,13 @@ inline char16_t* put_pos_value_in_buffer(char16_t* dest, display_type display_as
 		case display_type::fp_three_places:
 		{
 			value_type integer_part = value_type(0);
-			value_type fractional_part = wrapped_modf(value, &integer_part);
+			value_type fractional_part = wrapped_modf(value_type(value + value_type(0.0005)), &integer_part);
 
 			uint32_t int_value = uint32_t(integer_part);
 			auto value_end = _u16itoa(int_value, dest);
 			*value_end = u'.';
 
-			uint32_t f_value = uint32_t(fractional_part * value_type(1000) + value_type(0.5));
+			uint32_t f_value = uint32_t(fractional_part * value_type(1000));
 			if(f_value == 0ui32) {
 				*(value_end + 1) = u'0';
 				*(value_end + 2) = u'0';
@@ -867,6 +903,30 @@ struct vector_backed_string_less {
 					return false;
 			}
 		}
+		return false;
+	}
+};
+
+template<typename char_type>
+struct vector_backed_string_lex_less {
+	const std::vector<char_type>& backing;
+	vector_backed_string_lex_less(const std::vector<char_type>& b) : backing(b) {}
+	bool operator()(vector_backed_string<char_type> a, vector_backed_string<char_type> b) const {
+		const auto a_len = a.length();
+		const auto b_len = b.length();
+		const auto min_length = std::min(a_len, b_len);
+
+		const char_type* a_str = a.get_str(backing);
+		const char_type* b_str = b.get_str(backing);
+		for(int32_t i = 0; i < min_length; ++i) {
+			if(a_str[i] < b_str[i])
+				return true;
+			if(a_str[i] > b_str[i])
+				return false;
+		}
+		
+		if(a_len < b_len)
+			return true;
 		return false;
 	}
 };

@@ -287,6 +287,7 @@ using budget_window_t = ui::gui_window <
 
 struct gui_window_handler {
 	world_state& s;
+	std::string shadows_file;
 
 	graphics::map_display map;
 	Eigen::Vector3f interest = Eigen::Vector3f::UnitX();
@@ -299,7 +300,7 @@ struct gui_window_handler {
 
 	//budget_window_t budget_window;
 
-	gui_window_handler(world_state& snm) : s(snm) {}
+	gui_window_handler(world_state& snm, std::string const& shadows) : s(snm), shadows_file(shadows) {}
 
 	template<typename T>
 	void operator()(const T&, ui::window_base& w) const {
@@ -453,7 +454,7 @@ struct gui_window_handler {
 		map.colors.update_ready();
 
 		//map.initialize(ogl, s.province_m.province_map_data.data(), s.province_m.province_map_width, s.province_m.province_map_height, 0.0f, -1.2f, 1.2f);
-		map.initialize(ogl, s.s.province_m.province_map_data.data(), s.s.province_m.province_map_width, s.s.province_m.province_map_height, 0.0f, 1.57f, -1.57f);
+		map.initialize(ogl, shadows_file, s.s.province_m.province_map_data.data(), s.s.province_m.province_map_width, s.s.province_m.province_map_height, 0.0f, 1.57f, -1.57f);
 
 		map.state.resize(s.w.gui_m.width(), s.w.gui_m.height());
 	}
@@ -613,7 +614,12 @@ int main(int , char **) {
 	ws.w.gui_m.on_resize(ui::resize{ 850ui32, 650ui32 });
 
 	{
-		ui::window<gui_window_handler> test_window(850, 650, ws);
+		const auto map_dir = fs.get_root().get_directory(u"\\map");
+		
+		auto map_peek = map_dir.peek_file(u"shadows.png");
+		std::string shadows = map_peek ? UTF16toUTF8(map_peek->file_path() + u'\\' + map_peek->file_name()) : std::string();
+
+		ui::window<gui_window_handler> test_window(850, 650, ws, shadows);
 
 		std::cout << "test window created" << std::endl;
 		getchar();

@@ -31,6 +31,31 @@ namespace current_state {
 		nation,
 	};
 
+	enum class population_sort : uint8_t {
+		none,
+		size,
+		type,
+		culture,
+		religion,
+		location,
+		militancy,
+		consciousness,
+		ideoology,
+		issues,
+		unemployment,
+		cash,
+		life_needs,
+		everyday_needs,
+		luxury_needs,
+		revolt_risk,
+		size_change,
+		literacy
+	};
+
+	struct player_net_income_history {
+		float values[32] = { 0.0 };
+	};
+
 	class state {
 	public:
 		provinces::provinces_state province_s;
@@ -65,6 +90,8 @@ namespace current_state {
 
 		struct {
 			population_display display_type = population_display::none;
+			population_sort sort_type = population_sort::none;
+
 			provinces::province_tag population_for_province;
 			nations::state_tag population_for_state;
 			nations::country_tag population_for_nation;
@@ -75,6 +102,7 @@ namespace current_state {
 		std::unique_ptr<gui_state> gui_objects;
 
 		//player data
+		player_net_income_history local_player_income_history;
 		nations::nation* local_player_nation = nullptr;
 
 		state();
@@ -84,6 +112,8 @@ namespace current_state {
 		void show_province_window(provinces::province_tag p);
 		void hide_population_window();
 		void show_population_window(provinces::province_tag p);
+		void show_population_window(nations::state_tag t);
+		void show_population_window(nations::country_tag t);
 		void update_population_window();
 		bool population_window_has_state_expanded(nations::state_tag t);
 		void population_window_set_state_expanded(nations::state_tag t, bool expand);

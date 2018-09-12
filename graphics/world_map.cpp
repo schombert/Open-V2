@@ -11,6 +11,7 @@
 #include <deque>
 
 #include "provinces\\provinces.h"
+#include "soil\\SOIL.h"
 
 namespace graphics {
 
@@ -345,10 +346,11 @@ namespace graphics {
 		"layout (binding = 1) uniform sampler1D primary_colors;\n"
 		"layout (binding = 2) uniform sampler1D secondary_colors;\n"
 		"layout (binding = 3) uniform isampler2D corner_texture;\n"
+		"layout (binding = 4) uniform sampler2DRect map_shadows;\n"
 		"\n"
 		"void main() {\n"
 		"   const float d_value = abs(fract(t_value.x) - 0.5f) + abs(fract(t_value.y) - 0.5f);\n"
-		"   frag_color = texelFetch(primary_colors, d_value <= 0.5f ? "
+		"   frag_color = texture(map_shadows, t_value) * texelFetch(primary_colors, d_value <= 0.5f ? "
 		"       int(texelFetch(data_texture, ivec2(int(t_value.x), int(t_value.y)), 0).r) : "
 		"       int(texelFetch(data_texture, "
 		"           ivec2(int(t_value.x) + texelFetch(corner_texture, ivec2(int(t_value.x * 2.0f), int(t_value.y * 2.0f)), 0).r,"
@@ -810,7 +812,7 @@ namespace graphics {
 		return vao;
 	}
 
-	void map_display::initialize(open_gl_wrapper&, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude) {
+	void map_display::initialize(open_gl_wrapper&, std::string shadows_file, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude) {
 
 		glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
 		glEnable(GL_DEPTH_TEST);
@@ -834,6 +836,35 @@ namespace graphics {
 		triangle_vertex_count = static_cast<int32_t>(c);
 
 		vao = setup_vao_b(vertex_buffer);
+
+		if(shadows_file.length() != 0) {
+			int32_t swidth = 0;
+			int32_t sheight = 0;
+			int32_t shchannel = 3;
+			unsigned char* shadows_data = SOIL_load_image(shadows_file.c_str(), &swidth, &sheight, &shchannel, 3);
+
+			glGenTextures(1, &data_textures.shadows_handle);
+			glBindTexture(GL_TEXTURE_RECTANGLE, data_textures.shadows_handle);
+
+			glTexStorage2D(GL_TEXTURE_RECTANGLE, 1, GL_RGB8, swidth, sheight);
+			glTexSubImage2D(GL_TEXTURE_RECTANGLE, 0, 0, 0, swidth, sheight, GL_RGB, GL_UNSIGNED_BYTE, shadows_data);
+
+			glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+			SOIL_free_image_data(shadows_data);
+		} else {
+			unsigned char pixel[3] = { 255, 255, 255 };
+
+			glGenTextures(1, &data_textures.shadows_handle);
+			glBindTexture(GL_TEXTURE_RECTANGLE, data_textures.shadows_handle);
+
+			glTexStorage2D(GL_TEXTURE_RECTANGLE, 1, GL_RGB8, 1, 1);
+			glTexSubImage2D(GL_TEXTURE_RECTANGLE, 0, 0, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+
+			glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		}
 
 		glDisable(GL_DEPTH_TEST);
 
@@ -888,6 +919,8 @@ namespace graphics {
 			glBindTexture(GL_TEXTURE_2D, data_textures.handle);
 			glActiveTexture(GL_TEXTURE3);
 			glBindTexture(GL_TEXTURE_2D, data_textures.corner_handle);
+			glActiveTexture(GL_TEXTURE4);
+			glBindTexture(GL_TEXTURE_RECTANGLE, data_textures.shadows_handle);
 
 			colors.bind_colors();
 

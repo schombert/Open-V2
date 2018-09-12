@@ -65,8 +65,15 @@ namespace scenario {
 		constexpr uint32_t life_needs = 43ui32;
 		constexpr uint32_t everyday_needs = 44ui32;
 		constexpr uint32_t luxury_needs = 45ui32;
+		constexpr uint32_t closed_factories = 46ui32;
+		constexpr uint32_t no_closed_factories = 47ui32;
+		constexpr uint32_t unemployed_workers = 48ui32;
+		constexpr uint32_t no_unemployed_workers = 49ui32;
+		constexpr uint32_t building_factories = 50ui32;
+		constexpr uint32_t not_building_factories = 51ui32;
+		constexpr uint32_t no_research = 52ui32;
 
-		constexpr uint32_t count = 46ui32;
+		constexpr uint32_t count = 53ui32;
 	}
 
 	class scenario_manager {

@@ -66,6 +66,11 @@ namespace population {
 		return float(p.consciousness) * 10.0f / float(std::numeric_limits<uint16_t>::max());
 	}
 
+	int32_t total_size_change(pop const& this_pop) {
+		return this_pop.size_change_from_assimilation + this_pop.size_change_from_combat + this_pop.size_change_from_emmigration + this_pop.size_change_from_growth
+			+ this_pop.size_change_from_local_migration + this_pop.size_change_from_type_change;
+	}
+
 	economy::money_qnty_type desired_needs_spending(world_state&, pop const&) {
 		return economy::money_qnty_type(0);
 	}

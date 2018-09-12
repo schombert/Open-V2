@@ -1,6 +1,7 @@
 #pragma once
 #include "common\\common.h"
 #include "open_gl_wrapper.h"
+#include "simple_fs\\simple_fs.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
@@ -60,6 +61,7 @@ namespace graphics {
 		uint16_t const* primary_data = nullptr;
 		uint32_t handle = 0;
 		uint32_t corner_handle = 0;
+		uint32_t shadows_handle = 0;
 		int32_t width = 0;
 		int32_t height = 0;
 	};
@@ -110,7 +112,7 @@ namespace graphics {
 		map_state state;
 
 		std::pair<int32_t, int32_t> map_coordinates_from_screen(std::pair<float, float> const& normalized_screen_coordinates) const;
-		void initialize(open_gl_wrapper&, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude);
+		void initialize(open_gl_wrapper&, std::string shadows_file, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude);
 		void render(open_gl_wrapper&);
 	};
 

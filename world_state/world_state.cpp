@@ -10,6 +10,7 @@
 #include "provinces\\province_gui.hpp"
 #include "ideologies\\ideologies_functions.h"
 #include "population\\population_gui.hpp"
+#include "topbar.hpp"
 
 void ready_world_state(world_state& ws) {
 	ws.w.selected_population.filtered_pop_types.resize(ws.s.population_m.count_poptypes);
@@ -31,6 +32,7 @@ namespace current_state {
 	public:
 		provinces::province_window_t province_window;
 		population::population_window_t population_window;
+		topbar_t topbar;
 	};
 
 	state::state() : gui_objects(std::make_unique<gui_state>()) {};
@@ -48,6 +50,7 @@ namespace current_state {
 	void state::init_gui_objects(world_state& ws) {
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["province_view"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, gui_objects->province_window);
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["country_pop"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, gui_objects->population_window);
+		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["topbar"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, gui_objects->topbar);
 	}
 	void state::hide_population_window() {
 		auto gobj = gui_objects->population_window.associated_object;
@@ -63,9 +66,37 @@ namespace current_state {
 		}
 		selected_population.population_for_province = p;
 		selected_population.display_type = population_display::province;
+		selected_population.sort_type = population_sort::none;
+
+
+		gui_objects->population_window.template get<CT_STRING("pop_list")>().new_list(nullptr, nullptr);
+
+		ui::make_visible_and_update(gui_m, *(gui_objects->population_window.associated_object));
+	}
+	void state::show_population_window(nations::state_tag t) {
+		if(local_player_nation)
+			gui_objects->population_window.template get<CT_STRING("pop_province_list")>().force_open(local_player_nation->id);
+		selected_population.population_for_state = t;
+		selected_population.display_type = population_display::state;
+		selected_population.sort_type = population_sort::none;
+
+		gui_objects->population_window.template get<CT_STRING("pop_list")>().new_list(nullptr, nullptr);
+
+		ui::make_visible_and_update(gui_m, *(gui_objects->population_window.associated_object));
+	}
+	void state::show_population_window(nations::country_tag t) {
+		if(local_player_nation)
+			gui_objects->population_window.template get<CT_STRING("pop_province_list")>().force_open(local_player_nation->id);
+		selected_population.population_for_nation = t;
+		selected_population.display_type = population_display::nation;
+		selected_population.sort_type = population_sort::none;
+
+		gui_objects->population_window.template get<CT_STRING("pop_list")>().new_list(nullptr, nullptr);
+
 		ui::make_visible_and_update(gui_m, *(gui_objects->population_window.associated_object));
 	}
 	void state::update_population_window() {
+		gui_objects->population_window.template get<CT_STRING("pop_list")>().new_list(nullptr, nullptr);
 		ui::make_visible_and_update(gui_m, *(gui_objects->population_window.associated_object));
 	}
 

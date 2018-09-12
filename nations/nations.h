@@ -78,7 +78,7 @@ namespace nations {
 		economy::money_qnty_type last_income = economy::money_qnty_type(0); // income only, not expenses
 
 		issues::rules current_rules;
-		int32_t last_population_growth = 0;
+		int64_t last_population = 0;
 		date_tag last_election;
 		date_tag last_lost_war;
 		date_tag disarmed_until;
@@ -141,6 +141,8 @@ namespace nations {
 
 		graphics::color_rgb current_color;
 		country_tag id;
+
+		technologies::tech_tag current_research;
 
 		int16_t military_score = 0i16;
 		int16_t industrial_score = 0i16;
@@ -213,7 +215,7 @@ namespace nations {
 		nation* owner = nullptr;
 		modifiers::national_focus* owner_national_focus = nullptr;
 
-		int32_t last_population_growth = 0;
+		int32_t last_population = 0;
 		set_tag<country_tag> flashpoint_tension_focuses;
 		float administrative_efficiency = 0.0f;
 		float current_tension = 0.0f;

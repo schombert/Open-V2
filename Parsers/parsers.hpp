@@ -115,79 +115,14 @@ bool is_integer(const char* start, const char* end);
 bool is_positive_fp(const char* start, const char* end);
 bool is_fp(const char* start, const char* end);
 
-template<typename T>
-T* CALL csv_advance(T* start, T* end, char seperator) {
-	while (start != end) {
-		if (line_termination(*start))
-			return start;
-		else if (*start == '\"')
-			start = csv_advdance_to_quote_end(start + 1, end);
-		else if (*start == seperator)
-			return start + 1;
-		else
-			++start;
-	}
-	return start;
-}
-
-template<typename T>
-T* CALL csv_advance_n(uint32_t n, T* start, T* end, char seperator) {
-	if (n == 0)
-		return start;
-	--n;
-	
-	while (start != end) {
-		if (line_termination(*start))
-			return start;
-		else if (*start == '\"')
-			start = csv_advdance_to_quote_end(start + 1, end) - 1;
-		else if (*start == seperator) {
-			if (n == 0)
-				return start + 1;
-			else
-				--n;
-		}
-		++start;
-	}
-	return start;
-}
-
-template<typename T>
-T* CALL csv_advdance_to_quote_end(T* start, T* end) {
-	while (start != end) {
-		if (*start == '\"') {
-			if (start + 1 == end || *(start + 1) != '\"')
-				return start + 1;
-			else
-				start += 2;
-		} else {
-			++start;
-		}
-	}
-	return start;
-}
-
-std::pair<char*,char*> CALL csv_consume_token(char* start, const char* end, char seperator);
-
-template<typename T>
-T* CALL csv_advance_to_next_line(T* start, T* end) {
-	while (start != end && !line_termination(*start)) {
-		if (*start == '\"')
-			start = csv_advdance_to_quote_end(start + 1, end);
-		else
-			++start;
-	}
-	while (start != end && line_termination(*start))
-		++start;
-	if (start == end || *start != '#')
-		return start;
-	else
-		return csv_advance_to_next_line(start, end);
-}
+char const* csv_advance(char const* start, char const* end, char seperator);
+char const* csv_advance_n(uint32_t n, char const* start, char const* end, char seperator);
+char const* csv_advance_to_next_line(char const* start, char const* end);
+std::pair<char const*,char const*> CALL csv_consume_token(char const* start, const char* end, char seperator);
 
 template<size_t count_values, typename T>
-char* CALL parse_fixed_amount_csv_values(char* start, char* end, char seperator, const T& function) {
-	std::pair<char*, char*> values[count_values];
+const char* CALL parse_fixed_amount_csv_values(char const* start, char const* end, char seperator, const T& function) {
+	std::pair<char const*, char const*> values[count_values];
 	for (uint32_t i = 0; i < count_values; ++i) {
 		auto r = csv_consume_token(start, end, seperator);
 		values[i] = std::make_pair(start, r.first);
@@ -199,9 +134,9 @@ char* CALL parse_fixed_amount_csv_values(char* start, char* end, char seperator,
 }
 
 template<typename T>
-char* CALL parse_first_and_nth_csv_values(uint32_t nth, char* start, char* end, char seperator, const T& function) {
+const char* CALL parse_first_and_nth_csv_values(uint32_t nth, char const* start, char const* end, char seperator, const T& function) {
 	auto [first_end, first_next] = csv_consume_token(start, end, seperator);
-	std::pair<char*, char*> first_value = std::make_pair(start, first_end);
+	std::pair<char const*, char const*> first_value = std::make_pair(start, first_end);
 
 	start = csv_advance_n(nth - 2ui32, first_next, end, seperator);
 
