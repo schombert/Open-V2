@@ -40,8 +40,10 @@
 // files are expected to #include this.  Therefore, it cannot #include
 // any other Google Test header.
 
+#ifdef __llvm__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundef"
+#endif
 
 #ifndef GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PORT_H_
 #define GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PORT_H_
@@ -2597,5 +2599,6 @@ std::string StringFromGTestEnv(const char* flag, const char* default_val);
 
 #endif  // GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PORT_H_
 
+#ifdef __llvm__
 #pragma clang diagnostic pop
-
+#endif

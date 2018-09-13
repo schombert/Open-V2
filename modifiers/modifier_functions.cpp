@@ -262,4 +262,26 @@ namespace modifiers {
 		}
 		return accumulated;
 	}
+
+	int32_t maximum_national_focuses(world_state const& ws, nations::nation const& this_nation) {
+		auto nation_id = this_nation.id;
+
+		if(!ws.w.nation_s.nations.is_valid_index(nation_id))
+			return 0;
+
+		auto prim_culture = this_nation.primary_culture;
+		auto accepted_cultures = get_range(ws.w.culture_s.culture_arrays, this_nation.accepted_cultures);
+		int64_t total_pop = 0;
+
+		if(is_valid_index(prim_culture))
+			total_pop += ws.w.nation_s.nation_demographics.get(nation_id, population::to_demo_tag(ws, prim_culture));
+		for(auto ac : accepted_cultures) {
+			if(is_valid_index(ac))
+				total_pop += ws.w.nation_s.nation_demographics.get(nation_id, population::to_demo_tag(ws, ac));
+		}
+
+		float focus_amount = float(total_pop) / ws.s.modifiers_m.global_defines.national_focus_divider;
+		float limited_amount = std::min(focus_amount, this_nation.tech_attributes[technologies::tech_offset::max_national_focus] + 1.0f);
+		return std::max(int32_t(limited_amount), 1);
+	}
 }

@@ -13,10 +13,12 @@
 	* everybody at gamedev.net
 */
 
+#ifdef __llvm__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wincompatible-pointer-types-discards-qualifiers"
 #pragma clang diagnostic ignored "-Wcast-qual"
 #pragma clang diagnostic ignored "-Wunused-parameter"
+#endif
 
 #define SOIL_CHECK_FOR_GL_ERRORS 0
 #define GLEW_STATIC
@@ -1907,4 +1909,6 @@ int query_DXT_capability( void )
 	return has_DXT_capability;
 }
 
+#ifdef __llvm__
 #pragma clang diagnostic pop
+#endif

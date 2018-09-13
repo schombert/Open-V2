@@ -33,7 +33,11 @@ constexpr uint32_t ct_log2(uint32_t n) {
 }
 
 inline uint32_t rt_log2(uint32_t n) {
+#ifdef __llvm__
 	return 31ui32 - uint32_t(__builtin_clz(n | 1ui32));
+#else
+	return 31ui32 - uint32_t(__lzcnt(n | 1ui32));
+#endif
 }
 
 constexpr uint32_t ct_log2_round_up(uint32_t n) {
@@ -41,7 +45,11 @@ constexpr uint32_t ct_log2_round_up(uint32_t n) {
 }
 
 inline uint32_t rt_log2_round_up(uint32_t n) {
+#ifdef __llvm__
 	return n > 1ui32 ? 32ui32 - uint32_t(__builtin_clz(n - 1ui32)) : 0ui32;
+#else
+	return n > 1ui32 ? 32ui32 - uint32_t(__lzcnt(n - 1ui32)) : 0ui32;
+#endif
 }
 
 template<typename E1, typename E2>

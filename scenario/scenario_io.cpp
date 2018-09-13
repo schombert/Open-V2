@@ -155,5 +155,28 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::building_factories] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_IsBuildingFactories");
 		s.fixed_ui_text[fixed_ui::not_building_factories] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_NO_IsBuildingFactories");
 		s.fixed_ui_text[fixed_ui::no_research] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "TECHNOLOGYVIEW_NO_RESEARCH");
+		s.fixed_ui_text[fixed_ui::optimal_is] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PV_CLERGY_LIT_DESC2");
+		s.fixed_ui_text[fixed_ui::can_reform] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_CanDoReforms");
+		s.fixed_ui_text[fixed_ui::cannot_reform] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_NO_CanDoReforms");
+		s.fixed_ui_text[fixed_ui::has_decisions] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_CanDoDecisions");
+		s.fixed_ui_text[fixed_ui::no_decisions] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "REMOVE_COUNTRYALERT_NO_CanDoDecisions");
+		s.fixed_ui_text[fixed_ui::holding_election] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_IsInElection");
+		s.fixed_ui_text[fixed_ui::no_election] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_NO_IsInElection");
+		s.fixed_ui_text[fixed_ui::has_rebels] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_HaveRebels");
+		s.fixed_ui_text[fixed_ui::no_rebels] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_NO_HaveRebels");
+		s.fixed_ui_text[fixed_ui::is_not_gp] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_NO_GPStatus");
+		s.fixed_ui_text[fixed_ui::is_not_losing_gp] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_NO_LoosingGPStatus");
+		s.fixed_ui_text[fixed_ui::is_losing_gp] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_LoosingGPStatus");
+		s.fixed_ui_text[fixed_ui::cannot_influence] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_NO_CanIncreaseOpinion");
+		s.fixed_ui_text[fixed_ui::can_influence] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_CanIncreaseOpinion");
+		s.fixed_ui_text[fixed_ui::no_crisis] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_NO_Crisis");
+		s.fixed_ui_text[fixed_ui::has_crisis] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_Crisis");
+		s.fixed_ui_text[fixed_ui::protectorate_pending] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_ColonialGood_protectorate");
+		s.fixed_ui_text[fixed_ui::colony_pending] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_ColonialGood_colony");
+		s.fixed_ui_text[fixed_ui::state_pending] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_ColonialGood_state");
+		s.fixed_ui_text[fixed_ui::colonial_investment_pending] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_ColonialGood_invest");
+		s.fixed_ui_text[fixed_ui::losing_colonial_race] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_ColonialBad_influence");
+		s.fixed_ui_text[fixed_ui::no_colonial_activity] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_NO_Colonial");
+		s.fixed_ui_text[fixed_ui::at_peace] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "ATPEACE");
 	}
 }

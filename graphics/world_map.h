@@ -3,18 +3,6 @@
 #include "open_gl_wrapper.h"
 #include "simple_fs\\simple_fs.h"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
-#pragma clang diagnostic ignored "-Wsign-conversion"
-#pragma clang diagnostic ignored "-Wunused-template"
-#pragma clang diagnostic ignored "-Wcast-align"
-#pragma clang diagnostic ignored "-Wshadow"
-
-#include "Eigen\\Dense"
-#include "Eigen\\Geometry"
-
-#pragma clang diagnostic pop
-
 namespace graphics {
 	class color_maps {
 	private:

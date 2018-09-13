@@ -100,6 +100,24 @@ namespace current_state {
 		ui::make_visible_and_update(gui_m, *(gui_objects->population_window.associated_object));
 	}
 
+	void state::resize_topbar() {
+		if(gui_objects->topbar.associated_object) {
+			gui_objects->topbar.associated_object->size.x = int16_t(gui_m.width());
+		}
+	}
+
+	void state::toggle_pause() {
+		paused = !paused;
+	}
+
+	void state::increase_speed() {
+		speed = std::min(speed + 1, current_state::max_speed);
+	}
+
+	void state::decrease_speed() {
+		speed = std::max(speed - 1, 1);
+	}
+
 	bool state::population_window_has_state_expanded(nations::state_tag t) {
 		auto& poptree = gui_objects->population_window.template get<CT_STRING("pop_province_list")>();
 		return poptree.is_open(t);

@@ -10,6 +10,7 @@
 #include <optional>
 #include <tuple>
 
+#ifdef __llvm__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
 #pragma clang diagnostic ignored "-Wsign-conversion"
@@ -19,14 +20,24 @@
 #pragma clang diagnostic ignored "-Wdeprecated-dynamic-exception-spec"
 #pragma clang diagnostic ignored "-Wdeprecated"
 #pragma clang diagnostic ignored "-Wswitch-enum"
+#endif
+
+#define _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING 1
+#define BOOST_ALL_NO_LIB
+
 #include "boost\\container\\flat_map.hpp"
 #include "boost\\container\\small_vector.hpp"
 #include "boost\\container\\flat_set.hpp"
 #include "boost\date_time\\gregorian\\gregorian_types.hpp" 
+
 #define EIGEN_INITIALIZE_MATRICES_BY_ZERO
 #define EIGEN_NO_MALLOC
+
 #include "Eigen\\Dense"
+
+#ifdef __llvm__
 #pragma clang diagnostic pop
+#endif
 
 #ifndef _DEBUG
 #define CALL __vectorcall
@@ -656,12 +667,14 @@ inline int64_t u16atoi(char16_t const* start, char16_t const* end) {
 
 enum class display_type : uint8_t {
 	integer,
+	fp_one_place,
 	fp_two_places,
 	fp_three_places,
 	percent,
 	netural_integer,
 	netural_percent,
-	exact_integer
+	exact_integer,
+	percent_fp_one_place
 };
 
 template<typename value_type>
@@ -701,6 +714,7 @@ inline char16_t* put_pos_value_in_buffer(char16_t* dest, display_type display_as
 			*value_end = char16_t(0);
 			return value_end;
 		}
+		default:
 		case display_type::integer:
 		case display_type::netural_integer:
 		{
@@ -735,6 +749,48 @@ inline char16_t* put_pos_value_in_buffer(char16_t* dest, display_type display_as
 					*(new_value_end + 1) = char16_t(0);
 					return new_value_end + 1;
 				}
+			}
+		}
+		case display_type::percent_fp_one_place:
+		{
+			value_type integer_part = value_type(0);
+			value_type fractional_part = wrapped_modf(value_type(value * value_type(100.0) + value_type(0.05)), &integer_part);
+
+			uint32_t int_value = uint32_t(integer_part);
+			auto value_end = _u16itoa(int_value, dest);
+			*value_end = u'.';
+
+			uint32_t f_value = uint32_t(fractional_part * value_type(10));
+			if(f_value == 0ui32) {
+				*(value_end + 1) = u'0';
+				*(value_end + 2) = u'%';
+				*(value_end + 3) = char16_t(0);
+				return value_end + 3;
+			} else {
+				auto new_value_end = _u16itoa(f_value, value_end + 1);
+				*(new_value_end) = u'%';
+				*(new_value_end + 1) = char16_t(0);
+				return new_value_end + 1;
+			}
+		}
+		case display_type::fp_one_place:
+		{
+			value_type integer_part = value_type(0);
+			value_type fractional_part = wrapped_modf(value_type(value + value_type(0.05)), &integer_part);
+
+			uint32_t int_value = uint32_t(integer_part);
+			auto value_end = _u16itoa(int_value, dest);
+			*value_end = u'.';
+
+			uint32_t f_value = uint32_t(fractional_part * value_type(10));
+			if(f_value == 0ui32) {
+				*(value_end + 1) = u'0';
+				*(value_end + 2) = char16_t(0);
+				return value_end + 2;
+			} else {
+				auto new_value_end = _u16itoa(f_value, value_end + 1);
+				*new_value_end = char16_t(0);
+				return new_value_end;
 			}
 		}
 		case display_type::fp_two_places:
@@ -801,9 +857,13 @@ inline char16_t* put_pos_value_in_buffer(char16_t* dest, display_type display_as
 
 template<typename value_type>
 inline char16_t* put_value_in_buffer(char16_t* dest, display_type display_as, value_type value) {
-	if(value < value_type(0)) {
-		*dest = u'-';
-		return put_pos_value_in_buffer(dest + 1, display_as, -value);
+	if constexpr(!std::is_unsigned_v<value_type>) {
+		if(value < value_type(0)) {
+			*dest = u'-';
+			return put_pos_value_in_buffer(dest + 1, display_as, -value);
+		} else {
+			return put_pos_value_in_buffer(dest, display_as, value);
+		}
 	} else {
 		return put_pos_value_in_buffer(dest, display_as, value);
 	}

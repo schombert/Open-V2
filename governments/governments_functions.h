@@ -16,4 +16,6 @@ namespace governments {
 	void update_current_rules(world_state& ws, nations::nation& this_nation);
 	void silent_set_government(world_state& ws, nations::nation& this_nation, government_tag g);
 	void start_election(world_state& ws, nations::nation& this_nation);
+	date_tag election_end_date(world_state& ws, nations::nation const& this_nation);
+	date_tag next_election_start_date(world_state& ws, nations::nation const& this_nation);
 }

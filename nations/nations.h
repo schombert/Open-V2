@@ -88,6 +88,8 @@ namespace nations {
 		float base_prestige = 0.0f;
 		float infamy = 0.0f;
 		float war_exhaustion = 0.0f;
+		float suppression_points = 0.0f;
+		float diplomacy_points = 0.0f;
 		
 		float political_interest_fraction = 0.0f;
 		float social_interest_fraction = 0.0f;

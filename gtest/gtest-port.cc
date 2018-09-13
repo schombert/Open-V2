@@ -30,6 +30,7 @@
 //
 // Author: wan@google.com (Zhanyong Wan)
 
+#ifdef __llvm__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-variable-declarations"
 #pragma clang diagnostic ignored "-Wmissing-prototypes"
@@ -40,6 +41,7 @@
 #pragma clang diagnostic ignored "-Wswitch-enum"
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
 #pragma clang diagnostic ignored "-Wunused-member-function"
+#endif
 
 #include "gtest/internal/gtest-port.h"
 
@@ -1270,4 +1272,6 @@ std::string StringFromGTestEnv(const char* flag, const char* default_value) {
 }  // namespace internal
 }  // namespace testing
 
+#ifdef __llvm__
 #pragma clang diagnostic pop
+#endif

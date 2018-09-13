@@ -154,6 +154,8 @@ namespace graphics {
 				return inverse_rotation * projected_a_to_unrotated(in.first, in.second, scale, _aspect);
 			case projection_type::spherical:
 				return inverse_rotation * projected_b_to_unrotated(in.first, in.second, scale, _aspect);
+			default:
+				return inverse_rotation * projected_a_to_unrotated(in.first, in.second, scale, _aspect);
 		}
 	}
 	Eigen::Vector3f map_state::get_unrotated_vector_for(const std::pair<float, float>& in) const {
@@ -162,6 +164,8 @@ namespace graphics {
 				return  projected_a_to_unrotated(in.first, in.second, scale, _aspect);
 			case projection_type::spherical:
 				return  projected_b_to_unrotated(in.first, in.second, scale, _aspect);
+			default:
+				return  projected_a_to_unrotated(in.first, in.second, scale, _aspect);
 		}
 	}
 

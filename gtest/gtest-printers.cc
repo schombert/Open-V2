@@ -43,6 +43,7 @@
 // or void PrintTo(const Foo&, ::std::ostream*) in the namespace that
 // defines Foo.
 
+#ifdef __llvm__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-variable-declarations"
 #pragma clang diagnostic ignored "-Wmissing-prototypes"
@@ -52,6 +53,7 @@
 #pragma clang diagnostic ignored "-Wcovered-switch-default"
 #pragma clang diagnostic ignored "-Wswitch-enum"
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
+#endif
 
 #include "gtest/gtest-printers.h"
 #include <ctype.h>
@@ -383,4 +385,6 @@ void PrintWideStringTo(const ::std::wstring& s, ostream* os) {
 
 }  // namespace testing
 
+#ifdef __llvm__
 #pragma clang diagnostic pop
+#endif

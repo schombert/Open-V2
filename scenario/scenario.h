@@ -72,8 +72,31 @@ namespace scenario {
 		constexpr uint32_t building_factories = 50ui32;
 		constexpr uint32_t not_building_factories = 51ui32;
 		constexpr uint32_t no_research = 52ui32;
+		constexpr uint32_t optimal_is = 53ui32;
+		constexpr uint32_t can_reform = 54ui32;
+		constexpr uint32_t cannot_reform = 55ui32;
+		constexpr uint32_t has_decisions = 56ui32;
+		constexpr uint32_t no_decisions = 57ui32;
+		constexpr uint32_t holding_election = 58ui32;
+		constexpr uint32_t no_election = 59ui32;
+		constexpr uint32_t has_rebels = 60ui32;
+		constexpr uint32_t no_rebels = 61ui32;
+		constexpr uint32_t is_not_gp = 62ui32;
+		constexpr uint32_t is_not_losing_gp = 63ui32;
+		constexpr uint32_t is_losing_gp = 64ui32;
+		constexpr uint32_t cannot_influence = 65ui32;
+		constexpr uint32_t can_influence = 66ui32;
+		constexpr uint32_t no_crisis = 67ui32;
+		constexpr uint32_t has_crisis = 68ui32;
+		constexpr uint32_t protectorate_pending = 69ui32;
+		constexpr uint32_t colony_pending = 70ui32;
+		constexpr uint32_t state_pending = 71ui32;
+		constexpr uint32_t colonial_investment_pending = 72ui32;
+		constexpr uint32_t losing_colonial_race = 73ui32;
+		constexpr uint32_t no_colonial_activity = 74ui32;
+		constexpr uint32_t at_peace = 75ui32;
 
-		constexpr uint32_t count = 53ui32;
+		constexpr uint32_t count = 76ui32;
 	}
 
 	class scenario_manager {

@@ -339,6 +339,7 @@ struct gui_window_handler {
 	void operator()(const ui::resize& r, ui::window_base&) {
 		s.w.gui_m.on_resize(r);
 		map.state.resize(static_cast<int32_t>(r.width), static_cast<int32_t>(r.height));
+		s.w.resize_topbar();
 	}
 
 	void operator()(const ui::lbutton_down& m, ui::window_base&) {

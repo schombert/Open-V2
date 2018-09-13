@@ -107,6 +107,8 @@ void serialization::serializer<nations::nation>::serialize_object(std::byte *& o
 	serialize(output, obj.base_prestige);
 	serialize(output, obj.infamy);
 	serialize(output, obj.war_exhaustion);
+	serialize(output, obj.suppression_points);
+	serialize(output, obj.diplomacy_points);
 
 	serialize(output, obj.rich_tax);
 	serialize(output, obj.middle_tax);
@@ -218,6 +220,8 @@ void serialization::serializer<nations::nation>::deserialize_object(std::byte co
 	deserialize(input, obj.base_prestige);
 	deserialize(input, obj.infamy);
 	deserialize(input, obj.war_exhaustion);
+	deserialize(input, obj.suppression_points);
+	deserialize(input, obj.diplomacy_points);
 
 	deserialize(input, obj.rich_tax);
 	deserialize(input, obj.middle_tax);
@@ -300,6 +304,8 @@ size_t serialization::serializer<nations::nation>::size(nations::nation const & 
 		sizeof(obj.last_population) +
 		sizeof(date_tag) * 3 + // last election, last lost war, disarmed until
 		sizeof(float) * 5 + // plurality ... war exhaustion
+		serialize_size(obj.suppression_points) +
+		serialize_size(obj.diplomacy_points) +
 		sizeof(int8_t) * 7 + // budget items
 		sizeof(obj.current_government) +
 		sizeof(obj.primary_culture) +

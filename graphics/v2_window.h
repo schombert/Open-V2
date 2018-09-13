@@ -83,8 +83,8 @@ namespace ui {
 	T rescale_message(const T& message, float scale) {
 		if constexpr(std::is_base_of_v<message_with_location, T>) {
 			T new_message = message;
-			new_message.x /= scale;
-			new_message.y /= scale;
+			new_message.x  = static_cast<decltype(new_message.x)>(float(new_message.x) / scale);
+			new_message.y = static_cast<decltype(new_message.y)>(float(new_message.y) / scale);
 			return new_message;
 		} else {
 			return message;

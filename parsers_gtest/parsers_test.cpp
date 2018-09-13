@@ -121,55 +121,79 @@ TEST_METHOD(parsers_test, char_classes) {
 }
 
 TEST_METHOD(parsers_test, numeric_parsing) {
-	AreEqual(1.5f, parse_float(RANGE("1.5")));
-	AreEqual(1.5, parse_double(RANGE("1.5")));
-	AreEqual(-1.5f, parse_float(RANGE("-1.5")));
-	AreEqual(-1.5, parse_double(RANGE("-1.5")));
-	AreEqual(0.0f, parse_float(RANGE("0")));
-	AreEqual(0.0, parse_double(RANGE("0")));
-	AreEqual(0.0f, parse_float(RANGE("x")));
-	AreEqual(0.0, parse_double(RANGE("x")));
+	char v1[] = "1.5";
+	AreEqual(1.5f, parse_float(RANGE(v1)));
+	AreEqual(1.5, parse_double(RANGE(v1)));
+	char v2[] = "-1.5";
+	AreEqual(-1.5f, parse_float(RANGE(v2)));
+	AreEqual(-1.5, parse_double(RANGE(v2)));
+	char v3[] = "0";
+	AreEqual(0.0f, parse_float(RANGE(v3)));
+	AreEqual(0.0, parse_double(RANGE(v3)));
+	char v4[] = "x";
+	AreEqual(0.0f, parse_float(RANGE(v4)));
+	AreEqual(0.0, parse_double(RANGE(v4)));
 
-	AreEqual(4, parse_int(RANGE("4")));
-	AreEqual(4ui32, parse_uint(RANGE("4")));
-	AreEqual(0, parse_int(RANGE("0")));
-	AreEqual(0ui32, parse_uint(RANGE("0")));
-	AreEqual(-4, parse_int(RANGE("-4")));
-	AreEqual(0ui32, parse_uint(RANGE("-4")));
-	AreEqual(1, parse_int(RANGE("1.5")));
-	AreEqual(1ui32, parse_uint(RANGE("1.5")));
-	AreEqual(0, parse_int(RANGE("x")));
-	AreEqual(0ui32, parse_uint(RANGE("x")));
+	char v5[] = "4";
+	AreEqual(4, parse_int(RANGE(v5)));
+	AreEqual(4ui32, parse_uint(RANGE(v5)));
+	AreEqual(0, parse_int(RANGE(v3)));
+	AreEqual(0ui32, parse_uint(RANGE(v3)));
+
+	char v6[] = "-4";
+	AreEqual(-4, parse_int(RANGE(v6)));
+	AreEqual(0ui32, parse_uint(RANGE(v6)));
+	AreEqual(1, parse_int(RANGE(v1)));
+	AreEqual(1ui32, parse_uint(RANGE(v1)));
+	AreEqual(0, parse_int(RANGE(v4)));
+	AreEqual(0ui32, parse_uint(RANGE(v4)));
 }
 
 TEST(parsers_test, date_parsing) {
-	EXPECT_EQ(date_to_tag(boost::gregorian::date(1820, 2, 4)), parse_date(RANGE("1820.2.4")));
+	char v[] = "1820.2.4";
+	EXPECT_EQ(date_to_tag(boost::gregorian::date(1820, 2, 4)), parse_date(RANGE(v)));
 }
 
 TEST_METHOD(parsers_test, bool_parsing) {
-	IsTrue(parse_bool(RANGE("yes")));
-	IsTrue(parse_bool(RANGE("Yes")));
-	IsTrue(parse_bool(RANGE("1")));
-	IsTrue(parse_bool(RANGE("y")));
-	IsTrue(parse_bool(RANGE("Y")));
+	char v1[] = "yes";
+	IsTrue(parse_bool(RANGE(v1)));
+	char v2[] = "Yes";
+	IsTrue(parse_bool(RANGE(v2)));
+	char v3[] = "1";
+	IsTrue(parse_bool(RANGE(v3)));
+	char v4[] = "y";
+	IsTrue(parse_bool(RANGE(v4)));
+	char v5[] = "Y";
+	IsTrue(parse_bool(RANGE(v5)));
 
-	IsFalse(parse_bool(RANGE("no")));
-	IsFalse(parse_bool(RANGE("No")));
-	IsFalse(parse_bool(RANGE("0")));
-	IsFalse(parse_bool(RANGE("n")));
-	IsFalse(parse_bool(RANGE("N")));
+	char v6[] = "no";
+	IsFalse(parse_bool(RANGE(v6)));
+	char v7[] = "No";
+	IsFalse(parse_bool(RANGE(v7)));
+	char v8[] = "0";
+	IsFalse(parse_bool(RANGE(v8)));
+	char v9[] = "n";
+	IsFalse(parse_bool(RANGE(v9)));
+	char v10[] = "N";
+	IsFalse(parse_bool(RANGE(v10)));
 
-	IsFalse(parse_bool(RANGE("")));
-	IsFalse(parse_bool(RANGE("xxx")));
+	char v11[] = "";
+	IsFalse(parse_bool(RANGE(v11)));
+	char v12[] = "xxx";
+	IsFalse(parse_bool(RANGE(v12)));
 }
 
 TEST_METHOD(parsers_test, token_parsing) {
-	EXPECT_EQ(1.5, token_to<double>(token_and_type{ RANGE("1.5"), token_type::unknown }));
-	EXPECT_EQ(1.5f, token_to<float>(token_and_type{ RANGE("1.5"), token_type::unknown }));
-	EXPECT_EQ(3, token_to<int>(token_and_type{ RANGE("3"), token_type::unknown }));
-	EXPECT_EQ(3ui32, token_to<uint32_t>(token_and_type{ RANGE("3"), token_type::unknown }));
-	EXPECT_EQ(std::string("string"), token_to<std::string>(token_and_type{ RANGE("string"), token_type::unknown }));
-	EXPECT_EQ(true, token_to<bool>(token_and_type{ RANGE("yes"), token_type::unknown }));
+	char v1[] = "1.5";
+	EXPECT_EQ(1.5, token_to<double>(token_and_type{ RANGE(v1), token_type::unknown }));
+	EXPECT_EQ(1.5f, token_to<float>(token_and_type{ RANGE(v1), token_type::unknown }));
+	char v2[] = "3";
+	EXPECT_EQ(3, token_to<int>(token_and_type{ RANGE(v2), token_type::unknown }));
+	EXPECT_EQ(3ui32, token_to<uint32_t>(token_and_type{ RANGE(v2), token_type::unknown }));
+	char v3[] = "string";
+	EXPECT_EQ(std::string("string"), token_to<std::string>(token_and_type{ RANGE(v3), token_type::unknown }));
+	char v4[] = "yes";
+	EXPECT_EQ(true, token_to<bool>(token_and_type{ RANGE(v4), token_type::unknown }));
 }
 
 TEST_METHOD(parsers_test, number_classification) {

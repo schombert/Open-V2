@@ -90,7 +90,7 @@ namespace ui {
 					if (position.x != 0) {
 						lm.finish_current_line();
 						position.x = 0;
-						position.y += this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size))) + 0.5f;
+						position.y = int16_t(float(position.y) + this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size))) + 0.5f);
 						new_text_instance.object.length = original_length;
 					} else {
 						break;

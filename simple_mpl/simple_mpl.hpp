@@ -15,10 +15,12 @@ struct ct_string_append<ct_string<a...>, ct_string<b...>> {
 	using type = ct_string<a..., b...>;
 };
 
+#ifdef __llvm__
 template <typename CharT, CharT ...s>
 constexpr auto operator"" _s() {
 	return ct_string<s...>();
 }
+#endif
 
 #define CT_S(x) decltype(x ## _s)
 
@@ -441,15 +443,28 @@ struct splice_s<type_list<T...>, type_list<>> {
 	using type = type_list<T...>;
 };
 
+
+namespace detail {
+	template<typename tf_type, typename list_a, typename list_b>
+	struct type_hider;
+
+	template<typename A, typename B, typename ... T, typename ... U>
+	struct type_hider<std::true_type, type_list<A, T...>, type_list<B, U...>> {
+		using type = typename splice_s<type_list<T...>, type_list<B, U...>>::type::template cons<A>;
+	};
+
+	template<typename A, typename B, typename ... T, typename ... U>
+	struct type_hider<std::false_type, type_list<A, T...>, type_list<B, U...>> {
+		using type = typename splice_s<type_list<A, T...>, type_list<U...>>::type::template cons<B>;
+	};
+}
+
 template<typename A, typename B, typename ... T, typename ... U>
 struct splice_s<type_list<A, T...>, type_list<B, U...>> {
-	static constexpr auto type_hider() {
-		if constexpr(ct_string_compare<typename A::first, typename B::first> < 0)
-			return typename splice_s<type_list<T...>, type_list<B, U...>>::type::template cons<A>();
-		else
-			return typename splice_s<type_list<A, T...>, type_list<U...>>::type::template cons<B>();
-	}
-	using type = decltype(type_hider());
+	using type = typename detail::type_hider<
+		std::integral_constant<bool, ct_string_compare<typename A::first, typename B::first> < 0>,
+		type_list<A, T...>,
+		type_list<B, U...>>::type;
 };
 
 template<typename A, typename B>

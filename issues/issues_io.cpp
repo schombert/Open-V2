@@ -152,8 +152,8 @@ namespace issues {
 	struct rules_reader : public rules_set {
 		void set_rule(const std::tuple<bool, uint32_t, uint32_t>& v) {
 			if(std::get<0>(v))
-				rules_settings.rules |= std::get<1>(v);
-			rules_mask.rules |= std::get<2>(v);
+				rules_settings.rules_value |= std::get<1>(v);
+			rules_mask.rules_value |= std::get<2>(v);
 		}
 	};
 

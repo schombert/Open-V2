@@ -56,6 +56,8 @@ namespace current_state {
 		float values[32] = { 0.0 };
 	};
 
+	constexpr int32_t max_speed = 5;
+
 	class state {
 	public:
 		provinces::provinces_state province_s;
@@ -69,7 +71,7 @@ namespace current_state {
 		ui::gui_manager gui_m;
 
 		//crisis state
-		float crisis_temperature = 0.0f;
+		float crisis_temperature = 0.0f; // from 0 to 100
 		crisis_type current_crisis_type = crisis_type::none;
 		nations::nation* crisis_primary_attacker = nullptr;
 		nations::nation* crisis_primary_defender = nullptr;
@@ -82,6 +84,8 @@ namespace current_state {
 
 		//other global state
 		date_tag current_date;
+		int32_t speed = 3;
+		bool paused = true;
 		bool great_wars_enabled = false;
 		bool world_wars_enabled = false;
 
@@ -117,6 +121,10 @@ namespace current_state {
 		void update_population_window();
 		bool population_window_has_state_expanded(nations::state_tag t);
 		void population_window_set_state_expanded(nations::state_tag t, bool expand);
+		void resize_topbar();
+		void toggle_pause();
+		void increase_speed();
+		void decrease_speed();
 	};
 }
 

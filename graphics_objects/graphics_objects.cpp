@@ -21,6 +21,8 @@ namespace graphics {
 				return "unknown type found at file level";
 			case errors::unknown_sprite_type:
 				return "unknown sprite type";
+			default:
+				return "";
 		}
 	}
 }

@@ -13,16 +13,25 @@ TEST(TestCaseName, TestName) {
 
 TEST_METHOD(compile_time_computations, text_classifier_tests) {
 
-	const auto r1 = compile_time_str_compare_ci<CT_STRING("lalala")>(RANGE("STR in"));
+	char v1[] = "STR in";
+	const auto r1 = compile_time_str_compare_ci<CT_STRING("lalala")>(RANGE(v1));
 	EXPECT_NE(0, r1);
-	const auto r2 = compile_time_str_compare_ci<CT_STRING("lalala")>(RANGE("lala"));
+
+	char v2[] = "lala";
+	const auto r2 = compile_time_str_compare_ci<CT_STRING("lalala")>(RANGE(v2));
 	EXPECT_NE(0, r2);
-	const auto r3 = compile_time_str_compare_ci<CT_STRING("lalala")>(RANGE("lalala"));
+
+	char v3[] = "lalala";
+	const auto r3 = compile_time_str_compare_ci<CT_STRING("lalala")>(RANGE(v3));
 	EXPECT_EQ(0, r3);
-	const auto r4 = compile_time_str_compare_ci<CT_STRING("lalala")>(RANGE("LALAla"));
+
+	char v4[] = "LALAla";
+	const auto r4 = compile_time_str_compare_ci<CT_STRING("lalala")>(RANGE(v4));
 	EXPECT_EQ(0, r4);
 
+#ifdef __llvm__
 	static_assert(std::is_same_v<CT_S("lalala"), CT_STRING("lalala")>);
+#endif
 }
 
 TEST_METHOD(empty_classifier_test, text_classifier_tests) {
@@ -51,9 +60,13 @@ TEST_METHOD(empty_classifier_test, text_classifier_tests) {
 }
 
 TEST_METHOD(small_classifier_test, text_classifier_tests) {
-	std::vector<text_identifier> options_a = { text_identifier{ RANGE("dog"), 2 }, text_identifier{ RANGE("cat"), 1 }, text_identifier{ RANGE("monkey"), 3 }, };
-	std::vector<text_identifier> options_b = { text_identifier{ RANGE("dog"), 2 }, text_identifier{ RANGE("cat"), 1 }, text_identifier{ RANGE("monkey"), 3 }, };
-	std::vector<text_identifier> options_c = { text_identifier{ RANGE("dog"), 2 }, text_identifier{ RANGE("cat"), 1 }, text_identifier{ RANGE("monkey"), 3 }, };
+	const char dog[] = "dog";
+	const char cat[] = "cat";
+	const char monkey[] = "monkey";
+
+	std::vector<text_identifier> options_a = { text_identifier{ RANGE(dog), 2 }, text_identifier{ RANGE(cat), 1 }, text_identifier{ RANGE(monkey), 3 }, };
+	std::vector<text_identifier> options_b = { text_identifier{ RANGE(dog), 2 }, text_identifier{ RANGE(cat), 1 }, text_identifier{ RANGE(monkey), 3 }, };
+	std::vector<text_identifier> options_c = { text_identifier{ RANGE(dog), 2 }, text_identifier{ RANGE(cat), 1 }, text_identifier{ RANGE(monkey), 3 }, };
 
 	using map_type = type_list<CT_STRING_INT("dog", 2), CT_STRING_INT("cat", 1), CT_STRING_INT("monkey", 3)>;
 	using sorted_map_type = typename sorted<map_type>::type;
@@ -62,55 +75,58 @@ TEST_METHOD(small_classifier_test, text_classifier_tests) {
 	using third_in_map = typename rest<2ui64, sorted_map_type>::type;
 
 	static_assert(sorted_map_type::length == 3);
-	EXPECT_EQ(1, find_value_or<first_in_map>(RANGE("cat"), 0));
-	EXPECT_EQ(2, find_value_or<second_in_map>(RANGE("dog"), 0));
-	EXPECT_EQ(3, find_value_or<third_in_map>(RANGE("monkey"), 0));
+	EXPECT_EQ(1, find_value_or<first_in_map>(RANGE(cat), 0));
+	EXPECT_EQ(2, find_value_or<second_in_map>(RANGE(dog), 0));
+	EXPECT_EQ(3, find_value_or<third_in_map>(RANGE(monkey), 0));
 
 	const auto small_bc = make_bit_function_classifier_function(options_a);
 	const auto small_ls = make_linear_scan_classifier_function(options_b);
 	const auto small_bs = make_binary_search_classifier_function(options_c);
 	auto small_bsc = binary_search_classifier();
 
-	small_bsc.add_option(text_identifier{ RANGE("dog"), 2 });
-	small_bsc.add_option(text_identifier{ RANGE("cat"), 1 });
-	small_bsc.add_option(text_identifier{ RANGE("monkey"), 3 });
+	small_bsc.add_option(text_identifier{ RANGE(dog), 2 });
+	small_bsc.add_option(text_identifier{ RANGE(cat), 1 });
+	small_bsc.add_option(text_identifier{ RANGE(monkey), 3 });
 
-	EXPECT_EQ((unsigned char)1, small_bc(RANGE("cat")));
-	EXPECT_EQ((unsigned char)1, small_ls(RANGE("cat")));
-	EXPECT_EQ((unsigned char)1, small_bs(RANGE("cat")));
-	EXPECT_EQ((unsigned char)1, small_bsc.classify(RANGE("cat")));
-	EXPECT_EQ(1, find_value_or<map_type>(RANGE("cat"), 0));
-	EXPECT_EQ(1, bt_find_value_or<sorted_map_type>(RANGE("cat"), 0));
-
-
-	EXPECT_EQ((unsigned char)2, small_bc(RANGE("dog")));
-	EXPECT_EQ((unsigned char)2, small_ls(RANGE("dog")));
-	EXPECT_EQ((unsigned char)2, small_bs(RANGE("dog")));
-	EXPECT_EQ((unsigned char)2, small_bsc.classify(RANGE("dog")));
-	EXPECT_EQ(2, find_value_or<map_type>(RANGE("dog"), 0));
-	EXPECT_EQ(2, bt_find_value_or<sorted_map_type>(RANGE("dog"), 0));
-
-	EXPECT_EQ((unsigned char)3, small_bc(RANGE("monkey")));
-	EXPECT_EQ((unsigned char)3, small_ls(RANGE("monkey")));
-	EXPECT_EQ((unsigned char)3, small_bs(RANGE("monkey")));
-	EXPECT_EQ((unsigned char)3, small_bsc.classify(RANGE("monkey")));
-	EXPECT_EQ(3, find_value_or<map_type>(RANGE("monkey"), 0));
-	EXPECT_EQ(3, bt_find_value_or<sorted_map_type>(RANGE("monkey"), 0));
-
-	EXPECT_EQ((unsigned char)0, small_bc(RANGE("text")));
-	EXPECT_EQ((unsigned char)0, small_ls(RANGE("text")));
-	EXPECT_EQ((unsigned char)0, small_bs(RANGE("text")));
-	EXPECT_EQ((unsigned char)0, small_bsc.classify(RANGE("text")));
-	EXPECT_EQ(0, find_value_or<map_type>(RANGE("text"), 0));
-	EXPECT_EQ(0, bt_find_value_or<sorted_map_type>(RANGE("text"), 0));
+	EXPECT_EQ((unsigned char)1, small_bc(RANGE(cat)));
+	EXPECT_EQ((unsigned char)1, small_ls(RANGE(cat)));
+	EXPECT_EQ((unsigned char)1, small_bs(RANGE(cat)));
+	EXPECT_EQ((unsigned char)1, small_bsc.classify(RANGE(cat)));
+	EXPECT_EQ(1, find_value_or<map_type>(RANGE(cat), 0));
+	EXPECT_EQ(1, bt_find_value_or<sorted_map_type>(RANGE(cat), 0));
 
 
-	EXPECT_EQ((unsigned char)0, small_bc(RANGE("")));
-	EXPECT_EQ((unsigned char)0, small_ls(RANGE("")));
-	EXPECT_EQ((unsigned char)0, small_bs(RANGE("")));
-	EXPECT_EQ((unsigned char)0, small_bsc.classify(RANGE("")));
-	EXPECT_EQ(0, find_value_or<map_type>(RANGE(""), 0));
-	EXPECT_EQ(0, bt_find_value_or<sorted_map_type>(RANGE(""), 0));
+	EXPECT_EQ((unsigned char)2, small_bc(RANGE(dog)));
+	EXPECT_EQ((unsigned char)2, small_ls(RANGE(dog)));
+	EXPECT_EQ((unsigned char)2, small_bs(RANGE(dog)));
+	EXPECT_EQ((unsigned char)2, small_bsc.classify(RANGE(dog)));
+	EXPECT_EQ(2, find_value_or<map_type>(RANGE(dog), 0));
+	EXPECT_EQ(2, bt_find_value_or<sorted_map_type>(RANGE(dog), 0));
+
+	EXPECT_EQ((unsigned char)3, small_bc(RANGE(monkey)));
+	EXPECT_EQ((unsigned char)3, small_ls(RANGE(monkey)));
+	EXPECT_EQ((unsigned char)3, small_bs(RANGE(monkey)));
+	EXPECT_EQ((unsigned char)3, small_bsc.classify(RANGE(monkey)));
+	EXPECT_EQ(3, find_value_or<map_type>(RANGE(monkey), 0));
+	EXPECT_EQ(3, bt_find_value_or<sorted_map_type>(RANGE(monkey), 0));
+
+	const char text[] = "text";
+
+	EXPECT_EQ((unsigned char)0, small_bc(RANGE(text)));
+	EXPECT_EQ((unsigned char)0, small_ls(RANGE(text)));
+	EXPECT_EQ((unsigned char)0, small_bs(RANGE(text)));
+	EXPECT_EQ((unsigned char)0, small_bsc.classify(RANGE(text)));
+	EXPECT_EQ(0, find_value_or<map_type>(RANGE(text), 0));
+	EXPECT_EQ(0, bt_find_value_or<sorted_map_type>(RANGE(text), 0));
+
+	const char empty[] = "";
+
+	EXPECT_EQ((unsigned char)0, small_bc(RANGE(empty)));
+	EXPECT_EQ((unsigned char)0, small_ls(RANGE(empty)));
+	EXPECT_EQ((unsigned char)0, small_bs(RANGE(empty)));
+	EXPECT_EQ((unsigned char)0, small_bsc.classify(RANGE(empty)));
+	EXPECT_EQ(0, find_value_or<map_type>(RANGE(empty), 0));
+	EXPECT_EQ(0, bt_find_value_or<sorted_map_type>(RANGE(empty), 0));
 }
 
 

@@ -74,6 +74,10 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::text_tag ha
 	b.border_y = (int32_t(text_def.max_height + y_adjust) - int32_t(this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(int_font_size))) + 0.5f)) / 2;
 
 	ui::add_to_back(ws.w.gui_m, parent, new_gobj);
+
+	if constexpr(ui::detail::has_on_create<display_text<B, y_adjust>, display_text<B, y_adjust>&, world_state&>)
+		b.on_create(b, ws);
+
 	ws.w.gui_m.flag_minimal_update();
 	return new_gobj;
 }

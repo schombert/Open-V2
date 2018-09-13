@@ -180,6 +180,7 @@ namespace governments {
 			case flag_type::republic: return "republic";
 			case flag_type::not_specified: return nullptr;
 		}
+		return nullptr;
 	}
 
 	tagged_vector<std::string, governments::government_tag> read_governments(

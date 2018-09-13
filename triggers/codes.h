@@ -1134,6 +1134,7 @@ namespace triggers {
 			case association_type::ne: return trigger_codes::association_ne;
 			case association_type::none: return trigger_codes::association_ge;
 			case association_type::list: return trigger_codes::association_ge;
+			default: return trigger_codes::association_ge;
 		}
 	}
 
@@ -1148,6 +1149,7 @@ namespace triggers {
 			case association_type::ne: return trigger_codes::association_ne;
 			case association_type::none: return trigger_codes::association_le;
 			case association_type::list: return trigger_codes::association_le;
+			default: return trigger_codes::association_le;
 		}
 	}
 
@@ -1162,6 +1164,7 @@ namespace triggers {
 			case association_type::ne: return trigger_codes::association_ne;
 			case association_type::none: return trigger_codes::association_ge;
 			case association_type::list: return trigger_codes::association_ge;
+			default: return trigger_codes::association_ge;
 		}
 	}
 

@@ -72,6 +72,8 @@ namespace ui {
 					return container / 2 + base_position;
 				case sub_alignment::extreme:
 					return container + base_position;
+				default:
+					return base_position;
 			}
 		}
 
@@ -83,6 +85,8 @@ namespace ui {
 					return std::pair<int32_t, int32_t>(-container / 2, container / 2);
 				case sub_alignment::extreme:
 					return std::pair<int32_t, int32_t>(-container, 0);
+				default:
+					return std::pair<int32_t, int32_t>(0, container);
 			}
 		}
 
@@ -100,6 +104,8 @@ namespace ui {
 				case alignment::bottom_center:
 				case alignment::bottom_right:
 					return sub_alignment::extreme;
+				default:
+					return sub_alignment::base;
 			}
 		}
 
@@ -117,6 +123,8 @@ namespace ui {
 				case alignment::right:
 				case alignment::bottom_right:
 					return sub_alignment::extreme;
+				default:
+					return sub_alignment::base;
 			}
 		}
 	}
@@ -203,6 +211,8 @@ namespace ui {
 				return ui::text_color::white;
 			case text_data::text_color::yellow:
 				return ui::text_color::yellow;
+			default:
+				return ui::text_color::black;
 		}
 	}
 
@@ -393,7 +403,7 @@ void ui::detail::create_multiline_text(gui_static& static_manager, gui_manager& 
 		} else if (std::holds_alternative<text_data::line_break>(*component_i)) {
 			lm.finish_current_line();
 			position.x = 0;
-			position.y += this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size))) + 0.5f;
+			position.y += int16_t(this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size))) + 0.5f);
 		} else if (std::holds_alternative<text_data::value_placeholder>(*component_i)) {
 			const auto rep = text_data::find_replacement(std::get<text_data::value_placeholder>(*component_i), candidates, count);
 
@@ -650,8 +660,8 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_static& static_man
 		new_gobj.object.size = ui::xy_pair{new_gobj.object.size.y, new_gobj.object.size.x};
 	}
 
-	new_gobj.object.size.x *= icon_def.scale;
-	new_gobj.object.size.y *= icon_def.scale;
+	new_gobj.object.size.x = int16_t(float(new_gobj.object.size.x) * icon_def.scale);
+	new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
 
 	return new_gobj;
 }
@@ -687,6 +697,7 @@ namespace ui {
 			case graphics::rotation::upright: return graphics::rotation::upright;
 			case graphics::rotation::right: return graphics::rotation::left;
 			case graphics::rotation::left: return graphics::rotation::right;
+			default: return graphics::rotation::upright;
 		}
 	}
 }
@@ -1369,8 +1380,8 @@ ui::tagged_gui_object ui::create_scrollable_text_block(world_state& ws, ui::text
 		new_gobj.object.size.x -= text_def.border_size.x * 2;
 
 		if (is_valid_index(contents)) {
-			const auto[font_h, is_black, int_font_size] = graphics::unpack_font_handle(text_def.font_handle);
-			detail::create_multiline_text(sm, m, new_gobj, contents, text_aligment_from_text_definition(text_def), text_format{ is_black ? ui::text_color::black : ui::text_color::white, font_h, int_font_size }, candidates, count);
+			const auto tple_res /*[font_h, is_black, int_font_size]*/ = graphics::unpack_font_handle(text_def.font_handle);
+			detail::create_multiline_text(sm, m, new_gobj, contents, text_aligment_from_text_definition(text_def), text_format{ std::get<1>(tple_res) ? ui::text_color::black : ui::text_color::white, std::get<0>(tple_res), std::get<2>(tple_res) }, candidates, count);
 		}
 
 		for_each_child(m, new_gobj, [adjust = text_def.border_size](tagged_gui_object c) {

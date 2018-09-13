@@ -32,6 +32,7 @@
 //
 // The Google C++ Testing Framework (Google Test)
 
+#ifdef __llvm__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-variable-declarations"
 #pragma clang diagnostic ignored "-Wmissing-prototypes"
@@ -42,6 +43,7 @@
 #pragma clang diagnostic ignored "-Wswitch-enum"
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
 #pragma clang diagnostic ignored "-Wunused-member-function"
+#endif
 
 #include "gtest/gtest.h"
 #include "gtest/internal/custom/gtest.h"
@@ -5413,4 +5415,6 @@ void InitGoogleTest(int* argc, wchar_t** argv) {
 
 }  // namespace testing
 
+#ifdef __llvm__
 #pragma clang diagnostic pop
+#endif

@@ -32,6 +32,7 @@
 //
 // The Google C++ Testing Framework (Google Test)
 
+#ifdef __llvm__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-variable-declarations"
 #pragma clang diagnostic ignored "-Wmissing-prototypes"
@@ -41,6 +42,7 @@
 #pragma clang diagnostic ignored "-Wcovered-switch-default"
 #pragma clang diagnostic ignored "-Wswitch-enum"
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
+#endif
 
 #include "gtest/gtest-test-part.h"
 
@@ -120,5 +122,6 @@ void HasNewFatalFailureHelper::ReportTestPartResult(
 
 }  // namespace testing
 
+#ifdef __llvm__
 #pragma clang diagnostic pop
-
+#endif

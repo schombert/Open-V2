@@ -41,8 +41,7 @@
       </CallingConvention>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\boost_1_65_1;$(ProjectDir)..</AdditionalIncludeDirectories>
-      <AdditionalOptions>-Weverything -Wno-deprecated-declarations -Wno-unused-command-line-argument -Wno-gnu-string-literal-operator-template -fuse-ld=lld  -Wno-clang-cl-pch -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-c++17-extensions -Wno-old-style-cast -Wno-reserved-id-macro -Wno-language-extension-token -Wno-disabled-macro-expansion -Wno-strict-prototypes -Wno-documentation-unknown-command -Wno-documentation -Wno-global-constructors -Wno-float-equal -Wno-exit-time-destructors -Wno-redundant-parens %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\boost_1_68_0;$(ProjectDir)..</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <SupportJustMyCode>false</SupportJustMyCode>
     </ClCompile>

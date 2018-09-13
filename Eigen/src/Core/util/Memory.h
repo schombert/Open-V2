@@ -63,17 +63,14 @@ namespace Eigen {
 
 namespace internal {
 
-EIGEN_DEVICE_FUNC
-#ifdef EIGEN_EXCEPTIONS
-[[noreturn]]
-#endif
+EIGEN_DEVICE_FUNC 
 inline void throw_std_bad_alloc()
 {
   #ifdef EIGEN_EXCEPTIONS
     throw std::bad_alloc();
   #else
     std::size_t huge = static_cast<std::size_t>(-1);
-    new int[huge];
+    ::operator new(huge);
   #endif
 }
 
@@ -89,7 +86,7 @@ inline void throw_std_bad_alloc()
 inline void* handmade_aligned_malloc(std::size_t size)
 {
   void *original = std::malloc(size+EIGEN_DEFAULT_ALIGN_BYTES);
-  if (original == nullptr) return nullptr;
+  if (original == 0) return 0;
   void *aligned = reinterpret_cast<void*>((reinterpret_cast<std::size_t>(original) & ~(std::size_t(EIGEN_DEFAULT_ALIGN_BYTES-1))) + EIGEN_DEFAULT_ALIGN_BYTES);
   *(reinterpret_cast<void**>(aligned) - 1) = original;
   return aligned;
@@ -108,11 +105,11 @@ inline void handmade_aligned_free(void *ptr)
   */
 inline void* handmade_aligned_realloc(void* ptr, std::size_t size, std::size_t = 0)
 {
-  if (ptr == nullptr) return handmade_aligned_malloc(size);
+  if (ptr == 0) return handmade_aligned_malloc(size);
   void *original = *(reinterpret_cast<void**>(ptr) - 1);
   std::ptrdiff_t previous_offset = static_cast<char *>(ptr)-static_cast<char *>(original);
   original = std::realloc(original,size+EIGEN_DEFAULT_ALIGN_BYTES);
-  if (original == nullptr) return nullptr;
+  if (original == 0) return 0;
   void *aligned = reinterpret_cast<void*>((reinterpret_cast<std::size_t>(original) & ~(std::size_t(EIGEN_DEFAULT_ALIGN_BYTES-1))) + EIGEN_DEFAULT_ALIGN_BYTES);
   void *previous_aligned = static_cast<char *>(original)+previous_offset;
   if(aligned!=previous_aligned)
@@ -496,7 +493,7 @@ template<typename T> struct smart_copy_helper<T,true> {
     IntPtr size = IntPtr(end)-IntPtr(start);
     if(size==0) return;
     eigen_internal_assert(start!=0 && end!=0 && target!=0);
-    memcpy(target, start, size);
+    std::memcpy(target, start, size);
   }
 };
 
@@ -699,7 +696,15 @@ template<typename T> void swap(scoped_array<T> &a,scoped_array<T> &b)
 /** \class aligned_allocator
 * \ingroup Core_Module
 *
-* \brief STL compatible allocator to use with with 16 byte aligned types
+* \brief STL compatible allocator to use with types requiring a non standrad alignment.
+*
+* The memory is aligned as for dynamically aligned matrix/array types such as MatrixXd.
+* By default, it will thus provide at least 16 bytes alignment and more in following cases:
+*  - 32 bytes alignment if AVX is enabled.
+*  - 64 bytes alignment if AVX512 is enabled.
+*
+* This can be controled using the \c EIGEN_MAX_ALIGN_BYTES macro as documented
+* \link TopicPreprocessorDirectivesPerformance there \endlink.
 *
 * Example:
 * \code
@@ -739,7 +744,7 @@ public:
 
   ~aligned_allocator() {}
 
-  pointer allocate(size_type num, const void* /*hint*/ = nullptr)
+  pointer allocate(size_type num, const void* /*hint*/ = 0)
   {
     internal::check_size_for_overflow<T>(num);
     return static_cast<pointer>( internal::aligned_malloc(num * sizeof(T)) );

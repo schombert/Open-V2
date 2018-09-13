@@ -1,6 +1,10 @@
 #include "common\\common.h"
 #include "topbar.hpp"
 #include "nations\\nations_functions.hpp"
+#include "technologies\\technologies_functions.h"
+#include "modifiers\\modifiers_gui.h"
+#include "modifiers\\modifier_functions.h"
+#include "governments\\governments_functions.h"
 
 namespace current_state {
 	void topbar_bg::on_create(ui::simple_button<topbar_bg>& bttn, world_state &) {
@@ -40,7 +44,31 @@ namespace current_state {
 	void tech_button::update(ui::simple_button<tech_button>& self, world_state& ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);
 	}
-
+	void politics_button::button_function(ui::simple_button<politics_button>&, world_state&) {}
+	void politics_button::update(ui::simple_button<politics_button>& self, world_state& ws) {
+		self.set_frame(ws.w.gui_m, 1ui32);
+	}
+	void pops_button::button_function(ui::simple_button<pops_button>&, world_state& ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if(auto id = player->id; ws.w.nation_s.nations.is_valid_index(id))
+				ws.w.show_population_window(id);
+		}
+	}
+	void pops_button::update(ui::simple_button<pops_button>& self, world_state& ws) {
+		self.set_frame(ws.w.gui_m, 1ui32);
+	}
+	void trade_button::button_function(ui::simple_button<trade_button>&, world_state&) {}
+	void trade_button::update(ui::simple_button<trade_button>& self, world_state& ws) {
+		self.set_frame(ws.w.gui_m, 1ui32);
+	}
+	void diplomacy_button::button_function(ui::simple_button<diplomacy_button>&, world_state&) {}
+	void diplomacy_button::update(ui::simple_button<diplomacy_button>& self, world_state& ws) {
+		self.set_frame(ws.w.gui_m, 1ui32);
+	}
+	void military_button::button_function(ui::simple_button<military_button>&, world_state&) {}
+	void military_button::update(ui::simple_button<military_button>& self, world_state& ws) {
+		self.set_frame(ws.w.gui_m, 1ui32);
+	}
 
 	void building_factories::update(ui::dynamic_icon<building_factories>& self, world_state& ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);
@@ -161,7 +189,7 @@ namespace current_state {
 			if(ws.w.nation_s.nations.is_valid_index(pid)) {
 				char16_t local_buf[64];
 
-				auto end_pos = put_pos_value_in_buffer(local_buf, display_type::integer, ws.w.nation_s.national_stockpiles.get(pid, economy::money_good));
+				auto end_pos = put_value_in_buffer(local_buf, display_type::integer, ws.w.nation_s.national_stockpiles.get(pid, economy::money_good));
 				*end_pos = u'\u00A3';
 				*(end_pos + 1) = char16_t(0);
 				ui::text_chunk_to_instances(
@@ -198,7 +226,7 @@ namespace current_state {
 				if(total_pop != 0) {
 					char16_t local_buf[16];
 
-					put_pos_value_in_buffer(local_buf, display_type::percent, float(literacy) / float(total_pop));
+					put_value_in_buffer(local_buf, display_type::percent, float(literacy) / float(total_pop));
 
 					ui::text_chunk_to_instances(
 						ws.s.gui_m,
@@ -214,5 +242,528 @@ namespace current_state {
 				}
 			}
 		}
+	}
+	void research_points::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			auto points = technologies::daily_research_points(ws, *player);
+
+			char16_t local_buf[16];
+
+			put_value_in_buffer(local_buf, display_type::fp_two_places, points);
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m,
+				ws.w.gui_m,
+				vector_backed_string<char16_t>(local_buf),
+				box,
+				ui::xy_pair{ 0,0 },
+				fmt,
+				lm
+			);
+
+			lm.finish_current_line();
+		}
+	}
+
+	inline void make_research_points_tt(world_state & ws, ui::tagged_gui_object tw) {
+		if(auto player = ws.w.local_player_nation; player) {
+			auto id = player->id;
+			if(!ws.w.nation_s.nations.is_valid_index(id))
+				return;
+
+			ui::unlimited_line_manager lm;
+			ui::xy_pair cursor{ 0,0 };
+
+			cursor = ui::add_linear_text(cursor, ws.s.modifiers_m.national_offset_names[modifiers::national_offsets::research_points], ui::tooltip_text_format,
+				ws.s.gui_m, ws.w.gui_m, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			lm.finish_current_line();
+			lm.increase_indent(1);
+
+			int64_t total_pop = ws.w.nation_s.nation_demographics.get(id, population::total_population_tag);
+			int64_t* pop_by_type = ws.w.nation_s.nation_demographics.get_row(id) + to_index(population::to_demo_tag(ws, population::pop_type_tag(0)));
+
+			if(total_pop != 0) {
+				for(uint32_t i = 0; i < ws.s.population_m.count_poptypes; ++i) {
+					population::pop_type_tag this_tag(static_cast<population::pop_type_tag::value_base_t>(i));
+					auto& pt = ws.s.population_m.pop_types[this_tag];
+					if(pt.research_points != 0 && pt.research_optimum != 0.0f) {
+						auto points_from_type = float(pt.research_points) * std::min(1.0f, (float(pop_by_type[i]) / float(total_pop)) / ws.s.population_m.pop_types[this_tag].research_optimum);
+
+						char16_t local_buf[32];
+
+						if(points_from_type < 0.0f) {
+							local_buf[0] = u'-';
+							put_pos_value_in_buffer(local_buf + 1, display_type::fp_two_places, -points_from_type);
+							cursor = ui::text_chunk_to_instances(
+								ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf), tw, cursor,
+								ui::text_format{ ui::text_color::red, ui::tooltip_text_format.font_handle, ui::tooltip_text_format.font_size }, lm);
+						} else {
+							local_buf[0] = u'+';
+							put_pos_value_in_buffer(local_buf + 1, display_type::fp_two_places, points_from_type);
+							cursor = ui::text_chunk_to_instances(
+								ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf), tw, cursor,
+								ui::text_format{ ui::text_color::green, ui::tooltip_text_format.font_handle, ui::tooltip_text_format.font_size }, lm);
+						}
+
+						cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+						cursor = ui::add_linear_text(cursor, ws.s.population_m.pop_types[this_tag].name, ui::tooltip_text_format, ws.s.gui_m,
+							ws.w.gui_m, tw, lm);
+
+						cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+						put_value_in_buffer(local_buf, display_type::percent_fp_one_place, float(pop_by_type[i]) / float(total_pop));
+						cursor = ui::text_chunk_to_instances(
+							ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf), tw, cursor,
+							ui::tooltip_text_format, lm);
+
+						cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+						cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m,
+							vector_backed_string<char16_t>(u"("),
+							tw, cursor, ui::tooltip_text_format, lm);
+
+						put_value_in_buffer(local_buf, display_type::percent_fp_one_place, ws.s.population_m.pop_types[this_tag].research_optimum);
+						text_data::replacement repl(text_data::value_type::opt, vector_backed_string<char16_t>(local_buf), [](ui::tagged_gui_object) {});
+
+						cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::optimal_is], ui::tooltip_text_format, ws.s.gui_m,
+							ws.w.gui_m, tw, lm, &repl, 1);
+
+						cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m,
+							vector_backed_string<char16_t>(u")"),
+							tw, cursor, ui::tooltip_text_format, lm);
+
+						cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
+						lm.finish_current_line();
+					}
+				}
+			}
+
+			cursor = modifiers::explain_national_modifier(ws, tw, cursor, lm, ui::tooltip_text_format, *player, modifiers::national_offsets::research_points);
+
+			lm.decrease_indent(1);
+
+			cursor = ui::add_linear_text(cursor, ws.s.modifiers_m.national_offset_names[modifiers::national_offsets::research_points_modifier], ui::tooltip_text_format,
+				ws.s.gui_m, ws.w.gui_m, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			lm.finish_current_line();
+			lm.increase_indent(1);
+
+			cursor = modifiers::explain_national_modifier(ws, tw, cursor, lm, ui::tooltip_text_format, *player, modifiers::national_offsets::research_points_modifier);
+		}
+	}
+
+	void research_icon::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		make_research_points_tt(ws, tw);
+	}
+
+	void research_points::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		make_research_points_tt(ws, tw);
+	}
+	void party_icon::update(ui::tinted_icon<party_icon>& self, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if(auto ideo = player->ruling_ideology; is_valid_index(ideo)) {
+				auto ideology_color = ws.s.ideologies_m.ideology_container[ideo].color;
+				self.set_color(ws.w.gui_m, float(ideology_color.r) / 255.0f, float(ideology_color.g) / 255.0f, float(ideology_color.b) / 255.0f);
+			}
+		}
+	}
+	void party_name_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if(auto rp = player->ruling_party; is_valid_index(rp)) {
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.governments_m.parties[rp].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			}
+		}
+	}
+	void suppression_points_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+
+			char16_t local_buf[16];
+
+			put_value_in_buffer(local_buf, display_type::exact_integer, player->suppression_points);
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+				box, ui::xy_pair{ 0,0 }, fmt, lm
+			);
+
+			lm.finish_current_line();
+		}
+	}
+	void infamy_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+
+			char16_t local_buf[16];
+
+			put_value_in_buffer(local_buf, display_type::fp_two_places, player->infamy);
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+				box, ui::xy_pair{ 0,0 }, fmt, lm
+			);
+
+			lm.finish_current_line();
+		}
+	}
+	void reform_alert::button_function(ui::simple_button<reform_alert>&, world_state &) {}
+	void reform_alert::update(ui::simple_button<reform_alert>& self, world_state & ws) {
+		self.set_frame(ws.w.gui_m, 1ui32);
+	}
+	void reform_alert::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::cannot_reform], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+	}
+
+	void decision_alert::button_function(ui::simple_button<reform_alert>&, world_state &) {}
+	void decision_alert::update(ui::simple_button<decision_alert>& self, world_state & ws) {
+		self.set_frame(ws.w.gui_m, 1ui32);
+	}
+	void decision_alert::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::no_decisions], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+	}
+	void rebels_alert::button_function(ui::simple_button<reform_alert>&, world_state &) {}
+	void rebels_alert::update(ui::simple_button<rebels_alert>& self, world_state & ws) {
+		self.set_frame(ws.w.gui_m, 1ui32);
+	}
+	void rebels_alert::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::no_rebels], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+	}
+	void election_alert::update(ui::dynamic_icon<election_alert>& self, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if((player->flags & nations::nation::is_holding_election) != 0)
+				self.set_frame(ws.w.gui_m, 0ui32);
+			else
+				self.set_frame(ws.w.gui_m, 1ui32);
+		}
+	}
+	void election_alert::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if((player->flags & nations::nation::is_holding_election) != 0) {
+				ui::unlimited_line_manager lm;
+
+				char16_t formatted_date[64];
+				u16_format_date(formatted_date, governments::election_end_date(ws, *player));
+				text_data::replacement repl(text_data::value_type::date, vector_backed_string<char16_t>(formatted_date), [](ui::tagged_gui_object){});
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::holding_election],
+					ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &repl, 1);
+			} else {
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::no_election], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+			}
+		}
+	}
+	void topbar_total_population_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if(auto id = player->id; ws.w.nation_s.nations.is_valid_index(id)) {
+				char16_t local_buf[16];
+
+				put_value_in_buffer(local_buf, display_type::integer, ws.w.nation_s.nation_demographics.get(id, population::total_population_tag));
+
+				ui::text_chunk_to_instances(
+					ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+					box, ui::xy_pair{ 0,0 }, fmt, lm
+				);
+				lm.finish_current_line();
+			}
+		}
+	}
+	void topbar_national_focus_count::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			auto max_focuses = modifiers::maximum_national_focuses(ws, *player);
+			auto used_focuses = int32_t(get_size(ws.w.nation_s.state_tag_arrays, player->national_focus_locations));
+
+			char16_t local_buf[32];
+			auto posa = put_value_in_buffer(local_buf, display_type::integer, max_focuses - used_focuses);
+			*posa = u'/';
+			put_value_in_buffer(posa + 1, display_type::integer, max_focuses);
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+				box, ui::xy_pair{ 0,0 }, ui::text_format{ used_focuses < max_focuses ? ui::text_color::red : fmt.color , fmt.font_handle , fmt.font_size }, lm
+			);
+			lm.finish_current_line();
+		}
+	}
+	void topbar_militancy::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if(auto id = player->id; ws.w.nation_s.nations.is_valid_index(id)) {
+				auto total_pop = ws.w.nation_s.nation_demographics.get(id, population::total_population_tag);
+				auto militancy = ws.w.nation_s.nation_demographics.get(id, population::militancy_demo_tag(ws));
+
+				char16_t local_buf[16];
+				put_value_in_buffer(local_buf, display_type::fp_two_places, total_pop != 0 ? 10.0f * float(militancy) / float(total_pop) : 0.0f);
+
+				ui::text_chunk_to_instances(
+					ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+					box, ui::xy_pair{ 0,0 }, ui::text_format{ ui::text_color::red , fmt.font_handle , fmt.font_size }, lm
+				);
+				lm.finish_current_line();
+			}
+		}
+	}
+	void topbar_consciousness::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if(auto id = player->id; ws.w.nation_s.nations.is_valid_index(id)) {
+				auto total_pop = ws.w.nation_s.nation_demographics.get(id, population::total_population_tag);
+				auto militancy = ws.w.nation_s.nation_demographics.get(id, population::consciousness_demo_tag(ws));
+
+				char16_t local_buf[16];
+				put_value_in_buffer(local_buf, display_type::fp_two_places, total_pop != 0 ? 10.0f * float(militancy) / float(total_pop) : 0.0f);
+
+				ui::text_chunk_to_instances(
+					ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+					box, ui::xy_pair{ 0,0 }, ui::text_format{ ui::text_color::green , fmt.font_handle , fmt.font_size }, lm
+				);
+				lm.finish_current_line();
+			}
+		}
+	}
+
+	void war_against_flag_button::button_function(ui::masked_flag<war_against_flag_button>&, world_state&) {
+
+	}
+	void war_against_flag_button::update(ui::masked_flag<war_against_flag_button>& self, world_state& ws) {
+		self.set_displayed_flag(ws, tag);
+	}
+	ui::window_tag war_against_lb::element_tag(ui::gui_static & m) {
+		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["province_core"]);
+	}
+	void diplomatic_points_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			char16_t local_buf[16];
+			put_value_in_buffer(local_buf, display_type::fp_one_place, player->diplomacy_points);
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+				box, ui::xy_pair{ 0,0 }, fmt, lm
+			);
+			lm.finish_current_line();
+		}
+	}
+	void crisis_alert::button_function(ui::simple_button<crisis_alert>&, world_state &) {}
+	void crisis_alert::update(ui::simple_button<crisis_alert>& self, world_state & ws) {
+		if(ws.w.current_crisis_type != current_state::crisis_type::none) {
+			if(ws.w.crisis_temperature >= 90.0f)
+				self.set_frame(ws.w.gui_m, 1ui32);
+			else
+				self.set_frame(ws.w.gui_m, 0ui32);
+		} else {
+			self.set_frame(ws.w.gui_m, 2ui32);
+		}
+	}
+	void crisis_alert::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		if(ws.w.current_crisis_type != current_state::crisis_type::none) {
+			ui::unlimited_line_manager lm;
+
+			char16_t local_buf[16];
+			put_value_in_buffer(local_buf, display_type::integer, ws.w.crisis_temperature);
+
+			text_data::replacement repl(text_data::value_type::temperature, vector_backed_string<char16_t>(local_buf), [](ui::tagged_gui_object){});
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::has_crisis], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &repl, 1);
+		} else {
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::no_crisis], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+		}
+		
+	}
+	void losing_gp_alert::update(ui::dynamic_icon<losing_gp_alert>& self, world_state & ws) {
+		self.set_frame(ws.w.gui_m, 1ui32);
+	}
+	void losing_gp_alert::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if(nations::is_great_power(ws, *player))
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::is_not_losing_gp], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+			else
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::is_not_gp], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+		}
+	}
+	void influence_alert::button_function(ui::simple_button<influence_alert>&, world_state &) {}
+	void influence_alert::update(ui::simple_button<influence_alert>& self, world_state & ws) {
+		self.set_frame(ws.w.gui_m, 1ui32);
+	}
+	void influence_alert::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::cannot_influence], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+	}
+	void colonial_alert::button_function(ui::simple_button<colonial_alert>&, world_state &) {}
+	void colonial_alert::update(ui::simple_button<colonial_alert>& self, world_state & ws) {
+		self.set_frame(ws.w.gui_m, 2ui32);
+	}
+	void colonial_alert::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::no_colonial_activity], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+	}
+	void at_peace_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if(get_size(ws.w.military_s.war_arrays, player->wars_involved_in) == 0) {
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::at_peace], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			}
+		}
+	}
+	void army_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			auto army_count = get_size(ws.w.military_s.army_arrays, player->armies);
+			char16_t local_buf[16];
+			put_value_in_buffer(local_buf, display_type::integer, army_count);
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+				box, ui::xy_pair{ 0,0 }, fmt, lm
+			);
+			lm.finish_current_line();
+		}
+	}
+	void navy_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			auto fleet_count = get_size(ws.w.military_s.fleet_arrays, player->fleets);
+			char16_t local_buf[16];
+			put_value_in_buffer(local_buf, display_type::integer, fleet_count);
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+				box, ui::xy_pair{ 0,0 }, fmt, lm
+			);
+			lm.finish_current_line();
+		}
+	}
+	void manpower_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if(auto id = player->id; ws.w.nation_s.nations.is_valid_index(id)) {
+				auto solider_count = ws.w.nation_s.nation_demographics.get(id, population::to_demo_tag(ws, ws.s.population_m.soldier));
+
+				char16_t local_buf[16];
+				put_value_in_buffer(local_buf, display_type::integer, solider_count);
+
+				ui::text_chunk_to_instances(
+					ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+					box, ui::xy_pair{ 0,0 }, fmt, lm
+				);
+				lm.finish_current_line();
+			}
+		}
+	}
+	void leadership_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			char16_t local_buf[16];
+			put_value_in_buffer(local_buf, display_type::integer, player->leadership_points);
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+				box, ui::xy_pair{ 0,0 }, fmt, lm
+			);
+			lm.finish_current_line();
+		}
+	}
+	void outliner_button::button_function(ui::simple_button<outliner_button>&, world_state &) {}
+	void outliner_button::update(ui::simple_button<outliner_button>&, world_state &) {}
+
+	void topbar_overall_rank::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			char16_t local_buf[16];
+			put_value_in_buffer(local_buf, display_type::integer, player->overall_rank);
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+				box, ui::xy_pair{ 0,0 }, fmt, lm
+			);
+			lm.finish_current_line();
+		}
+	}
+	void topbar_prestige_rank::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			char16_t local_buf[16];
+			put_value_in_buffer(local_buf, display_type::integer, player->prestige_rank);
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+				box, ui::xy_pair{ 0,0 }, fmt, lm
+			);
+			lm.finish_current_line();
+		}
+	}
+	void topbar_military_rank::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			char16_t local_buf[16];
+			put_value_in_buffer(local_buf, display_type::integer, player->military_rank);
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+				box, ui::xy_pair{ 0,0 }, fmt, lm
+			);
+			lm.finish_current_line();
+		}
+	}
+	void topbar_industrial_rank::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			char16_t local_buf[16];
+			put_value_in_buffer(local_buf, display_type::integer, player->industrial_rank);
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+				box, ui::xy_pair{ 0,0 }, fmt, lm
+			);
+			lm.finish_current_line();
+		}
+	}
+	void topbar_prestige::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			char16_t local_buf[16];
+			put_value_in_buffer(local_buf, display_type::integer, nations::get_prestige(*player));
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+				box, ui::xy_pair{ 0,0 }, fmt, lm
+			);
+			lm.finish_current_line();
+		}
+	}
+	void topbar_military_score::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			char16_t local_buf[16];
+			put_value_in_buffer(local_buf, display_type::integer, player->military_score);
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+				box, ui::xy_pair{ 0,0 }, fmt, lm
+			);
+			lm.finish_current_line();
+		}
+	}
+	void topbar_industrial_score::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			char16_t local_buf[16];
+			put_value_in_buffer(local_buf, display_type::integer, player->industrial_score);
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+				box, ui::xy_pair{ 0,0 }, fmt, lm
+			);
+			lm.finish_current_line();
+		}
+	}
+	void topbar_colonial_points::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			char16_t local_buf[16];
+			put_value_in_buffer(local_buf, display_type::integer, nations::get_colonial_points(*player));
+
+			ui::text_chunk_to_instances(
+				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+				box, ui::xy_pair{ 0,0 }, fmt, lm
+			);
+			lm.finish_current_line();
+		}
+	}
+	void topbar_country_name::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, player->name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		}
+	}
+	void pause_button::button_function(ui::simple_button<pause_button>&, world_state & ws) {
+		ws.w.toggle_pause();
+	}
+	void increase_speed_button::button_function(ui::simple_button<increase_speed_button>&, world_state & ws) {
+		ws.w.increase_speed();
+	}
+	void decrease_speed_button::button_function(ui::simple_button<decrease_speed_button>&, world_state & ws) {
+		ws.w.decrease_speed();
+	}
+	void speed_indicator_button::update(ui::simple_button<speed_indicator_button>& self, world_state & ws) {
+		if(ws.w.paused)
+			self.set_frame(ws.w.gui_m, 0ui32);
+		else
+			self.set_frame(ws.w.gui_m, uint32_t(ws.w.speed));
 	}
 }

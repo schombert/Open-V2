@@ -14,7 +14,7 @@ namespace events {
 
 namespace issues {
 	struct rules {
-		uint32_t rules = 0ui32;
+		uint32_t rules_value = 0ui32;
 
 		static constexpr uint32_t build_factory = 0x00000001;
 		static constexpr uint32_t expand_factory = 0x00000002;

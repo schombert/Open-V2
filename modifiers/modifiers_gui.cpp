@@ -211,7 +211,7 @@ namespace modifiers {
 		char16_t local_buf[64];
 		for(uint32_t i = 0; i < national_offsets::count; ++i) {
 			if(values[i] != value_type(0)) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.modifiers_m.province_offset_names[i], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_linear_text(cursor_in, ws.s.modifiers_m.national_offset_names[i], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 
 				if(values[i] < value_type(0)) {

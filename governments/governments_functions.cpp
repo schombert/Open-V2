@@ -9,7 +9,7 @@ namespace governments {
 		issues::option_tag* opts = s.governments_m.party_issues.get_row(p.id);
 		for(uint32_t i = 0; i < s.governments_m.party_issues.inner_size(); ++i) {
 			if(is_valid_index(opts[i]))
-				result.rules |= s.issues_m.options[opts[i]].issue_rules.rules_settings.rules;
+				result.rules_value |= s.issues_m.options[opts[i]].issue_rules.rules_settings.rules_value;
 		}
 		return result;
 	}
@@ -26,7 +26,11 @@ namespace governments {
 
 			if(this_party.start_date <= date && date < this_party.end_date) {
 				uint32_t ideology_index = to_index(this_party.ideology);
-				uint32_t allowed_count = uint32_t(__builtin_popcount(this_party.party_rules.rules));
+#ifdef __llvm__
+				uint32_t allowed_count = uint32_t(__builtin_popcount(this_party.party_rules.rules_value));
+#else
+				uint32_t allowed_count = uint32_t(__popcnt(this_party.party_rules.rules_value));
+#endif
 				if(allowed_count > rules_count[ideology_index]) {
 					parties_out[ideology_index] = p_index;
 					rules_count[ideology_index] = allowed_count;
@@ -61,14 +65,14 @@ namespace governments {
 	}
 
 	void update_current_rules(world_state& ws, nations::nation& this_nation) {
-		this_nation.current_rules.rules = 0ui32;
+		this_nation.current_rules.rules_value = 0ui32;
 
 		uint32_t max_issues = uint32_t(ws.s.issues_m.issues_container.size());
 		auto issues_row = ws.w.nation_s.active_issue_options.get_row(this_nation.id);
 
 		for(uint32_t i = 0; i < max_issues; ++i) {
 			if(is_valid_index(issues_row[i])) {
-				this_nation.current_rules.rules |= ws.s.issues_m.options[issues_row[i]].issue_rules.rules_settings.rules;
+				this_nation.current_rules.rules_value |= ws.s.issues_m.options[issues_row[i]].issue_rules.rules_settings.rules_value;
 			}
 		}
 	}
@@ -116,5 +120,20 @@ namespace governments {
 	void start_election(world_state& ws, nations::nation& this_nation) {
 		this_nation.flags |= nations::nation::is_holding_election;
 		this_nation.last_election = ws.w.current_date;
+	}
+
+	date_tag election_end_date(world_state& ws, nations::nation const& this_nation) {
+		return date_tag(static_cast<date_tag::value_base_t>(
+			to_index(this_nation.last_election) + int32_t(ws.s.modifiers_m.global_defines.campaign_duration) * 30));
+	}
+
+	date_tag next_election_start_date(world_state& ws, nations::nation const& this_nation) {
+		if(auto gov = this_nation.current_government; is_valid_index(gov)) {
+			auto months_until = int32_t(ws.s.governments_m.governments_container[gov].duration);
+			auto last_election = tag_to_date(this_nation.last_election);
+			last_election += boost::gregorian::months(months_until);
+			return date_to_tag(last_election);
+		}
+		return date_tag();
 	}
 }

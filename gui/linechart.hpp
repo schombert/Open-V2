@@ -62,8 +62,8 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, icon_tag handle
 		new_gobj.object.size = ui::xy_pair{ new_gobj.object.size.y, new_gobj.object.size.x };
 	}
 
-	new_gobj.object.size.x *= icon_def.scale;
-	new_gobj.object.size.y *= icon_def.scale;
+	new_gobj.object.size.x = int16_t(float(new_gobj.object.size.x) * icon_def.scale);
+	new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
 
 	new_gobj.object.associated_behavior = &b;
 	b.associated_object = &new_gobj.object;
