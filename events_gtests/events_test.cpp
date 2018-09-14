@@ -155,7 +155,7 @@ TEST(event_tests, read_single_event) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	{
 		const char text[] =
@@ -231,7 +231,7 @@ TEST(event_tests, parse_or_defer) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	{
 		const char text[] =
@@ -366,7 +366,7 @@ TEST(event_tests, event_file) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	{
 		const char text[] =
@@ -396,7 +396,7 @@ TEST(event_tests, event_files) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	{
 		read_event_files(
@@ -417,7 +417,7 @@ TEST(event_tests, event_files_b) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test3"));
+	f.set_root(u"F:\\test3");
 
 	const auto issues_state = issues::pre_parse_issues(sm.issues_m, f.get_root(), sm.gui_m.text_data_sequences);
 	issues::read_issue_options(issues_state, sm, ecm);
@@ -441,7 +441,7 @@ TEST(event_tests, triggered_event_parsing) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test2"));
+	f.set_root(u"F:\\test2");
 
 	{
 		read_event_files(
@@ -487,7 +487,7 @@ TEST(event_tests, on_actions_parsing) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test2"));
+	f.set_root(u"F:\\test2");
 
 	{
 		read_event_files(
@@ -529,7 +529,7 @@ TEST(event_tests, single_decision) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	{
 		const char text[] =
@@ -570,7 +570,7 @@ TEST(event_tests, decision_file) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	{
 		const char text[] =
@@ -621,7 +621,7 @@ TEST(event_tests, decision_files) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test2"));
+	f.set_root(u"F:\\test2");
 
 	{
 		read_decision_files(

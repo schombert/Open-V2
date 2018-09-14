@@ -63,10 +63,10 @@ public:
 	}
 	int test_function() {
 		file_read_tester::test_function();
-		char* start = temp_copy;
+		const char* start = temp_copy;
 		int total = 0;
 		while (start != temp_copy + filesize) {
-			start = parse_first_and_nth_csv_values(2, start, temp_copy + filesize, ';', [&total](std::pair<char*, char*> tag, std::pair<char*, char*> value) {
+			start = parse_first_and_nth_csv_values(2, start, temp_copy + filesize, ';', [&total](std::pair<const char*, const char*> tag, std::pair<const char*, const char*> value) {
 				total += (int)(tag.second - tag.first) + (int)(value.second - value.first);
 			});
 		}

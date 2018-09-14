@@ -766,4 +766,29 @@ namespace current_state {
 		else
 			self.set_frame(ws.w.gui_m, uint32_t(ws.w.speed));
 	}
+	void topbar_date::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		auto ymd = tag_to_date(ws.w.current_date).year_month_day();
+
+		auto cursor = ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::month_1 + ymd.month - 1], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
+
+		char16_t local_buf[16];
+		put_value_in_buffer(local_buf, display_type::integer, int32_t(ymd.day));
+		cursor = ui::text_chunk_to_instances(
+			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+			box, cursor, fmt, lm
+		);
+		cursor = ui::text_chunk_to_instances(
+			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u", "),
+			box, cursor, fmt, lm
+		);
+
+		put_value_in_buffer(local_buf, display_type::integer, int32_t(ymd.year));
+		cursor = ui::text_chunk_to_instances(
+			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+			box, cursor, fmt, lm
+		);
+
+		lm.finish_current_line();
+	}
 }

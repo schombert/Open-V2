@@ -237,7 +237,7 @@ TEST(technologies_tests, pre_parse_single_tech) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	std::vector<token_group> results;
 
@@ -265,7 +265,7 @@ TEST(technologies_tests, pre_parse_two_techs) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	std::vector<token_group> results;
 
@@ -291,7 +291,7 @@ TEST(technologies_tests, pre_parse_tech_file) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	technologies_manager manager;
 	modifiers::modifiers_manager mm;
@@ -334,7 +334,7 @@ TEST(technologies_tests, pre_parse_schools) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test_alt"));
+	f.set_root(u"F:\\test_alt");
 
 	technologies_manager manager;
 	modifiers::modifiers_manager mm;
@@ -361,7 +361,7 @@ TEST(technologies_tests, pre_parse_techs_test) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	technologies_manager manager;
 	modifiers::modifiers_manager mm;
@@ -382,7 +382,7 @@ TEST(technologies_tests, pre_parse_inventions_test) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	technologies_manager manager;
 	modifiers::modifiers_manager mm;
@@ -410,7 +410,7 @@ TEST(technologies_tests, read_technologies_test) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test2"));
+	f.set_root(u"F:\\test2");
 
 	scenario::scenario_manager s;
 
@@ -436,10 +436,10 @@ TEST(technologies_tests, read_technologies_test) {
 	read_technologies(state, s);
 	EXPECT_EQ(6ui64, s.technology_m.technologies_container.size());
 
-	const auto dragoon_tag = tag_from_text(s.military_m.named_unit_type_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("dragoon")));
-	const auto atech_a_cat = tag_from_text(s.technology_m.named_subcategory_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("atech_a")));
-	const auto a_factory = tag_from_text(s.economy_m.named_factory_types_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("aeroplane_factory")));
-	const auto canned_food_tag = tag_from_text(s.economy_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("canned_food")));
+	const auto dragoon_tag = tag_from_text(s.military_m.named_unit_type_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "dragoon"));
+	const auto atech_a_cat = tag_from_text(s.technology_m.named_subcategory_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "atech_a"));
+	const auto a_factory = tag_from_text(s.economy_m.named_factory_types_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "aeroplane_factory"));
+	const auto canned_food_tag = tag_from_text(s.economy_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "canned_food"));
 
 	EXPECT_TRUE(is_valid_index(s.technology_m.technologies_container[tech_tag(0)].unit_adjustment));
 	EXPECT_FALSE(is_valid_index(s.technology_m.technologies_container[tech_tag(0)].rebel_adjustment));
@@ -485,7 +485,7 @@ TEST(technologies_tests, read_inventions_test) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test2"));
+	f.set_root(u"F:\\test2");
 
 	scenario::scenario_manager s;
 
@@ -511,7 +511,7 @@ TEST(technologies_tests, read_inventions_test) {
 	read_inventions(state, s);
 	EXPECT_EQ(6ui64, s.technology_m.technologies_container.size());
 
-	const auto rebel_tag = tag_from_text(s.population_m.named_rebel_type_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("rebel_1")));
+	const auto rebel_tag = tag_from_text(s.population_m.named_rebel_type_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "rebel_1"));
 
 	EXPECT_EQ(tech_tag(3), s.technology_m.technologies_container[tech_tag(3)].id);
 	EXPECT_NE(triggers::trigger_tag(), s.technology_m.technologies_container[tech_tag(3)].allow);

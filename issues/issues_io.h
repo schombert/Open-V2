@@ -84,7 +84,7 @@ namespace issues {
 		std::unique_ptr<parsing_environment> impl;
 
 		parsing_state(text_data::text_sequences& tl, issues_manager& m);
-		parsing_state(parsing_state&&) noexcept;
+		parsing_state(parsing_state&&) = default;
 		~parsing_state();
 	};
 

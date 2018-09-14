@@ -124,27 +124,67 @@ void ui::gui_window<INDEX, TYPE, REST...>::member_init_in_window(window_type& w,
 	gui_window<REST...>::member_init_in_window(w, m);
 }
 
+namespace ui {
+	namespace detail {
+		template<typename MOBJECT>
+		struct visitor_helper {
+			MOBJECT& object;
+			tagged_gui_object win;
+			world_state& ws;
+
+#ifdef _DEBUG
+			const char* ns;
+			const char* ne;
+#endif
+
+#ifdef _DEBUG
+			visitor_helper(MOBJECT& o, tagged_gui_object w, world_state& s, const char* a, const char* b) : object(o), win(w), ws(s), ns(a), ne(b) {}
+#else
+			visitor_helper(MOBJECT& o, tagged_gui_object w, world_state& s) : object(o), win(w), ws(s) {}
+#endif
+
+			template<typename TAG>
+			void operator()(TAG tag) {
+				if constexpr(ui::detail::can_create<TAG, MOBJECT> == true)
+					ui::create_static_element(ws, tag, win, object);
+				else {
+#ifdef _DEBUG
+					OutputDebugStringA("Unable to instantiate window element: bad tag type\n");
+					std::string element_name(ns, ne);
+					OutputDebugStringA(element_name.c_str());
+					OutputDebugStringA("\n");
+					OutputDebugStringA(typeid(TAG).name());
+					OutputDebugStringA("\n");
+					OutputDebugStringA(typeid(MOBJECT).name());
+					OutputDebugStringA("\n");
+					if(ui::detail::can_create<TAG, MOBJECT>)
+						OutputDebugStringA("can create true\n");
+					else
+						OutputDebugStringA("can create false\n");
+					if(ui::detail::tempccs<TAG, MOBJECT>::value)
+						OutputDebugStringA("tempccs true\n");
+					else
+						OutputDebugStringA("tempccs false\n");
+					std::abort();
+#endif
+				}
+			}
+		};
+	}
+}
+
 template<typename INDEX, typename TYPE, typename ...REST>
 bool ui::gui_window<INDEX, TYPE, REST...>::create_named_member(world_state& ws, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne) {
 	if (compile_time_str_compare_ci<INDEX>(ns, ne) == 0) {
+
 #ifdef _DEBUG
-		std::visit([_this = this, &win, &ws, ns, ne](auto tag) {
+		ui::detail::visitor_helper<TYPE> vhelper(m_object, win, ws, ns, ne);
 #else
-		std::visit([_this = this, &win, &ws](auto tag) {
+		ui::detail::visitor_helper<TYPE> vhelper(m_object, win, ws);
 #endif
-			if constexpr(ui::detail::can_create<decltype(tag), TYPE>)
-				ui::create_static_element(ws, tag, win, _this->m_object);
-			else {
-#ifdef _DEBUG
-				OutputDebugStringA("Unable to instantiate window element: bad tag type\n");
-				std::string element_name(ns, ne);
-				OutputDebugStringA(element_name.c_str());
-				OutputDebugStringA("\n");
-				OutputDebugStringA(typeid(decltype(tag)).name());
-				OutputDebugStringA("\n");
-#endif
-			}
-		}, t);
+
+		std::visit(vhelper, t);
+
 		return true;
 	} else {
 		return gui_window<REST...>::create_named_member(ws, win, t, ns, ne);

@@ -331,7 +331,7 @@ TEST(economy_tests, single_good) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	economic_scenario m;
 	text_data::text_sequences tex;
@@ -358,7 +358,7 @@ TEST(economy_tests, two_goods) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test2"));
+	f.set_root(u"F:\\test2");
 
 	economic_scenario m;
 	text_data::text_sequences tex;
@@ -395,7 +395,7 @@ TEST(economy_tests, two_good_categories) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test3"));
+	f.set_root(u"F:\\test3");
 
 	economic_scenario m;
 	text_data::text_sequences tex;
@@ -442,7 +442,7 @@ TEST(economy_tests, single_factory) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test3"));
+	f.set_root(u"F:\\test3");
 
 
 	const char pt[] = "aeroplane_factory";
@@ -471,7 +471,7 @@ TEST(economy_tests, special_buildings) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test4"));
+	f.set_root(u"F:\\test4");
 
 	economic_scenario m;
 	text_data::text_sequences tex;
@@ -521,7 +521,7 @@ TEST(economy_tests, production_types) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test5"));
+	f.set_root(u"F:\\test5");
 
 	scenario::scenario_manager m;
 
@@ -534,19 +534,19 @@ TEST(economy_tests, production_types) {
 	EXPECT_EQ(2ui64, m.economy_m.factory_types.size());
 	EXPECT_EQ(1ui64, m.economy_m.artisan_types.size());
 
-	const auto cement_tag = tag_from_text(m.economy_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, RANGE("cement")));
-	const auto glass_tag = tag_from_text(m.economy_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, RANGE("glass")));
-	const auto coal_tag = tag_from_text(m.economy_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, RANGE("coal")));
-	const auto machine_parts_tag = tag_from_text(m.economy_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, RANGE("machine_parts")));
+	const auto cement_tag = tag_from_text(m.economy_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, "cement"));
+	const auto glass_tag = tag_from_text(m.economy_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, "glass"));
+	const auto coal_tag = tag_from_text(m.economy_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, "coal"));
+	const auto machine_parts_tag = tag_from_text(m.economy_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, "machine_parts"));
 
-	const auto craftsmen_tag = tag_from_text(m.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, RANGE("craftsmen")));
-	const auto clerks_tag = tag_from_text(m.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, RANGE("clerks")));
-	const auto capitalists_tag = tag_from_text(m.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, RANGE("capitalists")));
-	const auto slaves_tag = tag_from_text(m.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, RANGE("slaves")));
+	const auto craftsmen_tag = tag_from_text(m.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, "craftsmen"));
+	const auto clerks_tag = tag_from_text(m.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, "clerks"));
+	const auto capitalists_tag = tag_from_text(m.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, "capitalists"));
+	const auto slaves_tag = tag_from_text(m.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, "slaves"));
 
-	const auto aristocrats_tag = tag_from_text(m.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, RANGE("aristocrats")));
-	const auto farmers_tag = tag_from_text(m.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, RANGE("farmers")));
-	const auto labourers_tag = tag_from_text(m.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, RANGE("labourers")));
+	const auto aristocrats_tag = tag_from_text(m.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, "aristocrats"));
+	const auto farmers_tag = tag_from_text(m.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, "farmers"));
+	const auto labourers_tag = tag_from_text(m.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, "labourers"));
 
 
 	EXPECT_EQ(0.5, m.economy_m.factory_efficiency_goods.get(factory_type_tag(0), cement_tag));
@@ -558,8 +558,8 @@ TEST(economy_tests, production_types) {
 	EXPECT_EQ(0.0, m.economy_m.factory_input_goods.get(factory_type_tag(0), glass_tag));
 	EXPECT_EQ(0.0, m.economy_m.factory_input_goods.get(factory_type_tag(1), glass_tag));
 
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, RANGE("aeroplane_factory")), m.economy_m.factory_types[factory_type_tag(0)].name);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, RANGE("fac_2")), m.economy_m.factory_types[factory_type_tag(1)].name);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, "aeroplane_factory"), m.economy_m.factory_types[factory_type_tag(0)].name);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(m.gui_m.text_data_sequences, "fac_2"), m.economy_m.factory_types[factory_type_tag(1)].name);
 
 	EXPECT_EQ(true, m.economy_m.factory_types[factory_type_tag(0)].coastal);
 	EXPECT_EQ(false , m.economy_m.factory_types[factory_type_tag(1)].coastal);
@@ -573,37 +573,37 @@ TEST(economy_tests, production_types) {
 	EXPECT_EQ(machine_parts_tag, m.economy_m.factory_types[factory_type_tag(0)].output_good);
 	EXPECT_EQ(glass_tag, m.economy_m.factory_types[factory_type_tag(1)].output_good);
 
-	EXPECT_EQ(10000ui32, m.economy_m.factory_types[factory_type_tag(0)].workforce);
-	EXPECT_EQ(10000ui32, m.economy_m.factory_types[factory_type_tag(1)].workforce);
+	EXPECT_EQ(10000ui32, m.economy_m.factory_types[factory_type_tag(0)].factory_workers.workforce);
+	EXPECT_EQ(10000ui32, m.economy_m.factory_types[factory_type_tag(1)].factory_workers.workforce);
 
-	EXPECT_EQ(contribution_type::input, m.economy_m.factory_types[factory_type_tag(0)].owner.contribution);
-	EXPECT_EQ(contribution_type::input, m.economy_m.factory_types[factory_type_tag(1)].owner.contribution);
+	EXPECT_EQ(contribution_type::input, m.economy_m.factory_types[factory_type_tag(0)].factory_workers.owner.contribution);
+	EXPECT_EQ(contribution_type::input, m.economy_m.factory_types[factory_type_tag(1)].factory_workers.owner.contribution);
 
-	EXPECT_EQ(-2.5f, m.economy_m.factory_types[factory_type_tag(0)].owner.effect_multiplier);
-	EXPECT_EQ(-2.5f, m.economy_m.factory_types[factory_type_tag(1)].owner.effect_multiplier);
+	EXPECT_EQ(-2.5f, m.economy_m.factory_types[factory_type_tag(0)].factory_workers.owner.effect_multiplier);
+	EXPECT_EQ(-2.5f, m.economy_m.factory_types[factory_type_tag(1)].factory_workers.owner.effect_multiplier);
 
-	EXPECT_EQ(capitalists_tag, m.economy_m.factory_types[factory_type_tag(0)].owner.type);
-	EXPECT_EQ(capitalists_tag, m.economy_m.factory_types[factory_type_tag(1)].owner.type);
+	EXPECT_EQ(capitalists_tag, m.economy_m.factory_types[factory_type_tag(0)].factory_workers.owner.type);
+	EXPECT_EQ(capitalists_tag, m.economy_m.factory_types[factory_type_tag(1)].factory_workers.owner.type);
 
-	EXPECT_EQ(contribution_type::throughput, m.economy_m.factory_types[factory_type_tag(0)].workers[0].contribution);
-	EXPECT_EQ(contribution_type::throughput, m.economy_m.factory_types[factory_type_tag(1)].workers[0].contribution);
-	EXPECT_EQ(contribution_type::output, m.economy_m.factory_types[factory_type_tag(0)].workers[1].contribution);
-	EXPECT_EQ(contribution_type::output, m.economy_m.factory_types[factory_type_tag(1)].workers[1].contribution);
+	EXPECT_EQ(contribution_type::throughput, m.economy_m.factory_types[factory_type_tag(0)].factory_workers.workers[0].contribution);
+	EXPECT_EQ(contribution_type::throughput, m.economy_m.factory_types[factory_type_tag(1)].factory_workers.workers[0].contribution);
+	EXPECT_EQ(contribution_type::output, m.economy_m.factory_types[factory_type_tag(0)].factory_workers.workers[1].contribution);
+	EXPECT_EQ(contribution_type::output, m.economy_m.factory_types[factory_type_tag(1)].factory_workers.workers[1].contribution);
 
-	EXPECT_EQ(1.5f, m.economy_m.factory_types[factory_type_tag(0)].workers[1].effect_multiplier);
-	EXPECT_EQ(1.5f, m.economy_m.factory_types[factory_type_tag(1)].workers[1].effect_multiplier);
+	EXPECT_EQ(1.5f, m.economy_m.factory_types[factory_type_tag(0)].factory_workers.workers[1].effect_multiplier);
+	EXPECT_EQ(1.5f, m.economy_m.factory_types[factory_type_tag(1)].factory_workers.workers[1].effect_multiplier);
 
-	EXPECT_EQ(0.8f, m.economy_m.factory_types[factory_type_tag(0)].workers[0].amount);
-	EXPECT_EQ(0.8f, m.economy_m.factory_types[factory_type_tag(1)].workers[0].amount);
-	EXPECT_EQ(0.2f, m.economy_m.factory_types[factory_type_tag(0)].workers[1].amount);
-	EXPECT_EQ(0.2f, m.economy_m.factory_types[factory_type_tag(1)].workers[1].amount);
+	EXPECT_EQ(0.8f, m.economy_m.factory_types[factory_type_tag(0)].factory_workers.workers[0].amount);
+	EXPECT_EQ(0.8f, m.economy_m.factory_types[factory_type_tag(1)].factory_workers.workers[0].amount);
+	EXPECT_EQ(0.2f, m.economy_m.factory_types[factory_type_tag(0)].factory_workers.workers[1].amount);
+	EXPECT_EQ(0.2f, m.economy_m.factory_types[factory_type_tag(1)].factory_workers.workers[1].amount);
 
-	EXPECT_EQ(craftsmen_tag, m.economy_m.factory_types[factory_type_tag(0)].workers[0].type);
-	EXPECT_EQ(craftsmen_tag, m.economy_m.factory_types[factory_type_tag(1)].workers[0].type);
-	EXPECT_EQ(clerks_tag, m.economy_m.factory_types[factory_type_tag(0)].workers[1].type);
-	EXPECT_EQ(clerks_tag, m.economy_m.factory_types[factory_type_tag(1)].workers[1].type);
-	EXPECT_EQ(population::pop_type_tag(), m.economy_m.factory_types[factory_type_tag(0)].workers[2].type);
-	EXPECT_EQ(population::pop_type_tag(), m.economy_m.factory_types[factory_type_tag(1)].workers[2].type);
+	EXPECT_EQ(craftsmen_tag, m.economy_m.factory_types[factory_type_tag(0)].factory_workers.workers[0].type);
+	EXPECT_EQ(craftsmen_tag, m.economy_m.factory_types[factory_type_tag(1)].factory_workers.workers[0].type);
+	EXPECT_EQ(clerks_tag, m.economy_m.factory_types[factory_type_tag(0)].factory_workers.workers[1].type);
+	EXPECT_EQ(clerks_tag, m.economy_m.factory_types[factory_type_tag(1)].factory_workers.workers[1].type);
+	EXPECT_EQ(population::pop_type_tag(), m.economy_m.factory_types[factory_type_tag(0)].factory_workers.workers[2].type);
+	EXPECT_EQ(population::pop_type_tag(), m.economy_m.factory_types[factory_type_tag(1)].factory_workers.workers[2].type);
 
 	EXPECT_EQ(0.25f, m.economy_m.factory_types[factory_type_tag(0)].bonuses[0].value);
 	EXPECT_NE(triggers::trigger_tag(), m.economy_m.factory_types[factory_type_tag(0)].bonuses[0].condition);

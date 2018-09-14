@@ -115,5 +115,11 @@ namespace cultures {
 	};
 
 	uint32_t tag_to_encoding(const char* start, const char* end);
+
+	template<size_t N>
+	uint32_t tag_to_encoding(const char(&t)[N]) {
+		return tag_to_encoding(t, t + N - 1);
+	}
+
 	tag_as_text encoded_tag_to_text_tag(uint32_t tag_value);
 }

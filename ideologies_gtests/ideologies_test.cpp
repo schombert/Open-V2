@@ -65,7 +65,7 @@ TEST(ideologies_tests, preparse_test) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	ideologies_manager manager;
 	text_data::text_sequences tex;
@@ -96,7 +96,7 @@ TEST(ideologies_tests, single_ideology) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	sm.ideologies_m.ideology_container.emplace_back();
 	sm.ideologies_m.ideology_container.emplace_back();
@@ -165,7 +165,7 @@ TEST(ideologies_tests, full_file_parse) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 	auto result = pre_parse_ideologies(sm.ideologies_m, f.get_root(), sm.gui_m.text_data_sequences);
 	read_ideologies(sm, result);
 

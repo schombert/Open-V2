@@ -95,8 +95,20 @@ namespace scenario {
 		constexpr uint32_t losing_colonial_race = 73ui32;
 		constexpr uint32_t no_colonial_activity = 74ui32;
 		constexpr uint32_t at_peace = 75ui32;
+		constexpr uint32_t month_1 = 76ui32;
+		constexpr uint32_t month_2 = 77ui32;
+		constexpr uint32_t month_3 = 78ui32;
+		constexpr uint32_t month_4 = 79ui32;
+		constexpr uint32_t month_5 = 80ui32;
+		constexpr uint32_t month_6 = 81ui32;
+		constexpr uint32_t month_7 = 82ui32;
+		constexpr uint32_t month_8 = 83ui32;
+		constexpr uint32_t month_9 = 84ui32;
+		constexpr uint32_t month_10 = 85ui32;
+		constexpr uint32_t month_11 = 86ui32;
+		constexpr uint32_t month_12 = 87ui32;
 
-		constexpr uint32_t count = 76ui32;
+		constexpr uint32_t count = 88ui32;
 	}
 
 	class scenario_manager {

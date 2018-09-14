@@ -92,6 +92,8 @@ namespace ui {
 				return "unknown definition type found at top scope";
 			case ui::errors::missing_standardlistbox_slider:
 				return "no definition found for standardlistbox_slider";
+			default:
+				return "";
 		}
 	}
 }

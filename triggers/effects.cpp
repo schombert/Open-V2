@@ -58,9 +58,11 @@ namespace triggers {
 		return data + 2; // default to first member 
 	}
 
+#ifdef __llvm__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-prototypes"
 #pragma clang diagnostic ignored "-Wunused-parameter"
+#endif
 
 	namespace {
 		inline void apply_subeffects(uint16_t const* source, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
@@ -1742,7 +1744,9 @@ namespace triggers {
 			population::change_pop_type(ws, *((population::pop*)primary_slot), trigger_payload(tval[2]).small.values.pop_type);
 		}
 		void ef_years_of_research(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
-			((nations::nation*)primary_slot)->research_points += technologies::daily_research_points(ws, *((nations::nation*)primary_slot)) * 365.0f * read_float_from_payload(tval + 2);
+			((nations::nation*)primary_slot)->research_points = 
+				int16_t(float(((nations::nation*)primary_slot)->research_points) +
+					technologies::daily_research_points(ws, *((nations::nation*)primary_slot)) * 365.0f * read_float_from_payload(tval + 2));
 		}
 		void ef_prestige_factor_positive(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			((nations::nation*)primary_slot)->base_prestige +=
@@ -3485,7 +3489,9 @@ namespace triggers {
 		};
 	}
 
+#ifdef __llvm__
 #pragma clang diagnostic pop
+#endif
 
 	void execute_effect(
 		uint16_t const* tval,

@@ -4,11 +4,6 @@
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
-TEST(TestCaseName, TestName) {
-  EXPECT_EQ(1, 1);
-  EXPECT_TRUE(true);
-}
-
 #define TEST_METHOD(x, y) TEST(x, y)
 
 TEST_METHOD(compile_time_computations, text_classifier_tests) {
@@ -131,10 +126,68 @@ TEST_METHOD(small_classifier_test, text_classifier_tests) {
 
 
 TEST_METHOD(medium_classifier_test, text_classifier_tests) {
-	std::vector<text_identifier> options_a = { text_identifier{ RANGE("longer_identifier"), 11 }, text_identifier{ RANGE("train_track"), 10 }, text_identifier{ RANGE("big_pool"), 9 }, text_identifier{ RANGE("pool"), 8 }, text_identifier{ RANGE("train"), 7 }, text_identifier{ RANGE("bool"), 6 }, text_identifier{ RANGE("car"), 5 }, text_identifier{ RANGE("egg"), 4 }, text_identifier{ RANGE("dog"), 2 }, text_identifier{ RANGE("cat"), 1 }, text_identifier{ RANGE("monkey"), 3 }, };
-	std::vector<text_identifier> options_b = { text_identifier{ RANGE("longer_identifier"), 11 }, text_identifier{ RANGE("train_track"), 10 }, text_identifier{ RANGE("big_pool"), 9 }, text_identifier{ RANGE("pool"), 8 }, text_identifier{ RANGE("train"), 7 },text_identifier{ RANGE("bool"), 6 }, text_identifier{ RANGE("car"), 5 }, text_identifier{ RANGE("egg"), 4 }, text_identifier{ RANGE("dog"), 2 }, text_identifier{ RANGE("cat"), 1 }, text_identifier{ RANGE("monkey"), 3 }, };
-	std::vector<text_identifier> options_c = { text_identifier{ RANGE("longer_identifier"), 11 }, text_identifier{ RANGE("train_track"), 10 }, text_identifier{ RANGE("big_pool"), 9 }, text_identifier{ RANGE("pool"), 8 }, text_identifier{ RANGE("train"), 7 },text_identifier{ RANGE("bool"), 6 }, text_identifier{ RANGE("car"), 5 }, text_identifier{ RANGE("egg"), 4 }, text_identifier{ RANGE("dog"), 2 }, text_identifier{ RANGE("cat"), 1 }, text_identifier{ RANGE("monkey"), 3 }, };
-	std::vector<text_identifier> options_d = { text_identifier{ RANGE("longer_identifier"), 11 }, text_identifier{ RANGE("train_track"), 10 }, text_identifier{ RANGE("big_pool"), 9 }, text_identifier{ RANGE("pool"), 8 }, text_identifier{ RANGE("train"), 7 },text_identifier{ RANGE("bool"), 6 }, text_identifier{ RANGE("car"), 5 }, text_identifier{ RANGE("egg"), 4 }, text_identifier{ RANGE("dog"), 2 }, text_identifier{ RANGE("cat"), 1 }, text_identifier{ RANGE("monkey"), 3 }, };
+
+	const char longer_identifier[] = "longer_identifier";
+	const char train_track[] = "train_track";
+	const char big_pool[] = "big_pool";
+	const char pool[] = "pool";
+	const char train[] = "train";
+	const char cbool[] = "bool";
+	const char car[] = "car";
+	const char egg[] = "egg";
+	const char dog[] = "dog";
+	const char cat[] = "cat";
+	const char monkey[] = "monkey";
+	const char text[] = "text";
+
+	std::vector<text_identifier> options_a = {
+		text_identifier{ RANGE(longer_identifier), 11 },
+		text_identifier{ RANGE(train_track), 10 },
+		text_identifier{ RANGE(big_pool), 9 },
+		text_identifier{ RANGE(pool), 8 },
+		text_identifier{ RANGE(train), 7 },
+		text_identifier{ RANGE(cbool), 6 },
+		text_identifier{ RANGE(car), 5 },
+		text_identifier{ RANGE(egg), 4 },
+		text_identifier{ RANGE(dog), 2 },
+		text_identifier{ RANGE(cat), 1 },
+		text_identifier{ RANGE(monkey), 3 }, };
+	std::vector<text_identifier> options_b = {
+		text_identifier{ RANGE(longer_identifier), 11 },
+		text_identifier{ RANGE(train_track), 10 },
+		text_identifier{ RANGE(big_pool), 9 },
+		text_identifier{ RANGE(pool), 8 },
+		text_identifier{ RANGE(train), 7 },
+		text_identifier{ RANGE(cbool), 6 },
+		text_identifier{ RANGE(car), 5 },
+		text_identifier{ RANGE(egg), 4 },
+		text_identifier{ RANGE(dog), 2 },
+		text_identifier{ RANGE(cat), 1 },
+		text_identifier{ RANGE(monkey), 3 }, };
+	std::vector<text_identifier> options_c = {
+		text_identifier{ RANGE(longer_identifier), 11 },
+		text_identifier{ RANGE(train_track), 10 },
+		text_identifier{ RANGE(big_pool), 9 },
+		text_identifier{ RANGE(pool), 8 },
+		text_identifier{ RANGE(train), 7 },
+		text_identifier{ RANGE(cbool), 6 },
+		text_identifier{ RANGE(car), 5 },
+		text_identifier{ RANGE(egg), 4 },
+		text_identifier{ RANGE(dog), 2 },
+		text_identifier{ RANGE(cat), 1 },
+		text_identifier{ RANGE(monkey), 3 }, };
+	std::vector<text_identifier> options_d = {
+		text_identifier{ RANGE(longer_identifier), 11 },
+		text_identifier{ RANGE(train_track), 10 },
+		text_identifier{ RANGE(big_pool), 9 },
+		text_identifier{ RANGE(pool), 8 },
+		text_identifier{ RANGE(train), 7 },
+		text_identifier{ RANGE(cbool), 6 },
+		text_identifier{ RANGE(car), 5 },
+		text_identifier{ RANGE(egg), 4 },
+		text_identifier{ RANGE(dog), 2 },
+		text_identifier{ RANGE(cat), 1 },
+		text_identifier{ RANGE(monkey), 3 }, };
 
 	using map_type = type_list<CT_STRING_INT("longer_identifier", 11), CT_STRING_INT("train_track", 10), CT_STRING_INT("big_pool", 9),
 		CT_STRING_INT("pool", 8), CT_STRING_INT("big_pool", 9), CT_STRING_INT("train", 7), CT_STRING_INT("bool", 6),
@@ -151,45 +204,46 @@ TEST_METHOD(medium_classifier_test, text_classifier_tests) {
 	const auto small_bs = make_binary_search_classifier_function(options_c);
 	const auto small_bsc = binary_search_classifier(options_d);
 
-	EXPECT_EQ((unsigned char)11, small_bc(RANGE("longer_identifier")));
-	EXPECT_EQ((unsigned char)11, small_ls(RANGE("longer_identifier")));
-	EXPECT_EQ((unsigned char)11, small_bs(RANGE("longer_identifier")));
-	EXPECT_EQ((unsigned char)11, small_bsc.classify(RANGE("longer_identifier")));
-	EXPECT_EQ(11, find_value_or<map_type>(RANGE("longer_identifier"), 0));
-	EXPECT_EQ(11, bt_find_value_or<sorted_map_type>(RANGE("longer_identifier"), 0));
+	EXPECT_EQ((unsigned char)11, small_bc(RANGE(longer_identifier)));
+	EXPECT_EQ((unsigned char)11, small_ls(RANGE(longer_identifier)));
+	EXPECT_EQ((unsigned char)11, small_bs(RANGE(longer_identifier)));
+	EXPECT_EQ((unsigned char)11, small_bsc.classify(RANGE(longer_identifier)));
+	EXPECT_EQ(11, find_value_or<map_type>(RANGE(longer_identifier), 0));
+	EXPECT_EQ(11, bt_find_value_or<sorted_map_type>(RANGE(longer_identifier), 0));
 
-	EXPECT_EQ((unsigned char)2, small_bc(RANGE("dog")));
-	EXPECT_EQ((unsigned char)2, small_ls(RANGE("dog")));
-	EXPECT_EQ((unsigned char)2, small_bs(RANGE("dog")));
-	EXPECT_EQ((unsigned char)2, small_bsc.classify(RANGE("dog")));
-	EXPECT_EQ(2, find_value_or<map_type>(RANGE("dog"), 0));
-	EXPECT_EQ(2, bt_find_value_or<sorted_map_type>(RANGE("dog"), 0));
+	EXPECT_EQ((unsigned char)2, small_bc(RANGE(dog)));
+	EXPECT_EQ((unsigned char)2, small_ls(RANGE(dog)));
+	EXPECT_EQ((unsigned char)2, small_bs(RANGE(dog)));
+	EXPECT_EQ((unsigned char)2, small_bsc.classify(RANGE(dog)));
+	EXPECT_EQ(2, find_value_or<map_type>(RANGE(dog), 0));
+	EXPECT_EQ(2, bt_find_value_or<sorted_map_type>(RANGE(dog), 0));
 
-	EXPECT_EQ((unsigned char)9, small_bc(RANGE("big_pool")));
-	EXPECT_EQ((unsigned char)9, small_ls(RANGE("big_pool")));
-	EXPECT_EQ((unsigned char)9, small_bs(RANGE("big_pool")));
-	EXPECT_EQ((unsigned char)9, small_bsc.classify(RANGE("big_pool")));
-	EXPECT_EQ(9, find_value_or<map_type>(RANGE("big_pool"), 0));
-	EXPECT_EQ(9, bt_find_value_or<sorted_map_type>(RANGE("big_pool"), 0));
+	EXPECT_EQ((unsigned char)9, small_bc(RANGE(big_pool)));
+	EXPECT_EQ((unsigned char)9, small_ls(RANGE(big_pool)));
+	EXPECT_EQ((unsigned char)9, small_bs(RANGE(big_pool)));
+	EXPECT_EQ((unsigned char)9, small_bsc.classify(RANGE(big_pool)));
+	EXPECT_EQ(9, find_value_or<map_type>(RANGE(big_pool), 0));
+	EXPECT_EQ(9, bt_find_value_or<sorted_map_type>(RANGE(big_pool), 0));
 
-	EXPECT_EQ((unsigned char)0, small_bc(RANGE("text")));
-	EXPECT_EQ((unsigned char)0, small_ls(RANGE("text")));
-	EXPECT_EQ((unsigned char)0, small_bs(RANGE("text")));
-	EXPECT_EQ((unsigned char)0, small_bsc.classify(RANGE("text")));
-	EXPECT_EQ(0, find_value_or<map_type>(RANGE("text"), 0));
-	EXPECT_EQ(0, bt_find_value_or<sorted_map_type>(RANGE("text"), 0));
+	EXPECT_EQ((unsigned char)0, small_bc(RANGE(text)));
+	EXPECT_EQ((unsigned char)0, small_ls(RANGE(text)));
+	EXPECT_EQ((unsigned char)0, small_bs(RANGE(text)));
+	EXPECT_EQ((unsigned char)0, small_bsc.classify(RANGE(text)));
+	EXPECT_EQ(0, find_value_or<map_type>(RANGE(text), 0));
+	EXPECT_EQ(0, bt_find_value_or<sorted_map_type>(RANGE(text), 0));
 
-	EXPECT_EQ((unsigned char)8, small_bc(RANGE("pool")));
-	EXPECT_EQ((unsigned char)8, small_ls(RANGE("pool")));
-	EXPECT_EQ((unsigned char)8, small_bs(RANGE("pool")));
-	EXPECT_EQ((unsigned char)8, small_bsc.classify(RANGE("pool")));
-	EXPECT_EQ(8, find_value_or<map_type>(RANGE("pool"), 0));
-	EXPECT_EQ(8, bt_find_value_or<sorted_map_type>(RANGE("pool"), 0));
+	EXPECT_EQ((unsigned char)8, small_bc(RANGE(pool)));
+	EXPECT_EQ((unsigned char)8, small_ls(RANGE(pool)));
+	EXPECT_EQ((unsigned char)8, small_bs(RANGE(pool)));
+	EXPECT_EQ((unsigned char)8, small_bsc.classify(RANGE(pool)));
+	EXPECT_EQ(8, find_value_or<map_type>(RANGE(pool), 0));
+	EXPECT_EQ(8, bt_find_value_or<sorted_map_type>(RANGE(pool), 0));
 
-	EXPECT_EQ((unsigned char)8, small_bc(RANGE("POOL")));
-	EXPECT_EQ((unsigned char)8, small_ls(RANGE("POOL")));
-	EXPECT_EQ((unsigned char)8, small_bs(RANGE("POOL")));
-	EXPECT_EQ((unsigned char)8, small_bsc.classify(RANGE("POOL")));
-	EXPECT_EQ(8, find_value_or<map_type>(RANGE("POOL"), 0));
-	EXPECT_EQ(8, bt_find_value_or<sorted_map_type>(RANGE("POOL"), 0));
+	const char uc[] = "POOL";
+	EXPECT_EQ((unsigned char)8, small_bc(RANGE(uc)));
+	EXPECT_EQ((unsigned char)8, small_ls(RANGE(uc)));
+	EXPECT_EQ((unsigned char)8, small_bs(RANGE(uc)));
+	EXPECT_EQ((unsigned char)8, small_bsc.classify(RANGE(uc)));
+	EXPECT_EQ(8, find_value_or<map_type>(RANGE(uc), 0));
+	EXPECT_EQ(8, bt_find_value_or<sorted_map_type>(RANGE(uc), 0));
 }

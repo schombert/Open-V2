@@ -258,7 +258,7 @@ TEST(military_tests, test_units_preparse) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	military_manager m;
 	text_data::text_sequences tex;
@@ -273,7 +273,7 @@ TEST(military_tests, test_units_preparse) {
 	EXPECT_EQ(unit_type_tag(2), m.unit_types[unit_type_tag(2)].id);
 	EXPECT_EQ(unit_type_tag(3), m.unit_types[unit_type_tag(3)].id);
 	EXPECT_EQ(unit_type_tag(4), m.unit_types[unit_type_tag(4)].id);
-	EXPECT_EQ(unit_type_tag(2), m.named_unit_type_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("dragoon"))]);
+	EXPECT_EQ(unit_type_tag(2), m.named_unit_type_index[text_data::get_thread_safe_existing_text_handle(tex, "dragoon")]);
 	EXPECT_EQ(unit_type_tag(3), m.named_unit_type_index[m.unit_types[unit_type_tag(3)].name]);
 	EXPECT_EQ(unit_type_tag(4), m.named_unit_type_index[m.unit_types[unit_type_tag(4)].name]);
 }
@@ -282,7 +282,7 @@ TEST(military_tests, test_cb_preparse) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	military_manager m;
 	text_data::text_sequences tex;
@@ -297,7 +297,7 @@ TEST(military_tests, test_cb_preparse) {
 	EXPECT_EQ(cb_type_tag(0), m.cb_types[cb_type_tag(0)].id);
 	EXPECT_EQ(cb_type_tag(1), m.cb_types[cb_type_tag(1)].id);
 	EXPECT_EQ(cb_type_tag(2), m.cb_types[cb_type_tag(2)].id);
-	EXPECT_EQ(cb_type_tag(0), m.named_cb_type_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("cb_a"))]);
+	EXPECT_EQ(cb_type_tag(0), m.named_cb_type_index[text_data::get_thread_safe_existing_text_handle(tex, "cb_a")]);
 	EXPECT_EQ(cb_type_tag(1), m.named_cb_type_index[m.cb_types[cb_type_tag(1)].name]);
 	EXPECT_EQ(cb_type_tag(2), m.named_cb_type_index[m.cb_types[cb_type_tag(2)].name]);
 }
@@ -306,7 +306,7 @@ TEST(military_tests, traits_personality) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test2"));
+	f.set_root(u"F:\\test2");
 
 	military_manager m;
 	text_data::text_sequences tex;
@@ -318,11 +318,11 @@ TEST(military_tests, traits_personality) {
 	EXPECT_EQ(1ui64, m.personality_traits.size());
 	EXPECT_EQ(0ui64, m.background_traits.size());
 
-	EXPECT_EQ(m.no_personality_trait, m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_personality"))]);
-	EXPECT_EQ(leader_trait_tag(2), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("test_personality"))]);
+	EXPECT_EQ(m.no_personality_trait, m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, "no_personality")]);
+	EXPECT_EQ(leader_trait_tag(2), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, "test_personality")]);
 	EXPECT_EQ(leader_trait_tag(2), m.personality_traits[0]);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_personality")), m.leader_traits[m.no_personality_trait]);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("test_personality")), m.leader_traits[leader_trait_tag(2)]);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, "no_personality"), m.leader_traits[m.no_personality_trait]);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, "test_personality"), m.leader_traits[leader_trait_tag(2)]);
 
 	EXPECT_EQ(0.5f, m.leader_trait_definitions.get(m.no_personality_trait, traits::morale));
 	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(m.no_personality_trait, traits::organisation));
@@ -334,7 +334,7 @@ TEST(military_tests, traits_mixed) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test3"));
+	f.set_root(u"F:\\test3");
 
 	military_manager m;
 	text_data::text_sequences tex;
@@ -346,21 +346,21 @@ TEST(military_tests, traits_mixed) {
 	EXPECT_EQ(5ui64, m.leader_traits.size());
 	EXPECT_EQ(1ui64, m.personality_traits.size());
 	EXPECT_EQ(2ui64, m.background_traits.size());
-	EXPECT_EQ(m.no_personality_trait, m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_personality"))]);
-	EXPECT_EQ(leader_trait_tag(2), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("test_personality"))]);
-	EXPECT_EQ(m.no_background_trait, m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_background"))]);
-	EXPECT_EQ(leader_trait_tag(3), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("b1"))]);
-	EXPECT_EQ(leader_trait_tag(4), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, RANGE("b2"))]);
+	EXPECT_EQ(m.no_personality_trait, m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, "no_personality")]);
+	EXPECT_EQ(leader_trait_tag(2), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, "test_personality")]);
+	EXPECT_EQ(m.no_background_trait, m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, "no_background")]);
+	EXPECT_EQ(leader_trait_tag(3), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, "b1")]);
+	EXPECT_EQ(leader_trait_tag(4), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(tex, "b2")]);
 
 	EXPECT_EQ(leader_trait_tag(2), m.personality_traits[0]);
 	EXPECT_EQ(leader_trait_tag(3), m.background_traits[0]);
 	EXPECT_EQ(leader_trait_tag(4), m.background_traits[1]);
 
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_personality")), m.leader_traits[m.no_personality_trait]);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("test_personality")), m.leader_traits[leader_trait_tag(2)]);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("no_background")), m.leader_traits[m.no_background_trait]);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("b1")), m.leader_traits[leader_trait_tag(3)]);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, RANGE("b2")), m.leader_traits[leader_trait_tag(4)]);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, "no_personality"), m.leader_traits[m.no_personality_trait]);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, "test_personality"), m.leader_traits[leader_trait_tag(2)]);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, "no_background"), m.leader_traits[m.no_background_trait]);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, "b1"), m.leader_traits[leader_trait_tag(3)]);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(tex, "b2"), m.leader_traits[leader_trait_tag(4)]);
 
 	EXPECT_EQ(0.5f, m.leader_trait_definitions.get(m.no_personality_trait, traits::morale));
 	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(m.no_personality_trait, traits::organisation));
@@ -381,7 +381,7 @@ TEST(military_tests, full_unit_read) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test4"));
+	f.set_root(u"F:\\test4");
 
 	military_manager military_m;
 	economy::economic_scenario econ_m;
@@ -397,15 +397,15 @@ TEST(military_tests, full_unit_read) {
 
 	read_unit_types(state, military_m, econ_m, sound_m, tex);
 
-	const auto cement_tag = tag_from_text(econ_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(tex, RANGE("cement")));
-	const auto canned_food_tag = tag_from_text(econ_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(tex, RANGE("canned_food")));
+	const auto cement_tag = tag_from_text(econ_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(tex, "cement"));
+	const auto canned_food_tag = tag_from_text(econ_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(tex, "canned_food"));
 
-	const auto army_move_tag = tag_from_text(sound_m.named_sound_effects, text_data::get_thread_safe_existing_text_handle(tex, RANGE("army_move")));
-	const auto click_tag = tag_from_text(sound_m.named_sound_effects, text_data::get_thread_safe_existing_text_handle(tex, RANGE("click")));
+	const auto army_move_tag = tag_from_text(sound_m.named_sound_effects, text_data::get_thread_safe_existing_text_handle(tex, "army_move"));
+	const auto click_tag = tag_from_text(sound_m.named_sound_effects, text_data::get_thread_safe_existing_text_handle(tex, "click"));
 
-	const auto guard_tag = tag_from_text(military_m.named_unit_type_index, text_data::get_thread_safe_existing_text_handle(tex, RANGE("guard")));
-	const auto cruiser_tag = tag_from_text(military_m.named_unit_type_index, text_data::get_thread_safe_existing_text_handle(tex, RANGE("cruiser")));
-	const auto plane_tag = tag_from_text(military_m.named_unit_type_index, text_data::get_thread_safe_existing_text_handle(tex, RANGE("plane")));
+	const auto guard_tag = tag_from_text(military_m.named_unit_type_index, text_data::get_thread_safe_existing_text_handle(tex, "guard"));
+	const auto cruiser_tag = tag_from_text(military_m.named_unit_type_index, text_data::get_thread_safe_existing_text_handle(tex, "cruiser"));
+	const auto plane_tag = tag_from_text(military_m.named_unit_type_index, text_data::get_thread_safe_existing_text_handle(tex, "plane"));
 
 	EXPECT_EQ(18ui8, military_m.unit_types[guard_tag].icon);
 	EXPECT_EQ(uint8_t(unit_type::class_infantry | unit_type::primary_culture), military_m.unit_types[guard_tag].flags);
@@ -472,7 +472,7 @@ TEST(military_tests, full_cb_read) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	scenario::scenario_manager s;
 	events::event_creation_manager ecm;
@@ -611,18 +611,22 @@ TEST(military_tests, read_oob_test) {
 
 	preparse_test_files real_fs;
 	file_system f;
-	f.set_root(RANGE(u"F:\\test4"));
+	f.set_root(u"F:\\test4");
+
+	const char usat[] = "USA";
+	const char japt[] = "JAP";
+	const char mext[] = "MEX";
 
 	population::read_all_pops(f.get_root(), ws, date_to_tag(boost::gregorian::date(1801, boost::gregorian::Jan, 1)));
 
-	nations::nation& usa = *nations::make_nation_for_tag(ws, ws.s.culture_m.national_tags_index[cultures::tag_to_encoding(RANGE("USA"))]);
+	nations::nation& usa = *nations::make_nation_for_tag(ws, ws.s.culture_m.national_tags_index[cultures::tag_to_encoding(RANGE(usat))]);
 	usa.primary_culture = cultures::culture_tag(0ui16);
 
 	read_oob_file(ws, usa, presults.data(), presults.data() + presults.size());
 
 	EXPECT_EQ(1ui32, get_size(ws.w.nation_s.nations_arrays, usa.sphere_members));
 
-	nations::nation& jap = *nations::make_nation_for_tag(ws, ws.s.culture_m.national_tags_index[cultures::tag_to_encoding(RANGE("JAP"))]);
+	nations::nation& jap = *nations::make_nation_for_tag(ws, ws.s.culture_m.national_tags_index[cultures::tag_to_encoding(RANGE(japt))]);
 
 	EXPECT_EQ(&usa, jap.sphere_leader);
 	EXPECT_EQ(25, nations::get_influence_value(ws, usa, jap.id));
@@ -630,7 +634,7 @@ TEST(military_tests, read_oob_test) {
 	EXPECT_EQ(130, nations::get_relationship(ws, usa, jap.id));
 	EXPECT_EQ(130, nations::get_relationship(ws, jap, usa.id));
 
-	nations::nation& mex = *nations::make_nation_for_tag(ws, ws.s.culture_m.national_tags_index[cultures::tag_to_encoding(RANGE("MEX"))]);
+	nations::nation& mex = *nations::make_nation_for_tag(ws, ws.s.culture_m.national_tags_index[cultures::tag_to_encoding(RANGE(mext))]);
 
 	EXPECT_NE(&usa, mex.sphere_leader);
 	EXPECT_EQ(5, nations::get_influence_value(ws, usa, mex.id));
@@ -656,8 +660,8 @@ TEST(military_tests, read_oob_test) {
 	EXPECT_EQ(a.id, ws.w.population_s.pops.get(*(prange.first + 1)).associated_army);
 	EXPECT_EQ(a.id, ws.w.population_s.pops.get(*(prange.first + 2)).associated_army);
 	EXPECT_EQ(a.leader->attached, true);
-	EXPECT_EQ(a.leader->background, tag_from_text(ws.s.military_m.named_leader_trait_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("warmonger"))));
-	EXPECT_EQ(a.leader->personality, tag_from_text(ws.s.military_m.named_leader_trait_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("meticulous"))));
+	EXPECT_EQ(a.leader->background, tag_from_text(ws.s.military_m.named_leader_trait_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "warmonger")));
+	EXPECT_EQ(a.leader->personality, tag_from_text(ws.s.military_m.named_leader_trait_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "meticulous")));
 	EXPECT_EQ(a.leader->creation_date, date_to_tag(boost::gregorian::date(1861, boost::gregorian::Jan, 1)));
 
 	EXPECT_EQ(a.leader->leader_traits[traits::morale], -0.2f);
@@ -677,9 +681,9 @@ TEST(military_tests, read_oob_test) {
 	auto srange = get_range(ws.w.military_s.ship_arrays, b.ships);
 	EXPECT_EQ(srange.first->hull, 1.0f);
 	EXPECT_EQ(srange.first->org, 1.0f);
-	EXPECT_EQ(srange.first->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("frigate"))));
-	EXPECT_EQ((srange.first+1)->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("frigate"))));
-	EXPECT_EQ((srange.first+2)->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("frigate"))));
-	EXPECT_EQ((srange.first + 3)->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("commerce_raider"))));
-	EXPECT_EQ((srange.first + 4)->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("commerce_raider"))));
+	EXPECT_EQ(srange.first->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "frigate")));
+	EXPECT_EQ((srange.first+1)->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "frigate")));
+	EXPECT_EQ((srange.first+2)->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "frigate")));
+	EXPECT_EQ((srange.first + 3)->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "commerce_raider")));
+	EXPECT_EQ((srange.first + 4)->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "commerce_raider")));
 }

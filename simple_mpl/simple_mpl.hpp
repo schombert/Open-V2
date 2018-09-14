@@ -74,9 +74,24 @@ struct ct_str_cmp<ct_string <>, ct_string <>> {
 	constexpr static int value = 0;
 };
 
+namespace mpl_detail {
+	template<typename btype, int32_t v, typename rest_a, typename rest_b>
+	struct cmp_hider;
+
+	template<int32_t v, typename rest_a, typename rest_b>
+	struct cmp_hider<std::integral_constant<bool, true>, v, rest_a, rest_b> {
+		static constexpr int32_t value = ct_str_cmp<rest_a, rest_b>::value;
+	};
+	template<int32_t v, typename rest_a, typename rest_b>
+	struct cmp_hider<std::integral_constant<bool, false>, v, rest_a, rest_b> {
+		static constexpr int32_t value = v;
+	};
+}
+
 template<char a, char ... b, char c, char ... d>
 struct ct_str_cmp<ct_string <a, b...>, ct_string <c, d...>> {
-	constexpr static int value = (a == c) ? (ct_str_cmp<ct_string <b...>, ct_string<d...>>::value) : ((int)a - (int)c);
+	//constexpr static int value = (a == c) ? (ct_str_cmp<ct_string <b...>, ct_string<d...>>::value) : ((int)a - (int)c);
+	constexpr static int value = mpl_detail::cmp_hider<std::integral_constant<bool, (a == c)>, int32_t((int32_t)a - (int32_t)c), ct_string <b...>, ct_string<d...>>::value;
 };
 
 template<typename T>
@@ -444,24 +459,32 @@ struct splice_s<type_list<T...>, type_list<>> {
 };
 
 
-namespace detail {
+namespace mpl_detail {
+	template<typename A, typename B>
+	struct prepend;
+
+	template<typename A, typename ... B>
+	struct prepend<A, type_list<B...>> {
+		using type = type_list<A, B...>;
+	};
+
 	template<typename tf_type, typename list_a, typename list_b>
 	struct type_hider;
 
 	template<typename A, typename B, typename ... T, typename ... U>
 	struct type_hider<std::true_type, type_list<A, T...>, type_list<B, U...>> {
-		using type = typename splice_s<type_list<T...>, type_list<B, U...>>::type::template cons<A>;
+		using type = typename prepend<A, typename splice_s<type_list<T...>, type_list<B, U...>>::type>::type;
 	};
 
 	template<typename A, typename B, typename ... T, typename ... U>
 	struct type_hider<std::false_type, type_list<A, T...>, type_list<B, U...>> {
-		using type = typename splice_s<type_list<A, T...>, type_list<U...>>::type::template cons<B>;
+		using type = typename prepend<B, typename splice_s<type_list<A, T...>, type_list<U...>>::type>::type;
 	};
 }
 
 template<typename A, typename B, typename ... T, typename ... U>
 struct splice_s<type_list<A, T...>, type_list<B, U...>> {
-	using type = typename detail::type_hider<
+	using type = typename mpl_detail::type_hider<
 		std::integral_constant<bool, ct_string_compare<typename A::first, typename B::first> < 0>,
 		type_list<A, T...>,
 		type_list<B, U...>>::type;
@@ -469,6 +492,27 @@ struct splice_s<type_list<A, T...>, type_list<B, U...>> {
 
 template<typename A, typename B>
 using splice = typename splice_s<A, B>::type;
+
+template <typename T>
+struct is_sorted_s;
+
+template <typename T>
+struct is_sorted_s<type_list<T>> {
+	static constexpr bool value = true;
+};
+
+template <typename A, typename B>
+struct is_sorted_s<type_list<A, B>> {
+	static constexpr bool value = ct_string_compare<typename A::first, typename B::first> < 0;
+};
+
+template <typename A, typename B, typename ... REST>
+struct is_sorted_s<type_list<A, B, REST ...>> {
+	static constexpr bool value = (ct_string_compare<typename A::first, typename B::first> < 0) && is_sorted_s<type_list<B, REST...>>::value;
+};
+
+template <typename ...T>
+constexpr bool is_sorted = is_sorted_s<T...>::value;
 
 template <typename ...T>
 struct sorted<type_list<T...>> {

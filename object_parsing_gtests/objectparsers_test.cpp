@@ -276,14 +276,17 @@ static char extern_description[] =
 #define TEST_METHOD(x, y) TEST(x, y)
 
 TEST(object_parsing_tests, value_helpers) {
-	EXPECT_EQ(5, value_from_rh<int>(association_type::none, token_and_type{ RANGE("5"), token_type::unknown }));
-	EXPECT_EQ(std::string("5"), value_from_rh<std::string>(association_type::none, token_and_type{ RANGE("5"), token_type::unknown }));
-	EXPECT_EQ(5, value_from_full_rh<int>(token_and_type{ RANGE("xxxx"), token_type::unknown }, association_type::none, token_and_type{ RANGE("5"), token_type::unknown }));
-	EXPECT_EQ(std::make_pair(association_type::ge, 5), association_and_value_from_rh<int>(association_type::ge, token_and_type{ RANGE("5"), token_type::unknown }));
-	EXPECT_EQ(std::make_pair(association_type::ge, 5), association_and_value_from_full_rh<int>(token_and_type{ RANGE("xxxx"), token_type::unknown }, association_type::ge, token_and_type{ RANGE("5"), token_type::unknown }));
-	EXPECT_EQ(std::string("xxxx"), value_from_lh<std::string>(token_and_type{ RANGE("xxxx"), token_type::unknown }, association_type::none, token_and_type{ RANGE("5"), token_type::unknown }));
+	const char five[] = "5";
+	const char xxxx[] = "xxxx";
+
+	EXPECT_EQ(5, value_from_rh<int>(association_type::none, token_and_type{ RANGE(five), token_type::unknown }));
+	EXPECT_EQ(std::string("5"), value_from_rh<std::string>(association_type::none, token_and_type{ RANGE(five), token_type::unknown }));
+	EXPECT_EQ(5, value_from_full_rh<int>(token_and_type{ RANGE(xxxx), token_type::unknown }, association_type::none, token_and_type{ RANGE(five), token_type::unknown }));
+	EXPECT_EQ(std::make_pair(association_type::ge, 5), association_and_value_from_rh<int>(association_type::ge, token_and_type{ RANGE(five), token_type::unknown }));
+	EXPECT_EQ(std::make_pair(association_type::ge, 5), association_and_value_from_full_rh<int>(token_and_type{ RANGE(xxxx), token_type::unknown }, association_type::ge, token_and_type{ RANGE(five), token_type::unknown }));
+	EXPECT_EQ(std::string("xxxx"), value_from_lh<std::string>(token_and_type{ RANGE(xxxx), token_type::unknown }, association_type::none, token_and_type{ RANGE(five), token_type::unknown }));
 	const auto lhpair = std::make_pair(std::string("xxxx"), 5);
-	const auto rhpair = pair_from_lh_rh<std::string, int>(token_and_type{ RANGE("xxxx"), token_type::unknown }, association_type::ge, token_and_type{ RANGE("5"), token_type::unknown });
+	const auto rhpair = pair_from_lh_rh<std::string, int>(token_and_type{ RANGE(xxxx), token_type::unknown }, association_type::ge, token_and_type{ RANGE(five), token_type::unknown });
 	EXPECT_EQ(lhpair, rhpair);
 }
 
@@ -313,14 +316,15 @@ TEST(object_parsing_tests, compile_time_tagged_member_test_b) {
 }
 
 TEST(object_parsing_tests, compile_time_string_comparison) {
-	const auto comparison = compile_time_str_compare_ci<CT_STRING("rangelimitmin")>(RANGE("rangeLimitMax"));
+	const char s[] = "rangeLimitMax";
+	const auto comparison = compile_time_str_compare_ci<CT_STRING("rangelimitmin")>(RANGE(s));
 	EXPECT_NE(0, comparison);
 }
 
 
 TEST_METHOD(object_parsing_tests, compile_time_vector_b) {
 	std::vector<token_group> parse_results;
-	parse_pdx_file(parse_results, RANGE("5 9 2"));
+	parse_pdx_file(parse_results, "5 9 2");
 
 	std::vector<int> result(parse_object<std::vector<int>, test_domain>(&parse_results[0], &parse_results[0] + parse_results.size()));
 
@@ -349,7 +353,7 @@ TEST_METHOD(object_parsing_tests, compile_time_tagged_embedded_vector) {
 
 TEST_METHOD(object_parsing_tests, compile_time_default_associations) {
 	std::vector<token_group> parse_results;
-	parse_pdx_file(parse_results, RANGE("0 <= 5 1 != 2 7 > -1 b = yes"));
+	parse_pdx_file(parse_results, "0 <= 5 1 != 2 7 > -1 b = yes");
 
 	association_container result(parse_object<association_container, test_domain>(&parse_results[0], &parse_results[0] + parse_results.size()));
 
@@ -365,7 +369,7 @@ TEST_METHOD(object_parsing_tests, compile_time_default_associations) {
 
 TEST_METHOD(object_parsing_tests, compile_time_default_list_associations) {
 	std::vector<token_group> parse_results;
-	parse_pdx_file(parse_results, RANGE("0 <= 5 1 != {2 4 -8} 7 > -1 b = yes"));
+	parse_pdx_file(parse_results, "0 <= 5 1 != {2 4 -8} 7 > -1 b = yes");
 
 	association_container result(parse_object<association_container, test_domain>(&parse_results[0], &parse_results[0] + parse_results.size()));
 
@@ -402,7 +406,7 @@ END_DOMAIN
 TEST_METHOD(object_parsing_tests, parse_with_default_constructor_argument) {
 
 	std::vector<token_group> parse_results;
-	parse_pdx_file(parse_results, RANGE("v = 1 v = 3"));
+	parse_pdx_file(parse_results, "v = 1 v = 3");
 
 	strange_object result = parse_object<strange_object, strange_object_domain>(&parse_results[0], &parse_results[0] + parse_results.size(), 4);
 
@@ -411,7 +415,7 @@ TEST_METHOD(object_parsing_tests, parse_with_default_constructor_argument) {
 
 TEST_METHOD(object_parsing_tests, compile_tiime_derived_object_parsing) {
 	std::vector<token_group> parse_results;
-	parse_pdx_file(parse_results, RANGE("x = 2.0 svalue = blah"));
+	parse_pdx_file(parse_results, "x = 2.0 svalue = blah");
 
 	base_parse base_result(parse_object<base_parse, test_domain>(&parse_results[0], &parse_results[0] + parse_results.size()));
 	derived_parse derived_result(parse_object<derived_parse, test_domain>(&parse_results[0], &parse_results[0] + parse_results.size()));

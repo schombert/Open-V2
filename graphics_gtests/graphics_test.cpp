@@ -41,11 +41,11 @@ TEST(graphics_tests, text_rendering) {
 		test_fallback.load_font(ogl);
 		test_font.load_font(ogl);
 		
-		ogl.render_outlined_text(u"明Test", 5, true, 0.0f, 0.0f,                                 16.0f, color{ 0.0f,0.0f,0.0f }, test_font);
-		ogl.render_text(         u"明Test", 5, true, 0.0f, test_font.line_height(16.0f),         16.0f, color{ 1.0f,1.0f,1.0f }, test_font);
-		ogl.render_outlined_text(u"明Test", 5, false, 0.0f, 2.0f * test_font.line_height(16.0f), 16.0f, color{ 0.0f,0.0f,0.0f }, test_font);
-		ogl.render_text(         u"明Test", 5, false, 0.0f, 3.0f * test_font.line_height(16.0f), 16.0f, color{ 1.0f,1.0f,1.0f }, test_font);
-		ogl.render_text(u"明Test", 5, true, 0.0f, 4.0f * test_font.line_height(16.0f), 16.0f, color{ 1.0f,0.0f,0.0f }, test_font);
+		ogl.render_outlined_text(u"\u660ETest", 5, true, 0.0f, 0.0f,                                 16.0f, color{ 0.0f,0.0f,0.0f }, test_font);
+		ogl.render_text(         u"\u660ETest", 5, true, 0.0f, test_font.line_height(16.0f),         16.0f, color{ 1.0f,1.0f,1.0f }, test_font);
+		ogl.render_outlined_text(u"\u660ETest", 5, false, 0.0f, 2.0f * test_font.line_height(16.0f), 16.0f, color{ 0.0f,0.0f,0.0f }, test_font);
+		ogl.render_text(         u"\u660ETest", 5, false, 0.0f, 3.0f * test_font.line_height(16.0f), 16.0f, color{ 1.0f,1.0f,1.0f }, test_font);
+		ogl.render_text(u"\u660ETest", 5, true, 0.0f, 4.0f * test_font.line_height(16.0f), 16.0f, color{ 1.0f,0.0f,0.0f }, test_font);
 		ogl.render_text(         u"Test",   4, true, 0.0f, 4.0f * test_font.line_height(16.0f), 128.0f, color{ 0.0f,1.0f,1.0f }, test_font);
 	}));
 }
@@ -179,12 +179,15 @@ TEST(graphics_tests, texture_manager_test) {
 	test_file_structure real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
+
+	const char v1[] = "gfx\\file_a.tga";
+	const char v2[] = "gfx\\\\file_b.tga";
 
 	texture_manager tm_a;
-	const auto handle_a = tm_a.retrieve_by_name(f.get_root(), RANGE("gfx\\file_a.tga"));
+	const auto handle_a = tm_a.retrieve_by_name(f.get_root(), RANGE(v1));
 	EXPECT_EQ(texture_tag(0), handle_a);
-	const auto handle_b = tm_a.retrieve_by_name(f.get_root(), RANGE("gfx\\\\file_b.tga"));
+	const auto handle_b = tm_a.retrieve_by_name(f.get_root(), RANGE(v2));
 	EXPECT_EQ(texture_tag(1), handle_b);
 
 	EXPECT_EQ(std::string("F:\\gfx\\file_a.tga"), tm_a.retrieve_by_key(handle_a).filename);
@@ -194,9 +197,11 @@ TEST(graphics_tests, texture_manager_test) {
 
 	texture_manager tm_b;
 
-	const auto handle_c = tm_b.retrieve_by_name(f.get_root(), RANGE("gfx\\\\file_a.tga"));
+	const char v3[] = "gfx\\\\file_a.tga";
+	const char v4[] = "gfx\\file_b.tga";
+	const auto handle_c = tm_b.retrieve_by_name(f.get_root(), RANGE(v3));
 	EXPECT_EQ(texture_tag(0), handle_c);
-	const auto handle_d = tm_b.retrieve_by_name(f.get_root(), RANGE("gfx\\file_b.tga"));
+	const auto handle_d = tm_b.retrieve_by_name(f.get_root(), RANGE(v4));
 	EXPECT_EQ(texture_tag(1), handle_d);
 
 	EXPECT_EQ(std::string("F:\\mod\\gfx\\file_a.tga"), tm_b.retrieve_by_key(handle_c).filename);
@@ -207,32 +212,40 @@ TEST(graphics_tests, texture_manager_unique) {
 	test_file_structure real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
+
+	const char v1[] = "gfx\\file_a.tga";
 
 	texture_manager tm_a;
-	const auto handle_a = tm_a.retrieve_by_name(f.get_root(), RANGE("gfx\\file_a.tga"));
+	const auto handle_a = tm_a.retrieve_by_name(f.get_root(), RANGE(v1));
 	EXPECT_EQ(texture_tag(0), handle_a);
-	const auto handle_b = tm_a.retrieve_by_name(f.get_root(), RANGE("gfx\\file_a.tga"));
+	const auto handle_b = tm_a.retrieve_by_name(f.get_root(), RANGE(v1));
 	EXPECT_EQ(texture_tag(0), handle_b);
 }
 
 TEST(graphics_tests, font_manager_test) {
 	font_manager fm;
 
-	const auto f1 = fm.find_font(RANGE("Arial_17_black"));
-	const auto f2 = fm.find_font(RANGE("ToolTip_Font"));
-	const auto f3 = fm.find_font(RANGE("unknownfont"));
-	const auto f4 = fm.find_font(RANGE("vic_32"));
+	const char v1[] = "Arial_17_black";
+	const char v2[] = "ToolTip_Font";
+	const char v3[] = "unknownfont";
+	const char v4[] = "vic_32";
+	const char v5[] = "FPS_Font";
+
+	const auto f1 = fm.find_font(RANGE(v1));
+	const auto f2 = fm.find_font(RANGE(v2));
+	const auto f3 = fm.find_font(RANGE(v3));
+	const auto f4 = fm.find_font(RANGE(v4));
 
 	EXPECT_EQ(f1, font_tag(1));
 	EXPECT_EQ(f2, font_tag(1));
 	EXPECT_EQ(f3, font_tag(0));
 	EXPECT_EQ(f4, font_tag(2));
 
-	EXPECT_EQ(18ui32, fm.find_font_size(RANGE("Arial_17_black")));
-	EXPECT_EQ(14ui32, fm.find_font_size(RANGE("FPS_Font")));
-	EXPECT_EQ(32ui32, fm.find_font_size(RANGE("vic_32")));
-	EXPECT_EQ(14ui32, fm.find_font_size(RANGE("unknownfont")));
+	EXPECT_EQ(18ui32, fm.find_font_size(RANGE(v1)));
+	EXPECT_EQ(14ui32, fm.find_font_size(RANGE(v5)));
+	EXPECT_EQ(32ui32, fm.find_font_size(RANGE(v4)));
+	EXPECT_EQ(14ui32, fm.find_font_size(RANGE(v3)));
 }
 
 TEST(graphics_tests, clipping) {

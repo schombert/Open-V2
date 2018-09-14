@@ -383,7 +383,7 @@ TEST(population_tests, test_pre_parse_file_scan) {
 
 	preparse_test_files real_fs;
 	file_system f;
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	text_data::text_sequences tex;
 	pre_parse_pop_types(manager, f.get_root(), tex);
@@ -401,7 +401,7 @@ TEST(population_tests, test_pre_parse_rebel_types) {
 
 	preparse_test_files real_fs;
 	file_system f;
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	text_data::text_sequences tex;
 	parsing_state env(tex, manager);
@@ -421,7 +421,7 @@ TEST(population_tests, test_pre_parse_rebel_types) {
 TEST(population_tests, test_poptype_file_read) {
 	preparse_test_files real_fs;
 	file_system f;
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	scenario::scenario_manager s;
 
@@ -435,7 +435,7 @@ TEST(population_tests, test_poptype_file_read) {
 TEST(population_tests, test_individual_poptype) {
 	preparse_test_files real_fs;
 	file_system f;
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	scenario::scenario_manager s;
 
@@ -451,27 +451,27 @@ TEST(population_tests, test_individual_poptype) {
 
 	read_poptypes(s, f.get_root());
 	
-	const auto cement_tag = tag_from_text(s.economy_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("cement")));
-	const auto canned_food_tag = tag_from_text(s.economy_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("canned_food")));
-	const auto coal_tag = tag_from_text(s.economy_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("coal")));
+	const auto cement_tag = tag_from_text(s.economy_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "cement"));
+	const auto canned_food_tag = tag_from_text(s.economy_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "canned_food"));
+	const auto coal_tag = tag_from_text(s.economy_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "coal"));
 
-	const auto dragoon_tag = tag_from_text(s.military_m.named_unit_type_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("dragoon")));
-	const auto plane_a_tag = tag_from_text(s.military_m.named_unit_type_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("plane_a")));
-	const auto plane_b_tag = tag_from_text(s.military_m.named_unit_type_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("plane_b")));
+	const auto dragoon_tag = tag_from_text(s.military_m.named_unit_type_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "dragoon"));
+	const auto plane_a_tag = tag_from_text(s.military_m.named_unit_type_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "plane_a"));
+	const auto plane_b_tag = tag_from_text(s.military_m.named_unit_type_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "plane_b"));
 
-	const auto opt_a_tag = tag_from_text(s.issues_m.named_option_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("opt_a")));
-	const auto opt_b_tag = tag_from_text(s.issues_m.named_option_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("opt_b")));
-	const auto opt_d_tag = tag_from_text(s.issues_m.named_option_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("opt_d")));
-	const auto opt_q_tag = tag_from_text(s.issues_m.named_option_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("opt_q")));
+	const auto opt_a_tag = tag_from_text(s.issues_m.named_option_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "opt_a"));
+	const auto opt_b_tag = tag_from_text(s.issues_m.named_option_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "opt_b"));
+	const auto opt_d_tag = tag_from_text(s.issues_m.named_option_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "opt_d"));
+	const auto opt_q_tag = tag_from_text(s.issues_m.named_option_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "opt_q"));
 
-	const auto ideology_a_tag = tag_from_text(s.ideologies_m.named_ideology_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("ideology_a")));
-	const auto ideology_b_tag = tag_from_text(s.ideologies_m.named_ideology_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("ideology_b")));
-	const auto ideology_c_tag = tag_from_text(s.ideologies_m.named_ideology_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("ideology_c")));
+	const auto ideology_a_tag = tag_from_text(s.ideologies_m.named_ideology_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "ideology_a"));
+	const auto ideology_b_tag = tag_from_text(s.ideologies_m.named_ideology_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "ideology_b"));
+	const auto ideology_c_tag = tag_from_text(s.ideologies_m.named_ideology_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "ideology_c"));
 	
-	const auto bureaucrats_tag = tag_from_text(s.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("bureaucrats")));
-	const auto clergy_tag = tag_from_text(s.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("clergy")));
-	const auto capitalists_tag = tag_from_text(s.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("capitalists")));
-	const auto slaves_tag = tag_from_text(s.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("slaves")));
+	const auto bureaucrats_tag = tag_from_text(s.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "bureaucrats"));
+	const auto clergy_tag = tag_from_text(s.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "clergy"));
+	const auto capitalists_tag = tag_from_text(s.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "capitalists"));
+	const auto slaves_tag = tag_from_text(s.population_m.named_pop_type_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "slaves"));
 
 	EXPECT_EQ(s.population_m.capitalist, capitalists_tag);
 	EXPECT_EQ(s.population_m.clergy, clergy_tag);
@@ -556,7 +556,7 @@ TEST(population_tests, test_individual_poptype) {
 TEST(population_tests, read_rebels) {
 	preparse_test_files real_fs;
 	file_system f;
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	scenario::scenario_manager s;
 
@@ -574,7 +574,7 @@ TEST(population_tests, read_rebels) {
 	EXPECT_EQ(2ui64, s.population_m.rebel_types.size());
 	EXPECT_EQ(uint16_t(rebel_type::area_nation | rebel_type::defection_none | rebel_type::independence_none | rebel_type::break_alliance_on_win), s.population_m.rebel_types[rebel_type_tag(0)].flags);
 	EXPECT_EQ(rebel_type_tag(0), s.population_m.rebel_types[rebel_type_tag(0)].id);
-	EXPECT_EQ(tag_from_text(s.ideologies_m.named_ideology_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("ideology_a"))), s.population_m.rebel_types[rebel_type_tag(0)].ideology);
+	EXPECT_EQ(tag_from_text(s.ideologies_m.named_ideology_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "ideology_a")), s.population_m.rebel_types[rebel_type_tag(0)].ideology);
 	EXPECT_EQ(5.0f, s.population_m.rebel_types[rebel_type_tag(0)].occupation_mult);
 	EXPECT_EQ(5ui8, s.population_m.rebel_types[rebel_type_tag(0)].icon);
 	EXPECT_NE(modifiers::factor_tag(), s.population_m.rebel_types[rebel_type_tag(0)].will_rise);
@@ -598,9 +598,9 @@ TEST(population_tests, read_rebels) {
 	EXPECT_EQ(triggers::effect_tag(), s.population_m.rebel_types[rebel_type_tag(1)].siege_won_effect);
 	EXPECT_EQ(triggers::effect_tag(), s.population_m.rebel_types[rebel_type_tag(1)].demands_enforced_effect);
 
-	const auto proletarian_dictatorship = tag_from_text(s.governments_m.named_government_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("proletarian_dictatorship")));
-	const auto absolute_monarchy = tag_from_text(s.governments_m.named_government_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("absolute_monarchy")));
-	const auto democracy = tag_from_text(s.governments_m.named_government_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("democracy")));
+	const auto proletarian_dictatorship = tag_from_text(s.governments_m.named_government_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "proletarian_dictatorship"));
+	const auto absolute_monarchy = tag_from_text(s.governments_m.named_government_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "absolute_monarchy"));
+	const auto democracy = tag_from_text(s.governments_m.named_government_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "democracy"));
 
 	EXPECT_EQ(democracy, s.population_m.rebel_change_government_to.get(rebel_type_tag(0), proletarian_dictatorship));
 	EXPECT_EQ(proletarian_dictatorship, s.population_m.rebel_change_government_to.get(rebel_type_tag(0), absolute_monarchy));
@@ -621,7 +621,7 @@ TEST(population_tests, population_directory_selection) {
 
 		preparse_test_files real_fs;
 		file_system f;
-		f.set_root(RANGE(u"F:"));
+		f.set_root(u"F:");
 
 		read_all_pops(f.get_root(), ws, date_to_tag(boost::gregorian::date(1901, boost::gregorian::Jan, 1)));
 		
@@ -632,9 +632,9 @@ TEST(population_tests, population_directory_selection) {
 
 		EXPECT_EQ(750, ws.w.population_s.pop_demographics.get(popid, total_population_tag));
 		EXPECT_EQ(provinces::province_tag(853), pop_obj.location);
-		EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("albanian"))));
-		EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("sunni"))));
-		EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("aristocrats"))));
+		EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "albanian")));
+		EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "sunni")));
+		EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "aristocrats")));
 	}
 
 	{
@@ -646,7 +646,7 @@ TEST(population_tests, population_directory_selection) {
 
 		preparse_test_files real_fs;
 		file_system f;
-		f.set_root(RANGE(u"F:"));
+		f.set_root(u"F:");
 
 		read_all_pops(f.get_root(), ws, date_to_tag(boost::gregorian::date(1851, boost::gregorian::Jan, 1)));
 
@@ -658,9 +658,9 @@ TEST(population_tests, population_directory_selection) {
 
 			EXPECT_EQ(50, ws.w.population_s.pop_demographics.get(popid, total_population_tag));
 			EXPECT_EQ(provinces::province_tag(853), pop_obj.location);
-			EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("albanian"))));
-			EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("orthodox"))));
-			EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("clergymen"))));
+			EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "albanian")));
+			EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "orthodox")));
+			EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "clergymen")));
 		}
 		{
 			auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(853)].pops, 1);
@@ -668,9 +668,9 @@ TEST(population_tests, population_directory_selection) {
 
 			EXPECT_EQ(6750, ws.w.population_s.pop_demographics.get(popid, total_population_tag));
 			EXPECT_EQ(provinces::province_tag(853), pop_obj.location);
-			EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("albanian"))));
-			EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("orthodox"))));
-			EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("farmers"))));
+			EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "albanian")));
+			EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "orthodox")));
+			EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "farmers")));
 		}
 	}
 	{
@@ -682,7 +682,7 @@ TEST(population_tests, population_directory_selection) {
 
 		preparse_test_files real_fs;
 		file_system f;
-		f.set_root(RANGE(u"F:"));
+		f.set_root(u"F:");
 
 		read_all_pops(f.get_root(), ws, date_to_tag(boost::gregorian::date(1801, boost::gregorian::Jan, 1)));
 
@@ -693,9 +693,9 @@ TEST(population_tests, population_directory_selection) {
 
 			EXPECT_EQ(5000, ws.w.population_s.pop_demographics.get(popid, total_population_tag));
 			EXPECT_EQ(provinces::province_tag(850), pop_obj.location);
-			EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("beifaren"))));
-			EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("mahayana"))));
-			EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("farmers"))));
+			EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "beifaren")));
+			EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "mahayana")));
+			EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "farmers")));
 		}
 		{
 			EXPECT_EQ(1ui32, get_size(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(851)].pops));
@@ -704,9 +704,9 @@ TEST(population_tests, population_directory_selection) {
 
 			EXPECT_EQ(50, ws.w.population_s.pop_demographics.get(popid, total_population_tag));
 			EXPECT_EQ(provinces::province_tag(851), pop_obj.location);
-			EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("manchu"))));
-			EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("mahayana"))));
-			EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("officers"))));
+			EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "manchu")));
+			EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "mahayana")));
+			EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "officers")));
 		}
 	}
 }

@@ -29,7 +29,7 @@ public:
 		scenario::scenario_manager s;
 
 		std::byte const* optr = source.data();
-		serialization::deserialize(optr, s);
+		serialization::deserialize(optr, s, 1ui64);
 
 		return (int)s.economy_m.goods_count;
 	}
@@ -47,7 +47,7 @@ public:
 		concurrency::task_group tg;
 
 		std::byte const* optr = source.data();
-		serialization::deserialize(optr, s, tg);
+		serialization::deserialize(optr, s, 1ui64, tg);
 
 		tg.wait();
 

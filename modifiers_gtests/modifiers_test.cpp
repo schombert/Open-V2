@@ -182,7 +182,7 @@ TEST(modifiers_tests, national_focus_test) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	scenario::scenario_manager s;
 
@@ -192,7 +192,7 @@ TEST(modifiers_tests, national_focus_test) {
 
 	read_national_focuses(s, f.get_root());
 
-	const auto ammunition_tag = tag_from_text(s.economy_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("ammunition")));
+	const auto ammunition_tag = tag_from_text(s.economy_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "ammunition"));
 
 	EXPECT_NE(economy::goods_tag(), ammunition_tag);
 
@@ -201,44 +201,44 @@ TEST(modifiers_tests, national_focus_test) {
 
 	EXPECT_EQ(2ui8, s.modifiers_m.national_focuses[national_focus_tag(0)].icon);
 	EXPECT_EQ(national_focus_tag(0), s.modifiers_m.national_focuses[national_focus_tag(0)].id);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("encourage_rail")), s.modifiers_m.national_focuses[national_focus_tag(0)].name);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("rail_focus")), s.modifiers_m.national_focuses[national_focus_tag(0)].group);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "encourage_rail"), s.modifiers_m.national_focuses[national_focus_tag(0)].name);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "rail_focus"), s.modifiers_m.national_focuses[national_focus_tag(0)].group);
 	EXPECT_EQ(0.5f, s.modifiers_m.national_focuses[national_focus_tag(0)].railroads);
 
 	EXPECT_EQ(3ui8, s.modifiers_m.national_focuses[national_focus_tag(1)].icon);
 	EXPECT_EQ(national_focus_tag(1), s.modifiers_m.national_focuses[national_focus_tag(1)].id);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("immigration")), s.modifiers_m.national_focuses[national_focus_tag(1)].name);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("immigration_focus")), s.modifiers_m.national_focuses[national_focus_tag(1)].group);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "immigration"), s.modifiers_m.national_focuses[national_focus_tag(1)].name);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "immigration_focus"), s.modifiers_m.national_focuses[national_focus_tag(1)].group);
 	EXPECT_NE(provincial_modifier_tag(), s.modifiers_m.national_focuses[national_focus_tag(1)].modifier);
 	EXPECT_EQ(0.2f, s.modifiers_m.provincial_modifier_definitions[s.modifiers_m.national_focuses[national_focus_tag(1)].modifier][provincial_offsets::immigrant_attract]);
 
 	EXPECT_EQ(4ui8, s.modifiers_m.national_focuses[national_focus_tag(2)].icon);
 	EXPECT_EQ(national_focus_tag(2), s.modifiers_m.national_focuses[national_focus_tag(2)].id);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("increase_tension")), s.modifiers_m.national_focuses[national_focus_tag(2)].name);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("diplomatic_focus")), s.modifiers_m.national_focuses[national_focus_tag(2)].group);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "increase_tension"), s.modifiers_m.national_focuses[national_focus_tag(2)].name);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "diplomatic_focus"), s.modifiers_m.national_focuses[national_focus_tag(2)].group);
 	EXPECT_EQ(0.15f, s.modifiers_m.national_focuses[national_focus_tag(2)].flashpoint_tension);
 	EXPECT_NE(triggers::trigger_tag(), s.modifiers_m.national_focuses[national_focus_tag(2)].limit);
 
 	EXPECT_EQ(5ui8, s.modifiers_m.national_focuses[national_focus_tag(3)].icon);
 	EXPECT_EQ(national_focus_tag(3), s.modifiers_m.national_focuses[national_focus_tag(3)].id);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("promote_aristocrats")), s.modifiers_m.national_focuses[national_focus_tag(3)].name);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("promotion_focus")), s.modifiers_m.national_focuses[national_focus_tag(3)].group);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "promote_aristocrats"), s.modifiers_m.national_focuses[national_focus_tag(3)].name);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "promotion_focus"), s.modifiers_m.national_focuses[national_focus_tag(3)].group);
 	EXPECT_EQ(population::pop_type_tag(0), s.modifiers_m.national_focuses[national_focus_tag(3)].pop_type);
 	EXPECT_EQ(0.2f, s.modifiers_m.national_focuses[national_focus_tag(3)].pop_type_value);
 	EXPECT_EQ(true, s.modifiers_m.national_focuses[national_focus_tag(3)].outliner_show_as_percent);
 
 	EXPECT_EQ(16ui8, s.modifiers_m.national_focuses[national_focus_tag(4)].icon);
 	EXPECT_EQ(national_focus_tag(4), s.modifiers_m.national_focuses[national_focus_tag(4)].id);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("automation_focus")), s.modifiers_m.national_focuses[national_focus_tag(4)].name);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("production_focus")), s.modifiers_m.national_focuses[national_focus_tag(4)].group);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "automation_focus"), s.modifiers_m.national_focuses[national_focus_tag(4)].name);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "production_focus"), s.modifiers_m.national_focuses[national_focus_tag(4)].group);
 	EXPECT_NE(triggers::trigger_tag(), s.modifiers_m.national_focuses[national_focus_tag(4)].limit);
 	EXPECT_EQ(18.0f, s.modifiers_m.national_focus_goods_weights.get(national_focus_tag(4), ammunition_tag));
 	EXPECT_EQ(true, s.modifiers_m.national_focuses[national_focus_tag(4)].has_goods);
 
 	EXPECT_EQ(25ui8, s.modifiers_m.national_focuses[national_focus_tag(5)].icon);
 	EXPECT_EQ(national_focus_tag(5), s.modifiers_m.national_focuses[national_focus_tag(5)].id);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("fascist_focus")), s.modifiers_m.national_focuses[national_focus_tag(5)].name);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("party_loyalty_focus")), s.modifiers_m.national_focuses[national_focus_tag(5)].group);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "fascist_focus"), s.modifiers_m.national_focuses[national_focus_tag(5)].name);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "party_loyalty_focus"), s.modifiers_m.national_focuses[national_focus_tag(5)].group);
 	EXPECT_EQ(0.001f, s.modifiers_m.national_focuses[national_focus_tag(5)].loyalty);
 	EXPECT_EQ(ideologies::ideology_tag(0), s.modifiers_m.national_focuses[national_focus_tag(5)].ideology);
 }
@@ -246,7 +246,7 @@ TEST(modifiers_tests, crimes_preparse) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	modifiers_manager m;
 	text_data::text_sequences tex;
@@ -267,7 +267,7 @@ TEST(modifiers_tests, crimes_parse) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	scenario::scenario_manager s;
 
@@ -298,7 +298,7 @@ TEST(modifiers_tests, nv_parse) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	modifiers_manager m; 
 	text_data::text_sequences tex;
@@ -322,7 +322,7 @@ TEST(modifiers_tests, event_modifiers) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	modifiers_manager m;
 	text_data::text_sequences tex;
@@ -358,7 +358,7 @@ TEST(modifiers_tests, static_modifiers) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	modifiers_manager m;
 	text_data::text_sequences tex;
@@ -392,7 +392,7 @@ TEST(modifiers_tests, triggered_modifiers) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	scenario::scenario_manager s;
 	parsing_state state(s.gui_m.text_data_sequences, s.modifiers_m);
@@ -1388,7 +1388,7 @@ TEST(modifiers_tests, defines_file_read) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 
 	modifiers_manager m;

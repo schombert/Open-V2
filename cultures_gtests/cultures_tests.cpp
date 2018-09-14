@@ -190,7 +190,7 @@ TEST(cultures_tests, tag_file) {
 	const char t1[] = "ENG";
 	const char t2[] = "GER";
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	culture_manager m;
 	const auto tvector = read_national_tags(m, f.get_root());
@@ -204,15 +204,15 @@ TEST(cultures_tests, tag_file) {
 	EXPECT_EQ(tag_to_encoding(RANGE(t2)), m.national_tags[national_tag(0)].tag_code);
 	EXPECT_EQ(national_tag(1), m.national_tags[national_tag(1)].id);
 	EXPECT_EQ(tag_to_encoding(RANGE(t1)), m.national_tags[national_tag(1)].tag_code);
-	EXPECT_EQ(national_tag(0), m.national_tags_index[tag_to_encoding(RANGE("GER"))]);
-	EXPECT_EQ(national_tag(1), m.national_tags_index[tag_to_encoding(RANGE("ENG"))]);
+	EXPECT_EQ(national_tag(0), m.national_tags_index[tag_to_encoding(RANGE(t2))]);
+	EXPECT_EQ(national_tag(1), m.national_tags_index[tag_to_encoding(RANGE(t1))]);
 }
 
 TEST(cultures_tests, religion_file) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	culture_manager m;
 	text_data::text_sequences tex;
@@ -248,7 +248,7 @@ TEST(cultures_tests, cultures_file) {
 	file_system f;
 	graphics::texture_manager tm;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	culture_manager m;
 	text_data::text_sequences tex;
@@ -269,8 +269,8 @@ TEST(cultures_tests, cultures_file) {
 	EXPECT_EQ(30ui8, m.culture_container[culture_tag(0)].color.b);
 	EXPECT_EQ(culture_tag(0), m.named_culture_index[m.culture_container[culture_tag(0)].name]);
 
-	const auto fn = m.first_names_by_culture.get_row(to_index(culture_tag(0)));
-	const auto ln = m.last_names_by_culture.get_row(to_index(culture_tag(0)));
+	const auto fn = m.first_names_by_culture.get_row(culture_tag(0));
+	const auto ln = m.last_names_by_culture.get_row(culture_tag(0));
 
 	EXPECT_EQ(3i64, fn.second - fn.first);
 	EXPECT_EQ(1i64, ln.second - ln.first);
@@ -286,7 +286,7 @@ TEST(cultures_tests, multiple_cultures_tests) {
 	file_system f;
 	graphics::texture_manager tm;
 
-	f.set_root(RANGE(u"F:\\test2"));
+	f.set_root(u"F:\\test2");
 
 	culture_manager m;
 	text_data::text_sequences tex;
@@ -307,8 +307,8 @@ TEST(cultures_tests, multiple_cultures_tests) {
 	EXPECT_EQ(culture_tag(0), m.named_culture_index[m.culture_container[culture_tag(0)].name]);
 	EXPECT_EQ(5.0f, m.culture_container[culture_tag(0)].radicalism);
 
-	const auto fn = m.first_names_by_culture.get_row(to_index(culture_tag(0)));
-	const auto ln = m.last_names_by_culture.get_row(to_index(culture_tag(0)));
+	const auto fn = m.first_names_by_culture.get_row(culture_tag(0));
+	const auto ln = m.last_names_by_culture.get_row(culture_tag(0));
 
 	EXPECT_EQ(3i64, fn.second - fn.first);
 	EXPECT_EQ(1i64, ln.second - ln.first);
@@ -321,8 +321,8 @@ TEST(cultures_tests, multiple_cultures_tests) {
 	EXPECT_EQ(culture_tag(1), m.named_culture_index[m.culture_container[culture_tag(1)].name]);
 	EXPECT_EQ(0.0f, m.culture_container[culture_tag(1)].radicalism);
 
-	const auto fn2 = m.first_names_by_culture.get_row(to_index(culture_tag(1)));
-	const auto ln2 = m.last_names_by_culture.get_row(to_index(culture_tag(1)));
+	const auto fn2 = m.first_names_by_culture.get_row(culture_tag(1));
+	const auto ln2 = m.last_names_by_culture.get_row(culture_tag(1));
 
 	EXPECT_EQ(2i64, fn2.second - fn2.first);
 	EXPECT_EQ(2i64, ln2.second - ln2.first);
@@ -335,8 +335,8 @@ TEST(cultures_tests, multiple_cultures_tests) {
 	EXPECT_EQ(culture_tag(2), m.named_culture_index[m.culture_container[culture_tag(2)].name]);
 	EXPECT_EQ(10.0f, m.culture_container[culture_tag(2)].radicalism);
 
-	const auto fn3 = m.first_names_by_culture.get_row(to_index(culture_tag(2)));
-	const auto ln3 = m.last_names_by_culture.get_row(to_index(culture_tag(2)));
+	const auto fn3 = m.first_names_by_culture.get_row(culture_tag(2));
+	const auto ln3 = m.last_names_by_culture.get_row(culture_tag(2));
 
 	EXPECT_EQ(4i64, fn3.second - fn3.first);
 	EXPECT_EQ(2i64, ln3.second - ln3.first);
@@ -362,7 +362,7 @@ TEST(cultures_tests, leader_pictures) {
 	file_system f;
 	graphics::texture_manager tm;
 
-	f.set_root(RANGE(u"F:\\test3"));
+	f.set_root(u"F:\\test3");
 
 	culture_manager m;
 	text_data::text_sequences tex;
@@ -390,21 +390,26 @@ TEST(cultures_tests, government_names) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	scenario::scenario_manager s;
 
 	const auto tvector = read_national_tags(s.culture_m, f.get_root());
 	const auto gbase_names = governments::read_governments(s.governments_m, f.get_root(), s.gui_m.text_data_sequences, s.ideologies_m);
 
-	auto const t1 = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, RANGE("ENG"));
-	auto const t2 = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, RANGE("ENG_ADJ"));
+	const char v1[] = "ENG";
+	auto const t1 = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, RANGE(v1));
+	const char v2[] = "ENG_ADJ";
+	auto const t2 = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, RANGE(v2));
 
-	auto const t3 = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, RANGE("GER_type_b"));
-	auto const t4 = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, RANGE("GER_type_c_ADJ"));
+	const char v3[] = "GER_type_b";
+	auto const t3 = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, RANGE(v3));
+	const char v4[] = "GER_type_c_ADJ";
+	auto const t4 = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, RANGE(v4));
 
-	auto const g1 = tag_from_text(s.governments_m.named_government_index, text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, RANGE("type_b")));
-	auto const g2 = tag_from_text(s.governments_m.named_government_index, text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, RANGE("type_c")));
+	const char v5[] = "GER_type_b";
+	auto const g1 = tag_from_text(s.governments_m.named_government_index, text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "type_b"));
+	auto const g2 = tag_from_text(s.governments_m.named_government_index, text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "type_c"));
 
 	populate_country_names(s, gbase_names);
 
@@ -422,7 +427,7 @@ TEST(cultures_tests, read_flags) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	scenario::scenario_manager s;
 	const auto tvector = read_national_tags(s.culture_m, f.get_root());
@@ -440,7 +445,7 @@ TEST(cultures_tests, read_country_files) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	scenario::scenario_manager s;
 	const auto tvector = read_national_tags(s.culture_m, f.get_root());
@@ -466,7 +471,7 @@ TEST(cultures_tests, serialize) {
 		test_files real_fs;
 		file_system f;
 
-		f.set_root(RANGE(u"F:\\test1"));
+		f.set_root(u"F:\\test1");
 
 		culture_manager source;
 		text_data::text_sequences tex;
@@ -512,7 +517,7 @@ TEST(cultures_tests, serialize) {
 		file_system f;
 		graphics::texture_manager tm;
 
-		f.set_root(RANGE(u"F:\\test2"));
+		f.set_root(u"F:\\test2");
 		culture_manager source;
 		text_data::text_sequences tex;
 
@@ -542,8 +547,8 @@ TEST(cultures_tests, serialize) {
 		EXPECT_EQ(culture_tag(0), m.named_culture_index[m.culture_container[culture_tag(0)].name]);
 		EXPECT_EQ(5.0f, m.culture_container[culture_tag(0)].radicalism);
 
-		const auto fn = m.first_names_by_culture.get_row(to_index(culture_tag(0)));
-		const auto ln = m.last_names_by_culture.get_row(to_index(culture_tag(0)));
+		const auto fn = m.first_names_by_culture.get_row(culture_tag(0));
+		const auto ln = m.last_names_by_culture.get_row(culture_tag(0));
 
 		EXPECT_EQ(3i64, fn.second - fn.first);
 		EXPECT_EQ(1i64, ln.second - ln.first);
@@ -556,8 +561,8 @@ TEST(cultures_tests, serialize) {
 		EXPECT_EQ(culture_tag(1), m.named_culture_index[m.culture_container[culture_tag(1)].name]);
 		EXPECT_EQ(0.0f, m.culture_container[culture_tag(1)].radicalism);
 
-		const auto fn2 = m.first_names_by_culture.get_row(to_index(culture_tag(1)));
-		const auto ln2 = m.last_names_by_culture.get_row(to_index(culture_tag(1)));
+		const auto fn2 = m.first_names_by_culture.get_row(culture_tag(1));
+		const auto ln2 = m.last_names_by_culture.get_row(culture_tag(1));
 
 		EXPECT_EQ(2i64, fn2.second - fn2.first);
 		EXPECT_EQ(2i64, ln2.second - ln2.first);
@@ -570,8 +575,8 @@ TEST(cultures_tests, serialize) {
 		EXPECT_EQ(culture_tag(2), m.named_culture_index[m.culture_container[culture_tag(2)].name]);
 		EXPECT_EQ(10.0f, m.culture_container[culture_tag(2)].radicalism);
 
-		const auto fn3 = m.first_names_by_culture.get_row(to_index(culture_tag(2)));
-		const auto ln3 = m.last_names_by_culture.get_row(to_index(culture_tag(2)));
+		const auto fn3 = m.first_names_by_culture.get_row(culture_tag(2));
+		const auto ln3 = m.last_names_by_culture.get_row(culture_tag(2));
 
 		EXPECT_EQ(4i64, fn3.second - fn3.first);
 		EXPECT_EQ(2i64, ln3.second - ln3.first);

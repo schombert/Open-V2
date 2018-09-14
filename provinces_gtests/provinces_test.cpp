@@ -90,7 +90,7 @@ TEST(provinces_test, default_map_read) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	province_manager m;
 	modifiers_manager mm;
@@ -111,7 +111,7 @@ TEST(provinces_test, climate_read) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	province_manager m;
 	modifiers_manager mm;
@@ -126,7 +126,7 @@ TEST(provinces_test, climate_read) {
 	EXPECT_EQ(provincial_modifier_tag(0), mm.provincial_modifiers[provincial_modifier_tag(0)].id);
 	EXPECT_EQ(provincial_modifier_tag(1), mm.provincial_modifiers[provincial_modifier_tag(1)].id);
 	EXPECT_EQ(provincial_modifier_tag(0), mm.named_provincial_modifiers_index[mm.provincial_modifiers[provincial_modifier_tag(0)].name]);
-	EXPECT_EQ(provincial_modifier_tag(1), mm.named_provincial_modifiers_index[text_data::get_thread_safe_text_handle(tex, RANGE("temperate_climate"))]);
+	EXPECT_EQ(provincial_modifier_tag(1), mm.named_provincial_modifiers_index[text_data::get_thread_safe_text_handle(tex, "temperate_climate")]);
 
 	EXPECT_EQ(1.0f, mm.provincial_modifier_definitions[provincial_modifier_tag(1)][modifiers::provincial_offsets::max_attrition]);
 
@@ -142,7 +142,7 @@ TEST(provinces_test, continent_preparse) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	province_manager m;
 	modifiers_manager mm;
@@ -156,7 +156,7 @@ TEST(provinces_test, continent_preparse) {
 	EXPECT_EQ(2ui64, mm.provincial_modifiers.size());
 	EXPECT_EQ(provincial_modifier_tag(0), mm.provincial_modifiers[provincial_modifier_tag(0)].id);
 	EXPECT_EQ(provincial_modifier_tag(1), mm.provincial_modifiers[provincial_modifier_tag(1)].id);
-	EXPECT_EQ(provincial_modifier_tag(0), mm.named_provincial_modifiers_index[text_data::get_thread_safe_text_handle(tex, RANGE("europe"))]);
+	EXPECT_EQ(provincial_modifier_tag(0), mm.named_provincial_modifiers_index[text_data::get_thread_safe_text_handle(tex, "europe")]);
 	EXPECT_EQ(provincial_modifier_tag(1), mm.named_provincial_modifiers_index[mm.provincial_modifiers[provincial_modifier_tag(1)].name]);
 
 	EXPECT_EQ(provincial_modifier_tag(1), m.province_container[province_tag(1)].continent);
@@ -173,7 +173,7 @@ TEST(provinces_test, terrain_preparse) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	province_manager m;
 	modifiers_manager mm;
@@ -190,7 +190,7 @@ TEST(provinces_test, terrain_preparse) {
 	EXPECT_EQ(2ui64, mm.provincial_modifiers.size());
 	EXPECT_EQ(provincial_modifier_tag(0), mm.provincial_modifiers[provincial_modifier_tag(0)].id);
 	EXPECT_EQ(provincial_modifier_tag(1), mm.provincial_modifiers[provincial_modifier_tag(1)].id);
-	EXPECT_EQ(provincial_modifier_tag(0), mm.named_provincial_modifiers_index[text_data::get_thread_safe_text_handle(tex, RANGE("ocean"))]);
+	EXPECT_EQ(provincial_modifier_tag(0), mm.named_provincial_modifiers_index[text_data::get_thread_safe_text_handle(tex, "ocean")]);
 	EXPECT_EQ(provincial_modifier_tag(1), mm.named_provincial_modifiers_index[mm.provincial_modifiers[provincial_modifier_tag(1)].name]);
 
 	auto t_map = read_terrain_colors(tex, m, mm, f.get_root());
@@ -208,7 +208,7 @@ TEST(provinces_test, region_read) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	province_manager m;
 	modifiers_manager mm;
@@ -248,15 +248,15 @@ TEST(provinces_test, region_read) {
 	EXPECT_EQ(false, tagged_provs_b[3]);
 	EXPECT_EQ(true, tagged_provs_b[4]);
 	
-	EXPECT_EQ(text_data::get_thread_safe_text_handle(tex, RANGE("region_a")), m.state_names[state_tag(0)]);
-	EXPECT_EQ(text_data::get_thread_safe_text_handle(tex, RANGE("region_b")), m.state_names[state_tag(1)]);
+	EXPECT_EQ(text_data::get_thread_safe_text_handle(tex, "region_a"), m.state_names[state_tag(0)]);
+	EXPECT_EQ(text_data::get_thread_safe_text_handle(tex, "region_b"), m.state_names[state_tag(1)]);
 }
 
 TEST(provinces_test, colors) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	auto result = read_province_definition_file(f.get_root());
 	EXPECT_EQ(4ui64, result.size());
@@ -272,7 +272,7 @@ TEST(provinces_test, adjacent) {
 
 	province_manager m;
 
-	f.set_root(RANGE(u"F:"));
+	f.set_root(u"F:");
 
 	m.province_container.resize(8);
 
@@ -465,8 +465,8 @@ TEST(provinces_test, core_functions) {
 
 	ready_world_state(ws);
 
-	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
-	auto usa_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("USA")));
+	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding("GER"));
+	auto usa_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding("USA"));
 
 	province_tag prov_a(100ui16);
 	province_tag prov_b(101ui16);
@@ -540,8 +540,8 @@ TEST(provinces_test, single_province_read_state) {
 	parse_pdx_file(presults, RANGE(test_data));
 
 
-	auto usa_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("USA")));
-	auto csa_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("CSA")));
+	auto usa_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding("USA"));
+	auto csa_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding("CSA"));
 
 	{
 		auto& ps = ws.w.province_s.province_state_container[province_tag(10ui16)];
@@ -555,7 +555,7 @@ TEST(provinces_test, single_province_read_state) {
 		EXPECT_EQ(ps.railroad_level, 1ui8);
 		EXPECT_EQ(ps.naval_base_level, 0ui8);
 		EXPECT_EQ(35i16, ps.base_life_rating);
-		EXPECT_EQ(tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("tobacco"))), ps.rgo_production);
+		EXPECT_EQ(tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "tobacco")), ps.rgo_production);
 
 		EXPECT_NE(0, ps.state_instance->flags & nations::state_instance::is_colonial);
 		EXPECT_EQ(true, province_has_core(ws.w, province_tag(10ui16), usa_tag));
@@ -575,18 +575,18 @@ TEST(provinces_test, single_province_read_state) {
 		EXPECT_EQ(ps.railroad_level, 3ui8);
 		EXPECT_EQ(ps.naval_base_level, 0ui8);
 		EXPECT_EQ(35i16, ps.base_life_rating);
-		EXPECT_EQ(tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("tobacco"))), ps.rgo_production);
-		EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_provincial_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("ocean"))), ps.terrain);
+		EXPECT_EQ(tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "tobacco")), ps.rgo_production);
+		EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_provincial_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "ocean")), ps.terrain);
 		EXPECT_EQ(ps.state_instance->factories[0].level, 1ui16);
 		EXPECT_EQ(ps.state_instance->factories[0].type->output_good,
-			tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("steel"))));
+			tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "steel")));
 		EXPECT_EQ(ps.state_instance->factories[1].level, 1ui16);
 		EXPECT_EQ(ps.state_instance->factories[1].type->output_good,
-			tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("steamer_convoy"))));
+			tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "steamer_convoy")));
 		EXPECT_EQ(ps.state_instance->factories[2].level, 0ui16);
 		EXPECT_EQ(ps.state_instance->factories[2].type, nullptr);
 
-		EXPECT_EQ(ws.w.province_s.party_loyalty.get(province_tag(11ui16), tag_from_text(ws.s.ideologies_m.named_ideology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("liberal")))), 10.5f);
+		EXPECT_EQ(ws.w.province_s.party_loyalty.get(province_tag(11ui16), tag_from_text(ws.s.ideologies_m.named_ideology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "liberal"))), 10.5f);
 
 		EXPECT_EQ(0, ps.state_instance->flags & nations::state_instance::is_colonial);
 		EXPECT_EQ(false, province_has_core(ws.w, province_tag(11ui16), usa_tag));

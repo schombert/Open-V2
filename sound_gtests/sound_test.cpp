@@ -43,7 +43,8 @@ TEST(sound_tests, read_music_directory) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	
+	f.set_root(u"F:\\test1");
 	
 	sound_manager m;
 
@@ -57,7 +58,7 @@ TEST(sound_tests, read_sfx_file) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	sound_manager m;
 	text_data::text_sequences tex;

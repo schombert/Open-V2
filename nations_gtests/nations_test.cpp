@@ -26,7 +26,8 @@ TEST(nations_tests, nation_creation) {
 
 	ready_world_state(ws);
 
-	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
+	const char gtag[] = "GER";
+	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE(gtag)));
 	auto ger_nation = make_nation_for_tag(ws, ger_tag);
 	
 	EXPECT_NE(nullptr, ger_nation);
@@ -38,7 +39,9 @@ TEST(nations_tests, nation_creation) {
 	EXPECT_EQ(ws.s.culture_m.national_tags[ger_tag].base_flag, ger_nation->flag);
 	EXPECT_EQ(ws.s.culture_m.national_tags[ger_tag].color.g, ger_nation->current_color.g);
 
-	auto usa_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("USA")));
+
+	const char usat[] = "USA";
+	auto usa_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE(usat)));
 	auto usa_nation = make_nation_for_tag(ws, usa_tag);
 
 	EXPECT_NE(nullptr, usa_nation);
@@ -54,7 +57,8 @@ TEST(nations_tests, province_ownership) {
 	tg.wait();
 	ready_world_state(ws);
 
-	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
+	const char gert[] = "GER";
+	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE(gert)));
 	auto ger_nation = make_nation_for_tag(ws, ger_tag);
 
 	auto prov_tag = provinces::province_tag(104ui16);
@@ -62,7 +66,7 @@ TEST(nations_tests, province_ownership) {
 
 	EXPECT_NE(provinces::state_tag(), province_region);
 
-	silent_set_province_owner(ws, ger_nation, prov_tag);
+	provinces::silent_set_province_owner(ws, *ger_nation, ws.w.province_s.province_state_container[prov_tag]);
 
 	EXPECT_EQ(1ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(1ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
@@ -73,7 +77,7 @@ TEST(nations_tests, province_ownership) {
 
 	auto old_state_instance = ws.w.province_s.province_state_container[prov_tag].state_instance;
 
-	silent_remove_province_owner(ws, ger_nation, prov_tag);
+	provinces::silent_remove_province_owner(ws, ws.w.province_s.province_state_container[prov_tag]);
 
 	EXPECT_EQ(0ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(0ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
@@ -89,15 +93,16 @@ TEST(nations_tests, adding_states) {
 	tg.wait();
 	ready_world_state(ws);
 
-	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
+	const char gert[] = "GER";
+	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE(gert)));
 	auto ger_nation = make_nation_for_tag(ws, ger_tag);
 
 	auto prov_tag_a = provinces::province_tag(104ui16);
 	auto prov_tag_b = provinces::province_tag(103ui16);
 	auto prov_tag_c = provinces::province_tag(102ui16);
 
-	silent_set_province_owner(ws, ger_nation, prov_tag_a);
-	silent_set_province_owner(ws, ger_nation, prov_tag_b);
+	provinces::silent_set_province_owner(ws, *ger_nation, ws.w.province_s.province_state_container[prov_tag_a]);
+	provinces::silent_set_province_owner(ws, *ger_nation, ws.w.province_s.province_state_container[prov_tag_b]);
 
 	EXPECT_EQ(2ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(1ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
@@ -109,7 +114,7 @@ TEST(nations_tests, adding_states) {
 	EXPECT_EQ(true, contains_item(ws.w.province_s.province_arrays, ger_nation->owned_provinces, prov_tag_a));
 	EXPECT_EQ(false, contains_item(ws.w.province_s.province_arrays, ger_nation->owned_provinces, prov_tag_c));
 
-	silent_set_province_owner(ws, ger_nation, prov_tag_c);
+	provinces::silent_set_province_owner(ws, *ger_nation, ws.w.province_s.province_state_container[prov_tag_c]);
 
 	EXPECT_EQ(3ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(2ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
@@ -118,7 +123,7 @@ TEST(nations_tests, adding_states) {
 	EXPECT_NE(nullptr, ws.w.province_s.province_state_container[prov_tag_c].state_instance);
 	EXPECT_NE(ws.w.province_s.province_state_container[prov_tag_a].state_instance, ws.w.province_s.province_state_container[prov_tag_c].state_instance);
 
-	silent_remove_province_owner(ws, ger_nation, prov_tag_a);
+	provinces::silent_remove_province_owner(ws, ws.w.province_s.province_state_container[prov_tag_a]);
 	EXPECT_EQ(2ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(2ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
 	EXPECT_EQ(nullptr, ws.w.province_s.province_state_container[prov_tag_a].owner);
@@ -128,7 +133,7 @@ TEST(nations_tests, adding_states) {
 
 	EXPECT_NE(ws.w.province_s.province_state_container[prov_tag_a].state_instance, ws.w.province_s.province_state_container[prov_tag_b].state_instance);
 
-	silent_remove_province_owner(ws, ger_nation, prov_tag_b);
+	provinces::silent_remove_province_owner(ws, ws.w.province_s.province_state_container[prov_tag_b]);
 	EXPECT_EQ(1ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(1ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
 	EXPECT_EQ(nullptr, ws.w.province_s.province_state_container[prov_tag_b].owner);
@@ -136,7 +141,7 @@ TEST(nations_tests, adding_states) {
 	EXPECT_EQ(nullptr, ws.w.province_s.province_state_container[prov_tag_b].state_instance);
 	EXPECT_EQ(ws.w.province_s.province_state_container[prov_tag_a].state_instance, ws.w.province_s.province_state_container[prov_tag_b].state_instance);
 
-	silent_remove_province_owner(ws, ger_nation, prov_tag_c);
+	provinces::silent_remove_province_owner(ws, ws.w.province_s.province_state_container[prov_tag_c]);
 	EXPECT_EQ(0ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(0ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
 	EXPECT_EQ(nullptr, ws.w.province_s.province_state_container[prov_tag_c].owner);
@@ -151,7 +156,8 @@ TEST(nations_tests, province_control) {
 	tg.wait();
 	ready_world_state(ws);
 
-	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
+	const char gert[] = "GER";
+	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE(gert)));
 	auto ger_nation = make_nation_for_tag(ws, ger_tag);
 
 	auto prov_tag = provinces::province_tag(104ui16);
@@ -159,7 +165,7 @@ TEST(nations_tests, province_control) {
 
 	EXPECT_NE(provinces::state_tag(), province_region);
 
-	silent_set_province_controller(ws.w, ger_nation, prov_tag);
+	provinces::silent_set_province_controller(ws, *ger_nation, ws.w.province_s.province_state_container[prov_tag]);
 
 	EXPECT_EQ(0ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(1ui32, get_size(ws.w.province_s.province_arrays, ger_nation->controlled_provinces));
@@ -167,7 +173,7 @@ TEST(nations_tests, province_control) {
 	EXPECT_EQ(ger_nation, ws.w.province_s.province_state_container[prov_tag].controller);
 	EXPECT_EQ(true, contains_item(ws.w.province_s.province_arrays, ger_nation->controlled_provinces, prov_tag));
 
-	silent_remove_province_controller(ws.w, ger_nation, prov_tag);
+	provinces::silent_remove_province_controller(ws, ws.w.province_s.province_state_container[prov_tag]);
 
 	EXPECT_EQ(0ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(0ui32, get_size(ws.w.province_s.province_arrays, ger_nation->controlled_provinces));
@@ -274,64 +280,67 @@ TEST(nations_tests, read_nations_files_simple) {
 
 	preparse_test_files real_fs;
 	file_system f;
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	population::read_all_pops(f.get_root(), ws, date_to_tag(boost::gregorian::date(1801, boost::gregorian::Jan, 1)));
 	
-	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
+	const char gert[] = "GER";
+	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE(gert)));
 	auto ger_nation = make_nation_for_tag(ws, ger_tag);
 
-	silent_set_province_owner(ws, ger_nation, provinces::province_tag(853ui16));
+	provinces::silent_set_province_owner(ws, *ger_nation, ws.w.province_s.province_state_container[provinces::province_tag(853ui16)]);
 
 	std::vector<std::pair<country_tag, events::decision_tag>> decisions;
 	read_nations_files(ws, date_to_tag(boost::gregorian::date(1801, boost::gregorian::Jan, 1)), f.get_root(), decisions);
 
-	auto jap_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("JAP")));
+	const char japt[] = "JAP";
+	auto jap_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE(japt)));
 	auto jap_nation = make_nation_for_tag(ws, jap_tag);
 
-	auto mex_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("MEX")));
+	const char mext[] = "MEX";
+	auto mex_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE(mext)));
 	auto mex_nation = make_nation_for_tag(ws, mex_tag);
 
 	EXPECT_EQ(100, get_relationship(ws, *ger_nation, jap_nation->id));
 	EXPECT_EQ(0, get_relationship(ws, *ger_nation, mex_nation->id));
 	EXPECT_EQ(provinces::province_tag(487ui16), ger_nation->current_capital);
 
-	EXPECT_EQ(tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("spanish"))), ger_nation->primary_culture);
+	EXPECT_EQ(tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "spanish")), ger_nation->primary_culture);
 	EXPECT_EQ(2ui32, get_size(ws.w.culture_s.culture_arrays, ger_nation->accepted_cultures));
-	EXPECT_EQ(true, contains_item(ws.w.culture_s.culture_arrays, ger_nation->accepted_cultures, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("catalan")))));
-	EXPECT_EQ(true, contains_item(ws.w.culture_s.culture_arrays, ger_nation->accepted_cultures, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("basque")))));
-	EXPECT_EQ(tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("catholic"))), ger_nation->national_religion);
-	EXPECT_EQ(tag_from_text(ws.s.governments_m.named_government_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("hms_government"))), ger_nation->current_government);
+	EXPECT_EQ(true, contains_item(ws.w.culture_s.culture_arrays, ger_nation->accepted_cultures, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "catalan"))));
+	EXPECT_EQ(true, contains_item(ws.w.culture_s.culture_arrays, ger_nation->accepted_cultures, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "basque"))));
+	EXPECT_EQ(tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "catholic")), ger_nation->national_religion);
+	EXPECT_EQ(tag_from_text(ws.s.governments_m.named_government_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "hms_government")), ger_nation->current_government);
 	EXPECT_EQ(25.0f, ger_nation->plurality);
-	EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_national_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("nv_equality"))), ger_nation->national_value);
-	EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_national_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("commerce_tech_school"))), ger_nation->tech_school);
+	EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_national_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "nv_equality")), ger_nation->national_value);
+	EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_national_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "commerce_tech_school")), ger_nation->tech_school);
 	EXPECT_EQ(nations::nation::is_civilized, ger_nation->flags);
-	EXPECT_EQ(40.0f, ger_nation->prestige);
-	EXPECT_EQ(tag_from_text(ws.s.governments_m.named_party_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("SPA_conservative"))), ger_nation->ruling_party);
+	EXPECT_EQ(40.0f, ger_nation->base_prestige);
+	EXPECT_EQ(tag_from_text(ws.s.governments_m.named_party_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "SPA_conservative")), ger_nation->ruling_party);
 	EXPECT_EQ(date_to_tag(boost::gregorian::date(1834, boost::gregorian::Jan, 1)), ger_nation->last_election);
-	EXPECT_EQ(ws.w.nation_s.upper_house.get(ger_nation->id, tag_from_text(ws.s.ideologies_m.named_ideology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("liberal")))), 35ui8);
-	EXPECT_EQ(ws.w.nation_s.upper_house.get(ger_nation->id, tag_from_text(ws.s.ideologies_m.named_ideology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("conservative")))), 60ui8);
+	EXPECT_EQ(ws.w.nation_s.upper_house.get(ger_nation->id, tag_from_text(ws.s.ideologies_m.named_ideology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "liberal"))), 35ui8);
+	EXPECT_EQ(ws.w.nation_s.upper_house.get(ger_nation->id, tag_from_text(ws.s.ideologies_m.named_ideology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "conservative"))), 60ui8);
 	EXPECT_EQ(10000.0f, get_foreign_investment(ws, *ger_nation, mex_nation->id));
 	EXPECT_EQ(2000.0f, get_foreign_investment(ws, *ger_nation, jap_nation->id));
-	EXPECT_EQ(tag_from_text(ws.s.issues_m.named_option_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("yes_slavery"))), ws.w.nation_s.active_issue_options.get(ger_nation->id, tag_from_text(ws.s.issues_m.named_issue_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("slavery")))));
-	EXPECT_EQ(tag_from_text(ws.s.issues_m.named_option_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("censored_press"))), ws.w.nation_s.active_issue_options.get(ger_nation->id, tag_from_text(ws.s.issues_m.named_issue_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("press_rights")))));
-	EXPECT_EQ(ws.s.culture_m.national_tags[ger_nation->tag].monarchy_flag, ws.w.culture_s.country_flags_by_government.get(ger_nation->tag, tag_from_text(ws.s.governments_m.named_government_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("absolute_monarchy")))));
-	EXPECT_EQ(ws.s.culture_m.national_tags[ger_nation->tag].base_flag, ws.w.culture_s.country_flags_by_government.get(ger_nation->tag, tag_from_text(ws.s.governments_m.named_government_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("hms_government")))));
+	EXPECT_EQ(tag_from_text(ws.s.issues_m.named_option_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "yes_slavery")), ws.w.nation_s.active_issue_options.get(ger_nation->id, tag_from_text(ws.s.issues_m.named_issue_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "slavery"))));
+	EXPECT_EQ(tag_from_text(ws.s.issues_m.named_option_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "censored_press")), ws.w.nation_s.active_issue_options.get(ger_nation->id, tag_from_text(ws.s.issues_m.named_issue_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "press_rights"))));
+	EXPECT_EQ(ws.s.culture_m.national_tags[ger_nation->tag].monarchy_flag, ws.w.culture_s.country_flags_by_government.get(ger_nation->tag, tag_from_text(ws.s.governments_m.named_government_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "absolute_monarchy"))));
+	EXPECT_EQ(ws.s.culture_m.national_tags[ger_nation->tag].base_flag, ws.w.culture_s.country_flags_by_government.get(ger_nation->tag, tag_from_text(ws.s.governments_m.named_government_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "hms_government"))));
 
-	EXPECT_EQ(true, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation->id), to_index(tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("post_napoleonic_thought"))))));
-	EXPECT_EQ(true, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation->id), to_index(tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("authoritarianism"))))));
-	EXPECT_EQ(false, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation->id), to_index(tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("flintlock_rifles"))))));
+	EXPECT_EQ(true, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation->id), to_index(tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "post_napoleonic_thought")))));
+	EXPECT_EQ(true, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation->id), to_index(tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "authoritarianism")))));
+	EXPECT_EQ(false, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation->id), to_index(tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "flintlock_rifles")))));
 
-	EXPECT_EQ(0.0f, ws.w.variable_s.global_variables[tag_from_text(ws.s.variables_m.named_global_variables, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("american_civil_war_has_happened")))]);
+	EXPECT_EQ(0.0f, ws.w.variable_s.global_variables[tag_from_text(ws.s.variables_m.named_global_variables, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "american_civil_war_has_happened"))]);
 
 	EXPECT_EQ(1ui32, get_size(ws.w.variable_s.national_flags_arrays, ger_nation->national_flags));
-	EXPECT_EQ(true, contains_item(ws.w.variable_s.national_flags_arrays, ger_nation->national_flags, tag_from_text(ws.s.variables_m.named_national_flags, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("serfdom_not_abolished")))));
+	EXPECT_EQ(true, contains_item(ws.w.variable_s.national_flags_arrays, ger_nation->national_flags, tag_from_text(ws.s.variables_m.named_national_flags, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "serfdom_not_abolished"))));
 
 	auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(853ui16)].pops);
 	EXPECT_EQ(2i64, pop_range.second - pop_range.first);
 
 	for(auto p = pop_range.first; p != pop_range.second; ++p) {
-		if(ws.w.population_s.pops.get(*p).culture == tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("catalan")))) {
+		if(ws.w.population_s.pops.get(*p).culture == tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "catalan"))) {
 			EXPECT_EQ(ws.w.population_s.pops.get(*p).literacy, static_cast<uint16_t>(0.75f * float(std::numeric_limits<uint16_t>::max())));
 			EXPECT_EQ(ws.w.population_s.pops.get(*p).consciousness, static_cast<uint16_t>(2.0f * float(std::numeric_limits<uint16_t>::max()) / 10.0f));
 		} else {
@@ -352,64 +361,67 @@ TEST(nations_tests, read_nations_files_layered) {
 
 	preparse_test_files real_fs;
 	file_system f;
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	population::read_all_pops(f.get_root(), ws, date_to_tag(boost::gregorian::date(1840, boost::gregorian::Jan, 1)));
 
-	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("GER")));
+	const char gert[] = "GER";
+	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE(gert)));
 	auto ger_nation = make_nation_for_tag(ws, ger_tag);
 
-	silent_set_province_owner(ws, ger_nation, provinces::province_tag(853ui16));
+	provinces::silent_set_province_owner(ws, *ger_nation, ws.w.province_s.province_state_container[provinces::province_tag(853ui16)]);
 
 	std::vector<std::pair<country_tag, events::decision_tag>> decisions;
 	read_nations_files(ws, date_to_tag(boost::gregorian::date(1840, boost::gregorian::Jan, 1)), f.get_root(), decisions);
 
-	auto jap_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("JAP")));
+	const char japt[] = "JAP";
+	auto jap_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE(japt)));
 	auto jap_nation = make_nation_for_tag(ws, jap_tag);
 
-	auto mex_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE("MEX")));
+	const char mext[] = "MEX";
+	auto mex_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE(mext)));
 	auto mex_nation = make_nation_for_tag(ws, mex_tag);
 
 	EXPECT_EQ(0, get_relationship(ws, *ger_nation, jap_nation->id));
 	EXPECT_EQ(200, get_relationship(ws, *ger_nation, mex_nation->id));
 	EXPECT_EQ(provinces::province_tag(487ui16), ger_nation->current_capital);
 
-	EXPECT_EQ(tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("spanish"))), ger_nation->primary_culture);
+	EXPECT_EQ(tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "spanish")), ger_nation->primary_culture);
 	EXPECT_EQ(2ui32, get_size(ws.w.culture_s.culture_arrays, ger_nation->accepted_cultures));
-	EXPECT_EQ(true, contains_item(ws.w.culture_s.culture_arrays, ger_nation->accepted_cultures, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("catalan")))));
-	EXPECT_EQ(true, contains_item(ws.w.culture_s.culture_arrays, ger_nation->accepted_cultures, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("basque")))));
-	EXPECT_EQ(tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("catholic"))), ger_nation->national_religion);
-	EXPECT_EQ(tag_from_text(ws.s.governments_m.named_government_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("hms_government"))), ger_nation->current_government);
+	EXPECT_EQ(true, contains_item(ws.w.culture_s.culture_arrays, ger_nation->accepted_cultures, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "catalan"))));
+	EXPECT_EQ(true, contains_item(ws.w.culture_s.culture_arrays, ger_nation->accepted_cultures, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "basque"))));
+	EXPECT_EQ(tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "catholic")), ger_nation->national_religion);
+	EXPECT_EQ(tag_from_text(ws.s.governments_m.named_government_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "hms_government")), ger_nation->current_government);
 	EXPECT_EQ(25.0f, ger_nation->plurality);
-	EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_national_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("nv_equality"))), ger_nation->national_value);
-	EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_national_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("commerce_tech_school"))), ger_nation->tech_school);
+	EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_national_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "nv_equality")), ger_nation->national_value);
+	EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_national_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "commerce_tech_school")), ger_nation->tech_school);
 	EXPECT_EQ(nations::nation::is_civilized, ger_nation->flags);
-	EXPECT_EQ(40.0f, ger_nation->prestige);
-	EXPECT_EQ(tag_from_text(ws.s.governments_m.named_party_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("SPA_conservative"))), ger_nation->ruling_party);
+	EXPECT_EQ(40.0f, ger_nation->base_prestige);
+	EXPECT_EQ(tag_from_text(ws.s.governments_m.named_party_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "SPA_conservative")), ger_nation->ruling_party);
 	EXPECT_EQ(date_to_tag(boost::gregorian::date(1834, boost::gregorian::Jan, 1)), ger_nation->last_election);
-	EXPECT_EQ(ws.w.nation_s.upper_house.get(ger_nation->id, tag_from_text(ws.s.ideologies_m.named_ideology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("liberal")))), 0ui8);
-	EXPECT_EQ(ws.w.nation_s.upper_house.get(ger_nation->id, tag_from_text(ws.s.ideologies_m.named_ideology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("conservative")))), 95ui8);
+	EXPECT_EQ(ws.w.nation_s.upper_house.get(ger_nation->id, tag_from_text(ws.s.ideologies_m.named_ideology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "liberal"))), 0ui8);
+	EXPECT_EQ(ws.w.nation_s.upper_house.get(ger_nation->id, tag_from_text(ws.s.ideologies_m.named_ideology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "conservative"))), 95ui8);
 	EXPECT_EQ(10000.0f, get_foreign_investment(ws, *ger_nation, mex_nation->id));
 	EXPECT_EQ(2000.0f, get_foreign_investment(ws, *ger_nation, jap_nation->id));
-	EXPECT_EQ(tag_from_text(ws.s.issues_m.named_option_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("yes_slavery"))), ws.w.nation_s.active_issue_options.get(ger_nation->id, tag_from_text(ws.s.issues_m.named_issue_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("slavery")))));
-	EXPECT_EQ(tag_from_text(ws.s.issues_m.named_option_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("free_press"))), ws.w.nation_s.active_issue_options.get(ger_nation->id, tag_from_text(ws.s.issues_m.named_issue_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("press_rights")))));
-	EXPECT_EQ(ws.s.culture_m.national_tags[ger_nation->tag].monarchy_flag, ws.w.culture_s.country_flags_by_government.get(ger_nation->tag, tag_from_text(ws.s.governments_m.named_government_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("absolute_monarchy")))));
-	EXPECT_EQ(ws.s.culture_m.national_tags[ger_nation->tag].base_flag, ws.w.culture_s.country_flags_by_government.get(ger_nation->tag, tag_from_text(ws.s.governments_m.named_government_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("hms_government")))));
+	EXPECT_EQ(tag_from_text(ws.s.issues_m.named_option_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "yes_slavery")), ws.w.nation_s.active_issue_options.get(ger_nation->id, tag_from_text(ws.s.issues_m.named_issue_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "slavery"))));
+	EXPECT_EQ(tag_from_text(ws.s.issues_m.named_option_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "free_press")), ws.w.nation_s.active_issue_options.get(ger_nation->id, tag_from_text(ws.s.issues_m.named_issue_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "press_rights"))));
+	EXPECT_EQ(ws.s.culture_m.national_tags[ger_nation->tag].monarchy_flag, ws.w.culture_s.country_flags_by_government.get(ger_nation->tag, tag_from_text(ws.s.governments_m.named_government_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "absolute_monarchy"))));
+	EXPECT_EQ(ws.s.culture_m.national_tags[ger_nation->tag].base_flag, ws.w.culture_s.country_flags_by_government.get(ger_nation->tag, tag_from_text(ws.s.governments_m.named_government_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "hms_government"))));
 
-	EXPECT_EQ(true, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation->id), to_index(tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("post_napoleonic_thought"))))));
-	EXPECT_EQ(true, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation->id), to_index(tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("authoritarianism"))))));
-	EXPECT_EQ(true, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation->id), to_index(tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("flintlock_rifles"))))));
+	EXPECT_EQ(true, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation->id), to_index(tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "post_napoleonic_thought")))));
+	EXPECT_EQ(true, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation->id), to_index(tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "authoritarianism")))));
+	EXPECT_EQ(true, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation->id), to_index(tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "flintlock_rifles")))));
 
-	EXPECT_EQ(1.0f, ws.w.variable_s.global_variables[tag_from_text(ws.s.variables_m.named_global_variables, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("american_civil_war_has_happened")))]);
+	EXPECT_EQ(1.0f, ws.w.variable_s.global_variables[tag_from_text(ws.s.variables_m.named_global_variables, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "american_civil_war_has_happened"))]);
 
 	EXPECT_EQ(0ui32, get_size(ws.w.variable_s.national_flags_arrays, ger_nation->national_flags));
-	EXPECT_EQ(false, contains_item(ws.w.variable_s.national_flags_arrays, ger_nation->national_flags, tag_from_text(ws.s.variables_m.named_national_flags, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("serfdom_not_abolished")))));
+	EXPECT_EQ(false, contains_item(ws.w.variable_s.national_flags_arrays, ger_nation->national_flags, tag_from_text(ws.s.variables_m.named_national_flags, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "serfdom_not_abolished"))));
 
 	auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(853ui16)].pops);
 	EXPECT_EQ(2i64, pop_range.second - pop_range.first);
 
 	for(auto p = pop_range.first; p != pop_range.second; ++p) {
-		if(ws.w.population_s.pops.get(*p).culture == tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("catalan")))) {
+		if(ws.w.population_s.pops.get(*p).culture == tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "catalan"))) {
 			EXPECT_EQ(ws.w.population_s.pops.get(*p).literacy, static_cast<uint16_t>(0.75f * float(std::numeric_limits<uint16_t>::max())));
 			EXPECT_EQ(ws.w.population_s.pops.get(*p).consciousness, static_cast<uint16_t>(2.0f * float(std::numeric_limits<uint16_t>::max()) / 10.0f));
 		} else {
@@ -420,6 +432,6 @@ TEST(nations_tests, read_nations_files_layered) {
 
 	EXPECT_EQ(1ui64, decisions.size());
 	EXPECT_EQ(ger_nation->id, decisions[0].first);
-	EXPECT_EQ(tag_from_text(ws.s.event_m.descisions_by_title_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, RANGE("trail_of_tears_TITLE"))), decisions[0].second);
+	EXPECT_EQ(tag_from_text(ws.s.event_m.descisions_by_title_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "trail_of_tears_TITLE")), decisions[0].second);
 }
 

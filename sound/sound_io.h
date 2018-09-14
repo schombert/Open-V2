@@ -16,7 +16,7 @@ public:
 		serialize(output, obj.volume);
 	}
 	template<typename ... CONTEXT>
-	static void deserialize_object(std::byte const* &input, sound::sound_effect& obj, CONTEXT&& ... c) {
+	static void deserialize_object(std::byte const* &input, sound::sound_effect& obj, CONTEXT&& ... ) {
 		deserialize(input, obj.filename);
 		deserialize(input, obj.volume);
 	}
@@ -38,7 +38,7 @@ public:
 		serialize(output, obj.click);
 	}
 	template<typename ... CONTEXT>
-	static void deserialize_object(std::byte const* &input, sound::sound_manager& obj, CONTEXT&& ... c) {
+	static void deserialize_object(std::byte const* &input, sound::sound_manager& obj, CONTEXT&& ... ) {
 		deserialize(input, obj.sound_effects);
 		deserialize(input, obj.named_sound_effects);
 		deserialize(input, obj.click);

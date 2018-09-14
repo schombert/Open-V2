@@ -478,6 +478,7 @@ namespace text_data {
 			case value_type::head_of_government: return u"head_of_government";
 			case value_type::owner: return u"owner";
 			case value_type::playername: return u"playername";
+			default: return u"";
 		}
 	}
 

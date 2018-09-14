@@ -38,7 +38,7 @@ TEST(basic_gui_button, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree,
 		"name = bname\n"
 		"buttonText = dummy\n"
 		"buttonFont = dummy\n"
@@ -46,7 +46,7 @@ TEST(basic_gui_button, gui_definitions_tests) {
 		"tooltipText = \"\"\n"
 		"delayedtooltipText = \"\"\n"
 		"quadTextureSprite = dummy\n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_button(parse_object<guiButtonType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -84,7 +84,7 @@ TEST(non_default_gui_button, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = bname\n"
 		"buttonText = dummy\n"
 		"buttonFont = dummy\n"
@@ -99,7 +99,7 @@ TEST(non_default_gui_button, gui_definitions_tests) {
 		"position = { x = 10 y = 20} \n"
 		"format = left\n"
 		"size = { x = 30 y = 40} \n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_button(parse_object<guiButtonType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -137,7 +137,7 @@ TEST(checkbox, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = bname\n"
 		"buttonText = dummy\n"
 		"buttonFont = dummy\n"
@@ -152,7 +152,7 @@ TEST(checkbox, gui_definitions_tests) {
 		"position = { x = 10 y = 20} \n"
 		"format = left\n"
 		"size = { x = 30 y = 40} \n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_checkboxType(parse_object<guiButtonType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -190,7 +190,7 @@ TEST(bad_values_gui_button, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = bname\n"
 		"buttonText = dummy\n"
 		"buttonFont = dummy\n"
@@ -205,7 +205,7 @@ TEST(bad_values_gui_button, gui_definitions_tests) {
 		"position = { x = 10 y = 20} \n"
 		"format = right\n"
 		"size = { x = 30 y = 40} \n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_button(parse_object<guiButtonType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -236,9 +236,9 @@ TEST(basic_gui_icon, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = iname\n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_iconType(parse_object<iconType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -273,7 +273,7 @@ TEST(non_default_gui_icon, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = iname\n"
 		"scale = 0.5\n"
 		"buttonMesh = dummy\n"
@@ -281,7 +281,7 @@ TEST(non_default_gui_icon, gui_definitions_tests) {
 		"frame = 6\n"
 		"rotation = -1.5708\n"
 		"orientation = CENTER_UP\n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_iconType(parse_object<iconType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -315,7 +315,7 @@ TEST(shield_gui_icon, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = iname\n"
 		"scale = 0.5\n"
 		"buttonMesh = dummy\n"
@@ -323,7 +323,7 @@ TEST(shield_gui_icon, gui_definitions_tests) {
 		"frame = 6\n"
 		"rotation = -1.5708\n"
 		"orientation = CENTER_UP\n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_shieldtype(parse_object<iconType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -357,7 +357,7 @@ TEST(errors_gui_icon, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = iname\n"
 		"scale = 0.5\n"
 		"buttonMesh = dummy\n"
@@ -366,7 +366,7 @@ TEST(errors_gui_icon, gui_definitions_tests) {
 		"rotation = -7\n"
 		"orientation = mmm\n"
 		"bad_key = w"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_iconType(parse_object<iconType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -395,9 +395,9 @@ TEST(basic_gui_text, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = tname\n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_instantTextBoxType(parse_object<allTextBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -439,7 +439,7 @@ TEST(non_default_gui_text, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = tname\n"
 		"allwaysTransparent = yes\n"
 		"fixedSize = yes\n"
@@ -452,7 +452,7 @@ TEST(non_default_gui_text, gui_definitions_tests) {
 		"position = {x=10 y=20}\n"
 		"maxHeight = 8\n"
 		"maxWidth = 16\n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_textBoxType(parse_object<allTextBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -493,7 +493,7 @@ TEST(size_gui_text, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = tname\n"
 		"allwaysTransparent = yes\n"
 		"fixedSize = yes\n"
@@ -505,7 +505,7 @@ TEST(size_gui_text, gui_definitions_tests) {
 		"borderSize = {x = 1, y = 2}\n"
 		"position = {x=10 y=20}\n"
 		"size = {x = 30 y = 40}\n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_textBoxType(parse_object<allTextBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -546,7 +546,7 @@ TEST(edit_gui_text, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = tname\n"
 		"allwaysTransparent = yes\n"
 		"fixedSize = yes\n"
@@ -559,7 +559,7 @@ TEST(edit_gui_text, gui_definitions_tests) {
 		"position = {x=10 y=20}\n"
 		"maxHeight = 8\n"
 		"maxWidth = 16\n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_editBoxType(parse_object<allTextBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -600,7 +600,7 @@ TEST(errors_gui_text, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = tname\n"
 		"allwaysTransparent = yes\n"
 		"fixedSize = yes\n"
@@ -614,7 +614,7 @@ TEST(errors_gui_text, gui_definitions_tests) {
 		"maxHeight = 8\n"
 		"maxWidth = 16\n"
 		"badkey"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_textBoxType(parse_object<allTextBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -661,10 +661,10 @@ TEST(basic_gui_position, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = pname\n"
 		"position = {x = 20 y = 10}"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_positionType(parse_object<positionType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -691,11 +691,11 @@ TEST(errors_gui_position, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = pname\n"
 		"badkey\n"
 		"position = {x = 20 y = 10}"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_positionType(parse_object<positionType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -723,9 +723,9 @@ TEST(basic_overlapping_region, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = oname\n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_OverlappingElementsBoxType(parse_object<OverlappingElementsBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -758,14 +758,14 @@ TEST(non_default_overlapping_region, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = oname\n"
 		"position = {x=10, y=20}\n"
 		"size = {x=4 y=8}\n"
 		"orientation = UPPER_LEFT\n"
 		"format = left\n"
 		"spacing =0.5\n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_OverlappingElementsBoxType(parse_object<OverlappingElementsBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -798,7 +798,7 @@ TEST(errors_overlapping_region, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = oname\n"
 		"position = {x=10, y=20}\n"
 		"size = {x=4 y=8}\n"
@@ -806,7 +806,7 @@ TEST(errors_overlapping_region, gui_definitions_tests) {
 		"format = justified\n"
 		"spacing =0.5\n"
 		"badkey"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_OverlappingElementsBoxType(parse_object<OverlappingElementsBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -843,10 +843,10 @@ TEST(basic_listbox, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = lname\n"
 		"spacing = 0\n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_listBoxType(parse_object<listBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -884,7 +884,7 @@ TEST(non_default_listbox, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = lname\n"
 		"orientation = upper_right\n"
 		"position = {x=15 y=20}\n"
@@ -898,7 +898,7 @@ TEST(non_default_listbox, gui_definitions_tests) {
 		"bordersize = {x=1 y=2}\n"
 		"offset = {x=3 y=4}\n"
 		"horizontal = no\n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_listBoxType(parse_object<listBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -936,7 +936,7 @@ TEST(errors_listbox, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = lname\n"
 		"orientation = unk\n"
 		"position = {x=15 y=20}\n"
@@ -951,7 +951,7 @@ TEST(errors_listbox, gui_definitions_tests) {
 		"offset = {x=3 y=4}\n"
 		"horizontal = yes\n"
 		"badattribute\n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_listBoxType(parse_object<listBoxType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -997,7 +997,7 @@ TEST(basic_scrollbar, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = sname\n"
 		"rightbutton = b\n"
 		"leftbutton = a\n"
@@ -1007,7 +1007,7 @@ TEST(basic_scrollbar, gui_definitions_tests) {
 		"guiButtonType = { name = b }\n"
 		"guiButtonType = { name = c }\n"
 		"guiButtonType = { name = d }\n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_scrollbarType(parse_object<scrollbarType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -1051,7 +1051,7 @@ TEST(nondefault_scrollbar, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = sname\n"
 		"rightbutton = b\n"
 		"leftbutton = a\n"
@@ -1078,7 +1078,7 @@ TEST(nondefault_scrollbar, gui_definitions_tests) {
 		"guiButtonType = { name = b }\n"
 		"guiButtonType = { name = c }\n"
 		"guiButtonType = { name = d }\n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_scrollbarType(parse_object<scrollbarType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -1123,7 +1123,7 @@ TEST(errors_scrollbar, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = sname\n"
 		"rightbutton = b\n"
 		"track = c\n"
@@ -1149,7 +1149,7 @@ TEST(errors_scrollbar, gui_definitions_tests) {
 		"guiButtonType = { name = c }\n"
 		"guiButtonType = { name = d }\n"
 		"badattribute\n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_scrollbarType(parse_object<scrollbarType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -1202,9 +1202,9 @@ TEST(basic_window, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = wname\n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_windowType(parse_object<windowType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -1241,7 +1241,7 @@ TEST(non_default_window, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = wname\n"
 		"size = {x=1 y=2}\n"
 		"position = {x=4 y=5}\n"
@@ -1251,7 +1251,7 @@ TEST(non_default_window, gui_definitions_tests) {
 		"guiButtonType = { name = x }\n"
 		"background = x\n"
 		"listBoxType = { name = l }\n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_eu3dialogtype(parse_object<windowType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));
@@ -1291,7 +1291,7 @@ TEST(errors_window, gui_definitions_tests) {
 	gui_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
+	parse_pdx_file(parse_tree, 
 		"name = wname\n"
 		"basattribute\n"
 		"size = {x=1 y=2}\n"
@@ -1302,7 +1302,7 @@ TEST(errors_window, gui_definitions_tests) {
 		"guiButtonType = { name = x }\n"
 		"background = y\n"
 		"listBoxType = { name = l }\n"
-	));
+	);
 
 	if (parse_tree.size() > 0)
 		container.gui_eu3dialogtype(parse_object<windowType, gui_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e));

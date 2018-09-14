@@ -178,5 +178,17 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::losing_colonial_race] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_ColonialBad_influence");
 		s.fixed_ui_text[fixed_ui::no_colonial_activity] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_NO_Colonial");
 		s.fixed_ui_text[fixed_ui::at_peace] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "ATPEACE");
+		s.fixed_ui_text[fixed_ui::month_1] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "January");
+		s.fixed_ui_text[fixed_ui::month_2] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "February");
+		s.fixed_ui_text[fixed_ui::month_3] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "March");
+		s.fixed_ui_text[fixed_ui::month_4] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "April");
+		s.fixed_ui_text[fixed_ui::month_5] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "May");
+		s.fixed_ui_text[fixed_ui::month_6] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "June");
+		s.fixed_ui_text[fixed_ui::month_7] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "July");
+		s.fixed_ui_text[fixed_ui::month_8] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "August");
+		s.fixed_ui_text[fixed_ui::month_9] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "September");
+		s.fixed_ui_text[fixed_ui::month_10] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "October");
+		s.fixed_ui_text[fixed_ui::month_11] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "November");
+		s.fixed_ui_text[fixed_ui::month_12] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "December");
 	}
 }

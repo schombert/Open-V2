@@ -179,6 +179,11 @@ bool has_fixed_prefix(const  char* start, const  char* end, const char(&t)[N]) {
 	return true;
 }
 
+template<size_t N>
+void parse_pdx_file(std::vector<token_group>& results, const char(&t)[N]) {
+	parse_pdx_file(results, t, t + N - 1);
+}
+
 bool starts_with(const char* start, const char* end, char v);
 token_group get_current_token(const char* start, const char* end);
 

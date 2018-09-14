@@ -141,7 +141,7 @@ TEST(issues_tests, test_single_issue) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	issues_manager manager;
 	text_data::text_sequences tex;
@@ -177,7 +177,7 @@ TEST(issues_tests, test_multiple_issues) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test2"));
+	f.set_root(u"F:\\test2");
 
 	issues_manager manager;
 	text_data::text_sequences tex;
@@ -231,7 +231,7 @@ TEST(issues_tests, unciv_issues) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test3"));
+	f.set_root(u"F:\\test3");
 
 	issues_manager manager;
 	text_data::text_sequences tex;
@@ -283,15 +283,15 @@ TEST(issues_tests, rule_reading) {
 
 	auto result = read_rules(parse_results.data(), parse_results.data() + parse_results.size());
 
-	EXPECT_EQ(rules::pop_expand_factory | rules::all_voting, result.rules_settings.rules);
-	EXPECT_EQ(rules::pop_expand_factory | rules::citizens_rights_mask, result.rules_mask.rules);
+	EXPECT_EQ(rules::pop_expand_factory | rules::all_voting, result.rules_settings.rules_value);
+	EXPECT_EQ(rules::pop_expand_factory | rules::citizens_rights_mask, result.rules_mask.rules_value);
 }
 
 TEST(issues_tests, full_parse) {
 	preparse_test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test4"));
+	f.set_root(u"F:\\test4");
 
 	scenario::scenario_manager sm;
 	events::event_creation_manager ecm;
@@ -305,8 +305,8 @@ TEST(issues_tests, full_parse) {
 	EXPECT_EQ(1.0f, sm.issues_m.options[option_tag(3)].war_exhaustion_effect);
 	EXPECT_EQ(2i16, sm.issues_m.options[option_tag(5)].administrative_multiplier);
 	
-	EXPECT_EQ(rules::build_factory | rules::expand_factory | rules::open_factory | rules::destroy_factory | rules::build_railway | rules::factory_priority | rules::can_subsidise, sm.issues_m.options[option_tag(0)].issue_rules.rules_mask.rules);
-	EXPECT_EQ( rules::open_factory, sm.issues_m.options[option_tag(0)].issue_rules.rules_settings.rules);
+	EXPECT_EQ(rules::build_factory | rules::expand_factory | rules::open_factory | rules::destroy_factory | rules::build_railway | rules::factory_priority | rules::can_subsidise, sm.issues_m.options[option_tag(0)].issue_rules.rules_mask.rules_value);
+	EXPECT_EQ( rules::open_factory, sm.issues_m.options[option_tag(0)].issue_rules.rules_settings.rules_value);
 	EXPECT_EQ(-1.0f, sm.modifiers_m.national_modifier_definitions[sm.issues_m.options[option_tag(1)].modifier][modifiers::national_offsets::min_tariff]);
 	EXPECT_NE(0.0f, sm.modifiers_m.national_modifier_definitions[sm.issues_m.options[option_tag(6)].modifier][modifiers::national_offsets::core_pop_militancy_modifier]);
 	EXPECT_NE(triggers::trigger_tag(), sm.issues_m.options[option_tag(4)].allow);

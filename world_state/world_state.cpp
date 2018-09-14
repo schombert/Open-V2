@@ -108,14 +108,17 @@ namespace current_state {
 
 	void state::toggle_pause() {
 		paused = !paused;
+		ui::make_visible_and_update(gui_m, *(gui_objects->topbar.associated_object));
 	}
 
 	void state::increase_speed() {
 		speed = std::min(speed + 1, current_state::max_speed);
+		ui::make_visible_and_update(gui_m, *(gui_objects->topbar.associated_object));
 	}
 
 	void state::decrease_speed() {
 		speed = std::max(speed - 1, 1);
+		ui::make_visible_and_update(gui_m, *(gui_objects->topbar.associated_object));
 	}
 
 	bool state::population_window_has_state_expanded(nations::state_tag t) {

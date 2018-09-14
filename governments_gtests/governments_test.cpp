@@ -98,7 +98,7 @@ TEST(governments_tests, test_single_government) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	governments_manager m;
 	text_data::text_sequences tex;
@@ -130,7 +130,7 @@ TEST(governments_tests, test_single_ideology) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test2"));
+	f.set_root(u"F:\\test2");
 
 	governments_manager m;
 	ideologies::ideologies_manager im;
@@ -162,7 +162,7 @@ TEST(governments_tests, test_multiple) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test3"));
+	f.set_root(u"F:\\test3");
 
 	governments_manager m;
 	text_data::text_sequences tex;
@@ -209,7 +209,7 @@ TEST(governments_tests, individual_party) {
 
 	scenario::scenario_manager s;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	issues::pre_parse_issues(s.issues_m, f.get_root(), s.gui_m.text_data_sequences);
 	ideologies::pre_parse_ideologies(s.ideologies_m, f.get_root(), s.gui_m.text_data_sequences);
@@ -233,9 +233,9 @@ TEST(governments_tests, individual_party) {
 	EXPECT_EQ(date_to_tag(boost::gregorian::date(1846, boost::gregorian::Jan, 2)), s.governments_m.parties[party_tag(0)].start_date);
 	EXPECT_EQ(date_to_tag(boost::gregorian::date(1991, boost::gregorian::Jan, 10)), s.governments_m.parties[party_tag(0)].end_date);
 	EXPECT_EQ(
-		tag_from_text(s.ideologies_m.named_ideology_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("member_1"))),
+		tag_from_text(s.ideologies_m.named_ideology_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "member_1")),
 		s.governments_m.parties[party_tag(0)].ideology);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, RANGE("BHO_liberal")), s.governments_m.parties[party_tag(0)].name);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "BHO_liberal"), s.governments_m.parties[party_tag(0)].name);
 	EXPECT_EQ(s.governments_m.party_issues.get(party_tag(0), 0), issues::option_tag(1));
 	EXPECT_EQ(s.governments_m.party_issues.get(party_tag(0), 1), issues::option_tag(2));
 }

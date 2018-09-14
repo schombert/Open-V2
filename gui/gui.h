@@ -681,7 +681,7 @@ namespace ui {
 	template<typename BASE, int32_t horizontal_resolution>
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, linechart<BASE, horizontal_resolution>& b);
 	template<typename B, int32_t y_adjust>
-	ui::tagged_gui_object create_static_element(world_state& ws, ui::text_tag handle, tagged_gui_object parent, display_text<B, y_adjust>& b);
+	ui::tagged_gui_object create_static_element(world_state& ws, text_tag handle, tagged_gui_object parent, display_text<B, y_adjust>& b);
 	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, dynamic_icon<B>& b);
 	template<typename B>

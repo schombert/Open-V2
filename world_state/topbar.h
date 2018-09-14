@@ -377,6 +377,12 @@ namespace current_state {
 		void update(ui::simple_button<speed_indicator_button>& self, world_state& ws);
 	};
 
+	class topbar_date {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+
 	using topbar_t = ui::gui_window <
 		CT_STRING("topbar_bg"), ui::simple_button<topbar_bg>,
 		CT_STRING("topbar_paper"), ui::simple_button<topbar_bg>,
@@ -434,18 +440,19 @@ namespace current_state {
 		CT_STRING("military_manpower_value"), ui::display_text<manpower_text_box>,
 		CT_STRING("military_leadership_value"), ui::display_text<leadership_text_box>,
 		CT_STRING("topbar_outlinerbutton"), ui::simple_button<outliner_button>,
-		CT_STRING("nation_totalrank"), ui::display_text<topbar_overall_rank, -8>,
-		CT_STRING("country_prestige"), ui::display_text<topbar_prestige, -6>,
-		CT_STRING("selected_prestige_rank"), ui::display_text<topbar_prestige_rank, -2>,
-		CT_STRING("country_economic"), ui::display_text<topbar_industrial_score, -6>,
-		CT_STRING("selected_industry_rank"), ui::display_text<topbar_industrial_rank, -2>,
-		CT_STRING("country_military"), ui::display_text<topbar_military_score, -6>,
-		CT_STRING("selected_military_rank"), ui::display_text<topbar_military_rank, -2>,
-		CT_STRING("country_colonial_power"), ui::display_text<topbar_colonial_points, -4>,
+		CT_STRING("nation_totalrank"), ui::display_text<topbar_overall_rank, -18>,
+		CT_STRING("country_prestige"), ui::display_text<topbar_prestige, -8>,
+		CT_STRING("selected_prestige_rank"), ui::display_text<topbar_prestige_rank, -15>,
+		CT_STRING("country_economic"), ui::display_text<topbar_industrial_score, -8>,
+		CT_STRING("selected_industry_rank"), ui::display_text<topbar_industrial_rank, -15>,
+		CT_STRING("country_military"), ui::display_text<topbar_military_score, -8>,
+		CT_STRING("selected_military_rank"), ui::display_text<topbar_military_rank, -15>,
+		CT_STRING("country_colonial_power"), ui::display_text<topbar_colonial_points, -15>,
 		CT_STRING("button_speedup"), ui::simple_button<increase_speed_button>,
 		CT_STRING("button_speeddown"), ui::simple_button<decrease_speed_button>,
 		CT_STRING("pause_bg"), ui::simple_button<pause_button>,
 		CT_STRING("speed_indicator"), ui::simple_button<speed_indicator_button>,
+		CT_STRING("DateText"), ui::display_text<topbar_date, -8>,
 		CT_STRING("CountryName"), ui::display_text<topbar_country_name>,
 		topbar_base
 		>;

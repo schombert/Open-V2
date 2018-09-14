@@ -109,9 +109,11 @@ namespace triggers {
 			return apply_conjuctively(source, ws, primary_slot, this_slot, from_slot, rebel_slot);
 	}
 
+#ifdef __llvm__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-prototypes"
 #pragma clang diagnostic ignored "-Wunused-parameter"
+#endif
 
 	bool tf_none(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		return true;
@@ -807,7 +809,7 @@ namespace triggers {
 		auto ratio = economy::money_qnty_type(read_float_from_payload(tval + 2));
 		auto target = population::desired_needs_spending(ws, *((population::pop*)primary_slot));
 		auto money = economy::money_qnty_type(((population::pop*)primary_slot)->money);
-		return compare_values(tval[0], money / target, ratio);
+		return compare_values(tval[0], target != economy::money_qnty_type(0) ? money / target : economy::money_qnty_type(100), ratio);
 	}
 	bool tf_unemployment_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		auto nation_id = ((nations::nation*)primary_slot)->id;
@@ -836,7 +838,7 @@ namespace triggers {
 		return compare_values(tval[0], unemployed_fraction, read_float_from_payload(tval + 2));
 	}
 	bool tf_is_slave_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
-		return compare_values(tval[0], 0 != (((nations::nation*)primary_slot)->current_rules.rules & issues::rules::slavery_allowed), true);
+		return compare_values(tval[0], 0 != (((nations::nation*)primary_slot)->current_rules.rules_value & issues::rules::slavery_allowed), true);
 	}
 	bool tf_is_slave_state(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		return compare_values(tval[0], 0 != (((nations::state_instance*)primary_slot)->flags & nations::state_instance::is_slave_state), true);
@@ -1249,7 +1251,7 @@ namespace triggers {
 		return tf_is_cultural_union_tag_nation(tval, ws, this_slot, nullptr, nullptr, nullptr);
 	}
 	bool tf_can_build_factory_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
-		return compare_values(tval[0], 0 != (((nations::nation*)primary_slot)->current_rules.rules | issues::rules::pop_build_factory), true);
+		return compare_values(tval[0], 0 != (((nations::nation*)primary_slot)->current_rules.rules_value | issues::rules::pop_build_factory), true);
 	}
 	bool tf_can_build_factory_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		auto p_owner = ((provinces::province_state*)primary_slot)->owner;
@@ -5154,6 +5156,8 @@ namespace triggers {
 		}
 	}
 
+#ifdef __llvm__
 #pragma clang diagnostic pop
-	
+#endif
+
 }

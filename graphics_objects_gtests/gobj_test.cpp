@@ -24,13 +24,14 @@ TEST(empty_file_with_types, graphics_objects_tests) {
 	gfx_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
-		"spritetypes = {}\n"
+
+	const char tex[] = "spritetypes = {}\n"
 		"bitmapfonts = {}\n"
 		"fonts = {}\n"
 		"lighttypes = {}\n"
-		"objecttypes = {}\n"
-	));
+		"objecttypes = {}\n";
+
+	parse_pdx_file(parse_tree, RANGE(tex));
 
 	if (parse_tree.size() > 0)
 		parse_object<gfx_file, gfx_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e);
@@ -51,14 +52,15 @@ TEST(unknown_filetype_error, graphics_objects_tests) {
 	gfx_file container(e);
 
 	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
-		"spritetypes = {}\n"
+
+	const char tex[] = "spritetypes = {}\n"
 		"bitmapfonts = {}\n"
 		"fonts = {}\n"
 		"lighttypes = {}\n"
 		"objecttypes = {}\n"
-		"badtype = {}"
-	));
+		"badtype = {}";
+
+	parse_pdx_file(parse_tree, RANGE(tex));
 
 	if (parse_tree.size() > 0)
 		parse_object<gfx_file, gfx_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e);
@@ -79,16 +81,16 @@ TEST(unknown_spritetype_error, graphics_objects_tests) {
 
 	gfx_file container(e);
 
-	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
-		"spritetypes = {\n"
+	const char tex[] = "spritetypes = {\n"
 		"badspritetype = {}\n"
 		"}\n"
 		"bitmapfonts = {}\n"
 		"fonts = {}\n"
 		"lighttypes = {}\n"
-		"objecttypes = {}\n"
-	));
+		"objecttypes = {}\n";
+
+	std::vector<token_group> parse_tree;
+	parse_pdx_file(parse_tree, RANGE(tex));
 
 	if (parse_tree.size() > 0)
 		parse_object<gfx_file, gfx_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e);
@@ -112,17 +114,17 @@ TEST(accept_mentioned_items, graphics_objects_tests) {
 
 	gfx_file container(e);
 
-	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
-		"spritetypes = {\n"
+	const char tex[] = "spritetypes = {\n"
 		"spritetype = {name = unknown}\n"
 		"spritetype = {name = dummy}\n"
 		"}\n"
 		"bitmapfonts = {}\n"
 		"fonts = {}\n"
 		"lighttypes = {}\n"
-		"objecttypes = {}\n"
-	));
+		"objecttypes = {}\n";
+
+	std::vector<token_group> parse_tree;
+	parse_pdx_file(parse_tree, RANGE(tex));
 
 	if (parse_tree.size() > 0)
 		parse_object<gfx_file, gfx_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e);
@@ -155,9 +157,7 @@ TEST(non_default_properties, graphics_objects_tests) {
 
 	gfx_file container(e);
 
-	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
-		"spritetypes = {\n"
+	const char tex[] = "spritetypes = {\n"
 		"barcharttype = {\n"
 		"name = dummy\n"
 		"allwaystransparent = yes\n"
@@ -173,8 +173,10 @@ TEST(non_default_properties, graphics_objects_tests) {
 		"bitmapfonts = {}\n"
 		"fonts = {}\n"
 		"lighttypes = {}\n"
-		"objecttypes = {}\n"
-	));
+		"objecttypes = {}\n";
+
+	std::vector<token_group> parse_tree;
+	parse_pdx_file(parse_tree, RANGE(tex));
 
 	if (parse_tree.size() > 0)
 		parse_object<gfx_file, gfx_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e);
@@ -207,9 +209,7 @@ TEST(non_default_properties_b, graphics_objects_tests) {
 
 	gfx_file container(e);
 
-	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
-		"spritetypes = {\n"
+	const char tex[] = "spritetypes = {\n"
 		"progressbartype = {\n"
 		"name = dummy\n"
 		"allwaystransparent = yes\n"
@@ -226,8 +226,10 @@ TEST(non_default_properties_b, graphics_objects_tests) {
 		"bitmapfonts = {}\n"
 		"fonts = {}\n"
 		"lighttypes = {}\n"
-		"objecttypes = {}\n"
-	));
+		"objecttypes = {}\n";
+
+	std::vector<token_group> parse_tree;
+	parse_pdx_file(parse_tree, RANGE(tex));
 
 	if (parse_tree.size() > 0)
 		parse_object<gfx_file, gfx_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e);
@@ -260,9 +262,7 @@ TEST(errors, graphics_objects_tests) {
 
 	gfx_file container(e);
 
-	std::vector<token_group> parse_tree;
-	parse_pdx_file(parse_tree, RANGE(
-		"spritetypes = {\n"
+	const char tex[] = "spritetypes = {\n"
 		"progressbartype = {\n"
 		"name = dummy\n"
 		"allwaystransparent = yes\n"
@@ -280,8 +280,10 @@ TEST(errors, graphics_objects_tests) {
 		"bitmapfonts = {}\n"
 		"fonts = {}\n"
 		"lighttypes = {}\n"
-		"objecttypes = {}\n"
-	));
+		"objecttypes = {}\n";
+
+	std::vector<token_group> parse_tree;
+	parse_pdx_file(parse_tree, RANGE(tex));
 
 	if (parse_tree.size() > 0)
 		parse_object<gfx_file, gfx_file_domain>(&parse_tree[0], &parse_tree[0] + parse_tree.size(), e);

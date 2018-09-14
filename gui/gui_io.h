@@ -20,7 +20,7 @@ public:
 		serialize(output, obj.text_data_sequences);
 	}
 	template<typename ... CONTEXT>
-	static void deserialize_object(std::byte const* &input, ui::gui_static& obj, CONTEXT&& ... c) {
+	static void deserialize_object(std::byte const* &input, ui::gui_static& obj, CONTEXT&& ...) {
 		deserialize(input, obj.textures);
 		deserialize(input, obj.nmaps);
 		deserialize(input, obj.ui_definitions);

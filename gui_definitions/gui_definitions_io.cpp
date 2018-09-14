@@ -18,7 +18,7 @@ namespace ui {
 	std::optional<uint16_t> textbox_background_from_rh(association_type, const token_and_type& t);
 	std::optional<uint8_t> listbox_orientation_from_rh(association_type, const token_and_type& t);
 	std::optional<uint8_t> overlapping_orientation_from_rh(association_type, const token_and_type& t);
-	std::optional<uint16_t> overlapping_format_from_rh(association_type, const token_and_type& t);
+	std::optional<uint8_t> overlapping_format_from_rh(association_type, const token_and_type& t);
 	std::optional<uint8_t> window_orientation_from_rh(association_type, const token_and_type& t);
 
 	struct parsing_environment {
@@ -727,7 +727,7 @@ namespace ui {
 		return std::optional<uint8_t>();
 	}
 
-	std::optional<uint16_t> overlapping_format_from_rh(association_type, const token_and_type& t) {
+	std::optional<uint8_t> overlapping_format_from_rh(association_type, const token_and_type& t) {
 		if(is_fixed_token_ci(t, "centre") || is_fixed_token_ci(t, "center")) {
 			return ui::overlapping_region_def::format_center;
 		} else if(is_fixed_token_ci(t, "left")) {
@@ -735,7 +735,7 @@ namespace ui {
 		} else if(is_fixed_token_ci(t, "right")) {
 			return ui::overlapping_region_def::format_right;
 		}
-		return std::optional<uint16_t>();
+		return std::optional<uint8_t>();
 	}
 
 	struct OverlappingElementsBoxType {

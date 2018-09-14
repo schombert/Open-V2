@@ -754,7 +754,7 @@ TEST(trigger_reading, data_lookup_trigger) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	cultures::read_national_tags(sm.culture_m, f.get_root());
 	cultures::read_cultures(sm.culture_m, tex, f.get_root(), sm.gui_m.text_data_sequences);
@@ -792,7 +792,7 @@ TEST(trigger_reading, data_lookup_effect) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	cultures::read_national_tags(sm.culture_m, f.get_root());
 	cultures::read_cultures(sm.culture_m, tex, f.get_root(), sm.gui_m.text_data_sequences);
@@ -829,7 +829,7 @@ TEST(trigger_reading, variable_trigger) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	ideologies::pre_parse_ideologies(sm.ideologies_m, f.get_root(), sm.gui_m.text_data_sequences);
 
@@ -866,7 +866,7 @@ TEST(trigger_reading, variable_effect) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	ideologies::pre_parse_ideologies(sm.ideologies_m, f.get_root(), sm.gui_m.text_data_sequences);
 	economy::read_goods(sm.economy_m, f.get_root(), sm.gui_m.text_data_sequences);
@@ -955,7 +955,7 @@ TEST(trigger_reading, multipart_trigger) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	cultures::read_national_tags(sm.culture_m, f.get_root());
 
@@ -988,7 +988,7 @@ TEST(trigger_reading, multipart_effect) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	cultures::read_national_tags(sm.culture_m, f.get_root());
 
@@ -1130,7 +1130,7 @@ TEST(trigger_reading, with_named_issue) {
 	test_files real_fs;
 	file_system f;
 
-	f.set_root(RANGE(u"F:\\test1"));
+	f.set_root(u"F:\\test1");
 
 	scenario::scenario_manager sm;
 	events::event_creation_manager ecm;
