@@ -529,6 +529,12 @@ namespace events {
 		decision& new_decision = env.s.event_m.decision_container[tag];
 
 		std::string token(t.start, t.end);
+
+		if(!is_valid_index(new_decision.picture)) {
+			std::string name_with_ext = std::string("\\gfx\\pictures\\decisions\\") + token + ".tga";
+			new_decision.picture = env.s.gui_m.textures.retrieve_by_name(env.pictures_root, name_with_ext.c_str(), name_with_ext.c_str() + name_with_ext.length());
+		}
+		
 		std::string s_title = token + "_title";
 		std::string s_desc = token + "_desc";
 		new_decision.title = text_data::get_thread_safe_text_handle(env.s.gui_m.text_data_sequences, s_title.c_str(), s_title.c_str() + s_title.length());

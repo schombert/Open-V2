@@ -606,7 +606,7 @@ namespace nations {
 			}
 		}
 		if(npo.plurality)
-			target_nation.plurality = *npo.plurality;
+			target_nation.plurality = *npo.plurality / 100.0f;
 		if(npo.prestige)
 			target_nation.base_prestige = *npo.prestige;
 		if(npo.civilized && *npo.civilized)

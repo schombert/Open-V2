@@ -1,5 +1,6 @@
 #pragma once
 #include "gui.hpp"
+#include "gui.h"
 #undef max
 #undef min
 
@@ -37,10 +38,19 @@ void ui::multiline_text<BASE, x_size_adjust, y_size_adjust>::update_data(gui_obj
 			content_frame.object.position.y = int16_t(-sb.position());
 			ui::make_visible_immediate(*sb.associated_object);
 		} else {
+			sb.set_range(w.w.gui_m, 0, 0);
 			content_frame.object.position.y = 0i16;
 			ui::hide(*sb.associated_object);
 		}
 	}
+}
+
+template<typename BASE, int32_t x_size_adjust, int32_t y_size_adjust>
+bool ui::multiline_text<BASE, x_size_adjust, y_size_adjust>::on_scroll(gui_object_tag t, world_state & ws, const scroll & s) {
+	if(ws.w.gui_m.gui_objects.at(scrollable_region).size.y > outer_height)
+		return sb.on_scroll(t, ws, s);
+	else
+		return true;
 }
 
 template<typename BASE, int32_t y_adjust>
@@ -63,9 +73,9 @@ void ui::multiline_text<BASE, x_size_adjust, y_size_adjust>::windowed_update(win
 		tagged_gui_object content_frame{ w.w.gui_m.gui_objects.at(scrollable_region), scrollable_region };
 
 		ui::clear_children(w.w.gui_m, content_frame);
-		line_manager lm(align, outer_width);
+		line_manager lm(align, content_frame.object.size.x);
 
-		BASE::update(content_frame, win, lm, format, w);
+		BASE::windowed_update(win, content_frame, lm, format, w);
 		lm.finish_current_line();
 
 		int32_t max_height = 1;
@@ -116,7 +126,7 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::text_tag ha
 		ui::text_aligment_from_text_definition(text_def),
 		text_format{ is_black ? ui::text_color::black : ui::text_color::white, font_h, int_font_size });
 
-	const auto new_gobj = ui::detail::create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
+	const auto new_gobj = ws.w.gui_m.gui_objects.emplace();
 
 	new_gobj.object.associated_behavior = &b;
 	b.associated_object = &new_gobj.object;

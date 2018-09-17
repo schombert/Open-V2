@@ -143,6 +143,17 @@ namespace ui {
 		virtual bool on_text(gui_object_tag, world_state&, const text_event&) override { return true; }
 	};
 
+	class window_pane : public visible_region {
+	public:
+		window_pane(window_pane&&) = default;
+		template<typename ...P>
+		explicit window_pane(P&& ...) {}
+		virtual bool on_get_focus(gui_object_tag, world_state&) override;
+		virtual bool on_scroll(gui_object_tag, world_state&, const scroll&) override;
+		virtual bool on_drag(gui_object_tag, world_state&, const mouse_drag&) override;
+		virtual bool on_text(gui_object_tag, world_state&, const text_event&) override;
+	};
+
 	class fixed_region : public visible_region {
 	public:
 		fixed_region(fixed_region&&) = default;
@@ -434,7 +445,7 @@ namespace ui {
 		void set_height(int32_t y) { outer_height = y; }
 		void create_sub_elements(tagged_gui_object self, world_state& ws);
 		virtual void update_data(gui_object_tag, world_state&) final override;
-		virtual bool on_scroll(gui_object_tag, t world_state& ws, const scroll& s) final override { return sb.on_scroll(t, ws, s); };
+		virtual bool on_scroll(gui_object_tag t, world_state& ws, const scroll& s) final override;
 	};
 
 

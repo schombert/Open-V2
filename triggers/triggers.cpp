@@ -983,7 +983,7 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_culture_group_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
-		auto cg = ws.s.culture_m.culture_container[trigger_payload(tval[2]).culture].group;
+		auto cg = trigger_payload(tval[2]).culture_group;
 		auto nation_pculture = ((nations::nation*)primary_slot)->primary_culture;
 		if(is_valid_index(nation_pculture))
 			return compare_values(tval[0], ws.s.culture_m.culture_container[nation_pculture].group == cg, true);
@@ -991,7 +991,7 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_culture_group_pop(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
-		auto cg = ws.s.culture_m.culture_container[trigger_payload(tval[2]).culture].group;
+		auto cg = trigger_payload(tval[2]).culture_group;
 		auto pculture = ((population::pop*)primary_slot)->culture;
 		if(is_valid_index(pculture))
 			return compare_values(tval[0], ws.s.culture_m.culture_container[pculture].group == cg, true);
@@ -2264,7 +2264,7 @@ namespace triggers {
 		return compare_values(tval[0], ((provinces::province_state*)primary_slot)->rebel_controller == rebel_slot, true);
 	}
 	bool tf_is_canal_enabled(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
-		return compare_values(tval[0], ws.w.province_s.is_canal_enabled[tval[2]] != 0ui8, true);
+		return compare_values(tval[0], ws.w.province_s.is_canal_enabled[tval[2]-1] != 0ui8, true);
 	}
 	bool tf_is_state_capital(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		auto id = ((provinces::province_state*)primary_slot)->id;

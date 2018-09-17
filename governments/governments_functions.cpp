@@ -130,9 +130,13 @@ namespace governments {
 	date_tag next_election_start_date(world_state& ws, nations::nation const& this_nation) {
 		if(auto gov = this_nation.current_government; is_valid_index(gov)) {
 			auto months_until = int32_t(ws.s.governments_m.governments_container[gov].duration);
-			auto last_election = tag_to_date(this_nation.last_election);
-			last_election += boost::gregorian::months(months_until);
-			return date_to_tag(last_election);
+			if(is_valid_index(this_nation.last_election)) {
+				auto last_election = tag_to_date(this_nation.last_election);
+				last_election += boost::gregorian::months(months_until);
+				return date_to_tag(last_election);
+			} else {
+				return ws.w.current_date;
+			}
 		}
 		return date_tag();
 	}

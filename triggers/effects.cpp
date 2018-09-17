@@ -1677,7 +1677,7 @@ namespace triggers {
 			((provinces::province_state*)primary_slot)->name = trigger_payload(tval[2]).text;
 		}
 		void ef_enable_canal(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
-			provinces::enable_canal(ws, tval[2]);
+			provinces::enable_canal(ws, tval[2] - 1);
 		}
 		void ef_set_global_flag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			ws.w.variable_s.global_variables[trigger_payload(tval[2]).global_var] = 1.0f;

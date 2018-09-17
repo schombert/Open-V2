@@ -113,8 +113,14 @@ namespace scenario {
 		constexpr uint32_t revanchism = 91ui32;
 		constexpr uint32_t cannot_hold_election = 92ui32;
 		constexpr uint32_t already_holding_election = 93ui32;
+		constexpr uint32_t can_social_reform = 94ui32;
+		constexpr uint32_t cannot_social_reform = 95ui32;
+		constexpr uint32_t can_social_revoke = 96ui32;
+		constexpr uint32_t can_political_reform = 97ui32;
+		constexpr uint32_t cannot_political_reform = 98ui32;
+		constexpr uint32_t can_political_revoke = 99ui32;
 
-		constexpr uint32_t count = 94ui32;
+		constexpr uint32_t count = 100ui32;
 	}
 
 	class scenario_manager {

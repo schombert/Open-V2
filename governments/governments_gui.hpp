@@ -11,10 +11,12 @@ namespace governments {
 		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
 			obj.object.position += ui::xy_pair{ -3i16, 38i16 };
 		});
+
+		ui::hide(*associated_object);
 	}
 
 	template<typename W>
-	void decision_pane_base::on_create(W& w, world_state&) {
+	void decision_pane_base::on_create(W& w, world_state& ws) {
 		associated_object->size = ui::xy_pair{ 612i16, 560i16 };
 		associated_object->position += ui::xy_pair{ 0i16, 34i16 };
 		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
@@ -23,7 +25,7 @@ namespace governments {
 	}
 
 	template<typename W>
-	void movements_pane_base::on_create(W& w, world_state&) {
+	void movements_pane_base::on_create(W& w, world_state& ws) {
 		associated_object->size = ui::xy_pair{ 613i16, 560i16 };
 		associated_object->position += ui::xy_pair{ 0i16, 34i16 };
 		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
@@ -32,7 +34,7 @@ namespace governments {
 	}
 
 	template<typename W>
-	void release_nations_pane_base::on_create(W& w, world_state&) {
+	void release_nations_pane_base::on_create(W& w, world_state& ws) {
 		associated_object->size = ui::xy_pair{ 616i16, 560i16 };
 		associated_object->position += ui::xy_pair{ 0i16, 34i16 };
 		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
@@ -41,7 +43,7 @@ namespace governments {
 	}
 
 	template<typename W>
-	void civilized_reforms_pane_base::on_create(W& w, world_state&) {
+	void civilized_reforms_pane_base::on_create(W& w, world_state& ws) {
 		associated_object->size = ui::xy_pair{ 616i16, 568i16 };
 		associated_object->position += ui::xy_pair{ 381i16, 46i16 };
 		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
@@ -50,7 +52,7 @@ namespace governments {
 	}
 
 	template<typename W>
-	void uncivilized_reforms_pane_base::on_create(W& w, world_state&) {
+	void uncivilized_reforms_pane_base::on_create(W& w, world_state& ws) {
 		associated_object->size = ui::xy_pair{ 616i16, 568i16 };
 		associated_object->position += ui::xy_pair{ 381i16, 46i16 };
 		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
@@ -63,17 +65,19 @@ namespace governments {
 		if(auto player = ws.w.local_player_nation; player) {
 			auto static_mod_range = get_range(ws.w.nation_s.static_modifier_arrays, player->static_modifiers);
 			for(auto s = static_mod_range.first; s != static_mod_range.second; ++s) {
-				lb.add_item(ws, ws.s.modifiers_m.national_modifiers[*s].icon, *s, date_tag());
+				if(auto m = *s; is_valid_index(m))
+					lb.add_item(ws, ws.s.modifiers_m.national_modifiers[m].icon, *s, date_tag());
 			}
 			auto timed_mod_range = get_range(ws.w.nation_s.timed_modifier_arrays, player->timed_modifiers);
 			for(auto s = timed_mod_range.first; s != timed_mod_range.second; ++s) {
-				lb.add_item(ws, ws.s.modifiers_m.national_modifiers[s->mod].icon, s->mod, s->expiration);
+				if(auto m = s->mod; is_valid_index(m))
+					lb.add_item(ws, ws.s.modifiers_m.national_modifiers[m].icon, m, s->expiration);
 			}
 		}
 	}
 
 	template<typename W>
-	void upperhouse_ideology_icon::windowed_update(ui::tinted_icon<upperhouse_ideology_icon>&, W & w, world_state & ws) {
+	void upperhouse_ideology_icon::windowed_update(ui::tinted_icon<upperhouse_ideology_icon>& self, W & w, world_state & ws) {
 		self.set_color(ws.w.gui_m, float(w.color.r) / 255.0f, float(w.color.g) / 255.0f, float(w.color.b) / 255.0f);
 	}
 
@@ -131,7 +135,7 @@ namespace governments {
 						issues::option_tag this_tag(static_cast<issues::option_tag::value_base_t>(i));
 						if(iss[i] != 0) {
 							data.emplace_back(
-								ws.s.issues_m.issues_container[this_tag].name,
+								ws.s.issues_m.options[this_tag].name,
 								iss[i] / total_pop,
 								0.0f);
 						}
@@ -200,7 +204,7 @@ namespace governments {
 	}
 
 	template<typename window_type>
-	void decision_item_image::windowed_update(ui::dynamic_icon<decision_item_image>& self, window_type & w, world_state & ws) {
+	void decision_item_image::windowed_update(ui::dynamic_icon<decision_item_image>& self, window_type & win, world_state & ws) {
 		if(is_valid_index(win.tag)) {
 			graphics::texture_tag picture = ws.s.event_m.decision_container[win.tag].picture;
 			auto gi = ws.w.gui_m.graphics_instances.safe_at(ui::graphics_instance_tag(self.associated_object->type_dependant_handle.load(std::memory_order_acquire)));
@@ -216,13 +220,13 @@ namespace governments {
 	}
 
 	template<typename window_type>
-	void decision_item_requirements::windowed_update(ui::dynamic_icon<decision_item_requirements>& self, window_type & w, world_state & ws) {
+	void decision_item_requirements::windowed_update(ui::dynamic_icon<decision_item_requirements>& self, window_type & win, world_state & ws) {
 		if(is_valid_index(win.tag))
 			tag = ws.s.event_m.decision_container[win.tag].allow;
 	}
 
 	template<typename window_type>
-	void enact_decision_button::windowed_update(ui::simple_button<enact_decision_button>& self, window_type & w, world_state & ws) {
+	void enact_decision_button::windowed_update(ui::simple_button<enact_decision_button>& self, window_type & win, world_state & ws) {
 		if(is_valid_index(win.tag))
 			tag = ws.s.event_m.decision_container[win.tag].effect;
 	}
@@ -236,7 +240,7 @@ namespace governments {
 
 		if(auto player = ws.w.local_player_nation; player) {
 			for(auto& d : ws.s.event_m.decision_container) {
-				if(!is_valid_index(d.allow) || triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(d.allow), ws, player, player, nullptr, nullptr)) {
+				if(!is_valid_index(d.potential) || triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(d.potential), ws, player, player, nullptr, nullptr)) {
 					possible_list.push_back(d.id);
 				}
 			}
@@ -266,9 +270,9 @@ namespace governments {
 
 	template<typename window_type>
 	void movements_item_size::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		if(is_valid_index(w.tag)) {
+		if(is_valid_index(win.tag)) {
 			char16_t local_buf[16];
-			put_value_in_buffer(local_buf, display_type::integer, ws.w.population_s.pop_movements[w.tag].total_population_support);
+			put_value_in_buffer(local_buf, display_type::integer, ws.w.population_s.pop_movements[win.tag].total_population_support);
 
 			ui::text_chunk_to_instances(
 				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
@@ -281,9 +285,9 @@ namespace governments {
 
 	template<typename window_type>
 	void movements_item_radicalism::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		if(is_valid_index(w.tag)) {
+		if(is_valid_index(win.tag)) {
 			char16_t local_buf[16];
-			put_value_in_buffer(local_buf, display_type::fp_one_place, ws.w.population_s.pop_movements[w.tag].radicalism);
+			put_value_in_buffer(local_buf, display_type::fp_one_place, ws.w.population_s.pop_movements[win.tag].radicalism);
 
 			ui::text_chunk_to_instances(
 				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
@@ -300,7 +304,7 @@ namespace governments {
 	}
 
 	template<typename window_type>
-	void rebels_item_type_icon::windowed_update(ui::dynamic_icon<rebels_item_type_icon>& sef, window_type & win, world_state & ws) {
+	void rebels_item_type_icon::windowed_update(ui::dynamic_icon<rebels_item_type_icon>& self, window_type & win, world_state & ws) {
 		if(is_valid_index(win.tag)) {
 			auto icon = ws.w.population_s.rebel_factions[win.tag].icon;
 			if(icon != 0)
@@ -323,7 +327,7 @@ namespace governments {
 	template<typename window_type>
 	void rebels_item_size::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		ui::text_chunk_to_instances(
-			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>("0"),
+			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"0"),
 			box, ui::xy_pair{ 0,0 }, fmt, lm
 		);
 		lm.finish_current_line();
@@ -332,7 +336,7 @@ namespace governments {
 	template<typename window_type>
 	void rebels_item_brigades_ready::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		ui::text_chunk_to_instances(
-			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>("0"),
+			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"0"),
 			box, ui::xy_pair{ 0,0 }, fmt, lm
 		);
 		lm.finish_current_line();
@@ -341,7 +345,7 @@ namespace governments {
 	template<typename window_type>
 	void rebels_item_brigades_active::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		ui::text_chunk_to_instances(
-			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>("0"),
+			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"0"),
 			box, ui::xy_pair{ 0,0 }, fmt, lm
 		);
 		lm.finish_current_line();
@@ -350,7 +354,7 @@ namespace governments {
 	template<typename window_type>
 	void rebels_item_organization::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		ui::text_chunk_to_instances(
-			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>("0"),
+			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"0"),
 			box, ui::xy_pair{ 0,0 }, fmt, lm
 		);
 		lm.finish_current_line();
@@ -359,7 +363,7 @@ namespace governments {
 	template<typename window_type>
 	void rebels_item_revolt_risk::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		ui::text_chunk_to_instances(
-			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>("0"),
+			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"0"),
 			box, ui::xy_pair{ 0,0 }, fmt, lm
 		);
 		lm.finish_current_line();
@@ -405,7 +409,7 @@ namespace governments {
 				self.set_enabled(true);
 				if(iss_def.next_step_only) {
 
-					if(to_index(tag) + 1 != to_index(current_option) || to_index(current_option) + 1 != to_index(tag))
+					if(to_index(tag) + 1 != to_index(current_option) && to_index(current_option) + 1 != to_index(tag))
 						self.set_enabled(false);
 				}
 				// todo: disable if lacking support
@@ -454,10 +458,10 @@ namespace governments {
 	template<typename W>
 	void reform_item_base::on_create(W & w, world_state & ws) {
 		auto& selected = w.template get<CT_STRING("selected")>();
-		ui::xy_pair selected_xy = selected.associated_object->position;
+		ui::xy_pair selected_xy = ui::xy_pair{ -selected.associated_object->position.x, -selected.associated_object->position.y };
 
 		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *w.associated_object, w.window_object }, [selected_xy](ui::tagged_gui_object o) {
-			o.object.position -= selected_xy;
+			o.object.position += selected_xy;
 		});
 	}
 
@@ -479,9 +483,9 @@ namespace governments {
 		auto& window_d = ws.s.gui_m.ui_definitions.windows[item_tag];
 
 		new_obj.object.position = ui::xy_pair{ int16_t(lb_x_offset), int16_t(lb_y_offset) };
-		new_obj.object.size = ui::xy_pair{ 155i16, int16_t(window_d.size.y * (last - 1) + 1) };
+		new_obj.object.size = ui::xy_pair{ 175i16, int16_t(window_d.size.y * (last) + 1) };
 
-		w.associated_object->size = ui::xy_pair{ int16_t(lb_x_offset + 150), int16_t(lb_y_offset + window_d.size.y * (last - 1) + 1) };
+		w.associated_object->size = ui::xy_pair{ int16_t(lb_x_offset + 175), int16_t(lb_y_offset + window_d.size.y * (last) + 1) };
 
 		new_obj.object.associated_behavior = &reform_options;
 		reform_options.associated_object = &new_obj.object;
@@ -491,5 +495,46 @@ namespace governments {
 
 		ui::add_to_back(ws.w.gui_m, ui::tagged_gui_object{ *w.associated_object, w.window_object }, new_obj);
 		ws.w.gui_m.flag_minimal_update();
+	}
+
+	template<typename window_type>
+	void release_nation_flag::windowed_update(ui::masked_flag<release_nation_flag>& self, window_type & w, world_state & ws) {
+		self.set_displayed_flag(ws, w.tag);
+	}
+	template<typename window_type>
+	void release_nation_button::windowed_update(ui::simple_button<release_nation_button>&, window_type & win, world_state & ws) {}
+	template<typename window_type>
+	void release_nation_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(is_valid_index(win.tag)) {
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.culture_m.national_tags[win.tag].default_name.name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			lm.finish_current_line();
+		}
+	}
+	template<typename window_type>
+	void release_nation_type::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
+	template<typename window_type>
+	void release_nation_description::windowed_update(window_type & win, ui::tagged_gui_object box, ui::line_manager & lm, ui::text_format & fmt, world_state & ws) {}
+
+	template<typename lb_type>
+	void release_nations_listbox::populate_list(lb_type & lb, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			boost::container::small_vector<cultures::national_tag, 32, concurrent_allocator<cultures::national_tag>> data;
+
+			auto owned_range = get_range(ws.w.province_s.province_arrays, player->owned_provinces);
+			for(auto p : owned_range) {
+				if(is_valid_index(p)) {
+					if(!contains_item(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container[p].cores, player->tag)) {
+						auto core_range = get_range(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container[p].cores);
+						for(auto c : core_range) {
+							if(is_valid_index(c) && (!ws.w.culture_s.national_tags_state[c].is_not_releasable) && std::find(data.begin(), data.end(), c) == data.end()) {
+								data.push_back(c);
+							}
+						}
+					}
+				}
+			}
+
+			lb.update_list(data.begin().get_ptr(), data.end().get_ptr());
+		}
 	}
 }

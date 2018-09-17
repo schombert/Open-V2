@@ -72,6 +72,7 @@ namespace triggers {
 		modifiers::national_modifier_tag nat_mod;
 		modifiers::provincial_modifier_tag prov_mod;
 		cultures::culture_tag culture;
+		cultures::culture_group_tag culture_group;
 		cultures::national_tag tag;
 		variables::national_variable_tag nat_var;
 		variables::national_flag_tag nat_flag;
@@ -90,6 +91,7 @@ namespace triggers {
 		trigger_payload(modifiers::national_modifier_tag i) : nat_mod(i) {}
 		trigger_payload(modifiers::provincial_modifier_tag i) : prov_mod(i) {}
 		trigger_payload(cultures::culture_tag i) : culture(i) {}
+		trigger_payload(cultures::culture_group_tag i) : culture_group(i) {}
 		trigger_payload(cultures::religion_tag i) : small(i) {}
 		trigger_payload(economy::goods_tag i) : small(i) {}
 		trigger_payload(population::rebel_type_tag i) : small(i) {}

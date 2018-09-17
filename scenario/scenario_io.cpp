@@ -196,5 +196,11 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::revanchism] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "revanchism");
 		s.fixed_ui_text[fixed_ui::cannot_hold_election] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POLITICS_CANNOT_HOLD_ELECTION_TOOLTIP");
 		s.fixed_ui_text[fixed_ui::already_holding_election] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POLITICS_ALREADY_HOLDING_ELECTION_TOOLTIP");
+		s.fixed_ui_text[fixed_ui::can_social_reform] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POLITICS_CAN_DO_SOCIAL_REFROMS");
+		s.fixed_ui_text[fixed_ui::cannot_social_reform] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POLITICS_CAN_NOT_DO_SOCIAL_REFROMS");
+		s.fixed_ui_text[fixed_ui::can_social_revoke] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POLITICS_CAN_REVOKE_SOCIAL_REFROMS");
+		s.fixed_ui_text[fixed_ui::can_political_reform] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POLITICS_CAN_DO_POLITICAL_REFROMS");
+		s.fixed_ui_text[fixed_ui::cannot_political_reform] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POLITICS_CAN_NOT_DO_POLITICAL_REFROMS");
+		s.fixed_ui_text[fixed_ui::can_political_revoke] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POLITICS_CAN_REVOKE_POLITICAL_REFROMS");
 	}
 }

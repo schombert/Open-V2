@@ -131,8 +131,8 @@ namespace graphics {
 				}
 			}
 		}
-
-		fname_map.emplace(file_name, new_key);
+		if(is_valid_index(new_key))
+			fname_map.emplace(file_name, new_key);
 		return new_key;
 	}
 

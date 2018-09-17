@@ -45,7 +45,7 @@ namespace governments {
 
 					auto ymd = tag_to_date(next_election).year_month_day();
 
-					ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::month_1 + ymd.month - 1], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+					cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::month_1 + ymd.month - 1], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 					cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
 
 					char16_t local_buf[16];
@@ -129,6 +129,9 @@ namespace governments {
 
 	ui::window_tag reforms_listbox::element_tag(ui::gui_static& m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["reform_option_window"]);
+	}
+	ui::window_tag release_nations_listbox::element_tag(ui::gui_static& m) {
+		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["vassal_nation"]);
 	}
 
 	void modifier_button::update(ui::simple_button<modifier_button>& ico, world_state & ws) {
@@ -303,7 +306,7 @@ namespace governments {
 				if(iss.type == issues::issue_group::political || iss.type == issues::issue_group::social) {
 					auto index_in_array = to_index(f->second) - ws.s.issues_m.party_issues.size();
 					reform_windows[index_in_array].init(f->second, lb_x_offset, lb_y_offset);
-					ui::create_static_element(ws, reform_window_tag, win, reform_windows[index_in_array]);
+					ui::create_static_element(ws, std::get<ui::window_tag>(t), win, reform_windows[index_in_array]);
 				} else {
 					return false;
 				}
@@ -338,7 +341,7 @@ namespace governments {
 				if(iss.type == issues::issue_group::military || iss.type == issues::issue_group::economic) {
 					auto index_in_array = to_index(f->second) - (ws.s.issues_m.party_issues.size() + ws.s.issues_m.political_issues.size() + ws.s.issues_m.social_issues.size());
 					reform_windows[index_in_array].init(f->second, lb_x_offset, lb_y_offset);
-					ui::create_static_element(ws, reform_window_tag, win, reform_windows[index_in_array]);
+					ui::create_static_element(ws, std::get<ui::window_tag>(t), win, reform_windows[index_in_array]);
 				} else {
 					return false;
 				}
@@ -352,4 +355,13 @@ namespace governments {
 	}
 
 	void unselected_option_button::button_function(ui::simple_button<unselected_option_button>&, world_state &) {}
+	void release_nation_button::button_function(ui::simple_button<release_nation_button>&, world_state &) {}
+	void social_reform_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::cannot_social_reform], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		lm.finish_current_line();
+	}
+	void political_reform_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::cannot_political_reform], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		lm.finish_current_line();
+	}
 }

@@ -279,7 +279,7 @@ namespace buttons_detail {
 			if constexpr(ui::detail::has_initialize_in_window<BEHAVIOR, window_type&, world_state&>)
 				BEHAVIOR::initialize_in_window(w, ws);
 		}
-		void set_selected(ui::gui_manager&, uint32_t) {
+		void set_selected(ui::gui_manager&, uint32_t i) {
 			current_index = i;
 		}
 		virtual void select(world_state& m, uint32_t i) override {

@@ -258,14 +258,32 @@ template<typename BASE_BEHAVIOR>
 ui::tagged_gui_object ui::gui_window<BASE_BEHAVIOR>::create(world_state& ws, const ui::window_def& definition) {
 	const auto win = create_window(ws, definition);
 	for (auto i = definition.sub_object_definitions.crbegin(); i != definition.sub_object_definitions.crend(); ++i) {
-		std::visit([&ws, &win](auto tag) {
-			ui::create_dynamic_element(ws, tag, win);
-		}, *i);
+		if constexpr(ui::detail::can_create_dynamic<BASE_BEHAVIOR, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
+			auto rn = ws.s.gui_m.nmaps.get_raw_name(*i);
+			const char* rn_s = rn.get_str(ws.s.gui_m.ui_definitions.name_data);
+			const char* rn_e = rn_s + rn.length();
+
+			if(!BASE_BEHAVIOR::create_dynamic(ws, win, *i, rn_s, rn_e)) {
+				std::visit([&ws, &win](auto tag) {
+					if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
+						ui::create_dynamic_element(ws, tag, win);
+				}, *i);
+			}
+		} else {
+			std::visit([&ws, &win](auto tag) {
+				if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
+					ui::create_dynamic_element(ws, tag, win);
+			}, *i);
+		}
 	}
 	window_object = win.id;
+
 	if constexpr(ui::detail::has_on_create<BASE_BEHAVIOR, world_state&>) {
 		BASE_BEHAVIOR::on_create(ws);
+	} else if constexpr(ui::detail::has_on_create<BASE_BEHAVIOR, ui::gui_window<BASE_BEHAVIOR>&, world_state&>) {
+		BASE_BEHAVIOR::on_create(*this, ws);
 	}
+
 	return win;
 }
 

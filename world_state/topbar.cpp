@@ -44,7 +44,9 @@ namespace current_state {
 	void tech_button::update(ui::simple_button<tech_button>& self, world_state& ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);
 	}
-	void politics_button::button_function(ui::simple_button<politics_button>&, world_state&) {}
+	void politics_button::button_function(ui::simple_button<politics_button>&, world_state& ws) {
+		ws.w.show_government_reforms_tab();
+	}
 	void politics_button::update(ui::simple_button<politics_button>& self, world_state& ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);
 	}
@@ -404,7 +406,9 @@ namespace current_state {
 			lm.finish_current_line();
 		}
 	}
-	void reform_alert::button_function(ui::simple_button<reform_alert>&, world_state &) {}
+	void reform_alert::button_function(ui::simple_button<reform_alert>&, world_state & ws) {
+		ws.w.show_government_reforms_tab();
+	}
 	void reform_alert::update(ui::simple_button<reform_alert>& self, world_state & ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);
 	}
@@ -412,14 +416,18 @@ namespace current_state {
 		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::cannot_reform], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
 	}
 
-	void decision_alert::button_function(ui::simple_button<reform_alert>&, world_state &) {}
+	void decision_alert::button_function(ui::simple_button<decision_alert>&, world_state & ws) {
+		ws.w.show_government_decisions_tab();
+	}
 	void decision_alert::update(ui::simple_button<decision_alert>& self, world_state & ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);
 	}
 	void decision_alert::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
 		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::no_decisions], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
 	}
-	void rebels_alert::button_function(ui::simple_button<reform_alert>&, world_state &) {}
+	void rebels_alert::button_function(ui::simple_button<rebels_alert>&, world_state & ws) {
+		ws.w.show_government_movements_tab();
+	}
 	void rebels_alert::update(ui::simple_button<rebels_alert>& self, world_state & ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);
 	}

@@ -81,9 +81,9 @@ namespace modifiers {
 		if(this_nation.blockaded_count != 0 && this_nation.central_province_count != 0)
 			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.total_blockaded] * (float(this_nation.blockaded_count) / float(this_nation.central_province_count));
 		if(this_nation.war_exhaustion != 0.0f)
-			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.war_exhaustion] * this_nation.war_exhaustion;
+			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.war_exhaustion] * 100.0f * this_nation.war_exhaustion;
 		if(this_nation.plurality != 0.0f)
-			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.plurality] * this_nation.plurality;
+			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.plurality] * 100.0f * this_nation.plurality;
 		if(is_valid_index(this_nation.disarmed_until) & (ws.w.current_date < this_nation.disarmed_until))
 			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.disarming];
 

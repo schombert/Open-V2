@@ -170,7 +170,7 @@ namespace population {
 		float radicalism_cache = 0.0f;
 
 		set_tag<pop_tag> member_pops;
-		nations::country_tag liberation_country;
+		cultures::national_tag liberation_country;
 		
 		movement_tag id;
 

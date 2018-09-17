@@ -145,7 +145,7 @@ namespace current_state {
 	};
 	class decision_alert {
 	public:
-		void button_function(ui::simple_button<reform_alert>&, world_state&);
+		void button_function(ui::simple_button<decision_alert>&, world_state&);
 		void update(ui::simple_button<decision_alert>& self, world_state &ws);
 		bool has_tooltip(world_state&) { return true; }
 		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
@@ -158,7 +158,7 @@ namespace current_state {
 	};
 	class rebels_alert {
 	public:
-		void button_function(ui::simple_button<reform_alert>&, world_state& ws);
+		void button_function(ui::simple_button<rebels_alert>&, world_state& ws);
 		void update(ui::simple_button<rebels_alert>& self, world_state&);
 		bool has_tooltip(world_state&) { return true; }
 		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);

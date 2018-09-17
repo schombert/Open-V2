@@ -13,11 +13,13 @@ namespace provinces {
 			auto& pstate = ws.w.province_s.province_state_container[selected];
 			auto static_mod_range = get_range(ws.w.province_s.static_modifier_arrays, pstate.static_modifiers);
 			for(auto s = static_mod_range.first; s != static_mod_range.second; ++s) {
-				lb.add_item(ws, ws.s.modifiers_m.provincial_modifiers[*s].icon, *s, date_tag());
+				if(auto m = *s; is_valid_index(m))
+					lb.add_item(ws, ws.s.modifiers_m.provincial_modifiers[m].icon, m, date_tag());
 			}
 			auto timed_mod_range = get_range(ws.w.province_s.timed_modifier_arrays, pstate.timed_modifiers);
 			for(auto s = timed_mod_range.first; s != timed_mod_range.second; ++s) {
-				lb.add_item(ws, ws.s.modifiers_m.provincial_modifiers[s->mod].icon, s->mod, s->expiration);
+				if(auto m = s->mod; is_valid_index(m))
+					lb.add_item(ws, ws.s.modifiers_m.provincial_modifiers[m].icon, m, s->expiration);
 			}
 		}
 	}

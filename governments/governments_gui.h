@@ -25,6 +25,16 @@ namespace governments {
 		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
 
+	class social_reform_text_box {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class political_reform_text_box {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
 	class plurality_text_box {
 	public:
 		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
@@ -232,7 +242,7 @@ namespace governments {
 		void windowed_update(ui::simple_button<unciv_overlay>& self, window_type& win, world_state& ws);
 	};
 
-	class decision_pane_base : public ui::fixed_region {
+	class decision_pane_base : public ui::window_pane {
 	public:
 		template<typename W>
 		void on_create(W& w, world_state&);
@@ -321,7 +331,7 @@ namespace governments {
 		decision_pane_base
 	>;
 
-	class movements_pane_base : public ui::fixed_region {
+	class movements_pane_base : public ui::window_pane {
 	public:
 		template<typename W>
 		void on_create(W& w, world_state&);
@@ -538,7 +548,7 @@ namespace governments {
 		reform_item_base
 	>;
 
-	class reform_window_base {
+	class reform_window_base : public ui::gui_behavior {
 	public:
 		issues::issue_tag for_issue;
 		int32_t lb_x_offset = 0;
@@ -565,7 +575,7 @@ namespace governments {
 		reform_window_base
 	>;
 
-	class civilized_reforms_pane_base : public ui::fixed_region {
+	class civilized_reforms_pane_base : public ui::window_pane {
 	public:
 		std::vector<reform_window> reform_windows;
 
@@ -585,7 +595,7 @@ namespace governments {
 	>;
 
 
-	class uncivilized_reforms_pane_base : public ui::fixed_region {
+	class uncivilized_reforms_pane_base : public ui::window_pane {
 	public:
 		std::vector<reform_window> reform_windows;
 
@@ -604,7 +614,7 @@ namespace governments {
 		uncivilized_reforms_pane_base
 	>;
 
-	class release_nations_pane_base : public ui::fixed_region {
+	class release_nations_pane_base : public ui::window_pane {
 	public:
 		template<typename W>
 		void on_create(W& w, world_state&);
@@ -677,6 +687,8 @@ namespace governments {
 		CT_STRING("government_name"), ui::display_text<government_type_text_box>,
 		CT_STRING("national_value"), ui::dynamic_icon<national_value_icon>,
 		CT_STRING("government_desc"), ui::display_text<government_description_text_box>,
+		CT_STRING("can_do_social_reforms"), ui::display_text<social_reform_text_box, -4>,
+		CT_STRING("can_do_political_reforms"), ui::display_text<political_reform_text_box, -4>,
 		CT_STRING("plurality"), ui::dynamic_icon<plurality_icon>,
 		CT_STRING("plurality_value"), ui::display_text<plurality_text_box>,
 		CT_STRING("revanchism"), ui::dynamic_icon<revanchism_icon>,

@@ -447,8 +447,8 @@ namespace modifiers {
 		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.badboy, modifier_offset, this_nation.infamy);
 		if(this_nation.central_province_count != 0)
 			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.total_blockaded, modifier_offset, float(this_nation.blockaded_count) / float(this_nation.central_province_count));
-		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.war_exhaustion, modifier_offset, this_nation.war_exhaustion);
-		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.plurality, modifier_offset, this_nation.plurality);
+		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.war_exhaustion, modifier_offset, 100.0f * this_nation.war_exhaustion);
+		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.plurality, modifier_offset, 100.0f * this_nation.plurality);
 		
 		if(is_valid_index(this_nation.disarmed_until) & (ws.w.current_date < this_nation.disarmed_until))
 			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.disarming, modifier_offset, value_type(1));

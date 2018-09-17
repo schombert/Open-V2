@@ -327,6 +327,43 @@ namespace ui {
 		ui::move_to_front(m.w.gui_m, ui::tagged_gui_object{ *associated_object, t });
 		return true;
 	}
+
+	bool window_pane::on_get_focus(gui_object_tag t, world_state& ws) {
+		gui_object_tag parent_tag = ws.w.gui_m.gui_objects.at(t).parent;
+		if(is_valid_index(parent_tag)) {
+			if(auto b = ws.w.gui_m.gui_objects.at(parent_tag).associated_behavior; b) {
+				b->on_get_focus(parent_tag, ws);
+			}
+		}
+		return true;
+	}
+	bool window_pane::on_scroll(gui_object_tag t, world_state& ws, const scroll& e) {
+		gui_object_tag parent_tag = ws.w.gui_m.gui_objects.at(t).parent;
+		if(is_valid_index(parent_tag)) {
+			if(auto b = ws.w.gui_m.gui_objects.at(parent_tag).associated_behavior; b) {
+				b->on_scroll(parent_tag, ws, e);
+			}
+		}
+		return true;
+	}
+	bool window_pane::on_drag(gui_object_tag t, world_state& ws, const mouse_drag& e) {
+		gui_object_tag parent_tag = ws.w.gui_m.gui_objects.at(t).parent;
+		if(is_valid_index(parent_tag)) {
+			if(auto b = ws.w.gui_m.gui_objects.at(parent_tag).associated_behavior; b) {
+				b->on_drag(parent_tag, ws, e);
+			}
+		}
+		return true;
+	}
+	bool window_pane::on_text(gui_object_tag t, world_state& ws, const text_event& e) {
+		gui_object_tag parent_tag = ws.w.gui_m.gui_objects.at(t).parent;
+		if(is_valid_index(parent_tag)) {
+			if(auto b = ws.w.gui_m.gui_objects.at(parent_tag).associated_behavior; b) {
+				b->on_text(parent_tag, ws, e);
+			}
+		}
+		return true;
+	}
 }
 
 
