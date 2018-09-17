@@ -107,8 +107,14 @@ namespace scenario {
 		constexpr uint32_t month_10 = 85ui32;
 		constexpr uint32_t month_11 = 86ui32;
 		constexpr uint32_t month_12 = 87ui32;
+		constexpr uint32_t can_appoint_ruling_party = 88ui32;
+		constexpr uint32_t next_election = 89ui32;
+		constexpr uint32_t plurality = 90ui32;
+		constexpr uint32_t revanchism = 91ui32;
+		constexpr uint32_t cannot_hold_election = 92ui32;
+		constexpr uint32_t already_holding_election = 93ui32;
 
-		constexpr uint32_t count = 88ui32;
+		constexpr uint32_t count = 94ui32;
 	}
 
 	class scenario_manager {

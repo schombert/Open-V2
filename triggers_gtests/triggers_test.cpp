@@ -1320,7 +1320,7 @@ TEST(trigger_execution, set_a) {
 	world_state ws;
 
 	concurrency::task_group tg;
-	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario_cmp.bin", ws.s, tg);
+	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s, tg);
 	tg.wait();
 
 	ready_world_state(ws);
@@ -1781,5 +1781,158 @@ TEST(trigger_execution, set_a) {
 		t_result.push_back(0ui16);
 
 		EXPECT_FALSE(test_trigger(t_result.data(), ws, nullptr, nullptr, nullptr, nullptr));
+	}
+}
+
+TEST(effect_execution, set_a) {
+	world_state ws;
+
+	concurrency::task_group tg;
+	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s, tg);
+	tg.wait();
+
+	ready_world_state(ws);
+
+	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_save_cmp.bin", ws.w, ws);
+
+	auto ptr_ger = ws.w.culture_s.national_tags_state[ws.s.culture_m.national_tags_index[cultures::tag_to_encoding("GER")]].holder;
+	auto ptr_usa = ws.w.culture_s.national_tags_state[ws.s.culture_m.national_tags_index[cultures::tag_to_encoding("USA")]].holder;
+
+	{
+		const char effect[] = "prestige = 10";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, effect);
+
+		events::event_creation_manager ecm;
+
+		auto e_result = parse_effect(
+			ws.s,
+			ecm,
+			trigger_scope_state{
+				trigger_slot_contents::nation,
+				trigger_slot_contents::nation,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		e_result.push_back(0ui16);
+
+		auto pre_prestige = ptr_ger->base_prestige;
+
+		execute_effect(
+			e_result.data(),
+			ws,
+			ptr_ger,
+			ptr_ger,
+			nullptr,
+			nullptr,
+			get_local_generator());
+
+		EXPECT_EQ(pre_prestige + 10 * (ptr_ger->tech_attributes[technologies::tech_offset::prestige] + 1.0f), ptr_ger->base_prestige);
+	}
+
+	{
+		const char effect[] = "any_country = { prestige = 10 }";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, effect);
+
+		events::event_creation_manager ecm;
+
+		auto e_result = parse_effect(
+			ws.s,
+			ecm,
+			trigger_scope_state{
+				trigger_slot_contents::nation,
+				trigger_slot_contents::nation,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		e_result.push_back(0ui16);
+
+		auto pre_prestige_a = ptr_ger->base_prestige;
+		auto pre_prestige_b = ptr_usa->base_prestige;
+
+		execute_effect(
+			e_result.data(),
+			ws,
+			nullptr,
+			nullptr,
+			nullptr,
+			nullptr,
+			get_local_generator());
+
+		EXPECT_EQ(pre_prestige_a + 10 * (ptr_ger->tech_attributes[technologies::tech_offset::prestige] + 1.0f), ptr_ger->base_prestige);
+		EXPECT_EQ(pre_prestige_b + 10 * (ptr_usa->tech_attributes[technologies::tech_offset::prestige] + 1.0f), ptr_usa->base_prestige);
+	}
+
+	{
+		const char effect[] = "any_country = { limit = { tag = USA } prestige = 10 }";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, effect);
+
+		events::event_creation_manager ecm;
+
+		auto e_result = parse_effect(
+			ws.s,
+			ecm,
+			trigger_scope_state{
+				trigger_slot_contents::nation,
+				trigger_slot_contents::nation,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		e_result.push_back(0ui16);
+
+		auto pre_prestige_a = ptr_ger->base_prestige;
+		auto pre_prestige_b = ptr_usa->base_prestige;
+
+		execute_effect(
+			e_result.data(),
+			ws,
+			nullptr,
+			nullptr,
+			nullptr,
+			nullptr,
+			get_local_generator());
+
+		EXPECT_EQ(pre_prestige_a, ptr_ger->base_prestige);
+		EXPECT_EQ(pre_prestige_b + 10 * (ptr_usa->tech_attributes[technologies::tech_offset::prestige] + 1.0f), ptr_usa->base_prestige);
+	}
+
+	{
+		const char effect[] = "random_country = { limit = { tag = USA } prestige = 10 }";
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, effect);
+
+		events::event_creation_manager ecm;
+
+		auto e_result = parse_effect(
+			ws.s,
+			ecm,
+			trigger_scope_state{
+				trigger_slot_contents::nation,
+				trigger_slot_contents::nation,
+				trigger_slot_contents::empty,
+				false },
+				parse_results.data(),
+				parse_results.data() + parse_results.size());
+		e_result.push_back(0ui16);
+
+		auto pre_prestige_a = ptr_ger->base_prestige;
+		auto pre_prestige_b = ptr_usa->base_prestige;
+
+		execute_effect(
+			e_result.data(),
+			ws,
+			nullptr,
+			nullptr,
+			nullptr,
+			nullptr,
+			get_local_generator());
+
+		EXPECT_EQ(pre_prestige_a, ptr_ger->base_prestige);
+		EXPECT_EQ(pre_prestige_b + 10 * (ptr_usa->tech_attributes[technologies::tech_offset::prestige] + 1.0f), ptr_usa->base_prestige);
 	}
 }

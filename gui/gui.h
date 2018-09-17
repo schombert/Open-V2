@@ -394,6 +394,14 @@ namespace ui {
 		virtual void update_data(gui_object_tag, world_state&) final override;
 	};
 
+	class unmanaged_region_scollbar {
+	private:
+		gui_object& contents_frame;
+	public:
+		unmanaged_region_scollbar(gui_object& g) : contents_frame(g) {}
+		void on_position(int32_t pos);
+	};
+
 	class listbox_scrollbar {
 	private:
 		gui_object* _content_frame = nullptr;
@@ -402,6 +410,33 @@ namespace ui {
 		void on_position(int32_t pos) const;
 		void associate(gui_object* g) { _content_frame = g; }
 	};
+
+	template<typename BASE, int32_t x_size_adjust = 0, int32_t y_size_adjust = 0>
+	class multiline_text : public gui_behavior, public BASE {
+	private:
+		text_format format;
+		text_data::alignment align;
+		gui_object_tag scrollable_region;
+		ui::scrollbar<listbox_scrollbar> sb;
+		int32_t outer_height = 1;
+	public:
+		multiline_text(multiline_text&&) = default;
+		template<typename ...P>
+		multiline_text(P&& ... params) : BASE(std::forward<P>(params)...) {}
+
+		template<typename window_type>
+		void windowed_update(window_type&, world_state&);
+
+		void set_format(text_data::alignment a, const text_format& fmt) {
+			align = a;
+			format = fmt;
+		}
+		void set_height(int32_t y) { outer_height = y; }
+		void create_sub_elements(tagged_gui_object self, world_state& ws);
+		virtual void update_data(gui_object_tag, world_state&) final override;
+		virtual bool on_scroll(gui_object_tag, t world_state& ws, const scroll& s) final override { return sb.on_scroll(t, ws, s); };
+	};
+
 
 	template<typename BASE, typename ELEMENT, int32_t left_expand = 0>
 	class display_listbox : public visible_region, public BASE {
@@ -682,6 +717,8 @@ namespace ui {
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, linechart<BASE, horizontal_resolution>& b);
 	template<typename B, int32_t y_adjust>
 	ui::tagged_gui_object create_static_element(world_state& ws, text_tag handle, tagged_gui_object parent, display_text<B, y_adjust>& b);
+	template<typename B, int32_t x_size_adjust, int32_t y_size_adjust>
+	ui::tagged_gui_object create_static_element(world_state& ws, text_tag handle, tagged_gui_object parent, multiline_text<B, x_size_adjust, y_size_adjust>& b);
 	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, dynamic_icon<B>& b);
 	template<typename B>
@@ -742,9 +779,10 @@ namespace ui {
 		const text_data::alignment align;
 		const int32_t max_line_extent;
 		const int32_t border_x = 0;
-		const int32_t border_y = 0;
+		int32_t border_y = 0;
 	public:
 		text_box_line_manager(text_data::alignment a, int32_t m, int32_t bx, int32_t by);
+		void set_border_y(int32_t v) { border_y = v; }
 		bool exceeds_extent(int32_t) const { return false; }
 		void add_object(gui_object* o);
 		void finish_current_line();

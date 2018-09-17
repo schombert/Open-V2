@@ -370,6 +370,7 @@ namespace current_state {
 		if(auto player = ws.w.local_player_nation; player) {
 			if(auto rp = player->ruling_party; is_valid_index(rp)) {
 				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.governments_m.parties[rp].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+				lm.finish_current_line();
 			}
 		}
 	}
@@ -590,6 +591,7 @@ namespace current_state {
 		if(auto player = ws.w.local_player_nation; player) {
 			if(get_size(ws.w.military_s.war_arrays, player->wars_involved_in) == 0) {
 				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::at_peace], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+				lm.finish_current_line();
 			}
 		}
 	}

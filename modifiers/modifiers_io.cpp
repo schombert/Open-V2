@@ -16,6 +16,7 @@ namespace modifiers {
 		parsed_data crimes_file;
 		parsed_data nv_file;
 		parsed_data triggered_modifiers_file;
+		int32_t count_parsed_nv = 0;
 
 		std::vector<std::tuple<national_modifier_tag, const token_group*, const token_group*>> pending_modifier_triggers;
 		std::vector<std::tuple<uint32_t, const token_group*, const token_group*>> pending_crimes;
@@ -66,7 +67,7 @@ namespace modifiers {
 
 	inline int read_single_national_value(const token_group* start, const token_group* end, const token_and_type& t, parsing_environment& env) {
 		const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
-		parse_national_modifier(name, env.manager, start, end);
+		parse_national_modifier(name, env.manager, start, end, env.count_parsed_nv++);
 		return 0;
 	}
 
@@ -521,7 +522,7 @@ namespace modifiers {
 		READ_NAT_MOD(total_blockaded)
 		READ_NAT_MOD(in_bankrupcy)
 
-		struct static_modifiers_file {
+	struct static_modifiers_file {
 		parsing_environment& env;
 		static_modifiers_file(parsing_environment& e) : env(e) {}
 
@@ -1545,9 +1546,12 @@ namespace modifiers {
 		text_data::text_tag name,
 		modifiers_manager& manager,
 		const token_group* s,
-		const token_group* e) {
+		const token_group* e,
+		int32_t force_icon) {
 
 		auto parsed_modifier = parse_object<modifier_reading_base, single_modifier_domain>(s, e);
+		if(force_icon >= 0)
+			parsed_modifier.icon = uint32_t(force_icon);
 		return add_national_modifier(name, parsed_modifier, manager);
 	}
 

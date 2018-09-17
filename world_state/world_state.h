@@ -125,6 +125,11 @@ namespace current_state {
 		void toggle_pause();
 		void increase_speed();
 		void decrease_speed();
+		void hide_government_window();
+		void show_government_reforms_tab();
+		void show_government_movements_tab();
+		void show_government_decisions_tab();
+		void show_government_release_nations_tab();
 	};
 }
 

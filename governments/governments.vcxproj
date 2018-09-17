@@ -146,11 +146,14 @@
   <ItemGroup>
     <ClInclude Include="governments.h" />
     <ClInclude Include="governments_functions.h" />
+    <ClInclude Include="governments_gui.h" />
+    <ClInclude Include="governments_gui.hpp" />
     <ClInclude Include="governments_io.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="governments.cpp" />
     <ClCompile Include="governments_functions.cpp" />
+    <ClCompile Include="governments_gui.cpp" />
     <ClCompile Include="governments_io.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

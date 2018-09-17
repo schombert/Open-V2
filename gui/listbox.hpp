@@ -334,6 +334,7 @@ void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::create_sub_el
 			new_obj.object.flags.fetch_or(gui_object::dont_clip_children, std::memory_order_acq_rel);
 			new_obj.object.position.x += left_expand;
 		}
+		new_obj.object.size.x = int16_t(std::max(associated_object->size.x - 16 - new_obj.object.position.x, int32_t(new_obj.object.size.x)));
 		ui::hide(new_obj.object);
 	}
 

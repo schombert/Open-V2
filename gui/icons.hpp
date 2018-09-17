@@ -99,6 +99,10 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, icon_tag handle
 	b.associated_object = &new_obj.object;
 
 	ui::add_to_back(ws.w.gui_m, parent, new_obj);
+
+	if constexpr(ui::detail::has_on_create<dynamic_icon<B>, dynamic_icon<B>&, world_state&>)
+		b.on_create(b, ws);
+
 	ws.w.gui_m.flag_minimal_update();
 	return new_obj;
 }
@@ -127,6 +131,10 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, icon_tag handle
 	b.associated_object = &new_gobj.object;
 
 	ui::add_to_back(ws.w.gui_m, parent, new_gobj);
+
+	if constexpr(ui::detail::has_on_create<tinted_icon<B>, tinted_icon<B>&, world_state&>)
+		b.on_create(b, ws);
+
 	ws.w.gui_m.flag_minimal_update();
 
 	return new_gobj;

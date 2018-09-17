@@ -32,6 +32,15 @@ namespace ui {
 				return w.m_object;
 			}
 		};
+
+		template<typename RESULT, typename BASE, typename ... REST>
+		struct can_create_dynamic_s : public std::false_type {};
+		template<typename BASE, typename ... REST>
+		struct can_create_dynamic_s<decltype(void(std::declval<BASE>().create_dynamic(std::declval<REST>()...))), BASE, REST...> : public std::true_type {};
+
+
+		template<typename BASE, typename ... REST>
+		constexpr bool can_create_dynamic = can_create_dynamic_s<void, BASE, REST ...>::value;
 	}
 }
 
@@ -46,6 +55,8 @@ protected:
 
 	void set_window_id(ui::gui_object_tag t) { ui::gui_window<REST ...>::set_window_id(t); }
 public:
+	using base_behavior_t = typename ui::gui_window<REST ...>::base_behavior_t;
+
 	template<typename window_type>
 	void member_update_in_window(window_type& w, world_state& s);
 
@@ -80,6 +91,8 @@ protected:
 	template<typename window_type>
 	void member_update_in_window(window_type& w, world_state& s) {}
 public:
+	using base_behavior_t = BASE_BEHAVIOR;
+
 	gui_window(ui::gui_window<BASE_BEHAVIOR>&&) = default;
 	template<typename ...PARAMS>
 	gui_window(PARAMS&& ... params) : BASE_BEHAVIOR(std::forward<PARAMS>(params) ...) {}
@@ -161,10 +174,6 @@ namespace ui {
 						OutputDebugStringA("can create true\n");
 					else
 						OutputDebugStringA("can create false\n");
-					if(ui::detail::tempccs<TAG, MOBJECT>::value)
-						OutputDebugStringA("tempccs true\n");
-					else
-						OutputDebugStringA("tempccs false\n");
 					std::abort();
 #endif
 				}
@@ -176,15 +185,12 @@ namespace ui {
 template<typename INDEX, typename TYPE, typename ...REST>
 bool ui::gui_window<INDEX, TYPE, REST...>::create_named_member(world_state& ws, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne) {
 	if (compile_time_str_compare_ci<INDEX>(ns, ne) == 0) {
-
 #ifdef _DEBUG
 		ui::detail::visitor_helper<TYPE> vhelper(m_object, win, ws, ns, ne);
 #else
 		ui::detail::visitor_helper<TYPE> vhelper(m_object, win, ws);
 #endif
-
 		std::visit(vhelper, t);
-
 		return true;
 	} else {
 		return gui_window<REST...>::create_named_member(ws, win, t, ns, ne);
@@ -200,10 +206,19 @@ ui::tagged_gui_object ui::gui_window<INDEX, TYPE, REST...>::create(world_state& 
 		const char* rn_e = rn_s + rn.length();
 
 		if (!create_named_member(manager, win, *i, rn_s, rn_e)) {
-			std::visit([&manager, &win](auto tag) {
-				if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-					ui::create_dynamic_element(manager, tag, win);
-			}, *i);
+			if constexpr(ui::detail::can_create_dynamic<typename gui_window<INDEX, TYPE, REST...>::base_behavior_t, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
+				if(!gui_window<INDEX, TYPE, REST...>::base_behavior_t::create_dynamic(manager, win, *i, rn_s, rn_e)) {
+					std::visit([&manager, &win](auto tag) {
+						if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
+							ui::create_dynamic_element(manager, tag, win);
+					}, *i);
+				}
+			} else {
+				std::visit([&manager, &win](auto tag) {
+					if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
+						ui::create_dynamic_element(manager, tag, win);
+				}, *i);
+			}
 		}
 	}
 	set_window_id(win.id);

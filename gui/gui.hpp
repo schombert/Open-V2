@@ -43,14 +43,6 @@ namespace ui {
 		constexpr bool has_has_tooltip = _has_has_tooltip<A, void, C ...>::value;
 	}
 
-	class unmanaged_region_scollbar {
-	private:
-		gui_object& contents_frame;
-	public:
-		unmanaged_region_scollbar(gui_object& g) : contents_frame(g) {}
-		void on_position(int32_t pos);
-	};
-
 	class unmanaged_scrollable_region : public visible_region {
 	public:
 		scrollbar<unmanaged_region_scollbar> sb;
@@ -133,8 +125,9 @@ ui::xy_pair ui::text_chunk_to_instances(gui_static& static_manager, ui::gui_mana
 
 template<typename LM>
 ui::xy_pair ui::add_linear_text(ui::xy_pair position, text_data::text_tag text_handle, text_format const& fmt, gui_static& static_manager, gui_manager& manager, tagged_gui_object container, LM&& lm, const text_data::replacement* candidates, uint32_t count) {
-	
 	auto& components = static_manager.text_data_sequences.all_sequences[text_handle];
+	graphics::font& this_font = static_manager.fonts.at(fmt.font_handle);
+
 	const auto components_start = static_manager.text_data_sequences.all_components.data() + components.starting_component;
 	const auto components_end = components_start + components.component_count;
 
@@ -163,6 +156,10 @@ ui::xy_pair ui::add_linear_text(ui::xy_pair position, text_data::text_tag text_h
 			const text_format format{ current_color, fmt.font_handle, fmt.font_size };
 
 			position = text_chunk_to_instances(static_manager, manager, chunk, container, position, format, lm);
+		} else if(std::holds_alternative<text_data::line_break>(*component_i)) {
+			lm.finish_current_line();
+			position.x = 0;
+			position.y += int16_t(this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size))) + 0.5f);
 		}
 	}
 
@@ -363,11 +360,6 @@ namespace ui {
 		template<typename tag_type, typename object_type>
 		struct can_create_s<decltype(void(ui::create_static_element(std::declval<world_state&>(), tag_type(), std::declval<tagged_gui_object>(), std::declval<object_type&>()))), tag_type, object_type> : public std::true_type {};
 		
-		template<typename tag_type, typename object_type>
-		struct tempccs {
-			static constexpr bool value = can_create_s<void, tag_type, object_type>::value;
-		};
-
 		template<typename tag_type, typename object_type>
 		constexpr bool can_create = can_create_s<void, tag_type, object_type>::value;
 	}

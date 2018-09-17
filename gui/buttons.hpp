@@ -279,12 +279,16 @@ namespace buttons_detail {
 			if constexpr(ui::detail::has_initialize_in_window<BEHAVIOR, window_type&, world_state&>)
 				BEHAVIOR::initialize_in_window(w, ws);
 		}
-
-		virtual void select(world_state& m, uint32_t i) override {
-			if constexpr(buttons_detail::has_on_unselect<BEHAVIOR, world_state&, uint32_t>)
-				BEHAVIOR::on_unselect(m, current_index);
+		void set_selected(ui::gui_manager&, uint32_t) {
 			current_index = i;
-			BEHAVIOR::on_select(m, current_index);
+		}
+		virtual void select(world_state& m, uint32_t i) override {
+			if(current_index != i) {
+				if constexpr(buttons_detail::has_on_unselect<BEHAVIOR, world_state&, uint32_t>)
+					BEHAVIOR::on_unselect(m, current_index);
+				current_index = i;
+				BEHAVIOR::on_select(m, current_index);
+			}
 		}
 		virtual ui::tooltip_behavior has_tooltip(uint32_t i) override {
 			if constexpr(ui::detail::has_has_tooltip<BEHAVIOR, world_state&, ui::tagged_gui_object, uint32_t>)
@@ -319,6 +323,15 @@ namespace buttons_detail {
 			_button_group<count + 1, REST...>::initialize_in_window(w, ws);
 		}
 
+		void set_selected(ui::gui_manager& m, uint32_t i) {
+			if(const auto gi = m.graphics_instances.safe_at(ui::graphics_instance_tag(nth_button->associated_object->type_dependant_handle)); gi) {
+				if(i == count)
+					gi->frame = 1;
+				else
+					gi->frame = 0;
+			}
+			_button_group<count + 1, REST...>::set_selected(m, i);
+		}
 
 		virtual void select(world_state& m, uint32_t i) override {
 			if (const auto gi = m.w.gui_m.graphics_instances.safe_at(ui::graphics_instance_tag(nth_button->associated_object->type_dependant_handle)); gi) {

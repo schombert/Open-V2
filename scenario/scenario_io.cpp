@@ -190,5 +190,11 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::month_10] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "October");
 		s.fixed_ui_text[fixed_ui::month_11] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "November");
 		s.fixed_ui_text[fixed_ui::month_12] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "December");
+		s.fixed_ui_text[fixed_ui::can_appoint_ruling_party] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "CAN_APPOINT_RULING_PARTY");
+		s.fixed_ui_text[fixed_ui::next_election] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NEXT_ELECTION");
+		s.fixed_ui_text[fixed_ui::plurality] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "plurality");
+		s.fixed_ui_text[fixed_ui::revanchism] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "revanchism");
+		s.fixed_ui_text[fixed_ui::cannot_hold_election] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POLITICS_CANNOT_HOLD_ELECTION_TOOLTIP");
+		s.fixed_ui_text[fixed_ui::already_holding_election] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POLITICS_ALREADY_HOLDING_ELECTION_TOOLTIP");
 	}
 }

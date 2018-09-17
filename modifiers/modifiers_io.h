@@ -153,7 +153,7 @@ namespace modifiers {
 	std::pair<uint16_t, bool> commit_factor(modifiers_manager& m, const std::vector<factor_segment>& factor);  // returns [offset into data, was newly added]
 
 	provincial_modifier_tag parse_provincial_modifier(text_data::text_tag name, modifiers_manager& manager, const token_group* s, const token_group* e);
-	national_modifier_tag parse_national_modifier(text_data::text_tag name, modifiers_manager& manager, const token_group* s, const token_group* e);
+	national_modifier_tag parse_national_modifier(text_data::text_tag name, modifiers_manager& manager, const token_group* s, const token_group* e, int32_t force_icon = -1);
 	std::pair<provincial_modifier_tag, national_modifier_tag> parse_indeterminate_modifier(
 		text_data::text_tag name,
 		modifiers_manager& manager,

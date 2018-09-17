@@ -1255,7 +1255,7 @@ namespace triggers {
 		void ef_prestige(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			((nations::nation*)primary_slot)->base_prestige = std::max(
 				0.0f,
-				((nations::nation*)primary_slot)->base_prestige + read_float_from_payload(tval + 2) / 100.0f * (((nations::nation*)primary_slot)->tech_attributes[technologies::tech_offset::prestige] + 1.0f));
+				((nations::nation*)primary_slot)->base_prestige + read_float_from_payload(tval + 2) * (((nations::nation*)primary_slot)->tech_attributes[technologies::tech_offset::prestige] + 1.0f));
 		}
 		void ef_change_tag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			if(is_valid_index(((nations::nation*)primary_slot)->tag))
