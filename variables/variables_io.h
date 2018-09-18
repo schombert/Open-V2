@@ -41,6 +41,17 @@ public:
 		obj.count_national_variables = static_cast<uint32_t>(obj.named_national_variables.size());
 		obj.count_national_flags = static_cast<uint32_t>(obj.named_national_flags.size());
 		obj.count_global_variables = static_cast<uint32_t>(obj.named_global_variables.size());
+
+		obj.national_flag_to_name.resize(obj.count_national_flags);
+		obj.global_variable_to_name.resize(obj.count_global_variables);
+		obj.national_variable_to_name.resize(obj.count_national_variables);
+
+		for(auto& pr : obj.named_global_variables)
+			obj.global_variable_to_name[pr.second] = pr.first;
+		for(auto& pr : obj.named_national_variables)
+			obj.national_variable_to_name[pr.second] = pr.first;
+		for(auto& pr : obj.named_national_flags)
+			obj.national_flag_to_name[pr.second] = pr.first;
 	}
 	static size_t size(variables::variables_manager const& obj) {
 		return serialize_size(obj.named_global_variables) +

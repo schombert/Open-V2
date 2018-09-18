@@ -151,12 +151,14 @@
     <ClInclude Include="effect_reading.h" />
     <ClInclude Include="triggers.h" />
     <ClInclude Include="triggers_io.h" />
+    <ClInclude Include="trigger_gui.h" />
     <ClInclude Include="trigger_reading.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="effects.cpp" />
     <ClCompile Include="effect_reading.cpp" />
     <ClCompile Include="triggers.cpp" />
+    <ClCompile Include="trigger_gui.cpp" />
     <ClCompile Include="trigger_reading.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

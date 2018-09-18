@@ -65,12 +65,21 @@ namespace triggers {
 #endif
 
 	namespace {
+		void _execute_effect(
+			uint16_t const* tval,
+			world_state& ws,
+			void* primary_slot,
+			void* this_slot,
+			void* from_slot,
+			population::rebel_faction* rebel_slot,
+			jsf_prng& generator_copy);
+
 		inline void apply_subeffects(uint16_t const* source, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			const auto source_size = 1 + get_effect_payload_size(source);
 			auto sub_units_start = source + 2 + effect_scope_data_payload(source[0]);
 
 			while(sub_units_start < source + source_size) {
-				execute_effect(sub_units_start, ws, primary_slot, this_slot, from_slot, rebel_slot, gen);
+				_execute_effect(sub_units_start, ws, primary_slot, this_slot, from_slot, rebel_slot, gen);
 				sub_units_start += 1 + get_effect_payload_size(sub_units_start);
 			}
 		}
@@ -771,7 +780,7 @@ namespace triggers {
 			while(sub_units_start < tval + source_size) {
 				chance_taken -= *sub_units_start;
 				if(chance_taken < 0) {
-					execute_effect(sub_units_start + 1, ws, primary_slot, this_slot, from_slot, rebel_slot, gen);
+					_execute_effect(sub_units_start + 1, ws, primary_slot, this_slot, from_slot, rebel_slot, gen);
 					return;
 				}
 				sub_units_start += 2 + get_effect_payload_size(sub_units_start + 1); // each member preceeded by uint16_t
@@ -3487,6 +3496,22 @@ namespace triggers {
 			ef_country_event_province_this_pop,
 			ef_country_event_immediate_province_this_pop,
 		};
+
+		void _execute_effect(
+			uint16_t const* tval,
+			world_state& ws,
+			void* primary_slot,
+			void* this_slot,
+			void* from_slot,
+			population::rebel_faction* rebel_slot,
+			jsf_prng& generator_copy) {
+
+			if((*tval & effect_codes::is_scope) != 0) {
+				effect_scope_functions[*tval & effect_codes::code_mask](tval, ws, primary_slot, this_slot, from_slot, rebel_slot, generator_copy);
+			} else {
+				effect_functions[*tval & effect_codes::code_mask](tval, ws, primary_slot, this_slot, from_slot, rebel_slot, generator_copy);
+			}
+		}
 	}
 
 #ifdef __llvm__
@@ -3501,11 +3526,7 @@ namespace triggers {
 		void* from_slot,
 		population::rebel_faction* rebel_slot,
 		jsf_prng generator_copy) {
-		
-		if((*tval & effect_codes::is_scope) != 0) {
-			effect_scope_functions[*tval & effect_codes::code_mask](tval, ws, primary_slot, this_slot, from_slot, rebel_slot, generator_copy);
-		} else {
-			effect_functions[*tval & effect_codes::code_mask](tval, ws, primary_slot, this_slot, from_slot, rebel_slot, generator_copy);
-		}
+
+		_execute_effect(tval, ws, primary_slot, this_slot, from_slot, rebel_slot, generator_copy);
 	}
 }

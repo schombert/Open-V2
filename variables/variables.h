@@ -20,6 +20,10 @@ namespace variables {
 		boost::container::flat_map<text_data::text_tag, national_variable_tag> named_national_variables;
 		boost::container::flat_map<text_data::text_tag, national_flag_tag> named_national_flags;
 
+		tagged_vector<text_data::text_tag, national_flag_tag> national_flag_to_name;
+		tagged_vector<text_data::text_tag, global_variable_tag> global_variable_to_name;
+		tagged_vector<text_data::text_tag, national_variable_tag> national_variable_to_name;
+
 		global_variable_tag  get_named_global_variable(text_data::text_tag name);
 		national_variable_tag  get_named_national_variable(text_data::text_tag name);
 		national_flag_tag  get_named_national_flag(text_data::text_tag name);
