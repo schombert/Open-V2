@@ -525,7 +525,7 @@ int main(int , char **) {
 
 		std::cout << "begin map adjacency" << std::endl << std::flush;
 		auto adj_map = provinces::generate_map_adjacencies(s1.province_m.province_map_data.data(), s1.province_m.province_map_height, s1.province_m.province_map_width);
-		provinces::read_adjacnencies_file(adj_map, s1.province_m.canals, fs.get_root());
+		provinces::read_adjacnencies_file(adj_map, s1.province_m.canals, fs.get_root(), s1.gui_m.text_data_sequences);
 		provinces::make_lakes(adj_map, s1.province_m);
 		provinces::make_adjacency(adj_map, s1.province_m);
 		std::cout << "end map adjacency" << std::endl << std::flush;

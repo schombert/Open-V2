@@ -22,7 +22,7 @@ namespace provinces {
 		if(is_valid_index(mod)) {
 			ui::xy_pair cursor{ 0,0 };
 			ui::unlimited_line_manager lm;
-			cursor = modifiers::make_province_modifier_text(ws, tw, cursor, lm, ui::text_format{ ui::text_color::white, graphics::font_tag(1), 16 }, mod);
+			cursor = modifiers::make_province_modifier_text(ws, tw, cursor, lm, ui::tooltip_text_format, mod);
 			if(is_valid_index(expiration)) {
 				char16_t formatted_date[64];
 				u16_format_date(formatted_date, expiration);

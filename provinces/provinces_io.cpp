@@ -1249,7 +1249,7 @@ namespace provinces {
 		return result;
 	}
 
-	void read_adjacnencies_file(std::map<province_tag, boost::container::flat_set<province_tag>>& adj_map, std::vector<std::pair<province_tag, province_tag>>& canals, directory const& root) {
+	void read_adjacnencies_file(std::map<province_tag, boost::container::flat_set<province_tag>>& adj_map, std::vector<std::tuple<province_tag, province_tag, text_data::text_tag, province_tag>>& canals, directory const& root, text_data::text_sequences& text) {
 		const auto map_dir = root.get_directory(u"\\map");
 		const auto fi = map_dir.open_file(u"adjacencies.csv");
 
@@ -1265,10 +1265,11 @@ namespace provinces {
 				cpos = csv_advance_to_next_line(cpos, parse_data.get() + sz);
 
 			while(cpos < parse_data.get() + sz) {
-				cpos = parse_fixed_amount_csv_values<5>(cpos, parse_data.get() + sz, ';',
-					[&adj_map, &canals](std::pair<char const*, char const*> const* values) {
+				cpos = parse_fixed_amount_csv_values<6>(cpos, parse_data.get() + sz, ';',
+					[&adj_map, &canals, &text](std::pair<char const*, char const*> const* values) {
 					const auto prov_a = province_tag(uint16_t(parse_int(values[0].first, values[0].second)));
 					const auto prov_b = province_tag(uint16_t(parse_int(values[1].first, values[1].second)));
+					
 
 					if(is_fixed_token_ci(values[2].first, values[2].second, "impassable")) {
 						adj_map[prov_b].erase(prov_a);
@@ -1277,8 +1278,10 @@ namespace provinces {
 						const int32_t canal_index = parse_int(values[4].first, values[4].second) - 1;
 						if(static_cast<size_t>(canal_index) >= canals.size())
 							canals.resize(static_cast<size_t>(canal_index + 1));
-						if(canal_index >= 0)
-							canals[static_cast<size_t>(canal_index)] = std::make_pair(prov_a, prov_b);
+						if(canal_index >= 0) {
+							const auto prov_through = province_tag(uint16_t(parse_int(values[3].first, values[3].second)));
+							canals[static_cast<size_t>(canal_index)] = std::make_tuple(prov_a, prov_b, text_data::get_thread_safe_text_handle(text, values[5].first, values[5].second), prov_through);
+						}
 					} else {
 						adj_map[prov_a].insert(prov_b);
 						adj_map[prov_b].insert(prov_a);

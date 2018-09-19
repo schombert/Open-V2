@@ -8,6 +8,7 @@
 #include "population\\population_function.h"
 #include "nations\\nations_functions.hpp"
 #include "modifiers\\modifiers_gui.h"
+#include "technologies\\technologies_functions.h"
 
 namespace triggers {
 
@@ -68,25 +69,171 @@ namespace triggers {
 		}
 
 		template<typename value_type>
-		ui::xy_pair display_value(value_type value, uint32_t label_index, bool positive_is_green, display_type d_type, world_state& ws,
+		ui::xy_pair display_value_wo_newline(value_type value, uint32_t label_index, bool positive_is_green, display_type d_type, world_state& ws,
 			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
 
 			char16_t local_buffer[32];
-			ui::text_format local_fmt{ (value < value_type(0)) == positive_is_green ? text_data::text_color::red : text_data::text_color::green, fmt.font_handle, fmt.font_size};
+			ui::text_format local_fmt{ (value < value_type(0)) == positive_is_green ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size };
 			if(value < value_type(0))
-				local_buf[0] = u'-';
+				local_buffer[0] = u'-';
 			else
-				local_buf[0] = u'+';
+				local_buffer[0] = u'+';
 
-			put_pos_value_in_buffer(local_buf + 1, d_type, std::abs(value));
-			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+			put_pos_value_in_buffer(local_buffer + 1, d_type, std::abs(value));
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer),
 				container, cursor_in, local_fmt, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[label_index], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
-			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-			lm.finish_current_line();
+			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 
 			return cursor_in;
+		}
+
+		template<typename value_type>
+		ui::xy_pair display_value(value_type value, uint32_t label_index, bool positive_is_green, display_type d_type, world_state& ws,
+			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+
+			cursor_in = display_value_wo_newline(value, label_index, positive_is_green, d_type, ws, container, cursor_in, lm, fmt);
+
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
+		}
+
+		ui::xy_pair fill_text_effect(uint32_t ui_id, text_data::text_tag tex, world_state& ws,
+			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+
+			text_data::replacement repl[1] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, tex),
+					[](ui::tagged_gui_object) {} }
+			};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[ui_id], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 1);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
+		}
+
+		ui::xy_pair fill_text_effect_wo_newline(uint32_t ui_id, text_data::text_tag tex, world_state& ws,
+			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+			text_data::replacement repl[1] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, tex),
+					[](ui::tagged_gui_object) {} }
+			};
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[ui_id], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 1);
+			return cursor_in;
+		}
+
+		ui::xy_pair tag_type_effect(uint32_t ui_id, uint16_t tval, world_state& ws,
+			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+
+			auto tag = trigger_payload(tval).tag;
+			auto hname = ws.w.culture_s.national_tags_state[tag].holder ?
+				ws.w.culture_s.national_tags_state[tag].holder->name :
+				ws.s.culture_m.national_tags[tag].default_name.name;
+			auto hadj = ws.w.culture_s.national_tags_state[tag].holder ?
+				ws.w.culture_s.national_tags_state[tag].holder->adjective :
+				ws.s.culture_m.national_tags[tag].default_name.adjective;
+			text_data::replacement repl[2] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::adj,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hadj),
+					[](ui::tagged_gui_object) {} } };
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[ui_id], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
+		}
+		ui::xy_pair tag_type_rebel_slot_effect(uint32_t ui_id, population::rebel_faction* reb, world_state& ws,
+			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+
+			cultures::national_tag rtag = bool(reb) ? reb->independence_tag : cultures::national_tag();
+			auto rtag_name = is_valid_index(rtag) ?
+				(bool(ws.w.culture_s.national_tags_state[rtag].holder) ? ws.w.culture_s.national_tags_state[rtag].holder->name : ws.s.culture_m.national_tags[rtag].default_name.name)
+				: ws.s.fixed_ui_text[scenario::fixed_ui::rebel];
+			auto rtag_adj = is_valid_index(rtag) ?
+				(bool(ws.w.culture_s.national_tags_state[rtag].holder) ? ws.w.culture_s.national_tags_state[rtag].holder->adjective : ws.s.culture_m.national_tags[rtag].default_name.adjective)
+				: ws.s.fixed_ui_text[scenario::fixed_ui::rebel];
+
+			text_data::replacement repl[2] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, rtag_name),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::adj,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, rtag_adj),
+					[](ui::tagged_gui_object) {} } };
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[ui_id], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
+		}
+		ui::xy_pair tag_type_this_nation_effect(uint32_t ui_id, void* this_slot, world_state& ws,
+			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+
+			text_data::replacement repl[2] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
+						bool(this_slot) ? ((nations::nation*)this_slot)->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation]),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::adj,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
+						bool(this_slot) ? ((nations::nation*)this_slot)->adjective : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation]),
+					[](ui::tagged_gui_object) {} } };
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[ui_id], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
+		}
+		ui::xy_pair tag_type_this_state_effect(uint32_t ui_id, void* this_slot, world_state& ws,
+			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+			return tag_type_this_nation_effect(ui_id, bool(this_slot) ? ((nations::state_instance*)this_slot)->owner : nullptr, ws, container, cursor_in, lm, fmt);
+		}
+		ui::xy_pair tag_type_this_province_effect(uint32_t ui_id, void* this_slot, world_state& ws,
+			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+			return tag_type_this_nation_effect(ui_id, bool(this_slot) ? ((provinces::province_state*)this_slot)->owner : nullptr, ws, container, cursor_in, lm, fmt);
+		}
+		ui::xy_pair tag_type_this_pop_effect(uint32_t ui_id, void* this_slot, world_state& ws,
+			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+			return tag_type_this_nation_effect(ui_id, bool(this_slot) ? population::get_pop_owner(ws, *((population::pop*)this_slot)) : nullptr, ws, container, cursor_in, lm, fmt);
+		}
+		ui::xy_pair tag_type_from_nation_effect(uint32_t ui_id, void* from_slot, world_state& ws,
+			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+
+			text_data::replacement repl[2] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
+						bool(from_slot) ? ((nations::nation*)from_slot)->name : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation]),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::adj,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
+						bool(from_slot) ? ((nations::nation*)from_slot)->adjective : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation]),
+					[](ui::tagged_gui_object) {} } };
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[ui_id], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
+		}
+		ui::xy_pair tag_type_from_province_effect(uint32_t ui_id, void* from_slot, world_state& ws,
+			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+			return tag_type_from_nation_effect(ui_id, bool(from_slot) ? ((provinces::province_state*)from_slot)->owner : nullptr, ws, container, cursor_in, lm, fmt);
 		}
 
 #define EFFECT_DISPLAY_PARAMS uint16_t const* tval, world_state& ws, ui::tagged_gui_object container, \
@@ -1438,18 +1585,7 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_add_core_tag(EFFECT_DISPLAY_PARAMS) {
-			auto tag = trigger_payload(tval[2]).tag;
-			text_data::text_tag adj = bool(ws.w.culture_s.national_tags_state[tag].holder) ? ws.w.culture_s.national_tags_state[tag].holder->adjective : ws.s.culture_m.national_tags[tag].default_name.adjective;
-			
-			text_data::replacement repl{
-				text_data::value_type::adj,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, adj),
-				[](ui::tagged_gui_object) {}};
-
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_x_core], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
-			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-			lm.finish_current_line();
-			return cursor_in;
+			return tag_type_effect(scenario::fixed_ui::add_x_core, tval[2], ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_add_core_int(EFFECT_DISPLAY_PARAMS) {
 			provinces::province_tag prov(tval[2]);
@@ -1462,86 +1598,28 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_add_core_this_nation(EFFECT_DISPLAY_PARAMS) {
-			text_data::text_tag adj = bool(this_slot) ? ((nations::nation*)this_slot)->adjective : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-
-			text_data::replacement repl{
-				text_data::value_type::adj,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, adj),
-				[](ui::tagged_gui_object) {} };
-
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_x_core], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
-			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-			lm.finish_current_line();
-			return cursor_in;
+			return tag_type_this_nation_effect(scenario::fixed_ui::add_x_core, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_add_core_this_province(EFFECT_DISPLAY_PARAMS) {
-			if(this_slot) {
-				auto owner = ((provinces::province_state*)this_slot)->owner;
-				if(owner)
-					return ef_add_core_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, owner, nullptr, nullptr, gen);
-			}
-			return ef_add_core_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, nullptr, nullptr, nullptr, gen);
+			return tag_type_this_province_effect(scenario::fixed_ui::add_x_core, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_add_core_this_state(EFFECT_DISPLAY_PARAMS) {
-			if(this_slot) {
-				auto owner = ((nations::state_instance*)this_slot)->owner;
-				if(owner)
-					return ef_add_core_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, owner, nullptr, nullptr, gen);
-			}
-			return ef_add_core_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, nullptr, nullptr, nullptr, gen);
+			return tag_type_this_state_effect(scenario::fixed_ui::add_x_core, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_add_core_this_pop(EFFECT_DISPLAY_PARAMS) {
-			if(this_slot) {
-				auto owner = population::get_pop_owner(ws, *((population::pop*)this_slot));
-				if(owner)
-					return ef_add_core_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, owner, nullptr, nullptr, gen);
-			}
-			return ef_add_core_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, nullptr, nullptr, nullptr, gen);
+			return tag_type_this_pop_effect(scenario::fixed_ui::add_x_core, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_add_core_from_nation(EFFECT_DISPLAY_PARAMS) {
-			text_data::text_tag adj = bool(from_slot) ? ((nations::nation*)from_slot)->adjective : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation];
-
-			text_data::replacement repl{
-				text_data::value_type::adj,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, adj),
-				[](ui::tagged_gui_object) {} };
-
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_x_core], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
-			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-			lm.finish_current_line();
-			return cursor_in;
+			return tag_type_from_nation_effect(scenario::fixed_ui::add_x_core, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_add_core_from_province(EFFECT_DISPLAY_PARAMS) {
-			if(from_slot) {
-				if(auto owner = ((provinces::province_state*)from_slot)->owner; owner)
-					return ef_add_core_from_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, nullptr, owner, nullptr, gen);
-			}
-			return ef_add_core_from_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, nullptr, nullptr, nullptr, gen);
+			return tag_type_from_province_effect(scenario::fixed_ui::add_x_core, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_add_core_reb(EFFECT_DISPLAY_PARAMS) {
-			text_data::replacement repl{
-				text_data::value_type::adj,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::rebel]),
-				[](ui::tagged_gui_object) {} };
-
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_x_core], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
-			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-			lm.finish_current_line();
-			return cursor_in;
+			return tag_type_rebel_slot_effect(scenario::fixed_ui::add_x_core, rebel_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_remove_core_tag(EFFECT_DISPLAY_PARAMS) {
-			auto tag = trigger_payload(tval[2]).tag;
-			text_data::text_tag adj = bool(ws.w.culture_s.national_tags_state[tag].holder) ? ws.w.culture_s.national_tags_state[tag].holder->adjective : ws.s.culture_m.national_tags[tag].default_name.adjective;
-
-			text_data::replacement repl{
-				text_data::value_type::adj,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, adj),
-				[](ui::tagged_gui_object) {} };
-
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_x_core], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
-			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-			lm.finish_current_line();
-			return cursor_in;
+			return tag_type_effect(scenario::fixed_ui::remove_x_core, tval[2], ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_remove_core_int(EFFECT_DISPLAY_PARAMS) {
 			provinces::province_tag prov(tval[2]);
@@ -1554,73 +1632,25 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_remove_core_this_nation(EFFECT_DISPLAY_PARAMS) {
-			text_data::text_tag adj = bool(this_slot) ? ((nations::nation*)this_slot)->adjective : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-
-			text_data::replacement repl{
-				text_data::value_type::adj,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, adj),
-				[](ui::tagged_gui_object) {} };
-
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_x_core], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
-			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-			lm.finish_current_line();
-			return cursor_in;
+			return tag_type_this_nation_effect(scenario::fixed_ui::remove_x_core, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_remove_core_this_province(EFFECT_DISPLAY_PARAMS) {
-			if(this_slot) {
-				auto owner = ((provinces::province_state*)this_slot)->owner;
-				if(owner)
-					return ef_remove_core_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, owner, nullptr, nullptr, gen);
-			}
-			return ef_remove_core_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, nullptr, nullptr, nullptr, gen);
+			return tag_type_this_province_effect(scenario::fixed_ui::remove_x_core, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_remove_core_this_state(EFFECT_DISPLAY_PARAMS) {
-			if(this_slot) {
-				auto owner = ((nations::state_instance*)this_slot)->owner;
-				if(owner)
-					return ef_remove_core_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, owner, nullptr, nullptr, gen);
-			}
-			return ef_remove_core_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, nullptr, nullptr, nullptr, gen);
+			return tag_type_this_state_effect(scenario::fixed_ui::remove_x_core, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_remove_core_this_pop(EFFECT_DISPLAY_PARAMS) {
-			if(this_slot) {
-				auto owner = population::get_pop_owner(ws, *((population::pop*)this_slot));
-				if(owner)
-					return ef_remove_core_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, owner, nullptr, nullptr, gen);
-			}
-			return ef_remove_core_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, nullptr, nullptr, nullptr, gen);
+			return tag_type_this_pop_effect(scenario::fixed_ui::remove_x_core, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_remove_core_from_nation(EFFECT_DISPLAY_PARAMS) {
-			text_data::text_tag adj = bool(from_slot) ? ((nations::nation*)from_slot)->adjective : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation];
-
-			text_data::replacement repl{
-				text_data::value_type::adj,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, adj),
-				[](ui::tagged_gui_object) {} };
-
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_x_core], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
-			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-			lm.finish_current_line();
-			return cursor_in;
+			return tag_type_from_nation_effect(scenario::fixed_ui::remove_x_core, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_remove_core_from_province(EFFECT_DISPLAY_PARAMS) {
-			if(from_slot) {
-				if(auto owner = ((provinces::province_state*)from_slot)->owner; owner)
-					return ef_remove_core_from_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, nullptr, owner, nullptr, gen);
-			}
-			return ef_remove_core_from_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, nullptr, nullptr, nullptr, gen);
+			return tag_type_from_province_effect(scenario::fixed_ui::remove_x_core, from_slot, ws, container, cursor_in, lm, fmt);
 		}
-		
 		ui::xy_pair ef_remove_core_reb(EFFECT_DISPLAY_PARAMS) {
-			text_data::replacement repl{
-				text_data::value_type::adj,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::rebel]),
-				[](ui::tagged_gui_object) {} };
-
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_x_core], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
-			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-			lm.finish_current_line();
-			return cursor_in;
+			return tag_type_rebel_slot_effect(scenario::fixed_ui::remove_x_core, rebel_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_change_region_name_state(EFFECT_DISPLAY_PARAMS) {
 			text_data::replacement repl{
@@ -1708,25 +1738,16 @@ namespace triggers {
 			}
 		}
 		ui::xy_pair ef_primary_culture_this_state(EFFECT_DISPLAY_PARAMS) {
-			if(this_slot) {
-				if(auto owner = ((nations::state_instance*)this_slot)->owner; owner)
-					return ef_primary_culture_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, owner, nullptr, nullptr, gen);
-			}
-			return ef_primary_culture_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, nullptr, nullptr, nullptr, gen);
+			return ef_primary_culture_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
+				bool(this_slot) ? ((nations::state_instance*)this_slot)->owner : nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_primary_culture_this_province(EFFECT_DISPLAY_PARAMS) {
-			if(this_slot) {
-				if(auto owner = ((provinces::province_state*)this_slot)->owner; owner)
-					return ef_primary_culture_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, owner, nullptr, nullptr, gen);
-			}
-			return ef_primary_culture_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, nullptr, nullptr, nullptr, gen);
+			return ef_primary_culture_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
+				bool(this_slot) ? ((provinces::province_state*)this_slot)->owner : nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_primary_culture_this_pop(EFFECT_DISPLAY_PARAMS) {
-			if(this_slot) {
-				if(auto owner = population::get_pop_owner(ws, *((population::pop*)this_slot)); owner)
-					return ef_primary_culture_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, owner, nullptr, nullptr, gen);
-			}
-			return ef_primary_culture_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, nullptr, nullptr, nullptr, gen);
+			return ef_primary_culture_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
+				bool(this_slot) ? population::get_pop_owner(ws, *((population::pop*)this_slot)) : nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_primary_culture_from_nation(EFFECT_DISPLAY_PARAMS) {
 			if(from_slot) {
@@ -1802,7 +1823,7 @@ namespace triggers {
 				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.modifiers_m.national_modifiers[school].name),
 				[](ui::tagged_gui_object) {} };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::make_national_religion], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_tech_school], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -1817,7 +1838,7 @@ namespace triggers {
 				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.governments_m.governments_container[trigger_payload(tval[2]).small.values.government].name),
 				[](ui::tagged_gui_object) {} };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::make_national_religion], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_government_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -1831,7 +1852,7 @@ namespace triggers {
 					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.governments_m.governments_container[gov].name),
 					[](ui::tagged_gui_object) {} };
 
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::make_national_religion], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_government_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 				return cursor_in;
@@ -1841,7 +1862,7 @@ namespace triggers {
 					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::rebel]),
 					[](ui::tagged_gui_object) {} };
 
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::make_national_religion], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_government_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 				return cursor_in;
@@ -2002,276 +2023,133 @@ namespace triggers {
 				display_type::fp_one_place, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_secede_province(EFFECT_DISPLAY_PARAMS) {
-			auto holder_name = bool(ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder) ? 
-				ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder->name :
-				ws.s.culture_m.national_tags[trigger_payload(tval[2]).tag].default_name.name;
-
-			text_data::replacement repl{
-				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, holder_name),
-				[](ui::tagged_gui_object) {} };
-
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_province_owner], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
-			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-			lm.finish_current_line();
-			return cursor_in;
+			return tag_type_effect(scenario::fixed_ui::change_province_owner, tval[2], ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_secede_province_this_nation(EFFECT_DISPLAY_PARAMS) {
-			text_data::replacement repl{
-				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, bool(this_slot) ? ((nations::nation*)this_slot)->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation]),
-				[](ui::tagged_gui_object) {} };
-
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_province_owner], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
-			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-			lm.finish_current_line();
-			return cursor_in;
+			return tag_type_this_nation_effect(scenario::fixed_ui::change_province_owner, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_secede_province_this_state(EFFECT_DISPLAY_PARAMS) {
-			return ef_secede_province_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot, 
-				bool(this_slot) ? ((nations::state_instance*)this_slot)->owner : nullptr, nullptr, nullptr, gen);
+			return tag_type_this_state_effect(scenario::fixed_ui::change_province_owner, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_secede_province_this_province(EFFECT_DISPLAY_PARAMS) {
-			return ef_secede_province_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				bool(this_slot) ? ((provinces::province_state*)this_slot)->owner : nullptr, nullptr, nullptr, gen);
+			return tag_type_this_province_effect(scenario::fixed_ui::change_province_owner, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_secede_province_this_pop(EFFECT_DISPLAY_PARAMS) {
-			return ef_secede_province_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				bool(this_slot) ? population::get_pop_owner(ws, *((population::pop*)this_slot)) : nullptr, nullptr, nullptr, gen);
+			return tag_type_this_pop_effect(scenario::fixed_ui::change_province_owner, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_secede_province_from_nation(EFFECT_DISPLAY_PARAMS) {
-			text_data::replacement repl{
-				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, bool(from_slot) ? ((nations::nation*)from_slot)->name : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation]),
-				[](ui::tagged_gui_object) {} };
-
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_province_owner], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
-			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-			lm.finish_current_line();
-			return cursor_in;
+			return tag_type_from_nation_effect(scenario::fixed_ui::change_province_owner, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_secede_province_from_province(EFFECT_DISPLAY_PARAMS) {
-			return ef_secede_province_from_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				nullptr, bool(from_slot) ? ((provinces::province_state*)from_slot)->owner : nullptr, nullptr, gen);
+			return tag_type_from_province_effect(scenario::fixed_ui::change_province_owner, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_secede_province_reb(EFFECT_DISPLAY_PARAMS) {
-			if(rebel_slot && is_valid_index(rebel_slot->independence_tag)) {
-				auto holder_name = bool(ws.w.culture_s.national_tags_state[rebel_slot->independence_tag].holder) ?
-					ws.w.culture_s.national_tags_state[rebel_slot->independence_tag].holder->name :
-					ws.s.culture_m.national_tags[rebel_slot->independence_tag].default_name.name;
-
-				text_data::replacement repl{
-					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, holder_name),
-					[](ui::tagged_gui_object) {} };
-
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_province_owner], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
-				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-				lm.finish_current_line();
-				return cursor_in;
-			} else {
-				text_data::replacement repl{
-					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::rebel]),
-					[](ui::tagged_gui_object) {} };
-
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_province_owner], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
-				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-				lm.finish_current_line();
-				return cursor_in;
-			}
+			return tag_type_rebel_slot_effect(scenario::fixed_ui::change_province_owner, rebel_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_inherit(EFFECT_DISPLAY_PARAMS) {
-			auto holder_name = bool(ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder) ?
-				ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder->name :
-				ws.s.culture_m.national_tags[trigger_payload(tval[2]).tag].default_name.name;
-
-			text_data::replacement repl{
-					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, holder_name),
-					[](ui::tagged_gui_object) {} };
-
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::annex_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
-			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-			lm.finish_current_line();
-			return cursor_in;
+			return tag_type_effect(scenario::fixed_ui::annex_effect, tval[2], ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_inherit_this_nation(EFFECT_DISPLAY_PARAMS) {
-			text_data::replacement repl{
-					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, bool(this_slot) ? ((nations::nation*)this_slot)->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation]),
-					[](ui::tagged_gui_object) {} };
-
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::annex_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
-			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-			lm.finish_current_line();
-			return cursor_in;
+			return tag_type_this_nation_effect(scenario::fixed_ui::annex_effect, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_inherit_this_state(EFFECT_DISPLAY_PARAMS) {
-			return ef_inherit_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				bool(this_slot) ? ((nations::state_instance*)this_slot)->owner : nullptr, nullptr, nullptr, gen);
+			return tag_type_this_state_effect(scenario::fixed_ui::annex_effect, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_inherit_this_province(EFFECT_DISPLAY_PARAMS) {
-			return ef_inherit_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				bool(this_slot) ? ((provinces::province_state*)this_slot)->owner : nullptr, nullptr, nullptr, gen);
+			return tag_type_this_province_effect(scenario::fixed_ui::annex_effect, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_inherit_this_pop(EFFECT_DISPLAY_PARAMS) {
-			return ef_inherit_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				bool(this_slot) ? population::get_pop_owner(ws, *((population::pop*)this_slot)) : nullptr, nullptr, nullptr, gen);
+			return tag_type_this_pop_effect(scenario::fixed_ui::annex_effect, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_inherit_from_nation(EFFECT_DISPLAY_PARAMS) {
-			text_data::replacement repl{
-				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, bool(from_slot) ? ((nations::nation*)from_slot)->name : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation]),
-				[](ui::tagged_gui_object) {} };
-
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::annex_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
-			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-			lm.finish_current_line();
-			return cursor_in;
+			return tag_type_from_nation_effect(scenario::fixed_ui::annex_effect, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_inherit_from_province(EFFECT_DISPLAY_PARAMS) {
-			return ef_inherit_from_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				nullptr, bool(from_slot) ? ((provinces::province_state*)from_slot)->owner : nullptr, nullptr, gen);
+			return tag_type_from_province_effect(scenario::fixed_ui::annex_effect, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_annex_to(EFFECT_DISPLAY_PARAMS) {
-			auto holder_name = bool(ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder) ?
-				ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder->name :
-				ws.s.culture_m.national_tags[trigger_payload(tval[2]).tag].default_name.name;
-
-			text_data::replacement repl{
-					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, holder_name),
-					[](ui::tagged_gui_object) {} };
-
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::annexed_by_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
-			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-			lm.finish_current_line();
-			return cursor_in;
+			return tag_type_effect(scenario::fixed_ui::annexed_by_effect, tval[2], ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_annex_to_this_nation(EFFECT_DISPLAY_PARAMS) {
-			text_data::replacement repl{
-					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, bool(this_slot) ? ((nations::nation*)this_slot)->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation]),
-					[](ui::tagged_gui_object) {} };
-
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::annexed_by_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
-			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-			lm.finish_current_line();
-			return cursor_in;
+			return tag_type_this_nation_effect(scenario::fixed_ui::annexed_by_effect, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_annex_to_this_state(EFFECT_DISPLAY_PARAMS) {
-			return ef_annex_to_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				bool(this_slot) ? ((nations::state_instance*)this_slot)->owner : nullptr, nullptr, nullptr, gen);
+			return tag_type_this_state_effect(scenario::fixed_ui::annexed_by_effect, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_annex_to_this_province(EFFECT_DISPLAY_PARAMS) {
-			return ef_annex_to_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				bool(this_slot) ? ((provinces::province_state*)this_slot)->owner : nullptr, nullptr, nullptr, gen);
+			return tag_type_this_province_effect(scenario::fixed_ui::annexed_by_effect, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_annex_to_this_pop(EFFECT_DISPLAY_PARAMS) {
-			return ef_annex_to_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				bool(this_slot) ? population::get_pop_owner(ws, *((population::pop*)this_slot)) : nullptr, nullptr, nullptr, gen);
+			return tag_type_this_pop_effect(scenario::fixed_ui::annexed_by_effect, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_annex_to_from_nation(EFFECT_DISPLAY_PARAMS) {
-			text_data::replacement repl{
-					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, bool(from_slot) ? ((nations::nation*)from_slot)->name : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation]),
-					[](ui::tagged_gui_object) {} };
-
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::annexed_by_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
-			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-			lm.finish_current_line();
-			return cursor_in;
+			return tag_type_from_nation_effect(scenario::fixed_ui::annexed_by_effect, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_annex_to_from_province(EFFECT_DISPLAY_PARAMS) {
-			return ef_annex_to_from_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				nullptr, bool(from_slot) ? ((provinces::province_state*)from_slot)->owner : nullptr, nullptr, gen);
+			return tag_type_from_province_effect(scenario::fixed_ui::annexed_by_effect, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_release(EFFECT_DISPLAY_PARAMS) {
-			nations::liberate_uncored_cores(ws, *((nations::nation*)primary_slot), trigger_payload(tval[2]).tag);
+			return tag_type_effect(scenario::fixed_ui::core_return, tval[2], ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_release_this_nation(EFFECT_DISPLAY_PARAMS) {
-			if(is_valid_index(((nations::nation*)this_slot)->tag))
-				nations::liberate_uncored_cores(ws, *((nations::nation*)primary_slot), ((nations::nation*)this_slot)->tag);
+			return tag_type_this_nation_effect(scenario::fixed_ui::core_return_short, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_release_this_state(EFFECT_DISPLAY_PARAMS) {
-			auto owner = ((nations::state_instance*)this_slot)->owner;
-			if(owner)
-				ef_release_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+			return tag_type_this_state_effect(scenario::fixed_ui::core_return_short, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_release_this_province(EFFECT_DISPLAY_PARAMS) {
-			auto owner = ((provinces::province_state*)this_slot)->owner;
-			if(owner)
-				ef_release_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+			return tag_type_this_province_effect(scenario::fixed_ui::core_return_short, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_release_this_pop(EFFECT_DISPLAY_PARAMS) {
-			auto owner = population::get_pop_owner(ws, *((population::pop*)this_slot));
-			if(owner)
-				ef_release_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+			return tag_type_this_pop_effect(scenario::fixed_ui::core_return_short, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_release_from_nation(EFFECT_DISPLAY_PARAMS) {
-			if(is_valid_index(((nations::nation*)from_slot)->tag))
-				nations::liberate_uncored_cores(ws, *((nations::nation*)primary_slot), ((nations::nation*)from_slot)->tag);
+			return tag_type_from_nation_effect(scenario::fixed_ui::core_return_short, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_release_from_province(EFFECT_DISPLAY_PARAMS) {
-			auto owner = ((provinces::province_state*)from_slot)->owner;
-			if(owner)
-				ef_release_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+			return tag_type_from_province_effect(scenario::fixed_ui::core_return_short, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_change_controller(EFFECT_DISPLAY_PARAMS) {
-			auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
-			if(holder)
-				provinces::silent_set_province_controller(ws, *holder, *((provinces::province_state*)primary_slot));
+			return tag_type_effect(scenario::fixed_ui::change_province_controller, tval[2], ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_change_controller_this_nation(EFFECT_DISPLAY_PARAMS) {
-			provinces::silent_set_province_controller(ws, *((nations::nation*)this_slot), *((provinces::province_state*)primary_slot));
+			return tag_type_this_nation_effect(scenario::fixed_ui::change_province_controller, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_change_controller_this_province(EFFECT_DISPLAY_PARAMS) {
-			auto owner = ((provinces::province_state*)this_slot)->owner;
-			if(owner)
-				provinces::silent_set_province_controller(ws, *owner, *((provinces::province_state*)primary_slot));
+			return tag_type_this_province_effect(scenario::fixed_ui::change_province_controller, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_change_controller_from_nation(EFFECT_DISPLAY_PARAMS) {
-			provinces::silent_set_province_controller(ws, *((nations::nation*)from_slot), *((provinces::province_state*)primary_slot));
+			return tag_type_from_nation_effect(scenario::fixed_ui::change_province_controller, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_change_controller_from_province(EFFECT_DISPLAY_PARAMS) {
-			auto owner = ((provinces::province_state*)from_slot)->owner;
-			if(owner)
-				provinces::silent_set_province_controller(ws, *owner, *((provinces::province_state*)primary_slot));
+			return tag_type_from_province_effect(scenario::fixed_ui::change_province_controller, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_infrastructure(EFFECT_DISPLAY_PARAMS) {
-			((provinces::province_state*)primary_slot)->railroad_level =
-				uint8_t(std::clamp(
-					int32_t(((provinces::province_state*)primary_slot)->railroad_level) + int32_t(trigger_payload(tval[2]).signed_value), 0, 255));
+			return display_value(trigger_payload(tval[2]).signed_value, scenario::fixed_ui::railroad_level, true,
+				display_type::integer, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_money(EFFECT_DISPLAY_PARAMS) {
-			((population::pop*)primary_slot)->money += read_float_from_payload(tval + 2);
+			return display_value(read_float_from_payload(tval + 2), scenario::fixed_ui::pop_savings, true,
+				display_type::currency, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_leadership(EFFECT_DISPLAY_PARAMS) {
-			((nations::nation*)primary_slot)->leadership_points += trigger_payload(tval[2]).signed_value;
+			return display_value(trigger_payload(tval[2]).signed_value, scenario::fixed_ui::leadership_points, true,
+				display_type::integer, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_create_vassal(EFFECT_DISPLAY_PARAMS) {
-			auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
-			if(holder && get_size(ws.w.province_s.province_arrays, holder->owned_provinces) != 0)
-				nations::make_vassal(ws, *((nations::nation*)primary_slot), *holder);
+			return tag_type_effect(scenario::fixed_ui::release_as_vassal, tval[2], ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_create_vassal_this_nation(EFFECT_DISPLAY_PARAMS) {
-			if(get_size(ws.w.province_s.province_arrays, ((nations::nation*)this_slot)->owned_provinces) != 0)
-				nations::make_vassal(ws, *((nations::nation*)primary_slot), *((nations::nation*)this_slot));
+			return tag_type_this_nation_effect(scenario::fixed_ui::release_as_vassal, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_create_vassal_this_province(EFFECT_DISPLAY_PARAMS) {
-			auto owner = ((provinces::province_state*)this_slot)->owner;
-			if(owner)
-				ef_create_vassal_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+			return tag_type_this_province_effect(scenario::fixed_ui::release_as_vassal, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_create_vassal_from_nation(EFFECT_DISPLAY_PARAMS) {
-			if(get_size(ws.w.province_s.province_arrays, ((nations::nation*)from_slot)->owned_provinces) != 0)
-				nations::make_vassal(ws, *((nations::nation*)primary_slot), *((nations::nation*)from_slot));
+			return tag_type_from_nation_effect(scenario::fixed_ui::release_as_vassal, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_create_vassal_from_province(EFFECT_DISPLAY_PARAMS) {
-			auto owner = ((provinces::province_state*)from_slot)->owner;
-			if(owner)
-				ef_create_vassal_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+			return tag_type_from_province_effect(scenario::fixed_ui::release_as_vassal, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_end_military_access(EFFECT_DISPLAY_PARAMS) {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
@@ -2304,135 +2182,129 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_leave_alliance(EFFECT_DISPLAY_PARAMS) {
-			auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
-			if(holder)
-				nations::end_alliance(ws, *((nations::nation*)primary_slot), *holder);
+			return tag_type_effect(scenario::fixed_ui::end_alliance, tval[2], ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_leave_alliance_this_nation(EFFECT_DISPLAY_PARAMS) {
-			nations::end_alliance(ws, *((nations::nation*)primary_slot), *((nations::nation*)this_slot));
+			return tag_type_this_nation_effect(scenario::fixed_ui::end_alliance, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_leave_alliance_this_province(EFFECT_DISPLAY_PARAMS) {
-			auto owner = ((provinces::province_state*)this_slot)->owner;
-			if(owner)
-				nations::end_alliance(ws, *((nations::nation*)primary_slot), *owner);
+			return tag_type_this_province_effect(scenario::fixed_ui::end_alliance, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_leave_alliance_from_nation(EFFECT_DISPLAY_PARAMS) {
-			nations::end_alliance(ws, *((nations::nation*)primary_slot), *((nations::nation*)from_slot));
+			return tag_type_from_nation_effect(scenario::fixed_ui::end_alliance, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_leave_alliance_from_province(EFFECT_DISPLAY_PARAMS) {
-			auto owner = ((provinces::province_state*)from_slot)->owner;
-			if(owner)
-				nations::end_alliance(ws, *((nations::nation*)primary_slot), *owner);
+			return tag_type_from_province_effect(scenario::fixed_ui::end_alliance, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_end_war(EFFECT_DISPLAY_PARAMS) {
-			auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
-			if(holder) {
-				auto war_between = military::get_war_between(ws, *((nations::nation*)primary_slot), holder->id);
-				if(war_between) {
-					military::destroy_war(ws, *war_between);
-					ws.w.military_s.wars.remove(war_between->id);
-				}
-			}
+			return tag_type_effect(scenario::fixed_ui::end_war_with, tval[2], ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_end_war_this_nation(EFFECT_DISPLAY_PARAMS) {
-			auto war_between = military::get_war_between(ws, *((nations::nation*)primary_slot), ((nations::nation*)this_slot)->id);
-			if(war_between) {
-				military::destroy_war(ws, *war_between);
-				ws.w.military_s.wars.remove(war_between->id);
-			}
+			return tag_type_this_nation_effect(scenario::fixed_ui::end_war_with, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_end_war_this_province(EFFECT_DISPLAY_PARAMS) {
-			auto owner = ((provinces::province_state*)this_slot)->owner;
-			if(owner)
-				ef_end_war_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+			return tag_type_this_province_effect(scenario::fixed_ui::end_war_with, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_end_war_from_nation(EFFECT_DISPLAY_PARAMS) {
-			auto war_between = military::get_war_between(ws, *((nations::nation*)primary_slot), ((nations::nation*)from_slot)->id);
-			if(war_between) {
-				military::destroy_war(ws, *war_between);
-				ws.w.military_s.wars.remove(war_between->id);
-			}
+			return tag_type_from_nation_effect(scenario::fixed_ui::end_war_with, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_end_war_from_province(EFFECT_DISPLAY_PARAMS) {
-			auto owner = ((provinces::province_state*)from_slot)->owner;
-			if(owner)
-				ef_end_war_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+			return tag_type_from_province_effect(scenario::fixed_ui::end_war_with, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_enable_ideology(EFFECT_DISPLAY_PARAMS) {
-			ws.w.ideology_s.ideology_enabled[trigger_payload(tval[2]).small.values.ideology] = 1ui8;
+			return fill_text_effect(scenario::fixed_ui::enable_blank, ws.s.ideologies_m.ideology_container[trigger_payload(tval[2]).small.values.ideology].name, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_ruling_party_ideology(EFFECT_DISPLAY_PARAMS) {
-			auto new_party = ws.w.nation_s.active_parties.get(((nations::nation*)primary_slot)->id, trigger_payload(tval[2]).small.values.ideology);
-			if(is_valid_index(new_party) && new_party != ((nations::nation*)primary_slot)->ruling_party)
-				governments::silent_set_ruling_party(ws, *((nations::nation*)primary_slot), new_party);
+			if(primary_slot) {
+				if(auto id = ((nations::nation*)primary_slot)->id; ws.w.nation_s.nations.is_valid_index(id)) {
+					auto new_party = ws.w.nation_s.active_parties.get(id, trigger_payload(tval[2]).small.values.ideology);
+					return fill_text_effect(scenario::fixed_ui::enable_blank, ws.s.governments_m.parties[new_party].name, ws, container, cursor_in, lm, fmt);
+				}
+			}
+			return fill_text_effect(scenario::fixed_ui::enable_blank, ws.s.ideologies_m.ideology_container[trigger_payload(tval[2]).small.values.ideology].name, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_plurality(EFFECT_DISPLAY_PARAMS) {
-			((nations::nation*)primary_slot)->plurality = std::clamp(((nations::nation*)primary_slot)->plurality + read_float_from_payload(tval + 2), 0.0f, 1.0f);
+			return display_value(read_float_from_payload(tval + 2), scenario::fixed_ui::plurality, true,
+				display_type::percent, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_remove_province_modifier(EFFECT_DISPLAY_PARAMS) {
 			auto pmod = trigger_payload(tval[2]).prov_mod;
-			modifiers::remove_static_modifier_from_province(ws, *((provinces::province_state*)primary_slot), pmod);
-			modifiers::remove_all_timed_modifiers_from_province(ws, *((provinces::province_state*)primary_slot), pmod);
+
+			text_data::replacement repl{
+				text_data::value_type::text,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.modifiers_m.provincial_modifiers[pmod].name),
+				[](ui::tagged_gui_object) {} };
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_prov_mod], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+
+			lm.increase_indent(1);
+			cursor_in = modifiers::make_province_modifier_text_body(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.provincial_modifier_definitions[pmod]);
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_remove_country_modifier(EFFECT_DISPLAY_PARAMS) {
 			auto nmod = trigger_payload(tval[2]).nat_mod;
-			modifiers::remove_all_static_modifiers_from_nation(ws, *((nations::nation*)primary_slot), nmod);
-			modifiers::remove_all_timed_modifiers_from_nation(ws, *((nations::nation*)primary_slot), nmod);
+
+			text_data::replacement repl{
+				text_data::value_type::text,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.modifiers_m.national_modifiers[nmod].name),
+				[](ui::tagged_gui_object) {} };
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_nat_mod], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+
+			lm.increase_indent(1);
+			cursor_in = modifiers::make_national_modifier_text_body(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.national_modifier_definitions[nmod]);
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_create_alliance(EFFECT_DISPLAY_PARAMS) {
-			auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
-			if(holder)
-				nations::make_alliance(ws, *((nations::nation*)primary_slot), *holder);
+			return tag_type_effect(scenario::fixed_ui::make_alliance, tval[2], ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_create_alliance_this_nation(EFFECT_DISPLAY_PARAMS) {
-			nations::make_alliance(ws, *((nations::nation*)primary_slot), *((nations::nation*)this_slot));
+			return tag_type_this_nation_effect(scenario::fixed_ui::make_alliance, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_create_alliance_this_province(EFFECT_DISPLAY_PARAMS) {
-			auto owner = ((provinces::province_state*)this_slot)->owner;
-			if(owner)
-				nations::make_alliance(ws, *((nations::nation*)primary_slot), *owner);
+			return tag_type_this_province_effect(scenario::fixed_ui::make_alliance, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_create_alliance_from_nation(EFFECT_DISPLAY_PARAMS) {
-			nations::make_alliance(ws, *((nations::nation*)primary_slot), *((nations::nation*)from_slot));
+			return tag_type_from_nation_effect(scenario::fixed_ui::make_alliance, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_create_alliance_from_province(EFFECT_DISPLAY_PARAMS) {
-			auto owner = ((provinces::province_state*)from_slot)->owner;
-			if(owner)
-				nations::make_alliance(ws, *((nations::nation*)primary_slot), *owner);
+			return tag_type_from_province_effect(scenario::fixed_ui::make_alliance, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_release_vassal(EFFECT_DISPLAY_PARAMS) {
 			if(auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder; bool(holder) && get_size(ws.w.province_s.province_arrays, holder->owned_provinces) != 0) {
-				nations::free_vassal(ws, *holder);
+				return tag_type_effect(scenario::fixed_ui::become_independent, tval[2], ws, container, cursor_in, lm, fmt);
 			} else {
-				auto& new_nation = nations::liberate_uncored_cores(ws, *((nations::nation*)primary_slot), trigger_payload(tval[2]).tag);
-				if(get_size(ws.w.province_s.province_arrays, new_nation.owned_provinces) != 0)
-					nations::make_vassal(ws, *((nations::nation*)primary_slot), new_nation);
+				return tag_type_effect(scenario::fixed_ui::release_as_vassal, tval[2], ws, container, cursor_in, lm, fmt);
 			}
 		}
 		ui::xy_pair ef_release_vassal_this_nation(EFFECT_DISPLAY_PARAMS) {
-			if(get_size(ws.w.province_s.province_arrays, ((nations::nation*)this_slot)->owned_provinces) != 0) {
-				nations::free_vassal(ws, *((nations::nation*)this_slot));
-			} else {
-				auto& new_nation = nations::liberate_uncored_cores(ws, *((nations::nation*)primary_slot), ((nations::nation*)this_slot)->tag);
-				if(get_size(ws.w.province_s.province_arrays, new_nation.owned_provinces) != 0)
-					nations::make_vassal(ws, *((nations::nation*)primary_slot), new_nation);
-			}
+			if(this_slot && get_size(ws.w.province_s.province_arrays, ((nations::nation*)this_slot)->owned_provinces) != 0)
+				return tag_type_this_nation_effect(scenario::fixed_ui::become_independent, this_slot, ws, container, cursor_in, lm, fmt);
+			else
+				return tag_type_this_nation_effect(scenario::fixed_ui::release_as_vassal, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_release_vassal_this_province(EFFECT_DISPLAY_PARAMS) {
-			auto owner = ((provinces::province_state*)this_slot)->owner;
-			if(owner)
-				ef_release_vassal_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+			return ef_release_vassal_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
+				bool(this_slot) ? ((provinces::province_state*)this_slot)->owner : nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_release_vassal_from_nation(EFFECT_DISPLAY_PARAMS) {
-			ef_release_vassal_this_nation(tval, ws, primary_slot, from_slot, nullptr, nullptr, gen);
+			if(from_slot && get_size(ws.w.province_s.province_arrays, ((nations::nation*)from_slot)->owned_provinces) != 0)
+				return tag_type_from_nation_effect(scenario::fixed_ui::become_independent, from_slot, ws, container, cursor_in, lm, fmt);
+			else
+				return tag_type_from_nation_effect(scenario::fixed_ui::release_as_vassal, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_release_vassal_from_province(EFFECT_DISPLAY_PARAMS) {
-			auto owner = ((provinces::province_state*)from_slot)->owner;
-			if(owner)
-				ef_release_vassal_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+			return ef_release_vassal_from_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
+				nullptr, bool(from_slot) ? ((provinces::province_state*)from_slot)->owner : nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_release_vassal_reb(EFFECT_DISPLAY_PARAMS) {
-			nations::liberate_all_cores(ws, *((nations::nation*)primary_slot), rebel_slot->independence_tag);
+			return tag_type_rebel_slot_effect(scenario::fixed_ui::release_as_independent, rebel_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_release_vassal_random(EFFECT_DISPLAY_PARAMS) {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
@@ -2441,923 +2313,1459 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_change_province_name(EFFECT_DISPLAY_PARAMS) {
-			((provinces::province_state*)primary_slot)->name = trigger_payload(tval[2]).text;
+			return fill_text_effect(scenario::fixed_ui::change_name_to, trigger_payload(tval[2]).text, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_enable_canal(EFFECT_DISPLAY_PARAMS) {
-			provinces::enable_canal(ws, tval[2] - 1);
+			return fill_text_effect(scenario::fixed_ui::enable_canal, std::get<2>(ws.s.province_m.canals[tval[2] - 1]), ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_set_global_flag(EFFECT_DISPLAY_PARAMS) {
-			ws.w.variable_s.global_variables[trigger_payload(tval[2]).global_var] = 1.0f;
+			return fill_text_effect(scenario::fixed_ui::set_global_flag, ws.s.variables_m.global_variable_to_name[trigger_payload(tval[2]).global_var],
+				ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_clr_global_flag(EFFECT_DISPLAY_PARAMS) {
-			ws.w.variable_s.global_variables[trigger_payload(tval[2]).global_var] = 0.0f;
+			return fill_text_effect(scenario::fixed_ui::remove_global_flag, ws.s.variables_m.global_variable_to_name[trigger_payload(tval[2]).global_var],
+				ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_nationalvalue_province(EFFECT_DISPLAY_PARAMS) {
-			auto owner = ((provinces::province_state*)primary_slot)->owner;
-			if(owner)
-				owner->national_value = trigger_payload(tval[2]).nat_mod;
+			auto nmod = trigger_payload(tval[2]).nat_mod;
+
+			text_data::replacement repl{
+				text_data::value_type::text,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.modifiers_m.national_modifiers[nmod].name),
+				[](ui::tagged_gui_object) {} };
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_national_value], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+
+			lm.increase_indent(1);
+			cursor_in = modifiers::make_national_modifier_text_body(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.national_modifier_definitions[nmod]);
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_nationalvalue_nation(EFFECT_DISPLAY_PARAMS) {
-			((nations::nation*)primary_slot)->national_value = trigger_payload(tval[2]).nat_mod;
+			auto nmod = trigger_payload(tval[2]).nat_mod;
+
+			text_data::replacement repl{
+				text_data::value_type::text,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.modifiers_m.national_modifiers[nmod].name),
+				[](ui::tagged_gui_object) {} };
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_national_value], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+
+			lm.increase_indent(1);
+			cursor_in = modifiers::make_national_modifier_text_body(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.national_modifier_definitions[nmod]);
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_civilized_yes(EFFECT_DISPLAY_PARAMS) {
-			nations::civilize_nation(ws, *((nations::nation*)primary_slot));
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::become_civ], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_civilized_no(EFFECT_DISPLAY_PARAMS) {
-			nations::uncivilize_nation(ws, *((nations::nation*)primary_slot));
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::become_unciv], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_is_slave_state_no(EFFECT_DISPLAY_PARAMS) {
-			nations::unmake_slave_state(ws, *((nations::state_instance*)primary_slot));
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::free_slave_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_is_slave_pop_no(EFFECT_DISPLAY_PARAMS) {
-			if(((population::pop*)primary_slot)->type == ws.s.population_m.slave)
-				population::free_slave(ws, *((population::pop*)primary_slot));
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::free_slave_pop], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_election(EFFECT_DISPLAY_PARAMS) {
-			if(ws.s.governments_m.governments_container[((nations::nation*)primary_slot)->current_government].election)
-				governments::start_election(ws, *((nations::nation*)primary_slot));
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::hold_election], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_social_reform(EFFECT_DISPLAY_PARAMS) {
-			issues::change_issue_option(ws, trigger_payload(tval[2]).small.values.option, *((nations::nation*)primary_slot));
+			auto opt = trigger_payload(tval[2]).small.values.option;
+			auto iss = ws.s.issues_m.options[opt].parent_issue;
+
+			text_data::replacement repl[2] = {
+				text_data::replacement{
+				text_data::value_type::issue,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.issues_m.issues_container[iss].name),
+				[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+				text_data::value_type::text,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.issues_m.options[opt].name),
+				[](ui::tagged_gui_object) {} },
+			};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::issue_change], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
 		}
 		ui::xy_pair ef_political_reform(EFFECT_DISPLAY_PARAMS) {
-			issues::change_issue_option(ws, trigger_payload(tval[2]).small.values.option, *((nations::nation*)primary_slot));
+			auto opt = trigger_payload(tval[2]).small.values.option;
+			auto iss = ws.s.issues_m.options[opt].parent_issue;
+
+			text_data::replacement repl[2] = {
+				text_data::replacement{
+				text_data::value_type::issue,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.issues_m.issues_container[iss].name),
+				[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+				text_data::value_type::text,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.issues_m.options[opt].name),
+				[](ui::tagged_gui_object) {} },
+			};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::issue_change], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
 		}
 		ui::xy_pair ef_add_tax_relative_income(EFFECT_DISPLAY_PARAMS) {
-			ws.w.nation_s.national_stockpiles.get(((nations::nation*)primary_slot)->id, economy::money_good) += economy::goods_qnty_type(((nations::nation*)primary_slot)->last_income * economy::money_qnty_type(read_float_from_payload(tval + 2)));
+			if(primary_slot) {
+				return display_value(((nations::nation*)primary_slot)->last_income * read_float_from_payload(tval + 2), scenario::fixed_ui::add_to_treasury, true,
+					display_type::currency, ws, container, cursor_in, lm, fmt);
+			} else {
+				return display_value(read_float_from_payload(tval + 2), scenario::fixed_ui::add_relative_income, true,
+					display_type::fp_two_places, ws, container, cursor_in, lm, fmt);
+			}
 		}
 		ui::xy_pair ef_neutrality(EFFECT_DISPLAY_PARAMS) {
-			auto allies_range = get_range(ws.w.nation_s.nations_arrays, ((nations::nation*)primary_slot)->allies);
-			boost::container::small_vector<nations::country_tag, 16> allies_copy(allies_range.first, allies_range.second);
-
-			for(auto a : allies_copy)
-				nations::end_alliance(ws, *((nations::nation*)primary_slot), ws.w.nation_s.nations[a]);
-
-			auto vassals_range = get_range(ws.w.nation_s.nations_arrays, ((nations::nation*)primary_slot)->vassals);
-			boost::container::small_vector<nations::country_tag, 16> vassals_copy(vassals_range.first, vassals_range.second);
-
-			for(auto a : vassals_copy)
-				nations::free_vassal(ws, ws.w.nation_s.nations[a]);
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::make_neutral], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_reduce_pop(EFFECT_DISPLAY_PARAMS) {
-			population::change_pop_size(
-				ws, *((population::pop*)primary_slot),
-				int32_t(ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, population::total_population_tag) * read_float_from_payload(tval + 2)));
+			return display_value(1.0f - read_float_from_payload(tval + 2), scenario::fixed_ui::pop_size, true,
+				display_type::percent, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_move_pop(EFFECT_DISPLAY_PARAMS) {
-			population::change_pop_location(ws, *((population::pop*)primary_slot), provinces::province_tag(tval[2]));
+			return fill_text_effect(scenario::fixed_ui::move_pop_to, ws.w.province_s.province_state_container[provinces::province_tag(tval[2])].name, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_pop_type(EFFECT_DISPLAY_PARAMS) {
-			population::change_pop_type(ws, *((population::pop*)primary_slot), trigger_payload(tval[2]).small.values.pop_type);
+			return fill_text_effect(scenario::fixed_ui::change_pop_type, ws.s.population_m.pop_types[trigger_payload(tval[2]).small.values.pop_type].name,
+				ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_years_of_research(EFFECT_DISPLAY_PARAMS) {
-			((nations::nation*)primary_slot)->research_points =
-				int16_t(float(((nations::nation*)primary_slot)->research_points) +
-					technologies::daily_research_points(ws, *((nations::nation*)primary_slot)) * 365.0f * read_float_from_payload(tval + 2));
+			if(primary_slot) {
+				return display_value(technologies::daily_research_points(ws, *((nations::nation*)primary_slot)) * 365.0f * read_float_from_payload(tval + 2),
+					scenario::fixed_ui::research_points, true, display_type::integer, ws, container, cursor_in, lm, fmt);
+			} else {
+				return display_value(read_float_from_payload(tval + 2),
+					scenario::fixed_ui::years_of_research, true, display_type::fp_two_places, ws, container, cursor_in, lm, fmt);
+			}
 		}
 		ui::xy_pair ef_prestige_factor_positive(EFFECT_DISPLAY_PARAMS) {
-			((nations::nation*)primary_slot)->base_prestige +=
-				(((nations::nation*)primary_slot)->base_prestige + ((nations::nation*)primary_slot)->tech_attributes[technologies::tech_offset::permanent_prestige]) *
-				(((nations::nation*)primary_slot)->tech_attributes[technologies::tech_offset::prestige] + 1.0f) *
-				read_float_from_payload(tval + 2);
+			return display_value(read_float_from_payload(tval + 2),
+				scenario::fixed_ui::prestige, true, display_type::percent, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_prestige_factor_negative(EFFECT_DISPLAY_PARAMS) {
-			((nations::nation*)primary_slot)->base_prestige = std::max(
-				0.0f,
-				((nations::nation*)primary_slot)->base_prestige +
-				(((nations::nation*)primary_slot)->base_prestige + ((nations::nation*)primary_slot)->tech_attributes[technologies::tech_offset::permanent_prestige]) *
-				read_float_from_payload(tval + 2));
+			return display_value(read_float_from_payload(tval + 2),
+				scenario::fixed_ui::prestige, true, display_type::percent, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_military_reform(EFFECT_DISPLAY_PARAMS) {
-			issues::change_issue_option(ws, trigger_payload(tval[2]).small.values.option, *((nations::nation*)primary_slot));
+			auto opt = trigger_payload(tval[2]).small.values.option;
+			auto iss = ws.s.issues_m.options[opt].parent_issue;
+
+			text_data::replacement repl[2] = {
+				text_data::replacement{
+				text_data::value_type::issue,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.issues_m.issues_container[iss].name),
+				[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+				text_data::value_type::text,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.issues_m.options[opt].name),
+				[](ui::tagged_gui_object) {} },
+			};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::issue_change], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
 		}
 		ui::xy_pair ef_economic_reform(EFFECT_DISPLAY_PARAMS) {
-			issues::change_issue_option(ws, trigger_payload(tval[2]).small.values.option, *((nations::nation*)primary_slot));
+			auto opt = trigger_payload(tval[2]).small.values.option;
+			auto iss = ws.s.issues_m.options[opt].parent_issue;
+
+			text_data::replacement repl[2] = {
+				text_data::replacement{
+				text_data::value_type::issue,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.issues_m.issues_container[iss].name),
+				[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+				text_data::value_type::text,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.issues_m.options[opt].name),
+				[](ui::tagged_gui_object) {} },
+			};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::issue_change], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
 		}
 		ui::xy_pair ef_remove_random_military_reforms(EFFECT_DISPLAY_PARAMS) {
-			boost::container::small_vector<issues::issue_tag, 16> active_reforms;
-			auto nation_id = ((nations::nation*)primary_slot)->id;
-			for(auto issue : ws.s.issues_m.military_issues) {
-				if(ws.w.nation_s.active_issue_options.get(nation_id, issue) != ws.s.issues_m.issues_container[issue].options[0])
-					active_reforms.push_back(issue);
-			}
-			for(int32_t i = tval[2] - 1; active_reforms.size() != 0 && i >= 0; --i) {
-				std::uniform_int_distribution<int32_t> dist(0, int32_t(active_reforms.size()) - 1);
-				auto chance_taken = uint32_t(dist(gen));
-				issues::change_issue_option(ws, ws.s.issues_m.issues_container[active_reforms[chance_taken]].options[0], *((nations::nation*)primary_slot));
-			}
+			char16_t local_buf[16];
+			put_value_in_buffer(local_buf, display_type::integer, tval[2]);
+
+			text_data::replacement repl[1] = {
+				text_data::replacement{
+					text_data::value_type::value,
+					vector_backed_string<char16_t>(local_buf),
+					[](ui::tagged_gui_object) {} }
+			};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_mil_reforms], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 1);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
 		}
 		ui::xy_pair ef_remove_random_economic_reforms(EFFECT_DISPLAY_PARAMS) {
-			boost::container::small_vector<issues::issue_tag, 16> active_reforms;
-			auto nation_id = ((nations::nation*)primary_slot)->id;
-			for(auto issue : ws.s.issues_m.economic_issues) {
-				if(ws.w.nation_s.active_issue_options.get(nation_id, issue) != ws.s.issues_m.issues_container[issue].options[0])
-					active_reforms.push_back(issue);
-			}
-			for(int32_t i = tval[2] - 1; active_reforms.size() != 0 && i >= 0; --i) {
-				std::uniform_int_distribution<int32_t> dist(0, int32_t(active_reforms.size()) - 1);
-				auto chance_taken = uint32_t(dist(gen));
-				issues::change_issue_option(ws, ws.s.issues_m.issues_container[active_reforms[chance_taken]].options[0], *((nations::nation*)primary_slot));
-			}
+			char16_t local_buf[16];
+			put_value_in_buffer(local_buf, display_type::integer, tval[2]);
+
+			text_data::replacement repl[1] = {
+				text_data::replacement{
+					text_data::value_type::value,
+					vector_backed_string<char16_t>(local_buf),
+					[](ui::tagged_gui_object) {} }
+			};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_econ_reforms], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 1);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
 		}
 		ui::xy_pair ef_add_crime(EFFECT_DISPLAY_PARAMS) {
-			((provinces::province_state*)primary_slot)->crime = trigger_payload(tval[2]).prov_mod;
+			auto pmod = trigger_payload(tval[2]).prov_mod;
+			return fill_text_effect(scenario::fixed_ui::add_crime, ws.s.modifiers_m.provincial_modifiers[pmod].name,
+				ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_add_crime_none(EFFECT_DISPLAY_PARAMS) {
-			((provinces::province_state*)primary_slot)->crime = modifiers::provincial_modifier_tag();
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_crime], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_nationalize(EFFECT_DISPLAY_PARAMS) {
-			nations::perform_nationalization(ws, *((nations::nation*)primary_slot));
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::perform_nationalization], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_build_factory_in_capital_state(EFFECT_DISPLAY_PARAMS) {
-			auto capital = ((nations::nation*)primary_slot)->current_capital;
-			auto factory_type = &(ws.s.economy_m.factory_types[trigger_payload(tval[2]).small.values.factory]);
-			if(is_valid_index(capital)) {
-				if(auto si = ws.w.province_s.province_state_container[capital].state_instance; si) {
-					int32_t free_index = -1;
-					for(int32_t i = int32_t(std::extent_v<decltype(si->factories)>) - 1; i >= 0; --i) {
-						if(si->factories[i].type == factory_type)
-							return;
-						else if(si->factories[i].type == nullptr)
-							free_index = i;
-					}
-					if(free_index != -1) {
-						si->factories[free_index].type = factory_type;
-						si->factories[free_index].level = 1ui16;
+			auto f = trigger_payload(tval[2]).small.values.factory;
+			return fill_text_effect(scenario::fixed_ui::build_factory_in_capital, ws.s.economy_m.factory_types[f].name,
+				ws, container, cursor_in, lm, fmt);
+		}
+		ui::xy_pair ef_activate_technology(EFFECT_DISPLAY_PARAMS) {
+			auto t = trigger_payload(tval[2]).tech;
+			return fill_text_effect(scenario::fixed_ui::enable_blank, ws.s.technology_m.technologies_container[t].name,
+				ws, container, cursor_in, lm, fmt);
+		}
+		ui::xy_pair ef_great_wars_enabled_yes(EFFECT_DISPLAY_PARAMS) {
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::enable_great_wars], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
+		}
+		ui::xy_pair ef_great_wars_enabled_no(EFFECT_DISPLAY_PARAMS) {
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::disable_great_wars], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
+		}
+		ui::xy_pair ef_world_wars_enabled_yes(EFFECT_DISPLAY_PARAMS) {
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::enable_world_wars], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
+		}
+		ui::xy_pair ef_world_wars_enabled_no(EFFECT_DISPLAY_PARAMS) {
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::disable_world_wars], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
+		}
+		ui::xy_pair ef_assimilate_province(EFFECT_DISPLAY_PARAMS) {
+			if(primary_slot) {
+				if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner) {
+					if(auto c = owner->primary_culture; is_valid_index(c)) {
+						return fill_text_effect(scenario::fixed_ui::assimilate_province, ws.s.culture_m.culture_container[c].name,
+							ws, container, cursor_in, lm, fmt);
 					}
 				}
 			}
-		}
-		ui::xy_pair ef_activate_technology(EFFECT_DISPLAY_PARAMS) {
-			bit_vector_set(ws.w.nation_s.active_technologies.get_row(((nations::nation*)primary_slot)->id), to_index(trigger_payload(tval[2]).tech), true);
-			technologies::apply_single_technology(ws, *((nations::nation*)primary_slot), trigger_payload(tval[2]).tech);
-		}
-		ui::xy_pair ef_great_wars_enabled_yes(EFFECT_DISPLAY_PARAMS) {
-			ws.w.great_wars_enabled = true;
-		}
-		ui::xy_pair ef_great_wars_enabled_no(EFFECT_DISPLAY_PARAMS) {
-			ws.w.great_wars_enabled = false;
-		}
-		ui::xy_pair ef_world_wars_enabled_yes(EFFECT_DISPLAY_PARAMS) {
-			ws.w.world_wars_enabled = true;
-		}
-		ui::xy_pair ef_world_wars_enabled_no(EFFECT_DISPLAY_PARAMS) {
-			ws.w.world_wars_enabled = false;
-		}
-		ui::xy_pair ef_assimilate_province(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner) {
-				provinces::for_each_pop(ws, *((provinces::province_state*)primary_slot), [owner_culture = owner->primary_culture](population::pop& p){
-					p.culture = owner_culture;
-				});
-			}
+			return fill_text_effect(scenario::fixed_ui::assimilate_province, ws.s.fixed_ui_text[scenario::fixed_ui::owner_primary_culture],
+				ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_assimilate_pop(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = population::get_pop_owner(ws, *((population::pop*)primary_slot)); owner) {
-				((population::pop*)primary_slot)->culture = owner->primary_culture;
+			if(primary_slot) {
+				if(auto owner = population::get_pop_owner(ws, *((population::pop*)primary_slot)); owner) {
+					if(auto c = owner->primary_culture; is_valid_index(c)) {
+						return fill_text_effect(scenario::fixed_ui::assimilate_pop, ws.s.culture_m.culture_container[c].name,
+							ws, container, cursor_in, lm, fmt);
+					}
+				}
 			}
+			return fill_text_effect(scenario::fixed_ui::assimilate_pop, ws.s.fixed_ui_text[scenario::fixed_ui::owner_primary_culture],
+				ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_literacy(EFFECT_DISPLAY_PARAMS) {
-			population::set_literacy_direct(*((population::pop*)primary_slot), population::get_literacy_direct(*((population::pop*)primary_slot)) + read_float_from_payload(tval + 2));
+			return display_value(read_float_from_payload(tval + 2),
+				scenario::fixed_ui::literacy, true, display_type::percent, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_add_crisis_interest(EFFECT_DISPLAY_PARAMS) {
-			if(ws.w.current_crisis_type != current_state::crisis_type::none)
-				add_item(ws.w.nation_s.nations_arrays, ws.w.crisis_interested, ((nations::nation*)primary_slot)->id);
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_crisis_interest], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_flashpoint_tension(EFFECT_DISPLAY_PARAMS) {
-			((nations::state_instance*)primary_slot)->current_tension = std::clamp(((nations::state_instance*)primary_slot)->current_tension + read_float_from_payload(tval + 2), 0.0f, 100.0f);
+			return display_value(read_float_from_payload(tval + 2),
+				scenario::fixed_ui::flashpoint_tension, false, display_type::integer, ws, container, cursor_in, lm, fmt);
 		}
-		ui::xy_pair ef_add_crisis_temperature(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
-			ws.w.crisis_temperature = std::clamp(ws.w.crisis_temperature + read_float_from_payload(tval + 2), 0.0f, 100.0f);
+		ui::xy_pair ef_add_crisis_temperature(EFFECT_DISPLAY_PARAMS) {
+			return display_value(read_float_from_payload(tval + 2),
+				scenario::fixed_ui::crisis_temperature, false, display_type::integer, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_consciousness(EFFECT_DISPLAY_PARAMS) {
-			population::set_consciousness_direct(*((population::pop*)primary_slot), population::get_consciousness_direct(*((population::pop*)primary_slot)) + read_float_from_payload(tval + 2));
+			return display_value(read_float_from_payload(tval + 2),
+				scenario::fixed_ui::consciousness, false, display_type::fp_one_place, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_militancy(EFFECT_DISPLAY_PARAMS) {
-			population::set_militancy_direct(*((population::pop*)primary_slot), population::get_militancy_direct(*((population::pop*)primary_slot)) + read_float_from_payload(tval + 2));
+			return display_value(read_float_from_payload(tval + 2),
+				scenario::fixed_ui::militancy, false, display_type::fp_one_place, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_rgo_size(EFFECT_DISPLAY_PARAMS) {
-			((provinces::province_state*)primary_slot)->rgo_size =
-				uint8_t(std::clamp(int32_t(((provinces::province_state*)primary_slot)->rgo_size + trigger_payload(tval[2]).signed_value), 0, 255));
+			return display_value(trigger_payload(tval[2]).signed_value,
+				scenario::fixed_ui::rgo_size, true, display_type::integer, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_fort(EFFECT_DISPLAY_PARAMS) {
-			((provinces::province_state*)primary_slot)->fort_level =
-				uint8_t(std::clamp(
-					int32_t(((provinces::province_state*)primary_slot)->fort_level) + int32_t(trigger_payload(tval[2]).signed_value), 0, 255));
+			return display_value(trigger_payload(tval[2]).signed_value,
+				scenario::fixed_ui::fort_level, true, display_type::integer, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_naval_base(EFFECT_DISPLAY_PARAMS) {
-			((provinces::province_state*)primary_slot)->naval_base_level =
-				uint8_t(std::clamp(
-					int32_t(((provinces::province_state*)primary_slot)->naval_base_level) + int32_t(trigger_payload(tval[2]).signed_value), 0, 255));
+			return display_value(trigger_payload(tval[2]).signed_value,
+				scenario::fixed_ui::naval_base_level, true, display_type::integer, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_trigger_revolt_nation(EFFECT_DISPLAY_PARAMS) {
-			auto rf_range = get_range(ws.w.population_s.rebel_faction_arrays, ((nations::nation*)primary_slot)->active_rebel_factions);
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::trigger_every_revolt], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+
+			lm.increase_indent(1);
 
 			auto type = trigger_payload(tval[2]).small.values.rebel;
 			auto culture = trigger_payload(tval[3]).culture;
 			auto religion = trigger_payload(tval[4]).small.values.religion;
 			auto ideology = trigger_payload(tval[5]).small.values.ideology;
 
-			for(auto rf : rf_range) {
-				auto& rf_obj = ws.w.population_s.rebel_factions[rf];
-				if((!is_valid_index(type) || rf_obj.type == type) &&
-					(!is_valid_index(culture) || rf_obj.culture == culture) &&
-					(!is_valid_index(religion) || rf_obj.religion == religion) &&
-					(!is_valid_index(ideology) || rf_obj.ideology == ideology)) {
-					population::trigger_rising(ws, rf_obj, *((nations::nation*)primary_slot));
-				}
-			}
+			if(is_valid_index(type))
+				cursor_in = fill_text_effect(scenario::fixed_ui::of_type, ws.s.population_m.rebel_types[type].name,
+					ws, container, cursor_in, lm, fmt);
+			if(is_valid_index(culture))
+				cursor_in = fill_text_effect(scenario::fixed_ui::where_culture_is, ws.s.culture_m.culture_container[culture].name,
+					ws, container, cursor_in, lm, fmt);
+			if(is_valid_index(religion))
+				cursor_in = fill_text_effect(scenario::fixed_ui::where_religion_is, ws.s.culture_m.religions[religion].name,
+					ws, container, cursor_in, lm, fmt);
+			if(is_valid_index(ideology))
+				cursor_in = fill_text_effect(scenario::fixed_ui::where_ideology_is, ws.s.ideologies_m.ideology_container[ideology].name,
+					ws, container, cursor_in, lm, fmt);
+
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_trigger_revolt_state(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((nations::state_instance*)primary_slot)->owner; owner)
-				ef_trigger_revolt_nation(tval, ws, owner, nullptr, nullptr, nullptr, gen);
+			return ef_trigger_revolt_nation(tval, ws, container, cursor_in, lm, fmt, nullptr, nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_trigger_revolt_province(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
-				ef_trigger_revolt_nation(tval, ws, owner, nullptr, nullptr, nullptr, gen);
+			return ef_trigger_revolt_nation(tval, ws, container, cursor_in, lm, fmt, nullptr, nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_diplomatic_influence(EFFECT_DISPLAY_PARAMS) {
-			if(auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder; holder)
-				nations::adjust_influence(ws, *((nations::nation*)primary_slot), holder->id, trigger_payload(tval[3]).signed_value);
+			char16_t local_buffer[32];
+			ui::text_format local_fmt{(trigger_payload(tval[3]).signed_value < 0) ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size };
+			if(trigger_payload(tval[3]).signed_value < 0)
+				local_buffer[0] = u'-';
+			else
+				local_buffer[0] = u'+';
+
+			put_pos_value_in_buffer(local_buffer + 1, display_type::integer, std::abs(trigger_payload(tval[3]).signed_value));
+
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), container, cursor_in, local_fmt, lm);
+			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
+			return tag_type_effect(scenario::fixed_ui::diplomatic_influence_with, tval[2], ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_diplomatic_influence_this_nation(EFFECT_DISPLAY_PARAMS) {
-			nations::adjust_influence(ws, *((nations::nation*)primary_slot), ((nations::nation*)this_slot)->id, trigger_payload(tval[2]).signed_value);
+			char16_t local_buffer[32];
+			ui::text_format local_fmt{ (trigger_payload(tval[2]).signed_value < 0) ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size };
+			if(trigger_payload(tval[2]).signed_value < 0)
+				local_buffer[0] = u'-';
+			else
+				local_buffer[0] = u'+';
+
+			put_pos_value_in_buffer(local_buffer + 1, display_type::integer, std::abs(trigger_payload(tval[2]).signed_value));
+
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), container, cursor_in, local_fmt, lm);
+			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
+			return tag_type_this_nation_effect(scenario::fixed_ui::diplomatic_influence_with, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_diplomatic_influence_this_province(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((provinces::province_state*)this_slot)->owner; owner)
-				nations::adjust_influence(ws, *((nations::nation*)primary_slot), owner->id, trigger_payload(tval[2]).signed_value);
+			char16_t local_buffer[32];
+			ui::text_format local_fmt{ (trigger_payload(tval[2]).signed_value < 0) ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size };
+			if(trigger_payload(tval[2]).signed_value < 0)
+				local_buffer[0] = u'-';
+			else
+				local_buffer[0] = u'+';
+
+			put_pos_value_in_buffer(local_buffer + 1, display_type::integer, std::abs(trigger_payload(tval[2]).signed_value));
+
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), container, cursor_in, local_fmt, lm);
+			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
+			return tag_type_this_province_effect(scenario::fixed_ui::diplomatic_influence_with, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_diplomatic_influence_from_nation(EFFECT_DISPLAY_PARAMS) {
-			nations::adjust_influence(ws, *((nations::nation*)primary_slot), ((nations::nation*)from_slot)->id, trigger_payload(tval[2]).signed_value);
+			char16_t local_buffer[32];
+			ui::text_format local_fmt{ (trigger_payload(tval[2]).signed_value < 0) ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size };
+			if(trigger_payload(tval[2]).signed_value < 0)
+				local_buffer[0] = u'-';
+			else
+				local_buffer[0] = u'+';
+
+			put_pos_value_in_buffer(local_buffer + 1, display_type::integer, std::abs(trigger_payload(tval[2]).signed_value));
+
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), container, cursor_in, local_fmt, lm);
+			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
+			return tag_type_from_nation_effect(scenario::fixed_ui::diplomatic_influence_with, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_diplomatic_influence_from_province(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((provinces::province_state*)from_slot)->owner; owner)
-				nations::adjust_influence(ws, *((nations::nation*)primary_slot), owner->id, trigger_payload(tval[2]).signed_value);
+			char16_t local_buffer[32];
+			ui::text_format local_fmt{ (trigger_payload(tval[2]).signed_value < 0) ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size };
+			if(trigger_payload(tval[2]).signed_value < 0)
+				local_buffer[0] = u'-';
+			else
+				local_buffer[0] = u'+';
+
+			put_pos_value_in_buffer(local_buffer + 1, display_type::integer, std::abs(trigger_payload(tval[2]).signed_value));
+
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), container, cursor_in, local_fmt, lm);
+			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
+			return tag_type_from_province_effect(scenario::fixed_ui::diplomatic_influence_with, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_relation(EFFECT_DISPLAY_PARAMS) {
-			if(auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder; holder)
-				nations::adjust_relationship(ws, *((nations::nation*)primary_slot), *holder, trigger_payload(tval[3]).signed_value);
+			char16_t local_buffer[32];
+			ui::text_format local_fmt{ (trigger_payload(tval[3]).signed_value < 0) ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size };
+			if(trigger_payload(tval[3]).signed_value < 0)
+				local_buffer[0] = u'-';
+			else
+				local_buffer[0] = u'+';
+
+			put_pos_value_in_buffer(local_buffer + 1, display_type::integer, std::abs(trigger_payload(tval[3]).signed_value));
+
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), container, cursor_in, local_fmt, lm);
+			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
+			return tag_type_effect(scenario::fixed_ui::relations_with, tval[2], ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_relation_this_nation(EFFECT_DISPLAY_PARAMS) {
-			nations::adjust_relationship(ws, *((nations::nation*)primary_slot), *((nations::nation*)this_slot), trigger_payload(tval[2]).signed_value);
+			char16_t local_buffer[32];
+			ui::text_format local_fmt{ (trigger_payload(tval[2]).signed_value < 0) ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size };
+			if(trigger_payload(tval[2]).signed_value < 0)
+				local_buffer[0] = u'-';
+			else
+				local_buffer[0] = u'+';
+
+			put_pos_value_in_buffer(local_buffer + 1, display_type::integer, std::abs(trigger_payload(tval[2]).signed_value));
+
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), container, cursor_in, local_fmt, lm);
+			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
+			return tag_type_this_nation_effect(scenario::fixed_ui::relations_with, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_relation_this_province(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((provinces::province_state*)this_slot)->owner; owner)
-				nations::adjust_relationship(ws, *((nations::nation*)primary_slot), *owner, trigger_payload(tval[2]).signed_value);
+			char16_t local_buffer[32];
+			ui::text_format local_fmt{ (trigger_payload(tval[2]).signed_value < 0) ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size };
+			if(trigger_payload(tval[2]).signed_value < 0)
+				local_buffer[0] = u'-';
+			else
+				local_buffer[0] = u'+';
+
+			put_pos_value_in_buffer(local_buffer + 1, display_type::integer, std::abs(trigger_payload(tval[2]).signed_value));
+
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), container, cursor_in, local_fmt, lm);
+			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
+			return tag_type_this_province_effect(scenario::fixed_ui::relations_with, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_relation_from_nation(EFFECT_DISPLAY_PARAMS) {
-			nations::adjust_relationship(ws, *((nations::nation*)primary_slot), *((nations::nation*)from_slot), trigger_payload(tval[2]).signed_value);
+			char16_t local_buffer[32];
+			ui::text_format local_fmt{ (trigger_payload(tval[2]).signed_value < 0) ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size };
+			if(trigger_payload(tval[2]).signed_value < 0)
+				local_buffer[0] = u'-';
+			else
+				local_buffer[0] = u'+';
+
+			put_pos_value_in_buffer(local_buffer + 1, display_type::integer, std::abs(trigger_payload(tval[2]).signed_value));
+
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), container, cursor_in, local_fmt, lm);
+			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
+			return tag_type_from_nation_effect(scenario::fixed_ui::relations_with, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_relation_from_province(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((provinces::province_state*)from_slot)->owner; owner)
-				nations::adjust_relationship(ws, *((nations::nation*)primary_slot), *owner, trigger_payload(tval[2]).signed_value);
+			char16_t local_buffer[32];
+			ui::text_format local_fmt{ (trigger_payload(tval[2]).signed_value < 0) ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size };
+			if(trigger_payload(tval[2]).signed_value < 0)
+				local_buffer[0] = u'-';
+			else
+				local_buffer[0] = u'+';
+
+			put_pos_value_in_buffer(local_buffer + 1, display_type::integer, std::abs(trigger_payload(tval[2]).signed_value));
+
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), container, cursor_in, local_fmt, lm);
+			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
+			return tag_type_from_province_effect(scenario::fixed_ui::relations_with, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_add_province_modifier(EFFECT_DISPLAY_PARAMS) {
-			modifiers::add_timed_modifier_to_province(
-				ws,
-				*((provinces::province_state*)primary_slot),
-				trigger_payload(tval[2]).prov_mod,
-				date_tag(to_index(ws.w.current_date) + trigger_payload(tval[3]).signed_value));
+			char16_t formatted_date[64];
+			u16_format_date(formatted_date, date_tag(to_index(ws.w.current_date) + trigger_payload(tval[3]).signed_value));
+
+			auto pmod = trigger_payload(tval[2]).prov_mod;
+
+			text_data::replacement repl[2] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.modifiers_m.provincial_modifiers[pmod].name),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::date,
+					vector_backed_string<char16_t>(formatted_date),
+					[](ui::tagged_gui_object) {} }
+			};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_modifier_until], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+
+			lm.increase_indent(1);
+			cursor_in = modifiers::make_province_modifier_text_body(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.provincial_modifier_definitions[pmod]);
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_add_province_modifier_no_duration(EFFECT_DISPLAY_PARAMS) {
-			modifiers::add_static_modifier_to_province(ws, *((provinces::province_state*)primary_slot), trigger_payload(tval[2]).prov_mod);
+			auto pmod = trigger_payload(tval[2]).prov_mod;
+
+			text_data::replacement repl[1] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.modifiers_m.provincial_modifiers[pmod].name),
+					[](ui::tagged_gui_object) {} }
+			};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_modifier], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 1);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+
+			lm.increase_indent(1);
+			cursor_in = modifiers::make_province_modifier_text_body(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.provincial_modifier_definitions[pmod]);
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_add_country_modifier(EFFECT_DISPLAY_PARAMS) {
-			modifiers::add_timed_modifier_to_nation(
-				ws,
-				*((nations::nation*)primary_slot),
-				trigger_payload(tval[2]).nat_mod,
-				date_tag(to_index(ws.w.current_date) + trigger_payload(tval[3]).signed_value));
+			char16_t formatted_date[64];
+			u16_format_date(formatted_date, date_tag(to_index(ws.w.current_date) + trigger_payload(tval[3]).signed_value));
+
+			auto nmod = trigger_payload(tval[2]).nat_mod;
+
+			text_data::replacement repl[2] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.modifiers_m.national_modifiers[nmod].name),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::date,
+					vector_backed_string<char16_t>(formatted_date),
+					[](ui::tagged_gui_object) {} }
+			};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_modifier_until], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+
+			lm.increase_indent(1);
+			cursor_in = modifiers::make_national_modifier_text_body(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.national_modifier_definitions[nmod]);
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_add_country_modifier_no_duration(EFFECT_DISPLAY_PARAMS) {
-			modifiers::add_unique_static_modifier_to_nation(ws, *((nations::nation*)primary_slot), trigger_payload(tval[2]).nat_mod);
+			auto nmod = trigger_payload(tval[2]).nat_mod;
+
+			text_data::replacement repl[1] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.modifiers_m.national_modifiers[nmod].name),
+					[](ui::tagged_gui_object) {} }
+			};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_modifier], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 1);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+
+			lm.increase_indent(1);
+			cursor_in = modifiers::make_national_modifier_text_body(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.national_modifier_definitions[nmod]);
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_casus_belli_tag(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 			auto months = trigger_payload(tval[3]).signed_value;
-			auto tag_target = trigger_payload(tval[4]).tag;
+			auto tag = trigger_payload(tval[4]).tag;
 
-			if(auto holder = ws.w.culture_s.national_tags_state[tag_target].holder; holder) {
-				add_item(ws.w.military_s.cb_arrays,
-					((nations::nation*)primary_slot)->active_cbs,
-					military::pending_cb {
-					holder->id, type, months > 0 ? date_tag(to_index(ws.w.current_date) + months * 30) : date_tag()
-				});
-			}
+			auto hname = ws.w.culture_s.national_tags_state[tag].holder ?
+				ws.w.culture_s.national_tags_state[tag].holder->name :
+				ws.s.culture_m.national_tags[tag].default_name.name;
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::integer, months);
+
+			text_data::replacement repl[3] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::name,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::value,
+					vector_backed_string<char16_t>(local_buffer),
+					[](ui::tagged_gui_object) {} } };
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_months : scenario::fixed_ui::add_cb_no_months],
+				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 3);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_casus_belli_int(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 			auto months = trigger_payload(tval[3]).signed_value;
 
-			if(auto owner = ws.w.province_s.province_state_container[provinces::province_tag(tval[4])].owner; owner) {
-				add_item(ws.w.military_s.cb_arrays,
-					((nations::nation*)primary_slot)->active_cbs,
-					military::pending_cb {
-					owner->id, type, months > 0 ? date_tag(to_index(ws.w.current_date) + months * 30) : date_tag()
-				});
-			}
+			auto hname = ws.w.province_s.province_state_container[provinces::province_tag(tval[4])].owner ?
+				ws.w.province_s.province_state_container[provinces::province_tag(tval[4])].owner->name :
+				ws.s.fixed_ui_text[scenario::fixed_ui::no_nation];
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::integer, months);
+
+			text_data::replacement repl[3] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::name,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::value,
+					vector_backed_string<char16_t>(local_buffer),
+					[](ui::tagged_gui_object) {} } };
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_months : scenario::fixed_ui::add_cb_no_months],
+				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 3);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_casus_belli_this_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 			auto months = trigger_payload(tval[3]).signed_value;
 
-			add_item(ws.w.military_s.cb_arrays,
-				((nations::nation*)primary_slot)->active_cbs,
-				military::pending_cb {
-				((nations::nation*)this_slot)->id, type, months > 0 ? date_tag(to_index(ws.w.current_date) + months * 30) : date_tag()
-			});
+			auto hname = bool(this_slot) ?
+				((nations::nation*)this_slot)->name :
+				ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::integer, months);
+
+			text_data::replacement repl[3] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::name,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::value,
+					vector_backed_string<char16_t>(local_buffer),
+					[](ui::tagged_gui_object) {} } };
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_months : scenario::fixed_ui::add_cb_no_months],
+				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 3);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_casus_belli_this_state(EFFECT_DISPLAY_PARAMS) {
-			auto type = trigger_payload(tval[2]).small.values.cb_type;
-			auto months = trigger_payload(tval[3]).signed_value;
-
-			if(auto owner = ((nations::state_instance*)this_slot)->owner; owner) {
-				add_item(ws.w.military_s.cb_arrays,
-					((nations::nation*)primary_slot)->active_cbs,
-					military::pending_cb {
-					owner->id, type, months > 0 ? date_tag(to_index(ws.w.current_date) + months * 30) : date_tag()
-				});
-			}
+			return ef_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
+				nullptr, bool(this_slot) ? ((nations::state_instance*)this_slot)->owner : nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_casus_belli_this_province(EFFECT_DISPLAY_PARAMS) {
-			auto type = trigger_payload(tval[2]).small.values.cb_type;
-			auto months = trigger_payload(tval[3]).signed_value;
-
-			if(auto owner = ((provinces::province_state*)this_slot)->owner; owner) {
-				add_item(ws.w.military_s.cb_arrays,
-					((nations::nation*)primary_slot)->active_cbs,
-					military::pending_cb {
-					owner->id, type, months > 0 ? date_tag(to_index(ws.w.current_date) + months * 30) : date_tag()
-				});
-			}
+			return ef_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
+				nullptr, bool(this_slot) ? ((provinces::province_state*)this_slot)->owner : nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_casus_belli_this_pop(EFFECT_DISPLAY_PARAMS) {
-			auto type = trigger_payload(tval[2]).small.values.cb_type;
-			auto months = trigger_payload(tval[3]).signed_value;
-
-			if(auto owner = population::get_pop_owner(ws, *((population::pop*)this_slot)); owner) {
-				add_item(ws.w.military_s.cb_arrays,
-					((nations::nation*)primary_slot)->active_cbs,
-					military::pending_cb {
-					owner->id, type, months > 0 ? date_tag(to_index(ws.w.current_date) + months * 30) : date_tag()
-				});
-			}
+			return ef_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
+				nullptr, bool(this_slot) ? population::get_pop_owner(ws, *((population::pop*)this_slot)) : nullptr, nullptr , nullptr, gen);
 		}
 		ui::xy_pair ef_casus_belli_from_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 			auto months = trigger_payload(tval[3]).signed_value;
 
-			add_item(ws.w.military_s.cb_arrays,
-				((nations::nation*)primary_slot)->active_cbs,
-				military::pending_cb {
-				((nations::nation*)from_slot)->id, type, months > 0 ? date_tag(to_index(ws.w.current_date) + months * 30) : date_tag()
-			});
+			auto hname = bool(from_slot) ?
+				((nations::nation*)from_slot)->name :
+				ws.s.fixed_ui_text[scenario::fixed_ui::from_nation];
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::integer, months);
+
+			text_data::replacement repl[3] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::name,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::value,
+					vector_backed_string<char16_t>(local_buffer),
+					[](ui::tagged_gui_object) {} } };
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_months : scenario::fixed_ui::add_cb_no_months],
+				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 3);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_casus_belli_from_province(EFFECT_DISPLAY_PARAMS) {
-			auto type = trigger_payload(tval[2]).small.values.cb_type;
-			auto months = trigger_payload(tval[3]).signed_value;
-
-			if(auto owner = ((provinces::province_state*)from_slot)->owner; owner) {
-				add_item(ws.w.military_s.cb_arrays,
-					((nations::nation*)primary_slot)->active_cbs,
-					military::pending_cb {
-					owner->id, type, months > 0 ? date_tag(to_index(ws.w.current_date) + months * 30) : date_tag()
-				});
-			}
+			return ef_casus_belli_from_nation(tval, ws, container, cursor_in, lm, fmt,
+				nullptr, nullptr, bool(from_slot) ? ((provinces::province_state*)from_slot)->owner : nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_add_casus_belli_tag(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 			auto months = trigger_payload(tval[3]).signed_value;
-			auto tag_target = trigger_payload(tval[4]).tag;
+			auto tag = trigger_payload(tval[4]).tag;
 
-			if(auto holder = ws.w.culture_s.national_tags_state[tag_target].holder; holder) {
-				add_item(ws.w.military_s.cb_arrays,
-					holder->active_cbs,
-					military::pending_cb{
-						((nations::nation*)primary_slot)->id, type, months > 0 ? date_tag(to_index(ws.w.current_date) + months * 30) : date_tag()
-					});
-			}
+			auto hname = ws.w.culture_s.national_tags_state[tag].holder ?
+				ws.w.culture_s.national_tags_state[tag].holder->name :
+				ws.s.culture_m.national_tags[tag].default_name.name;
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::integer, months);
+
+			text_data::replacement repl[3] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::name,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::value,
+					vector_backed_string<char16_t>(local_buffer),
+					[](ui::tagged_gui_object) {} } };
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_reversed_months : scenario::fixed_ui::add_cb_reversed_no_months],
+				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 3);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_add_casus_belli_int(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 			auto months = trigger_payload(tval[3]).signed_value;
 
-			if(auto owner = ws.w.province_s.province_state_container[provinces::province_tag(tval[4])].owner; owner) {
-				add_item(ws.w.military_s.cb_arrays,
-					owner->active_cbs,
-					military::pending_cb{
-						((nations::nation*)primary_slot)->id, type, months > 0 ? date_tag(to_index(ws.w.current_date) + months * 30) : date_tag()
-					});
-			}
+			auto hname = ws.w.province_s.province_state_container[provinces::province_tag(tval[4])].owner ?
+				ws.w.province_s.province_state_container[provinces::province_tag(tval[4])].owner->name :
+				ws.s.fixed_ui_text[scenario::fixed_ui::no_nation];
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::integer, months);
+
+			text_data::replacement repl[3] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::name,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::value,
+					vector_backed_string<char16_t>(local_buffer),
+					[](ui::tagged_gui_object) {} } };
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_reversed_months : scenario::fixed_ui::add_cb_reversed_no_months],
+				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 3);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_add_casus_belli_this_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 			auto months = trigger_payload(tval[3]).signed_value;
 
-			add_item(ws.w.military_s.cb_arrays,
-				((nations::nation*)this_slot)->active_cbs,
-				military::pending_cb {
-				((nations::nation*)primary_slot)->id, type, months > 0 ? date_tag(to_index(ws.w.current_date) + months * 30) : date_tag()
-			});
+			auto hname = bool(this_slot) ?
+				((nations::nation*)this_slot)->name :
+				ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::integer, months);
+
+			text_data::replacement repl[3] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::name,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::value,
+					vector_backed_string<char16_t>(local_buffer),
+					[](ui::tagged_gui_object) {} } };
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_reversed_months : scenario::fixed_ui::add_cb_reversed_no_months],
+				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 3);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_add_casus_belli_this_state(EFFECT_DISPLAY_PARAMS) {
-			auto type = trigger_payload(tval[2]).small.values.cb_type;
-			auto months = trigger_payload(tval[3]).signed_value;
-
-			if(auto owner = ((nations::state_instance*)this_slot)->owner; owner) {
-				add_item(ws.w.military_s.cb_arrays,
-					owner->active_cbs,
-					military::pending_cb{
-						((nations::nation*)primary_slot)->id, type, months > 0 ? date_tag(to_index(ws.w.current_date) + months * 30) : date_tag()
-					});
-			}
+			return ef_add_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
+				nullptr, bool(this_slot) ? ((nations::state_instance*)this_slot)->owner : nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_add_casus_belli_this_province(EFFECT_DISPLAY_PARAMS) {
-			auto type = trigger_payload(tval[2]).small.values.cb_type;
-			auto months = trigger_payload(tval[3]).signed_value;
-
-			if(auto owner = ((provinces::province_state*)this_slot)->owner; owner) {
-				add_item(ws.w.military_s.cb_arrays,
-					owner->active_cbs,
-					military::pending_cb{
-						((nations::nation*)primary_slot)->id, type, months > 0 ? date_tag(to_index(ws.w.current_date) + months * 30) : date_tag()
-					});
-			}
+			return ef_add_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
+				nullptr, bool(this_slot) ? ((provinces::province_state*)this_slot)->owner : nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_add_casus_belli_this_pop(EFFECT_DISPLAY_PARAMS) {
-			auto type = trigger_payload(tval[2]).small.values.cb_type;
-			auto months = trigger_payload(tval[3]).signed_value;
-
-			if(auto owner = population::get_pop_owner(ws, *((population::pop*)this_slot)); owner) {
-				add_item(ws.w.military_s.cb_arrays,
-					owner->active_cbs,
-					military::pending_cb{
-						((nations::nation*)primary_slot)->id, type, months > 0 ? date_tag(to_index(ws.w.current_date) + months * 30) : date_tag()
-					});
-			}
+			return ef_add_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
+				nullptr, bool(this_slot) ? population::get_pop_owner(ws, *((population::pop*)this_slot)) : nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_add_casus_belli_from_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 			auto months = trigger_payload(tval[3]).signed_value;
 
-			add_item(ws.w.military_s.cb_arrays,
-				((nations::nation*)from_slot)->active_cbs,
-				military::pending_cb {
-				((nations::nation*)primary_slot)->id, type, months > 0 ? date_tag(to_index(ws.w.current_date) + months * 30) : date_tag()
-			});
+			auto hname = bool(from_slot) ?
+				((nations::nation*)from_slot)->name :
+				ws.s.fixed_ui_text[scenario::fixed_ui::from_nation];
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::integer, months);
+
+			text_data::replacement repl[3] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::name,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::value,
+					vector_backed_string<char16_t>(local_buffer),
+					[](ui::tagged_gui_object) {} } };
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_reversed_months : scenario::fixed_ui::add_cb_reversed_no_months],
+				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 3);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_add_casus_belli_from_province(EFFECT_DISPLAY_PARAMS) {
-			auto type = trigger_payload(tval[2]).small.values.cb_type;
-			auto months = trigger_payload(tval[3]).signed_value;
-
-			if(auto owner = ((provinces::province_state*)from_slot)->owner; owner) {
-				add_item(ws.w.military_s.cb_arrays,
-					owner->active_cbs,
-					military::pending_cb{
-						((nations::nation*)primary_slot)->id, type, months > 0 ? date_tag(to_index(ws.w.current_date) + months * 30) : date_tag()
-					});
-			}
+			return ef_add_casus_belli_from_nation(tval, ws, container, cursor_in, lm, fmt,
+				nullptr, nullptr, bool(from_slot) ? ((provinces::province_state*)from_slot)->owner : nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_remove_casus_belli_tag(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
-			auto tag_target = trigger_payload(tval[3]).tag;
+			auto tag = trigger_payload(tval[3]).tag;
 
-			if(auto holder = ws.w.culture_s.national_tags_state[tag_target].holder; holder) {
-				remove_item(ws.w.military_s.cb_arrays,
-					((nations::nation*)primary_slot)->active_cbs,
-					military::pending_cb {
-					holder->id, type, date_tag()
-				});
-			}
+			auto hname = ws.w.culture_s.national_tags_state[tag].holder ?
+				ws.w.culture_s.national_tags_state[tag].holder->name :
+				ws.s.culture_m.national_tags[tag].default_name.name;
+
+			text_data::replacement repl[2] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::name,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+					[](ui::tagged_gui_object) {} },
+				 };
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb],
+				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_remove_casus_belli_int(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 
-			if(auto owner = ws.w.province_s.province_state_container[provinces::province_tag(tval[3])].owner; owner) {
-				remove_item(ws.w.military_s.cb_arrays,
-					((nations::nation*)primary_slot)->active_cbs,
-					military::pending_cb {
-					owner->id, type, date_tag()
-				});
-			}
+			auto hname = ws.w.province_s.province_state_container[provinces::province_tag(tval[3])].owner ?
+				ws.w.province_s.province_state_container[provinces::province_tag(tval[3])].owner->name :
+				ws.s.fixed_ui_text[scenario::fixed_ui::no_nation];
+
+			text_data::replacement repl[2] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::name,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+					[](ui::tagged_gui_object) {} },
+			};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb],
+				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_remove_casus_belli_this_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 
-			remove_item(ws.w.military_s.cb_arrays,
-				((nations::nation*)primary_slot)->active_cbs,
-				military::pending_cb {
-				((nations::nation*)this_slot)->id, type, date_tag()
-			});
+			auto hname = bool(this_slot) ?
+				((nations::nation*)this_slot)->name :
+				ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
+
+			text_data::replacement repl[2] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::name,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+					[](ui::tagged_gui_object) {} },
+				};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb],
+				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_remove_casus_belli_this_state(EFFECT_DISPLAY_PARAMS) {
-			auto type = trigger_payload(tval[2]).small.values.cb_type;
-
-			if(auto owner = ((nations::state_instance*)this_slot)->owner; owner) {
-				remove_item(ws.w.military_s.cb_arrays,
-					((nations::nation*)primary_slot)->active_cbs,
-					military::pending_cb {
-					owner->id, type, date_tag()
-				});
-			}
+			return ef_remove_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
+				nullptr, bool(this_slot) ? ((nations::state_instance*)this_slot)->owner : nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_remove_casus_belli_this_province(EFFECT_DISPLAY_PARAMS) {
-			auto type = trigger_payload(tval[2]).small.values.cb_type;
-
-			if(auto owner = ((provinces::province_state*)this_slot)->owner; owner) {
-				remove_item(ws.w.military_s.cb_arrays,
-					((nations::nation*)primary_slot)->active_cbs,
-					military::pending_cb {
-					owner->id, type, date_tag()
-				});
-			}
+			return ef_remove_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
+				nullptr, bool(this_slot) ? ((provinces::province_state*)this_slot)->owner : nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_remove_casus_belli_this_pop(EFFECT_DISPLAY_PARAMS) {
-			auto type = trigger_payload(tval[2]).small.values.cb_type;
-
-			if(auto owner = population::get_pop_owner(ws, *((population::pop*)this_slot)); owner) {
-				remove_item(ws.w.military_s.cb_arrays,
-					((nations::nation*)primary_slot)->active_cbs,
-					military::pending_cb {
-					owner->id, type, date_tag()
-				});
-			}
+			return ef_remove_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
+				nullptr, bool(this_slot) ? population::get_pop_owner(ws, *((population::pop*)this_slot)) : nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_remove_casus_belli_from_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 
-			remove_item(ws.w.military_s.cb_arrays,
-				((nations::nation*)primary_slot)->active_cbs,
-				military::pending_cb {
-				((nations::nation*)from_slot)->id, type, date_tag()
-			});
+			auto hname = bool(from_slot) ?
+				((nations::nation*)from_slot)->name :
+				ws.s.fixed_ui_text[scenario::fixed_ui::from_nation];
+
+			text_data::replacement repl[2] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::name,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+					[](ui::tagged_gui_object) {} },
+			};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb],
+				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_remove_casus_belli_from_province(EFFECT_DISPLAY_PARAMS) {
-			auto type = trigger_payload(tval[2]).small.values.cb_type;
-
-			if(auto owner = ((provinces::province_state*)from_slot)->owner; owner) {
-				remove_item(ws.w.military_s.cb_arrays,
-					((nations::nation*)primary_slot)->active_cbs,
-					military::pending_cb {
-					owner->id, type, date_tag()
-				});
-			}
+			return ef_remove_casus_belli_from_nation(tval, ws, container, cursor_in, lm, fmt,
+				nullptr, nullptr, bool(from_slot) ? ((provinces::province_state*)from_slot)->owner : nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_this_remove_casus_belli_tag(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
-			auto tag_target = trigger_payload(tval[3]).tag;
+			auto tag = trigger_payload(tval[3]).tag;
 
-			if(auto holder = ws.w.culture_s.national_tags_state[tag_target].holder; holder) {
-				remove_item(ws.w.military_s.cb_arrays,
-					holder->active_cbs,
-					military::pending_cb{ ((nations::nation*)primary_slot)->id, type, date_tag() });
-			}
+			auto hname = ws.w.culture_s.national_tags_state[tag].holder ?
+				ws.w.culture_s.national_tags_state[tag].holder->name :
+				ws.s.culture_m.national_tags[tag].default_name.name;
+
+			text_data::replacement repl[2] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::name,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+					[](ui::tagged_gui_object) {} },
+			};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb_reversed],
+				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_this_remove_casus_belli_int(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 
-			if(auto owner = ws.w.province_s.province_state_container[provinces::province_tag(tval[3])].owner; owner) {
-				remove_item(ws.w.military_s.cb_arrays,
-					owner->active_cbs,
-					military::pending_cb{ ((nations::nation*)primary_slot)->id, type, date_tag() });
-			}
+			auto hname = ws.w.province_s.province_state_container[provinces::province_tag(tval[3])].owner ?
+				ws.w.province_s.province_state_container[provinces::province_tag(tval[3])].owner->name :
+				ws.s.fixed_ui_text[scenario::fixed_ui::no_nation];
+
+			text_data::replacement repl[2] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::name,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+					[](ui::tagged_gui_object) {} },
+			};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb_reversed],
+				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_this_remove_casus_belli_this_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 
-			remove_item(ws.w.military_s.cb_arrays,
-				((nations::nation*)this_slot)->active_cbs,
-				military::pending_cb {
-				((nations::nation*)primary_slot)->id, type, date_tag()
-			});
+			auto hname = bool(this_slot) ?
+				((nations::nation*)this_slot)->name :
+				ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
+
+			text_data::replacement repl[2] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::name,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+					[](ui::tagged_gui_object) {} },
+			};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb_reversed],
+				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_this_remove_casus_belli_this_state(EFFECT_DISPLAY_PARAMS) {
-			auto type = trigger_payload(tval[2]).small.values.cb_type;
-
-			if(auto owner = ((nations::state_instance*)this_slot)->owner; owner) {
-				remove_item(ws.w.military_s.cb_arrays,
-					owner->active_cbs,
-					military::pending_cb{ ((nations::nation*)primary_slot)->id, type, date_tag() });
-			}
+			return ef_this_remove_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
+				nullptr, bool(this_slot) ? ((nations::state_instance*)this_slot)->owner : nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_this_remove_casus_belli_this_province(EFFECT_DISPLAY_PARAMS) {
-			auto type = trigger_payload(tval[2]).small.values.cb_type;
-
-			if(auto owner = ((provinces::province_state*)this_slot)->owner; owner) {
-				remove_item(ws.w.military_s.cb_arrays,
-					owner->active_cbs,
-					military::pending_cb{ ((nations::nation*)primary_slot)->id, type, date_tag() });
-			}
+			return ef_this_remove_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
+				nullptr, bool(this_slot) ? ((provinces::province_state*)this_slot)->owner : nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_this_remove_casus_belli_this_pop(EFFECT_DISPLAY_PARAMS) {
-			auto type = trigger_payload(tval[2]).small.values.cb_type;
-
-			if(auto owner = population::get_pop_owner(ws, *((population::pop*)this_slot)); owner) {
-				remove_item(ws.w.military_s.cb_arrays,
-					owner->active_cbs,
-					military::pending_cb{ ((nations::nation*)primary_slot)->id, type, date_tag() });
-			}
+			return ef_this_remove_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
+				nullptr, bool(this_slot) ? population::get_pop_owner(ws, *((population::pop*)this_slot)) : nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_this_remove_casus_belli_from_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 
-			remove_item(ws.w.military_s.cb_arrays,
-				((nations::nation*)from_slot)->active_cbs,
-				military::pending_cb {
-				((nations::nation*)primary_slot)->id, type, date_tag()
-			});
+			auto hname = bool(from_slot) ?
+				((nations::nation*)from_slot)->name :
+				ws.s.fixed_ui_text[scenario::fixed_ui::from_nation];
+
+			text_data::replacement repl[2] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::name,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+					[](ui::tagged_gui_object) {} },
+			};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb_reversed],
+				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_this_remove_casus_belli_from_province(EFFECT_DISPLAY_PARAMS) {
-			auto type = trigger_payload(tval[2]).small.values.cb_type;
-
-			if(auto owner = ((provinces::province_state*)from_slot)->owner; owner) {
-				remove_item(ws.w.military_s.cb_arrays,
-					owner->active_cbs,
-					military::pending_cb{ ((nations::nation*)primary_slot)->id, type, date_tag() });
-			}
+			return ef_this_remove_casus_belli_from_nation(tval, ws, container, cursor_in, lm, fmt,
+				nullptr, nullptr, bool(from_slot) ? ((provinces::province_state*)from_slot)->owner : nullptr, nullptr, gen);
 		}
-		ui::xy_pair ef_war_tag(EFFECT_DISPLAY_PARAMS) {
-			auto target = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
-			if(target) {
-				auto& new_war = military::create_war(ws, *((nations::nation*)primary_slot), *target, true);
 
-				auto attacker_wg_count = tval[3];
-				uint32_t payload_index = 4;
-				for(int32_t i = 0; i < attacker_wg_count; ++i) {
-					auto cb_type = trigger_payload(tval[payload_index + 0]).small.values.cb_type;
-					auto province_id = tval[payload_index + 1];
-					auto liberate_country_tag = trigger_payload(tval[payload_index + 2]).tag;
-					auto state = [&ws, province_id]() {
-						if(auto si = ws.w.province_s.province_state_container[provinces::province_tag(province_id)].state_instance; si)
-							return si->id;
-						else
-							return nations::state_tag();
-					}();
+		inline ui::xy_pair display_war_goal(military::cb_type_tag cb, nations::state_tag st, cultures::national_tag lib, bool attacker, world_state& ws,
+			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
 
-					add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-						military::war_goal{ ws.w.current_date, 0.0f, ((nations::nation*)primary_slot)->id, state, target->id, liberate_country_tag, cb_type });
-					payload_index += 3;
-				}
+			if(attacker)
+				cursor_in = fill_text_effect_wo_newline(scenario::fixed_ui::attacker_wg_label, ws.s.military_m.cb_types[cb].name, ws, container, cursor_in, lm, fmt);
+			else 
+				cursor_in = fill_text_effect_wo_newline(scenario::fixed_ui::defender_wg_label, ws.s.military_m.cb_types[cb].name, ws, container, cursor_in, lm, fmt);
 
-				auto defender_wg_count = tval[payload_index];
-				++payload_index;
-				for(int32_t i = 0; i < defender_wg_count; ++i) {
-					auto cb_type = trigger_payload(tval[payload_index + 0]).small.values.cb_type;
-					auto province_id = tval[payload_index + 1];
-					auto liberate_country_tag = trigger_payload(tval[payload_index + 2]).tag;
-					auto state = [&ws, province_id]() {
-						if(auto si = ws.w.province_s.province_state_container[provinces::province_tag(province_id)].state_instance; si)
-							return si->id;
-						else
-							return nations::state_tag();
-					}();
-
-					add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-						military::war_goal{ ws.w.current_date, 0.0f, target->id, state, ((nations::nation*)primary_slot)->id, liberate_country_tag, cb_type });
-					payload_index += 3;
-				}
+			if(is_valid_index(st)) {
+				cursor_in = fill_text_effect(scenario::fixed_ui::for_text, ws.w.nation_s.states[st].name, ws, container, cursor_in, lm, fmt);
+			} else if(is_valid_index(lib)) {
+				auto holder = ws.w.culture_s.national_tags_state[lib].holder;
+				cursor_in = fill_text_effect(scenario::fixed_ui::for_text,
+					holder ? holder->name : ws.s.culture_m.national_tags[lib].default_name.name, ws, container, cursor_in, lm, fmt);
+			} else {
+				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+				lm.finish_current_line();
 			}
+			return cursor_in;
+		}
+
+		inline ui::xy_pair make_wg_body(uint16_t const* tval, world_state& ws, ui::tagged_gui_object container,
+			ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+
+			auto attacker_wg_count = tval[0];
+			uint32_t payload_index = 1;
+			for(int32_t i = 0; i < attacker_wg_count; ++i) {
+				auto cb_type = trigger_payload(tval[payload_index + 0]).small.values.cb_type;
+				auto province_id = tval[payload_index + 1];
+				auto liberate_country_tag = trigger_payload(tval[payload_index + 2]).tag;
+				auto state = [&ws, province_id]() {
+					if(auto si = ws.w.province_s.province_state_container[provinces::province_tag(province_id)].state_instance; si)
+						return si->id;
+					else
+						return nations::state_tag();
+				}();
+				cursor_in = display_war_goal(cb_type, state, liberate_country_tag, true, ws, container, cursor_in, lm, fmt);
+				payload_index += 3;
+			}
+
+			auto defender_wg_count = tval[payload_index];
+			++payload_index;
+			for(int32_t i = 0; i < defender_wg_count; ++i) {
+				auto cb_type = trigger_payload(tval[payload_index + 0]).small.values.cb_type;
+				auto province_id = tval[payload_index + 1];
+				auto liberate_country_tag = trigger_payload(tval[payload_index + 2]).tag;
+				auto state = [&ws, province_id]() {
+					if(auto si = ws.w.province_s.province_state_container[provinces::province_tag(province_id)].state_instance; si)
+						return si->id;
+					else
+						return nations::state_tag();
+				}();
+				cursor_in = display_war_goal(cb_type, state, liberate_country_tag, false, ws, container, cursor_in, lm, fmt);
+				payload_index += 3;
+			}
+
+			return cursor_in;
+		}
+
+		ui::xy_pair ef_war_tag(EFFECT_DISPLAY_PARAMS) {
+			cursor_in = tag_type_effect(scenario::fixed_ui::declare_war_on, tval[2], ws, container, cursor_in, lm, fmt);
+			lm.increase_indent(1);
+
+			cursor_in = make_wg_body(tval + 3, ws, container, cursor_in, lm, fmt);
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_yes_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_war_this_nation(EFFECT_DISPLAY_PARAMS) {
-			nations::nation* target = ((nations::nation*)this_slot);
+			cursor_in = tag_type_this_nation_effect(scenario::fixed_ui::declare_war_on, this_slot, ws, container, cursor_in, lm, fmt);
+			lm.increase_indent(1);
 
-			auto& new_war = military::create_war(ws, *((nations::nation*)primary_slot), *target, true);
+			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
 
-			auto attacker_wg_count = tval[2];
-			uint32_t payload_index = 3;
-			for(int32_t i = 0; i < attacker_wg_count; ++i) {
-				auto cb_type = trigger_payload(tval[payload_index + 0]).small.values.cb_type;
-				auto province_id = tval[payload_index + 1];
-				auto liberate_country_tag = trigger_payload(tval[payload_index + 2]).tag;
-				auto state = [&ws, province_id]() {
-					if(auto si = ws.w.province_s.province_state_container[provinces::province_tag(province_id)].state_instance; si)
-						return si->id;
-					else
-						return nations::state_tag();
-				}();
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_yes_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
 
-				add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-					military::war_goal{ ws.w.current_date, 0.0f, ((nations::nation*)primary_slot)->id, state, target->id, liberate_country_tag, cb_type });
-				payload_index += 3;
-			}
-
-			auto defender_wg_count = tval[payload_index];
-			++payload_index;
-			for(int32_t i = 0; i < defender_wg_count; ++i) {
-				auto cb_type = trigger_payload(tval[payload_index + 0]).small.values.cb_type;
-				auto province_id = tval[payload_index + 1];
-				auto liberate_country_tag = trigger_payload(tval[payload_index + 2]).tag;
-				auto state = [&ws, province_id]() {
-					if(auto si = ws.w.province_s.province_state_container[provinces::province_tag(province_id)].state_instance; si)
-						return si->id;
-					else
-						return nations::state_tag();
-				}();
-
-				add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-					military::war_goal{ ws.w.current_date, 0.0f, target->id, state, ((nations::nation*)primary_slot)->id, liberate_country_tag, cb_type });
-				payload_index += 3;
-			}
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_war_this_state(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((nations::state_instance*)this_slot)->owner; owner)
-				ef_war_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+			cursor_in = tag_type_this_state_effect(scenario::fixed_ui::declare_war_on, this_slot, ws, container, cursor_in, lm, fmt);
+			lm.increase_indent(1);
+
+			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_yes_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_war_this_province(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((provinces::province_state*)this_slot)->owner; owner)
-				ef_war_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+			cursor_in = tag_type_this_province_effect(scenario::fixed_ui::declare_war_on, this_slot, ws, container, cursor_in, lm, fmt);
+			lm.increase_indent(1);
+
+			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_yes_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_war_this_pop(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = population::get_pop_owner(ws, *((population::pop*)this_slot)); owner)
-				ef_war_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+			cursor_in = tag_type_this_pop_effect(scenario::fixed_ui::declare_war_on, this_slot, ws, container, cursor_in, lm, fmt);
+			lm.increase_indent(1);
+
+			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_yes_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_war_from_nation(EFFECT_DISPLAY_PARAMS) {
-			ef_war_this_nation(tval, ws, primary_slot, from_slot, nullptr, nullptr, gen);
+			cursor_in = tag_type_from_nation_effect(scenario::fixed_ui::declare_war_on, from_slot, ws, container, cursor_in, lm, fmt);
+			lm.increase_indent(1);
+
+			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_yes_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_war_from_province(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((provinces::province_state*)from_slot)->owner; owner)
-				ef_war_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+			cursor_in = tag_type_from_province_effect(scenario::fixed_ui::declare_war_on, from_slot, ws, container, cursor_in, lm, fmt);
+			lm.increase_indent(1);
+
+			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_yes_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_war_no_ally_tag(EFFECT_DISPLAY_PARAMS) {
-			auto target = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
-			if(target) {
-				auto& new_war = military::create_war(ws, *((nations::nation*)primary_slot), *target, false);
+			cursor_in = tag_type_effect(scenario::fixed_ui::declare_war_on, tval[2], ws, container, cursor_in, lm, fmt);
+			lm.increase_indent(1);
 
-				auto attacker_wg_count = tval[3];
-				uint32_t payload_index = 4;
-				for(int32_t i = 0; i < attacker_wg_count; ++i) {
-					auto cb_type = trigger_payload(tval[payload_index + 0]).small.values.cb_type;
-					auto province_id = tval[payload_index + 1];
-					auto liberate_country_tag = trigger_payload(tval[payload_index + 2]).tag;
-					auto state = [&ws, province_id]() {
-						if(auto si = ws.w.province_s.province_state_container[provinces::province_tag(province_id)].state_instance; si)
-							return si->id;
-						else
-							return nations::state_tag();
-					}();
+			cursor_in = make_wg_body(tval + 3, ws, container, cursor_in, lm, fmt);
 
-					add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-						military::war_goal{ ws.w.current_date, 0.0f, ((nations::nation*)primary_slot)->id, state, target->id, liberate_country_tag, cb_type });
-					payload_index += 3;
-				}
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_no_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
 
-				auto defender_wg_count = tval[payload_index];
-				++payload_index;
-				for(int32_t i = 0; i < defender_wg_count; ++i) {
-					auto cb_type = trigger_payload(tval[payload_index + 0]).small.values.cb_type;
-					auto province_id = tval[payload_index + 1];
-					auto liberate_country_tag = trigger_payload(tval[payload_index + 2]).tag;
-					auto state = [&ws, province_id]() {
-						if(auto si = ws.w.province_s.province_state_container[provinces::province_tag(province_id)].state_instance; si)
-							return si->id;
-						else
-							return nations::state_tag();
-					}();
-
-					add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-						military::war_goal{ ws.w.current_date, 0.0f, target->id, state, ((nations::nation*)primary_slot)->id, liberate_country_tag, cb_type });
-					payload_index += 3;
-				}
-			}
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_war_no_ally_this_nation(EFFECT_DISPLAY_PARAMS) {
-			nations::nation* target = ((nations::nation*)this_slot);
+			cursor_in = tag_type_this_nation_effect(scenario::fixed_ui::declare_war_on, this_slot, ws, container, cursor_in, lm, fmt);
+			lm.increase_indent(1);
 
-			auto& new_war = military::create_war(ws, *((nations::nation*)primary_slot), *target, false);
+			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
 
-			auto attacker_wg_count = tval[2];
-			uint32_t payload_index = 3;
-			for(int32_t i = 0; i < attacker_wg_count; ++i) {
-				auto cb_type = trigger_payload(tval[payload_index + 0]).small.values.cb_type;
-				auto province_id = tval[payload_index + 1];
-				auto liberate_country_tag = trigger_payload(tval[payload_index + 2]).tag;
-				auto state = [&ws, province_id]() {
-					if(auto si = ws.w.province_s.province_state_container[provinces::province_tag(province_id)].state_instance; si)
-						return si->id;
-					else
-						return nations::state_tag();
-				}();
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_no_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
 
-				add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-					military::war_goal{ ws.w.current_date, 0.0f, ((nations::nation*)primary_slot)->id, state, target->id, liberate_country_tag, cb_type });
-				payload_index += 3;
-			}
-
-			auto defender_wg_count = tval[payload_index];
-			++payload_index;
-			for(int32_t i = 0; i < defender_wg_count; ++i) {
-				auto cb_type = trigger_payload(tval[payload_index + 0]).small.values.cb_type;
-				auto province_id = tval[payload_index + 1];
-				auto liberate_country_tag = trigger_payload(tval[payload_index + 2]).tag;
-				auto state = [&ws, province_id]() {
-					if(auto si = ws.w.province_s.province_state_container[provinces::province_tag(province_id)].state_instance; si)
-						return si->id;
-					else
-						return nations::state_tag();
-				}();
-
-				add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-					military::war_goal{ ws.w.current_date, 0.0f, target->id, state, ((nations::nation*)primary_slot)->id, liberate_country_tag, cb_type });
-				payload_index += 3;
-			}
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_war_no_ally_this_state(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((nations::state_instance*)this_slot)->owner; owner)
-				ef_war_no_ally_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+			cursor_in = tag_type_this_state_effect(scenario::fixed_ui::declare_war_on, this_slot, ws, container, cursor_in, lm, fmt);
+			lm.increase_indent(1);
+
+			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_no_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_war_no_ally_this_province(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((provinces::province_state*)this_slot)->owner; owner)
-				ef_war_no_ally_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+			cursor_in = tag_type_this_province_effect(scenario::fixed_ui::declare_war_on, this_slot, ws, container, cursor_in, lm, fmt);
+			lm.increase_indent(1);
+
+			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_no_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_war_no_ally_this_pop(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = population::get_pop_owner(ws, *((population::pop*)this_slot)); owner)
-				ef_war_no_ally_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+			cursor_in = tag_type_this_pop_effect(scenario::fixed_ui::declare_war_on, this_slot, ws, container, cursor_in, lm, fmt);
+			lm.increase_indent(1);
+
+			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_no_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_war_no_ally_from_nation(EFFECT_DISPLAY_PARAMS) {
-			ef_war_no_ally_this_nation(tval, ws, primary_slot, from_slot, nullptr, nullptr, gen);
+			cursor_in = tag_type_from_nation_effect(scenario::fixed_ui::declare_war_on, from_slot, ws, container, cursor_in, lm, fmt);
+			lm.increase_indent(1);
+
+			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_no_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+
+			lm.decrease_indent(1);
+			return cursor_in;
 		}
 		ui::xy_pair ef_war_no_ally_from_province(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((provinces::province_state*)from_slot)->owner; owner)
-				ef_war_no_ally_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+			cursor_in = tag_type_from_province_effect(scenario::fixed_ui::declare_war_on, from_slot, ws, container, cursor_in, lm, fmt);
+			lm.increase_indent(1);
+
+			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_no_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+
+			lm.decrease_indent(1);
+			return cursor_in;
+		}
+		inline ui::xy_pair delayed_event_display(uint16_t const* tval, ui::xy_pair cursor_in, world_state& ws, ui::tagged_gui_object container, 
+			ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::integer, tval[3]);
+
+			text_data::replacement repl[2] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.event_m.event_container[trigger_payload(tval[2]).event].title),
+					[](ui::tagged_gui_object) {} },
+				text_data::replacement{
+					text_data::value_type::value,
+					vector_backed_string<char16_t>(local_buffer),
+					[](ui::tagged_gui_object) {} }
+			};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::event_fires_in_days], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
+		}
+		inline ui::xy_pair immediate_event_display(uint16_t const* tval, ui::xy_pair cursor_in, world_state& ws, ui::tagged_gui_object container,
+			ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+
+			text_data::replacement repl[2] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.event_m.event_container[trigger_payload(tval[2]).event].title),
+					[](ui::tagged_gui_object) {} }
+			};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::event_fires], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 1);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_country_event_this_nation(EFFECT_DISPLAY_PARAMS) {
-			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], ((nations::nation*)primary_slot)->id, ((nations::nation*)this_slot)->id);
+			return delayed_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_country_event_immediate_this_nation(EFFECT_DISPLAY_PARAMS) {
-			events::fire_event(ws, trigger_payload(tval[2]).event, ((nations::nation*)primary_slot)->id, ((nations::nation*)this_slot)->id);
+			return immediate_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_province_event_this_nation(EFFECT_DISPLAY_PARAMS) {
-			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], ((provinces::province_state*)primary_slot)->id, ((nations::nation*)this_slot)->id);
+			return delayed_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_province_event_immediate_this_nation(EFFECT_DISPLAY_PARAMS) {
-			events::fire_event(ws, trigger_payload(tval[2]).event, ((provinces::province_state*)primary_slot)->id, ((nations::nation*)this_slot)->id);
+			return immediate_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_country_event_this_state(EFFECT_DISPLAY_PARAMS) {
-			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], ((nations::nation*)primary_slot)->id, ((nations::state_instance*)this_slot)->id);
+			return delayed_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_country_event_immediate_this_state(EFFECT_DISPLAY_PARAMS) {
-			events::fire_event(ws, trigger_payload(tval[2]).event, ((nations::nation*)primary_slot)->id, ((nations::state_instance*)this_slot)->id);
+			return immediate_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_province_event_this_state(EFFECT_DISPLAY_PARAMS) {
-			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], ((provinces::province_state*)primary_slot)->id, ((nations::state_instance*)this_slot)->id);
+			return delayed_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_province_event_immediate_this_state(EFFECT_DISPLAY_PARAMS) {
-			events::fire_event(ws, trigger_payload(tval[2]).event, ((provinces::province_state*)primary_slot)->id, ((nations::state_instance*)this_slot)->id);
+			return immediate_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_country_event_this_province(EFFECT_DISPLAY_PARAMS) {
-			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], ((nations::nation*)primary_slot)->id, ((provinces::province_state*)this_slot)->id);
+			return delayed_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_country_event_immediate_this_province(EFFECT_DISPLAY_PARAMS) {
-			events::fire_event(ws, trigger_payload(tval[2]).event, ((nations::nation*)primary_slot)->id, ((provinces::province_state*)this_slot)->id);
+			return immediate_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_province_event_this_province(EFFECT_DISPLAY_PARAMS) {
-			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], ((provinces::province_state*)primary_slot)->id, ((provinces::province_state*)this_slot)->id);
+			return delayed_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_province_event_immediate_this_province(EFFECT_DISPLAY_PARAMS) {
-			events::fire_event(ws, trigger_payload(tval[2]).event, ((provinces::province_state*)primary_slot)->id, ((provinces::province_state*)this_slot)->id);
+			return immediate_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_country_event_this_pop(EFFECT_DISPLAY_PARAMS) {
-			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], ((nations::nation*)primary_slot)->id, ((population::pop*)this_slot)->id);
+			return delayed_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_country_event_immediate_this_pop(EFFECT_DISPLAY_PARAMS) {
-			events::fire_event(ws, trigger_payload(tval[2]).event, ((nations::nation*)primary_slot)->id, ((population::pop*)this_slot)->id);
+			return immediate_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_province_event_this_pop(EFFECT_DISPLAY_PARAMS) {
-			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], ((provinces::province_state*)primary_slot)->id, ((population::pop*)this_slot)->id);
+			return delayed_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_province_event_immediate_this_pop(EFFECT_DISPLAY_PARAMS) {
-			events::fire_event(ws, trigger_payload(tval[2]).event, ((provinces::province_state*)primary_slot)->id, ((population::pop*)this_slot)->id);
+			return immediate_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_country_event_province_this_nation(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
-				ef_country_event_this_nation(tval, ws, owner, this_slot, nullptr, nullptr, gen);
+			return delayed_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_country_event_immediate_province_this_nation(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
-				ef_country_event_immediate_this_nation(tval, ws, owner, this_slot, nullptr, nullptr, gen);
+			return immediate_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_country_event_province_this_state(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
-				ef_country_event_this_state(tval, ws, owner, this_slot, nullptr, nullptr, gen);
+			return delayed_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_country_event_immediate_province_this_state(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
-				ef_country_event_immediate_this_state(tval, ws, owner, this_slot, nullptr, nullptr, gen);
+			return immediate_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_country_event_province_this_province(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
-				ef_country_event_this_province(tval, ws, owner, this_slot, nullptr, nullptr, gen);
+			return delayed_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_country_event_immediate_province_this_province(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
-				ef_country_event_immediate_this_province(tval, ws, owner, this_slot, nullptr, nullptr, gen);
+			return immediate_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_country_event_province_this_pop(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
-				ef_country_event_this_pop(tval, ws, owner, this_slot, nullptr, nullptr, gen);
+			return delayed_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_country_event_immediate_province_this_pop(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
-				ef_country_event_immediate_this_pop(tval, ws, owner, this_slot, nullptr, nullptr, gen);
+			return immediate_event_display(tval, cursor_in, ws, container, lm, fmt);
 		}
 
 		ui::xy_pair ef_sub_unit_int(EFFECT_DISPLAY_PARAMS) {
@@ -3394,14 +3802,38 @@ namespace triggers {
 			auto ideology = trigger_payload(tval[2]).small.values.ideology;
 			auto factor = read_float_from_payload(tval + 3);
 
-			auto pop_id = ((population::pop*)primary_slot)->id;
-			auto total_pop = ws.w.population_s.pop_demographics.get(pop_id, population::total_population_tag);
-			auto support = ws.w.population_s.pop_demographics.get_row(pop_id) + to_index(population::to_demo_tag(ws, ideologies::ideology_tag(0)));
+			char16_t local_buffer[32];
+			ui::text_format local_fmt{(factor < 0) ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size };
+			if(factor < 0)
+				local_buffer[0] = u'-';
+			else
+				local_buffer[0] = u'+';
 
-			support[to_index(ideology)] = std::max(0, support[to_index(ideology)] + int32_t(total_pop * factor));
-			normalize_integer_vector(support, ws.s.ideologies_m.ideologies_count, total_pop);
+			put_pos_value_in_buffer(local_buffer + 1, display_type::percent, std::abs(factor));
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer),
+				container, cursor_in, local_fmt, lm);
+			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
+
+			return fill_text_effect(scenario::fixed_ui::support_for_blank, ws.s.ideologies_m[ideology].name, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_upper_house(EFFECT_DISPLAY_PARAMS) {
+			auto ideology = trigger_payload(tval[2]).small.values.ideology;
+			auto factor = trigger_payload(tval[3]).signed_value;
+
+			char16_t local_buffer[32];
+			ui::text_format local_fmt{ (factor < 0) ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size };
+			if(factor < 0)
+				local_buffer[0] = u'-';
+			else
+				local_buffer[0] = u'+';
+
+			put_pos_value_in_buffer(local_buffer + 1, display_type::percent, float(std::abs(factor)) / 100.0f);
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer),
+				container, cursor_in, local_fmt, lm);
+			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
+
+			return fill_text_effect(scenario::fixed_ui::support_for_blank, ws.s.ideologies_m[ideology].name, ws, container, cursor_in, lm, fmt);
+
 			auto ideology = trigger_payload(tval[2]).small.values.ideology;
 			auto amount = trigger_payload(tval[3]).signed_value;
 			auto upper_house = ws.w.nation_s.upper_house.get_row(((nations::nation*)primary_slot)->id);
@@ -3409,334 +3841,177 @@ namespace triggers {
 			upper_house[to_index(ideology)] = uint8_t(std::clamp(int32_t(upper_house[to_index(ideology)]) + amount, 0, 255));
 			normalize_integer_vector(upper_house, ws.s.ideologies_m.ideologies_count, 100ui8);
 		}
-		ui::xy_pair ef_scaled_militancy_issue(EFFECT_DISPLAY_PARAMS) {
-			auto issue_demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
-			auto pop_size = ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, population::total_population_tag);
 
-			if(pop_size != 0) {
-				auto support = ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, issue_demo_tag);
-				float adjustment = read_float_from_payload(tval + 3) * float(support) / float(pop_size);
-				population::set_militancy_direct(*((population::pop*)primary_slot), std::clamp(adjustment + population::get_militancy_direct(*((population::pop*)primary_slot)), 0.0f, 1.0f));
-			}
+		inline ui::xy_pair display_scaled_issue(float value, uint32_t type, issues::option_tag tag, ui::xy_pair cursor_in, world_state& ws,
+			ui::tagged_gui_object container, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::up_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = display_value_wo_newline(value, type, false, display_type::percent, ws, container, cursor_in, lm, fmt);
+
+			text_data::replacement repl[1] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.issues_m.options[tag].name),
+					[](ui::tagged_gui_object) {} }
+			};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::scaled_support], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 1);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
+		}
+
+		inline ui::xy_pair display_scaled_ideology(float value, uint32_t type, ideologies::ideology_tag tag, ui::xy_pair cursor_in, world_state& ws,
+			ui::tagged_gui_object container, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::up_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = display_value_wo_newline(value, type, false, display_type::percent, ws, container, cursor_in, lm, fmt);
+
+			text_data::replacement repl[1] = {
+				text_data::replacement{
+					text_data::value_type::text,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.ideologies_m.ideology_container[tag].name),
+					[](ui::tagged_gui_object) {} }
+			};
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::scaled_support], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 1);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
+		}
+
+		inline ui::xy_pair display_scaled_unemployment(float value, uint32_t type, ui::xy_pair cursor_in, world_state& ws,
+			ui::tagged_gui_object container, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::up_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = display_value_wo_newline(value, type, false, display_type::percent, ws, container, cursor_in, lm, fmt);
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::scaled_unemployment], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
+		}
+
+		ui::xy_pair ef_scaled_militancy_issue(EFFECT_DISPLAY_PARAMS) {
+			return display_scaled_issue(read_float_from_payload(tval + 3), scenario::fixed_ui::militancy, trigger_payload(tval[2]).small.values.option,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_militancy_ideology(EFFECT_DISPLAY_PARAMS) {
-			auto ideology_demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology);
-			auto pop_size = ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, population::total_population_tag);
-
-			if(pop_size != 0) {
-				auto support = ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, ideology_demo_tag);
-				float adjustment = read_float_from_payload(tval + 3) * float(support) / float(pop_size);
-				population::set_militancy_direct(*((population::pop*)primary_slot), std::clamp(adjustment + population::get_militancy_direct(*((population::pop*)primary_slot)), 0.0f, 1.0f));
-			}
+			return display_scaled_ideology(read_float_from_payload(tval + 3), scenario::fixed_ui::militancy, trigger_payload(tval[2]).small.values.ideology,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_militancy_unemployment(EFFECT_DISPLAY_PARAMS) {
-			auto pop_size = ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, population::total_population_tag);
-
-			if(pop_size != 0) {
-				auto unemployed = pop_size - ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, population::total_employment_tag);
-				float adjustment = read_float_from_payload(tval + 2) * float(unemployed) / float(pop_size);
-				population::set_militancy_direct(*((population::pop*)primary_slot), std::clamp(adjustment + population::get_militancy_direct(*((population::pop*)primary_slot)), 0.0f, 1.0f));
-			}
+			return display_scaled_unemployment(read_float_from_payload(tval + 2), scenario::fixed_ui::militancy,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_consciousness_issue(EFFECT_DISPLAY_PARAMS) {
-			auto issue_demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
-			auto pop_size = ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, population::total_population_tag);
-
-			if(pop_size != 0) {
-				auto support = ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, issue_demo_tag);
-				float adjustment = read_float_from_payload(tval + 3) * float(support) / float(pop_size);
-				population::set_consciousness_direct(*((population::pop*)primary_slot), std::clamp(adjustment + population::get_consciousness_direct(*((population::pop*)primary_slot)), 0.0f, 1.0f));
-			}
+			return display_scaled_issue(read_float_from_payload(tval + 3), scenario::fixed_ui::consciousness, trigger_payload(tval[2]).small.values.option,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_consciousness_ideology(EFFECT_DISPLAY_PARAMS) {
-			auto ideology_demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology);
-			auto pop_size = ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, population::total_population_tag);
-
-			if(pop_size != 0) {
-				auto support = ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, ideology_demo_tag);
-				float adjustment = read_float_from_payload(tval + 3) * float(support) / float(pop_size);
-				population::set_consciousness_direct(*((population::pop*)primary_slot), std::clamp(adjustment + population::get_consciousness_direct(*((population::pop*)primary_slot)), 0.0f, 1.0f));
-			}
+			return display_scaled_ideology(read_float_from_payload(tval + 3), scenario::fixed_ui::consciousness, trigger_payload(tval[2]).small.values.ideology,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_consciousness_unemployment(EFFECT_DISPLAY_PARAMS) {
-			auto pop_size = ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, population::total_population_tag);
-
-			if(pop_size != 0) {
-				auto unemployed = pop_size - ws.w.population_s.pop_demographics.get(((population::pop*)primary_slot)->id, population::total_employment_tag);
-				float adjustment = read_float_from_payload(tval + 2) * float(unemployed) / float(pop_size);
-				population::set_consciousness_direct(*((population::pop*)primary_slot), std::clamp(adjustment + population::get_consciousness_direct(*((population::pop*)primary_slot)), 0.0f, 1.0f));
-			}
+			return display_scaled_unemployment(read_float_from_payload(tval + 2), scenario::fixed_ui::consciousness,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_militancy_nation_issue(EFFECT_DISPLAY_PARAMS) {
-			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
-			auto factor = read_float_from_payload(tval + 3);
-
-			nations::for_each_pop(ws, *((nations::nation*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
-
-				if(pop_size != 0) {
-					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
-					float adjustment = factor * float(support) / float(pop_size);
-					population::set_militancy_direct(p, std::clamp(adjustment + population::get_militancy_direct(p), 0.0f, 1.0f));
-				}
-			});
+			return display_scaled_issue(read_float_from_payload(tval + 3), scenario::fixed_ui::militancy, trigger_payload(tval[2]).small.values.option,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_militancy_nation_ideology(EFFECT_DISPLAY_PARAMS) {
-			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology);
-			auto factor = read_float_from_payload(tval + 3);
-
-			nations::for_each_pop(ws, *((nations::nation*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
-
-				if(pop_size != 0) {
-					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
-					float adjustment = factor * float(support) / float(pop_size);
-					population::set_militancy_direct(p, std::clamp(adjustment + population::get_militancy_direct(p), 0.0f, 1.0f));
-				}
-			});
+			return display_scaled_ideology(read_float_from_payload(tval + 3), scenario::fixed_ui::militancy, trigger_payload(tval[2]).small.values.ideology,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_militancy_nation_unemployment(EFFECT_DISPLAY_PARAMS) {
-			auto factor = read_float_from_payload(tval + 2);
-
-			nations::for_each_pop(ws, *((nations::nation*)primary_slot), [&ws, factor](population::pop& p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
-
-				if(pop_size != 0) {
-					auto support = pop_size - ws.w.population_s.pop_demographics.get(p.id, population::total_employment_tag);
-					float adjustment = factor * float(support) / float(pop_size);
-					population::set_militancy_direct(p, std::clamp(adjustment + population::get_militancy_direct(p), 0.0f, 1.0f));
-				}
-			});
+			return display_scaled_unemployment(read_float_from_payload(tval + 2), scenario::fixed_ui::militancy,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_consciousness_nation_issue(EFFECT_DISPLAY_PARAMS) {
-			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
-			auto factor = read_float_from_payload(tval + 3);
-
-			nations::for_each_pop(ws, *((nations::nation*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
-
-				if(pop_size != 0) {
-					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
-					float adjustment = factor * float(support) / float(pop_size);
-					population::set_consciousness_direct(p, std::clamp(adjustment + population::get_consciousness_direct(p), 0.0f, 1.0f));
-				}
-			});
+			return display_scaled_issue(read_float_from_payload(tval + 3), scenario::fixed_ui::consciousness, trigger_payload(tval[2]).small.values.option,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_consciousness_nation_ideology(EFFECT_DISPLAY_PARAMS) {
-			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology);
-			auto factor = read_float_from_payload(tval + 3);
-
-			nations::for_each_pop(ws, *((nations::nation*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
-
-				if(pop_size != 0) {
-					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
-					float adjustment = factor * float(support) / float(pop_size);
-					population::set_consciousness_direct(p, std::clamp(adjustment + population::get_consciousness_direct(p), 0.0f, 1.0f));
-				}
-			});
+			return display_scaled_ideology(read_float_from_payload(tval + 3), scenario::fixed_ui::consciousness, trigger_payload(tval[2]).small.values.ideology,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_consciousness_nation_unemployment(EFFECT_DISPLAY_PARAMS) {
-			auto factor = read_float_from_payload(tval + 2);
-
-			nations::for_each_pop(ws, *((nations::nation*)primary_slot), [&ws, factor](population::pop& p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
-
-				if(pop_size != 0) {
-					auto support = pop_size - ws.w.population_s.pop_demographics.get(p.id, population::total_employment_tag);
-					float adjustment = factor * float(support) / float(pop_size);
-					population::set_consciousness_direct(p, std::clamp(adjustment + population::get_consciousness_direct(p), 0.0f, 1.0f));
-				}
-			});
+			return display_scaled_unemployment(read_float_from_payload(tval + 2), scenario::fixed_ui::consciousness,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_militancy_state_issue(EFFECT_DISPLAY_PARAMS) {
-			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
-			auto factor = read_float_from_payload(tval + 3);
-
-			nations::for_each_pop(ws, *((nations::state_instance*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
-
-				if(pop_size != 0) {
-					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
-					float adjustment = factor * float(support) / float(pop_size);
-					population::set_militancy_direct(p, std::clamp(adjustment + population::get_militancy_direct(p), 0.0f, 1.0f));
-				}
-			});
+			return display_scaled_issue(read_float_from_payload(tval + 3), scenario::fixed_ui::militancy, trigger_payload(tval[2]).small.values.option,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_militancy_state_ideology(EFFECT_DISPLAY_PARAMS) {
-			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology);
-			auto factor = read_float_from_payload(tval + 3);
-
-			nations::for_each_pop(ws, *((nations::state_instance*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
-
-				if(pop_size != 0) {
-					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
-					float adjustment = factor * float(support) / float(pop_size);
-					population::set_militancy_direct(p, std::clamp(adjustment + population::get_militancy_direct(p), 0.0f, 1.0f));
-				}
-			});
+			return display_scaled_ideology(read_float_from_payload(tval + 3), scenario::fixed_ui::militancy, trigger_payload(tval[2]).small.values.ideology,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_militancy_state_unemployment(EFFECT_DISPLAY_PARAMS) {
-			auto factor = read_float_from_payload(tval + 2);
-
-			nations::for_each_pop(ws, *((nations::state_instance*)primary_slot), [&ws, factor](population::pop& p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
-
-				if(pop_size != 0) {
-					auto support = pop_size - ws.w.population_s.pop_demographics.get(p.id, population::total_employment_tag);
-					float adjustment = factor * float(support) / float(pop_size);
-					population::set_militancy_direct(p, std::clamp(adjustment + population::get_militancy_direct(p), 0.0f, 1.0f));
-				}
-			});
+			return display_scaled_unemployment(read_float_from_payload(tval + 2), scenario::fixed_ui::militancy,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_consciousness_state_issue(EFFECT_DISPLAY_PARAMS) {
-			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
-			auto factor = read_float_from_payload(tval + 3);
-
-			nations::for_each_pop(ws, *((nations::state_instance*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
-
-				if(pop_size != 0) {
-					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
-					float adjustment = factor * float(support) / float(pop_size);
-					population::set_consciousness_direct(p, std::clamp(adjustment + population::get_consciousness_direct(p), 0.0f, 1.0f));
-				}
-			});
+			return display_scaled_issue(read_float_from_payload(tval + 3), scenario::fixed_ui::consciousness, trigger_payload(tval[2]).small.values.option,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_consciousness_state_ideology(EFFECT_DISPLAY_PARAMS) {
-			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology);
-			auto factor = read_float_from_payload(tval + 3);
-
-			nations::for_each_pop(ws, *((nations::state_instance*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
-
-				if(pop_size != 0) {
-					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
-					float adjustment = factor * float(support) / float(pop_size);
-					population::set_consciousness_direct(p, std::clamp(adjustment + population::get_consciousness_direct(p), 0.0f, 1.0f));
-				}
-			});
+			return display_scaled_ideology(read_float_from_payload(tval + 3), scenario::fixed_ui::consciousness, trigger_payload(tval[2]).small.values.ideology,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_consciousness_state_unemployment(EFFECT_DISPLAY_PARAMS) {
-			auto factor = read_float_from_payload(tval + 2);
-
-			nations::for_each_pop(ws, *((nations::state_instance*)primary_slot), [&ws, factor](population::pop& p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
-
-				if(pop_size != 0) {
-					auto support = pop_size - ws.w.population_s.pop_demographics.get(p.id, population::total_employment_tag);
-					float adjustment = factor * float(support) / float(pop_size);
-					population::set_consciousness_direct(p, std::clamp(adjustment + population::get_consciousness_direct(p), 0.0f, 1.0f));
-				}
-			});
+			return display_scaled_unemployment(read_float_from_payload(tval + 2), scenario::fixed_ui::consciousness,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_militancy_province_issue(EFFECT_DISPLAY_PARAMS) {
-			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
-			auto factor = read_float_from_payload(tval + 3);
-
-			provinces::for_each_pop(ws, *((provinces::province_state*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
-
-				if(pop_size != 0) {
-					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
-					float adjustment = factor * float(support) / float(pop_size);
-					population::set_militancy_direct(p, std::clamp(adjustment + population::get_militancy_direct(p), 0.0f, 1.0f));
-				}
-			});
+			return display_scaled_issue(read_float_from_payload(tval + 3), scenario::fixed_ui::militancy, trigger_payload(tval[2]).small.values.option,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_militancy_province_ideology(EFFECT_DISPLAY_PARAMS) {
-			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology);
-			auto factor = read_float_from_payload(tval + 3);
-
-			provinces::for_each_pop(ws, *((provinces::province_state*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
-
-				if(pop_size != 0) {
-					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
-					float adjustment = factor * float(support) / float(pop_size);
-					population::set_militancy_direct(p, std::clamp(adjustment + population::get_militancy_direct(p), 0.0f, 1.0f));
-				}
-			});
+			return display_scaled_ideology(read_float_from_payload(tval + 3), scenario::fixed_ui::militancy, trigger_payload(tval[2]).small.values.ideology,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_militancy_province_unemployment(EFFECT_DISPLAY_PARAMS) {
-			auto factor = read_float_from_payload(tval + 2);
-
-			provinces::for_each_pop(ws, *((provinces::province_state*)primary_slot), [&ws, factor](population::pop& p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
-
-				if(pop_size != 0) {
-					auto support = pop_size - ws.w.population_s.pop_demographics.get(p.id, population::total_employment_tag);
-					float adjustment = factor * float(support) / float(pop_size);
-					population::set_militancy_direct(p, std::clamp(adjustment + population::get_militancy_direct(p), 0.0f, 1.0f));
-				}
-			});
+			return display_scaled_unemployment(read_float_from_payload(tval + 2), scenario::fixed_ui::militancy,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_consciousness_province_issue(EFFECT_DISPLAY_PARAMS) {
-			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
-			auto factor = read_float_from_payload(tval + 3);
-
-			provinces::for_each_pop(ws, *((provinces::province_state*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
-
-				if(pop_size != 0) {
-					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
-					float adjustment = factor * float(support) / float(pop_size);
-					population::set_consciousness_direct(p, std::clamp(adjustment + population::get_consciousness_direct(p), 0.0f, 1.0f));
-				}
-			});
+			return display_scaled_issue(read_float_from_payload(tval + 3), scenario::fixed_ui::consciousness, trigger_payload(tval[2]).small.values.option,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_consciousness_province_ideology(EFFECT_DISPLAY_PARAMS) {
-			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology);
-			auto factor = read_float_from_payload(tval + 3);
-
-			provinces::for_each_pop(ws, *((provinces::province_state*)primary_slot), [&ws, demo_tag, factor](population::pop& p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
-
-				if(pop_size != 0) {
-					auto support = ws.w.population_s.pop_demographics.get(p.id, demo_tag);
-					float adjustment = factor * float(support) / float(pop_size);
-					population::set_consciousness_direct(p, std::clamp(adjustment + population::get_consciousness_direct(p), 0.0f, 1.0f));
-				}
-			});
+			return display_scaled_ideology(read_float_from_payload(tval + 3), scenario::fixed_ui::consciousness, trigger_payload(tval[2]).small.values.ideology,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_scaled_consciousness_province_unemployment(EFFECT_DISPLAY_PARAMS) {
-			auto factor = read_float_from_payload(tval + 2);
-
-			provinces::for_each_pop(ws, *((provinces::province_state*)primary_slot), [&ws, factor](population::pop& p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
-
-				if(pop_size != 0) {
-					auto support = pop_size - ws.w.population_s.pop_demographics.get(p.id, population::total_employment_tag);
-					float adjustment = factor * float(support) / float(pop_size);
-					population::set_consciousness_direct(p, std::clamp(adjustment + population::get_consciousness_direct(p), 0.0f, 1.0f));
-				}
-			});
+			return display_scaled_unemployment(read_float_from_payload(tval + 2), scenario::fixed_ui::consciousness,
+				cursor_in, ws, container, lm, fmt);
 		}
 		ui::xy_pair ef_variable_good_name(EFFECT_DISPLAY_PARAMS) {
-			ws.w.nation_s.national_stockpiles.get(((nations::nation*)primary_slot)->id, trigger_payload(tval[2]).small.values.good) += economy::goods_qnty_type(read_float_from_payload(tval + 3));
+			cursor_in = display_value_wo_newline(read_float_from_payload(tval + 3), scenario::fixed_ui::stockpile_of, true, display_type::integer, ws, container, cursor_in, lm, fmt);
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.economy_m.goods[trigger_payload(tval[2]).small.values.good].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_variable_good_name_province(EFFECT_DISPLAY_PARAMS) {
-			if(auto owner = ((provinces::province_state*)primary_slot)->owner; owner)
-				ws.w.nation_s.national_stockpiles.get(owner->id, trigger_payload(tval[2]).small.values.good) += economy::goods_qnty_type(read_float_from_payload(tval + 3));
+			cursor_in = display_value_wo_newline(read_float_from_payload(tval + 3), scenario::fixed_ui::stockpile_of, true, display_type::integer, ws, container, cursor_in, lm, fmt);
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.economy_m.goods[trigger_payload(tval[2]).small.values.good].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_define_general(EFFECT_DISPLAY_PARAMS) {
-			auto& new_leader = military::make_empty_leader(ws, ((nations::nation*)primary_slot)->primary_culture, true);
-			new_leader.creation_date = ws.w.current_date;
-			new_leader.personality = trigger_payload(tval[3]).small.values.leader_trait;
-			new_leader.background = trigger_payload(tval[4]).small.values.leader_trait;
-			military::calculate_leader_traits(ws, new_leader);
-
-			add_item(ws.w.military_s.leader_arrays, ((nations::nation*)primary_slot)->generals, new_leader.id);
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::create_general], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_define_admiral(EFFECT_DISPLAY_PARAMS) {
-			auto& new_leader = military::make_empty_leader(ws, ((nations::nation*)primary_slot)->primary_culture, false);
-			new_leader.creation_date = ws.w.current_date;
-			new_leader.personality = trigger_payload(tval[3]).small.values.leader_trait;
-			new_leader.background = trigger_payload(tval[4]).small.values.leader_trait;
-			military::calculate_leader_traits(ws, new_leader);
-
-			add_item(ws.w.military_s.leader_arrays, ((nations::nation*)primary_slot)->admirals, new_leader.id);
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::create_admiral], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
+			return cursor_in;
 		}
 		ui::xy_pair ef_dominant_issue(EFFECT_DISPLAY_PARAMS) {
 			auto opt = trigger_payload(tval[2]).small.values.option;

@@ -757,14 +757,14 @@ inline char16_t* put_pos_value_in_buffer(char16_t* dest, display_type display_as
 			uint64_t int_value = uint64_t(value + value_type(0.5));
 			if(int_value < 10'000) {
 				auto value_end = _u16itoa(uint32_t(int_value), dest);
-				*value_end = '\u00A3'
+				*value_end = u'\u00A3';
 				*(value_end + 1) = char16_t(0);
 				return value_end + 1;
 			} else if(int_value < 1'000'000) {
 				int_value /= 1'000;
 				auto value_end = _u16itoa(uint32_t(int_value), dest);
 				*value_end = u'k';
-				*(value_end + 1) = '\u00A3'
+				*(value_end + 1) = u'\u00A3';
 				*(value_end + 2) = char16_t(0);
 				return value_end + 2;
 			} else {

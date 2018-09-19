@@ -15,6 +15,9 @@ class serialization::serializer<provinces::province> : public serialization::mem
 template<>
 class serialization::serializer<provinces::timed_provincial_modifier> : public serialization::memcpy_serializer<provinces::timed_provincial_modifier> {};
 
+template<>
+class serialization::serializer<std::tuple<provinces::province_tag, provinces::province_tag, text_data::text_tag, provinces::province_tag>> : public serialization::memcpy_serializer<std::tuple<provinces::province_tag, provinces::province_tag, text_data::text_tag, provinces::province_tag>> {};
+
 class world_state;
 
 template<>
@@ -139,7 +142,7 @@ namespace provinces {
 	void assign_terrain_color(provinces_state& m, tagged_vector<uint8_t, province_tag> const & terrain_colors, color_to_terrain_map const & terrain_map);
 	
 	std::map<province_tag, boost::container::flat_set<province_tag>> generate_map_adjacencies(uint16_t const* province_map_data, int32_t height, int32_t width);
-	void read_adjacnencies_file(std::map<province_tag, boost::container::flat_set<province_tag>>& adj_map, std::vector<std::pair<province_tag, province_tag>>& canals, directory const& root);
+	void read_adjacnencies_file(std::map<province_tag, boost::container::flat_set<province_tag>>& adj_map, std::vector<std::tuple<province_tag, province_tag, text_data::text_tag, province_tag>>& canals, directory const& root, text_data::text_sequences& text);
 	void make_lakes(std::map<province_tag, boost::container::flat_set<province_tag>>& adj_map, province_manager& m);
 	void make_adjacency(std::map<province_tag, boost::container::flat_set<province_tag>>& adj_map, province_manager& m);
 

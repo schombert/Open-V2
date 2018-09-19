@@ -133,7 +133,7 @@ namespace provinces {
 
 		v_vector<province_tag, province_tag> same_type_adjacency;
 		v_vector<province_tag, province_tag> coastal_adjacency;
-		std::vector<std::pair<province_tag, province_tag>> canals;
+		std::vector<std::tuple<province_tag, province_tag, text_data::text_tag, province_tag>> canals; // connection A, connection B, name, connection through
 
 		boost::container::flat_map<modifiers::provincial_modifier_tag, graphics::obj_definition_tag> terrain_graphics;
 
