@@ -280,7 +280,7 @@ namespace governments {
 
 	class decision_item_requirements {
 	public:
-		triggers::trigger_tag tag;
+		triggers::effect_tag tag;
 
 		template<typename window_type>
 		void windowed_update(ui::dynamic_icon<decision_item_requirements>& self, window_type& w, world_state& ws);
@@ -302,6 +302,7 @@ namespace governments {
 	class enact_decision_button {
 	public:
 		triggers::effect_tag tag;
+		triggers::trigger_tag requirements;
 
 		template<typename window_type>
 		void windowed_update(ui::simple_button<enact_decision_button>& self, window_type& w, world_state& ws);

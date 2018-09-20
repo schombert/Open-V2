@@ -273,16 +273,66 @@ namespace scenario {
 		constexpr uint32_t event_fires = 251ui32;
 		constexpr uint32_t event_fires_in_days = 252ui32;
 		constexpr uint32_t support_for_blank = 253ui32;
-
 		constexpr uint32_t up_to = 254ui32;
 		constexpr uint32_t scaled_support = 255ui32;
 		constexpr uint32_t scaled_unemployment = 256ui32;
 		constexpr uint32_t stockpile_of = 257ui32;
 		constexpr uint32_t create_general = 258ui32;
 		constexpr uint32_t create_admiral = 259ui32;
+		constexpr uint32_t add_war_goal = 260ui32;
+		constexpr uint32_t blank_loyalty = 261ui32;
+		constexpr uint32_t in_blank = 262ui32;
+		constexpr uint32_t railroad_in_capital = 263ui32;
+		constexpr uint32_t railroad_in_capital_state = 264ui32;
+		constexpr uint32_t fort_in_capital = 265ui32;
+		constexpr uint32_t fort_in_capital_state = 266ui32;
+		constexpr uint32_t set_national_variable_to = 267ui32;
+		constexpr uint32_t increase_national_variable_by = 268ui32;
+		constexpr uint32_t decrease_national_variable_by = 269ui32;
 
+		constexpr uint32_t cmp_ge = 270ui32;
+		constexpr uint32_t cmp_le = 271ui32;
+		constexpr uint32_t cmp_gt = 272ui32;
+		constexpr uint32_t cmp_lt = 273ui32;
+		constexpr uint32_t cmp_eq = 274ui32;
+		constexpr uint32_t cmp_ne = 275ui32;
+		constexpr uint32_t all_of_the_following = 276ui32;
+		constexpr uint32_t any_of_the_following = 277ui32;
+		constexpr uint32_t nation_at_war_against = 278ui32;
+		constexpr uint32_t core_in = 279ui32;
+		constexpr uint32_t substate_of = 280ui32;
+		constexpr uint32_t nation_in_sphere = 281ui32;
+		constexpr uint32_t cmp_has_eq = 282ui32;
+		constexpr uint32_t cmp_has_ne = 283ui32;
+		constexpr uint32_t year = 284ui32;
+		constexpr uint32_t month = 285ui32;
+		constexpr uint32_t a_port = 286ui32;
+		constexpr uint32_t national_rank = 287ui32;
+		constexpr uint32_t technology = 288ui32;
+		constexpr uint32_t strata = 288ui32;
+		constexpr uint32_t rich = 288ui32;
+		constexpr uint32_t poor = 288ui32;
+		constexpr uint32_t middle = 288ui32;
+		constexpr uint32_t minimum_state_life_raing = 289ui32;
+		constexpr uint32_t an_empy_adj_prov = 290ui32;
+		constexpr uint32_t belongs_to_same_state = 291ui32;
+		constexpr uint32_t does_not_belong_to_same_state = 292ui32;
+		constexpr uint32_t contains_blank = 293ui32;
+		constexpr uint32_t does_not_contain_blank = 294ui32;
+		constexpr uint32_t times_target_needs_spending = 294ui32;
+		constexpr uint32_t unemployment = 295ui32;
+		constexpr uint32_t slavery = 296ui32;
+		constexpr uint32_t allowed = 297ui32;
+		constexpr uint32_t a_slave_state = 298ui32;
+		constexpr uint32_t a_slave = 299ui32;
+		constexpr uint32_t an_independent_nation = 300ui32;
+		constexpr uint32_t non_prim_culture_pops = 301ui32;
+		constexpr uint32_t government = 302ui32;
+		constexpr uint32_t capital = 303ui32;
+		constexpr uint32_t technology_school = 304ui32;
+		constexpr uint32_t primary_culture = 305ui32;
 
-		constexpr uint32_t count = 166ui32;
+		constexpr uint32_t count = 270ui32;
 	}
 
 	class scenario_manager {

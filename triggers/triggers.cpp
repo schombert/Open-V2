@@ -581,8 +581,11 @@ namespace triggers {
 		auto pop_province = ((population::pop*)primary_slot)->location;
 		if(!is_valid_index(pop_province))
 			return false;
-		auto prov_state = &(ws.w.province_s.province_state_container[pop_province]);
-		return tf_state_scope_province(tval, ws, prov_state, this_slot, from_slot, rebel_slot);
+		auto prov_state = ws.w.province_s.province_state_container[pop_province].state_instance;
+		if(prov_state)
+			return tf_state_scope_province(tval, ws, prov_state, this_slot, from_slot, rebel_slot);
+		else
+			return false;
 	}
 	bool tf_tag_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot) {
 		auto tag = trigger_payload(tval[2]).tag;

@@ -3,6 +3,7 @@
 #include "world_state\\world_state.h"
 #include "modifiers\\modifiers_gui.h"
 #include "governments_functions.h"
+#include "triggers\\trigger_gui.h"
 
 namespace governments {
 	void close_button::button_function(ui::simple_button<close_button>&, world_state& ws) {
@@ -258,7 +259,15 @@ namespace governments {
 		if(gi)
 			default_image = gi->t;
 	}
-	void decision_item_requirements::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
+	void decision_item_requirements::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::unlimited_line_manager lm;
+		if(auto player = ws.w.local_player_nation; bool(player) && is_valid_index(tag)) {
+			triggers::make_effect_description(ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format,
+				ws.s.trigger_m.effect_data.data() + to_index(tag), player, player, nullptr, nullptr, get_local_generator());
+		} else {
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+		}
+	}
 	void decision_item_checkbox::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
 	void decision_item_checkbox::button_function(ui::simple_button<decision_item_checkbox>& self, world_state & ws) {}
 	void enact_decision_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}

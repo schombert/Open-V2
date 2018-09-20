@@ -1262,9 +1262,16 @@ namespace triggers {
 			((nations::nation*)primary_slot)->war_exhaustion = std::clamp(((nations::nation*)primary_slot)->war_exhaustion + read_float_from_payload(tval + 2), 0.0f, 1.0f);
 		}
 		void ef_prestige(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
-			((nations::nation*)primary_slot)->base_prestige = std::max(
-				0.0f,
-				((nations::nation*)primary_slot)->base_prestige + read_float_from_payload(tval + 2) * (((nations::nation*)primary_slot)->tech_attributes[technologies::tech_offset::prestige] + 1.0f));
+			auto amount = read_float_from_payload(tval + 2);
+			if(amount >= 0.0f) {
+				((nations::nation*)primary_slot)->base_prestige = std::max(
+					0.0f,
+					((nations::nation*)primary_slot)->base_prestige + amount * (((nations::nation*)primary_slot)->tech_attributes[technologies::tech_offset::prestige] + 1.0f));
+			} else {
+				((nations::nation*)primary_slot)->base_prestige = std::max(
+					0.0f,
+					((nations::nation*)primary_slot)->base_prestige + amount);
+			}
 		}
 		void ef_change_tag(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			if(is_valid_index(((nations::nation*)primary_slot)->tag))
@@ -3027,12 +3034,12 @@ namespace triggers {
 		void ef_party_loyalty_nation_from_province(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			auto ideology = trigger_payload(tval[2]).small.values.ideology;
 			auto amount = read_float_from_payload(tval + 3);
-			ws.w.province_s.party_loyalty.get(((provinces::province*)from_slot)->id, ideology) += amount;
+			ws.w.province_s.party_loyalty.get(((provinces::province_state*)from_slot)->id, ideology) += amount;
 		}
 		void ef_party_loyalty_province_from_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			auto ideology = trigger_payload(tval[2]).small.values.ideology;
 			auto amount = read_float_from_payload(tval + 3);
-			ws.w.province_s.party_loyalty.get(((provinces::province*)primary_slot)->id, ideology) += amount;
+			ws.w.province_s.party_loyalty.get(((provinces::province_state*)primary_slot)->id, ideology) += amount;
 		}
 		void ef_party_loyalty_province_id_nation(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			provinces::province_tag prov(tval[2]);
@@ -3120,7 +3127,7 @@ namespace triggers {
 		}
 		void ef_relation_reb(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			if(auto holder = ws.w.culture_s.national_tags_state[rebel_slot->independence_tag].holder; holder)
-				nations::adjust_relationship(ws, *((nations::nation*)primary_slot), *holder, trigger_payload(tval[3]).signed_value);
+				nations::adjust_relationship(ws, *((nations::nation*)primary_slot), *holder, trigger_payload(tval[2]).signed_value);
 		}
 		void ef_variable_tech_name(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			technologies::apply_single_technology(ws, *((nations::nation*)primary_slot), trigger_payload(tval[2]).tech);

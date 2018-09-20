@@ -222,13 +222,15 @@ namespace governments {
 	template<typename window_type>
 	void decision_item_requirements::windowed_update(ui::dynamic_icon<decision_item_requirements>& self, window_type & win, world_state & ws) {
 		if(is_valid_index(win.tag))
-			tag = ws.s.event_m.decision_container[win.tag].allow;
+			tag = ws.s.event_m.decision_container[win.tag].effect;
 	}
 
 	template<typename window_type>
 	void enact_decision_button::windowed_update(ui::simple_button<enact_decision_button>& self, window_type & win, world_state & ws) {
-		if(is_valid_index(win.tag))
+		if(is_valid_index(win.tag)) {
 			tag = ws.s.event_m.decision_container[win.tag].effect;
+			requirements = ws.s.event_m.decision_container[win.tag].allow;
+		}
 	}
 
 	template<typename window_type>

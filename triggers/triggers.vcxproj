@@ -156,6 +156,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="effects.cpp" />
+    <ClCompile Include="effect_gui.cpp" />
     <ClCompile Include="effect_reading.cpp" />
     <ClCompile Include="triggers.cpp" />
     <ClCompile Include="trigger_gui.cpp" />
