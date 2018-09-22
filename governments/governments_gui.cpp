@@ -270,7 +270,13 @@ namespace governments {
 	}
 	void decision_item_checkbox::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
 	void decision_item_checkbox::button_function(ui::simple_button<decision_item_checkbox>& self, world_state & ws) {}
-	void enact_decision_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
+	void enact_decision_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::unlimited_line_manager lm;
+		auto player = ws.w.local_player_nation;
+		if(is_valid_index(requirements))
+			triggers::make_trigger_description(ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format,
+				ws.s.trigger_m.trigger_data.data() + to_index(requirements), player, player, nullptr, nullptr);
+	}
 	void enact_decision_button::button_function(ui::simple_button<enact_decision_button>& self, world_state & ws) {}
 	ui::window_tag decision_listbox::element_tag(ui::gui_static & m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["decision_entry"]);

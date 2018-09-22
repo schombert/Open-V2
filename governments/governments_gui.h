@@ -306,7 +306,7 @@ namespace governments {
 
 		template<typename window_type>
 		void windowed_update(ui::simple_button<enact_decision_button>& self, window_type& w, world_state& ws);
-		bool has_tooltip(world_state&) { return true; }
+		bool has_tooltip(world_state&) { return is_valid_index(requirements); }
 		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 		void button_function(ui::simple_button<enact_decision_button>& self, world_state& ws);
 	};

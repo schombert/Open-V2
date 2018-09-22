@@ -230,6 +230,11 @@ namespace governments {
 		if(is_valid_index(win.tag)) {
 			tag = ws.s.event_m.decision_container[win.tag].effect;
 			requirements = ws.s.event_m.decision_container[win.tag].allow;
+			auto player = ws.w.local_player_nation;
+			if(!is_valid_index(requirements) || triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(requirements), ws, player, player, nullptr, nullptr))
+				self.set_enabled(true);
+			else
+				self.set_enabled(false);
 		}
 	}
 
