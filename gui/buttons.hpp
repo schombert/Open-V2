@@ -83,15 +83,15 @@ ui::tooltip_behavior ui::simple_button<BASE>::has_tooltip(gui_object_tag, world_
 	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
 		return BASE::has_tooltip(ws) ? tooltip_behavior::tooltip : tooltip_behavior::no_tooltip;
 	else
-		return tooltip_behavior::no_tooltip;
+		return tooltip_behavior::transparent;
 }
 
 template<typename BASE>
 ui::tooltip_behavior ui::masked_flag<BASE>::has_tooltip(gui_object_tag, world_state& ws, const mouse_move&) {
 	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
-		return BASE::has_tooltip(ws) ? tooltip_behavior::tooltip : tooltip_behavior::no_tooltip;
+		return (is_valid_index(displayed_flag) && BASE::has_tooltip(ws)) ? tooltip_behavior::tooltip : tooltip_behavior::no_tooltip;
 	else
-		return tooltip_behavior::tooltip;
+		return is_valid_index(displayed_flag) ? tooltip_behavior::tooltip : tooltip_behavior::no_tooltip;
 }
 
 template<typename BASE>

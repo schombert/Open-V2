@@ -140,4 +140,33 @@ namespace technologies {
 
 		return (n.modifier_values[modifiers::national_offsets::research_points] + points_by_type) * (1.0f + n.modifier_values[modifiers::national_offsets::research_points_modifier]);
 	}
+
+	float effective_tech_cost(tech_tag t, world_state const& ws, nations::nation const& this_nation) {
+		auto& tech = ws.s.technology_m.technologies_container[t];
+		auto base_cost = float(tech.cost);
+		auto years_after_unlock_adjustment = std::max(0.0f, 1.0f - float(int32_t(tag_to_date(ws.w.current_date).year()) - int32_t(tech.year)) / ws.s.modifiers_m.global_defines.tech_year_span);
+		float modifier = [&ws, &tech, &this_nation](){
+			if(tech.category == tech_category_type::army)
+				return 1.0f + this_nation.modifier_values[modifiers::national_offsets::army_tech_research_bonus];
+			if(tech.category == tech_category_type::navy)
+				return 1.0f + this_nation.modifier_values[modifiers::national_offsets::navy_tech_research_bonus];
+			if(tech.category == tech_category_type::commerce)
+				return 1.0f + this_nation.modifier_values[modifiers::national_offsets::commerce_tech_research_bonus];
+			if(tech.category == tech_category_type::industry)
+				return 1.0f + this_nation.modifier_values[modifiers::national_offsets::industry_tech_research_bonus];
+			if(tech.category == tech_category_type::culture)
+				return 1.0f + this_nation.modifier_values[modifiers::national_offsets::culture_tech_research_bonus];
+			else
+				return 1.0f;
+		}();
+		float vassal_factor = [&ws, t, &this_nation]() {
+			if(auto ol = this_nation.overlord; ol) {
+				if(auto id = ol->id; ws.w.nation_s.nations.is_valid_index(id)) {
+					return bit_vector_test(ws.w.nation_s.active_technologies.get_row(id), to_index(t)) ? ws.s.modifiers_m.global_defines.tech_factor_vassal : 1.0f;
+				}
+			}
+			return 1.0f;
+		}();
+		return years_after_unlock_adjustment * vassal_factor* base_cost / modifier;
+	}
 }

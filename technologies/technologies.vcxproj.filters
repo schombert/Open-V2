@@ -24,6 +24,12 @@
     <ClInclude Include="technologies_functions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="technologies_gui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="technologies_gui.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="technologies.cpp">
@@ -33,6 +39,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="technologies_functions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="technologies_gui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

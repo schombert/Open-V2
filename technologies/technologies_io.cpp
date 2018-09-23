@@ -13,6 +13,7 @@ namespace technologies {
 		const directory tech_directory;
 		technologies_manager& manager;
 		modifiers::modifiers_manager& mod_manager;
+		tech_category_type file_type;
 
 		parsed_data main_file_parse_tree;
 		std::vector<std::pair<tech_category_tag, parsed_data>> tech_files_parse_trees;
@@ -75,6 +76,19 @@ namespace technologies {
 			new_category.id = new_category_tag;
 			new_category.name = category_name;
 
+			if(is_fixed_token_ci(fp.first, "army_tech"))
+				new_category.type = tech_category_type::army;
+			else if(is_fixed_token_ci(fp.first, "navy_tech"))
+				new_category.type = tech_category_type::navy;
+			else if(is_fixed_token_ci(fp.first, "commerce_tech"))
+				new_category.type = tech_category_type::commerce;
+			else if(is_fixed_token_ci(fp.first, "culture_tech"))
+				new_category.type = tech_category_type::culture;
+			else if(is_fixed_token_ci(fp.first, "industry_tech"))
+				new_category.type = tech_category_type::industry;
+			else
+				new_category.type = tech_category_type::undefined;
+
 			env.manager.named_category_index.emplace(category_name, new_category_tag);
 
 			fp.second.commit_sub_categories(new_category_tag);
@@ -94,6 +108,8 @@ namespace technologies {
 			if(tech_file) {
 				const auto sz = tech_file->size();
 				result.parse_data = std::unique_ptr<char[]>(new char[sz]);
+
+				env.file_type = new_category.type;
 
 				tech_file->read_to_buffer(result.parse_data.get(), sz);
 				parse_pdx_file(file_pair.second.parse_results, result.parse_data.get(), result.parse_data.get() + sz);
@@ -139,6 +155,7 @@ namespace technologies {
 
 		new_tech.id = tag;
 		new_tech.name = tech_name;
+		new_tech.category = env.file_type;
 
 		env.manager.named_technology_index.emplace(tech_name, tag);
 
@@ -164,6 +181,7 @@ namespace technologies {
 
 		new_tech.id = tag;
 		new_tech.name = name;
+		new_tech.category = env.file_type;
 		env.manager.named_technology_index.emplace(name, tag);
 		env.manager.inventions.push_back(tag);
 
@@ -970,6 +988,19 @@ namespace technologies {
 
 				const auto sz = fi->size();
 				iparse.parse_data = std::unique_ptr<char[]>(new char[sz]);
+
+				if(f.file_name() == u"army_inventions.txt")
+					state.impl->file_type = tech_category_type::army;
+				else if(f.file_name() == u"navy_inventions.txt")
+					state.impl->file_type = tech_category_type::navy;
+				else if(f.file_name() == u"commerce_inventions.txt")
+					state.impl->file_type = tech_category_type::commerce;
+				else if(f.file_name() == u"culture_inventions.txt")
+					state.impl->file_type = tech_category_type::culture;
+				else if(f.file_name() == u"industry_inventions.txt")
+					state.impl->file_type = tech_category_type::industry;
+				else
+					state.impl->file_type = tech_category_type::undefined;
 
 				fi->read_to_buffer(iparse.parse_data.get(), sz);
 				parse_pdx_file(iparse.parse_results, iparse.parse_data.get(), iparse.parse_data.get() + sz);

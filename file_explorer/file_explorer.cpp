@@ -614,9 +614,16 @@ int main(int , char **) {
 
 	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_save_cmp.bin", ws.w, ws);
 
-	auto mod_thandle = text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "global_liberal_agitation");
-	auto nmod = ws.s.modifiers_m.named_national_modifiers_index[mod_thandle];
-	modifiers::add_static_modifier_to_nation(ws, *ws.w.local_player_nation, nmod);
+	{
+		auto mod_thandle = text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "global_liberal_agitation");
+		auto nmod = ws.s.modifiers_m.named_national_modifiers_index[mod_thandle];
+		modifiers::add_static_modifier_to_nation(ws, *ws.w.local_player_nation, nmod);
+	}
+	{
+		auto mod_thandle = text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "army_tech_school");
+		auto nmod = ws.s.modifiers_m.named_national_modifiers_index[mod_thandle];
+		ws.w.local_player_nation->tech_school = nmod;
+	}
 
 	init_tooltip_window(ws.s.gui_m, ws.w.gui_m);
 	ws.w.gui_m.on_resize(ui::resize{ 850ui32, 650ui32 });

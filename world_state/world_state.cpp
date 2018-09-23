@@ -12,6 +12,7 @@
 #include "population\\population_gui.hpp"
 #include "topbar.hpp"
 #include "governments\\governments_gui.hpp"
+#include "technologies\\technologies_gui.hpp"
 
 void ready_world_state(world_state& ws) {
 	ws.w.selected_population.filtered_pop_types.resize(ws.s.population_m.count_poptypes);
@@ -34,6 +35,7 @@ namespace current_state {
 		provinces::province_window_t province_window;
 		population::population_window_t population_window;
 		governments::government_window_t government_window;
+		technologies::tech_window_t tech_window;
 		topbar_t topbar;
 	};
 
@@ -54,7 +56,18 @@ namespace current_state {
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["country_pop"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, gui_objects->population_window);
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["topbar"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, gui_objects->topbar);
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["country_politics"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, gui_objects->government_window);
+		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["country_technology"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, gui_objects->tech_window);
 	}
+	void state::hide_tech_window() {
+		auto gobj = gui_objects->tech_window.associated_object;
+		if(gobj)
+			ui::hide(*gobj);
+	}
+	void state::show_tech_window() {
+		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(gui_objects->tech_window.associated_object), gui_objects->tech_window.window_object });
+		ui::make_visible_and_update(gui_m, *(gui_objects->tech_window.associated_object));
+	}
+
 	void state::hide_population_window() {
 		auto gobj = gui_objects->population_window.associated_object;
 		if(gobj)

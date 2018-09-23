@@ -15,4 +15,5 @@ namespace technologies {
 	void reset_technologies(world_state& ws, nations::nation& this_nation);
 
 	float daily_research_points(world_state const& ws, nations::nation const& this_nation);
+	float effective_tech_cost(tech_tag t, world_state const& ws, nations::nation const& this_nation);
 }

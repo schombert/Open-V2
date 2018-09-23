@@ -14,10 +14,14 @@ namespace modifiers {
 }
 
 namespace technologies {
+	enum class tech_category_type : uint8_t {
+		army, navy, commerce, industry, culture, undefined
+	};
+
 	struct technology_category {
 		text_data::text_tag name;
 		tech_subcategory_tag subcategories[5];
-
+		tech_category_type type = tech_category_type::undefined;
 		tech_category_tag id;
 	};
 
@@ -99,6 +103,7 @@ namespace technologies {
 		modifiers::provincial_modifier_tag enable_crime;
 		tech_tag id;
 
+		tech_category_type category = tech_category_type::undefined;
 		uint8_t flags = 0ui8;
 	};
 

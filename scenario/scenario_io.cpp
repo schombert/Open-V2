@@ -625,5 +625,6 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::stockpile] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "stockpile");
 		s.fixed_ui_text[fixed_ui::this_nat_religion] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "this_nat_religion");
 		s.fixed_ui_text[fixed_ui::from_nat_religion] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "from_nat_religion");
+		s.fixed_ui_text[fixed_ui::traditional_academic] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "traditional_academic");
 	}
 }

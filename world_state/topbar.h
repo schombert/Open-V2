@@ -96,6 +96,10 @@ namespace current_state {
 		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
 
+	class research_progress_bar {
+	public:
+		void update(ui::progress_bar<research_progress_bar>& bar, world_state& ws);
+	};
 
 	class research_icon {
 	public:
@@ -401,6 +405,7 @@ namespace current_state {
 		CT_STRING("budget_linechart"), ui::linechart<budget_linechart, 32>,
 		CT_STRING("budget_funds"), ui::display_text<treasury_text_box>,
 		CT_STRING("topbarbutton_tech"), ui::simple_button<tech_button>,
+		CT_STRING("topbar_tech_progress"), ui::progress_bar<research_progress_bar>,
 		CT_STRING("tech_current_research"), ui::display_text<current_research_text_box>,
 		CT_STRING("tech_literacy_value"), ui::display_text<literacy_text_box>,
 		CT_STRING("topbar_researchpoints"), ui::dynamic_icon<research_icon>,

@@ -36,7 +36,7 @@ ui::tooltip_behavior ui::dynamic_icon<BASE>::has_tooltip(gui_object_tag, world_s
 	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
 		return BASE::has_tooltip(ws) ? tooltip_behavior::tooltip : tooltip_behavior::no_tooltip;
 	else
-		return tooltip_behavior::no_tooltip;
+		return tooltip_behavior::transparent;
 }
 
 template<typename BASE>
@@ -44,7 +44,7 @@ ui::tooltip_behavior ui::tinted_icon<BASE>::has_tooltip(gui_object_tag, world_st
 	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
 		return BASE::has_tooltip(ws) ? tooltip_behavior::tooltip : tooltip_behavior::no_tooltip;
 	else
-		return tooltip_behavior::no_tooltip;
+		return tooltip_behavior::transparent;
 }
 
 template<typename BASE>

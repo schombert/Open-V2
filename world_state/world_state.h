@@ -130,6 +130,8 @@ namespace current_state {
 		void show_government_movements_tab();
 		void show_government_decisions_tab();
 		void show_government_release_nations_tab();
+		void hide_tech_window();
+		void show_tech_window();
 	};
 }
 

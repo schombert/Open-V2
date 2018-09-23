@@ -219,6 +219,17 @@ namespace current_state {
 			lm.finish_current_line();
 		}
 	}
+	void research_progress_bar::update(ui::progress_bar<research_progress_bar>& bar, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if(auto tech = player->current_research; is_valid_index(tech)) {
+				if(auto total_points = technologies::effective_tech_cost(tech, ws, *player); total_points != 0.0f) {
+					bar.set_fraction(std::min(1.0f, float(player->research_points) / total_points));
+					return;
+				}
+			}
+		}
+		bar.set_fraction(0.0f);
+	}
 	void literacy_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			auto pid = player->id;

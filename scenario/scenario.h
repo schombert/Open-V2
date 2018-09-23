@@ -543,8 +543,9 @@ namespace scenario {
 		constexpr uint32_t rich = 521ui32;
 		constexpr uint32_t poor = 522ui32;
 		constexpr uint32_t middle = 523ui32;
+		constexpr uint32_t traditional_academic = 524ui32;
 
-		constexpr uint32_t count = 524ui32;
+		constexpr uint32_t count = 525ui32;
 	}
 
 	class scenario_manager {
