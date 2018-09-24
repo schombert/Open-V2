@@ -40,7 +40,9 @@ namespace current_state {
 	void budget_button::update(ui::simple_button<budget_button>& self, world_state& ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);
 	}
-	void tech_button::button_function(ui::simple_button<tech_button>&, world_state&) {};
+	void tech_button::button_function(ui::simple_button<tech_button>&, world_state& ws) {
+		ws.w.show_tech_window();
+	};
 	void tech_button::update(ui::simple_button<tech_button>& self, world_state& ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);
 	}

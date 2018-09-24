@@ -16,4 +16,5 @@ namespace technologies {
 
 	float daily_research_points(world_state const& ws, nations::nation const& this_nation);
 	float effective_tech_cost(tech_tag t, world_state const& ws, nations::nation const& this_nation);
+	float get_invention_chance(tech_tag t, world_state& ws, nations::nation& this_nation);
 }

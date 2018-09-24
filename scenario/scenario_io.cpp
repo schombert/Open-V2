@@ -626,5 +626,15 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::this_nat_religion] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "this_nat_religion");
 		s.fixed_ui_text[fixed_ui::from_nat_religion] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "from_nat_religion");
 		s.fixed_ui_text[fixed_ui::traditional_academic] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "traditional_academic");
+		s.fixed_ui_text[fixed_ui::base_plus] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "base_plus");
+		s.fixed_ui_text[fixed_ui::base_times] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "base_times");
+		s.fixed_ui_text[fixed_ui::chance] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "chance");
+		s.fixed_ui_text[fixed_ui::reform] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "reform");
+		s.fixed_ui_text[fixed_ui::enable_crime_tech] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "ENABLE_CRIME_TECH");
+		s.fixed_ui_text[fixed_ui::activate_goods] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "ACTIVATE_GOODS");
+		s.fixed_ui_text[fixed_ui::gas_attack_cap] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "gas_attack_capability");
+		s.fixed_ui_text[fixed_ui::gas_defence_cap] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "gas_defense_capability");
+		s.fixed_ui_text[fixed_ui::tech_activation_year] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "TECHNOLOGY_ACTIVATION_YEAR");
+		s.fixed_ui_text[fixed_ui::tech_research_points] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "TECHNOLOGY_RESEARCH_POINTS");
 	}
 }

@@ -80,6 +80,65 @@ namespace technologies {
 		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
 
+	class sort_possible_inventions_by_type_button {
+	public:
+		void button_function(ui::simple_button<sort_possible_inventions_by_type_button>&, world_state&);
+	};
+
+	class sort_possible_inventions_by_name_button {
+	public:
+		void button_function(ui::simple_button<sort_possible_inventions_by_name_button>&, world_state&);
+	};
+
+	class sort_possible_inventions_by_chance_button {
+	public:
+		void button_function(ui::simple_button<sort_possible_inventions_by_chance_button>&, world_state&);
+	};
+
+	class invention_item_base : public ui::visible_region {
+	public:
+		technologies::tech_tag invention;
+		void set_value(std::pair<technologies::tech_tag, float> p) {
+			invention = p.first;
+		}
+	};
+
+	class invention_item_name {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class invention_item_percent {
+	public:
+		technologies::tech_tag invention;
+
+		template<typename window_type>
+		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+		bool has_tooltip(world_state&) { return is_valid_index(invention); }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class invention_category_icon {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<invention_category_icon>&, window_type&, world_state&);
+	};
+
+	class invention_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	using invention_item = ui::gui_window<
+		CT_STRING("folder_icon"), ui::dynamic_icon<invention_category_icon>,
+		CT_STRING("invention_name"), ui::display_text<invention_item_name>,
+		CT_STRING("invention_percent"), ui::display_text<invention_item_percent>,
+		invention_item_base
+	>;
+
 	using tech_window_t = ui::gui_window <
 		CT_STRING("close_button"), ui::simple_button<close_button>,
 		CT_STRING("administration_type"), ui::display_text<tech_school_text_box>,
@@ -87,5 +146,12 @@ namespace technologies {
 		CT_STRING("research_progress"), ui::progress_bar<research_progress_bar>,
 		CT_STRING("research_progress_name"), ui::display_text<research_name_text_box>,
 		CT_STRING("research_progress_category"), ui::display_text<research_category_text_box>,
+		CT_STRING("sort_by_type"), ui::simple_button<sort_possible_inventions_by_type_button>,
+		CT_STRING("sort_by_name"), ui::simple_button<sort_possible_inventions_by_name_button>,
+		CT_STRING("sort_by_percent"), ui::simple_button<sort_possible_inventions_by_chance_button>,
+		CT_STRING("inventions"), ui::discrete_listbox<invention_lb, invention_item, std::pair<technologies::tech_tag, float>>,
 		tech_window_base>;
+	
+	ui::xy_pair eplain_technology(tech_tag t, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in,
+		ui::unlimited_line_manager& lm, ui::text_format const& fmt);
 }

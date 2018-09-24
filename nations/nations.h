@@ -90,6 +90,7 @@ namespace nations {
 		float war_exhaustion = 0.0f;
 		float suppression_points = 0.0f;
 		float diplomacy_points = 0.0f;
+		float research_points = 0.0f;
 		
 		float political_interest_fraction = 0.0f;
 		float social_interest_fraction = 0.0f;
@@ -158,7 +159,6 @@ namespace nations {
 		uint16_t blockaded_count = 0ui16; // connected to the capital only
 		uint16_t crime_count = 0ui16; // connected to the capital only
 
-		int16_t research_points = 0i16;
 		int16_t leadership_points = 0i16;
 		int16_t base_colonial_points = 0ui16; // add to tech for actual
 		uint16_t num_connected_ports = 0ui16; // number of ports connected to capital by land

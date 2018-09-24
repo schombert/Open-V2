@@ -4792,7 +4792,7 @@ namespace triggers {
 					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 				env.data.push_back(4ui16);
 				env.data.push_back(trigger_payload(ptype).value);
-				add_float_to_payload(env.data, token_to<float>(trigger_value));
+				add_float_to_payload(env.data, token_to<float>(trigger_value) / 100.0f);
 			} else if (const auto good = tag_from_text(env.s.economy_m.named_goods_index, left_handle); is_valid_index(good)) {
 				if (env.current_scope.main_slot == trigger_slot_contents::nation)
 					env.data.push_back(uint16_t(trigger_codes::variable_good_name | association_to_trigger_code(a)));
@@ -4814,16 +4814,16 @@ namespace triggers {
 					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 				env.data.push_back(4ui16);
 				env.data.push_back(trigger_payload(issue_opt).value);
-				add_float_to_payload(env.data, token_to<float>(trigger_value));
+				add_float_to_payload(env.data, token_to<float>(trigger_value) / 100.0f);
 			} else if (const auto issue = tag_from_text(env.s.issues_m.named_issue_index, left_handle); is_valid_index(issue)) {
 				if (env.current_scope.main_slot == trigger_slot_contents::nation)
-					env.data.push_back(uint16_t(trigger_codes::variable_issue_group_name_nation | association_to_trigger_code(a)));
+					env.data.push_back(uint16_t(trigger_codes::variable_issue_group_name_nation | association_to_bool_code(a)));
 				else if (env.current_scope.main_slot == trigger_slot_contents::pop)
-					env.data.push_back(uint16_t(trigger_codes::variable_issue_group_name_pop | association_to_trigger_code(a)));
+					env.data.push_back(uint16_t(trigger_codes::variable_issue_group_name_pop | association_to_bool_code(a)));
 				else if (env.current_scope.main_slot == trigger_slot_contents::province)
-					env.data.push_back(uint16_t(trigger_codes::variable_issue_group_name_province | association_to_trigger_code(a)));
+					env.data.push_back(uint16_t(trigger_codes::variable_issue_group_name_province | association_to_bool_code(a)));
 				else if (env.current_scope.main_slot == trigger_slot_contents::state)
-					env.data.push_back(uint16_t(trigger_codes::variable_issue_group_name_state | association_to_trigger_code(a)));
+					env.data.push_back(uint16_t(trigger_codes::variable_issue_group_name_state | association_to_bool_code(a)));
 				else
 					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, e);
 				const auto right_handle = text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, trigger_value.start, trigger_value.end);

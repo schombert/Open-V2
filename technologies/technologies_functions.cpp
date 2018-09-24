@@ -169,4 +169,8 @@ namespace technologies {
 		}();
 		return years_after_unlock_adjustment * vassal_factor* base_cost / modifier;
 	}
+
+	float get_invention_chance(tech_tag t, world_state& ws, nations::nation& this_nation) {
+		return modifiers::test_additive_factor(ws.s.technology_m.technologies_container[t].ai_chance, ws, &this_nation, nullptr, nullptr) / 100.0f;
+	}
 }

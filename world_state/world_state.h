@@ -52,6 +52,10 @@ namespace current_state {
 		literacy
 	};
 
+	enum class invention_sort : uint8_t {
+		none, type, name, chance
+	};
+
 	struct player_net_income_history {
 		float values[32] = { 0.0 };
 	};
@@ -102,6 +106,7 @@ namespace current_state {
 
 			tagged_vector<uint8_t, population::pop_type_tag> filtered_pop_types;
 		} selected_population;
+		invention_sort techui_invention_sort = invention_sort::none;
 
 		std::unique_ptr<gui_state> gui_objects;
 

@@ -879,6 +879,7 @@ namespace nations {
 
 			}
 		}
+		set_default_tech_school(ws);
 	}
 
 	void read_diplomacy_files(world_state& ws, date_tag target_date, directory const& root) {
@@ -898,5 +899,12 @@ namespace nations {
 				parse_object<relation_file_reader, relation_file>(parse_results.data(), parse_results.data() + parse_results.size(), ws, target_date);
 			}
 		}
+	}
+	void set_default_tech_school(world_state & ws) {
+		auto mod_thandle = text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "traditional_academic");
+		auto nmod = ws.s.modifiers_m.named_national_modifiers_index[mod_thandle];
+		ws.w.nation_s.nations.for_each([nmod](nations::nation& n) {
+			n.tech_school = nmod;
+		});
 	}
 }

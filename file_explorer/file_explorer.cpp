@@ -623,8 +623,16 @@ int main(int , char **) {
 		auto mod_thandle = text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "army_tech_school");
 		auto nmod = ws.s.modifiers_m.named_national_modifiers_index[mod_thandle];
 		ws.w.local_player_nation->tech_school = nmod;
-	}
 
+		
+	}
+	{
+		auto thandle = text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "strategic_mobility");
+		auto tech = ws.s.technology_m.named_technology_index[thandle];
+		ws.w.local_player_nation->current_research = tech;
+		ws.w.local_player_nation->research_points = 1500.0f;
+
+	}
 	init_tooltip_window(ws.s.gui_m, ws.w.gui_m);
 	ws.w.gui_m.on_resize(ui::resize{ 850ui32, 650ui32 });
 

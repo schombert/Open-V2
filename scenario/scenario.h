@@ -544,8 +544,18 @@ namespace scenario {
 		constexpr uint32_t poor = 522ui32;
 		constexpr uint32_t middle = 523ui32;
 		constexpr uint32_t traditional_academic = 524ui32;
+		constexpr uint32_t base_plus = 525ui32;
+		constexpr uint32_t base_times = 526ui32;
+		constexpr uint32_t chance = 527ui32;
+		constexpr uint32_t reform = 528ui32;
+		constexpr uint32_t enable_crime_tech = 529ui32;
+		constexpr uint32_t activate_goods = 530ui32;
+		constexpr uint32_t gas_attack_cap = 531ui32;
+		constexpr uint32_t gas_defence_cap = 532ui32;
+		constexpr uint32_t tech_activation_year = 533ui32;
+		constexpr uint32_t tech_research_points = 534ui32;
 
-		constexpr uint32_t count = 525ui32;
+		constexpr uint32_t count = 535ui32;
 	}
 
 	class scenario_manager {

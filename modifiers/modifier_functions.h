@@ -40,5 +40,7 @@ namespace modifiers {
 	
 	float test_multiplicative_factor(factor_tag t, world_state& ws, void* primary_slot, void* from_slot, population::rebel_faction* rebel_slot);
 	float test_multiplicative_factor(factor_modifier const& f, world_state& ws, void* primary_slot, void* from_slot, population::rebel_faction* rebel_slot);
+	float test_additive_factor(factor_tag t, world_state& ws, void* primary_slot, void* from_slot, population::rebel_faction* rebel_slot);
+	float test_additive_factor(factor_modifier const& f, world_state& ws, void* primary_slot, void* from_slot, population::rebel_faction* rebel_slot);
 	int32_t maximum_national_focuses(world_state const& ws, nations::nation const& this_nation);
 }

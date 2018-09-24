@@ -225,6 +225,18 @@ namespace technologies {
 				1.0f, 0.0f, s, e);
 	}
 
+	inline modifiers::factor_tag read_invention_chance(const token_group* s, const token_group* e, tech_reading_env& env) {
+		auto new_mod = modifiers::parse_modifier_factors(env.s,
+			triggers::trigger_scope_state{
+				triggers::trigger_slot_contents::nation,
+				triggers::trigger_slot_contents::nation,
+				triggers::trigger_slot_contents::empty,
+				false },
+				1.0f, 0.0f, s, e);
+		env.s.modifiers_m.factor_modifiers[new_mod].factor = env.s.modifiers_m.factor_modifiers[new_mod].base;
+		return new_mod;
+	}
+
 	inline triggers::trigger_tag read_tech_allow(const token_group* s, const token_group* e, tech_reading_env& env) {
 		const auto td = triggers::parse_trigger(env.s, triggers::trigger_scope_state{
 			triggers::trigger_slot_contents::nation,
@@ -793,7 +805,7 @@ namespace technologies {
 		MEMBER_TYPE_ASSOCIATION("effect", "effect", tech_reader)
 		MEMBER_ASSOCIATION("discard", "news", discard_from_rh)
 		MEMBER_TYPE_EXTERN("limit", "limit", triggers::trigger_tag, read_tech_allow)
-		MEMBER_TYPE_EXTERN("chance", "chance", modifiers::factor_tag, read_tech_chance)
+		MEMBER_TYPE_EXTERN("chance", "chance", modifiers::factor_tag, read_invention_chance)
 		MEMBER_VARIABLE_ASSOCIATION("modifier", accept_all, bind_token_float)
 		END_TYPE
 		BEGIN_TYPE(tech_reader)
@@ -936,6 +948,8 @@ namespace technologies {
 			if(env.mod.total_attributes != 0)
 				uc.modifier = modifiers::add_national_modifier(uc.name, env.mod, s.modifiers_m);
 		}
+
+		name_tech_modifiers(state.impl->manager, state.impl->text_lookup);
 	}
 
 	void read_technologies(parsing_state const& state, scenario::scenario_manager& s) {
@@ -1013,5 +1027,39 @@ namespace technologies {
 				}
 			}
 		}
+	}
+
+	void name_tech_modifiers(technologies_manager& m, text_data::text_sequences& text) {
+		m.tech_modifier_names.resize(tech_offset::count);
+
+		m.tech_modifier_names[tech_offset::max_national_focus] = text_data::get_thread_safe_text_handle(text, "TECH_MAX_FOCUS");
+		m.tech_modifier_names[tech_offset::war_exhaustion] = text_data::get_thread_safe_text_handle(text, "MILITARY_WAR_EXHAUSTION");
+		m.tech_modifier_names[tech_offset::supply_limit] = text_data::get_thread_safe_text_handle(text, "SUPPLY_LIMIT_TECH");
+		m.tech_modifier_names[tech_offset::prestige] = text_data::get_thread_safe_text_handle(text, "PRESTIGE_MODIFIER_TECH");
+		m.tech_modifier_names[tech_offset::combat_width] = text_data::get_thread_safe_text_handle(text, "COMBAT_WIDTH_TECH");
+		m.tech_modifier_names[tech_offset::dig_in_cap] = text_data::get_thread_safe_text_handle(text, "DIGIN_FROM_TECH");
+		m.tech_modifier_names[tech_offset::influence] = text_data::get_thread_safe_text_handle(text, "TECH_GP_INFLUENCE");
+		m.tech_modifier_names[tech_offset::repair_rate] = text_data::get_thread_safe_text_handle(text, "REPAIR_RATE_TECH");
+		m.tech_modifier_names[tech_offset::reinforce_rate] = text_data::get_thread_safe_text_handle(text, "REINFORCE_TECH");
+		m.tech_modifier_names[tech_offset::soldier_to_pop_loss] = text_data::get_thread_safe_text_handle(text, "SOLDIER_TO_POP_LOSS_TECH");
+		m.tech_modifier_names[tech_offset::regular_experience_level] = text_data::get_thread_safe_text_handle(text, "REGULAR_EXP_TECH");
+		m.tech_modifier_names[tech_offset::colonial_life_rating] = text_data::get_thread_safe_text_handle(text, "COLONIAL_LIFE_TECH");
+		m.tech_modifier_names[tech_offset::education_efficiency] = text_data::get_thread_safe_text_handle(text, "EDU_EFF_TECH");
+		m.tech_modifier_names[tech_offset::military_tactics] = text_data::get_thread_safe_text_handle(text, "MIL_TACTICS_TECH");
+		m.tech_modifier_names[tech_offset::seperatism] = text_data::get_thread_safe_text_handle(text, "SEPARATISM_TECH");
+		m.tech_modifier_names[tech_offset::land_attrition] = text_data::get_thread_safe_text_handle(text, "LAND_ATTRITION_TECH");
+		m.tech_modifier_names[tech_offset::naval_attrition] = text_data::get_thread_safe_text_handle(text, "NAVAL_ATTRITION_TECH");
+		m.tech_modifier_names[tech_offset::supply_range] = text_data::get_thread_safe_text_handle(text, "SUPPLY_RANGE_TECH");
+		m.tech_modifier_names[tech_offset::plurality] = text_data::get_thread_safe_text_handle(text, "TECH_PLURALITY");
+		m.tech_modifier_names[tech_offset::factory_cost] = text_data::get_thread_safe_text_handle(text, "MODIFIER_FACTORY_COST");
+		m.tech_modifier_names[tech_offset::permanent_prestige] = text_data::get_thread_safe_text_handle(text, "PERMANENT_PRESTIGE_TECH");
+		m.tech_modifier_names[tech_offset::colonial_prestige] = text_data::get_thread_safe_text_handle(text, "COLONIAL_PRESTIGE_MODIFIER_TECH");
+		m.tech_modifier_names[tech_offset::max_fort] = text_data::get_thread_safe_text_handle(text, "MAX_FORT_LEVEL");
+		m.tech_modifier_names[tech_offset::max_naval_base] = text_data::get_thread_safe_text_handle(text, "MAX_NAVAL_BASE_LEVEL");
+		m.tech_modifier_names[tech_offset::max_railroad] = text_data::get_thread_safe_text_handle(text, "MAX_RAILROAD_LEVEL");
+		m.tech_modifier_names[tech_offset::morale] = text_data::get_thread_safe_text_handle(text, "MORALE_TECH");
+		m.tech_modifier_names[tech_offset::colonial_migration] = text_data::get_thread_safe_text_handle(text, "COLONIAL_MIGRATION_TECH");
+		m.tech_modifier_names[tech_offset::colonial_points] = text_data::get_thread_safe_text_handle(text, "COLONIAL_POINTS_TECH");
+		m.tech_modifier_names[tech_offset::cb_creation_speed] = text_data::get_thread_safe_text_handle(text, "CB_MANUFACTURE_TECH");
 	}
 }
