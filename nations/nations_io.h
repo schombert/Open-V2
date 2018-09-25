@@ -53,10 +53,6 @@ public:
 	static void deserialize_object(std::byte const* &input, nations::nations_state& obj, world_state& ws) {
 		deserialize(input, obj.nations, ws);
 		deserialize(input, obj.states, ws);
-
-		//final patching TODO:
-		//
-		// rebuild  nations by rank array
 	}
 	static size_t size(nations::nations_state const& obj, world_state const& ws) {
 		return serialize_size(obj.nations, ws) + serialize_size(obj.states, ws);

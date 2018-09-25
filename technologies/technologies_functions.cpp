@@ -6,9 +6,15 @@
 #include "military\\military_functions.h"
 
 namespace technologies {
+	void init_technology_state(world_state& ws) {
+		ws.w.technology_s.discovery_count.resize(ws.s.technology_m.technologies_container.size());
+		std::fill_n(ws.w.technology_s.discovery_count.data(), ws.s.technology_m.technologies_container.size(), 0);
+	}
 	void apply_technology(world_state& ws, nations::nation& this_nation, tech_tag tech) {
 		technology& t = ws.s.technology_m.technologies_container[tech];
 		auto nation_id = this_nation.id;
+
+		ws.w.technology_s.discovery_count[tech] += 1;
 
 		bit_vector_set(ws.w.nation_s.active_technologies.get_row(nation_id), to_index(tech), true);
 
@@ -71,9 +77,14 @@ namespace technologies {
 
 
 	void apply_single_technology(world_state& ws, nations::nation& this_nation, tech_tag tech) {
+		if(bit_vector_test(ws.w.nation_s.active_technologies.get_row(this_nation.id), to_index(tech)) == true)
+			return;
+
 		apply_technology(ws, this_nation, tech);
 		if(is_valid_index(ws.s.technology_m.technologies_container[tech].unit_adjustment))
 			military::update_all_unit_attributes(ws, this_nation);
+		this_nation.base_prestige += ws.s.technology_m.technologies_container[tech].shared_prestige / float(ws.w.technology_s.discovery_count[tech]);
+		
 		// to be caught by standard update
 		//if(is_valid_index(ws.s.technology_m.technologies_container[tech].modifier))
 		//	modifiers::reset_national_modifier(ws, this_nation);
@@ -172,5 +183,22 @@ namespace technologies {
 
 	float get_invention_chance(tech_tag t, world_state& ws, nations::nation& this_nation) {
 		return modifiers::test_additive_factor(ws.s.technology_m.technologies_container[t].ai_chance, ws, &this_nation, nullptr, nullptr) / 100.0f;
+	}
+
+	bool can_research(tech_tag t, world_state const& ws, nations::nation const& this_nation) {
+		auto id = this_nation.id;
+		auto id_valid = ws.w.nation_s.nations.is_valid_index(id);
+		if(id_valid && bit_vector_test(ws.w.nation_s.active_technologies.get_row(id), to_index(t)))
+			return false;
+		auto& tech = ws.s.technology_m.technologies_container[t];
+		if(tech.year != 0 && tag_to_date(ws.w.current_date).year() < tech.year)
+			return false;
+		if(is_valid_index(tech.allow) && !triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(tech.allow),
+			const_cast<world_state&>(ws), &const_cast<nations::nation&>(this_nation), &const_cast<nations::nation&>(this_nation), nullptr, nullptr))
+			return false;
+		if(is_valid_index(tech.preceeding) && id_valid && !bit_vector_test(ws.w.nation_s.active_technologies.get_row(id), to_index(tech.preceeding)))
+			return false;
+
+		return true;
 	}
 }

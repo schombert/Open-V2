@@ -536,4 +536,14 @@ namespace military {
 
 		return new_war;
 	}
+
+	bool is_naval_unit(military::unit_type_tag t, world_state const& ws) {
+		auto unit_class = ws.s.military_m.unit_types[t].flags & military::unit_type::class_mask;
+		if((unit_class == military::unit_type::class_big_ship) |
+			(unit_class == military::unit_type::class_light_ship) |
+			(unit_class == military::unit_type::class_transport))
+			return true;
+		else
+			return false;
+	}
 }

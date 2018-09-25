@@ -148,5 +148,20 @@ namespace triggers {
 		}
 	}
 
+	template<typename T>
+	void recurse_over_triggers(uint16_t const* source, const T& f) {
+		f(source);
+
+		if((source[0] & trigger_codes::is_scope) != 0) {
+			const auto source_size = 1 + get_trigger_payload_size(source);
+
+			auto sub_units_start = source + 2 + trigger_scope_data_payload(source[0]);
+			while(sub_units_start < source + source_size) {
+				recurse_over_triggers(sub_units_start, f);
+				sub_units_start += 1 + get_trigger_payload_size(sub_units_start);
+			}
+		}
+	}
+
 	bool test_trigger(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot);
 }

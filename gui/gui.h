@@ -777,12 +777,15 @@ namespace ui {
 		int32_t indent = 0;
 	public:
 		line_manager(text_data::alignment a, int32_t m);
+		line_manager();
 		bool exceeds_extent(int32_t w) const;
 		void add_object(gui_object* o);
 		void finish_current_line();
 		void increase_indent(int32_t n);
 		void decrease_indent(int32_t n);
 	};
+
+	using unlimited_line_manager = line_manager;
 
 	class text_box_line_manager {
 	private:
@@ -797,21 +800,6 @@ namespace ui {
 		bool exceeds_extent(int32_t) const { return false; }
 		void add_object(gui_object* o);
 		void finish_current_line();
-	};
-
-	class unlimited_line_manager {
-	private:
-		constexpr static int32_t indent_size = 15;
-
-		boost::container::small_vector<gui_object*, 16, concurrent_allocator<gui_object*>> current_line;
-		int32_t indent = 0;
-	public:
-		unlimited_line_manager();
-		bool exceeds_extent(int32_t) const { return false; }
-		void add_object(gui_object* o);
-		void finish_current_line();
-		void increase_indent(int32_t n);
-		void decrease_indent(int32_t n);
 	};
 
 	class single_line_manager {

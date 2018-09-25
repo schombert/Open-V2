@@ -7,12 +7,31 @@
 #include "simple_serialize\\simple_serialize.hpp"
 #include <ppl.h>
 
+class world_state;
+
 template<>
 class serialization::serializer<technologies::technology_category> : public serialization::memcpy_serializer<technologies::technology_category> {};
 template<>
 class serialization::serializer<technologies::technology_subcategory> : public serialization::memcpy_serializer<technologies::technology_subcategory> {};
 template<>
 class serialization::serializer<technologies::technology> : public serialization::memcpy_serializer<technologies::technology> {};
+
+template<>
+class serialization::serializer<technologies::technologies_state> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, technologies::technologies_state const& obj, world_state const&) {
+		//serialize(output, obj.discovery_count);
+	}
+	static void deserialize_object(std::byte const* &input, technologies::technologies_state& obj, world_state&) {
+		//deserialize(input, obj.discovery_count);
+	}
+	static size_t size(technologies::technologies_state const& obj, world_state const&) {
+		return 0;
+	}
+};
 
 template<>
 class serialization::serializer<technologies::technologies_manager> {
@@ -76,6 +95,10 @@ public:
 	}
 };
 
+namespace graphics {
+	class texture_manager;
+}
+
 namespace technologies {
 	struct parsing_environment;
 
@@ -83,7 +106,7 @@ namespace technologies {
 	public:
 		std::unique_ptr<parsing_environment> impl;
 
-		parsing_state(text_data::text_sequences& tl, const directory& tech_directory, technologies_manager& m, modifiers::modifiers_manager& mm);
+		parsing_state(text_data::text_sequences& tl, const directory& tech_directory, technologies_manager& m, modifiers::modifiers_manager& mm, graphics::texture_manager& tex);
 		parsing_state(parsing_state&&) noexcept;
 		~parsing_state();
 	};

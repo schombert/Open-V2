@@ -10,9 +10,10 @@
 namespace technologies {
 	struct parsing_environment {
 		text_data::text_sequences& text_lookup;
-		const directory tech_directory;
+		const directory& root;
 		technologies_manager& manager;
 		modifiers::modifiers_manager& mod_manager;
+		graphics::texture_manager& textures;
 		tech_category_type file_type;
 
 		parsed_data main_file_parse_tree;
@@ -21,12 +22,12 @@ namespace technologies {
 		std::vector<std::tuple<tech_tag, const token_group*, const token_group*>> pending_technologies;
 		std::vector<std::tuple<tech_tag, const token_group*, const token_group*>> pending_inventions;
 
-		parsing_environment(text_data::text_sequences& tl, const directory& tech_root, technologies_manager& m, modifiers::modifiers_manager& mm) :
-			text_lookup(tl), tech_directory(tech_root), manager(m), mod_manager(mm) {}
+		parsing_environment(text_data::text_sequences& tl, const directory& tech_root, technologies_manager& m, modifiers::modifiers_manager& mm, graphics::texture_manager& tex) :
+			text_lookup(tl), root(tech_root), manager(m), mod_manager(mm), textures(tex) {}
 	};
 
-	parsing_state::parsing_state(text_data::text_sequences& tl, const directory& tech_directory, technologies_manager& m, modifiers::modifiers_manager& mm) :
-		impl(std::make_unique<parsing_environment>(tl, tech_directory, m, mm)) {}
+	parsing_state::parsing_state(text_data::text_sequences& tl, const directory& tech_directory, technologies_manager& m, modifiers::modifiers_manager& mm, graphics::texture_manager& tex) :
+		impl(std::make_unique<parsing_environment>(tl, tech_directory, m, mm, tex)) {}
 	parsing_state::~parsing_state() {}
 
 	parsing_state::parsing_state(parsing_state&& o) noexcept : impl(std::move(o.impl)) {}
@@ -103,7 +104,8 @@ namespace technologies {
 			std::u16string folder_file(fp.first.start, fp.first.end);
 			folder_file += u".txt";
 
-			const auto tech_file = env.tech_directory.open_file(folder_file);
+			auto tech_directory = env.root.get_directory(u"\\technologies");
+			const auto tech_file = tech_directory.open_file(folder_file);
 
 			if(tech_file) {
 				const auto sz = tech_file->size();
@@ -156,6 +158,10 @@ namespace technologies {
 		new_tech.id = tag;
 		new_tech.name = tech_name;
 		new_tech.category = env.file_type;
+
+		std::string name_with_ext = std::string("\\gfx\\pictures\\tech\\") + std::string(t.start, t.end) + ".tga";
+		new_tech.picture = env.textures.retrieve_by_name(env.root, name_with_ext.c_str(), name_with_ext.c_str() + name_with_ext.length());
+	
 
 		env.manager.named_technology_index.emplace(tech_name, tag);
 
@@ -405,6 +411,8 @@ namespace technologies {
 				for(int32_t i = 0; i < static_cast<int32_t>(std::extent_v<decltype(parent_category.member_techs)>); ++i) {
 					if(!is_valid_index(parent_category.member_techs[i])) {
 						parent_category.member_techs[i] = env.under_construction.id;
+						if(i != 0)
+							env.under_construction.preceeding = parent_category.member_techs[i - 1];
 						return;
 					}
 				}

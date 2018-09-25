@@ -554,8 +554,37 @@ namespace scenario {
 		constexpr uint32_t gas_defence_cap = 532ui32;
 		constexpr uint32_t tech_activation_year = 533ui32;
 		constexpr uint32_t tech_research_points = 534ui32;
+		constexpr uint32_t tech_rebel_org_gain = 535ui32;
+		constexpr uint32_t rgo_output_tech = 536ui32;
+		constexpr uint32_t rgo_throughput_tech = 537ui32;
+		constexpr uint32_t factory_input_tech = 538ui32;
+		constexpr uint32_t factory_output_tech = 539ui32;
+		constexpr uint32_t factory_throughput_tech = 540ui32;
+		constexpr uint32_t artisan_input_tech = 541ui32;
+		constexpr uint32_t artisan_output_tech = 542ui32;
+		constexpr uint32_t artisan_throughput_tech = 543ui32;
+		constexpr uint32_t unit_defence = 544ui32;
+		constexpr uint32_t unit_hull = 545ui32;
+		constexpr uint32_t unit_attack = 546ui32;
+		constexpr uint32_t unit_gun_power = 547ui32;
+		constexpr uint32_t unit_reconnaissance = 548ui32;
+		constexpr uint32_t unit_fire_range = 549ui32;
+		constexpr uint32_t unit_support = 550ui32;
+		constexpr uint32_t unit_torpedo_attack = 551ui32;
+		constexpr uint32_t unit_maneuver = 552ui32;
+		constexpr uint32_t unit_evasion = 553ui32;
+		constexpr uint32_t unit_speed = 554ui32;
+		constexpr uint32_t unit_organization = 555ui32;
+		constexpr uint32_t unit_build_time = 556ui32;
+		constexpr uint32_t unit_supply_consumption = 557ui32;
+		constexpr uint32_t unit_strength = 558ui32;
+		constexpr uint32_t unit_siege = 559ui32;
+		constexpr uint32_t unit_discipline = 560ui32;
+		constexpr uint32_t disabled = 561ui32;
+		constexpr uint32_t tx_day = 562ui32;
+		constexpr uint32_t shared_prestige_tech = 563ui32;
 
-		constexpr uint32_t count = 535ui32;
+		constexpr uint32_t count = 564ui32;
 	}
 
 	class scenario_manager {

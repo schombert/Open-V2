@@ -147,7 +147,7 @@ namespace modifiers {
 		modifier_display_details{ false, display_type::fp_three_places }, // non_accepted_pop_consciousness_modifier 78
 		modifier_display_details{ true, display_type::percent }, // cb_generation_speed_modifier 79
 		modifier_display_details{ false, display_type::percent }, // mobilization_impact 80
-		modifier_display_details{ true, display_type::fp_two_places }, // suppression_points_modifier 81
+		modifier_display_details{ true, display_type::percent }, // suppression_points_modifier 81
 		modifier_display_details{ true, display_type::percent }, // education_efficiency_modifier 82
 		modifier_display_details{ true, display_type::percent }, // civilization_progress_modifier 83
 		modifier_display_details{ true, display_type::percent }, // administrative_efficiency_modifier 84

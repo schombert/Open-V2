@@ -23,7 +23,7 @@ void ui::multiline_text<BASE, x_size_adjust, y_size_adjust>::update_data(gui_obj
 		tagged_gui_object content_frame{ w.w.gui_m.gui_objects.at(this->scrollable_region), this->scrollable_region};
 
 		ui::clear_children(w.w.gui_m, content_frame);
-		line_manager lm(align, outer_width);
+		line_manager lm(align, content_frame.object.size.x);
 
 		BASE::update(content_frame, lm, format, w);
 		lm.finish_current_line();
@@ -153,7 +153,7 @@ ui::tooltip_behavior ui::display_text<BASE, y_adjust>::has_tooltip(gui_object_ta
 	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
 		return BASE::has_tooltip(ws) ? tooltip_behavior::tooltip : tooltip_behavior::no_tooltip;
 	else
-		return tooltip_behavior::no_tooltip;
+		return tooltip_behavior::transparent;
 }
 
 template<typename BASE, int32_t y_adjust>

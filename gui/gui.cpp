@@ -222,7 +222,14 @@ namespace ui {
 
 	line_manager::line_manager(text_data::alignment a, int32_t m) : align(a), max_line_extent(m) {}
 
-	bool line_manager::exceeds_extent(int32_t w) const { return (w + indent) > max_line_extent; }
+	line_manager::line_manager() : align(text_data::alignment::left), max_line_extent(-1) {}
+
+	bool line_manager::exceeds_extent(int32_t w) const {
+		if(max_line_extent < 0)
+			return false;
+		else
+			return (w + indent) > max_line_extent;
+	}
 
 	void line_manager::add_object(gui_object * o) {
 		current_line.push_back(o);
@@ -287,23 +294,6 @@ namespace ui {
 		indent += indent_size * n;
 	}
 	void line_manager::decrease_indent(int32_t n) {
-		indent -= indent_size * n;
-	}
-
-	unlimited_line_manager::unlimited_line_manager() {}
-
-	void unlimited_line_manager::add_object(gui_object* o) {
-		current_line.push_back(o);
-	}
-	void unlimited_line_manager::finish_current_line() {
-		for(auto p : current_line)
-			p->position.x += indent;
-		current_line.clear();
-	}
-	void unlimited_line_manager::increase_indent(int32_t n) {
-		indent += indent_size * n;
-	}
-	void unlimited_line_manager::decrease_indent(int32_t n) {
 		indent -= indent_size * n;
 	}
 

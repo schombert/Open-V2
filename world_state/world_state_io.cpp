@@ -18,6 +18,7 @@
 #include "ideologies\\ideologies_functions.h"
 #include "modifiers\\modifier_functions.h"
 #include "issues\\issues_functions.h"
+#include "technologies\\technologies_io.h"
 
 void serialization::serializer<current_state::state>::serialize_object(std::byte *& output, current_state::state const & obj, world_state const & ws) {
 	serialize(output, obj.province_s, ws);
@@ -28,6 +29,7 @@ void serialization::serializer<current_state::state>::serialize_object(std::byte
 	serialize(output, obj.population_s, ws);
 	serialize(output, obj.variable_s, ws);
 	serialize(output, obj.ideology_s, ws);
+	serialize(output, obj.technology_s, ws);
 
 	serialize(output, obj.crisis_temperature);
 	uint8_t ctype = uint8_t(obj.current_crisis_type);
@@ -77,6 +79,7 @@ void serialization::serializer<current_state::state>::deserialize_object(std::by
 	deserialize(input, obj.population_s, ws);
 	deserialize(input, obj.variable_s, ws);
 	deserialize(input, obj.ideology_s, ws);
+	deserialize(input, obj.technology_s, ws);
 
 	deserialize(input, obj.crisis_temperature);
 
@@ -125,6 +128,7 @@ size_t serialization::serializer<current_state::state>::size(current_state::stat
 		serialize_size(obj.population_s, ws) +
 		serialize_size(obj.variable_s, ws) +
 		serialize_size(obj.ideology_s, ws) +
+		serialize_size(obj.technology_s, ws) +
 		serialize_size(obj.crisis_temperature) +
 		sizeof(uint8_t) +
 		sizeof(nations::country_tag) +
@@ -215,6 +219,8 @@ void restore_world_state(world_state& ws) {
 
 	provinces::update_province_demographics(ws);
 	nations::update_state_nation_demographics(ws);
+
+	std::fill_n(ws.w.technology_s.discovery_count.data(), ws.s.technology_m.technologies_container.size(), 0);
 
 	ws.w.nation_s.nations.for_each([&ws](nations::nation& n) {
 		technologies::restore_technologies(ws, n);

@@ -18,15 +18,18 @@ namespace technologies {
 		army, navy, commerce, industry, culture, undefined
 	};
 
+	constexpr uint32_t number_of_subcategories = 5ui32;
+	constexpr uint32_t number_of_member_techs = 6ui32;
+
 	struct technology_category {
 		text_data::text_tag name;
-		tech_subcategory_tag subcategories[5];
+		tech_subcategory_tag subcategories[number_of_subcategories];
 		tech_category_type type = tech_category_type::undefined;
 		tech_category_tag id;
 	};
 
 	struct technology_subcategory {
-		tech_tag member_techs[8];
+		tech_tag member_techs[number_of_member_techs];
 		text_data::text_tag name;
 
 		tech_category_tag parent;
@@ -90,6 +93,7 @@ namespace technologies {
 		uint16_t cost = 0ui16;
 
 		text_data::text_tag name;
+		graphics::texture_tag picture;
 
 		rebel_adjustment_tag rebel_adjustment;
 		production_adjustment_tag production_adjustment;
@@ -101,6 +105,8 @@ namespace technologies {
 		economy::factory_type_tag activate_factory;
 
 		modifiers::provincial_modifier_tag enable_crime;
+
+		tech_tag preceeding;
 		tech_tag id;
 
 		tech_category_type category = tech_category_type::undefined;
@@ -128,6 +134,11 @@ namespace technologies {
 	inline adjusted_goods_tag economy_tag_to_production_adjustment(economy::goods_tag t) {
 		return adjusted_goods_tag(to_index(t) * production_adjustment::production_adjustment_count + production_type);
 	}
+
+	class technologies_state {
+	public:
+		tagged_vector<int32_t, tech_tag> discovery_count;
+	};
 
 	class technologies_manager {
 	public:

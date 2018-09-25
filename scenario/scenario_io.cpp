@@ -50,7 +50,7 @@ namespace scenario {
 		sound::populate_music(s.sound_m, root);
 		sound::read_effects(s.sound_m, s.gui_m.text_data_sequences, root);
 
-		technologies::parsing_state tech_state(s.gui_m.text_data_sequences, root.get_directory(u"\\technologies"), s.technology_m, s.modifiers_m);
+		technologies::parsing_state tech_state(s.gui_m.text_data_sequences, root, s.technology_m, s.modifiers_m, s.gui_m.textures);
 		technologies::pre_parse_technologies(tech_state, root);
 		technologies::pre_parse_inventions(tech_state, root);
 
@@ -636,5 +636,34 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::gas_defence_cap] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "gas_defense_capability");
 		s.fixed_ui_text[fixed_ui::tech_activation_year] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "TECHNOLOGY_ACTIVATION_YEAR");
 		s.fixed_ui_text[fixed_ui::tech_research_points] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "TECHNOLOGY_RESEARCH_POINTS");
+		s.fixed_ui_text[fixed_ui::tech_rebel_org_gain] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "TECH_REBEL_ORG_GAIN");
+		s.fixed_ui_text[fixed_ui::rgo_output_tech] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "RGO_OUTPUT_TECH");
+		s.fixed_ui_text[fixed_ui::rgo_throughput_tech] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "RGO_THROUGHPUT_TECH");
+		s.fixed_ui_text[fixed_ui::factory_input_tech] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "FACTORY_INPUT_TECH");
+		s.fixed_ui_text[fixed_ui::factory_output_tech] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "FACTORY_OUTPUT_TECH");
+		s.fixed_ui_text[fixed_ui::factory_throughput_tech] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "FACTORY_THROUGHPUT_TECH");
+		s.fixed_ui_text[fixed_ui::artisan_input_tech] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "ARTISAN_INPUT_TECH");
+		s.fixed_ui_text[fixed_ui::artisan_output_tech] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "ARTISAN_OUTPUT_TECH");
+		s.fixed_ui_text[fixed_ui::artisan_throughput_tech] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "ARTISAN_THROUGHPUT_TECH");
+		s.fixed_ui_text[fixed_ui::unit_defence] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "unit_defence");
+		s.fixed_ui_text[fixed_ui::unit_hull] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "unit_hull");
+		s.fixed_ui_text[fixed_ui::unit_attack] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "unit_attack");
+		s.fixed_ui_text[fixed_ui::unit_gun_power] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "unit_gun_power");
+		s.fixed_ui_text[fixed_ui::unit_reconnaissance] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "unit_reconnaissance");
+		s.fixed_ui_text[fixed_ui::unit_fire_range] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "unit_fire_range");
+		s.fixed_ui_text[fixed_ui::unit_support] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "unit_support");
+		s.fixed_ui_text[fixed_ui::unit_torpedo_attack] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "unit_torpedo_attack");
+		s.fixed_ui_text[fixed_ui::unit_maneuver] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "unit_maneuver");
+		s.fixed_ui_text[fixed_ui::unit_evasion] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "unit_evasion");
+		s.fixed_ui_text[fixed_ui::unit_speed] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "unit_speed");
+		s.fixed_ui_text[fixed_ui::unit_organization] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "unit_organization");
+		s.fixed_ui_text[fixed_ui::unit_build_time] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "unit_build_time");
+		s.fixed_ui_text[fixed_ui::unit_supply_consumption] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "unit_supply_consumption");
+		s.fixed_ui_text[fixed_ui::unit_strength] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "unit_strength");
+		s.fixed_ui_text[fixed_ui::unit_siege] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "unit_siege");
+		s.fixed_ui_text[fixed_ui::unit_discipline] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "unit_discipline");
+		s.fixed_ui_text[fixed_ui::disabled] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "disabled");
+		s.fixed_ui_text[fixed_ui::tx_day] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "day");
+		s.fixed_ui_text[fixed_ui::shared_prestige_tech] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "SHARED_PRESTIGE_TECH");
 	}
 }

@@ -64,5 +64,7 @@ namespace military {
 	uint32_t calculate_minimum_soldiers(world_state const& ws, army_tag a);
 	void rebuild_fleet_presence(world_state& ws, nations::nation& owner);
 
+	bool is_naval_unit(military::unit_type_tag t, world_state const& ws);
+
 	war& create_war(world_state& ws, nations::nation& attacker, nations::nation& defender, bool call_willing_attacker_allies);
 }

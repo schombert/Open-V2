@@ -72,6 +72,7 @@ namespace current_state {
 		population::population_state population_s;
 		variables::variables_state variable_s;
 		ideologies::ideologies_state ideology_s;
+		technologies::technologies_state technology_s;
 		ui::gui_manager gui_m;
 
 		//crisis state
@@ -106,7 +107,10 @@ namespace current_state {
 
 			tagged_vector<uint8_t, population::pop_type_tag> filtered_pop_types;
 		} selected_population;
+
 		invention_sort techui_invention_sort = invention_sort::none;
+		technologies::tech_tag selected_technology;
+		technologies::tech_category_tag selected_tech_category = technologies::tech_category_tag(0);
 
 		std::unique_ptr<gui_state> gui_objects;
 
