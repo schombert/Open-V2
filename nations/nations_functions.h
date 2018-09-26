@@ -45,13 +45,13 @@ namespace nations {
 	void partial_destroy_state_instance(world_state& ws, state_instance& si);
 	void destroy_nation(world_state& ws, nations::nation& new_nation);
 
-	int32_t colonial_points_to_make_protectorate(world_state& ws, state_instance& si);
-	int32_t colonial_points_to_make_colony(world_state& ws, state_instance& si);
-	int32_t colonial_points_to_make_state(world_state& ws, state_instance& si);
-	int32_t free_colonial_points(world_state& ws, nation& n);
-	int32_t points_for_next_colonial_stage(world_state& ws, nation& n, state_instance& si);
+	int32_t colonial_points_to_make_protectorate(world_state const& ws, state_instance const& si);
+	int32_t colonial_points_to_make_colony(world_state const& ws, state_instance const& si);
+	int32_t colonial_points_to_make_state(world_state const& ws, state_instance const& si);
+	int32_t free_colonial_points(world_state const& ws, nation const& n);
+	int32_t points_for_next_colonial_stage(world_state const& ws, nation const& n, state_instance const& si);
 
-	text_data::text_tag get_nation_status_text(world_state& ws, nation const& this_nation);
+	text_data::text_tag get_nation_status_text(world_state const& ws, nation const& this_nation);
 	bool is_great_power(world_state const& ws, nation const& this_nation);
 
 	void silent_make_alliance(world_state& ws, nation& a, nation& b);
@@ -59,9 +59,9 @@ namespace nations {
 	void end_alliance(world_state& ws, nation& a, nation& b);
 	void silent_make_vassal(world_state& ws, nation& overlord, nation& vassal);
 	void silent_make_substate(world_state& ws, nation& overlord, nation& vassal);
-	nation* union_holder_of(world_state& ws, nation const& this_nation);
-	nation* union_holder_for(world_state& ws, cultures::culture_tag);
-	cultures::national_tag union_tag_of(world_state& ws, nation const& this_nation);
+	nation* union_holder_of(world_state const& ws, nation const& this_nation);
+	nation* union_holder_for(world_state const& ws, cultures::culture_tag);
+	cultures::national_tag union_tag_of(world_state const& ws, nation const& this_nation);
 
 	economy::goods_qnty_type national_treasury(world_state const& ws, country_tag id);
 	float fraction_of_cores_owned(world_state const& ws, nation const& this_nation);
@@ -69,7 +69,7 @@ namespace nations {
 
 	float get_prestige(nations::nation const& n);
 	int32_t get_colonial_points(nations::nation const& n);
-	float calculate_state_administrative_efficiency(world_state const& ws, nations::state_instance& si, float admin_requirement);
+	float calculate_state_administrative_efficiency(world_state const& ws, nations::state_instance const& si, float admin_requirement);
 	void update_neighbors(world_state& ws, nations::nation& this_nation);
 
 	uint32_t calculate_blockaded_count(world_state const& ws, nations::nation const& this_nation);

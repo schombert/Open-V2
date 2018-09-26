@@ -700,23 +700,23 @@ namespace nations {
 		remove_item(ws.w.nation_s.nations_arrays, nation_target.influencers, nation_by.id);
 	}
 
-	int32_t colonial_points_to_make_protectorate(world_state&, state_instance&) {
+	int32_t colonial_points_to_make_protectorate(world_state const&, state_instance const&) {
 		return 0;
 	}
-	int32_t colonial_points_to_make_colony(world_state&, state_instance&) {
+	int32_t colonial_points_to_make_colony(world_state const&, state_instance const&) {
 		return 0;
 	}
-	int32_t colonial_points_to_make_state(world_state&, state_instance&) {
+	int32_t colonial_points_to_make_state(world_state const&, state_instance const&) {
 		return 0;
 	}
-	int32_t free_colonial_points(world_state&, nation&) {
+	int32_t free_colonial_points(world_state const&, nation const&) {
 		return 0;
 	}
-	int32_t points_for_next_colonial_stage(world_state&, nation&, state_instance&) {
+	int32_t points_for_next_colonial_stage(world_state const&, nation const&, state_instance const&) {
 		return 0;
 	}
 
-	text_data::text_tag get_nation_status_text(world_state& ws, nation const& this_nation) {
+	text_data::text_tag get_nation_status_text(world_state const& ws, nation const& this_nation) {
 		if((this_nation.flags & nation::is_civilized) == 0) {
 			if(this_nation.modifier_values[modifiers::national_offsets::civilization_progress_modifier] > modifiers::value_type(0))
 				return ws.s.fixed_ui_text[scenario::fixed_ui::partialy_civilized_nation];
@@ -760,7 +760,7 @@ namespace nations {
 		vassal.flags |= nation::is_substate;
 	}
 
-	nation* union_holder_for(world_state& ws, cultures::culture_tag pculture) {
+	nation* union_holder_for(world_state const& ws, cultures::culture_tag pculture) {
 		auto cgroup = ws.s.culture_m.culture_container[pculture].group;
 		auto union_tag = ws.s.culture_m.culture_groups[cgroup].union_tag;
 		if(is_valid_index(union_tag))
@@ -769,7 +769,7 @@ namespace nations {
 			return nullptr;
 	}
 
-	cultures::national_tag union_tag_of(world_state& ws, nation const& this_nation) {
+	cultures::national_tag union_tag_of(world_state const& ws, nation const& this_nation) {
 		auto pculture = this_nation.primary_culture;
 		if(is_valid_index(pculture)) {
 			auto cgroup = ws.s.culture_m.culture_container[pculture].group;
@@ -779,7 +779,7 @@ namespace nations {
 			return cultures::national_tag();
 	}
 
-	nation* union_holder_of(world_state& ws, nation const& this_nation) {
+	nation* union_holder_of(world_state const& ws, nation const& this_nation) {
 		auto pculture = this_nation.primary_culture;
 		if(is_valid_index(pculture))
 			return union_holder_for(ws, pculture);
@@ -831,7 +831,7 @@ namespace nations {
 		return int32_t(n.base_colonial_points) + int32_t(n.tech_attributes[technologies::tech_offset::colonial_points]);
 	}
 
-	float calculate_state_administrative_efficiency(world_state const& ws, nations::state_instance& this_state, float admin_requirement) {
+	float calculate_state_administrative_efficiency(world_state const& ws, nations::state_instance const& this_state, float admin_requirement) {
 		if(this_state.owner == nullptr)
 			return 0.0f;
 

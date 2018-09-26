@@ -47,7 +47,7 @@ namespace technologies {
 		CT_STRING("folder_icon"), ui::dynamic_icon<folder_tab_icon>,
 		CT_STRING("folder_category"), ui::display_text<folder_tab_name>,
 		CT_STRING("folder_progress"), ui::progress_bar<foldet_tab_progress_bar>,
-		CT_STRING("folder_number_discovered"), ui::display_text<folder_tab_count>,
+		CT_STRING("folder_number_discovered"), ui::display_text<folder_tab_count, -6>,
 		tech_category_tab_base
 	>;
 

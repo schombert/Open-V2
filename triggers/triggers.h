@@ -163,5 +163,5 @@ namespace triggers {
 		}
 	}
 
-	bool test_trigger(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot);
+	bool test_trigger(uint16_t const* tval, world_state const& ws, void const* primary_slot, void const* this_slot, void const* from_slot, population::rebel_faction const* rebel_slot);
 }

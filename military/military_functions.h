@@ -24,7 +24,7 @@ namespace military {
 	army& make_army(world_state& ws, nations::nation& n, provinces::province_tag location);
 	fleet& make_fleet(world_state& ws, nations::nation& n, provinces::province_tag location);
 	void immediate_add_pop_to_army(world_state& ws, army& target_army, population::pop& p);
-	bool can_use_cb_against(world_state& ws, nations::nation& nation_by, nations::nation& nation_target);
+	bool can_use_cb_against(world_state const& ws, nations::nation const& nation_by, nations::nation const& nation_target);
 	bool has_military_access_with(world_state const& ws, nations::nation const& nation_by, nations::nation const& nation_target);
 
 	bool in_war_with(world_state const& ws, nations::nation const& this_nation, nations::country_tag nation_with); // with = on the same side as

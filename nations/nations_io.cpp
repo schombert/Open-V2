@@ -904,7 +904,8 @@ namespace nations {
 		auto mod_thandle = text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "traditional_academic");
 		auto nmod = ws.s.modifiers_m.named_national_modifiers_index[mod_thandle];
 		ws.w.nation_s.nations.for_each([nmod](nations::nation& n) {
-			n.tech_school = nmod;
+			if(!is_valid_index(n.tech_school))
+				n.tech_school = nmod;
 		});
 	}
 }

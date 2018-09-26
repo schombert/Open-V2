@@ -194,7 +194,7 @@ namespace technologies {
 		if(tech.year != 0 && tag_to_date(ws.w.current_date).year() < tech.year)
 			return false;
 		if(is_valid_index(tech.allow) && !triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(tech.allow),
-			const_cast<world_state&>(ws), &const_cast<nations::nation&>(this_nation), &const_cast<nations::nation&>(this_nation), nullptr, nullptr))
+			ws, &this_nation, &this_nation, nullptr, nullptr))
 			return false;
 		if(is_valid_index(tech.preceeding) && id_valid && !bit_vector_test(ws.w.nation_s.active_technologies.get_row(id), to_index(tech.preceeding)))
 			return false;

@@ -363,7 +363,7 @@ namespace technologies {
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::factory_input_tech], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = display_value(v, display_type::percent, true, ws, container, cursor_in, lm, fmt);
+					cursor_in = display_value(v, display_type::percent, false, ws, container, cursor_in, lm, fmt);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 					lm.finish_current_line();
 				}
@@ -393,7 +393,7 @@ namespace technologies {
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::artisan_input_tech], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = display_value(v, display_type::percent, true, ws, container, cursor_in, lm, fmt);
+					cursor_in = display_value(v, display_type::percent, false, ws, container, cursor_in, lm, fmt);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 					lm.finish_current_line();
 				}

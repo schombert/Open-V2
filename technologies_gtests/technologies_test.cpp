@@ -244,10 +244,11 @@ TEST(technologies_tests, pre_parse_single_tech) {
 	technologies_manager manager;
 	text_data::text_sequences text;
 	modifiers::modifiers_manager mm;
+	graphics::texture_manager tm;
 
 	parse_pdx_file(results, single_tech, single_tech + sizeof(single_tech) - 1);
 
-	parsing_state state(text, f.get_root(), manager, mm);
+	parsing_state state(text, f.get_root(), manager, mm, tm);
 
 	pre_parse_single_tech_file(*state.impl, results.data(), results.data() + results.size());
 
@@ -272,10 +273,11 @@ TEST(technologies_tests, pre_parse_two_techs) {
 	technologies_manager manager;
 	text_data::text_sequences text;
 	modifiers::modifiers_manager mm;
+	graphics::texture_manager tm;
 
 	parse_pdx_file(results, two_techs, two_techs + sizeof(two_techs) - 1);
 
-	parsing_state state(text, f.get_root(), manager, mm);
+	parsing_state state(text, f.get_root(), manager, mm, tm);
 	pre_parse_single_tech_file(*state.impl, results.data(), results.data() + results.size());
 
 	ASSERT_EQ(2ui64, manager.technologies_container.size());
@@ -296,8 +298,9 @@ TEST(technologies_tests, pre_parse_tech_file) {
 	technologies_manager manager;
 	modifiers::modifiers_manager mm;
 	text_data::text_sequences text;
+	graphics::texture_manager tm;
 
-	parsing_state state(text, f.get_root(), manager, mm);
+	parsing_state state(text, f.get_root(), manager, mm, tm);
 	pre_parse_technologies(state, f.get_root());
 
 	EXPECT_EQ(2ui64, manager.technology_categories.size());
@@ -339,8 +342,9 @@ TEST(technologies_tests, pre_parse_schools) {
 	technologies_manager manager;
 	modifiers::modifiers_manager mm;
 	text_data::text_sequences text;
+	graphics::texture_manager tm;
 
-	parsing_state state(text, f.get_root(), manager, mm);
+	parsing_state state(text, f.get_root(), manager, mm, tm);
 	pre_parse_technologies(state, f.get_root());
 
 	EXPECT_EQ(2ui64, mm.national_modifiers.size());
@@ -366,10 +370,9 @@ TEST(technologies_tests, pre_parse_techs_test) {
 	technologies_manager manager;
 	modifiers::modifiers_manager mm;
 	text_data::text_sequences text;
+	graphics::texture_manager tm;
 
-	const auto tech_dir = f.get_root().get_directory(u"\\technologies");
-
-	parsing_state state(text, tech_dir, manager, mm);
+	parsing_state state(text, f.get_root(), manager, mm, tm);
 
 	pre_parse_technologies(state, f.get_root());
 
@@ -387,10 +390,9 @@ TEST(technologies_tests, pre_parse_inventions_test) {
 	technologies_manager manager;
 	modifiers::modifiers_manager mm;
 	text_data::text_sequences text;
+	graphics::texture_manager tm;
 
-	const auto tech_dir = f.get_root().get_directory(u"\\technologies");
-
-	parsing_state state(text, tech_dir, manager, mm);
+	parsing_state state(text, f.get_root(), manager, mm, tm);
 
 	pre_parse_inventions(state, f.get_root());
 
@@ -427,7 +429,7 @@ TEST(technologies_tests, read_technologies_test) {
 		population::pre_parse_rebel_types(env, f.get_root());
 	}
 
-	parsing_state state(s.gui_m.text_data_sequences, f.get_root().get_directory(u"\\technologies"), s.technology_m, s.modifiers_m);
+	parsing_state state(s.gui_m.text_data_sequences, f.get_root(), s.technology_m, s.modifiers_m, s.gui_m.textures);
 
 	pre_parse_technologies(state, f.get_root());
 	pre_parse_inventions(state, f.get_root());
@@ -502,7 +504,7 @@ TEST(technologies_tests, read_inventions_test) {
 		population::pre_parse_rebel_types(env, f.get_root());
 	}
 
-	parsing_state state(s.gui_m.text_data_sequences, f.get_root().get_directory(u"\\technologies"), s.technology_m, s.modifiers_m);
+	parsing_state state(s.gui_m.text_data_sequences, f.get_root(), s.technology_m, s.modifiers_m, s.gui_m.textures);
 
 	pre_parse_technologies(state, f.get_root());
 	pre_parse_inventions(state, f.get_root());

@@ -304,11 +304,13 @@ TEST(provinces_test, adjacent) {
 	m.province_container[province_tag(5)].flags = province::sea;
 	m.province_container[province_tag(6)].flags = province::sea;
 
-	read_adjacnencies_file(adj_map, m.canals, f.get_root());
+	text_data::text_sequences tex;
+
+	read_adjacnencies_file(adj_map, m.canals, f.get_root(), tex);
 
 	EXPECT_EQ(2ui64, m.canals.size());
-	EXPECT_EQ(province_tag(2), m.canals[1].first);
-	EXPECT_EQ(province_tag(3), m.canals[1].second);
+	EXPECT_EQ(province_tag(2), std::get<0>(m.canals[1]));
+	EXPECT_EQ(province_tag(3), std::get<1>(m.canals[1]));
 
 	EXPECT_EQ(4ui64, adj_map[province_tag(1)].size());
 	EXPECT_EQ(1ui64, adj_map[province_tag(1)].count(province_tag(5)));

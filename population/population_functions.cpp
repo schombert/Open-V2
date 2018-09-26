@@ -71,7 +71,7 @@ namespace population {
 			+ this_pop.size_change_from_local_migration + this_pop.size_change_from_type_change;
 	}
 
-	economy::money_qnty_type desired_needs_spending(world_state&, pop const&) {
+	economy::money_qnty_type desired_needs_spending(world_state const&, pop const&) {
 		return economy::money_qnty_type(0);
 	}
 

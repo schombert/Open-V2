@@ -311,7 +311,7 @@ TEST(nations_tests, read_nations_files_simple) {
 	EXPECT_EQ(true, contains_item(ws.w.culture_s.culture_arrays, ger_nation->accepted_cultures, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "basque"))));
 	EXPECT_EQ(tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "catholic")), ger_nation->national_religion);
 	EXPECT_EQ(tag_from_text(ws.s.governments_m.named_government_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "hms_government")), ger_nation->current_government);
-	EXPECT_EQ(25.0f, ger_nation->plurality);
+	EXPECT_EQ(0.25f, ger_nation->plurality);
 	EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_national_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "nv_equality")), ger_nation->national_value);
 	EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_national_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "commerce_tech_school")), ger_nation->tech_school);
 	EXPECT_EQ(nations::nation::is_civilized, ger_nation->flags);
@@ -392,7 +392,7 @@ TEST(nations_tests, read_nations_files_layered) {
 	EXPECT_EQ(true, contains_item(ws.w.culture_s.culture_arrays, ger_nation->accepted_cultures, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "basque"))));
 	EXPECT_EQ(tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "catholic")), ger_nation->national_religion);
 	EXPECT_EQ(tag_from_text(ws.s.governments_m.named_government_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "hms_government")), ger_nation->current_government);
-	EXPECT_EQ(25.0f, ger_nation->plurality);
+	EXPECT_EQ(0.25f, ger_nation->plurality);
 	EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_national_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "nv_equality")), ger_nation->national_value);
 	EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_national_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "commerce_tech_school")), ger_nation->tech_school);
 	EXPECT_EQ(nations::nation::is_civilized, ger_nation->flags);

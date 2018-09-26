@@ -178,7 +178,7 @@ namespace military {
 		}
 	}
 
-	bool can_use_cb_against(world_state& ws, nations::nation& nation_by, nations::nation& nation_target) {
+	bool can_use_cb_against(world_state const& ws, nations::nation const& nation_by, nations::nation const& nation_target) {
 		auto pending_range = get_range(ws.w.military_s.cb_arrays, nation_by.active_cbs);
 		for(auto c = pending_range.first; c != pending_range.second; ++c) {
 			if(c->target == nation_target.id)
