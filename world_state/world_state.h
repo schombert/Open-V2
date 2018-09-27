@@ -111,7 +111,11 @@ namespace current_state {
 		invention_sort techui_invention_sort = invention_sort::none;
 		technologies::tech_tag selected_technology;
 		technologies::tech_category_tag selected_tech_category = technologies::tech_category_tag(0);
-
+		struct {
+			nations::country_tag selected_nation;
+			military::war_tag selected_war;
+		} selected_diplomacy;
+		
 		std::unique_ptr<gui_state> gui_objects;
 
 		//player data
@@ -141,6 +145,12 @@ namespace current_state {
 		void show_government_release_nations_tab();
 		void hide_tech_window();
 		void show_tech_window();
+		void hide_diplomacy_window();
+		void show_diplomacy_window_self();
+		void show_diplomacy_window(nations::country_tag t);
+		void show_diplomacy_window(military::war_tag t);
+		void show_diplomacy_window_crisis();
+		void show_diplomacy_window_cbs();
 	};
 }
 

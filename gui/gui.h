@@ -562,6 +562,8 @@ namespace ui {
 		overlap_box(PARAMS&& ... params) : BASE(std::forward<PARAMS>(params)...) {}
 
 		virtual void update_data(gui_object_tag, world_state&) final override;
+		template<typename window_type>
+		void windowed_update(window_type& w, world_state& s);
 
 		void set_self_information(world_state& m, gui_object_tag s, int32_t sp, text_data::alignment a);
 		void clear_items(gui_manager&);

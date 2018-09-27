@@ -1086,6 +1086,21 @@ namespace modifiers {
 			if(is_fixed_token_ci(t.first, "min_fleets")) { d.min_fleets = t.second; return; }
 			if(is_fixed_token_ci(t.first, "max_fleets")) { d.max_fleets = t.second; return; }
 			if(is_fixed_token_ci(t.first, "months_before_disband")) { d.months_before_disband = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_cost_gunboat")) { d.peace_cost_gunboat = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_cost_clear_union_sphere")) { d.peace_cost_clear_union_sphere = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_cost_colony")) { d.peace_cost_colony = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_cost_uninstall_communist_gov_type")) { d.peace_cost_uninstall_communist_gov_type = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_cost_install_communist_gov_type")) { d.peace_cost_install_communist_gov_type = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_cost_annex")) { d.peace_cost_annex = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_cost_status_quo")) { d.peace_cost_status_quo = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_cost_prestige")) { d.peace_cost_prestige = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_cost_add_to_sphere")) { d.peace_cost_add_to_sphere = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_cost_release_puppet")) { d.peace_cost_release_puppet = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_cost_make_puppet")) { d.peace_cost_make_puppet = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_cost_disarmament")) { d.peace_cost_disarmament = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_cost_destroy_forts")) { d.peace_cost_destroy_forts = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_cost_reparations")) { d.peace_cost_reparations = t.second; return; }
+			if(is_fixed_token_ci(t.first, "peace_cost_destroy_naval_bases")) { d.peace_cost_destroy_naval_bases = t.second; return; }
 		}
 		void start_date(date_tag t) {
 			d.start_date = t;

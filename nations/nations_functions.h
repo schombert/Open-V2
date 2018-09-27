@@ -82,6 +82,8 @@ namespace nations {
 	int32_t calculate_industrial_score(world_state const& ws, nations::nation const& this_nation);
 	int32_t calculate_military_score(world_state const& ws, nations::nation const& this_nation);
 
+	int32_t count_factories_in_state(nations::state_instance const& si);
+
 	void update_nation_ranks(world_state& ws);
 	void civilize_nation(world_state& ws, nations::nation& this_nation);
 	void uncivilize_nation(world_state& ws, nations::nation& this_nation);
@@ -91,13 +93,13 @@ namespace nations {
 	void unmake_slave_state(world_state& ws, nations::state_instance& this_state);
 
 	template<typename F>
-	void for_each_province(world_state& ws, nations::state_instance const& s, F&& f);
+	void for_each_province(world_state const& ws, nations::state_instance const& s, F&& f);
 	template<typename F>
-	void for_each_province(world_state& ws, nations::nation const& s, F&& f);
+	void for_each_province(world_state const& ws, nations::nation const& s, F&& f);
 	template<typename F>
-	void for_each_state(world_state& ws, nations::nation const& s, F&& f);
+	void for_each_state(world_state const& ws, nations::nation const& s, F&& f);
 	template<typename F>
-	void for_each_pop(world_state& ws, nations::state_instance const& s, F&& f);
+	void for_each_pop(world_state const& ws, nations::state_instance const& s, F&& f);
 	template<typename F>
-	void for_each_pop(world_state& ws, nations::nation const& s, F&& f);
+	void for_each_pop(world_state const& ws, nations::nation const& s, F&& f);
 }

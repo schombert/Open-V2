@@ -930,7 +930,7 @@ void ui::detail::render(gui_static& static_manager, const gui_manager& manager, 
 	const bool currently_enabled = parent_enabled && ((flags & ui::gui_object::enabled) != 0);
 
 	if ((flags & ui::gui_object::dont_clip_children) == 0) {
-		graphics::scissor_rect clip(std::lround(screen_pos.effective_position_x), manager.height() - std::lround(screen_pos.effective_position_y + screen_pos.effective_height), std::lround(screen_pos.effective_width), std::lround(screen_pos.effective_height));
+		graphics::scissor_rect clip(ogl, std::lround(screen_pos.effective_position_x), manager.height() - std::lround(screen_pos.effective_position_y + screen_pos.effective_height), std::lround(screen_pos.effective_width), std::lround(screen_pos.effective_height));
 
 		detail::render_object_type(static_manager, manager, ogl, root_obj, screen_pos, type, currently_enabled && ((flags & ui::gui_object::display_as_disabled) == 0));
 

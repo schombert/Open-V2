@@ -691,6 +691,21 @@ namespace modifiers {
 		float min_fleets = 1.0f;
 		float max_fleets = 10.0f;
 		float months_before_disband = 6.0f;
+		float peace_cost_gunboat = 5.0f;
+		float peace_cost_clear_union_sphere = 0.6f;
+		float peace_cost_colony = 10.0f;
+		float peace_cost_uninstall_communist_gov_type = 1.0f;
+		float peace_cost_install_communist_gov_type = 70.0f;
+		float peace_cost_annex = 85.0f;
+		float peace_cost_status_quo = 1.0f;
+		float peace_cost_prestige = 1.0f;
+		float peace_cost_add_to_sphere = 1.0f;
+		float peace_cost_release_puppet = 1.0f;
+		float peace_cost_make_puppet = 1.0f;
+		float peace_cost_disarmament = 1.0f;
+		float peace_cost_destroy_forts = 1.0f;
+		float peace_cost_reparations = 1.0f;
+		float peace_cost_destroy_naval_bases = 1.0f;
 	};
 
 	struct static_modifiers_s {

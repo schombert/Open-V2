@@ -25,13 +25,16 @@ namespace graphics {
 	class scissor_rect {
 	private:
 		int32_t oldrect[4];
+		int32_t* current_rect = nullptr;
 	public:
-		scissor_rect(int32_t x, int32_t y, int32_t width, int32_t height);
+		scissor_rect(open_gl_wrapper& ogl, int32_t x, int32_t y, int32_t width, int32_t height);
 		~scissor_rect();
 	};
 
 	class open_gl_wrapper {
 	private:
+		int32_t current_scissor_rect[4] = { 0,0,0,0 };
+
 		void set_render_thread(const std::function<void()>&);
 		bool is_running();
 		void setup_context(void* hwnd);
@@ -46,9 +49,10 @@ namespace graphics {
 		void destory(void* hwnd);
 		void bind_to_thread();
 		void bind_to_ui_thread();
+		void bind_to_shadows_thread();
 		void clear();
 		void display();
-		void use_default_program() const;
+		void use_default_program();
 		void set_viewport(uint32_t width, uint32_t height);
 		void render_piechart(bool enabled, float x, float y, float size, data_texture& t);
 		void render_textured_rect(bool enabled, float x, float y, float width, float height, texture& t, rotation r = rotation::upright);
@@ -62,5 +66,7 @@ namespace graphics {
 		void render_text(const char16_t* codepoints, uint32_t count, bool enabled, float x, float baseline_y, float size, const color& c, font& f);
 		void render_outlined_text(const char16_t* codepoints, uint32_t count, bool enabled, float x, float baseline_y, float size, const color& c, font& f);
 		void render_tinted_textured_rect(float x, float y, float width, float height, float r, float g, float b, texture& t, rotation rot = rotation::upright);
+
+		friend scissor_rect;
 	};
 }

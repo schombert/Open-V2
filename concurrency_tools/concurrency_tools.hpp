@@ -3,7 +3,7 @@
 #include "common\\common.h"
 #include <cstdlib>
 #include "simple_serialize\\simple_serialize.hpp"
-
+#include <ppl.h>
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
 class serialization::serializer<stable_vector<object_type, index_type, block_size, index_size>> {
@@ -155,14 +155,21 @@ template<typename object_type, typename index_type, uint32_t block_size, uint32_
 stable_vector<object_type, index_type, block_size, index_size>::stable_vector() { }
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
-object_type& stable_vector<object_type, index_type, block_size, index_size>::get(index_type i) const {
+object_type& stable_vector<object_type, index_type, block_size, index_size>::get(index_type i) const noexcept {
 	const auto block_num = to_index(i) >> ct_log2(block_size);
 	const auto block_index = to_index(i) & (block_size - 1);
 	return (index_array[block_num])[block_index];
 }
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
-object_type& stable_vector<object_type, index_type, block_size, index_size>::operator[](index_type i) const {
+object_type& stable_vector<object_type, index_type, block_size, index_size>::untyped_get(uint32_t i) const noexcept {
+	const auto block_num = i >> ct_log2(block_size);
+	const auto block_index = i & (block_size - 1);
+	return (index_array[block_num])[block_index];
+}
+
+template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
+object_type& stable_vector<object_type, index_type, block_size, index_size>::operator[](index_type i) const noexcept {
 	return get(i);
 }
 
@@ -175,6 +182,16 @@ void stable_vector<object_type, index_type, block_size, index_size>::for_each(T&
 				f((index_array[i])[j]);
 		}
 	}
+}
+
+template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
+template<typename T>
+void stable_vector<object_type, index_type, block_size, index_size>::parallel_for_each(T const& f) {
+	concurrency::parallel_for(0ui32, indices_in_use * block_size, [&f, _this = this](uint32_t i) {
+		auto& th = _this->untyped_get(i);
+		if(((to_index(th.id) & high_bit_mask<index_type>) == 0) & ::is_valid_index(th.id))
+			f(th);
+	});
 }
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>

@@ -65,6 +65,7 @@ namespace military {
 	void rebuild_fleet_presence(world_state& ws, nations::nation& owner);
 
 	bool is_naval_unit(military::unit_type_tag t, world_state const& ws);
+	float calculate_base_war_score_cost(world_state const& ws, war_goal const& wg); // great war modifiers not applied
 
 	war& create_war(world_state& ws, nations::nation& attacker, nations::nation& defender, bool call_willing_attacker_allies);
 }

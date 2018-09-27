@@ -19,6 +19,7 @@
 #include "modifiers\\modifier_functions.h"
 #include "issues\\issues_functions.h"
 #include "technologies\\technologies_io.h"
+#include <ppl.h>
 
 void serialization::serializer<current_state::state>::serialize_object(std::byte *& output, current_state::state const & obj, world_state const & ws) {
 	serialize(output, obj.province_s, ws);
@@ -222,8 +223,13 @@ void restore_world_state(world_state& ws) {
 
 	std::fill_n(ws.w.technology_s.discovery_count.data(), ws.s.technology_m.technologies_container.size(), 0);
 
-	ws.w.nation_s.nations.for_each([&ws](nations::nation& n) {
+	ws.w.nation_s.nations.parallel_for_each([&ws](nations::nation& n) {
 		technologies::restore_technologies(ws, n);
+		modifiers::reset_national_modifier(ws, n);
+	});
+
+	ws.w.nation_s.nations.for_each([&ws](nations::nation& n) {
+		//technologies::restore_technologies(ws, n);
 		military::update_at_war_with_and_against(ws, n);
 
 		n.ruling_ideology = ws.s.governments_m.parties[n.ruling_party].ideology;
@@ -234,8 +240,6 @@ void restore_world_state(world_state& ws) {
 
 		military::rebuild_fleet_presence(ws, n);
 
-		modifiers::reset_national_modifier(ws, n);
-
 		n.military_score = int16_t(nations::calculate_military_score(ws, n));
 		n.industrial_score = int16_t(nations::calculate_industrial_score(ws, n));
 
@@ -245,8 +249,15 @@ void restore_world_state(world_state& ws) {
 			s->state->administrative_efficiency = nations::calculate_state_administrative_efficiency(ws, *(s->state), admin_req);
 	});
 
-	for(auto &ps : ws.w.province_s.province_state_container)
-		modifiers::reset_provincial_modifier(ws, ps);
+	concurrency::parallel_for_each(
+		ws.w.province_s.province_state_container.begin(),
+		ws.w.province_s.province_state_container.end(),
+		[&ws](provinces::province_state& ps) {
+			modifiers::reset_provincial_modifier(ws, ps);
+	});
+
+//	for(auto &ps : ws.w.province_s.province_state_container)
+//		modifiers::reset_provincial_modifier(ws, ps);
 
 	nations::update_nation_ranks(ws);
 }

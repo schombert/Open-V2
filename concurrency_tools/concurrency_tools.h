@@ -327,8 +327,9 @@ public:
 		return block_size * indices_in_use;
 	}
 
-	object_type& get(index_type i) const; // safe from any thread
-	object_type& operator[](index_type i) const; // safe from any thread
+	object_type& get(index_type i) const noexcept; // safe from any thread
+	object_type& untyped_get(uint32_t i) const noexcept; // safe from any thread
+	object_type& operator[](index_type i) const noexcept; // safe from any thread
 	bool is_valid_index(index_type i) const; //safe (but potentially inaccurate) from any thread, but if true, can use get without possible memory error
 
 	object_type& get_new(); // single thread only
@@ -337,6 +338,8 @@ public:
 
 	template<typename T>
 	void for_each(T&& f);
+	template<typename T>
+	void parallel_for_each(T const& f);
 };
 
 template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>

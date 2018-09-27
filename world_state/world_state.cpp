@@ -13,6 +13,7 @@
 #include "topbar.hpp"
 #include "governments\\governments_gui.hpp"
 #include "technologies\\technologies_gui.hpp"
+#include "nations\\nations_gui.hpp"
 
 void ready_world_state(world_state& ws) {
 	ws.w.selected_population.filtered_pop_types.resize(ws.s.population_m.count_poptypes);
@@ -37,6 +38,7 @@ namespace current_state {
 		population::population_window_t population_window;
 		governments::government_window_t government_window;
 		technologies::tech_window_t tech_window;
+		nations::diplomacy_window_t diplomacy_window;
 		topbar_t topbar;
 	};
 
@@ -58,6 +60,7 @@ namespace current_state {
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["topbar"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, gui_objects->topbar);
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["country_politics"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, gui_objects->government_window);
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["country_technology"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, gui_objects->tech_window);
+		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["country_diplomacy"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, gui_objects->diplomacy_window);
 	}
 	void state::hide_tech_window() {
 		auto gobj = gui_objects->tech_window.associated_object;
@@ -67,6 +70,50 @@ namespace current_state {
 	void state::show_tech_window() {
 		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(gui_objects->tech_window.associated_object), gui_objects->tech_window.window_object });
 		ui::make_visible_and_update(gui_m, *(gui_objects->tech_window.associated_object));
+	}
+
+	void state::hide_diplomacy_window() {
+		auto gobj = gui_objects->diplomacy_window.associated_object;
+		if(gobj)
+			ui::hide(*gobj);
+	}
+	void state::show_diplomacy_window_self() {
+		selected_diplomacy.selected_war = military::war_tag();
+		if(auto player = local_player_nation; player)
+			selected_diplomacy.selected_nation = player->id;
+		else
+			selected_diplomacy.selected_nation = nations::country_tag();
+
+		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(gui_objects->diplomacy_window.associated_object), gui_objects->diplomacy_window.window_object });
+		ui::make_visible_and_update(gui_m, *(gui_objects->diplomacy_window.associated_object));
+	}
+	void state::show_diplomacy_window(nations::country_tag t) {
+		selected_diplomacy.selected_war = military::war_tag();
+		selected_diplomacy.selected_nation = t;
+
+		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(gui_objects->diplomacy_window.associated_object), gui_objects->diplomacy_window.window_object });
+		ui::make_visible_and_update(gui_m, *(gui_objects->diplomacy_window.associated_object));
+	}
+	void state::show_diplomacy_window(military::war_tag t) {
+		selected_diplomacy.selected_war = t;
+		selected_diplomacy.selected_nation = nations::country_tag();
+
+		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(gui_objects->diplomacy_window.associated_object), gui_objects->diplomacy_window.window_object });
+		ui::make_visible_and_update(gui_m, *(gui_objects->diplomacy_window.associated_object));
+	}
+	void state::show_diplomacy_window_crisis() {
+		selected_diplomacy.selected_war = military::war_tag();
+		selected_diplomacy.selected_nation = nations::country_tag();
+
+		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(gui_objects->diplomacy_window.associated_object), gui_objects->diplomacy_window.window_object });
+		ui::make_visible_and_update(gui_m, *(gui_objects->diplomacy_window.associated_object));
+	}
+	void state::show_diplomacy_window_cbs() {
+		selected_diplomacy.selected_war = military::war_tag();
+		selected_diplomacy.selected_nation = nations::country_tag();
+
+		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(gui_objects->diplomacy_window.associated_object), gui_objects->diplomacy_window.window_object });
+		ui::make_visible_and_update(gui_m, *(gui_objects->diplomacy_window.associated_object));
 	}
 
 	void state::hide_population_window() {

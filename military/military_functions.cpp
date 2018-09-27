@@ -2,6 +2,8 @@
 #include "military_functions.h"
 #include "world_state\\world_state.h"
 #include <random>
+#include "nations\\nations_functions.hpp"
+#include "provinces\\province_functions.h"
 
 namespace military {
 	void init_military_state(world_state& ws) {
@@ -528,11 +530,11 @@ namespace military {
 		add_item(ws.w.nation_s.nations_arrays, new_war.defenders, defender.id);
 
 		new_war.start_date = ws.w.current_date;
-		new_war.last_update = ws.w.current_date;
 
 		// todo: call defender allies
 		// todo: call attacker allies
 		// todo: populate naval control
+		// todo: name war
 
 		return new_war;
 	}
@@ -545,5 +547,132 @@ namespace military {
 			return true;
 		else
 			return false;
+	}
+
+	float calculate_base_war_score_cost(world_state const& ws, war_goal const& wg) {
+		auto& this_cb_type = ws.s.military_m.cb_types[wg.cb_type];
+
+		if((this_cb_type.flags & cb_type::great_war_obligatory) != 0)
+			return 0.0f;
+
+		float total_cost = 0.0f;
+
+		if((this_cb_type.flags & cb_type::po_gunboat) != 0)
+			total_cost += ws.s.modifiers_m.global_defines.peace_cost_gunboat;
+		if((this_cb_type.flags & cb_type::po_add_to_sphere) != 0)
+			total_cost += ws.s.modifiers_m.global_defines.peace_cost_add_to_sphere;
+		if((this_cb_type.flags & cb_type::po_release_puppet) != 0)
+			total_cost += ws.s.modifiers_m.global_defines.peace_cost_release_puppet;
+		if((this_cb_type.flags & cb_type::po_colony) != 0)
+			total_cost += ws.s.modifiers_m.global_defines.peace_cost_colony;
+		if((this_cb_type.flags & cb_type::po_disarmament) != 0)
+			total_cost += ws.s.modifiers_m.global_defines.peace_cost_disarmament;
+		if((this_cb_type.flags & cb_type::po_destroy_forts) != 0)
+			total_cost += ws.s.modifiers_m.global_defines.peace_cost_destroy_forts;
+		if((this_cb_type.flags & cb_type::po_destroy_naval_bases) != 0)
+			total_cost += ws.s.modifiers_m.global_defines.peace_cost_destroy_naval_bases;
+		if((this_cb_type.flags & cb_type::po_reparations) != 0)
+			total_cost += ws.s.modifiers_m.global_defines.peace_cost_reparations;
+		if((this_cb_type.flags & cb_type::po_remove_prestige) != 0)
+			total_cost += ws.s.modifiers_m.global_defines.peace_cost_prestige;
+		if((this_cb_type.flags & cb_type::po_status_quo) != 0)
+			total_cost += ws.s.modifiers_m.global_defines.peace_cost_status_quo;
+		if((this_cb_type.flags & cb_type::po_annex) != 0)
+			total_cost += ws.s.modifiers_m.global_defines.peace_cost_annex;
+		if((this_cb_type.flags & cb_type::po_install_communist_gov_type) != 0)
+			total_cost += ws.s.modifiers_m.global_defines.peace_cost_install_communist_gov_type;
+		if((this_cb_type.flags & cb_type::po_uninstall_communist_gov_type) != 0)
+			total_cost += ws.s.modifiers_m.global_defines.peace_cost_uninstall_communist_gov_type;
+		if((this_cb_type.flags & cb_type::po_clear_union_sphere) != 0)
+			total_cost += ws.s.modifiers_m.global_defines.peace_cost_clear_union_sphere * 4;
+
+		// sum province values -- if all allowed states -- find all matching states to sum
+
+		if((this_cb_type.flags & (cb_type::po_transfer_provinces | cb_type::po_demand_state)) != 0) {
+			if((this_cb_type.flags & cb_type::all_allowed_states) == 0) {
+				auto target = wg.target_country;
+				if(is_valid_index(target)) {
+					auto& n = ws.w.nation_s.nations[target];
+					int64_t target_total_pop = [&ws, &n](){
+						if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id))
+							return ws.w.nation_s.nation_demographics.get(id, population::total_population_tag);
+						else
+							return 0i64;
+					}();
+					if(is_valid_index(wg.target_state)) {
+						auto& si = ws.w.nation_s.states[wg.target_state];
+						int32_t state_pop = [&ws, &si]() {
+							if(auto id = si.id; ws.w.nation_s.states.is_valid_index(id))
+								return ws.w.nation_s.state_demographics.get(id, population::total_population_tag);
+							else
+								return 0;
+						}();
+						bool contains_capital = false;
+						int32_t base_cost = nations::count_factories_in_state(si);
+
+						if(!nations::is_colonial_or_protectorate(si)) {
+							nations::for_each_province(ws, si, [&base_cost, &n, target_total_pop, &ws](provinces::province_state& prov) {
+								int32_t base_cost_temp = prov.fort_level + prov.naval_base_level + 1;
+								if(contains_item(ws.w.province_s.core_arrays, prov.cores, n.tag))
+									base_cost_temp *= 2;
+								if(n.current_capital == prov.id)
+									base_cost_temp *= 3;
+								base_cost += base_cost_temp;
+							});
+						} else {
+							base_cost = 1;
+						}
+						float adjusted_base_cost = std::clamp((target_total_pop != 0) ? (float(base_cost) * 200.0f * float(state_pop) / float(target_total_pop)) : float(base_cost), 1.0f, float(base_cost));
+						total_cost += adjusted_base_cost * 2.8;
+					}
+				}
+			} else {
+				auto target = wg.target_country;
+				auto wg_from = wg.from_country;
+				auto wg_liberation = wg.liberation_target;
+				if(is_valid_index(target) && is_valid_index(wg_from) && is_valid_index(this_cb_type.allowed_states)) {
+					auto& n = ws.w.nation_s.nations[target];
+					auto& nfrom = ws.w.nation_s.nations[wg_from];
+
+					int64_t target_total_pop = [&ws, &n]() {
+						if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id))
+							return ws.w.nation_s.nation_demographics.get(id, population::total_population_tag);
+						else
+							return 0i64;
+					}();
+					auto trigger_to_test = ws.s.trigger_m.trigger_data.data() + to_index(this_cb_type.allowed_states);
+					auto lib_target = is_valid_index(wg_liberation) ? ws.w.culture_s.national_tags_state[wg_liberation].holder : nullptr;
+					nations::for_each_state(ws, n, [&ws, &n, &nfrom, lib_target, trigger_to_test, target_total_pop, &total_cost](nations::state_instance const& si) {
+						if(triggers::test_trigger(trigger_to_test, ws, &si, &nfrom, bool(lib_target) ? lib_target : &nfrom, nullptr)) {
+							int32_t state_pop = [&ws, &si]() {
+								if(auto id = si.id; ws.w.nation_s.states.is_valid_index(id))
+									return ws.w.nation_s.state_demographics.get(id, population::total_population_tag);
+								else
+									return 0;
+							}();
+							bool contains_capital = false;
+							int32_t base_cost = nations::count_factories_in_state(si);
+
+							if(!nations::is_colonial_or_protectorate(si)) {
+								nations::for_each_province(ws, si, [&base_cost, &n, target_total_pop, &ws](provinces::province_state& prov) {
+									int32_t base_cost_temp = prov.fort_level + prov.naval_base_level + 1;
+									if(contains_item(ws.w.province_s.core_arrays, prov.cores, n.tag))
+										base_cost_temp *= 2;
+									if(n.current_capital == prov.id)
+										base_cost_temp *= 3;
+									base_cost += base_cost_temp;
+								});
+							} else {
+								base_cost = 1;
+							}
+							float adjusted_base_cost = std::clamp((target_total_pop != 0) ? (float(base_cost) * 200.0f * float(state_pop) / float(target_total_pop)) : float(base_cost), 1.0f, float(base_cost));
+							total_cost += adjusted_base_cost * 2.8;
+						}
+					});
+				}
+			}
+		}
+
+		return std::clamp(total_cost * this_cb_type.peace_cost_factor / 100.0f, 0.0f, 1.0f);
 	}
 }

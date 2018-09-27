@@ -4,6 +4,7 @@
 #include "population\\population_function.h"
 #include "nations\\nations_functions.h"
 #include "modifiers\\modifier_functions.h"
+#include <ppl.h>
 
 namespace provinces {
 	void reset_state(provinces_state& s) {
@@ -102,7 +103,11 @@ namespace provinces {
 		const auto rxndt = population::rich_luxury_needs_demo_tag(ws);
 
 		int32_t count_provs = int32_t(ws.w.province_s.province_state_container.size());
-		for(int32_t prov_index = count_provs - 1; prov_index > 0; --prov_index) {
+		//for(int32_t prov_index = count_provs - 1; prov_index > 0; --prov_index) {
+		concurrency::parallel_for(int32_t(0), count_provs, [
+			&ws, vector_size, full_vector_size,
+			ppdt, mpdt, rpdt, cdt, mdt, ldt, pmpdt, mmpdt, rmpdt, plndt, mlndt, rlndt, pendt, mendt, rendt, pxndt, mxndt, rxndt
+		](int32_t prov_index){
 			auto& prov = ws.w.province_s.province_state_container[province_tag(uint16_t(prov_index))];
 
 			auto pop_range = get_range(ws.w.population_s.pop_arrays, prov.pops);
@@ -245,7 +250,7 @@ namespace provinces {
 					}
 				}
 			}
-		}
+		});
 	}
 
 	nations::country_tag get_province_seiger(world_state&, province_state&) {

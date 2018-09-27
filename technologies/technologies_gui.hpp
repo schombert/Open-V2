@@ -9,6 +9,8 @@
 namespace technologies {
 	template<typename W>
 	void tech_window_base::on_create(W& w, world_state& ws) {
+		ui::hide(*associated_object);
+
 		associated_object->size = ui::xy_pair{ 1017i16, 636i16 };
 		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
 			obj.object.position += ui::xy_pair{ -3i16, 3i16 };

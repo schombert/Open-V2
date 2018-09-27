@@ -173,8 +173,6 @@ namespace military {
 		vector_backed_string<char16_t> first_name;
 		vector_backed_string<char16_t> last_name;
 
-		atomic_tag<date_tag> last_update;
-
 		date_tag creation_date;
 		graphics::texture_tag portrait;
 		leader_tag id;
@@ -193,8 +191,6 @@ namespace military {
 	struct army_orders {
 		military_leader* leader = nullptr;
 
-		atomic_tag<date_tag> last_update;
-
 		set_tag<provinces::province_tag> involved_provinces;
 		set_tag<army_tag> involved_armies;
 
@@ -212,8 +208,6 @@ namespace military {
 
 		military_leader* leader = nullptr;
 		army_orders* current_orders = nullptr;
-
-		atomic_tag<date_tag> last_update;
 
 		uint32_t minimum_soldiers = 0ui32;
 
@@ -291,7 +285,8 @@ namespace military {
 	};
 
 	struct war {
-		atomic_tag<date_tag> last_update;
+		static constexpr uint8_t is_great_war = 0x01;
+		static constexpr uint8_t is_world_war = 0x02;
 
 		set_tag<nations::country_tag> attackers;
 		set_tag<nations::country_tag> defenders;
@@ -300,12 +295,18 @@ namespace military {
 		date_tag start_date;
 		float current_war_score = 0.0f; // from 1.0f = 100% attacker, to -1.0 = 100% defender
 
+		text_data::text_tag war_name;
+		text_data::text_tag first_adj;
+		text_data::text_tag second_adj;
+
 		nations::country_tag primary_attacker;
 		nations::country_tag primary_defender;
 
 		array_tag<war_goal> war_goals;
 
 		war_tag id;
+
+		uint8_t flags = 0x00;
 	};
 
 	class military_state {

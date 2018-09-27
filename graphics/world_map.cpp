@@ -12,6 +12,7 @@
 
 #include "provinces\\provinces.h"
 #include "soil\\SOIL.h"
+#include <thread>
 
 namespace graphics {
 
@@ -816,7 +817,7 @@ namespace graphics {
 		return vao;
 	}
 
-	void map_display::initialize(open_gl_wrapper&, std::string shadows_file, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude) {
+	void map_display::initialize(open_gl_wrapper& ogl, std::string shadows_file, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude) {
 
 		glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
 		glEnable(GL_DEPTH_TEST);
@@ -841,34 +842,41 @@ namespace graphics {
 
 		vao = setup_vao_b(vertex_buffer);
 
+		unsigned char pixel[3] = { 255, 255, 255 };
+
+		glGenTextures(1, &data_textures.shadows_handle);
+		glBindTexture(GL_TEXTURE_RECTANGLE, data_textures.shadows_handle);
+		glTexStorage2D(GL_TEXTURE_RECTANGLE, 1, GL_RGB8, 1, 1);
+		glTexSubImage2D(GL_TEXTURE_RECTANGLE, 0, 0, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
 		if(shadows_file.length() != 0) {
-			int32_t swidth = 0;
-			int32_t sheight = 0;
-			int32_t shchannel = 3;
-			unsigned char* shadows_data = SOIL_load_image(shadows_file.c_str(), &swidth, &sheight, &shchannel, 3);
+			std::thread st([&ogl, shadows_file, ptr_to_sh = &data_textures.shadows_handle]() {
+				ogl.bind_to_shadows_thread();
 
-			glGenTextures(1, &data_textures.shadows_handle);
-			glBindTexture(GL_TEXTURE_RECTANGLE, data_textures.shadows_handle);
+				int32_t swidth = 0;
+				int32_t sheight = 0;
+				int32_t shchannel = 3;
+				unsigned char* shadows_data = SOIL_load_image(shadows_file.c_str(), &swidth, &sheight, &shchannel, 3);
 
-			glTexStorage2D(GL_TEXTURE_RECTANGLE, 1, GL_RGB8, swidth, sheight);
-			glTexSubImage2D(GL_TEXTURE_RECTANGLE, 0, 0, 0, swidth, sheight, GL_RGB, GL_UNSIGNED_BYTE, shadows_data);
+				uint32_t temp_handle;
+				glGenTextures(1, &temp_handle);
+				glBindTexture(GL_TEXTURE_RECTANGLE, temp_handle);
 
-			glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTexStorage2D(GL_TEXTURE_RECTANGLE, 1, GL_RGB8, swidth, sheight);
+				glTexSubImage2D(GL_TEXTURE_RECTANGLE, 0, 0, 0, swidth, sheight, GL_RGB, GL_UNSIGNED_BYTE, shadows_data);
 
-			SOIL_free_image_data(shadows_data);
-		} else {
-			unsigned char pixel[3] = { 255, 255, 255 };
+				glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-			glGenTextures(1, &data_textures.shadows_handle);
-			glBindTexture(GL_TEXTURE_RECTANGLE, data_textures.shadows_handle);
+				*ptr_to_sh = temp_handle;
 
-			glTexStorage2D(GL_TEXTURE_RECTANGLE, 1, GL_RGB8, 1, 1);
-			glTexSubImage2D(GL_TEXTURE_RECTANGLE, 0, 0, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
-
-			glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				SOIL_free_image_data(shadows_data);
+			});
+			st.detach();
 		}
+		
 
 		glDisable(GL_DEPTH_TEST);
 

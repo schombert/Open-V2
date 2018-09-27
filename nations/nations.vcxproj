@@ -147,11 +147,14 @@
     <ClInclude Include="nations.h" />
     <ClInclude Include="nations_functions.h" />
     <ClInclude Include="nations_functions.hpp" />
+    <ClInclude Include="nations_gui.h" />
+    <ClInclude Include="nations_gui.hpp" />
     <ClInclude Include="nations_io.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="nations.cpp" />
     <ClCompile Include="nations_functions.cpp" />
+    <ClCompile Include="nations_gui.cpp" />
     <ClCompile Include="nations_io.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

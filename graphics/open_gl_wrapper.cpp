@@ -17,7 +17,7 @@
 
 namespace graphics {
 	void create_global_square();
-	std::pair<HGLRC, HGLRC> setup_opengl_context(HWND hwnd, HDC window_dc);
+	std::tuple<HGLRC, HGLRC, HGLRC> setup_opengl_context(HWND hwnd, HDC window_dc);
 	void release_opengl_context(void* _hwnd, HGLRC context);
 	void create_shaders();
 	void internal_text_render(const char16_t* codepoints, uint32_t count, float x, float baseline_y, float size, font& f, float extra);
@@ -445,7 +445,7 @@ namespace graphics {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
-	std::pair<HGLRC, HGLRC> setup_opengl_context(HWND hwnd, HDC window_dc) {
+	std::tuple<HGLRC, HGLRC, HGLRC> setup_opengl_context(HWND hwnd, HDC window_dc) {
 
 		PIXELFORMATDESCRIPTOR pfd;
 		ZeroMemory(&pfd, sizeof(pfd));
@@ -490,12 +490,17 @@ namespace graphics {
 		} else {
 			auto new_context = wglCreateContextAttribsARB(window_dc, nullptr, attribs);
 			auto ui_context = wglCreateContextAttribsARB(window_dc, new_context, attribs);
+			auto shadows_context = wglCreateContextAttribsARB(window_dc, new_context, attribs);
 			
 			wglMakeCurrent(window_dc, nullptr);
 			wglDeleteContext(handle_to_ogl_dc);
 
 			wglMakeCurrent(window_dc, new_context);
 			if (wglShareLists(ui_context, new_context) == FALSE) {
+				MessageBox(hwnd, L"Unable to share contexts", L"OpenGL error", MB_OK);
+				std::abort();
+			}
+			if(wglShareLists(shadows_context, new_context) == FALSE) {
 				MessageBox(hwnd, L"Unable to share contexts", L"OpenGL error", MB_OK);
 				std::abort();
 			}
@@ -533,7 +538,7 @@ namespace graphics {
 
 			wglMakeCurrent(window_dc, nullptr);
 
-			return std::make_pair(new_context, ui_context);
+			return std::make_tuple(new_context, ui_context, shadows_context);
 		}
 	}
 
@@ -549,6 +554,7 @@ namespace graphics {
 	public:
 		HGLRC context;
 		HGLRC ui_context;
+		HGLRC shadows_context;
 		HDC window_dc;
 		std::thread render_thread;
 
@@ -569,16 +575,20 @@ namespace graphics {
 		return impl->active.load(std::memory_order::memory_order_acquire);
 	}
 
-	void open_gl_wrapper::use_default_program() const {
+	void open_gl_wrapper::use_default_program() {
 		glUseProgram(general_shader);
 		glUniform1f(parameters::screen_width, static_cast<float>(impl->viewport_x));
 		glUniform1f(parameters::screen_height, static_cast<float>(impl->viewport_y));
 		glScissor(0, 0, static_cast<GLsizei>(impl->viewport_x), static_cast<GLsizei>(impl->viewport_y));
+		current_scissor_rect[0] = 0;
+		current_scissor_rect[1] = 0;
+		current_scissor_rect[2] = int32_t(impl->viewport_x);
+		current_scissor_rect[3] = int32_t(impl->viewport_y);
 	}
 
 	void open_gl_wrapper::setup_context(void* hwnd) {
 		impl->window_dc = GetDC((HWND)hwnd);
-		std::tie(impl->context, impl->ui_context) = setup_opengl_context((HWND)hwnd, impl->window_dc);
+		std::tie(impl->context, impl->ui_context, impl->shadows_context) = setup_opengl_context((HWND)hwnd, impl->window_dc);
 	}
 
 	void open_gl_wrapper::destory(void* hwnd) {
@@ -586,6 +596,7 @@ namespace graphics {
 		impl->render_thread.join();
 		release_opengl_context((HWND)hwnd, impl->context);
 		release_opengl_context((HWND)hwnd, impl->ui_context);
+		release_opengl_context((HWND)hwnd, impl->shadows_context);
 		ReleaseDC((HWND)hwnd, impl->window_dc);
 	}
 
@@ -617,6 +628,10 @@ namespace graphics {
 		wglMakeCurrent(impl->window_dc, impl->ui_context);
 	}
 
+	void open_gl_wrapper::bind_to_shadows_thread() {
+		wglMakeCurrent(impl->window_dc, impl->shadows_context);
+	}
+
 	void open_gl_wrapper::display() {
 		SwapBuffers(impl->window_dc);
 	}
@@ -629,6 +644,10 @@ namespace graphics {
 			glDepthRange(-1.0, 1.0);
 		}
 		glScissor(0, 0, static_cast<GLsizei>(impl->viewport_x), static_cast<GLsizei>(impl->viewport_y));
+		current_scissor_rect[0] = 0;
+		current_scissor_rect[1] = 0;
+		current_scissor_rect[2] = int32_t(impl->viewport_x);
+		current_scissor_rect[3] = int32_t(impl->viewport_y);
 
 		glClearColor(0.5, 0.5, 0.5, 0.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -902,8 +921,10 @@ namespace graphics {
 		impl->update_viewport.store(true, std::memory_order::memory_order_release);
 	}
 
-	scissor_rect::scissor_rect(int32_t x, int32_t y, int32_t width, int32_t height) {
-		glGetIntegerv(GL_SCISSOR_BOX, oldrect);
+	scissor_rect::scissor_rect(open_gl_wrapper& ogl, int32_t x, int32_t y, int32_t width, int32_t height) {
+		
+		current_rect = ogl.current_scissor_rect;
+		memcpy(&oldrect, &ogl.current_scissor_rect, sizeof(oldrect));
 
 		const auto x_begin = std::max(x, oldrect[0]);
 		const auto old_x_end = oldrect[0] + oldrect[2];
@@ -913,11 +934,15 @@ namespace graphics {
 		const auto old_y_end = oldrect[1] + oldrect[3];
 		const auto new_y_end = y + height;
 
-		
-		glScissor(x_begin, y_begin, std::max(0, std::min(old_x_end, new_x_end) - x_begin), std::max(0, std::min(old_y_end, new_y_end) - y_begin));
+		ogl.current_scissor_rect[0] = x_begin;
+		ogl.current_scissor_rect[1] = y_begin;
+		ogl.current_scissor_rect[2] = std::max(0, std::min(old_x_end, new_x_end) - x_begin);
+		ogl.current_scissor_rect[3] = std::max(0, std::min(old_y_end, new_y_end) - y_begin);
+		glScissor(x_begin, y_begin, ogl.current_scissor_rect[2], ogl.current_scissor_rect[3]);
 	}
 
 	scissor_rect::~scissor_rect() {
+		memcpy(current_rect, &oldrect, sizeof(oldrect));
 		glScissor(oldrect[0], oldrect[1], oldrect[2], oldrect[3]);
 	}
 

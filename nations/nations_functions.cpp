@@ -8,6 +8,7 @@
 #include "issues\\issues_functions.hpp"
 #include "population\\population_function.h"
 #include "provinces\\province_functions.h"
+#include <ppl.h>
 
 namespace nations {
 	void reset_nation(world_state& ws, nations::nation& new_nation) {
@@ -428,7 +429,7 @@ namespace nations {
 	void update_state_nation_demographics(world_state& ws) {
 		const auto full_vector_size = population::aligned_32_demo_size(ws);
 
-		ws.w.nation_s.nations.for_each([&ws, full_vector_size](nation& n) {
+		ws.w.nation_s.nations.parallel_for_each([&ws, full_vector_size](nation& n) {
 			Eigen::Map<Eigen::Matrix<int64_t, -1, 1>, Eigen::AlignmentType::Aligned32> nation_demo(ws.w.nation_s.nation_demographics.get_row(n.id), full_vector_size);
 			nation_demo.setZero();
 
@@ -1206,5 +1207,14 @@ namespace nations {
 		} else {
 			set_influence_value(ws, nation_by, nation_target, influence_result);
 		}
+	}
+
+	int32_t count_factories_in_state(nations::state_instance const& si) {
+		int32_t sum = 0;
+		for(uint32_t i = 0; i < std::extent_v<decltype(si.factories)>; ++i) {
+			if(si.factories[i].level != 0)
+				++sum;
+		}
+		return sum;
 	}
 }

@@ -37,8 +37,6 @@ void serialization::serializer<military::army_orders>::deserialize_object(std::b
 	uint8_t type = 0ui8;
 	deserialize(input, type);
 	obj.type = military::army_orders_type(type);
-
-	obj.last_update = ws.w.current_date;
 }
 
 size_t serialization::serializer<military::army_orders>::size(military::army_orders const &, world_state const &) {
@@ -93,7 +91,6 @@ void serialization::serializer<military::army>::deserialize_object(std::byte con
 
 	obj.minimum_soldiers = military::calculate_minimum_soldiers(ws, obj.id);
 	obj.total_soldiers = 0;
-	obj.last_update = ws.w.current_date;
 }
 
 size_t serialization::serializer<military::army>::size(military::army const & obj, world_state const & ws) {
@@ -152,8 +149,15 @@ size_t serialization::serializer<military::fleet>::size(military::fleet const & 
 void serialization::serializer<military::war>::serialize_object(std::byte *& output, military::war const & obj, world_state const & ws) {
 	serialize(output, obj.start_date);
 	serialize(output, obj.current_war_score);
+
+	serialize(output, obj.war_name);
+	serialize(output, obj.first_adj);
+	serialize(output, obj.second_adj);
+
 	serialize(output, obj.primary_attacker);
 	serialize(output, obj.primary_defender);
+
+	serialize(output, obj.flags);
 
 	serialize_stable_array(output, ws.w.nation_s.nations_arrays, obj.attackers);
 	serialize_stable_array(output, ws.w.nation_s.nations_arrays, obj.defenders);
@@ -164,22 +168,32 @@ void serialization::serializer<military::war>::serialize_object(std::byte *& out
 void serialization::serializer<military::war>::deserialize_object(std::byte const *& input, military::war & obj, world_state & ws) {
 	deserialize(input, obj.start_date);
 	deserialize(input, obj.current_war_score);
+
+	deserialize(input, obj.war_name);
+	deserialize(input, obj.first_adj);
+	deserialize(input, obj.second_adj);
+
 	deserialize(input, obj.primary_attacker);
 	deserialize(input, obj.primary_defender);
+
+	deserialize(input, obj.flags);
 
 	deserialize_stable_array(input, ws.w.nation_s.nations_arrays, obj.attackers);
 	deserialize_stable_array(input, ws.w.nation_s.nations_arrays, obj.defenders);
 	deserialize_stable_array(input, ws.w.military_s.naval_control_arrays, obj.naval_control_set);
 	deserialize_stable_array(input, ws.w.military_s.war_goal_arrays, obj.war_goals);
 
-	obj.last_update = ws.w.current_date;
 }
 
 size_t serialization::serializer<military::war>::size(military::war const & obj, world_state const & ws) {
 	return serialize_size(obj.start_date) +
 		serialize_size(obj.current_war_score) +
+		serialize_size(obj.war_name) +
+		serialize_size(obj.first_adj) +
+		serialize_size(obj.second_adj) +
 		serialize_size(obj.primary_attacker) +
 		serialize_size(obj.primary_defender) +
+		serialize_size(obj.flags) +
 		serialize_stable_array_size(ws.w.nation_s.nations_arrays, obj.attackers) +
 		serialize_stable_array_size(ws.w.nation_s.nations_arrays, obj.defenders) +
 		serialize_stable_array_size(ws.w.military_s.naval_control_arrays, obj.naval_control_set) +
@@ -1350,6 +1364,17 @@ namespace military {
 					for(auto& wg : result.war_goals) {
 						add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals, wg);
 					}
+					for(auto& wg : result.war_goals) {
+						if(wg.target_country == new_war.primary_defender && wg.from_country == new_war.primary_attacker) {
+							new_war.war_name = ws.s.military_m.cb_types[wg.cb_type].war_name;
+							break;
+						}
+					}
+					if(!is_valid_index(new_war.war_name)) {
+						new_war.war_name = text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, "NORMAL_WAR_NAME");
+					}
+					new_war.first_adj = ws.w.nation_s.nations[new_war.primary_attacker].adjective;
+					new_war.second_adj = ws.w.nation_s.nations[new_war.primary_defender].adjective;
 				}
 			}
 		}
