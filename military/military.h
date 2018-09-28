@@ -44,6 +44,7 @@ namespace military {
 		static constexpr uint32_t po_destroy_forts					= 0x00800000;
 		static constexpr uint32_t po_destroy_naval_bases			= 0x01000000;
 		static constexpr uint32_t po_liberate						= 0x02000000;
+		static constexpr uint32_t po_take_from_sphere				= 0x04000000;
 		
 		uint32_t flags = 0;
 
@@ -61,6 +62,7 @@ namespace military {
 		float tws_battle_factor = 0.0f;
 
 		text_data::text_tag name;
+		text_data::text_tag explanation;
 		text_data::text_tag war_name;
 		
 		triggers::trigger_tag allowed_states;
@@ -272,7 +274,7 @@ namespace military {
 
 		nations::state_tag target_state;
 		nations::country_tag target_country;
-		cultures::national_tag liberation_target;
+		nations::country_tag liberation_target;
 
 		cb_type_tag cb_type;
 
@@ -297,7 +299,8 @@ namespace military {
 
 		text_data::text_tag war_name;
 		text_data::text_tag first_adj;
-		text_data::text_tag second_adj;
+		text_data::text_tag second;
+		text_data::text_tag state_name;
 
 		nations::country_tag primary_attacker;
 		nations::country_tag primary_defender;

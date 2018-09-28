@@ -1017,7 +1017,7 @@ namespace population {
 	template<size_t level>
 	std::vector<nations::state_tag, concurrent_allocator<nations::state_tag>> pop_tree_view::sub_list(nations::country_tag t, world_state& ws) {
 		std::vector<nations::state_tag, concurrent_allocator<nations::state_tag>> result;
-		nations::for_each_state(ws, ws.w.nation_s.nations[t], [&result, &ws](nations::state_instance& si) {
+		nations::for_each_state(ws, ws.w.nation_s.nations[t], [&result, &ws](nations::state_instance const& si) {
 			auto id = si.id;
 			if(ws.w.nation_s.states.is_valid_index(id))
 				result.push_back(id);
@@ -1035,7 +1035,7 @@ namespace population {
 	template<size_t level>
 	std::vector<provinces::province_tag, concurrent_allocator<provinces::province_tag>> pop_tree_view::sub_list(nations::state_tag t, world_state& ws) {
 		std::vector<provinces::province_tag, concurrent_allocator<provinces::province_tag>> result;
-		nations::for_each_province(ws, ws.w.nation_s.states[t], [&result](provinces::province_state& p) { result.push_back(p.id); });
+		nations::for_each_province(ws, ws.w.nation_s.states[t], [&result](provinces::province_state const& p) { result.push_back(p.id); });
 		return result;
 	}
 

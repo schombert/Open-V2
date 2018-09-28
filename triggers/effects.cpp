@@ -2319,8 +2319,10 @@ namespace triggers {
 							return nations::state_tag();
 					}();
 
+					auto lib_holder = ws.w.culture_s.national_tags_state[liberate_country_tag].holder;
+
 					add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-						military::war_goal{ ws.w.current_date, 0.0f, ((nations::nation*)primary_slot)->id, state, target->id, liberate_country_tag, cb_type });
+						military::war_goal{ ws.w.current_date, 0.0f, ((nations::nation*)primary_slot)->id, state, target->id, bool(lib_holder) ? lib_holder->id : nations::country_tag(), cb_type });
 					payload_index += 3;
 				}
 
@@ -2337,8 +2339,10 @@ namespace triggers {
 							return nations::state_tag();
 					}();
 
+					auto lib_holder = ws.w.culture_s.national_tags_state[liberate_country_tag].holder;
+
 					add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-						military::war_goal{ ws.w.current_date, 0.0f, target->id, state, ((nations::nation*)primary_slot)->id, liberate_country_tag, cb_type });
+						military::war_goal{ ws.w.current_date, 0.0f, target->id, state, ((nations::nation*)primary_slot)->id, bool(lib_holder) ? lib_holder->id : nations::country_tag(), cb_type });
 					payload_index += 3;
 				}
 			}
@@ -2361,8 +2365,10 @@ namespace triggers {
 						return nations::state_tag();
 				}();
 
+				auto lib_holder = ws.w.culture_s.national_tags_state[liberate_country_tag].holder;
+
 				add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-					military::war_goal{ ws.w.current_date, 0.0f, ((nations::nation*)primary_slot)->id, state, target->id, liberate_country_tag, cb_type });
+					military::war_goal{ ws.w.current_date, 0.0f, ((nations::nation*)primary_slot)->id, state, target->id, bool(lib_holder) ? lib_holder->id : nations::country_tag(), cb_type });
 				payload_index += 3;
 			}
 
@@ -2379,8 +2385,10 @@ namespace triggers {
 						return nations::state_tag();
 				}();
 
+				auto lib_holder = ws.w.culture_s.national_tags_state[liberate_country_tag].holder;
+
 				add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-					military::war_goal{ ws.w.current_date, 0.0f, target->id, state, ((nations::nation*)primary_slot)->id, liberate_country_tag, cb_type });
+					military::war_goal{ ws.w.current_date, 0.0f, target->id, state, ((nations::nation*)primary_slot)->id, bool(lib_holder) ? lib_holder->id : nations::country_tag(), cb_type });
 				payload_index += 3;
 			}
 		}
@@ -2421,8 +2429,10 @@ namespace triggers {
 							return nations::state_tag();
 					}();
 
+					auto lib_holder = ws.w.culture_s.national_tags_state[liberate_country_tag].holder;
+
 					add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-						military::war_goal{ ws.w.current_date, 0.0f, ((nations::nation*)primary_slot)->id, state, target->id, liberate_country_tag, cb_type });
+						military::war_goal{ ws.w.current_date, 0.0f, ((nations::nation*)primary_slot)->id, state, target->id, bool(lib_holder) ? lib_holder->id : nations::country_tag(), cb_type });
 					payload_index += 3;
 				}
 
@@ -2439,8 +2449,10 @@ namespace triggers {
 							return nations::state_tag();
 					}();
 
+					auto lib_holder = ws.w.culture_s.national_tags_state[liberate_country_tag].holder;
+
 					add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-						military::war_goal{ ws.w.current_date, 0.0f, target->id, state, ((nations::nation*)primary_slot)->id, liberate_country_tag, cb_type });
+						military::war_goal{ ws.w.current_date, 0.0f, target->id, state, ((nations::nation*)primary_slot)->id, bool(lib_holder) ? lib_holder->id : nations::country_tag(), cb_type });
 					payload_index += 3;
 				}
 			}
@@ -2463,8 +2475,10 @@ namespace triggers {
 						return nations::state_tag();
 				}();
 
+				auto lib_holder = ws.w.culture_s.national_tags_state[liberate_country_tag].holder;
+
 				add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-					military::war_goal{ ws.w.current_date, 0.0f, ((nations::nation*)primary_slot)->id, state, target->id, liberate_country_tag, cb_type });
+					military::war_goal{ ws.w.current_date, 0.0f, ((nations::nation*)primary_slot)->id, state, target->id, bool(lib_holder) ? lib_holder->id : nations::country_tag(), cb_type });
 				payload_index += 3;
 			}
 
@@ -2481,8 +2495,10 @@ namespace triggers {
 						return nations::state_tag();
 				}();
 
+				auto lib_holder = ws.w.culture_s.national_tags_state[liberate_country_tag].holder;
+
 				add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
-					military::war_goal{ ws.w.current_date, 0.0f, target->id, state, ((nations::nation*)primary_slot)->id, liberate_country_tag, cb_type });
+					military::war_goal{ ws.w.current_date, 0.0f, target->id, state, ((nations::nation*)primary_slot)->id, bool(lib_holder) ? lib_holder->id : nations::country_tag(), cb_type });
 				payload_index += 3;
 			}
 		}
@@ -2985,7 +3001,7 @@ namespace triggers {
 						((nations::nation*)from_slot)->id,
 						nations::state_tag(),
 						((nations::nation*)primary_slot)->id,
-						cultures::national_tag(),
+						nations::country_tag(),
 						trigger_payload(tval[2]).small.values.cb_type});
 			}
 		}

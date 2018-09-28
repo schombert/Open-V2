@@ -570,8 +570,6 @@ namespace ui {
 		void update_item_positions();
 		template<typename ... PARAMS>
 		void add_item(world_state&, PARAMS&& ...);
-		template<typename window_type>
-		void windowed_update(window_type&, world_state&);
 	};
 
 	template<typename ... REST>

@@ -665,5 +665,6 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::disabled] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "disabled");
 		s.fixed_ui_text[fixed_ui::tx_day] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "day");
 		s.fixed_ui_text[fixed_ui::shared_prestige_tech] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "SHARED_PRESTIGE_TECH");
+		s.fixed_ui_text[fixed_ui::demands_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "demands_label");
 	}
 }

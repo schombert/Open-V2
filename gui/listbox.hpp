@@ -577,21 +577,8 @@ void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::update_item_p
 }
 
 template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension>
-template<typename window_type>
-void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::windowed_update(window_type& w, world_state& s) {
-	if constexpr(ui::detail::has_windowed_update<BASE, overlap_box<BASE, tag_type, ELEMENT, vertical_extension>&, window_type&, world_state&>) {
-		if (is_valid_index(element_def_tag)) {
-			clear_items(s.w.gui_m);
-			BASE::windowed_update(*this, w, s);
-			BASE::populate_list(*this, w);
-			update_item_positions();
-		}
-	}
-}
-
-template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension>
 void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::update_data(gui_object_tag, world_state& s) {
-	if constexpr(!ui::detail::has_windowed_update<BASE, ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>&, window_type&, world_state&>) {
+	if constexpr(ui::detail::has_populate_list<BASE, ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>&, world_state&>) {
 		if(is_valid_index(element_def_tag)) {
 			clear_items(s.w.gui_m);
 			BASE::populate_list(*this, s);

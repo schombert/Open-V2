@@ -583,8 +583,9 @@ namespace scenario {
 		constexpr uint32_t disabled = 561ui32;
 		constexpr uint32_t tx_day = 562ui32;
 		constexpr uint32_t shared_prestige_tech = 563ui32;
+		constexpr uint32_t demands_label = 564ui32;
 
-		constexpr uint32_t count = 564ui32;
+		constexpr uint32_t count = 565ui32;
 	}
 
 	class scenario_manager {

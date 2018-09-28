@@ -102,4 +102,15 @@ namespace nations {
 	void for_each_pop(world_state const& ws, nations::state_instance const& s, F&& f);
 	template<typename F>
 	void for_each_pop(world_state const& ws, nations::nation const& s, F&& f);
+
+	template<typename F>
+	void for_each_province(world_state& ws, nations::state_instance& s, F&& f);
+	template<typename F>
+	void for_each_province(world_state& ws, nations::nation& s, F&& f);
+	template<typename F>
+	void for_each_state(world_state& ws, nations::nation& s, F&& f);
+	template<typename F>
+	void for_each_pop(world_state& ws, nations::state_instance& s, F&& f);
+	template<typename F>
+	void for_each_pop(world_state& ws, nations::nation& s, F&& f);
 }

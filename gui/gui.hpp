@@ -259,6 +259,13 @@ namespace ui {
 		constexpr bool has_windowed_update = has_windowed_update_s<OBJ, void, PARAMS ...>::value;
 
 		template<typename OBJ, typename RET, typename ... PARAMS>
+		struct has_populate_list_s: public std::false_type{};
+		template<typename OBJ, typename ... PARAMS>
+		struct has_populate_list_s<OBJ, decltype(void(std::declval<OBJ>().populate_list(std::declval<PARAMS>() ...))), PARAMS ...> : public std::true_type {};
+		template<typename OBJ, typename ... PARAMS>
+		constexpr bool has_populate_list = has_populate_list_s<OBJ, void, PARAMS ...>::value;
+
+		template<typename OBJ, typename RET, typename ... PARAMS>
 		struct has_on_create_s : public std::false_type {};
 		template<typename OBJ, typename ... PARAMS>
 		struct has_on_create_s<OBJ, decltype(void(std::declval<OBJ>().on_create(std::declval<PARAMS>() ...))), PARAMS ...> : public std::true_type {};

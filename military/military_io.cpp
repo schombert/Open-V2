@@ -152,7 +152,8 @@ void serialization::serializer<military::war>::serialize_object(std::byte *& out
 
 	serialize(output, obj.war_name);
 	serialize(output, obj.first_adj);
-	serialize(output, obj.second_adj);
+	serialize(output, obj.second);
+	serialize(output, obj.state_name);
 
 	serialize(output, obj.primary_attacker);
 	serialize(output, obj.primary_defender);
@@ -171,7 +172,8 @@ void serialization::serializer<military::war>::deserialize_object(std::byte cons
 
 	deserialize(input, obj.war_name);
 	deserialize(input, obj.first_adj);
-	deserialize(input, obj.second_adj);
+	deserialize(input, obj.second);
+	deserialize(input, obj.state_name);
 
 	deserialize(input, obj.primary_attacker);
 	deserialize(input, obj.primary_defender);
@@ -190,7 +192,8 @@ size_t serialization::serializer<military::war>::size(military::war const & obj,
 		serialize_size(obj.current_war_score) +
 		serialize_size(obj.war_name) +
 		serialize_size(obj.first_adj) +
-		serialize_size(obj.second_adj) +
+		serialize_size(obj.second) +
+		serialize_size(obj.state_name) +
 		serialize_size(obj.primary_attacker) +
 		serialize_size(obj.primary_defender) +
 		serialize_size(obj.flags) +
@@ -534,13 +537,14 @@ namespace military {
 	struct single_cb {
 		cb_environment& env;
 		single_cb(cb_environment& e) : env(e) {
-			static const char free_peoples[] = "free_peoples";
-			static const char liberate_country[] = "liberate_country";
-			static const auto lib_name_a = text_data::get_thread_safe_text_handle(e.s.gui_m.text_data_sequences, free_peoples, free_peoples + sizeof(free_peoples) - 1);
-			static const auto lib_name_b = text_data::get_thread_safe_text_handle(e.s.gui_m.text_data_sequences, liberate_country, liberate_country + sizeof(liberate_country) - 1);
+			static const auto lib_name_a = text_data::get_thread_safe_text_handle(e.s.gui_m.text_data_sequences, "free_peoples");
+			static const auto lib_name_b = text_data::get_thread_safe_text_handle(e.s.gui_m.text_data_sequences, "liberate_country");
+			static const auto take_from_sphere = text_data::get_thread_safe_text_handle(e.s.gui_m.text_data_sequences, "take_from_sphere");
 
 			if((e.under_construction.name == lib_name_a) | (e.under_construction.name == lib_name_b))
 				e.under_construction.flags |= cb_type::po_liberate;
+			if(e.under_construction.name == take_from_sphere)
+				e.under_construction.flags |= cb_type::po_take_from_sphere;
 		}
 		void set_is_civil_war(bool v) {
 			if(v) env.under_construction.flags |= cb_type::is_civil_war;
@@ -718,6 +722,9 @@ namespace military {
 			env.manager.cb_types[cbid].name = name;
 			env.manager.named_cb_type_index.emplace(name, cbid);
 
+			std::string setup_name = std::string(t.start, t.end) + std::string("_setup");
+			env.manager.cb_types[cbid].explanation = text_data::get_thread_safe_text_handle(env.text_lookup, setup_name.c_str(), setup_name.c_str() + setup_name.length());
+
 			env.pending_cb_parse.emplace_back(cbid, start, end);
 		} else {
 			env.pending_cb_parse.emplace_back(cbtag, start, end);
@@ -734,6 +741,9 @@ namespace military {
 				const auto cbid = env.manager.cb_types.emplace_back();
 				env.manager.cb_types[cbid].id = cbid;
 				env.manager.cb_types[cbid].name = name;
+				std::string setup_name = std::string(t.start, t.end) + std::string("_setup");
+				env.manager.cb_types[cbid].explanation = text_data::get_thread_safe_text_handle(env.text_lookup, setup_name.c_str(), setup_name.c_str() + setup_name.length());
+
 				env.manager.named_cb_type_index.emplace(name, cbid);
 			}
 		}
@@ -1367,14 +1377,30 @@ namespace military {
 					for(auto& wg : result.war_goals) {
 						if(wg.target_country == new_war.primary_defender && wg.from_country == new_war.primary_attacker) {
 							new_war.war_name = ws.s.military_m.cb_types[wg.cb_type].war_name;
+
+							new_war.first_adj = ws.w.nation_s.nations[new_war.primary_attacker].adjective;
+							new_war.second = ws.w.nation_s.nations[new_war.primary_defender].adjective;
+
+							if(is_valid_index(wg.target_state))
+								new_war.state_name = ws.w.nation_s.states[wg.target_state].name;
+
+							auto& cbt = ws.s.military_m.cb_types[wg.cb_type];
+							if((cbt.flags & (cb_type::po_annex | cb_type::po_make_puppet | cb_type::po_gunboat)) != 0)
+								new_war.second = ws.w.nation_s.nations[new_war.primary_defender].name;
+							else if((cbt.flags & cb_type::po_liberate) != 0 && is_valid_index(wg.liberation_target))
+								new_war.second = ws.w.nation_s.nations[wg.liberation_target].adjective;
+							else if((cbt.flags & cb_type::po_take_from_sphere) != 0 && is_valid_index(wg.liberation_target))
+								new_war.second = ws.w.nation_s.nations[wg.liberation_target].adjective;
+
 							break;
 						}
 					}
 					if(!is_valid_index(new_war.war_name)) {
 						new_war.war_name = text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, "NORMAL_WAR_NAME");
+						new_war.first_adj = ws.w.nation_s.nations[new_war.primary_attacker].adjective;
+						new_war.second = ws.w.nation_s.nations[new_war.primary_defender].adjective;
 					}
-					new_war.first_adj = ws.w.nation_s.nations[new_war.primary_attacker].adjective;
-					new_war.second_adj = ws.w.nation_s.nations[new_war.primary_defender].adjective;
+					
 				}
 			}
 		}

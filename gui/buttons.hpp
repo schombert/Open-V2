@@ -42,6 +42,14 @@ bool ui::masked_flag<BASE>::on_keydown(gui_object_tag, world_state & m, const ke
 	if(k.keycode == shortcut) {
 		if constexpr(ui::detail::has_button_function<BASE, masked_flag<BASE>&, world_state&>)
 			BASE::button_function(*this, m);
+		else {
+			if(is_valid_index(displayed_flag)) {
+				if(auto holder = m.w.culture_s.national_tags_state[displayed_flag].holder; holder) {
+					if(auto id = holder->id; m.w.nation_s.nations.is_valid_index(id))
+						m.w.show_diplomacy_window(id);
+				}
+			}
+		}
 		return true;
 	} else {
 		return false;

@@ -65,7 +65,9 @@ namespace current_state {
 	void trade_button::update(ui::simple_button<trade_button>& self, world_state& ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);
 	}
-	void diplomacy_button::button_function(ui::simple_button<diplomacy_button>&, world_state&) {}
+	void diplomacy_button::button_function(ui::simple_button<diplomacy_button>&, world_state& ws) {
+		ws.w.show_diplomacy_window_self();
+	}
 	void diplomacy_button::update(ui::simple_button<diplomacy_button>& self, world_state& ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);
 	}
