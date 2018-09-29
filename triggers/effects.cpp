@@ -898,7 +898,7 @@ namespace triggers {
 			}
 		}
 		void es_crisis_state_scope(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
-			auto cstate = ws.w.crisis_state;
+			auto cstate = ws.w.current_crisis.state;
 			if(is_valid_index(cstate))
 				apply_subeffects(tval, ws, &(ws.w.nation_s.states.get(cstate)), this_slot, from_slot, rebel_slot, gen);
 		}
@@ -1869,14 +1869,14 @@ namespace triggers {
 			population::set_literacy_direct(*((population::pop*)primary_slot), population::get_literacy_direct(*((population::pop*)primary_slot)) + read_float_from_payload(tval + 2));
 		}
 		void ef_add_crisis_interest(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
-			if(ws.w.current_crisis_type != current_state::crisis_type::none)
-				add_item(ws.w.nation_s.nations_arrays, ws.w.crisis_interested, ((nations::nation*)primary_slot)->id);
+			if(ws.w.current_crisis.type != current_state::crisis_type::none)
+				add_item(ws.w.nation_s.nations_arrays, ws.w.current_crisis.interested, ((nations::nation*)primary_slot)->id);
 		}
 		void ef_flashpoint_tension(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			((nations::state_instance*)primary_slot)->current_tension = std::clamp(((nations::state_instance*)primary_slot)->current_tension + read_float_from_payload(tval + 2), 0.0f, 100.0f);
 		}
 		void ef_add_crisis_temperature(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
-			ws.w.crisis_temperature = std::clamp(ws.w.crisis_temperature + read_float_from_payload(tval + 2), 0.0f, 100.0f);
+			ws.w.current_crisis.temperature = std::clamp(ws.w.current_crisis.temperature + read_float_from_payload(tval + 2), 0.0f, 100.0f);
 		}
 		void ef_consciousness(uint16_t const* tval, world_state& ws, void* primary_slot, void* this_slot, void* from_slot, population::rebel_faction* rebel_slot, jsf_prng& gen) {
 			population::set_consciousness_direct(*((population::pop*)primary_slot), population::get_consciousness_direct(*((population::pop*)primary_slot)) + read_float_from_payload(tval + 2));

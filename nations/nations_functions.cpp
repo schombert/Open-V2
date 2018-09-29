@@ -1217,4 +1217,22 @@ namespace nations {
 		}
 		return sum;
 	}
+
+	text_data::text_tag influence_level_to_text(world_state const& ws, int32_t i) {
+		switch(i) {
+			case 0:
+				return ws.s.fixed_ui_text[scenario::fixed_ui::rel_hostile];
+			case 1:
+				return ws.s.fixed_ui_text[scenario::fixed_ui::rel_opposed];
+			default:
+			case 2:
+				return ws.s.fixed_ui_text[scenario::fixed_ui::rel_neutral];
+			case 3:
+				return ws.s.fixed_ui_text[scenario::fixed_ui::rel_cordial];
+			case 4:
+				return ws.s.fixed_ui_text[scenario::fixed_ui::rel_friendly];
+			case 5:
+				return ws.s.fixed_ui_text[scenario::fixed_ui::rel_sphere];
+		}
+	}
 }

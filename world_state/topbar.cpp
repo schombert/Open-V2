@@ -560,10 +560,12 @@ namespace current_state {
 			lm.finish_current_line();
 		}
 	}
-	void crisis_alert::button_function(ui::simple_button<crisis_alert>&, world_state &) {}
+	void crisis_alert::button_function(ui::simple_button<crisis_alert>&, world_state & ws) {
+		ws.w.show_diplomacy_window_crisis();
+	}
 	void crisis_alert::update(ui::simple_button<crisis_alert>& self, world_state & ws) {
-		if(ws.w.current_crisis_type != current_state::crisis_type::none) {
-			if(ws.w.crisis_temperature >= 90.0f)
+		if(ws.w.current_crisis.type != current_state::crisis_type::none) {
+			if(ws.w.current_crisis.temperature >= 90.0f)
 				self.set_frame(ws.w.gui_m, 1ui32);
 			else
 				self.set_frame(ws.w.gui_m, 0ui32);
@@ -572,16 +574,16 @@ namespace current_state {
 		}
 	}
 	void crisis_alert::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
-		if(ws.w.current_crisis_type != current_state::crisis_type::none) {
+		if(ws.w.current_crisis.type != current_state::crisis_type::none) {
 			ui::unlimited_line_manager lm;
 
 			char16_t local_buf[16];
-			put_value_in_buffer(local_buf, display_type::integer, ws.w.crisis_temperature);
+			put_value_in_buffer(local_buf, display_type::integer, ws.w.current_crisis.temperature);
 
 			text_data::replacement repl(text_data::value_type::temperature, vector_backed_string<char16_t>(local_buf), [](ui::tagged_gui_object){});
 			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::has_crisis], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &repl, 1);
 		} else {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::no_crisis], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::no_crisis_alert], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
 		}
 		
 	}

@@ -566,7 +566,7 @@ namespace triggers {
 		return false;
 	}
 	bool tf_crisis_state_scope(TRIGGER_PARAMTERS) {
-		auto cstate = ws.w.crisis_state;
+		auto cstate = ws.w.current_crisis.state;
 		if(is_valid_index(cstate))
 			return apply_subtriggers(tval, ws, &(ws.w.nation_s.states.get(cstate)), this_slot, from_slot, rebel_slot);
 		return false;
@@ -3617,23 +3617,23 @@ namespace triggers {
 		return compare_values(tval[0], ((nations::state_instance const*)primary_slot)->current_tension, read_float_from_payload(tval + 2));
 	}
 	bool tf_crisis_exist(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.current_crisis_type != current_state::crisis_type::none, true);
+		return compare_values(tval[0], ws.w.current_crisis.type != current_state::crisis_type::none, true);
 	}
 	bool tf_is_liberation_crisis(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.current_crisis_type == current_state::crisis_type::liberation, true);
+		return compare_values(tval[0], ws.w.current_crisis.type == current_state::crisis_type::liberation, true);
 	}
 	bool tf_is_claim_crisis(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.current_crisis_type == current_state::crisis_type::claim, true);
+		return compare_values(tval[0], ws.w.current_crisis.type == current_state::crisis_type::claim, true);
 	}
 	bool tf_crisis_temperature(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.crisis_temperature, read_float_from_payload(tval + 2));
+		return compare_values(tval[0], ws.w.current_crisis.temperature, read_float_from_payload(tval + 2));
 	}
 	bool tf_involved_in_crisis_nation(TRIGGER_PARAMTERS) {
 		auto id = ((nations::nation const*)primary_slot)->id;
 		return compare_values(tval[0],
-			contains_item(ws.w.nation_s.nations_arrays, ws.w.crisis_attackers, id) ||
-			contains_item(ws.w.nation_s.nations_arrays, ws.w.crisis_defenders, id) || 
-			contains_item(ws.w.nation_s.nations_arrays, ws.w.crisis_interested, id),
+			contains_item(ws.w.nation_s.nations_arrays, ws.w.current_crisis.attackers, id) ||
+			contains_item(ws.w.nation_s.nations_arrays, ws.w.current_crisis.defenders, id) ||
+			contains_item(ws.w.nation_s.nations_arrays, ws.w.current_crisis.interested, id),
 			true);
 	}
 	bool tf_involved_in_crisis_pop(TRIGGER_PARAMTERS) {

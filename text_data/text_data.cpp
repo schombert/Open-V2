@@ -615,7 +615,7 @@ namespace text_data {
 
 	vector_backed_string<char16_t> text_tag_to_backing(const text_sequences& container, text_data::text_tag tag) {
 		if(!is_valid_index(tag))
-			return vector_backed_string<char16_t>();
+			return vector_backed_string<char16_t>(u"");
 
 		const auto& components = container.all_sequences[tag];
 

@@ -632,8 +632,31 @@ int main(int , char **) {
 		auto tech = ws.s.technology_m.named_technology_index[thandle];
 		ws.w.local_player_nation->current_research = tech;
 		ws.w.local_player_nation->research_points = 1500.0f;
-
 	}
+	{
+		ws.w.current_crisis.type = current_state::crisis_type::liberation;
+		ws.w.current_crisis.primary_attacker = ws.w.nation_s.nations.get_location(nations::country_tag(0));
+		ws.w.current_crisis.primary_defender = ws.w.nation_s.nations.get_location(nations::country_tag(1));
+		ws.w.current_crisis.on_behalf_of = ws.w.nation_s.nations.get_location(nations::country_tag(2));
+		ws.w.current_crisis.target = ws.w.nation_s.nations.get_location(nations::country_tag(1));
+
+		add_item(ws.w.nation_s.nations_arrays, ws.w.current_crisis.defenders, nations::country_tag(1));
+		add_item(ws.w.nation_s.nations_arrays, ws.w.current_crisis.attackers, nations::country_tag(0));
+		add_item(ws.w.nation_s.nations_arrays, ws.w.current_crisis.attackers, nations::country_tag(2));
+		add_item(ws.w.nation_s.nations_arrays, ws.w.current_crisis.defenders, nations::country_tag(3));
+
+		add_item(ws.w.military_s.war_goal_arrays, ws.w.current_crisis.goals, military::war_goal{date_tag(), 0.0f,
+			nations::country_tag(2), nations::state_tag(0), nations::country_tag(1), nations::country_tag(4), military::cb_type_tag(1) });
+
+		add_item(ws.w.nation_s.nations_arrays, ws.w.current_crisis.interested, nations::country_tag(5));
+		add_item(ws.w.nation_s.nations_arrays, ws.w.current_crisis.interested, nations::country_tag(6));
+		add_item(ws.w.nation_s.nations_arrays, ws.w.current_crisis.interested, nations::country_tag(7));
+		add_item(ws.w.nation_s.nations_arrays, ws.w.current_crisis.interested, nations::country_tag(8));
+		add_item(ws.w.nation_s.nations_arrays, ws.w.current_crisis.interested, nations::country_tag(9));
+
+		ws.w.current_crisis.temperature = 85.0f;
+	}
+
 	init_tooltip_window(ws.s.gui_m, ws.w.gui_m);
 	ws.w.gui_m.on_resize(ui::resize{ 850ui32, 650ui32 });
 

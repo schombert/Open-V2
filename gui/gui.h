@@ -518,6 +518,7 @@ namespace ui {
 		void update_scroll_position(gui_manager&);
 		void new_list(value_type* first, value_type* last);
 		void update_list(value_type* first, value_type* last);
+		void goto_element(value_type const& v, ui::gui_manager& m);
 	};
 
 	template<typename BASE, typename data_type_list, typename gui_type_list>

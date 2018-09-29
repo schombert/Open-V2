@@ -2649,7 +2649,7 @@ namespace triggers {
 		}
 		ui::xy_pair ef_add_crisis_temperature(EFFECT_DISPLAY_PARAMS) {
 			return display_value(read_float_from_payload(tval + 2),
-				scenario::fixed_ui::crisis_temperature, false, display_type::integer, ws, container, cursor_in, lm, fmt);
+				scenario::fixed_ui::crisis_temperature_plain, false, display_type::integer, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_consciousness(EFFECT_DISPLAY_PARAMS) {
 			return display_value(read_float_from_payload(tval + 2),

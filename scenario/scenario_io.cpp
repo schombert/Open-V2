@@ -169,7 +169,7 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::is_losing_gp] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_LoosingGPStatus");
 		s.fixed_ui_text[fixed_ui::cannot_influence] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_NO_CanIncreaseOpinion");
 		s.fixed_ui_text[fixed_ui::can_influence] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_CanIncreaseOpinion");
-		s.fixed_ui_text[fixed_ui::no_crisis] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_NO_Crisis");
+		s.fixed_ui_text[fixed_ui::no_crisis_alert] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_NO_Crisis");
 		s.fixed_ui_text[fixed_ui::has_crisis] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_Crisis");
 		s.fixed_ui_text[fixed_ui::protectorate_pending] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_ColonialGood_protectorate");
 		s.fixed_ui_text[fixed_ui::colony_pending] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COUNTRYALERT_ColonialGood_colony");
@@ -325,7 +325,7 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::owner_primary_culture] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "owner_primary_culture");
 		s.fixed_ui_text[fixed_ui::literacy] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "literacy");
 		s.fixed_ui_text[fixed_ui::add_crisis_interest] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "add_crisis_interest");
-		s.fixed_ui_text[fixed_ui::crisis_temperature] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "crisis_temperature");
+		s.fixed_ui_text[fixed_ui::crisis_temperature_plain] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "crisis_temperature_plain");
 		s.fixed_ui_text[fixed_ui::militancy] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "militancy");
 		s.fixed_ui_text[fixed_ui::consciousness] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "consciousness");
 		s.fixed_ui_text[fixed_ui::fort_level] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "fort_level");
@@ -666,5 +666,21 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::tx_day] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "day");
 		s.fixed_ui_text[fixed_ui::shared_prestige_tech] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "SHARED_PRESTIGE_TECH");
 		s.fixed_ui_text[fixed_ui::demands_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "demands_label");
+		s.fixed_ui_text[fixed_ui::crisis_title] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "CRISIS_TITLE_COUNTRY");
+		s.fixed_ui_text[fixed_ui::crisis_colonize] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "CRISIS_DESCRIPTION_COLONIZE");
+		s.fixed_ui_text[fixed_ui::crisis_influence] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "CRISIS_DESCRIPTION_INFLUENCE");
+		s.fixed_ui_text[fixed_ui::crisis_liberation] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "CRISIS_DESCRIPTION_LIBERATION");
+		s.fixed_ui_text[fixed_ui::crisis_reclaim] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "CRISIS_DESCRIPTION_RECLAIM");
+		s.fixed_ui_text[fixed_ui::no_crisis] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "HAS_NO_CRISIS");
+		s.fixed_ui_text[fixed_ui::crisis_temperature] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "CRISIS_TEMPERATURE");
+		s.fixed_ui_text[fixed_ui::crisis_waiting] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "CRISIS_WAITING_ON_BACKER");
+		s.fixed_ui_text[fixed_ui::crisis_exists] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "HAS_CRISIS");
+		s.fixed_ui_text[fixed_ui::rel_hostile] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "REL_HOSTILE");
+		s.fixed_ui_text[fixed_ui::rel_opposed] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "REL_OPPOSED");
+		s.fixed_ui_text[fixed_ui::rel_neutral] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "REL_NEUTRAL");
+		s.fixed_ui_text[fixed_ui::rel_cordial] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "REL_CORDIAL");
+		s.fixed_ui_text[fixed_ui::rel_friendly] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "REL_FRIENDLY");
+		s.fixed_ui_text[fixed_ui::rel_sphere] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "REL_SPHERE_OF_INFLUENCE");
+
 	}
 }

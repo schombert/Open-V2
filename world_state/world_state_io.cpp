@@ -21,6 +21,71 @@
 #include "technologies\\technologies_io.h"
 #include <ppl.h>
 
+void serialization::serializer<current_state::crisis_state>::serialize_object(std::byte* &output, current_state::crisis_state const& obj, world_state const& ws) {
+	serialize(output, obj.temperature);
+	uint8_t ctype = uint8_t(obj.type);
+	serialize(output, ctype);
+
+	auto pattacker_tag = obj.primary_attacker ? obj.primary_attacker->id : nations::country_tag();
+	serialize(output, pattacker_tag);
+	auto pdefender_tag = obj.primary_defender ? obj.primary_defender->id : nations::country_tag();
+	serialize(output, pdefender_tag);
+	auto target_tag = obj.target ? obj.target->id : nations::country_tag();
+	serialize(output, target_tag);
+	auto on_behalf_of_tag = obj.on_behalf_of ? obj.on_behalf_of->id : nations::country_tag();
+	serialize(output, on_behalf_of_tag);
+
+	serialize(output, obj.state);
+
+	serialize_stable_array(output, ws.w.nation_s.nations_arrays, obj.attackers);
+	serialize_stable_array(output, ws.w.nation_s.nations_arrays, obj.defenders);
+	serialize_stable_array(output, ws.w.nation_s.nations_arrays, obj.interested);
+	serialize_stable_array(output, ws.w.military_s.war_goal_arrays, obj.goals);
+}
+void serialization::serializer<current_state::crisis_state>::deserialize_object(std::byte const* &input, current_state::crisis_state& obj, world_state& ws) {
+	deserialize(input, obj.temperature);
+
+	uint8_t ctype = 0ui8;
+	deserialize(input, ctype);
+	obj.type = current_state::crisis_type(ctype);
+
+	nations::country_tag pattacker_tag;
+	deserialize(input, pattacker_tag);
+	obj.primary_attacker = ws.w.nation_s.nations.get_location(pattacker_tag);
+
+	nations::country_tag pdefender_tag;
+	deserialize(input, pdefender_tag);
+	obj.primary_defender = ws.w.nation_s.nations.get_location(pdefender_tag);
+
+	nations::country_tag target_tag;
+	deserialize(input, target_tag);
+	obj.target = ws.w.nation_s.nations.get_location(target_tag);
+
+	nations::country_tag on_behalf_of_tag;
+	deserialize(input, on_behalf_of_tag);
+	obj.on_behalf_of = ws.w.nation_s.nations.get_location(on_behalf_of_tag);
+
+	deserialize(input, obj.state);
+
+	deserialize_stable_array(input, ws.w.nation_s.nations_arrays, obj.attackers);
+	deserialize_stable_array(input, ws.w.nation_s.nations_arrays, obj.defenders);
+	deserialize_stable_array(input, ws.w.nation_s.nations_arrays, obj.interested);
+	deserialize_stable_array(input, ws.w.military_s.war_goal_arrays, obj.goals);
+}
+size_t serialization::serializer<current_state::crisis_state>::size(current_state::crisis_state const& obj, world_state const& ws) {
+	return serialize_size(obj.temperature) +
+		sizeof(uint8_t) + // type
+		sizeof(nations::country_tag) + // primary attacker
+		sizeof(nations::country_tag) + // primary defender
+		sizeof(nations::country_tag) + // crisis target
+		sizeof(nations::country_tag) + // crisis on behalf of
+		serialize_size(obj.state) +
+		serialize_stable_array_size(ws.w.nation_s.nations_arrays, obj.attackers) +
+		serialize_stable_array_size(ws.w.nation_s.nations_arrays, obj.defenders) +
+		serialize_stable_array_size(ws.w.nation_s.nations_arrays, obj.interested) +
+		serialize_stable_array_size(ws.w.military_s.war_goal_arrays, obj.goals);
+}
+
 void serialization::serializer<current_state::state>::serialize_object(std::byte *& output, current_state::state const & obj, world_state const & ws) {
 	serialize(output, obj.province_s, ws);
 	serialize(output, obj.culture_s, ws);
@@ -32,17 +97,7 @@ void serialization::serializer<current_state::state>::serialize_object(std::byte
 	serialize(output, obj.ideology_s, ws);
 	serialize(output, obj.technology_s, ws);
 
-	serialize(output, obj.crisis_temperature);
-	uint8_t ctype = uint8_t(obj.current_crisis_type);
-	serialize(output, ctype);
-
-	auto pattacker_tag = obj.crisis_primary_attacker ? obj.crisis_primary_attacker->id : nations::country_tag();
-	serialize(output, pattacker_tag);
-	auto pdefender_tag = obj.crisis_primary_defender ? obj.crisis_primary_defender->id : nations::country_tag();
-	serialize(output, pdefender_tag);
-	auto target_tag = obj.crisis_target ? obj.crisis_target->id : nations::country_tag();
-	serialize(output, target_tag);
-	serialize(output, obj.crisis_state);
+	serialize(output, obj.current_crisis, ws);
 
 	serialize(output, obj.current_date);
 	serialize(output, obj.great_wars_enabled);
@@ -53,10 +108,7 @@ void serialization::serializer<current_state::state>::serialize_object(std::byte
 	auto player_tag = obj.local_player_nation ? obj.local_player_nation->id : nations::country_tag();
 	serialize(output, player_tag);
 
-	serialize_stable_array(output, ws.w.nation_s.nations_arrays, obj.crisis_attackers);
-	serialize_stable_array(output, ws.w.nation_s.nations_arrays, obj.crisis_defenders);
-	serialize_stable_array(output, ws.w.nation_s.nations_arrays, obj.crisis_interested);
-	serialize_stable_array(output, ws.w.military_s.war_goal_arrays, obj.crisis_goals);
+	
 }
 
 void serialization::serializer<current_state::state>::deserialize_object(std::byte const *& input, current_state::state & obj, uint64_t version, world_state & ws) {
@@ -82,25 +134,7 @@ void serialization::serializer<current_state::state>::deserialize_object(std::by
 	deserialize(input, obj.ideology_s, ws);
 	deserialize(input, obj.technology_s, ws);
 
-	deserialize(input, obj.crisis_temperature);
-
-	uint8_t ctype = 0ui8;
-	deserialize(input, ctype);
-	obj.current_crisis_type = current_state::crisis_type(ctype);
-
-	nations::country_tag pattacker_tag;
-	deserialize(input, pattacker_tag);
-	obj.crisis_primary_attacker = ws.w.nation_s.nations.get_location(pattacker_tag);
-
-	nations::country_tag pdefender_tag;
-	deserialize(input, pdefender_tag);
-	obj.crisis_primary_defender = ws.w.nation_s.nations.get_location(pattacker_tag);
-
-	nations::country_tag target_tag;
-	deserialize(input, target_tag);
-	obj.crisis_target = ws.w.nation_s.nations.get_location(pattacker_tag);
-
-	deserialize(input, obj.crisis_state);
+	deserialize(input, obj.current_crisis, ws);
 
 	deserialize(input, obj.current_date);
 	deserialize(input, obj.great_wars_enabled);
@@ -111,11 +145,6 @@ void serialization::serializer<current_state::state>::deserialize_object(std::by
 	nations::country_tag player_tag;
 	deserialize(input, player_tag);
 	obj.local_player_nation = ws.w.nation_s.nations.get_location(player_tag);
-
-	deserialize_stable_array(input, ws.w.nation_s.nations_arrays, obj.crisis_attackers);
-	deserialize_stable_array(input, ws.w.nation_s.nations_arrays, obj.crisis_defenders);
-	deserialize_stable_array(input, ws.w.nation_s.nations_arrays, obj.crisis_interested);
-	deserialize_stable_array(input, ws.w.military_s.war_goal_arrays, obj.crisis_goals);
 
 	restore_world_state(ws);
 }
@@ -130,21 +159,12 @@ size_t serialization::serializer<current_state::state>::size(current_state::stat
 		serialize_size(obj.variable_s, ws) +
 		serialize_size(obj.ideology_s, ws) +
 		serialize_size(obj.technology_s, ws) +
-		serialize_size(obj.crisis_temperature) +
-		sizeof(uint8_t) +
-		sizeof(nations::country_tag) +
-		sizeof(nations::country_tag) +
-		sizeof(nations::country_tag) +
-		serialize_size(obj.crisis_state) +
+		serialize_size(obj.current_crisis, ws) +
 		serialize_size(obj.current_date) +
 		serialize_size(obj.great_wars_enabled) +
 		serialize_size(obj.world_wars_enabled) +
 		serialize_size(obj.local_player_income_history) +
-		sizeof(nations::country_tag) +
-		serialize_stable_array_size(ws.w.nation_s.nations_arrays, obj.crisis_attackers) +
-		serialize_stable_array_size(ws.w.nation_s.nations_arrays, obj.crisis_defenders) +
-		serialize_stable_array_size(ws.w.nation_s.nations_arrays, obj.crisis_interested) +
-		serialize_stable_array_size(ws.w.military_s.war_goal_arrays, obj.crisis_goals);
+		sizeof(nations::country_tag); // player id
 }
 
 void restore_world_state(world_state& ws) {

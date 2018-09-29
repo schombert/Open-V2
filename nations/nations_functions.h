@@ -38,7 +38,7 @@ namespace nations {
 	nations::nation& liberate_all_cores(world_state& ws, nations::nation& from, cultures::national_tag); // returns new nation
 	void make_vassal(world_state& ws, nations::nation& overlord, nations::nation& vassal);
 	void free_vassal(world_state& ws, nations::nation& vassal);
-
+	text_data::text_tag influence_level_to_text(world_state const& ws, int32_t i);
 	void adjust_influence(world_state& ws, nation& nation_by, nations::country_tag nation_target, int32_t amount); // will also adjust influence level on overflow / underflow
 
 	void destroy_state_instance(world_state& ws, state_instance& si);

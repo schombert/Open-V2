@@ -52,6 +52,27 @@ namespace current_state {
 		literacy
 	};
 
+	enum class country_sort : uint8_t {
+		none,
+		name,
+		priority,
+		gp_one,
+		gp_two,
+		gp_three,
+		gp_four,
+		gp_five,
+		gp_six,
+		gp_seven,
+		gp_eight,
+		sphere_leader,
+		prestige_rank,
+		economic_rank,
+		military_rank,
+		overall_rank,
+		opinion,
+		relation
+	};
+
 	enum class invention_sort : uint8_t {
 		none, type, name, chance
 	};
@@ -61,6 +82,20 @@ namespace current_state {
 	};
 
 	constexpr int32_t max_speed = 5;
+
+	struct crisis_state {
+		float temperature = 0.0f; // from 0 to 100
+		crisis_type type = crisis_type::none;
+		nations::nation* primary_attacker = nullptr;
+		nations::nation* primary_defender = nullptr;
+		nations::nation* target = nullptr;
+		nations::nation* on_behalf_of = nullptr;
+		set_tag<nations::country_tag> attackers;
+		set_tag<nations::country_tag> defenders;
+		set_tag<nations::country_tag> interested;
+		array_tag<military::war_goal> goals;
+		nations::state_tag state;
+	};
 
 	class state {
 	public:
@@ -76,16 +111,7 @@ namespace current_state {
 		ui::gui_manager gui_m;
 
 		//crisis state
-		float crisis_temperature = 0.0f; // from 0 to 100
-		crisis_type current_crisis_type = crisis_type::none;
-		nations::nation* crisis_primary_attacker = nullptr;
-		nations::nation* crisis_primary_defender = nullptr;
-		nations::nation* crisis_target = nullptr;
-		set_tag<nations::country_tag> crisis_attackers;
-		set_tag<nations::country_tag> crisis_defenders;
-		set_tag<nations::country_tag> crisis_interested;
-		array_tag<military::war_goal> crisis_goals;
-		nations::state_tag crisis_state;
+		crisis_state current_crisis;
 
 		//other global state
 		date_tag current_date;
@@ -113,7 +139,20 @@ namespace current_state {
 		technologies::tech_category_tag selected_tech_category = technologies::tech_category_tag(0);
 		struct {
 			nations::country_tag selected_nation;
-			military::war_tag selected_war;
+			bool goto_selected_pending = false;
+
+			bool filter_north_america = true;
+			bool filter_south_america = true;
+			bool filter_europe = true;
+			bool filter_africa = true;
+			bool filter_asia = true;
+			bool filter_oceania = true;
+			bool filter_neighbors = false;
+			bool filter_sphere = false;
+			bool filter_enemies = false;
+			bool filter_allies = false;
+
+			country_sort sort_type = country_sort::none;
 		} selected_diplomacy;
 		
 		std::unique_ptr<gui_state> gui_objects;
@@ -147,8 +186,10 @@ namespace current_state {
 		void show_tech_window();
 		void hide_diplomacy_window();
 		void show_diplomacy_window_self();
+		void update_diplomacy_window();
 		void show_diplomacy_window(nations::country_tag t);
-		void show_diplomacy_window(military::war_tag t);
+		void show_diplomacy_window_gp();
+		void show_diplomacy_window_wars();
 		void show_diplomacy_window_crisis();
 		void show_diplomacy_window_cbs();
 	};

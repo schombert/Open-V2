@@ -86,7 +86,7 @@ namespace scenario {
 		constexpr uint32_t is_losing_gp = 64ui32;
 		constexpr uint32_t cannot_influence = 65ui32;
 		constexpr uint32_t can_influence = 66ui32;
-		constexpr uint32_t no_crisis = 67ui32;
+		constexpr uint32_t no_crisis_alert = 67ui32;
 		constexpr uint32_t has_crisis = 68ui32;
 		constexpr uint32_t protectorate_pending = 69ui32;
 		constexpr uint32_t colony_pending = 70ui32;
@@ -242,7 +242,7 @@ namespace scenario {
 		constexpr uint32_t owner_primary_culture = 220ui32;
 		constexpr uint32_t literacy = 221ui32;
 		constexpr uint32_t add_crisis_interest = 222ui32;
-		constexpr uint32_t crisis_temperature = 223ui32;
+		constexpr uint32_t crisis_temperature_plain = 223ui32;
 		constexpr uint32_t militancy = 224ui32;
 		constexpr uint32_t consciousness = 225ui32;
 		constexpr uint32_t fort_level = 226ui32;
@@ -584,8 +584,23 @@ namespace scenario {
 		constexpr uint32_t tx_day = 562ui32;
 		constexpr uint32_t shared_prestige_tech = 563ui32;
 		constexpr uint32_t demands_label = 564ui32;
+		constexpr uint32_t crisis_title = 565ui32;
+		constexpr uint32_t crisis_colonize = 566ui32;
+		constexpr uint32_t crisis_influence = 567ui32;
+		constexpr uint32_t crisis_liberation = 568ui32;
+		constexpr uint32_t crisis_reclaim = 569ui32;
+		constexpr uint32_t no_crisis = 570ui32;
+		constexpr uint32_t crisis_temperature = 571ui32;
+		constexpr uint32_t crisis_waiting = 572ui32;
+		constexpr uint32_t crisis_exists = 573ui32;
+		constexpr uint32_t rel_hostile = 574ui32;
+		constexpr uint32_t rel_opposed = 575ui32;
+		constexpr uint32_t rel_neutral = 576ui32;
+		constexpr uint32_t rel_cordial = 577ui32;
+		constexpr uint32_t rel_friendly = 578ui32;
+		constexpr uint32_t rel_sphere = 579ui32;
 
-		constexpr uint32_t count = 565ui32;
+		constexpr uint32_t count = 580ui32;
 	}
 
 	class scenario_manager {

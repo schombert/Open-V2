@@ -1134,7 +1134,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			auto cstate = ws.w.crisis_state;
+			auto cstate = ws.w.current_crisis.state;
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
 				is_valid_index(cstate) ? &(ws.w.nation_s.states[cstate]) : nullptr, this_slot, from_slot, rebel_slot);
 			lm.decrease_indent(1);
@@ -5009,7 +5009,7 @@ namespace triggers {
 	}
 	ui::xy_pair tf_crisis_temperature(TRIGGER_DISPLAY_PARAMS) {
 		return display_with_comparison(tval[0],
-			scenario::fixed_ui::crisis_temperature, read_float_from_payload(tval + 2), display_type::integer,
+			scenario::fixed_ui::crisis_temperature_plain, read_float_from_payload(tval + 2), display_type::integer,
 			ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_involved_in_crisis_nation(TRIGGER_DISPLAY_PARAMS) {

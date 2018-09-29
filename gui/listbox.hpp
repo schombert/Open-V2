@@ -399,6 +399,38 @@ void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::update_list(v
 	}
 }
 
+template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>
+void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::goto_element(value_type const& v, ui::gui_manager& m) {
+	int32_t index = [&values_list, &v]() {
+		for(int32_t i = 0; i < values_list.size(); ++i) {
+			if(values_list[i] && *values_list[i] == v)
+				return i;
+		}
+		return -1;
+	}();
+
+	if(index == -1)
+		return; // not in list
+
+	const int32_t num_displayed = associated_object->size.y / element_def->size.y;
+	const int32_t extra = std::max(0, static_cast<int32_t>(int32_t(values_list.size()) - num_displayed));
+
+	if(offset <= index && index < offset + num_displayed)
+		return; //already in view
+
+	offset = uint32_t(std::min(index, extra));
+	sb.update_position(int32_t(offset));
+
+	for(uint32_t i = 0; i < display_list.size(); ++i) {
+		if(i + offset < values_list.size() && bool(values_list[i + offset])) {
+			display_list[i].set_value(*(values_list[i + offset]));
+			ui::make_visible_and_update(m, *(display_list[i].associated_object));
+		} else {
+			ui::hide(*(display_list[i].associated_object));
+		}
+	}
+}
+
 template<typename B, typename ELEMENT, int32_t left_expand>
 ui::tagged_gui_object ui::create_static_element(world_state& ws, listbox_tag handle, tagged_gui_object parent, ui::display_listbox<B, ELEMENT, left_expand>& b) {
 	const ui::listbox_def& definition = ws.s.gui_m.ui_definitions.listboxes[handle];

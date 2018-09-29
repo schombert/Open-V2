@@ -76,52 +76,54 @@ namespace current_state {
 		auto gobj = gui_objects->diplomacy_window.associated_object;
 		if(gobj)
 			ui::hide(*gobj);
+		gui_objects->diplomacy_window.template get<CT_STRING("country_listbox")>().new_list(nullptr, nullptr);
 	}
 	void state::show_diplomacy_window_self() {
-		selected_diplomacy.selected_war = military::war_tag();
 		if(auto player = local_player_nation; player)
-			selected_diplomacy.selected_nation = player->id;
+			show_diplomacy_window(player->id);
 		else
-			selected_diplomacy.selected_nation = nations::country_tag();
-
-		gui_objects->diplomacy_window.template get<CT_STRING("diplomacy_tab_button_group")>().set_selected(gui_m, 0);
-		ui::hide(*(gui_objects->diplomacy_window.template get<CT_STRING("war_listbox")>().associated_object));
-		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(gui_objects->diplomacy_window.associated_object), gui_objects->diplomacy_window.window_object });
+			update_diplomacy_window();
+	}
+	void state::update_diplomacy_window() {
+		gui_objects->diplomacy_window.template get<CT_STRING("country_listbox")>().new_list(nullptr, nullptr);
 		ui::make_visible_and_update(gui_m, *(gui_objects->diplomacy_window.associated_object));
 	}
 	void state::show_diplomacy_window(nations::country_tag t) {
-		selected_diplomacy.selected_war = military::war_tag();
 		selected_diplomacy.selected_nation = t;
+		selected_diplomacy.goto_selected_pending = true;
 
+		gui_objects->diplomacy_window.template get<CT_STRING("country_listbox")>().new_list(nullptr, nullptr);
+		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(gui_objects->diplomacy_window.associated_object), gui_objects->diplomacy_window.window_object });
+		ui::make_visible_and_update(gui_m, *(gui_objects->diplomacy_window.associated_object));
+	}
+	void state::show_diplomacy_window_gp() {
 		gui_objects->diplomacy_window.template get<CT_STRING("diplomacy_tab_button_group")>().set_selected(gui_m, 0);
+		ui::hide(*(gui_objects->diplomacy_window.template get <CT_STRING("crisis_info_win")>().associated_object));
 		ui::hide(*(gui_objects->diplomacy_window.template get<CT_STRING("war_listbox")>().associated_object));
 		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(gui_objects->diplomacy_window.associated_object), gui_objects->diplomacy_window.window_object });
 		ui::make_visible_and_update(gui_m, *(gui_objects->diplomacy_window.associated_object));
 	}
-	void state::show_diplomacy_window(military::war_tag t) {
-		selected_diplomacy.selected_war = t;
-		selected_diplomacy.selected_nation = nations::country_tag();
+	void state::show_diplomacy_window_wars() {
 
 		gui_objects->diplomacy_window.template get<CT_STRING("diplomacy_tab_button_group")>().set_selected(gui_m, 1);
+		ui::hide(*(gui_objects->diplomacy_window.template get <CT_STRING("crisis_info_win")>().associated_object));
 		ui::make_visible_and_update(gui_m, *(gui_objects->diplomacy_window.template get<CT_STRING("war_listbox")>().associated_object));
 		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(gui_objects->diplomacy_window.associated_object), gui_objects->diplomacy_window.window_object });
 		ui::make_visible_and_update(gui_m, *(gui_objects->diplomacy_window.associated_object));
 	}
 	void state::show_diplomacy_window_crisis() {
-		selected_diplomacy.selected_war = military::war_tag();
-		selected_diplomacy.selected_nation = nations::country_tag();
 
 		gui_objects->diplomacy_window.template get<CT_STRING("diplomacy_tab_button_group")>().set_selected(gui_m, 3);
+		ui::make_visible_and_update(gui_m, *(gui_objects->diplomacy_window.template get <CT_STRING("crisis_info_win")>().associated_object));
 		ui::hide(*(gui_objects->diplomacy_window.template get<CT_STRING("war_listbox")>().associated_object));
 		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(gui_objects->diplomacy_window.associated_object), gui_objects->diplomacy_window.window_object });
 		ui::make_visible_and_update(gui_m, *(gui_objects->diplomacy_window.associated_object));
 	}
 	void state::show_diplomacy_window_cbs() {
-		selected_diplomacy.selected_war = military::war_tag();
-		selected_diplomacy.selected_nation = nations::country_tag();
 
 		gui_objects->diplomacy_window.template get<CT_STRING("diplomacy_tab_button_group")>().set_selected(gui_m, 2);
 		ui::hide(*(gui_objects->diplomacy_window.template get<CT_STRING("war_listbox")>().associated_object));
+		ui::hide(*(gui_objects->diplomacy_window.template get <CT_STRING("crisis_info_win")>().associated_object));
 		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(gui_objects->diplomacy_window.associated_object), gui_objects->diplomacy_window.window_object });
 		ui::make_visible_and_update(gui_m, *(gui_objects->diplomacy_window.associated_object));
 	}
