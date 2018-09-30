@@ -3211,7 +3211,7 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_constructing_cb_discovered(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], 0 != (((nations::nation const*)primary_slot)->flags & nations::nation::is_cb_construction_discovered), true);
+		return compare_values(tval[0], 0 != (((nations::nation const*)primary_slot)->flags & nations::nation::cb_construction_discovered), true);
 	}
 	bool tf_constructing_cb_progress(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0], ((nations::nation const*)primary_slot)->cb_construction_progress, read_float_from_payload(tval + 2));

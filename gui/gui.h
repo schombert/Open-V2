@@ -516,8 +516,10 @@ namespace ui {
 
 		void create_sub_elements(tagged_gui_object self, world_state&);
 		void update_scroll_position(gui_manager&);
-		void new_list(value_type* first, value_type* last);
-		void update_list(value_type* first, value_type* last);
+		template<typename iterator>
+		void new_list(iterator first, iterator last);
+		template<typename iterator>
+		void update_list(iterator first, iterator last);
 		void goto_element(value_type const& v, ui::gui_manager& m);
 	};
 

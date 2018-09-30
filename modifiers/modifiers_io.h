@@ -41,6 +41,7 @@ public:
 				break;
 			}
 		}
+
 		assert(obj.crimes.size() <= 64);
 	}
 

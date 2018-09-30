@@ -140,6 +140,37 @@ void serialization::serializer<provinces::provinces_state>::deserialize_object(s
 	deserialize(input, obj.province_state_container, ws);
 	deserialize(input, obj.party_loyalty);
 	deserialize(input, obj.is_canal_enabled);
+
+	{
+		auto name = text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, "europe");
+		if(auto f = ws.s.modifiers_m.named_provincial_modifiers_index.find(name); f != ws.s.modifiers_m.named_provincial_modifiers_index.end())
+			obj.europe_modifier = f->second;
+	}
+	{
+		auto name = text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, "asia");
+		if(auto f = ws.s.modifiers_m.named_provincial_modifiers_index.find(name); f != ws.s.modifiers_m.named_provincial_modifiers_index.end())
+			obj.asia_modifier = f->second;
+	}
+	{
+		auto name = text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, "north_america");
+		if(auto f = ws.s.modifiers_m.named_provincial_modifiers_index.find(name); f != ws.s.modifiers_m.named_provincial_modifiers_index.end())
+			obj.north_america_modifier = f->second;
+	}
+	{
+		auto name = text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, "south_america");
+		if(auto f = ws.s.modifiers_m.named_provincial_modifiers_index.find(name); f != ws.s.modifiers_m.named_provincial_modifiers_index.end())
+			obj.south_america_modifier = f->second;
+	}
+	{
+		auto name = text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, "africa");
+		if(auto f = ws.s.modifiers_m.named_provincial_modifiers_index.find(name); f != ws.s.modifiers_m.named_provincial_modifiers_index.end())
+			obj.africa_modifier = f->second;
+	}
+	{
+		auto name = text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, "oceania");
+		if(auto f = ws.s.modifiers_m.named_provincial_modifiers_index.find(name); f != ws.s.modifiers_m.named_provincial_modifiers_index.end())
+			obj.oceania_modifier = f->second;
+	}
 }
 
 size_t serialization::serializer<provinces::provinces_state>::size(provinces::provinces_state const & obj, world_state const & ws) {

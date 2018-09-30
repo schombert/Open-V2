@@ -205,7 +205,7 @@ namespace nations {
 		constexpr static uint16_t is_bankrupt = 0x0010;
 		constexpr static uint16_t is_holding_election = 0x0020;
 		constexpr static uint16_t is_colonial_nation = 0x0040;
-		constexpr static uint16_t is_cb_construction_discovered = 0x0080;
+		constexpr static uint16_t cb_construction_discovered = 0x0080;
 		constexpr static uint16_t has_gas_attack = 0x0100;
 		constexpr static uint16_t has_gas_defence = 0x0200;
 	};

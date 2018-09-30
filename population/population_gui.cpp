@@ -5,7 +5,7 @@
 namespace population {
 	bool population_window_base::on_keydown(ui::gui_object_tag, world_state& ws, const ui::key_down & k) {
 		if(k.keycode == virtual_key::ESCAPE) {
-			ws.w.hide_population_window();
+			ws.w.population_w.hide_population_window(ws.w.gui_m);
 			return true;
 		} else {
 			return false;
@@ -14,104 +14,104 @@ namespace population {
 
 	
 	void close_button::button_function(ui::simple_button<close_button>&, world_state& ws) {
-		ws.w.hide_population_window();
+		ws.w.population_w.hide_population_window(ws.w.gui_m);
 	}
 
 	void popfilter_all_button::button_function(ui::simple_button<popfilter_all_button>&, world_state & ws) {
-		for(auto& v : ws.w.selected_population.filtered_pop_types)
+		for(auto& v : ws.w.population_w.filtered_pop_types)
 			v = 1ui8;
-		ws.w.update_population_window();
+		ws.w.population_w.update_population_window(ws.w.gui_m);
 	}
 
 	void popfilter_none_button::button_function(ui::simple_button<popfilter_none_button>&, world_state & ws) {
-		for(auto& v : ws.w.selected_population.filtered_pop_types)
+		for(auto& v : ws.w.population_w.filtered_pop_types)
 			v = 0ui8;
-		ws.w.update_population_window();
+		ws.w.population_w.update_population_window(ws.w.gui_m);
 	}
 
 	void sortby_size_button::button_function(ui::simple_button<sortby_size_button>&, world_state & ws) {
-		ws.w.selected_population.sort_type = current_state::population_sort::size;
-		ws.w.update_population_window();
+		ws.w.population_w.sort_type = population_sort::size;
+		ws.w.population_w.update_population_window(ws.w.gui_m);
 	}
 
 	void sortby_type_button::button_function(ui::simple_button<sortby_type_button>&, world_state & ws) {
-		ws.w.selected_population.sort_type = current_state::population_sort::type;
-		ws.w.update_population_window();
+		ws.w.population_w.sort_type = population_sort::type;
+		ws.w.population_w.update_population_window(ws.w.gui_m);
 	}
 
 	void sortby_nationality_button::button_function(ui::simple_button<sortby_nationality_button>&, world_state &ws) {
-		ws.w.selected_population.sort_type = current_state::population_sort::culture;
-		ws.w.update_population_window();
+		ws.w.population_w.sort_type = population_sort::culture;
+		ws.w.population_w.update_population_window(ws.w.gui_m);
 	}
 
 	void sortby_religion_button::button_function(ui::simple_button<sortby_religion_button>&, world_state &ws) {
-		ws.w.selected_population.sort_type = current_state::population_sort::religion;
-		ws.w.update_population_window();
+		ws.w.population_w.sort_type = population_sort::religion;
+		ws.w.population_w.update_population_window(ws.w.gui_m);
 	}
 
 	void sortby_location_button::button_function(ui::simple_button<sortby_location_button>&, world_state & ws) {
-		ws.w.selected_population.sort_type = current_state::population_sort::location;
-		ws.w.update_population_window();
+		ws.w.population_w.sort_type = population_sort::location;
+		ws.w.population_w.update_population_window(ws.w.gui_m);
 	}
 
 	void sortby_mil_button::button_function(ui::simple_button<sortby_mil_button>&, world_state & ws) {
-		ws.w.selected_population.sort_type = current_state::population_sort::militancy;
-		ws.w.update_population_window();
+		ws.w.population_w.sort_type = population_sort::militancy;
+		ws.w.population_w.update_population_window(ws.w.gui_m);
 	}
 
 	void sortby_con_button::button_function(ui::simple_button<sortby_con_button>&, world_state & ws) {
-		ws.w.selected_population.sort_type = current_state::population_sort::consciousness;
-		ws.w.update_population_window();
+		ws.w.population_w.sort_type = population_sort::consciousness;
+		ws.w.population_w.update_population_window(ws.w.gui_m);
 	}
 
 	void sortby_ideology_button::button_function(ui::simple_button<sortby_ideology_button>&, world_state &ws) {
-		ws.w.selected_population.sort_type = current_state::population_sort::ideoology;
-		ws.w.update_population_window();
+		ws.w.population_w.sort_type = population_sort::ideoology;
+		ws.w.population_w.update_population_window(ws.w.gui_m);
 	}
 
 	void sortby_issues_button::button_function(ui::simple_button<sortby_issues_button>&, world_state & ws) {
-		ws.w.selected_population.sort_type = current_state::population_sort::issues;
-		ws.w.update_population_window();
+		ws.w.population_w.sort_type = population_sort::issues;
+		ws.w.population_w.update_population_window(ws.w.gui_m);
 	}
 
 	void sortby_unemployment_button::button_function(ui::simple_button<sortby_unemployment_button>&, world_state & ws) {
-		ws.w.selected_population.sort_type = current_state::population_sort::unemployment;
-		ws.w.update_population_window();
+		ws.w.population_w.sort_type = population_sort::unemployment;
+		ws.w.population_w.update_population_window(ws.w.gui_m);
 	}
 
 	void sortby_cash_button::button_function(ui::simple_button<sortby_cash_button>&, world_state & ws) {
-		ws.w.selected_population.sort_type = current_state::population_sort::cash;
-		ws.w.update_population_window();
+		ws.w.population_w.sort_type = population_sort::cash;
+		ws.w.population_w.update_population_window(ws.w.gui_m);
 	}
 
 	void sortby_subsistence_button::button_function(ui::simple_button<sortby_subsistence_button>&, world_state & ws) {
-		ws.w.selected_population.sort_type = current_state::population_sort::life_needs;
-		ws.w.update_population_window();
+		ws.w.population_w.sort_type = population_sort::life_needs;
+		ws.w.population_w.update_population_window(ws.w.gui_m);
 	}
 
 	void sortby_eve_button::button_function(ui::simple_button<sortby_eve_button>&, world_state & ws) {
-		ws.w.selected_population.sort_type = current_state::population_sort::everyday_needs;
-		ws.w.update_population_window();
+		ws.w.population_w.sort_type = population_sort::everyday_needs;
+		ws.w.population_w.update_population_window(ws.w.gui_m);
 	}
 
 	void sortby_luxury_button::button_function(ui::simple_button<sortby_luxury_button>&, world_state & ws) {
-		ws.w.selected_population.sort_type = current_state::population_sort::luxury_needs;
-		ws.w.update_population_window();
+		ws.w.population_w.sort_type = population_sort::luxury_needs;
+		ws.w.population_w.update_population_window(ws.w.gui_m);
 	}
 
 	void sortby_revoltrisk_button::button_function(ui::simple_button<sortby_revoltrisk_button>&, world_state &ws) {
-		ws.w.selected_population.sort_type = current_state::population_sort::revolt_risk;
-		ws.w.update_population_window();
+		ws.w.population_w.sort_type = population_sort::revolt_risk;
+		ws.w.population_w.update_population_window(ws.w.gui_m);
 	}
 
 	void sortby_change_button::button_function(ui::simple_button<sortby_change_button>&, world_state &ws) {
-		ws.w.selected_population.sort_type = current_state::population_sort::size_change;
-		ws.w.update_population_window();
+		ws.w.population_w.sort_type = population_sort::size_change;
+		ws.w.population_w.update_population_window(ws.w.gui_m);
 	}
 
 	void sortby_literacy_button::button_function(ui::simple_button<sortby_literacy_button>&, world_state &ws) {
-		ws.w.selected_population.sort_type = current_state::population_sort::literacy;
-		ws.w.update_population_window();
+		ws.w.population_w.sort_type = population_sort::literacy;
+		ws.w.population_w.update_population_window(ws.w.gui_m);
 	}
 
 	void workforce_title::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
@@ -149,12 +149,12 @@ namespace population {
 		int64_t total_size = 0;
 		std::fill_n(sums_out, ws.s.population_m.count_poptypes, 0);
 
-		if(ws.w.selected_population.display_type == current_state::population_display::nation) {
-			total_size = sum_filtered_demo_data<population::pop_type_tag>(ws, sums_out, ws.w.selected_population.population_for_nation);
-		} else if(ws.w.selected_population.display_type == current_state::population_display::state) {
-			total_size = sum_filtered_demo_data<population::pop_type_tag>(ws, sums_out, ws.w.selected_population.population_for_state);
-		} else if(ws.w.selected_population.display_type == current_state::population_display::province) {
-			total_size = sum_filtered_demo_data<population::pop_type_tag>(ws, sums_out, ws.w.selected_population.population_for_province);
+		if(ws.w.population_w.display_type == population_display::nation) {
+			total_size = sum_filtered_demo_data<population::pop_type_tag>(ws, sums_out, ws.w.population_w.population_for_nation);
+		} else if(ws.w.population_w.display_type == population_display::state) {
+			total_size = sum_filtered_demo_data<population::pop_type_tag>(ws, sums_out, ws.w.population_w.population_for_state);
+		} else if(ws.w.population_w.display_type == population_display::province) {
+			total_size = sum_filtered_demo_data<population::pop_type_tag>(ws, sums_out, ws.w.population_w.population_for_province);
 		}
 
 		if(total_size == 0)
@@ -175,12 +175,12 @@ namespace population {
 		int64_t total_size = 0;
 		std::fill_n(sums_out, ws.s.culture_m.count_religions, 0);
 
-		if(ws.w.selected_population.display_type == current_state::population_display::nation) {
-			total_size = sum_filtered_demo_data<cultures::religion_tag>(ws, sums_out, ws.w.selected_population.population_for_nation);
-		} else if(ws.w.selected_population.display_type == current_state::population_display::state) {
-			total_size = sum_filtered_demo_data<cultures::religion_tag>(ws, sums_out, ws.w.selected_population.population_for_state);
-		} else if(ws.w.selected_population.display_type == current_state::population_display::province) {
-			total_size = sum_filtered_demo_data<cultures::religion_tag>(ws, sums_out, ws.w.selected_population.population_for_province);
+		if(ws.w.population_w.display_type == population_display::nation) {
+			total_size = sum_filtered_demo_data<cultures::religion_tag>(ws, sums_out, ws.w.population_w.population_for_nation);
+		} else if(ws.w.population_w.display_type == population_display::state) {
+			total_size = sum_filtered_demo_data<cultures::religion_tag>(ws, sums_out, ws.w.population_w.population_for_state);
+		} else if(ws.w.population_w.display_type == population_display::province) {
+			total_size = sum_filtered_demo_data<cultures::religion_tag>(ws, sums_out, ws.w.population_w.population_for_province);
 		}
 
 		if(total_size == 0)
@@ -201,12 +201,12 @@ namespace population {
 		int64_t total_size = 0;
 		std::fill_n(sums_out, ws.s.ideologies_m.ideologies_count, 0);
 
-		if(ws.w.selected_population.display_type == current_state::population_display::nation) {
-			total_size = sum_filtered_demo_data<ideologies::ideology_tag>(ws, sums_out, ws.w.selected_population.population_for_nation);
-		} else if(ws.w.selected_population.display_type == current_state::population_display::state) {
-			total_size = sum_filtered_demo_data<ideologies::ideology_tag>(ws, sums_out, ws.w.selected_population.population_for_state);
-		} else if(ws.w.selected_population.display_type == current_state::population_display::province) {
-			total_size = sum_filtered_demo_data<ideologies::ideology_tag>(ws, sums_out, ws.w.selected_population.population_for_province);
+		if(ws.w.population_w.display_type == population_display::nation) {
+			total_size = sum_filtered_demo_data<ideologies::ideology_tag>(ws, sums_out, ws.w.population_w.population_for_nation);
+		} else if(ws.w.population_w.display_type == population_display::state) {
+			total_size = sum_filtered_demo_data<ideologies::ideology_tag>(ws, sums_out, ws.w.population_w.population_for_state);
+		} else if(ws.w.population_w.display_type == population_display::province) {
+			total_size = sum_filtered_demo_data<ideologies::ideology_tag>(ws, sums_out, ws.w.population_w.population_for_province);
 		}
 
 		if(total_size == 0)
@@ -228,12 +228,12 @@ namespace population {
 		std::vector<int64_t, concurrent_allocator<int64_t>> sums_out(ws.s.culture_m.count_cultures);
 		int64_t total_size = 0;
 
-		if(ws.w.selected_population.display_type == current_state::population_display::nation) {
-			total_size = sum_filtered_demo_data<cultures::culture_tag>(ws, sums_out.data(), ws.w.selected_population.population_for_nation);
-		} else if(ws.w.selected_population.display_type == current_state::population_display::state) {
-			total_size = sum_filtered_demo_data<cultures::culture_tag>(ws, sums_out.data(), ws.w.selected_population.population_for_state);
-		} else if(ws.w.selected_population.display_type == current_state::population_display::province) {
-			total_size = sum_filtered_demo_data<cultures::culture_tag>(ws, sums_out.data(), ws.w.selected_population.population_for_province);
+		if(ws.w.population_w.display_type == population_display::nation) {
+			total_size = sum_filtered_demo_data<cultures::culture_tag>(ws, sums_out.data(), ws.w.population_w.population_for_nation);
+		} else if(ws.w.population_w.display_type == population_display::state) {
+			total_size = sum_filtered_demo_data<cultures::culture_tag>(ws, sums_out.data(), ws.w.population_w.population_for_state);
+		} else if(ws.w.population_w.display_type == population_display::province) {
+			total_size = sum_filtered_demo_data<cultures::culture_tag>(ws, sums_out.data(), ws.w.population_w.population_for_province);
 		}
 
 		if(total_size == 0)
@@ -253,12 +253,12 @@ namespace population {
 		std::vector<int64_t, concurrent_allocator<int64_t>> sums_out(ws.s.issues_m.tracked_options_count);
 		int64_t total_size = 0;
 
-		if(ws.w.selected_population.display_type == current_state::population_display::nation) {
-			total_size = sum_filtered_demo_data<issues::option_tag>(ws, sums_out.data(), ws.w.selected_population.population_for_nation);
-		} else if(ws.w.selected_population.display_type == current_state::population_display::state) {
-			total_size = sum_filtered_demo_data<issues::option_tag>(ws, sums_out.data(), ws.w.selected_population.population_for_state);
-		} else if(ws.w.selected_population.display_type == current_state::population_display::province) {
-			total_size = sum_filtered_demo_data<issues::option_tag>(ws, sums_out.data(), ws.w.selected_population.population_for_province);
+		if(ws.w.population_w.display_type == population_display::nation) {
+			total_size = sum_filtered_demo_data<issues::option_tag>(ws, sums_out.data(), ws.w.population_w.population_for_nation);
+		} else if(ws.w.population_w.display_type == population_display::state) {
+			total_size = sum_filtered_demo_data<issues::option_tag>(ws, sums_out.data(), ws.w.population_w.population_for_state);
+		} else if(ws.w.population_w.display_type == population_display::province) {
+			total_size = sum_filtered_demo_data<issues::option_tag>(ws, sums_out.data(), ws.w.population_w.population_for_province);
 		}
 
 		if(total_size == 0)
@@ -297,18 +297,18 @@ namespace population {
 	}
 
 	void pop_filter_button::button_function(ui::simple_button<pop_filter_button>& self, world_state& ws) {
-		if(ws.w.selected_population.filtered_pop_types[type] == 0) {
-			ws.w.selected_population.filtered_pop_types[type] = 1ui8;
+		if(ws.w.population_w.filtered_pop_types[type] == 0) {
+			ws.w.population_w.filtered_pop_types[type] = 1ui8;
 			self.associated_object->flags.fetch_and(uint16_t(~ui::gui_object::display_as_disabled), std::memory_order_release);
 		} else {
-			ws.w.selected_population.filtered_pop_types[type] = 0ui8;
+			ws.w.population_w.filtered_pop_types[type] = 0ui8;
 			self.associated_object->flags.fetch_or(ui::gui_object::display_as_disabled, std::memory_order_release);
 		}
-		ws.w.update_population_window();
+		ws.w.population_w.update_population_window(ws.w.gui_m);
 	}
 	void pop_filter_button::update(ui::simple_button<pop_filter_button>& self, world_state& ws) {
 		self.set_frame(ws.w.gui_m, uint32_t(ws.s.population_m.pop_types[type].sprite) - 1ui32);
-		if(ws.w.selected_population.filtered_pop_types[type] == 0) {
+		if(ws.w.population_w.filtered_pop_types[type] == 0) {
 			self.associated_object->flags.fetch_or(ui::gui_object::display_as_disabled, std::memory_order_release);
 		} else {
 			self.associated_object->flags.fetch_and(uint16_t(~ui::gui_object::display_as_disabled), std::memory_order_release);
@@ -416,15 +416,24 @@ namespace population {
 
 
 	void pop_country_open_button::button_function(ui::simple_button<pop_country_open_button>&, world_state& ws) {
-		ws.w.show_population_window(tag);
+		ws.w.population_w.show_population_window(ws.w.gui_m, tag);
 	}
 
 	void pop_state_open_button::button_function(ui::simple_button<pop_state_open_button>&, world_state& ws) {
-		ws.w.show_population_window(tag);
+		if(is_valid_index(tag)) {
+			auto owner = ws.w.nation_s.states[tag].owner;
+			if(owner)
+				ws.w.population_w.show_population_window(ws.w.gui_m, owner->id, tag);
+		}
 	}
 
 	void pop_province_open_button::button_function(ui::simple_button<pop_province_open_button>&, world_state& ws) {
-		ws.w.show_population_window(tag);
+		if(is_valid_index(tag)) {
+			auto si = ws.w.province_s.province_state_container[tag].state_instance;
+			auto owner = ws.w.province_s.province_state_container[tag].owner;
+			if(bool(owner) && bool(si))
+				ws.w.population_w.show_population_window(ws.w.gui_m, owner->id, si->id, tag);
+		}
 	}
 
 	void pop_state_focus_button::button_function(ui::simple_button<pop_state_focus_button>&, world_state&) {
@@ -432,10 +441,10 @@ namespace population {
 	}
 
 	void pop_state_expand_button::button_function(ui::simple_button<pop_state_expand_button>&, world_state& ws) {
-		if(ws.w.population_window_has_state_expanded(tag))
-			ws.w.population_window_set_state_expanded(tag, false);
+		if(ws.w.population_w.population_window_has_state_expanded(tag))
+			ws.w.population_w.population_window_set_state_expanded(ws.w.gui_m, tag, false);
 		else
-			ws.w.population_window_set_state_expanded(tag, true);
+			ws.w.population_w.population_window_set_state_expanded(ws.w.gui_m, tag, true);
 	}
 
 	void pop_state_expand_button::on_create(ui::simple_button<pop_state_expand_button>& b, world_state& ws) {
@@ -457,5 +466,62 @@ namespace population {
 		if(ws.w.local_player_nation)
 			result.push_back(ws.w.local_player_nation->id);
 		return result;
+	}
+	population_window::population_window() : win(std::make_unique<population_window_t>()) {}
+	population_window::~population_window() {}
+	void population_window::init_population_window(world_state & ws) {
+		filtered_pop_types.resize(ws.s.population_m.count_poptypes);
+		for(uint32_t i = 0; i < ws.s.population_m.count_poptypes; ++i)
+			filtered_pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))] = 1ui8;
+
+		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["country_pop"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *win);
+	}
+
+	void population_window::hide_population_window(ui::gui_manager& gui_m) {
+		auto gobj = win->associated_object;
+		if(gobj)
+			ui::hide(*gobj);
+	}
+
+	void population_window::show_population_window(ui::gui_manager& gui_m, nations::country_tag top, nations::state_tag s, provinces::province_tag p) {
+		win->template get<CT_STRING("pop_province_list")>().force_open(top);
+		win->template get<CT_STRING("pop_province_list")>().force_open(s);
+		
+		population_for_province = p;
+		display_type = population_display::province;
+		sort_type = population_sort::none;
+
+		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(win->associated_object), win->window_object });
+		update_population_window(gui_m);
+	}
+	void population_window::show_population_window(ui::gui_manager& gui_m, nations::country_tag top, nations::state_tag t) {
+		win->template get<CT_STRING("pop_province_list")>().force_open(top);
+		population_for_state = t;
+		display_type = population_display::state;
+		sort_type = population_sort::none;
+
+		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(win->associated_object), win->window_object });
+		update_population_window(gui_m);
+	}
+	void population_window::show_population_window(ui::gui_manager& gui_m, nations::country_tag t) {
+		win->template get<CT_STRING("pop_province_list")>().force_open(t);
+		population_for_nation = t;
+		display_type = population_display::nation;
+		sort_type = population_sort::none;
+
+		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(win->associated_object), win->window_object });
+		update_population_window(gui_m);
+	}
+	void population_window::update_population_window(ui::gui_manager& gui_m) {
+		win->template get<CT_STRING("pop_list")>().new_list(nullptr, nullptr);
+		ui::make_visible_and_update(gui_m, *(win->associated_object));
+	}
+	bool population_window::population_window_has_state_expanded(nations::state_tag t) {
+		auto& poptree = win->template get<CT_STRING("pop_province_list")>();
+		return poptree.is_open(t);
+	}
+	void population_window::population_window_set_state_expanded(ui::gui_manager& gui_m, nations::state_tag t, bool expand) {
+		auto& poptree = win->template get<CT_STRING("pop_province_list")>();
+		poptree.set_open(t, expand, gui_m);
 	}
 }

@@ -310,7 +310,7 @@ struct gui_window_handler {
 
 	void operator()(const ui::creation&, ui::window_base&) {
 		s.w.init_gui_objects(s);
-		s.w.hide_province_window();
+		s.w.province_w.hide_province_window(s.w.gui_m);
 
 		//ui::create_static_element(s, std::get<ui::window_tag>(s.s.gui_m.ui_definitions.name_to_element_map["country_budget"]), ui::tagged_gui_object{ s.w.gui_m.root, ui::gui_object_tag(0) }, budget_window);
 		//auto& pc = budget_window.get<CT_STRING("chart_0")>();
@@ -340,7 +340,7 @@ struct gui_window_handler {
 	void operator()(const ui::resize& r, ui::window_base&) {
 		s.w.gui_m.on_resize(r);
 		map.state.resize(static_cast<int32_t>(r.width), static_cast<int32_t>(r.height));
-		s.w.resize_topbar();
+		s.w.topbar_w.resize_topbar(s.w.gui_m);
 	}
 
 	void operator()(const ui::lbutton_down& m, ui::window_base&) {
@@ -356,7 +356,7 @@ struct gui_window_handler {
 
 			auto map_coord = map.map_coordinates_from_screen(map.state.normalize_screen_coordinates(m.x, m.y, s.w.gui_m.width(), s.w.gui_m.height()));
 			auto id = s.s.province_m.province_map_data[size_t(map_coord.first + map_coord.second * s.s.province_m.province_map_width)];
-			s.w.show_province_window(provinces::province_tag(id));
+			s.w.province_w.show_province_window(s.w.gui_m, provinces::province_tag(id));
 		}
 	}
 	void operator()(const ui::key_down& m, ui::window_base&) {
@@ -655,6 +655,21 @@ int main(int , char **) {
 		add_item(ws.w.nation_s.nations_arrays, ws.w.current_crisis.interested, nations::country_tag(9));
 
 		ws.w.current_crisis.temperature = 85.0f;
+	}
+
+	{
+		ws.w.local_player_nation->cb_construction_progress = 0.7f;
+		ws.w.local_player_nation->cb_construction_target = nations::country_tag(6);
+		ws.w.local_player_nation->cb_construction_type = military::cb_type_tag(4);
+
+		ws.w.nation_s.nations[nations::country_tag(3)].cb_construction_progress = 0.6f;
+		ws.w.nation_s.nations[nations::country_tag(3)].cb_construction_target = nations::country_tag(3);
+		ws.w.nation_s.nations[nations::country_tag(3)].cb_construction_type = military::cb_type_tag(2);
+
+		ws.w.nation_s.nations[nations::country_tag(7)].cb_construction_progress = 0.3f;
+		ws.w.nation_s.nations[nations::country_tag(7)].cb_construction_target = nations::country_tag(1);
+		ws.w.nation_s.nations[nations::country_tag(7)].cb_construction_type = military::cb_type_tag(1);
+		ws.w.nation_s.nations[nations::country_tag(7)].flags |= nations::nation::cb_construction_discovered;
 	}
 
 	init_tooltip_window(ws.s.gui_m, ws.w.gui_m);

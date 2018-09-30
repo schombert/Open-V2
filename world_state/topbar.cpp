@@ -11,7 +11,6 @@ namespace current_state {
 		bttn.associated_object->flags.fetch_or(ui::gui_object::force_transparency_check);
 	}
 
-	void player_flag::button_function(ui::masked_flag<player_flag>&, world_state&) {}
 	void player_flag::update(ui::masked_flag<player_flag>& self, world_state& ws) {
 		auto player = ws.w.local_player_nation;
 		if(player)
@@ -41,13 +40,13 @@ namespace current_state {
 		self.set_frame(ws.w.gui_m, 1ui32);
 	}
 	void tech_button::button_function(ui::simple_button<tech_button>&, world_state& ws) {
-		ws.w.show_tech_window();
+		ws.w.technologies_w.show_technology_window(ws.w.gui_m);
 	};
 	void tech_button::update(ui::simple_button<tech_button>& self, world_state& ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);
 	}
 	void politics_button::button_function(ui::simple_button<politics_button>&, world_state& ws) {
-		ws.w.show_government_reforms_tab();
+		ws.w.government_w.show_government_reforms_tab(ws.w.gui_m);
 	}
 	void politics_button::update(ui::simple_button<politics_button>& self, world_state& ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);
@@ -55,7 +54,7 @@ namespace current_state {
 	void pops_button::button_function(ui::simple_button<pops_button>&, world_state& ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			if(auto id = player->id; ws.w.nation_s.nations.is_valid_index(id))
-				ws.w.show_population_window(id);
+				ws.w.population_w.show_population_window(ws.w.gui_m, id);
 		}
 	}
 	void pops_button::update(ui::simple_button<pops_button>& self, world_state& ws) {
@@ -66,7 +65,7 @@ namespace current_state {
 		self.set_frame(ws.w.gui_m, 1ui32);
 	}
 	void diplomacy_button::button_function(ui::simple_button<diplomacy_button>&, world_state& ws) {
-		ws.w.show_diplomacy_window_self();
+		ws.w.diplomacy_w.show_diplomacy_window(ws.w.gui_m, ws.w.local_player_nation ? ws.w.local_player_nation->id : nations::country_tag());
 	}
 	void diplomacy_button::update(ui::simple_button<diplomacy_button>& self, world_state& ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);
@@ -422,7 +421,7 @@ namespace current_state {
 		}
 	}
 	void reform_alert::button_function(ui::simple_button<reform_alert>&, world_state & ws) {
-		ws.w.show_government_reforms_tab();
+		ws.w.government_w.show_government_reforms_tab(ws.w.gui_m);
 	}
 	void reform_alert::update(ui::simple_button<reform_alert>& self, world_state & ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);
@@ -432,7 +431,7 @@ namespace current_state {
 	}
 
 	void decision_alert::button_function(ui::simple_button<decision_alert>&, world_state & ws) {
-		ws.w.show_government_decisions_tab();
+		ws.w.government_w.show_government_decisions_tab(ws.w.gui_m);
 	}
 	void decision_alert::update(ui::simple_button<decision_alert>& self, world_state & ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);
@@ -441,7 +440,7 @@ namespace current_state {
 		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::no_decisions], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
 	}
 	void rebels_alert::button_function(ui::simple_button<rebels_alert>&, world_state & ws) {
-		ws.w.show_government_movements_tab();
+		ws.w.government_w.show_government_movements_tab(ws.w.gui_m);
 	}
 	void rebels_alert::update(ui::simple_button<rebels_alert>& self, world_state & ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);
@@ -539,9 +538,6 @@ namespace current_state {
 		}
 	}
 
-	void war_against_flag_button::button_function(ui::masked_flag<war_against_flag_button>&, world_state&) {
-
-	}
 	void war_against_flag_button::update(ui::masked_flag<war_against_flag_button>& self, world_state& ws) {
 		self.set_displayed_flag(ws, tag);
 	}
@@ -561,7 +557,7 @@ namespace current_state {
 		}
 	}
 	void crisis_alert::button_function(ui::simple_button<crisis_alert>&, world_state & ws) {
-		ws.w.show_diplomacy_window_crisis();
+		ws.w.diplomacy_w.show_diplomacy_window_crisis(ws.w.gui_m);
 	}
 	void crisis_alert::update(ui::simple_button<crisis_alert>& self, world_state & ws) {
 		if(ws.w.current_crisis.type != current_state::crisis_type::none) {
@@ -817,5 +813,18 @@ namespace current_state {
 		);
 
 		lm.finish_current_line();
+	}
+	topbar::topbar() : win(std::make_unique<topbar_t>()) {}
+	topbar::~topbar() {}
+	void topbar::init_topbar(world_state & ws) {
+		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["topbar"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *win);
+	}
+	void topbar::update_topbar(ui::gui_manager & gui_m) {
+		if(win->associated_object)
+			ui::make_visible_and_update(gui_m, *(win->associated_object));
+	}
+	void topbar::resize_topbar(ui::gui_manager & gui_m) {
+		if(win->associated_object)
+			win->associated_object->size.x = int16_t(gui_m.width());
 	}
 }

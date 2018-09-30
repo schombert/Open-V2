@@ -6,7 +6,7 @@
 
 namespace technologies {
 	void close_button::button_function(ui::simple_button<close_button>&, world_state& ws) {
-		ws.w.hide_tech_window();
+		ws.w.technologies_w.hide_technology_window(ws.w.gui_m);
 	}
 
 	void tech_school_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
@@ -87,16 +87,16 @@ namespace technologies {
 		}
 	}
 	void sort_possible_inventions_by_type_button::button_function(ui::simple_button<sort_possible_inventions_by_type_button>&, world_state & ws) {
-		ws.w.techui_invention_sort = current_state::invention_sort::type;
-		ws.w.show_tech_window();
+		ws.w.technologies_w.techui_invention_sort = invention_sort::type;
+		ws.w.technologies_w.show_technology_window(ws.w.gui_m);
 	}
 	void sort_possible_inventions_by_name_button::button_function(ui::simple_button<sort_possible_inventions_by_name_button>&, world_state & ws) {
-		ws.w.techui_invention_sort = current_state::invention_sort::name;
-		ws.w.show_tech_window();
+		ws.w.technologies_w.techui_invention_sort = invention_sort::name;
+		ws.w.technologies_w.show_technology_window(ws.w.gui_m);
 	}
 	void sort_possible_inventions_by_chance_button::button_function(ui::simple_button<sort_possible_inventions_by_chance_button>&, world_state & ws) {
-		ws.w.techui_invention_sort = current_state::invention_sort::chance;
-		ws.w.show_tech_window();
+		ws.w.technologies_w.techui_invention_sort = invention_sort::chance;
+		ws.w.technologies_w.show_technology_window(ws.w.gui_m);
 	}
 	void invention_item_percent::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
 		if(auto player = ws.w.local_player_nation; bool(player) && is_valid_index(invention)) {
@@ -540,8 +540,8 @@ namespace technologies {
 			default_image = gi->t;
 	}
 	void tech_picture::update(ui::dynamic_icon<tech_picture>& self, world_state & ws) {
-		if(is_valid_index(ws.w.selected_technology)) {
-			graphics::texture_tag picture = ws.s.technology_m.technologies_container[ws.w.selected_technology].picture;
+		if(is_valid_index(ws.w.technologies_w.selected_technology)) {
+			graphics::texture_tag picture = ws.s.technology_m.technologies_container[ws.w.technologies_w.selected_technology].picture;
 			auto gi = ws.w.gui_m.graphics_instances.safe_at(ui::graphics_instance_tag(self.associated_object->type_dependant_handle.load(std::memory_order_acquire)));
 
 			if(is_valid_index(picture)) {
@@ -554,28 +554,28 @@ namespace technologies {
 		}
 	}
 	void selected_tech_name::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		if(is_valid_index(ws.w.selected_technology)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.technology_m.technologies_container[ws.w.selected_technology].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		if(is_valid_index(ws.w.technologies_w.selected_technology)) {
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.technology_m.technologies_container[ws.w.technologies_w.selected_technology].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 			lm.finish_current_line();
 		}
 	}
 	void selected_tech_description::update(ui::tagged_gui_object box, ui::line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		if(is_valid_index(ws.w.selected_technology)) {
-			eplain_technology(ws.w.selected_technology, ws, box, ui::xy_pair{ 0,0 }, lm, fmt);
+		if(is_valid_index(ws.w.technologies_w.selected_technology)) {
+			eplain_technology(ws.w.technologies_w.selected_technology, ws, box, ui::xy_pair{ 0,0 }, lm, fmt);
 		}
 	}
 	void selected_tech_cost::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		if(auto player = ws.w.local_player_nation; bool(player) && is_valid_index(ws.w.selected_technology)) {
+		if(auto player = ws.w.local_player_nation; bool(player) && is_valid_index(ws.w.technologies_w.selected_technology)) {
 			char16_t local_buffer[32];
-			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.s.technology_m.technologies_container[ws.w.selected_technology].cost);
+			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.s.technology_m.technologies_container[ws.w.technologies_w.selected_technology].cost);
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
 	}
 	void selected_tech_year::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		if(is_valid_index(ws.w.selected_technology) && ws.s.technology_m.technologies_container[ws.w.selected_technology].year != 0) {
+		if(is_valid_index(ws.w.technologies_w.selected_technology) && ws.s.technology_m.technologies_container[ws.w.technologies_w.selected_technology].year != 0) {
 			char16_t local_buffer[32];
-			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.s.technology_m.technologies_container[ws.w.selected_technology].year);
+			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.s.technology_m.technologies_container[ws.w.technologies_w.selected_technology].year);
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -587,17 +587,31 @@ namespace technologies {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["invention_icon_window"]);
 	}
 	void folder_tab_button::button_function(ui::simple_button<folder_tab_button>&, world_state & ws) {
-		ws.w.selected_tech_category = category;
-		ws.w.show_tech_window();
+		ws.w.technologies_w.selected_tech_category = category;
+		ws.w.technologies_w.show_technology_window(ws.w.gui_m);
 	}
 	void individual_tech_button::button_function(ui::simple_button<individual_tech_button>&, world_state & ws) {
-		ws.w.selected_technology = tech;
-		ws.w.show_tech_window();
+		ws.w.technologies_w.selected_technology = tech;
+		ws.w.technologies_w.show_technology_window(ws.w.gui_m);
 	}
 	void individual_tech_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
 		if(is_valid_index(tech)) {
 			ui::unlimited_line_manager lm;
 			eplain_technology(tech, ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format);
 		}
+	}
+	technology_window::technology_window() : win(std::make_unique<tech_window_t>()) {}
+	technology_window::~technology_window() {}
+	void technology_window::show_technology_window(ui::gui_manager & gui_m) {
+		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(win->associated_object), win->window_object });
+		ui::make_visible_and_update(gui_m, *(win->associated_object));
+	}
+	void technology_window::hide_technology_window(ui::gui_manager & gui_m) {
+		auto gobj = win->associated_object;
+		if(gobj)
+			ui::hide(*gobj);
+	}
+	void technology_window::init_technology_winodw(world_state & ws) {
+		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["country_technology"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *win);
 	}
 }

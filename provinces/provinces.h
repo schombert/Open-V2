@@ -117,10 +117,12 @@ namespace provinces {
 
 		stable_variable_vector_storage_mk_2<province_tag, 4, 8192> province_arrays;
 
-		// backs:
-		//  nation -> owned provinces
-		//  nation -> controlled provinces
-		//  tag -> core provinces
+		modifiers::provincial_modifier_tag europe_modifier;
+		modifiers::provincial_modifier_tag asia_modifier;
+		modifiers::provincial_modifier_tag north_america_modifier;
+		modifiers::provincial_modifier_tag south_america_modifier;
+		modifiers::provincial_modifier_tag africa_modifier;
+		modifiers::provincial_modifier_tag oceania_modifier;
 	};
 
 	class province_manager {

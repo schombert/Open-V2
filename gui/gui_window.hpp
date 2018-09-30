@@ -89,7 +89,10 @@ protected:
 		}
 	}
 	template<typename window_type>
-	void member_update_in_window(window_type& w, world_state& s) {}
+	void member_update_in_window(window_type& w, world_state& s) {
+		if constexpr(ui::detail::has_update<BASE_BEHAVIOR, world_state&>)
+			BASE_BEHAVIOR::update(s);
+	}
 public:
 	using base_behavior_t = BASE_BEHAVIOR;
 

@@ -22,7 +22,7 @@ bool ui::masked_flag<BASE>::on_lclick(gui_object_tag, world_state& m, const lbut
 		if(is_valid_index(displayed_flag)) {
 			if(auto holder = m.w.culture_s.national_tags_state[displayed_flag].holder; holder) {
 				if(auto id = holder->id; m.w.nation_s.nations.is_valid_index(id))
-					m.w.show_diplomacy_window(id);
+					m.w.diplomacy_w.show_diplomacy_window(m.w.gui_m, id);
 			}
 		}
 	}
@@ -51,7 +51,7 @@ bool ui::masked_flag<BASE>::on_keydown(gui_object_tag, world_state & m, const ke
 			if(is_valid_index(displayed_flag)) {
 				if(auto holder = m.w.culture_s.national_tags_state[displayed_flag].holder; holder) {
 					if(auto id = holder->id; m.w.nation_s.nations.is_valid_index(id))
-						m.w.show_diplomacy_window(id);
+						m.w.diplomacy_w.show_diplomacy_window(m.w.gui_m, id);
 				}
 			}
 		}

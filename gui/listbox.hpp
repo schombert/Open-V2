@@ -382,28 +382,34 @@ void ui::tree_view<BASE, data_type_list, gui_type_list>::create_sub_elements(tag
 }
 
 template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>
-void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::new_list(value_type* first, value_type* last) {
+template<typename iterator>
+void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::new_list(iterator first, iterator last) {
 	values_list.clear();
-	values_list.insert(values_list.end(), first, last);
+	if constexpr(!std::is_same_v<iterator, nullptr_t>) {
+		for(auto it = first; it != last; ++it) {
+			values_list.emplace_back(*it);
+		}
+	}
 }
 
 template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>
-void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::update_list(value_type* first, value_type* last) {
+template<typename iterator>
+void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::update_list(iterator first, iterator last) {
 	for(auto& opt_v : values_list) {
 		if(opt_v && std::find(first, last, *opt_v) == last)
 			opt_v = std::optional<value_type>();
 	}
 	for(auto it = first; it != last; ++it) {
 		if(std::find(values_list.begin(), values_list.end(), std::optional<value_type>(*it)) == values_list.end())
-			values_list.push_back(std::optional<value_type>(*it));
+			values_list.emplace_back(*it);
 	}
 }
 
 template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>
 void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::goto_element(value_type const& v, ui::gui_manager& m) {
-	int32_t index = [&values_list, &v]() {
-		for(int32_t i = 0; i < values_list.size(); ++i) {
-			if(values_list[i] && *values_list[i] == v)
+	int32_t index = [_this = this, &v]() {
+		for(int32_t i = 0; i < int32_t(_this->values_list.size()); ++i) {
+			if(bool(_this->values_list[i]) && *(_this->values_list[i]) == v)
 				return i;
 		}
 		return -1;
@@ -415,7 +421,7 @@ void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::goto_element(
 	const int32_t num_displayed = associated_object->size.y / element_def->size.y;
 	const int32_t extra = std::max(0, static_cast<int32_t>(int32_t(values_list.size()) - num_displayed));
 
-	if(offset <= index && index < offset + num_displayed)
+	if(int32_t(offset) <= index && index < int32_t(offset) + num_displayed)
 		return; //already in view
 
 	offset = uint32_t(std::min(index, extra));

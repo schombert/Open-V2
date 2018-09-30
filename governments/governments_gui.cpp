@@ -7,7 +7,7 @@
 
 namespace governments {
 	void close_button::button_function(ui::simple_button<close_button>&, world_state& ws) {
-		ws.w.hide_government_window();
+		ws.w.government_w.hide_government_window(ws.w.gui_m);
 	}
 	void government_type_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
@@ -157,13 +157,13 @@ namespace governments {
 	}
 	void governments_tab_button_group::on_select(world_state & ws, uint32_t i) {
 		if(i == 0)
-			ws.w.show_government_reforms_tab();
+			ws.w.government_w.show_government_reforms_tab(ws.w.gui_m);
 		else if(i == 1)
-			ws.w.show_government_movements_tab();
+			ws.w.government_w.show_government_movements_tab(ws.w.gui_m);
 		else if(i == 2)
-			ws.w.show_government_decisions_tab();
+			ws.w.government_w.show_government_decisions_tab(ws.w.gui_m);
 		else if(i == 3)
-			ws.w.show_government_release_nations_tab();
+			ws.w.government_w.show_government_release_nations_tab(ws.w.gui_m);
 	}
 	void sort_by_voters_button::button_function(ui::simple_button<sort_by_voters_button>&, world_state &) {}
 	void sort_by_people_button::button_function(ui::simple_button<sort_by_people_button>&, world_state &) {}
@@ -378,5 +378,75 @@ namespace governments {
 	void political_reform_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::cannot_political_reform], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 		lm.finish_current_line();
+	}
+	government_window::government_window() : win(std::make_unique<government_window_t>()) {}
+	government_window::~government_window() {}
+	void government_window::init_government_window(world_state & ws) {
+		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["country_politics"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *win);
+	}
+
+	void government_window::hide_government_window(ui::gui_manager& gui_m) {
+		auto gobj = win->associated_object;
+		if(gobj)
+			ui::hide(*gobj);
+	}
+	void government_window::show_government_reforms_tab(ui::gui_manager& gui_m) {
+		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(win->associated_object), win->window_object });
+		win->template get< CT_STRING("governments_tab_button_group")>().set_selected(gui_m, 0ui32);
+
+		ui::make_visible_and_update(gui_m, *(win->template get<CT_STRING("reforms_window")>().associated_object));
+		ui::make_visible_and_update(gui_m, *(win->template get<CT_STRING("unciv_reforms_window")>().associated_object));
+
+		ui::hide(*(win->template get<CT_STRING("movements_window")>().associated_object));
+		ui::hide(*(win->template get<CT_STRING("decision_window")>().associated_object));
+		ui::hide(*(win->template get<CT_STRING("release_nation")>().associated_object));
+
+		ui::make_visible_and_update(gui_m, *(win->associated_object));
+	}
+	void government_window::show_government_movements_tab(ui::gui_manager& gui_m) {
+		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(win->associated_object), win->window_object });
+		win->template get< CT_STRING("governments_tab_button_group")>().set_selected(gui_m, 1ui32);
+
+		auto& pane = win->template get<CT_STRING("movements_window")>();
+		pane.template get<CT_STRING("movements_listbox")>().new_list(nullptr, nullptr);
+		pane.template get<CT_STRING("rebel_listbox")>().new_list(nullptr, nullptr);
+		ui::make_visible_and_update(gui_m, *(pane.associated_object));
+
+		ui::hide(*(win->template get<CT_STRING("decision_window")>().associated_object));
+		ui::hide(*(win->template get<CT_STRING("reforms_window")>().associated_object));
+		ui::hide(*(win->template get<CT_STRING("unciv_reforms_window")>().associated_object));
+		ui::hide(*(win->template get<CT_STRING("release_nation")>().associated_object));
+
+		ui::make_visible_and_update(gui_m, *(win->associated_object));
+	}
+	void government_window::show_government_decisions_tab(ui::gui_manager& gui_m) {
+		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(win->associated_object), win->window_object });
+		win->template get< CT_STRING("governments_tab_button_group")>().set_selected(gui_m, 2ui32);
+
+		auto& pane = win->template get<CT_STRING("decision_window")>();
+		pane.template get<CT_STRING("decision_listbox")>().new_list(nullptr, nullptr);
+		ui::make_visible_and_update(gui_m, *(pane.associated_object));
+
+		ui::hide(*(win->template get<CT_STRING("movements_window")>().associated_object));
+		ui::hide(*(win->template get<CT_STRING("reforms_window")>().associated_object));
+		ui::hide(*(win->template get<CT_STRING("unciv_reforms_window")>().associated_object));
+		ui::hide(*(win->template get<CT_STRING("release_nation")>().associated_object));
+
+		ui::make_visible_and_update(gui_m, *(win->associated_object));
+	}
+	void government_window::show_government_release_nations_tab(ui::gui_manager& gui_m) {
+		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(win->associated_object), win->window_object });
+		win->template get< CT_STRING("governments_tab_button_group")>().set_selected(gui_m, 3ui32);
+
+		auto& pane = win->template get<CT_STRING("release_nation")>();
+		pane.template get<CT_STRING("nations")>().new_list(nullptr, nullptr);
+		ui::make_visible_and_update(gui_m, *(pane.associated_object));
+
+		ui::hide(*(win->template get<CT_STRING("movements_window")>().associated_object));
+		ui::hide(*(win->template get<CT_STRING("decision_window")>().associated_object));
+		ui::hide(*(win->template get<CT_STRING("reforms_window")>().associated_object));
+		ui::hide(*(win->template get<CT_STRING("unciv_reforms_window")>().associated_object));
+
+		ui::make_visible_and_update(gui_m, *(win->associated_object));
 	}
 }
