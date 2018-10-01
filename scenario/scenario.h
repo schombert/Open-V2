@@ -599,8 +599,12 @@ namespace scenario {
 		constexpr uint32_t rel_cordial = 577ui32;
 		constexpr uint32_t rel_friendly = 578ui32;
 		constexpr uint32_t rel_sphere = 579ui32;
+		constexpr uint32_t brigades = 580ui32;
+		constexpr uint32_t warships = 581ui32;
+		constexpr uint32_t truce_lasts_until = 582ui32;
+		constexpr uint32_t against = 583ui32;
 
-		constexpr uint32_t count = 580ui32;
+		constexpr uint32_t count = 584ui32;
 	}
 
 	class scenario_manager {

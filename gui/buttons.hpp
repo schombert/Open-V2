@@ -169,6 +169,28 @@ void ui::masked_flag<BASE>::set_displayed_flag(world_state& ws, cultures::nation
 }
 
 template<typename BASE>
+void ui::masked_flag<BASE>::set_displayed_flag(world_state& ws, nations::country_tag t) {
+	if(ws.w.nation_s.nations.is_valid_index(t)) {
+		displayed_flag = ws.w.nation_s.nations[t].tag;
+	} else {
+		displayed_flag = cultures::national_tag();
+	}
+	
+	if(underlying_obj) {
+		if(ws.w.nation_s.nations.is_valid_index(t)) {
+			auto flag = ws.w.nation_s.nations[t].flag;
+			if(is_valid_index(flag)) {
+				underlying_obj->flag_or_secondary = &(ws.s.gui_m.textures.retrieve_by_key(flag));
+			} else {
+				underlying_obj->flag_or_secondary = nullptr;
+			}
+		} else {
+			underlying_obj->flag_or_secondary = nullptr;
+		}
+	}
+}
+
+template<typename BASE>
 void ui::masked_flag<BASE>::set_underlying_object(multi_texture_instance* o) {
 	underlying_obj = o;
 }

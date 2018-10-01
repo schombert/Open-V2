@@ -732,8 +732,8 @@ namespace nations {
 		
 	}
 	
-	bool is_great_power(world_state const&, nation const&) {
-		return false;
+	bool is_great_power(world_state const&, nation const& n) {
+		return n.overall_rank <= 8i16;
 	}
 
 	void silent_make_alliance(world_state& ws, nation& a, nation& b) {

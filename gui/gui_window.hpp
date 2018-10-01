@@ -49,7 +49,8 @@ class ui::gui_window<INDEX, TYPE, REST ...> : public ui::gui_window<REST ...> {
 protected:
 	TYPE m_object;
 	bool create_named_member(world_state& ws, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne);
-	ui::tagged_gui_object create_window(world_state& ws, const ui::window_def& def);
+	template<typename def_type>
+	ui::tagged_gui_object create_window(world_state& ws, const def_type& def);
 	template<typename window_type>
 	void member_init_in_window(window_type& w, world_state& m);
 
@@ -69,7 +70,8 @@ public:
 	template<typename i>
 	auto& get() const;
 
-	ui::tagged_gui_object create(world_state& manager, const ui::window_def& def);
+	template<typename def_type>
+	ui::tagged_gui_object create(world_state& manager, const def_type& def);
 	virtual void update_data(gui_object_tag, world_state&) override;
 
 	friend struct ui::detail::window_get<INDEX, INDEX, TYPE, REST ...>;
@@ -80,6 +82,7 @@ class ui::gui_window<BASE_BEHAVIOR> : public BASE_BEHAVIOR {
 protected:
 	bool create_named_member(world_state& ws, tagged_gui_object win, ui::element_tag t, const char* ns, const char* ne);
 	ui::tagged_gui_object create_window(world_state& ws, const ui::window_def& def);
+	ui::tagged_gui_object create_window(world_state& ws, const ui::icon_def& def);
 	template<typename window_type>
 	void member_init_in_window(window_type& w, world_state& m) {
 		if constexpr(ui::detail::has_on_create<BASE_BEHAVIOR, world_state&>) {
@@ -101,7 +104,12 @@ public:
 	gui_window(PARAMS&& ... params) : BASE_BEHAVIOR(std::forward<PARAMS>(params) ...) {}
 
 	ui::gui_object_tag window_object;
-	ui::tagged_gui_object create(world_state& manager, const ui::window_def& def);
+	template<typename def_type>
+	ui::tagged_gui_object create(world_state& manager, const def_type& def);
+	virtual void update_data(gui_object_tag, world_state& ws) override {
+		if constexpr(ui::detail::has_update<BASE_BEHAVIOR, world_state&>)
+			BASE_BEHAVIOR::update(ws);
+	}
 protected:
 	void set_window_id(ui::gui_object_tag t) { window_object = t; }
 };
@@ -115,7 +123,8 @@ template<typename i>
 auto& ui::gui_window<INDEX, TYPE, REST...>::get() const { return detail::window_get<i, INDEX, TYPE, REST...>::apply(*this); }
 
 template<typename INDEX, typename TYPE, typename ...REST>
-ui::tagged_gui_object ui::gui_window<INDEX, TYPE, REST...>::create_window(world_state& ws, const ui::window_def & def) {
+template<typename def_type>
+ui::tagged_gui_object ui::gui_window<INDEX, TYPE, REST...>::create_window(world_state& ws, const def_type & def) {
 	return gui_window<REST...>::create_window(ws, def);
 }
 
@@ -201,31 +210,37 @@ bool ui::gui_window<INDEX, TYPE, REST...>::create_named_member(world_state& ws, 
 }
 
 template<typename INDEX, typename TYPE, typename ...REST>
-ui::tagged_gui_object ui::gui_window<INDEX, TYPE, REST...>::create(world_state& manager, const ui::window_def & definition) {
+template<typename def_type>
+ui::tagged_gui_object ui::gui_window<INDEX, TYPE, REST...>::create(world_state& manager, const def_type& definition) {
 	const auto win = create_window(manager, definition);
-	for (auto i = definition.sub_object_definitions.crbegin(); i != definition.sub_object_definitions.crend(); ++i) {
-		auto rn = manager.s.gui_m.nmaps.get_raw_name(*i);
-		const char* rn_s = rn.get_str(manager.s.gui_m.ui_definitions.name_data);
-		const char* rn_e = rn_s + rn.length();
 
-		if (!create_named_member(manager, win, *i, rn_s, rn_e)) {
-			if constexpr(ui::detail::can_create_dynamic<typename gui_window<INDEX, TYPE, REST...>::base_behavior_t, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
-				if(!gui_window<INDEX, TYPE, REST...>::base_behavior_t::create_dynamic(manager, win, *i, rn_s, rn_e)) {
+	if constexpr(std::is_same_v<def_type, ui::window_def>) {
+		for(auto i = definition.sub_object_definitions.crbegin(); i != definition.sub_object_definitions.crend(); ++i) {
+			auto rn = manager.s.gui_m.nmaps.get_raw_name(*i);
+			const char* rn_s = rn.get_str(manager.s.gui_m.ui_definitions.name_data);
+			const char* rn_e = rn_s + rn.length();
+
+			if(!create_named_member(manager, win, *i, rn_s, rn_e)) {
+				if constexpr(ui::detail::can_create_dynamic<typename gui_window<INDEX, TYPE, REST...>::base_behavior_t, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
+					if(!gui_window<INDEX, TYPE, REST...>::base_behavior_t::create_dynamic(manager, win, *i, rn_s, rn_e)) {
+						std::visit([&manager, &win](auto tag) {
+							if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
+								ui::create_dynamic_element(manager, tag, win);
+						}, *i);
+					}
+				} else {
 					std::visit([&manager, &win](auto tag) {
 						if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
 							ui::create_dynamic_element(manager, tag, win);
 					}, *i);
 				}
-			} else {
-				std::visit([&manager, &win](auto tag) {
-					if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-						ui::create_dynamic_element(manager, tag, win);
-				}, *i);
 			}
 		}
+		set_window_id(win.id);
+		member_init_in_window(*this, manager);
+	} else {
+		set_window_id(win.id);
 	}
-	set_window_id(win.id);
-	member_init_in_window(*this, manager);
 
 	return win;
 }
@@ -236,7 +251,7 @@ bool ui::gui_window<BASE_BEHAVIOR>::create_named_member(world_state& ws, tagged_
 }
 
 template<typename BASE_BEHAVIOR>
-ui::tagged_gui_object ui::gui_window<BASE_BEHAVIOR>::create_window(world_state& ws, const ui::window_def & definition) {
+ui::tagged_gui_object ui::gui_window<BASE_BEHAVIOR>::create_window(world_state& ws, const ui::window_def& definition) {
 	const auto window = ws.w.gui_m.gui_objects.emplace();
 
 	window.object.align = alignment_from_definition(definition);
@@ -258,25 +273,60 @@ ui::tagged_gui_object ui::gui_window<BASE_BEHAVIOR>::create_window(world_state& 
 }
 
 template<typename BASE_BEHAVIOR>
-ui::tagged_gui_object ui::gui_window<BASE_BEHAVIOR>::create(world_state& ws, const ui::window_def& definition) {
-	const auto win = create_window(ws, definition);
-	for (auto i = definition.sub_object_definitions.crbegin(); i != definition.sub_object_definitions.crend(); ++i) {
-		if constexpr(ui::detail::can_create_dynamic<BASE_BEHAVIOR, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
-			auto rn = ws.s.gui_m.nmaps.get_raw_name(*i);
-			const char* rn_s = rn.get_str(ws.s.gui_m.ui_definitions.name_data);
-			const char* rn_e = rn_s + rn.length();
+ui::tagged_gui_object ui::gui_window<BASE_BEHAVIOR>::create_window(world_state& ws, const ui::icon_def& icon_def) {
+	auto new_gobj = ws.w.gui_m.gui_objects.emplace();
 
-			if(!BASE_BEHAVIOR::create_dynamic(ws, win, *i, rn_s, rn_e)) {
+	const uint16_t rotation =
+		(icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_upright ?
+		ui::gui_object::rotation_upright :
+		((icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_90_right ? ui::gui_object::rotation_right : ui::gui_object::rotation_left);
+
+	new_gobj.object.position = icon_def.position;
+	new_gobj.object.flags.fetch_or(rotation, std::memory_order_acq_rel);
+	new_gobj.object.align = alignment_from_definition(icon_def);
+
+	ui::detail::instantiate_graphical_object(ws.s.gui_m, ws.w.gui_m, new_gobj, icon_def.graphical_object_handle, icon_def.frame != 0 ? int32_t(icon_def.frame) - 1 : 0);
+
+	if(rotation == ui::gui_object::rotation_right) {
+		new_gobj.object.position = ui::xy_pair{
+			int16_t(new_gobj.object.position.x - new_gobj.object.size.y),
+			int16_t(new_gobj.object.position.y + new_gobj.object.size.y - new_gobj.object.size.x) };
+		new_gobj.object.size = ui::xy_pair{ new_gobj.object.size.y, new_gobj.object.size.x };
+	}
+
+	new_gobj.object.size.x = int16_t(float(new_gobj.object.size.x) * icon_def.scale);
+	new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
+
+	new_gobj.object.associated_behavior = this;
+	BASE_BEHAVIOR::associated_object = &new_gobj.object;
+
+	return new_gobj;
+}
+
+template<typename BASE_BEHAVIOR>
+template<typename def_type>
+ui::tagged_gui_object ui::gui_window<BASE_BEHAVIOR>::create(world_state& ws, const def_type& definition) {
+	const auto win = create_window(ws, definition);
+
+	if constexpr(std::is_same_v<def_type, ui::window_def>) {
+		for(auto i = definition.sub_object_definitions.crbegin(); i != definition.sub_object_definitions.crend(); ++i) {
+			if constexpr(ui::detail::can_create_dynamic<BASE_BEHAVIOR, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
+				auto rn = ws.s.gui_m.nmaps.get_raw_name(*i);
+				const char* rn_s = rn.get_str(ws.s.gui_m.ui_definitions.name_data);
+				const char* rn_e = rn_s + rn.length();
+
+				if(!BASE_BEHAVIOR::create_dynamic(ws, win, *i, rn_s, rn_e)) {
+					std::visit([&ws, &win](auto tag) {
+						if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
+							ui::create_dynamic_element(ws, tag, win);
+					}, *i);
+				}
+			} else {
 				std::visit([&ws, &win](auto tag) {
 					if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
 						ui::create_dynamic_element(ws, tag, win);
 				}, *i);
 			}
-		} else {
-			std::visit([&ws, &win](auto tag) {
-				if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-					ui::create_dynamic_element(ws, tag, win);
-			}, *i);
 		}
 	}
 	window_object = win.id;
@@ -293,6 +343,15 @@ ui::tagged_gui_object ui::gui_window<BASE_BEHAVIOR>::create(world_state& ws, con
 template<typename ... REST>
 ui::tagged_gui_object ui::create_static_element(world_state& ws, window_tag handle, tagged_gui_object parent, gui_window<REST...>& b) {
 	const auto& window_definition = ws.s.gui_m.ui_definitions.windows[handle];
+	const auto res = b.create(ws, window_definition);
+	ui::add_to_back(ws.w.gui_m, parent, res);
+	ws.w.gui_m.flag_minimal_update();
+	return res;
+}
+
+template<typename ... REST>
+ui::tagged_gui_object ui::create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, gui_window<REST...>& b) {
+	const auto& window_definition = ws.s.gui_m.ui_definitions.icons[handle];
 	const auto res = b.create(ws, window_definition);
 	ui::add_to_back(ws.w.gui_m, parent, res);
 	ws.w.gui_m.flag_minimal_update();

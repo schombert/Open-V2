@@ -7,8 +7,90 @@
 #include "nations_functions.h"
 
 namespace nations {
+	class flag_item_base : public ui::visible_region {
+	public:
+		nations::country_tag c;
+		flag_item_base(nations::country_tag t) : c(t) {}
+	};
+
+	class flag_sub_item {
+	public:
+		flag_sub_item(nations::country_tag t) {}
+		template<typename W>
+		void windowed_update(ui::masked_flag<flag_sub_item>& self, W& w, world_state& ws);
+	};
+
+	using flag_item = ui::gui_window<
+		CT_STRING("country_flag"), ui::masked_flag<flag_sub_item>,
+		flag_item_base
+	>;
+
+	class gp_display_base : public ui::window_pane {
+	public:
+		int32_t gp_index = 0;
+
+		template<typename W>
+		void on_create(W& w, world_state& ws);
+	};
+
+	class gp_name {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class gp_flag {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::masked_flag<gp_flag>& self, window_type& win, world_state& ws);
+	};
+
+	class gp_prestige {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class gp_military {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class gp_industry {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class gp_overall {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class gp_sphere {
+	public:
+		template<typename lb_type, typename window_type>
+		void windowed_update(lb_type& lb, window_type& win, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	using gp_display = ui::gui_window<
+		CT_STRING("country_name"), ui::display_text<gp_name>,
+		CT_STRING("country_flag"), ui::masked_flag<gp_flag>,
+		CT_STRING("country_puppets"), ui::overlap_box<gp_sphere, ui::window_tag, flag_item>,
+		CT_STRING("gp_prestige"), ui::display_text<gp_prestige, -8>,
+		CT_STRING("gp_economic"), ui::display_text<gp_industry, -8>,
+		CT_STRING("gp_military"), ui::display_text<gp_military, -8>,
+		CT_STRING("gp_total"), ui::display_text<gp_overall, -8>,
+		gp_display_base
+	>;
+
 	class diplomacy_window_base : public ui::draggable_region {
 	public:
+		gp_display gp_items[8];
+		
 		template<typename W>
 		void on_create(W& w, world_state&);
 	};
@@ -112,23 +194,12 @@ namespace nations {
 		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
-	class flag_item_base : public ui::visible_region {
-	public:
-		nations::country_tag c;
-		flag_item_base(nations::country_tag t) : c(t) {}
-	};
+	
 
 	class wg_item_base : public ui::visible_region {
 	public:
 		military::war_goal this_wg;
 		wg_item_base(military::war_goal t) : this_wg(t) {}
-	};
-
-	class flag_sub_item {
-	public:
-		flag_sub_item(nations::country_tag t) {}
-		template<typename W>
-		void windowed_update(ui::masked_flag<flag_sub_item>& self, W& w, world_state& ws);
 	};
 
 	class wg_sub_item {
@@ -141,10 +212,7 @@ namespace nations {
 		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
-	using flag_item = ui::gui_window<
-		CT_STRING("country_flag"), ui::masked_flag<flag_sub_item>,
-		flag_item_base
-	>;
+	
 
 	using wg_item = ui::gui_window<
 		CT_STRING("wargoal_icon"), ui::dynamic_icon<wg_sub_item>,
@@ -734,6 +802,429 @@ namespace nations {
 		ui::window_pane
 	>;
 
+	class generic_influence_action_button {
+	public:
+		int32_t gp_index = 0;
+
+		void button_function(ui::simple_button<generic_influence_action_button>&, world_state&);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class influence_details_base : public ui::visible_region {
+	public:
+		int32_t gp_index = 0;
+
+		ui::simple_button<generic_influence_action_button> influence_button;
+
+		template<typename W>
+		void on_create(W& w, world_state&);
+		void update(world_state& ws);
+	};
+
+	class influence_details_gp_flag {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::masked_flag<influence_details_gp_flag>& self, window_type& win, world_state& ws);
+	};
+
+	class influence_details_opinion {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class influence_details_influence {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class influence_details_investment {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class influence_details_discredited_icon {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<influence_details_discredited_icon>& self, window_type& win, world_state& ws);
+	};
+
+	class influence_details_banned_icon {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<influence_details_banned_icon>& self, window_type& win, world_state& ws);
+	};
+
+	using influence_details = ui::gui_window<
+		CT_STRING("country_flag"), ui::masked_flag<influence_details_gp_flag>,
+		CT_STRING("nongp_country_opinion"), ui::display_text<influence_details_opinion>,
+		CT_STRING("nongp_country_influence"), ui::display_text<influence_details_influence>,
+		CT_STRING("nongp_country_invest"), ui::display_text<influence_details_investment>,
+		CT_STRING("country_discredited"), ui::dynamic_icon<influence_details_discredited_icon>,
+		CT_STRING("country_banned_embassy"), ui::dynamic_icon<influence_details_banned_icon>,
+		influence_details_base
+	>;
+
+	class influence_details_window_container : public ui::visible_region {
+	public:
+		influence_details influence[8];
+
+		template<typename W>
+		void on_create(W& w, world_state&);
+		template<typename W>
+		void windowed_update(W& w, world_state& ws);
+	};
+
+	using influence_details_window_container_t = ui::gui_window<
+		influence_details_window_container
+	>;
+
+	class details_base : public ui::window_pane {
+	public:
+		template<typename W>
+		void on_create(W& w, world_state&);
+	};
+
+	class details_flag {
+	public:
+		void update(ui::masked_flag<details_flag>& self, world_state& ws);
+	};
+
+	class details_flag_frame {
+	public:
+		void update(ui::dynamic_transparent_icon<details_flag_frame>& ico, world_state& ws);
+	};
+
+	class details_rank {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class details_name {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class details_relation_value {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class details_rank_status {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class details_government_type {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class details_party {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class details_party_icon {
+	public:
+		void update(ui::tinted_icon<details_party_icon>& self, world_state& ws);
+	};
+
+	class details_tech_school {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class details_prestige {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class details_industrial_score {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class details_military_score {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class details_total_score {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class details_prestige_rank {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class details_industrial_rank {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class details_military_rank {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class details_overall_rank {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class details_population_value {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class details_primary_culture {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class details_accepted_cultures {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class details_gp_sphere {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class details_gp_friendly {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class details_gp_coridal {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class details_non_gp_background {
+	public:
+		template<typename W>
+		void windowed_update(ui::dynamic_icon<details_non_gp_background>& self, W& win, world_state& ws);
+		bool has_tooltip(world_state&) { return false; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw) {}
+	};
+
+	class details_placeholder {
+	};
+
+	class details_infamy_icon {
+	public:
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class details_infamy_text {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class details_war_exhaustion_icon {
+	public:
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class details_war_exhaustion_text {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class details_brigade_icon {
+	public:
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class details_brigade_text {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class details_ships_icon {
+	public:
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class details_ships_text {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class details_add_wg_button {
+	public:
+		void update(ui::simple_button<details_add_wg_button>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class details_wars {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class details_allies {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class details_protected {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class flag_truce_item_base : public ui::visible_region {
+	public:
+		nations::country_tag c;
+		date_tag until;
+		flag_truce_item_base(nations::truce t) : c(t.tag), until(t.until) {}
+	};
+
+	class flag_truce_sub_item {
+	public:
+		nations::country_tag c;
+		date_tag until;
+
+		flag_truce_sub_item(nations::truce t) {}
+		template<typename W>
+		void windowed_update(ui::masked_flag<flag_truce_sub_item>& self, W& w, world_state& ws);
+		bool has_tooltip(world_state&) { return is_valid_index(c); }
+		void create_tooltip(ui::masked_flag<flag_truce_sub_item>& self, world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	using flag_truce_item = ui::gui_window<
+		CT_STRING("country_flag"), ui::masked_flag<flag_truce_sub_item>,
+		flag_truce_item_base
+	>;
+
+	class details_truce {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class details_cb_item_base : public ui::visible_region {
+	public:
+		military::pending_cb this_cb;
+
+		details_cb_item_base(military::pending_cb t) : this_cb(t) {}
+	};
+
+	class details_cb_sub_item {
+	public:
+		military::pending_cb this_cb;
+
+		details_cb_sub_item(military::pending_cb t) {}
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<details_cb_sub_item>&, window_type& win, world_state&);
+		bool has_tooltip(world_state&) { return is_valid_index(this_cb.type); }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	using details_cb_item = ui::gui_window<
+		CT_STRING("wargoal_icon"), ui::dynamic_icon<details_cb_sub_item>,
+		details_cb_item_base
+	>;
+
+	class details_cbs {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class details_wargoals {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	using details_pane = ui::gui_window<
+		CT_STRING("country_flag"), ui::masked_flag<details_flag>,
+		CT_STRING("country_flag_overlay"), ui::dynamic_transparent_icon<details_flag_frame>,
+		CT_STRING("selected_nation_totalrank"), ui::display_text<details_rank, -16>,
+		CT_STRING("country_name"), ui::display_text<details_name>,
+		CT_STRING("our_relation"), ui::display_text<details_relation_value>,
+		CT_STRING("country_status"), ui::display_text<details_rank_status, -4>,
+		CT_STRING("country_gov"), ui::display_text<details_government_type, -4>,
+		CT_STRING("ideology_icon"), ui::tinted_icon<details_party_icon>,
+		CT_STRING("country_party"), ui::display_text<details_party, -4>,
+		CT_STRING("country_tech"), ui::display_text<details_tech_school, -4>,
+		CT_STRING("country_prestige"), ui::display_text<details_prestige, -4>,
+		CT_STRING("selected_prestige_rank"), ui::display_text<details_prestige_rank, -14>,
+		CT_STRING("country_economic"), ui::display_text<details_industrial_score, -4>,
+		CT_STRING("selected_industry_rank"), ui::display_text<details_industrial_rank, -14>,
+		CT_STRING("country_military"), ui::display_text<details_military_score, -4>,
+		CT_STRING("selected_military_rank"), ui::display_text<details_military_rank, -14>,
+		CT_STRING("country_total"), ui::display_text<details_total_score, -4>,
+		CT_STRING("selected_total_rank"), ui::display_text<details_overall_rank, -14>,
+		CT_STRING("country_population"), ui::display_text<details_population_value>,
+		CT_STRING("country_primary_cultures"), ui::display_text<details_primary_culture>,
+		CT_STRING("country_accepted_cultures"), ui::display_text<details_accepted_cultures>,
+		CT_STRING("country_GP_friendly"), ui::overlap_box<details_gp_friendly, ui::window_tag, flag_item>,
+		CT_STRING("country_GP_cordial"), ui::overlap_box<details_gp_coridal, ui::window_tag, flag_item>,
+		CT_STRING("country_GP_sphere"), ui::overlap_box<details_gp_sphere, ui::window_tag, flag_item>,
+		CT_STRING("nongp_extra_info_bg"), influence_details_window_container_t,
+
+		//moves start here
+		CT_STRING("war_extra_info_bg"), ui::dynamic_icon<details_placeholder>,
+		CT_STRING("country_wars"), ui::overlap_box<details_wars, ui::window_tag, flag_item>,
+		CT_STRING("country_wars_text"), ui::fixed_text<details_placeholder>,
+		CT_STRING("country_allies"), ui::overlap_box<details_allies, ui::window_tag, flag_item>,
+		CT_STRING("country_allies_text"), ui::fixed_text<details_placeholder>,
+		CT_STRING("country_protected"), ui::overlap_box<details_protected, ui::window_tag, flag_item>,
+		CT_STRING("country_protected_text"), ui::fixed_text<details_placeholder>,
+		CT_STRING("country_truce"), ui::overlap_box<details_truce, ui::window_tag, flag_truce_item>,
+		CT_STRING("country_truce_text"), ui::fixed_text<details_placeholder>,
+		CT_STRING("country_cb"), ui::overlap_box<details_cbs, ui::window_tag, details_cb_item>,
+		CT_STRING("country_cb_text"), ui::fixed_text<details_placeholder>,
+		CT_STRING("infamy_icon"), ui::dynamic_icon<details_infamy_icon>,
+		CT_STRING("warexhastion_icon"), ui::dynamic_icon<details_war_exhaustion_icon>,
+		CT_STRING("brigade_icon"), ui::dynamic_icon<details_brigade_icon>,
+		CT_STRING("ships_icon"), ui::dynamic_icon<details_ships_icon>,
+		CT_STRING("infamy_text"), ui::display_text<details_infamy_text>,
+		CT_STRING("warexhastion_text"), ui::display_text<details_war_exhaustion_text>,
+		CT_STRING("brigade_text"), ui::display_text<details_brigade_text>,
+		CT_STRING("ships_text"), ui::display_text<details_ships_text>,
+		CT_STRING("current_wargoals"), ui::overlap_box<details_wargoals, ui::window_tag, wg_item>,
+		CT_STRING("add_wargoal"), ui::simple_button<details_add_wg_button>,
+		details_base
+	>;
+
 	class diplomacy_window_t : public ui::gui_window <
 		CT_STRING("close_button"), ui::simple_button<close_button>,
 		CT_STRING("gp_info"), ui::button_group_member,
@@ -785,8 +1276,38 @@ namespace nations {
 		CT_STRING("sort_by_opinion"), ui::simple_button<sort_by_opinion_button>,
 		CT_STRING("sort_by_relation"), ui::simple_button<sort_by_relation_button>,
 		CT_STRING("country_listbox"), ui::discrete_listbox<nations_details_lb, nation_details_item, country_tag>,
+		CT_STRING("diplomacy_country_facts"), details_pane,
 		diplomacy_window_base
 	> {};
+
+	template<typename W>
+	void influence_details_base::on_create(W & w, world_state & ws) {
+		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
+			obj.object.position += ui::xy_pair{ 0i16, 6i16 };
+		});
+
+		auto common_tag = std::get<ui::button_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["topbar_outlinerbutton"]);
+		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+			ws, common_tag,
+			ui::tagged_gui_object{ *associated_object, w.window_object },
+			influence_button));
+		influence_button.associated_object->align = ui::alignment::top_left;
+		influence_button.associated_object->position = ui::xy_pair{ 80i16, 6i16 };
+	}
+
+	template<typename W>
+	void influence_details_window_container::on_create(W & w, world_state & ws) {
+		auto common_tag_b = std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["diplomacy_non_gp_extra_info"]);
+
+		for(uint32_t i = 0; i < std::extent_v<decltype(influence)>; ++i) {
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, common_tag_b,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				influence[i]));
+			influence[i].gp_index = int32_t(i);
+			influence[i].associated_object->position = ui::xy_pair{ int16_t(i < 4 ? 0 + 6 : 157 + 6), int16_t(35 * (i % 4) + 4) };
+		}
+	}
 
 	template<typename W>
 	void diplomacy_window_base::on_create(W& w, world_state& ws) {
@@ -795,9 +1316,53 @@ namespace nations {
 			obj.object.position += ui::xy_pair{ -3i16, 3i16 };
 		});
 
+		auto common_tag = std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["diplomacy_greatpower_info"]);
+
+		for(uint32_t i = 0; i < std::extent_v<decltype(gp_items)>; ++i) {
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, common_tag,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				gp_items[i]));
+			gp_items[i].gp_index = int32_t(i);
+			gp_items[i].associated_object->position = ui::xy_pair{ int16_t(i < 4 ? 26 : 342), int16_t(60 * (i % 4) + 55) };
+		}
+
 		w.template get<CT_STRING("diplomacy_tab_button_group")>().set_selected(ws.w.gui_m, 0);
 		ui::hide(*(w.template get <CT_STRING("crisis_info_win")>().associated_object));
 		ui::hide(*(w.template get<CT_STRING("war_listbox")>().associated_object));
+		ui::hide(*(w.template get<CT_STRING("cb_info_win")>().associated_object));
+	}
+
+	template<typename W>
+	inline void details_base::on_create(W & w, world_state & ws) {
+		associated_object->size = ui::xy_pair{ 340i16, 636i16 };
+		associated_object->position += ui::xy_pair{ 37i16, 0i16 };
+		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
+			obj.object.position += ui::xy_pair{ -37i16, 0i16 };
+		});
+
+		constexpr int16_t yadjust = 144i16;
+		w.template get<CT_STRING("war_extra_info_bg")>().associated_object->position.y += yadjust;
+		w.template get<CT_STRING("country_wars")>().associated_object->position.y += yadjust;
+		w.template get<CT_STRING("country_wars_text")>().associated_object->position.y += yadjust;
+		w.template get<CT_STRING("country_allies")>().associated_object->position.y += yadjust;
+		w.template get<CT_STRING("country_allies_text")>().associated_object->position.y += yadjust;
+		w.template get<CT_STRING("country_protected")>().associated_object->position.y += yadjust;
+		w.template get<CT_STRING("country_protected_text")>().associated_object->position.y += yadjust;
+		w.template get<CT_STRING("country_truce")>().associated_object->position.y += yadjust;
+		w.template get<CT_STRING("country_truce_text")>().associated_object->position.y += yadjust;
+		w.template get<CT_STRING("country_cb")>().associated_object->position.y += yadjust;
+		w.template get<CT_STRING("country_cb_text")>().associated_object->position.y += yadjust;
+		w.template get<CT_STRING("infamy_icon")>().associated_object->position.y += yadjust;
+		w.template get<CT_STRING("warexhastion_icon")>().associated_object->position.y += yadjust;
+		w.template get<CT_STRING("brigade_icon")>().associated_object->position.y += yadjust;
+		w.template get<CT_STRING("ships_icon")>().associated_object->position.y += yadjust;
+		w.template get<CT_STRING("infamy_text")>().associated_object->position.y += yadjust;
+		w.template get<CT_STRING("warexhastion_text")>().associated_object->position.y += yadjust;
+		w.template get<CT_STRING("brigade_text")>().associated_object->position.y += yadjust;
+		w.template get<CT_STRING("ships_text")>().associated_object->position.y += yadjust;
+		w.template get<CT_STRING("current_wargoals")>().associated_object->position.y += yadjust;
+		w.template get<CT_STRING("add_wargoal")>().associated_object->position.y += yadjust;
 	}
 
 	template<typename W>
@@ -1557,5 +2122,293 @@ namespace nations {
 			}
 		});
 		lb.new_list(data.begin(), data.end());
+	}
+
+	template<typename W>
+	void gp_display_base::on_create(W & w, world_state & ws) {
+		w.associated_object->size = ui::xy_pair{ 316i16, 60i16};
+	}
+
+	template<typename window_type>
+	void gp_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
+			if(auto id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations[id].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+
+	template<typename window_type>
+	void gp_prestige::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
+			if(auto id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
+				char16_t local_buffer[16];
+				put_value_in_buffer(local_buffer, display_type::exact_integer, nations::get_prestige(ws.w.nation_s.nations[id]));
+				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+
+	template<typename window_type>
+	void gp_military::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
+			if(nations::country_tag id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
+				char16_t local_buffer[16];
+				put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations[id].military_score);
+				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+
+	template<typename window_type>
+	void gp_industry::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
+			if(nations::country_tag id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
+				char16_t local_buffer[16];
+				put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations[id].industrial_score);
+				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+
+	template<typename window_type>
+	void gp_overall::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
+			if(nations::country_tag id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
+				char16_t local_buffer[16];
+				put_value_in_buffer(local_buffer, display_type::exact_integer, nations::get_prestige(ws.w.nation_s.nations[id]) + ws.w.nation_s.nations[id].industrial_score + ws.w.nation_s.nations[id].military_score);
+				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+
+	template<typename window_type>
+	void gp_flag::windowed_update(ui::masked_flag<gp_flag>& self, window_type & win, world_state & ws) {
+		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
+			if(nations::country_tag id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
+				self.set_displayed_flag(ws, ws.w.nation_s.nations[id].tag);
+				return;
+			}
+		}
+		self.set_displayed_flag(ws, cultures::national_tag());
+	}
+
+	template<typename lb_type, typename window_type>
+	void gp_sphere::windowed_update(lb_type & lb, window_type & win, world_state & ws) {
+		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
+			if(nations::country_tag id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
+				auto sphere_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[id].sphere_members);
+				for(auto c : sphere_range) {
+					if(is_valid_index(c))
+						lb.add_item(ws, c);
+				}
+			}
+		}
+	}
+
+	template<typename lb_type>
+	void details_gp_sphere::populate_list(lb_type & lb, world_state & ws) {
+		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
+			if(!nations::is_great_power(ws, ws.w.nation_s.nations[selected]))
+				return;
+			auto sphere_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[selected].sphere_members);
+			for(auto s : sphere_range) {
+				lb.add_item(ws, s);
+			}
+		}
+	}
+
+	template<typename lb_type>
+	void details_gp_friendly::populate_list(lb_type & lb, world_state & ws) {
+		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
+			if(!nations::is_great_power(ws, ws.w.nation_s.nations[selected]))
+				return;
+			auto inf_range = get_range(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations[selected].gp_influence);
+			for(auto i = inf_range.first; i != inf_range.second; ++i) {
+				if(i->level == 4i8)
+					lb.add_item(ws, i->target);
+			}
+		}
+	}
+
+	template<typename lb_type>
+	void details_gp_coridal::populate_list(lb_type & lb, world_state & ws) {
+		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
+			if(!nations::is_great_power(ws, ws.w.nation_s.nations[selected]))
+				return;
+			auto inf_range = get_range(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations[selected].gp_influence);
+			for(auto i = inf_range.first; i != inf_range.second; ++i) {
+				if(i->level == 3i8)
+					lb.add_item(ws, i->target);
+			}
+		}
+	}
+
+	template<typename W>
+	void details_non_gp_background::windowed_update(ui::dynamic_icon<details_non_gp_background>& self, W & win, world_state & ws) {
+		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
+			if(nations::is_great_power(ws, ws.w.nation_s.nations[selected]))
+				ui::hide(*self.associated_object);
+			else
+				ui::make_visible_immediate(*self.associated_object);
+		}
+	}
+
+	template<typename lb_type>
+	void details_wars::populate_list(lb_type & lb, world_state & ws) {
+		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
+			auto opp_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[selected].opponents_in_war);
+			for(auto n : opp_range) {
+				if(is_valid_index(n))
+					lb.add_item(ws, n);
+			}
+		}
+	}
+
+	template<typename lb_type>
+	void details_allies::populate_list(lb_type & lb, world_state & ws) {
+		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
+			auto allies_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[selected].allies);
+			for(auto n : allies_range) {
+				if(is_valid_index(n))
+					lb.add_item(ws, n);
+			}
+		}
+	}
+
+	template<typename lb_type>
+	void details_truce::populate_list(lb_type & lb, world_state & ws) {
+		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
+			auto truce_range = get_range(ws.w.nation_s.truce_arrays, ws.w.nation_s.nations[selected].truces);
+			for(auto i = truce_range.first; i != truce_range.second; ++i)
+				lb.add_item(ws, *i);
+		}
+	}
+
+	template<typename lb_type>
+	void details_cbs::populate_list(lb_type & lb, world_state & ws) {
+		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
+			auto cb_range = get_range(ws.w.military_s.cb_arrays, ws.w.nation_s.nations[selected].active_cbs);
+			for(auto i = cb_range.first; i != cb_range.second; ++i)
+				lb.add_item(ws, *i);
+		}
+	}
+
+	template<typename lb_type>
+	void details_protected::populate_list(lb_type & lb, world_state & ws) {
+		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
+			if(auto s = ws.w.nation_s.nations[selected].sphere_leader; s) {
+				if(auto id = s->id; ws.w.nation_s.nations.is_valid_index(id))
+					lb.add_item(ws, id);
+			}
+			if(auto s = ws.w.nation_s.nations[selected].overlord; bool(s) && s != ws.w.nation_s.nations[selected].sphere_leader) {
+				if(auto id = s->id; ws.w.nation_s.nations.is_valid_index(id))
+					lb.add_item(ws, id);
+			}
+		}
+	}
+
+	template<typename lb_type>
+	void details_wargoals::populate_list(lb_type & lb, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			auto wrange = get_range(ws.w.military_s.war_arrays, player->wars_involved_in);
+			for(auto i = wrange.first; i != wrange.second; ++i) {
+				if(auto wid = i->war_id; ws.w.military_s.wars.is_valid_index(wid)) {
+					auto wg_range = get_range(ws.w.military_s.war_goal_arrays, ws.w.military_s.wars[wid].war_goals);
+					for(auto j = wg_range.first; j != wg_range.second; ++j) {
+						if(j->from_country == player->id && j->target_country == ws.w.diplomacy_w.selected_nation)
+							lb.add_item(ws, *j);
+					}
+				}
+			}
+		}
+	}
+
+	template<typename W>
+	void flag_truce_sub_item::windowed_update(ui::masked_flag<flag_truce_sub_item>& self, W & w, world_state & ws) {
+		c = w.c;
+		until = w.until;
+		self.set_displayed_flag(ws, c);
+	}
+
+	template<typename window_type>
+	void details_cb_sub_item::windowed_update(ui::dynamic_icon<details_cb_sub_item>& self, window_type & win, world_state & ws) {
+		this_cb = win.this_cb;
+		if(is_valid_index(this_cb.type)) {
+			self.set_frame(ws.w.gui_m, ws.s.military_m.cb_types[this_cb.type].sprite_index != 0 ? uint32_t(ws.s.military_m.cb_types[this_cb.type].sprite_index - 1) : 0ui32);
+		}
+	}
+
+	template<typename window_type>
+	void influence_details_gp_flag::windowed_update(ui::masked_flag<influence_details_gp_flag>& self, window_type & win, world_state & ws) {
+		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
+			if(nations::country_tag id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
+				self.set_displayed_flag(ws, ws.w.nation_s.nations[id].tag);
+				return;
+			}
+		}
+		self.set_displayed_flag(ws, cultures::national_tag());
+	}
+
+	template<typename window_type>
+	void influence_details_opinion::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
+			if(nations::country_tag id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
+				ui::add_linear_text(ui::xy_pair{ 0,0 },
+					influence_level_to_text(ws, get_influence_level(ws, ws.w.nation_s.nations[id], ws.w.diplomacy_w.selected_nation)),
+					fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+
+	template<typename window_type>
+	void influence_details_influence::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
+			if(nations::country_tag id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
+				char16_t local_buffer[16];
+				put_value_in_buffer(local_buffer, display_type::integer, get_influence_value(ws, ws.w.nation_s.nations[id], ws.w.diplomacy_w.selected_nation));
+				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+
+	template<typename window_type>
+	void influence_details_investment::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
+			if(nations::country_tag id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
+				char16_t local_buffer[16];
+				put_value_in_buffer(local_buffer, display_type::currency, get_influence(ws, ws.w.nation_s.nations[id], ws.w.diplomacy_w.selected_nation).investment_amount);
+				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+
+	template<typename window_type>
+	void influence_details_discredited_icon::windowed_update(ui::dynamic_icon<influence_details_discredited_icon>& self, window_type & win, world_state & ws) {
+		ui::hide(*self.associated_object);
+	}
+
+	template<typename window_type>
+	void influence_details_banned_icon::windowed_update(ui::dynamic_icon<influence_details_banned_icon>& self, window_type & win, world_state & ws) {
+		ui::hide(*self.associated_object);
+	}
+
+
+	template<typename W>
+	void influence_details_window_container::windowed_update(W & w, world_state & ws) {
+		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
+			if(nations::is_great_power(ws, ws.w.nation_s.nations[selected]))
+				ui::hide(*associated_object);
+			else
+				ui::make_visible_immediate(*associated_object);
+		}
 	}
 }

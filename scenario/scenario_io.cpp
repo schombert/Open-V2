@@ -681,6 +681,9 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::rel_cordial] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "REL_CORDIAL");
 		s.fixed_ui_text[fixed_ui::rel_friendly] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "REL_FRIENDLY");
 		s.fixed_ui_text[fixed_ui::rel_sphere] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "REL_SPHERE_OF_INFLUENCE");
-
+		s.fixed_ui_text[fixed_ui::brigades] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "BE_ARMY");
+		s.fixed_ui_text[fixed_ui::warships] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "BE_NAVY");
+		s.fixed_ui_text[fixed_ui::truce_lasts_until] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "TRUCE_LASTS_UNTIL");
+		s.fixed_ui_text[fixed_ui::against] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "DIPLOMACY_AGAINST");
 	}
 }

@@ -224,6 +224,7 @@ namespace ui {
 		void set_visibility(gui_manager&, bool visible);
 		void set_enabled(bool enabled);
 		void set_displayed_flag(world_state& ws, cultures::national_tag t);
+		void set_displayed_flag(world_state& ws, nations::country_tag t);
 		cultures::national_tag get_displayed_flag();
 		void set_underlying_object(multi_texture_instance* o);
 
@@ -311,6 +312,17 @@ namespace ui {
 		}
 
 		virtual void update_data(gui_object_tag, world_state&) final override;
+		virtual tooltip_behavior has_tooltip(gui_object_tag, world_state&, const mouse_move&) final override;
+		virtual void create_tooltip(gui_object_tag, world_state&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
+	};
+
+	template<typename BASE>
+	class fixed_text : public gui_behavior, public BASE {
+	public:
+		fixed_text(fixed_text&&) = default;
+		template<typename ...P>
+		fixed_text(P&& ... params) {}
+
 		virtual tooltip_behavior has_tooltip(gui_object_tag, world_state&, const mouse_move&) final override;
 		virtual void create_tooltip(gui_object_tag, world_state&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
 	};
@@ -731,6 +743,8 @@ namespace ui {
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, linechart<BASE, horizontal_resolution>& b);
 	template<typename B, int32_t y_adjust>
 	ui::tagged_gui_object create_static_element(world_state& ws, text_tag handle, tagged_gui_object parent, display_text<B, y_adjust>& b);
+	template<typename B>
+	ui::tagged_gui_object create_static_element(world_state& ws, text_tag handle, tagged_gui_object parent, fixed_text<B>& b);
 	template<typename B, int32_t x_size_adjust, int32_t y_size_adjust>
 	ui::tagged_gui_object create_static_element(world_state& ws, text_tag handle, tagged_gui_object parent, multiline_text<B, x_size_adjust, y_size_adjust>& b);
 	template<typename B>
@@ -739,6 +753,8 @@ namespace ui {
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, tinted_icon<B>& b);
 	template<typename ... REST>
 	ui::tagged_gui_object create_static_element(world_state& ws, window_tag handle, tagged_gui_object parent, gui_window<REST...>& b);
+	template<typename ... REST>
+	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, gui_window<REST...>& b);
 	template<typename B, typename ELEMENT, int32_t left_expand>
 	ui::tagged_gui_object create_static_element(world_state& ws, listbox_tag handle, tagged_gui_object parent, ui::display_listbox<B, ELEMENT, left_expand>& b);
 	template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>

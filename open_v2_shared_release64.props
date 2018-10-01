@@ -13,7 +13,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <OmitFramePointers>true</OmitFramePointers>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <Optimization>Full</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <ExceptionHandling>false</ExceptionHandling>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
