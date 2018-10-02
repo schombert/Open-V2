@@ -1,6 +1,6 @@
 #pragma once
 #include "common\\common.h"
-#include "nations.h"
+#include "economy.h"
 
 class world_state;
 
@@ -8,8 +8,8 @@ namespace ui {
 	class gui_manager;
 }
 
-namespace nations {
-	class diplomacy_window_t;
+namespace economy {
+	class production_window_t;
 
 	enum class country_sub_filter : uint8_t {
 		continent,
@@ -40,12 +40,11 @@ namespace nations {
 		relation
 	};
 
-	class diplomacy_window {
+	class production_window {
 	public:
-		std::unique_ptr<diplomacy_window_t> win;
+		std::unique_ptr<production_window_t> win;
 
-		nations::country_tag selected_nation;
-		bool goto_selected_pending = false;
+		nations::country_tag foreign_investment_nation;
 
 		bool filter_north_america = true;
 		bool filter_south_america = true;
@@ -57,17 +56,19 @@ namespace nations {
 
 		country_sort sort_type = country_sort::none;
 
-		diplomacy_window();
-		~diplomacy_window();
+		production_window();
+		~production_window();
 
-		void hide_diplomacy_window(ui::gui_manager& gui_m);
-		void update_diplomacy_window(ui::gui_manager& gui_m);
-		void show_diplomacy_window(ui::gui_manager& gui_m, country_tag t);
-		void show_diplomacy_window_gp(ui::gui_manager& gui_m);
-		void show_diplomacy_window_wars(ui::gui_manager& gui_m);
-		void show_diplomacy_window_crisis(ui::gui_manager& gui_m);
-		void show_diplomacy_window_cbs(ui::gui_manager& gui_m);
-		void init_diplomacy_window(world_state& ws);
+		void hide(ui::gui_manager& gui_m);
+		void init(world_state& ws);
+		void update(ui::gui_manager& gui_m);
+		void show(ui::gui_manager& gui_m);
+
+		void show_factories(ui::gui_manager& gui_m);
+		void show_projects(ui::gui_manager& gui_m);
+		void show_production(ui::gui_manager& gui_m);
+		void show_foreign_investment(ui::gui_manager& gui_m);
+		void show_particular_foreign_investment(ui::gui_manager& gui_m, nations::country_tag target);
 
 	};
 }

@@ -685,5 +685,13 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::warships] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "BE_NAVY");
 		s.fixed_ui_text[fixed_ui::truce_lasts_until] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "TRUCE_LASTS_UNTIL");
 		s.fixed_ui_text[fixed_ui::against] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "DIPLOMACY_AGAINST");
+		s.fixed_ui_text[fixed_ui::make_alliance_button] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "ALLIANCE_BUTTON");
+		s.fixed_ui_text[fixed_ui::cancel_alliance_button] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "CANCELALLIANCE_BUTTON");
+		s.fixed_ui_text[fixed_ui::call_ally_button] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "CALLALLY_BUTTON");
+		s.fixed_ui_text[fixed_ui::expel_advisors_button] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "EXPELADVISORS_BUTTON");
+		s.fixed_ui_text[fixed_ui::ban_embassy_button] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "BANEMBASSY_BUTTON");
+		s.fixed_ui_text[fixed_ui::justify_war_button] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "MAKE_CB_BUTTON");
+		s.fixed_ui_text[fixed_ui::declare_war_button] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "WAR_BUTTON");
+		s.fixed_ui_text[fixed_ui::offer_peace_button] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PEACE_BUTTON");
 	}
 }

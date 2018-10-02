@@ -619,10 +619,15 @@ namespace nations {
 	void details_relation_value::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
 			if(auto player = ws.w.local_player_nation; player) {
-				char16_t local_buffer[16];
-				put_value_in_buffer(local_buffer, display_type::exact_integer, nations::get_relationship(ws, *player, selected));
-				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-				lm.finish_current_line();
+				if(player->id != selected) {
+					char16_t local_buffer[16];
+					put_value_in_buffer(local_buffer, display_type::exact_integer, nations::get_relationship(ws, *player, selected));
+					ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+					lm.finish_current_line();
+				} else {
+					ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"--"), box, ui::xy_pair{ 0,0 }, fmt, lm);
+					lm.finish_current_line();
+				}
 			}
 		}
 	}
@@ -898,4 +903,101 @@ namespace nations {
 			ui::hide(*influence_button.associated_object);
 		}
 	}
+	void decrease_relations_button::button_function(ui::simple_button<decrease_relations_button>&, world_state &) {}
+	void decrease_relations_button::update(ui::simple_button<decrease_relations_button>& self, world_state & ws) {}
+	void decrease_relations_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
+	void increase_relations_button::button_function(ui::simple_button<increase_relations_button>&, world_state &) {}
+	void increase_relations_button::update(ui::simple_button<increase_relations_button>& self, world_state & ws) {}
+	void increase_relations_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
+	void declare_war_offer_peace_button::button_function(ui::button<declare_war_offer_peace_button>&, world_state &) {}
+	void declare_war_offer_peace_button::update(ui::button<declare_war_offer_peace_button>& self, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if(player->id == ws.w.diplomacy_w.selected_nation) {
+				self.set_enabled(false);
+				return;
+			}
+			self.set_enabled(true);
+			if(contains_item(ws.w.nation_s.nations_arrays, player->opponents_in_war, ws.w.diplomacy_w.selected_nation)) {
+				self.set_text(ws, ws.s.fixed_ui_text[scenario::fixed_ui::offer_peace_button]);
+			} else {
+				self.set_text(ws, ws.s.fixed_ui_text[scenario::fixed_ui::declare_war_button]);
+			}
+		}
+	}
+	void declare_war_offer_peace_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
+	void justify_war_button::button_function(ui::button<justify_war_button>&, world_state &) {}
+	void justify_war_button::update(ui::button<justify_war_button>& self, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if(player->id == ws.w.diplomacy_w.selected_nation) {
+				self.set_enabled(false);
+				return;
+			}
+			if(is_valid_index(player->cb_construction_target))
+				self.set_enabled(false);
+			else
+				self.set_enabled(true);
+		}
+	}
+	void justify_war_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
+	void ban_embassy_button::button_function(ui::button<ban_embassy_button>&, world_state &) {}
+	void ban_embassy_button::update(ui::button<ban_embassy_button>& self, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if(player->id == ws.w.diplomacy_w.selected_nation) {
+				self.set_enabled(false);
+				return;
+			}
+			if(!is_great_power(ws, *player)) {
+				self.set_enabled(false);
+				return;
+			}
+			self.set_enabled(true);
+		}
+	}
+	void ban_embassy_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
+	void expel_advisors_button::button_function(ui::button<expel_advisors_button>&, world_state &) {}
+	void expel_advisors_button::update(ui::button<expel_advisors_button>& self, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if(player->id == ws.w.diplomacy_w.selected_nation) {
+				self.set_enabled(false);
+				return;
+			}
+			if(!is_great_power(ws, *player)) {
+				self.set_enabled(false);
+				return;
+			}
+			self.set_enabled(true);
+		}
+	}
+	void expel_advisors_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
+	void call_ally_button::button_function(ui::button<call_ally_button>&, world_state &) {}
+	void call_ally_button::update(ui::button<call_ally_button>& self, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if(player->id == ws.w.diplomacy_w.selected_nation) {
+				self.set_enabled(false);
+				return;
+			}
+			if(contains_item(ws.w.nation_s.nations_arrays, player->allies, ws.w.diplomacy_w.selected_nation)) {
+				self.set_enabled(true);
+			} else {
+				self.set_enabled(false);
+			}
+		}
+	}
+	void call_ally_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
+	void make_break_alliance_button::button_function(ui::button<make_break_alliance_button>&, world_state &) {}
+	void make_break_alliance_button::update(ui::button<make_break_alliance_button>& self, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if(player->id == ws.w.diplomacy_w.selected_nation) {
+				self.set_enabled(false);
+				return;
+			}
+			self.set_enabled(true);
+			if(contains_item(ws.w.nation_s.nations_arrays, player->allies, ws.w.diplomacy_w.selected_nation)) {
+				self.set_text(ws, ws.s.fixed_ui_text[scenario::fixed_ui::cancel_alliance_button]);
+			} else {
+				self.set_text(ws, ws.s.fixed_ui_text[scenario::fixed_ui::make_alliance_button]);
+			}
+		}
+	}
+	void make_break_alliance_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
 }

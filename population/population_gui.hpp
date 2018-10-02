@@ -4,6 +4,7 @@
 #include "provinces\\province_functions.hpp"
 #include "nations\\nations_functions.hpp"
 #include "population_function.h"
+#include "simple_mpl\\simple_mpl.hpp"
 #include "gui\\gui.hpp"
 
 namespace population {

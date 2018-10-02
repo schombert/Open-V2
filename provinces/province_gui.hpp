@@ -4,6 +4,7 @@
 #include "military\\military.h"
 #include "military\\military_functions.h"
 #include "gui\\gui.hpp"
+#include "simple_mpl\\simple_mpl.hpp"
 
 namespace provinces {
 
@@ -95,7 +96,7 @@ namespace provinces {
 		void windowed_update(ui::masked_flag<province_controller_flag>& self, W& w, world_state& ws);
 	};
 
-	class province_window_header_base : public ui::gui_behavior {
+	class province_window_header_base : public ui::window_pane {
 	public:
 		template<typename ...P>
 		explicit province_window_header_base(P&& ... params) {}
@@ -171,7 +172,7 @@ namespace provinces {
 		CT_STRING("owner_presence"), ui::display_text<owner_text_box, -4>,
 		province_window_header_base>;
 
-	class province_statistics_base : public ui::gui_behavior {
+	class province_statistics_base : public ui::window_pane {
 	public:
 		template<typename ...P>
 		explicit province_statistics_base(P&& ... params) {}
@@ -336,7 +337,7 @@ namespace provinces {
 		CT_STRING("core_icons"), ui::overlap_box<cores_lb, ui::window_tag, core_flag>,
 		province_statistics_base > ;
 
-	class province_colony_base : public ui::visible_region {
+	class province_colony_base : public ui::window_pane {
 	public:
 		template<typename ...P>
 		explicit province_colony_base(P&& ... params) {}
@@ -482,7 +483,7 @@ namespace provinces {
 		CT_STRING("culture_chart"), ui::piechart<culture_pie_chart>,
 		province_colony_base>;
 
-	class province_other_base : public ui::visible_region {
+	class province_other_base : public ui::window_pane {
 	public:
 		template<typename ...P>
 		explicit province_other_base(P&& ... params) {}
@@ -772,7 +773,7 @@ namespace provinces {
 		void windowed_update(ui::simple_button<railroad_expand_button>& self, window_type& w, world_state& ws);
 	};
 
-	class province_buildings_base : public ui::gui_behavior {
+	class province_buildings_base : public ui::window_pane {
 	public:
 		ui::dynamic_icon<fort_level_icon> fort_icon;
 		ui::dynamic_icon<naval_base_level_icon> naval_base_icon;
@@ -812,12 +813,10 @@ namespace provinces {
 		CT_STRING("build_navy"), ui::simple_button<build_navy_button>,
 		province_buildings_base>;
 
-	class province_window_base : public ui::fixed_region {
+	class province_window_base : public ui::draggable_region {
 	public:
-		date_tag last_update;
-
 		template<typename ...P>
-		explicit province_window_base(P&& ... params) : ui::fixed_region(std::forward<P>(params)...) {}
+		explicit province_window_base(P&& ... params) : ui::draggable_region(std::forward<P>(params)...) {}
 		void on_create(world_state&);
 	};
 

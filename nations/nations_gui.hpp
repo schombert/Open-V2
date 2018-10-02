@@ -882,10 +882,86 @@ namespace nations {
 		influence_details_window_container
 	>;
 
+	class increase_relations_button {
+	public:
+		void button_function(ui::simple_button<increase_relations_button>&, world_state&);
+		void update(ui::simple_button<increase_relations_button>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class decrease_relations_button {
+	public:
+		void button_function(ui::simple_button<decrease_relations_button>&, world_state&);
+		void update(ui::simple_button<decrease_relations_button>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class make_break_alliance_button {
+	public:
+		void button_function(ui::button<make_break_alliance_button>&, world_state&);
+		void update(ui::button<make_break_alliance_button>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class call_ally_button {
+	public:
+		void button_function(ui::button<call_ally_button>&, world_state&);
+		void update(ui::button<call_ally_button>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class expel_advisors_button{
+	public:
+		void button_function(ui::button<expel_advisors_button>&, world_state&);
+		void update(ui::button<expel_advisors_button>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class ban_embassy_button {
+	public:
+		void button_function(ui::button<ban_embassy_button>&, world_state&);
+		void update(ui::button<ban_embassy_button>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class justify_war_button {
+	public:
+		void button_function(ui::button<justify_war_button>&, world_state&);
+		void update(ui::button<justify_war_button>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class declare_war_offer_peace_button {
+	public:
+		void button_function(ui::button<declare_war_offer_peace_button>&, world_state&);
+		void update(ui::button<declare_war_offer_peace_button>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
 	class details_base : public ui::window_pane {
 	public:
+		ui::simple_button<increase_relations_button> increase_relations;
+		ui::simple_button<decrease_relations_button> decrease_relations;
+
+		ui::button<make_break_alliance_button> make_break_alliance;
+		ui::button<call_ally_button> call_ally;
+		ui::button<expel_advisors_button> expel_advisors;
+		ui::button<ban_embassy_button> ban_embassy;
+		ui::button<justify_war_button> justify_war;
+		ui::button<declare_war_offer_peace_button> declare_war_offer_peace;
+
 		template<typename W>
 		void on_create(W& w, world_state&);
+		template<typename W>
+		void windowed_update(W& w, world_state&);
 	};
 
 	class details_flag {
@@ -1331,6 +1407,8 @@ namespace nations {
 		ui::hide(*(w.template get <CT_STRING("crisis_info_win")>().associated_object));
 		ui::hide(*(w.template get<CT_STRING("war_listbox")>().associated_object));
 		ui::hide(*(w.template get<CT_STRING("cb_info_win")>().associated_object));
+
+		ui::hide(*associated_object);
 	}
 
 	template<typename W>
@@ -1340,6 +1418,74 @@ namespace nations {
 		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
 			obj.object.position += ui::xy_pair{ -37i16, 0i16 };
 		});
+
+		{
+			auto common_tag = std::get<ui::button_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["topbar_outlinerbutton"]);
+
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, common_tag,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				increase_relations));
+			increase_relations.associated_object->align = ui::alignment::top_left;
+			increase_relations.associated_object->position = ui::xy_pair{ 286i16, 23i16 };
+
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, common_tag,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				decrease_relations));
+			decrease_relations.associated_object->align = ui::alignment::top_left;
+			decrease_relations.associated_object->position = ui::xy_pair{ 265i16, 23i16 };
+			decrease_relations.set_frame(ws.w.gui_m, 1ui32);
+		}
+
+		{
+			auto common_tag = std::get<ui::button_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["action_option"]);
+
+			constexpr int16_t x_off = 0i16;
+			constexpr int16_t y_off = 520i16;
+			constexpr int16_t x_size = 160i16;
+			constexpr int16_t y_size = 24i16;
+
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, common_tag,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				make_break_alliance));
+			make_break_alliance.associated_object->position = ui::xy_pair{ x_off, y_off };
+
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, common_tag,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				call_ally));
+			call_ally.associated_object->position = ui::xy_pair{ x_off + x_size, y_off };
+			call_ally.set_text(ws, ws.s.fixed_ui_text[scenario::fixed_ui::call_ally_button]);
+
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, common_tag,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				expel_advisors));
+			expel_advisors.associated_object->position = ui::xy_pair{ x_off, int16_t(y_off + y_size * 1) };
+			expel_advisors.set_text(ws, ws.s.fixed_ui_text[scenario::fixed_ui::expel_advisors_button]);
+
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, common_tag,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				ban_embassy));
+			ban_embassy.associated_object->position = ui::xy_pair{ x_off + x_size, int16_t(y_off + y_size * 1) };
+			ban_embassy.set_text(ws, ws.s.fixed_ui_text[scenario::fixed_ui::ban_embassy_button]);
+
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, common_tag,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				justify_war));
+			justify_war.associated_object->position = ui::xy_pair{ x_off, int16_t(y_off + y_size * 2) };
+			justify_war.set_text(ws, ws.s.fixed_ui_text[scenario::fixed_ui::justify_war_button]);
+
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, common_tag,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				declare_war_offer_peace));
+			declare_war_offer_peace.associated_object->position = ui::xy_pair{ x_off + x_size, int16_t(y_off + y_size * 2) };
+		}
 
 		constexpr int16_t yadjust = 144i16;
 		w.template get<CT_STRING("war_extra_info_bg")>().associated_object->position.y += yadjust;
@@ -1363,6 +1509,19 @@ namespace nations {
 		w.template get<CT_STRING("ships_text")>().associated_object->position.y += yadjust;
 		w.template get<CT_STRING("current_wargoals")>().associated_object->position.y += yadjust;
 		w.template get<CT_STRING("add_wargoal")>().associated_object->position.y += yadjust;
+	}
+
+	template<typename W>
+	void details_base::windowed_update(W & w, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if(ws.w.diplomacy_w.selected_nation == player->id) {
+				ui::hide(*increase_relations.associated_object);
+				ui::hide(*decrease_relations.associated_object);
+			} else {
+				ui::make_visible_and_update(ws.w.gui_m, *increase_relations.associated_object);
+				ui::make_visible_and_update(ws.w.gui_m, *decrease_relations.associated_object);
+			}
+		}
 	}
 
 	template<typename W>

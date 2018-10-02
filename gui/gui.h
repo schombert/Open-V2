@@ -188,6 +188,33 @@ namespace ui {
 	};
 
 	template<typename BASE>
+	class button : public gui_behavior, public BASE {
+	public:
+		text_format fmt;
+		text_data::alignment text_align = text_data::alignment::center;
+		virtual_key shortcut = virtual_key::NONE;
+		gui_object_tag id;
+
+		button(button&&) = default;
+		template<typename ...P>
+		explicit button(P&& ... params) : BASE(std::forward<P>(params)...) {}
+
+		void set_frame(gui_manager&, uint32_t frame_num);
+		void set_visibility(gui_manager&, bool visible);
+		void set_text(world_state& ws, text_data::text_tag t);
+		void set_enabled(bool enabled);
+
+		virtual bool on_lclick(gui_object_tag o, world_state& m, const lbutton_down&) final override;
+		virtual bool on_rclick(gui_object_tag o, world_state& m, const rbutton_down&) final override;
+		virtual bool on_keydown(gui_object_tag o, world_state& m, const key_down& k) final override;
+		virtual void update_data(gui_object_tag, world_state&) final override;
+		template<typename window_type>
+		void windowed_update(window_type& w, world_state& s);
+		virtual tooltip_behavior has_tooltip(gui_object_tag, world_state&, const mouse_move&) final override;
+		virtual void create_tooltip(gui_object_tag, world_state&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
+	};
+
+	template<typename BASE>
 	class progress_bar : public gui_behavior, public BASE {
 	private:
 		multi_texture_instance* underlying_obj = nullptr;
@@ -729,6 +756,8 @@ namespace ui {
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, progress_bar<B>& b);
 	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, button_tag handle, tagged_gui_object parent, simple_button<B>& b);
+	template<typename B>
+	ui::tagged_gui_object create_static_element(world_state& ws, button_tag handle, tagged_gui_object parent, button<B>& b);
 	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, simple_button<B>& b);
 	template<typename B>

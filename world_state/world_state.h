@@ -16,6 +16,7 @@
 #include "governments\\governments_gui.h"
 #include "population\\population_gui.h"
 #include "topbar.h"
+#include "economy\\economy_gui.h"
 
 #undef small
 
@@ -79,6 +80,7 @@ namespace current_state {
 		technologies::technology_window technologies_w;
 		governments::government_window government_w;
 		population::population_window population_w;
+		economy::production_window production_w;
 		topbar topbar_w;
 
 		//player data

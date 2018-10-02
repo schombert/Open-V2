@@ -603,8 +603,16 @@ namespace scenario {
 		constexpr uint32_t warships = 581ui32;
 		constexpr uint32_t truce_lasts_until = 582ui32;
 		constexpr uint32_t against = 583ui32;
+		constexpr uint32_t make_alliance_button = 584ui32;
+		constexpr uint32_t cancel_alliance_button = 585ui32;
+		constexpr uint32_t call_ally_button = 586ui32;
+		constexpr uint32_t expel_advisors_button = 587ui32;
+		constexpr uint32_t ban_embassy_button = 588ui32;
+		constexpr uint32_t justify_war_button = 589ui32;
+		constexpr uint32_t declare_war_button = 590ui32;
+		constexpr uint32_t offer_peace_button = 591ui32;
 
-		constexpr uint32_t count = 584ui32;
+		constexpr uint32_t count = 592ui32;
 	}
 
 	class scenario_manager {

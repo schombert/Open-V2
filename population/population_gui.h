@@ -1,10 +1,12 @@
 #pragma once
 #include "common\\common.h"
 #include "population.h"
-#include "gui\\gui.h"
-#include "simple_mpl\\simple_mpl.hpp"
 
 class world_state;
+
+namespace ui {
+	class gui_manager;
+}
 
 namespace population {
 

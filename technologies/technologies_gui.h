@@ -28,6 +28,6 @@ namespace technologies {
 	};
 
 	ui::xy_pair eplain_technology(tech_tag t, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in,
-		ui::unlimited_line_manager& lm, ui::text_format const& fmt);
+		ui::line_manager& lm, ui::text_format const& fmt);
 
 }

@@ -15,6 +15,32 @@ bool ui::simple_button<BASE>::on_lclick(gui_object_tag o, world_state& m, const 
 }
 
 template<typename BASE>
+bool ui::button<BASE>::on_lclick(gui_object_tag o, world_state& m, const lbutton_down & message) {
+	if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, world_state&>) {
+		BASE::button_function(*this, m);
+		return true;
+	} else if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, lbutton_down, world_state&>) {
+		BASE::button_function(*this, message, m);
+		return true;
+	} else if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, key_modifiers, world_state&>) {
+		BASE::button_function(*this, message.mod, m);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+template<typename BASE>
+bool ui::button<BASE>::on_rclick(gui_object_tag o, world_state& m, const rbutton_down & message) {
+	if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, rbutton_down, world_state&>) {
+		BASE::button_function(*this, message, m);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+template<typename BASE>
 bool ui::masked_flag<BASE>::on_lclick(gui_object_tag, world_state& m, const lbutton_down &) {
 	if constexpr(ui::detail::has_button_function<BASE, masked_flag<BASE>&, world_state&>) {
 		BASE::button_function(*this, m);
@@ -36,6 +62,24 @@ bool ui::simple_button<BASE>::on_keydown(gui_object_tag o, world_state & m, cons
 			BASE::button_function(o, m);
 		else if constexpr(ui::detail::has_button_function<BASE, ui::simple_button<BASE>&, world_state&>)
 			BASE::button_function(*this, m);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+template<typename BASE>
+bool ui::button<BASE>::on_keydown(gui_object_tag o, world_state & m, const key_down & k) {
+	if(k.keycode == shortcut) {
+		if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, world_state&>)
+			BASE::button_function(*this, m);
+		else if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, key_down, world_state&>) {
+			BASE::button_function(*this, k, m);
+			return true;
+		} else if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, key_modifiers, world_state&>) {
+			BASE::button_function(*this, k.mod, m);
+			return true;
+		}
 		return true;
 	} else {
 		return false;
@@ -69,6 +113,13 @@ void ui::simple_button<BASE>::update_data(gui_object_tag, world_state& w) {
 }
 
 template<typename BASE>
+void ui::button<BASE>::update_data(gui_object_tag, world_state& w) {
+	if constexpr(ui::detail::has_update<BASE, button<BASE>&, world_state&>) {
+		BASE::update(*this, w);
+	}
+}
+
+template<typename BASE>
 void ui::masked_flag<BASE>::update_data(gui_object_tag, world_state& w) {
 	if constexpr(ui::detail::has_update<BASE, masked_flag<BASE>&, world_state&>) {
 		BASE::update(*this, w);
@@ -79,6 +130,14 @@ template<typename BASE>
 template<typename window_type>
 void ui::simple_button<BASE>::windowed_update(window_type& w, world_state& s) {
 	if constexpr(ui::detail::has_windowed_update<BASE, simple_button<BASE>&, window_type&, world_state&>) {
+		BASE::windowed_update(*this, w, s);
+	}
+}
+
+template<typename BASE>
+template<typename window_type>
+void ui::button<BASE>::windowed_update(window_type& w, world_state& s) {
+	if constexpr(ui::detail::has_windowed_update<BASE, button<BASE>&, window_type&, world_state&>) {
 		BASE::windowed_update(*this, w, s);
 	}
 }
@@ -100,6 +159,14 @@ ui::tooltip_behavior ui::simple_button<BASE>::has_tooltip(gui_object_tag, world_
 }
 
 template<typename BASE>
+ui::tooltip_behavior ui::button<BASE>::has_tooltip(gui_object_tag, world_state& ws, const mouse_move&) {
+	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
+		return BASE::has_tooltip(ws) ? tooltip_behavior::tooltip : tooltip_behavior::no_tooltip;
+	else
+		return tooltip_behavior::transparent;
+}
+
+template<typename BASE>
 ui::tooltip_behavior ui::masked_flag<BASE>::has_tooltip(gui_object_tag, world_state& ws, const mouse_move&) {
 	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
 		return (is_valid_index(displayed_flag) && BASE::has_tooltip(ws)) ? tooltip_behavior::tooltip : tooltip_behavior::no_tooltip;
@@ -109,6 +176,12 @@ ui::tooltip_behavior ui::masked_flag<BASE>::has_tooltip(gui_object_tag, world_st
 
 template<typename BASE>
 void ui::simple_button<BASE>::create_tooltip(gui_object_tag o, world_state& ws, const mouse_move&, tagged_gui_object tw) {
+	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
+		BASE::create_tooltip(ws, tw);
+}
+
+template<typename BASE>
+void ui::button<BASE>::create_tooltip(gui_object_tag o, world_state& ws, const mouse_move&, tagged_gui_object tw) {
 	if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
 		BASE::create_tooltip(ws, tw);
 }
@@ -131,6 +204,13 @@ void ui::masked_flag<BASE>::create_tooltip(gui_object_tag, world_state& ws, cons
 template<typename BASE>
 void ui::simple_button<BASE>::set_frame(gui_manager& m, uint32_t frame_num) {
 	if (const auto go = m.graphics_instances.safe_at(graphics_instance_tag(associated_object->type_dependant_handle)); go) {
+		go->frame = static_cast<int32_t>(frame_num);
+	}
+}
+
+template<typename BASE>
+void ui::button<BASE>::set_frame(gui_manager& m, uint32_t frame_num) {
+	if(const auto go = m.graphics_instances.safe_at(graphics_instance_tag(associated_object->type_dependant_handle)); go) {
 		go->frame = static_cast<int32_t>(frame_num);
 	}
 }
@@ -212,6 +292,68 @@ template<typename BASE>
 void ui::simple_button<BASE>::set_enabled(bool enabled) {
 	ui::set_enabled(*associated_object, enabled);
 }
+
+template<typename BASE>
+void ui::button<BASE>::set_visibility(gui_manager& m, bool visible) {
+	if(visible)
+		ui::make_visible_and_update(m, *associated_object);
+	else
+		ui::hide(*associated_object);
+}
+
+template<typename BASE>
+void ui::button<BASE>::set_enabled(bool enabled) {
+	ui::set_enabled(*associated_object, enabled);
+}
+
+template<typename BASE>
+void ui::button<BASE>::set_text(world_state& ws, text_data::text_tag t) {
+	ui::clear_children(ws.w.gui_m, ui::tagged_gui_object{*associated_object, id});
+
+	if(is_valid_index(t))
+		detail::create_linear_text(ws.s.gui_m, ws.w.gui_m, ui::tagged_gui_object{ *associated_object, id }, t, text_align, fmt);
+}
+
+template<typename B>
+ui::tagged_gui_object ui::create_static_element(world_state& ws, button_tag handle, tagged_gui_object parent, button<B>& b) {
+	const button_def& def = ws.s.gui_m.ui_definitions.buttons[handle];
+	const auto new_gobj = ws.w.gui_m.gui_objects.emplace();
+
+	const uint16_t rotation =
+		(def.flags & button_def::rotation_mask) == button_def::rotation_90_left ?
+		gui_object::rotation_left :
+		gui_object::rotation_upright;
+
+	new_gobj.object.flags.store(gui_object::visible_after_update | gui_object::enabled | rotation, std::memory_order_release);
+	new_gobj.object.position = def.position;
+	new_gobj.object.size = def.size;
+	new_gobj.object.align = alignment_from_definition(def);
+
+	ui::detail::instantiate_graphical_object(ws.s.gui_m, ws.w.gui_m, new_gobj, def.graphical_object_handle);
+
+	b.id = new_gobj.id;
+	b.shortcut = def.shortcut;
+	b.text_align = text_aligment_from_button_definition(def);
+
+	const auto[font_h, is_black, int_font_size] = graphics::unpack_font_handle(def.font_handle);
+	b.fmt = text_format{ is_black ? ui::text_color::black : ui::text_color::white, font_h, int_font_size };
+
+	if(is_valid_index(def.text_handle)) {
+		detail::create_linear_text(ws.s.gui_m, ws.w.gui_m, new_gobj, def.text_handle, b.text_align, b.fmt);
+	}
+
+	new_gobj.object.associated_behavior = &b;
+	b.associated_object = &new_gobj.object;
+
+	ui::add_to_back(ws.w.gui_m, parent, new_gobj);
+
+	if constexpr(ui::detail::has_on_create<simple_button<B>, simple_button<B>&, world_state&>)
+		b.on_create(b, ws);
+
+	ws.w.gui_m.flag_minimal_update();
+	return new_gobj;
+}
+
 
 template<typename B>
 ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, ui::masked_flag<B>& b) {

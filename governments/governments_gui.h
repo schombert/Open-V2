@@ -1,9 +1,12 @@
 #pragma once
 #include "common\\common.h"
 #include "governments.h"
-#include "gui\\gui.h"
 
 class world_state;
+
+namespace ui {
+	class gui_manager;
+}
 
 namespace governments {
 	class government_window_t;
