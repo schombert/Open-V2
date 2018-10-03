@@ -66,6 +66,20 @@ inline token_and_type token_to<token_and_type>(const token_and_type& in) {
 	return in;
 }
 
+const char* safe_advance(unsigned int n, const char* current, const char* end);
+
+bool ignorable_char(char c);
+bool breaking_char(char c);
+bool special_identifier_char(char c);
+bool not_special_identifier_char(char c);
+bool double_quote_termination(char c);
+bool single_quote_termination(char c);
+bool line_termination(char c);
+bool is_positive_integer(const char* start, const char* end);
+bool is_integer(const char* start, const char* end);
+bool is_positive_fp(const char* start, const char* end);
+bool is_fp(const char* start, const char* end);
+
 template<typename T>
 T* advance_position_to_non_whitespace(T* start, T* end) {
 	return std::find_if_not(start, end, ignorable_char);
@@ -99,21 +113,6 @@ T* advance_position_to_non_lua_comment(T* start, T* end) {
 	}
 	return position;
 }
-
-
-const char* safe_advance(unsigned int n, const char* current, const char* end);
-
-bool ignorable_char(char c);
-bool breaking_char(char c);
-bool special_identifier_char(char c);
-bool not_special_identifier_char(char c);
-bool double_quote_termination(char c);
-bool single_quote_termination(char c);
-bool line_termination(char c);
-bool is_positive_integer(const char* start, const char* end);
-bool is_integer(const char* start, const char* end);
-bool is_positive_fp(const char* start, const char* end);
-bool is_fp(const char* start, const char* end);
 
 char const* csv_advance(char const* start, char const* end, char seperator);
 char const* csv_advance_n(uint32_t n, char const* start, char const* end, char seperator);

@@ -125,16 +125,16 @@ public:
 		deserialize(input, obj.inner_size);
 
 		for(uint32_t i = 0ui32; i < obj.indices_in_use; ++i) {
-			object_type* new_block = (object_type*)_aligned_malloc(sizeof(object_type) * block_size * inner_size, 64);
+			object_type* new_block = (object_type*)_aligned_malloc(sizeof(object_type) * block_size * obj.inner_size, 64);
 			obj.index_array[i] = new_block;
 			if constexpr(serializer<object_type>::has_simple_serialize)
 				deserialize_array(input, new_block, block_size * obj.inner_size);
 			else
-				deserialize_into_range(input, new_block, new_block + block_size * obj.inner_size, std::forward<CONTEXT>(c)...)
+				deserialize_into_range(input, new_block, new_block + block_size * obj.inner_size, std::forward<CONTEXT>(c)...);
 		}
 	}
 	static size_t size(stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size> const& obj) {
-		return sizeof(obj.indices_in_use) + sizeof(obj.inner_size) + obj.indices_in_use * sizeof(object_type) * block_size * inner_size;
+		return sizeof(obj.indices_in_use) + sizeof(obj.inner_size) + obj.indices_in_use * sizeof(object_type) * block_size * obj.inner_size;
 	}
 };
 
@@ -339,7 +339,7 @@ void stable_2d_vector<object_type, outer_index_type, inner_index_type, block_siz
 	object_type* const block = index_array[block_num];
 	for(int32_t i = int32_t(inner_size) - 1; i >= 0; --i) {
 		block[block_index * inner_size + i].~object_type();
-		new (new_block + block_index * inner_size + i) object_type();
+		new (block + block_index * inner_size + i) object_type();
 	}
 }
 
@@ -475,6 +475,15 @@ void remove_single_item(stable_variable_vector_storage_mk_2<object_type, minimum
 template<typename object_type, uint32_t minimum_size, size_t memory_size>
 void remove_subrange(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size>& storage, multiset_tag<object_type>& i, object_type obj) {
 	remove_subitem_range(storage, i.value, obj);
+}
+
+namespace detail {
+	struct alignas(8) mk_2_header {
+		stable_mk_2_tag next_free;
+		uint16_t size;
+		uint16_t capacity;
+	};
+	static_assert(sizeof(mk_2_header) == 8);
 }
 
 template<typename object_type, uint32_t minimum_size, size_t memory_size, typename FUNC>
@@ -679,16 +688,8 @@ namespace serialization {
 		return sizeof(uint16_t) + sizeof(object_type) * get_size(storage, i);
 	}
 }
-
+	
 namespace detail {
-	struct alignas(8) mk_2_header {
-		stable_mk_2_tag next_free;
-		uint16_t size;
-		uint16_t capacity;
-	};
-
-	static_assert(sizeof(mk_2_header) == 8);
-
 #ifdef _DEBUG
 	struct stable_variable_vector_storage_mk_2_full {};
 #endif
@@ -1051,7 +1052,7 @@ bool concurrent_string::operator==(const string_expression<T>& o) const {
 	else {
 		const auto this_data = c_str();
 		for (int32_t i = (int32_t)this_length - 1; i >= 0; --i) {
-			if (this_data[i] != t[i])
+			if (this_data[i] != o[i])
 				return false;
 		}
 		return true;

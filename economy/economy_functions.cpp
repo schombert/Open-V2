@@ -342,4 +342,31 @@ namespace economy {
 			}
 		});
 	}
+
+	bool possible_to_invest_in(world_state const& ws, nations::nation const& investor, nations::nation const& target) {
+		return !nations::is_great_power(ws, target) && nations::is_great_power(ws, investor) &&
+			((investor.current_rules.rules_value & (issues::rules::open_factory_invest | issues::rules::expand_factory_invest)) != 0) &&
+			((target.current_rules.rules_value & issues::rules::allow_foreign_investment) != 0) && 
+			(investor.id != target.id);
+	}
+
+	int32_t count_factories_in_state(nations::state_instance const& si) {
+		return
+			std::accumulate(
+				std::begin(si.factories),
+				std::end(si.factories),
+				0i32,
+				[](int32_t v, economy::factory_instance const& f) { return v + int32_t(f.level != 0); });
+	}
+
+	int32_t count_factories_in_nation(world_state const& ws, nations::nation const& n) {
+		auto states = get_range(ws.w.nation_s.state_arrays, n.member_states);
+		int32_t total = 0;
+		for(auto s = states.first; s != states.second; ++s) {
+			if(auto si = s->state; si) {
+				total += count_factories_in_state(*si);
+			}
+		}
+		return total;
+	}
 }

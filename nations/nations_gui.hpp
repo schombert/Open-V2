@@ -2001,46 +2001,67 @@ namespace nations {
 	void nations_details_lb::populate_list(lb_type & lb, world_state & ws) {
 		std::vector<country_tag, concurrent_allocator<country_tag>> data;
 
-		switch(ws.w.diplomacy_w.sub_filter) {
+		switch(ws.w.diplomacy_w.filter) {
 			default:
-			case country_sub_filter::continent:
-				if(ws.w.diplomacy_w.filter_africa && ws.w.diplomacy_w.filter_asia && ws.w.diplomacy_w.filter_europe &&
-					ws.w.diplomacy_w.filter_oceania && ws.w.diplomacy_w.filter_north_america && ws.w.diplomacy_w.filter_south_america) {
-					ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
-						if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0)
+			case country_sub_filter::all:
+				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
+					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0)
+						data.push_back(id);
+				});
+				break;
+			case country_sub_filter::continent_africa:
+				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
+					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
+						if(is_valid_index(n.current_capital) &&
+							ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.africa_modifier)
 							data.push_back(id);
-					});
-				} else {
-					ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
-						if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
-							if(is_valid_index(n.current_capital) &&
-								ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.europe_modifier &&
-								ws.w.diplomacy_w.filter_europe)
-								data.push_back(id);
-							else if(is_valid_index(n.current_capital) &&
-								ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.africa_modifier &&
-								ws.w.diplomacy_w.filter_africa)
-								data.push_back(id);
-							else if(is_valid_index(n.current_capital) &&
-								ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.asia_modifier &&
-								ws.w.diplomacy_w.filter_asia)
-								data.push_back(id);
-							else if(is_valid_index(n.current_capital) &&
-								ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.north_america_modifier &&
-								ws.w.diplomacy_w.filter_north_america)
-								data.push_back(id);
-							else if(is_valid_index(n.current_capital) &&
-								ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.south_america_modifier &&
-								ws.w.diplomacy_w.filter_south_america)
-								data.push_back(id);
-							else if(is_valid_index(n.current_capital) &&
-								ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.oceania_modifier &&
-								ws.w.diplomacy_w.filter_oceania)
-								data.push_back(id);
-						}
-							
-					});
-				}
+					}
+				});
+				break;
+			case country_sub_filter::continent_asia:
+				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
+					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
+						if(is_valid_index(n.current_capital) &&
+							ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.asia_modifier)
+							data.push_back(id);
+					}
+				});
+				break;
+			case country_sub_filter::continent_europe:
+				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
+					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
+						if(is_valid_index(n.current_capital) &&
+							ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.europe_modifier)
+							data.push_back(id);
+					}
+				});
+				break;
+			case country_sub_filter::continent_north_america:
+				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
+					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
+						if(is_valid_index(n.current_capital) &&
+							ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.north_america_modifier)
+							data.push_back(id);
+					}
+				});
+				break;
+			case country_sub_filter::continent_oceania:
+				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
+					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
+						if(is_valid_index(n.current_capital) &&
+							ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.oceania_modifier)
+							data.push_back(id);
+					}
+				});
+				break;
+			case country_sub_filter::continent_south_america:
+				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
+					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
+						if(is_valid_index(n.current_capital) &&
+							ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.south_america_modifier)
+							data.push_back(id);
+					}
+				});
 				break;
 			case country_sub_filter::enemy:
 				if(auto player = ws.w.local_player_nation; player) {

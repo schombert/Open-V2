@@ -12,7 +12,13 @@ namespace nations {
 	class diplomacy_window_t;
 
 	enum class country_sub_filter : uint8_t {
-		continent,
+		all,
+		continent_asia,
+		continent_africa,
+		continent_oceania,
+		continent_north_america,
+		continent_south_america,
+		continent_europe,
 		neighbor,
 		ally,
 		enemy,
@@ -47,13 +53,7 @@ namespace nations {
 		nations::country_tag selected_nation;
 		bool goto_selected_pending = false;
 
-		bool filter_north_america = true;
-		bool filter_south_america = true;
-		bool filter_europe = true;
-		bool filter_africa = true;
-		bool filter_asia = true;
-		bool filter_oceania = true;
-		country_sub_filter sub_filter = country_sub_filter::continent;
+		country_sub_filter filter = country_sub_filter::all;
 
 		country_sort sort_type = country_sort::none;
 

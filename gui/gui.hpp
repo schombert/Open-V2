@@ -1,6 +1,7 @@
 #pragma once
 #include "gui.h"
 #include "graphics\\v2_window.h"
+#include "world_state\\world_state.h"
 
 #undef max
 #undef min

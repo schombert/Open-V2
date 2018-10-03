@@ -19,8 +19,7 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <FloatingPointModel>
-      </FloatingPointModel>
+      <FloatingPointModel>Fast</FloatingPointModel>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <SDLCheck>false</SDLCheck>
       <CompileAsManaged>false</CompileAsManaged>
@@ -34,6 +33,7 @@
       </CallingConvention>
       <ProgramDataBaseFileName>$(SolutionDir)..\open_v2_test_data\$(Configuration)\$(ProjectName).pdb</ProgramDataBaseFileName>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ConformanceMode>false</ConformanceMode>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

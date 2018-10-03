@@ -44,6 +44,8 @@
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\boost_1_68_0;$(ProjectDir)..</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <SupportJustMyCode>false</SupportJustMyCode>
+      <StringPooling>true</StringPooling>
+      <ConformanceMode>false</ConformanceMode>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>

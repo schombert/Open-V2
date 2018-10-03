@@ -10,6 +10,8 @@
 #include "modifiers\\modifiers_gui.h"
 #include "technologies\\technologies_functions.h"
 
+#undef small
+
 namespace triggers {
 	namespace {
 		inline uint32_t cmp_code_to_fixed_ui(uint16_t code) {

@@ -13,7 +13,7 @@ namespace governments {
 	void get_best_parties_at_date(party_tag* parties_out, cultures::national_tag tag, date_tag date, scenario::scenario_manager& s);
 	void silent_set_ruling_party(world_state& ws, nations::nation& this_nation, party_tag p); // does not update effects of changing party issues
 	void reset_upper_house(world_state& ws, nations::country_tag id);
-	void update_current_rules(world_state& ws, nations::nation& this_nation);
+	void update_current_rules(world_state const& ws, nations::nation& this_nation);
 	void silent_set_government(world_state& ws, nations::nation& this_nation, government_tag g);
 	void start_election(world_state& ws, nations::nation& this_nation);
 	date_tag election_end_date(world_state& ws, nations::nation const& this_nation);

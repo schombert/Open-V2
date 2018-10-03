@@ -378,7 +378,7 @@ RGBE_to_RGBdivA
 		m = (r > g) ? r : g;
 		m = (b > m) ? b : m;
 		/* and encode it into RGBdivA */
-		iv = (m != 0.0f) ? (int)(255.0f / m) : 1.0f;
+		iv = (int)((m != 0.0f) ? (int)(255.0f / m) : 1.0f);
 		iv = (iv < 1) ? 1 : iv;
 		img[3] = (unsigned char)((iv > 255) ? 255 : iv);
 		iv = (int)(img[3] * r + 0.5f);
@@ -428,7 +428,7 @@ RGBE_to_RGBdivA2
 		m = (b > m) ? b : m;
 		/* and encode it into RGBdivA */
 		float sqresult = sqrtf(255.0f * 255.0f / m);
-		iv = (m != 0.0f) ? (int)sqresult : 1.0f;
+		iv = (int)((m != 0.0f) ? (int)sqresult : 1.0f);
 		iv = (iv < 1) ? 1 : iv;
 		img[3] = (unsigned char)((iv > 255) ? 255 : iv);
 		iv = (int)(img[3] * img[3] * r / 255.0f + 0.5f);

@@ -45,4 +45,7 @@ namespace economy {
 
 	void init_factory_employment(world_state& ws);
 	float get_per_worker_profit(world_state const& ws, nations::state_instance const& si, factory_instance const& fi);
+	bool possible_to_invest_in(world_state const& ws, nations::nation const& investor, nations::nation const& target);
+	int32_t count_factories_in_state(nations::state_instance const& si);
+	int32_t count_factories_in_nation(world_state const& ws, nations::nation const& n);
 }

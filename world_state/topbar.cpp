@@ -30,7 +30,8 @@ namespace current_state {
 				ico.set_frame(ws.w.gui_m, 2ui32);
 		}
 	}
-	void production_button::button_function(ui::simple_button<production_button>&, world_state &) {
+	void production_button::button_function(ui::simple_button<production_button>&, world_state & ws) {
+		ws.w.production_w.show_factories(ws.w.gui_m);
 	}
 	void production_button::update(ui::simple_button<production_button>& self, world_state & ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);

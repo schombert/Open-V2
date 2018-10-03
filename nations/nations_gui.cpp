@@ -195,169 +195,143 @@ namespace nations {
 		ui::clear_children(ws.w.gui_m, ui::tagged_gui_object{ *self.associated_object, ui::gui_object_tag(0) });
 	}
 	void filter_all_button::update(ui::simple_button<filter_all_button>& self, world_state & ws) {
-		if(ws.w.diplomacy_w.filter_africa && ws.w.diplomacy_w.filter_asia && ws.w.diplomacy_w.filter_europe &&
-			ws.w.diplomacy_w.filter_oceania && ws.w.diplomacy_w.filter_north_america && ws.w.diplomacy_w.filter_south_america
-			&& ws.w.diplomacy_w.sub_filter == country_sub_filter::continent) {
+		if(ws.w.diplomacy_w.filter == country_sub_filter::all) {
 			self.associated_object->flags.fetch_and(uint16_t(~ui::gui_object::display_as_disabled), std::memory_order_release);
 		} else {
 			self.associated_object->flags.fetch_or(ui::gui_object::display_as_disabled, std::memory_order_release);
 		}
 	}
 	void filter_all_button::button_function(ui::simple_button<filter_all_button>&, world_state & ws) {
-		ws.w.diplomacy_w.filter_north_america = true;
-		ws.w.diplomacy_w.filter_south_america = true;
-		ws.w.diplomacy_w.filter_europe = true;
-		ws.w.diplomacy_w.filter_africa = true;
-		ws.w.diplomacy_w.filter_asia = true;
-		ws.w.diplomacy_w.filter_oceania = true;
-		ws.w.diplomacy_w.sub_filter = country_sub_filter::continent;
+		ws.w.diplomacy_w.filter = country_sub_filter::all;
 		ws.w.diplomacy_w.update_diplomacy_window(ws.w.gui_m);
 	}
 	void filter_north_america_button::update(ui::simple_button<filter_north_america_button>& self, world_state & ws) {
-		if(ws.w.diplomacy_w.filter_north_america) {
+		if(ws.w.diplomacy_w.filter == country_sub_filter::continent_north_america) {
 			self.associated_object->flags.fetch_and(uint16_t(~ui::gui_object::display_as_disabled), std::memory_order_release);
 		} else {
 			self.associated_object->flags.fetch_or(ui::gui_object::display_as_disabled, std::memory_order_release);
 		}
 	}
 	void filter_north_america_button::button_function(ui::simple_button<filter_north_america_button>&, world_state & ws) {
-		ws.w.diplomacy_w.filter_north_america = !ws.w.diplomacy_w.filter_north_america;
-		ws.w.diplomacy_w.sub_filter = country_sub_filter::continent;
+		ws.w.diplomacy_w.filter = (ws.w.diplomacy_w.filter == country_sub_filter::continent_north_america) ?
+			country_sub_filter::all :
+			country_sub_filter::continent_north_america;
 		ws.w.diplomacy_w.update_diplomacy_window(ws.w.gui_m);
 	}
 	void filter_south_america_button::update(ui::simple_button<filter_south_america_button>& self, world_state & ws) {
-		if(ws.w.diplomacy_w.filter_south_america) {
+		if(ws.w.diplomacy_w.filter == country_sub_filter::continent_south_america) {
 			self.associated_object->flags.fetch_and(uint16_t(~ui::gui_object::display_as_disabled), std::memory_order_release);
 		} else {
 			self.associated_object->flags.fetch_or(ui::gui_object::display_as_disabled, std::memory_order_release);
 		}
 	}
 	void filter_south_america_button::button_function(ui::simple_button<filter_south_america_button>&, world_state & ws) {
-		ws.w.diplomacy_w.filter_south_america = !ws.w.diplomacy_w.filter_south_america;
-		ws.w.diplomacy_w.sub_filter = country_sub_filter::continent;
+		ws.w.diplomacy_w.filter = (ws.w.diplomacy_w.filter == country_sub_filter::continent_south_america) ?
+			country_sub_filter::all :
+			country_sub_filter::continent_south_america;
 		ws.w.diplomacy_w.update_diplomacy_window(ws.w.gui_m);
 	}
 	void filter_europe_button::update(ui::simple_button<filter_europe_button>& self, world_state & ws) {
-		if(ws.w.diplomacy_w.filter_europe) {
+		if(ws.w.diplomacy_w.filter == country_sub_filter::continent_europe) {
 			self.associated_object->flags.fetch_and(uint16_t(~ui::gui_object::display_as_disabled), std::memory_order_release);
 		} else {
 			self.associated_object->flags.fetch_or(ui::gui_object::display_as_disabled, std::memory_order_release);
 		}
 	}
 	void filter_europe_button::button_function(ui::simple_button<filter_europe_button>&, world_state & ws) {
-		ws.w.diplomacy_w.filter_europe = !ws.w.diplomacy_w.filter_europe;
-		ws.w.diplomacy_w.sub_filter = country_sub_filter::continent;
+		ws.w.diplomacy_w.filter = (ws.w.diplomacy_w.filter == country_sub_filter::continent_europe) ?
+			country_sub_filter::all :
+			country_sub_filter::continent_europe;
 		ws.w.diplomacy_w.update_diplomacy_window(ws.w.gui_m);
 	}
 	void filter_africa_button::update(ui::simple_button<filter_africa_button>& self, world_state & ws) {
-		if(ws.w.diplomacy_w.filter_africa) {
+		if(ws.w.diplomacy_w.filter == country_sub_filter::continent_africa) {
 			self.associated_object->flags.fetch_and(uint16_t(~ui::gui_object::display_as_disabled), std::memory_order_release);
 		} else {
 			self.associated_object->flags.fetch_or(ui::gui_object::display_as_disabled, std::memory_order_release);
 		}
 	}
 	void filter_africa_button::button_function(ui::simple_button<filter_africa_button>&, world_state & ws) {
-		ws.w.diplomacy_w.filter_africa = !ws.w.diplomacy_w.filter_africa;
-		ws.w.diplomacy_w.sub_filter = country_sub_filter::continent;
+		ws.w.diplomacy_w.filter = (ws.w.diplomacy_w.filter == country_sub_filter::continent_africa) ?
+			country_sub_filter::all :
+			country_sub_filter::continent_africa;
 		ws.w.diplomacy_w.update_diplomacy_window(ws.w.gui_m);
 	}
 	void filter_asia_button::update(ui::simple_button<filter_asia_button>& self, world_state & ws) {
-		if(ws.w.diplomacy_w.filter_asia) {
+		if(ws.w.diplomacy_w.filter == country_sub_filter::continent_asia) {
 			self.associated_object->flags.fetch_and(uint16_t(~ui::gui_object::display_as_disabled), std::memory_order_release);
 		} else {
 			self.associated_object->flags.fetch_or(ui::gui_object::display_as_disabled, std::memory_order_release);
 		}
 	}
 	void filter_asia_button::button_function(ui::simple_button<filter_asia_button>&, world_state & ws) {
-		ws.w.diplomacy_w.filter_asia = !ws.w.diplomacy_w.filter_asia;
-		ws.w.diplomacy_w.sub_filter = country_sub_filter::continent;
+		ws.w.diplomacy_w.filter = (ws.w.diplomacy_w.filter == country_sub_filter::continent_asia) ?
+			country_sub_filter::all :
+			country_sub_filter::continent_asia;
 		ws.w.diplomacy_w.update_diplomacy_window(ws.w.gui_m);
 	}
 	void filter_oceania_button::update(ui::simple_button<filter_oceania_button>& self, world_state & ws) {
-		if(ws.w.diplomacy_w.filter_oceania) {
+		if(ws.w.diplomacy_w.filter == country_sub_filter::continent_oceania) {
 			self.associated_object->flags.fetch_and(uint16_t(~ui::gui_object::display_as_disabled), std::memory_order_release);
 		} else {
 			self.associated_object->flags.fetch_or(ui::gui_object::display_as_disabled, std::memory_order_release);
 		}
 	}
 	void filter_oceania_button::button_function(ui::simple_button<filter_oceania_button>&, world_state & ws) {
-		ws.w.diplomacy_w.filter_oceania = !ws.w.diplomacy_w.filter_oceania;
-		ws.w.diplomacy_w.sub_filter = country_sub_filter::continent;
+		ws.w.diplomacy_w.filter = (ws.w.diplomacy_w.filter == country_sub_filter::continent_oceania) ?
+			country_sub_filter::all :
+			country_sub_filter::continent_oceania;
 		ws.w.diplomacy_w.update_diplomacy_window(ws.w.gui_m);
 	}
 	void filter_neighbours_button::update(ui::simple_button<filter_neighbours_button>& self, world_state & ws) {
-		if(ws.w.diplomacy_w.sub_filter == country_sub_filter::neighbor) {
+		if(ws.w.diplomacy_w.filter == country_sub_filter::neighbor) {
 			self.associated_object->flags.fetch_and(uint16_t(~ui::gui_object::display_as_disabled), std::memory_order_release);
 		} else {
 			self.associated_object->flags.fetch_or(ui::gui_object::display_as_disabled, std::memory_order_release);
 		}
 	}
 	void filter_neighbours_button::button_function(ui::simple_button<filter_neighbours_button>&, world_state & ws) {
-		ws.w.diplomacy_w.filter_north_america = true;
-		ws.w.diplomacy_w.filter_south_america = true;
-		ws.w.diplomacy_w.filter_europe = true;
-		ws.w.diplomacy_w.filter_africa = true;
-		ws.w.diplomacy_w.filter_asia = true;
-		ws.w.diplomacy_w.filter_oceania = true;
-		ws.w.diplomacy_w.sub_filter = (ws.w.diplomacy_w.sub_filter == country_sub_filter::neighbor) ?
-			country_sub_filter::continent :
+		ws.w.diplomacy_w.filter = (ws.w.diplomacy_w.filter == country_sub_filter::neighbor) ?
+			country_sub_filter::all :
 			country_sub_filter::neighbor;
 		ws.w.diplomacy_w.update_diplomacy_window(ws.w.gui_m);
 	}
 	void filter_sphere_button::update(ui::simple_button<filter_sphere_button>& self, world_state & ws) {
-		if(ws.w.diplomacy_w.sub_filter == country_sub_filter::sphere) {
+		if(ws.w.diplomacy_w.filter == country_sub_filter::sphere) {
 			self.associated_object->flags.fetch_and(uint16_t(~ui::gui_object::display_as_disabled), std::memory_order_release);
 		} else {
 			self.associated_object->flags.fetch_or(ui::gui_object::display_as_disabled, std::memory_order_release);
 		}
 	}
 	void filter_sphere_button::button_function(ui::simple_button<filter_sphere_button>&, world_state & ws) {
-		ws.w.diplomacy_w.filter_north_america = true;
-		ws.w.diplomacy_w.filter_south_america = true;
-		ws.w.diplomacy_w.filter_europe = true;
-		ws.w.diplomacy_w.filter_africa = true;
-		ws.w.diplomacy_w.filter_asia = true;
-		ws.w.diplomacy_w.filter_oceania = true;
-		ws.w.diplomacy_w.sub_filter = (ws.w.diplomacy_w.sub_filter == country_sub_filter::sphere) ?
-			country_sub_filter::continent :
+		ws.w.diplomacy_w.filter = (ws.w.diplomacy_w.filter == country_sub_filter::sphere) ?
+			country_sub_filter::all :
 			country_sub_filter::sphere;
 		ws.w.diplomacy_w.update_diplomacy_window(ws.w.gui_m);
 	}
 	void filter_enemies_button::update(ui::simple_button<filter_enemies_button>& self, world_state & ws) {
-		if(ws.w.diplomacy_w.sub_filter == country_sub_filter::enemy) {
+		if(ws.w.diplomacy_w.filter == country_sub_filter::enemy) {
 			self.associated_object->flags.fetch_and(uint16_t(~ui::gui_object::display_as_disabled), std::memory_order_release);
 		} else {
 			self.associated_object->flags.fetch_or(ui::gui_object::display_as_disabled, std::memory_order_release);
 		}
 	}
 	void filter_enemies_button::button_function(ui::simple_button<filter_enemies_button>&, world_state & ws) {
-		ws.w.diplomacy_w.filter_north_america = true;
-		ws.w.diplomacy_w.filter_south_america = true;
-		ws.w.diplomacy_w.filter_europe = true;
-		ws.w.diplomacy_w.filter_africa = true;
-		ws.w.diplomacy_w.filter_asia = true;
-		ws.w.diplomacy_w.filter_oceania = true;
-		ws.w.diplomacy_w.sub_filter = (ws.w.diplomacy_w.sub_filter == country_sub_filter::enemy) ?
-			country_sub_filter::continent :
+		ws.w.diplomacy_w.filter = (ws.w.diplomacy_w.filter == country_sub_filter::enemy) ?
+			country_sub_filter::all :
 			country_sub_filter::enemy;
 		ws.w.diplomacy_w.update_diplomacy_window(ws.w.gui_m);
 	}
 	void filter_allies_button::update(ui::simple_button<filter_allies_button>& self, world_state & ws) {
-		if(ws.w.diplomacy_w.sub_filter == country_sub_filter::ally) {
+		if(ws.w.diplomacy_w.filter == country_sub_filter::ally) {
 			self.associated_object->flags.fetch_and(uint16_t(~ui::gui_object::display_as_disabled), std::memory_order_release);
 		} else {
 			self.associated_object->flags.fetch_or(ui::gui_object::display_as_disabled, std::memory_order_release);
 		}
 	}
 	void filter_allies_button::button_function(ui::simple_button<filter_allies_button>&, world_state & ws) {
-		ws.w.diplomacy_w.filter_north_america = true;
-		ws.w.diplomacy_w.filter_south_america = true;
-		ws.w.diplomacy_w.filter_europe = true;
-		ws.w.diplomacy_w.filter_africa = true;
-		ws.w.diplomacy_w.filter_asia = true;
-		ws.w.diplomacy_w.filter_oceania = true;
-		ws.w.diplomacy_w.sub_filter = (ws.w.diplomacy_w.sub_filter == country_sub_filter::ally) ?
-			country_sub_filter::continent :
+		ws.w.diplomacy_w.filter = (ws.w.diplomacy_w.filter == country_sub_filter::ally) ?
+			country_sub_filter::all :
 			country_sub_filter::ally;
 		ws.w.diplomacy_w.update_diplomacy_window(ws.w.gui_m);
 	}

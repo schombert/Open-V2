@@ -568,6 +568,12 @@ namespace nations {
 		});
 	}
 
+	void fix_capitals(world_state& ws) {
+		ws.w.nation_s.nations.for_each([&ws](nations::nation& n) {
+			if(!is_valid_index(n.current_capital) || ws.w.province_s.province_state_container[n.current_capital].owner != &n)
+				n.current_capital = find_best_capital(ws, n);
+		});
+	}
 	provinces::province_tag find_best_capital(world_state const& ws, nation const& owner) {
 		if(is_valid_index(owner.tag)) {
 			const auto tag_capital = ws.w.culture_s.national_tags_state[owner.tag].capital;
@@ -1073,7 +1079,9 @@ namespace nations {
 
 	void update_nation_ranks(world_state& ws) {
 		uint32_t nations_count = 0;
-		ws.w.nation_s.nations.for_each([&nations_count](nations::nation const&) { ++nations_count; });
+		ws.w.nation_s.nations.for_each([&nations_count](nations::nation const& n) {
+			++nations_count;
+		});
 
 		nations::nation** temp_buf = (nations::nation**)_alloca(sizeof(nations::nation*) * nations_count);
 
@@ -1103,6 +1111,7 @@ namespace nations {
 		});
 		std::stable_partition(temp_buf, temp_buf + nations_count, [](nations::nation const* a) { return a->overlord == nullptr; });
 		std::stable_partition(temp_buf, temp_buf + nations_count, [](nations::nation const* a) { return (a->flags & nations::nation::is_civilized) != 0; });
+		std::stable_partition(temp_buf, temp_buf + nations_count, [](nations::nation const* a) { return is_valid_index(a->current_capital); });
 
 		resize(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank, nations_count);
 		for(uint32_t i = 0; i < nations_count; ++i) {
@@ -1207,15 +1216,6 @@ namespace nations {
 		} else {
 			set_influence_value(ws, nation_by, nation_target, influence_result);
 		}
-	}
-
-	int32_t count_factories_in_state(nations::state_instance const& si) {
-		int32_t sum = 0;
-		for(uint32_t i = 0; i < std::extent_v<decltype(si.factories)>; ++i) {
-			if(si.factories[i].level != 0)
-				++sum;
-		}
-		return sum;
 	}
 
 	text_data::text_tag influence_level_to_text(world_state const& ws, int32_t i) {

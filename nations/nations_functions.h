@@ -19,6 +19,7 @@ namespace nations {
 	bool is_colonial_or_protectorate(state_instance const& s);
 	void update_state_nation_demographics(world_state& ws);
 	provinces::province_tag find_best_capital(world_state const& ws, nation const& owner);
+	void fix_capitals(world_state& ws);
 	void set_relationship(world_state& ws, nation& a, nation& b, int32_t value);
 	int32_t get_relationship(world_state const& ws, nation const& a, country_tag b);
 	void adjust_relationship(world_state& ws, nation& a, nation& b, int32_t value);
@@ -81,8 +82,6 @@ namespace nations {
 
 	int32_t calculate_industrial_score(world_state const& ws, nations::nation const& this_nation);
 	int32_t calculate_military_score(world_state const& ws, nations::nation const& this_nation);
-
-	int32_t count_factories_in_state(nations::state_instance const& si);
 
 	void update_nation_ranks(world_state& ws);
 	void civilize_nation(world_state& ws, nations::nation& this_nation);

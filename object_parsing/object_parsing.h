@@ -6,6 +6,13 @@
 #include "Parsers\\parsers.h"
 #include "text_classifier\\text_classifiers.h"
 
+#ifdef _DEBUG
+#include <Windows.h>
+#undef min
+#undef max
+#undef small
+#endif
+
 template<typename result_type>
 class object_parser {
 private:

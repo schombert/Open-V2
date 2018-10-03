@@ -592,6 +592,8 @@ int main(int , char **) {
 		provinces::update_province_demographics(ws);
 		nations::update_state_nation_demographics(ws);
 
+		nations::fix_capitals(ws);
+
 		events::execute_decision_set(decisions, ws);
 
 		ws.w.local_player_nation = &ws.w.nation_s.nations[nations::country_tag(1)];

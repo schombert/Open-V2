@@ -9,6 +9,7 @@
 #include "nations\\nations_functions.hpp"
 #include "modifiers\\modifiers_gui.h"
 #include "technologies\\technologies_functions.h"
+#undef small
 
 namespace triggers {
 

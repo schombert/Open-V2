@@ -4,6 +4,7 @@
 #include <random>
 #include "nations\\nations_functions.hpp"
 #include "provinces\\province_functions.h"
+#include "economy\\economy_functions.h"
 
 namespace military {
 	void init_military_state(world_state& ws) {
@@ -550,7 +551,7 @@ namespace military {
 	}
 
 	float single_state_war_score(world_state const& ws, nations::state_instance const& si, float owner_total_pop) {
-		int32_t factory_count = nations::count_factories_in_state(si);
+		int32_t factory_count = economy::count_factories_in_state(si);
 		auto owner = si.owner;
 		float running_total = 0.0f;
 

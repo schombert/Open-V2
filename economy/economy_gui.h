@@ -12,7 +12,13 @@ namespace economy {
 	class production_window_t;
 
 	enum class country_sub_filter : uint8_t {
-		continent,
+		all,
+		continent_asia,
+		continent_africa,
+		continent_oceania,
+		continent_north_america,
+		continent_south_america,
+		continent_europe,
 		neighbor,
 		ally,
 		enemy,
@@ -22,7 +28,7 @@ namespace economy {
 	enum class country_sort : uint8_t {
 		none,
 		name,
-		priority,
+		gp_self,
 		gp_one,
 		gp_two,
 		gp_three,
@@ -37,7 +43,16 @@ namespace economy {
 		military_rank,
 		overall_rank,
 		opinion,
-		relation
+		relation,
+		number_of_factories
+	};
+
+	enum class project_sort : uint8_t {
+		none,
+		state,
+		project_type,
+		completion,
+		investors
 	};
 
 	class production_window {
@@ -46,15 +61,9 @@ namespace economy {
 
 		nations::country_tag foreign_investment_nation;
 
-		bool filter_north_america = true;
-		bool filter_south_america = true;
-		bool filter_europe = true;
-		bool filter_africa = true;
-		bool filter_asia = true;
-		bool filter_oceania = true;
-		country_sub_filter sub_filter = country_sub_filter::continent;
-
+		country_sub_filter filter = country_sub_filter::all;
 		country_sort sort_type = country_sort::none;
+		project_sort project_sort_type = project_sort::none;
 
 		production_window();
 		~production_window();

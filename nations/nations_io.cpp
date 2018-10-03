@@ -9,6 +9,7 @@
 #include "nations\\nations_functions.h"
 #include "technologies\\technologies_functions.h"
 #include "military\\military_functions.h"
+#include "issues\\issues_functions.h"
 
 #undef max
 #undef min
@@ -294,6 +295,8 @@ void serialization::serializer<nations::nation>::deserialize_object(std::byte co
 	deserialize_stable_array(input, ws.w.military_s.war_arrays, obj.wars_involved_in);
 	deserialize_stable_array(input, ws.w.population_s.rebel_faction_arrays, obj.active_rebel_factions);
 	deserialize_stable_array(input, ws.w.population_s.pop_movement_arrays, obj.active_movements);
+
+	governments::update_current_rules(ws, obj);
 }
 
 size_t serialization::serializer<nations::nation>::size(nations::nation const & obj, world_state const& ws) {

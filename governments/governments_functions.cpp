@@ -64,7 +64,7 @@ namespace governments {
 		upper_house[to_index(ws.s.ideologies_m.conservative_ideology)] = 100ui8;
 	}
 
-	void update_current_rules(world_state& ws, nations::nation& this_nation) {
+	void update_current_rules(world_state const& ws, nations::nation& this_nation) {
 		this_nation.current_rules.rules_value = 0ui32;
 
 		uint32_t max_issues = uint32_t(ws.s.issues_m.issues_container.size());
