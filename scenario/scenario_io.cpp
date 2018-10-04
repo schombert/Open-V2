@@ -693,5 +693,7 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::justify_war_button] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "MAKE_CB_BUTTON");
 		s.fixed_ui_text[fixed_ui::declare_war_button] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "WAR_BUTTON");
 		s.fixed_ui_text[fixed_ui::offer_peace_button] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PEACE_BUTTON");
+		s.fixed_ui_text[fixed_ui::show_empty_states] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PRODUCTION_SHOW_EMPTY_STATES");
+		s.fixed_ui_text[fixed_ui::hide_empty_states] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PRODUCTION_HIDE_EMPTY_STATES");
 	}
 }

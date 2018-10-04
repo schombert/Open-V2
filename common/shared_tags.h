@@ -2,7 +2,7 @@
 #include "common.h"
 #include <variant>
 
-using date_tag = tag_type<int32_t, std::true_type, std::integral_constant<size_t, 42>>;
+using date_tag = tag_type<int32_t, std::true_type, struct date_tag_type>;
 
 inline const boost::gregorian::date base_date(1800, boost::gregorian::Jan, 1);
 
@@ -28,110 +28,110 @@ inline boost::gregorian::date tag_to_date(date_tag t) {
 }
 
 namespace graphics {
-	using obj_definition_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 174634>>;
-	using texture_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 74896>>;
-	using font_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 860367>>;
+	using obj_definition_tag = tag_type<uint16_t, std::true_type, struct obj_definition_tag_type>;
+	using texture_tag = tag_type<uint16_t, std::true_type, struct texture_tag_type>;
+	using font_tag = tag_type<uint8_t, std::true_type, struct font_tag_type>;
 }
 
 namespace sound {
-	using effect_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 370167>>;
-	using music_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 370168>>;
+	using effect_tag = tag_type<uint8_t, std::true_type, struct effect_tag_type>;
+	using music_tag = tag_type<uint8_t, std::true_type, struct music_tag_type>;
 }
 
 namespace ui {
-	using button_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 15356>>;
-	using icon_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 15357>>;
-	using text_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 15358>>;
-	using position_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 15359>>;
-	using overlapping_region_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 15360>>;
-	using listbox_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 15361>>;
-	using scrollbar_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 15362>>;
-	using window_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 15363>>;
+	using button_tag = tag_type<uint16_t, std::true_type, struct button_tag_type>;
+	using icon_tag = tag_type<uint16_t, std::true_type, struct icon_tag_type>;
+	using text_tag = tag_type<uint16_t, std::true_type, struct text_tag_type>;
+	using position_tag = tag_type<uint16_t, std::true_type, struct position_tag_type>;
+	using overlapping_region_tag = tag_type<uint16_t, std::true_type, struct overlapping_region_tag_type>;
+	using listbox_tag = tag_type<uint16_t, std::true_type, struct listbox_tag_type>;
+	using scrollbar_tag = tag_type<uint16_t, std::true_type, struct scrollbar_tag_type>;
+	using window_tag = tag_type<uint16_t, std::true_type, struct window_tag_type>;
 
 	using element_tag = std::variant<std::monostate, button_tag, icon_tag, text_tag, position_tag, overlapping_region_tag, listbox_tag, scrollbar_tag, window_tag>;
 
-	using gui_object_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 856623>>;
-	using text_instance_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 856624>>;
-	using graphics_instance_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 856625>>;
-	using multi_texture_instance_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 856626>>;
-	using data_texture_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 856627>>;
-	using lines_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 856628>>;
-	using tinted_icon_instance_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 856629>>;
+	using gui_object_tag = tag_type<uint16_t, std::true_type, struct gui_object_tag_type>;
+	using text_instance_tag = tag_type<uint16_t, std::true_type, struct text_instance_tag_type>;
+	using graphics_instance_tag = tag_type<uint16_t, std::true_type, struct graphics_instance_tag_type>;
+	using multi_texture_instance_tag = tag_type<uint16_t, std::true_type, struct multi_texture_instance_tag_type>;
+	using data_texture_tag = tag_type<uint16_t, std::true_type, struct data_texture_tag_type>;
+	using lines_tag = tag_type<uint16_t, std::true_type, struct lines_tag_type>;
+	using tinted_icon_instance_tag = tag_type<uint16_t, std::true_type, struct tinted_icon_instance_tag_type>;
 }
 
 namespace technologies {
-	using tech_category_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 72648>>;
-	using tech_subcategory_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 72649>>;
-	using tech_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 72650>>;
-	using rebel_adjustment_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 72651>>;
-	using production_adjustment_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 72652>>;
-	using unit_adjustment_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 72653>>;
+	using tech_category_tag = tag_type<uint8_t, std::true_type, struct tech_category_tag_type>;
+	using tech_subcategory_tag = tag_type<uint8_t, std::true_type, struct tech_subcategory_tag_type>;
+	using tech_tag = tag_type<uint16_t, std::true_type, struct tech_tag_type>;
+	using rebel_adjustment_tag = tag_type<uint16_t, std::true_type, struct rebel_adjustment_tag_type>;
+	using production_adjustment_tag = tag_type<uint16_t, std::true_type, struct production_adjustment_tag_type>;
+	using unit_adjustment_tag = tag_type<uint16_t, std::true_type, struct unit_adjustment_tag_type>;
 }
 
 namespace ideologies {
-	using ideology_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 785057>>;
-	using ideology_group_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 785058>>;
+	using ideology_tag = tag_type<uint8_t, std::true_type, struct ideology_tag_type>;
+	using ideology_group_tag = tag_type<uint8_t, std::true_type, struct ideology_group_tag_type>;
 }
 
 namespace issues {
-	using issue_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 8563>>;
-	using option_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 8565>>;
+	using issue_tag = tag_type<uint8_t, std::true_type, struct issue_tag_type>;
+	using option_tag = tag_type<uint8_t, std::true_type, struct option_tag_type>;
 }
 
 namespace population {
-	using pop_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 395725>>;
-	using pop_tag = tag_type<uint32_t, std::true_type, std::integral_constant<size_t, 395726>>;
-	using rebel_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 395727>>;
-	using rebel_faction_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 395728>>;
-	using movement_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 395729>>;
-	using demo_tag = tag_type<uint32_t, std::true_type, std::integral_constant<size_t, 395730>>;
-	using fp_demo_tag = tag_type<uint32_t, std::true_type, std::integral_constant<size_t, 395731>>;
+	using pop_type_tag = tag_type<uint8_t, std::true_type, struct pop_type_tag_type>;
+	using pop_tag = tag_type<uint32_t, std::true_type, struct pop_tag_type>;
+	using rebel_type_tag = tag_type<uint8_t, std::true_type, struct rebel_type_tag_type>;
+	using rebel_faction_tag = tag_type<uint16_t, std::true_type, struct rebel_faction_tag_type>;
+	using movement_tag = tag_type<uint16_t, std::true_type, struct movement_tag_type>;
+	using demo_tag = tag_type<uint32_t, std::true_type, struct demo_tag_type>;
+	using fp_demo_tag = tag_type<uint32_t, std::true_type, struct fp_demo_tag_type>;
 }
 
 namespace economy {
-	using goods_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 7490175>>;
-	using goods_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 7490176>>;
-	using factory_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 7490177>>;
-	using artisan_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 7490178>>;
+	using goods_tag = tag_type<uint8_t, std::true_type, struct goods_tag_type>;
+	using goods_type_tag = tag_type<uint8_t, std::true_type, struct goods_type_tag_type>;
+	using factory_type_tag = tag_type<uint8_t, std::true_type, struct factory_type_tag_type>;
+	using artisan_type_tag = tag_type<uint8_t, std::true_type, struct artisan_type_tag_type>;
 
 	using goods_qnty_type = double;
 	using money_qnty_type = double;
 }
 
 namespace cultures {
-	using culture_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 7367521>>;
-	using culture_group_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 7367522>>;
-	using religion_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 7367523>>;
-	using national_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 7367524>>;
+	using culture_tag = tag_type<uint16_t, std::true_type, struct culture_tag_type>;
+	using culture_group_tag = tag_type<uint16_t, std::true_type, struct culture_group_tag_type>;
+	using religion_tag = tag_type<uint8_t, std::true_type, struct religion_tag_type>;
+	using national_tag = tag_type<uint16_t, std::true_type, struct national_tag_type>;
 }
 
 namespace nations {
-	using country_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 22120424>>;
-	using state_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 22120425>>;
+	using country_tag = tag_type<uint16_t, std::true_type, struct country_tag_type>;
+	using state_tag = tag_type<uint16_t, std::true_type, struct state_tag_type>;
 }
 
 namespace governments {
-	using government_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 30607523>>;
-	using party_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 30607524>>;
+	using government_tag = tag_type<uint8_t, std::true_type, struct government_tag_type>;
+	using party_tag = tag_type<uint16_t, std::true_type, struct party_tag_type>;
 }
 
 namespace modifiers {
-	using provincial_modifier_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 9478475>>;
-	using national_modifier_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 9478476>>;
-	using factor_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 9478477>>;
-	using national_focus_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 9478478>>;
+	using provincial_modifier_tag = tag_type<uint16_t, std::true_type, struct provincial_modifier_tag_type>;
+	using national_modifier_tag = tag_type<uint16_t, std::true_type, struct national_modifier_tag_type>;
+	using factor_tag = tag_type<uint16_t, std::true_type, struct factor_tag_type>;
+	using national_focus_tag = tag_type<uint8_t, std::true_type, struct national_focus_tag_type>;
 	using value_type = float;
 }
 
 namespace military {
-	using unit_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 647474>>;
-	using cb_type_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 647475>>;
-	using leader_trait_tag = tag_type<uint8_t, std::true_type, std::integral_constant<size_t, 647476>>;
-	using army_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 647477>>;
-	using leader_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 647478>>;
-	using fleet_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 647479>>;
-	using war_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 647480>>;
-	using army_orders_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 647481>>;
+	using unit_type_tag = tag_type<uint8_t, std::true_type, struct unit_type_tag_type>;
+	using cb_type_tag = tag_type<uint8_t, std::true_type, struct cb_type_tag_type>;
+	using leader_trait_tag = tag_type<uint8_t, std::true_type, struct leader_trait_tag_type>;
+	using army_tag = tag_type<uint16_t, std::true_type, struct army_tag_type>;
+	using leader_tag = tag_type<uint16_t, std::true_type, struct leader_tag_type>;
+	using fleet_tag = tag_type<uint16_t, std::true_type, struct fleet_tag_type>;
+	using war_tag = tag_type<uint16_t, std::true_type, struct war_tag_type>;
+	using army_orders_tag = tag_type<uint16_t, std::true_type, struct army_orders_tag_type>;
 
 	struct war_identifier {
 		war_tag war_id;
@@ -151,13 +151,13 @@ namespace military {
 }
 
 namespace provinces {
-	using province_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 77325564>>;
-	using state_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 77325565>>;
+	using province_tag = tag_type<uint16_t, std::true_type, struct province_tag_type>;
+	using state_tag = tag_type<uint16_t, std::true_type, struct state_tag_type>;
 }
 
 namespace triggers {
-	using trigger_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 93484522>>;
-	using effect_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 93484523>>;
+	using trigger_tag = tag_type<uint16_t, std::true_type, struct trigger_tag_type>;
+	using effect_tag = tag_type<uint16_t, std::true_type, struct effect_tag_type>;
 
 	enum class trigger_slot_contents {
 		empty = 0,
@@ -180,18 +180,18 @@ namespace triggers {
 }
 
 namespace text_data {
-	using text_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 342678>>;
+	using text_tag = tag_type<uint16_t, std::true_type, struct text_tag_type>;
 }
 
 namespace variables {
-	using national_variable_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 4745824>>;
-	using national_flag_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 4745825>>;
-	using global_variable_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 4745826>>;
+	using national_variable_tag = tag_type<uint16_t, std::true_type, struct national_variable_tag_type>;
+	using national_flag_tag = tag_type<uint16_t, std::true_type, struct national_flag_tag_type>;
+	using global_variable_tag = tag_type<uint16_t, std::true_type, struct global_variable_tag_type>;
 }
 
 namespace events {
-	using event_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 75935234>>;
-	using decision_tag = tag_type<uint16_t, std::true_type, std::integral_constant<size_t, 75935235>>;
+	using event_tag = tag_type<uint16_t, std::true_type, struct event_tag_type>;
+	using decision_tag = tag_type<uint16_t, std::true_type, struct decision_tag_type>;
 }
 
 template<typename tag_type, typename index_type, typename T, typename U>

@@ -345,7 +345,7 @@ namespace economy {
 
 	bool possible_to_invest_in(world_state const& ws, nations::nation const& investor, nations::nation const& target) {
 		return !nations::is_great_power(ws, target) && nations::is_great_power(ws, investor) &&
-			((investor.current_rules.rules_value & (issues::rules::open_factory_invest | issues::rules::expand_factory_invest)) != 0) &&
+			((investor.current_rules.rules_value & (issues::rules::open_factory_invest | issues::rules::expand_factory_invest | issues::rules::build_factory_invest)) != 0) &&
 			((target.current_rules.rules_value & issues::rules::allow_foreign_investment) != 0) && 
 			(investor.id != target.id);
 	}

@@ -622,3 +622,14 @@ public:
 	using reference = T*&;
 	using iterator_category = std::random_access_iterator_tag;
 };
+
+//based on: https://github.com/WojciechMula/toys/tree/master/simd-min-index
+
+int32_t minimum_index(int32_t const* data, int32_t size);
+int32_t maximum_index(int32_t const* data, int32_t size);
+int32_t minimum_index(int64_t const* data, int32_t size);
+int32_t maximum_index(int64_t const* data, int32_t size);
+int32_t minimum_index(float const* data, int32_t size);
+int32_t maximum_index(float const* data, int32_t size);
+int32_t minimum_index(double const* data, int32_t size);
+int32_t maximum_index(double const* data, int32_t size);

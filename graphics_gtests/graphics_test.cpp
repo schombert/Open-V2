@@ -254,7 +254,7 @@ TEST(graphics_tests, clipping) {
 	EXPECT_TRUE(test_rendering("D:\\VS2007Projects\\open_v2_test_data\\clipping_a", 0, 0, 80, 80, [](open_gl_wrapper& ogl) {
 		texture test_tex("D:\\VS2007Projects\\open_v2_test_data\\test_tx.bmp");
 
-		scissor_rect r1(10, 10, 60, 60);
+		scissor_rect r1(ogl, 10, 10, 60, 60);
 		ogl.render_textured_rect(true, 0.0f, 0.0f, 80.0f, 40.0f, test_tex);
 		ogl.render_textured_rect(false, 0.0f, 40.0f, 80.0f, 40.0f, test_tex);
 	}));
@@ -262,9 +262,9 @@ TEST(graphics_tests, clipping) {
 	EXPECT_TRUE(test_rendering("D:\\VS2007Projects\\open_v2_test_data\\clipping_b", 0, 0, 80, 80, [](open_gl_wrapper& ogl) {
 		texture test_tex("D:\\VS2007Projects\\open_v2_test_data\\test_tx.bmp");
 
-		scissor_rect r1(10, 10, 60, 60);
+		scissor_rect r1(ogl, 10, 10, 60, 60);
 		{
-			scissor_rect r2(0, 00, 40, 80);
+			scissor_rect r2(ogl, 0, 00, 40, 80);
 			ogl.render_textured_rect(true, 0.0f, 0.0f, 80.0f, 40.0f, test_tex);
 		}
 		ogl.render_textured_rect(false, 0.0f, 40.0f, 80.0f, 40.0f, test_tex);

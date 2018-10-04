@@ -611,8 +611,10 @@ namespace scenario {
 		constexpr uint32_t justify_war_button = 589ui32;
 		constexpr uint32_t declare_war_button = 590ui32;
 		constexpr uint32_t offer_peace_button = 591ui32;
+		constexpr uint32_t show_empty_states = 592ui32;
+		constexpr uint32_t hide_empty_states = 593ui32;
 
-		constexpr uint32_t count = 592ui32;
+		constexpr uint32_t count = 594ui32;
 	}
 
 	class scenario_manager {

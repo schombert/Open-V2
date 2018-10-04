@@ -55,6 +55,16 @@ namespace economy {
 		investors
 	};
 
+	enum class factories_sort : uint8_t {
+		none,
+		state_name,
+		worker_pop_a,
+		worker_pop_b,
+		owner_pop,
+		count,
+		infrastructure
+	};
+
 	class production_window {
 	public:
 		std::unique_ptr<production_window_t> win;
@@ -64,6 +74,9 @@ namespace economy {
 		country_sub_filter filter = country_sub_filter::all;
 		country_sort sort_type = country_sort::none;
 		project_sort project_sort_type = project_sort::none;
+		bool show_empty_states = true;
+		factories_sort factory_sort_type = factories_sort::none;
+		std::vector<uint8_t> factory_goods_filters;
 
 		production_window();
 		~production_window();

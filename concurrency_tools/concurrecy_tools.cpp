@@ -96,7 +96,7 @@ bool concurrent_string::operator==(const concurrent_string& o) const {
 	if (this_length != o.length())
 		return false;
 	else
-		return memcmp(c_str(), o.c_str(), this_length);
+	return memcmp(c_str(), o.c_str(), this_length);
 }
 
 concurrent_string& concurrent_string::operator=(const concurrent_string& o) {
@@ -115,7 +115,7 @@ concurrent_string& concurrent_string::operator+=(const concurrent_string& o) {
 	const auto this_len = length();
 	const auto other_len = o.length();
 	const auto total_len = this_len + other_len;
-	if (total_len <= (internal_concurrent_string_size - 1)) {
+	if(total_len <= (internal_concurrent_string_size - 1)) {
 		memcpy(_data.local_data + this_len, o._data.local_data, other_len);
 		_data.local_data[total_len] = 0;
 		_data.local_data[internal_concurrent_string_size - 1] = static_cast<char>((internal_concurrent_string_size - 1) - (total_len));
@@ -138,7 +138,7 @@ concurrent_string& concurrent_string::operator+=(const char* o) {
 	const auto this_len = length();
 	const auto other_len = strlen(o);
 	const auto total_len = this_len + other_len;
-	if (total_len <= (internal_concurrent_string_size - 1)) {
+	if(total_len <= (internal_concurrent_string_size - 1)) {
 		memcpy(_data.local_data + this_len, o, other_len);
 		_data.local_data[total_len] = 0;
 		_data.local_data[internal_concurrent_string_size - 1] = static_cast<char>((internal_concurrent_string_size - 1) - (total_len));
@@ -158,7 +158,7 @@ concurrent_string& concurrent_string::operator+=(const char* o) {
 }
 
 uint32_t concurrent_string::length() const {
-	if (_data.local_data[internal_concurrent_string_size - 1] != 127) {
+	if(_data.local_data[internal_concurrent_string_size - 1] != 127) {
 		return static_cast<uint32_t>(static_cast<int32_t>(internal_concurrent_string_size) - (_data.local_data[internal_concurrent_string_size - 1] + 1));
 	} else {
 		return _data.remote_data.length;
@@ -166,7 +166,7 @@ uint32_t concurrent_string::length() const {
 }
 
 const char* concurrent_string::c_str() const {
-	if (_data.local_data[internal_concurrent_string_size - 1] != 127) {
+	if(_data.local_data[internal_concurrent_string_size - 1] != 127) {
 		return _data.local_data;
 	} else {
 		return _data.remote_data.data;

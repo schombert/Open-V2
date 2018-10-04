@@ -1223,3 +1223,423 @@ TEST(concurrency_tools, multiset_tags_interface) {
 	EXPECT_FALSE(contains_subitem(test_vec, set_a, if_pair{ 7, 1.0f }));
 	EXPECT_TRUE(contains_subitem(test_vec, set_a, if_pair{ 7, 2.0f }));
 }
+
+TEST(concurrency_tools, minimum_index_int32_t) {
+	int32_t values_a[] = {1, 6, 2, 7, 9, 11, 5, 7, -1};
+	EXPECT_EQ(minimum_index(values_a, 9), 8);
+	EXPECT_EQ(minimum_index(values_a, 8), 0);
+	EXPECT_EQ(minimum_index(values_a, 7), 0);
+	EXPECT_EQ(minimum_index(values_a, 6), 0);
+	EXPECT_EQ(minimum_index(values_a, 5), 0);
+	EXPECT_EQ(minimum_index(values_a, 4), 0);
+	EXPECT_EQ(minimum_index(values_a, 3), 0);
+	EXPECT_EQ(minimum_index(values_a, 2), 0);
+	EXPECT_EQ(minimum_index(values_a, 1), 0);
+
+	EXPECT_EQ(minimum_index(values_a + 1, 8), 7);
+	EXPECT_EQ(minimum_index(values_a + 1, 7), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 6), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 5), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 4), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 3), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 2), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 1), 0);
+
+	EXPECT_EQ(minimum_index(values_a + 2, 7), 6);
+	EXPECT_EQ(minimum_index(values_a + 2, 6), 0);
+	EXPECT_EQ(minimum_index(values_a + 2, 5), 0);
+	EXPECT_EQ(minimum_index(values_a + 2, 4), 0);
+	EXPECT_EQ(minimum_index(values_a + 2, 3), 0);
+	EXPECT_EQ(minimum_index(values_a + 2, 2), 0);
+	EXPECT_EQ(minimum_index(values_a + 2, 1), 0);
+
+	EXPECT_EQ(minimum_index(values_a + 3, 6), 5);
+	EXPECT_EQ(minimum_index(values_a + 3, 5), 3);
+	EXPECT_EQ(minimum_index(values_a + 3, 4), 3);
+	EXPECT_EQ(minimum_index(values_a + 3, 3), 0);
+	EXPECT_EQ(minimum_index(values_a + 3, 2), 0);
+	EXPECT_EQ(minimum_index(values_a + 3, 1), 0);
+
+	int32_t values_b[] = { 1, 6, 2, 7, 9, 11, 5, -1, 45, 29, 19, 12, -1, 23, 1, 0, 6 };
+	EXPECT_EQ(values_b[minimum_index(values_b, 17)], -1);
+	EXPECT_EQ(values_b[minimum_index(values_b, 16)], -1);
+	EXPECT_EQ(values_b[minimum_index(values_b, 15)], -1);
+	EXPECT_EQ(values_b[minimum_index(values_b, 14)], -1);
+	EXPECT_EQ(values_b[minimum_index(values_b, 13)], -1);
+	EXPECT_EQ(values_b[minimum_index(values_b, 12)], -1);
+
+	EXPECT_EQ(*(values_b + 1 + minimum_index(values_b + 1, 16)), -1);
+	EXPECT_EQ(*(values_b + 1 + minimum_index(values_b + 1, 15)), -1);
+	EXPECT_EQ(*(values_b + 1 + minimum_index(values_b + 1, 14)), -1);
+	EXPECT_EQ(*(values_b + 1 + minimum_index(values_b + 1, 13)), -1);
+	EXPECT_EQ(*(values_b + 1 + minimum_index(values_b + 1, 12)), -1);
+}
+
+TEST(concurrency_tools, maximum_index_int32_t) {
+	int32_t values_a[] = { 1, 6, 2, 7, 9, 11, 5, 7, -1 };
+	EXPECT_EQ(maximum_index(values_a, 9), 5);
+	EXPECT_EQ(maximum_index(values_a, 8), 5);
+	EXPECT_EQ(maximum_index(values_a, 7), 5);
+	EXPECT_EQ(maximum_index(values_a, 6), 5);
+	EXPECT_EQ(maximum_index(values_a, 5), 4);
+	EXPECT_EQ(maximum_index(values_a, 4), 3);
+	EXPECT_EQ(maximum_index(values_a, 3), 1);
+	EXPECT_EQ(maximum_index(values_a, 2), 1);
+	EXPECT_EQ(maximum_index(values_a, 1), 0);
+
+	EXPECT_EQ(maximum_index(values_a + 1, 8), 4);
+	EXPECT_EQ(maximum_index(values_a + 1, 7), 4);
+	EXPECT_EQ(maximum_index(values_a + 1, 6), 4);
+	EXPECT_EQ(maximum_index(values_a + 1, 5), 4);
+	EXPECT_EQ(maximum_index(values_a + 1, 4), 3);
+	EXPECT_EQ(maximum_index(values_a + 1, 3), 2);
+	EXPECT_EQ(maximum_index(values_a + 1, 2), 0);
+	EXPECT_EQ(maximum_index(values_a + 1, 1), 0);
+
+	EXPECT_EQ(maximum_index(values_a + 2, 7), 3);
+	EXPECT_EQ(maximum_index(values_a + 2, 6), 3);
+	EXPECT_EQ(maximum_index(values_a + 2, 5), 3);
+	EXPECT_EQ(maximum_index(values_a + 2, 4), 3);
+	EXPECT_EQ(maximum_index(values_a + 2, 3), 2);
+	EXPECT_EQ(maximum_index(values_a + 2, 2), 1);
+	EXPECT_EQ(maximum_index(values_a + 2, 1), 0);
+
+	EXPECT_EQ(maximum_index(values_a + 3, 6), 2);
+	EXPECT_EQ(maximum_index(values_a + 3, 5), 2);
+	EXPECT_EQ(maximum_index(values_a + 3, 4), 2);
+	EXPECT_EQ(maximum_index(values_a + 3, 3), 2);
+	EXPECT_EQ(maximum_index(values_a + 3, 2), 1);
+	EXPECT_EQ(maximum_index(values_a + 3, 1), 0);
+
+	int32_t values_b[] = { 45, 6, 2, 7, 9, 11, 5, -1, 45, 29, 19, 12, -1, 23, 1, 0, 6 };
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45);
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45);
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45);
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45);
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45);
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45);
+	EXPECT_EQ(maximum_index(values_b, 8), 0);
+
+	EXPECT_EQ(*(values_b + 1 + maximum_index(values_b + 1, 16)), 45);
+	EXPECT_EQ(*(values_b + 1 + maximum_index(values_b + 1, 15)), 45);
+	EXPECT_EQ(*(values_b + 1 + maximum_index(values_b + 1, 14)), 45);
+	EXPECT_EQ(*(values_b + 1 + maximum_index(values_b + 1, 13)), 45);
+	EXPECT_EQ(*(values_b + 1 + maximum_index(values_b + 1, 12)), 45);
+	EXPECT_EQ(maximum_index(values_b + 1, 8), 7);
+	EXPECT_EQ(maximum_index(values_b + 1, 7), 4);
+}
+
+TEST(concurrency_tools, minimum_index_int64_t) {
+	int64_t values_a[] = { 1, 6, 2, 7, 9, 11, 5, 7, -1 };
+	EXPECT_EQ(minimum_index(values_a, 9), 8);
+	EXPECT_EQ(minimum_index(values_a, 8), 0);
+	EXPECT_EQ(minimum_index(values_a, 7), 0);
+	EXPECT_EQ(minimum_index(values_a, 6), 0);
+	EXPECT_EQ(minimum_index(values_a, 5), 0);
+	EXPECT_EQ(minimum_index(values_a, 4), 0);
+	EXPECT_EQ(minimum_index(values_a, 3), 0);
+	EXPECT_EQ(minimum_index(values_a, 2), 0);
+	EXPECT_EQ(minimum_index(values_a, 1), 0);
+
+	EXPECT_EQ(minimum_index(values_a + 1, 8), 7);
+	EXPECT_EQ(minimum_index(values_a + 1, 7), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 6), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 5), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 4), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 3), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 2), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 1), 0);
+
+	EXPECT_EQ(minimum_index(values_a + 2, 7), 6);
+	EXPECT_EQ(minimum_index(values_a + 2, 6), 0);
+	EXPECT_EQ(minimum_index(values_a + 2, 5), 0);
+	EXPECT_EQ(minimum_index(values_a + 2, 4), 0);
+	EXPECT_EQ(minimum_index(values_a + 2, 3), 0);
+	EXPECT_EQ(minimum_index(values_a + 2, 2), 0);
+	EXPECT_EQ(minimum_index(values_a + 2, 1), 0);
+
+	EXPECT_EQ(minimum_index(values_a + 3, 6), 5);
+	EXPECT_EQ(minimum_index(values_a + 3, 5), 3);
+	EXPECT_EQ(minimum_index(values_a + 3, 4), 3);
+	EXPECT_EQ(minimum_index(values_a + 3, 3), 0);
+	EXPECT_EQ(minimum_index(values_a + 3, 2), 0);
+	EXPECT_EQ(minimum_index(values_a + 3, 1), 0);
+
+	int64_t values_b[] = { 1, 6, 2, 7, 9, 11, 5, -1, 45, 29, 19, 12, -1, 23, 1, 0, 6 };
+	EXPECT_EQ(values_b[minimum_index(values_b, 17)], -1);
+	EXPECT_EQ(values_b[minimum_index(values_b, 16)], -1);
+	EXPECT_EQ(values_b[minimum_index(values_b, 15)], -1);
+	EXPECT_EQ(values_b[minimum_index(values_b, 14)], -1);
+	EXPECT_EQ(values_b[minimum_index(values_b, 13)], -1);
+	EXPECT_EQ(values_b[minimum_index(values_b, 12)], -1);
+
+	EXPECT_EQ(*(values_b + 1 + minimum_index(values_b + 1, 16)), -1);
+	EXPECT_EQ(*(values_b + 1 + minimum_index(values_b + 1, 15)), -1);
+	EXPECT_EQ(*(values_b + 1 + minimum_index(values_b + 1, 14)), -1);
+	EXPECT_EQ(*(values_b + 1 + minimum_index(values_b + 1, 13)), -1);
+	EXPECT_EQ(*(values_b + 1 + minimum_index(values_b + 1, 12)), -1);
+}
+
+TEST(concurrency_tools, maximum_index_int64_t) {
+	int64_t values_a[] = { 1, 6, 2, 7, 9, 11, 5, 7, -1 };
+	EXPECT_EQ(maximum_index(values_a, 9), 5);
+	EXPECT_EQ(maximum_index(values_a, 8), 5);
+	EXPECT_EQ(maximum_index(values_a, 7), 5);
+	EXPECT_EQ(maximum_index(values_a, 6), 5);
+	EXPECT_EQ(maximum_index(values_a, 5), 4);
+	EXPECT_EQ(maximum_index(values_a, 4), 3);
+	EXPECT_EQ(maximum_index(values_a, 3), 1);
+	EXPECT_EQ(maximum_index(values_a, 2), 1);
+	EXPECT_EQ(maximum_index(values_a, 1), 0);
+
+	EXPECT_EQ(maximum_index(values_a + 1, 8), 4);
+	EXPECT_EQ(maximum_index(values_a + 1, 7), 4);
+	EXPECT_EQ(maximum_index(values_a + 1, 6), 4);
+	EXPECT_EQ(maximum_index(values_a + 1, 5), 4);
+	EXPECT_EQ(maximum_index(values_a + 1, 4), 3);
+	EXPECT_EQ(maximum_index(values_a + 1, 3), 2);
+	EXPECT_EQ(maximum_index(values_a + 1, 2), 0);
+	EXPECT_EQ(maximum_index(values_a + 1, 1), 0);
+
+	EXPECT_EQ(maximum_index(values_a + 2, 7), 3);
+	EXPECT_EQ(maximum_index(values_a + 2, 6), 3);
+	EXPECT_EQ(maximum_index(values_a + 2, 5), 3);
+	EXPECT_EQ(maximum_index(values_a + 2, 4), 3);
+	EXPECT_EQ(maximum_index(values_a + 2, 3), 2);
+	EXPECT_EQ(maximum_index(values_a + 2, 2), 1);
+	EXPECT_EQ(maximum_index(values_a + 2, 1), 0);
+
+	EXPECT_EQ(maximum_index(values_a + 3, 6), 2);
+	EXPECT_EQ(maximum_index(values_a + 3, 5), 2);
+	EXPECT_EQ(maximum_index(values_a + 3, 4), 2);
+	EXPECT_EQ(maximum_index(values_a + 3, 3), 2);
+	EXPECT_EQ(maximum_index(values_a + 3, 2), 1);
+	EXPECT_EQ(maximum_index(values_a + 3, 1), 0);
+
+	int64_t values_b[] = { 45, 6, 2, 7, 9, 11, 5, -1, 45, 29, 19, 12, -1, 23, 1, 0, 6 };
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45);
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45);
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45);
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45);
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45);
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45);
+	EXPECT_EQ(maximum_index(values_b, 8), 0);
+
+	EXPECT_EQ(*(values_b + 1 + maximum_index(values_b + 1, 16)), 45);
+	EXPECT_EQ(*(values_b + 1 + maximum_index(values_b + 1, 15)), 45);
+	EXPECT_EQ(*(values_b + 1 + maximum_index(values_b + 1, 14)), 45);
+	EXPECT_EQ(*(values_b + 1 + maximum_index(values_b + 1, 13)), 45);
+	EXPECT_EQ(*(values_b + 1 + maximum_index(values_b + 1, 12)), 45);
+	EXPECT_EQ(maximum_index(values_b + 1, 8), 7);
+	EXPECT_EQ(maximum_index(values_b + 1, 7), 4);
+}
+
+TEST(concurrency_tools, minimum_index_float) {
+	float values_a[] = { 1.1f, 6.0f, 2.5f, 7.0f, 9.0f, 11.1f, 5.5f, 7.1f, -1.0f };
+	EXPECT_EQ(minimum_index(values_a, 9), 8);
+	EXPECT_EQ(minimum_index(values_a, 8), 0);
+	EXPECT_EQ(minimum_index(values_a, 7), 0);
+	EXPECT_EQ(minimum_index(values_a, 6), 0);
+	EXPECT_EQ(minimum_index(values_a, 5), 0);
+	EXPECT_EQ(minimum_index(values_a, 4), 0);
+	EXPECT_EQ(minimum_index(values_a, 3), 0);
+	EXPECT_EQ(minimum_index(values_a, 2), 0);
+	EXPECT_EQ(minimum_index(values_a, 1), 0);
+
+	EXPECT_EQ(minimum_index(values_a + 1, 8), 7);
+	EXPECT_EQ(minimum_index(values_a + 1, 7), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 6), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 5), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 4), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 3), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 2), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 1), 0);
+
+	EXPECT_EQ(minimum_index(values_a + 2, 7), 6);
+	EXPECT_EQ(minimum_index(values_a + 2, 6), 0);
+	EXPECT_EQ(minimum_index(values_a + 2, 5), 0);
+	EXPECT_EQ(minimum_index(values_a + 2, 4), 0);
+	EXPECT_EQ(minimum_index(values_a + 2, 3), 0);
+	EXPECT_EQ(minimum_index(values_a + 2, 2), 0);
+	EXPECT_EQ(minimum_index(values_a + 2, 1), 0);
+
+	EXPECT_EQ(minimum_index(values_a + 3, 6), 5);
+	EXPECT_EQ(minimum_index(values_a + 3, 5), 3);
+	EXPECT_EQ(minimum_index(values_a + 3, 4), 3);
+	EXPECT_EQ(minimum_index(values_a + 3, 3), 0);
+	EXPECT_EQ(minimum_index(values_a + 3, 2), 0);
+	EXPECT_EQ(minimum_index(values_a + 3, 1), 0);
+
+	float values_b[] = { 1.0f, 6.0f, 2.0f, 7.0f, 9.0f, 11.0f, 5.0f, -1.0f, 45.0f, 29.0f, 19.0f, 12.0f, -1.0f, 23.0f, 1.0f, 0.0f, 6.0f };
+	EXPECT_EQ(values_b[minimum_index(values_b, 17)], -1.0f);
+	EXPECT_EQ(values_b[minimum_index(values_b, 16)], -1.0f);
+	EXPECT_EQ(values_b[minimum_index(values_b, 15)], -1.0f);
+	EXPECT_EQ(values_b[minimum_index(values_b, 14)], -1.0f);
+	EXPECT_EQ(values_b[minimum_index(values_b, 13)], -1.0f);
+	EXPECT_EQ(values_b[minimum_index(values_b, 12)], -1.0f);
+
+	EXPECT_EQ(*(values_b + 1 + minimum_index(values_b + 1, 16)), -1.0f);
+	EXPECT_EQ(*(values_b + 1 + minimum_index(values_b + 1, 15)), -1.0f);
+	EXPECT_EQ(*(values_b + 1 + minimum_index(values_b + 1, 14)), -1.0f);
+	EXPECT_EQ(*(values_b + 1 + minimum_index(values_b + 1, 13)), -1.0f);
+	EXPECT_EQ(*(values_b + 1 + minimum_index(values_b + 1, 12)), -1.0f);
+}
+
+TEST(concurrency_tools, maximum_index_float) {
+	float values_a[] = { 1.1f, 6.3f, 2.2f, 7.0f, 9.3f, 11.25f, 5.2f, 7.0f, -1.1f };
+	EXPECT_EQ(maximum_index(values_a, 9), 5);
+	EXPECT_EQ(maximum_index(values_a, 8), 5);
+	EXPECT_EQ(maximum_index(values_a, 7), 5);
+	EXPECT_EQ(maximum_index(values_a, 6), 5);
+	EXPECT_EQ(maximum_index(values_a, 5), 4);
+	EXPECT_EQ(maximum_index(values_a, 4), 3);
+	EXPECT_EQ(maximum_index(values_a, 3), 1);
+	EXPECT_EQ(maximum_index(values_a, 2), 1);
+	EXPECT_EQ(maximum_index(values_a, 1), 0);
+
+	EXPECT_EQ(maximum_index(values_a + 1, 8), 4);
+	EXPECT_EQ(maximum_index(values_a + 1, 7), 4);
+	EXPECT_EQ(maximum_index(values_a + 1, 6), 4);
+	EXPECT_EQ(maximum_index(values_a + 1, 5), 4);
+	EXPECT_EQ(maximum_index(values_a + 1, 4), 3);
+	EXPECT_EQ(maximum_index(values_a + 1, 3), 2);
+	EXPECT_EQ(maximum_index(values_a + 1, 2), 0);
+	EXPECT_EQ(maximum_index(values_a + 1, 1), 0);
+
+	EXPECT_EQ(maximum_index(values_a + 2, 7), 3);
+	EXPECT_EQ(maximum_index(values_a + 2, 6), 3);
+	EXPECT_EQ(maximum_index(values_a + 2, 5), 3);
+	EXPECT_EQ(maximum_index(values_a + 2, 4), 3);
+	EXPECT_EQ(maximum_index(values_a + 2, 3), 2);
+	EXPECT_EQ(maximum_index(values_a + 2, 2), 1);
+	EXPECT_EQ(maximum_index(values_a + 2, 1), 0);
+
+	EXPECT_EQ(maximum_index(values_a + 3, 6), 2);
+	EXPECT_EQ(maximum_index(values_a + 3, 5), 2);
+	EXPECT_EQ(maximum_index(values_a + 3, 4), 2);
+	EXPECT_EQ(maximum_index(values_a + 3, 3), 2);
+	EXPECT_EQ(maximum_index(values_a + 3, 2), 1);
+	EXPECT_EQ(maximum_index(values_a + 3, 1), 0);
+
+	float values_b[] = { 45.0f, 6.0f, 2.0f, 7.0f, 9.0f, 11.0f, 5.0f, -1.0f, 45.0f, 29.0f, 19.0f, 12.0f, -1.0f, 23.0f, 1.0f, 0.0f, 6.0f };
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45.0f);
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45.0f);
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45.0f);
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45.0f);
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45.0f);
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45.0f);
+	EXPECT_EQ(maximum_index(values_b, 8), 0);
+
+	EXPECT_EQ(*(values_b + 1 + maximum_index(values_b + 1, 16)), 45.0f);
+	EXPECT_EQ(*(values_b + 1 + maximum_index(values_b + 1, 15)), 45.0f);
+	EXPECT_EQ(*(values_b + 1 + maximum_index(values_b + 1, 14)), 45.0f);
+	EXPECT_EQ(*(values_b + 1 + maximum_index(values_b + 1, 13)), 45.0f);
+	EXPECT_EQ(*(values_b + 1 + maximum_index(values_b + 1, 12)), 45.0f);
+	EXPECT_EQ(maximum_index(values_b + 1, 8), 7);
+	EXPECT_EQ(maximum_index(values_b + 1, 7), 4);
+}
+
+TEST(concurrency_tools, minimum_index_double) {
+	double values_a[] = { 1.1, 6.0, 2.5, 7.0, 9.0, 11.1, 5.5, 7.1, -1.0 };
+	EXPECT_EQ(minimum_index(values_a, 9), 8);
+	EXPECT_EQ(minimum_index(values_a, 8), 0);
+	EXPECT_EQ(minimum_index(values_a, 7), 0);
+	EXPECT_EQ(minimum_index(values_a, 6), 0);
+	EXPECT_EQ(minimum_index(values_a, 5), 0);
+	EXPECT_EQ(minimum_index(values_a, 4), 0);
+	EXPECT_EQ(minimum_index(values_a, 3), 0);
+	EXPECT_EQ(minimum_index(values_a, 2), 0);
+	EXPECT_EQ(minimum_index(values_a, 1), 0);
+
+	EXPECT_EQ(minimum_index(values_a + 1, 8), 7);
+	EXPECT_EQ(minimum_index(values_a + 1, 7), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 6), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 5), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 4), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 3), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 2), 1);
+	EXPECT_EQ(minimum_index(values_a + 1, 1), 0);
+
+	EXPECT_EQ(minimum_index(values_a + 2, 7), 6);
+	EXPECT_EQ(minimum_index(values_a + 2, 6), 0);
+	EXPECT_EQ(minimum_index(values_a + 2, 5), 0);
+	EXPECT_EQ(minimum_index(values_a + 2, 4), 0);
+	EXPECT_EQ(minimum_index(values_a + 2, 3), 0);
+	EXPECT_EQ(minimum_index(values_a + 2, 2), 0);
+	EXPECT_EQ(minimum_index(values_a + 2, 1), 0);
+
+	EXPECT_EQ(minimum_index(values_a + 3, 6), 5);
+	EXPECT_EQ(minimum_index(values_a + 3, 5), 3);
+	EXPECT_EQ(minimum_index(values_a + 3, 4), 3);
+	EXPECT_EQ(minimum_index(values_a + 3, 3), 0);
+	EXPECT_EQ(minimum_index(values_a + 3, 2), 0);
+	EXPECT_EQ(minimum_index(values_a + 3, 1), 0);
+
+	double values_b[] = { 1.0, 6.0, 2.0, 7.0, 9.0, 11.0, 5.0, -1.0, 45.0, 29.0, 19.0, 12.0, -1.0, 23.0, 1.0, 0.0, 6.0 };
+	EXPECT_EQ(values_b[minimum_index(values_b, 17)], -1.0);
+	EXPECT_EQ(values_b[minimum_index(values_b, 16)], -1.0);
+	EXPECT_EQ(values_b[minimum_index(values_b, 15)], -1.0);
+	EXPECT_EQ(values_b[minimum_index(values_b, 14)], -1.0);
+	EXPECT_EQ(values_b[minimum_index(values_b, 13)], -1.0);
+	EXPECT_EQ(values_b[minimum_index(values_b, 12)], -1.0);
+
+	EXPECT_EQ(*(values_b + 1 + minimum_index(values_b + 1, 16)), -1.0);
+	EXPECT_EQ(*(values_b + 1 + minimum_index(values_b + 1, 15)), -1.0);
+	EXPECT_EQ(*(values_b + 1 + minimum_index(values_b + 1, 14)), -1.0);
+	EXPECT_EQ(*(values_b + 1 + minimum_index(values_b + 1, 13)), -1.0);
+	EXPECT_EQ(*(values_b + 1 + minimum_index(values_b + 1, 12)), -1.0);
+}
+
+TEST(concurrency_tools, maximum_index_double) {
+	double values_a[] = { 1.1, 6.3, 2.2, 7.0, 9.3, 11.25, 5.2, 7.0, -1.1 };
+	EXPECT_EQ(maximum_index(values_a, 9), 5);
+	EXPECT_EQ(maximum_index(values_a, 8), 5);
+	EXPECT_EQ(maximum_index(values_a, 7), 5);
+	EXPECT_EQ(maximum_index(values_a, 6), 5);
+	EXPECT_EQ(maximum_index(values_a, 5), 4);
+	EXPECT_EQ(maximum_index(values_a, 4), 3);
+	EXPECT_EQ(maximum_index(values_a, 3), 1);
+	EXPECT_EQ(maximum_index(values_a, 2), 1);
+	EXPECT_EQ(maximum_index(values_a, 1), 0);
+
+	EXPECT_EQ(maximum_index(values_a + 1, 8), 4);
+	EXPECT_EQ(maximum_index(values_a + 1, 7), 4);
+	EXPECT_EQ(maximum_index(values_a + 1, 6), 4);
+	EXPECT_EQ(maximum_index(values_a + 1, 5), 4);
+	EXPECT_EQ(maximum_index(values_a + 1, 4), 3);
+	EXPECT_EQ(maximum_index(values_a + 1, 3), 2);
+	EXPECT_EQ(maximum_index(values_a + 1, 2), 0);
+	EXPECT_EQ(maximum_index(values_a + 1, 1), 0);
+
+	EXPECT_EQ(maximum_index(values_a + 2, 7), 3);
+	EXPECT_EQ(maximum_index(values_a + 2, 6), 3);
+	EXPECT_EQ(maximum_index(values_a + 2, 5), 3);
+	EXPECT_EQ(maximum_index(values_a + 2, 4), 3);
+	EXPECT_EQ(maximum_index(values_a + 2, 3), 2);
+	EXPECT_EQ(maximum_index(values_a + 2, 2), 1);
+	EXPECT_EQ(maximum_index(values_a + 2, 1), 0);
+
+	EXPECT_EQ(maximum_index(values_a + 3, 6), 2);
+	EXPECT_EQ(maximum_index(values_a + 3, 5), 2);
+	EXPECT_EQ(maximum_index(values_a + 3, 4), 2);
+	EXPECT_EQ(maximum_index(values_a + 3, 3), 2);
+	EXPECT_EQ(maximum_index(values_a + 3, 2), 1);
+	EXPECT_EQ(maximum_index(values_a + 3, 1), 0);
+
+	double values_b[] = { 45.0, 6.0, 2.0, 7.0, 9.0, 11.0, 5.0, -1.0, 45.0, 29.0, 19.0, 12.0, -1.0, 23.0, 1.0, 0.0, 6.0 };
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45.0);
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45.0);
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45.0);
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45.0);
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45.0);
+	EXPECT_EQ(values_b[maximum_index(values_b, 17)], 45.0);
+	EXPECT_EQ(maximum_index(values_b, 8), 0);
+
+	EXPECT_EQ(*(values_b + 1 + maximum_index(values_b + 1, 16)), 45.0);
+	EXPECT_EQ(*(values_b + 1 + maximum_index(values_b + 1, 15)), 45.0);
+	EXPECT_EQ(*(values_b + 1 + maximum_index(values_b + 1, 14)), 45.0);
+	EXPECT_EQ(*(values_b + 1 + maximum_index(values_b + 1, 13)), 45.0);
+	EXPECT_EQ(*(values_b + 1 + maximum_index(values_b + 1, 12)), 45.0);
+	EXPECT_EQ(maximum_index(values_b + 1, 8), 7);
+	EXPECT_EQ(maximum_index(values_b + 1, 7), 4);
+}

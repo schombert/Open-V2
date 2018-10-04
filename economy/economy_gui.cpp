@@ -11,6 +11,8 @@ namespace economy {
 		ui::hide(*(win->associated_object));
 	}
 	void production_window::init(world_state & ws) {
+		factory_goods_filters.resize(ws.s.economy_m.goods_count);
+		std::fill(factory_goods_filters.begin(), factory_goods_filters.end(), 1ui8);
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["country_production"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *win);
 	}
 	void production_window::update(ui::gui_manager & gui_m) {
@@ -25,6 +27,7 @@ namespace economy {
 		win->template get<CT_STRING("production_tab_button_group")>().set_selected(gui_m, 0);
 
 		ui::hide(*(win->template get<CT_STRING("investment_browser")>().associated_object));
+		ui::make_visible_and_update(gui_m, *(win->template get<CT_STRING("factory_buttons")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("sort_by_state")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("sort_by_projects")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("sort_by_completion")>().associated_object));
@@ -34,6 +37,7 @@ namespace economy {
 	void production_window::show_projects(ui::gui_manager & gui_m) {
 		win->template get<CT_STRING("production_tab_button_group")>().set_selected(gui_m, 3);
 		ui::hide(*(win->template get<CT_STRING("investment_browser")>().associated_object));
+		ui::hide(*(win->template get<CT_STRING("factory_buttons")>().associated_object));
 		ui::make_visible_immediate(*(win->template get<CT_STRING("sort_by_state")>().associated_object));
 		ui::make_visible_immediate(*(win->template get<CT_STRING("sort_by_projects")>().associated_object));
 		ui::make_visible_immediate(*(win->template get<CT_STRING("sort_by_completion")>().associated_object));
@@ -43,6 +47,7 @@ namespace economy {
 	void production_window::show_production(ui::gui_manager & gui_m) {
 		win->template get<CT_STRING("production_tab_button_group")>().set_selected(gui_m, 2);
 		ui::hide(*(win->template get<CT_STRING("investment_browser")>().associated_object));
+		ui::hide(*(win->template get<CT_STRING("factory_buttons")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("sort_by_state")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("sort_by_projects")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("sort_by_completion")>().associated_object));
@@ -52,6 +57,7 @@ namespace economy {
 	void production_window::show_foreign_investment(ui::gui_manager & gui_m) {
 		win->template get<CT_STRING("production_tab_button_group")>().set_selected(gui_m, 1);
 		ui::make_visible_and_update(gui_m, *(win->template get<CT_STRING("investment_browser")>().associated_object));
+		ui::hide(*(win->template get<CT_STRING("factory_buttons")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("sort_by_state")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("sort_by_projects")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("sort_by_completion")>().associated_object));
@@ -61,6 +67,7 @@ namespace economy {
 	}
 	void production_window::show_particular_foreign_investment(ui::gui_manager & gui_m, nations::country_tag target) {
 		win->template get<CT_STRING("production_tab_button_group")>().set_selected(gui_m, 1);
+		ui::hide(*(win->template get<CT_STRING("factory_buttons")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("investment_browser")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("sort_by_state")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("sort_by_projects")>().associated_object));
@@ -379,6 +386,73 @@ namespace economy {
 	}
 	void sort_by_project_investors_button::button_function(ui::simple_button<sort_by_project_investors_button>&, world_state & ws) {
 		ws.w.production_w.project_sort_type = project_sort::investors;
+		ws.w.production_w.update(ws.w.gui_m);
+	}
+	void sort_factories_by_infrastructure::button_function(ui::simple_button<sort_factories_by_infrastructure>& self, world_state & ws) {
+		ws.w.production_w.factory_sort_type = factories_sort::infrastructure;
+		ws.w.production_w.update(ws.w.gui_m);
+	}
+	void sort_factories_by_count::button_function(ui::simple_button<sort_factories_by_count>& self, world_state & ws) {
+		ws.w.production_w.factory_sort_type = factories_sort::count;
+		ws.w.production_w.update(ws.w.gui_m);
+	}
+	void sort_factories_by_state_name::button_function(ui::simple_button<sort_factories_by_state_name>& self, world_state & ws) {
+		ws.w.production_w.factory_sort_type = factories_sort::state_name;
+		ws.w.production_w.update(ws.w.gui_m);
+	}
+	void show_hide_empty_states_button::update(ui::button<show_hide_empty_states_button>& self, world_state & ws) {
+		if(ws.w.production_w.show_empty_states)
+			self.set_text(ws, ws.s.fixed_ui_text[scenario::fixed_ui::hide_empty_states]);
+		else
+			self.set_text(ws, ws.s.fixed_ui_text[scenario::fixed_ui::show_empty_states]);
+	}
+	void show_hide_empty_states_button::button_function(ui::button<show_hide_empty_states_button>& self, world_state & ws) {
+		ws.w.production_w.show_empty_states = !ws.w.production_w.show_empty_states;
+		ws.w.production_w.update(ws.w.gui_m);
+	}
+	void deselect_all_factories_filters_button::button_function(ui::simple_button<deselect_all_factories_filters_button>& self, world_state & ws) {
+		std::fill(ws.w.production_w.factory_goods_filters.begin(), ws.w.production_w.factory_goods_filters.end(), 0ui8);
+		ws.w.production_w.update(ws.w.gui_m);
+	}
+	void select_all_factories_filters_button::button_function(ui::simple_button<select_all_factories_filters_button>& self, world_state & ws) {
+		std::fill(ws.w.production_w.factory_goods_filters.begin(), ws.w.production_w.factory_goods_filters.end(), 1ui8);
+		ws.w.production_w.update(ws.w.gui_m);
+	}
+	void subsidize_all_button::update(ui::simple_button<subsidize_all_button>& self, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) 
+			self.set_enabled((player->current_rules.rules_value & issues::rules::can_subsidise) != 0);
+	}
+	void subsidize_all_button::button_function(ui::simple_button<subsidize_all_button>& self, world_state & ws) {}
+	void unsubsidize_all_button::update(ui::simple_button<unsubsidize_all_button>& self, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player)
+			self.set_enabled((player->current_rules.rules_value & issues::rules::can_subsidise) != 0);
+	}
+	void unsubsidize_all_button::button_function(ui::simple_button<unsubsidize_all_button>& self, world_state & ws) {}
+	void open_all_factories_button::update(ui::simple_button<open_all_factories_button>& self, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player)
+			self.set_enabled((player->current_rules.rules_value & issues::rules::open_factory) != 0);
+	}
+	void open_all_factories_button::button_function(ui::simple_button<open_all_factories_button>& self, world_state & ws) {}
+	void close_all_factories_button::update(ui::simple_button<close_all_factories_button>& self, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player)
+			self.set_enabled((player->current_rules.rules_value & issues::rules::open_factory) != 0);
+	}
+	void close_all_factories_button::button_function(ui::simple_button<close_all_factories_button>& self, world_state & ws) {}
+	void good_filter_item_button::button_function(ui::simple_button<good_filter_item_button>& self, world_state & ws) {
+		ws.w.production_w.factory_goods_filters[to_index(tag)] =
+			(ws.w.production_w.factory_goods_filters[to_index(tag)] != 0) ? 0ui8 : 1ui8;
+		ws.w.production_w.update(ws.w.gui_m);
+	}
+	void sort_factories_by_worker_a::button_function(ui::button<sort_factories_by_worker_a>& self, world_state & ws) {
+		ws.w.production_w.factory_sort_type = factories_sort::worker_pop_a;
+		ws.w.production_w.update(ws.w.gui_m);
+	}
+	void sort_factories_by_worker_b::button_function(ui::button<sort_factories_by_worker_b>& self, world_state & ws) {
+		ws.w.production_w.factory_sort_type = factories_sort::worker_pop_b;
+		ws.w.production_w.update(ws.w.gui_m);
+	}
+	void sort_factories_by_owner::button_function(ui::button<sort_factories_by_owner>& self, world_state & ws) {
+		ws.w.production_w.factory_sort_type = factories_sort::owner_pop;
 		ws.w.production_w.update(ws.w.gui_m);
 	}
 }

@@ -46,6 +46,7 @@
       <SupportJustMyCode>false</SupportJustMyCode>
       <StringPooling>true</StringPooling>
       <ConformanceMode>false</ConformanceMode>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
