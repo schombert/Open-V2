@@ -457,6 +457,81 @@ namespace economy {
 		factory_filter_buttons_base
 	>;
 
+	class gp_investment_subwindow_base : public ui::visible_region {
+	public:
+		int32_t nth_nation = 0;
+	};
+
+	class gp_subwindow_flag {
+	public:
+		template<typename W>
+		void windowed_update(ui::masked_flag<gp_subwindow_flag>& self, W& w, world_state& ws);
+	};
+
+	class gp_subwindow_investment_value {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	using gp_investment_subwindow = ui::gui_window<
+		CT_STRING("country_flag"), ui::masked_flag<gp_subwindow_flag>,
+		CT_STRING("nongp_country_investment"), ui::display_text<gp_subwindow_investment_value>,
+		gp_investment_subwindow_base>;
+
+	class investment_filter_buttons_base : public ui::window_pane {
+	public:
+		ui::button<sort_factories_by_worker_a> workers_a;
+		ui::button<sort_factories_by_worker_b> workers_b;
+		ui::button<sort_factories_by_owner> owner;
+
+		gp_investment_subwindow gp_windows[8];
+
+		template<typename W>
+		void on_create(W& win, world_state& ws);
+	};
+
+	class investment_target_flag {
+	public:
+		void update(ui::masked_flag< investment_target_flag>& self, world_state& ws);
+	};
+
+	class investment_target_flag_overlay {
+	public:
+		void update(ui::dynamic_icon<investment_target_flag_overlay>& self, world_state& ws);
+	};
+
+	class investment_target_name {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class investment_target_amount {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class investment_target_back_button {
+	public:
+		void button_function(ui::simple_button<investment_target_back_button>& self, world_state& ws);
+	};
+
+	using investment_filter_buttons = ui::gui_window<
+		CT_STRING("country_flag"), ui::masked_flag<investment_target_flag>,
+		CT_STRING("country_flag_overlay"), ui::dynamic_icon<investment_target_flag_overlay>,
+		CT_STRING("country_name"), ui::display_text<investment_target_name>,
+		CT_STRING("country_investment"), ui::display_text<investment_target_amount>,
+		CT_STRING("invest_country_browse"), ui::simple_button<investment_target_back_button>,
+		CT_STRING("select_all"), ui::simple_button<select_all_factories_filters_button>,
+		CT_STRING("deselect_all"), ui::simple_button<deselect_all_factories_filters_button>,
+		CT_STRING("show_empty_states"), ui::button<show_hide_empty_states_button>,
+		CT_STRING("sort_by_name"), ui::simple_button<sort_factories_by_state_name>,
+		CT_STRING("sort_by_factories"), ui::simple_button<sort_factories_by_count>,
+		CT_STRING("sort_by_infra"), ui::simple_button<sort_factories_by_infrastructure>,
+		CT_STRING("filter_bounds"), ui::gui_window<goods_filters_base>,
+		investment_filter_buttons_base
+	>;
+
 	using investment_pane = ui::gui_window<
 		CT_STRING("filter_all"), ui::simple_button<filter_all_button>,
 		CT_STRING("filter_north_america"), ui::simple_button<filter_north_america_button>,
@@ -500,6 +575,110 @@ namespace economy {
 		investment_pane_base
 	>;
 
+	class state_pop_display_icon {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<state_pop_display_icon>& self, window_type& win, world_state& ws);
+	};
+
+	class state_pop_display_amount {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class state_pop_display_window_base : public ui::visible_region {
+	public:
+		population::pop_type_tag type;
+		nations::state_tag in_state;
+
+		template<typename W>
+		void on_create(W& win, world_state& ws);
+	};
+
+	using state_pop_display_window = ui::gui_window<
+		CT_STRING("pop_icon"), ui::dynamic_icon<state_pop_display_icon>,
+		CT_STRING("pop_amount"), ui::display_text<state_pop_display_amount>,
+		CT_STRING("pop_amount_2"), ui::display_text<empty_text_box>,
+		state_pop_display_window_base
+	>;
+
+	class state_window_base : public ui::window_pane {
+	public:
+		nations::state_tag tag;
+
+		state_pop_display_window workers_a;
+		state_pop_display_window workers_b;
+		state_pop_display_window owner;
+
+		void set_value(nations::state_tag t) {
+			tag = t;
+			workers_a.in_state = t;
+			workers_b.in_state = t;
+			owner.in_state = t;
+		}
+
+		template<typename W>
+		void on_create(W& win, world_state& ws);
+	};
+
+	class state_focus_button {
+	public:
+		nations::state_tag tag;
+		template<typename window_type>
+		void windowed_update(ui::simple_button<state_focus_button>& self, window_type& win, world_state& ws);
+		void button_function(ui::simple_button<state_focus_button>& self, world_state& ws);
+	};
+
+	class state_name {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class state_factory_count {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class state_build_factory_button {
+	public:
+		nations::state_tag tag;
+		template<typename window_type>
+		void windowed_update(ui::simple_button<state_build_factory_button>& self, window_type& win, world_state& ws);
+		void button_function(ui::simple_button<state_build_factory_button>& self, world_state& ws);
+	};
+
+	class state_average_infrastructure {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	using state_window = ui::gui_window<
+		CT_STRING("state_focus"), ui::simple_button<state_focus_button>,
+		CT_STRING("state_name"), ui::display_text<state_name>,
+		CT_STRING("factory_count"), ui::display_text<state_factory_count>,
+		CT_STRING("build_new_factory"), ui::simple_button<state_build_factory_button>,
+		CT_STRING("avg_infra_text"), ui::display_text<state_average_infrastructure>,
+		state_window_base
+	>;
+
+	class state_details_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class investment_state_details_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
 	class production_window_t : public ui::gui_window<
 		CT_STRING("close_button"), ui::simple_button<close_button>,
 		CT_STRING("tab_factories"), ui::button_group_member,
@@ -521,6 +700,9 @@ namespace economy {
 		CT_STRING("sort_by_completion"), ui::simple_button<sort_by_project_completion_button>,
 		CT_STRING("sort_by_projecteers"), ui::simple_button<sort_by_project_investors_button>,
 		CT_STRING("factory_buttons"), factory_filter_buttons,
+		CT_STRING("invest_buttons"), investment_filter_buttons,
+		CT_STRING("state_listbox"), ui::discrete_listbox<state_details_lb, state_window, nations::state_tag>,
+		CT_STRING("state_listbox_invest"), ui::discrete_listbox<investment_state_details_lb, state_window, nations::state_tag>,
 		production_window_base
 	>{};
 
@@ -535,8 +717,50 @@ namespace economy {
 	}
 
 	template<typename W>
+	void state_pop_display_window_base::on_create(W & win, world_state & ws) {
+		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
+			obj.object.position += ui::xy_pair{ 5i16, 4i16 };
+		});
+	}
+
+	template<typename W>
+	void state_window_base::on_create(W & win, world_state & ws) {
+		associated_object->align = ui::alignment::top_left;
+
+		auto common_tag = std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["factory_pop"]);
+
+		constexpr int16_t size_x = 131i16;
+		constexpr int16_t base_x = 470i16;
+
+		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+			ws, common_tag,
+			ui::tagged_gui_object{ *associated_object, win.window_object },
+			workers_a));
+		workers_a.type = ws.s.population_m.factory_workers[0];
+		workers_a.associated_object->position.y = 0i16;
+		workers_a.associated_object->position.x = base_x;
+
+		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+			ws, common_tag,
+			ui::tagged_gui_object{ *associated_object, win.window_object },
+			workers_b));
+		workers_b.type = ws.s.population_m.factory_workers[1];
+		workers_b.associated_object->position.y = 0i16;
+		workers_b.associated_object->position.x = base_x + size_x;
+
+		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+			ws, common_tag,
+			ui::tagged_gui_object{ *associated_object, win.window_object },
+			owner));
+		owner.type = ws.s.population_m.capitalist;
+		owner.associated_object->position.y = 0i16;
+		owner.associated_object->position.x = base_x + size_x + size_x;
+	}
+
+	template<typename W>
 	void factory_filter_buttons_base::on_create(W & win, world_state & ws) {
 		associated_object->position.y += 50i16;
+		associated_object->size.y = 90i16;
 		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
 			obj.object.position += ui::xy_pair{ 0i16, -50i16 };
 		});
@@ -570,6 +794,58 @@ namespace economy {
 		owner.set_text(ws, ws.s.population_m.pop_types[ws.s.population_m.capitalist].name);
 		owner.associated_object->position = left_position;
 		owner.associated_object->position.x += left_size_x + size_x + size_x - 1i16;
+	}
+
+	template<typename W>
+	void investment_filter_buttons_base::on_create(W & win, world_state & ws) {
+		associated_object->position.y += 50i16;
+		associated_object->size.y = 207i16;
+		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
+			obj.object.position += ui::xy_pair{ 0i16, -50i16 };
+		});
+
+		{
+			auto common_tag = std::get<ui::button_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["sort_by_pop_template"]);
+			constexpr int16_t size_x = 131i16;
+
+			auto left_position = win.template get<CT_STRING("sort_by_factories")>().associated_object->position;
+			auto left_size_x = win.template get<CT_STRING("sort_by_factories")>().associated_object->size.x;
+
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, common_tag,
+				ui::tagged_gui_object{ *associated_object, win.window_object },
+				workers_a));
+			workers_a.set_text(ws, ws.s.population_m.pop_types[ws.s.population_m.factory_workers[0]].name);
+			workers_a.associated_object->position = left_position;
+			workers_a.associated_object->position.x += left_size_x - 1i16;
+
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, common_tag,
+				ui::tagged_gui_object{ *associated_object, win.window_object },
+				workers_b));
+			workers_b.set_text(ws, ws.s.population_m.pop_types[ws.s.population_m.factory_workers[1]].name);
+			workers_b.associated_object->position = left_position;
+			workers_b.associated_object->position.x += left_size_x + size_x - 1i16;
+
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, common_tag,
+				ui::tagged_gui_object{ *associated_object, win.window_object },
+				owner));
+			owner.set_text(ws, ws.s.population_m.pop_types[ws.s.population_m.capitalist].name);
+			owner.associated_object->position = left_position;
+			owner.associated_object->position.x += left_size_x + size_x + size_x - 1i16;
+		}
+		{
+			auto common_tag = std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["invest_non_gp_extra_info"]);
+			for(int32_t i = 0; i < 8; ++i) {
+				gp_windows[i].nth_nation = i;
+				ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+					ws, common_tag,
+					ui::tagged_gui_object{ *associated_object, win.window_object },
+					gp_windows[i]));
+				gp_windows[i].associated_object->position = ui::xy_pair{ int16_t(460 + (i % 4) * 134), int16_t(i < 4 ? 20 : 70) };
+			}
+		}
 	}
 
 	template<typename W>
@@ -960,6 +1236,7 @@ namespace economy {
 		auto common_tag = std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["goods_filter_template"]);
 		auto common_size  = ws.s.gui_m.ui_definitions.windows[common_tag].size;
 
+		associated_object->size.y = 62;
 		auto bounding_size = associated_object->size;
 
 		int16_t cx = 0;
@@ -979,5 +1256,276 @@ namespace economy {
 			}
 		}
 
+	}
+
+	template<typename W>
+	void gp_subwindow_flag::windowed_update(ui::masked_flag<gp_subwindow_flag>& self, W & w, world_state & ws) {
+		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
+		if(r.first + w.nth_nation < r.second) {
+			if(auto id = *(r.first + w.nth_nation); ws.w.nation_s.nations.is_valid_index(id)) {
+				self.set_displayed_flag(ws, id);
+			}
+		}
+	}
+
+	template<typename W>
+	void gp_subwindow_investment_value::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
+		if(r.first + w.nth_nation < r.second) {
+			if(auto id = *(r.first + w.nth_nation); ws.w.nation_s.nations.is_valid_index(id)) {
+				char16_t local_buffer[16];
+				put_value_in_buffer(local_buffer, display_type::currency, nations::get_foreign_investment(ws, ws.w.nation_s.nations[id], ws.w.production_w.foreign_investment_nation));
+				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+
+	template<typename window_type>
+	void state_pop_display_icon::windowed_update(ui::dynamic_icon<state_pop_display_icon>& self, window_type & win, world_state & ws) {
+		if(is_valid_index(win.type))
+			self.set_frame(ws.w.gui_m, uint32_t(ws.s.population_m.pop_types[win.type].sprite) - 1ui32);
+	}
+
+	template<typename W>
+	void state_pop_display_amount::windowed_update(W & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(is_valid_index(win.type) && is_valid_index(win.in_state)) {
+			if(ws.s.population_m.capitalist == win.type) {
+				auto total_pop = ws.w.nation_s.state_demographics.get(win.in_state, population::total_population_tag);
+				auto cap_pop = ws.w.nation_s.state_demographics.get(win.in_state, population::to_demo_tag(ws, ws.s.population_m.capitalist));
+
+				float percent = total_pop != 0 ? float(cap_pop) / float(total_pop) : 0.0f;
+				char16_t local_buffer[16];
+				put_value_in_buffer(local_buffer, display_type::percent, percent);
+				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+				lm.finish_current_line();
+			} else {
+				auto total_pop = ws.w.nation_s.state_demographics.get(win.in_state, population::to_demo_tag(ws, win.type));
+				auto unemployed_pop = total_pop - ws.w.nation_s.state_demographics.get(win.in_state, population::to_employment_demo_tag(ws, win.type));
+
+				char16_t local_buffer[16];
+				put_value_in_buffer(local_buffer, display_type::exact_integer, unemployed_pop);
+				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+
+	template<typename window_type>
+	void state_focus_button::windowed_update(ui::simple_button<state_focus_button>& self, window_type & win, world_state & ws) {}
+
+	template<typename W>
+	void state_name::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(is_valid_index(w.tag)) {
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.states[w.tag].name, fmt,
+				ws.s.gui_m, ws.w.gui_m, box, lm);
+			lm.finish_current_line();
+		}
+	}
+
+	template<typename W>
+	void state_factory_count::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(is_valid_index(w.tag)) {
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::exact_integer, economy::count_factories_in_state(ws.w.nation_s.states[w.tag]));
+			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+			lm.finish_current_line();
+		}
+	}
+
+	template<typename window_type>
+	void state_build_factory_button::windowed_update(ui::simple_button<state_build_factory_button>& self, window_type & win, world_state & ws) {
+		tag = win.tag;
+		//NOTE: may be either in a state owned by player OR a remote state
+	}
+
+	template<typename W>
+	void state_average_infrastructure::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(is_valid_index(w.tag)) {
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::fp_one_place, economy::average_railroad_level(ws, ws.w.nation_s.states[w.tag]));
+			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+			lm.finish_current_line();
+		}
+	}
+
+	template<typename lb_type>
+	void state_details_lb::populate_list(lb_type & lb, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			boost::container::small_vector<nations::state_tag, 32, concurrent_allocator<nations::state_tag>> data;
+			auto state_range = get_range(ws.w.nation_s.state_arrays, player->member_states);
+			for(auto s = state_range.first; s != state_range.second; ++s) {
+				
+				if(auto si = s->state; si) {
+					if(auto state_id = si->id; ws.w.nation_s.states.is_valid_index(state_id)) {
+						if(ws.w.production_w.show_empty_states) {
+							data.push_back(state_id);
+						} else {
+							bool factories = false;
+							for(uint32_t i = 0; i < std::extent_v<decltype(si->factories)>; ++i) {
+								if(auto ftype = si->factories[i].type; bool(ftype) && ws.w.production_w.factory_goods_filters[to_index(ftype->output_good)] != 0) {
+									factories = true;
+									break;
+								}
+							}
+							if(factories)
+								data.push_back(state_id);
+						}
+					}
+				}
+				
+			}
+
+			//sort
+			switch(ws.w.production_w.factory_sort_type) {
+				default:
+				case factories_sort::none:
+					break;
+				case factories_sort::state_name:
+				{
+					vector_backed_string_lex_less<char16_t> lss(ws.s.gui_m.text_data_sequences.text_data);
+					std::sort(data.begin(), data.end(), [&ws, &lss](nations::state_tag a, nations::state_tag b) {
+						auto a_name = ws.w.nation_s.states[a].name;
+						auto b_name = ws.w.nation_s.states[b].name;
+						return lss(
+							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, a_name),
+							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, b_name));
+					});
+				}
+				break;
+				case factories_sort::count:
+					std::sort(data.begin(), data.end(), [&ws](nations::state_tag a, nations::state_tag b) {
+						return economy::count_factories_in_state(ws.w.nation_s.states[a]) > economy::count_factories_in_state(ws.w.nation_s.states[b]);
+					});
+				break;
+				case factories_sort::infrastructure:
+					std::sort(data.begin(), data.end(), [&ws](nations::state_tag a, nations::state_tag b) {
+						return economy::average_railroad_level(ws, ws.w.nation_s.states[a]) > economy::average_railroad_level(ws, ws.w.nation_s.states[b]);
+					});
+				break;
+				case factories_sort::owner_pop:
+				{
+					std::sort(data.begin(), data.end(), [&ws](nations::state_tag a, nations::state_tag b) {
+						auto a_total_pop = float(ws.w.nation_s.state_demographics.get(a, population::total_population_tag));
+						auto b_total_pop = float(ws.w.nation_s.state_demographics.get(b, population::total_population_tag));
+						return (float(ws.w.nation_s.state_demographics.get(a, population::to_demo_tag(ws, ws.s.population_m.capitalist))) * b_total_pop)
+							> (ws.w.nation_s.state_demographics.get(b, population::to_demo_tag(ws, ws.s.population_m.capitalist)) * a_total_pop);
+					});
+				}
+				break;
+				case factories_sort::worker_pop_a:
+				{
+					std::sort(data.begin(), data.end(), [&ws](nations::state_tag a, nations::state_tag b) {
+						return (ws.w.nation_s.state_demographics.get(a, population::to_demo_tag(ws, ws.s.population_m.factory_workers[0])) - 
+							ws.w.nation_s.state_demographics.get(a, population::to_employment_demo_tag(ws, ws.s.population_m.factory_workers[0])))
+							> (ws.w.nation_s.state_demographics.get(b, population::to_demo_tag(ws, ws.s.population_m.factory_workers[0])) -
+								ws.w.nation_s.state_demographics.get(b, population::to_employment_demo_tag(ws, ws.s.population_m.factory_workers[0])));
+					});
+				}
+				break;
+				case factories_sort::worker_pop_b:
+				{
+					std::sort(data.begin(), data.end(), [&ws](nations::state_tag a, nations::state_tag b) {
+						return (ws.w.nation_s.state_demographics.get(a, population::to_demo_tag(ws, ws.s.population_m.factory_workers[1])) -
+							ws.w.nation_s.state_demographics.get(a, population::to_employment_demo_tag(ws, ws.s.population_m.factory_workers[1])))
+							> (ws.w.nation_s.state_demographics.get(b, population::to_demo_tag(ws, ws.s.population_m.factory_workers[1])) -
+								ws.w.nation_s.state_demographics.get(b, population::to_employment_demo_tag(ws, ws.s.population_m.factory_workers[1])));
+					});
+				}
+				break;
+			}
+
+			lb.update_list(data.begin(), data.end());
+		}
+	}
+
+	template<typename lb_type>
+	void investment_state_details_lb::populate_list(lb_type & lb, world_state & ws) {
+		if(is_valid_index(ws.w.production_w.foreign_investment_nation)) {
+			boost::container::small_vector<nations::state_tag, 32, concurrent_allocator<nations::state_tag>> data;
+			auto state_range = get_range(ws.w.nation_s.state_arrays, ws.w.nation_s.nations[ws.w.production_w.foreign_investment_nation].member_states);
+			for(auto s = state_range.first; s != state_range.second; ++s) {
+
+				if(auto si = s->state; si) {
+					if(auto state_id = si->id; ws.w.nation_s.states.is_valid_index(state_id)) {
+						if(ws.w.production_w.show_empty_states) {
+							data.push_back(state_id);
+						} else {
+							bool factories = false;
+							for(uint32_t i = 0; i < std::extent_v<decltype(si->factories)>; ++i) {
+								if(auto ftype = si->factories[i].type; bool(ftype) && ws.w.production_w.factory_goods_filters[to_index(ftype->output_good)] != 0) {
+									factories = true;
+									break;
+								}
+							}
+							if(factories)
+								data.push_back(state_id);
+						}
+					}
+				}
+
+			}
+
+			//sort
+			switch(ws.w.production_w.factory_sort_type) {
+				default:
+				case factories_sort::none:
+					break;
+				case factories_sort::state_name:
+				{
+					vector_backed_string_lex_less<char16_t> lss(ws.s.gui_m.text_data_sequences.text_data);
+					std::sort(data.begin(), data.end(), [&ws, &lss](nations::state_tag a, nations::state_tag b) {
+						auto a_name = ws.w.nation_s.states[a].name;
+						auto b_name = ws.w.nation_s.states[b].name;
+						return lss(
+							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, a_name),
+							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, b_name));
+					});
+				}
+				break;
+				case factories_sort::count:
+					std::sort(data.begin(), data.end(), [&ws](nations::state_tag a, nations::state_tag b) {
+						return economy::count_factories_in_state(ws.w.nation_s.states[a]) > economy::count_factories_in_state(ws.w.nation_s.states[b]);
+					});
+					break;
+				case factories_sort::infrastructure:
+					std::sort(data.begin(), data.end(), [&ws](nations::state_tag a, nations::state_tag b) {
+						return economy::average_railroad_level(ws, ws.w.nation_s.states[a]) > economy::average_railroad_level(ws, ws.w.nation_s.states[b]);
+					});
+					break;
+				case factories_sort::owner_pop:
+				{
+					std::sort(data.begin(), data.end(), [&ws](nations::state_tag a, nations::state_tag b) {
+						auto a_total_pop = float(ws.w.nation_s.state_demographics.get(a, population::total_population_tag));
+						auto b_total_pop = float(ws.w.nation_s.state_demographics.get(b, population::total_population_tag));
+						return (float(ws.w.nation_s.state_demographics.get(a, population::to_demo_tag(ws, ws.s.population_m.capitalist))) * b_total_pop)
+							> (ws.w.nation_s.state_demographics.get(b, population::to_demo_tag(ws, ws.s.population_m.capitalist)) * a_total_pop);
+					});
+				}
+				break;
+				case factories_sort::worker_pop_a:
+				{
+					std::sort(data.begin(), data.end(), [&ws](nations::state_tag a, nations::state_tag b) {
+						return (ws.w.nation_s.state_demographics.get(a, population::to_demo_tag(ws, ws.s.population_m.factory_workers[0])) -
+							ws.w.nation_s.state_demographics.get(a, population::to_employment_demo_tag(ws, ws.s.population_m.factory_workers[0])))
+							> (ws.w.nation_s.state_demographics.get(b, population::to_demo_tag(ws, ws.s.population_m.factory_workers[0])) -
+								ws.w.nation_s.state_demographics.get(b, population::to_employment_demo_tag(ws, ws.s.population_m.factory_workers[0])));
+					});
+				}
+				break;
+				case factories_sort::worker_pop_b:
+				{
+					std::sort(data.begin(), data.end(), [&ws](nations::state_tag a, nations::state_tag b) {
+						return (ws.w.nation_s.state_demographics.get(a, population::to_demo_tag(ws, ws.s.population_m.factory_workers[1])) -
+							ws.w.nation_s.state_demographics.get(a, population::to_employment_demo_tag(ws, ws.s.population_m.factory_workers[1])))
+							> (ws.w.nation_s.state_demographics.get(b, population::to_demo_tag(ws, ws.s.population_m.factory_workers[1])) -
+								ws.w.nation_s.state_demographics.get(b, population::to_employment_demo_tag(ws, ws.s.population_m.factory_workers[1])));
+					});
+				}
+				break;
+			}
+
+			lb.update_list(data.begin(), data.end());
+		}
 	}
 }

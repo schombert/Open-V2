@@ -448,119 +448,44 @@ namespace nations {
 					}
 				}
 
-				{
+				if(state_demo[to_index(population::total_population_tag)] != 0) {
 					const auto culture_offset = population::to_demo_tag(ws, cultures::culture_tag(0));
+					auto max_culture_off = maximum_index(state_demo.data() + to_index(culture_offset), int32_t(ws.s.culture_m.count_cultures));
+					s->state->dominant_culture = cultures::culture_tag(static_cast<value_base_of<cultures::culture_tag>>(max_culture_off));
 
-					s->state->dominant_culture = cultures::culture_tag(0);
-					int32_t max_pop = state_demo[to_index(culture_offset)];
-
-					for(uint32_t i = 1ui32; i < ws.s.culture_m.count_cultures; ++i) {
-						if(state_demo[to_index(culture_offset) + i] > max_pop) {
-							max_pop = state_demo[to_index(culture_offset) + i];
-							s->state->dominant_culture = cultures::culture_tag(static_cast<value_base_of<cultures::culture_tag>>(i));
-						}
-					}
-				}
-
-				{
 					const auto religion_offset = population::to_demo_tag(ws, cultures::religion_tag(0));
+					auto max_religion_off = maximum_index(state_demo.data() + to_index(religion_offset), int32_t(ws.s.culture_m.count_religions));
+					s->state->dominant_religion = cultures::religion_tag(static_cast<value_base_of<cultures::religion_tag>>(max_religion_off));
 
-					s->state->dominant_religion = cultures::religion_tag(0);
-					int32_t max_pop = state_demo[to_index(religion_offset)];
-
-					for(uint32_t i = 1ui32; i < ws.s.culture_m.count_religions; ++i) {
-						if(state_demo[to_index(religion_offset) + i] > max_pop) {
-							max_pop = state_demo[to_index(religion_offset) + i];
-							s->state->dominant_religion = cultures::religion_tag(static_cast<value_base_of<cultures::religion_tag>>(i));
-						}
-					}
-				}
-
-				{
 					const auto ideology_offset = population::to_demo_tag(ws, ideologies::ideology_tag(0));
+					auto max_ideology_off = maximum_index(state_demo.data() + to_index(ideology_offset), int32_t(ws.s.ideologies_m.ideologies_count));
+					s->state->dominant_ideology = ideologies::ideology_tag(static_cast<value_base_of<ideologies::ideology_tag>>(max_ideology_off));
 
-					s->state->dominant_ideology = ideologies::ideology_tag(0);
-					int32_t max_pop = state_demo[to_index(ideology_offset)];
-
-					for(uint32_t i = 1ui32; i < ws.s.ideologies_m.ideologies_count; ++i) {
-						if(state_demo[to_index(ideology_offset) + i] > max_pop) {
-							max_pop = state_demo[to_index(ideology_offset) + i];
-							s->state->dominant_ideology = ideologies::ideology_tag(static_cast<value_base_of<ideologies::ideology_tag>>(i));
-						}
-					}
-				}
-
-				{
 					const auto options_offset = population::to_demo_tag(ws, issues::option_tag(0));
-
-					s->state->dominant_issue = issues::option_tag(0);
-					int32_t max_pop = state_demo[to_index(options_offset)];
-
-					for(uint32_t i = 1ui32; i < ws.s.issues_m.tracked_options_count; ++i) {
-						if(state_demo[to_index(options_offset) + i] > max_pop) {
-							max_pop = state_demo[to_index(options_offset) + i];
-							s->state->dominant_issue = issues::option_tag(static_cast<value_base_of<issues::option_tag>>(i));
-						}
-					}
+					auto max_opinion_off = maximum_index(state_demo.data() + to_index(options_offset), int32_t(ws.s.issues_m.tracked_options_count));
+					s->state->dominant_issue = issues::option_tag(static_cast<value_base_of<issues::option_tag>>(max_opinion_off));
 				}
+
 				if(!nations::is_colonial_or_protectorate(*s->state))
 					nation_demo += state_demo.cast<int64_t>();
 			}
 
-			{
+			if(nation_demo[to_index(population::total_population_tag)] != 0) {
 				const auto culture_offset = population::to_demo_tag(ws, cultures::culture_tag(0));
+				auto max_culture_off = maximum_index(nation_demo.data() + to_index(culture_offset), int32_t(ws.s.culture_m.count_cultures));
+				n.dominant_culture = cultures::culture_tag(static_cast<value_base_of<cultures::culture_tag>>(max_culture_off));
 
-				n.dominant_culture = cultures::culture_tag(0);
-				int64_t max_pop = nation_demo[to_index(culture_offset)];
-
-				for(uint32_t i = 1ui32; i < ws.s.culture_m.count_cultures; ++i) {
-					if(nation_demo[to_index(culture_offset) + i] > max_pop) {
-						max_pop = nation_demo[to_index(culture_offset) + i];
-						n.dominant_culture = cultures::culture_tag(static_cast<value_base_of<cultures::culture_tag>>(i));
-					}
-				}
-			}
-
-			{
 				const auto religion_offset = population::to_demo_tag(ws, cultures::religion_tag(0));
+				auto max_religion_off = maximum_index(nation_demo.data() + to_index(religion_offset), int32_t(ws.s.culture_m.count_religions));
+				n.dominant_religion = cultures::religion_tag(static_cast<value_base_of<cultures::religion_tag>>(max_religion_off));
 
-				n.dominant_religion = cultures::religion_tag(0);
-				int64_t max_pop = nation_demo[to_index(religion_offset)];
-
-				for(uint32_t i = 1ui32; i < ws.s.culture_m.count_religions; ++i) {
-					if(nation_demo[to_index(religion_offset) + i] > max_pop) {
-						max_pop = nation_demo[to_index(religion_offset) + i];
-						n.dominant_religion = cultures::religion_tag(static_cast<value_base_of<cultures::religion_tag>>(i));
-					}
-				}
-			}
-
-			{
 				const auto ideology_offset = population::to_demo_tag(ws, ideologies::ideology_tag(0));
+				auto max_ideology_off = maximum_index(nation_demo.data() + to_index(ideology_offset), int32_t(ws.s.ideologies_m.ideologies_count));
+				n.dominant_ideology = ideologies::ideology_tag(static_cast<value_base_of<ideologies::ideology_tag>>(max_ideology_off));
 
-				n.dominant_ideology = ideologies::ideology_tag(0);
-				int64_t max_pop = nation_demo[to_index(ideology_offset)];
-
-				for(uint32_t i = 1ui32; i < ws.s.ideologies_m.ideologies_count; ++i) {
-					if(nation_demo[to_index(ideology_offset) + i] > max_pop) {
-						max_pop = nation_demo[to_index(ideology_offset) + i];
-						n.dominant_ideology = ideologies::ideology_tag(static_cast<value_base_of<ideologies::ideology_tag>>(i));
-					}
-				}
-			}
-
-			{
 				const auto options_offset = population::to_demo_tag(ws, issues::option_tag(0));
-
-				n.dominant_issue = issues::option_tag(0);
-				int64_t max_pop = nation_demo[to_index(options_offset)];
-
-				for(uint32_t i = 1ui32; i < ws.s.issues_m.tracked_options_count; ++i) {
-					if(nation_demo[to_index(options_offset) + i] > max_pop) {
-						max_pop = nation_demo[to_index(options_offset) + i];
-						n.dominant_issue = issues::option_tag(static_cast<value_base_of<issues::option_tag>>(i));
-					}
-				}
+				auto max_opinion_off = maximum_index(nation_demo.data() + to_index(options_offset), int32_t(ws.s.issues_m.tracked_options_count));
+				n.dominant_issue = issues::option_tag(static_cast<value_base_of<issues::option_tag>>(max_opinion_off));
 			}
 
 			n.political_interest_fraction = issues::calculate_political_interest(ws, nation_demo.data());

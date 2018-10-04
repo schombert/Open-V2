@@ -369,4 +369,14 @@ namespace economy {
 		}
 		return total;
 	}
+
+	float average_railroad_level(world_state const& ws, nations::state_instance const& si) {
+		float total_provinces = 0.0f;
+		float total_levels = 0.0f;
+		nations::for_each_province(ws, si, [&total_provinces, &total_levels](provinces::province_state const& ps) {
+			total_levels += float(ps.railroad_level);
+			++total_provinces;
+		});
+		return total_provinces != 0.0f ? total_levels / total_provinces : 0.0f;
+	}
 }

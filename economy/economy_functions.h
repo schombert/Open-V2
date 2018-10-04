@@ -48,4 +48,5 @@ namespace economy {
 	bool possible_to_invest_in(world_state const& ws, nations::nation const& investor, nations::nation const& target);
 	int32_t count_factories_in_state(nations::state_instance const& si);
 	int32_t count_factories_in_nation(world_state const& ws, nations::nation const& n);
+	float average_railroad_level(world_state const& ws, nations::state_instance const& si);
 }

@@ -195,60 +195,22 @@ namespace provinces {
 				}
 			}
 
-			{
+			if(province_full_demo[to_index(population::total_population_tag)] != 0) {
 				const auto culture_offset = population::to_demo_tag(ws, cultures::culture_tag(0));
+				auto max_culture_off = maximum_index(province_full_demo.data() + to_index(culture_offset), int32_t(ws.s.culture_m.count_cultures));
+				prov.dominant_culture = cultures::culture_tag(static_cast<value_base_of<cultures::culture_tag>>(max_culture_off));
 
-				prov.dominant_culture = cultures::culture_tag(0);
-				int32_t max_pop = province_full_demo[to_index(culture_offset)];
-
-				for(uint32_t i = 1ui32; i < ws.s.culture_m.count_cultures; ++i) {
-					if(province_full_demo[to_index(culture_offset) + i] > max_pop) {
-						max_pop = province_full_demo[to_index(culture_offset) + i];
-						prov.dominant_culture = cultures::culture_tag(static_cast<value_base_of<cultures::culture_tag>>(i));
-					}
-				}
-			}
-
-			{
 				const auto religion_offset = population::to_demo_tag(ws, cultures::religion_tag(0));
+				auto max_religion_off = maximum_index(province_full_demo.data() + to_index(religion_offset), int32_t(ws.s.culture_m.count_religions));
+				prov.dominant_religion = cultures::religion_tag(static_cast<value_base_of<cultures::religion_tag>>(max_religion_off));
 
-				prov.dominant_religion = cultures::religion_tag(0);
-				int32_t max_pop = province_full_demo[to_index(religion_offset)];
-
-				for(uint32_t i = 1ui32; i < ws.s.culture_m.count_religions; ++i) {
-					if(province_full_demo[to_index(religion_offset) + i] > max_pop) {
-						max_pop = province_full_demo[to_index(religion_offset) + i];
-						prov.dominant_religion = cultures::religion_tag(static_cast<value_base_of<cultures::religion_tag>>(i));
-					}
-				}
-			}
-
-			{
 				const auto ideology_offset = population::to_demo_tag(ws, ideologies::ideology_tag(0));
+				auto max_ideology_off = maximum_index(province_full_demo.data() + to_index(ideology_offset), int32_t(ws.s.ideologies_m.ideologies_count));
+				prov.dominant_ideology = ideologies::ideology_tag(static_cast<value_base_of<ideologies::ideology_tag>>(max_ideology_off));
 
-				prov.dominant_ideology = ideologies::ideology_tag(0);
-				int32_t max_pop = province_full_demo[to_index(ideology_offset)];
-
-				for(uint32_t i = 1ui32; i < ws.s.ideologies_m.ideologies_count; ++i) {
-					if(province_full_demo[to_index(ideology_offset) + i] > max_pop) {
-						max_pop = province_full_demo[to_index(ideology_offset) + i];
-						prov.dominant_ideology = ideologies::ideology_tag(static_cast<value_base_of<ideologies::ideology_tag>>(i));
-					}
-				}
-			}
-
-			{
 				const auto options_offset = population::to_demo_tag(ws, issues::option_tag(0));
-
-				prov.dominant_issue = issues::option_tag(0);
-				int32_t max_pop = province_full_demo[to_index(options_offset)];
-
-				for(uint32_t i = 1ui32; i < ws.s.issues_m.tracked_options_count; ++i) {
-					if(province_full_demo[to_index(options_offset) + i] > max_pop) {
-						max_pop = province_full_demo[to_index(options_offset) + i];
-						prov.dominant_issue = issues::option_tag(static_cast<value_base_of<issues::option_tag>>(i));
-					}
-				}
+				auto max_opinion_off = maximum_index(province_full_demo.data() + to_index(options_offset), int32_t(ws.s.issues_m.tracked_options_count));
+				prov.dominant_issue = issues::option_tag(static_cast<value_base_of<issues::option_tag>>(max_opinion_off));
 			}
 		});
 	}
