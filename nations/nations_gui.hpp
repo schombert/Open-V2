@@ -1301,8 +1301,14 @@ namespace nations {
 		details_base
 	>;
 
+	class gp_heading {
+	public:
+		void on_create(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
 	class diplomacy_window_t : public ui::gui_window <
 		CT_STRING("close_button"), ui::simple_button<close_button>,
+		CT_STRING("gp_info_text"), ui::display_text<gp_heading>,
 		CT_STRING("gp_info"), ui::button_group_member,
 		CT_STRING("war_info"), ui::button_group_member,
 		CT_STRING("cb_info"), ui::button_group_member,

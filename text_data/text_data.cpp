@@ -497,7 +497,7 @@ namespace text_data {
 		} else if (align == text_data::alignment::center) {
 			x_offset = (bound_x - width) / 2;
 		}
-		return std::make_pair(x_offset, (bound_y - height) / 2);
+		return std::make_pair(x_offset, (bound_y - height - 1) / 2);
 	}
 
 

@@ -25,6 +25,7 @@ namespace economy {
 		nations::nation const& in_nation,
 		provinces::province_state const& in_province,
 		int32_t rgo_base_size,
+		float production_scale,
 		economy::goods_tag production,
 		float mobilization_effect) {
 
@@ -36,7 +37,7 @@ namespace economy {
 
 		bool is_mined = (ws.s.economy_m.goods[production].flags & economy::good_definition::mined) != 0;
 
-		float total_workforce = float(workers_info.workforce * rgo_base_size) *
+		float total_workforce = float(workers_info.workforce * rgo_base_size) * production_scale *
 			((is_mined ? 
 				in_province.modifier_values[modifiers::provincial_offsets::mine_rgo_size] + in_nation.modifier_values[modifiers::national_offsets::mine_rgo_size] :
 				in_province.modifier_values[modifiers::provincial_offsets::farm_rgo_size] + in_nation.modifier_values[modifiers::national_offsets::farm_rgo_size]) +
@@ -82,13 +83,14 @@ namespace economy {
 	}
 
 	production_modifiers factory_production_modifiers(
-		world_state& ws,
+		world_state const& ws,
 		worked_instance const& instance,
 		bonus* bonuses,
 		workers_information const& workers_info,
 		nations::nation const& in_nation,
 		provinces::province_state const& in_province,
 		int32_t base_size,
+		float production_scale,
 		economy::goods_tag production,
 		float mobilization_effect) {
 
@@ -98,7 +100,7 @@ namespace economy {
 		result.output_modifier = 1.0f;
 		result.throughput_modifier = 0.0f;
 
-		float total_workforce = float(workers_info.workforce * base_size);
+		float total_workforce = float(workers_info.workforce * base_size) * production_scale;
 
 		for(uint32_t i = 0; i < max_worker_types; ++i) {
 			if(workers_info.workers[i].contribution == contribution_type::input) {
@@ -264,7 +266,7 @@ namespace economy {
 		std::pair<uint32_t, float> factories_by_profitability[std::extent_v<decltype(si.factories)>];
 
 		for(uint32_t i = 0; i < std::extent_v<decltype(si.factories)>; ++i)
-			factories_by_profitability[i] = std::pair<uint32_t, float>(i, get_per_worker_profit(ws, si, si.factories[i]));
+			factories_by_profitability[i] = std::pair<uint32_t, float>(i, si.factories[i].type ? si.factories[i].factory_operational_scale : 0.0f);
 		
 		std::sort(std::begin(factories_by_profitability), std::end(factories_by_profitability), [](std::pair<uint32_t, float> const& a, std::pair<uint32_t, float> const& b) { return a.second > b.second; });
 
@@ -272,7 +274,7 @@ namespace economy {
 			auto factory_index = factories_by_profitability[i].first;
 			auto type = si.factories[factory_index].type;
 			if(type) {
-				auto factory_workers = si.factories[factory_index].level * type->factory_workers.workforce;
+				auto factory_workers = si.factories[factory_index].level * type->factory_workers.workforce * si.factories[factory_index].factory_operational_scale;
 				for(uint32_t j = 0; j < std::extent_v<decltype(type->factory_workers.workers)>; ++j) {
 					if(is_valid_index(type->factory_workers.workers[j].type)) {
 						int32_t amount_from_type = int32_t(factory_workers * type->factory_workers.workers[j].amount);
@@ -324,6 +326,37 @@ namespace economy {
 		auto inputs_cost = prices.dot(inputs);
 
 		return float(ws.w.economy_s.current_prices[f.type->output_good] * f.type->output_amount - inputs_cost);
+	}
+
+	money_qnty_type get_factory_profit(world_state const& ws, provinces::province_state const& in_province, factory_instance const& f, money_qnty_type const* prices) {
+		auto powner = in_province.owner;
+		auto f_type = f.type;
+		if(bool(powner) && bool(f_type)) {
+			auto modifiers = factory_production_modifiers(ws, f.worker_data, f_type->bonuses,
+				f_type->factory_workers, *powner, in_province, f.level, f.factory_operational_scale,
+				f_type->output_good,
+				((powner->flags & nations::nation::is_mobilized) == 0) ? 1.0f : std::max(0.0f, 1.0f - powner->modifier_values[modifiers::national_offsets::mobilisation_size] * powner->modifier_values[modifiers::national_offsets::mobilisation_economy_impact]));
+
+			//TODO: use modifiers properly
+
+			Eigen::Map<const Eigen::Matrix<economy::money_qnty_type, -1, 1>, Eigen::Aligned32> prices(prices, ws.s.economy_m.aligned_32_goods_count);
+			Eigen::Map<const Eigen::Matrix<economy::money_qnty_type, -1, 1>, Eigen::Aligned32> inputs(ws.s.economy_m.factory_input_goods.get_row(f_type->id), ws.s.economy_m.aligned_32_goods_count);
+
+			auto inputs_cost = prices.dot(inputs * modifiers.input_modifier);
+
+			return (prices[to_index(f_type->output_good)] * f_type->output_amount * modifiers.output_modifier - inputs_cost) * f.factory_operational_scale * f.level * modifiers.throughput_modifier;
+		}
+		return money_qnty_type(0);
+	}
+
+	float factory_employment_fraction(world_state const& ws, factory_instance const& fi) {
+		if(auto f_type = fi.type; f_type) {
+			float total_workforce = float(f_type->factory_workers.workforce * fi.level);
+			float total_employed = float(std::accumulate(std::begin(fi.worker_data.worker_populations), std::end(fi.worker_data.worker_populations), 0));
+			return total_workforce != 0.0f ? total_employed / total_workforce : 0.0f;
+		} else {
+			return 0.0f;
+		}
 	}
 
 	void init_factory_employment(world_state& ws) {

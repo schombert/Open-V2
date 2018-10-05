@@ -307,5 +307,5 @@ namespace population {
 
 	uint32_t aligned_32_issues_ideology_demo_size(world_state const& ws);
 	uint32_t aligned_32_demo_size(world_state const& ws);
-	uint32_t aligned_64_demo_size(world_state const& ws);
+	//uint32_t aligned_64_demo_size(world_state const& ws);
 }

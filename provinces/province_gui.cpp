@@ -965,7 +965,13 @@ namespace provinces {
 		}
 	}
 
-	void send_diplomat::button_function(ui::simple_button<send_diplomat>&, world_state&) {}
+	void send_diplomat::button_function(ui::simple_button<send_diplomat>&, world_state& ws) {
+		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
+			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+				ws.w.diplomacy_w.show_diplomacy_window(ws.w.gui_m, owner->id);
+			}
+		}
+	}
 
 	void fort_level_icon::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
 		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::fort], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);

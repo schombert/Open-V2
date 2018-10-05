@@ -195,12 +195,12 @@ namespace population {
 			ws.s.culture_m.count_religions +
 			ws.s.population_m.count_poptypes * 2ui32)) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(uint32_t));
 	}
-	uint32_t aligned_64_demo_size(world_state const& ws) {
+	/*uint32_t aligned_64_demo_size(world_state const& ws) {
 		return (((static_cast<uint32_t>(sizeof(uint64_t)) * uint32_t(leading_fixed_tag_count + 17 +
 			ws.s.ideologies_m.ideologies_count +
 			ws.s.issues_m.tracked_options_count +
 			ws.s.culture_m.count_cultures +
 			ws.s.culture_m.count_religions +
 			ws.s.population_m.count_poptypes * 2ui32)) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(uint64_t));
-	}
+	}*/
 }

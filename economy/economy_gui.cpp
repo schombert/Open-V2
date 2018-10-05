@@ -33,6 +33,7 @@ namespace economy {
 
 		ui::hide(*(win->template get<CT_STRING("investment_browser")>().associated_object));
 		ui::make_visible_and_update(gui_m, *(win->template get<CT_STRING("factory_buttons")>().associated_object));
+		ui::hide(*(win->template get<CT_STRING("good_production")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("state_listbox_invest")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("sort_by_state")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("invest_buttons")>().associated_object));
@@ -48,6 +49,7 @@ namespace economy {
 		ui::hide(*(win->template get<CT_STRING("invest_buttons")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("state_listbox")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("state_listbox_invest")>().associated_object));
+		ui::hide(*(win->template get<CT_STRING("good_production")>().associated_object));
 		ui::make_visible_immediate(*(win->template get<CT_STRING("sort_by_state")>().associated_object));
 		ui::make_visible_immediate(*(win->template get<CT_STRING("sort_by_projects")>().associated_object));
 		ui::make_visible_immediate(*(win->template get<CT_STRING("sort_by_completion")>().associated_object));
@@ -56,6 +58,9 @@ namespace economy {
 	}
 	void production_window::show_production(ui::gui_manager & gui_m) {
 		win->template get<CT_STRING("production_tab_button_group")>().set_selected(gui_m, 2);
+
+		ui::make_visible_and_update(gui_m, *(win->template get<CT_STRING("good_production")>().associated_object));
+
 		ui::hide(*(win->template get<CT_STRING("state_listbox")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("state_listbox_invest")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("investment_browser")>().associated_object));
@@ -70,6 +75,7 @@ namespace economy {
 	void production_window::show_foreign_investment(ui::gui_manager & gui_m) {
 		win->template get<CT_STRING("production_tab_button_group")>().set_selected(gui_m, 1);
 		ui::make_visible_and_update(gui_m, *(win->template get<CT_STRING("investment_browser")>().associated_object));
+		ui::hide(*(win->template get<CT_STRING("good_production")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("state_listbox")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("state_listbox_invest")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("factory_buttons")>().associated_object));
@@ -88,6 +94,7 @@ namespace economy {
 		win->template get<CT_STRING("state_listbox_invest")>().new_list(nullptr, nullptr);
 		ui::make_visible_and_update(gui_m, *(win->template get<CT_STRING("state_listbox_invest")>().associated_object));
 
+		ui::hide(*(win->template get<CT_STRING("good_production")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("state_listbox")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("factory_buttons")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("investment_browser")>().associated_object));
@@ -520,4 +527,52 @@ namespace economy {
 	ui::window_tag investment_state_details_lb::element_tag(ui::gui_static & m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["state_info"]);
 	}
+	void factory_open_background::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
+	void factory_closed_background::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
+	void factory_cancel_construction_button::button_function(ui::simple_button<factory_cancel_construction_button>& self, world_state & ws) {}
+	void factory_cancel_construction_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
+	void factory_upgrade_button::button_function(ui::button<factory_upgrade_button>& self, key_modifiers mod, world_state & ws) {}
+	void factory_upgrade_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
+	void factory_subsidize_button::button_function(ui::simple_button<factory_subsidize_button>& self, world_state & ws) {}
+	void factory_subsidize_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
+	void hidden_button::update(ui::simple_button<hidden_button>& self, world_state & ws) {
+		ui::hide(*self.associated_object);
+	}
+	void factory_delete_button::button_function(ui::simple_button<factory_delete_button>& self, world_state & ws) {}
+	void factory_delete_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
+	void factory_open_or_close_button::button_function(ui::simple_button<factory_open_or_close_button>& self, world_state & ws) {}
+	void factory_open_or_close_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
+	void state_window_base::update(world_state & ws) {
+		if(is_valid_index(tag)) {
+			auto& state = ws.w.nation_s.states[tag];
+			uint32_t fcounter = 0;
+
+			for(int32_t i = 0; i < std::extent_v<decltype(state.factories)>; ++i) {
+				if(auto t = state.factories[i].type; t) {
+					if(ws.w.production_w.factory_goods_filters[to_index(t->output_good)] != 0) {
+						factories[fcounter].location = tag;
+						factories[fcounter].index = i;
+						ui::make_visible_and_update(ws.w.gui_m, *(factories[fcounter].associated_object));
+						++fcounter;
+					}
+				}
+			}
+
+			for(; fcounter < std::extent_v<decltype(factories)>; ++fcounter) {
+				ui::hide(*(factories[fcounter].associated_object));
+				factories[fcounter].location = tag;
+				factories[fcounter].index = -1;
+			}
+		} else {
+			for(uint32_t fcounter = 0; fcounter < std::extent_v<decltype(factories)>; ++fcounter) {
+				ui::hide(*(factories[fcounter].associated_object));
+				factories[fcounter].location = tag;
+				factories[fcounter].index = -1;
+			}
+		}
+	}
+	void hidden_icon::update(ui::dynamic_icon<hidden_icon>& self, world_state& ws) {
+		ui::hide(*self.associated_object);
+	}
+	void production_backkground::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
 }

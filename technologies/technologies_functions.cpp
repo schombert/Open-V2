@@ -98,8 +98,9 @@ namespace technologies {
 			Eigen::Matrix<uint64_t, -1, 1>::Zero(ws.w.nation_s.active_technologies.inner_size);
 
 		auto active_goods = ws.w.nation_s.active_goods.get_row(this_nation.id);
-		Eigen::Map<Eigen::Matrix<uint64_t, -1, 1>>(active_goods, ws.w.nation_s.active_goods.inner_size) =
-			Eigen::Matrix<uint64_t, -1, 1>::Zero(ws.w.nation_s.active_goods.inner_size);
+		for(uint32_t j = 0; j < ws.s.economy_m.goods_count; ++j) {
+			bit_vector_set(active_goods, j, 0 == (ws.s.economy_m.goods[economy::goods_tag(static_cast<economy::goods_tag::value_base_t>(j))].flags & economy::good_definition::not_available_from_start));
+		}
 
 		for(int32_t i = int32_t(ws.s.modifiers_m.crimes.size()); i--; ) {
 			if(ws.s.modifiers_m.crimes[uint32_t(i)].default_active)
@@ -136,8 +137,8 @@ namespace technologies {
 		if(!ws.w.nation_s.nations.is_valid_index(id))
 			return 0.0f;
 
-		int64_t total_pop = ws.w.nation_s.nation_demographics.get(id, population::total_population_tag);
-		int64_t* pop_by_type = ws.w.nation_s.nation_demographics.get_row(id) + to_index(population::to_demo_tag(ws, population::pop_type_tag(0)));
+		float total_pop = ws.w.nation_s.nation_demographics.get(id, population::total_population_tag);
+		float* pop_by_type = ws.w.nation_s.nation_demographics.get_row(id) + to_index(population::to_demo_tag(ws, population::pop_type_tag(0)));
 
 		float points_by_type = 0.0f;
 		if(total_pop != 0)

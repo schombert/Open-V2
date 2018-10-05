@@ -285,7 +285,7 @@ namespace modifiers {
 
 		auto prim_culture = this_nation.primary_culture;
 		auto accepted_cultures = get_range(ws.w.culture_s.culture_arrays, this_nation.accepted_cultures);
-		int64_t total_pop = 0;
+		float total_pop = 0;
 
 		if(is_valid_index(prim_culture))
 			total_pop += ws.w.nation_s.nation_demographics.get(nation_id, population::to_demo_tag(ws, prim_culture));

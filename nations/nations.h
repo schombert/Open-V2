@@ -272,6 +272,6 @@ namespace nations {
 		stable_variable_vector_storage_mk_2<loan, 4, 8192> loan_arrays;
 
 		stable_2d_vector<int32_t, state_tag, population::demo_tag, 512, 16> state_demographics;
-		stable_2d_vector<int64_t, country_tag, population::demo_tag, 512, 16> nation_demographics;
+		stable_2d_vector<float, country_tag, population::demo_tag, 512, 16> nation_demographics;
 	};
 }

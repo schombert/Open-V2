@@ -10,6 +10,7 @@
 #include "technologies\\technologies_functions.h"
 #include "military\\military_functions.h"
 #include "issues\\issues_functions.h"
+#include "economy\\economy_io.h"
 
 #undef max
 #undef min
@@ -23,9 +24,7 @@ void serialization::serializer<nations::state_instance>::serialize_object(std::b
 	serialize(output, nat_focus_id);
 
 	for(uint32_t i = 0; i < std::extent_v<decltype(obj.factories)>; ++i) {
-		auto factory_type = obj.factories[i].type ? obj.factories[i].type->id : economy::factory_type_tag();
-		serialize(output, factory_type);
-		serialize(output, obj.factories[i].level);
+		serialize(output, obj.factories[i], ws);
 	}
 
 	serialize_array(output, obj.colonizers, std::extent_v<decltype(obj.colonizers)>);
@@ -53,13 +52,7 @@ void serialization::serializer<nations::state_instance>::deserialize_object(std:
 		obj.owner_national_focus = &(ws.s.modifiers_m.national_focuses[nat_focus]);
 
 	for(uint32_t i = 0; i < std::extent_v<decltype(obj.factories)>; ++i) {
-		economy::factory_type_tag factory_type;
-		deserialize(input, factory_type);
-		if(is_valid_index(factory_type))
-			obj.factories[i].type = &ws.s.economy_m.factory_types[factory_type];
-		else
-			obj.factories[i].type = nullptr;
-		deserialize(input, obj.factories[i].level);
+		deserialize(input, obj.factories[i], ws);
 	}
 
 	deserialize_array(input, obj.colonizers, std::extent_v<decltype(obj.colonizers)>);
@@ -78,7 +71,9 @@ size_t serialization::serializer<nations::state_instance>::size(nations::state_i
 	return
 		sizeof(nations::country_tag) + // owner tag
 		sizeof(modifiers::national_focus_tag) + // national focus
-		(sizeof(economy::factory_type_tag) + sizeof(obj.factories[0].level)) * std::extent_v<decltype(obj.factories)> + // factories
+		std::accumulate(std::begin(obj.factories), std::end(obj.factories), 0ui64, [&ws](size_t v, economy::factory_instance const& f) {
+			return v + serialize_size(f, ws);
+		}) + // factories
 		sizeof(obj.colonizers[0]) * std::extent_v<decltype(obj.colonizers)> + // colonizers
 		sizeof(obj.last_population) +
 		sizeof(obj.current_tension) +

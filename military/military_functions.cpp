@@ -619,7 +619,7 @@ namespace military {
 		if((this_cb_type.flags & (cb_type::po_transfer_provinces | cb_type::po_demand_state)) != 0) {
 			if(auto target = wg.target_country; ws.w.nation_s.nations.is_valid_index(target)) {
 				auto& n = ws.w.nation_s.nations[target];
-				int64_t target_total_pop = ws.w.nation_s.nation_demographics.get(target, population::total_population_tag);
+				auto target_total_pop = ws.w.nation_s.nation_demographics.get(target, population::total_population_tag);
 
 				if((this_cb_type.flags & cb_type::all_allowed_states) == 0) {
 					if(auto state = wg.target_state; is_valid_index(state))

@@ -20,6 +20,8 @@ namespace nations {
 	void update_state_nation_demographics(world_state& ws);
 	provinces::province_tag find_best_capital(world_state const& ws, nation const& owner);
 	void fix_capitals(world_state& ws);
+	provinces::province_state const* get_state_capital(world_state const& ws, nations::state_instance const& s);
+	provinces::province_state* get_state_capital(world_state& ws, nations::state_instance& s);
 	void set_relationship(world_state& ws, nation& a, nation& b, int32_t value);
 	int32_t get_relationship(world_state const& ws, nation const& a, country_tag b);
 	void adjust_relationship(world_state& ws, nation& a, nation& b, int32_t value);

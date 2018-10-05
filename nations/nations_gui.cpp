@@ -974,4 +974,8 @@ namespace nations {
 		}
 	}
 	void make_break_alliance_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
+	void gp_heading::on_create(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::great_powers], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		lm.finish_current_line();
+	}
 }

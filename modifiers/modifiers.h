@@ -1,4 +1,5 @@
 #pragma once
+#pragma once
 #include <stdint.h>
 #include "common\\common.h"
 #include "common\\shared_tags.h"

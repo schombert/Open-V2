@@ -411,7 +411,7 @@ namespace nations {
 	}
 
 	void init_nations_state(world_state& ws) {
-		ws.w.nation_s.nation_demographics.reset(population::aligned_64_demo_size(ws));
+		ws.w.nation_s.nation_demographics.reset(population::aligned_32_demo_size(ws));
 		ws.w.nation_s.state_demographics.reset(population::aligned_32_demo_size(ws));
 		ws.w.nation_s.active_parties.reset(ws.s.ideologies_m.ideologies_count);
 		ws.w.nation_s.upper_house.reset(ws.s.ideologies_m.ideologies_count);
@@ -430,7 +430,7 @@ namespace nations {
 		const auto full_vector_size = population::aligned_32_demo_size(ws);
 
 		ws.w.nation_s.nations.parallel_for_each([&ws, full_vector_size](nation& n) {
-			Eigen::Map<Eigen::Matrix<int64_t, -1, 1>, Eigen::AlignmentType::Aligned32> nation_demo(ws.w.nation_s.nation_demographics.get_row(n.id), full_vector_size);
+			Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> nation_demo(ws.w.nation_s.nation_demographics.get_row(n.id), full_vector_size);
 			nation_demo.setZero();
 
 			const auto state_range = get_range(ws.w.nation_s.state_arrays, n.member_states);
@@ -467,7 +467,7 @@ namespace nations {
 				}
 
 				if(!nations::is_colonial_or_protectorate(*s->state))
-					nation_demo += state_demo.cast<int64_t>();
+					nation_demo += state_demo.cast<float>();
 			}
 
 			if(nation_demo[to_index(population::total_population_tag)] != 0) {
@@ -1159,5 +1159,29 @@ namespace nations {
 			case 5:
 				return ws.s.fixed_ui_text[scenario::fixed_ui::rel_sphere];
 		}
+	}
+
+	provinces::province_state const* get_state_capital(world_state const& ws, nations::state_instance const& s) {
+		if(auto rid = s.region_id; is_valid_index(rid)) {
+			auto prange = ws.s.province_m.states_to_province_index.get_row(rid);
+			for(auto p : prange) {
+				auto& ps = ws.w.province_s.province_state_container[p];
+				if(ps.state_instance == &s)
+					return &ps;
+			}
+		}
+		return nullptr;
+	}
+
+	provinces::province_state* get_state_capital(world_state& ws, nations::state_instance& s) {
+		if(auto rid = s.region_id; is_valid_index(rid)) {
+			auto prange = ws.s.province_m.states_to_province_index.get_row(rid);
+			for(auto p : prange) {
+				auto& ps = ws.w.province_s.province_state_container[p];
+				if(ps.state_instance == &s)
+					return &ps;
+			}
+		}
+		return nullptr;
 	}
 }

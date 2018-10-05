@@ -16,6 +16,7 @@ namespace economy {
 		static constexpr uint8_t overseas_penalty         = 0x02;
 		static constexpr uint8_t money                    = 0x04;
 		static constexpr uint8_t mined                    = 0x08;
+		static constexpr uint8_t has_rgo				  = 0x10;
 
 		economy::money_qnty_type base_price = economy::money_qnty_type(1);
 		economy::goods_qnty_type base_rgo_value = economy::goods_qnty_type(1);
@@ -26,7 +27,11 @@ namespace economy {
 		text_data::text_tag rgo_name;
 
 		goods_tag id;
+
 		goods_type_tag type;
+		factory_type_tag factory_id;
+		artisan_type_tag artisan_id;
+
 		uint8_t flags = 0;
 		uint8_t icon = 0;
 	};
@@ -125,8 +130,12 @@ namespace economy {
 
 	struct factory_instance {
 		factory_type* type = nullptr;
+		float factory_bank = 0.0f;
+		float factory_operational_scale = 1.0f; // 0 = closed
+		float factory_progress = 0.0f; // for upgrades and construction; closed & non zero progress = under construction
 		worked_instance worker_data;
 		uint16_t level = 0;
+		bool subsidized = false;
 	};
 
 	class economic_state {

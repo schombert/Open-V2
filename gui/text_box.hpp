@@ -209,12 +209,21 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::text_tag ha
 	b.border_x = text_def.border_size.x;
 
 	graphics::font& this_font = ws.s.gui_m.fonts.at(font_h);
-	b.border_y = (int32_t(text_def.max_height + y_adjust) - int32_t(this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(int_font_size))) + 0.5f)) / 2;
+
+	auto align_result = align_in_bounds(text_data::alignment::center,
+		1, int32_t(this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(b.format.font_size)))),
+		int32_t(text_def.max_width), int32_t(text_def.max_height + y_adjust));
+	b.border_y = align_result.second;
 
 	ui::add_to_back(ws.w.gui_m, parent, new_gobj);
 
 	if constexpr(ui::detail::has_on_create<display_text<B, y_adjust>, display_text<B, y_adjust>&, world_state&>)
 		b.on_create(b, ws);
+	else if constexpr(ui::detail::has_on_create<display_text<B, y_adjust>, tagged_gui_object, text_box_line_manager&, ui::text_format&, world_state&>) {
+		ui::clear_children(ws.w.gui_m, new_gobj);
+		text_box_line_manager lm(b.align, text_def.max_width, b.border_x, b.border_y);
+		b.on_create(new_gobj, lm, b.format, ws);
+	}
 
 	ws.w.gui_m.flag_minimal_update();
 	return new_gobj;

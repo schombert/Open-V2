@@ -462,7 +462,7 @@ namespace graphics {
 		CT_STRING_INT("garmond", 2),
 		CT_STRING_INT("impact", 2),
 		CT_STRING_INT("old", 2),
-		CT_STRING_INT("timefont", 2),
+		CT_STRING_INT("timefont", 1),
 		CT_STRING_INT("vic", 2)>;
 
 	using sorted_font_map_type = typename sorted<font_map_type>::type;
@@ -535,13 +535,13 @@ namespace graphics {
 	bool font_manager::is_black(const char* start, const char* end) {
 		if (end - start <= 5)
 			return false;
-		return compile_time_str_compare_ci<CT_STRING("black")>(end - 5, end) == 0;
+		return (compile_time_str_compare_ci<CT_STRING("black")>(end - 5, end) == 0 || ((end - start > 10) && compile_time_str_compare_ci<CT_STRING("black_bold")>(end - 10, end) == 0));
 	}
 
 	void font_manager::load_standard_fonts(const directory& root) {
 		const char fallback[] = "unifont-9.0.02.ttf";
 		const char sans_serif[] = "NotoSans-Bold.ttf";
-		const char fancy_font[] = "BioRhyme-Regular.otf";
+		const char fancy_font[] = "AndadaSC-Regular.otf";
 
 		const auto full_fn = root.peek_file(fallback, fallback + sizeof(fallback) - 1);
 		if (full_fn) {

@@ -94,8 +94,8 @@ namespace economy {
 	using factory_type_tag = tag_type<uint8_t, std::true_type, struct factory_type_tag_type>;
 	using artisan_type_tag = tag_type<uint8_t, std::true_type, struct artisan_type_tag_type>;
 
-	using goods_qnty_type = double;
-	using money_qnty_type = double;
+	using goods_qnty_type = float;
+	using money_qnty_type = float;
 }
 
 namespace cultures {

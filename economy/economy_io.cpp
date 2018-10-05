@@ -5,6 +5,54 @@
 #include "concurrency_tools\\concurrency_tools.hpp"
 #include "scenario\\scenario.h"
 #include "triggers\\trigger_reading.h"
+#include "world_state\\world_state.h"
+
+void serialization::serializer<economy::factory_instance>::serialize_object(std::byte *& output, economy::factory_instance const & obj, world_state const & ws) {
+	if(obj.type) {
+		auto factory_type = obj.type->id;
+		serialize(output, factory_type);
+		serialize(output, obj.factory_bank);
+		serialize(output, obj.factory_operational_scale);
+		serialize(output, obj.factory_progress);
+		serialize(output, obj.worker_data);
+		serialize(output, obj.level);
+		serialize(output, obj.subsidized);
+	} else {
+		economy::factory_type_tag factory_type;
+		serialize(output, factory_type);
+	}
+}
+void serialization::serializer<economy::factory_instance>::deserialize_object(std::byte const *& input, economy::factory_instance & obj, world_state & ws) {
+	economy::factory_type_tag factory_type;
+	deserialize(input, factory_type);
+	if(is_valid_index(factory_type)) {
+		obj.type = &ws.s.economy_m.factory_types[factory_type];
+		deserialize(input, obj.factory_bank);
+		deserialize(input, obj.factory_operational_scale);
+		deserialize(input, obj.factory_progress);
+		deserialize(input, obj.worker_data);
+		deserialize(input, obj.level);
+		deserialize(input, obj.subsidized);
+	} else {
+		obj.type = nullptr;
+		obj.factory_bank = 0.0f;
+		obj.factory_operational_scale = 1.0f;
+		obj.level = 0ui16;
+	}
+}
+size_t serialization::serializer<economy::factory_instance>::size(economy::factory_instance const & obj, world_state const & ws) {
+	if(obj.type) {
+		return sizeof(economy::factory_type_tag) + 
+			sizeof(obj.factory_bank) +
+			sizeof(obj.factory_operational_scale) +
+			sizeof(obj.factory_progress) +
+			serialization::serialize_size(obj.worker_data) +
+			sizeof(obj.level) + 
+			sizeof(obj.subsidized);
+	} else {
+		return sizeof(economy::factory_type_tag);
+	}
+}
 
 namespace economy {
 	struct parsing_environment {
@@ -134,23 +182,23 @@ namespace economy {
 		buildings_parsing_environment& env;
 		goods_cost_container(buildings_parsing_environment& e) : env(e) {}
 
-		std::vector<std::pair<goods_tag, double>> cost_pairs;
+		std::vector<std::pair<goods_tag, economy::goods_qnty_type>> cost_pairs;
 
-		void add_cost_pair(const std::pair<token_and_type, double>& p) {
+		void add_cost_pair(const std::pair<token_and_type, economy::goods_qnty_type>& p) {
 			const auto gtag = env.manager.named_goods_index[text_data::get_thread_safe_text_handle(env.text_lookup, p.first.start, p.first.end)];
 			cost_pairs.emplace_back(gtag, p.second);
 		}
 
 	};
 
-	inline std::pair<token_and_type, double> bind_cost_pair(const token_and_type& l, association_type, const token_and_type& r) {
-		return std::pair<token_and_type, double>(l, token_to<double>(r));
+	inline std::pair<token_and_type, economy::goods_qnty_type> bind_cost_pair(const token_and_type& l, association_type, const token_and_type& r) {
+		return std::pair<token_and_type, economy::goods_qnty_type>(l, token_to<economy::goods_qnty_type>(r));
 	}
 
 	struct building_obj {
 		building_type_enum type = building_type_enum::other;
 		uint32_t cost;
-		std::vector<std::pair<goods_tag, double>> goods_cost;
+		std::vector<std::pair<goods_tag, economy::goods_qnty_type>> goods_cost;
 		uint32_t time;
 		uint32_t naval_capacity;
 		uint32_t max_level;
@@ -497,9 +545,9 @@ namespace economy {
 					if(is_valid_index(base_tag)) {
 						factory = env.economy_m.factory_types[base_tag];
 
-						Eigen::Map<const Eigen::VectorXd, Eigen::AlignmentType::Aligned32> source_vector(
+						Eigen::Map<const Eigen::VectorXf, Eigen::AlignmentType::Aligned32> source_vector(
 							env.economy_m.factory_efficiency_goods.safe_get_row(base_tag), env.economy_m.aligned_32_goods_count);
-						Eigen::Map<Eigen::VectorXd, Eigen::AlignmentType::Aligned32> dest_vector(
+						Eigen::Map<Eigen::VectorXf, Eigen::AlignmentType::Aligned32> dest_vector(
 							env.economy_m.factory_efficiency_goods.safe_get_row(ftag), env.economy_m.aligned_32_goods_count);
 
 						dest_vector = source_vector;
@@ -515,6 +563,9 @@ namespace economy {
 				factory.coastal = p.second.is_coastal;
 				factory.output_amount = p.second.value;
 				factory.output_good = p.second.output_good;
+
+				if(is_valid_index(p.second.output_good))
+					env.economy_m.goods[p.second.output_good].factory_id = ftag;
 
 				for(const auto& i : p.second.input_goods)
 					env.economy_m.factory_input_goods.safe_get(ftag, i.first) = i.second;
@@ -541,6 +592,9 @@ namespace economy {
 				artisan.output_amount = p.second.value;
 				artisan.output_good = p.second.output_good;
 
+				if(is_valid_index(p.second.output_good))
+					env.economy_m.goods[p.second.output_good].artisan_id = atag;
+
 				for(const auto& i : p.second.input_goods)
 					env.economy_m.artisan_input_goods.safe_get(atag, i.first) = i.second;
 
@@ -562,6 +616,7 @@ namespace economy {
 					g.base_rgo_value = p.second.value;
 					if(p.second.mine)
 						g.flags |= good_definition::mined;
+					g.flags |= good_definition::has_rgo;
 				}
 			}
 		}

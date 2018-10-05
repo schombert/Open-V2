@@ -315,11 +315,11 @@ namespace ui {
 
 	template<typename BASE, int32_t y_adjust = 0>
 	class display_text : public gui_behavior, public BASE {
-	private:
+	public:
 		text_format format;
 		text_data::alignment align;
 		gui_object_tag self;
-	public:
+	
 		int32_t border_x = 0;
 		int32_t border_y = 0;
 
@@ -920,9 +920,9 @@ namespace ui {
 		std::atomic<bool> pending_update = false;
 		std::atomic<bool> pending_minimal_update = false;
 	public:
-		fixed_sz_deque<gui_object, 128, 64, gui_object_tag> gui_objects;
-		fixed_sz_deque<text_instance, 128, 64, text_instance_tag> text_instances;
-		fixed_sz_deque<graphics_instance, 128, 64, graphics_instance_tag> graphics_instances;
+		fixed_sz_deque<gui_object, 512, 64, gui_object_tag> gui_objects;
+		fixed_sz_deque<text_instance, 512, 64, text_instance_tag> text_instances;
+		fixed_sz_deque<graphics_instance, 512, 64, graphics_instance_tag> graphics_instances;
 		fixed_sz_deque<tinted_icon_instance, 128, 64, tinted_icon_instance_tag> tinted_icon_instances;
 		fixed_sz_deque<multi_texture_instance, 64, 64, multi_texture_instance_tag> multi_texture_instances;
 		fixed_sz_deque<graphics::data_texture, 64, 16, data_texture_tag> data_textures;

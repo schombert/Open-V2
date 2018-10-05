@@ -466,7 +466,7 @@ void ui::detail::create_linear_text(gui_static& static_manager, gui_manager& man
 	for(auto component_i = components_start; component_i != components_end; ++component_i) {
 		x_extent += ui::text_component_width(*component_i, static_manager.text_data_sequences.text_data, this_font, fmt.font_size);
 	}
-	std::tie(position.x, position.y) = align_in_bounds(align, int32_t(x_extent + 0.5f), int32_t(this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size))) + 0.5f), container.object.size.x, container.object.size.y);
+	std::tie(position.x, position.y) = align_in_bounds(align, int32_t(x_extent + 0.5f), int32_t(this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size)))), container.object.size.x, container.object.size.y);
 	
 	add_linear_text(position, text_handle, fmt, static_manager, manager, container, ui::single_line_manager(), candidates, count);
 }

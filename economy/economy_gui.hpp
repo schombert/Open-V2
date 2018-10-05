@@ -603,6 +603,198 @@ namespace economy {
 		state_pop_display_window_base
 	>;
 
+	class factory_display_base : public ui::visible_region {
+	public:
+		nations::state_tag location;
+		int32_t index = -1;
+
+		template<typename W>
+		void on_create(W& win, world_state& ws);
+	};
+
+	class factory_open_background {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<factory_open_background>& self, window_type& win, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class factory_closed_background {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<factory_closed_background>& self, window_type& win, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class factory_construction_progress_bar {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::progress_bar<factory_construction_progress_bar>& self, window_type& win, world_state& ws);
+	};
+
+	class factory_cancel_construction_button {
+	public:
+		nations::state_tag location;
+		int32_t index = -1;
+
+		template<typename window_type>
+		void windowed_update(ui::simple_button<factory_cancel_construction_button>& self, window_type& win, world_state& ws);
+		void button_function(ui::simple_button<factory_cancel_construction_button>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class factory_upgrade_progress_bar {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::progress_bar<factory_upgrade_progress_bar>& self, window_type& win, world_state& ws);
+	};
+
+	class factory_upgrade_progress_overlay {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<factory_upgrade_progress_overlay>& self, window_type& win, world_state& ws);
+	};
+
+	class factory_level_text {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class factory_upgrade_button {
+	public:
+		nations::state_tag location;
+		int32_t index = -1;
+
+		template<typename window_type>
+		void windowed_update(ui::button<factory_upgrade_button>& self, window_type& win, world_state& ws);
+		void button_function(ui::button<factory_upgrade_button>& self, key_modifiers mod, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class hidden_icon {
+	public:
+		void update(ui::dynamic_icon<hidden_icon>& self, world_state& ws);
+	};
+
+	template<int32_t nth_input>
+	class factory_input {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<factory_input>& self, window_type& win, world_state& ws);
+	};
+
+	class factory_income_arrow {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<factory_income_arrow>& self, window_type& win, world_state& ws);
+	};
+
+	class factory_income_text {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class factory_subsidize_button {
+	public:
+		nations::state_tag location;
+		int32_t index = -1;
+
+		template<typename window_type>
+		void windowed_update(ui::simple_button<factory_subsidize_button>& self, window_type& win, world_state& ws);
+		void button_function(ui::simple_button<factory_subsidize_button>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class hidden_button {
+	public:
+		void update(ui::simple_button<hidden_button>& self, world_state& ws);
+	};
+
+	class factory_workers_display {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<factory_workers_display>& self, window_type& win, world_state& ws);
+	};
+
+	class factory_closed_overlay {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<factory_closed_overlay>& self, window_type& win, world_state& ws);
+	};
+
+	class factory_output {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::simple_button<factory_output>& self, window_type& win, world_state& ws);
+	};
+
+	class factory_delete_button {
+	public:
+		nations::state_tag location;
+		int32_t index = -1;
+
+		template<typename window_type>
+		void windowed_update(ui::simple_button<factory_delete_button>& self, window_type& win, world_state& ws);
+		void button_function(ui::simple_button<factory_delete_button>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class factory_open_or_close_button {
+	public:
+		nations::state_tag location;
+		int32_t index = -1;
+
+		template<typename window_type>
+		void windowed_update(ui::simple_button<factory_open_or_close_button>& self, window_type& win, world_state& ws);
+		void button_function(ui::simple_button<factory_open_or_close_button>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class factory_closed_text {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	using factory_display = ui::gui_window<
+		CT_STRING("prod_factory_bg"), ui::dynamic_icon<factory_open_background>,
+		CT_STRING("prod_factory_inprogress_bg"), ui::dynamic_icon<factory_closed_background>,
+		CT_STRING("build_factory_progress"), ui::progress_bar<factory_construction_progress_bar>,
+		CT_STRING("prod_cancel_progress"), ui::simple_button<factory_cancel_construction_button>,
+		CT_STRING("upgrade_factory_progress"), ui::progress_bar<factory_upgrade_progress_bar>,
+		CT_STRING("progress_overlay_16_64"), ui::dynamic_icon<factory_upgrade_progress_overlay>,
+		CT_STRING("level"), ui::display_text<factory_level_text>,
+		CT_STRING("upgrade"), ui::button<factory_upgrade_button>,
+		CT_STRING("input_0_lack2"), ui::dynamic_icon<hidden_icon>,
+		CT_STRING("input_1_lack2"), ui::dynamic_icon<hidden_icon>,
+		CT_STRING("input_2_lack2"), ui::dynamic_icon<hidden_icon>,
+		CT_STRING("input_3_lack2"), ui::dynamic_icon<hidden_icon>,
+		CT_STRING("input_0"), ui::dynamic_icon<factory_input<0>>,
+		CT_STRING("input_1"), ui::dynamic_icon<factory_input<1>>,
+		CT_STRING("input_2"), ui::dynamic_icon<factory_input<2>>,
+		CT_STRING("input_3"), ui::dynamic_icon<factory_input<3>>,
+		CT_STRING("income_icon"), ui::dynamic_icon<factory_income_arrow>,
+		CT_STRING("income"), ui::display_text<factory_income_text, -14>,
+		CT_STRING("subsidise"), ui::simple_button<factory_subsidize_button>,
+		CT_STRING("priority"), ui::simple_button<hidden_button>,
+		CT_STRING("employment_ratio"), ui::dynamic_icon<factory_workers_display>,
+		CT_STRING("closed_overlay"), ui::dynamic_icon<factory_closed_overlay>,
+		CT_STRING("output"), ui::simple_button<factory_output>,
+		CT_STRING("delete_factory"), ui::simple_button<factory_delete_button>,
+		CT_STRING("open_close"), ui::simple_button<factory_open_or_close_button>,
+		CT_STRING("factory_closed_text"), ui::display_text<factory_closed_text>,
+		factory_display_base
+	>;
+
 	class state_window_base : public ui::window_pane {
 	public:
 		nations::state_tag tag;
@@ -610,6 +802,8 @@ namespace economy {
 		state_pop_display_window workers_a;
 		state_pop_display_window workers_b;
 		state_pop_display_window owner;
+
+		factory_display factories[8];
 
 		void set_value(nations::state_tag t) {
 			tag = t;
@@ -620,6 +814,7 @@ namespace economy {
 
 		template<typename W>
 		void on_create(W& win, world_state& ws);
+		void update(world_state& ws);
 	};
 
 	class state_focus_button {
@@ -679,6 +874,109 @@ namespace economy {
 		ui::window_tag element_tag(ui::gui_static& m);
 	};
 
+	class goods_category_label_base : public ui::visible_region {
+	public:
+		economy::goods_type_tag category;
+	};
+
+	class goods_category_name {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	using goods_category_label = ui::gui_window<
+		CT_STRING("cat_name"), ui::display_text<goods_category_name>,
+		goods_category_label_base
+	>;
+
+	class production_info_base : public ui::window_pane {
+	public:
+		economy::goods_tag tag;
+
+		template<typename W>
+		void on_create(W& win, world_state& ws);
+	};
+
+	class production_backkground {
+	public:
+		economy::goods_tag tag;
+
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<production_backkground>& self, window_type& win, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class production_pop_icon {
+	public:
+		population::pop_type_tag type;
+
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<production_pop_icon>& self, window_type& win, world_state& ws);
+	};
+
+	class production_pop_output {
+	public:
+		population::pop_type_tag type;
+
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class production_input_icon {
+	public:
+		economy::goods_tag tag;
+
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<production_input_icon>& self, window_type& win, world_state& ws);
+	};
+
+	class production_total_output {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class production_output_icon {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::simple_button<production_output_icon>& self, window_type& win, world_state& ws);
+	};
+
+	class production_no_production_overlay {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<production_no_production_overlay>& self, window_type& win, world_state& ws);
+	};
+
+	using production_info = ui::gui_window<
+		CT_STRING("prod_producing_entry"), ui::dynamic_icon<production_backkground>,
+		CT_STRING("pop_factory"), ui::dynamic_icon<production_pop_icon>,
+		CT_STRING("pop_factory2"), ui::dynamic_icon<production_pop_icon>,
+		CT_STRING("output"), ui::display_text<production_pop_output>,
+		CT_STRING("output2"), ui::display_text<production_pop_output>,
+		CT_STRING("input_factory_0"), ui::dynamic_icon<production_input_icon>,
+		CT_STRING("input_factory_1"), ui::dynamic_icon<production_input_icon>,
+		CT_STRING("input_factory_2"), ui::dynamic_icon<production_input_icon>,
+		CT_STRING("input_factory_3"), ui::dynamic_icon<production_input_icon>,
+		CT_STRING("output_total"), ui::display_text<production_total_output>,
+		CT_STRING("prod_producing_not_total"), ui::dynamic_icon<production_no_production_overlay>,
+		CT_STRING("output_factory"), ui::simple_button<production_output_icon>,
+		production_info_base
+	>;
+
+	class production_info_pane_base : public ui::window_pane {
+	public:
+		std::vector<goods_category_label> categories;
+		std::vector<production_info> production_details;
+
+		template<typename W>
+		void on_create(W& win, world_state& ws);
+	};
+
+	using production_info_pane = ui::gui_window<production_info_pane_base>;
+
 	class production_window_t : public ui::gui_window<
 		CT_STRING("close_button"), ui::simple_button<close_button>,
 		CT_STRING("tab_factories"), ui::button_group_member,
@@ -703,9 +1001,170 @@ namespace economy {
 		CT_STRING("invest_buttons"), investment_filter_buttons,
 		CT_STRING("state_listbox"), ui::discrete_listbox<state_details_lb, state_window, nations::state_tag>,
 		CT_STRING("state_listbox_invest"), ui::discrete_listbox<investment_state_details_lb, state_window, nations::state_tag>,
+		CT_STRING("good_production"), production_info_pane,
 		production_window_base
 	>{};
 
+	template<typename W>
+	void production_info_pane_base::on_create(W & win, world_state & ws) {
+		associated_object->size = ui::xy_pair{ 968i16, 700i16 };
+		associated_object->position = ui::xy_pair{ 28i16, 50i16 };
+
+		auto header_tag = std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["production_goods_name"]);
+		auto& header_definition = ws.s.gui_m.ui_definitions.windows[header_tag];
+		auto details_tag = std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["production_info"]);
+		auto& details_definition = ws.s.gui_m.ui_definitions.windows[details_tag];
+
+		int16_t cursor_x = 0;
+		int16_t cursor_y = 0;
+
+		categories.resize(ws.s.economy_m.good_type_names.size());
+		production_details.resize(ws.s.economy_m.goods_count);
+
+		for(uint32_t i = 0; i < ws.s.economy_m.good_type_names.size(); ++i) {
+			goods_type_tag this_category(static_cast<goods_type_tag::value_base_t>(i));
+
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, header_tag,
+				ui::tagged_gui_object{ *associated_object, win.window_object },
+				categories[i]));
+			categories[i].category = this_category;
+			if(cursor_x != 0) {
+				cursor_x = 0;
+				cursor_y += details_definition.size.y;
+			}
+			categories[i].associated_object->size.x = 968i16;
+			categories[i].associated_object->position = ui::xy_pair{ cursor_x, cursor_y };
+			categories[i].associated_object->align = ui::alignment::top_left;
+			cursor_y += header_definition.size.y;
+
+			for(uint32_t j = 0; j < ws.s.economy_m.goods_count; ++j) {
+				goods_tag this_good(static_cast<goods_tag::value_base_t>(j));
+				if(ws.s.economy_m.goods[this_good].type == this_category) {
+					ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+						ws, details_tag,
+						ui::tagged_gui_object{ *associated_object, win.window_object },
+						production_details[j]));
+					production_details[j].associated_object->position = ui::xy_pair{ cursor_x, cursor_y };
+					cursor_x += details_definition.size.x;
+					if(cursor_x > associated_object->size.x - details_definition.size.x) {
+						cursor_x = 0;
+						cursor_y += details_definition.size.y;
+					}
+					
+					production_details[j].tag = this_good;
+					bool has_rgo = (ws.s.economy_m.goods[this_good].flags & economy::good_definition::has_rgo) != 0;
+					int32_t count = 0;
+					if(has_rgo) {
+						production_details[j].template get<CT_STRING("pop_factory")>().type =
+							((ws.s.economy_m.goods[this_good].flags & economy::good_definition::mined) != 0) ?
+							ws.s.economy_m.rgo_mine.workers[0].type : ws.s.economy_m.rgo_farm.workers[0].type;
+						production_details[j].template get<CT_STRING("output")>().type =
+							((ws.s.economy_m.goods[this_good].flags & economy::good_definition::mined) != 0) ?
+							ws.s.economy_m.rgo_mine.workers[0].type : ws.s.economy_m.rgo_farm.workers[0].type;
+						++count;
+					}
+					if(is_valid_index(ws.s.economy_m.goods[this_good].factory_id)) {
+						if(count == 1) {
+							production_details[j].template get<CT_STRING("pop_factory2")>().type = ws.s.population_m.factory_workers[1];
+							production_details[j].template get<CT_STRING("output2")>().type = ws.s.population_m.factory_workers[1];
+						} else if(count == 0) {
+							production_details[j].template get<CT_STRING("pop_factory")>().type = ws.s.population_m.factory_workers[1];
+							production_details[j].template get<CT_STRING("output")>().type = ws.s.population_m.factory_workers[1];
+						}
+						++count;
+					}
+					if(is_valid_index(ws.s.economy_m.goods[this_good].artisan_id)) {
+						if(count == 1) {
+							production_details[j].template get<CT_STRING("pop_factory2")>().type = ws.s.population_m.artisan;
+							production_details[j].template get<CT_STRING("output2")>().type = ws.s.population_m.artisan;
+						} else if(count == 0) {
+							production_details[j].template get<CT_STRING("pop_factory")>().type = ws.s.population_m.artisan;
+							production_details[j].template get<CT_STRING("output")>().type = ws.s.population_m.artisan;
+						}
+					}
+
+					if(is_valid_index(ws.s.economy_m.goods[this_good].factory_id)) {
+						uint32_t input_count = 0;
+						for(uint32_t k = 0; k < ws.s.economy_m.goods_count; ++k) {
+							goods_tag this_input(static_cast<goods_tag::value_base_t>(k));
+							if(ws.s.economy_m.factory_input_goods.get(ws.s.economy_m.goods[this_good].factory_id, this_input) != 0) {
+								if(input_count == 0) {
+									production_details[j].template get<CT_STRING("input_factory_0")>().tag = this_input;
+								} else if(input_count == 1) {
+									production_details[j].template get<CT_STRING("input_factory_1")>().tag = this_input;
+								} else if(input_count == 2) {
+									production_details[j].template get<CT_STRING("input_factory_2")>().tag = this_input;
+								} else if(input_count == 3) {
+									production_details[j].template get<CT_STRING("input_factory_3")>().tag = this_input;
+								}
+								++input_count;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	template<typename window_type>
+	void production_no_production_overlay::windowed_update(ui::dynamic_icon<production_no_production_overlay>& self, window_type & win, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; bool(player) && is_valid_index(win.tag)) {
+			if(auto pid = player->id; ws.w.nation_s.nations.is_valid_index(pid)) {
+				auto active_goods = ws.w.nation_s.active_goods.get_row(pid);
+				if(bit_vector_test(active_goods, to_index(win.tag))) 
+					ui::hide(*self.associated_object);
+				else 
+					ui::make_visible_immediate(*self.associated_object);
+			}
+		}
+	}
+
+	template<typename W>
+	void production_total_output::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+	}
+
+	template<typename W>
+	void production_pop_output::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+	}
+
+	template<typename window_type>
+	void production_backkground::windowed_update(ui::dynamic_icon<production_backkground>& self, window_type & win, world_state & ws) {
+		tag = win.tag;
+	}
+
+	template<typename window_type>
+	void production_output_icon::windowed_update(ui::simple_button<production_output_icon>& self, window_type & win, world_state & ws) {
+		if(is_valid_index(win.tag)) {
+			self.set_frame(ws.w.gui_m, ws.s.economy_m.goods[win.tag].icon);
+		}
+	}
+
+	template<typename window_type>
+	void production_input_icon::windowed_update(ui::dynamic_icon<production_input_icon>& self, window_type & win, world_state & ws) {
+		if(is_valid_index(tag)) {
+			self.set_frame(ws.w.gui_m, ws.s.economy_m.goods[tag].icon);
+			ui::make_visible_immediate(*self.associated_object);
+		} else
+			ui::hide(*self.associated_object);
+	}
+
+	template<typename window_type>
+	void production_pop_icon::windowed_update(ui::dynamic_icon<production_pop_icon>& self, window_type & win, world_state & ws) {
+		if(is_valid_index(type)) {
+			self.set_frame(ws.w.gui_m, ws.s.population_m.pop_types[type].sprite - 1ui32);
+			ui::make_visible_immediate(*self.associated_object);
+		} else {
+			ui::hide(*self.associated_object);
+		}
+	}
+
+	template<typename W>
+	inline void production_info_base::on_create(W & win, world_state & ws) {
+		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
+			obj.object.position += ui::xy_pair{ 0i16, -2i16 };
+		});
+	}
 
 	template<typename W>
 	void production_window_base::on_create(W & w, world_state & ws) {
@@ -714,6 +1173,15 @@ namespace economy {
 			obj.object.position += ui::xy_pair{ -3i16, 3i16 };
 		});
 		w.template get<CT_STRING("production_tab_button_group")>().set_selected(ws.w.gui_m, 0);
+	}
+
+	template<typename W>
+	void factory_display_base::on_create(W & win, world_state & ws) {
+		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
+			obj.object.position += ui::xy_pair{ -2i16, -11i16 };
+		});
+		associated_object->size.y = 92i16;
+		associated_object->align = ui::alignment::top_left;
 	}
 
 	template<typename W>
@@ -755,6 +1223,16 @@ namespace economy {
 		owner.type = ws.s.population_m.capitalist;
 		owner.associated_object->position.y = 0i16;
 		owner.associated_object->position.x = base_x + size_x + size_x;
+
+		auto factory_tag = std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["factory_info"]);
+
+		for(uint32_t i = 0; i < 8; ++i) {
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, factory_tag,
+				ui::tagged_gui_object{ *associated_object, win.window_object },
+				factories[i]));
+			factories[i].associated_object->position = ui::xy_pair{int16_t(i * 112 + 2), 26i16 };
+		}
 	}
 
 	template<typename W>
@@ -1526,6 +2004,303 @@ namespace economy {
 			}
 
 			lb.update_list(data.begin(), data.end());
+		}
+	}
+
+	template<typename window_type>
+	void factory_open_background::windowed_update(ui::dynamic_icon<factory_open_background>& self, window_type & win, world_state & ws) {
+		if(win.index >= 0 && is_valid_index(win.location)) {
+			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			if(bool(f.type) && f.factory_operational_scale > 0.0f)
+				ui::make_visible_immediate(*self.associated_object);
+			else
+				ui::hide(*self.associated_object);
+		}
+	}
+
+	template<typename window_type>
+	void factory_closed_background::windowed_update(ui::dynamic_icon<factory_closed_background>& self, window_type & win, world_state & ws) {
+		if(win.index >= 0 && is_valid_index(win.location)) {
+			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			if(bool(f.type) && f.factory_operational_scale > 0.0f)
+				ui::hide(*self.associated_object);
+			else
+				ui::make_visible_immediate(*self.associated_object);
+		}
+	}
+
+	template<typename window_type>
+	void factory_construction_progress_bar::windowed_update(ui::progress_bar<factory_construction_progress_bar>& self, window_type & win, world_state & ws) {
+		if(win.index >= 0 && is_valid_index(win.location)) {
+			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			if(f.factory_progress > 0.0f && f.level == 0) {
+				self.set_fraction(f.factory_progress);
+				ui::make_visible_immediate(*self.associated_object);
+			} else {
+				ui::hide(*self.associated_object);
+			}
+		}
+	}
+
+	template<typename window_type>
+	void factory_upgrade_progress_bar::windowed_update(ui::progress_bar<factory_upgrade_progress_bar>& self, window_type & win, world_state & ws) {
+		if(win.index >= 0 && is_valid_index(win.location)) {
+			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			if(f.factory_progress > 0.0f && f.level != 0) {
+				self.set_fraction(f.factory_progress);
+				ui::make_visible_immediate(*self.associated_object);
+			} else {
+				ui::hide(*self.associated_object);
+			}
+		}
+	}
+
+	template<typename window_type>
+	void factory_upgrade_progress_overlay::windowed_update(ui::dynamic_icon<factory_upgrade_progress_overlay>& self, window_type & win, world_state & ws) {
+		if(win.index >= 0 && is_valid_index(win.location)) {
+			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			if(f.factory_progress > 0.0f && f.level != 0) {
+				ui::make_visible_immediate(*self.associated_object);
+			} else {
+				ui::hide(*self.associated_object);
+			}
+		}
+	}
+
+	template<typename W>
+	void factory_level_text::windowed_update(W & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(win.index >= 0 && is_valid_index(win.location)) {
+			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::exact_integer, f.level);
+			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+			lm.finish_current_line();
+		}
+	}
+
+	template<typename window_type>
+	void factory_cancel_construction_button::windowed_update(ui::simple_button<factory_cancel_construction_button>& self, window_type & win, world_state & ws) {
+		location = win.location;
+		index = win.index;
+		if(auto player = ws.w.local_player_nation; player) {
+			if(win.index >= 0 && is_valid_index(win.location) && ws.w.nation_s.states[location].owner == player) {
+				economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+				if(f.factory_progress > 0.0f && f.level == 0) {
+					ui::make_visible_immediate(*self.associated_object);
+					self.set_enabled((player->current_rules.rules_value & issues::rules::destroy_factory) != 0);
+					return;
+				}
+			}
+		}
+		ui::hide(*self.associated_object);
+	}
+
+	template<typename window_type>
+	void factory_delete_button::windowed_update(ui::simple_button<factory_delete_button>& self, window_type & win, world_state & ws) {
+		location = win.location;
+		index = win.index;
+		if(auto player = ws.w.local_player_nation; player) {
+			if(win.index >= 0 && is_valid_index(win.location) && ws.w.nation_s.states[location].owner == player) {
+				economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+				if(f.factory_operational_scale <= 0.0f) {
+					ui::make_visible_immediate(*self.associated_object);
+					self.set_enabled((player->current_rules.rules_value & issues::rules::destroy_factory) != 0);
+					return;
+				}
+			}
+		}
+		ui::hide(*self.associated_object);
+	}
+
+	template<typename window_type>
+	void factory_open_or_close_button::windowed_update(ui::simple_button<factory_open_or_close_button>& self, window_type & win, world_state & ws) {
+		location = win.location;
+		index = win.index;
+		if(auto player = ws.w.local_player_nation; player) {
+			if(win.index >= 0 && is_valid_index(win.location)) {
+				economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+
+				if(f.factory_operational_scale <= 0.0f) {
+					// closed case -- button opens
+					self.set_frame(ws.w.gui_m, 0ui32);
+					ui::make_visible_immediate(*self.associated_object);
+					if(ws.w.nation_s.states[location].owner == player) {
+						self.set_enabled((player->current_rules.rules_value & issues::rules::open_factory) != 0);
+						return;
+					} else {
+						self.set_enabled((player->current_rules.rules_value & issues::rules::open_factory_invest) != 0);
+						return;
+					}
+				} else {
+					// open case -- button closes
+					self.set_frame(ws.w.gui_m, 1ui32);
+					if(ws.w.nation_s.states[location].owner == player) {
+						ui::make_visible_immediate(*self.associated_object);
+						self.set_enabled((player->current_rules.rules_value & issues::rules::destroy_factory) != 0);
+						return;
+					}
+				}
+			}
+		}
+		ui::hide(*self.associated_object);
+
+	}
+
+	template<typename window_type>
+	void factory_upgrade_button::windowed_update(ui::button<factory_upgrade_button>& self, window_type & win, world_state & ws) {
+		location = win.location;
+		index = win.index;
+		if(auto player = ws.w.local_player_nation; player) {
+			if(win.index >= 0 && is_valid_index(win.location)) {
+				economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+				if(ws.w.nation_s.states[location].owner == player && f.level != 0) {
+					ui::make_visible_immediate(*self.associated_object);
+					self.set_enabled((player->current_rules.rules_value & issues::rules::expand_factory) != 0 && f.factory_progress == 0.0f);
+					return;
+				}
+				if(f.level != 0) {
+					ui::make_visible_immediate(*self.associated_object);
+					self.set_enabled(f.factory_progress == 0.0f && (player->current_rules.rules_value & issues::rules::expand_factory_invest) != 0);
+					return;
+				}
+			}
+		}
+		ui::hide(*self.associated_object);
+	}
+
+	template<typename window_type>
+	void factory_subsidize_button::windowed_update(ui::simple_button<factory_subsidize_button>& self, window_type & win, world_state & ws) {
+		location = win.location;
+		index = win.index;
+		if(auto player = ws.w.local_player_nation; player) {
+			if(win.index >= 0 && is_valid_index(win.location) && ws.w.nation_s.states[location].owner == player) {
+				economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+
+				if(f.subsidized)
+					self.set_frame(ws.w.gui_m, 1ui32);
+				else
+					self.set_frame(ws.w.gui_m, 0ui32);
+
+				self.set_enabled((player->current_rules.rules_value & issues::rules::can_subsidise) != 0);
+				return;
+			}
+		}
+		ui::hide(*self.associated_object);
+	}
+
+	template<int32_t nth_input>
+	template<typename window_type>
+	void factory_input<nth_input>::windowed_update(ui::dynamic_icon<factory_input>& self, window_type & win, world_state & ws) {
+		if(win.index >= 0 && is_valid_index(win.location)) {
+			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			if(auto f_type = f.type; f_type) {
+				auto type_id = f_type->id;
+				int32_t input_found_count = 0;
+				for(uint32_t i = 0; i < ws.s.economy_m.goods_count; ++i) {
+					goods_tag this_tag(static_cast<goods_tag::value_base_t>(i));
+					if(ws.s.economy_m.factory_input_goods.get(type_id, this_tag) != 0) {
+						if(input_found_count == nth_input) {
+							self.set_frame(ws.w.gui_m, ws.s.economy_m.goods[this_tag].icon);
+							ui::make_visible_immediate(*self.associated_object);
+							return;
+						}
+						++input_found_count;
+					}
+				}
+			}
+		}
+		ui::hide(*self.associated_object);
+	}
+
+	template<typename window_type>
+	void factory_output::windowed_update(ui::simple_button<factory_output>& self, window_type & win, world_state & ws) {
+		if(win.index >= 0 && is_valid_index(win.location)) {
+			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			if(auto f_type = f.type; f_type) {
+				if(is_valid_index(f_type->output_good)) {
+					self.set_frame(ws.w.gui_m, ws.s.economy_m.goods[f_type->output_good].icon);
+					ui::make_visible_immediate(*self.associated_object);
+					return;
+				}
+			}
+		}
+		ui::hide(*self.associated_object);
+	}
+
+	template<typename window_type>
+	void factory_income_arrow::windowed_update(ui::dynamic_icon<factory_income_arrow>& self, window_type & win, world_state & ws) {
+		if(win.index >= 0 && is_valid_index(win.location)) {
+			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+
+			if(auto state_cap = nations::get_state_capital(ws, ws.w.nation_s.states[win.location]); state_cap) {
+				auto profit = economy::get_factory_profit(ws, *state_cap, f, ws.w.economy_s.current_prices.data());
+
+				if(profit < money_qnty_type(0)) {
+					self.set_frame(ws.w.gui_m, 1ui32);
+					return;
+				}
+			}
+		}
+		self.set_frame(ws.w.gui_m, 0ui32);
+	}
+	template<typename W>
+	void factory_income_text::windowed_update(W & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(win.index >= 0 && is_valid_index(win.location)) {
+			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			
+			if(auto state_cap = nations::get_state_capital(ws, ws.w.nation_s.states[win.location]); state_cap) {
+				ui::text_format blk{ui::text_color::black, fmt.font_handle, fmt.font_size};
+
+				auto profit = economy::get_factory_profit(ws, *state_cap, f, ws.w.economy_s.current_prices.data());
+
+				char16_t local_buffer[16];
+				put_value_in_buffer(local_buffer, display_type::fp_two_places, profit);
+				auto cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, blk, lm);
+				cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u00A3"), box, cursor, blk, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+	template<typename window_type>
+	void factory_workers_display::windowed_update(ui::dynamic_icon<factory_workers_display>& self, window_type & win, world_state & ws) {
+		if(win.index >= 0 && is_valid_index(win.location)) {
+			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			auto employment_fraction = factory_employment_fraction(ws, f);
+			if(employment_fraction != 0.0f)	
+				self.set_frame(ws.w.gui_m, 1ui32 + std::min(9ui32, static_cast<uint32_t>(10.0f * employment_fraction)));
+			else
+				self.set_frame(ws.w.gui_m, 0ui32);
+		}
+	}
+
+	template<typename window_type>
+	void factory_closed_overlay::windowed_update(ui::dynamic_icon<factory_closed_overlay>& self, window_type & win, world_state & ws) {
+		if(win.index >= 0 && is_valid_index(win.location)) {
+			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			if(f.factory_operational_scale > 0.0f)
+				ui::hide(*self.associated_object);
+			else
+				ui::make_visible_immediate(*self.associated_object);
+		}
+	}
+
+	template<typename W>
+	void factory_closed_text::windowed_update(W & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(win.index >= 0 && is_valid_index(win.location)) {
+			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			if(f.factory_operational_scale <= 0.0f) {
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::closed], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+
+	template<typename W>
+	void goods_category_name::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(is_valid_index(w.category)) {
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.economy_m.good_type_names[w.category], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			lm.finish_current_line();
 		}
 	}
 }
