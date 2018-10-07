@@ -29,10 +29,8 @@ namespace ui {
 	}
 	template<typename BASE>
 	template<typename window_type>
-	void progress_bar<BASE>::windowed_update(window_type& w, world_state& s) {
-		if constexpr(ui::detail::has_windowed_update<BASE, progress_bar<BASE>&, window_type&, world_state&>) {
-			BASE::windowed_update(*this, w, s);
-		}
+	std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::progress_bar<BASE>&, window_type&, world_state&>, void> progress_bar<BASE>::windowed_update(window_type& w, world_state& s) {
+		BASE::windowed_update(*this, w, s);
 	}
 	template<typename BASE>
 	tooltip_behavior progress_bar<BASE>::has_tooltip(gui_object_tag, world_state& ws, const mouse_move&) {

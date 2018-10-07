@@ -68,7 +68,7 @@ void ui::display_text<BASE, y_adjust>::windowed_update(window_type& w, world_sta
 
 template<typename BASE, int32_t x_size_adjust, int32_t y_size_adjust>
 template<typename window_type>
-void ui::multiline_text<BASE, x_size_adjust, y_size_adjust>::windowed_update(window_type& win, world_state& w) {
+std::enable_if_t<ui::detail::has_windowed_update<BASE, window_type&, ui::tagged_gui_object, ui::line_manager &, ui::text_format&, world_state&>, void> ui::multiline_text<BASE, x_size_adjust, y_size_adjust>::windowed_update(window_type& win, world_state& w) {
 	if constexpr(ui::detail::has_windowed_update < BASE, window_type&, tagged_gui_object, line_manager &, ui::text_format&, world_state& >) {
 		tagged_gui_object content_frame{ w.w.gui_m.gui_objects.at(scrollable_region), scrollable_region };
 

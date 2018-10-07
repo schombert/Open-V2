@@ -238,7 +238,7 @@ namespace ui {
 	void line_manager::finish_current_line() {
 		if(align == text_data::alignment::left) {
 			for(auto p : current_line)
-				p->position.x += indent;
+				p->position.x += int16_t(indent);
 			current_line.clear();
 		} else {
 			int32_t max_right = 0;
@@ -248,7 +248,7 @@ namespace ui {
 			const int32_t adjustment = (max_line_extent - total_element_width) /
 				(align == text_data::alignment::right ? 1 : 2);
 			for(auto p : current_line)
-				p->position.x += adjustment;
+				p->position.x += int16_t(adjustment);
 
 			current_line.clear();
 		}
@@ -263,8 +263,8 @@ namespace ui {
 	void text_box_line_manager::finish_current_line() {
 		if(align == text_data::alignment::left) {
 			for(auto p : current_line) {
-				p->position.x += border_x;
-				p->position.y += border_y;
+				p->position.x += int16_t(border_x);
+				p->position.y += int16_t(border_y);
 			}
 			current_line.clear();
 		} else if(align == text_data::alignment::right) {
@@ -273,8 +273,8 @@ namespace ui {
 				total_element_width = std::max(total_element_width, p->position.x + p->size.x);
 			const int32_t adjustment = (max_line_extent - total_element_width - border_x);
 			for(auto p : current_line) {
-				p->position.x += adjustment;
-				p->position.y += border_y;
+				p->position.x += int16_t(adjustment);
+				p->position.y += int16_t(border_y);
 			}
 			current_line.clear();
 		} else { // center
@@ -283,8 +283,8 @@ namespace ui {
 				total_element_width = std::max(total_element_width, p->position.x + p->size.x);
 			const int32_t adjustment = (max_line_extent - total_element_width) / 2;
 			for(auto p : current_line) {
-				p->position.x += adjustment;
-				p->position.y += border_y;
+				p->position.x += int16_t(adjustment);
+				p->position.y += int16_t(border_y);
 			}
 			current_line.clear();
 		}
@@ -466,8 +466,9 @@ void ui::detail::create_linear_text(gui_static& static_manager, gui_manager& man
 	for(auto component_i = components_start; component_i != components_end; ++component_i) {
 		x_extent += ui::text_component_width(*component_i, static_manager.text_data_sequences.text_data, this_font, fmt.font_size);
 	}
-	std::tie(position.x, position.y) = align_in_bounds(align, int32_t(x_extent + 0.5f), int32_t(this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size)))), container.object.size.x, container.object.size.y);
-	
+	const auto res = align_in_bounds(align, int32_t(x_extent + 0.5f), int32_t(this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size)))), container.object.size.x, container.object.size.y);
+	position.x = int16_t(res.first);
+	position.y = int16_t(res.second);
 	add_linear_text(position, text_handle, fmt, static_manager, manager, container, ui::single_line_manager(), candidates, count);
 }
 
@@ -1458,8 +1459,8 @@ void ui::shrink_to_children(gui_manager& manager, tagged_gui_object g, int32_t b
 	});
 
 	for_each_child(manager, g, [g, minimum_child, border](tagged_gui_object child) {
-		child.object.position.x += border - minimum_child.x;
-		child.object.position.y += border - minimum_child.y;
+		child.object.position.x += int16_t(border - minimum_child.x);
+		child.object.position.y += int16_t(border - minimum_child.y);
 	});
 
 	g.object.size.x = static_cast<int16_t>(border * 2 + std::max(g.object.size.x - minimum_child.x, 0));

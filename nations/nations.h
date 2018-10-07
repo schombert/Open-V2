@@ -66,6 +66,15 @@ namespace nations {
 		bool operator==(timed_national_modifier const& other) const noexcept { return mod == other.mod && expiration == other.expiration; }
 	};
 
+	struct state_neighbor {
+		float distance = 1.0f;
+		state_tag neighbor_tag;
+		uint16_t neighbor_index = 0ui16;
+
+		bool operator<(state_neighbor const& other)  const noexcept { return neighbor_tag < other.neighbor_tag; }
+		bool operator==(state_neighbor const& other) const noexcept { return neighbor_tag == other.neighbor_tag; }
+	};
+
 	struct alignas(32) nation {
 		technologies::tech_attribute_vector tech_attributes = technologies::tech_attribute_vector::Zero();
 		modifiers::national_modifier_vector modifier_values = modifiers::national_modifier_vector::Zero();
@@ -210,6 +219,15 @@ namespace nations {
 		constexpr static uint16_t has_gas_defence = 0x0200;
 	};
 
+	
+
+	struct pop_project {
+		economy::money_qnty_type funds = economy::money_qnty_type(0);
+		provinces::province_tag location; // for railroad
+		economy::factory_type_tag factory_type;
+		economy::pop_project_type type;
+	};
+
 	struct state_instance {
 		economy::factory_instance factories[8] = {};
 		std::pair<country_tag, int32_t> colonizers[4] = {};
@@ -217,8 +235,13 @@ namespace nations {
 		nation* owner = nullptr;
 		modifiers::national_focus* owner_national_focus = nullptr;
 
+		pop_project project;
+
 		int32_t last_population = 0;
 		set_tag<country_tag> flashpoint_tension_focuses;
+		array_tag<state_neighbor> neighbors;
+		array_tag<float> imports_arrays;
+
 		float administrative_efficiency = 0.0f;
 		float current_tension = 0.0f;
 
@@ -254,6 +277,7 @@ namespace nations {
 		stable_2d_vector<uint64_t, country_tag, uint32_t, 512, 16> active_goods;
 		stable_2d_vector<issues::option_tag, country_tag, issues::issue_tag, 512, 16> active_issue_options;
 		stable_2d_vector<economy::goods_qnty_type, country_tag, economy::goods_tag, 512, 16> national_stockpiles;
+		stable_2d_vector<economy::money_qnty_type, state_tag, economy::goods_tag, 512, 16> state_prices;
 		stable_2d_vector<float, country_tag, variables::national_variable_tag, 512, 16> national_variables;
 
 		stable_2d_vector<float, country_tag, technologies::adjusted_goods_tag, 512, 16> production_adjustments;
@@ -270,6 +294,8 @@ namespace nations {
 		stable_variable_vector_storage_mk_2<relationship, 4, 8192> relations_arrays;
 		stable_variable_vector_storage_mk_2<truce, 4, 8192> truce_arrays;
 		stable_variable_vector_storage_mk_2<loan, 4, 8192> loan_arrays;
+		stable_variable_vector_storage_mk_2<economy::goods_qnty_type, 32, 8192> state_imports_arrays;
+		stable_variable_vector_storage_mk_2<state_neighbor, 4, 8192> state_neighbor_arrays;
 
 		stable_2d_vector<int32_t, state_tag, population::demo_tag, 512, 16> state_demographics;
 		stable_2d_vector<float, country_tag, population::demo_tag, 512, 16> nation_demographics;

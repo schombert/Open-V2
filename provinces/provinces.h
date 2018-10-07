@@ -45,6 +45,10 @@ namespace provinces {
 		int32_t last_population = 0;
 		float nationalism = 0.0f;
 		float siege_progress = 0.0f;
+		float fort_upgrade_progress = 0.0f;
+		float railroad_upgrade_progress = 0.0f;
+		float naval_base_upgrade_progress = 0.0f;
+
 		date_tag last_controller_change;
 		date_tag last_immigration;
 
@@ -91,6 +95,8 @@ namespace provinces {
 		constexpr static uint16_t lake = 0x0004;
 
 		double area = 0.0; // in km squared
+
+		Eigen::Vector3d centroid;
 
 		modifiers::provincial_modifier_tag continent;
 		modifiers::provincial_modifier_tag climate;

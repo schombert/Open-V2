@@ -226,6 +226,10 @@ struct aligned_allocator_32 {
 	aligned_allocator_32(const aligned_allocator_32<U>&) noexcept {}
 	T* allocate(size_t n);
 	void deallocate(T* p, size_t n);
+	template<typename U>
+	constexpr bool operator==(aligned_allocator_32<U> const&) const { return true; }
+	template<typename U>
+	constexpr bool operator!=(aligned_allocator_32<U> const&) const { return false; }
 };
 
 template <typename T, typename U, size_t alignment>

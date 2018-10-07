@@ -53,4 +53,13 @@ namespace economy {
 	int32_t count_factories_in_state(nations::state_instance const& si);
 	int32_t count_factories_in_nation(world_state const& ws, nations::nation const& n);
 	float average_railroad_level(world_state const& ws, nations::state_instance const& si);
+	bool factory_is_open(factory_instance const& fi);
+	bool factory_is_closed(factory_instance const& fi); // NOTE: factories under construction will report as neither open nor closed
+	bool factory_is_under_construction(factory_instance const& fi);
+	bool factory_is_upgrading(factory_instance const& fi);
+
+	factory_project_type get_factory_project_type(nations::state_instance const& location, factory_type_tag ftype);
+	money_qnty_type get_factory_project_cost(world_state const& ws, factory_type_tag ftype, factory_project_type ptype, money_qnty_type const* prices);
+	money_qnty_type get_railroad_cost(world_state const& ws, money_qnty_type const* prices);
+	float project_completion(world_state const& ws, nations::state_instance const& si, money_qnty_type const* prices);
 }

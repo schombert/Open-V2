@@ -96,6 +96,78 @@ namespace ui {
 		transparent
 	};
 
+	namespace detail {
+		template<typename A, typename B, typename ... C>
+		struct _has_update : std::false_type {};
+		template<typename A, typename ... C>
+		struct _has_update<A, decltype(void(std::declval<A>().update(std::declval<C>() ...))), C...> : std::true_type {};
+		template<typename A, typename ... C>
+		constexpr bool has_update = _has_update<A, void, C ...>::value;
+
+		template<typename A, typename B, typename ... C>
+		struct _has_create_tooltip : std::false_type {};
+		template<typename A, typename ... C>
+		struct _has_create_tooltip<A, decltype(void(std::declval<A>().create_tooltip(std::declval<C>() ...))), C...> : std::true_type {};
+		template<typename A, typename ... C>
+		constexpr bool has_create_tooltip = _has_create_tooltip<A, void, C ...>::value;
+
+		template<typename A, typename B, typename ... C>
+		struct _has_button_function : std::false_type {};
+		template<typename A, typename ... C>
+		struct _has_button_function<A, decltype(void(std::declval<A>().button_function(std::declval<C>() ...))), C...> : std::true_type {};
+		template<typename A, typename ... C>
+		constexpr bool has_button_function = _has_button_function<A, void, C ...>::value;
+
+		template<typename A, typename B, typename ... C>
+		struct _has_on_position : std::false_type {};
+		template<typename A, typename ... C>
+		struct _has_on_position<A, decltype(void(std::declval<A>().on_position(std::declval<C>() ...))), C...> : std::true_type {};
+		template<typename A, typename ... C>
+		constexpr bool has_on_position = _has_on_position<A, void, C ...>::value;
+
+		template<typename A, typename B, typename ... C>
+		struct _has_has_tooltip : std::false_type {};
+		template<typename A, typename ... C>
+		struct _has_has_tooltip<A, decltype(void(std::declval<A>().has_tooltip(std::declval<C>() ...))), C...> : std::true_type {};
+		template<typename A, typename ... C>
+		constexpr bool has_has_tooltip = _has_has_tooltip<A, void, C ...>::value;
+
+		template<typename A, typename B>
+		struct _has_shortcut : public std::false_type {};
+		template<typename A>
+		struct _has_shortcut<A, decltype(void(std::declval<A>().shortcut))> : public std::true_type {};
+		template<typename A>
+		constexpr bool has_shortcut = _has_shortcut<A, void>::value;
+
+		template<typename A, typename B, typename ... C>
+		struct _has_initialize_in_window : std::false_type {};
+		template<typename A, typename ... C>
+		struct _has_initialize_in_window<A, decltype(void(std::declval<A>().initialize_in_window(std::declval<C>() ...))), C...> : std::true_type {};
+		template<typename A, typename ... C>
+		constexpr bool has_initialize_in_window = _has_initialize_in_window<A, void, C ...>::value;
+
+		template<typename OBJ, typename RET, typename ... PARAMS>
+		struct has_windowed_update_s : public std::false_type {};
+		template<typename OBJ, typename ... PARAMS>
+		struct has_windowed_update_s<OBJ, decltype(void(std::declval<OBJ>().windowed_update(std::declval<PARAMS>() ...))), PARAMS ...> : public std::true_type {};
+		template<typename OBJ, typename ... PARAMS>
+		constexpr bool has_windowed_update = has_windowed_update_s<OBJ, void, PARAMS ...>::value;
+
+		template<typename OBJ, typename RET, typename ... PARAMS>
+		struct has_populate_list_s : public std::false_type {};
+		template<typename OBJ, typename ... PARAMS>
+		struct has_populate_list_s<OBJ, decltype(void(std::declval<OBJ>().populate_list(std::declval<PARAMS>() ...))), PARAMS ...> : public std::true_type {};
+		template<typename OBJ, typename ... PARAMS>
+		constexpr bool has_populate_list = has_populate_list_s<OBJ, void, PARAMS ...>::value;
+
+		template<typename OBJ, typename RET, typename ... PARAMS>
+		struct has_on_create_s : public std::false_type {};
+		template<typename OBJ, typename ... PARAMS>
+		struct has_on_create_s<OBJ, decltype(void(std::declval<OBJ>().on_create(std::declval<PARAMS>() ...))), PARAMS ...> : public std::true_type {};
+		template<typename OBJ, typename ... PARAMS>
+		constexpr bool has_on_create = has_on_create_s<OBJ, void, PARAMS ...>::value;
+	}
+
 	class gui_behavior {
 	public:
 		gui_object* associated_object = nullptr;
@@ -182,7 +254,7 @@ namespace ui {
 		virtual bool on_keydown(gui_object_tag o, world_state& m, const key_down& k) final override;
 		virtual void update_data(gui_object_tag, world_state&) final override;
 		template<typename window_type>
-		void windowed_update(window_type& w, world_state& s);
+		std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::simple_button<BASE>&, window_type&, world_state&>, void> windowed_update(window_type& w, world_state& s);
 		virtual tooltip_behavior has_tooltip(gui_object_tag, world_state&, const mouse_move&) final override;
 		virtual void create_tooltip(gui_object_tag, world_state&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
 	};
@@ -209,7 +281,7 @@ namespace ui {
 		virtual bool on_keydown(gui_object_tag o, world_state& m, const key_down& k) final override;
 		virtual void update_data(gui_object_tag, world_state&) final override;
 		template<typename window_type>
-		void windowed_update(window_type& w, world_state& s);
+		std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::button<BASE>&, window_type&, world_state&>, void> windowed_update(window_type& w, world_state& s);
 		virtual tooltip_behavior has_tooltip(gui_object_tag, world_state&, const mouse_move&) final override;
 		virtual void create_tooltip(gui_object_tag, world_state&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
 	};
@@ -231,7 +303,7 @@ namespace ui {
 
 		virtual void update_data(gui_object_tag, world_state&) final override;
 		template<typename window_type>
-		void windowed_update(window_type& w, world_state& s);
+		std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::progress_bar<BASE>&, window_type&, world_state&>, void> windowed_update(window_type& w, world_state& s);
 		virtual tooltip_behavior has_tooltip(gui_object_tag, world_state&, const mouse_move&) final override;
 		virtual void create_tooltip(gui_object_tag, world_state&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
 	};
@@ -259,7 +331,7 @@ namespace ui {
 		virtual bool on_keydown(gui_object_tag o, world_state& m, const key_down& k) final override;
 		virtual void update_data(gui_object_tag, world_state&) final override;
 		template<typename window_type>
-		void windowed_update(window_type& w, world_state& s);
+		std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::masked_flag<BASE>&, window_type&, world_state&>, void> windowed_update(window_type& w, world_state& s);
 		virtual tooltip_behavior has_tooltip(gui_object_tag, world_state&, const mouse_move&) final override;
 		virtual void create_tooltip(gui_object_tag, world_state&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
 	};
@@ -276,7 +348,7 @@ namespace ui {
 
 		virtual void update_data(gui_object_tag, world_state&) final override;
 		template<typename window_type>
-		void windowed_update(window_type& w, world_state& s);
+		std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::dynamic_icon<BASE>&, window_type&, world_state&>, void> windowed_update(window_type& w, world_state& s);
 		virtual tooltip_behavior has_tooltip(gui_object_tag, world_state&, const mouse_move&) final override;
 		virtual void create_tooltip(gui_object_tag, world_state&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
 	};
@@ -293,7 +365,7 @@ namespace ui {
 
 		virtual void update_data(gui_object_tag, world_state&) final override;
 		template<typename window_type>
-		void windowed_update(window_type& w, world_state& s);
+		std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::tinted_icon<BASE>&, window_type&, world_state&>, void> windowed_update(window_type& w, world_state& s);
 		virtual tooltip_behavior has_tooltip(gui_object_tag, world_state&, const mouse_move&) final override;
 		virtual void create_tooltip(gui_object_tag, world_state&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
 	};
@@ -310,7 +382,7 @@ namespace ui {
 
 		virtual void update_data(gui_object_tag, world_state&) final override;
 		template<typename window_type>
-		void windowed_update(window_type& w, world_state& s);
+		std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::dynamic_transparent_icon<BASE>&, window_type&, world_state&>, void> windowed_update(window_type& w, world_state& s);
 	};
 
 	template<typename BASE, int32_t y_adjust = 0>
@@ -373,7 +445,7 @@ namespace ui {
 		virtual void update_data(gui_object_tag, world_state&) final override;
 
 		template<typename window_type>
-		void windowed_update(window_type&, world_state&);
+		std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::piechart<BASE>&, window_type&, world_state&>, void> windowed_update(window_type&, world_state&);
 		void clear_entries(gui_manager& manager);
 		void add_entry(gui_manager& manager, vector_backed_string<char16_t> label, float fraction, graphics::color_rgb color);
 		void fill_remainder(gui_manager& manager, vector_backed_string<char16_t> label, graphics::color_rgb color);
@@ -392,7 +464,7 @@ namespace ui {
 		virtual void update_data(gui_object_tag, world_state&) final override;
 
 		template<typename window_type>
-		void windowed_update(window_type&, world_state&);
+		std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::linechart<BASE, horizontal_resolution>&, window_type&, world_state&>, void> windowed_update(window_type&, world_state&);
 
 		void set_values(ui::gui_manager& manager, float* values);
 	};
@@ -438,7 +510,7 @@ namespace ui {
 		void set_step(int32_t s) { _step_size = s; }
 
 		template<typename window_type>
-		void windowed_update(window_type&, world_state&);
+		std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::scrollbar<BASE>&, window_type&, world_state&>, void> windowed_update(window_type&, world_state&);
 
 		virtual bool on_scroll(gui_object_tag, world_state&, const scroll&) final override;
 		virtual void update_data(gui_object_tag, world_state&) final override;
@@ -461,6 +533,8 @@ namespace ui {
 		void associate(gui_object* g) { _content_frame = g; }
 	};
 
+	class line_manager;
+
 	template<typename BASE, int32_t x_size_adjust = 0, int32_t y_size_adjust = 0>
 	class multiline_text : public gui_behavior, public BASE {
 	private:
@@ -475,7 +549,7 @@ namespace ui {
 		multiline_text(P&& ... params) : BASE(std::forward<P>(params)...) {}
 
 		template<typename window_type>
-		void windowed_update(window_type&, world_state&);
+		std::enable_if_t<ui::detail::has_windowed_update<BASE, window_type&, ui::tagged_gui_object, ui::line_manager &, ui::text_format&, world_state&>, void> windowed_update(window_type&, world_state&);
 
 		void set_format(text_data::alignment a, const text_format& fmt) {
 			align = a;
@@ -590,7 +664,7 @@ namespace ui {
 	};
 
 	template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension = 0>
-	class overlap_box : public visible_region, public BASE {
+	class overlap_box : public gui_behavior, public BASE {
 	private:
 		std::vector<ELEMENT, concurrent_allocator<ELEMENT>> contents;
 		gui_object_tag self;

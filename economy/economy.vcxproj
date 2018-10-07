@@ -86,7 +86,6 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -150,12 +149,15 @@
     <ClInclude Include="economy_gui.h" />
     <ClInclude Include="economy_gui.hpp" />
     <ClInclude Include="economy_io.h" />
+    <ClInclude Include="trade_window.h" />
+    <ClInclude Include="trade_window.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="economy.cpp" />
     <ClCompile Include="economy_functions.cpp" />
     <ClCompile Include="economy_gui.cpp" />
     <ClCompile Include="economy_io.cpp" />
+    <ClCompile Include="trade_window.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

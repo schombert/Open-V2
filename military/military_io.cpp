@@ -1522,14 +1522,16 @@ namespace military {
 			const auto trait_name = text_data::get_thread_safe_text_handle(state.impl->text_lookup, no_personality_string, no_personality_string + sizeof(no_personality_string) - 1);
 
 			state.impl->manager.named_leader_trait_index.emplace(trait_name, state.impl->manager.no_personality_trait);
-			state.impl->manager.leader_traits[state.impl->manager.no_personality_trait] = trait_name;
+			const auto no_personality = state.impl->manager.no_personality_trait;
+			state.impl->manager.leader_traits[no_personality] = trait_name;
 		}
 		{
 			const static char no_background_string[] = "no_background";
 			const auto trait_name = text_data::get_thread_safe_text_handle(state.impl->text_lookup, no_background_string, no_background_string + sizeof(no_background_string) - 1);
 
 			state.impl->manager.named_leader_trait_index.emplace(trait_name, state.impl->manager.no_background_trait);
-			state.impl->manager.leader_traits[state.impl->manager.no_background_trait] = trait_name;
+			const auto no_background = state.impl->manager.no_background_trait;
+			state.impl->manager.leader_traits[no_background] = trait_name;
 		}
 
 		if(fi) {

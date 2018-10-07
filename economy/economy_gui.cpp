@@ -19,11 +19,12 @@ namespace economy {
 		win->template get<CT_STRING("investment_browser")>().template get<CT_STRING("country_listbox")>().new_list(nullptr, nullptr);
 		win->template get<CT_STRING("state_listbox")>().new_list(nullptr, nullptr);
 		win->template get<CT_STRING("state_listbox_invest")>().new_list(nullptr, nullptr);
+		win->template get<CT_STRING("project_listbox")>().new_list(nullptr, nullptr);
 		ui::make_visible_and_update(gui_m, *(win->associated_object));
 	}
 	void production_window::show(ui::gui_manager & gui_m) {
 		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(win->associated_object), win->window_object });
-		ui::make_visible_and_update(gui_m, *(win->associated_object));
+		update(gui_m);
 	}
 	void production_window::show_factories(ui::gui_manager & gui_m) {
 		win->template get<CT_STRING("production_tab_button_group")>().set_selected(gui_m, 0);
@@ -33,6 +34,7 @@ namespace economy {
 
 		ui::hide(*(win->template get<CT_STRING("investment_browser")>().associated_object));
 		ui::make_visible_and_update(gui_m, *(win->template get<CT_STRING("factory_buttons")>().associated_object));
+		ui::hide(*(win->template get<CT_STRING("project_listbox")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("good_production")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("state_listbox_invest")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("sort_by_state")>().associated_object));
@@ -50,6 +52,8 @@ namespace economy {
 		ui::hide(*(win->template get<CT_STRING("state_listbox")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("state_listbox_invest")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("good_production")>().associated_object));
+		win->template get<CT_STRING("project_listbox")>().new_list(nullptr, nullptr);
+		ui::make_visible_immediate(*(win->template get<CT_STRING("project_listbox")>().associated_object));
 		ui::make_visible_immediate(*(win->template get<CT_STRING("sort_by_state")>().associated_object));
 		ui::make_visible_immediate(*(win->template get<CT_STRING("sort_by_projects")>().associated_object));
 		ui::make_visible_immediate(*(win->template get<CT_STRING("sort_by_completion")>().associated_object));
@@ -61,6 +65,7 @@ namespace economy {
 
 		ui::make_visible_and_update(gui_m, *(win->template get<CT_STRING("good_production")>().associated_object));
 
+		ui::hide(*(win->template get<CT_STRING("project_listbox")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("state_listbox")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("state_listbox_invest")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("investment_browser")>().associated_object));
@@ -75,6 +80,7 @@ namespace economy {
 	void production_window::show_foreign_investment(ui::gui_manager & gui_m) {
 		win->template get<CT_STRING("production_tab_button_group")>().set_selected(gui_m, 1);
 		ui::make_visible_and_update(gui_m, *(win->template get<CT_STRING("investment_browser")>().associated_object));
+		ui::hide(*(win->template get<CT_STRING("project_listbox")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("good_production")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("state_listbox")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("state_listbox_invest")>().associated_object));
@@ -94,6 +100,7 @@ namespace economy {
 		win->template get<CT_STRING("state_listbox_invest")>().new_list(nullptr, nullptr);
 		ui::make_visible_and_update(gui_m, *(win->template get<CT_STRING("state_listbox_invest")>().associated_object));
 
+		ui::hide(*(win->template get<CT_STRING("project_listbox")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("good_production")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("state_listbox")>().associated_object));
 		ui::hide(*(win->template get<CT_STRING("factory_buttons")>().associated_object));
@@ -575,4 +582,9 @@ namespace economy {
 		ui::hide(*self.associated_object);
 	}
 	void production_backkground::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
+	void project_invest_button::button_function(ui::button<project_invest_button>& self, key_modifiers mod, world_state & ws) {}
+	void project_invest_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
+	ui::window_tag projects_lb::element_tag(ui::gui_static & m) {
+		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["project_info"]);
+	}
 }

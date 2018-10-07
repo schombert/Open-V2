@@ -80,6 +80,9 @@ public:
 		serialize(output, obj.fort);
 		serialize(output, obj.railroad);
 		serialize(output, obj.naval_base);
+		serialize(output, obj.fort_modifier);
+		serialize(output, obj.railroad_modifier);
+		serialize(output, obj.naval_base_modifier);
 		serialize(output, obj.factory_input_goods);
 		serialize(output, obj.factory_efficiency_goods);
 		serialize(output, obj.artisan_input_goods);
@@ -95,6 +98,9 @@ public:
 		deserialize(input, obj.fort);
 		deserialize(input, obj.railroad);
 		deserialize(input, obj.naval_base);
+		deserialize(input, obj.fort_modifier);
+		deserialize(input, obj.railroad_modifier);
+		deserialize(input, obj.naval_base_modifier);
 		deserialize(input, obj.factory_input_goods);
 		deserialize(input, obj.factory_efficiency_goods);
 		deserialize(input, obj.artisan_input_goods);
@@ -112,6 +118,9 @@ public:
 		deserialize(input, obj.fort);
 		deserialize(input, obj.railroad);
 		deserialize(input, obj.naval_base);
+		deserialize(input, obj.fort_modifier);
+		deserialize(input, obj.railroad_modifier);
+		deserialize(input, obj.naval_base_modifier);
 		deserialize(input, obj.factory_input_goods);
 		deserialize(input, obj.factory_efficiency_goods);
 		deserialize(input, obj.artisan_input_goods);
@@ -129,12 +138,19 @@ public:
 			serialize_size(obj.fort) +
 			serialize_size(obj.railroad) +
 			serialize_size(obj.naval_base) +
+			serialize_size(obj.fort_modifier) +
+			serialize_size(obj.railroad_modifier) +
+			serialize_size(obj.naval_base_modifier) +
 			serialize_size(obj.factory_input_goods) +
 			serialize_size(obj.factory_efficiency_goods) +
 			serialize_size(obj.artisan_input_goods) +
 			serialize_size(obj.building_costs);
 	}
 };
+
+namespace modifiers {
+	class modifiers_manager;
+}
 
 namespace economy {
 	void read_goods(
@@ -144,7 +160,8 @@ namespace economy {
 	boost::container::flat_map<text_data::text_tag, factory_type_tag> read_buildings(
 		economic_scenario& manager,
 		const directory& source_directory,
-		text_data::text_sequences& text_function
+		text_data::text_sequences& text_function,
+		modifiers::modifiers_manager& mod_manager
 	); //invoke after reading goods, returns map of production type name -> factory building type
 	void read_production_types(
 		scenario::scenario_manager& s,

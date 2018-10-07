@@ -977,6 +977,88 @@ namespace economy {
 
 	using production_info_pane = ui::gui_window<production_info_pane_base>;
 
+	class project_item_base : public ui::visible_region {
+	public:
+		nations::state_tag location;
+		void set_value(nations::state_tag t) {
+			location = t;
+		}
+		template<typename W>
+		void on_create(W& win, world_state& ws);
+	};
+
+	class project_state_name {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class project_resource_icon {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<project_resource_icon>& self, window_type& win, world_state& ws);
+	};
+
+	class project_infrastructure_icon {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<project_infrastructure_icon>& self, window_type& win, world_state& ws);
+	};
+
+	class project_name {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class project_cost {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class project_investor_icon {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<project_investor_icon>& self, window_type& win, world_state& ws);
+	};
+
+	class project_investor_amount {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class project_invest_button {
+	public:
+		nations::state_tag location;
+
+		template<typename window_type>
+		void windowed_update(ui::button<project_invest_button>& self, window_type& win, world_state& ws);
+		void button_function(ui::button<project_invest_button>& self, key_modifiers mod, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	using project_item = ui::gui_window<
+		CT_STRING("state_name"), ui::display_text<project_state_name>,
+		CT_STRING("project_icon"), ui::dynamic_icon<project_resource_icon>,
+		CT_STRING("infra"), ui::dynamic_icon<project_infrastructure_icon>,
+		CT_STRING("project_name"), ui::display_text<project_name>,
+		CT_STRING("project_cost"), ui::display_text<project_cost>,
+		CT_STRING("pop_icon"), ui::dynamic_icon<project_investor_icon>,
+		CT_STRING("pop_amount"), ui::display_text<project_investor_amount>,
+		CT_STRING("invest_project"), ui::button<project_invest_button>,
+		project_item_base
+	>;
+
+	class projects_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
 	class production_window_t : public ui::gui_window<
 		CT_STRING("close_button"), ui::simple_button<close_button>,
 		CT_STRING("tab_factories"), ui::button_group_member,
@@ -1002,8 +1084,17 @@ namespace economy {
 		CT_STRING("state_listbox"), ui::discrete_listbox<state_details_lb, state_window, nations::state_tag>,
 		CT_STRING("state_listbox_invest"), ui::discrete_listbox<investment_state_details_lb, state_window, nations::state_tag>,
 		CT_STRING("good_production"), production_info_pane,
+		CT_STRING("project_listbox"), ui::discrete_listbox<projects_lb, project_item, nations::state_tag>,
 		production_window_base
 	>{};
+
+	template<typename W>
+	void project_item_base::on_create(W & win, world_state & ws) {
+		associated_object->align = ui::alignment::top_left;
+		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
+			obj.object.position += ui::xy_pair{ 0i16, -1i16 };
+		});
+	}
 
 	template<typename W>
 	void production_info_pane_base::on_create(W & win, world_state & ws) {
@@ -1168,6 +1259,7 @@ namespace economy {
 
 	template<typename W>
 	void production_window_base::on_create(W & w, world_state & ws) {
+		ui::hide(*associated_object);
 		associated_object->size = ui::xy_pair{ 1017i16, 636i16 };
 		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
 			obj.object.position += ui::xy_pair{ -3i16, 3i16 };
@@ -1918,6 +2010,67 @@ namespace economy {
 	}
 
 	template<typename lb_type>
+	void projects_lb::populate_list(lb_type & lb, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			auto state_range = get_range(ws.w.nation_s.state_arrays, player->member_states);
+			boost::container::small_vector<nations::state_tag, 32, concurrent_allocator<nations::state_tag>> data;
+
+			for(auto s = state_range.first; s != state_range.second; ++s) {
+				if(auto si = s->state; si) {
+					if(auto state_id = si->id; ws.w.nation_s.states.is_valid_index(state_id) && si->project.type != economy::pop_project_type::none) {
+						data.push_back(state_id);
+					}
+				}
+			}
+
+			switch(ws.w.production_w.project_sort_type) {
+				default:
+				case project_sort::state:
+				{
+					vector_backed_string_lex_less<char16_t> lss(ws.s.gui_m.text_data_sequences.text_data);
+					std::sort(data.begin(), data.end(), [&ws, &lss](nations::state_tag a, nations::state_tag b) {
+						auto a_name = ws.w.nation_s.states[a].name;
+						auto b_name = ws.w.nation_s.states[b].name;
+						return lss(
+							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, a_name),
+							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, b_name));
+					});
+				}
+					break;
+				case project_sort::project_type:
+					std::sort(data.begin(), data.end(), [&ws](nations::state_tag a, nations::state_tag b) {
+						auto a_type = ws.w.nation_s.states[a].project.type;
+						auto b_type = ws.w.nation_s.states[b].project.type;
+						if(a_type != b_type)
+							return a_type > b_type;
+						if(a_type == economy::pop_project_type::factory) {
+							auto fta = ws.w.nation_s.states[a].project.factory_type;
+							auto ftb = ws.w.nation_s.states[b].project.factory_type;
+							if(is_valid_index(fta) && is_valid_index(ftb)) {
+								return economy::get_factory_project_type(ws.w.nation_s.states[a], fta) < economy::get_factory_project_type(ws.w.nation_s.states[b], ftb);
+							}
+						}
+						return false;
+					});
+					break;
+				case project_sort::completion:
+					std::sort(data.begin(), data.end(), [&ws](nations::state_tag a, nations::state_tag b) {
+						return project_completion(ws, ws.w.nation_s.states[a], ws.w.economy_s.current_prices.data()) > project_completion(ws, ws.w.nation_s.states[b], ws.w.economy_s.current_prices.data());
+					});
+					//project_completion
+					break;
+				case project_sort::investors:
+					std::sort(data.begin(), data.end(), [&ws](nations::state_tag a, nations::state_tag b) {
+						return ws.w.nation_s.states[a].project.funds > ws.w.nation_s.states[b].project.funds;
+					});
+					break;
+			}
+
+			lb.update_list(data.begin(), data.end());
+		}
+	}
+
+	template<typename lb_type>
 	void investment_state_details_lb::populate_list(lb_type & lb, world_state & ws) {
 		if(is_valid_index(ws.w.production_w.foreign_investment_nation)) {
 			boost::container::small_vector<nations::state_tag, 32, concurrent_allocator<nations::state_tag>> data;
@@ -2301,6 +2454,115 @@ namespace economy {
 		if(is_valid_index(w.category)) {
 			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.economy_m.good_type_names[w.category], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 			lm.finish_current_line();
+		}
+	}
+
+	template<typename W>
+	void project_state_name::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(is_valid_index(w.location)) {
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.states[w.location].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			lm.finish_current_line();
+		}
+	}
+
+	template<typename window_type>
+	void project_resource_icon::windowed_update(ui::dynamic_icon<project_resource_icon>& self, window_type & w, world_state & ws) {
+		if(is_valid_index(w.location)) {
+			nations::state_instance& si = ws.w.nation_s.states[w.location];
+			if(auto ft = si.project.factory_type; is_valid_index(ft) && si.project.type == economy::pop_project_type::factory) {
+				self.set_frame(ws.w.gui_m, ws.s.economy_m.goods[ws.s.economy_m.factory_types[ft].output_good].icon);
+				ui::make_visible_immediate(*self.associated_object);
+			} else {
+				ui::hide(*self.associated_object);
+			}
+		}
+	}
+
+	template<typename window_type>
+	void project_infrastructure_icon::windowed_update(ui::dynamic_icon<project_infrastructure_icon>& self, window_type & w, world_state & ws) {
+		if(is_valid_index(w.location)) {
+			nations::state_instance& si = ws.w.nation_s.states[w.location];
+			if(si.project.type == economy::pop_project_type::railroad) 
+				ui::make_visible_immediate(*self.associated_object);
+			else
+				ui::hide(*self.associated_object);
+		}
+	}
+
+	template<typename W>
+	void project_investor_amount::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(is_valid_index(w.location)) {
+			nations::state_instance& si = ws.w.nation_s.states[w.location];
+
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::currency, si.project.funds);
+			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+			lm.finish_current_line();
+		}
+	}
+
+	template<typename W>
+	void project_cost::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(is_valid_index(w.location)) {
+			nations::state_instance& si = ws.w.nation_s.states[w.location];
+
+			economy::money_qnty_type cost = [&ws, &si]() {
+				if(auto ft = si.project.factory_type; is_valid_index(ft) && si.project.type == economy::pop_project_type::factory) {
+					return economy::get_factory_project_cost(ws, ft, economy::get_factory_project_type(si, ft), ws.w.economy_s.current_prices.data());
+				} else if(si.project.type == economy::pop_project_type::railroad) {
+					return economy::get_railroad_cost(ws, ws.w.economy_s.current_prices.data());
+				}
+				return economy::money_qnty_type(0);
+			}();
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::currency, cost);
+			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+			lm.finish_current_line();
+		}
+	}
+
+	template<typename W>
+	void project_name::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(is_valid_index(w.location)) {
+			nations::state_instance& si = ws.w.nation_s.states[w.location];
+			if(si.project.type == economy::pop_project_type::railroad) {
+				if(auto p = si.project.location; is_valid_index(p)) {
+					ui::xy_pair cursor{ 0,0 };
+					if(ws.w.province_s.province_state_container[p].railroad_level == 0) 
+						cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::build], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+					else 
+						cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::expand], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+					cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
+					ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::railroad], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+					lm.finish_current_line();
+				}
+			} else if(si.project.type == economy::pop_project_type::factory) {
+				if(auto ft = si.project.factory_type; is_valid_index(ft)) {
+					auto ftype = economy::get_factory_project_type(si, ft);
+					ui::xy_pair cursor{ 0,0 };
+					if(ftype == economy::factory_project_type::expand)
+						cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::expand], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+					else if(ftype == economy::factory_project_type::reopen)
+						cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::reopen], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+					else if(ftype == economy::factory_project_type::open)
+						cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::build], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+					cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
+					ui::add_linear_text(cursor, ws.s.economy_m.factory_types[ft].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+					lm.finish_current_line();
+				}
+			}
+		}
+	}
+
+	template<typename window_type>
+	void project_investor_icon::windowed_update(ui::dynamic_icon<project_investor_icon>& self, window_type & win, world_state & ws) {
+		self.set_frame(ws.w.gui_m, ws.s.population_m.pop_types[ws.s.population_m.capitalist].sprite - 1ui32);
+	}
+
+	template<typename window_type>
+	void project_invest_button::windowed_update(ui::button<project_invest_button>& self, window_type & win, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			self.set_enabled((player->current_rules.rules_value & issues::rules::can_invest_in_pop_projects) != 0);
 		}
 	}
 }

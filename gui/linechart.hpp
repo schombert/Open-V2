@@ -10,10 +10,8 @@ void ui::linechart<BASE, horizontal_resolution>::update_data(gui_object_tag, wor
 
 template<typename BASE, int32_t horizontal_resolution>
 template<typename window_type>
-void ui::linechart<BASE, horizontal_resolution>::windowed_update(window_type& w, world_state& s) {
-	if constexpr(ui::detail::has_windowed_update<BASE, ui::linechart<BASE, horizontal_resolution>&, window_type&, world_state&>) {
-		BASE::windowed_update(*this, w, s);
-	}
+std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::linechart<BASE, horizontal_resolution>&, window_type&, world_state&>, void> ui::linechart<BASE, horizontal_resolution>::windowed_update(window_type& w, world_state& s) {
+	BASE::windowed_update(*this, w, s);
 }
 
 template<typename BASE, int32_t horizontal_resolution>

@@ -4,7 +4,6 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <OutDir>$(SolutionDir)..\open_v2_test_data\$(Configuration)\</OutDir>
-    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -18,7 +17,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup>
@@ -43,13 +42,13 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\boost_1_68_0;$(ProjectDir)..</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <SupportJustMyCode>false</SupportJustMyCode>
       <StringPooling>true</StringPooling>
       <ConformanceMode>false</ConformanceMode>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <DisableSpecificWarnings>4100;4127</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
+      <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)..\open_v2_test_data\$(Configuration);$(ProjectDir)..\lib</AdditionalLibraryDirectories>
     </Link>
     <Lib>

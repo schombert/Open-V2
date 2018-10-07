@@ -61,7 +61,9 @@ namespace current_state {
 	void pops_button::update(ui::simple_button<pops_button>& self, world_state& ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);
 	}
-	void trade_button::button_function(ui::simple_button<trade_button>&, world_state&) {}
+	void trade_button::button_function(ui::simple_button<trade_button>&, world_state& ws) {
+		ws.w.trade_w.show(ws.w.gui_m);
+	}
 	void trade_button::update(ui::simple_button<trade_button>& self, world_state& ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);
 	}

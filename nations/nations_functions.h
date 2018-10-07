@@ -13,6 +13,7 @@ class world_state;
 namespace nations {
 	void init_nations_state(world_state& ws);
 	void reset_state(nations_state& s);
+	state_instance& make_state(provinces::state_tag region, world_state& ws);
 	void remove_province_from_state(world_state& ws, provinces::province_state& p);
 	nation* make_nation_for_tag(world_state& ws, cultures::national_tag nt);
 	bool is_state_empty(world_state const& ws, state_instance const& s);

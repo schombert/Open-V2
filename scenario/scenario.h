@@ -615,8 +615,11 @@ namespace scenario {
 		constexpr uint32_t hide_empty_states = 593ui32;
 		constexpr uint32_t closed = 594ui32;
 		constexpr uint32_t great_powers = 595ui32;
+		constexpr uint32_t build = 596ui32;
+		constexpr uint32_t reopen = 597ui32;
+		constexpr uint32_t expand = 598ui32;
 
-		constexpr uint32_t count = 596ui32;
+		constexpr uint32_t count = 599ui32;
 	}
 
 	class scenario_manager {

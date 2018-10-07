@@ -377,6 +377,19 @@ namespace nations {
 		p.state_instance = nullptr;
 	}
 
+	state_instance& make_state(provinces::state_tag region, world_state& ws) {
+		state_instance& new_state = ws.w.nation_s.states.get_new();
+		new_state.region_id = region;
+		new_state.name = ws.s.province_m.state_names[region];
+
+		ws.w.nation_s.state_demographics.ensure_capacity(to_index(new_state.id) + 1);
+		ws.w.nation_s.state_prices.ensure_capacity(to_index(new_state.id) + 1);
+
+		auto prices = ws.w.nation_s.state_prices.get_row(new_state.id);
+		for(economy::goods_tag::value_base_t i = 0; i < ws.s.economy_m.goods_count; ++i) {
+			prices[i] = ws.s.economy_m.goods[economy::goods_tag(i)].base_price;
+		}
+	}
 
 	void init_empty_states(world_state& ws) {
 		for(int32_t i = int32_t(ws.w.province_s.province_state_container.size()) - 1; i > 0; --i) {
@@ -389,21 +402,15 @@ namespace nations {
 				(this_province.state_instance == nullptr) &
 				is_valid_index(state_id)) {
 
-				state_instance* si = &(ws.w.nation_s.states.get_new());
-				si->region_id = state_id;
-				si->name = ws.s.province_m.state_names[state_id];
+				this_province.state_instance = &make_state(state_id, ws);
 
-				ws.w.nation_s.state_demographics.ensure_capacity(to_index(si->id) + 1);
-
-				this_province.state_instance = si;
-
-				auto same_region_range = ws.s.province_m.states_to_province_index.get_row(si->region_id);
+				auto same_region_range = ws.s.province_m.states_to_province_index.get_row(this_province.state_instance->region_id);
 				for(auto same_region_prov : same_region_range) {
 					auto& other_province = ws.w.province_s.province_state_container[same_region_prov];
 					if((other_province.owner == nullptr) &
 						((ws.s.province_m.province_container[same_region_prov].flags & provinces::province::sea) == 0) &
 						(other_province.state_instance == nullptr)) {
-						other_province.state_instance = si;
+						other_province.state_instance = this_province.state_instance;
 					}
 				}
 			}
@@ -419,6 +426,7 @@ namespace nations {
 		ws.w.nation_s.active_goods.reset((ws.s.economy_m.goods_count + 63ui32) / 64ui32);
 		ws.w.nation_s.active_issue_options.reset(uint32_t(ws.s.issues_m.issues_container.size()));
 		ws.w.nation_s.national_stockpiles.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count));
+		ws.w.nation_s.state_prices.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count));
 		ws.w.nation_s.national_variables.reset(ws.s.variables_m.count_national_variables);
 
 		ws.w.nation_s.unit_stats.reset(static_cast<uint32_t>(ws.s.military_m.unit_types.size()));

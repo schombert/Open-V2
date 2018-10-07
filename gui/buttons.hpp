@@ -71,16 +71,18 @@ bool ui::simple_button<BASE>::on_keydown(gui_object_tag o, world_state & m, cons
 template<typename BASE>
 bool ui::button<BASE>::on_keydown(gui_object_tag o, world_state & m, const key_down & k) {
 	if(k.keycode == shortcut) {
-		if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, world_state&>)
+		if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, world_state&>) {
 			BASE::button_function(*this, m);
-		else if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, key_down, world_state&>) {
+			return true;
+		} else if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, key_down, world_state&>) {
 			BASE::button_function(*this, k, m);
 			return true;
 		} else if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, key_modifiers, world_state&>) {
 			BASE::button_function(*this, k.mod, m);
 			return true;
+		} else {
+			return true;
 		}
-		return true;
 	} else {
 		return false;
 	}
@@ -128,26 +130,20 @@ void ui::masked_flag<BASE>::update_data(gui_object_tag, world_state& w) {
 
 template<typename BASE>
 template<typename window_type>
-void ui::simple_button<BASE>::windowed_update(window_type& w, world_state& s) {
-	if constexpr(ui::detail::has_windowed_update<BASE, simple_button<BASE>&, window_type&, world_state&>) {
-		BASE::windowed_update(*this, w, s);
-	}
+std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::simple_button<BASE>&, window_type&, world_state&>, void> ui::simple_button<BASE>::windowed_update(window_type& w, world_state& s) {
+	BASE::windowed_update(*this, w, s);
 }
 
 template<typename BASE>
 template<typename window_type>
-void ui::button<BASE>::windowed_update(window_type& w, world_state& s) {
-	if constexpr(ui::detail::has_windowed_update<BASE, button<BASE>&, window_type&, world_state&>) {
-		BASE::windowed_update(*this, w, s);
-	}
+std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::button<BASE>&, window_type&, world_state&>, void> ui::button<BASE>::windowed_update(window_type& w, world_state& s) {
+	BASE::windowed_update(*this, w, s);
 }
 
 template<typename BASE>
 template<typename window_type>
-void ui::masked_flag<BASE>::windowed_update(window_type& w, world_state& s) {
-	if constexpr(ui::detail::has_windowed_update<BASE, masked_flag<BASE>&, window_type&, world_state&>) {
-		BASE::windowed_update(*this, w, s);
-	}
+std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::masked_flag<BASE>&, window_type&, world_state&>, void> ui::masked_flag<BASE>::windowed_update(window_type& w, world_state& s) {
+	BASE::windowed_update(*this, w, s);
 }
 
 template<typename BASE>

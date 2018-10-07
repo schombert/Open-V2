@@ -14,7 +14,7 @@ namespace scenario {
 		cultures::read_cultures(s.culture_m, s.gui_m.textures, root, s.gui_m.text_data_sequences);
 
 		economy::read_goods(s.economy_m, root, s.gui_m.text_data_sequences);
-		auto building_production_map = economy::read_buildings(s.economy_m, root, s.gui_m.text_data_sequences);
+		auto building_production_map = economy::read_buildings(s.economy_m, root, s.gui_m.text_data_sequences, s.modifiers_m);
 
 		auto const ideology_state = ideologies::pre_parse_ideologies(s.ideologies_m, root, s.gui_m.text_data_sequences);
 
@@ -697,5 +697,8 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::hide_empty_states] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PRODUCTION_HIDE_EMPTY_STATES");
 		s.fixed_ui_text[fixed_ui::closed] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PRODUCTION_CLOSED");
 		s.fixed_ui_text[fixed_ui::great_powers] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "great_powers");
+		s.fixed_ui_text[fixed_ui::build] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECT_BUILD");
+		s.fixed_ui_text[fixed_ui::reopen] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECT_REOPEN");
+		s.fixed_ui_text[fixed_ui::expand] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECT_EXPAND");
 	}
 }

@@ -530,7 +530,7 @@ int main(int , char **) {
 		provinces::make_adjacency(adj_map, s1.province_m);
 		std::cout << "end map adjacency" << std::endl << std::flush;
 
-		provinces::calculate_province_areas(s1.province_m);
+		provinces::calculate_province_areas(s1.province_m, 1.57f, -1.57f);
 
 		const auto s_size = serialization::serialize_size(s1);
 		std::cout << s_size << " bytes " << s_size / 1024 << " KB " << s_size / (1024 * 1024) << " MB" << std::endl;
@@ -672,6 +672,14 @@ int main(int , char **) {
 		ws.w.nation_s.nations[nations::country_tag(7)].cb_construction_target = nations::country_tag(1);
 		ws.w.nation_s.nations[nations::country_tag(7)].cb_construction_type = military::cb_type_tag(1);
 		ws.w.nation_s.nations[nations::country_tag(7)].flags |= nations::nation::cb_construction_discovered;
+	}
+	{
+		auto srange = get_range(ws.w.nation_s.state_arrays, ws.w.local_player_nation->member_states);
+		(srange.first)->state->project.type = economy::pop_project_type::factory;
+		(srange.first)->state->project.factory_type = economy::factory_type_tag(1);
+
+		(srange.first + 3)->state->project.type = economy::pop_project_type::railroad;
+		(srange.first + 3)->state->project.location = provinces::province_tag(6);
 	}
 
 	init_tooltip_window(ws.s.gui_m, ws.w.gui_m);

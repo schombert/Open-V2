@@ -35,6 +35,7 @@ namespace current_state {
 		technologies_w.init_technology_winodw(ws);
 		population_w.init_population_window(ws);
 		production_w.init(ws);
+		trade_w.init(ws);
 	}
 
 	void state::toggle_pause() {

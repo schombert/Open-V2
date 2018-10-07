@@ -372,6 +372,13 @@ namespace modifiers {
 		}
 		cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.infrastructure, modifier_offset, ws.s.economy_m.railroad.infrastructure * float(this_province.railroad_level));
 		
+		if(is_valid_index(ws.s.economy_m.fort_modifier))
+			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.economy_m.fort_modifier, modifier_offset, float(this_province.fort_level));
+		if(is_valid_index(ws.s.economy_m.naval_base_modifier))
+			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.economy_m.naval_base_modifier, modifier_offset, float(this_province.naval_base_level));
+		if(is_valid_index(ws.s.economy_m.railroad_modifier))
+			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.economy_m.railroad_modifier, modifier_offset, float(this_province.railroad_level));
+
 		if(this_province.siege_progress != 0.0f)
 			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.has_siege, modifier_offset, value_type(1));
 		if((this_province.flags & provinces::province_state::is_overseas) != 0)

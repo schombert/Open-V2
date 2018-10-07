@@ -17,7 +17,7 @@ void ui::tinted_icon<BASE>::update_data(gui_object_tag, world_state& w) {
 
 template<typename BASE>
 template<typename window_type>
-void ui::dynamic_icon<BASE>::windowed_update(window_type& w, world_state& s) {
+std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::dynamic_icon<BASE>&, window_type&, world_state&>, void> ui::dynamic_icon<BASE>::windowed_update(window_type& w, world_state& s) {
 	if constexpr(ui::detail::has_windowed_update<BASE, dynamic_icon<BASE>&, window_type&, world_state&>) {
 		BASE::windowed_update(*this, w, s);
 	}
@@ -25,7 +25,7 @@ void ui::dynamic_icon<BASE>::windowed_update(window_type& w, world_state& s) {
 
 template<typename BASE>
 template<typename window_type>
-void ui::tinted_icon<BASE>::windowed_update(window_type& w, world_state& s) {
+std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::tinted_icon<BASE>&, window_type&, world_state&>, void> ui::tinted_icon<BASE>::windowed_update(window_type& w, world_state& s) {
 	if constexpr(ui::detail::has_windowed_update<BASE, tinted_icon<BASE>&, window_type&, world_state&>) {
 		BASE::windowed_update(*this, w, s);
 	}
@@ -149,7 +149,7 @@ void ui::dynamic_transparent_icon<BASE>::update_data(gui_object_tag, world_state
 
 template<typename BASE>
 template<typename window_type>
-void ui::dynamic_transparent_icon<BASE>::windowed_update(window_type& w, world_state& s) {
+std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::dynamic_transparent_icon<BASE>&, window_type&, world_state&>, void> ui::dynamic_transparent_icon<BASE>::windowed_update(window_type& w, world_state& s) {
 	if constexpr(ui::detail::has_windowed_update<BASE, dynamic_transparent_icon<BASE>&, window_type&, world_state&>) {
 		BASE::windowed_update(*this, w, s);
 	}

@@ -56,10 +56,10 @@ int32_t minimum_index(int32_t const* data, int32_t size) {
 
 	int32_t minindex = indices_array[7];
 	int32_t minvalue = values_array[7];
-	for(int32_t i = 6; i >= 0; --i) {
-		if(values_array[i] < minvalue) {
-			minvalue = values_array[i];
-			minindex = indices_array[i];
+	for(int32_t j = 6; j >= 0; --j) {
+		if(values_array[j] < minvalue) {
+			minvalue = values_array[j];
+			minindex = indices_array[j];
 		}
 	}
 
@@ -117,10 +117,10 @@ int32_t minimum_index(int32_t const* data, int32_t size) {
 
 	float minindex = indices_array[7];
 	float minvalue = values_array[7];
-	for(int32_t i = 6; i >= 0; --i) {
-		if(values_array[i] < minvalue) {
-			minvalue = values_array[i];
-			minindex = indices_array[i];
+	for(int32_t j = 6; j >= 0; --j) {
+		if(values_array[j] < minvalue) {
+			minvalue = values_array[j];
+			minindex = indices_array[j];
 		}
 	}
 
@@ -176,10 +176,10 @@ int32_t minimum_index(int32_t const* data, int32_t size) {
 
 	int32_t minindex = indices_array[3];
 	int32_t minvalue = values_array[3];
-	for(int32_t i = 2; i >= 0; --i) {
-		if(values_array[i] < minvalue) {
-			minvalue = values_array[i];
-			minindex = indices_array[i];
+	for(int32_t j = 2; j >= 0; --j) {
+		if(values_array[j] < minvalue) {
+			minvalue = values_array[j];
+			minindex = indices_array[j];
 		}
 	}
 
@@ -243,10 +243,10 @@ int32_t maximum_index(int32_t const* data, int32_t size) {
 
 	int32_t maxindex = indices_array[7];
 	int32_t maxvalue = values_array[7];
-	for(int32_t i = 6; i >= 0; --i) {
-		if(values_array[i] > maxvalue) {
-			maxvalue = values_array[i];
-			maxindex = indices_array[i];
+	for(int32_t j = 6; j >= 0; --j) {
+		if(values_array[j] > maxvalue) {
+			maxvalue = values_array[j];
+			maxindex = indices_array[j];
 		}
 	}
 
@@ -304,10 +304,10 @@ int32_t maximum_index(int32_t const* data, int32_t size) {
 
 	float maxindex = indices_array[7];
 	float maxvalue = values_array[7];
-	for(int32_t i = 6; i >= 0; --i) {
-		if(values_array[i] > maxvalue) {
-			maxvalue = values_array[i];
-			maxindex = indices_array[i];
+	for(int32_t j = 6; j >= 0; --j) {
+		if(values_array[j] > maxvalue) {
+			maxvalue = values_array[j];
+			maxindex = indices_array[j];
 		}
 	}
 
@@ -363,10 +363,10 @@ int32_t maximum_index(int32_t const* data, int32_t size) {
 
 	int32_t maxindex = indices_array[3];
 	int32_t maxvalue = values_array[3];
-	for(int32_t i = 2; i >= 0; --i) {
-		if(values_array[i] > maxvalue) {
-			maxvalue = values_array[i];
-			maxindex = indices_array[i];
+	for(int32_t j = 2; j >= 0; --j) {
+		if(values_array[j] > maxvalue) {
+			maxvalue = values_array[j];
+			maxindex = indices_array[j];
 		}
 	}
 
@@ -430,10 +430,10 @@ int32_t minimum_index(int64_t const* data, int32_t size) {
 
 	int64_t minindex = indices_array[3];
 	int64_t minvalue = values_array[3];
-	for(int32_t i = 2; i >= 0; --i) {
-		if(values_array[i] < minvalue) {
-			minvalue = values_array[i];
-			minindex = indices_array[i];
+	for(int32_t j = 2; j >= 0; --j) {
+		if(values_array[j] < minvalue) {
+			minvalue = values_array[j];
+			minindex = indices_array[j];
 		}
 	}
 
@@ -491,10 +491,10 @@ int32_t minimum_index(int64_t const* data, int32_t size) {
 
 	double minindex = indices_array[3];
 	double minvalue = values_array[3];
-	for(int32_t i = 3; i >= 0; --i) {
-		if(values_array[i] < minvalue) {
-			minvalue = values_array[i];
-			minindex = indices_array[i];
+	for(int32_t j = 3; j >= 0; --j) {
+		if(values_array[j] < minvalue) {
+			minvalue = values_array[j];
+			minindex = indices_array[j];
 		}
 	}
 
@@ -602,10 +602,10 @@ int32_t maximum_index(int64_t const* data, int32_t size) {
 
 	int64_t maxindex = indices_array[3];
 	int64_t maxvalue = values_array[3];
-	for(int32_t i = 2; i >= 0; --i) {
-		if(values_array[i] > maxvalue) {
-			maxvalue = values_array[i];
-			maxindex = indices_array[i];
+	for(int32_t j = 2; j >= 0; --j) {
+		if(values_array[j] > maxvalue) {
+			maxvalue = values_array[j];
+			maxindex = indices_array[j];
 		}
 	}
 
@@ -663,10 +663,10 @@ int32_t maximum_index(int64_t const* data, int32_t size) {
 
 	double maxindex = indices_array[3];
 	double maxvalue = values_array[3];
-	for(int32_t i = 3; i >= 0; --i) {
-		if(values_array[i] > maxvalue) {
-			maxvalue = values_array[i];
-			maxindex = indices_array[i];
+	for(int32_t j = 3; j >= 0; --j) {
+		if(values_array[j] > maxvalue) {
+			maxvalue = values_array[j];
+			maxindex = indices_array[j];
 		}
 	}
 
@@ -774,10 +774,10 @@ int32_t minimum_index(float const* data, int32_t size) {
 
 	int32_t minindex = indices_array[7];
 	float minvalue = values_array[7];
-	for(int32_t i = 6; i >= 0; --i) {
-		if(values_array[i] < minvalue) {
-			minvalue = values_array[i];
-			minindex = indices_array[i];
+	for(int32_t j = 6; j >= 0; --j) {
+		if(values_array[j] < minvalue) {
+			minvalue = values_array[j];
+			minindex = indices_array[j];
 		}
 	}
 
@@ -835,10 +835,10 @@ int32_t minimum_index(float const* data, int32_t size) {
 
 	float minindex = indices_array[7];
 	float minvalue = values_array[7];
-	for(int32_t i = 6; i >= 0; --i) {
-		if(values_array[i] < minvalue) {
-			minvalue = values_array[i];
-			minindex = indices_array[i];
+	for(int32_t j = 6; j >= 0; --j) {
+		if(values_array[j] < minvalue) {
+			minvalue = values_array[j];
+			minindex = indices_array[j];
 		}
 	}
 
@@ -894,10 +894,10 @@ int32_t minimum_index(float const* data, int32_t size) {
 
 	int32_t minindex = indices_array[3];
 	float minvalue = values_array[3];
-	for(int32_t i = 2; i >= 0; --i) {
-		if(values_array[i] < minvalue) {
-			minvalue = values_array[i];
-			minindex = indices_array[i];
+	for(int32_t j = 2; j >= 0; --j) {
+		if(values_array[j] < minvalue) {
+			minvalue = values_array[j];
+			minindex = indices_array[j];
 		}
 	}
 
@@ -961,10 +961,10 @@ int32_t maximum_index(float const* data, int32_t size) {
 
 	int32_t maxindex = indices_array[7];
 	float maxvalue = values_array[7];
-	for(int32_t i = 6; i >= 0; --i) {
-		if(values_array[i] > maxvalue) {
-			maxvalue = values_array[i];
-			maxindex = indices_array[i];
+	for(int32_t j = 6; j >= 0; --j) {
+		if(values_array[j] > maxvalue) {
+			maxvalue = values_array[j];
+			maxindex = indices_array[j];
 		}
 	}
 
@@ -1022,10 +1022,10 @@ int32_t maximum_index(float const* data, int32_t size) {
 
 	float maxindex = indices_array[7];
 	float maxvalue = values_array[7];
-	for(int32_t i = 6; i >= 0; --i) {
-		if(values_array[i] > maxvalue) {
-			maxvalue = values_array[i];
-			maxindex = indices_array[i];
+	for(int32_t j = 6; j >= 0; --j) {
+		if(values_array[j] > maxvalue) {
+			maxvalue = values_array[j];
+			maxindex = indices_array[j];
 		}
 	}
 
@@ -1081,10 +1081,10 @@ int32_t maximum_index(float const* data, int32_t size) {
 
 	int32_t maxindex = indices_array[3];
 	float maxvalue = values_array[3];
-	for(int32_t i = 2; i >= 0; --i) {
-		if(values_array[i] > maxvalue) {
-			maxvalue = values_array[i];
-			maxindex = indices_array[i];
+	for(int32_t j = 2; j >= 0; --j) {
+		if(values_array[j] > maxvalue) {
+			maxvalue = values_array[j];
+			maxindex = indices_array[j];
 		}
 	}
 
@@ -1148,10 +1148,10 @@ int32_t minimum_index(double const* data, int32_t size) {
 
 	int64_t minindex = indices_array[3];
 	double minvalue = values_array[3];
-	for(int32_t i = 2; i >= 0; --i) {
-		if(values_array[i] < minvalue) {
-			minvalue = values_array[i];
-			minindex = indices_array[i];
+	for(int32_t j = 2; j >= 0; --j) {
+		if(values_array[j] < minvalue) {
+			minvalue = values_array[j];
+			minindex = indices_array[j];
 		}
 	}
 
@@ -1209,10 +1209,10 @@ int32_t minimum_index(double const* data, int32_t size) {
 
 	double minindex = indices_array[3];
 	double minvalue = values_array[3];
-	for(int32_t i = 3; i >= 0; --i) {
-		if(values_array[i] < minvalue) {
-			minvalue = values_array[i];
-			minindex = indices_array[i];
+	for(int32_t j = 3; j >= 0; --j) {
+		if(values_array[j] < minvalue) {
+			minvalue = values_array[j];
+			minindex = indices_array[j];
 		}
 	}
 
@@ -1320,10 +1320,10 @@ int32_t maximum_index(double const* data, int32_t size) {
 
 	int64_t maxindex = indices_array[3];
 	double maxvalue = values_array[3];
-	for(int32_t i = 2; i >= 0; --i) {
-		if(values_array[i] > maxvalue) {
-			maxvalue = values_array[i];
-			maxindex = indices_array[i];
+	for(int32_t j = 2; j >= 0; --j) {
+		if(values_array[j] > maxvalue) {
+			maxvalue = values_array[j];
+			maxindex = indices_array[j];
 		}
 	}
 
@@ -1381,10 +1381,10 @@ int32_t maximum_index(double const* data, int32_t size) {
 
 	double maxindex = indices_array[3];
 	double maxvalue = values_array[3];
-	for(int32_t i = 3; i >= 0; --i) {
-		if(values_array[i] > maxvalue) {
-			maxvalue = values_array[i];
-			maxindex = indices_array[i];
+	for(int32_t j = 3; j >= 0; --j) {
+		if(values_array[j] > maxvalue) {
+			maxvalue = values_array[j];
+			maxindex = indices_array[j];
 		}
 	}
 

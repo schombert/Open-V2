@@ -34,6 +34,9 @@ void serialization::serializer<provinces::province_state>::serialize_object(std:
 	serialize(output, obj.last_population);
 	serialize(output, obj.nationalism);
 	serialize(output, obj.siege_progress);
+	serialize(output, obj.fort_upgrade_progress);
+	serialize(output, obj.railroad_upgrade_progress);
+	serialize(output, obj.naval_base_upgrade_progress);
 	serialize(output, obj.last_controller_change);
 	serialize(output, obj.last_immigration);
 	serialize(output, obj.rgo_worker_data);
@@ -79,6 +82,9 @@ void serialization::serializer<provinces::province_state>::deserialize_object(st
 	deserialize(input, obj.last_population);
 	deserialize(input, obj.nationalism);
 	deserialize(input, obj.siege_progress);
+	deserialize(input, obj.fort_upgrade_progress);
+	deserialize(input, obj.railroad_upgrade_progress);
+	deserialize(input, obj.naval_base_upgrade_progress);
 	deserialize(input, obj.last_controller_change);
 	deserialize(input, obj.last_immigration);
 	deserialize(input, obj.rgo_worker_data);
@@ -109,6 +115,9 @@ size_t serialization::serializer<provinces::province_state>::size(provinces::pro
 		serialize_size(obj.last_population) +
 		serialize_size(obj.nationalism) +
 		serialize_size(obj.siege_progress) +
+		serialize_size(obj.fort_upgrade_progress) +
+		serialize_size(obj.railroad_upgrade_progress) +
+		serialize_size(obj.naval_base_upgrade_progress) +
 		serialize_size(obj.last_controller_change) +
 		serialize_size(obj.last_immigration) +
 		serialize_size(obj.rgo_worker_data) +
@@ -1374,10 +1383,18 @@ namespace provinces {
 		}
 	}
 
-	void calculate_province_areas(province_manager& m) {
+	void calculate_province_areas(province_manager& m, float top_latitude, float bottom_latitude) {
 		double surface_area_x_2pi_x_percent_of_width = 510'072'000.0 * 2.0 * 3.1415926 / double(m.province_map_width);
 		double quarter_circumfrance = double(m.province_map_width) / 4.0;
 		int32_t half_height = m.province_map_height / 2;
+
+		double lat_step = (double(bottom_latitude) - double(top_latitude)) / double(m.province_map_height);
+		double long_step = 6.28318530718 / double(m.province_map_width);
+		double top_lat = double(top_latitude);
+
+		for(auto& p : m.province_container) {
+			p.centroid = Eigen::Vector3d::Zero();
+		}
 
 		for(int32_t y = 0; y < m.province_map_height; ++y) {
 			double pixel_area = surface_area_x_2pi_x_percent_of_width *
@@ -1385,7 +1402,18 @@ namespace provinces {
 			for(int32_t x = 0; x < m.province_map_width; ++x) {
 				auto province_id = m.province_map_data[uint32_t(x + y * m.province_map_width)];
 				m.province_container[province_tag(province_id)].area += pixel_area;
+
+				const double vx_pos = x * long_step;
+				const double vy_pos = y * lat_step + top_lat;
+				const double cos_vy = cos(vy_pos);
+				const double sin_vy = sin(vy_pos);
+
+				m.province_container[province_tag(province_id)].centroid += Eigen::Vector3d(cos(vx_pos) * cos_vy , sin(vx_pos) * cos_vy, sin_vy) * pixel_area;
 			}
+		}
+
+		for(auto& p : m.province_container) {
+			p.centroid.normalize();
 		}
 	}
 

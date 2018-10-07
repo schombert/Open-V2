@@ -1096,7 +1096,7 @@ T* aligned_allocator_32<T>::allocate(size_t n) {
 }
 
 template<typename T>
-void aligned_allocator_32<T>::deallocate(T* p, size_t n) {
+void aligned_allocator_32<T>::deallocate(T* p, size_t) {
 	_aligned_free(p);
 }
 

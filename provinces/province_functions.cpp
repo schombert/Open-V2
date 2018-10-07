@@ -270,15 +270,9 @@ namespace provinces {
 		if(found) {
 			prov.state_instance = found->state;
 		} else {
-			nations::state_instance* si = &(ws.w.nation_s.states.get_new());
-			si->owner = &new_owner;
-			si->region_id = ws.s.province_m.province_container[prov.id].state_id;
-			si->name = ws.s.province_m.state_names[si->region_id];
-
-			ws.w.nation_s.state_demographics.ensure_capacity(to_index(si->id) + 1);
-
-			prov.state_instance = si;
-			add_item(ws.w.nation_s.state_arrays, new_owner.member_states, nations::region_state_pair{ region_id, si });
+			prov.state_instance = &nations::make_state(ws.s.province_m.province_container[prov.id].state_id, ws);
+			prov.state_instance->owner = &new_owner;
+			add_item(ws.w.nation_s.state_arrays, new_owner.member_states, nations::region_state_pair{ region_id, prov.state_instance });
 		}
 	}
 

@@ -315,13 +315,47 @@ namespace economy {
 		});
 	}
 
+	money_qnty_type get_factory_project_cost(world_state const& ws, factory_type_tag ftype, factory_project_type ptype, money_qnty_type const* prices) {
+		if(ptype == factory_project_type::open || ptype == factory_project_type::expand) {
+			Eigen::Map<const Eigen::Matrix<economy::money_qnty_type, -1, 1>, Eigen::Aligned32> prices_v(prices, ws.s.economy_m.aligned_32_goods_count);
+			Eigen::Map<const Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::Aligned32> costs(ws.s.economy_m.building_costs.get_row(ftype), ws.s.economy_m.aligned_32_goods_count);
+
+			return prices_v.dot(costs);
+		} else {
+			// TODO
+
+			Eigen::Map<const Eigen::Matrix<economy::money_qnty_type, -1, 1>, Eigen::Aligned32> prices_v(prices, ws.s.economy_m.aligned_32_goods_count);
+			Eigen::Map<const Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::Aligned32> costs(ws.s.economy_m.factory_input_goods.get_row(ftype), ws.s.economy_m.aligned_32_goods_count);
+
+			return prices_v.dot(costs) * money_qnty_type(10);
+		}
+	}
+	money_qnty_type get_railroad_cost(world_state const& ws, money_qnty_type const* prices) {
+		Eigen::Map<const Eigen::Matrix<economy::money_qnty_type, -1, 1>, Eigen::Aligned32> prices_v(prices, ws.s.economy_m.aligned_32_goods_count);
+		Eigen::Map<const Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::Aligned32> costs(ws.s.economy_m.building_costs.get_row(ws.s.economy_m.railroad.cost_tag), ws.s.economy_m.aligned_32_goods_count);
+		
+		return prices_v.dot(costs);
+	}
+
+	float project_completion(world_state const& ws, nations::state_instance const& si, money_qnty_type const* prices) {
+		if(si.project.type == pop_project_type::railroad) {
+			auto cost = get_railroad_cost(ws, prices);
+			return cost != 0 ? float(si.project.funds / cost) : 0.0f;
+		} else if(si.project.type == pop_project_type::factory) {
+			if(auto ftype = si.project.factory_type; is_valid_index(ftype)) {
+				auto cost = get_factory_project_cost(ws, ftype, get_factory_project_type(si, ftype), prices);
+				return cost != 0 ? float(si.project.funds / cost) : 0.0f;
+			}
+		}
+		return 0.0f;
+	}
 
 	float get_per_worker_profit(world_state const& ws, nations::state_instance const&, factory_instance const& f) {
 		if(!f.type)
 			return std::numeric_limits<float>::min();
 
 		Eigen::Map<const Eigen::Matrix<economy::money_qnty_type, -1, 1>, Eigen::Aligned32> prices(ws.w.economy_s.current_prices.data(), ws.s.economy_m.aligned_32_goods_count);
-		Eigen::Map<const Eigen::Matrix<economy::money_qnty_type, -1, 1>, Eigen::Aligned32> inputs(ws.s.economy_m.factory_input_goods.get_row(f.type->id), ws.s.economy_m.aligned_32_goods_count);
+		Eigen::Map<const Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::Aligned32> inputs(ws.s.economy_m.factory_input_goods.get_row(f.type->id), ws.s.economy_m.aligned_32_goods_count);
 
 		auto inputs_cost = prices.dot(inputs);
 
@@ -339,10 +373,10 @@ namespace economy {
 
 			//TODO: use modifiers properly
 
-			Eigen::Map<const Eigen::Matrix<economy::money_qnty_type, -1, 1>, Eigen::Aligned32> prices(prices, ws.s.economy_m.aligned_32_goods_count);
+			Eigen::Map<const Eigen::Matrix<economy::money_qnty_type, -1, 1>, Eigen::Aligned32> prices_v(prices, ws.s.economy_m.aligned_32_goods_count);
 			Eigen::Map<const Eigen::Matrix<economy::money_qnty_type, -1, 1>, Eigen::Aligned32> inputs(ws.s.economy_m.factory_input_goods.get_row(f_type->id), ws.s.economy_m.aligned_32_goods_count);
 
-			auto inputs_cost = prices.dot(inputs * modifiers.input_modifier);
+			auto inputs_cost = prices_v.dot(inputs * modifiers.input_modifier);
 
 			return (prices[to_index(f_type->output_good)] * f_type->output_amount * modifiers.output_modifier - inputs_cost) * f.factory_operational_scale * f.level * modifiers.throughput_modifier;
 		}
@@ -411,5 +445,29 @@ namespace economy {
 			++total_provinces;
 		});
 		return total_provinces != 0.0f ? total_levels / total_provinces : 0.0f;
+	}
+
+	bool factory_is_open(factory_instance const& fi) {
+		return bool(fi.type) && fi.level != 0 && fi.factory_operational_scale > 0.0f;
+	}
+	bool factory_is_closed(factory_instance const& fi) {
+		return bool(fi.type) && fi.level != 0 && fi.factory_operational_scale <= 0.0f;
+	}
+	bool factory_is_under_construction(factory_instance const& fi) {
+		return bool(fi.type) && fi.level == 0 && fi.factory_progress > 0.0f;
+	}
+	bool factory_is_upgrading(factory_instance const& fi) {
+		return bool(fi.type) && fi.level != 0 && fi.factory_progress > 0.0f;
+	}
+	factory_project_type get_factory_project_type(nations::state_instance const& location, factory_type_tag ftype) {
+		for(auto& fi : location.factories) {
+			if(auto ft = fi.type; bool(ft) && ft->id == ftype) {
+				if(factory_is_closed(fi))
+					return factory_project_type::reopen;
+				else
+					return factory_project_type::expand;
+			}
+		}
+		return factory_project_type::open;
 	}
 }

@@ -127,6 +127,13 @@ namespace modifiers {
 		this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.infrastructure] *
 			(ws.s.economy_m.railroad.infrastructure * float(this_province.railroad_level));
 
+		if(is_valid_index(ws.s.economy_m.fort_modifier))
+			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.economy_m.fort_modifier] * float(this_province.fort_level);
+		if(is_valid_index(ws.s.economy_m.naval_base_modifier))
+			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.economy_m.naval_base_modifier] * float(this_province.naval_base_level);
+		if(is_valid_index(ws.s.economy_m.railroad_modifier))
+			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.economy_m.railroad_modifier] * float(this_province.railroad_level);
+
 		if(this_province.siege_progress != 0.0f)
 			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.has_siege];
 		if((this_province.flags & provinces::province_state::is_overseas) != 0)

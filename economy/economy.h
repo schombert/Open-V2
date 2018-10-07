@@ -108,13 +108,13 @@ namespace economy {
 	};
 	struct railroad_information : public fort_information {
 		float infrastructure = 0.16f;
-		float movement_cost = -0.05f;
+		//float movement_cost = -0.05f;
 	};
 	struct naval_base_information : public fort_information {
 		uint32_t extra_cost = 15000;
 		uint32_t naval_capacity = 1;
 		uint32_t colonial_range = 50;
-		float local_ship_build = -0.1f;
+		//float local_ship_build = -0.1f;
 		uint32_t colonial_points[8] = {30,50,70,90,110,130,150,170};
 	};
 
@@ -132,7 +132,7 @@ namespace economy {
 		factory_type* type = nullptr;
 		float factory_bank = 0.0f;
 		float factory_operational_scale = 1.0f; // 0 = closed
-		float factory_progress = 0.0f; // for upgrades and construction; closed & non zero progress = under construction
+		float factory_progress = 0.0f; // for upgrades and construction; level 0 & non zero progress = under construction
 		worked_instance worker_data;
 		uint16_t level = 0;
 		bool subsidized = false;
@@ -157,6 +157,10 @@ namespace economy {
 		fort_information fort;
 		railroad_information railroad;
 		naval_base_information naval_base;
+
+		modifiers::provincial_modifier_tag fort_modifier;
+		modifiers::provincial_modifier_tag railroad_modifier;
+		modifiers::provincial_modifier_tag naval_base_modifier;
 
 		tagged_fixed_blocked_2dvector<economy::goods_qnty_type, factory_type_tag, goods_tag, aligned_allocator_32<economy::goods_qnty_type>> factory_input_goods;
 		tagged_fixed_blocked_2dvector<economy::goods_qnty_type, factory_type_tag, goods_tag, aligned_allocator_32<economy::goods_qnty_type>> factory_efficiency_goods;

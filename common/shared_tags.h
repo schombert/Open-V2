@@ -96,6 +96,18 @@ namespace economy {
 
 	using goods_qnty_type = float;
 	using money_qnty_type = float;
+
+	enum class pop_project_type : uint8_t {
+		none,
+		railroad,
+		factory
+	};
+
+	enum class factory_project_type : uint8_t {
+		open,
+		expand,
+		reopen
+	};
 }
 
 namespace cultures {

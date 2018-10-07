@@ -7,43 +7,6 @@
 #undef min
 
 namespace ui {
-	namespace detail {
-		template<typename A, typename B, typename ... C>
-		struct _has_update : std::false_type {};
-		template<typename A, typename ... C>
-		struct _has_update<A, decltype(void(std::declval<A>().update(std::declval<C>() ...))), C...> : std::true_type {};
-		template<typename A, typename ... C>
-		constexpr bool has_update = _has_update<A, void, C ...>::value;
-
-		template<typename A, typename B, typename ... C>
-		struct _has_create_tooltip : std::false_type {};
-		template<typename A, typename ... C>
-		struct _has_create_tooltip<A, decltype(void(std::declval<A>().create_tooltip(std::declval<C>() ...))), C...> : std::true_type {};
-		template<typename A, typename ... C>
-		constexpr bool has_create_tooltip = _has_create_tooltip<A, void, C ...>::value;
-
-		template<typename A, typename B, typename ... C>
-		struct _has_button_function : std::false_type {};
-		template<typename A, typename ... C>
-		struct _has_button_function<A, decltype(void(std::declval<A>().button_function(std::declval<C>() ...))), C...> : std::true_type {};
-		template<typename A, typename ... C>
-		constexpr bool has_button_function = _has_button_function<A, void, C ...>::value;
-
-		template<typename A, typename B, typename ... C>
-		struct _has_on_position : std::false_type {};
-		template<typename A, typename ... C>
-		struct _has_on_position<A, decltype(void(std::declval<A>().on_position(std::declval<C>() ...))), C...> : std::true_type {};
-		template<typename A, typename ... C>
-		constexpr bool has_on_position = _has_on_position<A, void, C ...>::value;
-
-		template<typename A, typename B, typename ... C>
-		struct _has_has_tooltip : std::false_type {};
-		template<typename A, typename ... C>
-		struct _has_has_tooltip<A, decltype(void(std::declval<A>().has_tooltip(std::declval<C>() ...))), C...> : std::true_type {};
-		template<typename A, typename ... C>
-		constexpr bool has_has_tooltip = _has_has_tooltip<A, void, C ...>::value;
-	}
-
 	class unmanaged_scrollable_region : public visible_region {
 	public:
 		scrollbar<unmanaged_region_scollbar> sb;
@@ -238,41 +201,6 @@ void ui::for_each_child(gui_manager& manager, tagged_gui_object parent, const T&
 
 namespace ui {
 	namespace detail {
-		template<typename A, typename B>
-		struct _has_shortcut : public std::false_type {};
-		template<typename A>
-		struct _has_shortcut<A, decltype(void(std::declval<A>().shortcut))> : public std::true_type {};
-		template<typename A>
-		constexpr bool has_shortcut = _has_shortcut<A, void>::value;
-
-		template<typename A, typename B, typename ... C>
-		struct _has_initialize_in_window : std::false_type {};
-		template<typename A, typename ... C>
-		struct _has_initialize_in_window<A, decltype(void(std::declval<A>().initialize_in_window(std::declval<C>() ...))), C...> : std::true_type {};
-		template<typename A, typename ... C>
-		constexpr bool has_initialize_in_window = _has_initialize_in_window<A, void, C ...>::value;
-
-		template<typename OBJ, typename RET, typename ... PARAMS>
-		struct has_windowed_update_s : public std::false_type {};
-		template<typename OBJ, typename ... PARAMS>
-		struct has_windowed_update_s<OBJ, decltype(void(std::declval<OBJ>().windowed_update(std::declval<PARAMS>() ...))), PARAMS ...> : public std::true_type {};
-		template<typename OBJ, typename ... PARAMS>
-		constexpr bool has_windowed_update = has_windowed_update_s<OBJ, void, PARAMS ...>::value;
-
-		template<typename OBJ, typename RET, typename ... PARAMS>
-		struct has_populate_list_s: public std::false_type{};
-		template<typename OBJ, typename ... PARAMS>
-		struct has_populate_list_s<OBJ, decltype(void(std::declval<OBJ>().populate_list(std::declval<PARAMS>() ...))), PARAMS ...> : public std::true_type {};
-		template<typename OBJ, typename ... PARAMS>
-		constexpr bool has_populate_list = has_populate_list_s<OBJ, void, PARAMS ...>::value;
-
-		template<typename OBJ, typename RET, typename ... PARAMS>
-		struct has_on_create_s : public std::false_type {};
-		template<typename OBJ, typename ... PARAMS>
-		struct has_on_create_s<OBJ, decltype(void(std::declval<OBJ>().on_create(std::declval<PARAMS>() ...))), PARAMS ...> : public std::true_type {};
-		template<typename OBJ, typename ... PARAMS>
-		constexpr bool has_on_create = has_on_create_s<OBJ, void, PARAMS ...>::value;
-
 		template<typename RES, typename HANDLE>
 		struct can_create_instance_s : public std::false_type {};
 		template<typename HANDLE>

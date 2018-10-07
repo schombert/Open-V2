@@ -30,6 +30,12 @@
     <ClInclude Include="economy_gui.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="trade_window.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="trade_window.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="economy.cpp">
@@ -42,6 +48,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="economy_gui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="trade_window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -6,6 +6,7 @@
 #include "scenario\\scenario.h"
 #include "triggers\\trigger_reading.h"
 #include "world_state\\world_state.h"
+#include "modifiers\\modifiers_io.h"
 
 void serialization::serializer<economy::factory_instance>::serialize_object(std::byte *& output, economy::factory_instance const & obj, world_state const & ws) {
 	if(obj.type) {
@@ -170,9 +171,10 @@ namespace economy {
 		text_data::text_sequences& text_lookup;
 		economic_scenario& manager;
 		boost::container::flat_map<text_data::text_tag, factory_type_tag>& production_to_factory;
+		modifiers::modifiers_manager& mod_manager;
 
-		buildings_parsing_environment(text_data::text_sequences& tl, economic_scenario& m, boost::container::flat_map<text_data::text_tag, factory_type_tag>& map) :
-			text_lookup(tl), manager(m), production_to_factory(map) {}
+		buildings_parsing_environment(text_data::text_sequences& tl, economic_scenario& m, boost::container::flat_map<text_data::text_tag, factory_type_tag>& map, modifiers::modifiers_manager& mm) :
+			text_lookup(tl), manager(m), production_to_factory(map), mod_manager(mm) {}
 	};
 
 	enum class building_type_enum {
@@ -182,34 +184,37 @@ namespace economy {
 		buildings_parsing_environment& env;
 		goods_cost_container(buildings_parsing_environment& e) : env(e) {}
 
-		std::vector<std::pair<goods_tag, economy::goods_qnty_type>> cost_pairs;
+		std::vector<std::pair<goods_tag, economy::money_qnty_type>> cost_pairs;
 
-		void add_cost_pair(const std::pair<token_and_type, economy::goods_qnty_type>& p) {
+		void add_cost_pair(const std::pair<token_and_type, economy::money_qnty_type>& p) {
 			const auto gtag = env.manager.named_goods_index[text_data::get_thread_safe_text_handle(env.text_lookup, p.first.start, p.first.end)];
 			cost_pairs.emplace_back(gtag, p.second);
 		}
 
 	};
 
-	inline std::pair<token_and_type, economy::goods_qnty_type> bind_cost_pair(const token_and_type& l, association_type, const token_and_type& r) {
-		return std::pair<token_and_type, economy::goods_qnty_type>(l, token_to<economy::goods_qnty_type>(r));
+	inline std::pair<token_and_type, economy::money_qnty_type> bind_cost_pair(const token_and_type& l, association_type, const token_and_type& r) {
+		return std::pair<token_and_type, economy::money_qnty_type>(l, token_to<economy::money_qnty_type>(r));
 	}
 
 	struct building_obj {
+		modifiers::modifier_reading_base building_modifier;
 		building_type_enum type = building_type_enum::other;
 		uint32_t cost;
-		std::vector<std::pair<goods_tag, economy::goods_qnty_type>> goods_cost;
+		std::vector<std::pair<goods_tag, economy::money_qnty_type>> goods_cost;
 		uint32_t time;
 		uint32_t naval_capacity;
 		uint32_t max_level;
 		std::vector<int> colonial_points;
 		uint32_t colonial_range;
-		double local_ship_build;
 		double infrastructure;
-		double movement_cost;
 		text_data::text_tag production_type;
 		bool default_enabled = false;
 	};
+
+	inline std::pair<token_and_type, float> bind_attribute_pair(const token_and_type& t, association_type, const token_and_type& r) {
+		return std::pair<token_and_type, float>(t, token_to<float>(r));
+	}
 
 	struct building_obj_container : public building_obj {
 		buildings_parsing_environment& env;
@@ -239,6 +244,9 @@ namespace economy {
 			} else {
 				type = building_type_enum::other;
 			}
+		}
+		void set_other(const std::pair<token_and_type, float>& v) {
+			building_modifier.add_attribute(v);
 		}
 		void discard(int) {}
 	};
@@ -295,6 +303,9 @@ namespace economy {
 			env.manager.fort.max_level = fort.max_level;
 			env.manager.fort.time = fort.time;
 
+			if(int32_t(fort.building_modifier.total_attributes) - int32_t(fort.building_modifier.count_unique_national) > 0)
+				env.manager.fort_modifier = modifiers::add_provincial_modifier(text_data::get_thread_safe_text_handle(env.text_lookup, "fort"), fort.building_modifier, env.mod_manager);
+
 			env.manager.building_costs.safe_get(fort_tag, goods_tag(0));
 			for(const auto& cost : fort.goods_cost) {
 				env.manager.building_costs.get(fort_tag, cost.first) = cost.second;
@@ -303,8 +314,10 @@ namespace economy {
 			env.manager.railroad.cost_tag = railroad_tag;
 			env.manager.railroad.infrastructure = static_cast<float>(railroad.infrastructure);
 			env.manager.railroad.max_level = railroad.max_level;
-			env.manager.railroad.movement_cost = static_cast<float>(railroad.movement_cost);
 			env.manager.railroad.time = railroad.time;
+
+			if(int32_t(railroad.building_modifier.total_attributes) - int32_t(railroad.building_modifier.count_unique_national) > 0)
+				env.manager.railroad_modifier = modifiers::add_provincial_modifier(text_data::get_thread_safe_text_handle(env.text_lookup, "railroad"), railroad.building_modifier, env.mod_manager);
 
 			env.manager.building_costs.safe_get(railroad_tag, goods_tag(0));
 			for(const auto& cost : railroad.goods_cost) {
@@ -314,10 +327,13 @@ namespace economy {
 			env.manager.naval_base.colonial_range = naval_base.colonial_range;
 			env.manager.naval_base.cost_tag = naval_base_tag;
 			env.manager.naval_base.extra_cost = naval_base.cost;
-			env.manager.naval_base.local_ship_build = static_cast<float>(naval_base.local_ship_build);
 			env.manager.naval_base.max_level = naval_base.max_level;
 			env.manager.naval_base.naval_capacity = naval_base.naval_capacity;
 			env.manager.naval_base.time = naval_base.time;
+
+			if(int32_t(naval_base.building_modifier.total_attributes) - int32_t(naval_base.building_modifier.count_unique_national) > 0)
+				env.manager.naval_base_modifier = modifiers::add_provincial_modifier(text_data::get_thread_safe_text_handle(env.text_lookup, "naval_base"), naval_base.building_modifier, env.mod_manager);
+
 
 			for(uint32_t i = 0; i < 8 && i < naval_base.colonial_points.size(); ++i) {
 				env.manager.naval_base.colonial_points[i] = static_cast<uint32_t>(naval_base.colonial_points[i]);
@@ -666,10 +682,9 @@ MEMBER_DEF(economy::building_obj_container, naval_capacity, "naval_capacity");
 MEMBER_DEF(economy::building_obj_container, max_level, "max_level");
 MEMBER_FDEF(economy::building_obj_container, set_colonial_points, "colonial_points");
 MEMBER_DEF(economy::building_obj_container, colonial_range, "colonial_range");
-MEMBER_DEF(economy::building_obj_container, local_ship_build, "local_ship_build");
 MEMBER_DEF(economy::building_obj_container, infrastructure, "infrastructure");
-MEMBER_DEF(economy::building_obj_container, movement_cost, "movement_cost");
 MEMBER_FDEF(economy::building_obj_container, set_production_type, "production_type");
+MEMBER_FDEF(economy::building_obj_container, set_other, "other");
 MEMBER_FDEF(economy::building_obj_container, discard, "discard");
 MEMBER_DEF(economy::building_obj_container, default_enabled, "default_enabled");
 MEMBER_FDEF(economy::goods_cost_container, add_cost_pair, "cost_item");
@@ -772,11 +787,10 @@ namespace economy {
 		MEMBER_ASSOCIATION("naval_capacity", "naval_capacity", value_from_rh<uint32_t>)
 		MEMBER_ASSOCIATION("max_level", "max_level", value_from_rh<uint32_t>)
 		MEMBER_ASSOCIATION("colonial_range", "colonial_range", value_from_rh<uint32_t>)
-		MEMBER_ASSOCIATION("local_ship_build", "local_ship_build", value_from_rh<double>)
 		MEMBER_ASSOCIATION("infrastructure", "infrastructure", value_from_rh<double>)
-		MEMBER_ASSOCIATION("movement_cost", "movement_cost", value_from_rh<double>)
 		MEMBER_ASSOCIATION("production_type", "production_type", token_from_rh)
 		MEMBER_ASSOCIATION("default_enabled", "default_enabled", value_from_rh<bool>)
+		MEMBER_VARIABLE_ASSOCIATION("other", accept_all, bind_attribute_pair)
 		END_TYPE
 		END_DOMAIN;
 
@@ -853,14 +867,15 @@ namespace economy {
 	boost::container::flat_map<text_data::text_tag, factory_type_tag> read_buildings(
 		economic_scenario& manager,
 		const directory& source_directory,
-		text_data::text_sequences& text_function
+		text_data::text_sequences& text_function,
+		modifiers::modifiers_manager& mod_manager
 	) {
 		boost::container::flat_map<text_data::text_tag, factory_type_tag> production_to_factory;
 
 		const auto common_dir = source_directory.get_directory(u"\\common");
 		const auto file = common_dir.open_file(u"buildings.txt");
 
-		buildings_parsing_environment return_state(text_function, manager, production_to_factory);
+		buildings_parsing_environment return_state(text_function, manager, production_to_factory, mod_manager);
 
 		if(file) {
 			const auto sz = file->size();

@@ -324,7 +324,7 @@ namespace technologies {
 		}
 
 		if(is_valid_index(tech.production_adjustment)) {
-			auto production_row = ws.s.technology_m.production_adjustments.get_row(tech.production_adjustment);
+			//auto production_row = ws.s.technology_m.production_adjustments.get_row(tech.production_adjustment);
 			for(uint32_t i = 0; i < ws.s.economy_m.goods_count; ++i) {
 				economy::goods_tag gtag(static_cast<economy::goods_tag::value_base_t>(i));
 				if(auto v = ws.s.technology_m.production_adjustments.get(
@@ -427,12 +427,12 @@ namespace technologies {
 				military::unit_type_tag tag(static_cast<military::unit_type_tag::value_base_t>(i));
 				auto& vector = ws.s.technology_m.unit_type_adjustments.get(tech.unit_adjustment, tag);
 
-				for(uint32_t i = 0; i < military::unit_attribute::enabled; ++i) {
-					if(vector[i] != 0) {
+				for(uint32_t j = 0; j < military::unit_attribute::enabled; ++j) {
+					if(vector[j] != 0) {
 						cursor_in = ui::add_linear_text(cursor_in, ws.s.military_m.unit_types[tag].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 						cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 
-						switch(i) {
+						switch(j) {
 							case 0:
 								cursor_in = ui::add_linear_text(cursor_in,
 									ws.s.fixed_ui_text[military::is_naval_unit(tag, ws) ? scenario::fixed_ui::unit_hull : scenario::fixed_ui::unit_defence],
@@ -496,11 +496,11 @@ namespace technologies {
 						}
 
 						
-						cursor_in = display_value(vector[i],
-							(i == military::unit_attribute::supply_consumption || i == military::unit_attribute::discipline) ? display_type::percent : (i <= 4 ? display_type::fp_two_places : display_type::integer),
-							i != military::unit_attribute::supply_consumption, ws, container, cursor_in, lm, fmt);
+						cursor_in = display_value(vector[j],
+							(j == military::unit_attribute::supply_consumption || j == military::unit_attribute::discipline) ? display_type::percent : (j <= 4 ? display_type::fp_two_places : display_type::integer),
+							j != military::unit_attribute::supply_consumption, ws, container, cursor_in, lm, fmt);
 
-						if(i == military::unit_attribute::build_time)
+						if(j == military::unit_attribute::build_time)
 							cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::tx_day], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 						
 						cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);

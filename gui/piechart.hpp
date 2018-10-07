@@ -155,7 +155,7 @@ void ui::piechart<BASE>::update_data(gui_object_tag, world_state& w) {
 
 template<typename BASE>
 template<typename window_type>
-void ui::piechart<BASE>::windowed_update(window_type& w, world_state& s) {
+std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::piechart<BASE>&, window_type&, world_state&>, void> ui::piechart<BASE>::windowed_update(window_type& w, world_state& s) {
 	if constexpr(ui::detail::has_windowed_update<BASE, ui::piechart<BASE>&, window_type&, world_state&>) {
 		clear_entries(s.w.gui_m);
 		BASE::windowed_update(*this, w, s);

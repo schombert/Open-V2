@@ -11,6 +11,9 @@
 #include "technologies\\technologies_functions.h"
 #undef small
 
+#pragma warning( push )
+#pragma warning( disable : 4189)
+
 namespace triggers {
 
 	namespace {
@@ -880,6 +883,7 @@ namespace triggers {
 			auto chances_total = tval[2];
 
 			std::uniform_int_distribution<int32_t> dist(0, int32_t(chances_total) - 1);
+
 			auto chance_taken = dist(gen);
 
 			auto sub_units_start = tval + 3; // [code] + [payload size] + [chances total] + [first sub effect chance]
@@ -4625,3 +4629,5 @@ namespace triggers {
 		return _make_effect_description(ws, container, cursor_in, lm, fmt, tval, primary_slot, this_slot, from_slot, rebel_slot, generator_copy);
 	}
 }
+
+#pragma warning( pop ) 
