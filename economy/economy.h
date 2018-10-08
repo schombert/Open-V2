@@ -108,13 +108,11 @@ namespace economy {
 	};
 	struct railroad_information : public fort_information {
 		float infrastructure = 0.16f;
-		//float movement_cost = -0.05f;
 	};
 	struct naval_base_information : public fort_information {
 		uint32_t extra_cost = 15000;
 		uint32_t naval_capacity = 1;
 		uint32_t colonial_range = 50;
-		//float local_ship_build = -0.1f;
 		uint32_t colonial_points[8] = {30,50,70,90,110,130,150,170};
 	};
 

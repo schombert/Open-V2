@@ -37,6 +37,7 @@ void serialization::serializer<provinces::province_state>::serialize_object(std:
 	serialize(output, obj.fort_upgrade_progress);
 	serialize(output, obj.railroad_upgrade_progress);
 	serialize(output, obj.naval_base_upgrade_progress);
+	serialize(output, obj.artisan_production_scale);
 	serialize(output, obj.last_controller_change);
 	serialize(output, obj.last_immigration);
 	serialize(output, obj.rgo_worker_data);
@@ -85,6 +86,7 @@ void serialization::serializer<provinces::province_state>::deserialize_object(st
 	deserialize(input, obj.fort_upgrade_progress);
 	deserialize(input, obj.railroad_upgrade_progress);
 	deserialize(input, obj.naval_base_upgrade_progress);
+	deserialize(input, obj.artisan_production_scale);
 	deserialize(input, obj.last_controller_change);
 	deserialize(input, obj.last_immigration);
 	deserialize(input, obj.rgo_worker_data);
@@ -118,6 +120,7 @@ size_t serialization::serializer<provinces::province_state>::size(provinces::pro
 		serialize_size(obj.fort_upgrade_progress) +
 		serialize_size(obj.railroad_upgrade_progress) +
 		serialize_size(obj.naval_base_upgrade_progress) +
+		serialize_size(obj.artisan_production_scale) +
 		serialize_size(obj.last_controller_change) +
 		serialize_size(obj.last_immigration) +
 		serialize_size(obj.rgo_worker_data) +

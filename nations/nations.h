@@ -240,7 +240,7 @@ namespace nations {
 		int32_t last_population = 0;
 		set_tag<country_tag> flashpoint_tension_focuses;
 		array_tag<state_neighbor> neighbors;
-		array_tag<float> imports_arrays;
+		array_tag<economy::goods_qnty_type> production_imports_arrays;
 
 		float administrative_efficiency = 0.0f;
 		float current_tension = 0.0f;
@@ -294,7 +294,7 @@ namespace nations {
 		stable_variable_vector_storage_mk_2<relationship, 4, 8192> relations_arrays;
 		stable_variable_vector_storage_mk_2<truce, 4, 8192> truce_arrays;
 		stable_variable_vector_storage_mk_2<loan, 4, 8192> loan_arrays;
-		stable_variable_vector_storage_mk_2<economy::goods_qnty_type, 32, 8192> state_imports_arrays;
+		stable_variable_vector_storage_mk_2<economy::goods_qnty_type, 32, 8192> state_goods_arrays;
 		stable_variable_vector_storage_mk_2<state_neighbor, 4, 8192> state_neighbor_arrays;
 
 		stable_2d_vector<int32_t, state_tag, population::demo_tag, 512, 16> state_demographics;

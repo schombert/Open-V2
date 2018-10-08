@@ -48,6 +48,7 @@ namespace provinces {
 		float fort_upgrade_progress = 0.0f;
 		float railroad_upgrade_progress = 0.0f;
 		float naval_base_upgrade_progress = 0.0f;
+		float artisan_production_scale = 1.0f;
 
 		date_tag last_controller_change;
 		date_tag last_immigration;

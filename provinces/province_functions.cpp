@@ -288,4 +288,7 @@ namespace provinces {
 	void enable_canal(world_state& ws, uint32_t canal_id) {
 		ws.w.province_s.is_canal_enabled[canal_id] = 1ui8;
 	}
+	double distance(provinces::province const & a, provinces::province const & b) {
+		return acos(a.centroid.dot(b.centroid)) * 40'075.0 / 6.2831853071;
+	}
 }

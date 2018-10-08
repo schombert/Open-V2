@@ -39,6 +39,13 @@ namespace economy {
 		economy::goods_tag production,
 		float mobilization_effect);
 
+	production_modifiers artisan_production_modifiers(
+		world_state const& ws,
+		nations::nation const& in_nation,
+		provinces::province_state const& in_province,
+		economy::goods_tag production,
+		float mobilization_effect);
+
 	void match_rgo_worker_type(world_state& ws, provinces::province_state& ps);
 
 	void update_rgo_employment(world_state& ws, provinces::province_state& ps);
@@ -62,4 +69,8 @@ namespace economy {
 	money_qnty_type get_factory_project_cost(world_state const& ws, factory_type_tag ftype, factory_project_type ptype, money_qnty_type const* prices);
 	money_qnty_type get_railroad_cost(world_state const& ws, money_qnty_type const* prices);
 	float project_completion(world_state const& ws, nations::state_instance const& si, money_qnty_type const* prices);
+	uint32_t storage_space_for_n_neighbors(world_state const& ws, uint32_t neighbor_count);
+	goods_qnty_type* imports_for_nth_neighbor(world_state const& ws, goods_qnty_type* data, uint32_t neighbor_count);
+
+	void update_state_production_and_consumption(world_state& ws, nations::state_instance& si);
 }

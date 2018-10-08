@@ -9,6 +9,7 @@
 #include "population\\population_function.h"
 #include "provinces\\province_functions.h"
 #include <ppl.h>
+#include "economy\\economy_functions.h"
 
 namespace nations {
 	void reset_nation(world_state& ws, nations::nation& new_nation) {
@@ -43,6 +44,8 @@ namespace nations {
 		s.relations_arrays.reset();
 		s.truce_arrays.reset();
 		s.loan_arrays.reset();
+		s.state_neighbor_arrays.reset();
+		s.state_goods_arrays.reset();
 	}
 
 	void destroy_nation(world_state& ws, nations::nation& new_nation) {
@@ -359,6 +362,11 @@ namespace nations {
 			remove_item(ws.w.nation_s.state_tag_arrays, ws.w.nation_s.nations[n].national_focus_locations, si.id);
 		clear(ws.w.nation_s.nations_arrays, si.flashpoint_tension_focuses);
 
+		remove_all_state_neighbors(ws, si);
+
+		clear(ws.w.nation_s.state_neighbor_arrays, si.neighbors);
+		clear(ws.w.nation_s.state_goods_arrays, si.production_imports_arrays);
+
 		for(auto prange = ws.s.province_m.states_to_province_index.get_row(si.region_id); prange.first != prange.second; ++prange.first) {
 			if(ws.w.province_s.province_state_container[*prange.first].state_instance == &si)
 				ws.w.province_s.province_state_container[*prange.first].state_instance = nullptr;
@@ -389,6 +397,8 @@ namespace nations {
 		for(economy::goods_tag::value_base_t i = 0; i < ws.s.economy_m.goods_count; ++i) {
 			prices[i] = ws.s.economy_m.goods[economy::goods_tag(i)].base_price;
 		}
+
+		return new_state;
 	}
 
 	void init_empty_states(world_state& ws) {
@@ -426,7 +436,7 @@ namespace nations {
 		ws.w.nation_s.active_goods.reset((ws.s.economy_m.goods_count + 63ui32) / 64ui32);
 		ws.w.nation_s.active_issue_options.reset(uint32_t(ws.s.issues_m.issues_container.size()));
 		ws.w.nation_s.national_stockpiles.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count));
-		ws.w.nation_s.state_prices.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count));
+		ws.w.nation_s.state_prices.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count * 2));
 		ws.w.nation_s.national_variables.reset(ws.s.variables_m.count_national_variables);
 
 		ws.w.nation_s.unit_stats.reset(static_cast<uint32_t>(ws.s.military_m.unit_types.size()));
@@ -1191,5 +1201,114 @@ namespace nations {
 			}
 		}
 		return nullptr;
+	}
+
+	bool are_states_neighbors(world_state const& ws, nations::state_instance& a, nations::state_tag b) {
+		return contains_item(ws.w.nation_s.state_neighbor_arrays, a.neighbors, state_neighbor{0.0f, b, 0ui16});
+	}
+	void add_state_neighbor(world_state& ws, nations::state_instance& a, nations::state_instance& b) {
+		auto cap_a = get_state_capital(ws, a);
+		auto cap_b = get_state_capital(ws, b);
+		auto distance = (bool(cap_a) && bool(cap_b)) ? float(provinces::distance(ws.s.province_m.province_container[cap_a->id], ws.s.province_m.province_container[cap_b->id])) : 1.0f;
+		{
+			auto existing_count = get_size(ws.w.nation_s.state_neighbor_arrays, a.neighbors);
+			add_item(ws.w.nation_s.state_neighbor_arrays, a.neighbors, state_neighbor{ distance, b.id, uint16_t(existing_count) });
+			resize(ws.w.nation_s.state_goods_arrays, a.production_imports_arrays, economy::storage_space_for_n_neighbors(ws, existing_count + 1ui32));
+		}
+		{
+			auto existing_count = get_size(ws.w.nation_s.state_neighbor_arrays, b.neighbors);
+			add_item(ws.w.nation_s.state_neighbor_arrays, b.neighbors, state_neighbor{ distance, a.id, uint16_t(existing_count) });
+			resize(ws.w.nation_s.state_goods_arrays, b.production_imports_arrays, economy::storage_space_for_n_neighbors(ws, existing_count + 1ui32));
+		}
+	}
+	void remove_state_neighbor(world_state& ws, nations::state_instance& a, nations::state_instance& b) {
+		{
+			auto f = find(ws.w.nation_s.state_neighbor_arrays, a.neighbors, state_neighbor{ 0.0f, b.id, 0ui16 });
+			if(f) {
+				auto old_index = f->neighbor_index;
+				auto existing_count = get_size(ws.w.nation_s.state_neighbor_arrays, a.neighbors);
+
+				if(old_index + 1ui32 != existing_count) {
+					auto n_range = get_range(ws.w.nation_s.state_neighbor_arrays, a.neighbors);
+
+					for(auto i = n_range.first; i != n_range.second; ++i) {
+						if(i->neighbor_index + 1ui32 == existing_count) {
+							i->neighbor_index = old_index;
+						}
+					}
+
+					auto imports_data_range = get_range(ws.w.nation_s.state_goods_arrays, a.production_imports_arrays);
+					auto cpy_start = economy::imports_for_nth_neighbor(ws, imports_data_range.first, existing_count - 1ui32);
+					std::copy(cpy_start, cpy_start + ws.s.economy_m.goods_count * 2, economy::imports_for_nth_neighbor(ws, imports_data_range.first, old_index));
+
+					*f = *(n_range.second - 1);
+				}
+
+				resize(ws.w.nation_s.state_neighbor_arrays, a.neighbors, existing_count - 1ui32);
+				resize(ws.w.nation_s.state_goods_arrays, a.production_imports_arrays, economy::storage_space_for_n_neighbors(ws, existing_count - 1ui32));
+			}
+		}
+		{
+			auto f = find(ws.w.nation_s.state_neighbor_arrays, b.neighbors, state_neighbor{ 0.0f, a.id, 0ui16 });
+			if(f) {
+				auto old_index = f->neighbor_index;
+				auto existing_count = get_size(ws.w.nation_s.state_neighbor_arrays, b.neighbors);
+
+				if(old_index + 1ui32 != existing_count) {
+					auto n_range = get_range(ws.w.nation_s.state_neighbor_arrays, b.neighbors);
+
+					for(auto i = n_range.first; i != n_range.second; ++i) {
+						if(i->neighbor_index + 1ui32 == existing_count) {
+							i->neighbor_index = old_index;
+						}
+					}
+
+					auto imports_data_range = get_range(ws.w.nation_s.state_goods_arrays, b.production_imports_arrays);
+					auto cpy_start = economy::imports_for_nth_neighbor(ws, imports_data_range.first, existing_count - 1ui32);
+					std::copy(cpy_start, cpy_start + ws.s.economy_m.goods_count * 2, economy::imports_for_nth_neighbor(ws, imports_data_range.first, old_index));
+
+					*f = *(n_range.second - 1);
+				}
+
+				resize(ws.w.nation_s.state_neighbor_arrays, b.neighbors, existing_count - 1ui32);
+				resize(ws.w.nation_s.state_goods_arrays, b.production_imports_arrays, economy::storage_space_for_n_neighbors(ws, existing_count - 1ui32));
+			}
+		}	
+	}
+
+	void remove_all_state_neighbors(world_state& ws, nations::state_instance& a) {
+		auto n_range = get_range(ws.w.nation_s.state_neighbor_arrays, a.neighbors);
+
+		for(auto i = n_range.first; i != n_range.second; ++i) {
+			auto& n = ws.w.nation_s.states[i->neighbor_tag];
+
+			auto f = find(ws.w.nation_s.state_neighbor_arrays, n.neighbors, state_neighbor{ 0.0f, a.id, 0ui16 });
+			if(f) {
+				auto old_index = f->neighbor_index;
+				auto existing_count = get_size(ws.w.nation_s.state_neighbor_arrays, n.neighbors);
+
+				if(old_index + 1ui32 != existing_count) {
+					auto n_range = get_range(ws.w.nation_s.state_neighbor_arrays, n.neighbors);
+
+					for(auto i = n_range.first; i != n_range.second; ++i) {
+						if(i->neighbor_index + 1ui32 == existing_count) {
+							i->neighbor_index = old_index;
+						}
+					}
+
+					auto imports_data_range = get_range(ws.w.nation_s.state_goods_arrays, n.production_imports_arrays);
+					auto cpy_start = economy::imports_for_nth_neighbor(ws, imports_data_range.first, existing_count - 1ui32);
+					std::copy(cpy_start, cpy_start + ws.s.economy_m.goods_count * 2, economy::imports_for_nth_neighbor(ws, imports_data_range.first, old_index));
+
+					*f = *(n_range.second - 1);
+				}
+
+				resize(ws.w.nation_s.state_neighbor_arrays, n.neighbors, existing_count - 1ui32);
+				resize(ws.w.nation_s.state_goods_arrays, n.production_imports_arrays, economy::storage_space_for_n_neighbors(ws, existing_count - 1ui32));
+			}
+		}
+
+		resize(ws.w.nation_s.state_neighbor_arrays, a.neighbors, 0);
+		resize(ws.w.nation_s.state_goods_arrays, a.production_imports_arrays, economy::storage_space_for_n_neighbors(ws, 0ui32));
 	}
 }

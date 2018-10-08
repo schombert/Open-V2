@@ -94,6 +94,11 @@ namespace nations {
 	void make_slave_state(world_state& ws, nations::state_instance& this_state);
 	void unmake_slave_state(world_state& ws, nations::state_instance& this_state);
 
+	bool are_states_neighbors(world_state const& ws, nations::state_instance& a, nations::state_tag b);
+	void add_state_neighbor(world_state& ws, nations::state_instance& a, nations::state_instance& b);
+	void remove_state_neighbor(world_state& ws, nations::state_instance& a, nations::state_instance& b);
+	void remove_all_state_neighbors(world_state& ws, nations::state_instance& a);
+
 	template<typename F>
 	void for_each_province(world_state const& ws, nations::state_instance const& s, F&& f);
 	template<typename F>
