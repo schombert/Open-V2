@@ -586,6 +586,7 @@ int main(int , char **) {
 				economy::update_rgo_employment(ws, ps);
 		}
 		economy::init_factory_employment(ws);
+		economy::init_artisan_producation(ws);
 
 		population::default_initialize_world_issues_and_ideology(ws);
 

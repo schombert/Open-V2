@@ -8,6 +8,11 @@
 #include "world_state\\world_state.h"
 #include "modifiers\\modifiers_io.h"
 
+void serialization::serializer<economy::economic_state>::deserialize_object(std::byte const *& input, economy::economic_state & obj, world_state & ws) {
+	//deserialize(input, obj.current_prices);
+	auto coal_name = text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, "coal");
+	obj.coal = ws.s.economy_m.named_goods_index[coal_name];
+}
 void serialization::serializer<economy::factory_instance>::serialize_object(std::byte *& output, economy::factory_instance const & obj, world_state const & ws) {
 	if(obj.type) {
 		auto factory_type = obj.type->id;

@@ -45,13 +45,11 @@ public:
 	static constexpr bool has_simple_serialize = false;
 
 	static void serialize_object(std::byte* &output, economy::economic_state const& obj, world_state const&) {
-		serialize(output, obj.current_prices);
+		//serialize(output, obj.current_prices);
 	}
-	static void deserialize_object(std::byte const* &input, economy::economic_state& obj, world_state&) {
-		deserialize(input, obj.current_prices);
-	}
+	static void deserialize_object(std::byte const* &input, economy::economic_state& obj, world_state& ws);
 	static size_t size(economy::economic_state const& obj, world_state const&) {
-		return serialize_size(obj.current_prices);
+		return 0; //serialize_size(obj.current_prices);
 	}
 };
 
@@ -168,4 +166,3 @@ namespace economy {
 		boost::container::flat_map<text_data::text_tag, factory_type_tag>& map,
 		const directory& source_directory);
 }
-

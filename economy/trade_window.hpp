@@ -3,6 +3,7 @@
 #include "trade_window.h"
 #include "gui\\gui.hpp"
 #include "world_state\\world_state.h"
+#include "economy\\economy_functions.h"
 
 namespace economy {
 	class trade_window_base : public ui::draggable_region {
@@ -113,11 +114,18 @@ namespace economy {
 	void tw_good_item_trend_icon::windowed_update(ui::dynamic_icon<tw_good_item_trend_icon>& self, window_type & win, world_state & ws) {}
 	template<typename W>
 	void tw_good_item_price::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		if(is_valid_index(w.tag)) {
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::currency, ws.w.economy_s.current_prices[w.tag]);
-			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			lm.finish_current_line();
+		if(auto player = ws.w.local_player_nation; bool(player) && is_valid_index(w.tag)) {
+			if(auto cap = player->current_capital; is_valid_index(cap)) {
+				if(auto cap_state = ws.w.province_s.province_state_container[cap].state_instance; cap_state) {
+					auto prices = economy::state_current_prices(ws, *cap_state);
+
+					char16_t local_buffer[16];
+					put_value_in_buffer(local_buffer, display_type::currency, prices[to_index(w.tag)]);
+					ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+					lm.finish_current_line();
+				}
+			}
+			
 		}
 	}
 	template<typename window_type>

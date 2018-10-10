@@ -560,8 +560,8 @@ namespace provinces {
 		if(is_valid_index(selected_prov)) {
 			char16_t formatted_value[64];
 			auto rgo_type = ws.w.province_s.province_state_container[selected_prov].rgo_production;
-			if(is_valid_index(rgo_type)) {
-				economy::money_qnty_type value = economy::money_qnty_type(ws.w.province_s.province_state_container[selected_prov].last_produced) * ws.w.economy_s.current_prices[rgo_type];
+			if(auto si = ws.w.province_s.province_state_container[selected_prov].state_instance; bool(si) && is_valid_index(rgo_type)) {
+				economy::money_qnty_type value = economy::money_qnty_type(ws.w.province_s.province_state_container[selected_prov].last_produced) * economy::state_current_prices(ws, *si)[to_index(rgo_type)];
 				auto end_pos = put_value_in_buffer(formatted_value, display_type::fp_two_places, value);
 				*end_pos = u'\u00A3';
 				*(end_pos + 1) = char16_t(0);

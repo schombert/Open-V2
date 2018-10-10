@@ -138,7 +138,8 @@ namespace economy {
 
 	class economic_state {
 	public:
-		tagged_vector<economy::money_qnty_type, goods_tag, aligned_allocator_32<economy::money_qnty_type>> current_prices;
+		//tagged_vector<economy::money_qnty_type, goods_tag, aligned_allocator_32<economy::money_qnty_type>> current_prices;
+		goods_tag coal;
 	};
 
 	class economic_scenario {

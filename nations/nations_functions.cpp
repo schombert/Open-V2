@@ -396,7 +396,9 @@ namespace nations {
 		auto prices = ws.w.nation_s.state_prices.get_row(new_state.id);
 		for(economy::goods_tag::value_base_t i = 0; i < ws.s.economy_m.goods_count; ++i) {
 			prices[i] = ws.s.economy_m.goods[economy::goods_tag(i)].base_price;
+			prices[i + ws.s.economy_m.aligned_32_goods_count] = ws.s.economy_m.goods[economy::goods_tag(i)].base_price;
 		}
+		economy::allocate_new_state_production(ws, new_state);
 
 		return new_state;
 	}
@@ -1203,8 +1205,22 @@ namespace nations {
 		return nullptr;
 	}
 
-	bool are_states_neighbors(world_state const& ws, nations::state_instance& a, nations::state_tag b) {
+	bool are_states_neighbors(world_state const& ws, nations::state_instance const& a, nations::state_tag b) {
 		return contains_item(ws.w.nation_s.state_neighbor_arrays, a.neighbors, state_neighbor{0.0f, b, 0ui16});
+	}
+	bool are_states_physically_neighbors(world_state const& ws, nations::state_instance const& a, nations::state_instance const& b) {
+		auto prange = ws.s.province_m.states_to_province_index.get_row(a.region_id);
+		for(auto p : prange) {
+			auto& ps = ws.w.province_s.province_state_container[p];
+			if(ps.state_instance == &a) {
+				auto prov_adj = ws.s.province_m.same_type_adjacency.get_row(p);
+				for(auto ip : prov_adj) {
+					if(ws.w.province_s.province_state_container[ip].state_instance == &b)
+						return true;
+				}
+			}
+		}
+		return false;
 	}
 	void add_state_neighbor(world_state& ws, nations::state_instance& a, nations::state_instance& b) {
 		auto cap_a = get_state_capital(ws, a);
@@ -1288,11 +1304,11 @@ namespace nations {
 				auto existing_count = get_size(ws.w.nation_s.state_neighbor_arrays, n.neighbors);
 
 				if(old_index + 1ui32 != existing_count) {
-					auto n_range = get_range(ws.w.nation_s.state_neighbor_arrays, n.neighbors);
+					auto inner_n_range = get_range(ws.w.nation_s.state_neighbor_arrays, n.neighbors);
 
-					for(auto i = n_range.first; i != n_range.second; ++i) {
-						if(i->neighbor_index + 1ui32 == existing_count) {
-							i->neighbor_index = old_index;
+					for(auto j = inner_n_range.first; j != inner_n_range.second; ++i) {
+						if(j->neighbor_index + 1ui32 == existing_count) {
+							j->neighbor_index = old_index;
 						}
 					}
 
@@ -1300,7 +1316,7 @@ namespace nations {
 					auto cpy_start = economy::imports_for_nth_neighbor(ws, imports_data_range.first, existing_count - 1ui32);
 					std::copy(cpy_start, cpy_start + ws.s.economy_m.goods_count * 2, economy::imports_for_nth_neighbor(ws, imports_data_range.first, old_index));
 
-					*f = *(n_range.second - 1);
+					*f = *(inner_n_range.second - 1);
 				}
 
 				resize(ws.w.nation_s.state_neighbor_arrays, n.neighbors, existing_count - 1ui32);

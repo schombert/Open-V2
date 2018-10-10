@@ -71,6 +71,10 @@ namespace economy {
 	float project_completion(world_state const& ws, nations::state_instance const& si, money_qnty_type const* prices);
 	uint32_t storage_space_for_n_neighbors(world_state const& ws, uint32_t neighbor_count);
 	goods_qnty_type* imports_for_nth_neighbor(world_state const& ws, goods_qnty_type* data, uint32_t neighbor_count);
+	void allocate_new_state_production(world_state& ws, nations::state_instance& si);
+	money_qnty_type* state_current_prices(world_state const& ws, nations::state_instance const& si);
 
 	void update_state_production_and_consumption(world_state& ws, nations::state_instance& si);
+	void world_economy_update_tick(world_state& ws);
+	void init_artisan_producation(world_state& ws);
 }
