@@ -23,6 +23,8 @@
 #include "economy\\economy_functions.h"
 #include "modifiers\\modifier_functions.h"
 
+#undef max
+#undef min
 // #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
 int main(int, char**);
@@ -310,31 +312,6 @@ struct gui_window_handler {
 
 	void operator()(const ui::creation&, ui::window_base&) {
 		s.w.init_gui_objects(s);
-		s.w.province_w.hide_province_window(s.w.gui_m);
-
-		//ui::create_static_element(s, std::get<ui::window_tag>(s.s.gui_m.ui_definitions.name_to_element_map["country_budget"]), ui::tagged_gui_object{ s.w.gui_m.root, ui::gui_object_tag(0) }, budget_window);
-		//auto& pc = budget_window.get<CT_STRING("chart_0")>();
-		//pc.add_entry(s.w.gui_m, vector_backed_string<char16_t>(u"category 1"), 0.4f, graphics::color_rgb{ 255,0,0 });
-		//pc.add_entry(s.w.gui_m, vector_backed_string<char16_t>(u"category 2"), 0.1f, graphics::color_rgb{ 255,255,0 });
-		//pc.add_entry(s.w.gui_m, vector_backed_string<char16_t>(u"category 3"), 0.25f, graphics::color_rgb{ 255,0,255 });
-		//pc.add_entry(s.w.gui_m, vector_backed_string<char16_t>(u"category 4"), 0.25f, graphics::color_rgb{ 0,255,255 });
-		//pc.update_display(s.w.gui_m);
-
-		//budget_window.get<CT_STRING("debt_sort_country")>().associated_object->flags.fetch_or(ui::gui_object::force_transparency_check, std::memory_order_acq_rel);
-		//budget_window.get<CT_STRING("debt_sort_amount")>().associated_object->flags.fetch_or(ui::gui_object::force_transparency_check, std::memory_order_acq_rel);
-
-		
-
-		//const auto new_icon = ui::detail::create_element_instance(s.s.gui_m, s.w.gui_m, ui::icon_tag(19));
-		//ui::add_to_back(s.w.gui_m, ui::tagged_gui_object{ s.w.gui_m.root, ui::gui_object_tag(0) }, new_icon);
-
-		//const auto new_text = ui::detail::create_element_instance(s.s.gui_m, s.w.gui_m, ui::text_tag(29));
-		//ui::add_to_back(s.w.gui_m, ui::tagged_gui_object{ s.w.gui_m.root, ui::gui_object_tag(0) }, new_text);
-
-		//ui::create_static_element(s, ui::scrollbar_tag(10), ui::tagged_gui_object{ s.w.gui_m.root, ui::gui_object_tag(0) }, test_sb);
-		//test_sb.set_limits(s.w.gui_m, 0, 75);
-
-		//ui::create_scrollable_text_block(s, ui::text_tag(571), text_data::text_tag(1001), ui::tagged_gui_object{ s.w.gui_m.root, ui::gui_object_tag(0) });
 	}
 
 	void operator()(const ui::resize& r, ui::window_base&) {
@@ -354,12 +331,38 @@ struct gui_window_handler {
 		if(map_dragging) {
 			map_dragging = false;
 
-			auto map_coord = map.map_coordinates_from_screen(map.state.normalize_screen_coordinates(m.x, m.y, s.w.gui_m.width(), s.w.gui_m.height()));
-			auto id = s.s.province_m.province_map_data[size_t(map_coord.first + map_coord.second * s.s.province_m.province_map_width)];
-			s.w.province_w.show_province_window(s.w.gui_m, provinces::province_tag(id));
+			if(std::abs(map_drag_start.first - m.x) < 5 && std::abs(map_drag_start.second - m.y) < 5) {
+				auto map_coord = map.map_coordinates_from_screen(map.state.normalize_screen_coordinates(m.x, m.y, s.w.gui_m.width(), s.w.gui_m.height()));
+				auto id = s.s.province_m.province_map_data[size_t(map_coord.first + map_coord.second * s.s.province_m.province_map_width)];
+				s.w.province_w.show_province_window(s.w.gui_m, provinces::province_tag(id));
+				s.w.map_view.selected_province = provinces::province_tag(id);
+				if(is_valid_index(id)) {
+					auto& ps = s.w.province_s.province_state_container[provinces::province_tag(id)];
+					if(auto si = ps.state_instance; si) {
+						if(auto sid = si->id; s.w.nation_s.states.is_valid_index(sid))
+							s.w.map_view.selected_state = sid;
+					}
+					if(auto n = ps.owner; n) {
+						if(auto nid = n->id; s.w.nation_s.nations.is_valid_index(nid))
+							s.w.map_view.selected_country = nid;
+					}
+				}
+				if(s.w.map_view.mode == current_state::map_mode::distance)
+					s.w.map_view.changed = true;
+			}
 		}
 	}
 	void operator()(const ui::key_down& m, ui::window_base&) {
+		if(m.keycode == virtual_key::NUMPAD1 || m.keycode == virtual_key::NUM_1) {
+			s.w.map_view.mode = current_state::map_mode::political;
+			s.w.map_view.changed = true;
+		} else if(m.keycode == virtual_key::NUMPAD2 || m.keycode == virtual_key::NUM_2) {
+			s.w.map_view.mode = current_state::map_mode::distance;
+			s.w.map_view.changed = true;
+		} else if(m.keycode == virtual_key::NUMPAD3 || m.keycode == virtual_key::NUM_3) {
+			s.w.map_view.mode = current_state::map_mode::prices;
+			s.w.map_view.changed = true;
+		}
 		s.w.gui_m.on_keydown(s, m);
 	}
 	void operator()(const ui::scroll& ss, ui::window_base&) {
@@ -379,7 +382,16 @@ struct gui_window_handler {
 	void operator()(const ui::mouse_move& m, ui::window_base&) {
 		s.w.gui_m.on_mouse_move(s, m);
 	}
-
+	void operator()(const ui::text_event& t, ui::window_base&) {
+		if(t.text == u'.') {
+			economy::world_economy_update_tick(s);
+			s.w.current_date = date_tag(to_index(s.w.current_date) + 1);
+			s.w.gui_m.flag_update();
+			s.w.map_view.changed = true;
+		} else {
+			s.w.gui_m.on_text(s, t);
+		}
+	}
 	void initialize_graphics(graphics::open_gl_wrapper& ogl) {
 		s.s.gui_m.fonts.load_fonts(ogl);
 
@@ -462,6 +474,80 @@ struct gui_window_handler {
 	}
 
 	bool on_idle() {
+		bool map_change_expected = true;
+		if(s.w.map_view.changed.compare_exchange_strong(map_change_expected, false)) {
+			if(auto g = s.w.map_view.selected_good; is_valid_index(g) && s.w.map_view.mode == current_state::map_mode::prices) {
+				auto price_range = economy::global_price_range(s, g);
+
+				const auto pcolors = map.colors.primary_color_data();
+				const auto scolors = map.colors.secondary_color_data();
+
+				for(uint32_t i = 0; i < s.w.province_s.province_state_container.size(); ++i) {
+					if(auto si = s.w.province_s.province_state_container[provinces::province_tag(provinces::province_tag::value_base_t(i))].state_instance; si && si->owner) {
+						auto local_prices = economy::state_current_prices(s, *si);
+
+						auto fraction = (local_prices[to_index(g)] - price_range.first + 0.01) / (price_range.second - price_range.first + 0.01);
+						pcolors[i * 3 + 0] = uint8_t((1.0f - fraction) * 255.0f);
+						pcolors[i * 3 + 1] = uint8_t(fraction * 255.0f);
+						pcolors[i * 3 + 2] = uint8_t(100);
+						scolors[i * 3 + 0] = uint8_t((1.0f - fraction) * 255.0f);
+						scolors[i * 3 + 1] = uint8_t(fraction * 255.0f);
+						scolors[i * 3 + 2] = uint8_t(100);
+					}
+				}
+
+				map.colors.update_ready();
+			} if(auto p = s.w.map_view.selected_province; is_valid_index(p) && s.w.map_view.mode == current_state::map_mode::distance) {
+				const auto pcolors = map.colors.primary_color_data();
+				const auto scolors = map.colors.secondary_color_data();
+
+				auto pcount = s.w.province_s.province_state_container.size();
+				for(uint32_t i = 0; i < pcount; ++i) {
+					auto distance = s.w.province_s.province_distance_to[to_index(p) * pcount + i];
+					pcolors[i * 3 + 0] = uint8_t(std::clamp((distance / 8'000.0f - 1.0f), 0.0f, 1.0f) * 255.0f);
+					pcolors[i * 3 + 1] = uint8_t(std::clamp((1.0f - distance / 8'000.0f), 0.0f, 1.0f) * 255.0f);
+					pcolors[i * 3 + 2] = uint8_t(100);
+					scolors[i * 3 + 0] = uint8_t(std::clamp((distance / 8'000.0f - 1.0f), 0.0f, 1.0f) * 255.0f);
+					scolors[i * 3 + 1] = uint8_t(std::clamp((1.0f - distance / 8'000.0f), 0.0f, 1.0f) * 255.0f);
+					scolors[i * 3 + 2] = uint8_t(100);
+				}
+
+				map.colors.update_ready();
+			} else {
+				const auto pcolors = map.colors.primary_color_data();
+				const auto scolors = map.colors.secondary_color_data();
+
+				for(size_t i = 0; i < s.s.province_m.province_container.size(); ++i) {
+					const provinces::province_tag this_province(static_cast<provinces::province_tag::value_base_t>(i));
+					provinces::province& province_object = s.s.province_m.province_container[this_province];
+					if((province_object.flags & provinces::province::sea) != 0) {
+						pcolors[i * 3 + 0] = 80ui8;
+						pcolors[i * 3 + 1] = 80ui8;
+						pcolors[i * 3 + 2] = 255ui8;
+						scolors[i * 3 + 0] = 80ui8;
+						scolors[i * 3 + 1] = 80ui8;
+						scolors[i * 3 + 2] = 255ui8;
+					} else if(auto owner = s.w.province_s.province_state_container[this_province].owner; owner) {
+						pcolors[i * 3 + 0] = owner->current_color.r;
+						pcolors[i * 3 + 1] = owner->current_color.g;
+						pcolors[i * 3 + 2] = owner->current_color.b;
+						scolors[i * 3 + 0] = owner->current_color.r;
+						scolors[i * 3 + 1] = owner->current_color.g;
+						scolors[i * 3 + 2] = owner->current_color.b;
+					} else {
+						pcolors[i * 3 + 0] = 255ui8;
+						pcolors[i * 3 + 1] = 255ui8;
+						pcolors[i * 3 + 2] = 255ui8;
+						scolors[i * 3 + 0] = 255ui8;
+						scolors[i * 3 + 1] = 255ui8;
+						scolors[i * 3 + 2] = 255ui8;
+					}
+				}
+
+				map.colors.update_ready();
+			}
+		}
+
 		if (s.w.gui_m.check_and_clear_update()) {
 			ui::update(s);
 			return true;
@@ -469,7 +555,7 @@ struct gui_window_handler {
 			ui::minimal_update(s);
 			return true;
 		} else {
-			return false;
+			return map_change_expected;
 		}
 	}
 
@@ -596,6 +682,8 @@ int main(int , char **) {
 		nations::fix_capitals(ws);
 
 		events::execute_decision_set(decisions, ws);
+
+		economy::set_initial_money(ws);
 
 		ws.w.local_player_nation = &ws.w.nation_s.nations[nations::country_tag(1)];
 

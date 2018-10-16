@@ -700,5 +700,9 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::build] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECT_BUILD");
 		s.fixed_ui_text[fixed_ui::reopen] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECT_REOPEN");
 		s.fixed_ui_text[fixed_ui::expand] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECT_EXPAND");
+		s.fixed_ui_text[fixed_ui::exports] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "exports");
+		s.fixed_ui_text[fixed_ui::imports] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "imports");
+		s.fixed_ui_text[fixed_ui::demand_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "demand_label");
+		s.fixed_ui_text[fixed_ui::supply_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "supply_label");
 	}
 }

@@ -40,6 +40,10 @@ void serialization::serializer<nations::state_instance>::serialize_object(std::b
 
 	auto prices = ws.w.nation_s.state_prices.get_row(obj.id);
 	serialize_array(output, prices, ws.s.economy_m.aligned_32_goods_count * 2);
+	auto production = ws.w.nation_s.state_production.get_row(obj.id);
+	serialize_array(output, production, ws.s.economy_m.aligned_32_goods_count * 2);
+	auto demand = ws.w.nation_s.state_demand.get_row(obj.id);
+	serialize_array(output, demand, ws.s.economy_m.aligned_32_goods_count * 2);
 
 	serialize_stable_array(output, ws.w.nation_s.nations_arrays, obj.flashpoint_tension_focuses);
 	serialize_stable_array(output, ws.w.nation_s.state_neighbor_arrays, obj.neighbors);
@@ -49,6 +53,8 @@ void serialization::serializer<nations::state_instance>::serialize_object(std::b
 void serialization::serializer<nations::state_instance>::deserialize_object(std::byte const *& input, nations::state_instance & obj, world_state & ws) {
 	ws.w.nation_s.state_demographics.ensure_capacity(to_index(obj.id) + 1);
 	ws.w.nation_s.state_prices.ensure_capacity(to_index(obj.id) + 1);
+	ws.w.nation_s.state_production.ensure_capacity(to_index(obj.id) + 1);
+	ws.w.nation_s.state_demand.ensure_capacity(to_index(obj.id) + 1);
 
 	nations::country_tag owner;
 	deserialize(input, owner);
@@ -76,6 +82,10 @@ void serialization::serializer<nations::state_instance>::deserialize_object(std:
 
 	auto prices = ws.w.nation_s.state_prices.get_row(obj.id);
 	deserialize_array(input, prices, ws.s.economy_m.aligned_32_goods_count * 2);
+	auto production = ws.w.nation_s.state_production.get_row(obj.id);
+	deserialize_array(input, production, ws.s.economy_m.aligned_32_goods_count * 2);
+	auto demand = ws.w.nation_s.state_demand.get_row(obj.id);
+	deserialize_array(input, demand, ws.s.economy_m.aligned_32_goods_count * 2);
 
 	deserialize_stable_array(input, ws.w.nation_s.nations_arrays, obj.flashpoint_tension_focuses);
 	deserialize_stable_array(input, ws.w.nation_s.state_neighbor_arrays, obj.neighbors);
@@ -98,6 +108,8 @@ size_t serialization::serializer<nations::state_instance>::size(nations::state_i
 		sizeof(obj.region_id) +
 		sizeof(obj.flags) +
 		sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count * 2 + // state prices
+		sizeof(economy::goods_qnty_type) * ws.s.economy_m.aligned_32_goods_count * 2 + // state production
+		sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count * 2 + // state demand
 		serialize_stable_array_size(ws.w.nation_s.nations_arrays, obj.flashpoint_tension_focuses) +
 		serialize_stable_array_size(ws.w.nation_s.state_neighbor_arrays, obj.neighbors) +
 		serialize_stable_array_size(ws.w.nation_s.state_goods_arrays, obj.production_imports_arrays)

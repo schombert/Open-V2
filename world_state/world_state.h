@@ -38,6 +38,21 @@ namespace current_state {
 
 	constexpr int32_t max_speed = 5;
 
+	enum map_mode {
+		political,
+		prices,
+		distance
+	};
+
+	struct map_state {
+		map_mode mode = map_mode::political;
+		economy::goods_tag selected_good;
+		nations::country_tag selected_country;
+		nations::state_tag selected_state;
+		provinces::province_tag selected_province;
+		std::atomic<bool> changed = false;
+	};
+
 	struct crisis_state {
 		float temperature = 0.0f; // from 0 to 100
 		crisis_type type = crisis_type::none;
@@ -76,6 +91,8 @@ namespace current_state {
 		bool world_wars_enabled = false;
 
 		//gui state
+		map_state map_view;
+
 		nations::diplomacy_window diplomacy_w;
 		provinces::province_window province_w;
 		technologies::technology_window technologies_w;

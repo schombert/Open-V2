@@ -175,7 +175,7 @@ object_type& stable_vector<object_type, index_type, block_size, index_size>::ope
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
 template<typename T>
-void stable_vector<object_type, index_type, block_size, index_size>::for_each(T&& f) {
+void stable_vector<object_type, index_type, block_size, index_size>::for_each(T&& f) const {
 	for(uint32_t i = 0; i < indices_in_use; ++i) {
 		for(uint32_t j = 0; j < block_size; ++j) {
 			if(((to_index((index_array[i])[j].id) & high_bit_mask<index_type>) == 0) & ::is_valid_index((index_array[i])[j].id))

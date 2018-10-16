@@ -618,8 +618,12 @@ namespace scenario {
 		constexpr uint32_t build = 596ui32;
 		constexpr uint32_t reopen = 597ui32;
 		constexpr uint32_t expand = 598ui32;
+		constexpr uint32_t exports = 599ui32;
+		constexpr uint32_t imports = 600ui32;
+		constexpr uint32_t demand_label = 601ui32;
+		constexpr uint32_t supply_label = 602ui32;
 
-		constexpr uint32_t count = 599ui32;
+		constexpr uint32_t count = 603ui32;
 	}
 
 	class scenario_manager {

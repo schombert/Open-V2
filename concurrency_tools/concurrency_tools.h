@@ -309,6 +309,8 @@ class stable_vector {
 public:
 	static_assert(1ui64 << ct_log2(block_size) == block_size);
 
+	constexpr static uint32_t block_size_v = block_size;
+
 	object_type* index_array[index_size] = { nullptr };
 	uint32_t indices_in_use = 0ui32;
 	index_type first_free = index_type(static_cast<value_base_of<index_type>>(to_index(index_type()) | high_bit_mask<index_type>));
@@ -341,7 +343,7 @@ public:
 	object_type* get_location(index_type i); // single thread only, forces storage to expand
 
 	template<typename T>
-	void for_each(T&& f);
+	void for_each(T&& f) const;
 	template<typename T>
 	void parallel_for_each(T const& f);
 };

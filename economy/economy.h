@@ -118,6 +118,7 @@ namespace economy {
 
 	struct worked_instance {
 		int32_t worker_populations[max_worker_types] = { 0 };
+		float production_scale = 1.0f
 	};
 
 	struct production_modifiers {
@@ -129,7 +130,6 @@ namespace economy {
 	struct factory_instance {
 		factory_type* type = nullptr;
 		float factory_bank = 0.0f;
-		float factory_operational_scale = 1.0f; // 0 = closed
 		float factory_progress = 0.0f; // for upgrades and construction; level 0 & non zero progress = under construction
 		worked_instance worker_data;
 		uint16_t level = 0;

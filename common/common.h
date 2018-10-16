@@ -127,23 +127,13 @@ struct tag_type {
 		else
 			return value;
 	}
-	constexpr bool is_valid() const noexcept {
-		if constexpr(std::is_same_v<std::true_type, zero_is_null>)
-			return value != 0;
-		else
-			return value != std::numeric_limits<value_base>::max();
-	}
-	void operator=(value_base v) noexcept { value = v + (std::is_same_v<std::true_type, zero_is_null> ? 1 : 0); }
+	constexpr bool is_valid() const noexcept { return value != null_value; }
 	void operator=(tag_type v) noexcept { value = v.value; }
 
 	constexpr bool operator==(tag_type v) const noexcept { return value == v.value; }
-	constexpr bool operator==(value_base v) const noexcept { return *this == tag_type(v); }
 	constexpr bool operator!=(tag_type v) const noexcept { return value != v.value; }
-	constexpr bool operator!=(value_base v) const noexcept { return *this != tag_type(v); }
 	constexpr bool operator<(tag_type v) const noexcept { return value < v.value; }
-	constexpr bool operator<(value_base v) const noexcept { return *this < tag_type(v); }
 	constexpr bool operator<=(tag_type v) const noexcept { return value <= v.value; }
-	constexpr bool operator<=(value_base v) const noexcept { return *this <= tag_type(v); }
 };
 
 template<typename value_base, typename zero_is_null, typename individuator>
@@ -690,6 +680,12 @@ value_type wrapped_modf(value_type value_in, value_type* int_out) {
 
 template<typename value_type>
 inline char16_t* put_pos_value_in_buffer(char16_t* dest, display_type display_as, value_type value) {
+#ifdef _DEBUG
+	if constexpr(std::is_same_v<value_type, float> || std::is_same_v<value_type, double>) {
+		if(std::isnan(value))
+			std::abort();
+	}
+#endif
 	switch(display_as) {
 		case display_type::netural_percent:
 		case display_type::percent:
@@ -1139,24 +1135,24 @@ public:
 		return static_cast<uint32_t>(index.size());
 	}
 
-	std::pair<typename std::vector<T>::iterator, typename std::vector<T>::iterator> get_row(I i) {
-		std::pair<typename std::vector<T>::iterator, typename std::vector<T>::iterator> p;
-		p.first = elements.begin() + index[to_index(i)];
+	std::pair<T*, T*> get_row(I i) {
+		std::pair<T*, T*> p;
+		p.first = elements.data() + index[to_index(i)];
 		if (to_index(i) + 1 < index.size()) {
-			p.second = elements.begin() + index[to_index(i) + 1];
+			p.second = elements.data() + index[to_index(i) + 1];
 		} else {
-			p.second = elements.end();
+			p.second = elements.data() + elements.size();
 		}
 		return p;
 	}
 
-	std::pair<typename std::vector<T>::const_iterator, typename std::vector<T>::const_iterator> get_row(I i) const {
-		std::pair<typename std::vector<T>::const_iterator, typename std::vector<T>::const_iterator> p;
-		p.first = elements.cbegin() + index[to_index(i)];
+	std::pair<T const*, T const*> get_row(I i) const {
+		std::pair<T const*, T const*> p;
+		p.first = elements.data() + index[to_index(i)];
 		if (to_index(i) + 1 < index.size()) {
-			p.second = elements.cbegin() + index[to_index(i) + 1];
+			p.second = elements.data() + index[to_index(i) + 1];
 		} else {
-			p.second = elements.cend();
+			p.second = elements.data() + elements.size();
 		}
 		return p;
 	}

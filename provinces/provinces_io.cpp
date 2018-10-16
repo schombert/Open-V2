@@ -1182,7 +1182,7 @@ namespace provinces {
 							m.province_map_data[static_cast<size_t>(t)] = to_index(it->second);
 						else
 							m.province_map_data[static_cast<size_t>(t)] = 0ui16;
-						prev_result = m.province_map_data[static_cast<size_t>(t)];
+						prev_result = province_tag(m.province_map_data[static_cast<size_t>(t)]);
 					}
 				}
 
@@ -1315,8 +1315,15 @@ namespace provinces {
 					
 
 					if(is_fixed_token_ci(values[2].first, values[2].second, "impassable")) {
-						adj_map[prov_b].erase(prov_a);
-						adj_map[prov_a].erase(prov_b);
+						if(prov_b != province_tag(0)) {
+							adj_map[prov_b].erase(prov_a);
+							adj_map[prov_a].erase(prov_b);
+						} else {
+							for(auto a : adj_map[prov_a]) {
+								adj_map[a].erase(prov_a);
+							}
+							adj_map[prov_a].clear();
+						}
 					} else if(is_fixed_token_ci(values[2].first, values[2].second, "canal")) {
 						const int32_t canal_index = parse_int(values[4].first, values[4].second) - 1;
 						if(static_cast<size_t>(canal_index) >= canals.size())
@@ -1408,10 +1415,12 @@ namespace provinces {
 
 				const double vx_pos = x * long_step;
 				const double vy_pos = y * lat_step + top_lat;
-				const double cos_vy = cos(vy_pos);
-				const double sin_vy = sin(vy_pos);
+				const double cos_vy = cos(vy_pos) * pixel_area;
+				const double sin_vy = sin(vy_pos) * pixel_area;
 
-				m.province_container[province_tag(province_id)].centroid += Eigen::Vector3d(cos(vx_pos) * cos_vy , sin(vx_pos) * cos_vy, sin_vy) * pixel_area;
+				m.province_container[province_tag(province_id)].centroid[0] += cos(vx_pos) * cos_vy;
+				m.province_container[province_tag(province_id)].centroid[1] += sin(vx_pos) * cos_vy;
+				m.province_container[province_tag(province_id)].centroid[2] += sin_vy;
 			}
 		}
 

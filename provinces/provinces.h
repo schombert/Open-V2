@@ -118,6 +118,9 @@ namespace provinces {
 
 		std::vector<uint8_t> is_canal_enabled;
 
+		std::vector<float> province_distance_to;
+		std::vector<province_tag> province_path_to;
+
 		stable_variable_vector_storage_mk_2<cultures::national_tag, 4, 8192> core_arrays;
 		stable_variable_vector_storage_mk_2<modifiers::provincial_modifier_tag, 4, 8192> static_modifier_arrays;
 		stable_variable_vector_storage_mk_2<timed_provincial_modifier, 4, 8192> timed_modifier_arrays;

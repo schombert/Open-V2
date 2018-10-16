@@ -1479,6 +1479,34 @@ namespace population {
 
 	template<typename W>
 	void pop_producing_icon::windowed_update(ui::dynamic_icon<pop_producing_icon>& self, W& w, world_state& ws) {
+		auto& pop = ws.w.population_s.pops[w.tag];
+		if(provinces::province_tag loc = pop.location; is_valid_index(loc)) {
+			if(pop.type == ws.s.population_m.artisan) {
+				if(auto p = ws.w.province_s.province_state_container[loc].artisan_production; is_valid_index(p)) {
+					self.set_frame(ws.w.gui_m, ws.s.economy_m.goods[p].icon);
+					ui::make_visible_immediate(*self.associated_object);
+					return;
+				}
+			} else if(auto production = ws.w.province_s.province_state_container[loc].rgo_production; is_valid_index(production)) {
+				if((ws.s.economy_m.goods[production].flags & economy::good_definition::mined) != 0) {
+					for(uint32_t i = 0; i < std::extent_v<decltype(ws.s.economy_m.rgo_mine.workers)>; ++i) {
+						if(ws.s.economy_m.rgo_mine.workers[i].type == pop.type) {
+							self.set_frame(ws.w.gui_m, ws.s.economy_m.goods[production].icon);
+							ui::make_visible_immediate(*self.associated_object);
+							return;
+						}
+					}
+				} else {
+					for(uint32_t i = 0; i < std::extent_v<decltype(ws.s.economy_m.rgo_farm.workers)>; ++i) {
+						if(ws.s.economy_m.rgo_farm.workers[i].type == pop.type) {
+							self.set_frame(ws.w.gui_m, ws.s.economy_m.goods[production].icon);
+							ui::make_visible_immediate(*self.associated_object);
+							return;
+						}
+					}
+				}
+			}
+		}
 		ui::hide(*self.associated_object);
 	}
 

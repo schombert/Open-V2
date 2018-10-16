@@ -23,7 +23,6 @@ namespace economy {
 		nations::nation const& in_nation,
 		provinces::province_state const& in_province,
 		int32_t rgo_base_size,
-		float production_scale,
 		economy::goods_tag production,
 		float mobilization_effect);
 
@@ -35,7 +34,6 @@ namespace economy {
 		nations::nation const& in_nation,
 		provinces::province_state const& in_province,
 		int32_t base_size,
-		float production_scale,
 		economy::goods_tag production,
 		float mobilization_effect);
 
@@ -73,8 +71,15 @@ namespace economy {
 	goods_qnty_type* imports_for_nth_neighbor(world_state const& ws, goods_qnty_type* data, uint32_t neighbor_count);
 	void allocate_new_state_production(world_state& ws, nations::state_instance& si);
 	money_qnty_type* state_current_prices(world_state const& ws, nations::state_instance const& si);
+	goods_qnty_type* state_current_production(world_state const& ws, nations::state_instance const& si);
+	goods_qnty_type* state_current_consumption(world_state const& ws, nations::state_instance const& si);
+	goods_qnty_type* state_current_imports(world_state const& ws, nations::state_instance const& si, nations::state_tag neighbor);
+	goods_qnty_type* state_current_exports(world_state const& ws, nations::state_instance const& si, nations::state_tag neighbor);
+
+	std::pair<money_qnty_type, money_qnty_type> global_price_range(world_state const& ws, economy::goods_tag t);
 
 	void update_state_production_and_consumption(world_state& ws, nations::state_instance& si);
 	void world_economy_update_tick(world_state& ws);
 	void init_artisan_producation(world_state& ws);
+	void set_initial_money(world_state& ws);
 }

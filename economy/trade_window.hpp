@@ -120,8 +120,9 @@ namespace economy {
 					auto prices = economy::state_current_prices(ws, *cap_state);
 
 					char16_t local_buffer[16];
-					put_value_in_buffer(local_buffer, display_type::currency, prices[to_index(w.tag)]);
-					ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+					put_value_in_buffer(local_buffer, display_type::fp_two_places, prices[to_index(w.tag)]);
+					auto cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+					cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u00A3"), box, cursor, fmt, lm);
 					lm.finish_current_line();
 				}
 			}

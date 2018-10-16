@@ -276,6 +276,8 @@ void restore_world_state(world_state& ws) {
 			modifiers::reset_provincial_modifier(ws, ps);
 	});
 
+	provinces::fill_distance_arrays(ws);
+
 //	for(auto &ps : ws.w.province_s.province_state_container)
 //		modifiers::reset_provincial_modifier(ws, ps);
 

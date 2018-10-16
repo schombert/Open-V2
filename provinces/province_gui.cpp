@@ -296,6 +296,7 @@ namespace provinces {
 	}
 
 	void province_window_base::on_create(world_state& ws) {
+		ui::hide(*associated_object);
 		associated_object->position += ui::xy_pair{ 0i16, -19i16 };
 		associated_object->size = ui::xy_pair{ 406i16, 548i16 };
 		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {

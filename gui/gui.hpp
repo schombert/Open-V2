@@ -89,6 +89,9 @@ ui::xy_pair ui::text_chunk_to_instances(gui_static& static_manager, ui::gui_mana
 
 template<typename LM>
 ui::xy_pair ui::add_linear_text(ui::xy_pair position, text_data::text_tag text_handle, text_format const& fmt, gui_static& static_manager, gui_manager& manager, tagged_gui_object container, LM&& lm, const text_data::replacement* candidates, uint32_t count) {
+	if(!is_valid_index(text_handle))
+		return position;
+
 	auto& components = static_manager.text_data_sequences.all_sequences[text_handle];
 	graphics::font& this_font = static_manager.fonts.at(fmt.font_handle);
 
