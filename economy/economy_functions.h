@@ -67,19 +67,16 @@ namespace economy {
 	money_qnty_type get_factory_project_cost(world_state const& ws, factory_type_tag ftype, factory_project_type ptype, money_qnty_type const* prices);
 	money_qnty_type get_railroad_cost(world_state const& ws, money_qnty_type const* prices);
 	float project_completion(world_state const& ws, nations::state_instance const& si, money_qnty_type const* prices);
-	uint32_t storage_space_for_n_neighbors(world_state const& ws, uint32_t neighbor_count);
-	goods_qnty_type* imports_for_nth_neighbor(world_state const& ws, goods_qnty_type* data, uint32_t neighbor_count);
-	void allocate_new_state_production(world_state& ws, nations::state_instance& si);
 	money_qnty_type* state_current_prices(world_state const& ws, nations::state_instance const& si);
+	money_qnty_type* state_old_prices(world_state const& ws, nations::state_instance const& si);
 	goods_qnty_type* state_current_production(world_state const& ws, nations::state_instance const& si);
-	goods_qnty_type* state_current_consumption(world_state const& ws, nations::state_instance const& si);
-	goods_qnty_type* state_current_imports(world_state const& ws, nations::state_instance const& si, nations::state_tag neighbor);
-	goods_qnty_type* state_current_exports(world_state const& ws, nations::state_instance const& si, nations::state_tag neighbor);
+	money_qnty_type* state_current_demand(world_state const& ws, nations::state_instance const& si);
 
 	std::pair<money_qnty_type, money_qnty_type> global_price_range(world_state const& ws, economy::goods_tag t);
+	money_qnty_type get_life_needs_cost(world_state const& ws, nations::state_instance const& si, population::pop_type_tag ptype);
+	artisan_type_tag get_profitable_artisan(world_state const& ws, provinces::province_state const& ps);
 
-	void update_state_production_and_consumption(world_state& ws, nations::state_instance& si);
-	void world_economy_update_tick(world_state& ws);
 	void init_artisan_producation(world_state& ws);
 	void set_initial_money(world_state& ws);
+	void economy_update_tick(world_state& ws);
 }

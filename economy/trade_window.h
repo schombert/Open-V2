@@ -17,6 +17,7 @@ namespace economy {
 		std::unique_ptr<trade_window_t> win;
 
 		goods_tag selected_good;
+		nations::state_tag selected_state;
 
 		trade_window();
 		~trade_window();

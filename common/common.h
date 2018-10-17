@@ -1224,6 +1224,81 @@ inline int32_t find_best_relative_prime(int32_t prime_to) {
 	}
 }
 
+
+class integer_iterator {
+protected:
+	int32_t index = 0;
+public:
+	constexpr integer_iterator() {};
+	constexpr integer_iterator(int32_t i) : index(i) {};
+
+	constexpr int32_t operator*() const noexcept {
+		return index;
+	}
+	integer_iterator& operator+=(int32_t i) noexcept {
+		index += i;
+		return *this;
+	}
+	constexpr integer_iterator operator+(int32_t i) const noexcept {
+		return integer_iterator(index + i);
+	}
+	constexpr integer_iterator& operator-=(int32_t i) noexcept {
+		index -= i;
+		return *this;
+	}
+	constexpr integer_iterator operator-(int32_t i) const noexcept {
+		return integer_iterator(index - i);
+	}
+	constexpr int32_t operator-(integer_iterator const& o) const noexcept {
+		return index - o.index;
+	}
+	constexpr int32_t operator[](int32_t i) const noexcept {
+		return index + i;
+	}
+	constexpr bool operator==(integer_iterator const& o) const noexcept {
+		return index == o.index;
+	}
+	constexpr bool operator!=(integer_iterator const& o) const noexcept {
+		return index != o.index;
+	}
+	constexpr bool operator<(integer_iterator const& o) const noexcept {
+		return index < o.index;
+	}
+	constexpr bool operator>(integer_iterator const& o) const noexcept {
+		return index > o.index;
+	}
+	constexpr bool operator<=(integer_iterator const& o) const noexcept {
+		return index <= o.index;
+	}
+	constexpr bool operator>=(integer_iterator const& o) const noexcept {
+		return index <= o.index;
+	}
+	integer_iterator& operator++() noexcept {
+		++index;
+		return *this;
+	}
+	integer_iterator& operator--() noexcept {
+		--index;
+		return *this;
+	}
+	integer_iterator operator++(int) noexcept {
+		return integer_iterator(index++);
+	}
+	integer_iterator operator--(int) noexcept {
+		return integer_iterator(index--);
+	}
+
+	using iterator_category = std::random_access_iterator_tag;
+	using value_type = int32_t;
+	using difference_type = int32_t;
+	using pointer = int32_t*;
+	using reference = int32_t&;
+};
+
+constexpr std::pair<integer_iterator, integer_iterator> integer_range(int32_t b, int32_t e) noexcept {
+	return std::pair<integer_iterator, integer_iterator>(integer_iterator(b), integer_iterator(e));
+}
+
 namespace graphics {
 	struct color_rgba {
 		uint8_t r = 0;

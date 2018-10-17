@@ -278,13 +278,6 @@ namespace provinces {
 			prov.state_instance->owner = &new_owner;
 			add_item(ws.w.nation_s.state_arrays, new_owner.member_states, nations::region_state_pair{ region_id, prov.state_instance });
 		}
-		auto adjacent = ws.s.province_m.same_type_adjacency.get_row(prov.id);
-		for(auto a : adjacent) {
-			auto si = ws.w.province_s.province_state_container[a].state_instance;
-			if(si && si != prov.state_instance && nations::are_states_neighbors(ws, *prov.state_instance, si->id) == false) {
-				nations::add_state_neighbor(ws, *prov.state_instance, *si);
-			}
-		}
 	}
 
 	void silent_on_conquer_province(world_state& ws, provinces::province_state& prov) {

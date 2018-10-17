@@ -66,14 +66,6 @@ namespace nations {
 		bool operator==(timed_national_modifier const& other) const noexcept { return mod == other.mod && expiration == other.expiration; }
 	};
 
-	struct state_neighbor {
-		float distance = 1.0f;
-		state_tag neighbor_tag;
-		uint16_t neighbor_index = 0ui16;
-
-		bool operator<(state_neighbor const& other)  const noexcept { return neighbor_tag < other.neighbor_tag; }
-		bool operator==(state_neighbor const& other) const noexcept { return neighbor_tag == other.neighbor_tag; }
-	};
 
 	struct alignas(32) nation {
 		technologies::tech_attribute_vector tech_attributes = technologies::tech_attribute_vector::Zero();
@@ -239,8 +231,6 @@ namespace nations {
 
 		int32_t last_population = 0;
 		set_tag<country_tag> flashpoint_tension_focuses;
-		array_tag<state_neighbor> neighbors;
-		array_tag<economy::goods_qnty_type> production_imports_arrays;
 
 		float administrative_efficiency = 0.0f;
 		float current_tension = 0.0f;
@@ -296,8 +286,6 @@ namespace nations {
 		stable_variable_vector_storage_mk_2<relationship, 4, 8192> relations_arrays;
 		stable_variable_vector_storage_mk_2<truce, 4, 8192> truce_arrays;
 		stable_variable_vector_storage_mk_2<loan, 4, 8192> loan_arrays;
-		stable_variable_vector_storage_mk_2<economy::goods_qnty_type, 32, 8192 * 128, true> state_goods_arrays;
-		stable_variable_vector_storage_mk_2<state_neighbor, 4, 8192> state_neighbor_arrays;
 
 		stable_2d_vector<int32_t, state_tag, population::demo_tag, 512, 16> state_demographics;
 		stable_2d_vector<float, country_tag, population::demo_tag, 512, 16> nation_demographics;

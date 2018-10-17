@@ -2164,7 +2164,7 @@ namespace economy {
 	void factory_open_background::windowed_update(ui::dynamic_icon<factory_open_background>& self, window_type & win, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
 			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
-			if(bool(f.type) && f.factory_operational_scale > 0.0f)
+			if(!factory_is_closed(f))
 				ui::make_visible_immediate(*self.associated_object);
 			else
 				ui::hide(*self.associated_object);
@@ -2175,7 +2175,7 @@ namespace economy {
 	void factory_closed_background::windowed_update(ui::dynamic_icon<factory_closed_background>& self, window_type & win, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
 			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
-			if(bool(f.type) && f.factory_operational_scale > 0.0f)
+			if(!factory_is_closed(f))
 				ui::hide(*self.associated_object);
 			else
 				ui::make_visible_immediate(*self.associated_object);
@@ -2186,7 +2186,7 @@ namespace economy {
 	void factory_construction_progress_bar::windowed_update(ui::progress_bar<factory_construction_progress_bar>& self, window_type & win, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
 			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
-			if(f.factory_progress > 0.0f && f.level == 0) {
+			if(factory_is_under_construction(f)) {
 				self.set_fraction(f.factory_progress);
 				ui::make_visible_immediate(*self.associated_object);
 			} else {
@@ -2199,7 +2199,7 @@ namespace economy {
 	void factory_upgrade_progress_bar::windowed_update(ui::progress_bar<factory_upgrade_progress_bar>& self, window_type & win, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
 			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
-			if(f.factory_progress > 0.0f && f.level != 0) {
+			if(factory_is_upgrading(f)) {
 				self.set_fraction(f.factory_progress);
 				ui::make_visible_immediate(*self.associated_object);
 			} else {
@@ -2212,7 +2212,7 @@ namespace economy {
 	void factory_upgrade_progress_overlay::windowed_update(ui::dynamic_icon<factory_upgrade_progress_overlay>& self, window_type & win, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
 			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
-			if(f.factory_progress > 0.0f && f.level != 0) {
+			if(factory_is_upgrading(f)) {
 				ui::make_visible_immediate(*self.associated_object);
 			} else {
 				ui::hide(*self.associated_object);
@@ -2256,7 +2256,7 @@ namespace economy {
 		if(auto player = ws.w.local_player_nation; player) {
 			if(win.index >= 0 && is_valid_index(win.location) && ws.w.nation_s.states[location].owner == player) {
 				economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
-				if(f.factory_operational_scale <= 0.0f) {
+				if(factory_is_closed(f)) {
 					ui::make_visible_immediate(*self.associated_object);
 					self.set_enabled((player->current_rules.rules_value & issues::rules::destroy_factory) != 0);
 					return;
@@ -2274,7 +2274,7 @@ namespace economy {
 			if(win.index >= 0 && is_valid_index(win.location)) {
 				economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
 
-				if(f.factory_operational_scale <= 0.0f) {
+				if(factory_is_closed(f)) {
 					// closed case -- button opens
 					self.set_frame(ws.w.gui_m, 0ui32);
 					ui::make_visible_immediate(*self.associated_object);
@@ -2431,7 +2431,7 @@ namespace economy {
 	void factory_closed_overlay::windowed_update(ui::dynamic_icon<factory_closed_overlay>& self, window_type & win, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
 			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
-			if(f.factory_operational_scale > 0.0f)
+			if(factory_is_closed(f))
 				ui::hide(*self.associated_object);
 			else
 				ui::make_visible_immediate(*self.associated_object);
@@ -2442,7 +2442,7 @@ namespace economy {
 	void factory_closed_text::windowed_update(W & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
 			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
-			if(f.factory_operational_scale <= 0.0f) {
+			if(factory_is_closed(f)) {
 				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::closed], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 				lm.finish_current_line();
 			}

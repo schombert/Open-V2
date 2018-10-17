@@ -118,7 +118,7 @@ namespace economy {
 
 	struct worked_instance {
 		int32_t worker_populations[max_worker_types] = { 0 };
-		float production_scale = 1.0f
+		float production_scale = 1.0f;
 	};
 
 	struct production_modifiers {

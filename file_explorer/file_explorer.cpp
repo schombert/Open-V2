@@ -339,8 +339,11 @@ struct gui_window_handler {
 				if(is_valid_index(id)) {
 					auto& ps = s.w.province_s.province_state_container[provinces::province_tag(id)];
 					if(auto si = ps.state_instance; si) {
-						if(auto sid = si->id; s.w.nation_s.states.is_valid_index(sid))
+						if(auto sid = si->id; s.w.nation_s.states.is_valid_index(sid) && s.w.map_view.selected_state != sid) {
 							s.w.map_view.selected_state = sid;
+							s.w.trade_w.selected_state = sid;
+							s.w.trade_w.update(s.w.gui_m);
+						}
 					}
 					if(auto n = ps.owner; n) {
 						if(auto nid = n->id; s.w.nation_s.nations.is_valid_index(nid))
@@ -384,7 +387,7 @@ struct gui_window_handler {
 	}
 	void operator()(const ui::text_event& t, ui::window_base&) {
 		if(t.text == u'.') {
-			economy::world_economy_update_tick(s);
+			economy::economy_update_tick(s);
 			s.w.current_date = date_tag(to_index(s.w.current_date) + 1);
 			s.w.gui_m.flag_update();
 			s.w.map_view.changed = true;
@@ -497,7 +500,7 @@ struct gui_window_handler {
 				}
 
 				map.colors.update_ready();
-			} if(auto p = s.w.map_view.selected_province; is_valid_index(p) && s.w.map_view.mode == current_state::map_mode::distance) {
+			} else if(auto p = s.w.map_view.selected_province; is_valid_index(p) && s.w.map_view.mode == current_state::map_mode::distance) {
 				const auto pcolors = map.colors.primary_color_data();
 				const auto scolors = map.colors.secondary_color_data();
 

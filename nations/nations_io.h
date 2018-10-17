@@ -18,8 +18,6 @@ template<>
 class serialization::serializer<nations::timed_national_modifier> : public serialization::memcpy_serializer<nations::timed_national_modifier> {};
 template<>
 class serialization::serializer<nations::pop_project> : public serialization::memcpy_serializer<nations::pop_project> {};
-template<>
-class serialization::serializer<nations::state_neighbor> : public serialization::memcpy_serializer<nations::state_neighbor> {};
 
 template<>
 class serialization::serializer<nations::state_instance> {

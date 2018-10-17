@@ -18,7 +18,6 @@ void serialization::serializer<economy::factory_instance>::serialize_object(std:
 		auto factory_type = obj.type->id;
 		serialize(output, factory_type);
 		serialize(output, obj.factory_bank);
-		serialize(output, obj.factory_operational_scale);
 		serialize(output, obj.factory_progress);
 		serialize(output, obj.worker_data);
 		serialize(output, obj.level);
@@ -34,7 +33,6 @@ void serialization::serializer<economy::factory_instance>::deserialize_object(st
 	if(is_valid_index(factory_type)) {
 		obj.type = &ws.s.economy_m.factory_types[factory_type];
 		deserialize(input, obj.factory_bank);
-		deserialize(input, obj.factory_operational_scale);
 		deserialize(input, obj.factory_progress);
 		deserialize(input, obj.worker_data);
 		deserialize(input, obj.level);
@@ -42,7 +40,7 @@ void serialization::serializer<economy::factory_instance>::deserialize_object(st
 	} else {
 		obj.type = nullptr;
 		obj.factory_bank = 0.0f;
-		obj.factory_operational_scale = 1.0f;
+		obj.worker_data.production_scale = 1.0f;
 		obj.level = 0ui16;
 	}
 }
@@ -50,7 +48,6 @@ size_t serialization::serializer<economy::factory_instance>::size(economy::facto
 	if(obj.type) {
 		return sizeof(economy::factory_type_tag) + 
 			sizeof(obj.factory_bank) +
-			sizeof(obj.factory_operational_scale) +
 			sizeof(obj.factory_progress) +
 			serialization::serialize_size(obj.worker_data) +
 			sizeof(obj.level) + 
