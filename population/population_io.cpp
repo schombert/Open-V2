@@ -701,7 +701,7 @@ namespace population {
 		}
 	};
 
-	constexpr economy::goods_qnty_type needs_mix_factor = economy::goods_qnty_type(1) / economy::goods_qnty_type(16);
+	constexpr economy::goods_qnty_type needs_mix_factor = economy::goods_qnty_type(1) / economy::goods_qnty_type(32);
 	struct ed_needs {
 		single_poptype_environment& env;
 		ed_needs(single_poptype_environment& e) : env(e) {}
@@ -713,6 +713,7 @@ namespace population {
 			if(is_valid_index(gtag)) {
 				env.s.population_m.everyday_needs.get(env.pt.id, gtag) += p.second;
 				env.s.population_m.life_needs.get(env.pt.id, gtag) += needs_mix_factor * p.second;
+				env.s.population_m.luxury_needs.get(env.pt.id, gtag) +=  needs_mix_factor * p.second;
 			}
 		}
 	};
@@ -724,8 +725,11 @@ namespace population {
 			const auto gtag = tag_from_text(
 				env.s.economy_m.named_goods_index,
 				text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, p.first.start, p.first.end));
-			if(is_valid_index(gtag))
+			if(is_valid_index(gtag)) {
 				env.s.population_m.life_needs.get(env.pt.id, gtag) += p.second;
+				env.s.population_m.everyday_needs.get(env.pt.id, gtag) += needs_mix_factor * p.second;
+				env.s.population_m.luxury_needs.get(env.pt.id, gtag) += needs_mix_factor * needs_mix_factor * p.second;
+			}
 		}
 	};
 	struct x_needs {

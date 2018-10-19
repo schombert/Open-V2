@@ -1229,8 +1229,9 @@ class integer_iterator {
 protected:
 	int32_t index = 0;
 public:
-	constexpr integer_iterator() {};
-	constexpr integer_iterator(int32_t i) : index(i) {};
+	constexpr integer_iterator() noexcept {};
+	constexpr explicit integer_iterator(int32_t i) noexcept : index(i) {};
+	constexpr explicit integer_iterator(uint32_t i) noexcept : index(int32_t(i)) {};
 
 	constexpr int32_t operator*() const noexcept {
 		return index;
