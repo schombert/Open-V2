@@ -20,8 +20,9 @@
 #include "world_state\\world_state_io.h"
 #include "ideologies\\ideologies_functions.h"
 #include "population\\population_function.h"
-#include "economy\\economy_functions.h"
+#include "economy\\economy_functions.hpp"
 #include "modifiers\\modifier_functions.h"
+#include <random>
 
 #undef max
 #undef min
@@ -594,6 +595,59 @@ int main(int , char **) {
 	}*/
 
 
+	const int32_t dimension = 100;
+
+	std::vector<float> production_qnty(dimension);
+	std::vector<float> base_spending(dimension);
+	std::vector<float> values(dimension);
+
+	values[0] = 200.0f;
+
+	std::uniform_real_distribution<float> dist(10.0f, 400.0f);
+	std::uniform_real_distribution<float> pdist(0.0f, 50.0f);
+	auto& gen = get_local_generator();
+
+	for(int32_t i = 0; i < dimension; ++i) {
+		base_spending[i] = dist(gen);
+		auto pq = pdist(gen);
+		if(pq >= 25.0f)
+			production_qnty[i] = pq;
+	}
+
+	std::cout << "base value: " << production_qnty[0] * values[0] / (base_spending[0] + values[0]) << std::endl << std::flush;
+
+	Eigen::Map < Eigen::Matrix<float, 1, -1>> vm(values.data(), dimension);
+
+	for(uint32_t i = 0; i < 50; ++i) {
+		economy::perform_cg_step(vm, uint32_t(dimension), [&production_qnty, &base_spending, &values](uint32_t i) {
+			if(i != 0) {
+				auto ufactor = i * 0.01f;
+				auto iterm = base_spending[i] + values[i] + production_qnty[i] * ufactor;
+				auto cterm = -4.0f * values[i] * production_qnty[i] * ufactor + iterm * iterm;
+				return std::pair<float, float>(
+					1.0f / (2.0f * ufactor) + (-base_spending[i] - values[i] + production_qnty[i] * ufactor) / (2.0f * ufactor * sqrt(cterm)),
+					-2.0f * base_spending[i] * production_qnty[i] / std::pow(cterm, 1.5f)
+					);
+			} else {
+				return std::pair<float, float>(
+					base_spending[0] * production_qnty[0] / ((base_spending[0] + values[0])*(base_spending[0] + values[0])),
+					-2.0f * base_spending[0] * production_qnty[0] / ((base_spending[0] + values[0])*(base_spending[0] + values[0])* (base_spending[0] + values[0]))
+					);
+			}
+		});
+		auto new_value = std::transform_reduce(integer_iterator(1), integer_iterator(dimension),
+			production_qnty[0] * values[0] / (base_spending[0] + values[0]), std::plus<float>(),
+			[&production_qnty, &base_spending, &values](int32_t i) {
+			auto ufactor = i * 0.01f;
+			auto iterm = base_spending[i] + values[i] + production_qnty[i] * ufactor;
+			return (base_spending[i] + values[i] + production_qnty[i] * ufactor - sqrt(-4.0f * values[i] * production_qnty[i] * ufactor + iterm * iterm)) / (2.0f * ufactor);
+		});
+
+		bool all_valid = std::transform_reduce(integer_iterator(0), integer_iterator(dimension), true,
+			[](bool a, bool b) { return a && b; }, [&values](int32_t i) { return values[i] >= 0; });
+	
+		std::cout << "value: " << new_value << " total: " << std::reduce(values.begin(), values.end()) << " all valid: " << all_valid << std::endl << std::flush;
+	}
 
 	file_system fs;
 	fs.set_root(u"D:\\programs\\V2");

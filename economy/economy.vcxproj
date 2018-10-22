@@ -146,6 +146,7 @@
   <ItemGroup>
     <ClInclude Include="economy.h" />
     <ClInclude Include="economy_functions.h" />
+    <ClInclude Include="economy_functions.hpp" />
     <ClInclude Include="economy_gui.h" />
     <ClInclude Include="economy_gui.hpp" />
     <ClInclude Include="economy_io.h" />

@@ -1,5 +1,5 @@
 #include "common\\common.h"
-#include "economy_functions.h"
+#include "economy_functions.hpp"
 #include "world_state\\world_state.h"
 #include "provinces\\province_functions.hpp"
 #include "nations\\nations_functions.hpp"
@@ -1352,4 +1352,6 @@ namespace economy {
 		std::uniform_int_distribution<int32_t> d(0, int32_t(result_b.size() - 1));
 		return result_b[d(get_local_generator())];
 	}
+
+	
 }

@@ -115,8 +115,8 @@ struct tag_type {
 	value_base value;
 
 	explicit constexpr tag_type(value_base v) noexcept : value(v + (std::is_same_v<std::true_type, zero_is_null> ? 1 : 0)) {}
-	constexpr tag_type(const tag_type& v) noexcept : value(v.value) {}
-	constexpr tag_type(tag_type&& v) noexcept : value(v.value) {}
+	constexpr tag_type(const tag_type& v) noexcept = default;
+	constexpr tag_type(tag_type&& v) noexcept = default;
 	explicit constexpr tag_type(value_base v, std::true_type) noexcept : value(v) {}
 
 	constexpr tag_type() noexcept : value(null_value) {}
@@ -128,7 +128,8 @@ struct tag_type {
 			return value;
 	}
 	constexpr bool is_valid() const noexcept { return value != null_value; }
-	void operator=(tag_type v) noexcept { value = v.value; }
+	tag_type& operator=(tag_type&& v) noexcept = default;
+	tag_type& operator=(tag_type const& v) noexcept = default;
 
 	constexpr bool operator==(tag_type v) const noexcept { return value == v.value; }
 	constexpr bool operator!=(tag_type v) const noexcept { return value != v.value; }

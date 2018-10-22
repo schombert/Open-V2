@@ -36,6 +36,9 @@
     <ClInclude Include="trade_window.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="economy_functions.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="economy.cpp">
