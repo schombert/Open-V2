@@ -270,7 +270,9 @@ namespace nations {
 		stable_2d_vector<economy::money_qnty_type, state_tag, economy::goods_tag, 512, 16> state_prices;
 		stable_2d_vector<economy::goods_qnty_type, state_tag, economy::goods_tag, 512, 16> state_production;
 		stable_2d_vector<economy::money_qnty_type, state_tag, economy::goods_tag, 512, 16> state_demand;
+		stable_2d_vector<economy::money_qnty_type, state_tag, economy::goods_tag, 512, 16> state_global_demand;
 		stable_2d_vector<float, country_tag, variables::national_variable_tag, 512, 16> national_variables;
+		stable_2d_vector<array_tag<economy::money_qnty_type>, state_tag, economy::goods_tag, 512, 16> state_purchases;
 
 		stable_2d_vector<float, country_tag, technologies::adjusted_goods_tag, 512, 16> production_adjustments;
 		stable_2d_vector<military::unit_attribute_vector, country_tag, military::unit_type_tag, 512, 16> unit_stats;

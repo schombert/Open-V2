@@ -743,20 +743,36 @@ namespace economy {
 		}
 	}
 
-	money_qnty_type* state_current_prices(world_state const& ws, nations::state_instance const& si) {
-		return ws.w.nation_s.state_prices.get_row(si.id) + (ws.s.economy_m.aligned_32_goods_count * (1ui32 - (to_index(ws.w.current_date) & 1)));
+	money_qnty_type* state_current_prices(world_state const& ws, nations::state_tag s) {
+		return ws.w.nation_s.state_prices.get_row(s) + (ws.s.economy_m.aligned_32_goods_count * (1ui32 - (to_index(ws.w.current_date) & 1)));
 	}
 
-	money_qnty_type* state_old_prices(world_state const& ws, nations::state_instance const& si) {
-		return ws.w.nation_s.state_prices.get_row(si.id) + (ws.s.economy_m.aligned_32_goods_count * ((to_index(ws.w.current_date) & 1)));
+	money_qnty_type* state_old_prices(world_state const& ws, nations::state_tag s) {
+		return ws.w.nation_s.state_prices.get_row(s) + (ws.s.economy_m.aligned_32_goods_count * ((to_index(ws.w.current_date) & 1)));
 	}
 
-	goods_qnty_type* state_current_production(world_state const& ws, nations::state_instance const& si) {
-		return ws.w.nation_s.state_production.get_row(si.id) + (ws.s.economy_m.aligned_32_goods_count * (1ui32 - (to_index(ws.w.current_date) & 1)));
+	goods_qnty_type* state_current_production(world_state const& ws, nations::state_tag s) {
+		return ws.w.nation_s.state_production.get_row(s) + (ws.s.economy_m.aligned_32_goods_count * (1ui32 - (to_index(ws.w.current_date) & 1)));
 	}
 
-	money_qnty_type* state_current_demand(world_state const& ws, nations::state_instance const& si) {
-		return ws.w.nation_s.state_demand.get_row(si.id) + (ws.s.economy_m.aligned_32_goods_count * (1ui32 - (to_index(ws.w.current_date) & 1)));
+	goods_qnty_type* state_old_production(world_state const& ws, nations::state_tag s) {
+		return ws.w.nation_s.state_production.get_row(s) + (ws.s.economy_m.aligned_32_goods_count * ((to_index(ws.w.current_date) & 1)));
+	}
+
+	money_qnty_type* state_current_demand(world_state const& ws, nations::state_tag s) {
+		return ws.w.nation_s.state_demand.get_row(s) + (ws.s.economy_m.aligned_32_goods_count * (1ui32 - (to_index(ws.w.current_date) & 1)));
+	}
+
+	money_qnty_type* state_old_demand(world_state const& ws, nations::state_tag s) {
+		return ws.w.nation_s.state_demand.get_row(s) + (ws.s.economy_m.aligned_32_goods_count * ((to_index(ws.w.current_date) & 1)));
+	}
+
+	money_qnty_type* state_current_global_demand(world_state const& ws, nations::state_tag s) {
+		return ws.w.nation_s.state_global_demand.get_row(s) + (ws.s.economy_m.aligned_32_goods_count * (1ui32 - (to_index(ws.w.current_date) & 1)));
+	}
+
+	money_qnty_type* state_old_global_demand(world_state const& ws, nations::state_tag s) {
+		return ws.w.nation_s.state_global_demand.get_row(s) + (ws.s.economy_m.aligned_32_goods_count * ((to_index(ws.w.current_date) & 1)));
 	}
 
 
@@ -815,109 +831,142 @@ namespace economy {
 	constexpr money_qnty_type price_change_rate = money_qnty_type(0.25);
 	constexpr money_qnty_type price_gravity_factor = money_qnty_type(0.05);
 
-	void economy_single_good_tick(world_state& ws, goods_tag tag) {
-		std::vector<goods_qnty_type, concurrent_allocator<goods_qnty_type>> effective_world_supply;
-		std::vector<goods_qnty_type, concurrent_allocator<goods_qnty_type>> effective_world_demand;
+	void economy_single_good_tick(world_state& ws, goods_tag tag, uint32_t state_max) {
+		auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(state_max) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
+		auto padded_aligned_size = aligned_state_max + 32ui32 / sizeof(economy::money_qnty_type);
 
-		const auto total_state_count = ws.w.nation_s.states.indices_in_use * ws.w.nation_s.states.block_size_v;
-		effective_world_supply.resize(total_state_count);
-		effective_world_demand.resize(total_state_count);
+		std::vector<float, concurrent_allocator<float>> first_derivatives_v(padded_aligned_size);
+		std::vector<float, concurrent_allocator<float>> second_derivatives_v(padded_aligned_size);
 
-		auto base_good_price = ws.s.economy_m.goods[tag].base_price;
+		size_t space = padded_aligned_size * sizeof(economy::money_qnty_type);
+		void* ptr = first_derivatives_v.data();
+		Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> first_derivatives(
+			(economy::money_qnty_type*)std::align(32, aligned_state_max * sizeof(economy::money_qnty_type), ptr, space), aligned_state_max);
 
-		// determine effective world supply for each state
+		space = padded_aligned_size * sizeof(economy::money_qnty_type);
+		ptr = second_derivatives_v.data();
+		Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> second_derivatives(
+			(economy::money_qnty_type*)std::align(32, aligned_state_max * sizeof(economy::money_qnty_type), ptr, space), aligned_state_max);
 
-		ws.w.nation_s.states.for_each([&ws, &effective_world_supply, total_state_count, tag](nations::state_instance const& si) {
+		ws.w.nation_s.states.for_each([&ws, &first_derivatives, &second_derivatives, aligned_state_max, tag](nations::state_instance const& si) {
 			auto state_cap = nations::get_state_capital(ws, si);
-
 			if(!state_cap)
 				return;
+
+			auto& purchases_for_state = ws.w.nation_s.state_purchases.get(si.id, tag);
+			auto sz = get_size(ws.w.economy_s.purchasing_arrays, purchases_for_state);
+
+			if(sz < aligned_state_max)
+				resize(ws.w.economy_s.purchasing_arrays, purchases_for_state, aligned_state_max);
+
+			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> values(
+				get_range(ws.w.economy_s.purchasing_arrays, purchases_for_state).first, aligned_state_max);
+
 			auto distance_row_offset = to_index(state_cap->id) * ws.s.province_m.province_container.size();
 
-			economy::goods_qnty_type supply_amount = std::transform_reduce(integer_iterator(0), integer_iterator(int32_t(total_state_count)),
-				economy::goods_qnty_type(0), std::plus<economy::goods_qnty_type>(),
-				[&ws, tag, distance_row_offset](int32_t i) {
+			auto demand_in_state = state_old_demand(ws, si.id)[to_index(tag)];
+			auto old_state_purchases = values.sum();
+
+			if(demand_in_state > old_state_purchases)
+				values[to_index(si.id)] += demand_in_state - old_state_purchases;
+			else if(demand_in_state < old_state_purchases)
+				values *= demand_in_state / old_state_purchases;
+
+			auto old_self_purchase = values[to_index(si.id)];
+
+			for(uint32_t i = 0; i < aligned_state_max; ++i) {
+				auto& other_state = ws.w.nation_s.states[nations::state_tag(nations::state_tag::value_base_t(i))];
+				auto other_state_cap = nations::get_state_capital(ws, other_state);
+
+				if(other_state_cap == nullptr) {
+					values[i] = 0;
+					first_derivatives[i] = 0;
+					second_derivatives[i] = 0;
+				} else if(other_state_cap == state_cap) {
+					auto global_purchases_in_state = state_current_global_demand(ws, nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag)];
+					auto base_spending = std::max(global_purchases_in_state - values[i], money_qnty_type(0));
+					
+					if(base_spending + values[i] != 0) {
+						auto produced_in_state = state_old_production(ws, nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag)];
+
+						first_derivatives[0] = base_spending * produced_in_state / ((base_spending + values[i])*(base_spending + values[i]));
+						second_derivatives[0] = money_qnty_type(-2) * base_spending * produced_in_state / ((base_spending + values[i])*(base_spending + values[i])* (base_spending + values[i]));
+					} else {
+						first_derivatives[i] = 0;
+						second_derivatives[i] = 0;
+					}
+				} else {
+					auto distance_between = ws.w.province_s.province_distance_to[distance_row_offset + to_index(other_state_cap->id)];
+
+					auto ufactor = distance_between * 0.00001f;
+					auto produced_in_state = state_old_production(ws, nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag)];
+					auto global_purchases_in_state = state_current_global_demand(ws, nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag)];
+
+					auto iterm = global_purchases_in_state + produced_in_state * ufactor;
+					auto cterm = -4.0f * values[i] * produced_in_state * ufactor + iterm * iterm;
+
+					first_derivatives[i] = 1.0f / (2.0f * ufactor) + (-global_purchases_in_state + produced_in_state * ufactor) / (2.0f * ufactor * sqrt(cterm));
+					second_derivatives[i] = -2.0f * (global_purchases_in_state - values[i]) * produced_in_state / std::pow(cterm, 1.5f);
+
+				}
+
+				if(values[i] < 0.0001f) {
+					values[i] = 0;
+					if(first_derivatives[i] < 0) {
+						first_derivatives[i] = 0;
+						second_derivatives[i] = 0;
+					}
+				}
+			}
+
+			perform_cg_step(values, first_derivatives, second_derivatives, uint32_t(aligned_state_max));
+
+			auto qnty_purchased = std::transform_reduce(integer_iterator(0), integer_iterator(aligned_state_max),
+				money_qnty_type(0), std::plus<money_qnty_type>(),
+				[&values, &ws, state_cap, tag, distance_row_offset, old_self_purchase](int32_t i) {
 
 				auto& other_state = ws.w.nation_s.states[nations::state_tag(nations::state_tag::value_base_t(i))];
 				auto other_state_cap = nations::get_state_capital(ws, other_state);
-				if(other_state_cap) {
-					return distance_multiplier(ws.w.province_s.province_distance_to[distance_row_offset + to_index(other_state_cap->id)]) *
-						ws.w.nation_s.state_production.get_row(nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag) + (ws.s.economy_m.aligned_32_goods_count * (to_index(ws.w.current_date) & 1))];
+
+				auto produced_in_state = state_old_production(ws, nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag)];
+				auto global_purchases_in_state = state_current_global_demand(ws, nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag)];
+
+				if(other_state_cap == nullptr) {
+					return money_qnty_type(0);
+				} else if(other_state_cap == state_cap) {
+					auto base_spending = std::max(global_purchases_in_state - values[i], money_qnty_type(0));
+					if(base_spending - old_self_purchase + values[i] != 0)
+						return produced_in_state * values[i] / (base_spending - old_self_purchase + values[i]);
+					else
+						return money_qnty_type(0);
 				} else {
-					return economy::goods_qnty_type(0);
+					auto distance_between = ws.w.province_s.province_distance_to[distance_row_offset + to_index(other_state_cap->id)];
+					auto ufactor = distance_between * 0.00001f;
+					auto iterm = global_purchases_in_state - old_self_purchase + values[i] + produced_in_state * ufactor;
+					return (global_purchases_in_state - old_self_purchase + values[i] + produced_in_state * ufactor - sqrt(-4.0f * values[i] * produced_in_state * ufactor + iterm * iterm))
+						/ (money_qnty_type(2) * ufactor);
 				}
 			});
 
-			effective_world_supply[to_index(si.id)] = supply_amount;
+			state_old_prices(ws, si.id)[to_index(tag)] = qnty_purchased > 0 ? demand_in_state / qnty_purchased : 999.9f;
 		});
 
-		// distribute money to each state
-
-		ws.w.nation_s.states.for_each([&ws, &effective_world_supply, &effective_world_demand, total_state_count, tag](nations::state_instance const& si) {
-			auto state_cap = nations::get_state_capital(ws, si);
-			if(!state_cap)
-				return;
-
-			auto local_production = ws.w.nation_s.state_production.get_row(si.id)[to_index(tag) + (ws.s.economy_m.aligned_32_goods_count * (to_index(ws.w.current_date) & 1))];
-
-			if(local_production != 0) {
-				economy::money_qnty_type total_other_demand = std::transform_reduce(integer_iterator(0), integer_iterator(int32_t(total_state_count)),
-					economy::money_qnty_type(0), std::plus<economy::money_qnty_type>(),
-					[&ws, tag, local_capital_id = to_index(state_cap->id), local_production, &effective_world_supply](int32_t i) {
-
-					auto& other_state = ws.w.nation_s.states[nations::state_tag(nations::state_tag::value_base_t(i))];
-					auto other_state_cap = nations::get_state_capital(ws, other_state);
-					if(other_state_cap) {
-						auto other_total_demand = ws.w.nation_s.state_demand.get_row(nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag) + (ws.s.economy_m.aligned_32_goods_count * (to_index(ws.w.current_date) & 1))];
-						auto other_distance_to_self = ws.w.province_s.province_distance_to[to_index(other_state_cap->id) * ws.s.province_m.province_container.size() + local_capital_id];
-						return other_total_demand * distance_multiplier(other_distance_to_self) * local_production / effective_world_supply[i];
-					} else {
-						return economy::money_qnty_type(0);
-					}
-				});
-				effective_world_demand[to_index(si.id)] = total_other_demand;
+		// update global purchasing from states
+		ws.w.nation_s.states.for_each([&ws, aligned_state_max, tag](nations::state_instance const& si) {
+			if(!nations::get_state_capital(ws, si)) {
+				state_old_global_demand(ws, si.id)[to_index(tag)] = 0;
 			} else {
-				effective_world_demand[to_index(si.id)] = goods_qnty_type(0);
+				state_old_global_demand(ws, si.id)[to_index(tag)] = std::transform_reduce(
+					integer_iterator(0), integer_iterator(aligned_state_max),
+					money_qnty_type(0), std::plus<money_qnty_type>(), [&ws, tag, sid = to_index(si.id)](int32_t i) {
+
+					auto purchases_for_state = ws.w.nation_s.state_purchases.get(nations::state_tag(nations::state_tag::value_base_t(i)), tag);
+					if(get_size(ws.w.economy_s.purchasing_arrays, purchases_for_state) > sid)
+						return get(ws.w.economy_s.purchasing_arrays, purchases_for_state, sid);
+					else
+						return money_qnty_type(0);
+				});
 			}
-
-			
-		});
-
-		// determine new local price
-
-		ws.w.nation_s.states.for_each([&ws, &effective_world_supply, &effective_world_demand, total_state_count, tag, base_good_price](nations::state_instance const& si) {
-			auto state_cap = nations::get_state_capital(ws, si);
-			if(!state_cap)
-				return;
-
-			auto distance_row_offset = to_index(state_cap->id) * ws.s.province_m.province_container.size();
-			auto local_demand = ws.w.nation_s.state_demand.get_row(si.id)[to_index(tag) + (ws.s.economy_m.aligned_32_goods_count * (to_index(ws.w.current_date) & 1))];
-			auto effective_w_supply = effective_world_supply[to_index(si.id)];
-			
-			economy::goods_qnty_type purchase_amount = std::transform_reduce(integer_iterator(0), integer_iterator(int32_t(total_state_count)),
-				economy::goods_qnty_type(0), std::plus<economy::goods_qnty_type>(),
-				[&ws, tag, effective_w_supply, local_demand, distance_row_offset, &effective_world_demand](int32_t i){
-
-				auto& other_state = ws.w.nation_s.states[nations::state_tag(nations::state_tag::value_base_t(i))];
-				auto other_state_cap = nations::get_state_capital(ws, other_state);
-				if(other_state_cap) {
-					auto produced_in_state = ws.w.nation_s.state_production.get_row(nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag) + (ws.s.economy_m.aligned_32_goods_count * (to_index(ws.w.current_date) & 1))];
-					if(produced_in_state != 0) {
-						return produced_in_state * (local_demand *
-							distance_multiplier(ws.w.province_s.province_distance_to[distance_row_offset + to_index(other_state_cap->id)]) *
-							produced_in_state /
-							effective_w_supply) / effective_world_demand[i];
-					}
-				} 
-				return economy::goods_qnty_type(0);
-			});
-			
-			auto old_price = ws.w.nation_s.state_prices.get_row(si.id)[to_index(tag) + (ws.s.economy_m.aligned_32_goods_count * (1ui32 - to_index(ws.w.current_date) & 1))];
-			ws.w.nation_s.state_prices.get_row(si.id)[to_index(tag) + (ws.s.economy_m.aligned_32_goods_count * (to_index(ws.w.current_date) & 1))] =
-				(purchase_amount != 0 ?
-					std::min(old_price * (money_qnty_type(1) - price_change_rate) + price_change_rate * local_demand / purchase_amount, money_qnty_type(999.9)) :
-					old_price * (money_qnty_type(1) - price_change_rate) + price_change_rate * money_qnty_type(999.8)) *
-				(money_qnty_type(1) - price_gravity_factor) + base_good_price * price_gravity_factor;
 		});
 	}
 
@@ -1282,8 +1331,8 @@ namespace economy {
 		ws.w.nation_s.states.parallel_for_each([&ws](nations::state_instance& si) {
 			update_demand_and_production(ws, si);
 		});
-		concurrency::parallel_for(1ui32, ws.s.economy_m.goods_count, [&ws](uint32_t i) {
-			economy_single_good_tick(ws, goods_tag(goods_tag::value_base_t(i)));
+		concurrency::parallel_for(1ui32, ws.s.economy_m.goods_count, [&ws, state_count = ws.w.nation_s.states.size_upper_bound()](uint32_t i) {
+			economy_single_good_tick(ws, goods_tag(goods_tag::value_base_t(i)), state_count);
 		});
 #ifdef DEBUG_ECONOMY
 		for(uint32_t i = 1; i < ws.s.economy_m.goods_count; ++i) {

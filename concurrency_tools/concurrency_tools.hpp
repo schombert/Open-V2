@@ -227,6 +227,18 @@ object_type* stable_vector<object_type, index_type, block_size, index_size>::get
 }
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
+inline uint32_t stable_vector<object_type, index_type, block_size, index_size>::minimum_continuous_size() const {
+	for(int32_t i = int32_t(indices_in_use) - 1; i >= 0; --i) {
+		auto block = index_array[i];
+		for(int32_t j = int32_t(block_size) - 1; j >= 0; --j) {
+			if((high_bit_mask<index_type> & to_index(block[j].id)) == 0)
+				return uint32_t(i) << ct_log2(block_size) + uint32_t(j) + 1ui32;
+		}
+	}
+	return 0;
+}
+
+template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
 object_type& stable_vector<object_type, index_type, block_size, index_size>::get_new() {
 	if(first_free != index_type(static_cast<value_base_of<index_type>>(to_index(index_type()) | high_bit_mask<index_type>))) {
 		const auto real_ff = index_type(static_cast<value_base_of<index_type>>(to_index(first_free) & ~high_bit_mask<index_type>));

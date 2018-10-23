@@ -44,6 +44,8 @@ void serialization::serializer<nations::state_instance>::serialize_object(std::b
 	serialize_array(output, production, ws.s.economy_m.aligned_32_goods_count * 2);
 	auto demand = ws.w.nation_s.state_demand.get_row(obj.id);
 	serialize_array(output, demand, ws.s.economy_m.aligned_32_goods_count * 2);
+	auto global_demand = ws.w.nation_s.state_global_demand.get_row(obj.id);
+	serialize_array(output, global_demand, ws.s.economy_m.aligned_32_goods_count * 2);
 
 	serialize_stable_array(output, ws.w.nation_s.nations_arrays, obj.flashpoint_tension_focuses);
 }
@@ -53,6 +55,8 @@ void serialization::serializer<nations::state_instance>::deserialize_object(std:
 	ws.w.nation_s.state_prices.ensure_capacity(to_index(obj.id) + 1);
 	ws.w.nation_s.state_production.ensure_capacity(to_index(obj.id) + 1);
 	ws.w.nation_s.state_demand.ensure_capacity(to_index(obj.id) + 1);
+	ws.w.nation_s.state_global_demand.ensure_capacity(to_index(obj.id) + 1);
+	ws.w.nation_s.state_purchases.ensure_capacity(to_index(obj.id) + 1);
 
 	nations::country_tag owner;
 	deserialize(input, owner);
@@ -84,6 +88,8 @@ void serialization::serializer<nations::state_instance>::deserialize_object(std:
 	deserialize_array(input, production, ws.s.economy_m.aligned_32_goods_count * 2);
 	auto demand = ws.w.nation_s.state_demand.get_row(obj.id);
 	deserialize_array(input, demand, ws.s.economy_m.aligned_32_goods_count * 2);
+	auto global_demand = ws.w.nation_s.state_global_demand.get_row(obj.id);
+	deserialize_array(input, global_demand, ws.s.economy_m.aligned_32_goods_count * 2);
 
 	deserialize_stable_array(input, ws.w.nation_s.nations_arrays, obj.flashpoint_tension_focuses);
 }
@@ -106,6 +112,7 @@ size_t serialization::serializer<nations::state_instance>::size(nations::state_i
 		sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count * 2 + // state prices
 		sizeof(economy::goods_qnty_type) * ws.s.economy_m.aligned_32_goods_count * 2 + // state production
 		sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count * 2 + // state demand
+		sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count * 2 + // state global demand
 		serialize_stable_array_size(ws.w.nation_s.nations_arrays, obj.flashpoint_tension_focuses)
 		;
 }

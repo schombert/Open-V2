@@ -387,6 +387,8 @@ namespace nations {
 		ws.w.nation_s.state_prices.ensure_capacity(to_index(new_state.id) + 1);
 		ws.w.nation_s.state_production.ensure_capacity(to_index(new_state.id) + 1);
 		ws.w.nation_s.state_demand.ensure_capacity(to_index(new_state.id) + 1);
+		ws.w.nation_s.state_global_demand.ensure_capacity(to_index(new_state.id) + 1);
+		ws.w.nation_s.state_purchases.ensure_capacity(to_index(new_state.id) + 1);
 
 		auto prices = ws.w.nation_s.state_prices.get_row(new_state.id);
 		for(economy::goods_tag::value_base_t i = 0; i < ws.s.economy_m.goods_count; ++i) {
@@ -436,6 +438,7 @@ namespace nations {
 		ws.w.nation_s.state_production.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count * 2));
 		ws.w.nation_s.state_demand.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count * 2));
 		ws.w.nation_s.national_variables.reset(ws.s.variables_m.count_national_variables);
+		ws.w.nation_s.state_purchases.reset(uint32_t(ws.s.economy_m.goods_count));
 
 		ws.w.nation_s.unit_stats.reset(static_cast<uint32_t>(ws.s.military_m.unit_types.size()));
 		ws.w.nation_s.rebel_org_gain.reset(static_cast<uint32_t>(ws.s.population_m.rebel_types.size()));

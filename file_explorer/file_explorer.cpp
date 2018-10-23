@@ -599,7 +599,28 @@ int main(int , char **) {
 
 	std::vector<float> production_qnty(dimension);
 	std::vector<float> base_spending(dimension);
-	std::vector<float> values(dimension);
+
+	auto aligned_dimension_size = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(dimension) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
+	auto padded_aligned_size = aligned_dimension_size + 32ui32 / sizeof(economy::money_qnty_type);
+
+	std::vector<float, concurrent_allocator<float>> values_v(padded_aligned_size);
+	std::vector<float, concurrent_allocator<float>> first_derivatives_v(padded_aligned_size);
+	std::vector<float, concurrent_allocator<float>> second_derivatives_v(padded_aligned_size);
+
+	size_t space = padded_aligned_size * sizeof(economy::money_qnty_type);
+	void* ptr = values_v.data();
+	Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> values(
+		(economy::money_qnty_type*)std::align(32, aligned_dimension_size * sizeof(economy::money_qnty_type), ptr, space), aligned_dimension_size);
+	
+	space = padded_aligned_size * sizeof(economy::money_qnty_type);
+	ptr = first_derivatives_v.data();
+	Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> first_derivatives(
+		(economy::money_qnty_type*)std::align(32, aligned_dimension_size * sizeof(economy::money_qnty_type), ptr, space), aligned_dimension_size);
+
+	space = padded_aligned_size * sizeof(economy::money_qnty_type);
+	ptr = second_derivatives_v.data();
+	Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> second_derivatives(
+		(economy::money_qnty_type*)std::align(32, aligned_dimension_size * sizeof(economy::money_qnty_type), ptr, space), aligned_dimension_size);
 
 	values[0] = 200.0f;
 
@@ -616,25 +637,29 @@ int main(int , char **) {
 
 	std::cout << "base value: " << production_qnty[0] * values[0] / (base_spending[0] + values[0]) << std::endl << std::flush;
 
-	Eigen::Map < Eigen::Matrix<float, 1, -1>> vm(values.data(), dimension);
+	for(uint32_t i = 0; i < 400; ++i) {
 
-	for(uint32_t i = 0; i < 50; ++i) {
-		economy::perform_cg_step(vm, uint32_t(dimension), [&production_qnty, &base_spending, &values](uint32_t i) {
-			if(i != 0) {
-				auto ufactor = i * 0.01f;
-				auto iterm = base_spending[i] + values[i] + production_qnty[i] * ufactor;
-				auto cterm = -4.0f * values[i] * production_qnty[i] * ufactor + iterm * iterm;
-				return std::pair<float, float>(
-					1.0f / (2.0f * ufactor) + (-base_spending[i] - values[i] + production_qnty[i] * ufactor) / (2.0f * ufactor * sqrt(cterm)),
-					-2.0f * base_spending[i] * production_qnty[i] / std::pow(cterm, 1.5f)
-					);
-			} else {
-				return std::pair<float, float>(
-					base_spending[0] * production_qnty[0] / ((base_spending[0] + values[0])*(base_spending[0] + values[0])),
-					-2.0f * base_spending[0] * production_qnty[0] / ((base_spending[0] + values[0])*(base_spending[0] + values[0])* (base_spending[0] + values[0]))
-					);
+		first_derivatives[0] = base_spending[0] * production_qnty[0] / ((base_spending[0] + values[0])*(base_spending[0] + values[0]));
+		second_derivatives[0] = -2.0f * base_spending[0] * production_qnty[0] / ((base_spending[0] + values[0])*(base_spending[0] + values[0])* (base_spending[0] + values[0]));
+
+		for(uint32_t i = 1; i < dimension; ++i) {
+			auto ufactor = i * 0.01f;
+			auto iterm = base_spending[i] + values[i] + production_qnty[i] * ufactor;
+			auto cterm = -4.0f * values[i] * production_qnty[i] * ufactor + iterm * iterm;
+
+			first_derivatives[i] = 1.0f / (2.0f * ufactor) + (-base_spending[i] - values[i] + production_qnty[i] * ufactor) / (2.0f * ufactor * sqrt(cterm));
+			second_derivatives[i] = -2.0f * base_spending[i] * production_qnty[i] / std::pow(cterm, 1.5f);
+
+			if(values[i] < 0.0001f) {
+				values[i] = 0;
+				if(first_derivatives[i] < 0) {
+					first_derivatives[i] = 0;
+					second_derivatives[i] = 0;
+				}
 			}
-		});
+		}
+
+		economy::perform_cg_step(values, first_derivatives, second_derivatives, uint32_t(aligned_dimension_size));
 		auto new_value = std::transform_reduce(integer_iterator(1), integer_iterator(dimension),
 			production_qnty[0] * values[0] / (base_spending[0] + values[0]), std::plus<float>(),
 			[&production_qnty, &base_spending, &values](int32_t i) {
@@ -646,7 +671,12 @@ int main(int , char **) {
 		bool all_valid = std::transform_reduce(integer_iterator(0), integer_iterator(dimension), true,
 			[](bool a, bool b) { return a && b; }, [&values](int32_t i) { return values[i] >= 0; });
 	
-		std::cout << "value: " << new_value << " total: " << std::reduce(values.begin(), values.end()) << " all valid: " << all_valid << std::endl << std::flush;
+		std::cout << "value: " << new_value << " total: " << values.sum() << " all valid: " << all_valid << std::endl << std::flush;
+		for(int32_t j = 0; j < dimension; ++j) {
+			if(values[j] < 0) {
+				std::cout << "invalid: " << j << " value: " << values[j] << std::endl << std::flush;
+			}
+		}
 	}
 
 	file_system fs;

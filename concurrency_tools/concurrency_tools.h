@@ -341,6 +341,7 @@ public:
 	object_type& get_new(); // single thread only
 	void remove(index_type i); // single thread only
 	object_type* get_location(index_type i); // single thread only, forces storage to expand
+	uint32_t minimum_continuous_size() const;
 
 	template<typename T>
 	void for_each(T&& f) const;

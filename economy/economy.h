@@ -142,6 +142,8 @@ namespace economy {
 
 	class economic_state {
 	public:
+		stable_variable_vector_storage_mk_2<money_qnty_type, 64, 15'000'000, true> purchasing_arrays;
+
 #ifdef DEBUG_ECONOMY
 		tagged_vector<economy::goods_qnty_type, goods_tag, aligned_allocator_32<economy::goods_qnty_type>> world_rgo_production;
 		tagged_vector<economy::goods_qnty_type, goods_tag, aligned_allocator_32<economy::goods_qnty_type>> world_other_production;
