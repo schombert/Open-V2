@@ -67,10 +67,10 @@ namespace economy {
 	money_qnty_type get_factory_project_cost(world_state const& ws, factory_type_tag ftype, factory_project_type ptype, money_qnty_type const* prices);
 	money_qnty_type get_railroad_cost(world_state const& ws, money_qnty_type const* prices);
 	float project_completion(world_state const& ws, nations::state_instance const& si, money_qnty_type const* prices);
-	money_qnty_type* state_current_prices(world_state const& ws, nations::state_instance const& si);
-	money_qnty_type* state_old_prices(world_state const& ws, nations::state_instance const& si);
-	goods_qnty_type* state_current_production(world_state const& ws, nations::state_instance const& si);
-	money_qnty_type* state_current_demand(world_state const& ws, nations::state_instance const& si);
+	money_qnty_type* state_current_prices(world_state const& ws, nations::state_tag s);
+	money_qnty_type* state_old_prices(world_state const& ws, nations::state_tag s);
+	goods_qnty_type* state_current_production(world_state const& ws, nations::state_tag s);
+	money_qnty_type* state_current_demand(world_state const& ws, nations::state_tag s);
 
 	std::pair<money_qnty_type, money_qnty_type> global_price_range(world_state const& ws, economy::goods_tag t);
 	money_qnty_type get_life_needs_cost(world_state const& ws, nations::state_instance const& si, population::pop_type_tag ptype);
@@ -79,4 +79,5 @@ namespace economy {
 	void init_artisan_producation(world_state& ws);
 	void set_initial_money(world_state& ws);
 	void economy_update_tick(world_state& ws);
+	void economy_demand_adjustment_tick(world_state& ws);
 }

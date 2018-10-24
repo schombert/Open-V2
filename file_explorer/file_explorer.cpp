@@ -488,15 +488,17 @@ struct gui_window_handler {
 
 				for(uint32_t i = 0; i < s.w.province_s.province_state_container.size(); ++i) {
 					if(auto si = s.w.province_s.province_state_container[provinces::province_tag(provinces::province_tag::value_base_t(i))].state_instance; si && si->owner) {
-						auto local_prices = economy::state_current_prices(s, *si);
+						if(auto sid = si->id; s.w.nation_s.states.is_valid_index(sid)) {
+							auto local_prices = economy::state_current_prices(s, sid);
 
-						auto fraction = (local_prices[to_index(g)] - price_range.first + 0.01) / (price_range.second - price_range.first + 0.01);
-						pcolors[i * 3 + 0] = uint8_t((1.0f - fraction) * 255.0f);
-						pcolors[i * 3 + 1] = uint8_t(fraction * 255.0f);
-						pcolors[i * 3 + 2] = uint8_t(100);
-						scolors[i * 3 + 0] = uint8_t((1.0f - fraction) * 255.0f);
-						scolors[i * 3 + 1] = uint8_t(fraction * 255.0f);
-						scolors[i * 3 + 2] = uint8_t(100);
+							auto fraction = (local_prices[to_index(g)] - price_range.first + 0.01) / (price_range.second - price_range.first + 0.01);
+							pcolors[i * 3 + 0] = uint8_t((1.0f - fraction) * 255.0f);
+							pcolors[i * 3 + 1] = uint8_t(fraction * 255.0f);
+							pcolors[i * 3 + 2] = uint8_t(100);
+							scolors[i * 3 + 0] = uint8_t((1.0f - fraction) * 255.0f);
+							scolors[i * 3 + 1] = uint8_t(fraction * 255.0f);
+							scolors[i * 3 + 2] = uint8_t(100);
+						}
 					}
 				}
 
@@ -584,17 +586,9 @@ auto fake_gobj_lookup() {
 }
 
 int main(int , char **) {
-	/*{
-		window<empty_window_handler> test_window(400, 400);
 
 
-		std::cout << "test window created" << std::endl;
-		getchar();
-
-		test_window.close_window();
-	}*/
-
-
+	/*
 	const int32_t dimension = 100;
 
 	std::vector<float> production_qnty(dimension);
@@ -659,7 +653,7 @@ int main(int , char **) {
 			}
 		}
 
-		economy::perform_cg_step(values, first_derivatives, second_derivatives, uint32_t(aligned_dimension_size));
+		economy::perform_cg_step(values, first_derivatives, second_derivatives, uint32_t(aligned_dimension_size), 1.0f);
 		auto new_value = std::transform_reduce(integer_iterator(1), integer_iterator(dimension),
 			production_qnty[0] * values[0] / (base_spending[0] + values[0]), std::plus<float>(),
 			[&production_qnty, &base_spending, &values](int32_t i) {
@@ -678,6 +672,7 @@ int main(int , char **) {
 			}
 		}
 	}
+	*/
 
 	file_system fs;
 	fs.set_root(u"D:\\programs\\V2");
@@ -857,6 +852,9 @@ int main(int , char **) {
 		(srange.first + 3)->state->project.type = economy::pop_project_type::railroad;
 		(srange.first + 3)->state->project.location = provinces::province_tag(6);
 	}
+
+	economy::economy_demand_adjustment_tick(ws);
+	economy::economy_demand_adjustment_tick(ws);
 
 	init_tooltip_window(ws.s.gui_m, ws.w.gui_m);
 	ws.w.gui_m.on_resize(ui::resize{ 850ui32, 650ui32 });

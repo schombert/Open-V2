@@ -7,11 +7,12 @@ namespace economy {
 	constexpr money_qnty_type stationary_margin = money_qnty_type(0.0001);
 
 	
-	inline void perform_cg_step(
+	inline money_qnty_type perform_cg_step(
 		Eigen::Map<Eigen::Matrix<money_qnty_type, 1, -1>, Eigen::Aligned32>& __restrict values,
 		Eigen::Map<Eigen::Matrix<money_qnty_type, 1, -1>, Eigen::Aligned32>& __restrict fd_vector,
 		Eigen::Map<Eigen::Matrix<money_qnty_type, 1, -1>, Eigen::Aligned32>& __restrict sd_vector,
-		uint32_t values_count
+		uint32_t values_count,
+		money_qnty_type scale_factor
 	) {
 
 		const auto unadjusted_step_length = fd_vector.sum();
@@ -48,7 +49,10 @@ namespace economy {
 		auto step_first_derivative = unadjusted_step_first_derivative - original_first_derivative * original_first_derivative - step_length * original_first_derivative;
 		auto step_second_derivative = fd_vector.dot(sd_vector) - step_length * original_second_derivative;
 
-		assert(step_first_derivative > 0);
+		if(step_first_derivative <= 0)
+			return 0;
+		
+		//assert(step_first_derivative > 0);
 
 		fd_vector[selected_index] = -step_length;
 		
@@ -57,16 +61,20 @@ namespace economy {
 
 		if(step_second_derivative < 0) {
 			auto step_multiplier = std::clamp(-step_first_derivative / step_second_derivative, money_qnty_type(0), max_step);
-			values += step_multiplier * fd_vector;
+			values += step_multiplier * scale_factor * fd_vector;
+
+			return step_multiplier * step_first_derivative + (step_multiplier) * (step_multiplier) * step_second_derivative / 2.0f;
 		} else {
 			//auto step_multiplier = std::clamp(step_first_derivative / step_second_derivative, min_step, max_step);
 			//values += step_multiplier * fd_vector;
 
 			//auto scale = abs(step_first_derivative / step_second_derivative);
 			//if(step_first_derivative >= 0)
-				values += max_step * fd_vector;
+				values += max_step * scale_factor * fd_vector;
 			//else
 			//	values += min_step * fd_vector;
+
+			return max_step * step_first_derivative + (max_step ) * (max_step ) * step_second_derivative / 2.0f;
 		}
 	}
 }

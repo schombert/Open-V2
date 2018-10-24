@@ -128,7 +128,7 @@ namespace economy {
 			return;
 
 		
-		auto prices = economy::state_current_prices(ws, ws.w.nation_s.states[s]);
+		auto prices = economy::state_current_prices(ws, s);
 
 		char16_t local_buffer[16];
 		put_value_in_buffer(local_buffer, display_type::fp_two_places, prices[to_index(w.tag)]);

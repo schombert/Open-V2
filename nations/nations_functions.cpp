@@ -437,6 +437,7 @@ namespace nations {
 		ws.w.nation_s.state_prices.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count * 2));
 		ws.w.nation_s.state_production.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count * 2));
 		ws.w.nation_s.state_demand.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count * 2));
+		ws.w.nation_s.state_global_demand.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count * 2));
 		ws.w.nation_s.national_variables.reset(ws.s.variables_m.count_national_variables);
 		ws.w.nation_s.state_purchases.reset(uint32_t(ws.s.economy_m.goods_count));
 

@@ -374,16 +374,29 @@ public:
 
 using stable_mk_2_tag = uint32_t;
 
+union concurrent_key_pair_helper {
+	struct {
+		uint32_t index;
+		uint32_t counter;
+	} parts;
+	uint64_t value;
+
+	constexpr explicit concurrent_key_pair_helper(uint32_t i, uint32_t c) : parts{ i, c } {}
+	constexpr explicit concurrent_key_pair_helper(uint64_t v) : value{ v } {}
+};
+
 template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned = false>
 class stable_variable_vector_storage_mk_2 {
 public:
 	uint64_t* backing_storage = nullptr;
-	uint32_t first_free = 0ui32;
+	std::atomic<uint32_t> first_free = 0ui32;
 
-	stable_mk_2_tag free_lists[17] = { null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, 
-		null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>,
-		null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, 
-		null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag>, null_value_of<stable_mk_2_tag> };
+	std::atomic<uint64_t> free_lists[17] = {
+		concurrent_key_pair_helper(null_value_of<stable_mk_2_tag>, 0).value, concurrent_key_pair_helper(null_value_of<stable_mk_2_tag>, 0).value, concurrent_key_pair_helper(null_value_of<stable_mk_2_tag>, 0).value, concurrent_key_pair_helper(null_value_of<stable_mk_2_tag>, 0).value,
+		concurrent_key_pair_helper(null_value_of<stable_mk_2_tag>, 0).value, concurrent_key_pair_helper(null_value_of<stable_mk_2_tag>, 0).value, concurrent_key_pair_helper(null_value_of<stable_mk_2_tag>, 0).value, concurrent_key_pair_helper(null_value_of<stable_mk_2_tag>, 0).value,
+		concurrent_key_pair_helper(null_value_of<stable_mk_2_tag>, 0).value, concurrent_key_pair_helper(null_value_of<stable_mk_2_tag>, 0).value, concurrent_key_pair_helper(null_value_of<stable_mk_2_tag>, 0).value, concurrent_key_pair_helper(null_value_of<stable_mk_2_tag>, 0).value,
+		concurrent_key_pair_helper(null_value_of<stable_mk_2_tag>, 0).value, concurrent_key_pair_helper(null_value_of<stable_mk_2_tag>, 0).value, concurrent_key_pair_helper(null_value_of<stable_mk_2_tag>, 0).value, concurrent_key_pair_helper(null_value_of<stable_mk_2_tag>, 0).value,
+		concurrent_key_pair_helper(null_value_of<stable_mk_2_tag>, 0).value };
 
 	stable_variable_vector_storage_mk_2();
 	~stable_variable_vector_storage_mk_2();

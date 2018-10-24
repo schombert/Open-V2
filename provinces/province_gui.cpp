@@ -562,20 +562,22 @@ namespace provinces {
 			char16_t formatted_value[64];
 			auto rgo_type = ws.w.province_s.province_state_container[selected_prov].rgo_production;
 			if(auto si = ws.w.province_s.province_state_container[selected_prov].state_instance; bool(si) && is_valid_index(rgo_type)) {
-				economy::money_qnty_type value = economy::money_qnty_type(ws.w.province_s.province_state_container[selected_prov].last_produced) * economy::state_current_prices(ws, *si)[to_index(rgo_type)];
-				auto end_pos = put_value_in_buffer(formatted_value, display_type::fp_two_places, value);
-				*end_pos = u'\u00A3';
-				*(end_pos + 1) = char16_t(0);
-				ui::text_chunk_to_instances(
-					ws.s.gui_m,
-					ws.w.gui_m,
-					vector_backed_string<char16_t>(formatted_value),
-					box,
-					ui::xy_pair{ 0,0 },
-					fmt,
-					lm);
+				if(auto sid = si->id; ws.w.nation_s.states.is_valid_index(sid)) {
+					economy::money_qnty_type value = economy::money_qnty_type(ws.w.province_s.province_state_container[selected_prov].last_produced) * economy::state_current_prices(ws, sid)[to_index(rgo_type)];
+					auto end_pos = put_value_in_buffer(formatted_value, display_type::fp_two_places, value);
+					*end_pos = u'\u00A3';
+					*(end_pos + 1) = char16_t(0);
+					ui::text_chunk_to_instances(
+						ws.s.gui_m,
+						ws.w.gui_m,
+						vector_backed_string<char16_t>(formatted_value),
+						box,
+						ui::xy_pair{ 0,0 },
+						fmt,
+						lm);
 
-				lm.finish_current_line();
+					lm.finish_current_line();
+				}
 			}
 		}
 	}

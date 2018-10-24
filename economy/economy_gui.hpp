@@ -2055,7 +2055,7 @@ namespace economy {
 					break;
 				case project_sort::completion:
 					std::sort(data.begin(), data.end(), [&ws](nations::state_tag a, nations::state_tag b) {
-						return project_completion(ws, ws.w.nation_s.states[a], state_current_prices(ws, ws.w.nation_s.states[a])) > project_completion(ws, ws.w.nation_s.states[b], state_current_prices(ws, ws.w.nation_s.states[b]));
+						return project_completion(ws, ws.w.nation_s.states[a], state_current_prices(ws, a)) > project_completion(ws, ws.w.nation_s.states[b], state_current_prices(ws, b));
 					});
 					//project_completion
 					break;
@@ -2387,7 +2387,7 @@ namespace economy {
 			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
 
 			if(auto state_cap = nations::get_state_capital(ws, ws.w.nation_s.states[win.location]); state_cap) {
-				auto profit = economy::get_factory_profit(ws, *state_cap, f, state_current_prices(ws, ws.w.nation_s.states[win.location]));
+				auto profit = economy::get_factory_profit(ws, *state_cap, f, state_current_prices(ws, win.location));
 
 				if(profit < money_qnty_type(0)) {
 					self.set_frame(ws.w.gui_m, 1ui32);
@@ -2405,7 +2405,7 @@ namespace economy {
 			if(auto state_cap = nations::get_state_capital(ws, ws.w.nation_s.states[win.location]); state_cap) {
 				ui::text_format blk{ui::text_color::black, fmt.font_handle, fmt.font_size};
 
-				auto profit = economy::get_factory_profit(ws, *state_cap, f, state_current_prices(ws, ws.w.nation_s.states[win.location]));
+				auto profit = economy::get_factory_profit(ws, *state_cap, f, state_current_prices(ws, win.location));
 
 				char16_t local_buffer[16];
 				put_value_in_buffer(local_buffer, display_type::fp_two_places, profit);
@@ -2506,11 +2506,11 @@ namespace economy {
 		if(is_valid_index(w.location)) {
 			nations::state_instance& si = ws.w.nation_s.states[w.location];
 
-			economy::money_qnty_type cost = [&ws, &si]() {
+			economy::money_qnty_type cost = [&ws, &si, sid = w.location]() {
 				if(auto ft = si.project.factory_type; is_valid_index(ft) && si.project.type == economy::pop_project_type::factory) {
-					return economy::get_factory_project_cost(ws, ft, economy::get_factory_project_type(si, ft), state_current_prices(ws, si));
+					return economy::get_factory_project_cost(ws, ft, economy::get_factory_project_type(si, ft), state_current_prices(ws, sid));
 				} else if(si.project.type == economy::pop_project_type::railroad) {
-					return economy::get_railroad_cost(ws, state_current_prices(ws, si));
+					return economy::get_railroad_cost(ws, state_current_prices(ws, sid));
 				}
 				return economy::money_qnty_type(0);
 			}();

@@ -227,12 +227,12 @@ object_type* stable_vector<object_type, index_type, block_size, index_size>::get
 }
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
-inline uint32_t stable_vector<object_type, index_type, block_size, index_size>::minimum_continuous_size() const {
+uint32_t stable_vector<object_type, index_type, block_size, index_size>::minimum_continuous_size() const {
 	for(int32_t i = int32_t(indices_in_use) - 1; i >= 0; --i) {
 		auto block = index_array[i];
 		for(int32_t j = int32_t(block_size) - 1; j >= 0; --j) {
-			if((high_bit_mask<index_type> & to_index(block[j].id)) == 0)
-				return uint32_t(i) << ct_log2(block_size) + uint32_t(j) + 1ui32;
+			if((to_index(block[j].id) & high_bit_mask<index_type>) == 0)
+				return to_index(block[j].id) + 1ui32;
 		}
 	}
 	return 0;
@@ -711,15 +711,18 @@ namespace detail {
 
 		if constexpr(!is_aligned) {
 			const uint32_t qword_size = 1ui32 + (real_capacity * sizeof(object_type) + 7ui32) / 8ui32;
-			new_header = (mk_2_header*)(storage.backing_storage + storage.first_free);
-			new_mem = storage.first_free;
-			storage.first_free += qword_size;
+			auto old_position = storage.first_free.fetch_add(qword_size, std::memory_order_acq_rel);
+
+			new_mem = old_position;
+			new_header = (mk_2_header*)(storage.backing_storage + old_position);
 		} else {
-			auto next_aligned_free = (storage.first_free + 4ui32) & ~3ui32;
-			const uint32_t qword_size = (real_capacity * sizeof(object_type) + 7ui32) / 8ui32;
+			const uint32_t qword_size = (real_capacity * sizeof(object_type) + 7ui32) / 8ui32 + 4;
+			auto old_position = storage.first_free.fetch_add(qword_size, std::memory_order_acq_rel);
+
+			auto next_aligned_free = (old_position + 4ui32) & ~3ui32;
+
 			new_header = (mk_2_header*)(storage.backing_storage + (next_aligned_free - 1ui32));
 			new_mem = next_aligned_free - 1ui32;
-			storage.first_free = next_aligned_free + qword_size;
 		}
 
 		new_header->capacity = uint16_t(real_capacity);
@@ -760,25 +763,35 @@ template<typename object_type, uint32_t minimum_size, size_t memory_size, bool i
 void stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>::reset() {
 	first_free = 0ui32;
 	for(uint32_t i = 0; i < std::extent_v<decltype(free_lists)>; ++i)
-		free_lists[i] = null_value_of<stable_mk_2_tag>;
+		free_lists[i].store(concurrent_key_pair_helper(null_value_of<stable_mk_2_tag>, 0).value, std::memory_order_release);
+}
+
+inline stable_mk_2_tag try_pop_free_list(std::atomic<uint64_t>& free_list_head, uint64_t* backing_storage) {
+	uint64_t free_list_value = free_list_head.load(std::memory_order_acquire);
+	detail::mk_2_header* ptr = nullptr;
+
+	do {
+		auto index = concurrent_key_pair_helper(free_list_value).parts.index;
+		if(index == null_value_of<stable_mk_2_tag>)
+			return null_value_of<stable_mk_2_tag>;
+		ptr = (detail::mk_2_header*)(backing_storage + index);
+		
+	} while(!free_list_head.compare_exchange_strong(
+		free_list_value,
+		concurrent_key_pair_helper(ptr->next_free, concurrent_key_pair_helper(free_list_value).parts.counter + 1).value, std::memory_order_acq_rel));
+
+	ptr->size = 0ui16;
+	return concurrent_key_pair_helper(free_list_value).parts.index;
 }
 
 template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
 stable_mk_2_tag stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>::make_new(uint32_t capacity) {
 	const uint32_t free_list_pos = rt_log2_round_up(capacity > minimum_size ? capacity : minimum_size);
 
-	if(free_lists[free_list_pos] != null_value_of<stable_mk_2_tag>) {
-		stable_mk_2_tag item = free_lists[free_list_pos];
-		detail::mk_2_header* new_header = (detail::mk_2_header*)(backing_storage + item);
-		new_header->size = 0ui16;
-		free_lists[free_list_pos] = new_header->next_free;
-		return item;
-	} else if(free_lists[free_list_pos + 1] != null_value_of<stable_mk_2_tag>) {
-		stable_mk_2_tag item = free_lists[free_list_pos + 1];
-		detail::mk_2_header* new_header = (detail::mk_2_header*)(backing_storage + item);
-		new_header->size = 0ui16;
-		free_lists[free_list_pos + 1] = new_header->next_free;
-		return item;
+	if(auto res = try_pop_free_list(free_lists[free_list_pos], backing_storage); res != null_value_of<stable_mk_2_tag>) {
+		return res;
+	} else if(auto resb = try_pop_free_list(free_lists[free_list_pos + 1], backing_storage); resb != null_value_of<stable_mk_2_tag>) {
+		return resb;
 	} else {
 		return detail::return_new_memory(*this, capacity);
 	}
@@ -793,9 +806,14 @@ void stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size,
 
 	const uint32_t free_list_pos = rt_log2(header->capacity);
 
-	header->next_free = free_lists[free_list_pos];
-	header->size = 0ui16;
-	free_lists[free_list_pos] = i;
+	uint64_t free_list_value = free_lists[free_list_pos].load(std::memory_order_acquire);
+	do {
+		header->next_free = concurrent_key_pair_helper(free_list_value).parts.index;
+		header->size = 0ui16;
+	} while(!free_lists[free_list_pos].compare_exchange_strong(
+		free_list_value,
+		concurrent_key_pair_helper(i, concurrent_key_pair_helper(free_list_value).parts.counter + 1).value, std::memory_order_acq_rel));
+
 
 	i = null_value_of<stable_mk_2_tag>;
 }
@@ -1121,16 +1139,7 @@ void aligned_allocator_32<T>::deallocate(T* p, size_t) {
 	_aligned_free(p);
 }
 
-union concurrent_key_pair_helper {
-	struct {
-		uint32_t index;
-		uint32_t counter;
-	} parts;
-	uint64_t value;
 
-	constexpr concurrent_key_pair_helper(uint32_t i, uint32_t c) : parts{ i, c } {}
-	constexpr concurrent_key_pair_helper(uint64_t v) : value{ v } {}
-};
 
 template<typename T, uint32_t block, uint32_t index_sz>
 fixed_sz_list<T, block, index_sz>::fixed_sz_list() {
