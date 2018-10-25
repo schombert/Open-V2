@@ -41,7 +41,8 @@ namespace current_state {
 	enum map_mode {
 		political,
 		prices,
-		distance
+		distance,
+		purchasing
 	};
 
 	struct map_state {

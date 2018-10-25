@@ -712,8 +712,8 @@ namespace population {
 				text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, p.first.start, p.first.end));
 			if(is_valid_index(gtag)) {
 				env.s.population_m.everyday_needs.get(env.pt.id, gtag) += p.second;
-				env.s.population_m.life_needs.get(env.pt.id, gtag) += needs_mix_factor * p.second;
-				env.s.population_m.luxury_needs.get(env.pt.id, gtag) +=  needs_mix_factor * p.second;
+				//env.s.population_m.life_needs.get(env.pt.id, gtag) += needs_mix_factor * p.second;
+				//env.s.population_m.luxury_needs.get(env.pt.id, gtag) +=  needs_mix_factor * p.second;
 			}
 		}
 	};
@@ -727,8 +727,8 @@ namespace population {
 				text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, p.first.start, p.first.end));
 			if(is_valid_index(gtag)) {
 				env.s.population_m.life_needs.get(env.pt.id, gtag) += p.second;
-				env.s.population_m.everyday_needs.get(env.pt.id, gtag) += needs_mix_factor * p.second;
-				env.s.population_m.luxury_needs.get(env.pt.id, gtag) += needs_mix_factor * needs_mix_factor * p.second;
+				//env.s.population_m.everyday_needs.get(env.pt.id, gtag) += needs_mix_factor * p.second;
+				//env.s.population_m.luxury_needs.get(env.pt.id, gtag) += needs_mix_factor * needs_mix_factor * p.second;
 			}
 		}
 	};
@@ -742,8 +742,8 @@ namespace population {
 				text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, p.first.start, p.first.end));
 			if(is_valid_index(gtag)) {
 				env.s.population_m.luxury_needs.get(env.pt.id, gtag) += p.second;
-				env.s.population_m.everyday_needs.get(env.pt.id, gtag) += needs_mix_factor * p.second;
-				env.s.population_m.life_needs.get(env.pt.id, gtag) += needs_mix_factor * needs_mix_factor * p.second;
+				//env.s.population_m.everyday_needs.get(env.pt.id, gtag) += needs_mix_factor * p.second;
+				//env.s.population_m.life_needs.get(env.pt.id, gtag) += needs_mix_factor * needs_mix_factor * p.second;
 			}
 		}
 	};
