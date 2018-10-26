@@ -236,6 +236,7 @@ namespace nations {
 		float current_tension = 0.0f;
 
 		text_data::text_tag name;
+		provinces::province_tag state_capital;
 		cultures::culture_tag dominant_culture;
 
 		cultures::national_tag crisis_tag;

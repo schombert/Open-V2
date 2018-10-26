@@ -374,8 +374,11 @@ namespace nations {
 		}
 	}
 
-	void remove_province_from_state(world_state&, provinces::province_state& p) {
+	void remove_province_from_state(world_state& ws, provinces::province_state& p) {
+		auto old_state = p.state_instance;
 		p.state_instance = nullptr;
+		if(old_state)
+			old_state->state_capital = nations::find_state_capital(ws, *old_state);
 	}
 
 	state_instance& make_state(provinces::state_tag region, world_state& ws) {
@@ -1181,28 +1184,29 @@ namespace nations {
 		}
 	}
 
-	provinces::province_state const* get_state_capital(world_state const& ws, nations::state_instance const& s) {
+	provinces::province_tag find_state_capital(world_state const& ws, nations::state_instance const& s) {
 		if(auto rid = s.region_id; is_valid_index(rid)) {
 			auto prange = ws.s.province_m.states_to_province_index.get_row(rid);
 			for(auto p : prange) {
 				auto& ps = ws.w.province_s.province_state_container[p];
 				if(ps.state_instance == &s)
-					return &ps;
+					return ps.id;
 			}
 		}
-		return nullptr;
+		return provinces::province_tag();
+	}
+	provinces::province_state const* get_state_capital(world_state const& ws, nations::state_instance const& s) {
+		if(auto cap = s.state_capital; is_valid_index(cap))
+			return &ws.w.province_s.province_state_container[cap];
+		else
+			return nullptr;
 	}
 
 	provinces::province_state* get_state_capital(world_state& ws, nations::state_instance& s) {
-		if(auto rid = s.region_id; is_valid_index(rid)) {
-			auto prange = ws.s.province_m.states_to_province_index.get_row(rid);
-			for(auto p : prange) {
-				auto& ps = ws.w.province_s.province_state_container[p];
-				if(ps.state_instance == &s)
-					return &ps;
-			}
-		}
-		return nullptr;
+		if(auto cap = s.state_capital; is_valid_index(cap))
+			return &ws.w.province_s.province_state_container[cap];
+		else
+			return nullptr;
 	}
 
 	bool are_states_physically_neighbors(world_state const& ws, nations::state_instance const& a, nations::state_instance const& b) {

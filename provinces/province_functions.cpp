@@ -273,9 +273,11 @@ namespace provinces {
 		nations::region_state_pair* found = find(ws.w.nation_s.state_arrays, new_owner.member_states, nations::region_state_pair{ region_id, nullptr });
 		if(found) {
 			prov.state_instance = found->state;
+			prov.state_instance->state_capital = nations::find_state_capital(ws, *prov.state_instance);
 		} else {
 			prov.state_instance = &nations::make_state(ws.s.province_m.province_container[prov.id].state_id, ws);
 			prov.state_instance->owner = &new_owner;
+			prov.state_instance->state_capital = nations::find_state_capital(ws, *prov.state_instance);
 			add_item(ws.w.nation_s.state_arrays, new_owner.member_states, nations::region_state_pair{ region_id, prov.state_instance });
 		}
 	}

@@ -307,6 +307,8 @@ constexpr value_base_of<T> high_bit_mask = value_base_of<T>(1ui64 << (sizeof(val
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
 class stable_vector {
 public:
+	constexpr static uint32_t bit_shift = ct_log2(block_size);
+
 	static_assert(1ui64 << ct_log2(block_size) == block_size);
 
 	constexpr static uint32_t block_size_v = block_size;
@@ -352,6 +354,8 @@ public:
 template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
 class stable_2d_vector {
 public:
+	constexpr static uint32_t bit_shift = ct_log2(block_size);
+
 	static_assert(1ui64 << ct_log2(block_size) == block_size);
 
 	object_type* index_array[index_size] = { nullptr };

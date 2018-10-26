@@ -283,10 +283,12 @@ private:
 	std::vector<value_type, allocator> storage;
 public:
 	const value_type& operator[](tag_type t) const {
-		return storage[to_index(t)];
+		return *(storage.data() + to_index(t));
+		//return storage[to_index(t)];
 	}
 	value_type& operator[](tag_type t) {
-		return storage[to_index(t)];
+		return *(storage.data() + to_index(t));
+		//return storage[to_index(t)];
 	}
 	template<typename ...T>
 	tag_type emplace_back(T&& ... ts) {
@@ -1138,9 +1140,9 @@ public:
 
 	std::pair<T*, T*> get_row(I i) {
 		std::pair<T*, T*> p;
-		p.first = elements.data() + index[to_index(i)];
+		p.first = elements.data() + *(index.data() + to_index(i));
 		if (to_index(i) + 1 < index.size()) {
-			p.second = elements.data() + index[to_index(i) + 1];
+			p.second = elements.data() + *(index.data() + to_index(i) + 1);
 		} else {
 			p.second = elements.data() + elements.size();
 		}
@@ -1149,9 +1151,9 @@ public:
 
 	std::pair<T const*, T const*> get_row(I i) const {
 		std::pair<T const*, T const*> p;
-		p.first = elements.data() + index[to_index(i)];
+		p.first = elements.data() + *(index.data() + to_index(i));
 		if (to_index(i) + 1 < index.size()) {
-			p.second = elements.data() + index[to_index(i) + 1];
+			p.second = elements.data() + *(index.data() + to_index(i) + 1);
 		} else {
 			p.second = elements.data() + elements.size();
 		}

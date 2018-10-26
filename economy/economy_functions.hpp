@@ -27,11 +27,12 @@ namespace economy {
 		uint32_t selected_index = 0;
 
 		for(uint32_t i = 0; i < values_count; ++i) {
-			if(fd_vector[i] < derivative_step_ratio) {
+			const auto ith_value = fd_vector[i];
+			if(ith_value < derivative_step_ratio) {
 				// candidate index
-				auto candidate_step_length = unadjusted_step_length - fd_vector[i];
+				auto candidate_step_length = unadjusted_step_length - ith_value;
 				auto replaced_step_limit = values[i]  / candidate_step_length;
-				auto new_derivative = unadjusted_step_first_derivative - fd_vector[i] * fd_vector[i] - candidate_step_length * fd_vector[i];
+				auto new_derivative = unadjusted_step_first_derivative - ith_value * ith_value - candidate_step_length * ith_value;
 				if(replaced_step_limit * new_derivative > max_selected_eval) {
 					max_selected_eval = replaced_step_limit * new_derivative;
 					selected_index = i;

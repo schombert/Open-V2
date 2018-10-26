@@ -218,6 +218,9 @@ void restore_world_state(world_state& ws) {
 		if(s.owner)
 			add_item(ws.w.nation_s.state_arrays, s.owner->member_states, nations::region_state_pair{ s.region_id, &s });
 	});
+	ws.w.nation_s.states.parallel_for_each([&ws](nations::state_instance& s) {
+		s.state_capital = nations::find_state_capital(ws, s);
+	});
 
 	ws.w.population_s.pops.for_each([&ws](population::pop& p) {
 		if(is_valid_index(p.associated_army)) {

@@ -156,14 +156,14 @@ stable_vector<object_type, index_type, block_size, index_size>::stable_vector() 
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
 object_type& stable_vector<object_type, index_type, block_size, index_size>::get(index_type i) const noexcept {
-	const auto block_num = to_index(i) >> ct_log2(block_size);
+	const auto block_num = to_index(i) >> bit_shift;
 	const auto block_index = to_index(i) & (block_size - 1);
 	return (index_array[block_num])[block_index];
 }
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
 object_type& stable_vector<object_type, index_type, block_size, index_size>::untyped_get(uint32_t i) const noexcept {
-	const auto block_num = i >> ct_log2(block_size);
+	const auto block_num = i >> bit_shift;
 	const auto block_index = i & (block_size - 1);
 	return (index_array[block_num])[block_index];
 }
@@ -196,7 +196,7 @@ void stable_vector<object_type, index_type, block_size, index_size>::parallel_fo
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
 bool stable_vector<object_type, index_type, block_size, index_size>::is_valid_index(index_type i) const {
-	const auto block_num = uint32_t(to_index(i)) >> ct_log2(block_size);
+	const auto block_num = uint32_t(to_index(i)) >> bit_shift;
 	return ::is_valid_index(i) & (block_num < indices_in_use);
 }
 
@@ -209,7 +209,7 @@ object_type* stable_vector<object_type, index_type, block_size, index_size>::get
 	if(!::is_valid_index(i))
 		return nullptr;
 
-	const auto block_num = to_index(i) >> ct_log2(block_size);
+	const auto block_num = to_index(i) >> bit_shift;
 	const auto block_index = to_index(i) & (block_size - 1);
 
 	while(indices_in_use <= uint32_t(block_num)) {
@@ -217,7 +217,7 @@ object_type* stable_vector<object_type, index_type, block_size, index_size>::get
 		for(int32_t j = static_cast<int32_t>(block_size); j--; ) {
 			new (new_block + j) object_type();
 			(new_block + j)->id = first_free;
-			first_free = index_type(static_cast<value_base_of<index_type>>(((indices_in_use << ct_log2(block_size)) + uint32_t(j)) | high_bit_mask<index_type>));
+			first_free = index_type(static_cast<value_base_of<index_type>>(((indices_in_use << bit_shift) + uint32_t(j)) | high_bit_mask<index_type>));
 		}
 
 		index_array[indices_in_use] = new_block;
@@ -242,7 +242,7 @@ template<typename object_type, typename index_type, uint32_t block_size, uint32_
 object_type& stable_vector<object_type, index_type, block_size, index_size>::get_new() {
 	if(first_free != index_type(static_cast<value_base_of<index_type>>(to_index(index_type()) | high_bit_mask<index_type>))) {
 		const auto real_ff = index_type(static_cast<value_base_of<index_type>>(to_index(first_free) & ~high_bit_mask<index_type>));
-		const auto block_num = to_index(real_ff) >> ct_log2(block_size);
+		const auto block_num = to_index(real_ff) >> bit_shift;
 		const auto block_index = to_index(real_ff) & (block_size - 1);
 
 		first_free = (index_array[block_num])[block_index].id;
@@ -256,13 +256,13 @@ object_type& stable_vector<object_type, index_type, block_size, index_size>::get
 		for(int32_t j = static_cast<int32_t>(block_size) - 1; j > 0; --j) {
 			new (new_block + j) object_type();
 			(new_block + j)->id = first_free;
-			first_free = index_type(static_cast<value_base_of<index_type>>(((indices_in_use << ct_log2(block_size)) + uint32_t(j)) | high_bit_mask<index_type>));
+			first_free = index_type(static_cast<value_base_of<index_type>>(((indices_in_use << bit_shift) + uint32_t(j)) | high_bit_mask<index_type>));
 		}
 
 		index_array[indices_in_use] = new_block;
 		
 		new (new_block + 0) object_type();
-		new_block[0].id = index_type(static_cast<value_base_of<index_type>>(indices_in_use << ct_log2(block_size)));
+		new_block[0].id = index_type(static_cast<value_base_of<index_type>>(indices_in_use << bit_shift));
 
 		++indices_in_use;
 
@@ -278,7 +278,7 @@ object_type& stable_vector<object_type, index_type, block_size, index_size>::get
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
 void stable_vector<object_type, index_type, block_size, index_size>::remove(index_type i) {
-	const auto block_num = to_index(i) >> ct_log2(block_size);
+	const auto block_num = to_index(i) >> bit_shift;
 	const auto block_index = to_index(i) & (block_size - 1);
 
 	if((to_index((index_array[block_num])[block_index].id) & high_bit_mask<index_type>) == 0) {
@@ -324,7 +324,7 @@ void stable_2d_vector<object_type, outer_index_type, inner_index_type, block_siz
 
 template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
 void stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::ensure_capacity(uint32_t new_outer_size) {
-	const auto block_num = new_outer_size != 0 ? (new_outer_size - 1) >> ct_log2(block_size) : 0;
+	const auto block_num = new_outer_size != 0 ? ((new_outer_size - 1) >> bit_shift) : 0;
 
 	if(block_num >= index_size) {
 #ifdef _DEBUG
@@ -345,7 +345,7 @@ void stable_2d_vector<object_type, outer_index_type, inner_index_type, block_siz
 
 template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
 void stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::clear_row(outer_index_type i) {
-	const auto block_num = to_index(i) >> ct_log2(block_size);
+	const auto block_num = to_index(i) >> bit_shift;
 	const auto block_index = to_index(i) & (block_size - 1);
 
 	object_type* const block = index_array[block_num];
@@ -357,7 +357,7 @@ void stable_2d_vector<object_type, outer_index_type, inner_index_type, block_siz
 
 template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
 object_type* stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::get_row(outer_index_type i) const {
-	const auto block_num = to_index(i) >> ct_log2(block_size);
+	const auto block_num = to_index(i) >> bit_shift;
 	const auto block_index = to_index(i) & (block_size - 1);
 
 	return index_array[block_num] + block_index * inner_size;
@@ -371,7 +371,7 @@ object_type* stable_2d_vector<object_type, outer_index_type, inner_index_type, b
 
 template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
 object_type& stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::get(outer_index_type i, inner_index_type j) const {
-	const auto block_num = to_index(i) >> ct_log2(block_size);
+	const auto block_num = to_index(i) >> bit_shift;
 	const auto block_index = to_index(i) & (block_size - 1);
 
 	return *(index_array[block_num] + block_index * inner_size + to_index(j));
@@ -385,7 +385,7 @@ object_type& stable_2d_vector<object_type, outer_index_type, inner_index_type, b
 
 template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
 bool stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::is_valid_index(outer_index_type i) const {
-	const auto block_num = to_index(i) >> ct_log2(block_size);
+	const auto block_num = to_index(i) >> bit_shift;
 	return block_num < indices_in_use;
 }
 

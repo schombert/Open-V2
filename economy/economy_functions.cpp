@@ -790,12 +790,12 @@ namespace economy {
 		return std::max(0.0f, 1.0f - 0.000045f * v);
 	}
 
-	constexpr money_qnty_type price_change_rate = money_qnty_type(0.5);
+	constexpr money_qnty_type price_change_rate = money_qnty_type(0.25);
 	constexpr money_qnty_type price_gravity_factor = money_qnty_type(0.05);
 	constexpr money_qnty_type purchasing_change_rate = money_qnty_type(0.75);
 	constexpr money_qnty_type distance_factor = money_qnty_type(0.0005f);
 	constexpr money_qnty_type minimum_global_purchase = money_qnty_type(0.000001f);
-	constexpr money_qnty_type minimum_demand = money_qnty_type(0.005);
+	constexpr money_qnty_type minimum_demand = money_qnty_type(0.01);
 
 	template<bool adjust_prices>
 	void economy_single_good_tick(world_state& ws, goods_tag tag, uint32_t state_max) {
@@ -1086,7 +1086,7 @@ namespace economy {
 		}
 #endif
 
-		auto profit = output_amount * state_prices[to_index(p.artisan_production)] - min_wage - inputs_cost;
+		auto profit = output_amount * state_prices[to_index(p.artisan_production)] - inputs_cost;
 
 		if(profit > 0) {
 			pay_by_type[to_index(ws.s.population_m.artisan)] += profit;
@@ -1096,9 +1096,9 @@ namespace economy {
 		//	p.artisan_production_scale * scale_speed(output_amount * state_prices[to_index(p.artisan_production)] / (min_wage + inputs_cost)),
 		//	0.05f, 1.0f);
 
-		if(profit < 0) {
+		if(profit < min_wage) {
 			std::uniform_real_distribution<money_qnty_type> dist(money_qnty_type(0), 1.0f);
-			if(dist(get_local_generator()) > sqrt(output_amount * state_prices[to_index(p.artisan_production)] / (min_wage + inputs_cost))) {
+			if(dist(get_local_generator()) > sqrt(std::max(profit, 0.0f) / min_wage)) {
 				p.artisan_production = ws.s.economy_m.artisan_types[get_profitable_artisan(ws, p)].output_good;
 				//p.artisan_production_scale = 1.0f;
 			}
@@ -1322,7 +1322,7 @@ namespace economy {
 			if(bit_vector_test(enabled_goods, to_index(atype.output_good))) {
 				auto profit = artisan_profit_unit(ws, ps, *owner, atype, prices, artisan_life_needs);
 				if(profit > money_qnty_type(0)) {
-					profit_sum += profit;
+					profit_sum += sqrt(profit);
 					result.emplace_back(atype.id, profit_sum);
 				}
 			}
