@@ -141,6 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="barchart.hpp" />
     <ClInclude Include="buttons.hpp" />
     <ClInclude Include="gui.h" />
     <ClInclude Include="gui.hpp" />

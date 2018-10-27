@@ -72,7 +72,13 @@ namespace economy {
 	goods_qnty_type* state_current_production(world_state const& ws, nations::state_tag s);
 	money_qnty_type* state_current_demand(world_state const& ws, nations::state_tag s);
 
-	std::pair<money_qnty_type, money_qnty_type> global_price_range(world_state const& ws, economy::goods_tag t);
+	struct range_information {
+		float minimum;
+		float maximum;
+		float average;
+	};
+
+	range_information global_price_range(world_state const& ws, economy::goods_tag t);
 	money_qnty_type get_life_needs_cost(world_state const& ws, nations::state_instance const& si, population::pop_type_tag ptype);
 	artisan_type_tag get_profitable_artisan(world_state const& ws, provinces::province_state const& ps);
 

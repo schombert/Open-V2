@@ -774,15 +774,20 @@ namespace economy {
 		});
 	}
 
-	std::pair<money_qnty_type, money_qnty_type> global_price_range(world_state const& ws, economy::goods_tag t) {
-		std::pair<money_qnty_type, money_qnty_type> result(std::numeric_limits<money_qnty_type>::max(), std::numeric_limits<money_qnty_type>::lowest());
-		ws.w.nation_s.states.for_each([&ws, t, &result](nations::state_instance const& si) {
+	range_information global_price_range(world_state const& ws, economy::goods_tag t) {
+		range_information result{ std::numeric_limits<money_qnty_type>::max(), std::numeric_limits<money_qnty_type>::lowest(), 0.0f };
+		int32_t count = 0;
+		ws.w.nation_s.states.for_each([&ws, t, &result, &count](nations::state_instance const& si) {
 			if(auto sid = si.id; si.owner && ws.w.nation_s.states.is_valid_index(sid)) {
 				auto prices = state_current_prices(ws, sid);
-				result.first = std::min(result.first, prices[to_index(t)]);
-				result.second = std::max(result.second, prices[to_index(t)]);
+				auto v = prices[to_index(t)];
+				result.minimum = std::min(result.minimum, v);
+				result.maximum = std::max(result.maximum, v);
+				result.average += v;
+				++count;
 			}
 		});
+		result.average /= float(count);
 		return result;
 	}
 

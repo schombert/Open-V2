@@ -90,12 +90,63 @@ namespace economy {
 	inline const char group_consumer_goods[] = "consumer_goods";
 	inline const char group_military_goods[] = "military_goods";
 
+	class trade_details_pane_base : public ui::window_pane {
+	public:
+	};
+
+	class tw_selected_good_icon {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<tw_selected_good_icon>& self, window_type& win, world_state& ws);
+	};
+
+	class tw_selected_good_name {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class tw_selected_good_price {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class tw_good_global_max_price {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class tw_good_global_min_price {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class prices_barchart {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::display_barchart<prices_barchart>& self, window_type& win, world_state& ws);
+	};
+
+	using trade_details_pane = ui::gui_window<
+		CT_STRING("goods_icon"), ui::dynamic_icon<tw_selected_good_icon>,
+		CT_STRING("goods_title"), ui::display_text<tw_selected_good_name>,
+		CT_STRING("goods_price"), ui::display_text<tw_selected_good_price>,
+		CT_STRING("price_linechart"), ui::display_barchart<prices_barchart>,
+		CT_STRING("price_chart_low"), ui::display_text<tw_good_global_min_price>,
+		CT_STRING("price_chart_high"), ui::display_text<tw_good_global_max_price>,
+		trade_details_pane_base
+	>;
+
 	class trade_window_t : public ui::gui_window<
 		CT_STRING("close_button"), ui::simple_button<tw_close_button>,
 		CT_STRING("group_raw_material_goods"), ui::gui_window<goods_group_window_base<group_raw_material_goods, sizeof(group_raw_material_goods) - 1>>,
 		CT_STRING("group_industrial_goods"), ui::gui_window<goods_group_window_base<group_industrial_goods, sizeof(group_industrial_goods) - 1>>,
 		CT_STRING("group_consumer_goods"), ui::gui_window<goods_group_window_base<group_consumer_goods, sizeof(group_consumer_goods) - 1>>,
 		CT_STRING("group_military_goods"), ui::gui_window<goods_group_window_base<group_military_goods, sizeof(group_military_goods) - 1>>,
+		CT_STRING("trade_details"), trade_details_pane,
 		trade_window_base
 	> {};
 
@@ -197,5 +248,120 @@ namespace economy {
 		if(cursor_x != 0)
 			cursor_y += size_y;
 		associated_object->size.y = cursor_y;
+	}
+	template<typename window_type>
+	void tw_selected_good_icon::windowed_update(ui::dynamic_icon<tw_selected_good_icon>& self, window_type & win, world_state & ws) {
+		if(auto g = ws.w.trade_w.selected_good; is_valid_index(g)) {
+			self.set_frame(ws.w.gui_m, ws.s.economy_m.goods[g].icon);
+		}
+	}
+	template<typename W>
+	void tw_selected_good_price::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		auto s = ws.w.trade_w.selected_state;
+		if(!is_valid_index(s)) {
+			if(auto player = ws.w.local_player_nation; player) {
+				if(auto cap = player->current_capital; is_valid_index(cap)) {
+					if(auto cap_state = ws.w.province_s.province_state_container[cap].state_instance; cap_state) {
+						s = cap_state->id;
+					}
+				}
+			}
+		}
+		if(!ws.w.nation_s.states.is_valid_index(s))
+			return;
+
+		if(auto g = ws.w.trade_w.selected_good; is_valid_index(g)) {
+			auto price = economy::state_current_prices(ws, s)[to_index(g)];
+
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::fp_two_places, price);
+			auto cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+			cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u00A3"), box, cursor, fmt, lm);
+			lm.finish_current_line();
+		}
+	}
+	template<typename W>
+	void tw_selected_good_name::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto g = ws.w.trade_w.selected_good; is_valid_index(g)) {
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.economy_m.goods[g].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			lm.finish_current_line();
+		}
+	}
+	template<typename W>
+	void tw_good_global_max_price::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto g = ws.w.trade_w.selected_good; is_valid_index(g)) {
+			auto range = global_price_range(ws, g);
+
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::fp_two_places, range.maximum);
+			auto cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+			cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u00A3"), box, cursor, fmt, lm);
+			lm.finish_current_line();
+		}
+	}
+	template<typename W>
+	void tw_good_global_min_price::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto g = ws.w.trade_w.selected_good; is_valid_index(g)) {
+			auto range = global_price_range(ws, g);
+
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::fp_two_places, range.minimum - 0.01f);
+			auto cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+			cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u00A3"), box, cursor, fmt, lm);
+			lm.finish_current_line();
+		}
+	}
+	template<typename window_type>
+	void prices_barchart::windowed_update(ui::display_barchart<prices_barchart>& self, window_type & win, world_state & ws) {
+		auto s = ws.w.trade_w.selected_state;
+		if(!is_valid_index(s)) {
+			if(auto player = ws.w.local_player_nation; player) {
+				if(auto cap = player->current_capital; is_valid_index(cap)) {
+					if(auto cap_state = ws.w.province_s.province_state_container[cap].state_instance; cap_state) {
+						s = cap_state->id;
+					}
+				}
+			}
+		}
+		if(!ws.w.nation_s.states.is_valid_index(s))
+			return;
+
+		if(auto g = ws.w.trade_w.selected_good; is_valid_index(g)) {
+			auto price = economy::state_current_prices(ws, s)[to_index(g)];
+			std::vector<money_qnty_type, concurrent_allocator<money_qnty_type>> state_prices;
+
+			range_information result{ std::numeric_limits<money_qnty_type>::max(), std::numeric_limits<money_qnty_type>::lowest(), 0.0f };
+
+			ws.w.nation_s.states.for_each([&ws, &result, &state_prices, g](nations::state_instance const& si) {
+				if(auto sid = si.id; si.owner && ws.w.nation_s.states.is_valid_index(sid)) {
+					auto prices = state_current_prices(ws, sid);
+					auto v = prices[to_index(g)];
+					state_prices.push_back(v);
+
+					result.minimum = std::min(result.minimum, v);
+					result.maximum = std::max(result.maximum, v);
+				}
+			});
+
+			std::sort(state_prices.begin(), state_prices.end(), std::greater<money_qnty_type>());
+
+			auto data = self.data(ws.w.gui_m);
+			auto data_size = self.data_size();
+			for(int32_t i = 0; i < data_size; ++i) {
+				auto index = std::clamp(int32_t(float(i) * float(state_prices.size()) / float(data_size)), 0, int32_t(state_prices.size()));
+				if(state_prices[index] < price) {
+					data[i * 4 + 0] = uint8_t(255);
+					data[i * 4 + 1] = uint8_t(55);
+					data[i * 4 + 2] = uint8_t(55);
+				} else {
+					data[i * 4 + 0] = uint8_t(55);
+					data[i * 4 + 1] = uint8_t(255);
+					data[i * 4 + 2] = uint8_t(55);
+				}
+				auto percent = (state_prices[index] - (result.minimum - 0.01f)) / (result.maximum - (result.minimum - 0.01f));
+				data[i * 4 + 3] = uint8_t(255.0f * percent);
+			}
+		}
+		
 	}
 }

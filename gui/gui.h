@@ -452,6 +452,26 @@ namespace ui {
 		void update_display(gui_manager& manager) const;
 	};
 
+	template<typename BASE>
+	class display_barchart : public visible_region, public BASE {
+	private:
+		int32_t x_extent = 1;
+	public:
+		display_barchart(display_barchart&&) = default;
+		template<typename ...P>
+		display_barchart(P&& ... params) : BASE(std::forward<P>(params)...) {}
+
+		virtual void update_data(gui_object_tag, world_state&) final override;
+		template<typename window_type>
+		std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::display_barchart<BASE>&, window_type&, world_state&>, void> windowed_update(window_type&, world_state&);
+		
+		void set_size(int32_t size) { x_extent = size; }
+
+		int32_t data_size() const { return x_extent; }
+		uint8_t* data(gui_manager& manager);
+		void update_display(gui_manager& manager) const;
+	};
+
 	template<typename BASE, int32_t horizontal_resolution>
 	class linechart : public gui_behavior, public BASE {
 	public:
@@ -842,6 +862,8 @@ namespace ui {
 	ui::tagged_gui_object create_static_element(world_state& ws, scrollbar_tag handle, tagged_gui_object parent, scrollbar<B>& b);
 	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, piechart<B>& b);
+	template<typename B>
+	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, display_barchart<B>& b);
 	template<typename BASE, int32_t horizontal_resolution>
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, linechart<BASE, horizontal_resolution>& b);
 	template<typename B, int32_t y_adjust>

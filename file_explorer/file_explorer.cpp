@@ -493,7 +493,7 @@ struct gui_window_handler {
 						if(auto sid = si->id; s.w.nation_s.states.is_valid_index(sid)) {
 							auto local_prices = economy::state_current_prices(s, sid);
 
-							auto fraction = (local_prices[to_index(g)] - price_range.first + 0.01) / (price_range.second - price_range.first + 0.01);
+							auto fraction = (local_prices[to_index(g)] - price_range.minimum + 0.01) / (price_range.maximum - price_range.minimum + 0.01);
 							pcolors[i * 3 + 0] = uint8_t((1.0f - fraction) * 255.0f);
 							pcolors[i * 3 + 1] = uint8_t(fraction * 255.0f);
 							pcolors[i * 3 + 2] = uint8_t(100);

@@ -600,22 +600,11 @@ void ui::detail::instantiate_graphical_object(gui_static& static_manager, ui::gu
 			make_masked_flag(static_manager, manager, container, graphic_object_def);
 			break;
 		case graphics::object_type::barchart:
-			if (is_valid_index(graphic_object_def.primary_texture_handle) & is_valid_index(graphics::texture_tag(graphic_object_def.type_dependant))) {
-				container.object.flags.fetch_or(ui::gui_object::type_barchart, std::memory_order_acq_rel);
-
-				const auto flag_graphic = manager.multi_texture_instances.emplace();
-
-				flag_graphic.object.mask_or_primary = &(static_manager.textures.retrieve_by_key(graphic_object_def.primary_texture_handle));
-				flag_graphic.object.flag_or_secondary = &(static_manager.textures.retrieve_by_key(graphics::texture_tag(graphic_object_def.type_dependant)));
-
-				if (((int32_t)container.object.size.y | (int32_t)container.object.size.x) == 0) {
-					flag_graphic.object.flag_or_secondary->load_filedata();
-					container.object.size.y = static_cast<int16_t>(flag_graphic.object.flag_or_secondary->get_height());
-					container.object.size.x = static_cast<int16_t>(flag_graphic.object.flag_or_secondary->get_width());
-				}
-
-				container.object.type_dependant_handle.store(to_index(flag_graphic.id), std::memory_order_release);
-			}
+		{
+			container.object.flags.fetch_or(ui::gui_object::type_barchart, std::memory_order_acq_rel);
+			const auto new_dt = manager.data_textures.emplace(uint16_t(frame), 4ui16);
+			container.object.type_dependant_handle.store(to_index(new_dt.id), std::memory_order_release);
+		}
 			break;
 		case graphics::object_type::piechart:
 		{

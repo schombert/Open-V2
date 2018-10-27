@@ -68,7 +68,7 @@ namespace graphics {
 		data_texture(data_texture&& o) noexcept : texture_handle(o.texture_handle), _data(o._data), size(o.size), channels(o.channels) { o._data = nullptr; }
 		data_texture& operator=(data_texture&& o) noexcept { this->~data_texture(); new (this) data_texture(std::move(o)); return *this; }
 		data_texture& operator=(const data_texture& o) noexcept { this->~data_texture(); new (this) data_texture(o); return *this; }
-		~data_texture() { if (_data) delete[] _data; }
+		~data_texture() { if(_data) delete[] _data; _data = nullptr; }
 
 		void create();
 		uint32_t handle();

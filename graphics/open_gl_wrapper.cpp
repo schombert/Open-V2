@@ -241,7 +241,7 @@ namespace graphics {
 		"layout(index = 10) subroutine(font_function_class)\n"
 		"vec4 barchart(vec2 tc) {\n"
 		"	vec4 color_in = texture(texture_sampler, vec2(tc.x, 0.5));\n"
-		"	return vec4(color_in.rgb, step(color_in.a, tc.y));\n"
+		"	return vec4(color_in.rgb, step(1.0 - color_in.a, tc.y));\n"
 		"}\n"
 		"\n"
 		"layout(index = 11) subroutine(font_function_class)\n"
