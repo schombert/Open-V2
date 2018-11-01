@@ -349,9 +349,15 @@ void stable_2d_vector<object_type, outer_index_type, inner_index_type, block_siz
 	const auto block_index = to_index(i) & (block_size - 1);
 
 	object_type* const block = index_array[block_num];
-	for(int32_t i = int32_t(inner_size) - 1; i >= 0; --i) {
-		block[block_index * inner_size + i].~object_type();
-		new (block + block_index * inner_size + i) object_type();
+	std::destroy_n(block + block_index * inner_size, inner_size);
+	std::uninitialized_value_construct_n(block + block_index * inner_size, inner_size);
+}
+
+template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
+void stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::clear_all() {
+	for(uint32_t i = 0; i < indices_in_use; ++i) {
+		std::destroy_n(index_array[i], block_size * inner_size);
+		std::uninitialized_value_construct_n(index_array[i], block_size * inner_size);
 	}
 }
 
@@ -725,16 +731,16 @@ namespace detail {
 			new_mem = next_aligned_free - 1ui32;
 		}
 
-		new_header->capacity = uint16_t(real_capacity);
-		new_header->size = 0ui16;
-		new_header->next_free = null_value_of<stable_mk_2_tag>;
-
 #ifdef _DEBUG
 		if(storage.first_free >= memory_size) {
 			std::abort();
 		}
 #endif
-		
+
+		new_header->capacity = uint16_t(real_capacity);
+		new_header->size = 0ui16;
+		new_header->next_free = null_value_of<stable_mk_2_tag>;
+
 		object_type* objects = (object_type*)(new_header + 1);
 		for(int32_t i = int32_t(real_capacity) - 1; i >= 0; --i)
 			new (objects + i) object_type();

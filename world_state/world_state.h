@@ -18,6 +18,7 @@
 #include "topbar.h"
 #include "economy\\economy_gui.h"
 #include "economy\\trade_window.h"
+#include "governments\\budget_window.h"
 
 #undef small
 
@@ -42,7 +43,8 @@ namespace current_state {
 		political,
 		prices,
 		distance,
-		purchasing
+		purchasing,
+		production
 	};
 
 	struct map_state {
@@ -98,13 +100,19 @@ namespace current_state {
 		provinces::province_window province_w;
 		technologies::technology_window technologies_w;
 		governments::government_window government_w;
+		governments::budget_window budget_w;
 		population::population_window population_w;
 		economy::production_window production_w;
 		economy::trade_window trade_w;
 		topbar topbar_w;
 
 		//player data
-		player_net_income_history local_player_income_history;
+		struct {
+			player_net_income_history income_history;
+			economy::money_qnty_type collected_poor_tax;
+			economy::money_qnty_type collected_middle_tax;
+			economy::money_qnty_type collected_rich_tax;
+		} local_player_data;
 		nations::nation* local_player_nation = nullptr;
 
 		state();

@@ -2431,7 +2431,7 @@ namespace economy {
 	void factory_closed_overlay::windowed_update(ui::dynamic_icon<factory_closed_overlay>& self, window_type & win, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
 			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
-			if(factory_is_closed(f))
+			if(!factory_is_closed(f))
 				ui::hide(*self.associated_object);
 			else
 				ui::make_visible_immediate(*self.associated_object);

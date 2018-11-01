@@ -84,6 +84,7 @@ namespace economy {
 
 	void init_artisan_producation(world_state& ws);
 	void set_initial_money(world_state& ws);
+	void collect_taxes(world_state& ws);
 	void economy_update_tick(world_state& ws);
 	void economy_demand_adjustment_tick(world_state& ws);
 }

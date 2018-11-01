@@ -5,6 +5,8 @@
 
 template<>
 class serialization::serializer<current_state::player_net_income_history> : public serialization::memcpy_serializer<current_state::player_net_income_history> {};
+template<>
+class serialization::serializer<decltype(current_state::state::local_player_data)> : public serialization::memcpy_serializer<decltype(current_state::state::local_player_data)> {};
 
 template<>
 class serialization::serializer<current_state::crisis_state> {

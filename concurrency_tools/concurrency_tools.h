@@ -368,6 +368,8 @@ public:
 	void reset(uint32_t inner_size); // single thread only
 	void ensure_capacity(uint32_t outer_size); // single thread only
 	void clear_row(outer_index_type i); // single thread only
+	void clear_all(); // single thread only
+
 
 	object_type* get_row(outer_index_type i) const; // safe from any thread
 	object_type* safe_get_row(outer_index_type i); // single thread only

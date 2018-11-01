@@ -36,6 +36,7 @@ namespace current_state {
 		population_w.init_population_window(ws);
 		production_w.init(ws);
 		trade_w.init(ws);
+		budget_w.init(ws);
 	}
 
 	void state::toggle_pause() {

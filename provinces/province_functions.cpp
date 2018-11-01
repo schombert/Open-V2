@@ -299,10 +299,10 @@ namespace provinces {
 	}
 
 	constexpr double sea_cost_multiplier = 0.10; // cost havled for sea travel
-	constexpr double multiple_foreign_extra = 200.0; // additional cost for a path through a foreign nation (not in sphere or vassal)
+	constexpr double border_transition = 50.0; // additional cost for a path through a border
 	constexpr float maximum_distance = float(40'075.0 * 16.0);
 
-	float with_adjustments_distance(nations::nation const* primary_owner,
+	float with_adjustments_distance(
 		provinces::province const & a, provinces::province_state const & a_state,
 		provinces::province const & b, provinces::province_state const & b_state) {
 
@@ -312,15 +312,20 @@ namespace provinces {
 			/ 2.0;
 
 		bool no_ff_nation_transition =
-			a_state.owner == primary_owner ||
-			a_state.owner == b_state.owner ||
-			a_state.owner == nullptr ||
-			(a_state.owner && (a_state.owner->sphere_leader == primary_owner || a_state.owner->overlord == primary_owner))
+			   a_state.owner == b_state.owner
+			|| a_state.owner == nullptr
+			|| b_state.owner == nullptr
+			|| a_state.owner->sphere_leader == b_state.owner
+			|| a_state.owner->overlord == b_state.owner
+			|| b_state.owner->sphere_leader == a_state.owner
+			|| b_state.owner->overlord == a_state.owner
+			|| a_state.owner->sphere_leader == b_state.owner->sphere_leader
+			|| a_state.owner->overlord == b_state.owner->overlord
 			;
 		if(no_ff_nation_transition)
 			return float(avg_movement_cost * acos(a.centroid.dot(b.centroid)) * 40'075.0 / 6.2831853071);
 		else
-			return float(multiple_foreign_extra + avg_movement_cost * acos(a.centroid.dot(b.centroid)) * 40'075.0 / 6.2831853071);
+			return float(border_transition + avg_movement_cost * acos(a.centroid.dot(b.centroid)) * 40'075.0 / 6.2831853071);
 	}
 
 	struct province_distance {
@@ -369,7 +374,6 @@ namespace provinces {
 				if(results[to_index(p)] == maximum_distance) {
 					auto distance =
 						with_adjustments_distance(
-							a.owner,
 							cprov, cprov_state,
 							ws.s.province_m.province_container[p], p_state);
 
@@ -400,7 +404,6 @@ namespace provinces {
 					if(results[to_index(p)] == maximum_distance) {
 						auto distance =
 							with_adjustments_distance(
-								a.owner,
 								cprov, cprov_state,
 								ws.s.province_m.province_container[p], p_state);
 

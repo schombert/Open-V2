@@ -18,8 +18,8 @@ namespace economy {
 		const auto unadjusted_step_length = fd_vector.sum();
 		const auto unadjusted_step_first_derivative = fd_vector.dot(fd_vector);
 
-		//if(unadjusted_step_first_derivative < stationary_margin)
-		//	return; // current point is stationary
+		if(unadjusted_step_first_derivative == 0) //stationary point
+			return money_qnty_type(0);
 
 		const auto derivative_step_ratio = unadjusted_step_first_derivative / unadjusted_step_length;
 
@@ -31,7 +31,7 @@ namespace economy {
 			if(ith_value < derivative_step_ratio) {
 				// candidate index
 				auto candidate_step_length = unadjusted_step_length - ith_value;
-				auto replaced_step_limit = values[i]  / candidate_step_length;
+				auto replaced_step_limit = candidate_step_length > 0 ? values[i]  / candidate_step_length : 1000000.0f;
 				auto new_derivative = unadjusted_step_first_derivative - ith_value * ith_value - candidate_step_length * ith_value;
 				if(replaced_step_limit * new_derivative > max_selected_eval) {
 					max_selected_eval = replaced_step_limit * new_derivative;

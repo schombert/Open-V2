@@ -143,6 +143,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="budget_window.h" />
+    <ClInclude Include="budget_window.hpp" />
     <ClInclude Include="governments.h" />
     <ClInclude Include="governments_functions.h" />
     <ClInclude Include="governments_gui.h" />
@@ -150,6 +152,7 @@
     <ClInclude Include="governments_io.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="budget_window.cpp" />
     <ClCompile Include="governments.cpp" />
     <ClCompile Include="governments_functions.cpp" />
     <ClCompile Include="governments_gui.cpp" />

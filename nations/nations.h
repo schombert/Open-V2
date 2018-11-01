@@ -197,6 +197,7 @@ namespace nations {
 		int8_t administrative_spending = 0i8;
 		int8_t education_spending = 0i8;
 		int8_t military_spending = 0i8;
+		int8_t tarrifs = 0i8;
 		
 
 		constexpr static uint16_t is_civilized = 0x0001;
@@ -255,6 +256,11 @@ namespace nations {
 		constexpr static uint8_t contains_naval_base = 0x08;
 	};
 
+	struct state_purchases_s {
+		array_tag<economy::money_qnty_type> money_spent;
+		array_tag<economy::money_qnty_type> money_for_purchases;
+	};
+
 	class nations_state {
 	public:
 		array_tag<country_tag> nations_by_rank;
@@ -266,6 +272,7 @@ namespace nations {
 		stable_2d_vector<uint8_t, country_tag, ideologies::ideology_tag, 512, 16> upper_house;
 		stable_2d_vector<uint64_t, country_tag, uint32_t, 512, 16> active_technologies;
 		stable_2d_vector<uint64_t, country_tag, uint32_t, 512, 16> active_goods;
+		stable_2d_vector<economy::money_qnty_type, country_tag, economy::goods_tag, 512, 16> collected_tarrifs;
 		stable_2d_vector<issues::option_tag, country_tag, issues::issue_tag, 512, 16> active_issue_options;
 		stable_2d_vector<economy::goods_qnty_type, country_tag, economy::goods_tag, 512, 16> national_stockpiles;
 		stable_2d_vector<economy::money_qnty_type, state_tag, economy::goods_tag, 512, 16> state_prices;
@@ -273,7 +280,7 @@ namespace nations {
 		stable_2d_vector<economy::money_qnty_type, state_tag, economy::goods_tag, 512, 16> state_demand;
 		stable_2d_vector<economy::money_qnty_type, state_tag, economy::goods_tag, 512, 16> state_global_demand;
 		stable_2d_vector<float, country_tag, variables::national_variable_tag, 512, 16> national_variables;
-		stable_2d_vector<array_tag<economy::money_qnty_type>, state_tag, economy::goods_tag, 512, 16> state_purchases;
+		stable_2d_vector<state_purchases_s, state_tag, economy::goods_tag, 512, 16> state_purchases;
 
 		stable_2d_vector<float, country_tag, technologies::adjusted_goods_tag, 512, 16> production_adjustments;
 		stable_2d_vector<military::unit_attribute_vector, country_tag, military::unit_type_tag, 512, 16> unit_stats;

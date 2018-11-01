@@ -145,6 +145,7 @@ void serialization::serializer<nations::nation>::serialize_object(std::byte *& o
 	serialize(output, obj.administrative_spending);
 	serialize(output, obj.education_spending);
 	serialize(output, obj.military_spending);
+	serialize(output, obj.tarrifs);
 
 	serialize(output, obj.current_government);
 	serialize(output, obj.primary_culture);
@@ -212,6 +213,7 @@ void serialization::serializer<nations::nation>::deserialize_object(std::byte co
 	ws.w.nation_s.upper_house.ensure_capacity(to_index(obj.id) + 1);
 	ws.w.nation_s.active_technologies.ensure_capacity(to_index(obj.id) + 1);
 	ws.w.nation_s.active_goods.ensure_capacity(to_index(obj.id) + 1);
+	ws.w.nation_s.collected_tarrifs.ensure_capacity(to_index(obj.id) + 1);
 	ws.w.nation_s.active_issue_options.ensure_capacity(to_index(obj.id) + 1);
 	ws.w.nation_s.national_stockpiles.ensure_capacity(to_index(obj.id) + 1);
 	ws.w.nation_s.national_variables.ensure_capacity(to_index(obj.id) + 1);
@@ -258,6 +260,7 @@ void serialization::serializer<nations::nation>::deserialize_object(std::byte co
 	deserialize(input, obj.administrative_spending);
 	deserialize(input, obj.education_spending);
 	deserialize(input, obj.military_spending);
+	deserialize(input, obj.tarrifs);
 
 	deserialize(input, obj.current_government);
 	deserialize(input, obj.primary_culture);
@@ -336,7 +339,7 @@ size_t serialization::serializer<nations::nation>::size(nations::nation const & 
 		sizeof(float) * 5 + // plurality ... war exhaustion
 		serialize_size(obj.suppression_points) +
 		serialize_size(obj.diplomacy_points) +
-		sizeof(int8_t) * 7 + // budget items
+		sizeof(int8_t) * 8 + // budget items
 		sizeof(obj.current_government) +
 		sizeof(obj.primary_culture) +
 		sizeof(obj.national_religion) +

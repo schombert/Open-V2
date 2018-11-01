@@ -36,7 +36,9 @@ namespace current_state {
 	void production_button::update(ui::simple_button<production_button>& self, world_state & ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);
 	}
-	void budget_button::button_function(ui::simple_button<budget_button>&, world_state&) {}
+	void budget_button::button_function(ui::simple_button<budget_button>&, world_state& ws) {
+		ws.w.budget_w.show(ws.w.gui_m);
+	}
 	void budget_button::update(ui::simple_button<budget_button>& self, world_state& ws) {
 		self.set_frame(ws.w.gui_m, 1ui32);
 	}
@@ -149,10 +151,10 @@ namespace current_state {
 
 		float most_extreme = 1.0f;
 		for(uint32_t i = 0; i < 32; ++i) {
-			most_extreme = std::max(most_extreme, std::abs(ws.w.local_player_income_history.values[i]));
+			most_extreme = std::max(most_extreme, std::abs(ws.w.local_player_data.income_history.values[i]));
 		}
 		for(int32_t i = 0; i < 32; ++i) {
-			adjusted_values[i] = (ws.w.local_player_income_history.values[(int32_t(to_index(ws.w.current_date)) - (31 - i)) % 32] * 0.5f)  / most_extreme + 0.5f;
+			adjusted_values[i] = (ws.w.local_player_data.income_history.values[(int32_t(to_index(ws.w.current_date)) - (31 - i)) % 32] * 0.5f)  / most_extreme + 0.5f;
 		}
 
 		self.set_values(ws.w.gui_m, adjusted_values);
@@ -161,7 +163,7 @@ namespace current_state {
 		ui::xy_pair cursor{ 0,0 };
 		char16_t local_buf[64];
 
-		auto income_value = ws.w.local_player_income_history.values[(int32_t(to_index(ws.w.current_date)) - (31 - x)) % 32];
+		auto income_value = ws.w.local_player_data.income_history.values[(int32_t(to_index(ws.w.current_date)) - (31 - x)) % 32];
 
 		if(income_value < 0.0f) {
 			local_buf[0] = u'-';

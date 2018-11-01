@@ -33,7 +33,9 @@ namespace economy {
 		if(is_valid_index(tag)) {
 			ws.w.trade_w.show(ws.w.gui_m, tag);
 			ws.w.map_view.selected_good = tag;
-			if(ws.w.map_view.mode == current_state::map_mode::prices || ws.w.map_view.mode == current_state::map_mode::purchasing)
+			if(ws.w.map_view.mode == current_state::map_mode::prices
+				|| ws.w.map_view.mode == current_state::map_mode::purchasing
+				|| ws.w.map_view.mode == current_state::map_mode::production)
 				ws.w.map_view.changed = true;
 		}
 	}
