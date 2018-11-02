@@ -10,6 +10,7 @@ namespace scenario {
 
 namespace economy {
 	constexpr goods_tag money_good(0);
+	constexpr money_qnty_type daily_debt_payment = money_qnty_type(0.1);
 
 	struct good_definition {
 		static constexpr uint8_t not_available_from_start = 0x01;

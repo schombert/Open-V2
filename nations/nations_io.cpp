@@ -138,6 +138,9 @@ void serialization::serializer<nations::nation>::serialize_object(std::byte *& o
 	serialize(output, obj.suppression_points);
 	serialize(output, obj.diplomacy_points);
 
+	serialize(output, obj.national_debt);
+	serialize(output, obj.tax_base);
+
 	serialize(output, obj.rich_tax);
 	serialize(output, obj.middle_tax);
 	serialize(output, obj.poor_tax);
@@ -192,7 +195,6 @@ void serialization::serializer<nations::nation>::serialize_object(std::byte *& o
 	serialize_stable_array(output, ws.w.culture_s.culture_arrays, obj.accepted_cultures);
 	serialize_stable_array(output, ws.w.nation_s.relations_arrays, obj.relations);
 	serialize_stable_array(output, ws.w.nation_s.truce_arrays, obj.truces);
-	serialize_stable_array(output, ws.w.nation_s.loan_arrays, obj.loans);
 	serialize_stable_array(output, ws.w.nation_s.state_tag_arrays, obj.national_focus_locations);
 	serialize_stable_array(output, ws.w.variable_s.national_flags_arrays, obj.national_flags);
 	serialize_stable_array(output, ws.w.nation_s.static_modifier_arrays, obj.static_modifiers);
@@ -253,6 +255,9 @@ void serialization::serializer<nations::nation>::deserialize_object(std::byte co
 	deserialize(input, obj.suppression_points);
 	deserialize(input, obj.diplomacy_points);
 
+	deserialize(input, obj.national_debt);
+	deserialize(input, obj.tax_base);
+
 	deserialize(input, obj.rich_tax);
 	deserialize(input, obj.middle_tax);
 	deserialize(input, obj.poor_tax);
@@ -312,7 +317,6 @@ void serialization::serializer<nations::nation>::deserialize_object(std::byte co
 	deserialize_stable_array(input, ws.w.culture_s.culture_arrays, obj.accepted_cultures);
 	deserialize_stable_array(input, ws.w.nation_s.relations_arrays, obj.relations);
 	deserialize_stable_array(input, ws.w.nation_s.truce_arrays, obj.truces);
-	deserialize_stable_array(input, ws.w.nation_s.loan_arrays, obj.loans);
 	deserialize_stable_array(input, ws.w.nation_s.state_tag_arrays, obj.national_focus_locations);
 	deserialize_stable_array(input, ws.w.variable_s.national_flags_arrays, obj.national_flags);
 	deserialize_stable_array(input, ws.w.nation_s.static_modifier_arrays, obj.static_modifiers);
@@ -339,6 +343,8 @@ size_t serialization::serializer<nations::nation>::size(nations::nation const & 
 		sizeof(float) * 5 + // plurality ... war exhaustion
 		serialize_size(obj.suppression_points) +
 		serialize_size(obj.diplomacy_points) +
+		serialize_size(obj.national_debt) +
+		serialize_size(obj.tax_base) +
 		sizeof(int8_t) * 8 + // budget items
 		sizeof(obj.current_government) +
 		sizeof(obj.primary_culture) +
@@ -368,7 +374,6 @@ size_t serialization::serializer<nations::nation>::size(nations::nation const & 
 		serialize_stable_array_size(ws.w.culture_s.culture_arrays, obj.accepted_cultures) +
 		serialize_stable_array_size(ws.w.nation_s.relations_arrays, obj.relations) +
 		serialize_stable_array_size(ws.w.nation_s.truce_arrays, obj.truces) +
-		serialize_stable_array_size(ws.w.nation_s.loan_arrays, obj.loans) +
 		serialize_stable_array_size(ws.w.nation_s.state_tag_arrays, obj.national_focus_locations) +
 		serialize_stable_array_size(ws.w.variable_s.national_flags_arrays, obj.national_flags) +
 		serialize_stable_array_size(ws.w.nation_s.static_modifier_arrays, obj.static_modifiers) +

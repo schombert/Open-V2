@@ -1384,6 +1384,11 @@ namespace economy {
 			economy_single_good_tick<true>(ws, goods_tag(goods_tag::value_base_t(i)), state_count);
 		});
 		collect_taxes(ws);
+		//collect tarrif income
+		ws.w.nation_s.nations.parallel_for_each([&ws](nations::nation& n) {
+			auto tincome = ws.w.nation_s.collected_tarrifs.get_row(n.id);
+			ws.w.nation_s.national_stockpiles.get(n.id, economy::money_good) += std::reduce(tincome, tincome + ws.s.economy_m.goods_count, economy::money_qnty_type(0), std::plus<economy::money_qnty_type>());
+		});
 #ifdef DEBUG_ECONOMY
 		for(uint32_t i = 1; i < ws.s.economy_m.goods_count; ++i) {
 			goods_tag this_tag = goods_tag(goods_tag::value_base_t(i));
@@ -1409,9 +1414,11 @@ namespace economy {
 
 	void collect_taxes(world_state& ws) {
 		ws.w.nation_s.nations.parallel_for_each([&ws](nations::nation& n) {
+			n.tax_base = 0.0f;
+
 			if(&n != ws.w.local_player_nation) {
 				money_qnty_type total = 0;
-				nations::for_each_pop(ws, n, [&total, &ws,
+				nations::for_each_pop(ws, n, [&total, &ws, &n,
 					taxeff = std::max(ws.s.modifiers_m.global_defines.base_country_tax_efficiency + n.modifier_values[modifiers::national_offsets::tax_efficiency], 0.05f),
 					pt = float(n.poor_tax) / 100.0f, mt = float(n.middle_tax) / 100.0f, rt = float(n.rich_tax) / 100.0f
 				](population::pop& p) {
@@ -1419,14 +1426,17 @@ namespace economy {
 					if(strata == population::pop_type::strata_poor) {
 						auto collected = std::min(p.money * pt * taxeff, p.money);
 						total += collected;
+						n.tax_base += p.money * taxeff;
 						p.money -= collected;
 					} else if(strata == population::pop_type::strata_middle) {
 						auto collected = std::min(p.money * mt * taxeff, p.money);
 						total += collected;
+						n.tax_base += p.money * taxeff;
 						p.money -= collected;
 					} else { // strata rich
 						auto collected = std::min(p.money * rt * taxeff, p.money);
 						total += collected;
+						n.tax_base += p.money * taxeff;
 						p.money -= collected;
 					}
 				});
@@ -1436,7 +1446,7 @@ namespace economy {
 				ws.w.local_player_data.collected_poor_tax = 0;
 				ws.w.local_player_data.collected_middle_tax = 0;
 				ws.w.local_player_data.collected_rich_tax = 0;
-				nations::for_each_pop(ws, n, [&total, &ws,
+				nations::for_each_pop(ws, n, [&total, &ws, &n,
 					taxeff = std::max(ws.s.modifiers_m.global_defines.base_country_tax_efficiency + n.modifier_values[modifiers::national_offsets::tax_efficiency], 0.05f),
 					pt = float(n.poor_tax) / 100.0f, mt = float(n.middle_tax) / 100.0f, rt = float(n.rich_tax) / 100.0f
 				](population::pop& p) {
@@ -1445,16 +1455,19 @@ namespace economy {
 						auto collected = std::min(p.money * pt * taxeff, p.money);
 						total += collected;
 						ws.w.local_player_data.collected_poor_tax += p.money * taxeff;
+						n.tax_base += p.money * taxeff;
 						p.money -= collected;
 					} else if(strata == population::pop_type::strata_middle) {
 						auto collected = std::min(p.money * mt * taxeff, p.money);
 						total += collected;
 						ws.w.local_player_data.collected_middle_tax += p.money * taxeff;
+						n.tax_base += p.money * taxeff;
 						p.money -= collected;
 					} else { // strata rich
 						auto collected = std::min(p.money * rt * taxeff, p.money);
 						total += collected;
 						ws.w.local_player_data.collected_rich_tax += p.money * taxeff;
+						n.tax_base += p.money * taxeff;
 						p.money -= collected;
 					}
 				});

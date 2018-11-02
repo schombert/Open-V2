@@ -704,5 +704,8 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::imports] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "imports");
 		s.fixed_ui_text[fixed_ui::demand_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "demand_label");
 		s.fixed_ui_text[fixed_ui::supply_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "supply_label");
+		s.fixed_ui_text[fixed_ui::fixed_income] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "fixed_income");
+		s.fixed_ui_text[fixed_ui::variable_expenses] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "variable_expenses");
+		s.fixed_ui_text[fixed_ui::total_debt] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "BUDGET_TOTAL_DEBT");
 	}
 }

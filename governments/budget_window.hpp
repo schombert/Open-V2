@@ -46,6 +46,50 @@ namespace governments {
 		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
 
+	class total_income {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class total_funds {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class debt_total {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+	class debt_label {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class fixed_incomes_label {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+	class variable_expenses_label {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+	class fixed_incomes_funds {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+	class variable_expenses_funds {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
 	class budget_window_t : public ui::gui_window<
 		CT_STRING("close_button"), ui::simple_button<bw_close_button>,
 		CT_STRING("tariffs_percent"), ui::display_text<tarrif_percent>,
@@ -53,6 +97,14 @@ namespace governments {
 		CT_STRING("tax_1_inc"), ui::display_text<middle_tax_collected>,
 		CT_STRING("tax_2_inc"), ui::display_text<rich_tax_collected>,
 		CT_STRING("gold_inc"), ui::display_text<gold_income>,
+		CT_STRING("total_inc"), ui::display_text<total_income>,
+		CT_STRING("total_funds_val"), ui::display_text<total_funds>,
+		CT_STRING("national_bank_desc"), ui::display_text<debt_label>,
+		CT_STRING("national_bank_val"), ui::display_text<debt_total>,
+		CT_STRING("debt_desc"), ui::display_text<fixed_incomes_label>,
+		CT_STRING("debt_val"), ui::display_text<variable_expenses_label>,
+		CT_STRING("interest_desc"), ui::display_text<fixed_incomes_funds>,
+		CT_STRING("interest_val"), ui::display_text<variable_expenses_funds>,
 		budget_window_base
 	> {};
 
@@ -101,4 +153,63 @@ namespace governments {
 	}
 	template<typename W>
 	void gold_income::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
+
+	template<typename W>
+	void total_income::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if(auto pid = player->id; ws.w.nation_s.nations.is_valid_index(pid)) {
+				auto tax_income = ws.w.local_player_data.collected_poor_tax * float(player->poor_tax) / 100.0f +
+					ws.w.local_player_data.collected_middle_tax * float(player->middle_tax) / 100.0f +
+					ws.w.local_player_data.collected_rich_tax * float(player->rich_tax) / 100.0f;
+				economy::money_qnty_type tarrif_income;
+				for(uint32_t i = 0; i < ws.s.economy_m.goods_count; ++i) {
+					tarrif_income += ws.w.nation_s.collected_tarrifs.get(pid, economy::goods_tag(economy::goods_tag::value_base_t(i)));
+				}
+
+				char16_t local_buffer[16];
+				put_value_in_buffer(local_buffer, display_type::currency, tax_income + tarrif_income);
+				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+	template<typename W>
+	void total_funds::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if(auto pid = player->id; ws.w.nation_s.nations.is_valid_index(pid)) {
+				char16_t local_buffer[16];
+				put_value_in_buffer(local_buffer, display_type::currency, ws.w.nation_s.national_stockpiles.get(pid, economy::money_qnty_type));
+				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+				lm.finish_current_line();
+			}
+		}
+	}
+	template<typename W>
+	void debt_total::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::currency, player->national_debt);
+			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+			lm.finish_current_line();
+		}
+	}
+	template<typename W>
+	void debt_label::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::total_debt], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		lm.finish_current_line();
+	}
+	template<typename W>
+	void fixed_incomes_label::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::fixed_income], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		lm.finish_current_line();
+	}
+	template<typename W>
+	void variable_expenses_label::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::variable_expenses], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		lm.finish_current_line();
+	}
+	template<typename W>
+	void fixed_incomes_funds::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
+	template<typename W>
+	void variable_expenses_funds::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
 }

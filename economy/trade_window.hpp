@@ -92,6 +92,8 @@ namespace economy {
 
 	class trade_details_pane_base : public ui::window_pane {
 	public:
+		template<typename window_type>
+		void on_create(window_type& win, world_state& ws);
 	};
 
 	class tw_selected_good_icon {
@@ -364,5 +366,13 @@ namespace economy {
 			}
 		}
 		
+	}
+	template<typename window_type>
+	void trade_details_pane_base::on_create(window_type & win, world_state & ws) {
+		associated_object->size.x -= 49i16;
+		associated_object->position.x += 49i16;
+		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
+			obj.object.position += ui::xy_pair{ -49i16, 0i16 };
+		});
 	}
 }

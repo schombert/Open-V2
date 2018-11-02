@@ -50,14 +50,6 @@ namespace nations {
 		bool operator==(truce const& other) const noexcept { return tag == other.tag; }
 	};
 
-	struct loan {
-		float amount = 0.0f;
-		country_tag tag;
-
-		bool operator<(loan const& other)  const noexcept { return tag < other.tag; }
-		bool operator==(loan const& other) const noexcept { return tag == other.tag; }
-	};
-
 	struct timed_national_modifier {
 		date_tag expiration;
 		modifiers::national_modifier_tag mod;
@@ -92,6 +84,9 @@ namespace nations {
 		float suppression_points = 0.0f;
 		float diplomacy_points = 0.0f;
 		float research_points = 0.0f;
+
+		float national_debt = 0.0f;
+		float tax_base = 0.0f;
 		
 		float political_interest_fraction = 0.0f;
 		float social_interest_fraction = 0.0f;
@@ -115,7 +110,6 @@ namespace nations {
 		set_tag<country_tag> influencers;  // nations nationally investing in or influencing this country
 		set_tag<relationship> relations;
 		set_tag<truce> truces;
-		set_tag<loan> loans;
 		set_tag<state_tag> national_focus_locations;
 		set_tag<variables::national_flag_tag> national_flags;
 		multiset_tag<modifiers::national_modifier_tag> static_modifiers;
@@ -295,7 +289,6 @@ namespace nations {
 		stable_variable_vector_storage_mk_2<state_tag, 4, 8192> state_tag_arrays;
 		stable_variable_vector_storage_mk_2<relationship, 4, 8192> relations_arrays;
 		stable_variable_vector_storage_mk_2<truce, 4, 8192> truce_arrays;
-		stable_variable_vector_storage_mk_2<loan, 4, 8192> loan_arrays;
 
 		stable_2d_vector<int32_t, state_tag, population::demo_tag, 512, 16> state_demographics;
 		stable_2d_vector<float, country_tag, population::demo_tag, 512, 16> nation_demographics;

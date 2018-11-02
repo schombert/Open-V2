@@ -622,8 +622,11 @@ namespace scenario {
 		constexpr uint32_t imports = 600ui32;
 		constexpr uint32_t demand_label = 601ui32;
 		constexpr uint32_t supply_label = 602ui32;
+		constexpr uint32_t fixed_income = 603ui32;
+		constexpr uint32_t variable_expenses = 604ui32;
+		constexpr uint32_t total_debt = 605ui32;
 
-		constexpr uint32_t count = 603ui32;
+		constexpr uint32_t count = 606ui32;
 	}
 
 	class scenario_manager {
