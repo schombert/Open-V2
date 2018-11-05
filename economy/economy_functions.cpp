@@ -906,7 +906,7 @@ namespace economy {
 					const auto distance_between = ws.w.province_s.province_distance_to[distance_row_offset + to_index(other_state_cap)];
 					const auto ufactor = distance_between * distance_factor;
 					const auto t_factor = (other_state.owner == si.owner || other_state.owner->sphere_leader == si.owner) ?
-						1.0f : float(other_state.owner->tarrifs) / 100.0f;
+						0.0f : float(other_state.owner->tarrifs) / 100.0f;
 					auto destination_base_price = state_current_prices(ws, nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag)];
 					auto apparent_price = ufactor + (1.0f + t_factor) * destination_base_price;
 					if(apparent_price > 0) {

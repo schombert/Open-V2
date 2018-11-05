@@ -2569,22 +2569,19 @@ namespace triggers {
 		auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
 		if(holder)
 			return compare_values(tval[0],
-			(0 != (((nations::nation const*)primary_slot)->flags & nations::nation::is_bankrupt)) &&
-				contains_item(ws.w.nation_s.loan_arrays, ((nations::nation const*)primary_slot)->loans, nations::loan { 0.0f, holder->id }),
+			(0 != (((nations::nation const*)primary_slot)->flags & nations::nation::is_bankrupt)),
 			true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_in_default_from(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
-			(0 != (((nations::nation const*)primary_slot)->flags & nations::nation::is_bankrupt)) &&
-			contains_item(ws.w.nation_s.loan_arrays, ((nations::nation const*)primary_slot)->loans, nations::loan { 0.0f, ((nations::nation const*)from_slot)->id }),
+			(0 != (((nations::nation const*)primary_slot)->flags & nations::nation::is_bankrupt)),
 			true);
 	}
 	bool tf_in_default_this_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
-			(0 != (((nations::nation const*)primary_slot)->flags & nations::nation::is_bankrupt)) &&
-			contains_item(ws.w.nation_s.loan_arrays, ((nations::nation const*)primary_slot)->loans, nations::loan { 0.0f, ((nations::nation const*)this_slot)->id }),
+			(0 != (((nations::nation const*)primary_slot)->flags & nations::nation::is_bankrupt)),
 			true);
 	}
 	bool tf_in_default_this_province(TRIGGER_PARAMTERS) {

@@ -22,4 +22,10 @@ namespace governments {
 	void bw_close_button::button_function(ui::simple_button<bw_close_button>&, world_state & ws) {
 		ws.w.budget_w.hide(ws.w.gui_m);
 	}
+	void hidden_button::on_create(ui::simple_button<hidden_button>& b, world_state & ws) {
+		b.set_visibility(ws.w.gui_m, false);
+	}
+	void hidden_text::on_create(ui::fixed_text<hidden_text>& b, world_state &) {
+		ui::hide(*b.associated_object);
+	}
 }

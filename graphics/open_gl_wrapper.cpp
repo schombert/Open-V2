@@ -127,6 +127,8 @@ namespace graphics {
 		constexpr GLuint barchart = 10;
 		constexpr GLuint linegraph = 11;
 		constexpr GLuint tint = 12;
+		constexpr GLuint interactable = 13;
+		constexpr GLuint interactable_disabled = 14;
 	}
 
 	static char tquad_vertex_shader[] =
@@ -253,6 +255,17 @@ namespace graphics {
 		"vec4 disabled_color(vec4 color_in) {\n"
 		"	const float amount = (color_in.r + color_in.g + color_in.b) / 4.0;\n"
 		"	return vec4(amount, amount, amount, color_in.a);\n"
+		"}\n"
+		"\n"
+		"layout(index = 13) subroutine(color_function_class)\n"
+		"vec4 interactable_color(vec4 color_in) {\n"
+		"	return vec4(color_in.r + 0.1, color_in.g + 0.1, color_in.b + 0.1, color_in.a);\n"
+		"}\n"
+		"\n"
+		"layout(index = 14) subroutine(color_function_class)\n"
+		"vec4 interactable_disabled_color(vec4 color_in) {\n"
+			"	const float amount = (color_in.r + color_in.g + color_in.b) / 4.0;\n"
+			"	return vec4(amount + 0.1, amount + 0.1, amount + 0.1, color_in.a);\n"
 		"}\n"
 		"\n"
 		"layout(index = 12) subroutine(color_function_class)\n"
@@ -653,7 +666,21 @@ namespace graphics {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
 
-	void open_gl_wrapper::render_textured_rect(bool enabled, float x, float y, float width, float height, texture& t, rotation r) {
+	inline auto map_color_modification_to_index(color_modification e) {
+		switch(e) {
+			case color_modification::disabled:
+				return parameters::disabled;
+			case color_modification::interactable:
+				return parameters::interactable;
+			case color_modification::interactable_disabled:
+				return parameters::interactable_disabled;
+			default:
+			case color_modification::none:
+				return parameters::enabled;
+		}
+	}
+
+	void open_gl_wrapper::render_textured_rect(color_modification enabled, float x, float y, float width, float height, texture& t, rotation r) {
 		glBindVertexArray(global_square_vao);
 
 		switch (r) {
@@ -671,13 +698,13 @@ namespace graphics {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, t.handle());
 
-		GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::no_filter };
+		GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::no_filter };
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	}
 
-	void open_gl_wrapper::render_linegraph(bool enabled, float x, float y, float width, float height, lines& l) {
+	void open_gl_wrapper::render_linegraph(color_modification enabled, float x, float y, float width, float height, lines& l) {
 		glBindVertexArray(global_square_vao);
 
 		l.bind_buffer();
@@ -685,13 +712,13 @@ namespace graphics {
 		glUniform4f(parameters::drawing_rectangle, x, y, width, height);
 		glLineWidth(2.0f);
 
-		GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::linegraph };
+		GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::linegraph };
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 		glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
 	}
 
-	void open_gl_wrapper::render_barchart(bool enabled, float x, float y, float width, float height, data_texture& t, rotation r) {
+	void open_gl_wrapper::render_barchart(color_modification enabled, float x, float y, float width, float height, data_texture& t, rotation r) {
 		glBindVertexArray(global_square_vao);
 
 		switch (r) {
@@ -709,13 +736,13 @@ namespace graphics {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, t.handle());
 
-		GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::barchart };
+		GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::barchart };
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	}
 
-	void open_gl_wrapper::render_piechart(bool enabled, float x, float y, float size, data_texture& t) {
+	void open_gl_wrapper::render_piechart(color_modification enabled, float x, float y, float size, data_texture& t) {
 		glBindVertexArray(global_square_vao);
 
 		glBindVertexBuffer(0, global_sqaure_buffer, 0, sizeof(GLfloat) * 4);
@@ -725,13 +752,13 @@ namespace graphics {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, t.handle());
 
-		GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::piechart };
+		GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::piechart };
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	}
 
-	void open_gl_wrapper::render_bordered_rect(bool enabled, float border_size, float x, float y, float width, float height, texture& t, rotation r) {
+	void open_gl_wrapper::render_bordered_rect(color_modification enabled, float border_size, float x, float y, float width, float height, texture& t, rotation r) {
 		glBindVertexArray(global_square_vao);
 
 		switch (r) {
@@ -750,13 +777,13 @@ namespace graphics {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, t.handle());
 
-		GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::frame_stretch };
+		GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::frame_stretch };
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	}
 
-	void open_gl_wrapper::render_masked_rect(bool enabled, float x, float y, float width, float height, texture& t, texture& mask, rotation r) {
+	void open_gl_wrapper::render_masked_rect(color_modification enabled, float x, float y, float width, float height, texture& t, texture& mask, rotation r) {
 		glBindVertexArray(global_square_vao);
 
 		switch (r) {
@@ -776,13 +803,13 @@ namespace graphics {
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, mask.handle());
 
-		GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::use_mask };
+		GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::use_mask };
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	}
 
-	void open_gl_wrapper::render_progress_bar(bool enabled, float progress, float x, float y, float width, float height, texture& left, texture& right, rotation r) {
+	void open_gl_wrapper::render_progress_bar(color_modification enabled, float progress, float x, float y, float width, float height, texture& left, texture& right, rotation r) {
 		glBindVertexArray(global_square_vao);
 
 		switch (r) {
@@ -803,7 +830,7 @@ namespace graphics {
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, right.handle());
 
-		GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::progress_bar };
+		GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::progress_bar };
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -833,7 +860,7 @@ namespace graphics {
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	}
 
-	void open_gl_wrapper::render_subsprite(bool enabled, int frame, int total_frames, float x, float y, float width, float height, texture& t, rotation r) {
+	void open_gl_wrapper::render_subsprite(color_modification enabled, int frame, int total_frames, float x, float y, float width, float height, texture& t, rotation r) {
 		glBindVertexArray(global_square_vao);
 
 		switch (r) {
@@ -852,13 +879,13 @@ namespace graphics {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, t.handle());
 
-		GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::sub_sprite };
+		GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::sub_sprite };
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	}
 
-	void open_gl_wrapper::render_character(char16_t codepoint, bool enabled, float x, float y, float size, font& f) {
+	void open_gl_wrapper::render_character(char16_t codepoint, color_modification enabled, float x, float y, float size, font& f) {
 		const auto g = f.get_render_glyph(codepoint);
 
 		glBindVertexBuffer(0, sub_sqaure_buffers[g.buffer], 0, sizeof(GLfloat) * 4);
@@ -873,7 +900,7 @@ namespace graphics {
 		// glUniform1f(parameters::border_size, 0.16f * 16.0f / size); // for bold outlines
 
 		//GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::filter };
-		GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::border_filter };
+		GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::border_filter };
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -894,8 +921,8 @@ namespace graphics {
 		}
 	}
 
-	void open_gl_wrapper::render_outlined_text(const char16_t* codepoints, uint32_t count, bool enabled, float x, float y, float size, const color& c, font& f) {
-		GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::border_filter };
+	void open_gl_wrapper::render_outlined_text(const char16_t* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, const color& c, font& f) {
+		GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::border_filter };
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
 
 		glUniform3f(parameters::inner_color, c.r, c.g, c.b);
@@ -905,8 +932,8 @@ namespace graphics {
 		internal_text_render(codepoints, count, x, y + size, size, f, 0.6f);
 	}
 
-	void open_gl_wrapper::render_text(const char16_t* codepoints, uint32_t count, bool enabled, float x, float y, float size, const color& c, font& f) {
-		GLuint subroutines[2] = { enabled ? parameters::enabled : parameters::disabled, parameters::filter };
+	void open_gl_wrapper::render_text(const char16_t* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, const color& c, font& f) {
+		GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::filter };
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
 
 		glUniform3f(parameters::inner_color, c.r, c.g, c.b);

@@ -56,6 +56,16 @@ bool ui::masked_flag<BASE>::on_lclick(gui_object_tag, world_state& m, const lbut
 }
 
 template<typename BASE>
+bool ui::simple_button<BASE>::mouse_consumer(ui::xy_pair) {
+	if constexpr(ui::detail::has_button_function<BASE, gui_object_tag, world_state&>)
+		return true;
+	else if constexpr(ui::detail::has_button_function<BASE, ui::simple_button<BASE>&, world_state&>)
+		return true;
+	else
+		return false;
+}
+
+template<typename BASE>
 bool ui::simple_button<BASE>::on_keydown(gui_object_tag o, world_state & m, const key_down & k) {
 	if (k.keycode == shortcut) {
 		if constexpr(ui::detail::has_button_function<BASE, gui_object_tag, world_state&>)
@@ -66,6 +76,18 @@ bool ui::simple_button<BASE>::on_keydown(gui_object_tag o, world_state & m, cons
 	} else {
 		return false;
 	}
+}
+
+template<typename BASE>
+bool ui::button<BASE>::mouse_consumer(ui::xy_pair) {
+	if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, world_state&>)
+		return true;
+	else if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, key_down, world_state&>)
+		return true;
+	else if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, key_modifiers, world_state&>)
+		return true;
+	else 
+		return false;
 }
 
 template<typename BASE>
@@ -343,6 +365,13 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, button_tag hand
 
 	ui::add_to_back(ws.w.gui_m, parent, new_gobj);
 
+	if constexpr(ui::detail::has_button_function<B, ui::button<B>&, world_state&>)
+		new_gobj.object.flags.fetch_or(gui_object::interactable, std::memory_order_acq_rel);
+	else if constexpr(ui::detail::has_button_function<B, ui::button<B>&, key_down, world_state&>)
+		new_gobj.object.flags.fetch_or(gui_object::interactable, std::memory_order_acq_rel);
+	else if constexpr(ui::detail::has_button_function<B, ui::button<B>&, key_modifiers, world_state&>)
+		new_gobj.object.flags.fetch_or(gui_object::interactable, std::memory_order_acq_rel);
+
 	if constexpr(ui::detail::has_on_create<simple_button<B>, simple_button<B>&, world_state&>)
 		b.on_create(b, ws);
 
@@ -365,10 +394,11 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::icon_tag ha
 	});
 
 	ui::add_to_back(ws.w.gui_m, parent, new_obj);
+	new_obj.object.flags.fetch_or(gui_object::interactable, std::memory_order_acq_rel);
 
 	if constexpr(ui::detail::has_on_create<masked_flag<B>, masked_flag<B>&, world_state&>)
 		b.on_create(b, ws);
-
+	
 	ws.w.gui_m.flag_minimal_update();
 	return new_obj;
 }
@@ -387,9 +417,11 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::button_tag 
 	});
 
 	ui::add_to_back(ws.w.gui_m, parent, new_obj);
+	new_obj.object.flags.fetch_or(gui_object::interactable, std::memory_order_acq_rel);
 
 	if constexpr(ui::detail::has_on_create<masked_flag<B>, masked_flag<B>&, world_state&>)
 		b.on_create(b, ws);
+	
 
 	ws.w.gui_m.flag_minimal_update();
 	return new_obj;
@@ -407,6 +439,11 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, button_tag hand
 
 	ui::add_to_back(ws.w.gui_m, parent, new_obj);
 
+	if constexpr(ui::detail::has_button_function<B, gui_object_tag, world_state&>)
+		new_obj.object.flags.fetch_or(gui_object::interactable, std::memory_order_acq_rel);
+	else if constexpr(ui::detail::has_button_function<B, ui::simple_button<B>&, world_state&>)
+		new_obj.object.flags.fetch_or(gui_object::interactable, std::memory_order_acq_rel);
+
 	if constexpr(ui::detail::has_on_create<simple_button<B>, simple_button<B>&, world_state&>)
 		b.on_create(b, ws);
 
@@ -422,6 +459,11 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, icon_tag handle
 	b.associated_object = &new_obj.object;
 
 	ui::add_to_back(ws.w.gui_m, parent, new_obj);
+
+	if constexpr(ui::detail::has_button_function<B, gui_object_tag, world_state&>)
+		new_obj.object.flags.fetch_or(gui_object::interactable, std::memory_order_acq_rel);
+	else if constexpr(ui::detail::has_button_function<B, ui::simple_button<B>&, world_state&>)
+		new_obj.object.flags.fetch_or(gui_object::interactable, std::memory_order_acq_rel);
 
 	if constexpr(ui::detail::has_on_create<simple_button<B>, simple_button<B>&, world_state&>)
 		b.on_create(b, ws);

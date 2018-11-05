@@ -2,10 +2,16 @@
 #include "gui.h"
 
 template<typename BASE>
-bool ui::piechart<BASE>::on_lclick(gui_object_tag, world_state&, const lbutton_down & m) {
-	if (portion_used == 0)
-		return false;
+bool ui::piechart<BASE>::mouse_consumer(ui::xy_pair l) {
+	const auto xmod = int32_t(l.x) - int32_t(associated_object->size.x) / 2;
+	const auto ymod = int32_t(l.y) - int32_t(associated_object->size.y) / 2;
+	const float radius_sq = static_cast<float>(xmod * xmod + ymod * ymod) / static_cast<float>(int32_t(associated_object->size.x) * int32_t(associated_object->size.x) / 4);
 
+	return radius_sq <= 1.0f;
+}
+
+template<typename BASE>
+bool ui::piechart<BASE>::on_lclick(gui_object_tag, world_state&, const lbutton_down & m) {
 	const auto xmod = m.x - int32_t(associated_object->size.x) / 2;
 	const auto ymod = m.y - int32_t(associated_object->size.y) / 2;
 	const float radius_sq = static_cast<float>(xmod * xmod + ymod * ymod) / static_cast<float>(int32_t(associated_object->size.x) * int32_t(associated_object->size.x) / 4);
@@ -14,9 +20,6 @@ bool ui::piechart<BASE>::on_lclick(gui_object_tag, world_state&, const lbutton_d
 }
 template<typename BASE>
 bool ui::piechart<BASE>::on_rclick(gui_object_tag, world_state &, const rbutton_down &m) {
-	if (portion_used == 0)
-		return false;
-
 	const auto xmod = m.x - int32_t(associated_object->size.x) / 2;
 	const auto ymod = m.y - int32_t(associated_object->size.y) / 2;
 	const float radius_sq = static_cast<float>(xmod * xmod + ymod * ymod) / static_cast<float>(int32_t(associated_object->size.x) * int32_t(associated_object->size.x) / 4);

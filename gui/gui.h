@@ -177,6 +177,7 @@ namespace ui {
 		template<typename ... PARAMS>
 		explicit gui_behavior(PARAMS&& ... params) {}
 
+		virtual bool mouse_consumer(ui::xy_pair) { return false; }
 		virtual bool on_lclick(gui_object_tag, world_state&, const lbutton_down&) { return false; }
 		virtual bool on_rclick(gui_object_tag, world_state&, const rbutton_down&) { return false; }
 		virtual bool on_drag(gui_object_tag, world_state&, const mouse_drag&) { return false; }
@@ -197,6 +198,7 @@ namespace ui {
 		visible_region(visible_region&&) = default;
 		template<typename ...P>
 		explicit visible_region(P&& ...) {}
+		virtual bool mouse_consumer(ui::xy_pair) { return true; }
 		virtual bool on_lclick(gui_object_tag, world_state&, const lbutton_down&) override { return true; }
 		virtual bool on_rclick(gui_object_tag, world_state&, const rbutton_down&) override { return true; }
 		virtual tooltip_behavior has_tooltip(gui_object_tag, world_state&, const mouse_move&) override { return tooltip_behavior::no_tooltip; }
@@ -250,6 +252,7 @@ namespace ui {
 		void set_visibility(gui_manager&, bool visible);
 		void set_enabled(bool enabled);
 
+		virtual bool mouse_consumer(ui::xy_pair) final override;
 		virtual bool on_lclick(gui_object_tag o, world_state& m, const lbutton_down&) final override;
 		virtual bool on_keydown(gui_object_tag o, world_state& m, const key_down& k) final override;
 		virtual void update_data(gui_object_tag, world_state&) final override;
@@ -276,6 +279,7 @@ namespace ui {
 		void set_text(world_state& ws, text_data::text_tag t);
 		void set_enabled(bool enabled);
 
+		virtual bool mouse_consumer(ui::xy_pair) final override;
 		virtual bool on_lclick(gui_object_tag o, world_state& m, const lbutton_down&) final override;
 		virtual bool on_rclick(gui_object_tag o, world_state& m, const rbutton_down&) final override;
 		virtual bool on_keydown(gui_object_tag o, world_state& m, const key_down& k) final override;
@@ -327,6 +331,7 @@ namespace ui {
 		cultures::national_tag get_displayed_flag();
 		void set_underlying_object(multi_texture_instance* o);
 
+		virtual bool mouse_consumer(ui::xy_pair) final override { return true; }
 		virtual bool on_lclick(gui_object_tag o, world_state& m, const lbutton_down&) final override;
 		virtual bool on_keydown(gui_object_tag o, world_state& m, const key_down& k) final override;
 		virtual void update_data(gui_object_tag, world_state&) final override;
@@ -438,6 +443,7 @@ namespace ui {
 		template<typename ...P>
 		piechart(P&& ... params) : BASE(std::forward<P>(params)...) {}
 
+		virtual bool mouse_consumer(ui::xy_pair) final override;
 		virtual bool on_lclick(gui_object_tag, world_state&, const lbutton_down&) final override;
 		virtual bool on_rclick(gui_object_tag, world_state&, const rbutton_down&) final override;
 		virtual tooltip_behavior has_tooltip(gui_object_tag, world_state&, const mouse_move&) final override;
@@ -764,6 +770,7 @@ namespace ui {
 		static constexpr uint16_t dont_clip_children = 0x1000;
 		static constexpr uint16_t force_transparency_check = 0x2000;
 		static constexpr uint16_t display_as_disabled = 0x4000;
+		static constexpr uint16_t interactable = 0x8000;
 
 		static constexpr uint16_t rotation_mask = 0x0030;
 		static constexpr uint16_t rotation_upright = 0x0000;
@@ -818,8 +825,8 @@ namespace ui {
 
 		float font_size_to_render_size(const graphics::font& f, int32_t sz);
 
-		void render_object_type(gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper&, const gui_object&, const screen_position& position, uint32_t type, bool currently_enabled);
-		void render(gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper&, const gui_object&, ui::xy_pair position, ui::xy_pair container_size, bool parent_enabled);
+		void render_object_type(gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper&, const gui_object&, const screen_position& position, uint32_t type, graphics::color_modification currently_enabled);
+		void render(gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper&, const gui_object&, ui::xy_pair position, ui::xy_pair container_size, graphics::color_modification parent_enabled);
 
 		void create_linear_text(gui_static& static_manager, gui_manager& manager, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format&, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
 		void create_multiline_text(gui_static& static_manager, gui_manager& manager, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format&, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
@@ -1031,6 +1038,7 @@ namespace ui {
 
 		gui_object_tag focus;
 		gui_object_tag tooltip;
+		gui_object_tag selected_interactable;
 
 		gui_manager();
 		gui_manager(int32_t width, int32_t height);

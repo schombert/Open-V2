@@ -71,13 +71,13 @@ struct empty_window_handler {
 	}
 
 	void render(graphics::open_gl_wrapper& ogl) {
-		ogl.render_outlined_text(u"明Tasy", 5, true, 80.0f, 40.0f, 32.0f, graphics::color{ 1.0f,1.0f,1.0f }, test_font);
+		ogl.render_outlined_text(u"明Tasy", 5, graphics::color_modification::none, 80.0f, 40.0f, 32.0f, graphics::color{ 1.0f,1.0f,1.0f }, test_font);
 
-		ogl.render_outlined_text(u"明Tesy", 5, true, 80.0f, 80.0f, 32.0f, graphics::color{ 0.0f,0.0f,0.0f }, test_font);
-		ogl.render_text(u"明Tasy", 5, true, 80.0f, 112.0f, 32.0f, graphics::color{ 1.0f,1.0f,1.0f }, test_font);
+		ogl.render_outlined_text(u"明Tesy", 5, graphics::color_modification::none, 80.0f, 80.0f, 32.0f, graphics::color{ 0.0f,0.0f,0.0f }, test_font);
+		ogl.render_text(u"明Tasy", 5, graphics::color_modification::none, 80.0f, 112.0f, 32.0f, graphics::color{ 1.0f,1.0f,1.0f }, test_font);
 
-		ogl.render_character(u'y', true, 140.0f, 60.0f, 128.0f, test_font);
-		ogl.render_character(u'A', true, 10.0f, 138.0f, 512.0f, test_font);
+		ogl.render_character(u'y', graphics::color_modification::none, 140.0f, 60.0f, 128.0f, test_font);
+		ogl.render_character(u'A', graphics::color_modification::none, 10.0f, 138.0f, 512.0f, test_font);
 
 	}
 };

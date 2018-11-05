@@ -719,7 +719,7 @@ namespace ui {
 	}
 }
 
-void ui::detail::render_object_type(gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper& ogl, const gui_object& root_obj, const screen_position& position, uint32_t type, bool currently_enabled) {
+void ui::detail::render_object_type(gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper& ogl, const gui_object& root_obj, const screen_position& position, uint32_t type, graphics::color_modification cmod) {
 	const auto current_rotation = root_obj.get_rotation();
 
 	switch (type) {
@@ -728,7 +728,7 @@ void ui::detail::render_object_type(gui_static& static_manager, const gui_manage
 			auto dt = manager.data_textures.safe_at(data_texture_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
 			if (dt) {
 				ogl.render_barchart(
-					currently_enabled,
+					cmod,
 					position.effective_position_x,
 					position.effective_position_y,
 					position.effective_width,
@@ -746,7 +746,7 @@ void ui::detail::render_object_type(gui_static& static_manager, const gui_manage
 				if (t) {
 					if ((gi->graphics_object->flags & graphics::object::type_mask) == (uint8_t)graphics::object_type::bordered_rect) {
 						ogl.render_bordered_rect(
-							currently_enabled,
+							cmod,
 							gi->graphics_object->type_dependant,
 							position.effective_position_x,
 							position.effective_position_y,
@@ -756,7 +756,7 @@ void ui::detail::render_object_type(gui_static& static_manager, const gui_manage
 							current_rotation);
 					} else if (gi->graphics_object->number_of_frames > 1) {
 						ogl.render_subsprite(
-							currently_enabled,
+							cmod,
 							gi->frame,
 							gi->graphics_object->number_of_frames,
 							position.effective_position_x,
@@ -767,7 +767,7 @@ void ui::detail::render_object_type(gui_static& static_manager, const gui_manage
 							current_rotation);
 					} else {
 						ogl.render_textured_rect(
-							currently_enabled,
+							cmod,
 							position.effective_position_x,
 							position.effective_position_y,
 							position.effective_width,
@@ -803,7 +803,7 @@ void ui::detail::render_object_type(gui_static& static_manager, const gui_manage
 			auto l = manager.lines_set.safe_at(lines_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
 			if (l) {
 				ogl.render_linegraph(
-					currently_enabled,
+					cmod,
 					position.effective_position_x,
 					position.effective_position_y,
 					position.effective_width,
@@ -820,7 +820,7 @@ void ui::detail::render_object_type(gui_static& static_manager, const gui_manage
 				const auto flag = m->flag_or_secondary;
 				if (flag && mask) {
 					ogl.render_masked_rect(
-						currently_enabled,
+						cmod,
 						position.effective_position_x,
 						position.effective_position_y,
 						position.effective_width,
@@ -840,7 +840,7 @@ void ui::detail::render_object_type(gui_static& static_manager, const gui_manage
 				const auto secondary = m->flag_or_secondary;
 				if (primary && secondary) {
 					ogl.render_progress_bar(
-						currently_enabled,
+						cmod,
 						m->progress,
 						position.effective_position_x,
 						position.effective_position_y,
@@ -858,7 +858,7 @@ void ui::detail::render_object_type(gui_static& static_manager, const gui_manage
 			auto dt = manager.data_textures.safe_at(data_texture_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
 			if (dt) {
 				ogl.render_piechart(
-					currently_enabled,
+					cmod,
 					position.effective_position_x,
 					position.effective_position_y,
 					position.effective_width,
@@ -874,25 +874,25 @@ void ui::detail::render_object_type(gui_static& static_manager, const gui_manage
 
 				switch (ti->color) {
 					case ui::text_color::black:
-						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 0.0f, 0.0f, 0.0f }, fnt);
+						ogl.render_text(ti->text, ti->length, cmod, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 0.0f, 0.0f, 0.0f }, fnt);
 						break;
 					case ui::text_color::green:
-						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 0.2f, 0.823f, 0.2f }, fnt);
+						ogl.render_text(ti->text, ti->length, cmod, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 0.2f, 0.823f, 0.2f }, fnt);
 						break;
 					case ui::text_color::outlined_black:
-						ogl.render_outlined_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 0.0f, 0.0f, 0.0f }, fnt);
+						ogl.render_outlined_text(ti->text, ti->length, cmod, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 0.0f, 0.0f, 0.0f }, fnt);
 						break;
 					case ui::text_color::outlined_white:
-						ogl.render_outlined_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 1.0f, 1.0f, 1.0f }, fnt);
+						ogl.render_outlined_text(ti->text, ti->length, cmod, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 1.0f, 1.0f, 1.0f }, fnt);
 						break;
 					case ui::text_color::red:
-						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 1.0f, 0.2f, 0.2f }, fnt);
+						ogl.render_text(ti->text, ti->length, cmod, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 1.0f, 0.2f, 0.2f }, fnt);
 						break;
 					case ui::text_color::white:
-						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 1.0f, 1.0f, 1.0f }, fnt);
+						ogl.render_text(ti->text, ti->length, cmod, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 1.0f, 1.0f, 1.0f }, fnt);
 						break;
 					case ui::text_color::yellow:
-						ogl.render_text(ti->text, ti->length, currently_enabled, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 1.0f, 0.75f, 0.2f }, fnt);
+						ogl.render_text(ti->text, ti->length, cmod, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 1.0f, 0.75f, 0.2f }, fnt);
 						break;
 				}
 			}
@@ -901,7 +901,37 @@ void ui::detail::render_object_type(gui_static& static_manager, const gui_manage
 	}
 }
 
-void ui::detail::render(gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper &ogl, const gui_object &root_obj, ui::xy_pair position, ui::xy_pair container_size, bool parent_enabled) {
+inline graphics::color_modification determine_color_modification(const ui::gui_manager& manager, const ui::gui_object &root_obj, graphics::color_modification parent_color) {
+	const auto flags = root_obj.flags.load(std::memory_order_acquire);
+
+	if(parent_color == graphics::color_modification::interactable_disabled)
+		return graphics::color_modification::interactable_disabled;
+	if(parent_color == graphics::color_modification::disabled)
+		return graphics::color_modification::disabled;
+	if(parent_color == graphics::color_modification::interactable) {
+		if((flags & ui::gui_object::enabled) != 0)
+			return graphics::color_modification::interactable;
+		else
+			return graphics::color_modification::disabled;
+	}
+	//else parent_color == graphics::color_modification::none
+	if((flags & ui::gui_object::enabled) == 0)
+		return graphics::color_modification::disabled;
+
+	if((flags & ui::gui_object::display_as_disabled) != 0) {
+		if(&root_obj == manager.gui_objects.safe_at(manager.selected_interactable))
+			return graphics::color_modification::interactable_disabled;
+		else
+			return graphics::color_modification::disabled;
+	}
+
+	if(&root_obj == manager.gui_objects.safe_at(manager.selected_interactable))
+		return graphics::color_modification::interactable;
+	else
+		return graphics::color_modification::none;
+}
+
+void ui::detail::render(gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper &ogl, const gui_object &root_obj, ui::xy_pair position, ui::xy_pair container_size, graphics::color_modification parent_enabled) {
 	const auto flags = root_obj.flags.load(std::memory_order_acquire);
 	if ((flags & ui::gui_object::visible) == 0)
 		return;
@@ -917,26 +947,26 @@ void ui::detail::render(gui_static& static_manager, const gui_manager& manager, 
 		static_cast<float>(root_obj.size.y) * manager.scale()
 	};
 
-	const bool currently_enabled = parent_enabled && ((flags & ui::gui_object::enabled) != 0);
+	graphics::color_modification cmod = determine_color_modification(manager, root_obj, parent_enabled);
 
 	if ((flags & ui::gui_object::dont_clip_children) == 0) {
 		graphics::scissor_rect clip(ogl, std::lround(screen_pos.effective_position_x), manager.height() - std::lround(screen_pos.effective_position_y + screen_pos.effective_height), std::lround(screen_pos.effective_width), std::lround(screen_pos.effective_height));
 
-		detail::render_object_type(static_manager, manager, ogl, root_obj, screen_pos, type, currently_enabled && ((flags & ui::gui_object::display_as_disabled) == 0));
+		detail::render_object_type(static_manager, manager, ogl, root_obj, screen_pos, type, cmod);
 
 		gui_object_tag current_child = root_obj.first_child;
 		while (is_valid_index(current_child)) {
 			const auto& child_object = manager.gui_objects.at(current_child);
-			detail::render(static_manager, manager, ogl, child_object, root_position, root_obj.size, currently_enabled);
+			detail::render(static_manager, manager, ogl, child_object, root_position, root_obj.size, cmod);
 			current_child = child_object.right_sibling;
 		}
 	} else {
-		detail::render_object_type(static_manager, manager, ogl, root_obj, screen_pos, type, currently_enabled && ((flags & ui::gui_object::display_as_disabled) == 0));
+		detail::render_object_type(static_manager, manager, ogl, root_obj, screen_pos, type, cmod);
 
 		gui_object_tag current_child = root_obj.first_child;
 		while (is_valid_index(current_child)) {
 			const auto& child_object = manager.gui_objects.at(current_child);
-			detail::render(static_manager, manager, ogl, child_object, root_position, root_obj.size, currently_enabled);
+			detail::render(static_manager, manager, ogl, child_object, root_position, root_obj.size, cmod);
 			current_child = child_object.right_sibling;
 		}
 	}
@@ -1175,6 +1205,24 @@ bool ui::gui_manager::on_mouse_move(world_state& static_manager, const mouse_mov
 		return false;
 	}, tagged_gui_object{ root,gui_object_tag(0) }, root.size, ui::rescale_message(mm, _scale));
 
+	const bool found_interactable = detail::dispatch_message(*this, [_this = this](ui::tagged_gui_object obj, const ui::message_with_location& m) {
+		if(obj.object.associated_behavior) {
+			const auto consumes_mouse = obj.object.associated_behavior->mouse_consumer(ui::xy_pair{ int16_t(m.x), int16_t(m.y) });
+			if(consumes_mouse) {
+				if((obj.object.flags.load(std::memory_order_acquire) & ui::gui_object::interactable) != 0)
+					_this->selected_interactable = obj.id;
+				else
+					_this->selected_interactable = gui_object_tag();
+				return true;
+			} else {
+				return false;
+			}
+		}
+		return false;
+	}, tagged_gui_object{ root,gui_object_tag(0) }, root.size, ui::rescale_message(ui::message_with_location{mm.x, mm.y}, _scale));
+	if(!found_interactable) {
+		selected_interactable = gui_object_tag();
+	}
 	if (!found_tooltip && is_valid_index(tooltip)) {
 		tooltip = gui_object_tag();
 		hide(ui::tagged_gui_object{ tooltip_window, gui_object_tag(3) });
@@ -1314,9 +1362,9 @@ void ui::gui_manager::rescale(float new_scale) {
 
 void ui::render(gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper& ogl) {
 	ogl.use_default_program();
-	detail::render(static_manager, manager, ogl, manager.background, ui::xy_pair{ 0, 0 }, manager.background.size, true);
-	detail::render(static_manager, manager, ogl, manager.root, ui::xy_pair{ 0, 0 }, manager.root.size, true);
-	detail::render(static_manager, manager, ogl, manager.foreground, ui::xy_pair{ 0, 0 }, manager.foreground.size, true);
+	detail::render(static_manager, manager, ogl, manager.background, ui::xy_pair{ 0, 0 }, manager.background.size, graphics::color_modification::none);
+	detail::render(static_manager, manager, ogl, manager.root, ui::xy_pair{ 0, 0 }, manager.root.size, graphics::color_modification::none);
+	detail::render(static_manager, manager, ogl, manager.foreground, ui::xy_pair{ 0, 0 }, manager.foreground.size, graphics::color_modification::none);
 }
 
 graphics::rotation ui::gui_object::get_rotation() const {

@@ -96,7 +96,7 @@ namespace provinces {
 		void windowed_update(ui::masked_flag<province_controller_flag>& self, W& w, world_state& ws);
 	};
 
-	class province_window_header_base : public ui::window_pane {
+	class province_window_header_base : public ui::gui_behavior {
 	public:
 		template<typename ...P>
 		explicit province_window_header_base(P&& ... params) {}

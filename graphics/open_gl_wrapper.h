@@ -54,17 +54,17 @@ namespace graphics {
 		void display();
 		void use_default_program();
 		void set_viewport(uint32_t width, uint32_t height);
-		void render_piechart(bool enabled, float x, float y, float size, data_texture& t);
-		void render_textured_rect(bool enabled, float x, float y, float width, float height, texture& t, rotation r = rotation::upright);
-		void render_barchart(bool enabled, float x, float y, float width, float height, data_texture& t, rotation r = rotation::upright);
-		void render_linegraph(bool enabled, float x, float y, float width, float height, lines& l);
-		void render_subsprite(bool enabled, int frame, int total_frames, float x, float y, float width, float height, texture& t, rotation r = rotation::upright);
-		void render_masked_rect(bool enabled, float x, float y, float width, float height, texture& t, texture& mask, rotation r = rotation::upright);
-		void render_progress_bar(bool enabled, float progress, float x, float y, float width, float height, texture& left, texture& right, rotation r = rotation::upright);
-		void render_bordered_rect(bool enabled, float border_size, float x, float y, float width, float height, texture& t, rotation r = rotation::upright);
-		void render_character(char16_t codepoint, bool enabled, float x, float y, float size, font& f);
-		void render_text(const char16_t* codepoints, uint32_t count, bool enabled, float x, float baseline_y, float size, const color& c, font& f);
-		void render_outlined_text(const char16_t* codepoints, uint32_t count, bool enabled, float x, float baseline_y, float size, const color& c, font& f);
+		void render_piechart(color_modification enabled, float x, float y, float size, data_texture& t);
+		void render_textured_rect(color_modification enabled, float x, float y, float width, float height, texture& t, rotation r = rotation::upright);
+		void render_barchart(color_modification enabled, float x, float y, float width, float height, data_texture& t, rotation r = rotation::upright);
+		void render_linegraph(color_modification enabled, float x, float y, float width, float height, lines& l);
+		void render_subsprite(color_modification enabled, int frame, int total_frames, float x, float y, float width, float height, texture& t, rotation r = rotation::upright);
+		void render_masked_rect(color_modification enabled, float x, float y, float width, float height, texture& t, texture& mask, rotation r = rotation::upright);
+		void render_progress_bar(color_modification enabled, float progress, float x, float y, float width, float height, texture& left, texture& right, rotation r = rotation::upright);
+		void render_bordered_rect(color_modification enabled, float border_size, float x, float y, float width, float height, texture& t, rotation r = rotation::upright);
+		void render_character(char16_t codepoint, color_modification enabled, float x, float y, float size, font& f);
+		void render_text(const char16_t* codepoints, uint32_t count, color_modification enabled, float x, float baseline_y, float size, const color& c, font& f);
+		void render_outlined_text(const char16_t* codepoints, uint32_t count, color_modification enabled, float x, float baseline_y, float size, const color& c, font& f);
 		void render_tinted_textured_rect(float x, float y, float width, float height, float r, float g, float b, texture& t, rotation rot = rotation::upright);
 
 		friend scissor_rect;

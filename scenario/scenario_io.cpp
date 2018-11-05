@@ -707,5 +707,6 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::fixed_income] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "fixed_income");
 		s.fixed_ui_text[fixed_ui::variable_expenses] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "variable_expenses");
 		s.fixed_ui_text[fixed_ui::total_debt] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "BUDGET_TOTAL_DEBT");
+		s.fixed_ui_text[fixed_ui::borrowing_and_saving] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "borrowing_saving");
 	}
 }

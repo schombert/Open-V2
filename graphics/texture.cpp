@@ -104,7 +104,7 @@ namespace graphics {
 
 			glGetTextureImage(h, 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<int32_t>(sizeof(color_rgba)) * width * height, result);
 
-			const auto final_result = result[width * static_cast<int32_t>(y * height) + static_cast<int32_t>(x * width)];
+			const auto final_result = result[width * std::clamp(static_cast<int32_t>(y * height), 0, height - 1) + std::clamp(static_cast<int32_t>(x * width), 0, width - 1)];
 			return final_result;
 		} else {
 			return color_rgba{ 0,0,0,0 };

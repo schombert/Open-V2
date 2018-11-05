@@ -31,6 +31,13 @@ namespace graphics {
 	using obj_definition_tag = tag_type<uint16_t, std::true_type, struct obj_definition_tag_type>;
 	using texture_tag = tag_type<uint16_t, std::true_type, struct texture_tag_type>;
 	using font_tag = tag_type<uint8_t, std::true_type, struct font_tag_type>;
+
+	enum class color_modification {
+		none,
+		disabled,
+		interactable,
+		interactable_disabled
+	};
 }
 
 namespace sound {
