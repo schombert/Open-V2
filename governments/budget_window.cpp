@@ -28,4 +28,77 @@ namespace governments {
 	void hidden_text::on_create(ui::fixed_text<hidden_text>& b, world_state &) {
 		ui::hide(*b.associated_object);
 	}
+	void poor_tax_scrollbar::on_position(int32_t pos) {}
+	void poor_tax_scrollbar::update(ui::scrollbar<poor_tax_scrollbar>& sb, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			sb.set_limits(ws.w.gui_m, int32_t(100.0f * player->modifier_values[modifiers::national_offsets::min_tax]), player->modifier_values[modifiers::national_offsets::max_tax] > 0 ? int32_t(100.0f * player->modifier_values[modifiers::national_offsets::max_tax]) : 100);
+			sb.update_position(player->poor_tax);
+		}
+	}
+	void middle_tax_scrollbar::on_position(int32_t pos) {}
+	void middle_tax_scrollbar::update(ui::scrollbar<middle_tax_scrollbar>& sb, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			sb.set_limits(ws.w.gui_m, int32_t(100.0f * player->modifier_values[modifiers::national_offsets::min_tax]), player->modifier_values[modifiers::national_offsets::max_tax] > 0 ? int32_t(100.0f * player->modifier_values[modifiers::national_offsets::max_tax]) : 100);
+			sb.update_position(player->middle_tax);
+		}
+	}
+	void rich_tax_scrollbar::on_position(int32_t pos) {}
+	void rich_tax_scrollbar::update(ui::scrollbar<rich_tax_scrollbar>& sb, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			sb.set_limits(ws.w.gui_m, int32_t(100.0f * player->modifier_values[modifiers::national_offsets::min_tax]), player->modifier_values[modifiers::national_offsets::max_tax] > 0 ? int32_t(100.0f * player->modifier_values[modifiers::national_offsets::max_tax]) : 100);
+			sb.update_position(player->rich_tax);
+		}
+	}
+	void land_spending_scrollbar::on_position(int32_t pos) {}
+	void land_spending_scrollbar::update(ui::scrollbar<land_spending_scrollbar>& sb, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			sb.update_position(player->army_stockpile_spending);
+		}
+	}
+	void naval_spending_scrollbar::on_position(int32_t pos) {}
+	void naval_spending_scrollbar::update(ui::scrollbar<naval_spending_scrollbar>& sb, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			sb.update_position(player->navy_stockpile_spending);
+		}
+	}
+	void projects_spending_scrollbar::on_position(int32_t pos) {}
+	void projects_spending_scrollbar::update(ui::scrollbar<projects_spending_scrollbar>& sb, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			sb.update_position(player->projects_stockpile_spending);
+		}
+	}
+	void administrative_pay_scrollbar::on_position(int32_t pos) {}
+	void administrative_pay_scrollbar::update(ui::scrollbar<administrative_pay_scrollbar>& sb, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			sb.update_position(player->administrative_spending);
+		}
+	}
+	void education_pay_scrollbar::on_position(int32_t pos) {}
+	void education_pay_scrollbar::update(ui::scrollbar<education_pay_scrollbar>& sb, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			sb.update_position(player->education_spending);
+		}
+	}
+	void military_pay_scrollbar::on_position(int32_t pos) {}
+	void military_pay_scrollbar::update(ui::scrollbar<military_pay_scrollbar>& sb, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			sb.set_limits(ws.w.gui_m, int32_t(100.0f * player->modifier_values[modifiers::national_offsets::min_military_spending]), player->modifier_values[modifiers::national_offsets::max_military_spending] > 0 ? int32_t(100.0f * player->modifier_values[modifiers::national_offsets::max_military_spending]) : 100);
+			sb.update_position(player->military_spending);
+		}
+	}
+	void social_spending_scrollbar::on_position(int32_t pos) {}
+	void social_spending_scrollbar::update(ui::scrollbar<social_spending_scrollbar>& sb, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			sb.set_limits(ws.w.gui_m, int32_t(100.0f * player->modifier_values[modifiers::national_offsets::min_social_spending]), player->modifier_values[modifiers::national_offsets::max_social_spending] > 0 ? int32_t(100.0f * player->modifier_values[modifiers::national_offsets::max_social_spending]) : 100);
+			sb.update_position(player->social_spending);
+		}
+	}
+	void tarrif_setting_scrollbar::on_position(int32_t pos) {}
+	void tarrif_setting_scrollbar::update(ui::scrollbar<tarrif_setting_scrollbar>& sb, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			sb.set_range(ws.w.gui_m, -100, 100);
+			sb.set_limits(ws.w.gui_m, int32_t(100.0f * player->modifier_values[modifiers::national_offsets::min_tariff]), player->modifier_values[modifiers::national_offsets::max_tariff] > 0 ? int32_t(100.0f * player->modifier_values[modifiers::national_offsets::max_tariff]) : 100);
+			sb.update_position(player->tarrifs);
+		}
+	}
 }

@@ -13,6 +13,9 @@
 #include "provinces\\provinces.h"
 #include "soil\\SOIL.h"
 #include <thread>
+#include "world_state\\world_state.h"
+#include "economy\\economy_functions.h"
+#include "concurrency_tools\\concurrency_tools.hpp"
 
 namespace graphics {
 
@@ -945,4 +948,152 @@ namespace graphics {
 		}
 	}
 
+	void default_color_province(provinces::province const& p, uint8_t* pcolors, uint8_t* scolors) {
+		if((p.flags & provinces::province::sea) != 0) {
+			pcolors[0] = 80ui8;
+			pcolors[1] = 80ui8;
+			pcolors[2] = 255ui8;
+			scolors[0] = 80ui8;
+			scolors[1] = 80ui8;
+			scolors[2] = 255ui8;
+		} else {
+			pcolors[0] = 255ui8;
+			pcolors[1] = 255ui8;
+			pcolors[2] = 255ui8;
+			scolors[0] = 255ui8;
+			scolors[1] = 255ui8;
+			scolors[2] = 255ui8;
+		}
+	}
+
+	void update_map_colors(graphics::map_display& map, world_state& ws) {
+		bool map_change_expected = true;
+		if(ws.w.map_view.changed.compare_exchange_strong(map_change_expected, false)) {
+			const auto pcolors = map.colors.primary_color_data();
+			const auto scolors = map.colors.secondary_color_data();
+
+			auto g = ws.w.map_view.selected_good;
+			if(is_valid_index(g) && ws.w.map_view.mode == current_state::map_mode::prices) {
+				auto price_range = economy::global_price_range(ws, g);
+
+				for(uint32_t i = 0; i < ws.w.province_s.province_state_container.size(); ++i) {
+					if(auto si = ws.w.province_s.province_state_container[provinces::province_tag(provinces::province_tag::value_base_t(i))].state_instance; si && si->owner) {
+						if(auto sid = si->id; ws.w.nation_s.states.is_valid_index(sid)) {
+							auto local_prices = economy::state_current_prices(ws, sid);
+
+							auto fraction = (local_prices[to_index(g)] - price_range.minimum + 0.01) / (price_range.maximum - price_range.minimum + 0.01);
+							pcolors[i * 3 + 0] = uint8_t((1.0f - fraction) * 255.0f);
+							pcolors[i * 3 + 1] = uint8_t(fraction * 255.0f);
+							pcolors[i * 3 + 2] = uint8_t(100);
+							scolors[i * 3 + 0] = uint8_t((1.0f - fraction) * 255.0f);
+							scolors[i * 3 + 1] = uint8_t(fraction * 255.0f);
+							scolors[i * 3 + 2] = uint8_t(100);
+
+							continue;
+						}
+					}
+
+					default_color_province(ws.s.province_m.province_container[provinces::province_tag(provinces::province_tag::value_base_t(i))],
+						pcolors + i * 3, scolors + i * 3);
+				}
+
+			} else if(is_valid_index(g) && g != economy::money_good && ws.w.map_view.mode == current_state::map_mode::purchasing) {
+				if(auto selected_id = ws.w.map_view.selected_state; ws.w.nation_s.states.is_valid_index(selected_id)) {
+					auto purchasing_handle = ws.w.nation_s.state_purchases.get(selected_id, g);
+					auto purchases_data_range = get_range(ws.w.economy_s.purchasing_arrays, purchasing_handle.money_for_purchases);
+					auto count_purchases = purchases_data_range.second - purchases_data_range.first;
+
+					if(purchases_data_range.first != purchases_data_range.second) {
+						auto max_purchases = *std::max_element(purchases_data_range.first, purchases_data_range.second);
+
+						
+						for(uint32_t i = 0; i < ws.w.province_s.province_state_container.size(); ++i) {
+							if(auto si = ws.w.province_s.province_state_container[provinces::province_tag(provinces::province_tag::value_base_t(i))].state_instance; si && si->owner) {
+								if(auto sid = si->id; ws.w.nation_s.states.is_valid_index(sid) && to_index(sid) < count_purchases) {
+									auto amount = purchases_data_range.first[to_index(sid)];
+
+									auto fraction = amount / (max_purchases + 0.000001f);
+									if(fraction < 0)
+										std::abort();
+									pcolors[i * 3 + 0] = uint8_t(fraction * 205.0f + 50.0f);
+									pcolors[i * 3 + 1] = uint8_t(fraction * 205.0f + 50.0f);
+									pcolors[i * 3 + 2] = uint8_t(fraction * 205.0f + 50.0f);
+									scolors[i * 3 + 0] = uint8_t(fraction * 205.0f + 50.0f);
+									scolors[i * 3 + 1] = uint8_t(fraction * 205.0f + 50.0f);
+									scolors[i * 3 + 2] = uint8_t(fraction * 205.0f + 50.0f);
+
+									continue;
+								}
+							}
+
+							default_color_province(ws.s.province_m.province_container[provinces::province_tag(provinces::province_tag::value_base_t(i))],
+								pcolors + i * 3, scolors + i * 3);
+						}
+
+					}
+				}
+			} else if(is_valid_index(g) && g != economy::money_good && ws.w.map_view.mode == current_state::map_mode::production) {
+				economy::goods_qnty_type max_production = 0.0001;
+				ws.w.nation_s.states.for_each([&](nations::state_instance const& si) {
+					if(auto id = si.id; ws.w.nation_s.states.is_valid_index(id))
+						max_production = std::max(max_production, economy::state_current_production(ws, id)[to_index(g)]);
+				});
+
+				
+
+				for(uint32_t i = 0; i < ws.w.province_s.province_state_container.size(); ++i) {
+					if(auto si = ws.w.province_s.province_state_container[provinces::province_tag(provinces::province_tag::value_base_t(i))].state_instance; si && si->owner) {
+						if(auto sid = si->id; ws.w.nation_s.states.is_valid_index(sid)) {
+							auto fraction = economy::state_current_production(ws, sid)[to_index(g)] / max_production;
+							if(fraction < 0)
+								std::abort();
+							pcolors[i * 3 + 0] = uint8_t(fraction * 205.0f + 50.0f);
+							pcolors[i * 3 + 1] = uint8_t(fraction * 205.0f + 50.0f);
+							pcolors[i * 3 + 2] = uint8_t(fraction * 205.0f + 50.0f);
+							scolors[i * 3 + 0] = uint8_t(fraction * 205.0f + 50.0f);
+							scolors[i * 3 + 1] = uint8_t(fraction * 205.0f + 50.0f);
+							scolors[i * 3 + 2] = uint8_t(fraction * 205.0f + 50.0f);
+
+							continue;
+						}
+					}
+
+					default_color_province(ws.s.province_m.province_container[provinces::province_tag(provinces::province_tag::value_base_t(i))],
+						pcolors + i * 3, scolors + i * 3);
+				}
+
+
+			} else if(auto p = ws.w.map_view.selected_province; is_valid_index(p) && ws.w.map_view.mode == current_state::map_mode::distance) {
+				
+				auto pcount = ws.w.province_s.province_state_container.size();
+				for(uint32_t i = 0; i < pcount; ++i) {
+					auto distance = ws.w.province_s.province_distance_to[to_index(p) * pcount + i];
+					pcolors[i * 3 + 0] = uint8_t(std::clamp((distance / 8'000.0f - 1.0f), 0.0f, 1.0f) * 255.0f);
+					pcolors[i * 3 + 1] = uint8_t(std::clamp((1.0f - distance / 8'000.0f), 0.0f, 1.0f) * 255.0f);
+					pcolors[i * 3 + 2] = uint8_t(100);
+					scolors[i * 3 + 0] = uint8_t(std::clamp((distance / 8'000.0f - 1.0f), 0.0f, 1.0f) * 255.0f);
+					scolors[i * 3 + 1] = uint8_t(std::clamp((1.0f - distance / 8'000.0f), 0.0f, 1.0f) * 255.0f);
+					scolors[i * 3 + 2] = uint8_t(100);
+				}
+			} else { // default case: color by ownership
+				for(size_t i = 0; i < ws.s.province_m.province_container.size(); ++i) {
+					const provinces::province_tag this_province(static_cast<provinces::province_tag::value_base_t>(i));
+					
+					if(auto owner = ws.w.province_s.province_state_container[this_province].owner; owner) {
+						pcolors[i * 3 + 0] = owner->current_color.r;
+						pcolors[i * 3 + 1] = owner->current_color.g;
+						pcolors[i * 3 + 2] = owner->current_color.b;
+						scolors[i * 3 + 0] = owner->current_color.r;
+						scolors[i * 3 + 1] = owner->current_color.g;
+						scolors[i * 3 + 2] = owner->current_color.b;
+					} else {
+						default_color_province(ws.s.province_m.province_container[provinces::province_tag(provinces::province_tag::value_base_t(i))],
+							pcolors + i * 3, scolors + i * 3);
+					}
+				}
+			}
+
+			map.colors.update_ready();
+		}
+	}
 }

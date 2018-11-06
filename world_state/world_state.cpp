@@ -9,6 +9,70 @@
 #include "economy\\economy_functions.h"
 #include "ideologies\\ideologies_functions.h"
 #include "technologies\\technologies_functions.h"
+#include <chrono>
+
+#include <Windows.h>
+#undef min
+#undef max
+
+void world_state_update_loop(world_state & ws) {
+	auto last_tick = std::chrono::steady_clock::now();
+
+	while(ws.w.end_game.load(std::memory_order_acquire) == false) {
+
+		bool perform_update = [&ws, last_tick](){
+			if(ws.w.force_paused.load(std::memory_order_acquire) == true)
+				return false;
+			if(ws.w.single_step_pending.load(std::memory_order_acquire) == true)
+				return true;
+			if(ws.w.paused.load(std::memory_order_acquire) == true)
+				return false;
+
+			const auto speed = ws.w.speed.load(std::memory_order_acquire);
+			if(speed >= 5)
+				return true;
+			if(speed == 4) {
+				const auto new_time = std::chrono::steady_clock::now();
+				const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(new_time - last_tick).count();
+				return elapsed >= 100;
+			} else if(speed == 3) {
+				const auto new_time = std::chrono::steady_clock::now();
+				const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(new_time - last_tick).count();
+				return elapsed >= 300;
+			} else if(speed == 2) {
+				const auto new_time = std::chrono::steady_clock::now();
+				const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(new_time - last_tick).count();
+				return elapsed >= 800;
+			} else if(speed == 1) {
+				const auto new_time = std::chrono::steady_clock::now();
+				const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(new_time - last_tick).count();
+				return elapsed >= 1500;
+			}
+			return false;
+		}();
+
+		if(perform_update) {
+			//do update
+			economy::economy_update_tick(ws);
+			//etc
+
+			ws.w.pending_commands.execute(ws);
+
+			last_tick = std::chrono::steady_clock::now();
+			ws.w.single_step_pending.store(false, std::memory_order_release);
+
+			ws.w.current_date = date_tag(to_index(ws.w.current_date) + 1);
+			ws.w.gui_m.flag_update();
+			ws.w.map_view.changed.store(true, std::memory_order_release);
+		} else {
+			if(ws.w.pending_commands.execute(ws)) {
+				ws.w.gui_m.flag_update();
+				ws.w.map_view.changed.store(true, std::memory_order_release);
+			}
+			Sleep(1);
+		}
+	}
+}
 
 void ready_world_state(world_state& ws) {
 	variables::init_variables_state(ws);

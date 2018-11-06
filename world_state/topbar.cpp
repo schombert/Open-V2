@@ -790,7 +790,9 @@ namespace current_state {
 		ws.w.decrease_speed();
 	}
 	void speed_indicator_button::update(ui::simple_button<speed_indicator_button>& self, world_state & ws) {
-		if(ws.w.paused)
+		self.set_enabled(!ws.w.force_paused);
+
+		if(ws.w.paused || ws.w.force_paused)
 			self.set_frame(ws.w.gui_m, 0ui32);
 		else
 			self.set_frame(ws.w.gui_m, uint32_t(ws.w.speed));

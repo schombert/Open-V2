@@ -186,6 +186,7 @@ namespace ui {
 		virtual bool on_scroll(gui_object_tag, world_state&, const scroll&) { return false; }
 		virtual bool on_get_focus(gui_object_tag, world_state&) { return false; }
 		virtual void on_lose_focus(gui_object_tag, world_state&) {}
+		virtual void on_drag_finish(gui_object_tag, world_state&) {}
 		virtual void on_visible(gui_object_tag, world_state&) {}
 		virtual void update_data(gui_object_tag, world_state&) {}
 		virtual tooltip_behavior has_tooltip(gui_object_tag, world_state&, const mouse_move&) { return tooltip_behavior::transparent; }
@@ -515,6 +516,7 @@ namespace ui {
 		gui_object* slider = nullptr;
 
 		bool vertical;
+		bool is_being_dragged = false;
 
 		scrollbar(scrollbar&&) = default;
 		template<typename ... PARAMS>
@@ -1045,6 +1047,7 @@ namespace ui {
 		
 		void on_resize(const resize&);
 		bool on_lbutton_down(world_state& static_manager, const lbutton_down&);
+		void on_lbutton_up(world_state& static_manager, const lbutton_up&);
 		bool on_rbutton_down(world_state& static_manager, const rbutton_down&);
 		bool on_mouse_move(world_state& static_manager, const mouse_move&);
 		bool on_mouse_drag(world_state& static_manager, const mouse_drag&);

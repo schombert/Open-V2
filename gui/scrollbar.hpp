@@ -12,7 +12,7 @@ namespace ui {
 		scrollbar<BASE>& parent;
 	public:
 		scrollbar_track(scrollbar<BASE>& p) : parent(p) {}
-		virtual bool on_lclick(gui_object_tag, world_state&, const lbutton_down& ld) override;
+		virtual bool on_lclick(gui_object_tag, world_state&, const lbutton_down& ld) final override;
 	};
 
 	template<typename BASE>
@@ -22,9 +22,11 @@ namespace ui {
 		int32_t base_position;
 	public:
 		scrollbar_slider(scrollbar<BASE>& p) : parent(p), base_position(0) {}
-		virtual bool on_get_focus(gui_object_tag, world_state&) override { return true; }
-		virtual bool on_lclick(gui_object_tag, world_state&, const lbutton_down&) override { base_position = parent.position(); return true; }
-		virtual bool on_drag(gui_object_tag, world_state&, const mouse_drag& md) override;
+		virtual bool mouse_consumer(ui::xy_pair) final override { return true; }
+		virtual bool on_get_focus(gui_object_tag, world_state&) final override { return true; }
+		virtual bool on_lclick(gui_object_tag, world_state&, const lbutton_down&) final override { base_position = parent.position(); return true; }
+		virtual bool on_drag(gui_object_tag, world_state&, const mouse_drag& md) final override;
+		virtual void on_drag_finish(gui_object_tag, world_state&) final override { parent.is_being_dragged = false; };
 	};
 
 	template<typename BASE>
@@ -79,8 +81,10 @@ void ui::scrollbar<BASE>::adjust_position(world_state& ws, int32_t position) {
 
 template<typename BASE>
 void ui::scrollbar<BASE>::update_data(gui_object_tag o, world_state& w) {
-	if constexpr(ui::detail::has_update<BASE, ui::scrollbar<BASE>&, tagged_gui_object, world_state&>)
-		BASE::update(*this, o, w);
+	if constexpr(ui::detail::has_update<BASE, ui::scrollbar<BASE>&, world_state&>) {
+		if(is_being_dragged == false)
+			BASE::update(*this, w);
+	}
 }
 
 template<typename BASE>
@@ -166,6 +170,7 @@ bool ui::scrollbar_track<BASE>::on_lclick(gui_object_tag track, world_state& ws,
 
 template<typename BASE>
 bool ui::scrollbar_slider<BASE>::on_drag(gui_object_tag, world_state& ws, const mouse_drag& md) {
+	parent.is_being_dragged = true;
 	const auto[valid_start, valid_end] = parent.track_range();
 	const auto[minimum, maximum] = parent.range();
 	parent.adjust_position(ws, static_cast<int32_t>(static_cast<double>((parent.vertical ? md.y : md.x) * (maximum - minimum)) / static_cast<double>(valid_end - valid_start)) + base_position);
@@ -201,10 +206,13 @@ namespace ui {
 
 			const auto slider = create_dynamic_element<scrollbar_slider<BEHAVIOR>>(ws, scrollbar_definition.slider, scrollbar_obj, b);
 			b.slider = &slider.object;
+			slider.object.flags.fetch_or(ui::gui_object::interactable, std::memory_order_acq_rel);
 
 			const auto left_button = create_dynamic_element<simple_button<scrollbar_left_button<BEHAVIOR>>>(ws, b.vertical ? scrollbar_definition.maximum_button : scrollbar_definition.minimum_button, scrollbar_obj, b);
 			const auto right_button = create_dynamic_element<simple_button<scrollbar_right_button<BEHAVIOR>>>(ws, b.vertical ? scrollbar_definition.minimum_button : scrollbar_definition.maximum_button, scrollbar_obj, b);
 			const auto track = create_dynamic_element<scrollbar_track<BEHAVIOR>>(ws, scrollbar_definition.track, scrollbar_obj, b);
+			left_button.object.flags.fetch_or(ui::gui_object::interactable, std::memory_order_acq_rel);
+			right_button.object.flags.fetch_or(ui::gui_object::interactable, std::memory_order_acq_rel);
 
 			scrollbar_obj.object.size = b.vertical ? ui::xy_pair{ std::max(left_button.object.size.x, scrollbar_definition.size.x) , static_cast<int16_t>(extent) } : ui::xy_pair{ static_cast<int16_t>(extent), std::max(left_button.object.size.y, scrollbar_definition.size.y) };
 			scrollbar_obj.object.position = position;

@@ -158,6 +158,65 @@ namespace governments {
 		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
 
+	class poor_tax_scrollbar {
+	public:
+		void on_position(int32_t pos);
+		void update(ui::scrollbar<poor_tax_scrollbar>& sb, world_state& ws);
+	};
+	class middle_tax_scrollbar {
+	public:
+		void on_position(int32_t pos);
+		void update(ui::scrollbar<middle_tax_scrollbar>& sb, world_state& ws);
+	};
+	class rich_tax_scrollbar {
+	public:
+		void on_position(int32_t pos);
+		void update(ui::scrollbar<rich_tax_scrollbar>& sb, world_state& ws);
+	};
+
+	class land_spending_scrollbar {
+	public:
+		void on_position(int32_t pos);
+		void update(ui::scrollbar<land_spending_scrollbar>& sb, world_state& ws);
+	};
+	class naval_spending_scrollbar {
+	public:
+		void on_position(int32_t pos);
+		void update(ui::scrollbar<naval_spending_scrollbar>& sb, world_state& ws);
+	};
+	class projects_spending_scrollbar {
+	public:
+		void on_position(int32_t pos);
+		void update(ui::scrollbar<projects_spending_scrollbar>& sb, world_state& ws);
+	};
+
+	class administrative_pay_scrollbar {
+	public:
+		void on_position(int32_t pos);
+		void update(ui::scrollbar<administrative_pay_scrollbar>& sb, world_state& ws);
+	};
+	class education_pay_scrollbar {
+	public:
+		void on_position(int32_t pos);
+		void update(ui::scrollbar<education_pay_scrollbar>& sb, world_state& ws);
+	};
+	class military_pay_scrollbar {
+	public:
+		void on_position(int32_t pos);
+		void update(ui::scrollbar<military_pay_scrollbar>& sb, world_state& ws);
+	};
+	class social_spending_scrollbar {
+	public:
+		void on_position(int32_t pos);
+		void update(ui::scrollbar<social_spending_scrollbar>& sb, world_state& ws);
+	};
+
+	class tarrif_setting_scrollbar {
+	public:
+		void on_position(int32_t pos);
+		void update(ui::scrollbar<tarrif_setting_scrollbar>& sb, world_state& ws);
+	};
+
 
 	class budget_window_t : public ui::gui_window<
 		CT_STRING("close_button"), ui::simple_button<bw_close_button>,
@@ -197,6 +256,19 @@ namespace governments {
 		CT_STRING("tariff_val"), ui::display_text<tarrif_amount>,
 		CT_STRING("diplomatic_balance"), ui::display_text<debt_and_saving_amount>,
 		CT_STRING("balance"), ui::display_text<budget_total_amount>,
+		CT_STRING("tax_0_slider"), ui::scrollbar<poor_tax_scrollbar>,
+		CT_STRING("tax_1_slider"), ui::scrollbar<middle_tax_scrollbar>,
+		CT_STRING("tax_2_slider"), ui::scrollbar<rich_tax_scrollbar>,
+		CT_STRING("land_stockpile_slider"), ui::scrollbar<land_spending_scrollbar>,
+		CT_STRING("naval_stockpile_slider"), ui::scrollbar<naval_spending_scrollbar>,
+		CT_STRING("projects_stockpile_slider"), ui::scrollbar<projects_spending_scrollbar>,
+		CT_STRING("exp_0_slider"), ui::scrollbar<education_pay_scrollbar>,
+		CT_STRING("exp_1_slider"), ui::scrollbar<administrative_pay_scrollbar>,
+		CT_STRING("exp_2_slider"), ui::scrollbar<social_spending_scrollbar>,
+		CT_STRING("exp_3_slider"), ui::scrollbar<military_pay_scrollbar>,
+		CT_STRING("tariff_slider"), ui::scrollbar<tarrif_setting_scrollbar>,
+		CT_STRING("take_loan"), ui::simple_button<hidden_button>,
+		CT_STRING("repay_loan"), ui::simple_button<hidden_button>,
 		budget_window_base
 	> {};
 

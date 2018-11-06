@@ -31,7 +31,7 @@ namespace ui {
 			if constexpr(ui::detail::has_on_idle<HANDLER>) {
 				window<HANDLER>* obj = (window<HANDLER>*)get_handler(hwnd);
 				if (obj)
-					return (long*)obj->h.on_idle();
+					obj->h.on_idle();
 			}
 			return nullptr;
 		} else {

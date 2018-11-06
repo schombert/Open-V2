@@ -1413,6 +1413,10 @@ namespace economy {
 	}
 
 	void collect_taxes(world_state& ws) {
+		ws.w.local_player_data.collected_poor_tax = 0;
+		ws.w.local_player_data.collected_middle_tax = 0;
+		ws.w.local_player_data.collected_rich_tax = 0;
+
 		ws.w.nation_s.nations.parallel_for_each([&ws](nations::nation& n) {
 			n.tax_base = 0.0f;
 
@@ -1443,9 +1447,6 @@ namespace economy {
 				ws.w.nation_s.national_stockpiles.get(n.id, economy::money_good) += total;
 			} else {
 				money_qnty_type total = 0;
-				ws.w.local_player_data.collected_poor_tax = 0;
-				ws.w.local_player_data.collected_middle_tax = 0;
-				ws.w.local_player_data.collected_rich_tax = 0;
 				nations::for_each_pop(ws, n, [&total, &ws, &n,
 					taxeff = std::max(ws.s.modifiers_m.global_defines.base_country_tax_efficiency + n.modifier_values[modifiers::national_offsets::tax_efficiency], 0.05f),
 					pt = float(n.poor_tax) / 100.0f, mt = float(n.middle_tax) / 100.0f, rt = float(n.rich_tax) / 100.0f

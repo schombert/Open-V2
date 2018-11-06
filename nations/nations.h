@@ -184,14 +184,18 @@ namespace nations {
 		ideologies::ideology_tag ruling_ideology;
 
 		//budget items: in 1% increments
-		int8_t rich_tax = 0i8;
-		int8_t middle_tax = 0i8;
-		int8_t poor_tax = 0i8;
-		int8_t social_spending = 0i8;
-		int8_t administrative_spending = 0i8;
-		int8_t education_spending = 0i8;
-		int8_t military_spending = 0i8;
+		int8_t rich_tax = 10i8;
+		int8_t middle_tax = 10i8;
+		int8_t poor_tax = 10i8;
+		int8_t social_spending = 10i8;
+		int8_t administrative_spending = 20i8;
+		int8_t education_spending = 10i8;
+		int8_t military_spending = 10i8;
 		int8_t tarrifs = 0i8;
+		int8_t debt_setting = 0i8;
+		int8_t army_stockpile_spending = 10i8;
+		int8_t navy_stockpile_spending = 10i8;
+		int8_t projects_stockpile_spending = 10i8;
 		
 
 		constexpr static uint16_t is_civilized = 0x0001;

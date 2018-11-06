@@ -149,6 +149,10 @@ void serialization::serializer<nations::nation>::serialize_object(std::byte *& o
 	serialize(output, obj.education_spending);
 	serialize(output, obj.military_spending);
 	serialize(output, obj.tarrifs);
+	serialize(output, obj.debt_setting);
+	serialize(output, obj.army_stockpile_spending);
+	serialize(output, obj.navy_stockpile_spending);
+	serialize(output, obj.projects_stockpile_spending);
 
 	serialize(output, obj.current_government);
 	serialize(output, obj.primary_culture);
@@ -266,6 +270,10 @@ void serialization::serializer<nations::nation>::deserialize_object(std::byte co
 	deserialize(input, obj.education_spending);
 	deserialize(input, obj.military_spending);
 	deserialize(input, obj.tarrifs);
+	deserialize(input, obj.debt_setting);
+	deserialize(input, obj.army_stockpile_spending);
+	deserialize(input, obj.navy_stockpile_spending);
+	deserialize(input, obj.projects_stockpile_spending);
 
 	deserialize(input, obj.current_government);
 	deserialize(input, obj.primary_culture);
@@ -345,7 +353,7 @@ size_t serialization::serializer<nations::nation>::size(nations::nation const & 
 		serialize_size(obj.diplomacy_points) +
 		serialize_size(obj.national_debt) +
 		serialize_size(obj.tax_base) +
-		sizeof(int8_t) * 8 + // budget items
+		sizeof(int8_t) * 12 + // budget items
 		sizeof(obj.current_government) +
 		sizeof(obj.primary_culture) +
 		sizeof(obj.national_religion) +

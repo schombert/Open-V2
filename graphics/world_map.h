@@ -3,6 +3,8 @@
 #include "open_gl_wrapper.h"
 #include "simple_fs\\simple_fs.h"
 
+class world_state;
+
 namespace graphics {
 	class color_maps {
 	private:
@@ -42,6 +44,8 @@ namespace graphics {
 				delete[] primary_colors;
 			if(secondary_colors)
 				delete[] secondary_colors;
+			primary_colors = nullptr;
+			secondary_colors = nullptr;
 		}
 	};
 
@@ -106,4 +110,5 @@ namespace graphics {
 
 	uint16_t get_value_from_data(int32_t i, int32_t j, uint16_t* data, int32_t width, int32_t height);
 	map_data_textures create_data_textures(uint16_t const* map_data, int32_t width, int32_t height);
+	void update_map_colors(graphics::map_display& map, world_state& ws);
 }

@@ -19,6 +19,7 @@
 #include "economy\\economy_gui.h"
 #include "economy\\trade_window.h"
 #include "governments\\budget_window.h"
+#include "commands\\commands.hpp"
 
 #undef small
 
@@ -53,7 +54,7 @@ namespace current_state {
 		nations::country_tag selected_country;
 		nations::state_tag selected_state;
 		provinces::province_tag selected_province;
-		std::atomic<bool> changed = false;
+		std::atomic<bool> changed = true;
 	};
 
 	struct crisis_state {
@@ -85,13 +86,19 @@ namespace current_state {
 
 		//crisis state
 		crisis_state current_crisis;
-
 		//other global state
 		date_tag current_date;
-		int32_t speed = 3;
-		bool paused = true;
 		bool great_wars_enabled = false;
 		bool world_wars_enabled = false;
+
+		//game speed state
+		std::atomic<int32_t> speed = 3;
+		std::atomic<bool> paused = true;
+		std::atomic<bool> force_paused = false;
+		std::atomic<bool> single_step_pending = false;
+		std::atomic<bool> end_game = false;
+
+		commands::full_command_set pending_commands;
 
 		//gui state
 		map_state map_view;
@@ -109,9 +116,9 @@ namespace current_state {
 		//player data
 		struct {
 			player_net_income_history income_history;
-			economy::money_qnty_type collected_poor_tax;
-			economy::money_qnty_type collected_middle_tax;
-			economy::money_qnty_type collected_rich_tax;
+			economy::money_qnty_type collected_poor_tax = 0;
+			economy::money_qnty_type collected_middle_tax = 0;
+			economy::money_qnty_type collected_rich_tax = 0;
 		} local_player_data;
 		nations::nation* local_player_nation = nullptr;
 
@@ -131,6 +138,8 @@ public:
 	current_state::state w;
 	scenario::scenario_manager s;
 };
+
+void world_state_update_loop(world_state& ws);
 
 //called after loading a scenario & before loading a specific world state
 void ready_world_state(world_state& ws);

@@ -988,6 +988,7 @@ void ui::clear_focus(world_state& ws) {
 	if (is_valid_index(ws.w.gui_m.focus)) {
 		auto& with_focus = ws.w.gui_m.gui_objects.at(ws.w.gui_m.focus);
 		if (with_focus.associated_behavior) {
+			with_focus.associated_behavior->on_drag_finish(ws.w.gui_m.focus, ws);
 			with_focus.associated_behavior->on_lose_focus(ws.w.gui_m.focus, ws);
 			ws.w.gui_m.focus = gui_object_tag();
 		}
@@ -1239,6 +1240,14 @@ bool ui::gui_manager::on_mouse_drag(world_state& ws, const mouse_drag& md) {
 			return false;
 	}
 	return false;
+}
+
+void ui::gui_manager::on_lbutton_up(world_state& ws, const lbutton_up&) {
+	if(is_valid_index(focus)) {
+		if(gui_objects.at(focus).associated_behavior) {
+			gui_objects.at(focus).associated_behavior->on_drag_finish(focus, ws);
+		}
+	}
 }
 
 bool ui::gui_manager::on_keydown(world_state& ws, const key_down& kd) {

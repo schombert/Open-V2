@@ -1277,8 +1277,11 @@ void fixed_sz_list<T, block, index_sz>::try_pop(const F& f) {
 
 template<typename T, uint32_t block, uint32_t index_sz>
 template<typename F>
-void fixed_sz_list<T, block, index_sz>::flush(const F& f) {
+bool fixed_sz_list<T, block, index_sz>::flush(const F& f) {
 	concurrent_key_pair_helper head(first_in_list.load(std::memory_order_acquire));
+
+	if(head.parts.index == (uint32_t)-1)
+		return false;
 
 	while (head.parts.index != (uint32_t)-1) {
 
@@ -1305,6 +1308,8 @@ void fixed_sz_list<T, block, index_sz>::flush(const F& f) {
 			head.value = first_in_list.load(std::memory_order_acquire);
 		}
 	}
+
+	return true;
 }
 
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>

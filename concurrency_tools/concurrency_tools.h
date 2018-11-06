@@ -298,7 +298,7 @@ public:
 	template<typename F>
 	void try_pop(const F& f);
 	template<typename F>
-	void flush(const F& f);
+	bool flush(const F& f);
 };
 
 template<typename T>
