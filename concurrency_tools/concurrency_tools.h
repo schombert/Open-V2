@@ -249,6 +249,7 @@ template<typename T, uint32_t block, uint32_t index_sz, typename tag_type = uint
 class fixed_sz_deque {
 private:
 	static_assert(1ui64 << ct_log2(block) == block);
+	constexpr static uint32_t bit_shift = ct_log2(block);
 
 	std::atomic<T*> index_array[index_sz] = { nullptr };
 	std::atomic<uint64_t> first_free = 0;
@@ -282,6 +283,7 @@ template<typename T, uint32_t block, uint32_t index_sz>
 class fixed_sz_list {
 private:
 	static_assert(1ui64 << ct_log2(block) == block);
+	constexpr static uint32_t bit_shift = ct_log2(block);
 
 	std::atomic<T*> index_array[index_sz] = { nullptr };
 	std::atomic<uint64_t> first_free = 0;

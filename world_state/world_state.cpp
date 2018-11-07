@@ -52,13 +52,17 @@ void world_state_update_loop(world_state & ws) {
 		}();
 
 		if(perform_update) {
+			last_tick = std::chrono::steady_clock::now();
+
 			//do update
 			economy::economy_update_tick(ws);
+
+			provinces::update_province_demographics(ws);
+			nations::update_state_nation_demographics(ws);
 			//etc
 
 			ws.w.pending_commands.execute(ws);
-
-			last_tick = std::chrono::steady_clock::now();
+			
 			ws.w.single_step_pending.store(false, std::memory_order_release);
 
 			ws.w.current_date = date_tag(to_index(ws.w.current_date) + 1);

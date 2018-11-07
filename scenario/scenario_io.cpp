@@ -708,5 +708,10 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::variable_expenses] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "variable_expenses");
 		s.fixed_ui_text[fixed_ui::total_debt] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "BUDGET_TOTAL_DEBT");
 		s.fixed_ui_text[fixed_ui::borrowing_and_saving] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "borrowing_saving");
+		s.fixed_ui_text[fixed_ui::pie_no_needs] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "pie_no_needs");
+		s.fixed_ui_text[fixed_ui::pie_ln] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "pie_ln");
+		s.fixed_ui_text[fixed_ui::pie_en] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "pie_en");
+		s.fixed_ui_text[fixed_ui::pie_lx] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "pie_lx");
+		s.fixed_ui_text[fixed_ui::no_pops_of_type] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NO_POPS_OF_TYPE");
 	}
 }

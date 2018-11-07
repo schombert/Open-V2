@@ -481,7 +481,7 @@ namespace technologies {
 			env.mod.add_attribute(modifiers::bad_offset, modifiers::national_offsets::diplomatic_points_modifier, v);
 		}
 		void set_tax_eff(float v) {
-			env.mod.add_attribute(modifiers::bad_offset, modifiers::national_offsets::tax_efficiency, v);
+			env.mod.add_attribute(modifiers::bad_offset, modifiers::national_offsets::tax_efficiency, v / 100.0f);
 		}
 		void set_rebel_org_gain(const rebel_org_gain& v) {
 			if(is_valid_index(v.faction)) {

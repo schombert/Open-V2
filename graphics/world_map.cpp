@@ -972,6 +972,11 @@ namespace graphics {
 			const auto pcolors = map.colors.primary_color_data();
 			const auto scolors = map.colors.secondary_color_data();
 
+			if(pcolors == nullptr || scolors == nullptr) {
+				ws.w.map_view.changed.store(false, std::memory_order_release);
+				return;
+			}
+
 			auto g = ws.w.map_view.selected_good;
 			if(is_valid_index(g) && ws.w.map_view.mode == current_state::map_mode::prices) {
 				auto price_range = economy::global_price_range(ws, g);

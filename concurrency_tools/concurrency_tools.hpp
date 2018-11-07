@@ -1166,7 +1166,7 @@ template<typename T, uint32_t block, uint32_t index_sz>
 fixed_sz_list<T, block, index_sz>::~fixed_sz_list() {
 	auto p = concurrent_key_pair_helper(first_in_list.load(std::memory_order_relaxed)).parts.index;
 	while (p != (uint32_t)-1) {
-		const auto block_num = p >> ct_log2(block);
+		const auto block_num = p >> bit_shift;
 		const auto block_index = p & (block - 1);
 
 		const auto local_index = index_array[block_num].load(std::memory_order_relaxed);
@@ -1193,7 +1193,7 @@ void fixed_sz_list<T, block, index_sz>::create_new_block() {
 		std::abort();
 	}
 
-	const auto block_num = new_index << ct_log2(block);
+	const auto block_num = new_index << bit_shift;
 
 	for (int32_t i = block - 2; i >= 0; --i) {
 		ckeys[i].store(block_num + static_cast<uint32_t>(i) + 1, std::memory_order_release);
@@ -1219,7 +1219,7 @@ void fixed_sz_list<T, block, index_sz>::emplace(P&& ... params) {
 			free_spot.value = first_free.load(std::memory_order_acquire);
 		}
 		while (free_spot.parts.index != (uint32_t)-1) {
-			const auto block_num = free_spot.parts.index >> ct_log2(block);
+			const auto block_num = free_spot.parts.index >> bit_shift;
 			const auto block_index = free_spot.parts.index & (block - 1);
 
 			const auto local_index = index_array[block_num].load(std::memory_order_acquire);
@@ -1250,7 +1250,7 @@ void fixed_sz_list<T, block, index_sz>::try_pop(const F& f) {
 
 	while (head.parts.index != (uint32_t)-1) {
 
-		const auto block_num = head.parts.index >> ct_log2(block);
+		const auto block_num = head.parts.index >> bit_shift;
 		const auto block_index = head.parts.index & (block - 1);
 
 		const auto local_index = index_array[block_num].load(std::memory_order_acquire);
@@ -1278,37 +1278,50 @@ void fixed_sz_list<T, block, index_sz>::try_pop(const F& f) {
 template<typename T, uint32_t block, uint32_t index_sz>
 template<typename F>
 bool fixed_sz_list<T, block, index_sz>::flush(const F& f) {
-	concurrent_key_pair_helper head(first_in_list.load(std::memory_order_acquire));
+	//unlink current list
+	concurrent_key_pair_helper head(first_in_list.exchange(concurrent_key_pair_helper((uint32_t)-1, 0).value, std::memory_order_acq_rel));
 
 	if(head.parts.index == (uint32_t)-1)
 		return false;
 
-	while (head.parts.index != (uint32_t)-1) {
-
-		const auto block_num = head.parts.index >> ct_log2(block);
+	// reverse list
+	uint32_t previous = (uint32_t)-1;
+	while(head.parts.index != (uint32_t)-1) {
+		const auto block_num = head.parts.index >> bit_shift;
 		const auto block_index = head.parts.index & (block - 1);
 
 		const auto local_index = index_array[block_num].load(std::memory_order_acquire);
 		std::atomic<uint32_t>* const keys = (std::atomic<uint32_t>*)(local_index + block);
 
-		auto& this_spot = local_index[block_index];
-		auto expected_next = keys[block_index].load(std::memory_order_acquire);
-
-		if (first_in_list.compare_exchange_strong(head.value, concurrent_key_pair_helper(expected_next, head.parts.counter + 1).value, std::memory_order_release, std::memory_order_acquire)) {
-			f(this_spot);
-			this_spot.~T();
-
-			concurrent_key_pair_helper expected_first_free(first_free.load(std::memory_order_acquire));
-			keys[block_index].store(expected_first_free.parts.index, std::memory_order_release);
-
-			while (!first_free.compare_exchange_strong(expected_first_free.value, concurrent_key_pair_helper(head.parts.index, expected_first_free.parts.counter + 1).value, std::memory_order_release, std::memory_order_acquire)) {
-				keys[block_index].store(expected_first_free.parts.index, std::memory_order_release);
-			}
-
-			head.value = first_in_list.load(std::memory_order_acquire);
-		}
+		auto current = head.parts.index;
+		head.parts.index = keys[block_index].load(std::memory_order_relaxed); // = next
+		keys[block_index].store(previous, std::memory_order_relaxed);
+		previous = current;
 	}
 
+	// flush reversed list
+	while(previous != (uint32_t)-1) {
+		const auto block_num = previous >> bit_shift;
+		const auto block_index = previous & (block - 1);
+
+		const auto local_index = index_array[block_num].load(std::memory_order_acquire);
+		std::atomic<uint32_t>* const keys = (std::atomic<uint32_t>*)(local_index + block);
+
+		auto& this_spot = local_index[block_index];
+		auto next = keys[block_index].load(std::memory_order_relaxed);
+
+		f(this_spot);
+		this_spot.~T();
+
+		concurrent_key_pair_helper expected_first_free(first_free.load(std::memory_order_acquire));
+		keys[block_index].store(expected_first_free.parts.index, std::memory_order_release);
+
+		while(!first_free.compare_exchange_strong(expected_first_free.value, concurrent_key_pair_helper(previous, expected_first_free.parts.counter + 1).value, std::memory_order_release, std::memory_order_acquire)) {
+			keys[block_index].store(expected_first_free.parts.index, std::memory_order_release);
+		}
+
+		previous = next;
+	}
 	return true;
 }
 
@@ -1341,7 +1354,7 @@ fixed_sz_deque<T, block, index_sz, tag_type>::~fixed_sz_deque() {
 
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 T& fixed_sz_deque<T, block, index_sz, tag_type>::at(tag_type index) const {
-	const uint32_t block_num = static_cast<uint32_t>(to_index(index)) >> ct_log2(block);
+	const uint32_t block_num = static_cast<uint32_t>(to_index(index)) >> bit_shift;
 	const uint32_t block_index = static_cast<uint32_t>(to_index(index)) & (block - 1);
 
 	const auto local_index = index_array[block_num].load(std::memory_order_acquire);
@@ -1351,7 +1364,7 @@ T& fixed_sz_deque<T, block, index_sz, tag_type>::at(tag_type index) const {
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 template<typename F>
 void fixed_sz_deque<T, block, index_sz, tag_type>::visit(tag_type index, const F& f) const {
-	const uint32_t block_num = static_cast<uint32_t>(to_index(index)) >> ct_log2(block);
+	const uint32_t block_num = static_cast<uint32_t>(to_index(index)) >> bit_shift;
 	const uint32_t block_index = static_cast<uint32_t>(to_index(index)) & (block - 1);
 
 	if (block_num < index_sz) {
@@ -1368,7 +1381,7 @@ T* fixed_sz_deque<T, block, index_sz, tag_type>::safe_at(tag_type index) const {
 	if (!is_valid_index(index))
 		return nullptr;
 
-	const uint32_t block_num = static_cast<uint32_t>(to_index(index)) >> ct_log2(block);
+	const uint32_t block_num = static_cast<uint32_t>(to_index(index)) >> bit_shift;
 	const uint32_t block_index = static_cast<uint32_t>(to_index(index)) & (block - 1);
 
 	if (block_num < index_sz) {
@@ -1395,16 +1408,16 @@ template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 uint32_t fixed_sz_deque<T, block, index_sz, tag_type>::past_end() const {
 	for (uint32_t i = 1; i < index_sz; ++i) {
 		if (index_array[i].load(std::memory_order_acquire) == nullptr) {
-			return i << ct_log2(block);
+			return i << bit_shift;
 		}
 	}
-	return index_sz << ct_log2(block);
+	return index_sz << bit_shift;
 }
 
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 template<typename U>
 void fixed_sz_deque<T, block, index_sz, tag_type>::free(tag_type index, U& u) {
-	const uint32_t block_num = static_cast<uint32_t>(to_index(index)) >> ct_log2(block);
+	const uint32_t block_num = static_cast<uint32_t>(to_index(index)) >> bit_shift;
 	const uint32_t block_index = static_cast<uint32_t>(to_index(index)) & (block - 1);
 
 	const auto local_index = index_array[block_num].load(std::memory_order_acquire);
@@ -1422,7 +1435,7 @@ void fixed_sz_deque<T, block, index_sz, tag_type>::free(tag_type index, U& u) {
 
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 void fixed_sz_deque<T, block, index_sz, tag_type>::free(tag_type index) {
-	const uint32_t block_num = static_cast<uint32_t>(to_index(index)) >> ct_log2(block);
+	const uint32_t block_num = static_cast<uint32_t>(to_index(index)) >> bit_shift;
 	const uint32_t block_index = static_cast<uint32_t>(to_index(index)) & (block - 1);
 
 	const auto local_index = index_array[block_num].load(std::memory_order_acquire);
@@ -1449,7 +1462,7 @@ void fixed_sz_deque<T, block, index_sz, tag_type>::create_new_block() {
 	}
 
 	std::atomic<uint32_t>* const ckeys = (std::atomic<uint32_t>*)(created + block);
-	const auto block_num = new_index << ct_log2(block);
+	const auto block_num = new_index << bit_shift;
 
 	for (int32_t i = block - 2; i >= 0; --i) {
 		ckeys[i].store(block_num + static_cast<uint32_t>(i) + 1, std::memory_order_release);
@@ -1469,7 +1482,7 @@ void fixed_sz_deque<T, block, index_sz, tag_type>::create_new_block() {
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 template<typename ...P>
 T& fixed_sz_deque<T, block, index_sz, tag_type>::emplace_at(tag_type location, P&& ... params) {
-	const uint32_t block_num = static_cast<uint32_t>(to_index(location)) >> ct_log2(block);
+	const uint32_t block_num = static_cast<uint32_t>(to_index(location)) >> bit_shift;
 	const uint32_t block_index = static_cast<uint32_t>(to_index(location)) & (block - 1);
 
 	while (first_free_index.load(std::memory_order_relaxed) < block_num) {
@@ -1481,7 +1494,7 @@ T& fixed_sz_deque<T, block, index_sz, tag_type>::emplace_at(tag_type location, P
 
 	if (keys[block_index].load(std::memory_order_relaxed) != (uint32_t)-2) {
 		concurrent_key_pair_helper ff(first_free.load(std::memory_order_relaxed));
-		std::atomic<uint32_t>* current_key = (std::atomic<uint32_t>*)(index_array[ff.parts.index >> ct_log2(block)].load(std::memory_order_relaxed) + block)
+		std::atomic<uint32_t>* current_key = (std::atomic<uint32_t>*)(index_array[ff.parts.index >> bit_shift].load(std::memory_order_relaxed) + block)
 			+ (ff.parts.index & (block - 1));
 
 		if (ff.parts.index == static_cast<uint32_t>(to_index(location))) {
@@ -1490,7 +1503,7 @@ T& fixed_sz_deque<T, block, index_sz, tag_type>::emplace_at(tag_type location, P
 			while (current_key->load(std::memory_order_relaxed) != (uint32_t)-1) {
 				const auto current_key_position = current_key->load(std::memory_order_relaxed);
 				std::atomic<uint32_t>* next_key =
-					(std::atomic<uint32_t>*)(index_array[current_key_position >> ct_log2(block)].load(std::memory_order_relaxed) + block)
+					(std::atomic<uint32_t>*)(index_array[current_key_position >> bit_shift].load(std::memory_order_relaxed) + block)
 					+ (current_key_position & (block - 1));
 				if (current_key_position == static_cast<uint32_t>(to_index(location))) {
 					current_key->store(next_key->load(std::memory_order_relaxed), std::memory_order_release);
@@ -1511,7 +1524,7 @@ T& fixed_sz_deque<T, block, index_sz, tag_type>::emplace_at(tag_type location, P
 
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 T& fixed_sz_deque<T, block, index_sz, tag_type>::ensure_reserved(tag_type location) {
-	const uint32_t block_num = static_cast<uint32_t>(to_index(location)) >> ct_log2(block);
+	const uint32_t block_num = static_cast<uint32_t>(to_index(location)) >> bit_shift;
 	const uint32_t block_index = static_cast<uint32_t>(to_index(location)) & (block - 1);
 
 	while (first_free_index.load(std::memory_order_relaxed) < block_num) {
@@ -1540,7 +1553,7 @@ tagged_object<T, tag_type> fixed_sz_deque<T, block, index_sz, tag_type>::emplace
 			free_spot = concurrent_key_pair_helper(first_free.load(std::memory_order_acquire));
 		}
 		while (free_spot.parts.index != (uint32_t)-1) {
-			const auto block_num = (free_spot.parts.index) >> ct_log2(block);
+			const auto block_num = (free_spot.parts.index) >> bit_shift;
 			const auto block_index = (free_spot.parts.index) & (block - 1);
 
 			const auto local_index = index_array[block_num].load(std::memory_order_acquire);

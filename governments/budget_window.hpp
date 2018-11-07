@@ -160,63 +160,142 @@ namespace governments {
 
 	class poor_tax_scrollbar {
 	public:
-		void on_position(int32_t pos);
+		void on_position(world_state& ws, ui::scrollbar<poor_tax_scrollbar>& sb, int32_t pos);
 		void update(ui::scrollbar<poor_tax_scrollbar>& sb, world_state& ws);
 	};
 	class middle_tax_scrollbar {
 	public:
-		void on_position(int32_t pos);
+		void on_position(world_state& ws, ui::scrollbar<middle_tax_scrollbar>& sb, int32_t pos);
 		void update(ui::scrollbar<middle_tax_scrollbar>& sb, world_state& ws);
 	};
 	class rich_tax_scrollbar {
 	public:
-		void on_position(int32_t pos);
+		void on_position(world_state& ws, ui::scrollbar<rich_tax_scrollbar>& sb, int32_t pos);
 		void update(ui::scrollbar<rich_tax_scrollbar>& sb, world_state& ws);
 	};
 
 	class land_spending_scrollbar {
 	public:
-		void on_position(int32_t pos);
+		void on_position(world_state& ws, ui::scrollbar<land_spending_scrollbar>& sb, int32_t pos);
 		void update(ui::scrollbar<land_spending_scrollbar>& sb, world_state& ws);
 	};
 	class naval_spending_scrollbar {
 	public:
-		void on_position(int32_t pos);
+		void on_position(world_state& ws, ui::scrollbar<naval_spending_scrollbar>& sb, int32_t pos);
 		void update(ui::scrollbar<naval_spending_scrollbar>& sb, world_state& ws);
 	};
 	class projects_spending_scrollbar {
 	public:
-		void on_position(int32_t pos);
+		void on_position(world_state& ws, ui::scrollbar<projects_spending_scrollbar>& sb, int32_t pos);
 		void update(ui::scrollbar<projects_spending_scrollbar>& sb, world_state& ws);
 	};
 
 	class administrative_pay_scrollbar {
 	public:
-		void on_position(int32_t pos);
+		void on_position(world_state& ws, ui::scrollbar<administrative_pay_scrollbar>& sb, int32_t pos);
 		void update(ui::scrollbar<administrative_pay_scrollbar>& sb, world_state& ws);
 	};
 	class education_pay_scrollbar {
 	public:
-		void on_position(int32_t pos);
+		void on_position(world_state& ws, ui::scrollbar<education_pay_scrollbar>& sb, int32_t pos);
 		void update(ui::scrollbar<education_pay_scrollbar>& sb, world_state& ws);
 	};
 	class military_pay_scrollbar {
 	public:
-		void on_position(int32_t pos);
+		void on_position(world_state& ws, ui::scrollbar<military_pay_scrollbar>& sb, int32_t pos);
 		void update(ui::scrollbar<military_pay_scrollbar>& sb, world_state& ws);
 	};
 	class social_spending_scrollbar {
 	public:
-		void on_position(int32_t pos);
+		void on_position(world_state& ws, ui::scrollbar<social_spending_scrollbar>& sb, int32_t pos);
 		void update(ui::scrollbar<social_spending_scrollbar>& sb, world_state& ws);
 	};
 
 	class tarrif_setting_scrollbar {
 	public:
-		void on_position(int32_t pos);
+		void on_position(world_state& ws, ui::scrollbar<tarrif_setting_scrollbar>& sb, int32_t pos);
 		void update(ui::scrollbar<tarrif_setting_scrollbar>& sb, world_state& ws);
 	};
 
+	class poor_needs_pie_chart {
+	public:
+		void update(ui::piechart<poor_needs_pie_chart>& pie, world_state& ws);
+	};
+
+	class middle_needs_pie_chart {
+	public:
+		void update(ui::piechart<middle_needs_pie_chart>& pie, world_state& ws);
+	};
+
+	class rich_needs_pie_chart {
+	public:
+		void update(ui::piechart<rich_needs_pie_chart>& pie, world_state& ws);
+	};
+
+	class pop_button {
+	public:
+		population::pop_type_tag type;
+
+		pop_button(population::pop_type_tag t) : type(t) {}
+		void update(ui::simple_button<pop_button>& ico, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class pop_item_base : public ui::visible_region {
+	public:
+		pop_item_base(population::pop_type_tag) {}
+
+		template<typename window_type>
+		void on_create(window_type& win, world_state& ws);
+	};
+
+	using pop_item_t = ui::gui_window<
+		CT_STRING("pop"), ui::simple_button<pop_button>,
+		pop_item_base
+	>;
+
+	class poor_pops_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class middle_pops_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class rich_pops_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class education_pops_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class administation_pops_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class military_pops_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
 
 	class budget_window_t : public ui::gui_window<
 		CT_STRING("close_button"), ui::simple_button<bw_close_button>,
@@ -269,6 +348,15 @@ namespace governments {
 		CT_STRING("tariff_slider"), ui::scrollbar<tarrif_setting_scrollbar>,
 		CT_STRING("take_loan"), ui::simple_button<hidden_button>,
 		CT_STRING("repay_loan"), ui::simple_button<hidden_button>,
+		CT_STRING("chart_0"), ui::piechart<poor_needs_pie_chart>,
+		CT_STRING("chart_1"), ui::piechart<middle_needs_pie_chart>,
+		CT_STRING("chart_2"), ui::piechart<rich_needs_pie_chart>,
+		CT_STRING("tax_0_pops"), ui::overlap_box<poor_pops_lb, ui::window_tag, pop_item_t, 32>,
+		CT_STRING("tax_1_pops"), ui::overlap_box<middle_pops_lb, ui::window_tag, pop_item_t, 32>,
+		CT_STRING("tax_2_pops"), ui::overlap_box<rich_pops_lb, ui::window_tag, pop_item_t, 32>,
+		CT_STRING("exp_0_pops"), ui::overlap_box<education_pops_lb, ui::window_tag, pop_item_t, 1>,
+		CT_STRING("exp_1_pops"), ui::overlap_box<administation_pops_lb, ui::window_tag, pop_item_t, 1>,
+		CT_STRING("exp_3_pops"), ui::overlap_box<military_pops_lb, ui::window_tag, pop_item_t, 1>,
 		budget_window_base
 	> {};
 
@@ -420,4 +508,48 @@ namespace governments {
 	}
 	template<typename W>
 	void budget_total_amount::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
+	
+	template<typename lb_type>
+	void poor_pops_lb::populate_list(lb_type & lb, world_state & ws) {
+		for(auto& pt : ws.s.population_m.pop_types) {
+			if((pt.flags & population::pop_type::strata_mask) == population::pop_type::strata_poor) {
+				lb.add_item(ws, pt.id);
+			}
+		}
+	}
+
+	template<typename lb_type>
+	void middle_pops_lb::populate_list(lb_type & lb, world_state & ws) {
+		for(auto& pt : ws.s.population_m.pop_types) {
+			if((pt.flags & population::pop_type::strata_mask) == population::pop_type::strata_middle) {
+				lb.add_item(ws, pt.id);
+			}
+		}
+	}
+
+	template<typename lb_type>
+	void rich_pops_lb::populate_list(lb_type & lb, world_state & ws) {
+		for(auto& pt : ws.s.population_m.pop_types) {
+			if((pt.flags & population::pop_type::strata_mask) == population::pop_type::strata_rich) {
+				lb.add_item(ws, pt.id);
+			}
+		}
+	}
+	template<typename window_type>
+	void pop_item_base::on_create(window_type & win, world_state & ws) {
+		associated_object->size.y = 64i16;
+	}
+	template<typename lb_type>
+	void education_pops_lb::populate_list(lb_type & lb, world_state & ws) {
+		lb.add_item(ws, ws.s.population_m.clergy);
+	}
+	template<typename lb_type>
+	void administation_pops_lb::populate_list(lb_type & lb, world_state & ws) {
+		lb.add_item(ws, ws.s.population_m.bureaucrat);
+	}
+	template<typename lb_type>
+	void military_pops_lb::populate_list(lb_type & lb, world_state & ws) {
+		lb.add_item(ws, ws.s.population_m.soldier);
+		lb.add_item(ws, ws.s.population_m.officer);
+	}
 }

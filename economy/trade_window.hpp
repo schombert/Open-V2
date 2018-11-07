@@ -370,9 +370,11 @@ namespace economy {
 	template<typename window_type>
 	void trade_details_pane_base::on_create(window_type & win, world_state & ws) {
 		associated_object->size.x -= 49i16;
+		associated_object->size.y -= 6i16;
 		associated_object->position.x += 49i16;
+		associated_object->position.y += 6i16;
 		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
-			obj.object.position += ui::xy_pair{ -49i16, 0i16 };
+			obj.object.position += ui::xy_pair{ -49i16, -6i16 };
 		});
 	}
 }

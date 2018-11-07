@@ -878,8 +878,8 @@ namespace economy {
 					if(produced_in_state > 0) {
 						const auto distance_between = ws.w.province_s.province_distance_to[distance_row_offset + to_index(other_state_cap)];
 						const auto ufactor = distance_between * distance_factor;
-						const auto t_factor = (other_state.owner == si.owner || other_state.owner->sphere_leader == si.owner) ?
-							1.0f : 1.0f + float(other_state.owner->tarrifs) / 100.0f;
+						const auto t_factor = (other_state.owner == si.owner || other_state.owner == si.owner->sphere_leader || other_state.owner == si.owner->overlord) ?
+							1.0f : 1.0f + float(si.owner->tarrifs) / 100.0f;
 						auto apparent_price = ufactor + t_factor * state_current_prices(ws, nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag)];
 
 						first_derivatives[i] = produced_in_state / (apparent_price * apparent_price); // scratch weightings
@@ -905,14 +905,14 @@ namespace economy {
 				if(other_state.owner != nullptr) {
 					const auto distance_between = ws.w.province_s.province_distance_to[distance_row_offset + to_index(other_state_cap)];
 					const auto ufactor = distance_between * distance_factor;
-					const auto t_factor = (other_state.owner == si.owner || other_state.owner->sphere_leader == si.owner) ?
-						0.0f : float(other_state.owner->tarrifs) / 100.0f;
+					const auto t_factor = (other_state.owner == si.owner || other_state.owner == si.owner->sphere_leader || other_state.owner == si.owner->overlord) ?
+						0.0f : float(si.owner->tarrifs) / 100.0f;
 					auto destination_base_price = state_current_prices(ws, nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag)];
 					auto apparent_price = ufactor + (1.0f + t_factor) * destination_base_price;
 					if(apparent_price > 0) {
 						auto qnty = values[i] * demand_in_state / apparent_price;
 						values_at_destination[i] = destination_base_price * qnty;
-						ws.w.nation_s.collected_tarrifs.get(other_state.owner->id, tag) += destination_base_price * qnty * t_factor;
+						ws.w.nation_s.collected_tarrifs.get(si.owner->id, tag) += destination_base_price * qnty * t_factor;
 
 						state_old_global_demand(ws, nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag)] += 0.85f * destination_base_price * qnty;
 					}
@@ -947,8 +947,9 @@ namespace economy {
 					auto global_demand_in_state = state_old_global_demand(ws, nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag)];
 					const auto distance_between = ws.w.province_s.province_distance_to[distance_row_offset + to_index(other_state_cap)];
 					const auto ufactor = distance_between * distance_factor;
-					const auto t_factor = (other_state.owner == si.owner || other_state.owner->sphere_leader == si.owner) ?
-						1.0f : 1.0f + float(other_state.owner->tarrifs) / 100.0f;
+
+					const auto t_factor = (other_state.owner == si.owner || other_state.owner == si.owner->sphere_leader || other_state.owner == si.owner->overlord) ?
+						1.0f : 1.0f + float(si.owner->tarrifs) / 100.0f;
 						
 					auto apparent_price = ufactor + t_factor * (produced_in_state > 0 ? global_demand_in_state / produced_in_state : 999.9f);
 

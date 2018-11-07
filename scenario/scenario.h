@@ -626,8 +626,13 @@ namespace scenario {
 		constexpr uint32_t variable_expenses = 604ui32;
 		constexpr uint32_t total_debt = 605ui32;
 		constexpr uint32_t borrowing_and_saving = 606ui32;
+		constexpr uint32_t pie_no_needs = 607ui32;
+		constexpr uint32_t pie_ln = 608ui32;
+		constexpr uint32_t pie_en = 609ui32;
+		constexpr uint32_t pie_lx = 610ui32;
+		constexpr uint32_t no_pops_of_type = 611ui32;
 
-		constexpr uint32_t count = 607ui32;
+		constexpr uint32_t count = 612ui32;
 	}
 
 	class scenario_manager {
