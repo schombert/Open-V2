@@ -75,6 +75,7 @@ namespace nations {
 	float get_prestige(nations::nation const& n);
 	int32_t get_colonial_points(nations::nation const& n);
 	float calculate_state_administrative_efficiency(world_state const& ws, nations::state_instance const& si, float admin_requirement);
+	float calculate_national_administrative_efficiency(world_state const& ws, nations::nation const& n);
 	void update_neighbors(world_state& ws, nations::nation& this_nation);
 
 	uint32_t calculate_blockaded_count(world_state const& ws, nations::nation const& this_nation);

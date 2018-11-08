@@ -324,6 +324,7 @@ namespace nations {
 
 		ws.w.nation_s.active_parties.ensure_capacity(to_index(new_nation.id) + 1);
 		ws.w.nation_s.nation_demographics.ensure_capacity(to_index(new_nation.id) + 1);
+		ws.w.nation_s.nation_colonial_demographics.ensure_capacity(to_index(new_nation.id) + 1);
 		ws.w.nation_s.upper_house.ensure_capacity(to_index(new_nation.id) + 1);
 		ws.w.nation_s.active_technologies.ensure_capacity(to_index(new_nation.id) + 1);
 		ws.w.nation_s.active_goods.ensure_capacity(to_index(new_nation.id) + 1);
@@ -429,6 +430,7 @@ namespace nations {
 
 	void init_nations_state(world_state& ws) {
 		ws.w.nation_s.nation_demographics.reset(population::aligned_32_demo_size(ws));
+		ws.w.nation_s.nation_colonial_demographics.reset(population::aligned_32_demo_size(ws));
 		ws.w.nation_s.state_demographics.reset(population::aligned_32_demo_size(ws));
 		ws.w.nation_s.active_parties.reset(ws.s.ideologies_m.ideologies_count);
 		ws.w.nation_s.upper_house.reset(ws.s.ideologies_m.ideologies_count);
@@ -454,7 +456,9 @@ namespace nations {
 
 		ws.w.nation_s.nations.parallel_for_each([&ws, full_vector_size](nation& n) {
 			Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> nation_demo(ws.w.nation_s.nation_demographics.get_row(n.id), full_vector_size);
+			Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> nation_c_demo(ws.w.nation_s.nation_colonial_demographics.get_row(n.id), full_vector_size);
 			nation_demo.setZero();
+			nation_c_demo.setZero();
 
 			const auto state_range = get_range(ws.w.nation_s.state_arrays, n.member_states);
 
@@ -491,6 +495,8 @@ namespace nations {
 
 				if(!nations::is_colonial_or_protectorate(*s->state))
 					nation_demo += state_demo.cast<float>();
+				else
+					nation_c_demo += state_demo.cast<float>();
 			}
 
 			if(nation_demo[to_index(population::total_population_tag)] != 0) {
@@ -805,7 +811,30 @@ namespace nations {
 			this_state.owner->modifier_values[modifiers::national_offsets::administrative_efficiency_modifier] +
 			float(ws.w.nation_s.state_demographics.get(this_state.id, population::to_demo_tag(ws, ws.s.population_m.bureaucrat))) /
 			(float(ws.w.nation_s.state_demographics.get(this_state.id, population::total_population_tag)) * admin_requirement),
-			0.0f, 1.0f);
+			0.05f, 1.0f);
+	}
+
+	float calculate_national_administrative_efficiency(world_state const& ws, nations::nation const& n) {
+		auto b_amount = ws.w.nation_s.nation_demographics.get(n.id, population::to_demo_tag(ws, ws.s.population_m.bureaucrat));
+		auto total_pop = ws.w.nation_s.nation_demographics.get(n.id, population::total_population_tag);
+
+		if(total_pop == 0)
+			return 0.0f;
+
+		auto ratio_num = b_amount * (1.0f + n.modifier_values[modifiers::national_offsets::administrative_efficiency_modifier]) / total_pop;
+
+		auto issues_range = ws.w.nation_s.active_issue_options.get_row(n.id);
+		auto ratio_denom = ws.s.modifiers_m.global_defines.max_bureaucracy_percentage
+			+ (ws.s.modifiers_m.global_defines.bureaucracy_percentage_increment
+			* std::transform_reduce(issues_range, issues_range + ws.s.issues_m.tracked_options_count, 0.0f, std::plus<>(),
+			[&ws](issues::option_tag opt) {
+			if(is_valid_index(opt))
+				return float(ws.s.issues_m.options[opt].administrative_multiplier);
+			else 
+				return 0.0f;
+		}));
+
+		return std::clamp(ratio_num / ratio_denom, 0.05f, 1.0f);
 	}
 
 	void update_neighbors(world_state& ws, nations::nation& this_nation) {
@@ -1004,7 +1033,8 @@ namespace nations {
 		total_active_regiments /= ws.s.modifiers_m.global_defines.pop_size_per_regiment;
 
 		float total_possible_regiments =
-			float(ws.w.nation_s.nation_demographics.get(this_nation.id, population::to_demo_tag(ws, ws.s.population_m.soldier))) /
+			(ws.w.nation_s.nation_demographics.get(this_nation.id, population::to_demo_tag(ws, ws.s.population_m.soldier)) + 
+				ws.w.nation_s.nation_colonial_demographics.get(this_nation.id, population::to_demo_tag(ws, ws.s.population_m.soldier))) /
 			ws.s.modifiers_m.global_defines.pop_size_per_regiment;
 
 		float total_sum = ((land_uint_score / land_unit_type_count) *

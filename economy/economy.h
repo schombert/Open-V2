@@ -138,7 +138,7 @@ namespace economy {
 	};
 
 #ifdef _DEBUG
-#define DEBUG_ECONOMY
+//#define DEBUG_ECONOMY
 #endif
 
 	class economic_state {

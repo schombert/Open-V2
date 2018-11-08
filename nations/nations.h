@@ -90,6 +90,7 @@ namespace nations {
 		
 		float political_interest_fraction = 0.0f;
 		float social_interest_fraction = 0.0f;
+		float national_administrative_efficiency = 1.0f;
 		//float mobilization_impact = 0.0f; //= 1.0 - std::max(0.0f, this_nation.modifier_values[national_offsets::mobilisation_size]) * this_nation.modifier_values[national_offsets::mobilisation_economy_impact]; 
 
 		float social_movement_support = 0.0f; // sum of social movement supporters / total pop * defines factor
@@ -296,5 +297,6 @@ namespace nations {
 
 		stable_2d_vector<int32_t, state_tag, population::demo_tag, 512, 16> state_demographics;
 		stable_2d_vector<float, country_tag, population::demo_tag, 512, 16> nation_demographics;
+		stable_2d_vector<float, country_tag, population::demo_tag, 512, 16> nation_colonial_demographics;
 	};
 }

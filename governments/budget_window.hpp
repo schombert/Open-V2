@@ -69,22 +69,22 @@ namespace governments {
 		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
 
-	class fixed_incomes_label {
+	class incomes_label {
 	public:
 		template<typename W>
 		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
-	class variable_expenses_label {
+	class expenses_label {
 	public:
 		template<typename W>
 		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
-	class fixed_incomes_funds {
+	class incomes_amount {
 	public:
 		template<typename W>
 		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
-	class variable_expenses_funds {
+	class expenses_amount {
 	public:
 		template<typename W>
 		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
@@ -300,7 +300,7 @@ namespace governments {
 	class budget_window_t : public ui::gui_window<
 		CT_STRING("close_button"), ui::simple_button<bw_close_button>,
 		CT_STRING("tariffs_percent"), ui::display_text<tarrif_percent>,
-		CT_STRING("diplomatic_desc"), ui::display_text<debt_and_saving_label, -10>,
+		//CT_STRING("diplomatic_desc"), ui::display_text<debt_and_saving_label, -10>,
 		CT_STRING("tax_0_inc"), ui::display_text<poor_tax_collected>,
 		CT_STRING("tax_1_inc"), ui::display_text<middle_tax_collected>,
 		CT_STRING("tax_2_inc"), ui::display_text<rich_tax_collected>,
@@ -309,10 +309,10 @@ namespace governments {
 		CT_STRING("total_funds_val"), ui::display_text<total_funds, -12>,
 		CT_STRING("national_bank_desc"), ui::display_text<debt_label, -12>,
 		CT_STRING("national_bank_val"), ui::display_text<debt_total, -12>,
-		CT_STRING("debt_desc"), ui::display_text<fixed_incomes_label, -10>,
-		CT_STRING("interest_desc"), ui::display_text<variable_expenses_label, -10>,
-		CT_STRING("debt_val"), ui::display_text<fixed_incomes_funds, -10>,
-		CT_STRING("interest_val"), ui::display_text<variable_expenses_funds, -10>,
+		CT_STRING("debt_desc"), ui::display_text<incomes_label, -10>,
+		CT_STRING("interest_desc"), ui::display_text<expenses_label, -10>,
+		CT_STRING("debt_val"), ui::display_text<incomes_amount, -10>,
+		CT_STRING("interest_val"), ui::display_text<expenses_amount, -10>,
 		CT_STRING("tab_takenloans"), ui::simple_button<hidden_button>,
 		CT_STRING("tab_givenloans"), ui::simple_button<hidden_button>,
 		CT_STRING("takenloans_text"), ui::fixed_text<hidden_text>,
@@ -451,20 +451,20 @@ namespace governments {
 		lm.finish_current_line();
 	}
 	template<typename W>
-	void fixed_incomes_label::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+	void incomes_label::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::fixed_income], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 		lm.finish_current_line();
 	}
 	template<typename W>
-	void variable_expenses_label::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+	void expenses_label::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::variable_expenses], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 		lm.finish_current_line();
 	}
 	template<typename W>
-	void fixed_incomes_funds::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
+	void incomes_amount::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
 	
 	template<typename W>
-	void variable_expenses_funds::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
+	void expenses_amount::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
 	
 	template<typename W>
 	void stockpile_cost::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
@@ -479,7 +479,14 @@ namespace governments {
 	template<typename W>
 	void social_spending_cost::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
 	template<typename W>
-	void national_administrative_efficiency::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
+	void national_administrative_efficiency::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::percent, player->national_administrative_efficiency);
+			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+			lm.finish_current_line();
+		}
+	}
 	template<typename W>
 	void expenses_total::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
 	

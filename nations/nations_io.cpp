@@ -216,6 +216,7 @@ void serialization::serializer<nations::nation>::serialize_object(std::byte *& o
 void serialization::serializer<nations::nation>::deserialize_object(std::byte const *& input, nations::nation & obj, world_state & ws) {
 	ws.w.nation_s.active_parties.ensure_capacity(to_index(obj.id) + 1);
 	ws.w.nation_s.nation_demographics.ensure_capacity(to_index(obj.id) + 1);
+	ws.w.nation_s.nation_colonial_demographics.ensure_capacity(to_index(obj.id) + 1);
 	ws.w.nation_s.upper_house.ensure_capacity(to_index(obj.id) + 1);
 	ws.w.nation_s.active_technologies.ensure_capacity(to_index(obj.id) + 1);
 	ws.w.nation_s.active_goods.ensure_capacity(to_index(obj.id) + 1);
