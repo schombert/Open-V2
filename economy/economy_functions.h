@@ -87,4 +87,6 @@ namespace economy {
 	void collect_taxes(world_state& ws);
 	void economy_update_tick(world_state& ws);
 	void economy_demand_adjustment_tick(world_state& ws);
+
+	economy::money_qnty_type project_player_tarrif_income(world_state const& ws, float tarrif_amount);
 }

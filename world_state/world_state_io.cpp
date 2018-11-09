@@ -21,6 +21,44 @@
 #include "technologies\\technologies_io.h"
 #include <ppl.h>
 
+/*
+player_net_income_history income_history;
+			economy::money_qnty_type collected_poor_tax = 0;
+			economy::money_qnty_type collected_middle_tax = 0;
+			economy::money_qnty_type collected_rich_tax = 0;
+			tagged_vector<array_tag<economy::money_qnty_type>, economy::goods_tag> imports_by_country;
+*/
+
+void serialization::serializer<decltype(current_state::state::local_player_data)>::serialize_object(std::byte *& output, decltype(current_state::state::local_player_data) const & obj, world_state const & ws) {
+	serialize(output, obj.income_history);
+	serialize(output, obj.collected_poor_tax);
+	serialize(output, obj.collected_middle_tax);
+	serialize(output, obj.collected_rich_tax);
+	for(uint32_t i = 1; i < ws.s.economy_m.goods_count; ++i) {
+		serialize_stable_array(output, ws.w.economy_s.purchasing_arrays, obj.imports_by_country[economy::goods_tag(economy::goods_tag::value_base_t(i))]);
+	}
+}
+
+void serialization::serializer<decltype(current_state::state::local_player_data)>::deserialize_object(std::byte const *& input, decltype(current_state::state::local_player_data)& obj, world_state & ws) {
+	deserialize(input, obj.income_history);
+	deserialize(input, obj.collected_poor_tax);
+	deserialize(input, obj.collected_middle_tax);
+	deserialize(input, obj.collected_rich_tax);
+	for(uint32_t i = 1; i < ws.s.economy_m.goods_count; ++i) {
+		deserialize_stable_array(input, ws.w.economy_s.purchasing_arrays, obj.imports_by_country[economy::goods_tag(economy::goods_tag::value_base_t(i))]);
+	}
+}
+
+size_t serialization::serializer<decltype(current_state::state::local_player_data)>::size(decltype(current_state::state::local_player_data) const & obj, world_state const & ws) {
+	return serialize_size(obj.income_history) +
+		serialize_size(obj.collected_poor_tax) +
+		serialize_size(obj.collected_middle_tax) +
+		serialize_size(obj.collected_rich_tax) +
+		std::transform_reduce(integer_iterator(1), integer_iterator(ws.s.economy_m.goods_count), 0ui64, std::plus<>(), [&ws, &obj](int32_t i) {
+			return serialize_stable_array_size(ws.w.economy_s.purchasing_arrays, obj.imports_by_country[economy::goods_tag(economy::goods_tag::value_base_t(i))]);
+		});
+}
+
 void serialization::serializer<current_state::crisis_state>::serialize_object(std::byte* &output, current_state::crisis_state const& obj, world_state const& ws) {
 	serialize(output, obj.temperature);
 	uint8_t ctype = uint8_t(obj.type);
@@ -103,12 +141,10 @@ void serialization::serializer<current_state::state>::serialize_object(std::byte
 	serialize(output, obj.great_wars_enabled);
 	serialize(output, obj.world_wars_enabled);
 
-	serialize(output, obj.local_player_data);
-
 	auto player_tag = obj.local_player_nation ? obj.local_player_nation->id : nations::country_tag();
 	serialize(output, player_tag);
 
-	
+	serialize(output, obj.local_player_data, ws);
 }
 
 void serialization::serializer<current_state::state>::deserialize_object(std::byte const *& input, current_state::state & obj, uint64_t version, world_state & ws) {
@@ -140,11 +176,11 @@ void serialization::serializer<current_state::state>::deserialize_object(std::by
 	deserialize(input, obj.great_wars_enabled);
 	deserialize(input, obj.world_wars_enabled);
 
-	deserialize(input, obj.local_player_data);
-
 	nations::country_tag player_tag;
 	deserialize(input, player_tag);
 	obj.local_player_nation = ws.w.nation_s.nations.get_location(player_tag);
+
+	deserialize(input, obj.local_player_data, ws);
 
 	restore_world_state(ws);
 }
@@ -163,7 +199,7 @@ size_t serialization::serializer<current_state::state>::size(current_state::stat
 		serialize_size(obj.current_date) +
 		serialize_size(obj.great_wars_enabled) +
 		serialize_size(obj.world_wars_enabled) +
-		serialize_size(obj.local_player_data) +
+		serialize_size(obj.local_player_data, ws) +
 		sizeof(nations::country_tag); // player id
 }
 
@@ -252,7 +288,6 @@ void restore_world_state(world_state& ws) {
 	});
 
 	ws.w.nation_s.nations.for_each([&ws](nations::nation& n) {
-		//technologies::restore_technologies(ws, n);
 		military::update_at_war_with_and_against(ws, n);
 
 		n.ruling_ideology = ws.s.governments_m.parties[n.ruling_party].ideology;
@@ -282,9 +317,20 @@ void restore_world_state(world_state& ws) {
 	});
 
 	provinces::fill_distance_arrays(ws);
+	ws.w.province_s.state_distances.update(ws);
 
-//	for(auto &ps : ws.w.province_s.province_state_container)
-//		modifiers::reset_provincial_modifier(ws, ps);
+	//restore tarrif masks
+	auto state_max = ws.w.nation_s.states.minimum_continuous_size();
+	auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(state_max) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
+	ws.w.nation_s.nations.parallel_for_each([&ws, aligned_state_max, state_max](nations::nation& n) {
+		resize(ws.w.economy_s.purchasing_arrays, n.statewise_tarrif_mask, aligned_state_max);
+		auto ptr = get_range(ws.w.economy_s.purchasing_arrays, n.statewise_tarrif_mask).first;
+		for(int32_t i = 0; i < int32_t(state_max); ++i) {
+			nations::state_tag this_state = nations::state_tag(nations::state_tag::value_base_t(i));
+			if(auto owner = ws.w.nation_s.states[this_state].owner; owner)
+				ptr[i] = nations::tarrif_multiplier(ws, n, *owner);
+		}
+	});
 
 	nations::update_nation_ranks(ws);
 }

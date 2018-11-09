@@ -5,8 +5,17 @@
 
 template<>
 class serialization::serializer<current_state::player_net_income_history> : public serialization::memcpy_serializer<current_state::player_net_income_history> {};
+
 template<>
-class serialization::serializer<decltype(current_state::state::local_player_data)> : public serialization::memcpy_serializer<decltype(current_state::state::local_player_data)> {};
+class serialization::serializer<decltype(current_state::state::local_player_data)> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, decltype(current_state::state::local_player_data) const& obj, world_state const& ws);
+	static void deserialize_object(std::byte const* &input, decltype(current_state::state::local_player_data)& obj, world_state& ws);
+	static size_t size(decltype(current_state::state::local_player_data) const& obj, world_state const& ws);
+};
 
 template<>
 class serialization::serializer<current_state::crisis_state> {

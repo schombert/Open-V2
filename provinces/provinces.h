@@ -24,6 +24,8 @@ namespace military {
 	struct army_orders;
 }
 
+class world_state;
+
 namespace provinces {
 	struct timed_provincial_modifier {
 		date_tag expiration;
@@ -108,7 +110,17 @@ namespace provinces {
 		uint16_t flags = 0;
 	};
 
-	
+	class state_distances_manager {
+	private:
+		float* distance_data = nullptr;
+		int32_t last_aligned_state_max = 0;
+	public:
+		void update(world_state const& ws);
+		float distance(nations::state_tag a, nations::state_tag b) const;
+		float* get_row(nations::state_tag a) const { return distance_data + to_index(a) * last_aligned_state_max; }
+		int32_t row_size() const { return last_aligned_state_max; }
+		~state_distances_manager();
+	};
 
 	class provinces_state {
 	public:
@@ -120,6 +132,7 @@ namespace provinces {
 
 		std::vector<float> province_distance_to;
 		std::vector<province_tag> province_path_to;
+		state_distances_manager state_distances;
 
 		stable_variable_vector_storage_mk_2<cultures::national_tag, 4, 8192> core_arrays;
 		stable_variable_vector_storage_mk_2<modifiers::provincial_modifier_tag, 4, 8192> static_modifier_arrays;

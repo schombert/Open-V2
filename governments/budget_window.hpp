@@ -409,20 +409,16 @@ namespace governments {
 	template<typename W>
 	void total_income::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(auto pid = player->id; ws.w.nation_s.nations.is_valid_index(pid)) {
-				auto tax_income = ws.w.local_player_data.collected_poor_tax * float(player->poor_tax) / 100.0f +
-					ws.w.local_player_data.collected_middle_tax * float(player->middle_tax) / 100.0f +
-					ws.w.local_player_data.collected_rich_tax * float(player->rich_tax) / 100.0f;
-				economy::money_qnty_type tarrif_income = 0;
-				for(uint32_t i = 1; i < ws.s.economy_m.goods_count; ++i) {
-					tarrif_income += ws.w.nation_s.collected_tarrifs.get(pid, economy::goods_tag(economy::goods_tag::value_base_t(i)));
-				}
+			auto tax_income = ws.w.local_player_data.collected_poor_tax * float(player->poor_tax) / 100.0f +
+				ws.w.local_player_data.collected_middle_tax * float(player->middle_tax) / 100.0f +
+				ws.w.local_player_data.collected_rich_tax * float(player->rich_tax) / 100.0f;
 
-				char16_t local_buffer[16];
-				put_value_in_buffer(local_buffer, display_type::currency, tax_income + tarrif_income);
-				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-				lm.finish_current_line();
-			}
+			economy::money_qnty_type tarrif_income = economy::project_player_tarrif_income(ws, float(player->tarrifs) / 100.0f);
+
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::currency, tax_income + tarrif_income);
+			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+			lm.finish_current_line();
 		}
 	}
 	template<typename W>
@@ -500,17 +496,12 @@ namespace governments {
 	template<typename W>
 	void tarrif_amount::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(auto pid = player->id; ws.w.nation_s.nations.is_valid_index(pid)) {
-				economy::money_qnty_type tarrif_income = 0;
-				for(uint32_t i = 1; i < ws.s.economy_m.goods_count; ++i) {
-					tarrif_income += ws.w.nation_s.collected_tarrifs.get(pid, economy::goods_tag(economy::goods_tag::value_base_t(i)));
-				}
-
-				char16_t local_buffer[16];
-				put_value_in_buffer(local_buffer, display_type::currency, tarrif_income);
-				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-				lm.finish_current_line();
-			}
+			economy::money_qnty_type tarrif_income = economy::project_player_tarrif_income(ws, float(player->tarrifs) / 100.0f);
+				
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::currency, tarrif_income);
+			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+			lm.finish_current_line();
 		}
 	}
 	template<typename W>

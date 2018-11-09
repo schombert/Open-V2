@@ -49,6 +49,7 @@ namespace nations {
 	void destroy_state_instance(world_state& ws, state_instance& si);
 	void partial_destroy_state_instance(world_state& ws, state_instance& si);
 	void destroy_nation(world_state& ws, nations::nation& new_nation);
+	float tarrif_multiplier(world_state const& ws, nations::nation const& source, nations::nation const& target);
 
 	int32_t colonial_points_to_make_protectorate(world_state const& ws, state_instance const& si);
 	int32_t colonial_points_to_make_colony(world_state const& ws, state_instance const& si);

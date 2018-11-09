@@ -426,6 +426,11 @@ namespace nations {
 				}
 			}
 		}
+		auto state_max = ws.w.nation_s.states.minimum_continuous_size();
+		auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(state_max) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
+		ws.w.nation_s.nations.parallel_for_each([&ws, aligned_state_max](nations::nation& n) {
+			resize(ws.w.economy_s.purchasing_arrays, n.statewise_tarrif_mask, aligned_state_max);
+		});
 	}
 
 	void init_nations_state(world_state& ws) {
@@ -1254,4 +1259,10 @@ namespace nations {
 		return false;
 	}
 	
+	float tarrif_multiplier(world_state const&, nations::nation const& source, nations::nation const& target) {
+		if(&target == &source || &target == source.overlord || &target == source.sphere_leader)
+			return 0.0f;
+		else
+			return 1.0f;
+	}
 }

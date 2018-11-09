@@ -119,6 +119,7 @@ namespace current_state {
 			economy::money_qnty_type collected_poor_tax = 0;
 			economy::money_qnty_type collected_middle_tax = 0;
 			economy::money_qnty_type collected_rich_tax = 0;
+			tagged_vector<array_tag<economy::money_qnty_type>, economy::goods_tag> imports_by_country;
 		} local_player_data;
 		nations::nation* local_player_nation = nullptr;
 

@@ -88,6 +88,8 @@ void ready_world_state(world_state& ws) {
 	economy::init_economic_scenario(ws);
 	ideologies::init_ideology_state(ws);
 	technologies::init_technology_state(ws);
+
+	ws.w.local_player_data.imports_by_country.resize(ws.s.economy_m.goods_count);
 }
 
 namespace current_state {

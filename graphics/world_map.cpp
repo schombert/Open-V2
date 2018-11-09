@@ -1005,7 +1005,7 @@ namespace graphics {
 			} else if(is_valid_index(g) && g != economy::money_good && ws.w.map_view.mode == current_state::map_mode::purchasing) {
 				if(auto selected_id = ws.w.map_view.selected_state; ws.w.nation_s.states.is_valid_index(selected_id)) {
 					auto purchasing_handle = ws.w.nation_s.state_purchases.get(selected_id, g);
-					auto purchases_data_range = get_range(ws.w.economy_s.purchasing_arrays, purchasing_handle.money_for_purchases);
+					auto purchases_data_range = get_range(ws.w.economy_s.purchasing_arrays, purchasing_handle);
 					auto count_purchases = purchases_data_range.second - purchases_data_range.first;
 
 					if(purchases_data_range.first != purchases_data_range.second) {

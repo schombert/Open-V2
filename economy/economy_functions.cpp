@@ -798,65 +798,199 @@ namespace economy {
 	constexpr money_qnty_type price_change_rate = money_qnty_type(0.1);
 	constexpr money_qnty_type price_gravity_factor = money_qnty_type(0.01);
 	constexpr money_qnty_type purchasing_change_rate = money_qnty_type(1);
+#define FULL_PURCHASING_CHANGE
 	constexpr money_qnty_type distance_factor = money_qnty_type(0.001f);
 	constexpr money_qnty_type minimum_global_purchase = money_qnty_type(0.000001f);
 	constexpr money_qnty_type minimum_demand = money_qnty_type(0);
 	constexpr money_qnty_type value_cutoff = money_qnty_type(0.0000001);
 
+	namespace {
+		template<typename T>
+		class cbacked_eigen_vector {
+		protected:
+			std::vector<T, concurrent_allocator<T>> data_backing;
+		public:
+			Eigen::Map<Eigen::Matrix<T, 1, -1>, Eigen::Aligned32> vector;
+
+			cbacked_eigen_vector(int32_t aligned_32_size) : data_backing(aligned_32_size + 32 / sizeof(T), T(0)), vector(nullptr, 1) {
+				{
+					size_t space = aligned_32_size * sizeof(T) + 32;
+					void* ptr = data_backing.data();
+					new (&vector) Eigen::Map<Eigen::Matrix<T, 1, -1>, Eigen::Aligned32>(
+						(T*)std::align(32, aligned_32_size * sizeof(T), ptr, space),
+						aligned_32_size);
+				}
+			};
+			cbacked_eigen_vector(cbacked_eigen_vector const& other) = delete;
+			cbacked_eigen_vector(cbacked_eigen_vector&& other) : data_backing(std::move(other.data_backing)), vector(nullptr, 1) {
+				new (&vector) Eigen::Map<Eigen::Matrix<T, 1, -1>, Eigen::Aligned32>(
+					other.vector.data(),
+					other.vector.size());
+			}
+		};
+
+		class single_good_update_work_data_factory;
+
+		class single_good_update_work_data {
+		public:
+			std::vector<economy::money_qnty_type, concurrent_allocator<economy::money_qnty_type>> sscratch_a_v;
+			std::vector<economy::money_qnty_type, concurrent_allocator<economy::money_qnty_type>> sscratch_b_v;
+			std::vector<economy::money_qnty_type, concurrent_allocator<economy::money_qnty_type>> tarrifs_v;
+			std::vector<economy::money_qnty_type, concurrent_allocator<economy::money_qnty_type>> global_demand_by_state_v;
+
+			std::vector<economy::money_qnty_type, concurrent_allocator<economy::money_qnty_type>> player_imports_v;
+			std::vector<economy::money_qnty_type, concurrent_allocator<economy::money_qnty_type>> nation_tarrif_income_v;
+
+			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> weightings;
+			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> apparent_price;
+			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> tarrifs;
+			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> global_demand_by_state;
+			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> player_imports;
+			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> nation_tarrif_income;
+		protected:
+			single_good_update_work_data(int32_t state_count, int32_t nations_count) :
+				sscratch_a_v(state_count + 32 / sizeof(economy::money_qnty_type), economy::money_qnty_type(0)),
+				sscratch_b_v(state_count + 32 / sizeof(economy::money_qnty_type), economy::money_qnty_type(0)),
+				tarrifs_v(state_count + 32 / sizeof(economy::money_qnty_type), economy::money_qnty_type(0)),
+				global_demand_by_state_v(state_count + 32 / sizeof(economy::money_qnty_type), economy::money_qnty_type(0)),
+				player_imports_v(nations_count + 32 / sizeof(economy::money_qnty_type), economy::money_qnty_type(0)),
+				nation_tarrif_income_v(nations_count + 32 / sizeof(economy::money_qnty_type), economy::money_qnty_type(0)),
+				weightings(nullptr, 1), apparent_price(nullptr, 1), tarrifs(nullptr, 1), global_demand_by_state(nullptr, 1), player_imports(nullptr, 1), nation_tarrif_income(nullptr, 1) {
+					{
+						size_t space = state_count * sizeof(economy::money_qnty_type) + 32;
+						void* ptr = sscratch_a_v.data();
+						new (&weightings) Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32>(
+							(economy::money_qnty_type*)std::align(32, state_count * sizeof(economy::money_qnty_type), ptr, space),
+							state_count);
+					}
+					{
+						size_t space = state_count * sizeof(economy::money_qnty_type) + 32;
+						void* ptr = sscratch_b_v.data();
+						new (&apparent_price) Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32>(
+							(economy::money_qnty_type*)std::align(32, state_count * sizeof(economy::money_qnty_type), ptr, space),
+							state_count);
+					}
+					{
+						size_t space = state_count * sizeof(economy::money_qnty_type) + 32;
+						void* ptr = tarrifs_v.data();
+						new (&tarrifs) Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32>(
+							(economy::money_qnty_type*)std::align(32, state_count * sizeof(economy::money_qnty_type), ptr, space),
+							state_count);
+					}
+					{
+						size_t space = state_count * sizeof(economy::money_qnty_type) + 32;
+						void* ptr = global_demand_by_state_v.data();
+						new (&global_demand_by_state) Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32>(
+							(economy::money_qnty_type*)std::align(32, state_count * sizeof(economy::money_qnty_type), ptr, space),
+							state_count);
+					}
+					{
+						size_t space = nations_count * sizeof(economy::money_qnty_type) + 32;
+						void* ptr = player_imports_v.data();
+						new (&player_imports) Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32>(
+							(economy::money_qnty_type*)std::align(32, nations_count * sizeof(economy::money_qnty_type), ptr, space),
+							nations_count);
+					}
+					{
+						size_t space = nations_count * sizeof(economy::money_qnty_type) + 32;
+						void* ptr = nation_tarrif_income_v.data();
+						new (&nation_tarrif_income) Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32>(
+							(economy::money_qnty_type*)std::align(32, nations_count * sizeof(economy::money_qnty_type), ptr, space),
+							nations_count);
+					}
+			}
+		public:
+			single_good_update_work_data() = delete;
+			single_good_update_work_data(const single_good_update_work_data& other) = delete;
+			single_good_update_work_data(single_good_update_work_data&& other) noexcept :
+				sscratch_a_v(std::move(other.sscratch_a_v)),
+				sscratch_b_v(std::move(other.sscratch_b_v)),
+				tarrifs_v(std::move(other.tarrifs_v)),
+				global_demand_by_state_v(std::move(other.global_demand_by_state_v)),
+				player_imports_v(std::move(other.player_imports_v)),
+				nation_tarrif_income_v(std::move(other.nation_tarrif_income_v)),
+				weightings(other.weightings.data(), other.weightings.size()),
+				apparent_price(other.apparent_price.data(), other.apparent_price.size()),
+				tarrifs(other.tarrifs.data(), other.tarrifs.size()),
+				global_demand_by_state(other.global_demand_by_state.data(), other.global_demand_by_state.size()),
+				player_imports(other.player_imports.data(), other.player_imports.size()), 
+				nation_tarrif_income(other.nation_tarrif_income.data(), other.nation_tarrif_income.size()) {
+
+			}
+
+			friend single_good_update_work_data_factory;
+		};
+
+		class single_good_update_work_data_factory {
+		public:
+			const int32_t state_count;
+			const int32_t nations_count;
+
+			single_good_update_work_data_factory(int32_t s, int32_t n) : state_count(s), nations_count(n) {}
+
+			single_good_update_work_data operator()() const noexcept {
+				return single_good_update_work_data(state_count, nations_count);
+			}
+		};
+
+	}
 	template<bool adjust_prices>
-	void economy_single_good_tick(world_state& ws, goods_tag tag, uint32_t state_max) {
+	void economy_single_good_tick(world_state& ws, goods_tag tag, int32_t state_max, int32_t nations_max) {
 		auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(state_max) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
-		auto padded_aligned_size = aligned_state_max + 32ui32 / sizeof(economy::money_qnty_type);
-
-		std::vector<economy::money_qnty_type, concurrent_allocator<economy::money_qnty_type>> first_derivatives_v(padded_aligned_size);
-		std::vector<economy::money_qnty_type, concurrent_allocator<economy::money_qnty_type>> second_derivatives_v(padded_aligned_size);
-
-		size_t space = padded_aligned_size * sizeof(economy::money_qnty_type);
-		void* ptr = first_derivatives_v.data();
-		Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> first_derivatives(
-			(economy::money_qnty_type*)std::align(32, aligned_state_max * sizeof(economy::money_qnty_type), ptr, space), aligned_state_max);
-
-		space = padded_aligned_size * sizeof(economy::money_qnty_type);
-		ptr = second_derivatives_v.data();
-		Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> second_derivatives(
-			(economy::money_qnty_type*)std::align(32, aligned_state_max * sizeof(economy::money_qnty_type), ptr, space), aligned_state_max);
-
-
-		std::vector<economy::money_qnty_type, concurrent_allocator<economy::money_qnty_type>> global_demand_placeholder(padded_aligned_size, economy::money_qnty_type(0));
-
-		//ws.w.nation_s.states.for_each([&ws, tag](nations::state_instance const& si) {
-		//	state_old_global_demand(ws, si.id)[to_index(tag)] = 0;
-		//});
+		auto aligned_nations_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(nations_max) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
 
 		const auto base_price = ws.s.economy_m.goods[tag].base_price;
 
-		ws.w.nation_s.states.for_each([&ws, &first_derivatives, &second_derivatives, &global_demand_placeholder, state_max, aligned_state_max, tag, base_price](nations::state_instance const& si) {
+		concurrency::combinable<single_good_update_work_data> workspace(single_good_update_work_data_factory(
+			aligned_state_max, // state aligned size
+			aligned_nations_max) // nations aligned size
+		);
+
+		cbacked_eigen_vector<economy::money_qnty_type> global_demand_by_state(aligned_state_max);
+		cbacked_eigen_vector<economy::money_qnty_type> nation_tarrif_income(aligned_nations_max);
+		cbacked_eigen_vector<economy::money_qnty_type> player_imports(aligned_nations_max);
+
+		cbacked_eigen_vector<economy::money_qnty_type> state_production_copy(aligned_state_max);
+		concurrency::parallel_for(0, state_max, [&ws, &state_production_copy, tag](int32_t i) {
+			state_production_copy.vector[i] = state_old_production(ws, nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag)];
+		});
+		cbacked_eigen_vector<economy::money_qnty_type> state_prices_copy(aligned_state_max);
+		concurrency::parallel_for(0, state_max, [&ws, &state_prices_copy, tag](int32_t i) {
+			state_prices_copy.vector[i] = state_current_prices(ws, nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag)];
+		});
+		for(int32_t j = state_max; j < int32_t(aligned_state_max); ++j)
+			state_prices_copy.vector[j] = base_price;
+
+		ws.w.nation_s.states.parallel_for_each([&ws, &workspace, &state_production_copy, &state_prices_copy, tag, base_price, aligned_state_max, state_max](nations::state_instance const& si) {
 			auto demand_in_state = state_old_demand(ws, si.id)[to_index(tag)];
+			auto& workspace_local = workspace.local();
 
 			if(si.owner == nullptr) { // skip remainder for this state
 				state_old_prices(ws, si.id)[to_index(tag)] = base_price;
-				resize(ws.w.economy_s.purchasing_arrays, ws.w.nation_s.state_purchases.get(si.id, tag).money_for_purchases, 0);
-				resize(ws.w.economy_s.purchasing_arrays, ws.w.nation_s.state_purchases.get(si.id, tag).money_spent, 0);
+				resize(ws.w.economy_s.purchasing_arrays, ws.w.nation_s.state_purchases.get(si.id, tag), 0);
 				return;
 			}
 
 			auto& purchases_for_state = ws.w.nation_s.state_purchases.get(si.id, tag);
-			auto sz = get_size(ws.w.economy_s.purchasing_arrays, purchases_for_state.money_spent);
+			auto sz = get_size(ws.w.economy_s.purchasing_arrays, purchases_for_state);
 
 			if(sz < aligned_state_max) {
-				resize(ws.w.economy_s.purchasing_arrays, purchases_for_state.money_spent, aligned_state_max);
-				resize(ws.w.economy_s.purchasing_arrays, purchases_for_state.money_for_purchases, aligned_state_max);
+				resize(ws.w.economy_s.purchasing_arrays, purchases_for_state, aligned_state_max);
 			}
 
 			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> values(
-				get_range(ws.w.economy_s.purchasing_arrays, purchases_for_state.money_spent).first, aligned_state_max);
-			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> values_at_destination(
-				get_range(ws.w.economy_s.purchasing_arrays, purchases_for_state.money_for_purchases).first, aligned_state_max);
+				get_range(ws.w.economy_s.purchasing_arrays, purchases_for_state).first, aligned_state_max);
 
 
-			auto state_cap = si.state_capital;
-			auto distance_row_offset = to_index(state_cap) * ws.s.province_m.province_container.size();
+			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> distance_vector(
+				ws.w.province_s.state_distances.get_row(si.id),
+				aligned_state_max);
 
+			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> tarrif_mask(
+				get_range(ws.w.economy_s.purchasing_arrays, si.owner->statewise_tarrif_mask).first,
+				aligned_state_max);
+
+#ifndef FULL_PURCHASING_CHANGE
 			auto old_state_purchases = values.sum();
 
 			if(old_state_purchases < money_qnty_type(0)) {
@@ -866,93 +1000,165 @@ namespace economy {
 				values[to_index(si.id)] += money_qnty_type(1) - old_state_purchases;
 			else if(old_state_purchases > money_qnty_type(1))
 				values /= old_state_purchases;
+#endif
 
-			second_derivatives.setConstant(1.0f);
-			first_derivatives.setZero();
+			workspace_local.apparent_price.setConstant(1.0f);
+			workspace_local.weightings.setZero();
 
-			for(uint32_t i = 0; i < state_max; ++i) {
+			/*for(int32_t i = 0; i < state_max; ++i) {
 				auto& other_state = ws.w.nation_s.states[nations::state_tag(nations::state_tag::value_base_t(i))];
-				auto other_state_cap = other_state.state_capital;
+				workspace_local.tarrifs[i] = (other_state.owner == si.owner || other_state.owner == si.owner->sphere_leader || other_state.owner == si.owner->overlord) ?
+					0.0f : float(si.owner->tarrifs) / 100.0f;
+			}*/
+
+			workspace_local.apparent_price = distance_vector * distance_factor +
+				(state_prices_copy.vector.array() * (tarrif_mask.array() * (float(si.owner->tarrifs) / 100.0f) + 1.0f)).matrix();
+			workspace_local.weightings = (state_production_copy.vector.array() / workspace_local.apparent_price.array().square()).matrix();
+			/*
+			for(int32_t i = 0; i < state_max; ++i) {
+				auto& other_state = ws.w.nation_s.states[nations::state_tag(nations::state_tag::value_base_t(i))];
 
 				if(other_state.owner != nullptr) {
-					auto produced_in_state = state_old_production(ws, nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag)];
+					auto produced_in_state = state_production_copy.vector[i];
 					if(produced_in_state > 0) {
-						const auto distance_between = ws.w.province_s.province_distance_to[distance_row_offset + to_index(other_state_cap)];
+						const auto distance_between = distance_vector[i];
 						const auto ufactor = distance_between * distance_factor;
 						const auto t_factor = (other_state.owner == si.owner || other_state.owner == si.owner->sphere_leader || other_state.owner == si.owner->overlord) ?
 							1.0f : 1.0f + float(si.owner->tarrifs) / 100.0f;
-						auto apparent_price = ufactor + t_factor * state_current_prices(ws, nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag)];
+						auto apparent_price = ufactor + t_factor * state_prices_copy.vector[i];
 
-						second_derivatives[i] = apparent_price;
-						first_derivatives[i] = produced_in_state / (apparent_price * apparent_price); // scratch weightings
+						workspace_local.apparent_price[i] = apparent_price;
+						workspace_local.weightings[i] = produced_in_state / (apparent_price * apparent_price); // scratch weightings
 					} else {
 						// already default
 						//first_derivatives[i] = 0; // scratch weightings
 					}
 				}
-			}
+			}*/
 
-			auto sum_weightings = first_derivatives.sum();
+			auto sum_weightings = workspace_local.weightings.sum();
 			if(sum_weightings > 0) {
-				first_derivatives /= sum_weightings;
-				values = values * (1.0f - purchasing_change_rate) + first_derivatives * purchasing_change_rate;
+#ifndef FULL_PURCHASING_CHANGE
+				workspace_local.weightings /= sum_weightings;
+				values = values * (1.0f - purchasing_change_rate) + workspace_local.weightings * purchasing_change_rate;
+#else
+				values = workspace_local.weightings * 1.0f / sum_weightings;
+#endif
 			
+				
 
 				// pay tarrifs & increase global demand
-				for(uint32_t i = 0; i < state_max; ++i) {
-					auto& other_state = ws.w.nation_s.states[nations::state_tag(nations::state_tag::value_base_t(i))];
-					auto other_state_cap = other_state.state_capital;
+				if(si.owner != ws.w.local_player_nation) {
+					// workspace_local.weightings REUSED as money used for purchasing in destination (dest price * qnty = (total money * fraction to target / apparant_price))
 
-					if((other_state.owner != nullptr) & (values[i] != 0)) {
-						//const auto distance_between = ws.w.province_s.province_distance_to[distance_row_offset + to_index(other_state_cap)];
-						//const auto ufactor = distance_between * distance_factor;
-						const auto t_factor = (other_state.owner == si.owner || other_state.owner == si.owner->sphere_leader || other_state.owner == si.owner->overlord) ?
-							0.0f : float(si.owner->tarrifs) / 100.0f;
-						auto destination_base_price = state_current_prices(ws, nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag)];
-						//auto apparent_price = ufactor + (1.0f + t_factor) * destination_base_price;
+					workspace_local.weightings = ((demand_in_state * state_prices_copy.vector.array() * values.array()) / workspace_local.apparent_price.array()).matrix();
+					workspace_local.global_demand_by_state += 0.85f * workspace_local.weightings;
+					workspace_local.nation_tarrif_income[to_index(si.owner->id)] += workspace_local.weightings.dot(tarrif_mask * (float(si.owner->tarrifs) / 100.0f));
 
-						//if(apparent_price > 0) {
-							auto dp_x_qnty = destination_base_price * values[i] * demand_in_state / second_derivatives[i] /*apparent_price*/;
-							values_at_destination[i] = dp_x_qnty;
-							ws.w.nation_s.collected_tarrifs.get(si.owner->id, tag) += dp_x_qnty * t_factor;
+					/*for(int32_t i = 0; i < state_max; ++i) {
+						auto& other_state = ws.w.nation_s.states[nations::state_tag(nations::state_tag::value_base_t(i))];
 
-							global_demand_placeholder[i] += 0.85f * dp_x_qnty;
-						//}
+						if((other_state.owner != nullptr) & (values[i] != 0)) {
+							const auto t_factor = workspace_local.tarrifs[i];
+
+							auto destination_base_price = state_prices_copy.vector[i];
+
+							auto dp_x_qnty = destination_base_price * values[i] * demand_in_state / workspace_local.apparent_price[i];
+							
+							workspace_local.nation_tarrif_income[to_index(si.owner->id)] += dp_x_qnty * t_factor;
+							workspace_local.global_demand_by_state[i] += 0.85f * dp_x_qnty;
+						}
+					}*/
+				} else {
+					workspace_local.weightings = ((demand_in_state * state_prices_copy.vector.array() * values.array()) / workspace_local.apparent_price.array()).matrix();
+					workspace_local.global_demand_by_state += 0.85f * workspace_local.weightings;
+					workspace_local.nation_tarrif_income[to_index(si.owner->id)] += workspace_local.weightings.dot(tarrif_mask * (float(si.owner->tarrifs) / 100.0f));
+
+					for(int32_t i = 0; i < state_max; ++i) {
+						auto& other_state = ws.w.nation_s.states[nations::state_tag(nations::state_tag::value_base_t(i))];
+
+						if(other_state.owner && other_state.owner != si.owner) {
+							workspace_local.player_imports[to_index(other_state.owner->id)] += workspace_local.weightings[i];
+						}
 					}
+
+					/*
+					for(int32_t i = 0; i < state_max; ++i) {
+						auto& other_state = ws.w.nation_s.states[nations::state_tag(nations::state_tag::value_base_t(i))];
+
+						if((other_state.owner != nullptr) & (values[i] != 0)) {
+							const auto t_factor = (other_state.owner == si.owner || other_state.owner == si.owner->sphere_leader || other_state.owner == si.owner->overlord) ?
+								0.0f : float(si.owner->tarrifs) / 100.0f;
+							auto destination_base_price = state_prices_copy.vector[i];
+							
+							auto dp_x_qnty = destination_base_price * values[i] * demand_in_state / workspace_local.apparent_price[i];
+							
+							if(other_state.owner != si.owner) {
+								workspace_local.player_imports[to_index(other_state.owner->id)] += dp_x_qnty;
+							}
+
+							workspace_local.nation_tarrif_income[to_index(si.owner->id)] += dp_x_qnty * t_factor;
+							workspace_local.global_demand_by_state[i] += 0.85f * dp_x_qnty;
+						}
+					}*/
 				}
 			}
 		});
 
-		for(int32_t i = 0; i < int32_t(state_max); ++i) {
-			state_old_global_demand(ws, nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag)] = global_demand_placeholder[i];
-		}
+		workspace.combine_each([&global_demand_by_state, &nation_tarrif_income, &player_imports](single_good_update_work_data const & o) {
+			global_demand_by_state.vector += o.global_demand_by_state;
+			nation_tarrif_income.vector += o.nation_tarrif_income;
+			player_imports.vector += o.player_imports;
+		});
+
+
+		concurrency::parallel_for(0, int32_t(state_max),[&ws, &global_demand_by_state, tag](int32_t i){
+			state_old_global_demand(ws, nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag)] = global_demand_by_state.vector[i];
+		});
+		concurrency::parallel_for(0, int32_t(nations_max), [&ws, &nation_tarrif_income, tag](int32_t i) {
+			ws.w.nation_s.collected_tarrifs.get(nations::country_tag(nations::country_tag::value_base_t(i)), tag) = nation_tarrif_income.vector[i];
+		});
+
+		auto nations_aligned_sz = int32_t(((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(nations_max) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type)));
+		resize(ws.w.economy_s.purchasing_arrays, ws.w.local_player_data.imports_by_country[tag], nations_max);
+		Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32>(
+			get_range(ws.w.economy_s.purchasing_arrays, ws.w.local_player_data.imports_by_country[tag]).first,
+			nations_aligned_sz) = player_imports.vector;
 
 		// determine new prices
-		ws.w.nation_s.states.for_each([&ws, &second_derivatives, &global_demand_placeholder, state_max, aligned_state_max, tag, base_price](nations::state_instance const& si) {
+		ws.w.nation_s.states.parallel_for_each([&ws, &workspace, &global_demand_by_state, &state_production_copy, state_max, aligned_state_max, tag, base_price](nations::state_instance const& si) {
+			auto& workspace_local = workspace.local();
+
 			if(si.owner == nullptr) // skip remainder for this state
 				return;
 
-			auto& purchases_for_state = ws.w.nation_s.state_purchases.get(si.id, tag);
+			auto purchases_for_state = ws.w.nation_s.state_purchases.get(si.id, tag);
 
 			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> values(
-				get_range(ws.w.economy_s.purchasing_arrays, purchases_for_state.money_spent).first, aligned_state_max);
-			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> values_at_destination(
-				get_range(ws.w.economy_s.purchasing_arrays, purchases_for_state.money_for_purchases).first, aligned_state_max);
+				get_range(ws.w.economy_s.purchasing_arrays, purchases_for_state).first, aligned_state_max);
 
-			auto state_cap = si.state_capital;
-			auto distance_row_offset = to_index(state_cap) * ws.s.province_m.province_container.size();
+			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> distance_vector(
+				ws.w.province_s.state_distances.get_row(si.id),
+				aligned_state_max);
 
-			second_derivatives.setConstant(999.9f);
+			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> tarrif_mask(
+				get_range(ws.w.economy_s.purchasing_arrays, si.owner->statewise_tarrif_mask).first,
+				aligned_state_max);
 
-			for(uint32_t i = 0; i < state_max; ++i) {
+			//workspace_local.apparent_price.setConstant(999.9f);
+
+			workspace_local.apparent_price = (distance_vector.array() * distance_factor +
+				(tarrif_mask.array() * (float(si.owner->tarrifs) / 100.0f) + 1.0f)
+				* (state_production_copy.vector.array() > 0.0f).select(global_demand_by_state.vector.array() / state_production_copy.vector.array(), 999.9f)).matrix();
+
+			/*for(int32_t i = 0; i < state_max; ++i) {
 				auto& other_state = ws.w.nation_s.states[nations::state_tag(nations::state_tag::value_base_t(i))];
-				auto other_state_cap = other_state.state_capital;
 
 				if((other_state.owner != nullptr) & (values[i] != 0)) {
-					auto produced_in_state = state_old_production(ws, nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag)];
+					auto produced_in_state = state_production_copy.vector[i];
 					
-					auto global_demand_in_state = global_demand_placeholder[i];
-					const auto distance_between = ws.w.province_s.province_distance_to[distance_row_offset + to_index(other_state_cap)];
+					auto global_demand_in_state = global_demand_by_state.vector[i];
+					const auto distance_between = distance_vector[i];
 					const auto ufactor = distance_between * distance_factor;
 
 					const auto t_factor = (other_state.owner == si.owner || other_state.owner == si.owner->sphere_leader || other_state.owner == si.owner->overlord) ?
@@ -960,13 +1166,13 @@ namespace economy {
 						
 					auto apparent_price = ufactor + t_factor * (produced_in_state > 0 ? global_demand_in_state / produced_in_state : 999.9f);
 
-					second_derivatives[i] = apparent_price; // apparent prices
+					workspace_local.apparent_price[i] = apparent_price; // apparent prices
 				}
-			}
+			}*/
 
 			state_old_prices(ws, si.id)[to_index(tag)] =
 				(state_current_prices(ws, si.id)[to_index(tag)] * (1.0f - price_change_rate) +
-					std::clamp(values.dot(second_derivatives), 0.01f, base_price * 10.0f) * price_change_rate) * (1.0f - price_gravity_factor) + price_gravity_factor * base_price
+					std::clamp(values.dot(workspace_local.apparent_price), 0.01f, base_price * 10.0f) * price_change_rate) * (1.0f - price_gravity_factor) + price_gravity_factor * base_price
 				;
 			
 		});
@@ -1327,8 +1533,8 @@ namespace economy {
 		ws.w.nation_s.states.parallel_for_each([&ws](nations::state_instance& si) {
 			update_demand_and_production<false>(ws, si);
 		});
-		concurrency::parallel_for(1ui32, ws.s.economy_m.goods_count, [&ws, state_count = ws.w.nation_s.states.minimum_continuous_size()](uint32_t i) {
-			economy_single_good_tick<false>(ws, goods_tag(goods_tag::value_base_t(i)), state_count);
+		concurrency::parallel_for(1ui32, ws.s.economy_m.goods_count, [&ws, state_count = ws.w.nation_s.states.minimum_continuous_size(), nations_count = ws.w.nation_s.nations.minimum_continuous_size()](uint32_t i) {
+			economy_single_good_tick<false>(ws, goods_tag(goods_tag::value_base_t(i)), state_count, nations_count);
 		});
 	}
 
@@ -1388,8 +1594,8 @@ namespace economy {
 		ws.w.nation_s.states.parallel_for_each([&ws](nations::state_instance& si) {
 			update_demand_and_production<true>(ws, si);
 		});
-		concurrency::parallel_for(1ui32, ws.s.economy_m.goods_count, [&ws, state_count = ws.w.nation_s.states.minimum_continuous_size()](uint32_t i) {
-			economy_single_good_tick<true>(ws, goods_tag(goods_tag::value_base_t(i)), state_count);
+		concurrency::parallel_for(1ui32, ws.s.economy_m.goods_count, [&ws, state_count = ws.w.nation_s.states.minimum_continuous_size(), nations_count = ws.w.nation_s.nations.minimum_continuous_size()](uint32_t i) {
+			economy_single_good_tick<true>(ws, goods_tag(goods_tag::value_base_t(i)), state_count, nations_count);
 		});
 		collect_taxes(ws);
 		//collect tarrif income
@@ -1483,5 +1689,30 @@ namespace economy {
 				ws.w.nation_s.national_stockpiles.get(n.id, economy::money_good) += total;
 			}
 		});
+	}
+
+	economy::money_qnty_type project_player_tarrif_income(world_state const& ws, float tarrif_amount) {
+		if(auto player = ws.w.local_player_nation; player) {
+			auto overlord = player->overlord;
+			auto sphere_leader = player->sphere_leader;
+			auto overlord_id = overlord ? overlord->id : nations::country_tag();
+			auto sphere_leader_id = sphere_leader ? sphere_leader->id : nations::country_tag();
+
+			return std::transform_reduce(integer_iterator(1), integer_iterator(ws.s.economy_m.goods_count), money_qnty_type(0), std::plus<>(), [&ws, tarrif_amount, overlord_id, sphere_leader_id](int32_t i) {
+				auto atag = ws.w.local_player_data.imports_by_country[goods_tag(goods_tag::value_base_t(i))];
+				auto sz = get_size(ws.w.economy_s.purchasing_arrays, atag);
+				auto ptr = get_range(ws.w.economy_s.purchasing_arrays, atag).first;
+
+				
+				return std::transform_reduce(integer_iterator(0), integer_iterator(sz), money_qnty_type(0), std::plus<>(), [ptr, tarrif_amount, overlord_id, sphere_leader_id](int32_t i) {
+					if(to_index(overlord_id) != i && to_index(sphere_leader_id) != i)
+						return tarrif_amount * ptr[i];
+					else
+						return money_qnty_type(0);
+				});
+			});
+		} else {
+			return economy::money_qnty_type(0);
+		}
 	}
 }

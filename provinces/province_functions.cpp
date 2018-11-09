@@ -279,6 +279,14 @@ namespace provinces {
 			prov.state_instance->owner = &new_owner;
 			prov.state_instance->state_capital = nations::find_state_capital(ws, *prov.state_instance);
 			add_item(ws.w.nation_s.state_arrays, new_owner.member_states, nations::region_state_pair{ region_id, prov.state_instance });
+
+			auto state_index = to_index(prov.state_instance->id);
+			auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(state_index) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
+			ws.w.nation_s.nations.parallel_for_each([&ws, aligned_state_max, state_index, &new_owner](nations::nation& n){
+				if(get_size(ws.w.economy_s.purchasing_arrays, n.statewise_tarrif_mask) < aligned_state_max)
+					resize(ws.w.economy_s.purchasing_arrays, n.statewise_tarrif_mask, aligned_state_max);
+				get(ws.w.economy_s.purchasing_arrays, n.statewise_tarrif_mask, state_index) = nations::tarrif_multiplier(ws, n, new_owner);
+			});
 		}
 	}
 
@@ -432,5 +440,39 @@ namespace provinces {
 			
 			//std::sort(unfinished.begin(), unfinished.end(), [](province_distance a, province_distance b) { return a.distance > b.distance; });
 		}
+	}
+
+	void state_distances_manager::update(world_state const & ws) {
+		auto max_states = ws.w.nation_s.states.minimum_continuous_size();
+		auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(max_states) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
+
+		if(last_aligned_state_max < int32_t(aligned_state_max)) {
+			if(distance_data)
+				_aligned_free(distance_data);
+			distance_data = (float*)_aligned_malloc(sizeof(float) * aligned_state_max * aligned_state_max, 32);
+			std::fill_n(distance_data, aligned_state_max * aligned_state_max, 0.0f);
+			last_aligned_state_max = int32_t(aligned_state_max);
+		}
+
+		concurrency::parallel_for(0, int32_t(max_states), [&ws, max_states, aligned_state_max, d = this->distance_data](int32_t i) {
+			nations::state_tag this_state = nations::state_tag(nations::state_tag::value_base_t(i));
+			provinces::province_tag capital = ws.w.nation_s.states[this_state].state_capital;
+			const auto province_count = ws.s.province_m.province_container.size();
+			if(is_valid_index(capital)) {
+				for(int32_t j = 0; j < int32_t(max_states); ++j) {
+					nations::state_tag other_state = nations::state_tag(nations::state_tag::value_base_t(j));
+					provinces::province_tag other_capital = ws.w.nation_s.states[other_state].state_capital;
+
+					if(is_valid_index(other_capital)) {
+						d[i * aligned_state_max + j] = ws.w.province_s.province_distance_to[
+							to_index(capital) * province_count + to_index(other_capital)];
+					}
+				}
+			}
+		});
+	}
+
+	float state_distances_manager::distance(nations::state_tag a, nations::state_tag b) const {
+		return distance_data[to_index(a) * last_aligned_state_max + to_index(b)];
 	}
 }
