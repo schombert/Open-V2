@@ -31,6 +31,8 @@ namespace population {
 	void init_pop_demographics(world_state& ws, pop& p, int32_t size) {
 		ws.w.population_s.pop_demographics.ensure_capacity(to_index(p.id) + 1);
 		ws.w.population_s.pop_demographics.get(p.id, total_population_tag) = size;
+		if((ws.s.population_m.pop_types[p.type].flags & population::pop_type::is_employable) == 0)
+			ws.w.population_s.pop_demographics.get(p.id, total_employment_tag) = size;
 	}
 
 	bool is_pop_accepted(world_state& ws, pop& p, nations::nation& n) {

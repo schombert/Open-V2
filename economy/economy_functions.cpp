@@ -634,7 +634,7 @@ namespace economy {
 	void create_masked_prices(Eigen::Map <Eigen::Matrix<economy::money_qnty_type, -1, 1>>& __restrict masked_prices,
 		world_state const& ws, nations::state_instance const& si) {
 
-		auto state_prices = ws.w.nation_s.state_prices.get_row(si.id) + (ws.s.economy_m.aligned_32_goods_count * (1ui32 - (to_index(ws.w.current_date) & 1)));
+		auto state_prices = state_current_prices(ws, si.id);
 
 		masked_prices.setZero();
 		auto enabled_goods = ws.w.nation_s.active_goods.get_row(si.owner->id);
@@ -643,17 +643,87 @@ namespace economy {
 		}
 	}
 
+	
+
+	struct needs_values {
+		money_qnty_type life_needs = 0;
+		money_qnty_type everyday_needs = 0;
+		money_qnty_type luxury_needs = 0;
+	};
+
+	needs_values needs_for_poptype(world_state const& ws, population::pop_type_tag type, nations::state_instance const& si) {
+		auto state_cap = nations::get_state_capital(ws, si);
+		auto state_owner = si.owner;
+
+		if(!state_cap || !state_owner)
+			return needs_values{ 0,0,0 };
+
+		auto owner_id = state_owner->id;
+		auto state_id = si.id;
+		if(!ws.w.nation_s.nations.is_valid_index(owner_id) || !ws.w.nation_s.states.is_valid_index(state_id))
+			return needs_values{ 0,0,0 };
+
+		needs_values result{ 0,0,0 };
+		auto enabled_goods = ws.w.nation_s.active_goods.get_row(owner_id);
+		auto this_strata = ws.s.population_m.pop_types[type].flags & population::pop_type::strata_mask;
+
+		economy::money_qnty_type ln_factor;
+		economy::money_qnty_type ev_factor;
+		economy::money_qnty_type lx_factor;
+
+		if(this_strata == population::pop_type::strata_poor) {
+			ln_factor = economy::money_qnty_type(1) + state_owner->modifier_values[modifiers::national_offsets::poor_life_needs] + state_cap->modifier_values[modifiers::provincial_offsets::poor_life_needs];
+			ev_factor = economy::money_qnty_type(1) + state_owner->modifier_values[modifiers::national_offsets::poor_everyday_needs] + state_cap->modifier_values[modifiers::provincial_offsets::poor_everyday_needs];
+			lx_factor = economy::money_qnty_type(1) + state_owner->modifier_values[modifiers::national_offsets::poor_luxury_needs] + state_cap->modifier_values[modifiers::provincial_offsets::poor_luxury_needs];
+		} else if(this_strata == population::pop_type::strata_middle) {
+			ln_factor = economy::money_qnty_type(1) + state_owner->modifier_values[modifiers::national_offsets::middle_life_needs] + state_cap->modifier_values[modifiers::provincial_offsets::middle_life_needs];
+			ev_factor = economy::money_qnty_type(1) + state_owner->modifier_values[modifiers::national_offsets::middle_everyday_needs] + state_cap->modifier_values[modifiers::provincial_offsets::middle_everyday_needs];
+			lx_factor = economy::money_qnty_type(1) + state_owner->modifier_values[modifiers::national_offsets::middle_luxury_needs] + state_cap->modifier_values[modifiers::provincial_offsets::middle_luxury_needs];
+		} else { //if(this_strata == population::pop_type::strata_rich) {
+			ln_factor = economy::money_qnty_type(1) + state_owner->modifier_values[modifiers::national_offsets::rich_life_needs] + state_cap->modifier_values[modifiers::provincial_offsets::rich_life_needs];
+			ev_factor = economy::money_qnty_type(1) + state_owner->modifier_values[modifiers::national_offsets::rich_everyday_needs] + state_cap->modifier_values[modifiers::provincial_offsets::rich_everyday_needs];
+			lx_factor = economy::money_qnty_type(1) + state_owner->modifier_values[modifiers::national_offsets::rich_luxury_needs] + state_cap->modifier_values[modifiers::provincial_offsets::rich_luxury_needs];
+		}
+
+		auto ln_goods = ws.s.population_m.life_needs.get_row(type);
+		auto en_goods = ws.s.population_m.everyday_needs.get_row(type);
+		auto lx_goods = ws.s.population_m.luxury_needs.get_row(type);
+
+		auto state_prices = state_current_prices(ws, state_id);
+
+		for(uint32_t i = 0; i < ws.s.economy_m.goods_count; ++i) {
+			if(bit_vector_test(enabled_goods, i)) {
+				result.life_needs += ln_factor * state_prices[i] * ln_goods[i];
+				result.everyday_needs += ev_factor * state_prices[i] * en_goods[i];
+				result.luxury_needs += lx_factor * state_prices[i] * lx_goods[i];
+			}
+		}
+
+		return result;
+	}
+
+	needs_values needs_for_poptype(world_state const& ws, population::pop_type_tag type, nations::nation const& n) {
+		auto ncap = n.current_capital;
+		if(!is_valid_index(ncap))
+			return needs_values{ 0,0,0 };
+		auto ncap_state = ws.w.province_s.province_state_container[ncap].state_instance;
+		if(!ncap_state)
+			return needs_values{ 0,0,0 };
+		return needs_for_poptype(ws, type, *ncap_state);
+	}
+
 	money_qnty_type get_life_needs_cost(world_state const& ws, nations::state_instance const& si, population::pop_type_tag ptype) {
 		auto state_owner = si.owner;
 		auto state_capital = nations::get_state_capital(ws, si);
 		if(!state_owner || !state_capital)
 			return money_qnty_type(0);
+		auto owner_id = state_owner->id;
+		auto state_id = si.id;
+		if(!ws.w.nation_s.nations.is_valid_index(owner_id) || !ws.w.nation_s.states.is_valid_index(state_id))
+			return money_qnty_type(0);
 
-		Eigen::Map<Eigen::VectorXf> masked_prices((money_qnty_type*)_alloca(sizeof(money_qnty_type) * ws.s.economy_m.aligned_32_goods_count), ws.s.economy_m.aligned_32_goods_count);
-		create_masked_prices(masked_prices, ws, si);
 
 		auto this_strata = ws.s.population_m.pop_types[ptype].flags & population::pop_type::strata_mask;
-
 		economy::money_qnty_type ln_factor;
 
 		if(this_strata == population::pop_type::strata_poor) {
@@ -664,11 +734,31 @@ namespace economy {
 			ln_factor = economy::money_qnty_type(1) + state_owner->modifier_values[modifiers::national_offsets::rich_life_needs] + state_capital->modifier_values[modifiers::provincial_offsets::rich_life_needs];
 		}
 
-		const Eigen::Map<const Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::AlignmentType::Aligned32> ln(ws.s.population_m.life_needs.get_row(ptype), ws.s.economy_m.aligned_32_goods_count);
-		return ln_factor * masked_prices.dot(ln);
+		money_qnty_type sum = 0;
+		auto enabled_goods = ws.w.nation_s.active_goods.get_row(owner_id);
+		auto ln_goods = ws.s.population_m.life_needs.get_row(ptype);
+		auto state_prices = state_current_prices(ws, state_id);
+
+		for(uint32_t i = 0; i < ws.s.economy_m.goods_count; ++i) {
+			if(bit_vector_test(enabled_goods, i)) {
+				sum += ln_factor * state_prices[i] * ln_goods[i];
+			}
+		}
+
+		return sum;
 	}
 
-	void fill_needs_costs_arrays(world_state & ws, nations::state_instance const& si, provinces::province_state const& state_capital,
+	money_qnty_type get_life_needs_cost(world_state const& ws, population::pop_type_tag type, nations::nation const& n) {
+		auto ncap = n.current_capital;
+		if(!is_valid_index(ncap))
+			return money_qnty_type(0);
+		auto ncap_state = ws.w.province_s.province_state_container[ncap].state_instance;
+		if(!ncap_state)
+			return money_qnty_type(0);
+		return get_life_needs_cost(ws, *ncap_state, type);
+	}
+
+	void fill_needs_costs_arrays(world_state const& ws, nations::state_instance const& si, provinces::province_state const& state_capital,
 		Eigen::Map<Eigen::VectorXf> const& __restrict masked_prices,
 		economy::money_qnty_type * __restrict life_needs_cost_by_type,
 		economy::money_qnty_type * __restrict everyday_needs_cost_by_type,
@@ -696,11 +786,11 @@ namespace economy {
 				lx_factor = economy::money_qnty_type(1) + si.owner->modifier_values[modifiers::national_offsets::rich_luxury_needs] + state_capital.modifier_values[modifiers::provincial_offsets::rich_luxury_needs];
 			}
 
-			Eigen::Map<Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::AlignmentType::Aligned32> ln(ws.s.population_m.life_needs.get_row(this_type), ws.s.economy_m.aligned_32_goods_count);
+			Eigen::Map<const Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::AlignmentType::Aligned32> ln(ws.s.population_m.life_needs.get_row(this_type), ws.s.economy_m.aligned_32_goods_count);
 			life_needs_cost_by_type[i] = ln_factor * masked_prices.dot(ln);
-			Eigen::Map<Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::AlignmentType::Aligned32> en(ws.s.population_m.everyday_needs.get_row(this_type), ws.s.economy_m.aligned_32_goods_count);
+			Eigen::Map<const Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::AlignmentType::Aligned32> en(ws.s.population_m.everyday_needs.get_row(this_type), ws.s.economy_m.aligned_32_goods_count);
 			everyday_needs_cost_by_type[i] = ev_factor * masked_prices.dot(en);
-			Eigen::Map<Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::AlignmentType::Aligned32> xn(ws.s.population_m.luxury_needs.get_row(this_type), ws.s.economy_m.aligned_32_goods_count);
+			Eigen::Map<const Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::AlignmentType::Aligned32> xn(ws.s.population_m.luxury_needs.get_row(this_type), ws.s.economy_m.aligned_32_goods_count);
 			luxury_needs_cost_by_type[i] = lx_factor * masked_prices.dot(xn);
 		}
 	}
@@ -1598,11 +1688,13 @@ namespace economy {
 			economy_single_good_tick<true>(ws, goods_tag(goods_tag::value_base_t(i)), state_count, nations_count);
 		});
 		collect_taxes(ws);
-		//collect tarrif income
+		//collect tarrif income & pay pops
 		ws.w.nation_s.nations.parallel_for_each([&ws](nations::nation& n) {
 			auto tincome = ws.w.nation_s.collected_tarrifs.get_row(n.id);
 			ws.w.nation_s.national_stockpiles.get(n.id, economy::money_good) += std::reduce(tincome, tincome + ws.s.economy_m.goods_count, economy::money_qnty_type(0), std::plus<>());
+			pay_unemployement_pensions_salaries(ws, n);
 		});
+		
 #ifdef DEBUG_ECONOMY
 		for(uint32_t i = 1; i < ws.s.economy_m.goods_count; ++i) {
 			goods_tag this_tag = goods_tag(goods_tag::value_base_t(i));
@@ -1715,4 +1807,251 @@ namespace economy {
 			return economy::money_qnty_type(0);
 		}
 	}
+
+	constexpr float luxury_pay_fraction = 0.5f;
+
+	money_qnty_type military_spending_amount(world_state const& ws, nations::nation const& n) {
+		auto nid = n.id;
+		if(!ws.w.nation_s.nations.is_valid_index(nid))
+			return money_qnty_type(0);
+		
+		auto military_spending = float(n.military_spending) / 100.0f;
+		money_qnty_type sum = money_qnty_type(0);
+
+		{
+			auto type = ws.s.population_m.soldier;
+			auto soldiers_needs = needs_for_poptype(ws, type, n);
+			auto pop_size = ws.w.nation_s.nation_demographics.get(nid, population::to_demo_tag(ws, type));
+			auto colonial_pop_size = ws.w.nation_s.nation_colonial_demographics.get(nid, population::to_demo_tag(ws, type));
+			auto pop_size_multiplier = pop_size / pop_needs_divisor;
+			auto colonial_pop_size_multiplier = colonial_pop_size / pop_needs_divisor;
+
+			sum +=
+				(pop_size_multiplier + 0.5f * colonial_pop_size_multiplier) *
+				military_spending *
+				(soldiers_needs.life_needs + soldiers_needs.everyday_needs + luxury_pay_fraction * soldiers_needs.luxury_needs);
+			
+		}
+		{
+			auto type = ws.s.population_m.officer;
+			auto officers_needs = needs_for_poptype(ws, type, n);
+			auto pop_size = ws.w.nation_s.nation_demographics.get(nid, population::to_demo_tag(ws, type));
+			auto colonial_pop_size = ws.w.nation_s.nation_colonial_demographics.get(nid, population::to_demo_tag(ws, type));
+			auto pop_size_multiplier = pop_size / pop_needs_divisor;
+			auto colonial_pop_size_multiplier = colonial_pop_size / pop_needs_divisor;
+
+			sum +=
+				(pop_size_multiplier + 0.5f * colonial_pop_size_multiplier) *
+				military_spending *
+				(officers_needs.life_needs + officers_needs.everyday_needs + luxury_pay_fraction * officers_needs.luxury_needs);
+			
+		}
+
+		return sum * (2.0f - n.national_administrative_efficiency);
+	}
+
+	money_qnty_type education_spending_amount(world_state const& ws, nations::nation const& n) {
+		auto nid = n.id;
+		if(!ws.w.nation_s.nations.is_valid_index(nid))
+			return money_qnty_type(0);
+
+		auto education_spending = float(n.education_spending) / 100.0f;
+		money_qnty_type sum = money_qnty_type(0);
+
+		{
+			auto type = ws.s.population_m.clergy;
+			auto clergy_needs = needs_for_poptype(ws, type, n);
+			auto pop_size = ws.w.nation_s.nation_demographics.get(nid, population::to_demo_tag(ws, type));
+			auto colonial_pop_size = ws.w.nation_s.nation_colonial_demographics.get(nid, population::to_demo_tag(ws, type));
+			auto pop_size_multiplier = pop_size / pop_needs_divisor;
+			auto colonial_pop_size_multiplier = colonial_pop_size / pop_needs_divisor;
+
+			sum +=
+				(pop_size_multiplier + 0.5f * colonial_pop_size_multiplier) *
+				education_spending *
+				(clergy_needs.life_needs + clergy_needs.everyday_needs + luxury_pay_fraction * clergy_needs.luxury_needs);
+			
+		}
+		
+		return sum * (2.0f - n.national_administrative_efficiency);
+	}
+
+	money_qnty_type administrative_spending_amount(world_state const& ws, nations::nation const& n) {
+		auto nid = n.id;
+		if(!ws.w.nation_s.nations.is_valid_index(nid))
+			return money_qnty_type(0);
+
+		auto education_spending = float(n.administrative_spending) / 100.0f;
+		money_qnty_type sum = money_qnty_type(0);
+
+		{
+			auto type = ws.s.population_m.bureaucrat;
+			auto b_needs = needs_for_poptype(ws, type, n);
+			auto pop_size = ws.w.nation_s.nation_demographics.get(nid, population::to_demo_tag(ws, type));
+			if(pop_size != 0) {
+				auto colonial_pop_size = ws.w.nation_s.nation_colonial_demographics.get(nid, population::to_demo_tag(ws, type));
+				auto pop_size_multiplier = pop_size / pop_needs_divisor;
+				auto colonial_pop_size_multiplier = colonial_pop_size / pop_needs_divisor;
+
+				sum +=
+					(pop_size_multiplier + 0.5f * colonial_pop_size_multiplier) *
+					education_spending *
+					(b_needs.life_needs + b_needs.everyday_needs + luxury_pay_fraction * b_needs.luxury_needs);
+			}
+		}
+
+		return sum * (2.0f - n.national_administrative_efficiency);
+	}
+
+	money_qnty_type social_spending_amount(world_state const& ws, nations::nation const& n) {
+
+		auto nid = n.id;
+		if(!ws.w.nation_s.nations.is_valid_index(nid))
+			return money_qnty_type(0);
+
+		auto social_spending = float(n.social_spending) / 100.0f;
+		auto pension_fraction = n.modifier_values[modifiers::national_offsets::pension_level] * social_spending;
+		auto unemployment_fraction = n.modifier_values[modifiers::national_offsets::unemployment_benefit] * social_spending;
+
+		auto est_costs = std::transform_reduce(integer_iterator(0), integer_iterator(ws.s.population_m.count_poptypes), money_qnty_type(0), std::plus<>(),
+			[&ws, nid, &n, pension_fraction, unemployment_fraction](int32_t i) {
+
+			population::pop_type_tag this_type = population::pop_type_tag(population::pop_type_tag::value_base_t(i));
+
+			auto pop_size = ws.w.nation_s.nation_demographics.get(nid, population::to_demo_tag(ws, this_type));
+			if(pop_size == 0)
+				return money_qnty_type(0);
+
+			auto pop_size_multiplier = pop_size / pop_needs_divisor;
+			auto pop_employed = ws.w.nation_s.nation_demographics.get(nid, population::to_employment_demo_tag(ws, this_type));
+
+			return get_life_needs_cost(ws, this_type, n) * (pension_fraction + unemployment_fraction * (1.0f - pop_employed / pop_size)) * pop_size_multiplier;
+		});
+
+		auto cost_with_waste = est_costs * (2.0f - n.national_administrative_efficiency);
+		return cost_with_waste;
+	}
+
+	void pay_unemployement_pensions_salaries(world_state& ws, nations::nation& n) {
+		if(!is_valid_index(n.current_capital))
+			return;
+
+		auto capital_state = ws.w.province_s.province_state_container[n.current_capital].state_instance;
+		auto capital_of_capital = nations::get_state_capital(ws, *capital_state);
+
+		Eigen::Map<Eigen::Matrix<economy::money_qnty_type, -1, 1>> masked_prices(
+			(economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count),
+			ws.s.economy_m.aligned_32_goods_count);
+		create_masked_prices(masked_prices, ws, *capital_state);
+
+		economy::money_qnty_type* life_needs_cost_by_type = (economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
+		economy::money_qnty_type* everyday_needs_cost_by_type = (economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
+		economy::money_qnty_type* luxury_needs_cost_by_type = (economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
+
+		fill_needs_costs_arrays(ws, *capital_state, *capital_of_capital, masked_prices, life_needs_cost_by_type, everyday_needs_cost_by_type, luxury_needs_cost_by_type);
+
+		auto admin_spending = float(n.administrative_spending) / 100.0f;
+		auto education_spending = float(n.education_spending) / 100.0f;
+		auto military_spending = float(n.military_spending) / 100.0f;
+		auto social_spending = float(n.social_spending) / 100.0f;
+		auto pension_fraction = n.modifier_values[modifiers::national_offsets::pension_level] * social_spending;
+		auto unemployment_fraction = n.modifier_values[modifiers::national_offsets::unemployment_benefit] * social_spending;
+
+		economy::money_qnty_type est_costs = 0;
+
+		nations::for_each_state(ws, n, [&ws, &est_costs, pension_fraction, unemployment_fraction, life_needs_cost_by_type, everyday_needs_cost_by_type, luxury_needs_cost_by_type, admin_spending, education_spending, military_spending](nations::state_instance& si) {
+			if(!nations::is_colonial_or_protectorate(si)) {
+				nations::for_each_pop(ws, si, [&ws, &est_costs, pension_fraction, unemployment_fraction, life_needs_cost_by_type, everyday_needs_cost_by_type, luxury_needs_cost_by_type, admin_spending, education_spending, military_spending](population::pop& p) {
+					auto pop_size = float(ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag));
+					if(pop_size == 0)
+						return;
+
+					auto pop_size_multiplier = pop_size / pop_needs_divisor;
+					auto unemployment = 1.0f - float(ws.w.population_s.pop_demographics.get(p.id, population::total_employment_tag)) / pop_size;
+					
+					auto pamount = life_needs_cost_by_type[to_index(p.type)] * (pension_fraction + unemployment_fraction * unemployment) * pop_size_multiplier;
+					p.money += pamount;
+					est_costs += pamount;
+
+					if(p.type == ws.s.population_m.bureaucrat) {
+						auto amount = pop_size_multiplier *
+							admin_spending *
+							(life_needs_cost_by_type[to_index(p.type)] + everyday_needs_cost_by_type[to_index(p.type)] + luxury_pay_fraction * luxury_needs_cost_by_type[to_index(p.type)]);
+						p.money += amount;
+						est_costs += amount;
+					} else if(p.type == ws.s.population_m.clergy) {
+						auto amount =
+							pop_size_multiplier *
+							education_spending *
+							(life_needs_cost_by_type[to_index(p.type)] + everyday_needs_cost_by_type[to_index(p.type)] + luxury_pay_fraction * luxury_needs_cost_by_type[to_index(p.type)]);
+						p.money += amount;
+						est_costs += amount;
+					} else if(p.type == ws.s.population_m.soldier) {
+						auto amount =
+							pop_size_multiplier *
+							military_spending *
+							(life_needs_cost_by_type[to_index(p.type)] + everyday_needs_cost_by_type[to_index(p.type)] + luxury_pay_fraction * luxury_needs_cost_by_type[to_index(p.type)]);
+						p.money += amount;
+						est_costs += amount;
+					} else if(p.type == ws.s.population_m.officer) {
+						auto amount =
+							pop_size_multiplier *
+							military_spending *
+							(life_needs_cost_by_type[to_index(p.type)] + everyday_needs_cost_by_type[to_index(p.type)] + luxury_pay_fraction * luxury_needs_cost_by_type[to_index(p.type)]);
+						p.money += amount;
+						est_costs += amount;
+					}
+				});
+			} else {
+				nations::for_each_pop(ws, si, [&ws, &est_costs, life_needs_cost_by_type, everyday_needs_cost_by_type, luxury_needs_cost_by_type, admin_spending, education_spending, military_spending](population::pop& p) {
+					auto pop_size = float(ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag));
+					auto pop_size_multiplier = pop_size / pop_needs_divisor;
+
+					if(p.type == ws.s.population_m.bureaucrat) {
+						auto amount =
+							0.5f * // colonial reduction
+							pop_size_multiplier *
+							admin_spending *
+							(life_needs_cost_by_type[to_index(p.type)] + everyday_needs_cost_by_type[to_index(p.type)] + luxury_pay_fraction * luxury_needs_cost_by_type[to_index(p.type)]);
+						p.money += amount;
+						est_costs += amount;
+					} else if(p.type == ws.s.population_m.clergy) {
+						auto amount =
+							0.5f * // colonial reduction
+							pop_size_multiplier *
+							education_spending *
+							(life_needs_cost_by_type[to_index(p.type)] + everyday_needs_cost_by_type[to_index(p.type)] + luxury_pay_fraction * luxury_needs_cost_by_type[to_index(p.type)]);
+						p.money += amount;
+						est_costs += amount;
+					} else if(p.type == ws.s.population_m.soldier) {
+						auto amount =
+							0.5f * // colonial reduction
+							pop_size_multiplier *
+							military_spending *
+							(life_needs_cost_by_type[to_index(p.type)] + everyday_needs_cost_by_type[to_index(p.type)] + luxury_pay_fraction * luxury_needs_cost_by_type[to_index(p.type)]);
+						p.money += amount;
+						est_costs += amount;
+					} else if(p.type == ws.s.population_m.officer) {
+						auto amount =
+							0.5f * // colonial reduction
+							pop_size_multiplier *
+							military_spending *
+							(life_needs_cost_by_type[to_index(p.type)] + everyday_needs_cost_by_type[to_index(p.type)] + luxury_pay_fraction * luxury_needs_cost_by_type[to_index(p.type)]);
+						p.money += amount;
+						est_costs += amount;
+					}
+				});
+			}
+		});
+
+		auto cost_with_waste = est_costs * (2.0f - n.national_administrative_efficiency);
+		auto diff = ws.w.nation_s.national_stockpiles.get(n.id, economy::money_good) - cost_with_waste;
+		if(diff < money_qnty_type(0)) {
+			ws.w.nation_s.national_stockpiles.get(n.id, economy::money_good) = 0;
+			n.national_debt += -diff;
+		} else {
+			ws.w.nation_s.national_stockpiles.get(n.id, economy::money_good) = diff;
+		}
+	}
+
 }

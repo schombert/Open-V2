@@ -531,8 +531,13 @@ namespace governments {
 
 	class selected_option {
 	public:
+		issues::option_tag tag;
+
 		template<typename window_type>
 		void windowed_update(ui::dynamic_icon<selected_option>&, window_type& win, world_state& ws);
+
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	class unselected_option_button {
@@ -542,6 +547,9 @@ namespace governments {
 		template<typename window_type>
 		void windowed_update(ui::simple_button<unselected_option_button>&, window_type& win, world_state& ws);
 		void button_function(ui::simple_button<unselected_option_button>&, world_state&);
+
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	using reform_item = ui::gui_window <
@@ -1177,6 +1185,8 @@ namespace governments {
 
 	template<typename window_type>
 	void selected_option::windowed_update(ui::dynamic_icon<selected_option>& self, window_type & win, world_state & ws) {
+		tag = win.tag;
+
 		if(auto player = ws.w.local_player_nation; bool(player) && is_valid_index(win.tag)) {
 			if(auto id = player->id; ws.w.nation_s.nations.is_valid_index(id)) {
 				auto& iss_def = ws.s.issues_m.issues_container[ws.s.issues_m.options[win.tag].parent_issue];

@@ -370,6 +370,12 @@ namespace governments {
 	}
 
 	void unselected_option_button::button_function(ui::simple_button<unselected_option_button>&, world_state &) {}
+	void unselected_option_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::unlimited_line_manager lm;
+		auto mod = ws.s.issues_m.options[tag].modifier;
+		if(is_valid_index(mod))
+			modifiers::make_national_modifier_text(ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format, mod);
+	}
 	void release_nation_button::button_function(ui::simple_button<release_nation_button>&, world_state &) {}
 	void social_reform_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::cannot_social_reform], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
@@ -448,5 +454,11 @@ namespace governments {
 		ui::hide(*(win->template get<CT_STRING("unciv_reforms_window")>().associated_object));
 
 		ui::make_visible_and_update(gui_m, *(win->associated_object));
+	}
+	void selected_option::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::unlimited_line_manager lm;
+		auto mod = ws.s.issues_m.options[tag].modifier;
+		if(is_valid_index(mod))
+			modifiers::make_national_modifier_text(ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format, mod);
 	}
 }

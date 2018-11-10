@@ -361,13 +361,16 @@ namespace issues {
 					*return_state.impl);
 			}
 		}
-
+		for(uint32_t i = 0; i < manager.options.size(); ++i) {
+			option_tag this_tag(static_cast<value_base_of<option_tag>>(i));
+			manager.options[this_tag].id = this_tag;
+		}
 		std::stable_sort(manager.options.begin(), manager.options.end(), [&manager](issue_option const& a, issue_option const& b) {
 			return manager.issues_container[a.parent_issue].type < manager.issues_container[b.parent_issue].type;
 		});
 		for(uint32_t i = 0; i < manager.options.size(); ++i) {
 			option_tag this_tag(static_cast<value_base_of<option_tag>>(i));
-			std::get<0>(return_state.impl->parsed_options[i]) = this_tag;
+			std::get<0>(return_state.impl->parsed_options[to_index(manager.options[this_tag].id)]) = this_tag;
 			manager.options[this_tag].id = this_tag;
 			manager.named_option_index.emplace(manager.options[this_tag].name, this_tag);
 
