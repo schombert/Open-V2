@@ -113,6 +113,7 @@ namespace nations {
 			remove_item(ws.w.nation_s.truce_arrays, ws.w.nation_s.nations[t->tag].truces, truce{date_tag(), new_nation.id});
 		clear(ws.w.nation_s.truce_arrays, new_nation.truces);
 		
+		clear(ws.w.economy_s.purchasing_arrays, new_nation.statewise_tarrif_mask);
 		clear(ws.w.variable_s.national_flags_arrays, new_nation.national_flags);
 		clear(ws.w.nation_s.static_modifier_arrays, new_nation.static_modifiers);
 		clear(ws.w.nation_s.timed_modifier_arrays, new_nation.timed_modifiers);

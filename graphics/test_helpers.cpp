@@ -68,6 +68,7 @@ namespace graphics {
 		}
 		void initialize_graphics(open_gl_wrapper& ) {
 		}
+		void on_idle(ui::window_base const&) const {}
 
 		void render(open_gl_wrapper& ogl) {
 			if (!run) {

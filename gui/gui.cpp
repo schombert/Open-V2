@@ -1000,6 +1000,13 @@ void ui::make_visible_and_update(gui_manager& manager, gui_object& g) {
 	manager.flag_minimal_update();
 }
 
+void ui::make_visible(gui_manager& manager, gui_object& g) {
+	if((g.flags.load(std::memory_order_acquire) & ui::gui_object::visible) == 0) {
+		g.flags.fetch_or(ui::gui_object::visible_after_update, std::memory_order_acq_rel);
+		manager.flag_minimal_update();
+	}
+}
+
 void ui::hide(gui_object& g) {
 	g.flags.fetch_and((uint16_t)(~ui::gui_object::visible & ~ui::gui_object::visible_after_update), std::memory_order_acq_rel);
 }
@@ -1017,6 +1024,26 @@ void ui::set_enabled(gui_object& g, bool enabled) {
 
 void ui::gui_manager::hide_tooltip() {
 	hide(tagged_gui_object{ tooltip_window, gui_object_tag(3) });
+}
+
+void ui::gui_manager::flag_minimal_update() {
+	pending_minimal_update.store(true, std::memory_order_release);
+}
+
+void ui::replace_children(gui_manager& manager, tagged_gui_object g, tagged_gui_object replacement) {
+	auto temp = g.object.first_child;
+
+	gui_object_tag current_child = replacement.object.first_child;
+	while(is_valid_index(current_child)) {
+		auto& child_object = manager.gui_objects.at(current_child);
+		child_object.parent = g.id;
+		current_child = child_object.right_sibling;
+	}
+
+	g.object.first_child = replacement.object.first_child;
+	replacement.object.first_child = temp;
+
+	ui::clear_children(manager, replacement);
 }
 
 void ui::clear_children(gui_manager& manager, tagged_gui_object g) {
@@ -1174,6 +1201,8 @@ bool ui::gui_manager::on_rbutton_down(world_state& ws, const rbutton_down& rd) {
 }
 
 bool ui::gui_manager::on_mouse_move(world_state& static_manager, const mouse_move& mm) {
+	last_mouse_move = ui::xy_pair{ int16_t(mm.x), int16_t(mm.y) };
+
 	const bool found_tooltip = detail::dispatch_message(*this, [&static_manager](ui::tagged_gui_object obj, const mouse_move& m) {
 		if (obj.object.associated_behavior) {
 			const auto tt_behavior = obj.object.associated_behavior->has_tooltip(obj.id, static_manager, m);
@@ -1186,8 +1215,14 @@ bool ui::gui_manager::on_mouse_move(world_state& static_manager, const mouse_mov
 			}
 			if ((static_manager.w.gui_m.tooltip != obj.id) | (tt_behavior == tooltip_behavior::variable_tooltip)) {
 				static_manager.w.gui_m.tooltip = obj.id;
-				clear_children(static_manager.w.gui_m, ui::tagged_gui_object{ static_manager.w.gui_m.tooltip_window, gui_object_tag(3) });
-				obj.object.associated_behavior->create_tooltip(obj.id, static_manager, m, ui::tagged_gui_object{ static_manager.w.gui_m.tooltip_window, gui_object_tag(3) });
+
+				auto temp_holder = static_manager.w.gui_m.gui_objects.emplace();
+
+				obj.object.associated_behavior->create_tooltip(obj.id, static_manager, m, temp_holder);
+				
+				ui::replace_children(static_manager.w.gui_m, ui::tagged_gui_object{ static_manager.w.gui_m.tooltip_window, gui_object_tag(3) }, temp_holder);
+				static_manager.w.gui_m.gui_objects.free(temp_holder.id);
+				
 				ui::shrink_to_children(static_manager.w.gui_m, ui::tagged_gui_object{ static_manager.w.gui_m.tooltip_window, gui_object_tag(3) }, 16);
 
 				static_manager.w.gui_m.tooltip_window.position = ui::absolute_position(static_manager.w.gui_m, obj);
@@ -1334,6 +1369,9 @@ void ui::update(world_state& w) {
 	detail::update(tagged_gui_object{ w.w.gui_m.root, gui_object_tag(0) }, w);
 	detail::update(tagged_gui_object{ w.w.gui_m.background, gui_object_tag(1) }, w);
 	detail::update(tagged_gui_object{ w.w.gui_m.foreground, gui_object_tag(2) }, w);
+
+	w.w.gui_m.tooltip = gui_object_tag();
+	w.w.gui_m.on_mouse_move(w, ui::mouse_move{ w.w.gui_m.last_mouse_move.x, w.w.gui_m.last_mouse_move.y, key_modifiers::modifiers_none });
 }
 
 ui::gui_manager::gui_manager() : gui_manager(1080, 640) {}

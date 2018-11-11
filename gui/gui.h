@@ -696,6 +696,7 @@ namespace ui {
 	private:
 		std::vector<ELEMENT, concurrent_allocator<ELEMENT>> contents;
 		gui_object_tag self;
+		gui_object_tag temp;
 
 		int32_t spacing = 0;
 		text_data::alignment subelement_alignment;
@@ -710,7 +711,7 @@ namespace ui {
 		void windowed_update(window_type& w, world_state& s);
 
 		void set_self_information(world_state& m, gui_object_tag s, int32_t sp, text_data::alignment a);
-		void clear_items(gui_manager&);
+		void clear_items(gui_manager& manager);
 		void update_item_positions();
 		template<typename ... PARAMS>
 		void add_item(world_state&, PARAMS&& ...);
@@ -795,7 +796,7 @@ namespace ui {
 		xy_pair size; //12bytes
 		xy_pair position; //16bytes
 
-		std::atomic<uint16_t> type_dependant_handle; // 18bytes
+		std::atomic<uint16_t> type_dependant_handle = 0; // 18bytes
 
 		atomic_tag<gui_object_tag> parent; //20bytes
 		atomic_tag<gui_object_tag> first_child; //22 bytes
@@ -981,6 +982,7 @@ namespace ui {
 	xy_pair text_chunk_to_instances(gui_static& static_manager, gui_manager& container, vector_backed_string<char16_t> text_source, tagged_gui_object parent_object, ui::xy_pair position, const text_format& fmt, LM&& lm = single_line_manager(), const BH& behavior_creator = null_behavior_creation());
 
 	void clear_children(gui_manager& manager, tagged_gui_object g);
+	void replace_children(gui_manager& manager, tagged_gui_object g, tagged_gui_object replacement);
 	void remove_object(gui_manager& manager, tagged_gui_object g);
 	void move_to_front(const gui_manager& manager, tagged_gui_object g);
 	void move_to_back(const gui_manager& manager, tagged_gui_object g);
@@ -988,6 +990,7 @@ namespace ui {
 	void add_to_back(const gui_manager& manager, tagged_gui_object parent, tagged_gui_object child);
 
 	void make_visible_and_update(gui_manager& manager, gui_object& g);
+	void make_visible(gui_manager& manager, gui_object& g);
 	void make_visible_immediate(gui_object& g);
 	void hide(gui_object& g);
 	void set_enabled(gui_object& g, bool enabled);
@@ -1042,6 +1045,8 @@ namespace ui {
 		gui_object_tag tooltip;
 		gui_object_tag selected_interactable;
 
+		ui::xy_pair last_mouse_move{ -10i16, -10i16 };
+
 		gui_manager();
 		gui_manager(int32_t width, int32_t height);
 		
@@ -1062,7 +1067,7 @@ namespace ui {
 		void hide_tooltip();
 		void flag_update() { pending_update.store(true, std::memory_order_release); }
 		bool check_and_clear_update() { bool expected = true; return pending_update.compare_exchange_strong(expected, false, std::memory_order_release, std::memory_order_acquire); }
-		void flag_minimal_update() { pending_minimal_update.store(true, std::memory_order_release); }
+		void flag_minimal_update();
 		bool check_and_clear_minimal_update() { bool expected = true; return pending_minimal_update.compare_exchange_strong(expected, false, std::memory_order_release, std::memory_order_acquire); }
 
 		void destroy(gui_object& g);

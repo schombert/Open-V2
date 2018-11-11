@@ -68,7 +68,7 @@ namespace economy {
 		}
 		{
 			auto v = economy::state_current_demand(ws, s);
-			auto prices = economy::state_old_prices(ws, s);
+			auto prices = economy::state_current_prices(ws, s);
 
 			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::demand_label], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
 			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);

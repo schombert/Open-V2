@@ -68,7 +68,7 @@ namespace economy {
 	money_qnty_type get_railroad_cost(world_state const& ws, money_qnty_type const* prices);
 	float project_completion(world_state const& ws, nations::state_instance const& si, money_qnty_type const* prices);
 	money_qnty_type* state_current_prices(world_state const& ws, nations::state_tag s);
-	money_qnty_type* state_old_prices(world_state const& ws, nations::state_tag s);
+	money_qnty_type* state_price_delta(world_state const& ws, nations::state_tag s);
 	goods_qnty_type* state_current_production(world_state const& ws, nations::state_tag s);
 	money_qnty_type* state_current_demand(world_state const& ws, nations::state_tag s);
 

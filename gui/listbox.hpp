@@ -31,18 +31,21 @@ void ui::display_listbox<BASE, ELEMENT, left_expand>::update_data(gui_object_tag
 
 template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>
 void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::update_data(gui_object_tag, world_state& ws) {
-	BASE::populate_list(*this, ws);
+		BASE::populate_list(*this, ws);
 
-	update_scroll_position(ws.w.gui_m);
+		update_scroll_position(ws.w.gui_m);
 
-	for(uint32_t i = 0; i < display_list.size(); ++i) {
-		if(i + offset < values_list.size() && bool(values_list[i + offset])) {
-			display_list[i].set_value(*(values_list[i + offset]));
-			ui::make_visible_and_update(ws.w.gui_m, *(display_list[i].associated_object));
-		} else {
-			ui::hide(*(display_list[i].associated_object));
+		for(uint32_t i = 0; i < display_list.size(); ++i) {
+			if(i + offset < values_list.size() && bool(values_list[i + offset])) {
+				display_list[i].set_value(*(values_list[i + offset]));
+				ui::make_visible_and_update(ws.w.gui_m, *(display_list[i].associated_object));
+			} else {
+				ui::hide(*(display_list[i].associated_object));
+			}
 		}
-	}
+
+		ws.w.gui_m.tooltip = gui_object_tag();
+		ws.w.gui_m.on_mouse_move(ws, ui::mouse_move{ ws.w.gui_m.last_mouse_move.x, ws.w.gui_m.last_mouse_move.y, key_modifiers::modifiers_none });
 }
 
 namespace ui {
@@ -176,6 +179,9 @@ void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::windowed_upda
 				ui::hide(*(display_list[i].associated_object));
 			}
 		}
+
+		s.w.gui_m.tooltip = gui_object_tag();
+		s.w.gui_m.on_mouse_move(s, ui::mouse_move{ s.w.gui_m.last_mouse_move.x, s.w.gui_m.last_mouse_move.y, key_modifiers::modifiers_none });
 	}
 }
 
@@ -574,10 +580,10 @@ void  ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::clear_items(
 template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension>
 template<typename ... PARAMS>
 void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::add_item(world_state& ws, PARAMS&& ... params) {
-	if (is_valid_index(self) && is_valid_index(element_def_tag)) {
+	if (is_valid_index(temp) && is_valid_index(element_def_tag)) {
 		contents.emplace_back(std::forward<PARAMS>(params)...);
 		auto& n = contents.back();
-		ui::create_static_element(ws, element_def_tag, tagged_gui_object{ *associated_object, self }, n);
+		ui::create_static_element(ws, element_def_tag, tagged_gui_object{ ws.w.gui_m.gui_objects.at(temp), temp }, n);
 
 		if constexpr(vertical_extension != 0)
 			n.associated_object->flags.fetch_or(gui_object::dont_clip_children, std::memory_order_acq_rel);
@@ -618,9 +624,20 @@ template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_ex
 void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::update_data(gui_object_tag, world_state& s) {
 	if constexpr(ui::detail::has_populate_list<BASE, ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>&, world_state&>) {
 		if(is_valid_index(element_def_tag)) {
-			clear_items(s.w.gui_m);
+			auto temp_holder = s.w.gui_m.gui_objects.emplace();
+			this->temp = temp_holder.id;
+			temp_holder.object.size = associated_object->size;
+			temp_holder.object.position = associated_object->position;
+
+			std::vector<ELEMENT, concurrent_allocator<ELEMENT>> temp_vector(std::move(contents));
+
+			//clear_items(s.w.gui_m);
 			BASE::populate_list(*this, s);
 			update_item_positions();
+
+			ui::replace_children(s.w.gui_m, tagged_gui_object{ *associated_object, self }, temp_holder);
+			temp = gui_object_tag();
+			s.w.gui_m.gui_objects.free(temp_holder.id);
 		}
 	}
 }
@@ -630,9 +647,20 @@ template<typename window_type>
 void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::windowed_update(window_type& w, world_state& s) {
 	if constexpr(ui::detail::has_windowed_update<BASE, ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>&, window_type&, world_state&>) {
 		if(is_valid_index(element_def_tag)) {
-			clear_items(s.w.gui_m);
+			auto temp_holder = s.w.gui_m.gui_objects.emplace();
+			this->temp = temp_holder.id;
+			temp_holder.object.size = associated_object->size;
+			temp_holder.object.position = associated_object->position;
+
+			std::vector<ELEMENT, concurrent_allocator<ELEMENT>> temp_vector(std::move(contents));
+
+			//clear_items(s.w.gui_m);
 			BASE::windowed_update(*this, w, s);
 			update_item_positions();
+
+			ui::replace_children(s.w.gui_m, tagged_gui_object{ *associated_object, self }, temp_holder);
+			temp = gui_object_tag();
+			s.w.gui_m.gui_objects.free(temp_holder.id);
 		}
 	}
 }

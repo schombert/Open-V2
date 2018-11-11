@@ -7,12 +7,24 @@
 template<typename BASE, int32_t y_adjust>
 void ui::display_text<BASE, y_adjust>::update_data(gui_object_tag, world_state& w) {
 	if constexpr(ui::detail::has_update<BASE, tagged_gui_object, text_data::alignment, ui::text_format&, world_state&>) {
-		ui::clear_children(w.w.gui_m, tagged_gui_object{ *associated_object, self });
-		BASE::update(tagged_gui_object{ *associated_object, self }, align, format, w);
+		auto temp_holder = w.w.gui_m.gui_objects.emplace();
+		temp_holder.object.size = associated_object->size;
+		temp_holder.object.position = associated_object->position;
+
+		BASE::update(temp_holder, align, format, w);
+
+		ui::replace_children(w.w.gui_m, tagged_gui_object{ *associated_object, self }, temp_holder);
+		w.w.gui_m.gui_objects.free(temp_holder.id);
 	} else if constexpr(ui::detail::has_update<BASE, tagged_gui_object, text_box_line_manager&, ui::text_format&, world_state&>) {
-		ui::clear_children(w.w.gui_m, tagged_gui_object{ *associated_object, self });
+		auto temp_holder = w.w.gui_m.gui_objects.emplace();
+		temp_holder.object.size = associated_object->size;
+		temp_holder.object.position = associated_object->position;
+
 		text_box_line_manager lm(align, associated_object->size.x, border_x, border_y);
-		BASE::update(tagged_gui_object{ *associated_object, self }, lm, format, w);
+		BASE::update(temp_holder, lm, format, w);
+
+		ui::replace_children(w.w.gui_m, tagged_gui_object{ *associated_object, self }, temp_holder);
+		w.w.gui_m.gui_objects.free(temp_holder.id);
 	}
 }
 
@@ -22,11 +34,17 @@ void ui::multiline_text<BASE, x_size_adjust, y_size_adjust>::update_data(gui_obj
 	if constexpr(ui::detail::has_update < BASE, tagged_gui_object, line_manager &, ui::text_format&, world_state& > ) {
 		tagged_gui_object content_frame{ w.w.gui_m.gui_objects.at(this->scrollable_region), this->scrollable_region};
 
-		ui::clear_children(w.w.gui_m, content_frame);
+		auto temp_holder = w.w.gui_m.gui_objects.emplace();
+		temp_holder.object.size = content_frame.object.size;
+		temp_holder.object.position = content_frame.object.position;
+
 		line_manager lm(align, content_frame.object.size.x);
 
-		BASE::update(content_frame, lm, format, w);
+		BASE::update(temp_holder, lm, format, w);
 		lm.finish_current_line();
+
+		ui::replace_children(w.w.gui_m, content_frame, temp_holder);
+		w.w.gui_m.gui_objects.free(temp_holder.id);
 
 		int32_t max_height = 1;
 		ui::for_each_child(w.w.gui_m, content_frame, [&max_height](tagged_gui_object c) { max_height = std::max(max_height, c.object.size.y + c.object.position.y); });
@@ -42,6 +60,8 @@ void ui::multiline_text<BASE, x_size_adjust, y_size_adjust>::update_data(gui_obj
 			content_frame.object.position.y = 0i16;
 			ui::hide(*sb.associated_object);
 		}
+
+		
 	}
 }
 
@@ -57,12 +77,24 @@ template<typename BASE, int32_t y_adjust>
 template<typename window_type>
 void ui::display_text<BASE, y_adjust>::windowed_update(window_type& w, world_state& s) {
 	if constexpr(ui::detail::has_windowed_update<BASE, window_type&, tagged_gui_object, text_data::alignment, ui::text_format&, world_state&>) {
-		ui::clear_children(s.w.gui_m, tagged_gui_object{ *associated_object, self });
-		BASE::windowed_update(w, tagged_gui_object{ *associated_object, self }, align, format, s);
+		auto temp_holder = s.w.gui_m.gui_objects.emplace();
+		temp_holder.object.size = associated_object->size;
+		temp_holder.object.position = associated_object->position;
+
+		BASE::windowed_update(w, temp_holder, align, format, s);
+
+		ui::replace_children(s.w.gui_m, tagged_gui_object{ *associated_object, self }, temp_holder);
+		s.w.gui_m.gui_objects.free(temp_holder.id);
 	} if constexpr(ui::detail::has_windowed_update<BASE, window_type&, tagged_gui_object, text_box_line_manager&, ui::text_format&, world_state&>) {
-		ui::clear_children(s.w.gui_m, tagged_gui_object{ *associated_object, self });
+		auto temp_holder = s.w.gui_m.gui_objects.emplace();
+		temp_holder.object.size = associated_object->size;
+		temp_holder.object.position = associated_object->position;
+
 		text_box_line_manager lm(align, associated_object->size.x, border_x, border_y);
-		BASE::windowed_update(w, tagged_gui_object{ *associated_object, self }, lm, format, s);
+		BASE::windowed_update(w, temp_holder, lm, format, s);
+
+		ui::replace_children(s.w.gui_m, tagged_gui_object{ *associated_object, self }, temp_holder);
+		s.w.gui_m.gui_objects.free(temp_holder.id);
 	}
 }
 
@@ -72,11 +104,17 @@ std::enable_if_t<ui::detail::has_windowed_update<BASE, window_type&, ui::tagged_
 	if constexpr(ui::detail::has_windowed_update < BASE, window_type&, tagged_gui_object, line_manager &, ui::text_format&, world_state& >) {
 		tagged_gui_object content_frame{ w.w.gui_m.gui_objects.at(scrollable_region), scrollable_region };
 
-		ui::clear_children(w.w.gui_m, content_frame);
+		auto temp_holder = w.w.gui_m.gui_objects.emplace();
+		temp_holder.object.size = content_frame.object.size;
+		temp_holder.object.position = content_frame.object.position;
+
 		line_manager lm(align, content_frame.object.size.x);
 
-		BASE::windowed_update(win, content_frame, lm, format, w);
+		BASE::windowed_update(win, temp_holder, lm, format, w);
 		lm.finish_current_line();
+
+		ui::replace_children(w.w.gui_m, content_frame, temp_holder);
+		w.w.gui_m.gui_objects.free(temp_holder.id);
 
 		int32_t max_height = 1;
 		ui::for_each_child(w.w.gui_m, content_frame, [&max_height](tagged_gui_object c) { max_height = std::max(max_height, c.object.size.y + c.object.position.y); });
@@ -181,7 +219,7 @@ void ui::fixed_text<BASE>::create_tooltip(gui_object_tag, world_state& ws, const
 template<typename BASE, int32_t y_adjust>
 void ui::display_text<BASE, y_adjust>::set_visibility(gui_manager& m, bool visible) {
 	if(visible)
-		ui::make_visible_and_update(m, *associated_object);
+		ui::make_visible(m, *associated_object);
 	else
 		ui::hide(*associated_object);
 }

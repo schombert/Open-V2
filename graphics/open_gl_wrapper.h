@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <functional>
+#include <mutex>
 #include "texture.h"
 #include "text.h"
 #include "lines.h"

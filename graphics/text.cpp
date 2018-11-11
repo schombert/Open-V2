@@ -377,6 +377,9 @@ namespace graphics {
 
 				metrics_glyph created;
 				created.advance = static_cast<float>(metrics_font_face->glyph->metrics.horiAdvance) / static_cast<float>((1 << 6) * magnification_factor);
+				metrics_glyph_mappings[codepoint] = created;
+
+				FT_Done_Glyph(g_result);
 				return created;
 			} else if (parent) {
 				return parent->make_metrics_glyph(codepoint);

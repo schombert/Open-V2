@@ -349,8 +349,8 @@ public:
 
 	template<typename T>
 	void for_each(T&& f) const;
-	template<typename T>
-	void parallel_for_each(T const& f);
+	template<typename T, typename P = concurrency::auto_partitioner>
+	void parallel_for_each(T const& f, P&& p = concurrency::auto_partitioner());
 };
 
 template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>

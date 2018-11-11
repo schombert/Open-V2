@@ -185,13 +185,13 @@ void stable_vector<object_type, index_type, block_size, index_size>::for_each(T&
 }
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
-template<typename T>
-void stable_vector<object_type, index_type, block_size, index_size>::parallel_for_each(T const& f) {
+template<typename T, typename P>
+void stable_vector<object_type, index_type, block_size, index_size>::parallel_for_each(T const& f, P&& p) {
 	concurrency::parallel_for(0ui32, indices_in_use * block_size, [&f, _this = this](uint32_t i) {
 		auto& th = _this->untyped_get(i);
 		if(((to_index(th.id) & high_bit_mask<index_type>) == 0) & ::is_valid_index(th.id))
 			f(th);
-	});
+	}, std::forward<P>(p));
 }
 
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>

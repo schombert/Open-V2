@@ -78,7 +78,7 @@ void ui::tinted_icon<BASE>::set_color(gui_manager& m, float r, float g, float b)
 template<typename BASE>
 void ui::dynamic_icon<BASE>::set_visibility(gui_manager& m, bool visible) {
 	if (visible)
-		ui::make_visible_and_update(m, *associated_object);
+		ui::make_visible(m, *associated_object);
 	else
 		ui::hide(*associated_object);
 }
@@ -86,7 +86,7 @@ void ui::dynamic_icon<BASE>::set_visibility(gui_manager& m, bool visible) {
 template<typename BASE>
 void ui::tinted_icon<BASE>::set_visibility(gui_manager& m, bool visible) {
 	if(visible)
-		ui::make_visible_and_update(m, *associated_object);
+		ui::make_visible(m, *associated_object);
 	else
 		ui::hide(*associated_object);
 }
@@ -165,7 +165,7 @@ void ui::dynamic_transparent_icon<BASE>::set_frame(gui_manager& m, uint32_t fram
 template<typename BASE>
 void ui::dynamic_transparent_icon<BASE>::set_visibility(gui_manager& m, bool visible) {
 	if(visible)
-		ui::make_visible_and_update(m, *associated_object);
+		ui::make_visible(m, *associated_object);
 	else
 		ui::hide(*associated_object);
 }

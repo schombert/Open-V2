@@ -236,7 +236,7 @@ void ui::button<BASE>::set_frame(gui_manager& m, uint32_t frame_num) {
 template<typename BASE>
 void ui::masked_flag<BASE>::set_visibility(gui_manager& m, bool visible) {
 	if(visible)
-		ui::make_visible_and_update(m, *associated_object);
+		ui::make_visible(m, *associated_object);
 	else
 		ui::hide(*associated_object);
 }
@@ -301,7 +301,7 @@ cultures::national_tag ui::masked_flag<BASE>::get_displayed_flag() {
 template<typename BASE>
 void ui::simple_button<BASE>::set_visibility(gui_manager& m, bool visible) {
 	if (visible)
-		ui::make_visible_and_update(m, *associated_object);
+		ui::make_visible(m, *associated_object);
 	else
 		ui::hide(*associated_object);
 }
@@ -314,7 +314,7 @@ void ui::simple_button<BASE>::set_enabled(bool enabled) {
 template<typename BASE>
 void ui::button<BASE>::set_visibility(gui_manager& m, bool visible) {
 	if(visible)
-		ui::make_visible_and_update(m, *associated_object);
+		ui::make_visible(m, *associated_object);
 	else
 		ui::hide(*associated_object);
 }

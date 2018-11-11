@@ -148,14 +148,15 @@ struct gui_window_handler {
 		graphics::update_map_colors(map, s);
 	}
 
-	void on_idle() {
+	void on_idle(ui::window_base& win) {
 		graphics::update_map_colors(map, s);
 
 		if (s.w.gui_m.check_and_clear_update()) {
 			ui::update(s);
 		} else if (s.w.gui_m.check_and_clear_minimal_update()) {
 			ui::minimal_update(s);
-		} 
+		}
+		
 	}
 
 	void render(graphics::open_gl_wrapper& ogl) {
