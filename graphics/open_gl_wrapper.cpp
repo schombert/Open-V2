@@ -615,6 +615,7 @@ namespace graphics {
 
 	void open_gl_wrapper::bind_to_thread() {
 		while(wglMakeCurrent(impl->window_dc, impl->context) == FALSE) {
+#ifdef _DEBUG
 			LPTSTR errorText = nullptr;
 
 			FormatMessage(
@@ -628,21 +629,29 @@ namespace graphics {
 				0, 
 				nullptr);
 			if(errorText) {
-				MessageBox(nullptr, errorText, L"Bind failed", MB_OK);
+				OutputDebugStringA("Bind failed\n");
+				OutputDebugString(errorText);
+				OutputDebugStringA("\n");
+
 				LocalFree(errorText);
 				errorText = nullptr;
-			} else {
-				MessageBox(nullptr, L"Format error failed", L"Bind failed", MB_OK);
 			}
+#endif
+			Sleep(10);
+
 		}
 	}
 
 	void open_gl_wrapper::bind_to_ui_thread() {
-		wglMakeCurrent(impl->window_dc, impl->ui_context);
+		while(wglMakeCurrent(impl->window_dc, impl->ui_context) == FALSE) {
+			Sleep(10);
+		}
 	}
 
 	void open_gl_wrapper::bind_to_shadows_thread() {
-		wglMakeCurrent(impl->window_dc, impl->shadows_context);
+		while(wglMakeCurrent(impl->window_dc, impl->shadows_context) == FALSE) {
+			Sleep(10);
+		}
 	}
 
 	void open_gl_wrapper::display() {

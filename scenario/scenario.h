@@ -631,8 +631,13 @@ namespace scenario {
 		constexpr uint32_t pie_en = 609ui32;
 		constexpr uint32_t pie_lx = 610ui32;
 		constexpr uint32_t no_pops_of_type = 611ui32;
+		constexpr uint32_t b_poor_tax = 612ui32;
+		constexpr uint32_t b_middle_tax = 613ui32;
+		constexpr uint32_t b_rich_tax = 614ui32;
+		constexpr uint32_t tariffs = 615ui32;
+		constexpr uint32_t interest = 616ui32;
 
-		constexpr uint32_t count = 612ui32;
+		constexpr uint32_t count = 617ui32;
 	}
 
 	class scenario_manager {

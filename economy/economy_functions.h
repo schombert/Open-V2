@@ -71,6 +71,7 @@ namespace economy {
 	money_qnty_type* state_price_delta(world_state const& ws, nations::state_tag s);
 	goods_qnty_type* state_current_production(world_state const& ws, nations::state_tag s);
 	money_qnty_type* state_current_demand(world_state const& ws, nations::state_tag s);
+	money_qnty_type calculate_daily_debt_payment(world_state const& ws, nations::nation const& n);
 
 	struct range_information {
 		float minimum;

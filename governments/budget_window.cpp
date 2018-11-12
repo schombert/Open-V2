@@ -354,4 +354,86 @@ namespace governments {
 			}
 		}
 	}
+
+	void expenses_pie_chart::update(ui::piechart<expenses_pie_chart>& pie, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			auto e_amount = economy::education_spending_amount(ws, *player);
+			auto m_amount = economy::military_spending_amount(ws, *player);
+			auto s_amount = economy::social_spending_amount(ws, *player);
+			auto a_amount = economy::administrative_spending_amount(ws, *player);
+			auto tariff_costs = std::max(-1.0f * economy::project_player_tarrif_income(ws, float(player->tarrifs) / 100.0f), float(0));
+			auto interest = economy::calculate_daily_debt_payment(ws, *player) / 2.0f;
+
+			auto total = e_amount + m_amount + s_amount + a_amount + tariff_costs + interest;
+
+			if(total <= 0)
+				return;
+
+			pie.add_entry(
+				ws.w.gui_m,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::edu_spending]),
+				e_amount / total,
+				graphics::color_rgb{ 30ui8, 155ui8, 30ui8 });
+			pie.add_entry(
+				ws.w.gui_m,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::admin_spending]),
+				a_amount / total,
+				graphics::color_rgb{ 155ui8, 155ui8, 30ui8 });
+			pie.add_entry(
+				ws.w.gui_m,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::social_spending]),
+				s_amount / total,
+				graphics::color_rgb{ 35ui8, 155ui8, 150ui8 });
+			pie.add_entry(
+				ws.w.gui_m,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::mil_spending]),
+				m_amount / total,
+				graphics::color_rgb{ 155ui8, 35ui8, 150ui8 });
+			pie.add_entry(
+				ws.w.gui_m,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::tariffs]),
+				tariff_costs / total,
+				graphics::color_rgb{ 255ui8, 155ui8, 55ui8 });
+			pie.add_entry(
+				ws.w.gui_m,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::interest]),
+				interest / total,
+				graphics::color_rgb{ 35ui8, 35ui8, 150ui8 });
+		}
+	}
+
+	void incomes_pie_chart::update(ui::piechart<incomes_pie_chart>& pie, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			auto ptax_income = ws.w.local_player_data.collected_poor_tax * float(player->poor_tax) / 100.0f;
+			auto mtax_income = ws.w.local_player_data.collected_middle_tax * float(player->middle_tax) / 100.0f;
+			auto rtax_income = ws.w.local_player_data.collected_rich_tax * float(player->rich_tax) / 100.0f;
+			economy::money_qnty_type tariff_income = std::max(economy::project_player_tarrif_income(ws, float(player->tarrifs) / 100.0f), float(0));
+			auto total = ptax_income + mtax_income + rtax_income + tariff_income;
+			
+			if(total <= 0)
+				return;
+
+			pie.add_entry(
+				ws.w.gui_m,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::b_poor_tax]),
+				ptax_income / total,
+				graphics::color_rgb{ 50ui8, 255ui8, 150ui8 });
+			pie.add_entry(
+				ws.w.gui_m,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::b_middle_tax]),
+				mtax_income / total,
+				graphics::color_rgb{ 150ui8, 255ui8, 50ui8 });
+			pie.add_entry(
+				ws.w.gui_m,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::b_rich_tax]),
+				rtax_income / total,
+				graphics::color_rgb{ 50ui8, 155ui8, 255ui8 });
+			pie.add_entry(
+				ws.w.gui_m,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::tariffs]),
+				tariff_income / total,
+				graphics::color_rgb{ 255ui8, 155ui8, 55ui8 });
+		}
+		
+	}
 }

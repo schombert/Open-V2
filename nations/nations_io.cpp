@@ -220,7 +220,7 @@ void serialization::serializer<nations::nation>::deserialize_object(std::byte co
 	ws.w.nation_s.upper_house.ensure_capacity(to_index(obj.id) + 1);
 	ws.w.nation_s.active_technologies.ensure_capacity(to_index(obj.id) + 1);
 	ws.w.nation_s.active_goods.ensure_capacity(to_index(obj.id) + 1);
-	ws.w.nation_s.collected_tarrifs.ensure_capacity(to_index(obj.id) + 1);
+	ws.w.nation_s.collected_tariffs.ensure_capacity(to_index(obj.id) + 1);
 	ws.w.nation_s.active_issue_options.ensure_capacity(to_index(obj.id) + 1);
 	ws.w.nation_s.national_stockpiles.ensure_capacity(to_index(obj.id) + 1);
 	ws.w.nation_s.national_variables.ensure_capacity(to_index(obj.id) + 1);

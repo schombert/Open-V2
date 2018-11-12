@@ -542,7 +542,7 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::rich_tax] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rich_tax");
 		s.fixed_ui_text[fixed_ui::middle_tax] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "middle_tax");
 		s.fixed_ui_text[fixed_ui::poor_tax] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "poor_tax");
-		s.fixed_ui_text[fixed_ui::social_spending] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "social_spending");
+		s.fixed_ui_text[fixed_ui::social_spending] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "soc_spending");
 		s.fixed_ui_text[fixed_ui::edu_spending] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "edu_spending");
 		s.fixed_ui_text[fixed_ui::mil_spending] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "mil_spending");
 		s.fixed_ui_text[fixed_ui::colonies] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "colonies");
@@ -713,5 +713,10 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::pie_en] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "pie_en");
 		s.fixed_ui_text[fixed_ui::pie_lx] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "pie_lx");
 		s.fixed_ui_text[fixed_ui::no_pops_of_type] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NO_POPS_OF_TYPE");
+		s.fixed_ui_text[fixed_ui::b_poor_tax] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "BUDGET_TAX_POOR");
+		s.fixed_ui_text[fixed_ui::b_middle_tax] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "BUDGET_TAX_MIDDLE");
+		s.fixed_ui_text[fixed_ui::b_rich_tax] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "BUDGET_TAX_RICH");
+		s.fixed_ui_text[fixed_ui::tariffs] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "BUDGET_TARIFFS");
+		s.fixed_ui_text[fixed_ui::interest] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "INTEREST");
 	}
 }

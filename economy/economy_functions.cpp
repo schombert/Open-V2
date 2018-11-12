@@ -815,6 +815,10 @@ namespace economy {
 		return ws.w.nation_s.state_demand.get_row(s) + (ws.s.economy_m.aligned_32_goods_count * (1ui32 - (to_index(ws.w.current_date) & 1)));
 	}
 
+	money_qnty_type calculate_daily_debt_payment(world_state const & ws, nations::nation const & n) {
+		return n.national_debt * economy::daily_debt_payment;
+	}
+
 	money_qnty_type* state_old_demand(world_state const& ws, nations::state_tag s) {
 		return ws.w.nation_s.state_demand.get_row(s) + (ws.s.economy_m.aligned_32_goods_count * ((to_index(ws.w.current_date) & 1)));
 	}
@@ -1149,7 +1153,7 @@ namespace economy {
 			state_old_global_demand(ws, nations::state_tag(nations::state_tag::value_base_t(i)))[to_index(tag)] = global_demand_by_state.vector[i];
 		}, concurrency::static_partitioner());
 		concurrency::parallel_for(0, int32_t(nations_max), [&ws, &nation_tarrif_income, tag](int32_t i) {
-			ws.w.nation_s.collected_tarrifs.get(nations::country_tag(nations::country_tag::value_base_t(i)), tag) = nation_tarrif_income.vector[i];
+			ws.w.nation_s.collected_tariffs.get(nations::country_tag(nations::country_tag::value_base_t(i)), tag) = nation_tarrif_income.vector[i];
 		}, concurrency::static_partitioner());
 
 		auto nations_aligned_sz = int32_t(((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(nations_max) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type)));
@@ -1597,7 +1601,7 @@ namespace economy {
 
 
 	void economy_demand_adjustment_tick(world_state& ws) {
-		ws.w.nation_s.collected_tarrifs.clear_all();
+		//ws.w.nation_s.collected_tariffs.clear_all();
 		ws.w.nation_s.states.parallel_for_each([&ws](nations::state_instance& si) {
 			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> prices(state_current_prices(ws, si.id), ws.s.economy_m.aligned_32_goods_count);
 			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> delta(state_price_delta(ws, si.id), ws.s.economy_m.aligned_32_goods_count);
@@ -1616,7 +1620,7 @@ namespace economy {
 		std::fill(ws.w.economy_s.world_pop_consumption.begin(), ws.w.economy_s.world_pop_consumption.end(), goods_qnty_type(0));
 		std::fill(ws.w.economy_s.world_rgo_production.begin(), ws.w.economy_s.world_rgo_production.end(), goods_qnty_type(0));
 #endif
-		ws.w.nation_s.collected_tarrifs.clear_all();
+		//ws.w.nation_s.collected_tariffs.clear_all();
 		ws.w.nation_s.states.parallel_for_each([&ws](nations::state_instance& si) {
 			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> prices(state_current_prices(ws, si.id), ws.s.economy_m.aligned_32_goods_count);
 			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> delta(state_price_delta(ws, si.id), ws.s.economy_m.aligned_32_goods_count);
@@ -1629,11 +1633,22 @@ namespace economy {
 		});
 		
 		collect_taxes(ws);
-		//collect tarrif income & pay pops
+
+		//collect tarrif income, pay pops, manage debt
 		ws.w.nation_s.nations.parallel_for_each([&ws](nations::nation& n) {
-			auto tincome = ws.w.nation_s.collected_tarrifs.get_row(n.id);
+			auto tincome = ws.w.nation_s.collected_tariffs.get_row(n.id);
 			ws.w.nation_s.national_stockpiles.get(n.id, economy::money_good) += std::reduce(tincome, tincome + ws.s.economy_m.goods_count, economy::money_qnty_type(0), std::plus<>());
 			pay_unemployement_pensions_salaries(ws, n);
+
+			auto amount = calculate_daily_debt_payment(ws, n);
+			auto current_money = ws.w.nation_s.national_stockpiles.get(n.id, economy::money_good);
+			if(current_money >= amount) {
+				n.national_debt -= amount / 2.0f;
+				ws.w.nation_s.national_stockpiles.get(n.id, economy::money_good) = current_money - amount;
+			} else {
+				n.national_debt += (amount - current_money) - amount / 2.0f;
+				ws.w.nation_s.national_stockpiles.get(n.id, economy::money_good) = money_qnty_type(0);
+			}
 		});
 		
 #ifdef DEBUG_ECONOMY

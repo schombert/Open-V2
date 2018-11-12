@@ -7,18 +7,13 @@
 #include "world_state\\world_state.h"
 
 namespace governments {
-	class budget_window_base : public ui::draggable_region {
-	public:
-		template<typename window_type>
-		void on_create(window_type& win, world_state& ws);
-	};
-
+	
 	class bw_close_button {
 	public:
 		void button_function(ui::simple_button<bw_close_button>&, world_state& ws);
 	};
 
-	class tarrif_percent {
+	class tariff_percent {
 	public:
 		template<typename W>
 		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
@@ -97,6 +92,10 @@ namespace governments {
 	public:
 		void on_create(ui::fixed_text<hidden_text>& b, world_state& ws);
 	};
+
+	class dummy_icon {
+	};
+
 	class stockpile_cost {
 	public:
 		template<typename W>
@@ -147,7 +146,7 @@ namespace governments {
 		template<typename W>
 		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
-	class tarrif_amount {
+	class tariff_amount {
 	public:
 		template<typename W>
 		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
@@ -297,13 +296,37 @@ namespace governments {
 		ui::window_tag element_tag(ui::gui_static& m);
 	};
 
+	class incomes_pie_chart {
+	public:
+		void update(ui::piechart<incomes_pie_chart>& pie, world_state& ws);
+	};
+
+	class expenses_pie_chart {
+	public:
+		void update(ui::piechart<expenses_pie_chart>& pie, world_state& ws);
+	};
+
+	class warning_icon {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<warning_icon>& self, window_type& win, world_state& ws);
+	};
+
+	class budget_window_base : public ui::draggable_region {
+	public:
+		ui::piechart<expenses_pie_chart> expense_chart;
+		ui::dynamic_icon<dummy_icon> expense_overlay;
+
+		template<typename window_type>
+		void on_create(window_type& win, world_state& ws);
+	};
+
 	class budget_window_t : public ui::gui_window<
 		CT_STRING("close_button"), ui::simple_button<bw_close_button>,
-		CT_STRING("tariffs_percent"), ui::display_text<tarrif_percent>,
-		//CT_STRING("diplomatic_desc"), ui::display_text<debt_and_saving_label, -10>,
-		CT_STRING("tax_0_inc"), ui::display_text<poor_tax_collected>,
-		CT_STRING("tax_1_inc"), ui::display_text<middle_tax_collected>,
-		CT_STRING("tax_2_inc"), ui::display_text<rich_tax_collected>,
+		CT_STRING("tariffs_percent"), ui::display_text<tariff_percent, -14>,
+		CT_STRING("tax_0_inc"), ui::display_text<poor_tax_collected, -12>,
+		CT_STRING("tax_1_inc"), ui::display_text<middle_tax_collected, -12>,
+		CT_STRING("tax_2_inc"), ui::display_text<rich_tax_collected, -12>,
 		CT_STRING("gold_inc"), ui::display_text<gold_income>,
 		CT_STRING("total_inc"), ui::display_text<total_income>,
 		CT_STRING("total_funds_val"), ui::display_text<total_funds, -12>,
@@ -319,22 +342,22 @@ namespace governments {
 		CT_STRING("givenloans_text"), ui::fixed_text<hidden_text>,
 		CT_STRING("debt_sort_country"), ui::simple_button<hidden_button>,
 		CT_STRING("debt_sort_amount"), ui::simple_button<hidden_button>,
-		CT_STRING("nat_stock_est"), ui::display_text<stockpile_cost>,
+		CT_STRING("nat_stock_est"), ui::display_text<stockpile_cost, -12>,
 		CT_STRING("nat_stock_val"), ui::fixed_text<hidden_text>,
 		CT_STRING("mil_cost_desc"), ui::fixed_text<hidden_text>,
 		CT_STRING("mil_cost_val"), ui::fixed_text<hidden_text>,
 		CT_STRING("overseas_desc"), ui::fixed_text<hidden_text>,
 		CT_STRING("overseas_cost_val"), ui::fixed_text<hidden_text>,
-		CT_STRING("ind_sub_val"), ui::display_text<industrial_subsidies_cost>,
-		CT_STRING("admin_efficiency"), ui::display_text<national_administrative_efficiency>,
-		CT_STRING("exp_val_0"), ui::display_text<education_pay>,
-		CT_STRING("exp_val_1"), ui::display_text<administrative_pay>,
-		CT_STRING("exp_val_2"), ui::display_text<social_spending_cost>,
-		CT_STRING("exp_val_3"), ui::display_text<military_pay>,
+		CT_STRING("ind_sub_val"), ui::display_text<industrial_subsidies_cost, -12>,
+		CT_STRING("admin_efficiency"), ui::display_text<national_administrative_efficiency, -12>,
+		CT_STRING("exp_val_0"), ui::display_text<education_pay, -12>,
+		CT_STRING("exp_val_1"), ui::display_text<administrative_pay, -12>,
+		CT_STRING("exp_val_2"), ui::display_text<social_spending_cost, -12>,
+		CT_STRING("exp_val_3"), ui::display_text<military_pay, -12>,
 		CT_STRING("total_exp"), ui::display_text<expenses_total>,
-		CT_STRING("tariff_val"), ui::display_text<tarrif_amount>,
-		CT_STRING("diplomatic_balance"), ui::display_text<debt_and_saving_amount>,
-		CT_STRING("balance"), ui::display_text<budget_total_amount>,
+		CT_STRING("tariff_val"), ui::display_text<tariff_amount, -12>,
+		CT_STRING("diplomatic_balance"), ui::display_text<debt_and_saving_amount, -12>,
+		CT_STRING("balance"), ui::display_text<budget_total_amount, 2>,
 		CT_STRING("tax_0_slider"), ui::scrollbar<poor_tax_scrollbar>,
 		CT_STRING("tax_1_slider"), ui::scrollbar<middle_tax_scrollbar>,
 		CT_STRING("tax_2_slider"), ui::scrollbar<rich_tax_scrollbar>,
@@ -351,6 +374,9 @@ namespace governments {
 		CT_STRING("chart_0"), ui::piechart<poor_needs_pie_chart>,
 		CT_STRING("chart_1"), ui::piechart<middle_needs_pie_chart>,
 		CT_STRING("chart_2"), ui::piechart<rich_needs_pie_chart>,
+		CT_STRING("chart_debt"), ui::piechart<incomes_pie_chart>,
+		CT_STRING("debt_chart_overlay"), ui::dynamic_icon<dummy_icon>,
+		CT_STRING("gunboat_alert"), ui::dynamic_icon<warning_icon>,
 		CT_STRING("tax_0_pops"), ui::overlap_box<poor_pops_lb, ui::window_tag, pop_item_t, 32>,
 		CT_STRING("tax_1_pops"), ui::overlap_box<middle_pops_lb, ui::window_tag, pop_item_t, 32>,
 		CT_STRING("tax_2_pops"), ui::overlap_box<rich_pops_lb, ui::window_tag, pop_item_t, 32>,
@@ -363,12 +389,37 @@ namespace governments {
 	template<typename window_type>
 	void budget_window_base::on_create(window_type & win, world_state & ws) {
 		associated_object->size = ui::xy_pair{ 1017i16, 636i16 };
+
+		{
+			auto common_tag = std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["chart_debt"]);
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, common_tag,
+				ui::tagged_gui_object{ *associated_object, win.window_object },
+				expense_chart));
+			expense_chart.associated_object->position.x += 250i16;
+		}
+		{
+			auto common_tag = std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["debt_chart_overlay"]);
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, common_tag,
+				ui::tagged_gui_object{ *associated_object, win.window_object },
+				expense_overlay));
+			expense_overlay.associated_object->position.x += 250i16;
+		}
+
+		win.template get<CT_STRING("chart_debt")>().associated_object->position.x += 30i16;
+		win.template get<CT_STRING("debt_chart_overlay")>().associated_object->position.x += 30i16;
+		win.template get<CT_STRING("gunboat_alert")>().associated_object->position.x += 80i16;
+
 		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
 			obj.object.position += ui::xy_pair{ -3i16, 3i16 };
 		});
+
+		
 	}
+
 	template<typename W>
-	void tarrif_percent::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+	void tariff_percent::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			char16_t local_buffer[16];
 			put_value_in_buffer(local_buffer, display_type::percent, float(player->tarrifs) / 100.0f);
@@ -413,10 +464,8 @@ namespace governments {
 				ws.w.local_player_data.collected_middle_tax * float(player->middle_tax) / 100.0f +
 				ws.w.local_player_data.collected_rich_tax * float(player->rich_tax) / 100.0f;
 
-			economy::money_qnty_type tarrif_income = economy::project_player_tarrif_income(ws, float(player->tarrifs) / 100.0f);
-
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::currency, tax_income + tarrif_income);
+			put_value_in_buffer(local_buffer, display_type::currency, tax_income);
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -512,7 +561,21 @@ namespace governments {
 		}
 	}
 	template<typename W>
-	void expenses_total::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
+	void expenses_total::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			auto e_amount = economy::education_spending_amount(ws, *player);
+			auto m_amount = economy::military_spending_amount(ws, *player);
+			auto s_amount = economy::social_spending_amount(ws, *player);
+			auto a_amount = economy::administrative_spending_amount(ws, *player);
+
+			auto total = e_amount + m_amount + s_amount + a_amount;
+
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::currency, total);
+			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+			lm.finish_current_line();
+		}
+	}
 	
 	template<typename W>
 	void debt_and_saving_label::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
@@ -522,7 +585,7 @@ namespace governments {
 	template<typename W>
 	void debt_and_saving_amount::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
 	template<typename W>
-	void tarrif_amount::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+	void tariff_amount::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			economy::money_qnty_type tarrif_income = economy::project_player_tarrif_income(ws, float(player->tarrifs) / 100.0f);
 				
@@ -533,7 +596,27 @@ namespace governments {
 		}
 	}
 	template<typename W>
-	void budget_total_amount::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
+	void budget_total_amount::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {\
+		if(auto player = ws.w.local_player_nation; player) {
+			auto e_amount = economy::education_spending_amount(ws, *player);
+			auto m_amount = economy::military_spending_amount(ws, *player);
+			auto s_amount = economy::social_spending_amount(ws, *player);
+			auto a_amount = economy::administrative_spending_amount(ws, *player);
+			auto interest = economy::calculate_daily_debt_payment(ws, *player) / 2.0f;
+			auto ex_total = -(e_amount + m_amount + s_amount + a_amount + interest);
+
+			auto tax_income = ws.w.local_player_data.collected_poor_tax * float(player->poor_tax) / 100.0f +
+				ws.w.local_player_data.collected_middle_tax * float(player->middle_tax) / 100.0f +
+				ws.w.local_player_data.collected_rich_tax * float(player->rich_tax) / 100.0f;
+
+			auto tariff = economy::project_player_tarrif_income(ws, float(player->tarrifs) / 100.0f);
+
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::currency, tax_income + ex_total + tariff);
+			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+			lm.finish_current_line();
+		}
+	}
 	
 	template<typename lb_type>
 	void poor_pops_lb::populate_list(lb_type & lb, world_state & ws) {
@@ -577,5 +660,9 @@ namespace governments {
 	void military_pops_lb::populate_list(lb_type & lb, world_state & ws) {
 		lb.add_item(ws, ws.s.population_m.soldier);
 		lb.add_item(ws, ws.s.population_m.officer);
+	}
+	template<typename window_type>
+	void warning_icon::windowed_update(ui::dynamic_icon<warning_icon>& self, window_type & win, world_state & ws) {
+		self.set_visibility(ws.w.gui_m, false);
 	}
 }

@@ -41,7 +41,9 @@ struct gui_window_handler {
 	bool map_dragging = false;
 	std::pair<int32_t, int32_t> map_drag_start;
 
-	gui_window_handler(world_state& snm, std::string const& shadows) : s(snm), shadows_file(shadows) {}
+	gui_window_handler(world_state& snm, std::string const& shadows) : s(snm), shadows_file(shadows) {
+		map.colors.init_color_data(static_cast<uint32_t>(s.s.province_m.province_container.size()));
+	}
 
 	template<typename T>
 	void operator()(const T&, ui::window_base& w) const {
@@ -138,14 +140,10 @@ struct gui_window_handler {
 	}
 	void initialize_graphics(graphics::open_gl_wrapper& ogl) {
 		s.s.gui_m.fonts.load_fonts(ogl);
-
-		map.colors.init_color_data(static_cast<uint32_t>(s.s.province_m.province_container.size()));
 	
 		//map.initialize(ogl, s.province_m.province_map_data.data(), s.province_m.province_map_width, s.province_m.province_map_height, 0.0f, -1.2f, 1.2f);
 		map.initialize(ogl, shadows_file, s.s.province_m.province_map_data.data(), s.s.province_m.province_map_width, s.s.province_m.province_map_height, 0.0f, 1.57f, -1.57f);
 		map.state.resize(s.w.gui_m.width(), s.w.gui_m.height());
-
-		graphics::update_map_colors(map, s);
 	}
 
 	void on_idle(ui::window_base& win) {
@@ -156,7 +154,6 @@ struct gui_window_handler {
 		} else if (s.w.gui_m.check_and_clear_minimal_update()) {
 			ui::minimal_update(s);
 		}
-		
 	}
 
 	void render(graphics::open_gl_wrapper& ogl) {
