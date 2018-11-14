@@ -90,6 +90,7 @@ namespace provinces {
 		constexpr static uint8_t is_blockaded = 0x01;
 		constexpr static uint8_t is_overseas  = 0x02;
 		constexpr static uint8_t has_owner_core = 0x04;
+		constexpr static uint8_t owner_building_railroad = 0x08;
 	};
 
 	struct province {

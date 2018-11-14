@@ -42,7 +42,6 @@
       <ConformanceMode>false</ConformanceMode>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <DisableSpecificWarnings>4100;4127</DisableSpecificWarnings>
-      <MinimalRebuild>true</MinimalRebuild>
       <SupportJustMyCode>false</SupportJustMyCode>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>

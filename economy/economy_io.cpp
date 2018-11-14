@@ -21,7 +21,7 @@ void serialization::serializer<economy::factory_instance>::serialize_object(std:
 		serialize(output, obj.factory_progress);
 		serialize(output, obj.worker_data);
 		serialize(output, obj.level);
-		serialize(output, obj.subsidized);
+		serialize(output, obj.flags);
 	} else {
 		economy::factory_type_tag factory_type;
 		serialize(output, factory_type);
@@ -36,7 +36,7 @@ void serialization::serializer<economy::factory_instance>::deserialize_object(st
 		deserialize(input, obj.factory_progress);
 		deserialize(input, obj.worker_data);
 		deserialize(input, obj.level);
-		deserialize(input, obj.subsidized);
+		deserialize(input, obj.flags);
 	} else {
 		obj.type = nullptr;
 		obj.factory_bank = 0.0f;
@@ -51,7 +51,7 @@ size_t serialization::serializer<economy::factory_instance>::size(economy::facto
 			sizeof(obj.factory_progress) +
 			serialization::serialize_size(obj.worker_data) +
 			sizeof(obj.level) + 
-			sizeof(obj.subsidized);
+			sizeof(obj.flags);
 	} else {
 		return sizeof(economy::factory_type_tag);
 	}

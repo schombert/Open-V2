@@ -383,6 +383,7 @@ namespace economy {
 		return prices_v.dot(costs);
 	}
 
+
 	float project_completion(world_state const& ws, nations::state_instance const& si, money_qnty_type const* prices) {
 		if(si.project.type == pop_project_type::railroad) {
 			auto cost = get_railroad_cost(ws, prices);
@@ -503,7 +504,7 @@ namespace economy {
 		return bool(fi.type) && fi.level == 0 && fi.factory_progress > 0.0f;
 	}
 	bool factory_is_upgrading(factory_instance const& fi) {
-		return bool(fi.type) && fi.level != 0 && fi.factory_progress > 0.0f;
+		return bool(fi.type) && fi.level != 0 && fi.factory_progress > 0.0f && fi.worker_data.production_scale > 0.0f;
 	}
 	factory_project_type get_factory_project_type(nations::state_instance const& location, factory_type_tag ftype) {
 		for(auto& fi : location.factories) {
@@ -885,19 +886,51 @@ namespace economy {
 		return result;
 	}
 
-	float distance_multiplier(float v) {
-		return std::max(0.0f, 1.0f - 0.000045f * v);
-	}
 
-	constexpr int32_t price_update_delay = 2;
-	constexpr money_qnty_type price_change_rate = money_qnty_type(0.1);
-	constexpr money_qnty_type price_gravity_factor = money_qnty_type(0.01);
-	constexpr money_qnty_type purchasing_change_rate = money_qnty_type(1);
-#define FULL_PURCHASING_CHANGE
-	constexpr money_qnty_type distance_factor = money_qnty_type(0.001f);
-	constexpr money_qnty_type minimum_global_purchase = money_qnty_type(0.000001f);
-	constexpr money_qnty_type minimum_demand = money_qnty_type(0);
-	constexpr money_qnty_type value_cutoff = money_qnty_type(0.0000001);
+
+	money_qnty_type daily_state_owner_building_cost(world_state const& ws, nations::state_instance const& si) {
+		auto id = si.id;
+		if(!ws.w.nation_s.states.is_valid_index(id))
+			return money_qnty_type(0);
+
+		Eigen::Map<const Eigen::Matrix<economy::money_qnty_type, -1, 1>, Eigen::Aligned32> prices_v(
+			state_current_prices(ws, id), ws.s.economy_m.aligned_32_goods_count);
+
+		Eigen::Map<const Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::Aligned32> rr_costs(
+			ws.s.economy_m.building_costs.get_row(ws.s.economy_m.railroad.cost_tag), ws.s.economy_m.aligned_32_goods_count);
+		Eigen::Map<const Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::Aligned32> fort_costs(
+			ws.s.economy_m.building_costs.get_row(ws.s.economy_m.fort.cost_tag), ws.s.economy_m.aligned_32_goods_count);
+		Eigen::Map<const Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::Aligned32> nb_costs(
+			ws.s.economy_m.building_costs.get_row(ws.s.economy_m.naval_base.cost_tag), ws.s.economy_m.aligned_32_goods_count);
+
+		auto rr_daily_cost = prices_v.dot(rr_costs) / money_qnty_type(ws.s.economy_m.railroad.time);
+		auto fort_daily_cost = prices_v.dot(fort_costs) / money_qnty_type(ws.s.economy_m.fort.time);
+		auto nb_daily_cost = prices_v.dot(nb_costs) + money_qnty_type(ws.s.economy_m.naval_base.extra_cost) / money_qnty_type(ws.s.economy_m.naval_base.time);
+
+		money_qnty_type sum = 0;
+		nations::for_each_province(ws, si, [&sum, rr_daily_cost, fort_daily_cost, nb_daily_cost](provinces::province_state const& ps) {
+			sum += (ps.fort_upgrade_progress > 0.0f ? fort_daily_cost : money_qnty_type(0)) +
+				(ps.naval_base_upgrade_progress > 0.0f ? nb_daily_cost : money_qnty_type(0)) +
+				((ps.railroad_upgrade_progress > 0.0f && (ps.flags & provinces::province_state::owner_building_railroad) != 0) ? rr_daily_cost : money_qnty_type(0));
+		});
+
+		return std::transform_reduce(std::begin(si.factories), std::end(si.factories), sum, std::plus<>(), [&prices_v, &ws](factory_instance const& f) {
+			if(auto type = f.type; type && f.factory_progress > 0.0f && (f.flags & factory_instance::owner_is_upgrading) != 0) {
+				Eigen::Map<const Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::Aligned32> costs(
+					ws.s.economy_m.building_costs.get_row(type->id), ws.s.economy_m.aligned_32_goods_count);
+				return prices_v.dot(costs) / money_qnty_type(type->building_time);
+			} else {
+				return money_qnty_type(0);
+			}
+		});
+	}
+	money_qnty_type daily_national_building_cost(world_state const& ws, nations::nation const& n) {
+		money_qnty_type sum = 0;
+		nations::for_each_state(ws, n, [&ws, &sum](nations::state_instance const& si) {
+			sum += daily_state_owner_building_cost(ws, si);
+		});
+		return sum;
+	}
 
 	namespace {
 		template<typename T>
@@ -924,6 +957,200 @@ namespace economy {
 			}
 		};
 
+		template<typename T>
+		class cbacked_eigen_vector_generator {
+		public:
+			const int32_t size;
+
+			cbacked_eigen_vector_generator(int32_t s) : size(int32_t(((s * sizeof(T) + 31) / 32) / sizeof(T))) {}
+
+			auto operator()() const noexcept {
+				return cbacked_eigen_vector<T>(size);
+			}
+		};
+	}
+
+	void update_construction_and_projects(world_state& ws) {
+		int32_t nations_count = int32_t(ws.w.nation_s.nations.minimum_continuous_size());
+		concurrency::combinable<cbacked_eigen_vector<money_qnty_type>> costs_by_nation = concurrency::combinable<cbacked_eigen_vector<money_qnty_type>>(cbacked_eigen_vector_generator<money_qnty_type>(nations_count));
+
+		auto rr_time = 1.0f / money_qnty_type(ws.s.economy_m.railroad.time);
+		auto fort_time = 1.0f / money_qnty_type(ws.s.economy_m.fort.time);
+		auto naval_time = 1.0f / money_qnty_type(ws.s.economy_m.naval_base.time);
+
+		ws.w.nation_s.states.parallel_for_each([&ws, &costs_by_nation, rr_time, fort_time, naval_time](nations::state_instance& si) {
+			if(!si.owner)
+				return;
+
+			auto& local_nation_costs = costs_by_nation.local();
+
+			Eigen::Map<const Eigen::Matrix<economy::money_qnty_type, -1, 1>, Eigen::Aligned32> prices_v(
+				state_current_prices(ws, si.id), ws.s.economy_m.aligned_32_goods_count);
+			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, -1, 1>, Eigen::AlignmentType::Aligned32> current_state_demand(
+				state_old_demand(ws, si.id),
+				ws.s.economy_m.aligned_32_goods_count);
+
+			Eigen::Map<const Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::Aligned32> rr_costs(
+				ws.s.economy_m.building_costs.get_row(ws.s.economy_m.railroad.cost_tag), ws.s.economy_m.aligned_32_goods_count);
+			Eigen::Map<const Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::Aligned32> fort_costs(
+				ws.s.economy_m.building_costs.get_row(ws.s.economy_m.fort.cost_tag), ws.s.economy_m.aligned_32_goods_count);
+			Eigen::Map<const Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::Aligned32> nb_costs(
+				ws.s.economy_m.building_costs.get_row(ws.s.economy_m.naval_base.cost_tag), ws.s.economy_m.aligned_32_goods_count);
+
+			
+			auto rr_daily_cost = prices_v.dot(rr_costs) * rr_time;
+			auto fort_daily_cost = prices_v.dot(fort_costs) * fort_time;
+			auto nb_daily_cost = prices_v.dot(nb_costs) + money_qnty_type(ws.s.economy_m.naval_base.extra_cost) * naval_time;
+
+			auto owner_sp_setting = float(si.owner->projects_stockpile_spending) / 100.0f;
+			nations::for_each_province(ws, si, [rr_daily_cost, fort_daily_cost, nb_daily_cost, rr_time, fort_time, naval_time, &current_state_demand,
+				&local_nation_costs, owner_sp_setting, &rr_costs, &fort_costs, &nb_costs, &prices_v](provinces::province_state& ps) {
+				
+				if(ps.fort_upgrade_progress > 0.0f) {
+					local_nation_costs.vector[to_index(ps.owner->id)] += fort_daily_cost * owner_sp_setting;
+					ps.fort_upgrade_progress += fort_time * owner_sp_setting;
+					current_state_demand += ((fort_costs.array() * prices_v.array()) * fort_time * owner_sp_setting).matrix();
+					if(ps.fort_upgrade_progress >= 1.0f) {
+						ps.fort_upgrade_progress = 0;
+						ps.fort_level++;
+					}
+				}
+				if(ps.naval_base_upgrade_progress > 0.0f) {
+					local_nation_costs.vector[to_index(ps.owner->id)] += nb_daily_cost * owner_sp_setting;
+					ps.naval_base_upgrade_progress += naval_time * owner_sp_setting;
+					current_state_demand += ((nb_costs.array() * prices_v.array()) * naval_time * owner_sp_setting).matrix();
+					if(ps.naval_base_upgrade_progress >= 1.0f) {
+						ps.naval_base_upgrade_progress = 0;
+						ps.naval_base_level++;
+					}
+				}
+				if(ps.railroad_upgrade_progress > 0.0f && (ps.flags & provinces::province_state::owner_building_railroad) != 0) {
+					local_nation_costs.vector[to_index(ps.owner->id)] += rr_daily_cost * owner_sp_setting;
+					ps.railroad_upgrade_progress += rr_time * owner_sp_setting;
+					current_state_demand += ((rr_costs.array() * prices_v.array()) * rr_time * owner_sp_setting).matrix();
+					if(ps.railroad_upgrade_progress >= 1.0f) {
+						ps.railroad_upgrade_progress = 0;
+						ps.railroad_level++;
+					}
+				}
+			});
+
+			for(auto& f : si.factories) {
+				if(auto type = f.type; type && f.factory_progress > 0.0f && (f.flags & factory_instance::owner_is_upgrading) != 0) {
+					Eigen::Map<const Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::Aligned32> costs(
+						ws.s.economy_m.building_costs.get_row(type->id), ws.s.economy_m.aligned_32_goods_count);
+
+					auto time = 1.0f / money_qnty_type(type->building_time);
+					local_nation_costs.vector[to_index(si.owner->id)] += prices_v.dot(costs) * owner_sp_setting * time;
+					current_state_demand += ((costs.array() * prices_v.array()) * time * owner_sp_setting).matrix();
+
+					f.factory_progress += time;
+					if(f.factory_progress >= 1.0f) {
+						f.factory_progress = 0;
+						f.level++;
+					}
+				}
+			}
+
+
+			// update pop projects
+			switch(si.project.type) {
+				default:
+				case pop_project_type::none:
+					break;
+				case pop_project_type::railroad:
+				{
+					auto& ps = ws.w.province_s.province_state_container[si.project.location];
+					if(si.project.funds > rr_daily_cost) {
+						ps.railroad_upgrade_progress += rr_time;
+						current_state_demand += ((rr_costs.array() * prices_v.array()) * rr_time).matrix();
+						si.project.funds -= rr_daily_cost;
+					} else {
+						ps.railroad_upgrade_progress += rr_time * si.project.funds / rr_daily_cost;
+						current_state_demand += ((rr_costs.array() * prices_v.array()) * rr_time * si.project.funds / rr_daily_cost).matrix();
+						si.project.funds = 0;
+					}
+					if(ps.railroad_upgrade_progress >= 1.0f) {
+						si.project.type = pop_project_type::none;
+						ps.railroad_upgrade_progress = 0;
+						ps.railroad_level++;
+					}
+				}
+					break;
+				case pop_project_type::factory:
+				{
+					auto f = std::find_if(std::begin(si.factories), std::end(si.factories),
+						[t = si.project.factory_type](factory_instance const& fi) { return bool(fi.type) && (fi.type->id == t); });
+					if(f == std::end(si.factories))
+						break;
+
+					if(f->factory_progress > 0.0f) {
+						Eigen::Map<const Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::Aligned32> costs(
+							ws.s.economy_m.building_costs.get_row(si.project.factory_type), ws.s.economy_m.aligned_32_goods_count);
+
+						auto time = 1.0f / money_qnty_type(f->type->building_time);
+						auto daily_cost = prices_v.dot(costs) * time;
+
+						if(si.project.funds > daily_cost) {
+							f->factory_progress += time;
+							current_state_demand += ((rr_costs.array() * prices_v.array()) * time).matrix();
+							si.project.funds -= daily_cost;
+						} else {
+							f->factory_progress += time * si.project.funds / daily_cost;
+							current_state_demand += ((rr_costs.array() * prices_v.array()) * time * si.project.funds / daily_cost).matrix();
+							si.project.funds = 0;
+						}
+
+						if(f->factory_progress >= 1.0f) {
+							si.project.type = pop_project_type::none;
+							f->factory_progress = 0;
+							f->level++;
+						}
+					} else if(f->worker_data.production_scale <= 0) {
+						Eigen::Map<const Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::Aligned32> costs(
+							ws.s.economy_m.factory_input_goods.get_row(si.project.factory_type), ws.s.economy_m.aligned_32_goods_count);
+
+						auto reopen_cost = prices_v.dot(costs) * money_qnty_type(10);
+						if(si.project.funds >= reopen_cost) {
+							f->worker_data.production_scale = 1.0f;
+							si.project.type = pop_project_type::none;
+						}
+					}
+				}
+					break;
+			}
+		});
+
+		costs_by_nation.combine_each([&ws, nations_count](cbacked_eigen_vector<money_qnty_type> const& v) {
+			for(int32_t i = 0; i < nations_count; ++i) {
+				auto t = ws.w.nation_s.national_stockpiles.get(nations::country_tag(nations::country_tag::value_base_t(i)), economy::money_good);
+				if(auto val = v.vector[i]; val > 0) {
+					if(t >= val) {
+						ws.w.nation_s.national_stockpiles.get(nations::country_tag(nations::country_tag::value_base_t(i)), economy::money_good) = t - val;
+					} else {
+						ws.w.nation_s.national_stockpiles.get(nations::country_tag(nations::country_tag::value_base_t(i)), economy::money_good) = 0;
+						ws.w.nation_s.nations[nations::country_tag(nations::country_tag::value_base_t(i))].national_debt += val - t;
+					}
+				}
+			}
+		});
+	}
+
+	float distance_multiplier(float v) {
+		return std::max(0.0f, 1.0f - 0.000045f * v);
+	}
+
+	constexpr int32_t price_update_delay = 2;
+	constexpr money_qnty_type price_change_rate = money_qnty_type(0.025);
+	//constexpr money_qnty_type price_gravity_factor = money_qnty_type(0.01);
+	constexpr money_qnty_type purchasing_change_rate = money_qnty_type(1);
+#define FULL_PURCHASING_CHANGE
+	constexpr money_qnty_type distance_factor = money_qnty_type(0.001f);
+	constexpr money_qnty_type minimum_global_purchase = money_qnty_type(0.000001f);
+	constexpr money_qnty_type minimum_demand = money_qnty_type(0);
+	constexpr money_qnty_type value_cutoff = money_qnty_type(0.0000001);
+
+	namespace {
 		class single_good_update_work_data_factory;
 
 		class single_good_update_work_data {
@@ -1197,8 +1424,8 @@ namespace economy {
 			auto current_price = state_current_prices(ws, si.id)[to_index(tag)];
 
 			state_price_delta(ws, si.id)[to_index(tag)] = (
-				((current_price * (1.0f - price_change_rate) +
-					std::clamp(values.dot(workspace_local.apparent_price), 0.01f, base_price * 10.0f) * price_change_rate) * (1.0f - price_gravity_factor) + price_gravity_factor * base_price)
+				(current_price * (1.0f - price_change_rate) +
+					std::clamp(values.dot(workspace_local.apparent_price), 0.01f, base_price * 10.0f) * price_change_rate)
 				- current_price
 				) / float(price_update_delay);
 		}, concurrency::static_partitioner());
@@ -1207,7 +1434,7 @@ namespace economy {
 	}
 
 	constexpr goods_qnty_type global_rgo_production_multiplier = goods_qnty_type(7.0);
-	constexpr goods_qnty_type global_throughput_multiplier = goods_qnty_type(2.0);
+	constexpr goods_qnty_type global_throughput_multiplier = goods_qnty_type(0.5);
 	constexpr float production_scaling_speed_factor = 0.5f;
 	constexpr float scale_speed(float v) {
 		return 1.0f - production_scaling_speed_factor + production_scaling_speed_factor * v;
@@ -1294,10 +1521,10 @@ namespace economy {
 		Eigen::Map<const Eigen::Matrix<economy::money_qnty_type, -1, 1>> inputs(ws.s.economy_m.artisan_input_goods.get_row(atype.id), ws.s.economy_m.goods_count);
 
 		auto inputs_cost = state_prices.dot(inputs) * artisan_modifiers.input_modifier * artisan_modifiers.throughput_modifier * global_throughput_multiplier;
-		money_qnty_type min_wage = artisan_life_needs * atype.workforce / pop_needs_divisor;
+		//money_qnty_type min_wage = artisan_life_needs * atype.workforce / pop_needs_divisor;
 
 
-		return output_amount * state_prices[to_index(atype.output_good)] - min_wage - inputs_cost;
+		return output_amount * state_prices[to_index(atype.output_good)] - inputs_cost;
 	}
 
 
@@ -1333,9 +1560,6 @@ namespace economy {
 
 		money_qnty_type min_wage = life_needs_cost_by_type[to_index(ws.s.population_m.artisan)] * artisan_pop / pop_needs_divisor;
 		
-		state_production[to_index(p.artisan_production)] += output_amount;
-		current_state_demand += inputs * inputs_cost / inputs.sum();
-
 #ifdef DEBUG_ECONOMY
 		{
 			std::lock_guard lk(ws.w.economy_s.other_production_mutex);
@@ -1352,6 +1576,9 @@ namespace economy {
 
 		if(profit > 0) {
 			pay_by_type[to_index(ws.s.population_m.artisan)] += profit;
+
+			state_production[to_index(p.artisan_production)] += output_amount;
+			current_state_demand += inputs * inputs_cost / inputs.sum();
 		}
 
 		//p.artisan_production_scale = std::clamp(
@@ -1359,10 +1586,12 @@ namespace economy {
 		//	0.05f, 1.0f);
 
 		
-		std::uniform_real_distribution<money_qnty_type> dist(money_qnty_type(0), 1.0f);
-		if(dist(get_local_generator()) > sqrt(std::clamp(profit, 0.0f, min_wage * 0.95f) / min_wage)) {
-			p.artisan_production = ws.s.economy_m.artisan_types[get_profitable_artisan(ws, p)].output_good;
-			//p.artisan_production_scale = 1.0f;
+		if(profit < min_wage) {
+			std::uniform_real_distribution<money_qnty_type> dist(money_qnty_type(0), 4.0f);
+			if(dist(get_local_generator()) > sqrt(std::clamp(profit, 0.0f, min_wage) / min_wage)) {
+				p.artisan_production = ws.s.economy_m.artisan_types[get_profitable_artisan(ws, p)].output_good;
+				//p.artisan_production_scale = 1.0f;
+			}
 		}
 		
 	}
@@ -1620,13 +1849,15 @@ namespace economy {
 		std::fill(ws.w.economy_s.world_pop_consumption.begin(), ws.w.economy_s.world_pop_consumption.end(), goods_qnty_type(0));
 		std::fill(ws.w.economy_s.world_rgo_production.begin(), ws.w.economy_s.world_rgo_production.end(), goods_qnty_type(0));
 #endif
-		//ws.w.nation_s.collected_tariffs.clear_all();
+
 		ws.w.nation_s.states.parallel_for_each([&ws](nations::state_instance& si) {
 			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> prices(state_current_prices(ws, si.id), ws.s.economy_m.aligned_32_goods_count);
 			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> delta(state_price_delta(ws, si.id), ws.s.economy_m.aligned_32_goods_count);
 			prices += delta;
 			update_demand_and_production<true>(ws, si);
 		});
+		update_construction_and_projects(ws); // after demand update to added demand isnt clobbered
+
 		auto offset = (to_index(ws.w.current_date)) & (price_update_delay - 1);
 		concurrency::parallel_for(1 + offset, int32_t(ws.s.economy_m.goods_count), price_update_delay, [&ws, state_count = ws.w.nation_s.states.minimum_continuous_size(), nations_count = ws.w.nation_s.nations.minimum_continuous_size()](uint32_t i) {
 			economy_single_good_tick(ws, goods_tag(goods_tag::value_base_t(i)), state_count, nations_count);

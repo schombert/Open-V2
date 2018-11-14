@@ -388,6 +388,7 @@ namespace governments {
 
 	template<typename window_type>
 	void budget_window_base::on_create(window_type & win, world_state & ws) {
+		ui::hide(*associated_object);
 		associated_object->size = ui::xy_pair{ 1017i16, 636i16 };
 
 		{

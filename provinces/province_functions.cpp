@@ -234,6 +234,7 @@ namespace provinces {
 			modifiers::detach_province_modifiers(ws, prov_state, *prov_state.owner);
 		}
 
+		prov_state.flags &= ~provinces::province_state::has_owner_core;
 		prov_state.owner = nullptr;
 
 		if(prov_state.state_instance) {
@@ -287,6 +288,14 @@ namespace provinces {
 					resize(ws.w.economy_s.purchasing_arrays, n.statewise_tarrif_mask, aligned_state_max);
 				get(ws.w.economy_s.purchasing_arrays, n.statewise_tarrif_mask, state_index) = nations::tarrif_multiplier(ws, n, new_owner);
 			});
+		}
+
+		auto cores_range = get_range(ws.w.province_s.core_arrays, prov.cores);
+		for(auto c : cores_range) {
+			if(new_owner.tag == c) {
+				prov.flags |= provinces::province_state::has_owner_core;
+				break;
+			}
 		}
 	}
 

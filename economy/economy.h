@@ -134,7 +134,10 @@ namespace economy {
 		float factory_progress = 0.0f; // for upgrades and construction; level 0 & non zero progress = under construction
 		worked_instance worker_data;
 		uint16_t level = 0;
-		bool subsidized = false;
+		uint8_t flags = 0;
+
+		constexpr static uint8_t is_subsidized = 0x01;
+		constexpr static uint8_t owner_is_upgrading = 0x02;
 	};
 
 #ifdef _DEBUG

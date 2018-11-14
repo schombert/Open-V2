@@ -72,6 +72,8 @@ namespace economy {
 	goods_qnty_type* state_current_production(world_state const& ws, nations::state_tag s);
 	money_qnty_type* state_current_demand(world_state const& ws, nations::state_tag s);
 	money_qnty_type calculate_daily_debt_payment(world_state const& ws, nations::nation const& n);
+	money_qnty_type daily_state_owner_building_cost(world_state const& ws, nations::state_instance const& si);
+	money_qnty_type daily_national_building_cost(world_state const& ws, nations::nation const& n);
 
 	struct range_information {
 		float minimum;
@@ -89,6 +91,7 @@ namespace economy {
 	void pay_unemployement_pensions_salaries(world_state& ws, nations::nation& n);
 	void economy_update_tick(world_state& ws);
 	void economy_demand_adjustment_tick(world_state& ws);
+	void update_construction_and_projects(world_state& ws);
 
 	economy::money_qnty_type project_player_tarrif_income(world_state const& ws, float tarrif_amount);
 

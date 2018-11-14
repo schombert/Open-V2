@@ -397,8 +397,8 @@ namespace nations {
 		auto prices = ws.w.nation_s.state_prices.get_row(new_state.id);
 		for(economy::goods_tag::value_base_t i = 0; i < ws.s.economy_m.goods_count; ++i) {
 			prices[i] = ws.s.economy_m.goods[economy::goods_tag(i)].base_price;
-			prices[i + ws.s.economy_m.aligned_32_goods_count] = ws.s.economy_m.goods[economy::goods_tag(i)].base_price;
 		}
+		std::fill_n(prices + ws.s.economy_m.aligned_32_goods_count, ws.s.economy_m.aligned_32_goods_count, economy::money_qnty_type(0));
 
 		return new_state;
 	}

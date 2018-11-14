@@ -2330,7 +2330,7 @@ namespace economy {
 			if(win.index >= 0 && is_valid_index(win.location) && ws.w.nation_s.states[location].owner == player) {
 				economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
 
-				if(f.subsidized)
+				if((f.flags & economy::factory_instance::is_subsidized) != 0)
 					self.set_frame(ws.w.gui_m, 1ui32);
 				else
 					self.set_frame(ws.w.gui_m, 0ui32);
