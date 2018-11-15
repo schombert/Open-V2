@@ -513,7 +513,14 @@ namespace governments {
 	void expenses_amount::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
 	
 	template<typename W>
-	void stockpile_cost::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
+	void stockpile_cost::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			char16_t local_buffer[16];
+			put_value_in_buffer(local_buffer, display_type::currency, economy::daily_national_building_cost(ws, *player) * float(player->projects_stockpile_spending) / 100.0f);
+			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+			lm.finish_current_line();
+		}
+	}
 	template<typename W>
 	void industrial_subsidies_cost::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
 	template<typename W>
@@ -568,8 +575,9 @@ namespace governments {
 			auto m_amount = economy::military_spending_amount(ws, *player);
 			auto s_amount = economy::social_spending_amount(ws, *player);
 			auto a_amount = economy::administrative_spending_amount(ws, *player);
+			auto b_amount = economy::daily_national_building_cost(ws, *player) * float(player->projects_stockpile_spending) / 100.0f;
 
-			auto total = e_amount + m_amount + s_amount + a_amount;
+			auto total = e_amount + m_amount + s_amount + a_amount + b_amount;
 
 			char16_t local_buffer[16];
 			put_value_in_buffer(local_buffer, display_type::currency, total);
@@ -603,8 +611,10 @@ namespace governments {
 			auto m_amount = economy::military_spending_amount(ws, *player);
 			auto s_amount = economy::social_spending_amount(ws, *player);
 			auto a_amount = economy::administrative_spending_amount(ws, *player);
+			auto b_amount = economy::daily_national_building_cost(ws, *player) * float(player->projects_stockpile_spending) / 100.0f;
+
 			auto interest = economy::calculate_daily_debt_payment(ws, *player) / 2.0f;
-			auto ex_total = -(e_amount + m_amount + s_amount + a_amount + interest);
+			auto ex_total = -(e_amount + m_amount + s_amount + a_amount + interest + b_amount);
 
 			auto tax_income = ws.w.local_player_data.collected_poor_tax * float(player->poor_tax) / 100.0f +
 				ws.w.local_player_data.collected_middle_tax * float(player->middle_tax) / 100.0f +

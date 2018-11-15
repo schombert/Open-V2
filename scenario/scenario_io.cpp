@@ -718,5 +718,11 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::b_rich_tax] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "BUDGET_TAX_RICH");
 		s.fixed_ui_text[fixed_ui::tariffs] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "BUDGET_TARIFFS");
 		s.fixed_ui_text[fixed_ui::interest] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "INTEREST");
+		s.fixed_ui_text[fixed_ui::national_stockpile] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "BUDGET_NATIONAL_STOCKPILE");
+		s.fixed_ui_text[fixed_ui::allowed_build_railroad] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "BUILDING_NO_RAILWAYS");
+		s.fixed_ui_text[fixed_ui::level_less_than] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "level_less_than");
+		s.fixed_ui_text[fixed_ui::rail_tech_prerequisite] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rail_tech_prerequisite");
+		s.fixed_ui_text[fixed_ui::no_other_naval_base] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "no_other_naval_base");
+		s.fixed_ui_text[fixed_ui::is_coastal] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "is_coastal");
 	}
 }

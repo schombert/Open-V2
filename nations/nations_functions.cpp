@@ -1231,6 +1231,14 @@ namespace nations {
 		}
 		return provinces::province_tag();
 	}
+	provinces::province_tag state_port_province(world_state const & ws, nations::state_instance const & s) {
+		provinces::province_tag port;
+		nations::for_each_province(ws, s, [&port](provinces::province_state const& ps) {
+			if(ps.naval_base_level > 0 || ps.naval_base_upgrade_progress != 0)
+				port = ps.id;
+		});
+		return port;
+	}
 	provinces::province_state const* get_state_capital(world_state const& ws, nations::state_instance const& s) {
 		if(auto cap = s.state_capital; is_valid_index(cap))
 			return &ws.w.province_s.province_state_container[cap];

@@ -636,8 +636,15 @@ namespace scenario {
 		constexpr uint32_t b_rich_tax = 614ui32;
 		constexpr uint32_t tariffs = 615ui32;
 		constexpr uint32_t interest = 616ui32;
+		constexpr uint32_t national_stockpile = 617ui32;
+		constexpr uint32_t allowed_build_railroad = 616ui32;
+		constexpr uint32_t level_less_than = 619ui32;
+		constexpr uint32_t already_upgrading = 620ui32;
+		constexpr uint32_t rail_tech_prerequisite = 621ui32;
+		constexpr uint32_t no_other_naval_base = 622ui32;
+		constexpr uint32_t is_coastal = 623ui32;
 
-		constexpr uint32_t count = 617ui32;
+		constexpr uint32_t count = 624ui32;
 	}
 
 	class scenario_manager {

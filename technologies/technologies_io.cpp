@@ -374,10 +374,13 @@ namespace technologies {
 		void set_activate_building(const token_and_type& t) {
 			if(is_fixed_token_ci(t, "naval_base")) {
 				env.under_construction.flags |= technology::activate_naval_base;
+				env.under_construction.attributes[tech_offset::max_naval_base] = 1.0f;
 			} else if(is_fixed_token_ci(t, "fort")) {
 				env.under_construction.flags |= technology::activate_fort;
+				env.under_construction.attributes[tech_offset::max_fort] = 1.0f;
 			} else if(is_fixed_token_ci(t, "railroad")) {
 				env.under_construction.flags |= technology::activate_railroad;
+				env.under_construction.attributes[tech_offset::max_railroad] = 1.0f;
 			} else {
 				const auto name = text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end);
 				const auto factory = tag_from_text(env.s.economy_m.named_factory_types_index, name);

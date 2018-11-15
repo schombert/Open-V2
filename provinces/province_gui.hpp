@@ -5,6 +5,7 @@
 #include "military\\military_functions.h"
 #include "gui\\gui.hpp"
 #include "simple_mpl\\simple_mpl.hpp"
+#include "commands\\commands.h"
 
 namespace provinces {
 
@@ -754,23 +755,26 @@ namespace provinces {
 
 	class fort_expand_button {
 	public:
-		void button_function(ui::simple_button<fort_expand_button>&, world_state&);
-		template<typename window_type>
-		void windowed_update(ui::simple_button<fort_expand_button>& self, window_type& w, world_state& ws);
+		void button_function(ui::button<fort_expand_button>&, key_modifiers m, world_state&);
+		void update(ui::button<fort_expand_button>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	class naval_base_expand_button {
 	public:
 		void button_function(ui::simple_button<naval_base_expand_button>&, world_state&);
-		template<typename window_type>
-		void windowed_update(ui::simple_button<naval_base_expand_button>& self, window_type& w, world_state& ws);
+		void update(ui::simple_button<naval_base_expand_button>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	class railroad_expand_button {
 	public:
-		void button_function(ui::simple_button<railroad_expand_button>&, world_state&);
-		template<typename window_type>
-		void windowed_update(ui::simple_button<railroad_expand_button>& self, window_type& w, world_state& ws);
+		void button_function(ui::button<railroad_expand_button>&, key_modifiers m, world_state&);
+		void update(ui::button<railroad_expand_button>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	class province_buildings_base : public ui::window_pane {
@@ -779,9 +783,9 @@ namespace provinces {
 		ui::dynamic_icon<naval_base_level_icon> naval_base_icon;
 		ui::dynamic_icon<railroad_level_icon> railroad_icon;
 
-		ui::simple_button<fort_expand_button> fort_button;
+		ui::button<fort_expand_button> fort_button;
 		ui::simple_button<naval_base_expand_button> naval_base_button;
-		ui::simple_button<railroad_expand_button> railroad_button;
+		ui::button<railroad_expand_button> railroad_button;
 
 		ui::progress_bar<fort_progress_bar> fort_bar;
 		ui::progress_bar<naval_base_progress_bar> naval_base_bar;
@@ -1040,10 +1044,47 @@ namespace provinces {
 	}
 
 	template<typename window_type>
-	void province_buildings_base::windowed_update(window_type&, world_state& ws) {
-		if(auto selected = ws.w.province_w.selected_province; is_valid_index(selected)) {
-			if(ws.w.province_s.province_state_container[selected].owner == ws.w.local_player_nation && ws.w.local_player_nation != nullptr) {
+	void province_buildings_base::windowed_update(window_type& w, world_state& ws) {
+		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
+			if(ws.w.province_s.province_state_container[selected_prov].owner == ws.w.local_player_nation && ws.w.local_player_nation != nullptr) {
 				ui::make_visible_immediate(*associated_object);
+
+				if(ws.w.province_s.province_state_container[selected_prov].fort_upgrade_progress == 0) {
+					ui::hide(*fort_bar.associated_object);
+					ui::hide(*fort_expand_text.associated_object);
+					fort_button.update(fort_button, ws);
+					ui::make_visible_immediate(*fort_button.associated_object);
+				} else {
+					fort_bar.set_fraction(ws.w.province_s.province_state_container[selected_prov].fort_upgrade_progress);
+					ui::make_visible_immediate(*fort_bar.associated_object);
+					ui::make_visible_immediate(*fort_expand_text.associated_object);
+					ui::hide(*fort_button.associated_object);
+				}
+
+				if(ws.w.province_s.province_state_container[selected_prov].naval_base_upgrade_progress == 0) {
+					ui::hide(*naval_base_bar.associated_object);
+					ui::hide(*naval_base_expand_text.associated_object);
+					naval_base_button.update(naval_base_button, ws);
+					ui::make_visible_immediate(*naval_base_button.associated_object);
+				} else {
+					naval_base_bar.set_fraction(ws.w.province_s.province_state_container[selected_prov].naval_base_upgrade_progress);
+					ui::make_visible_immediate(*naval_base_bar.associated_object);
+					ui::make_visible_immediate(*naval_base_expand_text.associated_object);
+					ui::hide(*naval_base_button.associated_object);
+				}
+
+				if(ws.w.province_s.province_state_container[selected_prov].railroad_upgrade_progress == 0) {
+					ui::hide(*railroad_bar.associated_object);
+					ui::hide(*railroad_expand_text.associated_object);
+					railroad_button.update(railroad_button, ws);
+					ui::make_visible_immediate(*railroad_button.associated_object);
+				} else {
+					railroad_bar.set_fraction(ws.w.province_s.province_state_container[selected_prov].railroad_upgrade_progress);
+					ui::make_visible_immediate(*railroad_bar.associated_object);
+					ui::make_visible_immediate(*railroad_expand_text.associated_object);
+					ui::hide(*railroad_button.associated_object);
+				}
+
 				return;
 			}
 		}
@@ -1212,29 +1253,15 @@ namespace provinces {
 	
 	template<typename window_type>
 	void fort_progress_bar::windowed_update(window_type& win, ui::progress_bar<fort_progress_bar>& self, world_state& ws) {
-		ui::hide(*self.associated_object);
-		ui::hide(*win.fort_expand_text.associated_object);
 	}
 	
 	template<typename window_type>
 	void naval_base_progress_bar::windowed_update(window_type&, ui::progress_bar<naval_base_progress_bar>& self, world_state& ws) {
-		ui::hide(*self.associated_object);
-		ui::hide(*win.naval_base_expand_text.associated_object);
 	}
 	
 	template<typename window_type>
 	void railroad_progress_bar::windowed_update(window_type&, ui::progress_bar<railroad_progress_bar>& self, world_state& ws) {
-		ui::hide(*self.associated_object);
-		ui::hide(*win.railroad_expand_text.associated_object);
 	}
-
-
-	template<typename window_type>
-	void fort_expand_button::windowed_update(ui::simple_button<fort_expand_button>& self, window_type& w, world_state& ws) {}
-	template<typename window_type>
-	void naval_base_expand_button::windowed_update(ui::simple_button<naval_base_expand_button>& self, window_type& w, world_state& ws) {}
-	template<typename window_type>
-	void railroad_expand_button::windowed_update(ui::simple_button<railroad_expand_button>& self, window_type& w, world_state& ws) {}
 
 	template<typename window_type>
 	void province_buildings_base::on_create(window_type& win, world_state& ws) {

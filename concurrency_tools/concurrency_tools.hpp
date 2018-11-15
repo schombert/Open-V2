@@ -522,6 +522,9 @@ void remove_item_if(stable_variable_vector_storage_mk_2<object_type, minimum_siz
 
 template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename FUNC>
 void remove_item_if(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, set_tag<object_type>& i, FUNC const& f) {
+	if(!is_valid_index(i))
+		return;
+
 	const auto range = get_range(storage, i);
 	const auto new_end = std::remove_if(range.first, range.second, f);
 	
@@ -530,6 +533,9 @@ void remove_item_if(stable_variable_vector_storage_mk_2<object_type, minimum_siz
 }
 template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename FUNC>
 void remove_item_if(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, multiset_tag<object_type>& i, FUNC const& f) {
+	if(!is_valid_index(i))
+		return;
+
 	const auto range = get_range(storage, i);
 	const auto new_end = std::remove_if(range.first, range.second, f);
 
@@ -539,6 +545,9 @@ void remove_item_if(stable_variable_vector_storage_mk_2<object_type, minimum_siz
 
 template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename FUNC>
 void remove_subitem_if(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, multiset_tag<object_type>& i, object_type key, FUNC const& f) {
+	if(!is_valid_index(i))
+		return;
+
 	const auto range = get_range(storage, i);
 	auto lb = std::lower_bound(range.first, range.second, key);
 	auto ub = std::upper_bound(range.first, range.second, key);

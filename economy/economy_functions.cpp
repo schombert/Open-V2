@@ -962,7 +962,9 @@ namespace economy {
 		public:
 			const int32_t size;
 
-			cbacked_eigen_vector_generator(int32_t s) : size(int32_t(((s * sizeof(T) + 31) / 32) / sizeof(T))) {}
+			cbacked_eigen_vector_generator(int32_t s) : size(
+				int32_t(((static_cast<uint32_t>(sizeof(T)) * uint32_t(s) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(T)))
+			) {}
 
 			auto operator()() const noexcept {
 				return cbacked_eigen_vector<T>(size);

@@ -24,6 +24,7 @@ namespace nations {
 	provinces::province_state const* get_state_capital(world_state const& ws, nations::state_instance const& s);
 	provinces::province_state* get_state_capital(world_state& ws, nations::state_instance& s);
 	provinces::province_tag find_state_capital(world_state const& ws, nations::state_instance const& s);
+	provinces::province_tag state_port_province(world_state const& ws, nations::state_instance const& s);
 	void set_relationship(world_state& ws, nation& a, nation& b, int32_t value);
 	int32_t get_relationship(world_state const& ws, nation const& a, country_tag b);
 	void adjust_relationship(world_state& ws, nation& a, nation& b, int32_t value);

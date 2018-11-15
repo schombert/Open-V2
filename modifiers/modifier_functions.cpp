@@ -27,13 +27,15 @@ namespace modifiers {
 				bit_vector_set(&(this_nation.enabled_crimes), uint32_t(i), true);
 		}
 	}
-	void reset_national_modifier(world_state const& ws, nations::nation& this_nation) {
+	void reset_national_modifier(world_state& ws, nations::nation& this_nation) {
 		this_nation.modifier_values = national_modifier_vector::Zero();
 
 		auto static_range = get_range(ws.w.nation_s.static_modifier_arrays, this_nation.static_modifiers);
 		for(auto m : static_range)
 			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[m];
 
+		remove_item_if(ws.w.nation_s.timed_modifier_arrays, this_nation.timed_modifiers,
+			[d = to_index(ws.w.current_date) + 1](nations::timed_national_modifier const& m) { return to_index(m.expiration) >= d; });
 		auto timed_range = get_range(ws.w.nation_s.timed_modifier_arrays, this_nation.timed_modifiers);
 		for(auto t = timed_range.first; t != timed_range.second; ++t)
 			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[t->mod];
@@ -98,7 +100,7 @@ namespace modifiers {
 				this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.generalised_debt_default];
 		}
 	}
-	void reset_provincial_modifier(world_state const& ws, provinces::province_state& this_province) {
+	void reset_provincial_modifier(world_state& ws, provinces::province_state& this_province) {
 		this_province.modifier_values = provincial_modifier_vector::Zero();
 		auto& base_province = ws.s.province_m.province_container[this_province.id];
 
@@ -106,6 +108,8 @@ namespace modifiers {
 		for(auto m : static_range)
 			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[m];
 
+		remove_item_if(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers,
+			[d = to_index(ws.w.current_date) + 1](provinces::timed_provincial_modifier const& m) { return to_index(m.expiration) >= d; });
 		auto timed_range = get_range(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers);
 		for(auto t = timed_range.first; t != timed_range.second; ++t)
 			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[t->mod];

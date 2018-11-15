@@ -9,6 +9,7 @@
 #include "economy\\economy_functions.h"
 #include "ideologies\\ideologies_functions.h"
 #include "technologies\\technologies_functions.h"
+#include "modifiers\\modifier_functions.h"
 #include <chrono>
 
 #include <Windows.h>
@@ -59,6 +60,18 @@ void world_state_update_loop(world_state & ws) {
 
 			provinces::update_province_demographics(ws);
 			nations::update_state_nation_demographics(ws);
+
+			nations::update_nation_ranks(ws); // note: does not update scores
+
+			concurrency::parallel_for_each(
+				ws.w.province_s.province_state_container.begin(),
+				ws.w.province_s.province_state_container.end(),
+				[&ws](provinces::province_state& ps) {
+				modifiers::reset_provincial_modifier(ws, ps);
+			});
+			ws.w.nation_s.nations.parallel_for_each([&ws](nations::nation& n) {
+				modifiers::reset_national_modifier(ws, n);
+			});
 			//etc
 
 			ws.w.pending_commands.execute(ws);

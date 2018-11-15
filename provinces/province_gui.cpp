@@ -1025,11 +1025,100 @@ namespace provinces {
 		ico.set_enabled(false);
 	}
 
-	void fort_expand_button::button_function(ui::simple_button<fort_expand_button>&, world_state&) {}
+	void fort_expand_button::button_function(ui::button<fort_expand_button>&, key_modifiers m, world_state& ws) {
+		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
+			if(auto player = ws.w.local_player_nation; player) {
+				if((m & modifiers_shift) != 0) {
+					if(auto si = ws.w.province_s.province_state_container[selected_prov].state_instance; si) {
+						if(auto sid = si->id; ws.w.nation_s.states.is_valid_index(sid)) {
+							ws.w.pending_commands.add<commands::province_building>(player->id, commands::province_building_type::state_fort, sid);
+						}
+					}
+				} else {
+					ws.w.pending_commands.add<commands::province_building>(player->id, commands::province_building_type::province_fort, selected_prov);
+				}
+			}
+		}
+	}
 
-	void naval_base_expand_button::button_function(ui::simple_button<naval_base_expand_button>&, world_state&) {}
+	void fort_expand_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
+			if(auto player = ws.w.local_player_nation; player) {
+				ui::unlimited_line_manager lm;
+				commands::explain_command_conditions(commands::province_building(player->id, commands::province_building_type::province_fort, selected_prov),
+					ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format);
+			}
+		}
+	}
 
-	void railroad_expand_button::button_function(ui::simple_button<railroad_expand_button>&, world_state&) {}
+	void naval_base_expand_button::button_function(ui::simple_button<naval_base_expand_button>&, world_state& ws) {
+		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
+			if(auto player = ws.w.local_player_nation; player) {
+				ws.w.pending_commands.add<commands::province_building>(player->id, commands::province_building_type::province_naval_base, selected_prov);
+			}
+		}
+	}
+
+	void naval_base_expand_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
+			if(auto player = ws.w.local_player_nation; player) {
+				ui::unlimited_line_manager lm;
+				commands::explain_command_conditions(commands::province_building(player->id, commands::province_building_type::province_naval_base, selected_prov),
+					ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format);
+			}
+		}
+	}
+
+	void railroad_expand_button::button_function(ui::button<railroad_expand_button>&, key_modifiers m, world_state& ws) {
+		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
+			if(auto player = ws.w.local_player_nation; player) {
+				if((m & modifiers_shift) != 0) {
+					if(auto si = ws.w.province_s.province_state_container[selected_prov].state_instance; si) {
+						if(auto sid = si->id; ws.w.nation_s.states.is_valid_index(sid)) {
+							ws.w.pending_commands.add<commands::province_building>(player->id, commands::province_building_type::state_railroad, sid);
+						}
+					}
+				} else {
+					ws.w.pending_commands.add<commands::province_building>(player->id, commands::province_building_type::province_railroad, selected_prov);
+				}
+			}
+		}
+	}
+
+	void railroad_expand_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
+			if(auto player = ws.w.local_player_nation; player) {
+				ui::unlimited_line_manager lm;
+				commands::explain_command_conditions(commands::province_building(player->id, commands::province_building_type::province_railroad, selected_prov),
+					ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format);
+			}
+		}
+	}
+
+	void fort_expand_button::update(ui::button<fort_expand_button>& self, world_state& ws) {
+		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
+			if(auto player = ws.w.local_player_nation; player) {
+				self.set_enabled(
+					commands::is_command_valid(commands::province_building(player->id, commands::province_building_type::province_fort, selected_prov), ws));
+			}
+		}
+	}
+	void naval_base_expand_button::update(ui::simple_button<naval_base_expand_button>& self, world_state& ws) {
+		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
+			if(auto player = ws.w.local_player_nation; player) {
+				self.set_enabled(
+					commands::is_command_valid(commands::province_building(player->id, commands::province_building_type::province_naval_base, selected_prov), ws));
+			}
+		}
+	}
+	void railroad_expand_button::update(ui::button<railroad_expand_button>& self, world_state& ws) {
+		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
+			if(auto player = ws.w.local_player_nation; player) {
+				self.set_enabled(
+					commands::is_command_valid(commands::province_building(player->id, commands::province_building_type::province_railroad, selected_prov), ws));
+			}
+		}
+	}
 
 	province_window::province_window() : win(std::make_unique<province_window_t>()) {}
 

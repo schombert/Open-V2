@@ -363,12 +363,18 @@ namespace governments {
 			auto a_amount = economy::administrative_spending_amount(ws, *player);
 			auto tariff_costs = std::max(-1.0f * economy::project_player_tarrif_income(ws, float(player->tarrifs) / 100.0f), float(0));
 			auto interest = economy::calculate_daily_debt_payment(ws, *player) / 2.0f;
+			auto b_amount = economy::daily_national_building_cost(ws, *player) * float(player->projects_stockpile_spending) / 100.0f;
 
-			auto total = e_amount + m_amount + s_amount + a_amount + tariff_costs + interest;
+			auto total = e_amount + m_amount + s_amount + a_amount + tariff_costs + interest + b_amount;
 
 			if(total <= 0)
 				return;
 
+			pie.add_entry(
+				ws.w.gui_m,
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::national_stockpile]),
+				b_amount / total,
+				graphics::color_rgb{ 30ui8, 155ui8, 250ui8 });
 			pie.add_entry(
 				ws.w.gui_m,
 				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::edu_spending]),
