@@ -87,6 +87,8 @@ namespace economy {
 
 	void init_artisan_producation(world_state& ws);
 	void set_initial_money(world_state& ws);
+	void update_bankrupcy(world_state& ws);
+	bool is_bankrupt(world_state const& ws, nations::nation const& n);
 	void collect_taxes(world_state& ws);
 	void pay_unemployement_pensions_salaries(world_state& ws, nations::nation& n);
 	void economy_update_tick(world_state& ws);

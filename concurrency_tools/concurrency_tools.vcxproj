@@ -143,6 +143,7 @@
   <ItemGroup>
     <ClInclude Include="concurrency_tools.h" />
     <ClInclude Include="concurrency_tools.hpp" />
+    <ClInclude Include="variable_layout.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="concurrecy_tools.cpp" />

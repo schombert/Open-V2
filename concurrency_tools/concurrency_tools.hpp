@@ -70,6 +70,8 @@ public:
 
 		// deserialize routine
 
+		std::vector<std::pair<uint32_t, uint32_t>> to_free;
+
 		for(uint32_t i = 0ui32; i < new_in_use; ++i) {
 			object_type* block = obj.index_array[i];
 			for(uint32_t j = 0; j < static_cast<int32_t>(block_size); ++j) {
@@ -79,10 +81,17 @@ public:
 					(block + j)->id = index_type(static_cast<value_base_of<index_type>>(((i << ct_log2(block_size)) + j)));
 					deserialize(input, block[j], std::forward<CONTEXT>(c) ...);
 				} else {
-					(block + j)->id = obj.first_free;
-					obj.first_free = index_type(static_cast<value_base_of<index_type>>(((i << ct_log2(block_size)) + j) | high_bit_mask<index_type>));
+					to_free.emplace_back(i, j);
+					//(block + j)->id = obj.first_free;
+					//obj.first_free = index_type(static_cast<value_base_of<index_type>>(((i << ct_log2(block_size)) + j) | high_bit_mask<index_type>));
 				}
 			}
+		}
+
+		for(int32_t i = int32_t(to_free.size()) - 1; i >= 0; --i) {
+			object_type* block = obj.index_array[to_free[i].first];
+			(block + to_free[i].second)->id = obj.first_free;
+			obj.first_free = index_type(static_cast<value_base_of<index_type>>(((to_free[i].first << ct_log2(block_size)) + to_free[i].second) | high_bit_mask<index_type>));
 		}
 	}
 	template<typename ... CONTEXT>

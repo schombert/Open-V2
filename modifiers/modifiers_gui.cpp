@@ -467,10 +467,10 @@ namespace modifiers {
 		if(total_pop != 0)
 			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.average_literacy, modifier_offset, float(literacy) / float(total_pop));
 
-		if((this_nation.flags & nations::nation::is_bankrupt) != 0) {
-			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.in_bankrupcy, modifier_offset, value_type(1));
-			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.generalised_debt_default, modifier_offset, value_type(1));
-		}
+		//if((this_nation.flags & nations::nation::is_bankrupt) != 0) {
+		//	cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.in_bankrupcy, modifier_offset, value_type(1));
+		//	cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.generalised_debt_default, modifier_offset, value_type(1));
+		//}
 
 		return cursor_in;
 	}

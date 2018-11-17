@@ -35,7 +35,7 @@ namespace modifiers {
 			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[m];
 
 		remove_item_if(ws.w.nation_s.timed_modifier_arrays, this_nation.timed_modifiers,
-			[d = to_index(ws.w.current_date) + 1](nations::timed_national_modifier const& m) { return to_index(m.expiration) >= d; });
+			[d = to_index(ws.w.current_date) + 1](nations::timed_national_modifier const& m) { return to_index(m.expiration) <= d; });
 		auto timed_range = get_range(ws.w.nation_s.timed_modifier_arrays, this_nation.timed_modifiers);
 		for(auto t = timed_range.first; t != timed_range.second; ++t)
 			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[t->mod];
@@ -94,11 +94,11 @@ namespace modifiers {
 		if(total_pop != 0 && literacy != 0)
 			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.average_literacy] * (float(literacy) / float(total_pop));
 
-		if((this_nation.flags & nations::nation::is_bankrupt) != 0) {
-			this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.in_bankrupcy];
-			if(is_valid_index(ws.s.modifiers_m.static_modifiers.generalised_debt_default))
-				this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.generalised_debt_default];
-		}
+		//if((this_nation.flags & nations::nation::is_bankrupt) != 0) {
+		//	this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.in_bankrupcy];
+		//	if(is_valid_index(ws.s.modifiers_m.static_modifiers.generalised_debt_default))
+		//		this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.generalised_debt_default];
+		//}
 	}
 	void reset_provincial_modifier(world_state& ws, provinces::province_state& this_province) {
 		this_province.modifier_values = provincial_modifier_vector::Zero();
@@ -109,7 +109,7 @@ namespace modifiers {
 			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[m];
 
 		remove_item_if(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers,
-			[d = to_index(ws.w.current_date) + 1](provinces::timed_provincial_modifier const& m) { return to_index(m.expiration) >= d; });
+			[d = to_index(ws.w.current_date) + 1](provinces::timed_provincial_modifier const& m) { return to_index(m.expiration) <= d; });
 		auto timed_range = get_range(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers);
 		for(auto t = timed_range.first; t != timed_range.second; ++t)
 			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[t->mod];
@@ -167,6 +167,13 @@ namespace modifiers {
 
 	void add_timed_modifier_to_nation(world_state& ws, nations::nation& this_nation, national_modifier_tag mod, date_tag expiration) {
 		add_item(ws.w.nation_s.timed_modifier_arrays, this_nation.timed_modifiers, nations::timed_national_modifier{ expiration, mod });
+	}
+	void add_unique_timed_modifier_to_nation(world_state& ws, nations::nation& this_nation, national_modifier_tag mod, date_tag expiration) {
+		auto found = find(ws.w.nation_s.timed_modifier_arrays, this_nation.timed_modifiers, nations::timed_national_modifier{ expiration, mod });
+		if(found)
+			found->expiration = date_tag(std::max(to_index(found->expiration), to_index(expiration)));
+		else
+			add_item(ws.w.nation_s.timed_modifier_arrays, this_nation.timed_modifiers, nations::timed_national_modifier{ expiration, mod });
 	}
 	void add_timed_modifier_to_province(world_state& ws, provinces::province_state& this_province, provincial_modifier_tag mod, date_tag expiration) {
 		add_item(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers, provinces::timed_provincial_modifier{ expiration, mod });

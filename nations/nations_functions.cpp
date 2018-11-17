@@ -843,6 +843,25 @@ namespace nations {
 		return std::clamp(ratio_num / ratio_denom, 0.05f, 1.0f);
 	}
 
+	float calculate_revanchism(world_state const & ws, nations::nation const & n) {
+		float sum = 0;
+		if(is_valid_index(n.tag)) {
+			auto core_range = get_range(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[n.tag].core_provinces);
+			for(auto c : core_range) {
+				auto& ps = ws.w.province_s.province_state_container[c];
+				if(ps.owner != &n) {
+					if(ps.dominant_culture == n.primary_culture)
+						sum += 1.0f;
+					else
+						sum += 0.25f;
+				}
+			}
+			if(core_range.first != core_range.second)
+				return sum / float(core_range.second - core_range.first);
+		}
+		return 0.0f;
+	}
+
 	void update_neighbors(world_state& ws, nations::nation& this_nation) {
 		resize(ws.w.nation_s.nations_arrays, this_nation.neighboring_nations, 0ui32);
 

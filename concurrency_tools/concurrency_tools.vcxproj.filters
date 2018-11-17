@@ -21,6 +21,9 @@
     <ClInclude Include="concurrency_tools.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="variable_layout.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="concurrecy_tools.cpp">

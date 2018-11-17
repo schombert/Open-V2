@@ -10,6 +10,7 @@
 #include "ideologies\\ideologies_functions.h"
 #include "technologies\\technologies_functions.h"
 #include "modifiers\\modifier_functions.h"
+#include "issues\\issues_functions.hpp"
 #include <chrono>
 
 #include <Windows.h>
@@ -61,7 +62,21 @@ void world_state_update_loop(world_state & ws) {
 			provinces::update_province_demographics(ws);
 			nations::update_state_nation_demographics(ws);
 
-			nations::update_nation_ranks(ws); // note: does not update scores
+			ws.w.nation_s.nations.parallel_for_each([&ws](nations::nation& n) {
+				nations::update_movement_support(ws, n);
+
+				n.military_score = int16_t(nations::calculate_military_score(ws, n));
+				n.industrial_score = int16_t(nations::calculate_industrial_score(ws, n));
+
+				n.national_administrative_efficiency = nations::calculate_national_administrative_efficiency(ws, n);
+
+				auto admin_req = issues::administrative_requirement(ws, n.id);
+				auto member_states = get_range(ws.w.nation_s.state_arrays, n.member_states);
+				for(auto s = member_states.first; s != member_states.second; ++s)
+					s->state->administrative_efficiency = nations::calculate_state_administrative_efficiency(ws, *(s->state), admin_req);
+			});
+
+			nations::update_nation_ranks(ws);
 
 			concurrency::parallel_for_each(
 				ws.w.province_s.province_state_container.begin(),

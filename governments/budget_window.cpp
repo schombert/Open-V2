@@ -355,6 +355,10 @@ namespace governments {
 		}
 	}
 
+	void warning_icon::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::bankrupcy_warning], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+	}
+
 	void expenses_pie_chart::update(ui::piechart<expenses_pie_chart>& pie, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			auto e_amount = economy::education_spending_amount(ws, *player);

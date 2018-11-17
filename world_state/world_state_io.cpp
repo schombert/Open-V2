@@ -302,6 +302,7 @@ void restore_world_state(world_state& ws) {
 		n.industrial_score = int16_t(nations::calculate_industrial_score(ws, n));
 
 		n.national_administrative_efficiency = nations::calculate_national_administrative_efficiency(ws, n);
+		n.revanchism = nations::calculate_revanchism(ws, n);
 
 		auto admin_req = issues::administrative_requirement(ws, n.id);
 		auto member_states = get_range(ws.w.nation_s.state_arrays, n.member_states);

@@ -19,6 +19,7 @@ namespace modifiers {
 	void add_static_modifier_to_nation(world_state& ws, nations::nation& this_nation, national_modifier_tag mod);
 	void add_static_modifier_to_province(world_state& ws, provinces::province_state& this_province, provincial_modifier_tag mod);
 	void add_timed_modifier_to_nation(world_state& ws, nations::nation& this_nation, national_modifier_tag mod, date_tag expiration);
+	void add_unique_timed_modifier_to_nation(world_state& ws, nations::nation& this_nation, national_modifier_tag mod, date_tag expiration);
 	void add_timed_modifier_to_province(world_state& ws, provinces::province_state& this_province, provincial_modifier_tag mod, date_tag expiration);
 	void remove_static_modifier_from_nation(world_state& ws, nations::nation& this_nation, national_modifier_tag mod);
 	void remove_static_modifier_from_province(world_state& ws, provinces::province_state& this_province, provincial_modifier_tag mod);

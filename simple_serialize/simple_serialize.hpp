@@ -77,6 +77,26 @@ namespace serialization {
 	template<typename value_base, typename zero_is_null, typename individuator>
 	class serializer<tag_type<value_base, zero_is_null, individuator>> : public memcpy_serializer<tag_type<value_base, zero_is_null, individuator>> {};
 
+	template<typename tag, typename T>
+	class tagged_serializer {
+	public:
+		static constexpr bool has_static_size = serializer<T>::has_static_size;
+		static constexpr bool has_simple_serialize = serializer<T>::has_simple_serialize;
+
+		template<typename ... CONTEXT>
+		static void serialize_object(std::byte* &output, T const& obj, CONTEXT&& ... c) {
+			serializer<T>::serialize_object(output, obj, std::forward<CONTEXT>(c)...);
+		}
+		template<typename ... CONTEXT>
+		static void deserialize_object(std::byte const* &input, T& obj, CONTEXT&& ... c) {
+			serializer<T>::deserialize_object(input, obj, std::forward<CONTEXT>(c)...);
+		}
+		template<typename ... CONTEXT>
+		static size_t size(T const& obj, CONTEXT&& ...) {
+			return serializer<T>::size(obj, std::forward<CONTEXT>(c)...);
+		}
+	};
+
 	template<typename value_type, int rows, int cols>
 	class serializer<Eigen::Matrix<value_type, rows, cols>> {
 		static_assert(rows > 0 && cols > 0);

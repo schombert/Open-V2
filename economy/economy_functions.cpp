@@ -6,6 +6,7 @@
 #include "population\\population_function.h"
 #include "nations\\nations_functions.hpp"
 #include "provinces\\province_functions.hpp"
+#include "modifiers\\modifier_functions.h"
 #include <random>
 
 #ifdef DEBUG_ECONOMY
@@ -867,6 +868,22 @@ namespace economy {
 			});
 
 		});
+	}
+
+	void update_bankrupcy(world_state & ws) {
+		ws.w.nation_s.nations.parallel_for_each([&ws](nations::nation& n) {
+			if(calculate_daily_debt_payment(ws, n) / 2.0f > n.tax_base) {
+				n.national_debt = 0;
+				modifiers::add_unique_timed_modifier_to_nation(ws, n,
+					ws.s.modifiers_m.static_modifiers.in_bankrupcy,
+					date_tag(to_index(ws.w.current_date) + int32_t(365.0f * ws.s.modifiers_m.global_defines.bankrupcy_duration)));
+				n.base_prestige = 0;
+			}
+		});
+	}
+
+	bool is_bankrupt(world_state const& ws, nations::nation const& n) {
+		return find(ws.w.nation_s.timed_modifier_arrays, n.timed_modifiers, nations::timed_national_modifier{ date_tag(), ws.s.modifiers_m.static_modifiers.in_bankrupcy }) != nullptr;
 	}
 
 	range_information global_price_range(world_state const& ws, economy::goods_tag t) {
@@ -1970,6 +1987,8 @@ namespace economy {
 				ws.w.nation_s.national_stockpiles.get(n.id, economy::money_good) += total;
 			}
 		});
+
+		update_bankrupcy(ws);
 	}
 
 	economy::money_qnty_type project_player_tarrif_income(world_state const& ws, float tarrif_amount) {

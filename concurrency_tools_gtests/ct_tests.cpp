@@ -2,6 +2,7 @@
 #include "common\\shared_tags.h"
 #include "gtest\\gtest.h"
 #include "concurrency_tools\\concurrency_tools.hpp"
+#include "concurrency_tools\\variable_layout.h"
 
 TEST(concurrency_tools, string_construction) {
 	concurrent_string a;
@@ -704,7 +705,7 @@ TEST(concurrency_tools, stable_variable_vector_storage_basic_test) {
 
 	EXPECT_EQ(3ui32, test_vec.first_free);
 
-	EXPECT_EQ(null_value_of<decltype(new_small)>, test_vec.free_lists[2]);
+	EXPECT_EQ(null_value_of<decltype(new_small)>, concurrent_key_pair_helper(test_vec.free_lists[2]).parts.index);
 
 	auto new_small_range = get_range(test_vec, new_small);
 	EXPECT_EQ(new_small_range.first, new_small_range.second);
@@ -732,7 +733,7 @@ TEST(concurrency_tools, stable_variable_vector_storage_basic_test) {
 	EXPECT_EQ(3.0f, *(new_small_range_b.first + 2));
 	EXPECT_EQ(4.0f, *(new_small_range_b.first + 3));
 
-	EXPECT_EQ(null_value_of<decltype(new_small)>, test_vec.free_lists[2]);
+	EXPECT_EQ(null_value_of<decltype(new_small)>, concurrent_key_pair_helper(test_vec.free_lists[2]).parts.index);
 
 	push_back(test_vec, new_small, 5.0f);
 
@@ -741,7 +742,7 @@ TEST(concurrency_tools, stable_variable_vector_storage_basic_test) {
 	EXPECT_EQ(5ui32, get_size(test_vec, new_small));
 
 	EXPECT_EQ(8ui32, test_vec.first_free);
-	EXPECT_EQ(0ui32, test_vec.free_lists[2]);
+	EXPECT_EQ(0ui32, concurrent_key_pair_helper(test_vec.free_lists[2]).parts.index);
 
 	auto new_small_range_c = get_range(test_vec, new_small);
 	EXPECT_EQ(ptrdiff_t(5), new_small_range_c.second - new_small_range_c.first);
@@ -766,25 +767,25 @@ TEST(concurrency_tools, stable_variable_vector_storage_free_list) {
 	EXPECT_EQ(3ui32, new_small_b);
 	EXPECT_EQ(6ui32, test_vec.first_free);
 
-	EXPECT_EQ(null_value_of<decltype(new_small)>, test_vec.free_lists[2]);
+	EXPECT_EQ(null_value_of<decltype(new_small)>, concurrent_key_pair_helper(test_vec.free_lists[2]).parts.index);
 
 	test_vec.release(new_small_b);
 	EXPECT_EQ(null_value_of<decltype(new_small)>, new_small_b);
-	EXPECT_EQ(3ui32, test_vec.free_lists[2]);
+	EXPECT_EQ(3ui32, concurrent_key_pair_helper(test_vec.free_lists[2]).parts.index);
 
 	test_vec.release(new_small);
 	EXPECT_EQ(null_value_of<decltype(new_small)>, new_small);
-	EXPECT_EQ(0ui32, test_vec.free_lists[2]);
+	EXPECT_EQ(0ui32, concurrent_key_pair_helper(test_vec.free_lists[2]).parts.index);
 
 	auto new_small_c = test_vec.make_new(1);
 	EXPECT_EQ(0ui32, new_small_c);
 	EXPECT_EQ(6ui32, test_vec.first_free);
-	EXPECT_EQ(3ui32, test_vec.free_lists[2]);
+	EXPECT_EQ(3ui32, concurrent_key_pair_helper(test_vec.free_lists[2]).parts.index);
 
 	auto new_small_d = test_vec.make_new(1);
 	EXPECT_EQ(3ui32, new_small_d);
 	EXPECT_EQ(6ui32, test_vec.first_free);
-	EXPECT_EQ(null_value_of<decltype(new_small)>, test_vec.free_lists[2]);
+	EXPECT_EQ(null_value_of<decltype(new_small)>, concurrent_key_pair_helper(test_vec.free_lists[2]).parts.index);
 }
 
 TEST(concurrency_tools, stable_variable_vector_storage_unsorted_interface) {
@@ -818,7 +819,7 @@ TEST(concurrency_tools, stable_variable_vector_storage_unsorted_interface) {
 	add_unordered_range(test_vec, new_small, test_vals, test_vals + 8);
 	EXPECT_EQ(5ui32, new_small);
 	EXPECT_EQ(14ui32, test_vec.first_free);
-	EXPECT_EQ(0ui32, test_vec.free_lists[3]);
+	EXPECT_EQ(0ui32, concurrent_key_pair_helper(test_vec.free_lists[3]).parts.index);
 
 	EXPECT_EQ(9ui32, get_size(test_vec, new_small));
 	EXPECT_EQ(16ui32, get_capacity(test_vec, new_small));
@@ -1642,4 +1643,49 @@ TEST(concurrency_tools, maximum_index_double) {
 	EXPECT_EQ(*(values_b + 1 + maximum_index(values_b + 1, 12)), 45.0);
 	EXPECT_EQ(maximum_index(values_b + 1, 8), 7);
 	EXPECT_EQ(maximum_index(values_b + 1, 7), 4);
+}
+
+namespace labels {
+	struct a;
+	struct b;
+	struct c;
+}
+
+TEST(concurrency_tools, variable_layout_basic) {
+	variable_layout_tagged_vector<provinces::province_tag, 67, labels::a, int, labels::b, float, labels::c, std::pair<int, int>> test_vec;
+	EXPECT_EQ(0, test_vec.size());
+
+	auto va = test_vec.get_new();
+	EXPECT_EQ(provinces::province_tag(0), va);
+	EXPECT_EQ(1, test_vec.size());
+	EXPECT_EQ(0, test_vec.get<labels::a>(va));
+	EXPECT_EQ(0.0f, test_vec.get<labels::b>(va));
+
+	test_vec.get<labels::a>(va) = 10;
+	test_vec.get<labels::b>(va) = 2.5f;
+	test_vec.get<labels::c>(va) = std::pair<int, int>(1,7);
+
+	EXPECT_EQ(10, test_vec.get<labels::a>(va));
+	EXPECT_EQ(2.5f, test_vec.get<labels::b>(va));
+	auto pv = std::pair<int, int>(1, 7);
+	EXPECT_EQ(pv, test_vec.get<labels::c>(va));
+
+	auto vb = test_vec.get_new();
+	EXPECT_EQ(provinces::province_tag(1), vb);
+	EXPECT_EQ(2, test_vec.size());
+
+	test_vec.release(va);
+	EXPECT_EQ(2, test_vec.size());
+	EXPECT_NE(provinces::province_tag(0), test_vec.get<index_type_marker>(provinces::province_tag(0)));
+
+
+	auto vc = test_vec.get_new();
+	EXPECT_EQ(provinces::province_tag(0), vc);
+	EXPECT_EQ(2, test_vec.size());
+
+	test_vec.release(vc);
+	EXPECT_EQ(2, test_vec.size());
+
+	test_vec.release(vb);
+	EXPECT_EQ(0, test_vec.size());
 }

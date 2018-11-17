@@ -310,6 +310,8 @@ namespace governments {
 	public:
 		template<typename window_type>
 		void windowed_update(ui::dynamic_icon<warning_icon>& self, window_type& win, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	class budget_window_base : public ui::draggable_region {
@@ -674,6 +676,8 @@ namespace governments {
 	}
 	template<typename window_type>
 	void warning_icon::windowed_update(ui::dynamic_icon<warning_icon>& self, window_type & win, world_state & ws) {
-		self.set_visibility(ws.w.gui_m, false);
+		if(auto player = ws.w.local_player_nation; player) {
+			self.set_visibility(ws.w.gui_m, economy::calculate_daily_debt_payment(ws, *player) / 2.0f > player->tax_base * 0.9f);
+		}
 	}
 }

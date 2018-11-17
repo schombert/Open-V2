@@ -8,6 +8,7 @@
 #include "issues\\issues_functions.hpp"
 #include "provinces\\province_functions.h"
 #include "modifiers\\modifier_functions.h"
+#include "economy\\economy_functions.h"
 
 namespace triggers {
 	int32_t get_trigger_payload_size(const uint16_t* data) {
@@ -2569,19 +2570,19 @@ namespace triggers {
 		auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
 		if(holder)
 			return compare_values(tval[0],
-			(0 != (((nations::nation const*)primary_slot)->flags & nations::nation::is_bankrupt)),
-			true);
+				economy::is_bankrupt(ws, *holder),
+				true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_in_default_from(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
-			(0 != (((nations::nation const*)primary_slot)->flags & nations::nation::is_bankrupt)),
+			economy::is_bankrupt(ws, *((nations::nation const*)primary_slot)),
 			true);
 	}
 	bool tf_in_default_this_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
-			(0 != (((nations::nation const*)primary_slot)->flags & nations::nation::is_bankrupt)),
+			economy::is_bankrupt(ws, *((nations::nation const*)primary_slot)),
 			true);
 	}
 	bool tf_in_default_this_province(TRIGGER_PARAMTERS) {
