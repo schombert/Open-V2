@@ -9,27 +9,79 @@
 #include <ppl.h>
 #include <map>
 
-template<>
-class serialization::serializer<provinces::province> : public serialization::memcpy_serializer<provinces::province> {};
-
-template<>
-class serialization::serializer<provinces::timed_provincial_modifier> : public serialization::memcpy_serializer<provinces::timed_provincial_modifier> {};
-
-template<>
-class serialization::serializer<std::tuple<provinces::province_tag, provinces::province_tag, text_data::text_tag, provinces::province_tag>> : public serialization::memcpy_serializer<std::tuple<provinces::province_tag, provinces::province_tag, text_data::text_tag, provinces::province_tag>> {};
-
 class world_state;
 
-template<>
-class serialization::serializer<provinces::province_state> {
+template<typename T>
+class serialization::tagged_serializer<province_state::cores, T> {
 public:
 	static constexpr bool has_static_size = false;
 	static constexpr bool has_simple_serialize = false;
 
-	static void serialize_object(std::byte* &output, provinces::province_state const& obj, world_state const& ws);
-	static void deserialize_object(std::byte const* &input, provinces::province_state& obj, world_state& ws);
-	static size_t size(provinces::province_state const& obj, world_state const& ws);
+	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws) {
+		serialize_stable_array(output, ws.w.province_s.core_arrays, obj);
+	}
+	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws) {
+		deserialize_stable_array(input, ws.w.province_s.core_arrays, obj);
+	}
+	static size_t size(T const& obj, world_state const& ws) {
+		return serialize_stable_array_size(ws.w.province_s.core_arrays, obj);
+	}
 };
+
+template<typename T>
+class serialization::tagged_serializer<province_state::timed_modifiers, T> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws) {
+		serialize_stable_array(output, ws.w.province_s.timed_modifier_arrays, obj);
+	}
+	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws) {
+		deserialize_stable_array(input, ws.w.province_s.timed_modifier_arrays, obj);
+	}
+	static size_t size(T const& obj, world_state const& ws) {
+		return serialize_stable_array_size(ws.w.province_s.timed_modifier_arrays, obj);
+	}
+};
+
+template<typename T>
+class serialization::tagged_serializer<province_state::static_modifiers, T> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws) {
+		serialize_stable_array(output, ws.w.province_s.static_modifier_arrays, obj);
+	}
+	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws) {
+		deserialize_stable_array(input, ws.w.province_s.static_modifier_arrays, obj);
+	}
+	static size_t size(T const& obj, world_state const& ws) {
+		return serialize_stable_array_size(ws.w.province_s.static_modifier_arrays, obj);
+	}
+};
+
+template<typename T>
+class serialization::tagged_serializer<province_state::pops, T> : public serialization::discard_serializer<T> {};
+
+template<typename T>
+class serialization::tagged_serializer<province_state::fleets, T> : public serialization::discard_serializer<T> {};
+
+template<typename T>
+class serialization::tagged_serializer<province_state::modifier_values, T> : public serialization::discard_serializer<T> {};
+
+template<typename T>
+class serialization::tagged_serializer<province_state::dominant_culture, T> : public serialization::discard_serializer<T> {};
+
+template<typename T>
+class serialization::tagged_serializer<province_state::dominant_religion, T> : public serialization::discard_serializer<T> {};
+
+template<typename T>
+class serialization::tagged_serializer<province_state::dominant_issue, T> : public serialization::discard_serializer<T> {};
+
+template<typename T>
+class serialization::tagged_serializer<province_state::dominant_ideology, T> : public serialization::discard_serializer<T> {};
 
 template<>
 class serialization::serializer<provinces::provinces_state> {
@@ -157,7 +209,7 @@ namespace provinces {
 		const directory& source_directory); // adds provincial modifiers
 	boost::container::flat_map<uint32_t, province_tag> read_province_definition_file(directory const& source_directory);
 
-	void read_province_history(world_state& ws, province_state& ps, date_tag target_date, token_group const* start, token_group const* end);
+	void read_province_history(world_state& ws, province_tag p, date_tag target_date, token_group const* start, token_group const* end);
 	void read_province_histories(world_state& ws, const directory& root, date_tag target_date);
 	void calculate_province_areas(province_manager& m, float top_latitude, float bottom_latitude);
 	void set_base_rgo_size(world_state& ws);

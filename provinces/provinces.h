@@ -5,6 +5,7 @@
 #include "concurrency_tools\\concurrency_tools.hpp"
 #include "modifiers\\modifiers.h"
 #include "economy\\economy.h"
+#include "concurrency_tools\\variable_layout.h"
 
 namespace modifiers {
 	class modifiers_manager;
@@ -34,82 +35,141 @@ namespace provinces {
 		bool operator<(timed_provincial_modifier const& other)  const noexcept { return mod < other.mod; }
 		bool operator==(timed_provincial_modifier const& other) const noexcept { return mod == other.mod && expiration == other.expiration; }
 	};
+}
 
-	struct province_state {
-		modifiers::provincial_modifier_vector modifier_values = modifiers::provincial_modifier_vector::Zero();
+namespace province {
+	struct is_sea;
+	struct is_coastal;
+	struct is_lake;
+	struct area;
+	struct centroid;
+	struct continent;
+	struct climate;
+	struct state_id;
 
-		nations::nation* owner = nullptr;
-		nations::nation* controller = nullptr;
-		population::rebel_faction* rebel_controller = nullptr;
-		nations::state_instance* state_instance = nullptr;
-		military::army_orders* orders = nullptr; // land provinces only
 
-		int32_t last_population = 0;
-		float nationalism = 0.0f;
-		float siege_progress = 0.0f;
-		float fort_upgrade_progress = 0.0f;
-		float railroad_upgrade_progress = 0.0f;
-		float naval_base_upgrade_progress = 0.0f;
-		float artisan_production_scale = 1.0f;
+	using container =
+		variable_layout_contiguous_tagged_vector<
+		provinces::province_tag, 4000,
+		is_sea, bitfield_type,
+		is_coastal, bitfield_type,
+		is_lake, bitfield_type, 
+		area, float,
+		centroid, Eigen::Vector3f,
+		continent, modifiers::provincial_modifier_tag,
+		climate, modifiers::provincial_modifier_tag,
+		state_id, provinces::state_tag
+		>;
 
-		date_tag last_controller_change;
-		date_tag last_immigration;
+	void initialize(container& c, provinces::province_tag);
+}
 
-		economy::worked_instance rgo_worker_data;
-		float last_produced = 0.0f; // in RGO
+namespace province_state {
+	struct modifier_values;
+	struct owner;
+	struct controller;
+	struct rebel_controller;
+	struct state_instance;
+	struct orders;
+	struct last_population;
+	struct nationalism;
+	struct siege_progress;
+	struct fort_upgrade_progress;
+	struct railroad_upgrade_progress;
+	struct naval_base_upgrade_progress;
+	struct artisan_production_scale;
 
-		set_tag<cultures::national_tag> cores;
-		array_tag<population::pop_tag> pops;
-		set_tag<military::fleet_presence> fleets; // for sea zones
-		set_tag<modifiers::provincial_modifier_tag> static_modifiers;
-		multiset_tag<timed_provincial_modifier> timed_modifiers;
+	struct last_controller_change;
+	struct last_immigration;
+	struct rgo_worker_data;
+	struct last_produced;
 
-		text_data::text_tag name;
-		modifiers::provincial_modifier_tag crime;
-		modifiers::provincial_modifier_tag terrain;
-		int16_t base_life_rating = 0i16;
+	struct cores;
+	struct pops;
+	struct fleets;
+	struct static_modifiers;
+	struct timed_modifiers;
 
-		province_tag id;
+	struct name;
+	struct crime;
+	struct terrain;
+	struct base_life_rating;
+	struct dominant_culture;
 
-		cultures::culture_tag dominant_culture;
+	struct rgo_production;
+	struct artisan_production;
+	struct dominant_issue;
+	struct dominant_ideology;
+	struct dominant_religion;
 
-		economy::goods_tag rgo_production;
-		economy::goods_tag artisan_production;
+	struct fort_level;
+	struct railroad_level;
+	struct naval_base_level;
+	struct rgo_size;
 
-		issues::option_tag dominant_issue;
-		ideologies::ideology_tag dominant_ideology;
-		cultures::religion_tag dominant_religion;
+	struct is_blockaded;
+	struct is_overseas;
+	struct has_owner_core;
+	struct owner_building_railroad;
 
-		uint8_t fort_level = 0ui8;
-		uint8_t railroad_level = 0ui8;
-		uint8_t naval_base_level = 0ui8;
-		uint8_t rgo_size = 1ui8;
+	using container =
+		variable_layout_contiguous_tagged_vector <
+		provinces::province_tag, 4000,
 
-		uint8_t flags = 0ui8;
+		is_blockaded, bitfield_type,
+		is_overseas, bitfield_type,
+		has_owner_core, bitfield_type,
+		owner_building_railroad, bitfield_type,
 
-		constexpr static uint8_t is_blockaded = 0x01;
-		constexpr static uint8_t is_overseas  = 0x02;
-		constexpr static uint8_t has_owner_core = 0x04;
-		constexpr static uint8_t owner_building_railroad = 0x08;
-	};
+		fort_level, uint8_t,
+		railroad_level, uint8_t,
+		naval_base_level, uint8_t,
+		rgo_size, uint8_t,
 
-	struct province {
-		constexpr static uint16_t sea = 0x0001;
-		constexpr static uint16_t coastal = 0x0002;
-		constexpr static uint16_t lake = 0x0004;
+		dominant_religion, cultures::religion_tag,
+		dominant_ideology, ideologies::ideology_tag,
+		dominant_issue, issues::option_tag,
 
-		double area = 0.0; // in km squared
+		artisan_production, economy::goods_tag,
+		rgo_production, economy::goods_tag,
 
-		Eigen::Vector3d centroid;
+		dominant_culture, cultures::culture_tag,
+		base_life_rating, int16_t,
+		terrain, modifiers::provincial_modifier_tag,
+		crime, modifiers::provincial_modifier_tag,
+		name, text_data::text_tag,
 
-		modifiers::provincial_modifier_tag continent;
-		modifiers::provincial_modifier_tag climate;
+		timed_modifiers, multiset_tag<provinces::timed_provincial_modifier>,
+		static_modifiers, set_tag<modifiers::provincial_modifier_tag>,
+		fleets, set_tag<military::fleet_presence>,
+		pops, array_tag<population::pop_tag>,
+		cores, set_tag<cultures::national_tag>,
 
-		state_tag state_id;
-		province_tag id;
+		rgo_worker_data, economy::worked_instance,
+		//last_produced, float,
+		last_controller_change, date_tag,
+		last_immigration, date_tag,
 
-		uint16_t flags = 0;
-	};
+		nationalism, float,
+		siege_progress, float,
+		fort_upgrade_progress, float,
+		railroad_upgrade_progress, float,
+		naval_base_upgrade_progress, float,
+		artisan_production_scale, float,
+
+		owner, nations::country_tag,
+		controller, nations::country_tag,
+		rebel_controller, population::rebel_faction_tag,
+		state_instance, nations::state_tag,
+		orders, military::army_orders_tag,
+
+		modifier_values, modifiers::provincial_modifier_vector
+		> ;
+
+	 void initialize(container& c, provinces::province_tag);
+}
+
+namespace provinces {
 
 	class state_distances_manager {
 	private:
@@ -125,7 +185,7 @@ namespace provinces {
 
 	class provinces_state {
 	public:
-		tagged_vector<province_state, province_tag> province_state_container;
+		province_state::container province_state_container;
 		tagged_fixed_2dvector<float, province_tag, ideologies::ideology_tag> party_loyalty;
 		tagged_fixed_blocked_2dvector<int32_t, province_tag, population::demo_tag, aligned_allocator_32<int32_t>> province_demographics;
 
@@ -151,7 +211,7 @@ namespace provinces {
 
 	class province_manager {
 	public:
-		tagged_vector<province, province_tag> province_container;
+		province::container province_container;
 		tagged_vector<text_data::text_tag, state_tag> state_names;
 
 		v_vector<province_tag, state_tag> states_to_province_index;

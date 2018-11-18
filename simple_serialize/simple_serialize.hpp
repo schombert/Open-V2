@@ -39,6 +39,21 @@ namespace serialization {
 		static constexpr size_t size(T const&, CONTEXT&& ...) { return sizeof(T); }
 	};
 
+	template<typename T>
+	class discard_serializer {
+	public:
+		static constexpr bool has_static_size = true;
+		static constexpr bool has_simple_serialize = false;
+
+		template<typename ... CONTEXT>
+		static void serialize_object(std::byte* &, T const& , CONTEXT&& ... ) {}
+		template<typename ... CONTEXT>
+		static void deserialize_object(std::byte const* &, T& , CONTEXT&& ... ) {}
+		static constexpr size_t size() { return 0; }
+		template<typename ... CONTEXT>
+		static constexpr size_t size(T const&, CONTEXT&& ...) { return 0; }
+	};
+
 	template<>
 	class serializer<bool> : public memcpy_serializer<bool> {};
 	template<>
@@ -91,8 +106,14 @@ namespace serialization {
 		static void deserialize_object(std::byte const* &input, T& obj, CONTEXT&& ... c) {
 			serializer<T>::deserialize_object(input, obj, std::forward<CONTEXT>(c)...);
 		}
+		static constexpr size_t size() {
+			if constexpr(has_static_size)
+				return serializer<T>::size();
+			else
+				return sizeof(T);
+		}
 		template<typename ... CONTEXT>
-		static size_t size(T const& obj, CONTEXT&& ...) {
+		static size_t size(T const& obj, CONTEXT&& ... c) {
 			return serializer<T>::size(obj, std::forward<CONTEXT>(c)...);
 		}
 	};
@@ -452,6 +473,48 @@ namespace serialization {
 				return serialize_size(std::get<0>(obj), std::forward<CONTEXT>(c)...) +
 					serialize_size(std::get<1>(obj), std::forward<CONTEXT>(c)...) +
 					serialize_size(std::get<2>(obj), std::forward<CONTEXT>(c)...);
+		}
+	};
+
+	template<typename A, typename B, typename C, typename D>
+	class serializer<std::tuple<A, B, C, D>> {
+	public:
+		static constexpr bool has_static_size = serializer<A>::has_static_size && serializer<B>::has_static_size && serializer<C>::has_static_size && serializer<D>::has_static_size;
+		static constexpr bool has_simple_serialize = serializer<A>::has_simple_serialize && serializer<B>::has_simple_serialize && serializer<C>::has_simple_serialize && serializer<D>::has_simple_serialize;
+
+		template<typename ... CONTEXT>
+		static void serialize_object(std::byte* &output, std::tuple<A, B, C, D> const& obj, CONTEXT&& ... c) {
+			if constexpr(has_static_size && has_simple_serialize) {
+				memcpy(output, &obj, sizeof(std::tuple<A, B, C, D>));
+				output += sizeof(std::tuple<A, B, C, D>);
+			} else {
+				serialize(output, std::get<0>(obj), std::forward<CONTEXT>(c)...);
+				serialize(output, std::get<1>(obj), std::forward<CONTEXT>(c)...);
+				serialize(output, std::get<2>(obj), std::forward<CONTEXT>(c)...);
+				serialize(output, std::get<3>(obj), std::forward<CONTEXT>(c)...);
+			}
+		}
+		template<typename ... CONTEXT>
+		static void deserialize_object(std::byte const* &input, std::tuple<A, B, C, D>& obj, CONTEXT&& ... c) {
+			if constexpr(has_static_size && has_simple_serialize) {
+				memcpy(&obj, input, sizeof(std::tuple<A, B, C, D>));
+				input += sizeof(std::tuple<A, B, C, D>);
+			} else {
+				deserialize(input, std::get<0>(obj), std::forward<CONTEXT>(c)...);
+				deserialize(input, std::get<1>(obj), std::forward<CONTEXT>(c)...);
+				deserialize(input, std::get<2>(obj), std::forward<CONTEXT>(c)...);
+				deserialize(input, std::get<3>(obj), std::forward<CONTEXT>(c)...);
+			}
+		}
+		template<typename ... CONTEXT>
+		static size_t size(std::tuple<A, B, C, D> const& obj, CONTEXT&& ... c) {
+			if constexpr(has_static_size && has_simple_serialize)
+				return sizeof(std::tuple<A, B, C, D>);
+			else
+				return serialize_size(std::get<0>(obj), std::forward<CONTEXT>(c)...) +
+				serialize_size(std::get<1>(obj), std::forward<CONTEXT>(c)...) +
+				serialize_size(std::get<2>(obj), std::forward<CONTEXT>(c)...) +
+				serialize_size(std::get<3>(obj), std::forward<CONTEXT>(c)...);
 		}
 	};
 

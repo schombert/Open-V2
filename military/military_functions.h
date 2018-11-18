@@ -12,10 +12,6 @@ namespace population {
 	struct pop;
 }
 
-namespace provinces {
-	struct province_state;
-}
-
 namespace military {
 	void init_military_state(world_state& ws);
 	void reset_state(military_state& s);
@@ -37,12 +33,12 @@ namespace military {
 	void update_all_unit_attributes(world_state& ws, nations::nation const& owning_nation);
 	void reset_unit_stats(world_state& ws, nations::country_tag nation_for);
 
-	bool has_units_in_province(world_state const& ws, nations::nation const& this_nation, provinces::province_state const& this_province);
-	bool province_is_contested(world_state const& ws, provinces::province_state const& this_province);
+	bool has_units_in_province(world_state const& ws, nations::nation const& this_nation, provinces::province_tag this_province);
+	bool province_is_contested(world_state const& ws, provinces::province_tag this_province);
 	bool has_named_leader(world_state const& ws, nations::nation const& n, text_data::text_tag t);
 	uint32_t total_active_divisions(world_state const& ws, nations::nation const& this_nation);
 	uint32_t total_active_ships(world_state const& ws, nations::nation const& this_nation);
-	uint32_t total_units_in_province(world_state const& ws, provinces::province_state const& this_province);
+	uint32_t total_units_in_province(world_state const& ws, provinces::province_tag this_province);
 	float recruited_pop_fraction(world_state const& ws, nations::nation const& n);
 	float get_warscore(world_state const& ws, war const& this_war); // if attacker is winning, warscore is positive, negative if defender is winning
 

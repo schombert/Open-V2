@@ -1459,6 +1459,10 @@ namespace economy {
 		return 1.0f - production_scaling_speed_factor + production_scaling_speed_factor * v;
 	}
 
+	goods_qnty_type province_rgo_production_qnty(world_state const& ws, provinces::province_tag p) {
+	
+	}
+
 	void update_rgo_production(world_state& ws,
 		nations::state_instance& si,
 		economy::money_qnty_type* __restrict pay_by_type,

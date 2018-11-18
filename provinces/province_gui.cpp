@@ -43,22 +43,23 @@ namespace provinces {
 	void colony_button::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto state = ws.w.province_s.province_state_container[selected_prov].state_instance;
-			if(state) {
-				if(ws.w.province_s.province_state_container[selected_prov].owner != ws.w.local_player_nation || ws.w.local_player_nation == nullptr) {
-					if(state->flags & nations::state_instance::is_protectorate)
+			auto sid = ws.w.province_s.province_state_container.get<province_state::state_instance>(selected_prov);
+			if(is_valid_index(sid)) {
+				auto& state = ws.w.nation_s.states[sid];
+				if(ws.w.local_player_nation == nullptr || ws.w.local_player_nation->id != ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov)) {
+					if(state.flags & nations::state_instance::is_protectorate)
 						ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::protectorate_province], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
-					else if(state->flags & nations::state_instance::is_colonial)
+					else if(state.flags & nations::state_instance::is_colonial)
 						ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::colonial_province], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
 				} else {
 					ui::unlimited_line_manager lm;
 					char16_t formatted_value[64];
-					if(state->flags & nations::state_instance::is_protectorate) {
-						u16itoa(nations::colonial_points_to_make_colony(ws, *state), formatted_value);
+					if(state.flags & nations::state_instance::is_protectorate) {
+						u16itoa(nations::colonial_points_to_make_colony(ws, state), formatted_value);
 						text_data::replacement value_rep(text_data::value_type::value, vector_backed_string<char16_t>(formatted_value), [](tagged_object<ui::gui_object, ui::gui_object_tag>) {});
 						ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::protectorate_province_upgrade], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &value_rep, 1ui32);
-					} else if(state->flags & nations::state_instance::is_colonial) {
-						u16itoa(nations::colonial_points_to_make_state(ws, *state), formatted_value);
+					} else if(state.flags & nations::state_instance::is_colonial) {
+						u16itoa(nations::colonial_points_to_make_state(ws, state), formatted_value);
 						text_data::replacement value_rep(text_data::value_type::value, vector_backed_string<char16_t>(formatted_value), [](tagged_object<ui::gui_object, ui::gui_object_tag>) {});
 						ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::protectorate_province_upgrade], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &value_rep, 1ui32);
 					}
@@ -70,7 +71,7 @@ namespace provinces {
 	void goods_type_icon::update(ui::dynamic_icon<goods_type_icon>& ico, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto rgo_type = ws.w.province_s.province_state_container[selected_prov].rgo_production;
+			auto rgo_type = ws.w.province_s.province_state_container.get<province_state::rgo_production>(selected_prov);
 			if(is_valid_index(rgo_type))
 				ico.set_frame(ws.w.gui_m, uint32_t(ws.s.economy_m.goods[rgo_type].icon));
 			else
@@ -81,7 +82,7 @@ namespace provinces {
 	void goods_type_icon::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto rgo_type = ws.w.province_s.province_state_container[selected_prov].rgo_production;
+			auto rgo_type = ws.w.province_s.province_state_container.get<province_state::rgo_production>(selected_prov);
 			if(is_valid_index(rgo_type))
 				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.economy_m.goods[rgo_type].name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
 		}
@@ -90,7 +91,7 @@ namespace provinces {
 	void owner_icon::update(ui::dynamic_icon<owner_icon>& ico, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto rgo_type = ws.w.province_s.province_state_container[selected_prov].rgo_production;
+			auto rgo_type = ws.w.province_s.province_state_container.get<province_state::rgo_production>(selected_prov);
 			if(is_valid_index(rgo_type)) {
 				bool is_mine = (ws.s.economy_m.goods[rgo_type].flags & economy::good_definition::mined) != 0;
 				auto owner_type = is_mine ? ws.s.economy_m.rgo_mine.owner.type : ws.s.economy_m.rgo_farm.owner.type;
@@ -102,7 +103,7 @@ namespace provinces {
 	void owner_icon::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto rgo_type = ws.w.province_s.province_state_container[selected_prov].rgo_production;
+			auto rgo_type = ws.w.province_s.province_state_container.get<province_state::rgo_production>(selected_prov);
 			if(is_valid_index(rgo_type)) {
 				bool is_mine = (ws.s.economy_m.goods[rgo_type].flags & economy::good_definition::mined) != 0;
 				auto owner_type = is_mine ? ws.s.economy_m.rgo_mine.owner.type : ws.s.economy_m.rgo_farm.owner.type;
@@ -139,7 +140,7 @@ namespace provinces {
 
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto rgo_type = ws.w.province_s.province_state_container[selected_prov].rgo_production;
+			auto rgo_type = ws.w.province_s.province_state_container.get<province_state::rgo_production>(selected_prov);
 			if(is_valid_index(rgo_type)) {
 				bool is_mine = (ws.s.economy_m.goods[rgo_type].flags & economy::good_definition::mined) != 0;
 				auto owner_type = is_mine ? ws.s.economy_m.rgo_mine.owner.type : ws.s.economy_m.rgo_farm.owner.type;
@@ -179,9 +180,7 @@ namespace provinces {
 	bool admin_icon::has_tooltip(world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto state = ws.w.province_s.province_state_container[selected_prov].state_instance;
-			if(state)
-				return true;
+			return is_valid_index(ws.w.province_s.province_state_container.get<province_state::state_instance>(selected_prov));
 		}
 		return false;
 	}
@@ -189,13 +188,15 @@ namespace provinces {
 	void admin_icon::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto state = ws.w.province_s.province_state_container[selected_prov].state_instance;
-			if(state) {
+			auto state_id = ws.w.province_s.province_state_container.get<province_state::state_instance>(selected_prov);
+			if(is_valid_index(state_id)) {
+				auto& state = ws.w.nation_s.states[state_id];
+
 				ui::unlimited_line_manager lm;
 				char16_t formatted_value[64];
 				ui::xy_pair cursor{ 0,0 };
 
-				u16itoa(int32_t(state->administrative_efficiency * 100.0f + 0.5f), formatted_value);
+				u16itoa(int32_t(state.administrative_efficiency * 100.0f + 0.5f), formatted_value);
 				text_data::replacement value_rep(text_data::value_type::value, vector_backed_string<char16_t>(formatted_value), [](tagged_object<ui::gui_object, ui::gui_object_tag>) {});
 				cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::province_view_admin], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &value_rep, 1ui32);
 				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
@@ -231,9 +232,9 @@ namespace provinces {
 
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto state = ws.w.province_s.province_state_container[selected_prov].state_instance;
-			if(state) {
-				value = int32_t(state->administrative_efficiency * 100.0f + 0.5f);
+			auto state_id = ws.w.province_s.province_state_container.get<province_state::state_instance>(selected_prov);
+			if(is_valid_index(state_id)) {
+				value = int32_t(ws.w.nation_s.states[state_id].administrative_efficiency * 100.0f + 0.5f);
 			}
 		}
 
@@ -258,7 +259,7 @@ namespace provinces {
 	void terrain_icon::update(ui::dynamic_icon<terrain_icon>& ico, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto terrain_id = ws.w.province_s.province_state_container[selected_prov].terrain;
+			auto terrain_id = ws.w.province_s.province_state_container.get<province_state::terrain>(selected_prov);
 			if(auto f = ws.s.province_m.terrain_graphics.find(terrain_id); f != ws.s.province_m.terrain_graphics.end()) {
 
 				auto associated_obj_tag = ui::graphics_instance_tag(ico.associated_object->type_dependant_handle.load(std::memory_order_acquire));
@@ -280,15 +281,15 @@ namespace provinces {
 			ui::xy_pair cursor{ 0,0 };
 			ui::unlimited_line_manager lm;
 
-			auto terrain_mod = ws.w.province_s.province_state_container[selected_prov].terrain;
+			auto terrain_mod = ws.w.province_s.province_state_container.get<province_state::terrain>(selected_prov);
 			if(is_valid_index(terrain_mod))
 				cursor = modifiers::make_province_modifier_text(ws, tw, cursor, lm, ui::tooltip_text_format, terrain_mod);
 
-			auto climate_mod = ws.s.province_m.province_container[selected_prov].climate;
+			auto climate_mod = ws.s.province_m.province_container.get<province::climate>(selected_prov);
 			if(is_valid_index(climate_mod))
 				cursor = modifiers::make_province_modifier_text(ws, tw, cursor, lm, ui::tooltip_text_format, climate_mod);
 
-			auto continent_mod = ws.s.province_m.province_container[selected_prov].continent;
+			auto continent_mod = ws.s.province_m.province_container.get<province::continent>(selected_prov);
 			if(is_valid_index(continent_mod))
 				cursor = modifiers::make_province_modifier_text(ws, tw, cursor, lm, ui::tooltip_text_format, continent_mod);
 
@@ -344,14 +345,14 @@ namespace provinces {
 	void province_controller_flag::create_tooltip(ui::masked_flag<province_controller_flag>&, world_state& ws, ui::tagged_gui_object tw) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto controller = ws.w.province_s.province_state_container[selected_prov].controller;
-			if(controller) {
+			auto controller = ws.w.province_s.province_state_container.get<province_state::controller>(selected_prov);
+			if(is_valid_index(controller)) {
 				ui::unlimited_line_manager lm;
 				ui::xy_pair cursor{ 0,0 };
 
 				cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::controller], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
 				cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
-				cursor = ui::add_linear_text(cursor, controller->name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+				cursor = ui::add_linear_text(cursor, ws.w.nation_s.nations[controller].name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
 			}
 		}
 	}
@@ -359,24 +360,27 @@ namespace provinces {
 	void liferating_bar::update(ui::progress_bar<liferating_bar>& self, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			self.set_fraction(provinces::get_life_rating(ws.w.province_s.province_state_container[selected_prov]) / 50.0f);
+			self.set_fraction(provinces::get_life_rating(ws, selected_prov) / 50.0f);
 		}
 	}
 
 	void flashpoint_icon::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto state = ws.w.province_s.province_state_container[selected_prov].state_instance;
-			if(state && is_valid_index(state->crisis_tag)) {
-				ui::unlimited_line_manager lm;
-				char16_t formatted_value[64];
-				ui::xy_pair cursor{ 0,0 };
+			auto state_id = ws.w.province_s.province_state_container.get<province_state::state_instance>(selected_prov);
+			if(is_valid_index(state_id)) {
+				auto& state = ws.w.nation_s.states[state_id];
+				if(is_valid_index(state.crisis_tag)) {
+					ui::unlimited_line_manager lm;
+					char16_t formatted_value[64];
+					ui::xy_pair cursor{ 0,0 };
 
-				put_value_in_buffer(formatted_value, display_type::fp_two_places, state->current_tension);
+					put_value_in_buffer(formatted_value, display_type::fp_two_places, state.current_tension);
 
-				text_data::replacement value_rep(text_data::value_type::value, vector_backed_string<char16_t>(formatted_value), [](tagged_object<ui::gui_object, ui::gui_object_tag>) {});
-				ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::flashpoint_tension], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &value_rep, 1ui32);
-				return;
+					text_data::replacement value_rep(text_data::value_type::value, vector_backed_string<char16_t>(formatted_value), [](tagged_object<ui::gui_object, ui::gui_object_tag>) {});
+					ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::flashpoint_tension], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &value_rep, 1ui32);
+					return;
+				}
 			}
 		}
 
@@ -390,21 +394,21 @@ namespace provinces {
 			char16_t formatted_value[64];
 			ui::xy_pair cursor{ 0,0 };
 
-			put_value_in_buffer(formatted_value, display_type::integer, provinces::get_life_rating(ws.w.province_s.province_state_container[selected_prov]));
+			put_value_in_buffer(formatted_value, display_type::integer, provinces::get_life_rating(ws, selected_prov));
 
 			text_data::replacement value_rep(text_data::value_type::value, vector_backed_string<char16_t>(formatted_value), [](tagged_object<ui::gui_object, ui::gui_object_tag>) {});
 			ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::province_liferating], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &value_rep, 1ui32);
 			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			lm.finish_current_line();
 			lm.increase_indent(1);
-			modifiers::explain_province_modifier(ws, tw, cursor, lm, ui::tooltip_text_format, ws.w.province_s.province_state_container[selected_prov], modifiers::provincial_offsets::life_rating);
+			modifiers::explain_province_modifier(ws, tw, cursor, lm, ui::tooltip_text_format, selected_prov, modifiers::provincial_offsets::life_rating);
 		}
 	}
 
 	void occupation_icon::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto progress = ws.w.province_s.province_state_container[selected_prov].siege_progress;
+			auto progress = ws.w.province_s.province_state_container.get<province_state::siege_progress>(selected_prov);
 
 			ui::unlimited_line_manager lm;
 			ui::xy_pair cursor{ 0,0 };
@@ -433,7 +437,7 @@ namespace provinces {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
 			char16_t formatted_value[64];
-			put_value_in_buffer(formatted_value, display_type::fp_two_places, ws.w.province_s.province_state_container[selected_prov].last_produced);
+			put_value_in_buffer(formatted_value, display_type::fp_two_places, economy::province_rgo_production_qnty(ws, selected_prov));
 
 			ui::text_chunk_to_instances(
 				ws.s.gui_m,
@@ -560,13 +564,14 @@ namespace provinces {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
 			char16_t formatted_value[64];
-			auto rgo_type = ws.w.province_s.province_state_container[selected_prov].rgo_production;
-			if(auto si = ws.w.province_s.province_state_container[selected_prov].state_instance; bool(si) && is_valid_index(rgo_type)) {
-				if(auto sid = si->id; ws.w.nation_s.states.is_valid_index(sid)) {
-					economy::money_qnty_type value = economy::money_qnty_type(ws.w.province_s.province_state_container[selected_prov].last_produced) * economy::state_current_prices(ws, sid)[to_index(rgo_type)];
-					auto end_pos = put_value_in_buffer(formatted_value, display_type::fp_two_places, value);
-					*end_pos = u'\u00A3';
-					*(end_pos + 1) = char16_t(0);
+			auto rgo_type = ws.w.province_s.province_state_container.get<province_state::rgo_production>(selected_prov);
+			if(auto sid = ws.w.province_s.province_state_container.get<province_state::state_instance>(selected_prov);
+				ws.w.nation_s.states.is_valid_index(sid) && is_valid_index(rgo_type)) {
+				
+					auto last_rgo_production = economy::province_rgo_production_qnty(ws, selected_prov);
+					auto value = last_rgo_production * economy::state_current_prices(ws, sid)[to_index(rgo_type)];
+					put_value_in_buffer(formatted_value, display_type::currency, value);
+					
 					ui::text_chunk_to_instances(
 						ws.s.gui_m,
 						ws.w.gui_m,
@@ -577,7 +582,7 @@ namespace provinces {
 						lm);
 
 					lm.finish_current_line();
-				}
+				
 			}
 		}
 	}
@@ -587,7 +592,9 @@ namespace provinces {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
 			char16_t formatted_value[64];
-			int32_t worker_sum = std::accumulate(std::begin(ws.w.province_s.province_state_container[selected_prov].rgo_worker_data.worker_populations), std::end(ws.w.province_s.province_state_container[selected_prov].rgo_worker_data.worker_populations), 0);
+
+			auto& worker_data = ws.w.province_s.province_state_container.get<province_state::rgo_worker_data>(selected_prov);
+			int32_t worker_sum = std::reduce(std::begin(worker_data.worker_populations), std::end(worker_data.worker_populations), 0, std::plus<>());
 			put_value_in_buffer(formatted_value, display_type::integer, worker_sum);
 
 			ui::text_chunk_to_instances(
@@ -608,8 +615,11 @@ namespace provinces {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
 			char16_t formatted_value[64];
-			int32_t worker_sum = std::accumulate(std::begin(ws.w.province_s.province_state_container[selected_prov].rgo_worker_data.worker_populations), std::end(ws.w.province_s.province_state_container[selected_prov].rgo_worker_data.worker_populations), 0);
-			put_value_in_buffer(formatted_value, display_type::percent, float(worker_sum) / std::max(1.0f, float(economy::rgo_max_employment(ws, ws.w.province_s.province_state_container[selected_prov]))));
+
+			auto& worker_data = ws.w.province_s.province_state_container.get<province_state::rgo_worker_data>(selected_prov);
+			int32_t worker_sum = std::reduce(std::begin(worker_data.worker_populations), std::end(worker_data.worker_populations), 0, std::plus<>());
+
+			put_value_in_buffer(formatted_value, display_type::percent, float(worker_sum) / std::max(1.0f, float(economy::rgo_max_employment(ws, selected_prov))));
 
 			ui::text_chunk_to_instances(
 				ws.s.gui_m,
@@ -628,8 +638,10 @@ namespace provinces {
 	void employment_ratio::update(ui::dynamic_icon<employment_ratio>& ico, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			int32_t worker_sum = std::accumulate(std::begin(ws.w.province_s.province_state_container[selected_prov].rgo_worker_data.worker_populations), std::end(ws.w.province_s.province_state_container[selected_prov].rgo_worker_data.worker_populations), 0);
-			float ratio = float(worker_sum) / std::max(1.0f, float(economy::rgo_max_employment(ws, ws.w.province_s.province_state_container[selected_prov])));
+			auto& worker_data = ws.w.province_s.province_state_container.get<province_state::rgo_worker_data>(selected_prov);
+			int32_t worker_sum = std::reduce(std::begin(worker_data.worker_populations), std::end(worker_data.worker_populations), 0, std::plus<>());
+
+			float ratio = float(worker_sum) / std::max(1.0f, float(economy::rgo_max_employment(ws, selected_prov)));
 
 			ico.set_frame(ws.w.gui_m, uint32_t(ratio * 10.0f + 0.5f));
 		}
@@ -638,10 +650,10 @@ namespace provinces {
 	void open_popscreen_button::button_function(ui::gui_object_tag, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto owner = ws.w.province_s.province_state_container[selected_prov].owner;
-			auto si = ws.w.province_s.province_state_container[selected_prov].state_instance;
+			auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov);
+			auto si = ws.w.province_s.province_state_container.get<province_state::state_instance>(selected_prov);
 
-			ws.w.population_w.show_population_window(ws.w.gui_m, owner ? owner->id : nations::country_tag(), si ? si->id : nations::state_tag(), selected_prov);
+			ws.w.population_w.show_population_window(ws.w.gui_m, owner, si, selected_prov);
 		}
 		ws.w.province_w.hide_province_window(ws.w.gui_m);
 	}
@@ -651,7 +663,7 @@ namespace provinces {
 		if(is_valid_index(selected_prov)) {
 			text_data::replacement value_rep(
 				text_data::value_type::loc,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.province_s.province_state_container[selected_prov].name),
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.province_s.province_state_container.get<province_state::name>(selected_prov)),
 				[](tagged_object<ui::gui_object, ui::gui_object_tag>) {});
 			ui::unlimited_line_manager lm;
 			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::open_pop_screen], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &value_rep, 1ui32);
@@ -715,9 +727,9 @@ namespace provinces {
 	void province_owner_flag::update(ui::masked_flag<province_owner_flag>& self, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto owner = ws.w.province_s.province_state_container[selected_prov].owner;
-			if(owner) {
-				self.set_displayed_flag(ws, owner->tag);
+			auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov);
+			if(is_valid_index(owner)) {
+				self.set_displayed_flag(ws, owner);
 			}
 		}
 	}
@@ -726,10 +738,10 @@ namespace provinces {
 		auto player = ws.w.local_player_nation;
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(player && is_valid_index(selected_prov)) {
-			auto owner = ws.w.province_s.province_state_container[selected_prov].owner;
-			if(owner) {
+			auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov);
+			if(is_valid_index(owner)) {
 				char16_t formatted_value[64];
-				put_value_in_buffer(formatted_value, display_type::integer, nations::get_relationship(ws, *player, owner->id));
+				put_value_in_buffer(formatted_value, display_type::integer, nations::get_relationship(ws, *player, owner));
 
 				ui::text_chunk_to_instances(
 					ws.s.gui_m,
@@ -748,13 +760,13 @@ namespace provinces {
 	void country_flag_frame::update(ui::dynamic_transparent_icon<country_flag_frame>& ico, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto owner = ws.w.province_s.province_state_container[selected_prov].owner;
-			if(owner) {
-				if((owner->flags & nations::nation::is_civilized) == 0)
+			auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov);
+			if(is_valid_index(owner)) {
+				if((ws.w.nation_s.nations[owner].flags & nations::nation::is_civilized) == 0)
 					ico.set_frame(ws.w.gui_m, 3ui32);
-				else if(nations::is_great_power(ws, *owner))
+				else if(nations::is_great_power(ws, ws.w.nation_s.nations[owner]))
 					ico.set_frame(ws.w.gui_m, 0ui32);
-				else if(owner->overall_rank <= int16_t(ws.s.modifiers_m.global_defines.colonial_rank))
+				else if(ws.w.nation_s.nations[owner].overall_rank <= int16_t(ws.s.modifiers_m.global_defines.colonial_rank))
 					ico.set_frame(ws.w.gui_m, 1ui32);
 				else
 					ico.set_frame(ws.w.gui_m, 2ui32);
@@ -765,9 +777,9 @@ namespace provinces {
 	void province_owner_name::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto owner = ws.w.province_s.province_state_container[selected_prov].owner;
-			if(owner) {
-				ui::add_linear_text(ui::xy_pair{ 0,0 }, owner->name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov);
+			if(is_valid_index(owner)) {
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations[owner].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 				lm.finish_current_line();
 			}
 		}
@@ -776,9 +788,9 @@ namespace provinces {
 	void country_status::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto owner = ws.w.province_s.province_state_container[selected_prov].owner;
-			if(owner) {
-				ui::add_linear_text(ui::xy_pair{ 0,0 }, nations::get_nation_status_text(ws, *owner), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov);
+			if(is_valid_index(owner)) {
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, nations::get_nation_status_text(ws, ws.w.nation_s.nations[owner]), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 				lm.finish_current_line();
 			}
 		}
@@ -788,9 +800,9 @@ namespace provinces {
 	void country_gov::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto owner = ws.w.province_s.province_state_container[selected_prov].owner;
-			if(owner) {
-				if(auto gov = owner->current_government; is_valid_index(gov)) {
+			auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov);
+			if(is_valid_index(owner)) {
+				if(auto gov = ws.w.nation_s.nations[owner].current_government; is_valid_index(gov)) {
 					ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.governments_m.governments_container[gov].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 					lm.finish_current_line();
 				}
@@ -801,9 +813,9 @@ namespace provinces {
 	void country_party::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto owner = ws.w.province_s.province_state_container[selected_prov].owner;
-			if(owner) {
-				if(auto party = owner->ruling_party; is_valid_index(party)) {
+			auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov);
+			if(is_valid_index(owner)) {
+				if(auto party = ws.w.nation_s.nations[owner].ruling_party; is_valid_index(party)) {
 					ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.governments_m.parties[party].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 					lm.finish_current_line();
 				}
@@ -814,9 +826,9 @@ namespace provinces {
 	void score_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+			if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov); is_valid_index(owner)) {
 				char16_t formatted_value[64];
-				put_value_in_buffer(formatted_value, display_type::integer, owner->military_score + owner->industrial_score + int32_t(nations::get_prestige(*owner)));
+				put_value_in_buffer(formatted_value, display_type::integer, ws.w.nation_s.nations[owner].military_score + ws.w.nation_s.nations[owner].industrial_score + int32_t(nations::get_prestige(ws.w.nation_s.nations[owner])));
 
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(formatted_value), box, ui::xy_pair{ 0,0 }, fmt, lm);
 				lm.finish_current_line();
@@ -826,9 +838,9 @@ namespace provinces {
 	void rank_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+			if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov); is_valid_index(owner)) {
 				char16_t formatted_value[64];
-				put_value_in_buffer(formatted_value, display_type::integer, owner->overall_rank);
+				put_value_in_buffer(formatted_value, display_type::integer, ws.w.nation_s.nations[owner].overall_rank);
 
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(formatted_value), box, ui::xy_pair{ 0,0 }, fmt, lm);
 				lm.finish_current_line();
@@ -838,9 +850,9 @@ namespace provinces {
 	void prestige_score_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+			if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov); is_valid_index(owner)) {
 				char16_t formatted_value[64];
-				put_value_in_buffer(formatted_value, display_type::integer, int32_t(nations::get_prestige(*owner)));
+				put_value_in_buffer(formatted_value, display_type::integer, int32_t(nations::get_prestige(ws.w.nation_s.nations[owner])));
 
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(formatted_value), box, ui::xy_pair{ 0,0 }, fmt, lm);
 				lm.finish_current_line();
@@ -850,9 +862,9 @@ namespace provinces {
 	void prestige_rank_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+			if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov); is_valid_index(owner)) {
 				char16_t formatted_value[64];
-				put_value_in_buffer(formatted_value, display_type::integer, int32_t(owner->prestige_rank));
+				put_value_in_buffer(formatted_value, display_type::integer, int32_t(ws.w.nation_s.nations[owner].prestige_rank));
 
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(formatted_value), box, ui::xy_pair{ 0,0 }, fmt, lm);
 				lm.finish_current_line();
@@ -862,9 +874,9 @@ namespace provinces {
 	void industrial_score_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+			if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov); is_valid_index(owner)) {
 				char16_t formatted_value[64];
-				put_value_in_buffer(formatted_value, display_type::integer, int32_t(owner->industrial_score));
+				put_value_in_buffer(formatted_value, display_type::integer, int32_t(ws.w.nation_s.nations[owner].industrial_score));
 
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(formatted_value), box, ui::xy_pair{ 0,0 }, fmt, lm);
 				lm.finish_current_line();
@@ -874,9 +886,9 @@ namespace provinces {
 	void industrial_rank_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+			if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov); is_valid_index(owner)) {
 				char16_t formatted_value[64];
-				put_value_in_buffer(formatted_value, display_type::integer, int32_t(owner->industrial_rank));
+				put_value_in_buffer(formatted_value, display_type::integer, int32_t(ws.w.nation_s.nations[owner].industrial_rank));
 
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(formatted_value), box, ui::xy_pair{ 0,0 }, fmt, lm);
 				lm.finish_current_line();
@@ -886,9 +898,9 @@ namespace provinces {
 	void military_score_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+			if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov); is_valid_index(owner)) {
 				char16_t formatted_value[64];
-				put_value_in_buffer(formatted_value, display_type::integer, int32_t(owner->military_score));
+				put_value_in_buffer(formatted_value, display_type::integer, int32_t(ws.w.nation_s.nations[owner].military_score));
 
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(formatted_value), box, ui::xy_pair{ 0,0 }, fmt, lm);
 				lm.finish_current_line();
@@ -898,9 +910,9 @@ namespace provinces {
 	void military_rank_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
+			if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov); is_valid_index(owner)) {
 				char16_t formatted_value[64];
-				put_value_in_buffer(formatted_value, display_type::integer, int32_t(owner->military_rank));
+				put_value_in_buffer(formatted_value, display_type::integer, int32_t(ws.w.nation_s.nations[owner].military_rank));
 
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(formatted_value), box, ui::xy_pair{ 0,0 }, fmt, lm);
 				lm.finish_current_line();
@@ -921,8 +933,8 @@ namespace provinces {
 		cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::military_power], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
-				if((owner->flags & nations::nation::is_mobilized) != 0) {
+			if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov); is_valid_index(owner)) {
+				if((ws.w.nation_s.nations[owner].flags & nations::nation::is_mobilized) != 0) {
 					cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 					ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::is_mobilized], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
 				}
@@ -933,8 +945,8 @@ namespace provinces {
 	void military_icon::update(ui::dynamic_icon<military_icon>& ico, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
-				if((owner->flags & nations::nation::is_mobilized) != 0)
+			if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov); is_valid_index(owner)) {
+				if((ws.w.nation_s.nations[owner].flags & nations::nation::is_mobilized) != 0)
 					ico.set_frame(ws.w.gui_m, 1ui32);
 				else
 					ico.set_frame(ws.w.gui_m, 0ui32);
@@ -945,8 +957,8 @@ namespace provinces {
 
 	void sphere_label::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
-			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
-				if(owner->sphere_leader == nullptr)
+			if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov); is_valid_index(owner)) {
+				if(ws.w.nation_s.nations[owner].sphere_leader == nullptr)
 					ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::sphere], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 				else
 					ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::sphere_leader], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
@@ -958,8 +970,8 @@ namespace provinces {
 
 	void puppet_label::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
-			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
-				if(owner->overlord == nullptr)
+			if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov); is_valid_index(owner)) {
+				if(ws.w.nation_s.nations[owner].overlord == nullptr)
 					ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::puppets], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 				else
 					ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::liege], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
@@ -970,8 +982,8 @@ namespace provinces {
 
 	void send_diplomat::button_function(ui::simple_button<send_diplomat>&, world_state& ws) {
 		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
-			if(auto owner = ws.w.province_s.province_state_container[selected_prov].owner; owner) {
-				ws.w.diplomacy_w.show_diplomacy_window(ws.w.gui_m, owner->id);
+			if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov); is_valid_index(owner)) {
+				ws.w.diplomacy_w.show_diplomacy_window(ws.w.gui_m, owner);
 			}
 		}
 	}
@@ -982,7 +994,7 @@ namespace provinces {
 
 	void fort_level_icon::update(ui::dynamic_icon<fort_level_icon>& ico, world_state& ws) {
 		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
-			ico.set_frame(ws.w.gui_m, ws.w.province_s.province_state_container[selected_prov].fort_level);
+			ico.set_frame(ws.w.gui_m, ws.w.province_s.province_state_container.get<province_state::fort_level>(selected_prov));
 		}
 	}
 
@@ -992,7 +1004,7 @@ namespace provinces {
 
 	void naval_base_level_icon::update(ui::dynamic_icon<naval_base_level_icon>& ico, world_state& ws) {
 		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
-			ico.set_frame(ws.w.gui_m, ws.w.province_s.province_state_container[selected_prov].naval_base_level);
+			ico.set_frame(ws.w.gui_m, ws.w.province_s.province_state_container.get<province_state::naval_base_level>(selected_prov));
 		}
 	}
 
@@ -1002,7 +1014,7 @@ namespace provinces {
 
 	void railroad_level_icon::update(ui::dynamic_icon<railroad_level_icon>& ico, world_state& ws) {
 		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
-			ico.set_frame(ws.w.gui_m, ws.w.province_s.province_state_container[selected_prov].railroad_level);
+			ico.set_frame(ws.w.gui_m, ws.w.province_s.province_state_container.get<province_state::railroad_level>(selected_prov));
 		}
 	}
 
@@ -1029,10 +1041,11 @@ namespace provinces {
 		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
 			if(auto player = ws.w.local_player_nation; player) {
 				if((m & modifiers_shift) != 0) {
-					if(auto si = ws.w.province_s.province_state_container[selected_prov].state_instance; si) {
-						if(auto sid = si->id; ws.w.nation_s.states.is_valid_index(sid)) {
-							ws.w.pending_commands.add<commands::province_building>(player->id, commands::province_building_type::state_fort, sid);
-						}
+					if(auto sid = ws.w.province_s.province_state_container.get<province_state::state_instance>(selected_prov);
+						ws.w.nation_s.states.is_valid_index(sid)) {
+						
+						ws.w.pending_commands.add<commands::province_building>(player->id, commands::province_building_type::state_fort, sid);
+						
 					}
 				} else {
 					ws.w.pending_commands.add<commands::province_building>(player->id, commands::province_building_type::province_fort, selected_prov);
@@ -1073,10 +1086,10 @@ namespace provinces {
 		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
 			if(auto player = ws.w.local_player_nation; player) {
 				if((m & modifiers_shift) != 0) {
-					if(auto si = ws.w.province_s.province_state_container[selected_prov].state_instance; si) {
-						if(auto sid = si->id; ws.w.nation_s.states.is_valid_index(sid)) {
-							ws.w.pending_commands.add<commands::province_building>(player->id, commands::province_building_type::state_railroad, sid);
-						}
+					if(auto sid = ws.w.province_s.province_state_container.get<province_state::state_instance>(selected_prov);
+						ws.w.nation_s.states.is_valid_index(sid)) {
+						
+						ws.w.pending_commands.add<commands::province_building>(player->id, commands::province_building_type::state_railroad, sid);
 					}
 				} else {
 					ws.w.pending_commands.add<commands::province_building>(player->id, commands::province_building_type::province_railroad, selected_prov);

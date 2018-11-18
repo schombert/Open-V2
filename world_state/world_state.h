@@ -140,6 +140,7 @@ public:
 	scenario::scenario_manager s;
 };
 
+void world_state_non_ai_update(world_state & ws);
 void world_state_update_loop(world_state& ws);
 
 //called after loading a scenario & before loading a specific world state

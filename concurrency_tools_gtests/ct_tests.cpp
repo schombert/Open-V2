@@ -1649,10 +1649,35 @@ namespace labels {
 	struct a;
 	struct b;
 	struct c;
+	struct d;
 }
 
+template<typename T>
+class serialization::tagged_serializer<labels::c, T> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	template<typename ... CONTEXT>
+	static void serialize_object(std::byte* &output, T const& obj, CONTEXT&& ... c) {
+		serialize(output, obj);
+		int val = -1;
+		serialize(output, val);
+	}
+	template<typename ... CONTEXT>
+	static void deserialize_object(std::byte const* &input, T& obj, CONTEXT&& ... c) {
+		deserialize(input, obj);
+		int val = 0;
+		deserialize(input, val);
+		obj *= T(val);
+	}
+	template<typename ... CONTEXT>
+	static size_t size(T const& obj, CONTEXT&& ...) {
+		return serialize_size(obj) + sizeof(int);
+	}
+};
 TEST(concurrency_tools, variable_layout_basic) {
-	variable_layout_tagged_vector<provinces::province_tag, 67, labels::a, int, labels::b, float, labels::c, std::pair<int, int>> test_vec;
+	variable_layout_tagged_vector<provinces::province_tag, 64, labels::a, int, labels::b, float, labels::d, bitfield_type, labels::c, std::pair<int, int>> test_vec;
 	EXPECT_EQ(0, test_vec.size());
 
 	auto va = test_vec.get_new();
@@ -1669,6 +1694,7 @@ TEST(concurrency_tools, variable_layout_basic) {
 	EXPECT_EQ(2.5f, test_vec.get<labels::b>(va));
 	auto pv = std::pair<int, int>(1, 7);
 	EXPECT_EQ(pv, test_vec.get<labels::c>(va));
+	EXPECT_EQ(false, test_vec.get<labels::d>(va));
 
 	auto vb = test_vec.get_new();
 	EXPECT_EQ(provinces::province_tag(1), vb);
@@ -1688,4 +1714,85 @@ TEST(concurrency_tools, variable_layout_basic) {
 
 	test_vec.release(vb);
 	EXPECT_EQ(0, test_vec.size());
+
+	test_vec.set<labels::a>(va, 12);
+	test_vec.set<labels::b>(va, 7.5f);
+	test_vec.set<labels::c>(va, std::pair<int, int>(-1, -7));
+	test_vec.set<labels::d>(va, true);
+
+	EXPECT_EQ(12, test_vec.get<labels::a>(va));
+	EXPECT_EQ(7.5f, test_vec.get<labels::b>(va));
+	auto pvb = std::pair<int, int>(-1, -7);
+	EXPECT_EQ(pvb, test_vec.get<labels::c>(va));
+	EXPECT_EQ(true, test_vec.get<labels::d>(va));
+
+	EXPECT_EQ(0, test_vec.get<labels::a>(provinces::province_tag(1)));
+	EXPECT_EQ(0.0f, test_vec.get<labels::b>(provinces::province_tag(1)));
+	auto pvc = std::pair<int, int>();
+	EXPECT_EQ(pvc, test_vec.get<labels::c>(provinces::province_tag(1)));
+	EXPECT_EQ(false, test_vec.get<labels::d>(provinces::province_tag(1)));
+
+	test_vec.set<labels::d>(va, false);
+
+	test_vec.set<labels::a>(provinces::province_tag(63), 122);
+	test_vec.set<labels::b>(provinces::province_tag(63), 19.5f);
+	test_vec.set<labels::c>(provinces::province_tag(63), std::pair<int, int>(-6, -1));
+	test_vec.set<labels::d>(provinces::province_tag(63), true);
+
+	EXPECT_EQ(12, test_vec.get<labels::a>(va));
+	EXPECT_EQ(7.5f, test_vec.get<labels::b>(va));
+	EXPECT_EQ(pvb, test_vec.get<labels::c>(va));
+	EXPECT_EQ(false, test_vec.get<labels::d>(va));
+}
+
+TEST(concurrency_tools, variable_layout_serialize) {
+	variable_layout_tagged_vector<provinces::province_tag, 64, labels::a, std::pair<int, int>, labels::b, float, labels::d, bitfield_type, labels::c, float> test_vec;
+	auto a = test_vec.get_new();
+	auto b = test_vec.get_new();
+	auto c = test_vec.get_new();
+
+	test_vec.release(b);
+
+	EXPECT_EQ(3, test_vec.size());
+
+	test_vec.get<labels::a>(a) = std::pair<int, int>(1, 7);
+	test_vec.get<labels::b>(a) = 2.5f;
+	test_vec.get<labels::c>(a) = 3.0f;
+	test_vec.set<labels::d>(a, true);
+	
+	test_vec.get<labels::a>(c) = std::pair<int, int>(0, -9);
+	test_vec.get<labels::b>(c) = 1.25f;
+	test_vec.get<labels::c>(c) = 7.5f;
+	test_vec.set<labels::d>(c, true);
+
+	std::vector<std::byte> buffer(serialization::serialize_size(test_vec));
+	std::byte* output = buffer.data();
+	serialization::serialize(output, test_vec);
+
+	std::byte const* input = buffer.data();
+	variable_layout_tagged_vector<provinces::province_tag, 64, labels::a, std::pair<int, int>, labels::b, float, labels::d, bitfield_type, labels::c, float> test_vec_b;
+
+	serialization::deserialize(input, test_vec_b);
+
+	EXPECT_EQ(3, test_vec_b.size());
+
+	auto pa = std::pair<int, int>(1, 7);
+	EXPECT_EQ(pa, test_vec_b.get<labels::a>(a));
+	EXPECT_EQ(2.5f, test_vec_b.get<labels::b>(a));
+	EXPECT_EQ(-3.0f, test_vec_b.get<labels::c>(a));
+	EXPECT_EQ(true, test_vec_b.get<labels::d>(a));
+
+	auto pb = std::pair<int, int>(0, -9);
+	EXPECT_EQ(pb, test_vec_b.get<labels::a>(c));
+	EXPECT_EQ(1.25f, test_vec_b.get<labels::b>(c));
+	EXPECT_EQ(-7.5f, test_vec_b.get<labels::c>(c));
+	EXPECT_EQ(true, test_vec_b.get<labels::d>(c));
+
+	auto pc = std::pair<int, int>();
+	EXPECT_EQ(pc, test_vec_b.get<labels::a>(b));
+	EXPECT_EQ(0.0f, test_vec_b.get<labels::b>(b));
+	EXPECT_EQ(0.0f, test_vec_b.get<labels::c>(b));
+	EXPECT_EQ(false, test_vec_b.get<labels::d>(b));
+
+	EXPECT_EQ(b, test_vec_b.get_new());
 }

@@ -3,7 +3,7 @@
 #include "simple_serialize\\simple_serialize.hpp"
 #include <ppl.h>
 
-#define VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
+//#define VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
 
 #ifdef VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
 struct bitfield_type {};
@@ -11,7 +11,7 @@ struct bitfield_type {};
 using bitfield_type = bool;
 #endif
 
-namespace {
+namespace variable_layout_detail {
 	template<typename tag_type, int32_t size, typename ... T>
 	class variable_layout_tagged_vector_impl;
 
@@ -24,30 +24,80 @@ namespace {
 #ifdef VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
 		__forceinline static void reset(data& d) {}
 		template<typename T>
-		__forceinline static void get(tag_type i, const data&) {}
+		__forceinline static void get(tag_type i, const data&) {
+#ifdef _DEBUG
+			assert(false);
+#else
+			__assume(0);
+#endif
+		}
 		template<typename T>
-		__forceinline static void get(tag_type i, data&) {}
+		__forceinline static void get(tag_type i, data&) {
+#ifdef _DEBUG
+			assert(false);
+#else
+			__assume(0);
+#endif
+		}
 		template<typename U, typename T>
-		__forceinline static std::enable_if_t<!std::is_trivially_copyable_v<T>> set(tag_type i, data&, T const&) {}
+		__forceinline static std::enable_if_t<!std::is_trivially_copyable_v<T>> set(tag_type i, data&, T const&) {
+#ifdef _DEBUG
+			assert(false);
+#else
+			__assume(0);
+#endif
+		}
 		template<typename U, typename T>
-		__forceinline static std::enable_if_t<std::is_trivially_copyable_v<T>> set(tag_type i, data&, T) {}
+		__forceinline static std::enable_if_t<std::is_trivially_copyable_v<T>> set(tag_type i, data&, T) {
+#ifdef _DEBUG
+			assert(false);
+#else
+			__assume(0);
+#endif
+		}
+		__forceinline static void clear(tag_type i, data&) {}
 
 		template<typename ... CONTEXT>
 		static void serialize_object_impl(std::byte* &output, int32_t max, data const& obj, CONTEXT&& ... c) {}
 		template<typename ... CONTEXT>
 		static void deserialize_object_impl(std::byte const* &input, int32_t max, data& obj, CONTEXT&& ... c) {}
 		template<typename ... CONTEXT>
-		static size_t size_impl(tag_type i, data const& obj, CONTEXT&& ... c) { return 0; }
+		static size_t size_impl(int32_t max, data const& obj, CONTEXT&& ... c) { return 0; }
 #else
 		__forceinline static void reset(data& d) {}
 		template<typename T>
-		__forceinline static void get(const data&) {}
+		__forceinline static void get(const data&) {
+#ifdef _DEBUG
+			assert(false);
+#else
+			__assume(0);
+#endif
+		}
 		template<typename T>
-		__forceinline static void get(data&) {}
+		__forceinline static void get(data&) {
+#ifdef _DEBUG
+			assert(false);
+#else
+			__assume(0);
+#endif
+		}
 		template<typename U, typename T>
-		__forceinline static std::enable_if_t<!std::is_trivially_copyable_v<T>> set(data&, T const&) {}
+		__forceinline static std::enable_if_t<!std::is_trivially_copyable_v<T>> set(data&, T const&) {
+#ifdef _DEBUG
+			assert(false);
+#else
+			__assume(0);
+#endif
+		}
 		template<typename U, typename T>
-		__forceinline static std::enable_if_t<std::is_trivially_copyable_v<T>> set(data&, T) {}
+		__forceinline static std::enable_if_t<std::is_trivially_copyable_v<T>> set(data&, T) {
+#ifdef _DEBUG
+			assert(false);
+#else
+			__assume(0);
+#endif
+		}
+		__forceinline static void clear(data&) {}
 
 		template<typename ... CONTEXT>
 		static void serialize_object_impl(std::byte* &output, data const& obj, CONTEXT&& ... c) {}
@@ -79,7 +129,7 @@ namespace {
 
 		static_assert(sizeof(data) % 64ui32 == 0);
 #else
-		struct data : public variable_layout_tagged_vector_impl<tag_type, size, REST ...>::typename data {
+		struct data : public variable_layout_tagged_vector_impl<tag_type, size, REST ...>::data {
 			member_type value;
 			data() : value() {}
 		};
@@ -89,7 +139,7 @@ namespace {
 		__forceinline static void reset(data& d) {
 			variable_layout_tagged_vector_impl<tag_type, size, REST ...>::reset(d);
 
-			std::destroy_n(d.d_union.values, values, size);
+			std::destroy_n(d.d_union.values, size);
 			std::uninitialized_value_construct_n(d.d_union.values, size);
 		}
 
@@ -114,25 +164,41 @@ namespace {
 			if constexpr(std::is_same_v<U, index_type>)
 				dat.d_union.values[to_index(i)] = val;
 			else
-				variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template set<T>(i, dat, val);
+				variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template set<U>(i, dat, val);
 		}
 		template<typename U, typename T>
 		__forceinline static std::enable_if_t<std::is_trivially_copyable_v<T>> set(tag_type i, data& dat, T val) {
 			if constexpr(std::is_same_v<U, index_type>)
 				dat.d_union.values[to_index(i)] = val;
 			else
-				variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template set<T>(i, dat, val);
+				variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template set<U>(i, dat, val);
+		}
+		__forceinline static void clear(tag_type i, data& dat) {
+			variable_layout_tagged_vector_impl<tag_type, size, REST ...>::clear(i, dat);
+			dat.d_union.values[to_index(i)] = member_type();
 		}
 
 		template<typename ... CONTEXT>
 		static void serialize_object_impl(std::byte* &output, int32_t max, data const& obj, CONTEXT&& ... c) {
 			variable_layout_tagged_vector_impl<tag_type, size, REST ...>::serialize_object_impl(output, max, obj, std::forward<CONTEXT>(c)...);
 
-			if constexpr(serialization::tagged_serializer<index_type, member_type>::has_simple_serialize) {
-				serialization::serialize_array(output, obj.dat.d_union.values, size_t(max));
+			if constexpr(serialization::tagged_serializer<index_type, member_type>::has_static_size) {
+				if constexpr(serialization::tagged_serializer<index_type, member_type>::size() == 0) {
+					// do nothing
+				} else if constexpr(serialization::tagged_serializer<index_type, member_type>::has_simple_serialize) {
+					serialization::serialize_array(output, obj.d_union.values, size_t(max));
+				} else {
+					for(int32_t i = 0; i < max; ++i)
+						serialization::tagged_serializer<index_type, member_type>::serialize_object(output, obj.d_union.values[i], std::forward<CONTEXT>(c)...);
+				}
+
 			} else {
-				for(int32_t i = 0; i < max; ++i)
-					serialization::tagged_serializer<index_type, member_type>::serialize_object(output, dat.d_union.values[i], std::forward<CONTEXT>(c)...);
+				if constexpr(serialization::tagged_serializer<index_type, member_type>::has_simple_serialize) {
+					serialization::serialize_array(output, obj.d_union.values, size_t(max));
+				} else {
+					for(int32_t i = 0; i < max; ++i)
+						serialization::tagged_serializer<index_type, member_type>::serialize_object(output, obj.d_union.values[i], std::forward<CONTEXT>(c)...);
+				}
 			}
 			
 		}
@@ -140,22 +206,38 @@ namespace {
 		static void deserialize_object_impl(std::byte const* &input, int32_t max, data& obj, CONTEXT&& ... c) {
 			variable_layout_tagged_vector_impl<tag_type, size, REST ...>::deserialize_object_impl(input, max, obj, std::forward<CONTEXT>(c)...);
 
-			if constexpr(serialization::tagged_serializer<index_type, member_type>::has_simple_serialize) {
-				serialization::deserialize_array(input, obj.dat.d_union.values, size_t(max));
+			if constexpr(serialization::tagged_serializer<index_type, member_type>::has_static_size) {
+				if constexpr(serialization::tagged_serializer<index_type, member_type>::size() == 0) {
+					// do nothing
+				} else if constexpr(serialization::tagged_serializer<index_type, member_type>::has_simple_serialize) {
+					serialization::deserialize_array(input, obj.d_union.values, size_t(max));
+				} else {
+					for(int32_t i = 0; i < max; ++i)
+						serialization::tagged_serializer<index_type, member_type>::deserialize_object(input, obj.d_union.values[i], std::forward<CONTEXT>(c)...);
+				}
+
 			} else {
-				for(int32_t i = 0; i < max; ++i)
-					serialization::tagged_serializer<index_type, member_type>::deserialize_object(input, dat.d_union.values[i], std::forward<CONTEXT>(c)...);
+				if constexpr(serialization::tagged_serializer<index_type, member_type>::has_simple_serialize) {
+					serialization::deserialize_array(input, obj.d_union.values, size_t(max));
+				} else {
+					for(int32_t i = 0; i < max; ++i)
+						serialization::tagged_serializer<index_type, member_type>::deserialize_object(input, obj.d_union.values[i], std::forward<CONTEXT>(c)...);
+				}
+
 			}
 		}
 		template<typename ... CONTEXT>
 		static size_t size_impl(int32_t max, data const& obj, CONTEXT&& ... c) {
-			if constexpr(serialization::tagged_serializer<index_type, member_type>::has_simple_serialize) {
+			if constexpr(serialization::tagged_serializer<index_type, member_type>::has_static_size) {
+				return variable_layout_tagged_vector_impl<tag_type, size, REST ...>::size_impl(max, obj, std::forward<CONTEXT>(c)...) + 
+					size_t(max * serialization::tagged_serializer<index_type, member_type>::size());
+			} else if constexpr(serialization::tagged_serializer<index_type, member_type>::has_simple_serialize) {
 				return variable_layout_tagged_vector_impl<tag_type, size, REST ...>::size_impl(max, obj, std::forward<CONTEXT>(c)...) +
-					size_t(serialization::tagged_serializer<index_type, member_type>::size(obj.dat.d_union.values[0], std::forward<CONTEXT>(c)...) * max);
+					size_t(serialization::tagged_serializer<index_type, member_type>::size(obj.d_union.values[0], std::forward<CONTEXT>(c)...) * max);
 			} else {
-				return return variable_layout_tagged_vector_impl<tag_type, size, REST ...>::size_impl(max, obj, std::forward<CONTEXT>(c)...) + 
-					std::transform_reduce(obj.dat.d_union.values, obj.dat.d_union.values + max, 0ui64, std::plus<>(), [&](member_type const* m) {
-						return serialization::tagged_serializer<index_type, member_type>::size(*m, std::forward<CONTEXT>(c)...);
+				return variable_layout_tagged_vector_impl<tag_type, size, REST ...>::size_impl(max, obj, std::forward<CONTEXT>(c)...) + 
+					std::transform_reduce(obj.d_union.values, obj.d_union.values + max, 0ui64, std::plus<>(), [&](member_type const& m) {
+						return serialization::tagged_serializer<index_type, member_type>::size(m, std::forward<CONTEXT>(c)...);
 					});
 			}
 		}
@@ -186,14 +268,18 @@ namespace {
 			if constexpr(std::is_same_v<U, index_type>)
 				dat.value = val;
 			else
-				variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template set<T>(dat, val);
+				variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template set<U>(dat, val);
 		}
 		template<typename U, typename T>
 		__forceinline static std::enable_if_t<std::is_trivially_copyable_v<T>> set(data& dat, T val) {
 			if constexpr(std::is_same_v<U, index_type>)
 				dat.value = val;
 			else
-				variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template set<T>(dat, val);
+				variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template set<U>(dat, val);
+		}
+		__forceinline static void clear(data& dat) {
+			variable_layout_tagged_vector_impl<tag_type, size, REST ...>::clear(dat);
+			dat.value = member_type();
 		}
 
 		template<typename ... CONTEXT>
@@ -262,27 +348,31 @@ namespace {
 			if constexpr(std::is_same_v<U, index_type>)
 				bit_vector_set(dat.d_union.values, uint32_t(to_index(i)), val);
 			else
-				variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template set<T>(i, dat, val);
+				variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template set<U>(i, dat, val);
 		}
 		template<typename U, typename T>
 		__forceinline static std::enable_if_t<std::is_trivially_copyable_v<T>> set(tag_type i, data& dat, T val) {
 			if constexpr(std::is_same_v<U, index_type>)
 				bit_vector_set(dat.d_union.values, uint32_t(to_index(i)), val);
 			else
-				variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template set<T>(i, dat, val);
+				variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template set<U>(i, dat, val);
+		}
+		__forceinline static void clear(tag_type i, data& dat) {
+			variable_layout_tagged_vector_impl<tag_type, size, REST ...>::clear(i, dat);
+			bit_vector_set(dat.d_union.values, uint32_t(to_index(i)), false);
 		}
 
 		template<typename ... CONTEXT>
 		static void serialize_object_impl(std::byte* &output, int32_t max, data const& obj, CONTEXT&& ... c) {
 			auto count = uint32_t(max + 63) / 64ui32;
 			variable_layout_tagged_vector_impl<tag_type, size, REST ...>::serialize_object_impl(output, max, obj, std::forward<CONTEXT>(c)...);
-			serialization::serialize_array(output, obj.dat.d_union.values, count);
+			serialization::serialize_array(output, obj.d_union.values, count);
 		}
 		template<typename ... CONTEXT>
 		static void deserialize_object_impl(std::byte const* &input, int32_t max, data& obj, CONTEXT&& ... c) {
 			auto count = uint32_t(max + 63) / 64ui32;
 			variable_layout_tagged_vector_impl<tag_type, size, REST ...>::deserialize_object_impl(input, max, obj, std::forward<CONTEXT>(c)...);
-			serialization::deserialize_array(input, obj.dat.d_union.values, count);
+			serialization::deserialize_array(input, obj.d_union.values, count);
 		}
 		template<typename ... CONTEXT>
 		static size_t size_impl(int32_t max, data const& obj, CONTEXT&& ... c) {
@@ -291,9 +381,9 @@ namespace {
 		}
 	};
 #endif
-
-	struct index_type_marker {};
 }
+
+struct index_type_marker {};
 
 template<typename tag_type, int32_t size, typename ... T>
 class variable_layout_tagged_vector;
@@ -304,8 +394,8 @@ class serialization::serializer<variable_layout_tagged_vector<tag_type, size, T 
 template<typename tag_type, int32_t container_size, typename ... T>
 class variable_layout_tagged_vector {
 private:
-	using ptr_type = typename variable_layout_tagged_vector_impl<tag_type, container_size, index_type_marker, tag_type, T ...>::data;
-	using container_type = typename variable_layout_tagged_vector_impl<tag_type, container_size, index_type_marker, tag_type, T ...>;
+	using ptr_type = typename variable_layout_detail::variable_layout_tagged_vector_impl<tag_type, container_size, index_type_marker, tag_type, T ...>::data;
+	using container_type = typename variable_layout_detail::variable_layout_tagged_vector_impl<tag_type, container_size, index_type_marker, tag_type, T ...>;
 	ptr_type* const ptr;
 	tag_type first_free;
 	int32_t size_used = 0;
@@ -326,7 +416,7 @@ public:
 		std::uninitialized_value_construct_n(ptr, container_size);
 
 		for(int32_t i = container_size - 1; i >= 0; --i) {
-			ptr_type::template set<index_type_marker>(ptr[i], first_free);
+			container_type::template set<index_type_marker>(ptr[i], first_free);
 			first_free = tag_type(typename tag_type::value_base_t(i));
 		}
 	}
@@ -361,9 +451,11 @@ public:
 
 	void release(tag_type i) {
 #ifdef VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
+		container_type::clear(i, *ptr);
 		container_type::template set<index_type_marker>(i, *ptr, first_free);
 #else
-		ptr_type::template set<index_type_marker>(ptr[to_index(i)], first_free);
+		container_type::clear(ptr[to_index(i)]);
+		container_type::template set<index_type_marker>(ptr[to_index(i)], first_free);
 #endif
 		first_free = i;
 
@@ -393,14 +485,14 @@ public:
 		container_type::reset(*ptr);
 
 		for(int32_t i = container_size - 1; i >= 0; --i) {
-			container_type::template set<index_type_marker>(tag_type(tag_type::typename value_base_t(i)), *ptr, first_free);
-			first_free = tag_type(tag_type::typename value_base_t(i));
+			container_type::template set<index_type_marker>(tag_type(typename tag_type::value_base_t(i)), *ptr, first_free);
+			first_free = tag_type(typename tag_type::value_base_t(i));
 		}
 #else
 		for(int32_t i = container_size - 1; i >= 0; --i) {
 			container_type::reset(ptr[i]);
 			container_type::template set<index_type_marker>(ptr[i], first_free);
-			first_free = tag_type(tag_type::typename value_base_t(i));
+			first_free = tag_type(typename tag_type::value_base_t(i));
 		}
 #endif
 	}
@@ -485,8 +577,8 @@ class serialization::serializer<variable_layout_contiguous_tagged_vector<tag_typ
 template<typename tag_type, int32_t container_size, typename ... T>
 class variable_layout_contiguous_tagged_vector {
 private:
-	using ptr_type = typename variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::data;
-	using container_type = typename variable_layout_tagged_vector_impl<tag_type, container_size, T ...>;
+	using ptr_type = typename variable_layout_detail::variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::data;
+	using container_type = typename variable_layout_detail::variable_layout_tagged_vector_impl<tag_type, container_size, T ...>;
 	ptr_type* const ptr;
 	int32_t size_used = 0;
 
@@ -528,6 +620,14 @@ public:
 #endif
 	}
 
+	void reset_nth(tag_type i) {
+#ifdef VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
+		container_type::clear(i, *ptr);
+#else
+		container_type::clear(ptr[to_index(i)]);
+#endif
+	}
+
 #ifdef VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
 	template<typename U>
 	__forceinline auto get(tag_type i) const -> decltype(container_type::template get<U>(i, *static_cast<ptr_type const*>(ptr))) {
@@ -551,8 +651,8 @@ public:
 		return container_type::template get<U>(static_cast<ptr_type const*>(ptr)[to_index(i)]);
 	}
 	template<typename U>
-	__forceinline auto get(tag_type i) -> decltype(container_type::template get<U>(i, *ptr)) {
-		return container_type::template get<U>(i, *ptr);
+	__forceinline auto get(tag_type i) -> decltype(container_type::template get<U>(ptr[to_index(i)])) {
+		return container_type::template get<U>(ptr[to_index(i)]);
 	}
 	template<typename U, typename V>
 	__forceinline std::enable_if_t<!std::is_trivially_copyable_v<V>> set(tag_type i, V const& val) {
@@ -567,13 +667,13 @@ public:
 	template<typename F>
 	void for_each(F const& func) const {
 		for(int32_t i = 0; i < size_used; ++i) {
-			func(tag_type(tag_type::typename value_base_t(i)));
+			func(tag_type(typename tag_type::value_base_t(i)));
 		}
 	}
 	template<typename F>
 	void parallel_for_each(F const& func) const {
 		concurrency::parallel_for(0, size_used, [&func](int32_t i) {
-			func(tag_type(tag_type::typename value_base_t(i)));
+			func(tag_type(typename tag_type::value_base_t(i)));
 		});
 	}
 };
@@ -590,22 +690,22 @@ public:
 #ifdef VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
 		tag_type temp[container_size];
 		for(int32_t i = 0; i < obj.size_used; ++i) {
-			if(obj.get<index_type_marker>(tag_type(tag_type::typename value_base_t(i))) == tag_type(tag_type::typename value_base_t(i)))
-				temp[i] = tag_type(tag_type::typename value_base_t(i));
+			if(obj.get<index_type_marker>(typename tag_type(tag_type::value_base_t(i))) == tag_type(typename tag_type::value_base_t(i)))
+				temp[i] = tag_type(typename tag_type::value_base_t(i));
 			else
 				temp[i] = tag_type();
 		}
 
 		serialization::serialize(output, obj.size_used);
 		serialization::serialize_array(output, temp, obj.size_used);
-		variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::serialize_object_impl(
+		variable_layout_detail::variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::serialize_object_impl(
 			output, obj.size_used, *(obj.ptr), std::forward<CONTEXT>(c)...);
 #else
 		serialization::serialize(output, obj.size_used);
 		for(int32_t i = 0; i < obj.size_used; ++i) {
-			if(obj.get<index_type_marker>(tag_type(tag_type::typename value_base_t(i))) == tag_type(tag_type::typename value_base_t(i))) {
-				serialization::serialize(output, obj.get<index_type_marker>(tag_type(tag_type::typename value_base_t(i))));
-				variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::serialize_object_impl(
+			if(obj.get<index_type_marker>(tag_type(typename tag_type::value_base_t(i))) == tag_type(typename tag_type::value_base_t(i))) {
+				serialization::serialize(output, obj.get<index_type_marker>(tag_type(typename tag_type::value_base_t(i))));
+				variable_layout_detail::variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::serialize_object_impl(
 					output, obj.ptr[i], std::forward<CONTEXT>(c)...);
 			} else {
 				serialization::serialize(output, tag_type());
@@ -620,16 +720,16 @@ public:
 		serialization::deserialize(input, obj.size_used);
 
 		serialization::deserialize_array(input, obj.ptr->d_union.values, obj.size_used);
-		variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::deserialize_object_impl(
+		variable_layout_detail::variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::deserialize_object_impl(
 			input, obj.size_used, *(obj.ptr), std::forward<CONTEXT>(c)...);
 
 #else
 		obj.reset();
 		serialization::deserialize(input, obj.size_used);
 		for(int32_t i = 0; i < obj.size_used; ++i) {
-			serialization::deserialize(input, obj.get<index_type_marker>(tag_type(tag_type::typename value_base_t(i))));
-			if(is_valid_index(obj.get<index_type_marker>(tag_type(tag_type::typename value_base_t(i))))) {
-				variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::deserialize_object_impl(
+			serialization::deserialize(input, obj.get<index_type_marker>(tag_type(typename tag_type::value_base_t(i))));
+			if(is_valid_index(obj.get<index_type_marker>(tag_type(typename tag_type::value_base_t(i))))) {
+				variable_layout_detail::variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::deserialize_object_impl(
 					input, obj.ptr[i], std::forward<CONTEXT>(c)...);
 			}
 		}
@@ -637,23 +737,23 @@ public:
 
 		obj.first_free = tag_type();
 		for(int32_t i = container_size - 1; i >= 0; --i) {
-			if(!is_valid_index(obj.get<index_type_marker>(tag_type(tag_type::typename value_base_t(i))))) {
-				obj.set<index_type_marker>(tag_type(tag_type::typename value_base_t(i)), obj.first_free);
-				obj.first_free = tag_type(tag_type::typename value_base_t(i));
+			if(!is_valid_index(obj.get<index_type_marker>(tag_type(typename tag_type::value_base_t(i))))) {
+				obj.set<index_type_marker>(tag_type(typename tag_type::value_base_t(i)), obj.first_free);
+				obj.first_free = tag_type(typename tag_type::value_base_t(i));
 			}
 		}
 	}
 	template<typename ... CONTEXT>
-	static size_t size(variable_layout_tagged_vector<tag_type, container_size, T ...>& obj, CONTEXT&& ... c) {
+	static size_t size(variable_layout_tagged_vector<tag_type, container_size, T ...> const& obj, CONTEXT&& ... c) {
 #ifdef VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
 		return sizeof(obj.size_used) + serialization::serialize_size(tag_type()) * obj.size_used +
-			variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::size_impl(
+			variable_layout_detail::variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::size_impl(
 				obj.size_used, *(obj.ptr), std::forward<CONTEXT>(c)...);
 #else
 		return sizeof(obj.size_used) + serialization::serialize_size(tag_type()) * obj.size_used +
 			std::transform_reduce(obj.ptr, obj.ptr + obj.size_used, 0ui64, std::plus<>(),
-				[&](variable_layout_tagged_vector_impl<tag_type, container_size, index_type_marker, tag_type, T ...>* o_ptr) {
-					return variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::size_impl(*o_ptr, std::forward<CONTEXT>(c)...);
+				[&](typename variable_layout_detail::variable_layout_tagged_vector_impl<tag_type, container_size, index_type_marker, tag_type, T ...>::data const& o_ptr) {
+					return variable_layout_detail::variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::size_impl(o_ptr, std::forward<CONTEXT>(c)...);
 			});
 #endif
 	}
@@ -669,12 +769,12 @@ public:
 	static void serialize_object(std::byte* &output, variable_layout_contiguous_tagged_vector<tag_type, container_size, T ...> const& obj, CONTEXT&& ... c) {
 #ifdef VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
 		serialization::serialize(output, obj.size_used);
-		variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::serialize_object_impl(
+		variable_layout_detail::variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::serialize_object_impl(
 			output, obj.size_used, *(obj.ptr), std::forward<CONTEXT>(c)...);
 #else
 		serialization::serialize(output, obj.size_used);
 		for(int32_t i = 0; i < obj.size_used; ++i) {
-			variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::serialize_object_impl(
+			variable_layout_detail::variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::serialize_object_impl(
 				output, obj.ptr[i], std::forward<CONTEXT>(c)...);
 		}
 #endif
@@ -685,29 +785,29 @@ public:
 		obj.reset();
 		serialization::deserialize(input, obj.size_used);
 
-		variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::deserialize_object_impl(
+		variable_layout_detail::variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::deserialize_object_impl(
 			input, obj.size_used, *(obj.ptr), std::forward<CONTEXT>(c)...);
 
 #else
 		obj.reset();
 		serialization::deserialize(input, obj.size_used);
 		for(int32_t i = 0; i < obj.size_used; ++i) {
-			variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::deserialize_object_impl(
+			variable_layout_detail::variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::deserialize_object_impl(
 				input, obj.ptr[i], std::forward<CONTEXT>(c)...);
 		}
 #endif
 	}
 	template<typename ... CONTEXT>
-	static size_t size(variable_layout_tagged_vector<tag_type, container_size, T ...>& obj, CONTEXT&& ... c) {
+	static size_t size(variable_layout_contiguous_tagged_vector<tag_type, container_size, T ...> const& obj, CONTEXT&& ... c) {
 #ifdef VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
 		return sizeof(obj.size_used) +
-			variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::size_impl(
+			variable_layout_detail::variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::size_impl(
 				obj.size_used, *(obj.ptr), std::forward<CONTEXT>(c)...);
 #else
 		return sizeof(obj.size_used) +
 			std::transform_reduce(obj.ptr, obj.ptr + obj.size_used, 0ui64, std::plus<>(),
-				[&](variable_layout_tagged_vector_impl<tag_type, container_size, index_type_marker, tag_type, T ...>* o_ptr) {
-			return variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::size_impl(*o_ptr, std::forward<CONTEXT>(c)...);
+				[&](typename variable_layout_detail::variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::data const& o_ptr) {
+			return variable_layout_detail::variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::size_impl(o_ptr, std::forward<CONTEXT>(c)...);
 		});
 #endif
 	}

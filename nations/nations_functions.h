@@ -14,15 +14,15 @@ namespace nations {
 	void init_nations_state(world_state& ws);
 	void reset_state(nations_state& s);
 	state_instance& make_state(provinces::state_tag region, world_state& ws);
-	void remove_province_from_state(world_state& ws, provinces::province_state& p);
+	void remove_province_from_state(world_state& ws, provinces::province_tag p);
 	nation* make_nation_for_tag(world_state& ws, cultures::national_tag nt);
-	bool is_state_empty(world_state const& ws, state_instance const& s);
+	bool is_state_empty(world_state const& ws, nations::state_tag s);
 	bool is_colonial_or_protectorate(state_instance const& s);
 	void update_state_nation_demographics(world_state& ws);
 	provinces::province_tag find_best_capital(world_state const& ws, nation const& owner);
 	void fix_capitals(world_state& ws);
-	provinces::province_state const* get_state_capital(world_state const& ws, nations::state_instance const& s);
-	provinces::province_state* get_state_capital(world_state& ws, nations::state_instance& s);
+	provinces::province_tag get_state_capital(world_state const& ws, nations::state_instance const& s);
+	provinces::province_tag get_state_capital(world_state& ws, nations::state_instance& s);
 	provinces::province_tag find_state_capital(world_state const& ws, nations::state_instance const& s);
 	provinces::province_tag state_port_province(world_state const& ws, nations::state_instance const& s);
 	void set_relationship(world_state& ws, nation& a, nation& b, int32_t value);
@@ -46,9 +46,12 @@ namespace nations {
 	void free_vassal(world_state& ws, nations::nation& vassal);
 	text_data::text_tag influence_level_to_text(world_state const& ws, int32_t i);
 	void adjust_influence(world_state& ws, nation& nation_by, nations::country_tag nation_target, int32_t amount); // will also adjust influence level on overflow / underflow
-
-	void destroy_state_instance(world_state& ws, state_instance& si);
-	void partial_destroy_state_instance(world_state& ws, state_instance& si);
+	void remove_owned_province(world_state& ws, nations::country_tag n, provinces::province_tag p); // removes province from list of owned
+	void remove_controlled_province(world_state& ws, nations::country_tag n, provinces::province_tag p); // removes province from list of controlled
+	void add_owned_province(world_state& ws, nations::country_tag n, provinces::province_tag p); // add province to list of owned
+	void add_controlled_province(world_state& ws, nations::country_tag n, provinces::province_tag p); // add province to list of controlled
+	void destroy_state_instance(world_state& ws, nations::state_tag si);
+	void partial_destroy_state_instance(world_state& ws, nations::state_tag si);
 	void destroy_nation(world_state& ws, nations::nation& new_nation);
 	float tarrif_multiplier(world_state const& ws, nations::nation const& source, nations::nation const& target);
 

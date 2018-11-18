@@ -15,6 +15,7 @@
 template<>
 class serialization::serializer<economy::worked_instance> : public serialization::memcpy_serializer<economy::worked_instance> {};
 
+/*
 void serialization::serializer<provinces::province_state>::serialize_object(std::byte *& output, provinces::province_state const & obj, world_state const & ws) {
 	auto owner_tag = obj.owner ? obj.owner->id : nations::country_tag();
 	serialize(output, owner_tag);
@@ -141,6 +142,7 @@ size_t serialization::serializer<provinces::province_state>::size(provinces::pro
 		serialize_stable_array_size(ws.w.province_s.timed_modifier_arrays, obj.timed_modifiers)
 		;
 }
+*/
 
 void serialization::serializer<provinces::provinces_state>::serialize_object(std::byte *& output, provinces::provinces_state const & obj, world_state const & ws) {
 	serialize(output, obj.province_state_container, ws);
@@ -388,7 +390,7 @@ namespace provinces {
 		sea_starts(parsing_environment& e) : env(e) {}
 
 		void add_sea_start(uint16_t v) {
-			env.manager.province_container[province_tag(v)].flags |= province::sea;
+			env.manager.province_container.set<province::is_sea>(province_tag(v), true);
 		}
 	};
 
@@ -399,13 +401,7 @@ namespace provinces {
 		void discard(int) {}
 		void discard_empty(const empty_type&) {}
 		void set_province_count(size_t v) {
-			env.manager.province_container.resize(v);
-
-			const auto prov_count = env.manager.province_container.size();
-			for(uint32_t i = 0; i < prov_count; ++i) {
-				auto& p = env.manager.province_container[province_tag(static_cast<uint16_t>(i))];
-				p.id = province_tag(static_cast<uint16_t>(i));
-			}
+			env.manager.province_container.resize(int32_t(v));
 		}
 		void handle_sea_starts(const sea_starts&) {}
 	};
@@ -541,7 +537,7 @@ namespace provinces {
 		}
 
 		void add_province(uint16_t v) {
-			env.manager.province_container[province_tag(v)].state_id = tag;
+			env.manager.province_container.set<province::state_id>(province_tag(v), tag);
 			env.manager.states_to_province_index.add_to_row(tag, province_tag(v));
 		}
 	};
@@ -573,7 +569,7 @@ namespace provinces {
 
 		void add_continent_provinces(const std::vector<uint16_t>& v) {
 			for(auto i : v) {
-				env.manager.province_container[province_tag(i)].continent = tag;
+				env.manager.province_container.set<province::continent>(province_tag(i), tag);
 			}
 		}
 	};
@@ -814,46 +810,50 @@ namespace provinces {
 		END_TYPE
 		END_DOMAIN;
 
-	void read_province_history(world_state& ws, province_state& ps, date_tag target_date, token_group const* start, token_group const* end) {
+	void read_province_history(world_state& ws, province_tag ps, date_tag target_date, token_group const* start, token_group const* end) {
 		province_history_environment env(ws.s, target_date);
 		province_history_block result = parse_object<province_history_block, province_history_domain>(start, end, env);
 
+		auto& container = ws.w.province_s.province_state_container;
+
 		for(auto c : result.add_cores)
-			add_core(ws.w, ps.id, c);
+			add_core(ws.w, ps, c);
 		if(is_valid_index(result.trade_goods))
-			ps.rgo_production = result.trade_goods;
+			container.set<province_state::rgo_production>(ps, result.trade_goods);
 		if(is_valid_index(result.terrain))
-			ps.terrain = result.terrain;
+			container.set<province_state::terrain>(ps, result.terrain);
 		if(result.life_rating)
-			ps.base_life_rating = *result.life_rating;
+			container.set<province_state::base_life_rating>(ps, *result.life_rating);
 		if(is_valid_index(result.owner))
 			provinces::silent_set_province_owner(ws, *nations::make_nation_for_tag(ws, result.owner), ps);
 		if(is_valid_index(result.controller))
 			provinces::silent_set_province_controller(ws, *nations::make_nation_for_tag(ws, result.controller), ps);
-		if(result.colony && ps.state_instance) {
+		if(result.colony && is_valid_index(container.get<province_state::state_instance>(ps))) {
+			nations::state_instance& si = ws.w.nation_s.states[container.get<province_state::state_instance>(ps)];
 			if(*result.colony == 2)
-				ps.state_instance->flags |= nations::state_instance::is_colonial;
+				si.flags |= nations::state_instance::is_colonial;
 			else if(*result.colony == 1)
-				ps.state_instance->flags |= nations::state_instance::is_protectorate;
+				si.flags |= nations::state_instance::is_protectorate;
 			else if(*result.colony == 0)
-				ps.state_instance->flags = decltype(ps.state_instance->flags)(0);
+				si.flags = decltype(si.flags)(0);
 		}
-		if(ps.state_instance) {
-			for(uint32_t i = 0; i < result.factories.size() && i < std::extent_v<decltype(ps.state_instance->factories)>; ++i) {
+		if(is_valid_index(container.get<province_state::state_instance>(ps))) {
+			nations::state_instance& si = ws.w.nation_s.states[container.get<province_state::state_instance>(ps)];
+			for(uint32_t i = 0; i < result.factories.size() && i < std::extent_v<decltype(si.factories)>; ++i) {
 				if(is_valid_index(result.factories[i].first)) {
-					ps.state_instance->factories[i].type = &(ws.s.economy_m.factory_types[result.factories[i].first]);
-					ps.state_instance->factories[i].level = uint16_t(result.factories[i].second);
+					si.factories[i].type = &(ws.s.economy_m.factory_types[result.factories[i].first]);
+					si.factories[i].level = uint16_t(result.factories[i].second);
 				}
 			}
 		}
 		if(result.railroad_level)
-			ps.railroad_level = uint8_t(*result.railroad_level);
+			container.set<province_state::railroad_level>(ps, uint8_t(*result.railroad_level));
 		if(result.fort_level)
-			ps.fort_level = uint8_t(*result.fort_level);
+			container.set<province_state::fort_level>(ps, uint8_t(*result.fort_level));
 		if(result.naval_base_level)
-			ps.naval_base_level = uint8_t(*result.naval_base_level);
+			container.set<province_state::naval_base_level>(ps, uint8_t(*result.naval_base_level));
 		for(auto p : result.party_loyalty)
-			ws.w.province_s.party_loyalty.get(ps.id, p.first) = p.second;
+			ws.w.province_s.party_loyalty.get(ps, p.first) = p.second;
 	}
 
 	void read_province_histories(world_state& ws, const directory& root, date_tag target_date) {
@@ -879,7 +879,7 @@ namespace provinces {
 
 					read_province_history(
 						ws,
-						ws.w.province_s.province_state_container[province_tag(prov_id)],
+						province_tag(prov_id),
 						target_date,
 						presults.data(), presults.data() + presults.size());
 				}
@@ -895,7 +895,7 @@ namespace provinces {
 		} else {
 			const auto vals = parse_object<climate_province_values, preparse_climate_domain>(s, e, env);
 			for(auto v : vals.values)
-				env.manager.province_container[province_tag(v)].climate = fr->second;
+				env.manager.province_container.set<province::climate>(province_tag(v), fr->second);
 		}
 		return 0;
 	}
@@ -1249,7 +1249,7 @@ namespace provinces {
 		for(int32_t i = max_province; i >= 0; --i) {
 			const auto this_province = province_tag(static_cast<province_tag::value_base_t>(i));
 			const auto this_t_color = terrain_colors[this_province];
-			m.province_state_container[this_province].terrain = terrain_map.data[this_t_color];
+			m.province_state_container.set<province_state::terrain>(this_province, terrain_map.data[this_t_color]);
 		}
 	}
 
@@ -1342,21 +1342,23 @@ namespace provinces {
 	}
 
 	void make_lakes(std::map<province_tag, boost::container::flat_set<province_tag>>& adj_map, province_manager& m) {
-		m.province_container[province_tag(0)].flags = uint16_t(province::lake | province::sea);
+		m.province_container.set<province::is_lake>(province_tag(0), true);
+		m.province_container.set<province::is_sea>(province_tag(0), true);
+
 		for(auto adj_p : adj_map[province_tag(0)])
 			adj_map[adj_p].erase(province_tag(0));
 		adj_map[province_tag(0)].clear();
 
 		for(uint16_t i = 1; i < m.province_container.size(); ++i) {
-			auto& this_province = m.province_container[province_tag(i)];
-			if(this_province.flags & province::sea) {
+
+			if(m.province_container.get<province::is_sea>(province_tag(i))) {
 				bool is_lake = true;
 				for(auto adj_p : adj_map[province_tag(i)]) {
-					if(m.province_container[adj_p].flags & province::sea)
+					if(m.province_container.get<province::is_sea>(adj_p))
 						is_lake = false;
 				}
 				if(is_lake) {
-					this_province.flags |= province::lake;
+					m.province_container.set<province::is_lake>(province_tag(i), true);
 					for(auto adj_p : adj_map[province_tag(i)])
 						adj_map[adj_p].erase(province_tag(i));
 					adj_map[province_tag(i)].clear();
@@ -1368,23 +1370,23 @@ namespace provinces {
 	void make_adjacency(std::map<province_tag, boost::container::flat_set<province_tag>>& adj_map, province_manager& m) {
 		m.same_type_adjacency.expand_rows(static_cast<uint32_t>(m.province_container.size()));
 		m.coastal_adjacency.expand_rows(static_cast<uint32_t>(m.province_container.size()));
+		
 
 		for(auto const& adj_set : adj_map) {
-			auto& this_province = m.province_container[adj_set.first];
-			if(this_province.flags & province::sea) {
+			if(m.province_container.get<province::is_sea>(adj_set.first)) {
 				for(auto oprov : adj_set.second) {
-					if(m.province_container[oprov].flags & province::sea) {
+					if(m.province_container.get<province::is_sea>(oprov)) {
 						m.same_type_adjacency.add_to_row(adj_set.first, oprov);
 					} else {
 						m.coastal_adjacency.add_to_row(adj_set.first, oprov);
-						this_province.flags |= province::coastal;
+						m.province_container.set<province::is_coastal>(adj_set.first, true);
 					}
 				}
 			} else {
 				for(auto oprov : adj_set.second) {
-					if(m.province_container[oprov].flags & province::sea) {
+					if(m.province_container.get<province::is_sea>(oprov)) {
 						m.coastal_adjacency.add_to_row(adj_set.first, oprov);
-						this_province.flags |= province::coastal;
+						m.province_container.set<province::is_coastal>(adj_set.first, true);
 					} else {
 						m.same_type_adjacency.add_to_row(adj_set.first, oprov);
 					}
@@ -1394,77 +1396,82 @@ namespace provinces {
 	}
 
 	void calculate_province_areas(province_manager& m, float top_latitude, float bottom_latitude) {
-		double surface_area_x_2pi_x_percent_of_width = 510'072'000.0 * 2.0 * 3.1415926 / double(m.province_map_width);
-		double quarter_circumfrance = double(m.province_map_width) / 4.0;
+		float surface_area_x_2pi_x_percent_of_width = 510'072'000.0f * 2.0f * 3.1415926f / float(m.province_map_width);
+		float quarter_circumfrance = float(m.province_map_width) / 4.0f;
 		int32_t half_height = m.province_map_height / 2;
 
-		double lat_step = (double(bottom_latitude) - double(top_latitude)) / double(m.province_map_height);
-		double long_step = 6.28318530718 / double(m.province_map_width);
-		double top_lat = double(top_latitude);
+		float lat_step = (bottom_latitude - top_latitude) / float(m.province_map_height);
+		float long_step = 6.28318530718f / float(m.province_map_width);
+		float top_lat = top_latitude;
 
-		for(auto& p : m.province_container) {
-			p.centroid = Eigen::Vector3d::Zero();
-		}
+		m.province_container.for_each([&m](province_tag p) {
+			m.province_container.get<province::centroid>(p).setZero();
+		});
 
 		for(int32_t y = 0; y < m.province_map_height; ++y) {
-			double pixel_area = surface_area_x_2pi_x_percent_of_width *
-				(abs(sin((double(abs(y - half_height)) * 3.1415926) / (quarter_circumfrance * 2.0)) - sin((double(abs(y + 1 - half_height)) * 3.1415926) / (quarter_circumfrance * 2.0))));
+			float pixel_area = surface_area_x_2pi_x_percent_of_width *
+				(abs(sin((float(abs(y - half_height)) * 3.1415926f) / (quarter_circumfrance * 2.0f)) - sin((float(abs(y + 1 - half_height)) * 3.1415926f) / (quarter_circumfrance * 2.0f))));
 			for(int32_t x = 0; x < m.province_map_width; ++x) {
 				auto province_id = m.province_map_data[uint32_t(x + y * m.province_map_width)];
-				m.province_container[province_tag(province_id)].area += pixel_area;
+				m.province_container.get<province::area>(province_tag(province_id)) += float(pixel_area);
 
-				const double vx_pos = x * long_step;
-				const double vy_pos = y * lat_step + top_lat;
-				const double cos_vy = cos(vy_pos) * pixel_area;
-				const double sin_vy = sin(vy_pos) * pixel_area;
+				const float vx_pos = x * long_step;
+				const float vy_pos = y * lat_step + top_lat;
+				const float cos_vy = cos(vy_pos) * pixel_area;
+				const float sin_vy = sin(vy_pos) * pixel_area;
 
-				m.province_container[province_tag(province_id)].centroid[0] += cos(vx_pos) * cos_vy;
-				m.province_container[province_tag(province_id)].centroid[1] += sin(vx_pos) * cos_vy;
-				m.province_container[province_tag(province_id)].centroid[2] += sin_vy;
+				auto& centroid = m.province_container.get<province::centroid>(province_tag(province_id));
+				centroid[0] += cos(vx_pos) * cos_vy;
+				centroid[1] += sin(vx_pos) * cos_vy;
+				centroid[2] += sin_vy;
 			}
 		}
 
-		for(auto& p : m.province_container) {
-			p.centroid.normalize();
-		}
+		m.province_container.for_each([&m](province_tag p) {
+			m.province_container.get<province::centroid>(p).normalize();
+		});
 	}
 
 	void set_base_rgo_size(world_state& ws) {
-		for(auto& ps : ws.w.province_s.province_state_container) {
-			auto size = ws.s.province_m.province_container[ps.id].area;
-			if(size <= 145'000.0)
-				ps.rgo_size = 1ui8;
-			else if(size <= 580'000.0)
-				ps.rgo_size = 2ui8;
-			else if(size <= 1'300'000.0)
-				ps.rgo_size = 3ui8;
+		ws.w.province_s.province_state_container.for_each([&ws](province_tag p) {
+			auto size = ws.s.province_m.province_container.get<province::area>(p);
+			auto& rgo_size = ws.w.province_s.province_state_container.get<province_state::rgo_size>(p);
+			if(size <= 145'000.0f)
+				rgo_size = 1ui8;
+			else if(size <= 580'000.0f)
+				rgo_size = 2ui8;
+			else if(size <= 1'300'000.0f)
+				rgo_size = 3ui8;
 			else
-				ps.rgo_size = 4ui8;
+				rgo_size = 4ui8;
 
-			if(is_valid_index(ps.rgo_production)) {
-				if((ws.s.economy_m.goods[ps.rgo_production].flags & economy::good_definition::mined) != 0) {
+			auto rgo_production = ws.w.province_s.province_state_container.get<province_state::rgo_production>(p);
+			if(is_valid_index(rgo_production)) {
+				if((ws.s.economy_m.goods[rgo_production].flags & economy::good_definition::mined) != 0) {
 					for(uint32_t i = 0; i < std::extent_v<decltype(ws.s.economy_m.rgo_mine.workers)>; ++i) {
 						if(is_valid_index(ws.s.economy_m.rgo_farm.workers[i].type)) {
-							auto worker_population = ws.w.province_s.province_demographics.get(ps.id, population::to_demo_tag(ws, ws.s.economy_m.rgo_mine.workers[i].type));
-							auto size_to_support = int32_t(std::ceil(float(worker_population) / (ws.s.economy_m.rgo_mine.workers[i].amount * ws.s.economy_m.rgo_mine.workforce * (ps.modifier_values[modifiers::provincial_offsets::mine_rgo_size] + 1.0f))));
+							auto worker_population = ws.w.province_s.province_demographics.get(p, population::to_demo_tag(ws, ws.s.economy_m.rgo_mine.workers[i].type));
+							auto size_to_support = int32_t(std::ceil(float(worker_population) /
+								(ws.s.economy_m.rgo_mine.workers[i].amount * ws.s.economy_m.rgo_mine.workforce * (ws.w.province_s.province_state_container.get<province_state::modifier_values>(p)[modifiers::provincial_offsets::mine_rgo_size] + 1.0f))));
 
-							ps.rgo_size = uint8_t(std::max(size_to_support, int32_t(ps.rgo_size)));
+							rgo_size = uint8_t(std::max(size_to_support, int32_t(rgo_size)));
 						}
 					}
 				} else {
 					for(uint32_t i = 0; i < std::extent_v<decltype(ws.s.economy_m.rgo_farm.workers)>; ++i) {
 						if(is_valid_index(ws.s.economy_m.rgo_farm.workers[i].type)) {
-							auto worker_population = ws.w.province_s.province_demographics.get(ps.id, population::to_demo_tag(ws, ws.s.economy_m.rgo_farm.workers[i].type));
-							auto size_to_support = int32_t(std::ceil(float(worker_population) / (ws.s.economy_m.rgo_farm.workers[i].amount * ws.s.economy_m.rgo_farm.workforce * (ps.modifier_values[modifiers::provincial_offsets::farm_rgo_size] + 1.0f))));
+							auto worker_population = ws.w.province_s.province_demographics.get(p, population::to_demo_tag(ws, ws.s.economy_m.rgo_farm.workers[i].type));
+							auto size_to_support = int32_t(std::ceil(float(worker_population) /
+								(ws.s.economy_m.rgo_farm.workers[i].amount * ws.s.economy_m.rgo_farm.workforce * (ws.w.province_s.province_state_container.get<province_state::modifier_values>(p)[modifiers::provincial_offsets::farm_rgo_size] + 1.0f))));
 
-							ps.rgo_size = uint8_t(std::max(size_to_support, int32_t(ps.rgo_size)));
+							rgo_size = uint8_t(std::max(size_to_support, int32_t(rgo_size)));
 						}
 					}
 				}
 
-				ps.rgo_size = uint8_t(std::clamp((int32_t(ps.rgo_size) * 3) / 2, 1, 255));
+				rgo_size = uint8_t(std::clamp((int32_t(rgo_size) * 3) / 2, 1, 255));
 			}
-		}
+		});
 
 	}
 }
