@@ -790,7 +790,7 @@ namespace population {
 				nations::for_each_pop(ws, ws.w.nation_s.states[tag], f);
 		} else if constexpr(std::is_same_v<tag_type, provinces::province_tag>) {
 			if(is_valid_index(tag))
-				provinces::for_each_pop(ws, ws.w.province_s.province_state_container[tag], f);
+				provinces::for_each_pop(ws, tag, f);
 		}
 	}
 
@@ -1109,9 +1109,9 @@ namespace population {
 					auto b_loc = ws.w.population_s.pops[b].location;
 					return lss(
 						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
-							is_valid_index(a_loc) ? ws.w.province_s.province_state_container[a_loc].name : text_data::text_tag()),
+							is_valid_index(a_loc) ? ws.w.province_s.province_state_container.get<province_state::name>(a_loc) : text_data::text_tag()),
 						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
-							is_valid_index(b_loc) ? ws.w.province_s.province_state_container[b_loc].name : text_data::text_tag()));
+							is_valid_index(b_loc) ? ws.w.province_s.province_state_container.get<province_state::name>(b_loc) : text_data::text_tag()));
 				});
 			}
 				break;
@@ -1353,7 +1353,7 @@ namespace population {
 	void pop_location::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		provinces::province_tag p = ws.w.population_s.pops[w.tag].location;
 		if(is_valid_index(p))
-			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.w.province_s.province_state_container[p].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.w.province_s.province_state_container.get<province_state::name>(p), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 		lm.finish_current_line();
 	}
 
@@ -1482,12 +1482,12 @@ namespace population {
 		auto& pop = ws.w.population_s.pops[w.tag];
 		if(provinces::province_tag loc = pop.location; is_valid_index(loc)) {
 			if(pop.type == ws.s.population_m.artisan) {
-				if(auto p = ws.w.province_s.province_state_container[loc].artisan_production; is_valid_index(p)) {
+				if(auto p = ws.w.province_s.province_state_container.get<province_state::artisan_production>(loc); is_valid_index(p)) {
 					self.set_frame(ws.w.gui_m, ws.s.economy_m.goods[p].icon);
 					ui::make_visible_immediate(*self.associated_object);
 					return;
 				}
-			} else if(auto production = ws.w.province_s.province_state_container[loc].rgo_production; is_valid_index(production)) {
+			} else if(auto production = ws.w.province_s.province_state_container.get<province_state::rgo_production>(loc); is_valid_index(production)) {
 				if((ws.s.economy_m.goods[production].flags & economy::good_definition::mined) != 0) {
 					for(uint32_t i = 0; i < std::extent_v<decltype(ws.s.economy_m.rgo_mine.workers)>; ++i) {
 						if(ws.s.economy_m.rgo_mine.workers[i].type == pop.type) {
@@ -1647,7 +1647,7 @@ namespace population {
 	template<typename window_type>
 	void pop_province_name::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		if(is_valid_index(win.tag)) {
-			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.w.province_s.province_state_container[win.tag].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.w.province_s.province_state_container.get<province_state::name>(win.tag), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 			lm.finish_current_line();
 		}
 	}
@@ -1775,7 +1775,9 @@ namespace population {
 	template<typename W>
 	void pop_province_growth::windowed_update(ui::dynamic_icon<pop_province_growth>& ico, W& w, world_state& ws) {
 		if(is_valid_index(w.tag)) {
-			auto growth = ws.w.province_s.province_demographics.get(w.tag, total_population_tag) - ws.w.province_s.province_state_container[w.tag].last_population;
+			auto growth =
+				ws.w.province_s.province_demographics.get(w.tag, total_population_tag)
+				- ws.w.province_s.province_state_container.get<province_state::last_population>(w.tag);
 			if(growth > 0)
 				ico.set_frame(ws.w.gui_m, 0ui32);
 			else if(growth == 0)
@@ -1806,7 +1808,7 @@ namespace population {
 	template<size_t level>
 	std::vector<provinces::province_tag, concurrent_allocator<provinces::province_tag>> pop_tree_view::sub_list(nations::state_tag t, world_state& ws) {
 		std::vector<provinces::province_tag, concurrent_allocator<provinces::province_tag>> result;
-		nations::for_each_province(ws, ws.w.nation_s.states[t], [&result](provinces::province_state const& p) { result.push_back(p.id); });
+		nations::for_each_province(ws, ws.w.nation_s.states[t], [&result](provinces::province_tag p) { result.push_back(p); });
 		return result;
 	}
 

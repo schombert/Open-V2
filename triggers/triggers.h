@@ -11,9 +11,17 @@
 namespace scenario {
 	class scenario_manager;
 }
+
 class world_state;
+
 namespace population {
 	struct rebel_faction;
+	struct pop;
+}
+
+namespace nations {
+	struct nation;
+	struct state_instance;
 }
 
 #undef small
@@ -114,6 +122,36 @@ namespace triggers {
 		trigger_payload(trigger_tag id) : trigger(id) {}
 	};
 
+	union parameter {
+		nations::nation* nation;
+		nations::state_instance* state;
+		population::pop* pop;
+		provinces::province_tag prov;
+
+		constexpr parameter() noexcept : nation(nullptr) {}
+		constexpr parameter(nations::nation* n) noexcept : nation(n) {}
+		constexpr parameter(nations::state_instance* s) noexcept : state(s) {}
+		constexpr parameter(population::pop* po) noexcept : pop(po) {}
+		constexpr parameter(provinces::province_tag pr) noexcept : prov(pr) {}
+	};
+
+	union const_parameter {
+	private:
+		parameter pcopy;
+	public:
+		nations::nation const* nation;
+		nations::state_instance const* state;
+		population::pop const* pop;
+		provinces::province_tag prov;
+
+		constexpr const_parameter() noexcept : nation(nullptr) {}
+		constexpr const_parameter(parameter p) noexcept : pcopy(p) {}
+		constexpr const_parameter(nations::nation const* n) noexcept : nation(n) {}
+		constexpr const_parameter(nations::state_instance const* s) noexcept : state(s) {}
+		constexpr const_parameter(population::pop const* po) noexcept : pop(po) {}
+		constexpr const_parameter(provinces::province_tag pr) noexcept : prov(pr) {}
+	};
+
 	static_assert(sizeof(trigger_payload) == 2);
 
 	class trigger_manager {
@@ -163,5 +201,5 @@ namespace triggers {
 		}
 	}
 
-	bool test_trigger(uint16_t const* tval, world_state const& ws, void const* primary_slot, void const* this_slot, void const* from_slot, population::rebel_faction const* rebel_slot);
+	bool test_trigger(uint16_t const* tval, world_state const& ws, const_parameter primary_slot, const_parameter this_slot, const_parameter from_slot, population::rebel_faction const* rebel_slot);
 }

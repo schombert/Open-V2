@@ -146,7 +146,7 @@ namespace province_state {
 		cores, set_tag<cultures::national_tag>,
 
 		rgo_worker_data, economy::worked_instance,
-		//last_produced, float,
+		last_population, float,
 		last_controller_change, date_tag,
 		last_immigration, date_tag,
 

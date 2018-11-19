@@ -227,7 +227,7 @@ namespace population {
 
 				init_pop_demographics(env.ws, new_pop, int32_t(p.second.size));
 
-				add_item(env.ws.w.population_s.pop_arrays, env.ws.w.province_s.province_state_container[env.prov].pops, new_pop.id);
+				add_item(env.ws.w.population_s.pop_arrays, env.ws.w.province_s.province_state_container.get<province_state::pops>(env.prov), new_pop.id);
 			}
 		}
 	};

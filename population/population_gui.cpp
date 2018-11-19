@@ -429,10 +429,10 @@ namespace population {
 
 	void pop_province_open_button::button_function(ui::simple_button<pop_province_open_button>&, world_state& ws) {
 		if(is_valid_index(tag)) {
-			auto si = ws.w.province_s.province_state_container[tag].state_instance;
-			auto owner = ws.w.province_s.province_state_container[tag].owner;
-			if(bool(owner) && bool(si))
-				ws.w.population_w.show_population_window(ws.w.gui_m, owner->id, si->id, tag);
+			auto si = ws.w.province_s.province_state_container.get<province_state::state_instance>(tag);
+			auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(tag);
+			if(is_valid_index(owner) && is_valid_index(si))
+				ws.w.population_w.show_population_window(ws.w.gui_m, owner, si, tag);
 		}
 	}
 

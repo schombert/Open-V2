@@ -44,8 +44,8 @@ namespace economy {
 		if(!is_valid_index(s)) {
 			if(auto player = ws.w.local_player_nation; player) {
 				if(auto cap = player->current_capital; is_valid_index(cap)) {
-					if(auto cap_state = ws.w.province_s.province_state_container[cap].state_instance; cap_state) {
-						s = cap_state->id;
+					if(auto cap_state = ws.w.province_s.province_state_container.get<province_state::state_instance>(cap); is_valid_index(cap_state)) {
+						s = cap_state;
 					}
 				}
 			}

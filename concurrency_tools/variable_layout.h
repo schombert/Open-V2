@@ -554,15 +554,15 @@ public:
 	template<typename F>
 	void for_each(F const& func) const {
 		for(int32_t i = 0; i < size_used; ++i) {
-			if(container_type::template get<index_type_marker>(ptr[i]) == tag_type(tag_type::typename value_base_t(i)))
-				func(tag_type(tag_type::typename value_base_t(i)));
+			if(container_type::template get<index_type_marker>(ptr[i]) == tag_type(typename tag_type::value_base_t(i)))
+				func(tag_type(typename tag_type::value_base_t(i)));
 		}
 	}
 	template<typename F>
 	void parallel_for_each(F const& func) const {
 		concurrency::parallel_for(0, size_used, [&func, p = this->ptr](int32_t i) {
-			if(container_type::template get<index_type_marker>(p[i]) == tag_type(tag_type::typename value_base_t(i)))
-				func(tag_type(tag_type::typename value_base_t(i)));
+			if(container_type::template get<index_type_marker>(p[i]) == tag_type(typename tag_type::value_base_t(i)))
+				func(tag_type(typename tag_type::value_base_t(i)));
 		});
 	}
 #endif

@@ -241,9 +241,9 @@ namespace military {
 			under_construction.target_country = nations::make_nation_for_tag(ws, tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end)))->id;
 		}
 		void set_state(uint16_t v) {
-			auto state = ws.w.province_s.province_state_container[provinces::province_tag(v)].state_instance;
-			if(state)
-				under_construction.target_state = state->id;
+			auto state = ws.w.province_s.province_state_container.get<province_state::state_instance>(provinces::province_tag(v));
+			if(is_valid_index(state))
+				under_construction.target_state = state;
 		}
 		void set_cb(token_and_type const& t) {
 			under_construction.cb_type = tag_from_text(ws.s.military_m.named_cb_type_index, text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, t.start, t.end));

@@ -350,58 +350,59 @@ namespace modifiers {
 		return cursor_in;
 	}
 
-	ui::xy_pair explain_province_modifier(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, provinces::province_state const& this_province, uint32_t modifier_offset) {
-		auto& base_province = ws.s.province_m.province_container[this_province.id];
+	ui::xy_pair explain_province_modifier(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, provinces::province_tag this_province, uint32_t modifier_offset) {
+		auto& pcontainer = ws.w.province_s.province_state_container;
+		auto& pscontainer = ws.s.province_m.province_container;
 		
-		auto static_range = get_range(ws.w.province_s.static_modifier_arrays, this_province.static_modifiers);
+		auto static_range = get_range(ws.w.province_s.static_modifier_arrays, pcontainer.get<province_state::static_modifiers>(this_province));
 		for(auto m : static_range)
 			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, m, modifier_offset, value_type(1));
 
-		auto timed_range = get_range(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers);
+		auto timed_range = get_range(ws.w.province_s.timed_modifier_arrays, pcontainer.get<province_state::timed_modifiers>(this_province));
 		for(auto t = timed_range.first; t != timed_range.second; ++t)
 			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, t->mod, modifier_offset, value_type(1));
 
-		cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, this_province.terrain, modifier_offset, value_type(1));
-		cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, base_province.climate, modifier_offset, value_type(1));
-		cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, base_province.continent, modifier_offset, value_type(1));
-		cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, this_province.crime, modifier_offset, value_type(1));
+		cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, pcontainer.get<province_state::terrain>(this_province), modifier_offset, value_type(1));
+		cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, pscontainer.get<province::climate>(this_province), modifier_offset, value_type(1));
+		cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, pscontainer.get<province::continent>(this_province), modifier_offset, value_type(1));
+		cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, pcontainer.get<province_state::crime>(this_province), modifier_offset, value_type(1));
 
-		if(auto si = this_province.state_instance; si) {
-			if(auto nf = si->owner_national_focus; nf)
+		if(auto si = pcontainer.get<province_state::state_instance>(this_province); is_valid_index(si)) {
+			if(auto nf = ws.w.nation_s.states[si].owner_national_focus; nf)
 				cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, nf->modifier, modifier_offset, value_type(1));
 		}
-		cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.infrastructure, modifier_offset, ws.s.economy_m.railroad.infrastructure * float(this_province.railroad_level));
+		cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.infrastructure, modifier_offset, ws.s.economy_m.railroad.infrastructure * float(pcontainer.get<province_state::railroad_level>(this_province)));
 		
 		if(is_valid_index(ws.s.economy_m.fort_modifier))
-			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.economy_m.fort_modifier, modifier_offset, float(this_province.fort_level));
+			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.economy_m.fort_modifier, modifier_offset, float(pcontainer.get<province_state::fort_level>(this_province)));
 		if(is_valid_index(ws.s.economy_m.naval_base_modifier))
-			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.economy_m.naval_base_modifier, modifier_offset, float(this_province.naval_base_level));
+			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.economy_m.naval_base_modifier, modifier_offset, float(pcontainer.get<province_state::naval_base_level>(this_province)));
 		if(is_valid_index(ws.s.economy_m.railroad_modifier))
-			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.economy_m.railroad_modifier, modifier_offset, float(this_province.railroad_level));
+			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.economy_m.railroad_modifier, modifier_offset, float(pcontainer.get<province_state::railroad_level>(this_province)));
 
-		if(this_province.siege_progress != 0.0f)
+		if(pcontainer.get<province_state::siege_progress>(this_province) != 0.0f)
 			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.has_siege, modifier_offset, value_type(1));
-		if((this_province.flags & provinces::province_state::is_overseas) != 0)
+		if(pcontainer.get<province_state::is_overseas>(this_province))
 			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.overseas, modifier_offset, value_type(1));
-		if((this_province.flags & provinces::province_state::is_blockaded) != 0)
+		if(pcontainer.get<province_state::is_blockaded>(this_province))
 			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.blockaded, modifier_offset, value_type(1));
-		if((this_province.flags & provinces::province_state::has_owner_core) != 0)
+		if(pcontainer.get<province_state::has_owner_core>(this_province))
 			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.core, modifier_offset, value_type(1));
-		if((base_province.flags & provinces::province::sea) != 0) {
+		if(pscontainer.get<province::is_sea>(this_province)) {
 			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.sea_zone, modifier_offset, value_type(1));
-			if((base_province.flags & provinces::province::coastal) != 0)
+			if(pscontainer.get<province::is_coastal>(this_province))
 				cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.coastal_sea, modifier_offset, value_type(1));
 			else
 				cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.non_coastal, modifier_offset, value_type(1));
 		} else {
 			cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.land_province, modifier_offset, value_type(1));
-			if((base_province.flags & provinces::province::coastal) != 0)
+			if(pscontainer.get<province::is_coastal>(this_province))
 				cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.coastal, modifier_offset, value_type(1));
 			else
 				cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.non_coastal, modifier_offset, value_type(1));
 		}
 
-		cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.nationalism, modifier_offset, this_province.nationalism);
+		cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.nationalism, modifier_offset, pcontainer.get<province_state::nationalism>(this_province));
 		
 		return cursor_in;
 	}

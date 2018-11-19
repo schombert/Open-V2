@@ -8,6 +8,24 @@
 #include <ppl.h>
 
 namespace provinces {
+	nations::nation const* province_owner(world_state const& ws, province_tag p) {
+		if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(p); ws.w.nation_s.nations.is_valid_index(owner)) {
+			return &ws.w.nation_s.nations[owner];
+		}
+		return nullptr;
+	}
+	nations::nation const* province_controller(world_state const& ws, province_tag p) {
+		if(auto controller = ws.w.province_s.province_state_container.get<province_state::controller>(p); ws.w.nation_s.nations.is_valid_index(controller)) {
+			return &ws.w.nation_s.nations[controller];
+		}
+		return nullptr;
+	}
+	nations::state_instance const* province_state(world_state const& ws, province_tag p) {
+		if(auto si = ws.w.province_s.province_state_container.get<province_state::state_instance>(p); ws.w.nation_s.states.is_valid_index(si)) {
+			return &ws.w.nation_s.states[si];
+		}
+		return nullptr;
+	}
 	void reset_state(provinces_state& s) {
 		s.province_state_container.for_each([&s](provinces::province_tag p){
 			s.province_state_container.set<province_state::cores>(p, set_tag<cultures::national_tag>());

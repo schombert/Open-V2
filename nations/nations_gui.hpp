@@ -2019,7 +2019,7 @@ namespace nations {
 				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
 					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
 						if(is_valid_index(n.current_capital) &&
-							ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.africa_modifier)
+							ws.s.province_m.province_container.get<province::continent>(n.current_capital) == ws.w.province_s.africa_modifier)
 							data.push_back(id);
 					}
 				});
@@ -2028,7 +2028,7 @@ namespace nations {
 				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
 					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
 						if(is_valid_index(n.current_capital) &&
-							ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.asia_modifier)
+							ws.s.province_m.province_container.get<province::continent>(n.current_capital) == ws.w.province_s.asia_modifier)
 							data.push_back(id);
 					}
 				});
@@ -2037,7 +2037,7 @@ namespace nations {
 				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
 					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
 						if(is_valid_index(n.current_capital) &&
-							ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.europe_modifier)
+							ws.s.province_m.province_container.get<province::continent>(n.current_capital) == ws.w.province_s.europe_modifier)
 							data.push_back(id);
 					}
 				});
@@ -2046,7 +2046,7 @@ namespace nations {
 				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
 					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
 						if(is_valid_index(n.current_capital) &&
-							ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.north_america_modifier)
+							ws.s.province_m.province_container.get<province::continent>(n.current_capital) == ws.w.province_s.north_america_modifier)
 							data.push_back(id);
 					}
 				});
@@ -2055,7 +2055,7 @@ namespace nations {
 				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
 					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
 						if(is_valid_index(n.current_capital) &&
-							ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.oceania_modifier)
+							ws.s.province_m.province_container.get<province::continent>(n.current_capital) == ws.w.province_s.oceania_modifier)
 							data.push_back(id);
 					}
 				});
@@ -2064,7 +2064,7 @@ namespace nations {
 				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
 					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
 						if(is_valid_index(n.current_capital) &&
-							ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.south_america_modifier)
+							ws.s.province_m.province_container.get<province::continent>(n.current_capital) == ws.w.province_s.south_america_modifier)
 							data.push_back(id);
 					}
 				});

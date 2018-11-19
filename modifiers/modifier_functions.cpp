@@ -11,12 +11,14 @@ namespace modifiers {
 	void add_static_modifier_to_nation(world_state& ws, nations::nation& this_nation, national_modifier_tag mod) {
 		add_item(ws.w.nation_s.static_modifier_arrays, this_nation.static_modifiers, mod);
 	}
-	void add_static_modifier_to_province(world_state& ws, provinces::province_state& this_province, provincial_modifier_tag mod) {
-		add_item(ws.w.province_s.static_modifier_arrays, this_province.static_modifiers, mod);
+	void add_static_modifier_to_province(world_state& ws, provinces::province_tag this_province, provincial_modifier_tag mod) {
+		auto& container = ws.w.province_s.province_state_container;
+		add_item(ws.w.province_s.static_modifier_arrays, container.get<province_state::static_modifiers>(this_province), mod);
 		
 		auto nat_mod = ws.s.modifiers_m.provincial_modifiers[mod].complement;
-		if(is_valid_index(nat_mod) && this_province.owner) {
-			add_static_modifier_to_nation(ws, *this_province.owner, nat_mod);
+		auto owner = container.get<province_state::owner>(this_province);
+		if(is_valid_index(nat_mod) && is_valid_index(owner)) {
+			add_static_modifier_to_nation(ws, ws.w.nation_s.nations[owner], nat_mod);
 		}
 	}
 
@@ -100,69 +102,71 @@ namespace modifiers {
 		//		this_nation.modifier_values += ws.s.modifiers_m.national_modifier_definitions[ws.s.modifiers_m.static_modifiers.generalised_debt_default];
 		//}
 	}
-	void reset_provincial_modifier(world_state& ws, provinces::province_state& this_province) {
-		this_province.modifier_values = provincial_modifier_vector::Zero();
-		auto& base_province = ws.s.province_m.province_container[this_province.id];
+	void reset_provincial_modifier(world_state& ws, provinces::province_tag this_province) {
+		auto& container = ws.w.province_s.province_state_container;
+		auto& modifier_values = container.get<province_state::modifier_values>(this_province);
+		modifier_values.setZero();
 
-		auto static_range = get_range(ws.w.province_s.static_modifier_arrays, this_province.static_modifiers);
+		auto static_range = get_range(ws.w.province_s.static_modifier_arrays, container.get<province_state::static_modifiers>(this_province));
 		for(auto m : static_range)
-			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[m];
+			modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[m];
 
-		remove_item_if(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers,
+		auto& timed_array = container.get<province_state::timed_modifiers>(this_province);
+		remove_item_if(ws.w.province_s.timed_modifier_arrays, timed_array,
 			[d = to_index(ws.w.current_date) + 1](provinces::timed_provincial_modifier const& m) { return to_index(m.expiration) <= d; });
-		auto timed_range = get_range(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers);
+		auto timed_range = get_range(ws.w.province_s.timed_modifier_arrays, timed_array);
 		for(auto t = timed_range.first; t != timed_range.second; ++t)
-			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[t->mod];
+			modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[t->mod];
 
-		if(is_valid_index(this_province.terrain))
-			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[this_province.terrain];
-		if(is_valid_index(base_province.climate))
-			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[base_province.climate];
-		if(is_valid_index(base_province.continent))
-			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[base_province.continent];
+		if(auto terrain = container.get<province_state::terrain>(this_province); is_valid_index(terrain))
+			modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[terrain];
+		if(auto climate = ws.s.province_m.province_container.get<province::climate>(this_province); is_valid_index(climate))
+			modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[climate];
+		if(auto continent = ws.s.province_m.province_container.get<province::continent>(this_province); is_valid_index(continent))
+			modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[continent];
 
-		if(is_valid_index(this_province.crime))
-			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[this_province.crime];
-		if(this_province.state_instance) {
-			if(auto nf = this_province.state_instance->owner_national_focus; nf && is_valid_index(nf->modifier))
-				this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[nf->modifier];
+		if(auto crime = container.get<province_state::crime>(this_province); is_valid_index(crime))
+			modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[crime];
+		if(auto si = container.get<province_state::state_instance>(this_province); is_valid_index(si)) {
+			if(auto nf = ws.w.nation_s.states[si].owner_national_focus; nf && is_valid_index(nf->modifier))
+				modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[nf->modifier];
 		}
 
-		this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.infrastructure] *
-			(ws.s.economy_m.railroad.infrastructure * float(this_province.railroad_level));
+		modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.infrastructure] *
+			(ws.s.economy_m.railroad.infrastructure * float(container.get<province_state::railroad_level>(this_province)));
 
 		if(is_valid_index(ws.s.economy_m.fort_modifier))
-			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.economy_m.fort_modifier] * float(this_province.fort_level);
+			modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.economy_m.fort_modifier] * float(container.get<province_state::fort_level>(this_province));
 		if(is_valid_index(ws.s.economy_m.naval_base_modifier))
-			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.economy_m.naval_base_modifier] * float(this_province.naval_base_level);
+			modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.economy_m.naval_base_modifier] * float(container.get<province_state::naval_base_level>(this_province));
 		if(is_valid_index(ws.s.economy_m.railroad_modifier))
-			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.economy_m.railroad_modifier] * float(this_province.railroad_level);
+			modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.economy_m.railroad_modifier] * float(container.get<province_state::railroad_level>(this_province));
 
-		if(this_province.siege_progress != 0.0f)
-			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.has_siege];
-		if((this_province.flags & provinces::province_state::is_overseas) != 0)
-			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.overseas];
-		if((this_province.flags & provinces::province_state::is_blockaded) != 0)
-			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.blockaded];
-		if((this_province.flags & provinces::province_state::has_owner_core) != 0)
-			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.core];
+		if(container.get<province_state::siege_progress>(this_province) != 0.0f)
+			modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.has_siege];
+		if(container.get<province_state::is_overseas>(this_province))
+			modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.overseas];
+		if(container.get<province_state::is_blockaded>(this_province))
+			modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.blockaded];
+		if(container.get<province_state::has_owner_core>(this_province))
+			modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.core];
 
-		if((base_province.flags & provinces::province::sea) != 0) {
-			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.sea_zone];
-			if((base_province.flags & provinces::province::coastal) != 0)
-				this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.coastal_sea];
+		if(ws.s.province_m.province_container.get<province::is_sea>(this_province)) {
+			modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.sea_zone];
+			if(ws.s.province_m.province_container.get<province::is_coastal>(this_province))
+				modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.coastal_sea];
 			else
-				this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.non_coastal];
+				modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.non_coastal];
 		} else {
-			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.land_province];
-			if((base_province.flags & provinces::province::coastal) != 0)
-				this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.coastal];
+			modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.land_province];
+			if(ws.s.province_m.province_container.get<province::is_coastal>(this_province))
+				modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.coastal];
 			else
-				this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.non_coastal];
+				modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.non_coastal];
 		}
 
-		if(this_province.nationalism != 0.0f)
-			this_province.modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.nationalism] * this_province.nationalism;
+		if(auto nationalism = container.get<province_state::nationalism>(this_province); nationalism > 0.0f)
+			modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.nationalism] * nationalism;
 	}
 
 	void add_timed_modifier_to_nation(world_state& ws, nations::nation& this_nation, national_modifier_tag mod, date_tag expiration) {
@@ -175,34 +179,46 @@ namespace modifiers {
 		else
 			add_item(ws.w.nation_s.timed_modifier_arrays, this_nation.timed_modifiers, nations::timed_national_modifier{ expiration, mod });
 	}
-	void add_timed_modifier_to_province(world_state& ws, provinces::province_state& this_province, provincial_modifier_tag mod, date_tag expiration) {
-		add_item(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers, provinces::timed_provincial_modifier{ expiration, mod });
+	void add_timed_modifier_to_province(world_state& ws, provinces::province_tag this_province, provincial_modifier_tag mod, date_tag expiration) {
+		add_item(ws.w.province_s.timed_modifier_arrays,
+			ws.w.province_s.province_state_container.get<province_state::timed_modifiers>(this_province),
+			provinces::timed_provincial_modifier{ expiration, mod });
 
 		auto nat_mod = ws.s.modifiers_m.provincial_modifiers[mod].complement;
-		if(is_valid_index(nat_mod) && this_province.owner) {
-			add_timed_modifier_to_nation(ws, *this_province.owner, nat_mod, expiration);
+		if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(this_province); 
+			is_valid_index(nat_mod) && is_valid_index(owner)) {
+
+			add_timed_modifier_to_nation(ws, ws.w.nation_s.nations[owner], nat_mod, expiration);
 		}
 	}
 	void remove_static_modifier_from_nation(world_state& ws, nations::nation& this_nation, national_modifier_tag mod) {
 		remove_single_item(ws.w.nation_s.static_modifier_arrays, this_nation.static_modifiers, mod);
 	}
-	void remove_static_modifier_from_province(world_state& ws, provinces::province_state& this_province, provincial_modifier_tag mod) {
-		remove_item(ws.w.province_s.static_modifier_arrays, this_province.static_modifiers, mod);
+	void remove_static_modifier_from_province(world_state& ws, provinces::province_tag this_province, provincial_modifier_tag mod) {
+		remove_item(ws.w.province_s.static_modifier_arrays,
+			ws.w.province_s.province_state_container.get<province_state::static_modifiers>(this_province),
+			mod);
 
 		auto nat_mod = ws.s.modifiers_m.provincial_modifiers[mod].complement;
-		if(is_valid_index(nat_mod) && this_province.owner) {
-			remove_static_modifier_from_nation(ws, *this_province.owner, nat_mod);
+		if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(this_province);
+			is_valid_index(nat_mod) && is_valid_index(owner)) {
+
+			remove_static_modifier_from_nation(ws, ws.w.nation_s.nations[owner], nat_mod);
 		}
 	}
 	void remove_timed_modifier_from_nation(world_state& ws, nations::nation& this_nation, national_modifier_tag mod, date_tag expiration) {
 		remove_single_item(ws.w.nation_s.timed_modifier_arrays, this_nation.timed_modifiers, nations::timed_national_modifier{ expiration, mod });
 	}
-	void remove_timed_modifier_from_province(world_state& ws, provinces::province_state& this_province, provincial_modifier_tag mod, date_tag expiration) {
-		remove_single_item(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers, provinces::timed_provincial_modifier{ expiration, mod });
+	void remove_timed_modifier_from_province(world_state& ws, provinces::province_tag this_province, provincial_modifier_tag mod, date_tag expiration) {
+		remove_single_item(ws.w.province_s.timed_modifier_arrays,
+			ws.w.province_s.province_state_container.get<province_state::timed_modifiers>(this_province),
+			provinces::timed_provincial_modifier{ expiration, mod });
 
 		auto nat_mod = ws.s.modifiers_m.provincial_modifiers[mod].complement;
-		if(is_valid_index(nat_mod) && this_province.owner) {
-			remove_timed_modifier_from_nation(ws, *this_province.owner, nat_mod, expiration);
+		if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(this_province);
+			is_valid_index(nat_mod) && is_valid_index(owner)) {
+
+			remove_timed_modifier_from_nation(ws, ws.w.nation_s.nations[owner], nat_mod, expiration);
 		}
 	}
 
@@ -212,19 +228,26 @@ namespace modifiers {
 	void remove_all_timed_modifiers_from_nation(world_state& ws, nations::nation& this_nation, national_modifier_tag mod) {
 		remove_subrange(ws.w.nation_s.timed_modifier_arrays, this_nation.timed_modifiers, nations::timed_national_modifier{ date_tag(), mod });
 	}
-	void remove_all_timed_modifiers_from_province(world_state& ws, provinces::province_state& this_province, provincial_modifier_tag mod) {
+	void remove_all_timed_modifiers_from_province(world_state& ws, provinces::province_tag this_province, provincial_modifier_tag mod) {
 		auto nat_mod = ws.s.modifiers_m.provincial_modifiers[mod].complement;
-		if(is_valid_index(nat_mod) && this_province.owner) {
-			auto nm_range = get_subrange(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers, provinces::timed_provincial_modifier{ date_tag(), mod });
+		auto& timed_array = ws.w.province_s.province_state_container.get<province_state::timed_modifiers>(this_province);
+
+		if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(this_province);
+			is_valid_index(nat_mod) && is_valid_index(owner)) {
+
+			auto nm_range = get_subrange(ws.w.province_s.timed_modifier_arrays,
+				timed_array,
+				provinces::timed_provincial_modifier{ date_tag(), mod });
+
 			for(auto nm = nm_range.first; nm != nm_range.second; ++nm) {
-				remove_timed_modifier_from_nation(ws, *this_province.owner, nat_mod, nm->expiration);
+				remove_timed_modifier_from_nation(ws, ws.w.nation_s.nations[owner], nat_mod, nm->expiration);
 			}
 		}
-		remove_subrange(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers, provinces::timed_provincial_modifier{ date_tag(), mod });
+		remove_subrange(ws.w.province_s.timed_modifier_arrays, timed_array, provinces::timed_provincial_modifier{ date_tag(), mod });
 	}
 
-	void detach_province_modifiers(world_state& ws, provinces::province_state& this_province, nations::nation& nation_from) {
-		auto smod = get_range(ws.w.province_s.static_modifier_arrays, this_province.static_modifiers);
+	void detach_province_modifiers(world_state& ws, provinces::province_tag this_province, nations::nation& nation_from) {
+		auto smod = get_range(ws.w.province_s.static_modifier_arrays, ws.w.province_s.province_state_container.get<province_state::static_modifiers>(this_province));
 		for(auto m : smod) {
 			if(auto nm = ws.s.modifiers_m.provincial_modifiers[m].complement; is_valid_index(nm)) {
 				remove_single_item(ws.w.nation_s.static_modifier_arrays, nation_from.static_modifiers, nm);
@@ -232,7 +255,7 @@ namespace modifiers {
 			}
 		}
 
-		auto tmod = get_range(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers);
+		auto tmod = get_range(ws.w.province_s.timed_modifier_arrays, ws.w.province_s.province_state_container.get<province_state::timed_modifiers>(this_province));
 		for(auto m = tmod.first; m != tmod.second; ++m) {
 			if(auto nm = ws.s.modifiers_m.provincial_modifiers[m->mod].complement; is_valid_index(nm)) {
 				remove_single_item(ws.w.nation_s.timed_modifier_arrays, nation_from.timed_modifiers, nations::timed_national_modifier{ m->expiration, nm });
@@ -240,8 +263,8 @@ namespace modifiers {
 			}
 		}
 	}
-	void attach_province_modifiers(world_state& ws, provinces::province_state& this_province, nations::nation& nation_to) {
-		auto smod = get_range(ws.w.province_s.static_modifier_arrays, this_province.static_modifiers);
+	void attach_province_modifiers(world_state& ws, provinces::province_tag this_province, nations::nation& nation_to) {
+		auto smod = get_range(ws.w.province_s.static_modifier_arrays, ws.w.province_s.province_state_container.get<province_state::static_modifiers>(this_province));
 		for(auto m : smod) {
 			if(auto nm = ws.s.modifiers_m.provincial_modifiers[m].complement; is_valid_index(nm)) {
 				add_item(ws.w.nation_s.static_modifier_arrays, nation_to.static_modifiers, nm);
@@ -249,7 +272,7 @@ namespace modifiers {
 			}
 		}
 
-		auto tmod = get_range(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers);
+		auto tmod = get_range(ws.w.province_s.timed_modifier_arrays, ws.w.province_s.province_state_container.get<province_state::timed_modifiers>(this_province));
 		for(auto m = tmod.first; m != tmod.second; ++m) {
 			if(auto nm = ws.s.modifiers_m.provincial_modifiers[m->mod].complement; is_valid_index(nm)) {
 				add_item(ws.w.nation_s.timed_modifier_arrays, nation_to.timed_modifiers, nations::timed_national_modifier{ m->expiration, nm });
@@ -258,9 +281,9 @@ namespace modifiers {
 		}
 	}
 
-	bool has_provincial_modifier(world_state const& ws, provinces::province_state const& this_province, provincial_modifier_tag mod) {
-		return contains_item(ws.w.province_s.static_modifier_arrays, this_province.static_modifiers, mod) ||
-			contains_item(ws.w.province_s.timed_modifier_arrays, this_province.timed_modifiers, provinces::timed_provincial_modifier{ date_tag(), mod });
+	bool has_provincial_modifier(world_state const& ws, provinces::province_tag this_province, provincial_modifier_tag mod) {
+		return contains_item(ws.w.province_s.static_modifier_arrays, ws.w.province_s.province_state_container.get<province_state::static_modifiers>(this_province), mod) ||
+			contains_item(ws.w.province_s.timed_modifier_arrays, ws.w.province_s.province_state_container.get<province_state::timed_modifiers>(this_province), provinces::timed_provincial_modifier{ date_tag(), mod });
 	}
 	bool has_national_modifier(world_state const& ws, nations::nation const& this_nation, national_modifier_tag mod) {
 		return contains_item(ws.w.nation_s.static_modifier_arrays, this_nation.static_modifiers, mod) ||

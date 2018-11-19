@@ -1559,7 +1559,7 @@ namespace economy {
 				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
 					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
 						if(is_valid_index(n.current_capital) &&
-							ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.africa_modifier)
+							ws.s.province_m.province_container.get<province::continent>(n.current_capital) == ws.w.province_s.africa_modifier)
 							data.push_back(id);
 					}
 				});
@@ -1568,7 +1568,7 @@ namespace economy {
 				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
 					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
 						if(is_valid_index(n.current_capital) &&
-							ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.asia_modifier)
+							ws.s.province_m.province_container.get<province::continent>(n.current_capital) == ws.w.province_s.asia_modifier)
 							data.push_back(id);
 					}
 				});
@@ -1577,7 +1577,7 @@ namespace economy {
 				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
 					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
 						if(is_valid_index(n.current_capital) &&
-							ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.europe_modifier)
+							ws.s.province_m.province_container.get<province::continent>(n.current_capital) == ws.w.province_s.europe_modifier)
 							data.push_back(id);
 					}
 				});
@@ -1586,7 +1586,7 @@ namespace economy {
 				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
 					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
 						if(is_valid_index(n.current_capital) &&
-							ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.north_america_modifier)
+							ws.s.province_m.province_container.get<province::continent>(n.current_capital) == ws.w.province_s.north_america_modifier)
 							data.push_back(id);
 					}
 				});
@@ -1595,7 +1595,7 @@ namespace economy {
 				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
 					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
 						if(is_valid_index(n.current_capital) &&
-							ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.oceania_modifier)
+							ws.s.province_m.province_container.get<province::continent>(n.current_capital) == ws.w.province_s.oceania_modifier)
 							data.push_back(id);
 					}
 				});
@@ -1604,7 +1604,7 @@ namespace economy {
 				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
 					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
 						if(is_valid_index(n.current_capital) &&
-							ws.s.province_m.province_container[n.current_capital].continent == ws.w.province_s.south_america_modifier)
+							ws.s.province_m.province_container.get<province::continent>(n.current_capital) == ws.w.province_s.south_america_modifier)
 							data.push_back(id);
 					}
 				});
@@ -2386,8 +2386,8 @@ namespace economy {
 		if(win.index >= 0 && is_valid_index(win.location)) {
 			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
 
-			if(auto state_cap = nations::get_state_capital(ws, ws.w.nation_s.states[win.location]); state_cap) {
-				auto profit = economy::get_factory_profit(ws, *state_cap, f, state_current_prices(ws, win.location));
+			if(auto state_cap = nations::get_state_capital(ws, ws.w.nation_s.states[win.location]); is_valid_index(state_cap)) {
+				auto profit = economy::get_factory_profit(ws, state_cap, f, state_current_prices(ws, win.location));
 
 				if(profit < money_qnty_type(0)) {
 					self.set_frame(ws.w.gui_m, 1ui32);
@@ -2402,10 +2402,10 @@ namespace economy {
 		if(win.index >= 0 && is_valid_index(win.location)) {
 			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
 			
-			if(auto state_cap = nations::get_state_capital(ws, ws.w.nation_s.states[win.location]); state_cap) {
+			if(auto state_cap = nations::get_state_capital(ws, ws.w.nation_s.states[win.location]); is_valid_index(state_cap)) {
 				ui::text_format blk{ui::text_color::black, fmt.font_handle, fmt.font_size};
 
-				auto profit = economy::get_factory_profit(ws, *state_cap, f, state_current_prices(ws, win.location));
+				auto profit = economy::get_factory_profit(ws, state_cap, f, state_current_prices(ws, win.location));
 
 				char16_t local_buffer[16];
 				put_value_in_buffer(local_buffer, display_type::fp_two_places, profit);
@@ -2528,7 +2528,7 @@ namespace economy {
 			if(si.project.type == economy::pop_project_type::railroad) {
 				if(auto p = si.project.location; is_valid_index(p)) {
 					ui::xy_pair cursor{ 0,0 };
-					if(ws.w.province_s.province_state_container[p].railroad_level == 0) 
+					if(ws.w.province_s.province_state_container.get<province_state::railroad_level>(p) == 0) 
 						cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::build], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 					else 
 						cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::expand], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);

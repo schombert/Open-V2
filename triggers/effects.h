@@ -3,6 +3,7 @@
 #include "common\\common.h"
 #include "common\\shared_tags.h"
 #include "concurrency_tools\\concurrency_tools.h"
+#include "triggers.h"
 
 class world_state;
 
@@ -44,9 +45,9 @@ namespace triggers {
 	void execute_effect(
 		uint16_t const* tval,
 		world_state& ws,
-		void* primary_slot,
-		void* this_slot,
-		void* from_slot,
+		parameter primary_slot,
+		parameter this_slot,
+		parameter from_slot,
 		population::rebel_faction* rebel_slot,
 		jsf_prng generator_copy);
 }

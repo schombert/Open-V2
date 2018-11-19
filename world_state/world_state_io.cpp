@@ -226,23 +226,30 @@ void restore_world_state(world_state& ws) {
 		}
 	}
 
-	for(auto &ps : ws.w.province_s.province_state_container) {
-		auto cores_range = get_range(ws.w.province_s.core_arrays, ps.cores);
-		ps.flags &= ~provinces::province_state::has_owner_core;
+	ws.w.province_s.province_state_container.for_each([&ws](provinces::province_tag p) {
+		auto& container = ws.w.province_s.province_state_container;
+		
+		auto cores_range = get_range(ws.w.province_s.core_arrays, container.get<province_state::cores>(p));
+		container.set<province_state::has_owner_core>(p, false);
+
+		auto owner = container.get<province_state::owner>(p);
+		auto owner_tag = is_valid_index(owner) ? ws.w.nation_s.nations[owner].tag : cultures::national_tag();
+
 		for(auto c : cores_range) {
-			add_item(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[c].core_provinces, ps.id);
-			if(ps.owner && ps.owner->tag == c)
-				ps.flags |= provinces::province_state::has_owner_core;
+			add_item(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[c].core_provinces, p);
+			if(owner_tag == c) {
+				container.set<province_state::has_owner_core>(p, true);
+			}
 		}
-		if(ps.orders)
-			add_item(ws.w.province_s.province_arrays, ps.orders->involved_provinces, ps.id);
-		if(ps.owner)
-			add_item(ws.w.province_s.province_arrays, ps.owner->owned_provinces, ps.id);
-		if(ps.controller)
-			add_item(ws.w.province_s.province_arrays, ps.controller->controlled_provinces, ps.id);
-		if(ps.rebel_controller)
-			add_item(ws.w.province_s.province_arrays, ps.rebel_controller->controlled_provinces, ps.id);
-	}
+		if(auto orders = container.get<province_state::orders>(p); is_valid_index(orders))
+			add_item(ws.w.province_s.province_arrays, ws.w.military_s.army_orders_container[orders].involved_provinces, p);
+		if(is_valid_index(owner))
+			add_item(ws.w.province_s.province_arrays, ws.w.nation_s.nations[owner].owned_provinces, p);
+		if(auto controller = container.get<province_state::controller>(p); is_valid_index(controller))
+			add_item(ws.w.province_s.province_arrays, ws.w.nation_s.nations[controller].controlled_provinces, p);
+		if(auto rebel_controller = container.get<province_state::rebel_controller>(p); is_valid_index(rebel_controller))
+			add_item(ws.w.province_s.province_arrays, ws.w.population_s.rebel_factions[rebel_controller].controlled_provinces, p);
+	});
 
 	ws.w.military_s.armies.for_each([&ws](military::army& a) {
 		if(a.current_orders)
@@ -274,7 +281,7 @@ void restore_world_state(world_state& ws) {
 			m.total_population_support += ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
 		}
 		if(is_valid_index(p.location))
-			add_item(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[p.location].pops, p.id);
+			add_item(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(p.location), p.id);
 	});
 
 	provinces::update_province_demographics(ws);
@@ -310,11 +317,8 @@ void restore_world_state(world_state& ws) {
 			s->state->administrative_efficiency = nations::calculate_state_administrative_efficiency(ws, *(s->state), admin_req);
 	});
 
-	concurrency::parallel_for_each(
-		ws.w.province_s.province_state_container.begin(),
-		ws.w.province_s.province_state_container.end(),
-		[&ws](provinces::province_state& ps) {
-			modifiers::reset_provincial_modifier(ws, ps);
+	ws.w.province_s.province_state_container.parallel_for_each([&ws](provinces::province_tag ps) {
+		modifiers::reset_provincial_modifier(ws, ps);
 	});
 
 	provinces::fill_distance_arrays(ws);

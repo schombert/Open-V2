@@ -196,10 +196,10 @@ namespace military {
 		return false;
 	}
 
-	bool has_units_in_province(world_state const& ws, nations::nation const& this_nation, provinces::province_state const& ps) {
-		auto orders = ps.orders;
-		if(orders) {
-			auto involved_range = get_range(ws.w.military_s.army_arrays, orders->involved_armies);
+	bool has_units_in_province(world_state const& ws, nations::nation const& this_nation, provinces::province_tag ps) {
+		auto orders = ws.w.province_s.province_state_container.get<province_state::orders>(ps);
+		if(is_valid_index(orders)) {
+			auto involved_range = get_range(ws.w.military_s.army_arrays, ws.w.military_s.army_orders_container[orders].involved_armies);
 			for(auto a : involved_range) {
 				if(ws.w.military_s.armies[a].owner == this_nation.id)
 					return true;
@@ -208,14 +208,16 @@ namespace military {
 		return false;
 	}
 
-	uint32_t total_units_in_province(world_state const& ws, provinces::province_state const& ps) {
-		auto orders = ps.orders;
-		if(orders) {
+	uint32_t total_units_in_province(world_state const& ws, provinces::province_tag const& ps) {
+		auto orders = ws.w.province_s.province_state_container.get<province_state::orders>(ps);
+		if(is_valid_index(orders)) {
+			auto& o_obj = ws.w.military_s.army_orders_container[orders];
+
 			uint32_t total = 0ui32;
 			const uint32_t regiment_size = uint32_t(ws.s.modifiers_m.global_defines.pop_size_per_regiment);
 
-			auto province_size = get_size(ws.w.province_s.province_arrays, orders->involved_provinces);
-			auto involved_range = get_range(ws.w.military_s.army_arrays, orders->involved_armies);
+			auto province_size = get_size(ws.w.province_s.province_arrays, o_obj.involved_provinces);
+			auto involved_range = get_range(ws.w.military_s.army_arrays, o_obj.involved_armies);
 
 			if(province_size == 0)
 				return 0ui32;
@@ -230,8 +232,8 @@ namespace military {
 		}
 	}
 
-	bool province_is_contested(world_state const&, provinces::province_state const& ps) {
-		return ps.siege_progress != 0.0f;
+	bool province_is_contested(world_state const& ws, provinces::province_tag ps) {
+		return ws.w.province_s.province_state_container.get<province_state::siege_progress>(ps) != 0.0f;
 	}
 
 	uint32_t total_active_divisions(world_state const& ws, nations::nation const& this_nation) {
@@ -263,7 +265,7 @@ namespace military {
 
 		for(auto p : owned_range) {
 			if(is_valid_index(p)) {
-				auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[p].pops);
+				auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(p));
 				for(auto po : pop_range) {
 					if(is_valid_index(po)) {
 						auto& po_obj = ws.w.population_s.pops[po];
@@ -438,7 +440,7 @@ namespace military {
 
 		auto prange = get_range(ws.w.province_s.province_arrays, o.involved_provinces);
 		for(auto p : prange)
-			ws.w.province_s.province_state_container[p].orders = nullptr;
+			ws.w.province_s.province_state_container.set<province_state::orders>(p, military::army_orders_tag());
 		clear(ws.w.province_s.province_arrays, o.involved_provinces);
 	}
 
@@ -452,7 +454,7 @@ namespace military {
 
 		auto prange = get_range(ws.w.province_s.province_arrays, o.involved_provinces);
 		for(auto p : prange)
-			ws.w.province_s.province_state_container[p].orders = nullptr;
+			ws.w.province_s.province_state_container.set<province_state::orders>(p, military::army_orders_tag());
 		clear(ws.w.province_s.province_arrays, o.involved_provinces);
 	}
 
@@ -556,21 +558,22 @@ namespace military {
 		float running_total = 0.0f;
 
 		if(bool(owner) && !nations::is_colonial_or_protectorate(si)) {
-			nations::for_each_province(ws, si, [&running_total, owner, owner_total_pop, &ws, &factory_count](provinces::province_state const& prov) {
-				auto province_pop = ws.w.province_s.province_demographics.get(prov.id, population::total_population_tag);
+			nations::for_each_province(ws, si, [&running_total, owner, owner_total_pop, &ws, &factory_count](provinces::province_tag prov) {
+				auto province_pop = ws.w.province_s.province_demographics.get(prov, population::total_population_tag);
+				auto& container = ws.w.province_s.province_state_container;
 
-				int32_t base_cost_temp = prov.fort_level + prov.naval_base_level + factory_count + 1;
+				int32_t base_cost_temp = container.get<province_state::fort_level>(prov) + container.get<province_state::naval_base_level>(prov) + factory_count + 1;
 				factory_count = 0; // only add factories once
 
-				if(contains_item(ws.w.province_s.core_arrays, prov.cores, owner->tag))
+				if(contains_item(ws.w.province_s.core_arrays, container.get<province_state::cores>(prov), owner->tag))
 					base_cost_temp *= 2;
-				if(owner->current_capital == prov.id)
+				if(owner->current_capital == prov)
 					base_cost_temp *= 3;
 
 				running_total += 2.8f * std::clamp((owner_total_pop != 0) ? (float(base_cost_temp) * 200.0f * float(province_pop) / owner_total_pop) : float(base_cost_temp), 1.0f, float(base_cost_temp));
 			});
 		} else {
-			nations::for_each_province(ws, si, [&running_total](provinces::province_state const&) {
+			nations::for_each_province(ws, si, [&running_total](provinces::province_tag ) {
 				running_total += 2.8f;
 			});
 		}

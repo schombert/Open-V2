@@ -207,27 +207,24 @@ namespace commands {
 			switch(c.type) {
 				case province_building_type::province_fort:
 				{
-					auto& ps = ws.w.province_s.province_state_container[c.p];
-					ps.fort_upgrade_progress = 1.0f / float(ws.s.economy_m.fort.time);
+					ws.w.province_s.province_state_container.set<province_state::fort_upgrade_progress>(c.p, 1.0f / float(ws.s.economy_m.fort.time));
 					break;
 				}
 				case province_building_type::province_railroad:
 				{
-					auto& ps = ws.w.province_s.province_state_container[c.p];
-					ps.railroad_upgrade_progress = 1.0f / float(ws.s.economy_m.railroad.time);
+					ws.w.province_s.province_state_container.set<province_state::railroad_upgrade_progress>(c.p, 1.0f / float(ws.s.economy_m.railroad.time));
 					break;
 				}
 				case province_building_type::province_naval_base:
 				{
-					auto& ps = ws.w.province_s.province_state_container[c.p];
-					ps.naval_base_upgrade_progress = 1.0f / float(ws.s.economy_m.naval_base.time);
+					ws.w.province_s.province_state_container.set<province_state::naval_base_upgrade_progress>(c.p, 1.0f / float(ws.s.economy_m.naval_base.time));
 					break;
 				}
 				case province_building_type::state_railroad:
 				{
 					auto& si = ws.w.nation_s.states[c.s];
-					nations::for_each_province(ws, si, [n = c.nation_for, &ws](provinces::province_state& ps) {
-						province_building cmd(n, province_building_type::province_railroad, ps.id);
+					nations::for_each_province(ws, si, [n = c.nation_for, &ws](provinces::province_tag p) {
+						province_building cmd(n, province_building_type::province_railroad, p);
 						if(is_command_valid(cmd, ws))
 							execute_command(cmd, ws);
 					});
@@ -236,8 +233,8 @@ namespace commands {
 				case province_building_type::state_fort:
 				{
 					auto& si = ws.w.nation_s.states[c.s];
-					nations::for_each_province(ws, si, [n = c.nation_for, &ws](provinces::province_state& ps) {
-						province_building cmd(n, province_building_type::province_fort, ps.id);
+					nations::for_each_province(ws, si, [n = c.nation_for, &ws](provinces::province_tag p) {
+						province_building cmd(n, province_building_type::province_fort, p);
 						if(is_command_valid(cmd, ws))
 							execute_command(cmd, ws);
 					});
@@ -250,36 +247,34 @@ namespace commands {
 	}
 
 	bool is_command_valid(province_building const & c, world_state const & ws) {
-
+		auto& container = ws.w.province_s.province_state_container;
 		switch(c.type) {
 			case province_building_type::province_fort:
 			{
-				auto& ps = ws.w.province_s.province_state_container[c.p];
-				if(auto owner = ps.owner; owner && owner->id == c.nation_for) {
-					return ps.fort_upgrade_progress == 0
-						&& ps.fort_level < owner->tech_attributes[technologies::tech_offset::max_fort];
+				if(auto owner = container.get<province_state::owner>(c.p); owner == c.nation_for) {
+					return container.get<province_state::fort_upgrade_progress>(c.p) == 0
+						&& container.get<province_state::fort_level>(c.p) < ws.w.nation_s.nations[owner].tech_attributes[technologies::tech_offset::max_fort];
 				}
 				return false;
 			}
 			case province_building_type::province_railroad:
 			{
-				auto& ps = ws.w.province_s.province_state_container[c.p];
-				if(auto owner = ps.owner; owner && owner->id == c.nation_for) {
-					return ps.railroad_upgrade_progress == 0
-						&& ps.railroad_level < owner->tech_attributes[technologies::tech_offset::max_railroad] - ps.modifier_values[modifiers::provincial_offsets::min_build_railroad]
-						&& (owner->current_rules.rules_value & issues::rules::build_railway) != 0;
+				if(auto owner = container.get<province_state::owner>(c.p); owner == c.nation_for) {
+					return container.get<province_state::railroad_upgrade_progress>(c.p) == 0
+						&& container.get<province_state::railroad_level>(c.p) < 
+							(ws.w.nation_s.nations[owner].tech_attributes[technologies::tech_offset::max_railroad] - container.get<province_state::modifier_values>(c.p)[modifiers::provincial_offsets::min_build_railroad])
+						&& (ws.w.nation_s.nations[owner].current_rules.rules_value & issues::rules::build_railway) != 0;
 				}
 				return false;
 			}
 			case province_building_type::province_naval_base:
 			{
-				auto& ps = ws.w.province_s.province_state_container[c.p];
-				auto si = ps.state_instance;
-				if(auto owner = ps.owner; owner && si && owner->id == c.nation_for) {
-					auto port = nations::state_port_province(ws, *si);
-					return ps.naval_base_upgrade_progress == 0
-						&& ps.naval_base_level < owner->tech_attributes[technologies::tech_offset::max_naval_base]
-						&& (ws.s.province_m.province_container[c.p].flags & provinces::province::coastal) != 0
+				auto si = container.get<province_state::state_instance>(c.p);
+				if(auto owner = container.get<province_state::owner>(c.p); owner == c.nation_for && is_valid_index(si)) {
+					auto port = nations::state_port_province(ws, ws.w.nation_s.states[si]);
+					return container.get<province_state::naval_base_upgrade_progress>(c.p) == 0
+						&& container.get<province_state::naval_base_level>(c.p) < ws.w.nation_s.nations[owner].tech_attributes[technologies::tech_offset::max_naval_base]
+						&& ws.s.province_m.province_container.get<province::is_coastal>(c.p)
 						&& (port == c.p || !is_valid_index(port));
 				}
 				return false;
@@ -301,12 +296,13 @@ namespace commands {
 	}
 
 	ui::xy_pair explain_command_conditions(province_building const & c, world_state & ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager & lm, ui::text_format const & fmt) {
+		auto& p_container = ws.w.province_s.province_state_container;
+
 		switch(c.type) {
 			case province_building_type::province_fort:
 			{
-				auto& ps = ws.w.province_s.province_state_container[c.p];
-				if(auto owner = ps.owner; owner) {
-					if(ps.fort_level < owner->tech_attributes[technologies::tech_offset::max_fort]) {
+				if(auto owner = p_container.get<province_state::owner>(c.p); is_valid_index(owner)) {
+					if(p_container.get<province_state::fort_level>(c.p) < ws.w.nation_s.nations[owner].tech_attributes[technologies::tech_offset::max_fort]) {
 						ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
 						cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
 					} else {
@@ -317,7 +313,7 @@ namespace commands {
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 
 					char16_t local_buffer[16];
-					put_value_in_buffer(local_buffer, display_type::integer, owner->tech_attributes[technologies::tech_offset::max_fort]);
+					put_value_in_buffer(local_buffer, display_type::integer, ws.w.nation_s.nations[owner].tech_attributes[technologies::tech_offset::max_fort]);
 					cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), container, cursor_in, fmt, lm);
 					lm.finish_current_line();
 
@@ -327,10 +323,9 @@ namespace commands {
 			}
 			case province_building_type::province_railroad:
 			{
-				auto& ps = ws.w.province_s.province_state_container[c.p];
-				if(auto owner = ps.owner; owner) {
-
-					if(ps.railroad_level < owner->tech_attributes[technologies::tech_offset::max_railroad] - ps.modifier_values[modifiers::provincial_offsets::min_build_railroad]) {
+				if(auto owner = p_container.get<province_state::owner>(c.p); is_valid_index(owner)) {
+					if(p_container.get<province_state::railroad_level>(c.p) <
+						(ws.w.nation_s.nations[owner].tech_attributes[technologies::tech_offset::max_railroad] - p_container.get<province_state::modifier_values>(c.p)[modifiers::provincial_offsets::min_build_railroad])) {
 						ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
 						cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
 					} else {
@@ -341,13 +336,13 @@ namespace commands {
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 
 					char16_t local_buffer[16];
-					put_value_in_buffer(local_buffer, display_type::integer, 1.0f + ps.railroad_level + ps.modifier_values[modifiers::provincial_offsets::min_build_railroad]);
+					put_value_in_buffer(local_buffer, display_type::integer, 1.0f + p_container.get<province_state::railroad_level>(c.p) + p_container.get<province_state::modifier_values>(c.p)[modifiers::provincial_offsets::min_build_railroad]);
 					cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), container, cursor_in, fmt, lm);
 					lm.finish_current_line();
 
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 					
-					if((owner->current_rules.rules_value & issues::rules::build_railway) != 0) {
+					if((ws.w.nation_s.nations[owner].current_rules.rules_value & issues::rules::build_railway) != 0) {
 						ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
 						cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
 					} else {
@@ -363,12 +358,11 @@ namespace commands {
 			}
 			case province_building_type::province_naval_base:
 			{
-				auto& ps = ws.w.province_s.province_state_container[c.p];
-				auto si = ps.state_instance;
-				if(auto owner = ps.owner; owner && si) {
-					auto port = nations::state_port_province(ws, *si);
+				auto si = p_container.get<province_state::state_instance>(c.p);
+				if(auto owner = p_container.get<province_state::owner>(c.p); is_valid_index(owner) && is_valid_index(si)) {
+					auto port = nations::state_port_province(ws, ws.w.nation_s.states[si]);
 
-					if(ps.naval_base_level < owner->tech_attributes[technologies::tech_offset::max_naval_base]) {
+					if(p_container.get<province_state::naval_base_level>(c.p) < ws.w.nation_s.nations[owner].tech_attributes[technologies::tech_offset::max_naval_base]) {
 						ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
 						cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
 					} else {
@@ -379,13 +373,13 @@ namespace commands {
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 
 					char16_t local_buffer[16];
-					put_value_in_buffer(local_buffer, display_type::integer, owner->tech_attributes[technologies::tech_offset::max_naval_base]);
+					put_value_in_buffer(local_buffer, display_type::integer, ws.w.nation_s.nations[owner].tech_attributes[technologies::tech_offset::max_naval_base]);
 					cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), container, cursor_in, fmt, lm);
 					lm.finish_current_line();
 
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 
-					if((ws.s.province_m.province_container[c.p].flags & provinces::province::coastal) != 0) {
+					if(ws.s.province_m.province_container.get<province::is_coastal>(c.p)) {
 						ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
 						cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
 					} else {

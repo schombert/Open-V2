@@ -4,6 +4,7 @@
 
 namespace nations {
 	struct nation;
+	struct state_instance;
 }
 namespace current_state {
 	class state;
@@ -34,4 +35,7 @@ namespace provinces {
 	double distance(world_state const& ws, province_tag a, province_tag b); // in km
 	void path_wise_distance_cost(world_state const& ws, province_tag a, float* results, province_tag* p_results); // in ~km
 	void fill_distance_arrays(world_state& ws);
+	nations::nation const* province_owner(world_state const& ws, province_tag p);
+	nations::nation const* province_controller(world_state const& ws, province_tag p);
+	nations::state_instance const* province_state(world_state const& ws, province_tag p);
 }

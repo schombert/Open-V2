@@ -636,7 +636,7 @@ namespace nations {
 
 		auto owned_provs_range = get_range(ws.w.province_s.province_arrays, target_nation.owned_provinces);
 		for(auto i = owned_provs_range.first; i != owned_provs_range.second; ++i) {
-			auto pops_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[*i].pops);
+			auto pops_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(*i));
 			for(auto j = pops_range.first; j < pops_range.second; ++j) {
 				auto& this_pop = ws.w.population_s.pops.get(*j);
 				if(population::is_pop_accepted(ws, this_pop, target_nation)) {

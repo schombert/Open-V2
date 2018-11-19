@@ -40,7 +40,7 @@ namespace population {
 	}
 
 	pop* get_unassigned_soldier_in_province(world_state& ws, provinces::province_tag prov) {
-		auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[prov].pops);
+		auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(prov));
 		for(auto i = pop_range.first; i != pop_range.second; ++i) {
 			pop& p = ws.w.population_s.pops.get(*i);
 			if(!is_valid_index(p.associated_army) & (p.type == ws.s.population_m.soldier))
@@ -79,10 +79,13 @@ namespace population {
 
 	nations::nation* get_pop_owner(world_state const& ws, pop const& p) {
 		auto loc = p.location;
-		if(is_valid_index(loc))
-			return ws.w.province_s.province_state_container[loc].owner;
-		else
-			return nullptr;
+		if(is_valid_index(loc)) {
+			auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(loc);
+			if(is_valid_index(owner))
+				return &ws.w.nation_s.nations[owner];
+		}
+		
+		return nullptr;
 	}
 
 	bool is_dominant_issue(world_state const& ws, pop_tag id, issues::option_tag opt) {
@@ -116,7 +119,7 @@ namespace population {
 
 		auto prov_range = get_range(ws.w.province_s.province_arrays, r.controlled_provinces);
 		for(auto p : prov_range)
-			ws.w.province_s.province_state_container[p].rebel_controller = nullptr;
+			ws.w.province_s.province_state_container.set<province_state::rebel_controller>(p, rebel_faction_tag());
 		clear(ws.w.province_s.province_arrays, r.controlled_provinces);
 	}
 
@@ -133,7 +136,7 @@ namespace population {
 	void remove_pop_from_province(world_state& ws, pop& this_pop) {
 		// todo: fix employment
 		if(is_valid_index(this_pop.location)) {
-			remove_item(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[this_pop.location].pops, this_pop.id);
+			remove_item(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(this_pop.location), this_pop.id);
 			this_pop.location = provinces::province_tag();
 		}
 	}
@@ -142,12 +145,12 @@ namespace population {
 		// todo: fix employment
 		remove_pop_from_province(ws, this_pop);
 		this_pop.location = new_location;
-		add_item(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[new_location].pops, this_pop.id);
+		add_item(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(this_pop.location), this_pop.id);
 	}
 
 	void free_slave(world_state& ws, pop& this_pop) {
 		auto location = this_pop.location;
-		auto local_rgo = ws.w.province_s.province_state_container[location].rgo_production;
+		auto local_rgo = ws.w.province_s.province_state_container.get<province_state::rgo_production>(location);
 		bool is_mine = (ws.s.economy_m.goods[local_rgo].flags & economy::good_definition::mined) != 0;
 		change_pop_type(ws, this_pop, is_mine ? ws.s.economy_m.rgo_mine.workers[0].type : ws.s.economy_m.rgo_farm.workers[0].type);
 	}

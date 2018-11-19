@@ -50,17 +50,17 @@ namespace nations {
 
 		auto owned_range = get_range(ws.w.province_s.province_arrays, new_nation.owned_provinces);
 		for(auto p : owned_range)
-			ws.w.province_s.province_state_container[p].owner = nullptr;
+			ws.w.province_s.province_state_container.set<province_state::owner>(p, country_tag());
 		clear(ws.w.province_s.province_arrays, new_nation.owned_provinces);
 
 		auto controlled_range = get_range(ws.w.province_s.province_arrays, new_nation.controlled_provinces);
 		for(auto p : controlled_range)
-			ws.w.province_s.province_state_container[p].controller = nullptr;
+			ws.w.province_s.province_state_container.set<province_state::controller>(p, country_tag());
 		clear(ws.w.province_s.province_arrays, new_nation.controlled_provinces);
 
 		auto prange = get_range(ws.w.province_s.province_arrays, new_nation.naval_patrols);
 		for(auto p : prange) {
-			remove_item_if(ws.w.military_s.fleet_presence_arrays, ws.w.province_s.province_state_container[p].fleets,
+			remove_item_if(ws.w.military_s.fleet_presence_arrays, ws.w.province_s.province_state_container.get<province_state::fleets>(p),
 				[id = new_nation.id](military::fleet_presence const& fp) { return fp.owner == id; });
 		}
 		clear(ws.w.province_s.province_arrays, new_nation.naval_patrols);
@@ -185,7 +185,7 @@ namespace nations {
 
 		auto ms_range = get_range(ws.w.nation_s.state_arrays, new_nation.member_states);
 		for(auto s = ms_range.first; s != ms_range.second; ++s) {
-			partial_destroy_state_instance(ws, *(s->state));
+			partial_destroy_state_instance(ws, s->state->id);
 			ws.w.nation_s.states.remove(s->state->id);
 		}
 		clear(ws.w.nation_s.state_arrays, new_nation.member_states);
@@ -199,9 +199,8 @@ namespace nations {
 			owned_copy.push_back(p);
 
 		for(auto p : owned_copy) {
-			auto& state = ws.w.province_s.province_state_container[p];
-			provinces::silent_set_province_owner(ws, this_nation, state);
-			provinces::silent_on_conquer_province(ws, state);
+			provinces::silent_set_province_owner(ws, this_nation, p);
+			provinces::silent_on_conquer_province(ws, p);
 		}
 
 		destroy_nation(ws, to_annex);
@@ -219,10 +218,10 @@ namespace nations {
 			owned_copy.push_back(p);
 
 		for(auto p : owned_copy) {
-			auto& state = ws.w.province_s.province_state_container[p];
-			if(contains_item(ws.w.province_s.core_arrays, state.cores, t) && !contains_item(ws.w.province_s.core_arrays, state.cores, from.tag)) {
-				provinces::silent_set_province_owner(ws, *liberation_target, state);
-				provinces::silent_on_conquer_province(ws, state);
+			auto core_array = ws.w.province_s.province_state_container.get<province_state::cores>(p);
+			if(contains_item(ws.w.province_s.core_arrays, core_array, t) && !contains_item(ws.w.province_s.core_arrays, core_array, from.tag)) {
+				provinces::silent_set_province_owner(ws, *liberation_target, p);
+				provinces::silent_on_conquer_province(ws, p);
 			}
 		}
 
@@ -244,10 +243,9 @@ namespace nations {
 			owned_copy.push_back(p);
 
 		for(auto p : owned_copy) {
-			auto& state = ws.w.province_s.province_state_container[p];
-			if(contains_item(ws.w.province_s.core_arrays, state.cores, t)) {
-				provinces::silent_set_province_owner(ws, *liberation_target, state);
-				provinces::silent_on_conquer_province(ws, state);
+			if(contains_item(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container.get<province_state::cores>(p), t)) {
+				provinces::silent_set_province_owner(ws, *liberation_target, p);
+				provinces::silent_on_conquer_province(ws, p);
 			}
 		}
 
@@ -345,7 +343,7 @@ namespace nations {
 
 	bool is_state_empty(world_state const& ws, state_instance const& s) {
 		for(auto prange = ws.s.province_m.states_to_province_index.get_row(s.region_id); prange.first != prange.second; ++prange.first) {
-			if(ws.w.province_s.province_state_container[*prange.first].state_instance == &s)
+			if(ws.w.province_s.province_state_container.get<province_state::state_instance>(*prange.first) == s.id)
 				return false;
 		}
 		return true;
@@ -362,8 +360,9 @@ namespace nations {
 		clear(ws.w.nation_s.nations_arrays, si.flashpoint_tension_focuses);
 
 		for(auto prange = ws.s.province_m.states_to_province_index.get_row(si.region_id); prange.first != prange.second; ++prange.first) {
-			if(ws.w.province_s.province_state_container[*prange.first].state_instance == &si)
-				ws.w.province_s.province_state_container[*prange.first].state_instance = nullptr;
+			auto& state_tag_ref = ws.w.province_s.province_state_container.get<province_state::state_instance>(*prange.first);
+			if(state_tag_ref == si.id)
+				state_tag_ref = state_tag();
 		}
 	}
 
@@ -375,11 +374,13 @@ namespace nations {
 		}
 	}
 
-	void remove_province_from_state(world_state& ws, provinces::province_state& p) {
-		auto old_state = p.state_instance;
-		p.state_instance = nullptr;
-		if(old_state)
-			old_state->state_capital = nations::find_state_capital(ws, *old_state);
+	void remove_province_from_state(world_state& ws, provinces::province_tag p) {
+		auto& state_tag_ref = ws.w.province_s.province_state_container.get<province_state::state_instance>(p);
+		auto old_state = state_tag_ref;
+
+		state_tag_ref = state_tag();
+		if(is_valid_index(old_state))
+			ws.w.nation_s.states[old_state].state_capital = nations::find_state_capital(ws, ws.w.nation_s.states[old_state]);
 	}
 
 	state_instance& make_state(provinces::state_tag region, world_state& ws) {
@@ -406,23 +407,24 @@ namespace nations {
 	void init_empty_states(world_state& ws) {
 		for(int32_t i = int32_t(ws.w.province_s.province_state_container.size()) - 1; i > 0; --i) {
 			const provinces::province_tag this_prov_id(static_cast<provinces::province_tag::value_base_t>(i));
-			auto& this_province = ws.w.province_s.province_state_container[this_prov_id];
-			auto state_id = ws.s.province_m.province_container[this_prov_id].state_id;
 
-			if((this_province.owner == nullptr) &
-				((ws.s.province_m.province_container[this_prov_id].flags & provinces::province::sea) == 0) &
-				(this_province.state_instance == nullptr) &
+			auto state_id = ws.s.province_m.province_container.get<province::state_id>(this_prov_id);
+
+			if((!is_valid_index(ws.w.province_s.province_state_container.get<province_state::owner>(this_prov_id))) &
+				(ws.s.province_m.province_container.get<province::is_sea>(this_prov_id) == false) &
+				(!(is_valid_index(ws.w.province_s.province_state_container.get<province_state::state_instance>(this_prov_id)))) &
 				is_valid_index(state_id)) {
 
-				this_province.state_instance = &make_state(state_id, ws);
+				auto& new_state = make_state(state_id, ws);
+				ws.w.province_s.province_state_container.set<province_state::state_instance>(this_prov_id, new_state.id);
 
-				auto same_region_range = ws.s.province_m.states_to_province_index.get_row(this_province.state_instance->region_id);
+				auto same_region_range = ws.s.province_m.states_to_province_index.get_row(new_state.region_id);
 				for(auto same_region_prov : same_region_range) {
-					auto& other_province = ws.w.province_s.province_state_container[same_region_prov];
-					if((other_province.owner == nullptr) &
-						((ws.s.province_m.province_container[same_region_prov].flags & provinces::province::sea) == 0) &
-						(other_province.state_instance == nullptr)) {
-						other_province.state_instance = this_province.state_instance;
+					if((!is_valid_index(ws.w.province_s.province_state_container.get<province_state::owner>(same_region_prov))) &
+						(ws.s.province_m.province_container.get<province::is_sea>(same_region_prov) == false) &
+						(!(is_valid_index(ws.w.province_s.province_state_container.get<province_state::state_instance>(same_region_prov))))) {
+
+						ws.w.province_s.province_state_container.set<province_state::state_instance>(same_region_prov, new_state.id);
 					}
 				}
 			}
@@ -475,7 +477,7 @@ namespace nations {
 
 				const auto p_in_region_range = ws.s.province_m.states_to_province_index.get_row(s->region_id);
 				for(auto p = p_in_region_range.first; p != p_in_region_range.second; ++p) {
-					if(ws.w.province_s.province_state_container[*p].owner == &n) {
+					if(ws.w.province_s.province_state_container.get<province_state::owner>(*p) == n.id) {
 						Eigen::Map<Eigen::Matrix<int32_t, -1, 1>, Eigen::AlignmentType::Aligned32> province_demo(ws.w.province_s.province_demographics.get_row(*p), full_vector_size);
 						state_demo += province_demo;
 					}
@@ -530,14 +532,14 @@ namespace nations {
 
 	void fix_capitals(world_state& ws) {
 		ws.w.nation_s.nations.for_each([&ws](nations::nation& n) {
-			if(!is_valid_index(n.current_capital) || ws.w.province_s.province_state_container[n.current_capital].owner != &n)
+			if(!is_valid_index(n.current_capital) || ws.w.province_s.province_state_container.get<province_state::owner>(n.current_capital) != n.id)
 				n.current_capital = find_best_capital(ws, n);
 		});
 	}
 	provinces::province_tag find_best_capital(world_state const& ws, nation const& owner) {
 		if(is_valid_index(owner.tag)) {
 			const auto tag_capital = ws.w.culture_s.national_tags_state[owner.tag].capital;
-			if(is_valid_index(tag_capital) && ws.w.province_s.province_state_container[tag_capital].owner == &owner)
+			if(is_valid_index(tag_capital) && ws.w.province_s.province_state_container.get<province_state::owner>(tag_capital) == owner.id)
 				return tag_capital;
 
 			int32_t population = 0;
@@ -545,7 +547,7 @@ namespace nations {
 
 			const auto core_range = get_range(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[owner.tag].core_provinces);
 			for(auto c = core_range.first; c != core_range.second; ++c) {
-				if(ws.w.province_s.province_state_container[*c].owner == &owner) {
+				if(ws.w.province_s.province_state_container.get<province_state::owner>(*c) == owner.id) {
 					int32_t ppop = ws.w.province_s.province_demographics.get(*c, population::total_population_tag);
 					if(ppop > population) {
 						best_province = *c;
@@ -764,7 +766,7 @@ namespace nations {
 			auto cores_range = get_range(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[tag].core_provinces);
 			float cores_owned_count = 0.0f;
 			for(auto p : cores_range) {
-				if(ws.w.province_s.province_state_container[p].owner == &this_nation)
+				if(ws.w.province_s.province_state_container.get<province_state::owner>(p) == this_nation.id)
 					cores_owned_count += 1.0f;
 			}
 			return (cores_range.second != cores_range.first) ? (cores_owned_count / float(cores_range.second - cores_range.first)) : 1.0f;
@@ -806,9 +808,10 @@ namespace nations {
 
 		auto region_provs = ws.s.province_m.states_to_province_index.get_row(this_state.region_id);
 		for(auto p : region_provs) {
-			auto& ps = ws.w.province_s.province_state_container[p];
-			if((ps.state_instance == &this_state) & ((ps.flags & provinces::province_state::has_owner_core) == 0))
+			if((ws.w.province_s.province_state_container.get<province_state::state_instance>(p) == this_state.id)
+				& ((ws.w.province_s.province_state_container.get<province_state::has_owner_core>(p)) == false)) {
 				++count_non_core;
+			}
 		}
 		//stub
 		return std::clamp(
@@ -848,9 +851,8 @@ namespace nations {
 		if(is_valid_index(n.tag)) {
 			auto core_range = get_range(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[n.tag].core_provinces);
 			for(auto c : core_range) {
-				auto& ps = ws.w.province_s.province_state_container[c];
-				if(ps.owner != &n) {
-					if(ps.dominant_culture == n.primary_culture)
+				if(ws.w.province_s.province_state_container.get<province_state::owner>(c) != n.id) {
+					if(ws.w.province_s.province_state_container.get<province_state::dominant_culture>(c) == n.primary_culture)
 						sum += 1.0f;
 					else
 						sum += 0.25f;
@@ -869,9 +871,9 @@ namespace nations {
 		for(auto p : owned_range) {
 			auto adj_range = ws.s.province_m.same_type_adjacency.get_row(p);
 			for(auto a : adj_range) {
-				auto& adj = ws.w.province_s.province_state_container[a];
-				if(adj.owner != nullptr && adj.owner != &this_nation) {
-					add_item(ws.w.nation_s.nations_arrays, this_nation.neighboring_nations, adj.owner->id);
+				auto adj_owner = ws.w.province_s.province_state_container.get<province_state::owner>(a);
+				if(is_valid_index(adj_owner) && adj_owner != this_nation.id) {
+					add_item(ws.w.nation_s.nations_arrays, this_nation.neighboring_nations, adj_owner);
 				}
 			}
 		}
@@ -882,9 +884,10 @@ namespace nations {
 		uint32_t total = 0ui32;
 
 		for(auto p : owned_range) {
-			auto& ps = ws.w.province_s.province_state_container[p];
-			if((ps.flags & (provinces::province_state::is_overseas | provinces::province_state::is_blockaded)) == provinces::province_state::is_blockaded)
+			if(ws.w.province_s.province_state_container.get<province_state::is_overseas>(p) == false &&
+				ws.w.province_s.province_state_container.get<province_state::is_blockaded>(p) == true) {
 				++total;
+			}
 		}
 		return total;
 	}
@@ -894,9 +897,10 @@ namespace nations {
 		uint32_t total = 0ui32;
 
 		for(auto p : owned_range) {
-			auto& ps = ws.w.province_s.province_state_container[p];
-			if((ps.flags & provinces::province_state::is_overseas) == 0 && is_valid_index(ps.crime))
+			if(ws.w.province_s.province_state_container.get<province_state::is_overseas>(p) == false
+				&& is_valid_index(ws.w.province_s.province_state_container.get<province_state::crime>(p))) {
 				++total;
+			}
 		}
 		return total;
 	}
@@ -906,9 +910,10 @@ namespace nations {
 		uint32_t total = 0ui32;
 
 		for(auto p : owned_range) {
-			auto& ps = ws.w.province_s.province_state_container[p];
-			if((ps.flags & provinces::province_state::is_overseas) == 0 && bool(ps.rebel_controller))
+			if(ws.w.province_s.province_state_container.get<province_state::is_overseas>(p) == false
+				&& is_valid_index(ws.w.province_s.province_state_container.get<province_state::rebel_controller>(p))) {
 				++total;
+			}
 		}
 		return total;
 	}
@@ -926,9 +931,9 @@ namespace nations {
 
 		auto owned_range = get_range(ws.w.province_s.province_arrays, this_nation.owned_provinces);
 		for(auto p : owned_range) {
-			auto& ps = ws.w.province_s.province_state_container[p];
-			ps.flags &= ~provinces::province_state::is_overseas;
-			if(ps.naval_base_level != 0)
+			ws.w.province_s.province_state_container.set<province_state::is_overseas>(p, false);
+
+			if(ws.w.province_s.province_state_container.get<province_state::naval_base_level>(p) != 0)
 				++this_nation.num_ports;
 		}
 
@@ -942,20 +947,19 @@ namespace nations {
 			pending_neighbor_check.erase(pending_neighbor_check.end() - 1);
 			already_added.insert(tp);
 
-			auto& ps = ws.w.province_s.province_state_container[tp];
 			++this_nation.central_province_count;
-			if(ps.naval_base_level != 0)
+			if(ws.w.province_s.province_state_container.get<province_state::naval_base_level>(tp) != 0)
 				++this_nation.num_connected_ports;
-			if(ps.rebel_controller)
+			if(is_valid_index(ws.w.province_s.province_state_container.get<province_state::rebel_controller>(tp)))
 				++this_nation.rebel_controlled_provinces;
-			if(is_valid_index(ps.crime))
+			if(is_valid_index(ws.w.province_s.province_state_container.get<province_state::crime>(tp)))
 				++this_nation.crime_count;
-			if((ps.flags & provinces::province_state::is_blockaded) != 0)
+			if(ws.w.province_s.province_state_container.get<province_state::is_blockaded>(tp))
 				++this_nation.blockaded_count;
 
 			auto adj_range = ws.s.province_m.same_type_adjacency.get_row(tp);
 			for(auto a : adj_range) {
-				if(ws.w.province_s.province_state_container[a].owner == &this_nation && already_added.count(a) == 0 && pending_neighbor_check.count(a) == 0)
+				if(ws.w.province_s.province_state_container.get<province_state::owner>(a) == this_nation.id && already_added.count(a) == 0 && pending_neighbor_check.count(a) == 0)
 					pending_neighbor_check.insert(a);
 			}
 		}
@@ -1243,43 +1247,32 @@ namespace nations {
 		if(auto rid = s.region_id; is_valid_index(rid)) {
 			auto prange = ws.s.province_m.states_to_province_index.get_row(rid);
 			for(auto p : prange) {
-				auto& ps = ws.w.province_s.province_state_container[p];
-				if(ps.state_instance == &s)
-					return ps.id;
+				if(ws.w.province_s.province_state_container.get<province_state::state_instance>(p) == s.id)
+					return p;
 			}
 		}
 		return provinces::province_tag();
 	}
 	provinces::province_tag state_port_province(world_state const & ws, nations::state_instance const & s) {
 		provinces::province_tag port;
-		nations::for_each_province(ws, s, [&port](provinces::province_state const& ps) {
-			if(ps.naval_base_level > 0 || ps.naval_base_upgrade_progress != 0)
-				port = ps.id;
+		nations::for_each_province(ws, s, [&port, &ws](provinces::province_tag p) {
+			if(ws.w.province_s.province_state_container.get<province_state::naval_base_level>(p) > 0
+				|| ws.w.province_s.province_state_container.get<province_state::naval_base_upgrade_progress>(p) != 0)
+				port = p;
 		});
 		return port;
 	}
-	provinces::province_state const* get_state_capital(world_state const& ws, nations::state_instance const& s) {
-		if(auto cap = s.state_capital; is_valid_index(cap))
-			return &ws.w.province_s.province_state_container[cap];
-		else
-			return nullptr;
-	}
-
-	provinces::province_state* get_state_capital(world_state& ws, nations::state_instance& s) {
-		if(auto cap = s.state_capital; is_valid_index(cap))
-			return &ws.w.province_s.province_state_container[cap];
-		else
-			return nullptr;
+	provinces::province_tag get_state_capital(world_state const&, nations::state_instance const& s) {
+		return s.state_capital;
 	}
 
 	bool are_states_physically_neighbors(world_state const& ws, nations::state_instance const& a, nations::state_instance const& b) {
 		auto prange = ws.s.province_m.states_to_province_index.get_row(a.region_id);
 		for(auto p : prange) {
-			auto& ps = ws.w.province_s.province_state_container[p];
-			if(ps.state_instance == &a) {
+			if(ws.w.province_s.province_state_container.get<province_state::state_instance>(p) == a.id) {
 				auto prov_adj = ws.s.province_m.same_type_adjacency.get_row(p);
 				for(auto ip : prov_adj) {
-					if(ws.w.province_s.province_state_container[ip].state_instance == &b)
+					if(ws.w.province_s.province_state_container.get<province_state::state_instance>(ip) == b.id)
 						return true;
 				}
 			}

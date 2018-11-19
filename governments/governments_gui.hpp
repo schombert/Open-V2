@@ -1283,8 +1283,8 @@ namespace governments {
 			auto owned_range = get_range(ws.w.province_s.province_arrays, player->owned_provinces);
 			for(auto p : owned_range) {
 				if(is_valid_index(p)) {
-					if(!contains_item(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container[p].cores, player->tag)) {
-						auto core_range = get_range(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container[p].cores);
+					if(!contains_item(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container.get<province_state::cores>(p), player->tag)) {
+						auto core_range = get_range(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container.get<province_state::cores>(p));
 						for(auto c : core_range) {
 							if(is_valid_index(c) && (!ws.w.culture_s.national_tags_state[c].is_not_releasable) && std::find(data.begin(), data.end(), c) == data.end()) {
 								data.push_back(c);
