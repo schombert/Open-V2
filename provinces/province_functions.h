@@ -38,4 +38,7 @@ namespace provinces {
 	nations::nation const* province_owner(world_state const& ws, province_tag p);
 	nations::nation const* province_controller(world_state const& ws, province_tag p);
 	nations::state_instance const* province_state(world_state const& ws, province_tag p);
+	nations::nation* province_owner(world_state& ws, province_tag p);
+	nations::nation* province_controller(world_state& ws, province_tag p);
+	nations::state_instance* province_state(world_state& ws, province_tag p);
 }

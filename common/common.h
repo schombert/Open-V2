@@ -135,6 +135,8 @@ struct tag_type {
 	constexpr bool operator!=(tag_type v) const noexcept { return value != v.value; }
 	constexpr bool operator<(tag_type v) const noexcept { return value < v.value; }
 	constexpr bool operator<=(tag_type v) const noexcept { return value <= v.value; }
+
+	explicit constexpr operator bool() const noexcept { return value != null_value; }
 };
 
 template<typename value_base, typename zero_is_null, typename individuator>

@@ -26,6 +26,24 @@ namespace provinces {
 		}
 		return nullptr;
 	}
+	nations::nation* province_owner(world_state& ws, province_tag p) {
+		if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(p); ws.w.nation_s.nations.is_valid_index(owner)) {
+			return &ws.w.nation_s.nations[owner];
+		}
+		return nullptr;
+	}
+	nations::nation* province_controller(world_state& ws, province_tag p) {
+		if(auto controller = ws.w.province_s.province_state_container.get<province_state::controller>(p); ws.w.nation_s.nations.is_valid_index(controller)) {
+			return &ws.w.nation_s.nations[controller];
+		}
+		return nullptr;
+	}
+	nations::state_instance* province_state(world_state& ws, province_tag p) {
+		if(auto si = ws.w.province_s.province_state_container.get<province_state::state_instance>(p); ws.w.nation_s.states.is_valid_index(si)) {
+			return &ws.w.nation_s.states[si];
+		}
+		return nullptr;
+	}
 	void reset_state(provinces_state& s) {
 		s.province_state_container.for_each([&s](provinces::province_tag p){
 			s.province_state_container.set<province_state::cores>(p, set_tag<cultures::national_tag>());
@@ -279,15 +297,21 @@ namespace provinces {
 		if(nations::country_tag& controller = container.get<province_state::controller>(prov); is_valid_index(controller)) {
 			nations::remove_controlled_province(ws, controller, prov);
 			controller = nations::country_tag();
+			container.set<province_state::last_controller_change>(prov, ws.w.current_date);
 		}
 	}
 
 	void silent_set_province_controller(world_state& ws, nations::nation& new_controller, province_tag prov) {
 		auto& container = ws.w.province_s.province_state_container;
-		silent_remove_province_controller(ws, prov);
 
-		nations::add_controlled_province(ws, new_controller.id, prov);
-		container.set<province_state::controller>(prov, new_controller.id);
+		auto& controller = container.get<province_state::controller>(prov);
+		if(controller != new_controller.id) {
+			nations::remove_controlled_province(ws, controller, prov);
+			nations::add_controlled_province(ws, new_controller.id, prov);
+			controller = new_controller.id;
+
+			container.set<province_state::last_controller_change>(prov, ws.w.current_date);
+		}
 	}
 
 	void silent_set_province_owner(world_state& ws, nations::nation& new_owner, province_tag prov) {

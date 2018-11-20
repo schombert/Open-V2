@@ -16,10 +16,11 @@ namespace triggers {
 		ui::unlimited_line_manager& lm,
 		ui::text_format const& fmt, 
 		uint16_t const* tval,
-		parameter primary_slot,
-		parameter this_slot,
-		parameter from_slot,
-		population::rebel_faction* rebel_slot
+		const_parameter primary_slot,
+		const_parameter this_slot,
+		const_parameter from_slot,
+		population::rebel_faction* rebel_slot,
+		bool show_condition
 	);
 	ui::xy_pair make_effect_description(
 		world_state& ws,
@@ -28,10 +29,11 @@ namespace triggers {
 		ui::unlimited_line_manager& lm,
 		ui::text_format const& fmt,
 		uint16_t const* tval,
-		parameter primary_slot,
-		parameter this_slot,
-		parameter from_slot,
+		const_parameter primary_slot,
+		const_parameter this_slot,
+		const_parameter from_slot,
 		population::rebel_faction* rebel_slot,
-		jsf_prng generator_copy
+		jsf_prng generator_copy,
+		bool show_condition
 	);
 }

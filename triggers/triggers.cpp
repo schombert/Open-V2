@@ -1,7 +1,7 @@
 #include "triggers.h"
 #include "codes.h"
 #include "world_state\\world_state.h"
-#include "nations\\nations_functions.h"
+#include "nations\\nations_functions.hpp"
 #include "military\\military_functions.h"
 #include "population\\population_function.h"
 #include "ideologies\\ideologies_functions.h"
@@ -780,8 +780,6 @@ namespace triggers {
 		auto state_id = state->id;
 
 		for(auto p : province_range) {
-			auto& ps = ws.w.province_s.province_state_container[p];
-
 			if(ws.w.province_s.province_state_container.get<province_state::state_instance>(p) == state_id) {
 				auto adj_range = ws.s.province_m.same_type_adjacency.get_row(p);
 				for(auto q : adj_range) {
@@ -798,14 +796,14 @@ namespace triggers {
 	}
 	bool tf_state_id_province(TRIGGER_PARAMTERS) {
 		provinces::province_tag pid(tval[2]);
-		auto current_prov = ((provinces::province_state const*)primary_slot)->id;
-		auto same_region = ws.s.province_m.province_container[current_prov].state_id == ws.s.province_m.province_container[pid].state_id;
+		auto current_prov = primary_slot.prov;
+		auto same_region = ws.s.province_m.province_container.get<province::state_id>(current_prov) == ws.s.province_m.province_container.get<province::state_id>(pid);
 		return compare_values(tval[0], same_region, true);
 	}
 	bool tf_state_id_state(TRIGGER_PARAMTERS) {
 		provinces::province_tag pid(tval[2]);
 		auto current_region = primary_slot.state->region_id;
-		auto same_region = current_region == ws.s.province_m.province_container[pid].state_id;
+		auto same_region = current_region == ws.s.province_m.province_container.get<province::state_id>(pid);
 		return compare_values(tval[0], same_region, true);
 	}
 	bool tf_cash_reserves(TRIGGER_PARAMTERS) {
@@ -829,7 +827,7 @@ namespace triggers {
 		return compare_values(tval[0], unemployed_fraction, read_float_from_payload(tval + 2));
 	}
 	bool tf_unemployment_province(TRIGGER_PARAMTERS) {
-		auto prov_id = ((provinces::province_state const*)primary_slot)->id;
+		auto prov_id = primary_slot.prov;
 		float unemployed_fraction = 1.0f - float(ws.w.province_s.province_demographics.get(prov_id, population::total_employment_tag)) / float(ws.w.province_s.province_demographics.get(prov_id, population::total_population_tag));
 		return compare_values(tval[0], unemployed_fraction, read_float_from_payload(tval + 2));
 	}
@@ -847,7 +845,7 @@ namespace triggers {
 		return compare_values(tval[0], 0 != (primary_slot.state->flags & nations::state_instance::is_slave_state), true);
 	}
 	bool tf_is_slave_province(TRIGGER_PARAMTERS) {
-		auto state = ((provinces::province_state const*)primary_slot)->state_instance;
+		auto state = provinces::province_state(ws, primary_slot.prov);
 		if(state)
 			return tf_is_slave_state(tval, ws, state, nullptr, nullptr, nullptr);
 		else
@@ -860,8 +858,8 @@ namespace triggers {
 		return compare_values(tval[0], primary_slot.nation->overlord == nullptr, true);
 	}
 	bool tf_has_national_minority_province(TRIGGER_PARAMTERS) {
-		auto powner = ((provinces::province_state const*)primary_slot)->owner;
-		auto pid = ((provinces::province_state const*)primary_slot)->id;
+		auto powner = provinces::province_owner(ws, primary_slot.prov);
+		auto pid = primary_slot.prov;
 
 		if(powner) {
 			auto prim_culture = powner->primary_culture;
@@ -909,7 +907,7 @@ namespace triggers {
 	bool tf_government_pop(TRIGGER_PARAMTERS) {
 		auto location = primary_slot.pop->location;
 		if(is_valid_index(location)) {
-			auto owner = ws.w.province_s.province_state_container[location].owner;
+			auto owner = provinces::province_owner(ws, location);
 			if(owner) {
 				return tf_government_nation(tval, ws, owner, nullptr, nullptr, nullptr);
 			}
@@ -936,7 +934,7 @@ namespace triggers {
 		return compare_values(tval[0], primary_slot.state->dominant_culture == trigger_payload(tval[2]).culture, true);
 	}
 	bool tf_culture_province(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->dominant_culture == trigger_payload(tval[2]).culture, true);
+		return compare_values(tval[0], ws.w.province_s.province_state_container.get<province_state::dominant_culture>(primary_slot.prov) == trigger_payload(tval[2]).culture, true);
 	}
 	bool tf_culture_nation(TRIGGER_PARAMTERS) {
 		auto has_culture = primary_slot.nation->primary_culture == trigger_payload(tval[2]).culture || contains_item(ws.w.culture_s.culture_arrays, primary_slot.nation->accepted_cultures, trigger_payload(tval[2]).culture);
@@ -949,37 +947,37 @@ namespace triggers {
 		return compare_values(tval[0], primary_slot.state->dominant_culture == rebel_slot->culture, true);
 	}
 	bool tf_culture_province_reb(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->dominant_culture == rebel_slot->culture, true);
+		return compare_values(tval[0], ws.w.province_s.province_state_container.get<province_state::dominant_culture>(primary_slot.prov) == rebel_slot->culture, true);
 	}
 	bool tf_culture_nation_reb(TRIGGER_PARAMTERS) {
 		auto has_culture = primary_slot.nation->primary_culture == rebel_slot->culture || contains_item(ws.w.culture_s.culture_arrays, primary_slot.nation->accepted_cultures, rebel_slot->culture);
 		return compare_values(tval[0], has_culture, true);
 	}
 	bool tf_culture_this_nation(TRIGGER_PARAMTERS) {
-		auto has_culture = ((nations::nation const*)this_slot)->primary_culture == primary_slot.pop->culture || contains_item(ws.w.culture_s.culture_arrays, ((nations::nation const*)this_slot)->accepted_cultures, primary_slot.pop->culture);
+		auto has_culture = this_slot.nation->primary_culture == primary_slot.pop->culture || contains_item(ws.w.culture_s.culture_arrays, this_slot.nation->accepted_cultures, primary_slot.pop->culture);
 		return compare_values(tval[0], has_culture, true);
 	}
 	bool tf_culture_from_nation(TRIGGER_PARAMTERS) {
 		return tf_culture_this_nation(tval, ws, primary_slot, from_slot, nullptr, nullptr);
 	}
 	bool tf_culture_this_state(TRIGGER_PARAMTERS) {
-		auto state_owner = ((nations::state_instance const*)this_slot)->owner;
+		auto state_owner = this_slot.state->owner;
 		if(state_owner)
 			return tf_culture_this_nation(tval, ws, primary_slot, state_owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_culture_this_pop(TRIGGER_PARAMTERS) {
-		auto location = ((population::pop const*)this_slot)->location;
+		auto location = this_slot.pop->location;
 		if(is_valid_index(location)) {
-			auto prov_owner = ws.w.province_s.province_state_container[location].owner;
+			auto prov_owner = provinces::province_owner(ws, location);
 			if(prov_owner)
 				return tf_culture_this_nation(tval, ws, primary_slot, prov_owner, nullptr, nullptr);
 		}
 		return compare_values(tval[0], false, true);
 	}
 	bool tf_culture_this_province(TRIGGER_PARAMTERS) {
-		auto prov_owner = ((provinces::province_state const*)this_slot)->owner;
+		auto prov_owner = provinces::province_owner(ws, this_slot.prov);
 		if(prov_owner)
 			return tf_culture_this_nation(tval, ws, primary_slot, prov_owner, nullptr, nullptr);
 		else
@@ -1025,7 +1023,7 @@ namespace triggers {
 		auto rc = primary_slot.nation->primary_culture;
 		if(is_valid_index(rc)) {
 			auto cg = ws.s.culture_m.culture_container[rc].group;
-			auto nation_pculture = ((nations::nation const*)this_slot)->primary_culture;
+			auto nation_pculture = this_slot.nation->primary_culture;
 			if(is_valid_index(nation_pculture))
 				return compare_values(tval[0], ws.s.culture_m.culture_container[nation_pculture].group == cg, true);
 		}
@@ -1035,7 +1033,7 @@ namespace triggers {
 		auto rc = primary_slot.nation->primary_culture;
 		if(is_valid_index(rc)) {
 			auto cg = ws.s.culture_m.culture_container[rc].group;
-			auto pculture = ((population::pop const*)this_slot)->culture;
+			auto pculture = this_slot.pop->culture;
 			if(is_valid_index(pculture))
 				return compare_values(tval[0], ws.s.culture_m.culture_container[pculture].group == cg, true);
 		}
@@ -1048,42 +1046,42 @@ namespace triggers {
 		return tf_culture_group_pop_this_nation(tval, ws, primary_slot, from_slot, nullptr, nullptr);
 	}
 	bool tf_culture_group_nation_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return tf_culture_group_nation_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_culture_group_pop_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return tf_culture_group_pop_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_culture_group_nation_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
 			return tf_culture_group_nation_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_culture_group_pop_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return tf_culture_group_pop_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_culture_group_nation_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
 			return tf_culture_group_nation_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_culture_group_pop_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
 			return tf_culture_group_pop_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
@@ -1096,44 +1094,44 @@ namespace triggers {
 		return compare_values(tval[0], primary_slot.pop->religion == rebel_slot->religion, true);
 	}
 	bool tf_religion_from_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot.pop->religion == ((nations::nation const*)from_slot)->national_religion, true);
+		return compare_values(tval[0], primary_slot.pop->religion == from_slot.nation->national_religion, true);
 	}
 	bool tf_religion_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot.pop->religion == ((nations::nation const*)this_slot)->national_religion, true);
+		return compare_values(tval[0], primary_slot.pop->religion == this_slot.nation->national_religion, true);
 	}
 	bool tf_religion_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
 			return compare_values(tval[0], primary_slot.pop->religion == owner->national_religion, true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_religion_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return compare_values(tval[0], primary_slot.pop->religion == owner->national_religion, true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_religion_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
 			return compare_values(tval[0], primary_slot.pop->religion == owner->national_religion, true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_terrain_province(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->terrain == trigger_payload(tval[2]).prov_mod, true);
+		return compare_values(tval[0], ws.w.province_s.province_state_container.get<province_state::terrain>(primary_slot.prov) == trigger_payload(tval[2]).prov_mod, true);
 	}
 	bool tf_terrain_pop(TRIGGER_PARAMTERS) {
 		auto location = primary_slot.pop->location;
 		if(is_valid_index(location))
-			return compare_values(tval[0], ws.w.province_s.province_state_container[location].terrain == trigger_payload(tval[2]).prov_mod, true);
+			return compare_values(tval[0], ws.w.province_s.province_state_container.get<province_state::terrain>(location) == trigger_payload(tval[2]).prov_mod, true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_trade_goods(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->rgo_production == trigger_payload(tval[2]).small.values.good, true);
+		return compare_values(tval[0], ws.w.province_s.province_state_container.get<province_state::rgo_production>(primary_slot.prov) == trigger_payload(tval[2]).small.values.good, true);
 	}
 
 	bool tf_is_secondary_power_nation(TRIGGER_PARAMTERS) {
@@ -1171,7 +1169,7 @@ namespace triggers {
 		if(is_valid_index(nation_tag)) {
 			auto core_range = get_range(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[nation_tag].core_provinces);
 			for(auto p : core_range) {
-				if(is_valid_index(p) && ws.w.province_s.province_state_container[p].owner != primary_slot.nation) {
+				if(is_valid_index(p) && provinces::province_owner(ws, p) != primary_slot.nation) {
 					has_all_cores = false;
 					break;
 				}
@@ -1180,13 +1178,13 @@ namespace triggers {
 		return compare_values(tval[0], has_all_cores, true);
 	}
 	bool tf_is_cultural_union_bool(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], nations::union_holder_of(ws, *primary_slot.nation) == primary_slot, true);
+		return compare_values(tval[0], nations::union_holder_of(ws, *primary_slot.nation) == primary_slot.nation, true);
 	}
 	bool tf_is_cultural_union_this_self_pop(TRIGGER_PARAMTERS) {
 		auto pculture = primary_slot.pop->culture;
 		auto pop_union = is_valid_index(pculture) ? nations::union_holder_for(ws, pculture) : nullptr;
 
-		return compare_values(tval[0], this_slot == pop_union, true);
+		return compare_values(tval[0], this_slot.nation == pop_union, true);
 	}
 	bool tf_is_cultural_union_pop_this_pop(TRIGGER_PARAMTERS) {
 		auto nation = population::get_pop_owner(ws, *primary_slot.pop);
@@ -1197,24 +1195,24 @@ namespace triggers {
 	}
 	bool tf_is_cultural_union_this_nation(TRIGGER_PARAMTERS) {
 		auto main_union = nations::union_holder_of(ws, *primary_slot.nation);
-		return compare_values(tval[0], this_slot == main_union, true);
+		return compare_values(tval[0], this_slot.nation == main_union, true);
 	}
 	bool tf_is_cultural_union_this_pop(TRIGGER_PARAMTERS) {
-		auto pop_owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto pop_owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(pop_owner)
 			return tf_is_cultural_union_this_nation(tval, ws, primary_slot, pop_owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_cultural_union_this_state(TRIGGER_PARAMTERS) {
-		auto state_owner = ((nations::state_instance const*)this_slot)->owner;
+		auto state_owner = this_slot.state->owner;
 		if(state_owner)
 			return tf_is_cultural_union_this_nation(tval, ws, primary_slot, state_owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_cultural_union_this_province(TRIGGER_PARAMTERS) {
-		auto prov_owner = ((provinces::province_state const*)this_slot)->owner;
+		auto prov_owner = provinces::province_owner(ws, this_slot.prov);
 		if(prov_owner)
 			return tf_is_cultural_union_this_nation(tval, ws, primary_slot, prov_owner, nullptr, nullptr);
 		else
@@ -1222,7 +1220,7 @@ namespace triggers {
 	}
 	bool tf_is_cultural_union_this_rebel(TRIGGER_PARAMTERS) {
 		if(is_valid_index(rebel_slot->culture))
-			return compare_values(tval[0], primary_slot == nations::union_holder_for(ws, rebel_slot->culture), true);
+			return compare_values(tval[0], primary_slot.nation == nations::union_holder_for(ws, rebel_slot->culture), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
@@ -1230,21 +1228,21 @@ namespace triggers {
 		return compare_values(tval[0], nations::union_tag_of(ws, *primary_slot.nation) == trigger_payload(tval[2]).tag, true);
 	}
 	bool tf_is_cultural_union_tag_this_pop(TRIGGER_PARAMTERS) {
-		auto pop_owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto pop_owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(pop_owner)
 			return tf_is_cultural_union_tag_nation(tval, ws, pop_owner, nullptr, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_cultural_union_tag_this_state(TRIGGER_PARAMTERS) {
-		auto state_owner = ((nations::state_instance const*)this_slot)->owner;
+		auto state_owner = this_slot.state->owner;
 		if(state_owner)
 			return tf_is_cultural_union_tag_nation(tval, ws, state_owner, nullptr, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_cultural_union_tag_this_province(TRIGGER_PARAMTERS) {
-		auto prov_owner = ((provinces::province_state const*)this_slot)->owner;
+		auto prov_owner = provinces::province_owner(ws, this_slot.prov);
 		if(prov_owner)
 			return tf_is_cultural_union_tag_nation(tval, ws, prov_owner, nullptr, nullptr, nullptr);
 		else
@@ -1257,7 +1255,7 @@ namespace triggers {
 		return compare_values(tval[0], 0 != (primary_slot.nation->current_rules.rules_value | issues::rules::pop_build_factory), true);
 	}
 	bool tf_can_build_factory_province(TRIGGER_PARAMTERS) {
-		auto p_owner = ((provinces::province_state const*)primary_slot)->owner;
+		auto p_owner = provinces::province_owner(ws, primary_slot.prov);
 		if(p_owner)
 			return tf_can_build_factory_nation(tval, ws, p_owner, nullptr, nullptr, nullptr);
 		else
@@ -1284,7 +1282,7 @@ namespace triggers {
 		return compare_values(tval[0], primary_slot.nation->war_exhaustion, read_float_from_payload(tval + 2));
 	}
 	bool tf_war_exhaustion_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)primary_slot)->owner;
+		auto owner = provinces::province_owner(ws, primary_slot.prov);
 		if(owner)
 			return tf_war_exhaustion_nation(tval, ws, owner, nullptr, nullptr, nullptr);
 		else
@@ -1306,35 +1304,39 @@ namespace triggers {
 	}
 	bool tf_owns(TRIGGER_PARAMTERS) {
 		provinces::province_tag prov(tval[2]);
-		return compare_values(tval[0], ws.w.province_s.province_state_container[prov].owner == primary_slot, true);
+		return compare_values(tval[0], provinces::province_owner(ws, prov) == primary_slot.nation, true);
 	}
 	bool tf_controls(TRIGGER_PARAMTERS) {
 		provinces::province_tag prov(tval[2]);
-		return compare_values(tval[0], ws.w.province_s.province_state_container[prov].controller == primary_slot, true);
+		return compare_values(tval[0], provinces::province_controller(ws, prov) == primary_slot.nation, true);
 	}
 	bool tf_is_core_integer(TRIGGER_PARAMTERS) {
 		provinces::province_tag prov(tval[2]);
-		return compare_values(tval[0], contains_item(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container[prov].cores, primary_slot.nation->tag), true);
+		return compare_values(tval[0],
+			contains_item(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container.get<province_state::cores>(prov), primary_slot.nation->tag),
+			true);
 	}
 	bool tf_is_core_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], contains_item(ws.w.province_s.core_arrays, ((provinces::province_state const*)primary_slot)->cores, ((nations::nation const*)this_slot)->tag), true);
+		return compare_values(tval[0],
+			contains_item(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container.get<province_state::cores>(primary_slot.prov), this_slot.nation->tag),
+			true);
 	}
 	bool tf_is_core_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
 			return tf_is_core_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_core_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return tf_is_core_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_core_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
 			return tf_is_core_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
@@ -1344,10 +1346,14 @@ namespace triggers {
 		return tf_is_core_this_nation(tval, ws, primary_slot, from_slot, nullptr, nullptr);
 	}
 	bool tf_is_core_reb(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], contains_item(ws.w.province_s.core_arrays, ((provinces::province_state const*)primary_slot)->cores, rebel_slot->independence_tag), true);
+		return compare_values(tval[0],
+			contains_item(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container.get<province_state::cores>(primary_slot.prov),
+				rebel_slot->independence_tag), true);
 	}
 	bool tf_is_core_tag(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], contains_item(ws.w.province_s.core_arrays, ((provinces::province_state const*)primary_slot)->cores, trigger_payload(tval[2]).tag), true);
+		return compare_values(tval[0],
+			contains_item(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container.get<province_state::cores>(primary_slot.prov),
+				trigger_payload(tval[2]).tag), true);
 	}
 	bool tf_num_of_revolts(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0], primary_slot.nation->rebel_controlled_provinces, tval[2]);
@@ -1365,29 +1371,29 @@ namespace triggers {
 	bool tf_num_of_cities_from_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
 			get_size(ws.w.province_s.province_arrays, primary_slot.nation->owned_provinces),
-			get_size(ws.w.province_s.province_arrays, ((nations::nation const*)from_slot)->owned_provinces));
+			get_size(ws.w.province_s.province_arrays, from_slot.nation->owned_provinces));
 	}
 	bool tf_num_of_cities_this_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
 			get_size(ws.w.province_s.province_arrays, primary_slot.nation->owned_provinces),
-			get_size(ws.w.province_s.province_arrays, ((nations::nation const*)this_slot)->owned_provinces));
+			get_size(ws.w.province_s.province_arrays, this_slot.nation->owned_provinces));
 	}
 	bool tf_num_of_cities_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
 			return tf_num_of_cities_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], get_size(ws.w.province_s.province_arrays, primary_slot.nation->owned_provinces), 0ui32);
 	}
 	bool tf_num_of_cities_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return tf_num_of_cities_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], get_size(ws.w.province_s.province_arrays, primary_slot.nation->owned_provinces), 0ui32);
 	}
 	bool tf_num_of_cities_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
 			return tf_num_of_cities_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
@@ -1404,22 +1410,22 @@ namespace triggers {
 	}
 	bool tf_owned_by_tag(TRIGGER_PARAMTERS) {
 		auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
-		return compare_values(tval[0], bool((holder != nullptr)  & (holder == ((provinces::province_state const*)primary_slot)->owner)), true);
+		return compare_values(tval[0], bool((holder != nullptr)  & (holder == provinces::province_owner(ws, primary_slot.prov))), true);
 	}
 	bool tf_owned_by_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], bool((this_slot != nullptr)  & (this_slot == ((provinces::province_state const*)primary_slot)->owner)), true);
+		return compare_values(tval[0], bool((this_slot.nation != nullptr)  & (this_slot.nation == provinces::province_owner(ws, primary_slot.prov))), true);
 	}
 	bool tf_owned_by_from_nation(TRIGGER_PARAMTERS) {
 		return tf_owned_by_this_nation(tval, ws, primary_slot, from_slot, nullptr, nullptr);
 	}
 	bool tf_owned_by_this_province(TRIGGER_PARAMTERS) {
-		return tf_owned_by_this_nation(tval, ws, primary_slot, ((provinces::province_state const*)this_slot)->owner, nullptr, nullptr);
+		return tf_owned_by_this_nation(tval, ws, primary_slot, provinces::province_owner(ws, this_slot.prov), nullptr, nullptr);
 	}
 	bool tf_owned_by_this_state(TRIGGER_PARAMTERS) {
-		return tf_owned_by_this_nation(tval, ws, primary_slot, ((nations::state_instance const*)this_slot)->owner, nullptr, nullptr);
+		return tf_owned_by_this_nation(tval, ws, primary_slot, this_slot.state->owner, nullptr, nullptr);
 	}
 	bool tf_owned_by_this_pop(TRIGGER_PARAMTERS) {
-		return tf_owned_by_this_nation(tval, ws, primary_slot, population::get_pop_owner(ws,*((population::pop const*)this_slot)), nullptr, nullptr);
+		return tf_owned_by_this_nation(tval, ws, primary_slot, population::get_pop_owner(ws,*this_slot.pop), nullptr, nullptr);
 	}
 	bool tf_exists_bool(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0], get_size(ws.w.province_s.province_arrays, primary_slot.nation->owned_provinces) != 0ui32, true);
@@ -1442,21 +1448,20 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_has_country_flag_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)primary_slot)->owner;
+		auto owner = provinces::province_owner(ws, primary_slot.prov);
 		if(owner)
 			return tf_has_country_flag(tval, ws, owner, nullptr, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_continent_province(TRIGGER_PARAMTERS) {
-		auto prov_id = ((provinces::province_state const*)primary_slot)->id;
-		return compare_values(tval[0], ws.s.province_m.province_container[prov_id].continent == trigger_payload(tval[2]).prov_mod, true);
+		return compare_values(tval[0], ws.s.province_m.province_container.get<province::continent>(primary_slot.prov) == trigger_payload(tval[2]).prov_mod, true);
 	}
 	bool tf_continent_state(TRIGGER_PARAMTERS) {
 		auto region_id = primary_slot.state->region_id;
 		if(is_valid_index(region_id)) {
 			auto prov_id = ws.s.province_m.states_to_province_index.get(region_id, 0);
-			return compare_values(tval[0], ws.s.province_m.province_container[prov_id].continent == trigger_payload(tval[2]).prov_mod, true);
+			return compare_values(tval[0], ws.s.province_m.province_container.get<province::continent>(prov_id) == trigger_payload(tval[2]).prov_mod, true);
 		} else {
 			return compare_values(tval[0], false, true);
 		}
@@ -1464,14 +1469,14 @@ namespace triggers {
 	bool tf_continent_nation(TRIGGER_PARAMTERS) {
 		auto prov_id = primary_slot.nation->current_capital;
 		if(is_valid_index(prov_id))
-			return compare_values(tval[0], ws.s.province_m.province_container[prov_id].continent == trigger_payload(tval[2]).prov_mod, true);
+			return compare_values(tval[0], ws.s.province_m.province_container.get<province::continent>(prov_id) == trigger_payload(tval[2]).prov_mod, true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_continent_pop(TRIGGER_PARAMTERS) {
 		auto prov_id = primary_slot.pop->location;
 		if(is_valid_index(prov_id))
-			return compare_values(tval[0], ws.s.province_m.province_container[prov_id].continent == trigger_payload(tval[2]).prov_mod, true);
+			return compare_values(tval[0], ws.s.province_m.province_container.get<province::continent>(prov_id) == trigger_payload(tval[2]).prov_mod, true);
 		else
 			return compare_values(tval[0], false, true);
 	}
@@ -1507,27 +1512,27 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_casus_belli_from(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], military::can_use_cb_against(ws, *primary_slot.nation, *((nations::nation const*)from_slot)), true);
+		return compare_values(tval[0], military::can_use_cb_against(ws, *primary_slot.nation, *from_slot.nation), true);
 	}
 	bool tf_casus_belli_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], military::can_use_cb_against(ws, *primary_slot.nation, *((nations::nation const*)this_slot)), true);
+		return compare_values(tval[0], military::can_use_cb_against(ws, *primary_slot.nation, *this_slot.nation), true);
 	}
 	bool tf_casus_belli_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
 			return compare_values(tval[0], military::can_use_cb_against(ws, *primary_slot.nation, *owner), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_casus_belli_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return compare_values(tval[0], military::can_use_cb_against(ws, *primary_slot.nation, *owner), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_casus_belli_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
 			return compare_values(tval[0], military::can_use_cb_against(ws, *primary_slot.nation, *owner), true);
 		else
@@ -1541,27 +1546,27 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_military_access_from(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], military::has_military_access_with(ws, *primary_slot.nation, *((nations::nation const*)from_slot)), true);
+		return compare_values(tval[0], military::has_military_access_with(ws, *primary_slot.nation, *from_slot.nation), true);
 	}
 	bool tf_military_access_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], military::has_military_access_with(ws, *primary_slot.nation, *((nations::nation const*)this_slot)), true);
+		return compare_values(tval[0], military::has_military_access_with(ws, *primary_slot.nation, *this_slot.nation), true);
 	}
 	bool tf_military_access_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
 			return compare_values(tval[0], military::has_military_access_with(ws, *primary_slot.nation, *owner), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_military_access_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return compare_values(tval[0], military::has_military_access_with(ws, *primary_slot.nation, *owner), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_military_access_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
 			return compare_values(tval[0], military::has_military_access_with(ws, *primary_slot.nation, *owner), true);
 		else
@@ -1571,27 +1576,27 @@ namespace triggers {
 		return compare_values(tval[0], nations::get_prestige(*primary_slot.nation), read_float_from_payload(tval + 2));
 	}
 	bool tf_prestige_from(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], nations::get_prestige(*primary_slot.nation), nations::get_prestige(*((nations::nation const*)from_slot)));
+		return compare_values(tval[0], nations::get_prestige(*primary_slot.nation), nations::get_prestige(*from_slot.nation));
 	}
 	bool tf_prestige_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], nations::get_prestige(*primary_slot.nation), nations::get_prestige(*((nations::nation const*)this_slot)));
+		return compare_values(tval[0], nations::get_prestige(*primary_slot.nation), nations::get_prestige(*this_slot.nation));
 	}
 	bool tf_prestige_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
 			return compare_values(tval[0], nations::get_prestige(*primary_slot.nation), nations::get_prestige(*owner));
 		else
 			return compare_values(tval[0], nations::get_prestige(*primary_slot.nation), 0.0f);
 	}
 	bool tf_prestige_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return compare_values(tval[0], nations::get_prestige(*primary_slot.nation), nations::get_prestige(*owner));
 		else
 			return compare_values(tval[0], nations::get_prestige(*primary_slot.nation), 0.0f);
 	}
 	bool tf_prestige_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
 			return compare_values(tval[0], nations::get_prestige(*primary_slot.nation), nations::get_prestige(*owner));
 		else
@@ -1601,13 +1606,13 @@ namespace triggers {
 		return compare_values(tval[0], primary_slot.nation->infamy, read_float_from_payload(tval + 2));
 	}
 	bool tf_has_building_fort(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->fort_level != 0ui8, true);
+		return compare_values(tval[0], ws.w.province_s.province_state_container.get<province_state::fort_level>(primary_slot.prov) != 0ui8, true);
 	}
 	bool tf_has_building_railroad(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->railroad_level != 0ui8, true);
+		return compare_values(tval[0], ws.w.province_s.province_state_container.get<province_state::railroad_level>(primary_slot.prov) != 0ui8, true);
 	}
 	bool tf_has_building_naval_base(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->railroad_level != 0ui8, true);
+		return compare_values(tval[0], ws.w.province_s.province_state_container.get<province_state::naval_base_level>(primary_slot.prov) != 0ui8, true);
 	}
 
 	bool tf_has_building_factory(TRIGGER_PARAMTERS) {
@@ -1634,24 +1639,24 @@ namespace triggers {
 		return compare_values(tval[0], has_factory, true);
 	}
 	bool tf_has_building_state_from_province(TRIGGER_PARAMTERS) {
-		auto state = ((provinces::province_state const*)primary_slot)->state_instance;
+		auto state = provinces::province_state(ws, primary_slot.prov);
 		if(state)
 			return tf_has_building_state(tval, ws, state, nullptr, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_has_building_factory_from_province(TRIGGER_PARAMTERS) {
-		auto state = ((provinces::province_state const*)primary_slot)->state_instance;
+		auto state = provinces::province_state(ws, primary_slot.prov);
 		if(state)
 			return tf_has_building_factory(tval, ws, state, nullptr, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_empty(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->owner == nullptr, true);
+		return compare_values(tval[0], provinces::province_owner(ws, primary_slot.prov) == nullptr, true);
 	}
 	bool tf_is_blockaded(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], (((provinces::province_state const*)primary_slot)->flags & provinces::province_state::is_blockaded) != 0, true);
+		return compare_values(tval[0], ws.w.province_s.province_state_container.get<province_state::is_blockaded>(primary_slot.prov), true);
 	}
 	bool tf_has_country_modifier(TRIGGER_PARAMTERS) {
 		const auto mod = trigger_payload(tval[2]).nat_mod;
@@ -1660,7 +1665,7 @@ namespace triggers {
 			true);
 	}
 	bool tf_has_country_modifier_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)primary_slot)->owner;
+		auto owner = provinces::province_owner(ws, primary_slot.prov);
 		if(owner)
 			return tf_has_country_modifier(tval, ws, owner, nullptr, nullptr, nullptr);
 		else
@@ -1669,26 +1674,26 @@ namespace triggers {
 	bool tf_has_province_modifier(TRIGGER_PARAMTERS) {
 		const auto mod = trigger_payload(tval[2]).prov_mod;
 		return compare_values(tval[0],
-			modifiers::has_provincial_modifier(ws, *((provinces::province_state const*)primary_slot), mod),
+			modifiers::has_provincial_modifier(ws, primary_slot.prov, mod),
 			true);
 	}
 	bool tf_region(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.s.province_m.province_container[((provinces::province_state const*)primary_slot)->id].state_id == trigger_payload(tval[2]).state, true);
+		return compare_values(tval[0], ws.s.province_m.province_container.get<province::state_id>(primary_slot.prov) == trigger_payload(tval[2]).state, true);
 	}
 	bool tf_tag_tag(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0], primary_slot.nation->tag == trigger_payload(tval[2]).tag, true);
 	}
 	bool tf_tag_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot == this_slot, true);
+		return compare_values(tval[0], primary_slot.nation == this_slot.nation, true);
 	}
 	bool tf_tag_this_province(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot == ((provinces::province_state const*)this_slot)->owner, true);
+		return compare_values(tval[0], primary_slot.nation == provinces::province_owner(ws, this_slot.prov), true);
 	}
 	bool tf_tag_from_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot == from_slot, true);
+		return compare_values(tval[0], primary_slot.nation == from_slot.nation, true);
 	}
 	bool tf_tag_from_province(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot == ((provinces::province_state const*)from_slot)->owner, true);
+		return compare_values(tval[0], primary_slot.nation == provinces::province_owner(ws, from_slot.prov), true);
 	}
 	bool tf_tag_pop(TRIGGER_PARAMTERS) {
 		auto owner = population::get_pop_owner(ws, *primary_slot.pop);
@@ -1709,7 +1714,7 @@ namespace triggers {
 			contains_item(
 				ws.w.nation_s.nations_arrays,
 				primary_slot.nation->neighboring_nations,
-				((nations::nation const*)this_slot)->id),
+				this_slot.nation->id),
 			true);
 	}
 	bool tf_neighbour_from(TRIGGER_PARAMTERS) {
@@ -1717,36 +1722,36 @@ namespace triggers {
 			contains_item(
 				ws.w.nation_s.nations_arrays,
 				primary_slot.nation->neighboring_nations,
-				((nations::nation const*)from_slot)->id),
+				from_slot.nation->id),
 			true);
 	}
 	bool tf_units_in_province_value(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], military::total_units_in_province(ws, *((provinces::province_state const*)primary_slot)), uint32_t(tval[2]));
+		return compare_values(tval[0], military::total_units_in_province(ws, primary_slot.prov), uint32_t(tval[2]));
 	}
 	bool tf_units_in_province_from(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], military::has_units_in_province(ws, *((nations::nation const*)from_slot), *((provinces::province_state const*)primary_slot)), true);
+		return compare_values(tval[0], military::has_units_in_province(ws, *from_slot.nation, primary_slot.prov), true);
 	}
 	bool tf_units_in_province_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], military::has_units_in_province(ws, *((nations::nation const*)this_slot), *((provinces::province_state const*)primary_slot)), true);
+		return compare_values(tval[0], military::has_units_in_province(ws, *this_slot.nation, primary_slot.prov), true);
 	}
 	bool tf_units_in_province_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
-			return compare_values(tval[0], military::has_units_in_province(ws, *owner, *((provinces::province_state const*)primary_slot)), true);
+			return compare_values(tval[0], military::has_units_in_province(ws, *owner, primary_slot.prov), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_units_in_province_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
-			return compare_values(tval[0], military::has_units_in_province(ws, *owner, *((provinces::province_state const*)primary_slot)), true);
+			return compare_values(tval[0], military::has_units_in_province(ws, *owner, primary_slot.prov), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_units_in_province_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
-			return compare_values(tval[0], military::has_units_in_province(ws, *owner, *((provinces::province_state const*)primary_slot)), true);
+			return compare_values(tval[0], military::has_units_in_province(ws, *owner, primary_slot.prov), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
@@ -1758,34 +1763,34 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_war_with_from(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], military::in_war_against(ws, *primary_slot.nation, ((nations::nation const*)from_slot)->id), true);
+		return compare_values(tval[0], military::in_war_against(ws, *primary_slot.nation, from_slot.nation->id), true);
 	}
 	bool tf_war_with_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], military::in_war_against(ws, *primary_slot.nation, ((nations::nation const*)this_slot)->id), true);
+		return compare_values(tval[0], military::in_war_against(ws, *primary_slot.nation, this_slot.nation->id), true);
 	}
 	bool tf_war_with_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return compare_values(tval[0], military::in_war_against(ws, *primary_slot.nation, owner->id), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_war_with_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
 			return compare_values(tval[0], military::in_war_against(ws, *primary_slot.nation, owner->id), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_war_with_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
 			return compare_values(tval[0], military::in_war_against(ws, *primary_slot.nation, owner->id), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_unit_in_battle(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], military::province_is_contested(ws, *((provinces::province_state const*)primary_slot)), true);
+		return compare_values(tval[0], military::province_is_contested(ws, primary_slot.prov), true);
 	}
 	bool tf_total_amount_of_divisions(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0], military::total_active_divisions(ws, *primary_slot.nation), uint32_t(tval[2]));
@@ -1868,9 +1873,9 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_state_religion_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)primary_slot)->owner;
+		auto owner = provinces::province_owner(ws, primary_slot.prov);
 		if(owner)
-			return compare_values(tval[0], owner->national_religion == ((provinces::province_state const*)primary_slot)->dominant_religion, true);
+			return compare_values(tval[0], owner->national_religion == ws.w.province_s.province_state_container.get<province_state::dominant_religion>(primary_slot.prov), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
@@ -1889,9 +1894,10 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_primary_culture_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)primary_slot)->owner;
+		auto owner = provinces::province_owner(ws, primary_slot.prov);
 		if(owner)
-			return compare_values(tval[0], owner->primary_culture == ((provinces::province_state const*)primary_slot)->dominant_culture, true);
+			return compare_values(tval[0],
+				owner->primary_culture == ws.w.province_s.province_state_container.get<province_state::dominant_culture>(primary_slot.prov), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
@@ -1903,92 +1909,93 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_primary_culture_nation_this_pop(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot.nation->primary_culture == ((population::pop const*)this_slot)->culture, true);
+		return compare_values(tval[0], primary_slot.nation->primary_culture == this_slot.pop->culture, true);
 	}
 	bool tf_is_primary_culture_nation_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot.nation->primary_culture == ((nations::nation const*)this_slot)->primary_culture, true);
+		return compare_values(tval[0], primary_slot.nation->primary_culture == this_slot.nation->primary_culture, true);
 	}
 	bool tf_is_primary_culture_nation_this_state(TRIGGER_PARAMTERS) {
-		auto this_owner = ((nations::state_instance const*)this_slot)->owner;
+		auto this_owner = this_slot.state->owner;
 		if(this_owner)
 			return tf_is_primary_culture_nation_this_nation(tval, ws, primary_slot, this_owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_primary_culture_nation_this_province(TRIGGER_PARAMTERS) {
-		auto this_owner = ((provinces::province_state const*)this_slot)->owner;
+		auto this_owner = provinces::province_owner(ws, this_slot.prov);
 		if(this_owner)
 			return tf_is_primary_culture_nation_this_nation(tval, ws, primary_slot, this_owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_primary_culture_state_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot.state->dominant_culture == ((nations::nation const*)this_slot)->primary_culture, true);
+		return compare_values(tval[0], primary_slot.state->dominant_culture == this_slot.nation->primary_culture, true);
 	}
 	bool tf_is_primary_culture_state_this_pop(TRIGGER_PARAMTERS) {
-		auto this_owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto this_owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(this_owner)
 			return tf_is_primary_culture_state_this_nation(tval, ws, primary_slot, this_owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_primary_culture_state_this_state(TRIGGER_PARAMTERS) {
-		auto this_owner = ((nations::state_instance const*)this_slot)->owner;
+		auto this_owner = this_slot.state->owner;
 		if(this_owner)
 			return tf_is_primary_culture_state_this_nation(tval, ws, primary_slot, this_owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_primary_culture_state_this_province(TRIGGER_PARAMTERS) {
-		auto this_owner = ((provinces::province_state const*)this_slot)->owner;
+		auto this_owner = provinces::province_owner(ws, this_slot.prov);
 		if(this_owner)
 			return tf_is_primary_culture_state_this_nation(tval, ws, primary_slot, this_owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_primary_culture_province_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->dominant_culture == ((nations::nation const*)this_slot)->primary_culture, true);
+		return compare_values(tval[0],
+			ws.w.province_s.province_state_container.get<province_state::dominant_culture>(primary_slot.prov) == this_slot.nation->primary_culture, true);
 	}
 	bool tf_is_primary_culture_province_this_pop(TRIGGER_PARAMTERS) {
-		auto this_owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto this_owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(this_owner)
 			return tf_is_primary_culture_province_this_nation(tval, ws, primary_slot, this_owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_primary_culture_province_this_state(TRIGGER_PARAMTERS) {
-		auto this_owner = ((nations::state_instance const*)this_slot)->owner;
+		auto this_owner = this_slot.state->owner;
 		if(this_owner)
 			return tf_is_primary_culture_province_this_nation(tval, ws, primary_slot, this_owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_primary_culture_province_this_province(TRIGGER_PARAMTERS) {
-		auto this_owner = ((provinces::province_state const*)this_slot)->owner;
+		auto this_owner = provinces::province_owner(ws, this_slot.prov);
 		if(this_owner)
 			return tf_is_primary_culture_province_this_nation(tval, ws, primary_slot, this_owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_primary_culture_pop_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot.pop->culture == ((nations::nation const*)this_slot)->primary_culture, true);
+		return compare_values(tval[0], primary_slot.pop->culture == this_slot.nation->primary_culture, true);
 	}
 	bool tf_is_primary_culture_pop_this_pop(TRIGGER_PARAMTERS) {
-		auto this_owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto this_owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(this_owner)
 			return tf_is_primary_culture_pop_this_nation(tval, ws, primary_slot, this_owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_primary_culture_pop_this_state(TRIGGER_PARAMTERS) {
-		auto this_owner = ((nations::state_instance const*)this_slot)->owner;
+		auto this_owner = this_slot.state->owner;
 		if(this_owner)
 			return tf_is_primary_culture_pop_this_nation(tval, ws, primary_slot, this_owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_primary_culture_pop_this_province(TRIGGER_PARAMTERS) {
-		auto this_owner = ((provinces::province_state const*)this_slot)->owner;
+		auto this_owner = provinces::province_owner(ws, this_slot.prov);
 		if(this_owner)
 			return tf_is_primary_culture_pop_this_nation(tval, ws, primary_slot, this_owner, nullptr, nullptr);
 		else
@@ -2005,13 +2012,14 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_accepted_culture_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)primary_slot)->owner;
-		if(owner)
+		auto owner = provinces::province_owner(ws, primary_slot.prov);
+		if(owner) {
+			auto prov_culture = ws.w.province_s.province_state_container.get<province_state::dominant_culture>(primary_slot.prov);
 			return compare_values(tval[0],
-				owner->primary_culture == ((provinces::province_state const*)primary_slot)->dominant_culture ||
-				contains_item(ws.w.culture_s.culture_arrays, owner->accepted_cultures, ((provinces::province_state const*)primary_slot)->dominant_culture),
+				owner->primary_culture == prov_culture ||
+				contains_item(ws.w.culture_s.culture_arrays, owner->accepted_cultures, prov_culture),
 				true);
-		else
+		} else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_accepted_culture_state(TRIGGER_PARAMTERS) {
@@ -2026,7 +2034,7 @@ namespace triggers {
 	}
 	bool tf_is_coastal(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
-			0 != (ws.s.province_m.province_container[((provinces::province_state const*)primary_slot)->id].flags & provinces::province::coastal),
+			ws.s.province_m.province_container.get<province::is_coastal>(primary_slot.prov),
 			true);
 	}
 	bool tf_in_sphere_tag(TRIGGER_PARAMTERS) {
@@ -2036,30 +2044,30 @@ namespace triggers {
 	}
 	bool tf_in_sphere_from(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
-			primary_slot.nation->sphere_leader == from_slot,
+			primary_slot.nation->sphere_leader == from_slot.nation,
 			true);
 	}
 	bool tf_in_sphere_this_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
-			primary_slot.nation->sphere_leader == this_slot,
+			primary_slot.nation->sphere_leader == this_slot.nation,
 			true);
 	}
 	bool tf_in_sphere_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return tf_in_sphere_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_in_sphere_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
 			return tf_in_sphere_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_in_sphere_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
 			return tf_in_sphere_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
@@ -2070,8 +2078,9 @@ namespace triggers {
 
 		auto owned_range = get_range(ws.w.province_s.province_arrays, primary_slot.nation->owned_provinces);
 		for(auto p : owned_range) {
-			provinces::province_state const& ps = ws.w.province_s.province_state_container[p];
-			if((ps.rgo_production == good) | (ps.artisan_production == good))
+			auto rgo_production = ws.w.province_s.province_state_container.get<province_state::rgo_production>(p);
+			auto artisan_production = ws.w.province_s.province_state_container.get<province_state::artisan_production>(p);
+			if((rgo_production == good) | (artisan_production == good))
 				return compare_values(tval[0], true, true);
 		}
 		auto states = get_range(ws.w.nation_s.state_arrays, primary_slot.nation->member_states);
@@ -2087,18 +2096,18 @@ namespace triggers {
 	}
 	bool tf_produces_province(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
-			(((provinces::province_state const*)primary_slot)->rgo_production == trigger_payload(tval[2]).small.values.good) ||
-			(((provinces::province_state const*)primary_slot)->artisan_production == trigger_payload(tval[2]).small.values.good),
+			ws.w.province_s.province_state_container.get<province_state::rgo_production>(primary_slot.prov) == trigger_payload(tval[2]).small.values.good ||
+			ws.w.province_s.province_state_container.get<province_state::artisan_production>(primary_slot.prov) == trigger_payload(tval[2]).small.values.good,
 			true);
 	}
 	bool tf_produces_state(TRIGGER_PARAMTERS) {
 		auto state_provinces = ws.s.province_m.states_to_province_index.get_row(primary_slot.state->region_id);
-		auto state_owner = primary_slot.state->owner;
 		auto good = trigger_payload(tval[2]).small.values.good;
 
 		for(auto p : state_provinces) {
-			provinces::province_state const& ps = ws.w.province_s.province_state_container[p];
-			if((ps.owner == state_owner) & ((ps.rgo_production == good) | (ps.artisan_production == good)))
+			if((provinces::province_state(ws, p) == primary_slot.state)
+				&& ((ws.w.province_s.province_state_container.get<province_state::rgo_production>(p) == good)
+					|| (ws.w.province_s.province_state_container.get<province_state::artisan_production>(p) == good)))
 				return compare_values(tval[0], true, true);
 		}
 		for(int32_t i = int32_t(std::extent_v<decltype(primary_slot.state->factories)>); i--; ) {
@@ -2112,7 +2121,7 @@ namespace triggers {
 		auto pop_location = primary_slot.pop->location;
 		if(primary_slot.pop->type == ws.s.population_m.artisan && is_valid_index(pop_location))
 			return compare_values(tval[0],
-				ws.w.province_s.province_state_container[pop_location].rgo_production == trigger_payload(tval[2]).small.values.good,
+				ws.w.province_s.province_state_container.get<province_state::artisan_production>(pop_location) == trigger_payload(tval[2]).small.values.good,
 				true);
 		else
 			return compare_values(tval[0], false, true);
@@ -2136,10 +2145,9 @@ namespace triggers {
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_average_militancy_province(TRIGGER_PARAMTERS) {
-		auto prov_id = ((provinces::province_state const*)primary_slot)->id;
-		auto total_pop = ws.w.province_s.province_demographics.get(prov_id, population::total_population_tag);
+		auto total_pop = ws.w.province_s.province_demographics.get(primary_slot.prov, population::total_population_tag);
 		if(total_pop != 0)
-			return compare_values(tval[0], float(ws.w.province_s.province_demographics.get(prov_id, population::militancy_demo_tag(ws))) * 10.0f / float(total_pop), read_float_from_payload(tval + 2));
+			return compare_values(tval[0], float(ws.w.province_s.province_demographics.get(primary_slot.prov, population::militancy_demo_tag(ws))) * 10.0f / float(total_pop), read_float_from_payload(tval + 2));
 		else
 			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
@@ -2162,10 +2170,9 @@ namespace triggers {
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_average_consciousness_province(TRIGGER_PARAMTERS) {
-		auto prov_id = ((provinces::province_state const*)primary_slot)->id;
-		auto total_pop = ws.w.province_s.province_demographics.get(prov_id, population::total_population_tag);
+		auto total_pop = ws.w.province_s.province_demographics.get(primary_slot.prov, population::total_population_tag);
 		if(total_pop != 0)
-			return compare_values(tval[0], float(ws.w.province_s.province_demographics.get(prov_id, population::consciousness_demo_tag(ws))) * 10.0f / float(total_pop), read_float_from_payload(tval + 2));
+			return compare_values(tval[0], float(ws.w.province_s.province_demographics.get(primary_slot.prov, population::consciousness_demo_tag(ws))) * 10.0f / float(total_pop), read_float_from_payload(tval + 2));
 		else
 			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
@@ -2205,7 +2212,7 @@ namespace triggers {
 		auto location = primary_slot.pop->location;
 		auto culture = primary_slot.pop->culture;
 		if(is_valid_index(location)) {
-			auto cores = get_range(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container[location].cores);
+			auto cores = get_range(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container.get<province_state::cores>(location));
 			for(auto tag : cores) {
 				if(is_valid_index(tag)) {
 					if(auto holder = ws.w.culture_s.national_tags_state[tag].holder; bool(holder) && holder->primary_culture == culture)
@@ -2218,10 +2225,10 @@ namespace triggers {
 		}
 	}
 	bool tf_has_culture_core_province_this_pop(TRIGGER_PARAMTERS) {
-		auto location = ((provinces::province_state const*)primary_slot)->id;
-		auto culture = ((population::pop const*)this_slot)->culture;
+		auto location = primary_slot.prov;
+		auto culture = this_slot.pop->culture;
 		if(is_valid_index(location)) {
-			auto cores = get_range(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container[location].cores);
+			auto cores = get_range(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container.get<province_state::cores>(location));
 			for(auto tag : cores) {
 				if(is_valid_index(tag)) {
 					if(auto holder = ws.w.culture_s.national_tags_state[tag].holder; bool(holder) && holder->primary_culture == culture)
@@ -2234,55 +2241,55 @@ namespace triggers {
 		}
 	}
 	bool tf_nationalism(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->nationalism, float(tval[2]));
+		return compare_values(tval[0], ws.w.province_s.province_state_container.get<province_state::nationalism>(primary_slot.prov), float(tval[2]));
 	}
 	bool tf_is_overseas(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], 0 != (((provinces::province_state const*)primary_slot)->flags & provinces::province_state::is_overseas), true);
+		return compare_values(tval[0], ws.w.province_s.province_state_container.get<province_state::is_overseas>(primary_slot.prov), true);
 	}
 	bool tf_controlled_by_rebels(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->rebel_controller != nullptr, true);
+		return compare_values(tval[0], ws.w.province_s.province_state_container.get<province_state::rebel_controller>(primary_slot.prov) != population::rebel_faction_tag(), true);
 	}
 	bool tf_controlled_by_tag(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0],((provinces::province_state const*)primary_slot)->controller == ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder, true);
+		return compare_values(tval[0], provinces::province_controller(ws, primary_slot.prov) == ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder, true);
 	}
 	bool tf_controlled_by_from(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->controller == from_slot, true);
+		return compare_values(tval[0], provinces::province_controller(ws, primary_slot.prov) == from_slot.nation, true);
 	}
 	bool tf_controlled_by_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->controller == this_slot, true);
+		return compare_values(tval[0], provinces::province_controller(ws, primary_slot.prov) == this_slot.nation, true);
 	}
 	bool tf_controlled_by_this_province(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->controller == ((provinces::province_state const*)this_slot)->owner, true);
+		return compare_values(tval[0], provinces::province_controller(ws, primary_slot.prov) == provinces::province_owner(ws, this_slot.prov), true);
 	}
 	bool tf_controlled_by_this_state(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->controller == ((nations::state_instance const*)this_slot)->owner, true);
+		return compare_values(tval[0], provinces::province_controller(ws, primary_slot.prov) == this_slot.state->owner, true);
 	}
 	bool tf_controlled_by_this_pop(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->controller == population::get_pop_owner(ws, *((population::pop const*)this_slot)), true);
+		return compare_values(tval[0], provinces::province_controller(ws, primary_slot.prov) == population::get_pop_owner(ws, *this_slot.pop), true);
 	}
 	bool tf_controlled_by_owner(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->owner == ((provinces::province_state const*)primary_slot)->controller, true);
+		return compare_values(tval[0], provinces::province_owner(ws, primary_slot.prov) == provinces::province_controller(ws, primary_slot.prov), true);
 	}
 	bool tf_controlled_by_reb(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->rebel_controller == rebel_slot, true);
+		return compare_values(tval[0], ws.w.province_s.province_state_container.get<province_state::rebel_controller>(primary_slot.prov) == rebel_slot->id, true);
 	}
 	bool tf_is_canal_enabled(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0], ws.w.province_s.is_canal_enabled[tval[2]-1] != 0ui8, true);
 	}
 	bool tf_is_state_capital(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
-		auto si = ((provinces::province_state const*)primary_slot)->state_instance;
-		if(si) {
-			auto state_range = ws.s.province_m.states_to_province_index.get_row(ws.s.province_m.province_container[id].state_id);
-			for(auto ip : state_range) {
-				if(ws.w.province_s.province_state_container[ip].state_instance == si) {
-					if(ip == id)
-						return compare_values(tval[0], true, true);
-					else
-						return compare_values(tval[0], false, true);
-				}
+		auto id = primary_slot.prov;
+		auto sid = ws.w.province_s.province_state_container.get<province_state::state_instance>(id);
+		
+		auto state_range = ws.s.province_m.states_to_province_index.get_row(ws.s.province_m.province_container.get<province::state_id>(id));
+		for(auto ip : state_range) {
+			if(ws.w.province_s.province_state_container.get<province_state::state_instance>(ip) == sid) {
+				if(ip == id)
+					return compare_values(tval[0], true, true);
+				else
+					return compare_values(tval[0], false, true);
 			}
 		}
+
 		return compare_values(tval[0], false, true);
 	}
 	bool tf_truce_with_tag(TRIGGER_PARAMTERS) {
@@ -2293,27 +2300,27 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_truce_with_from(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], contains_item(ws.w.nation_s.truce_arrays, primary_slot.nation->truces, nations::truce { date_tag(), ((nations::nation const*)from_slot)->id }), true);
+		return compare_values(tval[0], contains_item(ws.w.nation_s.truce_arrays, primary_slot.nation->truces, nations::truce { date_tag(), from_slot.nation->id }), true);
 	}
 	bool tf_truce_with_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], contains_item(ws.w.nation_s.truce_arrays, primary_slot.nation->truces, nations::truce { date_tag(), ((nations::nation const*)this_slot)->id }), true);
+		return compare_values(tval[0], contains_item(ws.w.nation_s.truce_arrays, primary_slot.nation->truces, nations::truce { date_tag(), this_slot.nation->id }), true);
 	}
 	bool tf_truce_with_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return compare_values(tval[0], contains_item(ws.w.nation_s.truce_arrays, primary_slot.nation->truces, nations::truce { date_tag(), owner->id }), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_truce_with_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
 			return compare_values(tval[0], contains_item(ws.w.nation_s.truce_arrays, primary_slot.nation->truces, nations::truce { date_tag(), owner->id }), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_truce_with_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
 			return compare_values(tval[0], contains_item(ws.w.nation_s.truce_arrays, primary_slot.nation->truces, nations::truce { date_tag(), owner->id }), true);
 		else
@@ -2334,13 +2341,13 @@ namespace triggers {
 			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_total_pops_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 		return compare_values(tval[0], float(ws.w.province_s.province_demographics.get(id, population::total_population_tag)), read_float_from_payload(tval + 2));
 	}
 	bool tf_total_pops_pop(TRIGGER_PARAMTERS) {
 		auto location = primary_slot.pop->location;
 		if(is_valid_index(location)) {
-			if(auto si = ws.w.province_s.province_state_container[location].state_instance; si)
+			if(auto si = provinces::province_state(ws, location); si)
 				return tf_total_pops_state(tval, ws, si, nullptr, nullptr, nullptr);
 		}
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
@@ -2364,16 +2371,16 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_has_pop_type_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 		return compare_values(tval[0], 0 != ws.w.province_s.province_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.pop_type)), true);
 	}
 	bool tf_has_pop_type_pop(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0], primary_slot.pop->type == trigger_payload(tval[2]).small.values.pop_type, true);
 	}
 	bool tf_has_empty_adjacent_province(TRIGGER_PARAMTERS) {
-		auto adj_range = ws.s.province_m.same_type_adjacency.get_row(((provinces::province_state const*)primary_slot)->id);
+		auto adj_range = ws.s.province_m.same_type_adjacency.get_row(primary_slot.prov);
 		for(auto p : adj_range) {
-			if(ws.w.province_s.province_state_container[p].owner == nullptr)
+			if(!is_valid_index(ws.w.province_s.province_state_container.get<province_state::owner>(p)))
 				return compare_values(tval[0], true, true);
 		}
 		return compare_values(tval[0], false, true);
@@ -2391,7 +2398,7 @@ namespace triggers {
 		return compare_values(tval[0], can_release_as_vassal(ws, *primary_slot.nation, trigger_payload(tval[2]).tag), true);
 	}
 	bool tf_province_id(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->id == provinces::province_tag(tval[2]), true);
+		return compare_values(tval[0], primary_slot.prov == provinces::province_tag(tval[2]), true);
 	}
 	bool tf_vassal_of_tag(TRIGGER_PARAMTERS) {
 		auto tag_holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
@@ -2401,27 +2408,27 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_vassal_of_from(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot.nation->overlord == from_slot, true);
+		return compare_values(tval[0], primary_slot.nation->overlord == from_slot.nation, true);
 	}
 	bool tf_vassal_of_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot.nation->overlord == this_slot, true);
+		return compare_values(tval[0], primary_slot.nation->overlord == this_slot.nation, true);
 	}
 	bool tf_vassal_of_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return compare_values(tval[0], primary_slot.nation->overlord == owner, true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_vassal_of_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
 			return compare_values(tval[0], primary_slot.nation->overlord == owner, true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_vassal_of_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
 			return compare_values(tval[0], primary_slot.nation->overlord == owner, true);
 		else
@@ -2471,27 +2478,27 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_alliance_with_from(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], contains_item(ws.w.nation_s.nations_arrays, primary_slot.nation->allies, ((nations::nation const*)from_slot)->id), true);
+		return compare_values(tval[0], contains_item(ws.w.nation_s.nations_arrays, primary_slot.nation->allies, from_slot.nation->id), true);
 	}
 	bool tf_alliance_with_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], contains_item(ws.w.nation_s.nations_arrays, primary_slot.nation->allies, ((nations::nation const*)this_slot)->id), true);
+		return compare_values(tval[0], contains_item(ws.w.nation_s.nations_arrays, primary_slot.nation->allies, this_slot.nation->id), true);
 	}
 	bool tf_alliance_with_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return compare_values(tval[0], contains_item(ws.w.nation_s.nations_arrays, primary_slot.nation->allies, owner->id), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_alliance_with_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
 			return compare_values(tval[0], contains_item(ws.w.nation_s.nations_arrays, primary_slot.nation->allies, owner->id), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_alliance_with_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
 			return compare_values(tval[0], contains_item(ws.w.nation_s.nations_arrays, primary_slot.nation->allies, owner->id), true);
 		else
@@ -2518,7 +2525,7 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_crime_higher_than_education_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)primary_slot)->owner;
+		auto owner = provinces::province_owner(ws, primary_slot.prov);
 		if(owner)
 			return compare_values(tval[0], owner->administrative_spending >= owner->education_spending, true);
 		else
@@ -2551,7 +2558,7 @@ namespace triggers {
 			true);
 	}
 	bool tf_is_colonial_province(TRIGGER_PARAMTERS) {
-		auto si = ((provinces::province_state const*)primary_slot)->state_instance;
+		auto si = provinces::province_state(ws, primary_slot.prov);
 		if(si)
 			return tf_is_colonial_state(tval, ws, si, nullptr, nullptr, nullptr);
 		else
@@ -2584,21 +2591,21 @@ namespace triggers {
 			true);
 	}
 	bool tf_in_default_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return tf_in_default_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_in_default_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
 			return tf_in_default_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_in_default_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
 			return tf_in_default_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
@@ -2617,9 +2624,9 @@ namespace triggers {
 		return compare_values(tval[0], ws.w.variable_s.global_variables[trigger_payload(tval[2]).global_var] != 0.0f, true);
 	}
 	bool tf_is_capital(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)primary_slot)->owner;
+		auto owner = provinces::province_owner(ws, primary_slot.prov);
 		if(owner)
-			return compare_values(tval[0], owner->current_capital == ((provinces::province_state const*)primary_slot)->id, true);
+			return compare_values(tval[0], owner->current_capital == primary_slot.prov, true);
 		else
 			return compare_values(tval[0], false, true);
 	}
@@ -2634,7 +2641,7 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_nationalvalue_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)primary_slot)->owner;
+		auto owner = provinces::province_owner(ws, primary_slot.prov);
 		if(owner)
 			return tf_nationalvalue_nation(tval, ws, owner, nullptr, nullptr, nullptr);
 		else
@@ -2644,27 +2651,27 @@ namespace triggers {
 		return compare_values(tval[0], primary_slot.nation->industrial_score, trigger_payload(tval[2]).signed_value);
 	}
 	bool tf_industrial_score_from_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot.nation->industrial_score, ((nations::nation const*)from_slot)->industrial_score);
+		return compare_values(tval[0], primary_slot.nation->industrial_score, from_slot.nation->industrial_score);
 	}
 	bool tf_industrial_score_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot.nation->industrial_score, ((nations::nation const*)this_slot)->industrial_score);
+		return compare_values(tval[0], primary_slot.nation->industrial_score, this_slot.nation->industrial_score);
 	}
 	bool tf_industrial_score_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
 			return compare_values(tval[0], primary_slot.nation->industrial_score, owner->industrial_score);
 		else
 			return compare_values(tval[0], primary_slot.nation->industrial_score, 0i16);
 	}
 	bool tf_industrial_score_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
 			return compare_values(tval[0], primary_slot.nation->industrial_score, owner->industrial_score);
 		else
 			return compare_values(tval[0], primary_slot.nation->industrial_score, 0i16);
 	}
 	bool tf_industrial_score_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return compare_values(tval[0], primary_slot.nation->industrial_score, owner->industrial_score);
 		else
@@ -2674,27 +2681,27 @@ namespace triggers {
 		return compare_values(tval[0], primary_slot.nation->military_score, trigger_payload(tval[2]).signed_value);
 	}
 	bool tf_military_score_from_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot.nation->military_score, ((nations::nation const*)from_slot)->military_score);
+		return compare_values(tval[0], primary_slot.nation->military_score, from_slot.nation->military_score);
 	}
 	bool tf_military_score_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot.nation->military_score, ((nations::nation const*)this_slot)->military_score);
+		return compare_values(tval[0], primary_slot.nation->military_score, this_slot.nation->military_score);
 	}
 	bool tf_military_score_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
 			return compare_values(tval[0], primary_slot.nation->military_score, owner->military_score);
 		else
 			return compare_values(tval[0], primary_slot.nation->military_score, 0i16);
 	}
 	bool tf_military_score_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
 			return compare_values(tval[0], primary_slot.nation->military_score, owner->military_score);
 		else
 			return compare_values(tval[0], primary_slot.nation->military_score, 0i16);
 	}
 	bool tf_military_score_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return compare_values(tval[0], primary_slot.nation->military_score, owner->military_score);
 		else
@@ -2711,7 +2718,7 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_civilized_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)primary_slot)->owner;
+		auto owner = provinces::province_owner(ws, primary_slot.prov);
 		if(owner)
 			return compare_values(tval[0], 0 != (owner->flags & nations::nation::is_civilized), true);
 		else
@@ -2722,7 +2729,7 @@ namespace triggers {
 		if(owned_range.first != owned_range.second) {
 			int32_t count_owned_controlled = 0;
 			for(auto p : owned_range) {
-				if(ws.w.province_s.province_state_container[p].controller == primary_slot)
+				if(provinces::province_controller(ws, p) == primary_slot.nation)
 					++count_owned_controlled;
 			}
 			return compare_values(tval[0], float(count_owned_controlled) / float(owned_range.second - owned_range.first), read_float_from_payload(tval + 2));
@@ -2741,7 +2748,7 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_greater_power_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)primary_slot)->owner;
+		auto owner = provinces::province_owner(ws, primary_slot.prov);
 		if(owner)
 			return compare_values(tval[0], nations::is_great_power(ws, *owner), true);
 		else
@@ -2767,7 +2774,7 @@ namespace triggers {
 			return compare_values(tval[0], int8_t(0), int8_t(trigger_payload(tval[2]).signed_value));
 	}
 	bool tf_social_spending_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)primary_slot)->owner;
+		auto owner = provinces::province_owner(ws, primary_slot.prov);
 		if(owner)
 			return tf_social_spending_nation(tval, ws, owner, nullptr, nullptr, nullptr);
 		else
@@ -2784,7 +2791,7 @@ namespace triggers {
 			return compare_values(tval[0], int8_t(0), int8_t(trigger_payload(tval[2]).signed_value));
 	}
 	bool tf_military_spending_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)primary_slot)->owner;
+		auto owner = provinces::province_owner(ws, primary_slot.prov);
 		if(owner)
 			return tf_military_spending_nation(tval, ws, owner, nullptr, nullptr, nullptr);
 		else
@@ -2808,7 +2815,7 @@ namespace triggers {
 			return compare_values(tval[0], int8_t(0), int8_t(trigger_payload(tval[2]).signed_value));
 	}
 	bool tf_administration_spending_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)primary_slot)->owner;
+		auto owner = provinces::province_owner(ws, primary_slot.prov);
 		if(owner)
 			return tf_administration_spending_nation(tval, ws, owner, nullptr, nullptr, nullptr);
 		else
@@ -2832,7 +2839,7 @@ namespace triggers {
 			return compare_values(tval[0], int8_t(0), int8_t(trigger_payload(tval[2]).signed_value));
 	}
 	bool tf_education_spending_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)primary_slot)->owner;
+		auto owner = provinces::province_owner(ws, primary_slot.prov);
 		if(owner)
 			return tf_education_spending_nation(tval, ws, owner, nullptr, nullptr, nullptr);
 		else
@@ -2855,7 +2862,9 @@ namespace triggers {
 		return compare_values(tval[0], primary_slot.state->dominant_religion == trigger_payload(tval[2]).small.values.religion, true);
 	}
 	bool tf_pop_majority_religion_province(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->dominant_religion == trigger_payload(tval[2]).small.values.religion, true);
+		return compare_values(tval[0],
+			ws.w.province_s.province_state_container.get<province_state::dominant_religion>(primary_slot.prov) == trigger_payload(tval[2]).small.values.religion,
+			true);
 	}
 	bool tf_pop_majority_culture_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0], primary_slot.nation->dominant_culture == trigger_payload(tval[2]).culture, true);
@@ -2864,7 +2873,9 @@ namespace triggers {
 		return compare_values(tval[0], primary_slot.state->dominant_culture == trigger_payload(tval[2]).culture, true);
 	}
 	bool tf_pop_majority_culture_province(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->dominant_culture == trigger_payload(tval[2]).culture, true);
+		return compare_values(tval[0],
+			ws.w.province_s.province_state_container.get<province_state::dominant_culture>(primary_slot.prov) == trigger_payload(tval[2]).culture,
+			true);
 	}
 	bool tf_pop_majority_issue_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0], primary_slot.nation->dominant_issue == trigger_payload(tval[2]).small.values.option, true);
@@ -2873,7 +2884,9 @@ namespace triggers {
 		return compare_values(tval[0], primary_slot.state->dominant_issue == trigger_payload(tval[2]).small.values.option, true);
 	}
 	bool tf_pop_majority_issue_province(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->dominant_issue == trigger_payload(tval[2]).small.values.option, true);
+		return compare_values(tval[0],
+			ws.w.province_s.province_state_container.get<province_state::dominant_issue>(primary_slot.prov) == trigger_payload(tval[2]).small.values.option,
+			true);
 	}
 	bool tf_pop_majority_issue_pop(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.pop->id;
@@ -2889,7 +2902,9 @@ namespace triggers {
 		return compare_values(tval[0], primary_slot.state->dominant_ideology == trigger_payload(tval[2]).small.values.ideology, true);
 	}
 	bool tf_pop_majority_ideology_province(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((provinces::province_state const*)primary_slot)->dominant_ideology == trigger_payload(tval[2]).small.values.ideology, true);
+		return compare_values(tval[0],
+			ws.w.province_s.province_state_container.get<province_state::dominant_ideology>(primary_slot.prov) == trigger_payload(tval[2]).small.values.ideology,
+			true);
 	}
 	bool tf_pop_majority_ideology_pop(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.pop->id;
@@ -2917,7 +2932,7 @@ namespace triggers {
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_poor_strata_militancy_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 		auto pop_size = float(ws.w.province_s.province_demographics.get(id, population::total_population_tag));
 		auto mil = 10.0f * float(ws.w.province_s.province_demographics.get(id, population::poor_militancy_demo_tag(ws)));
 		return compare_values(tval[0], (pop_size != 0.0f) ? mil / pop_size : 0.0f, read_float_from_payload(tval + 2));
@@ -2948,7 +2963,7 @@ namespace triggers {
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_middle_strata_militancy_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 		auto pop_size = float(ws.w.province_s.province_demographics.get(id, population::total_population_tag));
 		auto mil = 10.0f * float(ws.w.province_s.province_demographics.get(id, population::middle_militancy_demo_tag(ws)));
 		return compare_values(tval[0], (pop_size != 0.0f) ? mil / pop_size : 0.0f, read_float_from_payload(tval + 2));
@@ -2979,7 +2994,7 @@ namespace triggers {
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_rich_strata_militancy_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 		auto pop_size = float(ws.w.province_s.province_demographics.get(id, population::total_population_tag));
 		auto mil = 10.0f * float(ws.w.province_s.province_demographics.get(id, population::rich_militancy_demo_tag(ws)));
 		return compare_values(tval[0], (pop_size != 0.0f) ? mil / pop_size : 0.0f, read_float_from_payload(tval + 2));
@@ -3025,7 +3040,7 @@ namespace triggers {
 		auto primary_culture = primary_slot.nation->primary_culture;
 		if(is_valid_index(primary_culture)) {
 			auto group = ws.s.culture_m.culture_container[primary_culture].group;
-			return compare_values(tval[0], ws.s.culture_m.culture_groups[group].union_tag == ((nations::nation const*)from_slot)->tag, true);
+			return compare_values(tval[0], ws.s.culture_m.culture_groups[group].union_tag == from_slot.nation->tag, true);
 		} else {
 			return compare_values(tval[0], false, true);
 		}
@@ -3034,27 +3049,27 @@ namespace triggers {
 		auto primary_culture = primary_slot.nation->primary_culture;
 		if(is_valid_index(primary_culture)) {
 			auto group = ws.s.culture_m.culture_container[primary_culture].group;
-			return compare_values(tval[0], ws.s.culture_m.culture_groups[group].union_tag == ((nations::nation const*)this_slot)->tag, true);
+			return compare_values(tval[0], ws.s.culture_m.culture_groups[group].union_tag == this_slot.nation->tag, true);
 		} else {
 			return compare_values(tval[0], false, true);
 		}
 	}
 	bool tf_this_culture_union_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return tf_this_culture_union_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_this_culture_union_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
 			return tf_this_culture_union_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_this_culture_union_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
 			return tf_this_culture_union_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
@@ -3062,28 +3077,28 @@ namespace triggers {
 	}
 	bool tf_this_culture_union_this_union_nation(TRIGGER_PARAMTERS) {
 		auto prim_culture = primary_slot.nation->primary_culture;
-		auto this_culture = ((nations::nation const*)this_slot)->primary_culture;
+		auto this_culture = this_slot.nation->primary_culture;
 		return compare_values(tval[0],
 			is_valid_index(prim_culture) &&
 			is_valid_index(this_culture) &&
 			ws.s.culture_m.culture_container[prim_culture].group == ws.s.culture_m.culture_container[this_culture].group, true);
 	}
 	bool tf_this_culture_union_this_union_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return tf_this_culture_union_this_union_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_this_culture_union_this_union_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
 			return tf_this_culture_union_this_union_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_this_culture_union_this_union_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
 			return tf_this_culture_union_this_union_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
@@ -3115,8 +3130,8 @@ namespace triggers {
 		return compare_values(tval[0], false, true);
 	}
 	bool tf_minorities_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
-		auto owner = ((provinces::province_state const*)primary_slot)->owner;
+		auto id = primary_slot.prov;
+		auto owner = provinces::province_owner(ws, primary_slot.prov);
 		if(owner) {
 			auto total_pop = ws.w.province_s.province_demographics.get(id, population::total_population_tag);
 			auto accepted_pop = ws.w.province_s.province_demographics.get(id, population::to_demo_tag(ws, owner->primary_culture));
@@ -3138,7 +3153,7 @@ namespace triggers {
 			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_has_crime(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], is_valid_index(((provinces::province_state const*)primary_slot)->crime), true);
+		return compare_values(tval[0], is_valid_index(ws.w.province_s.province_state_container.get<province_state::crime>(primary_slot.prov)), true);
 	}
 	bool tf_num_of_substates(TRIGGER_PARAMTERS) {
 		auto vassal_range = get_range(ws.w.nation_s.nations_arrays, primary_slot.nation->vassals);
@@ -3160,14 +3175,14 @@ namespace triggers {
 	}
 	bool tf_brigades_compare_this(TRIGGER_PARAMTERS) {
 		auto main_brigades = military::total_active_divisions(ws, *primary_slot.nation);
-		auto this_brigades = military::total_active_divisions(ws, *((nations::nation const*)this_slot));
+		auto this_brigades = military::total_active_divisions(ws, *this_slot.nation);
 		return compare_values(tval[0],
 			this_brigades != 0 ? float(main_brigades) / float(this_brigades) : 1'000'000.0f,
 			read_float_from_payload(tval + 2));
 	}
 	bool tf_brigades_compare_from(TRIGGER_PARAMTERS) {
 		auto main_brigades = military::total_active_divisions(ws, *primary_slot.nation);
-		auto from_brigades = military::total_active_divisions(ws, *((nations::nation const*)from_slot));
+		auto from_brigades = military::total_active_divisions(ws, *from_slot.nation);
 		return compare_values(tval[0],
 			from_brigades != 0 ? float(main_brigades) / float(from_brigades) : 1'000'000.0f,
 			read_float_from_payload(tval + 2));
@@ -3180,27 +3195,27 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_constructing_cb_from(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot.nation->cb_construction_target == ((nations::nation const*)from_slot)->id, true);
+		return compare_values(tval[0], primary_slot.nation->cb_construction_target == from_slot.nation->id, true);
 	}
 	bool tf_constructing_cb_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot.nation->cb_construction_target == ((nations::nation const*)this_slot)->id, true);
+		return compare_values(tval[0], primary_slot.nation->cb_construction_target == this_slot.nation->id, true);
 	}
 	bool tf_constructing_cb_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return compare_values(tval[0], primary_slot.nation->cb_construction_target == owner->id, true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_constructing_cb_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
 			return compare_values(tval[0], primary_slot.nation->cb_construction_target == owner->id, true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_constructing_cb_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
 			return compare_values(tval[0], primary_slot.nation->cb_construction_target == owner->id, true);
 		else
@@ -3221,34 +3236,34 @@ namespace triggers {
 	bool tf_is_our_vassal_tag(TRIGGER_PARAMTERS) {
 		auto tag_holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
 		if(tag_holder)
-			return compare_values(tval[0], tag_holder->overlord == primary_slot, true);
+			return compare_values(tval[0], tag_holder->overlord == primary_slot.nation, true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_our_vassal_from(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((nations::nation const*)from_slot)->overlord == primary_slot, true);
+		return compare_values(tval[0], from_slot.nation->overlord == primary_slot.nation, true);
 	}
 	bool tf_is_our_vassal_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((nations::nation const*)this_slot)->overlord == primary_slot, true);
+		return compare_values(tval[0], this_slot.nation->overlord == primary_slot.nation, true);
 	}
 	bool tf_is_our_vassal_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
-			return compare_values(tval[0], owner->overlord == primary_slot, true);
+			return compare_values(tval[0], owner->overlord == primary_slot.nation, true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_our_vassal_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
-			return compare_values(tval[0], owner->overlord == primary_slot, true);
+			return compare_values(tval[0], owner->overlord == primary_slot.nation, true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_our_vassal_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
-			return compare_values(tval[0], owner->overlord == primary_slot, true);
+			return compare_values(tval[0], owner->overlord == primary_slot.nation, true);
 		else
 			return compare_values(tval[0], false, true);
 	}
@@ -3273,34 +3288,34 @@ namespace triggers {
 	bool tf_is_sphere_leader_of_tag(TRIGGER_PARAMTERS) {
 		auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
 		if(holder)
-			return compare_values(tval[0], holder->sphere_leader == primary_slot, true);
+			return compare_values(tval[0], holder->sphere_leader == primary_slot.nation, true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_sphere_leader_of_from(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((nations::nation const*)from_slot)->sphere_leader == primary_slot, true);
+		return compare_values(tval[0], from_slot.nation->sphere_leader == primary_slot.nation, true);
 	}
 	bool tf_is_sphere_leader_of_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ((nations::nation const*)this_slot)->sphere_leader == primary_slot, true);
+		return compare_values(tval[0], this_slot.nation->sphere_leader == primary_slot.nation, true);
 	}
 	bool tf_is_sphere_leader_of_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
-			return compare_values(tval[0], owner->sphere_leader == primary_slot, true);
+			return compare_values(tval[0], owner->sphere_leader == primary_slot.nation, true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_sphere_leader_of_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
-			return compare_values(tval[0], owner->sphere_leader == primary_slot, true);
+			return compare_values(tval[0], owner->sphere_leader == primary_slot.nation, true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_is_sphere_leader_of_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
-			return compare_values(tval[0], owner->sphere_leader == primary_slot, true);
+			return compare_values(tval[0], owner->sphere_leader == primary_slot.nation, true);
 		else
 			return compare_values(tval[0], false, true);
 	}
@@ -3312,7 +3327,7 @@ namespace triggers {
 		return compare_values(tval[0], true, true);
 	}
 	bool tf_is_releasable_vassal_from(TRIGGER_PARAMTERS) {
-		auto tag = ((nations::nation const*)from_slot)->tag;
+		auto tag = from_slot.nation->tag;
 		if(is_valid_index(tag))
 			return compare_values(tval[0], !(ws.w.culture_s.national_tags_state[tag].is_not_releasable), true);
 		else
@@ -3326,14 +3341,14 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_has_recent_imigration(TRIGGER_PARAMTERS) {
-		auto last_immigration = ((provinces::province_state const*)primary_slot)->last_immigration;
+		auto last_immigration = ws.w.province_s.province_state_container.get<province_state::last_immigration>(primary_slot.prov);
 		if(!is_valid_index(last_immigration))
 			return compare_values(tval[0], std::numeric_limits<uint16_t>::max(), tval[2]);
 		else
 			return compare_values(tval[0], to_index(ws.w.current_date) - to_index(last_immigration), int32_t(tval[2]));
 	}
 	bool tf_province_control_days(TRIGGER_PARAMTERS) {
-		auto last_control_change = ((provinces::province_state const*)primary_slot)->last_controller_change;
+		auto last_control_change = ws.w.province_s.province_state_container.get<province_state::last_controller_change>(primary_slot.prov);
 		if(!is_valid_index(last_control_change))
 			return compare_values(tval[0], std::numeric_limits<uint16_t>::max(), tval[2]);
 		else
@@ -3396,10 +3411,10 @@ namespace triggers {
 		return compare_values(tval[0], ws.w.world_wars_enabled, true);
 	}
 	bool tf_has_pop_culture_pop_this_pop(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot.pop->culture == ((population::pop const*)this_slot)->culture, true);
+		return compare_values(tval[0], primary_slot.pop->culture == this_slot.pop->culture, true);
 	}
 	bool tf_has_pop_culture_state_this_pop(TRIGGER_PARAMTERS) {
-		auto culture = ((population::pop const*)this_slot)->culture;
+		auto culture = this_slot.pop->culture;
 		auto id = primary_slot.state->id;
 		if(is_valid_index(culture) && ws.w.nation_s.states.is_valid_index(id))
 			return compare_values(tval[0], 0 != ws.w.nation_s.state_demographics.get(id, population::to_demo_tag(ws, culture)), true);
@@ -3407,15 +3422,15 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_has_pop_culture_province_this_pop(TRIGGER_PARAMTERS) {
-		auto culture = ((population::pop const*)this_slot)->culture;
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto culture = this_slot.pop->culture;
+		auto id = primary_slot.prov;
 		if(is_valid_index(culture))
 			return compare_values(tval[0], 0 != ws.w.province_s.province_demographics.get(id, population::to_demo_tag(ws, culture)), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_has_pop_culture_nation_this_pop(TRIGGER_PARAMTERS) {
-		auto culture = ((population::pop const*)this_slot)->culture;
+		auto culture = this_slot.pop->culture;
 		auto id = primary_slot.nation->id;
 		if(is_valid_index(culture) && ws.w.nation_s.nations.is_valid_index(id))
 			return compare_values(tval[0], 0 != ws.w.nation_s.nation_demographics.get(id, population::to_demo_tag(ws, culture)), true);
@@ -3433,7 +3448,7 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_has_pop_culture_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 		return compare_values(tval[0], 0 != ws.w.province_s.province_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).culture)), true);
 	}
 	bool tf_has_pop_culture_nation(TRIGGER_PARAMTERS) {
@@ -3444,10 +3459,10 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_has_pop_religion_pop_this_pop(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot.pop->religion == ((population::pop const*)this_slot)->religion, true);
+		return compare_values(tval[0], primary_slot.pop->religion == this_slot.pop->religion, true);
 	}
 	bool tf_has_pop_religion_state_this_pop(TRIGGER_PARAMTERS) {
-		auto religion = ((population::pop const*)this_slot)->religion;
+		auto religion = this_slot.pop->religion;
 		auto id = primary_slot.state->id;
 		if(is_valid_index(religion) && ws.w.nation_s.states.is_valid_index(id))
 			return compare_values(tval[0], 0 != ws.w.nation_s.state_demographics.get(id, population::to_demo_tag(ws, religion)), true);
@@ -3455,15 +3470,15 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_has_pop_religion_province_this_pop(TRIGGER_PARAMTERS) {
-		auto religion = ((population::pop const*)this_slot)->religion;
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto religion = this_slot.pop->religion;
+		auto id = primary_slot.prov;
 		if(is_valid_index(religion))
 			return compare_values(tval[0], 0 != ws.w.province_s.province_demographics.get(id, population::to_demo_tag(ws, religion)), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_has_pop_religion_nation_this_pop(TRIGGER_PARAMTERS) {
-		auto religion = ((population::pop const*)this_slot)->religion;
+		auto religion = this_slot.pop->religion;
 		auto id = primary_slot.nation->id;
 		if(is_valid_index(religion) && ws.w.nation_s.nations.is_valid_index(id))
 			return compare_values(tval[0], 0 != ws.w.nation_s.nation_demographics.get(id, population::to_demo_tag(ws, religion)), true);
@@ -3481,7 +3496,7 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_has_pop_religion_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 		return compare_values(tval[0], 0 != ws.w.province_s.province_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.religion)), true);
 	}
 	bool tf_has_pop_religion_nation(TRIGGER_PARAMTERS) {
@@ -3504,7 +3519,7 @@ namespace triggers {
 		return compare_values(tval[0], float(primary_slot.pop->consciousness) * 10.0f / float(std::numeric_limits<uint16_t>::max()), read_float_from_payload(tval + 2));
 	}
 	bool tf_consciousness_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 		auto total_pop = ws.w.province_s.province_demographics.get(id, population::total_population_tag);
 		auto con = ws.w.province_s.province_demographics.get(id, population::consciousness_demo_tag(ws));
 		return compare_values(tval[0], total_pop != 0 ? (float(con) * 10.0f / float(total_pop)) : 0.0f, read_float_from_payload(tval + 2));
@@ -3533,7 +3548,7 @@ namespace triggers {
 		return compare_values(tval[0], float(primary_slot.pop->literacy) / float(std::numeric_limits<uint16_t>::max()), read_float_from_payload(tval + 2));
 	}
 	bool tf_literacy_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 		auto total_pop = ws.w.province_s.province_demographics.get(id, population::total_population_tag);
 		auto con = ws.w.province_s.province_demographics.get(id, population::literacy_demo_tag(ws));
 		return compare_values(tval[0], total_pop != 0 ? (float(con) / float(total_pop)) : 0.0f, read_float_from_payload(tval + 2));
@@ -3562,7 +3577,7 @@ namespace triggers {
 		return compare_values(tval[0], float(primary_slot.pop->militancy) * 10.0f / float(std::numeric_limits<uint16_t>::max()), read_float_from_payload(tval + 2));
 	}
 	bool tf_militancy_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 		auto total_pop = ws.w.province_s.province_demographics.get(id, population::total_population_tag);
 		auto con = ws.w.province_s.province_demographics.get(id, population::militancy_demo_tag(ws));
 		return compare_values(tval[0], total_pop != 0 ? (float(con) * 10.0f / float(total_pop)) : 0.0f, read_float_from_payload(tval + 2));
@@ -3592,15 +3607,17 @@ namespace triggers {
 		if(is_valid_index(state_region)) {
 			auto prov_range = ws.s.province_m.states_to_province_index.get_row(state_region);
 			for(auto p : prov_range) {
-				auto& ps = ws.w.province_s.province_state_container[p];
-				if(ps.state_instance == primary_slot && ps.rgo_production == trigger_payload(tval[2]).small.values.good)
+				if(provinces::province_state(ws, p) == primary_slot.state
+					&& ws.w.province_s.province_state_container.get<province_state::rgo_production>(p) == trigger_payload(tval[2]).small.values.good) {
+
 					return compare_values(tval[0], true, true);
+				}
 			}
 		}
 		return compare_values(tval[0], false, true);
 	}
 	bool tf_trade_goods_in_state_province(TRIGGER_PARAMTERS) {
-		auto si = ((provinces::province_state const*)primary_slot)->state_instance;
+		auto si = provinces::province_state(ws, primary_slot.prov);
 		if(si)
 			return tf_trade_goods_in_state_state(tval, ws, si, nullptr, nullptr, nullptr);
 		else
@@ -3658,7 +3675,7 @@ namespace triggers {
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_rich_strata_life_needs_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 		auto total_pop = ws.w.province_s.province_demographics.get(id, population::rich_population_demo_tag(ws));
 		if(total_pop != 0)
 			return compare_values(tval[0], float(ws.w.province_s.province_demographics.get(id, population::rich_life_needs_demo_tag(ws))) / float(total_pop), read_float_from_payload(tval + 2));
@@ -3668,7 +3685,7 @@ namespace triggers {
 	bool tf_rich_strata_life_needs_pop(TRIGGER_PARAMTERS) {
 		auto location = primary_slot.pop->location;
 		if(is_valid_index(location)) {
-			auto si = ws.w.province_s.province_state_container[location].state_instance;
+			auto si = provinces::province_state(ws, location);
 			if(si)
 				return tf_rich_strata_life_needs_state(tval, ws, si, nullptr, nullptr, nullptr);
 		}
@@ -3693,7 +3710,7 @@ namespace triggers {
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_rich_strata_everyday_needs_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 		auto total_pop = ws.w.province_s.province_demographics.get(id, population::rich_population_demo_tag(ws));
 		if(total_pop != 0)
 			return compare_values(tval[0], float(ws.w.province_s.province_demographics.get(id, population::rich_everyday_needs_demo_tag(ws))) / float(total_pop), read_float_from_payload(tval + 2));
@@ -3703,7 +3720,7 @@ namespace triggers {
 	bool tf_rich_strata_everyday_needs_pop(TRIGGER_PARAMTERS) {
 		auto location = primary_slot.pop->location;
 		if(is_valid_index(location)) {
-			auto si = ws.w.province_s.province_state_container[location].state_instance;
+			auto si = provinces::province_state(ws, location);
 			if(si)
 				return tf_rich_strata_everyday_needs_state(tval, ws, si, nullptr, nullptr, nullptr);
 		}
@@ -3728,7 +3745,7 @@ namespace triggers {
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_rich_strata_luxury_needs_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 		auto total_pop = ws.w.province_s.province_demographics.get(id, population::rich_population_demo_tag(ws));
 		if(total_pop != 0)
 			return compare_values(tval[0], float(ws.w.province_s.province_demographics.get(id, population::rich_luxury_needs_demo_tag(ws))) / float(total_pop), read_float_from_payload(tval + 2));
@@ -3738,7 +3755,7 @@ namespace triggers {
 	bool tf_rich_strata_luxury_needs_pop(TRIGGER_PARAMTERS) {
 		auto location = primary_slot.pop->location;
 		if(is_valid_index(location)) {
-			auto si = ws.w.province_s.province_state_container[location].state_instance;
+			auto si = provinces::province_state(ws, location);
 			if(si)
 				return tf_rich_strata_luxury_needs_state(tval, ws, si, nullptr, nullptr, nullptr);
 		}
@@ -3763,7 +3780,7 @@ namespace triggers {
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_middle_strata_life_needs_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 		auto total_pop = ws.w.province_s.province_demographics.get(id, population::middle_population_demo_tag(ws));
 		if(total_pop != 0)
 			return compare_values(tval[0], float(ws.w.province_s.province_demographics.get(id, population::middle_life_needs_demo_tag(ws))) / float(total_pop), read_float_from_payload(tval + 2));
@@ -3773,7 +3790,7 @@ namespace triggers {
 	bool tf_middle_strata_life_needs_pop(TRIGGER_PARAMTERS) {
 		auto location = primary_slot.pop->location;
 		if(is_valid_index(location)) {
-			auto si = ws.w.province_s.province_state_container[location].state_instance;
+			auto si = provinces::province_state(ws, location);
 			if(si)
 				return tf_middle_strata_life_needs_state(tval, ws, si, nullptr, nullptr, nullptr);
 		}
@@ -3798,7 +3815,7 @@ namespace triggers {
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_middle_strata_everyday_needs_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 		auto total_pop = ws.w.province_s.province_demographics.get(id, population::middle_population_demo_tag(ws));
 		if(total_pop != 0)
 			return compare_values(tval[0], float(ws.w.province_s.province_demographics.get(id, population::middle_everyday_needs_demo_tag(ws))) / float(total_pop), read_float_from_payload(tval + 2));
@@ -3808,7 +3825,7 @@ namespace triggers {
 	bool tf_middle_strata_everyday_needs_pop(TRIGGER_PARAMTERS) {
 		auto location = primary_slot.pop->location;
 		if(is_valid_index(location)) {
-			auto si = ws.w.province_s.province_state_container[location].state_instance;
+			auto si = provinces::province_state(ws, location);
 			if(si)
 				return tf_middle_strata_everyday_needs_state(tval, ws, si, nullptr, nullptr, nullptr);
 		}
@@ -3833,7 +3850,7 @@ namespace triggers {
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_middle_strata_luxury_needs_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 		auto total_pop = ws.w.province_s.province_demographics.get(id, population::middle_population_demo_tag(ws));
 		if(total_pop != 0)
 			return compare_values(tval[0], float(ws.w.province_s.province_demographics.get(id, population::middle_luxury_needs_demo_tag(ws))) / float(total_pop), read_float_from_payload(tval + 2));
@@ -3843,7 +3860,7 @@ namespace triggers {
 	bool tf_middle_strata_luxury_needs_pop(TRIGGER_PARAMTERS) {
 		auto location = primary_slot.pop->location;
 		if(is_valid_index(location)) {
-			auto si = ws.w.province_s.province_state_container[location].state_instance;
+			auto si = provinces::province_state(ws, location);
 			if(si)
 				return tf_middle_strata_luxury_needs_state(tval, ws, si, nullptr, nullptr, nullptr);
 		}
@@ -3868,7 +3885,7 @@ namespace triggers {
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_poor_strata_life_needs_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 		auto total_pop = ws.w.province_s.province_demographics.get(id, population::poor_population_demo_tag(ws));
 		if(total_pop != 0)
 			return compare_values(tval[0], float(ws.w.province_s.province_demographics.get(id, population::poor_life_needs_demo_tag(ws))) / float(total_pop), read_float_from_payload(tval + 2));
@@ -3878,7 +3895,7 @@ namespace triggers {
 	bool tf_poor_strata_life_needs_pop(TRIGGER_PARAMTERS) {
 		auto location = primary_slot.pop->location;
 		if(is_valid_index(location)) {
-			auto si = ws.w.province_s.province_state_container[location].state_instance;
+			auto si = provinces::province_state(ws, location);
 			if(si)
 				return tf_poor_strata_life_needs_state(tval, ws, si, nullptr, nullptr, nullptr);
 		}
@@ -3903,7 +3920,7 @@ namespace triggers {
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_poor_strata_everyday_needs_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 		auto total_pop = ws.w.province_s.province_demographics.get(id, population::poor_population_demo_tag(ws));
 		if(total_pop != 0)
 			return compare_values(tval[0], float(ws.w.province_s.province_demographics.get(id, population::poor_everyday_needs_demo_tag(ws))) / float(total_pop), read_float_from_payload(tval + 2));
@@ -3913,7 +3930,7 @@ namespace triggers {
 	bool tf_poor_strata_everyday_needs_pop(TRIGGER_PARAMTERS) {
 		auto location = primary_slot.pop->location;
 		if(is_valid_index(location)) {
-			auto si = ws.w.province_s.province_state_container[location].state_instance;
+			auto si = provinces::province_state(ws, location);
 			if(si)
 				return tf_poor_strata_everyday_needs_state(tval, ws, si, nullptr, nullptr, nullptr);
 		}
@@ -3938,7 +3955,7 @@ namespace triggers {
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_poor_strata_luxury_needs_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 		auto total_pop = ws.w.province_s.province_demographics.get(id, population::poor_population_demo_tag(ws));
 		if(total_pop != 0)
 			return compare_values(tval[0], float(ws.w.province_s.province_demographics.get(id, population::poor_luxury_needs_demo_tag(ws))) / float(total_pop), read_float_from_payload(tval + 2));
@@ -3948,7 +3965,7 @@ namespace triggers {
 	bool tf_poor_strata_luxury_needs_pop(TRIGGER_PARAMTERS) {
 		auto location = primary_slot.pop->location;
 		if(is_valid_index(location)) {
-			auto si = ws.w.province_s.province_state_container[location].state_instance;
+			auto si = provinces::province_state(ws, location);
 			if(si)
 				return tf_poor_strata_luxury_needs_state(tval, ws, si, nullptr, nullptr, nullptr);
 		}
@@ -3962,20 +3979,20 @@ namespace triggers {
 			return compare_values(tval[0], 0ui16, tval[2]);
 	}
 	bool tf_diplomatic_influence_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], nations::get_influence_value(ws, *primary_slot.nation, ((nations::nation const*)this_slot)->id), int32_t(tval[2]));
+		return compare_values(tval[0], nations::get_influence_value(ws, *primary_slot.nation, this_slot.nation->id), int32_t(tval[2]));
 	}
 	bool tf_diplomatic_influence_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return tf_diplomatic_influence_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], 0ui16, tval[2]);
 	}
 	bool tf_diplomatic_influence_from_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], nations::get_influence_value(ws, *primary_slot.nation, ((nations::nation const*)from_slot)->id), int32_t(tval[2]));
+		return compare_values(tval[0], nations::get_influence_value(ws, *primary_slot.nation, from_slot.nation->id), int32_t(tval[2]));
 	}
 	bool tf_diplomatic_influence_from_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)from_slot)->owner;
+		auto owner = provinces::province_owner(ws, from_slot.prov);
 		if(owner)
 			return tf_diplomatic_influence_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
@@ -4003,7 +4020,7 @@ namespace triggers {
 	}
 	bool tf_pop_unemployment_province(TRIGGER_PARAMTERS) {
 		auto type = trigger_payload(tval[4]).small.values.pop_type;
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 		auto total_pop = ws.w.province_s.province_demographics.get(id, population::to_demo_tag(ws, type));
 		if(total_pop != 0)
 			return compare_values(tval[0], 1.0f - float(ws.w.province_s.province_demographics.get(id, population::to_employment_demo_tag(ws, type))) / float(total_pop), read_float_from_payload(tval + 2));
@@ -4020,7 +4037,7 @@ namespace triggers {
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_pop_unemployment_nation_this_pop(TRIGGER_PARAMTERS) {
-		auto type = ((population::pop const*)this_slot)->type;
+		auto type = this_slot.pop->type;
 		auto id = primary_slot.nation->id;
 		if(ws.w.nation_s.nations.is_valid_index(id)) {
 			auto total_pop = ws.w.nation_s.nation_demographics.get(id, population::to_demo_tag(ws, type));
@@ -4030,7 +4047,7 @@ namespace triggers {
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_pop_unemployment_state_this_pop(TRIGGER_PARAMTERS) {
-		auto type = ((population::pop const*)this_slot)->type;
+		auto type = this_slot.pop->type;
 		auto id = primary_slot.state->id;
 		if(ws.w.nation_s.states.is_valid_index(id)) {
 			auto total_pop = ws.w.nation_s.state_demographics.get(id, population::to_demo_tag(ws, type));
@@ -4040,8 +4057,8 @@ namespace triggers {
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_pop_unemployment_province_this_pop(TRIGGER_PARAMTERS) {
-		auto type = ((population::pop const*)this_slot)->type;
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto type = this_slot.pop->type;
+		auto id = primary_slot.prov;
 		auto total_pop = ws.w.province_s.province_demographics.get(id, population::to_demo_tag(ws, type));
 		if(total_pop != 0)
 			return compare_values(tval[0], 1.0f - float(ws.w.province_s.province_demographics.get(id, population::to_employment_demo_tag(ws, type))) / float(total_pop), read_float_from_payload(tval + 2));
@@ -4056,20 +4073,20 @@ namespace triggers {
 			return compare_values(tval[0], 0i16, trigger_payload(tval[2]).signed_value);
 	}
 	bool tf_relation_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], nations::get_relationship(ws, *primary_slot.nation, ((nations::nation const*)this_slot)->id), int32_t(trigger_payload(tval[2]).signed_value));
+		return compare_values(tval[0], nations::get_relationship(ws, *primary_slot.nation, this_slot.nation->id), int32_t(trigger_payload(tval[2]).signed_value));
 	}
 	bool tf_relation_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return tf_relation_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
 			return compare_values(tval[0], 0i16, trigger_payload(tval[2]).signed_value);
 	}
 	bool tf_relation_from_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], nations::get_relationship(ws, *primary_slot.nation, ((nations::nation const*)from_slot)->id), int32_t(trigger_payload(tval[2]).signed_value));
+		return compare_values(tval[0], nations::get_relationship(ws, *primary_slot.nation, from_slot.nation->id), int32_t(trigger_payload(tval[2]).signed_value));
 	}
 	bool tf_relation_from_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)from_slot)->owner;
+		auto owner = provinces::province_owner(ws, from_slot.prov);
 		if(owner)
 			return tf_relation_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr);
 		else
@@ -4101,7 +4118,7 @@ namespace triggers {
 	bool tf_unemployment_by_type_pop(TRIGGER_PARAMTERS) {
 		auto location = primary_slot.pop->location;
 		if(is_valid_index(location)) {
-			auto si = ws.w.province_s.province_state_container[location].state_instance;
+			auto si = provinces::province_state(ws, location);
 			if(si)
 				return tf_unemployment_by_type_state(tval, ws, si, nullptr, nullptr, nullptr);
 		}
@@ -4120,128 +4137,132 @@ namespace triggers {
 		return compare_values(tval[0], ws.w.province_s.party_loyalty.get(provinces::province_tag(tval[2]), trigger_payload(tval[5]).small.values.ideology), read_float_from_payload(tval + 3));
 	}
 	bool tf_party_loyalty_nation_from_province(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.province_s.party_loyalty.get(((provinces::province_state const*)from_slot)->id, trigger_payload(tval[4]).small.values.ideology), read_float_from_payload(tval + 2));
+		return compare_values(tval[0], ws.w.province_s.party_loyalty.get(from_slot.prov, trigger_payload(tval[4]).small.values.ideology), read_float_from_payload(tval + 2));
 	}
 	bool tf_party_loyalty_generic(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.province_s.party_loyalty.get(((provinces::province_state const*)primary_slot)->id, trigger_payload(tval[4]).small.values.ideology), read_float_from_payload(tval + 2));
+		return compare_values(tval[0], ws.w.province_s.party_loyalty.get(primary_slot.prov, trigger_payload(tval[4]).small.values.ideology), read_float_from_payload(tval + 2));
 	}
 	bool tf_party_loyalty_from_nation_scope_province(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.province_s.party_loyalty.get(((provinces::province_state const*)primary_slot)->id, trigger_payload(tval[4]).small.values.ideology), read_float_from_payload(tval + 2));
+		return compare_values(tval[0], ws.w.province_s.party_loyalty.get(primary_slot.prov, trigger_payload(tval[4]).small.values.ideology), read_float_from_payload(tval + 2));
 	}
 	bool tf_party_loyalty_from_province_scope_province(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.province_s.party_loyalty.get(((provinces::province_state const*)primary_slot)->id, trigger_payload(tval[4]).small.values.ideology), read_float_from_payload(tval + 2));
+		return compare_values(tval[0], ws.w.province_s.party_loyalty.get(primary_slot.prov, trigger_payload(tval[4]).small.values.ideology), read_float_from_payload(tval + 2));
 	}
 	bool tf_can_build_in_province_railroad_no_limit_from_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
-			technologies::tech_attribute_type(((provinces::province_state const*)primary_slot)->railroad_level) +
-			((provinces::province_state const*)primary_slot)->modifier_values[modifiers::provincial_offsets::min_build_railroad] <
-				((nations::nation const*)from_slot)->tech_attributes[technologies::tech_offset::max_railroad],
+			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::railroad_level>(primary_slot.prov)) +
+			ws.w.province_s.province_state_container.get<province_state::modifier_values>(primary_slot.prov)[modifiers::provincial_offsets::min_build_railroad] <
+				from_slot.nation->tech_attributes[technologies::tech_offset::max_railroad],
 			true);
 	}
 	bool tf_can_build_in_province_railroad_yes_limit_from_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
-			technologies::tech_attribute_type(((provinces::province_state const*)primary_slot)->railroad_level) +
-			((provinces::province_state const*)primary_slot)->modifier_values[modifiers::provincial_offsets::min_build_railroad] <
-				((nations::nation const*)from_slot)->tech_attributes[technologies::tech_offset::max_railroad],
+			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::railroad_level>(primary_slot.prov)) +
+			ws.w.province_s.province_state_container.get<province_state::modifier_values>(primary_slot.prov)[modifiers::provincial_offsets::min_build_railroad] <
+				from_slot.nation->tech_attributes[technologies::tech_offset::max_railroad],
 			true);
 	}
 	bool tf_can_build_in_province_railroad_no_limit_this_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
-			technologies::tech_attribute_type(((provinces::province_state const*)primary_slot)->railroad_level) +
-			((provinces::province_state const*)primary_slot)->modifier_values[modifiers::provincial_offsets::min_build_railroad] <
-				((nations::nation const*)this_slot)->tech_attributes[technologies::tech_offset::max_railroad],
+			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::railroad_level>(primary_slot.prov)) +
+			ws.w.province_s.province_state_container.get<province_state::modifier_values>(primary_slot.prov)[modifiers::provincial_offsets::min_build_railroad] <
+				this_slot.nation->tech_attributes[technologies::tech_offset::max_railroad],
 			true);
 	}
 	bool tf_can_build_in_province_railroad_yes_limit_this_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
-			technologies::tech_attribute_type(((provinces::province_state const*)primary_slot)->railroad_level) +
-			((provinces::province_state const*)primary_slot)->modifier_values[modifiers::provincial_offsets::min_build_railroad] <
-				((nations::nation const*)this_slot)->tech_attributes[technologies::tech_offset::max_railroad],
+			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::railroad_level>(primary_slot.prov)) +
+			ws.w.province_s.province_state_container.get<province_state::modifier_values>(primary_slot.prov)[modifiers::provincial_offsets::min_build_railroad] <
+				this_slot.nation->tech_attributes[technologies::tech_offset::max_railroad],
 			true);
 	}
 	bool tf_can_build_in_province_fort_no_limit_from_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
-			technologies::tech_attribute_type(((provinces::province_state const*)primary_slot)->fort_level) <
-				((nations::nation const*)from_slot)->tech_attributes[technologies::tech_offset::max_fort],
+			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::fort_level>(primary_slot.prov)) <
+				from_slot.nation->tech_attributes[technologies::tech_offset::max_fort],
 			true);
 	}
 	bool tf_can_build_in_province_fort_yes_limit_from_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
-			technologies::tech_attribute_type(((provinces::province_state const*)primary_slot)->fort_level) <
-				((nations::nation const*)from_slot)->tech_attributes[technologies::tech_offset::max_fort],
+			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::fort_level>(primary_slot.prov)) <
+				from_slot.nation->tech_attributes[technologies::tech_offset::max_fort],
 			true);
 	}
 	bool tf_can_build_in_province_fort_no_limit_this_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
-			technologies::tech_attribute_type(((provinces::province_state const*)primary_slot)->fort_level) <
-				((nations::nation const*)this_slot)->tech_attributes[technologies::tech_offset::max_fort],
+			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::fort_level>(primary_slot.prov)) <
+				this_slot.nation->tech_attributes[technologies::tech_offset::max_fort],
 			true);
 	}
 	bool tf_can_build_in_province_fort_yes_limit_this_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
-			technologies::tech_attribute_type(((provinces::province_state const*)primary_slot)->fort_level) <
-				((nations::nation const*)this_slot)->tech_attributes[technologies::tech_offset::max_fort],
+			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::fort_level>(primary_slot.prov)) <
+				this_slot.nation->tech_attributes[technologies::tech_offset::max_fort],
 			true);
 	}
 	bool tf_can_build_in_province_naval_base_no_limit_from_nation(TRIGGER_PARAMTERS) {
-		if(((provinces::province_state const*)primary_slot)->naval_base_level != 0ui8) {
+		auto nb_level = ws.w.province_s.province_state_container.get<province_state::naval_base_level>(primary_slot.prov);
+		if(nb_level != 0ui8) {
 			return compare_values(tval[0],
-				technologies::tech_attribute_type(((provinces::province_state const*)primary_slot)->naval_base_level) <
-					((nations::nation const*)from_slot)->tech_attributes[technologies::tech_offset::max_naval_base],
+				technologies::tech_attribute_type(nb_level) <
+					from_slot.nation->tech_attributes[technologies::tech_offset::max_naval_base],
 				true);
-		} else if(auto si = ((provinces::province_state const*)primary_slot)->state_instance; si) {
+		} else if(auto si = provinces::province_state(ws, primary_slot.prov); si) {
 			return compare_values(tval[0],
 				(si->flags & nations::state_instance::contains_naval_base) == 0 &&
-				(ws.s.province_m.province_container[((provinces::province_state const*)primary_slot)->id].flags & provinces::province::coastal) != 0 &&
-				((nations::nation const*)from_slot)->tech_attributes[technologies::tech_offset::max_naval_base] >= technologies::tech_attribute_type(1),
+				ws.s.province_m.province_container.get<province::is_coastal>(primary_slot.prov) &&
+				from_slot.nation->tech_attributes[technologies::tech_offset::max_naval_base] >= technologies::tech_attribute_type(1),
 				true);
 		} else {
 			return compare_values(tval[0], false, true);
 		}
 	}
 	bool tf_can_build_in_province_naval_base_yes_limit_from_nation(TRIGGER_PARAMTERS) {
-		if(((provinces::province_state const*)primary_slot)->naval_base_level != 0ui8) {
+		auto nb_level = ws.w.province_s.province_state_container.get<province_state::naval_base_level>(primary_slot.prov);
+		if(nb_level != 0ui8) {
 			return compare_values(tval[0],
-				technologies::tech_attribute_type(((provinces::province_state const*)primary_slot)->naval_base_level) <
-				((nations::nation const*)from_slot)->tech_attributes[technologies::tech_offset::max_naval_base],
+				technologies::tech_attribute_type(nb_level) <
+				from_slot.nation->tech_attributes[technologies::tech_offset::max_naval_base],
 				true);
-		} else if(auto si = ((provinces::province_state const*)primary_slot)->state_instance; si) {
+		} else if(auto si = provinces::province_state(ws, primary_slot.prov); si) {
 			return compare_values(tval[0],
 				(si->flags & nations::state_instance::contains_naval_base) == 0 &&
-				(ws.s.province_m.province_container[((provinces::province_state const*)primary_slot)->id].flags & provinces::province::coastal) != 0 &&
-				((nations::nation const*)from_slot)->tech_attributes[technologies::tech_offset::max_naval_base] >= technologies::tech_attribute_type(1),
+				ws.s.province_m.province_container.get<province::is_coastal>(primary_slot.prov) &&
+				from_slot.nation->tech_attributes[technologies::tech_offset::max_naval_base] >= technologies::tech_attribute_type(1),
 				true);
 		} else {
 			return compare_values(tval[0], false, true);
 		}
 	}
 	bool tf_can_build_in_province_naval_base_no_limit_this_nation(TRIGGER_PARAMTERS) {
-		if(((provinces::province_state const*)primary_slot)->naval_base_level != 0ui8) {
+		auto nb_level = ws.w.province_s.province_state_container.get<province_state::naval_base_level>(primary_slot.prov);
+		if(nb_level != 0ui8) {
 			return compare_values(tval[0],
-				technologies::tech_attribute_type(((provinces::province_state const*)primary_slot)->naval_base_level) <
-				((nations::nation const*)this_slot)->tech_attributes[technologies::tech_offset::max_naval_base],
+				technologies::tech_attribute_type(nb_level) <
+				this_slot.nation->tech_attributes[technologies::tech_offset::max_naval_base],
 				true);
-		} else if(auto si = ((provinces::province_state const*)primary_slot)->state_instance; si) {
+		} else if(auto si = provinces::province_state(ws, primary_slot.prov); si) {
 			return compare_values(tval[0],
 				(si->flags & nations::state_instance::contains_naval_base) == 0 &&
-				(ws.s.province_m.province_container[((provinces::province_state const*)primary_slot)->id].flags & provinces::province::coastal) != 0 &&
-				((nations::nation const*)this_slot)->tech_attributes[technologies::tech_offset::max_naval_base] >= technologies::tech_attribute_type(1),
+				ws.s.province_m.province_container.get<province::is_coastal>(primary_slot.prov) &&
+				this_slot.nation->tech_attributes[technologies::tech_offset::max_naval_base] >= technologies::tech_attribute_type(1),
 				true);
 		} else {
 			return compare_values(tval[0], false, true);
 		}
 	}
 	bool tf_can_build_in_province_naval_base_yes_limit_this_nation(TRIGGER_PARAMTERS) {
-		if(((provinces::province_state const*)primary_slot)->naval_base_level != 0ui8) {
+		auto nb_level = ws.w.province_s.province_state_container.get<province_state::naval_base_level>(primary_slot.prov);
+		if(nb_level != 0ui8) {
 			return compare_values(tval[0],
-				technologies::tech_attribute_type(((provinces::province_state const*)primary_slot)->naval_base_level) <
-				((nations::nation const*)this_slot)->tech_attributes[technologies::tech_offset::max_naval_base],
+				technologies::tech_attribute_type(nb_level) <
+				this_slot.nation->tech_attributes[technologies::tech_offset::max_naval_base],
 				true);
-		} else if(auto si = ((provinces::province_state const*)primary_slot)->state_instance; si) {
+		} else if(auto si = provinces::province_state(ws, primary_slot.prov); si) {
 			return compare_values(tval[0],
 				(si->flags & nations::state_instance::contains_naval_base) == 0 &&
-				(ws.s.province_m.province_container[((provinces::province_state const*)primary_slot)->id].flags & provinces::province::coastal) != 0 &&
-				((nations::nation const*)this_slot)->tech_attributes[technologies::tech_offset::max_naval_base] >= technologies::tech_attribute_type(1),
+				ws.s.province_m.province_container.get<province::is_coastal>(primary_slot.prov) &&
+				this_slot.nation->tech_attributes[technologies::tech_offset::max_naval_base] >= technologies::tech_attribute_type(1),
 				true);
 		} else {
 			return compare_values(tval[0], false, true);
@@ -4313,7 +4334,7 @@ namespace triggers {
 	}
 	bool tf_work_available_province(TRIGGER_PARAMTERS) {
 		auto count_workers = tval[1] - 1;
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 
 		for(int32_t i = 0; i < count_workers; ++i) {
 			auto type = trigger_payload(tval[2 + i]).small.values.pop_type;
@@ -4347,7 +4368,7 @@ namespace triggers {
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 3));
 	}
 	bool tf_variable_ideology_name_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 
 		auto total_pop = ws.w.province_s.province_demographics.get(id, population::total_population_tag);
 		if(total_pop != 0)
@@ -4391,7 +4412,7 @@ namespace triggers {
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 3));
 	}
 	bool tf_variable_issue_name_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 
 		auto total_pop = ws.w.province_s.province_demographics.get(id, population::total_population_tag);
 		if(total_pop != 0)
@@ -4430,7 +4451,7 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_variable_issue_group_name_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)primary_slot)->owner;
+		auto owner = provinces::province_owner(ws, primary_slot.prov);
 		if(owner)
 			return tf_variable_issue_group_name_nation(tval, ws, owner, nullptr, nullptr, nullptr);
 		else
@@ -4466,7 +4487,7 @@ namespace triggers {
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 3));
 	}
 	bool tf_variable_pop_type_name_province(TRIGGER_PARAMTERS) {
-		auto id = ((provinces::province_state const*)primary_slot)->id;
+		auto id = primary_slot.prov;
 
 		auto total_pop = ws.w.province_s.province_demographics.get(id, population::total_population_tag);
 		if(total_pop != 0)
@@ -4496,27 +4517,27 @@ namespace triggers {
 		return compare_values(tval[0], primary_slot.nation->national_religion == rebel_slot->religion, true);
 	}
 	bool tf_religion_nation_from_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot.nation->national_religion == ((nations::nation const*)from_slot)->national_religion, true);
+		return compare_values(tval[0], primary_slot.nation->national_religion == from_slot.nation->national_religion, true);
 	}
 	bool tf_religion_nation_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], primary_slot.nation->national_religion == ((nations::nation const*)this_slot)->national_religion, true);
+		return compare_values(tval[0], primary_slot.nation->national_religion == this_slot.nation->national_religion, true);
 	}
 	bool tf_religion_nation_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ((nations::state_instance const*)this_slot)->owner;
+		auto owner = this_slot.state->owner;
 		if(owner)
 			return tf_religion_nation_this_nation(tval, ws, owner, nullptr, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_religion_nation_this_province(TRIGGER_PARAMTERS) {
-		auto owner = ((provinces::province_state const*)this_slot)->owner;
+		auto owner = provinces::province_owner(ws, this_slot.prov);
 		if(owner)
 			return tf_religion_nation_this_nation(tval, ws, owner, nullptr, nullptr, nullptr);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_religion_nation_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, *((population::pop const*)this_slot));
+		auto owner = population::get_pop_owner(ws, *this_slot.pop);
 		if(owner)
 			return tf_religion_nation_this_nation(tval, ws, owner, nullptr, nullptr, nullptr);
 		else
