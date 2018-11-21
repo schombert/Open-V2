@@ -417,7 +417,7 @@ TEST(economy_tests, two_good_categories) {
 	EXPECT_EQ(goods_tag(1), m.named_goods_index[m.goods[goods_tag(1)].name]);
 	EXPECT_EQ(2ui8, m.goods[goods_tag(1)].icon);
 
-	EXPECT_DOUBLE_EQ(2.9, m.goods[goods_tag(2)].base_price);
+	EXPECT_DOUBLE_EQ(2.9f, m.goods[goods_tag(2)].base_price);
 	EXPECT_EQ(goods_tag(2), m.goods[goods_tag(2)].id);
 	EXPECT_EQ(201ui8, m.goods[goods_tag(2)].color.r);
 	EXPECT_EQ(200ui8, m.goods[goods_tag(2)].color.g);
@@ -449,9 +449,10 @@ TEST(economy_tests, single_factory) {
 
 	economic_scenario m;
 	text_data::text_sequences tex;
+	modifiers::modifiers_manager mm;
 
 	economy::read_goods(m, f.get_root(), tex);
-	const auto map = economy::read_buildings(m, f.get_root(), tex);
+	const auto map = economy::read_buildings(m, f.get_root(), tex, mm);
 
 	EXPECT_EQ(1ui64, m.factory_types.size());
 	EXPECT_EQ(1ui64, map.size());
@@ -475,9 +476,10 @@ TEST(economy_tests, special_buildings) {
 
 	economic_scenario m;
 	text_data::text_sequences tex;
+	modifiers::modifiers_manager mm;
 
 	economy::read_goods(m, f.get_root(), tex);
-	const auto map = economy::read_buildings(m, f.get_root(), tex);
+	const auto map = economy::read_buildings(m, f.get_root(), tex,mm);
 
 	EXPECT_EQ(1ui64, m.factory_types.size());
 	EXPECT_EQ(1ui64, map.size());
@@ -500,7 +502,7 @@ TEST(economy_tests, special_buildings) {
 	EXPECT_EQ(3ui32, m.railroad.max_level);
 	EXPECT_EQ(30ui32, m.railroad.time);
 	EXPECT_EQ(0.5f, m.railroad.infrastructure);
-	EXPECT_EQ(-0.5f, m.railroad.movement_cost);
+	EXPECT_EQ(-0.5f, mm.provincial_modifier_definitions[m.railroad_modifier][modifiers::provincial_offsets::movement_cost]);
 
 	EXPECT_EQ(300.0, m.building_costs.get(factory_type_tag(2), goods_tag(1)));
 
@@ -511,7 +513,7 @@ TEST(economy_tests, special_buildings) {
 	EXPECT_EQ(6ui32, m.naval_base.colonial_points[5]);
 	EXPECT_EQ(50ui32, m.naval_base.colonial_range);
 	EXPECT_EQ(15000ui32, m.naval_base.extra_cost);
-	EXPECT_EQ(-1.5f, m.naval_base.local_ship_build);
+	EXPECT_EQ(-1.5f, mm.provincial_modifier_definitions[m.naval_base_modifier][modifiers::provincial_offsets::local_ship_build]);
 	EXPECT_EQ(2ui32, m.naval_base.naval_capacity);
 
 	EXPECT_EQ(200.0, m.building_costs.get(factory_type_tag(3), goods_tag(1)));
@@ -526,7 +528,7 @@ TEST(economy_tests, production_types) {
 	scenario::scenario_manager m;
 
 	economy::read_goods(m.economy_m, f.get_root(), m.gui_m.text_data_sequences);
-	auto map = economy::read_buildings(m.economy_m, f.get_root(), m.gui_m.text_data_sequences);
+	auto map = economy::read_buildings(m.economy_m, f.get_root(), m.gui_m.text_data_sequences, m.modifiers_m);
 	population::pre_parse_pop_types(m.population_m, f.get_root(), m.gui_m.text_data_sequences);
 
 	read_production_types(m, map, f.get_root());
@@ -567,7 +569,7 @@ TEST(economy_tests, production_types) {
 	EXPECT_EQ(factory_type_tag(0), m.economy_m.factory_types[factory_type_tag(0)].id);
 	EXPECT_EQ(factory_type_tag(1), m.economy_m.factory_types[factory_type_tag(1)].id);
 
-	EXPECT_EQ(0.91, m.economy_m.factory_types[factory_type_tag(0)].output_amount);
+	EXPECT_FLOAT_EQ(0.91f, m.economy_m.factory_types[factory_type_tag(0)].output_amount);
 	EXPECT_EQ(5.0, m.economy_m.factory_types[factory_type_tag(1)].output_amount);
 
 	EXPECT_EQ(machine_parts_tag, m.economy_m.factory_types[factory_type_tag(0)].output_good);

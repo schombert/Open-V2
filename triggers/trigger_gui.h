@@ -20,7 +20,7 @@ namespace triggers {
 		const_parameter this_slot,
 		const_parameter from_slot,
 		population::rebel_faction* rebel_slot,
-		bool show_condition
+		bool show_condition = true
 	);
 	ui::xy_pair make_effect_description(
 		world_state& ws,
@@ -34,6 +34,6 @@ namespace triggers {
 		const_parameter from_slot,
 		population::rebel_faction* rebel_slot,
 		jsf_prng generator_copy,
-		bool show_condition
+		bool show_condition = true
 	);
 }

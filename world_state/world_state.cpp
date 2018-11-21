@@ -34,7 +34,7 @@ void world_state_non_ai_update(world_state & ws) {
 		auto admin_req = issues::administrative_requirement(ws, n.id);
 		auto member_states = get_range(ws.w.nation_s.state_arrays, n.member_states);
 		for(auto s = member_states.first; s != member_states.second; ++s)
-			s->state->administrative_efficiency = nations::calculate_state_administrative_efficiency(ws, *(s->state), admin_req);
+			ws.w.nation_s.states.set<state::administrative_efficiency>(s->state, nations::calculate_state_administrative_efficiency(ws, s->state, admin_req));
 	});
 
 	nations::update_nation_ranks(ws);

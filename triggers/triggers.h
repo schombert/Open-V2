@@ -21,7 +21,6 @@ namespace population {
 
 namespace nations {
 	struct nation;
-	struct state_instance;
 }
 
 #undef small
@@ -124,14 +123,14 @@ namespace triggers {
 
 	union parameter {
 		nations::nation* nation;
-		nations::state_instance* state;
+		nations::state_tag state;
 		population::pop* pop;
 		provinces::province_tag prov;
 
 		constexpr parameter() noexcept : nation(nullptr) {}
 		constexpr parameter(nullptr_t) noexcept : nation(nullptr) {}
 		constexpr parameter(nations::nation* n) noexcept : nation(n) {}
-		constexpr parameter(nations::state_instance* s) noexcept : state(s) {}
+		constexpr parameter(nations::state_tag s) noexcept : state(s) {}
 		constexpr parameter(population::pop* po) noexcept : pop(po) {}
 		constexpr parameter(provinces::province_tag pr) noexcept : prov(pr) {}
 	};
@@ -141,7 +140,7 @@ namespace triggers {
 		parameter pcopy;
 	public:
 		nations::nation const* nation;
-		nations::state_instance const* state;
+		nations::state_tag state;
 		population::pop const* pop;
 		provinces::province_tag prov;
 
@@ -149,7 +148,7 @@ namespace triggers {
 		constexpr const_parameter(nullptr_t) noexcept : nation(nullptr) {}
 		constexpr const_parameter(parameter p) noexcept : pcopy(p) {}
 		constexpr const_parameter(nations::nation const* n) noexcept : nation(n) {}
-		constexpr const_parameter(nations::state_instance const* s) noexcept : state(s) {}
+		constexpr const_parameter(nations::state_tag s) noexcept : state(s) {}
 		constexpr const_parameter(population::pop const* po) noexcept : pop(po) {}
 		constexpr const_parameter(provinces::province_tag pr) noexcept : prov(pr) {}
 	};

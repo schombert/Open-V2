@@ -128,8 +128,8 @@ namespace modifiers {
 		if(auto crime = container.get<province_state::crime>(this_province); is_valid_index(crime))
 			modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[crime];
 		if(auto si = container.get<province_state::state_instance>(this_province); is_valid_index(si)) {
-			if(auto nf = ws.w.nation_s.states[si].owner_national_focus; nf && is_valid_index(nf->modifier))
-				modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[nf->modifier];
+			if(auto nf = ws.w.nation_s.states.get<state::owner_national_focus>(si); is_valid_index(nf) && is_valid_index(ws.s.modifiers_m.national_focuses[nf].modifier))
+				modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.national_focuses[nf].modifier];
 		}
 
 		modifier_values += ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.infrastructure] *
@@ -246,37 +246,41 @@ namespace modifiers {
 		remove_subrange(ws.w.province_s.timed_modifier_arrays, timed_array, provinces::timed_provincial_modifier{ date_tag(), mod });
 	}
 
-	void detach_province_modifiers(world_state& ws, provinces::province_tag this_province, nations::nation& nation_from) {
+	void detach_province_modifiers(world_state& ws, provinces::province_tag this_province, nations::country_tag nation_from) {
 		auto smod = get_range(ws.w.province_s.static_modifier_arrays, ws.w.province_s.province_state_container.get<province_state::static_modifiers>(this_province));
+		auto& n = ws.w.nation_s.nations[nation_from];
+
 		for(auto m : smod) {
 			if(auto nm = ws.s.modifiers_m.provincial_modifiers[m].complement; is_valid_index(nm)) {
-				remove_single_item(ws.w.nation_s.static_modifier_arrays, nation_from.static_modifiers, nm);
-				nation_from.modifier_values -= ws.s.modifiers_m.national_modifier_definitions[nm];
+				remove_single_item(ws.w.nation_s.static_modifier_arrays, n.static_modifiers, nm);
+				n.modifier_values -= ws.s.modifiers_m.national_modifier_definitions[nm];
 			}
 		}
 
 		auto tmod = get_range(ws.w.province_s.timed_modifier_arrays, ws.w.province_s.province_state_container.get<province_state::timed_modifiers>(this_province));
 		for(auto m = tmod.first; m != tmod.second; ++m) {
 			if(auto nm = ws.s.modifiers_m.provincial_modifiers[m->mod].complement; is_valid_index(nm)) {
-				remove_single_item(ws.w.nation_s.timed_modifier_arrays, nation_from.timed_modifiers, nations::timed_national_modifier{ m->expiration, nm });
-				nation_from.modifier_values -= ws.s.modifiers_m.national_modifier_definitions[nm];
+				remove_single_item(ws.w.nation_s.timed_modifier_arrays, n.timed_modifiers, nations::timed_national_modifier{ m->expiration, nm });
+				n.modifier_values -= ws.s.modifiers_m.national_modifier_definitions[nm];
 			}
 		}
 	}
-	void attach_province_modifiers(world_state& ws, provinces::province_tag this_province, nations::nation& nation_to) {
+	void attach_province_modifiers(world_state& ws, provinces::province_tag this_province, nations::country_tag nation_to) {
 		auto smod = get_range(ws.w.province_s.static_modifier_arrays, ws.w.province_s.province_state_container.get<province_state::static_modifiers>(this_province));
+		auto& n = ws.w.nation_s.nations[nation_to];
+		
 		for(auto m : smod) {
 			if(auto nm = ws.s.modifiers_m.provincial_modifiers[m].complement; is_valid_index(nm)) {
-				add_item(ws.w.nation_s.static_modifier_arrays, nation_to.static_modifiers, nm);
-				nation_to.modifier_values += ws.s.modifiers_m.national_modifier_definitions[nm];
+				add_item(ws.w.nation_s.static_modifier_arrays, n.static_modifiers, nm);
+				n.modifier_values += ws.s.modifiers_m.national_modifier_definitions[nm];
 			}
 		}
 
 		auto tmod = get_range(ws.w.province_s.timed_modifier_arrays, ws.w.province_s.province_state_container.get<province_state::timed_modifiers>(this_province));
 		for(auto m = tmod.first; m != tmod.second; ++m) {
 			if(auto nm = ws.s.modifiers_m.provincial_modifiers[m->mod].complement; is_valid_index(nm)) {
-				add_item(ws.w.nation_s.timed_modifier_arrays, nation_to.timed_modifiers, nations::timed_national_modifier{ m->expiration, nm });
-				nation_to.modifier_values += ws.s.modifiers_m.national_modifier_definitions[nm];
+				add_item(ws.w.nation_s.timed_modifier_arrays, n.timed_modifiers, nations::timed_national_modifier{ m->expiration, nm });
+				n.modifier_values += ws.s.modifiers_m.national_modifier_definitions[nm];
 			}
 		}
 	}
@@ -290,11 +294,11 @@ namespace modifiers {
 			contains_item(ws.w.nation_s.timed_modifier_arrays, this_nation.timed_modifiers, nations::timed_national_modifier{ date_tag(), mod });
 	}
 
-	float test_additive_factor(factor_tag t, world_state& ws, void* primary_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+	float test_additive_factor(factor_tag t, world_state& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot, population::rebel_faction* rebel_slot) {
 		return test_additive_factor(ws.s.modifiers_m.factor_modifiers[t], ws, primary_slot, from_slot, rebel_slot);
 	}
 
-	float test_additive_factor(factor_modifier const& f, world_state& ws, void* primary_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+	float test_additive_factor(factor_modifier const& f, world_state& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot, population::rebel_faction* rebel_slot) {
 		float accumulated = f.factor;
 		for(uint32_t i = 0; i < f.data_length; ++i) {
 			auto segment = ws.s.modifiers_m.factor_data[f.data_offset + i];
@@ -304,11 +308,11 @@ namespace modifiers {
 		return accumulated;
 	}
 
-	float test_multiplicative_factor(factor_tag t, world_state& ws, void* primary_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+	float test_multiplicative_factor(factor_tag t, world_state& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot, population::rebel_faction* rebel_slot) {
 		return test_multiplicative_factor(ws.s.modifiers_m.factor_modifiers[t], ws, primary_slot, from_slot, rebel_slot);
 	}
 
-	float test_multiplicative_factor(factor_modifier const& f, world_state& ws, void* primary_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+	float test_multiplicative_factor(factor_modifier const& f, world_state& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot, population::rebel_faction* rebel_slot) {
 		float accumulated = f.factor;
 		for(uint32_t i = 0; i < f.data_length; ++i) {
 			auto segment = ws.s.modifiers_m.factor_data[f.data_offset + i];

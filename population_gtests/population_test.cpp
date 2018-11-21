@@ -625,9 +625,9 @@ TEST(population_tests, population_directory_selection) {
 
 		read_all_pops(f.get_root(), ws, date_to_tag(boost::gregorian::date(1901, boost::gregorian::Jan, 1)));
 		
-		EXPECT_EQ(1ui32, get_size(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(853)].pops));
+		EXPECT_EQ(1ui32, get_size(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(provinces::province_tag(853))));
 
-		auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(853)].pops, 0);
+		auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(provinces::province_tag(853)), 0);
 		pop& pop_obj = ws.w.population_s.pops.get(popid);
 
 		EXPECT_EQ(750, ws.w.population_s.pop_demographics.get(popid, total_population_tag));
@@ -650,10 +650,10 @@ TEST(population_tests, population_directory_selection) {
 
 		read_all_pops(f.get_root(), ws, date_to_tag(boost::gregorian::date(1851, boost::gregorian::Jan, 1)));
 
-		EXPECT_EQ(2ui32, get_size(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(853)].pops));
+		EXPECT_EQ(2ui32, get_size(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(provinces::province_tag(853))));
 
 		{
-			auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(853)].pops, 0);
+			auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(provinces::province_tag(853)), 0);
 			pop& pop_obj = ws.w.population_s.pops.get(popid);
 
 			EXPECT_EQ(50, ws.w.population_s.pop_demographics.get(popid, total_population_tag));
@@ -663,7 +663,7 @@ TEST(population_tests, population_directory_selection) {
 			EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "clergymen")));
 		}
 		{
-			auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(853)].pops, 1);
+			auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(provinces::province_tag(853)), 1);
 			pop& pop_obj = ws.w.population_s.pops.get(popid);
 
 			EXPECT_EQ(6750, ws.w.population_s.pop_demographics.get(popid, total_population_tag));
@@ -687,8 +687,8 @@ TEST(population_tests, population_directory_selection) {
 		read_all_pops(f.get_root(), ws, date_to_tag(boost::gregorian::date(1801, boost::gregorian::Jan, 1)));
 
 		{
-			EXPECT_EQ(1ui32, get_size(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(850)].pops));
-			auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(850)].pops, 0);
+			EXPECT_EQ(1ui32, get_size(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(provinces::province_tag(850))));
+			auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(provinces::province_tag(850)), 0);
 			pop& pop_obj = ws.w.population_s.pops.get(popid);
 
 			EXPECT_EQ(5000, ws.w.population_s.pop_demographics.get(popid, total_population_tag));
@@ -698,8 +698,8 @@ TEST(population_tests, population_directory_selection) {
 			EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "farmers")));
 		}
 		{
-			EXPECT_EQ(1ui32, get_size(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(851)].pops));
-			auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(851)].pops, 0);
+			EXPECT_EQ(1ui32, get_size(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(provinces::province_tag(851))));
+			auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(provinces::province_tag(851)), 0);
 			pop& pop_obj = ws.w.population_s.pops.get(popid);
 
 			EXPECT_EQ(50, ws.w.population_s.pop_demographics.get(popid, total_population_tag));

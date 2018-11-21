@@ -16,6 +16,7 @@
 #include "world_state\\world_state.h"
 #include "economy\\economy_functions.h"
 #include "concurrency_tools\\concurrency_tools.hpp"
+#include "provinces\\province_functions.h"
 
 namespace graphics {
 
@@ -948,8 +949,8 @@ namespace graphics {
 		}
 	}
 
-	void default_color_province(provinces::province const& p, uint8_t* pcolors, uint8_t* scolors) {
-		if((p.flags & provinces::province::sea) != 0) {
+	void default_color_province(world_state const& ws, provinces::province_tag p, uint8_t* pcolors, uint8_t* scolors) {
+		if(ws.s.province_m.province_container.get<province::is_sea>(p)) {
 			pcolors[0] = 80ui8;
 			pcolors[1] = 80ui8;
 			pcolors[2] = 255ui8;
@@ -981,8 +982,8 @@ namespace graphics {
 			if(is_valid_index(g) && ws.w.map_view.mode == current_state::map_mode::prices) {
 				auto price_range = economy::global_price_range(ws, g);
 
-				for(uint32_t i = 0; i < ws.w.province_s.province_state_container.size(); ++i) {
-					if(auto si = ws.w.province_s.province_state_container[provinces::province_tag(provinces::province_tag::value_base_t(i))].state_instance; si && si->owner) {
+				for(int32_t i = 0; i < ws.w.province_s.province_state_container.size(); ++i) {
+					if(auto si = provinces::province_state(ws, provinces::province_tag(provinces::province_tag::value_base_t(i))); si && si->owner) {
 						if(auto sid = si->id; ws.w.nation_s.states.is_valid_index(sid)) {
 							auto local_prices = economy::state_current_prices(ws, sid);
 
@@ -998,7 +999,7 @@ namespace graphics {
 						}
 					}
 
-					default_color_province(ws.s.province_m.province_container[provinces::province_tag(provinces::province_tag::value_base_t(i))],
+					default_color_province(ws, provinces::province_tag(provinces::province_tag::value_base_t(i)),
 						pcolors + i * 3, scolors + i * 3);
 				}
 
@@ -1012,8 +1013,8 @@ namespace graphics {
 						auto max_purchases = *std::max_element(purchases_data_range.first, purchases_data_range.second);
 
 						
-						for(uint32_t i = 0; i < ws.w.province_s.province_state_container.size(); ++i) {
-							if(auto si = ws.w.province_s.province_state_container[provinces::province_tag(provinces::province_tag::value_base_t(i))].state_instance; si && si->owner) {
+						for(int32_t i = 0; i < ws.w.province_s.province_state_container.size(); ++i) {
+							if(auto si = provinces::province_state(ws, provinces::province_tag(provinces::province_tag::value_base_t(i))); si && si->owner) {
 								if(auto sid = si->id; ws.w.nation_s.states.is_valid_index(sid) && to_index(sid) < count_purchases) {
 									auto amount = purchases_data_range.first[to_index(sid)];
 
@@ -1031,7 +1032,7 @@ namespace graphics {
 								}
 							}
 
-							default_color_province(ws.s.province_m.province_container[provinces::province_tag(provinces::province_tag::value_base_t(i))],
+							default_color_province(ws, provinces::province_tag(provinces::province_tag::value_base_t(i)),
 								pcolors + i * 3, scolors + i * 3);
 						}
 
@@ -1046,8 +1047,8 @@ namespace graphics {
 
 				
 
-				for(uint32_t i = 0; i < ws.w.province_s.province_state_container.size(); ++i) {
-					if(auto si = ws.w.province_s.province_state_container[provinces::province_tag(provinces::province_tag::value_base_t(i))].state_instance; si && si->owner) {
+				for(int32_t i = 0; i < ws.w.province_s.province_state_container.size(); ++i) {
+					if(auto si = provinces::province_state(ws, provinces::province_tag(provinces::province_tag::value_base_t(i))); si && si->owner) {
 						if(auto sid = si->id; ws.w.nation_s.states.is_valid_index(sid)) {
 							auto fraction = economy::state_current_production(ws, sid)[to_index(g)] / max_production;
 							if(fraction < 0)
@@ -1063,7 +1064,7 @@ namespace graphics {
 						}
 					}
 
-					default_color_province(ws.s.province_m.province_container[provinces::province_tag(provinces::province_tag::value_base_t(i))],
+					default_color_province(ws, provinces::province_tag(provinces::province_tag::value_base_t(i)),
 						pcolors + i * 3, scolors + i * 3);
 				}
 
@@ -1071,7 +1072,7 @@ namespace graphics {
 			} else if(auto p = ws.w.map_view.selected_province; is_valid_index(p) && ws.w.map_view.mode == current_state::map_mode::distance) {
 				
 				auto pcount = ws.w.province_s.province_state_container.size();
-				for(uint32_t i = 0; i < pcount; ++i) {
+				for(int32_t i = 0; i < pcount; ++i) {
 					auto distance = ws.w.province_s.province_distance_to[to_index(p) * pcount + i];
 					pcolors[i * 3 + 0] = uint8_t(std::clamp((distance / 8'000.0f - 1.0f), 0.0f, 1.0f) * 255.0f);
 					pcolors[i * 3 + 1] = uint8_t(std::clamp((1.0f - distance / 8'000.0f), 0.0f, 1.0f) * 255.0f);
@@ -1084,7 +1085,7 @@ namespace graphics {
 				for(size_t i = 0; i < ws.s.province_m.province_container.size(); ++i) {
 					const provinces::province_tag this_province(static_cast<provinces::province_tag::value_base_t>(i));
 					
-					if(auto owner = ws.w.province_s.province_state_container[this_province].owner; owner) {
+					if(auto owner = provinces::province_owner(ws, this_province); owner) {
 						pcolors[i * 3 + 0] = owner->current_color.r;
 						pcolors[i * 3 + 1] = owner->current_color.g;
 						pcolors[i * 3 + 2] = owner->current_color.b;
@@ -1092,7 +1093,7 @@ namespace graphics {
 						scolors[i * 3 + 1] = owner->current_color.g;
 						scolors[i * 3 + 2] = owner->current_color.b;
 					} else {
-						default_color_province(ws.s.province_m.province_container[provinces::province_tag(provinces::province_tag::value_base_t(i))],
+						default_color_province(ws, provinces::province_tag(provinces::province_tag::value_base_t(i)),
 							pcolors + i * 3, scolors + i * 3);
 					}
 				}

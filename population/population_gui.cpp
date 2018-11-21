@@ -421,9 +421,9 @@ namespace population {
 
 	void pop_state_open_button::button_function(ui::simple_button<pop_state_open_button>&, world_state& ws) {
 		if(is_valid_index(tag)) {
-			auto owner = ws.w.nation_s.states[tag].owner;
-			if(owner)
-				ws.w.population_w.show_population_window(ws.w.gui_m, owner->id, tag);
+			auto owner = ws.w.nation_s.states.get<state::owner>(tag);
+			if(is_valid_index(owner))
+				ws.w.population_w.show_population_window(ws.w.gui_m, owner, tag);
 		}
 	}
 

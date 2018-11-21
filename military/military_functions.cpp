@@ -208,7 +208,7 @@ namespace military {
 		return false;
 	}
 
-	uint32_t total_units_in_province(world_state const& ws, provinces::province_tag const& ps) {
+	uint32_t total_units_in_province(world_state const& ws, provinces::province_tag ps) {
 		auto orders = ws.w.province_s.province_state_container.get<province_state::orders>(ps);
 		if(is_valid_index(orders)) {
 			auto& o_obj = ws.w.military_s.army_orders_container[orders];
@@ -552,22 +552,25 @@ namespace military {
 			return false;
 	}
 
-	float single_state_war_score(world_state const& ws, nations::state_instance const& si, float owner_total_pop) {
-		int32_t factory_count = economy::count_factories_in_state(si);
-		auto owner = si.owner;
+	float single_state_war_score(world_state const& ws, nations::state_tag si, float owner_total_pop) {
+		int32_t factory_count = economy::count_factories_in_state(ws, si);
+		auto owner_id = ws.w.nation_s.states.get<state::owner>(si);
+		
 		float running_total = 0.0f;
 
-		if(bool(owner) && !nations::is_colonial_or_protectorate(si)) {
-			nations::for_each_province(ws, si, [&running_total, owner, owner_total_pop, &ws, &factory_count](provinces::province_tag prov) {
+		if(bool(owner_id) && !nations::is_colonial_or_protectorate(ws, si)) {
+			auto& owner = ws.w.nation_s.nations[owner_id];
+
+			nations::for_each_province(ws, si, [&running_total, &owner, owner_total_pop, &ws, &factory_count](provinces::province_tag prov) {
 				auto province_pop = ws.w.province_s.province_demographics.get(prov, population::total_population_tag);
 				auto& container = ws.w.province_s.province_state_container;
 
 				int32_t base_cost_temp = container.get<province_state::fort_level>(prov) + container.get<province_state::naval_base_level>(prov) + factory_count + 1;
 				factory_count = 0; // only add factories once
 
-				if(contains_item(ws.w.province_s.core_arrays, container.get<province_state::cores>(prov), owner->tag))
+				if(contains_item(ws.w.province_s.core_arrays, container.get<province_state::cores>(prov), owner.tag))
 					base_cost_temp *= 2;
-				if(owner->current_capital == prov)
+				if(owner.current_capital == prov)
 					base_cost_temp *= 3;
 
 				running_total += 2.8f * std::clamp((owner_total_pop != 0) ? (float(base_cost_temp) * 200.0f * float(province_pop) / owner_total_pop) : float(base_cost_temp), 1.0f, float(base_cost_temp));
@@ -626,7 +629,7 @@ namespace military {
 
 				if((this_cb_type.flags & cb_type::all_allowed_states) == 0) {
 					if(auto state = wg.target_state; is_valid_index(state))
-						total_cost += single_state_war_score(ws, ws.w.nation_s.states[state], float(target_total_pop));
+						total_cost += single_state_war_score(ws, state, float(target_total_pop));
 				} else {
 					auto wg_from = wg.from_country;
 					auto wg_liberation = wg.liberation_target;
@@ -634,8 +637,8 @@ namespace military {
 						auto& nfrom = ws.w.nation_s.nations[wg_from];
 						auto trigger_to_test = ws.s.trigger_m.trigger_data.data() + to_index(this_cb_type.allowed_states);
 						auto& lib_target = ws.w.nation_s.nations[wg_liberation];
-						nations::for_each_state(ws, n, [&ws, &n, &nfrom, &lib_target, trigger_to_test, tp = float(target_total_pop), &total_cost](nations::state_instance const& si) {
-							if(triggers::test_trigger(trigger_to_test, ws, &si, &nfrom, &lib_target, nullptr))
+						nations::for_each_state(ws, n, [&ws, &n, &nfrom, &lib_target, trigger_to_test, tp = float(target_total_pop), &total_cost](nations::state_tag si) {
+							if(triggers::test_trigger(trigger_to_test, ws, si, &nfrom, &lib_target, nullptr))
 								total_cost += single_state_war_score(ws, si, tp);
 						});
 					}

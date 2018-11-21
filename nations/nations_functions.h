@@ -3,27 +3,22 @@
 #include "nations.h"
 #include "provinces\\provinces.h"
 
-namespace current_state {
-	class state;
-}
-
 class world_state;
-
 
 namespace nations {
 	void init_nations_state(world_state& ws);
 	void reset_state(nations_state& s);
-	state_instance& make_state(provinces::state_tag region, world_state& ws);
+	state_tag make_state(provinces::state_tag region, world_state& ws);
 	void remove_province_from_state(world_state& ws, provinces::province_tag p);
 	nation* make_nation_for_tag(world_state& ws, cultures::national_tag nt);
 	bool is_state_empty(world_state const& ws, nations::state_tag s);
-	bool is_colonial_or_protectorate(state_instance const& s);
+	bool is_colonial_or_protectorate(world_state const& ws, state_tag s);
 	void update_state_nation_demographics(world_state& ws);
 	provinces::province_tag find_best_capital(world_state const& ws, nation const& owner);
 	void fix_capitals(world_state& ws);
-	provinces::province_tag get_state_capital(world_state const& ws, nations::state_instance const& s);
-	provinces::province_tag find_state_capital(world_state const& ws, nations::state_instance const& s);
-	provinces::province_tag state_port_province(world_state const& ws, nations::state_instance const& s);
+	provinces::province_tag get_state_capital(world_state const& ws, nations::state_tag s);
+	provinces::province_tag find_state_capital(world_state const& ws, nations::state_tag s);
+	provinces::province_tag state_port_province(world_state const& ws, nations::state_tag s);
 	void set_relationship(world_state& ws, nation& a, nation& b, int32_t value);
 	int32_t get_relationship(world_state const& ws, nation const& a, country_tag b);
 	void adjust_relationship(world_state& ws, nation& a, nation& b, int32_t value);
@@ -54,11 +49,11 @@ namespace nations {
 	void destroy_nation(world_state& ws, nations::nation& new_nation);
 	float tarrif_multiplier(world_state const& ws, nations::nation const& source, nations::nation const& target);
 
-	int32_t colonial_points_to_make_protectorate(world_state const& ws, state_instance const& si);
-	int32_t colonial_points_to_make_colony(world_state const& ws, state_instance const& si);
-	int32_t colonial_points_to_make_state(world_state const& ws, state_instance const& si);
+	int32_t colonial_points_to_make_protectorate(world_state const& ws, state_tag si);
+	int32_t colonial_points_to_make_colony(world_state const& ws, state_tag si);
+	int32_t colonial_points_to_make_state(world_state const& ws, state_tag si);
 	int32_t free_colonial_points(world_state const& ws, nation const& n);
-	int32_t points_for_next_colonial_stage(world_state const& ws, nation const& n, state_instance const& si);
+	int32_t points_for_next_colonial_stage(world_state const& ws, nation const& n, state_tag si);
 
 	text_data::text_tag get_nation_status_text(world_state const& ws, nation const& this_nation);
 	bool is_great_power(world_state const& ws, nation const& this_nation);
@@ -78,7 +73,7 @@ namespace nations {
 
 	float get_prestige(nations::nation const& n);
 	int32_t get_colonial_points(nations::nation const& n);
-	float calculate_state_administrative_efficiency(world_state const& ws, nations::state_instance const& si, float admin_requirement);
+	float calculate_state_administrative_efficiency(world_state const& ws, state_tag si, float admin_requirement);
 	float calculate_national_administrative_efficiency(world_state const& ws, nations::nation const& n);
 	float calculate_revanchism(world_state const& ws, nations::nation const& n);
 	void update_neighbors(world_state& ws, nations::nation& this_nation);
@@ -98,30 +93,32 @@ namespace nations {
 	void uncivilize_nation(world_state& ws, nations::nation& this_nation);
 	void perform_nationalization(world_state& ws, nations::nation& this_nation);
 
-	void make_slave_state(world_state& ws, nations::state_instance& this_state);
-	void unmake_slave_state(world_state& ws, nations::state_instance& this_state);
+	void make_slave_state(world_state& ws, state_tag this_state);
+	void unmake_slave_state(world_state& ws, state_tag this_state);
 
-	bool are_states_physically_neighbors(world_state const& ws, nations::state_instance const& a, nations::state_instance const& b);
+	bool are_states_physically_neighbors(world_state const& ws, state_tag a, state_tag b);
+	nations::nation* state_owner(world_state& ws, nations::state_tag s);
+	nations::nation const* state_owner(world_state const& ws, nations::state_tag s);
 
 	template<typename F>
-	void for_each_province(world_state const& ws, nations::state_instance const& s, F&& f);
+	void for_each_province(world_state const& ws, state_tag s, F&& f);
 	template<typename F>
 	void for_each_province(world_state const& ws, nations::nation const& s, F&& f);
 	template<typename F>
 	void for_each_state(world_state const& ws, nations::nation const& s, F&& f);
 	template<typename F>
-	void for_each_pop(world_state const& ws, nations::state_instance const& s, F&& f);
+	void for_each_pop(world_state const& ws, state_tag s, F&& f);
 	template<typename F>
 	void for_each_pop(world_state const& ws, nations::nation const& s, F&& f);
 
 	template<typename F>
-	void for_each_province(world_state& ws, nations::state_instance& s, F&& f);
+	void for_each_province(world_state& ws, state_tag s, F&& f);
 	template<typename F>
 	void for_each_province(world_state& ws, nations::nation& s, F&& f);
 	template<typename F>
 	void for_each_state(world_state& ws, nations::nation& s, F&& f);
 	template<typename F>
-	void for_each_pop(world_state& ws, nations::state_instance& s, F&& f);
+	void for_each_pop(world_state& ws, state_tag s, F&& f);
 	template<typename F>
 	void for_each_pop(world_state& ws, nations::nation& s, F&& f);
 }

@@ -866,7 +866,7 @@ namespace provinces {
 		auto selected = ws.w.province_w.selected_province;
 		if(is_valid_index(selected)) {
 			if(auto sid = ws.w.province_s.province_state_container.get<province_state::state_instance>(selected); ws.w.nation_s.states.is_valid_index(sid))
-				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.states[sid].name, fmt, ws.s.gui_m, ws.w.gui_m, obj, lm);
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.states.get<state::name>(sid), fmt, ws.s.gui_m, ws.w.gui_m, obj, lm);
 			else if(auto stid = ws.s.province_m.province_container.get<province::state_id>(selected); is_valid_index(stid))
 				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.province_m.state_names[stid], fmt, ws.s.gui_m, ws.w.gui_m, obj, lm);
 		}
@@ -920,9 +920,9 @@ namespace provinces {
 	void slave_state_icon::windowed_update(ui::dynamic_icon<slave_state_icon>& ico, window_type const&, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto state = ws.w.province_s.province_state_container.get<province_state::state_instance>(selected_prov);
-			if(ws.w.nation_s.states.is_valid_index(state)) {
-				if(ws.w.nation_s.states[state].flags & nations::state_instance::is_slave_state)
+			auto sid = ws.w.province_s.province_state_container.get<province_state::state_instance>(selected_prov);
+			if(ws.w.nation_s.states.is_valid_index(sid)) {
+				if(ws.w.nation_s.states.get<state::is_slave_state>(sid))
 					ui::make_visible_immediate(*ico.associated_object);
 				else
 					ico.set_visibility(ws.w.gui_m, false);
@@ -951,17 +951,17 @@ namespace provinces {
 	void colony_button::windowed_update(ui::simple_button<colony_button>& ico, window_type const&, world_state& ws) {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
-			auto state = ws.w.province_s.province_state_container.get<province_state::state_instance>(selected_prov);
+			auto sid = ws.w.province_s.province_state_container.get<province_state::state_instance>(selected_prov);
 
-			if(ws.w.nation_s.states.is_valid_index(state)) {
+			if(ws.w.nation_s.states.is_valid_index(sid)) {
 				if(ws.w.local_player_nation == nullptr
 					|| ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov) != ws.w.local_player_nation->id) {
 
 					ico.set_enabled(false);
-					if(ws.w.nation_s.states[state].flags & nations::state_instance::is_protectorate) {
+					if(ws.w.nation_s.states.get<state::is_protectorate>(sid)) {
 						ico.set_frame(ws.w.gui_m, 0ui32);
 						ui::make_visible_immediate(*ico.associated_object);
-					} else if(ws.w.nation_s.states[state].flags & nations::state_instance::is_colonial) {
+					} else if(ws.w.nation_s.states.get<state::is_colonial>(sid)) {
 						ico.set_frame(ws.w.gui_m, 1ui32);
 						ui::make_visible_immediate(*ico.associated_object);
 					} else {
@@ -969,13 +969,13 @@ namespace provinces {
 					}
 				} else {
 					int32_t free_points = nations::free_colonial_points(ws, *ws.w.local_player_nation);
-					if(ws.w.nation_s.states[state].flags & nations::state_instance::is_protectorate) {
+					if(ws.w.nation_s.states.get<state::is_protectorate>(sid)) {
 						ico.set_frame(ws.w.gui_m, 0ui32);
-						ico.set_enabled(nations::colonial_points_to_make_colony(ws, ws.w.nation_s.states[state]) <= free_points);
+						ico.set_enabled(nations::colonial_points_to_make_colony(ws, sid) <= free_points);
 						ui::make_visible_immediate(*ico.associated_object);
-					} else if(ws.w.nation_s.states[state].flags & nations::state_instance::is_colonial) {
+					} else if(ws.w.nation_s.states.get<state::is_colonial>(sid)) {
 						ico.set_frame(ws.w.gui_m, 1ui32);
-						ico.set_enabled(nations::colonial_points_to_make_state(ws, ws.w.nation_s.states[state]) <= free_points);
+						ico.set_enabled(nations::colonial_points_to_make_state(ws, sid) <= free_points);
 						ui::make_visible_immediate(*ico.associated_object);
 					} else {
 						ico.set_visibility(ws.w.gui_m, false);
@@ -1119,11 +1119,12 @@ namespace provinces {
 	void colonist_lb::populate_list(lb_type& lb, world_state& ws) {
 		auto selected = ws.w.province_w.selected_province;
 		if(is_valid_index(selected)) {
-			auto state = ws.w.province_s.province_state_container.get<province_state::state_instance>(selected);
-			if(ws.w.nation_s.states.is_valid_index(state)) {
-				for(uint32_t i = 0; i < std::extent_v<decltype(nations::state_instance::colonizers)>; ++i) {
-					if(ws.w.nation_s.states[state].colonizers[i].second != 0)
-						lb.add_item(ws, ws.w.nation_s.states[state].colonizers[i].first, ws.w.nation_s.states[state].colonizers[i].second);
+			auto sid = ws.w.province_s.province_state_container.get<province_state::state_instance>(selected);
+			if(ws.w.nation_s.states.is_valid_index(sid)) {
+				auto& colonizers = ws.w.nation_s.states.get<state::colonizers>(sid);
+				for(uint32_t i = 0; i < state::colonizers_count; ++i) {
+					if(colonizers[i].second != 0)
+						lb.add_item(ws, colonizers[i].first, colonizers[i].second);
 				}
 			}
 		}
@@ -1144,7 +1145,7 @@ namespace provinces {
 			if(is_valid_index(selected)) {
 				auto state = ws.w.province_s.province_state_container.get<province_state::state_instance>(selected);
 				if(is_valid_index(state))
-					lb.add_item(ws, i, nations::points_for_next_colonial_stage(ws, *ws.w.local_player_nation, ws.w.nation_s.states[state]));
+					lb.add_item(ws, i, nations::points_for_next_colonial_stage(ws, *ws.w.local_player_nation, state));
 			}
 		}
 	}

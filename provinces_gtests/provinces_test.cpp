@@ -101,10 +101,10 @@ TEST(provinces_test, default_map_read) {
 	read_default_map_file(state, f.get_root());
 
 	EXPECT_EQ(5ui64, m.province_container.size());
-	EXPECT_EQ(province_tag(0), m.province_container[province_tag(0)].id);
-	EXPECT_EQ(0ui16, m.province_container[province_tag(0)].flags);
-	EXPECT_EQ(province::sea, m.province_container[province_tag(1)].flags);
-	EXPECT_EQ(province::sea, m.province_container[province_tag(4)].flags);
+	EXPECT_EQ(true, m.province_container.get<province::is_sea>(province_tag(1)));
+	EXPECT_EQ(false, m.province_container.get<province::is_sea>(province_tag(2)));
+	EXPECT_EQ(false, m.province_container.get<province::is_sea>(province_tag(3)));
+	EXPECT_EQ(true, m.province_container.get<province::is_sea>(province_tag(4)));
 }
 
 TEST(provinces_test, climate_read) {
@@ -130,12 +130,12 @@ TEST(provinces_test, climate_read) {
 
 	EXPECT_EQ(1.0f, mm.provincial_modifier_definitions[provincial_modifier_tag(1)][modifiers::provincial_offsets::max_attrition]);
 
-	EXPECT_EQ(provincial_modifier_tag(1), m.province_container[province_tag(0)].climate);
-	EXPECT_EQ(provincial_modifier_tag(1), m.province_container[province_tag(4)].climate);
+	EXPECT_EQ(provincial_modifier_tag(1), m.province_container.get<province::climate>(province_tag(0)));
+	EXPECT_EQ(provincial_modifier_tag(1), m.province_container.get<province::climate>(province_tag(4)));
 
-	EXPECT_EQ(provincial_modifier_tag(0), m.province_container[province_tag(1)].climate);
-	EXPECT_EQ(provincial_modifier_tag(0), m.province_container[province_tag(2)].climate);
-	EXPECT_EQ(provincial_modifier_tag(0), m.province_container[province_tag(3)].climate);
+	EXPECT_EQ(provincial_modifier_tag(0), m.province_container.get<province::climate>(province_tag(1)));
+	EXPECT_EQ(provincial_modifier_tag(0), m.province_container.get<province::climate>(province_tag(2)));
+	EXPECT_EQ(provincial_modifier_tag(0), m.province_container.get<province::climate>(province_tag(3)));
 }
 
 TEST(provinces_test, continent_preparse) {
@@ -159,11 +159,11 @@ TEST(provinces_test, continent_preparse) {
 	EXPECT_EQ(provincial_modifier_tag(0), mm.named_provincial_modifiers_index[text_data::get_thread_safe_text_handle(tex, "europe")]);
 	EXPECT_EQ(provincial_modifier_tag(1), mm.named_provincial_modifiers_index[mm.provincial_modifiers[provincial_modifier_tag(1)].name]);
 
-	EXPECT_EQ(provincial_modifier_tag(1), m.province_container[province_tag(1)].continent);
-	EXPECT_EQ(provincial_modifier_tag(1), m.province_container[province_tag(2)].continent);
+	EXPECT_EQ(provincial_modifier_tag(1), m.province_container.get<province::continent>(province_tag(1)));
+	EXPECT_EQ(provincial_modifier_tag(1), m.province_container.get<province::continent>(province_tag(2)));
 
-	EXPECT_EQ(provincial_modifier_tag(0), m.province_container[province_tag(3)].continent);
-	EXPECT_EQ(provincial_modifier_tag(0), m.province_container[province_tag(4)].continent);
+	EXPECT_EQ(provincial_modifier_tag(0), m.province_container.get<province::continent>(province_tag(3)));
+	EXPECT_EQ(provincial_modifier_tag(0), m.province_container.get<province::continent>(province_tag(4)));
 
 	EXPECT_EQ(0.5f, mm.provincial_modifier_definitions[provincial_modifier_tag(0)][modifiers::provincial_offsets::assimilation_rate]);
 	EXPECT_EQ(10.0f, mm.provincial_modifier_definitions[provincial_modifier_tag(1)][modifiers::provincial_offsets::mine_rgo_size]);
@@ -222,11 +222,11 @@ TEST(provinces_test, region_read) {
 	EXPECT_EQ(2ui64, m.state_names.size());
 	EXPECT_EQ(2ui64, m.named_states_index.size());
 
-	EXPECT_EQ(state_tag(), m.province_container[province_tag(0)].state_id);
-	EXPECT_EQ(state_tag(0), m.province_container[province_tag(1)].state_id);
-	EXPECT_EQ(state_tag(1), m.province_container[province_tag(2)].state_id);
-	EXPECT_EQ(state_tag(0), m.province_container[province_tag(3)].state_id);
-	EXPECT_EQ(state_tag(1), m.province_container[province_tag(4)].state_id);
+	EXPECT_EQ(state_tag(), m.province_container.get<province::state_id>(province_tag(0)));
+	EXPECT_EQ(state_tag(0), m.province_container.get<province::state_id>(province_tag(1)));
+	EXPECT_EQ(state_tag(1), m.province_container.get<province::state_id>(province_tag(2)));
+	EXPECT_EQ(state_tag(0), m.province_container.get<province::state_id>(province_tag(3)));
+	EXPECT_EQ(state_tag(1), m.province_container.get<province::state_id>(province_tag(4)));
 
 	bool tagged_provs[5] = { false };
 	for (auto s1_range = m.states_to_province_index.get_row(state_tag(0)); s1_range.first != s1_range.second; ++s1_range.first) {
@@ -298,11 +298,11 @@ TEST(provinces_test, adjacent) {
 	adj_map[province_tag(1)].insert(province_tag(5));
 	adj_map[province_tag(5)].insert(province_tag(1));
 
-	m.province_container[province_tag(2)].flags = province::sea;
-	m.province_container[province_tag(3)].flags = province::sea;
-	m.province_container[province_tag(4)].flags = province::sea;
-	m.province_container[province_tag(5)].flags = province::sea;
-	m.province_container[province_tag(6)].flags = province::sea;
+	m.province_container.set<province::is_sea>(province_tag(2), true);
+	m.province_container.set<province::is_sea>(province_tag(3), true);
+	m.province_container.set<province::is_sea>(province_tag(4), true);
+	m.province_container.set<province::is_sea>(province_tag(5), true);
+	m.province_container.set<province::is_sea>(province_tag(6), true);
 
 	text_data::text_sequences tex;
 
@@ -342,15 +342,22 @@ TEST(provinces_test, adjacent) {
 	
 	make_lakes(adj_map, m);
 
-	EXPECT_EQ(uint16_t(province::sea), m.province_container[province_tag(2)].flags);
-	EXPECT_EQ(uint16_t(province::sea), m.province_container[province_tag(4)].flags);
-	EXPECT_EQ(uint16_t(province::sea), m.province_container[province_tag(6)].flags);
+	EXPECT_EQ(true, m.province_container.get<province::is_sea>(province_tag(2)));
+	EXPECT_EQ(true, m.province_container.get<province::is_sea>(province_tag(4)));
+	EXPECT_EQ(true, m.province_container.get<province::is_sea>(province_tag(6)));
+	EXPECT_EQ(false, m.province_container.get<province::is_lake>(province_tag(2)));
+	EXPECT_EQ(false, m.province_container.get<province::is_lake>(province_tag(4)));
+	EXPECT_EQ(false, m.province_container.get<province::is_lake>(province_tag(6)));
 
-	EXPECT_EQ(uint16_t(0), m.province_container[province_tag(1)].flags);
-	EXPECT_EQ(uint16_t(0), m.province_container[province_tag(7)].flags);
+	EXPECT_EQ(false, m.province_container.get<province::is_sea>(province_tag(1)));
+	EXPECT_EQ(false, m.province_container.get<province::is_sea>(province_tag(7)));
+	EXPECT_EQ(false, m.province_container.get<province::is_lake>(province_tag(1)));
+	EXPECT_EQ(false, m.province_container.get<province::is_lake>(province_tag(7)));
 
-	EXPECT_EQ(uint16_t(province::sea | province::lake), m.province_container[province_tag(3)].flags);
-	EXPECT_EQ(uint16_t(province::sea | province::lake), m.province_container[province_tag(5)].flags);
+	EXPECT_EQ(true, m.province_container.get<province::is_sea>(province_tag(3)));
+	EXPECT_EQ(true, m.province_container.get<province::is_sea>(province_tag(5)));
+	EXPECT_EQ(true, m.province_container.get<province::is_lake>(province_tag(3)));
+	EXPECT_EQ(true, m.province_container.get<province::is_lake>(province_tag(5)));
 
 	EXPECT_EQ(3ui64, adj_map[province_tag(1)].size());
 	EXPECT_EQ(1ui64, adj_map[province_tag(1)].count(province_tag(4)));
@@ -380,15 +387,25 @@ TEST(provinces_test, adjacent) {
 
 	make_adjacency(adj_map, m);
 
-	EXPECT_EQ(uint16_t(province::sea | province::coastal), m.province_container[province_tag(2)].flags);
-	EXPECT_EQ(uint16_t(province::sea | province::coastal), m.province_container[province_tag(4)].flags);
-	EXPECT_EQ(uint16_t(province::sea), m.province_container[province_tag(6)].flags);
+	EXPECT_EQ(true,m.province_container.get<province::is_sea>(province_tag(2)));
+	EXPECT_EQ(true, m.province_container.get<province::is_coastal>(province_tag(2)));
+	EXPECT_EQ(true, m.province_container.get<province::is_sea>(province_tag(4)));
+	EXPECT_EQ(true, m.province_container.get<province::is_coastal>(province_tag(4)));
+	EXPECT_EQ(true, m.province_container.get<province::is_sea>(province_tag(6)));
+	EXPECT_EQ(false, m.province_container.get<province::is_coastal>(province_tag(6)));
 
-	EXPECT_EQ(uint16_t(province::coastal), m.province_container[province_tag(1)].flags);
-	EXPECT_EQ(uint16_t(0), m.province_container[province_tag(7)].flags);
+	EXPECT_EQ(false, m.province_container.get<province::is_sea>(province_tag(1)));
+	EXPECT_EQ(true, m.province_container.get<province::is_coastal>(province_tag(1)));
+	EXPECT_EQ(false, m.province_container.get<province::is_sea>(province_tag(7)));
+	EXPECT_EQ(false, m.province_container.get<province::is_coastal>(province_tag(7)));
 
-	EXPECT_EQ(uint16_t(province::sea | province::lake), m.province_container[province_tag(3)].flags);
-	EXPECT_EQ(uint16_t(province::sea | province::lake), m.province_container[province_tag(5)].flags);
+
+	EXPECT_EQ(true, m.province_container.get<province::is_sea>(province_tag(3)));
+	EXPECT_EQ(false, m.province_container.get<province::is_coastal>(province_tag(3)));
+	EXPECT_EQ(true, m.province_container.get<province::is_lake>(province_tag(3)));
+	EXPECT_EQ(true, m.province_container.get<province::is_sea>(province_tag(5)));
+	EXPECT_EQ(false, m.province_container.get<province::is_coastal>(province_tag(5)));
+	EXPECT_EQ(true, m.province_container.get<province::is_lake>(province_tag(5)));
 
 	{
 		const auto same_row = m.same_type_adjacency.get_row(province_tag(1));
@@ -546,51 +563,51 @@ TEST(provinces_test, single_province_read_state) {
 	auto csa_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding("CSA"));
 
 	{
-		auto& ps = ws.w.province_s.province_state_container[province_tag(10ui16)];
+		auto ps = province_tag(10ui16);
 
 		read_province_history(
 			ws, ps, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)), presults.data(), presults.data() + presults.size());
 
-		EXPECT_EQ(ps.controller, ws.w.culture_s.national_tags_state[usa_tag].holder);
-		EXPECT_EQ(ps.owner, ws.w.culture_s.national_tags_state[usa_tag].holder);
-		EXPECT_EQ(ps.fort_level, 0ui8);
-		EXPECT_EQ(ps.railroad_level, 1ui8);
-		EXPECT_EQ(ps.naval_base_level, 0ui8);
-		EXPECT_EQ(35i16, ps.base_life_rating);
-		EXPECT_EQ(tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "tobacco")), ps.rgo_production);
+		EXPECT_EQ(provinces::province_controller(ws, ps), ws.w.culture_s.national_tags_state[usa_tag].holder);
+		EXPECT_EQ(provinces::province_owner(ws, ps), ws.w.culture_s.national_tags_state[usa_tag].holder);
+		EXPECT_EQ(ws.w.province_s.province_state_container.get<province_state::fort_level>(ps), 0ui8);
+		EXPECT_EQ(ws.w.province_s.province_state_container.get<province_state::railroad_level>(ps), 1ui8);
+		EXPECT_EQ(ws.w.province_s.province_state_container.get<province_state::naval_base_level>(ps), 0ui8);
+		EXPECT_EQ(35i16, ws.w.province_s.province_state_container.get<province_state::base_life_rating>(ps));
+		EXPECT_EQ(tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "tobacco")), ws.w.province_s.province_state_container.get<province_state::rgo_production>(ps));
 
-		EXPECT_NE(0, ps.state_instance->flags & nations::state_instance::is_colonial);
+		EXPECT_NE(0, provinces::province_state(ws, ps)->flags & nations::state_instance::is_colonial);
 		EXPECT_EQ(true, province_has_core(ws.w, province_tag(10ui16), usa_tag));
 		EXPECT_EQ(false, province_has_core(ws.w, province_tag(10ui16), csa_tag));
 
 	}
 
 	{
-		auto& ps = ws.w.province_s.province_state_container[province_tag(11ui16)];
+		auto& ps = province_tag(11ui16);
 
 		read_province_history(
 			ws, ps, date_to_tag(boost::gregorian::date(1866, boost::gregorian::Jan, 1)), presults.data(), presults.data() + presults.size());
 
-		EXPECT_EQ(ps.controller, ws.w.culture_s.national_tags_state[csa_tag].holder);
-		EXPECT_EQ(ps.owner, ws.w.culture_s.national_tags_state[csa_tag].holder);
-		EXPECT_EQ(ps.fort_level, 0ui8);
-		EXPECT_EQ(ps.railroad_level, 3ui8);
-		EXPECT_EQ(ps.naval_base_level, 0ui8);
-		EXPECT_EQ(35i16, ps.base_life_rating);
-		EXPECT_EQ(tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "tobacco")), ps.rgo_production);
-		EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_provincial_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "ocean")), ps.terrain);
-		EXPECT_EQ(ps.state_instance->factories[0].level, 1ui16);
-		EXPECT_EQ(ps.state_instance->factories[0].type->output_good,
+		EXPECT_EQ(provinces::province_controller(ws, ps), ws.w.culture_s.national_tags_state[csa_tag].holder);
+		EXPECT_EQ(provinces::province_owner(ws, ps), ws.w.culture_s.national_tags_state[csa_tag].holder);
+		EXPECT_EQ(ws.w.province_s.province_state_container.get<province_state::fort_level>(ps), 0ui8);
+		EXPECT_EQ(ws.w.province_s.province_state_container.get<province_state::railroad_level>(ps), 3ui8);
+		EXPECT_EQ(ws.w.province_s.province_state_container.get<province_state::naval_base_level>(ps), 0ui8);
+		EXPECT_EQ(35i16, ws.w.province_s.province_state_container.get<province_state::base_life_rating>(ps));
+		EXPECT_EQ(tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "tobacco")), ws.w.province_s.province_state_container.get<province_state::rgo_production>(ps));
+		EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_provincial_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "ocean")), ws.w.province_s.province_state_container.get<province_state::terrain>(ps));
+		EXPECT_EQ(provinces::province_state(ws, ps)->factories[0].level, 1ui16);
+		EXPECT_EQ(provinces::province_state(ws, ps)->factories[0].type->output_good,
 			tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "steel")));
-		EXPECT_EQ(ps.state_instance->factories[1].level, 1ui16);
-		EXPECT_EQ(ps.state_instance->factories[1].type->output_good,
+		EXPECT_EQ(provinces::province_state(ws, ps)->factories[1].level, 1ui16);
+		EXPECT_EQ(provinces::province_state(ws, ps)->factories[1].type->output_good,
 			tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "steamer_convoy")));
-		EXPECT_EQ(ps.state_instance->factories[2].level, 0ui16);
-		EXPECT_EQ(ps.state_instance->factories[2].type, nullptr);
+		EXPECT_EQ(provinces::province_state(ws, ps)->factories[2].level, 0ui16);
+		EXPECT_EQ(provinces::province_state(ws, ps)->factories[2].type, nullptr);
 
 		EXPECT_EQ(ws.w.province_s.party_loyalty.get(province_tag(11ui16), tag_from_text(ws.s.ideologies_m.named_ideology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "liberal"))), 10.5f);
 
-		EXPECT_EQ(0, ps.state_instance->flags & nations::state_instance::is_colonial);
+		EXPECT_EQ(0, provinces::province_state(ws, ps)->flags & nations::state_instance::is_colonial);
 		EXPECT_EQ(false, province_has_core(ws.w, province_tag(11ui16), usa_tag));
 		EXPECT_EQ(true, province_has_core(ws.w, province_tag(11ui16), csa_tag));
 	}

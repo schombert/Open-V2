@@ -9,6 +9,7 @@
 #include <variant>
 #include <optional>
 #include <tuple>
+#include <array>
 
 #ifdef __llvm__
 #pragma clang diagnostic push
@@ -419,7 +420,7 @@ inline void bit_vector_set(uint64_t* v, uint32_t index, bool value) {
 		v[real_index] &= ~(1ui64 << uint64_t(sub_index));
 }
 
-inline bool bit_vector_test(uint64_t* v, uint32_t index) {
+inline bool bit_vector_test(uint64_t const* v, uint32_t index) {
 	const uint32_t real_index = index >> 6ui32;
 	const uint32_t sub_index = index & 63ui32;
 	return (v[real_index] & (1ui64 << uint64_t(sub_index))) != 0ui64;

@@ -33,6 +33,9 @@
     <ClInclude Include="nations_gui.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="nations_io.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="nations.cpp">

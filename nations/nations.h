@@ -6,17 +6,85 @@
 #include "issues\\issues.h"
 #include "technologies\\technologies.h"
 #include "modifiers\\modifiers.h"
+#include "concurrency_tools\\variable_layout.h"
 
 namespace modifiers {
 	struct national_focus;
 }
 
 namespace nations {
-	struct state_instance;
+	struct pop_project {
+		economy::money_qnty_type funds = economy::money_qnty_type(0);
+		provinces::province_tag location; // for railroad
+		economy::factory_type_tag factory_type;
+		economy::pop_project_type type;
+	};
+}
 
+namespace state {
+	struct factories;
+	struct colonizers;
+	struct owner;
+	struct owner_national_focus;
+	struct project;
+	struct last_population;
+
+	struct flashpoint_tension_focuses;
+
+	struct administrative_efficiency;
+	struct current_tension;
+
+	struct name;
+	struct state_capital;
+	struct dominant_culture;
+
+	struct crisis_tag;
+	struct region_id;
+
+	struct dominant_issue;
+	struct dominant_ideology;
+	struct dominant_religion;
+
+	struct is_slave_state;
+	struct is_colonial;
+	struct is_protectorate;
+
+	constexpr int32_t factories_count = 8;
+	constexpr int32_t colonizers_count = 4;
+
+	using container = variable_layout_tagged_vector < nations::state_tag, 900,
+		is_slave_state, bitfield_type,
+		is_colonial, bitfield_type,
+		is_protectorate, bitfield_type,
+		is_slave_state, bitfield_type,
+
+		dominant_religion, cultures::religion_tag,
+		dominant_ideology, ideologies::ideology_tag,
+		dominant_issue, issues::option_tag,
+		region_id, provinces::state_tag,
+		crisis_tag, cultures::national_tag,
+		dominant_culture, cultures::culture_tag,
+		state_capital, provinces::province_tag,
+		name, text_data::text_tag,
+		current_tension, float,
+		administrative_efficiency, float,
+		last_population, float,
+
+		flashpoint_tension_focuses, set_tag<nations::country_tag>,
+
+		project, nations::pop_project,
+		owner_national_focus, modifiers::national_focus_tag,
+		owner, nations::country_tag,
+
+		colonizers, std::array<std::pair<nations::country_tag, int32_t>, colonizers_count>,
+		factories, std::array<economy::factory_instance, factories_count>
+		>;
+}
+
+namespace nations {
 	struct region_state_pair {
 		provinces::state_tag region_id;
-		state_instance* state;
+		state_tag state;
 
 		bool operator<(region_state_pair other)  const noexcept { return region_id < other.region_id; }
 		bool operator==(region_state_pair other) const noexcept { return region_id == other.region_id; }
@@ -213,56 +281,12 @@ namespace nations {
 		constexpr static uint16_t has_gas_defence = 0x0200;
 	};
 
-	
-
-	struct pop_project {
-		economy::money_qnty_type funds = economy::money_qnty_type(0);
-		provinces::province_tag location; // for railroad
-		economy::factory_type_tag factory_type;
-		economy::pop_project_type type;
-	};
-
-	struct state_instance {
-		economy::factory_instance factories[8] = {};
-		std::pair<country_tag, int32_t> colonizers[4] = {};
-
-		nation* owner = nullptr;
-		modifiers::national_focus* owner_national_focus = nullptr;
-
-		pop_project project;
-
-		int32_t last_population = 0;
-		set_tag<country_tag> flashpoint_tension_focuses;
-
-		float administrative_efficiency = 0.0f;
-		float current_tension = 0.0f;
-
-		text_data::text_tag name;
-		provinces::province_tag state_capital;
-		cultures::culture_tag dominant_culture;
-
-		cultures::national_tag crisis_tag;
-		state_tag id;
-		provinces::state_tag region_id;
-
-		issues::option_tag dominant_issue;
-		ideologies::ideology_tag dominant_ideology;
-		cultures::religion_tag dominant_religion;
-
-		uint8_t flags = 0ui8;
-
-		constexpr static uint8_t is_slave_state = 0x01;
-		constexpr static uint8_t is_colonial = 0x02;
-		constexpr static uint8_t is_protectorate = 0x04;
-		constexpr static uint8_t contains_naval_base = 0x08;
-	};
-
 	class nations_state {
 	public:
 		array_tag<country_tag> nations_by_rank;
 
 		stable_vector<nation, country_tag, 512, 16> nations;
-		stable_vector<state_instance, state_tag, 512, 16> states;
+		state::container states;
 
 		stable_2d_vector<governments::party_tag, country_tag, ideologies::ideology_tag, 512, 16> active_parties;
 		stable_2d_vector<uint8_t, country_tag, ideologies::ideology_tag, 512, 16> upper_house;
@@ -271,20 +295,20 @@ namespace nations {
 		stable_2d_vector<economy::money_qnty_type, country_tag, economy::goods_tag, 512, 16> collected_tariffs;
 		stable_2d_vector<issues::option_tag, country_tag, issues::issue_tag, 512, 16> active_issue_options;
 		stable_2d_vector<economy::goods_qnty_type, country_tag, economy::goods_tag, 512, 16> national_stockpiles;
-		stable_2d_vector<economy::money_qnty_type, state_tag, economy::goods_tag, 512, 16> state_prices;
-		stable_2d_vector<economy::goods_qnty_type, state_tag, economy::goods_tag, 512, 16> state_production;
-		stable_2d_vector<economy::money_qnty_type, state_tag, economy::goods_tag, 512, 16> state_demand;
-		stable_2d_vector<economy::money_qnty_type, state_tag, economy::goods_tag, 512, 16> state_global_demand;
 		stable_2d_vector<float, country_tag, variables::national_variable_tag, 512, 16> national_variables;
-		stable_2d_vector<array_tag<economy::money_qnty_type>, state_tag, economy::goods_tag, 512, 16> state_purchases;
-
 		stable_2d_vector<float, country_tag, technologies::adjusted_goods_tag, 512, 16> production_adjustments;
 		stable_2d_vector<military::unit_attribute_vector, country_tag, military::unit_type_tag, 512, 16> unit_stats;
 		stable_2d_vector<float, country_tag, population::rebel_type_tag, 512, 16> rebel_org_gain;
 
+		stable_2d_vector<economy::money_qnty_type, state_tag, economy::goods_tag, 512, 16> state_prices;
+		stable_2d_vector<economy::goods_qnty_type, state_tag, economy::goods_tag, 512, 16> state_production;
+		stable_2d_vector<economy::money_qnty_type, state_tag, economy::goods_tag, 512, 16> state_demand;
+		stable_2d_vector<economy::money_qnty_type, state_tag, economy::goods_tag, 512, 16> state_global_demand;
+		stable_2d_vector<array_tag<economy::money_qnty_type>, state_tag, economy::goods_tag, 512, 16> state_purchases;
+		
+
 		stable_variable_vector_storage_mk_2<modifiers::national_modifier_tag, 4, 8192> static_modifier_arrays;
 		stable_variable_vector_storage_mk_2<timed_national_modifier, 4, 8192> timed_modifier_arrays;
-
 		stable_variable_vector_storage_mk_2<region_state_pair, 2, 8192> state_arrays;
 		stable_variable_vector_storage_mk_2<influence, 2, 8192> influence_arrays;
 		stable_variable_vector_storage_mk_2<country_tag, 4, 8192> nations_arrays;

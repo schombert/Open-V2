@@ -334,7 +334,7 @@ namespace triggers {
 		void es_poor_strata_scope_state(EFFECT_PARAMTERS) {
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
 				auto limit = ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger);
-				nations::for_each_pop(ws, *(primary_slot.state), [&ws, limit, tval, this_slot, from_slot, rebel_slot, &gen](population::pop& pobj) {
+				nations::for_each_pop(ws, primary_slot.state, [&ws, limit, tval, this_slot, from_slot, rebel_slot, &gen](population::pop& pobj) {
 					auto type = pobj.type;
 					if(is_valid_index(type) &&
 						(ws.s.population_m.pop_types[type].flags & population::pop_type::strata_mask) == population::pop_type::strata_poor &&
@@ -344,7 +344,7 @@ namespace triggers {
 					}
 				});
 			} else {
-				nations::for_each_pop(ws, *(primary_slot.state), [&ws, tval, this_slot, from_slot, rebel_slot, &gen](population::pop& pobj) {
+				nations::for_each_pop(ws, primary_slot.state, [&ws, tval, this_slot, from_slot, rebel_slot, &gen](population::pop& pobj) {
 					auto type = pobj.type;
 					if(is_valid_index(type) &&
 						(ws.s.population_m.pop_types[type].flags & population::pop_type::strata_mask) == population::pop_type::strata_poor) {
@@ -403,7 +403,7 @@ namespace triggers {
 		void es_middle_strata_scope_state(EFFECT_PARAMTERS) {
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
 				auto limit = ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger);
-				nations::for_each_pop(ws, *primary_slot.state, [&ws, limit, tval, this_slot, from_slot, rebel_slot, &gen](population::pop& pobj) {
+				nations::for_each_pop(ws, primary_slot.state, [&ws, limit, tval, this_slot, from_slot, rebel_slot, &gen](population::pop& pobj) {
 					auto type = pobj.type;
 					if(is_valid_index(type) &&
 						(ws.s.population_m.pop_types[type].flags & population::pop_type::strata_mask) == population::pop_type::strata_middle &&
@@ -413,7 +413,7 @@ namespace triggers {
 					}
 				});
 			} else {
-				nations::for_each_pop(ws, *primary_slot.state, [&ws, tval, this_slot, from_slot, rebel_slot, &gen](population::pop& pobj) {
+				nations::for_each_pop(ws, primary_slot.state, [&ws, tval, this_slot, from_slot, rebel_slot, &gen](population::pop& pobj) {
 					auto type = pobj.type;
 					if(is_valid_index(type) &&
 						(ws.s.population_m.pop_types[type].flags & population::pop_type::strata_mask) == population::pop_type::strata_middle) {
@@ -472,7 +472,7 @@ namespace triggers {
 		void es_rich_strata_scope_state(EFFECT_PARAMTERS) {
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
 				auto limit = ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger);
-				nations::for_each_pop(ws, *primary_slot.state, [&ws, limit, tval, this_slot, from_slot, rebel_slot, &gen](population::pop& pobj) {
+				nations::for_each_pop(ws, primary_slot.state, [&ws, limit, tval, this_slot, from_slot, rebel_slot, &gen](population::pop& pobj) {
 					auto type = pobj.type;
 					if(is_valid_index(type) &&
 						(ws.s.population_m.pop_types[type].flags & population::pop_type::strata_mask) == population::pop_type::strata_rich &&
@@ -482,7 +482,7 @@ namespace triggers {
 					}
 				});
 			} else {
-				nations::for_each_pop(ws, *primary_slot.state, [&ws, tval, this_slot, from_slot, rebel_slot, &gen](population::pop& pobj) {
+				nations::for_each_pop(ws, primary_slot.state, [&ws, tval, this_slot, from_slot, rebel_slot, &gen](population::pop& pobj) {
 					auto type = pobj.type;
 					if(is_valid_index(type) &&
 						(ws.s.population_m.pop_types[type].flags & population::pop_type::strata_mask) == population::pop_type::strata_rich) {
@@ -555,12 +555,12 @@ namespace triggers {
 
 				if((tval[0] & effect_codes::scope_has_limit) != 0) {
 					auto limit = ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger);
-					nations::for_each_pop(ws, *primary_slot.state, [&ws, &rlist, limit, this_slot, from_slot, rebel_slot](population::pop& pobj) {
+					nations::for_each_pop(ws, primary_slot.state, [&ws, &rlist, limit, this_slot, from_slot, rebel_slot](population::pop& pobj) {
 						if(test_trigger(limit, ws, &pobj, this_slot, from_slot, rebel_slot))
 							rlist.push_back(&pobj);
 					});
 				} else {
-					nations::for_each_pop(ws, *primary_slot.state, [&rlist](population::pop& pobj) {
+					nations::for_each_pop(ws, primary_slot.state, [&rlist](population::pop& pobj) {
 						rlist.push_back(&pobj);
 					});
 				}
@@ -572,12 +572,12 @@ namespace triggers {
 			} else {
 				if((tval[0] & effect_codes::scope_has_limit) != 0) {
 					auto limit = ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger);
-					nations::for_each_pop(ws, *primary_slot.state, [&ws, limit, tval, this_slot, from_slot, rebel_slot, &gen](population::pop& pobj) {
+					nations::for_each_pop(ws, primary_slot.state, [&ws, limit, tval, this_slot, from_slot, rebel_slot, &gen](population::pop& pobj) {
 						if(test_trigger(limit, ws, &pobj, this_slot, from_slot, rebel_slot))
 							apply_subeffects(tval, ws, &pobj, this_slot, from_slot, rebel_slot, gen);
 					});
 				} else {
-					nations::for_each_pop(ws, *primary_slot.state, [&ws, tval, this_slot, from_slot, rebel_slot, &gen](population::pop& pobj) {
+					nations::for_each_pop(ws, primary_slot.state, [&ws, tval, this_slot, from_slot, rebel_slot, &gen](population::pop& pobj) {
 						apply_subeffects(tval, ws, &pobj, this_slot, from_slot, rebel_slot, gen);
 					});
 				}
@@ -657,12 +657,12 @@ namespace triggers {
 
 				if((tval[0] & effect_codes::scope_has_limit) != 0) {
 					auto limit = ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger);
-					nations::for_each_province(ws, *primary_slot.state, [&ws, &rlist, limit, this_slot, from_slot, rebel_slot](provinces::province_tag pobj) {
+					nations::for_each_province(ws, primary_slot.state, [&ws, &rlist, limit, this_slot, from_slot, rebel_slot](provinces::province_tag pobj) {
 						if(test_trigger(limit, ws, pobj, this_slot, from_slot, rebel_slot))
 							rlist.push_back(pobj);
 					});
 				} else {
-					nations::for_each_province(ws, *primary_slot.state, [&rlist](provinces::province_tag pobj) {
+					nations::for_each_province(ws, primary_slot.state, [&rlist](provinces::province_tag pobj) {
 						rlist.push_back(pobj);
 					});
 				}
@@ -674,12 +674,12 @@ namespace triggers {
 			} else {
 				if((tval[0] & effect_codes::scope_has_limit) != 0) {
 					auto limit = ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger);
-					nations::for_each_province(ws, *primary_slot.state, [&ws, limit, tval, this_slot, from_slot, rebel_slot, &gen](provinces::province_tag pobj) {
+					nations::for_each_province(ws, primary_slot.state, [&ws, limit, tval, this_slot, from_slot, rebel_slot, &gen](provinces::province_tag pobj) {
 						if(test_trigger(limit, ws, pobj, this_slot, from_slot, rebel_slot))
 							apply_subeffects(tval, ws, pobj, this_slot, from_slot, rebel_slot, gen);
 					});
 				} else {
-					nations::for_each_province(ws, *primary_slot.state, [&ws, tval, this_slot, from_slot, rebel_slot, &gen](provinces::province_tag pobj) {
+					nations::for_each_province(ws, primary_slot.state, [&ws, tval, this_slot, from_slot, rebel_slot, &gen](provinces::province_tag pobj) {
 						apply_subeffects(tval, ws, pobj, this_slot, from_slot, rebel_slot, gen);
 					});
 				}
@@ -732,17 +732,17 @@ namespace triggers {
 		}
 		void es_x_state_scope(EFFECT_PARAMTERS) {
 			if((tval[0] & effect_codes::is_random_scope) != 0) {
-				boost::container::small_vector<nations::state_instance*, 16, concurrent_allocator<nations::state_instance*>> rlist;
+				boost::container::small_vector<nations::state_tag, 16, concurrent_allocator<nations::state_tag>> rlist;
 
 				if((tval[0] & effect_codes::scope_has_limit) != 0) {
 					auto limit = ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger);
-					nations::for_each_state(ws, *primary_slot.nation, [&ws, &rlist, limit, this_slot, from_slot, rebel_slot](nations::state_instance& pobj) {
-						if(test_trigger(limit, ws, &pobj, this_slot, from_slot, rebel_slot))
-							rlist.push_back(&pobj);
+					nations::for_each_state(ws, *primary_slot.nation, [&ws, &rlist, limit, this_slot, from_slot, rebel_slot](nations::state_tag pobj) {
+						if(test_trigger(limit, ws, pobj, this_slot, from_slot, rebel_slot))
+							rlist.push_back(pobj);
 					});
 				} else {
-					nations::for_each_state(ws, *primary_slot.nation, [&rlist](nations::state_instance& pobj) {
-						rlist.push_back(&pobj);
+					nations::for_each_state(ws, *primary_slot.nation, [&rlist](nations::state_tag pobj) {
+						rlist.push_back(pobj);
 					});
 				}
 
@@ -753,13 +753,13 @@ namespace triggers {
 			} else {
 				if((tval[0] & effect_codes::scope_has_limit) != 0) {
 					auto limit = ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger);
-					nations::for_each_state(ws, *primary_slot.nation, [&ws, limit, tval, this_slot, from_slot, rebel_slot, &gen](nations::state_instance& pobj) {
-						if(test_trigger(limit, ws, &pobj, this_slot, from_slot, rebel_slot))
-							apply_subeffects(tval, ws, &pobj, this_slot, from_slot, rebel_slot, gen);
+					nations::for_each_state(ws, *primary_slot.nation, [&ws, limit, tval, this_slot, from_slot, rebel_slot, &gen](nations::state_tag pobj) {
+						if(test_trigger(limit, ws, pobj, this_slot, from_slot, rebel_slot))
+							apply_subeffects(tval, ws, pobj, this_slot, from_slot, rebel_slot, gen);
 					});
 				} else {
-					nations::for_each_state(ws, *primary_slot.nation, [&ws, tval, this_slot, from_slot, rebel_slot, &gen](nations::state_instance& pobj) {
-						apply_subeffects(tval, ws, &pobj, this_slot, from_slot, rebel_slot, gen);
+					nations::for_each_state(ws, *primary_slot.nation, [&ws, tval, this_slot, from_slot, rebel_slot, &gen](nations::state_tag pobj) {
+						apply_subeffects(tval, ws, pobj, this_slot, from_slot, rebel_slot, gen);
 					});
 				}
 			}
@@ -813,9 +813,9 @@ namespace triggers {
 				apply_subeffects(tval, ws, owner, this_slot, from_slot, rebel_slot, gen);
 		}
 		void es_country_scope_state(EFFECT_PARAMTERS) {
-			auto owner = primary_slot.state->owner;
+			auto owner = ws.w.nation_s.states.get<state::owner>(primary_slot.state);
 			if(owner)
-				apply_subeffects(tval, ws, owner, this_slot, from_slot, rebel_slot, gen);
+				apply_subeffects(tval, ws, &ws.w.nation_s.nations[owner], this_slot, from_slot, rebel_slot, gen);
 		}
 		void es_capital_scope(EFFECT_PARAMTERS) {
 			auto capital = primary_slot.nation->current_capital;
@@ -885,7 +885,7 @@ namespace triggers {
 			}
 		}
 		void es_flashpoint_tag_scope(EFFECT_PARAMTERS) {
-			auto ctag = primary_slot.state->crisis_tag;
+			auto ctag = ws.w.nation_s.states.get<state::crisis_tag>(primary_slot.state);
 			if(is_valid_index(ctag)) {
 				auto ctag_holder = ws.w.culture_s.national_tags_state[ctag].holder;
 				if(ctag_holder)
@@ -895,7 +895,7 @@ namespace triggers {
 		void es_crisis_state_scope(EFFECT_PARAMTERS) {
 			auto cstate = ws.w.current_crisis.state;
 			if(is_valid_index(cstate))
-				apply_subeffects(tval, ws, &(ws.w.nation_s.states.get(cstate)), this_slot, from_slot, rebel_slot, gen);
+				apply_subeffects(tval, ws, cstate, this_slot, from_slot, rebel_slot, gen);
 		}
 		void es_state_scope_province(EFFECT_PARAMTERS) {
 			auto state = provinces::province_state(ws, primary_slot.prov);
@@ -958,14 +958,14 @@ namespace triggers {
 				auto limit = ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger);
 				auto type = trigger_payload(tval[3]).small.values.pop_type;
 
-				nations::for_each_pop(ws, *primary_slot.state, [limit, type, tval, &ws, this_slot, from_slot, rebel_slot, &gen](population::pop& p) {
+				nations::for_each_pop(ws, primary_slot.state, [limit, type, tval, &ws, this_slot, from_slot, rebel_slot, &gen](population::pop& p) {
 					if(p.type == type && test_trigger(limit, ws, &p, this_slot, from_slot, rebel_slot))
 						apply_subeffects(tval, ws, &p, this_slot, from_slot, rebel_slot, gen);
 				});
 			} else {
 				auto type = trigger_payload(tval[2]).small.values.pop_type;
 
-				nations::for_each_pop(ws, *primary_slot.state, [type, tval, &ws, this_slot, from_slot, rebel_slot, &gen](population::pop& p) {
+				nations::for_each_pop(ws, primary_slot.state, [type, tval, &ws, this_slot, from_slot, rebel_slot, &gen](population::pop& p) {
 					if(p.type == type)
 						apply_subeffects(tval, ws, &p, this_slot, from_slot, rebel_slot, gen);
 				});
@@ -1098,9 +1098,9 @@ namespace triggers {
 				ef_add_core_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
 		}
 		void ef_add_core_this_state(EFFECT_PARAMTERS) {
-			auto owner = this_slot.state->owner;
+			auto owner = ws.w.nation_s.states.get<state::owner>(this_slot.state);
 			if(owner)
-				ef_add_core_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+				ef_add_core_this_nation(tval, ws, primary_slot, &ws.w.nation_s.nations[owner], nullptr, nullptr, gen);
 		}
 		void ef_add_core_this_pop(EFFECT_PARAMTERS) {
 			auto owner = population::get_pop_owner(ws, *this_slot.pop);
@@ -1148,9 +1148,9 @@ namespace triggers {
 				ef_remove_core_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
 		}
 		void ef_remove_core_this_state(EFFECT_PARAMTERS) {
-			auto owner = this_slot.state->owner;
+			auto owner = ws.w.nation_s.states.get<state::owner>(this_slot.state);
 			if(owner)
-				ef_remove_core_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+				ef_remove_core_this_nation(tval, ws, primary_slot, &ws.w.nation_s.nations[owner], nullptr, nullptr, gen);
 		}
 		void ef_remove_core_this_pop(EFFECT_PARAMTERS) {
 			auto owner = population::get_pop_owner(ws, *this_slot.pop);
@@ -1173,12 +1173,12 @@ namespace triggers {
 			}
 		}
 		void ef_change_region_name_state(EFFECT_PARAMTERS) {
-			primary_slot.state->name = trigger_payload(tval[2]).text;
+			ws.w.nation_s.states.set<state::name>(primary_slot.state, trigger_payload(tval[2]).text);
 		}
 		void ef_change_region_name_province(EFFECT_PARAMTERS) {
 			auto si = provinces::province_state(ws, primary_slot.prov);
 			if(si)
-				si->name = trigger_payload(tval[2]).text;
+				ws.w.nation_s.states.set<state::name>(si, trigger_payload(tval[2]).text);
 		}
 		void ef_trade_goods(EFFECT_PARAMTERS) {
 			ws.w.province_s.province_state_container.set<province_state::rgo_production>(primary_slot.prov, trigger_payload(tval[2]).small.values.good);
@@ -1203,9 +1203,9 @@ namespace triggers {
 			primary_slot.nation->primary_culture = this_slot.nation->primary_culture;
 		}
 		void ef_primary_culture_this_state(EFFECT_PARAMTERS) {
-			auto owner = this_slot.state->owner;
+			auto owner = ws.w.nation_s.states.get<state::owner>(this_slot.state);
 			if(owner)
-				primary_slot.nation->primary_culture = owner->primary_culture;
+				primary_slot.nation->primary_culture = ws.w.nation_s.nations[owner].primary_culture;
 		}
 		void ef_primary_culture_this_province(EFFECT_PARAMTERS) {
 			auto owner = provinces::province_owner(ws, this_slot.prov);
@@ -1230,7 +1230,7 @@ namespace triggers {
 			primary_slot.nation->national_religion = trigger_payload(tval[2]).small.values.religion;
 		}
 		void ef_is_slave_state_yes(EFFECT_PARAMTERS) {
-			nations::make_slave_state(ws, *primary_slot.state);
+			nations::make_slave_state(ws, primary_slot.state);
 		}
 		void ef_is_slave_pop_yes(EFFECT_PARAMTERS) {
 			population::change_pop_type(ws, *primary_slot.pop, ws.s.population_m.slave);
@@ -1344,10 +1344,10 @@ namespace triggers {
 			provinces::silent_on_conquer_province(ws, primary_slot.prov);
 		}
 		void ef_secede_province_this_state(EFFECT_PARAMTERS) {
-			auto owner = this_slot.state->owner;
+			auto owner = ws.w.nation_s.states.get<state::owner>(this_slot.state);
 			if(owner) {
-				provinces::silent_set_province_owner(ws, *owner, primary_slot.prov);
-				provinces::silent_set_province_controller(ws, *owner, primary_slot.prov);
+				provinces::silent_set_province_owner(ws, ws.w.nation_s.nations[owner], primary_slot.prov);
+				provinces::silent_set_province_controller(ws, ws.w.nation_s.nations[owner], primary_slot.prov);
 				provinces::silent_on_conquer_province(ws, primary_slot.prov);
 			}
 		}
@@ -1391,9 +1391,9 @@ namespace triggers {
 				nations::annex_nation(ws, *primary_slot.nation, *this_slot.nation);
 		}
 		void ef_inherit_this_state(EFFECT_PARAMTERS) {
-			auto owner = this_slot.state->owner;
-			if(owner && primary_slot.nation != owner)
-				nations::annex_nation(ws, *primary_slot.nation, *owner);
+			auto owner = ws.w.nation_s.states.get<state::owner>(this_slot.state);
+			if(owner && primary_slot.nation->id != owner)
+				nations::annex_nation(ws, *primary_slot.nation, ws.w.nation_s.nations[owner]);
 		}
 		void ef_inherit_this_province(EFFECT_PARAMTERS) {
 			auto owner = provinces::province_owner(ws, this_slot.prov);
@@ -1424,9 +1424,9 @@ namespace triggers {
 				nations::annex_nation(ws, *this_slot.nation, *primary_slot.nation);
 		}
 		void ef_annex_to_this_state(EFFECT_PARAMTERS) {
-			auto owner = this_slot.state->owner;
-			if(owner && primary_slot.nation != owner)
-				nations::annex_nation(ws, *owner, *primary_slot.nation);
+			auto owner = ws.w.nation_s.states.get<state::owner>(this_slot.state);
+			if(owner && primary_slot.nation->id != owner)
+				nations::annex_nation(ws, ws.w.nation_s.nations[owner], *primary_slot.nation);
 		}
 		void ef_annex_to_this_province(EFFECT_PARAMTERS) {
 			auto owner = provinces::province_owner(ws, this_slot.prov);
@@ -1455,9 +1455,9 @@ namespace triggers {
 				nations::liberate_uncored_cores(ws, *primary_slot.nation, this_slot.nation->tag);
 		}
 		void ef_release_this_state(EFFECT_PARAMTERS) {
-			auto owner = this_slot.state->owner;
+			auto owner = ws.w.nation_s.states.get<state::owner>(this_slot.state);
 			if(owner)
-				ef_release_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+				ef_release_this_nation(tval, ws, primary_slot, &ws.w.nation_s.nations[owner], nullptr, nullptr, gen);
 		}
 		void ef_release_this_province(EFFECT_PARAMTERS) {
 			auto owner = provinces::province_owner(ws, this_slot.prov);
@@ -1710,7 +1710,7 @@ namespace triggers {
 			nations::uncivilize_nation(ws, *primary_slot.nation);
 		}
 		void ef_is_slave_state_no(EFFECT_PARAMTERS) {
-			nations::unmake_slave_state(ws, *primary_slot.state);
+			nations::unmake_slave_state(ws, primary_slot.state);
 		}
 		void ef_is_slave_pop_no(EFFECT_PARAMTERS) {
 			if(primary_slot.pop->type == ws.s.population_m.slave)
@@ -1818,15 +1818,16 @@ namespace triggers {
 			if(is_valid_index(capital)) {
 				if(auto si = provinces::province_state(ws, capital); si) {
 					int32_t free_index = -1;
-					for(int32_t i = int32_t(std::extent_v<decltype(si->factories)>) - 1; i >= 0; --i) {
-						if(si->factories[i].type == factory_type)
+					auto& factories = ws.w.nation_s.states.get<state::factories>(si);
+					for(int32_t i = state::factories_count - 1; i >= 0; --i) {
+						if(factories[i].type == factory_type)
 							return;
-						else if(si->factories[i].type == nullptr)
+						else if(factories[i].type == nullptr)
 							free_index = i;
 					}
 					if(free_index != -1) {
-						si->factories[free_index].type = factory_type;
-						si->factories[free_index].level = 1ui16;
+						factories[free_index].type = factory_type;
+						factories[free_index].level = 1ui16;
 					}
 				}
 			}
@@ -1867,7 +1868,8 @@ namespace triggers {
 				add_item(ws.w.nation_s.nations_arrays, ws.w.current_crisis.interested, primary_slot.nation->id);
 		}
 		void ef_flashpoint_tension(EFFECT_PARAMTERS) {
-			primary_slot.state->current_tension = std::clamp(primary_slot.state->current_tension + read_float_from_payload(tval + 2), 0.0f, 100.0f);
+			auto& current_tension = ws.w.nation_s.states.get<state::current_tension>(primary_slot.state);
+			current_tension = std::clamp(current_tension + read_float_from_payload(tval + 2), 0.0f, 100.0f);
 		}
 		void ef_add_crisis_temperature(EFFECT_PARAMTERS) {
 			ws.w.current_crisis.temperature = std::clamp(ws.w.current_crisis.temperature + read_float_from_payload(tval + 2), 0.0f, 100.0f);
@@ -1909,8 +1911,8 @@ namespace triggers {
 			}
 		}
 		void ef_trigger_revolt_state(EFFECT_PARAMTERS) {
-			if(auto owner = primary_slot.state->owner; owner)
-				ef_trigger_revolt_nation(tval, ws, owner, nullptr, nullptr, nullptr, gen);
+			if(auto owner = ws.w.nation_s.states.get<state::owner>(primary_slot.state); owner)
+				ef_trigger_revolt_nation(tval, ws, &ws.w.nation_s.nations[owner], nullptr, nullptr, nullptr, gen);
 		}
 		void ef_trigger_revolt_province(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, primary_slot.prov); owner)
@@ -2008,11 +2010,11 @@ namespace triggers {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 			auto months = trigger_payload(tval[3]).signed_value;
 
-			if(auto owner = this_slot.state->owner; owner) {
+			if(auto owner = ws.w.nation_s.states.get<state::owner>(this_slot.state); owner) {
 				add_item(ws.w.military_s.cb_arrays,
 					primary_slot.nation->active_cbs,
 					military::pending_cb {
-						owner->id, type, months > 0 ? date_tag(to_index(ws.w.current_date) + months * 30) : date_tag()
+						owner, type, months > 0 ? date_tag(to_index(ws.w.current_date) + months * 30) : date_tag()
 				});
 			}
 		}
@@ -2101,9 +2103,9 @@ namespace triggers {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 			auto months = trigger_payload(tval[3]).signed_value;
 
-			if(auto owner = this_slot.state->owner; owner) {
+			if(auto owner = ws.w.nation_s.states.get<state::owner>(this_slot.state); owner) {
 				add_item(ws.w.military_s.cb_arrays,
-					owner->active_cbs,
+					ws.w.nation_s.nations[owner].active_cbs,
 					military::pending_cb {
 						primary_slot.nation->id, type, months > 0 ? date_tag(to_index(ws.w.current_date) + months * 30) : date_tag()
 				});
@@ -2184,10 +2186,10 @@ namespace triggers {
 		void ef_remove_casus_belli_this_state(EFFECT_PARAMTERS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 
-			if(auto owner = this_slot.state->owner; owner) {
+			if(auto owner = ws.w.nation_s.states.get<state::owner>(this_slot.state); owner) {
 				remove_item(ws.w.military_s.cb_arrays,
 					primary_slot.nation->active_cbs,
-					military::pending_cb { owner->id, type, date_tag() });
+					military::pending_cb { owner, type, date_tag() });
 			}
 		}
 		void ef_remove_casus_belli_this_province(EFFECT_PARAMTERS) {
@@ -2253,9 +2255,9 @@ namespace triggers {
 		void ef_this_remove_casus_belli_this_state(EFFECT_PARAMTERS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 
-			if(auto owner = this_slot.state->owner; owner) {
+			if(auto owner = ws.w.nation_s.states.get<state::owner>(this_slot.state); owner) {
 				remove_item(ws.w.military_s.cb_arrays,
-					owner->active_cbs,
+					ws.w.nation_s.nations[owner].active_cbs,
 					military::pending_cb { primary_slot.nation->id, type, date_tag() });
 			}
 		}
@@ -2365,8 +2367,8 @@ namespace triggers {
 			}
 		}
 		void ef_war_this_state(EFFECT_PARAMTERS) {
-			if(auto owner = this_slot.state->owner; owner)
-				ef_war_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+			if(auto owner = ws.w.nation_s.states.get<state::owner>(this_slot.state); owner)
+				ef_war_this_nation(tval, ws, primary_slot, &ws.w.nation_s.nations[owner], nullptr, nullptr, gen);
 		}
 		void ef_war_this_province(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, this_slot.prov); owner)
@@ -2455,8 +2457,8 @@ namespace triggers {
 			}
 		}
 		void ef_war_no_ally_this_state(EFFECT_PARAMTERS) {
-			if(auto owner = this_slot.state->owner; owner)
-				ef_war_no_ally_this_nation(tval, ws, primary_slot, owner, nullptr, nullptr, gen);
+			if(auto owner = ws.w.nation_s.states.get<state::owner>(this_slot.state); owner)
+				ef_war_no_ally_this_nation(tval, ws, primary_slot, &ws.w.nation_s.nations[owner], nullptr, nullptr, gen);
 		}
 		void ef_war_no_ally_this_province(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, this_slot.prov); owner)
@@ -2486,16 +2488,16 @@ namespace triggers {
 			events::fire_event(ws, trigger_payload(tval[2]).event, primary_slot.prov, this_slot.nation->id);
 		}
 		void ef_country_event_this_state(EFFECT_PARAMTERS) {
-			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], primary_slot.nation->id, this_slot.state->id);
+			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], primary_slot.nation->id, this_slot.state);
 		}
 		void ef_country_event_immediate_this_state(EFFECT_PARAMTERS) {
-			events::fire_event(ws, trigger_payload(tval[2]).event, primary_slot.nation->id, this_slot.state->id);
+			events::fire_event(ws, trigger_payload(tval[2]).event, primary_slot.nation->id, this_slot.state);
 		}
 		void ef_province_event_this_state(EFFECT_PARAMTERS) {
-			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], primary_slot.prov, this_slot.state->id);
+			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], primary_slot.prov, this_slot.state);
 		}
 		void ef_province_event_immediate_this_state(EFFECT_PARAMTERS) {
-			events::fire_event(ws, trigger_payload(tval[2]).event, primary_slot.prov, this_slot.state->id);
+			events::fire_event(ws, trigger_payload(tval[2]).event, primary_slot.prov, this_slot.state);
 		}
 		void ef_country_event_this_province(EFFECT_PARAMTERS) {
 			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], primary_slot.nation->id, this_slot.prov);
@@ -2735,7 +2737,7 @@ namespace triggers {
 			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
 			auto factor = read_float_from_payload(tval + 3);
 
-			nations::for_each_pop(ws, *primary_slot.state, [&ws, demo_tag, factor](population::pop& p) {
+			nations::for_each_pop(ws, primary_slot.state, [&ws, demo_tag, factor](population::pop& p) {
 				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
 
 				if(pop_size != 0) {
@@ -2749,7 +2751,7 @@ namespace triggers {
 			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology);
 			auto factor = read_float_from_payload(tval + 3);
 
-			nations::for_each_pop(ws, *primary_slot.state, [&ws, demo_tag, factor](population::pop& p) {
+			nations::for_each_pop(ws, primary_slot.state, [&ws, demo_tag, factor](population::pop& p) {
 				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
 
 				if(pop_size != 0) {
@@ -2762,7 +2764,7 @@ namespace triggers {
 		void ef_scaled_militancy_state_unemployment(EFFECT_PARAMTERS) {
 			auto factor = read_float_from_payload(tval + 2);
 
-			nations::for_each_pop(ws, *primary_slot.state, [&ws, factor](population::pop& p) {
+			nations::for_each_pop(ws, primary_slot.state, [&ws, factor](population::pop& p) {
 				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
 
 				if(pop_size != 0) {
@@ -2776,7 +2778,7 @@ namespace triggers {
 			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
 			auto factor = read_float_from_payload(tval + 3);
 
-			nations::for_each_pop(ws, *primary_slot.state, [&ws, demo_tag, factor](population::pop& p) {
+			nations::for_each_pop(ws, primary_slot.state, [&ws, demo_tag, factor](population::pop& p) {
 				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
 
 				if(pop_size != 0) {
@@ -2790,7 +2792,7 @@ namespace triggers {
 			auto demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology);
 			auto factor = read_float_from_payload(tval + 3);
 
-			nations::for_each_pop(ws, *primary_slot.state, [&ws, demo_tag, factor](population::pop& p) {
+			nations::for_each_pop(ws, primary_slot.state, [&ws, demo_tag, factor](population::pop& p) {
 				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
 
 				if(pop_size != 0) {
@@ -2803,7 +2805,7 @@ namespace triggers {
 		void ef_scaled_consciousness_state_unemployment(EFFECT_PARAMTERS) {
 			auto factor = read_float_from_payload(tval + 2);
 
-			nations::for_each_pop(ws, *primary_slot.state, [&ws, factor](population::pop& p) {
+			nations::for_each_pop(ws, primary_slot.state, [&ws, factor](population::pop& p) {
 				auto pop_size = ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
 
 				if(pop_size != 0) {
@@ -2973,7 +2975,7 @@ namespace triggers {
 			auto to_issue = population::to_demo_tag(ws, trigger_payload(tval[3]).small.values.option);
 			auto amount = read_float_from_payload(tval + 4);
 
-			nations::for_each_pop(ws, *primary_slot.state, [&ws, from_issue, to_issue, amount](population::pop& p) {
+			nations::for_each_pop(ws, primary_slot.state, [&ws, from_issue, to_issue, amount](population::pop& p) {
 				auto subtract = int32_t(ws.w.population_s.pop_demographics.get(p.id, from_issue) * amount);
 				ws.w.population_s.pop_demographics.get(p.id, from_issue) -= subtract;
 				ws.w.population_s.pop_demographics.get(p.id, to_issue) += subtract;
@@ -3025,7 +3027,7 @@ namespace triggers {
 			auto capital = primary_slot.nation->current_capital;
 			if(is_valid_index(capital)) {
 				if(auto si = provinces::province_state(ws, capital); si) {
-					nations::for_each_province(ws, *si, [&ws](provinces::province_tag p) {
+					nations::for_each_province(ws, si, [&ws](provinces::province_tag p) {
 						if(ws.w.province_s.province_state_container.get<province_state::modifier_values>(p)[modifiers::provincial_offsets::min_build_railroad] <= 1.0f)
 							++ws.w.province_s.province_state_container.get<province_state::railroad_level>(p);
 					});
@@ -3036,7 +3038,7 @@ namespace triggers {
 			auto capital = primary_slot.nation->current_capital;
 			if(is_valid_index(capital)) {
 				if(auto si = provinces::province_state(ws, capital); si) {
-					nations::for_each_province(ws, *si, [&ws](provinces::province_tag p) {
+					nations::for_each_province(ws, si, [&ws](provinces::province_tag p) {
 						if(ws.w.province_s.province_state_container.get<province_state::modifier_values>(p)[modifiers::provincial_offsets::min_build_railroad] <= 1.0f)
 							++ws.w.province_s.province_state_container.get<province_state::railroad_level>(p);
 					});
@@ -3061,7 +3063,7 @@ namespace triggers {
 			auto capital = primary_slot.nation->current_capital;
 			if(is_valid_index(capital)) {
 				if(auto si = provinces::province_state(ws, capital); si) {
-					nations::for_each_province(ws, *si, [&ws](provinces::province_tag p) {
+					nations::for_each_province(ws, si, [&ws](provinces::province_tag p) {
 						++ws.w.province_s.province_state_container.get<province_state::fort_level>(p);
 					});
 				}
@@ -3071,7 +3073,7 @@ namespace triggers {
 			auto capital = primary_slot.nation->current_capital;
 			if(is_valid_index(capital)) {
 				if(auto si = provinces::province_state(ws, capital); si) {
-					nations::for_each_province(ws, *si, [&ws](provinces::province_tag p) {
+					nations::for_each_province(ws, si, [&ws](provinces::province_tag p) {
 						++ws.w.province_s.province_state_container.get<province_state::fort_level>(p);
 					});
 				}

@@ -14,8 +14,8 @@ TEST(graphics_tests, texture_rendering) {
 	EXPECT_TRUE(test_rendering("D:\\VS2007Projects\\open_v2_test_data\\texture", 0, 0, 80, 80, [](open_gl_wrapper& ogl) {
 		texture test_tex("D:\\VS2007Projects\\open_v2_test_data\\test_tx.bmp");
 
-		ogl.render_textured_rect(true, 0.0f, 0.0f, 80.0f, 40.0f, test_tex);
-		ogl.render_textured_rect(false, 0.0f, 40.0f, 80.0f, 40.0f, test_tex);
+		ogl.render_textured_rect(graphics::color_modification::none, 0.0f, 0.0f, 80.0f, 40.0f, test_tex);
+		ogl.render_textured_rect(graphics::color_modification::disabled, 0.0f, 40.0f, 80.0f, 40.0f, test_tex);
 	}));
 }
 
@@ -25,8 +25,8 @@ TEST(graphics_tests, dds_texture_rendering) {
 	EXPECT_TRUE(test_rendering("D:\\VS2007Projects\\open_v2_test_data\\dds", 0, 0, 48, 48, [](open_gl_wrapper& ogl) {
 		texture test_tex("D:\\VS2007Projects\\open_v2_test_data\\army_icon_2.dds");
 
-		ogl.render_textured_rect(true, 0.0f, 0.0f, 48.0f, 24.0f, test_tex);
-		ogl.render_textured_rect(false, 0.0f, 24.0f, 48.0f, 24.0f, test_tex);
+		ogl.render_textured_rect(graphics::color_modification::none, 0.0f, 0.0f, 48.0f, 24.0f, test_tex);
+		ogl.render_textured_rect(graphics::color_modification::disabled, 0.0f, 24.0f, 48.0f, 24.0f, test_tex);
 	}));
 }
 
@@ -41,12 +41,12 @@ TEST(graphics_tests, text_rendering) {
 		test_fallback.load_font(ogl);
 		test_font.load_font(ogl);
 		
-		ogl.render_outlined_text(u"\u660ETest", 5, true, 0.0f, 0.0f,                                 16.0f, color{ 0.0f,0.0f,0.0f }, test_font);
-		ogl.render_text(         u"\u660ETest", 5, true, 0.0f, test_font.line_height(16.0f),         16.0f, color{ 1.0f,1.0f,1.0f }, test_font);
-		ogl.render_outlined_text(u"\u660ETest", 5, false, 0.0f, 2.0f * test_font.line_height(16.0f), 16.0f, color{ 0.0f,0.0f,0.0f }, test_font);
-		ogl.render_text(         u"\u660ETest", 5, false, 0.0f, 3.0f * test_font.line_height(16.0f), 16.0f, color{ 1.0f,1.0f,1.0f }, test_font);
-		ogl.render_text(u"\u660ETest", 5, true, 0.0f, 4.0f * test_font.line_height(16.0f), 16.0f, color{ 1.0f,0.0f,0.0f }, test_font);
-		ogl.render_text(         u"Test",   4, true, 0.0f, 4.0f * test_font.line_height(16.0f), 128.0f, color{ 0.0f,1.0f,1.0f }, test_font);
+		ogl.render_outlined_text(u"\u660ETest", 5, graphics::color_modification::none, 0.0f, 0.0f,                                 16.0f, color{ 0.0f,0.0f,0.0f }, test_font);
+		ogl.render_text(         u"\u660ETest", 5, graphics::color_modification::none, 0.0f, test_font.line_height(16.0f),         16.0f, color{ 1.0f,1.0f,1.0f }, test_font);
+		ogl.render_outlined_text(u"\u660ETest", 5, graphics::color_modification::disabled, 0.0f, 2.0f * test_font.line_height(16.0f), 16.0f, color{ 0.0f,0.0f,0.0f }, test_font);
+		ogl.render_text(         u"\u660ETest", 5, graphics::color_modification::disabled, 0.0f, 3.0f * test_font.line_height(16.0f), 16.0f, color{ 1.0f,1.0f,1.0f }, test_font);
+		ogl.render_text(u"\u660ETest", 5, graphics::color_modification::none, 0.0f, 4.0f * test_font.line_height(16.0f), 16.0f, color{ 1.0f,0.0f,0.0f }, test_font);
+		ogl.render_text(         u"Test",   4, graphics::color_modification::none, 0.0f, 4.0f * test_font.line_height(16.0f), 128.0f, color{ 0.0f,1.0f,1.0f }, test_font);
 	}));
 }
 
@@ -57,7 +57,7 @@ TEST(graphics_tests, progress_bar) {
 		texture prog1("D:\\VS2007Projects\\open_v2_test_data\\progress1.tga");
 		texture prog2("D:\\VS2007Projects\\open_v2_test_data\\progress2.tga");
 
-		ogl.render_progress_bar(true, 0.33f, 0.5f, 0.5f, 80.0f, 20.0f, prog1, prog2);
+		ogl.render_progress_bar(graphics::color_modification::none, 0.33f, 0.5f, 0.5f, 80.0f, 20.0f, prog1, prog2);
 	}));
 }
 
@@ -79,7 +79,7 @@ TEST(graphics_tests, piechart) {
 		}
 		dt.data_ready();
 
-		ogl.render_piechart(true, 0.0f, 0.0f, 50.0f, dt);
+		ogl.render_piechart(graphics::color_modification::none, 0.0f, 0.0f, 50.0f, dt);
 	}));
 }
 
@@ -100,7 +100,7 @@ TEST(graphics_tests, barchart) {
 		}
 		dt.data_ready();
 
-		ogl.render_barchart(true, 0.0f, 0.0f, 100.0f, 75.0f, dt);
+		ogl.render_barchart(graphics::color_modification::none, 0.0f, 0.0f, 100.0f, 75.0f, dt);
 	}));
 }
 
@@ -111,7 +111,7 @@ TEST(graphics_tests, linegraph) {
 		lines graph(10);
 		float yval[] = { 0.3f, 0.6f, 0.5f, 1.0f, 0.4f, 0.5f, 0.0f, 0.3f, 0.2f, 0.6f };
 		graph.set_y(yval);
-		ogl.render_linegraph(true, 0.0f, 0.0f, 100.0f, 75.0f, graph);
+		ogl.render_linegraph(graphics::color_modification::none, 0.0f, 0.0f, 100.0f, 75.0f, graph);
 	}));
 }
 
@@ -122,7 +122,7 @@ TEST(graphics_tests, rotated_mask) {
 		texture test_tex("D:\\VS2007Projects\\open_v2_test_data\\test_tx.bmp");
 		texture mask_tex("D:\\VS2007Projects\\open_v2_test_data\\mask.tga");
 
-		ogl.render_masked_rect(true, 0.0f, 0.0f, 40.0f, 80.0f, test_tex, mask_tex, rotation::right);
+		ogl.render_masked_rect(graphics::color_modification::none, 0.0f, 0.0f, 40.0f, 80.0f, test_tex, mask_tex, rotation::right);
 	}));
 }
 
@@ -132,7 +132,7 @@ TEST(graphics_tests, sprite_fragment) {
 	EXPECT_TRUE(test_rendering("D:\\VS2007Projects\\open_v2_test_data\\t_sprite_fragment", 0, 0, 36, 36, [](open_gl_wrapper& ogl) {
 		texture strip_tex("D:\\VS2007Projects\\open_v2_test_data\\strip10.dds");
 
-		ogl.render_subsprite(true, 7, 10, 0.0, 0.0, 36.0, 36.0, strip_tex);
+		ogl.render_subsprite(graphics::color_modification::none, 7, 10, 0.0, 0.0, 36.0, 36.0, strip_tex);
 	}));
 }
 
@@ -142,7 +142,7 @@ TEST(graphics_tests, border_stretch) {
 	EXPECT_TRUE(test_rendering("D:\\VS2007Projects\\open_v2_test_data\\t_border", 0, 0, 60, 50, [](open_gl_wrapper& ogl) {
 		texture bord("D:\\VS2007Projects\\open_v2_test_data\\border.dds");
 
-		ogl.render_bordered_rect(true, 32.0f, 0.0f, 0.0f, 350.0f, 150.0f, bord);
+		ogl.render_bordered_rect(graphics::color_modification::none, 32.0f, 0.0f, 0.0f, 350.0f, 150.0f, bord);
 	}));
 }
 
@@ -255,8 +255,8 @@ TEST(graphics_tests, clipping) {
 		texture test_tex("D:\\VS2007Projects\\open_v2_test_data\\test_tx.bmp");
 
 		scissor_rect r1(ogl, 10, 10, 60, 60);
-		ogl.render_textured_rect(true, 0.0f, 0.0f, 80.0f, 40.0f, test_tex);
-		ogl.render_textured_rect(false, 0.0f, 40.0f, 80.0f, 40.0f, test_tex);
+		ogl.render_textured_rect(graphics::color_modification::none, 0.0f, 0.0f, 80.0f, 40.0f, test_tex);
+		ogl.render_textured_rect(graphics::color_modification::disabled, 0.0f, 40.0f, 80.0f, 40.0f, test_tex);
 	}));
 
 	EXPECT_TRUE(test_rendering("D:\\VS2007Projects\\open_v2_test_data\\clipping_b", 0, 0, 80, 80, [](open_gl_wrapper& ogl) {
@@ -265,8 +265,8 @@ TEST(graphics_tests, clipping) {
 		scissor_rect r1(ogl, 10, 10, 60, 60);
 		{
 			scissor_rect r2(ogl, 0, 00, 40, 80);
-			ogl.render_textured_rect(true, 0.0f, 0.0f, 80.0f, 40.0f, test_tex);
+			ogl.render_textured_rect(graphics::color_modification::none, 0.0f, 0.0f, 80.0f, 40.0f, test_tex);
 		}
-		ogl.render_textured_rect(false, 0.0f, 40.0f, 80.0f, 40.0f, test_tex);
+		ogl.render_textured_rect(graphics::color_modification::disabled, 0.0f, 40.0f, 80.0f, 40.0f, test_tex);
 	}));
 }

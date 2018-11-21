@@ -171,6 +171,42 @@ namespace serialization {
 		input += array_size * sizeof(T);
 	}
 
+	template<typename A, size_t N>
+	class serializer<std::array<A, N>> {
+	public:
+		static constexpr bool has_static_size = serializer<A>::has_static_size;
+		static constexpr bool has_simple_serialize = serializer<A>::has_simple_serialize;
+
+		template<typename ... CONTEXT>
+		static void serialize_object(std::byte* &output, std::array<A, N> const& obj, CONTEXT&& ... c) {
+			if constexpr(has_simple_serialize)
+				serialize_array(output, obj.data(), N);
+			else
+				serialize_range(output, obj.begin(), obj.end(), std::forward<CONTEXT>(c)...);
+		}
+		template<typename ... CONTEXT>
+		static void deserialize_object(std::byte const* &input, std::array<A, N>& obj, CONTEXT&& ... c) {
+			if constexpr(has_simple_serialize)
+				deserialize_array(input, obj.data(), N);
+			else
+				deserialize_into_range(input, obj.begin(), obj.end(), std::forward<CONTEXT>(c)...);
+		}
+		template<typename ... CONTEXT>
+		static size_t size(std::array<A, N> const& obj, CONTEXT&& ... c) {
+			if constexpr(serializer<A>::has_static_size)
+				return serializer<A>::size() * N;
+			else
+				return std::transform_reduce(obj.begin(), obj.end(), size_t(0), std::plus<>(),
+					[&](A const& item) { return serializer<A>::size(item, std::forward<CONTEXT>(c)...); });
+		}
+		constexpr static size_t size() {
+			if constexpr(has_static_size)
+				return serializer<A>::size() * N;
+			else
+				return sizeof(A) * N;
+		}
+	};
+
 	template<typename A, typename B, typename C>
 	class serializer<tagged_vector<A, B, C>> {
 	public:
@@ -203,8 +239,8 @@ namespace serialization {
 			if constexpr(serializer<A>::has_static_size)
 				return sizeof(uint32_t) + serializer<A>::size() * obj.size();
 			else
-				return sizeof(uint32_t) + std::accumulate(obj.begin(), obj.end(), size_t(0),
-					[&](size_t val, A const& item) { return val + serializer<A>::size(item, std::forward<CONTEXT>(c)...); });
+				return sizeof(uint32_t) + std::transform_reduce(obj.begin(), obj.end(), size_t(0), std::plus<>(),
+					[&](A const& item) { return serializer<A>::size(item, std::forward<CONTEXT>(c)...); });
 		}
 	};
 
@@ -316,8 +352,8 @@ namespace serialization {
 			if constexpr(serializer<T>::has_static_size)
 				return sizeof(uint32_t) + sizeof(T) * obj.size();
 			else
-				return sizeof(uint32_t) + std::accumulate(obj.begin(), obj.end(), size_t(0),
-					[&](size_t val, T const& item) { return val + serializer<T>::size(item, std::forward<CONTEXT>(c)...); });
+				return sizeof(uint32_t) + std::transform_reduce(obj.begin(), obj.end(), size_t(0), std::plus<>(),
+					[&](T const& item) { return serializer<T>::size(item, std::forward<CONTEXT>(c)...); });
 		}
 	};
 
@@ -434,6 +470,9 @@ namespace serialization {
 				return sizeof(std::pair<A, B>);
 			else
 				return serialize_size(obj.first, std::forward<CONTEXT>(c)...) + serialize_size(obj.second, std::forward<CONTEXT>(c)...);
+		}
+		constexpr static size_t size() {
+			return sizeof(std::pair<A, B>);
 		}
 	};
 

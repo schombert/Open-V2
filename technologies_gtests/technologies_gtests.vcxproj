@@ -41,6 +41,9 @@
     <ClCompile Include="technologies_test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\commands\commands.vcxproj">
+      <Project>{4f97341a-06a6-4a93-ab58-9acee1b34ef8}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\common\common.vcxproj">
       <Project>{cdb5a1f2-4b3b-4a6d-9c9e-27f2cdc1a345}</Project>
     </ProjectReference>

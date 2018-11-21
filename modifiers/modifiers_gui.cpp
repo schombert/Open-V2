@@ -368,8 +368,8 @@ namespace modifiers {
 		cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, pcontainer.get<province_state::crime>(this_province), modifier_offset, value_type(1));
 
 		if(auto si = pcontainer.get<province_state::state_instance>(this_province); is_valid_index(si)) {
-			if(auto nf = ws.w.nation_s.states[si].owner_national_focus; nf)
-				cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, nf->modifier, modifier_offset, value_type(1));
+			if(auto nf = ws.w.nation_s.states.get<state::owner_national_focus>(si); is_valid_index(nf))
+				cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.national_focuses[nf].modifier, modifier_offset, value_type(1));
 		}
 		cursor_in = display_single_provincial_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.infrastructure, modifier_offset, ws.s.economy_m.railroad.infrastructure * float(pcontainer.get<province_state::railroad_level>(this_province)));
 		
@@ -498,7 +498,7 @@ namespace modifiers {
 	}
 
 	ui::xy_pair make_additive_factor_explanation(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
-		void* primary_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		triggers::const_parameter primary_slot, triggers::const_parameter from_slot, population::rebel_faction* rebel_slot) {
 
 		auto chance = std::max(0.0f, test_additive_factor(f, ws, primary_slot, from_slot, rebel_slot));
 
@@ -520,7 +520,7 @@ namespace modifiers {
 		return cursor_in;
 	}
 	ui::xy_pair make_multiplicative_factor_explanation(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
-		void* primary_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		triggers::const_parameter primary_slot, triggers::const_parameter from_slot, population::rebel_faction* rebel_slot) {
 
 		auto chance = std::max(0.0f, test_additive_factor(f, ws, primary_slot, from_slot, rebel_slot));
 
@@ -543,7 +543,7 @@ namespace modifiers {
 	}
 
 	ui::xy_pair make_factor_text_body(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
-		void* primary_slot, void* from_slot, population::rebel_faction* rebel_slot) {
+		triggers::const_parameter primary_slot, triggers::const_parameter from_slot, population::rebel_faction* rebel_slot) {
 
 		for(uint32_t i = 0; i < f.data_length; ++i) {
 			auto segment = ws.s.modifiers_m.factor_data[f.data_offset + i];

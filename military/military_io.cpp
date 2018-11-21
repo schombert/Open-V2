@@ -1382,7 +1382,7 @@ namespace military {
 							new_war.second = ws.w.nation_s.nations[new_war.primary_defender].adjective;
 
 							if(is_valid_index(wg.target_state))
-								new_war.state_name = ws.w.nation_s.states[wg.target_state].name;
+								new_war.state_name = ws.w.nation_s.states.get<state::name>(wg.target_state);
 
 							auto& cbt = ws.s.military_m.cb_types[wg.cb_type];
 							if((cbt.flags & (cb_type::po_annex | cb_type::po_make_puppet | cb_type::po_gunboat)) != 0)

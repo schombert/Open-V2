@@ -417,7 +417,7 @@ TEST(technologies_tests, read_technologies_test) {
 	scenario::scenario_manager s;
 
 	economy::read_goods(s.economy_m, f.get_root(), s.gui_m.text_data_sequences);
-	economy::read_buildings(s.economy_m, f.get_root(), s.gui_m.text_data_sequences);
+	economy::read_buildings(s.economy_m, f.get_root(), s.gui_m.text_data_sequences, s.modifiers_m);
 
 	{
 		military::parsing_state state(s.gui_m.text_data_sequences, s.military_m);
@@ -467,7 +467,7 @@ TEST(technologies_tests, read_technologies_test) {
 	EXPECT_EQ(3000ui16, s.technology_m.technologies_container[tech_tag(1)].cost);
 	EXPECT_EQ(a_factory, s.technology_m.technologies_container[tech_tag(1)].activate_factory);
 	EXPECT_NE(modifiers::national_modifier_tag(), s.technology_m.technologies_container[tech_tag(1)].modifier);
-	EXPECT_EQ(3.0f, s.modifiers_m.national_modifier_definitions[s.technology_m.technologies_container[tech_tag(1)].modifier][modifiers::national_offsets::tax_efficiency]);
+	EXPECT_EQ(0.03f, s.modifiers_m.national_modifier_definitions[s.technology_m.technologies_container[tech_tag(1)].modifier][modifiers::national_offsets::tax_efficiency]);
 	EXPECT_EQ(0ui16, s.technology_m.technologies_container[tech_tag(1)].flags);
 	EXPECT_NE(modifiers::factor_tag(), s.technology_m.technologies_container[tech_tag(1)].ai_chance);
 
@@ -492,7 +492,7 @@ TEST(technologies_tests, read_inventions_test) {
 	scenario::scenario_manager s;
 
 	economy::read_goods(s.economy_m, f.get_root(), s.gui_m.text_data_sequences);
-	economy::read_buildings(s.economy_m, f.get_root(), s.gui_m.text_data_sequences);
+	economy::read_buildings(s.economy_m, f.get_root(), s.gui_m.text_data_sequences, s.modifiers_m);
 
 	{
 		military::parsing_state state(s.gui_m.text_data_sequences, s.military_m);

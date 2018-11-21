@@ -39,7 +39,7 @@ namespace nations {
 					[](ui::tagged_gui_object) {}},
 				text_data::replacement{text_data::value_type::state,
 					is_valid_index(this_wg.target_state) ?
-						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.states[this_wg.target_state].name) :
+						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.states.get<state::name>(this_wg.target_state)) :
 						vector_backed_string<char16_t>(u""),
 					[](ui::tagged_gui_object) {}},
 				text_data::replacement{text_data::value_type::third, 

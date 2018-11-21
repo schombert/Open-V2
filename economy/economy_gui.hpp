@@ -803,7 +803,7 @@ namespace economy {
 		state_pop_display_window workers_b;
 		state_pop_display_window owner;
 
-		factory_display factories[8];
+		factory_display factories[state::factories_count];
 
 		void set_value(nations::state_tag t) {
 			tag = t;
@@ -1533,8 +1533,8 @@ namespace economy {
 			auto states = get_range(ws.w.nation_s.state_arrays, ws.w.nation_s.nations[t].member_states);
 			int32_t total = 0;
 			for(auto s = states.first; s != states.second; ++s) {
-				if(auto si = s->state; si) {
-					total += count_factories_in_state(*si);
+				if(auto si = s->state; bool(si)) {
+					total += count_factories_in_state(ws, si);
 				}
 			}
 			char16_t local_buffer[16];
@@ -1887,7 +1887,7 @@ namespace economy {
 	template<typename W>
 	void state_name::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(w.tag)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.states[w.tag].name, fmt,
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.states.get<state::name>(w.tag), fmt,
 				ws.s.gui_m, ws.w.gui_m, box, lm);
 			lm.finish_current_line();
 		}
@@ -1897,7 +1897,7 @@ namespace economy {
 	void state_factory_count::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(w.tag)) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::exact_integer, economy::count_factories_in_state(ws.w.nation_s.states[w.tag]));
+			put_value_in_buffer(local_buffer, display_type::exact_integer, economy::count_factories_in_state(ws, w.tag));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -1913,7 +1913,7 @@ namespace economy {
 	void state_average_infrastructure::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(w.tag)) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::fp_one_place, economy::average_railroad_level(ws, ws.w.nation_s.states[w.tag]));
+			put_value_in_buffer(local_buffer, display_type::fp_one_place, economy::average_railroad_level(ws, w.tag));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -1926,22 +1926,22 @@ namespace economy {
 			auto state_range = get_range(ws.w.nation_s.state_arrays, player->member_states);
 			for(auto s = state_range.first; s != state_range.second; ++s) {
 				
-				if(auto si = s->state; si) {
-					if(auto state_id = si->id; ws.w.nation_s.states.is_valid_index(state_id)) {
-						if(ws.w.production_w.show_empty_states) {
-							data.push_back(state_id);
-						} else {
-							bool factories = false;
-							for(uint32_t i = 0; i < std::extent_v<decltype(si->factories)>; ++i) {
-								if(auto ftype = si->factories[i].type; bool(ftype) && ws.w.production_w.factory_goods_filters[to_index(ftype->output_good)] != 0) {
-									factories = true;
-									break;
-								}
+				if(auto state_id = s->state; ws.w.nation_s.states.is_valid_index(state_id)) {
+					if(ws.w.production_w.show_empty_states) {
+						data.push_back(state_id);
+					} else {
+						bool factories = false;
+						auto& s_factories = ws.w.nation_s.states.get<state::factories>(state_id);
+						for(uint32_t i = 0; i < state::factories_count; ++i) {
+							if(auto ftype = s_factories[i].type; bool(ftype) && ws.w.production_w.factory_goods_filters[to_index(ftype->output_good)] != 0) {
+								factories = true;
+								break;
 							}
-							if(factories)
-								data.push_back(state_id);
 						}
+						if(factories)
+							data.push_back(state_id);
 					}
+					
 				}
 				
 			}
@@ -1955,8 +1955,8 @@ namespace economy {
 				{
 					vector_backed_string_lex_less<char16_t> lss(ws.s.gui_m.text_data_sequences.text_data);
 					std::sort(data.begin(), data.end(), [&ws, &lss](nations::state_tag a, nations::state_tag b) {
-						auto a_name = ws.w.nation_s.states[a].name;
-						auto b_name = ws.w.nation_s.states[b].name;
+						auto a_name = ws.w.nation_s.states.get<state::name>(a);
+						auto b_name = ws.w.nation_s.states.get<state::name>(b);
 						return lss(
 							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, a_name),
 							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, b_name));
@@ -1965,12 +1965,12 @@ namespace economy {
 				break;
 				case factories_sort::count:
 					std::sort(data.begin(), data.end(), [&ws](nations::state_tag a, nations::state_tag b) {
-						return economy::count_factories_in_state(ws.w.nation_s.states[a]) > economy::count_factories_in_state(ws.w.nation_s.states[b]);
+						return economy::count_factories_in_state(ws, a) > economy::count_factories_in_state(ws, b);
 					});
 				break;
 				case factories_sort::infrastructure:
 					std::sort(data.begin(), data.end(), [&ws](nations::state_tag a, nations::state_tag b) {
-						return economy::average_railroad_level(ws, ws.w.nation_s.states[a]) > economy::average_railroad_level(ws, ws.w.nation_s.states[b]);
+						return economy::average_railroad_level(ws, a) > economy::average_railroad_level(ws, b);
 					});
 				break;
 				case factories_sort::owner_pop:
@@ -2016,8 +2016,8 @@ namespace economy {
 			boost::container::small_vector<nations::state_tag, 32, concurrent_allocator<nations::state_tag>> data;
 
 			for(auto s = state_range.first; s != state_range.second; ++s) {
-				if(auto si = s->state; si) {
-					if(auto state_id = si->id; ws.w.nation_s.states.is_valid_index(state_id) && si->project.type != economy::pop_project_type::none) {
+				if(auto state_id = s->state; ws.w.nation_s.states.is_valid_index(state_id)) {
+					if(ws.w.nation_s.states.get<state::project>(state_id).type != economy::pop_project_type::none) {
 						data.push_back(state_id);
 					}
 				}
@@ -2029,8 +2029,8 @@ namespace economy {
 				{
 					vector_backed_string_lex_less<char16_t> lss(ws.s.gui_m.text_data_sequences.text_data);
 					std::sort(data.begin(), data.end(), [&ws, &lss](nations::state_tag a, nations::state_tag b) {
-						auto a_name = ws.w.nation_s.states[a].name;
-						auto b_name = ws.w.nation_s.states[b].name;
+						auto a_name = ws.w.nation_s.states.get<state::name>(a);
+						auto b_name = ws.w.nation_s.states.get<state::name>(b);
 						return lss(
 							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, a_name),
 							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, b_name));
@@ -2039,15 +2039,15 @@ namespace economy {
 					break;
 				case project_sort::project_type:
 					std::sort(data.begin(), data.end(), [&ws](nations::state_tag a, nations::state_tag b) {
-						auto a_type = ws.w.nation_s.states[a].project.type;
-						auto b_type = ws.w.nation_s.states[b].project.type;
+						auto a_type = ws.w.nation_s.states.get<state::project>(a).type;
+						auto b_type = ws.w.nation_s.states.get<state::project>(b).type;
 						if(a_type != b_type)
 							return a_type > b_type;
 						if(a_type == economy::pop_project_type::factory) {
-							auto fta = ws.w.nation_s.states[a].project.factory_type;
-							auto ftb = ws.w.nation_s.states[b].project.factory_type;
+							auto fta = ws.w.nation_s.states.get<state::project>(a).factory_type;
+							auto ftb = ws.w.nation_s.states.get<state::project>(b).factory_type;
 							if(is_valid_index(fta) && is_valid_index(ftb)) {
-								return economy::get_factory_project_type(ws.w.nation_s.states[a], fta) < economy::get_factory_project_type(ws.w.nation_s.states[b], ftb);
+								return economy::get_factory_project_type(ws, a, fta) < economy::get_factory_project_type(ws, b, ftb);
 							}
 						}
 						return false;
@@ -2055,13 +2055,13 @@ namespace economy {
 					break;
 				case project_sort::completion:
 					std::sort(data.begin(), data.end(), [&ws](nations::state_tag a, nations::state_tag b) {
-						return project_completion(ws, ws.w.nation_s.states[a], state_current_prices(ws, a)) > project_completion(ws, ws.w.nation_s.states[b], state_current_prices(ws, b));
+						return project_completion(ws, a, state_current_prices(ws, a)) > project_completion(ws, b, state_current_prices(ws, b));
 					});
 					//project_completion
 					break;
 				case project_sort::investors:
 					std::sort(data.begin(), data.end(), [&ws](nations::state_tag a, nations::state_tag b) {
-						return ws.w.nation_s.states[a].project.funds > ws.w.nation_s.states[b].project.funds;
+						return ws.w.nation_s.states.get<state::project>(a).funds > ws.w.nation_s.states.get<state::project>(b).funds;
 					});
 					break;
 			}
@@ -2077,24 +2077,22 @@ namespace economy {
 			auto state_range = get_range(ws.w.nation_s.state_arrays, ws.w.nation_s.nations[ws.w.production_w.foreign_investment_nation].member_states);
 			for(auto s = state_range.first; s != state_range.second; ++s) {
 
-				if(auto si = s->state; si) {
-					if(auto state_id = si->id; ws.w.nation_s.states.is_valid_index(state_id)) {
-						if(ws.w.production_w.show_empty_states) {
-							data.push_back(state_id);
-						} else {
-							bool factories = false;
-							for(uint32_t i = 0; i < std::extent_v<decltype(si->factories)>; ++i) {
-								if(auto ftype = si->factories[i].type; bool(ftype) && ws.w.production_w.factory_goods_filters[to_index(ftype->output_good)] != 0) {
-									factories = true;
-									break;
-								}
+				if(auto state_id = s->state; ws.w.nation_s.states.is_valid_index(state_id)) {
+					if(ws.w.production_w.show_empty_states) {
+						data.push_back(state_id);
+					} else {
+						bool factories = false;
+						auto& s_factories = ws.w.nation_s.states.get<state::factories>(state_id);
+						for(uint32_t i = 0; i < state::factories_count; ++i) {
+							if(auto ftype = s_factories[i].type; bool(ftype) && ws.w.production_w.factory_goods_filters[to_index(ftype->output_good)] != 0) {
+								factories = true;
+								break;
 							}
-							if(factories)
-								data.push_back(state_id);
 						}
+						if(factories)
+							data.push_back(state_id);
 					}
 				}
-
 			}
 
 			//sort
@@ -2106,8 +2104,8 @@ namespace economy {
 				{
 					vector_backed_string_lex_less<char16_t> lss(ws.s.gui_m.text_data_sequences.text_data);
 					std::sort(data.begin(), data.end(), [&ws, &lss](nations::state_tag a, nations::state_tag b) {
-						auto a_name = ws.w.nation_s.states[a].name;
-						auto b_name = ws.w.nation_s.states[b].name;
+						auto a_name = ws.w.nation_s.states.get<state::name>(a);
+						auto b_name = ws.w.nation_s.states.get<state::name>(b);
 						return lss(
 							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, a_name),
 							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, b_name));
@@ -2116,12 +2114,12 @@ namespace economy {
 				break;
 				case factories_sort::count:
 					std::sort(data.begin(), data.end(), [&ws](nations::state_tag a, nations::state_tag b) {
-						return economy::count_factories_in_state(ws.w.nation_s.states[a]) > economy::count_factories_in_state(ws.w.nation_s.states[b]);
+						return economy::count_factories_in_state(ws, a) > economy::count_factories_in_state(ws, b);
 					});
 					break;
 				case factories_sort::infrastructure:
 					std::sort(data.begin(), data.end(), [&ws](nations::state_tag a, nations::state_tag b) {
-						return economy::average_railroad_level(ws, ws.w.nation_s.states[a]) > economy::average_railroad_level(ws, ws.w.nation_s.states[b]);
+						return economy::average_railroad_level(ws, a) > economy::average_railroad_level(ws, b);
 					});
 					break;
 				case factories_sort::owner_pop:
@@ -2163,7 +2161,7 @@ namespace economy {
 	template<typename window_type>
 	void factory_open_background::windowed_update(ui::dynamic_icon<factory_open_background>& self, window_type & win, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
-			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
 			if(!factory_is_closed(f))
 				ui::make_visible_immediate(*self.associated_object);
 			else
@@ -2174,7 +2172,7 @@ namespace economy {
 	template<typename window_type>
 	void factory_closed_background::windowed_update(ui::dynamic_icon<factory_closed_background>& self, window_type & win, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
-			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
 			if(!factory_is_closed(f))
 				ui::hide(*self.associated_object);
 			else
@@ -2185,7 +2183,7 @@ namespace economy {
 	template<typename window_type>
 	void factory_construction_progress_bar::windowed_update(ui::progress_bar<factory_construction_progress_bar>& self, window_type & win, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
-			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
 			if(factory_is_under_construction(f)) {
 				self.set_fraction(f.factory_progress);
 				ui::make_visible_immediate(*self.associated_object);
@@ -2198,7 +2196,7 @@ namespace economy {
 	template<typename window_type>
 	void factory_upgrade_progress_bar::windowed_update(ui::progress_bar<factory_upgrade_progress_bar>& self, window_type & win, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
-			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
 			if(factory_is_upgrading(f)) {
 				self.set_fraction(f.factory_progress);
 				ui::make_visible_immediate(*self.associated_object);
@@ -2211,7 +2209,7 @@ namespace economy {
 	template<typename window_type>
 	void factory_upgrade_progress_overlay::windowed_update(ui::dynamic_icon<factory_upgrade_progress_overlay>& self, window_type & win, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
-			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
 			if(factory_is_upgrading(f)) {
 				ui::make_visible_immediate(*self.associated_object);
 			} else {
@@ -2223,7 +2221,7 @@ namespace economy {
 	template<typename W>
 	void factory_level_text::windowed_update(W & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
-			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
 
 			char16_t local_buffer[16];
 			put_value_in_buffer(local_buffer, display_type::exact_integer, f.level);
@@ -2237,8 +2235,8 @@ namespace economy {
 		location = win.location;
 		index = win.index;
 		if(auto player = ws.w.local_player_nation; player) {
-			if(win.index >= 0 && is_valid_index(win.location) && ws.w.nation_s.states[location].owner == player) {
-				economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			if(win.index >= 0 && is_valid_index(win.location) && ws.w.nation_s.states.get<state::owner>(location) == player->id) {
+				economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
 				if(f.factory_progress > 0.0f && f.level == 0) {
 					ui::make_visible_immediate(*self.associated_object);
 					self.set_enabled((player->current_rules.rules_value & issues::rules::destroy_factory) != 0);
@@ -2254,8 +2252,8 @@ namespace economy {
 		location = win.location;
 		index = win.index;
 		if(auto player = ws.w.local_player_nation; player) {
-			if(win.index >= 0 && is_valid_index(win.location) && ws.w.nation_s.states[location].owner == player) {
-				economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			if(win.index >= 0 && is_valid_index(win.location) && ws.w.nation_s.states.get<state::owner>(location) == player->id) {
+				economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
 				if(factory_is_closed(f)) {
 					ui::make_visible_immediate(*self.associated_object);
 					self.set_enabled((player->current_rules.rules_value & issues::rules::destroy_factory) != 0);
@@ -2272,13 +2270,13 @@ namespace economy {
 		index = win.index;
 		if(auto player = ws.w.local_player_nation; player) {
 			if(win.index >= 0 && is_valid_index(win.location)) {
-				economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+				economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
 
 				if(factory_is_closed(f)) {
 					// closed case -- button opens
 					self.set_frame(ws.w.gui_m, 0ui32);
 					ui::make_visible_immediate(*self.associated_object);
-					if(ws.w.nation_s.states[location].owner == player) {
+					if(ws.w.nation_s.states.get<state::owner>(location) == player->id) {
 						self.set_enabled((player->current_rules.rules_value & issues::rules::open_factory) != 0);
 						return;
 					} else {
@@ -2288,7 +2286,7 @@ namespace economy {
 				} else {
 					// open case -- button closes
 					self.set_frame(ws.w.gui_m, 1ui32);
-					if(ws.w.nation_s.states[location].owner == player) {
+					if(ws.w.nation_s.states.get<state::owner>(location) == player->id) {
 						ui::make_visible_immediate(*self.associated_object);
 						self.set_enabled((player->current_rules.rules_value & issues::rules::destroy_factory) != 0);
 						return;
@@ -2306,8 +2304,8 @@ namespace economy {
 		index = win.index;
 		if(auto player = ws.w.local_player_nation; player) {
 			if(win.index >= 0 && is_valid_index(win.location)) {
-				economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
-				if(ws.w.nation_s.states[location].owner == player && f.level != 0) {
+				economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
+				if(ws.w.nation_s.states.get<state::owner>(location) == player->id && f.level != 0) {
 					ui::make_visible_immediate(*self.associated_object);
 					self.set_enabled((player->current_rules.rules_value & issues::rules::expand_factory) != 0 && f.factory_progress == 0.0f);
 					return;
@@ -2327,8 +2325,8 @@ namespace economy {
 		location = win.location;
 		index = win.index;
 		if(auto player = ws.w.local_player_nation; player) {
-			if(win.index >= 0 && is_valid_index(win.location) && ws.w.nation_s.states[location].owner == player) {
-				economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			if(win.index >= 0 && is_valid_index(win.location) && ws.w.nation_s.states.get<state::owner>(location) == player->id) {
+				economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
 
 				if((f.flags & economy::factory_instance::is_subsidized) != 0)
 					self.set_frame(ws.w.gui_m, 1ui32);
@@ -2346,7 +2344,7 @@ namespace economy {
 	template<typename window_type>
 	void factory_input<nth_input>::windowed_update(ui::dynamic_icon<factory_input>& self, window_type & win, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
-			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
 			if(auto f_type = f.type; f_type) {
 				auto type_id = f_type->id;
 				int32_t input_found_count = 0;
@@ -2369,7 +2367,7 @@ namespace economy {
 	template<typename window_type>
 	void factory_output::windowed_update(ui::simple_button<factory_output>& self, window_type & win, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
-			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
 			if(auto f_type = f.type; f_type) {
 				if(is_valid_index(f_type->output_good)) {
 					self.set_frame(ws.w.gui_m, ws.s.economy_m.goods[f_type->output_good].icon);
@@ -2384,9 +2382,9 @@ namespace economy {
 	template<typename window_type>
 	void factory_income_arrow::windowed_update(ui::dynamic_icon<factory_income_arrow>& self, window_type & win, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
-			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
 
-			if(auto state_cap = nations::get_state_capital(ws, ws.w.nation_s.states[win.location]); is_valid_index(state_cap)) {
+			if(auto state_cap = nations::get_state_capital(ws, win.location); is_valid_index(state_cap)) {
 				auto profit = economy::get_factory_profit(ws, state_cap, f, state_current_prices(ws, win.location));
 
 				if(profit < money_qnty_type(0)) {
@@ -2400,9 +2398,9 @@ namespace economy {
 	template<typename W>
 	void factory_income_text::windowed_update(W & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
-			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
 			
-			if(auto state_cap = nations::get_state_capital(ws, ws.w.nation_s.states[win.location]); is_valid_index(state_cap)) {
+			if(auto state_cap = nations::get_state_capital(ws, win.location); is_valid_index(state_cap)) {
 				ui::text_format blk{ui::text_color::black, fmt.font_handle, fmt.font_size};
 
 				auto profit = economy::get_factory_profit(ws, state_cap, f, state_current_prices(ws, win.location));
@@ -2418,7 +2416,7 @@ namespace economy {
 	template<typename window_type>
 	void factory_workers_display::windowed_update(ui::dynamic_icon<factory_workers_display>& self, window_type & win, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
-			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
 			auto employment_fraction = factory_employment_fraction(ws, f);
 			if(employment_fraction != 0.0f)	
 				self.set_frame(ws.w.gui_m, 1ui32 + std::min(9ui32, static_cast<uint32_t>(10.0f * employment_fraction)));
@@ -2430,7 +2428,7 @@ namespace economy {
 	template<typename window_type>
 	void factory_closed_overlay::windowed_update(ui::dynamic_icon<factory_closed_overlay>& self, window_type & win, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
-			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
 			if(!factory_is_closed(f))
 				ui::hide(*self.associated_object);
 			else
@@ -2441,7 +2439,7 @@ namespace economy {
 	template<typename W>
 	void factory_closed_text::windowed_update(W & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
-			economy::factory_instance& f = ws.w.nation_s.states[win.location].factories[win.index];
+			economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
 			if(factory_is_closed(f)) {
 				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::closed], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 				lm.finish_current_line();
@@ -2460,7 +2458,7 @@ namespace economy {
 	template<typename W>
 	void project_state_name::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(w.location)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.states[w.location].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.states.get<state::name>(w.location), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 			lm.finish_current_line();
 		}
 	}
@@ -2468,8 +2466,7 @@ namespace economy {
 	template<typename window_type>
 	void project_resource_icon::windowed_update(ui::dynamic_icon<project_resource_icon>& self, window_type & w, world_state & ws) {
 		if(is_valid_index(w.location)) {
-			nations::state_instance& si = ws.w.nation_s.states[w.location];
-			if(auto ft = si.project.factory_type; is_valid_index(ft) && si.project.type == economy::pop_project_type::factory) {
+			if(auto ft = ws.w.nation_s.states.get<state::project>(w.location).factory_type; is_valid_index(ft) && ws.w.nation_s.states.get<state::project>(w.location).type == economy::pop_project_type::factory) {
 				self.set_frame(ws.w.gui_m, ws.s.economy_m.goods[ws.s.economy_m.factory_types[ft].output_good].icon);
 				ui::make_visible_immediate(*self.associated_object);
 			} else {
@@ -2481,8 +2478,7 @@ namespace economy {
 	template<typename window_type>
 	void project_infrastructure_icon::windowed_update(ui::dynamic_icon<project_infrastructure_icon>& self, window_type & w, world_state & ws) {
 		if(is_valid_index(w.location)) {
-			nations::state_instance& si = ws.w.nation_s.states[w.location];
-			if(si.project.type == economy::pop_project_type::railroad) 
+			if(ws.w.nation_s.states.get<state::project>(w.location).type == economy::pop_project_type::railroad)
 				ui::make_visible_immediate(*self.associated_object);
 			else
 				ui::hide(*self.associated_object);
@@ -2492,10 +2488,9 @@ namespace economy {
 	template<typename W>
 	void project_investor_amount::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(w.location)) {
-			nations::state_instance& si = ws.w.nation_s.states[w.location];
 
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::currency, si.project.funds);
+			put_value_in_buffer(local_buffer, display_type::currency, ws.w.nation_s.states.get<state::project>(w.location).funds);
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -2504,12 +2499,11 @@ namespace economy {
 	template<typename W>
 	void project_cost::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(w.location)) {
-			nations::state_instance& si = ws.w.nation_s.states[w.location];
 
-			economy::money_qnty_type cost = [&ws, &si, sid = w.location]() {
-				if(auto ft = si.project.factory_type; is_valid_index(ft) && si.project.type == economy::pop_project_type::factory) {
-					return economy::get_factory_project_cost(ws, ft, economy::get_factory_project_type(si, ft), state_current_prices(ws, sid));
-				} else if(si.project.type == economy::pop_project_type::railroad) {
+			economy::money_qnty_type cost = [&ws, sid = w.location]() {
+				if(auto ft = ws.w.nation_s.states.get<state::project>(sid).factory_type; is_valid_index(ft) && ws.w.nation_s.states.get<state::project>(sid).type == economy::pop_project_type::factory) {
+					return economy::get_factory_project_cost(ws, ft, economy::get_factory_project_type(ws, sid, ft), state_current_prices(ws, sid));
+				} else if(ws.w.nation_s.states.get<state::project>(sid).type == economy::pop_project_type::railroad) {
 					return economy::get_railroad_cost(ws, state_current_prices(ws, sid));
 				}
 				return economy::money_qnty_type(0);
@@ -2524,9 +2518,9 @@ namespace economy {
 	template<typename W>
 	void project_name::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(w.location)) {
-			nations::state_instance& si = ws.w.nation_s.states[w.location];
-			if(si.project.type == economy::pop_project_type::railroad) {
-				if(auto p = si.project.location; is_valid_index(p)) {
+			
+			if(ws.w.nation_s.states.get<state::project>(w.location).type == economy::pop_project_type::railroad) {
+				if(auto p = ws.w.nation_s.states.get<state::project>(w.location).location; is_valid_index(p)) {
 					ui::xy_pair cursor{ 0,0 };
 					if(ws.w.province_s.province_state_container.get<province_state::railroad_level>(p) == 0) 
 						cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::build], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
@@ -2536,9 +2530,9 @@ namespace economy {
 					ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::railroad], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 					lm.finish_current_line();
 				}
-			} else if(si.project.type == economy::pop_project_type::factory) {
-				if(auto ft = si.project.factory_type; is_valid_index(ft)) {
-					auto ftype = economy::get_factory_project_type(si, ft);
+			} else if(ws.w.nation_s.states.get<state::project>(w.location).type == economy::pop_project_type::factory) {
+				if(auto ft = ws.w.nation_s.states.get<state::project>(w.location).factory_type; is_valid_index(ft)) {
+					auto ftype = economy::get_factory_project_type(ws, w.location, ft);
 					ui::xy_pair cursor{ 0,0 };
 					if(ftype == economy::factory_project_type::expand)
 						cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::expand], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);

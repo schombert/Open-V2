@@ -126,12 +126,12 @@ namespace current_state {
 				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 				lm.finish_current_line();
 				lm.increase_indent(1);
-				nations::for_each_state(ws, *player, [&ws, &cursor, tw, &lm](nations::state_instance& si) {
-					if(auto si_id = si.id; ws.w.nation_s.states.is_valid_index(si_id)) {
+				nations::for_each_state(ws, *player, [&ws, &cursor, tw, &lm](nations::state_tag si_id) {
+					if(ws.w.nation_s.states.is_valid_index(si_id)) {
 						for(auto w : ws.s.population_m.factory_workers) {
 							if(ws.w.nation_s.state_demographics.get(si_id, population::to_employment_demo_tag(ws, w)) <
 								ws.w.nation_s.state_demographics.get(si_id, population::to_demo_tag(ws, w))) {
-								cursor = ui::add_linear_text(cursor, si.name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+								cursor = ui::add_linear_text(cursor, ws.w.nation_s.states.get<::state::name>(si_id), ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
 								cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 								lm.finish_current_line();
 								return;

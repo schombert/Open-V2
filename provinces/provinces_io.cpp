@@ -828,21 +828,21 @@ namespace provinces {
 			provinces::silent_set_province_owner(ws, *nations::make_nation_for_tag(ws, result.owner), ps);
 		if(is_valid_index(result.controller))
 			provinces::silent_set_province_controller(ws, *nations::make_nation_for_tag(ws, result.controller), ps);
-		if(result.colony && is_valid_index(container.get<province_state::state_instance>(ps))) {
-			nations::state_instance& si = ws.w.nation_s.states[container.get<province_state::state_instance>(ps)];
+		if(auto si = container.get<province_state::state_instance>(ps); result.colony && is_valid_index(si)) {
+
 			if(*result.colony == 2)
-				si.flags |= nations::state_instance::is_colonial;
+				ws.w.nation_s.states.set<state::is_colonial>(si, true);
 			else if(*result.colony == 1)
-				si.flags |= nations::state_instance::is_protectorate;
-			else if(*result.colony == 0)
-				si.flags = decltype(si.flags)(0);
+				ws.w.nation_s.states.set<state::is_protectorate>(si, true);
+			//else if(*result.colony == 0)
+				//si.flags = decltype(si.flags)(0);
 		}
-		if(is_valid_index(container.get<province_state::state_instance>(ps))) {
-			nations::state_instance& si = ws.w.nation_s.states[container.get<province_state::state_instance>(ps)];
-			for(uint32_t i = 0; i < result.factories.size() && i < std::extent_v<decltype(si.factories)>; ++i) {
+		if(auto si = container.get<province_state::state_instance>(ps); is_valid_index(si)) {
+			auto& factories = ws.w.nation_s.states.get<state::factories>(si);
+			for(uint32_t i = 0; i < result.factories.size() && i < state::factories_count; ++i) {
 				if(is_valid_index(result.factories[i].first)) {
-					si.factories[i].type = &(ws.s.economy_m.factory_types[result.factories[i].first]);
-					si.factories[i].level = uint16_t(result.factories[i].second);
+					factories[i].type = &(ws.s.economy_m.factory_types[result.factories[i].first]);
+					factories[i].level = uint16_t(result.factories[i].second);
 				}
 			}
 		}

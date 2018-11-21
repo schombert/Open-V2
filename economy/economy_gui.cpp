@@ -551,11 +551,11 @@ namespace economy {
 	void factory_open_or_close_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
 	void state_window_base::update(world_state & ws) {
 		if(is_valid_index(tag)) {
-			auto& state = ws.w.nation_s.states[tag];
 			uint32_t fcounter = 0;
 
-			for(int32_t i = 0; i < std::extent_v<decltype(state.factories)>; ++i) {
-				if(auto t = state.factories[i].type; t) {
+			auto& state_factories = ws.w.nation_s.states.get<state::factories>(tag);
+			for(int32_t i = 0; i < state::factories_count; ++i) {
+				if(auto t = state_factories[i].type; t) {
 					if(ws.w.production_w.factory_goods_filters[to_index(t->output_good)] != 0) {
 						factories[fcounter].location = tag;
 						factories[fcounter].index = i;
@@ -565,13 +565,13 @@ namespace economy {
 				}
 			}
 
-			for(; fcounter < std::extent_v<decltype(factories)>; ++fcounter) {
+			for(; fcounter < state::factories_count; ++fcounter) {
 				ui::hide(*(factories[fcounter].associated_object));
 				factories[fcounter].location = tag;
 				factories[fcounter].index = -1;
 			}
 		} else {
-			for(uint32_t fcounter = 0; fcounter < std::extent_v<decltype(factories)>; ++fcounter) {
+			for(uint32_t fcounter = 0; fcounter < state::factories_count; ++fcounter) {
 				ui::hide(*(factories[fcounter].associated_object));
 				factories[fcounter].location = tag;
 				factories[fcounter].index = -1;

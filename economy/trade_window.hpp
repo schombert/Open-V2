@@ -335,9 +335,9 @@ namespace economy {
 
 			range_information result{ std::numeric_limits<money_qnty_type>::max(), std::numeric_limits<money_qnty_type>::lowest(), 0.0f };
 
-			ws.w.nation_s.states.for_each([&ws, &result, &state_prices, g](nations::state_instance const& si) {
-				if(auto sid = si.id; si.owner && ws.w.nation_s.states.is_valid_index(sid)) {
-					auto prices = state_current_prices(ws, sid);
+			ws.w.nation_s.states.for_each([&ws, &result, &state_prices, g](nations::state_tag si) {
+				if(is_valid_index(ws.w.nation_s.states.get<state::owner>(si)) && ws.w.nation_s.states.is_valid_index(si)) {
+					auto prices = state_current_prices(ws, si);
 					auto v = prices[to_index(g)];
 					state_prices.push_back(v);
 

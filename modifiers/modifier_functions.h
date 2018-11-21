@@ -1,6 +1,7 @@
 #pragma once
 #include "common\\common.h"
 #include "modifiers.h"
+#include "triggers\\triggers.h"
 
 class world_state;
 
@@ -36,9 +37,9 @@ namespace modifiers {
 	void reset_national_modifier(world_state& ws, nations::nation& this_nation);
 	void reset_provincial_modifier(world_state& ws, provinces::province_tag this_province);
 	
-	float test_multiplicative_factor(factor_tag t, world_state& ws, void* primary_slot, void* from_slot, population::rebel_faction* rebel_slot);
-	float test_multiplicative_factor(factor_modifier const& f, world_state& ws, void* primary_slot, void* from_slot, population::rebel_faction* rebel_slot);
-	float test_additive_factor(factor_tag t, world_state& ws, void* primary_slot, void* from_slot, population::rebel_faction* rebel_slot);
-	float test_additive_factor(factor_modifier const& f, world_state& ws, void* primary_slot, void* from_slot, population::rebel_faction* rebel_slot);
+	float test_multiplicative_factor(factor_tag t, world_state& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot, population::rebel_faction* rebel_slot);
+	float test_multiplicative_factor(factor_modifier const& f, world_state& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot, population::rebel_faction* rebel_slot);
+	float test_additive_factor(factor_tag t, world_state& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot, population::rebel_faction* rebel_slot);
+	float test_additive_factor(factor_modifier const& f, world_state& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot, population::rebel_faction* rebel_slot);
 	int32_t maximum_national_focuses(world_state const& ws, nations::nation const& this_nation);
 }

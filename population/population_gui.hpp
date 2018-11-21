@@ -787,7 +787,7 @@ namespace population {
 				nations::for_each_pop(ws, ws.w.nation_s.nations[tag], f);
 		} else if constexpr(std::is_same_v<tag_type, nations::state_tag>) {
 			if(ws.w.nation_s.states.is_valid_index(tag))
-				nations::for_each_pop(ws, ws.w.nation_s.states[tag], f);
+				nations::for_each_pop(ws, tag, f);
 		} else if constexpr(std::is_same_v<tag_type, provinces::province_tag>) {
 			if(is_valid_index(tag))
 				provinces::for_each_pop(ws, tag, f);
@@ -1639,7 +1639,7 @@ namespace population {
 	template<typename window_type>
 	void pop_state_name::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		if(is_valid_index(win.tag)) {
-			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.w.nation_s.states[win.tag].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.w.nation_s.states.get<state::name>(win.tag), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 			lm.finish_current_line();
 		}
 	}
@@ -1718,7 +1718,7 @@ namespace population {
 	template<typename W>
 	void pop_state_growth::windowed_update(ui::dynamic_icon<pop_state_growth>& ico, W& w, world_state& ws) {
 		if(is_valid_index(w.tag)) {
-			auto growth = ws.w.nation_s.state_demographics.get(w.tag, total_population_tag) - ws.w.nation_s.states[w.tag].last_population;
+			auto growth = ws.w.nation_s.state_demographics.get(w.tag, total_population_tag) - ws.w.nation_s.states.get<state::last_population>(w.tag);
 			if(growth > 0)
 				ico.set_frame(ws.w.gui_m, 0ui32);
 			else if(growth == 0)
@@ -1731,7 +1731,7 @@ namespace population {
 	template<typename W>
 	void pop_colonial_state_button::windowed_update(ui::simple_button<pop_colonial_state_button>& ico, W& w, world_state& ws) {
 		if(is_valid_index(w.tag)) {
-			if((ws.w.nation_s.states[w.tag].flags & (nations::state_instance::is_colonial | nations::state_instance::is_protectorate)) != 0) {
+			if(nations::is_colonial_or_protectorate(ws, w.tag)) {
 				ui::make_visible_immediate(*ico.associated_object);
 			} else {
 				ui::hide(*ico.associated_object);
@@ -1790,25 +1790,24 @@ namespace population {
 	template<size_t level>
 	std::vector<nations::state_tag, concurrent_allocator<nations::state_tag>> pop_tree_view::sub_list(nations::country_tag t, world_state& ws) {
 		std::vector<nations::state_tag, concurrent_allocator<nations::state_tag>> result;
-		nations::for_each_state(ws, ws.w.nation_s.nations[t], [&result, &ws](nations::state_instance const& si) {
-			auto id = si.id;
+		nations::for_each_state(ws, ws.w.nation_s.nations[t], [&result, &ws](nations::state_tag id) {
 			if(ws.w.nation_s.states.is_valid_index(id))
 				result.push_back(id);
 		});
 		vector_backed_string_lex_less<char16_t> lss(ws.s.gui_m.text_data_sequences.text_data);
 		std::sort(result.begin(), result.end(), [&ws, &lss](nations::state_tag a, nations::state_tag b) {
-			return lss(text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.states[a].name),
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.states[b].name));
+			return lss(text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.states.get<state::name>(a)),
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.states.get<state::name>(b)));
 		});
 		std::stable_sort(result.begin(), result.end(), [&ws](nations::state_tag a, nations::state_tag b) {
-			return int32_t(nations::is_colonial_or_protectorate(ws.w.nation_s.states[a])) < int32_t(nations::is_colonial_or_protectorate(ws.w.nation_s.states[b]));
+			return int32_t(nations::is_colonial_or_protectorate(ws, a)) < int32_t(nations::is_colonial_or_protectorate(ws, b));
 		});
 		return result;
 	}
 	template<size_t level>
 	std::vector<provinces::province_tag, concurrent_allocator<provinces::province_tag>> pop_tree_view::sub_list(nations::state_tag t, world_state& ws) {
 		std::vector<provinces::province_tag, concurrent_allocator<provinces::province_tag>> result;
-		nations::for_each_province(ws, ws.w.nation_s.states[t], [&result](provinces::province_tag p) { result.push_back(p); });
+		nations::for_each_province(ws, t, [&result](provinces::province_tag p) { result.push_back(p); });
 		return result;
 	}
 

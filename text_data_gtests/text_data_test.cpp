@@ -207,15 +207,15 @@ TEST(text_data_test, text_alignment) {
 
 	const auto a3 = align_in_bounds(text_data::alignment::center, 20, 10, 40, 20);
 	EXPECT_EQ(10, a3.first);
-	EXPECT_EQ(5, a3.second);
+	EXPECT_EQ(4, a3.second);
 
 	const auto a8 = align_in_bounds(text_data::alignment::left, 20, 10, 40, 20);
 	EXPECT_EQ(0, a8.first);
-	EXPECT_EQ(5, a8.second);
+	EXPECT_EQ(4, a8.second);
 
 	const auto a9 = align_in_bounds(text_data::alignment::right, 20, 10, 40, 20);
 	EXPECT_EQ(20, a9.first);
-	EXPECT_EQ(5, a9.second);
+	EXPECT_EQ(4, a9.second);
 }
 
 TEST(text_data_test, newtext_file) {

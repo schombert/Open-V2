@@ -3,7 +3,7 @@
 #include "cultures\\cultures_io.h"
 #include "economy\\economy_io.h"
 #include "ideologies\\ideologies_io.h"
-#include "nations\\nations_io.h"
+#include "nations\\nations_io.hpp"
 #include "population\\population_io.h"
 #include "provinces\\provinces_io.h"
 #include "military\\military_io.h"
@@ -257,12 +257,13 @@ void restore_world_state(world_state& ws) {
 		add_item(ws.w.military_s.army_arrays, ws.w.nation_s.nations[a.owner].armies, a.id);
 	});
 
-	ws.w.nation_s.states.for_each([&ws](nations::state_instance& s) {
-		if(s.owner)
-			add_item(ws.w.nation_s.state_arrays, s.owner->member_states, nations::region_state_pair{ s.region_id, &s });
+	ws.w.nation_s.states.for_each([&ws](nations::state_tag s) {
+		auto owner_id = ws.w.nation_s.states.get<state::owner>(s);
+		if(is_valid_index(owner_id))
+			add_item(ws.w.nation_s.state_arrays, ws.w.nation_s.nations[owner_id].member_states, nations::region_state_pair{ ws.w.nation_s.states.get<state::region_id>(s), s });
 	});
-	ws.w.nation_s.states.parallel_for_each([&ws](nations::state_instance& s) {
-		s.state_capital = nations::find_state_capital(ws, s);
+	ws.w.nation_s.states.parallel_for_each([&ws](nations::state_tag s) {
+		ws.w.nation_s.states.set<state::state_capital>(s, nations::find_state_capital(ws, s));
 	});
 
 	ws.w.population_s.pops.for_each([&ws](population::pop& p) {
@@ -314,7 +315,7 @@ void restore_world_state(world_state& ws) {
 		auto admin_req = issues::administrative_requirement(ws, n.id);
 		auto member_states = get_range(ws.w.nation_s.state_arrays, n.member_states);
 		for(auto s = member_states.first; s != member_states.second; ++s)
-			s->state->administrative_efficiency = nations::calculate_state_administrative_efficiency(ws, *(s->state), admin_req);
+			ws.w.nation_s.states.set<state::administrative_efficiency>(s->state, nations::calculate_state_administrative_efficiency(ws, s->state, admin_req));
 	});
 
 	ws.w.province_s.province_state_container.parallel_for_each([&ws](provinces::province_tag ps) {
@@ -325,15 +326,15 @@ void restore_world_state(world_state& ws) {
 	ws.w.province_s.state_distances.update(ws);
 
 	//restore tarrif masks
-	auto state_max = ws.w.nation_s.states.minimum_continuous_size();
+	auto state_max = ws.w.nation_s.states.size();
 	auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(state_max) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
 	ws.w.nation_s.nations.parallel_for_each([&ws, aligned_state_max, state_max](nations::nation& n) {
 		resize(ws.w.economy_s.purchasing_arrays, n.statewise_tarrif_mask, aligned_state_max);
 		auto ptr = get_range(ws.w.economy_s.purchasing_arrays, n.statewise_tarrif_mask).first;
 		for(int32_t i = 0; i < int32_t(state_max); ++i) {
 			nations::state_tag this_state = nations::state_tag(nations::state_tag::value_base_t(i));
-			if(auto owner = ws.w.nation_s.states[this_state].owner; owner)
-				ptr[i] = nations::tarrif_multiplier(ws, n, *owner);
+			if(auto owner = ws.w.nation_s.states.get<state::owner>(this_state); is_valid_index(owner))
+				ptr[i] = nations::tarrif_multiplier(ws, n, ws.w.nation_s.nations[owner]);
 		}
 	});
 

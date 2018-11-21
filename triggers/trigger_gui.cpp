@@ -439,7 +439,7 @@ namespace triggers {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owned_province], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			cursor_in = ui::add_linear_text(cursor_in,
-				bool(primary_slot.state) ? primary_slot.state->name : ws.s.fixed_ui_text[scenario::fixed_ui::singular_state],
+				bool(primary_slot.state) ? ws.w.nation_s.states.get<state::name>(primary_slot.state) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_state],
 				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
@@ -680,7 +680,7 @@ namespace triggers {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			cursor_in = ui::add_linear_text(cursor_in,
-				bool(primary_slot.state) ? primary_slot.state->name : ws.s.fixed_ui_text[scenario::fixed_ui::singular_state],
+				bool(primary_slot.state) ? ws.w.nation_s.states.get<state::name>(primary_slot.state) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_state],
 				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
@@ -694,7 +694,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				bool(primary_slot.state) ? primary_slot.state->owner : nullptr, this_slot, from_slot, rebel_slot, show_condition && bool(primary_slot.state));
+				bool(primary_slot.state) ? nations::state_owner(ws, primary_slot.state) : nullptr, this_slot, from_slot, rebel_slot, show_condition && bool(primary_slot.state));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -767,7 +767,7 @@ namespace triggers {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			cursor_in = ui::add_linear_text(cursor_in,
-				bool(primary_slot.state) ? primary_slot.state->name : ws.s.fixed_ui_text[scenario::fixed_ui::singular_state],
+				bool(primary_slot.state) ? ws.w.nation_s.states.get<state::name>(primary_slot.state) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_state],
 				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
@@ -781,7 +781,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, 
-				bool(primary_slot.state) ? primary_slot.state->owner : nullptr, this_slot, from_slot, rebel_slot, show_condition && bool(primary_slot.state));
+				bool(primary_slot.state) ? nations::state_owner(ws, primary_slot.state) : nullptr, this_slot, from_slot, rebel_slot, show_condition && bool(primary_slot.state));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -848,7 +848,7 @@ namespace triggers {
 		}
 		ui::xy_pair tf_this_scope_state(TRIGGER_DISPLAY_PARAMS, bool show_condition) {
 			cursor_in = ui::add_linear_text(cursor_in,
-				bool(this_slot.state) ? this_slot.state->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_state],
+				bool(this_slot.state) ? ws.w.nation_s.states.get<state::name>(this_slot.state) : ws.s.fixed_ui_text[scenario::fixed_ui::this_state],
 				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
@@ -928,7 +928,7 @@ namespace triggers {
 		}
 		ui::xy_pair tf_from_scope_state(TRIGGER_DISPLAY_PARAMS, bool show_condition) {
 			cursor_in = ui::add_linear_text(cursor_in,
-				bool(from_slot.state) ? from_slot.state->name : ws.s.fixed_ui_text[scenario::fixed_ui::from_state],
+				bool(from_slot.state) ? ws.w.nation_s.states.get<state::name>(from_slot.state) : ws.s.fixed_ui_text[scenario::fixed_ui::from_state],
 				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
@@ -1106,7 +1106,7 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair tf_flashpoint_tag_scope(TRIGGER_DISPLAY_PARAMS, bool show_condition) {
-			auto ctag = bool(primary_slot.state) ? primary_slot.state->crisis_tag : cultures::national_tag();
+			auto ctag = bool(primary_slot.state) ? ws.w.nation_s.states.get<state::crisis_tag>(primary_slot.state) : cultures::national_tag();
 			auto ination = is_valid_index(ctag) ? ws.w.culture_s.national_tags_state[ctag].holder : nullptr;
 
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::flashpoint_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
@@ -1142,7 +1142,7 @@ namespace triggers {
 			lm.increase_indent(1);
 			auto cstate = ws.w.current_crisis.state;
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				is_valid_index(cstate) ? &(ws.w.nation_s.states[cstate]) : nullptr, this_slot, from_slot, rebel_slot, show_condition && is_valid_index(cstate));
+				cstate, this_slot, from_slot, rebel_slot, show_condition && is_valid_index(cstate));
 			lm.decrease_indent(1);
 
 			return cursor_in;
@@ -1165,7 +1165,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				bool(primary_slot.prov) ? provinces::province_state(ws, primary_slot.prov) : nullptr, this_slot, from_slot, rebel_slot, show_condition && bool(primary_slot.prov));
+				bool(primary_slot.prov) ? provinces::province_state(ws, primary_slot.prov) : nations::state_tag(), this_slot, from_slot, rebel_slot, show_condition && bool(primary_slot.prov));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -1188,7 +1188,7 @@ namespace triggers {
 			lm.increase_indent(1);
 			auto pop_province = bool(primary_slot.pop) ? primary_slot.pop->location : provinces::province_tag();
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				is_valid_index(pop_province) ? provinces::province_state(ws, pop_province) : nullptr, this_slot, from_slot, rebel_slot, show_condition && is_valid_index(pop_province));
+				is_valid_index(pop_province) ? provinces::province_state(ws, pop_province) : nations::state_tag(), this_slot, from_slot, rebel_slot, show_condition && is_valid_index(pop_province));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -1646,11 +1646,11 @@ namespace triggers {
 	}
 	ui::xy_pair tf_culture_group_nation_this_state(TRIGGER_DISPLAY_PARAMS) {
 		return tf_culture_group_nation_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-			bool(this_slot.state) ? this_slot.state->owner : nullptr, nullptr, nullptr);
+			bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr, nullptr, nullptr);
 	}
 	ui::xy_pair tf_culture_group_pop_this_state(TRIGGER_DISPLAY_PARAMS) {
 		return tf_culture_group_pop_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-			bool(this_slot.state) ? this_slot.state->owner : nullptr, nullptr, nullptr);
+			bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr, nullptr, nullptr);
 	}
 	ui::xy_pair tf_culture_group_nation_this_pop(TRIGGER_DISPLAY_PARAMS) {
 		return tf_culture_group_nation_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
@@ -1683,7 +1683,7 @@ namespace triggers {
 			ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_religion_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		cultures::religion_tag rc = bool(owner) ? owner->national_religion : cultures::religion_tag();
 		return display_with_comparison(tval[0], scenario::fixed_ui::religion,
 			is_valid_index(rc) ? ws.s.culture_m.religions[rc].name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation_religion],
@@ -1902,7 +1902,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_is_core_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ?  this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ?  nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tname = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
 		cursor_in = display_with_comparison_no_newline(tval[0], ws.s.fixed_ui_text[scenario::fixed_ui::a_core_of], ws, container, cursor_in, lm, fmt);
@@ -2011,7 +2011,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_num_of_cities_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tname = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
 		cursor_in = display_with_comparison_no_newline(tval[0],
@@ -2107,7 +2107,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_owned_by_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tname = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
 		cursor_in = display_with_comparison_no_newline(tval[0], ws.s.fixed_ui_text[scenario::fixed_ui::owned_by], ws, container, cursor_in, lm, fmt);
@@ -2339,7 +2339,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_casus_belli_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.nation) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.nation) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tname = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
 		cursor_in = display_with_has_comparison_no_newline(tval[0],
@@ -2415,7 +2415,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_military_access_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tname = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
 		cursor_in = display_with_has_comparison_no_newline(tval[0],
@@ -2478,7 +2478,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_prestige_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ?  this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ?  nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tname = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
 		cursor_in = display_with_comparison_no_newline(tval[0], scenario::fixed_ui::prestige, ws.s.fixed_ui_text[scenario::fixed_ui::prestige_of],
@@ -2694,7 +2694,7 @@ namespace triggers {
 			ws.s.fixed_ui_text[scenario::fixed_ui::units_in_province], ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_units_in_province_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tname = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 		cursor_in = display_with_has_comparison_no_newline(tval[0],
 			tname, ws, container, cursor_in, lm, fmt);
@@ -2756,7 +2756,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_war_with_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tname = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 		cursor_in = display_with_comparison_no_newline(tval[0],
 			ws.s.fixed_ui_text[scenario::fixed_ui::at_war_against], ws, container, cursor_in, lm, fmt);
@@ -2880,7 +2880,7 @@ namespace triggers {
 			scenario::fixed_ui::primary_culture, t, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_is_primary_culture_nation_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto this_owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto this_owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tc = bool(this_owner) ? this_owner->primary_culture : cultures::culture_tag();
 		auto t = is_valid_index(tc) ? ws.s.culture_m.culture_container[tc].name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation_primary_culture];
 
@@ -2911,7 +2911,7 @@ namespace triggers {
 			scenario::fixed_ui::dominant_culture, t, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_is_primary_culture_state_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto this_owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto this_owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tc = bool(this_owner) ? this_owner->primary_culture : cultures::culture_tag();
 		auto t = is_valid_index(tc) ? ws.s.culture_m.culture_container[tc].name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation_primary_culture];
 
@@ -2942,7 +2942,7 @@ namespace triggers {
 			scenario::fixed_ui::dominant_culture, t, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_is_primary_culture_province_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto this_owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto this_owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tc = bool(this_owner) ? this_owner->primary_culture : cultures::culture_tag();
 		auto t = is_valid_index(tc) ? ws.s.culture_m.culture_container[tc].name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation_primary_culture];
 
@@ -2973,7 +2973,7 @@ namespace triggers {
 			scenario::fixed_ui::culture, t, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_is_primary_culture_pop_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto this_owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto this_owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tc = bool(this_owner) ? this_owner->primary_culture : cultures::culture_tag();
 		auto t = is_valid_index(tc) ? ws.s.culture_m.culture_container[tc].name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation_primary_culture];
 
@@ -3051,7 +3051,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_in_sphere_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto name = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
 		cursor_in = display_with_comparison_no_newline(tval[0],
@@ -3235,7 +3235,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_controlled_by_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tname = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
 		cursor_in = display_with_comparison_no_newline(tval[0],
@@ -3327,7 +3327,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_truce_with_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tname = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
 		cursor_in = display_with_has_comparison_no_newline(tval[0],
@@ -3487,7 +3487,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_vassal_of_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tname = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
 		cursor_in = display_with_comparison_no_newline(tval[0],
@@ -3558,7 +3558,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_substate_of_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tname = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
 		cursor_in = display_with_comparison_no_newline(tval[0],
@@ -3629,7 +3629,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_alliance_with_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tname = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
 		cursor_in = display_with_comparison_no_newline(tval[0],
@@ -3753,7 +3753,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_in_default_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tname = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
 		cursor_in = display_with_comparison_no_newline(tval[0],
@@ -3855,7 +3855,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_industrial_score_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tname = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
 		cursor_in = display_with_comparison_no_newline(tval[0],
@@ -3917,7 +3917,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_military_score_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tname = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
 		cursor_in = display_with_comparison_no_newline(tval[0],
@@ -4216,7 +4216,7 @@ namespace triggers {
 			scenario::fixed_ui::cultural_union, tname, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_this_culture_union_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tname = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 		return display_with_comparison(tval[0],
 			scenario::fixed_ui::cultural_union, tname, ws, container, cursor_in, lm, fmt);
@@ -4251,7 +4251,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_this_culture_union_this_union_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tname = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
 		cursor_in = display_with_comparison_no_newline(tval[0],
@@ -4380,7 +4380,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_constructing_cb_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tname = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
 		cursor_in = display_with_comparison_no_newline(tval[0],
@@ -4487,7 +4487,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_is_our_vassal_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tname = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 		auto scope_name = bool(primary_slot.nation) ? primary_slot.nation->name : ws.s.fixed_ui_text[scenario::fixed_ui::nation_in_scope];
 
@@ -4588,7 +4588,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_is_sphere_leader_of_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto tname = bool(owner) ? owner->name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
 		cursor_in = display_with_comparison_no_newline(tval[0],
@@ -5957,7 +5957,7 @@ namespace triggers {
 			scenario::fixed_ui::national_religion, rn, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_religion_nation_this_state(TRIGGER_DISPLAY_PARAMS) {
-		auto owner = bool(this_slot.state) ? this_slot.state->owner : nullptr;
+		auto owner = bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nullptr;
 		auto rr = bool(owner) ? owner->national_religion : cultures::religion_tag();
 		auto rn = is_valid_index(rr) ? ws.s.culture_m.religions[rr].name : ws.s.fixed_ui_text[scenario::fixed_ui::this_nat_religion];
 		return display_with_comparison(tval[0],

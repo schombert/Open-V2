@@ -11,110 +11,57 @@
 #include "military\\military_functions.h"
 #include "issues\\issues_functions.h"
 #include "economy\\economy_io.h"
+#include "nations_io.hpp"
 
 #undef max
 #undef min
 
 
-void serialization::serializer<nations::state_instance>::serialize_object(std::byte *& output, nations::state_instance const & obj, world_state const& ws) {
-	auto owner_id = obj.owner ? obj.owner->id : nations::country_tag();
-	serialize(output, owner_id);
+void serialization::serializer<nations::nations_state>::serialize_object(std::byte *& output, nations::nations_state const & obj, world_state const & ws) {
+	serialize(output, obj.nations, ws);
+	serialize(output, obj.states, ws);
 
-	auto nat_focus_id = obj.owner_national_focus ? obj.owner_national_focus->id : modifiers::national_focus_tag();
-	serialize(output, nat_focus_id);
-
-	serialize(output, obj.project);
-
-	for(uint32_t i = 0; i < std::extent_v<decltype(obj.factories)>; ++i) {
-		serialize(output, obj.factories[i], ws);
-	}
-
-	serialize_array(output, obj.colonizers, std::extent_v<decltype(obj.colonizers)>);
-
-	serialize(output, obj.last_population);
-	serialize(output, obj.current_tension);
-	serialize(output, obj.name);
-	serialize(output, obj.crisis_tag);
-	serialize(output, obj.region_id);
-	serialize(output, obj.flags);
-
-	auto prices = ws.w.nation_s.state_prices.get_row(obj.id);
-	serialize_array(output, prices, ws.s.economy_m.aligned_32_goods_count * 2);
-	auto production = ws.w.nation_s.state_production.get_row(obj.id);
-	serialize_array(output, production, ws.s.economy_m.aligned_32_goods_count * 2);
-	auto demand = ws.w.nation_s.state_demand.get_row(obj.id);
-	serialize_array(output, demand, ws.s.economy_m.aligned_32_goods_count * 2);
-	auto global_demand = ws.w.nation_s.state_global_demand.get_row(obj.id);
-	serialize_array(output, global_demand, ws.s.economy_m.aligned_32_goods_count * 2);
-
-	serialize_stable_array(output, ws.w.nation_s.nations_arrays, obj.flashpoint_tension_focuses);
+	obj.states.for_each([&ws, &output](nations::state_tag s) {
+		auto prices = ws.w.nation_s.state_prices.get_row(s);
+		serialize_array(output, prices, ws.s.economy_m.aligned_32_goods_count * 2);
+		auto production = ws.w.nation_s.state_production.get_row(s);
+		serialize_array(output, production, ws.s.economy_m.aligned_32_goods_count * 2);
+		auto demand = ws.w.nation_s.state_demand.get_row(s);
+		serialize_array(output, demand, ws.s.economy_m.aligned_32_goods_count * 2);
+		auto global_demand = ws.w.nation_s.state_global_demand.get_row(s);
+		serialize_array(output, global_demand, ws.s.economy_m.aligned_32_goods_count * 2);
+	});
 }
 
-void serialization::serializer<nations::state_instance>::deserialize_object(std::byte const *& input, nations::state_instance & obj, world_state & ws) {
-	ws.w.nation_s.state_demographics.ensure_capacity(to_index(obj.id) + 1);
-	ws.w.nation_s.state_prices.ensure_capacity(to_index(obj.id) + 1);
-	ws.w.nation_s.state_production.ensure_capacity(to_index(obj.id) + 1);
-	ws.w.nation_s.state_demand.ensure_capacity(to_index(obj.id) + 1);
-	ws.w.nation_s.state_global_demand.ensure_capacity(to_index(obj.id) + 1);
-	ws.w.nation_s.state_purchases.ensure_capacity(to_index(obj.id) + 1);
+void serialization::serializer<nations::nations_state>::deserialize_object(std::byte const *& input, nations::nations_state & obj, world_state & ws) {
+	deserialize(input, obj.nations, ws);
+	deserialize(input, obj.states, ws);
 
-	nations::country_tag owner;
-	deserialize(input, owner);
-	obj.owner = ws.w.nation_s.nations.get_location(owner);
+	ws.w.nation_s.state_demographics.ensure_capacity(obj.states.size());
+	ws.w.nation_s.state_prices.ensure_capacity(obj.states.size());
+	ws.w.nation_s.state_production.ensure_capacity(obj.states.size());
+	ws.w.nation_s.state_demand.ensure_capacity(obj.states.size());
+	ws.w.nation_s.state_global_demand.ensure_capacity(obj.states.size());
+	ws.w.nation_s.state_purchases.ensure_capacity(obj.states.size());
 
-	modifiers::national_focus_tag nat_focus;
-	deserialize(input, nat_focus);
-	if(is_valid_index(nat_focus))
-		obj.owner_national_focus = &(ws.s.modifiers_m.national_focuses[nat_focus]);
-
-	deserialize(input, obj.project);
-
-	for(uint32_t i = 0; i < std::extent_v<decltype(obj.factories)>; ++i) {
-		deserialize(input, obj.factories[i], ws);
-	}
-
-	deserialize_array(input, obj.colonizers, std::extent_v<decltype(obj.colonizers)>);
-
-	deserialize(input, obj.last_population);
-	deserialize(input, obj.current_tension);
-	deserialize(input, obj.name);
-	deserialize(input, obj.crisis_tag);
-	deserialize(input, obj.region_id);
-	deserialize(input, obj.flags);
-
-	auto prices = ws.w.nation_s.state_prices.get_row(obj.id);
-	deserialize_array(input, prices, ws.s.economy_m.aligned_32_goods_count * 2);
-	auto production = ws.w.nation_s.state_production.get_row(obj.id);
-	deserialize_array(input, production, ws.s.economy_m.aligned_32_goods_count * 2);
-	auto demand = ws.w.nation_s.state_demand.get_row(obj.id);
-	deserialize_array(input, demand, ws.s.economy_m.aligned_32_goods_count * 2);
-	auto global_demand = ws.w.nation_s.state_global_demand.get_row(obj.id);
-	deserialize_array(input, global_demand, ws.s.economy_m.aligned_32_goods_count * 2);
-
-	deserialize_stable_array(input, ws.w.nation_s.nations_arrays, obj.flashpoint_tension_focuses);
+	obj.states.for_each([&ws, &input](nations::state_tag s) {
+		auto prices = ws.w.nation_s.state_prices.get_row(s);
+		deserialize_array(input, prices, ws.s.economy_m.aligned_32_goods_count * 2);
+		auto production = ws.w.nation_s.state_production.get_row(s);
+		deserialize_array(input, production, ws.s.economy_m.aligned_32_goods_count * 2);
+		auto demand = ws.w.nation_s.state_demand.get_row(s);
+		deserialize_array(input, demand, ws.s.economy_m.aligned_32_goods_count * 2);
+		auto global_demand = ws.w.nation_s.state_global_demand.get_row(s);
+		deserialize_array(input, global_demand, ws.s.economy_m.aligned_32_goods_count * 2);
+	});
 }
 
-size_t serialization::serializer<nations::state_instance>::size(nations::state_instance const & obj, world_state const& ws) {
-	return
-		sizeof(nations::country_tag) + // owner tag
-		sizeof(modifiers::national_focus_tag) + // national focus
-		serialize_size(obj.project) +
-		std::accumulate(std::begin(obj.factories), std::end(obj.factories), 0ui64, [&ws](size_t v, economy::factory_instance const& f) {
-			return v + serialize_size(f, ws);
-		}) + // factories
-		sizeof(obj.colonizers[0]) * std::extent_v<decltype(obj.colonizers)> + // colonizers
-		sizeof(obj.last_population) +
-		sizeof(obj.current_tension) +
-		sizeof(obj.name) +
-		sizeof(obj.crisis_tag) +
-		sizeof(obj.region_id) +
-		sizeof(obj.flags) +
-		sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count * 2 + // state prices
-		sizeof(economy::goods_qnty_type) * ws.s.economy_m.aligned_32_goods_count * 2 + // state production
-		sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count * 2 + // state demand
-		sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count * 2 + // state global demand
-		serialize_stable_array_size(ws.w.nation_s.nations_arrays, obj.flashpoint_tension_focuses)
-		;
+size_t serialization::serializer<nations::nations_state>::size(nations::nations_state const & obj, world_state const & ws) {
+	return serialize_size(obj.nations, ws) + serialize_size(obj.states, ws) +
+		sizeof(economy::money_qnty_type) * obj.states.size() * ws.s.economy_m.aligned_32_goods_count * 2 + // state prices
+		sizeof(economy::goods_qnty_type) * obj.states.size() * ws.s.economy_m.aligned_32_goods_count * 2 + // state production
+		sizeof(economy::money_qnty_type) * obj.states.size() * ws.s.economy_m.aligned_32_goods_count * 2 + // state demand
+		sizeof(economy::money_qnty_type) * obj.states.size() * ws.s.economy_m.aligned_32_goods_count * 2; // state global demand
 }
 
 void serialization::serializer<nations::nation>::serialize_object(std::byte *& output, nations::nation const & obj, world_state const& ws) {

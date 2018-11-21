@@ -20,11 +20,8 @@ namespace provinces {
 		}
 		return nullptr;
 	}
-	nations::state_instance const* province_state(world_state const& ws, province_tag p) {
-		if(auto si = ws.w.province_s.province_state_container.get<province_state::state_instance>(p); ws.w.nation_s.states.is_valid_index(si)) {
-			return &ws.w.nation_s.states[si];
-		}
-		return nullptr;
+	nations::state_tag province_state(world_state const& ws, province_tag p) {
+		return ws.w.province_s.province_state_container.get<province_state::state_instance>(p);
 	}
 	nations::nation* province_owner(world_state& ws, province_tag p) {
 		if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(p); ws.w.nation_s.nations.is_valid_index(owner)) {
@@ -35,12 +32,6 @@ namespace provinces {
 	nations::nation* province_controller(world_state& ws, province_tag p) {
 		if(auto controller = ws.w.province_s.province_state_container.get<province_state::controller>(p); ws.w.nation_s.nations.is_valid_index(controller)) {
 			return &ws.w.nation_s.nations[controller];
-		}
-		return nullptr;
-	}
-	nations::state_instance* province_state(world_state& ws, province_tag p) {
-		if(auto si = ws.w.province_s.province_state_container.get<province_state::state_instance>(p); ws.w.nation_s.states.is_valid_index(si)) {
-			return &ws.w.nation_s.states[si];
 		}
 		return nullptr;
 	}
@@ -286,7 +277,7 @@ namespace provinces {
 
 			if(nations::is_state_empty(ws, si)) {
 				nations::destroy_state_instance(ws, si);
-				ws.w.nation_s.states.remove(si);
+				ws.w.nation_s.states.release(si);
 			}
 		}
 	}
@@ -306,7 +297,8 @@ namespace provinces {
 
 		auto& controller = container.get<province_state::controller>(prov);
 		if(controller != new_controller.id) {
-			nations::remove_controlled_province(ws, controller, prov);
+			if(is_valid_index(controller))
+				nations::remove_controlled_province(ws, controller, prov);
 			nations::add_controlled_province(ws, new_controller.id, prov);
 			controller = new_controller.id;
 
@@ -325,19 +317,19 @@ namespace provinces {
 		container.set<province_state::owner>(prov, new_owner.id);
 		const auto region_id = ws.s.province_m.province_container.get<province::state_id>(prov);
 
-		nations::region_state_pair* found = find(ws.w.nation_s.state_arrays, new_owner.member_states, nations::region_state_pair{ region_id, nullptr });
+		nations::region_state_pair* found = find(ws.w.nation_s.state_arrays, new_owner.member_states, nations::region_state_pair{ region_id, nations::state_tag() });
 		if(found) {
-			container.set<province_state::state_instance>(prov, found->state->id);
-			found->state->state_capital = nations::find_state_capital(ws, *(found->state));
+			container.set<province_state::state_instance>(prov, found->state);
+			ws.w.nation_s.states.set<state::state_capital>(found->state, nations::find_state_capital(ws, found->state));
 		} else {
-			auto& new_state = nations::make_state(region_id, ws);
-			container.set<province_state::state_instance>(prov, new_state.id);
+			auto new_state = nations::make_state(region_id, ws);
+			container.set<province_state::state_instance>(prov, new_state);
 
-			new_state.owner = &new_owner;
-			new_state.state_capital = nations::find_state_capital(ws, new_state);
-			add_item(ws.w.nation_s.state_arrays, new_owner.member_states, nations::region_state_pair{ region_id, &new_state });
+			ws.w.nation_s.states.set<state::owner>(new_state, new_owner.id);
+			ws.w.nation_s.states.set<state::state_capital>(new_state, nations::find_state_capital(ws, new_state));
+			add_item(ws.w.nation_s.state_arrays, new_owner.member_states, nations::region_state_pair{ region_id, new_state });
 
-			auto state_index = to_index(new_state.id);
+			auto state_index = to_index(new_state);
 			auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(state_index + 1) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
 			ws.w.nation_s.nations.parallel_for_each([&ws, aligned_state_max, state_index, &new_owner](nations::nation& n){
 				if(get_size(ws.w.economy_s.purchasing_arrays, n.statewise_tarrif_mask) < aligned_state_max)
@@ -508,7 +500,7 @@ namespace provinces {
 	}
 
 	void state_distances_manager::update(world_state const & ws) {
-		auto max_states = ws.w.nation_s.states.minimum_continuous_size();
+		auto max_states = ws.w.nation_s.states.size();
 		auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(max_states) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
 
 		if(last_aligned_state_max < int32_t(aligned_state_max)) {
@@ -521,12 +513,12 @@ namespace provinces {
 
 		concurrency::parallel_for(0, int32_t(max_states), [&ws, max_states, aligned_state_max, d = this->distance_data](int32_t i) {
 			nations::state_tag this_state = nations::state_tag(nations::state_tag::value_base_t(i));
-			provinces::province_tag capital = ws.w.nation_s.states[this_state].state_capital;
+			provinces::province_tag capital = ws.w.nation_s.states.get<state::state_capital>(this_state);
 			const auto province_count = ws.s.province_m.province_container.size();
 			if(is_valid_index(capital)) {
 				for(int32_t j = 0; j < int32_t(max_states); ++j) {
 					nations::state_tag other_state = nations::state_tag(nations::state_tag::value_base_t(j));
-					provinces::province_tag other_capital = ws.w.nation_s.states[other_state].state_capital;
+					provinces::province_tag other_capital = ws.w.nation_s.states.get<state::state_capital>(other_state);
 
 					if(is_valid_index(other_capital)) {
 						d[i * aligned_state_max + j] = ws.w.province_s.province_distance_to[

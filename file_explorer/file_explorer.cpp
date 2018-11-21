@@ -78,15 +78,14 @@ struct gui_window_handler {
 				s.w.province_w.show_province_window(s.w.gui_m, provinces::province_tag(id));
 				s.w.map_view.selected_province = provinces::province_tag(id);
 				if(is_valid_index(provinces::province_tag(id))) {
-					auto& ps = s.w.province_s.province_state_container[provinces::province_tag(id)];
-					if(auto si = ps.state_instance; si) {
+					if(auto si = provinces::province_state(s, provinces::province_tag(id)); si) {
 						if(auto sid = si->id; s.w.nation_s.states.is_valid_index(sid) && s.w.map_view.selected_state != sid) {
 							s.w.map_view.selected_state = sid;
 							s.w.trade_w.selected_state = sid;
 							s.w.trade_w.update(s.w.gui_m);
 						}
 					}
-					if(auto n = ps.owner; n) {
+					if(auto n = provinces::province_owner(s, provinces::province_tag(id)); n) {
 						if(auto nid = n->id; s.w.nation_s.nations.is_valid_index(nid))
 							s.w.map_view.selected_country = nid;
 					}
@@ -330,20 +329,23 @@ int main(int , char **) {
 		
 		ideologies::set_default_enabled_ideologies(ws);
 
-		for(auto& ps : ws.w.province_s.province_state_container) {
-			if(is_valid_index(ps.rgo_production))
-				economy::match_rgo_worker_type(ws, ps);
-		}
+		ws.w.province_s.province_state_container.for_each([&ws](provinces::province_tag p) {
+			if(is_valid_index(ws.w.province_s.province_state_container.get<province_state::rgo_production>(p)))
+				economy::match_rgo_worker_type(ws, p);
+		});
 
 		provinces::update_province_demographics(ws);
 		nations::update_state_nation_demographics(ws);
 
 		provinces::set_base_rgo_size(ws);
 
-		for(auto& ps : ws.w.province_s.province_state_container) {
-			if(ps.owner && ps.state_instance) 
-				economy::update_rgo_employment(ws, ps);
-		}
+		ws.w.province_s.province_state_container.for_each([&ws](provinces::province_tag p) {
+			if(bool(ws.w.province_s.province_state_container.get<province_state::owner>(p))
+				&& bool(ws.w.province_s.province_state_container.get<province_state::state_instance>(p))) {
+				economy::update_rgo_employment(ws, p);
+			}
+		});
+
 		economy::init_factory_employment(ws);
 		economy::init_artisan_producation(ws);
 
@@ -362,11 +364,11 @@ int main(int , char **) {
 
 		provinces::add_province_modifier(
 			ws,
-			ws.w.province_s.province_state_container[provinces::province_tag(78)],
+			provinces::province_tag(78),
 			modifiers::provincial_modifier_tag(1));
 		provinces::add_timed_province_modifier(
 			ws,
-			ws.w.province_s.province_state_container[provinces::province_tag(78)],
+			provinces::province_tag(78),
 			modifiers::provincial_modifier_tag(2),
 			date_to_tag(boost::gregorian::date(1900, boost::gregorian::Jan, 10)));
 

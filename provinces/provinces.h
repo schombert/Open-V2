@@ -13,7 +13,6 @@ namespace modifiers {
 
 namespace nations {
 	struct nation;
-	struct state_instance;
 }
 
 namespace population {

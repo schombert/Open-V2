@@ -18,17 +18,6 @@ template<>
 class serialization::serializer<nations::pop_project> : public serialization::memcpy_serializer<nations::pop_project> {};
 
 template<>
-class serialization::serializer<nations::state_instance> {
-public:
-	static constexpr bool has_static_size = false;
-	static constexpr bool has_simple_serialize = false;
-
-	static void serialize_object(std::byte* &output, nations::state_instance const& obj, world_state const& ws);
-	static void deserialize_object(std::byte const* &input, nations::state_instance& obj, world_state& ws);
-	static size_t size(nations::state_instance const& obj, world_state const& ws);
-};
-
-template<>
 class serialization::serializer<nations::nation> {
 public:
 	static constexpr bool has_static_size = false;
@@ -39,6 +28,29 @@ public:
 	static size_t size(nations::nation const& obj, world_state const& ws);
 };
 
+template<typename T>
+class serialization::tagged_serializer<state::flashpoint_tension_focuses, T> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
+	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
+	static size_t size(T const& obj, world_state const& ws);
+};
+
+template<typename T>
+class serialization::tagged_serializer<state::dominant_ideology, T> : public serialization::discard_serializer<T> {};
+template<typename T>
+class serialization::tagged_serializer<state::dominant_issue, T> : public serialization::discard_serializer<T> {};
+template<typename T>
+class serialization::tagged_serializer<state::dominant_religion, T> : public serialization::discard_serializer<T> {};
+template<typename T>
+class serialization::tagged_serializer<state::dominant_culture, T> : public serialization::discard_serializer<T> {};
+template<typename T>
+class serialization::tagged_serializer<state::administrative_efficiency, T> : public serialization::discard_serializer<T> {};
+template<typename T>
+class serialization::tagged_serializer<state::state_capital, T> : public serialization::discard_serializer<T> {};
 
 template<>
 class serialization::serializer<nations::nations_state> {
@@ -46,17 +58,9 @@ public:
 	static constexpr bool has_static_size = false;
 	static constexpr bool has_simple_serialize = false;
 
-	static void serialize_object(std::byte* &output, nations::nations_state const& obj, world_state const& ws) {
-		serialize(output, obj.nations, ws);
-		serialize(output, obj.states, ws);
-	}
-	static void deserialize_object(std::byte const* &input, nations::nations_state& obj, world_state& ws) {
-		deserialize(input, obj.nations, ws);
-		deserialize(input, obj.states, ws);
-	}
-	static size_t size(nations::nations_state const& obj, world_state const& ws) {
-		return serialize_size(obj.nations, ws) + serialize_size(obj.states, ws);
-	}
+	static void serialize_object(std::byte* &output, nations::nations_state const& obj, world_state const& ws);
+	static void deserialize_object(std::byte const* &input, nations::nations_state& obj, world_state& ws);
+	static size_t size(nations::nations_state const& obj, world_state const& ws);
 };
 
 namespace nations {

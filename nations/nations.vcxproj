@@ -151,6 +151,7 @@
     <ClInclude Include="nations_gui.h" />
     <ClInclude Include="nations_gui.hpp" />
     <ClInclude Include="nations_io.h" />
+    <ClInclude Include="nations_io.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="nations.cpp" />

@@ -3,7 +3,7 @@
 #include "simple_serialize\\simple_serialize.hpp"
 #include <ppl.h>
 
-//#define VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
+#define VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
 
 #ifdef VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
 struct bitfield_type {};
@@ -460,15 +460,15 @@ public:
 		first_free = i;
 
 		if(size_used - 1 == to_index(i)) {
-			for(int32_t i = size_used - 1; i >= 0; --i) {
+			for(int32_t j = size_used - 1; j >= 0; --j) {
 #ifdef VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
-				if(container_type::template get<index_type_marker>(tag_type(typename tag_type::value_base_t(i)), *ptr) == tag_type(typename tag_type::value_base_t(i))) {
-					size_used = i + 1;
+				if(container_type::template get<index_type_marker>(tag_type(typename tag_type::value_base_t(j)), *ptr) == tag_type(typename tag_type::value_base_t(j))) {
+					size_used = j + 1;
 					return;
 				}
 #else
-				if(container_type::template get<index_type_marker>(ptr[i]) == tag_type(typename tag_type::value_base_t(i))) {
-					size_used = i + 1;
+				if(container_type::template get<index_type_marker>(ptr[j]) == tag_type(typename tag_type::value_base_t(j))) {
+					size_used = j + 1;
 					return;
 				}
 #endif
@@ -501,6 +501,10 @@ public:
 		return size_used;
 	}
 
+	bool is_valid_index(tag_type t) const noexcept {
+		return ::is_valid_index(t) & (to_index(t) < size_used);
+	}
+
 #ifdef VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
 	template<typename U>
 	__forceinline auto get(tag_type i) const -> decltype(container_type::template get<U>(i, *static_cast<ptr_type const*>(ptr))) {
@@ -522,15 +526,15 @@ public:
 	template<typename F>
 	void for_each(F const& func) const {
 		for(int32_t i = 0; i < size_used; ++i) {
-			if(container_type::template get<index_type_marker>(tag_type(tag_type::typename value_base_t(i)), *ptr) == tag_type(tag_type::typename value_base_t(i)))
-				func(tag_type(tag_type::typename value_base_t(i)));
+			if(container_type::template get<index_type_marker>(tag_type(typename tag_type::value_base_t(i)), *ptr) == tag_type(typename tag_type::value_base_t(i)))
+				func(tag_type(typename tag_type::value_base_t(i)));
 		}
 	}
 	template<typename F>
 	void parallel_for_each(F const& func) const {
 		concurrency::parallel_for(0, size_used, [&func, p = this->ptr](int32_t i) {
-			if(container_type::template get<index_type_marker>(tag_type(tag_type::typename value_base_t(i)), *p) == tag_type(tag_type::typename value_base_t(i)))
-				func(tag_type(tag_type::typename value_base_t(i)));
+			if(container_type::template get<index_type_marker>(tag_type(typename tag_type::value_base_t(i)), *p) == tag_type(typename tag_type::value_base_t(i)))
+				func(tag_type(typename tag_type::value_base_t(i)));
 		});
 	}
 #else
@@ -690,7 +694,7 @@ public:
 #ifdef VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
 		tag_type temp[container_size];
 		for(int32_t i = 0; i < obj.size_used; ++i) {
-			if(obj.get<index_type_marker>(typename tag_type(tag_type::value_base_t(i))) == tag_type(typename tag_type::value_base_t(i)))
+			if(obj.get<index_type_marker>(tag_type(typename tag_type::value_base_t(i))) == tag_type(typename tag_type::value_base_t(i)))
 				temp[i] = tag_type(typename tag_type::value_base_t(i));
 			else
 				temp[i] = tag_type();

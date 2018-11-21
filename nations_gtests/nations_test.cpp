@@ -62,27 +62,27 @@ TEST(nations_tests, province_ownership) {
 	auto ger_nation = make_nation_for_tag(ws, ger_tag);
 
 	auto prov_tag = provinces::province_tag(104ui16);
-	auto province_region = ws.s.province_m.province_container[prov_tag].state_id;
+	auto province_region = ws.s.province_m.province_container.get<province::state_id>(prov_tag);
 
 	EXPECT_NE(provinces::state_tag(), province_region);
 
-	provinces::silent_set_province_owner(ws, *ger_nation, ws.w.province_s.province_state_container[prov_tag]);
+	provinces::silent_set_province_owner(ws, *ger_nation, prov_tag);
 
 	EXPECT_EQ(1ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(1ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
 	EXPECT_EQ(province_region, get(ws.w.nation_s.state_arrays, ger_nation->member_states, 0ui32).region_id);
 	EXPECT_NE(nullptr, get(ws.w.nation_s.state_arrays, ger_nation->member_states, 0ui32).state);
-	EXPECT_EQ(ger_nation, ws.w.province_s.province_state_container[prov_tag].owner);
-	EXPECT_EQ(get(ws.w.nation_s.state_arrays, ger_nation->member_states, 0ui32).state, ws.w.province_s.province_state_container[prov_tag].state_instance);
+	EXPECT_EQ(ger_nation, provinces::province_owner(ws, prov_tag));
+	EXPECT_EQ(get(ws.w.nation_s.state_arrays, ger_nation->member_states, 0ui32).state, provinces::province_state(ws, prov_tag));
 
-	auto old_state_instance = ws.w.province_s.province_state_container[prov_tag].state_instance;
+	auto old_state_instance = provinces::province_state(ws, prov_tag);
 
-	provinces::silent_remove_province_owner(ws, ws.w.province_s.province_state_container[prov_tag]);
+	provinces::silent_remove_province_owner(ws, prov_tag);
 
 	EXPECT_EQ(0ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(0ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
-	EXPECT_EQ(nullptr, ws.w.province_s.province_state_container[prov_tag].owner);
-	EXPECT_EQ(nullptr, ws.w.province_s.province_state_container[prov_tag].state_instance);
+	EXPECT_EQ(nullptr, provinces::province_owner(ws, prov_tag));
+	EXPECT_EQ(nullptr, provinces::province_state(ws, prov_tag));
 	EXPECT_EQ(state_tag(), ws.w.nation_s.states.get_id(*old_state_instance));
 }
 
@@ -101,52 +101,52 @@ TEST(nations_tests, adding_states) {
 	auto prov_tag_b = provinces::province_tag(103ui16);
 	auto prov_tag_c = provinces::province_tag(102ui16);
 
-	provinces::silent_set_province_owner(ws, *ger_nation, ws.w.province_s.province_state_container[prov_tag_a]);
-	provinces::silent_set_province_owner(ws, *ger_nation, ws.w.province_s.province_state_container[prov_tag_b]);
+	provinces::silent_set_province_owner(ws, *ger_nation, prov_tag_a);
+	provinces::silent_set_province_owner(ws, *ger_nation, prov_tag_b);
 
 	EXPECT_EQ(2ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(1ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
-	EXPECT_NE(nullptr, ws.w.province_s.province_state_container[prov_tag_b].state_instance);
-	EXPECT_EQ(ws.w.province_s.province_state_container[prov_tag_a].state_instance, ws.w.province_s.province_state_container[prov_tag_b].state_instance);
-	EXPECT_EQ(ger_nation, ws.w.province_s.province_state_container[prov_tag_a].owner);
-	EXPECT_EQ(ger_nation, ws.w.province_s.province_state_container[prov_tag_b].owner);
+	EXPECT_NE(nullptr, provinces::province_state(ws, prov_tag_b));
+	EXPECT_EQ(provinces::province_state(ws, prov_tag_a), provinces::province_state(ws, prov_tag_b));
+	EXPECT_EQ(ger_nation, provinces::province_owner(ws, prov_tag_a));
+	EXPECT_EQ(ger_nation, provinces::province_owner(ws, prov_tag_b));
 
 	EXPECT_EQ(true, contains_item(ws.w.province_s.province_arrays, ger_nation->owned_provinces, prov_tag_a));
 	EXPECT_EQ(false, contains_item(ws.w.province_s.province_arrays, ger_nation->owned_provinces, prov_tag_c));
 
-	provinces::silent_set_province_owner(ws, *ger_nation, ws.w.province_s.province_state_container[prov_tag_c]);
+	provinces::silent_set_province_owner(ws, *ger_nation, prov_tag_c);
 
 	EXPECT_EQ(3ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(2ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
-	EXPECT_EQ(ger_nation, ws.w.province_s.province_state_container[prov_tag_c].owner);
+	EXPECT_EQ(ger_nation, provinces::province_owner(ws, prov_tag_c));
 
-	EXPECT_NE(nullptr, ws.w.province_s.province_state_container[prov_tag_c].state_instance);
-	EXPECT_NE(ws.w.province_s.province_state_container[prov_tag_a].state_instance, ws.w.province_s.province_state_container[prov_tag_c].state_instance);
+	EXPECT_NE(nullptr, provinces::province_state(ws, prov_tag_c));
+	EXPECT_NE(provinces::province_state(ws, prov_tag_a), provinces::province_state(ws, prov_tag_c));
 
-	provinces::silent_remove_province_owner(ws, ws.w.province_s.province_state_container[prov_tag_a]);
+	provinces::silent_remove_province_owner(ws, prov_tag_a);
 	EXPECT_EQ(2ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(2ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
-	EXPECT_EQ(nullptr, ws.w.province_s.province_state_container[prov_tag_a].owner);
+	EXPECT_EQ(nullptr, provinces::province_owner(ws, prov_tag_a));
 
 	EXPECT_EQ(false, contains_item(ws.w.province_s.province_arrays, ger_nation->owned_provinces, prov_tag_a));
 	EXPECT_EQ(true, contains_item(ws.w.province_s.province_arrays, ger_nation->owned_provinces, prov_tag_c));
 
-	EXPECT_NE(ws.w.province_s.province_state_container[prov_tag_a].state_instance, ws.w.province_s.province_state_container[prov_tag_b].state_instance);
+	EXPECT_NE(provinces::province_state(ws, prov_tag_a), provinces::province_state(ws, prov_tag_b));
 
-	provinces::silent_remove_province_owner(ws, ws.w.province_s.province_state_container[prov_tag_b]);
+	provinces::silent_remove_province_owner(ws, prov_tag_b);
 	EXPECT_EQ(1ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(1ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
-	EXPECT_EQ(nullptr, ws.w.province_s.province_state_container[prov_tag_b].owner);
+	EXPECT_EQ(nullptr, provinces::province_owner(ws, prov_tag_b));
 
-	EXPECT_EQ(nullptr, ws.w.province_s.province_state_container[prov_tag_b].state_instance);
-	EXPECT_EQ(ws.w.province_s.province_state_container[prov_tag_a].state_instance, ws.w.province_s.province_state_container[prov_tag_b].state_instance);
+	EXPECT_EQ(nullptr, provinces::province_state(ws, prov_tag_b));
+	EXPECT_EQ(provinces::province_state(ws, prov_tag_a), provinces::province_state(ws, prov_tag_b));
 
-	provinces::silent_remove_province_owner(ws, ws.w.province_s.province_state_container[prov_tag_c]);
+	provinces::silent_remove_province_owner(ws, prov_tag_c);
 	EXPECT_EQ(0ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(0ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
-	EXPECT_EQ(nullptr, ws.w.province_s.province_state_container[prov_tag_c].owner);
+	EXPECT_EQ(nullptr, provinces::province_owner(ws, prov_tag_c));
 
-	EXPECT_EQ(ws.w.province_s.province_state_container[prov_tag_a].state_instance, ws.w.province_s.province_state_container[prov_tag_c].state_instance);
+	EXPECT_EQ(provinces::province_state(ws, prov_tag_a), provinces::province_state(ws, prov_tag_c));
 }
 
 TEST(nations_tests, province_control) {
@@ -161,24 +161,24 @@ TEST(nations_tests, province_control) {
 	auto ger_nation = make_nation_for_tag(ws, ger_tag);
 
 	auto prov_tag = provinces::province_tag(104ui16);
-	auto province_region = ws.s.province_m.province_container[prov_tag].state_id;
+	auto province_region = ws.s.province_m.province_container.get<province::state_id>(prov_tag);
 
 	EXPECT_NE(provinces::state_tag(), province_region);
 
-	provinces::silent_set_province_controller(ws, *ger_nation, ws.w.province_s.province_state_container[prov_tag]);
+	provinces::silent_set_province_controller(ws, *ger_nation, prov_tag);
 
 	EXPECT_EQ(0ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(1ui32, get_size(ws.w.province_s.province_arrays, ger_nation->controlled_provinces));
 	EXPECT_EQ(0ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
-	EXPECT_EQ(ger_nation, ws.w.province_s.province_state_container[prov_tag].controller);
+	EXPECT_EQ(ger_nation, provinces::province_controller(ws, prov_tag));
 	EXPECT_EQ(true, contains_item(ws.w.province_s.province_arrays, ger_nation->controlled_provinces, prov_tag));
 
-	provinces::silent_remove_province_controller(ws, ws.w.province_s.province_state_container[prov_tag]);
+	provinces::silent_remove_province_controller(ws, prov_tag);
 
 	EXPECT_EQ(0ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(0ui32, get_size(ws.w.province_s.province_arrays, ger_nation->controlled_provinces));
 	EXPECT_EQ(0ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
-	EXPECT_EQ(nullptr, ws.w.province_s.province_state_container[prov_tag].controller);
+	EXPECT_EQ(nullptr, provinces::province_controller(ws, prov_tag));
 	EXPECT_EQ(false, contains_item(ws.w.province_s.province_arrays, ger_nation->controlled_provinces, prov_tag));
 }
 
@@ -288,7 +288,7 @@ TEST(nations_tests, read_nations_files_simple) {
 	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE(gert)));
 	auto ger_nation = make_nation_for_tag(ws, ger_tag);
 
-	provinces::silent_set_province_owner(ws, *ger_nation, ws.w.province_s.province_state_container[provinces::province_tag(853ui16)]);
+	provinces::silent_set_province_owner(ws, *ger_nation, provinces::province_tag(853ui16));
 
 	std::vector<std::pair<country_tag, events::decision_tag>> decisions;
 	read_nations_files(ws, date_to_tag(boost::gregorian::date(1801, boost::gregorian::Jan, 1)), f.get_root(), decisions);
@@ -336,7 +336,7 @@ TEST(nations_tests, read_nations_files_simple) {
 	EXPECT_EQ(1ui32, get_size(ws.w.variable_s.national_flags_arrays, ger_nation->national_flags));
 	EXPECT_EQ(true, contains_item(ws.w.variable_s.national_flags_arrays, ger_nation->national_flags, tag_from_text(ws.s.variables_m.named_national_flags, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "serfdom_not_abolished"))));
 
-	auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(853ui16)].pops);
+	auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(provinces::province_tag(853ui16)));
 	EXPECT_EQ(2i64, pop_range.second - pop_range.first);
 
 	for(auto p = pop_range.first; p != pop_range.second; ++p) {
@@ -369,7 +369,7 @@ TEST(nations_tests, read_nations_files_layered) {
 	auto ger_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(RANGE(gert)));
 	auto ger_nation = make_nation_for_tag(ws, ger_tag);
 
-	provinces::silent_set_province_owner(ws, *ger_nation, ws.w.province_s.province_state_container[provinces::province_tag(853ui16)]);
+	provinces::silent_set_province_owner(ws, *ger_nation, provinces::province_tag(853ui16));
 
 	std::vector<std::pair<country_tag, events::decision_tag>> decisions;
 	read_nations_files(ws, date_to_tag(boost::gregorian::date(1840, boost::gregorian::Jan, 1)), f.get_root(), decisions);
@@ -417,7 +417,7 @@ TEST(nations_tests, read_nations_files_layered) {
 	EXPECT_EQ(0ui32, get_size(ws.w.variable_s.national_flags_arrays, ger_nation->national_flags));
 	EXPECT_EQ(false, contains_item(ws.w.variable_s.national_flags_arrays, ger_nation->national_flags, tag_from_text(ws.s.variables_m.named_national_flags, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "serfdom_not_abolished"))));
 
-	auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container[provinces::province_tag(853ui16)].pops);
+	auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(provinces::province_tag(853ui16)));
 	EXPECT_EQ(2i64, pop_range.second - pop_range.first);
 
 	for(auto p = pop_range.first; p != pop_range.second; ++p) {

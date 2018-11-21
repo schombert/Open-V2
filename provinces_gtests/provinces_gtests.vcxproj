@@ -41,6 +41,9 @@
     <ClCompile Include="provinces_test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\commands\commands.vcxproj">
+      <Project>{4f97341a-06a6-4a93-ab58-9acee1b34ef8}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\concurrency_tools\concurrency_tools.vcxproj">
       <Project>{12f547e0-13dc-4c35-96ab-950827192412}</Project>
     </ProjectReference>
