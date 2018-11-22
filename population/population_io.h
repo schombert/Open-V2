@@ -17,17 +17,6 @@ template<>
 class serialization::serializer<population::government_employment> : public serialization::memcpy_serializer<population::government_employment> {};
 
 template<>
-class serialization::serializer<population::pop> {
-public:
-	static constexpr bool has_static_size = false;
-	static constexpr bool has_simple_serialize = false;
-
-	static void serialize_object(std::byte* &output, population::pop const& obj, world_state const& ws);
-	static void deserialize_object(std::byte const* &input, population::pop& obj, world_state& ws);
-	static size_t size(population::pop const& obj, world_state const& ws);
-};
-
-template<>
 class serialization::serializer<population::pop_movement> {
 public:
 	static constexpr bool has_static_size = true;

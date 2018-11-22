@@ -656,9 +656,9 @@ TEST(military_tests, read_oob_test) {
 	EXPECT_EQ(500ui32, a.total_soldiers);
 	EXPECT_EQ(3ui32, get_size(ws.w.population_s.pop_arrays, a.backing_pops));
 	auto prange = get_range(ws.w.population_s.pop_arrays, a.backing_pops);
-	EXPECT_EQ(a.id, ws.w.population_s.pops.get(*prange.first).associated_army);
-	EXPECT_EQ(a.id, ws.w.population_s.pops.get(*(prange.first + 1)).associated_army);
-	EXPECT_EQ(a.id, ws.w.population_s.pops.get(*(prange.first + 2)).associated_army);
+	EXPECT_EQ(a.id, ws.w.population_s.pops.get<pop::associated_army>(*prange.first));
+	EXPECT_EQ(a.id, ws.w.population_s.pops.get<pop::associated_army>(*(prange.first + 1)));
+	EXPECT_EQ(a.id, ws.w.population_s.pops.get<pop::associated_army>(*(prange.first + 2)));
 	EXPECT_EQ(a.leader->attached, true);
 	EXPECT_EQ(a.leader->background, tag_from_text(ws.s.military_m.named_leader_trait_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "warmonger")));
 	EXPECT_EQ(a.leader->personality, tag_from_text(ws.s.military_m.named_leader_trait_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "meticulous")));

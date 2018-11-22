@@ -31,6 +31,26 @@ void serialization::serializer<nations::nations_state>::serialize_object(std::by
 		auto global_demand = ws.w.nation_s.state_global_demand.get_row(s);
 		serialize_array(output, global_demand, ws.s.economy_m.aligned_32_goods_count * 2);
 	});
+
+	obj.nations.for_each([&ws, &output](nations::country_tag n) {
+		auto active_parties = ws.w.nation_s.active_parties.get_row(n);
+		serialize_array(output, active_parties, ws.s.ideologies_m.ideologies_count);
+
+		auto upper_house = ws.w.nation_s.upper_house.get_row(n);
+		serialize_array(output, upper_house, ws.s.ideologies_m.ideologies_count);
+
+		auto active_tech = ws.w.nation_s.active_technologies.get_row(n);
+		serialize_array(output, active_tech, (uint32_t(ws.s.technology_m.technologies_container.size()) + 63ui32) / 64ui32);
+
+		auto active_issues = ws.w.nation_s.active_issue_options.get_row(n);
+		serialize_array(output, active_issues, uint32_t(ws.s.issues_m.issues_container.size()));
+
+		auto stockpile = ws.w.nation_s.national_stockpiles.get_row(n);
+		serialize_array(output, stockpile, ws.s.economy_m.aligned_32_goods_count);
+
+		auto variables = ws.w.nation_s.national_variables.get_row(n);
+		serialize_array(output, variables, ws.s.variables_m.count_national_variables);
+	});
 }
 
 void serialization::serializer<nations::nations_state>::deserialize_object(std::byte const *& input, nations::nations_state & obj, world_state & ws) {
@@ -44,6 +64,20 @@ void serialization::serializer<nations::nations_state>::deserialize_object(std::
 	ws.w.nation_s.state_global_demand.ensure_capacity(obj.states.size());
 	ws.w.nation_s.state_purchases.ensure_capacity(obj.states.size());
 
+	ws.w.nation_s.active_parties.ensure_capacity(obj.nations.size());
+	ws.w.nation_s.nation_demographics.ensure_capacity(obj.nations.size());
+	ws.w.nation_s.nation_colonial_demographics.ensure_capacity(obj.nations.size());
+	ws.w.nation_s.upper_house.ensure_capacity(obj.nations.size());
+	ws.w.nation_s.active_technologies.ensure_capacity(obj.nations.size());
+	ws.w.nation_s.active_goods.ensure_capacity(obj.nations.size());
+	ws.w.nation_s.collected_tariffs.ensure_capacity(obj.nations.size());
+	ws.w.nation_s.active_issue_options.ensure_capacity(obj.nations.size());
+	ws.w.nation_s.national_stockpiles.ensure_capacity(obj.nations.size());
+	ws.w.nation_s.national_variables.ensure_capacity(obj.nations.size());
+	ws.w.nation_s.unit_stats.ensure_capacity(obj.nations.size());
+	ws.w.nation_s.rebel_org_gain.ensure_capacity(obj.nations.size());
+	ws.w.nation_s.production_adjustments.ensure_capacity(obj.nations.size());
+
 	obj.states.for_each([&ws, &input](nations::state_tag s) {
 		auto prices = ws.w.nation_s.state_prices.get_row(s);
 		deserialize_array(input, prices, ws.s.economy_m.aligned_32_goods_count * 2);
@@ -54,295 +88,66 @@ void serialization::serializer<nations::nations_state>::deserialize_object(std::
 		auto global_demand = ws.w.nation_s.state_global_demand.get_row(s);
 		deserialize_array(input, global_demand, ws.s.economy_m.aligned_32_goods_count * 2);
 	});
+
+	obj.nations.for_each([&ws, &input](nations::country_tag n) {
+		auto active_parties = ws.w.nation_s.active_parties.get_row(n);
+		deserialize_array(input, active_parties, ws.s.ideologies_m.ideologies_count);
+
+		auto upper_house = ws.w.nation_s.upper_house.get_row(n);
+		deserialize_array(input, upper_house, ws.s.ideologies_m.ideologies_count);
+
+		auto active_tech = ws.w.nation_s.active_technologies.get_row(n);
+		deserialize_array(input, active_tech, (uint32_t(ws.s.technology_m.technologies_container.size()) + 63ui32) / 64ui32);
+
+		auto active_issues = ws.w.nation_s.active_issue_options.get_row(n);
+		deserialize_array(input, active_issues, uint32_t(ws.s.issues_m.issues_container.size()));
+
+		auto stockpile = ws.w.nation_s.national_stockpiles.get_row(n);
+		deserialize_array(input, stockpile, ws.s.economy_m.aligned_32_goods_count);
+
+		auto variables = ws.w.nation_s.national_variables.get_row(n);
+		deserialize_array(input, variables, ws.s.variables_m.count_national_variables);
+
+		technologies::reset_technologies(ws, n);
+		military::reset_unit_stats(ws, n);
+
+		if(auto o = ws.w.nation_s.nations.get<nation::overlord>(n); is_valid_index(o)) {
+			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::vassals>(o), n);
+		}
+		if(auto o = ws.w.nation_s.nations.get<nation::sphere_leader>(n); is_valid_index(o)) {
+			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::sphere_members>(o), n);
+		}
+		auto inf_range = get_range(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(n));
+		for(auto c = inf_range.first; c != inf_range.second; ++c)
+			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::influencers>(c->target), n);
+
+	});
 }
 
 size_t serialization::serializer<nations::nations_state>::size(nations::nations_state const & obj, world_state const & ws) {
-	return serialize_size(obj.nations, ws) + serialize_size(obj.states, ws) +
-		sizeof(economy::money_qnty_type) * obj.states.size() * ws.s.economy_m.aligned_32_goods_count * 2 + // state prices
-		sizeof(economy::goods_qnty_type) * obj.states.size() * ws.s.economy_m.aligned_32_goods_count * 2 + // state production
-		sizeof(economy::money_qnty_type) * obj.states.size() * ws.s.economy_m.aligned_32_goods_count * 2 + // state demand
-		sizeof(economy::money_qnty_type) * obj.states.size() * ws.s.economy_m.aligned_32_goods_count * 2; // state global demand
-}
+	size_t state_data_size = 0;
+	auto fixed_sz_increment = sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count * 2 + // state prices
+		sizeof(economy::goods_qnty_type) * ws.s.economy_m.aligned_32_goods_count * 2 + // state production
+		sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count * 2 + // state demand
+		sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count * 2; // state global demand
 
-void serialization::serializer<nations::nation>::serialize_object(std::byte *& output, nations::nation const & obj, world_state const& ws) {
-	auto overlord_id = obj.overlord ? obj.overlord->id : nations::country_tag();
-	serialize(output, overlord_id);
+	obj.states.for_each([fixed_sz_increment, &state_data_size](nations::state_tag s) {
+		state_data_size += fixed_sz_increment; 
+	});
 
-	auto sphere_leader_id = obj.sphere_leader ? obj.sphere_leader->id : nations::country_tag();
-	serialize(output, sphere_leader_id);
-
-	serialize(output, obj.last_income);
-	serialize(output, obj.last_population);
-	serialize(output, obj.last_election);
-	serialize(output, obj.last_lost_war);
-	serialize(output, obj.disarmed_until);
-
-	serialize(output, obj.plurality);
-	serialize(output, obj.revanchism);
-	serialize(output, obj.base_prestige);
-	serialize(output, obj.infamy);
-	serialize(output, obj.war_exhaustion);
-	serialize(output, obj.suppression_points);
-	serialize(output, obj.diplomacy_points);
-
-	serialize(output, obj.national_debt);
-	serialize(output, obj.tax_base);
-
-	serialize(output, obj.rich_tax);
-	serialize(output, obj.middle_tax);
-	serialize(output, obj.poor_tax);
-	serialize(output, obj.social_spending);
-	serialize(output, obj.administrative_spending);
-	serialize(output, obj.education_spending);
-	serialize(output, obj.military_spending);
-	serialize(output, obj.tarrifs);
-	serialize(output, obj.debt_setting);
-	serialize(output, obj.army_stockpile_spending);
-	serialize(output, obj.navy_stockpile_spending);
-	serialize(output, obj.projects_stockpile_spending);
-
-	serialize(output, obj.current_government);
-	serialize(output, obj.primary_culture);
-	serialize(output, obj.national_religion);
-	serialize(output, obj.current_capital);
-	serialize(output, obj.ruling_party);
-
-	serialize(output, obj.flags);
-
-	serialize(output, obj.cb_construction_progress);
-	serialize(output, obj.cb_construction_target);
-	serialize(output, obj.cb_construction_type);
-
-	serialize(output, obj.research_points);
-	serialize(output, obj.leadership_points);
-	serialize(output, obj.base_colonial_points);
-	serialize(output, obj.current_color);
-	serialize(output, obj.current_research);
-
-	serialize(output, obj.national_value);
-	serialize(output, obj.tech_school);
-
-	auto active_parties = ws.w.nation_s.active_parties.get_row(obj.id);
-	serialize_array(output, active_parties, ws.s.ideologies_m.ideologies_count);
-
-	auto upper_house = ws.w.nation_s.upper_house.get_row(obj.id);
-	serialize_array(output, upper_house, ws.s.ideologies_m.ideologies_count);
-
-	auto active_tech = ws.w.nation_s.active_technologies.get_row(obj.id);
-	serialize_array(output, active_tech, (uint32_t(ws.s.technology_m.technologies_container.size()) + 63ui32) / 64ui32);
-
-	auto active_issues = ws.w.nation_s.active_issue_options.get_row(obj.id);
-	serialize_array(output, active_issues, uint32_t(ws.s.issues_m.issues_container.size()));
-
-	auto stockpile = ws.w.nation_s.national_stockpiles.get_row(obj.id);
-	serialize_array(output, stockpile, ws.s.economy_m.aligned_32_goods_count);
-
-	auto variables = ws.w.nation_s.national_variables.get_row(obj.id);
-	serialize_array(output, variables, ws.s.variables_m.count_national_variables);
-
-	serialize_stable_array(output, ws.w.nation_s.nations_arrays, obj.allies);
-	serialize_stable_array(output, ws.w.nation_s.influence_arrays, obj.gp_influence);
-	serialize_stable_array(output, ws.w.province_s.province_arrays, obj.naval_patrols);
-	serialize_stable_array(output, ws.w.culture_s.culture_arrays, obj.accepted_cultures);
-	serialize_stable_array(output, ws.w.nation_s.relations_arrays, obj.relations);
-	serialize_stable_array(output, ws.w.nation_s.truce_arrays, obj.truces);
-	serialize_stable_array(output, ws.w.nation_s.state_tag_arrays, obj.national_focus_locations);
-	serialize_stable_array(output, ws.w.variable_s.national_flags_arrays, obj.national_flags);
-	serialize_stable_array(output, ws.w.nation_s.static_modifier_arrays, obj.static_modifiers);
-	serialize_stable_array(output, ws.w.nation_s.timed_modifier_arrays, obj.timed_modifiers);
-	serialize_stable_array(output, ws.w.military_s.leader_arrays, obj.generals);
-	serialize_stable_array(output, ws.w.military_s.leader_arrays, obj.admirals);
-	serialize_stable_array(output, ws.w.military_s.fleet_arrays, obj.fleets);
-	serialize_stable_array(output, ws.w.military_s.orders_arrays, obj.active_orders);
-	serialize_stable_array(output, ws.w.military_s.cb_arrays, obj.active_cbs);
-	serialize_stable_array(output, ws.w.military_s.war_arrays, obj.wars_involved_in);
-	serialize_stable_array(output, ws.w.population_s.rebel_faction_arrays, obj.active_rebel_factions);
-	serialize_stable_array(output, ws.w.population_s.pop_movement_arrays, obj.active_movements);
-}
-
-void serialization::serializer<nations::nation>::deserialize_object(std::byte const *& input, nations::nation & obj, world_state & ws) {
-	ws.w.nation_s.active_parties.ensure_capacity(to_index(obj.id) + 1);
-	ws.w.nation_s.nation_demographics.ensure_capacity(to_index(obj.id) + 1);
-	ws.w.nation_s.nation_colonial_demographics.ensure_capacity(to_index(obj.id) + 1);
-	ws.w.nation_s.upper_house.ensure_capacity(to_index(obj.id) + 1);
-	ws.w.nation_s.active_technologies.ensure_capacity(to_index(obj.id) + 1);
-	ws.w.nation_s.active_goods.ensure_capacity(to_index(obj.id) + 1);
-	ws.w.nation_s.collected_tariffs.ensure_capacity(to_index(obj.id) + 1);
-	ws.w.nation_s.active_issue_options.ensure_capacity(to_index(obj.id) + 1);
-	ws.w.nation_s.national_stockpiles.ensure_capacity(to_index(obj.id) + 1);
-	ws.w.nation_s.national_variables.ensure_capacity(to_index(obj.id) + 1);
-	ws.w.nation_s.unit_stats.ensure_capacity(to_index(obj.id) + 1);
-	ws.w.nation_s.rebel_org_gain.ensure_capacity(to_index(obj.id) + 1);
-	ws.w.nation_s.production_adjustments.ensure_capacity(to_index(obj.id) + 1);
-
-	technologies::reset_technologies(ws, obj);
-	military::reset_unit_stats(ws, obj.id);
-
-	nations::country_tag overlord_id;
-	deserialize(input, overlord_id);
-	if(is_valid_index(overlord_id)) {
-		obj.overlord = &ws.w.nation_s.nations.get(overlord_id);
-		add_item(ws.w.nation_s.nations_arrays, obj.overlord->vassals, obj.id);
-	}
-
-
-	nations::country_tag sphere_leader_id;
-	deserialize(input, sphere_leader_id);
-	if(is_valid_index(sphere_leader_id)) {
-		obj.sphere_leader = &ws.w.nation_s.nations.get(sphere_leader_id);
-		add_item(ws.w.nation_s.nations_arrays, obj.sphere_leader->sphere_members, obj.id);
-	}
-
-	deserialize(input, obj.last_income);
-	deserialize(input, obj.last_population);
-	deserialize(input, obj.last_election);
-	deserialize(input, obj.last_lost_war);
-	deserialize(input, obj.disarmed_until);
-
-	deserialize(input, obj.plurality);
-	deserialize(input, obj.revanchism);
-	deserialize(input, obj.base_prestige);
-	deserialize(input, obj.infamy);
-	deserialize(input, obj.war_exhaustion);
-	deserialize(input, obj.suppression_points);
-	deserialize(input, obj.diplomacy_points);
-
-	deserialize(input, obj.national_debt);
-	deserialize(input, obj.tax_base);
-
-	deserialize(input, obj.rich_tax);
-	deserialize(input, obj.middle_tax);
-	deserialize(input, obj.poor_tax);
-	deserialize(input, obj.social_spending);
-	deserialize(input, obj.administrative_spending);
-	deserialize(input, obj.education_spending);
-	deserialize(input, obj.military_spending);
-	deserialize(input, obj.tarrifs);
-	deserialize(input, obj.debt_setting);
-	deserialize(input, obj.army_stockpile_spending);
-	deserialize(input, obj.navy_stockpile_spending);
-	deserialize(input, obj.projects_stockpile_spending);
-
-	deserialize(input, obj.current_government);
-	deserialize(input, obj.primary_culture);
-	deserialize(input, obj.national_religion);
-	deserialize(input, obj.current_capital);
-	deserialize(input, obj.ruling_party);
-
-	deserialize(input, obj.flags);
-
-	deserialize(input, obj.cb_construction_progress);
-	deserialize(input, obj.cb_construction_target);
-	deserialize(input, obj.cb_construction_type);
-
-	deserialize(input, obj.research_points);
-	deserialize(input, obj.leadership_points);
-	deserialize(input, obj.base_colonial_points);
-	deserialize(input, obj.current_color);
-	deserialize(input, obj.current_research);
-
-	deserialize(input, obj.national_value);
-	deserialize(input, obj.tech_school);
-
-	auto active_parties = ws.w.nation_s.active_parties.get_row(obj.id);
-	deserialize_array(input, active_parties, ws.s.ideologies_m.ideologies_count);
-
-	auto upper_house = ws.w.nation_s.upper_house.get_row(obj.id);
-	deserialize_array(input, upper_house, ws.s.ideologies_m.ideologies_count);
-
-	auto active_tech = ws.w.nation_s.active_technologies.get_row(obj.id);
-	deserialize_array(input, active_tech, (uint32_t(ws.s.technology_m.technologies_container.size()) + 63ui32) / 64ui32);
-
-	auto active_issues = ws.w.nation_s.active_issue_options.get_row(obj.id);
-	deserialize_array(input, active_issues, uint32_t(ws.s.issues_m.issues_container.size()));
-
-	auto stockpile = ws.w.nation_s.national_stockpiles.get_row(obj.id);
-	deserialize_array(input, stockpile, ws.s.economy_m.aligned_32_goods_count);
-
-	auto variables = ws.w.nation_s.national_variables.get_row(obj.id);
-	deserialize_array(input, variables, ws.s.variables_m.count_national_variables);
-
-	deserialize_stable_array(input, ws.w.nation_s.nations_arrays, obj.allies);
-
-	deserialize_stable_array(input, ws.w.nation_s.influence_arrays, obj.gp_influence);
-	auto inf_range = get_range(ws.w.nation_s.influence_arrays, obj.gp_influence);
-	for(auto c = inf_range.first; c != inf_range.second; ++c)
-		add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[c->target].influencers, obj.id);
-
-	deserialize_stable_array(input, ws.w.province_s.province_arrays, obj.naval_patrols);
-	deserialize_stable_array(input, ws.w.culture_s.culture_arrays, obj.accepted_cultures);
-	deserialize_stable_array(input, ws.w.nation_s.relations_arrays, obj.relations);
-	deserialize_stable_array(input, ws.w.nation_s.truce_arrays, obj.truces);
-	deserialize_stable_array(input, ws.w.nation_s.state_tag_arrays, obj.national_focus_locations);
-	deserialize_stable_array(input, ws.w.variable_s.national_flags_arrays, obj.national_flags);
-	deserialize_stable_array(input, ws.w.nation_s.static_modifier_arrays, obj.static_modifiers);
-	deserialize_stable_array(input, ws.w.nation_s.timed_modifier_arrays, obj.timed_modifiers);
-	deserialize_stable_array(input, ws.w.military_s.leader_arrays, obj.generals);
-	deserialize_stable_array(input, ws.w.military_s.leader_arrays, obj.admirals);
-	deserialize_stable_array(input, ws.w.military_s.fleet_arrays, obj.fleets);
-	deserialize_stable_array(input, ws.w.military_s.orders_arrays, obj.active_orders);
-	deserialize_stable_array(input, ws.w.military_s.cb_arrays, obj.active_cbs);
-	deserialize_stable_array(input, ws.w.military_s.war_arrays, obj.wars_involved_in);
-	deserialize_stable_array(input, ws.w.population_s.rebel_faction_arrays, obj.active_rebel_factions);
-	deserialize_stable_array(input, ws.w.population_s.pop_movement_arrays, obj.active_movements);
-
-	governments::update_current_rules(ws, obj);
-}
-
-size_t serialization::serializer<nations::nation>::size(nations::nation const & obj, world_state const& ws) {
-	return
-		sizeof(nations::country_tag) + // overlord id
-		sizeof(nations::country_tag) + // sphere leader tag
-		sizeof(obj.last_income) +
-		sizeof(obj.last_population) +
-		sizeof(date_tag) * 3 + // last election, last lost war, disarmed until
-		sizeof(float) * 5 + // plurality ... war exhaustion
-		serialize_size(obj.suppression_points) +
-		serialize_size(obj.diplomacy_points) +
-		serialize_size(obj.national_debt) +
-		serialize_size(obj.tax_base) +
-		sizeof(int8_t) * 12 + // budget items
-		sizeof(obj.current_government) +
-		sizeof(obj.primary_culture) +
-		sizeof(obj.national_religion) +
-		sizeof(obj.current_capital) +
-		sizeof(obj.ruling_party) +
-		sizeof(obj.flags) +
-		sizeof(obj.cb_construction_progress) +
-		sizeof(obj.cb_construction_target) +
-		sizeof(obj.cb_construction_type) +
-		sizeof(obj.research_points) +
-		sizeof(obj.leadership_points) +
-		sizeof(obj.base_colonial_points) +
-		sizeof(obj.current_color) +
-		serialize_size(obj.current_research) +
-		sizeof(obj.national_value) +
-		sizeof(obj.tech_school) +
-		sizeof(governments::party_tag) * ws.s.ideologies_m.ideologies_count + // active parties
+	size_t nation_data_size = 0;
+	auto nation_fixed_sz_increment = sizeof(governments::party_tag) * ws.s.ideologies_m.ideologies_count + // active parties
 		sizeof(uint8_t) * ws.s.ideologies_m.ideologies_count + // upper house
 		sizeof(uint64_t) * ((uint32_t(ws.s.technology_m.technologies_container.size()) + 63ui32) / 64ui32) + // active technologies
 		sizeof(issues::option_tag) * ws.s.issues_m.issues_container.size() + // active issue options
 		sizeof(economy::goods_qnty_type) * ws.s.economy_m.aligned_32_goods_count + // national stockpiles
-		sizeof(float) * ws.s.variables_m.count_national_variables + // national variables
-		serialize_stable_array_size(ws.w.nation_s.nations_arrays, obj.allies) +
-		serialize_stable_array_size(ws.w.nation_s.influence_arrays, obj.gp_influence) +
-		serialize_stable_array_size(ws.w.province_s.province_arrays, obj.naval_patrols) +
-		serialize_stable_array_size(ws.w.culture_s.culture_arrays, obj.accepted_cultures) +
-		serialize_stable_array_size(ws.w.nation_s.relations_arrays, obj.relations) +
-		serialize_stable_array_size(ws.w.nation_s.truce_arrays, obj.truces) +
-		serialize_stable_array_size(ws.w.nation_s.state_tag_arrays, obj.national_focus_locations) +
-		serialize_stable_array_size(ws.w.variable_s.national_flags_arrays, obj.national_flags) +
-		serialize_stable_array_size(ws.w.nation_s.static_modifier_arrays, obj.static_modifiers) +
-		serialize_stable_array_size(ws.w.nation_s.timed_modifier_arrays, obj.timed_modifiers) +
-		serialize_stable_array_size(ws.w.military_s.leader_arrays, obj.generals) +
-		serialize_stable_array_size(ws.w.military_s.leader_arrays, obj.admirals) +
-		serialize_stable_array_size(ws.w.military_s.fleet_arrays, obj.fleets) +
-		serialize_stable_array_size(ws.w.military_s.orders_arrays, obj.active_orders) +
-		serialize_stable_array_size(ws.w.military_s.cb_arrays, obj.active_cbs) +
-		serialize_stable_array_size(ws.w.military_s.war_arrays, obj.wars_involved_in) +
-		serialize_stable_array_size(ws.w.population_s.rebel_faction_arrays, obj.active_rebel_factions) +
-		serialize_stable_array_size(ws.w.population_s.pop_movement_arrays, obj.active_movements)
-		;
+		sizeof(float) * ws.s.variables_m.count_national_variables; // national variables
+
+	obj.states.for_each([nation_fixed_sz_increment, &nation_data_size](nations::state_tag s) {
+		nation_data_size += nation_fixed_sz_increment;
+	});
+
+	return serialize_size(obj.nations, ws) + serialize_size(obj.states, ws) + state_data_size + nation_data_size;	
 }
 
 namespace nations {
@@ -585,17 +390,17 @@ namespace nations {
 		for(auto i = owned_provs_range.first; i != owned_provs_range.second; ++i) {
 			auto pops_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(*i));
 			for(auto j = pops_range.first; j < pops_range.second; ++j) {
-				auto& this_pop = ws.w.population_s.pops.get(*j);
+				auto this_pop = *j;
 				if(population::is_pop_accepted(ws, this_pop, target_nation)) {
 					if(npo.literacy)
-						population::set_literacy_direct(this_pop, *npo.literacy);
+						population::set_literacy_direct(ws, this_pop, *npo.literacy);
 					if(npo.consciousness)
-						population::set_consciousness_direct(this_pop, *npo.consciousness);
+						population::set_consciousness_direct(ws, this_pop, *npo.consciousness);
 				} else {
 					if(npo.non_state_culture_literacy)
-						population::set_literacy_direct(this_pop, *npo.non_state_culture_literacy);
+						population::set_literacy_direct(ws, this_pop, *npo.non_state_culture_literacy);
 					if(npo.nonstate_consciousness)
-						population::set_consciousness_direct(this_pop, *npo.nonstate_consciousness);
+						population::set_consciousness_direct(ws, this_pop, *npo.nonstate_consciousness);
 				}
 			}
 		}

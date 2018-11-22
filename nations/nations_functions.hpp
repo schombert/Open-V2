@@ -5,8 +5,8 @@
 
 namespace nations {
 	template<typename F>
-	void for_each_state(world_state const& ws, nations::nation const& n, F&& f) {
-		auto mrange = get_range(ws.w.nation_s.state_arrays, n.member_states);
+	void for_each_state(world_state const& ws, nations::country_tag n, F&& f) {
+		auto mrange = get_range(ws.w.nation_s.state_arrays, ws.w.nation_s.nations.get<nation::member_states>(n));
 		for(auto s = mrange.first; s != mrange.second; ++s) {
 			auto state = s->state;
 			if(bool(state))
@@ -24,8 +24,8 @@ namespace nations {
 	}
 
 	template<typename F>
-	void for_each_province(world_state const& ws, nations::nation const& n, F&& f) {
-		auto owned_range = get_range(ws.w.province_s.province_arrays, n.owned_provinces);
+	void for_each_province(world_state const& ws, nations::country_tag n, F&& f) {
+		auto owned_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(n));
 		for(auto p : owned_range) {
 			if(is_valid_index(p))
 				f(p);
@@ -37,25 +37,25 @@ namespace nations {
 			auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(p));
 			for(auto po : pop_range) {
 				if(is_valid_index(po))
-					f(ws.w.population_s.pops[po]);
+					f(po);
 			}
 		});
 	}
 	template<typename F>
-	void for_each_pop(world_state const& ws, nations::nation const& s, F&& f) {
+	void for_each_pop(world_state const& ws, nations::country_tag s, F&& f) {
 		for_each_province(ws, s, [&ws, &f](provinces::province_tag p) {
 			auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(p));
 			for(auto po : pop_range) {
 				if(is_valid_index(po))
-					f(ws.w.population_s.pops[po]);
+					f(po);
 			}
 		});
 	}
 
 
 	template<typename F>
-	void for_each_state(world_state& ws, nations::nation& n, F&& f) {
-		auto mrange = get_range(ws.w.nation_s.state_arrays, n.member_states);
+	void for_each_state(world_state& ws, nations::country_tag n, F&& f) {
+		auto mrange = get_range(ws.w.nation_s.state_arrays, ws.w.nation_s.nations.get<nation::member_states>(n));
 		for(auto s = mrange.first; s != mrange.second; ++s) {
 			auto state = s->state;
 			if(bool(state))
@@ -73,8 +73,8 @@ namespace nations {
 	}
 
 	template<typename F>
-	void for_each_province(world_state& ws, nations::nation& n, F&& f) {
-		auto owned_range = get_range(ws.w.province_s.province_arrays, n.owned_provinces);
+	void for_each_province(world_state& ws, nations::country_tag n, F&& f) {
+		auto owned_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(n));
 		for(auto p : owned_range) {
 			if(is_valid_index(p))
 				f(p);
@@ -86,17 +86,17 @@ namespace nations {
 			auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(p));
 			for(auto po : pop_range) {
 				if(is_valid_index(po))
-					f(ws.w.population_s.pops[po]);
+					f(po);
 			}
 		});
 	}
 	template<typename F>
-	void for_each_pop(world_state& ws, nations::nation& s, F&& f) {
+	void for_each_pop(world_state& ws, nations::country_tag s, F&& f) {
 		for_each_province(ws, s, [&ws, &f](provinces::province_tag p) {
 			auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(p));
 			for(auto po : pop_range) {
 				if(is_valid_index(po))
-					f(ws.w.population_s.pops[po]);
+					f(po);
 			}
 		});
 	}

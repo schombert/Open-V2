@@ -232,6 +232,20 @@ struct aligned_allocator_32 {
 	constexpr bool operator!=(aligned_allocator_32<U> const&) const { return false; }
 };
 
+template <typename T>
+struct aligned_allocator_64 {
+	using value_type = T;
+	aligned_allocator_64() noexcept {}
+	template <typename U>
+	aligned_allocator_64(const aligned_allocator_64<U>&) noexcept {}
+	T* allocate(size_t n);
+	void deallocate(T* p, size_t n);
+	template<typename U>
+	constexpr bool operator==(aligned_allocator_64<U> const&) const { return true; }
+	template<typename U>
+	constexpr bool operator!=(aligned_allocator_64<U> const&) const { return false; }
+};
+
 template <typename T, typename U, size_t alignment>
 constexpr bool operator== (const aligned_allocator_32<T>&, const aligned_allocator_32<U>&) noexcept {
 	return true;
@@ -239,6 +253,16 @@ constexpr bool operator== (const aligned_allocator_32<T>&, const aligned_allocat
 
 template <class T, class U, size_t alignment>
 constexpr bool operator!= (const aligned_allocator_32<T>&, const aligned_allocator_32<U>&) noexcept {
+	return false;
+}
+
+template <typename T, typename U, size_t alignment>
+constexpr bool operator== (const aligned_allocator_64<T>&, const aligned_allocator_64<U>&) noexcept {
+	return true;
+}
+
+template <class T, class U, size_t alignment>
+constexpr bool operator!= (const aligned_allocator_64<T>&, const aligned_allocator_64<U>&) noexcept {
 	return false;
 }
 

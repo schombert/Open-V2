@@ -628,13 +628,12 @@ TEST(population_tests, population_directory_selection) {
 		EXPECT_EQ(1ui32, get_size(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(provinces::province_tag(853))));
 
 		auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(provinces::province_tag(853)), 0);
-		pop& pop_obj = ws.w.population_s.pops.get(popid);
-
+		
 		EXPECT_EQ(750, ws.w.population_s.pop_demographics.get(popid, total_population_tag));
-		EXPECT_EQ(provinces::province_tag(853), pop_obj.location);
-		EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "albanian")));
-		EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "sunni")));
-		EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "aristocrats")));
+		EXPECT_EQ(provinces::province_tag(853), ws.w.population_s.pops.get<pop::location>(popid));
+		EXPECT_EQ(ws.w.population_s.pops.get<pop::culture>(popid), tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "albanian")));
+		EXPECT_EQ(ws.w.population_s.pops.get<pop::religion>(popid), tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "sunni")));
+		EXPECT_EQ(ws.w.population_s.pops.get<pop::type>(popid), tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "aristocrats")));
 	}
 
 	{
@@ -654,23 +653,23 @@ TEST(population_tests, population_directory_selection) {
 
 		{
 			auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(provinces::province_tag(853)), 0);
-			pop& pop_obj = ws.w.population_s.pops.get(popid);
+			
 
 			EXPECT_EQ(50, ws.w.population_s.pop_demographics.get(popid, total_population_tag));
-			EXPECT_EQ(provinces::province_tag(853), pop_obj.location);
-			EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "albanian")));
-			EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "orthodox")));
-			EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "clergymen")));
+			EXPECT_EQ(provinces::province_tag(853), ws.w.population_s.pops.get<pop::location>(popid));
+			EXPECT_EQ(ws.w.population_s.pops.get<pop::culture>(popid), tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "albanian")));
+			EXPECT_EQ(ws.w.population_s.pops.get<pop::religion>(popid), tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "orthodox")));
+			EXPECT_EQ(ws.w.population_s.pops.get<pop::type>(popid), tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "clergymen")));
 		}
 		{
 			auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(provinces::province_tag(853)), 1);
-			pop& pop_obj = ws.w.population_s.pops.get(popid);
+			
 
 			EXPECT_EQ(6750, ws.w.population_s.pop_demographics.get(popid, total_population_tag));
-			EXPECT_EQ(provinces::province_tag(853), pop_obj.location);
-			EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "albanian")));
-			EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "orthodox")));
-			EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "farmers")));
+			EXPECT_EQ(provinces::province_tag(853), ws.w.population_s.pops.get<pop::location>(popid));
+			EXPECT_EQ(ws.w.population_s.pops.get<pop::culture>(popid), tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "albanian")));
+			EXPECT_EQ(ws.w.population_s.pops.get<pop::religion>(popid), tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "orthodox")));
+			EXPECT_EQ(ws.w.population_s.pops.get<pop::type>(popid), tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "farmers")));
 		}
 	}
 	{
@@ -689,24 +688,24 @@ TEST(population_tests, population_directory_selection) {
 		{
 			EXPECT_EQ(1ui32, get_size(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(provinces::province_tag(850))));
 			auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(provinces::province_tag(850)), 0);
-			pop& pop_obj = ws.w.population_s.pops.get(popid);
+			
 
 			EXPECT_EQ(5000, ws.w.population_s.pop_demographics.get(popid, total_population_tag));
-			EXPECT_EQ(provinces::province_tag(850), pop_obj.location);
-			EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "beifaren")));
-			EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "mahayana")));
-			EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "farmers")));
+			EXPECT_EQ(provinces::province_tag(850), ws.w.population_s.pops.get<pop::location>(popid));
+			EXPECT_EQ(ws.w.population_s.pops.get<pop::culture>(popid), tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "beifaren")));
+			EXPECT_EQ(ws.w.population_s.pops.get<pop::religion>(popid), tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "mahayana")));
+			EXPECT_EQ(ws.w.population_s.pops.get<pop::type>(popid), tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "farmers")));
 		}
 		{
 			EXPECT_EQ(1ui32, get_size(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(provinces::province_tag(851))));
 			auto popid = get(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(provinces::province_tag(851)), 0);
-			pop& pop_obj = ws.w.population_s.pops.get(popid);
+			
 
 			EXPECT_EQ(50, ws.w.population_s.pop_demographics.get(popid, total_population_tag));
-			EXPECT_EQ(provinces::province_tag(851), pop_obj.location);
-			EXPECT_EQ(pop_obj.culture, tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "manchu")));
-			EXPECT_EQ(pop_obj.religion, tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "mahayana")));
-			EXPECT_EQ(pop_obj.type, tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "officers")));
+			EXPECT_EQ(provinces::province_tag(851), ws.w.population_s.pops.get<pop::location>(popid));
+			EXPECT_EQ(ws.w.population_s.pops.get<pop::culture>(popid), tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "manchu")));
+			EXPECT_EQ(ws.w.population_s.pops.get<pop::religion>(popid), tag_from_text(ws.s.culture_m.named_religion_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "mahayana")));
+			EXPECT_EQ(ws.w.population_s.pops.get<pop::type>(popid), tag_from_text(ws.s.population_m.named_pop_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "officers")));
 		}
 	}
 }

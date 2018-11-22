@@ -2,9 +2,6 @@
 #include "common\\common.h"
 #include "provinces.h"
 
-namespace nations {
-	struct nation;
-}
 namespace current_state {
 	class state;
 }
@@ -27,16 +24,14 @@ namespace provinces {
 
 	void silent_remove_province_owner(world_state& ws, province_tag p);
 	void silent_remove_province_controller(world_state& ws, province_tag p);
-	void silent_set_province_owner(world_state& ws, nations::nation& new_owner, province_tag p);
-	void silent_set_province_controller(world_state& ws, nations::nation& new_controller, province_tag p);
+	void silent_set_province_owner(world_state& ws, nations::country_tag new_owner, province_tag p);
+	void silent_set_province_controller(world_state& ws, nations::country_tag new_controller, province_tag p);
 	void silent_on_conquer_province(world_state& ws, province_tag p);
 	void enable_canal(world_state& ws, uint32_t canal_id);
 	double distance(world_state const& ws, province_tag a, province_tag b); // in km
 	void path_wise_distance_cost(world_state const& ws, province_tag a, float* results, province_tag* p_results); // in ~km
 	void fill_distance_arrays(world_state& ws);
-	nations::nation const* province_owner(world_state const& ws, province_tag p);
-	nations::nation const* province_controller(world_state const& ws, province_tag p);
+	nations::country_tag province_owner(world_state const& ws, province_tag p);
+	nations::country_tag province_controller(world_state const& ws, province_tag p);
 	nations::state_tag province_state(world_state const& ws, province_tag p);
-	nations::nation* province_owner(world_state& ws, province_tag p);
-	nations::nation* province_controller(world_state& ws, province_tag p);
 }

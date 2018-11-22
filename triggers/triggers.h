@@ -16,12 +16,8 @@ class world_state;
 
 namespace population {
 	struct rebel_faction;
-	struct pop;
 }
 
-namespace nations {
-	struct nation;
-}
 
 #undef small
 
@@ -122,36 +118,20 @@ namespace triggers {
 	};
 
 	union parameter {
-		nations::nation* nation;
+		nations::country_tag nation;
 		nations::state_tag state;
-		population::pop* pop;
+		population::pop_tag pop;
 		provinces::province_tag prov;
 
-		constexpr parameter() noexcept : nation(nullptr) {}
-		constexpr parameter(nullptr_t) noexcept : nation(nullptr) {}
-		constexpr parameter(nations::nation* n) noexcept : nation(n) {}
+		constexpr parameter() noexcept : nation() {}
+		constexpr parameter(nullptr_t) noexcept : nation() {}
+		constexpr parameter(nations::country_tag n) noexcept : nation(n) {}
 		constexpr parameter(nations::state_tag s) noexcept : state(s) {}
-		constexpr parameter(population::pop* po) noexcept : pop(po) {}
+		constexpr parameter(population::pop_tag po) noexcept : pop(po) {}
 		constexpr parameter(provinces::province_tag pr) noexcept : prov(pr) {}
 	};
+	using const_parameter = parameter;
 
-	union const_parameter {
-	private:
-		parameter pcopy;
-	public:
-		nations::nation const* nation;
-		nations::state_tag state;
-		population::pop const* pop;
-		provinces::province_tag prov;
-
-		constexpr const_parameter() noexcept : nation(nullptr) {}
-		constexpr const_parameter(nullptr_t) noexcept : nation(nullptr) {}
-		constexpr const_parameter(parameter p) noexcept : pcopy(p) {}
-		constexpr const_parameter(nations::nation const* n) noexcept : nation(n) {}
-		constexpr const_parameter(nations::state_tag s) noexcept : state(s) {}
-		constexpr const_parameter(population::pop const* po) noexcept : pop(po) {}
-		constexpr const_parameter(provinces::province_tag pr) noexcept : prov(pr) {}
-	};
 
 	static_assert(sizeof(trigger_payload) == 2);
 

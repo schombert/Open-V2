@@ -462,7 +462,7 @@ namespace military {
 			for(auto p : a.regiment_sources) {
 				auto found_pop = population::get_unassigned_soldier_in_province(ws, p);
 				if(found_pop)
-					immediate_add_pop_to_army(ws, new_army, *found_pop);
+					immediate_add_pop_to_army(ws, new_army, found_pop);
 			}
 		}
 		void add_navy(parsed_army_or_navy const& n) {

@@ -4,10 +4,6 @@
 
 class world_state;
 
-namespace nations {
-	struct nation;
-}
-
 namespace economy {
 	void init_economic_scenario(world_state& ws);
 	void reset_state(economic_state& s);
@@ -16,7 +12,7 @@ namespace economy {
 		world_state const& ws,
 		worked_instance const& instance,
 		workers_information const& workers_info,
-		nations::nation const& in_nation,
+		nations::country_tag in_nation,
 		provinces::province_tag in_province,
 		int32_t rgo_base_size,
 		economy::goods_tag production,
@@ -27,7 +23,7 @@ namespace economy {
 		worked_instance const& instance,
 		bonus* bonuses,
 		workers_information const& workers_info,
-		nations::nation const& in_nation,
+		nations::country_tag in_nation,
 		provinces::province_tag in_province,
 		int32_t base_size,
 		economy::goods_tag production,
@@ -35,7 +31,7 @@ namespace economy {
 
 	production_modifiers artisan_production_modifiers(
 		world_state const& ws,
-		nations::nation const& in_nation,
+		nations::country_tag in_nation,
 		provinces::province_tag in_province,
 		economy::goods_tag production,
 		float mobilization_effect);
@@ -50,9 +46,9 @@ namespace economy {
 	float get_per_worker_profit(world_state const& ws, nations::state_tag si, factory_instance const& fi);
 	float factory_employment_fraction(world_state const& ws, factory_instance const& fi);
 	money_qnty_type get_factory_profit(world_state const& ws, provinces::province_tag in_province, factory_instance const& f, money_qnty_type const* prices);
-	bool possible_to_invest_in(world_state const& ws, nations::nation const& investor, nations::nation const& target);
+	bool possible_to_invest_in(world_state const& ws, nations::country_tag investor, nations::country_tag target);
 	int32_t count_factories_in_state(world_state const& ws, nations::state_tag s);
-	int32_t count_factories_in_nation(world_state const& ws, nations::nation const& n);
+	int32_t count_factories_in_nation(world_state const& ws, nations::country_tag n);
 	float average_railroad_level(world_state const& ws, nations::state_tag si);
 	bool factory_is_open(factory_instance const& fi);
 	bool factory_is_closed(factory_instance const& fi); // NOTE: factories under construction will report as neither open nor closed
@@ -69,9 +65,9 @@ namespace economy {
 	money_qnty_type* state_price_delta(world_state const& ws, nations::state_tag s);
 	goods_qnty_type* state_current_production(world_state const& ws, nations::state_tag s);
 	money_qnty_type* state_current_demand(world_state const& ws, nations::state_tag s);
-	money_qnty_type calculate_daily_debt_payment(world_state const& ws, nations::nation const& n);
+	money_qnty_type calculate_daily_debt_payment(world_state const& ws, nations::country_tag n);
 	money_qnty_type daily_state_owner_building_cost(world_state const& ws, nations::state_tag si);
-	money_qnty_type daily_national_building_cost(world_state const& ws, nations::nation const& n);
+	money_qnty_type daily_national_building_cost(world_state const& ws, nations::country_tag n);
 
 	struct range_information {
 		float minimum;
@@ -86,17 +82,17 @@ namespace economy {
 	void init_artisan_producation(world_state& ws);
 	void set_initial_money(world_state& ws);
 	void update_bankrupcy(world_state& ws);
-	bool is_bankrupt(world_state const& ws, nations::nation const& n);
+	bool is_bankrupt(world_state const& ws, nations::country_tag n);
 	void collect_taxes(world_state& ws);
-	void pay_unemployement_pensions_salaries(world_state& ws, nations::nation& n);
+	void pay_unemployement_pensions_salaries(world_state& ws, nations::country_tag n);
 	void economy_update_tick(world_state& ws);
 	void economy_demand_adjustment_tick(world_state& ws);
 	void update_construction_and_projects(world_state& ws);
 
 	economy::money_qnty_type project_player_tarrif_income(world_state const& ws, float tarrif_amount);
 
-	money_qnty_type military_spending_amount(world_state const& ws, nations::nation const& n);
-	money_qnty_type social_spending_amount(world_state const& ws, nations::nation const& n);
-	money_qnty_type education_spending_amount(world_state const& ws, nations::nation const& n);
-	money_qnty_type administrative_spending_amount(world_state const& ws, nations::nation const& n);
+	money_qnty_type military_spending_amount(world_state const& ws, nations::country_tag n);
+	money_qnty_type social_spending_amount(world_state const& ws, nations::country_tag n);
+	money_qnty_type education_spending_amount(world_state const& ws, nations::country_tag n);
+	money_qnty_type administrative_spending_amount(world_state const& ws, nations::country_tag n);
 }

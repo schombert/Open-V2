@@ -78,8 +78,8 @@ struct gui_window_handler {
 				s.w.province_w.show_province_window(s.w.gui_m, provinces::province_tag(id));
 				s.w.map_view.selected_province = provinces::province_tag(id);
 				if(is_valid_index(provinces::province_tag(id))) {
-					if(auto si = provinces::province_state(s, provinces::province_tag(id)); si) {
-						if(auto sid = si->id; s.w.nation_s.states.is_valid_index(sid) && s.w.map_view.selected_state != sid) {
+					if(auto sid = provinces::province_state(s, provinces::province_tag(id)); sid) {
+						if(s.w.nation_s.states.is_valid_index(sid) && s.w.map_view.selected_state != sid) {
 							s.w.map_view.selected_state = sid;
 							s.w.trade_w.selected_state = sid;
 							s.w.trade_w.update(s.w.gui_m);
@@ -438,12 +438,12 @@ int main(int , char **) {
 		ws.w.nation_s.nations[nations::country_tag(7)].flags |= nations::nation::cb_construction_discovered;
 	}
 	{
-		auto srange = get_range(ws.w.nation_s.state_arrays, ws.w.local_player_nation->member_states);
-		(srange.first)->state->project.type = economy::pop_project_type::factory;
-		(srange.first)->state->project.factory_type = economy::factory_type_tag(1);
+		//auto srange = get_range(ws.w.nation_s.state_arrays, ws.w.local_player_nation->member_states);
+		//(srange.first)->state->project.type = economy::pop_project_type::factory;
+		//(srange.first)->state->project.factory_type = economy::factory_type_tag(1);
 
-		(srange.first + 3)->state->project.type = economy::pop_project_type::railroad;
-		(srange.first + 3)->state->project.location = provinces::province_tag(6);
+		//(srange.first + 3)->state->project.type = economy::pop_project_type::railroad;
+		//(srange.first + 3)->state->project.location = provinces::province_tag(6);
 	}
 
 	ws.w.current_date = date_tag(to_index(ws.w.current_date) - 2);

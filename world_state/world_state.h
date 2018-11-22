@@ -60,10 +60,10 @@ namespace current_state {
 	struct crisis_state {
 		float temperature = 0.0f; // from 0 to 100
 		crisis_type type = crisis_type::none;
-		nations::nation* primary_attacker = nullptr;
-		nations::nation* primary_defender = nullptr;
-		nations::nation* target = nullptr;
-		nations::nation* on_behalf_of = nullptr;
+		nations::country_tag primary_attacker;
+		nations::country_tag primary_defender;
+		nations::country_tag target;
+		nations::country_tag on_behalf_of;
 		set_tag<nations::country_tag> attackers;
 		set_tag<nations::country_tag> defenders;
 		set_tag<nations::country_tag> interested;
@@ -121,7 +121,7 @@ namespace current_state {
 			economy::money_qnty_type collected_rich_tax = 0;
 			tagged_vector<array_tag<economy::money_qnty_type>, economy::goods_tag> imports_by_country;
 		} local_player_data;
-		nations::nation* local_player_nation = nullptr;
+		nations::country_tag local_player_nation;
 
 		state();
 		~state();

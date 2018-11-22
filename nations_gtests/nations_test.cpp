@@ -9,6 +9,7 @@
 #include "population\\population_io.h"
 #include "provinces\\province_functions.h"
 #include "nations\\nations_io.h"
+#include "population\\population_function.h"
 
 #undef min
 #undef max
@@ -71,7 +72,7 @@ TEST(nations_tests, province_ownership) {
 	EXPECT_EQ(1ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(1ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
 	EXPECT_EQ(province_region, get(ws.w.nation_s.state_arrays, ger_nation->member_states, 0ui32).region_id);
-	EXPECT_NE(nullptr, get(ws.w.nation_s.state_arrays, ger_nation->member_states, 0ui32).state);
+	EXPECT_NE(state_tag(), get(ws.w.nation_s.state_arrays, ger_nation->member_states, 0ui32).state);
 	EXPECT_EQ(ger_nation, provinces::province_owner(ws, prov_tag));
 	EXPECT_EQ(get(ws.w.nation_s.state_arrays, ger_nation->member_states, 0ui32).state, provinces::province_state(ws, prov_tag));
 
@@ -82,8 +83,8 @@ TEST(nations_tests, province_ownership) {
 	EXPECT_EQ(0ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(0ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
 	EXPECT_EQ(nullptr, provinces::province_owner(ws, prov_tag));
-	EXPECT_EQ(nullptr, provinces::province_state(ws, prov_tag));
-	EXPECT_EQ(state_tag(), ws.w.nation_s.states.get_id(*old_state_instance));
+	EXPECT_EQ(state_tag(), provinces::province_state(ws, prov_tag));
+	EXPECT_NE(old_state_instance, ws.w.nation_s.states.get<index_type_marker>(old_state_instance));
 }
 
 TEST(nations_tests, adding_states) {
@@ -106,7 +107,7 @@ TEST(nations_tests, adding_states) {
 
 	EXPECT_EQ(2ui32, get_size(ws.w.province_s.province_arrays, ger_nation->owned_provinces));
 	EXPECT_EQ(1ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
-	EXPECT_NE(nullptr, provinces::province_state(ws, prov_tag_b));
+	EXPECT_NE(state_tag(), provinces::province_state(ws, prov_tag_b));
 	EXPECT_EQ(provinces::province_state(ws, prov_tag_a), provinces::province_state(ws, prov_tag_b));
 	EXPECT_EQ(ger_nation, provinces::province_owner(ws, prov_tag_a));
 	EXPECT_EQ(ger_nation, provinces::province_owner(ws, prov_tag_b));
@@ -120,7 +121,7 @@ TEST(nations_tests, adding_states) {
 	EXPECT_EQ(2ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
 	EXPECT_EQ(ger_nation, provinces::province_owner(ws, prov_tag_c));
 
-	EXPECT_NE(nullptr, provinces::province_state(ws, prov_tag_c));
+	EXPECT_NE(state_tag(), provinces::province_state(ws, prov_tag_c));
 	EXPECT_NE(provinces::province_state(ws, prov_tag_a), provinces::province_state(ws, prov_tag_c));
 
 	provinces::silent_remove_province_owner(ws, prov_tag_a);
@@ -138,7 +139,7 @@ TEST(nations_tests, adding_states) {
 	EXPECT_EQ(1ui32, get_size(ws.w.nation_s.state_arrays, ger_nation->member_states));
 	EXPECT_EQ(nullptr, provinces::province_owner(ws, prov_tag_b));
 
-	EXPECT_EQ(nullptr, provinces::province_state(ws, prov_tag_b));
+	EXPECT_EQ(state_tag(), provinces::province_state(ws, prov_tag_b));
 	EXPECT_EQ(provinces::province_state(ws, prov_tag_a), provinces::province_state(ws, prov_tag_b));
 
 	provinces::silent_remove_province_owner(ws, prov_tag_c);
@@ -340,12 +341,12 @@ TEST(nations_tests, read_nations_files_simple) {
 	EXPECT_EQ(2i64, pop_range.second - pop_range.first);
 
 	for(auto p = pop_range.first; p != pop_range.second; ++p) {
-		if(ws.w.population_s.pops.get(*p).culture == tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "catalan"))) {
-			EXPECT_EQ(ws.w.population_s.pops.get(*p).literacy, static_cast<uint16_t>(0.75f * float(std::numeric_limits<uint16_t>::max())));
-			EXPECT_EQ(ws.w.population_s.pops.get(*p).consciousness, static_cast<uint16_t>(2.0f * float(std::numeric_limits<uint16_t>::max()) / 10.0f));
+		if(ws.w.population_s.pops.get<pop::culture>(*p) == tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "catalan"))) {
+			EXPECT_EQ(population::get_literacy_direct(ws, *p), 0.75f);
+			EXPECT_EQ(population::get_consciousness_direct(ws, *p), 2.0f);
 		} else {
-			EXPECT_EQ(ws.w.population_s.pops.get(*p).literacy, static_cast<uint16_t>(0.15f * float(std::numeric_limits<uint16_t>::max())));
-			EXPECT_EQ(ws.w.population_s.pops.get(*p).consciousness, static_cast<uint16_t>(1.0f * float(std::numeric_limits<uint16_t>::max()) / 10.0f));
+			EXPECT_EQ(population::get_literacy_direct(ws, *p), 0.15f);
+			EXPECT_EQ(population::get_consciousness_direct(ws, *p), 1.0f);
 		}
 	}
 
@@ -421,12 +422,12 @@ TEST(nations_tests, read_nations_files_layered) {
 	EXPECT_EQ(2i64, pop_range.second - pop_range.first);
 
 	for(auto p = pop_range.first; p != pop_range.second; ++p) {
-		if(ws.w.population_s.pops.get(*p).culture == tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "catalan"))) {
-			EXPECT_EQ(ws.w.population_s.pops.get(*p).literacy, static_cast<uint16_t>(0.75f * float(std::numeric_limits<uint16_t>::max())));
-			EXPECT_EQ(ws.w.population_s.pops.get(*p).consciousness, static_cast<uint16_t>(2.0f * float(std::numeric_limits<uint16_t>::max()) / 10.0f));
+		if(ws.w.population_s.pops.get<pop::culture>(*p) == tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "catalan"))) {
+			EXPECT_EQ(population::get_literacy_direct(ws, *p), 0.75f);
+			EXPECT_EQ(population::get_consciousness_direct(ws, *p), 2.0f);
 		} else {
-			EXPECT_EQ(ws.w.population_s.pops.get(*p).literacy, static_cast<uint16_t>(0.15f * float(std::numeric_limits<uint16_t>::max())));
-			EXPECT_EQ(ws.w.population_s.pops.get(*p).consciousness, static_cast<uint16_t>(1.0f * float(std::numeric_limits<uint16_t>::max()) / 10.0f));
+			EXPECT_EQ(population::get_literacy_direct(ws, *p), 0.15f);
+			EXPECT_EQ(population::get_consciousness_direct(ws, *p), 1.0f);
 		}
 	}
 

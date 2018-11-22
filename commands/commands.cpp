@@ -2,6 +2,7 @@
 #include "commands.hpp"
 #include "world_state\\world_state.h"
 #include "nations\\nations_functions.hpp"
+#include "provinces\\province_functions.h"
 
 namespace commands {
 	set_budget::set_budget(nations::country_tag n, set_budget_type t, int8_t v) : nation_for(n), type(t) {
@@ -222,8 +223,7 @@ namespace commands {
 				}
 				case province_building_type::state_railroad:
 				{
-					auto& si = ws.w.nation_s.states[c.s];
-					nations::for_each_province(ws, si, [n = c.nation_for, &ws](provinces::province_tag p) {
+					nations::for_each_province(ws, c.s, [n = c.nation_for, &ws](provinces::province_tag p) {
 						province_building cmd(n, province_building_type::province_railroad, p);
 						if(is_command_valid(cmd, ws))
 							execute_command(cmd, ws);
@@ -232,8 +232,7 @@ namespace commands {
 				}
 				case province_building_type::state_fort:
 				{
-					auto& si = ws.w.nation_s.states[c.s];
-					nations::for_each_province(ws, si, [n = c.nation_for, &ws](provinces::province_tag p) {
+					nations::for_each_province(ws, c.s, [n = c.nation_for, &ws](provinces::province_tag p) {
 						province_building cmd(n, province_building_type::province_fort, p);
 						if(is_command_valid(cmd, ws))
 							execute_command(cmd, ws);
@@ -269,9 +268,9 @@ namespace commands {
 			}
 			case province_building_type::province_naval_base:
 			{
-				auto si = container.get<province_state::state_instance>(c.p);
+				auto si = provinces::province_state(ws, c.p);
 				if(auto owner = container.get<province_state::owner>(c.p); owner == c.nation_for && is_valid_index(si)) {
-					auto port = nations::state_port_province(ws, ws.w.nation_s.states[si]);
+					auto port = nations::state_port_province(ws, si);
 					return container.get<province_state::naval_base_upgrade_progress>(c.p) == 0
 						&& container.get<province_state::naval_base_level>(c.p) < ws.w.nation_s.nations[owner].tech_attributes[technologies::tech_offset::max_naval_base]
 						&& ws.s.province_m.province_container.get<province::is_coastal>(c.p)
@@ -281,13 +280,11 @@ namespace commands {
 			}
 			case province_building_type::state_railroad:
 			{
-				auto& si = ws.w.nation_s.states[c.s];
-				return si.owner && si.owner->id == c.nation_for;
+				return ws.w.nation_s.states.get<state::owner>(c.s) == c.nation_for;
 			}
 			case province_building_type::state_fort:
 			{
-				auto& si = ws.w.nation_s.states[c.s];
-				return si.owner && si.owner->id == c.nation_for;
+				return ws.w.nation_s.states.get<state::owner>(c.s) == c.nation_for;
 			}
 			default:
 				return true;
@@ -360,7 +357,7 @@ namespace commands {
 			{
 				auto si = p_container.get<province_state::state_instance>(c.p);
 				if(auto owner = p_container.get<province_state::owner>(c.p); is_valid_index(owner) && is_valid_index(si)) {
-					auto port = nations::state_port_province(ws, ws.w.nation_s.states[si]);
+					auto port = nations::state_port_province(ws, si);
 
 					if(p_container.get<province_state::naval_base_level>(c.p) < ws.w.nation_s.nations[owner].tech_attributes[technologies::tech_offset::max_naval_base]) {
 						ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };

@@ -9,7 +9,7 @@ namespace provinces {
 		auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(p));
 		for(auto po : pop_range) {
 			if(is_valid_index(po))
-				f(ws.w.population_s.pops[po]);
+				f(po);
 		}
 	}
 }

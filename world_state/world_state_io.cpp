@@ -266,23 +266,23 @@ void restore_world_state(world_state& ws) {
 		ws.w.nation_s.states.set<state::state_capital>(s, nations::find_state_capital(ws, s));
 	});
 
-	ws.w.population_s.pops.for_each([&ws](population::pop& p) {
-		if(is_valid_index(p.associated_army)) {
-			auto& a = ws.w.military_s.armies[p.associated_army];
-			add_item(ws.w.population_s.pop_arrays, a.backing_pops, p.id);
-			a.total_soldiers += uint32_t(ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag));
+	ws.w.population_s.pops.for_each([&ws](population::pop_tag p) {
+		if(auto parmy = ws.w.population_s.pops.get<pop::associated_army>(p); is_valid_index(parmy)) {
+			auto& a = ws.w.military_s.armies[parmy];
+			add_item(ws.w.population_s.pop_arrays, a.backing_pops, p);
+			a.total_soldiers += uint32_t(ws.w.population_s.pop_demographics.get(p, population::total_population_tag));
 		}
-		if(is_valid_index(p.rebel_faction)) {
-			auto& rf = ws.w.population_s.rebel_factions[p.rebel_faction];
-			add_item(ws.w.population_s.pop_arrays, rf.member_pops, p.id);
+		if(auto rfaction = ws.w.population_s.pops.get<pop::rebel_faction>(p); is_valid_index(rfaction)) {
+			auto& rf = ws.w.population_s.rebel_factions[rfaction];
+			add_item(ws.w.population_s.pop_arrays, rf.member_pops, p);
 		}
-		if(is_valid_index(p.movement)) {
-			auto& m = ws.w.population_s.pop_movements[p.movement];
-			add_item(ws.w.population_s.pop_arrays, m.member_pops, p.id);
-			m.total_population_support += ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag);
+		if(auto movement = ws.w.population_s.pops.get<pop::movement>(p); is_valid_index(movement)) {
+			auto& m = ws.w.population_s.pop_movements[movement];
+			add_item(ws.w.population_s.pop_arrays, m.member_pops, p);
+			m.total_population_support += decltype(m.total_population_support)(ws.w.population_s.pop_demographics.get(p, population::total_population_tag));
 		}
-		if(is_valid_index(p.location))
-			add_item(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(p.location), p.id);
+		if(auto loc = ws.w.population_s.pops.get<pop::location>(p); is_valid_index(loc))
+			add_item(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(loc), p);
 	});
 
 	provinces::update_province_demographics(ws);
@@ -299,6 +299,7 @@ void restore_world_state(world_state& ws) {
 		military::update_at_war_with_and_against(ws, n);
 
 		n.ruling_ideology = ws.s.governments_m.parties[n.ruling_party].ideology;
+		governments::update_current_rules(ws, n);
 
 		nations::update_neighbors(ws, n);
 		nations::update_province_counts(ws, n);

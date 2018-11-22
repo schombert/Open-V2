@@ -13,9 +13,6 @@ namespace scenario {
 namespace governments {
 	struct government_type;
 }
-namespace nations {
-	struct nation;
-}
 
 namespace cultures {
 	struct leader_picture_info {
@@ -69,7 +66,7 @@ namespace cultures {
 	};
 
 	struct national_tag_state {
-		nations::nation* holder = nullptr;
+		nations::country_tag holder;
 		set_tag<provinces::province_tag> core_provinces;
 		provinces::province_tag capital;
 		bool is_not_releasable = false;

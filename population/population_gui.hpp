@@ -796,37 +796,41 @@ namespace population {
 
 	template<typename category_type, typename tag_type>
 	int64_t sum_filtered_demo_data(world_state& ws, int64_t* sums_out, tag_type tag) {
-		int64_t total = 0;
-		generic_for_each_pop(ws, tag, [sums_out, &ws, &total](population::pop& p) {
-			auto pop_id = p.id;
-			auto ptype = p.type;
+		float total = 0;
+		generic_for_each_pop(ws, tag, [sums_out, &ws, &total](population::pop_tag p) {
+			auto pop_id = p;
+			auto ptype = ws.w.population_s.pops.get<pop::type>(p);
 			if(ws.w.population_s.pops.is_valid_index(pop_id) && is_valid_index(ptype) && ws.w.population_w.filtered_pop_types[ptype] != 0) {
 				auto size = ws.w.population_s.pop_demographics.get(pop_id, population::total_population_tag);
 				total += size;
 				if constexpr(std::is_same_v<category_type, cultures::culture_tag>) {
-					auto c = p.culture;
+					auto c = ws.w.population_s.pops.get<pop::culture>(p);
 					if(is_valid_index(c))
-						sums_out[to_index(c)] += size;
+						sums_out[to_index(c)] += int64_t(size);
 				} else if constexpr(std::is_same_v<category_type, cultures::religion_tag>) {
-					auto c = p.religion;
+					auto c = ws.w.population_s.pops.get<pop::religion>(p);
 					if(is_valid_index(c))
-						sums_out[to_index(c)] += size;
+						sums_out[to_index(c)] += int64_t(size);
 				} else if constexpr(std::is_same_v<category_type, population::pop_type_tag>) {
-					sums_out[to_index(ptype)] += size;
+					sums_out[to_index(ptype)] += int64_t(size);
 				} else if constexpr(std::is_same_v<category_type, ideologies::ideology_tag>) {
 					for(uint32_t i = 0; i < ws.s.ideologies_m.ideologies_count; ++i) {
-						sums_out[i] += ws.w.population_s.pop_demographics.get(pop_id, population::to_demo_tag(ws, ideologies::ideology_tag(static_cast<ideologies::ideology_tag::value_base_t>(i))));
+						sums_out[i] += int64_t(
+							ws.w.population_s.pop_demographics.get(pop_id, population::to_demo_tag(ws, ideologies::ideology_tag(static_cast<ideologies::ideology_tag::value_base_t>(i))))
+							);
 					}
 				} else if constexpr(std::is_same_v<category_type, issues::option_tag>) {
 					for(uint32_t i = 0; i < ws.s.issues_m.tracked_options_count; ++i) {
-						sums_out[i] += ws.w.population_s.pop_demographics.get(pop_id, population::to_demo_tag(ws, issues::option_tag(static_cast<issues::option_tag::value_base_t>(i))));
+						sums_out[i] += int64_t(
+							ws.w.population_s.pop_demographics.get(pop_id, population::to_demo_tag(ws, issues::option_tag(static_cast<issues::option_tag::value_base_t>(i))))
+							);
 					}
 				} else {
 					std::abort(); // called with wrong category type
 				}
 			}
 		});
-		return total;
+		return int64_t(total);
 	}
 	
 
@@ -1032,28 +1036,28 @@ namespace population {
 		boost::container::small_vector<pop_tag, 64, concurrent_allocator<pop_tag>> data;
 
 		if(ws.w.population_w.display_type == population_display::nation) {
-			generic_for_each_pop(ws, ws.w.population_w.population_for_nation, [&ws, &data](population::pop& p) {
-				auto id = p.id;
+			generic_for_each_pop(ws, ws.w.population_w.population_for_nation, [&ws, &data](population::pop_tag p) {
+				auto id = p;
 				if(ws.w.population_s.pops.is_valid_index(id)) {
-					auto type = ws.w.population_s.pops[id].type;
+					auto type = ws.w.population_s.pops.get<pop::type>(id);
 					if(is_valid_index(type) && ws.w.population_w.filtered_pop_types[type] != 0)
 						data.push_back(id);
 				}
 			});
 		} else if(ws.w.population_w.display_type == population_display::state) {
-			generic_for_each_pop(ws, ws.w.population_w.population_for_state, [&ws, &data](population::pop& p) {
-				auto id = p.id;
+			generic_for_each_pop(ws, ws.w.population_w.population_for_state, [&ws, &data](population::pop_tag p) {
+				auto id = p;
 				if(ws.w.population_s.pops.is_valid_index(id)) {
-					auto type = ws.w.population_s.pops[id].type;
+					auto type = ws.w.population_s.pops.get<pop::type>(id);
 					if(is_valid_index(type) && ws.w.population_w.filtered_pop_types[type] != 0)
 						data.push_back(id);
 				}
 			});
 		} else if(ws.w.population_w.display_type == population_display::province) {
-			generic_for_each_pop(ws, ws.w.population_w.population_for_province, [&ws, &data](population::pop& p) {
-				auto id = p.id;
+			generic_for_each_pop(ws, ws.w.population_w.population_for_province, [&ws, &data](population::pop_tag p) {
+				auto id = p;
 				if(ws.w.population_s.pops.is_valid_index(id)) {
-					auto type = ws.w.population_s.pops[id].type;
+					auto type = ws.w.population_s.pops.get<pop::type>(id);
 					if(is_valid_index(type) && ws.w.population_w.filtered_pop_types[type] != 0)
 						data.push_back(id);
 				}
@@ -1070,15 +1074,15 @@ namespace population {
 				break;
 			case population_sort::type:
 				std::sort(data.begin(), data.end(), [&ws](pop_tag a, pop_tag b) {
-					return ws.w.population_s.pops[a].type < ws.w.population_s.pops[b].type;
+					return ws.w.population_s.pops.get<pop::type>(a) < ws.w.population_s.pops.get<pop::type>(b);
 				});
 				break;
 			case population_sort::culture:
 			{
 				vector_backed_string_lex_less<char16_t> lss(ws.s.gui_m.text_data_sequences.text_data);
 				std::sort(data.begin(), data.end(), [&ws, &lss](pop_tag a, pop_tag b) {
-					auto a_culture = ws.w.population_s.pops[a].culture;
-					auto b_culture = ws.w.population_s.pops[b].culture;
+					auto a_culture = ws.w.population_s.pops.get<pop::culture>(a);
+					auto b_culture = ws.w.population_s.pops.get<pop::culture>(b);
 					return lss(
 						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
 							is_valid_index(a_culture) ? ws.s.culture_m.culture_container[a_culture].name : text_data::text_tag()),
@@ -1091,8 +1095,8 @@ namespace population {
 			{
 				vector_backed_string_lex_less<char16_t> lss(ws.s.gui_m.text_data_sequences.text_data);
 				std::sort(data.begin(), data.end(), [&ws, &lss](pop_tag a, pop_tag b) {
-					auto a_rel = ws.w.population_s.pops[a].religion;
-					auto b_rel = ws.w.population_s.pops[b].religion;
+					auto a_rel = ws.w.population_s.pops.get<pop::religion>(a);
+					auto b_rel = ws.w.population_s.pops.get<pop::religion>(b);
 					return lss(
 						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
 							is_valid_index(a_rel) ? ws.s.culture_m.religions[a_rel].name : text_data::text_tag()),
@@ -1105,8 +1109,8 @@ namespace population {
 			{
 				vector_backed_string_lex_less<char16_t> lss(ws.s.gui_m.text_data_sequences.text_data);
 				std::sort(data.begin(), data.end(), [&ws, &lss](pop_tag a, pop_tag b) {
-					auto a_loc = ws.w.population_s.pops[a].location;
-					auto b_loc = ws.w.population_s.pops[b].location;
+					auto a_loc = ws.w.population_s.pops.get<pop::location>(a);
+					auto b_loc = ws.w.population_s.pops.get<pop::location>(b);
 					return lss(
 						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
 							is_valid_index(a_loc) ? ws.w.province_s.province_state_container.get<province_state::name>(a_loc) : text_data::text_tag()),
@@ -1117,45 +1121,45 @@ namespace population {
 				break;
 			case population_sort::militancy:
 				std::sort(data.begin(), data.end(), [&ws](pop_tag a, pop_tag b) {
-					return ws.w.population_s.pops[a].militancy < ws.w.population_s.pops[b].militancy;
+					return ws.w.population_s.pops.get<pop::militancy>(a) > ws.w.population_s.pops.get<pop::militancy>(b);
 				});
 				break;
 			case population_sort::consciousness:
 				std::sort(data.begin(), data.end(), [&ws](pop_tag a, pop_tag b) {
-					return ws.w.population_s.pops[a].consciousness < ws.w.population_s.pops[b].consciousness;
+					return ws.w.population_s.pops.get<pop::consciousness>(a) > ws.w.population_s.pops.get<pop::consciousness>(b);
 				});
 				break;
 			case population_sort::ideoology: break;
 			case population_sort::issues: break;
 			case population_sort::unemployment:
 				std::sort(data.begin(), data.end(), [&ws](pop_tag a, pop_tag b) {
-					auto a_size = float(std::max(1, ws.w.population_s.pop_demographics.get(a, total_population_tag)));
-					auto b_size = float(std::max(1, ws.w.population_s.pop_demographics.get(b, total_population_tag)));
+					auto a_size = float(std::max(1.0f, ws.w.population_s.pop_demographics.get(a, total_population_tag)));
+					auto b_size = float(std::max(1.0f, ws.w.population_s.pop_demographics.get(b, total_population_tag)));
 					return float(ws.w.population_s.pop_demographics.get(a, total_employment_tag)) / a_size <
 						float(ws.w.population_s.pop_demographics.get(b, total_employment_tag)) / b_size;
 				});
 				break;
 			case population_sort::cash:
 				std::sort(data.begin(), data.end(), [&ws](pop_tag a, pop_tag b) {
-					return ws.w.population_s.pops[a].money < ws.w.population_s.pops[b].money;
+					return ws.w.population_s.pops.get<pop::money>(a) < ws.w.population_s.pops.get<pop::money>(b);
 				});
 				break;
 			case population_sort::life_needs: // fall through
 			case population_sort::everyday_needs: // fall through
 			case population_sort::luxury_needs:
 				std::sort(data.begin(), data.end(), [&ws](pop_tag a, pop_tag b) {
-					return ws.w.population_s.pops[a].needs_satisfaction < ws.w.population_s.pops[b].needs_satisfaction;
+					return ws.w.population_s.pops.get<pop::needs_satisfaction>(a) < ws.w.population_s.pops.get<pop::needs_satisfaction>(b);
 				});
 				break;
 			case population_sort::revolt_risk: break;
 			case population_sort::size_change:
 				std::sort(data.begin(), data.end(), [&ws](pop_tag a, pop_tag b) {
-					return total_size_change(ws.w.population_s.pops[a]) < total_size_change(ws.w.population_s.pops[b]);
+					return total_size_change(ws, a) > total_size_change(ws, b);
 				});
 				break;
 			case population_sort::literacy:
 				std::sort(data.begin(), data.end(), [&ws](pop_tag a, pop_tag b) {
-					return ws.w.population_s.pops[a].literacy < ws.w.population_s.pops[b].literacy;
+					return ws.w.population_s.pops.get<pop::literacy>(a) > ws.w.population_s.pops.get<pop::literacy>(b);
 				});
 				break;
 		}
@@ -1343,7 +1347,7 @@ namespace population {
 
 	template<typename window_type>
 	void pop_culture::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		cultures::culture_tag c = ws.w.population_s.pops[w.tag].culture;
+		cultures::culture_tag c = ws.w.population_s.pops.get<pop::culture>(w.tag);
 		if(is_valid_index(c))
 			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.s.culture_m.culture_container[c].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 		lm.finish_current_line();
@@ -1351,7 +1355,7 @@ namespace population {
 
 	template<typename window_type>
 	void pop_location::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		provinces::province_tag p = ws.w.population_s.pops[w.tag].location;
+		provinces::province_tag p = ws.w.population_s.pops.get<pop::location>(w.tag);
 		if(is_valid_index(p))
 			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.w.province_s.province_state_container.get<province_state::name>(p), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 		lm.finish_current_line();
@@ -1359,7 +1363,7 @@ namespace population {
 
 	template<typename window_type>
 	void pop_militancy::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		float mil = population::get_militancy_direct(ws.w.population_s.pops[w.tag]);
+		float mil = population::get_militancy_direct(ws, w.tag);
 
 		char16_t local_buf[32];
 		put_value_in_buffer(local_buf, display_type::fp_two_places, mil);
@@ -1378,7 +1382,7 @@ namespace population {
 
 	template<typename window_type>
 	void pop_consciousness::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		float mil = population::get_consciousness_direct(ws.w.population_s.pops[w.tag]);
+		float mil = population::get_consciousness_direct(ws, w.tag);
 
 		char16_t local_buf[32];
 		put_value_in_buffer(local_buf, display_type::fp_two_places, mil);
@@ -1397,7 +1401,7 @@ namespace population {
 
 	template<typename window_type>
 	void pop_literacy::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		float mil = population::get_literacy_direct(ws.w.population_s.pops[w.tag]);
+		float mil = population::get_literacy_direct(ws, w.tag);
 
 		char16_t local_buf[32];
 		put_value_in_buffer(local_buf, display_type::percent, mil);
@@ -1416,7 +1420,7 @@ namespace population {
 
 	template<typename window_type>
 	void pop_cash::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		float money = ws.w.population_s.pops[w.tag].money;
+		float money = ws.w.population_s.pops.get<pop::money>(w.tag);
 
 		char16_t local_buf[32];
 		put_value_in_buffer(local_buf, display_type::fp_two_places, money);
@@ -1435,8 +1439,8 @@ namespace population {
 
 	template<typename window_type>
 	void pop_ideology::windowed_update(ui::piechart<pop_ideology>& pie, window_type& w, world_state& ws) {
-		int32_t* demo = ws.w.population_s.pop_demographics.get_row(w.tag);
-		int32_t* ideologies_values = demo + to_index(to_demo_tag(ws, ideologies::ideology_tag(0)));
+		float* demo = ws.w.population_s.pop_demographics.get_row(w.tag);
+		float* ideologies_values = demo + to_index(to_demo_tag(ws, ideologies::ideology_tag(0)));
 
 		float size = float(demo[to_index(total_population_tag)]);
 		if(size != 0.0f) {
@@ -1453,8 +1457,8 @@ namespace population {
 
 	template<typename window_type>
 	void pop_issues::windowed_update(ui::piechart<pop_issues>& pie, window_type& w, world_state& ws) {
-		int32_t* demo = ws.w.population_s.pop_demographics.get_row(w.tag);
-		int32_t* issues_values = demo + to_index(to_demo_tag(ws, issues::option_tag(0)));
+		float* demo = ws.w.population_s.pop_demographics.get_row(w.tag);
+		float* issues_values = demo + to_index(to_demo_tag(ws, issues::option_tag(0)));
 
 		float size = float(demo[to_index(total_population_tag)]);
 		if(size != 0.0f) {
@@ -1471,17 +1475,16 @@ namespace population {
 
 	template<typename W>
 	void pop_type_button::windowed_update(ui::simple_button<pop_type_button>& b, W& w, world_state& ws) {
-		auto& pop = ws.w.population_s.pops[w.tag];
-		type = pop.type;
+		type = ws.w.population_s.pops.get<pop::type>(w.tag);
 		if(is_valid_index(type)) 
 			b.set_frame(ws.w.gui_m, ws.s.population_m.pop_types[type].sprite - 1ui32);
 	}
 
 	template<typename W>
 	void pop_producing_icon::windowed_update(ui::dynamic_icon<pop_producing_icon>& self, W& w, world_state& ws) {
-		auto& pop = ws.w.population_s.pops[w.tag];
-		if(provinces::province_tag loc = pop.location; is_valid_index(loc)) {
-			if(pop.type == ws.s.population_m.artisan) {
+		if(provinces::province_tag loc = ws.w.population_s.pops.get<pop::location>(w.tag); is_valid_index(loc)) {
+			auto type = ws.w.population_s.pops.get<pop::type>(w.tag);
+			if(type == ws.s.population_m.artisan) {
 				if(auto p = ws.w.province_s.province_state_container.get<province_state::artisan_production>(loc); is_valid_index(p)) {
 					self.set_frame(ws.w.gui_m, ws.s.economy_m.goods[p].icon);
 					ui::make_visible_immediate(*self.associated_object);
@@ -1490,7 +1493,7 @@ namespace population {
 			} else if(auto production = ws.w.province_s.province_state_container.get<province_state::rgo_production>(loc); is_valid_index(production)) {
 				if((ws.s.economy_m.goods[production].flags & economy::good_definition::mined) != 0) {
 					for(uint32_t i = 0; i < std::extent_v<decltype(ws.s.economy_m.rgo_mine.workers)>; ++i) {
-						if(ws.s.economy_m.rgo_mine.workers[i].type == pop.type) {
+						if(ws.s.economy_m.rgo_mine.workers[i].type == type) {
 							self.set_frame(ws.w.gui_m, ws.s.economy_m.goods[production].icon);
 							ui::make_visible_immediate(*self.associated_object);
 							return;
@@ -1498,7 +1501,7 @@ namespace population {
 					}
 				} else {
 					for(uint32_t i = 0; i < std::extent_v<decltype(ws.s.economy_m.rgo_farm.workers)>; ++i) {
-						if(ws.s.economy_m.rgo_farm.workers[i].type == pop.type) {
+						if(ws.s.economy_m.rgo_farm.workers[i].type == type) {
 							self.set_frame(ws.w.gui_m, ws.s.economy_m.goods[production].icon);
 							ui::make_visible_immediate(*self.associated_object);
 							return;
@@ -1512,7 +1515,7 @@ namespace population {
 
 	template<typename W>
 	void pop_religion::windowed_update(ui::dynamic_icon<pop_religion>& ico, W& w, world_state& ws) {
-		religion = ws.w.population_s.pops[w.tag].religion;
+		religion = ws.w.population_s.pops.get<pop::religion>(w.tag);
 		if(is_valid_index(religion))
 			ico.set_frame(ws.w.gui_m, uint32_t(ws.s.culture_m.religions[religion].icon) - 1ui32);
 	}
@@ -1541,7 +1544,7 @@ namespace population {
 
 	template<typename window_type>
 	void lifeneed_progress::windowed_update(ui::progress_bar<lifeneed_progress>& bar, window_type& w, world_state& ws) {
-		float needs = ws.w.population_s.pops[w.tag].needs_satisfaction;
+		float needs = ws.w.population_s.pops.get<pop::needs_satisfaction>(w.tag);
 
 		if(needs >= 1.0f) 
 			bar.set_fraction(1.0f);
@@ -1551,31 +1554,31 @@ namespace population {
 
 	template<typename W>
 	void lifeneed_progress_overlay::windowed_update(ui::dynamic_icon<lifeneed_progress_overlay>&, W& w, world_state& ws) {
-		value = std::min(1.0f, ws.w.population_s.pops[w.tag].needs_satisfaction);
+		value = std::min(1.0f, ws.w.population_s.pops.get<pop::needs_satisfaction>(w.tag));
 	}
 
 	template<typename window_type>
 	void eveneed_progress::windowed_update(ui::progress_bar<eveneed_progress>& bar, window_type& w, world_state& ws) {
-		float needs = ws.w.population_s.pops[w.tag].needs_satisfaction;
+		float needs = ws.w.population_s.pops.get<pop::needs_satisfaction>(w.tag);
 
 		bar.set_fraction(std::clamp(needs - 1.0f, 0.0f, 1.0f));
 	}
 
 	template<typename W>
 	void eveneed_progress_overlay::windowed_update(ui::dynamic_icon<eveneed_progress_overlay>&, W& w, world_state& ws) {
-		value = std::clamp(ws.w.population_s.pops[w.tag].needs_satisfaction - 1.0f, 0.0f, 1.0f);
+		value = std::clamp(ws.w.population_s.pops.get<pop::needs_satisfaction>(w.tag) - 1.0f, 0.0f, 1.0f);
 	}
 
 	template<typename window_type>
 	void luxneed_progress::windowed_update(ui::progress_bar<luxneed_progress>& bar, window_type& w, world_state& ws) {
-		float needs = ws.w.population_s.pops[w.tag].needs_satisfaction;
+		float needs = ws.w.population_s.pops.get<pop::needs_satisfaction>(w.tag);
 
 		bar.set_fraction(std::clamp(needs - 2.0f, 0.0f, 1.0f));
 	}
 
 	template<typename W>
 	void luxneed_progress_overlay::windowed_update(ui::dynamic_icon<luxneed_progress_overlay>&, W& w, world_state& ws) {
-		value = std::clamp(ws.w.population_s.pops[w.tag].needs_satisfaction - 2.0f, 0.0f, 1.0f);
+		value = std::clamp(ws.w.population_s.pops.get<pop::needs_satisfaction>(w.tag) - 2.0f, 0.0f, 1.0f);
 	}
 
 	template<typename W>
@@ -1686,7 +1689,7 @@ namespace population {
 
 	template<typename W>
 	void pop_growth::windowed_update(ui::dynamic_icon<pop_growth>& ico, W& w, world_state& ws) {
-		auto total_growth = total_size_change(ws.w.population_s.pops[w.tag]);
+		auto total_growth = total_size_change(ws, w.tag);
 
 		if(total_growth > 0)
 			ico.set_frame(ws.w.gui_m, 0ui32);

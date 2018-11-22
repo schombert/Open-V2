@@ -432,7 +432,7 @@ public:
 
 	tag_type get_new() {
 #ifdef _DEBUG
-		if(!is_valid_index(first_free))
+		if(!::is_valid_index(first_free))
 			std::abort();
 #endif
 		auto allocated = first_free;
@@ -502,7 +502,7 @@ public:
 	}
 
 	bool is_valid_index(tag_type t) const noexcept {
-		return ::is_valid_index(t) & (to_index(t) < size_used);
+		return ::is_valid_index(t) & (int32_t(to_index(t)) < size_used);
 	}
 
 #ifdef VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
@@ -732,7 +732,7 @@ public:
 		serialization::deserialize(input, obj.size_used);
 		for(int32_t i = 0; i < obj.size_used; ++i) {
 			serialization::deserialize(input, obj.get<index_type_marker>(tag_type(typename tag_type::value_base_t(i))));
-			if(is_valid_index(obj.get<index_type_marker>(tag_type(typename tag_type::value_base_t(i))))) {
+			if(::is_valid_index(obj.get<index_type_marker>(tag_type(typename tag_type::value_base_t(i))))) {
 				variable_layout_detail::variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::deserialize_object_impl(
 					input, obj.ptr[i], std::forward<CONTEXT>(c)...);
 			}
@@ -741,7 +741,7 @@ public:
 
 		obj.first_free = tag_type();
 		for(int32_t i = container_size - 1; i >= 0; --i) {
-			if(!is_valid_index(obj.get<index_type_marker>(tag_type(typename tag_type::value_base_t(i))))) {
+			if(!::is_valid_index(obj.get<index_type_marker>(tag_type(typename tag_type::value_base_t(i))))) {
 				obj.set<index_type_marker>(tag_type(typename tag_type::value_base_t(i)), obj.first_free);
 				obj.first_free = tag_type(typename tag_type::value_base_t(i));
 			}

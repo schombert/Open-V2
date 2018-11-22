@@ -3,6 +3,7 @@
 #include "common\\common.h"
 #include "common\\shared_tags.h"
 #include "concurrency_tools\\concurrency_tools.hpp"
+#include "concurrency_tools\\variable_layout.h"
 
 namespace scenario {
 	class scenario_manager;
@@ -10,11 +11,52 @@ namespace scenario {
 namespace events {
 	struct event_creation_manager;
 }
-namespace nations {
-	struct nation;
-}
 
 class world_state;
+
+namespace pop {
+	struct size_change_from_combat; // combat losses
+	struct size_change_from_growth; // growth & starvation
+	struct size_change_from_type_change; // promotion & demotion
+	struct size_change_from_assimilation; //cultural and religion change
+	struct size_change_from_local_migration; //moving from one state to another (includes colonial)
+	struct size_change_from_emmigration; //moving from one country to anther
+	struct money;
+	struct needs_satisfaction;
+	struct literacy;
+	struct militancy;
+	struct consciousness;
+	struct location;
+	struct culture;
+	struct rebel_faction;
+	struct movement;
+	struct associated_army;
+	struct religion;
+	struct type;
+
+	using container = variable_layout_tagged_vector < population::pop_tag, 40'000,
+		type, population::pop_type_tag,
+		religion, cultures::religion_tag,
+		associated_army, military::army_tag,
+		movement, population::movement_tag,
+		rebel_faction, population::rebel_faction_tag,
+		culture, cultures::culture_tag,
+		location, provinces::province_tag,
+
+		size_change_from_combat, float,
+		size_change_from_growth, float,
+		size_change_from_type_change, float,
+		size_change_from_assimilation, float,
+		size_change_from_local_migration, float,
+		size_change_from_emmigration, float,
+
+		money, float,
+		needs_satisfaction, float,
+		literacy, float,
+		militancy, float,
+		consciousness, float
+	> ;
+}
 
 namespace population {
 
@@ -120,42 +162,6 @@ namespace population {
 		rebel_type_tag id;
 	};
 
-	struct pop {
-		pop_tag id; // 4
-
-		atomic_tag<date_tag> last_update; // 8
-		//int32_t size = 0i32; // 12 -- moved to demographics arrays
-		//int32_t employed = 0i32; // 16 -- moved to demographics array
-
-		int32_t size_change_from_combat = 0i32; // combat losses 12
-		int32_t size_change_from_growth = 0i32; // growth & starvation 16
-		int32_t size_change_from_type_change = 0i32; // promotion & demotion 20
-		int32_t size_change_from_assimilation = 0i32; //cultural and religion change 24
-		int32_t size_change_from_local_migration = 0i32; //moving from one state to another (includes colonial) 28
-		int32_t size_change_from_emmigration = 0i32; //moving from one country to anther 32
-
-		float money = 0.0f; // 36
-		float last_wages = 0.0f; // 40
-		float needs_satisfaction = 3.0f; // 44
-
-		uint16_t literacy = 0ui16; // 46 (/ max(uint16_t)  = lit)
-		uint16_t militancy = 0ui16; // 48 (/ max(uint16_t) * 10 = mil)
-		uint16_t consciousness = 0ui16; // 50 (/ max(uint16_t) * 10 = con)
-		
-		// float last_artisan_expenses = 0.0f; --- compute from artisan option
-
-		provinces::province_tag location; // 52
-		cultures::culture_tag culture; // 54
-
-		rebel_faction_tag rebel_faction; // 56
-		movement_tag movement; // 58
-		military::army_tag associated_army; // 60
-
-		cultures::religion_tag religion; // 61
-		pop_type_tag type; // 62
-	};
-
-	static_assert(sizeof(pop) <= 64);
 
 	enum class movement_type : uint8_t {
 		liberation,
@@ -200,8 +206,8 @@ namespace population {
 		stable_vector<rebel_faction, rebel_faction_tag, 2048, 16> rebel_factions;
 		stable_vector<pop_movement, movement_tag, 2048, 16> pop_movements;
 
-		stable_vector<pop, pop_tag, 2048, 256> pops;
-		stable_2d_vector<int32_t, pop_tag, demo_tag, 2048, 256> pop_demographics;
+		pop::container pops;
+		stable_2d_vector<float, pop_tag, demo_tag, 2048, 256> pop_demographics;
 
 		stable_variable_vector_storage_mk_2<pop_tag, 8, 65536> pop_arrays;
 		stable_variable_vector_storage_mk_2<rebel_faction_tag, 8, 65536> rebel_faction_arrays;

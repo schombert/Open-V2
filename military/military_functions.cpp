@@ -133,10 +133,10 @@ namespace military {
 		return new_army;
 	}
 
-	void immediate_add_pop_to_army(world_state& ws, army& target_army, population::pop& p) {
-		target_army.total_soldiers += uint32_t(ws.w.population_s.pop_demographics.get(p.id, population::total_population_tag));
-		p.associated_army = target_army.id;
-		add_item(ws.w.population_s.pop_arrays, target_army.backing_pops, p.id);
+	void immediate_add_pop_to_army(world_state& ws, army& target_army, population::pop_tag p) {
+		target_army.total_soldiers += uint32_t(ws.w.population_s.pop_demographics.get(p, population::total_population_tag));
+		ws.w.population_s.pops.set<pop::associated_army>(p, target_army.id);
+		add_item(ws.w.population_s.pop_arrays, target_army.backing_pops, p);
 	}
 
 	fleet& make_fleet(world_state& ws, nations::nation& n, provinces::province_tag location) {
@@ -260,23 +260,16 @@ namespace military {
 	float recruited_pop_fraction(world_state const& ws, nations::nation const& this_nation) {
 		auto owned_range = get_range(ws.w.province_s.province_arrays, this_nation.owned_provinces);
 
-		uint32_t total_soldier_pops = 0ui32;
-		uint32_t total_soldier_pops_assigned = 0ui32;
+		float total_soldier_pops = 0;
+		float total_soldier_pops_assigned = 0;
 
-		for(auto p : owned_range) {
-			if(is_valid_index(p)) {
-				auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(p));
-				for(auto po : pop_range) {
-					if(is_valid_index(po)) {
-						auto& po_obj = ws.w.population_s.pops[po];
-						if(po_obj.type == ws.s.population_m.soldier) {
-							++total_soldier_pops;
-							total_soldier_pops_assigned += is_valid_index(po_obj.associated_army) ? 1ui32 : 0ui32;
-						}
-					}
-				}
+		nations::for_each_pop(ws, this_nation, [&ws, &total_soldier_pops, &total_soldier_pops_assigned](population::pop_tag p) {
+			if(ws.w.population_s.pops.get<pop::type>(p) == ws.s.population_m.soldier) {
+				++total_soldier_pops;
+				total_soldier_pops_assigned += is_valid_index(ws.w.population_s.pops.get<pop::associated_army>(p)) ? 1.0f : 0.0f;
 			}
-		}
+		});
+		
 		if(total_soldier_pops == 0)
 			return 0.0f;
 		else
@@ -381,7 +374,7 @@ namespace military {
 	void destroy_army(world_state& ws, army& a, nations::nation& owner) {
 		auto pop_range = get_range(ws.w.population_s.pop_arrays, a.backing_pops);
 		for(auto p : pop_range)
-			ws.w.population_s.pops[p].associated_army = army_tag();
+			ws.w.population_s.pops.set<pop::associated_army>(p, army_tag());
 		clear(ws.w.population_s.pop_arrays, a.backing_pops);
 
 		remove_item(ws.w.military_s.army_arrays, owner.armies, a.id);
@@ -417,7 +410,7 @@ namespace military {
 	void partial_destroy_army(world_state& ws, army& a) {
 		auto pop_range = get_range(ws.w.population_s.pop_arrays, a.backing_pops);
 		for(auto p : pop_range)
-			ws.w.population_s.pops[p].associated_army = army_tag();
+			ws.w.population_s.pops.set<pop::associated_army>(p, army_tag());
 		clear(ws.w.population_s.pop_arrays, a.backing_pops);
 
 		if(a.leader) {

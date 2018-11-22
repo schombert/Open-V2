@@ -295,21 +295,22 @@ namespace governments {
 			float en_qnty = 0.0f;
 			float lx_qnty = 0.0f;
 			
-			nations::for_each_pop(ws, *player, [&ws, &total_pop, &none_qnty, &ln_qnty, &en_qnty, &lx_qnty, t = this->type](population::pop const& p) {
-				if(auto id = p.id; p.type == t && ws.w.population_s.pops.is_valid_index(id)) {
+			nations::for_each_pop(ws, *player, [&ws, &total_pop, &none_qnty, &ln_qnty, &en_qnty, &lx_qnty, t = this->type](population::pop_tag p) {
+				if(auto id = p; ws.w.population_s.pops.get<pop::type>(p) == t && ws.w.population_s.pops.is_valid_index(id)) {
 					auto sz = float(ws.w.population_s.pop_demographics.get(id, population::total_population_tag));
 					total_pop += sz;
-					if(p.needs_satisfaction <= 1.0f) {
-						ln_qnty += p.needs_satisfaction * sz;
-						none_qnty += (1.0f - p.needs_satisfaction) * sz;
+					auto needs_sat = ws.w.population_s.pops.get<pop::needs_satisfaction>(p);
+					if(needs_sat <= 1.0f) {
+						ln_qnty += needs_sat * sz;
+						none_qnty += (1.0f - needs_sat) * sz;
 					} else {
-						if(p.needs_satisfaction <= 2.0f) {
-							en_qnty += (p.needs_satisfaction - 1.0f) * sz;
-							ln_qnty += (1.0f - (p.needs_satisfaction - 1.0f)) * sz;
+						if(needs_sat <= 2.0f) {
+							en_qnty += (needs_sat - 1.0f) * sz;
+							ln_qnty += (1.0f - (needs_sat - 1.0f)) * sz;
 						} else {
-							if(p.needs_satisfaction < 3.0f) {
-								lx_qnty += (p.needs_satisfaction - 2.0f) * sz;
-								en_qnty += (1.0f - (p.needs_satisfaction - 2.0f)) * sz;
+							if(needs_sat < 3.0f) {
+								lx_qnty += (needs_sat - 2.0f) * sz;
+								en_qnty += (1.0f - (needs_sat - 2.0f)) * sz;
 							} else {
 								lx_qnty += sz;
 							}

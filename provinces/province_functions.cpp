@@ -147,45 +147,46 @@ namespace provinces {
 
 			auto pop_range = get_range(ws.w.population_s.pop_arrays, container.get<province_state::pops>(prov_id));
 
-			Eigen::Map<Eigen::Matrix<int32_t, -1, 1>, Eigen::AlignmentType::Aligned32> province_partial_demo(ws.w.province_s.province_demographics.get_row(prov_id), vector_size);
-			Eigen::Map<Eigen::Matrix<int32_t, -1, 1>, Eigen::AlignmentType::Aligned32> province_full_demo(ws.w.province_s.province_demographics.get_row(prov_id), full_vector_size);
+			Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> province_partial_demo(ws.w.province_s.province_demographics.get_row(prov_id), vector_size);
+			Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> province_full_demo(ws.w.province_s.province_demographics.get_row(prov_id), full_vector_size);
 			
 			province_full_demo.setZero();
 
-			for(auto pop = pop_range.first; pop != pop_range.second; ++pop) {
-				Eigen::Map<Eigen::Matrix<int32_t, -1, 1>, Eigen::AlignmentType::Aligned32> pop_demo_source(ws.w.population_s.pop_demographics.get_row(*pop), vector_size);
+			for(auto p = pop_range.first; p != pop_range.second; ++p) {
+				Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> pop_demo_source(ws.w.population_s.pop_demographics.get_row(*p), vector_size);
 				province_partial_demo += pop_demo_source;
 
-				population::pop& this_pop = ws.w.population_s.pops.get(*pop);
+				auto ptype =  ws.w.population_s.pops.get<pop::type>(*p);
+				auto needs_satisfaction = ws.w.population_s.pops.get<pop::needs_satisfaction>(*p);
 
 				auto pop_size = pop_demo_source[to_index(population::total_population_tag)];
 
-				province_full_demo[to_index(population::to_demo_tag(ws, this_pop.culture))] += pop_size;
-				province_full_demo[to_index(population::to_demo_tag(ws, this_pop.religion))] += pop_size;
-				province_full_demo[to_index(population::to_demo_tag(ws, this_pop.type))] += pop_size;
-				province_full_demo[to_index(population::to_employment_demo_tag(ws, this_pop.type))] += pop_demo_source[to_index(population::total_employment_tag)];
+				province_full_demo[to_index(population::to_demo_tag(ws, ws.w.population_s.pops.get<pop::culture>(*p)))] += pop_size;
+				province_full_demo[to_index(population::to_demo_tag(ws, ws.w.population_s.pops.get<pop::religion>(*p)))] += pop_size;
+				province_full_demo[to_index(population::to_demo_tag(ws, ptype))] += pop_size;
+				province_full_demo[to_index(population::to_employment_demo_tag(ws, ptype))] += pop_demo_source[to_index(population::total_employment_tag)];
 
 
-				province_full_demo[to_index(cdt)] += int32_t(((uint64_t(this_pop.consciousness) + 1ui64) * uint64_t(pop_size)) >> 16ui64);
-				province_full_demo[to_index(ldt)] += int32_t(((uint64_t(this_pop.literacy) + 1ui64) * uint64_t(pop_size)) >> 16ui64);
+				province_full_demo[to_index(cdt)] += ws.w.population_s.pops.get<pop::consciousness>(*p) * pop_size;
+				province_full_demo[to_index(ldt)] += ws.w.population_s.pops.get<pop::literacy>(*p) * pop_size;
 
-				const int32_t weighted_militancy = int32_t(((uint64_t(this_pop.literacy) + 1ui64) * uint64_t(pop_size)) >> 16ui64);
+				const float weighted_militancy = ws.w.population_s.pops.get<pop::militancy>(*p) * pop_size;
 				province_full_demo[to_index(mdt)] += weighted_militancy;
 
-				const auto strata = ws.s.population_m.pop_types[this_pop.type].flags & population::pop_type::strata_mask;
+				const auto strata = ws.s.population_m.pop_types[ptype].flags & population::pop_type::strata_mask;
 				if(strata == population::pop_type::strata_poor) {
 					province_full_demo[to_index(pmpdt)] += weighted_militancy;
 					province_full_demo[to_index(ppdt)] += pop_size;
-					if(this_pop.needs_satisfaction < 1.0f) {
-						province_full_demo[to_index(plndt)] += int32_t(float(pop_size) * this_pop.needs_satisfaction);
+					if(needs_satisfaction < 1.0f) {
+						province_full_demo[to_index(plndt)] += float(pop_size) * needs_satisfaction;
 					} else {
 						province_full_demo[to_index(plndt)] += pop_size;
-						if(this_pop.needs_satisfaction < 2.0f) {
-							province_full_demo[to_index(pendt)] += int32_t(float(pop_size) * (this_pop.needs_satisfaction - 1.0f));
+						if(needs_satisfaction < 2.0f) {
+							province_full_demo[to_index(pendt)] += float(pop_size) * (needs_satisfaction - 1.0f);
 						} else {
 							province_full_demo[to_index(pendt)] += pop_size;
-							if(this_pop.needs_satisfaction < 3.0f) {
-								province_full_demo[to_index(pxndt)] += int32_t(float(pop_size) * (this_pop.needs_satisfaction - 2.0f));
+							if(needs_satisfaction < 3.0f) {
+								province_full_demo[to_index(pxndt)] += float(pop_size) * (needs_satisfaction - 2.0f);
 							} else {
 								province_full_demo[to_index(pxndt)] += pop_size;
 							}
@@ -194,34 +195,34 @@ namespace provinces {
 				} else if(strata == population::pop_type::strata_middle) {
 					province_full_demo[to_index(mmpdt)] += weighted_militancy;
 					province_full_demo[to_index(mpdt)] += pop_size;
-					if(this_pop.needs_satisfaction < 1.0f) {
-						province_full_demo[to_index(mlndt)] += int32_t(float(pop_size) * this_pop.needs_satisfaction);
+					if(needs_satisfaction < 1.0f) {
+						province_full_demo[to_index(mlndt)] += float(pop_size) * needs_satisfaction;
 					} else {
 						province_full_demo[to_index(mlndt)] += pop_size;
-						if(this_pop.needs_satisfaction < 2.0f) {
-							province_full_demo[to_index(mendt)] += int32_t(float(pop_size) * (this_pop.needs_satisfaction - 1.0f));
+						if(needs_satisfaction < 2.0f) {
+							province_full_demo[to_index(mendt)] += float(pop_size) * (needs_satisfaction - 1.0f);
 						} else {
 							province_full_demo[to_index(mendt)] += pop_size;
-							if(this_pop.needs_satisfaction < 3.0f) {
-								province_full_demo[to_index(mxndt)] += int32_t(float(pop_size) * (this_pop.needs_satisfaction - 2.0f));
+							if(needs_satisfaction < 3.0f) {
+								province_full_demo[to_index(mxndt)] += float(pop_size) * (needs_satisfaction - 2.0f);
 							} else {
 								province_full_demo[to_index(mxndt)] += pop_size;
 							}
 						}
 					}
-				} else if(strata == population::pop_type::strata_rich) {
+				} else /*if(strata == population::pop_type::strata_rich)*/ {
 					province_full_demo[to_index(rmpdt)] += weighted_militancy;
 					province_full_demo[to_index(rpdt)] += pop_size;
-					if(this_pop.needs_satisfaction < 1.0f) {
-						province_full_demo[to_index(rlndt)] += int32_t(float(pop_size) * this_pop.needs_satisfaction);
+					if(needs_satisfaction < 1.0f) {
+						province_full_demo[to_index(rlndt)] += float(pop_size) * needs_satisfaction;
 					} else {
 						province_full_demo[to_index(rlndt)] += pop_size;
-						if(this_pop.needs_satisfaction < 2.0f) {
-							province_full_demo[to_index(rendt)] += int32_t(float(pop_size) * (this_pop.needs_satisfaction - 1.0f));
+						if(needs_satisfaction < 2.0f) {
+							province_full_demo[to_index(rendt)] += float(pop_size) * (needs_satisfaction - 1.0f);
 						} else {
 							province_full_demo[to_index(rendt)] += pop_size;
-							if(this_pop.needs_satisfaction < 3.0f) {
-								province_full_demo[to_index(rxndt)] += int32_t(float(pop_size) * (this_pop.needs_satisfaction - 2.0f));
+							if(needs_satisfaction < 3.0f) {
+								province_full_demo[to_index(rxndt)] += float(pop_size) * (needs_satisfaction - 2.0f);
 							} else {
 								province_full_demo[to_index(rxndt)] += pop_size;
 							}

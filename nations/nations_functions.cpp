@@ -12,36 +12,39 @@
 #include "economy\\economy_functions.h"
 
 namespace nations {
-	nations::nation* state_owner(world_state& ws, nations::state_tag s) {
-		if(auto owner = ws.w.nation_s.states.get<state::owner>(s); is_valid_index(owner))
-			return &ws.w.nation_s.nations[owner];
-		else
-			return nullptr;
+	nations::country_tag state_owner(world_state& ws, nations::state_tag s) {
+		return ws.w.nation_s.states.get<state::owner>(s);
 	}
-	nations::nation const* state_owner(world_state const& ws, nations::state_tag s) {
-		if(auto owner = ws.w.nation_s.states.get<state::owner>(s); is_valid_index(owner))
-			return &ws.w.nation_s.nations[owner];
-		else
-			return nullptr;
-	}
-	void reset_nation(world_state& ws, nations::nation& new_nation) {
-		if(is_valid_index(new_nation.tag))
-			governments::get_best_parties_at_date(ws.w.nation_s.active_parties.get_row(new_nation.id), new_nation.tag, ws.w.current_date, ws.s);
+	void reset_nation(world_state& ws, nations::country_tag new_nation) {
+		if(auto t = ws.w.nation_s.nations.get<nation::tag>(new_nation); is_valid_index(t))
+			governments::get_best_parties_at_date(ws.w.nation_s.active_parties.get_row(new_nation), t, ws.w.current_date, ws.s);
 	
-		governments::reset_upper_house(ws, new_nation.id);
-		issues::reset_active_issues(ws, new_nation.id);
+		governments::reset_upper_house(ws, new_nation);
+		issues::reset_active_issues(ws, new_nation);
 		governments::update_current_rules(ws, new_nation);
-		military::reset_unit_stats(ws, new_nation.id);
+		military::reset_unit_stats(ws, new_nation);
 
 		Eigen::Map<Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::Aligned32>(
-			ws.w.nation_s.national_stockpiles.get_row(new_nation.id),
+			ws.w.nation_s.national_stockpiles.get_row(new_nation),
 			ws.s.economy_m.aligned_32_goods_count) =
 			Eigen::Matrix<economy::goods_qnty_type, -1, 1>::Zero(ws.s.economy_m.aligned_32_goods_count);
 
 		Eigen::Map<Eigen::Matrix<float, -1, 1>>(
-			ws.w.nation_s.national_variables.get_row(new_nation.id),
+			ws.w.nation_s.national_variables.get_row(new_nation),
 			ws.s.variables_m.count_national_variables) =
 			Eigen::Matrix<float, -1, 1>::Zero(ws.s.variables_m.count_national_variables);
+
+		ws.w.nation_s.nations.set<nation::rich_tax>(new_nation, 10i8);
+		ws.w.nation_s.nations.set<nation::middle_tax>(new_nation, 10i8);
+		ws.w.nation_s.nations.set<nation::poor_tax>(new_nation, 10i8);
+		ws.w.nation_s.nations.set<nation::social_spending>(new_nation, 10i8);
+		ws.w.nation_s.nations.set<nation::administrative_spending>(new_nation, 10i8);
+		ws.w.nation_s.nations.set<nation::education_spending>(new_nation, 10i8);
+		ws.w.nation_s.nations.set<nation::military_spending>(new_nation, 10i8);
+		ws.w.nation_s.nations.set<nation::tarrifs>(new_nation, 0i8);
+		ws.w.nation_s.nations.set<nation::army_stockpile_spending>(new_nation, 10i8);
+		ws.w.nation_s.nations.set<nation::navy_stockpile_spending>(new_nation, 10i8);
+		ws.w.nation_s.nations.set<nation::projects_stockpile_spending>(new_nation, 10i8);
 
 		technologies::reset_technologies(ws, new_nation);
 	}
@@ -498,14 +501,14 @@ namespace nations {
 			const auto state_range = get_range(ws.w.nation_s.state_arrays, n.member_states);
 
 			for(auto s = state_range.first; s != state_range.second; ++s) {
-				Eigen::Map<Eigen::Matrix<int32_t, -1, 1>, Eigen::AlignmentType::Aligned32> state_demo(ws.w.nation_s.state_demographics.get_row(s->state), full_vector_size);
+				Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> state_demo(ws.w.nation_s.state_demographics.get_row(s->state), full_vector_size);
 
 				state_demo.setZero();
 
 				const auto p_in_region_range = ws.s.province_m.states_to_province_index.get_row(s->region_id);
 				for(auto p = p_in_region_range.first; p != p_in_region_range.second; ++p) {
 					if(ws.w.province_s.province_state_container.get<province_state::owner>(*p) == n.id) {
-						Eigen::Map<Eigen::Matrix<int32_t, -1, 1>, Eigen::AlignmentType::Aligned32> province_demo(ws.w.province_s.province_demographics.get_row(*p), full_vector_size);
+						Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> province_demo(ws.w.province_s.province_demographics.get_row(*p), full_vector_size);
 						state_demo += province_demo;
 					}
 				}
@@ -529,9 +532,9 @@ namespace nations {
 				}
 
 				if(!nations::is_colonial_or_protectorate(ws, s->state))
-					nation_demo += state_demo.cast<float>();
+					nation_demo += state_demo;
 				else
-					nation_c_demo += state_demo.cast<float>();
+					nation_c_demo += state_demo;
 			}
 
 			if(nation_demo[to_index(population::total_population_tag)] != 0) {
@@ -569,13 +572,13 @@ namespace nations {
 			if(is_valid_index(tag_capital) && ws.w.province_s.province_state_container.get<province_state::owner>(tag_capital) == owner.id)
 				return tag_capital;
 
-			int32_t population = 0;
+			float population = 0;
 			provinces::province_tag best_province;
 
 			const auto core_range = get_range(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[owner.tag].core_provinces);
 			for(auto c = core_range.first; c != core_range.second; ++c) {
 				if(ws.w.province_s.province_state_container.get<province_state::owner>(*c) == owner.id) {
-					int32_t ppop = ws.w.province_s.province_demographics.get(*c, population::total_population_tag);
+					float ppop = ws.w.province_s.province_demographics.get(*c, population::total_population_tag);
 					if(ppop > population) {
 						best_province = *c;
 						population = ppop;
@@ -586,12 +589,12 @@ namespace nations {
 				return best_province;
 		}
 		
-		int32_t population = 0;
+		float population = 0;
 		provinces::province_tag best_province;
 
 		const auto owned_range = get_range(ws.w.province_s.province_arrays, owner.owned_provinces);
 		for(auto c = owned_range.first; c != owned_range.second; ++c) {
-			int32_t ppop = ws.w.province_s.province_demographics.get(*c, population::total_population_tag);
+			float ppop = ws.w.province_s.province_demographics.get(*c, population::total_population_tag);
 			if(ppop > population) {
 				best_province = *c;
 				population = ppop;
@@ -1213,8 +1216,8 @@ namespace nations {
 	}
 	void unmake_slave_state(world_state& ws, nations::state_tag this_state) {
 		ws.w.nation_s.states.set<state::is_slave_state>(this_state, false);
-		for_each_pop(ws, this_state, [&ws](population::pop& this_pop) {
-			if(this_pop.type == ws.s.population_m.slave)
+		for_each_pop(ws, this_state, [&ws](population::pop_tag this_pop) {
+			if(ws.w.population_s.pops.get<pop::type>(this_pop) == ws.s.population_m.slave)
 				population::free_slave(ws, this_pop);
 		});
 	}

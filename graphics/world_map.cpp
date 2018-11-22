@@ -983,20 +983,21 @@ namespace graphics {
 				auto price_range = economy::global_price_range(ws, g);
 
 				for(int32_t i = 0; i < ws.w.province_s.province_state_container.size(); ++i) {
-					if(auto si = provinces::province_state(ws, provinces::province_tag(provinces::province_tag::value_base_t(i))); si && si->owner) {
-						if(auto sid = si->id; ws.w.nation_s.states.is_valid_index(sid)) {
-							auto local_prices = economy::state_current_prices(ws, sid);
+					if(auto sid = provinces::province_state(ws, provinces::province_tag(provinces::province_tag::value_base_t(i)));
+						bool(sid) && bool(ws.w.nation_s.states.get<state::owner>(sid))) {
 
-							auto fraction = (local_prices[to_index(g)] - price_range.minimum + 0.01) / (price_range.maximum - price_range.minimum + 0.01);
-							pcolors[i * 3 + 0] = uint8_t((1.0f - fraction) * 255.0f);
-							pcolors[i * 3 + 1] = uint8_t(fraction * 255.0f);
-							pcolors[i * 3 + 2] = uint8_t(100);
-							scolors[i * 3 + 0] = uint8_t((1.0f - fraction) * 255.0f);
-							scolors[i * 3 + 1] = uint8_t(fraction * 255.0f);
-							scolors[i * 3 + 2] = uint8_t(100);
+						
+						auto local_prices = economy::state_current_prices(ws, sid);
 
-							continue;
-						}
+						auto fraction = (local_prices[to_index(g)] - price_range.minimum + 0.01) / (price_range.maximum - price_range.minimum + 0.01);
+						pcolors[i * 3 + 0] = uint8_t((1.0f - fraction) * 255.0f);
+						pcolors[i * 3 + 1] = uint8_t(fraction * 255.0f);
+						pcolors[i * 3 + 2] = uint8_t(100);
+						scolors[i * 3 + 0] = uint8_t((1.0f - fraction) * 255.0f);
+						scolors[i * 3 + 1] = uint8_t(fraction * 255.0f);
+						scolors[i * 3 + 2] = uint8_t(100);
+
+						continue;
 					}
 
 					default_color_province(ws, provinces::province_tag(provinces::province_tag::value_base_t(i)),
@@ -1014,22 +1015,22 @@ namespace graphics {
 
 						
 						for(int32_t i = 0; i < ws.w.province_s.province_state_container.size(); ++i) {
-							if(auto si = provinces::province_state(ws, provinces::province_tag(provinces::province_tag::value_base_t(i))); si && si->owner) {
-								if(auto sid = si->id; ws.w.nation_s.states.is_valid_index(sid) && to_index(sid) < count_purchases) {
-									auto amount = purchases_data_range.first[to_index(sid)];
+							if(auto sid = provinces::province_state(ws, provinces::province_tag(provinces::province_tag::value_base_t(i)));
+								bool(sid) && bool(ws.w.nation_s.states.get<state::owner>(sid)) && to_index(sid) < count_purchases) {
 
-									auto fraction = amount / (max_purchases + 0.000001f);
-									if(fraction < 0)
-										std::abort();
-									pcolors[i * 3 + 0] = uint8_t(fraction * 205.0f + 50.0f);
-									pcolors[i * 3 + 1] = uint8_t(fraction * 205.0f + 50.0f);
-									pcolors[i * 3 + 2] = uint8_t(fraction * 205.0f + 50.0f);
-									scolors[i * 3 + 0] = uint8_t(fraction * 205.0f + 50.0f);
-									scolors[i * 3 + 1] = uint8_t(fraction * 205.0f + 50.0f);
-									scolors[i * 3 + 2] = uint8_t(fraction * 205.0f + 50.0f);
+								auto amount = purchases_data_range.first[to_index(sid)];
 
-									continue;
-								}
+								auto fraction = amount / (max_purchases + 0.000001f);
+								if(fraction < 0)
+									std::abort();
+								pcolors[i * 3 + 0] = uint8_t(fraction * 205.0f + 50.0f);
+								pcolors[i * 3 + 1] = uint8_t(fraction * 205.0f + 50.0f);
+								pcolors[i * 3 + 2] = uint8_t(fraction * 205.0f + 50.0f);
+								scolors[i * 3 + 0] = uint8_t(fraction * 205.0f + 50.0f);
+								scolors[i * 3 + 1] = uint8_t(fraction * 205.0f + 50.0f);
+								scolors[i * 3 + 2] = uint8_t(fraction * 205.0f + 50.0f);
+
+								continue;
 							}
 
 							default_color_province(ws, provinces::province_tag(provinces::province_tag::value_base_t(i)),
@@ -1040,28 +1041,27 @@ namespace graphics {
 				}
 			} else if(is_valid_index(g) && g != economy::money_good && ws.w.map_view.mode == current_state::map_mode::production) {
 				economy::goods_qnty_type max_production = 0.0001;
-				ws.w.nation_s.states.for_each([&](nations::state_instance const& si) {
-					if(auto id = si.id; ws.w.nation_s.states.is_valid_index(id))
-						max_production = std::max(max_production, economy::state_current_production(ws, id)[to_index(g)]);
+				ws.w.nation_s.states.for_each([&](nations::state_tag id) {
+					max_production = std::max(max_production, economy::state_current_production(ws, id)[to_index(g)]);
 				});
 
 				
 
 				for(int32_t i = 0; i < ws.w.province_s.province_state_container.size(); ++i) {
-					if(auto si = provinces::province_state(ws, provinces::province_tag(provinces::province_tag::value_base_t(i))); si && si->owner) {
-						if(auto sid = si->id; ws.w.nation_s.states.is_valid_index(sid)) {
-							auto fraction = economy::state_current_production(ws, sid)[to_index(g)] / max_production;
-							if(fraction < 0)
-								std::abort();
-							pcolors[i * 3 + 0] = uint8_t(fraction * 205.0f + 50.0f);
-							pcolors[i * 3 + 1] = uint8_t(fraction * 205.0f + 50.0f);
-							pcolors[i * 3 + 2] = uint8_t(fraction * 205.0f + 50.0f);
-							scolors[i * 3 + 0] = uint8_t(fraction * 205.0f + 50.0f);
-							scolors[i * 3 + 1] = uint8_t(fraction * 205.0f + 50.0f);
-							scolors[i * 3 + 2] = uint8_t(fraction * 205.0f + 50.0f);
+					if(auto sid = provinces::province_state(ws, provinces::province_tag(provinces::province_tag::value_base_t(i)));
+						bool(sid) && bool(ws.w.nation_s.states.get<state::owner>(sid))) {
 
-							continue;
-						}
+						auto fraction = economy::state_current_production(ws, sid)[to_index(g)] / max_production;
+						if(fraction < 0)
+							std::abort();
+						pcolors[i * 3 + 0] = uint8_t(fraction * 205.0f + 50.0f);
+						pcolors[i * 3 + 1] = uint8_t(fraction * 205.0f + 50.0f);
+						pcolors[i * 3 + 2] = uint8_t(fraction * 205.0f + 50.0f);
+						scolors[i * 3 + 0] = uint8_t(fraction * 205.0f + 50.0f);
+						scolors[i * 3 + 1] = uint8_t(fraction * 205.0f + 50.0f);
+						scolors[i * 3 + 2] = uint8_t(fraction * 205.0f + 50.0f);
+
+						continue;
 					}
 
 					default_color_province(ws, provinces::province_tag(provinces::province_tag::value_base_t(i)),

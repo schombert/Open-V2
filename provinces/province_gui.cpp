@@ -463,7 +463,7 @@ namespace provinces {
 	}
 
 	void total_population_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		int32_t value = 0;
+		float value = 0;
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
 			auto demo_row = ws.w.province_s.province_demographics.get_row(selected_prov);
@@ -588,7 +588,7 @@ namespace provinces {
 			char16_t formatted_value[64];
 
 			auto& worker_data = ws.w.province_s.province_state_container.get<province_state::rgo_worker_data>(selected_prov);
-			int32_t worker_sum = std::reduce(std::begin(worker_data.worker_populations), std::end(worker_data.worker_populations), 0, std::plus<>());
+			auto worker_sum = std::reduce(std::begin(worker_data.worker_populations), std::end(worker_data.worker_populations), 0.0f, std::plus<>());
 			put_value_in_buffer(formatted_value, display_type::integer, worker_sum);
 
 			ui::text_chunk_to_instances(
@@ -611,7 +611,7 @@ namespace provinces {
 			char16_t formatted_value[64];
 
 			auto& worker_data = ws.w.province_s.province_state_container.get<province_state::rgo_worker_data>(selected_prov);
-			int32_t worker_sum = std::reduce(std::begin(worker_data.worker_populations), std::end(worker_data.worker_populations), 0, std::plus<>());
+			auto worker_sum = std::reduce(std::begin(worker_data.worker_populations), std::end(worker_data.worker_populations), 0.0f, std::plus<>());
 
 			put_value_in_buffer(formatted_value, display_type::percent, float(worker_sum) / std::max(1.0f, float(economy::rgo_max_employment(ws, selected_prov))));
 
@@ -633,7 +633,7 @@ namespace provinces {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
 			auto& worker_data = ws.w.province_s.province_state_container.get<province_state::rgo_worker_data>(selected_prov);
-			int32_t worker_sum = std::reduce(std::begin(worker_data.worker_populations), std::end(worker_data.worker_populations), 0, std::plus<>());
+			auto worker_sum = std::reduce(std::begin(worker_data.worker_populations), std::end(worker_data.worker_populations), 0.0f, std::plus<>());
 
 			float ratio = float(worker_sum) / std::max(1.0f, float(economy::rgo_max_employment(ws, selected_prov)));
 

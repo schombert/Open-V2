@@ -224,7 +224,7 @@ namespace triggers {
 		}
 		ui::xy_pair tag_type_this_pop_effect(uint32_t ui_id, const_parameter this_slot, world_state& ws,
 			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
-			return tag_type_this_nation_effect(ui_id, bool(this_slot.pop) ? population::get_pop_owner(ws, *this_slot.pop) : nullptr, ws, container, cursor_in, lm, fmt);
+			return tag_type_this_nation_effect(ui_id, bool(this_slot.pop) ? population::get_pop_owner(ws, this_slot.pop) : nullptr, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair tag_type_from_nation_effect(uint32_t ui_id, const_parameter from_slot, world_state& ws,
 			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
@@ -1016,7 +1016,7 @@ namespace triggers {
 			lm.finish_current_line();
 
 			if(show_condition && bool(primary_slot.pop)) {
-				auto location = primary_slot.pop->location;
+				auto location = ws.w.population_s.pops.get<pop::location>(primary_slot.pop);
 				if(is_valid_index(location))
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, location, this_slot, from_slot, rebel_slot, gen, true);
 				else
@@ -1037,7 +1037,7 @@ namespace triggers {
 			lm.finish_current_line();
 
 			if(show_condition && primary_slot.pop) {
-				auto owner = population::get_pop_owner(ws, *primary_slot.pop);
+				auto owner = population::get_pop_owner(ws, primary_slot.pop);
 				if(owner)
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, owner, this_slot, from_slot, rebel_slot, gen, true);
 				else
@@ -1760,7 +1760,7 @@ namespace triggers {
 		}
 		ui::xy_pair ef_primary_culture_this_pop(EFFECT_DISPLAY_PARAMS) {
 			return ef_primary_culture_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				bool(this_slot.pop) ? population::get_pop_owner(ws, *this_slot.pop) : nullptr, nullptr, nullptr, gen);
+				bool(this_slot.pop) ? population::get_pop_owner(ws, this_slot.pop) : nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_primary_culture_from_nation(EFFECT_DISPLAY_PARAMS) {
 			if(from_slot.nation) {
@@ -2629,7 +2629,7 @@ namespace triggers {
 		}
 		ui::xy_pair ef_assimilate_pop(EFFECT_DISPLAY_PARAMS) {
 			if(primary_slot.pop) {
-				if(auto owner = population::get_pop_owner(ws, *primary_slot.pop); owner) {
+				if(auto owner = population::get_pop_owner(ws, primary_slot.pop); owner) {
 					if(auto c = owner->primary_culture; is_valid_index(c)) {
 						return fill_text_effect(scenario::fixed_ui::assimilate_pop, ws.s.culture_m.culture_container[c].name,
 							ws, container, cursor_in, lm, fmt);
@@ -2943,7 +2943,7 @@ namespace triggers {
 		}
 		ui::xy_pair ef_casus_belli_this_pop(EFFECT_DISPLAY_PARAMS) {
 			return ef_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(this_slot.pop) ? population::get_pop_owner(ws, *this_slot.pop) : nullptr, nullptr, nullptr, gen);
+				nullptr, bool(this_slot.pop) ? population::get_pop_owner(ws, this_slot.pop) : nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_casus_belli_from_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
@@ -3081,7 +3081,7 @@ namespace triggers {
 		}
 		ui::xy_pair ef_add_casus_belli_this_pop(EFFECT_DISPLAY_PARAMS) {
 			return ef_add_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(this_slot.pop) ? population::get_pop_owner(ws, *this_slot.pop) : nullptr, nullptr, nullptr, gen);
+				nullptr, bool(this_slot.pop) ? population::get_pop_owner(ws, this_slot.pop) : nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_add_casus_belli_from_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
@@ -3201,7 +3201,7 @@ namespace triggers {
 		}
 		ui::xy_pair ef_remove_casus_belli_this_pop(EFFECT_DISPLAY_PARAMS) {
 			return ef_remove_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(this_slot.pop) ? population::get_pop_owner(ws, *this_slot.pop) : nullptr, nullptr, nullptr, gen);
+				nullptr, bool(this_slot.pop) ? population::get_pop_owner(ws, this_slot.pop) : nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_remove_casus_belli_from_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
@@ -3315,7 +3315,7 @@ namespace triggers {
 		}
 		ui::xy_pair ef_this_remove_casus_belli_this_pop(EFFECT_DISPLAY_PARAMS) {
 			return ef_this_remove_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(this_slot.pop) ? population::get_pop_owner(ws, *this_slot.pop) : nullptr, nullptr, nullptr, gen);
+				nullptr, bool(this_slot.pop) ? population::get_pop_owner(ws, this_slot.pop) : nullptr, nullptr, nullptr, gen);
 		}
 		ui::xy_pair ef_this_remove_casus_belli_from_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;

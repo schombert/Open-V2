@@ -1163,6 +1163,15 @@ void aligned_allocator_32<T>::deallocate(T* p, size_t) {
 	_aligned_free(p);
 }
 
+template<typename T>
+T* aligned_allocator_64<T>::allocate(size_t n) {
+	return (T*)_aligned_malloc(n * sizeof(T), 64);
+}
+
+template<typename T>
+void aligned_allocator_64<T>::deallocate(T* p, size_t) {
+	_aligned_free(p);
+}
 
 
 template<typename T, uint32_t block, uint32_t index_sz>

@@ -11,10 +11,6 @@ namespace modifiers {
 	class modifiers_manager;
 }
 
-namespace nations {
-	struct nation;
-}
-
 namespace population {
 	struct rebel_faction;
 }
@@ -186,7 +182,7 @@ namespace provinces {
 	public:
 		province_state::container province_state_container;
 		tagged_fixed_2dvector<float, province_tag, ideologies::ideology_tag> party_loyalty;
-		tagged_fixed_blocked_2dvector<int32_t, province_tag, population::demo_tag, aligned_allocator_32<int32_t>> province_demographics;
+		tagged_fixed_blocked_2dvector<float, province_tag, population::demo_tag, aligned_allocator_32<int32_t>> province_demographics;
 
 		std::vector<uint8_t> is_canal_enabled;
 

@@ -576,7 +576,7 @@ TEST(provinces_test, single_province_read_state) {
 		EXPECT_EQ(35i16, ws.w.province_s.province_state_container.get<province_state::base_life_rating>(ps));
 		EXPECT_EQ(tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "tobacco")), ws.w.province_s.province_state_container.get<province_state::rgo_production>(ps));
 
-		EXPECT_NE(0, provinces::province_state(ws, ps)->flags & nations::state_instance::is_colonial);
+		EXPECT_NE(false, ws.w.nation_s.states.get<state::is_colonial>(provinces::province_state(ws, ps)));
 		EXPECT_EQ(true, province_has_core(ws.w, province_tag(10ui16), usa_tag));
 		EXPECT_EQ(false, province_has_core(ws.w, province_tag(10ui16), csa_tag));
 
@@ -596,18 +596,18 @@ TEST(provinces_test, single_province_read_state) {
 		EXPECT_EQ(35i16, ws.w.province_s.province_state_container.get<province_state::base_life_rating>(ps));
 		EXPECT_EQ(tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "tobacco")), ws.w.province_s.province_state_container.get<province_state::rgo_production>(ps));
 		EXPECT_EQ(tag_from_text(ws.s.modifiers_m.named_provincial_modifiers_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "ocean")), ws.w.province_s.province_state_container.get<province_state::terrain>(ps));
-		EXPECT_EQ(provinces::province_state(ws, ps)->factories[0].level, 1ui16);
-		EXPECT_EQ(provinces::province_state(ws, ps)->factories[0].type->output_good,
+		EXPECT_EQ(ws.w.nation_s.states.get<state::factories>(provinces::province_state(ws, ps))[0].level, 1ui16);
+		EXPECT_EQ(ws.w.nation_s.states.get<state::factories>(provinces::province_state(ws, ps))[0].type->output_good,
 			tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "steel")));
-		EXPECT_EQ(provinces::province_state(ws, ps)->factories[1].level, 1ui16);
-		EXPECT_EQ(provinces::province_state(ws, ps)->factories[1].type->output_good,
+		EXPECT_EQ(ws.w.nation_s.states.get<state::factories>(provinces::province_state(ws, ps))[1].level, 1ui16);
+		EXPECT_EQ(ws.w.nation_s.states.get<state::factories>(provinces::province_state(ws, ps))[1].type->output_good,
 			tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "steamer_convoy")));
-		EXPECT_EQ(provinces::province_state(ws, ps)->factories[2].level, 0ui16);
-		EXPECT_EQ(provinces::province_state(ws, ps)->factories[2].type, nullptr);
+		EXPECT_EQ(ws.w.nation_s.states.get<state::factories>(provinces::province_state(ws, ps))[2].level, 0ui16);
+		EXPECT_EQ(ws.w.nation_s.states.get<state::factories>(provinces::province_state(ws, ps))[2].type, nullptr);
 
 		EXPECT_EQ(ws.w.province_s.party_loyalty.get(province_tag(11ui16), tag_from_text(ws.s.ideologies_m.named_ideology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "liberal"))), 10.5f);
 
-		EXPECT_EQ(0, provinces::province_state(ws, ps)->flags & nations::state_instance::is_colonial);
+		EXPECT_EQ(false, ws.w.nation_s.states.get<state::is_colonial>(provinces::province_state(ws, ps)));
 		EXPECT_EQ(false, province_has_core(ws.w, province_tag(11ui16), usa_tag));
 		EXPECT_EQ(true, province_has_core(ws.w, province_tag(11ui16), csa_tag));
 	}
