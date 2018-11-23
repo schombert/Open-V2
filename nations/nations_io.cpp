@@ -175,15 +175,15 @@ namespace nations {
 
 		void set_vassal(relation_parse_obj const& r) {
 			if(r.start_date <= filter_date && filter_date < r.end_date && is_valid_index(r.first) && is_valid_index(r.second))
-				silent_make_vassal(ws, *make_nation_for_tag(ws, r.first), *make_nation_for_tag(ws, r.second));
+				simple_make_vassal(ws, make_nation_for_tag(ws, r.first), make_nation_for_tag(ws, r.second));
 		}
 		void set_substate(relation_parse_obj const& r) {
 			if(r.start_date <= filter_date && filter_date < r.end_date && is_valid_index(r.first) && is_valid_index(r.second))
-				silent_make_substate(ws, *make_nation_for_tag(ws, r.first), *make_nation_for_tag(ws, r.second));
+				simple_make_substate(ws, make_nation_for_tag(ws, r.first), make_nation_for_tag(ws, r.second));
 		}
 		void set_alliance(relation_parse_obj const& r) {
 			if(r.start_date <= filter_date && filter_date < r.end_date && is_valid_index(r.first) && is_valid_index(r.second))
-				silent_make_alliance(ws, *make_nation_for_tag(ws, r.first), *make_nation_for_tag(ws, r.second));
+				silent_make_alliance(ws, make_nation_for_tag(ws, r.first), make_nation_for_tag(ws, r.second));
 		}
 	};
 
@@ -367,26 +367,27 @@ namespace nations {
 		return std::pair<token_and_type, nation_parse_object>(t, std::move(p));
 	}
 
-	inline void add_data_to_nation(world_state& ws, nation& target_nation, cultures::national_tag_state& nat_tag, cultures::national_tag nat_tag_id, directory const& units_dir, nation_parse_object& npo) {
+	inline void add_data_to_nation(world_state& ws, country_tag target_nation, cultures::national_tag_state& nat_tag, cultures::national_tag nat_tag_id, directory const& units_dir, nation_parse_object& npo) {
 		nat_tag.capital = npo.capital;
-		target_nation.current_government = npo.gov;
+		ws.w.nation_s.nations.set<nation::current_government>(target_nation, npo.gov);
 		
-		target_nation.primary_culture = npo.primary_culture;
+		ws.w.nation_s.nations.set<nation::primary_culture>(target_nation, npo.primary_culture);
+
 		for(auto c : npo.accepted_cultures)
-			add_item(ws.w.culture_s.culture_arrays, target_nation.accepted_cultures, c);
-		target_nation.national_religion = npo.religion;
+			add_item(ws.w.culture_s.culture_arrays, ws.w.nation_s.nations.get<nation::accepted_cultures>(target_nation), c);
+		ws.w.nation_s.nations.set<nation::national_religion>(target_nation, npo.religion);
 		for(auto f : npo.set_flags)
-			add_item(ws.w.variable_s.national_flags_arrays, target_nation.national_flags, f);
+			add_item(ws.w.variable_s.national_flags_arrays, ws.w.nation_s.nations.get<nation::national_flags>(target_nation), f);
 		for(auto f : npo.global_flags)
 			ws.w.variable_s.global_variables[f] = 1.0f;
 		if(npo.upper_house.size() != 0) {
-			auto uh_row = ws.w.nation_s.upper_house.get_row(target_nation.id);
+			auto uh_row = ws.w.nation_s.upper_house.get_row(target_nation);
 			for(uint32_t i = 0; i < ws.s.ideologies_m.ideologies_count; ++i)
 				uh_row[i] = uint8_t(npo.upper_house[i]);
 		}
-		target_nation.last_election = npo.last_election;
+		ws.w.nation_s.nations.set<nation::last_election>(target_nation, npo.last_election);
 
-		auto owned_provs_range = get_range(ws.w.province_s.province_arrays, target_nation.owned_provinces);
+		auto owned_provs_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(target_nation));
 		for(auto i = owned_provs_range.first; i != owned_provs_range.second; ++i) {
 			auto pops_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(*i));
 			for(auto j = pops_range.first; j < pops_range.second; ++j) {
@@ -405,31 +406,31 @@ namespace nations {
 			}
 		}
 		if(npo.plurality)
-			target_nation.plurality = *npo.plurality / 100.0f;
+			ws.w.nation_s.nations.set<nation::plurality>(target_nation, *npo.plurality / 100.0f);
 		if(npo.prestige)
-			target_nation.base_prestige = *npo.prestige;
+			ws.w.nation_s.nations.set<nation::base_prestige>(target_nation, *npo.prestige);
 		if(npo.civilized && *npo.civilized)
-			target_nation.flags |= nation::is_civilized;
+			ws.w.nation_s.nations.set<nation::is_civilized>(target_nation, true);
 		if(npo.is_releasbale_vassal)
 			nat_tag.is_not_releasable = !(*npo.is_releasbale_vassal);
-		target_nation.national_value = npo.nationalvalue;
-		target_nation.tech_school = npo.techschool;
-		target_nation.current_government = npo.gov;
+		ws.w.nation_s.nations.set<nation::national_value>(target_nation, npo.nationalvalue);
+		ws.w.nation_s.nations.set<nation::tech_school>(target_nation, npo.techschool);
+		ws.w.nation_s.nations.set<nation::current_government>(target_nation, npo.gov);
 
-		target_nation.current_capital = npo.capital;
+		ws.w.nation_s.nations.set<nation::current_capital>(target_nation, npo.capital);
 		for(auto& ip : npo.investment) {
 			auto holding_nation = make_nation_for_tag(ws, ip.first);
-			set_foreign_investment(ws, target_nation, holding_nation->id, static_cast<float>(ip.second));
+			set_foreign_investment(ws, target_nation, holding_nation, static_cast<float>(ip.second));
 		}
 
 		for(auto& ip : npo.govt_flags)
 			ws.w.culture_s.country_flags_by_government.get(nat_tag_id, ip.first) = ws.w.culture_s.country_flags_by_government.get(nat_tag_id, ip.second);
 
-		auto tech_row = ws.w.nation_s.active_technologies.get_row(target_nation.id);
+		auto tech_row = ws.w.nation_s.active_technologies.get_row(target_nation);
 		for(uint32_t i = 0; i < npo.tech_bit_vector.size(); ++i)
 			tech_row[i] = npo.tech_bit_vector[i];
 
-		auto issues_row = ws.w.nation_s.active_issue_options.get_row(target_nation.id);
+		auto issues_row = ws.w.nation_s.active_issue_options.get_row(target_nation);
 		for(uint32_t i = 0; i < ws.s.issues_m.issues_container.size(); ++i)
 			issues_row[i] = npo.set_options[i];
 
@@ -645,11 +646,11 @@ namespace nations {
 		parse_pdx_file(parse_results, parse_data.get(), parse_data.get() + sz);
 
 		if(parse_results.size() != 0) {
-			nation* this_nation = make_nation_for_tag(ws, nat_tag_id);
+			nations::country_tag this_nation = make_nation_for_tag(ws, nat_tag_id);
 			auto npo = parse_object<nation_parse_object, nation_file>(parse_results.data(), parse_results.data() + parse_results.size(), ws, target_date);
-			add_data_to_nation(ws, *this_nation, ws.w.culture_s.national_tags_state[nat_tag_id], nat_tag_id, units_dir, npo);
+			add_data_to_nation(ws, this_nation, ws.w.culture_s.national_tags_state[nat_tag_id], nat_tag_id, units_dir, npo);
 			for(auto d : npo.decisions)
-				decisions.emplace_back(this_nation->id, d);
+				decisions.emplace_back(this_nation, d);
 		}
 	}
 
@@ -702,9 +703,9 @@ namespace nations {
 	void set_default_tech_school(world_state & ws) {
 		auto mod_thandle = text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "traditional_academic");
 		auto nmod = ws.s.modifiers_m.named_national_modifiers_index[mod_thandle];
-		ws.w.nation_s.nations.for_each([nmod](nations::nation& n) {
-			if(!is_valid_index(n.tech_school))
-				n.tech_school = nmod;
+		ws.w.nation_s.nations.for_each([&ws, nmod](nations::country_tag n) {
+			if(!is_valid_index(ws.w.nation_s.nations.get<nation::tech_school>(n)))
+				ws.w.nation_s.nations.set<nation::tech_school>(n, nmod);
 		});
 	}
 }

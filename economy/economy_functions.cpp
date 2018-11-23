@@ -42,7 +42,7 @@ namespace economy {
 		world_state const& ws,
 		worked_instance const& instance,
 		workers_information const& workers_info,
-		nations::nation const& in_nation,
+		nations::country_tag in_nation,
 		provinces::province_tag in_province,
 		int32_t rgo_base_size,
 		economy::goods_tag production,
@@ -56,12 +56,13 @@ namespace economy {
 
 		bool is_mined = (ws.s.economy_m.goods[production].flags & economy::good_definition::mined) != 0;
 		auto& province_modifiers = ws.w.province_s.province_state_container.get<province_state::modifier_values>(in_province);
+		auto& nation_modifiers = ws.w.nation_s.nations.get<nation::modifier_values>(in_nation);
 
 		float total_workforce = float(workers_info.workforce * rgo_base_size) * instance.production_scale *
 			((is_mined ?
-				province_modifiers[modifiers::provincial_offsets::mine_rgo_size] + in_nation.modifier_values[modifiers::national_offsets::mine_rgo_size] :
-				province_modifiers[modifiers::provincial_offsets::farm_rgo_size] + in_nation.modifier_values[modifiers::national_offsets::farm_rgo_size]) +
-				ws.w.nation_s.production_adjustments.get(in_nation.id, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::rgo_size>(production)) +
+				province_modifiers[modifiers::provincial_offsets::mine_rgo_size] + nation_modifiers[modifiers::national_offsets::mine_rgo_size] :
+				province_modifiers[modifiers::provincial_offsets::farm_rgo_size] + nation_modifiers[modifiers::national_offsets::farm_rgo_size]) +
+				ws.w.nation_s.production_adjustments.get(in_nation, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::rgo_size>(production)) +
 				1.0f);
 
 		if(total_workforce == 0.0f)
@@ -82,16 +83,16 @@ namespace economy {
 
 		result.output_modifier *= std::max(0.0f, (
 			province_modifiers[modifiers::provincial_offsets::local_rgo_output] +
-			in_nation.modifier_values[modifiers::national_offsets::rgo_output] +
+			nation_modifiers[modifiers::national_offsets::rgo_output] +
 			(is_mined ? province_modifiers[modifiers::provincial_offsets::farm_rgo_eff] : province_modifiers[modifiers::provincial_offsets::mine_rgo_eff]) +
 			(workers_info.owner.contribution == contribution_type::output ? owner_effect : 0.0f) +
-			ws.w.nation_s.production_adjustments.get(in_nation.id, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::rgo_goods_output>(production)) +
+			ws.w.nation_s.production_adjustments.get(in_nation, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::rgo_goods_output>(production)) +
 			1.0f));
 		result.throughput_modifier *= mobilization_effect * std::max(0.0f, (
 			province_modifiers[modifiers::provincial_offsets::local_rgo_throughput] +
-			in_nation.modifier_values[modifiers::national_offsets::rgo_throughput] +
+			nation_modifiers[modifiers::national_offsets::rgo_throughput] +
 			(workers_info.owner.contribution == contribution_type::throughput ? owner_effect : 0.0f) +
-			ws.w.nation_s.production_adjustments.get(in_nation.id, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::rgo_goods_throughput>(production)) +
+			ws.w.nation_s.production_adjustments.get(in_nation, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::rgo_goods_throughput>(production)) +
 			1.0f));
 
 		return result;
@@ -102,7 +103,7 @@ namespace economy {
 		worked_instance const& instance,
 		bonus* bonuses,
 		workers_information const& workers_info,
-		nations::nation const& in_nation,
+		nations::country_tag in_nation,
 		provinces::province_tag in_province,
 		int32_t base_size,
 		economy::goods_tag production,
@@ -111,6 +112,7 @@ namespace economy {
 		production_modifiers result;
 
 		auto& province_modifiers = ws.w.province_s.province_state_container.get<province_state::modifier_values>(in_province);
+		auto& nation_modifiers = ws.w.nation_s.nations.get<nation::modifier_values>(in_nation);
 
 		result.input_modifier = 1.0f;
 		result.output_modifier = 1.0f;
@@ -136,21 +138,21 @@ namespace economy {
 
 		result.input_modifier *= std::max(0.0f, (
 			province_modifiers[modifiers::provincial_offsets::local_factory_input] +
-			in_nation.modifier_values[modifiers::national_offsets::factory_input] +
+			nation_modifiers[modifiers::national_offsets::factory_input] +
 			(workers_info.owner.contribution == contribution_type::input ? owner_effect : 0.0f) +
-			ws.w.nation_s.production_adjustments.get(in_nation.id, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::factory_goods_input>(production)) +
+			ws.w.nation_s.production_adjustments.get(in_nation, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::factory_goods_input>(production)) +
 			1.0f));
 		result.output_modifier *= std::max(0.0f, (
 			province_modifiers[modifiers::provincial_offsets::local_factory_output] +
-			in_nation.modifier_values[modifiers::national_offsets::factory_output] +
+			nation_modifiers[modifiers::national_offsets::factory_output] +
 			(workers_info.owner.contribution == contribution_type::output ? owner_effect : 0.0f) +
-			ws.w.nation_s.production_adjustments.get(in_nation.id, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::factory_goods_output>(production)) +
+			ws.w.nation_s.production_adjustments.get(in_nation, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::factory_goods_output>(production)) +
 			1.0f));
 		result.throughput_modifier *= mobilization_effect * std::max(0.0f, (
 			province_modifiers[modifiers::provincial_offsets::local_factory_throughput] +
-			in_nation.modifier_values[modifiers::national_offsets::factory_throughput] +
+			nation_modifiers[modifiers::national_offsets::factory_throughput] +
 			(workers_info.owner.contribution == contribution_type::throughput ? owner_effect : 0.0f) +
-			ws.w.nation_s.production_adjustments.get(in_nation.id, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::factory_goods_throughput>(production)) +
+			ws.w.nation_s.production_adjustments.get(in_nation, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::factory_goods_throughput>(production)) +
 			1.0f));
 
 		float bonus_sum = 1.0f;
@@ -168,7 +170,7 @@ namespace economy {
 
 	production_modifiers artisan_production_modifiers(
 		world_state const& ws,
-		nations::nation const& in_nation,
+		nations::country_tag in_nation,
 		provinces::province_tag in_province,
 		economy::goods_tag production,
 		float mobilization_effect) {
@@ -176,6 +178,7 @@ namespace economy {
 		production_modifiers result;
 
 		auto& province_modifiers = ws.w.province_s.province_state_container.get<province_state::modifier_values>(in_province);
+		auto& nation_modifiers = ws.w.nation_s.nations.get<nation::modifier_values>(in_nation);
 
 		result.input_modifier = 1.0f;
 		result.output_modifier = 1.0f;
@@ -184,18 +187,18 @@ namespace economy {
 
 		result.input_modifier *= std::max(0.0f, (
 			province_modifiers[modifiers::provincial_offsets::local_artisan_input] +
-			in_nation.modifier_values[modifiers::national_offsets::artisan_input] +
-			ws.w.nation_s.production_adjustments.get(in_nation.id, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::artisan_goods_input>(production)) +
+			nation_modifiers[modifiers::national_offsets::artisan_input] +
+			ws.w.nation_s.production_adjustments.get(in_nation, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::artisan_goods_input>(production)) +
 			1.0f));
 		result.output_modifier *= std::max(0.0f, (
 			province_modifiers[modifiers::provincial_offsets::local_artisan_output] +
-			in_nation.modifier_values[modifiers::national_offsets::artisan_output] +
-			ws.w.nation_s.production_adjustments.get(in_nation.id, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::artisan_goods_output>(production)) +
+			nation_modifiers[modifiers::national_offsets::artisan_output] +
+			ws.w.nation_s.production_adjustments.get(in_nation, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::artisan_goods_output>(production)) +
 			1.0f));
 		result.throughput_modifier *= mobilization_effect * std::max(0.0f, (
 			province_modifiers[modifiers::provincial_offsets::local_artisan_throughput] +
-			in_nation.modifier_values[modifiers::national_offsets::artisan_throughput] +
-			ws.w.nation_s.production_adjustments.get(in_nation.id, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::artisan_goods_throughput>(production)) +
+			nation_modifiers[modifiers::national_offsets::artisan_throughput] +
+			ws.w.nation_s.production_adjustments.get(in_nation, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::artisan_goods_throughput>(production)) +
 			1.0f));
 
 		return result;
@@ -211,13 +214,13 @@ namespace economy {
 		int32_t rgo_size = int32_t(ws.w.province_s.province_state_container.get<province_state::rgo_size>(ps));
 		auto production_scale = ws.w.province_s.province_state_container.get<province_state::rgo_worker_data>(ps).production_scale;
 		auto& province_modifiers = ws.w.province_s.province_state_container.get<province_state::modifier_values>(ps);
-		auto& owner = ws.w.nation_s.nations[owner_id];
+		auto& owner_modifiers = ws.w.nation_s.nations.get<nation::modifier_values>(owner_id);
 
 		bool is_mined = (ws.s.economy_m.goods[production].flags & economy::good_definition::mined) != 0;
 		float total_workforce = float((is_mined ? ws.s.economy_m.rgo_mine.workforce : ws.s.economy_m.rgo_farm.workforce) * int32_t(rgo_size)) * production_scale *
 			((is_mined ?
-				province_modifiers[modifiers::provincial_offsets::mine_rgo_size] + owner.modifier_values[modifiers::national_offsets::mine_rgo_size] :
-				province_modifiers[modifiers::provincial_offsets::farm_rgo_size] + owner.modifier_values[modifiers::national_offsets::farm_rgo_size]) +
+				province_modifiers[modifiers::provincial_offsets::mine_rgo_size] + owner_modifiers[modifiers::national_offsets::mine_rgo_size] :
+				province_modifiers[modifiers::provincial_offsets::farm_rgo_size] + owner_modifiers[modifiers::national_offsets::farm_rgo_size]) +
 				ws.w.nation_s.production_adjustments.get(owner_id, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::rgo_size>(production)) +
 				1.0f);
 		return std::max(0, int32_t(total_workforce));
@@ -279,12 +282,13 @@ namespace economy {
 		}
 
 		auto& province_modifiers = ws.w.province_s.province_state_container.get<province_state::modifier_values>(ps);
+		auto& owner_modifiers = ws.w.nation_s.nations.get<nation::modifier_values>(owner_id);
 		int32_t rgo_size = int32_t(ws.w.province_s.province_state_container.get<province_state::rgo_size>(ps));
 
 		float total_workforce = float((is_mined ? ws.s.economy_m.rgo_mine.workforce : ws.s.economy_m.rgo_farm.workforce) * rgo_size) * worker_data.production_scale *
 			((is_mined ?
-				province_modifiers[modifiers::provincial_offsets::mine_rgo_size] + ws.w.nation_s.nations[owner_id].modifier_values[modifiers::national_offsets::mine_rgo_size] :
-				province_modifiers[modifiers::provincial_offsets::farm_rgo_size] + ws.w.nation_s.nations[owner_id].modifier_values[modifiers::national_offsets::farm_rgo_size]) +
+				province_modifiers[modifiers::provincial_offsets::mine_rgo_size] + owner_modifiers[modifiers::national_offsets::mine_rgo_size] :
+				province_modifiers[modifiers::provincial_offsets::farm_rgo_size] + owner_modifiers[modifiers::national_offsets::farm_rgo_size]) +
 				ws.w.nation_s.production_adjustments.get(owner_id, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::rgo_size>(production)) +
 				1.0f);
 
@@ -450,11 +454,12 @@ namespace economy {
 		auto owner_id = ws.w.province_s.province_state_container.get<province_state::owner>(in_province);
 		auto f_type = f.type;
 		if(is_valid_index(owner_id) && bool(f_type)) {
-			auto& owner = ws.w.nation_s.nations[owner_id];
+			auto& owner_mod = ws.w.nation_s.nations.get<nation::modifier_values>(owner_id);
+
 			auto modifiers = factory_production_modifiers(ws, f.worker_data, f_type->bonuses,
-				f_type->factory_workers, owner, in_province, f.level,
+				f_type->factory_workers, owner_id, in_province, f.level,
 				f_type->output_good,
-				((owner.flags & nations::nation::is_mobilized) == 0) ? 1.0f : std::max(0.0f, 1.0f - owner.modifier_values[modifiers::national_offsets::mobilisation_size] * owner.modifier_values[modifiers::national_offsets::mobilisation_economy_impact]));
+				(ws.w.nation_s.nations.get<nation::is_mobilized>(owner_id) == false) ? 1.0f : std::max(0.0f, 1.0f - owner_mod[modifiers::national_offsets::mobilisation_size] * owner_mod[modifiers::national_offsets::mobilisation_economy_impact]));
 
 			//TODO: use modifiers properly
 
@@ -496,11 +501,13 @@ namespace economy {
 		});
 	}
 
-	bool possible_to_invest_in(world_state const& ws, nations::nation const& investor, nations::nation const& target) {
+	bool possible_to_invest_in(world_state const& ws, nations::country_tag investor, nations::country_tag target) {
+		auto investor_rules_val = ws.w.nation_s.nations.get<nation::current_rules>(investor).rules_value;
+		auto target_rules_val = ws.w.nation_s.nations.get<nation::current_rules>(target).rules_value;
 		return !nations::is_great_power(ws, target) && nations::is_great_power(ws, investor) &&
-			((investor.current_rules.rules_value & (issues::rules::open_factory_invest | issues::rules::expand_factory_invest | issues::rules::build_factory_invest)) != 0) &&
-			((target.current_rules.rules_value & issues::rules::allow_foreign_investment) != 0) &&
-			(investor.id != target.id);
+			((investor_rules_val & (issues::rules::open_factory_invest | issues::rules::expand_factory_invest | issues::rules::build_factory_invest)) != 0) &&
+			((target_rules_val & issues::rules::allow_foreign_investment) != 0) &&
+			(investor != target);
 	}
 
 	int32_t count_factories_in_state(world_state const& ws, nations::state_tag si) {
@@ -514,8 +521,8 @@ namespace economy {
 				[](economy::factory_instance const& f) { return int32_t(f.level != 0); });
 	}
 
-	int32_t count_factories_in_nation(world_state const& ws, nations::nation const& n) {
-		auto states = get_range(ws.w.nation_s.state_arrays, n.member_states);
+	int32_t count_factories_in_nation(world_state const& ws, nations::country_tag n) {
+		auto states = get_range(ws.w.nation_s.state_arrays, ws.w.nation_s.nations.get<nation::member_states>(n));
 		int32_t total = 0;
 		for(auto s = states.first; s != states.second; ++s) {
 			if(auto si = s->state; bool(si)) {
@@ -716,7 +723,7 @@ namespace economy {
 		economy::money_qnty_type lx_factor;
 
 		auto& scap_modifiers = ws.w.province_s.province_state_container.get<province_state::modifier_values>(state_cap);
-		auto& owner_modifiers = ws.w.nation_s.nations[state_owner].modifier_values;
+		auto& owner_modifiers = ws.w.nation_s.nations.get<nation::modifier_values>(state_owner);
 
 		if(this_strata == population::pop_type::strata_poor) {
 			ln_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::poor_life_needs] + scap_modifiers[modifiers::provincial_offsets::poor_life_needs];
@@ -749,8 +756,8 @@ namespace economy {
 		return result;
 	}
 
-	needs_values needs_for_poptype(world_state const& ws, population::pop_type_tag type, nations::nation const& n) {
-		auto ncap = n.current_capital;
+	needs_values needs_for_poptype(world_state const& ws, population::pop_type_tag type, nations::country_tag n) {
+		auto ncap = ws.w.nation_s.nations.get<nation::current_capital>(n);
 		if(!is_valid_index(ncap))
 			return needs_values{ 0,0,0 };
 		auto ncap_state = ws.w.province_s.province_state_container.get<province_state::state_instance>(ncap);
@@ -774,7 +781,7 @@ namespace economy {
 		economy::money_qnty_type ln_factor;
 
 		auto& scap_modifiers = ws.w.province_s.province_state_container.get<province_state::modifier_values>(state_capital);
-		auto& owner_modifiers = ws.w.nation_s.nations[state_owner].modifier_values;
+		auto& owner_modifiers = ws.w.nation_s.nations.get<nation::modifier_values>(state_owner);
 
 		if(this_strata == population::pop_type::strata_poor) {
 			ln_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::poor_life_needs] + scap_modifiers[modifiers::provincial_offsets::poor_life_needs];
@@ -798,8 +805,8 @@ namespace economy {
 		return sum;
 	}
 
-	money_qnty_type get_life_needs_cost(world_state const& ws, population::pop_type_tag type, nations::nation const& n) {
-		auto ncap = n.current_capital;
+	money_qnty_type get_life_needs_cost(world_state const& ws, population::pop_type_tag type, nations::country_tag n) {
+		auto ncap = ws.w.nation_s.nations.get<nation::current_capital>(n);
 		if(!is_valid_index(ncap))
 			return money_qnty_type(0);
 		auto ncap_state = ws.w.province_s.province_state_container.get<province_state::state_instance>(ncap);
@@ -816,7 +823,7 @@ namespace economy {
 
 		auto state_owner = ws.w.nation_s.states.get<state::owner>(si);
 
-		auto& owner_modifiers = ws.w.nation_s.nations[state_owner].modifier_values;
+		auto& owner_modifiers = ws.w.nation_s.nations.get<nation::modifier_values>(state_owner);
 		auto& scap_modifiers = ws.w.province_s.province_state_container.get<province_state::modifier_values>(state_capital);
 
 		for(population::pop_type_tag::value_base_t i = 0; i < ws.s.population_m.count_poptypes; ++i) {
@@ -870,8 +877,8 @@ namespace economy {
 		return ws.w.nation_s.state_demand.get_row(s) + (ws.s.economy_m.aligned_32_goods_count * (1ui32 - (to_index(ws.w.current_date) & 1)));
 	}
 
-	money_qnty_type calculate_daily_debt_payment(world_state const & ws, nations::nation const & n) {
-		return n.national_debt * economy::daily_debt_payment;
+	money_qnty_type calculate_daily_debt_payment(world_state const & ws, nations::country_tag n) {
+		return ws.w.nation_s.nations.get<nation::national_debt>(n) * economy::daily_debt_payment;
 	}
 
 	money_qnty_type* state_old_demand(world_state const& ws, nations::state_tag s) {
@@ -928,19 +935,19 @@ namespace economy {
 	}
 
 	void update_bankrupcy(world_state & ws) {
-		ws.w.nation_s.nations.parallel_for_each([&ws](nations::nation& n) {
-			if(calculate_daily_debt_payment(ws, n) / 2.0f > n.tax_base) {
-				n.national_debt = 0;
+		ws.w.nation_s.nations.parallel_for_each([&ws](nations::country_tag n) {
+			if(calculate_daily_debt_payment(ws, n) / 2.0f > ws.w.nation_s.nations.get<nation::tax_base>(n)) {
+				ws.w.nation_s.nations.set<nation::national_debt>(n, 0.0f);
 				modifiers::add_unique_timed_modifier_to_nation(ws, n,
 					ws.s.modifiers_m.static_modifiers.in_bankrupcy,
 					date_tag(to_index(ws.w.current_date) + int32_t(365.0f * ws.s.modifiers_m.global_defines.bankrupcy_duration)));
-				n.base_prestige = 0;
+				ws.w.nation_s.nations.set<nation::base_prestige>(n, 0.0f);
 			}
 		});
 	}
 
-	bool is_bankrupt(world_state const& ws, nations::nation const& n) {
-		return find(ws.w.nation_s.timed_modifier_arrays, n.timed_modifiers, nations::timed_national_modifier{ date_tag(), ws.s.modifiers_m.static_modifiers.in_bankrupcy }) != nullptr;
+	bool is_bankrupt(world_state const& ws, nations::country_tag n) {
+		return find(ws.w.nation_s.timed_modifier_arrays, ws.w.nation_s.nations.get<nation::timed_modifiers>(n), nations::timed_national_modifier{ date_tag(), ws.s.modifiers_m.static_modifiers.in_bankrupcy }) != nullptr;
 	}
 
 	range_information global_price_range(world_state const& ws, economy::goods_tag t) {
@@ -999,7 +1006,7 @@ namespace economy {
 			}
 		});
 	}
-	money_qnty_type daily_national_building_cost(world_state const& ws, nations::nation const& n) {
+	money_qnty_type daily_national_building_cost(world_state const& ws, nations::country_tag n) {
 		money_qnty_type sum = 0;
 		nations::for_each_state(ws, n, [&ws, &sum](nations::state_tag si) {
 			sum += daily_state_owner_building_cost(ws, si);
@@ -1048,7 +1055,7 @@ namespace economy {
 	}
 
 	void update_construction_and_projects(world_state& ws) {
-		int32_t nations_count = int32_t(ws.w.nation_s.nations.minimum_continuous_size());
+		int32_t nations_count = ws.w.nation_s.nations.size();
 		concurrency::combinable<cbacked_eigen_vector<money_qnty_type>> costs_by_nation = concurrency::combinable<cbacked_eigen_vector<money_qnty_type>>(cbacked_eigen_vector_generator<money_qnty_type>(nations_count));
 
 		auto rr_time = 1.0f / money_qnty_type(ws.s.economy_m.railroad.time);
@@ -1081,7 +1088,7 @@ namespace economy {
 			auto fort_daily_cost = prices_v.dot(fort_costs) * fort_time;
 			auto nb_daily_cost = prices_v.dot(nb_costs) + money_qnty_type(ws.s.economy_m.naval_base.extra_cost) * naval_time;
 
-			auto owner_sp_setting = float(ws.w.nation_s.nations[owner_id].projects_stockpile_spending) / 100.0f;
+			auto owner_sp_setting = float(ws.w.nation_s.nations.get<nation::projects_stockpile_spending>(owner_id)) / 100.0f;
 			nations::for_each_province(ws, si, [owner_id, rr_daily_cost, fort_daily_cost, nb_daily_cost, rr_time, fort_time, naval_time,
 				&current_state_demand, &local_nation_costs, owner_sp_setting, &rr_costs, &fort_costs, &nb_costs, &prices_v, &ws](provinces::province_tag ps) {
 				
@@ -1215,7 +1222,7 @@ namespace economy {
 						ws.w.nation_s.national_stockpiles.get(nations::country_tag(nations::country_tag::value_base_t(i)), economy::money_good) = t - val;
 					} else {
 						ws.w.nation_s.national_stockpiles.get(nations::country_tag(nations::country_tag::value_base_t(i)), economy::money_good) = 0;
-						ws.w.nation_s.nations[nations::country_tag(nations::country_tag::value_base_t(i))].national_debt += val - t;
+						ws.w.nation_s.nations.get<nation::national_debt>(nations::country_tag(nations::country_tag::value_base_t(i))) += val - t;
 					}
 				}
 			}
@@ -1383,9 +1390,8 @@ namespace economy {
 				return;
 			}
 
-			auto& owner_nation = ws.w.nation_s.nations[state_owner];
-			auto state_owner_tarrifs = float(owner_nation.tarrifs) / 100.0f;
-			auto state_owner_tarrif_mask = owner_nation.statewise_tarrif_mask;
+			auto state_owner_tarrifs = float(ws.w.nation_s.nations.get<nation::tarrifs>(state_owner)) / 100.0f;
+			auto state_owner_tarrif_mask = ws.w.nation_s.nations.get<nation::statewise_tarrif_mask>(state_owner);
 
 			auto& purchases_for_state = ws.w.nation_s.state_purchases.get(si, tag);
 			auto sz = get_size(ws.w.economy_s.purchasing_arrays, purchases_for_state);
@@ -1439,7 +1445,7 @@ namespace economy {
 				
 
 				// pay tarrifs & increase global demand
-				if(ws.w.local_player_nation && ws.w.local_player_nation->id != state_owner) {
+				if(ws.w.local_player_nation && ws.w.local_player_nation != state_owner) {
 					// workspace_local.weightings REUSED as money used for purchasing in destination (dest price * qnty = (total money * fraction to target / apparant_price))
 
 					workspace_local.weightings = ((demand_in_state * state_prices_copy.vector.array() * values.array()) / workspace_local.apparent_price.array()).matrix();
@@ -1491,9 +1497,8 @@ namespace economy {
 			if(!is_valid_index(state_owner)) // skip remainder for this state
 				return;
 
-			auto& owner_nation = ws.w.nation_s.nations[state_owner];
-			auto state_owner_tarrifs = float(owner_nation.tarrifs) / 100.0f;
-			auto state_owner_tarrif_mask = owner_nation.statewise_tarrif_mask;
+			auto state_owner_tarrifs = float(ws.w.nation_s.nations.get<nation::tarrifs>(state_owner)) / 100.0f;
+			auto state_owner_tarrif_mask = ws.w.nation_s.nations.get<nation::statewise_tarrif_mask>(state_owner);
 			auto purchases_for_state = ws.w.nation_s.state_purchases.get(si, tag);
 
 			Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> values(
@@ -1544,15 +1549,14 @@ namespace economy {
 		auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(p);
 
 		if(is_valid_index(owner) && is_valid_index(rgo_production)) {
-			auto& owner_n = ws.w.nation_s.nations[owner];
-
-			const float mobilization_effect = ((owner_n.flags & nations::nation::is_mobilized) == 0) ?
-				1.0f : std::max(0.0f, 1.0f - owner_n.modifier_values[modifiers::national_offsets::mobilisation_size] * owner_n.modifier_values[modifiers::national_offsets::mobilisation_economy_impact]);
+			auto& owner_mod = ws.w.nation_s.nations.get<nation::modifier_values>(owner);
+			const float mobilization_effect = (ws.w.nation_s.nations.get<nation::is_mobilized>(owner) == false) ?
+				1.0f : std::max(0.0f, 1.0f - owner_mod[modifiers::national_offsets::mobilisation_size] * owner_mod[modifiers::national_offsets::mobilisation_economy_impact]);
 
 			auto& rgo_type = ((ws.s.economy_m.goods[rgo_production].flags & good_definition::mined) != 0) ? ws.s.economy_m.rgo_mine : ws.s.economy_m.rgo_farm;
 
 			auto rgo_modifiers = rgo_production_modifiers(ws, worker_data, rgo_type,
-				ws.w.nation_s.nations[owner], p, rgo_size, rgo_production, mobilization_effect);
+				owner, p, rgo_size, rgo_production, mobilization_effect);
 
 			auto output_amount = global_rgo_production_multiplier *
 				worker_data.production_scale *
@@ -1579,7 +1583,7 @@ namespace economy {
 		auto rgo_size = ws.w.province_s.province_state_container.get<province_state::rgo_size>(p);
 
 		auto rgo_modifiers = rgo_production_modifiers(ws, worker_data, rgo_type,
-			ws.w.nation_s.nations[nid], p, rgo_size, rgo_production, mobilization_effect);
+			nid, p, rgo_size, rgo_production, mobilization_effect);
 
 		auto output_amount = global_rgo_production_multiplier *
 			worker_data.production_scale *
@@ -1635,7 +1639,7 @@ namespace economy {
 	money_qnty_type artisan_profit_unit(
 		world_state const& ws,
 		provinces::province_tag p,
-		nations::nation const& owner,
+		nations::country_tag owner,
 		artisan_type const& atype,
 		money_qnty_type const* __restrict prices,
 		money_qnty_type artisan_life_needs
@@ -1670,7 +1674,7 @@ namespace economy {
 		auto& artisan_production = ws.w.province_s.province_state_container.get<province_state::artisan_production>(p);
 		auto& artisan_production_scale = ws.w.province_s.province_state_container.get<province_state::artisan_production_scale>(p);
 
-		auto artisan_modifiers = artisan_production_modifiers(ws, ws.w.nation_s.nations[nid], p, artisan_production, mobilization_effect);
+		auto artisan_modifiers = artisan_production_modifiers(ws, nid, p, artisan_production, mobilization_effect);
 		const auto artisan_tag = ws.s.economy_m.goods[artisan_production].artisan_id;
 		const auto& artisan_type = ws.s.economy_m.artisan_types[artisan_tag];
 
@@ -1743,7 +1747,7 @@ namespace economy {
 			ws.s.economy_m.factory_input_goods.get_row(f_type.id), ws.s.economy_m.aligned_32_goods_count);
 
 		const auto factory_modifiers = factory_production_modifiers(ws, instance.worker_data, f_type.bonuses, f_type.factory_workers,
-			ws.w.nation_s.nations[nid], capital, instance.level, f_type.output_good, mobilization_effect);
+			nid, capital, instance.level, f_type.output_good, mobilization_effect);
 
 		auto output_amount = global_throughput_multiplier *
 			instance.worker_data.production_scale *
@@ -1828,9 +1832,9 @@ namespace economy {
 			state_current_prices(ws, si), 
 			ws.s.economy_m.aligned_32_goods_count);
 
-		auto& state_owner_nation = ws.w.nation_s.nations[state_owner];
-		const float mobilization_effect = ((state_owner_nation.flags & nations::nation::is_mobilized) == 0) ?
-			1.0f : std::max(0.0f, 1.0f - state_owner_nation.modifier_values[modifiers::national_offsets::mobilisation_size] * state_owner_nation.modifier_values[modifiers::national_offsets::mobilisation_economy_impact]);
+		auto& state_owner_mod = ws.w.nation_s.nations.get<nation::modifier_values>(state_owner);
+		const float mobilization_effect = (ws.w.nation_s.nations.get<nation::is_mobilized>(state_owner) == false) ?
+			1.0f : std::max(0.0f, 1.0f - state_owner_mod[modifiers::national_offsets::mobilisation_size] * state_owner_mod[modifiers::national_offsets::mobilisation_economy_impact]);
 
 
 		current_state_demand.setZero();
@@ -1941,7 +1945,7 @@ namespace economy {
 		money_qnty_type profit_sum = money_qnty_type(0);
 		for(auto& atype : ws.s.economy_m.artisan_types) {
 			if(bit_vector_test(enabled_goods, to_index(atype.output_good))) {
-				auto profit = artisan_profit_unit(ws, ps, ws.w.nation_s.nations[owner_id], atype, prices, artisan_life_needs);
+				auto profit = artisan_profit_unit(ws, ps, owner_id, atype, prices, artisan_life_needs);
 				if(profit > money_qnty_type(0)) {
 					profit_sum += sqrt(profit);
 					result.emplace_back(atype.id, profit_sum);
@@ -1976,7 +1980,7 @@ namespace economy {
 			prices += delta;
 			update_demand_and_production<false>(ws, si);
 		});
-		concurrency::parallel_for(1ui32, ws.s.economy_m.goods_count, [&ws, state_count = ws.w.nation_s.states.size(), nations_count = ws.w.nation_s.nations.minimum_continuous_size()](uint32_t i) {
+		concurrency::parallel_for(1ui32, ws.s.economy_m.goods_count, [&ws, state_count = ws.w.nation_s.states.size(), nations_count = ws.w.nation_s.nations.size()](uint32_t i) {
 			economy_single_good_tick(ws, goods_tag(goods_tag::value_base_t(i)), state_count, nations_count);
 		});
 	}
@@ -1998,26 +2002,26 @@ namespace economy {
 		update_construction_and_projects(ws); // after demand update to added demand isnt clobbered
 
 		auto offset = (to_index(ws.w.current_date)) & (price_update_delay - 1);
-		concurrency::parallel_for(1 + offset, int32_t(ws.s.economy_m.goods_count), price_update_delay, [&ws, state_count = ws.w.nation_s.states.size(), nations_count = ws.w.nation_s.nations.minimum_continuous_size()](uint32_t i) {
+		concurrency::parallel_for(1 + offset, int32_t(ws.s.economy_m.goods_count), price_update_delay, [&ws, state_count = ws.w.nation_s.states.size(), nations_count = ws.w.nation_s.nations.size()](uint32_t i) {
 			economy_single_good_tick(ws, goods_tag(goods_tag::value_base_t(i)), state_count, nations_count);
 		});
 		
 		collect_taxes(ws);
 
 		//collect tarrif income, pay pops, manage debt
-		ws.w.nation_s.nations.parallel_for_each([&ws](nations::nation& n) {
-			auto tincome = ws.w.nation_s.collected_tariffs.get_row(n.id);
-			ws.w.nation_s.national_stockpiles.get(n.id, economy::money_good) += std::reduce(tincome, tincome + ws.s.economy_m.goods_count, economy::money_qnty_type(0), std::plus<>());
+		ws.w.nation_s.nations.parallel_for_each([&ws](nations::country_tag n) {
+			auto tincome = ws.w.nation_s.collected_tariffs.get_row(n);
+			ws.w.nation_s.national_stockpiles.get(n, economy::money_good) += std::reduce(tincome, tincome + ws.s.economy_m.goods_count, economy::money_qnty_type(0), std::plus<>());
 			pay_unemployement_pensions_salaries(ws, n);
 
 			auto amount = calculate_daily_debt_payment(ws, n);
-			auto current_money = ws.w.nation_s.national_stockpiles.get(n.id, economy::money_good);
+			auto current_money = ws.w.nation_s.national_stockpiles.get(n, economy::money_good);
 			if(current_money >= amount) {
-				n.national_debt -= amount / 2.0f;
-				ws.w.nation_s.national_stockpiles.get(n.id, economy::money_good) = current_money - amount;
+				ws.w.nation_s.nations.get<nation::national_debt>(n) -= amount / 2.0f;
+				ws.w.nation_s.national_stockpiles.get(n, economy::money_good) = current_money - amount;
 			} else {
-				n.national_debt += (amount - current_money) - amount / 2.0f;
-				ws.w.nation_s.national_stockpiles.get(n.id, economy::money_good) = money_qnty_type(0);
+				ws.w.nation_s.nations.get<nation::national_debt>(n) += (amount - current_money) - amount / 2.0f;
+				ws.w.nation_s.national_stockpiles.get(n, economy::money_good) = money_qnty_type(0);
 			}
 		});
 		
@@ -2049,42 +2053,40 @@ namespace economy {
 		ws.w.local_player_data.collected_middle_tax = 0;
 		ws.w.local_player_data.collected_rich_tax = 0;
 
-		ws.w.nation_s.nations.parallel_for_each([&ws](nations::nation& n) {
-			n.tax_base = 0.0f;
-
-			if(&n != ws.w.local_player_nation) {
+		ws.w.nation_s.nations.parallel_for_each([&ws](nations::country_tag n) {
+			auto& tax_base = ws.w.nation_s.nations.get<nation::tax_base>(n);
+			tax_base = 0.0f;
+			auto taxeff = std::max(ws.s.modifiers_m.global_defines.base_country_tax_efficiency + ws.w.nation_s.nations.get<nation::modifier_values>(n)[modifiers::national_offsets::tax_efficiency], 0.05f);
+			auto pt = float(ws.w.nation_s.nations.get<nation::poor_tax>(n)) / 100.0f;
+			auto mt = float(ws.w.nation_s.nations.get<nation::middle_tax>(n)) / 100.0f;
+			auto rt = float(ws.w.nation_s.nations.get<nation::rich_tax>(n)) / 100.0f;
+			if(n != ws.w.local_player_nation) {
 				money_qnty_type total = 0;
-				nations::for_each_pop(ws, n, [&total, &ws, &n,
-					taxeff = std::max(ws.s.modifiers_m.global_defines.base_country_tax_efficiency + n.modifier_values[modifiers::national_offsets::tax_efficiency], 0.05f),
-					pt = float(n.poor_tax) / 100.0f, mt = float(n.middle_tax) / 100.0f, rt = float(n.rich_tax) / 100.0f
-				](population::pop_tag p) {
+				nations::for_each_pop(ws, n, [&total, &ws, &tax_base, n, taxeff, pt, mt, rt](population::pop_tag p) {
 					auto p_type = ws.w.population_s.pops.get<pop::type>(p);
 					auto& p_money = ws.w.population_s.pops.get<pop::money>(p);
 					auto strata = ws.s.population_m.pop_types[p_type].flags & population::pop_type::strata_mask;
 					if(strata == population::pop_type::strata_poor) {
 						auto collected = std::min(p_money * pt * taxeff, p_money);
 						total += collected;
-						n.tax_base += p_money * taxeff;
+						tax_base += p_money * taxeff;
 						p_money -= collected;
 					} else if(strata == population::pop_type::strata_middle) {
 						auto collected = std::min(p_money * mt * taxeff, p_money);
 						total += collected;
-						n.tax_base += p_money * taxeff;
+						tax_base += p_money * taxeff;
 						p_money -= collected;
 					} else { // strata rich
 						auto collected = std::min(p_money * rt * taxeff, p_money);
 						total += collected;
-						n.tax_base += p_money * taxeff;
+						tax_base += p_money * taxeff;
 						p_money -= collected;
 					}
 				});
-				ws.w.nation_s.national_stockpiles.get(n.id, economy::money_good) += total;
+				ws.w.nation_s.national_stockpiles.get(n, economy::money_good) += total;
 			} else {
 				money_qnty_type total = 0;
-				nations::for_each_pop(ws, n, [&total, &ws, &n,
-					taxeff = std::max(ws.s.modifiers_m.global_defines.base_country_tax_efficiency + n.modifier_values[modifiers::national_offsets::tax_efficiency], 0.05f),
-					pt = float(n.poor_tax) / 100.0f, mt = float(n.middle_tax) / 100.0f, rt = float(n.rich_tax) / 100.0f
-				](population::pop_tag p) {
+				nations::for_each_pop(ws, n, [&total, &ws, &tax_base, n, taxeff, pt, mt, rt](population::pop_tag p) {
 					auto p_type = ws.w.population_s.pops.get<pop::type>(p);
 					auto& p_money = ws.w.population_s.pops.get<pop::money>(p);
 					auto strata = ws.s.population_m.pop_types[p_type].flags & population::pop_type::strata_mask;
@@ -2092,23 +2094,23 @@ namespace economy {
 						auto collected = std::min(p_money * pt * taxeff, p_money);
 						total += collected;
 						ws.w.local_player_data.collected_poor_tax += p_money * taxeff;
-						n.tax_base += p_money * taxeff;
+						tax_base += p_money * taxeff;
 						p_money -= collected;
 					} else if(strata == population::pop_type::strata_middle) {
 						auto collected = std::min(p_money * mt * taxeff, p_money);
 						total += collected;
 						ws.w.local_player_data.collected_middle_tax += p_money * taxeff;
-						n.tax_base += p_money * taxeff;
+						tax_base += p_money * taxeff;
 						p_money -= collected;
 					} else { // strata rich
 						auto collected = std::min(p_money * rt * taxeff, p_money);
 						total += collected;
 						ws.w.local_player_data.collected_rich_tax += p_money * taxeff;
-						n.tax_base += p_money * taxeff;
+						tax_base += p_money * taxeff;
 						p_money -= collected;
 					}
 				});
-				ws.w.nation_s.national_stockpiles.get(n.id, economy::money_good) += total;
+				ws.w.nation_s.national_stockpiles.get(n, economy::money_good) += total;
 			}
 		});
 
@@ -2117,10 +2119,8 @@ namespace economy {
 
 	economy::money_qnty_type project_player_tarrif_income(world_state const& ws, float tarrif_amount) {
 		if(auto player = ws.w.local_player_nation; player) {
-			auto overlord = player->overlord;
-			auto sphere_leader = player->sphere_leader;
-			auto overlord_id = overlord ? overlord->id : nations::country_tag();
-			auto sphere_leader_id = sphere_leader ? sphere_leader->id : nations::country_tag();
+			auto overlord_id = ws.w.nation_s.nations.get<nation::overlord>(player);
+			auto sphere_leader_id = ws.w.nation_s.nations.get<nation::sphere_leader>(player);
 
 			return std::transform_reduce(integer_iterator(1), integer_iterator(ws.s.economy_m.goods_count), money_qnty_type(0), std::plus<>(), [&ws, tarrif_amount, overlord_id, sphere_leader_id](int32_t i) {
 				auto atag = ws.w.local_player_data.imports_by_country[goods_tag(goods_tag::value_base_t(i))];
@@ -2142,12 +2142,12 @@ namespace economy {
 
 	constexpr float luxury_pay_fraction = 0.5f;
 
-	money_qnty_type military_spending_amount(world_state const& ws, nations::nation const& n) {
-		auto nid = n.id;
+	money_qnty_type military_spending_amount(world_state const& ws, nations::country_tag n) {
+		auto nid = n;
 		if(!ws.w.nation_s.nations.is_valid_index(nid))
 			return money_qnty_type(0);
 		
-		auto military_spending = float(n.military_spending) / 100.0f;
+		auto military_spending = float(ws.w.nation_s.nations.get<nation::military_spending>(n)) / 100.0f;
 		money_qnty_type sum = money_qnty_type(0);
 
 		{
@@ -2179,15 +2179,15 @@ namespace economy {
 			
 		}
 
-		return sum * (2.0f - n.national_administrative_efficiency);
+		return sum * (2.0f - ws.w.nation_s.nations.get<nation::national_administrative_efficiency>(n));
 	}
 
-	money_qnty_type education_spending_amount(world_state const& ws, nations::nation const& n) {
-		auto nid = n.id;
+	money_qnty_type education_spending_amount(world_state const& ws, nations::country_tag n) {
+		auto nid = n;
 		if(!ws.w.nation_s.nations.is_valid_index(nid))
 			return money_qnty_type(0);
 
-		auto education_spending = float(n.education_spending) / 100.0f;
+		auto education_spending = float(ws.w.nation_s.nations.get<nation::education_spending>(n)) / 100.0f;
 		money_qnty_type sum = money_qnty_type(0);
 
 		{
@@ -2205,15 +2205,15 @@ namespace economy {
 			
 		}
 		
-		return sum * (2.0f - n.national_administrative_efficiency);
+		return sum * (2.0f - ws.w.nation_s.nations.get<nation::national_administrative_efficiency>(n));
 	}
 
-	money_qnty_type administrative_spending_amount(world_state const& ws, nations::nation const& n) {
-		auto nid = n.id;
+	money_qnty_type administrative_spending_amount(world_state const& ws, nations::country_tag n) {
+		auto nid = n;
 		if(!ws.w.nation_s.nations.is_valid_index(nid))
 			return money_qnty_type(0);
 
-		auto education_spending = float(n.administrative_spending) / 100.0f;
+		auto education_spending = float(ws.w.nation_s.nations.get<nation::administrative_spending>(n)) / 100.0f;
 		money_qnty_type sum = money_qnty_type(0);
 
 		{
@@ -2232,18 +2232,19 @@ namespace economy {
 			}
 		}
 
-		return sum * (2.0f - n.national_administrative_efficiency);
+		return sum * (2.0f - ws.w.nation_s.nations.get<nation::national_administrative_efficiency>(n));
 	}
 
-	money_qnty_type social_spending_amount(world_state const& ws, nations::nation const& n) {
+	money_qnty_type social_spending_amount(world_state const& ws, nations::country_tag n) {
 
-		auto nid = n.id;
+		auto nid = n;
 		if(!ws.w.nation_s.nations.is_valid_index(nid))
 			return money_qnty_type(0);
 
-		auto social_spending = float(n.social_spending) / 100.0f;
-		auto pension_fraction = n.modifier_values[modifiers::national_offsets::pension_level] * social_spending;
-		auto unemployment_fraction = n.modifier_values[modifiers::national_offsets::unemployment_benefit] * social_spending;
+		auto& nmodifiers = ws.w.nation_s.nations.get<nation::modifier_values>(n);
+		auto social_spending = float(ws.w.nation_s.nations.get<nation::social_spending>(n)) / 100.0f;
+		auto pension_fraction = nmodifiers[modifiers::national_offsets::pension_level] * social_spending;
+		auto unemployment_fraction = nmodifiers[modifiers::national_offsets::unemployment_benefit] * social_spending;
 
 		auto est_costs = std::transform_reduce(integer_iterator(0), integer_iterator(ws.s.population_m.count_poptypes), money_qnty_type(0), std::plus<>(),
 			[&ws, nid, &n, pension_fraction, unemployment_fraction](int32_t i) {
@@ -2260,15 +2261,16 @@ namespace economy {
 			return get_life_needs_cost(ws, this_type, n) * (pension_fraction + unemployment_fraction * (1.0f - pop_employed / pop_size)) * pop_size_multiplier;
 		});
 
-		auto cost_with_waste = est_costs * (2.0f - n.national_administrative_efficiency);
+		auto cost_with_waste = est_costs * (2.0f - ws.w.nation_s.nations.get<nation::national_administrative_efficiency>(n));
 		return cost_with_waste;
 	}
 
-	void pay_unemployement_pensions_salaries(world_state& ws, nations::nation& n) {
-		if(!is_valid_index(n.current_capital))
+	void pay_unemployement_pensions_salaries(world_state& ws, nations::country_tag n) {
+		auto ncap = ws.w.nation_s.nations.get<nation::current_capital>(n);
+		if(!is_valid_index(ncap))
 			return;
 
-		auto capital_state_id = ws.w.province_s.province_state_container.get<province_state::state_instance>(n.current_capital);
+		auto capital_state_id = ws.w.province_s.province_state_container.get<province_state::state_instance>(ncap);
 		auto capital_of_capital = nations::get_state_capital(ws, capital_state_id);
 
 		Eigen::Map<Eigen::Matrix<economy::money_qnty_type, -1, 1>> masked_prices(
@@ -2282,12 +2284,14 @@ namespace economy {
 
 		fill_needs_costs_arrays(ws, capital_state_id, capital_of_capital, masked_prices, life_needs_cost_by_type, everyday_needs_cost_by_type, luxury_needs_cost_by_type);
 
-		auto admin_spending = float(n.administrative_spending) / 100.0f;
-		auto education_spending = float(n.education_spending) / 100.0f;
-		auto military_spending = float(n.military_spending) / 100.0f;
-		auto social_spending = float(n.social_spending) / 100.0f;
-		auto pension_fraction = n.modifier_values[modifiers::national_offsets::pension_level] * social_spending;
-		auto unemployment_fraction = n.modifier_values[modifiers::national_offsets::unemployment_benefit] * social_spending;
+		auto& nmodifiers = ws.w.nation_s.nations.get<nation::modifier_values>(n);
+
+		auto admin_spending = float(ws.w.nation_s.nations.get<nation::administrative_spending>(n)) / 100.0f;
+		auto education_spending = float(ws.w.nation_s.nations.get<nation::education_spending>(n)) / 100.0f;
+		auto military_spending = float(ws.w.nation_s.nations.get<nation::military_spending>(n)) / 100.0f;
+		auto social_spending = float(ws.w.nation_s.nations.get<nation::social_spending>(n)) / 100.0f;
+		auto pension_fraction = nmodifiers[modifiers::national_offsets::pension_level] * social_spending;
+		auto unemployment_fraction = nmodifiers[modifiers::national_offsets::unemployment_benefit] * social_spending;
 
 		economy::money_qnty_type est_costs = 0;
 
@@ -2381,13 +2385,13 @@ namespace economy {
 			}
 		});
 
-		auto cost_with_waste = est_costs * (2.0f - n.national_administrative_efficiency);
-		auto diff = ws.w.nation_s.national_stockpiles.get(n.id, economy::money_good) - cost_with_waste;
+		auto cost_with_waste = est_costs * (2.0f - ws.w.nation_s.nations.get<nation::national_administrative_efficiency>(n));
+		auto diff = ws.w.nation_s.national_stockpiles.get(n, economy::money_good) - cost_with_waste;
 		if(diff < money_qnty_type(0)) {
-			ws.w.nation_s.national_stockpiles.get(n.id, economy::money_good) = 0;
-			n.national_debt += -diff;
+			ws.w.nation_s.national_stockpiles.get(n, economy::money_good) = 0;
+			ws.w.nation_s.nations.get<nation::national_debt>(n) += -diff;
 		} else {
-			ws.w.nation_s.national_stockpiles.get(n.id, economy::money_good) = diff;
+			ws.w.nation_s.national_stockpiles.get(n, economy::money_good) = diff;
 		}
 	}
 

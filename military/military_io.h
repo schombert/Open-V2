@@ -9,9 +9,6 @@
 
 
 class world_state;
-namespace nations {
-	struct nation;
-}
 
 template<>
 class serialization::serializer<military::ship> : public serialization::memcpy_serializer<military::ship> {};
@@ -172,6 +169,6 @@ namespace military {
 		sound::sound_manager& sound_m,
 		text_data::text_sequences& text_m);
 	void read_cb_types(parsing_state const& state, scenario::scenario_manager& s, events::event_creation_manager& ecm);
-	void read_oob_file(world_state& ws, nations::nation& for_nation, token_group const* start, token_group const* end);
+	void read_oob_file(world_state& ws, nations::country_tag for_nation, token_group const* start, token_group const* end);
 	void read_wars(world_state& ws, date_tag target_date, const directory& root);
 }

@@ -6,7 +6,7 @@ namespace cultures {
 	void reset_state(cultures_state& s) {
 		s.culture_arrays.reset();
 		for(auto& nt : s.national_tags_state) {
-			nt.holder = nullptr;
+			nt.holder = nations::country_tag();
 			nt.core_provinces = set_tag<provinces::province_tag>();
 		}
 	}

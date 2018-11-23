@@ -23,7 +23,7 @@ namespace nations {
 	void wg_sub_item::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
 		if(is_valid_index(this_wg.from_country) && is_valid_index(this_wg.cb_type)) {
 			ui::line_manager lm;
-			auto cursor = ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations[this_wg.from_country].name, ui::tooltip_text_format,
+			auto cursor = ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations.get<nation::name>(this_wg.from_country), ui::tooltip_text_format,
 				ws.s.gui_m, ws.w.gui_m, tw, lm);
 			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::demands_label], ui::tooltip_text_format,
@@ -34,7 +34,7 @@ namespace nations {
 			text_data::replacement repl[3] = {
 				text_data::replacement{text_data::value_type::recipient,
 					is_valid_index(this_wg.target_country) ? 
-						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations[this_wg.target_country].name) :
+						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(this_wg.target_country)) :
 						vector_backed_string<char16_t>(u""),
 					[](ui::tagged_gui_object) {}},
 				text_data::replacement{text_data::value_type::state,
@@ -44,7 +44,7 @@ namespace nations {
 					[](ui::tagged_gui_object) {}},
 				text_data::replacement{text_data::value_type::third, 
 					is_valid_index(this_wg.liberation_target) ?
-						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations[this_wg.liberation_target].name) :
+						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(this_wg.liberation_target)) :
 						vector_backed_string<char16_t>(u""),
 					[](ui::tagged_gui_object) {}}
 			};
@@ -86,7 +86,7 @@ namespace nations {
 	void crisis_name::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto target = ws.w.current_crisis.target; ws.w.current_crisis.type != current_state::crisis_type::none && bool(target)) {
 			text_data::replacement repl(text_data::value_type::country_adj,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, target->adjective),
+				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::adjective>(target)),
 				[](ui::tagged_gui_object) {});
 			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::crisis_title], fmt, ws.s.gui_m, ws.w.gui_m, box, lm, &repl, 1);
 			lm.finish_current_line();
@@ -96,7 +96,7 @@ namespace nations {
 		}
 	}
 	void crisis_subtitle::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		auto target_name = [target = ws.w.current_crisis.target]() { return bool(target) ? target->name : text_data::text_tag(); }();
+		auto target_name = [&ws, target = ws.w.current_crisis.target]() { return bool(target) ? ws.w.nation_s.nations.get<nation::name>(target) : text_data::text_tag(); }();
 		text_data::replacement repl(text_data::value_type::country,
 			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, target_name),
 			[](ui::tagged_gui_object) {});
@@ -124,7 +124,7 @@ namespace nations {
 	}
 	void crisis_status::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(ws.w.current_crisis.type != current_state::crisis_type::none) {
-			if(ws.w.current_crisis.primary_attacker == nullptr || ws.w.current_crisis.primary_defender == nullptr)
+			if(ws.w.current_crisis.primary_attacker == nations::country_tag() || ws.w.current_crisis.primary_defender == nations::country_tag())
 				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::crisis_waiting], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 			else {
 				//ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::crisis_exists], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
@@ -150,13 +150,13 @@ namespace nations {
 	}
 	void crisis_attacker_gp_flag::update(ui::masked_flag<crisis_attacker_gp_flag>& self, world_state & ws) {
 		if(auto p = ws.w.current_crisis.primary_attacker; p)
-			self.set_displayed_flag(ws, p->tag);
+			self.set_displayed_flag(ws, ws.w.nation_s.nations.get<nation::tag>(p));
 		else
 			self.set_displayed_flag(ws, cultures::national_tag());
 	}
 	void crisis_defender_gp_flag::update(ui::masked_flag<crisis_defender_gp_flag>& self, world_state & ws) {
 		if(auto p = ws.w.current_crisis.primary_defender; p)
-			self.set_displayed_flag(ws, p->tag);
+			self.set_displayed_flag(ws, p);
 		else
 			self.set_displayed_flag(ws, cultures::national_tag());
 	}
@@ -173,15 +173,15 @@ namespace nations {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["diplomacy_puppet"]);
 	}
 	void crisis_attacker_country_name::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		if(auto t = ws.w.current_crisis.primary_attacker)
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, t->name,
+		if(auto t = ws.w.current_crisis.primary_attacker; t)
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations.get<nation::name>(t),
 				ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, box, lm);
 		lm.finish_current_line();
 	}
 
 	void crisis_defender_country_name::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		if(auto t = ws.w.current_crisis.primary_defender)
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, t->name,
+		if(auto t = ws.w.current_crisis.primary_defender; t)
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations.get<nation::name>(t),
 				ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, box, lm);
 		lm.finish_current_line();
 	}
@@ -347,7 +347,7 @@ namespace nations {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
 		if(r.first + 0 < r.second) {
 			if(auto id = *(r.first + 0); ws.w.nation_s.nations.is_valid_index(id))
-				self.set_displayed_flag(ws, ws.w.nation_s.nations[id].tag);
+				self.set_displayed_flag(ws, id);
 		}
 	}
 	void sort_by_gpflag0_button::button_function(ui::masked_flag<sort_by_gpflag0_button>&, world_state & ws) {
@@ -358,7 +358,7 @@ namespace nations {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
 		if(r.first + 1 < r.second) {
 			if(auto id = *(r.first + 1); ws.w.nation_s.nations.is_valid_index(id))
-				self.set_displayed_flag(ws, ws.w.nation_s.nations[id].tag);
+				self.set_displayed_flag(ws, id);
 		}
 	}
 	void sort_by_gpflag1_button::button_function(ui::masked_flag<sort_by_gpflag1_button>&, world_state & ws) {
@@ -369,7 +369,7 @@ namespace nations {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
 		if(r.first + 2 < r.second) {
 			if(auto id = *(r.first + 2); ws.w.nation_s.nations.is_valid_index(id))
-				self.set_displayed_flag(ws, ws.w.nation_s.nations[id].tag);
+				self.set_displayed_flag(ws, id);
 		}
 	}
 	void sort_by_gpflag2_button::button_function(ui::masked_flag<sort_by_gpflag2_button>&, world_state & ws) {
@@ -380,7 +380,7 @@ namespace nations {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
 		if(r.first + 3 < r.second) {
 			if(auto id = *(r.first + 3); ws.w.nation_s.nations.is_valid_index(id))
-				self.set_displayed_flag(ws, ws.w.nation_s.nations[id].tag);
+				self.set_displayed_flag(ws, id);
 		}
 	}
 	void sort_by_gpflag3_button::button_function(ui::masked_flag<sort_by_gpflag3_button>&, world_state & ws) {
@@ -391,7 +391,7 @@ namespace nations {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
 		if(r.first + 4 < r.second) {
 			if(auto id = *(r.first + 4); ws.w.nation_s.nations.is_valid_index(id))
-				self.set_displayed_flag(ws, ws.w.nation_s.nations[id].tag);
+				self.set_displayed_flag(ws, id);
 		}
 	}
 	void sort_by_gpflag4_button::button_function(ui::masked_flag<sort_by_gpflag4_button>&, world_state & ws) {
@@ -402,7 +402,7 @@ namespace nations {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
 		if(r.first + 5 < r.second) {
 			if(auto id = *(r.first + 5); ws.w.nation_s.nations.is_valid_index(id))
-				self.set_displayed_flag(ws, ws.w.nation_s.nations[id].tag);
+				self.set_displayed_flag(ws, id);
 		}
 	}
 	void sort_by_gpflag5_button::button_function(ui::masked_flag<sort_by_gpflag5_button>&, world_state & ws) {
@@ -413,7 +413,7 @@ namespace nations {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
 		if(r.first + 6 < r.second) {
 			if(auto id = *(r.first + 6); ws.w.nation_s.nations.is_valid_index(id))
-				self.set_displayed_flag(ws, ws.w.nation_s.nations[id].tag);
+				self.set_displayed_flag(ws, id);
 		}
 	}
 	void sort_by_gpflag6_button::button_function(ui::masked_flag<sort_by_gpflag6_button>&, world_state & ws) {
@@ -424,7 +424,7 @@ namespace nations {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
 		if(r.first + 7 < r.second) {
 			if(auto id = *(r.first + 7); ws.w.nation_s.nations.is_valid_index(id))
-				self.set_displayed_flag(ws, ws.w.nation_s.nations[id].tag);
+				self.set_displayed_flag(ws, id);
 		}
 	}
 	void sort_by_gpflag7_button::button_function(ui::masked_flag<sort_by_gpflag7_button>&, world_state & ws) {
@@ -548,11 +548,10 @@ namespace nations {
 	}
 	void cb_item_base::update(world_state & ws) {
 		if(is_valid_index(tag)) {
-			nations::nation& n = ws.w.nation_s.nations[tag];
-			cb_fabrication_by.template get<CT_STRING("country_flag")>().set_displayed_flag(ws, n.tag);
+			cb_fabrication_by.template get<CT_STRING("country_flag")>().set_displayed_flag(ws, tag);
 
-			if(auto id = n.cb_construction_target; ws.w.nation_s.nations.is_valid_index(id))
-				cb_fabrication_target.template get<CT_STRING("country_flag")>().set_displayed_flag(ws, ws.w.nation_s.nations[id].tag);
+			if(auto id = ws.w.nation_s.nations.get<nation::cb_construction_target>(tag); ws.w.nation_s.nations.is_valid_index(id))
+				cb_fabrication_target.template get<CT_STRING("country_flag")>().set_displayed_flag(ws, id);
 			else
 				cb_fabrication_target.template get<CT_STRING("country_flag")>().set_displayed_flag(ws, cultures::national_tag());
 		}
@@ -563,11 +562,11 @@ namespace nations {
 	void details_flag_frame::update(ui::dynamic_transparent_icon<details_flag_frame>& ico, world_state & ws) {
 		
 		if(auto selected_nation = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected_nation)) {
-			if((ws.w.nation_s.nations[selected_nation].flags & nations::nation::is_civilized) == 0)
+			if(ws.w.nation_s.nations.get<nation::is_civilized>(selected_nation) == false)
 				ico.set_frame(ws.w.gui_m, 3ui32);
-			else if(nations::is_great_power(ws, ws.w.nation_s.nations[selected_nation]))
+			else if(nations::is_great_power(ws, selected_nation))
 				ico.set_frame(ws.w.gui_m, 0ui32);
-			else if(ws.w.nation_s.nations[selected_nation].overall_rank <= int16_t(ws.s.modifiers_m.global_defines.colonial_rank))
+			else if(ws.w.nation_s.nations.get<nation::overall_rank>(selected_nation) <= int16_t(ws.s.modifiers_m.global_defines.colonial_rank))
 				ico.set_frame(ws.w.gui_m, 1ui32);
 			else
 				ico.set_frame(ws.w.gui_m, 2ui32);
@@ -578,42 +577,41 @@ namespace nations {
 	}
 	void details_name::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations[selected].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations.get<nation::name>(selected), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 			lm.finish_current_line();
 		}
 	}
 	void details_rank::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations[selected].overall_rank);
+			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations.get<nation::overall_rank>(selected));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
 	}
 	void details_relation_value::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
-			if(auto player = ws.w.local_player_nation; player) {
-				if(player->id != selected) {
-					char16_t local_buffer[16];
-					put_value_in_buffer(local_buffer, display_type::exact_integer, nations::get_relationship(ws, *player, selected));
-					ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-					lm.finish_current_line();
-				} else {
-					ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"--"), box, ui::xy_pair{ 0,0 }, fmt, lm);
-					lm.finish_current_line();
-				}
+			if(auto player = ws.w.local_player_nation; player && selected != player) {
+				char16_t local_buffer[16];
+				put_value_in_buffer(local_buffer, display_type::exact_integer, nations::get_relationship(ws, player, selected));
+				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+				lm.finish_current_line();
+			} else {
+				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"--"), box, ui::xy_pair{ 0,0 }, fmt, lm);
+				lm.finish_current_line();
 			}
+			
 		}
 	}
 	void details_rank_status::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, nations::get_nation_status_text(ws, ws.w.nation_s.nations[selected]), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, nations::get_nation_status_text(ws, selected), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 			lm.finish_current_line();
 		}
 	}
 	void details_government_type::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
-			if(auto gov = ws.w.nation_s.nations[selected].current_government; is_valid_index(gov)) {
+			if(auto gov = ws.w.nation_s.nations.get<nation::current_government>(selected); is_valid_index(gov)) {
 				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.governments_m.governments_container[gov].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 				lm.finish_current_line();
 			}
@@ -621,7 +619,7 @@ namespace nations {
 	}
 	void details_party::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
-			if(auto party = ws.w.nation_s.nations[selected].ruling_party; is_valid_index(party)) {
+			if(auto party = ws.w.nation_s.nations.get<nation::ruling_party>(selected); is_valid_index(party)) {
 				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.governments_m.parties[party].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 				lm.finish_current_line();
 			}
@@ -629,7 +627,7 @@ namespace nations {
 	}
 	void details_party_icon::update(ui::tinted_icon<details_party_icon>& self, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
-			if(auto ideology = ws.w.nation_s.nations[selected].ruling_ideology; is_valid_index(ideology)) {
+			if(auto ideology = ws.w.nation_s.nations.get<nation::ruling_ideology>(selected); is_valid_index(ideology)) {
 				auto ideology_color = ws.s.ideologies_m.ideology_container[ideology].color;
 				self.set_color(ws.w.gui_m, float(ideology_color.r) / 255.0f, float(ideology_color.g) / 255.0f, float(ideology_color.b) / 255.0f);
 			}
@@ -637,7 +635,7 @@ namespace nations {
 	}
 	void details_tech_school::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
-			if(auto school = ws.w.nation_s.nations[selected].tech_school; is_valid_index(school)) {
+			if(auto school = ws.w.nation_s.nations.get<nation::tech_school>(selected); is_valid_index(school)) {
 				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.modifiers_m.national_modifiers[school].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 				lm.finish_current_line();
 			}
@@ -646,7 +644,7 @@ namespace nations {
 	void details_prestige::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::exact_integer, nations::get_prestige(ws.w.nation_s.nations[selected]));
+			put_value_in_buffer(local_buffer, display_type::exact_integer, nations::get_prestige(ws, selected));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -654,7 +652,7 @@ namespace nations {
 	void details_industrial_score::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations[selected].industrial_score);
+			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations.get<nation::industrial_score>(selected));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -662,7 +660,7 @@ namespace nations {
 	void details_military_score::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations[selected].military_score);
+			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations.get<nation::military_score>(selected));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -670,7 +668,8 @@ namespace nations {
 	void details_total_score::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations[selected].military_score + ws.w.nation_s.nations[selected].industrial_score + nations::get_prestige(ws.w.nation_s.nations[selected]));
+			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations.get<nation::military_score>(selected)
+				+ ws.w.nation_s.nations.get<nation::industrial_score>(selected) + nations::get_prestige(ws, selected));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -678,7 +677,7 @@ namespace nations {
 	void details_prestige_rank::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations[selected].prestige_rank);
+			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations.get<nation::prestige_rank>(selected));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -686,7 +685,7 @@ namespace nations {
 	void details_industrial_rank::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations[selected].industrial_rank);
+			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations.get<nation::industrial_rank>(selected));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -694,7 +693,7 @@ namespace nations {
 	void details_military_rank::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations[selected].military_rank);
+			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations.get<nation::military_rank>(selected));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -702,7 +701,7 @@ namespace nations {
 	void details_overall_rank::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations[selected].overall_rank);
+			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations.get<nation::overall_rank>(selected));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -717,7 +716,7 @@ namespace nations {
 	}
 	void details_primary_culture::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
-			if(auto c = ws.w.nation_s.nations[selected].primary_culture; is_valid_index(c)) {
+			if(auto c = ws.w.nation_s.nations.get<nation::primary_culture>(selected); is_valid_index(c)) {
 				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.culture_m.culture_container[c].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 				lm.finish_current_line();
 			}
@@ -725,7 +724,7 @@ namespace nations {
 	}
 	void details_accepted_cultures::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
-			auto r = get_range(ws.w.culture_s.culture_arrays, ws.w.nation_s.nations[selected].accepted_cultures);
+			auto r = get_range(ws.w.culture_s.culture_arrays, ws.w.nation_s.nations.get<nation::accepted_cultures>(selected));
 			ui::xy_pair cursor{ 0,0 };
 			if(r.first != r.second) 
 				cursor = ui::add_linear_text(cursor, ws.s.culture_m.culture_container[*r.first].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
@@ -751,7 +750,7 @@ namespace nations {
 	void details_infamy_text::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::fp_one_place, ws.w.nation_s.nations[selected].infamy);
+			put_value_in_buffer(local_buffer, display_type::fp_one_place, ws.w.nation_s.nations.get<nation::infamy>(selected));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -765,7 +764,7 @@ namespace nations {
 	void details_war_exhaustion_text::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::percent, ws.w.nation_s.nations[selected].war_exhaustion);
+			put_value_in_buffer(local_buffer, display_type::percent, ws.w.nation_s.nations.get<nation::war_exhaustion>(selected));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -779,7 +778,7 @@ namespace nations {
 	void details_brigade_text::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::integer, military::total_active_divisions(ws, ws.w.nation_s.nations[selected]));
+			put_value_in_buffer(local_buffer, display_type::integer, military::total_active_divisions(ws, selected));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -793,7 +792,7 @@ namespace nations {
 	void details_ships_text::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::integer, military::total_active_ships(ws, ws.w.nation_s.nations[selected]));
+			put_value_in_buffer(local_buffer, display_type::integer, military::total_active_ships(ws, selected));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -815,7 +814,7 @@ namespace nations {
 	void flag_truce_sub_item::create_tooltip(ui::masked_flag<flag_truce_sub_item>& self, world_state & ws, ui::tagged_gui_object tw) {
 		if(ws.w.nation_s.nations.is_valid_index(c)) {
 			ui::line_manager lm;
-			auto cursor = ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations[c].name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			auto cursor = ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations.get<nation::name>(c), ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
 			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 
 			char16_t local_buffer[32];
@@ -839,7 +838,7 @@ namespace nations {
 		if(ws.w.nation_s.nations.is_valid_index(this_cb.target)) {
 			cursor = ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::against], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
 			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
-			cursor = ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations[this_cb.target].name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			cursor = ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations.get<nation::name>(this_cb.target), ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
 			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 		}
 		if(is_valid_index(this_cb.expiration)) {
@@ -863,14 +862,14 @@ namespace nations {
 	void influence_details_base::update(world_state & ws) {
 		influence_button.gp_index = gp_index;
 		if(auto player = ws.w.local_player_nation; player) {
-			if(is_great_power(ws, *player))
+			if(is_great_power(ws, player))
 				ui::make_visible_immediate(*influence_button.associated_object);
 			else
 				ui::hide(*influence_button.associated_object);
 
 			influence_button.set_frame(ws.w.gui_m, 1ui32);
 			if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + gp_index < r.second) {
-				if(player->id == *(r.first + gp_index))
+				if(player == *(r.first + gp_index))
 					influence_button.set_frame(ws.w.gui_m, 0ui32);
 			}
 		} else {
@@ -886,12 +885,12 @@ namespace nations {
 	void declare_war_offer_peace_button::button_function(ui::button<declare_war_offer_peace_button>&, world_state &) {}
 	void declare_war_offer_peace_button::update(ui::button<declare_war_offer_peace_button>& self, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(player->id == ws.w.diplomacy_w.selected_nation) {
+			if(player == ws.w.diplomacy_w.selected_nation) {
 				self.set_enabled(false);
 				return;
 			}
 			self.set_enabled(true);
-			if(contains_item(ws.w.nation_s.nations_arrays, player->opponents_in_war, ws.w.diplomacy_w.selected_nation)) {
+			if(contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::opponents_in_war>(player), ws.w.diplomacy_w.selected_nation)) {
 				self.set_text(ws, ws.s.fixed_ui_text[scenario::fixed_ui::offer_peace_button]);
 			} else {
 				self.set_text(ws, ws.s.fixed_ui_text[scenario::fixed_ui::declare_war_button]);
@@ -902,11 +901,11 @@ namespace nations {
 	void justify_war_button::button_function(ui::button<justify_war_button>&, world_state &) {}
 	void justify_war_button::update(ui::button<justify_war_button>& self, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(player->id == ws.w.diplomacy_w.selected_nation) {
+			if(player == ws.w.diplomacy_w.selected_nation) {
 				self.set_enabled(false);
 				return;
 			}
-			if(is_valid_index(player->cb_construction_target))
+			if(is_valid_index(ws.w.nation_s.nations.get<nation::cb_construction_target>(player)))
 				self.set_enabled(false);
 			else
 				self.set_enabled(true);
@@ -916,11 +915,11 @@ namespace nations {
 	void ban_embassy_button::button_function(ui::button<ban_embassy_button>&, world_state &) {}
 	void ban_embassy_button::update(ui::button<ban_embassy_button>& self, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(player->id == ws.w.diplomacy_w.selected_nation) {
+			if(player == ws.w.diplomacy_w.selected_nation) {
 				self.set_enabled(false);
 				return;
 			}
-			if(!is_great_power(ws, *player)) {
+			if(!is_great_power(ws, player)) {
 				self.set_enabled(false);
 				return;
 			}
@@ -931,11 +930,11 @@ namespace nations {
 	void expel_advisors_button::button_function(ui::button<expel_advisors_button>&, world_state &) {}
 	void expel_advisors_button::update(ui::button<expel_advisors_button>& self, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(player->id == ws.w.diplomacy_w.selected_nation) {
+			if(player == ws.w.diplomacy_w.selected_nation) {
 				self.set_enabled(false);
 				return;
 			}
-			if(!is_great_power(ws, *player)) {
+			if(!is_great_power(ws, player)) {
 				self.set_enabled(false);
 				return;
 			}
@@ -946,11 +945,11 @@ namespace nations {
 	void call_ally_button::button_function(ui::button<call_ally_button>&, world_state &) {}
 	void call_ally_button::update(ui::button<call_ally_button>& self, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(player->id == ws.w.diplomacy_w.selected_nation) {
+			if(player == ws.w.diplomacy_w.selected_nation) {
 				self.set_enabled(false);
 				return;
 			}
-			if(contains_item(ws.w.nation_s.nations_arrays, player->allies, ws.w.diplomacy_w.selected_nation)) {
+			if(contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(player), ws.w.diplomacy_w.selected_nation)) {
 				self.set_enabled(true);
 			} else {
 				self.set_enabled(false);
@@ -961,12 +960,12 @@ namespace nations {
 	void make_break_alliance_button::button_function(ui::button<make_break_alliance_button>&, world_state &) {}
 	void make_break_alliance_button::update(ui::button<make_break_alliance_button>& self, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(player->id == ws.w.diplomacy_w.selected_nation) {
+			if(player == ws.w.diplomacy_w.selected_nation) {
 				self.set_enabled(false);
 				return;
 			}
 			self.set_enabled(true);
-			if(contains_item(ws.w.nation_s.nations_arrays, player->allies, ws.w.diplomacy_w.selected_nation)) {
+			if(contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(player), ws.w.diplomacy_w.selected_nation)) {
 				self.set_text(ws, ws.s.fixed_ui_text[scenario::fixed_ui::cancel_alliance_button]);
 			} else {
 				self.set_text(ws, ws.s.fixed_ui_text[scenario::fixed_ui::make_alliance_button]);

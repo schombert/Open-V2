@@ -61,8 +61,8 @@ namespace nations {
 	void silent_make_alliance(world_state& ws, nations::country_tag a, nations::country_tag b);
 	void make_alliance(world_state& ws, nations::country_tag a, nations::country_tag b);
 	void end_alliance(world_state& ws, nations::country_tag a, nations::country_tag b);
-	void silent_make_vassal(world_state& ws, nations::country_tag overlord, nations::country_tag vassal);
-	void silent_make_substate(world_state& ws, nations::country_tag overlord, nations::country_tag vassal);
+	void simple_make_vassal(world_state& ws, nations::country_tag overlord, nations::country_tag vassal);
+	void simple_make_substate(world_state& ws, nations::country_tag overlord, nations::country_tag vassal);
 	nations::country_tag union_holder_of(world_state const& ws, nations::country_tag this_nation);
 	nations::country_tag union_holder_for(world_state const& ws, cultures::culture_tag);
 	cultures::national_tag union_tag_of(world_state const& ws, nations::country_tag this_nation);

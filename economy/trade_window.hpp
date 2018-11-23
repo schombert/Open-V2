@@ -171,7 +171,7 @@ namespace economy {
 		auto s = ws.w.trade_w.selected_state;
 		if(!is_valid_index(s)) {
 			if(auto player = ws.w.local_player_nation; player) {
-				if(auto cap = player->current_capital; is_valid_index(cap)) {
+				if(auto cap = ws.w.nation_s.nations.get<nation::current_capital>(player); is_valid_index(cap)) {
 					if(auto cap_state = ws.w.province_s.province_state_container.get<province_state::state_instance>(cap); is_valid_index(cap_state)) {
 						s = cap_state;
 					}
@@ -263,7 +263,7 @@ namespace economy {
 		auto s = ws.w.trade_w.selected_state;
 		if(!is_valid_index(s)) {
 			if(auto player = ws.w.local_player_nation; player) {
-				if(auto cap = player->current_capital; is_valid_index(cap)) {
+				if(auto cap = ws.w.nation_s.nations.get<nation::current_capital>(player); is_valid_index(cap)) {
 					if(auto cap_state = ws.w.province_s.province_state_container.get<province_state::state_instance>(cap); is_valid_index(cap_state)) {
 						s = cap_state;
 					}
@@ -319,7 +319,7 @@ namespace economy {
 		auto s = ws.w.trade_w.selected_state;
 		if(!is_valid_index(s)) {
 			if(auto player = ws.w.local_player_nation; player) {
-				if(auto cap = player->current_capital; is_valid_index(cap)) {
+				if(auto cap = ws.w.nation_s.nations.get<nation::current_capital>(player); is_valid_index(cap)) {
 					if(auto cap_state = ws.w.province_s.province_state_container.get<province_state::state_instance>(cap); is_valid_index(cap_state)) {
 						s = cap_state;
 					}

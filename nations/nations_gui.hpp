@@ -1520,7 +1520,7 @@ namespace nations {
 	template<typename W>
 	void details_base::windowed_update(W & w, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(ws.w.diplomacy_w.selected_nation == player->id) {
+			if(ws.w.diplomacy_w.selected_nation == player) {
 				ui::hide(*increase_relations.associated_object);
 				ui::hide(*decrease_relations.associated_object);
 			} else {
@@ -1594,7 +1594,7 @@ namespace nations {
 			int32_t total = 0;
 			for(auto a : r) {
 				if(is_valid_index(a))
-					total += military::total_active_divisions(ws, ws.w.nation_s.nations[a]);
+					total += military::total_active_divisions(ws, a);
 			}
 
 			char16_t local_buffer[16];
@@ -1614,7 +1614,7 @@ namespace nations {
 			int32_t total = 0;
 			for(auto a : r) {
 				if(is_valid_index(a))
-					total += military::total_active_divisions(ws, ws.w.nation_s.nations[a]);
+					total += military::total_active_divisions(ws, a);
 			}
 
 			char16_t local_buffer[16];
@@ -1685,7 +1685,7 @@ namespace nations {
 	template<typename W>
 	void flag_sub_item::windowed_update(ui::masked_flag<flag_sub_item>& self, W & w, world_state & ws) {
 		if(ws.w.nation_s.nations.is_valid_index(w.c))
-			self.set_displayed_flag(ws, ws.w.nation_s.nations[w.c].tag);
+			self.set_displayed_flag(ws, w.c);
 	}
 
 	template<typename window_type>
@@ -1757,7 +1757,7 @@ namespace nations {
 	void crisis_attacker_primary_flag::windowed_update(ui::masked_flag<crisis_attacker_primary_flag>& self, window_type & win, world_state & ws) {
 		auto t = ws.w.current_crisis.on_behalf_of;
 		if(bool(t) && t != ws.w.current_crisis.primary_attacker) {
-			self.set_displayed_flag(ws, t->tag);
+			self.set_displayed_flag(ws, t);
 			ui::make_visible_immediate(*self.associated_object);
 		} else {
 			ui::hide(*self.associated_object);
@@ -1768,7 +1768,7 @@ namespace nations {
 	void crisis_defender_primary_flag::windowed_update(ui::masked_flag<crisis_defender_primary_flag>& self, window_type & win, world_state & ws) {
 		auto t = ws.w.current_crisis.target;
 		if(bool(t) && t != ws.w.current_crisis.primary_defender) {
-			self.set_displayed_flag(ws, t->tag);
+			self.set_displayed_flag(ws, t);
 			ui::make_visible_immediate(*self.associated_object);
 		} else {
 			ui::hide(*self.associated_object);
@@ -1780,8 +1780,7 @@ namespace nations {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.current_crisis.attackers);
 		for(auto n : r) {
 			if(is_valid_index(n)) {
-				auto nloc = ws.w.nation_s.nations.get_location(n);
-				if(nloc != ws.w.current_crisis.on_behalf_of && nloc != ws.w.current_crisis.primary_attacker)
+				if(n != ws.w.current_crisis.on_behalf_of && n != ws.w.current_crisis.primary_attacker)
 					lb.add_item(ws, n);
 			}
 		}
@@ -1792,8 +1791,7 @@ namespace nations {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.current_crisis.defenders);
 		for(auto n : r) {
 			if(is_valid_index(n)) {
-				auto nloc = ws.w.nation_s.nations.get_location(n);
-				if(nloc != ws.w.current_crisis.target && nloc != ws.w.current_crisis.primary_defender)
+				if(n != ws.w.current_crisis.target && n != ws.w.current_crisis.primary_defender)
 					lb.add_item(ws, n);
 			}
 		}
@@ -1841,7 +1839,7 @@ namespace nations {
 	template<typename window_type>
 	void undecided_gp_flag::windowed_update(ui::masked_flag<undecided_gp_flag>& self, window_type & win, world_state & ws) {
 		if(is_valid_index(win.tag))
-			self.set_displayed_flag(ws, ws.w.nation_s.nations[win.tag].tag);
+			self.set_displayed_flag(ws, win.tag);
 	}
 
 	template<typename W>
@@ -1899,14 +1897,14 @@ namespace nations {
 	template<typename W>
 	void nation_details_flag::windowed_update(ui::masked_flag<nation_details_flag>& self, W & w, world_state & ws) {
 		if(is_valid_index(w.tag)) {
-			self.set_displayed_flag(ws, ws.w.nation_s.nations[w.tag].tag);
+			self.set_displayed_flag(ws, w.tag);
 		}
 	}
 
 	template<typename window_type>
 	void nation_details_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(win.tag)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations[win.tag].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations.get<nation::name>(win.tag), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 			lm.finish_current_line();
 		}
 	}
@@ -1923,7 +1921,7 @@ namespace nations {
 		if(r.first + index < r.second) {
 			if(auto id = *(r.first + index); ws.w.nation_s.nations.is_valid_index(id)) {
 				char16_t local_buffer[16];
-				put_value_in_buffer(local_buffer, display_type::integer, nations::get_influence_value(ws, ws.w.nation_s.nations[id], win.tag));
+				put_value_in_buffer(local_buffer, display_type::integer, nations::get_influence_value(ws, id, win.tag));
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 				lm.finish_current_line();
 			}
@@ -1934,9 +1932,9 @@ namespace nations {
 	template<typename W>
 	void nation_details_sphere_leader_flag::windowed_update(ui::masked_flag<nation_details_sphere_leader_flag>& self, W & w, world_state & ws) {
 		if(is_valid_index(w.tag)) {
-			auto leader = ws.w.nation_s.nations[w.tag].sphere_leader;
+			auto leader = ws.w.nation_s.nations.get<nation::sphere_leader>(w.tag);
 			if(leader) {
-				self.set_displayed_flag(ws, leader->tag);
+				self.set_displayed_flag(ws, leader);
 				ui::make_visible_immediate(*self.associated_object);
 			} else {
 				ui::hide(*self.associated_object);
@@ -1948,7 +1946,7 @@ namespace nations {
 	void nation_details_military_rank::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(win.tag)) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::integer, ws.w.nation_s.nations[win.tag].military_rank);
+			put_value_in_buffer(local_buffer, display_type::integer, ws.w.nation_s.nations.get<nation::military_rank>(win.tag));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -1958,7 +1956,7 @@ namespace nations {
 	void nation_details_economic_rank::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(win.tag)) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::integer, ws.w.nation_s.nations[win.tag].industrial_rank);
+			put_value_in_buffer(local_buffer, display_type::integer, ws.w.nation_s.nations.get<nation::industrial_rank>(win.tag));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -1968,7 +1966,7 @@ namespace nations {
 	void nation_details_prestige_rank::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(win.tag)) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::integer, ws.w.nation_s.nations[win.tag].prestige_rank);
+			put_value_in_buffer(local_buffer, display_type::integer, ws.w.nation_s.nations.get<nation::prestige_rank>(win.tag));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -1978,7 +1976,7 @@ namespace nations {
 	void nation_details_overall_rank::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(win.tag)) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::integer, ws.w.nation_s.nations[win.tag].overall_rank);
+			put_value_in_buffer(local_buffer, display_type::integer, ws.w.nation_s.nations.get<nation::overall_rank>(win.tag));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -1988,7 +1986,7 @@ namespace nations {
 	void nation_details_relations_value::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; bool(player) && is_valid_index(win.tag)) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::integer, nations::get_relationship(ws, *player, win.tag));
+			put_value_in_buffer(local_buffer, display_type::integer, nations::get_relationship(ws, player, win.tag));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -1997,7 +1995,7 @@ namespace nations {
 	template<typename window_type>
 	void nation_details_opinion_type::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; bool(player) && is_valid_index(win.tag)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, nations::influence_level_to_text(ws, nations::get_influence_level(ws, *player, win.tag)), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, nations::influence_level_to_text(ws, nations::get_influence_level(ws, player, win.tag)), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 			lm.finish_current_line();
 		}
 	}
@@ -2010,86 +2008,86 @@ namespace nations {
 		switch(ws.w.diplomacy_w.filter) {
 			default:
 			case country_sub_filter::all:
-				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
-					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0)
+				ws.w.nation_s.nations.for_each([&data, &ws](nations::country_tag n) {
+					if(auto id = n; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(n)) != 0)
 						data.push_back(id);
 				});
 				break;
 			case country_sub_filter::continent_africa:
-				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
-					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
-						if(is_valid_index(n.current_capital) &&
-							ws.s.province_m.province_container.get<province::continent>(n.current_capital) == ws.w.province_s.africa_modifier)
+				ws.w.nation_s.nations.for_each([&data, &ws](nations::country_tag n) {
+					if(auto id = n; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(n)) != 0) {
+						if(is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(n)) &&
+							ws.s.province_m.province_container.get<province::continent>(ws.w.nation_s.nations.get<nation::current_capital>(n)) == ws.w.province_s.africa_modifier)
 							data.push_back(id);
 					}
 				});
 				break;
 			case country_sub_filter::continent_asia:
-				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
-					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
-						if(is_valid_index(n.current_capital) &&
-							ws.s.province_m.province_container.get<province::continent>(n.current_capital) == ws.w.province_s.asia_modifier)
+				ws.w.nation_s.nations.for_each([&data, &ws](nations::country_tag n) {
+					if(auto id = n; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(n)) != 0) {
+						if(is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(n)) &&
+							ws.s.province_m.province_container.get<province::continent>(ws.w.nation_s.nations.get<nation::current_capital>(n)) == ws.w.province_s.asia_modifier)
 							data.push_back(id);
 					}
 				});
 				break;
 			case country_sub_filter::continent_europe:
-				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
-					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
-						if(is_valid_index(n.current_capital) &&
-							ws.s.province_m.province_container.get<province::continent>(n.current_capital) == ws.w.province_s.europe_modifier)
+				ws.w.nation_s.nations.for_each([&data, &ws](nations::country_tag n) {
+					if(auto id = n; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(n)) != 0) {
+						if(is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(n)) &&
+							ws.s.province_m.province_container.get<province::continent>(ws.w.nation_s.nations.get<nation::current_capital>(n)) == ws.w.province_s.europe_modifier)
 							data.push_back(id);
 					}
 				});
 				break;
 			case country_sub_filter::continent_north_america:
-				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
-					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
-						if(is_valid_index(n.current_capital) &&
-							ws.s.province_m.province_container.get<province::continent>(n.current_capital) == ws.w.province_s.north_america_modifier)
+				ws.w.nation_s.nations.for_each([&data, &ws](nations::country_tag n) {
+					if(auto id = n; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(n)) != 0) {
+						if(is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(n)) &&
+							ws.s.province_m.province_container.get<province::continent>(ws.w.nation_s.nations.get<nation::current_capital>(n)) == ws.w.province_s.north_america_modifier)
 							data.push_back(id);
 					}
 				});
 				break;
 			case country_sub_filter::continent_oceania:
-				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
-					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
-						if(is_valid_index(n.current_capital) &&
-							ws.s.province_m.province_container.get<province::continent>(n.current_capital) == ws.w.province_s.oceania_modifier)
+				ws.w.nation_s.nations.for_each([&data, &ws](country_tag n) {
+					if(auto id = n; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(n)) != 0) {
+						if(is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(n)) &&
+							ws.s.province_m.province_container.get<province::continent>(ws.w.nation_s.nations.get<nation::current_capital>(n)) == ws.w.province_s.oceania_modifier)
 							data.push_back(id);
 					}
 				});
 				break;
 			case country_sub_filter::continent_south_america:
-				ws.w.nation_s.nations.for_each([&data, &ws](nations::nation const& n) {
-					if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, n.owned_provinces) != 0) {
-						if(is_valid_index(n.current_capital) &&
-							ws.s.province_m.province_container.get<province::continent>(n.current_capital) == ws.w.province_s.south_america_modifier)
+				ws.w.nation_s.nations.for_each([&data, &ws](country_tag n) {
+					if(auto id = n; ws.w.nation_s.nations.is_valid_index(id) && get_size(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(n)) != 0) {
+						if(is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(n)) &&
+							ws.s.province_m.province_container.get<province::continent>(ws.w.nation_s.nations.get<nation::current_capital>(n)) == ws.w.province_s.south_america_modifier)
 							data.push_back(id);
 					}
 				});
 				break;
 			case country_sub_filter::enemy:
 				if(auto player = ws.w.local_player_nation; player) {
-					auto srange = get_range(ws.w.nation_s.nations_arrays, player->opponents_in_war);
+					auto srange = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::opponents_in_war>(player));
 					data.insert(data.end(), srange.first, srange.second);
 				}
 				break;
 			case country_sub_filter::ally:
 				if(auto player = ws.w.local_player_nation; player) {
-					auto srange = get_range(ws.w.nation_s.nations_arrays, player->allies);
+					auto srange = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(player));
 					data.insert(data.end(), srange.first, srange.second);
 				}
 				break;
 			case country_sub_filter::neighbor:
 				if(auto player = ws.w.local_player_nation; player) {
-					auto srange = get_range(ws.w.nation_s.nations_arrays, player->neighboring_nations);
+					auto srange = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::neighboring_nations>(player));
 					data.insert(data.end(), srange.first, srange.second);
 				}
 				break;
 			case country_sub_filter::sphere:
 				if(auto player = ws.w.local_player_nation; player) {
-					auto srange = get_range(ws.w.nation_s.nations_arrays, player->sphere_members);
+					auto srange = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::sphere_members>(player));
 					data.insert(data.end(), srange.first, srange.second);
 				}
 				break;
@@ -2103,8 +2101,8 @@ namespace nations {
 			{
 				vector_backed_string_lex_less<char16_t> lss(ws.s.gui_m.text_data_sequences.text_data);
 				std::sort(data.begin(), data.end(), [&ws, &lss](country_tag a, country_tag b) {
-					auto a_name = ws.w.nation_s.nations[a].name;
-					auto b_name = ws.w.nation_s.nations[b].name;
+					auto a_name = ws.w.nation_s.nations.get<nation::name>(a);
+					auto b_name = ws.w.nation_s.nations.get<nation::name>(b);
 					return lss(
 						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, a_name),
 						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, b_name));
@@ -2116,8 +2114,8 @@ namespace nations {
 			case country_sort::gp_one:
 				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + 0 < r.second) {
 					if(auto id = *(r.first + 0); ws.w.nation_s.nations.is_valid_index(id)) {
-						std::sort(data.begin(), data.end(), [&ws, n = &ws.w.nation_s.nations[id]](country_tag a, country_tag b) {
-							return nations::get_influence_value(ws, *n, a) > nations::get_influence_value(ws, *n, b);
+						std::sort(data.begin(), data.end(), [&ws, n = id](country_tag a, country_tag b) {
+							return nations::get_influence_value(ws, n, a) > nations::get_influence_value(ws, n, b);
 						});
 					}
 				}
@@ -2125,8 +2123,8 @@ namespace nations {
 			case country_sort::gp_two:
 				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + 1 < r.second) {
 					if(auto id = *(r.first + 1); ws.w.nation_s.nations.is_valid_index(id)) {
-						std::sort(data.begin(), data.end(), [&ws, n = &ws.w.nation_s.nations[id]](country_tag a, country_tag b) {
-							return nations::get_influence_value(ws, *n, a) > nations::get_influence_value(ws, *n, b);
+						std::sort(data.begin(), data.end(), [&ws, n = id](country_tag a, country_tag b) {
+							return nations::get_influence_value(ws, n, a) > nations::get_influence_value(ws, n, b);
 						});
 					}
 				}
@@ -2134,8 +2132,8 @@ namespace nations {
 			case country_sort::gp_three:
 				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + 2 < r.second) {
 					if(auto id = *(r.first + 2); ws.w.nation_s.nations.is_valid_index(id)) {
-						std::sort(data.begin(), data.end(), [&ws, n = &ws.w.nation_s.nations[id]](country_tag a, country_tag b) {
-							return nations::get_influence_value(ws, *n, a) > nations::get_influence_value(ws, *n, b);
+						std::sort(data.begin(), data.end(), [&ws, n = id](country_tag a, country_tag b) {
+							return nations::get_influence_value(ws, n, a) > nations::get_influence_value(ws, n, b);
 						});
 					}
 				}
@@ -2143,8 +2141,8 @@ namespace nations {
 			case country_sort::gp_four:
 				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + 3 < r.second) {
 					if(auto id = *(r.first + 3); ws.w.nation_s.nations.is_valid_index(id)) {
-						std::sort(data.begin(), data.end(), [&ws, n = &ws.w.nation_s.nations[id]](country_tag a, country_tag b) {
-							return nations::get_influence_value(ws, *n, a) > nations::get_influence_value(ws, *n, b);
+						std::sort(data.begin(), data.end(), [&ws, n = id](country_tag a, country_tag b) {
+							return nations::get_influence_value(ws, n, a) > nations::get_influence_value(ws, n, b);
 						});
 					}
 				}
@@ -2152,8 +2150,8 @@ namespace nations {
 			case country_sort::gp_five:
 				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + 4 < r.second) {
 					if(auto id = *(r.first + 4); ws.w.nation_s.nations.is_valid_index(id)) {
-						std::sort(data.begin(), data.end(), [&ws, n = &ws.w.nation_s.nations[id]](country_tag a, country_tag b) {
-							return nations::get_influence_value(ws, *n, a) > nations::get_influence_value(ws, *n, b);
+						std::sort(data.begin(), data.end(), [&ws, n = id](country_tag a, country_tag b) {
+							return nations::get_influence_value(ws, n, a) > nations::get_influence_value(ws, n, b);
 						});
 					}
 				}
@@ -2161,8 +2159,8 @@ namespace nations {
 			case country_sort::gp_six:
 				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + 5 < r.second) {
 					if(auto id = *(r.first + 5); ws.w.nation_s.nations.is_valid_index(id)) {
-						std::sort(data.begin(), data.end(), [&ws, n = &ws.w.nation_s.nations[id]](country_tag a, country_tag b) {
-							return nations::get_influence_value(ws, *n, a) > nations::get_influence_value(ws, *n, b);
+						std::sort(data.begin(), data.end(), [&ws, n = id](country_tag a, country_tag b) {
+							return nations::get_influence_value(ws, n, a) > nations::get_influence_value(ws, n, b);
 						});
 					}
 				}
@@ -2170,8 +2168,8 @@ namespace nations {
 			case country_sort::gp_seven:
 				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + 6 < r.second) {
 					if(auto id = *(r.first + 6); ws.w.nation_s.nations.is_valid_index(id)) {
-						std::sort(data.begin(), data.end(), [&ws, n = &ws.w.nation_s.nations[id]](country_tag a, country_tag b) {
-							return nations::get_influence_value(ws, *n, a) > nations::get_influence_value(ws, *n, b);
+						std::sort(data.begin(), data.end(), [&ws, n = id](country_tag a, country_tag b) {
+							return nations::get_influence_value(ws, n, a) > nations::get_influence_value(ws, n, b);
 						});
 					}
 				}
@@ -2179,48 +2177,48 @@ namespace nations {
 			case country_sort::gp_eight:
 				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + 7 < r.second) {
 					if(auto id = *(r.first + 7); ws.w.nation_s.nations.is_valid_index(id)) {
-						std::sort(data.begin(), data.end(), [&ws, n = &ws.w.nation_s.nations[id]](country_tag a, country_tag b) {
-							return nations::get_influence_value(ws, *n, a) > nations::get_influence_value(ws, *n, b);
+						std::sort(data.begin(), data.end(), [&ws, n = id](country_tag a, country_tag b) {
+							return nations::get_influence_value(ws, n, a) > nations::get_influence_value(ws, n, b);
 						});
 					}
 				}
 				break;
 			case country_sort::sphere_leader:
 				std::sort(data.begin(), data.end(), [&ws](country_tag a, country_tag b) {
-					return ws.w.nation_s.nations[a].sphere_leader > ws.w.nation_s.nations[b].sphere_leader;
+					return !(ws.w.nation_s.nations.get<nation::sphere_leader>(a) <= ws.w.nation_s.nations.get<nation::sphere_leader>(b));
 				});
 				break;
 			case country_sort::prestige_rank:
 				std::sort(data.begin(), data.end(), [&ws](country_tag a, country_tag b) {
-					return ws.w.nation_s.nations[a].prestige_rank < ws.w.nation_s.nations[b].prestige_rank;
+					return ws.w.nation_s.nations.get<nation::prestige_rank>(a) < ws.w.nation_s.nations.get<nation::prestige_rank>(b);
 				});
 				break;
 			case country_sort::economic_rank:
 				std::sort(data.begin(), data.end(), [&ws](country_tag a, country_tag b) {
-					return ws.w.nation_s.nations[a].industrial_rank < ws.w.nation_s.nations[b].industrial_rank;
+					return ws.w.nation_s.nations.get<nation::industrial_rank>(a) < ws.w.nation_s.nations.get<nation::industrial_rank>(b);
 				});
 				break;
 			case country_sort::military_rank:
 				std::sort(data.begin(), data.end(), [&ws](country_tag a, country_tag b) {
-					return ws.w.nation_s.nations[a].military_rank < ws.w.nation_s.nations[b].military_rank;
+					return ws.w.nation_s.nations.get<nation::military_rank>(a) < ws.w.nation_s.nations.get<nation::military_rank>(b);
 				});
 				break;
 			case country_sort::overall_rank:
 				std::sort(data.begin(), data.end(), [&ws](country_tag a, country_tag b) {
-					return ws.w.nation_s.nations[a].overall_rank < ws.w.nation_s.nations[b].overall_rank;
+					return ws.w.nation_s.nations.get<nation::overall_rank>(a) < ws.w.nation_s.nations.get<nation::overall_rank>(b);
 				});
 				break;
 			case country_sort::opinion:
 				if(auto player = ws.w.local_player_nation; player) {
 					std::sort(data.begin(), data.end(), [&ws, player](country_tag a, country_tag b) {
-						return nations::get_influence_level(ws, *player, a) > nations::get_influence_level(ws, *player, b);
+						return nations::get_influence_level(ws, player, a) > nations::get_influence_level(ws, player, b);
 					});
 				}
 				break;
 			case country_sort::relation:
 				if(auto player = ws.w.local_player_nation; player) {
 					std::sort(data.begin(), data.end(), [&ws, player](country_tag a, country_tag b) {
-						return nations::get_relationship(ws, *player, a) > nations::get_relationship(ws, *player, b);
+						return nations::get_relationship(ws, player, a) > nations::get_relationship(ws, player, b);
 					});
 				}
 				break;
@@ -2254,8 +2252,7 @@ namespace nations {
 	template<typename W>
 	void cb_item_icon::windowed_update(ui::dynamic_icon<cb_item_icon>& self, W & w, world_state & ws) {
 		if(is_valid_index(w.tag)) {
-			nations::nation& n = ws.w.nation_s.nations[w.tag];
-			tag = n.cb_construction_type;
+			tag = ws.w.nation_s.nations.get<nation::cb_construction_type>(w.tag);
 			if(is_valid_index(tag)) {
 				self.set_frame(ws.w.gui_m, ws.s.military_m.cb_types[tag].sprite_index != 0 ? uint32_t(ws.s.military_m.cb_types[tag].sprite_index - 1) : 0ui32);
 			}
@@ -2267,8 +2264,7 @@ namespace nations {
 	template<typename W>
 	void cb_item_progress::windowed_update(ui::progress_bar<cb_item_progress>& self, W & w, world_state & ws) {
 		if(is_valid_index(w.tag)) {
-			nations::nation& n = ws.w.nation_s.nations[w.tag];
-			self.set_fraction(n.cb_construction_progress);
+			self.set_fraction(ws.w.nation_s.nations.get<nation::cb_construction_progress>(w.tag));
 		} else {
 			self.set_fraction(0.0f);
 		}
@@ -2277,9 +2273,8 @@ namespace nations {
 	template<typename window_type>
 	void cb_item_progress_text::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(win.tag)) {
-			nations::nation& n = ws.w.nation_s.nations[win.tag];
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::percent, n.cb_construction_progress);
+			put_value_in_buffer(local_buffer, display_type::percent, ws.w.nation_s.nations.get<nation::cb_construction_progress>(win.tag));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -2288,7 +2283,7 @@ namespace nations {
 	template<typename window_type>
 	void cb_item_cancel_button::windowed_update(ui::simple_button<cb_item_cancel_button>& self, window_type & win, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(win.tag == player->id)
+			if(win.tag == player)
 				ui::make_visible_immediate(*self.associated_object);
 			else
 				ui::hide(*self.associated_object);
@@ -2300,10 +2295,10 @@ namespace nations {
 	template<typename lb_type>
 	void cb_fabrication_lb::populate_list(lb_type & lb, world_state & ws) {
 		boost::container::small_vector<nations::country_tag, 32, concurrent_allocator<nations::country_tag>> data;
-		ws.w.nation_s.nations.for_each([&data, player = ws.w.local_player_nation, &ws](nations::nation const& n) {
-			if(auto id = n.id; ws.w.nation_s.nations.is_valid_index(id) && is_valid_index(n.cb_construction_type)) {
-				if((n.flags & nations::nation::cb_construction_discovered) != 0 || &n == player) {
-					data.push_back(id);
+		ws.w.nation_s.nations.for_each([&data, player = ws.w.local_player_nation, &ws](nations::country_tag n) {
+			if(ws.w.nation_s.nations.is_valid_index(n) && is_valid_index(ws.w.nation_s.nations.get<nation::cb_construction_type>(n))) {
+				if(ws.w.nation_s.nations.get<nation::cb_construction_discovered>(n) || n == player) {
+					data.push_back(n);
 				}
 			}
 		});
@@ -2319,7 +2314,7 @@ namespace nations {
 	void gp_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
 			if(auto id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
-				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations[id].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations.get<nation::name>(id), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 				lm.finish_current_line();
 			}
 		}
@@ -2330,7 +2325,7 @@ namespace nations {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
 			if(auto id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
 				char16_t local_buffer[16];
-				put_value_in_buffer(local_buffer, display_type::exact_integer, nations::get_prestige(ws.w.nation_s.nations[id]));
+				put_value_in_buffer(local_buffer, display_type::exact_integer, nations::get_prestige(ws, id));
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 				lm.finish_current_line();
 			}
@@ -2342,7 +2337,7 @@ namespace nations {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
 			if(nations::country_tag id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
 				char16_t local_buffer[16];
-				put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations[id].military_score);
+				put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations.get<nation::military_score>(id));
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 				lm.finish_current_line();
 			}
@@ -2354,7 +2349,7 @@ namespace nations {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
 			if(nations::country_tag id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
 				char16_t local_buffer[16];
-				put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations[id].industrial_score);
+				put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations.get<nation::industrial_score>(id));
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 				lm.finish_current_line();
 			}
@@ -2366,7 +2361,7 @@ namespace nations {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
 			if(nations::country_tag id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
 				char16_t local_buffer[16];
-				put_value_in_buffer(local_buffer, display_type::exact_integer, nations::get_prestige(ws.w.nation_s.nations[id]) + ws.w.nation_s.nations[id].industrial_score + ws.w.nation_s.nations[id].military_score);
+				put_value_in_buffer(local_buffer, display_type::exact_integer, nations::get_prestige(ws, id) + ws.w.nation_s.nations.get<nation::industrial_score>(id) + ws.w.nation_s.nations.get<nation::military_score>(id));
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 				lm.finish_current_line();
 			}
@@ -2377,7 +2372,7 @@ namespace nations {
 	void gp_flag::windowed_update(ui::masked_flag<gp_flag>& self, window_type & win, world_state & ws) {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
 			if(nations::country_tag id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
-				self.set_displayed_flag(ws, ws.w.nation_s.nations[id].tag);
+				self.set_displayed_flag(ws, id);
 				return;
 			}
 		}
@@ -2388,7 +2383,7 @@ namespace nations {
 	void gp_sphere::windowed_update(lb_type & lb, window_type & win, world_state & ws) {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
 			if(nations::country_tag id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
-				auto sphere_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[id].sphere_members);
+				auto sphere_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::sphere_members>(id));
 				for(auto c : sphere_range) {
 					if(is_valid_index(c))
 						lb.add_item(ws, c);
@@ -2400,9 +2395,9 @@ namespace nations {
 	template<typename lb_type>
 	void details_gp_sphere::populate_list(lb_type & lb, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
-			if(!nations::is_great_power(ws, ws.w.nation_s.nations[selected]))
+			if(!nations::is_great_power(ws, selected))
 				return;
-			auto sphere_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[selected].sphere_members);
+			auto sphere_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::sphere_members>(selected));
 			for(auto s : sphere_range) {
 				lb.add_item(ws, s);
 			}
@@ -2412,9 +2407,9 @@ namespace nations {
 	template<typename lb_type>
 	void details_gp_friendly::populate_list(lb_type & lb, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
-			if(!nations::is_great_power(ws, ws.w.nation_s.nations[selected]))
+			if(!nations::is_great_power(ws, selected))
 				return;
-			auto inf_range = get_range(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations[selected].gp_influence);
+			auto inf_range = get_range(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(selected));
 			for(auto i = inf_range.first; i != inf_range.second; ++i) {
 				if(i->level == 4i8)
 					lb.add_item(ws, i->target);
@@ -2425,9 +2420,9 @@ namespace nations {
 	template<typename lb_type>
 	void details_gp_coridal::populate_list(lb_type & lb, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
-			if(!nations::is_great_power(ws, ws.w.nation_s.nations[selected]))
+			if(!nations::is_great_power(ws, selected))
 				return;
-			auto inf_range = get_range(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations[selected].gp_influence);
+			auto inf_range = get_range(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(selected));
 			for(auto i = inf_range.first; i != inf_range.second; ++i) {
 				if(i->level == 3i8)
 					lb.add_item(ws, i->target);
@@ -2438,7 +2433,7 @@ namespace nations {
 	template<typename W>
 	void details_non_gp_background::windowed_update(ui::dynamic_icon<details_non_gp_background>& self, W & win, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
-			if(nations::is_great_power(ws, ws.w.nation_s.nations[selected]))
+			if(nations::is_great_power(ws, selected))
 				ui::hide(*self.associated_object);
 			else
 				ui::make_visible_immediate(*self.associated_object);
@@ -2448,7 +2443,7 @@ namespace nations {
 	template<typename lb_type>
 	void details_wars::populate_list(lb_type & lb, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
-			auto opp_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[selected].opponents_in_war);
+			auto opp_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::opponents_in_war>(selected));
 			for(auto n : opp_range) {
 				if(is_valid_index(n))
 					lb.add_item(ws, n);
@@ -2459,7 +2454,7 @@ namespace nations {
 	template<typename lb_type>
 	void details_allies::populate_list(lb_type & lb, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
-			auto allies_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[selected].allies);
+			auto allies_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(selected));
 			for(auto n : allies_range) {
 				if(is_valid_index(n))
 					lb.add_item(ws, n);
@@ -2470,7 +2465,7 @@ namespace nations {
 	template<typename lb_type>
 	void details_truce::populate_list(lb_type & lb, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
-			auto truce_range = get_range(ws.w.nation_s.truce_arrays, ws.w.nation_s.nations[selected].truces);
+			auto truce_range = get_range(ws.w.nation_s.truce_arrays, ws.w.nation_s.nations.get<nation::truces>(selected));
 			for(auto i = truce_range.first; i != truce_range.second; ++i)
 				lb.add_item(ws, *i);
 		}
@@ -2479,7 +2474,7 @@ namespace nations {
 	template<typename lb_type>
 	void details_cbs::populate_list(lb_type & lb, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
-			auto cb_range = get_range(ws.w.military_s.cb_arrays, ws.w.nation_s.nations[selected].active_cbs);
+			auto cb_range = get_range(ws.w.military_s.cb_arrays, ws.w.nation_s.nations.get<nation::active_cbs>(selected));
 			for(auto i = cb_range.first; i != cb_range.second; ++i)
 				lb.add_item(ws, *i);
 		}
@@ -2488,12 +2483,12 @@ namespace nations {
 	template<typename lb_type>
 	void details_protected::populate_list(lb_type & lb, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
-			if(auto s = ws.w.nation_s.nations[selected].sphere_leader; s) {
-				if(auto id = s->id; ws.w.nation_s.nations.is_valid_index(id))
+			if(auto s = ws.w.nation_s.nations.get<nation::sphere_leader>(selected); s) {
+				if(auto id = s; ws.w.nation_s.nations.is_valid_index(id))
 					lb.add_item(ws, id);
 			}
-			if(auto s = ws.w.nation_s.nations[selected].overlord; bool(s) && s != ws.w.nation_s.nations[selected].sphere_leader) {
-				if(auto id = s->id; ws.w.nation_s.nations.is_valid_index(id))
+			if(auto s = ws.w.nation_s.nations.get<nation::overlord>(selected); bool(s) && s != ws.w.nation_s.nations.get<nation::sphere_leader>(selected)) {
+				if(auto id = s; ws.w.nation_s.nations.is_valid_index(id))
 					lb.add_item(ws, id);
 			}
 		}
@@ -2502,12 +2497,12 @@ namespace nations {
 	template<typename lb_type>
 	void details_wargoals::populate_list(lb_type & lb, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			auto wrange = get_range(ws.w.military_s.war_arrays, player->wars_involved_in);
+			auto wrange = get_range(ws.w.military_s.war_arrays, ws.w.nation_s.nations.get<nation::wars_involved_in>(player));
 			for(auto i = wrange.first; i != wrange.second; ++i) {
 				if(auto wid = i->war_id; ws.w.military_s.wars.is_valid_index(wid)) {
 					auto wg_range = get_range(ws.w.military_s.war_goal_arrays, ws.w.military_s.wars[wid].war_goals);
 					for(auto j = wg_range.first; j != wg_range.second; ++j) {
-						if(j->from_country == player->id && j->target_country == ws.w.diplomacy_w.selected_nation)
+						if(j->from_country == player && j->target_country == ws.w.diplomacy_w.selected_nation)
 							lb.add_item(ws, *j);
 					}
 				}
@@ -2534,7 +2529,7 @@ namespace nations {
 	void influence_details_gp_flag::windowed_update(ui::masked_flag<influence_details_gp_flag>& self, window_type & win, world_state & ws) {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
 			if(nations::country_tag id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
-				self.set_displayed_flag(ws, ws.w.nation_s.nations[id].tag);
+				self.set_displayed_flag(ws, id);
 				return;
 			}
 		}
@@ -2546,7 +2541,7 @@ namespace nations {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
 			if(nations::country_tag id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
 				ui::add_linear_text(ui::xy_pair{ 0,0 },
-					influence_level_to_text(ws, get_influence_level(ws, ws.w.nation_s.nations[id], ws.w.diplomacy_w.selected_nation)),
+					influence_level_to_text(ws, get_influence_level(ws, id, ws.w.diplomacy_w.selected_nation)),
 					fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 				lm.finish_current_line();
 			}
@@ -2558,7 +2553,7 @@ namespace nations {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
 			if(nations::country_tag id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
 				char16_t local_buffer[16];
-				put_value_in_buffer(local_buffer, display_type::integer, get_influence_value(ws, ws.w.nation_s.nations[id], ws.w.diplomacy_w.selected_nation));
+				put_value_in_buffer(local_buffer, display_type::integer, get_influence_value(ws, id, ws.w.diplomacy_w.selected_nation));
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 				lm.finish_current_line();
 			}
@@ -2570,7 +2565,7 @@ namespace nations {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); r.first + win.gp_index < r.second) {
 			if(nations::country_tag id = *(r.first + win.gp_index); ws.w.nation_s.nations.is_valid_index(id)) {
 				char16_t local_buffer[16];
-				put_value_in_buffer(local_buffer, display_type::currency, get_influence(ws, ws.w.nation_s.nations[id], ws.w.diplomacy_w.selected_nation).investment_amount);
+				put_value_in_buffer(local_buffer, display_type::currency, get_influence(ws, id, ws.w.diplomacy_w.selected_nation).investment_amount);
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 				lm.finish_current_line();
 			}
@@ -2591,7 +2586,7 @@ namespace nations {
 	template<typename W>
 	void influence_details_window_container::windowed_update(W & w, world_state & ws) {
 		if(auto selected = ws.w.diplomacy_w.selected_nation; ws.w.nation_s.nations.is_valid_index(selected)) {
-			if(nations::is_great_power(ws, ws.w.nation_s.nations[selected]))
+			if(nations::is_great_power(ws, selected))
 				ui::hide(*associated_object);
 			else
 				ui::make_visible_immediate(*associated_object);

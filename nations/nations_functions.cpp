@@ -60,168 +60,193 @@ namespace nations {
 		s.truce_arrays.reset();
 	}
 
-	void destroy_nation(world_state& ws, nations::nation& new_nation) {
-		clear(ws.w.culture_s.culture_arrays, new_nation.accepted_cultures);
+	void destroy_nation(world_state& ws, nations::country_tag new_nation) {
+		clear(ws.w.culture_s.culture_arrays, ws.w.nation_s.nations.get<nation::accepted_cultures>(new_nation));
 
-		auto owned_range = get_range(ws.w.province_s.province_arrays, new_nation.owned_provinces);
+		auto& owned_provinces = ws.w.nation_s.nations.get<nation::owned_provinces>(new_nation);
+		auto owned_range = get_range(ws.w.province_s.province_arrays, owned_provinces);
 		for(auto p : owned_range)
 			ws.w.province_s.province_state_container.set<province_state::owner>(p, country_tag());
-		clear(ws.w.province_s.province_arrays, new_nation.owned_provinces);
+		clear(ws.w.province_s.province_arrays, owned_provinces);
 
-		auto controlled_range = get_range(ws.w.province_s.province_arrays, new_nation.controlled_provinces);
+		auto& controlled_provinces = ws.w.nation_s.nations.get<nation::controlled_provinces>(new_nation);
+		auto controlled_range = get_range(ws.w.province_s.province_arrays, controlled_provinces);
 		for(auto p : controlled_range)
 			ws.w.province_s.province_state_container.set<province_state::controller>(p, country_tag());
-		clear(ws.w.province_s.province_arrays, new_nation.controlled_provinces);
+		clear(ws.w.province_s.province_arrays, controlled_provinces);
 
-		auto prange = get_range(ws.w.province_s.province_arrays, new_nation.naval_patrols);
+		auto& naval_patrols = ws.w.nation_s.nations.get<nation::naval_patrols>(new_nation);
+		auto prange = get_range(ws.w.province_s.province_arrays, naval_patrols);
 		for(auto p : prange) {
 			remove_item_if(ws.w.military_s.fleet_presence_arrays, ws.w.province_s.province_state_container.get<province_state::fleets>(p),
-				[id = new_nation.id](military::fleet_presence const& fp) { return fp.owner == id; });
+				[id = new_nation](military::fleet_presence const& fp) { return fp.owner == id; });
 		}
-		clear(ws.w.province_s.province_arrays, new_nation.naval_patrols);
+		clear(ws.w.province_s.province_arrays, naval_patrols);
 
-		auto vrange = get_range(ws.w.nation_s.nations_arrays, new_nation.vassals);
+		auto& vassals = ws.w.nation_s.nations.get<nation::vassals>(new_nation);
+		auto vrange = get_range(ws.w.nation_s.nations_arrays, vassals);
 		for(auto v : vrange)
-			ws.w.nation_s.nations[v].overlord = nullptr;
-		clear(ws.w.nation_s.nations_arrays, new_nation.vassals);
+			ws.w.nation_s.nations.set<nation::overlord>(v, nations::country_tag());
+		clear(ws.w.nation_s.nations_arrays, vassals);
 
-		auto arange = get_range(ws.w.nation_s.nations_arrays, new_nation.allies);
+		auto& allies = ws.w.nation_s.nations.get<nation::allies>(new_nation);
+		auto arange = get_range(ws.w.nation_s.nations_arrays, allies);
 		for(auto a : arange)
-			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[a].allies, new_nation.id);
-		clear(ws.w.nation_s.nations_arrays, new_nation.allies);
+			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(a), new_nation);
+		clear(ws.w.nation_s.nations_arrays, allies);
 
-		auto srange = get_range(ws.w.nation_s.nations_arrays, new_nation.sphere_members);
+		auto& sphere_members = ws.w.nation_s.nations.get<nation::sphere_members>(new_nation);
+		auto srange = get_range(ws.w.nation_s.nations_arrays, sphere_members);
 		for(auto s : srange)
-			ws.w.nation_s.nations[s].sphere_leader = nullptr;
-		clear(ws.w.nation_s.nations_arrays, new_nation.sphere_members);
+			ws.w.nation_s.nations.set<nation::sphere_leader>(s, nations::country_tag());
+		clear(ws.w.nation_s.nations_arrays, sphere_members);
 
-		auto nrange = get_range(ws.w.nation_s.nations_arrays, new_nation.neighboring_nations);
+		auto& neighboring_nations = ws.w.nation_s.nations.get<nation::neighboring_nations>(new_nation);
+		auto nrange = get_range(ws.w.nation_s.nations_arrays, neighboring_nations);
 		for(auto n : nrange)
-			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[n].neighboring_nations, new_nation.id);
-		clear(ws.w.nation_s.nations_arrays, new_nation.neighboring_nations);
+			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::neighboring_nations>(n), new_nation);
+		clear(ws.w.nation_s.nations_arrays, neighboring_nations);
 
-		if(new_nation.sphere_leader)
-			remove_item(ws.w.nation_s.nations_arrays, new_nation.sphere_leader->sphere_members, new_nation.id);
-		new_nation.sphere_leader = nullptr;
+		auto& sphere_leader = ws.w.nation_s.nations.get<nation::sphere_leader>(new_nation);
+		if(is_valid_index(sphere_leader))
+			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::sphere_members>(sphere_leader), new_nation);
+		sphere_leader = nations::country_tag();
 
-		if(new_nation.overlord)
-			remove_item(ws.w.nation_s.nations_arrays, new_nation.overlord->vassals, new_nation.id);
-		new_nation.overlord = nullptr;
+		auto& overlord = ws.w.nation_s.nations.get<nation::overlord>(new_nation);
+		if(is_valid_index(overlord))
+			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::vassals>(overlord), new_nation);
+		overlord = nations::country_tag();
 
-		auto inf_range = get_range(ws.w.nation_s.influence_arrays, new_nation.gp_influence);
+		auto& gp_influence = ws.w.nation_s.nations.get<nation::gp_influence>(new_nation);
+		auto inf_range = get_range(ws.w.nation_s.influence_arrays, gp_influence);
 		for(auto i = inf_range.first; i != inf_range.second; ++i)
-			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[i->target].influencers, new_nation.id);
-		clear(ws.w.nation_s.influence_arrays, new_nation.gp_influence);
+			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::influencers>(i->target), new_nation);
+		clear(ws.w.nation_s.influence_arrays, gp_influence);
 
-		auto rev_inf_range = get_range(ws.w.nation_s.nations_arrays, new_nation.influencers);
+		auto& influencers = ws.w.nation_s.nations.get<nation::influencers>(new_nation);
+		auto rev_inf_range = get_range(ws.w.nation_s.nations_arrays, influencers);
 		for(auto i : rev_inf_range)
-			remove_item(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations[i].gp_influence, influence{0.0f, new_nation.id, 0ui8, 0i8});
-		clear(ws.w.nation_s.nations_arrays, new_nation.influencers);
+			remove_item(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(i), influence{0.0f, new_nation, 0ui8, 0i8});
+		clear(ws.w.nation_s.nations_arrays, influencers);
 		
-		auto rel_range = get_range(ws.w.nation_s.relations_arrays, new_nation.relations);
+		auto& relations = ws.w.nation_s.nations.get<nation::relations>(new_nation);
+		auto rel_range = get_range(ws.w.nation_s.relations_arrays, relations);
 		for(auto r = rel_range.first; r != rel_range.second; ++r)
-			remove_item(ws.w.nation_s.relations_arrays, ws.w.nation_s.nations[r->tag].relations, relationship{ new_nation.id, 0i16 });
-		clear(ws.w.nation_s.relations_arrays, new_nation.relations);
+			remove_item(ws.w.nation_s.relations_arrays, ws.w.nation_s.nations.get<nation::relations>(r->tag), relationship{ new_nation, 0i16 });
+		clear(ws.w.nation_s.relations_arrays, relations);
 
-		auto truce_range = get_range(ws.w.nation_s.truce_arrays, new_nation.truces);
+		auto& truces = ws.w.nation_s.nations.get<nation::truces>(new_nation);
+		auto truce_range = get_range(ws.w.nation_s.truce_arrays, truces);
 		for(auto t = truce_range.first; t != truce_range.second; ++t)
-			remove_item(ws.w.nation_s.truce_arrays, ws.w.nation_s.nations[t->tag].truces, truce{date_tag(), new_nation.id});
-		clear(ws.w.nation_s.truce_arrays, new_nation.truces);
+			remove_item(ws.w.nation_s.truce_arrays, ws.w.nation_s.nations.get<nation::truces>(t->tag), truce{date_tag(), new_nation});
+		clear(ws.w.nation_s.truce_arrays, truces);
 		
-		clear(ws.w.economy_s.purchasing_arrays, new_nation.statewise_tarrif_mask);
-		clear(ws.w.variable_s.national_flags_arrays, new_nation.national_flags);
-		clear(ws.w.nation_s.static_modifier_arrays, new_nation.static_modifiers);
-		clear(ws.w.nation_s.timed_modifier_arrays, new_nation.timed_modifiers);
+		clear(ws.w.economy_s.purchasing_arrays, ws.w.nation_s.nations.get<nation::statewise_tarrif_mask>(new_nation));
+		clear(ws.w.variable_s.national_flags_arrays, ws.w.nation_s.nations.get<nation::national_flags>(new_nation));
+		clear(ws.w.nation_s.static_modifier_arrays, ws.w.nation_s.nations.get<nation::static_modifiers>(new_nation));
+		clear(ws.w.nation_s.timed_modifier_arrays, ws.w.nation_s.nations.get<nation::timed_modifiers>(new_nation));
 
-		auto movements = get_range(ws.w.population_s.pop_movement_arrays, new_nation.active_movements);
+		auto& active_movements = ws.w.nation_s.nations.get<nation::active_movements>(new_nation);
+		auto movements = get_range(ws.w.population_s.pop_movement_arrays, active_movements);
 		for(auto m : movements) {
 			population::destroy_pop_movement(ws, ws.w.population_s.pop_movements[m]);
 			ws.w.population_s.pop_movements.remove(m);
 		}
-		clear(ws.w.population_s.pop_movement_arrays, new_nation.active_movements);
+		clear(ws.w.population_s.pop_movement_arrays, active_movements);
 
-		auto factions = get_range(ws.w.population_s.rebel_faction_arrays, new_nation.active_rebel_factions);
+		auto& active_rebel_factions = ws.w.nation_s.nations.get<nation::active_rebel_factions>(new_nation);
+		auto factions = get_range(ws.w.population_s.rebel_faction_arrays, active_rebel_factions);
 		for(auto rf : factions) {
 			population::destroy_rebel_faction(ws, ws.w.population_s.rebel_factions[rf]);
 			ws.w.population_s.rebel_factions.remove(rf);
 		}
-		clear(ws.w.population_s.rebel_faction_arrays, new_nation.active_rebel_factions);
+		clear(ws.w.population_s.rebel_faction_arrays, active_rebel_factions);
 
-		auto wally_range = get_range(ws.w.nation_s.nations_arrays, new_nation.allies_in_war);
+		auto& allies_in_war = ws.w.nation_s.nations.get<nation::allies_in_war>(new_nation);
+		auto wally_range = get_range(ws.w.nation_s.nations_arrays, allies_in_war);
 		for(auto n : wally_range)
-			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[n].allies_in_war, new_nation.id);
-		clear(ws.w.nation_s.nations_arrays, new_nation.allies_in_war);
+			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies_in_war>(n), new_nation);
+		clear(ws.w.nation_s.nations_arrays, allies_in_war);
 
-		auto wopp_range = get_range(ws.w.nation_s.nations_arrays, new_nation.opponents_in_war);
+		auto& opponents_in_war = ws.w.nation_s.nations.get<nation::opponents_in_war>(new_nation);
+		auto wopp_range = get_range(ws.w.nation_s.nations_arrays, opponents_in_war);
 		for(auto n : wopp_range)
-			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[n].opponents_in_war, new_nation.id);
-		clear(ws.w.nation_s.nations_arrays, new_nation.opponents_in_war);
+			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::opponents_in_war>(n), new_nation);
+		clear(ws.w.nation_s.nations_arrays, opponents_in_war);
 
-		auto war_range = get_range(ws.w.military_s.war_arrays, new_nation.wars_involved_in);
+		auto& wars_involved_in = ws.w.nation_s.nations.get<nation::wars_involved_in>(new_nation);
+		auto war_range = get_range(ws.w.military_s.war_arrays, wars_involved_in);
 		for(auto w = war_range.first; w != war_range.second; ++w)
-			military::silent_remove_from_war(ws, ws.w.military_s.wars[w->war_id], new_nation.id);
-		clear(ws.w.military_s.war_arrays, new_nation.wars_involved_in);
+			military::silent_remove_from_war(ws, ws.w.military_s.wars[w->war_id], new_nation);
+		clear(ws.w.military_s.war_arrays, wars_involved_in);
 
-		auto order_range = get_range(ws.w.military_s.orders_arrays, new_nation.active_orders);
+		auto& active_orders = ws.w.nation_s.nations.get<nation::active_orders>(new_nation);
+		auto order_range = get_range(ws.w.military_s.orders_arrays, active_orders);
 		for(auto o : order_range) {
 			military::partial_destroy_orders(ws, ws.w.military_s.army_orders_container[o]);
 			ws.w.military_s.army_orders_container.remove(o);
 		}
-		clear(ws.w.military_s.orders_arrays, new_nation.active_orders);
+		clear(ws.w.military_s.orders_arrays, active_orders);
 
-		auto army_range = get_range(ws.w.military_s.army_arrays, new_nation.armies);
+		auto& armies = ws.w.nation_s.nations.get<nation::armies>(new_nation);
+		auto army_range = get_range(ws.w.military_s.army_arrays, armies);
 		for(auto a : army_range) {
 			military::partial_destroy_army(ws, ws.w.military_s.armies[a]);
 			ws.w.military_s.armies.remove(a);
 		}
-		clear(ws.w.military_s.army_arrays, new_nation.armies);
+		clear(ws.w.military_s.army_arrays, armies);
 
-		auto fleet_range = get_range(ws.w.military_s.fleet_arrays, new_nation.fleets);
+		auto& fleets = ws.w.nation_s.nations.get<nation::fleets>(new_nation);
+		auto fleet_range = get_range(ws.w.military_s.fleet_arrays, fleets);
 		for(auto f : fleet_range) {
 			military::partial_destroy_fleet(ws, ws.w.military_s.fleets[f]);
 			ws.w.military_s.fleets.remove(f);
 		}
-		clear(ws.w.military_s.fleet_arrays, new_nation.fleets);
+		clear(ws.w.military_s.fleet_arrays, fleets);
 
-		auto gen_range = get_range(ws.w.military_s.leader_arrays, new_nation.generals);
+		auto& generals = ws.w.nation_s.nations.get<nation::generals>(new_nation);
+		auto gen_range = get_range(ws.w.military_s.leader_arrays, generals);
 		for(auto g : gen_range)
 			ws.w.military_s.leaders.remove(g);
-		clear(ws.w.military_s.leader_arrays, new_nation.generals);
+		clear(ws.w.military_s.leader_arrays, generals);
 
-		auto adm_range = get_range(ws.w.military_s.leader_arrays, new_nation.admirals);
+		auto& admirals = ws.w.nation_s.nations.get<nation::admirals>(new_nation);
+		auto adm_range = get_range(ws.w.military_s.leader_arrays, admirals);
 		for(auto a : adm_range)
 			ws.w.military_s.leaders.remove(a);
-		clear(ws.w.military_s.leader_arrays, new_nation.admirals);
+		clear(ws.w.military_s.leader_arrays, admirals);
 
-		auto focus_range = get_range(ws.w.nation_s.state_tag_arrays, new_nation.national_focus_locations);
+		auto& national_focus_locations = ws.w.nation_s.nations.get<nation::national_focus_locations>(new_nation);
+		auto focus_range = get_range(ws.w.nation_s.state_tag_arrays, national_focus_locations);
 		for(auto s : focus_range)
-			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.states.get<state::flashpoint_tension_focuses>(s), new_nation.id);
-		clear(ws.w.nation_s.state_tag_arrays, new_nation.national_focus_locations);
+			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.states.get<state::flashpoint_tension_focuses>(s), new_nation);
+		clear(ws.w.nation_s.state_tag_arrays, national_focus_locations);
 
-		auto ms_range = get_range(ws.w.nation_s.state_arrays, new_nation.member_states);
+		auto& member_states = ws.w.nation_s.nations.get<nation::member_states>(new_nation);
+		auto ms_range = get_range(ws.w.nation_s.state_arrays, member_states);
 		for(auto s = ms_range.first; s != ms_range.second; ++s) {
 			partial_destroy_state_instance(ws, s->state);
 			ws.w.nation_s.states.release(s->state);
 		}
-		clear(ws.w.nation_s.state_arrays, new_nation.member_states);
+		clear(ws.w.nation_s.state_arrays, member_states);
 	}
 
 	void remove_owned_province(world_state& ws, nations::country_tag n, provinces::province_tag p) { // removes province from list of owned
-		remove_item(ws.w.province_s.province_arrays, ws.w.nation_s.nations[n].owned_provinces, p);
+		remove_item(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(n), p);
 	}
 	void remove_controlled_province(world_state& ws, nations::country_tag n, provinces::province_tag p) { // removes province from list of controlled
-		remove_item(ws.w.province_s.province_arrays, ws.w.nation_s.nations[n].controlled_provinces, p);
+		remove_item(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::controlled_provinces>(n), p);
 	}
 	void add_owned_province(world_state& ws, nations::country_tag n, provinces::province_tag p) { // add province to list of owned
-		add_item(ws.w.province_s.province_arrays, ws.w.nation_s.nations[n].owned_provinces, p);
+		add_item(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(n), p);
 	}
 	void add_controlled_province(world_state& ws, nations::country_tag n, provinces::province_tag p) { // add province to list of controlled
-		add_item(ws.w.province_s.province_arrays, ws.w.nation_s.nations[n].controlled_provinces, p);
+		add_item(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::controlled_provinces>(n), p);
 	}
 
-	void annex_nation(world_state& ws, nations::nation& this_nation, nations::nation& to_annex) {
+	void annex_nation(world_state& ws, nations::country_tag this_nation, nations::country_tag to_annex) {
 		boost::container::small_vector<provinces::province_tag, 64> owned_copy;
-		auto target_owned = get_range(ws.w.province_s.province_arrays, to_annex.owned_provinces);
+		auto target_owned = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(to_annex));
 		for(auto p : target_owned)
 			owned_copy.push_back(p);
 
@@ -233,139 +258,142 @@ namespace nations {
 		destroy_nation(ws, to_annex);
 	}
 
-	nations::nation& liberate_uncored_cores(world_state& ws, nations::nation& from, cultures::national_tag t) {
-		if(from.tag == t)
+	nations::country_tag liberate_uncored_cores(world_state& ws, nations::country_tag from, cultures::national_tag t) {
+		auto from_tag = ws.w.nation_s.nations.get<nation::tag>(from);
+		if(from_tag == t)
 			return from;
 
 		auto liberation_target = make_nation_for_tag(ws, t);
 		
-		boost::container::small_vector<provinces::province_tag, 64> owned_copy;
-		auto target_owned = get_range(ws.w.province_s.province_arrays, from.owned_provinces);
-		for(auto p : target_owned)
-			owned_copy.push_back(p);
-
+		auto target_owned = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(from));
+		boost::container::small_vector<provinces::province_tag, 128> owned_copy(target_owned.first, target_owned.second);
+		
 		for(auto p : owned_copy) {
 			auto core_array = ws.w.province_s.province_state_container.get<province_state::cores>(p);
-			if(contains_item(ws.w.province_s.core_arrays, core_array, t) && !contains_item(ws.w.province_s.core_arrays, core_array, from.tag)) {
-				provinces::silent_set_province_owner(ws, *liberation_target, p);
+			if(contains_item(ws.w.province_s.core_arrays, core_array, t) && !contains_item(ws.w.province_s.core_arrays, core_array, from_tag)) {
+				provinces::silent_set_province_owner(ws, liberation_target, p);
 				provinces::silent_on_conquer_province(ws, p);
 			}
 		}
 
-		if(get_size(ws.w.province_s.province_arrays, from.owned_provinces) == 0)
+		if(get_size(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(from)) == 0)
 			destroy_nation(ws, from);
 
-		return *liberation_target;
+		return liberation_target;
 	}
 
-	nations::nation& liberate_all_cores(world_state& ws, nations::nation& from, cultures::national_tag t) {
-		if(from.tag == t)
+	nations::country_tag liberate_all_cores(world_state& ws, nations::country_tag from, cultures::national_tag t) {
+		auto from_tag = ws.w.nation_s.nations.get<nation::tag>(from);
+		if(from_tag == t)
 			return from;
 
 		auto liberation_target = make_nation_for_tag(ws, t);
 
-		boost::container::small_vector<provinces::province_tag, 64> owned_copy;
-		auto target_owned = get_range(ws.w.province_s.province_arrays, from.owned_provinces);
-		for(auto p : target_owned)
-			owned_copy.push_back(p);
+		auto target_owned = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(from));
+		boost::container::small_vector<provinces::province_tag, 128> owned_copy(target_owned.first, target_owned.second);
 
 		for(auto p : owned_copy) {
 			if(contains_item(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container.get<province_state::cores>(p), t)) {
-				provinces::silent_set_province_owner(ws, *liberation_target, p);
+				provinces::silent_set_province_owner(ws, liberation_target, p);
 				provinces::silent_on_conquer_province(ws, p);
 			}
 		}
 
-		if(get_size(ws.w.province_s.province_arrays, from.owned_provinces) == 0)
+		if(get_size(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(from)) == 0)
 			destroy_nation(ws, from);
 
-		return *liberation_target;
+		return liberation_target;
 	}
 
-	void make_vassal(world_state& ws, nations::nation& overlord, nations::nation& vassal) {
-		if(&overlord == &vassal || vassal.overlord == &overlord)
+	void make_vassal(world_state& ws, nations::country_tag overlord, nations::country_tag vassal) {
+		auto& vassal_overlord = ws.w.nation_s.nations.get<nation::overlord>(vassal);
+
+		if(overlord == vassal || vassal_overlord == overlord)
 			return;
 
-		if(overlord.overlord) {
-			make_vassal(ws, *overlord.overlord, vassal);
+		auto overlord_overlord = ws.w.nation_s.nations.get<nation::overlord>(overlord);
+		if(is_valid_index(overlord_overlord)) {
+			make_vassal(ws, overlord_overlord, vassal);
 		} else {
-			if(vassal.overlord)
+			if(is_valid_index(vassal_overlord))
 				free_vassal(ws, vassal);
 
-			vassal.overlord = &overlord;
-			add_item(ws.w.nation_s.nations_arrays, overlord.vassals, vassal.id);
+			vassal_overlord = overlord;
+			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::vassals>(overlord), vassal);
 
-			auto allies_range = get_range(ws.w.nation_s.nations_arrays, vassal.allies);
+			auto& v_allies = ws.w.nation_s.nations.get<nation::allies>(vassal);
+			auto allies_range = get_range(ws.w.nation_s.nations_arrays, v_allies);
 			for(auto a : allies_range)
-				remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[a].allies, vassal.id);
-			clear(ws.w.nation_s.nations_arrays, vassal.allies);
+				remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(a), vassal);
+			clear(ws.w.nation_s.nations_arrays, v_allies);
 
-			auto war_range = get_range(ws.w.military_s.war_arrays, vassal.wars_involved_in);
+			auto war_range = get_range(ws.w.military_s.war_arrays, ws.w.nation_s.nations.get<nation::wars_involved_in>(vassal));
 			boost::container::small_vector<military::war_identifier, 8> wars_copy(war_range.first, war_range.second);
 			for(auto w : wars_copy) {
 				auto& this_war = ws.w.military_s.wars[w.war_id];
-				if(!military::is_target_of_war_goal(ws, this_war, vassal.id))
-					military::remove_from_war(ws, this_war, vassal.id);
+				if(!military::is_target_of_war_goal(ws, this_war, vassal))
+					military::remove_from_war(ws, this_war, vassal);
 			}
 
-			auto overlord_war_range = get_range(ws.w.military_s.war_arrays, overlord.wars_involved_in);
+			auto overlord_war_range = get_range(ws.w.military_s.war_arrays, ws.w.nation_s.nations.get<nation::wars_involved_in>(overlord));
 			for(auto w = overlord_war_range.first; w != overlord_war_range.second; ++w)
 				military::add_to_war(ws, ws.w.military_s.wars[w->war_id], w->is_attacker, vassal);
 
-			governments::silent_set_government(ws, vassal, overlord.current_government);
+			governments::silent_set_government(ws, vassal, ws.w.nation_s.nations.get<nation::current_government>(overlord));
 		}
 	}
-	void free_vassal(world_state& ws, nations::nation& vassal) {
-		if(!vassal.overlord)
+	void free_vassal(world_state& ws, nations::country_tag vassal) {
+		auto& vassal_overlord = ws.w.nation_s.nations.get<nation::overlord>(vassal);
+		if(!is_valid_index(vassal_overlord))
 			return;
 
-		remove_item(ws.w.nation_s.nations_arrays, vassal.overlord->vassals, vassal.id);
-		vassal.overlord = nullptr;
-		vassal.flags &= ~nations::nation::is_substate;
+		remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::vassals>(vassal_overlord), vassal);
+		vassal_overlord = country_tag();
+		ws.w.nation_s.nations.set<nation::is_substate>(vassal, false);
 
-		auto war_range = get_range(ws.w.military_s.war_arrays, vassal.wars_involved_in);
+		auto war_range = get_range(ws.w.military_s.war_arrays, ws.w.nation_s.nations.get<nation::wars_involved_in>(vassal));
 		boost::container::small_vector<military::war_identifier, 8> wars_copy(war_range.first, war_range.second);
 		for(auto w : wars_copy) {
 			auto& this_war = ws.w.military_s.wars[w.war_id];
-			if(!military::is_target_of_war_goal(ws, this_war, vassal.id))
-				military::remove_from_war(ws, this_war, vassal.id);
+			if(!military::is_target_of_war_goal(ws, this_war, vassal))
+				military::remove_from_war(ws, this_war, vassal);
 		}
 	}
 
-	nation* make_nation_for_tag(world_state& ws, cultures::national_tag nt) {
+	country_tag make_nation_for_tag(world_state& ws, cultures::national_tag nt) {
 		cultures::national_tag_state& tag_state = ws.w.culture_s.national_tags_state[nt];
 		if(tag_state.holder)
 			return tag_state.holder;
-		nation& new_nation = ws.w.nation_s.nations.get_new();
+		country_tag new_nation = ws.w.nation_s.nations.get_new();
 
 		auto& fixed_tag = ws.s.culture_m.national_tags[nt];
 
-		tag_state.holder = &new_nation;
-		new_nation.tag = nt;
-		new_nation.name = fixed_tag.default_name.name;
-		new_nation.adjective = fixed_tag.default_name.adjective;
-		new_nation.flag = fixed_tag.base_flag;
+		tag_state.holder = new_nation;
+		ws.w.nation_s.nations.set<nation::tag>(new_nation, nt);
+		ws.w.nation_s.nations.set<nation::name>(new_nation, fixed_tag.default_name.name);
+		ws.w.nation_s.nations.set<nation::adjective>(new_nation, fixed_tag.default_name.adjective);
+		ws.w.nation_s.nations.set<nation::flag>(new_nation, fixed_tag.base_flag);
 
-		new_nation.current_color = fixed_tag.color;
+		ws.w.nation_s.nations.set<nation::current_color>(new_nation, fixed_tag.color);
 
-		ws.w.nation_s.active_parties.ensure_capacity(to_index(new_nation.id) + 1);
-		ws.w.nation_s.nation_demographics.ensure_capacity(to_index(new_nation.id) + 1);
-		ws.w.nation_s.nation_colonial_demographics.ensure_capacity(to_index(new_nation.id) + 1);
-		ws.w.nation_s.upper_house.ensure_capacity(to_index(new_nation.id) + 1);
-		ws.w.nation_s.active_technologies.ensure_capacity(to_index(new_nation.id) + 1);
-		ws.w.nation_s.active_goods.ensure_capacity(to_index(new_nation.id) + 1);
-		ws.w.nation_s.collected_tariffs.ensure_capacity(to_index(new_nation.id) + 1);
-		ws.w.nation_s.active_issue_options.ensure_capacity(to_index(new_nation.id) + 1);
-		ws.w.nation_s.national_stockpiles.ensure_capacity(to_index(new_nation.id) + 1);
-		ws.w.nation_s.national_variables.ensure_capacity(to_index(new_nation.id) + 1);
+		ws.w.nation_s.active_parties.ensure_capacity(to_index(new_nation) + 1);
+		ws.w.nation_s.nation_demographics.ensure_capacity(to_index(new_nation) + 1);
+		ws.w.nation_s.nation_colonial_demographics.ensure_capacity(to_index(new_nation) + 1);
+		ws.w.nation_s.upper_house.ensure_capacity(to_index(new_nation) + 1);
+		ws.w.nation_s.active_technologies.ensure_capacity(to_index(new_nation) + 1);
+		ws.w.nation_s.active_goods.ensure_capacity(to_index(new_nation) + 1);
+		ws.w.nation_s.collected_tariffs.ensure_capacity(to_index(new_nation) + 1);
+		ws.w.nation_s.active_issue_options.ensure_capacity(to_index(new_nation) + 1);
+		ws.w.nation_s.national_stockpiles.ensure_capacity(to_index(new_nation) + 1);
+		ws.w.nation_s.national_variables.ensure_capacity(to_index(new_nation) + 1);
 
-		ws.w.nation_s.unit_stats.ensure_capacity(to_index(new_nation.id) + 1);
-		ws.w.nation_s.rebel_org_gain.ensure_capacity(to_index(new_nation.id) + 1);
-		ws.w.nation_s.production_adjustments.ensure_capacity(to_index(new_nation.id) + 1);
+		ws.w.nation_s.unit_stats.ensure_capacity(to_index(new_nation) + 1);
+		ws.w.nation_s.rebel_org_gain.ensure_capacity(to_index(new_nation) + 1);
+		ws.w.nation_s.production_adjustments.ensure_capacity(to_index(new_nation) + 1);
 
 		reset_nation(ws, new_nation);
 
-		return &new_nation;
+		return new_nation;
 	}
 
 	bool is_state_empty(world_state const& ws, state_tag sid) {
@@ -386,7 +414,7 @@ namespace nations {
 		auto& fp_focuses = ws.w.nation_s.states.get<state::flashpoint_tension_focuses>(sid);
 		auto ft_range = get_range(ws.w.nation_s.nations_arrays, fp_focuses);
 		for(auto n : ft_range)
-			remove_item(ws.w.nation_s.state_tag_arrays, ws.w.nation_s.nations[n].national_focus_locations, sid);
+			remove_item(ws.w.nation_s.state_tag_arrays, ws.w.nation_s.nations.get<nation::national_focus_locations>(n), sid);
 		clear(ws.w.nation_s.nations_arrays, fp_focuses);
 
 		for(auto prange = ws.s.province_m.states_to_province_index.get_row(ws.w.nation_s.states.get<state::region_id>(sid)); prange.first != prange.second; ++prange.first) {
@@ -399,7 +427,7 @@ namespace nations {
 	void destroy_state_instance(world_state& ws, state_tag sid) {
 		partial_destroy_state_instance(ws, sid);
 		if(auto& owner = ws.w.nation_s.states.get<state::owner>(sid); bool(owner)) {
-			remove_item(ws.w.nation_s.state_arrays, ws.w.nation_s.nations[owner].member_states, region_state_pair{ ws.w.nation_s.states.get<state::region_id>(sid), sid });
+			remove_item(ws.w.nation_s.state_arrays, ws.w.nation_s.nations.get<nation::member_states>(owner), region_state_pair{ ws.w.nation_s.states.get<state::region_id>(sid), sid });
 			owner = country_tag();
 		}
 	}
@@ -461,8 +489,8 @@ namespace nations {
 		}
 		auto state_max = ws.w.nation_s.states.size();
 		auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(state_max) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
-		ws.w.nation_s.nations.parallel_for_each([&ws, aligned_state_max](nations::nation& n) {
-			resize(ws.w.economy_s.purchasing_arrays, n.statewise_tarrif_mask, aligned_state_max);
+		ws.w.nation_s.nations.parallel_for_each([&ws, aligned_state_max](nations::country_tag n) {
+			resize(ws.w.economy_s.purchasing_arrays, ws.w.nation_s.nations.get<nation::statewise_tarrif_mask>(n), aligned_state_max);
 		});
 	}
 
@@ -492,13 +520,13 @@ namespace nations {
 	void update_state_nation_demographics(world_state& ws) {
 		const auto full_vector_size = population::aligned_32_demo_size(ws);
 
-		ws.w.nation_s.nations.parallel_for_each([&ws, full_vector_size](nation& n) {
-			Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> nation_demo(ws.w.nation_s.nation_demographics.get_row(n.id), full_vector_size);
-			Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> nation_c_demo(ws.w.nation_s.nation_colonial_demographics.get_row(n.id), full_vector_size);
+		ws.w.nation_s.nations.parallel_for_each([&ws, full_vector_size](country_tag n) {
+			Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> nation_demo(ws.w.nation_s.nation_demographics.get_row(n), full_vector_size);
+			Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> nation_c_demo(ws.w.nation_s.nation_colonial_demographics.get_row(n), full_vector_size);
 			nation_demo.setZero();
 			nation_c_demo.setZero();
 
-			const auto state_range = get_range(ws.w.nation_s.state_arrays, n.member_states);
+			const auto state_range = get_range(ws.w.nation_s.state_arrays, ws.w.nation_s.nations.get<nation::member_states>(n));
 
 			for(auto s = state_range.first; s != state_range.second; ++s) {
 				Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> state_demo(ws.w.nation_s.state_demographics.get_row(s->state), full_vector_size);
@@ -507,7 +535,7 @@ namespace nations {
 
 				const auto p_in_region_range = ws.s.province_m.states_to_province_index.get_row(s->region_id);
 				for(auto p = p_in_region_range.first; p != p_in_region_range.second; ++p) {
-					if(ws.w.province_s.province_state_container.get<province_state::owner>(*p) == n.id) {
+					if(ws.w.province_s.province_state_container.get<province_state::owner>(*p) == n) {
 						Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> province_demo(ws.w.province_s.province_demographics.get_row(*p), full_vector_size);
 						state_demo += province_demo;
 					}
@@ -540,44 +568,46 @@ namespace nations {
 			if(nation_demo[to_index(population::total_population_tag)] != 0) {
 				const auto culture_offset = population::to_demo_tag(ws, cultures::culture_tag(0));
 				auto max_culture_off = maximum_index(nation_demo.data() + to_index(culture_offset), int32_t(ws.s.culture_m.count_cultures));
-				n.dominant_culture = cultures::culture_tag(static_cast<value_base_of<cultures::culture_tag>>(max_culture_off));
+				ws.w.nation_s.nations.set<nation::dominant_culture>(n, cultures::culture_tag(static_cast<value_base_of<cultures::culture_tag>>(max_culture_off)));
 
 				const auto religion_offset = population::to_demo_tag(ws, cultures::religion_tag(0));
 				auto max_religion_off = maximum_index(nation_demo.data() + to_index(religion_offset), int32_t(ws.s.culture_m.count_religions));
-				n.dominant_religion = cultures::religion_tag(static_cast<value_base_of<cultures::religion_tag>>(max_religion_off));
+				ws.w.nation_s.nations.set<nation::dominant_religion>(n, cultures::religion_tag(static_cast<value_base_of<cultures::religion_tag>>(max_religion_off)));
 
 				const auto ideology_offset = population::to_demo_tag(ws, ideologies::ideology_tag(0));
 				auto max_ideology_off = maximum_index(nation_demo.data() + to_index(ideology_offset), int32_t(ws.s.ideologies_m.ideologies_count));
-				n.dominant_ideology = ideologies::ideology_tag(static_cast<value_base_of<ideologies::ideology_tag>>(max_ideology_off));
+				ws.w.nation_s.nations.set<nation::dominant_ideology>(n, ideologies::ideology_tag(static_cast<value_base_of<ideologies::ideology_tag>>(max_ideology_off)));
 
 				const auto options_offset = population::to_demo_tag(ws, issues::option_tag(0));
 				auto max_opinion_off = maximum_index(nation_demo.data() + to_index(options_offset), int32_t(ws.s.issues_m.tracked_options_count));
-				n.dominant_issue = issues::option_tag(static_cast<value_base_of<issues::option_tag>>(max_opinion_off));
+				ws.w.nation_s.nations.set<nation::dominant_issue>(n, issues::option_tag(static_cast<value_base_of<issues::option_tag>>(max_opinion_off)));
 			}
 
-			n.political_interest_fraction = issues::calculate_political_interest(ws, nation_demo.data());
-			n.social_interest_fraction = issues::calculate_social_interest(ws, nation_demo.data());
+			ws.w.nation_s.nations.set<nation::political_interest_fraction>(n, issues::calculate_political_interest(ws, nation_demo.data()));
+			ws.w.nation_s.nations.set<nation::social_interest_fraction>(n, issues::calculate_social_interest(ws, nation_demo.data()));
 		});
 	}
 
 	void fix_capitals(world_state& ws) {
-		ws.w.nation_s.nations.for_each([&ws](nations::nation& n) {
-			if(!is_valid_index(n.current_capital) || ws.w.province_s.province_state_container.get<province_state::owner>(n.current_capital) != n.id)
-				n.current_capital = find_best_capital(ws, n);
+		ws.w.nation_s.nations.for_each([&ws](nations::country_tag n) {
+			auto& cc = ws.w.nation_s.nations.get<nation::current_capital>(n);
+			if(!is_valid_index(cc) || ws.w.province_s.province_state_container.get<province_state::owner>(cc) != n)
+				cc = find_best_capital(ws, n);
 		});
 	}
-	provinces::province_tag find_best_capital(world_state const& ws, nation const& owner) {
-		if(is_valid_index(owner.tag)) {
-			const auto tag_capital = ws.w.culture_s.national_tags_state[owner.tag].capital;
-			if(is_valid_index(tag_capital) && ws.w.province_s.province_state_container.get<province_state::owner>(tag_capital) == owner.id)
+	provinces::province_tag find_best_capital(world_state const& ws, country_tag owner) {
+		auto owner_tag = ws.w.nation_s.nations.get<nation::tag>(owner);
+		if(is_valid_index(owner_tag)) {
+			const auto tag_capital = ws.w.culture_s.national_tags_state[owner_tag].capital;
+			if(is_valid_index(tag_capital) && ws.w.province_s.province_state_container.get<province_state::owner>(tag_capital) == owner)
 				return tag_capital;
 
 			float population = 0;
 			provinces::province_tag best_province;
 
-			const auto core_range = get_range(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[owner.tag].core_provinces);
+			const auto core_range = get_range(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[owner_tag].core_provinces);
 			for(auto c = core_range.first; c != core_range.second; ++c) {
-				if(ws.w.province_s.province_state_container.get<province_state::owner>(*c) == owner.id) {
+				if(ws.w.province_s.province_state_container.get<province_state::owner>(*c) == owner) {
 					float ppop = ws.w.province_s.province_demographics.get(*c, population::total_population_tag);
 					if(ppop > population) {
 						best_province = *c;
@@ -592,7 +622,7 @@ namespace nations {
 		float population = 0;
 		provinces::province_tag best_province;
 
-		const auto owned_range = get_range(ws.w.province_s.province_arrays, owner.owned_provinces);
+		const auto owned_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(owner));
 		for(auto c = owned_range.first; c != owned_range.second; ++c) {
 			float ppop = ws.w.province_s.province_demographics.get(*c, population::total_population_tag);
 			if(ppop > population) {
@@ -604,67 +634,73 @@ namespace nations {
 		return best_province;
 	}
 
-	void set_relationship(world_state& ws, nation& a, nation& b, int32_t value) {
-		if(auto f = find(ws.w.nation_s.relations_arrays, a.relations, relationship{ b.id, 0i16 }); f)
+	void set_relationship(world_state& ws, country_tag a, country_tag b, int32_t value) {
+		auto& a_relations = ws.w.nation_s.nations.get<nation::relations>(a);
+		if(auto f = find(ws.w.nation_s.relations_arrays, a_relations, relationship{ b, 0i16 }); f)
 			f->value = int16_t(value);
 		else
-			add_item(ws.w.nation_s.relations_arrays, a.relations, relationship{ b.id, int16_t(value) });
+			add_item(ws.w.nation_s.relations_arrays, a_relations, relationship{ b, int16_t(value) });
 
-		if(auto f = find(ws.w.nation_s.relations_arrays, b.relations, relationship{ a.id, 0i16 }); f)
+		auto& b_relations = ws.w.nation_s.nations.get<nation::relations>(b);
+		if(auto f = find(ws.w.nation_s.relations_arrays, b_relations, relationship{ a, 0i16 }); f)
 			f->value = int16_t(value);
 		else
-			add_item(ws.w.nation_s.relations_arrays, b.relations, relationship{ a.id, int16_t(value) });
+			add_item(ws.w.nation_s.relations_arrays, b_relations, relationship{ a, int16_t(value) });
 	}
-	void adjust_relationship(world_state& ws, nation& a, nation& b, int32_t value) {
-		if(auto f = find(ws.w.nation_s.relations_arrays, a.relations, relationship{ b.id, 0i16 }); f)
+	void adjust_relationship(world_state& ws, country_tag a, country_tag b, int32_t value) {
+		auto& a_relations = ws.w.nation_s.nations.get<nation::relations>(a);
+		if(auto f = find(ws.w.nation_s.relations_arrays, a_relations, relationship{ b, 0i16 }); f)
 			f->value = int16_t(std::clamp(value + f->value, -200, 200));
 		else
-			add_item(ws.w.nation_s.relations_arrays, a.relations, relationship{ b.id, int16_t(std::clamp(value, -200, 200)) });
+			add_item(ws.w.nation_s.relations_arrays, a_relations, relationship{ b, int16_t(std::clamp(value, -200, 200)) });
 
-		if(auto f = find(ws.w.nation_s.relations_arrays, b.relations, relationship{ a.id, 0i16 }); f)
+		auto& b_relations = ws.w.nation_s.nations.get<nation::relations>(b);
+		if(auto f = find(ws.w.nation_s.relations_arrays, b_relations, relationship{ a, 0i16 }); f)
 			f->value = int16_t(std::clamp(value + f->value, -200, 200));
 		else
-			add_item(ws.w.nation_s.relations_arrays, b.relations, relationship{ a.id, int16_t(std::clamp(value, -200, 200)) });
+			add_item(ws.w.nation_s.relations_arrays, b_relations, relationship{ a, int16_t(std::clamp(value, -200, 200)) });
 	}
-	int32_t get_relationship(world_state const& ws, nation const& a, country_tag b) {
-		if(auto f = find(ws.w.nation_s.relations_arrays, a.relations, relationship{ b, 0i16 }); f)
+	int32_t get_relationship(world_state const& ws, country_tag a, country_tag b) {
+		if(auto f = find(ws.w.nation_s.relations_arrays, ws.w.nation_s.nations.get<nation::relations>(a), relationship{ b, 0i16 }); f)
 			return f->value;
 		return 0;
 	}
-	int32_t get_influence_value(world_state const& ws, nation const& a, country_tag b) {
-		if(auto f = find(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, 0ui8, 0i8 }); f)
+	int32_t get_influence_value(world_state const& ws, country_tag a, country_tag b) {
+		if(auto f = find(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(a), influence{ 0.0f, b, 0ui8, 0i8 }); f)
 			return f->amount;
 		return 0;
 	}
-	int32_t get_influence_level(world_state const& ws, nation const& a, country_tag b) {
-		if(auto f = find(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, 0ui8, 0i8 }); f)
+	int32_t get_influence_level(world_state const& ws, country_tag a, country_tag b) {
+		if(auto f = find(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(a), influence{ 0.0f, b, 0ui8, 0i8 }); f)
 			return f->level;
 		return 2;
 	}
-	nations::influence get_influence(world_state const& ws, nation const& nation_by, country_tag nation_over) {
-		if(auto f = find(ws.w.nation_s.influence_arrays, nation_by.gp_influence, influence{ 0.0f, nation_over, 0ui8, 0i8 }); f)
+	nations::influence get_influence(world_state const& ws, country_tag nation_by, country_tag nation_over) {
+		if(auto f = find(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(nation_by), influence{ 0.0f, nation_over, 0ui8, 0i8 }); f)
 			return *f;
 		return nations::influence{0.0f, nation_over, 0ui8, 2i8 };
 	}
-	void set_influence(world_state& ws, nation& a, country_tag b, int32_t value, int32_t level) {
-		auto f = find(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, 0ui8, 0i8 });
+	void set_influence(world_state& ws, country_tag a, country_tag b, int32_t value, int32_t level) {
+		auto& a_inf = ws.w.nation_s.nations.get<nation::gp_influence>(a);
+		auto f = find(ws.w.nation_s.influence_arrays, a_inf, influence{ 0.0f, b, 0ui8, 0i8 });
 		if(f == nullptr) {
-			add_item(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, uint8_t(0), int8_t(2) });
-			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[b].influencers, a.id);
+			add_item(ws.w.nation_s.influence_arrays, a_inf, influence{ 0.0f, b, uint8_t(0), int8_t(2) });
+			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::influencers>(b), a);
 
-			f = find(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, 0ui8, 0i8 });
+			f = find(ws.w.nation_s.influence_arrays, a_inf, influence{ 0.0f, b, 0ui8, 0i8 });
 		}
 
 		f->amount = uint8_t(value);
 
 		if(f->level == 5i8 && level != 5) {
-			ws.w.nation_s.nations.get(b).sphere_leader = nullptr;
-			remove_item(ws.w.nation_s.nations_arrays, a.sphere_members, b);
+			ws.w.nation_s.nations.set<nation::sphere_leader>(b, country_tag());
+			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::sphere_members>(a), b);
 			f->level = int8_t(level);
 		} else if(f->level != 5i8 && level == 5) {
-			if(ws.w.nation_s.nations.get(b).sphere_leader == nullptr) {
-				ws.w.nation_s.nations.get(b).sphere_leader = &a;
-				add_item(ws.w.nation_s.nations_arrays, a.sphere_members, b);
+			auto& b_leader = ws.w.nation_s.nations.get<nation::sphere_leader>(b);
+			if(b_leader == country_tag()) {
+				b_leader = a;
+				add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::sphere_members>(a), b);
 				f->level = int8_t(5);
 			} else {
 				f->level = int8_t(4);
@@ -673,30 +709,32 @@ namespace nations {
 			f->level = int8_t(level);
 		}
 	}
-	void set_influence_value(world_state& ws, nation& a, country_tag b, int32_t value) {
-		if(auto f = find(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, 0ui8, 0i8 }); f) {
+	void set_influence_value(world_state& ws, country_tag a, country_tag b, int32_t value) {
+		auto& a_inf = ws.w.nation_s.nations.get<nation::gp_influence>(a);
+		if(auto f = find(ws.w.nation_s.influence_arrays, a_inf, influence{ 0.0f, b, 0ui8, 0i8 }); f) {
 			f->amount = uint8_t(value);
 		} else {
-			add_item(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, uint8_t(value), int8_t(2) });
-			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[b].influencers, a.id);
+			add_item(ws.w.nation_s.influence_arrays, a_inf, influence{ 0.0f, b, uint8_t(value), int8_t(2) });
+			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::influencers>(b), a);
 		}
 	}
-	float get_foreign_investment(world_state const& ws, nation const& a, country_tag b) {
-		if(auto f = find(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, 0ui8, 0i8 }); f)
+	float get_foreign_investment(world_state const& ws, country_tag a, country_tag b) {
+		if(auto f = find(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(a), influence{ 0.0f, b, 0ui8, 0i8 }); f)
 			return f->investment_amount;
 		return 0.0f;
 	}
-	void set_foreign_investment(world_state& ws, nation& a, country_tag b, float value) {
-		if(auto f = find(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ 0.0f, b, 0ui8, 0i8 }); f) {
+	void set_foreign_investment(world_state& ws, country_tag a, country_tag b, float value) {
+		auto& a_inf = ws.w.nation_s.nations.get<nation::gp_influence>(a);
+		if(auto f = find(ws.w.nation_s.influence_arrays, a_inf, influence{ 0.0f, b, 0ui8, 0i8 }); f) {
 			f->investment_amount = value;
 		} else {
-			add_item(ws.w.nation_s.influence_arrays, a.gp_influence, influence{ value, b, 0ui8, 0i8 });
-			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[b].influencers, a.id);
+			add_item(ws.w.nation_s.influence_arrays, a_inf, influence{ value, b, 0ui8, 0i8 });
+			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::influencers>(b), a);
 		}
 	}
-	void remove_investment_and_influence(world_state& ws, nation& nation_by, nation& nation_target) {
-		remove_item(ws.w.nation_s.influence_arrays, nation_by.gp_influence, influence{ 0.0f, nation_target.id, 0ui8, 0i8 });
-		remove_item(ws.w.nation_s.nations_arrays, nation_target.influencers, nation_by.id);
+	void remove_investment_and_influence(world_state& ws, country_tag nation_by, country_tag nation_target) {
+		remove_item(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(nation_by), influence{ 0.0f, nation_target, 0ui8, 0i8 });
+		remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::influencers>(nation_target), nation_by);
 	}
 
 	int32_t colonial_points_to_make_protectorate(world_state const&, state_tag) {
@@ -708,68 +746,69 @@ namespace nations {
 	int32_t colonial_points_to_make_state(world_state const&, state_tag) {
 		return 0;
 	}
-	int32_t free_colonial_points(world_state const&, nation const&) {
+	int32_t free_colonial_points(world_state const&, country_tag) {
 		return 0;
 	}
-	int32_t points_for_next_colonial_stage(world_state const&, nation const&, state_tag) {
+	int32_t points_for_next_colonial_stage(world_state const&, country_tag, state_tag) {
 		return 0;
 	}
 
-	text_data::text_tag get_nation_status_text(world_state const& ws, nation const& this_nation) {
-		if((this_nation.flags & nation::is_civilized) == 0) {
-			if(this_nation.modifier_values[modifiers::national_offsets::civilization_progress_modifier] > modifiers::value_type(0))
+	text_data::text_tag get_nation_status_text(world_state const& ws, country_tag this_nation) {
+		if(ws.w.nation_s.nations.get<nation::is_civilized>(this_nation) == false) {
+			if(ws.w.nation_s.nations.get<nation::modifier_values>(this_nation)[modifiers::national_offsets::civilization_progress_modifier] > modifiers::value_type(0))
 				return ws.s.fixed_ui_text[scenario::fixed_ui::partialy_civilized_nation];
 			else
 				return ws.s.fixed_ui_text[scenario::fixed_ui::uncivilized_nation];
 		} else if(is_great_power(ws, this_nation))
 			return ws.s.fixed_ui_text[scenario::fixed_ui::great_power];
-		else if(this_nation.overall_rank <= int16_t(ws.s.modifiers_m.global_defines.colonial_rank))
+		else if(ws.w.nation_s.nations.get<nation::overall_rank>(this_nation) <= int16_t(ws.s.modifiers_m.global_defines.colonial_rank))
 			return ws.s.fixed_ui_text[scenario::fixed_ui::secondary_power];
 		else
 			return ws.s.fixed_ui_text[scenario::fixed_ui::civilized_nation];
 		
 	}
 	
-	bool is_great_power(world_state const&, nation const& n) {
-		return n.overall_rank <= 8i16;
+	bool is_great_power(world_state const& ws, country_tag n) {
+		return ws.w.nation_s.nations.get<nation::overall_rank>(n) <= 8i16;
 	}
 
-	void silent_make_alliance(world_state& ws, nation& a, nation& b) {
-		add_item(ws.w.nation_s.nations_arrays, a.allies, b.id);
-		add_item(ws.w.nation_s.nations_arrays, b.allies, a.id);
+	void silent_make_alliance(world_state& ws, country_tag a, country_tag b) {
+		add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(a), b);
+		add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(b), a);
 	}
 
-	void make_alliance(world_state& ws, nation& a, nation& b) {
+	void make_alliance(world_state& ws, country_tag a, country_tag b) {
 		silent_make_alliance(ws, a, b);
 	}
-	void end_alliance(world_state& ws, nation& a, nation& b) {
-		remove_item(ws.w.nation_s.nations_arrays, a.allies, b.id);
-		remove_item(ws.w.nation_s.nations_arrays, b.allies, a.id);
+	void end_alliance(world_state& ws, country_tag a, country_tag b) {
+		remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(a), b);
+		remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(b), a);
 	}
 
-	void silent_make_vassal(world_state& ws, nation& overlord, nation& vassal) {
-		if(vassal.overlord == nullptr) {
-			vassal.overlord = &overlord;
-			add_item(ws.w.nation_s.nations_arrays, overlord.vassals, vassal.id);
+	void simple_make_vassal(world_state& ws, country_tag overlord, country_tag vassal) {
+		auto& voverlord = ws.w.nation_s.nations.get<nation::overlord>(vassal);
+		if(voverlord == country_tag()) {
+			voverlord = overlord;
+			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::vassals>(overlord), vassal);
 		}
 	}
 
-	void silent_make_substate(world_state& ws, nation& overlord, nation& vassal) {
-		silent_make_vassal(ws, overlord, vassal);
-		vassal.flags |= nation::is_substate;
+	void simple_make_substate(world_state& ws, country_tag overlord, country_tag vassal) {
+		simple_make_vassal(ws, overlord, vassal);
+		ws.w.nation_s.nations.set<nation::is_substate>(vassal, true);
 	}
 
-	nation* union_holder_for(world_state const& ws, cultures::culture_tag pculture) {
+	country_tag union_holder_for(world_state const& ws, cultures::culture_tag pculture) {
 		auto cgroup = ws.s.culture_m.culture_container[pculture].group;
 		auto union_tag = ws.s.culture_m.culture_groups[cgroup].union_tag;
 		if(is_valid_index(union_tag))
 			return ws.w.culture_s.national_tags_state[union_tag].holder;
 		else
-			return nullptr;
+			return country_tag();
 	}
 
-	cultures::national_tag union_tag_of(world_state const& ws, nation const& this_nation) {
-		auto pculture = this_nation.primary_culture;
+	cultures::national_tag union_tag_of(world_state const& ws, country_tag this_nation) {
+		auto pculture = ws.w.nation_s.nations.get<nation::primary_culture>(this_nation);
 		if(is_valid_index(pculture)) {
 			auto cgroup = ws.s.culture_m.culture_container[pculture].group;
 			return ws.s.culture_m.culture_groups[cgroup].union_tag;
@@ -778,25 +817,25 @@ namespace nations {
 			return cultures::national_tag();
 	}
 
-	nation* union_holder_of(world_state const& ws, nation const& this_nation) {
-		auto pculture = this_nation.primary_culture;
+	country_tag union_holder_of(world_state const& ws, country_tag this_nation) {
+		auto pculture = ws.w.nation_s.nations.get<nation::primary_culture>(this_nation);
 		if(is_valid_index(pculture))
 			return union_holder_for(ws, pculture);
 		else
-			return nullptr;
+			return country_tag();
 	}
 
 	economy::goods_qnty_type national_treasury(world_state const& ws, country_tag id) {
 		return ws.w.nation_s.national_stockpiles.get(id, economy::money_good);
 	}
 
-	float fraction_of_cores_owned(world_state const& ws, nation const& this_nation) {
-		auto tag = this_nation.tag;
+	float fraction_of_cores_owned(world_state const& ws, country_tag this_nation) {
+		auto tag = ws.w.nation_s.nations.get<nation::tag>(this_nation);
 		if(is_valid_index(tag)) {
 			auto cores_range = get_range(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[tag].core_provinces);
 			float cores_owned_count = 0.0f;
 			for(auto p : cores_range) {
-				if(ws.w.province_s.province_state_container.get<province_state::owner>(p) == this_nation.id)
+				if(ws.w.province_s.province_state_container.get<province_state::owner>(p) == this_nation)
 					cores_owned_count += 1.0f;
 			}
 			return (cores_range.second != cores_range.first) ? (cores_owned_count / float(cores_range.second - cores_range.first)) : 1.0f;
@@ -805,29 +844,30 @@ namespace nations {
 		}
 	}
 
-	bool can_release_as_vassal(world_state const& ws, nation const& this_nation, cultures::national_tag vassal) {
+	bool can_release_as_vassal(world_state const& ws, country_tag this_nation, cultures::national_tag vassal) {
 		auto& vassal_tag_info = ws.w.culture_s.national_tags_state[vassal];
 
 		if(vassal_tag_info.is_not_releasable)
 			return false;
 
 		auto current_holder = vassal_tag_info.holder;
-		if(current_holder && 0 != get_size(ws.w.province_s.province_arrays, current_holder->owned_provinces))
+		if(current_holder && 0 != get_size(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(current_holder)))
 			return false; // national already exists
 
 		auto core_range = get_range(ws.w.province_s.province_arrays, vassal_tag_info.core_provinces);
+		auto this_owned = ws.w.nation_s.nations.get<nation::owned_provinces>(this_nation);
 		for(auto p : core_range) {
-			if(contains_item(ws.w.province_s.province_arrays, this_nation.owned_provinces, p))
+			if(contains_item(ws.w.province_s.province_arrays, this_owned, p))
 				return true;
 		}
 		return false;
 	}
 
-	float get_prestige(nations::nation const& n) {
-		return n.base_prestige + n.tech_attributes[technologies::tech_offset::permanent_prestige];
+	float get_prestige(world_state const& ws, nations::country_tag n) {
+		return ws.w.nation_s.nations.get<nation::base_prestige>(n) + ws.w.nation_s.nations.get<nation::tech_attributes>(n)[technologies::tech_offset::permanent_prestige];
 	}
-	int32_t get_colonial_points(nations::nation const& n) {
-		return int32_t(n.base_colonial_points) + int32_t(n.tech_attributes[technologies::tech_offset::colonial_points]);
+	int32_t get_colonial_points(world_state const& ws, nations::country_tag n) {
+		return int32_t(ws.w.nation_s.nations.get<nation::base_colonial_points>(n)) + int32_t(ws.w.nation_s.nations.get<nation::tech_attributes>(n)[technologies::tech_offset::colonial_points]);
 	}
 
 	float calculate_state_administrative_efficiency(world_state const& ws, state_tag this_state, float admin_requirement) {
@@ -848,22 +888,22 @@ namespace nations {
 		return std::clamp(
 			float(count_non_core) * ws.s.modifiers_m.global_defines.noncore_tax_penalty +
 			ws.s.modifiers_m.global_defines.base_country_admin_efficiency + 
-			ws.w.nation_s.nations[owner].modifier_values[modifiers::national_offsets::administrative_efficiency_modifier] +
+			ws.w.nation_s.nations.get<nation::modifier_values>(owner)[modifiers::national_offsets::administrative_efficiency_modifier] +
 			float(ws.w.nation_s.state_demographics.get(this_state, population::to_demo_tag(ws, ws.s.population_m.bureaucrat))) /
 			(float(ws.w.nation_s.state_demographics.get(this_state, population::total_population_tag)) * admin_requirement),
 			0.05f, 1.0f);
 	}
 
-	float calculate_national_administrative_efficiency(world_state const& ws, nations::nation const& n) {
-		auto b_amount = ws.w.nation_s.nation_demographics.get(n.id, population::to_demo_tag(ws, ws.s.population_m.bureaucrat));
-		auto total_pop = ws.w.nation_s.nation_demographics.get(n.id, population::total_population_tag);
+	float calculate_national_administrative_efficiency(world_state const& ws, nations::country_tag n) {
+		auto b_amount = ws.w.nation_s.nation_demographics.get(n, population::to_demo_tag(ws, ws.s.population_m.bureaucrat));
+		auto total_pop = ws.w.nation_s.nation_demographics.get(n, population::total_population_tag);
 
 		if(total_pop == 0)
 			return 0.0f;
 
-		auto ratio_num = b_amount * (1.0f + n.modifier_values[modifiers::national_offsets::administrative_efficiency_modifier]) / total_pop;
+		auto ratio_num = b_amount * (1.0f + ws.w.nation_s.nations.get<nation::modifier_values>(n)[modifiers::national_offsets::administrative_efficiency_modifier]) / total_pop;
 
-		auto issues_range = ws.w.nation_s.active_issue_options.get_row(n.id);
+		auto issues_range = ws.w.nation_s.active_issue_options.get_row(n);
 		auto ratio_denom = ws.s.modifiers_m.global_defines.max_bureaucracy_percentage
 			+ (ws.s.modifiers_m.global_defines.bureaucracy_percentage_increment
 			* std::transform_reduce(issues_range, issues_range + ws.s.issues_m.tracked_options_count, 0.0f, std::plus<>(),
@@ -877,13 +917,14 @@ namespace nations {
 		return std::clamp(ratio_num / ratio_denom, 0.05f, 1.0f);
 	}
 
-	float calculate_revanchism(world_state const & ws, nations::nation const & n) {
+	float calculate_revanchism(world_state const & ws, country_tag n) {
 		float sum = 0;
-		if(is_valid_index(n.tag)) {
-			auto core_range = get_range(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[n.tag].core_provinces);
+		if(auto n_tag = ws.w.nation_s.nations.get<nation::tag>(n);  is_valid_index(n_tag)) {
+			auto core_range = get_range(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[n_tag].core_provinces);
+			auto pculture = ws.w.nation_s.nations.get<nation::primary_culture>(n);
 			for(auto c : core_range) {
-				if(ws.w.province_s.province_state_container.get<province_state::owner>(c) != n.id) {
-					if(ws.w.province_s.province_state_container.get<province_state::dominant_culture>(c) == n.primary_culture)
+				if(ws.w.province_s.province_state_container.get<province_state::owner>(c) != n) {
+					if(ws.w.province_s.province_state_container.get<province_state::dominant_culture>(c) == pculture)
 						sum += 1.0f;
 					else
 						sum += 0.25f;
@@ -895,23 +936,24 @@ namespace nations {
 		return 0.0f;
 	}
 
-	void update_neighbors(world_state& ws, nations::nation& this_nation) {
-		resize(ws.w.nation_s.nations_arrays, this_nation.neighboring_nations, 0ui32);
+	void update_neighbors(world_state& ws, nations::country_tag this_nation) {
+		auto& nn = ws.w.nation_s.nations.get<nation::neighboring_nations>(this_nation);
+		resize(ws.w.nation_s.nations_arrays, nn, 0ui32);
 
-		auto owned_range = get_range(ws.w.province_s.province_arrays, this_nation.owned_provinces);
+		auto owned_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(this_nation));
 		for(auto p : owned_range) {
 			auto adj_range = ws.s.province_m.same_type_adjacency.get_row(p);
 			for(auto a : adj_range) {
 				auto adj_owner = ws.w.province_s.province_state_container.get<province_state::owner>(a);
-				if(is_valid_index(adj_owner) && adj_owner != this_nation.id) {
-					add_item(ws.w.nation_s.nations_arrays, this_nation.neighboring_nations, adj_owner);
+				if(is_valid_index(adj_owner) && adj_owner != this_nation) {
+					add_item(ws.w.nation_s.nations_arrays, nn, adj_owner);
 				}
 			}
 		}
 	}
 
-	uint32_t calculate_blockaded_count(world_state const& ws, nations::nation const& this_nation) {
-		auto owned_range = get_range(ws.w.province_s.province_arrays, this_nation.owned_provinces);
+	uint32_t calculate_blockaded_count(world_state const& ws, nations::country_tag this_nation) {
+		auto owned_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(this_nation));
 		uint32_t total = 0ui32;
 
 		for(auto p : owned_range) {
@@ -923,8 +965,8 @@ namespace nations {
 		return total;
 	}
 
-	uint32_t calculate_crime_count(world_state const& ws, nations::nation const& this_nation) {
-		auto owned_range = get_range(ws.w.province_s.province_arrays, this_nation.owned_provinces);
+	uint32_t calculate_crime_count(world_state const& ws, nations::country_tag this_nation) {
+		auto owned_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(this_nation));
 		uint32_t total = 0ui32;
 
 		for(auto p : owned_range) {
@@ -936,8 +978,8 @@ namespace nations {
 		return total;
 	}
 
-	uint32_t calculate_rebel_controlled_count(world_state const& ws, nations::nation const& this_nation) {
-		auto owned_range = get_range(ws.w.province_s.province_arrays, this_nation.owned_provinces);
+	uint32_t calculate_rebel_controlled_count(world_state const& ws, nations::country_tag this_nation) {
+		auto owned_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(this_nation));
 		uint32_t total = 0ui32;
 
 		for(auto p : owned_range) {
@@ -949,62 +991,76 @@ namespace nations {
 		return total;
 	}
 
-	void update_province_counts(world_state& ws, nations::nation& this_nation) {
-		this_nation.central_province_count = 0ui16;
-		this_nation.blockaded_count = 0ui16;
-		this_nation.crime_count = 0ui16;
-		this_nation.rebel_controlled_provinces = 0ui16;
-		this_nation.num_ports = 0ui16;
-		this_nation.num_connected_ports = 0ui16;
+	void update_province_counts(world_state& ws, nations::country_tag this_nation) {
+		auto& central_province_count = ws.w.nation_s.nations.get<nation::central_province_count>(this_nation);
+		central_province_count = 0ui16;
+		
+		auto& blockaded_count = ws.w.nation_s.nations.get<nation::blockaded_count>(this_nation);
+		blockaded_count = 0ui16;
 
-		if(!is_valid_index(this_nation.current_capital))
+		auto& crime_count = ws.w.nation_s.nations.get<nation::crime_count>(this_nation);
+		crime_count = 0ui16;
+
+		auto& rebel_controlled_provinces = ws.w.nation_s.nations.get<nation::rebel_controlled_provinces>(this_nation);
+		rebel_controlled_provinces = 0ui16;
+
+		auto& num_ports = ws.w.nation_s.nations.get<nation::num_ports>(this_nation);
+		num_ports = 0ui16;
+
+		auto& num_connected_ports = ws.w.nation_s.nations.get<nation::num_connected_ports>(this_nation);
+		num_connected_ports = 0ui16;
+
+		auto current_capital = ws.w.nation_s.nations.get<nation::current_capital>(this_nation);
+		if(!is_valid_index(current_capital))
 			return;
 
-		auto owned_range = get_range(ws.w.province_s.province_arrays, this_nation.owned_provinces);
+		auto owned_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(this_nation));
 		for(auto p : owned_range) {
 			ws.w.province_s.province_state_container.set<province_state::is_overseas>(p, false);
-
 			if(ws.w.province_s.province_state_container.get<province_state::naval_base_level>(p) != 0)
-				++this_nation.num_ports;
+				++num_ports;
 		}
 
-		boost::container::flat_set<provinces::province_tag> already_added;
-		boost::container::flat_set<provinces::province_tag> pending_neighbor_check;
+		boost::container::flat_set<provinces::province_tag, std::less<provinces::province_tag>, concurrent_allocator<provinces::province_tag>> already_added;
+		boost::container::flat_set<provinces::province_tag, std::less<provinces::province_tag>, concurrent_allocator<provinces::province_tag>> pending_neighbor_check;
 
-		pending_neighbor_check.insert(this_nation.current_capital);
+		pending_neighbor_check.insert(current_capital);
 
 		while(pending_neighbor_check.size() != 0) {
 			auto tp = *(pending_neighbor_check.end() - 1);
 			pending_neighbor_check.erase(pending_neighbor_check.end() - 1);
 			already_added.insert(tp);
 
-			++this_nation.central_province_count;
+			++central_province_count;
 			if(ws.w.province_s.province_state_container.get<province_state::naval_base_level>(tp) != 0)
-				++this_nation.num_connected_ports;
+				++num_connected_ports;
 			if(is_valid_index(ws.w.province_s.province_state_container.get<province_state::rebel_controller>(tp)))
-				++this_nation.rebel_controlled_provinces;
+				++rebel_controlled_provinces;
 			if(is_valid_index(ws.w.province_s.province_state_container.get<province_state::crime>(tp)))
-				++this_nation.crime_count;
+				++crime_count;
 			if(ws.w.province_s.province_state_container.get<province_state::is_blockaded>(tp))
-				++this_nation.blockaded_count;
+				++blockaded_count;
 
 			auto adj_range = ws.s.province_m.same_type_adjacency.get_row(tp);
 			for(auto a : adj_range) {
-				if(ws.w.province_s.province_state_container.get<province_state::owner>(a) == this_nation.id && already_added.count(a) == 0 && pending_neighbor_check.count(a) == 0)
+				if(ws.w.province_s.province_state_container.get<province_state::owner>(a) == this_nation && already_added.count(a) == 0 && pending_neighbor_check.count(a) == 0)
 					pending_neighbor_check.insert(a);
 			}
 		}
 	}
 
-	void update_movement_support(world_state& ws, nations::nation& this_nation) {
-		float total_pop = float(ws.w.nation_s.nation_demographics.get(this_nation.id, population::total_population_tag));
+	void update_movement_support(world_state& ws, nations::country_tag this_nation) {
+		float total_pop = float(ws.w.nation_s.nation_demographics.get(this_nation, population::total_population_tag));
+		auto& social_movement_support = ws.w.nation_s.nations.get<nation::social_movement_support>(this_nation);
+		auto& political_movement_support = ws.w.nation_s.nations.get<nation::political_movement_support>(this_nation);
+
 		if(total_pop == 0.0f) {
-			this_nation.social_movement_support = 0.0f;
-			this_nation.political_movement_support = 0.0f;
+			social_movement_support = 0.0f;
+			political_movement_support = 0.0f;
 			return;
 		}
 
-		auto movements = get_range(ws.w.population_s.pop_movement_arrays, this_nation.active_movements);
+		auto movements = get_range(ws.w.population_s.pop_movement_arrays, ws.w.nation_s.nations.get<nation::active_movements>(this_nation));
 		int64_t total_social_support = 0;
 		int64_t total_political_support = 0;
 		for(auto m : movements) {
@@ -1016,13 +1072,13 @@ namespace nations {
 		}
 
 		
-		this_nation.social_movement_support = std::min(1.0f, (float(total_social_support) / total_pop) * ws.s.modifiers_m.global_defines.movement_support_uh_factor);
-		this_nation.political_movement_support = std::min(1.0f, (float(total_political_support) / total_pop) * ws.s.modifiers_m.global_defines.movement_support_uh_factor);
+		social_movement_support = std::min(1.0f, (float(total_social_support) / total_pop) * ws.s.modifiers_m.global_defines.movement_support_uh_factor);
+		political_movement_support = std::min(1.0f, (float(total_political_support) / total_pop) * ws.s.modifiers_m.global_defines.movement_support_uh_factor);
 	}
 
-	int32_t calculate_industrial_score(world_state const& ws, nations::nation const& this_nation) {
+	int32_t calculate_industrial_score(world_state const& ws, nations::country_tag this_nation) {
 		float total = 0;
-		auto states = get_range(ws.w.nation_s.state_arrays, this_nation.member_states);
+		auto states = get_range(ws.w.nation_s.state_arrays, ws.w.nation_s.nations.get<nation::member_states>(this_nation));
 
 		boost::container::small_vector<population::demo_tag, 8> factory_demo_tags;
 		boost::container::small_vector<population::demo_tag, 8> factory_employment_tags;
@@ -1048,18 +1104,18 @@ namespace nations {
 			}
 		}
 
-		auto investment = get_range(ws.w.nation_s.influence_arrays, this_nation.gp_influence);
+		auto investment = get_range(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(this_nation));
 		for(auto v = investment.first; v != investment.second; ++v) {
 			total += v->investment_amount * ws.s.modifiers_m.global_defines.investment_score_factor * 0.01f;
 		}
 		return int32_t(total);
 	}
 
-	int32_t calculate_military_score(world_state const& ws, nations::nation const& this_nation) {
+	int32_t calculate_military_score(world_state const& ws, nations::country_tag this_nation) {
 		float* unit_type_scores = (float*)_alloca(sizeof(float) * ws.s.military_m.unit_types_count);
 		std::fill_n(unit_type_scores, ws.s.military_m.unit_types_count, 0.0f);
 
-		auto unit_attributes_row = ws.w.nation_s.unit_stats.get_row(this_nation.id);
+		auto unit_attributes_row = ws.w.nation_s.unit_stats.get_row(this_nation);
 		float land_unit_type_count = 0.0f;
 		float land_uint_score = 0.0f;
 
@@ -1069,8 +1125,8 @@ namespace nations {
 			if(masked_type == military::unit_type::class_big_ship) {
 				// capital ship
 				unit_type_scores[i] =
-					(unit_attributes_row[i][military::unit_attribute::hull] + this_nation.modifier_values[modifiers::national_offsets::naval_defense_modifier]) *
-					(unit_attributes_row[i][military::unit_attribute::gun_power] + this_nation.modifier_values[modifiers::national_offsets::naval_attack_modifier]) /
+					(unit_attributes_row[i][military::unit_attribute::hull] + ws.w.nation_s.nations.get<nation::modifier_values>(this_nation)[modifiers::national_offsets::naval_defense_modifier]) *
+					(unit_attributes_row[i][military::unit_attribute::gun_power] + ws.w.nation_s.nations.get<nation::modifier_values>(this_nation)[modifiers::national_offsets::naval_attack_modifier]) /
 					250.0f;
 			} else if(masked_type == military::unit_type::class_light_ship || masked_type == military::unit_type::class_transport) {
 				// other naval
@@ -1078,32 +1134,33 @@ namespace nations {
 				// land
 				land_uint_score +=
 					(unit_attributes_row[i][military::unit_attribute::attack] +
-					this_nation.modifier_values[modifiers::national_offsets::land_attack_modifier] +
-					unit_attributes_row[i][military::unit_attribute::defense] +
-					this_nation.modifier_values[modifiers::national_offsets::land_defense_modifier]) * 
-					unit_attributes_row[i][military::unit_attribute::discipline];
+						ws.w.nation_s.nations.get<nation::modifier_values>(this_nation)[modifiers::national_offsets::land_attack_modifier] +
+						unit_attributes_row[i][military::unit_attribute::defense] +
+						ws.w.nation_s.nations.get<nation::modifier_values>(this_nation)[modifiers::national_offsets::land_defense_modifier]) *
+						unit_attributes_row[i][military::unit_attribute::discipline];
 				++land_unit_type_count;
 			}
 		}
-		bool is_disarmed = is_valid_index(this_nation.disarmed_until) && ws.w.current_date < this_nation.disarmed_until;
+		auto disarm_date = ws.w.nation_s.nations.get<nation::disarmed_until>(this_nation);
+		bool is_disarmed = is_valid_index(disarm_date) && ws.w.current_date < disarm_date;
 
 		float total_active_regiments = 0.0f;
-		auto armies = get_range(ws.w.military_s.army_arrays, this_nation.armies);
+		auto armies = get_range(ws.w.military_s.army_arrays, ws.w.nation_s.nations.get<nation::armies>(this_nation));
 		for(auto a : armies)
 			total_active_regiments += float(ws.w.military_s.armies[a].total_soldiers);
 		total_active_regiments /= ws.s.modifiers_m.global_defines.pop_size_per_regiment;
 
 		float total_possible_regiments =
-			(ws.w.nation_s.nation_demographics.get(this_nation.id, population::to_demo_tag(ws, ws.s.population_m.soldier)) + 
-				ws.w.nation_s.nation_colonial_demographics.get(this_nation.id, population::to_demo_tag(ws, ws.s.population_m.soldier))) /
+			(ws.w.nation_s.nation_demographics.get(this_nation, population::to_demo_tag(ws, ws.s.population_m.soldier)) + 
+				ws.w.nation_s.nation_colonial_demographics.get(this_nation, population::to_demo_tag(ws, ws.s.population_m.soldier))) /
 			ws.s.modifiers_m.global_defines.pop_size_per_regiment;
 
 		float total_sum = ((land_uint_score / land_unit_type_count) *
 			(is_disarmed ? ws.s.modifiers_m.global_defines.disarmament_army_hit : 1.0f) *
-			std::max(0.0f, (this_nation.modifier_values[modifiers::national_offsets::supply_consumption] + 1.0f)) *
+			std::max(0.0f, (ws.w.nation_s.nations.get<nation::modifier_values>(this_nation)[modifiers::national_offsets::supply_consumption] + 1.0f)) *
 			std::min(total_active_regiments * 4.0f, total_possible_regiments)) / 7.0f; // = land contribution
 
-		auto fleets = get_range(ws.w.military_s.fleet_arrays, this_nation.fleets);
+		auto fleets = get_range(ws.w.military_s.fleet_arrays, ws.w.nation_s.nations.get<nation::fleets>(this_nation));
 		for(auto f : fleets) {
 			auto ships = get_range(ws.w.military_s.ship_arrays, ws.w.military_s.fleets[f].ships);
 			for(auto s = ships.first; s != ships.second; ++s) {
@@ -1111,71 +1168,80 @@ namespace nations {
 			}
 		}
 
-		total_sum += std::min(float(get_size(ws.w.military_s.leader_arrays, this_nation.admirals) + get_size(ws.w.military_s.leader_arrays, this_nation.generals)), total_active_regiments);
+		total_sum += std::min(float(get_size(ws.w.military_s.leader_arrays, ws.w.nation_s.nations.get<nation::admirals>(this_nation))
+			+ get_size(ws.w.military_s.leader_arrays, ws.w.nation_s.nations.get<nation::generals>(this_nation))), total_active_regiments);
 
 		return int32_t(total_sum);
 	}
 
 	void update_nation_ranks(world_state& ws) {
-		uint32_t nations_count = 0;
-		ws.w.nation_s.nations.for_each([&nations_count](nations::nation const& n) {
+		int32_t nations_count = 0;
+		ws.w.nation_s.nations.for_each([&nations_count](nations::country_tag n) {
 			++nations_count;
 		});
 
-		nations::nation** temp_buf = (nations::nation**)_alloca(sizeof(nations::nation*) * nations_count);
+		country_tag* temp_buf = (country_tag*)_alloca(sizeof(country_tag) * ws.w.nation_s.nations.size());
+		std::uninitialized_value_construct_n(temp_buf, ws.w.nation_s.nations.size());
+		ws.w.nation_s.nations.for_each([temp_buf, temp_count = 0](nations::country_tag n) {
+			temp_buf[to_index(n)] = n;
+		});
+		std::stable_partition(temp_buf, temp_buf + ws.w.nation_s.nations.size(), [](nations::country_tag a) { return is_valid_index(a); });
 
-		ws.w.nation_s.nations.for_each([temp_buf, temp_count = 0](nations::nation& n) mutable {
-			temp_buf[temp_count] = &n;
-			++temp_count;
+		std::sort(temp_buf, temp_buf + nations_count, [&ws](nations::country_tag a, nations::country_tag b) {
+			return ws.w.nation_s.nations.get<nation::industrial_score>(a) > ws.w.nation_s.nations.get<nation::industrial_score>(b);
 		});
+		for(int32_t i = 0; i < nations_count; ++i)
+			ws.w.nation_s.nations.set<nation::industrial_rank>(temp_buf[i], int16_t(i + 1));
+		std::sort(temp_buf, temp_buf + nations_count, [&ws](nations::country_tag a, nations::country_tag b) {
+			return ws.w.nation_s.nations.get<nation::military_score>(a) > ws.w.nation_s.nations.get<nation::military_score>(b);
+		});
+		for(int32_t i = 0; i < nations_count; ++i)
+			ws.w.nation_s.nations.set<nation::military_rank>(temp_buf[i], int16_t(i + 1));
+		std::sort(temp_buf, temp_buf + nations_count, [&ws](nations::country_tag a, nations::country_tag b) {
+			return nations::get_prestige(ws, a) > nations::get_prestige(ws, b);
+		});
+		for(int32_t i = 0; i < nations_count; ++i)
+			ws.w.nation_s.nations.set<nation::prestige_rank>(temp_buf[i], int16_t(i + 1));
 
-		std::sort(temp_buf, temp_buf + nations_count, [](nations::nation const* a, nations::nation const* b) {
-			return a->industrial_score > b->industrial_score;
+		std::sort(temp_buf, temp_buf + nations_count, [&ws](nations::country_tag a, nations::country_tag b) {
+			return (nations::get_prestige(ws, a) + ws.w.nation_s.nations.get<nation::military_score>(a) + ws.w.nation_s.nations.get<nation::industrial_score>(a))
+		> (nations::get_prestige(ws, b) + ws.w.nation_s.nations.get<nation::military_score>(b) + ws.w.nation_s.nations.get<nation::industrial_score>(b));
 		});
-		for(uint32_t i = 0; i < nations_count; ++i)
-			temp_buf[i]->industrial_rank = int16_t(i + 1);
-		std::sort(temp_buf, temp_buf + nations_count, [](nations::nation const* a, nations::nation const* b) {
-			return a->military_score > b->military_score;
+		std::stable_partition(temp_buf, temp_buf + nations_count, [&ws](nations::country_tag a) {
+			return !is_valid_index(ws.w.nation_s.nations.get<nation::overlord>(a));
 		});
-		for(uint32_t i = 0; i < nations_count; ++i)
-			temp_buf[i]->military_rank = int16_t(i + 1);
-		std::sort(temp_buf, temp_buf + nations_count, [](nations::nation const* a, nations::nation const* b) {
-			return nations::get_prestige(*a) > nations::get_prestige(*b);
+		std::stable_partition(temp_buf, temp_buf + nations_count, [&ws](nations::country_tag a) {
+			return ws.w.nation_s.nations.get<nation::is_civilized>(a);
 		});
-		for(uint32_t i = 0; i < nations_count; ++i)
-			temp_buf[i]->prestige_rank = int16_t(i + 1);
-
-		std::sort(temp_buf, temp_buf + nations_count, [](nations::nation const* a, nations::nation const* b) {
-			return (nations::get_prestige(*a) + a->military_score + a->industrial_score) > (nations::get_prestige(*b) + b->military_score + b->industrial_score);
+		std::stable_partition(temp_buf, temp_buf + nations_count, [&ws](nations::country_tag a) {
+			return is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(a));
 		});
-		std::stable_partition(temp_buf, temp_buf + nations_count, [](nations::nation const* a) { return a->overlord == nullptr; });
-		std::stable_partition(temp_buf, temp_buf + nations_count, [](nations::nation const* a) { return (a->flags & nations::nation::is_civilized) != 0; });
-		std::stable_partition(temp_buf, temp_buf + nations_count, [](nations::nation const* a) { return is_valid_index(a->current_capital); });
 
 		resize(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank, nations_count);
-		for(uint32_t i = 0; i < nations_count; ++i) {
-			temp_buf[i]->overall_rank = int16_t(i + 1);
-			get(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank, i) = temp_buf[i]->id;
+		for(int32_t i = 0; i < nations_count; ++i) {
+			ws.w.nation_s.nations.set<nation::overall_rank>(temp_buf[i], int16_t(i + 1));
+			get(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank, i) = temp_buf[i];
 		}
 	}
 
-	void change_tag(world_state& ws, nations::nation& this_nation, cultures::national_tag new_tag) {
+	void change_tag(world_state& ws, nations::country_tag this_nation, cultures::national_tag new_tag) {
 		auto& new_tag_state = ws.w.culture_s.national_tags_state[new_tag];
 
-		if(is_valid_index(this_nation.tag))
-			ws.w.culture_s.national_tags_state[this_nation.tag].holder = new_tag_state.holder;
+		auto& ntag = ws.w.nation_s.nations.get<nation::tag>(this_nation);
+		if(is_valid_index(ntag))
+			ws.w.culture_s.national_tags_state[ntag].holder = new_tag_state.holder;
 
 		if(new_tag_state.holder)
-			new_tag_state.holder->tag = this_nation.tag;
+			ws.w.nation_s.nations.set<nation::tag>(new_tag_state.holder, ntag);
 
-		new_tag_state.holder = &this_nation;
-		this_nation.tag = new_tag;
+		new_tag_state.holder = this_nation;
+		ntag = new_tag;
 	}
 
-	void civilize_nation(world_state& ws, nations::nation& this_nation) {
-		this_nation.flags |= nations::nation::is_civilized;
+	void civilize_nation(world_state& ws, nations::country_tag this_nation) {
+		ws.w.nation_s.nations.set<nation::is_civilized>(this_nation, true);
 
-		auto issue_opts = ws.w.nation_s.active_issue_options.get_row(this_nation.id);
+		auto issue_opts = ws.w.nation_s.active_issue_options.get_row(this_nation);
 		for(int32_t i = int32_t(ws.s.issues_m.issues_container.size()); i--; ) {
 			issues::issue_tag this_issue_tag(static_cast<issues::issue_tag::value_base_t>(i));
 			auto& this_issue = ws.s.issues_m.issues_container[this_issue_tag];
@@ -1184,24 +1250,24 @@ namespace nations {
 			}
 		}
 
-		events::fire_event_from_list(ws, ws.s.event_m.on_civilize, this_nation.id, std::monostate());
+		events::fire_event_from_list(ws, ws.s.event_m.on_civilize, this_nation, std::monostate());
 	}
 
-	void perform_nationalization(world_state& ws, nations::nation& this_nation) {
-		auto influencers_range = get_range(ws.w.nation_s.nations_arrays, this_nation.influencers);
+	void perform_nationalization(world_state& ws, nations::country_tag this_nation) {
+		auto influencers_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::influencers>(this_nation));
 		for(auto n : influencers_range) {
-			auto fr = find(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations[n].gp_influence, nations::influence{0.0f, this_nation.id, 0ui8, 0i8});
+			auto fr = find(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(n), nations::influence{0.0f, this_nation, 0ui8, 0i8});
 			if(fr->investment_amount != 0.0f) {
 				fr->investment_amount = 0.0f;
-				events::fire_event_from_list(ws, ws.s.event_m.on_my_factories_nationalized, n, this_nation.id);
+				events::fire_event_from_list(ws, ws.s.event_m.on_my_factories_nationalized, n, this_nation);
 			}
 		}
 	}
 
-	void uncivilize_nation(world_state& ws, nations::nation& this_nation) {
-		this_nation.flags &= ~nations::nation::is_civilized;
+	void uncivilize_nation(world_state& ws, nations::country_tag this_nation) {
+		ws.w.nation_s.nations.set<nation::is_civilized>(this_nation, false);
 
-		auto issue_opts = ws.w.nation_s.active_issue_options.get_row(this_nation.id);
+		auto issue_opts = ws.w.nation_s.active_issue_options.get_row(this_nation);
 		for(int32_t i = int32_t(ws.s.issues_m.issues_container.size()); i--; ) {
 			issues::issue_tag this_issue_tag(static_cast<issues::issue_tag::value_base_t>(i));
 			auto& this_issue = ws.s.issues_m.issues_container[this_issue_tag];
@@ -1222,7 +1288,7 @@ namespace nations {
 		});
 	}
 
-	void adjust_influence(world_state& ws, nation& nation_by, nations::country_tag nation_target, int32_t amount) {
+	void adjust_influence(world_state& ws, country_tag nation_by, nations::country_tag nation_target, int32_t amount) {
 		auto current_influence = get_influence(ws, nation_by, nation_target);
 		auto influence_result = int32_t(current_influence.amount) + amount;
 
@@ -1312,8 +1378,8 @@ namespace nations {
 		return false;
 	}
 	
-	float tarrif_multiplier(world_state const&, nations::nation const& source, nations::nation const& target) {
-		if(&target == &source || &target == source.overlord || &target == source.sphere_leader)
+	float tarrif_multiplier(world_state const& ws, nations::country_tag source, nations::country_tag target) {
+		if(target == source || target == ws.w.nation_s.nations.get<nation::overlord>(source) || target == ws.w.nation_s.nations.get<nation::sphere_leader>(source))
 			return 0.0f;
 		else
 			return 1.0f;

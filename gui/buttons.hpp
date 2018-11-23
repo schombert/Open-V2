@@ -46,9 +46,8 @@ bool ui::masked_flag<BASE>::on_lclick(gui_object_tag, world_state& m, const lbut
 		BASE::button_function(*this, m);
 	} else {
 		if(is_valid_index(displayed_flag)) {
-			if(auto holder = m.w.culture_s.national_tags_state[displayed_flag].holder; holder) {
-				if(auto id = holder->id; m.w.nation_s.nations.is_valid_index(id))
-					m.w.diplomacy_w.show_diplomacy_window(m.w.gui_m, id);
+			if(auto holder = m.w.culture_s.national_tags_state[displayed_flag].holder; m.w.nation_s.nations.is_valid_index(holder)) {
+				m.w.diplomacy_w.show_diplomacy_window(m.w.gui_m, holder);
 			}
 		}
 	}
@@ -117,9 +116,8 @@ bool ui::masked_flag<BASE>::on_keydown(gui_object_tag, world_state & m, const ke
 			BASE::button_function(*this, m);
 		else {
 			if(is_valid_index(displayed_flag)) {
-				if(auto holder = m.w.culture_s.national_tags_state[displayed_flag].holder; holder) {
-					if(auto id = holder->id; m.w.nation_s.nations.is_valid_index(id))
-						m.w.diplomacy_w.show_diplomacy_window(m.w.gui_m, id);
+				if(auto holder = m.w.culture_s.national_tags_state[displayed_flag].holder; m.w.nation_s.nations.is_valid_index(holder)) {
+					m.w.diplomacy_w.show_diplomacy_window(m.w.gui_m, holder);
 				}
 			}
 		}
@@ -212,7 +210,7 @@ void ui::masked_flag<BASE>::create_tooltip(gui_object_tag, world_state& ws, cons
 		if(is_valid_index(displayed_flag)) {
 			auto holder = ws.w.culture_s.national_tags_state[displayed_flag].holder;
 			if(holder)
-				ui::add_linear_text(ui::xy_pair{ 0,0 }, holder->name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations.get<nation::name>(holder), ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
 			else
 				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.culture_m.national_tags[displayed_flag].default_name.name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
 		}
@@ -251,8 +249,10 @@ void ui::masked_flag<BASE>::set_displayed_flag(world_state& ws, cultures::nation
 	if(underlying_obj) {
 		if(is_valid_index(t)) {
 			auto holder = ws.w.culture_s.national_tags_state[t].holder;
-			if(holder && is_valid_index(holder->flag)) {
-				underlying_obj->flag_or_secondary = &(ws.s.gui_m.textures.retrieve_by_key(holder->flag));
+			if(holder) {
+				auto hflag = ws.w.nation_s.nations.get<nation::flag>(holder);
+				if(is_valid_index(hflag))
+					underlying_obj->flag_or_secondary = &(ws.s.gui_m.textures.retrieve_by_key(hflag));
 			} else {
 				auto ttag = ws.s.culture_m.national_tags[t].base_flag;
 				if(is_valid_index(ttag))
@@ -269,14 +269,14 @@ void ui::masked_flag<BASE>::set_displayed_flag(world_state& ws, cultures::nation
 template<typename BASE>
 void ui::masked_flag<BASE>::set_displayed_flag(world_state& ws, nations::country_tag t) {
 	if(ws.w.nation_s.nations.is_valid_index(t)) {
-		displayed_flag = ws.w.nation_s.nations[t].tag;
+		displayed_flag = ws.w.nation_s.nations.get<nation::tag>(t);
 	} else {
 		displayed_flag = cultures::national_tag();
 	}
 	
 	if(underlying_obj) {
 		if(ws.w.nation_s.nations.is_valid_index(t)) {
-			auto flag = ws.w.nation_s.nations[t].flag;
+			auto flag = ws.w.nation_s.nations.get<nation::flag>(t);
 			if(is_valid_index(flag)) {
 				underlying_obj->flag_or_secondary = &(ws.s.gui_m.textures.retrieve_by_key(flag));
 			} else {

@@ -275,7 +275,7 @@ namespace economy {
 
 	void sort_by_my_flag_button::update(ui::masked_flag<sort_by_my_flag_button>& self, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			self.set_displayed_flag(ws, player->tag);
+			self.set_displayed_flag(ws, player);
 		}
 	}
 	void sort_by_my_flag_button::button_function(ui::masked_flag<sort_by_my_flag_button>&, world_state & ws) {
@@ -286,7 +286,7 @@ namespace economy {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
 		if(r.first + 0 < r.second) {
 			if(auto id = *(r.first + 0); ws.w.nation_s.nations.is_valid_index(id))
-				self.set_displayed_flag(ws, ws.w.nation_s.nations[id].tag);
+				self.set_displayed_flag(ws, id);
 		}
 	}
 	void sort_by_gpflag0_button::button_function(ui::masked_flag<sort_by_gpflag0_button>&, world_state & ws) {
@@ -297,7 +297,7 @@ namespace economy {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
 		if(r.first + 1 < r.second) {
 			if(auto id = *(r.first + 1); ws.w.nation_s.nations.is_valid_index(id))
-				self.set_displayed_flag(ws, ws.w.nation_s.nations[id].tag);
+				self.set_displayed_flag(ws, id);
 		}
 	}
 	void sort_by_gpflag1_button::button_function(ui::masked_flag<sort_by_gpflag1_button>&, world_state & ws) {
@@ -308,7 +308,7 @@ namespace economy {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
 		if(r.first + 2 < r.second) {
 			if(auto id = *(r.first + 2); ws.w.nation_s.nations.is_valid_index(id))
-				self.set_displayed_flag(ws, ws.w.nation_s.nations[id].tag);
+				self.set_displayed_flag(ws, id);
 		}
 	}
 	void sort_by_gpflag2_button::button_function(ui::masked_flag<sort_by_gpflag2_button>&, world_state & ws) {
@@ -319,7 +319,7 @@ namespace economy {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
 		if(r.first + 3 < r.second) {
 			if(auto id = *(r.first + 3); ws.w.nation_s.nations.is_valid_index(id))
-				self.set_displayed_flag(ws, ws.w.nation_s.nations[id].tag);
+				self.set_displayed_flag(ws, id);
 		}
 	}
 	void sort_by_gpflag3_button::button_function(ui::masked_flag<sort_by_gpflag3_button>&, world_state & ws) {
@@ -330,7 +330,7 @@ namespace economy {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
 		if(r.first + 4 < r.second) {
 			if(auto id = *(r.first + 4); ws.w.nation_s.nations.is_valid_index(id))
-				self.set_displayed_flag(ws, ws.w.nation_s.nations[id].tag);
+				self.set_displayed_flag(ws, id);
 		}
 	}
 	void sort_by_gpflag4_button::button_function(ui::masked_flag<sort_by_gpflag4_button>&, world_state & ws) {
@@ -341,7 +341,7 @@ namespace economy {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
 		if(r.first + 5 < r.second) {
 			if(auto id = *(r.first + 5); ws.w.nation_s.nations.is_valid_index(id))
-				self.set_displayed_flag(ws, ws.w.nation_s.nations[id].tag);
+				self.set_displayed_flag(ws, id);
 		}
 	}
 	void sort_by_gpflag5_button::button_function(ui::masked_flag<sort_by_gpflag5_button>&, world_state & ws) {
@@ -352,7 +352,7 @@ namespace economy {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
 		if(r.first + 6 < r.second) {
 			if(auto id = *(r.first + 6); ws.w.nation_s.nations.is_valid_index(id))
-				self.set_displayed_flag(ws, ws.w.nation_s.nations[id].tag);
+				self.set_displayed_flag(ws, id);
 		}
 	}
 	void sort_by_gpflag6_button::button_function(ui::masked_flag<sort_by_gpflag6_button>&, world_state & ws) {
@@ -363,7 +363,7 @@ namespace economy {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
 		if(r.first + 7 < r.second) {
 			if(auto id = *(r.first + 7); ws.w.nation_s.nations.is_valid_index(id))
-				self.set_displayed_flag(ws, ws.w.nation_s.nations[id].tag);
+				self.set_displayed_flag(ws, id);
 		}
 	}
 	void sort_by_gpflag7_button::button_function(ui::masked_flag<sort_by_gpflag7_button>&, world_state & ws) {
@@ -456,22 +456,22 @@ namespace economy {
 	}
 	void subsidize_all_button::update(ui::simple_button<subsidize_all_button>& self, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) 
-			self.set_enabled((player->current_rules.rules_value & issues::rules::can_subsidise) != 0);
+			self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player).rules_value & issues::rules::can_subsidise) != 0);
 	}
 	void subsidize_all_button::button_function(ui::simple_button<subsidize_all_button>& self, world_state & ws) {}
 	void unsubsidize_all_button::update(ui::simple_button<unsubsidize_all_button>& self, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player)
-			self.set_enabled((player->current_rules.rules_value & issues::rules::can_subsidise) != 0);
+			self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player).rules_value & issues::rules::can_subsidise) != 0);
 	}
 	void unsubsidize_all_button::button_function(ui::simple_button<unsubsidize_all_button>& self, world_state & ws) {}
 	void open_all_factories_button::update(ui::simple_button<open_all_factories_button>& self, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player)
-			self.set_enabled((player->current_rules.rules_value & issues::rules::open_factory) != 0);
+			self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player).rules_value & issues::rules::open_factory) != 0);
 	}
 	void open_all_factories_button::button_function(ui::simple_button<open_all_factories_button>& self, world_state & ws) {}
 	void close_all_factories_button::update(ui::simple_button<close_all_factories_button>& self, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player)
-			self.set_enabled((player->current_rules.rules_value & issues::rules::open_factory) != 0);
+			self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player).rules_value & issues::rules::open_factory) != 0);
 	}
 	void close_all_factories_button::button_function(ui::simple_button<close_all_factories_button>& self, world_state & ws) {}
 	void good_filter_item_button::button_function(ui::simple_button<good_filter_item_button>& self, world_state & ws) {
@@ -496,12 +496,11 @@ namespace economy {
 	}
 	void investment_target_flag_overlay::update(ui::dynamic_icon<investment_target_flag_overlay>& self, world_state & ws) {
 		if(is_valid_index(ws.w.production_w.foreign_investment_nation)) {
-			auto& n = ws.w.nation_s.nations[ws.w.production_w.foreign_investment_nation];
-			if((n.flags & nations::nation::is_civilized) == 0)
+			if(ws.w.nation_s.nations.get<nation::is_civilized>(ws.w.production_w.foreign_investment_nation) == false)
 				self.set_frame(ws.w.gui_m, 3ui32);
-			else if(nations::is_great_power(ws, n))
+			else if(nations::is_great_power(ws, ws.w.production_w.foreign_investment_nation))
 				self.set_frame(ws.w.gui_m, 0ui32);
-			else if(n.overall_rank <= int16_t(ws.s.modifiers_m.global_defines.colonial_rank))
+			else if(ws.w.nation_s.nations.get<nation::overall_rank>(ws.w.production_w.foreign_investment_nation) <= int16_t(ws.s.modifiers_m.global_defines.colonial_rank))
 				self.set_frame(ws.w.gui_m, 1ui32);
 			else
 				self.set_frame(ws.w.gui_m, 2ui32);
@@ -510,7 +509,7 @@ namespace economy {
 	}
 	void investment_target_name::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(ws.w.production_w.foreign_investment_nation)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations[ws.w.production_w.foreign_investment_nation].name, fmt,
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations.get<nation::name>(ws.w.production_w.foreign_investment_nation), fmt,
 				ws.s.gui_m, ws.w.gui_m, box, lm);
 			lm.finish_current_line();
 		}
@@ -518,7 +517,7 @@ namespace economy {
 	void investment_target_amount::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; bool(player) && is_valid_index(ws.w.production_w.foreign_investment_nation)) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::currency, nations::get_foreign_investment(ws, *player, ws.w.production_w.foreign_investment_nation));
+			put_value_in_buffer(local_buffer, display_type::currency, nations::get_foreign_investment(ws, player, ws.w.production_w.foreign_investment_nation));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}

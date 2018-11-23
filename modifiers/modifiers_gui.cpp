@@ -407,27 +407,27 @@ namespace modifiers {
 		return cursor_in;
 	}
 
-	ui::xy_pair explain_national_modifier(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, nations::nation const& this_nation, uint32_t modifier_offset) {
-		auto nation_id = this_nation.id;
+	ui::xy_pair explain_national_modifier(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, nations::country_tag this_nation, uint32_t modifier_offset) {
+		auto nation_id = this_nation;
 		if(!ws.w.nation_s.nations.is_valid_index(nation_id))
 			return cursor_in;
 
-		auto static_range = get_range(ws.w.nation_s.static_modifier_arrays, this_nation.static_modifiers);
+		auto static_range = get_range(ws.w.nation_s.static_modifier_arrays, ws.w.nation_s.nations.get<nation::static_modifiers>(this_nation));
 		for(auto m : static_range)
 			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, m, modifier_offset, value_type(1));
 
-		auto timed_range = get_range(ws.w.nation_s.timed_modifier_arrays, this_nation.timed_modifiers);
+		auto timed_range = get_range(ws.w.nation_s.timed_modifier_arrays, ws.w.nation_s.nations.get<nation::timed_modifiers>(this_nation));
 		for(auto t = timed_range.first; t != timed_range.second; ++t)
 			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, t->mod, modifier_offset, value_type(1));
 		
-		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, this_nation.tech_school, modifier_offset, value_type(1));
-		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, this_nation.national_value, modifier_offset, value_type(1));
+		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.w.nation_s.nations.get<nation::tech_school>(this_nation), modifier_offset, value_type(1));
+		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.w.nation_s.nations.get<nation::national_value>(this_nation), modifier_offset, value_type(1));
 
-		if((this_nation.flags & nations::nation::is_civilized) == 0)
+		if(ws.w.nation_s.nations.get<nation::is_civilized>(this_nation) == false)
 			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.unciv_nation, modifier_offset, value_type(1));
 		else if(nations::is_great_power(ws, this_nation))
 			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.great_power, modifier_offset, value_type(1));
-		else if(this_nation.overall_rank <= int16_t(ws.s.modifiers_m.global_defines.colonial_rank))
+		else if(ws.w.nation_s.nations.get<nation::overall_rank>(this_nation) <= int16_t(ws.s.modifiers_m.global_defines.colonial_rank))
 			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.second_power, modifier_offset, value_type(1));
 		else
 			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.civ_nation, modifier_offset, value_type(1));
@@ -445,22 +445,23 @@ namespace modifiers {
 				cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.technology_m.technologies_container[tag].modifier, modifier_offset, value_type(1));
 		}
 
-		bool at_war = get_size(ws.w.military_s.war_arrays, this_nation.wars_involved_in) != 0;
+		bool at_war = get_size(ws.w.military_s.war_arrays, ws.w.nation_s.nations.get<nation::wars_involved_in>(this_nation)) != 0;
+		auto central_province_count = ws.w.nation_s.nations.get<nation::central_province_count>(this_nation);
 		if(at_war) {
 			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.war, modifier_offset, value_type(1));
 		} else {
 			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.peace, modifier_offset, value_type(1));
-			if(this_nation.rebel_controlled_provinces != 0 && this_nation.central_province_count != 0)
-				cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.total_occupation, modifier_offset, float(this_nation.rebel_controlled_provinces) / float(this_nation.central_province_count));
+			if(ws.w.nation_s.nations.get<nation::rebel_controlled_provinces>(this_nation) != 0 && central_province_count != 0)
+				cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.total_occupation, modifier_offset, float(ws.w.nation_s.nations.get<nation::rebel_controlled_provinces>(this_nation)) / float(central_province_count));
 		}
 
-		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.badboy, modifier_offset, this_nation.infamy);
-		if(this_nation.central_province_count != 0)
-			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.total_blockaded, modifier_offset, float(this_nation.blockaded_count) / float(this_nation.central_province_count));
-		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.war_exhaustion, modifier_offset, 100.0f * this_nation.war_exhaustion);
-		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.plurality, modifier_offset, 100.0f * this_nation.plurality);
+		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.badboy, modifier_offset, ws.w.nation_s.nations.get<nation::infamy>(this_nation));
+		if(central_province_count != 0)
+			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.total_blockaded, modifier_offset, float(ws.w.nation_s.nations.get<nation::blockaded_count>(this_nation)) / float(central_province_count));
+		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.war_exhaustion, modifier_offset, 100.0f * ws.w.nation_s.nations.get<nation::war_exhaustion>(this_nation));
+		cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.plurality, modifier_offset, 100.0f * ws.w.nation_s.nations.get<nation::plurality>(this_nation));
 		
-		if(is_valid_index(this_nation.disarmed_until) & (ws.w.current_date < this_nation.disarmed_until))
+		if(is_valid_index(ws.w.nation_s.nations.get<nation::disarmed_until>(this_nation)) & (ws.w.current_date < ws.w.nation_s.nations.get<nation::disarmed_until>(this_nation)))
 			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.disarming, modifier_offset, value_type(1));
 		
 		auto total_pop = ws.w.nation_s.nation_demographics.get(nation_id, population::total_population_tag);
