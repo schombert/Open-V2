@@ -19,6 +19,7 @@
 #include "modifiers\\modifier_functions.h"
 #include "issues\\issues_functions.h"
 #include "technologies\\technologies_io.h"
+#include "governments\\governments_functions.h"
 #include <ppl.h>
 
 /*
@@ -64,14 +65,10 @@ void serialization::serializer<current_state::crisis_state>::serialize_object(st
 	uint8_t ctype = uint8_t(obj.type);
 	serialize(output, ctype);
 
-	auto pattacker_tag = obj.primary_attacker ? obj.primary_attacker->id : nations::country_tag();
-	serialize(output, pattacker_tag);
-	auto pdefender_tag = obj.primary_defender ? obj.primary_defender->id : nations::country_tag();
-	serialize(output, pdefender_tag);
-	auto target_tag = obj.target ? obj.target->id : nations::country_tag();
-	serialize(output, target_tag);
-	auto on_behalf_of_tag = obj.on_behalf_of ? obj.on_behalf_of->id : nations::country_tag();
-	serialize(output, on_behalf_of_tag);
+	serialize(output, obj.primary_attacker);
+	serialize(output, obj.primary_defender);
+	serialize(output, obj.target);
+	serialize(output, obj.on_behalf_of);
 
 	serialize(output, obj.state);
 
@@ -87,21 +84,10 @@ void serialization::serializer<current_state::crisis_state>::deserialize_object(
 	deserialize(input, ctype);
 	obj.type = current_state::crisis_type(ctype);
 
-	nations::country_tag pattacker_tag;
-	deserialize(input, pattacker_tag);
-	obj.primary_attacker = ws.w.nation_s.nations.get_location(pattacker_tag);
-
-	nations::country_tag pdefender_tag;
-	deserialize(input, pdefender_tag);
-	obj.primary_defender = ws.w.nation_s.nations.get_location(pdefender_tag);
-
-	nations::country_tag target_tag;
-	deserialize(input, target_tag);
-	obj.target = ws.w.nation_s.nations.get_location(target_tag);
-
-	nations::country_tag on_behalf_of_tag;
-	deserialize(input, on_behalf_of_tag);
-	obj.on_behalf_of = ws.w.nation_s.nations.get_location(on_behalf_of_tag);
+	deserialize(input, obj.primary_attacker);
+	deserialize(input, obj.primary_defender);
+	deserialize(input, obj.target);
+	deserialize(input, obj.on_behalf_of);
 
 	deserialize(input, obj.state);
 
@@ -141,9 +127,7 @@ void serialization::serializer<current_state::state>::serialize_object(std::byte
 	serialize(output, obj.great_wars_enabled);
 	serialize(output, obj.world_wars_enabled);
 
-	auto player_tag = obj.local_player_nation ? obj.local_player_nation->id : nations::country_tag();
-	serialize(output, player_tag);
-
+	serialize(output, obj.local_player_nation);
 	serialize(output, obj.local_player_data, ws);
 }
 
@@ -176,10 +160,7 @@ void serialization::serializer<current_state::state>::deserialize_object(std::by
 	deserialize(input, obj.great_wars_enabled);
 	deserialize(input, obj.world_wars_enabled);
 
-	nations::country_tag player_tag;
-	deserialize(input, player_tag);
-	obj.local_player_nation = ws.w.nation_s.nations.get_location(player_tag);
-
+	deserialize(input, obj.local_player_nation);
 	deserialize(input, obj.local_player_data, ws);
 
 	restore_world_state(ws);
@@ -209,20 +190,20 @@ void restore_world_state(world_state& ws) {
 		auto& nt = ws.w.culture_s.national_tags_state[this_tag];
 
 		if(nt.holder) {
-			nt.holder->tag = this_tag;
-			auto names = ws.s.culture_m.country_names_by_government.get(this_tag, nt.holder->current_government);
+			ws.w.nation_s.nations.set<nation::tag>(nt.holder, this_tag);
+			auto names = ws.s.culture_m.country_names_by_government.get(this_tag, ws.w.nation_s.nations.get<nation::current_government>(nt.holder));
 
 			if(is_valid_index(names.name))
-				nt.holder->name = names.name;
+				ws.w.nation_s.nations.set<nation::name>(nt.holder, names.name);
 			else
-				nt.holder->name = ws.s.culture_m.national_tags[this_tag].default_name.name;
+				ws.w.nation_s.nations.set<nation::name>(nt.holder, ws.s.culture_m.national_tags[this_tag].default_name.name);
 
 			if(is_valid_index(names.adjective))
-				nt.holder->adjective = names.adjective;
+				ws.w.nation_s.nations.set<nation::adjective>(nt.holder, names.adjective);
 			else
-				nt.holder->adjective = ws.s.culture_m.national_tags[this_tag].default_name.adjective;
+				ws.w.nation_s.nations.set<nation::adjective>(nt.holder, ws.s.culture_m.national_tags[this_tag].default_name.adjective);
 
-			nt.holder->flag = ws.w.culture_s.country_flags_by_government.get(this_tag, nt.holder->current_government);
+			ws.w.nation_s.nations.set<nation::flag>(nt.holder, ws.w.culture_s.country_flags_by_government.get(this_tag, ws.w.nation_s.nations.get<nation::current_government>(nt.holder)));
 		}
 	}
 
@@ -233,7 +214,7 @@ void restore_world_state(world_state& ws) {
 		container.set<province_state::has_owner_core>(p, false);
 
 		auto owner = container.get<province_state::owner>(p);
-		auto owner_tag = is_valid_index(owner) ? ws.w.nation_s.nations[owner].tag : cultures::national_tag();
+		auto owner_tag = is_valid_index(owner) ? ws.w.nation_s.nations.get<nation::tag>(owner) : cultures::national_tag();
 
 		for(auto c : cores_range) {
 			add_item(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[c].core_provinces, p);
@@ -244,9 +225,9 @@ void restore_world_state(world_state& ws) {
 		if(auto orders = container.get<province_state::orders>(p); is_valid_index(orders))
 			add_item(ws.w.province_s.province_arrays, ws.w.military_s.army_orders_container[orders].involved_provinces, p);
 		if(is_valid_index(owner))
-			add_item(ws.w.province_s.province_arrays, ws.w.nation_s.nations[owner].owned_provinces, p);
+			add_item(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(owner), p);
 		if(auto controller = container.get<province_state::controller>(p); is_valid_index(controller))
-			add_item(ws.w.province_s.province_arrays, ws.w.nation_s.nations[controller].controlled_provinces, p);
+			add_item(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::controlled_provinces>(controller), p);
 		if(auto rebel_controller = container.get<province_state::rebel_controller>(p); is_valid_index(rebel_controller))
 			add_item(ws.w.province_s.province_arrays, ws.w.population_s.rebel_factions[rebel_controller].controlled_provinces, p);
 	});
@@ -254,13 +235,13 @@ void restore_world_state(world_state& ws) {
 	ws.w.military_s.armies.for_each([&ws](military::army& a) {
 		if(a.current_orders)
 			add_item(ws.w.military_s.army_arrays, a.current_orders->involved_armies, a.id);
-		add_item(ws.w.military_s.army_arrays, ws.w.nation_s.nations[a.owner].armies, a.id);
+		add_item(ws.w.military_s.army_arrays, ws.w.nation_s.nations.get<nation::armies>(a.owner), a.id);
 	});
 
 	ws.w.nation_s.states.for_each([&ws](nations::state_tag s) {
 		auto owner_id = ws.w.nation_s.states.get<state::owner>(s);
 		if(is_valid_index(owner_id))
-			add_item(ws.w.nation_s.state_arrays, ws.w.nation_s.nations[owner_id].member_states, nations::region_state_pair{ ws.w.nation_s.states.get<state::region_id>(s), s });
+			add_item(ws.w.nation_s.state_arrays, ws.w.nation_s.nations.get<nation::member_states>(owner_id), nations::region_state_pair{ ws.w.nation_s.states.get<state::region_id>(s), s });
 	});
 	ws.w.nation_s.states.parallel_for_each([&ws](nations::state_tag s) {
 		ws.w.nation_s.states.set<state::state_capital>(s, nations::find_state_capital(ws, s));
@@ -290,15 +271,15 @@ void restore_world_state(world_state& ws) {
 
 	std::fill_n(ws.w.technology_s.discovery_count.data(), ws.s.technology_m.technologies_container.size(), 0);
 
-	ws.w.nation_s.nations.parallel_for_each([&ws](nations::nation& n) {
+	ws.w.nation_s.nations.parallel_for_each([&ws](nations::country_tag n) {
 		technologies::restore_technologies(ws, n);
 		modifiers::reset_national_modifier(ws, n);
 	});
 
-	ws.w.nation_s.nations.for_each([&ws](nations::nation& n) {
+	ws.w.nation_s.nations.for_each([&ws](nations::country_tag n) {
 		military::update_at_war_with_and_against(ws, n);
 
-		n.ruling_ideology = ws.s.governments_m.parties[n.ruling_party].ideology;
+		ws.w.nation_s.nations.set<nation::ruling_ideology>(n, ws.s.governments_m.parties[ws.w.nation_s.nations.get<nation::ruling_party>(n)].ideology);
 		governments::update_current_rules(ws, n);
 
 		nations::update_neighbors(ws, n);
@@ -307,14 +288,14 @@ void restore_world_state(world_state& ws) {
 
 		military::rebuild_fleet_presence(ws, n);
 
-		n.military_score = int16_t(nations::calculate_military_score(ws, n));
-		n.industrial_score = int16_t(nations::calculate_industrial_score(ws, n));
+		ws.w.nation_s.nations.set<nation::military_score>(n, int16_t(nations::calculate_military_score(ws, n)));
+		ws.w.nation_s.nations.set<nation::industrial_score>(n, int16_t(nations::calculate_industrial_score(ws, n)));
 
-		n.national_administrative_efficiency = nations::calculate_national_administrative_efficiency(ws, n);
-		n.revanchism = nations::calculate_revanchism(ws, n);
+		ws.w.nation_s.nations.set<nation::national_administrative_efficiency>(n, nations::calculate_national_administrative_efficiency(ws, n));
+		ws.w.nation_s.nations.set<nation::revanchism>(n, nations::calculate_revanchism(ws, n));
 
-		auto admin_req = issues::administrative_requirement(ws, n.id);
-		auto member_states = get_range(ws.w.nation_s.state_arrays, n.member_states);
+		auto admin_req = issues::administrative_requirement(ws, n);
+		auto member_states = get_range(ws.w.nation_s.state_arrays, ws.w.nation_s.nations.get<nation::member_states>(n));
 		for(auto s = member_states.first; s != member_states.second; ++s)
 			ws.w.nation_s.states.set<state::administrative_efficiency>(s->state, nations::calculate_state_administrative_efficiency(ws, s->state, admin_req));
 	});
@@ -329,13 +310,14 @@ void restore_world_state(world_state& ws) {
 	//restore tarrif masks
 	auto state_max = ws.w.nation_s.states.size();
 	auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(state_max) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
-	ws.w.nation_s.nations.parallel_for_each([&ws, aligned_state_max, state_max](nations::nation& n) {
-		resize(ws.w.economy_s.purchasing_arrays, n.statewise_tarrif_mask, aligned_state_max);
-		auto ptr = get_range(ws.w.economy_s.purchasing_arrays, n.statewise_tarrif_mask).first;
+	ws.w.nation_s.nations.parallel_for_each([&ws, aligned_state_max, state_max](nations::country_tag n) {
+		auto& tm = ws.w.nation_s.nations.get<nation::statewise_tarrif_mask>(n);
+		resize(ws.w.economy_s.purchasing_arrays, tm, aligned_state_max);
+		auto ptr = get_range(ws.w.economy_s.purchasing_arrays, tm).first;
 		for(int32_t i = 0; i < int32_t(state_max); ++i) {
 			nations::state_tag this_state = nations::state_tag(nations::state_tag::value_base_t(i));
 			if(auto owner = ws.w.nation_s.states.get<state::owner>(this_state); is_valid_index(owner))
-				ptr[i] = nations::tarrif_multiplier(ws, n, ws.w.nation_s.nations[owner]);
+				ptr[i] = nations::tarrif_multiplier(ws, n, owner);
 		}
 	});
 

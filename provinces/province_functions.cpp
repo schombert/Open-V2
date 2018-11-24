@@ -8,32 +8,14 @@
 #include <ppl.h>
 
 namespace provinces {
-	nations::nation const* province_owner(world_state const& ws, province_tag p) {
-		if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(p); ws.w.nation_s.nations.is_valid_index(owner)) {
-			return &ws.w.nation_s.nations[owner];
-		}
-		return nullptr;
-	}
-	nations::nation const* province_controller(world_state const& ws, province_tag p) {
-		if(auto controller = ws.w.province_s.province_state_container.get<province_state::controller>(p); ws.w.nation_s.nations.is_valid_index(controller)) {
-			return &ws.w.nation_s.nations[controller];
-		}
-		return nullptr;
+	nations::country_tag province_owner(world_state const& ws, province_tag p) {
+		return ws.w.province_s.province_state_container.get<province_state::owner>(p);
 	}
 	nations::state_tag province_state(world_state const& ws, province_tag p) {
 		return ws.w.province_s.province_state_container.get<province_state::state_instance>(p);
 	}
-	nations::nation* province_owner(world_state& ws, province_tag p) {
-		if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(p); ws.w.nation_s.nations.is_valid_index(owner)) {
-			return &ws.w.nation_s.nations[owner];
-		}
-		return nullptr;
-	}
-	nations::nation* province_controller(world_state& ws, province_tag p) {
-		if(auto controller = ws.w.province_s.province_state_container.get<province_state::controller>(p); ws.w.nation_s.nations.is_valid_index(controller)) {
-			return &ws.w.nation_s.nations[controller];
-		}
-		return nullptr;
+	nations::country_tag province_controller(world_state const& ws, province_tag p) {
+		return ws.w.province_s.province_state_container.get<province_state::controller>(p);
 	}
 	void reset_state(provinces_state& s) {
 		s.province_state_container.for_each([&s](provinces::province_tag p){
@@ -293,32 +275,32 @@ namespace provinces {
 		}
 	}
 
-	void silent_set_province_controller(world_state& ws, nations::nation& new_controller, province_tag prov) {
+	void silent_set_province_controller(world_state& ws, nations::country_tag new_controller, province_tag prov) {
 		auto& container = ws.w.province_s.province_state_container;
 
 		auto& controller = container.get<province_state::controller>(prov);
-		if(controller != new_controller.id) {
+		if(controller != new_controller) {
 			if(is_valid_index(controller))
 				nations::remove_controlled_province(ws, controller, prov);
-			nations::add_controlled_province(ws, new_controller.id, prov);
-			controller = new_controller.id;
+			nations::add_controlled_province(ws, new_controller, prov);
+			controller = new_controller;
 
 			container.set<province_state::last_controller_change>(prov, ws.w.current_date);
 		}
 	}
 
-	void silent_set_province_owner(world_state& ws, nations::nation& new_owner, province_tag prov) {
+	void silent_set_province_owner(world_state& ws, nations::country_tag new_owner, province_tag prov) {
 		auto& container = ws.w.province_s.province_state_container;
 
 		silent_remove_province_owner(ws, prov);
-		nations::add_owned_province(ws, new_owner.id, prov);
+		nations::add_owned_province(ws, new_owner, prov);
 
-		modifiers::attach_province_modifiers(ws, prov, new_owner.id);
+		modifiers::attach_province_modifiers(ws, prov, new_owner);
 
-		container.set<province_state::owner>(prov, new_owner.id);
+		container.set<province_state::owner>(prov, new_owner);
 		const auto region_id = ws.s.province_m.province_container.get<province::state_id>(prov);
 
-		nations::region_state_pair* found = find(ws.w.nation_s.state_arrays, new_owner.member_states, nations::region_state_pair{ region_id, nations::state_tag() });
+		nations::region_state_pair* found = find(ws.w.nation_s.state_arrays, ws.w.nation_s.nations.get<nation::member_states>(new_owner), nations::region_state_pair{ region_id, nations::state_tag() });
 		if(found) {
 			container.set<province_state::state_instance>(prov, found->state);
 			ws.w.nation_s.states.set<state::state_capital>(found->state, nations::find_state_capital(ws, found->state));
@@ -326,29 +308,30 @@ namespace provinces {
 			auto new_state = nations::make_state(region_id, ws);
 			container.set<province_state::state_instance>(prov, new_state);
 
-			ws.w.nation_s.states.set<state::owner>(new_state, new_owner.id);
+			ws.w.nation_s.states.set<state::owner>(new_state, new_owner);
 			ws.w.nation_s.states.set<state::state_capital>(new_state, nations::find_state_capital(ws, new_state));
-			add_item(ws.w.nation_s.state_arrays, new_owner.member_states, nations::region_state_pair{ region_id, new_state });
+			add_item(ws.w.nation_s.state_arrays, ws.w.nation_s.nations.get<nation::member_states>(new_owner), nations::region_state_pair{ region_id, new_state });
 
 			auto state_index = to_index(new_state);
 			auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(state_index + 1) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
-			ws.w.nation_s.nations.parallel_for_each([&ws, aligned_state_max, state_index, &new_owner](nations::nation& n){
-				if(get_size(ws.w.economy_s.purchasing_arrays, n.statewise_tarrif_mask) < aligned_state_max)
-					resize(ws.w.economy_s.purchasing_arrays, n.statewise_tarrif_mask, aligned_state_max);
-				get(ws.w.economy_s.purchasing_arrays, n.statewise_tarrif_mask, state_index) = nations::tarrif_multiplier(ws, n, new_owner);
+			ws.w.nation_s.nations.parallel_for_each([&ws, aligned_state_max, state_index, new_owner](nations::country_tag n){
+				auto& tfmask = ws.w.nation_s.nations.get<nation::statewise_tarrif_mask>(n);
+				if(get_size(ws.w.economy_s.purchasing_arrays, tfmask) < aligned_state_max)
+					resize(ws.w.economy_s.purchasing_arrays, tfmask, aligned_state_max);
+				get(ws.w.economy_s.purchasing_arrays, tfmask, state_index) = nations::tarrif_multiplier(ws, n, new_owner);
 			});
 		}
 
 		auto cores_range = get_range(ws.w.province_s.core_arrays, container.get<province_state::cores>(prov));
-		container.set<province_state::has_owner_core>(prov, std::find(cores_range.first, cores_range.second, new_owner.tag) != cores_range.second);
+		container.set<province_state::has_owner_core>(prov, std::find(cores_range.first, cores_range.second, ws.w.nation_s.nations.get<nation::tag>(new_owner)) != cores_range.second);
 	}
 
 	void silent_on_conquer_province(world_state& ws, province_tag prov) {
-		auto& owner = ws.w.nation_s.nations[ws.w.province_s.province_state_container.get<province_state::owner>(prov)];
-		auto owner_tag = owner.tag;
+		auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(prov);
+		auto owner_tag = ws.w.nation_s.nations.get<nation::tag>(owner);
 		if(is_valid_index(owner_tag)) {
 			if(prov == ws.w.culture_s.national_tags_state[owner_tag].capital)
-				owner.current_capital = prov;
+				ws.w.nation_s.nations.set<nation::current_capital>(owner, prov);
 		}
 	}
 
@@ -378,22 +361,24 @@ namespace provinces {
 			+ ((container.get<province::is_sea>(b) ? sea_cost_multiplier : 1.0) * state_container.get<province_state::modifier_values>(b)[modifiers::provincial_offsets::movement_cost])
 			) / 2.0;
 
-		auto a_owner_i = state_container.get<province_state::owner>(a);
-		auto b_owner_i = state_container.get<province_state::owner>(b);
-		nations::nation* a_owner = is_valid_index(a_owner_i) ? &ws.w.nation_s.nations[a_owner_i] : nullptr;
-		nations::nation* b_owner = is_valid_index(b_owner_i) ? &ws.w.nation_s.nations[b_owner_i] : nullptr;
-
+		auto a_owner = state_container.get<province_state::owner>(a);
+		auto b_owner = state_container.get<province_state::owner>(b);
+		
+		auto a_sphere_leader = a_owner ? ws.w.nation_s.nations.get<nation::sphere_leader>(a_owner) : nations::country_tag();
+		auto a_overlord = a_owner ? ws.w.nation_s.nations.get<nation::overlord>(a_owner) : nations::country_tag();
+		auto b_sphere_leader = b_owner ? ws.w.nation_s.nations.get<nation::sphere_leader>(b_owner) : nations::country_tag();
+		auto b_overlord = b_owner ? ws.w.nation_s.nations.get<nation::overlord>(b_owner) : nations::country_tag();
 
 		bool no_ff_nation_transition =
 			a_owner == b_owner
-			|| b_owner == nullptr
-			|| a_owner == nullptr
-			|| a_owner->sphere_leader == b_owner
-			|| a_owner->overlord == b_owner
-			|| b_owner->sphere_leader == a_owner
-			|| b_owner->overlord == a_owner
-			|| a_owner->sphere_leader == b_owner->sphere_leader
-			|| a_owner->overlord == b_owner->overlord
+			|| b_owner == nations::country_tag()
+			|| a_owner == nations::country_tag()
+			|| a_sphere_leader == b_owner
+			|| a_overlord == b_owner
+			|| b_sphere_leader == a_owner
+			|| b_overlord == a_owner
+			|| a_sphere_leader == b_sphere_leader
+			|| a_overlord == b_overlord
 			;
 		if(no_ff_nation_transition)
 			return float(avg_movement_cost * acos(container.get<province::centroid>(a).dot(container.get<province::centroid>(b))) * 40'075.0 / 6.2831853071);

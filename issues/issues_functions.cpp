@@ -34,21 +34,21 @@ namespace issues {
 		return float(sum_multiplier) * ws.s.modifiers_m.global_defines.bureaucracy_percentage_increment + ws.s.modifiers_m.global_defines.max_bureaucracy_percentage;
 	}
 
-	void change_issue_option(world_state& ws, issues::option_tag opt, nations::nation& nation_for) {
+	void change_issue_option(world_state& ws, issues::option_tag opt, nations::country_tag nation_for) {
 		auto& this_option = ws.s.issues_m.options[opt];
 		auto current_issue = this_option.parent_issue;
 
-		if(ws.w.nation_s.active_issue_options.get(nation_for.id, current_issue) != opt) {
+		if(ws.w.nation_s.active_issue_options.get(nation_for, current_issue) != opt) {
 
 			if(!is_valid_index(this_option.on_execute_trigger) || 
-				triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(this_option.on_execute_trigger), ws, &nation_for, &nation_for, nullptr, nullptr)) {
+				triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(this_option.on_execute_trigger), ws, nation_for, nation_for, nullptr, nullptr)) {
 
 				if(is_valid_index(this_option.on_execute_effect)) {
-					triggers::execute_effect(ws.s.trigger_m.effect_data.data() + to_index(this_option.on_execute_effect), ws, &nation_for, &nation_for, nullptr, nullptr, get_local_generator());
+					triggers::execute_effect(ws.s.trigger_m.effect_data.data() + to_index(this_option.on_execute_effect), ws, nation_for, nation_for, nullptr, nullptr, get_local_generator());
 				}
 			}
 
-			ws.w.nation_s.active_issue_options.get(nation_for.id, current_issue) = opt;
+			ws.w.nation_s.active_issue_options.get(nation_for, current_issue) = opt;
 			governments::update_current_rules(ws, nation_for);
 		}
 	}

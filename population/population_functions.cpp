@@ -35,9 +35,10 @@ namespace population {
 			ws.w.population_s.pop_demographics.get(p, total_employment_tag) = size;
 	}
 
-	bool is_pop_accepted(world_state const& ws, pop_tag p, nations::nation const& n) {
+	bool is_pop_accepted(world_state const& ws, pop_tag p, nations::country_tag n) {
 		auto p_culture = ws.w.population_s.pops.get<pop::culture>(p);
-		return p_culture == n.primary_culture || contains_item(ws.w.culture_s.culture_arrays, n.accepted_cultures, p_culture);
+		return p_culture == ws.w.nation_s.nations.get<nation::primary_culture>(n)
+			|| contains_item(ws.w.culture_s.culture_arrays, ws.w.nation_s.nations.get<nation::accepted_cultures>(n), p_culture);
 	}
 
 	pop_tag get_unassigned_soldier_in_province(world_state const& ws, provinces::province_tag prov) {
@@ -81,14 +82,12 @@ namespace population {
 		return economy::money_qnty_type(0);
 	}
 
-	nations::nation* get_pop_owner(world_state const& ws, pop_tag p) {
+	nations::country_tag get_pop_owner(world_state const& ws, pop_tag p) {
 		auto loc = ws.w.population_s.pops.get<pop::location>(p);
 		if(is_valid_index(loc)) {
-			auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(loc);
-			if(is_valid_index(owner))
-				return &ws.w.nation_s.nations[owner];
+			return ws.w.province_s.province_state_container.get<province_state::owner>(loc);
 		}
-		return nullptr;
+		return nations::country_tag();
 	}
 
 	bool is_dominant_issue(world_state const& ws, pop_tag id, issues::option_tag opt) {
@@ -162,7 +161,7 @@ namespace population {
 		change_pop_type(ws, this_pop, is_mine ? ws.s.economy_m.rgo_mine.workers[0].type : ws.s.economy_m.rgo_farm.workers[0].type);
 	}
 
-	void trigger_rising(world_state&, rebel_faction&, nations::nation&) {
+	void trigger_rising(world_state&, rebel_faction&, nations::country_tag) {
 		// todo
 	}
 
@@ -179,7 +178,7 @@ namespace population {
 				if(is_valid_index(pop_incl)) {
 					if(ws.s.ideologies_m.ideology_container[this_tag].uncivilized) {
 						ideology_demo[i] = 1000.0f * modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr, nullptr);
-					} else if(auto owner = get_pop_owner(ws, this_pop); bool(owner) && ((owner->flags & nations::nation::is_civilized) != 0)) {
+					} else if(auto owner = get_pop_owner(ws, this_pop); bool(owner) && ws.w.nation_s.nations.get<nation::is_civilized>(owner)) {
 						ideology_demo[i] = 1000.0f * modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr, nullptr);
 					} else {
 						ideology_demo[i] = 0.0f;

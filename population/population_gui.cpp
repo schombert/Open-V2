@@ -464,7 +464,7 @@ namespace population {
 	std::vector<nations::country_tag, concurrent_allocator<nations::country_tag>> pop_tree_view::base_list(world_state& ws) {
 		std::vector<nations::country_tag, concurrent_allocator<nations::country_tag>> result;
 		if(ws.w.local_player_nation)
-			result.push_back(ws.w.local_player_nation->id);
+			result.push_back(ws.w.local_player_nation);
 		return result;
 	}
 	population_window::population_window() : win(std::make_unique<population_window_t>()) {}

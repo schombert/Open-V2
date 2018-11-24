@@ -825,9 +825,9 @@ namespace provinces {
 		if(result.life_rating)
 			container.set<province_state::base_life_rating>(ps, *result.life_rating);
 		if(is_valid_index(result.owner))
-			provinces::silent_set_province_owner(ws, *nations::make_nation_for_tag(ws, result.owner), ps);
+			provinces::silent_set_province_owner(ws, nations::make_nation_for_tag(ws, result.owner), ps);
 		if(is_valid_index(result.controller))
-			provinces::silent_set_province_controller(ws, *nations::make_nation_for_tag(ws, result.controller), ps);
+			provinces::silent_set_province_controller(ws, nations::make_nation_for_tag(ws, result.controller), ps);
 		if(auto si = container.get<province_state::state_instance>(ps); result.colony && is_valid_index(si)) {
 
 			if(*result.colony == 2)

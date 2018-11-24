@@ -11,7 +11,7 @@ namespace governments {
 	}
 	void government_type_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(auto gov = player->current_government; is_valid_index(gov)) {
+			if(auto gov = ws.w.nation_s.nations.get<nation::current_government>(player); is_valid_index(gov)) {
 				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.governments_m.governments_container[gov].name, fmt, ws.s.gui_m, ws.w.gui_m,
 					box, lm);
 				lm.finish_current_line();
@@ -20,14 +20,14 @@ namespace governments {
 	}
 	void national_value_icon::update(ui::dynamic_icon<national_value_icon>& self, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(auto nv = player->national_value; is_valid_index(nv)) {
+			if(auto nv = ws.w.nation_s.nations.get<nation::national_value>(player); is_valid_index(nv)) {
 				self.set_frame(ws.w.gui_m, ws.s.modifiers_m.national_modifiers[nv].icon);
 			}
 		}
 	}
 	void national_value_icon::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(auto nv = player->national_value; is_valid_index(nv)) {
+			if(auto nv = ws.w.nation_s.nations.get<nation::national_value>(player); is_valid_index(nv)) {
 				ui::unlimited_line_manager lm;
 				modifiers::make_national_modifier_text(ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format, nv);
 			}
@@ -35,11 +35,11 @@ namespace governments {
 	}
 	void government_description_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(auto gov = player->current_government; is_valid_index(gov)) {
+			if(auto gov = ws.w.nation_s.nations.get<nation::current_government>(player); is_valid_index(gov)) {
 				lm.set_border_y(0);
 				ui::xy_pair cursor{ 0,0 };
 				if(ws.s.governments_m.governments_container[gov].election) {
-					auto next_election = governments::next_election_start_date(ws, *player);
+					auto next_election = governments::next_election_start_date(ws, player);
 
 					cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::next_election], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 					cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
@@ -80,7 +80,7 @@ namespace governments {
 	void plurality_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			char16_t local_buf[16];
-			put_value_in_buffer(local_buf, display_type::percent, player->plurality);
+			put_value_in_buffer(local_buf, display_type::percent, ws.w.nation_s.nations.get<nation::plurality>(player));
 
 			ui::text_chunk_to_instances(
 				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
@@ -93,7 +93,7 @@ namespace governments {
 	void revanchism_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			char16_t local_buf[16];
-			put_value_in_buffer(local_buf, display_type::percent, player->revanchism);
+			put_value_in_buffer(local_buf, display_type::percent, ws.w.nation_s.nations.get<nation::revanchism>(player));
 
 			ui::text_chunk_to_instances(
 				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
@@ -173,8 +173,8 @@ namespace governments {
 
 	void hold_election_button::update(ui::simple_button<hold_election_button>& self, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(auto gov = player->current_government; is_valid_index(gov)) {
-				if((player->flags & nations::nation::is_holding_election) != 0 || !(ws.s.governments_m.governments_container[gov].election)) {
+			if(auto gov = ws.w.nation_s.nations.get<nation::current_government>(player); is_valid_index(gov)) {
+				if(ws.w.nation_s.nations.get<nation::is_holding_election>(player) || !(ws.s.governments_m.governments_container[gov].election)) {
 					is_enabled = false;
 					self.set_enabled(false);
 				} else {
@@ -186,11 +186,11 @@ namespace governments {
 	}
 	void hold_election_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(auto gov = player->current_government; is_valid_index(gov)) {
-				if((player->flags & nations::nation::is_holding_election) != 0) {
+			if(auto gov = ws.w.nation_s.nations.get<nation::current_government>(player); is_valid_index(gov)) {
+				if(ws.w.nation_s.nations.get<nation::is_holding_election>(player)) {
 
 					char16_t formatted_date[64];
-					u16_format_date(formatted_date, election_end_date(ws, *player));
+					u16_format_date(formatted_date, election_end_date(ws, player));
 					text_data::replacement date_rep(text_data::value_type::date, vector_backed_string<char16_t>(formatted_date), [](tagged_object<ui::gui_object, ui::gui_object_tag>) {});
 					ui::unlimited_line_manager lm;
 					ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::already_holding_election], ui::tooltip_text_format,
@@ -210,7 +210,7 @@ namespace governments {
 	}
 	void upper_house_pie_chart::update(ui::piechart<upper_house_pie_chart>& pie, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(auto id = player->id; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(auto id = player; ws.w.nation_s.nations.is_valid_index(id)) {
 				auto upper_house = ws.w.nation_s.upper_house.get_row(id);
 				for(uint32_t i = 0; i < ws.s.ideologies_m.ideologies_count; ++i) {
 					ideologies::ideology_tag this_tag(static_cast<ideologies::ideology_tag::value_base_t>(i));
@@ -227,7 +227,7 @@ namespace governments {
 	void voters_ideologies_pie_chart::update(ui::piechart<voters_ideologies_pie_chart>& pie, world_state & ws) {}
 	void people_ideologies_pie_chart::update(ui::piechart<people_ideologies_pie_chart>& pie, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(auto id = player->id; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(auto id = player; ws.w.nation_s.nations.is_valid_index(id)) {
 				auto people_i = ws.w.nation_s.nation_demographics.get_row(id) + to_index(population::to_demo_tag(ws, ideologies::ideology_tag(0)));
 				float total_pop = float(ws.w.nation_s.nation_demographics.get(id, population::total_population_tag));
 				if(total_pop != 0.0f) {
@@ -284,7 +284,7 @@ namespace governments {
 	void supression_points_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			char16_t local_buf[16];
-			put_value_in_buffer(local_buf, display_type::integer, player->suppression_points);
+			put_value_in_buffer(local_buf, display_type::integer, ws.w.nation_s.nations.get<nation::suppression_points>(player));
 
 			ui::text_chunk_to_instances(
 				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),

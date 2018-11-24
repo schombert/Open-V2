@@ -23,16 +23,16 @@ void world_state_non_ai_update(world_state & ws) {
 	provinces::update_province_demographics(ws);
 	nations::update_state_nation_demographics(ws);
 
-	ws.w.nation_s.nations.parallel_for_each([&ws](nations::nation& n) {
+	ws.w.nation_s.nations.parallel_for_each([&ws](nations::country_tag n) {
 		nations::update_movement_support(ws, n);
 
-		n.military_score = int16_t(nations::calculate_military_score(ws, n));
-		n.industrial_score = int16_t(nations::calculate_industrial_score(ws, n));
+		ws.w.nation_s.nations.set<nation::military_score>(n, int16_t(nations::calculate_military_score(ws, n)));
+		ws.w.nation_s.nations.set<nation::industrial_score>(n, int16_t(nations::calculate_industrial_score(ws, n)));
 
-		n.national_administrative_efficiency = nations::calculate_national_administrative_efficiency(ws, n);
+		ws.w.nation_s.nations.set<nation::national_administrative_efficiency>(n, nations::calculate_national_administrative_efficiency(ws, n));
 
-		auto admin_req = issues::administrative_requirement(ws, n.id);
-		auto member_states = get_range(ws.w.nation_s.state_arrays, n.member_states);
+		auto admin_req = issues::administrative_requirement(ws, n);
+		auto member_states = get_range(ws.w.nation_s.state_arrays, ws.w.nation_s.nations.get<nation::member_states>(n));
 		for(auto s = member_states.first; s != member_states.second; ++s)
 			ws.w.nation_s.states.set<state::administrative_efficiency>(s->state, nations::calculate_state_administrative_efficiency(ws, s->state, admin_req));
 	});
@@ -42,7 +42,7 @@ void world_state_non_ai_update(world_state & ws) {
 	ws.w.province_s.province_state_container.parallel_for_each([&ws](provinces::province_tag ps) {
 		modifiers::reset_provincial_modifier(ws, ps);
 	});
-	ws.w.nation_s.nations.parallel_for_each([&ws](nations::nation& n) {
+	ws.w.nation_s.nations.parallel_for_each([&ws](nations::country_tag n) {
 		modifiers::reset_national_modifier(ws, n);
 	});
 }

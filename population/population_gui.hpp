@@ -784,7 +784,7 @@ namespace population {
 	void generic_for_each_pop(world_state& ws, tag_type tag, FUNC&& f) {
 		if constexpr(std::is_same_v<tag_type, nations::country_tag>) {
 			if(ws.w.nation_s.nations.is_valid_index(tag))
-				nations::for_each_pop(ws, ws.w.nation_s.nations[tag], f);
+				nations::for_each_pop(ws, tag, f);
 		} else if constexpr(std::is_same_v<tag_type, nations::state_tag>) {
 			if(ws.w.nation_s.states.is_valid_index(tag))
 				nations::for_each_pop(ws, tag, f);
@@ -1634,7 +1634,7 @@ namespace population {
 	template<typename window_type>
 	void pop_country_name::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		if(is_valid_index(win.tag)) {
-			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.w.nation_s.nations[win.tag].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.w.nation_s.nations.get<nation::name>(win.tag), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 			lm.finish_current_line();
 		}
 	}
@@ -1677,7 +1677,7 @@ namespace population {
 	template<typename W>
 	void pop_country_growth::windowed_update(ui::dynamic_icon<pop_country_growth>& ico, W& w, world_state& ws) {
 		if(is_valid_index(w.tag)) {
-			auto growth = ws.w.nation_s.nation_demographics.get(w.tag, total_population_tag) - ws.w.nation_s.nations[w.tag].last_population;
+			auto growth = ws.w.nation_s.nation_demographics.get(w.tag, total_population_tag) - ws.w.nation_s.nations.get<nation::last_population>(w.tag);
 			if(growth > 0)
 				ico.set_frame(ws.w.gui_m, 0ui32);
 			else if(growth == 0)
@@ -1793,7 +1793,7 @@ namespace population {
 	template<size_t level>
 	std::vector<nations::state_tag, concurrent_allocator<nations::state_tag>> pop_tree_view::sub_list(nations::country_tag t, world_state& ws) {
 		std::vector<nations::state_tag, concurrent_allocator<nations::state_tag>> result;
-		nations::for_each_state(ws, ws.w.nation_s.nations[t], [&result, &ws](nations::state_tag id) {
+		nations::for_each_state(ws, t, [&result, &ws](nations::state_tag id) {
 			if(ws.w.nation_s.states.is_valid_index(id))
 				result.push_back(id);
 		});

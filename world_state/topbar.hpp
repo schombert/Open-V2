@@ -512,10 +512,10 @@ namespace current_state {
 	template<typename lb_type>
 	void war_against_lb::populate_list(lb_type & lb, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			auto against_range = get_range(ws.w.nation_s.nations_arrays, player->opponents_in_war);
+			auto against_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::opponents_in_war>(player));
 			for(auto against : against_range) {
-				if(is_valid_index(against) && is_valid_index(ws.w.nation_s.nations[against].tag)) {
-					lb.add_item(ws, ws.w.nation_s.nations[against].tag);
+				if(is_valid_index(against) && is_valid_index(ws.w.nation_s.nations.get<nation::tag>(against))) {
+					lb.add_item(ws, ws.w.nation_s.nations.get<nation::tag>(against));
 				}
 			}
 		}

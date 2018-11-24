@@ -102,6 +102,12 @@ template<typename T>
 class serialization::tagged_serializer<nation::has_gas_attack, T> : public serialization::discard_serializer<T> {};
 template<typename T>
 class serialization::tagged_serializer<nation::has_gas_defence, T> : public serialization::discard_serializer<T> {};
+template<typename T>
+class serialization::tagged_serializer<nation::name, T> : public serialization::discard_serializer<T> {};
+template<typename T>
+class serialization::tagged_serializer<nation::adjective, T> : public serialization::discard_serializer<T> {};
+template<typename T>
+class serialization::tagged_serializer<nation::flag, T> : public serialization::discard_serializer<T> {};
 
 template<typename T>
 class serialization::tagged_serializer<nation::owned_provinces, T> : public serialization::discard_serializer<T> {};

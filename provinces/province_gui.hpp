@@ -908,7 +908,7 @@ namespace provinces {
 		if(is_valid_index(selected_prov) && ws.w.province_s.province_state_container.get<province_state::siege_progress>(selected_prov) != 0.0f) {
 			auto sieging_nation = get_province_seiger(ws, selected_prov);
 			if(is_valid_index(sieging_nation)) {
-				self.set_displayed_flag(ws, ws.w.nation_s.nations[sieging_nation].tag);
+				self.set_displayed_flag(ws, sieging_nation);
 				ui::make_visible_immediate(*self.associated_object);
 			}
 			return;
@@ -954,8 +954,8 @@ namespace provinces {
 			auto sid = ws.w.province_s.province_state_container.get<province_state::state_instance>(selected_prov);
 
 			if(ws.w.nation_s.states.is_valid_index(sid)) {
-				if(ws.w.local_player_nation == nullptr
-					|| ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov) != ws.w.local_player_nation->id) {
+				if(!is_valid_index(ws.w.local_player_nation)
+					|| ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov) != ws.w.local_player_nation) {
 
 					ico.set_enabled(false);
 					if(ws.w.nation_s.states.get<state::is_protectorate>(sid)) {
@@ -968,7 +968,7 @@ namespace provinces {
 						ico.set_visibility(ws.w.gui_m, false);
 					}
 				} else {
-					int32_t free_points = nations::free_colonial_points(ws, *ws.w.local_player_nation);
+					int32_t free_points = nations::free_colonial_points(ws, ws.w.local_player_nation);
 					if(ws.w.nation_s.states.get<state::is_protectorate>(sid)) {
 						ico.set_frame(ws.w.gui_m, 0ui32);
 						ico.set_enabled(nations::colonial_points_to_make_colony(ws, sid) <= free_points);
@@ -1041,7 +1041,7 @@ namespace provinces {
 	template<typename window_type>
 	void province_statistics_base::windowed_update(window_type&, world_state& ws) {
 		if(auto selected = ws.w.province_w.selected_province; is_valid_index(selected)) {
-			if(ws.w.local_player_nation != nullptr && ws.w.province_s.province_state_container.get<province_state::owner>(selected) == ws.w.local_player_nation->id) {
+			if(is_valid_index(ws.w.local_player_nation) && ws.w.province_s.province_state_container.get<province_state::owner>(selected) == ws.w.local_player_nation) {
 				ui::make_visible_immediate(*associated_object);
 				return;
 			}
@@ -1052,7 +1052,7 @@ namespace provinces {
 	template<typename window_type>
 	void province_buildings_base::windowed_update(window_type& w, world_state& ws) {
 		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
-			if(ws.w.local_player_nation != nullptr && ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov) == ws.w.local_player_nation->id) {
+			if(is_valid_index(ws.w.local_player_nation) && ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov) == ws.w.local_player_nation) {
 				ui::make_visible_immediate(*associated_object);
 
 				if(ws.w.province_s.province_state_container.get<province_state::fort_upgrade_progress>(selected_prov) == 0) {
@@ -1102,7 +1102,7 @@ namespace provinces {
 		auto selected = ws.w.province_w.selected_province;
 		if(is_valid_index(selected)) {
 			auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected);
-			if(is_valid_index(owner) && &(ws.w.nation_s.nations[owner]) != ws.w.local_player_nation) {
+			if(is_valid_index(owner) && owner != ws.w.local_player_nation) {
 				ui::make_visible_immediate(*associated_object);
 				return;
 			}
@@ -1132,7 +1132,7 @@ namespace provinces {
 
 	template<typename lb_type>
 	void stage_lb::populate_list(lb_type& lb, world_state& ws) {
-		if(ws.w.local_player_nation == nullptr || ws.w.local_player_nation->id != colonizer) {
+		if(ws.w.local_player_nation == nations::country_tag() || ws.w.local_player_nation != colonizer) {
 			for(int32_t i = 0; i < stage && i < 5; ++i) {
 				lb.add_item(ws, i, -1);
 			}
@@ -1145,7 +1145,7 @@ namespace provinces {
 			if(is_valid_index(selected)) {
 				auto state = ws.w.province_s.province_state_container.get<province_state::state_instance>(selected);
 				if(is_valid_index(state))
-					lb.add_item(ws, i, nations::points_for_next_colonial_stage(ws, *ws.w.local_player_nation, state));
+					lb.add_item(ws, i, nations::points_for_next_colonial_stage(ws, ws.w.local_player_nation, state));
 			}
 		}
 	}
@@ -1165,7 +1165,7 @@ namespace provinces {
 			ico.set_visibility(ws.w.gui_m, false);
 		} else {
 			ico.set_frame(ws.w.gui_m, uint32_t(w.stage));
-			if(req_pts < nations::free_colonial_points(ws, *ws.w.local_player_nation)) {
+			if(req_pts < nations::free_colonial_points(ws, ws.w.local_player_nation)) {
 				ico.set_enabled(false);
 			} else {
 				ico.set_enabled(true);
@@ -1203,15 +1203,15 @@ namespace provinces {
 	void sphere_lb::populate_list(lb_type& lb, world_state& ws) {
 		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
 			if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov); is_valid_index(owner)) {
-				auto leader = ws.w.nation_s.nations[owner].sphere_leader;
-				if(leader == nullptr) {
-					auto sphere_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[owner].sphere_members);
+				auto leader = ws.w.nation_s.nations.get<nation::sphere_leader>(owner);
+				if(!is_valid_index(leader)) {
+					auto sphere_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::sphere_members>(owner));
 					for(auto i : sphere_range) {
 						if(is_valid_index(i))
-							lb.add_item(ws, ws.w.nation_s.nations[i].tag);
+							lb.add_item(ws, ws.w.nation_s.nations.get<nation::tag>(i));
 					}
 				} else
-					lb.add_item(ws, leader->tag);
+					lb.add_item(ws, ws.w.nation_s.nations.get<nation::tag>(leader));
 			}
 		}
 	}
@@ -1220,15 +1220,15 @@ namespace provinces {
 	void puppets_lb::populate_list(lb_type& lb, world_state& ws) {
 		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
 			if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov); is_valid_index(owner)) {
-				auto leader = ws.w.nation_s.nations[owner].overlord;
-				if(leader == nullptr) {
-					auto vassal_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[owner].vassals);
+				auto leader = ws.w.nation_s.nations.get<nation::overlord>(owner);
+				if(!is_valid_index(leader)) {
+					auto vassal_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::vassals>(owner));
 					for(auto i : vassal_range) {
 						if(is_valid_index(i))
-							lb.add_item(ws, ws.w.nation_s.nations[i].tag);
+							lb.add_item(ws, ws.w.nation_s.nations.get<nation::tag>(i));
 					}
 				} else
-					lb.add_item(ws, leader->tag);
+					lb.add_item(ws, ws.w.nation_s.nations.get<nation::tag>(leader));
 			}
 		}
 	}
@@ -1237,10 +1237,10 @@ namespace provinces {
 	void allies_lb::populate_list(lb_type& lb, world_state& ws) {
 		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
 			if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov); is_valid_index(owner)) {
-				auto allies_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[owner].allies);
+				auto allies_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(owner));
 				for(auto i : allies_range) {
 					if(is_valid_index(i))
-						lb.add_item(ws, ws.w.nation_s.nations[i].tag);
+						lb.add_item(ws, ws.w.nation_s.nations.get<nation::tag>(i));
 				}
 			}
 		}
@@ -1250,10 +1250,10 @@ namespace provinces {
 	void war_lb::populate_list(lb_type& lb, world_state& ws) {
 		if(auto selected_prov = ws.w.province_w.selected_province; is_valid_index(selected_prov)) {
 			if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(selected_prov); is_valid_index(owner)) {
-				auto opposing_countries = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations[owner].opponents_in_war);
+				auto opposing_countries = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::opponents_in_war>(owner));
 
 				for(auto n : opposing_countries)
-					lb.add_item(ws, ws.w.nation_s.nations[n].tag);
+					lb.add_item(ws, ws.w.nation_s.nations.get<nation::tag>(n));
 			}
 		}
 	}

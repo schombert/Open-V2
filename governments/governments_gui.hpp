@@ -787,7 +787,7 @@ namespace governments {
 	template<typename W>
 	void civilized_reforms_pane_base::windowed_update(W & w, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if((player->flags & nations::nation::is_civilized) == 0) {
+			if(ws.w.nation_s.nations.get<nation::is_civilized>(player) == false) {
 				ui::hide(*associated_object);
 			}
 		}
@@ -805,7 +805,7 @@ namespace governments {
 	template<typename W>
 	void uncivilized_reforms_pane_base::windowed_update(W & w, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if((player->flags & nations::nation::is_civilized) != 0) {
+			if(ws.w.nation_s.nations.get<nation::is_civilized>(player)) {
 				ui::hide(*associated_object);
 			}
 		}
@@ -814,12 +814,12 @@ namespace governments {
 	template <typename lb_type>
 	void modifier_lb::populate_list(lb_type& lb, world_state& ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			auto static_mod_range = get_range(ws.w.nation_s.static_modifier_arrays, player->static_modifiers);
+			auto static_mod_range = get_range(ws.w.nation_s.static_modifier_arrays, ws.w.nation_s.nations.get<nation::static_modifiers>(player));
 			for(auto s = static_mod_range.first; s != static_mod_range.second; ++s) {
 				if(auto m = *s; is_valid_index(m))
 					lb.add_item(ws, ws.s.modifiers_m.national_modifiers[m].icon, *s, date_tag());
 			}
-			auto timed_mod_range = get_range(ws.w.nation_s.timed_modifier_arrays, player->timed_modifiers);
+			auto timed_mod_range = get_range(ws.w.nation_s.timed_modifier_arrays, ws.w.nation_s.nations.get<nation::timed_modifiers>(player));
 			for(auto s = timed_mod_range.first; s != timed_mod_range.second; ++s) {
 				if(auto m = s->mod; is_valid_index(m))
 					lb.add_item(ws, ws.s.modifiers_m.national_modifiers[m].icon, m, s->expiration);
@@ -855,7 +855,7 @@ namespace governments {
 		boost::container::small_vector<std::tuple<graphics::color_rgb, text_data::text_tag, float>, 32> data;
 
 		if(auto player = ws.w.local_player_nation; player) {
-			if(auto id = player->id; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(auto id = player; ws.w.nation_s.nations.is_valid_index(id)) {
 				auto upper_house = ws.w.nation_s.upper_house.get_row(id);
 				for(uint32_t i = 0; i < ws.s.ideologies_m.ideologies_count; ++i) {
 					ideologies::ideology_tag this_tag(static_cast<ideologies::ideology_tag::value_base_t>(i));
@@ -877,7 +877,7 @@ namespace governments {
 		boost::container::small_vector<std::tuple<text_data::text_tag, float, float>, 32, concurrent_allocator<std::tuple<text_data::text_tag, float, float>>> data;
 
 		if(auto player = ws.w.local_player_nation; player) {
-			if(auto id = player->id; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(auto id = player; ws.w.nation_s.nations.is_valid_index(id)) {
 				auto iss = ws.w.nation_s.nation_demographics.get_row(id) + to_index(population::to_demo_tag(ws, issues::option_tag(0)));
 				float total_pop = float(ws.w.nation_s.nation_demographics.get(id, population::total_population_tag));
 
@@ -931,7 +931,7 @@ namespace governments {
 	template<typename window_type>
 	void unciv_overlay::windowed_update(ui::simple_button<unciv_overlay>& self, window_type &, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if((player->flags & nations::nation::is_civilized) != 0)
+			if(ws.w.nation_s.nations.get<nation::is_civilized>(player))
 				ui::hide(*self.associated_object);
 			else
 				ui::make_visible_immediate(*self.associated_object);
@@ -1130,7 +1130,7 @@ namespace governments {
 	template<typename lb_type>
 	void movements_listbox::populate_list(lb_type & lb, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			auto movement_range = get_range(ws.w.population_s.pop_movement_arrays, player->active_movements);
+			auto movement_range = get_range(ws.w.population_s.pop_movement_arrays, ws.w.nation_s.nations.get<nation::active_movements>(player));
 			lb.update_list(movement_range.first, movement_range.second);
 		}
 	}
@@ -1138,7 +1138,7 @@ namespace governments {
 	template<typename lb_type>
 	void rebels_listbox::populate_list(lb_type & lb, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			auto rebel_range = get_range(ws.w.population_s.rebel_faction_arrays, player->active_rebel_factions);
+			auto rebel_range = get_range(ws.w.population_s.rebel_faction_arrays, ws.w.nation_s.nations.get<nation::active_rebel_factions>(player));
 			lb.update_list(rebel_range.first, rebel_range.second);
 		}
 	}
@@ -1155,7 +1155,7 @@ namespace governments {
 	void unselected_option_button::windowed_update(ui::simple_button<unselected_option_button>& self, window_type & win, world_state & ws) {
 		tag = win.tag;
 		if(auto player = ws.w.local_player_nation; bool(player) && is_valid_index(tag)) {
-			if(auto id = player->id; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(auto id = player; ws.w.nation_s.nations.is_valid_index(id)) {
 				auto& iss_def = ws.s.issues_m.issues_container[ws.s.issues_m.options[tag].parent_issue];
 				auto current_option = ws.w.nation_s.active_issue_options.get(id, iss_def.id);
 
@@ -1188,7 +1188,7 @@ namespace governments {
 		tag = win.tag;
 
 		if(auto player = ws.w.local_player_nation; bool(player) && is_valid_index(win.tag)) {
-			if(auto id = player->id; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(auto id = player; ws.w.nation_s.nations.is_valid_index(id)) {
 				auto& iss_def = ws.s.issues_m.issues_container[ws.s.issues_m.options[win.tag].parent_issue];
 				auto current_option = ws.w.nation_s.active_issue_options.get(id, iss_def.id);
 
@@ -1280,10 +1280,11 @@ namespace governments {
 		if(auto player = ws.w.local_player_nation; player) {
 			boost::container::small_vector<cultures::national_tag, 32, concurrent_allocator<cultures::national_tag>> data;
 
-			auto owned_range = get_range(ws.w.province_s.province_arrays, player->owned_provinces);
+			auto owned_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(player));
+			auto ptag = ws.w.nation_s.nations.get<nation::tag>(player);
 			for(auto p : owned_range) {
 				if(is_valid_index(p)) {
-					if(!contains_item(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container.get<province_state::cores>(p), player->tag)) {
+					if(!contains_item(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container.get<province_state::cores>(p), ptag)) {
 						auto core_range = get_range(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container.get<province_state::cores>(p));
 						for(auto c : core_range) {
 							if(is_valid_index(c) && (!ws.w.culture_s.national_tags_state[c].is_not_releasable) && std::find(data.begin(), data.end(), c) == data.end()) {

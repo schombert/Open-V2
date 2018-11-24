@@ -235,10 +235,10 @@ namespace military {
 
 		war_goal_reader(world_state& w, date_tag) : ws(w) {}
 		void set_actor(token_and_type const& t) {
-			under_construction.from_country = nations::make_nation_for_tag(ws, tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end)))->id;
+			under_construction.from_country = nations::make_nation_for_tag(ws, tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end)));
 		}
 		void set_receiver(token_and_type const& t) {
-			under_construction.target_country = nations::make_nation_for_tag(ws, tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end)))->id;
+			under_construction.target_country = nations::make_nation_for_tag(ws, tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end)));
 		}
 		void set_state(uint16_t v) {
 			auto state = ws.w.province_s.province_state_container.get<province_state::state_instance>(provinces::province_tag(v));
@@ -262,16 +262,16 @@ namespace military {
 		war_date_block(world_state& w, date_tag) : ws(w) {}
 
 		void add_attacker(token_and_type const& t) {
-			attacker.push_back(nations::make_nation_for_tag(ws, tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end)))->id);
+			attacker.push_back(nations::make_nation_for_tag(ws, tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end))));
 		}
 		void add_defender(token_and_type const& t) {
-			defender.push_back(nations::make_nation_for_tag(ws, tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end)))->id);
+			defender.push_back(nations::make_nation_for_tag(ws, tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end))));
 		}
 		void remove_attacker(token_and_type const& t) {
-			rem_attacker.push_back(nations::make_nation_for_tag(ws, tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end)))->id);
+			rem_attacker.push_back(nations::make_nation_for_tag(ws, tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end))));
 		}
 		void remove_defender(token_and_type const& t) {
-			rem_defender.push_back(nations::make_nation_for_tag(ws, tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end)))->id);
+			rem_defender.push_back(nations::make_nation_for_tag(ws, tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(t.start, t.end))));
 		}
 		void add_war_goal(war_goal_reader const& wg) {
 			war_goals.push_back(wg.under_construction);
@@ -336,14 +336,14 @@ namespace military {
 
 	struct parsed_leader {
 		world_state& ws;
-		nations::nation& this_nation;
+		nations::country_tag this_nation;
 
 		bool is_general = true;
 		date_tag creation_date;
 		leader_trait_tag personality;
 		leader_trait_tag background;
 
-		parsed_leader(world_state& w, nations::nation& n) : ws(w), this_nation(n) {}
+		parsed_leader(world_state& w, nations::country_tag n) : ws(w), this_nation(n) {}
 
 		void set_date(token_and_type const& t) {
 			creation_date = parse_date(t.start, t.end);
@@ -373,9 +373,9 @@ namespace military {
 
 	struct parsed_ship {
 		world_state& ws;
-		nations::nation& this_nation;
+		nations::country_tag this_nation;
 
-		parsed_ship(world_state& w, nations::nation& n) : ws(w), this_nation(n) {}
+		parsed_ship(world_state& w, nations::country_tag n) : ws(w), this_nation(n) {}
 
 		unit_type_tag type;
 		void discard(int) {}
@@ -386,17 +386,17 @@ namespace military {
 
 	struct parsed_army_or_navy {
 		world_state& ws;
-		nations::nation& this_nation;
+		nations::country_tag this_nation;
 
 		leader_tag set_leader;
 		provinces::province_tag location;
 		std::vector<provinces::province_tag> regiment_sources;
 		std::vector<unit_type_tag> ship_types;
 
-		parsed_army_or_navy(world_state& w, nations::nation& n) : ws(w), this_nation(n) {}
+		parsed_army_or_navy(world_state& w, nations::country_tag n) : ws(w), this_nation(n) {}
 
 		void add_leader(parsed_leader const& l) {
-			auto& new_leader = make_empty_leader(ws, this_nation.primary_culture, l.is_general);
+			auto& new_leader = make_empty_leader(ws, ws.w.nation_s.nations.get<nation::primary_culture>(this_nation), l.is_general);
 			new_leader.background = l.background;
 			new_leader.personality = l.personality;
 			new_leader.creation_date = l.creation_date;
@@ -404,9 +404,9 @@ namespace military {
 			calculate_leader_traits(ws, new_leader);
 
 			if(l.is_general)
-				add_item(ws.w.military_s.leader_arrays, this_nation.generals, new_leader.id);
+				add_item(ws.w.military_s.leader_arrays, ws.w.nation_s.nations.get<nation::generals>(this_nation), new_leader.id);
 			else
-				add_item(ws.w.military_s.leader_arrays, this_nation.admirals, new_leader.id);
+				add_item(ws.w.military_s.leader_arrays, ws.w.nation_s.nations.get<nation::admirals>(this_nation), new_leader.id);
 
 			set_leader = new_leader.id;
 		}
@@ -424,20 +424,20 @@ namespace military {
 
 	struct oob_file {
 		world_state& ws;
-		nations::nation& this_nation;
+		nations::country_tag this_nation;
 
-		oob_file(world_state& w, nations::nation& n) : ws(w), this_nation(n) {}
+		oob_file(world_state& w, nations::country_tag n) : ws(w), this_nation(n) {}
 
 		void add_relation(std::pair<token_and_type, parsed_relation> const& p) {
 			auto other_tag = tag_from_text(ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(p.first.start, p.first.end));
 			auto other_nation = nations::make_nation_for_tag(ws, other_tag);
 			if(p.second.value != 0)
-				nations::set_relationship(ws, this_nation, *other_nation, p.second.value);
+				nations::set_relationship(ws, this_nation, other_nation, p.second.value);
 			if(p.second.influence_value != 0 || p.second.level != 2)
-				nations::set_influence(ws, this_nation, other_nation->id, p.second.influence_value, p.second.level);
+				nations::set_influence(ws, this_nation, other_nation, p.second.influence_value, p.second.level);
 		}
 		void add_leader(parsed_leader const& l) {
-			auto& new_leader = make_empty_leader(ws, this_nation.primary_culture, l.is_general);
+			auto& new_leader = make_empty_leader(ws, ws.w.nation_s.nations.get<nation::primary_culture>(this_nation), l.is_general);
 			new_leader.background = l.background;
 			new_leader.personality = l.personality;
 			new_leader.creation_date = l.creation_date;
@@ -445,13 +445,13 @@ namespace military {
 			calculate_leader_traits(ws, new_leader);
 
 			if(l.is_general)
-				add_item(ws.w.military_s.leader_arrays, this_nation.generals, new_leader.id);
+				add_item(ws.w.military_s.leader_arrays, ws.w.nation_s.nations.get<nation::generals>(this_nation), new_leader.id);
 			else
-				add_item(ws.w.military_s.leader_arrays, this_nation.admirals, new_leader.id);
+				add_item(ws.w.military_s.leader_arrays, ws.w.nation_s.nations.get<nation::admirals>(this_nation), new_leader.id);
 		}
 		void add_army(parsed_army_or_navy&& a) {
 			if(!is_valid_index(a.location))
-				a.location = this_nation.current_capital;
+				a.location = ws.w.nation_s.nations.get<nation::current_capital>(this_nation);
 
 			auto& new_army = make_army(ws, this_nation, a.location);
 			if(is_valid_index(a.set_leader)) {
@@ -1365,11 +1365,11 @@ namespace military {
 					new_war.primary_defender = result.defender[0];
 					for(auto i : result.attacker) {
 						add_item(ws.w.nation_s.nations_arrays, new_war.attackers, i);
-						add_item(ws.w.military_s.war_arrays, ws.w.nation_s.nations[i].wars_involved_in, war_identifier{ new_war.id, true });
+						add_item(ws.w.military_s.war_arrays, ws.w.nation_s.nations.get<nation::wars_involved_in>(i), war_identifier{ new_war.id, true });
 					}
 					for(auto i : result.defender) {
 						add_item(ws.w.nation_s.nations_arrays, new_war.defenders, i);
-						add_item(ws.w.military_s.war_arrays, ws.w.nation_s.nations[i].wars_involved_in, war_identifier{ new_war.id, false });
+						add_item(ws.w.military_s.war_arrays, ws.w.nation_s.nations.get<nation::wars_involved_in>(i), war_identifier{ new_war.id, false });
 					}
 					for(auto& wg : result.war_goals) {
 						add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals, wg);
@@ -1378,27 +1378,27 @@ namespace military {
 						if(wg.target_country == new_war.primary_defender && wg.from_country == new_war.primary_attacker) {
 							new_war.war_name = ws.s.military_m.cb_types[wg.cb_type].war_name;
 
-							new_war.first_adj = ws.w.nation_s.nations[new_war.primary_attacker].adjective;
-							new_war.second = ws.w.nation_s.nations[new_war.primary_defender].adjective;
+							new_war.first_adj = ws.w.nation_s.nations.get<nation::adjective>(new_war.primary_attacker);
+							new_war.second = ws.w.nation_s.nations.get<nation::adjective>(new_war.primary_defender);
 
 							if(is_valid_index(wg.target_state))
 								new_war.state_name = ws.w.nation_s.states.get<state::name>(wg.target_state);
 
 							auto& cbt = ws.s.military_m.cb_types[wg.cb_type];
 							if((cbt.flags & (cb_type::po_annex | cb_type::po_make_puppet | cb_type::po_gunboat)) != 0)
-								new_war.second = ws.w.nation_s.nations[new_war.primary_defender].name;
+								new_war.second = ws.w.nation_s.nations.get<nation::name>(new_war.primary_defender);
 							else if((cbt.flags & cb_type::po_liberate) != 0 && is_valid_index(wg.liberation_target))
-								new_war.second = ws.w.nation_s.nations[wg.liberation_target].adjective;
+								new_war.second = ws.w.nation_s.nations.get<nation::adjective>(wg.liberation_target);
 							else if((cbt.flags & cb_type::po_take_from_sphere) != 0 && is_valid_index(wg.liberation_target))
-								new_war.second = ws.w.nation_s.nations[wg.liberation_target].adjective;
+								new_war.second = ws.w.nation_s.nations.get<nation::adjective>(wg.liberation_target);
 
 							break;
 						}
 					}
 					if(!is_valid_index(new_war.war_name)) {
 						new_war.war_name = text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, "NORMAL_WAR_NAME");
-						new_war.first_adj = ws.w.nation_s.nations[new_war.primary_attacker].adjective;
-						new_war.second = ws.w.nation_s.nations[new_war.primary_defender].adjective;
+						new_war.first_adj = ws.w.nation_s.nations.get<nation::adjective>(new_war.primary_attacker);
+						new_war.second = ws.w.nation_s.nations.get<nation::adjective>(new_war.primary_defender);
 					}
 					
 				}
@@ -1550,7 +1550,7 @@ namespace military {
 		}
 	}
 
-	void read_oob_file(world_state& ws, nations::nation& for_nation, token_group const* start, token_group const* end) {
+	void read_oob_file(world_state& ws, nations::country_tag for_nation, token_group const* start, token_group const* end) {
 		parse_object<oob_file, oob_domain>(start, end, ws, for_nation);
 	}
 }

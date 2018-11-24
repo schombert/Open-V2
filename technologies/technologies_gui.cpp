@@ -11,7 +11,7 @@ namespace technologies {
 
 	void tech_school_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			auto ts = player->tech_school;
+			auto ts = ws.w.nation_s.nations.get<nation::tech_school>(player);
 			if(is_valid_index(ts)) {
 				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.modifiers_m.national_modifiers[ts].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 				lm.finish_current_line();
@@ -38,9 +38,9 @@ namespace technologies {
 	}
 	void research_progress_bar::update(ui::progress_bar<research_progress_bar>& bar, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(auto tech = player->current_research; is_valid_index(tech)) {
-				if(auto total_points = effective_tech_cost(tech, ws, *player); total_points != 0.0f) {
-					bar.set_fraction(std::min(1.0f, float(player->research_points) / total_points));
+			if(auto tech = ws.w.nation_s.nations.get<nation::current_research>(player); is_valid_index(tech)) {
+				if(auto total_points = effective_tech_cost(tech, ws, player); total_points != 0.0f) {
+					bar.set_fraction(std::min(1.0f, float(ws.w.nation_s.nations.get<nation::research_points>(player)) / total_points));
 					return;
 				}
 			}
@@ -49,7 +49,7 @@ namespace technologies {
 	}
 	void research_name_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			auto cr = player->current_research;
+			auto cr = ws.w.nation_s.nations.get<nation::current_research>(player);
 			if(is_valid_index(cr)) {
 				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.technology_m.technologies_container[cr].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 			} else {
@@ -60,7 +60,7 @@ namespace technologies {
 	}
 	void research_category_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(auto cr = player->current_research; is_valid_index(cr)) {
+			if(auto cr = ws.w.nation_s.nations.get<nation::current_research>(player); is_valid_index(cr)) {
 				auto tc = [cr, &ws](){
 					for(auto& cat : ws.s.technology_m.technology_categories) {
 						if(cat.type == ws.s.technology_m.technologies_container[cr].category)

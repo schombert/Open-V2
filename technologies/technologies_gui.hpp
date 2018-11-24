@@ -39,17 +39,17 @@ namespace technologies {
 		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
 
-	class foldet_tab_progress_bar {
+	class folder_tab_progress_bar {
 	public:
 		template<typename window_type>
-		void windowed_update(ui::progress_bar<foldet_tab_progress_bar>& bar, window_type& win, world_state& ws);
+		void windowed_update(ui::progress_bar<folder_tab_progress_bar>& bar, window_type& win, world_state& ws);
 	};
 
 	using tech_category_tab = ui::gui_window <
 		CT_STRING("folder_button"), ui::simple_button<folder_tab_button>,
 		CT_STRING("folder_icon"), ui::dynamic_icon<folder_tab_icon>,
 		CT_STRING("folder_category"), ui::display_text<folder_tab_name>,
-		CT_STRING("folder_progress"), ui::progress_bar<foldet_tab_progress_bar>,
+		CT_STRING("folder_progress"), ui::progress_bar<folder_tab_progress_bar>,
 		CT_STRING("folder_number_discovered"), ui::display_text<folder_tab_count, -6>,
 		tech_category_tab_base
 	>;
@@ -396,7 +396,7 @@ namespace technologies {
 	template<typename lb_type>
 	void school_modifiers_lb::populate_list(lb_type & lb, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(auto ts = player->tech_school; is_valid_index(ts)) {
+			if(auto ts = ws.w.nation_s.nations.get<nation::tech_school>(player); is_valid_index(ts)) {
 				auto milmod = ws.s.modifiers_m.national_modifier_definitions[ts][modifiers::national_offsets::army_tech_research_bonus];
 				auto navmod = ws.s.modifiers_m.national_modifier_definitions[ts][modifiers::national_offsets::navy_tech_research_bonus];
 				auto commod = ws.s.modifiers_m.national_modifier_definitions[ts][modifiers::national_offsets::commerce_tech_research_bonus];
@@ -452,7 +452,7 @@ namespace technologies {
 	void invention_item_percent::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		invention = win.invention;
 		if(auto player = ws.w.local_player_nation; bool(player) && is_valid_index(invention)) {
-			auto chance = get_invention_chance(invention, ws, *player);
+			auto chance = get_invention_chance(invention, ws, player);
 			char16_t local_buf[16];
 			put_value_in_buffer(local_buf, display_type::percent, chance);
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf), box, ui::xy_pair{ 0,0 }, fmt, lm);
@@ -465,12 +465,12 @@ namespace technologies {
 		boost::container::small_vector<std::pair<tech_tag, float>, 64, concurrent_allocator<std::pair<tech_tag, float>>> data;
 
 		if(auto player = ws.w.local_player_nation; player) {
-			if(auto pid = player->id; ws.w.nation_s.nations.is_valid_index(pid)) {
+			if(auto pid = player; ws.w.nation_s.nations.is_valid_index(pid)) {
 				for(auto i : ws.s.technology_m.inventions) {
 					if(bit_vector_test(ws.w.nation_s.active_technologies.get_row(pid), to_index(i)) == false &&
 						(!is_valid_index(ws.s.technology_m.technologies_container[i].allow) ||
 							triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(ws.s.technology_m.technologies_container[i].allow), ws, player, player, nullptr, nullptr))) {
-						data.emplace_back(i, get_invention_chance(i, ws, *player));
+						data.emplace_back(i, get_invention_chance(i, ws, player));
 					}
 				}
 			}
@@ -509,7 +509,7 @@ namespace technologies {
 	template<typename window_type>
 	void selected_tech_invention_item_icon::windowed_update(ui::dynamic_icon<selected_tech_invention_item_icon>& self, window_type & win, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(auto id = player->id; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(auto id = player; ws.w.nation_s.nations.is_valid_index(id)) {
 				if(bit_vector_test(ws.w.nation_s.active_technologies.get_row(id), to_index(win.invention))) {
 					self.set_frame(ws.w.gui_m, 1ui32);
 					return;
@@ -573,7 +573,7 @@ namespace technologies {
 	template<typename window_type>
 	void folder_tab_count::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(auto id = player->id; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(auto id = player; ws.w.nation_s.nations.is_valid_index(id)) {
 				auto cat_type = ws.s.technology_m.technology_categories[win.category].type;
 				int32_t total_count = 0;
 				int32_t has_count = 0;
@@ -599,9 +599,9 @@ namespace technologies {
 	}
 
 	template<typename window_type>
-	void foldet_tab_progress_bar::windowed_update(ui::progress_bar<foldet_tab_progress_bar>& bar, window_type & win, world_state & ws) {
+	void folder_tab_progress_bar::windowed_update(ui::progress_bar<folder_tab_progress_bar>& bar, window_type & win, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			if(auto id = player->id; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(auto id = player; ws.w.nation_s.nations.is_valid_index(id)) {
 				auto cat_type = ws.s.technology_m.technology_categories[win.category].type;
 				int32_t total_count = 0;
 				int32_t has_count = 0;
@@ -642,18 +642,18 @@ namespace technologies {
 			tech = ws.s.technology_m.technology_subcategories[subcat].member_techs[win.nth_member];
 		}
 		if(auto player = ws.w.local_player_nation; is_valid_index(tech) && bool(player)) {
-			if(player->current_research == tech) {
+			if(ws.w.nation_s.nations.get<nation::current_research>(player) == tech) {
 				self.set_frame(ws.w.gui_m, 0ui32);
 				return;
 			}
-			auto pid = player->id;
+			auto pid = player;
 			if(!ws.w.nation_s.nations.is_valid_index(pid))
 				return;
 			if(bit_vector_test(ws.w.nation_s.active_technologies.get_row(pid), to_index(tech))) {
 				self.set_frame(ws.w.gui_m, 1ui32);
 				return;
 			}
-			if(technologies::can_research(tech, ws, *player)) {
+			if(technologies::can_research(tech, ws, player)) {
 				self.set_frame(ws.w.gui_m, 2ui32);
 				return;
 			}
