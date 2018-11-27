@@ -39,6 +39,9 @@ void world_state_non_ai_update(world_state & ws) {
 
 	nations::update_nation_ranks(ws);
 
+	ws.w.nation_s.modifier_values.reset();
+	ws.w.province_s.modifier_values.reset();
+
 	ws.w.province_s.province_state_container.parallel_for_each([&ws](provinces::province_tag ps) {
 		modifiers::reset_provincial_modifier(ws, ps);
 	});

@@ -816,3 +816,69 @@ public:
 #endif
 	}
 };
+
+template<typename tag_type, typename value_type, int32_t outer_size, int32_t inner_size>
+class fixed_vectorizable_2d_array {
+private:
+	static constexpr uint32_t extended_size = uint32_t(outer_size + (64ui32 / sizeof(value_type) - 1)) & ~(uint32_t(64ui32 / sizeof(value_type) - 1));
+	struct data_line {
+		value_type values[extended_size];
+		data_line() {
+			std::uninitialized_value_construct_n(values, extended_size);
+		}
+	};
+
+	static_assert((extended_size * sizeof(value_type)) % 64 == 0);
+	static_assert(extended_size >= outer_size);
+	static_assert(sizeof(data_line) % 64 == 0);
+
+	data_line* const ptr;
+public:
+
+	fixed_vectorizable_2d_array() : ptr((data_line*)_aligned_malloc(sizeof(data_line) * inner_size, 64)) {
+		std::uninitialized_value_construct_n(ptr, inner_size);
+	}
+
+	fixed_vectorizable_2d_array(fixed_vectorizable_2d_array const&) = delete;
+	fixed_vectorizable_2d_array(fixed_vectorizable_2d_array &&) = delete;
+
+	~fixed_vectorizable_2d_array() {
+		_aligned_free(ptr);
+	}
+
+	__forceinline value_type& get(tag_type t, int32_t index) {
+		return ptr[index].values[to_index(t)];
+	}
+	__forceinline value_type const& get(tag_type t, int32_t index) const {
+		return ptr[index].values[to_index(t)];
+	}
+	template<int32_t index>
+	__forceinline value_type& get(tag_type t) {
+		static_assert(index >= 0 && index < inner_size);
+		return ptr[index].values[to_index(t)];
+	}
+	template<int32_t index>
+	__forceinline value_type const& get(tag_type t) const {
+		static_assert(index >= 0 && index < inner_size);
+		return ptr[index].values[to_index(t)];
+	}
+	__forceinline value_type* get_row(int32_t index) {
+		return ptr[index].values;
+	}
+	__forceinline value_type const* get_row(int32_t index) const {
+		return ptr[index].values;
+	}
+	template<int32_t index>
+	__forceinline value_type* get_row() {
+		static_assert(index >= 0 && index < inner_size);
+		return ptr[index].values;
+	}
+	template<int32_t index>
+	__forceinline value_type const* get_row() const {
+		static_assert(index >= 0 && index < inner_size);
+		return ptr[index].values;
+	}
+	void reset() {
+		std::uninitialized_value_construct_n(ptr, inner_size);
+	}
+};

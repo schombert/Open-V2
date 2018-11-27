@@ -145,6 +145,9 @@
     <ClCompile Include="gui_definitions_performance.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\concurrency_tools\concurrency_tools.vcxproj">
+      <Project>{12f547e0-13dc-4c35-96ab-950827192412}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\gui_definitions\gui_definitions.vcxproj">
       <Project>{ff9513fe-8de3-4263-9d53-eaf04dc81c8c}</Project>
     </ProjectReference>

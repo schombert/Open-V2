@@ -1153,6 +1153,24 @@ void concurrent_allocator<T>::deallocate(T* p, size_t) {
 	concurrent_free_wrapper(p);
 }
 
+
+namespace concurrent_detail {
+	inline void* align_wrapper(void* ptr_in, size_t allocated_size) {
+		return std::align(64, allocated_size - 64, ptr_in, allocated_size);
+	}
+}
+
+template<typename T>
+concurrent_cache_aligned_buffer<T>::concurrent_cache_aligned_buffer(uint32_t size) :
+	allocated_address((T*)concurrent_alloc_wrapper(64 * 2 + size * sizeof(T))),
+	buffer((T*)concurrent_detail::align_wrapper(allocated_address, 64 * 2 + size * sizeof(T)))
+{ }
+
+template<typename T>
+concurrent_cache_aligned_buffer<T>::~concurrent_cache_aligned_buffer() {
+	concurrent_free_wrapper(allocated_address);
+}
+
 template<typename T>
 T* aligned_allocator_32<T>::allocate(size_t n) {
 	return (T*)_aligned_malloc(n * sizeof(T), 32);

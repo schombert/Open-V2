@@ -1817,7 +1817,7 @@ TEST(effect_execution, set_a) {
 				parse_results.data() + parse_results.size());
 		e_result.push_back(0ui16);
 
-		auto pre_prestige = ptr_ger->base_prestige;
+		auto pre_prestige = ws.w.nation_s.nations.get<nation::base_prestige>(ptr_ger);
 
 		execute_effect(
 			e_result.data(),
@@ -1828,7 +1828,7 @@ TEST(effect_execution, set_a) {
 			nullptr,
 			get_local_generator());
 
-		EXPECT_EQ(pre_prestige + 10 * (ptr_ger->tech_attributes[technologies::tech_offset::prestige] + 1.0f), ptr_ger->base_prestige);
+		EXPECT_EQ(pre_prestige + 10 * (ws.w.nation_s.nations.get<nation::tech_attributes>(ptr_ger)[technologies::tech_offset::prestige] + 1.0f), ws.w.nation_s.nations.get<nation::base_prestige>(ptr_ger));
 	}
 
 	{
@@ -1850,8 +1850,8 @@ TEST(effect_execution, set_a) {
 				parse_results.data() + parse_results.size());
 		e_result.push_back(0ui16);
 
-		auto pre_prestige_a = ptr_ger->base_prestige;
-		auto pre_prestige_b = ptr_usa->base_prestige;
+		auto pre_prestige_a = ws.w.nation_s.nations.get<nation::base_prestige>(ptr_ger);
+		auto pre_prestige_b = ws.w.nation_s.nations.get<nation::base_prestige>(ptr_usa);
 
 		execute_effect(
 			e_result.data(),
@@ -1862,8 +1862,8 @@ TEST(effect_execution, set_a) {
 			nullptr,
 			get_local_generator());
 
-		EXPECT_EQ(pre_prestige_a + 10 * (ptr_ger->tech_attributes[technologies::tech_offset::prestige] + 1.0f), ptr_ger->base_prestige);
-		EXPECT_EQ(pre_prestige_b + 10 * (ptr_usa->tech_attributes[technologies::tech_offset::prestige] + 1.0f), ptr_usa->base_prestige);
+		EXPECT_EQ(pre_prestige_a + 10 * (ws.w.nation_s.nations.get<nation::tech_attributes>(ptr_ger)[technologies::tech_offset::prestige] + 1.0f), ws.w.nation_s.nations.get<nation::base_prestige>(ptr_ger));
+		EXPECT_EQ(pre_prestige_b + 10 * (ws.w.nation_s.nations.get<nation::tech_attributes>(ptr_usa)[technologies::tech_offset::prestige] + 1.0f), ws.w.nation_s.nations.get<nation::base_prestige>(ptr_usa));
 	}
 
 	{
@@ -1885,8 +1885,8 @@ TEST(effect_execution, set_a) {
 				parse_results.data() + parse_results.size());
 		e_result.push_back(0ui16);
 
-		auto pre_prestige_a = ptr_ger->base_prestige;
-		auto pre_prestige_b = ptr_usa->base_prestige;
+		auto pre_prestige_a = ws.w.nation_s.nations.get<nation::base_prestige>(ptr_ger);
+		auto pre_prestige_b = ws.w.nation_s.nations.get<nation::base_prestige>(ptr_usa);
 
 		execute_effect(
 			e_result.data(),
@@ -1897,8 +1897,8 @@ TEST(effect_execution, set_a) {
 			nullptr,
 			get_local_generator());
 
-		EXPECT_EQ(pre_prestige_a, ptr_ger->base_prestige);
-		EXPECT_EQ(pre_prestige_b + 10 * (ptr_usa->tech_attributes[technologies::tech_offset::prestige] + 1.0f), ptr_usa->base_prestige);
+		EXPECT_EQ(pre_prestige_a, ws.w.nation_s.nations.get<nation::base_prestige>(ptr_ger));
+		EXPECT_EQ(pre_prestige_b + 10 * (ws.w.nation_s.nations.get<nation::tech_attributes>(ptr_usa)[technologies::tech_offset::prestige] + 1.0f), ws.w.nation_s.nations.get<nation::base_prestige>(ptr_usa));
 	}
 
 	{
@@ -1920,8 +1920,8 @@ TEST(effect_execution, set_a) {
 				parse_results.data() + parse_results.size());
 		e_result.push_back(0ui16);
 
-		auto pre_prestige_a = ptr_ger->base_prestige;
-		auto pre_prestige_b = ptr_usa->base_prestige;
+		auto pre_prestige_a = ws.w.nation_s.nations.get<nation::base_prestige>(ptr_ger);
+		auto pre_prestige_b = ws.w.nation_s.nations.get<nation::base_prestige>(ptr_usa);
 
 		execute_effect(
 			e_result.data(),
@@ -1932,7 +1932,7 @@ TEST(effect_execution, set_a) {
 			nullptr,
 			get_local_generator());
 
-		EXPECT_EQ(pre_prestige_a, ptr_ger->base_prestige);
-		EXPECT_EQ(pre_prestige_b + 10 * (ptr_usa->tech_attributes[technologies::tech_offset::prestige] + 1.0f), ptr_usa->base_prestige);
+		EXPECT_EQ(pre_prestige_a, ws.w.nation_s.nations.get<nation::base_prestige>(ptr_ger));
+		EXPECT_EQ(pre_prestige_b + 10 * (ws.w.nation_s.nations.get<nation::tech_attributes>(ptr_usa)[technologies::tech_offset::prestige] + 1.0f), ws.w.nation_s.nations.get<nation::base_prestige>(ptr_usa));
 	}
 }

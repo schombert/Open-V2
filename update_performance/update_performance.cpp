@@ -16,7 +16,7 @@ public:
 	int test_function() {
 		world_state_non_ai_update(ws);
 		ws.w.current_date = date_tag(to_index(ws.w.current_date) + 1);
-		return int(ws.w.nation_s.nations[nations::country_tag(10)].national_debt);
+		return int(ws.w.nation_s.nations.get<nation::national_debt>(nations::country_tag(10)));
 	}
 };
 

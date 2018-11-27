@@ -90,6 +90,9 @@ void serialization::serializer<nations::nations_state>::deserialize_object(std::
 	});
 
 	obj.nations.for_each([&ws, &input](nations::country_tag n) {
+		technologies::reset_technologies(ws, n);
+		military::reset_unit_stats(ws, n);
+
 		auto active_parties = ws.w.nation_s.active_parties.get_row(n);
 		deserialize_array(input, active_parties, ws.s.ideologies_m.ideologies_count);
 
@@ -108,8 +111,6 @@ void serialization::serializer<nations::nations_state>::deserialize_object(std::
 		auto variables = ws.w.nation_s.national_variables.get_row(n);
 		deserialize_array(input, variables, ws.s.variables_m.count_national_variables);
 
-		technologies::reset_technologies(ws, n);
-		military::reset_unit_stats(ws, n);
 
 		if(auto o = ws.w.nation_s.nations.get<nation::overlord>(n); is_valid_index(o)) {
 			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::vassals>(o), n);

@@ -234,10 +234,20 @@ namespace modifiers {
 		auto& new_mod = manager.provincial_modifiers[tag];
 		new_mod.icon = mod.icon;
 
-		provincial_modifier_vector& dest_vector = manager.provincial_modifier_definitions.safe_get(tag);
+		auto& dest_def = manager.provincial_modifier_definitions.safe_get(tag);
 		Eigen::Map<Eigen::VectorXf, Eigen::AlignmentType::Aligned32> source_vector(mod.modifier_data.data(), provincial_offsets::aligned_32_size);
 
-		dest_vector = source_vector;
+		uint32_t def_offset = 0;
+		for(int32_t i = 0; i < int32_t(provincial_offsets::count); ++i) {
+			if(source_vector[i] != 0.0f) {
+				if(def_offset >= modifier_definition_size)
+					std::abort();
+
+				dest_def.offsets[def_offset] = i;
+				dest_def.values[def_offset] = source_vector[i];
+				++def_offset;
+			}
+		}
 
 		if(mod.count_unique_national != 0) {
 			mod.remove_shared_national_attributes();
@@ -263,10 +273,21 @@ namespace modifiers {
 		auto& new_mod = manager.national_modifiers[tag];
 		new_mod.icon = mod.icon;
 
-		national_modifier_vector& dest_vector = manager.national_modifier_definitions.safe_get(tag);
+		auto& dest_def = manager.national_modifier_definitions.safe_get(tag);
 		Eigen::Map<const Eigen::VectorXf, Eigen::AlignmentType::Aligned32> source_vector(mod.modifier_data.data() + provincial_offsets::aligned_32_size, national_offsets::aligned_32_size);
 
-		dest_vector = source_vector;
+		uint32_t def_offset = 0;
+		for(int32_t i = 0; i < int32_t(national_offsets::count); ++i) {
+			if(source_vector[i] != 0.0f) {
+				if(def_offset >= modifier_definition_size)
+					std::abort();
+
+				dest_def.offsets[def_offset] = i;
+				dest_def.values[def_offset] = source_vector[i];
+				++def_offset;
+			}
+		}
+		
 	}
 
 	national_modifier_tag add_national_modifier(text_data::text_tag name, const modifier_reading_base& mod, modifiers_manager& manager) {

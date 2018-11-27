@@ -239,7 +239,7 @@ namespace provinces {
 
 	float get_life_rating(world_state const& ws, province_tag p) {
 		auto& container = ws.w.province_s.province_state_container;
-		return float(container.get<province_state::base_life_rating>(p)) * (1.0f + container.get<province_state::modifier_values>(p)[modifiers::provincial_offsets::life_rating]);
+		return float(container.get<province_state::base_life_rating>(p)) * (1.0f + ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::life_rating>(p));
 	}
 
 
@@ -357,8 +357,8 @@ namespace provinces {
 
 		auto avg_movement_cost =
 			(
-			((container.get<province::is_sea>(a) ? sea_cost_multiplier : 1.0) * state_container.get<province_state::modifier_values>(a)[modifiers::provincial_offsets::movement_cost])
-			+ ((container.get<province::is_sea>(b) ? sea_cost_multiplier : 1.0) * state_container.get<province_state::modifier_values>(b)[modifiers::provincial_offsets::movement_cost])
+			((container.get<province::is_sea>(a) ? sea_cost_multiplier : 1.0) * ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::movement_cost>(a))
+			+ ((container.get<province::is_sea>(b) ? sea_cost_multiplier : 1.0) * ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::movement_cost>(b))
 			) / 2.0;
 
 		auto a_owner = state_container.get<province_state::owner>(a);

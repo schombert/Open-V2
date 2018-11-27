@@ -3,6 +3,7 @@
 #include "gtest\\gtest.h"
 #include "concurrency_tools\\concurrency_tools.hpp"
 #include "concurrency_tools\\variable_layout.h"
+#include "concurrency_tools\\ve.h"
 
 TEST(concurrency_tools, string_construction) {
 	concurrent_string a;
@@ -1795,4 +1796,392 @@ TEST(concurrency_tools, variable_layout_serialize) {
 	EXPECT_EQ(false, test_vec_b.get<labels::d>(b));
 
 	EXPECT_EQ(b, test_vec_b.get_new());
+}
+
+TEST(concurrency_tools, ve_simple_math) {
+	std::vector<float, aligned_allocator_64<float>> a(16, 0.0f);
+	std::vector<float, aligned_allocator_64<float>> b(16, 0.0f);
+	std::vector<float, aligned_allocator_64<float>> result(16, 0.0f);
+
+	a[0] = 2.4f;
+	a[1] = 2.7f;
+	a[2] = 1.4f;
+	a[3] = 0.4f;
+	a[4] = 22.4f;
+	a[5] = 201.4f;
+	a[6] = 652.4f;
+	a[7] = 28.4f;
+	a[8] = 2.04f;
+	a[9] = 2.84f;
+	a[10] = 26.4f;
+	a[11] = 52.4f;
+	a[12] = 72.4f;
+	a[13] = 29.4f;
+	a[14] = 24.4f;
+	a[15] = 25.4f;
+
+	b[0] = 26.4f;
+	b[1] = 122.7f;
+	b[2] = 12.4f;
+	b[3] = 5.4f;
+	b[4] = 22.0f;
+	b[5] = 21.4f;
+	b[6] = 65.4f;
+	b[7] = 8.4f;
+	b[8] = 0.04f;
+	b[9] = 1.84f;
+	b[10] = 236.4f;
+	b[11] = 5.4f;
+	b[12] = 7.9f;
+	b[13] = 9.8f;
+	b[14] = 4.6f;
+	b[15] = 5.1f;
+
+	auto add_func = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
+		executor.store(r_vec, executor.load(a_vec) + executor.load(b_vec));
+	};
+
+	auto sub_func = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
+		executor.store(r_vec, executor.load(a_vec) - executor.load(b_vec));
+	};
+
+	auto mul_func = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
+		executor.store(r_vec, executor.load(a_vec) * executor.load(b_vec));
+	};
+
+	auto div_func = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
+		executor.store(r_vec, executor.load(a_vec) / executor.load(b_vec));
+	};
+
+	ve::execute_serial_fast(16, add_func);
+
+	for(uint32_t i = 0; i < 16; ++i) {
+		EXPECT_FLOAT_EQ(result[i], a[i] + b[i]);
+	}
+
+	ve::execute_serial_fast(16, sub_func);
+
+	for(uint32_t i = 0; i < 16; ++i) {
+		EXPECT_FLOAT_EQ(result[i], a[i] - b[i]);
+	}
+
+	ve::execute_serial_fast(16, mul_func);
+
+	for(uint32_t i = 0; i < 16; ++i) {
+		EXPECT_FLOAT_EQ(result[i], a[i] * b[i]);
+	}
+
+	ve::execute_serial_fast(16, div_func);
+
+	for(uint32_t i = 0; i < 16; ++i) {
+		EXPECT_FLOAT_EQ(result[i], a[i] / b[i]);
+	}
+}
+
+TEST(concurrency_tools, ve_partial_load_and_store) {
+	std::vector<float, aligned_allocator_64<float>> a(16, 0.0f);
+	std::vector<float, aligned_allocator_64<float>> b(16, 0.0f);
+	std::vector<float, aligned_allocator_64<float>> result(16, 0.0f);
+
+	a[0] = 2.4f;
+	a[1] = 2.7f;
+	a[2] = 1.4f;
+	a[3] = 0.4f;
+	a[4] = 22.4f;
+	a[5] = 201.4f;
+	a[6] = 652.4f;
+	a[7] = 28.4f;
+	a[8] = 2.04f;
+	a[9] = 2.84f;
+	a[10] = 26.4f;
+	a[11] = 52.4f;
+	a[12] = 72.4f;
+	a[13] = 29.4f;
+	a[14] = 24.4f;
+	a[15] = 25.4f;
+
+	b[0] = 26.4f;
+	b[1] = 122.7f;
+	b[2] = 12.4f;
+	b[3] = 5.4f;
+	b[4] = 22.0f;
+	b[5] = 21.4f;
+	b[6] = 65.4f;
+	b[7] = 8.4f;
+	b[8] = 0.04f;
+	b[9] = 1.84f;
+	b[10] = 236.4f;
+	b[11] = 5.4f;
+	b[12] = 7.9f;
+	b[13] = 9.8f;
+	b[14] = 4.6f;
+	b[15] = 5.1f;
+
+	auto add_func = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
+		executor.partial_store(r_vec, executor.partial_load(a_vec) + executor.partial_load(b_vec));
+	};
+
+	auto sub_func = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
+		executor.partial_store(r_vec, executor.load(a_vec) - executor.load(b_vec));
+	};
+
+	auto mul_func = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
+		executor.store(r_vec, executor.partial_load(a_vec) * executor.partial_load(b_vec));
+	};
+
+	auto div_func = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
+		executor.partial_store(r_vec, executor.partial_load(a_vec) / executor.partial_load(b_vec));
+	};
+
+	ve::execute_serial(15, add_func);
+
+	for(uint32_t i = 0; i < 15; ++i) {
+		EXPECT_FLOAT_EQ(result[i], a[i] + b[i]);
+	}
+	EXPECT_EQ(result[15], 0.0f);
+
+	ve::execute_serial(15, sub_func);
+
+	for(uint32_t i = 0; i < 15; ++i) {
+		EXPECT_FLOAT_EQ(result[i], a[i] - b[i]);
+	}
+	EXPECT_EQ(result[15], 0.0f);
+
+	ve::execute_serial(15, mul_func);
+
+	for(uint32_t i = 0; i < 15; ++i) {
+		EXPECT_FLOAT_EQ(result[i], a[i] * b[i]);
+	}
+	EXPECT_EQ(result[15], 0.0f);
+
+	ve::execute_serial(15, div_func);
+
+	for(uint32_t i = 0; i < 15; ++i) {
+		EXPECT_FLOAT_EQ(result[i], a[i] / b[i]);
+	}
+	EXPECT_EQ(result[15], 0.0f);
+}
+
+TEST(concurrency_tools, ve_complex_math) {
+	std::vector<float, aligned_allocator_64<float>> a(16, 0.0f);
+	std::vector<float, aligned_allocator_64<float>> b(16, 0.0f);
+	std::vector<float, aligned_allocator_64<float>> c(16, 0.0f);
+	std::vector<float, aligned_allocator_64<float>> result(16, 0.0f);
+
+	a[0] = 2.4f;
+	a[1] = 2.7f;
+	a[2] = 1.4f;
+	a[3] = 0.4f;
+	a[4] = 22.4f;
+	a[5] = 201.4f;
+	a[6] = 652.4f;
+	a[7] = 28.4f;
+	a[8] = 2.04f;
+	a[9] = 2.84f;
+	a[10] = 26.4f;
+	a[11] = 52.4f;
+	a[12] = 72.4f;
+	a[13] = 29.4f;
+	a[14] = 24.4f;
+	a[15] = 25.4f;
+
+	b[0] = 26.4f;
+	b[1] = 122.7f;
+	b[2] = 12.4f;
+	b[3] = 5.4f;
+	b[4] = 22.0f;
+	b[5] = 21.4f;
+	b[6] = 65.4f;
+	b[7] = 8.4f;
+	b[8] = 0.04f;
+	b[9] = 1.84f;
+	b[10] = 236.4f;
+	b[11] = 5.4f;
+	b[12] = 7.9f;
+	b[13] = 9.8f;
+	b[14] = 4.6f;
+	b[15] = 5.1f;
+
+	c[0] = 76.4f;
+	c[1] = 232.7f;
+	c[2] = 17.4f;
+	c[3] = 5.94f;
+	c[4] = 212.0f;
+	c[5] = 1.4f;
+	c[6] = 35.4f;
+	c[7] = 88.4f;
+	c[8] = 2.04f;
+	c[9] = 1.684f;
+	c[10] = 36.4f;
+	c[11] = 53.4f;
+	c[12] = 76.9f;
+	c[13] = 93.8f;
+	c[14] = 24.6f;
+	c[15] = 35.1f;
+
+	auto fma = [a_vec = a.data(), b_vec = b.data(), c_vec = c.data(), r_vec = result.data()](auto executor) {
+		executor.store(r_vec, ve::multiply_and_add(executor.load(a_vec), executor.load(b_vec), executor.load(c_vec)));
+	};
+
+	auto nfma = [a_vec = a.data(), b_vec = b.data(), c_vec = c.data(), r_vec = result.data()](auto executor) {
+		executor.store(r_vec, ve::negate_multiply_and_subtract(executor.load(a_vec), executor.load(b_vec), executor.load(c_vec)));
+	};
+
+	auto inv = [a_vec = a.data(), r_vec = result.data()](auto executor) {
+		executor.store(r_vec, ve::improved_inverse(executor.load(a_vec)));
+	};
+
+	auto sq = [a_vec = a.data(), r_vec = result.data()](auto executor) {
+		executor.store(r_vec, ve::sqrt(executor.load(a_vec)));
+	};
+
+	ve::execute_serial_fast(16, fma);
+
+	for(uint32_t i = 0; i < 16; ++i) {
+		EXPECT_FLOAT_EQ(result[i], a[i] * b[i] + c[i]);
+	}
+
+	ve::execute_serial_fast(16, nfma);
+
+	for(uint32_t i = 0; i < 16; ++i) {
+		EXPECT_FLOAT_EQ(result[i], -(a[i] * b[i]) - c[i]);
+	}
+
+	ve::execute_serial_fast(16, inv);
+
+	for(uint32_t i = 0; i < 16; ++i) {
+		EXPECT_FLOAT_EQ(result[i], 1.0f / a[i]);
+	}
+
+	ve::execute_serial_fast(16, sq);
+
+	for(uint32_t i = 0; i < 16; ++i) {
+		EXPECT_FLOAT_EQ(result[i], std::sqrt(a[i]));
+	}
+}
+
+TEST(concurrency_tools, ve_comparison_gather) {
+	std::vector<float, aligned_allocator_64<float>> a(16, 0.0f);
+	std::vector<float, aligned_allocator_64<float>> b(16, 0.0f);
+	std::vector<int32_t, aligned_allocator_64<int32_t>> c(16, 0);
+	std::vector<float, aligned_allocator_64<float>> result(16, 0.0f);
+
+	a[0] = 2.4f;
+	a[1] = 2.7f;
+	a[2] = 1.4f;
+	a[3] = 0.4f;
+	a[4] = 22.4f;
+	a[5] = 201.4f;
+	a[6] = 652.4f;
+	a[7] = 28.4f;
+	a[8] = 2.04f;
+	a[9] = 2.84f;
+	a[10] = 26.4f;
+	a[11] = 52.4f;
+	a[12] = 72.4f;
+	a[13] = 29.4f;
+	a[14] = 24.4f;
+	a[15] = 25.4f;
+
+	b[0] = 26.4f;
+	b[1] = 122.7f;
+	b[2] = 12.4f;
+	b[3] = 5.4f;
+	b[4] = 22.0f;
+	b[5] = 21.4f;
+	b[6] = 65.4f;
+	b[7] = 8.4f;
+	b[8] = 0.04f;
+	b[9] = 1.84f;
+	b[10] = 236.4f;
+	b[11] = 5.4f;
+	b[12] = 7.9f;
+	b[13] = 9.8f;
+	b[14] = 4.6f;
+	b[15] = 5.1f;
+
+	c[0] = 0;
+	c[1] = 1;
+	c[2] = 3;
+	c[3] = 2;
+	c[4] = 1;
+	c[5] = 5;
+	c[6] = 10;
+	c[7] = 0;
+	c[8] = 15;
+	c[9] = 5;
+	c[10] = 9;
+	c[11] = 11;
+	c[12] = 10;
+	c[13] = 3;
+	c[14] = 4;
+	c[15] = 7;
+
+	auto gt_cmp = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
+		auto av = executor.load(a_vec);
+		executor.store(r_vec, ve::select(av < executor.load(b_vec), av, executor.constant(2.0f)));
+	};
+
+	auto gather_a = [a_vec = a.data(), c_vec = c.data(), r_vec = result.data()](auto executor) {
+		auto indices = executor.load(c_vec);
+		executor.store(r_vec, executor.gather_load(a_vec, indices));
+	};
+
+	auto gather_b = [a_vec = a.data(), b_vec = b.data(), c_vec = c.data(), r_vec = result.data()](auto executor) {
+		auto indices = executor.load(c_vec);
+		executor.store(r_vec, executor.gather_masked_load(a_vec, indices, executor.load(b_vec) > executor.constant(20.0f), executor.constant(3.0f)));
+	};
+
+	auto cmp_b = [a_vec = a.data(), r_vec = result.data()](auto executor) {
+		auto av = executor.load(a_vec);
+		executor.store(r_vec, ve::select((av <= executor.constant(40.0f)) & (av >= executor.constant(10.0f)), executor.constant(0.0f), av));
+	};
+
+	ve::execute_serial_fast(16, gt_cmp);
+
+	for(uint32_t i = 0; i < 16; ++i) {
+		EXPECT_FLOAT_EQ(result[i], a[i] < b[i] ? a[i] : 2.0f);
+	}
+
+	ve::execute_serial_fast(16, gather_a);
+
+	for(uint32_t i = 0; i < 16; ++i) {
+		EXPECT_FLOAT_EQ(result[i], a[c[i]]);
+	}
+
+	ve::execute_serial_fast(16, gather_b);
+
+	for(uint32_t i = 0; i < 16; ++i) {
+		EXPECT_FLOAT_EQ(result[i], b[i] > 20.0f ? a[c[i]] : 3.0f);
+	}
+
+	ve::execute_serial_fast(16, cmp_b);
+
+	for(uint32_t i = 0; i < 16; ++i) {
+		EXPECT_FLOAT_EQ(result[i], (a[i] <= 40.0f && a[i] >= 10.0f) ? 0.0f : a[i]);
+	}
+
+}
+
+TEST(concurrency_tools, vector_reduce) {
+	std::vector<float, aligned_allocator_64<float>> a(16, 0.0f);
+
+	a[0] = 2.4f;
+	a[1] = 2.7f;
+	a[2] = 1.4f;
+	a[3] = 0.4f;
+	a[4] = 22.4f;
+	a[5] = 201.4f;
+	a[6] = 652.4f;
+	a[7] = 28.4f;
+	a[8] = 2.04f;
+	a[9] = 2.84f;
+	a[10] = 26.4f;
+	a[11] = 52.4f;
+	a[12] = 72.4f;
+	a[13] = 29.4f;
+	a[14] = 24.4f;
+	a[15] = 25.4f;
+
+	EXPECT_FLOAT_EQ(ve::reduce_vector(a.data(), 15), std::reduce(a.data(), a.data() + 15, 0.0f, std::plus<>()));
 }

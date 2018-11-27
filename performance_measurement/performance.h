@@ -1,6 +1,42 @@
 #pragma once
+#include "common\\common.h"
 #include <memory>
 #include <chrono>
+#include "concurrency_tools\\concurrency_tools.hpp"
+#include "concurrency_tools\\ve.h"
+#include <random>
+
+class cache_clearer {
+public:
+	std::vector<float, aligned_allocator_64<float>> a;
+	std::vector<float, aligned_allocator_64<float>> b;
+
+	cache_clearer() : a(1024 * 1024 * 8,0.0f), b(1024 * 1024 * 8, 0.0f) {
+		clear();
+	}
+
+	float clear() {
+		auto idist = std::uniform_int_distribution<int32_t>(0, 1024 * 1024 * 8);
+		auto fdist = std::uniform_real_distribution<float>(0.0f, 1.0f);
+
+		for(int32_t i = 0; i < 1024; ++i) {
+			a[idist(get_local_generator())] = fdist(get_local_generator());
+			b[idist(get_local_generator())] = fdist(get_local_generator());
+		}
+
+		auto cache_shuffle = [a_vec = a.data(), b_vec = b.data(), dist = std::uniform_real_distribution<float>(0.0f, 1.0f)](auto executor) {
+			auto rval = dist(get_local_generator());
+			auto av = executor.load(a_vec);
+			auto bv = executor.load(b_vec);
+			executor.store(a_vec, (av + bv + executor.constant(rval)) * executor.constant(0.5f));
+			executor.store(b_vec, av - bv - executor.constant(rval));
+		};
+
+		ve::execute_parallel(1024 * 1024 * 8, cache_shuffle);
+
+		return a[idist(get_local_generator())];
+	}
+};
 
 class intermediate_results {
 public:

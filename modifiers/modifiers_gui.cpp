@@ -172,34 +172,34 @@ namespace modifiers {
 
 	
 	
-	ui::xy_pair make_province_modifier_text_body(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, provincial_modifier_vector const& values) {
+	ui::xy_pair make_province_modifier_text_body(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, modifier_definition const& def) {
 		char16_t local_buf[64];
-		for(uint32_t i = 0; i < provincial_offsets::count; ++i) {
-			if(values[i] != value_type(0)) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.modifiers_m.province_offset_names[i], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+		for(uint32_t i = 0; i < modifier_definition_size; ++i) {
+			if(def.values[i] != value_type(0)) {
+				cursor_in = ui::add_linear_text(cursor_in, ws.s.modifiers_m.province_offset_names[def.offsets[i]], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 
-				if(values[i] < value_type(0)) {
+				if(def.values[i] < value_type(0)) {
 					local_buf[0] = u'-';
-					put_pos_value_in_buffer(local_buf + 1, province_offset_display[i].display_as, -values[i]);
+					put_pos_value_in_buffer(local_buf + 1, province_offset_display[def.offsets[i]].display_as, -def.values[i]);
 					cursor_in = ui::text_chunk_to_instances(
 						ws.s.gui_m,
 						ws.w.gui_m,
 						vector_backed_string<char16_t>(local_buf),
 						container,
 						cursor_in,
-						ui::text_format{ province_offset_display[i].positive_is_green ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size },
+						ui::text_format{ province_offset_display[def.offsets[i]].positive_is_green ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size },
 						lm);
 				} else {
 					local_buf[0] = u'+';
-					put_pos_value_in_buffer(local_buf + 1, province_offset_display[i].display_as, values[i]);
+					put_pos_value_in_buffer(local_buf + 1, province_offset_display[def.offsets[i]].display_as, def.values[i]);
 					cursor_in = ui::text_chunk_to_instances(
 						ws.s.gui_m,
 						ws.w.gui_m,
 						vector_backed_string<char16_t>(local_buf),
 						container,
 						cursor_in,
-						ui::text_format{ province_offset_display[i].positive_is_green ? ui::text_color::green : ui::text_color::red, fmt.font_handle, fmt.font_size },
+						ui::text_format{ province_offset_display[def.offsets[i]].positive_is_green ? ui::text_color::green : ui::text_color::red, fmt.font_handle, fmt.font_size },
 						lm);
 				}
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -209,34 +209,34 @@ namespace modifiers {
 		return cursor_in;
 	}
 
-	ui::xy_pair make_national_modifier_text_body(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, national_modifier_vector const& values) {
+	ui::xy_pair make_national_modifier_text_body(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, modifier_definition const& def) {
 		char16_t local_buf[64];
-		for(uint32_t i = 0; i < national_offsets::count; ++i) {
-			if(values[i] != value_type(0)) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.modifiers_m.national_offset_names[i], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+		for(uint32_t i = 0; i < modifier_definition_size; ++i) {
+			if(def.values[i] != value_type(0)) {
+				cursor_in = ui::add_linear_text(cursor_in, ws.s.modifiers_m.national_offset_names[def.offsets[i]], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 
-				if(values[i] < value_type(0)) {
+				if(def.values[i] < value_type(0)) {
 					local_buf[0] = u'-';
-					put_pos_value_in_buffer(local_buf + 1, national_offset_display[i].display_as, -values[i]);
+					put_pos_value_in_buffer(local_buf + 1, national_offset_display[def.offsets[i]].display_as, -def.values[i]);
 					cursor_in = ui::text_chunk_to_instances(
 						ws.s.gui_m,
 						ws.w.gui_m,
 						vector_backed_string<char16_t>(local_buf),
 						container,
 						cursor_in,
-						ui::text_format{ national_offset_display[i].positive_is_green ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size },
+						ui::text_format{ national_offset_display[def.offsets[i]].positive_is_green ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size },
 						lm);
 				} else {
 					local_buf[0] = u'+';
-					put_pos_value_in_buffer(local_buf + 1, national_offset_display[i].display_as, values[i]);
+					put_pos_value_in_buffer(local_buf + 1, national_offset_display[def.offsets[i]].display_as, def.values[i]);
 					cursor_in = ui::text_chunk_to_instances(
 						ws.s.gui_m,
 						ws.w.gui_m,
 						vector_backed_string<char16_t>(local_buf),
 						container,
 						cursor_in,
-						ui::text_format{ national_offset_display[i].positive_is_green ? ui::text_color::green : ui::text_color::red, fmt.font_handle, fmt.font_size },
+						ui::text_format{ national_offset_display[def.offsets[i]].positive_is_green ? ui::text_color::green : ui::text_color::red, fmt.font_handle, fmt.font_size },
 						lm);
 				}
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -273,12 +273,20 @@ namespace modifiers {
 	inline ui::xy_pair display_single_provincial_modifier_value(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, provincial_modifier_tag mod, uint32_t offset, value_type multiplier) {
 		char16_t local_buf[64];
 
-		if(!is_valid_index(mod) || multiplier == value_type(0) || ws.s.modifiers_m.provincial_modifier_definitions[mod][offset] == value_type(0))
+		auto value = [&ws, mod, offset]() {
+			for(uint32_t i = 0; i < modifier_definition_size; ++i) {
+				if(ws.s.modifiers_m.provincial_modifier_definitions[mod].offsets[i] == int32_t(offset))
+					return ws.s.modifiers_m.provincial_modifier_definitions[mod].values[i];
+			}
+			return 0.0f;
+		}();
+
+		if(!is_valid_index(mod) || multiplier == value_type(0) || value == value_type(0))
 			return cursor_in;
 
-		if(ws.s.modifiers_m.provincial_modifier_definitions[mod][offset] * multiplier < value_type(0)) {
+		if(value * multiplier < value_type(0)) {
 			local_buf[0] = u'-';
-			put_pos_value_in_buffer(local_buf + 1, province_offset_display[offset].display_as, -ws.s.modifiers_m.provincial_modifier_definitions[mod][offset] * multiplier);
+			put_pos_value_in_buffer(local_buf + 1, province_offset_display[offset].display_as, -value * multiplier);
 			cursor_in = ui::text_chunk_to_instances(
 				ws.s.gui_m,
 				ws.w.gui_m,
@@ -289,7 +297,7 @@ namespace modifiers {
 				lm);
 		} else {
 			local_buf[0] = u'+';
-			put_pos_value_in_buffer(local_buf + 1, province_offset_display[offset].display_as, ws.s.modifiers_m.provincial_modifier_definitions[mod][offset] * multiplier);
+			put_pos_value_in_buffer(local_buf + 1, province_offset_display[offset].display_as, value * multiplier);
 			cursor_in = ui::text_chunk_to_instances(
 				ws.s.gui_m,
 				ws.w.gui_m,
@@ -313,12 +321,20 @@ namespace modifiers {
 	inline ui::xy_pair display_single_national_modifier_value(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, national_modifier_tag mod, uint32_t offset, value_type multiplier) {
 		char16_t local_buf[64];
 
-		if(!is_valid_index(mod) || multiplier == value_type(0) || ws.s.modifiers_m.national_modifier_definitions[mod][offset] == value_type(0))
+		auto value = [&ws, mod, offset]() {
+			for(uint32_t i = 0; i < modifier_definition_size; ++i) {
+				if(ws.s.modifiers_m.national_modifier_definitions[mod].offsets[i] == int32_t(offset))
+					return ws.s.modifiers_m.national_modifier_definitions[mod].values[i];
+			}
+			return 0.0f;
+		}();
+
+		if(!is_valid_index(mod) || multiplier == value_type(0) || value == value_type(0))
 			return cursor_in;
 
-		if(ws.s.modifiers_m.national_modifier_definitions[mod][offset] * multiplier < value_type(0)) {
+		if(value * multiplier < value_type(0)) {
 			local_buf[0] = u'-';
-			put_pos_value_in_buffer(local_buf + 1, national_offset_display[offset].display_as, -ws.s.modifiers_m.national_modifier_definitions[mod][offset] * multiplier);
+			put_pos_value_in_buffer(local_buf + 1, national_offset_display[offset].display_as, -value * multiplier);
 			cursor_in = ui::text_chunk_to_instances(
 				ws.s.gui_m,
 				ws.w.gui_m,
@@ -329,7 +345,7 @@ namespace modifiers {
 				lm);
 		} else {
 			local_buf[0] = u'+';
-			put_pos_value_in_buffer(local_buf + 1, national_offset_display[offset].display_as, ws.s.modifiers_m.national_modifier_definitions[mod][offset] * multiplier);
+			put_pos_value_in_buffer(local_buf + 1, national_offset_display[offset].display_as, value * multiplier);
 			cursor_in = ui::text_chunk_to_instances(
 				ws.s.gui_m,
 				ws.w.gui_m,

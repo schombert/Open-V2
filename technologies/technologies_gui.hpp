@@ -5,6 +5,7 @@
 #include "modifiers\\modifiers_gui.h"
 #include "technologies_functions.h"
 #include "triggers\\trigger_functions.h"
+#include "modifiers\\modifier_functions.h"
 
 namespace technologies {
 
@@ -397,11 +398,11 @@ namespace technologies {
 	void school_modifiers_lb::populate_list(lb_type & lb, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			if(auto ts = ws.w.nation_s.nations.get<nation::tech_school>(player); is_valid_index(ts)) {
-				auto milmod = ws.s.modifiers_m.national_modifier_definitions[ts][modifiers::national_offsets::army_tech_research_bonus];
-				auto navmod = ws.s.modifiers_m.national_modifier_definitions[ts][modifiers::national_offsets::navy_tech_research_bonus];
-				auto commod = ws.s.modifiers_m.national_modifier_definitions[ts][modifiers::national_offsets::commerce_tech_research_bonus];
-				auto culmod = ws.s.modifiers_m.national_modifier_definitions[ts][modifiers::national_offsets::culture_tech_research_bonus];
-				auto indmod = ws.s.modifiers_m.national_modifier_definitions[ts][modifiers::national_offsets::industry_tech_research_bonus];
+				auto milmod = modifiers::extract_value_from_definition(modifiers::national_offsets::army_tech_research_bonus, ws.s.modifiers_m.national_modifier_definitions[ts]);
+				auto navmod = modifiers::extract_value_from_definition(modifiers::national_offsets::navy_tech_research_bonus, ws.s.modifiers_m.national_modifier_definitions[ts]);
+				auto commod = modifiers::extract_value_from_definition(modifiers::national_offsets::commerce_tech_research_bonus, ws.s.modifiers_m.national_modifier_definitions[ts]);
+				auto culmod = modifiers::extract_value_from_definition(modifiers::national_offsets::culture_tech_research_bonus, ws.s.modifiers_m.national_modifier_definitions[ts]);
+				auto indmod = modifiers::extract_value_from_definition(modifiers::national_offsets::industry_tech_research_bonus, ws.s.modifiers_m.national_modifier_definitions[ts]);
 
 				if(milmod != 0.0f)
 					lb.add_item(ws, std::tuple<float, uint32_t, text_data::text_tag>(

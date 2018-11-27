@@ -5,6 +5,7 @@
 #include "events\\events.h"
 #include "issues\\issues_io.h"
 #include "events\\events_io.h"
+#include "modifiers\\modifier_functions.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -307,8 +308,8 @@ TEST(issues_tests, full_parse) {
 	
 	EXPECT_EQ(rules::build_factory | rules::expand_factory | rules::open_factory | rules::destroy_factory | rules::build_railway | rules::factory_priority | rules::can_subsidise, sm.issues_m.options[option_tag(0)].issue_rules.rules_mask.rules_value);
 	EXPECT_EQ( rules::open_factory, sm.issues_m.options[option_tag(0)].issue_rules.rules_settings.rules_value);
-	EXPECT_EQ(-1.0f, sm.modifiers_m.national_modifier_definitions[sm.issues_m.options[option_tag(1)].modifier][modifiers::national_offsets::min_tariff]);
-	EXPECT_NE(0.0f, sm.modifiers_m.national_modifier_definitions[sm.issues_m.options[option_tag(6)].modifier][modifiers::national_offsets::core_pop_militancy_modifier]);
+	EXPECT_EQ(-1.0f, modifiers::extract_value_from_definition(modifiers::national_offsets::min_tariff, sm.modifiers_m.national_modifier_definitions[sm.issues_m.options[option_tag(1)].modifier]));
+	EXPECT_NE(0.0f, modifiers::extract_value_from_definition(modifiers::national_offsets::core_pop_militancy_modifier, sm.modifiers_m.national_modifier_definitions[sm.issues_m.options[option_tag(6)].modifier]));
 	EXPECT_NE(triggers::trigger_tag(), sm.issues_m.options[option_tag(4)].allow);
 	EXPECT_EQ(triggers::trigger_tag(), sm.issues_m.options[option_tag(1)].allow);
 	EXPECT_EQ(issue_tag(2), sm.issues_m.options[option_tag(4)].parent_issue);

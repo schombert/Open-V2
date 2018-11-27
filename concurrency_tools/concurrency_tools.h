@@ -208,6 +208,22 @@ struct concurrent_allocator {
 	void deallocate(T* p, size_t n);
 };
 
+template<typename T>
+struct concurrent_cache_aligned_buffer {
+private:
+	T* const allocated_address;
+public:
+	T* const buffer;
+
+	concurrent_cache_aligned_buffer(uint32_t size);
+	~concurrent_cache_aligned_buffer();
+
+	concurrent_cache_aligned_buffer(concurrent_cache_aligned_buffer const&) = delete;
+	concurrent_cache_aligned_buffer(concurrent_cache_aligned_buffer&&) = delete;
+	concurrent_cache_aligned_buffer& operator=(concurrent_cache_aligned_buffer const&) = delete;
+	concurrent_cache_aligned_buffer& operator=(concurrent_cache_aligned_buffer&&) = delete;
+};
+
 template <typename T, typename U>
 constexpr bool operator== (const concurrent_allocator<T>&, const concurrent_allocator<U>&) noexcept {
 	return true;

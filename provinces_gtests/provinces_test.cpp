@@ -6,6 +6,7 @@
 #include "scenario\\scenario_io.h"
 #include "provinces\\province_functions.h"
 #include <ppl.h>
+#include "modifiers\\modifier_functions.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -128,7 +129,7 @@ TEST(provinces_test, climate_read) {
 	EXPECT_EQ(provincial_modifier_tag(0), mm.named_provincial_modifiers_index[mm.provincial_modifiers[provincial_modifier_tag(0)].name]);
 	EXPECT_EQ(provincial_modifier_tag(1), mm.named_provincial_modifiers_index[text_data::get_thread_safe_text_handle(tex, "temperate_climate")]);
 
-	EXPECT_EQ(1.0f, mm.provincial_modifier_definitions[provincial_modifier_tag(1)][modifiers::provincial_offsets::max_attrition]);
+	EXPECT_EQ(1.0f, modifiers::extract_value_from_definition(modifiers::provincial_offsets::max_attrition, mm.provincial_modifier_definitions[provincial_modifier_tag(1)]));
 
 	EXPECT_EQ(provincial_modifier_tag(1), m.province_container.get<province::climate>(province_tag(0)));
 	EXPECT_EQ(provincial_modifier_tag(1), m.province_container.get<province::climate>(province_tag(4)));
@@ -165,8 +166,8 @@ TEST(provinces_test, continent_preparse) {
 	EXPECT_EQ(provincial_modifier_tag(0), m.province_container.get<province::continent>(province_tag(3)));
 	EXPECT_EQ(provincial_modifier_tag(0), m.province_container.get<province::continent>(province_tag(4)));
 
-	EXPECT_EQ(0.5f, mm.provincial_modifier_definitions[provincial_modifier_tag(0)][modifiers::provincial_offsets::assimilation_rate]);
-	EXPECT_EQ(10.0f, mm.provincial_modifier_definitions[provincial_modifier_tag(1)][modifiers::provincial_offsets::mine_rgo_size]);
+	EXPECT_EQ(0.5f, modifiers::extract_value_from_definition(modifiers::provincial_offsets::assimilation_rate, mm.provincial_modifier_definitions[provincial_modifier_tag(0)]));
+	EXPECT_EQ(10.0f, modifiers::extract_value_from_definition(modifiers::provincial_offsets::mine_rgo_size, mm.provincial_modifier_definitions[provincial_modifier_tag(1)]));
 }
 
 TEST(provinces_test, terrain_preparse) {
@@ -200,8 +201,8 @@ TEST(provinces_test, terrain_preparse) {
 	EXPECT_EQ(provincial_modifier_tag(1), t_map.data[2]);
 	EXPECT_EQ(provincial_modifier_tag(1), t_map.data[3]);
 
-	EXPECT_EQ(1.0f, mm.provincial_modifier_definitions[provincial_modifier_tag(0)][modifiers::provincial_offsets::movement_cost]);
-	EXPECT_EQ(1.0f, mm.provincial_modifier_definitions[provincial_modifier_tag(1)][modifiers::provincial_offsets::min_build_railroad]);
+	EXPECT_EQ(1.0f, modifiers::extract_value_from_definition(modifiers::provincial_offsets::movement_cost, mm.provincial_modifier_definitions[provincial_modifier_tag(0)]));
+	EXPECT_EQ(1.0f, modifiers::extract_value_from_definition(modifiers::provincial_offsets::min_build_railroad, mm.provincial_modifier_definitions[provincial_modifier_tag(1)]));
 }
 
 TEST(provinces_test, region_read) {

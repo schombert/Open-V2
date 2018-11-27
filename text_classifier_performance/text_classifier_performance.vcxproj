@@ -164,6 +164,9 @@
     <ClCompile Include="text_classifier_performance.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\concurrency_tools\concurrency_tools.vcxproj">
+      <Project>{12f547e0-13dc-4c35-96ab-950827192412}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\performance_measurement\performance_measurement.vcxproj">
       <Project>{8a18cdb4-f949-499f-b361-6b14119d4777}</Project>
     </ProjectReference>

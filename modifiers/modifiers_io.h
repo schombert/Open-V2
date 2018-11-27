@@ -23,6 +23,8 @@ template<>
 class serialization::serializer<modifiers::defines> : public serialization::memcpy_serializer<modifiers::defines> {};
 template<>
 class serialization::serializer<modifiers::static_modifiers_s> : public serialization::memcpy_serializer<modifiers::static_modifiers_s> {};
+template<>
+class serialization::serializer<modifiers::modifier_definition> : public serialization::memcpy_serializer<modifiers::modifier_definition> {};
 
 template<>
 class serialization::serializer<modifiers::modifiers_manager> {

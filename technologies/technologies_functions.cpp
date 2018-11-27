@@ -142,7 +142,7 @@ namespace technologies {
 		float* pop_by_type = ws.w.nation_s.nation_demographics.get_row(id) + to_index(population::to_demo_tag(ws, population::pop_type_tag(0)));
 
 		float points_by_type = 0.0f;
-		if(total_pop != 0)
+		if(total_pop != 0) {
 			for(uint32_t i = 0; i < ws.s.population_m.count_poptypes; ++i) {
 				population::pop_type_tag this_tag(static_cast<population::pop_type_tag::value_base_t>(i));
 				auto& pt = ws.s.population_m.pop_types[this_tag];
@@ -150,27 +150,27 @@ namespace technologies {
 					points_by_type += float(pt.research_points) * std::min(1.0f, (float(pop_by_type[i]) / float(total_pop)) / ws.s.population_m.pop_types[this_tag].research_optimum);
 				}
 			}
+		}
 
-		auto& modifiers = ws.w.nation_s.nations.get<nation::modifier_values>(n);
-		return (modifiers[modifiers::national_offsets::research_points] + points_by_type) * (1.0f + modifiers[modifiers::national_offsets::research_points_modifier]);
+		return (ws.w.nation_s.modifier_values.get<modifiers::national_offsets::research_points>(n) + points_by_type) * (1.0f + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::research_points_modifier>(n));
 	}
 
 	float effective_tech_cost(tech_tag t, world_state const& ws, nations::country_tag this_nation) {
 		auto& tech = ws.s.technology_m.technologies_container[t];
 		auto base_cost = float(tech.cost);
 		auto years_after_unlock_adjustment = std::max(0.0f, 1.0f - float(int32_t(tag_to_date(ws.w.current_date).year()) - int32_t(tech.year)) / ws.s.modifiers_m.global_defines.tech_year_span);
-		auto& modifiers = ws.w.nation_s.nations.get<nation::modifier_values>(this_nation);
-		float modifier = [&ws, &tech, &modifiers](){
+		
+		float modifier = [&ws, &tech, this_nation](){
 			if(tech.category == tech_category_type::army)
-				return 1.0f + modifiers[modifiers::national_offsets::army_tech_research_bonus];
+				return 1.0f + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::army_tech_research_bonus>(this_nation);
 			if(tech.category == tech_category_type::navy)
-				return 1.0f + modifiers[modifiers::national_offsets::navy_tech_research_bonus];
+				return 1.0f + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::navy_tech_research_bonus>(this_nation);
 			if(tech.category == tech_category_type::commerce)
-				return 1.0f + modifiers[modifiers::national_offsets::commerce_tech_research_bonus];
+				return 1.0f + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::commerce_tech_research_bonus>(this_nation);
 			if(tech.category == tech_category_type::industry)
-				return 1.0f + modifiers[modifiers::national_offsets::industry_tech_research_bonus];
+				return 1.0f + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::industry_tech_research_bonus>(this_nation);
 			if(tech.category == tech_category_type::culture)
-				return 1.0f + modifiers[modifiers::national_offsets::culture_tech_research_bonus];
+				return 1.0f + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::culture_tech_research_bonus>(this_nation);
 			else
 				return 1.0f;
 		}();

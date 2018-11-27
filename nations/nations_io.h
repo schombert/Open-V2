@@ -95,8 +95,6 @@ class serialization::tagged_serializer<nation::political_movement_support, T> : 
 template<typename T>
 class serialization::tagged_serializer<nation::tech_attributes, T> : public serialization::discard_serializer<T> {};
 template<typename T>
-class serialization::tagged_serializer<nation::modifier_values, T> : public serialization::discard_serializer<T> {};
-template<typename T>
 class serialization::tagged_serializer<nation::is_colonial_nation, T> : public serialization::discard_serializer<T> {};
 template<typename T>
 class serialization::tagged_serializer<nation::has_gas_attack, T> : public serialization::discard_serializer<T> {};

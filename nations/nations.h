@@ -145,7 +145,6 @@ namespace nation {
 	struct overlord;
 
 	struct tech_attributes;
-	struct modifier_values;
 	
 	struct owned_provinces;
 	struct controlled_provinces;
@@ -187,9 +186,10 @@ namespace nation {
 	struct has_gas_attack;
 	struct has_gas_defence;
 
-	using container = variable_layout_tagged_vector < nations::country_tag, 400,
+	constexpr int32_t container_size = 400;
+
+	using container = variable_layout_tagged_vector < nations::country_tag, container_size,
 		tech_attributes, technologies::tech_attribute_vector,
-		modifier_values, modifiers::national_modifier_vector,
 
 		sphere_leader, nations::country_tag,
 		overlord, nations::country_tag,
@@ -380,6 +380,8 @@ namespace nations {
 
 		nation::container nations;
 		state::container states;
+
+		fixed_vectorizable_2d_array<nations::country_tag, modifiers::value_type, nation::container_size, modifiers::national_offsets::count> modifier_values;
 
 		stable_2d_vector<governments::party_tag, country_tag, ideologies::ideology_tag, 512, 16> active_parties;
 		stable_2d_vector<uint8_t, country_tag, ideologies::ideology_tag, 512, 16> upper_house;

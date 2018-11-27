@@ -17,7 +17,6 @@ namespace commands {
 				education_spending = v;
 				military_spending = v;
 				tarrifs = v;
-				debt_setting = v;
 				army_stockpile_spending = v;
 				navy_stockpile_spending = v;
 				projects_stockpile_spending = v;
@@ -46,9 +45,6 @@ namespace commands {
 			case set_budget_type::tarrifs:
 				tarrifs = v;
 				return;
-			case set_budget_type::debt_setting:
-				debt_setting = v;
-				return;
 			case set_budget_type::army_stockpile_spending:
 				army_stockpile_spending = v;
 				return;
@@ -63,141 +59,137 @@ namespace commands {
 
 	set_budget::set_budget(nations::country_tag n, int8_t rich_tax_v, int8_t middle_tax_v, int8_t poor_tax_v,
 		int8_t social_spending_v, int8_t administrative_spending_v, int8_t education_spending_v,
-		int8_t military_spending_v, int8_t tarrifs_v, int8_t debt_setting_v, int8_t army_stockpile_spending_v,
+		int8_t military_spending_v, int8_t tarrifs_v, int8_t army_stockpile_spending_v,
 		int8_t navy_stockpile_spending_v, int8_t projects_stockpile_spending_v)  : nation_for(n),
 		rich_tax(rich_tax_v), middle_tax(middle_tax_v), poor_tax(poor_tax_v), social_spending(social_spending_v),
 		administrative_spending(administrative_spending_v), education_spending(education_spending_v),
-		military_spending(military_spending_v), tarrifs(tarrifs_v), debt_setting(debt_setting_v),
+		military_spending(military_spending_v), tarrifs(tarrifs_v),
 		army_stockpile_spending(army_stockpile_spending_v), navy_stockpile_spending(navy_stockpile_spending_v),
 		projects_stockpile_spending(projects_stockpile_spending_v)
 	{}
 
 	void execute_command(set_budget const& c, world_state& ws) {
 		if(ws.w.nation_s.nations.is_valid_index(c.nation_for)) {
-			auto& n = ws.w.nation_s.nations[c.nation_for];
+			auto& mod_values = ws.w.nation_s.modifier_values;
 
 			switch(c.type) {
 				default:
 				case set_budget_type::all:
 				{
-					int32_t min_v = std::clamp(int32_t(100.0f * n.modifier_values[modifiers::national_offsets::min_tax]), -100, 100);
+					int32_t min_v = std::clamp(int32_t(100.0f * mod_values.get<modifiers::national_offsets::min_tax>(c.nation_for)), -100, 100);
 					int32_t max_v = std::clamp(
-						n.modifier_values[modifiers::national_offsets::max_tax] > 0
-						? int32_t(100.0f * n.modifier_values[modifiers::national_offsets::max_tax])
+						mod_values.get<modifiers::national_offsets::max_tax>(c.nation_for) > 0
+						? int32_t(100.0f * mod_values.get<modifiers::national_offsets::max_tax>(c.nation_for))
 						: 100, min_v, 100);
-					n.rich_tax = std::clamp(c.rich_tax, int8_t(min_v), int8_t(max_v));
-					n.middle_tax = std::clamp(c.middle_tax, int8_t(min_v), int8_t(max_v));
-					n.poor_tax = std::clamp(c.poor_tax, int8_t(min_v), int8_t(max_v));
+					ws.w.nation_s.nations.set<nation::rich_tax>(c.nation_for, std::clamp(c.rich_tax, int8_t(min_v), int8_t(max_v)));
+					ws.w.nation_s.nations.set<nation::middle_tax>(c.nation_for, std::clamp(c.middle_tax, int8_t(min_v), int8_t(max_v)));
+					ws.w.nation_s.nations.set<nation::poor_tax>(c.nation_for, std::clamp(c.poor_tax, int8_t(min_v), int8_t(max_v)));
 				}
 				{
-					int32_t min_v = std::clamp(int32_t(100.0f * n.modifier_values[modifiers::national_offsets::min_social_spending]), -100, 100);
+					int32_t min_v = std::clamp(int32_t(100.0f * mod_values.get<modifiers::national_offsets::min_social_spending>(c.nation_for)), -100, 100);
 					int32_t max_v = std::clamp(
-						n.modifier_values[modifiers::national_offsets::max_social_spending] > 0
-						? int32_t(100.0f * n.modifier_values[modifiers::national_offsets::max_social_spending])
+						mod_values.get<modifiers::national_offsets::max_social_spending>(c.nation_for) > 0
+						? int32_t(100.0f * mod_values.get<modifiers::national_offsets::max_social_spending>(c.nation_for))
 						: 100, min_v, 100);
-					n.social_spending = std::clamp(c.social_spending, int8_t(min_v), int8_t(max_v));
+					ws.w.nation_s.nations.set<nation::social_spending>(c.nation_for, std::clamp(c.social_spending, int8_t(min_v), int8_t(max_v)));
 				}
-					n.administrative_spending = std::clamp(c.administrative_spending, int8_t(0), int8_t(100));
-					n.education_spending = std::clamp(c.education_spending, int8_t(0), int8_t(100));
+				ws.w.nation_s.nations.set<nation::administrative_spending>(c.nation_for, std::clamp(c.administrative_spending, int8_t(0), int8_t(100)));
+				ws.w.nation_s.nations.set<nation::education_spending>(c.nation_for, std::clamp(c.education_spending, int8_t(0), int8_t(100)));
 				{
-					int32_t min_v = std::clamp(int32_t(100.0f * n.modifier_values[modifiers::national_offsets::min_military_spending]), -100, 100);
+					int32_t min_v = std::clamp(int32_t(100.0f * mod_values.get<modifiers::national_offsets::min_military_spending>(c.nation_for)), -100, 100);
 					int32_t max_v = std::clamp(
-						n.modifier_values[modifiers::national_offsets::max_military_spending] > 0
-						? int32_t(100.0f * n.modifier_values[modifiers::national_offsets::max_military_spending])
+						mod_values.get<modifiers::national_offsets::max_military_spending>(c.nation_for) > 0
+						? int32_t(100.0f * mod_values.get<modifiers::national_offsets::max_military_spending>(c.nation_for))
 						: 100, min_v, 100);
-					n.military_spending = std::clamp(c.military_spending, int8_t(min_v), int8_t(max_v));
+					ws.w.nation_s.nations.set<nation::military_spending>(c.nation_for, std::clamp(c.military_spending, int8_t(min_v), int8_t(max_v)));
 				}
 				{
-					int32_t min_v = std::clamp(int32_t(100.0f * n.modifier_values[modifiers::national_offsets::min_tariff]), -100, 100);
+					int32_t min_v = std::clamp(int32_t(100.0f * mod_values.get<modifiers::national_offsets::min_tariff>(c.nation_for)), -100, 100);
 					int32_t max_v = std::clamp(
-						n.modifier_values[modifiers::national_offsets::max_tariff] > 0
-						? int32_t(100.0f * n.modifier_values[modifiers::national_offsets::max_tariff])
+						mod_values.get<modifiers::national_offsets::max_tariff>(c.nation_for) > 0
+						? int32_t(100.0f * mod_values.get<modifiers::national_offsets::max_tariff>(c.nation_for))
 						: 100, min_v, 100);
-					n.tarrifs = std::clamp(c.tarrifs, int8_t(min_v), int8_t(max_v));
+					ws.w.nation_s.nations.set<nation::tarrifs>(c.nation_for, std::clamp(c.tarrifs, int8_t(min_v), int8_t(max_v)));
 				}
-					n.debt_setting = std::clamp(c.debt_setting, int8_t(-100), int8_t(100));
-					n.army_stockpile_spending = std::clamp(c.army_stockpile_spending, int8_t(0), int8_t(100));
-					n.navy_stockpile_spending = std::clamp(c.navy_stockpile_spending, int8_t(0), int8_t(100));
-					n.projects_stockpile_spending = std::clamp(c.projects_stockpile_spending, int8_t(0), int8_t(100));
+				ws.w.nation_s.nations.set<nation::army_stockpile_spending>(c.nation_for, std::clamp(c.army_stockpile_spending, int8_t(0), int8_t(100)));
+				ws.w.nation_s.nations.set<nation::navy_stockpile_spending>(c.nation_for, std::clamp(c.navy_stockpile_spending, int8_t(0), int8_t(100)));
+				ws.w.nation_s.nations.set<nation::projects_stockpile_spending>(c.nation_for, std::clamp(c.projects_stockpile_spending, int8_t(0), int8_t(100)));
 					return;
 
 				case set_budget_type::rich_tax:
 				{
-					int32_t min_v = std::clamp(int32_t(100.0f * n.modifier_values[modifiers::national_offsets::min_tax]), -100, 100);
+					int32_t min_v = std::clamp(int32_t(100.0f * mod_values.get<modifiers::national_offsets::min_tax>(c.nation_for)), -100, 100);
 					int32_t max_v = std::clamp(
-						n.modifier_values[modifiers::national_offsets::max_tax] > 0
-						? int32_t(100.0f * n.modifier_values[modifiers::national_offsets::max_tax])
+						mod_values.get<modifiers::national_offsets::max_tax>(c.nation_for) > 0
+						? int32_t(100.0f * mod_values.get<modifiers::national_offsets::max_tax>(c.nation_for))
 						: 100, min_v, 100);
-					n.rich_tax = std::clamp(c.rich_tax, int8_t(min_v), int8_t(max_v));
+					ws.w.nation_s.nations.set<nation::rich_tax>(c.nation_for, std::clamp(c.rich_tax, int8_t(min_v), int8_t(max_v)));
 				}
 					return;
 				case set_budget_type::middle_tax:
 				{
-					int32_t min_v = std::clamp(int32_t(100.0f * n.modifier_values[modifiers::national_offsets::min_tax]), -100, 100);
+					int32_t min_v = std::clamp(int32_t(100.0f * mod_values.get<modifiers::national_offsets::min_tax>(c.nation_for)), -100, 100);
 					int32_t max_v = std::clamp(
-						n.modifier_values[modifiers::national_offsets::max_tax] > 0
-						? int32_t(100.0f * n.modifier_values[modifiers::national_offsets::max_tax])
+						mod_values.get<modifiers::national_offsets::max_tax>(c.nation_for) > 0
+						? int32_t(100.0f * mod_values.get<modifiers::national_offsets::max_tax>(c.nation_for))
 						: 100, min_v, 100);
-					n.middle_tax = std::clamp(c.middle_tax, int8_t(min_v), int8_t(max_v));
+					ws.w.nation_s.nations.set<nation::middle_tax>(c.nation_for, std::clamp(c.middle_tax, int8_t(min_v), int8_t(max_v)));
 				}
 					return;
 				case set_budget_type::poor_tax:
 				{
-					int32_t min_v = std::clamp(int32_t(100.0f * n.modifier_values[modifiers::national_offsets::min_tax]), -100, 100);
+					int32_t min_v = std::clamp(int32_t(100.0f * mod_values.get<modifiers::national_offsets::min_tax>(c.nation_for)), -100, 100);
 					int32_t max_v = std::clamp(
-						n.modifier_values[modifiers::national_offsets::max_tax] > 0
-						? int32_t(100.0f * n.modifier_values[modifiers::national_offsets::max_tax])
+						mod_values.get<modifiers::national_offsets::max_tax>(c.nation_for) > 0
+						? int32_t(100.0f * mod_values.get<modifiers::national_offsets::max_tax>(c.nation_for))
 						: 100, min_v, 100);
-					n.poor_tax = std::clamp(c.poor_tax, int8_t(min_v), int8_t(max_v));
+					ws.w.nation_s.nations.set<nation::poor_tax>(c.nation_for, std::clamp(c.poor_tax, int8_t(min_v), int8_t(max_v)));
 				}
 					return;
 				case set_budget_type::social_spending:
 				{
-					int32_t min_v = std::clamp(int32_t(100.0f * n.modifier_values[modifiers::national_offsets::min_social_spending]), -100, 100);
+					int32_t min_v = std::clamp(int32_t(100.0f * mod_values.get<modifiers::national_offsets::min_social_spending>(c.nation_for)), -100, 100);
 					int32_t max_v = std::clamp(
-						n.modifier_values[modifiers::national_offsets::max_social_spending] > 0
-						? int32_t(100.0f * n.modifier_values[modifiers::national_offsets::max_social_spending])
+						mod_values.get<modifiers::national_offsets::max_social_spending>(c.nation_for) > 0
+						? int32_t(100.0f * mod_values.get<modifiers::national_offsets::max_social_spending>(c.nation_for))
 						: 100, min_v, 100);
-					n.social_spending = std::clamp(c.social_spending, int8_t(min_v), int8_t(max_v));
+					ws.w.nation_s.nations.set<nation::social_spending>(c.nation_for, std::clamp(c.social_spending, int8_t(min_v), int8_t(max_v)));
 				}
 					return;
 				case set_budget_type::administrative_spending:
-					n.administrative_spending = std::clamp(c.administrative_spending, int8_t(0), int8_t(100));
+					ws.w.nation_s.nations.set<nation::administrative_spending>(c.nation_for, std::clamp(c.administrative_spending, int8_t(0), int8_t(100)));
 					return;
 				case set_budget_type::education_spending:
-					n.education_spending = std::clamp(c.education_spending, int8_t(0), int8_t(100));
+					ws.w.nation_s.nations.set<nation::education_spending>(c.nation_for, std::clamp(c.education_spending, int8_t(0), int8_t(100)));
 					return;
 				case set_budget_type::military_spending:
 				{
-					int32_t min_v = std::clamp(int32_t(100.0f * n.modifier_values[modifiers::national_offsets::min_military_spending]), -100, 100);
+					int32_t min_v = std::clamp(int32_t(100.0f * mod_values.get<modifiers::national_offsets::min_military_spending>(c.nation_for)), -100, 100);
 					int32_t max_v = std::clamp(
-						n.modifier_values[modifiers::national_offsets::max_military_spending] > 0
-						? int32_t(100.0f * n.modifier_values[modifiers::national_offsets::max_military_spending])
+						mod_values.get<modifiers::national_offsets::max_military_spending>(c.nation_for) > 0
+						? int32_t(100.0f * mod_values.get<modifiers::national_offsets::max_military_spending>(c.nation_for))
 						: 100, min_v, 100);
-					n.military_spending = std::clamp(c.military_spending, int8_t(min_v), int8_t(max_v));
+					ws.w.nation_s.nations.set<nation::military_spending>(c.nation_for, std::clamp(c.military_spending, int8_t(min_v), int8_t(max_v)));
 				}
 					return;
 				case set_budget_type::tarrifs:
 				{
-					int32_t min_v = std::clamp(int32_t(100.0f * n.modifier_values[modifiers::national_offsets::min_tariff]), -100, 100);
+					int32_t min_v = std::clamp(int32_t(100.0f * mod_values.get<modifiers::national_offsets::min_tariff>(c.nation_for)), -100, 100);
 					int32_t max_v = std::clamp(
-						n.modifier_values[modifiers::national_offsets::max_tariff] > 0
-						? int32_t(100.0f * n.modifier_values[modifiers::national_offsets::max_tariff])
+						mod_values.get<modifiers::national_offsets::max_tariff>(c.nation_for) > 0
+						? int32_t(100.0f * mod_values.get<modifiers::national_offsets::max_tariff>(c.nation_for))
 						: 100, min_v, 100);
-					n.tarrifs = std::clamp(c.tarrifs, int8_t(min_v), int8_t(max_v));
+					ws.w.nation_s.nations.set<nation::tarrifs>(c.nation_for, std::clamp(c.tarrifs, int8_t(min_v), int8_t(max_v)));
 				}
 					return;
-				case set_budget_type::debt_setting:
-					n.debt_setting = std::clamp(c.debt_setting, int8_t(-100), int8_t(100));
-					return;
 				case set_budget_type::army_stockpile_spending:
-					n.army_stockpile_spending = std::clamp(c.army_stockpile_spending, int8_t(0), int8_t(100));
+					ws.w.nation_s.nations.set<nation::army_stockpile_spending>(c.nation_for, std::clamp(c.army_stockpile_spending, int8_t(0), int8_t(100)));
 					return;
 				case set_budget_type::navy_stockpile_spending:
-					n.navy_stockpile_spending = std::clamp(c.navy_stockpile_spending, int8_t(0), int8_t(100));
+					ws.w.nation_s.nations.set<nation::navy_stockpile_spending>(c.nation_for, std::clamp(c.navy_stockpile_spending, int8_t(0), int8_t(100)));
 					return;
 				case set_budget_type::projects_stockpile_spending:
-					n.projects_stockpile_spending = std::clamp(c.projects_stockpile_spending, int8_t(0), int8_t(100));
+					ws.w.nation_s.nations.set<nation::projects_stockpile_spending>(c.nation_for, std::clamp(c.projects_stockpile_spending, int8_t(0), int8_t(100)));
 					return;
 			}
 		}
@@ -251,18 +243,20 @@ namespace commands {
 			case province_building_type::province_fort:
 			{
 				if(auto owner = container.get<province_state::owner>(c.p); owner == c.nation_for) {
+					auto& t_mod = ws.w.nation_s.nations.get<nation::tech_attributes>(owner);
 					return container.get<province_state::fort_upgrade_progress>(c.p) == 0
-						&& container.get<province_state::fort_level>(c.p) < ws.w.nation_s.nations[owner].tech_attributes[technologies::tech_offset::max_fort];
+						&& container.get<province_state::fort_level>(c.p) < t_mod[technologies::tech_offset::max_fort];
 				}
 				return false;
 			}
 			case province_building_type::province_railroad:
 			{
 				if(auto owner = container.get<province_state::owner>(c.p); owner == c.nation_for) {
+					auto& t_mod = ws.w.nation_s.nations.get<nation::tech_attributes>(owner);
 					return container.get<province_state::railroad_upgrade_progress>(c.p) == 0
 						&& container.get<province_state::railroad_level>(c.p) < 
-							(ws.w.nation_s.nations[owner].tech_attributes[technologies::tech_offset::max_railroad] - container.get<province_state::modifier_values>(c.p)[modifiers::provincial_offsets::min_build_railroad])
-						&& (ws.w.nation_s.nations[owner].current_rules.rules_value & issues::rules::build_railway) != 0;
+							(t_mod[technologies::tech_offset::max_railroad] - ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::min_build_railroad>(c.p))
+						&& (ws.w.nation_s.nations.get<nation::current_rules>(owner).rules_value & issues::rules::build_railway) != 0;
 				}
 				return false;
 			}
@@ -270,9 +264,10 @@ namespace commands {
 			{
 				auto si = provinces::province_state(ws, c.p);
 				if(auto owner = container.get<province_state::owner>(c.p); owner == c.nation_for && is_valid_index(si)) {
+					auto& t_mod = ws.w.nation_s.nations.get<nation::tech_attributes>(owner);
 					auto port = nations::state_port_province(ws, si);
 					return container.get<province_state::naval_base_upgrade_progress>(c.p) == 0
-						&& container.get<province_state::naval_base_level>(c.p) < ws.w.nation_s.nations[owner].tech_attributes[technologies::tech_offset::max_naval_base]
+						&& container.get<province_state::naval_base_level>(c.p) < t_mod[technologies::tech_offset::max_naval_base]
 						&& ws.s.province_m.province_container.get<province::is_coastal>(c.p)
 						&& (port == c.p || !is_valid_index(port));
 				}
@@ -299,7 +294,8 @@ namespace commands {
 			case province_building_type::province_fort:
 			{
 				if(auto owner = p_container.get<province_state::owner>(c.p); is_valid_index(owner)) {
-					if(p_container.get<province_state::fort_level>(c.p) < ws.w.nation_s.nations[owner].tech_attributes[technologies::tech_offset::max_fort]) {
+					auto& t_mod = ws.w.nation_s.nations.get<nation::tech_attributes>(owner);
+					if(p_container.get<province_state::fort_level>(c.p) < t_mod[technologies::tech_offset::max_fort]) {
 						ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
 						cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
 					} else {
@@ -310,7 +306,7 @@ namespace commands {
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 
 					char16_t local_buffer[16];
-					put_value_in_buffer(local_buffer, display_type::integer, ws.w.nation_s.nations[owner].tech_attributes[technologies::tech_offset::max_fort]);
+					put_value_in_buffer(local_buffer, display_type::integer, t_mod[technologies::tech_offset::max_fort]);
 					cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), container, cursor_in, fmt, lm);
 					lm.finish_current_line();
 
@@ -321,8 +317,9 @@ namespace commands {
 			case province_building_type::province_railroad:
 			{
 				if(auto owner = p_container.get<province_state::owner>(c.p); is_valid_index(owner)) {
+					auto& t_mod = ws.w.nation_s.nations.get<nation::tech_attributes>(owner);
 					if(p_container.get<province_state::railroad_level>(c.p) <
-						(ws.w.nation_s.nations[owner].tech_attributes[technologies::tech_offset::max_railroad] - p_container.get<province_state::modifier_values>(c.p)[modifiers::provincial_offsets::min_build_railroad])) {
+						(t_mod[technologies::tech_offset::max_railroad] - ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::min_build_railroad>(c.p))) {
 						ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
 						cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
 					} else {
@@ -333,13 +330,13 @@ namespace commands {
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 
 					char16_t local_buffer[16];
-					put_value_in_buffer(local_buffer, display_type::integer, 1.0f + p_container.get<province_state::railroad_level>(c.p) + p_container.get<province_state::modifier_values>(c.p)[modifiers::provincial_offsets::min_build_railroad]);
+					put_value_in_buffer(local_buffer, display_type::integer, 1.0f + p_container.get<province_state::railroad_level>(c.p) + ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::min_build_railroad>(c.p));
 					cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), container, cursor_in, fmt, lm);
 					lm.finish_current_line();
 
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 					
-					if((ws.w.nation_s.nations[owner].current_rules.rules_value & issues::rules::build_railway) != 0) {
+					if((ws.w.nation_s.nations.get<nation::current_rules>(owner).rules_value & issues::rules::build_railway) != 0) {
 						ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
 						cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
 					} else {
@@ -357,9 +354,10 @@ namespace commands {
 			{
 				auto si = p_container.get<province_state::state_instance>(c.p);
 				if(auto owner = p_container.get<province_state::owner>(c.p); is_valid_index(owner) && is_valid_index(si)) {
+					auto& t_mod = ws.w.nation_s.nations.get<nation::tech_attributes>(owner);
 					auto port = nations::state_port_province(ws, si);
 
-					if(p_container.get<province_state::naval_base_level>(c.p) < ws.w.nation_s.nations[owner].tech_attributes[technologies::tech_offset::max_naval_base]) {
+					if(p_container.get<province_state::naval_base_level>(c.p) < t_mod[technologies::tech_offset::max_naval_base]) {
 						ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
 						cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
 					} else {
@@ -370,7 +368,7 @@ namespace commands {
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 
 					char16_t local_buffer[16];
-					put_value_in_buffer(local_buffer, display_type::integer, ws.w.nation_s.nations[owner].tech_attributes[technologies::tech_offset::max_naval_base]);
+					put_value_in_buffer(local_buffer, display_type::integer, t_mod[technologies::tech_offset::max_naval_base]);
 					cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), container, cursor_in, fmt, lm);
 					lm.finish_current_line();
 

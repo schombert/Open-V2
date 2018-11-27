@@ -60,7 +60,6 @@ namespace province {
 }
 
 namespace province_state {
-	struct modifier_values;
 	struct owner;
 	struct controller;
 	struct rebel_controller;
@@ -107,9 +106,10 @@ namespace province_state {
 	struct has_owner_core;
 	struct owner_building_railroad;
 
+	constexpr int32_t container_size = 4000;
 	using container =
 		variable_layout_contiguous_tagged_vector <
-		provinces::province_tag, 4000,
+		provinces::province_tag, container_size,
 
 		is_blockaded, bitfield_type,
 		is_overseas, bitfield_type,
@@ -156,9 +156,8 @@ namespace province_state {
 		controller, nations::country_tag,
 		rebel_controller, population::rebel_faction_tag,
 		state_instance, nations::state_tag,
-		orders, military::army_orders_tag,
+		orders, military::army_orders_tag
 
-		modifier_values, modifiers::provincial_modifier_vector
 		> ;
 
 	 void initialize(container& c, provinces::province_tag);
@@ -181,6 +180,8 @@ namespace provinces {
 	class provinces_state {
 	public:
 		province_state::container province_state_container;
+		fixed_vectorizable_2d_array<provinces::province_tag, modifiers::value_type, province_state::container_size, modifiers::provincial_offsets::count> modifier_values;
+
 		tagged_fixed_2dvector<float, province_tag, ideologies::ideology_tag> party_loyalty;
 		tagged_fixed_blocked_2dvector<float, province_tag, population::demo_tag, aligned_allocator_32<int32_t>> province_demographics;
 

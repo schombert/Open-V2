@@ -144,6 +144,10 @@
     <ClInclude Include="concurrency_tools.h" />
     <ClInclude Include="concurrency_tools.hpp" />
     <ClInclude Include="variable_layout.h" />
+    <ClInclude Include="ve.h" />
+    <ClInclude Include="ve_avx.h" />
+    <ClInclude Include="ve_avx2.h" />
+    <ClInclude Include="ve_sse.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="concurrecy_tools.cpp" />

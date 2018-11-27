@@ -145,6 +145,9 @@
     <ClCompile Include="object_parsing_performance.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\concurrency_tools\concurrency_tools.vcxproj">
+      <Project>{12f547e0-13dc-4c35-96ab-950827192412}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\db_wrapper\db_wrapper.vcxproj">
       <Project>{368e5674-7c12-4276-92c2-6c9e92c203e0}</Project>
     </ProjectReference>

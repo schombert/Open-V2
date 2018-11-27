@@ -7,6 +7,7 @@
 #include "economy\\economy_io.h"
 #include "ideologies\\ideologies_io.h"
 #include "population\\population_io.h"
+#include "modifiers\\modifier_functions.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -210,7 +211,7 @@ TEST(modifiers_tests, national_focus_test) {
 	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "immigration"), s.modifiers_m.national_focuses[national_focus_tag(1)].name);
 	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "immigration_focus"), s.modifiers_m.national_focuses[national_focus_tag(1)].group);
 	EXPECT_NE(provincial_modifier_tag(), s.modifiers_m.national_focuses[national_focus_tag(1)].modifier);
-	EXPECT_EQ(0.2f, s.modifiers_m.provincial_modifier_definitions[s.modifiers_m.national_focuses[national_focus_tag(1)].modifier][provincial_offsets::immigrant_attract]);
+	EXPECT_EQ(0.2f, extract_value_from_definition(provincial_offsets::immigrant_attract, s.modifiers_m.provincial_modifier_definitions[s.modifiers_m.national_focuses[national_focus_tag(1)].modifier]));
 
 	EXPECT_EQ(4ui8, s.modifiers_m.national_focuses[national_focus_tag(2)].icon);
 	EXPECT_EQ(national_focus_tag(2), s.modifiers_m.national_focuses[national_focus_tag(2)].id);
@@ -284,8 +285,8 @@ TEST(modifiers_tests, crimes_parse) {
 	EXPECT_EQ(provincial_modifier_tag(0), s.modifiers_m.named_provincial_modifiers_index[s.modifiers_m.provincial_modifiers[provincial_modifier_tag(0)].name]);
 	EXPECT_EQ(provincial_modifier_tag(1), s.modifiers_m.named_provincial_modifiers_index[s.modifiers_m.provincial_modifiers[provincial_modifier_tag(1)].name]);
 
-	EXPECT_EQ(5.0f, s.modifiers_m.provincial_modifier_definitions[provincial_modifier_tag(0)][provincial_offsets::boost_strongest_party]);
-	EXPECT_EQ(1.0f, s.modifiers_m.provincial_modifier_definitions[provincial_modifier_tag(1)][provincial_offsets::number_of_voters]);
+	EXPECT_EQ(5.0f, extract_value_from_definition(provincial_offsets::boost_strongest_party, s.modifiers_m.provincial_modifier_definitions[provincial_modifier_tag(0)]));
+	EXPECT_EQ(1.0f, extract_value_from_definition(provincial_offsets::number_of_voters, s.modifiers_m.provincial_modifier_definitions[provincial_modifier_tag(1)]));
 	EXPECT_EQ(4ui32, s.modifiers_m.provincial_modifiers[provincial_modifier_tag(0)].icon);
 	EXPECT_EQ(6ui32, s.modifiers_m.provincial_modifiers[provincial_modifier_tag(1)].icon);
 	EXPECT_EQ(true, s.modifiers_m.crimes[0].default_active);
@@ -315,7 +316,7 @@ TEST(modifiers_tests, nv_parse) {
 	EXPECT_EQ(national_modifier_tag(0), m.named_national_modifiers_index[m.national_modifiers[national_modifier_tag(0)].name]);
 	EXPECT_EQ(national_modifier_tag(1), m.named_national_modifiers_index[m.national_modifiers[national_modifier_tag(1)].name]);
 	EXPECT_EQ(national_modifier_tag(2), m.named_national_modifiers_index[m.national_modifiers[national_modifier_tag(2)].name]);
-	EXPECT_EQ(0.75f, m.national_modifier_definitions[national_modifier_tag(1)][modifiers::national_offsets::mobilisation_economy_impact]);
+	EXPECT_EQ(0.75f, extract_value_from_definition(modifiers::national_offsets::mobilisation_economy_impact, m.national_modifier_definitions[national_modifier_tag(1)]));
 }
 
 TEST(modifiers_tests, event_modifiers) {
@@ -342,16 +343,16 @@ TEST(modifiers_tests, event_modifiers) {
 	EXPECT_EQ(19ui32, m.provincial_modifiers[provincial_modifier_tag(1)].icon);
 	EXPECT_EQ(provincial_modifier_tag(0), m.named_provincial_modifiers_index[m.provincial_modifiers[provincial_modifier_tag(0)].name]);
 
-	EXPECT_EQ(0.5f, m.national_modifier_definitions[national_modifier_tag(1)][modifiers::national_offsets::administrative_efficiency_modifier]);
-	EXPECT_EQ(0.5f, m.national_modifier_definitions[national_modifier_tag(1)][modifiers::national_offsets::tax_efficiency]);
-	EXPECT_EQ(-1.0f, m.national_modifier_definitions[national_modifier_tag(1)][modifiers::national_offsets::research_points_modifier]);
-	EXPECT_EQ(-0.5f, m.national_modifier_definitions[national_modifier_tag(1)][modifiers::national_offsets::education_efficiency_modifier]);
-	EXPECT_EQ(-4.0f, m.national_modifier_definitions[national_modifier_tag(1)][modifiers::national_offsets::mobilisation_size]);
-	EXPECT_EQ(2.0f, m.national_modifier_definitions[national_modifier_tag(1)][modifiers::national_offsets::cb_generation_speed_modifier]);
-	EXPECT_EQ(-0.5f, m.national_modifier_definitions[national_modifier_tag(1)][modifiers::national_offsets::diplomatic_points_modifier]);
+	EXPECT_EQ(0.5f, extract_value_from_definition(modifiers::national_offsets::administrative_efficiency_modifier, m.national_modifier_definitions[national_modifier_tag(1)]));
+	EXPECT_EQ(0.5f, extract_value_from_definition(modifiers::national_offsets::tax_efficiency, m.national_modifier_definitions[national_modifier_tag(1)]));
+	EXPECT_EQ(-1.0f, extract_value_from_definition(modifiers::national_offsets::research_points_modifier, m.national_modifier_definitions[national_modifier_tag(1)]));
+	EXPECT_EQ(-0.5f, extract_value_from_definition(modifiers::national_offsets::education_efficiency_modifier, m.national_modifier_definitions[national_modifier_tag(1)]));
+	EXPECT_EQ(-4.0f, extract_value_from_definition(modifiers::national_offsets::mobilisation_size, m.national_modifier_definitions[national_modifier_tag(1)]));
+	EXPECT_EQ(2.0f, extract_value_from_definition(modifiers::national_offsets::cb_generation_speed_modifier, m.national_modifier_definitions[national_modifier_tag(1)]));
+	EXPECT_EQ(-0.5f, extract_value_from_definition(modifiers::national_offsets::diplomatic_points_modifier, m.national_modifier_definitions[national_modifier_tag(1)]));
 
-	EXPECT_EQ(3.0f, m.provincial_modifier_definitions[provincial_modifier_tag(1)][modifiers::provincial_offsets::local_factory_input]);
-	EXPECT_EQ(3.0f, m.provincial_modifier_definitions[provincial_modifier_tag(1)][modifiers::provincial_offsets::local_factory_output]);
+	EXPECT_EQ(3.0f, extract_value_from_definition(modifiers::provincial_offsets::local_factory_input, m.provincial_modifier_definitions[provincial_modifier_tag(1)]));
+	EXPECT_EQ(3.0f, extract_value_from_definition(modifiers::provincial_offsets::local_factory_output, m.provincial_modifier_definitions[provincial_modifier_tag(1)]));
 }
 
 TEST(modifiers_tests, static_modifiers) {
@@ -379,13 +380,13 @@ TEST(modifiers_tests, static_modifiers) {
 	EXPECT_EQ(provincial_modifier_tag(0), m.provincial_modifiers[provincial_modifier_tag(0)].id);
 	EXPECT_EQ(provincial_modifier_tag(0), m.named_provincial_modifiers_index[m.provincial_modifiers[provincial_modifier_tag(0)].name]);
 
-	EXPECT_EQ(-0.5f, m.national_modifier_definitions[national_modifier_tag(0)][modifiers::national_offsets::badboy]);
-	EXPECT_EQ(-0.5f, m.national_modifier_definitions[national_modifier_tag(0)][modifiers::national_offsets::supply_consumption]);
-	EXPECT_EQ(100.0f, m.national_modifier_definitions[national_modifier_tag(0)][modifiers::national_offsets::max_war_exhaustion]);
+	EXPECT_EQ(-0.5f, extract_value_from_definition(modifiers::national_offsets::badboy, m.national_modifier_definitions[national_modifier_tag(0)]));
+	EXPECT_EQ(-0.5f, extract_value_from_definition(modifiers::national_offsets::supply_consumption, m.national_modifier_definitions[national_modifier_tag(0)]));
+	EXPECT_EQ(100.0f, extract_value_from_definition(modifiers::national_offsets::max_war_exhaustion, m.national_modifier_definitions[national_modifier_tag(0)]));
 
-	EXPECT_EQ(1.0f, m.provincial_modifier_definitions[provincial_modifier_tag(0)][modifiers::provincial_offsets::local_factory_throughput]);
-	EXPECT_EQ(1.0f, m.provincial_modifier_definitions[provincial_modifier_tag(0)][modifiers::provincial_offsets::local_rgo_output]);
-	EXPECT_EQ(4.0f, m.provincial_modifier_definitions[provincial_modifier_tag(0)][modifiers::provincial_offsets::supply_limit]);
+	EXPECT_EQ(1.0f, extract_value_from_definition(modifiers::provincial_offsets::local_factory_throughput, m.provincial_modifier_definitions[provincial_modifier_tag(0)]));
+	EXPECT_EQ(1.0f, extract_value_from_definition(modifiers::provincial_offsets::local_rgo_output, m.provincial_modifier_definitions[provincial_modifier_tag(0)]));
+	EXPECT_EQ(4.0f, extract_value_from_definition(modifiers::provincial_offsets::supply_limit, m.provincial_modifier_definitions[provincial_modifier_tag(0)]));
 }
 
 TEST(modifiers_tests, triggered_modifiers) {
@@ -409,8 +410,8 @@ TEST(modifiers_tests, triggered_modifiers) {
 	EXPECT_EQ(national_modifier_tag(0), s.modifiers_m.named_national_modifiers_index[s.modifiers_m.national_modifiers[national_modifier_tag(0)].name]);
 	EXPECT_EQ(national_modifier_tag(1), s.modifiers_m.named_national_modifiers_index[s.modifiers_m.national_modifiers[national_modifier_tag(1)].name]);
 
-	EXPECT_EQ(-1.0f, s.modifiers_m.national_modifier_definitions[national_modifier_tag(1)][modifiers::national_offsets::prestige]);
-	EXPECT_EQ(1.0f, s.modifiers_m.national_modifier_definitions[national_modifier_tag(0)][modifiers::national_offsets::research_points]);
+	EXPECT_EQ(-1.0f, extract_value_from_definition(modifiers::national_offsets::prestige, s.modifiers_m.national_modifier_definitions[national_modifier_tag(1)]));
+	EXPECT_EQ(1.0f, extract_value_from_definition(modifiers::national_offsets::research_points, s.modifiers_m.national_modifier_definitions[national_modifier_tag(0)]));
 
 	read_triggered_modifiers(state, s);
 
@@ -1125,8 +1126,8 @@ TEST(modifiers_tests, modifier_adding_b) {
 
 		EXPECT_EQ(0ui64, m.national_modifier_definitions.size());
 		EXPECT_EQ(1ui64, m.provincial_modifier_definitions.size());
-		EXPECT_EQ(2.0f, m.provincial_modifier_definitions[provincial_modifier_tag(0)][provincial_offsets::immigrant_push]);
-		EXPECT_EQ(5.0f, m.provincial_modifier_definitions[provincial_modifier_tag(0)][provincial_offsets::rich_income_modifier]);
+		EXPECT_EQ(2.0f, extract_value_from_definition(provincial_offsets::immigrant_push, m.provincial_modifier_definitions[provincial_modifier_tag(0)]));
+		EXPECT_EQ(5.0f, extract_value_from_definition(provincial_offsets::rich_income_modifier, m.provincial_modifier_definitions[provincial_modifier_tag(0)]));
 	}
 
 	{
@@ -1146,11 +1147,11 @@ TEST(modifiers_tests, modifier_adding_b) {
 		EXPECT_EQ(1ui64, m.national_modifier_definitions.size());
 		EXPECT_EQ(1ui64, m.provincial_modifier_definitions.size());
 
-		EXPECT_EQ(2.0f, m.provincial_modifier_definitions[provincial_modifier_tag(0)][provincial_offsets::immigrant_push]);
-		EXPECT_EQ(5.0f, m.provincial_modifier_definitions[provincial_modifier_tag(0)][provincial_offsets::rich_income_modifier]);
+		EXPECT_EQ(2.0f, extract_value_from_definition(provincial_offsets::immigrant_push, m.provincial_modifier_definitions[provincial_modifier_tag(0)]));
+		EXPECT_EQ(5.0f, extract_value_from_definition(provincial_offsets::rich_income_modifier, m.provincial_modifier_definitions[provincial_modifier_tag(0)]));
 
-		EXPECT_EQ(1.0f, m.national_modifier_definitions[national_modifier_tag(0)][national_offsets::global_immigrant_attract]);
-		EXPECT_EQ(0.0f, m.national_modifier_definitions[national_modifier_tag(0)][national_offsets::rich_income_modifier]);
+		EXPECT_EQ(1.0f, extract_value_from_definition(national_offsets::global_immigrant_attract, m.national_modifier_definitions[national_modifier_tag(0)]));
+		EXPECT_EQ(0.0f, extract_value_from_definition(national_offsets::rich_income_modifier, m.national_modifier_definitions[national_modifier_tag(0)]));
 
 		EXPECT_EQ(national_modifier_tag(0), m.provincial_modifiers[provincial_modifier_tag(0)].complement);
 		EXPECT_EQ(text_data::text_tag(0), m.national_modifiers[national_modifier_tag(0)].name);
@@ -1173,8 +1174,8 @@ TEST(modifiers_tests, modifier_adding_b) {
 		EXPECT_EQ(1ui64, m.national_modifier_definitions.size());
 		EXPECT_EQ(0ui64, m.provincial_modifier_definitions.size());
 
-		EXPECT_EQ(1.0f, m.national_modifier_definitions[national_modifier_tag(0)][national_offsets::global_immigrant_attract]);
-		EXPECT_EQ(5.0f, m.national_modifier_definitions[national_modifier_tag(0)][national_offsets::rich_income_modifier]);
+		EXPECT_EQ(1.0f, extract_value_from_definition(national_offsets::global_immigrant_attract, m.national_modifier_definitions[national_modifier_tag(0)]));
+		EXPECT_EQ(5.0f, extract_value_from_definition(national_offsets::rich_income_modifier, m.national_modifier_definitions[national_modifier_tag(0)]));
 	}
 }
 
@@ -1204,8 +1205,8 @@ TEST(modifiers_tests, modifier_adding_indeterminate) {
 
 		EXPECT_EQ(0ui64, m.national_modifier_definitions.size());
 		EXPECT_EQ(1ui64, m.provincial_modifier_definitions.size());
-		EXPECT_EQ(2.0f, m.provincial_modifier_definitions[provincial_modifier_tag(0)][provincial_offsets::immigrant_push]);
-		EXPECT_EQ(5.0f, m.provincial_modifier_definitions[provincial_modifier_tag(0)][provincial_offsets::rich_income_modifier]);
+		EXPECT_EQ(2.0f, extract_value_from_definition(provincial_offsets::immigrant_push, m.provincial_modifier_definitions[provincial_modifier_tag(0)]));
+		EXPECT_EQ(5.0f, extract_value_from_definition(provincial_offsets::rich_income_modifier, m.provincial_modifier_definitions[provincial_modifier_tag(0)]));
 	}
 
 	{
@@ -1224,7 +1225,7 @@ TEST(modifiers_tests, modifier_adding_indeterminate) {
 		EXPECT_EQ(1ui64, m.national_modifier_definitions.size());
 		EXPECT_EQ(0ui64, m.provincial_modifier_definitions.size());
 
-		EXPECT_EQ(1.0f, m.national_modifier_definitions[national_modifier_tag(0)][national_offsets::global_immigrant_attract]);
+		EXPECT_EQ(1.0f, extract_value_from_definition(national_offsets::global_immigrant_attract, m.national_modifier_definitions[national_modifier_tag(0)]));
 	}
 
 	{
@@ -1243,12 +1244,12 @@ TEST(modifiers_tests, modifier_adding_indeterminate) {
 		EXPECT_EQ(2ui64, m.national_modifier_definitions.size());
 		EXPECT_EQ(1ui64, m.provincial_modifier_definitions.size());
 
-		EXPECT_EQ(1.0f, m.national_modifier_definitions[national_modifier_tag(0)][national_offsets::global_immigrant_attract]);
-		EXPECT_EQ(5.0f, m.national_modifier_definitions[national_modifier_tag(0)][national_offsets::rich_income_modifier]);
+		EXPECT_EQ(1.0f, extract_value_from_definition(national_offsets::global_immigrant_attract, m.national_modifier_definitions[national_modifier_tag(0)]));
+		EXPECT_EQ(5.0f, extract_value_from_definition(national_offsets::rich_income_modifier, m.national_modifier_definitions[national_modifier_tag(0)]));
 
-		EXPECT_EQ(5.0f, m.provincial_modifier_definitions[provincial_modifier_tag(0)][provincial_offsets::rich_income_modifier]);
-		EXPECT_EQ(1.0f, m.national_modifier_definitions[national_modifier_tag(1)][national_offsets::global_immigrant_attract]);
-		EXPECT_EQ(0.0f, m.national_modifier_definitions[national_modifier_tag(1)][national_offsets::rich_income_modifier]);
+		EXPECT_EQ(5.0f, extract_value_from_definition(provincial_offsets::rich_income_modifier, m.provincial_modifier_definitions[provincial_modifier_tag(0)]));
+		EXPECT_EQ(1.0f, extract_value_from_definition(national_offsets::global_immigrant_attract, m.national_modifier_definitions[national_modifier_tag(1)]));
+		EXPECT_EQ(0.0f, extract_value_from_definition(national_offsets::rich_income_modifier, m.national_modifier_definitions[national_modifier_tag(1)]));
 
 		EXPECT_EQ(national_modifier_tag(1), m.provincial_modifiers[provincial_modifier_tag(0)].complement);
 	}

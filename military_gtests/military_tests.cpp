@@ -619,36 +619,36 @@ TEST(military_tests, read_oob_test) {
 
 	population::read_all_pops(f.get_root(), ws, date_to_tag(boost::gregorian::date(1801, boost::gregorian::Jan, 1)));
 
-	nations::nation& usa = *nations::make_nation_for_tag(ws, ws.s.culture_m.national_tags_index[cultures::tag_to_encoding(RANGE(usat))]);
-	usa.primary_culture = cultures::culture_tag(0ui16);
+	auto usa = nations::make_nation_for_tag(ws, ws.s.culture_m.national_tags_index[cultures::tag_to_encoding(RANGE(usat))]);
+	ws.w.nation_s.nations.set<nation::primary_culture>(usa, cultures::culture_tag(0ui16));
 
 	read_oob_file(ws, usa, presults.data(), presults.data() + presults.size());
 
-	EXPECT_EQ(1ui32, get_size(ws.w.nation_s.nations_arrays, usa.sphere_members));
+	EXPECT_EQ(1ui32, get_size(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::sphere_members>(usa)));
 
-	nations::nation& jap = *nations::make_nation_for_tag(ws, ws.s.culture_m.national_tags_index[cultures::tag_to_encoding(RANGE(japt))]);
+	auto jap = nations::make_nation_for_tag(ws, ws.s.culture_m.national_tags_index[cultures::tag_to_encoding(RANGE(japt))]);
 
-	EXPECT_EQ(&usa, jap.sphere_leader);
-	EXPECT_EQ(25, nations::get_influence_value(ws, usa, jap.id));
-	EXPECT_EQ(5, nations::get_influence_level(ws, usa, jap.id));
-	EXPECT_EQ(130, nations::get_relationship(ws, usa, jap.id));
-	EXPECT_EQ(130, nations::get_relationship(ws, jap, usa.id));
+	EXPECT_EQ(usa, ws.w.nation_s.nations.get<nation::sphere_leader>(jap));
+	EXPECT_EQ(25, nations::get_influence_value(ws, usa, jap));
+	EXPECT_EQ(5, nations::get_influence_level(ws, usa, jap));
+	EXPECT_EQ(130, nations::get_relationship(ws, usa, jap));
+	EXPECT_EQ(130, nations::get_relationship(ws, jap, usa));
 
-	nations::nation& mex = *nations::make_nation_for_tag(ws, ws.s.culture_m.national_tags_index[cultures::tag_to_encoding(RANGE(mext))]);
+	auto mex = nations::make_nation_for_tag(ws, ws.s.culture_m.national_tags_index[cultures::tag_to_encoding(RANGE(mext))]);
 
-	EXPECT_NE(&usa, mex.sphere_leader);
-	EXPECT_EQ(5, nations::get_influence_value(ws, usa, mex.id));
-	EXPECT_EQ(3, nations::get_influence_level(ws, usa, mex.id));
-	EXPECT_EQ(150, nations::get_relationship(ws, usa, mex.id));
-	EXPECT_EQ(150, nations::get_relationship(ws, mex, usa.id));
+	EXPECT_NE(usa, ws.w.nation_s.nations.get<nation::sphere_leader>(mex));
+	EXPECT_EQ(5, nations::get_influence_value(ws, usa, mex));
+	EXPECT_EQ(3, nations::get_influence_level(ws, usa, mex));
+	EXPECT_EQ(150, nations::get_relationship(ws, usa, mex));
+	EXPECT_EQ(150, nations::get_relationship(ws, mex, usa));
 
-	EXPECT_EQ(2ui32, get_size(ws.w.military_s.leader_arrays, usa.generals));
-	EXPECT_EQ(1ui32, get_size(ws.w.military_s.leader_arrays, usa.admirals));
+	EXPECT_EQ(2ui32, get_size(ws.w.military_s.leader_arrays, ws.w.nation_s.nations.get<nation::generals>(usa)));
+	EXPECT_EQ(1ui32, get_size(ws.w.military_s.leader_arrays, ws.w.nation_s.nations.get<nation::admirals>(usa)));
 
-	EXPECT_EQ(1ui32, get_size(ws.w.military_s.army_arrays, usa.armies));
-	EXPECT_EQ(1ui32, get_size(ws.w.military_s.fleet_arrays, usa.fleets));
+	EXPECT_EQ(1ui32, get_size(ws.w.military_s.army_arrays, ws.w.nation_s.nations.get<nation::armies>(usa)));
+	EXPECT_EQ(1ui32, get_size(ws.w.military_s.fleet_arrays, ws.w.nation_s.nations.get<nation::fleets>(usa)));
 
-	army& a = ws.w.military_s.armies.get(get(ws.w.military_s.army_arrays, usa.armies, 0ui32));
+	army& a = ws.w.military_s.armies.get(get(ws.w.military_s.army_arrays, ws.w.nation_s.nations.get<nation::armies>(usa), 0ui32));
 
 	EXPECT_NE(nullptr, a.leader);
 	EXPECT_EQ(provinces::province_tag(220), a.base);
@@ -673,7 +673,7 @@ TEST(military_tests, read_oob_test) {
 	EXPECT_EQ(a.leader->leader_traits[traits::experience], 0.0f);
 	EXPECT_EQ(a.leader->leader_traits[traits::reliability], 0.0f);
 
-	fleet& b = ws.w.military_s.fleets.get(get(ws.w.military_s.fleet_arrays, usa.fleets, 0ui32));
+	fleet& b = ws.w.military_s.fleets.get(get(ws.w.military_s.fleet_arrays, ws.w.nation_s.nations.get<nation::fleets>(usa), 0ui32));
 	EXPECT_EQ(nullptr, b.leader);
 	EXPECT_EQ(provinces::province_tag(219), b.base);
 	EXPECT_EQ(5ui32, get_size(ws.w.military_s.ship_arrays, b.ships));

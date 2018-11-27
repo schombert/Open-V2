@@ -271,6 +271,7 @@ void restore_world_state(world_state& ws) {
 
 	std::fill_n(ws.w.technology_s.discovery_count.data(), ws.s.technology_m.technologies_container.size(), 0);
 
+	ws.w.nation_s.modifier_values.reset();
 	ws.w.nation_s.nations.parallel_for_each([&ws](nations::country_tag n) {
 		technologies::restore_technologies(ws, n);
 		modifiers::reset_national_modifier(ws, n);

@@ -37,8 +37,8 @@ namespace governments {
 	void poor_tax_scrollbar::update(ui::scrollbar<poor_tax_scrollbar>& sb, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			sb.set_limits(ws.w.gui_m,
-				int32_t(100.0f * ws.w.nation_s.nations.get<nation::modifier_values>(player)[modifiers::national_offsets::min_tax]),
-				ws.w.nation_s.nations.get<nation::modifier_values>(player)[modifiers::national_offsets::max_tax] > 0 ? int32_t(100.0f * ws.w.nation_s.nations.get<nation::modifier_values>(player)[modifiers::national_offsets::max_tax]) : 100);
+				int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::min_tax>(player)),
+				ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_tax>(player) > 0 ? int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_tax>(player)) : 100);
 			sb.update_position(ws.w.nation_s.nations.get<nation::poor_tax>(player));
 		}
 	}
@@ -50,8 +50,8 @@ namespace governments {
 	void middle_tax_scrollbar::update(ui::scrollbar<middle_tax_scrollbar>& sb, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			sb.set_limits(ws.w.gui_m,
-				int32_t(100.0f * ws.w.nation_s.nations.get<nation::modifier_values>(player)[modifiers::national_offsets::min_tax]),
-				ws.w.nation_s.nations.get<nation::modifier_values>(player)[modifiers::national_offsets::max_tax] > 0 ? int32_t(100.0f * ws.w.nation_s.nations.get<nation::modifier_values>(player)[modifiers::national_offsets::max_tax]) : 100);
+				int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::min_tax>(player)),
+				ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_tax>(player) > 0 ? int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_tax>(player)) : 100);
 			sb.update_position(ws.w.nation_s.nations.get<nation::middle_tax>(player));
 		}
 	}
@@ -63,8 +63,8 @@ namespace governments {
 	void rich_tax_scrollbar::update(ui::scrollbar<rich_tax_scrollbar>& sb, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			sb.set_limits(ws.w.gui_m,
-				int32_t(100.0f * ws.w.nation_s.nations.get<nation::modifier_values>(player)[modifiers::national_offsets::min_tax]),
-				ws.w.nation_s.nations.get<nation::modifier_values>(player)[modifiers::national_offsets::max_tax] > 0 ? int32_t(100.0f * ws.w.nation_s.nations.get<nation::modifier_values>(player)[modifiers::national_offsets::max_tax]) : 100);
+				int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::min_tax>(player)),
+				ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_tax>(player) > 0 ? int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_tax>(player)) : 100);
 			sb.update_position(ws.w.nation_s.nations.get<nation::rich_tax>(player));
 		}
 	}
@@ -126,8 +126,8 @@ namespace governments {
 	void military_pay_scrollbar::update(ui::scrollbar<military_pay_scrollbar>& sb, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			sb.set_limits(ws.w.gui_m,
-				int32_t(100.0f * ws.w.nation_s.nations.get<nation::modifier_values>(player)[modifiers::national_offsets::min_military_spending]),
-				ws.w.nation_s.nations.get<nation::modifier_values>(player)[modifiers::national_offsets::max_military_spending] > 0 ? int32_t(100.0f * ws.w.nation_s.nations.get<nation::modifier_values>(player)[modifiers::national_offsets::max_military_spending]) : 100);
+				int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::min_military_spending>(player)),
+				ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_military_spending>(player) > 0 ? int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_military_spending>(player)) : 100);
 			sb.update_position(ws.w.nation_s.nations.get<nation::military_spending>(player));
 		}
 	}
@@ -139,8 +139,8 @@ namespace governments {
 	void social_spending_scrollbar::update(ui::scrollbar<social_spending_scrollbar>& sb, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			sb.set_limits(ws.w.gui_m,
-				int32_t(100.0f * ws.w.nation_s.nations.get<nation::modifier_values>(player)[modifiers::national_offsets::min_social_spending]),
-				ws.w.nation_s.nations.get<nation::modifier_values>(player)[modifiers::national_offsets::max_social_spending] > 0 ? int32_t(100.0f * ws.w.nation_s.nations.get<nation::modifier_values>(player)[modifiers::national_offsets::max_social_spending]) : 100);
+				int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::min_social_spending>(player)),
+				ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_social_spending>(player) > 0 ? int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_social_spending>(player)) : 100);
 			sb.update_position(ws.w.nation_s.nations.get<nation::social_spending>(player));
 		}
 	}
@@ -153,8 +153,8 @@ namespace governments {
 		if(auto player = ws.w.local_player_nation; player) {
 			sb.set_range(ws.w.gui_m, -100, 100);
 			sb.set_limits(ws.w.gui_m,
-				int32_t(100.0f * ws.w.nation_s.nations.get<nation::modifier_values>(player)[modifiers::national_offsets::min_tariff]),
-				ws.w.nation_s.nations.get<nation::modifier_values>(player)[modifiers::national_offsets::max_tariff] > 0 ? int32_t(100.0f * ws.w.nation_s.nations.get<nation::modifier_values>(player)[modifiers::national_offsets::max_tariff]) : 100);
+				int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::min_tariff>(player)),
+				ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_tariff>(player) > 0 ? int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_tariff>(player)) : 100);
 			sb.update_position(ws.w.nation_s.nations.get<nation::tarrifs>(player));
 		}
 	}

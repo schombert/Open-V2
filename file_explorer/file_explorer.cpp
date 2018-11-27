@@ -86,7 +86,7 @@ struct gui_window_handler {
 						}
 					}
 					if(auto n = provinces::province_owner(s, provinces::province_tag(id)); n) {
-						if(auto nid = n->id; s.w.nation_s.nations.is_valid_index(nid))
+						if(auto nid = n; s.w.nation_s.nations.is_valid_index(nid))
 							s.w.map_view.selected_country = nid;
 					}
 					s.w.map_view.changed = true;
@@ -360,7 +360,7 @@ int main(int , char **) {
 
 		economy::set_initial_money(ws);
 
-		ws.w.local_player_nation = &ws.w.nation_s.nations[nations::country_tag(1)];
+		ws.w.local_player_nation = nations::country_tag(1);
 
 		provinces::add_province_modifier(
 			ws,
@@ -384,27 +384,27 @@ int main(int , char **) {
 	{
 		auto mod_thandle = text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "global_liberal_agitation");
 		auto nmod = ws.s.modifiers_m.named_national_modifiers_index[mod_thandle];
-		modifiers::add_static_modifier_to_nation(ws, *ws.w.local_player_nation, nmod);
+		modifiers::add_static_modifier_to_nation(ws, ws.w.local_player_nation, nmod);
 	}
 	{
 		auto mod_thandle = text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "army_tech_school");
 		auto nmod = ws.s.modifiers_m.named_national_modifiers_index[mod_thandle];
-		ws.w.local_player_nation->tech_school = nmod;
+		ws.w.nation_s.nations.set<nation::tech_school>(ws.w.local_player_nation, nmod);
 
 		
 	}
 	{
 		auto thandle = text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "strategic_mobility");
 		auto tech = ws.s.technology_m.named_technology_index[thandle];
-		ws.w.local_player_nation->current_research = tech;
-		ws.w.local_player_nation->research_points = 1500.0f;
+		ws.w.nation_s.nations.set<nation::current_research>(ws.w.local_player_nation, tech);
+		ws.w.nation_s.nations.set<nation::research_points>(ws.w.local_player_nation, 1500.0f);
 	}
 	{
 		ws.w.current_crisis.type = current_state::crisis_type::liberation;
-		ws.w.current_crisis.primary_attacker = ws.w.nation_s.nations.get_location(nations::country_tag(0));
-		ws.w.current_crisis.primary_defender = ws.w.nation_s.nations.get_location(nations::country_tag(1));
-		ws.w.current_crisis.on_behalf_of = ws.w.nation_s.nations.get_location(nations::country_tag(2));
-		ws.w.current_crisis.target = ws.w.nation_s.nations.get_location(nations::country_tag(1));
+		ws.w.current_crisis.primary_attacker = nations::country_tag(0);
+		ws.w.current_crisis.primary_defender = nations::country_tag(1);
+		ws.w.current_crisis.on_behalf_of = nations::country_tag(2);
+		ws.w.current_crisis.target = nations::country_tag(1);
 
 		add_item(ws.w.nation_s.nations_arrays, ws.w.current_crisis.defenders, nations::country_tag(1));
 		add_item(ws.w.nation_s.nations_arrays, ws.w.current_crisis.attackers, nations::country_tag(0));
@@ -424,18 +424,18 @@ int main(int , char **) {
 	}
 
 	{
-		ws.w.local_player_nation->cb_construction_progress = 0.7f;
-		ws.w.local_player_nation->cb_construction_target = nations::country_tag(6);
-		ws.w.local_player_nation->cb_construction_type = military::cb_type_tag(4);
+		ws.w.nation_s.nations.set<nation::cb_construction_progress>(ws.w.local_player_nation, 0.7f);
+		ws.w.nation_s.nations.set<nation::cb_construction_target>(ws.w.local_player_nation, nations::country_tag(6));
+		ws.w.nation_s.nations.set<nation::cb_construction_type>(ws.w.local_player_nation, military::cb_type_tag(4));
 
-		ws.w.nation_s.nations[nations::country_tag(3)].cb_construction_progress = 0.6f;
-		ws.w.nation_s.nations[nations::country_tag(3)].cb_construction_target = nations::country_tag(3);
-		ws.w.nation_s.nations[nations::country_tag(3)].cb_construction_type = military::cb_type_tag(2);
+		ws.w.nation_s.nations.set<nation::cb_construction_progress>(nations::country_tag(3), 0.6f);
+		ws.w.nation_s.nations.set<nation::cb_construction_target>(nations::country_tag(3), nations::country_tag(3));
+		ws.w.nation_s.nations.set<nation::cb_construction_type>(nations::country_tag(3),military::cb_type_tag(2));
 
-		ws.w.nation_s.nations[nations::country_tag(7)].cb_construction_progress = 0.3f;
-		ws.w.nation_s.nations[nations::country_tag(7)].cb_construction_target = nations::country_tag(1);
-		ws.w.nation_s.nations[nations::country_tag(7)].cb_construction_type = military::cb_type_tag(1);
-		ws.w.nation_s.nations[nations::country_tag(7)].flags |= nations::nation::cb_construction_discovered;
+		ws.w.nation_s.nations.set<nation::cb_construction_progress>(nations::country_tag(7), 0.3f);
+		ws.w.nation_s.nations.set<nation::cb_construction_target>(nations::country_tag(7), nations::country_tag(1));
+		ws.w.nation_s.nations.set<nation::cb_construction_type>(nations::country_tag(7), military::cb_type_tag(1));
+		ws.w.nation_s.nations.set<nation::cb_construction_discovered>(nations::country_tag(7), true);
 	}
 	{
 		//auto srange = get_range(ws.w.nation_s.state_arrays, ws.w.local_player_nation->member_states);

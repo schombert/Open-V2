@@ -12,7 +12,7 @@
 #include "economy\\economy_functions.h"
 
 namespace nations {
-	nations::country_tag state_owner(world_state& ws, nations::state_tag s) {
+	nations::country_tag state_owner(world_state const& ws, nations::state_tag s) {
 		return ws.w.nation_s.states.get<state::owner>(s);
 	}
 	void reset_nation(world_state& ws, nations::country_tag new_nation) {
@@ -755,7 +755,7 @@ namespace nations {
 
 	text_data::text_tag get_nation_status_text(world_state const& ws, country_tag this_nation) {
 		if(ws.w.nation_s.nations.get<nation::is_civilized>(this_nation) == false) {
-			if(ws.w.nation_s.nations.get<nation::modifier_values>(this_nation)[modifiers::national_offsets::civilization_progress_modifier] > modifiers::value_type(0))
+			if(ws.w.nation_s.modifier_values.get<modifiers::national_offsets::civilization_progress_modifier>(this_nation) > modifiers::value_type(0))
 				return ws.s.fixed_ui_text[scenario::fixed_ui::partialy_civilized_nation];
 			else
 				return ws.s.fixed_ui_text[scenario::fixed_ui::uncivilized_nation];
@@ -888,7 +888,7 @@ namespace nations {
 		return std::clamp(
 			float(count_non_core) * ws.s.modifiers_m.global_defines.noncore_tax_penalty +
 			ws.s.modifiers_m.global_defines.base_country_admin_efficiency + 
-			ws.w.nation_s.nations.get<nation::modifier_values>(owner)[modifiers::national_offsets::administrative_efficiency_modifier] +
+			ws.w.nation_s.modifier_values.get<modifiers::national_offsets::administrative_efficiency_modifier>(owner) +
 			float(ws.w.nation_s.state_demographics.get(this_state, population::to_demo_tag(ws, ws.s.population_m.bureaucrat))) /
 			(float(ws.w.nation_s.state_demographics.get(this_state, population::total_population_tag)) * admin_requirement),
 			0.05f, 1.0f);
@@ -901,7 +901,7 @@ namespace nations {
 		if(total_pop == 0)
 			return 0.0f;
 
-		auto ratio_num = b_amount * (1.0f + ws.w.nation_s.nations.get<nation::modifier_values>(n)[modifiers::national_offsets::administrative_efficiency_modifier]) / total_pop;
+		auto ratio_num = b_amount * (1.0f + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::administrative_efficiency_modifier>(n)) / total_pop;
 
 		auto issues_range = ws.w.nation_s.active_issue_options.get_row(n);
 		auto ratio_denom = ws.s.modifiers_m.global_defines.max_bureaucracy_percentage
@@ -1125,8 +1125,8 @@ namespace nations {
 			if(masked_type == military::unit_type::class_big_ship) {
 				// capital ship
 				unit_type_scores[i] =
-					(unit_attributes_row[i][military::unit_attribute::hull] + ws.w.nation_s.nations.get<nation::modifier_values>(this_nation)[modifiers::national_offsets::naval_defense_modifier]) *
-					(unit_attributes_row[i][military::unit_attribute::gun_power] + ws.w.nation_s.nations.get<nation::modifier_values>(this_nation)[modifiers::national_offsets::naval_attack_modifier]) /
+					(unit_attributes_row[i][military::unit_attribute::hull] + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::naval_defense_modifier>(this_nation)) *
+					(unit_attributes_row[i][military::unit_attribute::gun_power] + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::naval_attack_modifier>(this_nation)) /
 					250.0f;
 			} else if(masked_type == military::unit_type::class_light_ship || masked_type == military::unit_type::class_transport) {
 				// other naval
@@ -1134,9 +1134,9 @@ namespace nations {
 				// land
 				land_uint_score +=
 					(unit_attributes_row[i][military::unit_attribute::attack] +
-						ws.w.nation_s.nations.get<nation::modifier_values>(this_nation)[modifiers::national_offsets::land_attack_modifier] +
+						ws.w.nation_s.modifier_values.get<modifiers::national_offsets::land_attack_modifier>(this_nation) +
 						unit_attributes_row[i][military::unit_attribute::defense] +
-						ws.w.nation_s.nations.get<nation::modifier_values>(this_nation)[modifiers::national_offsets::land_defense_modifier]) *
+						ws.w.nation_s.modifier_values.get<modifiers::national_offsets::land_defense_modifier>(this_nation)) *
 						unit_attributes_row[i][military::unit_attribute::discipline];
 				++land_unit_type_count;
 			}
@@ -1157,7 +1157,7 @@ namespace nations {
 
 		float total_sum = ((land_uint_score / land_unit_type_count) *
 			(is_disarmed ? ws.s.modifiers_m.global_defines.disarmament_army_hit : 1.0f) *
-			std::max(0.0f, (ws.w.nation_s.nations.get<nation::modifier_values>(this_nation)[modifiers::national_offsets::supply_consumption] + 1.0f)) *
+			std::max(0.0f, (ws.w.nation_s.modifier_values.get<modifiers::national_offsets::supply_consumption>(this_nation) + 1.0f)) *
 			std::min(total_active_regiments * 4.0f, total_possible_regiments)) / 7.0f; // = land contribution
 
 		auto fleets = get_range(ws.w.military_s.fleet_arrays, ws.w.nation_s.nations.get<nation::fleets>(this_nation));

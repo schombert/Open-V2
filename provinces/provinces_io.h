@@ -69,9 +69,6 @@ template<typename T>
 class serialization::tagged_serializer<province_state::fleets, T> : public serialization::discard_serializer<T> {};
 
 template<typename T>
-class serialization::tagged_serializer<province_state::modifier_values, T> : public serialization::discard_serializer<T> {};
-
-template<typename T>
 class serialization::tagged_serializer<province_state::dominant_culture, T> : public serialization::discard_serializer<T> {};
 
 template<typename T>

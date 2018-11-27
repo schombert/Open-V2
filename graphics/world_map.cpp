@@ -1086,12 +1086,13 @@ namespace graphics {
 					const provinces::province_tag this_province(static_cast<provinces::province_tag::value_base_t>(i));
 					
 					if(auto owner = provinces::province_owner(ws, this_province); owner) {
-						pcolors[i * 3 + 0] = owner->current_color.r;
-						pcolors[i * 3 + 1] = owner->current_color.g;
-						pcolors[i * 3 + 2] = owner->current_color.b;
-						scolors[i * 3 + 0] = owner->current_color.r;
-						scolors[i * 3 + 1] = owner->current_color.g;
-						scolors[i * 3 + 2] = owner->current_color.b;
+						auto owner_cc = ws.w.nation_s.nations.get<nation::current_color>(owner);
+						pcolors[i * 3 + 0] = owner_cc.r;
+						pcolors[i * 3 + 1] = owner_cc.g;
+						pcolors[i * 3 + 2] = owner_cc.b;
+						scolors[i * 3 + 0] = owner_cc.r;
+						scolors[i * 3 + 1] = owner_cc.g;
+						scolors[i * 3 + 2] = owner_cc.b;
 					} else {
 						default_color_province(ws, provinces::province_tag(provinces::province_tag::value_base_t(i)),
 							pcolors + i * 3, scolors + i * 3);

@@ -1452,7 +1452,7 @@ namespace provinces {
 						if(is_valid_index(ws.s.economy_m.rgo_farm.workers[i].type)) {
 							auto worker_population = ws.w.province_s.province_demographics.get(p, population::to_demo_tag(ws, ws.s.economy_m.rgo_mine.workers[i].type));
 							auto size_to_support = int32_t(std::ceil(float(worker_population) /
-								(ws.s.economy_m.rgo_mine.workers[i].amount * ws.s.economy_m.rgo_mine.workforce * (ws.w.province_s.province_state_container.get<province_state::modifier_values>(p)[modifiers::provincial_offsets::mine_rgo_size] + 1.0f))));
+								(ws.s.economy_m.rgo_mine.workers[i].amount * ws.s.economy_m.rgo_mine.workforce * (ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::mine_rgo_size>(p) + 1.0f))));
 
 							rgo_size = uint8_t(std::max(size_to_support, int32_t(rgo_size)));
 						}
@@ -1462,7 +1462,7 @@ namespace provinces {
 						if(is_valid_index(ws.s.economy_m.rgo_farm.workers[i].type)) {
 							auto worker_population = ws.w.province_s.province_demographics.get(p, population::to_demo_tag(ws, ws.s.economy_m.rgo_farm.workers[i].type));
 							auto size_to_support = int32_t(std::ceil(float(worker_population) /
-								(ws.s.economy_m.rgo_farm.workers[i].amount * ws.s.economy_m.rgo_farm.workforce * (ws.w.province_s.province_state_container.get<province_state::modifier_values>(p)[modifiers::provincial_offsets::farm_rgo_size] + 1.0f))));
+								(ws.s.economy_m.rgo_farm.workers[i].amount * ws.s.economy_m.rgo_farm.workforce * (ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::farm_rgo_size>(p) + 1.0f))));
 
 							rgo_size = uint8_t(std::max(size_to_support, int32_t(rgo_size)));
 						}

@@ -24,6 +24,18 @@
     <ClInclude Include="variable_layout.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ve.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ve_avx2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ve_avx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ve_sse.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="concurrecy_tools.cpp">

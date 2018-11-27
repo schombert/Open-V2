@@ -8,6 +8,7 @@
 #include "provinces\\province_functions.hpp"
 #include "modifiers\\modifier_functions.h"
 #include <random>
+#include "concurrency_tools\\ve.h"
 
 #ifdef DEBUG_ECONOMY
 #define WIN32_LEAN_AND_MEAN
@@ -55,13 +56,11 @@ namespace economy {
 		result.throughput_modifier = 0.0f;
 
 		bool is_mined = (ws.s.economy_m.goods[production].flags & economy::good_definition::mined) != 0;
-		auto& province_modifiers = ws.w.province_s.province_state_container.get<province_state::modifier_values>(in_province);
-		auto& nation_modifiers = ws.w.nation_s.nations.get<nation::modifier_values>(in_nation);
 
 		float total_workforce = float(workers_info.workforce * rgo_base_size) * instance.production_scale *
 			((is_mined ?
-				province_modifiers[modifiers::provincial_offsets::mine_rgo_size] + nation_modifiers[modifiers::national_offsets::mine_rgo_size] :
-				province_modifiers[modifiers::provincial_offsets::farm_rgo_size] + nation_modifiers[modifiers::national_offsets::farm_rgo_size]) +
+				ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::mine_rgo_size>(in_province) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::mine_rgo_size>(in_nation) :
+				ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::farm_rgo_size>(in_province) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::farm_rgo_size>(in_nation)) +
 				ws.w.nation_s.production_adjustments.get(in_nation, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::rgo_size>(production)) +
 				1.0f);
 
@@ -82,15 +81,15 @@ namespace economy {
 		float owner_effect = total_pop != 0.0f ? workers_info.owner.effect_multiplier * (ws.w.nation_s.state_demographics.get(state_id, population::to_demo_tag(ws, workers_info.owner.type))) / total_pop : 0.0f;
 
 		result.output_modifier *= std::max(0.0f, (
-			province_modifiers[modifiers::provincial_offsets::local_rgo_output] +
-			nation_modifiers[modifiers::national_offsets::rgo_output] +
-			(is_mined ? province_modifiers[modifiers::provincial_offsets::farm_rgo_eff] : province_modifiers[modifiers::provincial_offsets::mine_rgo_eff]) +
+			ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::local_rgo_output>(in_province) +
+			ws.w.nation_s.modifier_values.get<modifiers::national_offsets::rgo_output>(in_nation) +
+			(is_mined ? ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::farm_rgo_eff>(in_province) : ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::mine_rgo_eff>(in_province)) +
 			(workers_info.owner.contribution == contribution_type::output ? owner_effect : 0.0f) +
 			ws.w.nation_s.production_adjustments.get(in_nation, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::rgo_goods_output>(production)) +
 			1.0f));
 		result.throughput_modifier *= mobilization_effect * std::max(0.0f, (
-			province_modifiers[modifiers::provincial_offsets::local_rgo_throughput] +
-			nation_modifiers[modifiers::national_offsets::rgo_throughput] +
+			ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::local_rgo_throughput>(in_province) +
+			ws.w.nation_s.modifier_values.get<modifiers::national_offsets::rgo_throughput>(in_nation) +
 			(workers_info.owner.contribution == contribution_type::throughput ? owner_effect : 0.0f) +
 			ws.w.nation_s.production_adjustments.get(in_nation, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::rgo_goods_throughput>(production)) +
 			1.0f));
@@ -110,9 +109,6 @@ namespace economy {
 		float mobilization_effect) {
 
 		production_modifiers result;
-
-		auto& province_modifiers = ws.w.province_s.province_state_container.get<province_state::modifier_values>(in_province);
-		auto& nation_modifiers = ws.w.nation_s.nations.get<nation::modifier_values>(in_nation);
 
 		result.input_modifier = 1.0f;
 		result.output_modifier = 1.0f;
@@ -137,20 +133,20 @@ namespace economy {
 		float owner_effect = total_pop != 0.0f ? workers_info.owner.effect_multiplier * (ws.w.nation_s.state_demographics.get(state_id, population::to_demo_tag(ws, workers_info.owner.type))) / total_pop : 0.0f;
 
 		result.input_modifier *= std::max(0.0f, (
-			province_modifiers[modifiers::provincial_offsets::local_factory_input] +
-			nation_modifiers[modifiers::national_offsets::factory_input] +
+			ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::local_factory_input>(in_province) +
+			ws.w.nation_s.modifier_values.get<modifiers::national_offsets::factory_input>(in_nation) +
 			(workers_info.owner.contribution == contribution_type::input ? owner_effect : 0.0f) +
 			ws.w.nation_s.production_adjustments.get(in_nation, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::factory_goods_input>(production)) +
 			1.0f));
 		result.output_modifier *= std::max(0.0f, (
-			province_modifiers[modifiers::provincial_offsets::local_factory_output] +
-			nation_modifiers[modifiers::national_offsets::factory_output] +
+			ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::local_factory_output>(in_province) +
+			ws.w.nation_s.modifier_values.get<modifiers::national_offsets::factory_output>(in_nation) +
 			(workers_info.owner.contribution == contribution_type::output ? owner_effect : 0.0f) +
 			ws.w.nation_s.production_adjustments.get(in_nation, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::factory_goods_output>(production)) +
 			1.0f));
 		result.throughput_modifier *= mobilization_effect * std::max(0.0f, (
-			province_modifiers[modifiers::provincial_offsets::local_factory_throughput] +
-			nation_modifiers[modifiers::national_offsets::factory_throughput] +
+			ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::local_factory_throughput>(in_province) +
+			ws.w.nation_s.modifier_values.get<modifiers::national_offsets::factory_throughput>(in_nation) +
 			(workers_info.owner.contribution == contribution_type::throughput ? owner_effect : 0.0f) +
 			ws.w.nation_s.production_adjustments.get(in_nation, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::factory_goods_throughput>(production)) +
 			1.0f));
@@ -177,27 +173,24 @@ namespace economy {
 
 		production_modifiers result;
 
-		auto& province_modifiers = ws.w.province_s.province_state_container.get<province_state::modifier_values>(in_province);
-		auto& nation_modifiers = ws.w.nation_s.nations.get<nation::modifier_values>(in_nation);
-
 		result.input_modifier = 1.0f;
 		result.output_modifier = 1.0f;
 		result.throughput_modifier = 1.0f;
 
 
 		result.input_modifier *= std::max(0.0f, (
-			province_modifiers[modifiers::provincial_offsets::local_artisan_input] +
-			nation_modifiers[modifiers::national_offsets::artisan_input] +
+			ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::local_artisan_input>(in_province) +
+			ws.w.nation_s.modifier_values.get<modifiers::national_offsets::artisan_input>(in_nation) +
 			ws.w.nation_s.production_adjustments.get(in_nation, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::artisan_goods_input>(production)) +
 			1.0f));
 		result.output_modifier *= std::max(0.0f, (
-			province_modifiers[modifiers::provincial_offsets::local_artisan_output] +
-			nation_modifiers[modifiers::national_offsets::artisan_output] +
+			ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::local_artisan_output>(in_province) +
+			ws.w.nation_s.modifier_values.get<modifiers::national_offsets::artisan_output>(in_nation) +
 			ws.w.nation_s.production_adjustments.get(in_nation, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::artisan_goods_output>(production)) +
 			1.0f));
 		result.throughput_modifier *= mobilization_effect * std::max(0.0f, (
-			province_modifiers[modifiers::provincial_offsets::local_artisan_throughput] +
-			nation_modifiers[modifiers::national_offsets::artisan_throughput] +
+			ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::local_artisan_throughput>(in_province) +
+			ws.w.nation_s.modifier_values.get<modifiers::national_offsets::artisan_throughput>(in_nation) +
 			ws.w.nation_s.production_adjustments.get(in_nation, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::artisan_goods_throughput>(production)) +
 			1.0f));
 
@@ -213,14 +206,12 @@ namespace economy {
 
 		int32_t rgo_size = int32_t(ws.w.province_s.province_state_container.get<province_state::rgo_size>(ps));
 		auto production_scale = ws.w.province_s.province_state_container.get<province_state::rgo_worker_data>(ps).production_scale;
-		auto& province_modifiers = ws.w.province_s.province_state_container.get<province_state::modifier_values>(ps);
-		auto& owner_modifiers = ws.w.nation_s.nations.get<nation::modifier_values>(owner_id);
 
 		bool is_mined = (ws.s.economy_m.goods[production].flags & economy::good_definition::mined) != 0;
 		float total_workforce = float((is_mined ? ws.s.economy_m.rgo_mine.workforce : ws.s.economy_m.rgo_farm.workforce) * int32_t(rgo_size)) * production_scale *
 			((is_mined ?
-				province_modifiers[modifiers::provincial_offsets::mine_rgo_size] + owner_modifiers[modifiers::national_offsets::mine_rgo_size] :
-				province_modifiers[modifiers::provincial_offsets::farm_rgo_size] + owner_modifiers[modifiers::national_offsets::farm_rgo_size]) +
+				ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::mine_rgo_size>(ps) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::mine_rgo_size>(owner_id) :
+				ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::farm_rgo_size>(ps) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::farm_rgo_size>(owner_id)) +
 				ws.w.nation_s.production_adjustments.get(owner_id, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::rgo_size>(production)) +
 				1.0f);
 		return std::max(0, int32_t(total_workforce));
@@ -281,14 +272,12 @@ namespace economy {
 			return;
 		}
 
-		auto& province_modifiers = ws.w.province_s.province_state_container.get<province_state::modifier_values>(ps);
-		auto& owner_modifiers = ws.w.nation_s.nations.get<nation::modifier_values>(owner_id);
 		int32_t rgo_size = int32_t(ws.w.province_s.province_state_container.get<province_state::rgo_size>(ps));
 
 		float total_workforce = float((is_mined ? ws.s.economy_m.rgo_mine.workforce : ws.s.economy_m.rgo_farm.workforce) * rgo_size) * worker_data.production_scale *
 			((is_mined ?
-				province_modifiers[modifiers::provincial_offsets::mine_rgo_size] + owner_modifiers[modifiers::national_offsets::mine_rgo_size] :
-				province_modifiers[modifiers::provincial_offsets::farm_rgo_size] + owner_modifiers[modifiers::national_offsets::farm_rgo_size]) +
+				ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::mine_rgo_size>(ps) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::mine_rgo_size>(owner_id) :
+				ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::farm_rgo_size>(ps) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::farm_rgo_size>(owner_id)) +
 				ws.w.nation_s.production_adjustments.get(owner_id, technologies::economy_tag_to_production_adjustment<technologies::production_adjustment::rgo_size>(production)) +
 				1.0f);
 
@@ -454,12 +443,14 @@ namespace economy {
 		auto owner_id = ws.w.province_s.province_state_container.get<province_state::owner>(in_province);
 		auto f_type = f.type;
 		if(is_valid_index(owner_id) && bool(f_type)) {
-			auto& owner_mod = ws.w.nation_s.nations.get<nation::modifier_values>(owner_id);
 
 			auto modifiers = factory_production_modifiers(ws, f.worker_data, f_type->bonuses,
 				f_type->factory_workers, owner_id, in_province, f.level,
 				f_type->output_good,
-				(ws.w.nation_s.nations.get<nation::is_mobilized>(owner_id) == false) ? 1.0f : std::max(0.0f, 1.0f - owner_mod[modifiers::national_offsets::mobilisation_size] * owner_mod[modifiers::national_offsets::mobilisation_economy_impact]));
+				(ws.w.nation_s.nations.get<nation::is_mobilized>(owner_id) == false)
+					? 1.0f
+					: std::max(0.0f,
+						1.0f - ws.w.nation_s.modifier_values.get<modifiers::national_offsets::mobilisation_size>(owner_id) * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::mobilisation_economy_impact>(owner_id)));
 
 			//TODO: use modifiers properly
 
@@ -722,21 +713,18 @@ namespace economy {
 		economy::money_qnty_type ev_factor;
 		economy::money_qnty_type lx_factor;
 
-		auto& scap_modifiers = ws.w.province_s.province_state_container.get<province_state::modifier_values>(state_cap);
-		auto& owner_modifiers = ws.w.nation_s.nations.get<nation::modifier_values>(state_owner);
-
 		if(this_strata == population::pop_type::strata_poor) {
-			ln_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::poor_life_needs] + scap_modifiers[modifiers::provincial_offsets::poor_life_needs];
-			ev_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::poor_everyday_needs] + scap_modifiers[modifiers::provincial_offsets::poor_everyday_needs];
-			lx_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::poor_luxury_needs] + scap_modifiers[modifiers::provincial_offsets::poor_luxury_needs];
+			ln_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::poor_life_needs>(state_owner) + ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::poor_life_needs>(state_cap);
+			ev_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::poor_everyday_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::poor_everyday_needs>(state_cap);
+			lx_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::poor_luxury_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::poor_luxury_needs>(state_cap);
 		} else if(this_strata == population::pop_type::strata_middle) {
-			ln_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::middle_life_needs] + scap_modifiers[modifiers::provincial_offsets::middle_life_needs];
-			ev_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::middle_everyday_needs] + scap_modifiers[modifiers::provincial_offsets::middle_everyday_needs];
-			lx_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::middle_luxury_needs] + scap_modifiers[modifiers::provincial_offsets::middle_luxury_needs];
+			ln_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::middle_life_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::middle_life_needs>(state_cap);
+			ev_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::middle_everyday_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::middle_everyday_needs>(state_cap);
+			lx_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::middle_luxury_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::middle_luxury_needs> (state_cap);
 		} else { //if(this_strata == population::pop_type::strata_rich) {
-			ln_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::rich_life_needs] + scap_modifiers[modifiers::provincial_offsets::rich_life_needs];
-			ev_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::rich_everyday_needs] + scap_modifiers[modifiers::provincial_offsets::rich_everyday_needs];
-			lx_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::rich_luxury_needs] + scap_modifiers[modifiers::provincial_offsets::rich_luxury_needs];
+			ln_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::rich_life_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::rich_life_needs>(state_cap);
+			ev_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::rich_everyday_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::rich_everyday_needs>(state_cap);
+			lx_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::rich_luxury_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::rich_luxury_needs>(state_cap);
 		}
 
 		auto ln_goods = ws.s.population_m.life_needs.get_row(type);
@@ -780,15 +768,12 @@ namespace economy {
 		auto this_strata = ws.s.population_m.pop_types[ptype].flags & population::pop_type::strata_mask;
 		economy::money_qnty_type ln_factor;
 
-		auto& scap_modifiers = ws.w.province_s.province_state_container.get<province_state::modifier_values>(state_capital);
-		auto& owner_modifiers = ws.w.nation_s.nations.get<nation::modifier_values>(state_owner);
-
 		if(this_strata == population::pop_type::strata_poor) {
-			ln_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::poor_life_needs] + scap_modifiers[modifiers::provincial_offsets::poor_life_needs];
+			ln_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::poor_life_needs>(state_owner) + ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::poor_life_needs>(state_capital);
 		} else if(this_strata == population::pop_type::strata_middle) {
-			ln_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::middle_life_needs] + scap_modifiers[modifiers::provincial_offsets::middle_life_needs];
+			ln_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::middle_life_needs>(state_owner) + ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::middle_life_needs>(state_capital);
 		} else { //if(this_strata == population::pop_type::strata_rich) {
-			ln_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::rich_life_needs] + scap_modifiers[modifiers::provincial_offsets::rich_life_needs];
+			ln_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::rich_life_needs>(state_owner) + ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::rich_life_needs>(state_capital);
 		}
 
 		money_qnty_type sum = 0;
@@ -823,9 +808,6 @@ namespace economy {
 
 		auto state_owner = ws.w.nation_s.states.get<state::owner>(si);
 
-		auto& owner_modifiers = ws.w.nation_s.nations.get<nation::modifier_values>(state_owner);
-		auto& scap_modifiers = ws.w.province_s.province_state_container.get<province_state::modifier_values>(state_capital);
-
 		for(population::pop_type_tag::value_base_t i = 0; i < ws.s.population_m.count_poptypes; ++i) {
 			population::pop_type_tag this_type(i);
 			auto this_strata = ws.s.population_m.pop_types[this_type].flags & population::pop_type::strata_mask;
@@ -835,17 +817,17 @@ namespace economy {
 			economy::money_qnty_type lx_factor;
 
 			if(this_strata == population::pop_type::strata_poor) {
-				ln_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::poor_life_needs] + scap_modifiers[modifiers::provincial_offsets::poor_life_needs];
-				ev_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::poor_everyday_needs] + scap_modifiers[modifiers::provincial_offsets::poor_everyday_needs];
-				lx_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::poor_luxury_needs] + scap_modifiers[modifiers::provincial_offsets::poor_luxury_needs];
+				ln_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::poor_life_needs>(state_owner) + ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::poor_life_needs>(state_capital);
+				ev_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::poor_everyday_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::poor_everyday_needs>(state_capital);
+				lx_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::poor_luxury_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::poor_luxury_needs>(state_capital);
 			} else if(this_strata == population::pop_type::strata_middle) {
-				ln_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::middle_life_needs] + scap_modifiers[modifiers::provincial_offsets::middle_life_needs];
-				ev_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::middle_everyday_needs] + scap_modifiers[modifiers::provincial_offsets::middle_everyday_needs];
-				lx_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::middle_luxury_needs] + scap_modifiers[modifiers::provincial_offsets::middle_luxury_needs];
+				ln_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::middle_life_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::middle_life_needs>(state_capital);
+				ev_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::middle_everyday_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::middle_everyday_needs>(state_capital);
+				lx_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::middle_luxury_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::middle_luxury_needs>(state_capital);
 			} else { //if(this_strata == population::pop_type::strata_rich) {
-				ln_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::rich_life_needs] + scap_modifiers[modifiers::provincial_offsets::rich_life_needs];
-				ev_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::rich_everyday_needs] + scap_modifiers[modifiers::provincial_offsets::rich_everyday_needs];
-				lx_factor = economy::money_qnty_type(1) + owner_modifiers[modifiers::national_offsets::rich_luxury_needs] + scap_modifiers[modifiers::provincial_offsets::rich_luxury_needs];
+				ln_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::rich_life_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::rich_life_needs>(state_capital);
+				ev_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::rich_everyday_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::rich_everyday_needs>(state_capital);
+				lx_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::rich_luxury_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::rich_luxury_needs>(state_capital);
 			}
 
 			Eigen::Map<const Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::AlignmentType::Aligned32> ln(ws.s.population_m.life_needs.get_row(this_type), ws.s.economy_m.aligned_32_goods_count);
@@ -1350,6 +1332,102 @@ namespace economy {
 
 	}
 
+	constexpr int32_t prefetch_constant_a = 4;
+
+	struct calculate_apparant_prices {
+		float* const apparent_price_v;
+		float* const distance_vector_v;
+		float const state_owner_tarrifs;
+		float* const state_prices_copy_v;
+		float* const tarrif_mask_v;
+
+		calculate_apparant_prices(float* a, float* c, float d, float* e, float* g) :
+			apparent_price_v(a), distance_vector_v(c), state_owner_tarrifs(d), state_prices_copy_v(e), tarrif_mask_v(g) {}
+
+		template<typename T>
+		__forceinline void operator()(T executor) {
+			auto new_apparent_prices = ve::multiply_and_add(
+				executor.prefetch_load<prefetch_constant_a>(state_prices_copy_v),
+				ve::multiply_and_add(
+					executor.prefetch_load<prefetch_constant_a>(tarrif_mask_v),
+					executor.constant(state_owner_tarrifs),
+					executor.constant(1.0f)),
+				executor.prefetch_load<prefetch_constant_a>(distance_vector_v) *
+				executor.constant(distance_factor)
+			);
+			executor.prefetch_store<prefetch_constant_a>(apparent_price_v, new_apparent_prices);
+		}
+	};
+
+	struct calculate_weightings {
+		float* const apparent_price_v;
+		float* const weightings_v;
+		float* const state_production_copy_v;
+
+		calculate_weightings(float* a, float* b, float* f) :
+			apparent_price_v(a), weightings_v(b), state_production_copy_v(f) {}
+
+		template<typename T>
+		__forceinline void operator()(T executor) {
+			auto new_apparent_prices = executor.prefetch_load<prefetch_constant_a>(apparent_price_v);
+			executor.prefetch_store<prefetch_constant_a>(weightings_v, executor.prefetch_load<prefetch_constant_a>(state_production_copy_v) / (new_apparent_prices * new_apparent_prices));
+		}
+	};
+
+	struct tariff_updator {
+		float* const global_demand_by_state_v;
+		float* const apparent_price_v;
+		float* const state_prices_copy_v;
+		float* const values_v;
+		float* const tarrif_mask_v;
+		float const state_owner_tarrifs;
+		ve::fp_vector tariff_income_accumulator;
+
+		tariff_updator(float* a, float* b, float* c, float* d, float* e, float f) :
+			global_demand_by_state_v(a), apparent_price_v(b), state_prices_copy_v(c), values_v(d), tarrif_mask_v(e), state_owner_tarrifs(f) {}
+
+		template<typename T>
+		__forceinline void operator()(T executor) {
+			auto money_spent_at_destination =
+				executor.prefetch_load<prefetch_constant_a>(state_prices_copy_v) * executor.prefetch_load<prefetch_constant_a>(values_v)
+				/ executor.prefetch_load<prefetch_constant_a>(apparent_price_v);
+			// global demand by state += 0.85 * money_spent_at_destination
+			executor.store(global_demand_by_state_v,
+				ve::multiply_and_add(money_spent_at_destination, executor.constant(0.85f), executor.prefetch_load<prefetch_constant_a>(global_demand_by_state_v)));
+			tariff_income_accumulator =
+				ve::multiply_and_add(executor.prefetch_load<2>(tarrif_mask_v), executor.constant(state_owner_tarrifs) * money_spent_at_destination,
+					tariff_income_accumulator);
+		}
+	};
+
+	struct player_tariff_updator {
+		float* const global_demand_by_state_v;
+		float* const apparent_price_v;
+		float* const state_prices_copy_v;
+		float* const values_v;
+		float* const tarrif_mask_v;
+		float const state_owner_tarrifs;
+		ve::fp_vector tariff_income_accumulator;
+		float* const workspace_local_weightings_v;
+
+		player_tariff_updator(float* a, float* b, float* c, float* d, float* e, float f, float* h) :
+			global_demand_by_state_v(a), apparent_price_v(b), state_prices_copy_v(c), values_v(d), tarrif_mask_v(e), state_owner_tarrifs(f), workspace_local_weightings_v(h) {}
+
+		template<typename T>
+		__forceinline void operator()(T executor) {
+			auto money_spent_at_destination =
+				 executor.load(state_prices_copy_v) * executor.load(values_v) / executor.load(apparent_price_v);
+			// global demand by state += 0.85 * money_spent_at_destination
+			executor.store(global_demand_by_state_v,
+				ve::multiply_and_add(money_spent_at_destination, executor.constant(0.85f), executor.load(global_demand_by_state_v)));
+			tariff_income_accumulator =
+				ve::multiply_and_add(executor.load(tarrif_mask_v), executor.constant(state_owner_tarrifs) * money_spent_at_destination,
+					tariff_income_accumulator);
+
+			executor.store(workspace_local_weightings_v, money_spent_at_destination);
+		}
+	};
+
 	void economy_single_good_tick(world_state& ws, goods_tag tag, int32_t state_max, int32_t nations_max) {
 		auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(state_max) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
 		auto aligned_nations_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(nations_max) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
@@ -1424,37 +1502,68 @@ namespace economy {
 				values /= old_state_purchases;
 #endif
 
+			/*
 			workspace_local.apparent_price.setConstant(1.0f);
 			workspace_local.weightings.setZero();
 
-
 			workspace_local.apparent_price = distance_vector * distance_factor +
-				(state_prices_copy.vector.array() * (tarrif_mask.array() * (state_owner_tarrifs) + 1.0f)).matrix();
+				(state_prices_copy.vector.array() * (tarrif_mask.array() * state_owner_tarrifs + 1.0f)).matrix();
 			workspace_local.weightings = (state_production_copy.vector.array() / workspace_local.apparent_price.array().square()).matrix();
+			*/
+
+			
+			ve::execute_serial_fast(aligned_state_max, calculate_apparant_prices(
+				workspace_local.apparent_price.data(),
+				distance_vector.data(),
+				state_owner_tarrifs,
+				state_prices_copy.vector.data(),
+				tarrif_mask.data()
+			));
+
+			ve::execute_serial_fast(aligned_state_max, calculate_weightings(
+				workspace_local.apparent_price.data(),
+				values.data(),
+				state_production_copy.vector.data()
+			));
 			
 
-			auto sum_weightings = workspace_local.weightings.sum();
+			//auto sum_weightings = workspace_local.weightings.sum();
+			auto sum_weightings = ve::reduce_vector(values.data(), state_max);
+
 			if(sum_weightings > 0) {
 #ifndef FULL_PURCHASING_CHANGE
 				workspace_local.weightings /= sum_weightings;
 				values = values * (1.0f - purchasing_change_rate) + workspace_local.weightings * purchasing_change_rate;
 #else
-				values = workspace_local.weightings * 1.0f / sum_weightings;
+				//values = workspace_local.weightings * (1.0f / sum_weightings);
+
+				ve::rescale_vector(values.data(), aligned_state_max, (demand_in_state > 0 ? demand_in_state : 1.0f) / sum_weightings);
 #endif
 			
 				
 
 				// pay tarrifs & increase global demand
 				if(ws.w.local_player_nation && ws.w.local_player_nation != state_owner) {
-					// workspace_local.weightings REUSED as money used for purchasing in destination (dest price * qnty = (total money * fraction to target / apparant_price))
 
-					workspace_local.weightings = ((demand_in_state * state_prices_copy.vector.array() * values.array()) / workspace_local.apparent_price.array()).matrix();
-					workspace_local.global_demand_by_state += 0.85f * workspace_local.weightings;
-					workspace_local.nation_tarrif_income[to_index(state_owner)] += workspace_local.weightings.dot(tarrif_mask * (state_owner_tarrifs));
+					tariff_updator to_obj(workspace_local.global_demand_by_state.data(), workspace_local.apparent_price.data(),
+						state_prices_copy.vector.data(), values.data(), tarrif_mask.data(), state_owner_tarrifs);
+
+					ve::execute_serial_fast(aligned_state_max, to_obj);
+					workspace_local.nation_tarrif_income[to_index(state_owner)] += to_obj.tariff_income_accumulator.reduce();
+
+					//workspace_local.weightings = ((demand_in_state * state_prices_copy.vector.array() * values.array()) / workspace_local.apparent_price.array()).matrix();
+					//workspace_local.global_demand_by_state += 0.85f * workspace_local.weightings;
+					//workspace_local.nation_tarrif_income[to_index(state_owner)] += workspace_local.weightings.dot(tarrif_mask * (state_owner_tarrifs));
 				} else {
-					workspace_local.weightings = ((demand_in_state * state_prices_copy.vector.array() * values.array()) / workspace_local.apparent_price.array()).matrix();
-					workspace_local.global_demand_by_state += 0.85f * workspace_local.weightings;
-					workspace_local.nation_tarrif_income[to_index(state_owner)] += workspace_local.weightings.dot(tarrif_mask * (state_owner_tarrifs));
+					player_tariff_updator to_obj(workspace_local.global_demand_by_state.data(), workspace_local.apparent_price.data(),
+						state_prices_copy.vector.data(), values.data(), tarrif_mask.data(), state_owner_tarrifs, workspace_local.weightings.data());
+
+					ve::execute_serial_fast(aligned_state_max, to_obj);
+					workspace_local.nation_tarrif_income[to_index(state_owner)] += to_obj.tariff_income_accumulator.reduce();
+
+					//workspace_local.weightings = ((demand_in_state * state_prices_copy.vector.array() * values.array()) / workspace_local.apparent_price.array()).matrix();
+					//workspace_local.global_demand_by_state += 0.85f * workspace_local.weightings;
+					//workspace_local.nation_tarrif_income[to_index(state_owner)] += workspace_local.weightings.dot(tarrif_mask * (state_owner_tarrifs));
 
 					for(int32_t i = 0; i < state_max; ++i) {
 						auto other_state_owner = ws.w.nation_s.states.get<state::owner>(nations::state_tag(nations::state_tag::value_base_t(i)));
@@ -1524,10 +1633,11 @@ namespace economy {
 
 
 			auto current_price = state_current_prices(ws, si)[to_index(tag)];
+			auto demand_in_state = state_old_demand(ws, si)[to_index(tag)];
 
 			state_price_delta(ws, si)[to_index(tag)] = (
 				(current_price * (1.0f - price_change_rate) +
-					std::clamp(values.dot(workspace_local.apparent_price), 0.01f, base_price * 10.0f) * price_change_rate)
+					std::clamp(values.dot(workspace_local.apparent_price) / (demand_in_state > 0 ? demand_in_state : 1.0f), 0.01f, base_price * 10.0f) * price_change_rate)
 				- current_price
 				) / float(price_update_delay);
 		}, concurrency::static_partitioner());
@@ -1549,9 +1659,9 @@ namespace economy {
 		auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(p);
 
 		if(is_valid_index(owner) && is_valid_index(rgo_production)) {
-			auto& owner_mod = ws.w.nation_s.nations.get<nation::modifier_values>(owner);
+			
 			const float mobilization_effect = (ws.w.nation_s.nations.get<nation::is_mobilized>(owner) == false) ?
-				1.0f : std::max(0.0f, 1.0f - owner_mod[modifiers::national_offsets::mobilisation_size] * owner_mod[modifiers::national_offsets::mobilisation_economy_impact]);
+				1.0f : std::max(0.0f, 1.0f - ws.w.nation_s.modifier_values.get<modifiers::national_offsets::mobilisation_size>(owner) * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::mobilisation_economy_impact>(owner));
 
 			auto& rgo_type = ((ws.s.economy_m.goods[rgo_production].flags & good_definition::mined) != 0) ? ws.s.economy_m.rgo_mine : ws.s.economy_m.rgo_farm;
 
@@ -1832,9 +1942,8 @@ namespace economy {
 			state_current_prices(ws, si), 
 			ws.s.economy_m.aligned_32_goods_count);
 
-		auto& state_owner_mod = ws.w.nation_s.nations.get<nation::modifier_values>(state_owner);
 		const float mobilization_effect = (ws.w.nation_s.nations.get<nation::is_mobilized>(state_owner) == false) ?
-			1.0f : std::max(0.0f, 1.0f - state_owner_mod[modifiers::national_offsets::mobilisation_size] * state_owner_mod[modifiers::national_offsets::mobilisation_economy_impact]);
+			1.0f : std::max(0.0f, 1.0f - ws.w.nation_s.modifier_values.get<modifiers::national_offsets::mobilisation_size>(state_owner) * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::mobilisation_economy_impact>(state_owner));
 
 
 		current_state_demand.setZero();
@@ -2056,7 +2165,7 @@ namespace economy {
 		ws.w.nation_s.nations.parallel_for_each([&ws](nations::country_tag n) {
 			auto& tax_base = ws.w.nation_s.nations.get<nation::tax_base>(n);
 			tax_base = 0.0f;
-			auto taxeff = std::max(ws.s.modifiers_m.global_defines.base_country_tax_efficiency + ws.w.nation_s.nations.get<nation::modifier_values>(n)[modifiers::national_offsets::tax_efficiency], 0.05f);
+			auto taxeff = std::max(ws.s.modifiers_m.global_defines.base_country_tax_efficiency + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::tax_efficiency>(n), 0.05f);
 			auto pt = float(ws.w.nation_s.nations.get<nation::poor_tax>(n)) / 100.0f;
 			auto mt = float(ws.w.nation_s.nations.get<nation::middle_tax>(n)) / 100.0f;
 			auto rt = float(ws.w.nation_s.nations.get<nation::rich_tax>(n)) / 100.0f;
@@ -2241,10 +2350,9 @@ namespace economy {
 		if(!ws.w.nation_s.nations.is_valid_index(nid))
 			return money_qnty_type(0);
 
-		auto& nmodifiers = ws.w.nation_s.nations.get<nation::modifier_values>(n);
 		auto social_spending = float(ws.w.nation_s.nations.get<nation::social_spending>(n)) / 100.0f;
-		auto pension_fraction = nmodifiers[modifiers::national_offsets::pension_level] * social_spending;
-		auto unemployment_fraction = nmodifiers[modifiers::national_offsets::unemployment_benefit] * social_spending;
+		auto pension_fraction = ws.w.nation_s.modifier_values.get<modifiers::national_offsets::pension_level>(n) * social_spending;
+		auto unemployment_fraction = ws.w.nation_s.modifier_values.get<modifiers::national_offsets::unemployment_benefit>(n) * social_spending;
 
 		auto est_costs = std::transform_reduce(integer_iterator(0), integer_iterator(ws.s.population_m.count_poptypes), money_qnty_type(0), std::plus<>(),
 			[&ws, nid, &n, pension_fraction, unemployment_fraction](int32_t i) {
@@ -2284,14 +2392,13 @@ namespace economy {
 
 		fill_needs_costs_arrays(ws, capital_state_id, capital_of_capital, masked_prices, life_needs_cost_by_type, everyday_needs_cost_by_type, luxury_needs_cost_by_type);
 
-		auto& nmodifiers = ws.w.nation_s.nations.get<nation::modifier_values>(n);
 
 		auto admin_spending = float(ws.w.nation_s.nations.get<nation::administrative_spending>(n)) / 100.0f;
 		auto education_spending = float(ws.w.nation_s.nations.get<nation::education_spending>(n)) / 100.0f;
 		auto military_spending = float(ws.w.nation_s.nations.get<nation::military_spending>(n)) / 100.0f;
 		auto social_spending = float(ws.w.nation_s.nations.get<nation::social_spending>(n)) / 100.0f;
-		auto pension_fraction = nmodifiers[modifiers::national_offsets::pension_level] * social_spending;
-		auto unemployment_fraction = nmodifiers[modifiers::national_offsets::unemployment_benefit] * social_spending;
+		auto pension_fraction = ws.w.nation_s.modifier_values.get<modifiers::national_offsets::pension_level>(n) * social_spending;
+		auto unemployment_fraction = ws.w.nation_s.modifier_values.get<modifiers::national_offsets::unemployment_benefit>(n) * social_spending;
 
 		economy::money_qnty_type est_costs = 0;
 

@@ -7,6 +7,7 @@
 #include "military\\military_io.h"
 #include "economy\\economy_io.h"
 #include "population\\population_io.h"
+#include "modifiers\\modifier_functions.h"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -358,7 +359,7 @@ TEST(technologies_tests, pre_parse_schools) {
 	const auto frb = mm.named_national_modifiers_index[mm.national_modifiers[modifiers::national_modifier_tag(1)].name];
 	EXPECT_EQ(frb, modifiers::national_modifier_tag(1));
 
-	EXPECT_EQ(1.0f, mm.national_modifier_definitions[frb][modifiers::national_offsets::commerce_tech_research_bonus]);
+	EXPECT_EQ(1.0f, modifiers::extract_value_from_definition(modifiers::national_offsets::commerce_tech_research_bonus, mm.national_modifier_definitions[frb]));
 }
 
 TEST(technologies_tests, pre_parse_techs_test) {
@@ -467,7 +468,7 @@ TEST(technologies_tests, read_technologies_test) {
 	EXPECT_EQ(3000ui16, s.technology_m.technologies_container[tech_tag(1)].cost);
 	EXPECT_EQ(a_factory, s.technology_m.technologies_container[tech_tag(1)].activate_factory);
 	EXPECT_NE(modifiers::national_modifier_tag(), s.technology_m.technologies_container[tech_tag(1)].modifier);
-	EXPECT_EQ(0.03f, s.modifiers_m.national_modifier_definitions[s.technology_m.technologies_container[tech_tag(1)].modifier][modifiers::national_offsets::tax_efficiency]);
+	EXPECT_EQ(0.03f, modifiers::extract_value_from_definition(modifiers::national_offsets::tax_efficiency, s.modifiers_m.national_modifier_definitions[s.technology_m.technologies_container[tech_tag(1)].modifier]));
 	EXPECT_EQ(0ui16, s.technology_m.technologies_container[tech_tag(1)].flags);
 	EXPECT_NE(modifiers::factor_tag(), s.technology_m.technologies_container[tech_tag(1)].ai_chance);
 
@@ -528,8 +529,8 @@ TEST(technologies_tests, read_inventions_test) {
 	EXPECT_NE(modifiers::factor_tag(), s.technology_m.technologies_container[tech_tag(4)].ai_chance);
 	EXPECT_EQ(0ui8, s.technology_m.technologies_container[tech_tag(4)].flags);
 	EXPECT_NE(modifiers::national_modifier_tag(), s.technology_m.technologies_container[tech_tag(4)].modifier);
-	EXPECT_EQ(2.5f, s.modifiers_m.national_modifier_definitions[s.technology_m.technologies_container[tech_tag(4)].modifier][modifiers::national_offsets::global_population_growth]);
-	EXPECT_EQ(4.0f, s.modifiers_m.national_modifier_definitions[s.technology_m.technologies_container[tech_tag(4)].modifier][modifiers::national_offsets::farm_rgo_size]);
+	EXPECT_EQ(2.5f, modifiers::extract_value_from_definition(modifiers::national_offsets::global_population_growth, s.modifiers_m.national_modifier_definitions[s.technology_m.technologies_container[tech_tag(4)].modifier]));
+	EXPECT_EQ(4.0f, modifiers::extract_value_from_definition(modifiers::national_offsets::farm_rgo_size, s.modifiers_m.national_modifier_definitions[s.technology_m.technologies_container[tech_tag(4)].modifier]));
 	EXPECT_EQ(-0.25f, s.technology_m.rebel_org_gain.get(s.technology_m.technologies_container[tech_tag(4)].rebel_adjustment, population::rebel_type_tag(1)));
 	EXPECT_EQ(0.75f, s.technology_m.rebel_org_gain.get(s.technology_m.technologies_container[tech_tag(4)].rebel_adjustment, rebel_tag));
 

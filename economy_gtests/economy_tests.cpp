@@ -5,6 +5,7 @@
 #include "economy\\economy_io.h"
 #include "ideologies\\ideologies_io.h"
 #include "population\\population_io.h"
+#include "modifiers\\modifier_functions.h"
 
 using namespace economy;
 
@@ -502,7 +503,7 @@ TEST(economy_tests, special_buildings) {
 	EXPECT_EQ(3ui32, m.railroad.max_level);
 	EXPECT_EQ(30ui32, m.railroad.time);
 	EXPECT_EQ(0.5f, m.railroad.infrastructure);
-	EXPECT_EQ(-0.5f, mm.provincial_modifier_definitions[m.railroad_modifier][modifiers::provincial_offsets::movement_cost]);
+	EXPECT_EQ(-0.5f, modifiers::extract_value_from_definition(modifiers::provincial_offsets::movement_cost, mm.provincial_modifier_definitions[m.railroad_modifier]));
 
 	EXPECT_EQ(300.0, m.building_costs.get(factory_type_tag(2), goods_tag(1)));
 
@@ -513,7 +514,7 @@ TEST(economy_tests, special_buildings) {
 	EXPECT_EQ(6ui32, m.naval_base.colonial_points[5]);
 	EXPECT_EQ(50ui32, m.naval_base.colonial_range);
 	EXPECT_EQ(15000ui32, m.naval_base.extra_cost);
-	EXPECT_EQ(-1.5f, mm.provincial_modifier_definitions[m.naval_base_modifier][modifiers::provincial_offsets::local_ship_build]);
+	EXPECT_EQ(-1.5f, modifiers::extract_value_from_definition(modifiers::provincial_offsets::local_ship_build, mm.provincial_modifier_definitions[m.naval_base_modifier]));
 	EXPECT_EQ(2ui32, m.naval_base.naval_capacity);
 
 	EXPECT_EQ(200.0, m.building_costs.get(factory_type_tag(3), goods_tag(1)));
