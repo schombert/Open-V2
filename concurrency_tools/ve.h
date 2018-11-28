@@ -275,7 +275,7 @@ namespace ve {
 
 			template<typename T>
 			__forceinline void operator()(T executor) {
-				accumulator[executor.block_index] = accumulator[executor.block_index] +executor.partial_load(vector);
+				accumulator[executor.block_index] = accumulator[executor.block_index] +executor.load(vector);
 			}
 		};
 	}
@@ -302,5 +302,23 @@ namespace ve {
 
 	__forceinline void rescale_vector(float* vector, uint32_t vector_size_p, float scale_factor) {
 		execute_serial_fast(vector_size_p, ve_impl::rescale_operator(vector, scale_factor));
+	}
+
+	namespace ve_impl {
+		struct vector_accumulate_operator {
+			float* const dest;
+			float const* const accumulated;
+
+			vector_accumulate_operator(float* d, float const* a) : dest(d), accumulated(a) {};
+
+			template<typename T>
+			__forceinline void operator()(T executor) {
+				executor.store(dest, executor.load(accumulated) + executor.load(dest));
+			}
+		};
+	}
+
+	__forceinline void accumulate_vector(float* destination, float const* accumulated, uint32_t vector_size_p) {
+		execute_serial_fast(vector_size_p, ve_impl::vector_accumulate_operator(destination, accumulated));
 	}
 }

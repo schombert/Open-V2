@@ -5,7 +5,7 @@
 #include "ideologies\\ideologies_io.h"
 #include "nations\\nations_io.hpp"
 #include "population\\population_io.h"
-#include "provinces\\provinces_io.h"
+#include "provinces\\provinces_io.hpp"
 #include "military\\military_io.h"
 #include "variables\\variables_io.h"
 #include "provinces\\province_functions.h"
@@ -318,7 +318,7 @@ void restore_world_state(world_state& ws) {
 		for(int32_t i = 0; i < int32_t(state_max); ++i) {
 			nations::state_tag this_state = nations::state_tag(nations::state_tag::value_base_t(i));
 			if(auto owner = ws.w.nation_s.states.get<state::owner>(this_state); is_valid_index(owner))
-				ptr[i] = nations::tarrif_multiplier(ws, n, owner);
+				ptr[i + 1] = nations::tarrif_multiplier(ws, n, owner);
 		}
 	});
 

@@ -1,5 +1,5 @@
 #include "common\\common.h"
-#include "provinces\\provinces_io.h"
+#include "provinces\\provinces_io.hpp"
 #include "Parsers\\parsers.hpp"
 #include "object_parsing\\object_parsing.hpp"
 #include "modifiers\\modifiers_io.h"
@@ -572,6 +572,8 @@ namespace provinces {
 				env.manager.province_container.set<province::continent>(province_tag(i), tag);
 			}
 		}
+
+		void discard(int) {}
 	};
 
 	struct continents_parse_file {

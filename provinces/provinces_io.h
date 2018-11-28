@@ -7,7 +7,6 @@
 #include "text_data\\text_data.h"
 #include "graphics_objects\\graphics_objects.h"
 #include <ppl.h>
-#include <map>
 
 class world_state;
 
@@ -17,15 +16,9 @@ public:
 	static constexpr bool has_static_size = false;
 	static constexpr bool has_simple_serialize = false;
 
-	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws) {
-		serialize_stable_array(output, ws.w.province_s.core_arrays, obj);
-	}
-	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws) {
-		deserialize_stable_array(input, ws.w.province_s.core_arrays, obj);
-	}
-	static size_t size(T const& obj, world_state const& ws) {
-		return serialize_stable_array_size(ws.w.province_s.core_arrays, obj);
-	}
+	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
+	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
+	static size_t size(T const& obj, world_state const& ws);
 };
 
 template<typename T>
@@ -34,15 +27,9 @@ public:
 	static constexpr bool has_static_size = false;
 	static constexpr bool has_simple_serialize = false;
 
-	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws) {
-		serialize_stable_array(output, ws.w.province_s.timed_modifier_arrays, obj);
-	}
-	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws) {
-		deserialize_stable_array(input, ws.w.province_s.timed_modifier_arrays, obj);
-	}
-	static size_t size(T const& obj, world_state const& ws) {
-		return serialize_stable_array_size(ws.w.province_s.timed_modifier_arrays, obj);
-	}
+	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
+	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
+	static size_t size(T const& obj, world_state const& ws);
 };
 
 template<typename T>
@@ -51,15 +38,9 @@ public:
 	static constexpr bool has_static_size = false;
 	static constexpr bool has_simple_serialize = false;
 
-	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws) {
-		serialize_stable_array(output, ws.w.province_s.static_modifier_arrays, obj);
-	}
-	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws) {
-		deserialize_stable_array(input, ws.w.province_s.static_modifier_arrays, obj);
-	}
-	static size_t size(T const& obj, world_state const& ws) {
-		return serialize_stable_array_size(ws.w.province_s.static_modifier_arrays, obj);
-	}
+	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
+	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
+	static size_t size(T const& obj, world_state const& ws);
 };
 
 template<typename T>

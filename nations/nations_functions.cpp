@@ -448,9 +448,7 @@ namespace nations {
 
 		ws.w.nation_s.state_demographics.ensure_capacity(to_index(new_state) + 1);
 		ws.w.nation_s.state_prices.ensure_capacity(to_index(new_state) + 1);
-		ws.w.nation_s.state_production.ensure_capacity(to_index(new_state) + 1);
 		ws.w.nation_s.state_demand.ensure_capacity(to_index(new_state) + 1);
-		ws.w.nation_s.state_global_demand.ensure_capacity(to_index(new_state) + 1);
 		ws.w.nation_s.state_purchases.ensure_capacity(to_index(new_state) + 1);
 
 		auto prices = ws.w.nation_s.state_prices.get_row(new_state);
@@ -506,9 +504,11 @@ namespace nations {
 		ws.w.nation_s.active_issue_options.reset(uint32_t(ws.s.issues_m.issues_container.size()));
 		ws.w.nation_s.national_stockpiles.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count));
 		ws.w.nation_s.state_prices.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count * 2));
-		ws.w.nation_s.state_production.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count * 2));
 		ws.w.nation_s.state_demand.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count * 2));
-		ws.w.nation_s.state_global_demand.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count * 2));
+
+		ws.w.nation_s.state_production.resize(int32_t(ws.s.economy_m.goods_count));
+		ws.w.nation_s.state_global_demand.resize(int32_t(ws.s.economy_m.goods_count));
+
 		ws.w.nation_s.national_variables.reset(ws.s.variables_m.count_national_variables);
 		ws.w.nation_s.state_purchases.reset(uint32_t(ws.s.economy_m.goods_count));
 

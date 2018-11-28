@@ -56,12 +56,12 @@ namespace economy {
 
 		ui::xy_pair cursor{ 0,0 };
 		{
-			auto v = economy::state_current_production(ws, s);
+			auto v = economy::state_current_production(ws, s, tag);
 			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::supply_label], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
 			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
 
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::fp_two_places, v[to_index(tag)]);
+			put_value_in_buffer(local_buffer, display_type::fp_two_places, v);
 			cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), tw, cursor, ui::tooltip_text_format);
 						
 			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);

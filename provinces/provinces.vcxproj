@@ -86,7 +86,6 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -145,6 +144,7 @@
   <ItemGroup>
     <ClInclude Include="provinces.h" />
     <ClInclude Include="provinces_io.h" />
+    <ClInclude Include="provinces_io.hpp" />
     <ClInclude Include="province_functions.h" />
     <ClInclude Include="province_functions.hpp" />
     <ClInclude Include="province_gui.h" />

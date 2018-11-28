@@ -312,13 +312,12 @@ namespace provinces {
 			ws.w.nation_s.states.set<state::state_capital>(new_state, nations::find_state_capital(ws, new_state));
 			add_item(ws.w.nation_s.state_arrays, ws.w.nation_s.nations.get<nation::member_states>(new_owner), nations::region_state_pair{ region_id, new_state });
 
-			auto state_index = to_index(new_state);
-			auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(state_index + 1) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
-			ws.w.nation_s.nations.parallel_for_each([&ws, aligned_state_max, state_index, new_owner](nations::country_tag n){
+			auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(ws.w.nation_s.states.size()) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
+			ws.w.nation_s.nations.parallel_for_each([&ws, aligned_state_max, new_state, new_owner](nations::country_tag n){
 				auto& tfmask = ws.w.nation_s.nations.get<nation::statewise_tarrif_mask>(n);
 				if(get_size(ws.w.economy_s.purchasing_arrays, tfmask) < aligned_state_max)
 					resize(ws.w.economy_s.purchasing_arrays, tfmask, aligned_state_max);
-				get(ws.w.economy_s.purchasing_arrays, tfmask, state_index) = nations::tarrif_multiplier(ws, n, new_owner);
+				get(ws.w.economy_s.purchasing_arrays, tfmask, to_index(new_state) + 1) = nations::tarrif_multiplier(ws, n, new_owner);
 			});
 		}
 

@@ -74,30 +74,7 @@ namespace issues {
 	}
 
 	template<issue_group type_constant>
-	inline int preparse_issue(const token_group* s, const token_group* e, const token_and_type& t, parsing_environment& env) {
-		const auto issue_t = env.manager.issues_container.emplace_back();
-		issue& i = env.manager.issues_container[issue_t];
-		i.id = issue_t;
-		i.type = type_constant;
-		i.name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
-
-		if constexpr(type_constant == issue_group::party) {
-			env.manager.party_issues.push_back(issue_t);
-		} else if constexpr(type_constant == issue_group::political) {
-			env.manager.political_issues.push_back(issue_t);
-		} else if constexpr(type_constant == issue_group::social) {
-			env.manager.social_issues.push_back(issue_t);
-		} else if constexpr(type_constant == issue_group::military) {
-			env.manager.military_issues.push_back(issue_t);
-		} else if constexpr(type_constant == issue_group::economic) {
-			env.manager.economic_issues.push_back(issue_t);
-		}
-
-		env.manager.named_issue_index.emplace(i.name, issue_t);
-		parse_object<preparse_issue_s, inner_issue_preparse_domain>(s, e, env, i);
-
-		return 0;
-	}
+	int preparse_issue(const token_group* s, const token_group* e, const token_and_type& t, parsing_environment& env);
 
 	struct party_issues_group {
 		parsing_environment& env;
@@ -390,6 +367,32 @@ namespace issues {
 
 	rules_set read_rules(const token_group* start, const token_group* end) {
 		return parse_object<rules_reader, rules_parsing>(start, end);
+	}
+
+	template<issue_group type_constant>
+	int preparse_issue(const token_group* s, const token_group* e, const token_and_type& t, parsing_environment& env) {
+		const auto issue_t = env.manager.issues_container.emplace_back();
+		issue& i = env.manager.issues_container[issue_t];
+		i.id = issue_t;
+		i.type = type_constant;
+		i.name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
+
+		if constexpr(type_constant == issue_group::party) {
+			env.manager.party_issues.push_back(issue_t);
+		} else if constexpr(type_constant == issue_group::political) {
+			env.manager.political_issues.push_back(issue_t);
+		} else if constexpr(type_constant == issue_group::social) {
+			env.manager.social_issues.push_back(issue_t);
+		} else if constexpr(type_constant == issue_group::military) {
+			env.manager.military_issues.push_back(issue_t);
+		} else if constexpr(type_constant == issue_group::economic) {
+			env.manager.economic_issues.push_back(issue_t);
+		}
+
+		env.manager.named_issue_index.emplace(i.name, issue_t);
+		parse_object<preparse_issue_s, inner_issue_preparse_domain>(s, e, env, i);
+
+		return 0;
 	}
 
 	void read_issue_options(

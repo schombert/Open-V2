@@ -207,48 +207,30 @@ public:
 		_mm256_storeu_ps(dest + offset, value);
 	}
 	
-	template<int32_t cache_lines>
-	__forceinline int_vector prefetch_load(int32_t const* source) {
-		if constexpr(block_index % 2 == 0) {
-			_mm_prefetch((char const*)(source + 16 * cache_lines), _MM_HINT_T0);
-		}
-		return _mm256_load_si256((__m256i const*)(source + offset));
-	}
-	template<int32_t cache_lines>
-	__forceinline fp_vector prefetch_load(float const* source) {
-		if constexpr(block_index % 2 == 0) {
-			_mm_prefetch((char const*)(source + 16 * cache_lines), _MM_HINT_T0);
-		}
-		return _mm256_load_ps(source + offset);
-	}
-	template<int32_t cache_lines>
-	__forceinline void prefetch_store(float* dest, fp_vector value) {
-		if constexpr(block_index % 2 == 0) {
-			_mm_prefetch((char const*)(dest + 16 * cache_lines), _MM_HINT_T0);
-		}
-		_mm256_store_ps(dest + offset, value);
-	}
 
 	template<int32_t cache_lines>
-	__forceinline int_vector nt_prefetch_load(int32_t const* source) {
+	__forceinline void prefetch(int32_t const* source) {
+		if constexpr(block_index % 2 == 0) {
+			_mm_prefetch((char const*)(source + 16 * cache_lines), _MM_HINT_T0);
+		}
+	}
+	template<int32_t cache_lines>
+	__forceinline void prefetch(float const* source) {
+		if constexpr(block_index % 2 == 0) {
+			_mm_prefetch((char const*)(source + 16 * cache_lines), _MM_HINT_T0);
+		}
+	}
+	template<int32_t cache_lines>
+	__forceinline void nt_prefetch(int32_t const* source) {
 		if constexpr(block_index % 2 == 0) {
 			_mm_prefetch((char const*)(source + 16 * cache_lines), _MM_HINT_NTA);
 		}
-		return _mm256_load_si256((__m256i const*)(source + offset));
 	}
 	template<int32_t cache_lines>
-	__forceinline fp_vector nt_prefetch_load(float const* source) {
+	__forceinline void nt_prefetch(float const* source) {
 		if constexpr(block_index % 2 == 0) {
 			_mm_prefetch((char const*)(source + 16 * cache_lines), _MM_HINT_NTA);
 		}
-		return _mm256_load_ps(source + offset);
-	}
-	template<int32_t cache_lines>
-	__forceinline void nt_prefetch_store(float* dest, fp_vector value) {
-		if constexpr(block_index % 2 == 0) {
-			_mm_prefetch((char const*)(dest + 16 * cache_lines), _MM_HINT_NTA);
-		}
-		_mm256_store_ps(dest + offset, value);
 	}
 
 	__forceinline fp_vector stream_load(float const* source) {
@@ -261,15 +243,6 @@ public:
 		_mm256_stream_ps(dest + offset, value);
 	}
 
-	__forceinline fp_vector partial_load(float const* source) {
-		return _mm256_loadu_ps(source + offset);
-	}
-	__forceinline int_vector partial_load(int32_t const* source) {
-		return _mm256_loadu_si256((__m256i const*)(source + offset));
-	}
-	__forceinline void partial_store(float* dest, fp_vector value) {
-		_mm256_storeu_ps(dest + offset, value);
-	}
 	__forceinline int_vector partial_mask() {
 		return _mm256_loadu_si256((__m256i const*)load_masks);
 	}
@@ -333,15 +306,15 @@ protected:
 public:
 	partial_vector_operation(uint32_t o, uint32_t c) : full_vector_operation<0>(o), count(c) {}
 
-	__forceinline fp_vector partial_load(float const* source) {
+	__forceinline fp_vector load(float const* source) {
 		int_vector_internal mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - count));
 		return _mm256_maskload_ps(source + offset, mask);
 	}
-	__forceinline int_vector partial_load(int32_t const* source) {
+	__forceinline int_vector load(int32_t const* source) {
 		int_vector_internal mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - count));
 		return _mm256_maskload_epi32(source + offset, mask); //AVX2
 	}
-	__forceinline void partial_store(float* dest, fp_vector value) {
+	__forceinline void store(float* dest, fp_vector value) {
 		int_vector_internal mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - count));
 		_mm256_maskstore_ps(dest + offset, mask, value);
 	}
@@ -349,78 +322,83 @@ public:
 		return _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - count));
 	}
 
-	template<int32_t cache_lines>
-	__forceinline int_vector prefetch_load(int32_t const* source) {
-		return _mm256_load_si256((__m256i const*)(source + offset));
+	__forceinline fp_vector unaligned_load(float const* source) {
+		return load(source);
 	}
-	template<int32_t cache_lines>
-	__forceinline fp_vector prefetch_load(float const* source) {
-		return _mm256_load_ps(source + offset);
+	__forceinline int_vector unaligned_load(int32_t const* source) {
+		return load(source);
 	}
-	template<int32_t cache_lines>
-	__forceinline void prefetch_store(float* dest, fp_vector value) {
-		_mm256_store_ps(dest + offset, value);
+
+	__forceinline fp_vector gather_load(float const* source, __m256i indices) {
+		fp_vector_internal mask = _mm256_loadu_ps((float*)(load_masks + 8ui32 - count));
+		return _mm256_mask_i32gather_ps(_mm256_setzero_ps(), source, indices, mask, 4);
+	}
+	__forceinline int_vector gather_load(int32_t const* source, __m256i indices) {
+		int_vector_internal mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - count));
+		return _mm256_mask_i32gather_epi32(_mm256_setzero_si256(), source, indices, mask, 4);
+	}
+	__forceinline fp_vector gather_masked_load(float const* source, __m256i indices, fp_vector mask, fp_vector def = _mm256_setzero_ps()) {
+		fp_vector_internal imask = _mm256_loadu_ps((float const*)(load_masks + 8ui32 - count));
+		return _mm256_mask_i32gather_ps(def, source, indices, mask & imask, 4);
+	}
+	__forceinline int_vector gather_masked_load(int32_t const* source, __m256i indices, int_vector mask, int_vector def = _mm256_setzero_si256()) {
+		int_vector_internal imask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - count));
+		return _mm256_mask_i32gather_epi32(def, source, indices, _mm256_and_si256(mask, imask), 4);
+	}
+
+	__forceinline void unaligned_store(float* dest, fp_vector value) {
+		store(dest, value);
+	}
+
+	__forceinline fp_vector stream_load(float const* source) {
+		return load(source);
+	}
+	__forceinline int_vector stream_load(int32_t const* source) {
+		return load(source);
+	}
+	__forceinline void stream_store(float* dest, fp_vector value) {
+		store(dest, value);
 	}
 
 	template<int32_t cache_lines>
-	__forceinline int_vector nt_prefetch_load(int32_t const* source) {
-		return _mm256_loadu_si256((__m256i const*)(source + offset));
+	__forceinline void prefetch(int32_t const* source) {
 	}
 	template<int32_t cache_lines>
-	__forceinline fp_vector nt_prefetch_load(float const* source) {
-		return _mm256_load_ps(source + offset);
+	__forceinline void prefetch(float const* source) {
 	}
 	template<int32_t cache_lines>
-	__forceinline void nt_prefetch_store(float* dest, fp_vector value) {
-		_mm256_storeu_ps(dest + offset, value);
+	__forceinline void nt_prefetch(int32_t const* source) {
+	}
+	template<int32_t cache_lines>
+	__forceinline void nt_prefetch(float const* source) {
+	}
+
+	template<typename F>
+	__forceinline fp_vector apply(F const& f, fp_vector arg) {
+		return _mm256_setr_ps(
+			count > 0 ? f(arg.value.m256_f32[0], offset) : 0.0f,
+			count > 1 ? f(arg.value.m256_f32[1], offset + 1ui32) : 0.0f,
+			count > 2 ? f(arg.value.m256_f32[2], offset + 2ui32) : 0.0f,
+			count > 3 ? f(arg.value.m256_f32[3], offset + 3ui32) : 0.0f,
+			count > 4 ? f(arg.value.m256_f32[4], offset + 4ui32) : 0.0f,
+			count > 5 ? f(arg.value.m256_f32[5], offset + 5ui32) : 0.0f,
+			count > 6 ? f(arg.value.m256_f32[6], offset + 6ui32) : 0.0f,
+			count > 7 ? f(arg.value.m256_f32[7], offset + 7ui32) : 0.0f);
+	}
+
+	template<typename F>
+	__forceinline int_vector apply(F const& f, int_vector arg) {
+		return _mm256_setr_epi32(
+			count > 0 ? f(arg.value.m256i_i32[0], offset) : 0,
+			count > 1 ? f(arg.value.m256i_i32[1], offset + 1ui32) : 0,
+			count > 2 ? f(arg.value.m256i_i32[2], offset + 2ui32) : 0,
+			count > 3 ? f(arg.value.m256i_i32[3], offset + 3ui32) : 0,
+			count > 4 ? f(arg.value.m256i_i32[4], offset + 4ui32) : 0,
+			count > 5 ? f(arg.value.m256i_i32[5], offset + 5ui32) : 0,
+			count > 6 ? f(arg.value.m256i_i32[6], offset + 6ui32) : 0,
+			count > 7 ? f(arg.value.m256i_i32[7], offset + 7ui32) : 0);
 	}
 };
 
-class partial_unaligned_vector_operation : public full_unaligned_vector_operation<0> {
-protected:
-	uint32_t const count;
-public:
-	partial_unaligned_vector_operation(uint32_t o, uint32_t c) : full_unaligned_vector_operation<0>(o), count(c) {}
+using partial_unaligned_vector_operation = partial_vector_operation;
 
-	__forceinline fp_vector partial_load(float const* source) {
-		int_vector_internal mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - count));
-		return _mm256_maskload_ps(source + offset, mask);
-	}
-	__forceinline int_vector partial_load(int32_t const* source) {
-		int_vector_internal mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - count));
-		return _mm256_maskload_epi32(source + offset, mask); //AVX2
-	}
-	__forceinline void partial_store(float* dest, fp_vector value) {
-		int_vector_internal mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - count));
-		_mm256_maskstore_ps(dest + offset, mask, value);
-	}
-	__forceinline int_vector partial_mask() {
-		return _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - count));
-	}
-
-	template<int32_t cache_lines>
-	__forceinline int_vector prefetch_load(int32_t const* source) {
-		return _mm256_load_si256((__m256i const*)(source + offset));
-	}
-	template<int32_t cache_lines>
-	__forceinline fp_vector prefetch_load(float const* source) {
-		return _mm256_load_ps(source + offset);
-	}
-	template<int32_t cache_lines>
-	__forceinline void prefetch_store(float* dest, fp_vector value) {
-		_mm256_store_ps(dest + offset, value);
-	}
-
-	template<int32_t cache_lines>
-	__forceinline int_vector nt_prefetch_load(int32_t const* source) {
-		return _mm256_loadu_si256((__m256i const*)(source + offset));
-	}
-	template<int32_t cache_lines>
-	__forceinline fp_vector nt_prefetch_load(float const* source) {
-		return _mm256_load_ps(source + offset);
-	}
-	template<int32_t cache_lines>
-	__forceinline void nt_prefetch_store(float* dest, fp_vector value) {
-		_mm256_storeu_ps(dest + offset, value);
-	}
-};

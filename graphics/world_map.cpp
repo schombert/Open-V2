@@ -1042,7 +1042,7 @@ namespace graphics {
 			} else if(is_valid_index(g) && g != economy::money_good && ws.w.map_view.mode == current_state::map_mode::production) {
 				economy::goods_qnty_type max_production = 0.0001;
 				ws.w.nation_s.states.for_each([&](nations::state_tag id) {
-					max_production = std::max(max_production, economy::state_current_production(ws, id)[to_index(g)]);
+					max_production = std::max(max_production, economy::state_current_production(ws, id, g));
 				});
 
 				
@@ -1051,7 +1051,7 @@ namespace graphics {
 					if(auto sid = provinces::province_state(ws, provinces::province_tag(provinces::province_tag::value_base_t(i)));
 						bool(sid) && bool(ws.w.nation_s.states.get<state::owner>(sid))) {
 
-						auto fraction = economy::state_current_production(ws, sid)[to_index(g)] / max_production;
+						auto fraction = economy::state_current_production(ws, sid, g) / max_production;
 						if(fraction < 0)
 							std::abort();
 						pcolors[i * 3 + 0] = uint8_t(fraction * 205.0f + 50.0f);

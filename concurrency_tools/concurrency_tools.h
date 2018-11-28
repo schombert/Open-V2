@@ -201,27 +201,73 @@ public:
 template <typename T>
 struct concurrent_allocator {
 	using value_type = T;
-	concurrent_allocator() noexcept {}
+	constexpr concurrent_allocator() noexcept {}
 	template <typename U>
-	concurrent_allocator(const concurrent_allocator<U>&) noexcept {}
+	constexpr concurrent_allocator(const concurrent_allocator<U>&) noexcept {}
 	T* allocate(size_t n);
 	void deallocate(T* p, size_t n);
 };
 
-template<typename T>
+template <typename T>
+struct concurrent_aligned_allocator{
+	using value_type = T;
+	constexpr concurrent_aligned_allocator() noexcept {}
+	template <typename U>
+	constexpr concurrent_aligned_allocator(const concurrent_aligned_allocator<U>&) noexcept {}
+	T* allocate(size_t n);
+	void deallocate(T* p, size_t n);
+};
+
+template<typename T, typename index_type>
 struct concurrent_cache_aligned_buffer {
 private:
 	T* const allocated_address;
-public:
 	T* const buffer;
-
+public:
 	concurrent_cache_aligned_buffer(uint32_t size);
+	concurrent_cache_aligned_buffer(uint32_t size, T initial_value);
 	~concurrent_cache_aligned_buffer();
 
 	concurrent_cache_aligned_buffer(concurrent_cache_aligned_buffer const&) = delete;
 	concurrent_cache_aligned_buffer(concurrent_cache_aligned_buffer&&) = delete;
 	concurrent_cache_aligned_buffer& operator=(concurrent_cache_aligned_buffer const&) = delete;
 	concurrent_cache_aligned_buffer& operator=(concurrent_cache_aligned_buffer&&) = delete;
+
+	operator T*() const {
+		return buffer;
+	}
+	operator T const*() const {
+		return buffer;
+	}
+	T& operator[](index_type i) const {
+		return buffer[to_index(i) + 1];
+	}
+};
+
+template<typename T, typename index_type>
+struct moveable_concurrent_cache_aligned_buffer {
+private:
+	T* allocated_address = nullptr;
+	T* buffer = nullptr;
+public:
+	moveable_concurrent_cache_aligned_buffer(uint32_t size);
+	moveable_concurrent_cache_aligned_buffer(uint32_t size, T initial_value);
+	~moveable_concurrent_cache_aligned_buffer();
+
+	moveable_concurrent_cache_aligned_buffer(moveable_concurrent_cache_aligned_buffer const&) = delete;
+	moveable_concurrent_cache_aligned_buffer(moveable_concurrent_cache_aligned_buffer&&);
+	moveable_concurrent_cache_aligned_buffer& operator=(moveable_concurrent_cache_aligned_buffer const&) = delete;
+	moveable_concurrent_cache_aligned_buffer& operator=(moveable_concurrent_cache_aligned_buffer&&);
+
+	operator T*() const {
+		return buffer;
+	}
+	operator T const*() const {
+		return buffer;
+	}
+	T& operator[](index_type i) const {
+		return buffer[to_index(i) + 1];
+	}
 };
 
 template <typename T, typename U>

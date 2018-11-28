@@ -24,13 +24,16 @@ void serialization::serializer<nations::nations_state>::serialize_object(std::by
 	obj.states.for_each([&ws, &output](nations::state_tag s) {
 		auto prices = ws.w.nation_s.state_prices.get_row(s);
 		serialize_array(output, prices, ws.s.economy_m.aligned_32_goods_count * 2);
-		auto production = ws.w.nation_s.state_production.get_row(s);
-		serialize_array(output, production, ws.s.economy_m.aligned_32_goods_count * 2);
 		auto demand = ws.w.nation_s.state_demand.get_row(s);
 		serialize_array(output, demand, ws.s.economy_m.aligned_32_goods_count * 2);
-		auto global_demand = ws.w.nation_s.state_global_demand.get_row(s);
-		serialize_array(output, global_demand, ws.s.economy_m.aligned_32_goods_count * 2);
+
 	});
+
+	auto s_size = obj.states.size();
+	for(int32_t i = 1; i < int32_t(ws.s.economy_m.goods_count); ++i) {
+		serialize_array(output, (float const*)(ws.w.nation_s.state_production.get_row(economy::goods_tag(economy::goods_tag::value_base_t(i)))), s_size);
+		serialize_array(output, (float const*)(ws.w.nation_s.state_global_demand.get_row(economy::goods_tag(economy::goods_tag::value_base_t(i)))), s_size);
+	}
 
 	obj.nations.for_each([&ws, &output](nations::country_tag n) {
 		auto active_parties = ws.w.nation_s.active_parties.get_row(n);
@@ -59,9 +62,7 @@ void serialization::serializer<nations::nations_state>::deserialize_object(std::
 
 	ws.w.nation_s.state_demographics.ensure_capacity(obj.states.size());
 	ws.w.nation_s.state_prices.ensure_capacity(obj.states.size());
-	ws.w.nation_s.state_production.ensure_capacity(obj.states.size());
 	ws.w.nation_s.state_demand.ensure_capacity(obj.states.size());
-	ws.w.nation_s.state_global_demand.ensure_capacity(obj.states.size());
 	ws.w.nation_s.state_purchases.ensure_capacity(obj.states.size());
 
 	ws.w.nation_s.active_parties.ensure_capacity(obj.nations.size());
@@ -81,13 +82,15 @@ void serialization::serializer<nations::nations_state>::deserialize_object(std::
 	obj.states.for_each([&ws, &input](nations::state_tag s) {
 		auto prices = ws.w.nation_s.state_prices.get_row(s);
 		deserialize_array(input, prices, ws.s.economy_m.aligned_32_goods_count * 2);
-		auto production = ws.w.nation_s.state_production.get_row(s);
-		deserialize_array(input, production, ws.s.economy_m.aligned_32_goods_count * 2);
 		auto demand = ws.w.nation_s.state_demand.get_row(s);
 		deserialize_array(input, demand, ws.s.economy_m.aligned_32_goods_count * 2);
-		auto global_demand = ws.w.nation_s.state_global_demand.get_row(s);
-		deserialize_array(input, global_demand, ws.s.economy_m.aligned_32_goods_count * 2);
 	});
+
+	auto s_size = obj.states.size();
+	for(int32_t i = 1; i < int32_t(ws.s.economy_m.goods_count); ++i) {
+		deserialize_array(input, (float*)(ws.w.nation_s.state_production.get_row(economy::goods_tag(economy::goods_tag::value_base_t(i)))), s_size);
+		deserialize_array(input, (float*)(ws.w.nation_s.state_global_demand.get_row(economy::goods_tag(economy::goods_tag::value_base_t(i)))), s_size);
+	}
 
 	obj.nations.for_each([&ws, &input](nations::country_tag n) {
 		technologies::reset_technologies(ws, n);
@@ -127,14 +130,16 @@ void serialization::serializer<nations::nations_state>::deserialize_object(std::
 
 size_t serialization::serializer<nations::nations_state>::size(nations::nations_state const & obj, world_state const & ws) {
 	size_t state_data_size = 0;
-	auto fixed_sz_increment = sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count * 2 + // state prices
-		sizeof(economy::goods_qnty_type) * ws.s.economy_m.aligned_32_goods_count * 2 + // state production
-		sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count * 2 + // state demand
-		sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count * 2; // state global demand
+	auto fixed_sz_increment =
+		sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count * 2 + // state prices
+		sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count * 2; // state demand
 
 	obj.states.for_each([fixed_sz_increment, &state_data_size](nations::state_tag s) {
 		state_data_size += fixed_sz_increment; 
 	});
+
+	auto s_size = obj.states.size();
+	auto state_other_arrays_size = 2 * (sizeof(float) * s_size * (int32_t(ws.s.economy_m.goods_count) - 1)); // production & global demand
 
 	size_t nation_data_size = 0;
 	auto nation_fixed_sz_increment = sizeof(governments::party_tag) * ws.s.ideologies_m.ideologies_count + // active parties
@@ -148,7 +153,7 @@ size_t serialization::serializer<nations::nations_state>::size(nations::nations_
 		nation_data_size += nation_fixed_sz_increment;
 	});
 
-	return serialize_size(obj.nations, ws) + serialize_size(obj.states, ws) + state_data_size + nation_data_size;	
+	return serialize_size(obj.nations, ws) + serialize_size(obj.states, ws) + state_data_size + state_other_arrays_size + nation_data_size;
 }
 
 namespace nations {

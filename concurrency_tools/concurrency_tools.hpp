@@ -5,6 +5,9 @@
 #include "simple_serialize\\simple_serialize.hpp"
 #include <ppl.h>
 
+#undef max
+#undef min
+
 template<typename object_type, typename index_type, uint32_t block_size, uint32_t index_size>
 class serialization::serializer<stable_vector<object_type, index_type, block_size, index_size>> {
 public:
@@ -1153,6 +1156,25 @@ void concurrent_allocator<T>::deallocate(T* p, size_t) {
 	concurrent_free_wrapper(p);
 }
 
+template<typename T>
+T* concurrent_aligned_allocator<T>::allocate(size_t n) {
+	auto to_cache_width = (n * sizeof(T) + 63ui64) & ~63ui64;
+	auto plus_padding = to_cache_width + 64 + sizeof(void*);
+
+	void* base_storage = concurrent_alloc_wrapper(plus_padding);
+	void* ptr = ((void**)base_storage) + 1;
+
+	auto aligned_result = (void**)std::align(64, to_cache_width, ptr, plus_padding - sizeof(void*));
+	*(aligned_result - 1) = base_storage;
+
+	return (T*)aligned_result;
+}
+
+template<typename T>
+void concurrent_aligned_allocator<T>::deallocate(T* p, size_t) {
+	void** ptr_address = ((void**)p) - 1;
+	concurrent_free_wrapper(*ptr_address);
+}
 
 namespace concurrent_detail {
 	inline void* align_wrapper(void* ptr_in, size_t allocated_size) {
@@ -1160,15 +1182,70 @@ namespace concurrent_detail {
 	}
 }
 
-template<typename T>
-concurrent_cache_aligned_buffer<T>::concurrent_cache_aligned_buffer(uint32_t size) :
+template<typename T, typename index_type>
+concurrent_cache_aligned_buffer<T, index_type>::concurrent_cache_aligned_buffer(uint32_t size) :
 	allocated_address((T*)concurrent_alloc_wrapper(64 * 2 + size * sizeof(T))),
-	buffer((T*)concurrent_detail::align_wrapper(allocated_address, 64 * 2 + size * sizeof(T)))
-{ }
+	buffer((T*)concurrent_detail::align_wrapper(allocated_address, 64 * 2 + size * sizeof(T))) {
 
-template<typename T>
-concurrent_cache_aligned_buffer<T>::~concurrent_cache_aligned_buffer() {
+	std::fill_n(allocated_address, size + 128ui32 / sizeof(T), T());
+}
+
+template<typename T, typename index_type>
+concurrent_cache_aligned_buffer<T, index_type>::concurrent_cache_aligned_buffer(uint32_t size, T initial) :
+	allocated_address((T*)concurrent_alloc_wrapper(64 * 2 + size * sizeof(T))),
+	buffer((T*)concurrent_detail::align_wrapper(allocated_address, 64 * 2 + size * sizeof(T))) {
+
+	std::fill_n(allocated_address, size + 128ui32 / sizeof(T), initial);
+}
+
+template<typename T, typename index_type>
+concurrent_cache_aligned_buffer<T, index_type>::~concurrent_cache_aligned_buffer() {
 	concurrent_free_wrapper(allocated_address);
+}
+
+template<typename T, typename index_type>
+moveable_concurrent_cache_aligned_buffer<T, index_type>::moveable_concurrent_cache_aligned_buffer(uint32_t size) :
+	allocated_address((T*)concurrent_alloc_wrapper(64 * 2 + size * sizeof(T))),
+	buffer((T*)concurrent_detail::align_wrapper(allocated_address, 64 * 2 + size * sizeof(T))) {
+
+	std::fill_n(allocated_address, size + 128ui32 / sizeof(T), T());
+}
+
+template<typename T, typename index_type>
+moveable_concurrent_cache_aligned_buffer<T, index_type>::moveable_concurrent_cache_aligned_buffer(uint32_t size, T initial) :
+	allocated_address((T*)concurrent_alloc_wrapper(64 * 2 + size * sizeof(T))),
+	buffer((T*)concurrent_detail::align_wrapper(allocated_address, 64 * 2 + size * sizeof(T))) {
+
+	std::fill_n(allocated_address, size + 128ui32 / sizeof(T), initial);
+}
+
+template<typename T, typename index_type>
+moveable_concurrent_cache_aligned_buffer<T, index_type>::~moveable_concurrent_cache_aligned_buffer() {
+	if(allocated_address)
+		concurrent_free_wrapper(allocated_address);
+	allocated_address = nullptr;
+	buffer = nullptr;
+}
+
+template<typename T, typename index_type>
+moveable_concurrent_cache_aligned_buffer<T, index_type>::moveable_concurrent_cache_aligned_buffer(moveable_concurrent_cache_aligned_buffer&& o) :
+	allocated_address(o.allocated_address), buffer(o.buffer) {
+	o.allocated_address = nullptr;
+	o.buffer = nullptr;
+}
+
+template<typename T, typename index_type>
+moveable_concurrent_cache_aligned_buffer<T, index_type>& moveable_concurrent_cache_aligned_buffer<T, index_type>::operator=(moveable_concurrent_cache_aligned_buffer&& o) {
+	if(allocated_address)
+		concurrent_free_wrapper(allocated_address);
+
+	allocated_address = o.allocated_address;
+	buffer = o.buffer;
+
+	o.allocated_address = nullptr;
+	o.buffer = nullptr;
+
+	return *this;
 }
 
 template<typename T>

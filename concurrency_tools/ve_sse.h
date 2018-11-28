@@ -210,15 +210,31 @@ public:
 		_mm_stream_ps(dest + offset, value);
 	}
 
-	__forceinline fp_vector partial_load(float const* source) {
-		return _mm_loadu_ps(source + offset);
+	template<int32_t cache_lines>
+	__forceinline void prefetch(int32_t const* source) {
+		if constexpr(block_index % 4 == 0) {
+			_mm_prefetch((char const*)(source + 16 * cache_lines), _MM_HINT_T0);
+		}
 	}
-	__forceinline int_vector partial_load(int32_t const* source) {
-		return _mm_loadu_si128((__m128i const*)(source + offset));
+	template<int32_t cache_lines>
+	__forceinline void prefetch(float const* source) {
+		if constexpr(block_index % 4 == 0) {
+			_mm_prefetch((char const*)(source + 16 * cache_lines), _MM_HINT_T0);
+		}
 	}
-	__forceinline void partial_store(float* dest, fp_vector value) {
-		_mm_storeu_ps(dest + offset, value);
+	template<int32_t cache_lines>
+	__forceinline void nt_prefetch(int32_t const* source) {
+		if constexpr(block_index % 4 == 0) {
+			_mm_prefetch((char const*)(source + 16 * cache_lines), _MM_HINT_NTA);
+		}
 	}
+	template<int32_t cache_lines>
+	__forceinline void nt_prefetch(float const* source) {
+		if constexpr(block_index % 4 == 0) {
+			_mm_prefetch((char const*)(source + 16 * cache_lines), _MM_HINT_NTA);
+		}
+	}
+
 	__forceinline int_vector partial_mask() {
 		return _mm_loadu_si128((__m128i const*)load_masks);
 	}
@@ -274,42 +290,92 @@ protected:
 public:
 	partial_vector_operation(uint32_t o, uint32_t c) : full_vector_operation(o), count(c) {}
 
-	__forceinline fp_vector partial_load(float const* source) {
+	__forceinline fp_vector load(float const* source) {
 		fp_vector_internal mask = _mm_loadu_ps((float const*)(load_masks + 4ui32 - count));
 		return _mm_and_ps(_mm_load_ps(source + offset), mask);
 	}
-	__forceinline int_vector partial_load(int32_t const* source) {
+	__forceinline int_vector load(int32_t const* source) {
 		int_vector_internal mask = _mm_loadu_si128((__m128i const*)(load_masks + 4ui32 - count));
 		return _mm_and_si128(_mm_load_si128((__m128i const*)(source + offset)), mask);
 	}
-	__forceinline void partial_store(float* dest, fp_vector value) {
+	__forceinline void store(float* dest, fp_vector value) {
 		int_vector_internal mask = _mm_loadu_si128((__m128i const*)(load_masks + 4ui32 - count));
 		_mm_maskmoveu_si128(_mm_castps_si128(value), mask, (char*)(dest + offset));
 	}
 	__forceinline int_vector partial_mask() {
 		return _mm_loadu_si128((__m128i const*)(load_masks + 4ui32 - count));
 	}
+
+
+	__forceinline fp_vector unaligned_load(float const* source) {
+		return load(source);
+	}
+	__forceinline int_vector unaligned_load(int32_t const* source) {
+		return load(source);
+	}
+
+
+	__forceinline fp_vector gather_load(float const* source, __m128i indices) {
+		return _mm_setr_ps(
+			count > 0 ? source[indices.m128i_i32[0]] : 0.0f,
+			count > 1 ? source[indices.m128i_i32[1]] : 0.0f,
+			count > 2 ? source[indices.m128i_i32[2]] : 0.0f,
+			count > 3 ? source[indices.m128i_i32[3]] : 0.0f);
+	}
+	__forceinline int_vector gather_load(int32_t const* source, __m128i indices) {
+		return _mm_setr_epi32(
+			count > 0 ? source[indices.m128i_i32[0]] : 0,
+			count > 1 ? source[indices.m128i_i32[1]] : 0,
+			count > 2 ? source[indices.m128i_i32[2]] : 0,
+			count > 3 ? source[indices.m128i_i32[3]] : 0);
+	}
+	__forceinline fp_vector gather_masked_load(float const* source, __m128i indices, fp_vector mask, fp_vector def = _mm_setzero_ps()) {
+		return select(mask, gather_load(source, indices), def);
+	}
+	__forceinline int_vector gather_masked_load(int32_t const* source, __m128i indices, int_vector mask, int_vector def = _mm_setzero_si128()) {
+		return _mm_blendv_epi8(def, gather_load(source, indices), mask);
+	}
+
+	__forceinline void unaligned_store(float* dest, fp_vector value) {
+		store(dest, value);
+	}
+
+	__forceinline fp_vector stream_load(float const* source) {
+		return load(source);
+	}
+	__forceinline int_vector stream_load(int32_t const* source) {
+		return load(source);
+	}
+	__forceinline void stream_store(float* dest, fp_vector value) {
+		store(dest, value);
+	}
+
+	template<int32_t cache_lines>
+	__forceinline void prefetch(int32_t const* source) {}
+	template<int32_t cache_lines>
+	__forceinline void prefetch(float const* source) {}
+	template<int32_t cache_lines>
+	__forceinline void nt_prefetch(int32_t const* source) {}
+	template<int32_t cache_lines>
+	__forceinline void nt_prefetch(float const* source) {}
+
+	template<typename F>
+	__forceinline fp_vector apply(F const& f, fp_vector arg) {
+		return _mm_setr_ps(
+			count > 0 ? f(arg.value.m128_f32[0], offset) : 0.0f,
+			count > 1 ? f(arg.value.m128_f32[1], offset + 1ui32) : 0.0f,
+			count > 2 ? f(arg.value.m128_f32[2], offset + 2ui32) : 0.0f,
+			count > 3 ? f(arg.value.m128_f32[3], offset + 3ui32) : 0.0f);
+	}
+
+	template<typename F>
+	__forceinline int_vector apply(F const& f, int_vector arg) {
+		return _mm_setr_epi32(
+			count > 0 ? f(arg.value.m128i_i32[0], offset) : 0,
+			count > 1 ? f(arg.value.m128i_i32[1], offset + 1ui32) : 0,
+			count > 2 ? f(arg.value.m128i_i32[2], offset + 2ui32) : 0,
+			count > 3 ? f(arg.value.m128i_i32[3], offset + 3ui32) : 0);
+	}
 };
 
-class partial_unaligned_vector_operation : public full_unaligned_vector_operation<0> {
-protected:
-	uint32_t const count;
-public:
-	partial_unaligned_vector_operation(uint32_t o, uint32_t c) : full_unaligned_vector_operation(o), count(c) {}
-
-	__forceinline fp_vector partial_load(float const* source) {
-		fp_vector_internal mask = _mm_loadu_ps((float const*)(load_masks + 4ui32 - count));
-		return _mm_and_ps(_mm_loadu_ps(source + offset), mask);
-	}
-	__forceinline int_vector partial_load(int32_t const* source) {
-		int_vector_internal mask = _mm_loadu_si128((__m128i const*)(load_masks + 4ui32 - count));
-		return _mm_and_si128(_mm_loadu_si128((__m128i const*)(source + offset)), mask);
-	}
-	__forceinline void partial_store(float* dest, fp_vector value) {
-		int_vector_internal mask = _mm_loadu_si128((__m128i const*)(load_masks + 4ui32 - count));
-		_mm_maskmoveu_si128(_mm_castps_si128(value), mask, (char*)(dest + offset));
-	}
-	__forceinline int_vector partial_mask() {
-		return _mm_loadu_si128((__m128i const*)(load_masks + 4ui32 - count));
-	}
-};
+using partial_unaligned_vector_operation = partial_vector_operation;

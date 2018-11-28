@@ -63,7 +63,7 @@ namespace economy {
 	float project_completion(world_state const& ws, nations::state_tag si, money_qnty_type const* prices);
 	money_qnty_type* state_current_prices(world_state const& ws, nations::state_tag s);
 	money_qnty_type* state_price_delta(world_state const& ws, nations::state_tag s);
-	goods_qnty_type* state_current_production(world_state const& ws, nations::state_tag s);
+	float state_current_production(world_state const& ws, nations::state_tag s, goods_tag g);
 	money_qnty_type* state_current_demand(world_state const& ws, nations::state_tag s);
 	money_qnty_type calculate_daily_debt_payment(world_state const& ws, nations::country_tag n);
 	money_qnty_type daily_state_owner_building_cost(world_state const& ws, nations::state_tag si);

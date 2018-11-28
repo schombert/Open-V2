@@ -343,7 +343,9 @@ namespace state {
 	constexpr int32_t factories_count = 8;
 	constexpr int32_t colonizers_count = 4;
 
-	using container = variable_layout_tagged_vector < nations::state_tag, 900,
+	constexpr int32_t container_size = 900;
+
+	using container = variable_layout_tagged_vector < nations::state_tag, container_size,
 		is_slave_state, bitfield_type,
 		is_colonial, bitfield_type,
 		is_protectorate, bitfield_type,
@@ -381,6 +383,9 @@ namespace nations {
 		nation::container nations;
 		state::container states;
 
+
+		varying_vectorizable_2d_array<state_tag, economy::goods_tag, float, state::container_size> state_production;
+		varying_vectorizable_2d_array<state_tag, economy::goods_tag, float, state::container_size> state_global_demand;
 		fixed_vectorizable_2d_array<nations::country_tag, modifiers::value_type, nation::container_size, modifiers::national_offsets::count> modifier_values;
 
 		stable_2d_vector<governments::party_tag, country_tag, ideologies::ideology_tag, 512, 16> active_parties;
@@ -396,9 +401,7 @@ namespace nations {
 		stable_2d_vector<float, country_tag, population::rebel_type_tag, 512, 16> rebel_org_gain;
 
 		stable_2d_vector<economy::money_qnty_type, state_tag, economy::goods_tag, 512, 16> state_prices;
-		stable_2d_vector<economy::goods_qnty_type, state_tag, economy::goods_tag, 512, 16> state_production;
 		stable_2d_vector<economy::money_qnty_type, state_tag, economy::goods_tag, 512, 16> state_demand;
-		stable_2d_vector<economy::money_qnty_type, state_tag, economy::goods_tag, 512, 16> state_global_demand;
 		stable_2d_vector<array_tag<economy::money_qnty_type>, state_tag, economy::goods_tag, 512, 16> state_purchases;
 		
 

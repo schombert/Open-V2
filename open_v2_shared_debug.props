@@ -39,7 +39,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\boost_1_68_0;$(ProjectDir)..</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <StringPooling>true</StringPooling>
-      <ConformanceMode>false</ConformanceMode>
+      <ConformanceMode>true</ConformanceMode>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <DisableSpecificWarnings>4100;4127</DisableSpecificWarnings>
       <SupportJustMyCode>false</SupportJustMyCode>

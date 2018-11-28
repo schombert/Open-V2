@@ -272,6 +272,8 @@ struct tagged_object {
 	T& object;
 	const tag_type id;
 
+	tagged_object(T& first, tag_type second) noexcept : object(first), id(second) {}
+
 	operator T&() const noexcept {
 		return object;
 	}
