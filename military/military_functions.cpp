@@ -91,13 +91,14 @@ namespace military {
 	}
 
 	void update_army_attributes(world_state& ws, nations::country_tag owning_nation, army& this_army) {
-		uint16_t* count = ws.w.military_s.unit_type_composition.get_row(this_army.id);
+		auto counts = ws.w.military_s.unit_type_composition.get_row(this_army.id);
 		auto nation_id = owning_nation;
 
 		this_army.total_attributes = unit_attribute_vector::Zero();
 		auto unit_type_count = ws.s.military_m.unit_types_count;
-		for(uint32_t i = to_index(naval_unit_base) + 1ui32; i < unit_type_count; ++i) {
-			this_army.total_attributes += ws.w.nation_s.unit_stats.get(nation_id, unit_type_tag(static_cast<unit_type_tag::value_base_t>(i))) * unit_attribute_type(count[i]);
+		for(int32_t i = to_index(naval_unit_base) + 1; i < int32_t(unit_type_count); ++i) {
+			auto unit_tag = unit_type_tag(static_cast<unit_type_tag::value_base_t>(i));
+			this_army.total_attributes += ws.w.nation_s.unit_stats.get(nation_id, unit_tag) * unit_attribute_type(counts[unit_tag]);
 		}
 	}
 
@@ -107,8 +108,8 @@ namespace military {
 		this_fleet.total_attributes = unit_attribute_vector::Zero();
 
 		auto ship_range = get_range(ws.w.military_s.ship_arrays, this_fleet.ships);
-		for(auto s = ship_range.first; s != ship_range.second; ++s) {
-			this_fleet.total_attributes += ws.w.nation_s.unit_stats.get(nation_id, s->type);
+		for(auto& s : ship_range) {
+			this_fleet.total_attributes += ws.w.nation_s.unit_stats.get(nation_id, s.type);
 		}
 	}
 
@@ -186,8 +187,8 @@ namespace military {
 
 	bool can_use_cb_against(world_state const& ws, nations::country_tag nation_by, nations::country_tag nation_target) {
 		auto pending_range = get_range(ws.w.military_s.cb_arrays, ws.w.nation_s.nations.get<nation::active_cbs>(nation_by));
-		for(auto c = pending_range.first; c != pending_range.second; ++c) {
-			if(c->target == nation_target)
+		for(auto& c : pending_range) {
+			if(c.target == nation_target)
 				return true;
 		}
 		for(auto& c : ws.s.military_m.cb_types) {
@@ -372,8 +373,8 @@ namespace military {
 
 	bool is_target_of_war_goal(world_state const& ws, war const& this_war, nations::country_tag target) {
 		auto wg_range = get_range(ws.w.military_s.war_goal_arrays, this_war.war_goals);
-		for(auto wg = wg_range.first; wg != wg_range.second; ++wg) {
-			if(wg->target_country == target)
+		for(auto& wg : wg_range) {
+			if(wg.target_country == target)
 				return true;
 		}
 		return false;
@@ -486,7 +487,7 @@ namespace military {
 	}
 
 	uint32_t calculate_minimum_soldiers(world_state const& ws, army_tag a) {
-		Eigen::Map<Eigen::Matrix<uint16_t, -1, 1>> composition(ws.w.military_s.unit_type_composition.get_row(a), ws.s.military_m.unit_types_count);
+		Eigen::Map<const Eigen::Matrix<uint16_t, -1, 1>> composition(ws.w.military_s.unit_type_composition.get_row(a).data(), ws.s.military_m.unit_types_count);
 		auto count_brigades = composition.sum();
 		return uint32_t(ws.s.modifiers_m.global_defines.pop_size_per_regiment) * count_brigades;
 	}
@@ -651,18 +652,18 @@ namespace military {
 	float total_attacker_demands_war_score(world_state const& ws, war const& w) {
 		float sum = 0.0f;
 		auto wg_range = get_range(ws.w.military_s.war_goal_arrays, w.war_goals);
-		for(auto i = wg_range.first; i != wg_range.second; ++i) {
-			if(contains_item(ws.w.nation_s.nations_arrays, w.attackers, i->from_country))
-				sum += calculate_base_war_score_cost(ws, *i);
+		for(auto& i : wg_range) {
+			if(contains_item(ws.w.nation_s.nations_arrays, w.attackers, i.from_country))
+				sum += calculate_base_war_score_cost(ws, i);
 		}
 		return sum;
 	}
 	float total_defender_demands_war_score(world_state const& ws, war const& w) {
 		float sum = 0.0f;
 		auto wg_range = get_range(ws.w.military_s.war_goal_arrays, w.war_goals);
-		for(auto i = wg_range.first; i != wg_range.second; ++i) {
-			if(contains_item(ws.w.nation_s.nations_arrays, w.defenders, i->from_country))
-				sum += calculate_base_war_score_cost(ws, *i);
+		for(auto& i : wg_range) {
+			if(contains_item(ws.w.nation_s.nations_arrays, w.defenders, i.from_country))
+				sum += calculate_base_war_score_cost(ws, i);
 		}
 		return sum;
 	}

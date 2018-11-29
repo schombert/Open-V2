@@ -25,7 +25,7 @@ namespace provinces {
 			s.province_state_container.set<province_state::controller>(p, nations::country_tag());
 			s.province_state_container.set<province_state::static_modifiers>(p, set_tag<modifiers::provincial_modifier_tag>());
 			s.province_state_container.set<province_state::timed_modifiers>(p, multiset_tag<provinces::timed_provincial_modifier>());
-			s.province_state_container.set<province_state::pops>(p, array_tag<population::pop_tag>());
+			s.province_state_container.set<province_state::pops>(p, array_tag<population::pop_tag, int32_t, false>());
 		});
 		s.core_arrays.reset();
 		s.static_modifier_arrays.reset();
@@ -134,25 +134,25 @@ namespace provinces {
 			
 			province_full_demo.setZero();
 
-			for(auto p = pop_range.first; p != pop_range.second; ++p) {
-				Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> pop_demo_source(ws.w.population_s.pop_demographics.get_row(*p), vector_size);
+			for(auto p : pop_range) {
+				Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> pop_demo_source(ws.w.population_s.pop_demographics.get_row(p).data(), vector_size);
 				province_partial_demo += pop_demo_source;
 
-				auto ptype =  ws.w.population_s.pops.get<pop::type>(*p);
-				auto needs_satisfaction = ws.w.population_s.pops.get<pop::needs_satisfaction>(*p);
+				auto ptype =  ws.w.population_s.pops.get<pop::type>(p);
+				auto needs_satisfaction = ws.w.population_s.pops.get<pop::needs_satisfaction>(p);
 
 				auto pop_size = pop_demo_source[to_index(population::total_population_tag)];
 
-				province_full_demo[to_index(population::to_demo_tag(ws, ws.w.population_s.pops.get<pop::culture>(*p)))] += pop_size;
-				province_full_demo[to_index(population::to_demo_tag(ws, ws.w.population_s.pops.get<pop::religion>(*p)))] += pop_size;
+				province_full_demo[to_index(population::to_demo_tag(ws, ws.w.population_s.pops.get<pop::culture>(p)))] += pop_size;
+				province_full_demo[to_index(population::to_demo_tag(ws, ws.w.population_s.pops.get<pop::religion>(p)))] += pop_size;
 				province_full_demo[to_index(population::to_demo_tag(ws, ptype))] += pop_size;
 				province_full_demo[to_index(population::to_employment_demo_tag(ws, ptype))] += pop_demo_source[to_index(population::total_employment_tag)];
 
 
-				province_full_demo[to_index(cdt)] += ws.w.population_s.pops.get<pop::consciousness>(*p) * pop_size;
-				province_full_demo[to_index(ldt)] += ws.w.population_s.pops.get<pop::literacy>(*p) * pop_size;
+				province_full_demo[to_index(cdt)] += ws.w.population_s.pops.get<pop::consciousness>(p) * pop_size;
+				province_full_demo[to_index(ldt)] += ws.w.population_s.pops.get<pop::literacy>(p) * pop_size;
 
-				const float weighted_militancy = ws.w.population_s.pops.get<pop::militancy>(*p) * pop_size;
+				const float weighted_militancy = ws.w.population_s.pops.get<pop::militancy>(p) * pop_size;
 				province_full_demo[to_index(mdt)] += weighted_militancy;
 
 				const auto strata = ws.s.population_m.pop_types[ptype].flags & population::pop_type::strata_mask;
@@ -317,7 +317,7 @@ namespace provinces {
 				auto& tfmask = ws.w.nation_s.nations.get<nation::statewise_tarrif_mask>(n);
 				if(get_size(ws.w.economy_s.purchasing_arrays, tfmask) < aligned_state_max)
 					resize(ws.w.economy_s.purchasing_arrays, tfmask, aligned_state_max);
-				get(ws.w.economy_s.purchasing_arrays, tfmask, to_index(new_state) + 1) = nations::tarrif_multiplier(ws, n, new_owner);
+				get(ws.w.economy_s.purchasing_arrays, tfmask, new_state) = nations::tarrif_multiplier(ws, n, new_owner);
 			});
 		}
 
@@ -393,7 +393,7 @@ namespace provinces {
 	};
 
 	void fill_distance_arrays(world_state& ws) {
-		auto prov_count = ws.w.province_s.province_state_container.size();
+		auto prov_count = ws.s.province_m.province_container.size();
 		auto prov_distance_data = ws.w.province_s.province_distance_to.data();
 		auto province_path_data = ws.w.province_s.province_path_to.data();
 

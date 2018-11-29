@@ -474,7 +474,7 @@ namespace triggers {
 
 				if((tval[0] & effect_codes::scope_has_limit) != 0) {
 					auto limit = ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger);
-					for(auto n = ranked_range.first; (n != ranked_range.second) & (count < great_nations_count); ++n) {
+					for(auto n = std::begin(ranked_range); (n != std::end(ranked_range)) & (count < great_nations_count); ++n) {
 						if(is_valid_index(*n)) {
 							if(nations::is_great_power(ws, *n) && test_trigger(limit, ws, *n, this_slot, from_slot, rebel_slot)) {
 								++count;
@@ -483,7 +483,7 @@ namespace triggers {
 						}
 					}
 				} else {
-					for(auto n = ranked_range.first; (n != ranked_range.second) & (count < great_nations_count); ++n) {
+					for(auto n = std::begin(ranked_range); (n != std::end(ranked_range)) & (count < great_nations_count); ++n) {
 						if(is_valid_index(*n)) {
 							if(nations::is_great_power(ws, *n)) {
 								++count;

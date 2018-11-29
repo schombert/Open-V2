@@ -584,7 +584,7 @@ TEST(provinces_test, single_province_read_state) {
 	}
 
 	{
-		auto& ps = province_tag(11ui16);
+		auto ps = province_tag(11ui16);
 
 		read_province_history(
 			ws, ps, date_to_tag(boost::gregorian::date(1866, boost::gregorian::Jan, 1)), presults.data(), presults.data() + presults.size());

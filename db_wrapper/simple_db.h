@@ -335,7 +335,7 @@ public:
 	template<typename cname, int n>
 	static void bind_to_column(sqlite3_stmt* stmt, void* data, size_t size) {
 		if constexpr(std::is_same_v<T, cname>)
-			T::template bind_operation<n>(stmt, data, size)
+			T::template bind_operation<n>(stmt, data, size);
 		else
 			table_columns<REST ...>::template bind_to_column<cname, n + T::increment>(stmt, data, size);
 	}

@@ -4,6 +4,7 @@
 #include "world_state\\world_state.h"
 #include "modifiers\\modifier_functions.h"
 #include "military\\military_functions.h"
+#include "concurrency_tools\\concurrency_tools.h"
 
 namespace technologies {
 	void init_technology_state(world_state& ws) {
@@ -16,14 +17,14 @@ namespace technologies {
 
 		ws.w.technology_s.discovery_count[tech] += 1;
 
-		bit_vector_set(ws.w.nation_s.active_technologies.get_row(nation_id), to_index(tech), true);
+		bit_vector_set(ws.w.nation_s.active_technologies.get_row(nation_id), tech, true);
 
 		ws.w.nation_s.nations.get<nation::tech_attributes>(this_nation) += t.attributes;
 
 		if(is_valid_index(t.production_adjustment)) {
 			const auto production_adjustment_count = ws.s.economy_m.goods_count * uint32_t(production_adjustment::production_adjustment_count);
 			Eigen::Map<Eigen::Matrix<float, -1, 1>>(
-				ws.w.nation_s.production_adjustments.get_row(nation_id),
+				ws.w.nation_s.production_adjustments.get_row(nation_id).data(),
 				production_adjustment_count) +=
 				Eigen::Map<Eigen::Matrix<float, -1, 1>>(
 					ws.s.technology_m.production_adjustments.get_row(t.production_adjustment), 
@@ -32,7 +33,7 @@ namespace technologies {
 		if(is_valid_index(t.rebel_adjustment)) {
 			const auto rebel_types_count = int32_t(ws.s.population_m.rebel_types.size());
 			Eigen::Map<Eigen::Matrix<float, -1, 1>>(
-				ws.w.nation_s.rebel_org_gain.get_row(nation_id),
+				ws.w.nation_s.rebel_org_gain.get_row(nation_id).data(),
 				rebel_types_count) +=
 				Eigen::Map<Eigen::Matrix<float, -1, 1>>(
 					ws.s.technology_m.rebel_org_gain.get_row(t.rebel_adjustment),
@@ -59,7 +60,7 @@ namespace technologies {
 
 		if(is_valid_index(t.activate_factory)) {
 			auto good = ws.s.economy_m.factory_types[t.activate_factory].output_good;
-			bit_vector_set(ws.w.nation_s.active_goods.get_row(nation_id), to_index(good), true);
+			bit_vector_set(ws.w.nation_s.active_goods.get_row(nation_id), good, true);
 		}
 		if(is_valid_index(t.enable_crime)) {
 			for(int32_t i = int32_t(ws.s.modifiers_m.crimes.size()); i--; ) {
@@ -77,7 +78,7 @@ namespace technologies {
 
 
 	void apply_single_technology(world_state& ws, nations::country_tag this_nation, tech_tag tech) {
-		if(bit_vector_test(ws.w.nation_s.active_technologies.get_row(this_nation), to_index(tech)) == true)
+		if(bit_vector_test(ws.w.nation_s.active_technologies.get_row(this_nation), tech) == true)
 			return;
 
 		apply_technology(ws, this_nation, tech);
@@ -94,12 +95,12 @@ namespace technologies {
 		ws.w.nation_s.nations.get<nation::tech_attributes>(this_nation).setZero();
 
 		auto tech_row = ws.w.nation_s.active_technologies.get_row(this_nation);
-		Eigen::Map<Eigen::Matrix<uint64_t, -1, 1>>(tech_row, ws.w.nation_s.active_technologies.inner_size) =
+		Eigen::Map<Eigen::Matrix<uint64_t, -1, 1>>(tech_row.data(), ws.w.nation_s.active_technologies.inner_size) =
 			Eigen::Matrix<uint64_t, -1, 1>::Zero(ws.w.nation_s.active_technologies.inner_size);
 
 		auto active_goods = ws.w.nation_s.active_goods.get_row(this_nation);
 		for(uint32_t j = 0; j < ws.s.economy_m.goods_count; ++j) {
-			bit_vector_set(active_goods, j, 0 == (ws.s.economy_m.goods[economy::goods_tag(static_cast<economy::goods_tag::value_base_t>(j))].flags & economy::good_definition::not_available_from_start));
+			bit_vector_set(active_goods.data(), j, 0 == (ws.s.economy_m.goods[economy::goods_tag(static_cast<economy::goods_tag::value_base_t>(j))].flags & economy::good_definition::not_available_from_start));
 		}
 
 		uint64_t* enabled_crimes = &(ws.w.nation_s.nations.get<nation::enabled_crimes>(this_nation));
@@ -112,20 +113,20 @@ namespace technologies {
 
 		const auto production_adjustment_count = ws.s.economy_m.goods_count * uint32_t(production_adjustment::production_adjustment_count);
 		Eigen::Map<Eigen::Matrix<float, -1, 1>>(
-			ws.w.nation_s.production_adjustments.get_row(this_nation),
+			ws.w.nation_s.production_adjustments.get_row(this_nation).data(),
 			production_adjustment_count) =
 			Eigen::Matrix<float, -1, 1>::Zero(production_adjustment_count);
 
 		const auto rebel_types_count = int32_t(ws.s.population_m.rebel_types.size());
 		Eigen::Map<Eigen::Matrix<float, -1, 1>>(
-			ws.w.nation_s.rebel_org_gain.get_row(this_nation),
+			ws.w.nation_s.rebel_org_gain.get_row(this_nation).data(),
 			rebel_types_count) = Eigen::Matrix<float, -1, 1>::Zero(rebel_types_count);
 	}
 
 	void restore_technologies(world_state& ws, nations::country_tag this_nation) {
 		auto tech_row = ws.w.nation_s.active_technologies.get_row(this_nation);
 		for(int32_t i = int32_t(ws.s.technology_m.technologies_container.size()); i--; ) {
-			if(bit_vector_test(tech_row, uint32_t(i))) {
+			if(bit_vector_test(tech_row.data(), uint32_t(i))) {
 				apply_technology(ws, this_nation, tech_tag(static_cast<tech_tag::value_base_t>(i)));
 			}
 		}
@@ -139,7 +140,7 @@ namespace technologies {
 			return 0.0f;
 
 		float total_pop = ws.w.nation_s.nation_demographics.get(id, population::total_population_tag);
-		float* pop_by_type = ws.w.nation_s.nation_demographics.get_row(id) + to_index(population::to_demo_tag(ws, population::pop_type_tag(0)));
+		float const* pop_by_type = &(ws.w.nation_s.nation_demographics.get_row(id)[population::to_demo_tag(ws, population::pop_type_tag(0))]);
 
 		float points_by_type = 0.0f;
 		if(total_pop != 0) {
@@ -176,7 +177,7 @@ namespace technologies {
 		}();
 		float vassal_factor = [&ws, t, ol = ws.w.nation_s.nations.get<nation::overlord>(this_nation)]() {
 			if(ws.w.nation_s.nations.is_valid_index(ol)) {
-				return bit_vector_test(ws.w.nation_s.active_technologies.get_row(ol), to_index(t)) ? ws.s.modifiers_m.global_defines.tech_factor_vassal : 1.0f;
+				return bit_vector_test(ws.w.nation_s.active_technologies.get_row(ol), t) ? ws.s.modifiers_m.global_defines.tech_factor_vassal : 1.0f;
 			}
 			return 1.0f;
 		}();
@@ -190,7 +191,7 @@ namespace technologies {
 	bool can_research(tech_tag t, world_state const& ws, nations::country_tag this_nation) {
 		auto id = this_nation;
 		auto id_valid = ws.w.nation_s.nations.is_valid_index(id);
-		if(id_valid && bit_vector_test(ws.w.nation_s.active_technologies.get_row(id), to_index(t)))
+		if(id_valid && bit_vector_test(ws.w.nation_s.active_technologies.get_row(id), t))
 			return false;
 		auto& tech = ws.s.technology_m.technologies_container[t];
 		if(tech.year != 0 && tag_to_date(ws.w.current_date).year() < tech.year)
@@ -198,7 +199,7 @@ namespace technologies {
 		if(is_valid_index(tech.allow) && !triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(tech.allow),
 			ws, this_nation, this_nation, nullptr, nullptr))
 			return false;
-		if(is_valid_index(tech.preceeding) && id_valid && !bit_vector_test(ws.w.nation_s.active_technologies.get_row(id), to_index(tech.preceeding)))
+		if(is_valid_index(tech.preceeding) && id_valid && !bit_vector_test(ws.w.nation_s.active_technologies.get_row(id), tech.preceeding))
 			return false;
 
 		return true;

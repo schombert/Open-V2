@@ -67,7 +67,7 @@ namespace current_state {
 		set_tag<nations::country_tag> attackers;
 		set_tag<nations::country_tag> defenders;
 		set_tag<nations::country_tag> interested;
-		array_tag<military::war_goal> goals;
+		array_tag<military::war_goal, int32_t, false> goals;
 		nations::state_tag state;
 	};
 
@@ -119,7 +119,7 @@ namespace current_state {
 			economy::money_qnty_type collected_poor_tax = 0;
 			economy::money_qnty_type collected_middle_tax = 0;
 			economy::money_qnty_type collected_rich_tax = 0;
-			tagged_vector<array_tag<economy::money_qnty_type>, economy::goods_tag> imports_by_country;
+			tagged_vector<array_tag<economy::money_qnty_type, nations::country_tag, true>, economy::goods_tag> imports_by_country;
 		} local_player_data;
 		nations::country_tag local_player_nation;
 

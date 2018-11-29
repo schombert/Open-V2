@@ -303,7 +303,7 @@ namespace current_state {
 			lm.increase_indent(1);
 
 			auto total_pop = ws.w.nation_s.nation_demographics.get(id, population::total_population_tag);
-			auto* pop_by_type = ws.w.nation_s.nation_demographics.get_row(id) + to_index(population::to_demo_tag(ws, population::pop_type_tag(0)));
+			auto pop_by_type = &(ws.w.nation_s.nation_demographics.get_row(id)[population::to_demo_tag(ws, population::pop_type_tag(0))]);
 
 			if(total_pop != 0) {
 				for(uint32_t i = 0; i < ws.s.population_m.count_poptypes; ++i) {

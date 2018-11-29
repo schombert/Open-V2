@@ -1439,10 +1439,10 @@ namespace population {
 
 	template<typename window_type>
 	void pop_ideology::windowed_update(ui::piechart<pop_ideology>& pie, window_type& w, world_state& ws) {
-		float* demo = ws.w.population_s.pop_demographics.get_row(w.tag);
-		float* ideologies_values = demo + to_index(to_demo_tag(ws, ideologies::ideology_tag(0)));
+		auto demo = ws.w.population_s.pop_demographics.get_row(w.tag);
+		float* ideologies_values = &(demo[to_demo_tag(ws, ideologies::ideology_tag(0))]);
 
-		float size = float(demo[to_index(total_population_tag)]);
+		float size = demo[total_population_tag];
 		if(size != 0.0f) {
 			for(uint32_t i = 0; i < ws.s.ideologies_m.ideologies_count; ++i) {
 				if(ideologies_values[i] != 0)
@@ -1457,10 +1457,10 @@ namespace population {
 
 	template<typename window_type>
 	void pop_issues::windowed_update(ui::piechart<pop_issues>& pie, window_type& w, world_state& ws) {
-		float* demo = ws.w.population_s.pop_demographics.get_row(w.tag);
-		float* issues_values = demo + to_index(to_demo_tag(ws, issues::option_tag(0)));
+		auto demo = ws.w.population_s.pop_demographics.get_row(w.tag);
+		float* issues_values = &(demo[to_demo_tag(ws, issues::option_tag(0))]);
 
-		float size = float(demo[to_index(total_population_tag)]);
+		float size = float(demo[total_population_tag]);
 		if(size != 0.0f) {
 			for(uint32_t i = 0; i < ws.s.issues_m.tracked_options_count; ++i) {
 				if(issues_values[i] != 0)

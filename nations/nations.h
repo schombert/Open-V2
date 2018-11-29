@@ -234,18 +234,18 @@ namespace nation {
 		national_flags, set_tag<variables::national_flag_tag>,
 		static_modifiers, multiset_tag<modifiers::national_modifier_tag>,
 		timed_modifiers, multiset_tag<nations::timed_national_modifier>,
-		statewise_tarrif_mask, array_tag<economy::money_qnty_type>,
-		generals, array_tag<military::leader_tag>,
-		admirals, array_tag<military::leader_tag>,
-		armies, array_tag<military::army_tag>,
-		fleets, array_tag<military::fleet_tag>,
-		active_orders, array_tag<military::army_orders_tag>,
-		active_cbs, array_tag<military::pending_cb>,
+		statewise_tarrif_mask, array_tag<economy::money_qnty_type, nations::state_tag, true>,
+		generals, array_tag<military::leader_tag, int32_t, false>,
+		admirals, array_tag<military::leader_tag, int32_t, false>,
+		armies, array_tag<military::army_tag, int32_t, false>,
+		fleets, array_tag<military::fleet_tag, int32_t, false>,
+		active_orders, array_tag<military::army_orders_tag, int32_t, false>,
+		active_cbs, array_tag<military::pending_cb, int32_t, false>,
 		wars_involved_in, set_tag<military::war_identifier>,
 		opponents_in_war, set_tag<nations::country_tag>,
 		allies_in_war, set_tag<nations::country_tag>,
-		active_rebel_factions, array_tag<population::rebel_faction_tag>,
-		active_movements, array_tag<population::movement_tag>,
+		active_rebel_factions, array_tag<population::rebel_faction_tag, int32_t, false>,
+		active_movements, array_tag<population::movement_tag, int32_t, false>,
 
 		name, text_data::text_tag,
 		adjective, text_data::text_tag,
@@ -378,7 +378,7 @@ namespace nations {
 
 	class nations_state {
 	public:
-		array_tag<country_tag> nations_by_rank;
+		array_tag<country_tag, int32_t, false> nations_by_rank;
 
 		nation::container nations;
 		state::container states;
@@ -390,8 +390,8 @@ namespace nations {
 
 		stable_2d_vector<governments::party_tag, country_tag, ideologies::ideology_tag, 512, 16> active_parties;
 		stable_2d_vector<uint8_t, country_tag, ideologies::ideology_tag, 512, 16> upper_house;
-		stable_2d_vector<uint64_t, country_tag, uint32_t, 512, 16> active_technologies;
-		stable_2d_vector<uint64_t, country_tag, uint32_t, 512, 16> active_goods;
+		stable_2d_vector<uint64_t, country_tag, technologies::tech_tag, 512, 16> active_technologies;
+		stable_2d_vector<uint64_t, country_tag, economy::goods_tag, 512, 16> active_goods;
 		stable_2d_vector<economy::money_qnty_type, country_tag, economy::goods_tag, 512, 16> collected_tariffs;
 		stable_2d_vector<issues::option_tag, country_tag, issues::issue_tag, 512, 16> active_issue_options;
 		stable_2d_vector<economy::goods_qnty_type, country_tag, economy::goods_tag, 512, 16> national_stockpiles;
@@ -401,8 +401,9 @@ namespace nations {
 		stable_2d_vector<float, country_tag, population::rebel_type_tag, 512, 16> rebel_org_gain;
 
 		stable_2d_vector<economy::money_qnty_type, state_tag, economy::goods_tag, 512, 16> state_prices;
+		stable_2d_vector<economy::money_qnty_type, state_tag, economy::goods_tag, 512, 16> state_price_delta;
 		stable_2d_vector<economy::money_qnty_type, state_tag, economy::goods_tag, 512, 16> state_demand;
-		stable_2d_vector<array_tag<economy::money_qnty_type>, state_tag, economy::goods_tag, 512, 16> state_purchases;
+		stable_2d_vector<array_tag<economy::money_qnty_type, nations::state_tag, true>, state_tag, economy::goods_tag, 512, 16> state_purchases;
 		
 
 		stable_variable_vector_storage_mk_2<modifiers::national_modifier_tag, 4, 8192> static_modifier_arrays;

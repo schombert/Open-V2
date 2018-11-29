@@ -989,7 +989,7 @@ namespace graphics {
 						
 						auto local_prices = economy::state_current_prices(ws, sid);
 
-						auto fraction = (local_prices[to_index(g)] - price_range.minimum + 0.01) / (price_range.maximum - price_range.minimum + 0.01);
+						auto fraction = (local_prices[g] - price_range.minimum + 0.01) / (price_range.maximum - price_range.minimum + 0.01);
 						pcolors[i * 3 + 0] = uint8_t((1.0f - fraction) * 255.0f);
 						pcolors[i * 3 + 1] = uint8_t(fraction * 255.0f);
 						pcolors[i * 3 + 2] = uint8_t(100);
@@ -1008,17 +1008,16 @@ namespace graphics {
 				if(auto selected_id = ws.w.map_view.selected_state; ws.w.nation_s.states.is_valid_index(selected_id)) {
 					auto purchasing_handle = ws.w.nation_s.state_purchases.get(selected_id, g);
 					auto purchases_data_range = get_range(ws.w.economy_s.purchasing_arrays, purchasing_handle);
-					auto count_purchases = purchases_data_range.second - purchases_data_range.first;
 
-					if(purchases_data_range.first != purchases_data_range.second) {
-						auto max_purchases = *std::max_element(purchases_data_range.first, purchases_data_range.second);
+					if(std::begin(purchases_data_range) != std::end(purchases_data_range)) {
+						auto max_purchases = *std::max_element(std::begin(purchases_data_range), std::end(purchases_data_range));
 
 						
 						for(int32_t i = 0; i < ws.w.province_s.province_state_container.size(); ++i) {
 							if(auto sid = provinces::province_state(ws, provinces::province_tag(provinces::province_tag::value_base_t(i)));
-								bool(sid) && bool(ws.w.nation_s.states.get<state::owner>(sid)) && to_index(sid) < count_purchases) {
+								bool(sid) && bool(ws.w.nation_s.states.get<state::owner>(sid)) && &(purchases_data_range[sid]) < std::end(purchases_data_range)) {
 
-								auto amount = purchases_data_range.first[to_index(sid)];
+								auto amount = purchases_data_range[sid];
 
 								auto fraction = amount / (max_purchases + 0.000001f);
 								if(fraction < 0)
@@ -1071,7 +1070,7 @@ namespace graphics {
 
 			} else if(auto p = ws.w.map_view.selected_province; is_valid_index(p) && ws.w.map_view.mode == current_state::map_mode::distance) {
 				
-				auto pcount = ws.w.province_s.province_state_container.size();
+				auto pcount = ws.s.province_m.province_container.size();
 				for(int32_t i = 0; i < pcount; ++i) {
 					auto distance = ws.w.province_s.province_distance_to[to_index(p) * pcount + i];
 					pcolors[i * 3 + 0] = uint8_t(std::clamp((distance / 8'000.0f - 1.0f), 0.0f, 1.0f) * 255.0f);

@@ -386,30 +386,6 @@ namespace variable_layout_detail {
 #endif
 }
 
-template<typename T, typename tag_type>
-struct indexable_array {
-private:
-	T* const ptr = nullptr;
-public:
-	constexpr indexable_array() noexcept {}
-	constexpr explicit indexable_array(T* v) noexcept : ptr(v) {}
-
-	T& operator[](tag_type i) const noexcept {
-		return ptr[to_index(i) + 1];
-	}
-	operator T*() const noexcept {
-		return ptr;
-	}
-	operator bool() const noexcept {
-		return ptr != nullptr;
-	}
-	operator indexable_array<const T, tag_type>() const noexcept {
-		return indexable_array<const T, tag_type>(ptr);
-	}
-};
-
-
-
 struct index_type_marker {};
 
 template<typename tag_type, int32_t size, typename ... T>
@@ -434,8 +410,8 @@ public:
 		new (ptr) ptr_type();
 
 		for(int32_t i = container_size - 1; i >= 1; --i) {
-			container_type::template set<index_type_marker>(tag_type(typename tag_type::value_base_t(i)), *ptr, first_free);
-			first_free = tag_type(typename tag_type::value_base_t(i));
+			container_type::template set<index_type_marker>(tag_type(typename tag_type::value_base_t(i-1)), *ptr, first_free);
+			first_free = tag_type(typename tag_type::value_base_t(i-1));
 		}
 	}
 #else
@@ -525,7 +501,7 @@ public:
 	}
 
 	int32_t size() const {
-		return size_used + 1;
+		return size_used;
 	}
 
 	bool is_valid_index(tag_type t) const noexcept {
@@ -638,7 +614,7 @@ public:
 	}
 
 	int32_t size() const {
-		return size_used;
+		return size_used - 1;
 	}
 
 	void reset() {
@@ -728,7 +704,7 @@ public:
 		}
 
 		serialization::serialize(output, obj.size_used);
-		serialization::serialize_array(output, temp + 1, obj.size_used);
+		serialization::serialize_array(output, temp, obj.size_used);
 		variable_layout_detail::variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::serialize_object_impl(
 			output, obj.size_used + 1, *(obj.ptr), std::forward<CONTEXT>(c)...);
 #else
@@ -889,21 +865,21 @@ public:
 		static_assert(index >= 0 && index < inner_size);
 		return ptr[index].values[to_index(t) + 1];
 	}
-	__forceinline indexable_array<value_type, tag_type> get_row(int32_t index) {
-		return indexable_array<value_type, tag_type>(ptr[index].values);
+	__forceinline tagged_array_view<value_type, tag_type, true> get_row(int32_t index, int32_t size) {
+		return tagged_array_view<value_type, tag_type, true>(ptr[index].values, size + 1);
 	}
-	__forceinline indexable_array<const value_type, tag_type> get_row(int32_t index) const {
-		return indexable_array<const value_type, tag_type>(ptr[index].values);
-	}
-	template<int32_t index>
-	__forceinline indexable_array<value_type, tag_type> get_row() {
-		static_assert(index >= 0 && index < inner_size);
-		return indexable_array<value_type, tag_type>(ptr[index].values);
+	__forceinline tagged_array_view<const value_type, tag_type, true> get_row(int32_t index, int32_t size) const {
+		return tagged_array_view<const value_type, tag_type, true>(ptr[index].values, size + 1);
 	}
 	template<int32_t index>
-	__forceinline indexable_array<const value_type, tag_type> get_row() const {
+	__forceinline tagged_array_view<value_type, tag_type, true> get_row(int32_t size) {
 		static_assert(index >= 0 && index < inner_size);
-		return indexable_array<const value_type, tag_type>(ptr[index].values);
+		return tagged_array_view<value_type, tag_type, true>(ptr[index].values, size + 1);
+	}
+	template<int32_t index>
+	__forceinline tagged_array_view<const value_type, tag_type, true> get_row(int32_t size) const {
+		static_assert(index >= 0 && index < inner_size);
+		return tagged_array_view<const value_type, tag_type, true>(ptr[index].values, size + 1);
 	}
 	void reset() {
 		std::uninitialized_value_construct_n(ptr, inner_size);
@@ -958,11 +934,11 @@ public:
 	__forceinline value_type const& get(tag_type t, inner_tag_type index) const {
 		return ptr[to_index(index)].values[to_index(t) + 1];
 	}
-	__forceinline indexable_array<value_type, tag_type> get_row(inner_tag_type index) {
-		return indexable_array<value_type, tag_type>(ptr[to_index(index)].values);
+	__forceinline tagged_array_view<value_type, tag_type, true> get_row(inner_tag_type index, int32_t size) {
+		return tagged_array_view<value_type, tag_type, true>(ptr[to_index(index)].values, size);
 	}
-	__forceinline indexable_array<const value_type, tag_type> get_row(inner_tag_type index) const {
-		return indexable_array<const value_type, tag_type>(ptr[to_index(index)].values);
+	__forceinline tagged_array_view<const value_type, tag_type, true> get_row(inner_tag_type index, int32_t size) const {
+		return tagged_array_view<const value_type, tag_type, true>(ptr[to_index(index)].values, size);
 	}
 	void reset() {
 		if(ptr)

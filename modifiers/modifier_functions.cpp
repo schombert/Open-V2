@@ -81,14 +81,14 @@ namespace modifiers {
 
 		auto set_options = ws.w.nation_s.active_issue_options.get_row(this_nation);
 		for(int32_t i = int32_t(ws.s.issues_m.issues_container.size()); i--; ) {
-			auto active_option = set_options[i];
+			auto active_option = set_options[issues::issue_tag(issues::issue_tag::value_base_t(i))];
 			if(is_valid_index(active_option) && is_valid_index(ws.s.issues_m.options[active_option].modifier))
 				apply_nat_modifier(ws, this_nation, ws.s.modifiers_m.national_modifier_definitions[ws.s.issues_m.options[active_option].modifier]);
 		}
 		auto active_techs = ws.w.nation_s.active_technologies.get_row(this_nation);
 		for(int32_t i = int32_t(ws.s.technology_m.technologies_container.size()); i--; ) {
 			technologies::tech_tag tag(static_cast<technologies::tech_tag::value_base_t>(i));
-			if(bit_vector_test(active_techs, uint32_t(i)) &&
+			if(bit_vector_test(active_techs.data(), uint32_t(i)) &&
 				is_valid_index(ws.s.technology_m.technologies_container[tag].modifier))
 				apply_nat_modifier(ws, this_nation, ws.s.modifiers_m.national_modifier_definitions[ws.s.technology_m.technologies_container[tag].modifier]);
 		}

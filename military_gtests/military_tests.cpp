@@ -648,7 +648,7 @@ TEST(military_tests, read_oob_test) {
 	EXPECT_EQ(1ui32, get_size(ws.w.military_s.army_arrays, ws.w.nation_s.nations.get<nation::armies>(usa)));
 	EXPECT_EQ(1ui32, get_size(ws.w.military_s.fleet_arrays, ws.w.nation_s.nations.get<nation::fleets>(usa)));
 
-	army& a = ws.w.military_s.armies.get(get(ws.w.military_s.army_arrays, ws.w.nation_s.nations.get<nation::armies>(usa), 0ui32));
+	army& a = ws.w.military_s.armies[get(ws.w.military_s.army_arrays, ws.w.nation_s.nations.get<nation::armies>(usa), 0i32)];
 
 	EXPECT_NE(nullptr, a.leader);
 	EXPECT_EQ(provinces::province_tag(220), a.base);
@@ -673,17 +673,17 @@ TEST(military_tests, read_oob_test) {
 	EXPECT_EQ(a.leader->leader_traits[traits::experience], 0.0f);
 	EXPECT_EQ(a.leader->leader_traits[traits::reliability], 0.0f);
 
-	fleet& b = ws.w.military_s.fleets.get(get(ws.w.military_s.fleet_arrays, ws.w.nation_s.nations.get<nation::fleets>(usa), 0ui32));
+	fleet& b = ws.w.military_s.fleets.get(get(ws.w.military_s.fleet_arrays, ws.w.nation_s.nations.get<nation::fleets>(usa), 0i32));
 	EXPECT_EQ(nullptr, b.leader);
 	EXPECT_EQ(provinces::province_tag(219), b.base);
 	EXPECT_EQ(5ui32, get_size(ws.w.military_s.ship_arrays, b.ships));
 
 	auto srange = get_range(ws.w.military_s.ship_arrays, b.ships);
-	EXPECT_EQ(srange.first->hull, 1.0f);
-	EXPECT_EQ(srange.first->org, 1.0f);
-	EXPECT_EQ(srange.first->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "frigate")));
-	EXPECT_EQ((srange.first+1)->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "frigate")));
-	EXPECT_EQ((srange.first+2)->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "frigate")));
-	EXPECT_EQ((srange.first + 3)->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "commerce_raider")));
-	EXPECT_EQ((srange.first + 4)->type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "commerce_raider")));
+	EXPECT_EQ(srange[0].hull, 1.0f);
+	EXPECT_EQ(srange[0].org, 1.0f);
+	EXPECT_EQ(srange[0].type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "frigate")));
+	EXPECT_EQ(srange[1].type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "frigate")));
+	EXPECT_EQ(srange[2].type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "frigate")));
+	EXPECT_EQ(srange[3].type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "commerce_raider")));
+	EXPECT_EQ(srange[4].type, tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "commerce_raider")));
 }

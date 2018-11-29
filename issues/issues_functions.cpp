@@ -6,16 +6,35 @@
 #include "governments\\governments_functions.h"
 
 namespace issues {
+	float calculate_political_interest(world_state const& ws, tagged_array_view<const float, population::demo_tag, false> demographics_array) {
+		auto political_offset =
+			&(demographics_array[population::to_demo_tag(ws, issues::option_tag(0))]) +
+			ws.s.issues_m.party_issues_options_count +
+			ws.s.issues_m.social_issues_options_count;
+		Eigen::Map<const Eigen::Matrix<float, -1, 1>> political_vector(political_offset, ws.s.issues_m.political_issues_options_count);
+		return (demographics_array[population::total_population_tag] != 0) ?
+			(float(political_vector.sum()) / float(demographics_array[population::total_population_tag])) : 0.0f;
+	}
+	float calculate_social_interest(world_state const& ws, tagged_array_view<const float, population::demo_tag, false> demographics_array) {
+		auto social_offset =
+			&(demographics_array[population::to_demo_tag(ws, issues::option_tag(0))]) +
+			ws.s.issues_m.party_issues_options_count;
+		Eigen::Map<const Eigen::Matrix<float, -1, 1>> social_vector(social_offset, ws.s.issues_m.social_issues_options_count);
+		return (demographics_array[population::total_population_tag] != 0) ?
+			(float(social_vector.sum()) / float(demographics_array[population::total_population_tag])) : 0.0f;
+	}
+
 	void reset_active_issues(world_state& ws, nations::country_tag nation_for) {
 		uint32_t max_issues = uint32_t(ws.s.issues_m.issues_container.size());
 		auto issues_row = ws.w.nation_s.active_issue_options.get_row(nation_for);
 
 		for(uint32_t i = 0; i < max_issues; ++i) {
-			auto& this_issue = ws.s.issues_m.issues_container[issue_tag(static_cast<issue_tag::value_base_t>(i))];
+			auto itag = issue_tag(static_cast<issue_tag::value_base_t>(i));
+			auto& this_issue = ws.s.issues_m.issues_container[itag];
 			if(this_issue.type == issue_group::political || this_issue.type == issue_group::social || this_issue.type == issue_group::party) {
-				issues_row[i] = this_issue.options[0];
+				issues_row[itag] = this_issue.options[0];
 			} else {
-				issues_row[i] = option_tag();
+				issues_row[itag] = option_tag();
 			}
 		}
 	}
@@ -27,8 +46,9 @@ namespace issues {
 
 		auto active_options = ws.w.nation_s.active_issue_options.get_row(nation_for);
 		for(uint32_t i = 0; i < max_issues; ++i) {
-			if(is_valid_index(active_options[i]))
-				sum_multiplier += ws.s.issues_m.options[active_options[i]].administrative_multiplier;
+			auto itag = issue_tag(static_cast<issue_tag::value_base_t>(i));
+			if(is_valid_index(active_options[itag]))
+				sum_multiplier += ws.s.issues_m.options[active_options[itag]].administrative_multiplier;
 		}
 
 		return float(sum_multiplier) * ws.s.modifiers_m.global_defines.bureaucracy_percentage_increment + ws.s.modifiers_m.global_defines.max_bureaucracy_percentage;

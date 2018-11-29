@@ -214,10 +214,10 @@ namespace governments {
 				auto upper_house = ws.w.nation_s.upper_house.get_row(id);
 				for(uint32_t i = 0; i < ws.s.ideologies_m.ideologies_count; ++i) {
 					ideologies::ideology_tag this_tag(static_cast<ideologies::ideology_tag::value_base_t>(i));
-					if(upper_house[i] != 0) {
+					if(upper_house[this_tag] != 0) {
 						pie.add_entry(ws.w.gui_m,
 							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.ideologies_m.ideology_container[this_tag].name),
-							float(upper_house[i]) / 100.0f,
+							float(upper_house[this_tag]) / 100.0f,
 							ws.s.ideologies_m.ideology_container[this_tag].color);
 					}
 				}
@@ -228,7 +228,7 @@ namespace governments {
 	void people_ideologies_pie_chart::update(ui::piechart<people_ideologies_pie_chart>& pie, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			if(auto id = player; ws.w.nation_s.nations.is_valid_index(id)) {
-				auto people_i = ws.w.nation_s.nation_demographics.get_row(id) + to_index(population::to_demo_tag(ws, ideologies::ideology_tag(0)));
+				auto people_i = &(ws.w.nation_s.nation_demographics.get_row(id)[population::to_demo_tag(ws, ideologies::ideology_tag(0))]);
 				float total_pop = float(ws.w.nation_s.nation_demographics.get(id, population::total_population_tag));
 				if(total_pop != 0.0f) {
 					for(uint32_t i = 0; i < ws.s.ideologies_m.ideologies_count; ++i) {

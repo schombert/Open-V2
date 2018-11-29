@@ -207,6 +207,17 @@ public:
 		_mm256_storeu_ps(dest + offset, value);
 	}
 	
+	__forceinline void scatter_store(float* dest, fp_vector to_store, __m256i indices) {
+		dest[indices.m256i_i32[0]] = to_store.value.m256_f32[0];
+		dest[indices.m256i_i32[1]] = to_store.value.m256_f32[1];
+		dest[indices.m256i_i32[2]] = to_store.value.m256_f32[2];
+		dest[indices.m256i_i32[3]] = to_store.value.m256_f32[3];
+		dest[indices.m256i_i32[4]] = to_store.value.m256_f32[4];
+		dest[indices.m256i_i32[5]] = to_store.value.m256_f32[5];
+		dest[indices.m256i_i32[6]] = to_store.value.m256_f32[6];
+		dest[indices.m256i_i32[7]] = to_store.value.m256_f32[7];
+	}
+
 
 	template<int32_t cache_lines>
 	__forceinline void prefetch(int32_t const* source) {
@@ -371,6 +382,29 @@ public:
 	}
 	template<int32_t cache_lines>
 	__forceinline void nt_prefetch(float const* source) {
+	}
+
+	__forceinline void scatter_store(float* dest, fp_vector to_store, __m256i indices) {
+		switch(count) {
+			case 8:
+				dest[indices.m256i_i32[7]] = to_store.value.m256_f32[7];
+			case 7:
+				dest[indices.m256i_i32[6]] = to_store.value.m256_f32[6];
+			case 6:
+				dest[indices.m256i_i32[5]] = to_store.value.m256_f32[5];
+			case 5:
+				dest[indices.m256i_i32[4]] = to_store.value.m256_f32[4];
+			case 4:
+				dest[indices.m256i_i32[3]] = to_store.value.m256_f32[3];
+			case 3:
+				dest[indices.m256i_i32[2]] = to_store.value.m256_f32[2];
+			case 2:
+				dest[indices.m256i_i32[1]] = to_store.value.m256_f32[1];
+			case 1:
+				dest[indices.m256i_i32[0]] = to_store.value.m256_f32[0];
+			default:
+				break;
+		}
 	}
 
 	template<typename F>

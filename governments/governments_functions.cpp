@@ -14,10 +14,11 @@ namespace governments {
 		return result;
 	}
 
-	void get_best_parties_at_date(party_tag* parties_out, cultures::national_tag tag, date_tag date, scenario::scenario_manager& s) {
+	void get_best_parties_at_date(tagged_array_view<party_tag, ideologies::ideology_tag, false> parties_out, cultures::national_tag tag, date_tag date, scenario::scenario_manager& s) {
 		uint32_t* rules_count = (uint32_t*)_alloca(sizeof(uint32_t) * s.ideologies_m.ideologies_count);
-		for(uint32_t i = 0; i < s.ideologies_m.ideologies_count; ++i) {
-			parties_out[i] = party_tag();
+		for(int32_t i = 0; i < int32_t(s.ideologies_m.ideologies_count); ++i) {
+			auto itag = ideologies::ideology_tag(ideologies::ideology_tag::value_base_t(i));
+			parties_out[itag] = party_tag();
 			rules_count[i] = 0ui32;
 		}
 		auto const& tag_obj = s.culture_m.national_tags[tag];
@@ -32,7 +33,8 @@ namespace governments {
 				uint32_t allowed_count = uint32_t(__popcnt(this_party.party_rules.rules_value));
 #endif
 				if(allowed_count > rules_count[ideology_index]) {
-					parties_out[ideology_index] = p_index;
+					auto itag = ideologies::ideology_tag(ideologies::ideology_tag::value_base_t(ideology_index));
+					parties_out[itag] = p_index;
 					rules_count[ideology_index] = allowed_count;
 				}
 			}
@@ -58,10 +60,10 @@ namespace governments {
 	void reset_upper_house(world_state& ws, nations::country_tag id) {
 		auto upper_house = ws.w.nation_s.upper_house.get_row(id);
 
-		Eigen::Map<Eigen::Matrix<uint8_t, -1, 1>>(upper_house, ws.s.ideologies_m.ideologies_count) =
+		Eigen::Map<Eigen::Matrix<uint8_t, -1, 1>>(upper_house.data(), ws.s.ideologies_m.ideologies_count) =
 			Eigen::Matrix<uint8_t, -1, 1>::Zero(ws.s.ideologies_m.ideologies_count);
 
-		upper_house[to_index(ws.s.ideologies_m.conservative_ideology)] = 100ui8;
+		upper_house[ws.s.ideologies_m.conservative_ideology] = 100ui8;
 	}
 
 	void update_current_rules(world_state& ws, nations::country_tag this_nation) {
@@ -71,9 +73,10 @@ namespace governments {
 		uint32_t max_issues = uint32_t(ws.s.issues_m.issues_container.size());
 		auto issues_row = ws.w.nation_s.active_issue_options.get_row(this_nation);
 
-		for(uint32_t i = 0; i < max_issues; ++i) {
-			if(is_valid_index(issues_row[i])) {
-				rules_value |= ws.s.issues_m.options[issues_row[i]].issue_rules.rules_settings.rules_value;
+		for(int32_t i = 0; i < int32_t(max_issues); ++i) {
+			auto i_tag = issues::issue_tag(issues::issue_tag::value_base_t(i));
+			if(is_valid_index(issues_row[i_tag])) {
+				rules_value |= ws.s.issues_m.options[issues_row[i_tag]].issue_rules.rules_settings.rules_value;
 			}
 		}
 	}

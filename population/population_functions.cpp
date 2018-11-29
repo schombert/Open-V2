@@ -43,9 +43,9 @@ namespace population {
 
 	pop_tag get_unassigned_soldier_in_province(world_state const& ws, provinces::province_tag prov) {
 		auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(prov));
-		for(auto i = pop_range.first; i != pop_range.second; ++i) {
-			if(!is_valid_index(ws.w.population_s.pops.get<pop::associated_army>(*i)) & (ws.w.population_s.pops.get<pop::type>(*i) == ws.s.population_m.soldier))
-				return *i;
+		for(auto i : pop_range) {
+			if(!is_valid_index(ws.w.population_s.pops.get<pop::associated_army>(i)) & (ws.w.population_s.pops.get<pop::type>(i) == ws.s.population_m.soldier))
+				return i;
 		}
 		return pop_tag();
 	}
@@ -92,17 +92,15 @@ namespace population {
 
 	bool is_dominant_issue(world_state const& ws, pop_tag id, issues::option_tag opt) {
 		auto issue_offset =
-			ws.w.population_s.pop_demographics.get_row(id) +
-			to_index(population::to_demo_tag(ws, issues::option_tag(0)));
-		Eigen::Map<Eigen::Matrix<float, -1, 1>> options_vector(issue_offset, ws.s.issues_m.tracked_options_count);
+			&(ws.w.population_s.pop_demographics.get_row(id)[population::to_demo_tag(ws, issues::option_tag(0))]);
+		Eigen::Map<const Eigen::Matrix<float, -1, 1>> options_vector(issue_offset, ws.s.issues_m.tracked_options_count);
 		return options_vector.maxCoeff() == issue_offset[to_index(opt)];
 	}
 
 	bool is_dominant_ideology(world_state const& ws, pop_tag id, ideologies::ideology_tag opt) {
 		auto ideology_offset =
-			ws.w.population_s.pop_demographics.get_row(id) +
-			to_index(population::to_demo_tag(ws, ideologies::ideology_tag(0)));
-		Eigen::Map<Eigen::Matrix<float, -1, 1>> ideology_vector(ideology_offset, ws.s.ideologies_m.ideologies_count);
+			&(ws.w.population_s.pop_demographics.get_row(id)[population::to_demo_tag(ws, ideologies::ideology_tag(0))]);
+		Eigen::Map<const Eigen::Matrix<float, -1, 1>> ideology_vector(ideology_offset, ws.s.ideologies_m.ideologies_count);
 		return ideology_vector.maxCoeff() == ideology_offset[to_index(opt)];
 	}
 
@@ -166,8 +164,8 @@ namespace population {
 	}
 
 	void default_initialize_issues_and_ideology(world_state& ws, pop_tag this_pop) {
-		auto ideology_demo = ws.w.population_s.pop_demographics.get_row(this_pop) + to_index(to_demo_tag(ws, ideologies::ideology_tag(0)));
-		auto issues_demo = ws.w.population_s.pop_demographics.get_row(this_pop) + to_index(to_demo_tag(ws, issues::option_tag(0)));
+		auto ideology_demo = &(ws.w.population_s.pop_demographics.get_row(this_pop)[to_demo_tag(ws, ideologies::ideology_tag(0))]);
+		auto issues_demo = &(ws.w.population_s.pop_demographics.get_row(this_pop)[to_demo_tag(ws, issues::option_tag(0))]);
 		auto total_pop_size = ws.w.population_s.pop_demographics.get(this_pop, total_population_tag);
 		auto pop_type = ws.w.population_s.pops.get<pop::type>(this_pop);
 

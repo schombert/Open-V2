@@ -15,13 +15,9 @@ public:
 	const char* const data;
 
 	template<typename T, size_t N>
-	file_representation(const std::u16string& n, directory_representation &p, T(&a)[N]) : name(n), parent(&p), size(N * sizeof(T)), data((const char*)a) {
-		p.files.push_back(this);
-	}
+	file_representation(const std::u16string& n, directory_representation &p, T(&a)[N]);
 	template<size_t N>
-	file_representation(const std::u16string& n, directory_representation &p, const char(&a)[N]) : name(n), parent(&p), size(N - 1), data((const char*)a) {
-		p.files.push_back(this);
-	}
+	file_representation(const std::u16string& n, directory_representation &p, const char(&a)[N]);
 };
 
 class directory_representation {
@@ -51,3 +47,13 @@ public:
 };
 
 void set_default_root(directory_representation& d);
+
+template<typename T, size_t N>
+file_representation::file_representation(const std::u16string & n, directory_representation & p, T(&a)[N]) : name(n), parent(&p), size(N * sizeof(T)), data((const char*)a) {
+	p.files.push_back(this);
+}
+
+template<size_t N>
+file_representation::file_representation(const std::u16string & n, directory_representation & p, const char(&a)[N]) : name(n), parent(&p), size(N - 1), data((const char*)a) {
+	p.files.push_back(this);
+}

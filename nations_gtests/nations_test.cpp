@@ -328,9 +328,9 @@ TEST(nations_tests, read_nations_files_simple) {
 	EXPECT_EQ(ws.s.culture_m.national_tags[ger_tag].monarchy_flag, ws.w.culture_s.country_flags_by_government.get(ger_tag, tag_from_text(ws.s.governments_m.named_government_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "absolute_monarchy"))));
 	EXPECT_EQ(ws.s.culture_m.national_tags[ger_tag].base_flag, ws.w.culture_s.country_flags_by_government.get(ger_tag, tag_from_text(ws.s.governments_m.named_government_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "hms_government"))));
 
-	EXPECT_EQ(true, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation), to_index(tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "post_napoleonic_thought")))));
-	EXPECT_EQ(true, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation), to_index(tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "authoritarianism")))));
-	EXPECT_EQ(false, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation), to_index(tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "flintlock_rifles")))));
+	EXPECT_EQ(true, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation), tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "post_napoleonic_thought"))));
+	EXPECT_EQ(true, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation), tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "authoritarianism"))));
+	EXPECT_EQ(false, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation), tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "flintlock_rifles"))));
 
 	EXPECT_EQ(0.0f, ws.w.variable_s.global_variables[tag_from_text(ws.s.variables_m.named_global_variables, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "american_civil_war_has_happened"))]);
 
@@ -338,15 +338,15 @@ TEST(nations_tests, read_nations_files_simple) {
 	EXPECT_EQ(true, contains_item(ws.w.variable_s.national_flags_arrays, ws.w.nation_s.nations.get<nation::national_flags>(ger_nation), tag_from_text(ws.s.variables_m.named_national_flags, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "serfdom_not_abolished"))));
 
 	auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(provinces::province_tag(853ui16)));
-	EXPECT_EQ(2i64, pop_range.second - pop_range.first);
+	EXPECT_EQ(2i64, std::end(pop_range) - std::begin(pop_range));
 
-	for(auto p = pop_range.first; p != pop_range.second; ++p) {
-		if(ws.w.population_s.pops.get<pop::culture>(*p) == tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "catalan"))) {
-			EXPECT_EQ(population::get_literacy_direct(ws, *p), 0.75f);
-			EXPECT_EQ(population::get_consciousness_direct(ws, *p), 2.0f);
+	for(auto p : pop_range) {
+		if(ws.w.population_s.pops.get<pop::culture>(p) == tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "catalan"))) {
+			EXPECT_EQ(population::get_literacy_direct(ws, p), 0.75f);
+			EXPECT_EQ(population::get_consciousness_direct(ws, p), 2.0f);
 		} else {
-			EXPECT_EQ(population::get_literacy_direct(ws, *p), 0.15f);
-			EXPECT_EQ(population::get_consciousness_direct(ws, *p), 1.0f);
+			EXPECT_EQ(population::get_literacy_direct(ws, p), 0.15f);
+			EXPECT_EQ(population::get_consciousness_direct(ws, p), 1.0f);
 		}
 	}
 
@@ -409,9 +409,9 @@ TEST(nations_tests, read_nations_files_layered) {
 	EXPECT_EQ(ws.s.culture_m.national_tags[ger_tag].monarchy_flag, ws.w.culture_s.country_flags_by_government.get(ger_tag, tag_from_text(ws.s.governments_m.named_government_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "absolute_monarchy"))));
 	EXPECT_EQ(ws.s.culture_m.national_tags[ger_tag].base_flag, ws.w.culture_s.country_flags_by_government.get(ger_tag, tag_from_text(ws.s.governments_m.named_government_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "hms_government"))));
 
-	EXPECT_EQ(true, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation), to_index(tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "post_napoleonic_thought")))));
-	EXPECT_EQ(true, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation), to_index(tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "authoritarianism")))));
-	EXPECT_EQ(true, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation), to_index(tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "flintlock_rifles")))));
+	EXPECT_EQ(true, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation), tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "post_napoleonic_thought"))));
+	EXPECT_EQ(true, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation), tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "authoritarianism"))));
+	EXPECT_EQ(true, bit_vector_test(ws.w.nation_s.active_technologies.get_row(ger_nation), tag_from_text(ws.s.technology_m.named_technology_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "flintlock_rifles"))));
 
 	EXPECT_EQ(1.0f, ws.w.variable_s.global_variables[tag_from_text(ws.s.variables_m.named_global_variables, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "american_civil_war_has_happened"))]);
 
@@ -419,15 +419,15 @@ TEST(nations_tests, read_nations_files_layered) {
 	EXPECT_EQ(false, contains_item(ws.w.variable_s.national_flags_arrays, ws.w.nation_s.nations.get<nation::national_flags>(ger_nation), tag_from_text(ws.s.variables_m.named_national_flags, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "serfdom_not_abolished"))));
 
 	auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(provinces::province_tag(853ui16)));
-	EXPECT_EQ(2i64, pop_range.second - pop_range.first);
+	EXPECT_EQ(2i64, std::end(pop_range) - std::begin(pop_range));
 
-	for(auto p = pop_range.first; p != pop_range.second; ++p) {
-		if(ws.w.population_s.pops.get<pop::culture>(*p) == tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "catalan"))) {
-			EXPECT_EQ(population::get_literacy_direct(ws, *p), 0.75f);
-			EXPECT_EQ(population::get_consciousness_direct(ws, *p), 2.0f);
+	for(auto p : pop_range) {
+		if(ws.w.population_s.pops.get<pop::culture>(p) == tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "catalan"))) {
+			EXPECT_EQ(population::get_literacy_direct(ws, p), 0.75f);
+			EXPECT_EQ(population::get_consciousness_direct(ws, p), 2.0f);
 		} else {
-			EXPECT_EQ(population::get_literacy_direct(ws, *p), 0.15f);
-			EXPECT_EQ(population::get_consciousness_direct(ws, *p), 1.0f);
+			EXPECT_EQ(population::get_literacy_direct(ws, p), 0.15f);
+			EXPECT_EQ(population::get_consciousness_direct(ws, p), 1.0f);
 		}
 	}
 

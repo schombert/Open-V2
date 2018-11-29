@@ -185,7 +185,7 @@ namespace economy {
 		auto prices = economy::state_current_prices(ws, s);
 
 		char16_t local_buffer[16];
-		put_value_in_buffer(local_buffer, display_type::fp_two_places, prices[to_index(w.tag)]);
+		put_value_in_buffer(local_buffer, display_type::fp_two_places, prices[w.tag]);
 		auto cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 		cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u00A3"), box, cursor, fmt, lm);
 		lm.finish_current_line();
@@ -274,7 +274,7 @@ namespace economy {
 			return;
 
 		if(auto g = ws.w.trade_w.selected_good; is_valid_index(g)) {
-			auto price = economy::state_current_prices(ws, s)[to_index(g)];
+			auto price = economy::state_current_prices(ws, s)[g];
 
 			char16_t local_buffer[16];
 			put_value_in_buffer(local_buffer, display_type::fp_two_places, price);
@@ -330,7 +330,7 @@ namespace economy {
 			return;
 
 		if(auto g = ws.w.trade_w.selected_good; is_valid_index(g)) {
-			auto price = economy::state_current_prices(ws, s)[to_index(g)];
+			auto price = economy::state_current_prices(ws, s)[g];
 			std::vector<money_qnty_type, concurrent_allocator<money_qnty_type>> state_prices;
 
 			range_information result{ std::numeric_limits<money_qnty_type>::max(), std::numeric_limits<money_qnty_type>::lowest(), 0.0f };
@@ -338,7 +338,7 @@ namespace economy {
 			ws.w.nation_s.states.for_each([&ws, &result, &state_prices, g](nations::state_tag si) {
 				if(is_valid_index(ws.w.nation_s.states.get<state::owner>(si)) && ws.w.nation_s.states.is_valid_index(si)) {
 					auto prices = state_current_prices(ws, si);
-					auto v = prices[to_index(g)];
+					auto v = prices[g];
 					state_prices.push_back(v);
 
 					result.minimum = std::min(result.minimum, v);

@@ -137,7 +137,7 @@ namespace province_state {
 		timed_modifiers, multiset_tag<provinces::timed_provincial_modifier>,
 		static_modifiers, set_tag<modifiers::provincial_modifier_tag>,
 		fleets, set_tag<military::fleet_presence>,
-		pops, array_tag<population::pop_tag>,
+		pops, array_tag<population::pop_tag, int32_t, false>,
 		cores, set_tag<cultures::national_tag>,
 
 		rgo_worker_data, economy::worked_instance,

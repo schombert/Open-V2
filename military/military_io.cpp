@@ -60,10 +60,10 @@ void serialization::serializer<military::army>::serialize_object(std::byte *& ou
 	serialize(output, obj.base);
 
 	auto supplies = ws.w.military_s.army_supplies.get_row(obj.id);
-	serialize_array(output, supplies, ws.s.economy_m.aligned_32_goods_count);
+	serialize_array(output, supplies.data(), ws.s.economy_m.aligned_32_goods_count);
 
 	auto composition = ws.w.military_s.unit_type_composition.get_row(obj.id);
-	serialize_array(output, composition, uint32_t(ws.s.military_m.unit_types.size()));
+	serialize_array(output, composition.data(), uint32_t(ws.s.military_m.unit_types.size()));
 }
 
 void serialization::serializer<military::army>::deserialize_object(std::byte const *& input, military::army & obj, world_state & ws) {
@@ -84,10 +84,10 @@ void serialization::serializer<military::army>::deserialize_object(std::byte con
 	deserialize(input, obj.base);
 
 	auto supplies = ws.w.military_s.army_supplies.get_row(obj.id);
-	deserialize_array(input, supplies, ws.s.economy_m.aligned_32_goods_count);
+	deserialize_array(input, supplies.data(), ws.s.economy_m.aligned_32_goods_count);
 
 	auto composition = ws.w.military_s.unit_type_composition.get_row(obj.id);
-	deserialize_array(input, composition, uint32_t(ws.s.military_m.unit_types.size()));
+	deserialize_array(input, composition.data(), uint32_t(ws.s.military_m.unit_types.size()));
 
 	obj.minimum_soldiers = military::calculate_minimum_soldiers(ws, obj.id);
 	obj.total_soldiers = 0;
@@ -111,7 +111,7 @@ void serialization::serializer<military::fleet>::serialize_object(std::byte *& o
 	serialize(output, obj.base);
 
 	auto supplies = ws.w.military_s.fleet_supplies.get_row(obj.id);
-	serialize_array(output, supplies, ws.s.economy_m.aligned_32_goods_count);
+	serialize_array(output, supplies.data(), ws.s.economy_m.aligned_32_goods_count);
 
 	serialize_stable_array(output, ws.w.military_s.ship_arrays, obj.ships);
 }
@@ -131,7 +131,7 @@ void serialization::serializer<military::fleet>::deserialize_object(std::byte co
 	deserialize(input, obj.base);
 
 	auto supplies = ws.w.military_s.fleet_supplies.get_row(obj.id);
-	deserialize_array(input, supplies, ws.s.economy_m.aligned_32_goods_count);
+	deserialize_array(input, supplies.data(), ws.s.economy_m.aligned_32_goods_count);
 
 	deserialize_stable_array(input, ws.w.military_s.ship_arrays, obj.ships);
 }

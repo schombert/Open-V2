@@ -10,7 +10,7 @@
 #include "ideologies\\ideologies_functions.h"
 #include "technologies\\technologies_functions.h"
 #include "modifiers\\modifier_functions.h"
-#include "issues\\issues_functions.hpp"
+#include "issues\\issues_functions.h"
 #include <chrono>
 
 #include <Windows.h>

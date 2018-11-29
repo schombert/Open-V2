@@ -5,7 +5,7 @@
 #include "military\\military_functions.h"
 #include "population\\population_function.h"
 #include "ideologies\\ideologies_functions.h"
-#include "issues\\issues_functions.hpp"
+#include "issues\\issues_functions.h"
 #include "provinces\\province_functions.h"
 #include "modifiers\\modifier_functions.h"
 #include "economy\\economy_functions.h"
@@ -207,7 +207,7 @@ namespace triggers {
 
 		if(*tval & trigger_codes::is_existance_scope) {
 			int32_t count = 0;
-			for(auto n = ranked_range.first; (n != ranked_range.second) & (count < great_nations_count); ++n) {
+			for(auto n = std::begin(ranked_range); (n != std::end(ranked_range)) & (count < great_nations_count); ++n) {
 				if(is_valid_index(*n)) {
 					if(nations::is_great_power(ws, *n)) {
 						++count;
@@ -219,7 +219,7 @@ namespace triggers {
 			return false;
 		} else {
 			int32_t count = 0;
-			for(auto n = ranked_range.first; (n != ranked_range.second) & (count < great_nations_count); ++n) {
+			for(auto n = std::begin(ranked_range); (n != std::end(ranked_range)) & (count < great_nations_count); ++n) {
 				if(is_valid_index(*n)) {
 					if(nations::is_great_power(ws, *n)) {
 						++count;
@@ -368,14 +368,14 @@ namespace triggers {
 	bool tf_x_pop_scope_province(TRIGGER_PARAMTERS) {
 		auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(primary_slot.prov));
 		if(*tval & trigger_codes::is_existance_scope) {
-			for(auto i = pop_range.first; i != pop_range.second; ++i) {
-				if(is_valid_index(*i) && apply_subtriggers(tval, ws, *i, this_slot, from_slot, rebel_slot))
+			for(auto i : pop_range) {
+				if(is_valid_index(i) && apply_subtriggers(tval, ws, i, this_slot, from_slot, rebel_slot))
 					return true;
 			}
 			return false;
 		} else {
-			for(auto i = pop_range.first; i != pop_range.second; ++i) {
-				if(is_valid_index(*i) && !apply_subtriggers(tval, ws, *i, this_slot, from_slot, rebel_slot))
+			for(auto i : pop_range) {
+				if(is_valid_index(i) && !apply_subtriggers(tval, ws, i, this_slot, from_slot, rebel_slot))
 					return false;
 			}
 			return true;
@@ -390,8 +390,8 @@ namespace triggers {
 			for(auto j = province_range.first; j != province_range.second; ++j) {
 				if(ws.w.province_s.province_state_container.get<province_state::state_instance>(*j) == primary_slot.state) {
 					auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(*j));
-					for(auto i = pop_range.first; i != pop_range.second; ++i) {
-						if(is_valid_index(*i) && apply_subtriggers(tval, ws, *i, this_slot, from_slot, rebel_slot))
+					for(auto i : pop_range) {
+						if(is_valid_index(i) && apply_subtriggers(tval, ws, i, this_slot, from_slot, rebel_slot))
 							return true;
 					}
 				}
@@ -401,8 +401,8 @@ namespace triggers {
 			for(auto j = province_range.first; j != province_range.second; ++j) {
 				if(ws.w.province_s.province_state_container.get<province_state::state_instance>(*j) == primary_slot.state) {
 					auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(*j));
-					for(auto i = pop_range.first; i != pop_range.second; ++i) {
-						if(is_valid_index(*i) && !apply_subtriggers(tval, ws, *i, this_slot, from_slot, rebel_slot))
+					for(auto i : pop_range) {
+						if(is_valid_index(i) && !apply_subtriggers(tval, ws, i, this_slot, from_slot, rebel_slot))
 							return false;
 					}
 				}
@@ -416,8 +416,8 @@ namespace triggers {
 			for(auto j = province_range.first; j != province_range.second; ++j) {
 				if(is_valid_index(*j)) {
 					auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(*j));
-					for(auto i = pop_range.first; i != pop_range.second; ++i) {
-						if(is_valid_index(*i) && apply_subtriggers(tval, ws, *i, this_slot, from_slot, rebel_slot))
+					for(auto i : pop_range) {
+						if(is_valid_index(i) && apply_subtriggers(tval, ws, i, this_slot, from_slot, rebel_slot))
 							return true;
 					}
 				}
@@ -427,8 +427,8 @@ namespace triggers {
 			for(auto j = province_range.first; j != province_range.second; ++j) {
 				if(is_valid_index(*j)) {
 					auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(*j));
-					for(auto i = pop_range.first; i != pop_range.second; ++i) {
-						if(is_valid_index(*i) && !apply_subtriggers(tval, ws, *i, this_slot, from_slot, rebel_slot))
+					for(auto i : pop_range) {
+						if(is_valid_index(i) && !apply_subtriggers(tval, ws, i, this_slot, from_slot, rebel_slot))
 							return false;
 					}
 				}
@@ -715,7 +715,7 @@ namespace triggers {
 		auto nation_id = primary_slot.nation;
 		if(ws.w.nation_s.nations.is_valid_index(nation_id)) {
 			auto tech_row = ws.w.nation_s.active_technologies.get_row(nation_id);
-			auto has_tech = bit_vector_test(tech_row, to_index(technology));
+			auto has_tech = bit_vector_test(tech_row, technology);
 			return compare_values(tval[0], has_tech, true);
 		} else {
 			return compare_values(tval[0], false, true);

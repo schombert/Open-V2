@@ -158,6 +158,59 @@ struct zero_is_null_of_s<tag_type<value_base, zero_is_null, individuator>> { usi
 template<typename value_base, typename zero_is_null, typename individuator>
 struct individuator_of_s<tag_type<value_base, zero_is_null, individuator>> { using type = individuator; };
 
+template<typename base_tag_type>
+struct expanded_tag {
+	static_assert(std::is_same_v<std::true_type, base_tag_type::zero_is_null_t>);
+
+	int32_t value = 0;
+
+	constexpr expanded_tag() : value(0) {}
+	constexpr expanded_tag(const expanded_tag& v) noexcept = default;
+	constexpr expanded_tag(expanded_tag&& v) noexcept = default;
+	constexpr expanded_tag(base_tag_type b) noexcept : value(b.value) {}
+
+	constexpr operator base_tag_type() const noexcept { return base_tag_type(base_tag_type::value_base_t(value), std::true_type()); }
+
+	constexpr bool is_valid() const noexcept { return value != 0; }
+
+	expanded_tag& operator=(expanded_tag&& v) noexcept = default;
+	expanded_tag& operator=(expanded_tag const& v) noexcept = default;
+	expanded_tag& operator=(base_tag_type&& v) noexcept { value = int32_t(v.value); }
+	expanded_tag& operator=(base_tag_type const& v) noexcept { value = int32_t(v.value); }
+
+	constexpr bool operator==(expanded_tag v) const noexcept { return value == v.value; }
+	constexpr bool operator!=(expanded_tag v) const noexcept { return value != v.value; }
+	constexpr bool operator<(expanded_tag v) const noexcept { return value < v.value; }
+	constexpr bool operator<=(expanded_tag v) const noexcept { return value <= v.value; }
+
+	constexpr bool operator==(base_tag_type v) const noexcept { return value == int32_t(v.value); }
+	constexpr bool operator!=(base_tag_type v) const noexcept { return value != int32_t(v.value); }
+	constexpr bool operator<(base_tag_type v) const noexcept { return value < int32_t(v.value); }
+	constexpr bool operator<=(base_tag_type v) const noexcept { return value <= int32_t(v.value); }
+
+	explicit constexpr operator bool() const noexcept { return value != 0; }
+};
+
+template<typename base_tag_type>
+constexpr expanded_tag<base_tag_type> null_value_of<expanded_tag<base_tag_type>> = expanded_tag<base_tag_type>();
+
+template<typename base_tag_type>
+constexpr int32_t to_index(expanded_tag<base_tag_type> in) { return in.value - 1; }
+
+template<typename base_tag_type>
+constexpr bool is_valid_index(expanded_tag<base_tag_type> in) { return in.is_valid(); }
+
+template<typename base_tag_type>
+struct value_base_of_s<expanded_tag<base_tag_type>> { using type = int32_t; };
+
+template<typename base_tag_type>
+struct zero_is_null_of_s<expanded_tag<base_tag_type>> { using type = std::true_type; };
+
+template<typename base_tag_type>
+struct individuator_of_s<expanded_tag<base_tag_type>> { using type = typename base_tag_type::individuator_t; };
+
+
+
 template<typename T>
 using value_base_of = typename value_base_of_s<T>::type;
 
@@ -167,19 +220,17 @@ using zero_is_null_of = typename zero_is_null_of_s<T>::type;
 template<typename T>
 using individuator_of = typename individuator_of_s<T>::type;
 
-
-
-template<typename individuator>
+template<typename individuator, typename index_type, bool padding>
 struct array_tag : public tag_type<uint32_t, std::false_type, individuator> {};
 
-template<typename individuator>
-constexpr array_tag<individuator> null_value_of<array_tag<individuator>> = array_tag<individuator>();
+template<typename individuator, typename index_type, bool padding>
+constexpr array_tag<individuator, index_type, padding> null_value_of<array_tag<individuator, index_type, padding>> = array_tag<individuator, index_type, padding>();
 
-template<typename individuator>
-constexpr uint32_t to_index(array_tag<individuator> in) { return in.value; }
+template<typename individuator, typename index_type, bool padding>
+constexpr uint32_t to_index(array_tag<individuator, index_type, padding> in) { return in.value; }
 
-template<typename individuator>
-constexpr bool is_valid_index(array_tag<individuator> in) { return in.value != std::numeric_limits<uint32_t>::max(); }
+template<typename individuator, typename index_type, bool padding>
+constexpr bool is_valid_index(array_tag<individuator, index_type, padding> in) { return in.value != std::numeric_limits<uint32_t>::max(); }
 
 
 template<typename individuator>

@@ -859,11 +859,11 @@ namespace governments {
 				auto upper_house = ws.w.nation_s.upper_house.get_row(id);
 				for(uint32_t i = 0; i < ws.s.ideologies_m.ideologies_count; ++i) {
 					ideologies::ideology_tag this_tag(static_cast<ideologies::ideology_tag::value_base_t>(i));
-					if(upper_house[i] != 0) {
+					if(upper_house[this_tag] != 0) {
 						data.emplace_back(
 							ws.s.ideologies_m.ideology_container[this_tag].color,
 							ws.s.ideologies_m.ideology_container[this_tag].name,
-							float(upper_house[i]) / 100.0f);
+							float(upper_house[this_tag]) / 100.0f);
 					}
 				}
 			}
@@ -878,7 +878,7 @@ namespace governments {
 
 		if(auto player = ws.w.local_player_nation; player) {
 			if(auto id = player; ws.w.nation_s.nations.is_valid_index(id)) {
-				auto iss = ws.w.nation_s.nation_demographics.get_row(id) + to_index(population::to_demo_tag(ws, issues::option_tag(0)));
+				auto iss = &(ws.w.nation_s.nation_demographics.get_row(id)[population::to_demo_tag(ws, issues::option_tag(0))]);
 				float total_pop = float(ws.w.nation_s.nation_demographics.get(id, population::total_population_tag));
 
 				if(total_pop != 0) {
@@ -1131,7 +1131,7 @@ namespace governments {
 	void movements_listbox::populate_list(lb_type & lb, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			auto movement_range = get_range(ws.w.population_s.pop_movement_arrays, ws.w.nation_s.nations.get<nation::active_movements>(player));
-			lb.update_list(movement_range.first, movement_range.second);
+			lb.update_list(std::begin(movement_range), std::end(movement_range));
 		}
 	}
 
@@ -1139,7 +1139,7 @@ namespace governments {
 	void rebels_listbox::populate_list(lb_type & lb, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			auto rebel_range = get_range(ws.w.population_s.rebel_faction_arrays, ws.w.nation_s.nations.get<nation::active_rebel_factions>(player));
-			lb.update_list(rebel_range.first, rebel_range.second);
+			lb.update_list(std::begin(rebel_range), std::end(rebel_range));
 		}
 	}
 

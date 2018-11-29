@@ -255,7 +255,7 @@ namespace triggers {
 
 				if((tval[0] & effect_codes::scope_has_limit) != 0) {
 					auto limit = ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger);
-					for(auto n = ranked_range.first; (n != ranked_range.second) & (count < great_nations_count); ++n) {
+					for(auto n = std::begin(ranked_range); (n != std::end(ranked_range)) & (count < great_nations_count); ++n) {
 						if(is_valid_index(*n)) {
 							if(nations::is_great_power(ws, *n) && test_trigger(limit, ws, *n, this_slot, from_slot, rebel_slot)) {
 								++count;
@@ -264,7 +264,7 @@ namespace triggers {
 						}
 					}
 				} else {
-					for(auto n = ranked_range.first; (n != ranked_range.second) & (count < great_nations_count); ++n) {
+					for(auto n = std::begin(ranked_range); (n != std::end(ranked_range)) & (count < great_nations_count); ++n) {
 						if(is_valid_index(*n)) {
 							if(nations::is_great_power(ws, *n)) {
 								++count;
@@ -282,7 +282,7 @@ namespace triggers {
 				if((tval[0] & effect_codes::scope_has_limit) != 0) {
 					
 					auto limit = ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger);
-					for(auto n = ranked_range.first; (n != ranked_range.second) & (count < great_nations_count); ++n) {
+					for(auto n = std::begin(ranked_range); (n != std::end(ranked_range)) & (count < great_nations_count); ++n) {
 						if(is_valid_index(*n)) {
 							if(nations::is_great_power(ws, *n) && test_trigger(limit, ws, *n, this_slot, from_slot, rebel_slot)) {
 								++count;
@@ -291,7 +291,7 @@ namespace triggers {
 						}
 					}
 				} else {
-					for(auto n = ranked_range.first; (n != ranked_range.second) & (count < great_nations_count); ++n) {
+					for(auto n = std::begin(ranked_range); (n != std::end(ranked_range)) & (count < great_nations_count); ++n) {
 						if(is_valid_index(*n)) {
 							if(nations::is_great_power(ws, *n)) {
 								++count;
@@ -1839,7 +1839,6 @@ namespace triggers {
 			}
 		}
 		void ef_activate_technology(EFFECT_PARAMTERS) {
-			bit_vector_set(ws.w.nation_s.active_technologies.get_row(primary_slot.nation), to_index(trigger_payload(tval[2]).tech), true);
 			technologies::apply_single_technology(ws, primary_slot.nation, trigger_payload(tval[2]).tech);
 		}
 		void ef_great_wars_enabled_yes(EFFECT_PARAMTERS) {
@@ -2586,7 +2585,7 @@ namespace triggers {
 
 			auto pop_id = primary_slot.pop;
 			auto total_pop = ws.w.population_s.pop_demographics.get(pop_id, population::total_population_tag);
-			auto support = ws.w.population_s.pop_demographics.get_row(pop_id) + to_index(population::to_demo_tag(ws, ideologies::ideology_tag(0)));
+			auto support = &(ws.w.population_s.pop_demographics.get_row(pop_id)[population::to_demo_tag(ws, ideologies::ideology_tag(0))]);
 
 			Eigen::Map<Eigen::Array<float, 1, -1>> support_vec(support, ws.s.ideologies_m.ideologies_count);
 			support_vec[to_index(ideology)] = std::max(0.0f, support[to_index(ideology)] + (total_pop * factor));
@@ -2598,8 +2597,8 @@ namespace triggers {
 			auto amount = trigger_payload(tval[3]).signed_value;
 			auto upper_house = ws.w.nation_s.upper_house.get_row(primary_slot.nation);
 
-			upper_house[to_index(ideology)] = uint8_t(std::clamp(int32_t(upper_house[to_index(ideology)]) + amount, 0, 255));
-			normalize_integer_vector(upper_house, ws.s.ideologies_m.ideologies_count, 100ui8);
+			upper_house[ideology] = uint8_t(std::clamp(int32_t(upper_house[ideology]) + amount, 0, 255));
+			normalize_integer_vector(upper_house.data(), ws.s.ideologies_m.ideologies_count, 100ui8);
 		}
 		void ef_scaled_militancy_issue(EFFECT_PARAMTERS) {
 			auto issue_demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
@@ -2936,7 +2935,7 @@ namespace triggers {
 
 			auto pop_id = primary_slot.pop;
 			auto total_pop = ws.w.population_s.pop_demographics.get(pop_id, population::total_population_tag);
-			auto support = ws.w.population_s.pop_demographics.get_row(pop_id) + to_index(population::to_demo_tag(ws, issues::option_tag(0)));
+			auto support = &(ws.w.population_s.pop_demographics.get_row(pop_id)[population::to_demo_tag(ws, issues::option_tag(0))]);
 
 			Eigen::Map<Eigen::Array<float, 1, -1>> support_vec(support, ws.s.issues_m.tracked_options_count);
 			support_vec[to_index(opt)] = std::max(0.0f, support[to_index(opt)] + (total_pop * factor));
@@ -2947,11 +2946,11 @@ namespace triggers {
 		void ef_dominant_issue_nation(EFFECT_PARAMTERS) {
 			auto opt = trigger_payload(tval[2]).small.values.option;
 			auto factor = read_float_from_payload(tval + 3);
-			auto first_issue_index = to_index(population::to_demo_tag(ws, issues::option_tag(0)));
+			auto first_issue_index = population::to_demo_tag(ws, issues::option_tag(0));
 
 			nations::for_each_pop(ws, primary_slot.nation, [&ws, opt, factor, first_issue_index](population::pop_tag p) {
 				auto total_pop = ws.w.population_s.pop_demographics.get(p, population::total_population_tag);
-				auto support = ws.w.population_s.pop_demographics.get_row(p) + first_issue_index;
+				auto support = &(ws.w.population_s.pop_demographics.get_row(p)[first_issue_index]);
 
 				Eigen::Map<Eigen::Array<float, 1, -1>> support_vec(support, ws.s.issues_m.tracked_options_count);
 				support_vec[to_index(opt)] = std::max(0.0f, support[to_index(opt)] + (total_pop * factor));

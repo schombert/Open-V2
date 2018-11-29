@@ -280,9 +280,10 @@ namespace ve {
 		};
 	}
 
-	__forceinline float reduce_vector(float const* vector, uint32_t vector_size_p) {
-		ve_impl::reduce_operator ro(vector);
-		execute_serial(vector_size_p, ro);
+	template<typename itype, bool padded>
+	__forceinline float reduce_vector(tagged_array_view<const float, itype, padded> vector) {
+		ve_impl::reduce_operator ro(vector.data());
+		execute_serial(uint32_t(std::end(vector) - vector.data()), ro);
 		return ((ro.accumulator[0] + ro.accumulator[1]) + (ro.accumulator[2] + ro.accumulator[3])).reduce();
 	}
 
@@ -300,8 +301,9 @@ namespace ve {
 		};
 	}
 
-	__forceinline void rescale_vector(float* vector, uint32_t vector_size_p, float scale_factor) {
-		execute_serial_fast(vector_size_p, ve_impl::rescale_operator(vector, scale_factor));
+	template<typename itype, bool padded>
+	__forceinline void rescale_vector(tagged_array_view<float, itype, padded> vector, float scale_factor) {
+		execute_serial_fast(uint32_t(std::end(vector) - vector.data()), ve_impl::rescale_operator(vector.data(), scale_factor));
 	}
 
 	namespace ve_impl {
@@ -318,7 +320,11 @@ namespace ve {
 		};
 	}
 
-	__forceinline void accumulate_vector(float* destination, float const* accumulated, uint32_t vector_size_p) {
-		execute_serial_fast(vector_size_p, ve_impl::vector_accumulate_operator(destination, accumulated));
+	template<typename itype, bool padded>
+	__forceinline void accumulate_vector(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> accumulated) {
+#ifdef _DEBUG
+		assert(std::end(destination) - destination.data() == std::end(accumulated) - accumulated.data());
+#endif
+		execute_serial_fast(uint32_t(std::end(destination) - destination.data()), ve_impl::vector_accumulate_operator(destination.data(), accumulated.data()));
 	}
 }

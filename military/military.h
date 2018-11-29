@@ -239,7 +239,7 @@ namespace military {
 		military_leader* leader = nullptr;
 		date_tag locked_date; // cannot be rebased until date
 
-		array_tag<ship> ships;
+		array_tag<ship, int32_t, false> ships;
 
 		//extern: supplies
 
@@ -305,7 +305,7 @@ namespace military {
 		nations::country_tag primary_attacker;
 		nations::country_tag primary_defender;
 
-		array_tag<war_goal> war_goals;
+		array_tag<war_goal, int32_t, false> war_goals;
 
 		war_tag id;
 

@@ -74,12 +74,12 @@ namespace economy {
 			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
 
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::fp_two_places, prices[to_index(tag)] != 0 ? v[to_index(tag)] / prices[to_index(tag)] : money_qnty_type(0));
+			put_value_in_buffer(local_buffer, display_type::fp_two_places, prices[tag] != 0 ? v[tag] / prices[tag] : money_qnty_type(0));
 			cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), tw, cursor, ui::tooltip_text_format);
 
 			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 
-			put_value_in_buffer(local_buffer, display_type::currency, v[to_index(tag)]);
+			put_value_in_buffer(local_buffer, display_type::currency, v[tag]);
 			cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), tw, cursor, ui::tooltip_text_format);
 
 			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);

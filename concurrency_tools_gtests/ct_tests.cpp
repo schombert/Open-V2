@@ -1039,11 +1039,11 @@ TEST(concurrency_tools, set_tags_interface) {
 
 TEST(concurrency_tools, array_tags_interface) {
 	stable_variable_vector_storage_mk_2<int, 4, 1024> test_vec;
-	array_tag<int> array_a;
+	array_tag<int, int, false> array_a;
 
 	EXPECT_EQ(0ui32, get_capacity(test_vec, array_a));
 	EXPECT_EQ(0ui32, get_size(test_vec, array_a));
-	EXPECT_EQ(nullptr, get_range(test_vec, array_a).first);
+	EXPECT_EQ(nullptr, get_range(test_vec, array_a).data());
 
 	add_item(test_vec, array_a, 3);
 	add_item(test_vec, array_a, 5);
@@ -1918,19 +1918,19 @@ TEST(concurrency_tools, ve_partial_load_and_store) {
 	b[15] = 5.1f;
 
 	auto add_func = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
-		executor.partial_store(r_vec, executor.partial_load(a_vec) + executor.partial_load(b_vec));
+		executor.store(r_vec, executor.load(a_vec) + executor.load(b_vec));
 	};
 
 	auto sub_func = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
-		executor.partial_store(r_vec, executor.load(a_vec) - executor.load(b_vec));
+		executor.store(r_vec, executor.load(a_vec) - executor.load(b_vec));
 	};
 
 	auto mul_func = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
-		executor.store(r_vec, executor.partial_load(a_vec) * executor.partial_load(b_vec));
+		executor.store(r_vec, executor.load(a_vec) * executor.load(b_vec));
 	};
 
 	auto div_func = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
-		executor.partial_store(r_vec, executor.partial_load(a_vec) / executor.partial_load(b_vec));
+		executor.store(r_vec, executor.load(a_vec) / executor.load(b_vec));
 	};
 
 	ve::execute_serial(15, add_func);
@@ -2183,5 +2183,7 @@ TEST(concurrency_tools, vector_reduce) {
 	a[14] = 24.4f;
 	a[15] = 25.4f;
 
-	EXPECT_FLOAT_EQ(ve::reduce_vector(a.data(), 15), std::reduce(a.data(), a.data() + 15, 0.0f, std::plus<>()));
+	auto reduce_result = ve::reduce_vector<int32_t, false>(tagged_array_view<float, int32_t, false>(a.data(), 15));
+	auto std_reduce = std::reduce(a.data(), a.data() + 15, 0.0f, std::plus<>());
+	EXPECT_FLOAT_EQ(reduce_result, std_reduce);
 }

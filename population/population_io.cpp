@@ -55,7 +55,7 @@ void serialization::serializer<population::population_state>::serialize_object(s
 
 	obj.pops.for_each([sz = population::aligned_32_issues_ideology_demo_size(ws), &obj, &output](population::pop_tag p) {
 		auto demographics = obj.pop_demographics.get_row(p);
-		serialize_array(output, demographics, sz);
+		serialize_array(output, demographics.data(), sz);
 	});
 }
 
@@ -67,7 +67,7 @@ void serialization::serializer<population::population_state>::deserialize_object
 
 	obj.pops.for_each([sz = population::aligned_32_issues_ideology_demo_size(ws), &obj, &input](population::pop_tag p) {
 		auto demographics = obj.pop_demographics.get_row(p);
-		deserialize_array(input, demographics, sz);
+		deserialize_array(input, demographics.data(), sz);
 	});
 }
 

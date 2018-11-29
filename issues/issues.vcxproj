@@ -142,7 +142,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="issues_functions.hpp" />
     <ClInclude Include="issues_functions.h" />
     <ClInclude Include="issues.h" />
     <ClInclude Include="issues_io.h" />

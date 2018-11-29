@@ -468,7 +468,7 @@ namespace technologies {
 		if(auto player = ws.w.local_player_nation; player) {
 			if(auto pid = player; ws.w.nation_s.nations.is_valid_index(pid)) {
 				for(auto i : ws.s.technology_m.inventions) {
-					if(bit_vector_test(ws.w.nation_s.active_technologies.get_row(pid), to_index(i)) == false &&
+					if(bit_vector_test(ws.w.nation_s.active_technologies.get_row(pid), i) == false &&
 						(!is_valid_index(ws.s.technology_m.technologies_container[i].allow) ||
 							triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(ws.s.technology_m.technologies_container[i].allow), ws, player, player, nullptr, nullptr))) {
 						data.emplace_back(i, get_invention_chance(i, ws, player));
@@ -511,7 +511,7 @@ namespace technologies {
 	void selected_tech_invention_item_icon::windowed_update(ui::dynamic_icon<selected_tech_invention_item_icon>& self, window_type & win, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			if(auto id = player; ws.w.nation_s.nations.is_valid_index(id)) {
-				if(bit_vector_test(ws.w.nation_s.active_technologies.get_row(id), to_index(win.invention))) {
+				if(bit_vector_test(ws.w.nation_s.active_technologies.get_row(id), win.invention)) {
 					self.set_frame(ws.w.gui_m, 1ui32);
 					return;
 				}
@@ -583,7 +583,7 @@ namespace technologies {
 				for(auto& t : ws.s.technology_m.technologies_container) {
 					if(t.category == cat_type && t.cost != 0) {
 						++total_count;
-						if(bit_vector_test(techs, to_index(t.id)))
+						if(bit_vector_test(techs, t.id))
 							++has_count;
 					}
 				}
@@ -611,7 +611,7 @@ namespace technologies {
 				for(auto& t : ws.s.technology_m.technologies_container) {
 					if(t.category == cat_type && t.cost != 0) {
 						++total_count;
-						if(bit_vector_test(techs, to_index(t.id)))
+						if(bit_vector_test(techs, t.id))
 							++has_count;
 					}
 				}
@@ -650,7 +650,7 @@ namespace technologies {
 			auto pid = player;
 			if(!ws.w.nation_s.nations.is_valid_index(pid))
 				return;
-			if(bit_vector_test(ws.w.nation_s.active_technologies.get_row(pid), to_index(tech))) {
+			if(bit_vector_test(ws.w.nation_s.active_technologies.get_row(pid), tech)) {
 				self.set_frame(ws.w.gui_m, 1ui32);
 				return;
 			}

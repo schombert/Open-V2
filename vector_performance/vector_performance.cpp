@@ -111,19 +111,19 @@ int main() {
 
 	cache_clearer cc;
 	
-	concurrent_cache_aligned_buffer<float> apparent_price(vector_length);
-	concurrent_cache_aligned_buffer<float> distance_vector(vector_length);
-	concurrent_cache_aligned_buffer<float> state_prices_copy(vector_length);
-	concurrent_cache_aligned_buffer<float> tarrif_mask(vector_length);
+	concurrent_cache_aligned_buffer<float, int32_t, false> apparent_price(vector_length);
+	concurrent_cache_aligned_buffer<float, int32_t, false> distance_vector(vector_length);
+	concurrent_cache_aligned_buffer<float, int32_t, false> state_prices_copy(vector_length);
+	concurrent_cache_aligned_buffer<float, int32_t, false> tarrif_mask(vector_length);
 
 	auto fdist = std::uniform_real_distribution<float>(0.0f, 1.0f);
 	auto idist = std::uniform_int_distribution<uint32_t>(0ui32, vector_length);
 
 	for(int32_t i = 0; i < int32_t(vector_length); ++i) {
-		apparent_price.buffer[i] = fdist(get_local_generator()) + 1.0f;
-		distance_vector.buffer[i] = fdist(get_local_generator()) + 1.0f;
-		state_prices_copy.buffer[i] = fdist(get_local_generator()) + 1.0f;
-		tarrif_mask.buffer[i] = fdist(get_local_generator()) + 1.0f;
+		apparent_price[i] = fdist(get_local_generator()) + 1.0f;
+		distance_vector[i] = fdist(get_local_generator()) + 1.0f;
+		state_prices_copy[i] = fdist(get_local_generator()) + 1.0f;
+		tarrif_mask[i] = fdist(get_local_generator()) + 1.0f;
 	}
 
 	
@@ -131,23 +131,23 @@ int main() {
 	std::cout << cc.clear() << std::endl;
 
 	{
-		test_object<40, 1000, ve_operation> to(apparent_price.buffer, distance_vector.buffer, state_prices_copy.buffer, tarrif_mask.buffer);
+		test_object<40, 1000, ve_operation> to(apparent_price.data(), distance_vector.data(), state_prices_copy.data(), tarrif_mask.data());
 		std::cout << to.log_function(log, "vector engine apparent price update") << std::endl;
 	}
 
 	std::cout << cc.clear() << std::endl;
 
 	{
-		test_object<40, 1000, eigen_operation> to(apparent_price.buffer, distance_vector.buffer, state_prices_copy.buffer, tarrif_mask.buffer);
+		test_object<40, 1000, eigen_operation> to(apparent_price.data(), distance_vector.data(), state_prices_copy.data(), tarrif_mask.data());
 		std::cout << to.log_function(log, "eigen apparent price update") << std::endl;
 	}
-	std::cout << apparent_price.buffer[idist(get_local_generator())] << std::endl;
+	std::cout << apparent_price[idist(get_local_generator())] << std::endl;
 
 	std::cout << cc.clear() << std::endl;
 
 	{
-		test_object<40, 1000, ve_operation_b> to(apparent_price.buffer, distance_vector.buffer, state_prices_copy.buffer, tarrif_mask.buffer);
+		test_object<40, 1000, ve_operation_b> to(apparent_price.data(), distance_vector.data(), state_prices_copy.data(), tarrif_mask.data());
 		std::cout << to.log_function(log, "vector engine variant B apparent price update") << std::endl;
 	}
-	std::cout << apparent_price.buffer[idist(get_local_generator())] << std::endl;
+	std::cout << apparent_price[idist(get_local_generator())] << std::endl;
 }

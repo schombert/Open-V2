@@ -563,7 +563,7 @@ namespace provinces {
 				ws.w.nation_s.states.is_valid_index(sid) && is_valid_index(rgo_type)) {
 				
 					auto last_rgo_production = economy::province_rgo_production_qnty(ws, selected_prov);
-					auto value = last_rgo_production * economy::state_current_prices(ws, sid)[to_index(rgo_type)];
+					auto value = last_rgo_production * economy::state_current_prices(ws, sid)[rgo_type];
 					put_value_in_buffer(formatted_value, display_type::currency, value);
 					
 					ui::text_chunk_to_instances(

@@ -5,7 +5,7 @@
 #include "military\\military_functions.h"
 #include "technologies\\technologies_functions.h"
 #include "governments\\governments_functions.h"
-#include "issues\\issues_functions.hpp"
+#include "issues\\issues_functions.h"
 #include "population\\population_function.h"
 #include "provinces\\province_functions.h"
 #include <ppl.h>
@@ -25,12 +25,12 @@ namespace nations {
 		military::reset_unit_stats(ws, new_nation);
 
 		Eigen::Map<Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::Aligned32>(
-			ws.w.nation_s.national_stockpiles.get_row(new_nation),
+			ws.w.nation_s.national_stockpiles.get_row(new_nation).data(),
 			ws.s.economy_m.aligned_32_goods_count) =
 			Eigen::Matrix<economy::goods_qnty_type, -1, 1>::Zero(ws.s.economy_m.aligned_32_goods_count);
 
 		Eigen::Map<Eigen::Matrix<float, -1, 1>>(
-			ws.w.nation_s.national_variables.get_row(new_nation),
+			ws.w.nation_s.national_variables.get_row(new_nation).data(),
 			ws.s.variables_m.count_national_variables) =
 			Eigen::Matrix<float, -1, 1>::Zero(ws.s.variables_m.count_national_variables);
 
@@ -448,14 +448,17 @@ namespace nations {
 
 		ws.w.nation_s.state_demographics.ensure_capacity(to_index(new_state) + 1);
 		ws.w.nation_s.state_prices.ensure_capacity(to_index(new_state) + 1);
+		ws.w.nation_s.state_price_delta.ensure_capacity(to_index(new_state) + 1);
 		ws.w.nation_s.state_demand.ensure_capacity(to_index(new_state) + 1);
 		ws.w.nation_s.state_purchases.ensure_capacity(to_index(new_state) + 1);
 
 		auto prices = ws.w.nation_s.state_prices.get_row(new_state);
+		auto price_delta = ws.w.nation_s.state_price_delta.get_row(new_state);
 		for(economy::goods_tag::value_base_t i = 0; i < ws.s.economy_m.goods_count; ++i) {
-			prices[i] = ws.s.economy_m.goods[economy::goods_tag(i)].base_price;
+			prices[economy::goods_tag(i)] = ws.s.economy_m.goods[economy::goods_tag(i)].base_price;
+			price_delta[economy::goods_tag(i)] = 0.0f;
 		}
-		std::fill_n(prices + ws.s.economy_m.aligned_32_goods_count, ws.s.economy_m.aligned_32_goods_count, economy::money_qnty_type(0));
+		std::fill_n(prices.data() + ws.s.economy_m.aligned_32_goods_count, ws.s.economy_m.aligned_32_goods_count, economy::money_qnty_type(0));
 
 		return new_state;
 	}
@@ -503,8 +506,9 @@ namespace nations {
 		ws.w.nation_s.collected_tariffs.reset(ws.s.economy_m.goods_count);
 		ws.w.nation_s.active_issue_options.reset(uint32_t(ws.s.issues_m.issues_container.size()));
 		ws.w.nation_s.national_stockpiles.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count));
-		ws.w.nation_s.state_prices.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count * 2));
-		ws.w.nation_s.state_demand.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count * 2));
+		ws.w.nation_s.state_prices.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count));
+		ws.w.nation_s.state_price_delta.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count));
+		ws.w.nation_s.state_demand.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count));
 
 		ws.w.nation_s.state_production.resize(int32_t(ws.s.economy_m.goods_count));
 		ws.w.nation_s.state_global_demand.resize(int32_t(ws.s.economy_m.goods_count));
@@ -521,15 +525,15 @@ namespace nations {
 		const auto full_vector_size = population::aligned_32_demo_size(ws);
 
 		ws.w.nation_s.nations.parallel_for_each([&ws, full_vector_size](country_tag n) {
-			Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> nation_demo(ws.w.nation_s.nation_demographics.get_row(n), full_vector_size);
-			Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> nation_c_demo(ws.w.nation_s.nation_colonial_demographics.get_row(n), full_vector_size);
+			Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> nation_demo(ws.w.nation_s.nation_demographics.get_row(n).data(), full_vector_size);
+			Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> nation_c_demo(ws.w.nation_s.nation_colonial_demographics.get_row(n).data(), full_vector_size);
 			nation_demo.setZero();
 			nation_c_demo.setZero();
 
 			const auto state_range = get_range(ws.w.nation_s.state_arrays, ws.w.nation_s.nations.get<nation::member_states>(n));
 
 			for(auto s = state_range.first; s != state_range.second; ++s) {
-				Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> state_demo(ws.w.nation_s.state_demographics.get_row(s->state), full_vector_size);
+				Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> state_demo(ws.w.nation_s.state_demographics.get_row(s->state).data(), full_vector_size);
 
 				state_demo.setZero();
 
@@ -583,8 +587,8 @@ namespace nations {
 				ws.w.nation_s.nations.set<nation::dominant_issue>(n, issues::option_tag(static_cast<value_base_of<issues::option_tag>>(max_opinion_off)));
 			}
 
-			ws.w.nation_s.nations.set<nation::political_interest_fraction>(n, issues::calculate_political_interest(ws, nation_demo.data()));
-			ws.w.nation_s.nations.set<nation::social_interest_fraction>(n, issues::calculate_social_interest(ws, nation_demo.data()));
+			ws.w.nation_s.nations.set<nation::political_interest_fraction>(n, issues::calculate_political_interest(ws, ws.w.nation_s.nation_demographics.get_row(n)));
+			ws.w.nation_s.nations.set<nation::social_interest_fraction>(n, issues::calculate_social_interest(ws, ws.w.nation_s.nation_demographics.get_row(n)));
 		});
 	}
 
@@ -906,7 +910,7 @@ namespace nations {
 		auto issues_range = ws.w.nation_s.active_issue_options.get_row(n);
 		auto ratio_denom = ws.s.modifiers_m.global_defines.max_bureaucracy_percentage
 			+ (ws.s.modifiers_m.global_defines.bureaucracy_percentage_increment
-			* std::transform_reduce(issues_range, issues_range + ws.s.issues_m.tracked_options_count, 0.0f, std::plus<>(),
+			* std::transform_reduce(std::begin(issues_range), std::begin(issues_range) + ws.s.issues_m.tracked_options_count, 0.0f, std::plus<>(),
 			[&ws](issues::option_tag opt) {
 			if(is_valid_index(opt))
 				return float(ws.s.issues_m.options[opt].administrative_multiplier);
@@ -1125,19 +1129,19 @@ namespace nations {
 			if(masked_type == military::unit_type::class_big_ship) {
 				// capital ship
 				unit_type_scores[i] =
-					(unit_attributes_row[i][military::unit_attribute::hull] + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::naval_defense_modifier>(this_nation)) *
-					(unit_attributes_row[i][military::unit_attribute::gun_power] + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::naval_attack_modifier>(this_nation)) /
+					(unit_attributes_row[this_tag][military::unit_attribute::hull] + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::naval_defense_modifier>(this_nation)) *
+					(unit_attributes_row[this_tag][military::unit_attribute::gun_power] + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::naval_attack_modifier>(this_nation)) /
 					250.0f;
 			} else if(masked_type == military::unit_type::class_light_ship || masked_type == military::unit_type::class_transport) {
 				// other naval
 			} else {
 				// land
 				land_uint_score +=
-					(unit_attributes_row[i][military::unit_attribute::attack] +
+					(unit_attributes_row[this_tag][military::unit_attribute::attack] +
 						ws.w.nation_s.modifier_values.get<modifiers::national_offsets::land_attack_modifier>(this_nation) +
-						unit_attributes_row[i][military::unit_attribute::defense] +
+						unit_attributes_row[this_tag][military::unit_attribute::defense] +
 						ws.w.nation_s.modifier_values.get<modifiers::national_offsets::land_defense_modifier>(this_nation)) *
-						unit_attributes_row[i][military::unit_attribute::discipline];
+						unit_attributes_row[this_tag][military::unit_attribute::discipline];
 				++land_unit_type_count;
 			}
 		}
@@ -1163,8 +1167,8 @@ namespace nations {
 		auto fleets = get_range(ws.w.military_s.fleet_arrays, ws.w.nation_s.nations.get<nation::fleets>(this_nation));
 		for(auto f : fleets) {
 			auto ships = get_range(ws.w.military_s.ship_arrays, ws.w.military_s.fleets[f].ships);
-			for(auto s = ships.first; s != ships.second; ++s) {
-				total_sum += unit_type_scores[to_index(s->type)];
+			for(auto& s : ships) {
+				total_sum += unit_type_scores[to_index(s.type)];
 			}
 		}
 
@@ -1246,7 +1250,7 @@ namespace nations {
 			issues::issue_tag this_issue_tag(static_cast<issues::issue_tag::value_base_t>(i));
 			auto& this_issue = ws.s.issues_m.issues_container[this_issue_tag];
 			if(this_issue.type == issues::issue_group::military || this_issue.type == issues::issue_group::economic) {
-				issue_opts[i] = issues::option_tag();
+				issue_opts[this_issue_tag] = issues::option_tag();
 			}
 		}
 
@@ -1272,7 +1276,7 @@ namespace nations {
 			issues::issue_tag this_issue_tag(static_cast<issues::issue_tag::value_base_t>(i));
 			auto& this_issue = ws.s.issues_m.issues_container[this_issue_tag];
 			if(this_issue.type == issues::issue_group::military || this_issue.type == issues::issue_group::economic) {
-				issue_opts[i] = this_issue.options[0];
+				issue_opts[this_issue_tag] = this_issue.options[0];
 			}
 		}
 	}
