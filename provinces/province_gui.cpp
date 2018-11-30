@@ -108,8 +108,8 @@ namespace provinces {
 				auto owner_type = is_mine ? ws.s.economy_m.rgo_mine.owner.type : ws.s.economy_m.rgo_farm.owner.type;
 
 				auto demo_row = ws.w.province_s.province_demographics.get_row(selected_prov);
-				auto total_pop = demo_row[to_index(population::total_population_tag)];
-				auto owner_pop = demo_row[to_index(population::to_demo_tag(ws, owner_type))];
+				auto total_pop = demo_row[population::total_population_tag];
+				auto owner_pop = demo_row[population::to_demo_tag(ws, owner_type)];
 
 				float percent = total_pop != 0 ? float(owner_pop) / float(total_pop) : 0.0f;
 
@@ -145,8 +145,8 @@ namespace provinces {
 				auto owner_type = is_mine ? ws.s.economy_m.rgo_mine.owner.type : ws.s.economy_m.rgo_farm.owner.type;
 
 				auto demo_row = ws.w.province_s.province_demographics.get_row(selected_prov);
-				auto total_pop = demo_row[to_index(population::total_population_tag)];
-				auto owner_pop = demo_row[to_index(population::to_demo_tag(ws, owner_type))];
+				auto total_pop = demo_row[population::total_population_tag];
+				auto owner_pop = demo_row[population::to_demo_tag(ws, owner_type)];
 
 				float percent = total_pop != 0 ? float(owner_pop) / float(total_pop) : 0.0f;
 				value = int32_t(percent* 100.0f + 0.5f);
@@ -467,7 +467,7 @@ namespace provinces {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
 			auto demo_row = ws.w.province_s.province_demographics.get_row(selected_prov);
-			value = demo_row[to_index(population::total_population_tag)];
+			value = demo_row[population::total_population_tag];
 		}
 		char16_t formatted_value[64];
 		put_value_in_buffer(formatted_value, display_type::integer, value);
@@ -486,14 +486,14 @@ namespace provinces {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
 			auto demo_row = ws.w.province_s.province_demographics.get_row(selected_prov);
-			const float total_pop = float(demo_row[to_index(population::total_population_tag)]);
+			const float total_pop = float(demo_row[population::total_population_tag]);
 
 			if(total_pop != 0.0f) {
-				const auto ptype_offset = population::to_demo_tag(ws, population::pop_type_tag(0));
+				const auto ptype_offset = to_index(population::to_demo_tag(ws, population::pop_type_tag(0)));
 
 				for(uint32_t i = 0ui32; i < ws.s.population_m.pop_types.size(); ++i) {
-					if(demo_row[to_index(ptype_offset) + i] != 0) {
-						float fraction = float(demo_row[to_index(ptype_offset) + i]) / total_pop;
+					if(*(demo_row.data() + ptype_offset + i) != 0) {
+						float fraction = *(demo_row.data() + ptype_offset + i) / total_pop;
 						pie.add_entry(
 							ws.w.gui_m,
 							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].name),
@@ -510,14 +510,14 @@ namespace provinces {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
 			auto demo_row = ws.w.province_s.province_demographics.get_row(selected_prov);
-			const float total_pop = float(demo_row[to_index(population::total_population_tag)]);
+			const float total_pop = float(demo_row[population::total_population_tag]);
 
 			if(total_pop != 0.0f) {
-				const auto itype_offset = population::to_demo_tag(ws, ideologies::ideology_tag(0));
+				const auto itype_offset = to_index(population::to_demo_tag(ws, ideologies::ideology_tag(0)));
 
 				for(uint32_t i = 0ui32; i < ws.s.ideologies_m.ideologies_count; ++i) {
-					if(demo_row[to_index(itype_offset) + i] != 0) {
-						float fraction = float(demo_row[to_index(itype_offset) + i]) / total_pop;
+					if(*(demo_row.data() + itype_offset + i) != 0) {
+						float fraction = *(demo_row.data() + itype_offset + i) / total_pop;
 						pie.add_entry(
 							ws.w.gui_m,
 							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.ideologies_m.ideology_container[ideologies::ideology_tag(static_cast<ideologies::ideology_tag::value_base_t>(i))].name),
@@ -534,14 +534,14 @@ namespace provinces {
 		auto selected_prov = ws.w.province_w.selected_province;
 		if(is_valid_index(selected_prov)) {
 			auto demo_row = ws.w.province_s.province_demographics.get_row(selected_prov);
-			const float total_pop = float(demo_row[to_index(population::total_population_tag)]);
+			const float total_pop = float(demo_row[population::total_population_tag]);
 
 			if(total_pop != 0.0f) {
-				const auto itype_offset = population::to_demo_tag(ws, cultures::culture_tag(0));
+				const auto itype_offset = to_index(population::to_demo_tag(ws, cultures::culture_tag(0)));
 
 				for(uint32_t i = 0ui32; i < ws.s.culture_m.count_cultures; ++i) {
-					if(demo_row[to_index(itype_offset) + i] != 0) {
-						float fraction = float(demo_row[to_index(itype_offset) + i]) / total_pop;
+					if(*(demo_row.data() + itype_offset + i) != 0) {
+						float fraction = *(demo_row.data() + itype_offset + i) / total_pop;
 						pie.add_entry(
 							ws.w.gui_m,
 							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.culture_m.culture_container[cultures::culture_tag(static_cast<cultures::culture_tag::value_base_t>(i))].name),

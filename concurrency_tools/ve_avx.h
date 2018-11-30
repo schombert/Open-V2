@@ -159,6 +159,7 @@ public:
 	full_vector_operation(uint32_t o) : offset(o) {}
 
 	constexpr static int32_t block_index = blk_index;
+	constexpr static bool full_operation = true;
 
 	__forceinline fp_vector zero() {
 		return _mm256_setzero_ps();
@@ -232,8 +233,8 @@ public:
 		_mm256_stream_ps(dest + offset, value);
 	}
 
-	__forceinline int_vector partial_mask() {
-		return _mm256_loadu_si256((__m256i const*)load_masks);
+	__forceinline fp_vector partial_mask() {
+		return _mm256_loadu_fp((float const*)load_masks);
 	}
 
 	template<int32_t cache_lines>
@@ -318,6 +319,7 @@ class partial_vector_operation : public full_vector_operation<0> {
 protected:
 	uint32_t const count;
 public:
+	constexpr static bool full_operation = false;
 
 	partial_vector_operation(uint32_t o, uint32_t c) : full_vector_operation(o), count(c) {}
 
@@ -333,8 +335,8 @@ public:
 		int_vector_internal mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - count));
 		_mm256_maskstore_ps(dest + offset, mask, value);
 	}
-	__forceinline int_vector partial_mask() {
-		return _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - count));
+	__forceinline fp_vector partial_mask() {
+		return _mm256_loadu_fp((float const*)(load_masks + 8ui32 - count));
 	}
 
 	__forceinline fp_vector unaligned_load(float const* source) {

@@ -6,7 +6,7 @@
 namespace governments {
 	issues::rules make_party_rules(party& p, scenario::scenario_manager& s) {
 		issues::rules result;
-		issues::option_tag* opts = s.governments_m.party_issues.get_row(p.id);
+		auto opts = s.governments_m.party_issues.get_row(p.id);
 		for(uint32_t i = 0; i < s.governments_m.party_issues.inner_size(); ++i) {
 			if(is_valid_index(opts[i]))
 				result.rules_value |= s.issues_m.options[opts[i]].issue_rules.rules_settings.rules_value;
@@ -46,7 +46,7 @@ namespace governments {
 		ws.w.nation_s.nations.set<nation::ruling_party>(this_nation, p);
 		ws.w.nation_s.nations.set<nation::ruling_ideology>(this_nation, ws.s.governments_m.parties[p].ideology);
 
-		issues::option_tag* row = ws.s.governments_m.party_issues.get_row(p);
+		auto row = ws.s.governments_m.party_issues.get_row(p);
 		const auto sz_party_issues = ws.s.governments_m.party_issues.inner_size();
 
 		for(uint32_t i = 0; i < sz_party_issues; ++i) {

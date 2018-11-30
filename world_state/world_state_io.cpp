@@ -310,10 +310,10 @@ void restore_world_state(world_state& ws) {
 
 	//restore tarrif masks
 	auto state_max = ws.w.nation_s.states.size();
-	auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(state_max) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
-	ws.w.nation_s.nations.parallel_for_each([&ws, aligned_state_max, state_max](nations::country_tag n) {
+	
+	ws.w.nation_s.nations.parallel_for_each([&ws, state_max](nations::country_tag n) {
 		auto& tm = ws.w.nation_s.nations.get<nation::statewise_tarrif_mask>(n);
-		resize(ws.w.economy_s.purchasing_arrays, tm, aligned_state_max);
+		resize(ws.w.economy_s.purchasing_arrays, tm, state_max);
 		auto ptr = get_range(ws.w.economy_s.purchasing_arrays, tm);
 		for(int32_t i = 0; i < int32_t(state_max); ++i) {
 			nations::state_tag this_state = nations::state_tag(nations::state_tag::value_base_t(i));

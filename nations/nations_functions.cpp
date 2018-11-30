@@ -10,6 +10,7 @@
 #include "provinces\\province_functions.h"
 #include <ppl.h>
 #include "economy\\economy_functions.h"
+#include "concurrency_tools\\ve.h"
 
 namespace nations {
 	nations::country_tag state_owner(world_state const& ws, nations::state_tag s) {
@@ -489,9 +490,8 @@ namespace nations {
 			}
 		}
 		auto state_max = ws.w.nation_s.states.size();
-		auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(state_max) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
-		ws.w.nation_s.nations.parallel_for_each([&ws, aligned_state_max](nations::country_tag n) {
-			resize(ws.w.economy_s.purchasing_arrays, ws.w.nation_s.nations.get<nation::statewise_tarrif_mask>(n), aligned_state_max);
+		ws.w.nation_s.nations.parallel_for_each([&ws, state_max](nations::country_tag n) {
+			resize(ws.w.economy_s.purchasing_arrays, ws.w.nation_s.nations.get<nation::statewise_tarrif_mask>(n), state_max);
 		});
 	}
 
@@ -525,27 +525,27 @@ namespace nations {
 		const auto full_vector_size = population::aligned_32_demo_size(ws);
 
 		ws.w.nation_s.nations.parallel_for_each([&ws, full_vector_size](country_tag n) {
-			Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> nation_demo(ws.w.nation_s.nation_demographics.get_row(n).data(), full_vector_size);
-			Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> nation_c_demo(ws.w.nation_s.nation_colonial_demographics.get_row(n).data(), full_vector_size);
-			nation_demo.setZero();
-			nation_c_demo.setZero();
+			auto nation_demo = ws.w.nation_s.nation_demographics.get_row(n);
+			auto nation_c_demo = ws.w.nation_s.nation_colonial_demographics.get_row(n);
+			
+			ve::set_zero<population::demo_tag, false>(nation_demo);
+			ve::set_zero<population::demo_tag, false>(nation_c_demo);
 
 			const auto state_range = get_range(ws.w.nation_s.state_arrays, ws.w.nation_s.nations.get<nation::member_states>(n));
 
 			for(auto s = state_range.first; s != state_range.second; ++s) {
-				Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> state_demo(ws.w.nation_s.state_demographics.get_row(s->state).data(), full_vector_size);
-
-				state_demo.setZero();
+				auto state_demo = ws.w.nation_s.state_demographics.get_row(s->state);
+				ve::set_zero<population::demo_tag, false>(state_demo);
 
 				const auto p_in_region_range = ws.s.province_m.states_to_province_index.get_row(s->region_id);
 				for(auto p = p_in_region_range.first; p != p_in_region_range.second; ++p) {
 					if(ws.w.province_s.province_state_container.get<province_state::owner>(*p) == n) {
-						Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> province_demo(ws.w.province_s.province_demographics.get_row(*p), full_vector_size);
-						state_demo += province_demo;
+						auto province_demo = ws.w.province_s.province_demographics.get_row(*p);
+						ve::accumulate_exact<population::demo_tag, false>(state_demo, province_demo);
 					}
 				}
 
-				if(state_demo[to_index(population::total_population_tag)] != 0) {
+				if(state_demo[population::total_population_tag] != 0) {
 					const auto culture_offset = population::to_demo_tag(ws, cultures::culture_tag(0));
 					auto max_culture_off = maximum_index(state_demo.data() + to_index(culture_offset), int32_t(ws.s.culture_m.count_cultures));
 					ws.w.nation_s.states.set<state::dominant_culture>(s->state, cultures::culture_tag(static_cast<value_base_of<cultures::culture_tag>>(max_culture_off)));
@@ -564,12 +564,12 @@ namespace nations {
 				}
 
 				if(!nations::is_colonial_or_protectorate(ws, s->state))
-					nation_demo += state_demo;
+					ve::accumulate_exact<population::demo_tag, false>(nation_demo, state_demo);
 				else
-					nation_c_demo += state_demo;
+					ve::accumulate_exact<population::demo_tag, false>(nation_c_demo, state_demo);
 			}
 
-			if(nation_demo[to_index(population::total_population_tag)] != 0) {
+			if(nation_demo[population::total_population_tag] != 0) {
 				const auto culture_offset = population::to_demo_tag(ws, cultures::culture_tag(0));
 				auto max_culture_off = maximum_index(nation_demo.data() + to_index(culture_offset), int32_t(ws.s.culture_m.count_cultures));
 				ws.w.nation_s.nations.set<nation::dominant_culture>(n, cultures::culture_tag(static_cast<value_base_of<cultures::culture_tag>>(max_culture_off)));

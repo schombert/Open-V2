@@ -77,8 +77,8 @@ namespace military {
 	void calculate_leader_traits(world_state& ws, military_leader& l) {
 		Eigen::Map<Eigen::Matrix<traits::value_type, traits::trait_count, 1>> dest_vec(l.leader_traits);
 
-		Eigen::Map<Eigen::Matrix<traits::value_type, traits::trait_count, 1>> source_a(ws.s.military_m.leader_trait_definitions.get_row(l.background));
-		Eigen::Map<Eigen::Matrix<traits::value_type, traits::trait_count, 1>> source_b(ws.s.military_m.leader_trait_definitions.get_row(l.personality));
+		Eigen::Map<Eigen::Matrix<traits::value_type, traits::trait_count, 1>> source_a(ws.s.military_m.leader_trait_definitions.get_row(l.background).data());
+		Eigen::Map<Eigen::Matrix<traits::value_type, traits::trait_count, 1>> source_b(ws.s.military_m.leader_trait_definitions.get_row(l.personality).data());
 
 		dest_vec = source_a + source_b;
 	}

@@ -6,6 +6,7 @@
 #include "modifiers\\modifier_functions.h"
 #include "military\\military_functions.h"
 #include <ppl.h>
+#include "concurrency_tools\\ve.h"
 
 namespace provinces {
 	nations::country_tag province_owner(world_state const& ws, province_tag p) {
@@ -129,91 +130,90 @@ namespace provinces {
 
 			auto pop_range = get_range(ws.w.population_s.pop_arrays, container.get<province_state::pops>(prov_id));
 
-			Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> province_partial_demo(ws.w.province_s.province_demographics.get_row(prov_id), vector_size);
-			Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> province_full_demo(ws.w.province_s.province_demographics.get_row(prov_id), full_vector_size);
+			auto province_full_demo = ws.w.province_s.province_demographics.get_row(prov_id);
 			
-			province_full_demo.setZero();
+			ve::set_zero<population::demo_tag, false>(province_full_demo);
 
 			for(auto p : pop_range) {
-				Eigen::Map<Eigen::Matrix<float, -1, 1>, Eigen::AlignmentType::Aligned32> pop_demo_source(ws.w.population_s.pop_demographics.get_row(p).data(), vector_size);
-				province_partial_demo += pop_demo_source;
+				auto pop_demo_source = ws.w.population_s.pop_demographics.get_row(p);
+				ve::accumulate_exact<population::demo_tag, false>(province_full_demo, pop_demo_source);
 
 				auto ptype =  ws.w.population_s.pops.get<pop::type>(p);
 				auto needs_satisfaction = ws.w.population_s.pops.get<pop::needs_satisfaction>(p);
 
-				auto pop_size = pop_demo_source[to_index(population::total_population_tag)];
+				auto pop_size = pop_demo_source[population::total_population_tag];
 
-				province_full_demo[to_index(population::to_demo_tag(ws, ws.w.population_s.pops.get<pop::culture>(p)))] += pop_size;
-				province_full_demo[to_index(population::to_demo_tag(ws, ws.w.population_s.pops.get<pop::religion>(p)))] += pop_size;
-				province_full_demo[to_index(population::to_demo_tag(ws, ptype))] += pop_size;
-				province_full_demo[to_index(population::to_employment_demo_tag(ws, ptype))] += pop_demo_source[to_index(population::total_employment_tag)];
+				province_full_demo[population::to_demo_tag(ws, ws.w.population_s.pops.get<pop::culture>(p))] += pop_size;
+				province_full_demo[population::to_demo_tag(ws, ws.w.population_s.pops.get<pop::religion>(p))] += pop_size;
+				province_full_demo[population::to_demo_tag(ws, ptype)] += pop_size;
+				province_full_demo[population::to_employment_demo_tag(ws, ptype)] += pop_demo_source[population::total_employment_tag];
 
 
-				province_full_demo[to_index(cdt)] += ws.w.population_s.pops.get<pop::consciousness>(p) * pop_size;
-				province_full_demo[to_index(ldt)] += ws.w.population_s.pops.get<pop::literacy>(p) * pop_size;
+				province_full_demo[cdt] += ws.w.population_s.pops.get<pop::consciousness>(p) * pop_size;
+				province_full_demo[ldt] += ws.w.population_s.pops.get<pop::literacy>(p) * pop_size;
 
 				const float weighted_militancy = ws.w.population_s.pops.get<pop::militancy>(p) * pop_size;
-				province_full_demo[to_index(mdt)] += weighted_militancy;
+				province_full_demo[mdt] += weighted_militancy;
 
 				const auto strata = ws.s.population_m.pop_types[ptype].flags & population::pop_type::strata_mask;
 				if(strata == population::pop_type::strata_poor) {
-					province_full_demo[to_index(pmpdt)] += weighted_militancy;
-					province_full_demo[to_index(ppdt)] += pop_size;
+					province_full_demo[pmpdt] += weighted_militancy;
+					province_full_demo[ppdt] += pop_size;
 					if(needs_satisfaction < 1.0f) {
-						province_full_demo[to_index(plndt)] += float(pop_size) * needs_satisfaction;
+						province_full_demo[plndt] += float(pop_size) * needs_satisfaction;
 					} else {
-						province_full_demo[to_index(plndt)] += pop_size;
+						province_full_demo[plndt] += pop_size;
 						if(needs_satisfaction < 2.0f) {
-							province_full_demo[to_index(pendt)] += float(pop_size) * (needs_satisfaction - 1.0f);
+							province_full_demo[pendt] += float(pop_size) * (needs_satisfaction - 1.0f);
 						} else {
-							province_full_demo[to_index(pendt)] += pop_size;
+							province_full_demo[pendt] += pop_size;
 							if(needs_satisfaction < 3.0f) {
-								province_full_demo[to_index(pxndt)] += float(pop_size) * (needs_satisfaction - 2.0f);
+								province_full_demo[pxndt] += float(pop_size) * (needs_satisfaction - 2.0f);
 							} else {
-								province_full_demo[to_index(pxndt)] += pop_size;
+								province_full_demo[pxndt] += pop_size;
 							}
 						}
 					}
 				} else if(strata == population::pop_type::strata_middle) {
-					province_full_demo[to_index(mmpdt)] += weighted_militancy;
-					province_full_demo[to_index(mpdt)] += pop_size;
+					province_full_demo[mmpdt] += weighted_militancy;
+					province_full_demo[mpdt] += pop_size;
 					if(needs_satisfaction < 1.0f) {
-						province_full_demo[to_index(mlndt)] += float(pop_size) * needs_satisfaction;
+						province_full_demo[mlndt] += float(pop_size) * needs_satisfaction;
 					} else {
-						province_full_demo[to_index(mlndt)] += pop_size;
+						province_full_demo[mlndt] += pop_size;
 						if(needs_satisfaction < 2.0f) {
-							province_full_demo[to_index(mendt)] += float(pop_size) * (needs_satisfaction - 1.0f);
+							province_full_demo[mendt] += float(pop_size) * (needs_satisfaction - 1.0f);
 						} else {
-							province_full_demo[to_index(mendt)] += pop_size;
+							province_full_demo[mendt] += pop_size;
 							if(needs_satisfaction < 3.0f) {
-								province_full_demo[to_index(mxndt)] += float(pop_size) * (needs_satisfaction - 2.0f);
+								province_full_demo[mxndt] += float(pop_size) * (needs_satisfaction - 2.0f);
 							} else {
-								province_full_demo[to_index(mxndt)] += pop_size;
+								province_full_demo[mxndt] += pop_size;
 							}
 						}
 					}
 				} else /*if(strata == population::pop_type::strata_rich)*/ {
-					province_full_demo[to_index(rmpdt)] += weighted_militancy;
-					province_full_demo[to_index(rpdt)] += pop_size;
+					province_full_demo[rmpdt] += weighted_militancy;
+					province_full_demo[rpdt] += pop_size;
 					if(needs_satisfaction < 1.0f) {
-						province_full_demo[to_index(rlndt)] += float(pop_size) * needs_satisfaction;
+						province_full_demo[rlndt] += float(pop_size) * needs_satisfaction;
 					} else {
-						province_full_demo[to_index(rlndt)] += pop_size;
+						province_full_demo[rlndt] += pop_size;
 						if(needs_satisfaction < 2.0f) {
-							province_full_demo[to_index(rendt)] += float(pop_size) * (needs_satisfaction - 1.0f);
+							province_full_demo[rendt] += float(pop_size) * (needs_satisfaction - 1.0f);
 						} else {
-							province_full_demo[to_index(rendt)] += pop_size;
+							province_full_demo[rendt] += pop_size;
 							if(needs_satisfaction < 3.0f) {
-								province_full_demo[to_index(rxndt)] += float(pop_size) * (needs_satisfaction - 2.0f);
+								province_full_demo[rxndt] += float(pop_size) * (needs_satisfaction - 2.0f);
 							} else {
-								province_full_demo[to_index(rxndt)] += pop_size;
+								province_full_demo[rxndt] += pop_size;
 							}
 						}
 					}
 				}
 			}
 
-			if(province_full_demo[to_index(population::total_population_tag)] != 0) {
+			if(province_full_demo[population::total_population_tag] != 0) {
 				const auto culture_offset = population::to_demo_tag(ws, cultures::culture_tag(0));
 				auto max_culture_off = maximum_index(province_full_demo.data() + to_index(culture_offset), int32_t(ws.s.culture_m.count_cultures));
 				container.set<province_state::dominant_culture>(prov_id, cultures::culture_tag(static_cast<value_base_of<cultures::culture_tag>>(max_culture_off)));
@@ -485,8 +485,8 @@ namespace provinces {
 	}
 
 	void state_distances_manager::update(world_state const & ws) {
-		auto max_states = ws.w.nation_s.states.size();
-		auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(max_states) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
+		auto max_states = ws.w.nation_s.states.size() + 1;
+		auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(max_states) + 63ui32) & ~63ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
 
 		if(last_aligned_state_max < int32_t(aligned_state_max)) {
 			if(distance_data)
@@ -506,7 +506,7 @@ namespace provinces {
 					provinces::province_tag other_capital = ws.w.nation_s.states.get<state::state_capital>(other_state);
 
 					if(is_valid_index(other_capital)) {
-						d[i * aligned_state_max + j] = ws.w.province_s.province_distance_to[
+						d[(i + 1) * aligned_state_max + (j + 1)] = ws.w.province_s.province_distance_to[
 							to_index(capital) * province_count + to_index(other_capital)];
 					}
 				}

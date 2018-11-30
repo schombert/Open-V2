@@ -564,9 +564,9 @@ namespace economy {
 						factory = env.economy_m.factory_types[base_tag];
 
 						Eigen::Map<const Eigen::VectorXf, Eigen::AlignmentType::Aligned32> source_vector(
-							env.economy_m.factory_efficiency_goods.safe_get_row(base_tag), env.economy_m.aligned_32_goods_count);
+							env.economy_m.factory_efficiency_goods.safe_get_row(base_tag).data(), env.economy_m.aligned_32_goods_count);
 						Eigen::Map<Eigen::VectorXf, Eigen::AlignmentType::Aligned32> dest_vector(
-							env.economy_m.factory_efficiency_goods.safe_get_row(ftag), env.economy_m.aligned_32_goods_count);
+							env.economy_m.factory_efficiency_goods.safe_get_row(ftag).data(), env.economy_m.aligned_32_goods_count);
 
 						dest_vector = source_vector;
 					}

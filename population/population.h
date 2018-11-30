@@ -226,17 +226,17 @@ namespace population {
 			economy::goods_qnty_type,
 			pop_type_tag,
 			economy::goods_tag,
-			aligned_allocator_32<economy::goods_qnty_type>> life_needs;
+			aligned_allocator_64<economy::goods_qnty_type>> life_needs;
 		tagged_fixed_blocked_2dvector<
 			economy::goods_qnty_type,
 			pop_type_tag,
 			economy::goods_tag,
-			aligned_allocator_32<economy::goods_qnty_type>> everyday_needs;
+			aligned_allocator_64<economy::goods_qnty_type>> everyday_needs;
 		tagged_fixed_blocked_2dvector<
 			economy::goods_qnty_type,
 			pop_type_tag,
 			economy::goods_tag,
-			aligned_allocator_32<economy::goods_qnty_type>> luxury_needs;
+			aligned_allocator_64<economy::goods_qnty_type>> luxury_needs;
 		tagged_fixed_blocked_2dvector<
 			float,
 			pop_type_tag,

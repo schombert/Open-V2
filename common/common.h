@@ -368,6 +368,45 @@ public:
 	void pop_back() { storage.pop_back(); }
 };
 
+template<typename T, typename index_type, bool padding>
+struct tagged_array_view {
+private:
+	T* const ptr = nullptr;
+	int32_t size = 0;
+public:
+	constexpr tagged_array_view(T* p, int32_t s) noexcept : ptr(p), size(s) {}
+
+	T& operator[](index_type i) const noexcept {
+		if constexpr(padding) {
+			return ptr[to_index(i) + 1];
+		} else {
+			return ptr[to_index(i)];
+		}
+	}
+	T* begin() const noexcept {
+		if constexpr(padding) {
+			return ptr ? ptr + 1 : ptr;
+		} else {
+			return ptr;
+		}
+	}
+	T* end() const noexcept {
+		return ptr + size;
+	}
+	T* data() const noexcept {
+		return ptr;
+	}
+	explicit operator bool() const noexcept {
+		return ptr != nullptr;
+	}
+	constexpr operator tagged_array_view<const T, index_type, padding>() const noexcept {
+		return tagged_array_view<const T, index_type, padding>(ptr, size);
+	}
+	constexpr tagged_array_view<T, index_type, padding> operator+(int32_t i) const noexcept {
+		return tagged_array_view<T, index_type, padding>(ptr + i, size - i);
+	}
+};
+
 template<typename value_type, typename variable_tag_type, typename fixed_tag_type, typename allocator = std::allocator<value_type>>
 class tagged_fixed_2dvector {
 private:
@@ -380,11 +419,11 @@ public:
 	const value_type & get(variable_tag_type outer, fixed_tag_type inner) const {
 		return storage[(uint32_t)to_index(inner) + (uint32_t)to_index(outer) * _inner_size];
 	}
-	value_type* get_row(variable_tag_type outer) {
-		return (value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size);
+	tagged_array_view<value_type, fixed_tag_type, false> get_row(variable_tag_type outer) {
+		return tagged_array_view<value_type, fixed_tag_type, false>((value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), _inner_size);
 	}
-	const value_type* get_row(variable_tag_type outer) const {
-		return (const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size);
+	tagged_array_view<const value_type, fixed_tag_type, false> get_row(variable_tag_type outer) const {
+		return tagged_array_view<const value_type, fixed_tag_type, false>((const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), _inner_size);
 	}
 	value_type& safe_get(variable_tag_type outer, fixed_tag_type inner) {
 		const auto n2 = ((uint32_t)to_index(outer) + 1ui32) * _inner_size;
@@ -412,7 +451,7 @@ public:
 template<typename value_type, typename variable_tag_type, typename fixed_tag_type, typename allocator>
 class tagged_fixed_blocked_2dvector {
 public:
-	constexpr static size_t block_size = 32;
+	constexpr static size_t block_size = 64;
 
 	struct alignas(block_size) block_s {
 		unsigned char data[block_size] = { 0 };
@@ -420,6 +459,7 @@ public:
 private:
 	std::vector<block_s, typename std::allocator_traits<allocator>::template rebind_alloc<block_s>> storage;
 	uint32_t _inner_size = 1;
+	uint32_t observable_inner_size = 1;
 public:
 	value_type & get(variable_tag_type outer, fixed_tag_type inner) {
 		return *((value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size) + (uint32_t)to_index(inner));
@@ -427,23 +467,23 @@ public:
 	const value_type & get(variable_tag_type outer, fixed_tag_type inner) const {
 		return *((const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size) + (uint32_t)to_index(inner));
 	}
-	value_type* get_row(variable_tag_type outer) {
-		return (value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size);
+	tagged_array_view<value_type, fixed_tag_type, false> get_row(variable_tag_type outer) {
+		return tagged_array_view<value_type, fixed_tag_type, false>((value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), observable_inner_size);
 	}
-	const value_type* get_row(variable_tag_type outer) const {
-		return (const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size);
+	tagged_array_view<const value_type, fixed_tag_type, false> get_row(variable_tag_type outer) const {
+		return tagged_array_view<const value_type, fixed_tag_type, false>((const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), observable_inner_size);
 	}
-	value_type* safe_get_row(variable_tag_type outer) {
+	tagged_array_view<value_type, fixed_tag_type, false> safe_get_row(variable_tag_type outer) {
 		const auto n2 = ((uint32_t)to_index(outer) + 1ui32) * _inner_size;
 		if (n2 >= storage.size())
 			storage.resize(n2);
-		return (value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size);
+		return tagged_array_view<value_type, fixed_tag_type, false>((value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), observable_inner_size);
 	}
-	const value_type* safe_get_row(variable_tag_type outer) const {
+	tagged_array_view<const value_type, fixed_tag_type, false> safe_get_row(variable_tag_type outer) const {
 		const auto n2 = ((uint32_t)to_index(outer) + 1ui32) * _inner_size;
 		if (n2 >= storage.size())
 			storage.resize(n2);
-		return (const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size);
+		return tagged_array_view<const value_type, fixed_tag_type, false>((const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), observable_inner_size);
 	}
 	value_type& safe_get(variable_tag_type outer, fixed_tag_type inner) {
 		const auto n2 = ((uint32_t)to_index(outer) + 1ui32) * _inner_size;
@@ -453,6 +493,7 @@ public:
 	}
 	void reset(uint32_t new_inner_size) {
 		storage.clear();
+		observable_inner_size = new_inner_size;
 		_inner_size = (new_inner_size * sizeof(value_type) + (block_size - 1)) / block_size;
 	}
 	size_t size() const { return storage.size(); }

@@ -5,6 +5,7 @@
 #include "modifiers\\modifier_functions.h"
 #include "military\\military_functions.h"
 #include "concurrency_tools\\concurrency_tools.h"
+#include "concurrency_tools\\ve.h"
 
 namespace technologies {
 	void init_technology_state(world_state& ws) {
@@ -22,22 +23,14 @@ namespace technologies {
 		ws.w.nation_s.nations.get<nation::tech_attributes>(this_nation) += t.attributes;
 
 		if(is_valid_index(t.production_adjustment)) {
-			const auto production_adjustment_count = ws.s.economy_m.goods_count * uint32_t(production_adjustment::production_adjustment_count);
-			Eigen::Map<Eigen::Matrix<float, -1, 1>>(
-				ws.w.nation_s.production_adjustments.get_row(nation_id).data(),
-				production_adjustment_count) +=
-				Eigen::Map<Eigen::Matrix<float, -1, 1>>(
-					ws.s.technology_m.production_adjustments.get_row(t.production_adjustment), 
-					production_adjustment_count);
+			ve::accumulate_exact<adjusted_goods_tag,false>(
+				ws.w.nation_s.production_adjustments.get_row(nation_id),
+				ws.s.technology_m.production_adjustments.get_row(t.production_adjustment));
 		}
 		if(is_valid_index(t.rebel_adjustment)) {
-			const auto rebel_types_count = int32_t(ws.s.population_m.rebel_types.size());
-			Eigen::Map<Eigen::Matrix<float, -1, 1>>(
-				ws.w.nation_s.rebel_org_gain.get_row(nation_id).data(),
-				rebel_types_count) +=
-				Eigen::Map<Eigen::Matrix<float, -1, 1>>(
-					ws.s.technology_m.rebel_org_gain.get_row(t.rebel_adjustment),
-					rebel_types_count);
+			ve::accumulate_exact<population::rebel_type_tag, false>(
+				ws.w.nation_s.rebel_org_gain.get_row(nation_id),
+				ws.s.technology_m.rebel_org_gain.get_row(t.rebel_adjustment));
 		}
 		if(is_valid_index(t.unit_adjustment)) {
 			for(uint32_t i = to_index(military::naval_unit_base) + 1ui32; i < ws.s.military_m.unit_types_count; ++i) {

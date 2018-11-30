@@ -452,6 +452,9 @@ int main(int , char **) {
 	economy::economy_demand_adjustment_tick(ws);
 	ws.w.current_date = date_tag(to_index(ws.w.current_date) + 1);
 
+	provinces::update_province_demographics(ws);
+	nations::update_state_nation_demographics(ws);
+
 	init_tooltip_window(ws.s.gui_m, ws.w.gui_m);
 	ws.w.gui_m.on_resize(ui::resize{ 850ui32, 650ui32 });
 

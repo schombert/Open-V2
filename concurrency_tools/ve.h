@@ -150,7 +150,7 @@ namespace ve {
 		} else if((reps & 3) == 3) {
 			functor(full_vector_operation<1>(i * (vector_size * 4)));
 			functor(full_vector_operation<2>(i * (vector_size * 4) + vector_size));
-			functor(full_vector_operation<3>(i * (vector_size * 4) + vector_size * 3));
+			functor(full_vector_operation<3>(i * (vector_size * 4) + vector_size * 2));
 		}
 	}
 
@@ -163,6 +163,37 @@ namespace ve {
 
 		if(remainder != 0) {
 			functor(partial_vector_operation(full_units, remainder));
+		}
+	}
+
+	template<typename F>
+	__forceinline void execute_serial_unaligned(uint32_t count, F&& functor) {
+		const uint32_t full_units = count & ~uint32_t(vector_size - 1);
+		const uint32_t remainder = count - full_units;
+
+		const uint32_t reps = full_units / vector_size;
+		const uint32_t quad_reps = reps / uint32_t(block_repitition);
+
+		int32_t i = 0;
+		for(; i < int32_t(quad_reps); ++i) {
+			functor(full_unaligned_vector_operation<0>(i * (vector_size * 4)));
+			functor(full_unaligned_vector_operation<1>(i * (vector_size * 4) + vector_size));
+			functor(full_unaligned_vector_operation<2>(i * (vector_size * 4) + vector_size * 2));
+			functor(full_unaligned_vector_operation<3>(i * (vector_size * 4) + vector_size * 3));
+		}
+		if((reps & 3) == 1) {
+			functor(full_unaligned_vector_operation<1>(i * (vector_size * 4)));
+		} else if((reps & 3) == 2) {
+			functor(full_unaligned_vector_operation<0>(i * (vector_size * 4)));
+			functor(full_unaligned_vector_operation<1>(i * (vector_size * 4) + vector_size));
+		} else if((reps & 3) == 3) {
+			functor(full_unaligned_vector_operation<1>(i * (vector_size * 4)));
+			functor(full_unaligned_vector_operation<2>(i * (vector_size * 4) + vector_size));
+			functor(full_unaligned_vector_operation<3>(i * (vector_size * 4) + vector_size * 2));
+		}
+
+		if(remainder != 0) {
+			functor(partial_unaligned_vector_operation(full_units, remainder));
 		}
 	}
 
@@ -281,7 +312,7 @@ namespace ve {
 	}
 
 	template<typename itype, bool padded>
-	__forceinline float reduce_vector(tagged_array_view<const float, itype, padded> vector) {
+	__forceinline float reduce(tagged_array_view<const float, itype, padded> vector) {
 		ve_impl::reduce_operator ro(vector.data());
 		execute_serial(uint32_t(std::end(vector) - vector.data()), ro);
 		return ((ro.accumulator[0] + ro.accumulator[1]) + (ro.accumulator[2] + ro.accumulator[3])).reduce();
@@ -302,7 +333,7 @@ namespace ve {
 	}
 
 	template<typename itype, bool padded>
-	__forceinline void rescale_vector(tagged_array_view<float, itype, padded> vector, float scale_factor) {
+	__forceinline void rescale(tagged_array_view<float, itype, padded> vector, float scale_factor) {
 		execute_serial_fast(uint32_t(std::end(vector) - vector.data()), ve_impl::rescale_operator(vector.data(), scale_factor));
 	}
 
@@ -321,10 +352,153 @@ namespace ve {
 	}
 
 	template<typename itype, bool padded>
-	__forceinline void accumulate_vector(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> accumulated) {
+	__forceinline void accumulate(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> accumulated) {
 #ifdef _DEBUG
 		assert(std::end(destination) - destination.data() == std::end(accumulated) - accumulated.data());
 #endif
 		execute_serial_fast(uint32_t(std::end(destination) - destination.data()), ve_impl::vector_accumulate_operator(destination.data(), accumulated.data()));
+	}
+
+	template<typename itype, bool padded>
+	__forceinline void accumulate_exact(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> accumulated) {
+		execute_serial_unaligned(std::min(uint32_t(std::end(destination) - destination.data()), uint32_t(std::end(accumulated) - accumulated.data())),
+			ve_impl::vector_accumulate_operator(destination.data(), accumulated.data()));
+	}
+
+	namespace ve_impl {
+		struct vector_accumulate_scaled_operator {
+			float* const dest;
+			float const* const accumulated;
+			float const scale;
+
+			vector_accumulate_scaled_operator(float* d, float const* a, float s) : dest(d), accumulated(a), scale(s) {};
+
+			template<typename T>
+			__forceinline void operator()(T executor) {
+				executor.store(dest, ve::multiply_and_add(executor.constant(scale), executor.load(accumulated), executor.load(dest)));
+			}
+		};
+	}
+
+	template<typename itype, bool padded>
+	__forceinline void accumulate_scaled(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> accumulated, float scale) {
+#ifdef _DEBUG
+		assert(std::end(destination) - destination.data() == std::end(accumulated) - accumulated.data());
+#endif
+		execute_serial_fast(uint32_t(std::end(destination) - destination.data()), ve_impl::vector_accumulate_scaled_operator(destination.data(), accumulated.data(), scale));
+	}
+
+	namespace ve_impl {
+		struct dot_product_operator {
+			float const* const a;
+			float const* const b;
+			fp_vector accumulator[block_repitition] = { fp_vector{}, fp_vector{}, fp_vector{}, fp_vector{} };
+
+			dot_product_operator(float const* va, float const* vb) : a(va), b(vb) {};
+
+			template<typename T>
+			__forceinline void operator()(T executor) {
+				accumulator[executor.block_index] = ve::multiply_and_add(executor.load(a), executor.load(b), accumulator[executor.block_index]);
+			}
+		};
+	}
+
+	template<typename itype, bool padded>
+	__forceinline float dot_product(tagged_array_view<const float, itype, padded> a, tagged_array_view<const float, itype, padded> b) {
+#ifdef _DEBUG
+		assert(std::end(a) - a.data() == std::end(b) - b.data());
+#endif
+
+		ve_impl::dot_product_operator op(a.data(), b.data());
+		execute_serial(uint32_t(std::end(a) - a.data()), op);
+
+		return ((op.accumulator[0] + op.accumulator[1]) + (op.accumulator[2] + op.accumulator[3])).reduce();
+	}
+
+	namespace ve_impl {
+		struct vector_accumulate_product_operator {
+			float* const dest;
+			float const* const a;
+			float const* const b;
+
+			vector_accumulate_product_operator(float* d, float const* va, float const* vb) : dest(d), a(va), b(vb) {};
+
+			template<typename T>
+			__forceinline void operator()(T executor) {
+				executor.store(dest, ve::multiply_and_add(executor.load(a), executor.load(b), executor.load(dest)));
+			}
+		};
+	}
+
+	template<typename itype, bool padded>
+	__forceinline void accumulate_product(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> a, tagged_array_view<const float, itype, padded> b) {
+#ifdef _DEBUG
+		assert(std::end(destination) - destination.data() == std::end(a) - a.data() && std::end(destination) - destination.data() == std::end(b) - b.data());
+#endif
+		execute_serial_fast(uint32_t(std::end(destination) - destination.data()), ve_impl::vector_accumulate_product_operator(destination.data(), a.data(), b.data()));
+	}
+
+	namespace ve_impl {
+		struct vector_accumulate_scaled_product_operator {
+			float* const dest;
+			float const* const a;
+			float const* const b;
+			float const scale;
+
+			vector_accumulate_scaled_product_operator(float* d, float const* va, float const* vb, float s) : dest(d), a(va), b(vb), scale(s) {};
+
+			template<typename T>
+			__forceinline void operator()(T executor) {
+				executor.store(dest, ve::multiply_and_add(executor.load(a), executor.load(b) * executor.constant(scale), executor.load(dest)));
+			}
+		};
+	}
+
+	template<typename itype, bool padded>
+	__forceinline void accumulate_scaled_product(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> a, tagged_array_view<const float, itype, padded> b, float scale) {
+#ifdef _DEBUG
+		assert(std::end(destination) - destination.data() == std::end(a) - a.data() && std::end(destination) - destination.data() == std::end(b) - b.data());
+#endif
+		execute_serial_fast(uint32_t(std::end(destination) - destination.data()), ve_impl::vector_accumulate_scaled_product_operator(destination.data(), a.data(), b.data(), scale));
+	}
+
+	namespace ve_impl {
+		struct vector_accumulate_sum_operator {
+			float* const dest;
+			float const* const a;
+			float const* const b;
+
+			vector_accumulate_sum_operator(float* d, float const* va, float const* vb) : dest(d), a(va), b(vb) {};
+
+			template<typename T>
+			__forceinline void operator()(T executor) {
+				executor.store(dest, executor.load(a) + executor.load(b) + executor.load(dest));
+			}
+		};
+	}
+
+	template<typename itype, bool padded>
+	__forceinline void accumulate_sum(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> a, tagged_array_view<const float, itype, padded> b) {
+#ifdef _DEBUG
+		assert(std::end(destination) - destination.data() == std::end(a) - a.data() && std::end(destination) - destination.data() == std::end(b) - b.data());
+#endif
+		execute_serial_fast(uint32_t(std::end(destination) - destination.data()), ve_impl::vector_accumulate_sum_operator(destination.data(), a.data(), b.data()));
+	}
+
+	namespace ve_impl {
+		struct vector_zero_operator {
+			float* const dest;
+			vector_zero_operator(float* d) : dest(d) {};
+
+			template<typename T>
+			__forceinline void operator()(T executor) {
+				executor.store(dest, executor.zero());
+			}
+		};
+	}
+
+	template<typename itype, bool padded>
+	__forceinline void set_zero(tagged_array_view<float, itype, padded> destination) {
+		execute_serial_fast(uint32_t(std::end(destination) - destination.data()), ve_impl::vector_zero_operator(destination.data()));
 	}
 }

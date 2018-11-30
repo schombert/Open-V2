@@ -273,6 +273,9 @@ namespace modifiers {
 	inline ui::xy_pair display_single_provincial_modifier_value(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, provincial_modifier_tag mod, uint32_t offset, value_type multiplier) {
 		char16_t local_buf[64];
 
+		if(!is_valid_index(mod) || multiplier == value_type(0))
+			return cursor_in;
+
 		auto value = [&ws, mod, offset]() {
 			for(uint32_t i = 0; i < modifier_definition_size; ++i) {
 				if(ws.s.modifiers_m.provincial_modifier_definitions[mod].offsets[i] == int32_t(offset))
@@ -281,7 +284,7 @@ namespace modifiers {
 			return 0.0f;
 		}();
 
-		if(!is_valid_index(mod) || multiplier == value_type(0) || value == value_type(0))
+		if(value == value_type(0))
 			return cursor_in;
 
 		if(value * multiplier < value_type(0)) {
@@ -321,6 +324,9 @@ namespace modifiers {
 	inline ui::xy_pair display_single_national_modifier_value(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, national_modifier_tag mod, uint32_t offset, value_type multiplier) {
 		char16_t local_buf[64];
 
+		if(!is_valid_index(mod) || multiplier == value_type(0))
+			return cursor_in;
+
 		auto value = [&ws, mod, offset]() {
 			for(uint32_t i = 0; i < modifier_definition_size; ++i) {
 				if(ws.s.modifiers_m.national_modifier_definitions[mod].offsets[i] == int32_t(offset))
@@ -329,7 +335,7 @@ namespace modifiers {
 			return 0.0f;
 		}();
 
-		if(!is_valid_index(mod) || multiplier == value_type(0) || value == value_type(0))
+		if(value == value_type(0))
 			return cursor_in;
 
 		if(value * multiplier < value_type(0)) {

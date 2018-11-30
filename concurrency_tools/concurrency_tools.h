@@ -218,42 +218,6 @@ struct concurrent_aligned_allocator{
 	void deallocate(T* p, size_t n);
 };
 
-template<typename T, typename index_type, bool padding>
-struct tagged_array_view {
-private:
-	T* const ptr = nullptr;
-	int32_t size = 0;
-public:
-	constexpr tagged_array_view(T* p, int32_t s) noexcept : ptr(p), size(s) {}
-
-	T& operator[](index_type i) const noexcept {
-		if constexpr(padding) {
-			return ptr[to_index(i) + 1];
-		} else {
-			return ptr[to_index(i)];
-		}
-	}
-	T* begin() const noexcept {
-		if constexpr(padding) {
-			return ptr ? ptr + 1 : ptr;
-		} else {
-			return ptr;
-		}
-	}
-	T* end() const noexcept {
-		return ptr + size;
-	}
-	T* data() const noexcept {
-		return ptr;
-	}
-	operator bool() const noexcept {
-		return ptr != nullptr;
-	}
-	operator tagged_array_view<const T, index_type, padding>() const noexcept {
-		return tagged_array_view<const T, index_type, padding>(ptr, size);
-	}
-};
-
 template<typename T, typename index_type, bool padded>
 struct concurrent_cache_aligned_buffer {
 private:
@@ -293,7 +257,7 @@ struct moveable_concurrent_cache_aligned_buffer {
 private:
 	T* allocated_address = nullptr;
 	T* buffer = nullptr;
-	const uint32_t _size;
+	uint32_t _size;
 public:
 	moveable_concurrent_cache_aligned_buffer(uint32_t size);
 	moveable_concurrent_cache_aligned_buffer(uint32_t size, T initial_value);
@@ -333,20 +297,6 @@ constexpr bool operator!= (const concurrent_allocator<T>&, const concurrent_allo
 }
 
 template <typename T>
-struct aligned_allocator_32 {
-	using value_type = T;
-	aligned_allocator_32() noexcept {}
-	template <typename U>
-	aligned_allocator_32(const aligned_allocator_32<U>&) noexcept {}
-	T* allocate(size_t n);
-	void deallocate(T* p, size_t n);
-	template<typename U>
-	constexpr bool operator==(aligned_allocator_32<U> const&) const { return true; }
-	template<typename U>
-	constexpr bool operator!=(aligned_allocator_32<U> const&) const { return false; }
-};
-
-template <typename T>
 struct aligned_allocator_64 {
 	using value_type = T;
 	aligned_allocator_64() noexcept {}
@@ -360,15 +310,10 @@ struct aligned_allocator_64 {
 	constexpr bool operator!=(aligned_allocator_64<U> const&) const { return false; }
 };
 
-template <typename T, typename U, size_t alignment>
-constexpr bool operator== (const aligned_allocator_32<T>&, const aligned_allocator_32<U>&) noexcept {
-	return true;
-}
-
-template <class T, class U, size_t alignment>
-constexpr bool operator!= (const aligned_allocator_32<T>&, const aligned_allocator_32<U>&) noexcept {
-	return false;
-}
+template<typename T>
+using aligned_allocator = aligned_allocator_64<T>;
+template<typename T>
+using aligned_allocator_32 = aligned_allocator_64<T>;
 
 template <typename T, typename U, size_t alignment>
 constexpr bool operator== (const aligned_allocator_64<T>&, const aligned_allocator_64<U>&) noexcept {

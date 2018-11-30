@@ -308,12 +308,12 @@ namespace technologies {
 			auto org_row = ws.s.technology_m.rebel_org_gain.get_row(tech.rebel_adjustment);
 			for(uint32_t i = 0; i < ws.s.population_m.rebel_types.size(); ++i) {
 				population::rebel_type_tag tag(static_cast<population::rebel_type_tag::value_base_t>(i));
-				if(org_row[i] != 0.0f) {
+				if(org_row[tag] != 0.0f) {
 					cursor_in = ui::add_linear_text(cursor_in, ws.s.population_m.rebel_types[tag].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::tech_rebel_org_gain], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = display_value(org_row[i], display_type::percent, false, ws, container, cursor_in, lm, fmt);
+					cursor_in = display_value(org_row[tag], display_type::percent, false, ws, container, cursor_in, lm, fmt);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 					lm.finish_current_line();
 				}

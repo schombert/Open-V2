@@ -633,7 +633,11 @@ void resize(stable_variable_vector_storage_mk_2<object_type, minimum_size, memor
 	} else if(new_size + uint32_t(padding) > old_size) {
 		storage.increase_capacity(i.value, new_size + uint32_t(padding));
 		detail::mk_2_header* header = (detail::mk_2_header*)(storage.backing_storage + i.value);
-		std::fill((object_type*)(header + 1) + header->size, (object_type*)(header + 1) + new_size + uint32_t(padding), object_type());
+		if constexpr(padding) {
+			std::fill((object_type*)(header + 1) + header->size, (object_type*)(header + 1) + header->capacity, object_type());
+		} else {
+			std::fill((object_type*)(header + 1) + header->size, (object_type*)(header + 1) + new_size + uint32_t(padding), object_type());
+		}
 		header->size = uint16_t(new_size + uint32_t(padding));
 	}
 
@@ -1253,7 +1257,7 @@ concurrent_cache_aligned_buffer<T, index_type, padded>::concurrent_cache_aligned
 	buffer((T*)concurrent_detail::align_wrapper(allocated_address, 64 + concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)))),
 	_size(concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)) / sizeof(T)) {
 
-	std::fill_n(allocated_address, size, T());
+	std::fill_n(buffer, _size, T());
 }
 
 template<typename T, typename index_type, bool padded>
@@ -1262,7 +1266,7 @@ concurrent_cache_aligned_buffer<T, index_type, padded>::concurrent_cache_aligned
 	buffer((T*)concurrent_detail::align_wrapper(allocated_address, 64 + concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)))),
 	_size(concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)) / sizeof(T)) {
 
-	std::fill_n(allocated_address, size, initial);
+	std::fill_n(buffer, _size, initial);
 }
 
 template<typename T, typename index_type, bool padded>
@@ -1276,7 +1280,7 @@ moveable_concurrent_cache_aligned_buffer<T, index_type, padded>::moveable_concur
 	buffer((T*)concurrent_detail::align_wrapper(allocated_address, 64 + concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)))),
 	_size(concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)) / sizeof(T)) {
 
-	std::fill_n(allocated_address, size, T());
+	std::fill_n(buffer, _size, T());
 }
 
 template<typename T, typename index_type, bool padded>
@@ -1285,7 +1289,7 @@ moveable_concurrent_cache_aligned_buffer<T, index_type, padded>::moveable_concur
 	buffer((T*)concurrent_detail::align_wrapper(allocated_address, 64 + concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)))),
 	_size(concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)) / sizeof(T)) {
 
-	std::fill_n(allocated_address, size, initial);
+	std::fill_n(buffer, _size, initial);
 }
 
 template<typename T, typename index_type, bool padded>
@@ -1310,21 +1314,12 @@ moveable_concurrent_cache_aligned_buffer<T, index_type, padded>& moveable_concur
 
 	allocated_address = o.allocated_address;
 	buffer = o.buffer;
+	_size = o._size;
 
 	o.allocated_address = nullptr;
 	o.buffer = nullptr;
-
+	
 	return *this;
-}
-
-template<typename T>
-T* aligned_allocator_32<T>::allocate(size_t n) {
-	return (T*)_aligned_malloc(n * sizeof(T), 32);
-}
-
-template<typename T>
-void aligned_allocator_32<T>::deallocate(T* p, size_t) {
-	_aligned_free(p);
 }
 
 template<typename T>
