@@ -353,9 +353,7 @@ namespace ve {
 
 	template<typename itype, bool padded>
 	__forceinline void accumulate(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> accumulated) {
-#ifdef _DEBUG
 		assert(std::end(destination) - destination.data() == std::end(accumulated) - accumulated.data());
-#endif
 		execute_serial_fast(uint32_t(std::end(destination) - destination.data()), ve_impl::vector_accumulate_operator(destination.data(), accumulated.data()));
 	}
 
@@ -363,6 +361,32 @@ namespace ve {
 	__forceinline void accumulate_exact(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> accumulated) {
 		execute_serial_unaligned(std::min(uint32_t(std::end(destination) - destination.data()), uint32_t(std::end(accumulated) - accumulated.data())),
 			ve_impl::vector_accumulate_operator(destination.data(), accumulated.data()));
+	}
+
+	namespace ve_impl {
+	   struct vector_copy_operator {
+		   float* const dest;
+		   float const* const a;
+
+		   vector_copy_operator(float* d, float const* a) : dest(d), a(a) {};
+
+		   template<typename T>
+		   __forceinline void operator()(T executor) {
+			   executor.store(dest, executor.load(a));
+		   }
+	   };
+	}
+
+	template<typename itype, bool padded>
+	__forceinline void copy(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> source) {
+		assert(std::end(destination) - destination.data() >= std::end(source) - source.data());
+		execute_serial_fast(uint32_t(std::end(source) - source.data()), ve_impl::vector_copy_operator(destination.data(), source.data()));
+	}
+
+	template<typename itype, bool padded>
+	__forceinline void par_copy(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> source) {
+		assert(std::end(destination) - destination.data() >= std::end(source) - source.data());
+		execute_parallel(uint32_t(std::end(source) - source.data()), ve_impl::vector_copy_operator(destination.data(), source.data()));
 	}
 
 	namespace ve_impl {
@@ -382,10 +406,14 @@ namespace ve {
 
 	template<typename itype, bool padded>
 	__forceinline void accumulate_scaled(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> accumulated, float scale) {
-#ifdef _DEBUG
 		assert(std::end(destination) - destination.data() == std::end(accumulated) - accumulated.data());
-#endif
 		execute_serial_fast(uint32_t(std::end(destination) - destination.data()), ve_impl::vector_accumulate_scaled_operator(destination.data(), accumulated.data(), scale));
+	}
+
+	template<typename itype, bool padded>
+	__forceinline void par_accumulate_scaled(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> accumulated, float scale) {
+		assert(std::end(destination) - destination.data() == std::end(accumulated) - accumulated.data());
+		execute_parallel(uint32_t(std::end(destination) - destination.data()), ve_impl::vector_accumulate_scaled_operator(destination.data(), accumulated.data(), scale));
 	}
 
 	namespace ve_impl {

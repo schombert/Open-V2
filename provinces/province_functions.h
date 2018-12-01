@@ -12,7 +12,8 @@ namespace provinces {
 	void remove_core(current_state::state& ws, province_tag prov, cultures::national_tag tag);
 	bool province_has_core(current_state::state& ws, province_tag prov, cultures::national_tag tag);
 	void init_province_state(world_state& ws);
-	void update_province_demographics(world_state& ws);
+	void update_province_demographics(world_state& ws); // move total population to old population, then recalculate
+	void recalculate_province_demographics(world_state& ws);
 	void add_province_modifier(world_state& ws, province_tag p, modifiers::provincial_modifier_tag t);
 	void add_timed_province_modifier(world_state& ws, province_tag p, modifiers::provincial_modifier_tag t, date_tag d);
 	nations::country_tag get_province_seiger(world_state& ws, province_tag p);

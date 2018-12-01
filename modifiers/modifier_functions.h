@@ -31,8 +31,11 @@ namespace modifiers {
 	void attach_province_modifiers(world_state& ws, provinces::province_tag this_province, nations::country_tag nation_to);
 
 	void set_default_crimes(world_state& ws, nations::country_tag this_nation);
-	void reset_national_modifier(world_state& ws, nations::country_tag this_nation);
-	void reset_provincial_modifier(world_state& ws, provinces::province_tag this_province);
+
+	//void reset_national_modifier(world_state& ws, nations::country_tag);
+	//void reset_provincial_modifier(world_state& ws, provinces::province_tag);
+	void reset_national_modifiers(world_state& ws);
+	void reset_provincial_modifiers(world_state& ws);
 	
 	float test_multiplicative_factor(factor_tag t, world_state& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot, population::rebel_faction* rebel_slot);
 	float test_multiplicative_factor(factor_modifier const& f, world_state& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot, population::rebel_faction* rebel_slot);

@@ -604,118 +604,6 @@ namespace economy {
 		}
 	};
 
-	template<bool adjust_money>
-	void apply_pop_consumption(world_state & ws, provinces::province_tag p,
-		Eigen::Map<Eigen::VectorXf, Eigen::AlignmentType::Aligned32>& __restrict state_demand,
-		Eigen::Map<Eigen::VectorXf> const& __restrict masked_prices,
-		economy::money_qnty_type const* __restrict life_needs_cost_by_type,
-		economy::money_qnty_type const* __restrict everyday_needs_cost_by_type,
-		economy::money_qnty_type const* __restrict luxury_needs_cost_by_type
-	) {
-
-		provinces::for_each_pop(ws, p, [&ws, &state_demand, &masked_prices, &p,
-			life_needs_cost_by_type, everyday_needs_cost_by_type, luxury_needs_cost_by_type
-			](population::pop_tag po) {
-
-			auto& p_money = ws.w.population_s.pops.get<pop::money>(po);
-			float initial_money = p_money;
-			auto ptype = ws.w.population_s.pops.get<pop::type>(po);
-			auto pop_strata = ws.s.population_m.pop_types[ptype].flags & population::pop_type::strata_mask;
-
-			
-			float pop_size_multiplier = float(ws.w.population_s.pop_demographics.get(po, population::total_population_tag)) / pop_needs_divisor;
-
-			const auto ln_money = pop_size_multiplier * 11.0f;
-			const auto en_money = pop_size_multiplier *
-				[pop_strata, is_slave = (ws.s.population_m.slave == ptype), is_capitalist = (ws.s.population_m.capitalist == ptype)](){
-				if(is_slave)
-					return 1.0f; //2.3f;
-				if(pop_strata == population::pop_type::strata_poor)
-					return 25.0f; //55.0f;
-				if(pop_strata == population::pop_type::strata_middle)
-					return 55.0f; // 110.0f;
-				if(is_capitalist)
-					return 350.0f; //700.0f;
-				return 300.0f; // 600.0f;
-			}();
-			const auto lx_money = pop_size_multiplier *
-				[pop_strata, is_slave = (ws.s.population_m.slave == ptype), is_capitalist = (ws.s.population_m.capitalist == ptype)](){
-				if(is_slave)
-					return 1.5f; // 3.2f;
-				if(pop_strata == population::pop_type::strata_poor)
-					return 40.0f; // 80.0f;
-				if(pop_strata == population::pop_type::strata_middle)
-					return 125.0f; // 250.0f;
-				if(is_capitalist)
-					return 1000.0f; // 2000.0f;
-				return 800.0f; // 1500.0f;
-			}();
-
-			Eigen::Map<Eigen::Array<economy::goods_qnty_type, -1, 1>, Eigen::AlignmentType::Aligned32> ln(
-				ws.s.population_m.life_needs.get_row(ptype), ws.s.economy_m.aligned_32_goods_count);
-			Eigen::Map<Eigen::Array<economy::goods_qnty_type, -1, 1>, Eigen::AlignmentType::Aligned32> en(
-				ws.s.population_m.everyday_needs.get_row(ptype), ws.s.economy_m.aligned_32_goods_count);
-			Eigen::Map<Eigen::Array<economy::goods_qnty_type, -1, 1>, Eigen::AlignmentType::Aligned32> xn(
-				ws.s.population_m.luxury_needs.get_row(ptype), ws.s.economy_m.aligned_32_goods_count);
-
-			auto owner_id = ws.w.province_s.province_state_container.get<province_state::owner>(p);
-			auto enabled_goods = ws.w.nation_s.active_goods.get_row(owner_id);
-			const auto total_ln = std::transform_reduce(integer_iterator(0), integer_iterator(ws.s.economy_m.goods_count),
-				goods_qnty_type(0), std::plus<>(),
-				[enabled_goods, &ln](int32_t i) { return bit_vector_test(enabled_goods, goods_tag(goods_tag::value_base_t(i))) ? ln[i] : goods_qnty_type(0); });
-			const auto total_en = std::transform_reduce(integer_iterator(0), integer_iterator(ws.s.economy_m.goods_count),
-				goods_qnty_type(0), std::plus<>(),
-				[enabled_goods, &en](int32_t i) { return bit_vector_test(enabled_goods, goods_tag(goods_tag::value_base_t(i))) ? en[i] : goods_qnty_type(0); });
-			const auto total_xn = std::transform_reduce(integer_iterator(0), integer_iterator(ws.s.economy_m.goods_count),
-				goods_qnty_type(0), std::plus<>(),
-				[enabled_goods, &xn](int32_t i) { return bit_vector_test(enabled_goods, goods_tag(goods_tag::value_base_t(i))) ? xn[i] : goods_qnty_type(0); });
-			
-			if(total_ln != 0)
-				state_demand += (ln * ln_money / total_ln).matrix();
-			state_demand += (en * en_money / total_en).matrix();
-			state_demand += (xn * lx_money / total_xn).matrix();
-
-			if(initial_money < (pop_size_multiplier * life_needs_cost_by_type[to_index(ptype)])) {
-				// case: can only partially satisfy life needs
-				auto fraction = initial_money / (pop_size_multiplier * life_needs_cost_by_type[to_index(ptype)]);
-				ws.w.population_s.pops.set<pop::needs_satisfaction>(po, fraction);
-				
-				if constexpr(adjust_money) {
-					p_money = 0.0f;
-				}
-			} else {
-				initial_money -= pop_size_multiplier * life_needs_cost_by_type[to_index(ptype)];
-
-				if(initial_money < pop_size_multiplier * everyday_needs_cost_by_type[to_index(ptype)]) {
-					// case: can partially satisfy everyday needs
-
-					auto fraction = initial_money / (pop_size_multiplier * everyday_needs_cost_by_type[to_index(ptype)]);
-					ws.w.population_s.pops.set<pop::needs_satisfaction>(po, 1.0f + fraction);
-
-					if constexpr(adjust_money) {
-						p_money = 0.0f;
-					}
-				} else {
-					// case: can fully satisfy everyday needs
-					state_demand += (en * en_money / total_en).matrix();
-
-					initial_money -= pop_size_multiplier * everyday_needs_cost_by_type[to_index(ptype)];
-
-					// remainder of money spent on luxury needs
-					auto last_fraction = initial_money * (money_qnty_type(1) - savings_rate) / (pop_size_multiplier * luxury_needs_cost_by_type[to_index(ptype)]);
-					last_fraction = last_fraction > 1.0f ? (1.0f + (last_fraction - 1.0f) * 0.1f) : last_fraction;
-					ws.w.population_s.pops.set<pop::needs_satisfaction>(po, 2.0f + last_fraction);
-
-					if constexpr(adjust_money) {
-						p_money = initial_money * savings_rate;
-					}
-				}
-			}
-
-			
-		});
-	}
-
 	void create_masked_prices(tagged_array_view<float, goods_tag, false> masked_prices,
 		world_state const& ws, nations::state_tag si) {
 
@@ -2071,8 +1959,8 @@ namespace economy {
 		store_money_and_satisfaction_operation(world_state& ws, state_pops_summary const& state_pops) :
 			pop_ids((int32_t*)(state_pops.pop_ids.data())),
 			money(state_pops.money.data()), satisfaction(state_pops.satisfaction.data()),
-			money_dest(ws.w.population_s.pops.get_row<pop::money>(0).data()),
-			satisfaction_dest(ws.w.population_s.pops.get_row<pop::needs_satisfaction>(0).data())
+			money_dest(ws.w.population_s.pops.get_row<pop::money>().data()),
+			satisfaction_dest(ws.w.population_s.pops.get_row<pop::needs_satisfaction>().data())
 		{ }
 
 		template<typename T>
@@ -2148,8 +2036,6 @@ namespace economy {
 		nations::for_each_province(ws, si, [&ws, current_state_demand, &masked_prices, state_owner, state_prices, si,
 			&state_pops, mobilization_effect](provinces::province_tag ps) {
 
-			//apply_pop_consumption<adjust_money>(ws, ps, current_state_demand, masked_prices, life_needs_cost_by_type, everyday_needs_cost_by_type, luxury_needs_cost_by_type);
-
 			economy::money_qnty_type* province_pay_by_type = (economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
 			std::fill_n(province_pay_by_type, ws.s.population_m.count_poptypes, economy::money_qnty_type(0));
 			auto province_population_by_type = &(ws.w.province_s.province_demographics.get_row(ps)[population::to_demo_tag(ws, population::pop_type_tag(0))]);
@@ -2182,14 +2068,6 @@ namespace economy {
 					state_pops.money[i] += province_pay_by_type[to_index(ptype)] * state_pops.size[i] / float(province_population_by_type[to_index(ptype)]);
 				}
 			}
-			/*if constexpr(adjust_money) {
-				provinces::for_each_pop(ws, ps, [province_population_by_type, province_pay_by_type, &ws](population::pop_tag po) {
-					auto ptype = ws.w.population_s.pops.get<pop::type>(po);
-					auto& p_money = ws.w.population_s.pops.get<pop::money>(po);
-					float temp = province_pay_by_type[to_index(ptype)] * float(ws.w.population_s.pop_demographics.get(po, population::total_population_tag)) / float(province_population_by_type[to_index(ptype)]);
-					p_money += temp;
-				});
-			}*/
 		});
 
 		
@@ -2221,19 +2099,6 @@ namespace economy {
 		}
 
 		ve::execute_serial(uint32_t(total), store_money_and_satisfaction_operation(ws, state_pops));
-
-		/*
-		if constexpr(adjust_money) {
-			nations::for_each_pop(ws, si, [state_population_by_type, state_pay_by_type, &ws](population::pop_tag po) {
-				auto ptype = ws.w.population_s.pops.get<pop::type>(po);
-				auto& p_money = ws.w.population_s.pops.get<pop::money>(po);
-
-				p_money += state_pay_by_type[to_index(ptype)] * float(ws.w.population_s.pop_demographics.get(po, population::total_population_tag)) / float(state_population_by_type[to_index(ptype)]);
-			});
-		}*/
-		
-
-		//current_state_demand = current_state_demand.array().max(minimum_demand).matrix();
 	}
 
 	artisan_type_tag get_profitable_artisan(world_state const& ws, provinces::province_tag ps) {

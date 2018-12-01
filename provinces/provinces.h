@@ -66,6 +66,7 @@ namespace province_state {
 	struct state_instance;
 	struct orders;
 	struct last_population;
+	struct total_population;
 	struct nationalism;
 	struct siege_progress;
 	struct fort_upgrade_progress;
@@ -142,6 +143,7 @@ namespace province_state {
 
 		rgo_worker_data, economy::worked_instance,
 		last_population, float,
+		total_population, float,
 		last_controller_change, date_tag,
 		last_immigration, date_tag,
 

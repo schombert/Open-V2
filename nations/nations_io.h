@@ -40,8 +40,12 @@ template<typename T>
 class serialization::tagged_serializer<state::administrative_efficiency, T> : public serialization::discard_serializer<T> {};
 template<typename T>
 class serialization::tagged_serializer<state::state_capital, T> : public serialization::discard_serializer<T> {};
+template<typename T>
+class serialization::tagged_serializer<state::total_population, T> : public serialization::discard_serializer<T> {};
 
 
+template<typename T>
+class serialization::tagged_serializer<nation::total_core_population, T> : public serialization::discard_serializer<T> {};
 template<typename T>
 class serialization::tagged_serializer<nation::current_rules, T> : public serialization::discard_serializer<T> {};
 template<typename T>

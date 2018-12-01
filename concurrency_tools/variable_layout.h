@@ -576,12 +576,12 @@ public:
 	}
 
 	template<typename U>
-	__forceinline auto get_row(int32_t size) const {
-		return tagged_array_view<typename container_type::template value_type<U> const, tag_type, true>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), size);
+	__forceinline auto get_row() const {
+		return tagged_array_view<typename container_type::template value_type<U> const, tag_type, true>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), size_used + 1);
 	}
 	template<typename U>
-	__forceinline auto get_row(int32_t size) {
-		return tagged_array_view<typename container_type::template value_type<U>, tag_type, true>(container_type::template get_row<U>(*ptr), size);
+	__forceinline auto get_row() {
+		return tagged_array_view<typename container_type::template value_type<U>, tag_type, true>(container_type::template get_row<U>(*ptr), size_used + 1);
 	}
 
 	template<typename U, typename V>
@@ -710,6 +710,14 @@ public:
 	template<typename U>
 	__forceinline auto get(tag_type i) -> decltype(container_type::template get<U>(i, *ptr)) {
 		return container_type::template get<U>(i, *ptr);
+	}
+	template<typename U>
+	__forceinline auto get_row() const {
+		return tagged_array_view<typename container_type::template value_type<U> const, tag_type, true>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), size_used + 1);
+	}
+	template<typename U>
+	__forceinline auto get_row() {
+		return tagged_array_view<typename container_type::template value_type<U>, tag_type, true>(container_type::template get_row<U>(*ptr), size_used + 1);
 	}
 	template<typename U, typename V>
 	__forceinline std::enable_if_t<!std::is_trivially_copyable_v<V>> set(tag_type i, V const& val) {
@@ -933,10 +941,10 @@ public:
 		return ptr[index].values[to_index(t) + 1];
 	}
 	__forceinline tagged_array_view<value_type, tag_type, true> get_row(int32_t index, int32_t size) {
-		return tagged_array_view<value_type, tag_type, true>(ptr[index].values, size + 1);
+		return tagged_array_view<value_type, tag_type, true>(ptr[index].values, size);
 	}
 	__forceinline tagged_array_view<const value_type, tag_type, true> get_row(int32_t index, int32_t size) const {
-		return tagged_array_view<const value_type, tag_type, true>(ptr[index].values, size + 1);
+		return tagged_array_view<const value_type, tag_type, true>(ptr[index].values, size);
 	}
 	template<int32_t index>
 	__forceinline tagged_array_view<value_type, tag_type, true> get_row(int32_t size) {

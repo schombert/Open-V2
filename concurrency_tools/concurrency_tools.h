@@ -250,6 +250,10 @@ public:
 	tagged_array_view<T, index_type, padded> view() const noexcept {
 		return tagged_array_view<T, index_type, padded>(buffer, int32_t(_size));
 	}
+	tagged_array_view<T, index_type, padded> view(int32_t size) const noexcept {
+		assert(size + int32_t(padded) <= int32_t(_size));
+		return tagged_array_view<T, index_type, padded>(buffer, size + int32_t(padded));
+	}
 };
 
 template<typename T, typename index_type, bool padded>
@@ -283,6 +287,10 @@ public:
 	}
 	tagged_array_view<T, index_type, padded> view() const noexcept {
 		return tagged_array_view<T, index_type, padded>(buffer, int32_t(_size));
+	}
+	tagged_array_view<T, index_type, padded> view(int32_t size) const noexcept {
+		assert(size + int32_t(padded) <= int32_t(_size));
+		return tagged_array_view<T, index_type, padded>(buffer, size + int32_t(padded));
 	}
 };
 

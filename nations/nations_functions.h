@@ -13,7 +13,8 @@ namespace nations {
 	nations::country_tag make_nation_for_tag(world_state& ws, cultures::national_tag nt);
 	bool is_state_empty(world_state const& ws, nations::state_tag s);
 	bool is_colonial_or_protectorate(world_state const& ws, state_tag s);
-	void update_state_nation_demographics(world_state& ws);
+	void recalculate_state_nation_demographics(world_state& ws);
+	void update_state_nation_demographics(world_state& ws); // update last population with current, then recalculates
 	provinces::province_tag find_best_capital(world_state const& ws, nations::country_tag owner);
 	void fix_capitals(world_state& ws);
 	provinces::province_tag get_state_capital(world_state const& ws, nations::state_tag s);

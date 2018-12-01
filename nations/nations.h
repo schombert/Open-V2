@@ -186,6 +186,8 @@ namespace nation {
 	struct has_gas_attack;
 	struct has_gas_defence;
 
+	struct total_core_population;
+
 	constexpr int32_t container_size = 400;
 
 	using container = variable_layout_tagged_vector < nations::country_tag, container_size,
@@ -197,6 +199,7 @@ namespace nation {
 		enabled_crimes, uint64_t,
 		current_rules, issues::rules,
 		last_population, float,
+		total_core_population, float,
 		last_election, date_tag,
 		last_lost_war, date_tag,
 		disarmed_until, date_tag,
@@ -319,6 +322,7 @@ namespace state {
 	struct owner_national_focus;
 	struct project;
 	struct last_population;
+	struct total_population;
 
 	struct flashpoint_tension_focuses;
 
@@ -362,6 +366,7 @@ namespace state {
 		current_tension, float,
 		administrative_efficiency, float,
 		last_population, float,
+		total_population, float,
 
 		flashpoint_tension_focuses, set_tag<nations::country_tag>,
 

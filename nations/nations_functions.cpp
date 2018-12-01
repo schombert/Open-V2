@@ -522,6 +522,14 @@ namespace nations {
 	}
 
 	void update_state_nation_demographics(world_state& ws) {
+		ve::copy<nations::country_tag, true>(ws.w.nation_s.nations.get_row<nation::last_population>(),
+			ws.w.nation_s.nations.get_row<nation::total_core_population>());
+		ve::par_copy<nations::state_tag, true>(ws.w.nation_s.states.get_row<state::last_population>(),
+			ws.w.nation_s.states.get_row<state::total_population>());
+		recalculate_state_nation_demographics(ws);
+	}
+
+	void recalculate_state_nation_demographics(world_state& ws) {
 		const auto full_vector_size = population::aligned_32_demo_size(ws);
 
 		ws.w.nation_s.nations.parallel_for_each([&ws, full_vector_size](country_tag n) {
@@ -563,6 +571,8 @@ namespace nations {
 					ws.w.nation_s.states.set<state::dominant_issue>(s->state, issues::option_tag(static_cast<value_base_of<issues::option_tag>>(max_opinion_off)));
 				}
 
+				ws.w.nation_s.states.set<state::total_population>(s->state, state_demo[population::total_population_tag]);
+
 				if(!nations::is_colonial_or_protectorate(ws, s->state))
 					ve::accumulate_exact<population::demo_tag, false>(nation_demo, state_demo);
 				else
@@ -586,6 +596,8 @@ namespace nations {
 				auto max_opinion_off = maximum_index(nation_demo.data() + to_index(options_offset), int32_t(ws.s.issues_m.tracked_options_count));
 				ws.w.nation_s.nations.set<nation::dominant_issue>(n, issues::option_tag(static_cast<value_base_of<issues::option_tag>>(max_opinion_off)));
 			}
+
+			ws.w.nation_s.nations.set<nation::total_core_population>(n, nation_demo[population::total_population_tag]);
 
 			ws.w.nation_s.nations.set<nation::political_interest_fraction>(n, issues::calculate_political_interest(ws, ws.w.nation_s.nation_demographics.get_row(n)));
 			ws.w.nation_s.nations.set<nation::social_interest_fraction>(n, issues::calculate_social_interest(ws, ws.w.nation_s.nation_demographics.get_row(n)));

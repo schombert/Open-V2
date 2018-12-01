@@ -334,8 +334,8 @@ int main(int , char **) {
 				economy::match_rgo_worker_type(ws, p);
 		});
 
-		provinces::update_province_demographics(ws);
-		nations::update_state_nation_demographics(ws);
+		provinces::recalculate_province_demographics(ws);
+		nations::recalculate_state_nation_demographics(ws);
 
 		provinces::set_base_rgo_size(ws);
 
@@ -351,8 +351,8 @@ int main(int , char **) {
 
 		population::default_initialize_world_issues_and_ideology(ws);
 
-		provinces::update_province_demographics(ws);
-		nations::update_state_nation_demographics(ws);
+		provinces::recalculate_province_demographics(ws);
+		nations::recalculate_state_nation_demographics(ws);
 
 		nations::fix_capitals(ws);
 
@@ -452,8 +452,8 @@ int main(int , char **) {
 	economy::economy_demand_adjustment_tick(ws);
 	ws.w.current_date = date_tag(to_index(ws.w.current_date) + 1);
 
-	provinces::update_province_demographics(ws);
-	nations::update_state_nation_demographics(ws);
+	provinces::recalculate_province_demographics(ws);
+	nations::recalculate_state_nation_demographics(ws);
 
 	init_tooltip_window(ws.s.gui_m, ws.w.gui_m);
 	ws.w.gui_m.on_resize(ui::resize{ 850ui32, 650ui32 });

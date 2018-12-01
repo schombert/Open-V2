@@ -266,16 +266,16 @@ void restore_world_state(world_state& ws) {
 			add_item(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(loc), p);
 	});
 
-	provinces::update_province_demographics(ws);
-	nations::update_state_nation_demographics(ws);
+	provinces::recalculate_province_demographics(ws);
+	nations::recalculate_state_nation_demographics(ws);
 
 	std::fill_n(ws.w.technology_s.discovery_count.data(), ws.s.technology_m.technologies_container.size(), 0);
 
 	ws.w.nation_s.modifier_values.reset();
 	ws.w.nation_s.nations.parallel_for_each([&ws](nations::country_tag n) {
 		technologies::restore_technologies(ws, n);
-		modifiers::reset_national_modifier(ws, n);
 	});
+	modifiers::reset_national_modifiers(ws);
 
 	ws.w.nation_s.nations.for_each([&ws](nations::country_tag n) {
 		military::update_at_war_with_and_against(ws, n);
@@ -301,10 +301,10 @@ void restore_world_state(world_state& ws) {
 			ws.w.nation_s.states.set<state::administrative_efficiency>(s->state, nations::calculate_state_administrative_efficiency(ws, s->state, admin_req));
 	});
 
-	ws.w.province_s.province_state_container.parallel_for_each([&ws](provinces::province_tag ps) {
-		modifiers::reset_provincial_modifier(ws, ps);
-	});
-
+	
+	modifiers::reset_provincial_modifiers(ws);
+	
+	
 	provinces::fill_distance_arrays(ws);
 	ws.w.province_s.state_distances.update(ws);
 

@@ -45,7 +45,8 @@ public:
 
 template<typename T>
 class serialization::tagged_serializer<province_state::pops, T> : public serialization::discard_serializer<T> {};
-
+template<typename T>
+class serialization::tagged_serializer<province_state::total_population, T> : public serialization::discard_serializer<T> {};
 template<typename T>
 class serialization::tagged_serializer<province_state::fleets, T> : public serialization::discard_serializer<T> {};
 

@@ -619,7 +619,7 @@ bool contains_subitem(stable_variable_vector_storage_mk_2<object_type, minimum_s
 
 template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
 void resize(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, array_tag<object_type, index_type, padding>& i, uint32_t new_size) {
-	auto old_size = get_size(storage, i);
+	auto old_size = get_size(storage, i.value);
 	if(new_size + uint32_t(padding) < old_size) {
 		detail::mk_2_header* header = (detail::mk_2_header*)(storage.backing_storage + i.value);
 		if constexpr(padding) {

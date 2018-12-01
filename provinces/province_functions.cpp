@@ -95,6 +95,12 @@ namespace provinces {
 	}
 
 	void update_province_demographics(world_state& ws) {
+		ve::par_copy<provinces::province_tag, true>(ws.w.province_s.province_state_container.get_row<province_state::last_population>(),
+			ws.w.province_s.province_state_container.get_row<province_state::total_population>());
+		recalculate_province_demographics(ws);
+	}
+
+	void recalculate_province_demographics(world_state& ws) {
 		const auto vector_size = population::aligned_32_issues_ideology_demo_size(ws);
 		const auto full_vector_size = population::aligned_32_demo_size(ws);
 
@@ -230,6 +236,8 @@ namespace provinces {
 				auto max_opinion_off = maximum_index(province_full_demo.data() + to_index(options_offset), int32_t(ws.s.issues_m.tracked_options_count));
 				container.set<province_state::dominant_issue>(prov_id, issues::option_tag(static_cast<value_base_of<issues::option_tag>>(max_opinion_off)));
 			}
+
+			ws.w.province_s.province_state_container.set<province_state::total_population>(prov_id, province_full_demo[population::total_population_tag]);
 		});
 	}
 
