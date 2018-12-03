@@ -38,10 +38,10 @@ namespace nations {
 		ws.w.nation_s.nations.set<nation::rich_tax>(new_nation, 10i8);
 		ws.w.nation_s.nations.set<nation::middle_tax>(new_nation, 10i8);
 		ws.w.nation_s.nations.set<nation::poor_tax>(new_nation, 10i8);
-		ws.w.nation_s.nations.set<nation::social_spending>(new_nation, 10i8);
-		ws.w.nation_s.nations.set<nation::administrative_spending>(new_nation, 10i8);
-		ws.w.nation_s.nations.set<nation::education_spending>(new_nation, 10i8);
-		ws.w.nation_s.nations.set<nation::military_spending>(new_nation, 10i8);
+		ws.w.nation_s.nations.set<nation::f_social_spending>(new_nation, 0.1f);
+		ws.w.nation_s.nations.set<nation::f_administrative_spending>(new_nation, 0.1f);
+		ws.w.nation_s.nations.set<nation::f_education_spending>(new_nation, 0.1f);
+		ws.w.nation_s.nations.set<nation::f_military_spending>(new_nation, 0.1f);
 		ws.w.nation_s.nations.set<nation::tarrifs>(new_nation, 0i8);
 		ws.w.nation_s.nations.set<nation::army_stockpile_spending>(new_nation, 10i8);
 		ws.w.nation_s.nations.set<nation::navy_stockpile_spending>(new_nation, 10i8);
@@ -459,7 +459,6 @@ namespace nations {
 			prices[economy::goods_tag(i)] = ws.s.economy_m.goods[economy::goods_tag(i)].base_price;
 			price_delta[economy::goods_tag(i)] = 0.0f;
 		}
-		std::fill_n(prices.data() + ws.s.economy_m.aligned_32_goods_count, ws.s.economy_m.aligned_32_goods_count, economy::money_qnty_type(0));
 
 		return new_state;
 	}
@@ -880,10 +879,10 @@ namespace nations {
 	}
 
 	float get_prestige(world_state const& ws, nations::country_tag n) {
-		return ws.w.nation_s.nations.get<nation::base_prestige>(n) + ws.w.nation_s.nations.get<nation::tech_attributes>(n)[technologies::tech_offset::permanent_prestige];
+		return ws.w.nation_s.nations.get<nation::base_prestige>(n) + ws.w.nation_s.tech_attributes.get<technologies::tech_offset::permanent_prestige>(n);
 	}
 	int32_t get_colonial_points(world_state const& ws, nations::country_tag n) {
-		return int32_t(ws.w.nation_s.nations.get<nation::base_colonial_points>(n)) + int32_t(ws.w.nation_s.nations.get<nation::tech_attributes>(n)[technologies::tech_offset::colonial_points]);
+		return int32_t(ws.w.nation_s.nations.get<nation::base_colonial_points>(n)) + int32_t(ws.w.nation_s.tech_attributes.get<technologies::tech_offset::colonial_points>(n));
 	}
 
 	float calculate_state_administrative_efficiency(world_state const& ws, state_tag this_state, float admin_requirement) {

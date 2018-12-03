@@ -2296,7 +2296,7 @@ namespace economy {
 		if(!ws.w.nation_s.nations.is_valid_index(nid))
 			return money_qnty_type(0);
 		
-		auto military_spending = float(ws.w.nation_s.nations.get<nation::military_spending>(n)) / 100.0f;
+		auto military_spending = ws.w.nation_s.nations.get<nation::f_military_spending>(n);
 		money_qnty_type sum = money_qnty_type(0);
 
 		{
@@ -2336,7 +2336,7 @@ namespace economy {
 		if(!ws.w.nation_s.nations.is_valid_index(nid))
 			return money_qnty_type(0);
 
-		auto education_spending = float(ws.w.nation_s.nations.get<nation::education_spending>(n)) / 100.0f;
+		auto education_spending = ws.w.nation_s.nations.get<nation::f_education_spending>(n);
 		money_qnty_type sum = money_qnty_type(0);
 
 		{
@@ -2362,7 +2362,7 @@ namespace economy {
 		if(!ws.w.nation_s.nations.is_valid_index(nid))
 			return money_qnty_type(0);
 
-		auto education_spending = float(ws.w.nation_s.nations.get<nation::administrative_spending>(n)) / 100.0f;
+		auto education_spending = ws.w.nation_s.nations.get<nation::f_administrative_spending>(n);
 		money_qnty_type sum = money_qnty_type(0);
 
 		{
@@ -2390,7 +2390,7 @@ namespace economy {
 		if(!ws.w.nation_s.nations.is_valid_index(nid))
 			return money_qnty_type(0);
 
-		auto social_spending = float(ws.w.nation_s.nations.get<nation::social_spending>(n)) / 100.0f;
+		auto social_spending = ws.w.nation_s.nations.get<nation::f_social_spending>(n);
 		auto pension_fraction = ws.w.nation_s.modifier_values.get<modifiers::national_offsets::pension_level>(n) * social_spending;
 		auto unemployment_fraction = ws.w.nation_s.modifier_values.get<modifiers::national_offsets::unemployment_benefit>(n) * social_spending;
 
@@ -2433,10 +2433,10 @@ namespace economy {
 		fill_needs_costs_arrays(ws, capital_state_id, capital_of_capital, masked_prices, life_needs_cost_by_type, everyday_needs_cost_by_type, luxury_needs_cost_by_type);
 
 
-		auto admin_spending = float(ws.w.nation_s.nations.get<nation::administrative_spending>(n)) / 100.0f;
-		auto education_spending = float(ws.w.nation_s.nations.get<nation::education_spending>(n)) / 100.0f;
-		auto military_spending = float(ws.w.nation_s.nations.get<nation::military_spending>(n)) / 100.0f;
-		auto social_spending = float(ws.w.nation_s.nations.get<nation::social_spending>(n)) / 100.0f;
+		auto admin_spending = ws.w.nation_s.nations.get<nation::f_administrative_spending>(n);
+		auto education_spending = ws.w.nation_s.nations.get<nation::f_education_spending>(n);
+		auto military_spending = ws.w.nation_s.nations.get<nation::f_military_spending>(n);
+		auto social_spending = ws.w.nation_s.nations.get<nation::f_social_spending>(n);
 		auto pension_fraction = ws.w.nation_s.modifier_values.get<modifiers::national_offsets::pension_level>(n) * social_spending;
 		auto unemployment_fraction = ws.w.nation_s.modifier_values.get<modifiers::national_offsets::unemployment_benefit>(n) * social_spending;
 

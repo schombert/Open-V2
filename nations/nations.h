@@ -64,10 +64,10 @@ namespace nation {
 	struct rich_tax;
 	struct middle_tax;
 	struct poor_tax;
-	struct social_spending;
-	struct administrative_spending;
-	struct education_spending;
-	struct military_spending;
+	struct f_social_spending;
+	struct f_administrative_spending;
+	struct f_education_spending;
+	struct f_military_spending;
 	struct tarrifs;
 	//struct debt_setting;
 	struct army_stockpile_spending;
@@ -144,8 +144,6 @@ namespace nation {
 	struct sphere_leader;
 	struct overlord;
 
-	struct tech_attributes;
-	
 	struct owned_provinces;
 	struct controlled_provinces;
 	struct naval_patrols; //sea provinces fleets will try to control
@@ -191,7 +189,6 @@ namespace nation {
 	constexpr int32_t container_size = 400;
 
 	using container = variable_layout_tagged_vector < nations::country_tag, container_size,
-		tech_attributes, technologies::tech_attribute_vector,
 
 		sphere_leader, nations::country_tag,
 		overlord, nations::country_tag,
@@ -293,10 +290,10 @@ namespace nation {
 		rich_tax, int8_t,
 		middle_tax, int8_t,
 		poor_tax, int8_t,
-		social_spending, int8_t,
-		administrative_spending, int8_t,
-		education_spending, int8_t,
-		military_spending, int8_t,
+		f_social_spending, float,
+		f_administrative_spending, float,
+		f_education_spending, float,
+		f_military_spending, float,
 		tarrifs, int8_t,
 		//debt_setting, int8_t,
 		army_stockpile_spending, int8_t,
@@ -388,10 +385,10 @@ namespace nations {
 		nation::container nations;
 		state::container states;
 
-
 		varying_vectorizable_2d_array<state_tag, economy::goods_tag, float, state::container_size> state_production;
 		varying_vectorizable_2d_array<state_tag, economy::goods_tag, float, state::container_size> state_global_demand;
-		fixed_vectorizable_2d_array<nations::country_tag, modifiers::value_type, nation::container_size, modifiers::national_offsets::count> modifier_values;
+		fixed_vectorizable_2d_array<nations::country_tag, float, nation::container_size, modifiers::national_offsets::count> modifier_values;
+		fixed_vectorizable_2d_array<nations::country_tag, float, nation::container_size, technologies::tech_offset::count> tech_attributes;
 
 		stable_2d_vector<governments::party_tag, country_tag, ideologies::ideology_tag, 512, 16> active_parties;
 		stable_2d_vector<uint8_t, country_tag, ideologies::ideology_tag, 512, 16> upper_house;

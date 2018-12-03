@@ -2532,26 +2532,26 @@ namespace triggers {
 	}
 	bool tf_crime_higher_than_education_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
-			ws.w.nation_s.nations.get<nation::administrative_spending>(primary_slot.nation) >= ws.w.nation_s.nations.get<nation::education_spending>(primary_slot.nation), true);
+			ws.w.nation_s.nations.get<nation::f_administrative_spending>(primary_slot.nation) >= ws.w.nation_s.nations.get<nation::f_education_spending>(primary_slot.nation), true);
 	}
 	bool tf_crime_higher_than_education_state(TRIGGER_PARAMTERS) {
 		auto owner = ws.w.nation_s.states.get<state::owner>(primary_slot.state);
 		if(owner)
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::administrative_spending>(owner) >= ws.w.nation_s.nations.get<nation::education_spending>(owner), true);
+			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::f_administrative_spending>(owner) >= ws.w.nation_s.nations.get<nation::f_education_spending>(owner), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_crime_higher_than_education_province(TRIGGER_PARAMTERS) {
 		auto owner = provinces::province_owner(ws, primary_slot.prov);
 		if(owner)
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::administrative_spending>(owner) >= ws.w.nation_s.nations.get<nation::education_spending>(owner), true);
+			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::f_administrative_spending>(owner) >= ws.w.nation_s.nations.get<nation::f_education_spending>(owner), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_crime_higher_than_education_pop(TRIGGER_PARAMTERS) {
 		auto owner = population::get_pop_owner(ws, primary_slot.pop);
 		if(owner)
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::administrative_spending>(owner) >= ws.w.nation_s.nations.get<nation::education_spending>(owner), true);
+			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::f_administrative_spending>(owner) >= ws.w.nation_s.nations.get<nation::f_education_spending>(owner), true);
 		else
 			return compare_values(tval[0], false, true);
 	}
@@ -2782,7 +2782,7 @@ namespace triggers {
 		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::poor_tax>(primary_slot.nation), int8_t(trigger_payload(tval[2]).signed_value));
 	}
 	bool tf_social_spending_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::social_spending>(primary_slot.nation), int8_t(trigger_payload(tval[2]).signed_value));
+		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::f_social_spending>(primary_slot.nation), float(trigger_payload(tval[2]).signed_value) / 100.0f);
 	}
 	bool tf_social_spending_pop(TRIGGER_PARAMTERS) {
 		auto owner = population::get_pop_owner(ws, primary_slot.pop);
@@ -2799,7 +2799,7 @@ namespace triggers {
 			return compare_values(tval[0], int8_t(0), int8_t(trigger_payload(tval[2]).signed_value));
 	}
 	bool tf_military_spending_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::military_spending>(primary_slot.nation), int8_t(trigger_payload(tval[2]).signed_value));
+		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::f_military_spending>(primary_slot.nation), float(trigger_payload(tval[2]).signed_value) / 100.0f);
 	}
 	bool tf_military_spending_pop(TRIGGER_PARAMTERS) {
 		auto owner = population::get_pop_owner(ws, primary_slot.pop);
@@ -2823,7 +2823,7 @@ namespace triggers {
 			return compare_values(tval[0], int8_t(0), int8_t(trigger_payload(tval[2]).signed_value));
 	}
 	bool tf_administration_spending_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::administrative_spending>(primary_slot.nation), int8_t(trigger_payload(tval[2]).signed_value));
+		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::f_administrative_spending>(primary_slot.nation), float(trigger_payload(tval[2]).signed_value) / 100.0f);
 	}
 	bool tf_administration_spending_pop(TRIGGER_PARAMTERS) {
 		auto owner = population::get_pop_owner(ws, primary_slot.pop);
@@ -2847,7 +2847,7 @@ namespace triggers {
 			return compare_values(tval[0], int8_t(0), int8_t(trigger_payload(tval[2]).signed_value));
 	}
 	bool tf_education_spending_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::education_spending>(primary_slot.nation), int8_t(trigger_payload(tval[2]).signed_value));
+		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::f_education_spending>(primary_slot.nation), float(trigger_payload(tval[2]).signed_value) / 100.0f);
 	}
 	bool tf_education_spending_pop(TRIGGER_PARAMTERS) {
 		auto owner = population::get_pop_owner(ws, primary_slot.pop);
@@ -4170,52 +4170,52 @@ namespace triggers {
 		return compare_values(tval[0],
 			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::railroad_level>(primary_slot.prov)) +
 			ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::min_build_railroad>(primary_slot.prov) <
-				ws.w.nation_s.nations.get<nation::tech_attributes>(from_slot.nation)[technologies::tech_offset::max_railroad],
+			ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_railroad>(from_slot.nation),
 			true);
 	}
 	bool tf_can_build_in_province_railroad_yes_limit_from_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
 			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::railroad_level>(primary_slot.prov)) +
 			ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::min_build_railroad>(primary_slot.prov) <
-			ws.w.nation_s.nations.get<nation::tech_attributes>(from_slot.nation)[technologies::tech_offset::max_railroad],
+			ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_railroad>(from_slot.nation),
 			true);
 	}
 	bool tf_can_build_in_province_railroad_no_limit_this_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
 			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::railroad_level>(primary_slot.prov)) +
 			ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::min_build_railroad>(primary_slot.prov) <
-			ws.w.nation_s.nations.get<nation::tech_attributes>(this_slot.nation)[technologies::tech_offset::max_railroad],
+			ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_railroad>(this_slot.nation),
 			true);
 	}
 	bool tf_can_build_in_province_railroad_yes_limit_this_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
 			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::railroad_level>(primary_slot.prov)) +
 			ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::min_build_railroad>(primary_slot.prov) <
-			ws.w.nation_s.nations.get<nation::tech_attributes>(this_slot.nation)[technologies::tech_offset::max_railroad],
+			ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_railroad>(this_slot.nation),
 			true);
 	}
 	bool tf_can_build_in_province_fort_no_limit_from_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
 			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::fort_level>(primary_slot.prov)) <
-			ws.w.nation_s.nations.get<nation::tech_attributes>(from_slot.nation)[technologies::tech_offset::max_fort],
+			ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_fort>(from_slot.nation),
 			true);
 	}
 	bool tf_can_build_in_province_fort_yes_limit_from_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
 			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::fort_level>(primary_slot.prov)) <
-			ws.w.nation_s.nations.get<nation::tech_attributes>(from_slot.nation)[technologies::tech_offset::max_fort],
+			ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_fort>(from_slot.nation),
 			true);
 	}
 	bool tf_can_build_in_province_fort_no_limit_this_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
 			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::fort_level>(primary_slot.prov)) <
-			ws.w.nation_s.nations.get<nation::tech_attributes>(this_slot.nation)[technologies::tech_offset::max_fort],
+			ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_fort>(this_slot.nation),
 			true);
 	}
 	bool tf_can_build_in_province_fort_yes_limit_this_nation(TRIGGER_PARAMTERS) {
 		return compare_values(tval[0],
 			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::fort_level>(primary_slot.prov)) <
-			ws.w.nation_s.nations.get<nation::tech_attributes>(this_slot.nation)[technologies::tech_offset::max_fort],
+			ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_fort>(this_slot.nation),
 			true);
 	}
 	bool tf_can_build_in_province_naval_base_no_limit_from_nation(TRIGGER_PARAMTERS) {
@@ -4223,13 +4223,13 @@ namespace triggers {
 		if(nb_level != 0ui8) {
 			return compare_values(tval[0],
 				technologies::tech_attribute_type(nb_level) <
-				ws.w.nation_s.nations.get<nation::tech_attributes>(from_slot.nation)[technologies::tech_offset::max_naval_base],
+				ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_naval_base>(from_slot.nation),
 				true);
 		} else if(auto si = provinces::province_state(ws, primary_slot.prov); si) {
 			return compare_values(tval[0],
 				!is_valid_index(nations::state_port_province(ws, si)) &&
 				ws.s.province_m.province_container.get<province::is_coastal>(primary_slot.prov) &&
-				ws.w.nation_s.nations.get<nation::tech_attributes>(from_slot.nation)[technologies::tech_offset::max_naval_base] >= technologies::tech_attribute_type(1),
+				ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_naval_base>(from_slot.nation) >= technologies::tech_attribute_type(1),
 				true);
 		} else {
 			return compare_values(tval[0], false, true);
@@ -4240,13 +4240,13 @@ namespace triggers {
 		if(nb_level != 0ui8) {
 			return compare_values(tval[0],
 				technologies::tech_attribute_type(nb_level) <
-				ws.w.nation_s.nations.get<nation::tech_attributes>(from_slot.nation)[technologies::tech_offset::max_naval_base],
+				ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_naval_base>(from_slot.nation),
 				true);
 		} else if(auto si = provinces::province_state(ws, primary_slot.prov); si) {
 			return compare_values(tval[0],
 				!is_valid_index(nations::state_port_province(ws, si)) &&
 				ws.s.province_m.province_container.get<province::is_coastal>(primary_slot.prov) &&
-				ws.w.nation_s.nations.get<nation::tech_attributes>(from_slot.nation)[technologies::tech_offset::max_naval_base] >= technologies::tech_attribute_type(1),
+				ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_naval_base>(from_slot.nation) >= technologies::tech_attribute_type(1),
 				true);
 		} else {
 			return compare_values(tval[0], false, true);
@@ -4257,13 +4257,13 @@ namespace triggers {
 		if(nb_level != 0ui8) {
 			return compare_values(tval[0],
 				technologies::tech_attribute_type(nb_level) <
-				ws.w.nation_s.nations.get<nation::tech_attributes>(this_slot.nation)[technologies::tech_offset::max_naval_base],
+				ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_naval_base>(this_slot.nation),
 				true);
 		} else if(auto si = provinces::province_state(ws, primary_slot.prov); si) {
 			return compare_values(tval[0],
 				!is_valid_index(nations::state_port_province(ws, si)) &&
 				ws.s.province_m.province_container.get<province::is_coastal>(primary_slot.prov) &&
-				ws.w.nation_s.nations.get<nation::tech_attributes>(this_slot.nation)[technologies::tech_offset::max_naval_base] >= technologies::tech_attribute_type(1),
+				ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_naval_base>(this_slot.nation) >= technologies::tech_attribute_type(1),
 				true);
 		} else {
 			return compare_values(tval[0], false, true);
@@ -4274,13 +4274,13 @@ namespace triggers {
 		if(nb_level != 0ui8) {
 			return compare_values(tval[0],
 				technologies::tech_attribute_type(nb_level) <
-				ws.w.nation_s.nations.get<nation::tech_attributes>(this_slot.nation)[technologies::tech_offset::max_naval_base],
+				ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_naval_base>(this_slot.nation),
 				true);
 		} else if(auto si = provinces::province_state(ws, primary_slot.prov); si) {
 			return compare_values(tval[0],
 				!is_valid_index(nations::state_port_province(ws, si)) &&
 				ws.s.province_m.province_container.get<province::is_coastal>(primary_slot.prov) &&
-				ws.w.nation_s.nations.get<nation::tech_attributes>(this_slot.nation)[technologies::tech_offset::max_naval_base] >= technologies::tech_attribute_type(1),
+				ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_naval_base>(this_slot.nation) >= technologies::tech_attribute_type(1),
 				true);
 		} else {
 			return compare_values(tval[0], false, true);

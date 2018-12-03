@@ -105,7 +105,7 @@ namespace governments {
 	}
 	void administrative_pay_scrollbar::update(ui::scrollbar<administrative_pay_scrollbar>& sb, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			sb.update_position(ws.w.nation_s.nations.get<nation::administrative_spending>(player));
+			sb.update_position(int32_t(ws.w.nation_s.nations.get<nation::f_administrative_spending>(player) * 100.0f));
 		}
 	}
 	void education_pay_scrollbar::on_position(world_state& ws, ui::scrollbar<education_pay_scrollbar>& sb, int32_t pos) {
@@ -115,7 +115,7 @@ namespace governments {
 	}
 	void education_pay_scrollbar::update(ui::scrollbar<education_pay_scrollbar>& sb, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			sb.update_position(ws.w.nation_s.nations.get<nation::education_spending>(player));
+			sb.update_position(int32_t(ws.w.nation_s.nations.get<nation::f_education_spending>(player) * 100.0f));
 		}
 	}
 	void military_pay_scrollbar::on_position(world_state& ws, ui::scrollbar<military_pay_scrollbar>& sb, int32_t pos) {
@@ -128,7 +128,7 @@ namespace governments {
 			sb.set_limits(ws.w.gui_m,
 				int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::min_military_spending>(player)),
 				ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_military_spending>(player) > 0 ? int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_military_spending>(player)) : 100);
-			sb.update_position(ws.w.nation_s.nations.get<nation::military_spending>(player));
+			sb.update_position(int32_t(ws.w.nation_s.nations.get<nation::f_military_spending>(player) * 100.0f));
 		}
 	}
 	void social_spending_scrollbar::on_position(world_state& ws, ui::scrollbar<social_spending_scrollbar>& sb, int32_t pos) {
@@ -141,7 +141,7 @@ namespace governments {
 			sb.set_limits(ws.w.gui_m,
 				int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::min_social_spending>(player)),
 				ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_social_spending>(player) > 0 ? int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_social_spending>(player)) : 100);
-			sb.update_position(ws.w.nation_s.nations.get<nation::social_spending>(player));
+			sb.update_position(int32_t(ws.w.nation_s.nations.get<nation::f_social_spending>(player) *100.0f));
 		}
 	}
 	void tarrif_setting_scrollbar::on_position(world_state& ws, ui::scrollbar<tarrif_setting_scrollbar>& sb, int32_t pos) {

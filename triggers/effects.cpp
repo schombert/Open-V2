@@ -1255,7 +1255,7 @@ namespace triggers {
 			if(amount >= 0.0f) {
 				basep = std::max(
 					0.0f,
-					basep + amount * (ws.w.nation_s.nations.get<nation::tech_attributes>(primary_slot.nation)[technologies::tech_offset::prestige] + 1.0f));
+					basep + amount * (ws.w.nation_s.tech_attributes.get<technologies::tech_offset::prestige>(primary_slot.nation) + 1.0f));
 			} else {
 				basep = std::max(
 					0.0f,
@@ -1762,19 +1762,20 @@ namespace triggers {
 		}
 		void ef_prestige_factor_positive(EFFECT_PARAMTERS) {
 			auto& bp = ws.w.nation_s.nations.get<nation::base_prestige>(primary_slot.nation);
-			auto& ta = ws.w.nation_s.nations.get<nation::tech_attributes>(primary_slot.nation);
+			auto perm_prestige = ws.w.nation_s.tech_attributes.get<technologies::tech_offset::permanent_prestige>(primary_slot.nation);
+			auto prestige = ws.w.nation_s.tech_attributes.get<technologies::tech_offset::prestige>(primary_slot.nation);
 			bp +=
-				(bp + ta[technologies::tech_offset::permanent_prestige]) *
-				(ta[technologies::tech_offset::prestige] + 1.0f) *
+				(bp + perm_prestige) *
+				(prestige + 1.0f) *
 				read_float_from_payload(tval + 2);
 		}
 		void ef_prestige_factor_negative(EFFECT_PARAMTERS) {
 			auto& bp = ws.w.nation_s.nations.get<nation::base_prestige>(primary_slot.nation);
-			auto& ta = ws.w.nation_s.nations.get<nation::tech_attributes>(primary_slot.nation);
+			auto perm_prestige = ws.w.nation_s.tech_attributes.get<technologies::tech_offset::permanent_prestige>(primary_slot.nation);
 			bp = std::max(
 				0.0f,
 				bp +
-				(bp + ta[technologies::tech_offset::permanent_prestige]) *
+				(bp + perm_prestige) *
 				read_float_from_payload(tval + 2));
 		}
 		void ef_military_reform(EFFECT_PARAMTERS) {

@@ -1890,7 +1890,7 @@ namespace triggers {
 			if(primary_slot.nation) {
 				auto amount = read_float_from_payload(tval + 2);
 				if(amount >= 0.0f)
-					return display_value(amount * (ws.w.nation_s.nations.get<nation::tech_attributes>(primary_slot.nation)[technologies::tech_offset::prestige] + 1.0f),
+					return display_value(amount * (ws.w.nation_s.tech_attributes.get<technologies::tech_offset::prestige>(primary_slot.nation) + 1.0f),
 						scenario::fixed_ui::prestige, true,
 						display_type::fp_one_place, ws, container, cursor_in, lm, fmt);
 				else

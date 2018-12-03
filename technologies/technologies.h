@@ -73,11 +73,13 @@ namespace technologies {
 		constexpr static size_t aligned_32_size = ((sizeof(tech_attribute_type) * count + 31ui64) & ~31ui64) / sizeof(tech_attribute_type);
 	}
 
-	using tech_attribute_vector = Eigen::Matrix<tech_attribute_type, tech_offset::aligned_32_size, 1>;
+	constexpr uint32_t tech_definition_size = 8;
+	__declspec(align(64)) struct tech_definition {
+		int32_t offsets[tech_definition_size] = { 0,0,0,0,0,0,0,0 };
+		float values[tech_definition_size] = { 0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f };
+	};
 
-
-
-	struct alignas(32) technology {
+	struct alignas(64) technology {
 		static constexpr uint8_t activate_railroad = 0x01;
 		static constexpr uint8_t activate_fort = 0x02;
 		static constexpr uint8_t activate_naval_base = 0x04;
@@ -86,7 +88,7 @@ namespace technologies {
 		static constexpr uint8_t gas_attack = 0x10;
 		static constexpr uint8_t gas_defence = 0x20;
 
-		tech_attribute_vector attributes = tech_attribute_vector::Zero();
+		tech_definition attributes;
 
 		float shared_prestige = 0.0f;
 		uint16_t year = 0ui16;
@@ -135,6 +137,8 @@ namespace technologies {
 		return adjusted_goods_tag(to_index(t) * production_adjustment::production_adjustment_count + production_type);
 	}
 
+	
+
 	class technologies_state {
 	public:
 		tagged_vector<int32_t, tech_tag> discovery_count;
@@ -148,7 +152,7 @@ namespace technologies {
 
 		tagged_vector<technology_category, tech_category_tag> technology_categories;
 		tagged_vector<technology_subcategory, tech_subcategory_tag> technology_subcategories;
-		tagged_vector<technology, tech_tag> technologies_container;
+		tagged_vector<technology, tech_tag, aligned_allocator_64<technology>> technologies_container;
 		std::vector<tech_tag> inventions;
 
 		tagged_fixed_blocked_2dvector<float, production_adjustment_tag, adjusted_goods_tag, aligned_allocator_32<float>> production_adjustments;

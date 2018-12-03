@@ -12,6 +12,12 @@ namespace technologies {
 		ws.w.technology_s.discovery_count.resize(ws.s.technology_m.technologies_container.size());
 		std::fill_n(ws.w.technology_s.discovery_count.data(), ws.s.technology_m.technologies_container.size(), 0);
 	}
+
+	void apply_tech_modifiers(world_state& ws, nations::country_tag this_nation, tech_definition const& def) {
+		for(uint32_t i = 0; i < tech_definition_size; ++i)
+			ws.w.nation_s.tech_attributes.get(this_nation, def.offsets[i]) += def.values[i];
+	}
+
 	void apply_technology(world_state& ws, nations::country_tag this_nation, tech_tag tech) {
 		technology& t = ws.s.technology_m.technologies_container[tech];
 		auto nation_id = this_nation;
@@ -20,7 +26,7 @@ namespace technologies {
 
 		bit_vector_set(ws.w.nation_s.active_technologies.get_row(nation_id), tech, true);
 
-		ws.w.nation_s.nations.get<nation::tech_attributes>(this_nation) += t.attributes;
+		apply_tech_modifiers(ws, this_nation, t.attributes);
 
 		if(is_valid_index(t.production_adjustment)) {
 			ve::accumulate_exact<adjusted_goods_tag,false>(
@@ -85,7 +91,8 @@ namespace technologies {
 	}
 
 	void reset_technologies(world_state& ws, nations::country_tag this_nation) {
-		ws.w.nation_s.nations.get<nation::tech_attributes>(this_nation).setZero();
+		for(uint32_t i = 0; i < tech_offset::count; ++i)
+			ws.w.nation_s.tech_attributes.get(this_nation, i) = 0.0f;
 
 		auto tech_row = ws.w.nation_s.active_technologies.get_row(this_nation);
 		Eigen::Map<Eigen::Matrix<uint64_t, -1, 1>>(tech_row.data(), ws.w.nation_s.active_technologies.inner_size) =

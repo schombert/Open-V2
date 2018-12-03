@@ -342,6 +342,18 @@ namespace technologies {
 		}
 	};
 
+	void add_attribute(tech_definition& d, uint32_t offset, float value) {
+		for(uint32_t i = 0; i < tech_definition_size; ++i) {
+			if(d.values[i] == 0.0f) {
+				d.offsets[i] = offset;
+				d.values[i] = value;
+				return;
+			}
+		}
+
+		std::abort();
+	}
+
 	struct tech_reader {
 		tech_reading_env & env;
 
@@ -374,13 +386,13 @@ namespace technologies {
 		void set_activate_building(const token_and_type& t) {
 			if(is_fixed_token_ci(t, "naval_base")) {
 				env.under_construction.flags |= technology::activate_naval_base;
-				env.under_construction.attributes[tech_offset::max_naval_base] = 1.0f;
+				add_attribute(env.under_construction.attributes, tech_offset::max_naval_base, 1.0f);
 			} else if(is_fixed_token_ci(t, "fort")) {
 				env.under_construction.flags |= technology::activate_fort;
-				env.under_construction.attributes[tech_offset::max_fort] = 1.0f;
+				add_attribute(env.under_construction.attributes, tech_offset::max_fort, 1.0f);
 			} else if(is_fixed_token_ci(t, "railroad")) {
 				env.under_construction.flags |= technology::activate_railroad;
-				env.under_construction.attributes[tech_offset::max_railroad] = 1.0f;
+				add_attribute(env.under_construction.attributes, tech_offset::max_railroad, 1.0f);
 			} else {
 				const auto name = text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end);
 				const auto factory = tag_from_text(env.s.economy_m.named_factory_types_index, name);
@@ -508,7 +520,7 @@ namespace technologies {
 			}
 		}
 		void set_max_national_focus(float v) {
-			env.under_construction.attributes[tech_offset::max_national_focus] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::max_national_focus, v);
 		}
 		void set_rgo_size(const tech_goods_list& v) {
 			if(!is_valid_index(env.under_construction.production_adjustment)) {
@@ -619,58 +631,58 @@ namespace technologies {
 					economy_tag_to_production_adjustment<production_adjustment::artisan_goods_throughput>(p.first)) += p.second;
 		}
 		void set_war_exhaustion(float v) {
-			env.under_construction.attributes[tech_offset::war_exhaustion] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::war_exhaustion, v);
 		}
 		void set_supply_limit(float v) {
-			env.under_construction.attributes[tech_offset::supply_limit] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::supply_limit, v);
 		}
 		void set_morale(float v) {
-			env.under_construction.attributes[tech_offset::morale] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::morale, v);
 		}
 		void set_prestige(float v) {
-			env.under_construction.attributes[tech_offset::prestige] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::prestige, v);
 		}
 		void set_combat_width(float v) {
-			env.under_construction.attributes[tech_offset::combat_width] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::combat_width, v);
 		}
 		void set_dig_in_cap(float v) {
-			env.under_construction.attributes[tech_offset::dig_in_cap] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::dig_in_cap, v);
 		}
 		void set_influence(float v) {
-			env.under_construction.attributes[tech_offset::influence] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::influence, v);
 		}
 		void set_repair_rate(float v) {
-			env.under_construction.attributes[tech_offset::repair_rate] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::repair_rate, v);
 		}
 		void set_reinforce_rate(float v) {
-			env.under_construction.attributes[tech_offset::reinforce_rate] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::reinforce_rate, v);
 		}
 		void set_soldier_to_pop_loss(float v) {
-			env.under_construction.attributes[tech_offset::soldier_to_pop_loss] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::soldier_to_pop_loss, v);
 		}
 		void set_regular_experience_level(float v) {
-			env.under_construction.attributes[tech_offset::regular_experience_level] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::regular_experience_level, v);
 		}
 		void set_colonial_life_rating(float v) {
-			env.under_construction.attributes[tech_offset::colonial_life_rating] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::colonial_life_rating, v);
 		}
 		void set_education_efficiency(float v) {
-			env.under_construction.attributes[tech_offset::education_efficiency] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::education_efficiency, v);
 		}
 		void set_military_tactics(float v) {
-			env.under_construction.attributes[tech_offset::military_tactics] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::military_tactics, v);
 		}
 		void set_seperatism(float v) {
-			env.under_construction.attributes[tech_offset::seperatism] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::seperatism, v);
 		}
 		void set_land_attrition(float v) {
-			env.under_construction.attributes[tech_offset::land_attrition] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::land_attrition, v);
 		}
 		void set_naval_attrition(float v) {
-			env.under_construction.attributes[tech_offset::naval_attrition] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::naval_attrition, v);
 		}
 		void set_supply_range(float v) {
-			env.under_construction.attributes[tech_offset::supply_range] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::supply_range, v);
 		}
 		void set_gas_attack(bool v) {
 			if(v)
@@ -681,34 +693,34 @@ namespace technologies {
 				env.under_construction.flags |= technology::gas_defence;
 		}
 		void set_plurality(float v) {
-			env.under_construction.attributes[tech_offset::plurality] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::plurality, v);
 		}
 		void set_factory_cost(float v) {
-			env.under_construction.attributes[tech_offset::factory_cost] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::factory_cost, v);
 		}
 		void set_permanent_prestige(float v) {
-			env.under_construction.attributes[tech_offset::permanent_prestige] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::permanent_prestige, v);
 		}
 		void set_colonial_prestige(float v) {
-			env.under_construction.attributes[tech_offset::colonial_prestige] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::colonial_prestige, v);
 		}
 		void set_colonial_migration(float v) {
-			env.under_construction.attributes[tech_offset::colonial_migration] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::colonial_migration, v);
 		}
 		void set_colonial_points(float v) {
-			env.under_construction.attributes[tech_offset::colonial_points] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::colonial_points, v);
 		}
 		void set_cb_creation_speed(float v) {
-			env.under_construction.attributes[tech_offset::cb_creation_speed] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::cb_creation_speed, v);
 		}
 		void set_max_fort(float v) {
-			env.under_construction.attributes[tech_offset::max_fort] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::max_fort, v);
 		}
 		void set_max_naval_base(float v) {
-			env.under_construction.attributes[tech_offset::max_naval_base] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::max_naval_base, v);
 		}
 		void set_max_railroad(float v) {
-			env.under_construction.attributes[tech_offset::max_railroad] = v;
+			add_attribute(env.under_construction.attributes, tech_offset::max_railroad, v);
 		}
 		void pass_modifier(const std::pair<token_and_type, float>& p) {
 			env.mod.add_attribute(p);

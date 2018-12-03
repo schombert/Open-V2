@@ -226,11 +226,11 @@ namespace technologies {
 		}
 
 		bool added_item = false;
-		for(uint32_t i = 0; i < tech_offset::count; ++i) {
-			if(tech.attributes[i] != 0.0f) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.technology_m.tech_modifier_names[i], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+		for(uint32_t i = 0; i < tech_definition_size; ++i) {
+			if(tech.attributes.values[i] != 0.0f) {
+				cursor_in = ui::add_linear_text(cursor_in, ws.s.technology_m.tech_modifier_names[tech.attributes.offsets[i]], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-				cursor_in = display_green_value(tech.attributes[i], tech_offset_display[i], ws, container, cursor_in, lm, fmt);
+				cursor_in = display_green_value(tech.attributes.values[i], tech_offset_display[tech.attributes.offsets[i]], ws, container, cursor_in, lm, fmt);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 				added_item = true;

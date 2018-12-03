@@ -623,7 +623,7 @@ namespace modifiers {
 		}
 
 		float focus_amount = float(total_pop) / ws.s.modifiers_m.global_defines.national_focus_divider;
-		float limited_amount = std::min(focus_amount, ws.w.nation_s.nations.get<nation::tech_attributes>(this_nation)[technologies::tech_offset::max_national_focus] + 1.0f);
+		float limited_amount = std::min(focus_amount, ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_national_focus>(this_nation) + 1.0f);
 		return std::max(int32_t(limited_amount), 1);
 	}
 
