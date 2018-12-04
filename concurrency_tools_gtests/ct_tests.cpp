@@ -351,10 +351,10 @@ TEST(common_tests, tagged_fixed_blocked_2dvector_test) {
 
 	EXPECT_EQ(8ui32, tv.inner_size());
 	EXPECT_EQ(1ui64, tv.outer_size());
-	EXPECT_EQ(2ui64, tv.size());
+	EXPECT_EQ(1ui64, tv.size());
 
-	EXPECT_NE(nullptr, tv.get_row(0));
-	EXPECT_EQ(0ui64, (size_t)(tv.get_row(0)) & 31ui64);
+	EXPECT_NE(nullptr, tv.get_row(0).data());
+	EXPECT_EQ(0ui64, (size_t)(tv.get_row(0).data()) & 31ui64);
 
 	tv.get(0, 4) = 3.0;
 	EXPECT_EQ(3.0, tv.get(0, 4));
@@ -365,14 +365,14 @@ TEST(common_tests, tagged_fixed_blocked_2dvector_test) {
 
 	EXPECT_EQ(8ui32, tv.inner_size());
 	EXPECT_EQ(2ui64, tv.outer_size());
-	EXPECT_EQ(4ui64, tv.size());
+	EXPECT_EQ(2ui64, tv.size());
 
 	tv.get(1, 2) = 1.5;
 	EXPECT_EQ(1.5, tv.get(1, 2));
 
-	EXPECT_NE(nullptr, tv.get_row(1));
-	EXPECT_NE(tv.get_row(0), tv.get_row(1));
-	EXPECT_EQ(0ui64, (size_t)(tv.get_row(1)) & 31ui64);
+	EXPECT_NE(nullptr, tv.get_row(1).data());
+	EXPECT_NE(tv.get_row(0).data(), tv.get_row(1).data());
+	EXPECT_EQ(0ui64, (size_t)(tv.get_row(1).data()) & 31ui64);
 }
 
 TEST(concurrency_tools, rt_log2) {
@@ -1735,10 +1735,10 @@ TEST(concurrency_tools, variable_layout_basic) {
 
 	test_vec.set<labels::d>(va, false);
 
-	test_vec.set<labels::a>(provinces::province_tag(63), 122);
-	test_vec.set<labels::b>(provinces::province_tag(63), 19.5f);
-	test_vec.set<labels::c>(provinces::province_tag(63), std::pair<int, int>(-6, -1));
-	test_vec.set<labels::d>(provinces::province_tag(63), true);
+	test_vec.set<labels::a>(provinces::province_tag(62), 122);
+	test_vec.set<labels::b>(provinces::province_tag(62), 19.5f);
+	test_vec.set<labels::c>(provinces::province_tag(62), std::pair<int, int>(-6, -1));
+	test_vec.set<labels::d>(provinces::province_tag(62), true);
 
 	EXPECT_EQ(12, test_vec.get<labels::a>(va));
 	EXPECT_EQ(7.5f, test_vec.get<labels::b>(va));
@@ -2183,7 +2183,54 @@ TEST(concurrency_tools, vector_reduce) {
 	a[14] = 24.4f;
 	a[15] = 25.4f;
 
-	auto reduce_result = ve::reduce_vector<int32_t, false>(tagged_array_view<float, int32_t, false>(a.data(), 15));
+	auto reduce_result = ve::reduce<int32_t, false>(tagged_array_view<float, int32_t, false>(a.data(), 15));
 	auto std_reduce = std::reduce(a.data(), a.data() + 15, 0.0f, std::plus<>());
 	EXPECT_FLOAT_EQ(reduce_result, std_reduce);
+}
+
+TEST(concurrency_tools, vector_integer_mask) {
+	std::vector<float, aligned_allocator_64<float>> a(16, 0.0f);
+	std::vector<float, aligned_allocator_64<float>> b(16, 0.0f);
+
+	a[0] = 2.4f;
+	a[1] = 2.7f;
+	a[2] = 1.4f;
+	a[3] = 0.4f;
+	a[4] = 22.4f;
+	a[5] = 201.4f;
+	a[6] = 652.4f;
+	a[7] = 28.4f;
+	a[8] = 2.04f;
+	a[9] = 2.84f;
+	a[10] = 26.4f;
+	a[11] = 52.4f;
+	a[12] = 72.4f;
+	a[13] = 29.4f;
+	a[14] = 24.4f;
+	a[15] = 25.4f;
+
+	auto all_not = [a_vec = a.data(), b_vec = b.data()](auto executor) {
+		executor.store(b_vec, ve::select(0, executor.load(a_vec), executor.constant(5.0f)));
+	};
+	auto all_true = [a_vec = a.data(), b_vec = b.data()](auto executor) {
+		executor.store(b_vec, ve::select(0xFFFF, executor.load(a_vec), executor.constant(5.0f)));
+	};
+	auto second = [a_vec = a.data(), b_vec = b.data()](auto executor) {
+		executor.store(b_vec, ve::select(0x0202, executor.load(a_vec), executor.constant(5.0f)));
+	};
+
+	ve::execute_serial_fast(16, all_not);
+	for(uint32_t i = 0; i < 16; ++i) {
+		EXPECT_FLOAT_EQ(b[i], 5.0f);
+	}
+
+	ve::execute_serial_fast(16, all_true);
+	for(uint32_t i = 0; i < 16; ++i) {
+		EXPECT_FLOAT_EQ(b[i], a[i]);
+	}
+
+	ve::execute_serial(16, second);
+	for(uint32_t i = 0; i < 16; ++i) {
+		EXPECT_FLOAT_EQ(b[i], i == 1 || i == 9 ? a[i] : 5.0f);
+	}
 }

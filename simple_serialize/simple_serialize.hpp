@@ -92,6 +92,36 @@ namespace serialization {
 	template<typename value_base, typename zero_is_null, typename individuator>
 	class serializer<tag_type<value_base, zero_is_null, individuator>> : public memcpy_serializer<tag_type<value_base, zero_is_null, individuator>> {};
 
+
+	template<typename tag_type>
+	class serializer<expanded_tag<tag_type>> {
+	public:
+		static constexpr bool has_static_size = serializer<tag_type>::has_static_size;
+		static constexpr bool has_simple_serialize = false;
+
+		template<typename ... CONTEXT>
+		static void serialize_object(std::byte* &output, expanded_tag<tag_type> const& obj, CONTEXT&& ... c) {
+			tag_type temp = obj;
+			serializer<tag_type>::serialize_object(output, temp, std::forward<CONTEXT>(c)...);
+		}
+		template<typename ... CONTEXT>
+		static void deserialize_object(std::byte const* &input, expanded_tag<tag_type>& obj, CONTEXT&& ... c) {
+			tag_type temp;
+			serializer<tag_type>::deserialize_object(input, temp, std::forward<CONTEXT>(c)...);
+			obj = temp;
+		}
+		static constexpr size_t size() {
+			if constexpr(has_static_size)
+				return serializer<tag_type>::size();
+			else
+				return sizeof(tag_type);
+		}
+		template<typename ... CONTEXT>
+		static size_t size(expanded_tag<tag_type> const& obj, CONTEXT&& ... c) {
+			return serializer<tag_type>::size(tag_type(obj), std::forward<CONTEXT>(c)...);
+		}
+	};
+
 	template<typename tag, typename T>
 	class tagged_serializer {
 	public:

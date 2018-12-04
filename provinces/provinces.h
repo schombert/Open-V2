@@ -157,7 +157,7 @@ namespace province_state {
 		owner, nations::country_tag,
 		controller, nations::country_tag,
 		rebel_controller, population::rebel_faction_tag,
-		state_instance, nations::state_tag,
+		state_instance, expanded_tag<nations::state_tag>,
 		orders, military::army_orders_tag
 
 		> ;

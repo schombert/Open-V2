@@ -375,7 +375,7 @@ namespace variable_layout_detail {
 		__forceinline static auto get(tag_type i, data const& dat) 
 			-> std::conditional_t<std::is_same_v<T, index_type>, bool, decltype(variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get<T>(i, dat))> {
 			if constexpr(std::is_same_v<T, index_type>)
-				return bit_vector_test(dat.d_union.values, uint32_t(to_index(i)));
+				return bit_vector_test(dat.d_union.values, uint32_t(to_index(i) + 1));
 			else
 				return variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get<T>(i, dat);
 		}
@@ -383,43 +383,43 @@ namespace variable_layout_detail {
 		__forceinline static auto get(tag_type i, data& dat) 
 			-> std::conditional_t<std::is_same_v<T, index_type>, bool, decltype(variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get<T>(i, dat))> {
 			if constexpr(std::is_same_v<T, index_type>)
-				return bit_vector_test(dat.d_union.values, uint32_t(to_index(i)));
+				return bit_vector_test(dat.d_union.values, uint32_t(to_index(i) + 1));
 			else
 				return variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get<T>(i, dat);
 		}
 		template<typename T>
 		__forceinline static auto get_row(data& dat)
-			-> std::conditional_t<std::is_same_v<T, index_type>, uint64_t*, decltype(variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get_row<T>(dat))> {
+			-> std::conditional_t<std::is_same_v<T, index_type>, int8_t*, decltype(variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get_row<T>(dat))> {
 			if constexpr(std::is_same_v<T, index_type>)
-				return dat.d_union.values;
+				return (int8_t*)(dat.d_union.values);
 			else
 				return variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get_row<T>(dat);
 		}
 		template<typename T>
 		__forceinline static auto get_row(const data& dat)
-			-> std::conditional_t<std::is_same_v<T, index_type>, uint64_t const*, decltype(variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get_row<T>(dat))> {
+			-> std::conditional_t<std::is_same_v<T, index_type>, int8_t const*, decltype(variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get_row<T>(dat))> {
 			if constexpr(std::is_same_v<T, index_type>)
-				return dat.d_union.values;
+				return  (int8_t const*)(dat.d_union.values);
 			else
 				return variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get_row<T>(dat);
 		}
 		template<typename U, typename T>
 		__forceinline static std::enable_if_t<!std::is_trivially_copyable_v<T>> set(tag_type i, data& dat, T const& val) {
 			if constexpr(std::is_same_v<U, index_type>)
-				bit_vector_set(dat.d_union.values, uint32_t(to_index(i)), val);
+				bit_vector_set(dat.d_union.values, uint32_t(to_index(i) + 1), val);
 			else
 				variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template set<U>(i, dat, val);
 		}
 		template<typename U, typename T>
 		__forceinline static std::enable_if_t<std::is_trivially_copyable_v<T>> set(tag_type i, data& dat, T val) {
 			if constexpr(std::is_same_v<U, index_type>)
-				bit_vector_set(dat.d_union.values, uint32_t(to_index(i)), val);
+				bit_vector_set(dat.d_union.values, uint32_t(to_index(i) + 1), val);
 			else
 				variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template set<U>(i, dat, val);
 		}
 		__forceinline static void clear(tag_type i, data& dat) {
 			variable_layout_tagged_vector_impl<tag_type, size, REST ...>::clear(i, dat);
-			bit_vector_set(dat.d_union.values, uint32_t(to_index(i)), false);
+			bit_vector_set(dat.d_union.values, uint32_t(to_index(i) + 1), false);
 		}
 
 		template<typename ... CONTEXT>

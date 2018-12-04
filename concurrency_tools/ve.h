@@ -217,9 +217,9 @@ namespace ve {
 	}
 
 	template<typename F>
-	void execute_parallel(uint32_t count, F&& functor) {
+	void execute_parallel(uint32_t start, uint32_t count, F&& functor) {
 		const uint32_t full_units = (count + 15ui32) & ~15ui32;
-		concurrency::parallel_for(0ui32, full_units, 16ui32, [&functor](uint32_t offset) {
+		concurrency::parallel_for(start, full_units, 16ui32, [&functor](uint32_t offset) {
 			if constexpr(vector_size == 16) {
 				functor(full_vector_operation<0>(offset));
 			} else if constexpr(vector_size == 8) {
@@ -237,10 +237,15 @@ namespace ve {
 	}
 
 	template<typename F>
-	void execute_parallel_exact(uint32_t count, F&& functor) {
+	void execute_parallel(uint32_t count, F&& functor) {
+		execute_parallel(0, count, functor);
+	}
+
+	template<typename F>
+	void execute_parallel_exact(uint32_t start, uint32_t count, F&& functor) {
 		const uint32_t full_units = count & ~15ui32;
 		const uint32_t remainder = count - full_units;
-		concurrency::parallel_for(0ui32, full_units, 16ui32, [&functor](uint32_t offset) {
+		concurrency::parallel_for(start, full_units, 16ui32, [&functor](uint32_t offset) {
 			if constexpr(vector_size == 16) {
 				functor(full_vector_operation<0>(offset));
 			} else if constexpr(vector_size == 8) {
@@ -252,7 +257,7 @@ namespace ve {
 				functor(full_vector_operation<2>(offset + 8));
 				functor(full_vector_operation<3>(offset + 12));
 			} else {
-				static_assert(false);
+				static_assert(vector_size == 16 || vector_size == 8 || vector_size == 4);
 			}
 		}, concurrency::static_partitioner());
 		if constexpr(vector_size == 16) {
@@ -294,7 +299,11 @@ namespace ve {
 				functor(partial_vector_operation(full_units, remainder));
 			}
 		}
-		
+	}
+
+	template<typename F>
+	void execute_parallel_exact(uint32_t count, F&& functor) {
+		execute_parallel_exact(0, count, functor);
 	}
 
 	namespace ve_impl {

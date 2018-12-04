@@ -240,6 +240,9 @@ public:
 	T& operator[](index_type i) const {
 		return buffer[to_index(i) + int32_t(padded)];
 	}
+	T& padding() const {
+		return buffer[0];
+	}
 	operator bool() const noexcept {
 		return allocated_address != nullptr;
 	}
@@ -277,6 +280,9 @@ public:
 	}
 	T& operator[](index_type i) const {
 		return buffer[to_index(i) + int32_t(padded)];
+	}
+	T& padding() const {
+		return buffer[0];
 	}
 	operator bool() const noexcept {
 		return allocated_address != nullptr;

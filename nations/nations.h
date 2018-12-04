@@ -369,7 +369,7 @@ namespace state {
 
 		project, nations::pop_project,
 		owner_national_focus, modifiers::national_focus_tag,
-		owner, nations::country_tag,
+		owner, expanded_tag<nations::country_tag>,
 
 		colonizers, std::array<std::pair<nations::country_tag, int32_t>, colonizers_count>,
 		factories, std::array<economy::factory_instance, factories_count>

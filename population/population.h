@@ -41,7 +41,7 @@ namespace pop {
 		movement, population::movement_tag,
 		rebel_faction, population::rebel_faction_tag,
 		culture, cultures::culture_tag,
-		location, provinces::province_tag,
+		location, expanded_tag<provinces::province_tag>,
 
 		size_change_from_combat, float,
 		size_change_from_growth, float,

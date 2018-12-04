@@ -127,13 +127,23 @@ __forceinline fp_vector operator!=(fp_vector a, fp_vector b) {
 __forceinline fp_vector select(fp_vector mask, fp_vector a, fp_vector b) {
 	return _mm256_blendv_ps(b, a, mask);
 }
+__forceinline fp_vector select(int32_t mask, fp_vector a, fp_vector b) {
+	auto repeated_mask = _mm256_castsi256_ps(_mm256_set1_epi32(mask));
+	const auto mask_filter = _mm256_castsi256_ps(_mm256_setr_epi32(
+		0x00000001, 0x00000002, 0x00000004, 0x00000008,
+		0x00000010, 0x00000020, 0x00000040, 0x00000080));
+	//auto filtered_bits = _mm256_and_ps(repeated_mask, mask_filter);
+	auto fp_mask = _mm256_cmp_ps(_mm256_and_ps(repeated_mask, mask_filter), _mm256_setzero_ps(), _CMP_NEQ_OQ);
+	return _mm256_blendv_ps(b, a, fp_mask);
+}
+
 
 __forceinline int32_t compress_mask(fp_vector mask) {
 	return _mm256_movemask_ps(mask);
 }
 
 
-inline const uint32_t load_masks[16] = {
+inline constexpr uint32_t load_masks[16] = {
 	0xFFFFFFFF,
 	0xFFFFFFFF,
 	0xFFFFFFFF,
@@ -177,6 +187,9 @@ public:
 
 	__forceinline fp_vector load(float const* source) {
 		return _mm256_load_ps(source + offset);
+	}
+	__forceinline int8_t load(int8_t const* source) {
+		return source[offset / 8ui32];
 	}
 	__forceinline int_vector load(int32_t const* source) {
 		return _mm256_load_si256((__m256i const*)(source + offset));
@@ -283,6 +296,19 @@ public:
 			f(arg.value.m256i_i32[5], offset + 5ui32),
 			f(arg.value.m256i_i32[6], offset + 6ui32),
 			f(arg.value.m256i_i32[7], offset + 7ui32));
+	}
+
+	template<typename F>
+	__forceinline fp_vector generate(F const& f) {
+		return _mm256_setr_ps(
+			f(offset),
+			f(offset + 1ui32),
+			f(offset + 2ui32),
+			f(offset + 3ui32),
+			f(offset + 4ui32),
+			f(offset + 5ui32),
+			f(offset + 6ui32),
+			f(offset + 7ui32));
 	}
 };
 
@@ -434,6 +460,19 @@ public:
 			count > 5 ? f(arg.value.m256i_i32[5], offset + 5ui32) : 0,
 			count > 6 ? f(arg.value.m256i_i32[6], offset + 6ui32) : 0,
 			count > 7 ? f(arg.value.m256i_i32[7], offset + 7ui32) : 0);
+	}
+
+	template<typename F>
+	__forceinline fp_vector generate(F const& f) {
+		return _mm256_setr_ps(
+			count > 0 ? f(offset) : 0.0f,
+			count > 1 ? f(offset + 1ui32) : 0.0f,
+			count > 2 ? f(offset + 2ui32) : 0.0f,
+			count > 3 ? f(offset + 3ui32) : 0.0f,
+			count > 4 ? f(offset + 4ui32) : 0.0f,
+			count > 5 ? f(offset + 5ui32) : 0.0f,
+			count > 6 ? f(offset + 6ui32) : 0.0f,
+			count > 7 ? f(offset + 7ui32) : 0.0f);
 	}
 };
 

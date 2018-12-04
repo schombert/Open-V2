@@ -757,7 +757,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			auto loc = bool(primary_slot.pop) ? ws.w.population_s.pops.get<pop::location>(primary_slot.pop) : provinces::province_tag();
+			auto loc = bool(primary_slot.pop) ? provinces::province_tag(ws.w.population_s.pops.get<pop::location>(primary_slot.pop)) : provinces::province_tag();
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
 				 loc, this_slot, from_slot, rebel_slot, show_condition && bool(primary_slot.pop));
 			lm.decrease_indent(1);
@@ -1186,7 +1186,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			auto pop_province = bool(primary_slot.pop) ? ws.w.population_s.pops.get<pop::location>(primary_slot.pop) : provinces::province_tag();
+			auto pop_province = bool(primary_slot.pop) ? provinces::province_tag(ws.w.population_s.pops.get<pop::location>(primary_slot.pop)) : provinces::province_tag();
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
 				is_valid_index(pop_province) ? provinces::province_state(ws, pop_province) : nations::state_tag(), this_slot, from_slot, rebel_slot, show_condition && is_valid_index(pop_province));
 			lm.decrease_indent(1);
@@ -1208,7 +1208,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			auto pop_province = bool(primary_slot.pop) ? ws.w.population_s.pops.get<pop::location>(primary_slot.pop) : provinces::province_tag();
+			auto pop_province = bool(primary_slot.pop) ? provinces::province_tag(ws.w.population_s.pops.get<pop::location>(primary_slot.pop)) : provinces::province_tag();
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
 				tag_holder, this_slot, from_slot, rebel_slot, show_condition);
 			lm.decrease_indent(1);
@@ -1229,7 +1229,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			auto pop_province = bool(primary_slot.pop) ? ws.w.population_s.pops.get<pop::location>(primary_slot.pop) : provinces::province_tag();
+			auto pop_province = bool(primary_slot.pop) ? provinces::province_tag(ws.w.population_s.pops.get<pop::location>(primary_slot.pop)) : provinces::province_tag();
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
 				ptag, this_slot, from_slot, rebel_slot, show_condition);
 			lm.decrease_indent(1);

@@ -2507,7 +2507,7 @@ namespace triggers {
 			return compare_values(tval[0], false, true);
 	}
 	bool tf_alliance_with_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ws.w.nation_s.states.get<state::owner>(this_slot.state);
+		nations::country_tag owner = ws.w.nation_s.states.get<state::owner>(this_slot.state);
 		if(owner)
 			return compare_values(tval[0], contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(primary_slot.nation), owner), true);
 		else

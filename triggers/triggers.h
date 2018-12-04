@@ -129,6 +129,10 @@ namespace triggers {
 		constexpr parameter(nations::state_tag s) noexcept : state(s) {}
 		constexpr parameter(population::pop_tag po) noexcept : pop(po) {}
 		constexpr parameter(provinces::province_tag pr) noexcept : prov(pr) {}
+		constexpr parameter(expanded_tag<nations::country_tag> n) noexcept : nation(n) {}
+		constexpr parameter(expanded_tag<nations::state_tag> s) noexcept : state(s) {}
+		constexpr parameter(expanded_tag<population::pop_tag> po) noexcept : pop(po) {}
+		constexpr parameter(expanded_tag<provinces::province_tag> pr) noexcept : prov(pr) {}
 	};
 	using const_parameter = parameter;
 

@@ -175,8 +175,8 @@ struct expanded_tag {
 
 	expanded_tag& operator=(expanded_tag&& v) noexcept = default;
 	expanded_tag& operator=(expanded_tag const& v) noexcept = default;
-	expanded_tag& operator=(base_tag_type&& v) noexcept { value = int32_t(v.value); }
-	expanded_tag& operator=(base_tag_type const& v) noexcept { value = int32_t(v.value); }
+	expanded_tag& operator=(base_tag_type&& v) noexcept { value = int32_t(v.value); return *this; }
+	expanded_tag& operator=(base_tag_type const& v) noexcept { value = int32_t(v.value); return *this; }
 
 	constexpr bool operator==(expanded_tag v) const noexcept { return value == v.value; }
 	constexpr bool operator!=(expanded_tag v) const noexcept { return value != v.value; }

@@ -18,6 +18,9 @@
 #undef max
 
 void world_state_non_ai_update(world_state & ws) {
+
+	population::update_literacy(ws);
+
 	economy::economy_update_tick(ws);
 
 	provinces::update_province_demographics(ws);
