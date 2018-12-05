@@ -16,6 +16,11 @@ class serialization::serializer<population::rebel_type> : public serialization::
 template<>
 class serialization::serializer<population::government_employment> : public serialization::memcpy_serializer<population::government_employment> {};
 
+template<typename T>
+class serialization::tagged_serializer<pop::social_interest, T> : public serialization::discard_serializer<T> {};
+template<typename T>
+class serialization::tagged_serializer<pop::political_interest, T> : public serialization::discard_serializer<T> {};
+
 template<>
 class serialization::serializer<population::pop_movement> {
 public:

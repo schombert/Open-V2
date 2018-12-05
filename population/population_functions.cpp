@@ -5,6 +5,7 @@
 #include "technologies\\technologies.h"
 #include <ppl.h>
 #include "concurrency_tools\\ve.h"
+#include "issues\\issues_functions.h"
 
 #undef min
 #undef max
@@ -177,9 +178,9 @@ namespace population {
 				auto pop_incl = ws.s.population_m.ideological_inclination.get(pop_type, this_tag);
 				if(is_valid_index(pop_incl)) {
 					if(ws.s.ideologies_m.ideology_container[this_tag].uncivilized) {
-						ideology_demo[i] = 1000.0f * modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr, nullptr);
+						ideology_demo[i] = modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr, nullptr);
 					} else if(auto owner = get_pop_owner(ws, this_pop); bool(owner) && ws.w.nation_s.nations.get<nation::is_civilized>(owner)) {
-						ideology_demo[i] = 1000.0f * modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr, nullptr);
+						ideology_demo[i] = modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr, nullptr);
 					} else {
 						ideology_demo[i] = 0.0f;
 					}
@@ -195,12 +196,71 @@ namespace population {
 			issues::option_tag this_tag(static_cast<issues::option_tag::value_base_t>(i));
 			auto pop_incl = ws.s.population_m.issue_inclination.get(pop_type, this_tag);
 			if(is_valid_index(pop_incl))
-				issues_demo[i] = 1000.0f * modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr, nullptr);
+				issues_demo[i] = modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr, nullptr);
 			else
 				issues_demo[i] = 0;
 		}
 		Eigen::Map<Eigen::Matrix<float, 1, -1>> ovec(issues_demo, ws.s.issues_m.tracked_options_count);
 		ovec *= total_pop_size / ovec.sum();
+
+		ws.w.population_s.pops.set<pop::social_interest>(this_pop, issues::calculate_social_interest(ws, ws.w.population_s.pop_demographics.get_row(this_pop)));
+		ws.w.population_s.pops.set<pop::political_interest>(this_pop, issues::calculate_political_interest(ws, ws.w.population_s.pop_demographics.get_row(this_pop)));
+	}
+
+	void update_ideology_preference(world_state& ws, pop_tag this_pop) {
+		auto ideology_demo = &(ws.w.population_s.pop_demographics.get_row(this_pop)[to_demo_tag(ws, ideologies::ideology_tag(0))]);
+		auto total_pop_size = ws.w.population_s.pop_demographics.get(this_pop, total_population_tag);
+		auto pop_type = ws.w.population_s.pops.get<pop::type>(this_pop);
+
+		const int32_t icount = int32_t(ws.s.ideologies_m.ideologies_count);
+		for(int32_t i = 0; i < icount; ++i) {
+			ideologies::ideology_tag this_tag(static_cast<ideologies::ideology_tag::value_base_t>(i));
+			if(ws.w.ideology_s.ideology_enabled[this_tag] != 0ui8) {
+				auto pop_incl = ws.s.population_m.ideological_inclination.get(pop_type, this_tag);
+				if(is_valid_index(pop_incl)) {
+					if(ws.s.ideologies_m.ideology_container[this_tag].uncivilized) {
+						ideology_demo[i] += total_pop_size * 0.25f * modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr, nullptr);
+					} else if(auto owner = get_pop_owner(ws, this_pop); ws.w.nation_s.nations.get<nation::is_civilized>(owner)) {
+						ideology_demo[i] += total_pop_size * 0.25f * modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr, nullptr);
+					}
+				}
+			}
+		}
+		Eigen::Map<Eigen::Matrix<float, 1, -1>> ivec(ideology_demo, ws.s.ideologies_m.ideologies_count);
+		ivec *= total_pop_size / ivec.sum();
+	}
+
+	void update_issues_preference(world_state& ws, pop_tag this_pop) {
+		auto demo = ws.w.population_s.pop_demographics.get_row(this_pop);
+		auto issues_demo = &(demo[to_demo_tag(ws, issues::option_tag(0))]);
+		auto total_pop_size = ws.w.population_s.pop_demographics.get(this_pop, total_population_tag);
+		auto pop_type = ws.w.population_s.pops.get<pop::type>(this_pop);
+
+		auto location = ws.w.population_s.pops.get<pop::locatino>(this_pop);
+		auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(location);
+
+		auto owner_pr_modifier = 1.0f + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::political_reform_desire>(owner);
+		auto owner_sr_modifier = 1.0f + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::social_reform_desire>(owner);
+		auto owner_issue_change = 1.0f + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::issue_change_speed>(owner);
+
+		const int32_t icount = int32_t(ws.s.issues_m.tracked_options_count);
+		for(int32_t i = 0; i < icount; ++i) {
+			issues::option_tag this_tag(static_cast<issues::option_tag::value_base_t>(i));
+			auto pop_incl = ws.s.population_m.issue_inclination.get(pop_type, this_tag);
+			if(is_valid_index(pop_incl)) {
+				if(ws.s.issues_m.options[this_tag].type == issues::issue_group::social)
+					issues_demo[i] += 0.20f * owner_issue_change * owner_sr_modifier * total_pop_size * modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr, nullptr);
+				else if(ws.s.issues_m.options[this_tag].type == issues::issue_group::political)
+					issues_demo[i] += 0.20f * owner_issue_change * owner_pr_modifier * total_pop_size * modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr, nullptr);
+				else
+					issues_demo[i] += 0.20f * owner_issue_change * total_pop_size * modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr, nullptr);
+			}
+		}
+		Eigen::Map<Eigen::Matrix<float, 1, -1>> ovec(issues_demo, ws.s.issues_m.tracked_options_count);
+		ovec *= total_pop_size / ovec.sum();
+
+		ws.w.population_s.pops.set<pop::social_interest>(this_pop, issues::calculate_social_interest(ws, demo));
+		ws.w.population_s.pops.set<pop::political_interest>(this_pop, issues::calculate_political_interest(ws, demo));
 	}
 
 	void default_initialize_world_issues_and_ideology(world_state& ws) {

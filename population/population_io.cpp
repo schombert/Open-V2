@@ -8,6 +8,7 @@
 #include "triggers\\effect_reading.h"
 #include "world_state\\world_state.h"
 #include "population_function.h"
+#include "issues\\issues_functions.h"
 
 void serialization::serializer<population::pop_movement>::serialize_object(std::byte *& output, population::pop_movement const & obj) {
 	serialize(output, obj.radicalism);
@@ -65,9 +66,12 @@ void serialization::serializer<population::population_state>::deserialize_object
 	deserialize(input, obj.pops);
 	obj.pop_demographics.ensure_capacity(obj.pops.size());
 
-	obj.pops.for_each([sz = population::aligned_32_issues_ideology_demo_size(ws), &obj, &input](population::pop_tag p) {
+	obj.pops.for_each([sz = population::aligned_32_issues_ideology_demo_size(ws), &obj, &input, &ws](population::pop_tag p) {
 		auto demographics = obj.pop_demographics.get_row(p);
 		deserialize_array(input, demographics.data(), sz);
+
+		ws.w.population_s.pops.set<pop::social_interest>(p, issues::calculate_social_interest(ws, demographics));
+		ws.w.population_s.pops.set<pop::political_interest>(p, issues::calculate_political_interest(ws, demographics));
 	});
 }
 

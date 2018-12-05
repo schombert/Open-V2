@@ -811,19 +811,19 @@ namespace triggers {
 		auto nation_id = primary_slot.nation;
 		if(!ws.w.nation_s.nations.is_valid_index(nation_id))
 			return compare_values(tval[0], false, true);
-		float unemployed_fraction = 1.0f - float(ws.w.nation_s.nation_demographics.get(nation_id, population::total_employment_tag)) / float(ws.w.nation_s.nation_demographics.get(nation_id, population::total_population_tag));
+		float unemployed_fraction = 1.0f - float(ws.w.nation_s.nation_demographics.get(nation_id, population::total_employment_tag)) / float(ws.w.nation_s.nations.get<nation::total_core_population>(nation_id));
 		return compare_values(tval[0], unemployed_fraction, read_float_from_payload(tval + 2));
 	}
 	bool tf_unemployment_state(TRIGGER_PARAMTERS) {
 		auto state_id = primary_slot.state;
 		if(!ws.w.nation_s.states.is_valid_index(state_id))
 			return compare_values(tval[0], false, true);
-		float unemployed_fraction = 1.0f - float(ws.w.nation_s.state_demographics.get(state_id, population::total_employment_tag)) / float(ws.w.nation_s.state_demographics.get(state_id, population::total_population_tag));
+		float unemployed_fraction = 1.0f - float(ws.w.nation_s.state_demographics.get(state_id, population::total_employment_tag)) / float(ws.w.nation_s.states.get<state::total_population>(state_id));
 		return compare_values(tval[0], unemployed_fraction, read_float_from_payload(tval + 2));
 	}
 	bool tf_unemployment_province(TRIGGER_PARAMTERS) {
 		auto prov_id = primary_slot.prov;
-		float unemployed_fraction = 1.0f - float(ws.w.province_s.province_demographics.get(prov_id, population::total_employment_tag)) / float(ws.w.province_s.province_demographics.get(prov_id, population::total_population_tag));
+		float unemployed_fraction = 1.0f - float(ws.w.province_s.province_demographics.get(prov_id, population::total_employment_tag)) / float(ws.w.province_s.province_state_container.get<province_state::total_population>(prov_id));
 		return compare_values(tval[0], unemployed_fraction, read_float_from_payload(tval + 2));
 	}
 	bool tf_unemployment_pop(TRIGGER_PARAMTERS) {
@@ -861,7 +861,7 @@ namespace triggers {
 			if(is_valid_index(prim_culture)) {
 				return compare_values(tval[0],
 					ws.w.province_s.province_demographics.get(pid, population::to_demo_tag(ws, prim_culture)) ==
-						ws.w.province_s.province_demographics.get(pid, population::total_population_tag),
+						ws.w.province_s.province_state_container.get<province_state::total_population>(pid),
 					true);
 			}
 		}
@@ -876,7 +876,7 @@ namespace triggers {
 			if(is_valid_index(prim_culture)) {
 				return compare_values(tval[0],
 					ws.w.nation_s.state_demographics.get(sid, population::to_demo_tag(ws, prim_culture)) ==
-					ws.w.nation_s.state_demographics.get(sid, population::total_population_tag),
+					ws.w.nation_s.states.get<state::total_population>(sid),
 					true);
 			}
 		}
@@ -890,7 +890,7 @@ namespace triggers {
 			if(is_valid_index(prim_culture)) {
 				return compare_values(tval[0],
 					ws.w.nation_s.nation_demographics.get(nid, population::to_demo_tag(ws, prim_culture)) ==
-					ws.w.nation_s.nation_demographics.get(nid, population::total_population_tag),
+					ws.w.nation_s.nations.get<nation::total_core_population>(nid),
 					true);
 			}
 		}
@@ -1851,7 +1851,7 @@ namespace triggers {
 	bool tf_political_reform_want_pop(TRIGGER_PARAMTERS) {
 		auto pop_id = primary_slot.pop;
 		if(ws.w.population_s.pops.is_valid_index(pop_id))
-			return compare_values(tval[0], issues::calculate_political_interest(ws, ws.w.population_s.pop_demographics.get_row(pop_id)), read_float_from_payload(tval + 2));
+			return compare_values(tval[0], ws.w.population_s.pops.get<pop::political_interest>(pop_id), read_float_from_payload(tval + 2));
 		else
 			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
@@ -1861,7 +1861,7 @@ namespace triggers {
 	bool tf_social_reform_want_pop(TRIGGER_PARAMTERS) {
 		auto pop_id = primary_slot.pop;
 		if(ws.w.population_s.pops.is_valid_index(pop_id))
-			return compare_values(tval[0], issues::calculate_social_interest(ws, ws.w.population_s.pop_demographics.get_row(pop_id)), read_float_from_payload(tval + 2));
+			return compare_values(tval[0], ws.w.population_s.pops.get<pop::social_interest>(pop_id), read_float_from_payload(tval + 2));
 		else
 			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
@@ -2145,7 +2145,7 @@ namespace triggers {
 	bool tf_average_militancy_nation(TRIGGER_PARAMTERS) {
 		auto nation_id = primary_slot.nation;
 		if(ws.w.nation_s.nations.is_valid_index(nation_id)) {
-			auto total_pop = ws.w.nation_s.nation_demographics.get(nation_id, population::total_population_tag);
+			auto total_pop = ws.w.nation_s.nations.get<nation::total_core_population>(nation_id);
 			if(total_pop != 0)
 				return compare_values(tval[0], float(ws.w.nation_s.nation_demographics.get(nation_id, population::militancy_demo_tag(ws))) * 10.0f / float(total_pop), read_float_from_payload(tval + 2));
 		}
@@ -2153,14 +2153,14 @@ namespace triggers {
 	}
 	bool tf_average_militancy_state(TRIGGER_PARAMTERS) {
 		if(ws.w.nation_s.states.is_valid_index(primary_slot.state)) {
-			auto total_pop = ws.w.nation_s.state_demographics.get(primary_slot.state, population::total_population_tag);
+			auto total_pop = ws.w.nation_s.states.get<state::total_population>(primary_slot.state);
 			if(total_pop != 0)
 				return compare_values(tval[0], float(ws.w.nation_s.state_demographics.get(primary_slot.state, population::militancy_demo_tag(ws))) * 10.0f / float(total_pop), read_float_from_payload(tval + 2));
 		}
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_average_militancy_province(TRIGGER_PARAMTERS) {
-		auto total_pop = ws.w.province_s.province_demographics.get(primary_slot.prov, population::total_population_tag);
+		auto total_pop = ws.w.province_s.province_state_container.get<province_state::total_population>(primary_slot.prov);
 		if(total_pop != 0)
 			return compare_values(tval[0], float(ws.w.province_s.province_demographics.get(primary_slot.prov, population::militancy_demo_tag(ws))) * 10.0f / float(total_pop), read_float_from_payload(tval + 2));
 		else
@@ -2169,7 +2169,7 @@ namespace triggers {
 	bool tf_average_consciousness_nation(TRIGGER_PARAMTERS) {
 		auto nation_id = primary_slot.nation;
 		if(ws.w.nation_s.nations.is_valid_index(nation_id)) {
-			auto total_pop = ws.w.nation_s.nation_demographics.get(nation_id, population::total_population_tag);
+			auto total_pop = ws.w.nation_s.nations.get<nation::total_core_population>(nation_id);
 			if(total_pop != 0)
 				return compare_values(tval[0], float(ws.w.nation_s.nation_demographics.get(nation_id, population::consciousness_demo_tag(ws))) * 10.0f / float(total_pop), read_float_from_payload(tval + 2));
 		}
@@ -2178,14 +2178,14 @@ namespace triggers {
 	bool tf_average_consciousness_state(TRIGGER_PARAMTERS) {
 		auto state_id = primary_slot.state;
 		if(ws.w.nation_s.states.is_valid_index(state_id)) {
-			auto total_pop = ws.w.nation_s.state_demographics.get(state_id, population::total_population_tag);
+			auto total_pop = ws.w.nation_s.states.get<state::total_population>(state_id);
 			if(total_pop != 0)
 				return compare_values(tval[0], float(ws.w.nation_s.state_demographics.get(state_id, population::consciousness_demo_tag(ws))) * 10.0f / float(total_pop), read_float_from_payload(tval + 2));
 		}
 		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_average_consciousness_province(TRIGGER_PARAMTERS) {
-		auto total_pop = ws.w.province_s.province_demographics.get(primary_slot.prov, population::total_population_tag);
+		auto total_pop = ws.w.province_s.province_state_container.get<province_state::total_population>(primary_slot.prov);
 		if(total_pop != 0)
 			return compare_values(tval[0], float(ws.w.province_s.province_demographics.get(primary_slot.prov, population::consciousness_demo_tag(ws))) * 10.0f / float(total_pop), read_float_from_payload(tval + 2));
 		else
@@ -2344,20 +2344,20 @@ namespace triggers {
 	bool tf_total_pops_nation(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.nation;
 		if(ws.w.nation_s.nations.is_valid_index(id))
-			return compare_values(tval[0], float(ws.w.nation_s.nation_demographics.get(id, population::total_population_tag)), read_float_from_payload(tval + 2));
+			return compare_values(tval[0], float(ws.w.nation_s.nations.get<nation::total_core_population>(id)), read_float_from_payload(tval + 2));
 		else
 			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_total_pops_state(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.state;
 		if(ws.w.nation_s.states.is_valid_index(id))
-			return compare_values(tval[0], float(ws.w.nation_s.state_demographics.get(id, population::total_population_tag)), read_float_from_payload(tval + 2));
+			return compare_values(tval[0], float(ws.w.nation_s.states.get<state::total_population>(id)), read_float_from_payload(tval + 2));
 		else
 			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_total_pops_province(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.prov;
-		return compare_values(tval[0], float(ws.w.province_s.province_demographics.get(id, population::total_population_tag)), read_float_from_payload(tval + 2));
+		return compare_values(tval[0], float(ws.w.province_s.province_state_container.get<province_state::total_population>(id)), read_float_from_payload(tval + 2));
 	}
 	bool tf_total_pops_pop(TRIGGER_PARAMTERS) {
 		auto location = ws.w.population_s.pops.get<pop::location>(primary_slot.pop);
@@ -2934,7 +2934,7 @@ namespace triggers {
 	bool tf_poor_strata_militancy_nation(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.nation;
 		if(ws.w.nation_s.nations.is_valid_index(id)) {
-			auto pop_size = float(ws.w.nation_s.nation_demographics.get(id, population::total_population_tag));
+			auto pop_size = float(ws.w.nation_s.nation_demographics.get(id, population::poor_population_demo_tag(ws)));
 			auto mil = 10.0f * float(ws.w.nation_s.nation_demographics.get(id, population::poor_militancy_demo_tag(ws)));
 			return compare_values(tval[0], (pop_size != 0.0f) ? mil / pop_size : 0.0f, read_float_from_payload(tval + 2));
 		}
@@ -2943,7 +2943,7 @@ namespace triggers {
 	bool tf_poor_strata_militancy_state(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.state;
 		if(ws.w.nation_s.states.is_valid_index(id)) {
-			auto pop_size = float(ws.w.nation_s.state_demographics.get(id, population::total_population_tag));
+			auto pop_size = float(ws.w.nation_s.state_demographics.get(id, population::poor_population_demo_tag(ws)));
 			auto mil = 10.0f * float(ws.w.nation_s.state_demographics.get(id, population::poor_militancy_demo_tag(ws)));
 			return compare_values(tval[0], (pop_size != 0.0f) ? mil / pop_size : 0.0f, read_float_from_payload(tval + 2));
 		}
@@ -2951,7 +2951,7 @@ namespace triggers {
 	}
 	bool tf_poor_strata_militancy_province(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.prov;
-		auto pop_size = float(ws.w.province_s.province_demographics.get(id, population::total_population_tag));
+		auto pop_size = float(ws.w.province_s.province_demographics.get(id, population::poor_population_demo_tag(ws)));
 		auto mil = 10.0f * float(ws.w.province_s.province_demographics.get(id, population::poor_militancy_demo_tag(ws)));
 		return compare_values(tval[0], (pop_size != 0.0f) ? mil / pop_size : 0.0f, read_float_from_payload(tval + 2));
 	}
@@ -2965,7 +2965,7 @@ namespace triggers {
 	bool tf_middle_strata_militancy_nation(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.nation;
 		if(ws.w.nation_s.nations.is_valid_index(id)) {
-			auto pop_size = float(ws.w.nation_s.nation_demographics.get(id, population::total_population_tag));
+			auto pop_size = float(ws.w.nation_s.nation_demographics.get(id, population::middle_population_demo_tag(ws)));
 			auto mil = 10.0f * float(ws.w.nation_s.nation_demographics.get(id, population::middle_militancy_demo_tag(ws)));
 			return compare_values(tval[0], (pop_size != 0.0f) ? mil / pop_size : 0.0f, read_float_from_payload(tval + 2));
 		}
@@ -2974,7 +2974,7 @@ namespace triggers {
 	bool tf_middle_strata_militancy_state(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.state;
 		if(ws.w.nation_s.states.is_valid_index(id)) {
-			auto pop_size = float(ws.w.nation_s.state_demographics.get(id, population::total_population_tag));
+			auto pop_size = float(ws.w.nation_s.state_demographics.get(id, population::middle_population_demo_tag(ws)));
 			auto mil = 10.0f * float(ws.w.nation_s.state_demographics.get(id, population::middle_militancy_demo_tag(ws)));
 			return compare_values(tval[0], (pop_size != 0.0f) ? mil / pop_size : 0.0f, read_float_from_payload(tval + 2));
 		}
@@ -2982,7 +2982,7 @@ namespace triggers {
 	}
 	bool tf_middle_strata_militancy_province(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.prov;
-		auto pop_size = float(ws.w.province_s.province_demographics.get(id, population::total_population_tag));
+		auto pop_size = float(ws.w.province_s.province_demographics.get(id, population::middle_population_demo_tag(ws)));
 		auto mil = 10.0f * float(ws.w.province_s.province_demographics.get(id, population::middle_militancy_demo_tag(ws)));
 		return compare_values(tval[0], (pop_size != 0.0f) ? mil / pop_size : 0.0f, read_float_from_payload(tval + 2));
 	}
@@ -2996,7 +2996,7 @@ namespace triggers {
 	bool tf_rich_strata_militancy_nation(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.nation;
 		if(ws.w.nation_s.nations.is_valid_index(id)) {
-			auto pop_size = float(ws.w.nation_s.nation_demographics.get(id, population::total_population_tag));
+			auto pop_size = float(ws.w.nation_s.nation_demographics.get(id, population::rich_population_demo_tag(ws)));
 			auto mil = 10.0f * float(ws.w.nation_s.nation_demographics.get(id, population::rich_militancy_demo_tag(ws)));
 			return compare_values(tval[0], (pop_size != 0.0f) ? mil / pop_size : 0.0f, read_float_from_payload(tval + 2));
 		}
@@ -3005,7 +3005,7 @@ namespace triggers {
 	bool tf_rich_strata_militancy_state(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.state;
 		if(ws.w.nation_s.states.is_valid_index(id)) {
-			auto pop_size = float(ws.w.nation_s.state_demographics.get(id, population::total_population_tag));
+			auto pop_size = float(ws.w.nation_s.state_demographics.get(id, population::rich_population_demo_tag(ws)));
 			auto mil = 10.0f * float(ws.w.nation_s.state_demographics.get(id, population::rich_militancy_demo_tag(ws)));
 			return compare_values(tval[0], (pop_size != 0.0f) ? mil / pop_size : 0.0f, read_float_from_payload(tval + 2));
 		}
@@ -3013,7 +3013,7 @@ namespace triggers {
 	}
 	bool tf_rich_strata_militancy_province(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.prov;
-		auto pop_size = float(ws.w.province_s.province_demographics.get(id, population::total_population_tag));
+		auto pop_size = float(ws.w.province_s.province_demographics.get(id, population::rich_population_demo_tag(ws)));
 		auto mil = 10.0f * float(ws.w.province_s.province_demographics.get(id, population::rich_militancy_demo_tag(ws)));
 		return compare_values(tval[0], (pop_size != 0.0f) ? mil / pop_size : 0.0f, read_float_from_payload(tval + 2));
 	}
@@ -3125,7 +3125,7 @@ namespace triggers {
 	bool tf_minorities_nation(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.nation;
 		if(ws.w.nation_s.nations.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.nation_demographics.get(id, population::total_population_tag);
+			auto total_pop = ws.w.nation_s.nations.get<nation::total_core_population>(id);
 			auto accepted_pop = ws.w.nation_s.nation_demographics.get(id, population::to_demo_tag(ws, ws.w.nation_s.nations.get<nation::primary_culture>(primary_slot.nation)));
 			auto accepted_range = get_range(ws.w.culture_s.culture_arrays, ws.w.nation_s.nations.get<nation::accepted_cultures>(primary_slot.nation));
 			for(auto c : accepted_range)
@@ -3138,7 +3138,7 @@ namespace triggers {
 		auto id = primary_slot.state;
 		auto owner = ws.w.nation_s.states.get<state::owner>(primary_slot.state);
 		if(ws.w.nation_s.states.is_valid_index(id) && is_valid_index(owner)) {
-			auto total_pop = ws.w.nation_s.state_demographics.get(id, population::total_population_tag);
+			auto total_pop = ws.w.nation_s.states.get<state::total_population>(id);
 			auto accepted_pop = ws.w.nation_s.state_demographics.get(id, population::to_demo_tag(ws, ws.w.nation_s.nations.get<nation::primary_culture>(owner)));
 			auto accepted_range = get_range(ws.w.culture_s.culture_arrays, ws.w.nation_s.nations.get<nation::accepted_cultures>(owner));
 			for(auto c : accepted_range)
@@ -3151,7 +3151,7 @@ namespace triggers {
 		auto id = primary_slot.prov;
 		auto owner = provinces::province_owner(ws, primary_slot.prov);
 		if(owner) {
-			auto total_pop = ws.w.province_s.province_demographics.get(id, population::total_population_tag);
+			auto total_pop = ws.w.province_s.province_state_container.get<province_state::total_population>(id);
 			auto accepted_pop = ws.w.province_s.province_demographics.get(id, population::to_demo_tag(ws, ws.w.nation_s.nations.get<nation::primary_culture>(owner)));
 			auto accepted_range = get_range(ws.w.culture_s.culture_arrays, ws.w.nation_s.nations.get<nation::accepted_cultures>(owner));
 			for(auto c : accepted_range)
@@ -3538,14 +3538,14 @@ namespace triggers {
 	}
 	bool tf_consciousness_province(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.prov;
-		auto total_pop = ws.w.province_s.province_demographics.get(id, population::total_population_tag);
+		auto total_pop = ws.w.province_s.province_state_container.get<province_state::total_population>(id);
 		auto con = ws.w.province_s.province_demographics.get(id, population::consciousness_demo_tag(ws));
 		return compare_values(tval[0], total_pop != 0 ? (float(con) * 10.0f / float(total_pop)) : 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_consciousness_state(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.state;
 		if(ws.w.nation_s.states.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.state_demographics.get(id, population::total_population_tag);
+			auto total_pop = ws.w.nation_s.states.get<state::total_population>(id);
 			auto con = ws.w.nation_s.state_demographics.get(id, population::consciousness_demo_tag(ws));
 			if(total_pop != 0)
 				return compare_values(tval[0], float(con) * 10.0f / float(total_pop), read_float_from_payload(tval + 2));
@@ -3555,7 +3555,7 @@ namespace triggers {
 	bool tf_consciousness_nation(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.nation;
 		if(ws.w.nation_s.nations.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.nation_demographics.get(id, population::total_population_tag);
+			auto total_pop = ws.w.nation_s.nations.get<nation::total_core_population>(id);
 			auto con = ws.w.nation_s.nation_demographics.get(id, population::consciousness_demo_tag(ws));
 			if(total_pop != 0)
 				return compare_values(tval[0], float(con) * 10.0f / float(total_pop), read_float_from_payload(tval + 2));
@@ -3567,14 +3567,14 @@ namespace triggers {
 	}
 	bool tf_literacy_province(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.prov;
-		auto total_pop = ws.w.province_s.province_demographics.get(id, population::total_population_tag);
+		auto total_pop = ws.w.province_s.province_state_container.get<province_state::total_population>(id);
 		auto con = ws.w.province_s.province_demographics.get(id, population::literacy_demo_tag(ws));
 		return compare_values(tval[0], total_pop != 0 ? (float(con) / float(total_pop)) : 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_literacy_state(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.state;
 		if(ws.w.nation_s.states.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.state_demographics.get(id, population::total_population_tag);
+			auto total_pop = ws.w.nation_s.states.get<state::total_population>(id);
 			auto con = ws.w.nation_s.state_demographics.get(id, population::literacy_demo_tag(ws));
 			if(total_pop != 0)
 				return compare_values(tval[0], float(con) / float(total_pop), read_float_from_payload(tval + 2));
@@ -3584,7 +3584,7 @@ namespace triggers {
 	bool tf_literacy_nation(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.nation;
 		if(ws.w.nation_s.nations.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.nation_demographics.get(id, population::total_population_tag);
+			auto total_pop = ws.w.nation_s.nations.get<nation::total_core_population>(id);
 			auto con = ws.w.nation_s.nation_demographics.get(id, population::literacy_demo_tag(ws));
 			if(total_pop != 0)
 				return compare_values(tval[0], float(con) / float(total_pop), read_float_from_payload(tval + 2));
@@ -3596,14 +3596,14 @@ namespace triggers {
 	}
 	bool tf_militancy_province(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.prov;
-		auto total_pop = ws.w.province_s.province_demographics.get(id, population::total_population_tag);
+		auto total_pop = ws.w.province_s.province_state_container.get<province_state::total_population>(id);
 		auto con = ws.w.province_s.province_demographics.get(id, population::militancy_demo_tag(ws));
 		return compare_values(tval[0], total_pop != 0 ? (float(con) * 10.0f / float(total_pop)) : 0.0f, read_float_from_payload(tval + 2));
 	}
 	bool tf_militancy_state(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.state;
 		if(ws.w.nation_s.states.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.state_demographics.get(id, population::total_population_tag);
+			auto total_pop = ws.w.nation_s.states.get<state::total_population>(id);
 			auto con = ws.w.nation_s.state_demographics.get(id, population::militancy_demo_tag(ws));
 			if(total_pop != 0)
 				return compare_values(tval[0], float(con) * 10.0f / float(total_pop), read_float_from_payload(tval + 2));
@@ -3613,7 +3613,7 @@ namespace triggers {
 	bool tf_militancy_nation(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.nation;
 		if(ws.w.nation_s.nations.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.nation_demographics.get(id, population::total_population_tag);
+			auto total_pop = ws.w.nation_s.nations.get<nation::total_core_population>(id);
 			auto con = ws.w.nation_s.nation_demographics.get(id, population::militancy_demo_tag(ws));
 			if(total_pop != 0)
 				return compare_values(tval[0], float(con) * 10.0f / float(total_pop), read_float_from_payload(tval + 2));
@@ -4366,7 +4366,7 @@ namespace triggers {
 	bool tf_variable_ideology_name_nation(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.nation;
 		if(ws.w.nation_s.nations.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.nation_demographics.get(id, population::total_population_tag);
+			auto total_pop = ws.w.nation_s.nations.get<nation::total_core_population>(id);
 			if(total_pop != 0)
 				return compare_values(tval[0],
 					float(ws.w.nation_s.nation_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology))) / float(total_pop),
@@ -4377,7 +4377,7 @@ namespace triggers {
 	bool tf_variable_ideology_name_state(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.state;
 		if(ws.w.nation_s.states.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.state_demographics.get(id, population::total_population_tag);
+			auto total_pop = ws.w.nation_s.states.get<state::total_population>(id);
 			if(total_pop != 0)
 				return compare_values(tval[0],
 					float(ws.w.nation_s.state_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology))) / float(total_pop),
@@ -4388,7 +4388,7 @@ namespace triggers {
 	bool tf_variable_ideology_name_province(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.prov;
 
-		auto total_pop = ws.w.province_s.province_demographics.get(id, population::total_population_tag);
+		auto total_pop = ws.w.province_s.province_state_container.get<province_state::total_population>(id);
 		if(total_pop != 0)
 			return compare_values(tval[0],
 				float(ws.w.province_s.province_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology))) / float(total_pop),
@@ -4410,7 +4410,7 @@ namespace triggers {
 	bool tf_variable_issue_name_nation(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.nation;
 		if(ws.w.nation_s.nations.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.nation_demographics.get(id, population::total_population_tag);
+			auto total_pop = ws.w.nation_s.nations.get<nation::total_core_population>(id);
 			if(total_pop != 0)
 				return compare_values(tval[0],
 					float(ws.w.nation_s.nation_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option))) / float(total_pop),
@@ -4421,7 +4421,7 @@ namespace triggers {
 	bool tf_variable_issue_name_state(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.state;
 		if(ws.w.nation_s.states.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.state_demographics.get(id, population::total_population_tag);
+			auto total_pop = ws.w.nation_s.states.get<state::total_population>(id);
 			if(total_pop != 0)
 				return compare_values(tval[0],
 					float(ws.w.nation_s.state_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option))) / float(total_pop),
@@ -4432,7 +4432,7 @@ namespace triggers {
 	bool tf_variable_issue_name_province(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.prov;
 
-		auto total_pop = ws.w.province_s.province_demographics.get(id, population::total_population_tag);
+		auto total_pop = ws.w.province_s.province_state_container.get<province_state::total_population>(id);
 		if(total_pop != 0)
 			return compare_values(tval[0],
 				float(ws.w.province_s.province_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option))) / float(total_pop),
@@ -4485,7 +4485,7 @@ namespace triggers {
 	bool tf_variable_pop_type_name_nation(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.nation;
 		if(ws.w.nation_s.nations.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.nation_demographics.get(id, population::total_population_tag);
+			auto total_pop = ws.w.nation_s.nations.get<nation::total_core_population>(id);
 			if(total_pop != 0)
 				return compare_values(tval[0],
 					float(ws.w.nation_s.nation_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.pop_type))) / float(total_pop),
@@ -4496,7 +4496,7 @@ namespace triggers {
 	bool tf_variable_pop_type_name_state(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.state;
 		if(ws.w.nation_s.states.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.state_demographics.get(id, population::total_population_tag);
+			auto total_pop = ws.w.nation_s.states.get<state::total_population>(id);
 			if(total_pop != 0)
 				return compare_values(tval[0],
 					float(ws.w.nation_s.state_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.pop_type))) / float(total_pop),
@@ -4507,7 +4507,7 @@ namespace triggers {
 	bool tf_variable_pop_type_name_province(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.prov;
 
-		auto total_pop = ws.w.province_s.province_demographics.get(id, population::total_population_tag);
+		auto total_pop = ws.w.province_s.province_state_container.get<province_state::total_population>(id);
 		if(total_pop != 0)
 			return compare_values(tval[0],
 				float(ws.w.province_s.province_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.pop_type))) / float(total_pop),

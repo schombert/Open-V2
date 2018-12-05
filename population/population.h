@@ -33,6 +33,8 @@ namespace pop {
 	struct associated_army;
 	struct religion;
 	struct type;
+	struct political_interest;
+	struct social_interest;
 
 	using container = variable_layout_tagged_vector < population::pop_tag, 40'000,
 		type, population::pop_type_tag,
@@ -50,6 +52,8 @@ namespace pop {
 		size_change_from_local_migration, float,
 		size_change_from_emmigration, float,
 
+		political_interest, float,
+		social_interest, float,
 		money, float,
 		needs_satisfaction, float,
 		literacy, float,

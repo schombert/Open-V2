@@ -349,6 +349,7 @@ namespace issues {
 			option_tag this_tag(static_cast<value_base_of<option_tag>>(i));
 			std::get<0>(return_state.impl->parsed_options[to_index(manager.options[this_tag].id)]) = this_tag;
 			manager.options[this_tag].id = this_tag;
+			manager.options[this_tag].type = manager.issues_container[manager.options[this_tag].parent_issue].type;
 			manager.named_option_index.emplace(manager.options[this_tag].name, this_tag);
 
 			for(size_t j = 0; j < std::extent<decltype(manager.issues_container[manager.options[this_tag].parent_issue].options)>::value; ++j) {

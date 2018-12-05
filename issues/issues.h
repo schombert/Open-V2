@@ -87,6 +87,7 @@ namespace issues {
 		triggers::effect_tag on_execute_effect;
 
 		issue_tag parent_issue;
+		issue_group type;
 		option_tag id;
 	};
 	struct issue {

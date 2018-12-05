@@ -36,7 +36,7 @@ public:
 		obj.political_issues_options_count = 0ui32;
 		obj.social_issues_options_count = 0ui32;
 
-		for(auto const& i_option : obj.options) {
+		for(auto& i_option : obj.options) {
 			obj.named_option_index.emplace(i_option.name, i_option.id);
 			if(obj.issues_container[i_option.parent_issue].type == issues::issue_group::party)
 				++obj.party_issues_options_count;
@@ -44,6 +44,8 @@ public:
 				++obj.political_issues_options_count;
 			else if(obj.issues_container[i_option.parent_issue].type == issues::issue_group::social)
 				++obj.social_issues_options_count;
+
+			i_option.type = obj.issues_container[i_option.parent_issue].type;
 		}
 
 		obj.tracked_options_count = obj.party_issues_options_count + obj.political_issues_options_count + obj.social_issues_options_count;
