@@ -1179,43 +1179,41 @@ namespace triggers {
 			economy::match_rgo_worker_type(ws, primary_slot.prov);
 		}
 		void ef_add_accepted_culture(EFFECT_PARAMTERS) {
-			add_item(ws.w.culture_s.culture_arrays, ws.w.nation_s.nations.get<nation::accepted_cultures>(primary_slot.nation), trigger_payload(tval[2]).culture);
+			nations::add_accepted_culture(ws, primary_slot.nation, trigger_payload(tval[2]).culture);
 		}
 		void ef_add_accepted_culture_union(EFFECT_PARAMTERS) {
 			auto prim_culture = ws.w.nation_s.nations.get<nation::primary_culture>(primary_slot.nation);
 			if(is_valid_index(prim_culture)) {
 				auto cg_t = ws.s.culture_m.culture_container[prim_culture].group;
-				auto g_range = ws.s.culture_m.culture_by_culture_group.get_row(cg_t);
-				for(auto c : g_range)
-					add_item(ws.w.culture_s.culture_arrays, ws.w.nation_s.nations.get<nation::accepted_cultures>(primary_slot.nation), c);
+				nations::add_accepted_culture_group(ws, primary_slot.nation, cg_t);
 			}
 		}
 		void ef_primary_culture(EFFECT_PARAMTERS) {
-			ws.w.nation_s.nations.set<nation::primary_culture>(primary_slot.nation, trigger_payload(tval[2]).culture);
+			nations::change_primary_culture(ws, primary_slot.nation, trigger_payload(tval[2]).culture);
 		}
 		void ef_primary_culture_this_nation(EFFECT_PARAMTERS) {
-			ws.w.nation_s.nations.set<nation::primary_culture>(primary_slot.nation, ws.w.nation_s.nations.get<nation::primary_culture>(this_slot.nation));
+			nations::change_primary_culture(ws, primary_slot.nation, ws.w.nation_s.nations.get<nation::primary_culture>(this_slot.nation));
 		}
 		void ef_primary_culture_this_state(EFFECT_PARAMTERS) {
 			auto owner = ws.w.nation_s.states.get<state::owner>(this_slot.state);
 			if(owner)
-				ws.w.nation_s.nations.set<nation::primary_culture>(primary_slot.nation, ws.w.nation_s.nations.get<nation::primary_culture>(owner));
+				nations::change_primary_culture(ws, primary_slot.nation, ws.w.nation_s.nations.get<nation::primary_culture>(owner));
 		}
 		void ef_primary_culture_this_province(EFFECT_PARAMTERS) {
 			auto owner = provinces::province_owner(ws, this_slot.prov);
 			if(owner)
-				ws.w.nation_s.nations.set<nation::primary_culture>(primary_slot.nation, ws.w.nation_s.nations.get<nation::primary_culture>(owner));
+				nations::change_primary_culture(ws, primary_slot.nation, ws.w.nation_s.nations.get<nation::primary_culture>(owner));
 		}
 		void ef_primary_culture_this_pop(EFFECT_PARAMTERS) {
 			auto owner = population::get_pop_owner(ws, this_slot.pop);
 			if(owner)
-				ws.w.nation_s.nations.set<nation::primary_culture>(primary_slot.nation, ws.w.nation_s.nations.get<nation::primary_culture>(owner));
+				nations::change_primary_culture(ws, primary_slot.nation, ws.w.nation_s.nations.get<nation::primary_culture>(owner));
 		}
 		void ef_primary_culture_from_nation(EFFECT_PARAMTERS) {
-			ws.w.nation_s.nations.set<nation::primary_culture>(primary_slot.nation, ws.w.nation_s.nations.get<nation::primary_culture>(from_slot.nation));
+			nations::change_primary_culture(ws, primary_slot.nation, ws.w.nation_s.nations.get<nation::primary_culture>(from_slot.nation));
 		}
 		void ef_remove_accepted_culture(EFFECT_PARAMTERS) {
-			remove_item(ws.w.culture_s.culture_arrays, ws.w.nation_s.nations.get<nation::accepted_cultures>(primary_slot.nation), trigger_payload(tval[2]).culture);
+			nations::remove_accepted_culture(ws, primary_slot.nation, trigger_payload(tval[2]).culture);
 		}
 		void ef_life_rating(EFFECT_PARAMTERS) {
 			ws.w.province_s.province_state_container.get<province_state::base_life_rating>(primary_slot.prov) += trigger_payload(tval[2]).signed_value;
@@ -1746,7 +1744,7 @@ namespace triggers {
 		void ef_reduce_pop(EFFECT_PARAMTERS) {
 			population::change_pop_size(
 				ws, primary_slot.pop, 
-				int32_t(ws.w.population_s.pop_demographics.get(primary_slot.pop, population::total_population_tag) * read_float_from_payload(tval + 2)));
+				int32_t(ws.w.population_s.pops.get<pop::size>(primary_slot.pop) * read_float_from_payload(tval + 2)));
 		}
 		void ef_move_pop(EFFECT_PARAMTERS) {
 			population::change_pop_location(ws, primary_slot.pop, provinces::province_tag(tval[2]));
@@ -2585,7 +2583,7 @@ namespace triggers {
 			auto factor = read_float_from_payload(tval + 3);
 
 			auto pop_id = primary_slot.pop;
-			auto total_pop = ws.w.population_s.pop_demographics.get(pop_id, population::total_population_tag);
+			auto total_pop = ws.w.population_s.pops.get<pop::size>(pop_id);
 			auto support = &(ws.w.population_s.pop_demographics.get_row(pop_id)[population::to_demo_tag(ws, ideologies::ideology_tag(0))]);
 
 			Eigen::Map<Eigen::Array<float, 1, -1>> support_vec(support, ws.s.ideologies_m.ideologies_count);
@@ -2603,7 +2601,7 @@ namespace triggers {
 		}
 		void ef_scaled_militancy_issue(EFFECT_PARAMTERS) {
 			auto issue_demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
-			auto pop_size = ws.w.population_s.pop_demographics.get(primary_slot.pop, population::total_population_tag);
+			auto pop_size = ws.w.population_s.pops.get<pop::size>(primary_slot.pop);
 			
 			if(pop_size != 0) {
 				auto support = ws.w.population_s.pop_demographics.get(primary_slot.pop, issue_demo_tag);
@@ -2613,7 +2611,7 @@ namespace triggers {
 		}
 		void ef_scaled_militancy_ideology(EFFECT_PARAMTERS) {
 			auto ideology_demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology);
-			auto pop_size = ws.w.population_s.pop_demographics.get(primary_slot.pop, population::total_population_tag);
+			auto pop_size = ws.w.population_s.pops.get<pop::size>(primary_slot.pop);
 
 			if(pop_size != 0) {
 				auto support = ws.w.population_s.pop_demographics.get(primary_slot.pop, ideology_demo_tag);
@@ -2622,7 +2620,7 @@ namespace triggers {
 			}
 		}
 		void ef_scaled_militancy_unemployment(EFFECT_PARAMTERS) {
-			auto pop_size = ws.w.population_s.pop_demographics.get(primary_slot.pop, population::total_population_tag);
+			auto pop_size = ws.w.population_s.pops.get<pop::size>(primary_slot.pop);
 
 			if(pop_size != 0) {
 				auto unemployed = pop_size - ws.w.population_s.pop_demographics.get(primary_slot.pop, population::total_employment_tag);
@@ -2632,7 +2630,7 @@ namespace triggers {
 		}
 		void ef_scaled_consciousness_issue(EFFECT_PARAMTERS) {
 			auto issue_demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option);
-			auto pop_size = ws.w.population_s.pop_demographics.get(primary_slot.pop, population::total_population_tag);
+			auto pop_size = ws.w.population_s.pops.get<pop::size>(primary_slot.pop);
 
 			if(pop_size != 0) {
 				auto support = ws.w.population_s.pop_demographics.get(primary_slot.pop, issue_demo_tag);
@@ -2642,7 +2640,7 @@ namespace triggers {
 		}
 		void ef_scaled_consciousness_ideology(EFFECT_PARAMTERS) {
 			auto ideology_demo_tag = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology);
-			auto pop_size = ws.w.population_s.pop_demographics.get(primary_slot.pop, population::total_population_tag);
+			auto pop_size = ws.w.population_s.pops.get<pop::size>(primary_slot.pop);
 
 			if(pop_size != 0) {
 				auto support = ws.w.population_s.pop_demographics.get(primary_slot.pop, ideology_demo_tag);
@@ -2651,7 +2649,7 @@ namespace triggers {
 			}
 		}
 		void ef_scaled_consciousness_unemployment(EFFECT_PARAMTERS) {
-			auto pop_size = ws.w.population_s.pop_demographics.get(primary_slot.pop, population::total_population_tag);
+			auto pop_size = ws.w.population_s.pops.get<pop::size>(primary_slot.pop);
 
 			if(pop_size != 0) {
 				auto unemployed = pop_size - ws.w.population_s.pop_demographics.get(primary_slot.pop, population::total_employment_tag);
@@ -2664,7 +2662,7 @@ namespace triggers {
 			auto factor = read_float_from_payload(tval + 3);
 
 			nations::for_each_pop(ws, primary_slot.nation, [&ws, demo_tag, factor](population::pop_tag p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p, population::total_population_tag);
+				auto pop_size = ws.w.population_s.pops.get<pop::size>(p);
 
 				if(pop_size != 0) {
 					auto support = ws.w.population_s.pop_demographics.get(p, demo_tag);
@@ -2678,7 +2676,7 @@ namespace triggers {
 			auto factor = read_float_from_payload(tval + 3);
 
 			nations::for_each_pop(ws, primary_slot.nation, [&ws, demo_tag, factor](population::pop_tag p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p, population::total_population_tag);
+				auto pop_size = ws.w.population_s.pops.get<pop::size>(p);
 
 				if(pop_size != 0) {
 					auto support = ws.w.population_s.pop_demographics.get(p, demo_tag);
@@ -2691,7 +2689,7 @@ namespace triggers {
 			auto factor = read_float_from_payload(tval + 2);
 
 			nations::for_each_pop(ws, primary_slot.nation, [&ws, factor](population::pop_tag p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p, population::total_population_tag);
+				auto pop_size = ws.w.population_s.pops.get<pop::size>(p);
 
 				if(pop_size != 0) {
 					auto support = pop_size - ws.w.population_s.pop_demographics.get(p, population::total_employment_tag);
@@ -2705,7 +2703,7 @@ namespace triggers {
 			auto factor = read_float_from_payload(tval + 3);
 
 			nations::for_each_pop(ws, primary_slot.nation, [&ws, demo_tag, factor](population::pop_tag p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p, population::total_population_tag);
+				auto pop_size = ws.w.population_s.pops.get<pop::size>(p);
 
 				if(pop_size != 0) {
 					auto support = ws.w.population_s.pop_demographics.get(p, demo_tag);
@@ -2719,7 +2717,7 @@ namespace triggers {
 			auto factor = read_float_from_payload(tval + 3);
 
 			nations::for_each_pop(ws, primary_slot.nation, [&ws, demo_tag, factor](population::pop_tag p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p, population::total_population_tag);
+				auto pop_size = ws.w.population_s.pops.get<pop::size>(p);
 
 				if(pop_size != 0) {
 					auto support = ws.w.population_s.pop_demographics.get(p, demo_tag);
@@ -2732,7 +2730,7 @@ namespace triggers {
 			auto factor = read_float_from_payload(tval + 2);
 
 			nations::for_each_pop(ws, primary_slot.nation, [&ws, factor](population::pop_tag p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p, population::total_population_tag);
+				auto pop_size = ws.w.population_s.pops.get<pop::size>(p);
 
 				if(pop_size != 0) {
 					auto support = pop_size - ws.w.population_s.pop_demographics.get(p, population::total_employment_tag);
@@ -2746,7 +2744,7 @@ namespace triggers {
 			auto factor = read_float_from_payload(tval + 3);
 
 			nations::for_each_pop(ws, primary_slot.state, [&ws, demo_tag, factor](population::pop_tag p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p, population::total_population_tag);
+				auto pop_size = ws.w.population_s.pops.get<pop::size>(p);
 
 				if(pop_size != 0) {
 					auto support = ws.w.population_s.pop_demographics.get(p, demo_tag);
@@ -2760,7 +2758,7 @@ namespace triggers {
 			auto factor = read_float_from_payload(tval + 3);
 
 			nations::for_each_pop(ws, primary_slot.state, [&ws, demo_tag, factor](population::pop_tag p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p, population::total_population_tag);
+				auto pop_size = ws.w.population_s.pops.get<pop::size>(p);
 
 				if(pop_size != 0) {
 					auto support = ws.w.population_s.pop_demographics.get(p, demo_tag);
@@ -2773,7 +2771,7 @@ namespace triggers {
 			auto factor = read_float_from_payload(tval + 2);
 
 			nations::for_each_pop(ws, primary_slot.state, [&ws, factor](population::pop_tag p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p, population::total_population_tag);
+				auto pop_size = ws.w.population_s.pops.get<pop::size>(p);
 
 				if(pop_size != 0) {
 					auto support = pop_size - ws.w.population_s.pop_demographics.get(p, population::total_employment_tag);
@@ -2787,7 +2785,7 @@ namespace triggers {
 			auto factor = read_float_from_payload(tval + 3);
 
 			nations::for_each_pop(ws, primary_slot.state, [&ws, demo_tag, factor](population::pop_tag p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p, population::total_population_tag);
+				auto pop_size = ws.w.population_s.pops.get<pop::size>(p);
 
 				if(pop_size != 0) {
 					auto support = ws.w.population_s.pop_demographics.get(p, demo_tag);
@@ -2801,7 +2799,7 @@ namespace triggers {
 			auto factor = read_float_from_payload(tval + 3);
 
 			nations::for_each_pop(ws, primary_slot.state, [&ws, demo_tag, factor](population::pop_tag p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p, population::total_population_tag);
+				auto pop_size = ws.w.population_s.pops.get<pop::size>(p);
 
 				if(pop_size != 0) {
 					auto support = ws.w.population_s.pop_demographics.get(p, demo_tag);
@@ -2814,7 +2812,7 @@ namespace triggers {
 			auto factor = read_float_from_payload(tval + 2);
 
 			nations::for_each_pop(ws, primary_slot.state, [&ws, factor](population::pop_tag p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p, population::total_population_tag);
+				auto pop_size = ws.w.population_s.pops.get<pop::size>(p);
 
 				if(pop_size != 0) {
 					auto support = pop_size - ws.w.population_s.pop_demographics.get(p, population::total_employment_tag);
@@ -2828,7 +2826,7 @@ namespace triggers {
 			auto factor = read_float_from_payload(tval + 3);
 
 			provinces::for_each_pop(ws, primary_slot.prov, [&ws, demo_tag, factor](population::pop_tag p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p, population::total_population_tag);
+				auto pop_size = ws.w.population_s.pops.get<pop::size>(p);
 
 				if(pop_size != 0) {
 					auto support = ws.w.population_s.pop_demographics.get(p, demo_tag);
@@ -2842,7 +2840,7 @@ namespace triggers {
 			auto factor = read_float_from_payload(tval + 3);
 
 			provinces::for_each_pop(ws, primary_slot.prov, [&ws, demo_tag, factor](population::pop_tag p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p, population::total_population_tag);
+				auto pop_size = ws.w.population_s.pops.get<pop::size>(p);
 
 				if(pop_size != 0) {
 					auto support = ws.w.population_s.pop_demographics.get(p, demo_tag);
@@ -2855,7 +2853,7 @@ namespace triggers {
 			auto factor = read_float_from_payload(tval + 2);
 
 			provinces::for_each_pop(ws, primary_slot.prov, [&ws, factor](population::pop_tag p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p, population::total_population_tag);
+				auto pop_size = ws.w.population_s.pops.get<pop::size>(p);
 
 				if(pop_size != 0) {
 					auto support = pop_size - ws.w.population_s.pop_demographics.get(p, population::total_employment_tag);
@@ -2869,7 +2867,7 @@ namespace triggers {
 			auto factor = read_float_from_payload(tval + 3);
 
 			provinces::for_each_pop(ws, primary_slot.prov, [&ws, demo_tag, factor](population::pop_tag p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p, population::total_population_tag);
+				auto pop_size = ws.w.population_s.pops.get<pop::size>(p);
 
 				if(pop_size != 0) {
 					auto support = ws.w.population_s.pop_demographics.get(p, demo_tag);
@@ -2883,7 +2881,7 @@ namespace triggers {
 			auto factor = read_float_from_payload(tval + 3);
 
 			provinces::for_each_pop(ws, primary_slot.prov, [&ws, demo_tag, factor](population::pop_tag p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p, population::total_population_tag);
+				auto pop_size = ws.w.population_s.pops.get<pop::size>(p);
 
 				if(pop_size != 0) {
 					auto support = ws.w.population_s.pop_demographics.get(p, demo_tag);
@@ -2896,7 +2894,7 @@ namespace triggers {
 			auto factor = read_float_from_payload(tval + 2);
 
 			provinces::for_each_pop(ws, primary_slot.prov, [&ws, factor](population::pop_tag p) {
-				auto pop_size = ws.w.population_s.pop_demographics.get(p, population::total_population_tag);
+				auto pop_size = ws.w.population_s.pops.get<pop::size>(p);
 
 				if(pop_size != 0) {
 					auto support = pop_size - ws.w.population_s.pop_demographics.get(p, population::total_employment_tag);

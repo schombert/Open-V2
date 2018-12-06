@@ -50,6 +50,12 @@ namespace nations {
 	void destroy_nation(world_state& ws, nations::country_tag new_nation);
 	float tarrif_multiplier(world_state const& ws, nations::country_tag source, nations::country_tag target);
 
+	bool is_culture_accepted(world_state const& ws, cultures::culture_tag c, country_tag n);
+	void change_primary_culture(world_state& ws, country_tag n, cultures::culture_tag c);
+	void add_accepted_culture(world_state& ws, country_tag n, cultures::culture_tag c);
+	void add_accepted_culture_group(world_state& ws, country_tag n, cultures::culture_group_tag c);
+	void remove_accepted_culture(world_state& ws, country_tag n, cultures::culture_tag c);
+
 	int32_t colonial_points_to_make_protectorate(world_state const& ws, state_tag si);
 	int32_t colonial_points_to_make_colony(world_state const& ws, state_tag si);
 	int32_t colonial_points_to_make_state(world_state const& ws, state_tag si);

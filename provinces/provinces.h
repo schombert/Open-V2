@@ -154,7 +154,7 @@ namespace province_state {
 		naval_base_upgrade_progress, float,
 		artisan_production_scale, float,
 
-		owner, nations::country_tag,
+		owner, expanded_tag<nations::country_tag>,
 		controller, nations::country_tag,
 		rebel_controller, population::rebel_faction_tag,
 		state_instance, expanded_tag<nations::state_tag>,

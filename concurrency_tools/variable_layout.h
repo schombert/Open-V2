@@ -347,7 +347,7 @@ namespace variable_layout_detail {
 	class variable_layout_tagged_vector_impl<tag_type, size, index_type, bitfield_type, REST ...> {
 	public:
 		template<typename T>
-		using value_type = std::conditional_t<std::is_same_v<T, index_type>, uint32_t, typename variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template value_type<T>>;
+		using value_type = std::conditional_t<std::is_same_v<T, index_type>, int8_t, typename variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template value_type<T>>;
 
 		struct data : public variable_layout_tagged_vector_impl<tag_type, size, REST ...>::data {
 			union d_union_type {

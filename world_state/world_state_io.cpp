@@ -262,8 +262,17 @@ void restore_world_state(world_state& ws) {
 			add_item(ws.w.population_s.pop_arrays, m.member_pops, p);
 			m.total_population_support += decltype(m.total_population_support)(ws.w.population_s.pop_demographics.get(p, population::total_population_tag));
 		}
-		if(auto loc = ws.w.population_s.pops.get<pop::location>(p); is_valid_index(loc))
+		if(auto loc = ws.w.population_s.pops.get<pop::location>(p); is_valid_index(loc)) {
 			add_item(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(loc), p);
+
+			auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(loc);
+			if(owner) {
+				auto pc = ws.w.population_s.pops.get<pop::culture>(p);
+				ws.w.population_s.pops.set<pop::is_accepted>(p, nations::is_culture_accepted(ws, pc, owner));
+			} else {
+				ws.w.population_s.pops.set<pop::is_accepted>(p, false);
+			}
+		}
 	});
 
 	provinces::recalculate_province_demographics(ws);

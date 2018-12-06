@@ -6,6 +6,7 @@
 #include <ppl.h>
 #include "concurrency_tools\\ve.h"
 #include "issues\\issues_functions.h"
+#include "nations\\nations_functions.h"
 
 #undef min
 #undef max
@@ -34,6 +35,7 @@ namespace population {
 	void init_pop_demographics(world_state& ws, pop_tag p, float size) {
 		ws.w.population_s.pop_demographics.ensure_capacity(to_index(p) + 1);
 		ws.w.population_s.pop_demographics.get(p, total_population_tag) = size;
+		ws.w.population_s.pops.set<pop::size>(p, size);
 		if((ws.s.population_m.pop_types[ws.w.population_s.pops.get<pop::type>(p)].flags & population::pop_type::is_employable) == 0)
 			ws.w.population_s.pop_demographics.get(p, total_employment_tag) = size;
 	}
@@ -129,11 +131,24 @@ namespace population {
 	void change_pop_type(world_state& ws, pop_tag this_pop, pop_type_tag new_type) {
 		// todo: fix employment
 		ws.w.population_s.pops.set<pop::type>(this_pop, new_type);
+
+		auto strata = ws.s.population_m.pop_types[new_type].flags & population::pop_type::strata_mask;
+		if(strata == population::pop_type::strata_poor) {
+			ws.w.population_s.pops.set<pop::is_poor>(this_pop, true);
+			ws.w.population_s.pops.set<pop::is_middle>(this_pop, false);
+		} else if(strata == population::pop_type::strata_poor) {
+			ws.w.population_s.pops.set<pop::is_poor>(this_pop, false);
+			ws.w.population_s.pops.set<pop::is_middle>(this_pop, true);
+		} else {
+			ws.w.population_s.pops.set<pop::is_poor>(this_pop, false);
+			ws.w.population_s.pops.set<pop::is_middle>(this_pop, false);
+		}
 	}
 
 	void change_pop_size(world_state& ws, pop_tag this_pop, int32_t new_size) {
 		// todo: fix employment
 		ws.w.population_s.pop_demographics.get(this_pop, total_population_tag) = float(new_size);
+		ws.w.population_s.pops.set<pop::size>(this_pop, float(new_size));
 	}
 
 	void remove_pop_from_province(world_state& ws, pop_tag this_pop) {
@@ -227,7 +242,7 @@ namespace population {
 			}
 		}
 		Eigen::Map<Eigen::Matrix<float, 1, -1>> ivec(ideology_demo, ws.s.ideologies_m.ideologies_count);
-		ivec *= total_pop_size / ivec.sum();
+		ivec *= (total_pop_size / ivec.sum());
 	}
 
 	void update_issues_preference(world_state& ws, pop_tag this_pop) {
@@ -236,7 +251,7 @@ namespace population {
 		auto total_pop_size = ws.w.population_s.pop_demographics.get(this_pop, total_population_tag);
 		auto pop_type = ws.w.population_s.pops.get<pop::type>(this_pop);
 
-		auto location = ws.w.population_s.pops.get<pop::locatino>(this_pop);
+		auto location = ws.w.population_s.pops.get<pop::location>(this_pop);
 		auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(location);
 
 		auto owner_pr_modifier = 1.0f + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::political_reform_desire>(owner);
@@ -257,7 +272,7 @@ namespace population {
 			}
 		}
 		Eigen::Map<Eigen::Matrix<float, 1, -1>> ovec(issues_demo, ws.s.issues_m.tracked_options_count);
-		ovec *= total_pop_size / ovec.sum();
+		ovec *= (total_pop_size / ovec.sum());
 
 		ws.w.population_s.pops.set<pop::social_interest>(this_pop, issues::calculate_social_interest(ws, demo));
 		ws.w.population_s.pops.set<pop::political_interest>(this_pop, issues::calculate_political_interest(ws, demo));
@@ -362,6 +377,242 @@ namespace population {
 			ve::execute_parallel_exact(chunk_size * 16ui32 * chunk_index, pop_size,
 				literacy_update_operation(change_by_state.data(), (int32_t*)(pop_locations.data()), (int32_t*)(province_states.data()), pop_literacy.data()));
 		}
-		
+	}
+
+	void update_pop_ideology_and_issues(world_state& ws) {
+		const uint32_t pop_count = uint32_t(ws.w.population_s.pops.size());
+		auto chunk_size = (pop_count + 31ui32) / 32ui32;
+		uint32_t chunk_index = uint32_t(to_index(ws.w.current_date) & 31);
+
+		concurrency::parallel_for(chunk_size * chunk_index, std::min(chunk_size * (chunk_index + 1), pop_count), [&ws](uint32_t i) {
+			pop_tag pt = pop_tag(pop_tag::value_base_t(i));
+
+			update_ideology_preference(ws, pt);
+			update_issues_preference(ws, pt);
+		}, concurrency::static_partitioner());
+	}
+
+	struct gather_militancy_by_province_operation {
+		float* const base_modifier_out;
+		float* const non_accepted_modifier_out;
+
+		int32_t const* const province_owners;
+		int32_t const* const province_states;
+
+		float const* const prov_militancy_mod;
+		float const* const nat_militancy_mod;
+		float const* const nat_war_exhaustion;
+		float const* const nat_non_accepted_mil;
+		float const* const tech_seperatism;
+		float const* const nat_core_pop_mil;
+
+		world_state const& ws;
+
+		gather_militancy_by_province_operation(world_state const& w, float* a, float* b, int32_t const* c,
+			int32_t const* d, float const* e, float const* f, float const* g, float const* h, float const* i, float const* j) :
+			ws(w), base_modifier_out(a), non_accepted_modifier_out(b), province_owners(c), province_states(d), prov_militancy_mod(e),
+			nat_militancy_mod(f), nat_war_exhaustion(g), nat_non_accepted_mil(h), tech_seperatism(i), nat_core_pop_mil(j) {}
+
+		template<typename T>
+		void operator()(T executor) {
+			auto owner_indices = executor.load(province_owners);
+			auto state_indices = executor.load(province_states);
+
+			auto prov_mil_mod = executor.load(prov_militancy_mod);
+
+			auto owner_mil_mod = executor.gather_load(nat_militancy_mod, owner_indices);
+			auto owner_war_ex = executor.gather_load(nat_war_exhaustion, owner_indices);
+			auto owner_non_accepted = executor.gather_load(nat_non_accepted_mil, owner_indices);
+			auto owner_seperatism = executor.gather_load(tech_seperatism, owner_indices);
+			auto owner_core_pop_mil = executor.gather_load(nat_core_pop_mil, owner_indices);
+
+			//is_colonial_or_protectorate
+			auto core_mask = executor.apply_for_mask([_this = this](int32_t state_index, uint32_t offset) {
+				if(nations::is_colonial_or_protectorate(_this->ws, nations::state_tag(nations::state_tag::value_base_t(state_index), std::true_type())))
+					return 0;
+				else
+					return -1;
+			}, state_indices);
+
+			executor.store(base_modifier_out,
+				ve::multiply_and_add(
+					owner_war_ex, 
+					executor.constant(ws.s.modifiers_m.global_defines.mil_war_exhaustion),
+					owner_mil_mod) + (prov_mil_mod + ve::select(core_mask, owner_core_pop_mil, executor.zero()))
+				);
+			executor.store(non_accepted_modifier_out,
+				ve::multiply_and_add(
+					(owner_seperatism + executor.constant(1.0f)),
+					executor.constant(ws.s.modifiers_m.global_defines.mil_non_accepted),
+					owner_non_accepted)
+			);
+		}
+	};
+
+	struct update_militancy_operation {
+		float* const pop_militancy;
+
+		float const* const base_prov_modifier;
+		float const* const prov_non_accepted_modifier;
+
+		int32_t const* const province_owners;
+		int32_t const* const pop_locations;
+
+		int8_t const* const pop_acceptance;
+
+		float const* const pop_size;
+		float const* const pop_satisfaction;
+		float const* const pop_political_reform_support;
+		float const* const pop_social_reform_support;
+
+		world_state const& ws;
+
+		update_militancy_operation(world_state const& w, float* mil_out, float const* a, float const* b, int32_t const* c, int32_t const* d,
+			int8_t const* e, float const* f, float const* g, float const* h, float const* i) :
+			ws(w), pop_militancy(mil_out), base_prov_modifier(a), prov_non_accepted_modifier(b), province_owners(c), pop_locations(d), 
+			pop_acceptance(e), pop_size(f), pop_satisfaction(g), pop_political_reform_support(h), pop_social_reform_support(i) {}
+
+		template<typename T>
+		void operator()(T executor) {
+			auto province_indices = executor.load(pop_locations);
+
+			auto satisfaction = executor.load(pop_satisfaction);
+
+			auto satisfaction_factor =
+				ve::select(satisfaction < executor.constant(0.5f),
+					ve::negate_multiply_and_add(
+						executor.constant(ws.s.modifiers_m.global_defines.mil_no_life_need),
+						satisfaction,
+						executor.constant(ws.s.modifiers_m.global_defines.mil_no_life_need * 0.5f)
+					),
+					executor.zero())
+				+ ve::select(satisfaction < executor.constant(1.5f),
+					ve::negate_multiply_and_add(
+						executor.constant(ws.s.modifiers_m.global_defines.mil_lack_everyday_need),
+						satisfaction,
+						executor.constant(ws.s.modifiers_m.global_defines.mil_lack_everyday_need * 1.5f)
+					),
+					executor.zero())
+				+ ve::select(satisfaction > executor.constant(1.5f),
+					ve::multiply_and_subtract(
+						executor.constant(ws.s.modifiers_m.global_defines.mil_has_everyday_need),
+						satisfaction,
+						executor.constant(ws.s.modifiers_m.global_defines.mil_has_everyday_need * 1.5f)
+					),
+					executor.zero())
+				+ ve::select(satisfaction > executor.constant(2.5f),
+					ve::multiply_and_subtract(
+						executor.constant(ws.s.modifiers_m.global_defines.mil_has_luxury_need),
+						satisfaction,
+						executor.constant(ws.s.modifiers_m.global_defines.mil_has_luxury_need * 2.5f)
+					),
+					executor.zero());
+
+			ve::int_vector nation_indices = executor.gather_load(province_owners, province_indices);
+
+			auto non_accepted_factor = ve::select(executor.load(pop_acceptance),
+				executor.zero(),
+				executor.gather_load(prov_non_accepted_modifier, province_indices));
+
+			auto scaled_support_factors = executor.apply(
+				[sf = ws.s.modifiers_m.global_defines.mil_ideology, rp = ws.s.modifiers_m.global_defines.mil_ruling_party, _this = this]
+			(int32_t nation_index, uint32_t offset) {
+				if(offset != 0) {
+					auto nid = nations::country_tag(nations::country_tag::value_base_t(nation_index), std::true_type());
+					auto pid = pop_tag(pop_tag::value_base_t(offset), std::true_type());
+
+					auto pop_c_support = _this->ws.w.population_s.pop_demographics.get(pid, to_demo_tag(_this->ws, _this->ws.s.ideologies_m.conservative_ideology));
+					auto ruling_ideology = _this->ws.w.nation_s.nations.get<nation::ruling_ideology>(nid);
+					auto pop_rp_support = _this->ws.w.population_s.pop_demographics.get(pid, to_demo_tag(_this->ws, ruling_ideology));
+
+					return pop_c_support * sf + pop_rp_support * rp;
+				} else {
+					return 0.0f;
+				}
+			}, nation_indices);
+			
+			auto support_factor = scaled_support_factors / executor.load(pop_size);
+
+			auto rr_factor = ws.s.modifiers_m.global_defines.mil_require_reform;
+			auto reforms_factor = ve::multiply_and_add(executor.constant(rr_factor), executor.load(pop_political_reform_support), executor.load(pop_social_reform_support) * executor.constant(rr_factor));
+			
+			auto change =
+				((satisfaction_factor + non_accepted_factor) + (support_factor + reforms_factor) + executor.gather_load(base_prov_modifier, province_indices))
+				* executor.constant(0.1f);
+			auto new_militancy = executor.load(pop_militancy) + change;
+			executor.store(pop_militancy, ve::max(executor.zero(), ve::min(new_militancy, executor.constant(1.0f))));
+		}
+	};
+
+	void update_militancy(world_state& ws) {
+		concurrent_cache_aligned_buffer<float, provinces::province_tag, true> base_modifier(ws.w.province_s.province_state_container.size());
+		concurrent_cache_aligned_buffer<float, provinces::province_tag, true> non_accepted_modifier(ws.w.province_s.province_state_container.size());
+
+		auto province_owners = ws.w.province_s.province_state_container.get_row<province_state::owner>();
+		auto province_states = ws.w.province_s.province_state_container.get_row<province_state::state_instance>();
+		auto province_mil_mod = ws.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::pop_militancy_modifier>(ws.w.province_s.province_state_container.size());
+		auto nat_mil_mod = ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::global_pop_militancy_modifier>(ws.w.nation_s.nations.size());
+		auto nat_war_exh = ws.w.nation_s.nations.get_row<nation::war_exhaustion>();
+		auto nat_non_accepted_mil_mod = ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::non_accepted_pop_militancy_modifier>(ws.w.nation_s.nations.size());
+		auto nat_core_mil_mod = ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::core_pop_militancy_modifier>(ws.w.nation_s.nations.size());
+		auto tech_seperatism = ws.w.nation_s.tech_attributes.get_row<technologies::tech_offset::seperatism>(ws.w.nation_s.nations.size());
+
+		/*
+		float* const base_modifier_out;
+		float* const non_accepted_modifier_out;
+
+		int32_t const* const province_owners;
+		int32_t const* const province_states;
+
+		float const* const prov_militancy_mod;
+		float const* const nat_militancy_mod;
+		float const* const nat_war_exhaustion;
+		float const* const nat_non_accepted_mil;
+		float const* const tech_seperatism;
+		float const* const nat_core_pop_mil;
+		*/
+
+		ve::execute_parallel(uint32_t(ws.w.province_s.province_state_container.size() + 1),
+			gather_militancy_by_province_operation(ws, base_modifier.data(), non_accepted_modifier.data(),
+			(int32_t*)(province_owners.data()), (int32_t*)(province_states.data()), province_mil_mod.data(), nat_mil_mod.data(),
+			nat_war_exh.data(), nat_non_accepted_mil_mod.data(), tech_seperatism.data(), nat_core_mil_mod.data()));
+
+		/*
+		float* const pop_militancy;
+
+		float const* const base_prov_modifier;
+		float const* const prov_non_accepted_modifier;
+
+		int32_t const* const province_owners;
+		int32_t const* const pop_locations;
+
+		int8_t const* const pop_acceptance;
+
+		float const* const pop_size;
+		float const* const pop_satisfaction;
+		float const* const pop_political_reform_support;
+		float const* const pop_social_reform_support;
+		*/
+
+		auto pop_locations = ws.w.population_s.pops.get_row<pop::location>();
+		auto pop_militancy = ws.w.population_s.pops.get_row<pop::militancy>();
+		auto pop_is_accepted = ws.w.population_s.pops.get_row<pop::is_accepted>();
+		auto pop_sizes = ws.w.population_s.pops.get_row<pop::size>();
+		auto pop_satisfaction = ws.w.population_s.pops.get_row<pop::needs_satisfaction>();
+
+		auto prs = ws.w.population_s.pops.get_row<pop::political_interest>();
+		auto srs = ws.w.population_s.pops.get_row<pop::social_interest>();
+
+		uint32_t pop_size = uint32_t(ws.w.population_s.pops.size() + 1);
+		uint32_t chunk_size = pop_size / (32ui32 * 16ui32);
+
+		update_militancy_operation op(ws, pop_militancy.data(), base_modifier.data(), non_accepted_modifier.data(), (int32_t*)(province_owners.data()), 
+			(int32_t*)(pop_locations.data()), (int8_t*)(pop_is_accepted.data()), pop_sizes.data(), pop_satisfaction.data(), prs.data(), srs.data());
+
+		uint32_t chunk_index = uint32_t(to_index(ws.w.current_date) & 31);
+		if(chunk_index != 31)
+			ve::execute_parallel(chunk_size * 16ui32 * chunk_index, chunk_size * 16ui32 * (chunk_index + 1ui32), op);
+		else
+			ve::execute_parallel_exact(chunk_size * 16ui32 * chunk_index, pop_size, op);
 	}
 }

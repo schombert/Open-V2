@@ -77,7 +77,7 @@ namespace economy {
 
 		auto state_id = ws.w.province_s.province_state_container.get<province_state::state_instance>(in_province);
 
-		float total_pop = float(ws.w.nation_s.state_demographics.get(state_id, population::total_population_tag));
+		float total_pop = float(ws.w.nation_s.states.get<state::total_population>(state_id));
 		float owner_effect = total_pop != 0.0f ? workers_info.owner.effect_multiplier * (ws.w.nation_s.state_demographics.get(state_id, population::to_demo_tag(ws, workers_info.owner.type))) / total_pop : 0.0f;
 
 		result.output_modifier *= std::max(0.0f, (
@@ -129,7 +129,7 @@ namespace economy {
 		}
 		auto state_id = ws.w.province_s.province_state_container.get<province_state::state_instance>(in_province);
 
-		float total_pop = float(ws.w.nation_s.state_demographics.get(state_id, population::total_population_tag));
+		float total_pop = float(ws.w.nation_s.states.get<state::total_population>(state_id));
 		float owner_effect = total_pop != 0.0f ? workers_info.owner.effect_multiplier * (ws.w.nation_s.state_demographics.get(state_id, population::to_demo_tag(ws, workers_info.owner.type))) / total_pop : 0.0f;
 
 		result.input_modifier *= std::max(0.0f, (
@@ -297,7 +297,7 @@ namespace economy {
 				auto ptype = ws.w.population_s.pops.get<pop::type>(p);
 				for(uint32_t i = 0; i < std::extent_v<decltype(ws.s.economy_m.rgo_mine.workers)>; ++i) {
 					if(ptype == ws.s.economy_m.rgo_mine.workers[i].type)
-						ws.w.population_s.pop_demographics.get(p, population::total_employment_tag) = percentage_by_type[i] * ws.w.population_s.pop_demographics.get(p, population::total_population_tag);
+						ws.w.population_s.pop_demographics.get(p, population::total_employment_tag) = percentage_by_type[i] * ws.w.population_s.pops.get<pop::size>(p);
 				}
 			});
 		} else {
@@ -316,7 +316,7 @@ namespace economy {
 				auto ptype = ws.w.population_s.pops.get<pop::type>(p);
 				for(uint32_t i = 0; i < std::extent_v<decltype(ws.s.economy_m.rgo_farm.workers)>; ++i) {
 					if(ptype == ws.s.economy_m.rgo_farm.workers[i].type)
-						ws.w.population_s.pop_demographics.get(p, population::total_employment_tag) = percentage_by_type[i] * ws.w.population_s.pop_demographics.get(p, population::total_population_tag);
+						ws.w.population_s.pop_demographics.get(p, population::total_employment_tag) = percentage_by_type[i] * ws.w.population_s.pops.get<pop::size>(p);
 				}
 			});
 		}
@@ -385,7 +385,7 @@ namespace economy {
 			auto ptype = ws.w.population_s.pops.get<pop::type>(p);
 			if((ws.s.population_m.pop_types[ptype].flags & population::pop_type::factory_worker) != 0) {
 				ws.w.population_s.pop_demographics.get(p, population::total_employment_tag) =
-					ws.w.population_s.pop_demographics.get(p, population::total_population_tag) * (state_population_by_type[to_index(ptype)] - unallocated_workers[to_index(ptype)]) / state_population_by_type[to_index(ptype)];
+					ws.w.population_s.pops.get<pop::size>(p) * (state_population_by_type[to_index(ptype)] - unallocated_workers[to_index(ptype)]) / state_population_by_type[to_index(ptype)];
 			}
 		});
 	}
@@ -584,7 +584,7 @@ namespace economy {
 				_this->pop_types.emplace_back(ws.w.population_s.pops.get<pop::type>(id));
 				_this->money.push_back(ws.w.population_s.pops.get<pop::money>(id));
 				_this->location.emplace_back(ws.w.population_s.pops.get<pop::location>(id));
-				_this->size.push_back(ws.w.population_s.pop_demographics.get(id, population::total_population_tag));
+				_this->size.push_back(ws.w.population_s.pops.get<pop::size>(id));
 			});
 
 			satisfaction.resize(pop_ids.size());
@@ -841,7 +841,7 @@ namespace economy {
 					(life_needs_cost_by_type[to_index(ptype)] +
 					everyday_needs_cost_by_type[to_index(ptype)] +
 					economy::money_qnty_type(0.5) * luxury_needs_cost_by_type[to_index(ptype)])
-					* float(ws.w.population_s.pop_demographics.get(p, population::total_population_tag)) / pop_needs_divisor);
+					* float(ws.w.population_s.pops.get<pop::size>(p)) / pop_needs_divisor);
 			});
 
 		});
@@ -2445,7 +2445,7 @@ namespace economy {
 		nations::for_each_state(ws, n, [&ws, &est_costs, pension_fraction, unemployment_fraction, life_needs_cost_by_type, everyday_needs_cost_by_type, luxury_needs_cost_by_type, admin_spending, education_spending, military_spending](nations::state_tag si) {
 			if(!nations::is_colonial_or_protectorate(ws, si)) {
 				nations::for_each_pop(ws, si, [&ws, &est_costs, pension_fraction, unemployment_fraction, life_needs_cost_by_type, everyday_needs_cost_by_type, luxury_needs_cost_by_type, admin_spending, education_spending, military_spending](population::pop_tag p) {
-					auto pop_size = float(ws.w.population_s.pop_demographics.get(p, population::total_population_tag));
+					auto pop_size = float(ws.w.population_s.pops.get<pop::size>(p));
 					if(pop_size == 0)
 						return;
 
@@ -2489,7 +2489,7 @@ namespace economy {
 				});
 			} else {
 				nations::for_each_pop(ws, si, [&ws, &est_costs, life_needs_cost_by_type, everyday_needs_cost_by_type, luxury_needs_cost_by_type, admin_spending, education_spending, military_spending](population::pop_tag p) {
-					auto pop_size = float(ws.w.population_s.pop_demographics.get(p, population::total_population_tag));
+					auto pop_size = float(ws.w.population_s.pops.get<pop::size>(p));
 					auto pop_size_multiplier = pop_size / pop_needs_divisor;
 
 					auto ptype = ws.w.population_s.pops.get<pop::type>(p);

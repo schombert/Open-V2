@@ -255,7 +255,7 @@ namespace provinces {
 		auto& container = ws.w.province_s.province_state_container;
 
 
-		if(nations::country_tag& owner = container.get<province_state::owner>(p); is_valid_index(owner)) {
+		if(auto& owner = container.get<province_state::owner>(p); is_valid_index(owner)) {
 			nations::remove_owned_province(ws, owner, p);
 			modifiers::detach_province_modifiers(ws, p, owner);
 			owner = nations::country_tag();
@@ -331,6 +331,11 @@ namespace provinces {
 
 		auto cores_range = get_range(ws.w.province_s.core_arrays, container.get<province_state::cores>(prov));
 		container.set<province_state::has_owner_core>(prov, std::find(cores_range.first, cores_range.second, ws.w.nation_s.nations.get<nation::tag>(new_owner)) != cores_range.second);
+
+		for_each_pop(ws, prov, [&ws, new_owner](population::pop_tag p) {
+			auto pc = ws.w.population_s.pops.get<pop::culture>(p);
+			ws.w.population_s.pops.set<pop::is_accepted>(p, nations::is_culture_accepted(ws, pc, new_owner));
+		});
 	}
 
 	void silent_on_conquer_province(world_state& ws, province_tag prov) {

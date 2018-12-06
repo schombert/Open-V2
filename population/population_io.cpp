@@ -70,8 +70,23 @@ void serialization::serializer<population::population_state>::deserialize_object
 		auto demographics = obj.pop_demographics.get_row(p);
 		deserialize_array(input, demographics.data(), sz);
 
-		ws.w.population_s.pops.set<pop::social_interest>(p, issues::calculate_social_interest(ws, demographics));
-		ws.w.population_s.pops.set<pop::political_interest>(p, issues::calculate_political_interest(ws, demographics));
+		obj.pops.set<pop::social_interest>(p, issues::calculate_social_interest(ws, demographics));
+		obj.pops.set<pop::political_interest>(p, issues::calculate_political_interest(ws, demographics));
+		
+		auto type = obj.pops.get<pop::type>(p);
+		auto strata = ws.s.population_m.pop_types[type].flags & population::pop_type::strata_mask;
+		if(strata == population::pop_type::strata_poor) {
+			obj.pops.set<pop::is_poor>(p, true);
+			obj.pops.set<pop::is_middle>(p, false);
+		} else if(strata == population::pop_type::strata_poor) {
+			obj.pops.set<pop::is_poor>(p, false);
+			obj.pops.set<pop::is_middle>(p, true);
+		} else {
+			obj.pops.set<pop::is_poor>(p, false);
+			obj.pops.set<pop::is_middle>(p, false);
+		}
+
+		obj.pops.set<pop::size>(p, ws.w.population_s.pop_demographics.get(p, population::total_population_tag));
 	});
 }
 

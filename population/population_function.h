@@ -34,4 +34,6 @@ namespace population {
 	void default_initialize_world_issues_and_ideology(world_state& ws);
 	float total_size_change(world_state const& ws, pop_tag this_pop);
 	void update_literacy(world_state& ws);
+	void update_pop_ideology_and_issues(world_state& ws);
+	void update_militancy(world_state& ws);
 }

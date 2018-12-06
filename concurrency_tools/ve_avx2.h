@@ -286,8 +286,8 @@ public:
 	}
 
 	template<typename F>
-	__forceinline int_vector apply(F const& f, int_vector arg) {
-		return _mm256_setr_epi32(
+	__forceinline fp_vector apply_for_mask(F const& f, int_vector arg) {
+		return _mm256_castsi256_ps(_mm256_setr_epi32(
 			f(arg.value.m256i_i32[0], offset),
 			f(arg.value.m256i_i32[1], offset + 1ui32),
 			f(arg.value.m256i_i32[2], offset + 2ui32),
@@ -295,7 +295,33 @@ public:
 			f(arg.value.m256i_i32[4], offset + 4ui32),
 			f(arg.value.m256i_i32[5], offset + 5ui32),
 			f(arg.value.m256i_i32[6], offset + 6ui32),
-			f(arg.value.m256i_i32[7], offset + 7ui32));
+			f(arg.value.m256i_i32[7], offset + 7ui32))
+		);
+	}
+
+	template<typename F>
+	__forceinline auto apply(F const& f, int_vector arg) -> std::conditional_t<std::is_same_v<decltype(f(0,0ui32)),float>, fp_vector, int_vector> {
+		if constexpr(std::is_same_v<decltype(f(0, 0ui32)), float>) {
+			return _mm256_setr_ps(
+				f(arg.value.m256i_i32[0], offset),
+				f(arg.value.m256i_i32[1], offset + 1ui32),
+				f(arg.value.m256i_i32[2], offset + 2ui32),
+				f(arg.value.m256i_i32[3], offset + 3ui32),
+				f(arg.value.m256i_i32[4], offset + 4ui32),
+				f(arg.value.m256i_i32[5], offset + 5ui32),
+				f(arg.value.m256i_i32[6], offset + 6ui32),
+				f(arg.value.m256i_i32[7], offset + 7ui32));
+		} else {
+			return _mm256_setr_epi32(
+				f(arg.value.m256i_i32[0], offset),
+				f(arg.value.m256i_i32[1], offset + 1ui32),
+				f(arg.value.m256i_i32[2], offset + 2ui32),
+				f(arg.value.m256i_i32[3], offset + 3ui32),
+				f(arg.value.m256i_i32[4], offset + 4ui32),
+				f(arg.value.m256i_i32[5], offset + 5ui32),
+				f(arg.value.m256i_i32[6], offset + 6ui32),
+				f(arg.value.m256i_i32[7], offset + 7ui32));
+		}
 	}
 
 	template<typename F>
@@ -353,6 +379,9 @@ public:
 	__forceinline int_vector load(int32_t const* source) {
 		int_vector_internal mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - count));
 		return _mm256_maskload_epi32(source + offset, mask); //AVX2
+	}
+	__forceinline int8_t load(int8_t const* source) {
+		return source[offset / 8ui32];
 	}
 	__forceinline void store(float* dest, fp_vector value) {
 		int_vector_internal mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - count));
@@ -450,8 +479,33 @@ public:
 	}
 
 	template<typename F>
-	__forceinline int_vector apply(F const& f, int_vector arg) {
-		return _mm256_setr_epi32(
+	__forceinline auto apply(F const& f, int_vector arg) -> std::conditional_t<std::is_same_v<decltype(f(0, 0ui32)), float>, fp_vector, int_vector> {
+		if constexpr(std::is_same_v<decltype(f(0, 0ui32)), float>) {
+			return _mm256_setr_ps(
+				count > 0 ? f(arg.value.m256i_i32[0], offset) : 0,
+				count > 1 ? f(arg.value.m256i_i32[1], offset + 1ui32) : 0,
+				count > 2 ? f(arg.value.m256i_i32[2], offset + 2ui32) : 0,
+				count > 3 ? f(arg.value.m256i_i32[3], offset + 3ui32) : 0,
+				count > 4 ? f(arg.value.m256i_i32[4], offset + 4ui32) : 0,
+				count > 5 ? f(arg.value.m256i_i32[5], offset + 5ui32) : 0,
+				count > 6 ? f(arg.value.m256i_i32[6], offset + 6ui32) : 0,
+				count > 7 ? f(arg.value.m256i_i32[7], offset + 7ui32) : 0);
+		} else {
+			return _mm256_setr_epi32(
+				count > 0 ? f(arg.value.m256i_i32[0], offset) : 0,
+				count > 1 ? f(arg.value.m256i_i32[1], offset + 1ui32) : 0,
+				count > 2 ? f(arg.value.m256i_i32[2], offset + 2ui32) : 0,
+				count > 3 ? f(arg.value.m256i_i32[3], offset + 3ui32) : 0,
+				count > 4 ? f(arg.value.m256i_i32[4], offset + 4ui32) : 0,
+				count > 5 ? f(arg.value.m256i_i32[5], offset + 5ui32) : 0,
+				count > 6 ? f(arg.value.m256i_i32[6], offset + 6ui32) : 0,
+				count > 7 ? f(arg.value.m256i_i32[7], offset + 7ui32) : 0);
+		}
+	}
+
+	template<typename F>
+	__forceinline fp_vector apply_for_mask(F const& f, int_vector arg) {
+		return _mm256_castsi256_ps(_mm256_setr_epi32(
 			count > 0 ? f(arg.value.m256i_i32[0], offset) : 0,
 			count > 1 ? f(arg.value.m256i_i32[1], offset + 1ui32) : 0,
 			count > 2 ? f(arg.value.m256i_i32[2], offset + 2ui32) : 0,
@@ -459,7 +513,8 @@ public:
 			count > 4 ? f(arg.value.m256i_i32[4], offset + 4ui32) : 0,
 			count > 5 ? f(arg.value.m256i_i32[5], offset + 5ui32) : 0,
 			count > 6 ? f(arg.value.m256i_i32[6], offset + 6ui32) : 0,
-			count > 7 ? f(arg.value.m256i_i32[7], offset + 7ui32) : 0);
+			count > 7 ? f(arg.value.m256i_i32[7], offset + 7ui32) : 0)
+		);
 	}
 
 	template<typename F>

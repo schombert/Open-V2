@@ -13,6 +13,56 @@
 #include "concurrency_tools\\ve.h"
 
 namespace nations {
+	bool is_culture_accepted(world_state const& ws, cultures::culture_tag c, country_tag n) {
+		auto accepted_cultures = ws.w.nation_s.nations.get<nation::accepted_cultures>(n);
+		return c == ws.w.nation_s.nations.get<nation::primary_culture>(n) || contains_item(ws.w.culture_s.culture_arrays, accepted_cultures, c);
+	}
+	void change_primary_culture(world_state & ws, country_tag n, cultures::culture_tag c) {
+		auto& pc = ws.w.nation_s.nations.get<nation::primary_culture>(n);
+		if(pc != c) {
+			pc = c;
+			for_each_pop(ws, n, [&ws, n](population::pop_tag p) {
+				auto pc = ws.w.population_s.pops.get<pop::culture>(p);
+				ws.w.population_s.pops.set<pop::is_accepted>(p, nations::is_culture_accepted(ws, pc, n));
+			});
+		}
+	}
+	void add_accepted_culture(world_state& ws, country_tag n, cultures::culture_tag c) {
+		auto& accepted_cultures = ws.w.nation_s.nations.get<nation::accepted_cultures>(n);
+		add_item(ws.w.culture_s.culture_arrays, accepted_cultures, c);
+
+		for_each_pop(ws, n, [&ws, n, c](population::pop_tag p) {
+			auto pc = ws.w.population_s.pops.get<pop::culture>(p);
+			if(pc == c)
+				ws.w.population_s.pops.set<pop::is_accepted>(p, true);
+		});
+	}
+	void add_accepted_culture_group(world_state& ws, country_tag n, cultures::culture_group_tag cg_t) {
+		auto g_range = ws.s.culture_m.culture_by_culture_group.get_row(cg_t);
+		auto& accepted_cultures = ws.w.nation_s.nations.get<nation::accepted_cultures>(n);
+
+		for(auto c : g_range)
+			add_item(ws.w.culture_s.culture_arrays, accepted_cultures, c);
+
+		for_each_pop(ws, n, [&ws, n, cg_t](population::pop_tag p) {
+			auto pc = ws.w.population_s.pops.get<pop::culture>(p);
+			if(ws.s.culture_m.culture_container[pc].group == cg_t)
+				ws.w.population_s.pops.set<pop::is_accepted>(p, true);
+		});
+	}
+	void remove_accepted_culture(world_state& ws, country_tag n, cultures::culture_tag c) {
+		auto& accepted_cultures = ws.w.nation_s.nations.get<nation::accepted_cultures>(n);
+		remove_item(ws.w.culture_s.culture_arrays, accepted_cultures, c);
+
+		if(ws.w.nation_s.nations.get<nation::primary_culture>(n) != c) {
+			for_each_pop(ws, n, [&ws, n, c](population::pop_tag p) {
+				auto pc = ws.w.population_s.pops.get<pop::culture>(p);
+				if(pc == c)
+					ws.w.population_s.pops.set<pop::is_accepted>(p, false);
+			});
+		}
+	}
+
 	nations::country_tag state_owner(world_state const& ws, nations::state_tag s) {
 		return ws.w.nation_s.states.get<state::owner>(s);
 	}
@@ -961,7 +1011,7 @@ namespace nations {
 			for(auto a : adj_range) {
 				auto adj_owner = ws.w.province_s.province_state_container.get<province_state::owner>(a);
 				if(is_valid_index(adj_owner) && adj_owner != this_nation) {
-					add_item(ws.w.nation_s.nations_arrays, nn, adj_owner);
+					add_item(ws.w.nation_s.nations_arrays, nn, nations::country_tag(adj_owner));
 				}
 			}
 		}

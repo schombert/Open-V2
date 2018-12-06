@@ -35,8 +35,16 @@ namespace pop {
 	struct type;
 	struct political_interest;
 	struct social_interest;
+	struct is_accepted;
+	struct is_poor;
+	struct is_middle;
+	struct size;
 
 	using container = variable_layout_tagged_vector < population::pop_tag, 40'000,
+		is_accepted, bitfield_type,
+		is_poor, bitfield_type,
+		is_middle, bitfield_type,
+
 		type, population::pop_type_tag,
 		religion, cultures::religion_tag,
 		associated_army, military::army_tag,
@@ -45,6 +53,7 @@ namespace pop {
 		culture, cultures::culture_tag,
 		location, expanded_tag<provinces::province_tag>,
 
+		size, float,
 		size_change_from_combat, float,
 		size_change_from_growth, float,
 		size_change_from_type_change, float,

@@ -20,6 +20,8 @@
 void world_state_non_ai_update(world_state & ws) {
 
 	population::update_literacy(ws);
+	population::update_militancy(ws);
+	population::update_pop_ideology_and_issues(ws);
 
 	economy::economy_update_tick(ws);
 

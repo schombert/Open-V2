@@ -830,7 +830,7 @@ namespace triggers {
 		auto pop_id = primary_slot.pop;
 		if(!ws.w.population_s.pops.is_valid_index(pop_id))
 			return compare_values(tval[0], false, true);
-		float unemployed_fraction = 1.0f - float(ws.w.population_s.pop_demographics.get(pop_id, population::total_employment_tag)) / float(ws.w.population_s.pop_demographics.get(pop_id, population::total_population_tag));
+		float unemployed_fraction = 1.0f - float(ws.w.population_s.pop_demographics.get(pop_id, population::total_employment_tag)) / float(ws.w.population_s.pops.get<pop::size>(pop_id));
 		return compare_values(tval[0], unemployed_fraction, read_float_from_payload(tval + 2));
 	}
 	bool tf_is_slave_nation(TRIGGER_PARAMTERS) {
@@ -2560,7 +2560,7 @@ namespace triggers {
 		auto pop_id = primary_slot.pop;
 		if(owner && ws.w.population_s.pops.is_valid_index(pop_id)) {
 			auto ruling_ideology = ws.w.nation_s.nations.get<nation::ruling_ideology>(owner);
-			auto population_size = ws.w.population_s.pop_demographics.get(pop_id, population::total_population_tag);
+			auto population_size = ws.w.population_s.pops.get<pop::size>(pop_id);
 			if(is_valid_index(ruling_ideology) & (population_size != 0)) {
 				return compare_values(tval[0],
 					float(ws.w.population_s.pop_demographics.get(pop_id, population::to_demo_tag(ws, ruling_ideology))) / float(population_size),
@@ -4048,7 +4048,7 @@ namespace triggers {
 	bool tf_pop_unemployment_pop(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.pop;
 		if(ws.w.population_s.pops.is_valid_index(id)) {
-			auto total_size = ws.w.population_s.pop_demographics.get(id, population::total_population_tag);
+			auto total_size = ws.w.population_s.pops.get<pop::size>(id);
 			if(total_size != 0)
 				return compare_values(tval[0], 1.0f - float(ws.w.population_s.pop_demographics.get(id, population::total_employment_tag)) / float(total_size), read_float_from_payload(tval + 2));
 		}
@@ -4399,7 +4399,7 @@ namespace triggers {
 	bool tf_variable_ideology_name_pop(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.pop;
 		if(ws.w.population_s.pops.is_valid_index(id)) {
-			auto total_pop = ws.w.population_s.pop_demographics.get(id, population::total_population_tag);
+			auto total_pop = ws.w.population_s.pops.get<pop::size>(id);
 			if(total_pop != 0)
 				return compare_values(tval[0],
 					float(ws.w.population_s.pop_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology))) / float(total_pop),
@@ -4443,7 +4443,7 @@ namespace triggers {
 	bool tf_variable_issue_name_pop(TRIGGER_PARAMTERS) {
 		auto id = primary_slot.pop;
 		if(ws.w.population_s.pops.is_valid_index(id)) {
-			auto total_pop = ws.w.population_s.pop_demographics.get(id, population::total_population_tag);
+			auto total_pop = ws.w.population_s.pops.get<pop::size>(id);
 			if(total_pop != 0)
 				return compare_values(tval[0],
 					float(ws.w.population_s.pop_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option))) / float(total_pop),
