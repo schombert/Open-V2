@@ -36,4 +36,5 @@ namespace population {
 	void update_literacy(world_state& ws);
 	void update_pop_ideology_and_issues(world_state& ws);
 	void update_militancy(world_state& ws);
+	void update_consciousness(world_state& ws);
 }

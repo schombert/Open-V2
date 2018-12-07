@@ -157,7 +157,7 @@ namespace commands {
 				}
 					return;
 				case set_budget_type::administrative_spending:
-					ws.w.nation_s.nations.set<nation::f_administrative_spending>(c.nation_for, std::clamp(float(c.administrative_spending) / 100.0f, 0.0f, 0.0f));
+					ws.w.nation_s.nations.set<nation::f_administrative_spending>(c.nation_for, std::clamp(float(c.administrative_spending) / 100.0f, 0.0f, 1.0f));
 					return;
 				case set_budget_type::education_spending:
 					ws.w.nation_s.nations.set<nation::f_education_spending>(c.nation_for, std::clamp(float(c.education_spending) / 100.0f, float(0), float(1)));
