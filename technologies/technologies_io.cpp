@@ -227,7 +227,7 @@ namespace technologies {
 				triggers::trigger_slot_contents::nation,
 				triggers::trigger_slot_contents::nation,
 				triggers::trigger_slot_contents::empty,
-				false },
+				},
 				1.0f, 0.0f, s, e);
 	}
 
@@ -237,7 +237,7 @@ namespace technologies {
 				triggers::trigger_slot_contents::nation,
 				triggers::trigger_slot_contents::nation,
 				triggers::trigger_slot_contents::empty,
-				false },
+				},
 				1.0f, 0.0f, s, e);
 		env.s.modifiers_m.factor_modifiers[new_mod].factor = env.s.modifiers_m.factor_modifiers[new_mod].base;
 		return new_mod;
@@ -248,7 +248,7 @@ namespace technologies {
 			triggers::trigger_slot_contents::nation,
 			triggers::trigger_slot_contents::nation,
 			triggers::trigger_slot_contents::empty,
-			false }, s, e);
+			}, s, e);
 		return triggers::commit_trigger(env.s.trigger_m, td);
 	}
 #define MATTRIB(name ) void set_ ## name (military::unit_attribute_type v) { attributes[military::unit_attribute:: name] = v;}

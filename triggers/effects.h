@@ -7,10 +7,6 @@
 
 class world_state;
 
-namespace population {
-	struct rebel_faction;
-}
-
 namespace triggers {
 	int32_t get_effect_payload_size(const uint16_t* data);
 	int32_t effect_scope_data_payload(uint16_t code);
@@ -48,6 +44,5 @@ namespace triggers {
 		parameter primary_slot,
 		parameter this_slot,
 		parameter from_slot,
-		population::rebel_faction* rebel_slot,
 		jsf_prng generator_copy);
 }

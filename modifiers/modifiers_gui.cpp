@@ -521,9 +521,9 @@ namespace modifiers {
 	}
 
 	ui::xy_pair make_additive_factor_explanation(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
-		triggers::const_parameter primary_slot, triggers::const_parameter from_slot, population::rebel_faction* rebel_slot) {
+		triggers::const_parameter primary_slot, triggers::const_parameter from_slot) {
 
-		auto chance = std::max(0.0f, test_additive_factor(f, ws, primary_slot, from_slot, rebel_slot));
+		auto chance = std::max(0.0f, test_additive_factor(f, ws, primary_slot, from_slot));
 
 		cursor_in = display_value(chance, ws, container, cursor_in, lm, fmt);
 		cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
@@ -537,15 +537,15 @@ namespace modifiers {
 		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 		lm.finish_current_line();
 
-		cursor_in = make_factor_text_body(f, ws, container, cursor_in, lm, fmt, primary_slot, from_slot, rebel_slot);
+		cursor_in = make_factor_text_body(f, ws, container, cursor_in, lm, fmt, primary_slot, from_slot);
 
 		lm.decrease_indent(1);
 		return cursor_in;
 	}
 	ui::xy_pair make_multiplicative_factor_explanation(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
-		triggers::const_parameter primary_slot, triggers::const_parameter from_slot, population::rebel_faction* rebel_slot) {
+		triggers::const_parameter primary_slot, triggers::const_parameter from_slot) {
 
-		auto chance = std::max(0.0f, test_additive_factor(f, ws, primary_slot, from_slot, rebel_slot));
+		auto chance = std::max(0.0f, test_additive_factor(f, ws, primary_slot, from_slot));
 
 		cursor_in = display_value(chance, ws, container, cursor_in, lm, fmt);
 		cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
@@ -559,20 +559,20 @@ namespace modifiers {
 		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 		lm.finish_current_line();
 
-		cursor_in = make_factor_text_body(f, ws, container, cursor_in, lm, fmt, primary_slot, from_slot, rebel_slot);
+		cursor_in = make_factor_text_body(f, ws, container, cursor_in, lm, fmt, primary_slot, from_slot);
 
 		lm.decrease_indent(1);
 		return cursor_in;
 	}
 
 	ui::xy_pair make_factor_text_body(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
-		triggers::const_parameter primary_slot, triggers::const_parameter from_slot, population::rebel_faction* rebel_slot) {
+		triggers::const_parameter primary_slot, triggers::const_parameter from_slot) {
 
 		for(uint32_t i = 0; i < f.data_length; ++i) {
 			auto segment = ws.s.modifiers_m.factor_data[f.data_offset + i];
 
 			cursor_in = display_value(segment.factor, ws, container, cursor_in, lm, fmt);
-			cursor_in = triggers::make_trigger_description(ws, container, cursor_in, lm, fmt, ws.s.trigger_m.trigger_data.data() + to_index(segment.condition), primary_slot, primary_slot, from_slot, rebel_slot);
+			cursor_in = triggers::make_trigger_description(ws, container, cursor_in, lm, fmt, ws.s.trigger_m.trigger_data.data() + to_index(segment.condition), primary_slot, primary_slot, from_slot);
 		}
 
 		return cursor_in;

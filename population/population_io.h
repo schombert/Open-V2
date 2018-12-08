@@ -30,6 +30,11 @@ class serialization::tagged_serializer<pop::is_middle, T> : public serialization
 template<typename T>
 class serialization::tagged_serializer<pop::size, T> : public serialization::discard_serializer<T> {};
 
+template<typename T>
+class serialization::tagged_serializer<rebel_faction::controlled_provinces, T> : public serialization::discard_serializer<T> {};
+template<typename T>
+class serialization::tagged_serializer<rebel_faction::member_pops, T> : public serialization::discard_serializer<T> {};
+
 template<>
 class serialization::serializer<population::pop_movement> {
 public:
@@ -42,7 +47,7 @@ public:
 	static size_t size();
 };
 
-template<>
+/*template<>
 class serialization::serializer<population::rebel_faction> {
 public:
 	static constexpr bool has_static_size = true;
@@ -52,7 +57,7 @@ public:
 	static void deserialize_object(std::byte const* &input, population::rebel_faction& obj, world_state& ws);
 	static size_t size(population::rebel_faction const& obj);
 	static size_t size();
-};
+};*/
 
 template<>
 class serialization::serializer<population::population_state> {

@@ -411,7 +411,7 @@ namespace economy {
 				triggers::trigger_slot_contents::state,
 				triggers::trigger_slot_contents::state,
 				triggers::trigger_slot_contents::empty,
-				false },
+				},
 				s, e);
 		return triggers::commit_trigger(env.trigger_m, td);
 	}

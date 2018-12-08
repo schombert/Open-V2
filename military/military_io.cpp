@@ -510,7 +510,7 @@ namespace military {
 			triggers::trigger_scope_state{
 				triggers::trigger_slot_contents::state,
 				triggers::trigger_slot_contents::nation,
-				triggers::trigger_slot_contents::nation, false }, s, e);
+				triggers::trigger_slot_contents::nation }, s, e);
 		return triggers::commit_trigger(env.s.trigger_m, td);
 	}
 	inline triggers::trigger_tag read_cb_nation_trigger(token_group const* s, token_group const* e, cb_environment& env) {
@@ -518,7 +518,7 @@ namespace military {
 			triggers::trigger_scope_state{
 				triggers::trigger_slot_contents::nation,
 				triggers::trigger_slot_contents::nation,
-				triggers::trigger_slot_contents::nation, false }, s, e);
+				triggers::trigger_slot_contents::nation }, s, e);
 		return triggers::commit_trigger(env.s.trigger_m, td);
 	}
 
@@ -527,7 +527,7 @@ namespace military {
 			triggers::trigger_scope_state{
 				triggers::trigger_slot_contents::nation,
 				triggers::trigger_slot_contents::nation,
-				triggers::trigger_slot_contents::nation, false }, s, e);
+				triggers::trigger_slot_contents::nation }, s, e);
 		return triggers::commit_effect(env.s.trigger_m, td);
 	}
 	inline int discard_section(token_group const*, token_group const*, cb_environment&) {

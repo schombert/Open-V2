@@ -229,7 +229,7 @@ void restore_world_state(world_state& ws) {
 		if(auto controller = container.get<province_state::controller>(p); is_valid_index(controller))
 			add_item(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::controlled_provinces>(controller), p);
 		if(auto rebel_controller = container.get<province_state::rebel_controller>(p); is_valid_index(rebel_controller))
-			add_item(ws.w.province_s.province_arrays, ws.w.population_s.rebel_factions[rebel_controller].controlled_provinces, p);
+			add_item(ws.w.province_s.province_arrays, ws.w.population_s.rebel_factions.get<rebel_faction::controlled_provinces>(rebel_controller), p);
 	});
 
 	ws.w.military_s.armies.for_each([&ws](military::army& a) {
@@ -254,8 +254,8 @@ void restore_world_state(world_state& ws) {
 			a.total_soldiers += uint32_t(ws.w.population_s.pop_demographics.get(p, population::total_population_tag));
 		}
 		if(auto rfaction = ws.w.population_s.pops.get<pop::rebel_faction>(p); is_valid_index(rfaction)) {
-			auto& rf = ws.w.population_s.rebel_factions[rfaction];
-			add_item(ws.w.population_s.pop_arrays, rf.member_pops, p);
+			auto& rf = ws.w.population_s.rebel_factions.get<rebel_faction::member_pops>(rfaction);
+			add_item(ws.w.population_s.pop_arrays, rf, p);
 		}
 		if(auto movement = ws.w.population_s.pops.get<pop::movement>(p); is_valid_index(movement)) {
 			auto& m = ws.w.population_s.pop_movements[movement];

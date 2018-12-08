@@ -6,10 +6,6 @@
 
 class world_state;
 
-namespace population {
-	struct rebel_faction;
-}
-
 namespace modifiers {
 	ui::xy_pair make_province_modifier_text_body(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, modifiers::modifier_definition const& values);
 	ui::xy_pair make_national_modifier_text_body(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, modifiers::modifier_definition const& values);
@@ -20,9 +16,9 @@ namespace modifiers {
 	ui::xy_pair explain_national_modifier(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, nations::country_tag this_nation, uint32_t modifier_offset);
 
 	ui::xy_pair make_additive_factor_explanation(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
-		triggers::const_parameter primary_slot, triggers::const_parameter from_slot, population::rebel_faction* rebel_slot);
+		triggers::const_parameter primary_slot, triggers::const_parameter from_slot);
 	ui::xy_pair make_multiplicative_factor_explanation(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
-		triggers::const_parameter primary_slot, triggers::const_parameter from_slot, population::rebel_faction* rebel_slot);
+		triggers::const_parameter primary_slot, triggers::const_parameter from_slot);
 	ui::xy_pair make_factor_text_body(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
-		triggers::const_parameter primary_slot, triggers::const_parameter from_slot, population::rebel_faction* rebel_slot);
+		triggers::const_parameter primary_slot, triggers::const_parameter from_slot);
 }

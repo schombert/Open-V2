@@ -193,9 +193,9 @@ namespace population {
 				auto pop_incl = ws.s.population_m.ideological_inclination.get(pop_type, this_tag);
 				if(is_valid_index(pop_incl)) {
 					if(ws.s.ideologies_m.ideology_container[this_tag].uncivilized) {
-						ideology_demo[i] = modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr, nullptr);
+						ideology_demo[i] = modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr);
 					} else if(auto owner = get_pop_owner(ws, this_pop); bool(owner) && ws.w.nation_s.nations.get<nation::is_civilized>(owner)) {
-						ideology_demo[i] = modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr, nullptr);
+						ideology_demo[i] = modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr);
 					} else {
 						ideology_demo[i] = 0.0f;
 					}
@@ -211,7 +211,7 @@ namespace population {
 			issues::option_tag this_tag(static_cast<issues::option_tag::value_base_t>(i));
 			auto pop_incl = ws.s.population_m.issue_inclination.get(pop_type, this_tag);
 			if(is_valid_index(pop_incl))
-				issues_demo[i] = modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr, nullptr);
+				issues_demo[i] = modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr);
 			else
 				issues_demo[i] = 0;
 		}
@@ -234,9 +234,9 @@ namespace population {
 				auto pop_incl = ws.s.population_m.ideological_inclination.get(pop_type, this_tag);
 				if(is_valid_index(pop_incl)) {
 					if(ws.s.ideologies_m.ideology_container[this_tag].uncivilized) {
-						ideology_demo[i] += total_pop_size * 0.25f * modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr, nullptr);
+						ideology_demo[i] += total_pop_size * 0.25f * modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr);
 					} else if(auto owner = get_pop_owner(ws, this_pop); ws.w.nation_s.nations.get<nation::is_civilized>(owner)) {
-						ideology_demo[i] += total_pop_size * 0.25f * modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr, nullptr);
+						ideology_demo[i] += total_pop_size * 0.25f * modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr);
 					}
 				}
 			}
@@ -264,11 +264,11 @@ namespace population {
 			auto pop_incl = ws.s.population_m.issue_inclination.get(pop_type, this_tag);
 			if(is_valid_index(pop_incl)) {
 				if(ws.s.issues_m.options[this_tag].type == issues::issue_group::social)
-					issues_demo[i] += 0.20f * owner_issue_change * owner_sr_modifier * total_pop_size * modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr, nullptr);
+					issues_demo[i] += 0.20f * owner_issue_change * owner_sr_modifier * total_pop_size * modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr);
 				else if(ws.s.issues_m.options[this_tag].type == issues::issue_group::political)
-					issues_demo[i] += 0.20f * owner_issue_change * owner_pr_modifier * total_pop_size * modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr, nullptr);
+					issues_demo[i] += 0.20f * owner_issue_change * owner_pr_modifier * total_pop_size * modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr);
 				else
-					issues_demo[i] += 0.20f * owner_issue_change * total_pop_size * modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr, nullptr);
+					issues_demo[i] += 0.20f * owner_issue_change * total_pop_size * modifiers::test_multiplicative_factor(pop_incl, ws, this_pop, nullptr);
 			}
 		}
 		Eigen::Map<Eigen::Matrix<float, 1, -1>> ovec(issues_demo, ws.s.issues_m.tracked_options_count);

@@ -71,6 +71,28 @@ namespace pop {
 	> ;
 }
 
+namespace rebel_faction {
+	struct controlled_provinces;
+	struct member_pops;
+	struct independence_tag;
+	struct culture;
+	struct flags;
+	struct religion;
+	struct ideology;
+	struct type;
+
+	using container = variable_layout_tagged_vector < population::pop_tag, 4'000,
+		controlled_provinces, set_tag<provinces::province_tag>,
+		member_pops, set_tag<population::pop_tag>,
+		independence_tag, cultures::national_tag,
+		culture, cultures::culture_tag,
+		flags, uint16_t,
+		religion, cultures::religion_tag,
+		ideology, ideologies::ideology_tag,
+		type, population::rebel_type_tag
+	> ;
+}
+
 namespace population {
 
 	enum class income_type : uint8_t {
@@ -198,7 +220,7 @@ namespace population {
 		movement_type type = movement_type::none;
 	};
 
-	struct rebel_faction {
+	/*struct rebel_faction {
 		set_tag<provinces::province_tag> controlled_provinces;
 		set_tag<pop_tag> member_pops;
 
@@ -212,14 +234,15 @@ namespace population {
 		ideologies::ideology_tag ideology; // copied from rebel type
 		uint8_t icon = 0ui8; // copied from rebel type
 		rebel_type_tag type;
-	};
+	};*/
 
 	class population_state {
 	public:
-		stable_vector<rebel_faction, rebel_faction_tag, 2048, 16> rebel_factions;
+		//stable_vector<rebel_faction, rebel_faction_tag, 2048, 16> rebel_factions;
 		stable_vector<pop_movement, movement_tag, 2048, 16> pop_movements;
 
 		pop::container pops;
+		rebel_faction::container rebel_factions;
 		stable_2d_vector<float, pop_tag, demo_tag, 2048, 256> pop_demographics;
 
 		stable_variable_vector_storage_mk_2<pop_tag, 8, 65536> pop_arrays;

@@ -170,7 +170,7 @@ namespace events {
 				triggers::trigger_slot_contents::province,
 				triggers::trigger_slot_contents::province,
 				triggers::trigger_slot_contents::empty,
-				false },
+				},
 				s, e);
 	}
 	inline event_tag read_country_event(const token_group* s, const token_group* e, event_file_parse_env& env) {
@@ -182,7 +182,7 @@ namespace events {
 				triggers::trigger_slot_contents::nation,
 				triggers::trigger_slot_contents::nation,
 				triggers::trigger_slot_contents::empty,
-				false },
+				},
 				s, e);
 	}
 
@@ -204,8 +204,8 @@ namespace events {
 				triggers::trigger_scope_state{
 					triggers::trigger_slot_contents::nation,
 					triggers::trigger_slot_contents::nation,
-					triggers::trigger_slot_contents::empty,
-					false
+					triggers::trigger_slot_contents::empty
+					
 				});
 			env.s.event_m.on_crisis_declare_interest.emplace_back(tag, p.first);
 		}
@@ -220,8 +220,8 @@ namespace events {
 				triggers::trigger_scope_state{
 					triggers::trigger_slot_contents::nation,
 					triggers::trigger_slot_contents::nation,
-					triggers::trigger_slot_contents::nation,
-					false
+					triggers::trigger_slot_contents::nation
+					
 				});
 			env.s.event_m.on_my_factories_nationalized.emplace_back(tag, p.first);
 		}
@@ -236,8 +236,8 @@ namespace events {
 				triggers::trigger_scope_state{
 					triggers::trigger_slot_contents::nation,
 					triggers::trigger_slot_contents::nation,
-					triggers::trigger_slot_contents::empty,
-					false
+					triggers::trigger_slot_contents::empty
+					
 				});
 			env.s.event_m.on_civilize.emplace_back(tag, p.first);
 		}
@@ -252,8 +252,8 @@ namespace events {
 				triggers::trigger_scope_state{
 					triggers::trigger_slot_contents::nation,
 					triggers::trigger_slot_contents::nation,
-					triggers::trigger_slot_contents::nation,
-					false
+					triggers::trigger_slot_contents::nation
+					
 				});
 			env.s.event_m.on_debtor_default_second.emplace_back(tag, p.first);
 		}
@@ -268,8 +268,8 @@ namespace events {
 				triggers::trigger_scope_state{
 					triggers::trigger_slot_contents::nation,
 					triggers::trigger_slot_contents::nation,
-					triggers::trigger_slot_contents::nation,
-					false
+					triggers::trigger_slot_contents::nation
+					
 				});
 			env.s.event_m.on_debtor_default_small.emplace_back(tag, p.first);
 		}
@@ -284,8 +284,8 @@ namespace events {
 				triggers::trigger_scope_state{
 					triggers::trigger_slot_contents::nation,
 					triggers::trigger_slot_contents::nation,
-					triggers::trigger_slot_contents::nation,
-					false
+					triggers::trigger_slot_contents::nation
+					
 				});
 			env.s.event_m.on_debtor_default.emplace_back(tag, p.first);
 		}
@@ -300,8 +300,8 @@ namespace events {
 				triggers::trigger_scope_state{
 					triggers::trigger_slot_contents::province,
 					triggers::trigger_slot_contents::province,
-					triggers::trigger_slot_contents::empty,
-					false
+					triggers::trigger_slot_contents::empty
+					
 				});
 			env.s.event_m.on_battle_lost.emplace_back(tag, p.first);
 		}
@@ -316,8 +316,8 @@ namespace events {
 				triggers::trigger_scope_state{
 					triggers::trigger_slot_contents::province,
 					triggers::trigger_slot_contents::province,
-					triggers::trigger_slot_contents::empty,
-					false
+					triggers::trigger_slot_contents::empty
+					
 				});
 			env.s.event_m.on_battle_won.emplace_back(tag, p.first);
 		}
@@ -332,8 +332,8 @@ namespace events {
 				triggers::trigger_scope_state{
 					triggers::trigger_slot_contents::state,
 					triggers::trigger_slot_contents::state,
-					triggers::trigger_slot_contents::empty,
-					false
+					triggers::trigger_slot_contents::empty
+					
 				});
 			env.s.event_m.on_colony_to_state_free_slaves.emplace_back(tag, p.first);
 		}
@@ -348,8 +348,8 @@ namespace events {
 				triggers::trigger_scope_state{
 					triggers::trigger_slot_contents::state,
 					triggers::trigger_slot_contents::state,
-					triggers::trigger_slot_contents::empty,
-					false
+					triggers::trigger_slot_contents::empty
+					
 				});
 			env.s.event_m.on_state_conquest.emplace_back(tag, p.first);
 		}
@@ -364,8 +364,8 @@ namespace events {
 				triggers::trigger_scope_state{
 					triggers::trigger_slot_contents::state,
 					triggers::trigger_slot_contents::state,
-					triggers::trigger_slot_contents::empty,
-					false
+					triggers::trigger_slot_contents::empty
+					
 				});
 			env.s.event_m.on_colony_to_state.emplace_back(tag, p.first);
 		}
@@ -380,8 +380,8 @@ namespace events {
 				triggers::trigger_scope_state{
 					triggers::trigger_slot_contents::nation,
 					triggers::trigger_slot_contents::nation,
-					triggers::trigger_slot_contents::empty,
-					false
+					triggers::trigger_slot_contents::empty
+					
 				});
 			text_data::text_tag tt;
 			if(auto f = env.ecm.event_sources.find(p.second); f != env.ecm.event_sources.end()) {
@@ -401,8 +401,8 @@ namespace events {
 				triggers::trigger_scope_state{
 					triggers::trigger_slot_contents::nation,
 					triggers::trigger_slot_contents::nation,
-					triggers::trigger_slot_contents::empty,
-					false
+					triggers::trigger_slot_contents::empty
+					
 				});
 			env.s.event_m.on_new_great_nation.emplace_back(tag, p.first);
 		}
@@ -417,8 +417,8 @@ namespace events {
 				triggers::trigger_scope_state{
 					triggers::trigger_slot_contents::nation,
 					triggers::trigger_slot_contents::nation,
-					triggers::trigger_slot_contents::empty,
-					false
+					triggers::trigger_slot_contents::empty
+					
 				});
 			env.s.event_m.on_lost_great_nation.emplace_back(tag, p.first);
 		}
@@ -433,8 +433,8 @@ namespace events {
 				triggers::trigger_scope_state{
 					triggers::trigger_slot_contents::nation,
 					triggers::trigger_slot_contents::nation,
-					triggers::trigger_slot_contents::empty,
-					false
+					triggers::trigger_slot_contents::empty
+					
 				});
 			env.s.event_m.on_yearly_pulse.emplace_back(tag, p.first);
 		}
@@ -449,8 +449,8 @@ namespace events {
 				triggers::trigger_scope_state{
 					triggers::trigger_slot_contents::nation,
 					triggers::trigger_slot_contents::nation,
-					triggers::trigger_slot_contents::empty,
-					false
+					triggers::trigger_slot_contents::empty
+					
 				});
 			env.s.event_m.on_quarterly_pulse.emplace_back(tag, p.first);
 		}
@@ -505,24 +505,24 @@ namespace events {
 		const auto effect_data = triggers::parse_effect(env.s, env.ecm, triggers::trigger_scope_state{
 			triggers::trigger_slot_contents::nation,
 			triggers::trigger_slot_contents::nation,
-			triggers::trigger_slot_contents::empty,
-			false }, s, e);
+			triggers::trigger_slot_contents::empty
+			 }, s, e);
 		return triggers::commit_effect(env.s.trigger_m, effect_data);
 	}
 	inline triggers::trigger_tag read_decision_trigger(const token_group* s, const token_group* e, event_file_parse_env& env) {
 		const auto trigger_data = triggers::parse_trigger(env.s, triggers::trigger_scope_state{
 			triggers::trigger_slot_contents::nation,
 			triggers::trigger_slot_contents::nation,
-			triggers::trigger_slot_contents::empty,
-			false }, s, e);
+			triggers::trigger_slot_contents::empty
+			 }, s, e);
 		return triggers::commit_trigger(env.s.trigger_m, trigger_data);
 	}
 	inline modifiers::factor_tag read_ai_will_do(const token_group* s, const token_group* e, event_file_parse_env& env) {
 		return modifiers::parse_modifier_factors(env.s, triggers::trigger_scope_state{
 			triggers::trigger_slot_contents::nation,
 			triggers::trigger_slot_contents::nation,
-			triggers::trigger_slot_contents::empty,
-			false }, 1.0f, 0.0f, s, e);
+			triggers::trigger_slot_contents::empty
+			 }, 1.0f, 0.0f, s, e);
 	}
 	inline int inner_read_decision(const token_group* s, const token_group* e, const token_and_type& t, event_file_parse_env& env) {
 		const auto tag = read_decision(env.s, env.ecm, env.pictures_root, s, e);

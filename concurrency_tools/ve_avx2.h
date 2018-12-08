@@ -4,6 +4,10 @@ constexpr int32_t vector_size = 8;
 using int_vector_internal = __m256i;
 using fp_vector_internal = __m256;
 
+constexpr int32_t full_mask = 0x00FF;
+constexpr int32_t empty_mask = 0;
+
+
 struct fp_vector {
 	fp_vector_internal value;
 
@@ -25,11 +29,47 @@ struct fp_vector {
 		sums = _mm_add_ss(sums, shuf);
 		return _mm_cvtss_f32(sums);
 	}
+
+	template<typename F>
+	__forceinline auto visit(F&& f) -> std::conditional_t<std::is_same_v<decltype(f(0.0f)), float> || std::is_same_v<decltype(f(0.0f)), bool>, fp_vector, int_vector> {
+		if constexpr(std::is_same_v<decltype(f(0.0f)), float>) {
+			return _mm256_setr_ps(
+				f(arg.value.m256_f32[0]),
+				f(arg.value.m256_f32[1]),
+				f(arg.value.m256_f32[2]),
+				f(arg.value.m256_f32[3]),
+				f(arg.value.m256_f32[4]),
+				f(arg.value.m256_f32[5]),
+				f(arg.value.m256_f32[6]),
+				f(arg.value.m256_f32[7]));
+		} else if constexpr(std::is_same_v<decltype(f(0.0f)), bool>) {
+			return _mm256_castsi256_ps(_mm256_setr_epi32(
+				-int32_t(f(arg.value.m256_f32[0])),
+				-int32_t(f(arg.value.m256_f32[1])),
+				-int32_t(f(arg.value.m256_f32[2])),
+				-int32_t(f(arg.value.m256_f32[3])),
+				-int32_t(f(arg.value.m256_f32[4])),
+				-int32_t(f(arg.value.m256_f32[5])),
+				-int32_t(f(arg.value.m256_f32[6])),
+				-int32_t(f(arg.value.m256_f32[7]))));
+		} else {
+			return _mm256_setr_epi32(
+				f(arg.value.m256_f32[0]),
+				f(arg.value.m256_f32[1]),
+				f(arg.value.m256_f32[2]),
+				f(arg.value.m256_f32[3]),
+				f(arg.value.m256_f32[4]),
+				f(arg.value.m256_f32[5]),
+				f(arg.value.m256_f32[6]),
+				f(arg.value.m256_f32[7]));
+		}
+	}
 };
 
 struct int_vector {
 	int_vector_internal value;
 
+	__forceinline int_vector() : value(_mm256_setzero_si256()) {}
 	__forceinline constexpr int_vector(int_vector_internal v) : value(v) {}
 	__forceinline int_vector(int32_t v) : value(_mm256_set1_epi32(v)) {}
 
@@ -39,7 +79,108 @@ struct int_vector {
 	__forceinline constexpr operator fp_vector() {
 		return _mm256_cvtepi32_ps(value);
 	}
+
+	template<typename F>
+	__forceinline auto visit(F&& f) -> std::conditional_t<std::is_same_v<decltype(f(0)), float> || std::is_same_v<decltype(f(0)), bool>, fp_vector, int_vector> {
+		if constexpr(std::is_same_v<decltype(f(0)), float>) {
+			return _mm256_setr_ps(
+				f(arg.value.m256i_i32[0]),
+				f(arg.value.m256i_i32[1]),
+				f(arg.value.m256i_i32[2]),
+				f(arg.value.m256i_i32[3]),
+				f(arg.value.m256i_i32[4]),
+				f(arg.value.m256i_i32[5]),
+				f(arg.value.m256i_i32[6]),
+				f(arg.value.m256i_i32[7]));
+		} else if constexpr(std::is_same_v<decltype(f(0)), bool>) {
+			return _mm256_castsi256_ps(_mm256_setr_epi32(
+				-int32_t(f(arg.value.m256i_i32[0])),
+				-int32_t(f(arg.value.m256i_i32[1])),
+				-int32_t(f(arg.value.m256i_i32[2])),
+				-int32_t(f(arg.value.m256i_i32[3])),
+				-int32_t(f(arg.value.m256i_i32[4])),
+				-int32_t(f(arg.value.m256i_i32[5])),
+				-int32_t(f(arg.value.m256i_i32[6])),
+				-int32_t(f(arg.value.m256i_i32[7]))));
+		} else {
+			return _mm256_setr_epi32(
+				f(arg.value.m256i_i32[0]),
+				f(arg.value.m256i_i32[1]),
+				f(arg.value.m256i_i32[2]),
+				f(arg.value.m256i_i32[3]),
+				f(arg.value.m256i_i32[4]),
+				f(arg.value.m256i_i32[5]),
+				f(arg.value.m256i_i32[6]),
+				f(arg.value.m256i_i32[7]));
+		}
+	}
 };
+
+template<typename F>
+class int_accumulator : public F {
+private:
+	__m256i value;
+	uint32_t index = 0;
+public:
+	int_accumulator(F&& f) : value(_mm256_setzero_si256()), F(std::move(f)) {}
+
+	void add_value(int32_t v) {
+		arg.value.m256i_i32[index++] = v;
+		if(index == 8) {
+			F::operator()(value);
+			value = _mm256_setzero_si256();
+			index = 0;
+		}
+	}
+	void flush() {
+		if(index != 0) {
+			F::operator()(value);
+			value = _mm256_setzero_si256();
+			index = 0;
+		}
+	}
+};
+
+template<typename F>
+auto make_accumulator(F const& f) -> int_accumulator<F> {
+	return int_accumulator<F>(f);
+}
+
+template<typename F>
+__forceinline auto generate(uint32_t offset, F&& f) -> std::conditional_t<std::is_same_v<decltype(f(0ui32)), float> || std::is_same_v<decltype(f(0ui32)), bool>, fp_vector, int_vector> {
+	if constexpr(std::is_same_v<decltype(f(0ui32)), float>) {
+		return _mm256_setr_ps(
+			f(offset + 0ui32),
+			f(offset + 1ui32),
+			f(offset + 2ui32),
+			f(offset + 3ui32),
+			f(offset + 4ui32),
+			f(offset + 5ui32),
+			f(offset + 6ui32),
+			f(offset + 7ui32]));
+	} else if constexpr(std::is_same_v<decltype(f(0ui32)), bool>) {
+		return _mm256_castsi256_ps(_mm256_setr_epi32(
+			-int32_t(f(offset + 0ui32)),
+			-int32_t(f(offset + 0ui32)),
+			-int32_t(f(offset + 0ui32)),
+			-int32_t(f(offset + 0ui32)),
+			-int32_t(f(offset + 0ui32)),
+			-int32_t(f(offset + 0ui32)),
+			-int32_t(f(offset + 0ui32)),
+			-int32_t(f(offset + 0ui32))));
+	} else {
+		return _mm256_setr_epi32(
+			f(offset + 0ui32),
+			f(offset + 1ui32),
+			f(offset + 2ui32),
+			f(offset + 3ui32),
+			f(offset + 4ui32),
+			f(offset + 5ui32),
+			f(offset + 6ui32),
+			f(offset + 7ui32]));
+	}
+}
+}
 
 __forceinline fp_vector operator+(fp_vector a, fp_vector b) {
 	return _mm256_add_ps(a, b);
@@ -172,16 +313,16 @@ public:
 	constexpr static int32_t block_index = blk_index;
 	constexpr static bool full_operation = true;
 
-	__forceinline fp_vector zero() {
+	__forceinline static fp_vector zero() {
 		return _mm256_setzero_ps();
 	}
-	__forceinline int_vector int_zero() {
+	__forceinline static int_vector int_zero() {
 		return _mm256_setzero_si256();
 	}
-	__forceinline fp_vector constant(float v) {
+	__forceinline static fp_vector constant(float v) {
 		return _mm256_set1_ps(v);
 	}
-	__forceinline int_vector constant(int32_t v) {
+	__forceinline static int_vector constant(int32_t v) {
 		return _mm256_set1_epi32(v);
 	}
 
@@ -201,16 +342,16 @@ public:
 		return _mm256_loadu_si256((__m256i const*)(source + offset));
 	}
 
-	__forceinline fp_vector gather_load(float const* source, __m256i indices) {
+	__forceinline static fp_vector gather_load(float const* source, __m256i indices) {
 		return _mm256_i32gather_ps(source, indices, 4);
 	}
-	__forceinline int_vector gather_load(int32_t const* source, __m256i indices) {
+	__forceinline static int_vector gather_load(int32_t const* source, __m256i indices) {
 		return _mm256_i32gather_epi32(source, indices, 4);
 	}
-	__forceinline fp_vector gather_masked_load(float const* source, __m256i indices, fp_vector mask, fp_vector def = _mm256_setzero_ps()) {
+	__forceinline static fp_vector gather_masked_load(float const* source, __m256i indices, fp_vector mask, fp_vector def = _mm256_setzero_ps()) {
 		return _mm256_mask_i32gather_ps(def, source, indices, mask, 4);
 	}
-	__forceinline int_vector gather_masked_load(int32_t const* source, __m256i indices, int_vector mask, int_vector def = _mm256_setzero_si256()) {
+	__forceinline static int_vector gather_masked_load(int32_t const* source, __m256i indices, int_vector mask, int_vector def = _mm256_setzero_si256()) {
 		return _mm256_mask_i32gather_epi32(def, source, indices, mask, 4);
 	}
 

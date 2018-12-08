@@ -982,7 +982,7 @@ namespace governments {
 			tag = ws.s.event_m.decision_container[win.tag].effect;
 			requirements = ws.s.event_m.decision_container[win.tag].allow;
 			auto player = ws.w.local_player_nation;
-			if(!is_valid_index(requirements) || triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(requirements), ws, player, player, nullptr, nullptr))
+			if(!is_valid_index(requirements) || triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(requirements), ws, player, player, nullptr))
 				self.set_enabled(true);
 			else
 				self.set_enabled(false);
@@ -998,7 +998,7 @@ namespace governments {
 
 		if(auto player = ws.w.local_player_nation; player) {
 			for(auto& d : ws.s.event_m.decision_container) {
-				if(!is_valid_index(d.potential) || triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(d.potential), ws, player, player, nullptr, nullptr)) {
+				if(!is_valid_index(d.potential) || triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(d.potential), ws, player, player, nullptr)) {
 					possible_list.push_back(d.id);
 				}
 			}

@@ -263,7 +263,7 @@ namespace governments {
 		ui::unlimited_line_manager lm;
 		if(auto player = ws.w.local_player_nation; bool(player) && is_valid_index(tag)) {
 			triggers::make_effect_description(ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format,
-				ws.s.trigger_m.effect_data.data() + to_index(tag), player, player, nullptr, nullptr, get_local_generator());
+				ws.s.trigger_m.effect_data.data() + to_index(tag), player, player, nullptr, get_local_generator());
 		} else {
 			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
 		}
@@ -275,7 +275,7 @@ namespace governments {
 		auto player = ws.w.local_player_nation;
 		if(is_valid_index(requirements))
 			triggers::make_trigger_description(ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format,
-				ws.s.trigger_m.trigger_data.data() + to_index(requirements), player, player, nullptr, nullptr);
+				ws.s.trigger_m.trigger_data.data() + to_index(requirements), player, player, nullptr);
 	}
 	void enact_decision_button::button_function(ui::simple_button<enact_decision_button>& self, world_state & ws) {}
 	ui::window_tag decision_listbox::element_tag(ui::gui_static & m) {

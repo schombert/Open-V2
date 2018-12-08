@@ -4,9 +4,6 @@
 #include "triggers.h"
 
 class world_state;
-namespace population {
-	struct rebel_faction;
-}
 
 namespace triggers {
 	ui::xy_pair make_trigger_description(
@@ -19,7 +16,6 @@ namespace triggers {
 		const_parameter primary_slot,
 		const_parameter this_slot,
 		const_parameter from_slot,
-		population::rebel_faction* rebel_slot,
 		bool show_condition = true
 	);
 	ui::xy_pair make_effect_description(
@@ -32,7 +28,6 @@ namespace triggers {
 		const_parameter primary_slot,
 		const_parameter this_slot,
 		const_parameter from_slot,
-		population::rebel_faction* rebel_slot,
 		jsf_prng generator_copy,
 		bool show_condition = true
 	);

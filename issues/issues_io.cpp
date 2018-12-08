@@ -184,7 +184,7 @@ namespace issues {
 			triggers::trigger_slot_contents::nation,
 			triggers::trigger_slot_contents::nation,
 			triggers::trigger_slot_contents::empty,
-			false }, s, e);
+			}, s, e);
 		return triggers::commit_trigger(env.s.trigger_m, result);
 	}
 	inline triggers::effect_tag read_option_effect(const token_group* s, const token_group* e, option_parsing_env& env) {
@@ -192,7 +192,7 @@ namespace issues {
 			triggers::trigger_slot_contents::nation,
 			triggers::trigger_slot_contents::nation,
 			triggers::trigger_slot_contents::empty,
-			false }, s, e);
+			}, s, e);
 		return triggers::commit_effect(env.s.trigger_m, result);
 	}
 	inline rules_set read_option_rules(const token_group* s, const token_group* e, option_parsing_env&) {

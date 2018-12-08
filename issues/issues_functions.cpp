@@ -61,10 +61,10 @@ namespace issues {
 		if(ws.w.nation_s.active_issue_options.get(nation_for, current_issue) != opt) {
 
 			if(!is_valid_index(this_option.on_execute_trigger) || 
-				triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(this_option.on_execute_trigger), ws, nation_for, nation_for, nullptr, nullptr)) {
+				triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(this_option.on_execute_trigger), ws, nation_for, nation_for, nullptr)) {
 
 				if(is_valid_index(this_option.on_execute_effect)) {
-					triggers::execute_effect(ws.s.trigger_m.effect_data.data() + to_index(this_option.on_execute_effect), ws, nation_for, nation_for, nullptr, nullptr, get_local_generator());
+					triggers::execute_effect(ws.s.trigger_m.effect_data.data() + to_index(this_option.on_execute_effect), ws, nation_for, nation_for, nullptr, get_local_generator());
 				}
 			}
 

@@ -183,17 +183,17 @@ namespace triggers {
 		province = 1,
 		state = 2,
 		pop = 3,
-		nation = 4
+		nation = 4,
+		rebel = 5
 	};
 
 	struct trigger_scope_state {
 		trigger_slot_contents main_slot = trigger_slot_contents::empty;
 		trigger_slot_contents this_slot = trigger_slot_contents::empty;
 		trigger_slot_contents from_slot = trigger_slot_contents::empty;
-		bool contains_rebeltype = false;
 
 		int32_t to_integer() const {
-			return int32_t(main_slot) + int32_t(this_slot) * 8 + int32_t(from_slot) * 8 * 8 + int32_t(contains_rebeltype) * 8 * 8 * 8;
+			return int32_t(main_slot) + int32_t(this_slot) * 16 + int32_t(from_slot) * 16 * 16;
 		}
 	};
 }

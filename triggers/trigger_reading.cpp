@@ -1457,7 +1457,7 @@ namespace triggers {
 				else
 					return std::optional<uint16_t>();
 			} else if (is_fixed_token_ci(t, "reb")) {
-				if (scope.contains_rebeltype == false)
+				if (scope.from_slot != trigger_slot_contents::rebel)
 					return std::optional<uint16_t>();
 				else if (scope.main_slot == trigger_slot_contents::pop)
 					return  uint16_t(trigger_codes::culture_pop_reb | association_to_bool_code(a));
@@ -1600,7 +1600,7 @@ namespace triggers {
 					return std::optional<uint16_t>();
 				}
 			} else if (is_fixed_token_ci(t, "reb")) {
-				if (scope.contains_rebeltype == false)
+				if (scope.from_slot != trigger_slot_contents::rebel)
 					return std::optional<uint16_t>();
 				else if (scope.main_slot == trigger_slot_contents::pop)
 					return  uint16_t(trigger_codes::culture_group_reb_pop | association_to_bool_code(a));
@@ -1642,7 +1642,7 @@ namespace triggers {
 					else
 						return std::optional<uint16_t>();
 				} else if(is_fixed_token_ci(t, "reb")) {
-					if(scope.contains_rebeltype)
+					if(scope.from_slot == trigger_slot_contents::rebel)
 						return  uint16_t(trigger_codes::religion_reb | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
@@ -1667,7 +1667,7 @@ namespace triggers {
 					else
 						return std::optional<uint16_t>();
 				} else if(is_fixed_token_ci(t, "reb")) {
-					if(scope.contains_rebeltype)
+					if(scope.from_slot == trigger_slot_contents::rebel)
 						return  uint16_t(trigger_codes::religion_nation_reb | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
@@ -1778,7 +1778,7 @@ namespace triggers {
 						return  uint16_t(trigger_codes::is_cultural_union_this_province | association_to_bool_code(a));
 					else if(scope.this_slot == trigger_slot_contents::nation)
 						return  uint16_t(trigger_codes::is_cultural_union_this_nation | association_to_bool_code(a));
-					else if(scope.contains_rebeltype)
+					else if(scope.from_slot == trigger_slot_contents::rebel)
 						return  uint16_t(trigger_codes::is_cultural_union_this_rebel | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
@@ -1907,7 +1907,7 @@ namespace triggers {
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "reb")) {
-					if (scope.contains_rebeltype)
+					if (scope.from_slot == trigger_slot_contents::rebel)
 						return  uint16_t(trigger_codes::is_core_reb | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
@@ -3003,7 +3003,7 @@ namespace triggers {
 				} else if (is_fixed_token_ci(t, "owner")) {
 					return  uint16_t(trigger_codes::controlled_by_owner | association_to_bool_code(a));
 				} else if (is_fixed_token_ci(t, "reb")) {
-					if (scope.contains_rebeltype)
+					if (scope.from_slot == trigger_slot_contents::rebel)
 						return  uint16_t(trigger_codes::controlled_by_reb | association_to_bool_code(a));
 					else
 						return std::optional<uint16_t>();
@@ -3442,7 +3442,7 @@ namespace triggers {
 				trigger_slot_contents::province,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				};
 		}
 	};
 	struct any_neighbor_country_trigger {
@@ -3459,7 +3459,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				};
 		}
 	};
 	struct war_countries_trigger {
@@ -3476,7 +3476,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				};
 		}
 	};
 	struct any_greater_power_trigger {
@@ -3488,7 +3488,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				};
 		}
 	};
 	struct any_owned_province_trigger {
@@ -3505,7 +3505,7 @@ namespace triggers {
 				trigger_slot_contents::province,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				};
 		}
 	};
 
@@ -3524,13 +3524,13 @@ namespace triggers {
 					trigger_slot_contents::province,
 					scope.this_slot,
 					scope.from_slot,
-					scope.contains_rebeltype };
+					};
 			} else {
 				return trigger_scope_state{
 					trigger_slot_contents::nation,
 					scope.this_slot,
 					scope.from_slot,
-					scope.contains_rebeltype };
+					};
 			}
 		}
 	};
@@ -3550,13 +3550,13 @@ namespace triggers {
 					trigger_slot_contents::province,
 					scope.this_slot,
 					scope.from_slot,
-					scope.contains_rebeltype };
+					};
 			} else {
 				return trigger_scope_state{
 					trigger_slot_contents::nation,
 					scope.this_slot,
 					scope.from_slot,
-					scope.contains_rebeltype };
+					};
 			}
 		}
 	};
@@ -3572,7 +3572,7 @@ namespace triggers {
 				trigger_slot_contents::state,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				};
 		}
 	};
 	struct any_substate_trigger {
@@ -3587,7 +3587,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				};
 		}
 	};
 	struct any_sphere_member_trigger {
@@ -3602,7 +3602,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				};
 		}
 	};
 	struct any_pop_trigger {
@@ -3621,7 +3621,7 @@ namespace triggers {
 				trigger_slot_contents::pop,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				};
 		}
 	};
 	struct owner_trigger {
@@ -3638,7 +3638,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				};
 		}
 	};
 	struct controller_trigger {
@@ -3653,7 +3653,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				};
 		}
 	};
 	struct location_trigger {
@@ -3668,7 +3668,7 @@ namespace triggers {
 				trigger_slot_contents::province,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				};
 		}
 	};
 	struct country_trigger {
@@ -3689,7 +3689,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				};
 		}
 	};
 	struct capital_scope_trigger {
@@ -3704,7 +3704,7 @@ namespace triggers {
 				trigger_slot_contents::province,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				};
 		}
 	};
 	struct this_trigger {
@@ -3725,7 +3725,7 @@ namespace triggers {
 				scope.this_slot,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				};
 		}
 	};
 	struct from_trigger {
@@ -3746,7 +3746,7 @@ namespace triggers {
 				scope.from_slot,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				};
 		}
 	};
 	struct sea_zone_trigger {
@@ -3774,7 +3774,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				};
 		}
 	};
 	struct overlord_trigger {
@@ -3801,7 +3801,7 @@ namespace triggers {
 	};
 	struct independence_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
-			if (scope.contains_rebeltype)
+			if (scope.from_slot == trigger_slot_contents::rebel)
 				return uint16_t(trigger_codes::independence_scope);
 			else
 				return std::optional<uint16_t>();
@@ -3811,7 +3811,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				};
 		}
 	};
 	struct flashpoint_tag_scope_trigger {
@@ -3826,7 +3826,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				};
 		}
 	};
 	struct crisis_state_scope_trigger {
@@ -3838,7 +3838,7 @@ namespace triggers {
 				trigger_slot_contents::state,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				};
 		}
 	};
 	struct state_scope_trigger {
@@ -3855,7 +3855,7 @@ namespace triggers {
 				trigger_slot_contents::state,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				};
 		}
 	};
 
@@ -4429,7 +4429,7 @@ namespace triggers {
 					trigger_slot_contents::province,
 					e.current_scope.this_slot,
 					e.current_scope.from_slot,
-					e.current_scope.contains_rebeltype };
+					};
 				e.current_scope = scope_state;
 				env.data.push_back(uint16_t(trigger_codes::x_provinces_in_variable_region | trigger_codes::is_scope));
 				env.data.push_back(2ui16);
@@ -4440,7 +4440,7 @@ namespace triggers {
 					trigger_slot_contents::nation,
 					e.current_scope.this_slot,
 					e.current_scope.from_slot,
-					e.current_scope.contains_rebeltype };
+					};
 				e.current_scope = scope_state;
 				env.data.push_back(uint16_t(trigger_codes::tag_scope | trigger_codes::is_scope));
 				env.data.push_back(2ui16);
@@ -4451,7 +4451,7 @@ namespace triggers {
 					trigger_slot_contents::province,
 					e.current_scope.this_slot,
 					e.current_scope.from_slot,
-					e.current_scope.contains_rebeltype };
+					};
 				e.current_scope = scope_state;
 				env.data.push_back(uint16_t(trigger_codes::integer_scope | trigger_codes::is_scope));
 				env.data.push_back(2ui16);

@@ -14,11 +14,6 @@ namespace scenario {
 
 class world_state;
 
-namespace population {
-	struct rebel_faction;
-}
-
-
 #undef small
 
 namespace triggers {
@@ -122,6 +117,7 @@ namespace triggers {
 		nations::state_tag state;
 		population::pop_tag pop;
 		provinces::province_tag prov;
+		population::rebel_faction_tag rebel;
 
 		constexpr parameter() noexcept : nation() {}
 		constexpr parameter(nullptr_t) noexcept : nation() {}
@@ -129,10 +125,12 @@ namespace triggers {
 		constexpr parameter(nations::state_tag s) noexcept : state(s) {}
 		constexpr parameter(population::pop_tag po) noexcept : pop(po) {}
 		constexpr parameter(provinces::province_tag pr) noexcept : prov(pr) {}
+		constexpr parameter(population::rebel_faction_tag r) noexcept : rebel(r) {}
 		constexpr parameter(expanded_tag<nations::country_tag> n) noexcept : nation(n) {}
 		constexpr parameter(expanded_tag<nations::state_tag> s) noexcept : state(s) {}
 		constexpr parameter(expanded_tag<population::pop_tag> po) noexcept : pop(po) {}
 		constexpr parameter(expanded_tag<provinces::province_tag> pr) noexcept : prov(pr) {}
+		constexpr parameter(expanded_tag < population::rebel_faction_tag> r) noexcept : rebel(r) {}
 	};
 	using const_parameter = parameter;
 
@@ -186,5 +184,5 @@ namespace triggers {
 		}
 	}
 
-	bool test_trigger(uint16_t const* tval, world_state const& ws, const_parameter primary_slot, const_parameter this_slot, const_parameter from_slot, population::rebel_faction const* rebel_slot);
+	bool test_trigger(uint16_t const* tval, world_state const& ws, const_parameter primary_slot, const_parameter this_slot, const_parameter from_slot);
 }

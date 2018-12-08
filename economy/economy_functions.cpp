@@ -153,7 +153,7 @@ namespace economy {
 
 		float bonus_sum = 1.0f;
 		for(uint32_t i = 0; i < std::extent_v<decltype(std::declval<factory_type>().bonuses)>; ++i) {
-			if(is_valid_index(bonuses[i].condition) && triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(bonuses[i].condition), ws, state_id, state_id, nullptr, nullptr)) {
+			if(is_valid_index(bonuses[i].condition) && triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(bonuses[i].condition), ws, state_id, state_id, nullptr)) {
 				bonus_sum += bonuses[i].value;
 			}
 		}

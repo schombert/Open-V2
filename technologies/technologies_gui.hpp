@@ -470,7 +470,7 @@ namespace technologies {
 				for(auto i : ws.s.technology_m.inventions) {
 					if(bit_vector_test(ws.w.nation_s.active_technologies.get_row(pid), i) == false &&
 						(!is_valid_index(ws.s.technology_m.technologies_container[i].allow) ||
-							triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(ws.s.technology_m.technologies_container[i].allow), ws, player, player, nullptr, nullptr))) {
+							triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(ws.s.technology_m.technologies_container[i].allow), ws, player, player, nullptr))) {
 						data.emplace_back(i, get_invention_chance(i, ws, player));
 					}
 				}

@@ -61,9 +61,10 @@ void serialization::serializer<population::population_state>::serialize_object(s
 }
 
 void serialization::serializer<population::population_state>::deserialize_object(std::byte const *& input, population::population_state & obj, world_state & ws) {
-	deserialize(input, obj.rebel_factions, ws);
+	deserialize(input, obj.rebel_factions);
 	deserialize(input, obj.pop_movements);
 	deserialize(input, obj.pops);
+
 	obj.pop_demographics.ensure_capacity(obj.pops.size());
 
 	obj.pops.for_each([sz = population::aligned_32_issues_ideology_demo_size(ws), &obj, &input, &ws](population::pop_tag p) {
@@ -102,6 +103,7 @@ size_t serialization::serializer<population::population_state>::size(population:
 		pop_demo_size;
 }
 
+/*
 void serialization::serializer<population::rebel_faction>::serialize_object(std::byte *& output, population::rebel_faction const & obj) {
 	serialize(output, obj.independence_tag);
 	serialize(output, obj.culture);
@@ -132,7 +134,7 @@ size_t serialization::serializer<population::rebel_faction>::size() {
 		sizeof(cultures::culture_tag) +
 		sizeof(cultures::religion_tag) +
 		sizeof(population::rebel_type_tag);
-}
+}*/
 
 namespace population {
 	struct pops_in_province_environment {
@@ -255,8 +257,8 @@ namespace population {
 			triggers::trigger_scope_state{
 				triggers::trigger_slot_contents::pop,
 				triggers::trigger_slot_contents::pop,
-				triggers::trigger_slot_contents::empty,
-				true },
+				triggers::trigger_slot_contents::rebel,
+				},
 				1.0f, 0.0f, s, e);
 	}
 	inline modifiers::factor_tag read_rebel_movement_evaluation_factor(const token_group* s, const token_group* e, rebel_reading_env& env) {
@@ -265,8 +267,8 @@ namespace population {
 			triggers::trigger_scope_state{
 				triggers::trigger_slot_contents::province,
 				triggers::trigger_slot_contents::province,
-				triggers::trigger_slot_contents::empty,
-				true },
+				triggers::trigger_slot_contents::rebel,
+				},
 				1.0f, 0.0f, s, e);
 	}
 	inline modifiers::factor_tag read_rebel_will_rise_factor(const token_group* s, const token_group* e, rebel_reading_env& env) {
@@ -275,8 +277,8 @@ namespace population {
 			triggers::trigger_scope_state{
 				triggers::trigger_slot_contents::pop,
 				triggers::trigger_slot_contents::pop,
-				triggers::trigger_slot_contents::empty,
-				true },
+				triggers::trigger_slot_contents::rebel,
+				},
 				1.0f, 0.0f, s, e);
 	}
 	inline int discard_rebel_section(const token_group*, const token_group*, rebel_reading_env&) { return 0; }
@@ -285,8 +287,8 @@ namespace population {
 			triggers::trigger_scope_state{
 				triggers::trigger_slot_contents::province,
 				triggers::trigger_slot_contents::province,
-				triggers::trigger_slot_contents::empty,
-				true }, s, e);
+				triggers::trigger_slot_contents::rebel,
+				}, s, e);
 		return triggers::commit_trigger(env.s.trigger_m, td);
 	}
 	inline triggers::effect_tag read_rebel_siege_won_effect(const token_group* s, const token_group* e, rebel_reading_env& env) {
@@ -294,8 +296,8 @@ namespace population {
 			triggers::trigger_scope_state{
 				triggers::trigger_slot_contents::province,
 				triggers::trigger_slot_contents::province,
-				triggers::trigger_slot_contents::empty,
-				true }, s, e);
+				triggers::trigger_slot_contents::rebel,
+				}, s, e);
 		return triggers::commit_effect(env.s.trigger_m, td);
 	}
 	inline triggers::trigger_tag read_rebel_demands_enforced_trigger(const token_group* s, const token_group* e, rebel_reading_env& env) {
@@ -303,8 +305,8 @@ namespace population {
 			triggers::trigger_scope_state{
 				triggers::trigger_slot_contents::nation,
 				triggers::trigger_slot_contents::nation,
-				triggers::trigger_slot_contents::empty,
-				true }, s, e);
+				triggers::trigger_slot_contents::rebel,
+				}, s, e);
 		return triggers::commit_trigger(env.s.trigger_m, td);
 	}
 	inline triggers::effect_tag read_rebel_demands_enforced_effect(const token_group* s, const token_group* e, rebel_reading_env& env) {
@@ -312,8 +314,8 @@ namespace population {
 			triggers::trigger_scope_state{
 				triggers::trigger_slot_contents::nation,
 				triggers::trigger_slot_contents::nation,
-				triggers::trigger_slot_contents::empty,
-				true }, s, e);
+				triggers::trigger_slot_contents::rebel,
+				}, s, e);
 		return triggers::commit_effect(env.s.trigger_m, td);
 	}
 #ifdef _DEBUG
@@ -505,7 +507,7 @@ namespace population {
 				triggers::trigger_slot_contents::pop,
 				triggers::trigger_slot_contents::pop,
 				triggers::trigger_slot_contents::empty,
-				false },
+				},
 				1.0f, 0.0f, s, e);
 	}
 
@@ -579,7 +581,7 @@ namespace population {
 					triggers::trigger_slot_contents::pop,
 					triggers::trigger_slot_contents::pop,
 					triggers::trigger_slot_contents::empty,
-					false },
+					},
 					1.0f, 0.0f, start, end);
 			env.s.population_m.issue_inclination.get(env.pt.id, issue_tag) = ftag;
 		}
@@ -600,7 +602,7 @@ namespace population {
 					triggers::trigger_slot_contents::pop,
 					triggers::trigger_slot_contents::pop,
 					triggers::trigger_slot_contents::empty,
-					false },
+					},
 					1.0f, 0.0f, start, end);
 			env.s.population_m.ideological_inclination.get(env.pt.id, ideology_tag) = ftag;
 		}
@@ -621,7 +623,7 @@ namespace population {
 					triggers::trigger_slot_contents::pop,
 					triggers::trigger_slot_contents::pop,
 					triggers::trigger_slot_contents::empty,
-					false },
+					},
 					1.0f, 0.0f, start, end);
 			env.s.population_m.promote_to.get(env.pt.id, ptype_tag) = ftag;
 		}
@@ -634,7 +636,7 @@ namespace population {
 				triggers::trigger_slot_contents::nation,
 				triggers::trigger_slot_contents::pop,
 				triggers::trigger_slot_contents::empty,
-				false },
+				},
 				1.0f, 0.0f, start, end);
 	}
 
@@ -644,7 +646,7 @@ namespace population {
 				triggers::trigger_slot_contents::province,
 				triggers::trigger_slot_contents::pop,
 				triggers::trigger_slot_contents::empty,
-				false },
+				},
 				1.0f, 0.0f, start, end);
 	}
 

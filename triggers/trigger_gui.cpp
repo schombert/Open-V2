@@ -286,21 +286,20 @@ namespace triggers {
 			const_parameter primary_slot,
 			const_parameter this_slot,
 			const_parameter from_slot,
-			population::rebel_faction* rebel_slot,
 			bool show_condition) {
 
 			const auto source_size = 1 + get_trigger_payload_size(source);
 			auto sub_units_start = source + 2 + trigger_scope_data_payload(source[0]);
 			while(sub_units_start < source + source_size) {
 				cursor_in = make_trigger_description( ws, container, cursor_in, lm, fmt,
-					sub_units_start, primary_slot, this_slot, from_slot, rebel_slot, show_condition);
+					sub_units_start, primary_slot, this_slot, from_slot, show_condition);
 				sub_units_start += 1 + get_trigger_payload_size(sub_units_start);
 			}
 			return cursor_in;
 		}
 #define TRIGGER_DISPLAY_PARAMS uint16_t const* tval, world_state& ws, ui::tagged_gui_object container, \
 			ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, const_parameter primary_slot, \
-			const_parameter this_slot, const_parameter from_slot, population::rebel_faction* rebel_slot
+			const_parameter this_slot, const_parameter from_slot
 
 
 		ui::xy_pair tf_none(TRIGGER_DISPLAY_PARAMS, bool show_condition) {
@@ -315,7 +314,7 @@ namespace triggers {
 				lm.finish_current_line();
 			}
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, primary_slot, this_slot, from_slot, rebel_slot, show_condition);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, primary_slot, this_slot, from_slot, show_condition);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -334,7 +333,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, rebel_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -353,7 +352,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, rebel_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -372,7 +371,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, rebel_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -391,7 +390,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, rebel_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -410,7 +409,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, rebel_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -429,7 +428,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, rebel_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -452,7 +451,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, rebel_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -475,7 +474,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, rebel_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -498,7 +497,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, rebel_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -521,7 +520,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, rebel_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -544,7 +543,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, rebel_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -567,7 +566,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, rebel_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -590,7 +589,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, rebel_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -609,7 +608,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, rebel_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -628,7 +627,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, rebel_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -647,7 +646,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, rebel_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -672,7 +671,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, rebel_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -694,7 +693,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				bool(primary_slot.state) ? nations::state_owner(ws, primary_slot.state) : nations::country_tag(), this_slot, from_slot, rebel_slot, show_condition && bool(primary_slot.state));
+				bool(primary_slot.state) ? nations::state_owner(ws, primary_slot.state) : nations::country_tag(), this_slot, from_slot, show_condition && bool(primary_slot.state));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -716,7 +715,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				is_valid_index(primary_slot.prov) ? provinces::province_owner(ws, primary_slot.prov) : nations::country_tag(), this_slot, from_slot, rebel_slot,
+				is_valid_index(primary_slot.prov) ? provinces::province_owner(ws, primary_slot.prov) : nations::country_tag(), this_slot, from_slot,
 				show_condition && is_valid_index(primary_slot.prov));
 			lm.decrease_indent(1);
 			return cursor_in;
@@ -739,7 +738,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				is_valid_index(primary_slot.prov) ? provinces::province_controller(ws, primary_slot.prov) : nations::country_tag(), this_slot, from_slot, rebel_slot, 
+				is_valid_index(primary_slot.prov) ? provinces::province_controller(ws, primary_slot.prov) : nations::country_tag(), this_slot, from_slot, 
 				show_condition && is_valid_index(primary_slot.prov));
 			lm.decrease_indent(1);
 			return cursor_in;
@@ -759,7 +758,7 @@ namespace triggers {
 			lm.increase_indent(1);
 			auto loc = bool(primary_slot.pop) ? provinces::province_tag(ws.w.population_s.pops.get<pop::location>(primary_slot.pop)) : provinces::province_tag();
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				 loc, this_slot, from_slot, rebel_slot, show_condition && bool(primary_slot.pop));
+				 loc, this_slot, from_slot, show_condition && bool(primary_slot.pop));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -781,7 +780,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, 
-				bool(primary_slot.state) ? nations::state_owner(ws, primary_slot.state) : nations::country_tag(), this_slot, from_slot, rebel_slot, show_condition && bool(primary_slot.state));
+				bool(primary_slot.state) ? nations::state_owner(ws, primary_slot.state) : nations::country_tag(), this_slot, from_slot, show_condition && bool(primary_slot.state));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -799,7 +798,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, 
-				bool(primary_slot.pop) ? population::get_pop_owner(ws, primary_slot.pop) : nations::country_tag(), this_slot, from_slot, rebel_slot, show_condition && bool(primary_slot.pop));
+				bool(primary_slot.pop) ? population::get_pop_owner(ws, primary_slot.pop) : nations::country_tag(), this_slot, from_slot, show_condition && bool(primary_slot.pop));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -822,7 +821,7 @@ namespace triggers {
 			lm.increase_indent(1);
 			auto loc = bool(primary_slot.nation) ? ws.w.nation_s.nations.get<nation::current_capital>(primary_slot.nation) : provinces::province_tag();
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, 
-				loc, this_slot, from_slot, rebel_slot, show_condition && bool(primary_slot.nation));
+				loc, this_slot, from_slot, show_condition && bool(primary_slot.nation));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -842,7 +841,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				this_slot, this_slot, from_slot, rebel_slot, show_condition && bool(this_slot.nation));
+				this_slot, this_slot, from_slot, show_condition && bool(this_slot.nation));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -862,7 +861,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				this_slot, this_slot, from_slot, rebel_slot, show_condition && bool(this_slot.state));
+				this_slot, this_slot, from_slot, show_condition && bool(this_slot.state));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -882,7 +881,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				this_slot, this_slot, from_slot, rebel_slot, show_condition && bool(this_slot.prov));
+				this_slot, this_slot, from_slot, show_condition && bool(this_slot.prov));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -902,7 +901,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				this_slot, this_slot, from_slot, rebel_slot, show_condition && bool(this_slot.pop));
+				this_slot, this_slot, from_slot, show_condition && bool(this_slot.pop));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -922,7 +921,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				from_slot, this_slot, from_slot, rebel_slot, show_condition && bool(from_slot.nation));
+				from_slot, this_slot, from_slot, show_condition && bool(from_slot.nation));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -942,7 +941,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				from_slot, this_slot, from_slot, rebel_slot, show_condition && bool(from_slot.state));
+				from_slot, this_slot, from_slot, show_condition && bool(from_slot.state));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -962,7 +961,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				from_slot, this_slot, from_slot, rebel_slot, show_condition && bool(from_slot.prov));
+				from_slot, this_slot, from_slot, show_condition && bool(from_slot.prov));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -982,7 +981,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				from_slot, this_slot, from_slot, rebel_slot, show_condition && bool(from_slot.pop));
+				from_slot, this_slot, from_slot, show_condition && bool(from_slot.pop));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -1004,7 +1003,7 @@ namespace triggers {
 			auto sea_zones = ws.s.province_m.coastal_adjacency.get_row(primary_slot.prov);
 			if(sea_zones.first != sea_zones.second) {
 				cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-					*sea_zones.first, this_slot, from_slot, rebel_slot, show_condition);
+					*sea_zones.first, this_slot, from_slot, show_condition);
 			}
 			lm.decrease_indent(1);
 			return cursor_in;
@@ -1034,7 +1033,7 @@ namespace triggers {
 				if(is_valid_index(union_tag)) {
 					auto union_holder = ws.w.culture_s.national_tags_state[union_tag].holder;
 					cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-						union_holder, this_slot, from_slot, rebel_slot, show_condition && bool(union_holder));
+						union_holder, this_slot, from_slot, show_condition && bool(union_holder));
 				}
 			}
 			lm.decrease_indent(1);
@@ -1058,7 +1057,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				bool(primary_slot.nation) ? ws.w.nation_s.nations.get<nation::overlord>(primary_slot.nation) : nations::country_tag(), this_slot, from_slot, rebel_slot, show_condition && bool(primary_slot.nation));
+				bool(primary_slot.nation) ? ws.w.nation_s.nations.get<nation::overlord>(primary_slot.nation) : nations::country_tag(), this_slot, from_slot, show_condition && bool(primary_slot.nation));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -1080,12 +1079,12 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				bool(primary_slot.nation) ? ws.w.nation_s.nations.get<nation::sphere_leader>(primary_slot.nation) : nations::country_tag(), this_slot, from_slot, rebel_slot, show_condition && bool(primary_slot.nation));
+				bool(primary_slot.nation) ? ws.w.nation_s.nations.get<nation::sphere_leader>(primary_slot.nation) : nations::country_tag(), this_slot, from_slot, show_condition && bool(primary_slot.nation));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
 		ui::xy_pair tf_independence_scope(TRIGGER_DISPLAY_PARAMS, bool show_condition) {
-			auto rtag = bool(rebel_slot) ? rebel_slot->independence_tag : cultures::national_tag();
+			auto rtag = bool(from_slot.rebel) ? ws.w.population_s.rebel_factions[from_slot.rebel].independence_tag : cultures::national_tag();
 			auto ination = is_valid_index(rtag) ? ws.w.culture_s.national_tags_state[rtag].holder : nations::country_tag();
 
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::reb_independence_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
@@ -1101,7 +1100,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				ination, this_slot, from_slot, rebel_slot, show_condition && bool(ination));
+				ination, this_slot, from_slot, show_condition && bool(ination));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -1122,7 +1121,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				ination, this_slot, from_slot, rebel_slot, show_condition && bool(ination));
+				ination, this_slot, from_slot, show_condition && bool(ination));
 			lm.decrease_indent(1);
 
 			return cursor_in;
@@ -1142,7 +1141,7 @@ namespace triggers {
 			lm.increase_indent(1);
 			auto cstate = ws.w.current_crisis.state;
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				cstate, this_slot, from_slot, rebel_slot, show_condition && is_valid_index(cstate));
+				cstate, this_slot, from_slot, show_condition && is_valid_index(cstate));
 			lm.decrease_indent(1);
 
 			return cursor_in;
@@ -1165,7 +1164,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				bool(primary_slot.prov) ? provinces::province_state(ws, primary_slot.prov) : nations::state_tag(), this_slot, from_slot, rebel_slot, show_condition && bool(primary_slot.prov));
+				bool(primary_slot.prov) ? provinces::province_state(ws, primary_slot.prov) : nations::state_tag(), this_slot, from_slot, show_condition && bool(primary_slot.prov));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -1188,7 +1187,7 @@ namespace triggers {
 			lm.increase_indent(1);
 			auto pop_province = bool(primary_slot.pop) ? provinces::province_tag(ws.w.population_s.pops.get<pop::location>(primary_slot.pop)) : provinces::province_tag();
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				is_valid_index(pop_province) ? provinces::province_state(ws, pop_province) : nations::state_tag(), this_slot, from_slot, rebel_slot, show_condition && is_valid_index(pop_province));
+				is_valid_index(pop_province) ? provinces::province_state(ws, pop_province) : nations::state_tag(), this_slot, from_slot, show_condition && is_valid_index(pop_province));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -1210,7 +1209,7 @@ namespace triggers {
 			lm.increase_indent(1);
 			auto pop_province = bool(primary_slot.pop) ? provinces::province_tag(ws.w.population_s.pops.get<pop::location>(primary_slot.pop)) : provinces::province_tag();
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				tag_holder, this_slot, from_slot, rebel_slot, show_condition);
+				tag_holder, this_slot, from_slot, show_condition);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -1231,7 +1230,7 @@ namespace triggers {
 			lm.increase_indent(1);
 			auto pop_province = bool(primary_slot.pop) ? provinces::province_tag(ws.w.population_s.pops.get<pop::location>(primary_slot.pop)) : provinces::province_tag();
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				ptag, this_slot, from_slot, rebel_slot, show_condition);
+				ptag, this_slot, from_slot, show_condition);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -1243,7 +1242,7 @@ namespace triggers {
 				lm.finish_current_line();
 			}
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, primary_slot, this_slot, from_slot, rebel_slot, show_condition);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, primary_slot, this_slot, from_slot, show_condition);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -1265,7 +1264,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				bool(primary_slot.prov) ? provinces::province_owner(ws, primary_slot.prov) : nations::country_tag(), this_slot, from_slot, rebel_slot, show_condition && bool(primary_slot.prov));
+				bool(primary_slot.prov) ? provinces::province_owner(ws, primary_slot.prov) : nations::country_tag(), this_slot, from_slot, show_condition && bool(primary_slot.prov));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -1294,7 +1293,7 @@ namespace triggers {
 				if(is_valid_index(union_tag)) {
 					auto union_holder = ws.w.culture_s.national_tags_state[union_tag].holder;
 					cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-						union_holder, this_slot, from_slot, rebel_slot, show_condition && bool(union_holder));
+						union_holder, this_slot, from_slot, show_condition && bool(union_holder));
 				}
 			}
 			lm.decrease_indent(1);
@@ -1310,7 +1309,7 @@ namespace triggers {
 
 	static ui::xy_pair(*scope_functions[])(uint16_t const* tval, world_state& ws, ui::tagged_gui_object,
 		ui::xy_pair, ui::unlimited_line_manager&, ui::text_format const&,
-		const_parameter, const_parameter, const_parameter, population::rebel_faction*, bool) = {
+		const_parameter, const_parameter, const_parameter, bool) = {
 		tf_generic_scope, //constexpr uint16_t generic_scope = 0x0000; // or & and
 		tf_x_neighbor_province_scope, //constexpr uint16_t x_neighbor_province_scope = 0x0001;
 		tf_x_neighbor_country_scope_nation, //constexpr uint16_t x_neighbor_country_scope_nation = 0x0002;
@@ -1537,22 +1536,22 @@ namespace triggers {
 		return display_with_comparison(tval[0], ws.s.fixed_ui_text[scenario::fixed_ui::a_primary_or_accepted], ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_culture_pop_reb(TRIGGER_DISPLAY_PARAMS) {
-		cultures::culture_tag rc = bool(rebel_slot) ? rebel_slot->culture : cultures::culture_tag();
+		cultures::culture_tag rc = bool(from_slot.rebel) ? ws.w.population_s.rebel_factions[from_slot.rebel].culture : cultures::culture_tag();
 		return display_with_comparison(tval[0], scenario::fixed_ui::culture,
 			is_valid_index(rc) ? ws.s.culture_m.culture_container[rc].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_culture], ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_culture_state_reb(TRIGGER_DISPLAY_PARAMS) {
-		cultures::culture_tag rc = bool(rebel_slot) ? rebel_slot->culture : cultures::culture_tag();
+		cultures::culture_tag rc = bool(from_slot.rebel) ? ws.w.population_s.rebel_factions[from_slot.rebel].culture : cultures::culture_tag();
 		return display_with_comparison(tval[0], scenario::fixed_ui::dominant_culture,
 			is_valid_index(rc) ? ws.s.culture_m.culture_container[rc].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_culture], ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_culture_province_reb(TRIGGER_DISPLAY_PARAMS) {
-		cultures::culture_tag rc = bool(rebel_slot) ? rebel_slot->culture : cultures::culture_tag();
+		cultures::culture_tag rc = bool(from_slot.rebel) ? ws.w.population_s.rebel_factions[from_slot.rebel].culture : cultures::culture_tag();
 		return display_with_comparison(tval[0], scenario::fixed_ui::dominant_culture,
 			is_valid_index(rc) ? ws.s.culture_m.culture_container[rc].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_culture], ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_culture_nation_reb(TRIGGER_DISPLAY_PARAMS) {
-		cultures::culture_tag rc = bool(rebel_slot) ? rebel_slot->culture : cultures::culture_tag();
+		cultures::culture_tag rc = bool(from_slot.rebel) ? ws.w.population_s.rebel_factions[from_slot.rebel].culture : cultures::culture_tag();
 
 		cursor_in = ui::add_linear_text(cursor_in,
 			is_valid_index(rc) ? ws.s.culture_m.culture_container[rc].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_culture],
@@ -1591,14 +1590,14 @@ namespace triggers {
 			ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_culture_group_reb_nation(TRIGGER_DISPLAY_PARAMS) {
-		cultures::culture_tag rc = bool(rebel_slot) ? rebel_slot->culture : cultures::culture_tag();
+		cultures::culture_tag rc = bool(from_slot.rebel) ? ws.w.population_s.rebel_factions[from_slot.rebel].culture : cultures::culture_tag();
 		auto cg = is_valid_index(rc) ? ws.s.culture_m.culture_container[rc].group : cultures::culture_group_tag();
 		return display_with_comparison(tval[0], scenario::fixed_ui::culture_group,
 			is_valid_index(cg) ? ws.s.culture_m.culture_groups[cg].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_culture_group],
 			ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_culture_group_reb_pop(TRIGGER_DISPLAY_PARAMS) {
-		cultures::culture_tag rc = bool(rebel_slot) ? rebel_slot->culture : cultures::culture_tag();
+		cultures::culture_tag rc = bool(from_slot.rebel) ? ws.w.population_s.rebel_factions[from_slot.rebel].culture : cultures::culture_tag();
 		auto cg = is_valid_index(rc) ? ws.s.culture_m.culture_container[rc].group : cultures::culture_group_tag();
 		return display_with_comparison(tval[0], scenario::fixed_ui::culture_group,
 			is_valid_index(cg) ? ws.s.culture_m.culture_groups[cg].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_culture_group],
@@ -1638,34 +1637,34 @@ namespace triggers {
 	}
 	ui::xy_pair tf_culture_group_nation_this_province(TRIGGER_DISPLAY_PARAMS) {
 		return tf_culture_group_nation_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-			bool(this_slot.prov) ? provinces::province_owner(ws, this_slot.prov) : nations::country_tag(), nullptr, nullptr);
+			bool(this_slot.prov) ? provinces::province_owner(ws, this_slot.prov) : nations::country_tag(), nullptr);
 	}
 	ui::xy_pair tf_culture_group_pop_this_province(TRIGGER_DISPLAY_PARAMS) {
 		return tf_culture_group_pop_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-			bool(this_slot.prov) ? provinces::province_owner(ws, this_slot.prov) : nations::country_tag(), nullptr, nullptr);
+			bool(this_slot.prov) ? provinces::province_owner(ws, this_slot.prov) : nations::country_tag(), nullptr);
 	}
 	ui::xy_pair tf_culture_group_nation_this_state(TRIGGER_DISPLAY_PARAMS) {
 		return tf_culture_group_nation_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-			bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nations::country_tag(), nullptr, nullptr);
+			bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nations::country_tag(), nullptr);
 	}
 	ui::xy_pair tf_culture_group_pop_this_state(TRIGGER_DISPLAY_PARAMS) {
 		return tf_culture_group_pop_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-			bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nations::country_tag(), nullptr, nullptr);
+			bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nations::country_tag(), nullptr);
 	}
 	ui::xy_pair tf_culture_group_nation_this_pop(TRIGGER_DISPLAY_PARAMS) {
 		return tf_culture_group_nation_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-			bool(this_slot.pop) ? population::get_pop_owner(ws, this_slot.pop) : nations::country_tag(), nullptr, nullptr);
+			bool(this_slot.pop) ? population::get_pop_owner(ws, this_slot.pop) : nations::country_tag(), nullptr);
 	}
 	ui::xy_pair tf_culture_group_pop_this_pop(TRIGGER_DISPLAY_PARAMS) {
 		return tf_culture_group_pop_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-			bool(this_slot.pop) ? population::get_pop_owner(ws, this_slot.pop) : nations::country_tag(), nullptr, nullptr);
+			bool(this_slot.pop) ? population::get_pop_owner(ws, this_slot.pop) : nations::country_tag(), nullptr);
 	}
 	ui::xy_pair tf_religion(TRIGGER_DISPLAY_PARAMS) {
 		auto c = trigger_payload(tval[2]).small.values.religion;
 		return display_with_comparison(tval[0], scenario::fixed_ui::religion, ws.s.culture_m.religions[c].name, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_religion_reb(TRIGGER_DISPLAY_PARAMS) {
-		cultures::religion_tag rc = bool(rebel_slot) ? rebel_slot->religion : cultures::religion_tag();
+		cultures::religion_tag rc = bool(from_slot.rebel) ? ws.w.population_s.rebel_factions[from_slot.rebel].religion : cultures::religion_tag();
 		return display_with_comparison(tval[0], scenario::fixed_ui::religion,
 			is_valid_index(rc) ? ws.s.culture_m.religions[rc].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_religion],
 			ws, container, cursor_in, lm, fmt);
@@ -1949,7 +1948,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_is_core_reb(TRIGGER_DISPLAY_PARAMS) {
-		auto reb_ind = bool(rebel_slot) ? rebel_slot->independence_tag : cultures::national_tag();
+		auto reb_ind = bool(from_slot.rebel) ? ws.w.population_s.rebel_factions[from_slot.rebel].independence_tag : cultures::national_tag();
 		auto reb_holder = is_valid_index(reb_ind) ? ws.w.culture_s.national_tags_state[reb_ind].holder : nations::country_tag();
 		auto rnam = is_valid_index(reb_ind) ? 
 			(bool(reb_holder) ? ws.w.nation_s.nations.get<nation::name>(reb_holder) : ws.s.culture_m.national_tags[reb_ind].default_name.name) :
@@ -5938,7 +5937,7 @@ namespace triggers {
 			scenario::fixed_ui::national_religion, ws.s.culture_m.religions[trigger_payload(tval[2]).small.values.religion].name, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_religion_nation_reb(TRIGGER_DISPLAY_PARAMS) {
-		auto rr = bool(rebel_slot) ? rebel_slot->religion : cultures::religion_tag();
+		auto rr = bool(from_slot.rebel) ? ws.w.population_s.rebel_factions[from_slot.rebel].religion : cultures::religion_tag();
 		auto rn = is_valid_index(rr) ? ws.s.culture_m.religions[rr].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_religion];
 		return display_with_comparison(tval[0],
 			scenario::fixed_ui::national_religion, rn, ws, container, cursor_in, lm, fmt);
@@ -5989,7 +5988,7 @@ namespace triggers {
 	}
 
 	ui::xy_pair (*trigger_functions[])(uint16_t const*, world_state&, ui::tagged_gui_object, ui::xy_pair, ui::unlimited_line_manager&, ui::text_format const&,
-		const_parameter, const_parameter, const_parameter, population::rebel_faction*) = {
+		const_parameter, const_parameter, const_parameter) = {
 		tf_none_b,
 		tf_year,
 		tf_month,
@@ -6623,11 +6622,10 @@ namespace triggers {
 		const_parameter primary_slot,
 		const_parameter this_slot,
 		const_parameter from_slot,
-		population::rebel_faction* rebel_slot,
 		bool show_condition
 	) {
 		if(show_condition) {
-			if(triggers::test_trigger(tval, ws, primary_slot, this_slot, from_slot, rebel_slot)) {
+			if(triggers::test_trigger(tval, ws, primary_slot, this_slot, from_slot)) {
 				ui::text_format local_fmt{ui::text_color::green, fmt.font_handle, fmt.font_size};
 				cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
 			} else {
@@ -6637,9 +6635,9 @@ namespace triggers {
 		}
 
 		if((*tval & trigger_codes::is_scope) != 0) {
-			return scope_functions[*tval & trigger_codes::code_mask](tval, ws, container, cursor_in, lm, fmt, primary_slot, this_slot, from_slot, rebel_slot, show_condition);
+			return scope_functions[*tval & trigger_codes::code_mask](tval, ws, container, cursor_in, lm, fmt, primary_slot, this_slot, from_slot, show_condition);
 		} else {
-			return trigger_functions[*tval & trigger_codes::code_mask](tval, ws, container, cursor_in, lm, fmt, primary_slot, this_slot, from_slot, rebel_slot);
+			return trigger_functions[*tval & trigger_codes::code_mask](tval, ws, container, cursor_in, lm, fmt, primary_slot, this_slot, from_slot);
 		}
 	}
 }

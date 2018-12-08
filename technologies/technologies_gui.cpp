@@ -102,7 +102,7 @@ namespace technologies {
 		if(auto player = ws.w.local_player_nation; bool(player) && is_valid_index(invention)) {
 			ui::unlimited_line_manager lm;
 			modifiers::make_additive_factor_explanation(ws.s.modifiers_m.factor_modifiers[ws.s.technology_m.technologies_container[invention].ai_chance],
-				ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format, player, nullptr, nullptr);
+				ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format, player, nullptr);
 		}
 	}
 	ui::window_tag invention_lb::element_tag(ui::gui_static & m) {

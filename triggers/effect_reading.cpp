@@ -39,7 +39,7 @@ namespace triggers {
 			} else {
 				if (scope.main_slot == trigger_slot_contents::province) {
 					if (is_fixed_token_ci(t, "reb")) {
-						if (scope.contains_rebeltype)
+						if (scope.from_slot == trigger_slot_contents::rebel)
 							return effect_codes::add_core_reb;
 						else
 							return std::optional<uint16_t>();
@@ -89,7 +89,7 @@ namespace triggers {
 			} else {
 				if (scope.main_slot == trigger_slot_contents::province) {
 					if (is_fixed_token_ci(t, "reb")) {
-						if (scope.contains_rebeltype)
+						if (scope.from_slot == trigger_slot_contents::rebel)
 							return effect_codes::remove_core_reb;
 						else
 							return std::optional<uint16_t>();
@@ -300,7 +300,7 @@ namespace triggers {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type, const token_and_type& t) {
 			if (scope.main_slot == trigger_slot_contents::nation) {
 				if (is_fixed_token_ci(t, "reb")) {
-					if (scope.contains_rebeltype)
+					if (scope.from_slot == trigger_slot_contents::rebel)
 						return effect_codes::government_reb;
 					else
 						return std::optional<uint16_t>();
@@ -446,7 +446,7 @@ namespace triggers {
 				ecm.register_triggered_event(
 					s.event_m,
 					token_to<int32_t>(t),
-					trigger_scope_state{trigger_slot_contents::nation, trigger_slot_contents::nation, scope.this_slot, false}));
+					trigger_scope_state{trigger_slot_contents::nation, trigger_slot_contents::nation, scope.this_slot}));
 		}
 	};
 	struct province_event_effect {
@@ -470,7 +470,7 @@ namespace triggers {
 				ecm.register_triggered_event(
 					s.event_m,
 					token_to<int32_t>(t),
-					trigger_scope_state{ trigger_slot_contents::province, trigger_slot_contents::province, scope.this_slot, false }));
+					trigger_scope_state{ trigger_slot_contents::province, trigger_slot_contents::province, scope.this_slot }));
 		}
 	};
 	struct military_access_effect {
@@ -537,7 +537,7 @@ namespace triggers {
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "reb")) {
-					if(scope.contains_rebeltype)
+					if(scope.from_slot == trigger_slot_contents::rebel)
 						return effect_codes::secede_province_reb;
 					else
 						return std::optional<uint16_t>();
@@ -987,7 +987,7 @@ namespace triggers {
 					else
 						return std::optional<uint16_t>();
 				} else if (is_fixed_token_ci(t, "reb")) {
-					if (scope.contains_rebeltype)
+					if (scope.from_slot == trigger_slot_contents::rebel)
 						return effect_codes::release_vassal_reb;
 					else
 						return std::optional<uint16_t>();
@@ -1466,7 +1466,7 @@ namespace triggers {
 				trigger_slot_contents::province,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct any_neighbor_country_effect {
@@ -1481,7 +1481,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct any_country_effect {
@@ -1493,7 +1493,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct random_country_effect {
@@ -1508,7 +1508,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct random_neighbor_province_effect {
@@ -1523,7 +1523,7 @@ namespace triggers {
 				trigger_slot_contents::province,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct random_empty_neighbor_province_effect {
@@ -1538,7 +1538,7 @@ namespace triggers {
 				trigger_slot_contents::province,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct any_greater_power_effect {
@@ -1550,7 +1550,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct poor_strata_effect {
@@ -1569,7 +1569,7 @@ namespace triggers {
 				trigger_slot_contents::pop,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct middle_strata_effect {
@@ -1588,7 +1588,7 @@ namespace triggers {
 				trigger_slot_contents::pop,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct rich_strata_effect {
@@ -1607,7 +1607,7 @@ namespace triggers {
 				trigger_slot_contents::pop,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct random_pop_effect {
@@ -1626,7 +1626,7 @@ namespace triggers {
 				trigger_slot_contents::pop,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct random_owned_effect {
@@ -1643,7 +1643,7 @@ namespace triggers {
 				trigger_slot_contents::province,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct any_owned_effect {
@@ -1660,7 +1660,7 @@ namespace triggers {
 				trigger_slot_contents::province,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct all_core_effect {
@@ -1675,7 +1675,7 @@ namespace triggers {
 				trigger_slot_contents::province,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct any_state_effect {
@@ -1690,7 +1690,7 @@ namespace triggers {
 				trigger_slot_contents::state,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct random_state_effect {
@@ -1705,7 +1705,7 @@ namespace triggers {
 				trigger_slot_contents::state,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct any_pop_effect {
@@ -1724,7 +1724,7 @@ namespace triggers {
 				trigger_slot_contents::pop,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct owner_effect {
@@ -1741,7 +1741,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct controller_effect {
@@ -1756,7 +1756,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct location_effect {
@@ -1771,7 +1771,7 @@ namespace triggers {
 				trigger_slot_contents::province,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct country_effect {
@@ -1788,7 +1788,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct capital_scope_effect {
@@ -1803,7 +1803,7 @@ namespace triggers {
 				trigger_slot_contents::province,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct this_scope_effect {
@@ -1824,7 +1824,7 @@ namespace triggers {
 				scope.this_slot,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct from_scope_effect {
@@ -1845,7 +1845,7 @@ namespace triggers {
 				scope.from_slot,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct sea_zone_effect {
@@ -1860,7 +1860,7 @@ namespace triggers {
 				trigger_slot_contents::province,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct cultural_union_effect {
@@ -1875,7 +1875,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct overlord_effect {
@@ -1890,7 +1890,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct sphere_owner_effect {
@@ -1905,12 +1905,12 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct independence_effect {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope) {
-			if (scope.contains_rebeltype)
+			if (scope.from_slot == trigger_slot_contents::rebel)
 				return uint16_t(effect_codes::independence_scope);
 			else
 				return std::optional<uint16_t>();
@@ -1920,7 +1920,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct flashpoint_tag_scope_effect {
@@ -1935,7 +1935,7 @@ namespace triggers {
 				trigger_slot_contents::nation,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct crisis_state_scope_effect {
@@ -1947,7 +1947,7 @@ namespace triggers {
 				trigger_slot_contents::state,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 	struct state_scope_effect {
@@ -1964,7 +1964,7 @@ namespace triggers {
 				trigger_slot_contents::state,
 				scope.this_slot,
 				scope.from_slot,
-				scope.contains_rebeltype };
+				 };
 		}
 	};
 
@@ -2138,7 +2138,7 @@ namespace triggers {
 					env.data.push_back(2ui16);
 					env.data.push_back(trigger_payload(value).value);
 				} else if(who_reb) {
-					if(!env.current_scope.contains_rebeltype)
+					if(env.current_scope.from_slot != trigger_slot_contents::rebel)
 						EFFECT_ERROR(invalid_scope_for_effect, env);
 					env.data.push_back(effect_codes::relation_reb);
 					env.data.push_back(2ui16);
@@ -2171,7 +2171,7 @@ namespace triggers {
 					env.data.push_back(2ui16);
 					env.data.push_back(trigger_payload(value).value);
 				} else if(who_reb) {
-					if(!env.current_scope.contains_rebeltype)
+					if(env.current_scope.from_slot != trigger_slot_contents::rebel)
 						EFFECT_ERROR(invalid_scope_for_effect, env);
 					env.data.push_back(effect_codes::relation_province_reb);
 					env.data.push_back(2ui16);
@@ -2715,7 +2715,7 @@ namespace triggers {
 						env.ecm.register_triggered_event(
 							env.s.event_m,
 							id,
-							trigger_scope_state{ trigger_slot_contents::nation, trigger_slot_contents::nation, env.current_scope.this_slot, false })).value);
+							trigger_scope_state{ trigger_slot_contents::nation, trigger_slot_contents::nation, env.current_scope.this_slot })).value);
 				} else {
 					if(env.current_scope.this_slot == trigger_slot_contents::nation)
 						env.data.push_back(effect_codes::country_event_this_nation);
@@ -2733,7 +2733,7 @@ namespace triggers {
 						env.ecm.register_triggered_event(
 							env.s.event_m,
 							id,
-							trigger_scope_state{ trigger_slot_contents::nation, trigger_slot_contents::nation, env.current_scope.this_slot, false })).value);
+							trigger_scope_state{ trigger_slot_contents::nation, trigger_slot_contents::nation, env.current_scope.this_slot })).value);
 					env.data.push_back(uint16_t(days));
 				}
 			} else if(env.current_scope.main_slot == trigger_slot_contents::province) {
@@ -2754,7 +2754,7 @@ namespace triggers {
 						env.ecm.register_triggered_event(
 							env.s.event_m,
 							id,
-							trigger_scope_state{ trigger_slot_contents::nation, trigger_slot_contents::nation, env.current_scope.this_slot, false })).value);
+							trigger_scope_state{ trigger_slot_contents::nation, trigger_slot_contents::nation, env.current_scope.this_slot })).value);
 				} else {
 					if(env.current_scope.this_slot == trigger_slot_contents::nation)
 						env.data.push_back(effect_codes::country_event_province_this_nation);
@@ -2772,7 +2772,7 @@ namespace triggers {
 						env.ecm.register_triggered_event(
 							env.s.event_m,
 							id,
-							trigger_scope_state{ trigger_slot_contents::nation, trigger_slot_contents::nation, env.current_scope.this_slot, false })).value);
+							trigger_scope_state{ trigger_slot_contents::nation, trigger_slot_contents::nation, env.current_scope.this_slot })).value);
 					env.data.push_back(uint16_t(days));
 				}
 			} else {
@@ -2809,7 +2809,7 @@ namespace triggers {
 					env.ecm.register_triggered_event(
 						env.s.event_m,
 						id,
-						trigger_scope_state{ trigger_slot_contents::province, trigger_slot_contents::province, env.current_scope.this_slot, false })).value);
+						trigger_scope_state{ trigger_slot_contents::province, trigger_slot_contents::province, env.current_scope.this_slot })).value);
 			} else {
 				if(env.current_scope.this_slot == trigger_slot_contents::nation)
 					env.data.push_back(effect_codes::province_event_this_nation);
@@ -2827,7 +2827,7 @@ namespace triggers {
 					env.ecm.register_triggered_event(
 						env.s.event_m,
 						id,
-						trigger_scope_state{ trigger_slot_contents::province, trigger_slot_contents::province, env.current_scope.this_slot, false })).value);
+						trigger_scope_state{ trigger_slot_contents::province, trigger_slot_contents::province, env.current_scope.this_slot })).value);
 				env.data.push_back(uint16_t(days));
 			}
 		}
@@ -3478,7 +3478,7 @@ namespace triggers {
 					trigger_slot_contents::province,
 					e.current_scope.this_slot,
 					e.current_scope.from_slot,
-					e.current_scope.contains_rebeltype };
+					};
 				e.current_scope = scope_state;
 				env.data.push_back(uint16_t(effect_codes::region_scope | effect_codes::is_scope | effect_codes::scope_has_limit));
 				env.data.push_back(3ui16);
@@ -3499,7 +3499,7 @@ namespace triggers {
 					trigger_slot_contents::pop,
 					e.current_scope.this_slot,
 					e.current_scope.from_slot,
-					e.current_scope.contains_rebeltype };
+					};
 				e.current_scope = scope_state;
 
 				env.data.push_back(3ui16);
@@ -3511,7 +3511,7 @@ namespace triggers {
 					trigger_slot_contents::nation,
 					e.current_scope.this_slot,
 					e.current_scope.from_slot,
-					e.current_scope.contains_rebeltype };
+					 };
 				e.current_scope = scope_state;
 				env.data.push_back(uint16_t(effect_codes::tag_scope | effect_codes::is_scope | effect_codes::scope_has_limit));
 				env.data.push_back(3ui16);
@@ -3523,7 +3523,7 @@ namespace triggers {
 					trigger_slot_contents::province,
 					e.current_scope.this_slot,
 					e.current_scope.from_slot,
-					e.current_scope.contains_rebeltype };
+					 };
 				e.current_scope = scope_state;
 				env.data.push_back(uint16_t(effect_codes::integer_scope | effect_codes::is_scope | effect_codes::scope_has_limit));
 				env.data.push_back(3ui16);

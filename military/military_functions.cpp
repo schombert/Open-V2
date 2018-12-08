@@ -194,7 +194,7 @@ namespace military {
 		for(auto& c : ws.s.military_m.cb_types) {
 			if((c.flags & cb_type::is_not_triggered_only) == 0 &&
 				is_valid_index(c.can_use) &&
-				triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(c.can_use), ws, nation_target, nation_by, nullptr, nullptr))
+				triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(c.can_use), ws, nation_target, nation_by, nullptr))
 				return true;
 		}
 		return false;
@@ -638,7 +638,7 @@ namespace military {
 					if(is_valid_index(wg_from) && is_valid_index(this_cb_type.allowed_states) && is_valid_index(wg_liberation)) {
 						auto trigger_to_test = ws.s.trigger_m.trigger_data.data() + to_index(this_cb_type.allowed_states);
 						nations::for_each_state(ws, target, [&ws, wg_from, wg_liberation, trigger_to_test, tp = float(target_total_pop), &total_cost](nations::state_tag si) {
-							if(triggers::test_trigger(trigger_to_test, ws, si, wg_from, wg_liberation, nullptr))
+							if(triggers::test_trigger(trigger_to_test, ws, si, wg_from, wg_liberation))
 								total_cost += single_state_war_score(ws, si, tp);
 						});
 					}

@@ -185,7 +185,7 @@ namespace technologies {
 	}
 
 	float get_invention_chance(tech_tag t, world_state& ws, nations::country_tag this_nation) {
-		return modifiers::test_additive_factor(ws.s.technology_m.technologies_container[t].ai_chance, ws, this_nation, nullptr, nullptr) / 100.0f;
+		return modifiers::test_additive_factor(ws.s.technology_m.technologies_container[t].ai_chance, ws, this_nation, nullptr) / 100.0f;
 	}
 
 	bool can_research(tech_tag t, world_state const& ws, nations::country_tag this_nation) {
@@ -197,7 +197,7 @@ namespace technologies {
 		if(tech.year != 0 && tag_to_date(ws.w.current_date).year() < tech.year)
 			return false;
 		if(is_valid_index(tech.allow) && !triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(tech.allow),
-			ws, this_nation, this_nation, nullptr, nullptr))
+			ws, this_nation, this_nation, nullptr))
 			return false;
 		if(is_valid_index(tech.preceeding) && id_valid && !bit_vector_test(ws.w.nation_s.active_technologies.get_row(id), tech.preceeding))
 			return false;

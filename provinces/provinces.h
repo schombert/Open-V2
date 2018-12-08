@@ -11,10 +11,6 @@ namespace modifiers {
 	class modifiers_manager;
 }
 
-namespace population {
-	struct rebel_faction;
-}
-
 namespace military {
 	struct fleet_presence;
 	struct army_orders;

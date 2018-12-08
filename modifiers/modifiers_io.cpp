@@ -441,7 +441,7 @@ namespace modifiers {
 				triggers::trigger_slot_contents::province,
 				triggers::trigger_slot_contents::province,
 				triggers::trigger_slot_contents::empty,
-				false },
+				},
 				s, e);
 		return triggers::commit_trigger(env.s.trigger_m, td);
 	}
@@ -563,7 +563,7 @@ namespace modifiers {
 				triggers::trigger_slot_contents::province,
 				triggers::trigger_slot_contents::nation,
 				triggers::trigger_slot_contents::empty,
-				false },
+				},
 				s, e);
 		return triggers::commit_trigger(env.s.trigger_m, td);
 	}
@@ -1723,7 +1723,7 @@ namespace modifiers {
 						triggers::trigger_slot_contents::nation,
 						triggers::trigger_slot_contents::nation,
 						triggers::trigger_slot_contents::empty,
-						false },
+						},
 						std::get<1>(t), std::get<2>(t));
 				s.modifiers_m.triggered_modifiers.emplace_back(std::get<0>(t), triggers::commit_trigger(s.trigger_m, td));
 			}
