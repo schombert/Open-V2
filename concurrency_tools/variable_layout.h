@@ -702,6 +702,10 @@ public:
 #endif
 	}
 
+	bool is_valid_index(tag_type t) const noexcept {
+		return ::is_valid_index(t) & (int32_t(to_index(t)) < size_used - 1);
+	}
+
 #ifdef VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
 	template<typename U>
 	__forceinline auto get(tag_type i) const -> decltype(container_type::template get<U>(i, *static_cast<ptr_type const*>(ptr))) {

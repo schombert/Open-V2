@@ -151,7 +151,7 @@ namespace province_state {
 		artisan_production_scale, float,
 
 		owner, expanded_tag<nations::country_tag>,
-		controller, nations::country_tag,
+		controller, expanded_tag<nations::country_tag>,
 		rebel_controller, population::rebel_faction_tag,
 		state_instance, expanded_tag<nations::state_tag>,
 		orders, military::army_orders_tag

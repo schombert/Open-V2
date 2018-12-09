@@ -5,6 +5,9 @@
 
 namespace ve {
 
+#pragma warning( push )
+#pragma warning( disable : 4324)
+
 #ifdef __AVX2__
 #include "ve_avx2.h"
 #else
@@ -14,6 +17,8 @@ namespace ve {
 #include "ve_sse.h"
 #endif
 #endif
+
+#pragma warning( pop ) 
 
 	__forceinline constexpr bool and_not(bool a, bool b) { return (!b) && a; }
 	__forceinline constexpr float inverse(float a) { return 1.0f / a; }
@@ -31,6 +36,8 @@ namespace ve {
 	__forceinline bool compress_mask(bool mask) { return mask; }
 
 	__forceinline constexpr float select(bool t, float a, float b) { return t ? a : b; }
+	__forceinline fp_vector widen_mask(fp_vector mask) { return mask; }
+	__forceinline bool widen_mask(bool mask) { return mask; }
 
 	template<typename T>
 	__forceinline auto improved_inverse(T a) {

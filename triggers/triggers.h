@@ -118,6 +118,7 @@ namespace triggers {
 		population::pop_tag pop;
 		provinces::province_tag prov;
 		population::rebel_faction_tag rebel;
+		int32_t value;
 
 		constexpr parameter() noexcept : nation() {}
 		constexpr parameter(nullptr_t) noexcept : nation() {}
@@ -131,6 +132,7 @@ namespace triggers {
 		constexpr parameter(expanded_tag<population::pop_tag> po) noexcept : pop(po) {}
 		constexpr parameter(expanded_tag<provinces::province_tag> pr) noexcept : prov(pr) {}
 		constexpr parameter(expanded_tag < population::rebel_faction_tag> r) noexcept : rebel(r) {}
+		constexpr parameter(int32_t v) noexcept : value(v) {}
 	};
 	using const_parameter = parameter;
 

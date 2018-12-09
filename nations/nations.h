@@ -190,8 +190,8 @@ namespace nation {
 
 	using container = variable_layout_tagged_vector < nations::country_tag, container_size,
 
-		sphere_leader, nations::country_tag,
-		overlord, nations::country_tag,
+		sphere_leader, expanded_tag<nations::country_tag>,
+		overlord, expanded_tag<nations::country_tag>,
 
 		enabled_crimes, uint64_t,
 		current_rules, issues::rules,
@@ -257,7 +257,7 @@ namespace nation {
 
 		military_score, int16_t,
 		industrial_score, int16_t,
-		overall_rank, int16_t,
+		overall_rank, int32_t,
 		prestige_rank, int16_t,
 		military_rank, int16_t,
 		industrial_rank, int16_t,
@@ -276,7 +276,7 @@ namespace nation {
 		cb_construction_type, military::cb_type_tag,
 
 		ruling_party, governments::party_tag,
-		current_capital, provinces::province_tag,
+		current_capital, expanded_tag<provinces::province_tag>,
 		tag, cultures::national_tag,
 		primary_culture, cultures::culture_tag,
 		dominant_culture, cultures::culture_tag,
