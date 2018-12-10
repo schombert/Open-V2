@@ -102,7 +102,7 @@ namespace triggers {
 			constexpr static bool empty_mask = false;
 
 			template<typename F>
-			__forceinline static bool apply(const_parameter p, const_parameter this_slot, const_parameter from_slot, F&& f) { return f(p, this_slot, from_slot); }
+			__forceinline static auto apply(const_parameter p, const_parameter this_slot, const_parameter from_slot, F&& f) { return f(p, this_slot, from_slot); }
 			template<typename F>
 			__forceinline static const_parameter apply_for_index(const_parameter p, const_parameter this_slot, const_parameter from_slot, F&& f) { return f(p, this_slot, from_slot); }
 			template<typename F>
@@ -223,156 +223,167 @@ namespace triggers {
 	auto __vectorcall function_name(uint16_t const* tval, world_state const& ws, typename primary_type::parameter_type primary_slot, \
 	typename this_type::parameter_type this_slot, typename from_type::parameter_type from_slot) -> typename primary_type::return_type
 
-	template<typename index>
-	__forceinline auto nation_value(world_state const& ws, const_parameter v) {
-		return ws.w.nation_s.nations.get<index>(ws, v.nation);
-	}
-	template<typename index>
-	__forceinline auto nation_value(world_state const& ws, uint32_t v) {
-		using ctype = std::remove_cv_t<std::remove_reference_t<decltype(*(ws.w.nation_s.nations.get_row<index>()))>>;
-		if constexpr(std::is_same_v<ctype, float>)
-			return ve::full_vector_operation(v).load(ws.w.nation_s.nations.get_row<index>());
-		else if constexpr(sizeof(ctype) == 4)
-			return ve::full_vector_operation(v).load((int32_t const*)(ws.w.nation_s.nations.get_row<index>()));
-		else
-			static_assert(std::is_same_v<ctype, float> || sizeof(ctype) == 4);
-	}
-	template<typename index>
-	__forceinline auto nation_value(world_state const& ws, ve::int_vector v) {
-		using ctype = std::remove_cv_t<std::remove_reference_t<decltype(*(ws.w.nation_s.nations.get_row<index>()))>>;
-		if constexpr(std::is_same_v<ctype, float>)
-			return ve::full_vector_operation::gather_load(ws.w.nation_s.nations.get_row<index>(), v);
-		else if constexpr(sizeof(ctype) == 4)
-			return ve::full_vector_operation::gather_load((int32_t const*)(ws.w.nation_s.nations.get_row<index>()), v);
-		else
-			static_assert(std::is_same_v<ctype, float> || sizeof(ctype) == 4);
-	}
 
-	template<typename index>
-	__forceinline auto state_value(world_state const& ws, const_parameter v) {
-		return ws.w.nation_s.states.get<index>(ws, v.state);
-	}
-	template<typename index>
-	__forceinline auto state_value(world_state const& ws, uint32_t v) {
-		using ctype = std::remove_cv_t<std::remove_reference_t<decltype(*(ws.w.nation_s.states.get_row<index>()))>>;
-		if constexpr(std::is_same_v<ctype, float>)
-			return ve::full_vector_operation(v).load(ws.w.nation_s.states.get_row<index>());
-		else if constexpr(sizeof(ctype) == 4)
-			return ve::full_vector_operation(v).load((int32_t const*)(ws.w.nation_s.states.get_row<index>()));
-		else
-			static_assert(std::is_same_v<ctype, float> || sizeof(ctype) == 4);
-	}
-	template<typename index>
-	__forceinline auto state_value(world_state const& ws, ve::int_vector v) {
-		using ctype = std::remove_cv_t<std::remove_reference_t<decltype(*(ws.w.nation_s.states.get_row<index>()))>>;
-		if constexpr(std::is_same_v<ctype, float>)
-			return ve::full_vector_operation::gather_load(ws.w.nation_s.states.get_row<index>(), v);
-		else if constexpr(sizeof(ctype) == 4)
-			return ve::full_vector_operation::gather_load((int32_t const*)(ws.w.nation_s.states.get_row<index>()), v);
-		else
-			static_assert(std::is_same_v<ctype, float> || sizeof(ctype) == 4);
-	}
+		__forceinline nations::country_tag to_nation(const_parameter v) { return v.nation; }
+		__forceinline nations::state_tag to_state(const_parameter v) { return v.state; }
+		__forceinline provinces::province_tag to_province(const_parameter v) { return v.prov; }
+		__forceinline population::pop_tag to_pop(const_parameter v) { return v.pop; }
+		__forceinline population::rebel_faction_tag to_rebel(const_parameter v) { return v.rebel; }
 
-	template<typename index>
-	__forceinline auto pop_value(world_state const& ws, const_parameter v) {
-		return ws.w.population_s.pops.get<index>(ws, v.pop);
-	}
-	template<typename index>
-	__forceinline auto pop_value(world_state const& ws, uint32_t v) {
-		using ctype = std::remove_cv_t<std::remove_reference_t<decltype(*(ws.w.population_s.pops.get_row<index>()))>>;
-		if constexpr(std::is_same_v<ctype, float>)
-			return ve::full_vector_operation(v).load(ws.w.population_s.pops.get_row<index>());
-		else if constexpr(sizeof(ctype) == 4)
-			return ve::full_vector_operation(v).load((int32_t const*)(ws.w.population_s.pops.get_row<index>()));
-		else
-			static_assert(std::is_same_v<ctype, float> || sizeof(ctype) == 4);
-	}
-	template<typename index>
-	__forceinline auto pop_value(world_state const& ws, ve::int_vector v) {
-		using ctype = std::remove_cv_t<std::remove_reference_t<decltype(*(ws.w.population_s.pops.get_row<index>()))>>;
-		if constexpr(std::is_same_v<ctype, float>)
-			return ve::full_vector_operation::gather_load(ws.w.population_s.pops.get_row<index>(), v);
-		else if constexpr(sizeof(ctype) == 4)
-			return ve::full_vector_operation::gather_load((int32_t const*)(ws.w.population_s.pops.get_row<index>()), v);
-		else
-			static_assert(std::is_same_v<ctype, float> || sizeof(ctype) == 4);
-	}
+		__forceinline uint32_t to_nation(uint32_t v) { return v; }
+		__forceinline uint32_t to_state(uint32_t v) { return v; }
+		__forceinline uint32_t to_province(uint32_t v) { return v; }
+		__forceinline uint32_t to_pop(uint32_t v) { return v; }
+		__forceinline uint32_t to_rebel(uint32_t v) { return v; }
 
-	template<typename index>
-	__forceinline auto province_state_value(world_state const& ws, const_parameter v) {
-		return ws.w.province_s.province_state_container.get<index>(ws, v.prov);
-	}
-	template<typename index>
-	__forceinline auto province_state_value(world_state const& ws, uint32_t v) {
-		using ctype = std::remove_cv_t<std::remove_reference_t<decltype(*(ws.w.province_s.province_state_container.get_row<index>()))>>;
-		if constexpr(std::is_same_v<ctype, float>)
-			return ve::full_vector_operation(v).load(ws.w.province_s.province_state_container.get_row<index>());
-		else if constexpr(sizeof(ctype) == 4)
-			return ve::full_vector_operation(v).load((int32_t const*)(ws.w.province_s.province_state_container.get_row<index>()));
-		else
-			static_assert(std::is_same_v<ctype, float> || sizeof(ctype) == 4);
-	}
-	template<typename index>
-	__forceinline auto province_state_value(world_state const& ws, ve::int_vector v) {
-		using ctype = std::remove_cv_t<std::remove_reference_t<decltype(*(ws.w.province_s.province_state_container.get_row<index>()))>>;
-		if constexpr(std::is_same_v<ctype, float>)
-			return ve::full_vector_operation::gather_load(ws.w.province_s.province_state_container.get_row<index>(), v);
-		else if constexpr(sizeof(ctype) == 4)
-			return ve::full_vector_operation::gather_load((int32_t const*)(ws.w.province_s.province_state_container.get_row<index>()), v);
-		else
-			static_assert(std::is_same_v<ctype, float> || sizeof(ctype) == 4);
-	}
+		__forceinline ve::int_vector to_nation(ve::int_vector v) { return v; }
+		__forceinline ve::int_vector to_state(ve::int_vector v) { return v; }
+		__forceinline ve::int_vector to_province(ve::int_vector v) { return v; }
+		__forceinline ve::int_vector to_pop(ve::int_vector v) { return v; }
+		__forceinline ve::int_vector to_rebel(ve::int_vector v) { return v; }
+
+		template<typename index, typename container>
+		__forceinline auto to_value(container const& c, nations::country_tag v) {
+			return c.template get<index>(v);
+		}
+		template<typename index, typename container>
+		__forceinline auto to_value(container const& c, nations::state_tag v) {
+			return c.template get<index>(v);
+		}
+		template<typename index, typename container>
+		__forceinline auto to_value(container const& c, provinces::province_tag v) {
+			return c.template get<index>(v);
+		}
+		template<typename index, typename container>
+		__forceinline auto to_value(container const& c, population::pop_tag v) {
+			return c.template get<index>(v);
+		}
+		template<typename index, typename container>
+		__forceinline auto to_value(container const& c, population::rebel_faction_tag v) {
+			return c.template get<index>(v);
+		}
+
+		template<typename index, typename container>
+		__forceinline auto to_value(container const& c, uint32_t v) {
+			using ctype = std::remove_cv_t<std::remove_reference_t<decltype(*(c.template get_row<index>().data()))>>;
+			if constexpr(std::is_same_v<ctype, float>)
+				return ve::full_vector_operation(v).load(c.template get_row<index>().data());
+			else if constexpr(std::is_same_v<ctype, int8_t>)
+				return ve::full_vector_operation(v).load(c.template get_row<index>().data());
+			else if constexpr(sizeof(ctype) == 4)
+				return ve::full_vector_operation(v).load((int32_t const*)(c.template get_row<index>().data()));
+			else
+				static_assert(std::is_same_v<ctype, float> || std::is_same_v<ctype, int8_t> || sizeof(ctype) == 4);
+		}
+
+		template<typename index, typename container>
+		__forceinline auto to_value(container const& c, ve::int_vector v) {
+			using ctype = std::remove_cv_t<std::remove_reference_t<decltype(*(c.template get_row<index>().data()))>>;
+			if constexpr(std::is_same_v<ctype, float>)
+				return ve::full_vector_operation<0>::gather_load(c.template get_row<index>().data(), v);
+			else if constexpr(std::is_same_v<ctype, int8_t>)
+				return ve::full_vector_operation<0>::gather_load(c.template get_row<index>().data(), v);
+			else if constexpr(sizeof(ctype) == 4)
+				return ve::full_vector_operation<0>::gather_load((int32_t const*)(c.template get_row<index>().data()), v);
+			else
+				static_assert(std::is_same_v<ctype, float> || std::is_same_v<ctype, int8_t> || sizeof(ctype) == 4);
+		}
 
 
-	template<typename index>
-	__forceinline auto province_value(world_state const& ws, const_parameter v) {
-		return ws.s.province_m.provinces.get<index>(ws, v.prov);
-	}
-	template<typename index>
-	__forceinline auto province_value(world_state const& ws, uint32_t v) {
-		using ctype = std::remove_cv_t<std::remove_reference_t<decltype(*(ws.s.province_m.provinces.get_row<index>()))>>;
-		if constexpr(std::is_same_v<ctype, float>)
-			return ve::full_vector_operation(v).load(ws.s.province_m.provinces.get_row<index>());
-		else if constexpr(sizeof(ctype) == 4)
-			return ve::full_vector_operation(v).load((int32_t const*)(ws.s.province_m.provinces.get_row<index>()));
-		else
-			static_assert(std::is_same_v<ctype, float> || sizeof(ctype) == 4);
-	}
-	template<typename index>
-	__forceinline auto province_value(world_state const& ws, ve::int_vector v) {
-		using ctype = std::remove_cv_t<std::remove_reference_t<decltype(*(ws.s.province_m.provinces.get_row<index>()))>>;
-		if constexpr(std::is_same_v<ctype, float>)
-			return ve::full_vector_operation::gather_load(ws.s.province_m.provinces.get_row<index>(), v);
-		else if constexpr(sizeof(ctype) == 4)
-			return ve::full_vector_operation::gather_load((int32_t const*)(ws.s.province_m.provinces.get_row<index>()), v);
-		else
-			static_assert(std::is_same_v<ctype, float> || sizeof(ctype) == 4);
-	}
+		template<int32_t index, typename container>
+		__forceinline auto to_indexed_value(container const& c, nations::country_tag v) {
+			return c.template get<index>(v);
+		}
+		template<int32_t index, typename container>
+		__forceinline auto to_indexed_value(container const& c, nations::state_tag v) {
+			return c.template get<index>(v);
+		}
+		template<int32_t index, typename container>
+		__forceinline auto to_indexed_value(container const& c, provinces::province_tag v) {
+			return c.template get<index>(v);
+		}
+		template<int32_t index, typename container>
+		__forceinline auto to_indexed_value(container const& c, population::pop_tag v) {
+			return c.template get<index>(v);
+		}
+		template<int32_t index, typename container>
+		__forceinline auto to_indexed_value(container const& c, population::rebel_faction_tag v) {
+			return c.template get<index>(v);
+		}
 
-	template<typename index>
-	__forceinline auto rebel_value(world_state const& ws, const_parameter v) {
-		return ws.w.province_s.province_state_container.get<index>(ws, v.rebel);
-	}
-	template<typename index>
-	__forceinline auto rebel_value(world_state const& ws, uint32_t v) {
-		using ctype = std::remove_cv_t<std::remove_reference_t<decltype(*(ws.w.population_s.rebel_factions.get_row<index>()))>>;
-		if constexpr(std::is_same_v<ctype, float>)
-			return ve::full_vector_operation(v).load(ws.w.population_s.rebel_factions.get_row<index>());
-		else if constexpr(sizeof(ctype) == 4)
-			return ve::full_vector_operation(v).load((int32_t const*)(ws.w.population_s.rebel_factions.get_row<index>()));
-		else
-			static_assert(std::is_same_v<ctype, float> || sizeof(ctype) == 4);
-	}
-	template<typename index>
-	__forceinline auto rebel_value(world_state const& ws, ve::int_vector v) {
-		using ctype = std::remove_cv_t<std::remove_reference_t<decltype(*(ws.w.population_s.rebel_factions.get_row<index>()))>>;
-		if constexpr(std::is_same_v<ctype, float>)
-			return ve::full_vector_operation::gather_load(ws.w.population_s.rebel_factions.get_row<index>(), v);
-		else if constexpr(sizeof(ctype) == 4)
-			return ve::full_vector_operation::gather_load((int32_t const*)(ws.w.population_s.rebel_factions.get_row<index>()), v);
-		else
-			static_assert(std::is_same_v<ctype, float> || sizeof(ctype) == 4);
-	}
+		template<int32_t index, typename container>
+		__forceinline auto to_indexed_value(container const& c, uint32_t v) {
+			using ctype = std::remove_cv_t<std::remove_reference_t<decltype(*(c.template get_row<index>(0).data()))>>;
+			if constexpr(std::is_same_v<ctype, float>)
+				return ve::full_vector_operation(v).load(c.template get_row<index>(0).data());
+			else if constexpr(std::is_same_v<ctype, int8_t>)
+				return ve::full_vector_operation(v).load(c.template get_row<index>(0).data());
+			else if constexpr(sizeof(ctype) == 4)
+				return ve::full_vector_operation(v).load((int32_t const*)(c.template get_row<index>(0).data()));
+			else
+				static_assert(std::is_same_v<ctype, float> || std::is_same_v<ctype, int8_t> || sizeof(ctype) == 4);
+		}
+
+		template<int32_t index, typename container>
+		__forceinline auto to_indexed_value(container const& c, ve::int_vector v) {
+			using ctype = std::remove_cv_t<std::remove_reference_t<decltype(*(c.template get_row<index>(0).data()))>>;
+			if constexpr(std::is_same_v<ctype, float>)
+				return ve::full_vector_operation<0>::gather_load(c.template get_row<index>(0).data(), v);
+			else if constexpr(std::is_same_v<ctype, int8_t>)
+				return ve::full_vector_operation<0>::gather_load(c.template get_row<index>(0).data(), v);
+			else if constexpr(sizeof(ctype) == 4)
+				return ve::full_vector_operation<0>::gather_load((int32_t const*)(c.template get_row<index>(0).data()), v);
+			else
+				static_assert(std::is_same_v<ctype, float> || std::is_same_v<ctype, int8_t> || sizeof(ctype) == 4);
+		}
+
+
+		template<typename container, typename index_type>
+		__forceinline auto to_vindexed_value(container const& c, nations::country_tag v, index_type i) {
+			return c.get(v, i);
+		}
+		template<typename container, typename index_type>
+		__forceinline auto to_vindexed_value(container const& c, nations::state_tag v, index_type i) {
+			return c.get(v, i);
+		}
+		template<typename container, typename index_type>
+		__forceinline auto to_vindexed_value(container const& c, provinces::province_tag v, index_type i) {
+			return c.get(v, i);
+		}
+		template<typename container, typename index_type>
+		__forceinline auto to_vindexed_value(container const& c, population::pop_tag v, index_type i) {
+			return c.get(v, i);
+		}
+		template<typename container, typename index_type>
+		__forceinline auto to_vindexed_value(container const& c, population::rebel_faction_tag v, index_type i) {
+			return c.get(v, i);
+		}
+
+		template<typename container, typename index_type>
+		__forceinline auto to_vindexed_value(container const& c, uint32_t v, index_type i) {
+			using ctype = std::remove_cv_t<std::remove_reference_t<decltype(*(c.get_row(i, 0).data()))>>;
+			if constexpr(std::is_same_v<ctype, float>)
+				return ve::full_vector_operation(v).load(c.get_row(i, 0).data());
+			else if constexpr(std::is_same_v<ctype, int8_t>)
+				return ve::full_vector_operation(v).load(c.get_row(i, 0).data());
+			else if constexpr(sizeof(ctype) == 4)
+				return ve::full_vector_operation(v).load((int32_t const*)(c.get_row(i, 0).data()));
+			else
+				static_assert(std::is_same_v<ctype, float> || std::is_same_v<ctype, int8_t> || sizeof(ctype) == 4);
+		}
+
+		template<typename container, typename index_type>
+		__forceinline auto to_vindexed_value(container const& c, ve::int_vector v, index_type i) {
+			using ctype = std::remove_cv_t<std::remove_reference_t<decltype(*(c.get_row(i, 0).data()))>>;
+			if constexpr(std::is_same_v<ctype, float>)
+				return ve::full_vector_operation<0>::gather_load(c.get_row(i, 0).data(), v);
+			else if constexpr(std::is_same_v<ctype, int8_t>)
+				return ve::full_vector_operation<0>::gather_load(c.get_row(i, 0).data(), v);
+			else if constexpr(sizeof(ctype) == 4)
+				return ve::full_vector_operation<0>::gather_load((int32_t const*)(c.get_row(i, 0).data()), v);
+			else
+				static_assert(std::is_same_v<ctype, float> || std::is_same_v<ctype, int8_t> || sizeof(ctype) == 4);
+		}
 
 	TRIGGER_FUNCTION(test_trigger_generic);
 
@@ -508,8 +519,8 @@ namespace triggers {
 		});
 	}
 	TRIGGER_FUNCTION(tf_x_neighbor_country_scope_pop) {
-		auto pop_province = pop_value<pop::location>(ws, primary_slot);
-		auto province_owner = province_state_value<province::owner>(ws, pop_province);
+		auto pop_province = to_value<pop::location>(ws.w.population_s.pops, to_pop(primary_slot));
+		auto province_owner = to_value<province::owner>(ws.w.province_s.province_state_container, pop_province);
 
 		return tf_x_neighbor_country_scope_nation<value_to_type<decltype(province_owner)>, this_type, from_type>(tval, ws, province_owner, this_slot, from_slot);
 	}
@@ -548,8 +559,8 @@ namespace triggers {
 		});
 	}
 	TRIGGER_FUNCTION(tf_x_war_countries_scope_pop) {
-		auto pop_province = pop_value<pop::location>(ws, primary_slot);
-		auto province_owner = province_state_value<province::owner>(ws, pop_province);
+		auto pop_province = to_value<pop::location>(ws.w.population_s.pops, to_pop(primary_slot));
+		auto province_owner = to_value<province::owner>(ws.w.province_s.province_state_container, pop_province);
 
 		return tf_x_war_countries_scope_nation<value_to_type<decltype(province_owner)>, this_type, from_type>(tval, ws, province_owner, this_slot, from_slot);
 	}
@@ -996,32 +1007,32 @@ namespace triggers {
 		});
 	}
 	TRIGGER_FUNCTION(tf_owner_scope_state) {
-		auto owner = state_value<state::owner>(ws, primary_slot);
+		auto owner = to_value<state::owner>(ws.w.nation_s.states, to_state(primary_slot));
 		return is_non_zero(owner) & apply_subtriggers<value_to_type<decltype(owner)>, this_type, from_type>(tval, ws, owner, this_slot, from_slot);
 	}
 	TRIGGER_FUNCTION(tf_owner_scope_province) {
-		auto owner = province_state_value<province_state::owner>(ws, primary_slot);
+		auto owner = to_value<province_state::owner>(ws.w.province_s.province_state_container, to_prov(primary_slot));
 		return is_non_zero(owner) & apply_subtriggers<value_to_type<decltype(owner)>, this_type, from_type>(tval, ws, owner, this_slot, from_slot);
 	}
 	TRIGGER_FUNCTION(tf_controller_scope) {
-		auto owner = province_state_value<province_state::controller>(ws, primary_slot);
+		auto owner = to_value<province_state::controller>(ws.w.province_s.province_state_container, to_prov(primary_slot));
 		return is_non_zero(owner) & apply_subtriggers<value_to_type<decltype(owner)>, this_type, from_type>(tval, ws, owner, this_slot, from_slot);
 	}
 	TRIGGER_FUNCTION(tf_location_scope) {
-		auto location = pop_value<pop::location>(ws, primary_slot);
+		auto location = to_value<pop::location>(ws.w.population_s.pops, to_pop(primary_slot));
 		return is_non_zero(location) & apply_subtriggers<value_to_type<decltype(location)>, this_type, from_type>(tval, ws, location, this_slot, from_slot);
 	}
 	TRIGGER_FUNCTION(tf_country_scope_state) {
-		auto owner = state_value<state::owner>(ws, primary_slot);
+		auto owner = to_value<state::owner>(ws.w.nation_s.states, to_state(primary_slot));
 		return is_non_zero(owner) &apply_subtriggers<value_to_type<decltype(owner)>, this_type, from_type>(tval, ws, owner, this_slot, from_slot);
 	}
 	TRIGGER_FUNCTION(tf_country_scope_pop) {
-		auto location = pop_value<pop::location>(ws, primary_slot);
-		auto owner = province_state_value<province_state::owner>(location);
+		auto location = to_value<pop::location>(ws.w.population_s.pops, to_pop(primary_slot));
+		auto owner = to_value<province_state::owner>(ws.w.province_s.province_state_container, location);
 		return is_non_zero(owner) & apply_subtriggers<value_to_type<decltype(owner)>, this_type, from_type>(tval, ws, owner, this_slot, from_slot);
 	}
 	TRIGGER_FUNCTION(tf_capital_scope) {
-		auto capital = nation_value<nation::current_capital>(ws, primary_slot);
+		auto capital = to_value<nation::current_capital>(ws.w.nation_s.nations, to_nation(primary_slot));
 		return is_non_zero(capital) & apply_subtriggers<value_to_type<decltype(capital)>, this_type, from_type>(tval, ws, capital, this_slot, from_slot);
 	}
 	TRIGGER_FUNCTION(tf_this_scope) {
@@ -1061,11 +1072,11 @@ namespace triggers {
 		return is_non_zero(union_nations) & apply_subtriggers<value_to_type<decltype(union_nations)>, this_type, from_type>(tval, ws, union_nations, this_slot, from_slot);
 	}
 	TRIGGER_FUNCTION(tf_overlord_scope) {
-		auto so = nation_value<nation::overlord>(ws, primary_slot);
+		auto so = to_value<nation::overlord>(ws.w.nation_s.nations, to_nation(primary_slot));
 		return is_non_zero(so) & apply_subtriggers<value_to_type<decltype(so)>, this_type, from_type>(tval, ws, so, this_slot, from_slot);
 	}
 	TRIGGER_FUNCTION(tf_sphere_owner_scope) {
-		auto so = nation_value<nation::sphere_leader>(ws, primary_slot);
+		auto so = to_value<nation::sphere_leader>(ws.w.nation_s.nations, to_nation(primary_slot));
 		return is_non_zero(so) & apply_subtriggers<value_to_type<decltype(so)>, this_type, from_type>(tval, ws, so, this_slot, from_slot);
 	}
 	TRIGGER_FUNCTION(tf_independence_scope) {
@@ -1095,12 +1106,12 @@ namespace triggers {
 		return typename primary_type::return_type();
 	}
 	TRIGGER_FUNCTION(tf_state_scope_province) {
-		auto state_instance = province_state_value<province_state::state_instance>(ws, primary_slot);
+		auto state_instance = to_value<province_state::state_instance>(ws.w.province_s.province_state_container, to_prov(primary_slot));
 		return is_non_zero(state_instance) & apply_subtriggers<value_to_type<decltype(state_instance)>, this_type, from_type>(tval, ws, state_instance, this_slot, from_slot);
 	}
 	TRIGGER_FUNCTION(tf_state_scope_pop) {
-		auto pop_province = pop_value<pop::location>(ws, primary_slot);
-		auto prov_state = province_state_value<province_state::state_instance>(ws, pop_province);
+		auto location = to_value<pop::location>(ws.w.population_s.pops, to_pop(primary_slot));
+		auto prov_state = to_value<province_state::state_instance>(ws.w.province_s.province_state_container, location);
 		return is_non_zero(prov_state) & apply_subtriggers<value_to_type<decltype(prov_state)>, this_type, from_type>(tval, ws, prov_state, this_slot, from_slot);
 	}
 	TRIGGER_FUNCTION(tf_tag_scope) {
@@ -1121,7 +1132,7 @@ namespace triggers {
 		return apply_subtriggers<primary_type, this_type, from_type>(tval, ws, primary_slot, this_slot, from_slot);
 	}
 	TRIGGER_FUNCTION(tf_country_scope_province) {
-		auto owner = province_state_value<province_state::owner>(ws, primary_slot.prov);
+		auto owner = to_value<province_state::owner>(ws.w.province_s.province_state_container, to_prov(primary_slot));
 		return is_non_zero(owner) & apply_subtriggers<value_to_type<decltype(owner)>, this_type, from_type>(tval, ws, owner, this_slot, from_slot);
 	}
 	TRIGGER_FUNCTION(tf_cultural_union_scope_pop) {
@@ -1223,13 +1234,13 @@ namespace triggers {
 			case trigger_codes::association_eq:
 				return value_a;
 			case trigger_codes::association_gt:
-				return ~value_a;
+				return !value_a;
 			case trigger_codes::association_lt:
-				return ~value_a;
+				return !value_a;
 			case trigger_codes::association_le:
 				return value_a;
 			case trigger_codes::association_ne:
-				return ~value_a;
+				return !value_a;
 			case trigger_codes::association_ge:
 				return value_a;
 			default:
@@ -1240,19 +1251,19 @@ namespace triggers {
 	[[nodiscard]] auto compare_to_false(uint16_t trigger_code, A value_a) {
 		switch(trigger_code & trigger_codes::association_mask) {
 			case trigger_codes::association_eq:
-				return ~value_a;
+				return !value_a;
 			case trigger_codes::association_gt:
 				return value_a;
 			case trigger_codes::association_lt:
 				return value_a;
 			case trigger_codes::association_le:
-				return ~value_a;
+				return !value_a;
 			case trigger_codes::association_ne:
 				return value_a;
 			case trigger_codes::association_ge:
-				return ~value_a;
+				return !value_a;
 			default:
-				return ~value_a;
+				return !value_a;
 		}
 	}
 
@@ -1263,102 +1274,113 @@ namespace triggers {
 		return compare_values(tval[0], primary_type::widen(int32_t(tag_to_date(ws.w.current_date).month())), int32_t(tval[2]));
 	}
 	TRIGGER_FUNCTION(tf_port) {
-		return compare_to_true(tval[0], ve::widen_mask(province_value<province::is_coastal>(primary_slot) & ~province_value<province::is_sea>(primary_slot)));
+		return compare_to_true(tval[0],
+			ve::widen_mask(to_value<province::is_coastal>(ws.s.province_m.province_container, to_prov(primary_slot))
+				& !to_value<province::is_sea>(ws.s.province_m.province_container, to_prov(primary_slot))));
 	}
 	TRIGGER_FUNCTION(tf_rank) {
 		// note: comparison revesed since rank 1 is "greater" than rank 1 + N
-		return compare_values(tval[0], int32_t(tval[2]), nation_value<nation::overall_rank>(primary_slot));
+		return compare_values(tval[0], int32_t(tval[2]), to_value<nation::overall_rank>(ws.w.nation_s.nations, to_nation(primary_slot)));
 	}
 	TRIGGER_FUNCTION(tf_technology) {
 		auto technology = trigger_payload(tval[2]).tech;
-		auto nation_id = primary_slot.nation;
-		if(ws.w.nation_s.nations.is_valid_index(nation_id)) {
-			auto tech_row = ws.w.nation_s.active_technologies.get_row(nation_id);
-			auto has_tech = bit_vector_test(tech_row, technology);
-			return compare_values(tval[0], has_tech, true);
-		} else {
-			return compare_values(tval[0], false, true);
-		}
+		return compare_to_true(tval[0], ve::widen_mask(to_vindexed_value(ws.w.nation_s.active_technologies, to_nation(primary_slot), technology)));
 	}
-	bool tf_strata_rich(TRIGGER_PARAMTERS) {
-		auto pop_type = ws.w.population_s.pops.get<pop::type>(primary_slot.pop);
-		if(is_valid_index(pop_type))
-			return compare_values(tval[0], (ws.s.population_m.pop_types[pop_type].flags & population::pop_type::strata_mask) == population::pop_type::strata_rich, true);
-		else
-			return compare_values(tval[0], false, true);
+	TRIGGER_FUNCTION(tf_strata_rich) {
+		return compare_to_true(tval[0], ve::widen_mask(
+			!to_value<pop::is_middle>(ws.w.population_s.pops, to_pop(primary_slot)) & !to_value<pop::is_poor>(ws.w.population_s.pops, to_pop(primary_slot))));
 	}
-	bool tf_strata_middle(TRIGGER_PARAMTERS) {
-		auto pop_type = ws.w.population_s.pops.get<pop::type>(primary_slot.pop);
-		if(is_valid_index(pop_type))
-			return compare_values(tval[0], (ws.s.population_m.pop_types[pop_type].flags & population::pop_type::strata_mask) == population::pop_type::strata_middle, true);
-		else
-			return compare_values(tval[0], false, true);
+	TRIGGER_FUNCTION(tf_strata_middle) {
+		return compare_to_true(tval[0], ve::widen_mask(to_value<pop::is_middle>(ws.w.population_s.pops, to_pop(primary_slot))));
 	}
-	bool tf_strata_poor(TRIGGER_PARAMTERS) {
-		auto pop_type = ws.w.population_s.pops.get<pop::type>(primary_slot.pop);
-		if(is_valid_index(pop_type))
-			return compare_values(tval[0], (ws.s.population_m.pop_types[pop_type].flags & population::pop_type::strata_mask) == population::pop_type::strata_poor, true);
-		else
-			return compare_values(tval[0], false, true);
+	TRIGGER_FUNCTION(tf_strata_poor) {
+		return compare_to_true(tval[0], ve::widen_mask(to_value<pop::is_poor>(ws.w.population_s.pops, to_pop(primary_slot))));
 	}
-	bool tf_life_rating_province(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], provinces::get_life_rating(ws, primary_slot.prov), float(trigger_payload(tval[2]).signed_value));
+	TRIGGER_FUNCTION(tf_life_rating_province) {
+		return compare_values(tval[0], provinces::get_life_rating(ws, to_prov(primary_slot)), float(trigger_payload(tval[2]).signed_value));
 	}
-	bool tf_life_rating_state(TRIGGER_PARAMTERS) {
-		auto state = primary_slot.state;
-		auto region_id = ws.w.nation_s.states.get<state::region_id>(state);
-		if(!is_valid_index(region_id))
-			return compare_values(tval[0], 0, int32_t(trigger_payload(tval[2]).signed_value));
+	TRIGGER_FUNCTION(tf_life_rating_state) {
+		auto min_lr = primary_type::apply(primary_slot, this_slot, from_slot, [&ws](const_parameter p_slot, const_parameter, const_parameter) {
+			auto state = p_slot.state;
+			auto region_id = ws.w.nation_s.states.get<state::region_id>(state);
+			if(!is_valid_index(region_id))
+				return 0.0f;
 
-		auto province_range = ws.s.province_m.states_to_province_index.get_row(region_id);
-		int32_t min_life_rating = std::numeric_limits<int32_t>::max();
-		nations::for_each_province(ws, state, [&ws, &min_life_rating](provinces::province_tag p) {
-			min_life_rating = std::min(min_life_rating, int32_t(provinces::get_life_rating(ws, p)));
+			auto province_range = ws.s.province_m.states_to_province_index.get_row(region_id);
+			float min_life_rating = 1000.0f;
+			nations::for_each_province(ws, state, [&ws, &min_life_rating](provinces::province_tag p) {
+				min_life_rating = std::min(min_life_rating, provinces::get_life_rating(ws, p));
+			});
+			return min_life_rating;
 		});
-		return compare_values(tval[0], min_life_rating, int32_t(trigger_payload(tval[2]).signed_value));
+		return compare_values(tval[0], min_lr, float(trigger_payload(tval[2]).signed_value));
 	}
-	bool tf_has_empty_adjacent_state_province(TRIGGER_PARAMTERS) {
-		auto adj_range = ws.s.province_m.same_type_adjacency.get_row(primary_slot.prov);
-		for(auto p : adj_range) {
-			if(!is_valid_index(ws.w.province_s.province_state_container.get<province_state::owner>(p))) 
-				return compare_values(tval[0], true, true);
-		}
-		return compare_values(tval[0], false, true);
+
+	auto empty_province_accumulator(world_state const& ws) {
+		return ve::make_true_accumulator([&ws](ve::int_vector v) {
+			auto owners = to_value<province_state::owner>(ws.w.province_s.province_state_container, v);
+			return ve::is_zero(owners);
+		});
 	}
-	bool tf_has_empty_adjacent_state_state(TRIGGER_PARAMTERS) {
-		auto state_id = primary_slot.state;
-		auto region_id = ws.w.nation_s.states.get<state::region_id>(state_id);
-		if(!is_valid_index(region_id))
-			return compare_values(tval[0], false, true);
 
-		auto province_range = ws.s.province_m.states_to_province_index.get_row(region_id);
+	TRIGGER_FUNCTION(tf_has_empty_adjacent_state_province) {
+		auto results = primary_type::apply(primary_slot, this_slot, from_slot, [&ws](const_parameter p_slot, const_parameter, const_parameter) {
+			auto acc = empty_province_accumulator(ws);
 
-		for(auto p : province_range) {
-			if(ws.w.province_s.province_state_container.get<province_state::state_instance>(p) == state_id) {
-				auto adj_range = ws.s.province_m.same_type_adjacency.get_row(p);
-				for(auto q : adj_range) {
-					if(!is_valid_index(ws.w.province_s.province_state_container.get<province_state::owner>(q))
-						&& (ws.w.province_s.province_state_container.get<province_state::state_instance>(q) != state_id)) {
-						return compare_values(tval[0], true, true);
+			auto adj_range = ws.s.province_m.same_type_adjacency.get_row(p_slot.prov);
+			for(auto p : adj_range) {
+				acc.add_value(p.value);
+				if(acc.result)
+					return true;
+			}
+
+			acc.flush();
+			return acc.result;
+		});
+		
+		return compare_to_true(tval[0], results);
+	}
+	TRIGGER_FUNCTION(tf_has_empty_adjacent_state_state) {
+		auto results = primary_type::apply(primary_slot, this_slot, from_slot, [&ws](const_parameter p_slot, const_parameter, const_parameter) {
+			auto acc = empty_province_accumulator(ws);
+
+			auto state_id = p_slot.state;
+			auto region_id = ws.w.nation_s.states.get<state::region_id>(state_id);
+
+			if(!is_valid_index(region_id))
+				return false;
+
+			auto province_range = ws.s.province_m.states_to_province_index.get_row(region_id);
+
+			for(auto p : province_range) {
+				if(ws.w.province_s.province_state_container.get<province_state::state_instance>(p) == state_id) {
+					auto adj_range = ws.s.province_m.same_type_adjacency.get_row(p);
+					for(auto q : adj_range) {
+						acc.add_value(q.value);
+						if(acc.result)
+							return true;
+
 					}
-					
 				}
 			}
+
+			acc.flush();
+			return acc.result;
 		}
 
-		return compare_values(tval[0], false, true);
+		return compare_to_true(tval[0], results);
 	}
-	bool tf_state_id_province(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_state_id_province) {
 		provinces::province_tag pid(tval[2]);
-		auto current_prov = primary_slot.prov;
-		auto same_region = ws.s.province_m.province_container.get<province::state_id>(current_prov) == ws.s.province_m.province_container.get<province::state_id>(pid);
-		return compare_values(tval[0], same_region, true);
+		return compare_values(tval[0],
+			to_value<province::state_id>(ws.s.province_m.province_container, to_prov(primary_slot)),
+			primary_type::widen(ws.s.province_m.province_container.get<province::state_id>(pid)));
 	}
-	bool tf_state_id_state(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_state_id_state) {
 		provinces::province_tag pid(tval[2]);
-		auto current_region = ws.w.nation_s.states.get<state::region_id>(primary_slot.state);
-		auto same_region = current_region == ws.s.province_m.province_container.get<province::state_id>(pid);
-		return compare_values(tval[0], same_region, true);
+		return compare_values(tval[0],
+			to_value<state::region_id>(ws.w.nation_s.states, to_state(primary_slot)),
+			primary_type::widen(ws.s.province_m.province_container.get<province::state_id>(pid)));
 	}
 	bool tf_cash_reserves(TRIGGER_PARAMTERS) {
 		auto ratio = economy::money_qnty_type(read_float_from_payload(tval + 2));

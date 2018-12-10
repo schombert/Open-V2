@@ -218,7 +218,10 @@ __forceinline fp_vector operator^(fp_vector a, fp_vector b) {
 	return _mm256_xor_ps(a, b);
 }
 __forceinline fp_vector operator~(fp_vector a) {
-	return _mm256_xor_ps(a, _mm256_cmp_ps(_mm256_setzero_ps(), _mm256_setzero_ps(), _CMP_EQ_OQ));
+	return _mm256_xor_ps(a, fp_vector(true));
+}
+__forceinline fp_vector operator!(fp_vector a) {
+	return _mm256_xor_ps(a, fp_vector(true));
 }
 __forceinline fp_vector and_not(fp_vector a, fp_vector b) {
 	return _mm256_andnot_ps(b, a);
@@ -319,6 +322,9 @@ __forceinline fp_vector select(fp_vector mask, fp_vector a, fp_vector b) {
 }
 __forceinline fp_vector is_non_zero(int_vector i) {
 	return i != int_vector();
+}
+__forceinline fp_vector is_zero(int_vector i) {
+	return i == int_vector();
 }
 
 __forceinline int32_t compress_mask(fp_vector mask) {
@@ -464,12 +470,12 @@ public:
 	__forceinline static int_vector gather_load(int32_t const* source, __m256i indices) {
 		return _mm256_i32gather_epi32(source, indices, 4);
 	}
-	__forceinline static int32_t gather_load(int8_t const* source, __m256i indices) {
+	__forceinline static fp_vector gather_load(int8_t const* source, __m256i indices) {
 		const auto byte_indices = _mm256_srl_epi32(indices, 3);
 		const auto bit_indices = _mm256_and_si256(indices, _mm256_set1_epi32(0x00000007));
 		auto gathered = _mm256_i32gather_epi32(source, byte_indices, 1);
 		auto shifted = _mm256_and_si256(_mm256_srlv_epi32(gathered, bit_indices), _mm256_set1_epi32(0x00000001));
-		return _mm256_movemask_ps(_mm256_castsi256_ps(_mm256_sub_epi32(_mm256_setzero_si256(), shifted)));
+		return _mm256_castsi256_ps(_mm256_sub_epi32(_mm256_setzero_si256(), shifted));
 	}
 
 	__forceinline static fp_vector gather_masked_load(float const* source, __m256i indices, fp_vector mask, fp_vector def = _mm256_setzero_ps()) {

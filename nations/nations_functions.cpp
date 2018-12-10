@@ -431,7 +431,7 @@ namespace nations {
 		ws.w.nation_s.nation_demographics.ensure_capacity(to_index(new_nation) + 1);
 		ws.w.nation_s.nation_colonial_demographics.ensure_capacity(to_index(new_nation) + 1);
 		ws.w.nation_s.upper_house.ensure_capacity(to_index(new_nation) + 1);
-		ws.w.nation_s.active_technologies.ensure_capacity(to_index(new_nation) + 1);
+		//ws.w.nation_s.active_technologies.ensure_capacity(to_index(new_nation) + 1);
 		ws.w.nation_s.active_goods.ensure_capacity(to_index(new_nation) + 1);
 		ws.w.nation_s.collected_tariffs.ensure_capacity(to_index(new_nation) + 1);
 		ws.w.nation_s.active_issue_options.ensure_capacity(to_index(new_nation) + 1);
@@ -550,7 +550,7 @@ namespace nations {
 		ws.w.nation_s.state_demographics.reset(population::aligned_32_demo_size(ws));
 		ws.w.nation_s.active_parties.reset(ws.s.ideologies_m.ideologies_count);
 		ws.w.nation_s.upper_house.reset(ws.s.ideologies_m.ideologies_count);
-		ws.w.nation_s.active_technologies.reset((uint32_t(ws.s.technology_m.technologies_container.size()) + 63ui32) / 64ui32);
+		ws.w.nation_s.active_technologies.resize(int32_t(ws.s.technology_m.technologies_container.size()));
 		ws.w.nation_s.active_goods.reset((ws.s.economy_m.goods_count + 63ui32) / 64ui32);
 		ws.w.nation_s.collected_tariffs.reset(ws.s.economy_m.goods_count);
 		ws.w.nation_s.active_issue_options.reset(uint32_t(ws.s.issues_m.issues_container.size()));

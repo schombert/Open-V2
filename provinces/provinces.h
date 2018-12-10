@@ -126,7 +126,7 @@ namespace province_state {
 		rgo_production, economy::goods_tag,
 
 		dominant_culture, cultures::culture_tag,
-		base_life_rating, int16_t,
+		base_life_rating, float,
 		terrain, modifiers::provincial_modifier_tag,
 		crime, modifiers::provincial_modifier_tag,
 		name, text_data::text_tag,

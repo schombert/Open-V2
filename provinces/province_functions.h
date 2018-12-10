@@ -1,6 +1,7 @@
 #pragma once
 #include "common\\common.h"
 #include "provinces.h"
+#include "concurrency_tools\\ve.h"
 
 namespace current_state {
 	class state;
@@ -18,6 +19,8 @@ namespace provinces {
 	void add_timed_province_modifier(world_state& ws, province_tag p, modifiers::provincial_modifier_tag t, date_tag d);
 	nations::country_tag get_province_seiger(world_state& ws, province_tag p);
 	float get_life_rating(world_state const& ws, province_tag p);
+	ve::fp_vector get_life_rating(world_state const& ws, uint32_t offset);
+	ve::fp_vector get_life_rating(world_state const& ws, ve::int_vector p);
 	void reset_state(provinces_state& s);
 
 	template<typename F>

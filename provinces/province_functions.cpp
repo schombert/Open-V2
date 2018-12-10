@@ -249,6 +249,16 @@ namespace provinces {
 		auto& container = ws.w.province_s.province_state_container;
 		return float(container.get<province_state::base_life_rating>(p)) * (1.0f + ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::life_rating>(p));
 	}
+	ve::fp_vector get_life_rating(world_state const& ws, uint32_t offset) {
+		auto base_ratings = ve::full_vector_operation(offset).load(ws.w.province_s.province_state_container.get_row<province_state::base_life_rating>().data());
+		auto modifiers = ve::full_vector_operation(offset).load(ws.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::life_rating>(0).data());
+		return ve::multiply_and_add(modifiers, base_ratings, base_ratings);
+	}
+	ve::fp_vector get_life_rating(world_state const& ws, ve::int_vector p) {
+		auto base_ratings = ve::full_vector_operation<0>::gather_load(ws.w.province_s.province_state_container.get_row<province_state::base_life_rating>().data(), p);
+		auto modifiers = ve::full_vector_operation<0>::gather_load(ws.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::life_rating>(0).data(), p);
+		return ve::multiply_and_add(modifiers, base_ratings, base_ratings);
+	}
 
 
 	void silent_remove_province_owner(world_state& ws, province_tag p) {
@@ -276,7 +286,7 @@ namespace provinces {
 	void silent_remove_province_controller(world_state& ws, province_tag prov) {
 		auto& container = ws.w.province_s.province_state_container;
 
-		if(nations::country_tag& controller = container.get<province_state::controller>(prov); is_valid_index(controller)) {
+		if(auto& controller = container.get<province_state::controller>(prov); is_valid_index(controller)) {
 			nations::remove_controlled_province(ws, controller, prov);
 			controller = nations::country_tag();
 			container.set<province_state::last_controller_change>(prov, ws.w.current_date);
@@ -376,10 +386,10 @@ namespace provinces {
 		auto a_owner = state_container.get<province_state::owner>(a);
 		auto b_owner = state_container.get<province_state::owner>(b);
 		
-		auto a_sphere_leader = a_owner ? ws.w.nation_s.nations.get<nation::sphere_leader>(a_owner) : nations::country_tag();
-		auto a_overlord = a_owner ? ws.w.nation_s.nations.get<nation::overlord>(a_owner) : nations::country_tag();
-		auto b_sphere_leader = b_owner ? ws.w.nation_s.nations.get<nation::sphere_leader>(b_owner) : nations::country_tag();
-		auto b_overlord = b_owner ? ws.w.nation_s.nations.get<nation::overlord>(b_owner) : nations::country_tag();
+		auto a_sphere_leader = a_owner ? nations::country_tag(ws.w.nation_s.nations.get<nation::sphere_leader>(a_owner)) : nations::country_tag();
+		auto a_overlord = a_owner ? nations::country_tag(ws.w.nation_s.nations.get<nation::overlord>(a_owner)) : nations::country_tag();
+		auto b_sphere_leader = b_owner ? nations::country_tag(ws.w.nation_s.nations.get<nation::sphere_leader>(b_owner)) : nations::country_tag();
+		auto b_overlord = b_owner ? nations::country_tag(ws.w.nation_s.nations.get<nation::overlord>(b_owner)) : nations::country_tag();
 
 		bool no_ff_nation_transition =
 			a_owner == b_owner

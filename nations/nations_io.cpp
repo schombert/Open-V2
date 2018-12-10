@@ -44,8 +44,8 @@ void serialization::serializer<nations::nations_state>::serialize_object(std::by
 		auto upper_house = ws.w.nation_s.upper_house.get_row(n);
 		serialize_array(output, upper_house.data(), ws.s.ideologies_m.ideologies_count);
 
-		auto active_tech = ws.w.nation_s.active_technologies.get_row(n);
-		serialize_array(output, active_tech.data(), (uint32_t(ws.s.technology_m.technologies_container.size()) + 63ui32) / 64ui32);
+		//auto active_tech = ws.w.nation_s.active_technologies.get_row(n);
+		//serialize_array(output, active_tech.data(), (uint32_t(ws.s.technology_m.technologies_container.size()) + 63ui32) / 64ui32);
 
 		auto active_issues = ws.w.nation_s.active_issue_options.get_row(n);
 		serialize_array(output, active_issues.data(), uint32_t(ws.s.issues_m.issues_container.size()));
@@ -56,6 +56,12 @@ void serialization::serializer<nations::nations_state>::serialize_object(std::by
 		auto variables = ws.w.nation_s.national_variables.get_row(n);
 		serialize_array(output, variables.data(), ws.s.variables_m.count_national_variables);
 	});
+
+	auto tech_count = int32_t(ws.s.technology_m.technologies_container.size());
+	auto byte_count = uint32_t(obj.nations.size() + 8) / 8ui32;
+	for(int32_t i = 0; i < tech_count; +i) {
+		serialize_array(output, obj.active_technologies.get_row(technologies::tech_tag(technologies::tech_tag::value_base_t(i)),0).data(), byte_count);
+	}
 }
 
 void serialization::serializer<nations::nations_state>::deserialize_object(std::byte const *& input, nations::nations_state & obj, world_state & ws) {
@@ -107,8 +113,8 @@ void serialization::serializer<nations::nations_state>::deserialize_object(std::
 		auto upper_house = ws.w.nation_s.upper_house.get_row(n);
 		deserialize_array(input, upper_house.data(), ws.s.ideologies_m.ideologies_count);
 
-		auto active_tech = ws.w.nation_s.active_technologies.get_row(n);
-		deserialize_array(input, active_tech.data(), (uint32_t(ws.s.technology_m.technologies_container.size()) + 63ui32) / 64ui32);
+		//auto active_tech = ws.w.nation_s.active_technologies.get_row(n);
+		//deserialize_array(input, active_tech.data(), (uint32_t(ws.s.technology_m.technologies_container.size()) + 63ui32) / 64ui32);
 
 		auto active_issues = ws.w.nation_s.active_issue_options.get_row(n);
 		deserialize_array(input, active_issues.data(), uint32_t(ws.s.issues_m.issues_container.size()));
@@ -129,8 +135,15 @@ void serialization::serializer<nations::nations_state>::deserialize_object(std::
 		auto inf_range = get_range(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(n));
 		for(auto c = inf_range.first; c != inf_range.second; ++c)
 			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::influencers>(c->target), n);
-
 	});
+
+	auto tech_count = int32_t(ws.s.technology_m.technologies_container.size());
+	obj.active_technologies.resize(tech_count);
+	obj.active_technologies.reset();
+	auto byte_count = uint32_t(obj.nations.size() + 8) / 8ui32;
+	for(int32_t i = 0; i < tech_count; +i) {
+		deserialize_array(input, obj.active_technologies.get_row(technologies::tech_tag(technologies::tech_tag::value_base_t(i)), 0).data(), byte_count);
+	}
 }
 
 size_t serialization::serializer<nations::nations_state>::size(nations::nations_state const & obj, world_state const & ws) {
@@ -150,7 +163,7 @@ size_t serialization::serializer<nations::nations_state>::size(nations::nations_
 	size_t nation_data_size = 0;
 	auto nation_fixed_sz_increment = sizeof(governments::party_tag) * ws.s.ideologies_m.ideologies_count + // active parties
 		sizeof(uint8_t) * ws.s.ideologies_m.ideologies_count + // upper house
-		sizeof(uint64_t) * ((uint32_t(ws.s.technology_m.technologies_container.size()) + 63ui32) / 64ui32) + // active technologies
+		//sizeof(uint64_t) * ((uint32_t(ws.s.technology_m.technologies_container.size()) + 63ui32) / 64ui32) + // active technologies
 		sizeof(issues::option_tag) * ws.s.issues_m.issues_container.size() + // active issue options
 		sizeof(economy::goods_qnty_type) * ws.s.economy_m.aligned_32_goods_count + // national stockpiles
 		sizeof(float) * ws.s.variables_m.count_national_variables; // national variables
@@ -159,7 +172,10 @@ size_t serialization::serializer<nations::nations_state>::size(nations::nations_
 		nation_data_size += nation_fixed_sz_increment;
 	});
 
-	return serialize_size(obj.nations, ws) + serialize_size(obj.states, ws) + state_data_size + state_other_arrays_size + nation_data_size;
+	auto tech_count = int32_t(ws.s.technology_m.technologies_container.size());
+	auto byte_count = uint32_t(obj.nations.size() + 8) / 8ui32;
+
+	return serialize_size(obj.nations, ws) + serialize_size(obj.states, ws) + state_data_size + state_other_arrays_size + nation_data_size + tech_count * byte_count;
 }
 
 namespace nations {
@@ -440,9 +456,11 @@ namespace nations {
 		for(auto& ip : npo.govt_flags)
 			ws.w.culture_s.country_flags_by_government.get(nat_tag_id, ip.first) = ws.w.culture_s.country_flags_by_government.get(nat_tag_id, ip.second);
 
-		auto tech_row = ws.w.nation_s.active_technologies.get_row(target_nation);
-		for(uint32_t i = 0; i < npo.tech_bit_vector.size(); ++i)
-			tech_row.data()[i] = npo.tech_bit_vector[i];
+		//auto tech_row = ws.w.nation_s.active_technologies.get_row(target_nation);
+		for(uint32_t i = 0; i < ws.s.technology_m.technologies_container.size(); ++i) {
+			ws.w.nation_s.active_technologies.set(target_nation, technologies::tech_tag(technologies::tech_tag::value_base_t(i)), bit_vector_test(npo.tech_bit_vector.data(), i));
+			//tech_row.data()[i] = npo.tech_bit_vector[i];
+		}
 
 		auto issues_row = ws.w.nation_s.active_issue_options.get_row(target_nation);
 		for(uint32_t i = 0; i < ws.s.issues_m.issues_container.size(); ++i) {
