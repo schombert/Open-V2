@@ -112,7 +112,7 @@ namespace triggers {
 		trigger_payload(trigger_tag id) : trigger(id) {}
 	};
 
-	union parameter {
+	/*union parameter {
 		nations::country_tag nation;
 		nations::state_tag state;
 		population::pop_tag pop;
@@ -133,7 +133,9 @@ namespace triggers {
 		constexpr parameter(expanded_tag<provinces::province_tag> pr) noexcept : prov(pr) {}
 		constexpr parameter(expanded_tag < population::rebel_faction_tag> r) noexcept : rebel(r) {}
 		constexpr parameter(int32_t v) noexcept : value(v) {}
-	};
+	};*/
+
+	using parameter = union_tag;
 	using const_parameter = parameter;
 
 

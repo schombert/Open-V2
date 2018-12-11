@@ -83,8 +83,15 @@ namespace population {
 			+ ws.w.population_s.pops.get<pop::size_change_from_type_change>(p);
 	}
 
-	economy::money_qnty_type desired_needs_spending(world_state const&, pop_tag) {
+	float desired_needs_spending(world_state const&, pop_tag) {
 		return economy::money_qnty_type(0);
+	}
+
+	ve::fp_vector desired_needs_spending(world_state const& ws, uint32_t p) {
+		return ve::fp_vector();
+	}
+	ve::fp_vector desired_needs_spending(world_state const& ws, ve::int_vector p) {
+		return ve::fp_vector();
 	}
 
 	nations::country_tag get_pop_owner(world_state const& ws, pop_tag p) {

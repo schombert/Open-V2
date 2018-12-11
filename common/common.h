@@ -168,6 +168,7 @@ struct expanded_tag {
 	constexpr expanded_tag(const expanded_tag& v) noexcept = default;
 	constexpr expanded_tag(expanded_tag&& v) noexcept = default;
 	constexpr expanded_tag(base_tag_type b) noexcept : value(b.value) {}
+	explicit constexpr expanded_tag(int32_t v, std::true_type) noexcept : value(v) {}
 
 	constexpr operator base_tag_type() const noexcept { return base_tag_type(base_tag_type::value_base_t(value), std::true_type()); }
 
@@ -190,6 +191,64 @@ struct expanded_tag {
 
 	explicit constexpr operator bool() const noexcept { return value != 0; }
 };
+
+struct union_tag {
+	int32_t value = 0;
+
+	constexpr union_tag() : value(0) {}
+	constexpr explicit union_tag(int32_t v) : value(v) {}
+	constexpr union_tag(const union_tag& v) noexcept = default;
+	constexpr union_tag(union_tag&& v) noexcept = default;
+
+	template<typename value_base, typename zero_is_null, typename individuator>
+	constexpr union_tag(tag_type<value_base, zero_is_null, individuator> b) noexcept : value(zero_is_null::value ? int32_t(b.value) : int32_t(b.value) + 1) {}
+	template<typename type>
+	constexpr union_tag(expanded_tag<type> b) noexcept : value(b.value) {}
+
+	template<typename value_base, typename zero_is_null, typename individuator>
+	constexpr operator tag_type<value_base, zero_is_null, individuator>() const noexcept {
+		if constexpr(zero_is_null::value) {
+			return tag_type<value_base, zero_is_null, individuator>(typename tag_type<value_base, zero_is_null, individuator>::value_base_t(value), std::true_type());
+		} else {
+			if(value != 0)
+				return tag_type<value_base, zero_is_null, individuator>(typename tag_type<value_base, zero_is_null, individuator>::value_base_t(value));
+			else
+				tag_type<value_base, zero_is_null, individuator>();
+		}
+	}
+
+	template<typename type>
+	constexpr operator expanded_tag<type>() const noexcept {
+		expanded_tag<type>(value, std::true_type());
+	}
+
+	constexpr bool is_valid() const noexcept { return value != 0; }
+
+	union_tag& operator=(union_tag&& v) noexcept = default;
+	union_tag& operator=(union_tag const& v) noexcept = default;
+
+	constexpr bool operator==(union_tag v) const noexcept { return value == v.value; }
+	constexpr bool operator!=(union_tag v) const noexcept { return value != v.value; }
+	constexpr bool operator<(union_tag v) const noexcept { return value < v.value; }
+	constexpr bool operator<=(union_tag v) const noexcept { return value <= v.value; }
+
+	explicit constexpr operator bool() const noexcept { return value != 0; }
+};
+
+constexpr int32_t to_index(union_tag in) { return in.value - 1; }
+
+template<>
+constexpr bool is_valid_index<union_tag>(union_tag in) { return in.value != 0; }
+
+template<>
+struct value_base_of_s<union_tag> { using type = int32_t; };
+
+template<>
+struct zero_is_null_of_s<union_tag> { using type = std::true_type; };
+
+template<>
+struct individuator_of_s<union_tag> { using type = typename union_tag; };
+
 
 template<typename base_tag_type>
 constexpr expanded_tag<base_tag_type> null_value_of<expanded_tag<base_tag_type>> = expanded_tag<base_tag_type>();

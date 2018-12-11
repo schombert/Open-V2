@@ -45,12 +45,12 @@ namespace pop {
 		is_poor, bitfield_type,
 		is_middle, bitfield_type,
 
-		type, population::pop_type_tag,
+		type, expanded_tag<population::pop_type_tag>,
 		religion, cultures::religion_tag,
 		associated_army, military::army_tag,
 		movement, population::movement_tag,
 		rebel_faction, population::rebel_faction_tag,
-		culture, cultures::culture_tag,
+		culture, expanded_tag<cultures::culture_tag>,
 		location, expanded_tag<provinces::province_tag>,
 
 		size, float,

@@ -1,6 +1,7 @@
 #pragma once
 #include "common\\common.h"
 #include "population.h"
+#include "concurrency_tools\\ve.h"
 
 class world_state;
 
@@ -18,7 +19,9 @@ namespace population {
 	float get_militancy_direct(world_state const& ws, pop_tag p);
 	float get_literacy_direct(world_state const& ws, pop_tag p);
 	float get_consciousness_direct(world_state const& ws, pop_tag p);
-	economy::money_qnty_type desired_needs_spending(world_state const& ws, pop_tag p);
+	float desired_needs_spending(world_state const& ws, pop_tag p);
+	ve::fp_vector desired_needs_spending(world_state const& ws, uint32_t p);
+	ve::fp_vector desired_needs_spending(world_state const& ws, ve::int_vector p);
 	nations::country_tag get_pop_owner(world_state const& ws, pop_tag p);
 	bool is_dominant_issue(world_state const& ws, pop_tag id, issues::option_tag opt);
 	bool is_dominant_ideology(world_state const& ws, pop_tag id, ideologies::ideology_tag opt);

@@ -460,6 +460,8 @@ private:
 	tag_type first_free;
 	int32_t size_used = 0;
 public:
+	using index_type = tag_type;
+
 	friend class serialization::serializer<variable_layout_tagged_vector<tag_type, container_size, T ...>>;
 
 #ifdef VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
@@ -664,6 +666,7 @@ private:
 
 	friend class serialization::serializer<variable_layout_contiguous_tagged_vector<tag_type, container_size, T ...>>;
 public:
+	using index_type = tag_type;
 
 #ifdef VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
 	variable_layout_contiguous_tagged_vector() : ptr((ptr_type*)_aligned_malloc(sizeof(ptr_type), 64)) {
@@ -928,6 +931,7 @@ private:
 
 	data_line* const ptr;
 public:
+	using index_type = tag_type;
 
 	fixed_vectorizable_2d_array() : ptr((data_line*)_aligned_malloc(sizeof(data_line) * inner_size, 64)) {
 		std::uninitialized_value_construct_n(ptr, inner_size);
@@ -1004,6 +1008,7 @@ private:
 	data_line* ptr = nullptr;
 	int32_t current_size = 0;
 public:
+	using index_type = tag_type;
 
 	varying_vectorizable_2d_array() {}
 	varying_vectorizable_2d_array(varying_vectorizable_2d_array const&) = delete;

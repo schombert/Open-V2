@@ -3,8 +3,6 @@
 #include <intrin.h>
 #include <ppl.h>
 
-namespace ve {
-
 #pragma warning( push )
 #pragma warning( disable : 4324)
 
@@ -19,6 +17,10 @@ namespace ve {
 #endif
 
 #pragma warning( pop ) 
+
+namespace ve {
+
+
 
 	__forceinline constexpr bool and_not(bool a, bool b) { return (!b) && a; }
 	__forceinline constexpr float inverse(float a) { return 1.0f / a; }
@@ -38,6 +40,7 @@ namespace ve {
 	__forceinline constexpr float select(bool t, float a, float b) { return t ? a : b; }
 	__forceinline fp_vector widen_mask(fp_vector mask) { return mask; }
 	__forceinline bool widen_mask(bool mask) { return mask; }
+	__forceinline bool bit_test(int32_t val, int32_t bits) { return (val & bits) == bits; }
 
 	template<typename T>
 	__forceinline auto improved_inverse(T a) {
