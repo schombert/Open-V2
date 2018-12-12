@@ -456,22 +456,22 @@ namespace economy {
 	}
 	void subsidize_all_button::update(ui::simple_button<subsidize_all_button>& self, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) 
-			self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player).rules_value & issues::rules::can_subsidise) != 0);
+			self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player) & issues::rules::can_subsidise) != 0);
 	}
 	void subsidize_all_button::button_function(ui::simple_button<subsidize_all_button>& self, world_state & ws) {}
 	void unsubsidize_all_button::update(ui::simple_button<unsubsidize_all_button>& self, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player)
-			self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player).rules_value & issues::rules::can_subsidise) != 0);
+			self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player) & issues::rules::can_subsidise) != 0);
 	}
 	void unsubsidize_all_button::button_function(ui::simple_button<unsubsidize_all_button>& self, world_state & ws) {}
 	void open_all_factories_button::update(ui::simple_button<open_all_factories_button>& self, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player)
-			self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player).rules_value & issues::rules::open_factory) != 0);
+			self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player) & issues::rules::open_factory) != 0);
 	}
 	void open_all_factories_button::button_function(ui::simple_button<open_all_factories_button>& self, world_state & ws) {}
 	void close_all_factories_button::update(ui::simple_button<close_all_factories_button>& self, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player)
-			self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player).rules_value & issues::rules::open_factory) != 0);
+			self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player) & issues::rules::open_factory) != 0);
 	}
 	void close_all_factories_button::button_function(ui::simple_button<close_all_factories_button>& self, world_state & ws) {}
 	void good_filter_item_button::button_function(ui::simple_button<good_filter_item_button>& self, world_state & ws) {

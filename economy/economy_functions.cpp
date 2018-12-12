@@ -481,8 +481,8 @@ namespace economy {
 	}
 
 	bool possible_to_invest_in(world_state const& ws, nations::country_tag investor, nations::country_tag target) {
-		auto investor_rules_val = ws.w.nation_s.nations.get<nation::current_rules>(investor).rules_value;
-		auto target_rules_val = ws.w.nation_s.nations.get<nation::current_rules>(target).rules_value;
+		auto investor_rules_val = ws.w.nation_s.nations.get<nation::current_rules>(investor);
+		auto target_rules_val = ws.w.nation_s.nations.get<nation::current_rules>(target);
 		return !nations::is_great_power(ws, target) && nations::is_great_power(ws, investor) &&
 			((investor_rules_val & (issues::rules::open_factory_invest | issues::rules::expand_factory_invest | issues::rules::build_factory_invest)) != 0) &&
 			((target_rules_val & issues::rules::allow_foreign_investment) != 0) &&
@@ -1205,22 +1205,22 @@ namespace economy {
 
 		template<typename T>
 		__forceinline void operator()(T executor) {
-			executor.nt_prefetch<prefetch_constant_a>(state_prices_copy_v);
-			executor.nt_prefetch<prefetch_constant_a>(tarrif_mask_v);
-			executor.nt_prefetch<prefetch_constant_a>(distance_vector_v);
-			executor.prefetch<prefetch_constant_a>(apparent_price_v);
+			ve::nt_prefetch<prefetch_constant_a>(executor, state_prices_copy_v);
+			ve::nt_prefetch<prefetch_constant_a>(executor, tarrif_mask_v);
+			ve::nt_prefetch<prefetch_constant_a>(executor, distance_vector_v);
+			ve::prefetch<prefetch_constant_a>(executor, apparent_price_v);
 
 			// = state_price * (tarrif_mask * state owner tarrif + 1.0) + distance_vector * distance factor 
 			auto new_apparent_prices = ve::multiply_and_add(
-				executor.load(state_prices_copy_v),
+				ve::load(executor, state_prices_copy_v),
 				ve::multiply_and_add(
-					executor.load(tarrif_mask_v),
-					executor.constant(state_owner_tarrifs),
-					executor.constant(1.0f)),
-				executor.load(distance_vector_v) *
-				executor.constant(distance_factor)
+					ve::load(executor, tarrif_mask_v),
+					state_owner_tarrifs,
+					1.0f),
+				ve::load(executor, distance_vector_v) *
+				distance_factor
 			);
-			executor.store(apparent_price_v, new_apparent_prices);
+			ve::store(executor, apparent_price_v, new_apparent_prices);
 		}
 	};
 
@@ -1234,12 +1234,12 @@ namespace economy {
 
 		template<typename T>
 		__forceinline void operator()(T executor) {
-			executor.prefetch<prefetch_constant_a>(apparent_price_v);
-			executor.nt_prefetch<prefetch_constant_a>(weightings_v);
-			executor.nt_prefetch<prefetch_constant_a>(state_production_copy_v);
+			ve::prefetch<prefetch_constant_a>(executor, apparent_price_v);
+			ve::nt_prefetch<prefetch_constant_a>(executor, weightings_v);
+			ve::nt_prefetch<prefetch_constant_a>(executor, state_production_copy_v);
 
-			auto new_apparent_prices = executor.load(apparent_price_v);
-			executor.store(weightings_v, executor.load(state_production_copy_v) / (new_apparent_prices * new_apparent_prices));
+			auto new_apparent_prices = ve::load(executor, apparent_price_v);
+			ve::store(executor, weightings_v, ve::load(executor, state_production_copy_v) / (new_apparent_prices * new_apparent_prices));
 		}
 	};
 
@@ -1257,25 +1257,20 @@ namespace economy {
 
 		template<typename T>
 		__forceinline void operator()(T executor) {
-			executor.prefetch<prefetch_constant_a>(apparent_price_v);
-			executor.nt_prefetch<prefetch_constant_a>(state_prices_copy_v);
-			executor.nt_prefetch<prefetch_constant_a>(values_v);
-			executor.nt_prefetch<prefetch_constant_a>(tarrif_mask_v);
-			executor.nt_prefetch<prefetch_constant_a>(global_demand_by_state_v);
+			ve::prefetch<prefetch_constant_a>(executor, apparent_price_v);
+			ve::nt_prefetch<prefetch_constant_a>(executor, state_prices_copy_v);
+			ve::nt_prefetch<prefetch_constant_a>(executor, values_v);
+			ve::nt_prefetch<prefetch_constant_a>(executor, tarrif_mask_v);
+			ve::nt_prefetch<prefetch_constant_a>(executor, global_demand_by_state_v);
 
-			ve::fp_vector money_spent_at_destination;
-			if constexpr(executor.full_operation) {
-				money_spent_at_destination =
-					executor.load(state_prices_copy_v) * executor.load(values_v) / executor.load(apparent_price_v);
-			} else {
-				money_spent_at_destination = select(executor.partial_mask(),
-					executor.load(state_prices_copy_v) * executor.load(values_v) / executor.load(apparent_price_v), executor.zero());
-			}
+			ve::fp_vector money_spent_at_destination =
+				ve::partial_mask(executor, ve::load(executor, state_prices_copy_v) * ve::load(executor, values_v) / ve::load(executor, apparent_price_v));
+
 			// global demand by state += 0.85 * money_spent_at_destination
-			executor.store(global_demand_by_state_v,
-				ve::multiply_and_add(money_spent_at_destination, executor.constant(0.85f), executor.load(global_demand_by_state_v)));
+			ve::store(executor, global_demand_by_state_v,
+				ve::multiply_and_add(money_spent_at_destination, 0.85f, ve::load(executor, global_demand_by_state_v)));
 			tariff_income_accumulator[executor.block_index] =
-				ve::multiply_and_add(executor.load(tarrif_mask_v), executor.constant(state_owner_tarrifs) * money_spent_at_destination,
+				ve::multiply_and_add(ve::load(executor, tarrif_mask_v), state_owner_tarrifs * money_spent_at_destination,
 					tariff_income_accumulator[executor.block_index]);
 		}
 	};
@@ -1295,28 +1290,23 @@ namespace economy {
 
 		template<typename T>
 		__forceinline void operator()(T executor) {
-			executor.prefetch<prefetch_constant_a>(apparent_price_v);
-			executor.nt_prefetch<prefetch_constant_a>(state_prices_copy_v);
-			executor.nt_prefetch<prefetch_constant_a>(values_v);
-			executor.nt_prefetch<prefetch_constant_a>(tarrif_mask_v);
-			executor.nt_prefetch<prefetch_constant_a>(global_demand_by_state_v);
+			ve::prefetch<prefetch_constant_a>(executor, apparent_price_v);
+			ve::nt_prefetch<prefetch_constant_a>(executor, state_prices_copy_v);
+			ve::nt_prefetch<prefetch_constant_a>(executor, values_v);
+			ve::nt_prefetch<prefetch_constant_a>(executor, tarrif_mask_v);
+			ve::nt_prefetch<prefetch_constant_a>(executor, global_demand_by_state_v);
 
-			ve::fp_vector money_spent_at_destination;
-			if constexpr(executor.full_operation) {
-				money_spent_at_destination =
-					executor.load(state_prices_copy_v) * executor.load(values_v) / executor.load(apparent_price_v);
-			} else {
-				money_spent_at_destination = select( executor.partial_mask(),
-					executor.load(state_prices_copy_v) * executor.load(values_v) / executor.load(apparent_price_v), executor.zero());
-			}
+			ve::fp_vector money_spent_at_destination = ve::partial_mask(executor,
+					ve::load(executor, state_prices_copy_v) * ve::load(executor, values_v) / ve::load(executor, apparent_price_v));
+			
 			// global demand by state += 0.85 * money_spent_at_destination
-			executor.store(global_demand_by_state_v,
-				ve::multiply_and_add(money_spent_at_destination, executor.constant(0.85f), executor.load(global_demand_by_state_v)));
+			ve::store(executor, global_demand_by_state_v,
+				ve::multiply_and_add(money_spent_at_destination, 0.85f, ve::load(executor, global_demand_by_state_v)));
 			tariff_income_accumulator[executor.block_index] =
-				ve::multiply_and_add(executor.load(tarrif_mask_v), executor.constant(state_owner_tarrifs) * money_spent_at_destination,
+				ve::multiply_and_add(ve::load(executor, tarrif_mask_v), state_owner_tarrifs * money_spent_at_destination,
 					tariff_income_accumulator[executor.block_index]);
 
-			executor.store(money_spent_values, money_spent_at_destination);
+			ve::store(executor, money_spent_values, money_spent_at_destination);
 		}
 	};
 
@@ -1336,23 +1326,23 @@ namespace economy {
 
 		template<typename T>
 		__forceinline void operator()(T executor) {
-			executor.prefetch<prefetch_constant_a>(distance_vector);
-			executor.prefetch<prefetch_constant_a>(tariff_mask);
-			executor.prefetch<prefetch_constant_a>(global_demand_by_state);
-			executor.prefetch<prefetch_constant_a>(state_production_copy);
-			executor.prefetch<prefetch_constant_a>(values);
+			ve::prefetch<prefetch_constant_a>(executor, distance_vector);
+			ve::prefetch<prefetch_constant_a>(executor, tariff_mask);
+			ve::prefetch<prefetch_constant_a>(executor, global_demand_by_state);
+			ve::prefetch<prefetch_constant_a>(executor, state_production_copy);
+			ve::prefetch<prefetch_constant_a>(executor, values);
 
 			price_times_purchases_accumulator[executor.block_index] = 
 				price_times_purchases_accumulator[executor.block_index] + 
 				
-				(executor.load(values) * ve::multiply_and_add(
-					executor.load(global_demand_by_state) / (executor.load(state_production_copy) + executor.constant(0.0001f)),
+				(ve::load(executor, values) * ve::multiply_and_add(
+					ve::load(executor, global_demand_by_state) / (ve::load(executor, state_production_copy) + 0.0001f),
 					ve::multiply_and_add(
-						executor.load(tariff_mask),
-						executor.constant(state_owner_tariffs),
-						executor.constant(1.0f)),
-					executor.load(distance_vector) *
-					executor.constant(distance_factor))
+						ve::load(executor, tariff_mask),
+						state_owner_tariffs,
+						1.0f),
+					ve::load(executor, distance_vector) *
+					distance_factor)
 			);
 		}
 		/*
@@ -1411,7 +1401,7 @@ namespace economy {
 			auto distance_vector = ws.w.province_s.state_distances.get_row(si);
 			auto tarrif_mask = get_range(ws.w.economy_s.purchasing_arrays, state_owner_tarrif_mask);
 
-			ve::execute_serial_fast(uint32_t(state_max + 1), calculate_apparant_prices(
+			ve::execute_serial_fast<nations::state_tag>(uint32_t(state_max + 1), calculate_apparant_prices(
 				workspace_local.apparent_price.data(),
 				distance_vector.data(),
 				state_owner_tarrifs,
@@ -1419,7 +1409,7 @@ namespace economy {
 				tarrif_mask.data()
 			));
 
-			ve::execute_serial_fast(uint32_t(state_max + 1), calculate_weightings(
+			ve::execute_serial_fast<nations::state_tag>(uint32_t(state_max + 1), calculate_weightings(
 				workspace_local.apparent_price.data(),
 				values.data(),
 				state_production.data()
@@ -1438,7 +1428,7 @@ namespace economy {
 					tariff_updator to_obj(workspace_local.global_demand_by_state.data(), workspace_local.apparent_price.data(),
 						state_prices_copy.data(), values.data(), tarrif_mask.data(), state_owner_tarrifs);
 
-					ve::execute_serial(uint32_t(state_max + 1), to_obj);
+					ve::execute_serial<nations::state_tag>(uint32_t(state_max + 1), to_obj);
 					workspace_local.nation_tarrif_income[state_owner] +=
 						((to_obj.tariff_income_accumulator[0] + to_obj.tariff_income_accumulator[1]) + (to_obj.tariff_income_accumulator[2] + to_obj.tariff_income_accumulator[3])).reduce();
 
@@ -1447,7 +1437,7 @@ namespace economy {
 					player_tariff_updator to_obj(workspace_local.global_demand_by_state.data(), workspace_local.apparent_price.data(),
 						state_prices_copy.data(), values.data(), tarrif_mask.data(), state_owner_tarrifs, workspace_local.weightings.data());
 
-					ve::execute_serial(uint32_t(state_max + 1), to_obj);
+					ve::execute_serial<nations::state_tag>(uint32_t(state_max + 1), to_obj);
 					workspace_local.nation_tarrif_income[state_owner] +=
 						((to_obj.tariff_income_accumulator[0] + to_obj.tariff_income_accumulator[1]) + (to_obj.tariff_income_accumulator[2] + to_obj.tariff_income_accumulator[3])).reduce();
 
@@ -1500,7 +1490,7 @@ namespace economy {
 
 			new_price_accumulator acc_obj(distance_vector.data(), tariff_mask.data(), global_demand_by_state.data(), state_production.data(), values.data(), state_owner_tarrifs);
 
-			ve::execute_serial(uint32_t(state_max + 1), acc_obj);
+			ve::execute_serial<nations::state_tag>(uint32_t(state_max + 1), acc_obj);
 			const auto final_dot_product =
 				((acc_obj.price_times_purchases_accumulator[0] + acc_obj.price_times_purchases_accumulator[1])
 					+ (acc_obj.price_times_purchases_accumulator[2] + acc_obj.price_times_purchases_accumulator[3])).reduce();
@@ -1864,27 +1854,27 @@ namespace economy {
 
 		template<typename T>
 		void operator()(T executor) {
-			auto pop_size_multiplier = executor.load(pop_sizes) * executor.constant(1.0f / pop_needs_divisor);
-			auto type_indices = executor.load(pop_types);
+			auto pop_size_multiplier = ve::load(executor, pop_sizes) * (1.0f / pop_needs_divisor);
+			auto type_indices = ve::load(executor, pop_types);
 
-			auto gathered_ln_mdt = executor.gather_load(ln_money_div_qnty_by_type, type_indices);
-			auto gathered_en_mdt = executor.gather_load(en_money_div_qnty_by_type, type_indices);
-			auto gathered_lx_mdt = executor.gather_load(lx_money_div_qnty_by_type, type_indices);
+			auto gathered_ln_mdt = ve::load(type_indices, ln_money_div_qnty_by_type);
+			auto gathered_en_mdt = ve::load(type_indices, en_money_div_qnty_by_type);
+			auto gathered_lx_mdt = ve::load(type_indices, lx_money_div_qnty_by_type);
 
 			/*
 			state_demand += (ln * ln_money / total_ln).matrix();
 			state_demand += (en * en_money / total_en).matrix();
 			state_demand += (xn * lx_money / total_xn).matrix();
 			*/
-			executor.store(ln_spending, gathered_ln_mdt * pop_size_multiplier);
-			executor.store(en_spending, gathered_en_mdt * pop_size_multiplier);
-			executor.store(lx_spending, gathered_lx_mdt * pop_size_multiplier);
+			ve::store(executor, ln_spending, gathered_ln_mdt * pop_size_multiplier);
+			ve::store(executor, en_spending, gathered_en_mdt * pop_size_multiplier);
+			ve::store(executor, lx_spending, gathered_lx_mdt * pop_size_multiplier);
 
-			auto gathered_ln_cost = executor.gather_load(ln_costs_by_type, type_indices);
-			auto gathered_en_cost = executor.gather_load(en_costs_by_type, type_indices);
-			auto gathered_lx_cost = executor.gather_load(lx_costs_by_type, type_indices);
+			auto gathered_ln_cost = ve::load(type_indices, ln_costs_by_type);
+			auto gathered_en_cost = ve::load(type_indices, en_costs_by_type);
+			auto gathered_lx_cost = ve::load(type_indices, lx_costs_by_type);
 
-			auto money = executor.load(pop_money);
+			auto money = ve::load(executor, pop_money);
 
 			auto tier_one = pop_size_multiplier * gathered_ln_cost;
 			auto in_ln_group = money < tier_one;
@@ -1895,17 +1885,17 @@ namespace economy {
 
 			auto remainder_after_tier_two = money - tier_two;
 
-			auto new_pop_money = ve::select(in_en_group, executor.zero(), remainder_after_tier_two * executor.constant(savings_rate));
-			executor.store(pop_money, new_pop_money);
+			auto new_pop_money = ve::select(in_en_group, 0.0f, remainder_after_tier_two * savings_rate);
+			ve::store(executor, pop_money, new_pop_money);
 
-			auto tier_three_fraction = remainder_after_tier_two * executor.constant(1.0f - savings_rate) / gathered_lx_cost;
+			auto tier_three_fraction = remainder_after_tier_two * (1.0f - savings_rate) / gathered_lx_cost;
 			auto new_satisfaction =
 				ve::select(in_en_group,
-					ve::select(in_ln_group, money / tier_one, executor.constant(1.0f) + ((money - tier_one) / multiplied_en_cost)), // ln or en branch
-					ve::select(tier_three_fraction < executor.constant(1.0f), executor.constant(2.0f) + tier_three_fraction, executor.constant(3.0f)) // lx branch
+					ve::select(in_ln_group, money / tier_one, (1.0f) + ((money - tier_one) / multiplied_en_cost)), // ln or en branch
+					ve::select(tier_three_fraction < 1.0f, 2.0f + tier_three_fraction, 3.0f) // lx branch
 				); 
 			
-			executor.store(satisfaction, new_satisfaction);
+			ve::store(executor, satisfaction, new_satisfaction);
 								
 			/*
 			if(initial_money < (pop_size_multiplier * life_needs_cost_by_type[to_index(ptype)])) {
@@ -1965,12 +1955,12 @@ namespace economy {
 
 		template<typename T>
 		__forceinline void operator()(T executor) {
-			auto indices = executor.load(pop_ids);
-			auto money_source = executor.load(money);
-			auto satisfaction_source = executor.load(satisfaction);
+			auto indices = ve::load(executor, pop_ids);
+			auto money_source = ve::load(executor, money);
+			auto satisfaction_source = ve::load(executor, satisfaction);
 
-			executor.scatter_store(money_dest, money_source, indices);
-			executor.scatter_store(satisfaction_dest, satisfaction_source, indices);
+			ve::store(indices, money_dest, money_source);
+			ve::store(indices, satisfaction_dest, satisfaction_source);
 		}
 	};
 
@@ -2029,7 +2019,7 @@ namespace economy {
 			state_pops.en_costs_by_type.data() + 1,
 			state_pops.lx_costs_by_type.data() + 1);
 
-		ve::execute_serial(uint32_t(state_pops.pop_ids.size()), consumption_operation(state_pops));
+		ve::execute_serial<int32_t>(uint32_t(state_pops.pop_ids.size()), consumption_operation(state_pops));
 
 		apply_pop_demand(ws, si, state_pops);
 
@@ -2098,7 +2088,7 @@ namespace economy {
 			state_pops.money[i] += state_pay_by_type[to_index(ptype)] * state_pops.size[i] / float(state_population_by_type[to_index(ptype)]);
 		}
 
-		ve::execute_serial(uint32_t(total), store_money_and_satisfaction_operation(ws, state_pops));
+		ve::execute_serial<int32_t>(uint32_t(total), store_money_and_satisfaction_operation(ws, state_pops));
 	}
 
 	artisan_type_tag get_profitable_artisan(world_state const& ws, provinces::province_tag ps) {

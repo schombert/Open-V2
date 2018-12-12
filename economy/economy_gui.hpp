@@ -2239,7 +2239,7 @@ namespace economy {
 				economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
 				if(f.factory_progress > 0.0f && f.level == 0) {
 					ui::make_visible_immediate(*self.associated_object);
-					self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player).rules_value & issues::rules::destroy_factory) != 0);
+					self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player) & issues::rules::destroy_factory) != 0);
 					return;
 				}
 			}
@@ -2256,7 +2256,7 @@ namespace economy {
 				economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
 				if(factory_is_closed(f)) {
 					ui::make_visible_immediate(*self.associated_object);
-					self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player).rules_value & issues::rules::destroy_factory) != 0);
+					self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player) & issues::rules::destroy_factory) != 0);
 					return;
 				}
 			}
@@ -2277,10 +2277,10 @@ namespace economy {
 					self.set_frame(ws.w.gui_m, 0ui32);
 					ui::make_visible_immediate(*self.associated_object);
 					if(ws.w.nation_s.states.get<state::owner>(location) == player) {
-						self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player).rules_value & issues::rules::open_factory) != 0);
+						self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player) & issues::rules::open_factory) != 0);
 						return;
 					} else {
-						self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player).rules_value & issues::rules::open_factory_invest) != 0);
+						self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player) & issues::rules::open_factory_invest) != 0);
 						return;
 					}
 				} else {
@@ -2288,7 +2288,7 @@ namespace economy {
 					self.set_frame(ws.w.gui_m, 1ui32);
 					if(ws.w.nation_s.states.get<state::owner>(location) == player) {
 						ui::make_visible_immediate(*self.associated_object);
-						self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player).rules_value & issues::rules::destroy_factory) != 0);
+						self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player) & issues::rules::destroy_factory) != 0);
 						return;
 					}
 				}
@@ -2307,12 +2307,12 @@ namespace economy {
 				economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
 				if(ws.w.nation_s.states.get<state::owner>(location) == player && f.level != 0) {
 					ui::make_visible_immediate(*self.associated_object);
-					self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player).rules_value & issues::rules::expand_factory) != 0 && f.factory_progress == 0.0f);
+					self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player) & issues::rules::expand_factory) != 0 && f.factory_progress == 0.0f);
 					return;
 				}
 				if(f.level != 0) {
 					ui::make_visible_immediate(*self.associated_object);
-					self.set_enabled(f.factory_progress == 0.0f && (ws.w.nation_s.nations.get<nation::current_rules>(player).rules_value & issues::rules::expand_factory_invest) != 0);
+					self.set_enabled(f.factory_progress == 0.0f && (ws.w.nation_s.nations.get<nation::current_rules>(player) & issues::rules::expand_factory_invest) != 0);
 					return;
 				}
 			}
@@ -2333,7 +2333,7 @@ namespace economy {
 				else
 					self.set_frame(ws.w.gui_m, 0ui32);
 
-				self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player).rules_value & issues::rules::can_subsidise) != 0);
+				self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player) & issues::rules::can_subsidise) != 0);
 				return;
 			}
 		}
@@ -2556,7 +2556,7 @@ namespace economy {
 	template<typename window_type>
 	void project_invest_button::windowed_update(ui::button<project_invest_button>& self, window_type & win, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player).rules_value & issues::rules::can_invest_in_pop_projects) != 0);
+			self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player) & issues::rules::can_invest_in_pop_projects) != 0);
 		}
 	}
 }

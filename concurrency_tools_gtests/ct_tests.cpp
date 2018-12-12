@@ -1838,40 +1838,40 @@ TEST(concurrency_tools, ve_simple_math) {
 	b[15] = 5.1f;
 
 	auto add_func = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
-		executor.store(r_vec, executor.load(a_vec) + executor.load(b_vec));
+		ve::store(executor, r_vec, ve::load(executor, a_vec) + ve::load(executor, b_vec));
 	};
 
 	auto sub_func = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
-		executor.store(r_vec, executor.load(a_vec) - executor.load(b_vec));
+		ve::store(executor, r_vec, ve::load(executor, a_vec) - ve::load(executor, b_vec));
 	};
 
 	auto mul_func = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
-		executor.store(r_vec, executor.load(a_vec) * executor.load(b_vec));
+		ve::store(executor, r_vec, ve::load(executor, a_vec) * ve::load(executor, b_vec));
 	};
 
 	auto div_func = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
-		executor.store(r_vec, executor.load(a_vec) / executor.load(b_vec));
+		ve::store(executor, r_vec, ve::load(executor, a_vec) / ve::load(executor, b_vec));
 	};
 
-	ve::execute_serial_fast(16, add_func);
+	ve::execute_serial_fast<int32_t>(16, add_func);
 
 	for(uint32_t i = 0; i < 16; ++i) {
 		EXPECT_FLOAT_EQ(result[i], a[i] + b[i]);
 	}
 
-	ve::execute_serial_fast(16, sub_func);
+	ve::execute_serial_fast<int32_t>(16, sub_func);
 
 	for(uint32_t i = 0; i < 16; ++i) {
 		EXPECT_FLOAT_EQ(result[i], a[i] - b[i]);
 	}
 
-	ve::execute_serial_fast(16, mul_func);
+	ve::execute_serial_fast<int32_t>(16, mul_func);
 
 	for(uint32_t i = 0; i < 16; ++i) {
 		EXPECT_FLOAT_EQ(result[i], a[i] * b[i]);
 	}
 
-	ve::execute_serial_fast(16, div_func);
+	ve::execute_serial_fast<int32_t>(16, div_func);
 
 	for(uint32_t i = 0; i < 16; ++i) {
 		EXPECT_FLOAT_EQ(result[i], a[i] / b[i]);
@@ -1918,43 +1918,43 @@ TEST(concurrency_tools, ve_partial_load_and_store) {
 	b[15] = 5.1f;
 
 	auto add_func = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
-		executor.store(r_vec, executor.load(a_vec) + executor.load(b_vec));
+		ve::store(executor, r_vec, ve::load(executor, a_vec) + ve::load(executor, b_vec));
 	};
 
 	auto sub_func = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
-		executor.store(r_vec, executor.load(a_vec) - executor.load(b_vec));
+		ve::store(executor, r_vec, ve::load(executor, a_vec) - ve::load(executor, b_vec));
 	};
 
 	auto mul_func = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
-		executor.store(r_vec, executor.load(a_vec) * executor.load(b_vec));
+		ve::store(executor, r_vec, ve::load(executor, a_vec) * ve::load(executor, b_vec));
 	};
 
 	auto div_func = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
-		executor.store(r_vec, executor.load(a_vec) / executor.load(b_vec));
+		ve::store(executor, r_vec, ve::load(executor, a_vec) / ve::load(executor, b_vec));
 	};
 
-	ve::execute_serial(15, add_func);
+	ve::execute_serial<int32_t>(15, add_func);
 
 	for(uint32_t i = 0; i < 15; ++i) {
 		EXPECT_FLOAT_EQ(result[i], a[i] + b[i]);
 	}
 	EXPECT_EQ(result[15], 0.0f);
 
-	ve::execute_serial(15, sub_func);
+	ve::execute_serial<int32_t>(15, sub_func);
 
 	for(uint32_t i = 0; i < 15; ++i) {
 		EXPECT_FLOAT_EQ(result[i], a[i] - b[i]);
 	}
 	EXPECT_EQ(result[15], 0.0f);
 
-	ve::execute_serial(15, mul_func);
+	ve::execute_serial<int32_t>(15, mul_func);
 
 	for(uint32_t i = 0; i < 15; ++i) {
 		EXPECT_FLOAT_EQ(result[i], a[i] * b[i]);
 	}
 	EXPECT_EQ(result[15], 0.0f);
 
-	ve::execute_serial(15, div_func);
+	ve::execute_serial<int32_t>(15, div_func);
 
 	for(uint32_t i = 0; i < 15; ++i) {
 		EXPECT_FLOAT_EQ(result[i], a[i] / b[i]);
@@ -2020,40 +2020,40 @@ TEST(concurrency_tools, ve_complex_math) {
 	c[15] = 35.1f;
 
 	auto fma = [a_vec = a.data(), b_vec = b.data(), c_vec = c.data(), r_vec = result.data()](auto executor) {
-		executor.store(r_vec, ve::multiply_and_add(executor.load(a_vec), executor.load(b_vec), executor.load(c_vec)));
+		ve::store(executor, r_vec, ve::multiply_and_add(ve::load(executor, a_vec), ve::load(executor, b_vec), ve::load(executor, c_vec)));
 	};
 
 	auto nfma = [a_vec = a.data(), b_vec = b.data(), c_vec = c.data(), r_vec = result.data()](auto executor) {
-		executor.store(r_vec, ve::negate_multiply_and_subtract(executor.load(a_vec), executor.load(b_vec), executor.load(c_vec)));
+		ve::store(executor, r_vec, ve::negate_multiply_and_subtract(ve::load(executor, a_vec), ve::load(executor, b_vec), ve::load(executor, c_vec)));
 	};
 
 	auto inv = [a_vec = a.data(), r_vec = result.data()](auto executor) {
-		executor.store(r_vec, ve::improved_inverse(executor.load(a_vec)));
+		ve::store(executor, r_vec, ve::improved_inverse(ve::load(executor, a_vec)));
 	};
 
 	auto sq = [a_vec = a.data(), r_vec = result.data()](auto executor) {
-		executor.store(r_vec, ve::sqrt(executor.load(a_vec)));
+		ve::store(executor, r_vec, ve::sqrt(ve::load(executor, a_vec)));
 	};
 
-	ve::execute_serial_fast(16, fma);
+	ve::execute_serial_fast<int32_t>(16, fma);
 
 	for(uint32_t i = 0; i < 16; ++i) {
 		EXPECT_FLOAT_EQ(result[i], a[i] * b[i] + c[i]);
 	}
 
-	ve::execute_serial_fast(16, nfma);
+	ve::execute_serial_fast<int32_t>(16, nfma);
 
 	for(uint32_t i = 0; i < 16; ++i) {
 		EXPECT_FLOAT_EQ(result[i], -(a[i] * b[i]) - c[i]);
 	}
 
-	ve::execute_serial_fast(16, inv);
+	ve::execute_serial_fast<int32_t>(16, inv);
 
 	for(uint32_t i = 0; i < 16; ++i) {
 		EXPECT_FLOAT_EQ(result[i], 1.0f / a[i]);
 	}
 
-	ve::execute_serial_fast(16, sq);
+	ve::execute_serial_fast<int32_t>(16, sq);
 
 	for(uint32_t i = 0; i < 16; ++i) {
 		EXPECT_FLOAT_EQ(result[i], std::sqrt(a[i]));
@@ -2118,44 +2118,44 @@ TEST(concurrency_tools, ve_comparison_gather) {
 	c[15] = 7;
 
 	auto gt_cmp = [a_vec = a.data(), b_vec = b.data(), r_vec = result.data()](auto executor) {
-		auto av = executor.load(a_vec);
-		executor.store(r_vec, ve::select(av < executor.load(b_vec), av, executor.constant(2.0f)));
+		auto av = ve::load(executor, a_vec);
+		ve::store(executor, r_vec, ve::select(av < ve::load(executor, b_vec), av, 2.0f));
 	};
 
 	auto gather_a = [a_vec = a.data(), c_vec = c.data(), r_vec = result.data()](auto executor) {
-		auto indices = executor.load(c_vec);
-		executor.store(r_vec, executor.gather_load(a_vec, indices));
+		auto indices = ve::load(executor, c_vec);
+		ve::store(executor, r_vec, ve::load(indices, a_vec));
 	};
 
 	auto gather_b = [a_vec = a.data(), b_vec = b.data(), c_vec = c.data(), r_vec = result.data()](auto executor) {
-		auto indices = executor.load(c_vec);
-		executor.store(r_vec, executor.gather_masked_load(a_vec, indices, executor.load(b_vec) > executor.constant(20.0f), executor.constant(3.0f)));
+		auto indices = ve::load(executor, c_vec);
+		ve::store(executor, r_vec, ve::select(ve::load(executor, b_vec) > 20.0f, ve::load(indices, a_vec), 3.0f));
 	};
 
 	auto cmp_b = [a_vec = a.data(), r_vec = result.data()](auto executor) {
-		auto av = executor.load(a_vec);
-		executor.store(r_vec, ve::select((av <= executor.constant(40.0f)) & (av >= executor.constant(10.0f)), executor.constant(0.0f), av));
+		auto av = ve::load(executor, a_vec);
+		ve::store(executor, r_vec, ve::select((av <= 40.0f) & (av >= 10.0f), 0.0f, av));
 	};
 
-	ve::execute_serial_fast(16, gt_cmp);
+	ve::execute_serial_fast<int32_t>(16, gt_cmp);
 
 	for(uint32_t i = 0; i < 16; ++i) {
 		EXPECT_FLOAT_EQ(result[i], a[i] < b[i] ? a[i] : 2.0f);
 	}
 
-	ve::execute_serial_fast(16, gather_a);
+	ve::execute_serial_fast<int32_t>(16, gather_a);
 
 	for(uint32_t i = 0; i < 16; ++i) {
 		EXPECT_FLOAT_EQ(result[i], a[c[i]]);
 	}
 
-	ve::execute_serial_fast(16, gather_b);
+	ve::execute_serial_fast<int32_t>(16, gather_b);
 
 	for(uint32_t i = 0; i < 16; ++i) {
 		EXPECT_FLOAT_EQ(result[i], b[i] > 20.0f ? a[c[i]] : 3.0f);
 	}
 
-	ve::execute_serial_fast(16, cmp_b);
+	ve::execute_serial_fast<int32_t>(16, cmp_b);
 
 	for(uint32_t i = 0; i < 16; ++i) {
 		EXPECT_FLOAT_EQ(result[i], (a[i] <= 40.0f && a[i] >= 10.0f) ? 0.0f : a[i]);
@@ -2210,26 +2210,26 @@ TEST(concurrency_tools, vector_integer_mask) {
 	a[15] = 25.4f;
 
 	auto all_not = [a_vec = a.data(), b_vec = b.data()](auto executor) {
-		executor.store(b_vec, ve::select(0, executor.load(a_vec), executor.constant(5.0f)));
+		ve::store(executor, b_vec, ve::select(ve::vbitfield_type{ ve::vbitfield_type::storage(0) }, ve::load(executor, a_vec), 5.0f));
 	};
 	auto all_true = [a_vec = a.data(), b_vec = b.data()](auto executor) {
-		executor.store(b_vec, ve::select(0xFFFF, executor.load(a_vec), executor.constant(5.0f)));
+		ve::store(executor, b_vec, ve::select(ve::vbitfield_type{ ve::vbitfield_type::storage(0xFFFF) }, ve::load(executor, a_vec), 5.0f));
 	};
 	auto second = [a_vec = a.data(), b_vec = b.data()](auto executor) {
-		executor.store(b_vec, ve::select(0x0202, executor.load(a_vec), executor.constant(5.0f)));
+		ve::store(executor, b_vec, ve::select(ve::vbitfield_type{ ve::vbitfield_type::storage(0x0202) }, ve::load(executor, a_vec), 5.0f));
 	};
 
-	ve::execute_serial_fast(16, all_not);
+	ve::execute_serial_fast<int32_t>(16, all_not);
 	for(uint32_t i = 0; i < 16; ++i) {
 		EXPECT_FLOAT_EQ(b[i], 5.0f);
 	}
 
-	ve::execute_serial_fast(16, all_true);
+	ve::execute_serial_fast<int32_t>(16, all_true);
 	for(uint32_t i = 0; i < 16; ++i) {
 		EXPECT_FLOAT_EQ(b[i], a[i]);
 	}
 
-	ve::execute_serial(16, second);
+	ve::execute_serial<int32_t>(16, second);
 	for(uint32_t i = 0; i < 16; ++i) {
 		EXPECT_FLOAT_EQ(b[i], i == 1 || i == 9 ? a[i] : 5.0f);
 	}

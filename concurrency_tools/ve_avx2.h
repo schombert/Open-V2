@@ -19,6 +19,31 @@ namespace ve {
 
 	struct mask_vector;
 
+	struct vbitfield_type {
+		using storage = uint8_t;
+
+		uint8_t v;
+	};
+
+	__forceinline vbitfield_type operator&(vbitfield_type a, vbitfield_type b) {
+		return vbitfield_type{ uint8_t(a.v & b.v) };
+	}
+	__forceinline vbitfield_type operator|(vbitfield_type a, vbitfield_type b) {
+		return vbitfield_type{ uint8_t(a.v | b.v) };
+	}
+	__forceinline vbitfield_type operator^(vbitfield_type a, vbitfield_type b) {
+		return vbitfield_type{ uint8_t(a.v ^ b.v) };
+	}
+	__forceinline vbitfield_type operator~(vbitfield_type a) {
+		return vbitfield_type{ uint8_t(~a.v) };
+	}
+	__forceinline vbitfield_type operator!(vbitfield_type a) {
+		return vbitfield_type{ uint8_t(~a.v) };
+	}
+	__forceinline vbitfield_type and_not(vbitfield_type a, vbitfield_type b) {
+		return vbitfield_type{ uint8_t(a.v & (~b.v)) };
+	}
+
 	struct mask_vector {
 		using wrapped_value = bool;
 
@@ -28,12 +53,19 @@ namespace ve {
 		__forceinline mask_vector(bool b) : value(_mm256_castsi256_ps(_mm256_set1_epi32(-int32_t(b)))) {}
 		__forceinline mask_vector(bool a, bool b, bool c, bool d, bool e, bool f, bool g, bool h) :
 			value(_mm256_castsi256_ps(_mm256_setr_epi32(-int32_t(a), -int32_t(b), -int32_t(c), -int32_t(d), -int32_t(e), -int32_t(f), -int32_t(g), -int32_t(h)))) {}
+		__forceinline mask_vector(vbitfield_type b) {
+			auto repeated_mask = _mm256_set1_epi32(b.v);
+			const auto mask_filter = _mm256_setr_epi32(
+				0x00000001, 0x00000002, 0x00000004, 0x00000008,
+				0x00000010, 0x00000020, 0x00000040, 0x00000080);
+			value = _mm256_castsi256_ps(_mm256_xor_si256(_mm256_and_si256(repeated_mask, mask_filter), _mm256_set1_epi32(-1)));
+		}
 		__forceinline constexpr mask_vector(__m256 v) : value(v) {}
 		__forceinline constexpr operator __m256() {
 			return value;
 		}
-		__forceinline int32_t operator[](uint32_t i) const noexcept {
-			return _mm256_castps_si256(value).m256i_i32[i];
+		__forceinline bool operator[](uint32_t i) const noexcept {
+			return _mm256_castps_si256(value).m256i_i32[i] != 0;
 		}
 	};
 
@@ -61,8 +93,11 @@ namespace ve {
 			sums = _mm_add_ss(sums, shuf);
 			return _mm_cvtss_f32(sums);
 		}
-		__forceinline float operator[](uint32_t i) const noexcept {
+		__forceinline const float operator[](uint32_t i) const noexcept {
 			return value.m256_f32[i];
+		}
+		__forceinline void set(uint32_t i, float v) noexcept {
+			value.m256_f32[i] = v;
 		}
 	};
 
@@ -82,8 +117,11 @@ namespace ve {
 			return value;
 		}
 
-		__forceinline bool operator[](uint32_t i) const noexcept {
-			return value.m256i_i32[i] != 0;
+		__forceinline int32_t operator[](uint32_t i) const noexcept {
+			return value.m256i_i32[i];
+		}
+		__forceinline void set(uint32_t i, int32_t v) noexcept {
+			value.m256i_i32[i] = v;
 		}
 	};
 
@@ -105,6 +143,9 @@ namespace ve {
 
 		__forceinline expanded_tag<tag_type> operator[](uint32_t i) const noexcept {
 			return expanded_tag<tag_type>(value.m256i_i32[i], std::true_type());
+		}
+		__forceinline void set(uint32_t i, expanded_tag<tag_type> v) noexcept {
+			value.m256i_i32[i] = v.value;
 		}
 	};
 
@@ -128,15 +169,19 @@ namespace ve {
 			return tagged_vector<tag_type>(value);
 		}
 
-		__forceinline union_tag_vector operator[](uint32_t i) const noexcept {
+		__forceinline union_tag operator[](uint32_t i) const noexcept {
 			return union_tag(value.m256i_i32[i]);
+		}
+		__forceinline void set(uint32_t i, union_tag v) noexcept {
+			value.m256i_i32[i] = v.value;
 		}
 	};
 
 
-	template<typename tag_type>
+	template<typename tag_type, int32_t b_index = 0>
 	struct contiguous_tags {
 		using wrapped_value = tag_type;
+		constexpr static int32_t block_index = b_index;
 
 		uint32_t value = 0;
 
@@ -150,6 +195,53 @@ namespace ve {
 
 		constexpr bool operator==(contiguous_tags v) const noexcept { return value == v.value; }
 		constexpr bool operator!=(contiguous_tags v) const noexcept { return value != v.value; }
+
+		__forceinline tag_type operator[](uint32_t i) const noexcept {
+			return tag_type(typename tag_type::value_base_t(value + i), std::true_type());
+		}
+	};
+
+	template<typename tag_type, int32_t b_index = 0>
+	struct unaligned_contiguous_tags {
+		using wrapped_value = tag_type;
+		constexpr static int32_t block_index = b_index;
+
+		uint32_t value = 0;
+
+		constexpr unaligned_contiguous_tags() : value(0) {}
+		constexpr explicit unaligned_contiguous_tags(uint32_t v) : value(v) {}
+		constexpr unaligned_contiguous_tags(const unaligned_contiguous_tags& v) noexcept = default;
+		constexpr unaligned_contiguous_tags(unaligned_contiguous_tags&& v) noexcept = default;
+
+		unaligned_contiguous_tags& operator=(unaligned_contiguous_tags&& v) noexcept = default;
+		unaligned_contiguous_tags& operator=(unaligned_contiguous_tags const& v) noexcept = default;
+
+		constexpr bool operator==(unaligned_contiguous_tags v) const noexcept { return value == v.value; }
+		constexpr bool operator!=(unaligned_contiguous_tags v) const noexcept { return value != v.value; }
+
+		__forceinline tag_type operator[](uint32_t i) const noexcept {
+			return tag_type(typename tag_type::value_base_t(value + i), std::true_type());
+		}
+	};
+
+	template<typename tag_type>
+	struct partial_contiguous_tags {
+		using wrapped_value = tag_type;
+		constexpr static int32_t block_index = 0;
+
+		uint32_t value = 0;
+		uint32_t subcount = vector_size;
+
+		constexpr partial_contiguous_tags() : value(0), subcount(vector_size) {}
+		constexpr explicit partial_contiguous_tags(uint32_t v, uint32_t s) : value(v), subcount(s) {}
+		constexpr partial_contiguous_tags(const partial_contiguous_tags& v) noexcept = default;
+		constexpr partial_contiguous_tags(partial_contiguous_tags&& v) noexcept = default;
+
+		partial_contiguous_tags& operator=(partial_contiguous_tags&& v) noexcept = default;
+		partial_contiguous_tags& operator=(partial_contiguous_tags const& v) noexcept = default;
+
+		constexpr bool operator==(partial_contiguous_tags v) const noexcept { return value == v.value; }
+		constexpr bool operator!=(partial_contiguous_tags v) const noexcept { return value != v.value; }
 
 		__forceinline tag_type operator[](uint32_t i) const noexcept {
 			return tag_type(typename tag_type::value_base_t(value + i), std::true_type());
@@ -213,9 +305,17 @@ namespace ve {
 	struct value_to_vector_type_s<tagged_vector<T>> {
 		using type = tagged_vector<T>;
 	};
+	template<typename T, int32_t i>
+	struct value_to_vector_type_s<contiguous_tags<T, i>> {
+		using type = contiguous_tags<T, i>;
+	};
+	template<typename T, int32_t i>
+	struct value_to_vector_type_s<unaligned_contiguous_tags<T, i>> {
+		using type = unaligned_contiguous_tags<T, i>;
+	};
 	template<typename T>
-	struct value_to_vector_type_s<contiguous_tags<T>> {
-		using type = contiguous_tags<T>;
+	struct value_to_vector_type_s<partial_contiguous_tags<T>> {
+		using type = partial_contiguous_tags<T>;
 	};
 
 	template<typename T>
@@ -245,8 +345,16 @@ namespace ve {
 	struct is_vector_type_s<tagged_vector<T>> {
 		constexpr static bool value = true;
 	};
+	template<typename T, int32_t i>
+	struct is_vector_type_s<contiguous_tags<T, i>> {
+		constexpr static bool value = true;
+	};
+	template<typename T, int32_t i>
+	struct is_vector_type_s<unaligned_contiguous_tags<T, i>> {
+		constexpr static bool value = true;
+	};
 	template<typename T>
-	struct is_vector_type_s<contiguous_tags<T>> {
+	struct is_vector_type_s<partial_contiguous_tags<T>> {
 		constexpr static bool value = true;
 	};
 
@@ -274,10 +382,69 @@ namespace ve {
 		return v;
 	}
 
+	template<typename ... T>
+	struct any_is_partial_s;
+
+	template<>
+	struct any_is_partial_s<> {
+		constexpr static bool value = false;
+	};
+
+	template<typename ttype, typename ... T>
+	struct any_is_partial_s<partial_contiguous_tags<ttype>, T...> {
+		constexpr static bool value = true;
+	};
+
+	template<typename first, typename ... T>
+	struct any_is_partial_s<first, T...> {
+		constexpr static bool value = any_is_partial_s<T...>::value;
+	};
+
+	template<typename ... T>
+	constexpr bool any_is_partial = any_is_partial_s<T...>::value;
+
+	__forceinline constexpr uint32_t minimum_partial() {
+		return uint32_t(vector_size);
+	}
+
+	template<typename ttype, typename ... T>
+	__forceinline uint32_t minimum_partial(partial_contiguous_tags<ttype> p, T... args) {
+		return std::min(p.subcount, minimum_partial(args ...));
+	}
+
+	template<typename first, typename ... T>
+	__forceinline uint32_t minimum_partial(first, T... args) {
+		return minimum_partial(args ...);
+	}
+
 	template<typename FUNC, typename ... PARAMS>
 	__forceinline auto apply(PARAMS ... params, FUNC&& f) 
 		-> std::conditional_t<any_is_vector_type<PARAMS...>::value, value_to_vector_type<decltype(f(nth_item<0ui32>(params) ...))>, decltype(f(params ...))> {
-		if constexpr(any_is_vector_type<PARAMS...>::value) {
+		if constexpr(any_is_partial<PARAMS ...>) {
+			const uint32_t limit = minimum_partial(params ...);
+
+			if constexpr(std::is_same_v<decltype(f(nth_item<0ui32>(params) ...)), void>) {
+				if(limit > 0ui32) f(nth_item<0ui32>(params) ...);
+				if(limit > 1ui32) f(nth_item<1ui32>(params) ...);
+				if(limit > 2ui32) f(nth_item<2ui32>(params) ...);
+				if(limit > 3ui32) f(nth_item<3ui32>(params) ...);
+				if(limit > 4ui32) f(nth_item<4ui32>(params) ...);
+				if(limit > 5ui32) f(nth_item<5ui32>(params) ...);
+				if(limit > 6ui32) f(nth_item<6ui32>(params) ...);
+				if(limit > 7ui32) f(nth_item<7ui32>(params) ...);
+			} else {
+				return value_to_vector_type<decltype(f(nth_item<0ui32>(params) ...))>(
+					(limit > 0ui32) ? f(nth_item<0ui32>(params) ...) : decltype(f(nth_item<0ui32>(params) ...))(),
+					(limit > 1ui32) ? f(nth_item<1ui32>(params) ...) : decltype(f(nth_item<0ui32>(params) ...))(),
+					(limit > 2ui32) ? f(nth_item<2ui32>(params) ...) : decltype(f(nth_item<0ui32>(params) ...))(),
+					(limit > 3ui32) ? f(nth_item<3ui32>(params) ...) : decltype(f(nth_item<0ui32>(params) ...))(),
+					(limit > 4ui32) ? f(nth_item<4ui32>(params) ...) : decltype(f(nth_item<0ui32>(params) ...))(),
+					(limit > 5ui32) ? f(nth_item<5ui32>(params) ...) : decltype(f(nth_item<0ui32>(params) ...))(),
+					(limit > 6ui32) ? f(nth_item<6ui32>(params) ...) : decltype(f(nth_item<0ui32>(params) ...))(),
+					(limit > 7ui32) ? f(nth_item<7ui32>(params) ...) : decltype(f(nth_item<0ui32>(params) ...))()
+					);
+			}
+		} else if constexpr(any_is_vector_type<PARAMS...>::value) {
 			if constexpr(std::is_same_v<decltype(f(nth_item<0ui32>(params) ...)), void>) {
 				f(nth_item<0ui32>(params) ...);
 				f(nth_item<1ui32>(params) ...);
@@ -307,7 +474,31 @@ namespace ve {
 	template<typename FUNC, typename ... PARAMS>
 	__forceinline auto apply_with_indices(PARAMS ... params, FUNC&& f)
 		->  value_to_vector_type<decltype(f(0ui32, nth_item<0ui32>(params) ...))> {
-		if constexpr(std::is_same_v<decltype(f(0ui32, nth_item<0ui32>(params) ...)), void>) {
+		if constexpr(any_is_partial<PARAMS ...>) {
+			const uint32_t limit = minimum_partial(params ...);
+
+			if constexpr(std::is_same_v<decltype(f(0ui32, nth_item<0ui32>(params) ...)), void>) {
+				if(limit > 0ui32) f(0ui32, nth_item<0ui32>(params) ...);
+				if(limit > 1ui32) f(1ui32, nth_item<1ui32>(params) ...);
+				if(limit > 2ui32) f(2ui32, nth_item<2ui32>(params) ...);
+				if(limit > 3ui32) f(3ui32, nth_item<3ui32>(params) ...);
+				if(limit > 4ui32) f(4ui32, nth_item<4ui32>(params) ...);
+				if(limit > 5ui32) f(5ui32, nth_item<5ui32>(params) ...);
+				if(limit > 6ui32) f(6ui32, nth_item<6ui32>(params) ...);
+				if(limit > 7ui32) f(7ui32, nth_item<7ui32>(params) ...);
+			} else {
+				return value_to_vector_type<decltype(f(nth_item<0ui32>(params) ...))>(
+					(limit > 0ui32) ? f(0ui32, nth_item<0ui32>(params) ...) : decltype(f(0ui32, nth_item<0ui32>(params) ...))(),
+					(limit > 1ui32) ? f(1ui32, nth_item<1ui32>(params) ...) : decltype(f(0ui32, nth_item<0ui32>(params) ...))(),
+					(limit > 2ui32) ? f(2ui32, nth_item<2ui32>(params) ...) : decltype(f(0ui32, nth_item<0ui32>(params) ...))(),
+					(limit > 3ui32) ? f(3ui32, nth_item<3ui32>(params) ...) : decltype(f(0ui32, nth_item<0ui32>(params) ...))(),
+					(limit > 4ui32) ? f(4ui32, nth_item<4ui32>(params) ...) : decltype(f(0ui32, nth_item<0ui32>(params) ...))(),
+					(limit > 5ui32) ? f(5ui32, nth_item<5ui32>(params) ...) : decltype(f(0ui32, nth_item<0ui32>(params) ...))(),
+					(limit > 6ui32) ? f(6ui32, nth_item<6ui32>(params) ...) : decltype(f(0ui32, nth_item<0ui32>(params) ...))(),
+					(limit > 7ui32) ? f(7ui32, nth_item<7ui32>(params) ...) : decltype(f(0ui32, nth_item<0ui32>(params) ...))()
+					);
+			}
+		} else if constexpr(std::is_same_v<decltype(f(0ui32, nth_item<0ui32>(params) ...)), void>) {
 			f(0ui32, nth_item<0ui32>(params) ...);
 			f(1ui32, nth_item<1ui32>(params) ...);
 			f(2ui32, nth_item<2ui32>(params) ...);
@@ -461,16 +652,16 @@ namespace ve {
 		return _mm256_castsi256_ps(_mm256_cmpeq_epi32(_mm256_and_si256(val, _mm256_set1_epi32(bits)), _mm256_set1_epi32(bits)));
 	}
 
-	__forceinline fp_vector select(int32_t mask, fp_vector a, fp_vector b) {
-		auto repeated_mask = _mm256_set1_epi32(mask);
+	__forceinline fp_vector select(vbitfield_type mask, fp_vector a, fp_vector b) {
+		auto repeated_mask = _mm256_set1_epi32(mask.v);
 		const auto mask_filter = _mm256_setr_epi32(
 			0x00000001, 0x00000002, 0x00000004, 0x00000008,
 			0x00000010, 0x00000020, 0x00000040, 0x00000080);
 		auto fp_mask = mask_vector(_mm256_castsi256_ps(_mm256_and_si256(repeated_mask, mask_filter))) != mask_vector();
 		return _mm256_blendv_ps(b, a, fp_mask);
 	}
-	__forceinline mask_vector widen_mask(int32_t mask) {
-		auto repeated_mask = _mm256_set1_epi32(mask);
+	__forceinline mask_vector widen_mask(vbitfield_type mask) {
+		auto repeated_mask = _mm256_set1_epi32(mask.v);
 		const auto mask_filter = _mm256_setr_epi32(
 			0x00000001, 0x00000002, 0x00000004, 0x00000008,
 			0x00000010, 0x00000020, 0x00000040, 0x00000080);
@@ -599,403 +790,235 @@ namespace ve {
 		return false_accumulator<F>(f);
 	}
 
-	template<int32_t blk_index = 0>
-	class full_vector_operation {
-	protected:
-		uint32_t const offset;
-	public:
-		full_vector_operation(uint32_t o) : offset(o) {}
+	template<typename T, int32_t i, typename U>
+	__forceinline U partial_mask(contiguous_tags<T, i> e, U value) {
+		return value;
+	}
+	template<typename T, int32_t i, typename U>
+	__forceinline U partial_mask(unaligned_contiguous_tags<T, i> e, U value) {
+		return value;
+	}
+	template<typename T, typename U>
+	__forceinline U partial_mask(partial_contiguous_tags<T> e, U value) {
+		mask_vector mask = _mm256_loadu_ps((float const*)(load_masks + 8ui32 - e.subcount));
+		return select(mask, value, U());
+	}
+	template<typename U>
+	__forceinline U partial_mask(int_vector indices, U value) {
+		return value;
+	}
+	template<typename T, typename U>
+	__forceinline U partial_mask(tagged_vector<T> indices, U value) {
+		return value;
+	}
+	template<typename U>
+	__forceinline U partial_mask(union_tag_vector indices, U value) {
+		return value;
+	}
 
-		constexpr static int32_t block_index = blk_index;
-		constexpr static bool full_operation = true;
 
-		__forceinline static fp_vector zero() {
-			return _mm256_setzero_ps();
-		}
-		__forceinline static int_vector int_zero() {
-			return _mm256_setzero_si256();
-		}
-		__forceinline static fp_vector constant(float v) {
-			return _mm256_set1_ps(v);
-		}
-		__forceinline static int_vector constant(int32_t v) {
-			return _mm256_set1_epi32(v);
-		}
+	template<typename T, int32_t i>
+	__forceinline vbitfield_type load(contiguous_tags<T, i> e, bitfield_type const* source) {
+		return vbitfield_type{ source[e.value / 8ui32].v };
+	}
+	template<typename T, int32_t i>
+	__forceinline vbitfield_type load(unaligned_contiguous_tags<T, i> e, bitfield_type const* source) {
+		return vbitfield_type{ source[e.value / 8ui32].v };
+	}
+	template<typename T>
+	__forceinline vbitfield_type load(partial_contiguous_tags<T> e, bitfield_type const* source) {
+		return vbitfield_type{ source[e.value / 8ui32].v };
+	}
+	__forceinline mask_vector load(int_vector indices, bitfield_type const* source) {
+		const auto byte_indices = _mm256_srli_epi32(indices, 3);
+		const auto bit_indices = _mm256_and_si256(indices, _mm256_set1_epi32(0x00000007));
+		auto gathered = _mm256_i32gather_epi32((int32_t const*)(source), byte_indices, 1);
+		auto shifted = _mm256_and_si256(_mm256_srlv_epi32(gathered, bit_indices), _mm256_set1_epi32(0x00000001));
+		return _mm256_castsi256_ps(_mm256_sub_epi32(_mm256_setzero_si256(), shifted));
+	}
+	template<typename T>
+	__forceinline mask_vector load(tagged_vector<T> indices, bitfield_type const* source) {
+		const auto byte_indices = _mm256_srli_epi32(indices, 3);
+		const auto bit_indices = _mm256_and_si256(indices, _mm256_set1_epi32(0x00000007));
+		auto gathered = _mm256_i32gather_epi32((int32_t const*)(source), byte_indices, 1);
+		auto shifted = _mm256_and_si256(_mm256_srlv_epi32(gathered, bit_indices), _mm256_set1_epi32(0x00000001));
+		return _mm256_castsi256_ps(_mm256_sub_epi32(_mm256_setzero_si256(), shifted));
+	}
+	__forceinline mask_vector load(union_tag_vector indices, bitfield_type const* source) {
+		const auto byte_indices = _mm256_srli_epi32(indices, 3);
+		const auto bit_indices = _mm256_and_si256(indices, _mm256_set1_epi32(0x00000007));
+		auto gathered = _mm256_i32gather_epi32((int32_t const*)(source), byte_indices, 1);
+		auto shifted = _mm256_and_si256(_mm256_srlv_epi32(gathered, bit_indices), _mm256_set1_epi32(0x00000001));
+		return _mm256_castsi256_ps(_mm256_sub_epi32(_mm256_setzero_si256(), shifted));
+	}
 
-		__forceinline fp_vector load(float const* source) {
-			return _mm256_load_ps(source + offset);
-		}
-		__forceinline int32_t load(int8_t const* source) {
-			return source[offset / 8ui32];
-		}
-		__forceinline int_vector load(int32_t const* source) {
-			return _mm256_load_si256((__m256i const*)(source + offset));
-		}
-		__forceinline union_tag_vector load(union_tag const* source) {
-			return _mm256_load_si256((__m256i const*)(source + offset));
-		}
-		template<typename tag_type>
-		__forceinline tagged_vector<tag_type> load(expanded_tag<tag_type> const* source) {
-			return _mm256_load_si256((__m256i const*)(source + offset));
-		}
-		template<typename tag_type>
-		__forceinline tagged_vector<tag_type> load(tag_type const* source) {
-			static_assert(sizeof(tag_type) == 4);
-			return _mm256_load_si256((__m256i const*)(source + offset));
-		}
-		__forceinline fp_vector unaligned_load(float const* source) {
-			return _mm256_loadu_ps(source + offset);
-		}
-		__forceinline int_vector unaligned_load(int32_t const* source) {
-			return _mm256_loadu_si256((__m256i const*)(source + offset));
-		}
 
-		__forceinline static fp_vector gather_load(float const* source, __m256i indices) {
+	template<typename T, int32_t i, typename U>
+	__forceinline auto load(contiguous_tags<T, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 4, value_to_vector_type<U>> {
+		if constexpr(std::is_same_v<U, float>)
+			return _mm256_load_ps(source + e.value);
+		else
+			return _mm256_load_si256((const __m256i *)(source + e.value));
+	}
+	template<typename T, int32_t i, typename U>
+	__forceinline auto load(unaligned_contiguous_tags<T, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 4, value_to_vector_type<U>> {
+		if constexpr(std::is_same_v<U, float>)
+			return _mm256_loadu_ps(source + e.value);
+		else
+			return _mm256_loadu_si256((const __m256i *)(source + e.value));
+	}
+	template<typename T, typename U>
+	__forceinline auto load(partial_contiguous_tags<T> e, U const* source) -> std::enable_if_t<sizeof(U) == 4, value_to_vector_type<U>> {
+		auto mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - e.subcount));
+		if constexpr(std::is_same_v<U, float>) {
+			return _mm256_maskload_ps(source + e.value, mask);
+		} else {
+			return _mm256_maskload_epi32(source + e.value, mask);
+		}
+	}
+	template<typename U>
+	__forceinline auto load(int_vector indices, U const* source) -> std::enable_if_t<sizeof(U) == 4, value_to_vector_type<U>> {
+		if constexpr(std::is_same_v<U, float>)
 			return _mm256_i32gather_ps(source, indices, 4);
-		}
-		__forceinline static int_vector gather_load(int32_t const* source, __m256i indices) {
+		else
 			return _mm256_i32gather_epi32(source, indices, 4);
-		}
-		__forceinline static union_tag_vector gather_load(union_tag const* source, __m256i indices) {
-			return _mm256_i32gather_epi32((int32_t const*)source, indices, 4);
-		}
-		template<typename tag_type>
-		__forceinline static tagged_vector<tag_type> gather_load(expanded_tag<tag_type> const* source, __m256i indices) {
-			return _mm256_i32gather_epi32((int32_t const*)source, indices, 4);
-		}
-		template<typename tag_type>
-		__forceinline static tagged_vector<tag_type> gather_load(tag_type const* source, __m256i indices) {
-			static_assert(sizeof(tag_type) == 4);
-			return _mm256_i32gather_epi32((int32_t const*)source, indices, 4);
-		}
-		
-		__forceinline static mask_vector gather_load(int8_t const* source, __m256i indices) {
-			const auto byte_indices = _mm256_srl_epi32(indices, 3);
-			const auto bit_indices = _mm256_and_si256(indices, _mm256_set1_epi32(0x00000007));
-			auto gathered = _mm256_i32gather_epi32(source, byte_indices, 1);
-			auto shifted = _mm256_and_si256(_mm256_srlv_epi32(gathered, bit_indices), _mm256_set1_epi32(0x00000001));
-			return _mm256_castsi256_ps(_mm256_sub_epi32(_mm256_setzero_si256(), shifted));
-		}
-
-		__forceinline static fp_vector gather_masked_load(float const* source, __m256i indices, mask_vector mask, fp_vector def = _mm256_setzero_ps()) {
-			return _mm256_mask_i32gather_ps(def, source, indices, mask, 4);
-		}
-		__forceinline static int_vector gather_masked_load(int32_t const* source, __m256i indices, mask_vector mask, int_vector def = _mm256_setzero_si256()) {
-			return _mm256_mask_i32gather_epi32(def, source, indices, _mm256_castps_si256(mask), 4);
-		}
-
-		__forceinline void store(float* dest, fp_vector value) {
-			_mm256_store_ps(dest + offset, value);
-		}
-		__forceinline void unaligned_store(float* dest, fp_vector value) {
-			_mm256_storeu_ps(dest + offset, value);
-		}
-
-		__forceinline void scatter_store(float* dest, fp_vector to_store, __m256i indices) {
-			dest[indices.m256i_i32[0]] = to_store.value.m256_f32[0];
-			dest[indices.m256i_i32[1]] = to_store.value.m256_f32[1];
-			dest[indices.m256i_i32[2]] = to_store.value.m256_f32[2];
-			dest[indices.m256i_i32[3]] = to_store.value.m256_f32[3];
-			dest[indices.m256i_i32[4]] = to_store.value.m256_f32[4];
-			dest[indices.m256i_i32[5]] = to_store.value.m256_f32[5];
-			dest[indices.m256i_i32[6]] = to_store.value.m256_f32[6];
-			dest[indices.m256i_i32[7]] = to_store.value.m256_f32[7];
-		}
+	}
+	template<typename T, typename U>
+	__forceinline auto load(tagged_vector<T> indices, U const* source) -> std::enable_if_t<sizeof(U) == 4, value_to_vector_type<U>> {
+		if constexpr(std::is_same_v<U, float>)
+			return _mm256_i32gather_ps(source, indices, 4);
+		else
+			return _mm256_i32gather_epi32(source, indices, 4);
+	}
+	template<typename U>
+	__forceinline auto load(union_tag_vector indices, U const* source) -> std::enable_if_t<sizeof(U) == 4, value_to_vector_type<U>> {
+		if constexpr(std::is_same_v<U, float>)
+			return _mm256_i32gather_ps(source, indices, 4);
+		else
+			return _mm256_i32gather_epi32(source, indices, 4);
+	}
 
 
-		template<int32_t cache_lines>
-		__forceinline void prefetch(int32_t const* source) {
-			if constexpr(block_index % 2 == 0) {
-				_mm_prefetch((char const*)(source + 16 * cache_lines), _MM_HINT_T0);
-			}
-		}
-		template<int32_t cache_lines>
-		__forceinline void prefetch(float const* source) {
-			if constexpr(block_index % 2 == 0) {
-				_mm_prefetch((char const*)(source + 16 * cache_lines), _MM_HINT_T0);
-			}
-		}
-		template<int32_t cache_lines>
-		__forceinline void nt_prefetch(int32_t const* source) {
-			if constexpr(block_index % 2 == 0) {
-				_mm_prefetch((char const*)(source + 16 * cache_lines), _MM_HINT_NTA);
-			}
-		}
-		template<int32_t cache_lines>
-		__forceinline void nt_prefetch(float const* source) {
-			if constexpr(block_index % 2 == 0) {
-				_mm_prefetch((char const*)(source + 16 * cache_lines), _MM_HINT_NTA);
-			}
-		}
 
-		__forceinline fp_vector stream_load(float const* source) {
-			return _mm256_castsi256_ps(_mm256_stream_load_si256((__m256i const*)(source + offset)));
-		}
-		__forceinline int_vector stream_load(int32_t const* source) {
-			return _mm256_stream_load_si256((__m256i const*)(source + offset));
-		}
-		__forceinline void stream_store(float* dest, fp_vector value) {
-			_mm256_stream_ps(dest + offset, value);
-		}
 
-		__forceinline int_vector partial_mask() {
-			return _mm256_loadu_si256((__m256i const*)load_masks);
-		}
-
-		template<typename F>
-		__forceinline fp_vector apply(F const& f, fp_vector arg) {
-			return _mm256_setr_ps(
-				f(arg.value.m256_f32[0], offset),
-				f(arg.value.m256_f32[1], offset + 1ui32),
-				f(arg.value.m256_f32[2], offset + 2ui32),
-				f(arg.value.m256_f32[3], offset + 3ui32),
-				f(arg.value.m256_f32[4], offset + 4ui32),
-				f(arg.value.m256_f32[5], offset + 5ui32),
-				f(arg.value.m256_f32[6], offset + 6ui32),
-				f(arg.value.m256_f32[7], offset + 7ui32));
-		}
-
-		template<typename F>
-		__forceinline fp_vector apply_for_mask(F const& f, int_vector arg) {
-			return _mm256_castsi256_ps(_mm256_setr_epi32(
-				f(arg.value.m256i_i32[0], offset),
-				f(arg.value.m256i_i32[1], offset + 1ui32),
-				f(arg.value.m256i_i32[2], offset + 2ui32),
-				f(arg.value.m256i_i32[3], offset + 3ui32),
-				f(arg.value.m256i_i32[4], offset + 4ui32),
-				f(arg.value.m256i_i32[5], offset + 5ui32),
-				f(arg.value.m256i_i32[6], offset + 6ui32),
-				f(arg.value.m256i_i32[7], offset + 7ui32))
-			);
-		}
-
-		template<typename F>
-		__forceinline auto apply(F const& f, int_vector arg) -> std::conditional_t<std::is_same_v<decltype(f(0, 0ui32)), float>, fp_vector, int_vector> {
-			if constexpr(std::is_same_v<decltype(f(0, 0ui32)), float>) {
-				return _mm256_setr_ps(
-					f(arg.value.m256i_i32[0], offset),
-					f(arg.value.m256i_i32[1], offset + 1ui32),
-					f(arg.value.m256i_i32[2], offset + 2ui32),
-					f(arg.value.m256i_i32[3], offset + 3ui32),
-					f(arg.value.m256i_i32[4], offset + 4ui32),
-					f(arg.value.m256i_i32[5], offset + 5ui32),
-					f(arg.value.m256i_i32[6], offset + 6ui32),
-					f(arg.value.m256i_i32[7], offset + 7ui32));
-			} else {
-				return _mm256_setr_epi32(
-					f(arg.value.m256i_i32[0], offset),
-					f(arg.value.m256i_i32[1], offset + 1ui32),
-					f(arg.value.m256i_i32[2], offset + 2ui32),
-					f(arg.value.m256i_i32[3], offset + 3ui32),
-					f(arg.value.m256i_i32[4], offset + 4ui32),
-					f(arg.value.m256i_i32[5], offset + 5ui32),
-					f(arg.value.m256i_i32[6], offset + 6ui32),
-					f(arg.value.m256i_i32[7], offset + 7ui32));
-			}
-		}
-
-		template<typename F>
-		__forceinline fp_vector generate(F const& f) {
-			return _mm256_setr_ps(
-				f(offset),
-				f(offset + 1ui32),
-				f(offset + 2ui32),
-				f(offset + 3ui32),
-				f(offset + 4ui32),
-				f(offset + 5ui32),
-				f(offset + 6ui32),
-				f(offset + 7ui32));
-		}
+	//-----
+	template<typename T>
+	struct ve_identity {
+		using type = T;
 	};
+	template<typename T, int32_t i, typename U>
+	__forceinline auto load(contiguous_tags<typename ve_identity<decay_tag<T>>::type, i> e, tagged_array_view<U, T, true> source)
+		-> std::enable_if_t<sizeof(U) == 4, value_to_vector_type<std::remove_cv_t<U>>> {
+		if constexpr(std::is_same_v<std::remove_cv_t<U>, float>)
+			return _mm256_load_ps(source.data() + e.value);
+		else
+			return _mm256_load_si256((const __m256i *)(source.data() + e.value));
+	}
+	template<typename T, int32_t i, typename U>
+	__forceinline auto load(unaligned_contiguous_tags<typename ve_identity<decay_tag<T>>::type, i> e, tagged_array_view<U, T, true> source)
+		-> std::enable_if_t<sizeof(U) == 4, value_to_vector_type<std::remove_cv_t<U>>> {
+		if constexpr(std::is_same_v<std::remove_cv_t<U>, float>)
+			return _mm256_loadu_ps(source.data() + e.value);
+		else
+			return _mm256_loadu_si256((const __m256i *)(source.data() + e.value));
+	}
+	template<typename T, typename U>
+	__forceinline auto load(partial_contiguous_tags<typename ve_identity<decay_tag<T>>::type> e, tagged_array_view<U, T, true> source)
+		-> std::enable_if_t<sizeof(U) == 4, value_to_vector_type<std::remove_cv_t<U>>> {
+		auto mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - e.subcount));
+		if constexpr(std::is_same_v<std::remove_cv_t<U>, float>) {
+			return _mm256_maskload_ps(source.data() + e.value, mask);
+		} else {
+			return _mm256_maskload_epi32(source.data() + e.value, mask);
+		}
+	}
+	template<typename T, typename U>
+	__forceinline auto load(tagged_vector<typename ve_identity<decay_tag<T>>::type> indices, tagged_array_view<U, T, true> source)
+		-> std::enable_if_t<sizeof(U) == 4, value_to_vector_type<std::remove_cv_t<U>>> {
+		if constexpr(std::is_same_v<std::remove_cv_t<U>, float>)
+			return _mm256_i32gather_ps(source.data(), indices, 4);
+		else
+			return _mm256_i32gather_epi32(source.data(), indices, 4);
+	}
+	//-----
 
-	template<int32_t blk_index = 0>
-	class full_unaligned_vector_operation : public full_vector_operation<blk_index> {
-	public:
-		full_unaligned_vector_operation(uint32_t o) : full_vector_operation<blk_index>(o) {}
+	template<int32_t cache_lines, typename T, int32_t i, typename U>
+	__forceinline auto prefetch(contiguous_tags<T, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 4, void> {
+		if constexpr(i % 2 == 0) {
+			_mm_prefetch((char const*)(source + 16 * cache_lines), _MM_HINT_T0);
+		}
+	}
+	template<int32_t cache_lines, typename T, int32_t i, typename U>
+	__forceinline auto prefetch(unaligned_contiguous_tags<T, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 4, void> {}
+	template<int32_t cache_lines, typename T, typename U>
+	__forceinline auto prefetch(partial_contiguous_tags<T> e, U const* source) -> std::enable_if_t<sizeof(U) == 4, void> {}
+	template<int32_t cache_lines, typename U>
+	__forceinline auto prefetch(int_vector indices, U const* source) -> std::enable_if_t<sizeof(U) == 4, void> {}
+	template<int32_t cache_lines, typename T, typename U>
+	__forceinline auto prefetch(tagged_vector<T> indices, U const* source) -> std::enable_if_t<sizeof(U) == 4, void> {}
+	template<int32_t cache_lines, typename U>
+	__forceinline auto prefetch(union_tag_vector indices, U const* source) -> std::enable_if_t<sizeof(U) == 4, void> {}
 
-		__forceinline fp_vector load(float const* source) {
-			return _mm256_loadu_ps(source + full_vector_operation<blk_index>::offset);
+	template<int32_t cache_lines, typename T, int32_t i, typename U>
+	__forceinline auto nt_prefetch(contiguous_tags<T, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 4, void> {
+		if constexpr(i % 2 == 0) {
+			_mm_prefetch((char const*)(source + 16 * cache_lines), _MM_HINT_NTA);
 		}
-		__forceinline int_vector load(int32_t const* source) {
-			return _mm256_loadu_si256((__m256i const*)(source + full_vector_operation<blk_index>::offset));
-		}
-		__forceinline void store(float* dest, fp_vector value) {
-			_mm256_storeu_ps(dest + full_vector_operation<blk_index>::offset, value);
-		}
+	}
+	template<int32_t cache_lines, typename T, int32_t i, typename U>
+	__forceinline auto nt_prefetch(unaligned_contiguous_tags<T, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 4, void> {}
+	template<int32_t cache_lines, typename T, typename U>
+	__forceinline auto nt_prefetch(partial_contiguous_tags<T> e, U const* source) -> std::enable_if_t<sizeof(U) == 4, void> {}
+	template<int32_t cache_lines, typename U>
+	__forceinline auto nt_prefetch(int_vector indices, U const* source) -> std::enable_if_t<sizeof(U) == 4, void> {}
+	template<int32_t cache_lines, typename T, typename U>
+	__forceinline auto nt_prefetch(tagged_vector<T> indices, U const* source) -> std::enable_if_t<sizeof(U) == 4, void> {}
+	template<int32_t cache_lines, typename U>
+	__forceinline auto nt_prefetch(union_tag_vector indices, U const* source) -> std::enable_if_t<sizeof(U) == 4, void> {}
 
-		__forceinline fp_vector stream_load(float const* source) {
-			return load(source);
-		}
-		__forceinline int_vector stream_load(int32_t const* source) {
-			return load(source);
-		}
-		__forceinline void stream_store(float* dest, fp_vector value) {
-			store(dest, value);
-		}
-	};
 
-	class partial_vector_operation : public full_vector_operation<0> {
-	protected:
-		uint32_t const count;
-	public:
-		partial_vector_operation(uint32_t o, uint32_t c) : full_vector_operation<0>(o), count(c) {}
-
-		constexpr static bool full_operation = false;
-
-		__forceinline fp_vector load(float const* source) {
-			int_vector_internal mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - count));
-			return _mm256_maskload_ps(source + offset, mask);
-		}
-		__forceinline int_vector load(int32_t const* source) {
-			int_vector_internal mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - count));
-			return _mm256_maskload_epi32(source + offset, mask); //AVX2
-		}
-		__forceinline int8_t load(int8_t const* source) {
-			return source[offset / 8ui32];
-		}
-		__forceinline void store(float* dest, fp_vector value) {
-			int_vector_internal mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - count));
-			_mm256_maskstore_ps(dest + offset, mask, value);
-		}
-		__forceinline int_vector partial_mask() {
-			return _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - count));
-		}
-
-		__forceinline fp_vector unaligned_load(float const* source) {
-			return load(source);
-		}
-		__forceinline int_vector unaligned_load(int32_t const* source) {
-			return load(source);
-		}
-
-		__forceinline fp_vector gather_load(float const* source, __m256i indices) {
-			fp_vector_internal mask = _mm256_loadu_ps((float*)(load_masks + 8ui32 - count));
-			return _mm256_mask_i32gather_ps(_mm256_setzero_ps(), source, indices, mask, 4);
-		}
-		__forceinline int_vector gather_load(int32_t const* source, __m256i indices) {
-			int_vector_internal mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - count));
-			return _mm256_mask_i32gather_epi32(_mm256_setzero_si256(), source, indices, mask, 4);
-		}
-		__forceinline fp_vector gather_masked_load(float const* source, __m256i indices, mask_vector mask, fp_vector def = _mm256_setzero_ps()) {
-			mask_vector imask = _mm256_loadu_ps((float const*)(load_masks + 8ui32 - count));
-			return _mm256_mask_i32gather_ps(def, source, indices, mask & imask, 4);
-		}
-		__forceinline int_vector gather_masked_load(int32_t const* source, __m256i indices, mask_vector mask, int_vector def = _mm256_setzero_si256()) {
-			mask_vector imask = _mm256_loadu_ps((float const*)(load_masks + 8ui32 - count));
-			return _mm256_mask_i32gather_epi32(def, source, indices, _mm256_castps_si256(mask & imask), 4);
-		}
-
-		__forceinline void unaligned_store(float* dest, fp_vector value) {
-			store(dest, value);
-		}
-
-		__forceinline fp_vector stream_load(float const* source) {
-			return load(source);
-		}
-		__forceinline int_vector stream_load(int32_t const* source) {
-			return load(source);
-		}
-		__forceinline void stream_store(float* dest, fp_vector value) {
-			store(dest, value);
-		}
-
-		template<int32_t cache_lines>
-		__forceinline void prefetch(int32_t const* source) {}
-		template<int32_t cache_lines>
-		__forceinline void prefetch(float const* source) {}
-		template<int32_t cache_lines>
-		__forceinline void nt_prefetch(int32_t const* source) {}
-		template<int32_t cache_lines>
-		__forceinline void nt_prefetch(float const* source) {}
-
-		__forceinline void scatter_store(float* dest, fp_vector to_store, __m256i indices) {
-			switch(count) {
-				case 8:
-					dest[indices.m256i_i32[7]] = to_store.value.m256_f32[7];
-				case 7:
-					dest[indices.m256i_i32[6]] = to_store.value.m256_f32[6];
-				case 6:
-					dest[indices.m256i_i32[5]] = to_store.value.m256_f32[5];
-				case 5:
-					dest[indices.m256i_i32[4]] = to_store.value.m256_f32[4];
-				case 4:
-					dest[indices.m256i_i32[3]] = to_store.value.m256_f32[3];
-				case 3:
-					dest[indices.m256i_i32[2]] = to_store.value.m256_f32[2];
-				case 2:
-					dest[indices.m256i_i32[1]] = to_store.value.m256_f32[1];
-				case 1:
-					dest[indices.m256i_i32[0]] = to_store.value.m256_f32[0];
-				default:
-					break;
-			}
-		}
-
-		template<typename F>
-		__forceinline fp_vector apply(F const& f, fp_vector arg) {
-			return _mm256_setr_ps(
-				count > 0 ? f(arg.value.m256_f32[0], offset) : 0.0f,
-				count > 1 ? f(arg.value.m256_f32[1], offset + 1ui32) : 0.0f,
-				count > 2 ? f(arg.value.m256_f32[2], offset + 2ui32) : 0.0f,
-				count > 3 ? f(arg.value.m256_f32[3], offset + 3ui32) : 0.0f,
-				count > 4 ? f(arg.value.m256_f32[4], offset + 4ui32) : 0.0f,
-				count > 5 ? f(arg.value.m256_f32[5], offset + 5ui32) : 0.0f,
-				count > 6 ? f(arg.value.m256_f32[6], offset + 6ui32) : 0.0f,
-				count > 7 ? f(arg.value.m256_f32[7], offset + 7ui32) : 0.0f);
-		}
-
-		template<typename F>
-		__forceinline auto apply(F const& f, int_vector arg) -> std::conditional_t<std::is_same_v<decltype(f(0, 0ui32)), float>, fp_vector, int_vector> {
-			if constexpr(std::is_same_v<decltype(f(0, 0ui32)), float>) {
-				return _mm256_setr_ps(
-					count > 0 ? f(arg.value.m256i_i32[0], offset) : 0,
-					count > 1 ? f(arg.value.m256i_i32[1], offset + 1ui32) : 0,
-					count > 2 ? f(arg.value.m256i_i32[2], offset + 2ui32) : 0,
-					count > 3 ? f(arg.value.m256i_i32[3], offset + 3ui32) : 0,
-					count > 4 ? f(arg.value.m256i_i32[4], offset + 4ui32) : 0,
-					count > 5 ? f(arg.value.m256i_i32[5], offset + 5ui32) : 0,
-					count > 6 ? f(arg.value.m256i_i32[6], offset + 6ui32) : 0,
-					count > 7 ? f(arg.value.m256i_i32[7], offset + 7ui32) : 0);
-			} else {
-				return _mm256_setr_epi32(
-					count > 0 ? f(arg.value.m256i_i32[0], offset) : 0,
-					count > 1 ? f(arg.value.m256i_i32[1], offset + 1ui32) : 0,
-					count > 2 ? f(arg.value.m256i_i32[2], offset + 2ui32) : 0,
-					count > 3 ? f(arg.value.m256i_i32[3], offset + 3ui32) : 0,
-					count > 4 ? f(arg.value.m256i_i32[4], offset + 4ui32) : 0,
-					count > 5 ? f(arg.value.m256i_i32[5], offset + 5ui32) : 0,
-					count > 6 ? f(arg.value.m256i_i32[6], offset + 6ui32) : 0,
-					count > 7 ? f(arg.value.m256i_i32[7], offset + 7ui32) : 0);
-			}
-		}
-
-		template<typename F>
-		__forceinline fp_vector apply_for_mask(F const& f, int_vector arg) {
-			return _mm256_castsi256_ps(_mm256_setr_epi32(
-				count > 0 ? f(arg.value.m256i_i32[0], offset) : 0,
-				count > 1 ? f(arg.value.m256i_i32[1], offset + 1ui32) : 0,
-				count > 2 ? f(arg.value.m256i_i32[2], offset + 2ui32) : 0,
-				count > 3 ? f(arg.value.m256i_i32[3], offset + 3ui32) : 0,
-				count > 4 ? f(arg.value.m256i_i32[4], offset + 4ui32) : 0,
-				count > 5 ? f(arg.value.m256i_i32[5], offset + 5ui32) : 0,
-				count > 6 ? f(arg.value.m256i_i32[6], offset + 6ui32) : 0,
-				count > 7 ? f(arg.value.m256i_i32[7], offset + 7ui32) : 0)
-			);
-		}
-
-		template<typename F>
-		__forceinline fp_vector generate(F const& f) {
-			return _mm256_setr_ps(
-				count > 0 ? f(offset) : 0.0f,
-				count > 1 ? f(offset + 1ui32) : 0.0f,
-				count > 2 ? f(offset + 2ui32) : 0.0f,
-				count > 3 ? f(offset + 3ui32) : 0.0f,
-				count > 4 ? f(offset + 4ui32) : 0.0f,
-				count > 5 ? f(offset + 5ui32) : 0.0f,
-				count > 6 ? f(offset + 6ui32) : 0.0f,
-				count > 7 ? f(offset + 7ui32) : 0.0f);
-		}
-	};
-
-	using partial_unaligned_vector_operation = partial_vector_operation;
+	template<typename T, int32_t i>
+	__forceinline void store(contiguous_tags<T, i> e, float* dest, fp_vector values) {
+		return _mm256_store_ps(dest + e.value, values);
+	}
+	template<typename T, int32_t i>
+	__forceinline void store(unaligned_contiguous_tags<T, i> e, float* dest, fp_vector values) {
+		return _mm256_storeu_ps(dest + e.value, values);
+	}
+	template<typename T>
+	__forceinline void store(partial_contiguous_tags<T> e, float* dest, fp_vector values) {
+		int_vector_internal mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - e.subcount));
+		_mm256_maskstore_ps(dest + e.value, mask, values);
+	}
+	__forceinline void store(int_vector indices, float* dest, fp_vector values) {
+		dest[indices[0]] = values[0];
+		dest[indices[1]] = values[1];
+		dest[indices[2]] = values[2];
+		dest[indices[3]] = values[3];
+		dest[indices[4]] = values[4];
+		dest[indices[5]] = values[5];
+		dest[indices[6]] = values[6];
+		dest[indices[7]] = values[7];
+	}
+	template<typename T>
+	__forceinline void store(tagged_vector<T> indices, float* dest, fp_vector values) {
+		dest[indices[0].value] = values[0];
+		dest[indices[1].value] = values[1];
+		dest[indices[2].value] = values[2];
+		dest[indices[3].value] = values[3];
+		dest[indices[4].value] = values[4];
+		dest[indices[5].value] = values[5];
+		dest[indices[6].value] = values[6];
+		dest[indices[7].value] = values[7];
+	}
+	__forceinline void store(union_tag_vector indices, float* dest, fp_vector values) {
+		dest[indices[0].value] = values[0];
+		dest[indices[1].value] = values[1];
+		dest[indices[2].value] = values[2];
+		dest[indices[3].value] = values[3];
+		dest[indices[4].value] = values[4];
+		dest[indices[5].value] = values[5];
+		dest[indices[6].value] = values[6];
+		dest[indices[7].value] = values[7];
+	}
 }

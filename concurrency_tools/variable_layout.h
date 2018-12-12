@@ -5,12 +5,6 @@
 
 #define VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
 
-#ifdef VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
-struct bitfield_type {};
-#else
-using bitfield_type = bool;
-#endif
-
 namespace variable_layout_detail {
 	template<typename tag_type, int32_t size, typename ... T>
 	class variable_layout_tagged_vector_impl;
@@ -351,14 +345,14 @@ namespace variable_layout_detail {
 
 		struct data : public variable_layout_tagged_vector_impl<tag_type, size, REST ...>::data {
 			union d_union_type {
-				uint64_t values[uint32_t(size + 63) / 64ui32];
+				bitfield_type values[uint32_t(size + 7) / 8ui32];
 				uint8_t padding[(uint32_t(size + 7) / 8ui32 + 63ui32) & ~63ui32];
 
 				static_assert(sizeof(values) <= sizeof(padding));
 				static_assert(((uint32_t(size + 7) / 8ui32 + 63ui32) & ~63ui32) % 64ui32 == 0);
 
 				d_union_type() {
-					std::uninitialized_value_construct_n(values, uint32_t(size + 63) / 64ui32);
+					std::fill_n(values, uint32_t(size + 7) / 8ui32, bitfield_type{ 0ui8 });
 				}
 			} d_union;
 			data() : d_union() {}
@@ -368,7 +362,7 @@ namespace variable_layout_detail {
 
 		__forceinline static void reset(data& d) {
 			variable_layout_tagged_vector_impl<tag_type, size, REST ...>::reset(d);
-			std::fill_n(d.d_union.values, uint32_t(size + 63) / 64, 0ui64);
+			std::fill_n(d.d_union.values, uint32_t(size + 7) / 8ui32, bitfield_type{ 0ui8 });
 		}
 
 		template<typename T>
@@ -424,20 +418,20 @@ namespace variable_layout_detail {
 
 		template<typename ... CONTEXT>
 		static void serialize_object_impl(std::byte* &output, int32_t max, data const& obj, CONTEXT&& ... c) {
-			auto count = uint32_t(max + 63) / 64ui32;
+			auto count = uint32_t(max + 7) / 8ui32;
 			variable_layout_tagged_vector_impl<tag_type, size, REST ...>::serialize_object_impl(output, max, obj, std::forward<CONTEXT>(c)...);
 			serialization::serialize_array(output, obj.d_union.values, count);
 		}
 		template<typename ... CONTEXT>
 		static void deserialize_object_impl(std::byte const* &input, int32_t max, data& obj, CONTEXT&& ... c) {
-			auto count = uint32_t(max + 63) / 64ui32;
+			auto count = uint32_t(max + 7) / 8ui32;
 			variable_layout_tagged_vector_impl<tag_type, size, REST ...>::deserialize_object_impl(input, max, obj, std::forward<CONTEXT>(c)...);
 			serialization::deserialize_array(input, obj.d_union.values, count);
 		}
 		template<typename ... CONTEXT>
 		static size_t size_impl(int32_t max, data const& obj, CONTEXT&& ... c) {
-			auto count = uint32_t(max + 63) / 64ui32;
-			return variable_layout_tagged_vector_impl<tag_type, size, REST ...>::size_impl(max, obj, std::forward<CONTEXT>(c)...) + sizeof(int64_t) * count;
+			auto count = uint32_t(max + 7) / 8ui32;
+			return variable_layout_tagged_vector_impl<tag_type, size, REST ...>::size_impl(max, obj, std::forward<CONTEXT>(c)...) + sizeof(bitfield_type) * count;
 		}
 	};
 #endif

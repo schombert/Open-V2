@@ -192,6 +192,17 @@ struct expanded_tag {
 	explicit constexpr operator bool() const noexcept { return value != 0; }
 };
 
+template<typename T>
+struct decay_tag_s {
+	using type = T;
+};
+template<typename T>
+struct decay_tag_s<expanded_tag<T>> {
+	using type = T;
+};
+template<typename T>
+using decay_tag = typename decay_tag_s<T>::type;
+
 struct union_tag {
 	int32_t value = 0;
 
@@ -564,19 +575,25 @@ public:
 	void reserve(size_t outer_size) { storage.reserve(outer_size * _inner_size); }
 };
 
-inline void bit_vector_set(uint64_t* v, uint32_t index, bool value) {
-	const uint32_t real_index = index >> 6ui32;
-	const uint32_t sub_index = index & 63ui32;
+struct bitfield_type {
+	uint8_t v = 0;
+};
+
+static_assert(sizeof(bitfield_type) == 1);
+
+inline void bit_vector_set(bitfield_type* v, uint32_t index, bool value) {
+	const uint32_t real_index = index >> 4ui32;
+	const uint32_t sub_index = index & 15ui32;
 	if(value) 
-		v[real_index] |= 1ui64 << uint64_t(sub_index);
+		v[real_index].v |= uint8_t(1ui32 << sub_index);
 	else
-		v[real_index] &= ~(1ui64 << uint64_t(sub_index));
+		v[real_index].v &= uint8_t(~(1ui32 << sub_index));
 }
 
-inline bool bit_vector_test(uint64_t const* v, uint32_t index) {
-	const uint32_t real_index = index >> 6ui32;
-	const uint32_t sub_index = index & 63ui32;
-	return (v[real_index] & (1ui64 << uint64_t(sub_index))) != 0ui64;
+inline bool bit_vector_test(bitfield_type const* v, uint32_t index) {
+	const uint32_t real_index = index >> 4ui32;
+	const uint32_t sub_index = index & 15ui32;
+	return (v[real_index].v & (1ui32 << sub_index)) != 0;
 }
 
 enum key_modifiers {
