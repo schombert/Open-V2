@@ -190,8 +190,8 @@ namespace nation {
 
 	using container = variable_layout_tagged_vector < nations::country_tag, container_size,
 
-		sphere_leader, expanded_tag<nations::country_tag>,
-		overlord, expanded_tag<nations::country_tag>,
+		sphere_leader, nations::country_tag,
+		overlord, nations::country_tag,
 
 		enabled_crimes, uint64_t,
 		current_rules, int32_t,
@@ -249,8 +249,8 @@ namespace nation {
 
 		name, text_data::text_tag,
 		adjective, text_data::text_tag,
-		national_value, expanded_tag<modifiers::national_modifier_tag>,
-		tech_school, expanded_tag<modifiers::national_modifier_tag>,
+		national_value, modifiers::national_modifier_tag,
+		tech_school, modifiers::national_modifier_tag,
 		flag, graphics::texture_tag,
 		current_color, graphics::color_rgb,
 		current_research, technologies::tech_tag,
@@ -276,15 +276,15 @@ namespace nation {
 		cb_construction_type, military::cb_type_tag,
 
 		ruling_party, governments::party_tag,
-		current_capital, expanded_tag<provinces::province_tag>,
+		current_capital, provinces::province_tag,
 		tag, cultures::national_tag,
-		primary_culture, expanded_tag<cultures::culture_tag>,
+		primary_culture, cultures::culture_tag,
 		dominant_culture, cultures::culture_tag,
 		dominant_issue, issues::option_tag,
 		dominant_ideology, ideologies::ideology_tag,
 		dominant_religion, cultures::religion_tag,
 		national_religion, cultures::religion_tag,
-		current_government, expanded_tag<governments::government_tag>,
+		current_government, governments::government_tag,
 		ruling_ideology, ideologies::ideology_tag,
 
 		rich_tax, int8_t,
@@ -357,7 +357,7 @@ namespace state {
 		dominant_issue, issues::option_tag,
 		region_id, provinces::state_tag,
 		crisis_tag, cultures::national_tag,
-		dominant_culture, expanded_tag<cultures::culture_tag>,
+		dominant_culture, cultures::culture_tag,
 		state_capital, provinces::province_tag,
 		name, text_data::text_tag,
 		current_tension, float,
@@ -369,7 +369,7 @@ namespace state {
 
 		project, nations::pop_project,
 		owner_national_focus, modifiers::national_focus_tag,
-		owner, expanded_tag<nations::country_tag>,
+		owner, nations::country_tag,
 
 		colonizers, std::array<std::pair<nations::country_tag, int32_t>, colonizers_count>,
 		factories, std::array<economy::factory_instance, factories_count>

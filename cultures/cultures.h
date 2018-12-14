@@ -66,7 +66,6 @@ namespace cultures {
 	};
 
 	struct national_tag_state {
-		nations::country_tag holder;
 		set_tag<provinces::province_tag> core_provinces;
 		provinces::province_tag capital;
 		bool is_not_releasable = false;
@@ -75,6 +74,7 @@ namespace cultures {
 	class cultures_state {
 	public:
 		tagged_vector<national_tag_state, national_tag> national_tags_state;
+		tagged_vector<nations::country_tag, national_tag, aligned_allocator_64<nations::country_tag>, true> tags_to_holders;
 		tagged_fixed_2dvector<graphics::texture_tag, national_tag, governments::government_tag> country_flags_by_government;
 
 		stable_variable_vector_storage_mk_2<culture_tag, 4, 8192> culture_arrays;
@@ -85,6 +85,10 @@ namespace cultures {
 		tagged_vector<culture_group, culture_group_tag> culture_groups;
 		tagged_vector<religion, religion_tag> religions;
 		tagged_vector<culture, culture_tag> culture_container;
+		tagged_vector<culture_group_tag, culture_tag, aligned_allocator_64<culture_group_tag>, true> cultures_to_groups;
+		tagged_vector<national_tag, culture_group_tag, aligned_allocator_64<national_tag>, true> groups_to_tags;
+		tagged_vector<national_tag, culture_tag, aligned_allocator_64<national_tag>, true> cultures_to_tags;
+
 		tagged_vector<national_tag_object, national_tag> national_tags;
 
 		std::vector<graphics::texture_tag> leader_pictures;

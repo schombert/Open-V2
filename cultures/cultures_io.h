@@ -44,6 +44,11 @@ public:
 	static void deserialize_object(std::byte const* &input, cultures::cultures_state& obj, world_state& ws) {
 		deserialize(input, obj.national_tags_state, ws);
 		deserialize(input, obj.country_flags_by_government);
+		for(int32_t i = 0; i < obj.national_tags_state.size(); ++i) {
+			auto tag = cultures::national_tag(cultures::national_tag::value_base_t(i));
+			auto& st = obj.national_tags_state[tag];
+			obj.tags_to_holders[tag] = st.holder;
+		}
 	}
 	static size_t size(cultures::cultures_state const& obj, world_state const& ws) {
 		return serialize_size(obj.national_tags_state, ws) + serialize_size(obj.country_flags_by_government);
@@ -57,12 +62,19 @@ public:
 	static constexpr bool has_simple_serialize = false;
 
 	static void rebuild_indexes(cultures::culture_manager& obj) {
+		obj.cultures_to_groups.resize(obj.culture_container.size());
 		for(auto const& i_culture : obj.culture_container) {
 			obj.named_culture_index.emplace(i_culture.name, i_culture.id);
 			obj.culture_by_culture_group.add_to_row(i_culture.group, i_culture.id);
+			obj.cultures_to_groups[i_culture.id] = i_culture.group;
+			obj.cultures_to_tags[i_culture.id] = obj.culture_groups[i_culture.group].union_tag;
 		}
-		for(auto const& i_culture_group : obj.culture_groups)
+		obj.groups_to_tags.resize(obj.culture_groups.size());
+		for(auto const& i_culture_group : obj.culture_groups) {
 			obj.named_culture_group_index.emplace(i_culture_group.name, i_culture_group.id);
+			obj.groups_to_tags[i_culture_group.id] = i_culture_group.union_tag;
+		}
+		
 		for(auto const& i_religion : obj.religions)
 			obj.named_religion_index.emplace(i_religion.name, i_religion.id);
 		for(auto const& i_tag : obj.national_tags)

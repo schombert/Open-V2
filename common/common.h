@@ -403,41 +403,6 @@ struct tagged_object {
 	}
 };
 
-template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>>
-class tagged_vector {
-private:
-	std::vector<value_type, allocator> storage;
-public:
-	const value_type& operator[](tag_type t) const {
-		return *(storage.data() + to_index(t));
-		//return storage[to_index(t)];
-	}
-	value_type& operator[](tag_type t) {
-		return *(storage.data() + to_index(t));
-		//return storage[to_index(t)];
-	}
-	template<typename ...T>
-	tag_type emplace_back(T&& ... ts) {
-		storage.emplace_back(std::forward<T>(ts)...);
-		return tag_type(static_cast<value_base_of<tag_type>>(storage.size() - 1));
-	}
-	value_type& safe_get(tag_type t) {
-		if (to_index(t) >= storage.size())
-			storage.resize(to_index(t) + 1);
-		return storage[to_index(t)];
-	}
-	auto data() const { return storage.data(); }
-	auto data() { return storage.data(); }
-	auto begin() const { return storage.begin(); }
-	auto end() const { return storage.end(); }
-	auto begin() { return storage.begin(); }
-	auto end() { return storage.end(); }
-	size_t size() const { return storage.size(); }
-	void resize(size_t size) { storage.resize(size); }
-	void reserve(size_t size) { storage.reserve(size); }
-	void pop_back() { storage.pop_back(); }
-};
-
 template<typename T, typename index_type, bool padding>
 struct tagged_array_view {
 private:
@@ -475,6 +440,41 @@ public:
 	constexpr tagged_array_view<T, index_type, padding> operator+(int32_t i) const noexcept {
 		return tagged_array_view<T, index_type, padding>(ptr + i, size - i);
 	}
+};
+
+template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>, bool padded = false>
+class tagged_vector {
+private:
+	std::vector<value_type, allocator> storage;
+public:
+	const value_type& operator[](tag_type t) const {
+		return *(storage.data() + to_index(t) + int32_t(padded));
+	}
+	value_type& operator[](tag_type t) {
+		return *(storage.data() + to_index(t) + int32_t(padded));
+	}
+	template<typename ...T>
+	tag_type emplace_back(T&& ... ts) {
+		storage.emplace_back(std::forward<T>(ts)...);
+		return tag_type(static_cast<value_base_of<tag_type>>(storage.size() - 1));
+	}
+	value_type& safe_get(tag_type t) {
+		if (to_index(t) + int32_t(padded) >= storage.size())
+			storage.resize(to_index(t) + int32_t(padded) + 1);
+		return storage[to_index(t) + int32_t(padded)];
+	}
+	auto data() const { return storage.data(); }
+	auto data() { return storage.data(); }
+	auto begin() const { return storage.begin(); }
+	auto end() const { return storage.end(); }
+	auto begin() { return storage.begin() + int32_t(padded); }
+	auto end() { return storage.end(); }
+	size_t size() const { return storage.size(); }
+	void resize(size_t size) { storage.resize(size + size_t(padded)); }
+	void reserve(size_t size) { storage.reserve(size + size_t(padded)); }
+	void pop_back() { storage.pop_back(); }
+	tagged_array_view<value_type, tag_type, padded> view() { return tagged_array_view<value_type, tag_type, padded>(storage.data(), int32_t(storage.size())); };
+	tagged_array_view<value_type const, tag_type, padded> view() const { return tagged_array_view<value_type, tag_type, padded>(storage.data(), int32_t(storage.size())); };
 };
 
 template<typename value_type, typename variable_tag_type, typename fixed_tag_type, typename allocator = std::allocator<value_type>>

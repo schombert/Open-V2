@@ -100,4 +100,32 @@ namespace nations {
 			}
 		});
 	}
+
+
+	template<typename C, typename T>
+	auto is_culture_accepted(world_state const& ws, C c, T n) -> decltype(ve::widen_to<T>(true)) {
+		return ve::apply(n, c, [&ws](nations::country_tag in, cultures::culture_tag ic) {
+			contains_item(ws.w.culture_s.culture_arrays, ws.w.nation_s.nations.get<nation::accepted_cultures>(in), ic);
+		}) | (ve::load(n, ws.w.nation_s.nations.get_row<nation::primary_culture>()) == c);
+	}
+
+
+	template<typename T>
+	auto national_culture_group(world_state const& ws, T n)-> decltype(ve::widen_to<T>(cultures::culture_group_tag())) {
+		auto pcultures = ve::load(n, ws.w.nation_s.nations.get_row<nation::primary_culture>());
+		return ve::load(pcultures, ws.s.culture_m.cultures_to_groups.view());
+	}
+
+
+	template<typename T>
+	auto union_holder_of(world_state const& ws, T this_nation) -> decltype(ve::widen_to<T>(nations::country_tag())) {
+		auto pculture = ve::load(this_nation, ws.w.nation_s.nations.get_row<nation::primary_culture>());
+		return union_holder_for(ws, pculture);
+	}
+
+	template<typename T>
+	auto union_holder_for(world_state const& ws, T c) -> decltype(ve::widen_to<T>(nations::country_tag())) {
+		auto union_tag = ve::load(c, ws.s.culture_m.cultures_to_tags.view());
+		return ve::load(union_tag, ws.w.culture_s.tags_to_holders.view());
+	}
 }

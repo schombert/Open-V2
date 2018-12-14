@@ -6,17 +6,14 @@
 #include "technologies\\technologies_functions.h"
 #include "governments\\governments_functions.h"
 #include "issues\\issues_functions.h"
-#include "population\\population_function.h"
+#include "population\\population_functions.hpp"
 #include "provinces\\province_functions.h"
 #include <ppl.h>
 #include "economy\\economy_functions.h"
 #include "concurrency_tools\\ve.h"
 
 namespace nations {
-	bool is_culture_accepted(world_state const& ws, cultures::culture_tag c, country_tag n) {
-		auto accepted_cultures = ws.w.nation_s.nations.get<nation::accepted_cultures>(n);
-		return c == ws.w.nation_s.nations.get<nation::primary_culture>(n) || contains_item(ws.w.culture_s.culture_arrays, accepted_cultures, c);
-	}
+	
 	void change_primary_culture(world_state & ws, country_tag n, cultures::culture_tag c) {
 		auto& pc = ws.w.nation_s.nations.get<nation::primary_culture>(n);
 		if(pc != c) {
@@ -420,6 +417,7 @@ namespace nations {
 		auto& fixed_tag = ws.s.culture_m.national_tags[nt];
 
 		tag_state.holder = new_nation;
+		ws.s.culture_s.tags_to_holders[nt] = new_nation;
 		ws.w.nation_s.nations.set<nation::tag>(new_nation, nt);
 		ws.w.nation_s.nations.set<nation::name>(new_nation, fixed_tag.default_name.name);
 		ws.w.nation_s.nations.set<nation::adjective>(new_nation, fixed_tag.default_name.adjective);
@@ -863,15 +861,6 @@ namespace nations {
 		ws.w.nation_s.nations.set<nation::is_substate>(vassal, true);
 	}
 
-	country_tag union_holder_for(world_state const& ws, cultures::culture_tag pculture) {
-		auto cgroup = ws.s.culture_m.culture_container[pculture].group;
-		auto union_tag = ws.s.culture_m.culture_groups[cgroup].union_tag;
-		if(is_valid_index(union_tag))
-			return ws.w.culture_s.national_tags_state[union_tag].holder;
-		else
-			return country_tag();
-	}
-
 	cultures::national_tag union_tag_of(world_state const& ws, country_tag this_nation) {
 		auto pculture = ws.w.nation_s.nations.get<nation::primary_culture>(this_nation);
 		if(is_valid_index(pculture)) {
@@ -880,14 +869,6 @@ namespace nations {
 		}
 		else
 			return cultures::national_tag();
-	}
-
-	country_tag union_holder_of(world_state const& ws, country_tag this_nation) {
-		auto pculture = ws.w.nation_s.nations.get<nation::primary_culture>(this_nation);
-		if(is_valid_index(pculture))
-			return union_holder_for(ws, pculture);
-		else
-			return country_tag();
 	}
 
 	economy::goods_qnty_type national_treasury(world_state const& ws, country_tag id) {
@@ -1293,13 +1274,16 @@ namespace nations {
 		auto& new_tag_state = ws.w.culture_s.national_tags_state[new_tag];
 
 		auto& ntag = ws.w.nation_s.nations.get<nation::tag>(this_nation);
-		if(is_valid_index(ntag))
+		if(is_valid_index(ntag)) {
 			ws.w.culture_s.national_tags_state[ntag].holder = new_tag_state.holder;
+			ws.w.culture_s.tags_to_holders[ntag].holder = new_tag_state.holder;
+		}
 
 		if(new_tag_state.holder)
 			ws.w.nation_s.nations.set<nation::tag>(new_tag_state.holder, ntag);
 
 		new_tag_state.holder = this_nation;
+		ws.w.culture_s.tags_to_holders[new_tag].holder = this_nation;
 		ntag = new_tag;
 	}
 

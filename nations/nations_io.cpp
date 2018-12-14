@@ -2,7 +2,7 @@
 #include "world_state\\world_state.h"
 #include "Parsers\\parsers.hpp"
 #include "object_parsing\\object_parsing.hpp"
-#include "population\\population_function.h"
+#include "population\\population_functions.hpp"
 #include "nations_functions.h"
 #include "governments\\governments_functions.h"
 #include "military\\military_io.h"

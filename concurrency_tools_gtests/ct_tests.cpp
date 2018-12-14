@@ -2234,3 +2234,162 @@ TEST(concurrency_tools, vector_integer_mask) {
 		EXPECT_FLOAT_EQ(b[i], i == 1 || i == 9 ? a[i] : 5.0f);
 	}
 }
+
+using ttag_small = tag_type<uint8_t, std::true_type, struct ttag_small_type>;
+using ttag_med = tag_type<uint16_t, std::true_type, struct ttag_med_type>;
+
+TEST(concurrency_tools, small_loads) {
+	std::vector<ttag_med, aligned_allocator_64<ttag_med>> a(32);
+	std::vector<ttag_small, aligned_allocator_64<ttag_small>> b(64);
+	std::vector<float, aligned_allocator_64<float>> values(16);
+
+	values[0] = 2.4f;
+	values[1] = 2.7f;
+	values[2] = 1.4f;
+	values[3] = 0.4f;
+	values[4] = 22.4f;
+	values[5] = 201.4f;
+	values[6] = 652.4f;
+	values[7] = 28.4f;
+	values[8] = 2.04f;
+	values[9] = 2.84f;
+	values[10] = 26.4f;
+	values[11] = 52.4f;
+	values[12] = 72.4f;
+	values[13] = 29.4f;
+	values[14] = 24.4f;
+	values[15] = 25.4f;
+
+	for(uint16_t i = 4; i < 32; ++i)
+		a[i] = ttag_med(i);
+	for(uint8_t i = 4; i < 64; ++i)
+		b[i] = ttag_small(i);
+
+	a[0] = ttag_med(9);
+	a[1] = ttag_med(6);
+	a[2] = ttag_med(11);
+	a[3] = ttag_med(14);
+
+	b[0] = ttag_small(7);
+	b[1] = ttag_small(2);
+	b[2] = ttag_small(3);
+	b[3] = ttag_small(9);
+
+	auto a_index = ve::load(ve::contiguous_tags<int32_t>(0), a.data());
+	auto b_index = ve::load(ve::contiguous_tags<int32_t>(0), b.data());
+
+	auto a_values = ve::load(a_index, values.data());
+	auto b_values = ve::load(b_index, values.data());
+
+	EXPECT_EQ(a_values[0], values[10]);
+	EXPECT_EQ(a_values[1], values[7]);
+	EXPECT_EQ(a_values[2], values[12]);
+	EXPECT_EQ(a_values[3], values[15]);
+
+	EXPECT_EQ(b_values[0], values[8]);
+	EXPECT_EQ(b_values[1], values[3]);
+	EXPECT_EQ(b_values[2], values[4]);
+	EXPECT_EQ(b_values[3], values[10]);
+
+	auto reversed = ve::int_vector();
+	reversed.set(0, 3);
+	reversed.set(1, 2);
+	reversed.set(2, 1);
+	reversed.set(3, 0);
+
+	auto a_index_rev = ve::load(reversed, a.data());
+	auto b_index_rev = ve::load(reversed, b.data());
+	auto a_values_rev = ve::load(a_index_rev, values.data());
+	auto b_values_rev = ve::load(b_index_rev, values.data());
+
+	EXPECT_EQ(a_values_rev[3], values[10]);
+	EXPECT_EQ(a_values_rev[2], values[7]);
+	EXPECT_EQ(a_values_rev[1], values[12]);
+	EXPECT_EQ(a_values_rev[0], values[15]);
+
+	EXPECT_EQ(b_values_rev[3], values[8]);
+	EXPECT_EQ(b_values_rev[2], values[3]);
+	EXPECT_EQ(b_values_rev[1], values[4]);
+	EXPECT_EQ(b_values_rev[0], values[10]);
+
+}
+
+
+using s_ttag_small = tag_type<int8_t, std::true_type, struct ttag_small_type>;
+using s_ttag_med = tag_type<int16_t, std::true_type, struct ttag_med_type>;
+
+TEST(concurrency_tools, signed_small_loads) {
+	std::vector<s_ttag_med, aligned_allocator_64<s_ttag_med>> a(32);
+	std::vector<s_ttag_small, aligned_allocator_64<s_ttag_small>> b(64);
+	std::vector<float, aligned_allocator_64<float>> values(16);
+
+	values[0] = 2.4f;
+	values[1] = 2.7f;
+	values[2] = 1.4f;
+	values[3] = 0.4f;
+	values[4] = 22.4f;
+	values[5] = 201.4f;
+	values[6] = 652.4f;
+	values[7] = 28.4f;
+	values[8] = 2.04f;
+	values[9] = 2.84f;
+	values[10] = 26.4f;
+	values[11] = 52.4f;
+	values[12] = 72.4f;
+	values[13] = 29.4f;
+	values[14] = 24.4f;
+	values[15] = 25.4f;
+
+	for(uint16_t i = 4; i < 32; ++i)
+		a[i] = s_ttag_med(i);
+	for(uint8_t i = 4; i < 64; ++i)
+		b[i] = s_ttag_small(i);
+
+	a[0] = s_ttag_med(9);
+	a[1] = s_ttag_med(6);
+	a[2] = s_ttag_med(11);
+	a[3] = s_ttag_med(14);
+
+	b[0] = s_ttag_small(7);
+	b[1] = s_ttag_small(2);
+	b[2] = s_ttag_small(3);
+	b[3] = s_ttag_small(9);
+
+	auto a_index = ve::load(ve::contiguous_tags<int32_t>(0), a.data());
+	auto b_index = ve::load(ve::contiguous_tags<int32_t>(0), b.data());
+
+	auto a_values = ve::load(a_index, values.data());
+	auto b_values = ve::load(b_index, values.data());
+
+	EXPECT_EQ(a_values[0], values[10]);
+	EXPECT_EQ(a_values[1], values[7]);
+	EXPECT_EQ(a_values[2], values[12]);
+	EXPECT_EQ(a_values[3], values[15]);
+
+	EXPECT_EQ(b_values[0], values[8]);
+	EXPECT_EQ(b_values[1], values[3]);
+	EXPECT_EQ(b_values[2], values[4]);
+	EXPECT_EQ(b_values[3], values[10]);
+
+	auto reversed = ve::int_vector();
+	reversed.set(0, 3);
+	reversed.set(1, 2);
+	reversed.set(2, 1);
+	reversed.set(3, 0);
+
+	auto a_index_rev = ve::load(reversed, a.data());
+	auto b_index_rev = ve::load(reversed, b.data());
+	auto a_values_rev = ve::load(a_index_rev, values.data());
+	auto b_values_rev = ve::load(b_index_rev, values.data());
+
+	EXPECT_EQ(a_values_rev[3], values[10]);
+	EXPECT_EQ(a_values_rev[2], values[7]);
+	EXPECT_EQ(a_values_rev[1], values[12]);
+	EXPECT_EQ(a_values_rev[0], values[15]);
+
+	EXPECT_EQ(b_values_rev[3], values[8]);
+	EXPECT_EQ(b_values_rev[2], values[3]);
+	EXPECT_EQ(b_values_rev[1], values[4]);
+	EXPECT_EQ(b_values_rev[0], values[10]);
+
+}

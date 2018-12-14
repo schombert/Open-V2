@@ -125,7 +125,7 @@ namespace province_state {
 		artisan_production, economy::goods_tag,
 		rgo_production, economy::goods_tag,
 
-		dominant_culture, expanded_tag<cultures::culture_tag>,
+		dominant_culture, cultures::culture_tag,
 		base_life_rating, float,
 		terrain, modifiers::provincial_modifier_tag,
 		crime, modifiers::provincial_modifier_tag,
@@ -150,10 +150,10 @@ namespace province_state {
 		naval_base_upgrade_progress, float,
 		artisan_production_scale, float,
 
-		owner, expanded_tag<nations::country_tag>,
-		controller, expanded_tag<nations::country_tag>,
+		owner, nations::country_tag,
+		controller, nations::country_tag,
 		rebel_controller, population::rebel_faction_tag,
-		state_instance, expanded_tag<nations::state_tag>,
+		state_instance, nations::state_tag,
 		orders, military::army_orders_tag
 
 		> ;

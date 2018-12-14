@@ -19,10 +19,8 @@ namespace population {
 	float get_militancy_direct(world_state const& ws, pop_tag p);
 	float get_literacy_direct(world_state const& ws, pop_tag p);
 	float get_consciousness_direct(world_state const& ws, pop_tag p);
-	float desired_needs_spending(world_state const& ws, pop_tag p);
-	ve::fp_vector desired_needs_spending(world_state const& ws, uint32_t p);
-	ve::fp_vector desired_needs_spending(world_state const& ws, ve::int_vector p);
-	nations::country_tag get_pop_owner(world_state const& ws, pop_tag p);
+	
+	
 	bool is_dominant_issue(world_state const& ws, pop_tag id, issues::option_tag opt);
 	bool is_dominant_ideology(world_state const& ws, pop_tag id, ideologies::ideology_tag opt);
 	void destroy_pop_movement(world_state& ws, pop_movement& m);
@@ -40,4 +38,9 @@ namespace population {
 	void update_pop_ideology_and_issues(world_state& ws);
 	void update_militancy(world_state& ws);
 	void update_consciousness(world_state& ws);
+
+	template<typename T>
+	auto desired_needs_spending(world_state const& ws, T p) -> decltype(ve::widen_to<T>(0.0f));
+	template<typename T>
+	auto get_pop_owner(world_state const& ws, T p) -> decltype(ve::widen_to<T>(nations::country_tag()));
 }

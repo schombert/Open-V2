@@ -21,13 +21,16 @@
     <ClInclude Include="population_io.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="population_function.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="population_gui.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="population_gui.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="population_functions.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="population_functions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

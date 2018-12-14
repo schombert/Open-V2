@@ -4,7 +4,7 @@
 #include "world_state\\world_state.h"
 #include "nations\\nations_functions.hpp"
 #include "provinces\\province_functions.hpp"
-#include "population\\population_function.h"
+#include "population\\population_functions.hpp"
 #include "governments\\governments_functions.h"
 #include "cultures\\cultures_functions.h"
 #include "military\\military_functions.h"

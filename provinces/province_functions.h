@@ -18,13 +18,18 @@ namespace provinces {
 	void add_province_modifier(world_state& ws, province_tag p, modifiers::provincial_modifier_tag t);
 	void add_timed_province_modifier(world_state& ws, province_tag p, modifiers::provincial_modifier_tag t, date_tag d);
 	nations::country_tag get_province_seiger(world_state& ws, province_tag p);
-	float get_life_rating(world_state const& ws, province_tag p);
-	ve::fp_vector get_life_rating(world_state const& ws, uint32_t offset);
-	ve::fp_vector get_life_rating(world_state const& ws, ve::int_vector p);
 	void reset_state(provinces_state& s);
 
+	template<typename T>
+	auto get_life_rating(world_state const& ws, T p) -> decltype(ve::widen_to<T>(0.0f));
 	template<typename F>
 	void for_each_pop(world_state const& ws, province_tag p, F&& f);
+	template<typename T>
+	auto province_owner(world_state const& ws, T p) -> decltype(ve::widen_to<T>(nations::country_tag()));
+	template<typename T>
+	auto province_controller(world_state const& ws, T p) -> decltype(ve::widen_to<T>(nations::country_tag()));
+	template<typename T>
+	auto province_state(world_state const& ws, T p) -> decltype(ve::widen_to<T>(nations::state_tag()));
 
 	void silent_remove_province_owner(world_state& ws, province_tag p);
 	void silent_remove_province_controller(world_state& ws, province_tag p);
@@ -35,7 +40,5 @@ namespace provinces {
 	double distance(world_state const& ws, province_tag a, province_tag b); // in km
 	void path_wise_distance_cost(world_state const& ws, province_tag a, float* results, province_tag* p_results); // in ~km
 	void fill_distance_arrays(world_state& ws);
-	nations::country_tag province_owner(world_state const& ws, province_tag p);
-	nations::country_tag province_controller(world_state const& ws, province_tag p);
-	nations::state_tag province_state(world_state const& ws, province_tag p);
+	
 }

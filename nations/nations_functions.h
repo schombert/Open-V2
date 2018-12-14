@@ -2,6 +2,7 @@
 #include "common\\common.h"
 #include "nations.h"
 #include "provinces\\provinces.h"
+#include "concurrency_tools\\ve.h"
 
 class world_state;
 
@@ -50,7 +51,16 @@ namespace nations {
 	void destroy_nation(world_state& ws, nations::country_tag new_nation);
 	float tarrif_multiplier(world_state const& ws, nations::country_tag source, nations::country_tag target);
 
-	bool is_culture_accepted(world_state const& ws, cultures::culture_tag c, country_tag n);
+	template<typename C, typename T>
+	auto is_culture_accepted(world_state const& ws, C c, T n) -> decltype(ve::widen_to<T>(true));
+	template<typename T>
+	auto national_culture_group(world_state const& ws, T n)-> decltype(ve::widen_to<T>(cultures::culture_group_tag()));
+
+	template<typename T>
+	auto union_holder_of(world_state const& ws, T this_nation) -> decltype(ve::widen_to<T>(nations::country_tag()));
+	template<typename T>
+	auto union_holder_for(world_state const& ws, T c) -> decltype(ve::widen_to<T>(nations::country_tag()));
+
 	void change_primary_culture(world_state& ws, country_tag n, cultures::culture_tag c);
 	void add_accepted_culture(world_state& ws, country_tag n, cultures::culture_tag c);
 	void add_accepted_culture_group(world_state& ws, country_tag n, cultures::culture_group_tag c);
@@ -70,8 +80,6 @@ namespace nations {
 	void end_alliance(world_state& ws, nations::country_tag a, nations::country_tag b);
 	void simple_make_vassal(world_state& ws, nations::country_tag overlord, nations::country_tag vassal);
 	void simple_make_substate(world_state& ws, nations::country_tag overlord, nations::country_tag vassal);
-	nations::country_tag union_holder_of(world_state const& ws, nations::country_tag this_nation);
-	nations::country_tag union_holder_for(world_state const& ws, cultures::culture_tag);
 	cultures::national_tag union_tag_of(world_state const& ws, nations::country_tag this_nation);
 
 	economy::goods_qnty_type national_treasury(world_state const& ws, country_tag id);
