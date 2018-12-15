@@ -521,6 +521,10 @@ namespace ve {
 		}
 	}
 
+	__forceinline fp_vector to_float(int_vector v) {
+		return _mm256_cvtepi32_ps(v);
+	}
+
 	__forceinline fp_vector operator+(fp_vector a, fp_vector b) {
 		return _mm256_add_ps(a, b);
 	}

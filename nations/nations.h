@@ -180,6 +180,7 @@ namespace nation {
 	struct is_not_ai_controlled;
 	struct is_holding_election;
 	struct is_colonial_nation;
+	struct is_at_war;
 	struct cb_construction_discovered;
 	struct has_gas_attack;
 	struct has_gas_defence;
@@ -303,6 +304,7 @@ namespace nation {
 		is_civilized, bitfield_type,
 		is_substate, bitfield_type,
 		is_mobilized, bitfield_type,
+		is_at_war, bitfield_type,
 		is_not_ai_controlled, bitfield_type,
 		is_holding_election, bitfield_type,
 		is_colonial_nation, bitfield_type,

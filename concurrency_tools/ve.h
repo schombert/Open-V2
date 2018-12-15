@@ -21,7 +21,7 @@
 namespace ve {
 
 
-
+	__forceinline constexpr float to_float(int32_t value) { return float(value); }
 	__forceinline constexpr bool and_not(bool a, bool b) { return (!b) && a; }
 	__forceinline constexpr float inverse(float a) { return 1.0f / a; }
 	__forceinline float sqrt(float a) { return std::sqrt(a); }

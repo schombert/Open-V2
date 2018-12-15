@@ -45,6 +45,8 @@ class serialization::tagged_serializer<state::total_population, T> : public seri
 
 
 template<typename T>
+class serialization::tagged_serializer<nation::is_at_war, T> : public serialization::discard_serializer<T> {};
+template<typename T>
 class serialization::tagged_serializer<nation::total_core_population, T> : public serialization::discard_serializer<T> {};
 template<typename T>
 class serialization::tagged_serializer<nation::current_rules, T> : public serialization::discard_serializer<T> {};

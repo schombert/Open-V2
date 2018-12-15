@@ -164,6 +164,7 @@ namespace military {
 		resize(ws.w.nation_s.nations_arrays, opponents_in_war, 0ui32);
 
 		auto owner_wars = get_range(ws.w.military_s.war_arrays, ws.w.nation_s.nations.get<nation::wars_involved_in>(this_nation));
+		ws.w.nation_s.nations.set<nation::is_at_war>(this_nation, owner_wars.first != owner_wars.second);
 		for(auto iwar = owner_wars.first; iwar != owner_wars.second; ++iwar) {
 			if(auto warid = iwar->war_id; ws.w.military_s.wars.is_valid_index(warid)) {
 				if(iwar->is_attacker) {
