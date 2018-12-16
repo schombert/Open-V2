@@ -24,6 +24,9 @@
     <ClInclude Include="military_functions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="military_functions.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="military.cpp">

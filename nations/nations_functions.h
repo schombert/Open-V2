@@ -60,6 +60,12 @@ namespace nations {
 	auto union_holder_of(world_state const& ws, T this_nation) -> decltype(ve::widen_to<T>(nations::country_tag()));
 	template<typename T>
 	auto union_holder_for(world_state const& ws, T c) -> decltype(ve::widen_to<T>(nations::country_tag()));
+	template<typename T>
+	auto get_prestige(world_state const& ws, T this_nation) -> decltype(ve::widen_to<T>(0.0f));
+	template<typename T>
+	auto has_factory(world_state const& ws, T this_state) -> decltype(ve::widen_to<T>(true));
+	template<typename T>
+	auto has_factory(world_state const& ws, T this_state, economy::factory_type_tag f_type) -> decltype(ve::widen_to<T>(true));
 
 	void change_primary_culture(world_state& ws, country_tag n, cultures::culture_tag c);
 	void add_accepted_culture(world_state& ws, country_tag n, cultures::culture_tag c);
@@ -86,7 +92,8 @@ namespace nations {
 	float fraction_of_cores_owned(world_state const& ws, nations::country_tag this_nation);
 	bool can_release_as_vassal(world_state const& ws, nations::country_tag this_nation, cultures::national_tag vassal);  // checks for target already existing, allowed by scenario, & core owned by nation
 
-	float get_prestige(world_state const& ws, nations::country_tag n);
+	
+
 	int32_t get_colonial_points(world_state const& ws, nations::country_tag n);
 	float calculate_state_administrative_efficiency(world_state const& ws, state_tag si, float admin_requirement);
 	float calculate_national_administrative_efficiency(world_state const& ws, nations::country_tag n);

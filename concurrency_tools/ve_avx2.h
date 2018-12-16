@@ -177,76 +177,73 @@ namespace ve {
 		}
 	};
 
+	template<typename tag_type>
+	struct contiguous_tags_base {
+		uint32_t value = 0;
+		using wrapped_value = tag_type;
+
+		constexpr contiguous_tags_base() : value(0) {}
+		constexpr explicit contiguous_tags_base(uint32_t v) : value(v) {}
+		constexpr contiguous_tags_base(const contiguous_tags_base& v) noexcept = default;
+		constexpr contiguous_tags_base(contiguous_tags_base&& v) noexcept = default;
+
+		contiguous_tags_base& operator=(contiguous_tags_base&& v) noexcept = default;
+		contiguous_tags_base& operator=(contiguous_tags_base const& v) noexcept = default;
+
+		__forceinline tag_type operator[](uint32_t i) const noexcept {
+			return tag_type(typename tag_type::value_base_t(value + i), std::true_type());
+		}
+	};
 
 	template<typename tag_type, int32_t b_index = 0>
-	struct contiguous_tags {
-		using wrapped_value = tag_type;
+	struct contiguous_tags : public contiguous_tags_base<tag_type> {
 		constexpr static int32_t block_index = b_index;
 
-		uint32_t value = 0;
-
-		constexpr contiguous_tags() : value(0) {}
-		constexpr explicit contiguous_tags(uint32_t v) : value(v) {}
+		constexpr contiguous_tags() : contiguous_tags_base<tag_type>(0) {}
+		constexpr explicit contiguous_tags(uint32_t v) : contiguous_tags_base<tag_type>(v) {}
 		constexpr contiguous_tags(const contiguous_tags& v) noexcept = default;
 		constexpr contiguous_tags(contiguous_tags&& v) noexcept = default;
 
 		contiguous_tags& operator=(contiguous_tags&& v) noexcept = default;
 		contiguous_tags& operator=(contiguous_tags const& v) noexcept = default;
-
-		constexpr bool operator==(contiguous_tags v) const noexcept { return value == v.value; }
-		constexpr bool operator!=(contiguous_tags v) const noexcept { return value != v.value; }
-
-		__forceinline tag_type operator[](uint32_t i) const noexcept {
-			return tag_type(typename tag_type::value_base_t(value + i), std::true_type());
-		}
 	};
 
 	template<typename tag_type, int32_t b_index = 0>
-	struct unaligned_contiguous_tags {
-		using wrapped_value = tag_type;
+	struct unaligned_contiguous_tags : public contiguous_tags_base<tag_type> {
 		constexpr static int32_t block_index = b_index;
 
-		uint32_t value = 0;
-
-		constexpr unaligned_contiguous_tags() : value(0) {}
-		constexpr explicit unaligned_contiguous_tags(uint32_t v) : value(v) {}
+		constexpr unaligned_contiguous_tags() : contiguous_tags_base<tag_type>(0) {}
+		constexpr explicit unaligned_contiguous_tags(uint32_t v) : contiguous_tags_base<tag_type>(v) {}
 		constexpr unaligned_contiguous_tags(const unaligned_contiguous_tags& v) noexcept = default;
 		constexpr unaligned_contiguous_tags(unaligned_contiguous_tags&& v) noexcept = default;
 
 		unaligned_contiguous_tags& operator=(unaligned_contiguous_tags&& v) noexcept = default;
 		unaligned_contiguous_tags& operator=(unaligned_contiguous_tags const& v) noexcept = default;
-
-		constexpr bool operator==(unaligned_contiguous_tags v) const noexcept { return value == v.value; }
-		constexpr bool operator!=(unaligned_contiguous_tags v) const noexcept { return value != v.value; }
-
-		__forceinline tag_type operator[](uint32_t i) const noexcept {
-			return tag_type(typename tag_type::value_base_t(value + i), std::true_type());
-		}
 	};
 
 	template<typename tag_type>
-	struct partial_contiguous_tags {
-		using wrapped_value = tag_type;
+	struct partial_contiguous_tags : public contiguous_tags_base<tag_type> {
 		constexpr static int32_t block_index = 0;
 
-		uint32_t value = 0;
 		uint32_t subcount = vector_size;
 
-		constexpr partial_contiguous_tags() : value(0), subcount(vector_size) {}
-		constexpr explicit partial_contiguous_tags(uint32_t v, uint32_t s) : value(v), subcount(s) {}
+		constexpr partial_contiguous_tags() : contiguous_tags_base<tag_type>(0), subcount(vector_size) {}
+		constexpr explicit partial_contiguous_tags(uint32_t v, uint32_t s) : contiguous_tags_base<tag_type>(v), subcount(s) {}
 		constexpr partial_contiguous_tags(const partial_contiguous_tags& v) noexcept = default;
 		constexpr partial_contiguous_tags(partial_contiguous_tags&& v) noexcept = default;
 
 		partial_contiguous_tags& operator=(partial_contiguous_tags&& v) noexcept = default;
 		partial_contiguous_tags& operator=(partial_contiguous_tags const& v) noexcept = default;
-
-		constexpr bool operator==(partial_contiguous_tags v) const noexcept { return value == v.value; }
-		constexpr bool operator!=(partial_contiguous_tags v) const noexcept { return value != v.value; }
-
-		__forceinline tag_type operator[](uint32_t i) const noexcept {
-			return tag_type(typename tag_type::value_base_t(value + i), std::true_type());
-		}
 	};
+
+	template<typename tag_type>
+	constexpr bool operator==(contiguous_tags_base<tag_type> a, contiguous_tags_base<tag_type> b) noexcept {
+		return a.value == b.value;
+	}
+	template<typename tag_type>
+	constexpr bool operator!=(contiguous_tags_base<tag_type> a, contiguous_tags_base<tag_type> b) noexcept {
+		return a.value != b.value;
+	}
 
 	template<typename T>
 	struct value_to_vector_type_s;
@@ -372,6 +369,9 @@ namespace ve {
 
 	template<typename TO, typename FROM>
 	__forceinline auto widen_to(FROM v) -> std::conditional_t<is_vector_type<TO>, value_to_vector_type_s<FROM>, FROM> { return v; }
+
+	template<typename TO, typename ... REST, typename FROM>
+	__forceinline auto widen_to(FROM v) -> std::conditional_t<is_vector_type<TO>, value_to_vector_type_s<FROM>, decltype(widen_to<REST ...>(v))> { return v; }
 
 	template<uint32_t i, typename T>
 	__forceinline std::enable_if_t<is_vector_type<T>, typename T::wrapped_value> nth_item(T v) {
@@ -652,6 +652,57 @@ namespace ve {
 		return _mm256_castsi256_ps(_mm256_or_si256(_mm256_cmpgt_epi32(a, b), _mm256_cmpgt_epi32(b, a)));
 	}
 
+	template<typename tag_type>
+	__forceinline mask_vector operator==(contiguous_tags_base<tag_type> a, tagged_vector<tag_type> b) {
+		return tagged_vector<tag_type>(
+			typename tag_type::value_base_t(a.value),
+			typename tag_type::value_base_t(a.value + 1),
+			typename tag_type::value_base_t(a.value + 2),
+			typename tag_type::value_base_t(a.value + 3),
+			typename tag_type::value_base_t(a.value + 4),
+			typename tag_type::value_base_t(a.value + 5),
+			typename tag_type::value_base_t(a.value + 6),
+			typename tag_type::value_base_t(a.value + 7)) == b;
+	}
+	template<typename tag_type>
+	__forceinline mask_vector operator!=(contiguous_tags_base<tag_type> a, tagged_vector<tag_type> b) {
+		return tagged_vector<tag_type>(
+			typename tag_type::value_base_t(a.value),
+			typename tag_type::value_base_t(a.value + 1),
+			typename tag_type::value_base_t(a.value + 2),
+			typename tag_type::value_base_t(a.value + 3),
+			typename tag_type::value_base_t(a.value + 4),
+			typename tag_type::value_base_t(a.value + 5),
+			typename tag_type::value_base_t(a.value + 6),
+			typename tag_type::value_base_t(a.value + 7)) != b;
+	} 
+
+
+	template<typename tag_type>
+	__forceinline mask_vector operator==(tagged_vector<tag_type> b, contiguous_tags_base<tag_type> a) {
+		return tagged_vector<tag_type>(
+			typename tag_type::value_base_t(a.value),
+			typename tag_type::value_base_t(a.value + 1),
+			typename tag_type::value_base_t(a.value + 2),
+			typename tag_type::value_base_t(a.value + 3),
+			typename tag_type::value_base_t(a.value + 4),
+			typename tag_type::value_base_t(a.value + 5),
+			typename tag_type::value_base_t(a.value + 6),
+			typename tag_type::value_base_t(a.value + 7)) == b;
+	}
+	template<typename tag_type>
+	__forceinline mask_vector operator!=(tagged_vector<tag_type> b, contiguous_tags_base<tag_type> a) {
+		return tagged_vector<tag_type>(
+			typename tag_type::value_base_t(a.value),
+			typename tag_type::value_base_t(a.value + 1),
+			typename tag_type::value_base_t(a.value + 2),
+			typename tag_type::value_base_t(a.value + 3),
+			typename tag_type::value_base_t(a.value + 4),
+			typename tag_type::value_base_t(a.value + 5),
+			typename tag_type::value_base_t(a.value + 6),
+			typename tag_type::value_base_t(a.value + 7)) != b;
+	}
+
 	__forceinline mask_vector bit_test(int_vector val, int32_t bits) {
 		return _mm256_castsi256_ps(_mm256_cmpeq_epi32(_mm256_and_si256(val, _mm256_set1_epi32(bits)), _mm256_set1_epi32(bits)));
 	}
@@ -792,6 +843,50 @@ namespace ve {
 	template<typename F>
 	auto make_false_accumulator(F const& f) -> false_accumulator<F> {
 		return false_accumulator<F>(f);
+	}
+
+	template<typename T>
+	__m256i ve_to_packed_vector(T v) {
+		if constexpr(sizeof(T) == 1) {
+			return _mm256_set1_epi8(*reinterpret_cast<int8_t*>(&v));
+		} else if constexpr(sizeof(T) == 2) {
+			return _mm256_set1_epi16(*reinterpret_cast<int16_t*>(&v));
+		} else if constexpr(sizeof(T) == 4) {
+			return _mm256_set1_epi32(*reinterpret_cast<int32_t*>(&v));
+		}
+	}
+
+	template<int32_t s>
+	__m256i ve_packed_int_compare(__m256i a, __m256i b) {
+		if constexpr(s == 1) {
+			return _mm256_cmpeq_epi8(a, b);
+		} else if constexpr(s == 2) {
+			return _mm256_cmpeq_epi16(a, b);
+		} else if constexpr(s == 4) {
+			return _mm256_cmpeq_epi32(a, b);
+		}
+	}
+
+	template<typename T>
+	bool contains_item(T const* start, T const* end, T value) {
+		static_assert(sizeof(T) <= 4);
+
+		constexpr auto vector_count = (vector_size * 4) / sizeof(T);
+
+		const auto test_vec = ve_to_packed_vector(value);
+
+		while(start < end) {
+			const auto v = _mm256_loadu_si256((const __m256i *)(start));
+			const auto compare_result = ve_packed_int_compare<sizeof(T)>(v, test_vec);
+			const auto result_mask = _mm256_loadu_si256((const __m256i *)(((char const*)load_masks) + 32 - (end - start) * sizeof(T)));
+
+			if(_mm256_testz_si256(result_mask, compare_result) == 0)
+				return true;
+
+			start += vector_count;
+		}
+
+		return false;
 	}
 
 	template<typename T, int32_t i, typename U>

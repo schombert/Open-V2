@@ -1,6 +1,7 @@
 #pragma once
 #include "common\\common.h"
 #include "military.h"
+#include "concurrency_tools\\ve.h"
 
 class world_state;
 
@@ -14,7 +15,9 @@ namespace military {
 	fleet& make_fleet(world_state& ws, nations::country_tag n, provinces::province_tag location);
 	void immediate_add_pop_to_army(world_state& ws, army& target_army, population::pop_tag p);
 	bool can_use_cb_against(world_state const& ws, nations::country_tag nation_by, nations::country_tag nation_target);
-	bool has_military_access_with(world_state const& ws, nations::country_tag nation_by, nations::country_tag nation_target);
+
+	template<typename T, typename U>
+	auto has_military_access_with(world_state const& ws, T nation_by, U nation_target) -> decltype(ve::widen_to<T, U>(true));
 
 	bool in_war_with(world_state const& ws, nations::country_tag this_nation, nations::country_tag nation_with); // with = on the same side as
 	bool in_war_against(world_state const& ws, nations::country_tag this_nation, nations::country_tag nation_against); // against = on opposing side of

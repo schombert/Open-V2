@@ -109,6 +109,7 @@ namespace nation {
 	struct military_rank;
 	struct industrial_rank;
 
+	struct province_count;
 	struct central_province_count; // connected to the capital
 	struct rebel_controlled_provinces; // connected to the capital only
 	struct blockaded_count; // connected to the capital only
@@ -258,11 +259,12 @@ namespace nation {
 
 		military_score, int16_t,
 		industrial_score, int16_t,
-		overall_rank, int32_t,
+		overall_rank, int16_t,
 		prestige_rank, int16_t,
 		military_rank, int16_t,
 		industrial_rank, int16_t,
 
+		province_count, uint16_t,
 		central_province_count, uint16_t,
 		rebel_controlled_provinces, uint16_t,
 		blockaded_count, uint16_t,
@@ -296,7 +298,6 @@ namespace nation {
 		f_education_spending, float,
 		f_military_spending, float,
 		tarrifs, int8_t,
-		//debt_setting, int8_t,
 		army_stockpile_spending, int8_t,
 		navy_stockpile_spending, int8_t,
 		projects_stockpile_spending, int8_t,

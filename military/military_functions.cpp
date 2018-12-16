@@ -289,14 +289,6 @@ namespace military {
 		return wr.current_war_score;
 	}
 
-	bool has_military_access_with(world_state const& ws, nations::country_tag nation_by, nations::country_tag nation_target) {
-		if((ws.w.nation_s.nations.get<nation::overlord>(nation_by) == nation_target) | (ws.w.nation_s.nations.get<nation::overlord>(nation_target) == nation_by))
-			return true;
-		if(in_war_with(ws, nation_by, nation_target))
-			return true;
-		return false;
-	}
-
 
 	void silent_remove_from_war(world_state& ws, war& this_war, nations::country_tag to_remove) {
 		remove_item_if(ws.w.military_s.war_goal_arrays, this_war.war_goals,

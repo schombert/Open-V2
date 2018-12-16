@@ -144,6 +144,7 @@
   <ItemGroup>
     <ClInclude Include="military.h" />
     <ClInclude Include="military_functions.h" />
+    <ClInclude Include="military_functions.hpp" />
     <ClInclude Include="military_io.h" />
   </ItemGroup>
   <ItemGroup>

@@ -909,9 +909,6 @@ namespace nations {
 		return false;
 	}
 
-	float get_prestige(world_state const& ws, nations::country_tag n) {
-		return ws.w.nation_s.nations.get<nation::base_prestige>(n) + ws.w.nation_s.tech_attributes.get<technologies::tech_offset::permanent_prestige>(n);
-	}
 	int32_t get_colonial_points(world_state const& ws, nations::country_tag n) {
 		return int32_t(ws.w.nation_s.nations.get<nation::base_colonial_points>(n)) + int32_t(ws.w.nation_s.tech_attributes.get<technologies::tech_offset::colonial_points>(n));
 	}
@@ -1061,6 +1058,8 @@ namespace nations {
 			return;
 
 		auto owned_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(this_nation));
+		ws.w.nation_s.nations.set<nation::province_count>(this_nation, uint16_t(owned_range.second - owned_range.first));
+
 		for(auto p : owned_range) {
 			ws.w.province_s.province_state_container.set<province_state::is_overseas>(p, false);
 			if(ws.w.province_s.province_state_container.get<province_state::naval_base_level>(p) != 0)

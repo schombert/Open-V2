@@ -128,4 +128,37 @@ namespace nations {
 		auto union_tag = ve::load(c, ws.s.culture_m.cultures_to_tags.view());
 		return ve::load(union_tag, ws.w.culture_s.tags_to_holders.view());
 	}
+
+	template<typename T>
+	auto get_prestige(world_state const& ws, T this_nation) -> decltype(ve::widen_to<T>(0.0f)) {
+		return 
+			ve::load(this_nation, ws.w.nation_s.nations.get_row<nation::base_prestige>())
+			+ ve::load(this_nation, ws.w.nation_s.tech_attributes.get_row<technologies::tech_offset::permanent_prestige>(0));
+	}
+
+	template<typename T>
+	auto has_factory(world_state const& ws, T this_state) -> decltype(ve::widen_to<T>(true)) {
+		return ve::apply(this_state, [&ws](nations::state_tag n) {
+			auto& factories = ws.w.nation_s.states.get<state::factories>(si);
+			
+			for(uint32_t i = 0; i < state::factories_count; ++i) {
+				if(factories[i].type)
+					return true;
+			}
+			return false;
+		});
+	}
+
+	template<typename T>
+	auto has_factory(world_state const& ws, T this_state, economy::factory_type_tag f_type) -> decltype(ve::widen_to<T>(true)) {
+		return ve::apply(this_state, [&ws, f_type](nations::state_tag n) {
+			auto& factories = ws.w.nation_s.states.get<state::factories>(si);
+
+			for(uint32_t i = 0; i < state::factories_count; ++i) {
+				if(factories[i].type && factories[i].type->id == f_type)
+					return true;
+			}
+			return false;
+		});
+	}
 }
