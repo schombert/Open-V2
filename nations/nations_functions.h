@@ -66,6 +66,10 @@ namespace nations {
 	auto has_factory(world_state const& ws, T this_state) -> decltype(ve::widen_to<T>(true));
 	template<typename T>
 	auto has_factory(world_state const& ws, T this_state, economy::factory_type_tag f_type) -> decltype(ve::widen_to<T>(true));
+	template<typename T>
+	auto national_treasury(world_state const& ws, T this_nation)-> decltype(ve::widen_to<T>(0.0f));
+	template<typename T>
+	auto state_owner(world_state const& ws, T this_state)-> decltype(ve::widen_to<T>(nations::country_tag()));
 
 	void change_primary_culture(world_state& ws, country_tag n, cultures::culture_tag c);
 	void add_accepted_culture(world_state& ws, country_tag n, cultures::culture_tag c);
@@ -88,7 +92,7 @@ namespace nations {
 	void simple_make_substate(world_state& ws, nations::country_tag overlord, nations::country_tag vassal);
 	cultures::national_tag union_tag_of(world_state const& ws, nations::country_tag this_nation);
 
-	economy::goods_qnty_type national_treasury(world_state const& ws, country_tag id);
+	
 	float fraction_of_cores_owned(world_state const& ws, nations::country_tag this_nation);
 	bool can_release_as_vassal(world_state const& ws, nations::country_tag this_nation, cultures::national_tag vassal);  // checks for target already existing, allowed by scenario, & core owned by nation
 
@@ -119,7 +123,7 @@ namespace nations {
 	void unmake_slave_state(world_state& ws, state_tag this_state);
 
 	bool are_states_physically_neighbors(world_state const& ws, state_tag a, state_tag b);
-	nations::country_tag state_owner(world_state const& ws, nations::state_tag s);
+	
 
 	template<typename F>
 	void for_each_province(world_state const& ws, state_tag s, F&& f);

@@ -120,6 +120,7 @@ namespace nation {
 	struct num_connected_ports; // number of ports connected to capital by land
 	struct num_ports;
 
+	struct treasury;
 	struct plurality;
 	struct revanchism;
 	struct base_prestige;
@@ -203,6 +204,7 @@ namespace nation {
 		last_lost_war, date_tag,
 		disarmed_until, date_tag,
 
+		treasury, float,
 		plurality, float,
 		revanchism, float,
 		base_prestige, float,
@@ -394,13 +396,15 @@ namespace nations {
 		fixed_vectorizable_2d_array<nations::country_tag, float, nation::container_size, technologies::tech_offset::count> tech_attributes;
 
 		varying_vectorizable_2d_array<nations::country_tag, technologies::tech_tag, bitfield_type, nation::container_size> active_technologies;
+		varying_vectorizable_2d_array<nations::country_tag, issues::issue_tag, issues::option_tag, nation::container_size> active_issue_options;
+
 
 		stable_2d_vector<governments::party_tag, country_tag, ideologies::ideology_tag, 512, 16> active_parties;
 		stable_2d_vector<uint8_t, country_tag, ideologies::ideology_tag, 512, 16> upper_house;
 		//stable_2d_vector<uint64_t, country_tag, technologies::tech_tag, 512, 16> active_technologies;
 		stable_2d_vector<uint64_t, country_tag, economy::goods_tag, 512, 16> active_goods;
 		stable_2d_vector<economy::money_qnty_type, country_tag, economy::goods_tag, 512, 16> collected_tariffs;
-		stable_2d_vector<issues::option_tag, country_tag, issues::issue_tag, 512, 16> active_issue_options;
+		//stable_2d_vector<issues::option_tag, country_tag, issues::issue_tag, 512, 16> active_issue_options;
 		stable_2d_vector<economy::goods_qnty_type, country_tag, economy::goods_tag, 512, 16> national_stockpiles;
 		stable_2d_vector<float, country_tag, variables::national_variable_tag, 512, 16> national_variables;
 		stable_2d_vector<float, country_tag, technologies::adjusted_goods_tag, 512, 16> production_adjustments;

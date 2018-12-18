@@ -68,23 +68,23 @@ namespace ve {
 	__forceinline auto load(tag_type<value_base, zero_is_null, individuator> e,
 		tagged_array_view<U, typename ve_identity<tag_type<value_base, zero_is_null, individuator>>::type, true> source) 
 	-> decay_tag<std::remove_cv_t<U>> {
-		return source[to_index(e)];
+		return source[e];
 	}
 	template<typename value_base, typename zero_is_null, typename individuator, typename U>
 	__forceinline auto load(tag_type<value_base, zero_is_null, individuator> e,
 		tagged_array_view<U, typename ve_identity<expanded_tag<tag_type<value_base, zero_is_null, individuator>>>::type, true> source)
 		-> decay_tag<std::remove_cv_t<U>> {
-		return source[to_index(e)];
+		return source[e];
 	}
 	template<typename tt, typename U>
 	__forceinline auto load(expanded_tag<tt> e, tagged_array_view<U, typename ve_identity<tt>::type, true> source)
 		-> decay_tag<std::remove_cv_t<U>> {
-		return source[to_index(e)];
+		return source[e];
 	}
 	template<typename tt, typename U>
 	__forceinline auto load(expanded_tag<tt> e, tagged_array_view<U, typename ve_identity<expanded_tag<tt>>::type, true> source)
 		-> decay_tag<std::remove_cv_t<U>> {
-		return source[to_index(e)];
+		return source[e];
 	}
 
 

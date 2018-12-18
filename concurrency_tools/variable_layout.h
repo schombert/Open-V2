@@ -981,23 +981,22 @@ private:
 	static constexpr uint32_t extended_size = 
 		!std::is_same_v<value_type, bitfield_type> ?
 			uint32_t(outer_size + (64ui32 / sizeof(value_type) - 1)) & ~(uint32_t(64ui32 / sizeof(value_type) - 1)) :
-			uint32_t(outer_size + 63) / 64ui32;
-	using v_type = std::conditional_t<std::is_same_v<value_type, bitfield_type>, uint64_t, value_type>;
+			uint32_t((outer_size + 7) / 8 + 63) & ~63ui32;
 	using ret_type = std::conditional_t<std::is_same_v<value_type, bitfield_type>, bool, value_type&>;
 	using const_ret_type = std::conditional_t<std::is_same_v<value_type, bitfield_type>, bool, value_type const&>;
 	using param_type = std::conditional_t<std::is_same_v<value_type, bitfield_type>, bool, value_type>;
-	using vector_type = std::conditional_t<std::is_same_v<value_type, bitfield_type>, int8_t, value_type>;
+	using vector_type = value_type;
 
 	struct data_line {
-		v_type values[extended_size];
+		value_type values[extended_size];
 		data_line() {
 			std::uninitialized_value_construct_n(values, extended_size);
 		}
 	};
 
-	static_assert(std::is_same_v<value_type, bitfield_type> || (extended_size * sizeof(value_type)) % 64 == 0);
+	static_assert((extended_size * sizeof(value_type)) % 64 == 0);
 	static_assert(std::is_same_v<value_type, bitfield_type> || extended_size >= outer_size);
-	static_assert(std::is_same_v<value_type, bitfield_type> || sizeof(data_line) % 64 == 0);
+	static_assert(sizeof(data_line) % 64 == 0);
 
 	data_line* ptr = nullptr;
 	int32_t current_size = 0;
@@ -1046,17 +1045,21 @@ public:
 			bit_vector_set(ptr[to_index(index)].values, to_index(t) + 1, p);
 	}
 	
-	__forceinline tagged_array_view<vector_type, tag_type, true> get_row(inner_tag_type index, int32_t size) {
+	__forceinline auto get_row(inner_tag_type index, int32_t size) {
 		if constexpr(!std::is_same_v<value_type, bitfield_type>)
 			return tagged_array_view<vector_type, tag_type, true>(ptr[to_index(index)].values, size);
 		else
-			return tagged_array_view<vector_type, int32_t, false>((int8_t*)(ptr[to_index(index)].values), int32_t(uint32_t(size + 7) / 8ui32));
+			return tagged_array_view<vector_type, tag_type, false>(
+				ptr[to_index(index)].values,
+				int32_t(uint32_t(size + 7) / 8ui32));
 	}
-	__forceinline tagged_array_view<const vector_type, tag_type, true> get_row(inner_tag_type index, int32_t size) const {
+	__forceinline auto get_row(inner_tag_type index, int32_t size) const {
 		if constexpr(!std::is_same_v<value_type, bitfield_type>)
 			return tagged_array_view<const vector_type, tag_type, true>(ptr[to_index(index)].values, size);
 		else
-			return tagged_array_view<const vector_type, int32_t, false>((int8_t const*)(ptr[to_index(index)].values), int32_t(uint32_t(size + 7) / 8ui32));
+			return tagged_array_view<const bitfield_type, tag_type, false>(
+				ptr[to_index(index)].values,
+				int32_t(uint32_t(size + 7) / 8ui32));
 	}
 	void reset() {
 		if(ptr)

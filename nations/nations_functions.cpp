@@ -60,9 +60,6 @@ namespace nations {
 		}
 	}
 
-	nations::country_tag state_owner(world_state const& ws, nations::state_tag s) {
-		return ws.w.nation_s.states.get<state::owner>(s);
-	}
 	void reset_nation(world_state& ws, nations::country_tag new_nation) {
 		if(auto t = ws.w.nation_s.nations.get<nation::tag>(new_nation); is_valid_index(t))
 			governments::get_best_parties_at_date(ws.w.nation_s.active_parties.get_row(new_nation), t, ws.w.current_date, ws.s);
@@ -205,8 +202,8 @@ namespace nations {
 		auto& active_rebel_factions = ws.w.nation_s.nations.get<nation::active_rebel_factions>(new_nation);
 		auto factions = get_range(ws.w.population_s.rebel_faction_arrays, active_rebel_factions);
 		for(auto rf : factions) {
-			population::destroy_rebel_faction(ws, ws.w.population_s.rebel_factions[rf]);
-			ws.w.population_s.rebel_factions.remove(rf);
+			population::destroy_rebel_faction(ws, rf);
+			ws.w.population_s.rebel_factions.release(rf);
 		}
 		clear(ws.w.population_s.rebel_faction_arrays, active_rebel_factions);
 
@@ -409,15 +406,14 @@ namespace nations {
 	}
 
 	country_tag make_nation_for_tag(world_state& ws, cultures::national_tag nt) {
-		cultures::national_tag_state& tag_state = ws.w.culture_s.national_tags_state[nt];
-		if(tag_state.holder)
-			return tag_state.holder;
+		auto cholder = ws.w.culture_s.tags_to_holders[nt];
+		if(is_valid_index(cholder))
+			return cholder;
 		country_tag new_nation = ws.w.nation_s.nations.get_new();
 
 		auto& fixed_tag = ws.s.culture_m.national_tags[nt];
 
-		tag_state.holder = new_nation;
-		ws.s.culture_s.tags_to_holders[nt] = new_nation;
+		ws.w.culture_s.tags_to_holders[nt] = new_nation;
 		ws.w.nation_s.nations.set<nation::tag>(new_nation, nt);
 		ws.w.nation_s.nations.set<nation::name>(new_nation, fixed_tag.default_name.name);
 		ws.w.nation_s.nations.set<nation::adjective>(new_nation, fixed_tag.default_name.adjective);
@@ -432,7 +428,7 @@ namespace nations {
 		//ws.w.nation_s.active_technologies.ensure_capacity(to_index(new_nation) + 1);
 		ws.w.nation_s.active_goods.ensure_capacity(to_index(new_nation) + 1);
 		ws.w.nation_s.collected_tariffs.ensure_capacity(to_index(new_nation) + 1);
-		ws.w.nation_s.active_issue_options.ensure_capacity(to_index(new_nation) + 1);
+		//ws.w.nation_s.active_issue_options.ensure_capacity(to_index(new_nation) + 1);
 		ws.w.nation_s.national_stockpiles.ensure_capacity(to_index(new_nation) + 1);
 		ws.w.nation_s.national_variables.ensure_capacity(to_index(new_nation) + 1);
 
@@ -551,7 +547,7 @@ namespace nations {
 		ws.w.nation_s.active_technologies.resize(int32_t(ws.s.technology_m.technologies_container.size()));
 		ws.w.nation_s.active_goods.reset((ws.s.economy_m.goods_count + 63ui32) / 64ui32);
 		ws.w.nation_s.collected_tariffs.reset(ws.s.economy_m.goods_count);
-		ws.w.nation_s.active_issue_options.reset(uint32_t(ws.s.issues_m.issues_container.size()));
+		ws.w.nation_s.active_issue_options.resize(int32_t(ws.s.issues_m.issues_container.size()));
 		ws.w.nation_s.national_stockpiles.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count));
 		ws.w.nation_s.state_prices.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count));
 		ws.w.nation_s.state_price_delta.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count));
@@ -871,10 +867,6 @@ namespace nations {
 			return cultures::national_tag();
 	}
 
-	economy::goods_qnty_type national_treasury(world_state const& ws, country_tag id) {
-		return ws.w.nation_s.national_stockpiles.get(id, economy::money_good);
-	}
-
 	float fraction_of_cores_owned(world_state const& ws, country_tag this_nation) {
 		auto tag = ws.w.nation_s.nations.get<nation::tag>(this_nation);
 		if(is_valid_index(tag)) {
@@ -896,7 +888,7 @@ namespace nations {
 		if(vassal_tag_info.is_not_releasable)
 			return false;
 
-		auto current_holder = vassal_tag_info.holder;
+		auto current_holder = ws.w.culture_s.tags_to_holders[vassal];
 		if(current_holder && 0 != get_size(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(current_holder)))
 			return false; // national already exists
 
@@ -939,23 +931,24 @@ namespace nations {
 
 	float calculate_national_administrative_efficiency(world_state const& ws, nations::country_tag n) {
 		auto b_amount = ws.w.nation_s.nation_demographics.get(n, population::to_demo_tag(ws, ws.s.population_m.bureaucrat));
-		auto total_pop = ws.w.nation_s.nation_demographics.get(n, population::total_population_tag);
+		auto total_pop = ws.w.nation_s.nations.get<nation::total_core_population>(n);
 
 		if(total_pop == 0)
 			return 0.0f;
 
 		auto ratio_num = b_amount * (1.0f + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::administrative_efficiency_modifier>(n)) / total_pop;
 
-		auto issues_range = ws.w.nation_s.active_issue_options.get_row(n);
+		const float issue_factor = [&ws, n]() {
+			const int32_t issue_count = int32_t(ws.s.issues_m.tracked_options_count);
+			float sum = 0.0f;
+			for(int32_t i = 0; i < issue_count; ++i) {
+				auto opt = ws.w.nation_s.active_issue_options.get(n, issues::issue_tag(issues::issue_tag::value_base_t(i)));
+				sum += is_valid_index(opt) ? float(ws.s.issues_m.options[opt].administrative_multiplier) : 0.0f;
+			}
+			return sum;
+		}();
 		auto ratio_denom = ws.s.modifiers_m.global_defines.max_bureaucracy_percentage
-			+ (ws.s.modifiers_m.global_defines.bureaucracy_percentage_increment
-			* std::transform_reduce(std::begin(issues_range), std::begin(issues_range) + ws.s.issues_m.tracked_options_count, 0.0f, std::plus<>(),
-			[&ws](issues::option_tag opt) {
-			if(is_valid_index(opt))
-				return float(ws.s.issues_m.options[opt].administrative_multiplier);
-			else 
-				return 0.0f;
-		}));
+			+ (ws.s.modifiers_m.global_defines.bureaucracy_percentage_increment * issue_factor);
 
 		return std::clamp(ratio_num / ratio_denom, 0.05f, 1.0f);
 	}
@@ -1270,31 +1263,27 @@ namespace nations {
 	}
 
 	void change_tag(world_state& ws, nations::country_tag this_nation, cultures::national_tag new_tag) {
-		auto& new_tag_state = ws.w.culture_s.national_tags_state[new_tag];
+		auto previous_holder = is_valid_index(new_tag) ? ws.w.culture_s.tags_to_holders[new_tag] : country_tag();
 
-		auto& ntag = ws.w.nation_s.nations.get<nation::tag>(this_nation);
-		if(is_valid_index(ntag)) {
-			ws.w.culture_s.national_tags_state[ntag].holder = new_tag_state.holder;
-			ws.w.culture_s.tags_to_holders[ntag].holder = new_tag_state.holder;
-		}
+		auto& nat_tag = ws.w.nation_s.nations.get<nation::tag>(this_nation);
 
-		if(new_tag_state.holder)
-			ws.w.nation_s.nations.set<nation::tag>(new_tag_state.holder, ntag);
+		if(is_valid_index(nat_tag))
+			ws.w.culture_s.tags_to_holders[nat_tag] = previous_holder;
+		if(previous_holder)
+			ws.w.nation_s.nations.set<nation::tag>(previous_holder, nat_tag);
 
-		new_tag_state.holder = this_nation;
-		ws.w.culture_s.tags_to_holders[new_tag].holder = this_nation;
-		ntag = new_tag;
+		ws.w.culture_s.tags_to_holders[new_tag] = this_nation;
+		nat_tag = new_tag;
 	}
 
 	void civilize_nation(world_state& ws, nations::country_tag this_nation) {
 		ws.w.nation_s.nations.set<nation::is_civilized>(this_nation, true);
 
-		auto issue_opts = ws.w.nation_s.active_issue_options.get_row(this_nation);
 		for(int32_t i = int32_t(ws.s.issues_m.issues_container.size()); i--; ) {
 			issues::issue_tag this_issue_tag(static_cast<issues::issue_tag::value_base_t>(i));
 			auto& this_issue = ws.s.issues_m.issues_container[this_issue_tag];
 			if(this_issue.type == issues::issue_group::military || this_issue.type == issues::issue_group::economic) {
-				issue_opts[this_issue_tag] = issues::option_tag();
+				ws.w.nation_s.active_issue_options.get(this_nation, this_issue_tag) = issues::option_tag();
 			}
 		}
 
@@ -1315,12 +1304,11 @@ namespace nations {
 	void uncivilize_nation(world_state& ws, nations::country_tag this_nation) {
 		ws.w.nation_s.nations.set<nation::is_civilized>(this_nation, false);
 
-		auto issue_opts = ws.w.nation_s.active_issue_options.get_row(this_nation);
 		for(int32_t i = int32_t(ws.s.issues_m.issues_container.size()); i--; ) {
 			issues::issue_tag this_issue_tag(static_cast<issues::issue_tag::value_base_t>(i));
 			auto& this_issue = ws.s.issues_m.issues_container[this_issue_tag];
 			if(this_issue.type == issues::issue_group::military || this_issue.type == issues::issue_group::economic) {
-				issue_opts[this_issue_tag] = this_issue.options[0];
+				ws.w.nation_s.active_issue_options.get(this_nation, this_issue_tag) = this_issue.options[0];
 			}
 		}
 	}

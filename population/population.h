@@ -81,7 +81,7 @@ namespace rebel_faction {
 	struct ideology;
 	struct type;
 
-	using container = variable_layout_tagged_vector < population::pop_tag, 4'000,
+	using container = variable_layout_tagged_vector < population::rebel_faction_tag, 4'000,
 		controlled_provinces, set_tag<provinces::province_tag>,
 		member_pops, set_tag<population::pop_tag>,
 		independence_tag, cultures::national_tag,

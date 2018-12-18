@@ -149,6 +149,16 @@ namespace ve {
 		}
 	};
 
+	template<typename tag_type>
+	__forceinline int_vector to_int(tagged_vector<tag_type> v) {
+		return v.value;
+	}
+
+	template<typename value_base, typename individuator>
+	__forceinline int32_t to_int(tag_type<value_base, std::true_type, individuator> v) {
+		return int32_t(v.value);
+	}
+
 	struct union_tag_vector {
 		using wrapped_value = union_tag;
 
@@ -418,8 +428,7 @@ namespace ve {
 	}
 
 	template<typename FUNC, typename ... PARAMS>
-	__forceinline auto apply(PARAMS ... params, FUNC&& f) 
-		-> std::conditional_t<any_is_vector_type<PARAMS...>::value, value_to_vector_type<decltype(f(nth_item<0ui32>(params) ...))>, decltype(f(params ...))> {
+	__forceinline auto ve_apply(FUNC&& f, PARAMS ... params) {
 		if constexpr(any_is_partial<PARAMS ...>) {
 			const uint32_t limit = minimum_partial(params ...);
 
@@ -471,8 +480,21 @@ namespace ve {
 		}
 	}
 
-	template<typename FUNC, typename ... PARAMS>
-	__forceinline auto apply_with_indices(PARAMS ... params, FUNC&& f)
+	template<typename A, typename FUNC>
+	__forceinline auto apply(A a, FUNC&& f) {
+		return ve_apply(std::forward<FUNC>(f), a);
+	}
+	template<typename A, typename B, typename FUNC>
+	__forceinline auto apply(A a, B b, FUNC&& f) {
+		return ve_apply(std::forward<FUNC>(f), a, b);
+	}
+	template<typename A, typename B, typename C, typename FUNC>
+	__forceinline auto apply(A a, B b, C c, FUNC&& f) {
+		return ve_apply(std::forward<FUNC>(f), a, b, c);
+	}
+
+	template<typename ... PARAMS, typename FUNC>
+	__forceinline auto apply_with_indices(FUNC&& f, PARAMS ... params)
 		->  value_to_vector_type<decltype(f(0ui32, nth_item<0ui32>(params) ...))> {
 		if constexpr(any_is_partial<PARAMS ...>) {
 			const uint32_t limit = minimum_partial(params ...);
@@ -655,52 +677,52 @@ namespace ve {
 	template<typename tag_type>
 	__forceinline mask_vector operator==(contiguous_tags_base<tag_type> a, tagged_vector<tag_type> b) {
 		return tagged_vector<tag_type>(
-			typename tag_type::value_base_t(a.value),
-			typename tag_type::value_base_t(a.value + 1),
-			typename tag_type::value_base_t(a.value + 2),
-			typename tag_type::value_base_t(a.value + 3),
-			typename tag_type::value_base_t(a.value + 4),
-			typename tag_type::value_base_t(a.value + 5),
-			typename tag_type::value_base_t(a.value + 6),
-			typename tag_type::value_base_t(a.value + 7)) == b;
+			tag_type(typename tag_type::value_base_t(a.value), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 1), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 2), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 3), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 4), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 5), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 6), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 7), std::true_type())) == b;
 	}
 	template<typename tag_type>
 	__forceinline mask_vector operator!=(contiguous_tags_base<tag_type> a, tagged_vector<tag_type> b) {
 		return tagged_vector<tag_type>(
-			typename tag_type::value_base_t(a.value),
-			typename tag_type::value_base_t(a.value + 1),
-			typename tag_type::value_base_t(a.value + 2),
-			typename tag_type::value_base_t(a.value + 3),
-			typename tag_type::value_base_t(a.value + 4),
-			typename tag_type::value_base_t(a.value + 5),
-			typename tag_type::value_base_t(a.value + 6),
-			typename tag_type::value_base_t(a.value + 7)) != b;
+			tag_type(typename tag_type::value_base_t(a.value), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 1), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 2), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 3), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 4), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 5), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 6), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 7), std::true_type())) != b;
 	} 
 
 
 	template<typename tag_type>
 	__forceinline mask_vector operator==(tagged_vector<tag_type> b, contiguous_tags_base<tag_type> a) {
 		return tagged_vector<tag_type>(
-			typename tag_type::value_base_t(a.value),
-			typename tag_type::value_base_t(a.value + 1),
-			typename tag_type::value_base_t(a.value + 2),
-			typename tag_type::value_base_t(a.value + 3),
-			typename tag_type::value_base_t(a.value + 4),
-			typename tag_type::value_base_t(a.value + 5),
-			typename tag_type::value_base_t(a.value + 6),
-			typename tag_type::value_base_t(a.value + 7)) == b;
+			tag_type(typename tag_type::value_base_t(a.value), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 1), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 2), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 3), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 4), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 5), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 6), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 7), std::true_type())) == b;
 	}
 	template<typename tag_type>
 	__forceinline mask_vector operator!=(tagged_vector<tag_type> b, contiguous_tags_base<tag_type> a) {
 		return tagged_vector<tag_type>(
-			typename tag_type::value_base_t(a.value),
-			typename tag_type::value_base_t(a.value + 1),
-			typename tag_type::value_base_t(a.value + 2),
-			typename tag_type::value_base_t(a.value + 3),
-			typename tag_type::value_base_t(a.value + 4),
-			typename tag_type::value_base_t(a.value + 5),
-			typename tag_type::value_base_t(a.value + 6),
-			typename tag_type::value_base_t(a.value + 7)) != b;
+			tag_type(typename tag_type::value_base_t(a.value), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 1), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 2), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 3), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 4), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 5), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 6), std::true_type()),
+			tag_type(typename tag_type::value_base_t(a.value + 7), std::true_type())) != b;
 	}
 
 	__forceinline mask_vector bit_test(int_vector val, int32_t bits) {

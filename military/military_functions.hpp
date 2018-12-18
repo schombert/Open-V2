@@ -12,4 +12,9 @@ namespace military {
 		});
 	}
 
+
+	template<typename T>
+	auto province_is_contested(world_state const& ws, T this_province) -> decltype(ve::widen_to<T>(true)) {
+		return ve::load(this_province, tws.w.province_s.province_state_container.get_row<province_state::siege_progress>()) != 0.0f;
+	}
 }

@@ -105,7 +105,7 @@ namespace nations {
 	template<typename C, typename T>
 	auto is_culture_accepted(world_state const& ws, C c, T n) -> decltype(ve::widen_to<T>(true)) {
 		return ve::apply(n, c, [&ws](nations::country_tag in, cultures::culture_tag ic) {
-			contains_item(ws.w.culture_s.culture_arrays, ws.w.nation_s.nations.get<nation::accepted_cultures>(in), ic);
+			return contains_item(ws.w.culture_s.culture_arrays, ws.w.nation_s.nations.get<nation::accepted_cultures>(in), ic);
 		}) | (ve::load(n, ws.w.nation_s.nations.get_row<nation::primary_culture>()) == c);
 	}
 
@@ -138,7 +138,7 @@ namespace nations {
 
 	template<typename T>
 	auto has_factory(world_state const& ws, T this_state) -> decltype(ve::widen_to<T>(true)) {
-		return ve::apply(this_state, [&ws](nations::state_tag n) {
+		return ve::apply(this_state, [&ws](nations::state_tag si) {
 			auto& factories = ws.w.nation_s.states.get<state::factories>(si);
 			
 			for(uint32_t i = 0; i < state::factories_count; ++i) {
@@ -151,7 +151,7 @@ namespace nations {
 
 	template<typename T>
 	auto has_factory(world_state const& ws, T this_state, economy::factory_type_tag f_type) -> decltype(ve::widen_to<T>(true)) {
-		return ve::apply(this_state, [&ws, f_type](nations::state_tag n) {
+		return ve::apply(this_state, [&ws, f_type](nations::state_tag si) {
 			auto& factories = ws.w.nation_s.states.get<state::factories>(si);
 
 			for(uint32_t i = 0; i < state::factories_count; ++i) {
@@ -160,5 +160,15 @@ namespace nations {
 			}
 			return false;
 		});
+	}
+
+	template<typename T>
+	auto national_treasury(world_state const& ws, T this_nation)-> decltype(ve::widen_to<T>(0.0f)) {
+		return ve::load(this_nation, ws.w.nation_s.nations.get_row<nation::treasury>());
+	}
+
+	template<typename T>
+	auto state_owner(world_state const& ws, T this_state)-> decltype(ve::widen_to<T>(nations::country_tag())) {
+		return ve::load(this_state, ws.w.nation_s.states.get_row<state::owner>());
 	}
 }

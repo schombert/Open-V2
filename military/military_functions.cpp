@@ -237,10 +237,6 @@ namespace military {
 		}
 	}
 
-	bool province_is_contested(world_state const& ws, provinces::province_tag ps) {
-		return ws.w.province_s.province_state_container.get<province_state::siege_progress>(ps) != 0.0f;
-	}
-
 	uint32_t total_active_divisions(world_state const& ws, nations::country_tag this_nation) {
 		uint32_t total = 0ui32;
 		const uint32_t regiment_size = uint32_t(ws.s.modifiers_m.global_defines.pop_size_per_regiment);
@@ -263,8 +259,6 @@ namespace military {
 		return total;
 	}
 	float recruited_pop_fraction(world_state const& ws, nations::country_tag this_nation) {
-		auto owned_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(this_nation));
-
 		float total_soldier_pops = 0;
 		float total_soldier_pops_assigned = 0;
 

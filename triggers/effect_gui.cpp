@@ -198,12 +198,12 @@ namespace triggers {
 				text_data::replacement{
 					text_data::value_type::text,
 					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
-						bool(this_slot.nation) ? ws.w.nation_s.nations.get<nation::name>(this_slot.nation) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation]),
+						bool(to_nation(this_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(this_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation]),
 					[](ui::tagged_gui_object) {} },
 				text_data::replacement{
 					text_data::value_type::adj,
 					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
-						bool(this_slot.nation) ? ws.w.nation_s.nations.get<nation::adjective>(this_slot.nation) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation]),
+						bool(to_nation(this_slot)) ? ws.w.nation_s.nations.get<nation::adjective>(to_nation(this_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation]),
 					[](ui::tagged_gui_object) {} } };
 
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[ui_id], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
@@ -213,15 +213,15 @@ namespace triggers {
 		}
 		ui::xy_pair tag_type_this_state_effect(uint32_t ui_id, const_parameter this_slot, world_state& ws,
 			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
-			return tag_type_this_nation_effect(ui_id, bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nations::country_tag(), ws, container, cursor_in, lm, fmt);
+			return tag_type_this_nation_effect(ui_id, bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag(), ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair tag_type_this_province_effect(uint32_t ui_id, const_parameter this_slot, world_state& ws,
 			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
-			return tag_type_this_nation_effect(ui_id, is_valid_index(this_slot.prov) ? provinces::province_owner(ws, this_slot.prov) : nations::country_tag(), ws, container, cursor_in, lm, fmt);
+			return tag_type_this_nation_effect(ui_id, is_valid_index(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair tag_type_this_pop_effect(uint32_t ui_id, const_parameter this_slot, world_state& ws,
 			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
-			return tag_type_this_nation_effect(ui_id, bool(this_slot.pop) ? population::get_pop_owner(ws, this_slot.pop) : nations::country_tag(), ws, container, cursor_in, lm, fmt);
+			return tag_type_this_nation_effect(ui_id, bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag(), ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair tag_type_from_nation_effect(uint32_t ui_id, const_parameter from_slot, world_state& ws,
 			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
@@ -230,12 +230,12 @@ namespace triggers {
 				text_data::replacement{
 					text_data::value_type::text,
 					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
-						bool(from_slot.nation) ? ws.w.nation_s.nations.get<nation::name>(from_slot.nation) : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation]),
+						bool(to_nation(from_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation]),
 					[](ui::tagged_gui_object) {} },
 				text_data::replacement{
 					text_data::value_type::adj,
 					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
-						bool(from_slot.nation) ? ws.w.nation_s.nations.get<nation::adjective>(from_slot.nation) : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation]),
+						bool(to_nation(from_slot)) ? ws.w.nation_s.nations.get<nation::adjective>(to_nation(from_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation]),
 					[](ui::tagged_gui_object) {} } };
 
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[ui_id], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
@@ -245,7 +245,7 @@ namespace triggers {
 		}
 		ui::xy_pair tag_type_from_province_effect(uint32_t ui_id, const_parameter from_slot, world_state& ws,
 			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
-			return tag_type_from_nation_effect(ui_id, is_valid_index(from_slot.prov) ? provinces::province_owner(ws, from_slot.prov) : nations::country_tag(), ws, container, cursor_in, lm, fmt);
+			return tag_type_from_nation_effect(ui_id, is_valid_index(to_prov(from_slot)) ? provinces::province_owner(ws, to_prov(from_slot)) : nations::country_tag(), ws, container, cursor_in, lm, fmt);
 		}
 
 #define EFFECT_DISPLAY_PARAMS uint16_t const* tval, world_state& ws, ui::tagged_gui_object container, \
@@ -261,10 +261,10 @@ namespace triggers {
 		}
 
 		ui::xy_pair es_x_neighbor_province_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			if((tval[0] & effect_codes::is_random_scope) != 0 && show_condition && is_valid_index(primary_slot.prov)) {
+			if((tval[0] & effect_codes::is_random_scope) != 0 && show_condition && is_valid_index(to_prov(primary_slot))) {
 				boost::container::small_vector<provinces::province_tag, 16, concurrent_allocator<provinces::province_tag>> rlist;
 
-				auto neighbor_range = ws.s.province_m.same_type_adjacency.get_row(primary_slot.prov);
+				auto neighbor_range = ws.s.province_m.same_type_adjacency.get_row(to_prov(primary_slot));
 				if((tval[0] & effect_codes::scope_has_limit) != 0) {
 					auto limit = ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger);
 					for(auto p : neighbor_range) {
@@ -311,8 +311,8 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_x_neighbor_country_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			if((tval[0] & effect_codes::is_random_scope) != 0 && show_condition && primary_slot.nation) {
-				auto neighbor_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::neighboring_nations>(primary_slot.nation));
+			if((tval[0] & effect_codes::is_random_scope) != 0 && show_condition && to_nation(primary_slot)) {
+				auto neighbor_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::neighboring_nations>(to_nation(primary_slot)));
 
 				boost::container::small_vector<nations::country_tag, 16, concurrent_allocator<nations::country_tag>> rlist;
 
@@ -360,18 +360,18 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_x_country_scope_nation(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			if((tval[0] & effect_codes::is_random_scope) != 0 && show_condition && primary_slot.nation) {
+			if((tval[0] & effect_codes::is_random_scope) != 0 && show_condition && to_nation(primary_slot)) {
 				boost::container::small_vector<nations::country_tag, 64, concurrent_allocator<nations::country_tag>> rlist;
 
 				if((tval[0] & effect_codes::scope_has_limit) != 0) {
 					auto limit = ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger);
 					ws.w.nation_s.nations.for_each([&rlist, limit, &ws, primary_slot, this_slot, from_slot](nations::country_tag n) {
-						if(n != primary_slot.nation && is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(n)) && test_trigger(limit, ws, n, this_slot, from_slot))
+						if(n != to_nation(primary_slot) && is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(n)) && test_trigger(limit, ws, n, this_slot, from_slot))
 							rlist.push_back(n);
 					});
 				} else {
 					ws.w.nation_s.nations.for_each([&rlist, &ws, primary_slot](nations::country_tag n) {
-						if(n != primary_slot.nation && is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(n)))
+						if(n != to_nation(primary_slot) && is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(n)))
 							rlist.push_back(n);
 					});
 				}
@@ -411,8 +411,8 @@ namespace triggers {
 			return es_x_country_scope_nation(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, show_condition);
 		}
 		ui::xy_pair es_x_empty_neighbor_province_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			if((tval[0] & effect_codes::is_random_scope) != 0 && show_condition && bool(primary_slot.prov)) {
-				auto neighbor_range = ws.s.province_m.same_type_adjacency.get_row(primary_slot.prov);
+			if((tval[0] & effect_codes::is_random_scope) != 0 && show_condition && bool(to_prov(primary_slot))) {
+				auto neighbor_range = ws.s.province_m.same_type_adjacency.get_row(to_prov(primary_slot));
 				boost::container::small_vector<provinces::province_tag, 16, concurrent_allocator<provinces::province_tag>> rlist;
 
 				if((tval[0] & effect_codes::scope_has_limit) != 0) {
@@ -647,17 +647,17 @@ namespace triggers {
 			return es_x_pop_scope_nation(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, show_condition);
 		}
 		ui::xy_pair es_x_owned_scope_nation(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			if((tval[0] & effect_codes::is_random_scope) != 0 && show_condition && bool(primary_slot.nation)) {
+			if((tval[0] & effect_codes::is_random_scope) != 0 && show_condition && bool(to_nation(primary_slot))) {
 				boost::container::small_vector<provinces::province_tag, 16, concurrent_allocator<provinces::province_tag>> rlist;
 
 				if((tval[0] & effect_codes::scope_has_limit) != 0) {
 					auto limit = ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger);
-					nations::for_each_province(ws, primary_slot.nation, [&ws, &rlist, limit, this_slot, from_slot](provinces::province_tag pobj) {
+					nations::for_each_province(ws, to_nation(primary_slot), [&ws, &rlist, limit, this_slot, from_slot](provinces::province_tag pobj) {
 						if(test_trigger(limit, ws, pobj, this_slot, from_slot))
 							rlist.push_back(pobj);
 					});
 				} else {
-					nations::for_each_province(ws, primary_slot.nation, [&rlist](provinces::province_tag pobj) {
+					nations::for_each_province(ws, to_nation(primary_slot), [&rlist](provinces::province_tag pobj) {
 						rlist.push_back(pobj);
 					});
 				}
@@ -670,15 +670,15 @@ namespace triggers {
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::great_power], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(primary_slot.nation), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				}
 			} else {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owned_province], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-				if(primary_slot.nation)
-					cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(primary_slot.nation), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				if(to_nation(primary_slot))
+					cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				else
 					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			}
@@ -701,17 +701,17 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_x_owned_scope_state(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			if((tval[0] & effect_codes::is_random_scope) != 0 && show_condition && bool(primary_slot.state)) {
+			if((tval[0] & effect_codes::is_random_scope) != 0 && show_condition && bool(to_state(primary_slot))) {
 				boost::container::small_vector<provinces::province_tag, 16, concurrent_allocator<provinces::province_tag>> rlist;
 
 				if((tval[0] & effect_codes::scope_has_limit) != 0) {
 					auto limit = ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger);
-					nations::for_each_province(ws, primary_slot.state, [&ws, &rlist, limit, this_slot, from_slot](provinces::province_tag pobj) {
+					nations::for_each_province(ws, to_state(primary_slot), [&ws, &rlist, limit, this_slot, from_slot](provinces::province_tag pobj) {
 						if(test_trigger(limit, ws, pobj, this_slot, from_slot))
 							rlist.push_back(pobj);
 					});
 				} else {
-					nations::for_each_province(ws, primary_slot.state, [&rlist](provinces::province_tag pobj) {
+					nations::for_each_province(ws, to_state(primary_slot), [&rlist](provinces::province_tag pobj) {
 						rlist.push_back(pobj);
 					});
 				}
@@ -724,15 +724,15 @@ namespace triggers {
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::great_power], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.states.get<state::name>(primary_slot.state), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.states.get<state::name>(to_state(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				}
 			} else {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owned_province], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-				if(primary_slot.state)
-					cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.states.get<state::name>(primary_slot.state), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				if(to_state(primary_slot))
+					cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.states.get<state::name>(to_state(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				else
 					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			}
@@ -755,7 +755,7 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_x_core_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			cultures::national_tag tag = bool(primary_slot.nation) ? ws.w.nation_s.nations.get<nation::tag>(primary_slot.nation) : cultures::national_tag();
+			cultures::national_tag tag = bool(to_nation(primary_slot)) ? ws.w.nation_s.nations.get<nation::tag>(to_nation(primary_slot)) : cultures::national_tag();
 			if(is_valid_index(tag) && (tval[0] & effect_codes::is_random_scope) != 0) {
 				auto cores_range = get_range(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[tag].core_provinces);
 				boost::container::small_vector<provinces::province_tag, 16, concurrent_allocator<provinces::province_tag>> rlist;
@@ -783,7 +783,7 @@ namespace triggers {
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::core_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(primary_slot.nation), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				}
 
 			} else {
@@ -791,8 +791,8 @@ namespace triggers {
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::core_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-				if(primary_slot.nation)
-					cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(primary_slot.nation), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				if(to_nation(primary_slot))
+					cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				else
 					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			}
@@ -816,17 +816,17 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_x_state_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			if((tval[0] & effect_codes::is_random_scope) != 0 && show_condition && bool(primary_slot.nation)) {
+			if((tval[0] & effect_codes::is_random_scope) != 0 && show_condition && bool(to_nation(primary_slot))) {
 				boost::container::small_vector<nations::state_tag, 16, concurrent_allocator<nations::state_tag>> rlist;
 
 				if((tval[0] & effect_codes::scope_has_limit) != 0) {
 					auto limit = ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger);
-					nations::for_each_state(ws, primary_slot.nation, [&ws, &rlist, limit, this_slot, from_slot](nations::state_tag pobj) {
+					nations::for_each_state(ws, to_nation(primary_slot), [&ws, &rlist, limit, this_slot, from_slot](nations::state_tag pobj) {
 						if(test_trigger(limit, ws, pobj, this_slot, from_slot))
 							rlist.push_back(pobj);
 					});
 				} else {
-					nations::for_each_state(ws, primary_slot.nation, [&rlist](nations::state_tag pobj) {
+					nations::for_each_state(ws, to_nation(primary_slot), [&rlist](nations::state_tag pobj) {
 						rlist.push_back(pobj);
 					});
 				}
@@ -839,15 +839,15 @@ namespace triggers {
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::state_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(primary_slot.nation), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				}
 			} else {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::state_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-				if(bool(primary_slot.nation))
-					cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(primary_slot.nation), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				if(bool(to_nation(primary_slot)))
+					cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				else
 					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			}
@@ -925,13 +925,13 @@ namespace triggers {
 		ui::xy_pair es_owner_scope_state(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			if(show_condition && bool(primary_slot.state)) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.states.get<state::name>(primary_slot.state), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			if(show_condition && bool(to_state(primary_slot))) {
+				cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.states.get<state::name>(to_state(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
 				lm.increase_indent(1);
-				auto owner = nations::state_owner(ws, primary_slot.state);
+				auto owner = nations::state_owner(ws, to_state(primary_slot));
 				if(owner)
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, owner, this_slot, from_slot, gen, true);
 				else
@@ -952,13 +952,13 @@ namespace triggers {
 		ui::xy_pair es_owner_scope_province(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			if(show_condition && bool(primary_slot.prov)) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(primary_slot.prov), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			if(show_condition && bool(to_prov(primary_slot))) {
+				cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
 				lm.increase_indent(1);
-				auto owner = provinces::province_owner(ws, primary_slot.prov);
+				auto owner = provinces::province_owner(ws, to_prov(primary_slot));
 				if(owner)
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, owner, this_slot, from_slot, gen, true);
 				else
@@ -979,13 +979,13 @@ namespace triggers {
 		ui::xy_pair es_controller_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::controller_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			if(show_condition && bool(primary_slot.prov)) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(primary_slot.prov), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			if(show_condition && bool(to_prov(primary_slot))) {
+				cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
 				lm.increase_indent(1);
-				auto controller = provinces::province_controller(ws, primary_slot.prov);
+				auto controller = provinces::province_controller(ws, to_prov(primary_slot));
 				if(controller)
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, controller, this_slot, from_slot, gen, true);
 				else
@@ -1009,8 +1009,8 @@ namespace triggers {
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
-			if(show_condition && bool(primary_slot.pop)) {
-				auto location = ws.w.population_s.pops.get<pop::location>(primary_slot.pop);
+			if(show_condition && bool(to_pop(primary_slot))) {
+				auto location = ws.w.population_s.pops.get<pop::location>(to_pop(primary_slot));
 				if(is_valid_index(location))
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, location, this_slot, from_slot, gen, true);
 				else
@@ -1030,8 +1030,8 @@ namespace triggers {
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
-			if(show_condition && primary_slot.pop) {
-				auto owner = population::get_pop_owner(ws, primary_slot.pop);
+			if(show_condition && to_pop(primary_slot)) {
+				auto owner = population::get_pop_owner(ws, to_pop(primary_slot));
 				if(owner)
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, owner, this_slot, from_slot, gen, true);
 				else
@@ -1048,13 +1048,13 @@ namespace triggers {
 		ui::xy_pair es_country_scope_state(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			if(show_condition && primary_slot.state) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.states.get<state::name>(primary_slot.state), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			if(show_condition && to_state(primary_slot)) {
+				cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.states.get<state::name>(to_state(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
 				lm.increase_indent(1);
-				auto owner = nations::state_owner(ws, primary_slot.state);
+				auto owner = nations::state_owner(ws, to_state(primary_slot));
 				if(owner)
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, owner, this_slot, from_slot, gen, true);
 				else
@@ -1075,13 +1075,13 @@ namespace triggers {
 		ui::xy_pair es_capital_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::capital_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			if(show_condition && primary_slot.nation) {
-				cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(primary_slot.nation), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			if(show_condition && to_nation(primary_slot)) {
+				cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
 				lm.increase_indent(1);
-				auto capital = ws.w.nation_s.nations.get<nation::current_capital>(primary_slot.nation);
+				auto capital = ws.w.nation_s.nations.get<nation::current_capital>(to_nation(primary_slot));
 				if(is_valid_index(capital))
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, capital, this_slot, from_slot, gen, true);
 				else
@@ -1100,8 +1100,8 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_this_scope_nation(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			if(this_slot.nation)
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(this_slot.nation), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			if(to_nation(this_slot))
+				cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(to_nation(this_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			else
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::this_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -1114,8 +1114,8 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_this_scope_state(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			if(this_slot.state)
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.states.get<state::name>(this_slot.state), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			if(to_state(this_slot))
+				cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.states.get<state::name>(to_state(this_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			else
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::this_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -1128,8 +1128,8 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_this_scope_province(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			if(bool(this_slot.prov))
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(this_slot.prov), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			if(bool(to_prov(this_slot)))
+				cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(to_prov(this_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			else
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::this_province], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -1153,8 +1153,8 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_from_scope_nation(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			if(from_slot.nation)
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(from_slot.nation), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			if(to_nation(from_slot))
+				cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			else
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::from_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -1167,7 +1167,7 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_from_scope_state(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			if(from_slot.nation)
+			if(to_nation(from_slot))
 				cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.states.get<state::name>(from_slot.state), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			else
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::from_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
@@ -1181,8 +1181,8 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_from_scope_province(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			if(bool(from_slot.prov))
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(from_slot.prov), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			if(bool(to_prov(from_slot)))
+				cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(to_prov(from_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			else
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::from_province], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -1206,8 +1206,8 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_sea_zone_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			if(show_condition && bool(primary_slot.prov)) {
-				auto sea_zones = ws.s.province_m.coastal_adjacency.get_row(primary_slot.prov);
+			if(show_condition && bool(to_prov(primary_slot))) {
+				auto sea_zones = ws.s.province_m.coastal_adjacency.get_row(to_prov(primary_slot));
 				if(sea_zones.first != sea_zones.second) {
 					cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(*sea_zones.first), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -1232,8 +1232,8 @@ namespace triggers {
 		ui::xy_pair es_cultural_union_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::cultural_union_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			if(show_condition && primary_slot.nation) {
-				cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(primary_slot.nation), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			if(show_condition && to_nation(primary_slot)) {
+				cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
@@ -1255,13 +1255,13 @@ namespace triggers {
 		ui::xy_pair es_overlord_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::overlord_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			if(show_condition && primary_slot.nation) {
-				cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(primary_slot.nation), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			if(show_condition && to_nation(primary_slot)) {
+				cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
 				lm.increase_indent(1);
-				auto overlord = ws.w.nation_s.nations.get<nation::overlord>(primary_slot.nation);
+				auto overlord = ws.w.nation_s.nations.get<nation::overlord>(to_nation(primary_slot));
 				if(overlord)
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, overlord, this_slot, from_slot, gen, true);
 				else
@@ -1282,13 +1282,13 @@ namespace triggers {
 		ui::xy_pair es_sphere_owner_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::sphere_leader_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			if(show_condition && primary_slot.nation) {
-				cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(primary_slot.nation), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			if(show_condition && to_nation(primary_slot)) {
+				cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
 				lm.increase_indent(1);
-				auto overlord = ws.w.nation_s.nations.get<nation::sphere_leader>(primary_slot.nation);
+				auto overlord = ws.w.nation_s.nations.get<nation::sphere_leader>(to_nation(primary_slot));
 				if(overlord)
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, overlord, this_slot, from_slot, gen, true);
 				else
@@ -1342,14 +1342,14 @@ namespace triggers {
 		ui::xy_pair es_state_scope_province(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::containing_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			if(show_condition && bool(primary_slot.prov)) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(primary_slot.prov), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			if(show_condition && bool(to_prov(primary_slot))) {
+				cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
 				lm.increase_indent(1);
 
-				auto si = provinces::province_state(ws, primary_slot.prov);
+				auto si = provinces::province_state(ws, to_prov(primary_slot));
 				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, si, this_slot, from_slot, gen, bool(si));
 
 				lm.decrease_indent(1);
@@ -1623,7 +1623,7 @@ namespace triggers {
 			return tag_type_from_province_effect(scenario::fixed_ui::add_x_core, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_add_core_reb(EFFECT_DISPLAY_PARAMS) {
-			return tag_type_rebel_slot_effect(scenario::fixed_ui::add_x_core, from_slot.rebel, ws, container, cursor_in, lm, fmt);
+			return tag_type_rebel_slot_effect(scenario::fixed_ui::add_x_core, to_rebel(from_slot), ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_remove_core_tag(EFFECT_DISPLAY_PARAMS) {
 			return tag_type_effect(scenario::fixed_ui::remove_x_core, tval[2], ws, container, cursor_in, lm, fmt);
@@ -1657,7 +1657,7 @@ namespace triggers {
 			return tag_type_from_province_effect(scenario::fixed_ui::remove_x_core, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_remove_core_reb(EFFECT_DISPLAY_PARAMS) {
-			return tag_type_rebel_slot_effect(scenario::fixed_ui::remove_x_core, from_slot.rebel, ws, container, cursor_in, lm, fmt);
+			return tag_type_rebel_slot_effect(scenario::fixed_ui::remove_x_core, to_rebel(from_slot), ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_change_region_name_state(EFFECT_DISPLAY_PARAMS) {
 			text_data::replacement repl{
@@ -1721,8 +1721,8 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_primary_culture_this_nation(EFFECT_DISPLAY_PARAMS) {
-			if(this_slot.nation) {
-				auto c = ws.w.nation_s.nations.get<nation::primary_culture>(this_slot.nation);
+			if(to_nation(this_slot)) {
+				auto c = ws.w.nation_s.nations.get<nation::primary_culture>(to_nation(this_slot));
 				text_data::replacement repl{
 					text_data::value_type::text,
 					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.culture_m.culture_container[c].name),
@@ -1746,19 +1746,19 @@ namespace triggers {
 		}
 		ui::xy_pair ef_primary_culture_this_state(EFFECT_DISPLAY_PARAMS) {
 			return ef_primary_culture_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nations::country_tag(), nullptr, gen);
+				bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag(), nullptr, gen);
 		}
 		ui::xy_pair ef_primary_culture_this_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_primary_culture_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				bool(this_slot.prov) ? provinces::province_owner(ws, this_slot.prov) : nations::country_tag(), nullptr, gen);
+				bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), nullptr, gen);
 		}
 		ui::xy_pair ef_primary_culture_this_pop(EFFECT_DISPLAY_PARAMS) {
 			return ef_primary_culture_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				bool(this_slot.pop) ? population::get_pop_owner(ws, this_slot.pop) : nations::country_tag(), nullptr, gen);
+				bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag(), nullptr, gen);
 		}
 		ui::xy_pair ef_primary_culture_from_nation(EFFECT_DISPLAY_PARAMS) {
-			if(from_slot.nation) {
-				auto c = ws.w.nation_s.nations.get<nation::primary_culture>(from_slot.nation);
+			if(to_nation(from_slot)) {
+				auto c = ws.w.nation_s.nations.get<nation::primary_culture>(to_nation(from_slot));
 				text_data::replacement repl{
 					text_data::value_type::text,
 					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.culture_m.culture_container[c].name),
@@ -1851,8 +1851,8 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_government_reb(EFFECT_DISPLAY_PARAMS) {
-			if(from_slot.rebel && primary_slot.nation) {
-				auto gov = ws.s.population_m.rebel_change_government_to.get(ws.w.population_s.rebel_factions[from_slot.rebel].type, ws.w.nation_s.nations.get<nation::current_government>(primary_slot.nation));
+			if(to_rebel(from_slot) && to_nation(primary_slot)) {
+				auto gov = ws.s.population_m.rebel_change_government_to.get(ws.w.population_s.rebel_factions[to_rebel(from_slot)].type, ws.w.nation_s.nations.get<nation::current_government>(to_nation(primary_slot)));
 
 				text_data::replacement repl{
 					text_data::value_type::text,
@@ -1884,10 +1884,10 @@ namespace triggers {
 				display_type::percent, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_prestige(EFFECT_DISPLAY_PARAMS) {
-			if(primary_slot.nation) {
+			if(to_nation(primary_slot)) {
 				auto amount = read_float_from_payload(tval + 2);
 				if(amount >= 0.0f)
-					return display_value(amount * (ws.w.nation_s.tech_attributes.get<technologies::tech_offset::prestige>(primary_slot.nation) + 1.0f),
+					return display_value(amount * (ws.w.nation_s.tech_attributes.get<technologies::tech_offset::prestige>(to_nation(primary_slot)) + 1.0f),
 						scenario::fixed_ui::prestige, true,
 						display_type::fp_one_place, ws, container, cursor_in, lm, fmt);
 				else
@@ -1911,8 +1911,8 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_change_tag_culture(EFFECT_DISPLAY_PARAMS) {
-			if(primary_slot.nation) {
-				auto prim_culture = ws.w.nation_s.nations.get<nation::primary_culture>(primary_slot.nation);
+			if(to_nation(primary_slot)) {
+				auto prim_culture = ws.w.nation_s.nations.get<nation::primary_culture>(to_nation(primary_slot));
 				if(is_valid_index(prim_culture)) {
 					auto cg_t = ws.s.culture_m.culture_container[prim_culture].group;
 					auto u = ws.s.culture_m.culture_groups[cg_t].union_tag;
@@ -1951,8 +1951,8 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_change_tag_no_core_switch_culture(EFFECT_DISPLAY_PARAMS) {
-			if(primary_slot.nation) {
-				auto prim_culture = ws.w.nation_s.nations.get<nation::primary_culture>(primary_slot.nation);
+			if(to_nation(primary_slot)) {
+				auto prim_culture = ws.w.nation_s.nations.get<nation::primary_culture>(to_nation(primary_slot));
 				if(is_valid_index(prim_culture)) {
 					auto cg_t = ws.s.culture_m.culture_container[prim_culture].group;
 					auto u = ws.s.culture_m.culture_groups[cg_t].union_tag;
@@ -2057,7 +2057,7 @@ namespace triggers {
 			return tag_type_from_province_effect(scenario::fixed_ui::change_province_owner, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_secede_province_reb(EFFECT_DISPLAY_PARAMS) {
-			return tag_type_rebel_slot_effect(scenario::fixed_ui::change_province_owner, from_slot.rebel, ws, container, cursor_in, lm, fmt);
+			return tag_type_rebel_slot_effect(scenario::fixed_ui::change_province_owner, to_rebel(from_slot), ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_inherit(EFFECT_DISPLAY_PARAMS) {
 			return tag_type_effect(scenario::fixed_ui::annex_effect, tval[2], ws, container, cursor_in, lm, fmt);
@@ -2228,8 +2228,8 @@ namespace triggers {
 			return fill_text_effect(scenario::fixed_ui::enable_blank, ws.s.ideologies_m.ideology_container[trigger_payload(tval[2]).small.values.ideology].name, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_ruling_party_ideology(EFFECT_DISPLAY_PARAMS) {
-			if(primary_slot.nation) {
-				if(auto id = primary_slot.nation; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(to_nation(primary_slot)) {
+				if(auto id = to_nation(primary_slot); ws.w.nation_s.nations.is_valid_index(id)) {
 					auto new_party = ws.w.nation_s.active_parties.get(id, trigger_payload(tval[2]).small.values.ideology);
 					return fill_text_effect(scenario::fixed_ui::enable_blank, ws.s.governments_m.parties[new_party].name, ws, container, cursor_in, lm, fmt);
 				}
@@ -2297,27 +2297,27 @@ namespace triggers {
 			}
 		}
 		ui::xy_pair ef_release_vassal_this_nation(EFFECT_DISPLAY_PARAMS) {
-			if(bool(this_slot.nation) && is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(this_slot.nation)))
+			if(bool(to_nation(this_slot)) && is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(to_nation(this_slot))))
 				return tag_type_this_nation_effect(scenario::fixed_ui::become_independent, this_slot, ws, container, cursor_in, lm, fmt);
 			else
 				return tag_type_this_nation_effect(scenario::fixed_ui::release_as_vassal, this_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_release_vassal_this_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_release_vassal_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				bool(this_slot.prov) ? provinces::province_owner(ws, this_slot.prov) : nations::country_tag(), nullptr, gen);
+				bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), nullptr, gen);
 		}
 		ui::xy_pair ef_release_vassal_from_nation(EFFECT_DISPLAY_PARAMS) {
-			if(bool(from_slot.nation) && is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(from_slot.nation)))
+			if(bool(to_nation(from_slot)) && is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(to_nation(from_slot))))
 				return tag_type_from_nation_effect(scenario::fixed_ui::become_independent, from_slot, ws, container, cursor_in, lm, fmt);
 			else
 				return tag_type_from_nation_effect(scenario::fixed_ui::release_as_vassal, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_release_vassal_from_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_release_vassal_from_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				nullptr, bool(from_slot.prov) ? provinces::province_owner(ws, from_slot.prov) : nations::country_tag(), gen);
+				nullptr, bool(to_prov(from_slot)) ? provinces::province_owner(ws, to_prov(from_slot)) : nations::country_tag(), gen);
 		}
 		ui::xy_pair ef_release_vassal_reb(EFFECT_DISPLAY_PARAMS) {
-			return tag_type_rebel_slot_effect(scenario::fixed_ui::release_as_independent, from_slot.rebel, ws, container, cursor_in, lm, fmt);
+			return tag_type_rebel_slot_effect(scenario::fixed_ui::release_as_independent, to_rebel(from_slot), ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_release_vassal_random(EFFECT_DISPLAY_PARAMS) {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
@@ -2444,8 +2444,8 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_add_tax_relative_income(EFFECT_DISPLAY_PARAMS) {
-			if(primary_slot.nation) {
-				return display_value(ws.w.nation_s.nations.get<nation::tax_base>(primary_slot.nation) * read_float_from_payload(tval + 2), scenario::fixed_ui::add_to_treasury, true,
+			if(to_nation(primary_slot)) {
+				return display_value(ws.w.nation_s.nations.get<nation::tax_base>(to_nation(primary_slot)) * read_float_from_payload(tval + 2), scenario::fixed_ui::add_to_treasury, true,
 					display_type::currency, ws, container, cursor_in, lm, fmt);
 			} else {
 				return display_value(read_float_from_payload(tval + 2), scenario::fixed_ui::add_relative_income, true,
@@ -2470,8 +2470,8 @@ namespace triggers {
 				ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_years_of_research(EFFECT_DISPLAY_PARAMS) {
-			if(primary_slot.nation) {
-				return display_value(technologies::daily_research_points(ws, primary_slot.nation) * 365.0f * read_float_from_payload(tval + 2),
+			if(to_nation(primary_slot)) {
+				return display_value(technologies::daily_research_points(ws, to_nation(primary_slot)) * 365.0f * read_float_from_payload(tval + 2),
 					scenario::fixed_ui::research_points, true, display_type::integer, ws, container, cursor_in, lm, fmt);
 			} else {
 				return display_value(read_float_from_payload(tval + 2),
@@ -2610,8 +2610,8 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_assimilate_province(EFFECT_DISPLAY_PARAMS) {
-			if(primary_slot.prov) {
-				if(auto owner = provinces::province_owner(ws, primary_slot.prov); owner) {
+			if(to_prov(primary_slot)) {
+				if(auto owner = provinces::province_owner(ws, to_prov(primary_slot)); owner) {
 					if(auto c = ws.w.nation_s.nations.get<nation::primary_culture>(owner); is_valid_index(c)) {
 						return fill_text_effect(scenario::fixed_ui::assimilate_province, ws.s.culture_m.culture_container[c].name,
 							ws, container, cursor_in, lm, fmt);
@@ -2622,8 +2622,8 @@ namespace triggers {
 				ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_assimilate_pop(EFFECT_DISPLAY_PARAMS) {
-			if(primary_slot.pop) {
-				if(auto owner = population::get_pop_owner(ws, primary_slot.pop); owner) {
+			if(to_pop(primary_slot)) {
+				if(auto owner = population::get_pop_owner(ws, to_pop(primary_slot)); owner) {
 					if(auto c = ws.w.nation_s.nations.get<nation::primary_culture>(owner); is_valid_index(c)) {
 						return fill_text_effect(scenario::fixed_ui::assimilate_pop, ws.s.culture_m.culture_container[c].name,
 							ws, container, cursor_in, lm, fmt);
@@ -2901,8 +2901,8 @@ namespace triggers {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 			auto months = trigger_payload(tval[3]).signed_value;
 
-			auto hname = bool(this_slot.nation) ?
-				ws.w.nation_s.nations.get<nation::name>(this_slot.nation) :
+			auto hname = bool(to_nation(this_slot)) ?
+				ws.w.nation_s.nations.get<nation::name>(to_nation(this_slot)) :
 				ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 			char16_t local_buffer[16];
 			put_value_in_buffer(local_buffer, display_type::integer, months);
@@ -2929,22 +2929,22 @@ namespace triggers {
 		}
 		ui::xy_pair ef_casus_belli_this_state(EFFECT_DISPLAY_PARAMS) {
 			return ef_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nations::country_tag(), nullptr, gen);
+				nullptr, bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag(), nullptr, gen);
 		}
 		ui::xy_pair ef_casus_belli_this_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(this_slot.prov) ? provinces::province_owner(ws, this_slot.prov) : nations::country_tag(), nullptr, gen);
+				nullptr, bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), nullptr, gen);
 		}
 		ui::xy_pair ef_casus_belli_this_pop(EFFECT_DISPLAY_PARAMS) {
 			return ef_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(this_slot.pop) ? population::get_pop_owner(ws, this_slot.pop) : nations::country_tag(), nullptr, gen);
+				nullptr, bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag(), nullptr, gen);
 		}
 		ui::xy_pair ef_casus_belli_from_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 			auto months = trigger_payload(tval[3]).signed_value;
 
-			auto hname = bool(from_slot.nation) ?
-				ws.w.nation_s.nations.get<nation::name>(from_slot.nation) :
+			auto hname = bool(to_nation(from_slot)) ?
+				ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)) :
 				ws.s.fixed_ui_text[scenario::fixed_ui::from_nation];
 			char16_t local_buffer[16];
 			put_value_in_buffer(local_buffer, display_type::integer, months);
@@ -2971,7 +2971,7 @@ namespace triggers {
 		}
 		ui::xy_pair ef_casus_belli_from_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_casus_belli_from_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, nullptr, bool(from_slot.prov) ? provinces::province_owner(ws, from_slot.prov) : nations::country_tag(), gen);
+				nullptr, nullptr, bool(to_prov(from_slot)) ? provinces::province_owner(ws, to_prov(from_slot)) : nations::country_tag(), gen);
 		}
 		ui::xy_pair ef_add_casus_belli_tag(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
@@ -3039,8 +3039,8 @@ namespace triggers {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 			auto months = trigger_payload(tval[3]).signed_value;
 
-			auto hname = bool(this_slot.nation) ?
-				ws.w.nation_s.nations.get<nation::name>(this_slot.nation) :
+			auto hname = bool(to_nation(this_slot)) ?
+				ws.w.nation_s.nations.get<nation::name>(to_nation(this_slot)) :
 				ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 			char16_t local_buffer[16];
 			put_value_in_buffer(local_buffer, display_type::integer, months);
@@ -3067,22 +3067,22 @@ namespace triggers {
 		}
 		ui::xy_pair ef_add_casus_belli_this_state(EFFECT_DISPLAY_PARAMS) {
 			return ef_add_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nations::country_tag(), nullptr, gen);
+				nullptr, bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag(), nullptr, gen);
 		}
 		ui::xy_pair ef_add_casus_belli_this_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_add_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(this_slot.prov) ? provinces::province_owner(ws, this_slot.prov) : nations::country_tag(), nullptr, gen);
+				nullptr, bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), nullptr, gen);
 		}
 		ui::xy_pair ef_add_casus_belli_this_pop(EFFECT_DISPLAY_PARAMS) {
 			return ef_add_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(this_slot.pop) ? population::get_pop_owner(ws, this_slot.pop) : nations::country_tag(), nullptr, gen);
+				nullptr, bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag(), nullptr, gen);
 		}
 		ui::xy_pair ef_add_casus_belli_from_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 			auto months = trigger_payload(tval[3]).signed_value;
 
-			auto hname = bool(from_slot.nation) ?
-				ws.w.nation_s.nations.get<nation::name>(from_slot.nation) :
+			auto hname = bool(to_nation(from_slot)) ?
+				ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)) :
 				ws.s.fixed_ui_text[scenario::fixed_ui::from_nation];
 			char16_t local_buffer[16];
 			put_value_in_buffer(local_buffer, display_type::integer, months);
@@ -3109,7 +3109,7 @@ namespace triggers {
 		}
 		ui::xy_pair ef_add_casus_belli_from_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_add_casus_belli_from_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, nullptr, bool(from_slot.prov) ? provinces::province_owner(ws, from_slot.prov) : nations::country_tag(), gen);
+				nullptr, nullptr, bool(to_prov(from_slot)) ? provinces::province_owner(ws, to_prov(from_slot)) : nations::country_tag(), gen);
 		}
 		ui::xy_pair ef_remove_casus_belli_tag(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
@@ -3164,8 +3164,8 @@ namespace triggers {
 		ui::xy_pair ef_remove_casus_belli_this_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 
-			auto hname = bool(this_slot.nation) ?
-				ws.w.nation_s.nations.get<nation::name>(this_slot.nation) :
+			auto hname = bool(to_nation(this_slot)) ?
+				ws.w.nation_s.nations.get<nation::name>(to_nation(this_slot)) :
 				ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
 			text_data::replacement repl[2] = {
@@ -3187,21 +3187,21 @@ namespace triggers {
 		}
 		ui::xy_pair ef_remove_casus_belli_this_state(EFFECT_DISPLAY_PARAMS) {
 			return ef_remove_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nations::country_tag(), nullptr, gen);
+				nullptr, bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag(), nullptr, gen);
 		}
 		ui::xy_pair ef_remove_casus_belli_this_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_remove_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(this_slot.prov) ? provinces::province_owner(ws, this_slot.prov) : nations::country_tag(), nullptr, gen);
+				nullptr, bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), nullptr, gen);
 		}
 		ui::xy_pair ef_remove_casus_belli_this_pop(EFFECT_DISPLAY_PARAMS) {
 			return ef_remove_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(this_slot.pop) ? population::get_pop_owner(ws, this_slot.pop) : nations::country_tag(), nullptr, gen);
+				nullptr, bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag(), nullptr, gen);
 		}
 		ui::xy_pair ef_remove_casus_belli_from_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 
-			auto hname = bool(from_slot.nation) ?
-				ws.w.nation_s.nations.get<nation::name>(from_slot.nation) :
+			auto hname = bool(to_nation(from_slot)) ?
+				ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)) :
 				ws.s.fixed_ui_text[scenario::fixed_ui::from_nation];
 
 			text_data::replacement repl[2] = {
@@ -3223,7 +3223,7 @@ namespace triggers {
 		}
 		ui::xy_pair ef_remove_casus_belli_from_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_remove_casus_belli_from_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, nullptr, bool(from_slot.prov) ? provinces::province_owner(ws, from_slot.prov) : nations::country_tag(), gen);
+				nullptr, nullptr, bool(to_prov(from_slot)) ? provinces::province_owner(ws, to_prov(from_slot)) : nations::country_tag(), gen);
 		}
 		ui::xy_pair ef_this_remove_casus_belli_tag(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
@@ -3278,8 +3278,8 @@ namespace triggers {
 		ui::xy_pair ef_this_remove_casus_belli_this_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 
-			auto hname = bool(this_slot.nation) ?
-				ws.w.nation_s.nations.get<nation::name>(this_slot.nation) :
+			auto hname = bool(to_nation(this_slot)) ?
+				ws.w.nation_s.nations.get<nation::name>(to_nation(this_slot)) :
 				ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
 			text_data::replacement repl[2] = {
@@ -3301,21 +3301,21 @@ namespace triggers {
 		}
 		ui::xy_pair ef_this_remove_casus_belli_this_state(EFFECT_DISPLAY_PARAMS) {
 			return ef_this_remove_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(this_slot.state) ? nations::state_owner(ws, this_slot.state) : nations::country_tag(), nullptr, gen);
+				nullptr, bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag(), nullptr, gen);
 		}
 		ui::xy_pair ef_this_remove_casus_belli_this_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_this_remove_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(this_slot.prov) ? provinces::province_owner(ws, this_slot.prov) : nations::country_tag(), nullptr, gen);
+				nullptr, bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), nullptr, gen);
 		}
 		ui::xy_pair ef_this_remove_casus_belli_this_pop(EFFECT_DISPLAY_PARAMS) {
 			return ef_this_remove_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(this_slot.pop) ? population::get_pop_owner(ws, this_slot.pop) : nations::country_tag(), nullptr, gen);
+				nullptr, bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag(), nullptr, gen);
 		}
 		ui::xy_pair ef_this_remove_casus_belli_from_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 
-			auto hname = bool(from_slot.nation) ?
-				ws.w.nation_s.nations.get<nation::name>(from_slot.nation) :
+			auto hname = bool(to_nation(from_slot)) ?
+				ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)) :
 				ws.s.fixed_ui_text[scenario::fixed_ui::from_nation];
 
 			text_data::replacement repl[2] = {
@@ -3337,7 +3337,7 @@ namespace triggers {
 		}
 		ui::xy_pair ef_this_remove_casus_belli_from_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_this_remove_casus_belli_from_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, nullptr, bool(from_slot.prov) ? provinces::province_owner(ws, from_slot.prov) : nations::country_tag(), gen);
+				nullptr, nullptr, bool(to_prov(from_slot)) ? provinces::province_owner(ws, to_prov(from_slot)) : nations::country_tag(), gen);
 		}
 
 		inline ui::xy_pair display_war_goal(military::cb_type_tag cb, nations::state_tag st, cultures::national_tag lib, bool attacker, world_state& ws,
@@ -3934,7 +3934,7 @@ namespace triggers {
 					[](ui::tagged_gui_object) {} },
 				text_data::replacement{
 					text_data::value_type::nation,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, bool(from_slot.nation) ? ws.w.nation_s.nations.get<nation::name>(from_slot.nation) : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation]),
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, bool(to_nation(from_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation]),
 					[](ui::tagged_gui_object) {} } };
 
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_war_goal], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
@@ -3995,7 +3995,7 @@ namespace triggers {
 			cursor_in = fill_text_effect_wo_newline(scenario::fixed_ui::blank_loyalty, ws.s.ideologies_m.ideology_container[ideology].name,
 				ws, container, cursor_in, lm, fmt);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			return fill_text_effect(scenario::fixed_ui::in_blank, bool(from_slot.prov) ? ws.w.province_s.province_state_container.get<province_state::name>(from_slot.prov) : ws.s.fixed_ui_text[scenario::fixed_ui::from_province],
+			return fill_text_effect(scenario::fixed_ui::in_blank, bool(to_prov(from_slot)) ? ws.w.province_s.province_state_container.get<province_state::name>(to_prov(from_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::from_province],
 				ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_party_loyalty_province_from_nation(EFFECT_DISPLAY_PARAMS) {
@@ -4085,7 +4085,7 @@ namespace triggers {
 		}
 		ui::xy_pair ef_relation_reb(EFFECT_DISPLAY_PARAMS) {
 			cursor_in = display_value(trigger_payload(tval[2]).signed_value, display_type::integer, true, ws, container, cursor_in, lm, fmt);
-			return tag_type_rebel_slot_effect(scenario::fixed_ui::relations_with, from_slot.rebel, ws, container, cursor_in, lm, fmt);
+			return tag_type_rebel_slot_effect(scenario::fixed_ui::relations_with, to_rebel(from_slot), ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_variable_tech_name(EFFECT_DISPLAY_PARAMS) {
 			auto t = trigger_payload(tval[2]).tech;
@@ -4096,14 +4096,14 @@ namespace triggers {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			cursor_in = ui::add_linear_text(cursor_in,
-				bool(primary_slot.prov) ? ws.w.province_s.province_state_container.get<province_state::name>(primary_slot.prov) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
+				bool(to_prov(primary_slot)) ? ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
 				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
 			lm.increase_indent(1);
 			cursor_in = ef_set_country_flag(tval, ws, container, cursor_in, lm, fmt,
-				bool(primary_slot.prov) ? provinces::province_owner(ws, primary_slot.prov) : nations::country_tag(), this_slot, from_slot, gen);
+				bool(to_prov(primary_slot)) ? provinces::province_owner(ws, to_prov(primary_slot)) : nations::country_tag(), this_slot, from_slot, gen);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -4111,14 +4111,14 @@ namespace triggers {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			cursor_in = ui::add_linear_text(cursor_in,
-				bool(primary_slot.prov) ? ws.w.province_s.province_state_container.get<province_state::name>(primary_slot.prov) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
+				bool(to_prov(primary_slot)) ? ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
 				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
 			lm.increase_indent(1);
 			cursor_in = ef_add_country_modifier(tval, ws, container, cursor_in, lm, fmt,
-				bool(primary_slot.prov) ? provinces::province_owner(ws, primary_slot.prov) : nations::country_tag(), this_slot, from_slot, gen);
+				bool(to_prov(primary_slot)) ? provinces::province_owner(ws, to_prov(primary_slot)) : nations::country_tag(), this_slot, from_slot, gen);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -4126,14 +4126,14 @@ namespace triggers {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			cursor_in = ui::add_linear_text(cursor_in,
-				bool(primary_slot.prov) ? ws.w.province_s.province_state_container.get<province_state::name>(primary_slot.prov) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
+				bool(to_prov(primary_slot)) ? ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
 				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
 			lm.increase_indent(1);
 			cursor_in = ef_add_country_modifier_no_duration(tval, ws, container, cursor_in, lm, fmt,
-				bool(primary_slot.prov) ? provinces::province_owner(ws, primary_slot.prov) : nations::country_tag(), this_slot, from_slot, gen);
+				bool(to_prov(primary_slot)) ? provinces::province_owner(ws, to_prov(primary_slot)) : nations::country_tag(), this_slot, from_slot, gen);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -4141,14 +4141,14 @@ namespace triggers {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			cursor_in = ui::add_linear_text(cursor_in,
-				bool(primary_slot.prov) ? ws.w.province_s.province_state_container.get<province_state::name>(primary_slot.prov) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
+				bool(to_prov(primary_slot)) ? ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
 				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
 			lm.increase_indent(1);
 			cursor_in = ef_relation(tval, ws, container, cursor_in, lm, fmt,
-				bool(primary_slot.prov) ? provinces::province_owner(ws, primary_slot.prov) : nations::country_tag(), this_slot, from_slot, gen);
+				bool(to_prov(primary_slot)) ? provinces::province_owner(ws, to_prov(primary_slot)) : nations::country_tag(), this_slot, from_slot, gen);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -4156,14 +4156,14 @@ namespace triggers {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			cursor_in = ui::add_linear_text(cursor_in,
-				bool(primary_slot.prov) ? ws.w.province_s.province_state_container.get<province_state::name>(primary_slot.prov) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
+				bool(to_prov(primary_slot)) ? ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
 				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
 			lm.increase_indent(1);
 			cursor_in = ef_relation_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				bool(primary_slot.prov) ? provinces::province_owner(ws, primary_slot.prov) : nations::country_tag(), this_slot, from_slot, gen);
+				bool(to_prov(primary_slot)) ? provinces::province_owner(ws, to_prov(primary_slot)) : nations::country_tag(), this_slot, from_slot, gen);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -4171,14 +4171,14 @@ namespace triggers {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			cursor_in = ui::add_linear_text(cursor_in,
-				bool(primary_slot.prov) ? ws.w.province_s.province_state_container.get<province_state::name>(primary_slot.prov) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
+				bool(to_prov(primary_slot)) ? ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
 				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
 			lm.increase_indent(1);
 			cursor_in = ef_relation_this_province(tval, ws, container, cursor_in, lm, fmt,
-				bool(primary_slot.prov) ? provinces::province_owner(ws, primary_slot.prov) : nations::country_tag(), this_slot, from_slot, gen);
+				bool(to_prov(primary_slot)) ? provinces::province_owner(ws, to_prov(primary_slot)) : nations::country_tag(), this_slot, from_slot, gen);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -4186,14 +4186,14 @@ namespace triggers {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			cursor_in = ui::add_linear_text(cursor_in,
-				bool(primary_slot.prov) ? ws.w.province_s.province_state_container.get<province_state::name>(primary_slot.prov) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
+				bool(to_prov(primary_slot)) ? ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
 				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
 			lm.increase_indent(1);
 			cursor_in = ef_relation_from_nation(tval, ws, container, cursor_in, lm, fmt,
-				bool(primary_slot.prov) ? provinces::province_owner(ws, primary_slot.prov) : nations::country_tag(), this_slot, from_slot, gen);
+				bool(to_prov(primary_slot)) ? provinces::province_owner(ws, to_prov(primary_slot)) : nations::country_tag(), this_slot, from_slot, gen);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -4201,14 +4201,14 @@ namespace triggers {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			cursor_in = ui::add_linear_text(cursor_in,
-				bool(primary_slot.prov) ? ws.w.province_s.province_state_container.get<province_state::name>(primary_slot.prov) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
+				bool(to_prov(primary_slot)) ? ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
 				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
 			lm.increase_indent(1);
 			cursor_in = ef_relation_from_province(tval, ws, container, cursor_in, lm, fmt,
-				bool(primary_slot.prov) ? provinces::province_owner(ws, primary_slot.prov) : nations::country_tag(), this_slot, from_slot, gen);
+				bool(to_prov(primary_slot)) ? provinces::province_owner(ws, to_prov(primary_slot)) : nations::country_tag(), this_slot, from_slot, gen);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -4216,14 +4216,14 @@ namespace triggers {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			cursor_in = ui::add_linear_text(cursor_in,
-				bool(primary_slot.prov) ? ws.w.province_s.province_state_container.get<province_state::name>(primary_slot.prov) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
+				bool(to_prov(primary_slot)) ? ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
 				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
 			lm.increase_indent(1);
 			cursor_in = ef_relation_reb(tval, ws, container, cursor_in, lm, fmt,
-				bool(primary_slot.prov) ? provinces::province_owner(ws, primary_slot.prov) : nations::country_tag(), this_slot, from_slot, gen);
+				bool(to_prov(primary_slot)) ? provinces::province_owner(ws, to_prov(primary_slot)) : nations::country_tag(), this_slot, from_slot, gen);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -4231,14 +4231,14 @@ namespace triggers {
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			cursor_in = ui::add_linear_text(cursor_in,
-				bool(primary_slot.prov) ? ws.w.province_s.province_state_container.get<province_state::name>(primary_slot.prov) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
+				bool(to_prov(primary_slot)) ? ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
 				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
 			lm.increase_indent(1);
 			cursor_in = ef_treasury(tval, ws, container, cursor_in, lm, fmt,
-				bool(primary_slot.prov) ? provinces::province_owner(ws, primary_slot.prov) : nations::country_tag(), this_slot, from_slot, gen);
+				bool(to_prov(primary_slot)) ? provinces::province_owner(ws, to_prov(primary_slot)) : nations::country_tag(), this_slot, from_slot, gen);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}

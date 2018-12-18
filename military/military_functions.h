@@ -18,6 +18,8 @@ namespace military {
 
 	template<typename T, typename U>
 	auto has_military_access_with(world_state const& ws, T nation_by, U nation_target) -> decltype(ve::widen_to<T, U>(true));
+	template<typename T>
+	auto province_is_contested(world_state const& ws, T this_province) -> decltype(ve::widen_to<T>(true));
 
 	bool in_war_with(world_state const& ws, nations::country_tag this_nation, nations::country_tag nation_with); // with = on the same side as
 	bool in_war_against(world_state const& ws, nations::country_tag this_nation, nations::country_tag nation_against); // against = on opposing side of
@@ -29,7 +31,7 @@ namespace military {
 	void reset_unit_stats(world_state& ws, nations::country_tag nation_for);
 
 	bool has_units_in_province(world_state const& ws, nations::country_tag this_nation, provinces::province_tag this_province);
-	bool province_is_contested(world_state const& ws, provinces::province_tag this_province);
+	
 	bool has_named_leader(world_state const& ws, nations::country_tag n, text_data::text_tag t);
 	uint32_t total_active_divisions(world_state const& ws, nations::country_tag this_nation);
 	uint32_t total_active_ships(world_state const& ws, nations::country_tag this_nation);
