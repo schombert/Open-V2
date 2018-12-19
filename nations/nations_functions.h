@@ -13,7 +13,6 @@ namespace nations {
 	void remove_province_from_state(world_state& ws, provinces::province_tag p);
 	nations::country_tag make_nation_for_tag(world_state& ws, cultures::national_tag nt);
 	bool is_state_empty(world_state const& ws, nations::state_tag s);
-	bool is_colonial_or_protectorate(world_state const& ws, state_tag s);
 	void recalculate_state_nation_demographics(world_state& ws);
 	void update_state_nation_demographics(world_state& ws); // update last population with current, then recalculates
 	provinces::province_tag find_best_capital(world_state const& ws, nations::country_tag owner);
@@ -70,6 +69,10 @@ namespace nations {
 	auto national_treasury(world_state const& ws, T this_nation)-> decltype(ve::widen_to<T>(0.0f));
 	template<typename T>
 	auto state_owner(world_state const& ws, T this_state)-> decltype(ve::widen_to<T>(nations::country_tag()));
+	template<typename T>
+	auto is_colonial_or_protectorate(world_state const& ws, T s) -> decltype(ve::widen_to<T>(true));
+	template<typename T>
+	auto is_great_power(world_state const& ws, T this_nation)-> decltype(ve::widen_to<T>(true));
 
 	void change_primary_culture(world_state& ws, country_tag n, cultures::culture_tag c);
 	void add_accepted_culture(world_state& ws, country_tag n, cultures::culture_tag c);
@@ -83,7 +86,7 @@ namespace nations {
 	int32_t points_for_next_colonial_stage(world_state const& ws, nations::country_tag n, state_tag si);
 
 	text_data::text_tag get_nation_status_text(world_state const& ws, nations::country_tag this_nation);
-	bool is_great_power(world_state const& ws, nations::country_tag this_nation);
+	
 
 	void silent_make_alliance(world_state& ws, nations::country_tag a, nations::country_tag b);
 	void make_alliance(world_state& ws, nations::country_tag a, nations::country_tag b);

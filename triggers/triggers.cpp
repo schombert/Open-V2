@@ -2668,422 +2668,416 @@ namespace triggers {
 			return contains_item(ws.w.nation_s.truce_arrays, ws.w.nation_s.nations.get<nation::truces>(a), nations::truce{ date_tag(), b });
 		});
 	}
-	bool tf_total_pops_nation(TRIGGER_PARAMTERS) {
-		auto id = to_nation(primary_slot);
-		if(ws.w.nation_s.nations.is_valid_index(id))
-			return compare_values(tval[0], float(ws.w.nation_s.nations.get<nation::total_core_population>(id)), read_float_from_payload(tval + 2));
-		else
-			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
+	TRIGGER_FUNCTION(tf_total_pops_nation) {
+		return compare_values(tval[0],
+			to_value<nation::total_core_population>(ws.w.nation_s.nations, to_nation(primary_slot)),
+			read_float_from_payload(tval + 2));
 	}
-	bool tf_total_pops_state(TRIGGER_PARAMTERS) {
-		auto id = to_state(primary_slot);
-		if(ws.w.nation_s.states.is_valid_index(id))
-			return compare_values(tval[0], float(ws.w.nation_s.states.get<state::total_population>(id)), read_float_from_payload(tval + 2));
-		else
-			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
+	TRIGGER_FUNCTION(tf_total_pops_state) {
+		return compare_values(tval[0],
+			to_value<state::total_population>(ws.w.nation_s.states, to_state(primary_slot)),
+			read_float_from_payload(tval + 2));
 	}
-	bool tf_total_pops_province(TRIGGER_PARAMTERS) {
-		auto id = to_prov(primary_slot);
-		return compare_values(tval[0], float(ws.w.province_s.province_state_container.get<province_state::total_population>(id)), read_float_from_payload(tval + 2));
+	TRIGGER_FUNCTION(tf_total_pops_province) {
+		return compare_values(tval[0],
+			to_value<province_state::total_population>(ws.w.province_s.province_state_container, to_prov(primary_slot)),
+			read_float_from_payload(tval + 2));
 	}
-	bool tf_total_pops_pop(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_total_pops_pop) {
 		auto location = ws.w.population_s.pops.get<pop::location>(to_pop(primary_slot));
-		if(is_valid_index(location)) {
-			if(auto si = provinces::province_state(ws, location); si)
-				return tf_total_pops_state(tval, ws, si, nullptr, nullptr);
-		}
-		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
+		return compare_values(tval[0],
+			to_value<state::total_population>(ws.w.nation_s.states, provinces::province_state(ws, location)),
+			read_float_from_payload(tval + 2));
 	}
-	bool tf_has_pop_type_nation(TRIGGER_PARAMTERS) {
-		auto id = to_nation(primary_slot);
-		if(ws.w.nation_s.nations.is_valid_index(id))
-			return compare_values(tval[0],
-				0 != ws.w.nation_s.nation_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.pop_type)),
-				true);
-		else
-			return compare_values(tval[0], false, true);
+	TRIGGER_FUNCTION(tf_has_pop_type_nation) {
+		auto type = trigger_payload(tval[2]).small.values.pop_type;
+		auto amount = ve::apply(to_nation(primary_slot), [&ws, type](nations::country_tag n) {
+			return ws.w.nation_s.nation_demographics.get(n, population::to_demo_tag(ws, type));
+		});
+		return compare_to_true(tval[0], amount > 0.0f);
 	}
-	bool tf_has_pop_type_state(TRIGGER_PARAMTERS) {
-		auto id = to_state(primary_slot);
-		if(ws.w.nation_s.states.is_valid_index(id))
-			return compare_values(tval[0],
-				0 != ws.w.nation_s.state_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.pop_type)),
-				true);
-		else
-			return compare_values(tval[0], false, true);
+	TRIGGER_FUNCTION(tf_has_pop_type_state) {
+		auto type = trigger_payload(tval[2]).small.values.pop_type;
+		auto amount = ve::apply(to_state(primary_slot), [&ws, type](nations::state_tag s) {
+			return ws.w.nation_s.state_demographics.get(s, population::to_demo_tag(ws, type));
+		});
+		return compare_to_true(tval[0], amount > 0.0f);
 	}
-	bool tf_has_pop_type_province(TRIGGER_PARAMTERS) {
-		auto id = to_prov(primary_slot);
-		return compare_values(tval[0], 0 != ws.w.province_s.province_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.pop_type)), true);
+	TRIGGER_FUNCTION(tf_has_pop_type_province) {
+		auto type = trigger_payload(tval[2]).small.values.pop_type;
+		auto amount = ve::apply(to_prov(primary_slot), [&ws, type](provinces::province_tag p) {
+			return ws.w.province_s.province_demographics.get(p, population::to_demo_tag(ws, type));
+		});
+		return compare_to_true(tval[0], amount > 0.0f);
+
 	}
-	bool tf_has_pop_type_pop(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.population_s.pops.get<pop::type>(to_pop(primary_slot)) == trigger_payload(tval[2]).small.values.pop_type, true);
+	TRIGGER_FUNCTION(tf_has_pop_type_pop) {
+		auto type = trigger_payload(tval[2]).small.values.pop_type;
+		return compare_values_eq(tval[0], to_value<pop::type>(ws.w.population_s.pops, to_pop(primary_slot)), type);
 	}
-	bool tf_has_empty_adjacent_province(TRIGGER_PARAMTERS) {
-		auto adj_range = ws.s.province_m.same_type_adjacency.get_row(to_prov(primary_slot));
-		for(auto p : adj_range) {
-			if(!is_valid_index(ws.w.province_s.province_state_container.get<province_state::owner>(p)))
-				return compare_values(tval[0], true, true);
-		}
-		return compare_values(tval[0], false, true);
+	TRIGGER_FUNCTION(tf_has_empty_adjacent_province) {
+		auto result = ve::apply(to_prov(primary_slot), [&ws](provinces::province_tag p) {
+			if(is_valid_index(p)) {
+				auto acc = empty_province_accumulator(ws);
+				auto adj_range = ws.s.province_m.same_type_adjacency.get_row(p);
+				for(auto a : adj_range) {
+					acc.add_value(a.value);
+					if(acc.result)
+						return true;
+				}
+				acc.flush();
+				return acc.result;
+			} else {
+				return false;
+			}
+		});
+		return compare_to_true(tval[0], result);
 	}
-	bool tf_has_leader(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], military::has_named_leader(ws, to_nation(primary_slot), trigger_payload(tval[2]).text), true);
+	TRIGGER_FUNCTION(tf_has_leader) {
+		auto name = trigger_payload(tval[2]).text;
+		auto result = ve::apply(to_nation(primary_slot), [&ws, name](nations::country_tag n) {
+			return military::has_named_leader(ws, n, name);
+		});
+		return compare_to_true(tval[0], result);
 	}
-	bool tf_ai(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::is_not_ai_controlled>(to_nation(primary_slot)) == false, true);
+	TRIGGER_FUNCTION(tf_ai) {
+		return compare_to_false(tval[0], ve::widen_mask(to_value<nation::is_not_ai_controlled>(ws.w.nation_s.nations, to_nation(primary_slot))));
 	}
-	bool tf_can_create_vassals(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], true, true); // stub for apparently unused 
+	TRIGGER_FUNCTION(tf_can_create_vassals) {
+		return compare_to_true(tval[0], true); // stub for apparently unused 
 	}
-	bool tf_is_possible_vassal(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], can_release_as_vassal(ws, to_nation(primary_slot), trigger_payload(tval[2]).tag), true);
+	TRIGGER_FUNCTION(tf_is_possible_vassal) {
+		auto tag = trigger_payload(tval[2]).tag;
+		auto result = ve::apply(to_nation(primary_slot), [&ws, tag](nations::country_tag n) {
+			can_release_as_vassal(ws, n, tag);
+		});
+		return compare_to_true(tval[0], result);
 	}
-	bool tf_province_id(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], to_prov(primary_slot) == provinces::province_tag(tval[2]), true);
+	TRIGGER_FUNCTION(tf_province_id) {
+		return compare_values_eq(tval[0], to_prov(primary_slot), provinces::province_tag(tval[2]));
 	}
-	bool tf_vassal_of_tag(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_vassal_of_tag) {
 		auto tag_holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
-		if(tag_holder)
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::overlord>(to_nation(primary_slot)) == tag_holder, true);
-		else
-			return compare_values(tval[0], false, true);
+		return compare_values_eq(tval[0], to_value<nation::overlord>(ws.w.nation_s.nations, to_nation(primary_slot)), tag_holder);
 	}
-	bool tf_vassal_of_from(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::overlord>(to_nation(primary_slot)) == to_nation(from_slot), true);
+	TRIGGER_FUNCTION(tf_vassal_of_from) {
+		return compare_values_eq(tval[0], to_value<nation::overlord>(ws.w.nation_s.nations, to_nation(primary_slot)), to_nation(from_slot));
 	}
-	bool tf_vassal_of_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::overlord>(to_nation(primary_slot)) == to_nation(this_slot), true);
+	TRIGGER_FUNCTION(tf_vassal_of_this_nation) {
+		return compare_values_eq(tval[0], to_value<nation::overlord>(ws.w.nation_s.nations, to_nation(primary_slot)), to_nation(this_slot));
 	}
-	bool tf_vassal_of_this_province(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_vassal_of_this_province) {
 		auto owner = provinces::province_owner(ws, to_prov(this_slot));
-		if(owner)
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::overlord>(to_nation(primary_slot)) == owner, true);
-		else
-			return compare_values(tval[0], false, true);
+		return compare_values_eq(tval[0], to_value<nation::overlord>(ws.w.nation_s.nations, to_nation(primary_slot)), owner);
 	}
-	bool tf_vassal_of_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ws.w.nation_s.states.get<state::owner>(to_state(this_slot));
-		if(owner)
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::overlord>(to_nation(primary_slot)) == owner, true);
-		else
-			return compare_values(tval[0], false, true);
+	TRIGGER_FUNCTION(tf_vassal_of_this_state) {
+		auto owner = to_value<state::owner>(ws.w.nation_s.states, to_state(this_slot));
+		return compare_values_eq(tval[0], to_value<nation::overlord>(ws.w.nation_s.nations, to_nation(primary_slot)), owner);
 	}
-	bool tf_vassal_of_this_pop(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_vassal_of_this_pop) {
 		auto owner = population::get_pop_owner(ws, to_pop(this_slot));
-		if(owner)
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::overlord>(to_nation(primary_slot)) == owner, true);
-		else
-			return compare_values(tval[0], false, true);
+		return compare_values_eq(tval[0], to_value<nation::overlord>(ws.w.nation_s.nations, to_nation(primary_slot)), owner);
 	}
-	bool tf_substate_of_tag(TRIGGER_PARAMTERS) {
-		if(ws.w.nation_s.nations.get<nation::is_substate>(to_nation(primary_slot)) == false)
-			return compare_values(tval[0], false, true);
-		else
-			return tf_vassal_of_tag(tval, ws, primary_slot, nullptr, nullptr);
+	TRIGGER_FUNCTION(tf_substate_of_tag) {
+		auto tag_holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+		return compare_to_true(tval[0],
+			ve::widen_mask(to_value<nation::is_substate>(ws.w.nation_s.nations, to_nation(primary_slot)))
+			& (to_value<nation::overlord>(ws.w.nation_s.nations, to_nation(primary_slot)) == tag_holder));
 	}
-	bool tf_substate_of_from(TRIGGER_PARAMTERS) {
-		if(ws.w.nation_s.nations.get<nation::is_substate>(to_nation(primary_slot)) == false)
-			return compare_values(tval[0], false, true);
-		else
-			return tf_vassal_of_this_nation(tval, ws, primary_slot, from_slot, nullptr);
+	TRIGGER_FUNCTION(tf_substate_of_from) {
+		return compare_to_true(tval[0],
+			ve::widen_mask(to_value<nation::is_substate>(ws.w.nation_s.nations, to_nation(primary_slot)))
+			& (to_value<nation::overlord>(ws.w.nation_s.nations, to_nation(primary_slot)) == to_nation(from_slot)));
 	}
-	bool tf_substate_of_this_nation(TRIGGER_PARAMTERS) {
-		if(ws.w.nation_s.nations.get<nation::is_substate>(to_nation(primary_slot)) == false)
-			return compare_values(tval[0], false, true);
-		else
-			return tf_vassal_of_this_nation(tval, ws, primary_slot, this_slot, nullptr);
+	TRIGGER_FUNCTION(tf_substate_of_this_nation) {
+		return compare_to_true(tval[0],
+			ve::widen_mask(to_value<nation::is_substate>(ws.w.nation_s.nations, to_nation(primary_slot)))
+			& (to_value<nation::overlord>(ws.w.nation_s.nations, to_nation(primary_slot)) == to_nation(this_slot)));
 	}
-	bool tf_substate_of_this_province(TRIGGER_PARAMTERS) {
-		if(ws.w.nation_s.nations.get<nation::is_substate>(to_nation(primary_slot)) == false)
-			return compare_values(tval[0], false, true);
-		else
-			return tf_vassal_of_this_province(tval, ws, primary_slot, this_slot, nullptr);
+	TRIGGER_FUNCTION(tf_substate_of_this_province) {
+		auto owner = provinces::province_owner(ws, to_prov(this_slot));
+		return compare_to_true(tval[0],
+			ve::widen_mask(to_value<nation::is_substate>(ws.w.nation_s.nations, to_nation(primary_slot)))
+			& (to_value<nation::overlord>(ws.w.nation_s.nations, to_nation(primary_slot)) == owner));
 	}
-	bool tf_substate_of_this_state(TRIGGER_PARAMTERS) {
-		if(ws.w.nation_s.nations.get<nation::is_substate>(to_nation(primary_slot)) == false)
-			return compare_values(tval[0], false, true);
-		else
-			return tf_vassal_of_this_state(tval, ws, primary_slot, this_slot, nullptr);
+	TRIGGER_FUNCTION(tf_substate_of_this_state) {
+		auto owner = to_value<state::owner>(ws.w.nation_s.states, to_state(this_slot));
+		return compare_to_true(tval[0],
+			ve::widen_mask(to_value<nation::is_substate>(ws.w.nation_s.nations, to_nation(primary_slot)))
+			& (to_value<nation::overlord>(ws.w.nation_s.nations, to_nation(primary_slot)) == owner));
 	}
-	bool tf_substate_of_this_pop(TRIGGER_PARAMTERS) {
-		if(ws.w.nation_s.nations.get<nation::is_substate>(to_nation(primary_slot)) == false)
-			return compare_values(tval[0], false, true);
-		else
-			return tf_vassal_of_this_pop(tval, ws, primary_slot, this_slot, nullptr);
+	TRIGGER_FUNCTION(tf_substate_of_this_pop) {
+		auto owner = population::get_pop_owner(ws, to_pop(this_slot));
+		return compare_to_true(tval[0],
+			ve::widen_mask(to_value<nation::is_substate>(ws.w.nation_s.nations, to_nation(primary_slot)))
+			& (to_value<nation::overlord>(ws.w.nation_s.nations, to_nation(primary_slot)) == owner));
 	}
-	bool tf_alliance_with_tag(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_alliance_with_tag) {
 		auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
-		if(holder)
-			return compare_values(tval[0], contains_item(ws.w.nation_s.nations_arrays,
-				ws.w.nation_s.nations.get<nation::allies>(to_nation(primary_slot)), holder), true);
-		else
-			return compare_values(tval[0], false, true);
+		auto result = ve::apply(to_nation(primary_slot), [&ws, holder](nations::culture_tag n) {
+			return contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(holder), n);
+		});
+		return compare_to_true(tval[0], result);
 	}
-	bool tf_alliance_with_from(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(to_nation(primary_slot)), to_nation(from_slot)), true);
+	TRIGGER_FUNCTION(tf_alliance_with_from) {
+		auto result = ve::apply(to_nation(primary_slot), to_nation(from_slot), [&ws](nations::culture_tag a, nations::culture_tag b) {
+			return contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(a), b);
+		});
+		return compare_to_true(tval[0], result);
 	}
-	bool tf_alliance_with_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(to_nation(primary_slot)), to_nation(this_slot)), true);
+	TRIGGER_FUNCTION(tf_alliance_with_this_nation) {
+		auto result = ve::apply(to_nation(primary_slot), to_nation(this_slot), [&ws](nations::culture_tag a, nations::culture_tag b) {
+			return contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(a), b);
+		});
+		return compare_to_true(tval[0], result);
 	}
-	bool tf_alliance_with_this_province(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_alliance_with_this_province) {
 		auto owner = provinces::province_owner(ws, to_prov(this_slot));
-		if(owner)
-			return compare_values(tval[0], contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(to_nation(primary_slot)), owner), true);
-		else
-			return compare_values(tval[0], false, true);
+		auto result = ve::apply(to_nation(primary_slot), owner, [&ws](nations::culture_tag a, nations::culture_tag b) {
+			return contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(a), b);
+		});
+		return compare_to_true(tval[0], result);
 	}
-	bool tf_alliance_with_this_state(TRIGGER_PARAMTERS) {
-		nations::country_tag owner = ws.w.nation_s.states.get<state::owner>(to_state(this_slot));
-		if(owner)
-			return compare_values(tval[0], contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(to_nation(primary_slot)), owner), true);
-		else
-			return compare_values(tval[0], false, true);
+	TRIGGER_FUNCTION(tf_alliance_with_this_state) {
+		nations::country_tag owner = to_value<state::owner(>ws.w.nation_s.states, to_state(this_slot));
+		auto result = ve::apply(to_nation(primary_slot), owner, [&ws](nations::culture_tag a, nations::culture_tag b) {
+			return contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(a), b);
+		});
+		return compare_to_true(tval[0], result);
 	}
-	bool tf_alliance_with_this_pop(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_alliance_with_this_pop) {
 		auto owner = population::get_pop_owner(ws, to_pop(this_slot));
-		if(owner)
-			return compare_values(tval[0], contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(to_nation(primary_slot)), owner), true);
-		else
-			return compare_values(tval[0], false, true);
+		auto result = ve::apply(to_nation(primary_slot), owner, [&ws](nations::culture_tag a, nations::culture_tag b) {
+			return contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(a), b);
+		});
+		return compare_to_true(tval[0], result);
 	}
-	bool tf_has_recently_lost_war(TRIGGER_PARAMTERS) {
-		auto last_lost = ws.w.nation_s.nations.get<nation::last_lost_war>(to_nation(primary_slot));
-		return compare_values(tval[0], is_valid_index(last_lost) && (to_index(ws.w.current_date) - to_index(last_lost)) < (365 * 5 + 1), true);
+	TRIGGER_FUNCTION(tf_has_recently_lost_war) {
+		auto last_lost = to_value<nation::last_lost_war>(ws.w.nation_s.nations, to_nation(primary_slot));
+		return compare_to_true(tval[0], is_valid_index(last_lost) & ((to_int(ws.w.current_date) - to_int(last_lost)) < (365 * 5 + 1)));
 	}
-	bool tf_is_mobilised(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::is_mobilized>(to_nation(primary_slot)), true);
+	TRIGGER_FUNCTION(tf_is_mobilised) {
+		return compare_to_true(tval[0], ve::widen_mask(to_value<nation::is_mobilized>(ws.w.nation_s.nations, to_nation(primary_slot))));
 	}
-	bool tf_mobilisation_size(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.modifier_values.get<modifiers::national_offsets::mobilisation_size>(to_nation(primary_slot)), read_float_from_payload(tval + 2));
-	}
-	bool tf_crime_higher_than_education_nation(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_mobilisation_size) {
 		return compare_values(tval[0],
-			ws.w.nation_s.nations.get<nation::f_administrative_spending>(to_nation(primary_slot)) >= ws.w.nation_s.nations.get<nation::f_education_spending>(to_nation(primary_slot)), true);
+			to_indexed_value<modifiers::national_offsets::mobilisation_size>(ws.w.nation_s.modifier_values, to_nation(primary_slot)),
+			read_float_from_payload(tval + 2));
 	}
-	bool tf_crime_higher_than_education_state(TRIGGER_PARAMTERS) {
-		auto owner = ws.w.nation_s.states.get<state::owner>(to_state(primary_slot));
-		if(owner)
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::f_administrative_spending>(owner) >= ws.w.nation_s.nations.get<nation::f_education_spending>(owner), true);
-		else
-			return compare_values(tval[0], false, true);
+	TRIGGER_FUNCTION(tf_crime_higher_than_education_nation) {
+		return compare_to_true(tval[0],
+			to_value<nation::f_administrative_spending>(ws.w.nation_s.nations, to_nation(primary_slot))
+			>= to_value<nation::f_education_spending>(ws.w.nation_s.nations, to_nation(primary_slot)));
 	}
-	bool tf_crime_higher_than_education_province(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_crime_higher_than_education_state) {
+		auto owner = to_value<state::owner>(ws.w.nation_s.states, to_state(primary_slot));
+		return compare_to_true(tval[0],
+			to_value<nation::f_administrative_spending>(ws.w.nation_s.nations, owner)
+			>= to_value<nation::f_education_spending>(ws.w.nation_s.nations, owner));
+	}
+	TRIGGER_FUNCTION(tf_crime_higher_than_education_province) {
 		auto owner = provinces::province_owner(ws, to_prov(primary_slot));
-		if(owner)
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::f_administrative_spending>(owner) >= ws.w.nation_s.nations.get<nation::f_education_spending>(owner), true);
-		else
-			return compare_values(tval[0], false, true);
+		return compare_to_true(tval[0],
+			to_value<nation::f_administrative_spending>(ws.w.nation_s.nations, owner)
+			>= to_value<nation::f_education_spending>(ws.w.nation_s.nations, owner));
 	}
-	bool tf_crime_higher_than_education_pop(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_crime_higher_than_education_pop) {
 		auto owner = population::get_pop_owner(ws, to_pop(primary_slot));
-		if(owner)
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::f_administrative_spending>(owner) >= ws.w.nation_s.nations.get<nation::f_education_spending>(owner), true);
-		else
-			return compare_values(tval[0], false, true);
+		return compare_to_true(tval[0],
+			to_value<nation::f_administrative_spending>(ws.w.nation_s.nations, owner)
+			>= to_value<nation::f_education_spending>(ws.w.nation_s.nations, owner));
 	}
-	bool tf_agree_with_ruling_party(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_agree_with_ruling_party) {
 		auto owner = population::get_pop_owner(ws, to_pop(primary_slot));
-		auto pop_id = to_pop(primary_slot);
-		if(owner && ws.w.population_s.pops.is_valid_index(pop_id)) {
-			auto ruling_ideology = ws.w.nation_s.nations.get<nation::ruling_ideology>(owner);
-			auto population_size = ws.w.population_s.pops.get<pop::size>(pop_id);
-			if(is_valid_index(ruling_ideology) & (population_size != 0)) {
-				return compare_values(tval[0],
-					float(ws.w.population_s.pop_demographics.get(pop_id, population::to_demo_tag(ws, ruling_ideology))) / float(population_size),
-					read_float_from_payload(tval + 2));
-			}
-		}
-		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
+		auto ruling_ideology = to_value<nation::ruling_ideology>(ws.w.nation_s.nations, owner);
+		auto population_size = to_value<pop::size>(ws.w.population_s.pops, to_pop(primary_slot));
+		auto ruling_support = ve::apply(to_pop(primary_slot), ruling_ideology, [&ws](population::pop_tag p, ideologies::ideology_tag i) {
+			return ws.w.population_s.pop_demographics.get(pop_id, population::to_demo_tag(ws, i));
+		});
+		return compare_values(tval[0], ve::select(population_size > 0.0f, ruling_support / population_size, 0.0f), read_float_from_payload(tval + 2));
 	}
-	bool tf_is_colonial_state(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0],
-			nations::is_colonial_or_protectorate(ws, to_state(primary_slot)),
-			true);
+	TRIGGER_FUNCTION(tf_is_colonial_state) {
+		return compare_to_true(tval[0], nations::is_colonial_or_protectorate(ws, to_state(primary_slot)));
 	}
-	bool tf_is_colonial_province(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_is_colonial_province) {
 		auto si = provinces::province_state(ws, to_prov(primary_slot));
-		if(si)
-			return tf_is_colonial_state(tval, ws, si, nullptr, nullptr);
-		else
-			return compare_values(tval[0], false, true);
+		return compare_to_true(tval[0], nations::is_colonial_or_protectorate(ws, si));
 	}
-	bool tf_has_factories(TRIGGER_PARAMTERS) {
-		auto& factories = ws.w.nation_s.states.get<state::factories>(to_state(primary_slot));
-		for(int32_t i = state::factories_count; i--; ) {
-			if(factories[i].type)
-				return compare_values(tval[0], true, true);
-		}
-		return compare_values(tval[0], false, true);
-	}
-	bool tf_in_default_tag(TRIGGER_PARAMTERS) {
-		auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
-		if(holder)
-			return compare_values(tval[0],
-				economy::is_bankrupt(ws, holder),
-				true);
-		else
-			return compare_values(tval[0], false, true);
-	}
-	bool tf_in_default_from(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0],
-			economy::is_bankrupt(ws, to_nation(primary_slot)),
-			true);
-	}
-	bool tf_in_default_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0],
-			economy::is_bankrupt(ws, to_nation(primary_slot)),
-			true);
-	}
-	bool tf_in_default_this_province(TRIGGER_PARAMTERS) {
-		auto owner = provinces::province_owner(ws, to_prov(this_slot));
-		if(owner)
-			return tf_in_default_this_nation(tval, ws, primary_slot, owner, nullptr);
-		else
-			return compare_values(tval[0], false, true);
-	}
-	bool tf_in_default_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ws.w.nation_s.states.get<state::owner>(to_state(this_slot));
-		if(owner)
-			return tf_in_default_this_nation(tval, ws, primary_slot, owner, nullptr);
-		else
-			return compare_values(tval[0], false, true);
-	}
-	bool tf_in_default_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, to_pop(this_slot));
-		if(owner)
-			return tf_in_default_this_nation(tval, ws, primary_slot, owner, nullptr);
-		else
-			return compare_values(tval[0], false, true);
-	}
-	bool tf_total_num_of_ports(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::num_ports>(to_nation(primary_slot)), tval[2]);
-	}
-	bool tf_always(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], true, true);
-	}
-	bool tf_election(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::is_holding_election>(to_nation(primary_slot)), true);
-	}
-	bool tf_has_global_flag(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.variable_s.global_variables[trigger_payload(tval[2]).global_var] != 0.0f, true);
-	}
-	bool tf_is_capital(TRIGGER_PARAMTERS) {
-		auto owner = provinces::province_owner(ws, to_prov(primary_slot));
-		if(owner)
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::current_capital>(owner) == to_prov(primary_slot), true);
-		else
-			return compare_values(tval[0], false, true);
-	}
-	bool tf_nationalvalue_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::national_value>(to_nation(primary_slot)) == trigger_payload(tval[2]).nat_mod, true);
-	}
-	bool tf_nationalvalue_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, to_pop(primary_slot));
-		if(owner)
-			return tf_nationalvalue_nation(tval, ws, owner, nullptr, nullptr);
-		else
-			return compare_values(tval[0], false, true);
-	}
-	bool tf_nationalvalue_province(TRIGGER_PARAMTERS) {
-		auto owner = provinces::province_owner(ws, to_prov(primary_slot));
-		if(owner)
-			return tf_nationalvalue_nation(tval, ws, owner, nullptr, nullptr);
-		else
-			return compare_values(tval[0], false, true);
-	}
-	bool tf_industrial_score_value(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::industrial_score>(to_nation(primary_slot)), trigger_payload(tval[2]).signed_value);
-	}
-	bool tf_industrial_score_from_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::industrial_score>(to_nation(primary_slot)), ws.w.nation_s.nations.get<nation::industrial_score>(to_nation(from_slot)));
-	}
-	bool tf_industrial_score_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::industrial_score>(to_nation(primary_slot)), ws.w.nation_s.nations.get<nation::industrial_score>(to_nation(this_slot)));
-	}
-	bool tf_industrial_score_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, to_pop(this_slot));
-		if(owner)
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::industrial_score>(to_nation(primary_slot)), ws.w.nation_s.nations.get<nation::industrial_score>(owner));
-		else
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::industrial_score>(to_nation(primary_slot)), 0i16);
-	}
-	bool tf_industrial_score_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ws.w.nation_s.states.get<state::owner>(to_state(this_slot));
-		if(owner)
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::industrial_score>(to_nation(primary_slot)), ws.w.nation_s.nations.get<nation::industrial_score>(owner));
-		else
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::industrial_score>(to_nation(primary_slot)), 0i16);
-	}
-	bool tf_industrial_score_this_province(TRIGGER_PARAMTERS) {
-		auto owner = provinces::province_owner(ws, to_prov(this_slot));
-		if(owner)
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::industrial_score>(to_nation(primary_slot)), ws.w.nation_s.nations.get<nation::industrial_score>(owner));
-		else
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::industrial_score>(to_nation(primary_slot)), 0i16);
-	}
-	bool tf_military_score_value(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::military_score>(to_nation(primary_slot)), trigger_payload(tval[2]).signed_value);
-	}
-	bool tf_military_score_from_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::military_score>(to_nation(primary_slot)), ws.w.nation_s.nations.get<nation::military_score>(to_nation(from_slot)));
-	}
-	bool tf_military_score_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::military_score>(to_nation(primary_slot)), ws.w.nation_s.nations.get<nation::military_score>(to_nation(this_slot)));
-	}
-	bool tf_military_score_this_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, to_pop(this_slot));
-		if(owner)
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::military_score>(to_nation(primary_slot)), ws.w.nation_s.nations.get<nation::military_score>(owner));
-		else
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::military_score>(to_nation(primary_slot)), 0i16);
-	}
-	bool tf_military_score_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ws.w.nation_s.states.get<state::owner>(to_state(this_slot));
-		if(owner)
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::military_score>(to_nation(primary_slot)), ws.w.nation_s.nations.get<nation::military_score>(owner));
-		else
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::military_score>(to_nation(primary_slot)), 0i16);
-	}
-	bool tf_military_score_this_province(TRIGGER_PARAMTERS) {
-		auto owner = provinces::province_owner(ws, to_prov(this_slot));
-		if(owner)
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::military_score>(to_nation(primary_slot)), ws.w.nation_s.nations.get<nation::military_score>(owner));
-		else
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::military_score>(to_nation(primary_slot)), 0i16);
-	}
-	bool tf_civilized_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::is_civilized>(to_nation(primary_slot)), true);
-	}
-	bool tf_civilized_pop(TRIGGER_PARAMTERS) {
-		auto owner = population::get_pop_owner(ws, to_pop(primary_slot));
-		if(owner)
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::is_civilized>(owner), true);
-		else
-			return compare_values(tval[0], false, true);
-	}
-	bool tf_civilized_province(TRIGGER_PARAMTERS) {
-		auto owner = provinces::province_owner(ws, to_prov(primary_slot));
-		if(owner)
-			return compare_values(tval[0], ws.w.nation_s.nations.get<nation::is_civilized>(owner), true);
-		else
-			return compare_values(tval[0], false, true);
-	}
-	bool tf_national_provinces_occupied(TRIGGER_PARAMTERS) {
-		auto owned_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(to_nation(primary_slot)));
-		if(owned_range.first != owned_range.second) {
-			int32_t count_owned_controlled = 0;
-			for(auto p : owned_range) {
-				if(provinces::province_controller(ws, p) == to_nation(primary_slot))
-					++count_owned_controlled;
+	TRIGGER_FUNCTION(tf_has_factories) {
+		auto result = ve::apply(to_state(primary_slot), [&ws](nations::state_tag s) {
+			auto& factories = ws.w.nation_s.states.get<state::factories>(s);
+			for(int32_t i = state::factories_count; i--; ) {
+				if(factories[i].type)
+					return true;
 			}
-			return compare_values(tval[0], float(count_owned_controlled) / float(owned_range.second - owned_range.first), read_float_from_payload(tval + 2));
-		} else {
-			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
-		}
+			return false;
+		});
+		return compare_to_true(tval[0], result);
 	}
-	bool tf_is_greater_power_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], nations::is_great_power(ws, to_nation(primary_slot)), true);
+	TRIGGER_FUNCTION(tf_in_default_tag) {
+		auto holder = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag];
+		return compare_to_true(tval[0],
+			economy::is_bankrupt(ws, holder));
+	}
+	TRIGGER_FUNCTION(tf_in_default_from) {
+		auto result = ve::apply(to_nation(primary_slot), [&ws](nations::country_tag n) {
+			return economy::is_bankrupt(ws, n);
+		});
+		return compare_to_true(tval[0], result);
+	}
+	TRIGGER_FUNCTION(tf_in_default_this_nation) {
+		auto result = ve::apply(to_nation(primary_slot), [&ws](nations::country_tag n) {
+			return economy::is_bankrupt(ws, n);
+		});
+		return compare_to_true(tval[0], result);
+	}
+	TRIGGER_FUNCTION(tf_in_default_this_province) {
+		auto result = ve::apply(to_nation(primary_slot), [&ws](nations::country_tag n) {
+			return economy::is_bankrupt(ws, n);
+		});
+		return compare_to_true(tval[0], result);
+	}
+	TRIGGER_FUNCTION(tf_in_default_this_state) {
+		auto result = ve::apply(to_nation(primary_slot), [&ws](nations::country_tag n) {
+			return economy::is_bankrupt(ws, n);
+		});
+		return compare_to_true(tval[0], result);
+	}
+	TRIGGER_FUNCTION(tf_in_default_this_pop) {
+		auto result = ve::apply(to_nation(primary_slot), [&ws](nations::country_tag n) {
+			return economy::is_bankrupt(ws, n);
+		});
+		return compare_to_true(tval[0], result);
+	}
+	TRIGGER_FUNCTION(tf_total_num_of_ports) {
+		return compare_values(tval[0], to_value<nation::num_ports>(ws.w.nation_s.nations, to_nation(primary_slot)), int32_t(tval[2]));
+	}
+	TRIGGER_FUNCTION(tf_always) {
+		return compare_to_true(tval[0], true);
+	}
+	TRIGGER_FUNCTION(tf_election) {
+		return compare_to_true(tval[0],
+			ve::widen_mask(to_value<nation::is_holding_election>(ws.w.nation_s.nations, to_nation(primary_slot))));
+	}
+	TRIGGER_FUNCTION(tf_has_global_flag) {
+		return compare_to_true(tval[0], ws.w.variable_s.global_variables[trigger_payload(tval[2]).global_var] != 0.0f);
+	}
+	TRIGGER_FUNCTION(tf_is_capital) {
+		auto owner = provinces::province_owner(ws, to_prov(primary_slot));
+		return compare_values_eq(tval[0], to_value<nation::current_capital>(ws.w.nation_s.nations, owner), to_prov(primary_slot));
+	}
+	TRIGGER_FUNCTION(tf_nationalvalue_nation) {
+		return compare_values_eq(tval[0],
+			to_value<nation::national_value>(ws.w.nation_s.nations, to_nation(primary_slot)),
+			trigger_payload(tval[2]).nat_mod);
+	}
+	TRIGGER_FUNCTION(tf_nationalvalue_pop) {
+		auto owner = population::get_pop_owner(ws, to_pop(primary_slot));
+		return compare_values_eq(tval[0],
+			to_value<nation::national_value>(ws.w.nation_s.nations, owner),
+			trigger_payload(tval[2]).nat_mod);
+	}
+	TRIGGER_FUNCTION(tf_nationalvalue_province) {
+		auto owner = provinces::province_owner(ws, to_prov(primary_slot));
+		return compare_values_eq(tval[0],
+			to_value<nation::national_value>(ws.w.nation_s.nations, owner),
+			trigger_payload(tval[2]).nat_mod);
+	}
+	TRIGGER_FUNCTION(tf_industrial_score_value) {
+		return compare_values(tval[0],
+			to_value<nation::industrial_score>(ws.w.nation_s.nations, to_nation(primary_slot)),
+			int32_t(trigger_payload(tval[2]).signed_value));
+	}
+	TRIGGER_FUNCTION(tf_industrial_score_from_nation) {
+		return compare_values(tval[0],
+			to_value<nation::industrial_score>(ws.w.nation_s.nations, to_nation(primary_slot)),
+			to_value<nation::industrial_score>(ws.w.nation_s.nations, to_nation(from_slot)));
+	}
+	TRIGGER_FUNCTION(tf_industrial_score_this_nation) {
+		return compare_values(tval[0],
+			to_value<nation::industrial_score>(ws.w.nation_s.nations, to_nation(primary_slot)),
+			to_value<nation::industrial_score>(ws.w.nation_s.nations, to_nation(this_slot)));
+	}
+	TRIGGER_FUNCTION(tf_industrial_score_this_pop) {
+		auto owner = population::get_pop_owner(ws, to_pop(this_slot));
+		return compare_values(tval[0],
+			to_value<nation::industrial_score>(ws.w.nation_s.nations, to_nation(primary_slot)),
+			to_value<nation::industrial_score>(ws.w.nation_s.nations, owner));
+	}
+	TRIGGER_FUNCTION(tf_industrial_score_this_state) {
+		auto owner = to_value<state::owner>(ws.w.nation_s.states, to_state(this_slot));
+		return compare_values(tval[0],
+			to_value<nation::industrial_score>(ws.w.nation_s.nations, to_nation(primary_slot)),
+			to_value<nation::industrial_score>(ws.w.nation_s.nations, owner));
+	}
+	TRIGGER_FUNCTION(tf_industrial_score_this_province) {
+		auto owner = provinces::province_owner(ws, to_prov(this_slot));
+		return compare_values(tval[0],
+			to_value<nation::industrial_score>(ws.w.nation_s.nations, to_nation(primary_slot)),
+			to_value<nation::industrial_score>(ws.w.nation_s.nations, owner));
+	}
+	TRIGGER_FUNCTION(tf_military_score_value) {
+		return compare_values(tval[0],
+			to_value<nation::military_score>(ws.w.nation_s.nations, to_nation(primary_slot)),
+			int32_t(trigger_payload(tval[2]).signed_value));
+	}
+	TRIGGER_FUNCTION(tf_military_score_from_nation) {
+		return compare_values(tval[0],
+			to_value<nation::military_score>(ws.w.nation_s.nations, to_nation(primary_slot)),
+			to_value<nation::military_score>(ws.w.nation_s.nations, to_nation(from_slot)));
+	}
+	TRIGGER_FUNCTION(tf_military_score_this_nation) {
+		return compare_values(tval[0],
+			to_value<nation::military_score>(ws.w.nation_s.nations, to_nation(primary_slot)),
+			to_value<nation::military_score>(ws.w.nation_s.nations, to_nation(this_slot)));
+	}
+	TRIGGER_FUNCTION(tf_military_score_this_pop) {
+		auto owner = population::get_pop_owner(ws, to_pop(this_slot));
+		return compare_values(tval[0],
+			to_value<nation::military_score>(ws.w.nation_s.nations, to_nation(primary_slot)),
+			to_value<nation::military_score>(ws.w.nation_s.nations, owner));
+	}
+	TRIGGER_FUNCTION(tf_military_score_this_state) {
+		auto owner = to_value<state::owner>(ws.w.nation_s.states, to_state(this_slot));
+		return compare_values(tval[0],
+			to_value<nation::military_score>(ws.w.nation_s.nations, to_nation(primary_slot)),
+			to_value<nation::military_score>(ws.w.nation_s.nations, owner));
+	}
+	TRIGGER_FUNCTION(tf_military_score_this_province) {
+		auto owner = provinces::province_owner(ws, to_prov(this_slot));
+		return compare_values(tval[0],
+			to_value<nation::military_score>(ws.w.nation_s.nations, to_nation(primary_slot)),
+			to_value<nation::military_score>(ws.w.nation_s.nations, owner));
+	}
+	TRIGGER_FUNCTION(tf_civilized_nation) {
+		return compare_to_true(tval[0], ve::widen_mask(to_value<nation::is_civilized>(ws.w.nation_s.nations, to_nation(primary_slot))));
+	}
+	TRIGGER_FUNCTION(tf_civilized_pop(TRIGGER_PARAMTERS) {
+		auto owner = population::get_pop_owner(ws, to_pop(primary_slot));
+		return compare_to_true(tval[0], ve::widen_mask(to_value<nation::is_civilized>(ws.w.nation_s.nations, owner)));
+	}
+	TRIGGER_FUNCTION(tf_civilized_province) {
+		auto owner = provinces::province_owner(ws, to_prov(primary_slot));
+		return compare_to_true(tval[0], ve::widen_mask(to_value<nation::is_civilized>(ws.w.nation_s.nations, owner)));
+	}
+	TRIGGER_FUNCTION(tf_national_provinces_occupied) {
+		auto fraction_occupied = ve::apply(to_nation(primary_slot), [&ws](nations::country_tag n) {
+			auto owned_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(n));
+			if(owned_range.first != owned_range.second) {
+				float count_owned_uncontrolled = 0.0f;
+				for(auto p : owned_range) {
+					if(provinces::province_controller(ws, p) != n)
+						++count_owned_uncontrolled;
+				}
+				return count_owned_uncontrolled / float(owned_range.second - owned_range.first);
+			} else {
+				return 0.0f;
+			}
+		});
+		return compare_values(tval[0], fraction_occupied, read_float_from_payload(tval + 2));
+	}
+	TRIGGER_FUNCTION(tf_is_greater_power_nation) {
+		return compare_to_true(tval[0], nations::is_great_power(ws, to_nation(primary_slot)));
 	}
 	bool tf_is_greater_power_pop(TRIGGER_PARAMTERS) {
 		auto owner = population::get_pop_owner(ws, to_pop(primary_slot));

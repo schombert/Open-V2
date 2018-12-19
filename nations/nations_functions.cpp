@@ -450,10 +450,6 @@ namespace nations {
 		return true;
 	}
 
-	bool is_colonial_or_protectorate(world_state const& ws, state_tag s) {
-		return ws.w.nation_s.states.get<state::is_protectorate>(s) || ws.w.nation_s.states.get<state::is_colonial>(s);
-	}
-
 	void partial_destroy_state_instance(world_state& ws, state_tag sid) {
 
 		auto& fp_focuses = ws.w.nation_s.states.get<state::flashpoint_tension_focuses>(sid);
@@ -825,10 +821,6 @@ namespace nations {
 		else
 			return ws.s.fixed_ui_text[scenario::fixed_ui::civilized_nation];
 		
-	}
-	
-	bool is_great_power(world_state const& ws, country_tag n) {
-		return ws.w.nation_s.nations.get<nation::overall_rank>(n) <= 8i16;
 	}
 
 	void silent_make_alliance(world_state& ws, country_tag a, country_tag b) {

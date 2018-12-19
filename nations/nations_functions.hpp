@@ -171,4 +171,16 @@ namespace nations {
 	auto state_owner(world_state const& ws, T this_state)-> decltype(ve::widen_to<T>(nations::country_tag())) {
 		return ve::load(this_state, ws.w.nation_s.states.get_row<state::owner>());
 	}
+
+	template<typename T>
+	auto is_colonial_or_protectorate(world_state const& ws, T s) -> decltype(ve::widen_to<T>(true)) {
+		return ve::widen_mask(
+			ve::load(s, ws.w.nation_s.states.get_row<state::is_protectorate>())
+			| ve::load(s, ws.w.nation_s.states.get_row<state::is_colonial>()));
+	}
+
+	template<typename T>
+	auto is_great_power(world_state const& ws, T this_nation)-> decltype(ve::widen_to<T>(true)) {
+		return ve::load(this_nation, ws.w.nation_s.nations.get_row<nation::overall_rank>()) <= 8i16;
+	}
 }

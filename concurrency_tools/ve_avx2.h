@@ -1156,22 +1156,22 @@ namespace ve {
 	};
 	template<typename T, int32_t i, typename U>
 	__forceinline auto load(contiguous_tags<typename ve_identity<decay_tag<T>>::type, i> e, tagged_array_view<U, T, true> source)
-		-> std::enable_if_t<!std::is_same_v<std::remove_cv_t<U>, bitfield_type>, value_to_vector_type<std::remove_cv_t<U>>> {
+		-> value_to_vector_type<std::remove_cv_t<U>> {
 		return ve::load(e, source.data());
 	}
 	template<typename T, int32_t i, typename U>
 	__forceinline auto load(unaligned_contiguous_tags<typename ve_identity<decay_tag<T>>::type, i> e, tagged_array_view<U, T, true> source)
-		-> std::enable_if_t<!std::is_same_v<std::remove_cv_t<U>, bitfield_type>, value_to_vector_type<std::remove_cv_t<U>>> {
+		-> value_to_vector_type<std::remove_cv_t<U>> {
 		return ve::load(e, source.data());
 	}
 	template<typename T, typename U>
 	__forceinline auto load(partial_contiguous_tags<typename ve_identity<decay_tag<T>>::type> e, tagged_array_view<U, T, true> source)
-		-> std::enable_if_t<!std::is_same_v<std::remove_cv_t<U>, bitfield_type>, value_to_vector_type<std::remove_cv_t<U>>> {
+		-> value_to_vector_type<std::remove_cv_t<U>> {
 		return ve::load(e, source.data());
 	}
 	template<typename T, typename U>
 	__forceinline auto load(tagged_vector<typename ve_identity<decay_tag<T>>::type> indices, tagged_array_view<U, T, true> source)
-		-> std::enable_if_t<!std::is_same_v<std::remove_cv_t<U>, bitfield_type>, value_to_vector_type<std::remove_cv_t<U>>> {
+		-> value_to_vector_type<std::remove_cv_t<U>> {
 		return ve::load(indices, source.data());
 	}
 	//-----
