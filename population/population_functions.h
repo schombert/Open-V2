@@ -16,9 +16,7 @@ namespace population {
 	void set_militancy_direct(world_state& ws, pop_tag p, float v);
 	void set_literacy_direct(world_state& ws, pop_tag p, float v);
 	void set_consciousness_direct(world_state& ws, pop_tag p, float v);
-	float get_militancy_direct(world_state const& ws, pop_tag p);
-	float get_literacy_direct(world_state const& ws, pop_tag p);
-	float get_consciousness_direct(world_state const& ws, pop_tag p);
+	
 	
 	
 	bool is_dominant_issue(world_state const& ws, pop_tag id, issues::option_tag opt);
@@ -43,4 +41,10 @@ namespace population {
 	auto desired_needs_spending(world_state const& ws, T p) -> decltype(ve::widen_to<T>(0.0f));
 	template<typename T>
 	auto get_pop_owner(world_state const& ws, T p) -> decltype(ve::widen_to<T>(nations::country_tag()));
+	template<typename T>
+	auto get_militancy_direct(world_state const& ws, T p) -> decltype(ve::widen_to<T>(0.0f));
+	template<typename T>
+	auto get_literacy_direct(world_state const& ws, T p) -> decltype(ve::widen_to<T>(0.0f));
+	template<typename T>
+	auto get_consciousness_direct(world_state const& ws, T p) -> decltype(ve::widen_to<T>(0.0f));
 }

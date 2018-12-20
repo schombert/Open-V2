@@ -1,5 +1,5 @@
 #include "common\\common.h"
-#include "population_function.h"
+#include "population_functions.hpp"
 #include "world_state\\world_state.h"
 #include "modifiers\\modifier_functions.h"
 #include "technologies\\technologies.h"
@@ -64,15 +64,7 @@ namespace population {
 		ws.w.population_s.pops.set<pop::consciousness>(p, std::clamp(v, 0.0f, 10.0f) / 10.0f);
 	}
 
-	float get_militancy_direct(world_state const& ws, pop_tag p) {
-		return ws.w.population_s.pops.get<pop::militancy>(p) * 10.0f;
-	}
-	float get_literacy_direct(world_state const& ws, pop_tag p) {
-		return ws.w.population_s.pops.get<pop::literacy>(p);
-	}
-	float get_consciousness_direct(world_state const& ws, pop_tag p) {
-		return ws.w.population_s.pops.get<pop::consciousness>(p) * 10.0f;
-	}
+	
 
 	float total_size_change(world_state const& ws, pop_tag p) {
 		return ws.w.population_s.pops.get<pop::size_change_from_assimilation>(p)

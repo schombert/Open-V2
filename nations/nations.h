@@ -61,18 +61,18 @@ namespace nations {
 }
 
 namespace nation {
-	struct rich_tax;
-	struct middle_tax;
-	struct poor_tax;
+	struct f_rich_tax;
+	struct f_middle_tax;
+	struct f_poor_tax;
 	struct f_social_spending;
 	struct f_administrative_spending;
 	struct f_education_spending;
 	struct f_military_spending;
-	struct tarrifs;
+	struct f_tarrifs;
 	//struct debt_setting;
-	struct army_stockpile_spending;
-	struct navy_stockpile_spending;
-	struct projects_stockpile_spending;
+	struct f_army_stockpile_spending;
+	struct f_navy_stockpile_spending;
+	struct f_projects_stockpile_spending;
 
 	struct ruling_party;
 	struct current_capital;
@@ -292,17 +292,17 @@ namespace nation {
 		current_government, governments::government_tag,
 		ruling_ideology, ideologies::ideology_tag,
 
-		rich_tax, int8_t,
-		middle_tax, int8_t,
-		poor_tax, int8_t,
+		f_rich_tax, float,
+		f_middle_tax, float,
+		f_poor_tax, float,
 		f_social_spending, float,
 		f_administrative_spending, float,
 		f_education_spending, float,
 		f_military_spending, float,
-		tarrifs, int8_t,
-		army_stockpile_spending, int8_t,
-		navy_stockpile_spending, int8_t,
-		projects_stockpile_spending, int8_t,
+		f_tarrifs, float,
+		f_army_stockpile_spending, float,
+		f_navy_stockpile_spending, float,
+		f_projects_stockpile_spending, float,
 
 		is_civilized, bitfield_type,
 		is_substate, bitfield_type,
