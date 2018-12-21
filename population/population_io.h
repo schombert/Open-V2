@@ -35,6 +35,9 @@ class serialization::tagged_serializer<rebel_faction::controlled_provinces, T> :
 template<typename T>
 class serialization::tagged_serializer<rebel_faction::member_pops, T> : public serialization::discard_serializer<T> {};
 
+template<typename T>
+class serialization::tagged_serializer<pop_movement::member_pops, T> : public serialization::discard_serializer<T> {};
+
 template<>
 class serialization::serializer<population::pop_movement> {
 public:

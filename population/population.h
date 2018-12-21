@@ -14,6 +14,15 @@ namespace events {
 
 class world_state;
 
+namespace population{
+	enum class movement_type : uint8_t {
+		liberation,
+		social,
+		political,
+		none
+	};
+}
+
 namespace pop {
 	struct size_change_from_combat; // combat losses
 	struct size_change_from_growth; // growth & starvation
@@ -91,6 +100,27 @@ namespace rebel_faction {
 		ideology, ideologies::ideology_tag,
 		type, population::rebel_type_tag
 	> ;
+}
+
+namespace pop_movement {
+	struct total_population_support;
+	struct radicalism;
+	struct radicalism_cache;
+
+	struct member_pops;
+	struct liberation_country;
+	struct associated_issue;
+	struct type;
+
+	using container = variable_layout_tagged_vector < population::movement_tag, 4'000,
+		total_population_support, float,
+		radicalism, float,
+		radicalism_cache, float,
+		member_pops, set_tag<population::pop_tag>,
+		liberation_country, cultures::national_tag,
+		associated_issue, issues::option_tag,
+		type, population::movement_type
+	>;
 }
 
 namespace population {
@@ -197,15 +227,7 @@ namespace population {
 		rebel_type_tag id;
 	};
 
-
-	enum class movement_type : uint8_t {
-		liberation,
-		social,
-		political,
-		none
-	};
-
-	struct pop_movement {
+	/*struct pop_movement {
 		int64_t total_population_support;
 		float radicalism = 0.0f;
 		float radicalism_cache = 0.0f;
@@ -220,7 +242,7 @@ namespace population {
 		movement_type type = movement_type::none;
 	};
 
-	/*struct rebel_faction {
+	struct rebel_faction {
 		set_tag<provinces::province_tag> controlled_provinces;
 		set_tag<pop_tag> member_pops;
 
@@ -239,10 +261,11 @@ namespace population {
 	class population_state {
 	public:
 		//stable_vector<rebel_faction, rebel_faction_tag, 2048, 16> rebel_factions;
-		stable_vector<pop_movement, movement_tag, 2048, 16> pop_movements;
+		//stable_vector<pop_movement, movement_tag, 2048, 16> pop_movements;
 
 		pop::container pops;
 		rebel_faction::container rebel_factions;
+		pop_movement::container pop_movements;
 		stable_2d_vector<float, pop_tag, demo_tag, 2048, 256> pop_demographics;
 
 		stable_variable_vector_storage_mk_2<pop_tag, 8, 65536> pop_arrays;
