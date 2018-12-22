@@ -21,7 +21,7 @@ namespace population {
 	
 	bool is_dominant_issue(world_state const& ws, pop_tag id, issues::option_tag opt);
 	bool is_dominant_ideology(world_state const& ws, pop_tag id, ideologies::ideology_tag opt);
-	void destroy_pop_movement(world_state& ws, pop_movement& m);
+	void destroy_pop_movement(world_state& ws, movement_tag m);
 	void destroy_rebel_faction(world_state& ws, rebel_faction_tag r);
 	void change_pop_type(world_state& ws, pop_tag this_pop, pop_type_tag new_type);
 	void change_pop_size(world_state& ws, pop_tag this_pop, int32_t new_size);

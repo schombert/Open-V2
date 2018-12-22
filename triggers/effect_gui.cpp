@@ -5,7 +5,7 @@
 #include "codes.h"
 #include "world_state\\world_state.h"
 #include <random>
-#include "population\\population_function.h"
+#include "population\\population_functions.hpp"
 #include "nations\\nations_functions.hpp"
 #include "modifiers\\modifiers_gui.h"
 #include "technologies\\technologies_functions.h"
@@ -144,11 +144,11 @@ namespace triggers {
 			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
 
 			auto tag = trigger_payload(tval).tag;
-			auto hname = ws.w.culture_s.national_tags_state[tag].holder ?
-				ws.w.nation_s.nations.get<nation::name>(ws.w.culture_s.national_tags_state[tag].holder) :
+			auto hname = ws.w.culture_s.tags_to_holders[tag] ?
+				ws.w.nation_s.nations.get<nation::name>(ws.w.culture_s.tags_to_holders[tag]) :
 				ws.s.culture_m.national_tags[tag].default_name.name;
-			auto hadj = ws.w.culture_s.national_tags_state[tag].holder ?
-				ws.w.nation_s.nations.get<nation::adjective>(ws.w.culture_s.national_tags_state[tag].holder) :
+			auto hadj = ws.w.culture_s.tags_to_holders[tag] ?
+				ws.w.nation_s.nations.get<nation::adjective>(ws.w.culture_s.tags_to_holders[tag]) :
 				ws.s.culture_m.national_tags[tag].default_name.adjective;
 			text_data::replacement repl[2] = {
 				text_data::replacement{
@@ -1383,7 +1383,7 @@ namespace triggers {
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
 				auto tag = trigger_payload(tval[3]).tag;
 
-				if(auto tag_holder = ws.w.culture_s.national_tags_state[tag].holder; tag_holder) {
+				if(auto tag_holder = ws.w.culture_s.tags_to_holders[tag]; tag_holder) {
 					cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(tag_holder), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 					lm.finish_current_line();
@@ -1404,7 +1404,7 @@ namespace triggers {
 				lm.decrease_indent(1);
 			} else {
 				auto tag = trigger_payload(tval[2]).tag;
-				if(auto tag_holder = ws.w.culture_s.national_tags_state[tag].holder; tag_holder) {
+				if(auto tag_holder = ws.w.culture_s.tags_to_holders[tag]; tag_holder) {
 					cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(tag_holder), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 					lm.finish_current_line();
@@ -2290,7 +2290,7 @@ namespace triggers {
 			return tag_type_from_province_effect(scenario::fixed_ui::make_alliance, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_release_vassal(EFFECT_DISPLAY_PARAMS) {
-			if(auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder; bool(holder) && is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(holder))) {
+			if(auto holder = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag]; bool(holder) && is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(holder))) {
 				return tag_type_effect(scenario::fixed_ui::become_independent, tval[2], ws, container, cursor_in, lm, fmt);
 			} else {
 				return tag_type_effect(scenario::fixed_ui::release_as_vassal, tval[2], ws, container, cursor_in, lm, fmt);
@@ -2840,8 +2840,8 @@ namespace triggers {
 			auto months = trigger_payload(tval[3]).signed_value;
 			auto tag = trigger_payload(tval[4]).tag;
 
-			auto hname = ws.w.culture_s.national_tags_state[tag].holder ?
-				ws.w.nation_s.nations.get<nation::name>(ws.w.culture_s.national_tags_state[tag].holder) :
+			auto hname = ws.w.culture_s.tags_to_holders[tag] ?
+				ws.w.nation_s.nations.get<nation::name>(ws.w.culture_s.tags_to_holders[tag]) :
 				ws.s.culture_m.national_tags[tag].default_name.name;
 			char16_t local_buffer[16];
 			put_value_in_buffer(local_buffer, display_type::integer, months);
@@ -2978,8 +2978,8 @@ namespace triggers {
 			auto months = trigger_payload(tval[3]).signed_value;
 			auto tag = trigger_payload(tval[4]).tag;
 
-			auto hname = ws.w.culture_s.national_tags_state[tag].holder ?
-				ws.w.nation_s.nations.get<nation::name>(ws.w.culture_s.national_tags_state[tag].holder) :
+			auto hname = ws.w.culture_s.tags_to_holders[tag] ?
+				ws.w.nation_s.nations.get<nation::name>(ws.w.culture_s.tags_to_holders[tag]) :
 				ws.s.culture_m.national_tags[tag].default_name.name;
 			char16_t local_buffer[16];
 			put_value_in_buffer(local_buffer, display_type::integer, months);
@@ -3115,8 +3115,8 @@ namespace triggers {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 			auto tag = trigger_payload(tval[3]).tag;
 
-			auto hname = ws.w.culture_s.national_tags_state[tag].holder ?
-				ws.w.nation_s.nations.get<nation::name>(ws.w.culture_s.national_tags_state[tag].holder) :
+			auto hname = ws.w.culture_s.tags_to_holders[tag] ?
+				ws.w.nation_s.nations.get<nation::name>(ws.w.culture_s.tags_to_holders[tag]) :
 				ws.s.culture_m.national_tags[tag].default_name.name;
 
 			text_data::replacement repl[2] = {
@@ -3229,8 +3229,8 @@ namespace triggers {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 			auto tag = trigger_payload(tval[3]).tag;
 
-			auto hname = ws.w.culture_s.national_tags_state[tag].holder ?
-				ws.w.nation_s.nations.get<nation::name>(ws.w.culture_s.national_tags_state[tag].holder) :
+			auto hname = ws.w.culture_s.tags_to_holders[tag] ?
+				ws.w.nation_s.nations.get<nation::name>(ws.w.culture_s.tags_to_holders[tag]) :
 				ws.s.culture_m.national_tags[tag].default_name.name;
 
 			text_data::replacement repl[2] = {
@@ -3351,7 +3351,7 @@ namespace triggers {
 			if(is_valid_index(st)) {
 				cursor_in = fill_text_effect(scenario::fixed_ui::for_text, ws.w.nation_s.states.get<state::name>(st), ws, container, cursor_in, lm, fmt);
 			} else if(is_valid_index(lib)) {
-				auto holder = ws.w.culture_s.national_tags_state[lib].holder;
+				auto holder = ws.w.culture_s.tags_to_holders[lib];
 				cursor_in = fill_text_effect(scenario::fixed_ui::for_text,
 					holder ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[lib].default_name.name, ws, container, cursor_in, lm, fmt);
 			} else {

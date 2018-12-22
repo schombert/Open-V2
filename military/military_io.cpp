@@ -12,7 +12,7 @@
 #include "world_state\\world_state.h"
 #include "military_functions.h"
 #include "nations\\nations_functions.h"
-#include "population\\population_function.h"
+#include "population\\population_functions.hpp"
 
 void serialization::serializer<military::army_orders>::serialize_object(std::byte *& output, military::army_orders const & obj, world_state const &) {
 	auto leader_id = obj.leader ? obj.leader->id : military::leader_tag();

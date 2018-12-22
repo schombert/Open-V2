@@ -19,6 +19,11 @@ namespace ve {
 
 	struct mask_vector;
 
+	template<typename T>
+	struct ve_identity {
+		using type = T;
+
+	};
 	struct vbitfield_type {
 		using storage = uint8_t;
 
@@ -674,6 +679,15 @@ namespace ve {
 		return _mm256_castsi256_ps(_mm256_or_si256(_mm256_cmpgt_epi32(a, b), _mm256_cmpgt_epi32(b, a)));
 	}
 
+	template<typename T>
+	__forceinline mask_vector operator==(tagged_vector<T> a, typename ve_identity<T>::type b) {
+		return a == tagged_vector<T>(b);
+	}
+	template<typename T>
+	__forceinline mask_vector operator!=(tagged_vector<T> a, typename ve_identity<T>::type b) {
+		return a != tagged_vector<T>(b);
+	}
+
 	template<typename tag_type>
 	__forceinline mask_vector operator==(contiguous_tags_base<tag_type> a, tagged_vector<tag_type> b) {
 		return tagged_vector<tag_type>(
@@ -1118,7 +1132,7 @@ namespace ve {
 		}
 	}
 	template<typename U>
-	__forceinline auto load(int_vector indices, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<U, bitfield_type>, value_to_vector_type<U>> {
+	__forceinline auto load(int_vector indices, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<std::remove_cv_t<U>, bitfield_type>, value_to_vector_type<U>> {
 		if constexpr(U(-1) < U(0)) {
 			auto v = _mm256_i32gather_epi32((int32_t const*)source, _mm256_sub_epi32(indices, _mm256_set1_epi32(3)), 1);
 			return _mm256_srai_epi32(v, 24);
@@ -1128,7 +1142,7 @@ namespace ve {
 		}
 	}
 	template<typename T, typename U>
-	__forceinline auto load(tagged_vector<T> indices, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<U, bitfield_type>, value_to_vector_type<U>> {
+	__forceinline auto load(tagged_vector<T> indices, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<std::remove_cv_t<U>, bitfield_type>, value_to_vector_type<U>> {
 		if constexpr(U(-1) < U(0)) {
 			auto v = _mm256_i32gather_epi32((int32_t const*)source, _mm256_sub_epi32(indices, _mm256_set1_epi32(3)), 1);
 			return _mm256_srai_epi32(v, 24);
@@ -1138,7 +1152,7 @@ namespace ve {
 		}
 	}
 	template<typename U>
-	__forceinline auto load(union_tag_vector indices, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<U, bitfield_type>, value_to_vector_type<U>> {
+	__forceinline auto load(union_tag_vector indices, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<std::remove_cv_t<U>, bitfield_type>, value_to_vector_type<U>> {
 		if constexpr(U(-1) < U(0)) {
 			auto v = _mm256_i32gather_epi32((int32_t const*)source, _mm256_sub_epi32(indices, _mm256_set1_epi32(3)), 1);
 			return _mm256_srai_epi32(v, 24);
@@ -1150,28 +1164,21 @@ namespace ve {
 
 
 	//-----
-	template<typename T>
-	struct ve_identity {
-		using type = T;
-	};
+	
 	template<typename T, int32_t i, typename U>
-	__forceinline auto load(contiguous_tags<typename ve_identity<decay_tag<T>>::type, i> e, tagged_array_view<U, T, true> source)
-		-> value_to_vector_type<std::remove_cv_t<U>> {
+	__forceinline auto load(contiguous_tags<typename ve_identity<decay_tag<T>>::type, i> e, tagged_array_view<U, T, true> source) {
 		return ve::load(e, source.data());
 	}
 	template<typename T, int32_t i, typename U>
-	__forceinline auto load(unaligned_contiguous_tags<typename ve_identity<decay_tag<T>>::type, i> e, tagged_array_view<U, T, true> source)
-		-> value_to_vector_type<std::remove_cv_t<U>> {
+	__forceinline auto load(unaligned_contiguous_tags<typename ve_identity<decay_tag<T>>::type, i> e, tagged_array_view<U, T, true> source) {
 		return ve::load(e, source.data());
 	}
 	template<typename T, typename U>
-	__forceinline auto load(partial_contiguous_tags<typename ve_identity<decay_tag<T>>::type> e, tagged_array_view<U, T, true> source)
-		-> value_to_vector_type<std::remove_cv_t<U>> {
+	__forceinline auto load(partial_contiguous_tags<typename ve_identity<decay_tag<T>>::type> e, tagged_array_view<U, T, true> source) {
 		return ve::load(e, source.data());
 	}
 	template<typename T, typename U>
-	__forceinline auto load(tagged_vector<typename ve_identity<decay_tag<T>>::type> indices, tagged_array_view<U, T, true> source)
-		-> value_to_vector_type<std::remove_cv_t<U>> {
+	__forceinline auto load(tagged_vector<typename ve_identity<decay_tag<T>>::type> indices, tagged_array_view<U, T, true> source) {
 		return ve::load(indices, source.data());
 	}
 	//-----

@@ -19,7 +19,7 @@ namespace nations {
 	void fix_capitals(world_state& ws);
 	provinces::province_tag get_state_capital(world_state const& ws, nations::state_tag s);
 	provinces::province_tag find_state_capital(world_state const& ws, nations::state_tag s);
-	provinces::province_tag state_port_province(world_state const& ws, nations::state_tag s);
+	
 	void set_relationship(world_state& ws, nations::country_tag a, nations::country_tag b, int32_t value);
 	int32_t get_relationship(world_state const& ws, nations::country_tag a, country_tag b);
 	void adjust_relationship(world_state& ws, nations::country_tag a, nations::country_tag b, int32_t value);
@@ -72,7 +72,9 @@ namespace nations {
 	template<typename T>
 	auto is_colonial_or_protectorate(world_state const& ws, T s) -> decltype(ve::widen_to<T>(true));
 	template<typename T>
-	auto is_great_power(world_state const& ws, T this_nation)-> decltype(ve::widen_to<T>(true));
+	auto is_great_power(world_state const& ws, T this_nation) -> decltype(ve::widen_to<T>(true));
+	template<typename T>
+	auto state_port_province(world_state const& ws, T this_state) -> decltype(ve::widen_to<T>(provinces::province_tag()));
 
 	void change_primary_culture(world_state& ws, country_tag n, cultures::culture_tag c);
 	void add_accepted_culture(world_state& ws, country_tag n, cultures::culture_tag c);

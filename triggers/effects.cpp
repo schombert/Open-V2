@@ -65,6 +65,7 @@ namespace triggers {
 #endif
 
 	namespace {
+
 #define EFFECT_PARAMTERS uint16_t const* tval, world_state& ws, parameter primary_slot, parameter this_slot, parameter from_slot, jsf_prng& gen
 
 

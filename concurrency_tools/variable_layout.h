@@ -383,17 +383,17 @@ namespace variable_layout_detail {
 		}
 		template<typename T>
 		__forceinline static auto get_row(data& dat)
-			-> std::conditional_t<std::is_same_v<T, index_type>, int8_t*, decltype(variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get_row<T>(dat))> {
+			-> std::conditional_t<std::is_same_v<T, index_type>, bitfield_type*, decltype(variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get_row<T>(dat))> {
 			if constexpr(std::is_same_v<T, index_type>)
-				return (int8_t*)(dat.d_union.values);
+				return dat.d_union.values;
 			else
 				return variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get_row<T>(dat);
 		}
 		template<typename T>
 		__forceinline static auto get_row(const data& dat)
-			-> std::conditional_t<std::is_same_v<T, index_type>, int8_t const*, decltype(variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get_row<T>(dat))> {
+			-> std::conditional_t<std::is_same_v<T, index_type>, bitfield_type const*, decltype(variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get_row<T>(dat))> {
 			if constexpr(std::is_same_v<T, index_type>)
-				return  (int8_t const*)(dat.d_union.values);
+				return dat.d_union.values;
 			else
 				return variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get_row<T>(dat);
 		}
@@ -576,14 +576,14 @@ public:
 		if constexpr(!std::is_same_v<typename container_type::template value_type<U>, bitfield_type>)
 			return tagged_array_view<typename container_type::template value_type<U> const, tag_type, true>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), size_used + 1);
 		else
-			return tagged_array_view<int8_t const, int32_t, false>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), int32_t(uint32_t(size_used + 8) / 8ui32));
+			return tagged_array_view<bitfield_type const, tag_type, true>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), int32_t(uint32_t(size_used + 8) / 8ui32));
 	}
 	template<typename U>
 	__forceinline auto get_row() {
 		if constexpr(!std::is_same_v<typename container_type::template value_type<U>, bitfield_type>)
 			return tagged_array_view<typename container_type::template value_type<U>, tag_type, true>(container_type::template get_row<U>(*ptr), size_used + 1);
 		else
-			return tagged_array_view<int8_t, int32_t, false>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), int32_t(uint32_t(size_used + 8) / 8ui32));
+			return tagged_array_view<bitfield_type, tag_type, true>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), int32_t(uint32_t(size_used + 8) / 8ui32));
 	}
 
 	template<typename U, typename V>
@@ -723,14 +723,14 @@ public:
 		if constexpr(!std::is_same_v<typename container_type::template value_type<U>, bitfield_type>)
 			return tagged_array_view<typename container_type::template value_type<U> const, tag_type, true>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), size_used);
 		else
-			return tagged_array_view<int8_t const, int32_t, false>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), int32_t(uint32_t(size_used + 7) / 8ui32));
+			return tagged_array_view<bitfield_type const, tag_type, true>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), int32_t(uint32_t(size_used + 7) / 8ui32));
 	}
 	template<typename U>
 	__forceinline auto get_row() {
 		if constexpr(!std::is_same_v<typename container_type::template value_type<U>, bitfield_type>)
 			return tagged_array_view<typename container_type::template value_type<U>, tag_type, true>(container_type::template get_row<U>(*ptr), size_used);
 		else
-			return tagged_array_view<int8_t, int32_t, false>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), int32_t(uint32_t(size_used + 7) / 8ui32));
+			return tagged_array_view<bitfield_type, tag_type, true>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), int32_t(uint32_t(size_used + 7) / 8ui32));
 	}
 	template<typename U, typename V>
 	__forceinline std::enable_if_t<!std::is_trivially_copyable_v<V>> set(tag_type i, V const& val) {

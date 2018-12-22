@@ -49,56 +49,30 @@ namespace ve {
 		return negate_multiply_and_add(a, i * i, i + i);
 	}
 
-
-	template<typename value_base, typename zero_is_null, typename individuator, typename U>
-	__forceinline auto load(tag_type<value_base, zero_is_null, individuator> e, U const* source) -> decay_tag<U> {
-		return source[to_index(e)];
-	}
-	template<typename tt, typename U>
-	__forceinline auto load(expanded_tag<tt> e, U const* source) -> decay_tag<U> {
-		return source[to_index(e)];
-	}
-	template<typename U>
-	__forceinline auto load(int32_t e, U const* source) -> decay_tag<U> {
-		return source[e];
-	}
-
-
-	template<typename value_base, typename zero_is_null, typename individuator, typename U>
-	__forceinline auto load(tag_type<value_base, zero_is_null, individuator> e,
-		tagged_array_view<U, typename ve_identity<tag_type<value_base, zero_is_null, individuator>>::type, true> source) 
-	-> decay_tag<std::remove_cv_t<U>> {
-		return source[e];
-	}
-	template<typename value_base, typename zero_is_null, typename individuator, typename U>
-	__forceinline auto load(tag_type<value_base, zero_is_null, individuator> e,
-		tagged_array_view<U, typename ve_identity<expanded_tag<tag_type<value_base, zero_is_null, individuator>>>::type, true> source)
-		-> decay_tag<std::remove_cv_t<U>> {
-		return source[e];
-	}
-	template<typename tt, typename U>
-	__forceinline auto load(expanded_tag<tt> e, tagged_array_view<U, typename ve_identity<tt>::type, true> source)
-		-> decay_tag<std::remove_cv_t<U>> {
-		return source[e];
-	}
-	template<typename tt, typename U>
-	__forceinline auto load(expanded_tag<tt> e, tagged_array_view<U, typename ve_identity<expanded_tag<tt>>::type, true> source)
-		-> decay_tag<std::remove_cv_t<U>> {
-		return source[e];
-	}
-
-
 	template<typename value_base, typename zero_is_null, typename individuator>
 	__forceinline bool load(tag_type<value_base, zero_is_null, individuator> e, bitfield_type const* source) {
-		return bit_vector_test(source, uint32_t(to_index(e)));
-	}
-	template<typename tt>
-	__forceinline bool load(expanded_tag<tt> e, bitfield_type const* source) {
-		return bit_vector_test(source, uint32_t(to_index(e)));
+		return bit_vector_test(source, uint32_t(e.value));
 	}
 	__forceinline bool load(int32_t e, bitfield_type const* source) {
 		return bit_vector_test(source, uint32_t(e));
 	}
+
+	template<typename value_base, typename zero_is_null, typename individuator, typename U>
+	__forceinline auto load(tag_type<value_base, zero_is_null, individuator> e, U const* source) -> std::enable_if_t<!std::is_same_v<std::remove_cv_t<U>, bitfield_type>, decay_tag<U>> {
+		return source[e.value];
+	}
+
+	template<typename U>
+	__forceinline auto load(int32_t e, U const* source) -> std::enable_if_t < !std::is_same_v<std::remove_cv_t<U>, bitfield_type>, decay_tag<U>> {
+		return source[e];
+	}
+	
+	template<typename value_base, typename zero_is_null, typename individuator, typename U>
+	__forceinline auto load(tag_type<value_base, zero_is_null, individuator> e,
+		tagged_array_view<U, typename ve_identity<tag_type<value_base, zero_is_null, individuator>>::type, true> source) {
+		return ve::load(e, source.data());
+	}
+	
 
 	template<int32_t cache_lines, typename value_base, typename zero_is_null, typename individuator>
 	__forceinline void prefetch(tag_type<value_base, zero_is_null, individuator> e, float const* source) {}
@@ -131,14 +105,14 @@ namespace ve {
 
 
 	template<typename value_base, typename zero_is_null, typename individuator>
-	__forceinline void load(tag_type<value_base, zero_is_null, individuator> e, float* dest, float value) {
+	__forceinline void store(tag_type<value_base, zero_is_null, individuator> e, float* dest, float value) {
 		dest[to_index(e)] = value;
 	}
 	template<typename tt>
-	__forceinline void load(expanded_tag<tt> e, float* dest, float value) {
+	__forceinline void store(expanded_tag<tt> e, float* dest, float value) {
 		dest[to_index(e)] = value;
 	}
-	__forceinline void load(int32_t e, float* dest, float value) {
+	__forceinline void store(int32_t e, float* dest, float value) {
 		dest[e] = value;
 	}
 

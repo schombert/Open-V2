@@ -16,7 +16,10 @@ namespace nations {
 
 	template<typename F>
 	void for_each_province(world_state const& ws, state_tag s, F&& f) {
-		auto prange = ws.s.province_m.states_to_province_index.get_row(ws.w.nation_s.states.get<state::region_id>(s));
+		auto region = ws.w.nation_s.states.get<state::region_id>(s);
+		auto prange = is_valid_index(region)
+			? ws.s.province_m.states_to_province_index.get_row(region)
+			: std::pair<provinces::province_tag const*, provinces::province_tag const*>(nullptr, nullptr);
 		for(auto p : prange) {
 			if(ws.w.province_s.province_state_container.get<province_state::state_instance>(p) == s)
 				f(p);
@@ -65,7 +68,11 @@ namespace nations {
 
 	template<typename F>
 	void for_each_province(world_state& ws, state_tag s, F&& f) {
-		auto prange = ws.s.province_m.states_to_province_index.get_row(ws.w.nation_s.states.get<state::region_id>(s));
+		auto region = ws.w.nation_s.states.get<state::region_id>(s);
+		auto prange = is_valid_index(region)
+			? ws.s.province_m.states_to_province_index.get_row(region)
+			: std::pair<provinces::province_tag*, provinces::province_tag*>(nullptr, nullptr);
+
 		for(auto p : prange) {
 			if(ws.w.province_s.province_state_container.get<province_state::state_instance>(p) == s)
 				f(p);
@@ -182,5 +189,18 @@ namespace nations {
 	template<typename T>
 	auto is_great_power(world_state const& ws, T this_nation)-> decltype(ve::widen_to<T>(true)) {
 		return ve::load(this_nation, ws.w.nation_s.nations.get_row<nation::overall_rank>()) <= 8i16;
+	}
+
+	template<typename T>
+	auto state_port_province(world_state const& ws, T this_state) -> decltype(ve::widen_to<T>(provinces::province_tag())) {
+		return ve::apply(this_state, [&ws](nations::state_tag s) {
+			provinces::province_tag port;
+			nations::for_each_province(ws, s, [&port, &ws](provinces::province_tag p) {
+				if(ws.w.province_s.province_state_container.get<province_state::naval_base_level>(p) > 0
+					|| ws.w.province_s.province_state_container.get<province_state::naval_base_upgrade_progress>(p) != 0)
+					port = p;
+			});
+			return port;
+		});
 	}
 }

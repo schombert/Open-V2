@@ -195,7 +195,7 @@ namespace military {
 		for(auto& c : ws.s.military_m.cb_types) {
 			if((c.flags & cb_type::is_not_triggered_only) == 0 &&
 				is_valid_index(c.can_use) &&
-				triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(c.can_use), ws, nation_target, nation_by, nullptr))
+				triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(c.can_use), ws, nation_target, nation_by, triggers::const_parameter()))
 				return true;
 		}
 		return false;

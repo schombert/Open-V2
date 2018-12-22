@@ -154,12 +154,6 @@ namespace triggers {
 	typename this_type::parameter_type this_slot, typename from_type::parameter_type from_slot) -> typename primary_type::return_type
 
 
-		__forceinline nations::country_tag to_nation(const_parameter v) { return v; }
-		__forceinline nations::state_tag to_state(const_parameter v) { return v; }
-		__forceinline provinces::province_tag to_province(const_parameter v) { return v; }
-		__forceinline population::pop_tag to_pop(const_parameter v) { return v; }
-		__forceinline population::rebel_faction_tag to_rebel(const_parameter v) { return v; }
-
 		__forceinline ve::contiguous_tags<nations::country_tag> to_nation(ve::contiguous_tags<union_tag> v) {
 			return ve::contiguous_tags<nations::country_tag>(v.value);
 		}
@@ -195,7 +189,9 @@ namespace triggers {
 			return ve::load(v, c.template get_row(i, 0));
 		}
 
-	TRIGGER_FUNCTION(test_trigger_generic);
+	template<typename primary_type, typename this_type, typename from_type>
+	auto __vectorcall test_trigger_generic(uint16_t const* tval, world_state const& ws, typename primary_type::parameter_type primary_slot,
+		typename this_type::parameter_type this_slot, typename from_type::parameter_type from_slot) -> typename primary_type::return_type;
 
 	TRIGGER_FUNCTION(apply_disjuctively) {
 		const auto source_size = 1 + get_trigger_payload_size(tval);
@@ -1458,35 +1454,35 @@ namespace triggers {
 	TRIGGER_FUNCTION(tf_religion_reb) {
 		return compare_values_eq(tval[0],
 			to_value<pop::religion>(ws.w.population_s.pops, to_pop(primary_slot)),
-			to_value<rebel_faction::religion>(ws.w.population_s.rebel_factions, to_rebel(from_slot));
+			to_value<rebel_faction::religion>(ws.w.population_s.rebel_factions, to_rebel(from_slot)));
 	}
 	TRIGGER_FUNCTION(tf_religion_from_nation) {
 		return compare_values_eq(tval[0],
 			to_value<pop::religion>(ws.w.population_s.pops, to_pop(primary_slot)),
-			to_value<nation::religion>(ws.w.nation_s.nations, to_nation(from_slot));
+			to_value<nation::religion>(ws.w.nation_s.nations, to_nation(from_slot)));
 	}
 	TRIGGER_FUNCTION(tf_religion_this_nation) {
 		return compare_values_eq(tval[0],
 			to_value<pop::religion>(ws.w.population_s.pops, to_pop(primary_slot)),
-			to_value<nation::religion>(ws.w.nation_s.nations, to_nation(this_slot));
+			to_value<nation::religion>(ws.w.nation_s.nations, to_nation(this_slot)));
 	}
 	TRIGGER_FUNCTION(tf_religion_this_state) {
 		auto owner = to_value<state::owner>(ws.w.nation_s.states, to_state(this_slot));
 		return compare_values_eq(tval[0],
 			to_value<pop::religion>(ws.w.population_s.pops, to_pop(primary_slot)),
-			to_value<nation::religion>(ws.w.nation_s.nations, owner);
+			to_value<nation::religion>(ws.w.nation_s.nations, owner));
 	}
 	TRIGGER_FUNCTION(tf_religion_this_province) {
 		auto owner = provinces::province_owner(ws, to_prov(this_slot));
 		return compare_values_eq(tval[0],
 			to_value<pop::religion>(ws.w.population_s.pops, to_pop(primary_slot)),
-			to_value<nation::religion>(ws.w.nation_s.nations, owner);
+			to_value<nation::religion>(ws.w.nation_s.nations, owner));
 	}
 	TRIGGER_FUNCTION(tf_religion_this_pop) {
 		auto owner = population::get_pop_owner(ws, to_pop(this_slot));
 		return compare_values_eq(tval[0],
 			to_value<pop::religion>(ws.w.population_s.pops, to_pop(primary_slot)),
-			to_value<nation::religion>(ws.w.nation_s.nations, owner);
+			to_value<nation::religion>(ws.w.nation_s.nations, owner));
 	}
 	TRIGGER_FUNCTION(tf_terrain_province) {
 		return compare_values_eq(tval[0],
@@ -1597,7 +1593,7 @@ namespace triggers {
 	}
 	TRIGGER_FUNCTION(tf_is_cultural_union_this_rebel) {
 		auto rc = to_value<rebel_faction::culture>(ws.w.population_s.rebel_factions, to_rebel(from_slot));
-		return compare_values_eq(tval[0], to_nation(primary_slot), == nations::union_holder_for(ws, rc));
+		return compare_values_eq(tval[0], to_nation(primary_slot), nations::union_holder_for(ws, rc));
 	}
 	TRIGGER_FUNCTION(tf_is_cultural_union_tag_nation) {
 		return compare_values_eq(tval[0], nations::union_tag_of(ws, to_nation(primary_slot)), trigger_payload(tval[2]).tag);
@@ -1804,7 +1800,7 @@ namespace triggers {
 	}
 	TRIGGER_FUNCTION(tf_owned_by_tag) {
 		auto holders = ve::load(trigger_payload(tval[2]).tag, ws.w.culture_s.tags_to_holders.view());
-		return compare_to_true(tval[0], is_valid_index(holders) & (holder == provinces::province_owner(ws, to_prov(primary_slot))));
+		return compare_to_true(tval[0], is_valid_index(holders) & (holders == provinces::province_owner(ws, to_prov(primary_slot))));
 	}
 	TRIGGER_FUNCTION(tf_owned_by_this_nation) {
 		return compare_values_eq(tval[0], to_nation(this_slot), provinces::province_owner(ws, to_prov(primary_slot)));
@@ -1901,34 +1897,34 @@ namespace triggers {
 		return compare_to_true(tval[0], result);
 	}
 	TRIGGER_FUNCTION(tf_casus_belli_from) {
-		auto result = ve::apply(to_nation(primary_slot), to_nation(from_slot), [&ws, tag_holder](nations::country_tag n, nations::country_tag target) {
+		auto result = ve::apply(to_nation(primary_slot), to_nation(from_slot), [&ws](nations::country_tag n, nations::country_tag target) {
 			return military::can_use_cb_against(ws, n, target);
 		});
 		return compare_to_true(tval[0], result);
 	}
 	TRIGGER_FUNCTION(tf_casus_belli_this_nation) {
-		auto result = ve::apply(to_nation(primary_slot), to_nation(this_slot), [&ws, tag_holder](nations::country_tag n, nations::country_tag target) {
+		auto result = ve::apply(to_nation(primary_slot), to_nation(this_slot), [&ws](nations::country_tag n, nations::country_tag target) {
 			return military::can_use_cb_against(ws, n, target);
 		});
 		return compare_to_true(tval[0], result);
 	}
 	TRIGGER_FUNCTION(tf_casus_belli_this_state) {
 		auto owner = to_value<state::owner>(ws.w.nation_s.states, to_state(this_slot));
-		auto result = ve::apply(to_nation(primary_slot), owner, [&ws, tag_holder](nations::country_tag n, nations::country_tag target) {
+		auto result = ve::apply(to_nation(primary_slot), owner, [&ws](nations::country_tag n, nations::country_tag target) {
 			return military::can_use_cb_against(ws, n, target);
 		});
 		return compare_to_true(tval[0], result);
 	}
 	TRIGGER_FUNCTION(tf_casus_belli_this_province) {
 		auto owner = provinces::province_owner(ws, to_prov(this_slot));
-		auto result = ve::apply(to_nation(primary_slot), owner, [&ws, tag_holder](nations::country_tag n, nations::country_tag target) {
+		auto result = ve::apply(to_nation(primary_slot), owner, [&ws](nations::country_tag n, nations::country_tag target) {
 			return military::can_use_cb_against(ws, n, target);
 		});
 		return compare_to_true(tval[0], result);
 	}
 	TRIGGER_FUNCTION(tf_casus_belli_this_pop) {
 		auto owner = population::get_pop_owner(ws, to_pop(this_slot));
-		auto result = ve::apply(to_nation(primary_slot), owner, [&ws, tag_holder](nations::country_tag n, nations::country_tag target) {
+		auto result = ve::apply(to_nation(primary_slot), owner, [&ws](nations::country_tag n, nations::country_tag target) {
 			return military::can_use_cb_against(ws, n, target);
 		});
 		return compare_to_true(tval[0], result);
@@ -1956,25 +1952,25 @@ namespace triggers {
 		return compare_to_true(tval[0], military::has_military_access_with(ws, to_nation(primary_slot), owner));
 	}
 	TRIGGER_FUNCTION(tf_prestige_value) {
-		return compare_values(tval[0], nations::get_prestige(ws, to_nation(primary_slot), read_float_from_payload(tval + 2));
+		return compare_values(tval[0], nations::get_prestige(ws, to_nation(primary_slot)), read_float_from_payload(tval + 2));
 	}
 	TRIGGER_FUNCTION(tf_prestige_from) {
 		return compare_values(tval[0], nations::get_prestige(ws, to_nation(primary_slot)), nations::get_prestige(ws, to_nation(from_slot)));
 	}
 	TRIGGER_FUNCTION(tf_prestige_this_nation) {
-		return compare_values(tval[0], nations::get_prestige(ws, to_nation(primary_slot), nations::get_prestige(ws, to_nation(this_slot)));
+		return compare_values(tval[0], nations::get_prestige(ws, to_nation(primary_slot)), nations::get_prestige(ws, to_nation(this_slot)));
 	}
 	TRIGGER_FUNCTION(tf_prestige_this_state) {
 		auto owner = to_value<state::owner>(ws.w.nation_s.states, to_state(this_slot));
-		return compare_values(tval[0], nations::get_prestige(ws, to_nation(primary_slot), nations::get_prestige(ws, owner));
+		return compare_values(tval[0], nations::get_prestige(ws, to_nation(primary_slot)), nations::get_prestige(ws, owner));
 	}
 	TRIGGER_FUNCTION(tf_prestige_this_province) {
 		auto owner = provinces::province_owner(ws, to_prov(this_slot));
-		return compare_values(tval[0], nations::get_prestige(ws, to_nation(primary_slot), nations::get_prestige(ws, owner));
+		return compare_values(tval[0], nations::get_prestige(ws, to_nation(primary_slot)), nations::get_prestige(ws, owner));
 	}
 	TRIGGER_FUNCTION(tf_prestige_this_pop) {
 		auto owner = population::get_pop_owner(ws, to_pop(this_slot));
-		return compare_values(tval[0], nations::get_prestige(ws, to_nation(primary_slot), nations::get_prestige(ws, owner));
+		return compare_values(tval[0], nations::get_prestige(ws, to_nation(primary_slot)), nations::get_prestige(ws, owner));
 	}
 	TRIGGER_FUNCTION(tf_badboy) {
 		return compare_values(tval[0], to_value<nation::infamy>(ws.w.nation_s.nations, to_nation(to_nation(primary_slot))), read_float_from_payload(tval + 2));
@@ -2026,7 +2022,7 @@ namespace triggers {
 	}
 	TRIGGER_FUNCTION(tf_has_province_modifier) {
 		const auto mod = trigger_payload(tval[2]).prov_mod;
-		auto result = ve::apply(to_prov(primary_slot), [&ws, mod](provicnes::province_tag p) {
+		auto result = ve::apply(to_prov(primary_slot), [&ws, mod](provinces::province_tag p) {
 			return modifiers::has_provincial_modifier(ws, p, mod);
 		});
 		return compare_to_true(tval[0], result);
@@ -2042,7 +2038,7 @@ namespace triggers {
 			trigger_payload(tval[2]).tag);
 	}
 	TRIGGER_FUNCTION(tf_tag_this_nation) {
-		return compare_values_eq(tval[0], to_nation(primary_slot, to_nation(this_slot));
+		return compare_values_eq(tval[0], to_nation(primary_slot), to_nation(this_slot));
 	}
 	TRIGGER_FUNCTION(tf_tag_this_province) {
 		return compare_values_eq(tval[0],
@@ -2068,14 +2064,14 @@ namespace triggers {
 	}
 	TRIGGER_FUNCTION(tf_neighbour_this) {
 		auto result = ve::apply(to_nation(primary_slot), to_nation(this_slot),
-			[&ws, tag_holder](nations::country_tag primary, nations::country_tag other) {
+			[&ws](nations::country_tag primary, nations::country_tag other) {
 				return contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::neighboring_nations>(primary), other);
 		});
 		return compare_to_true(tval[0], result);
 	}
 	TRIGGER_FUNCTION(tf_neighbour_from) {
 		auto result = ve::apply(to_nation(primary_slot), to_nation(from_slot),
-			[&ws, tag_holder](nations::country_tag primary, nations::country_tag other) {
+			[&ws](nations::country_tag primary, nations::country_tag other) {
 			return contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::neighboring_nations>(primary), other);
 		});
 		return compare_to_true(tval[0], result);
@@ -2191,7 +2187,7 @@ namespace triggers {
 	}
 	TRIGGER_FUNCTION(tf_ruling_party) {
 		auto rp = to_value<nation::ruling_party>(ws.w.nation_s.nations, to_nation(primary_slot));
-		auto party_names = ve::apply(rp, [&ws](government::party_tag p) {
+		auto party_names = ve::apply(rp, [&ws](governments::party_tag p) {
 			return ws.s.governments_m.parties[p].name;
 		});
 		return compare_values_eq(tval[0], party_names, trigger_payload(tval[2]).text);
@@ -2231,8 +2227,8 @@ namespace triggers {
 			read_float_from_payload(tval + 2));
 	}
 	TRIGGER_FUNCTION(tf_corruption) {
-		auto cpc = ve::to_float(to_value<central_province_count>(ws.w.nation_s.nations, to_nation(primary_slot)));
-		auto cc = ve::to_float(to_value<nation::crime_count>(ws.w.nation_s.nations, to_nation(primary_slot)))
+		auto cpc = ve::to_float(to_value<nation::central_province_count>(ws.w.nation_s.nations, to_nation(primary_slot)));
+		auto cc = ve::to_float(to_value<nation::crime_count>(ws.w.nation_s.nations, to_nation(primary_slot)));
 		
 		return compare_values(tval[0], ve::select(cpc > 0.0f, cc / cpc, 0.0f), read_float_from_payload(tval + 2));
 	}
@@ -2380,7 +2376,7 @@ namespace triggers {
 	}
 	TRIGGER_FUNCTION(tf_is_coastal) {
 		return compare_to_true(tval[0],
-			ve::widen_mask(to_value<province::is_coastal>(ws.s.province_m.province_container, to_prov(primary_slot))),
+			ve::widen_mask(to_value<province::is_coastal>(ws.s.province_m.province_container, to_prov(primary_slot)))
 			);
 	}
 	TRIGGER_FUNCTION(tf_in_sphere_tag) {
@@ -2440,7 +2436,7 @@ namespace triggers {
 		auto good = trigger_payload(tval[2]).small.values.good;
 
 		auto result = ve::apply(to_state(primary_slot), [&ws, good](nations::state_tag s) {
-			return ws.w.nation_s.states.is_valid_index(s) ? ws.w.nation_s.state_production.get(s, good) > 0.0f ? false;
+			return ws.w.nation_s.states.is_valid_index(s) ? ws.w.nation_s.state_production.get(s, good) > 0.0f : false;
 		});
 
 		return compare_to_true(tval[0], result);
@@ -2552,7 +2548,7 @@ namespace triggers {
 		auto location = to_value<pop::location>(ws.w.population_s.pops, to_pop(primary_slot));
 		auto culture = to_value<pop::culture>(ws.w.population_s.pops, to_pop(primary_slot));
 
-		auto result = ve::apply(location, culture, [&ws](province::province_tag p, cultures::culture_tag c) {
+		auto result = ve::apply(location, culture, [&ws](provinces::province_tag p, cultures::culture_tag c) {
 			auto cores = get_range(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container.get<province_state::cores>(p));
 			auto acc = has_culture_core_accumulator(ws, c);
 			for(auto tag : cores) {
@@ -2568,7 +2564,7 @@ namespace triggers {
 	TRIGGER_FUNCTION(tf_has_culture_core_province_this_pop) {
 		auto culture = to_value<pop::culture>(ws.w.population_s.pops, to_pop(this_slot));
 
-		auto result = ve::apply(to_prov(primary_slot), culture, [&ws](province::province_tag p, cultures::culture_tag c) {
+		auto result = ve::apply(to_prov(primary_slot), culture, [&ws](provinces::province_tag p, cultures::culture_tag c) {
 			auto cores = get_range(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container.get<province_state::cores>(p));
 			auto acc = has_culture_core_accumulator(ws, c);
 			for(auto tag : cores) {
@@ -2638,33 +2634,33 @@ namespace triggers {
 		return compare_to_true(tval[0], result);
 	}
 	TRIGGER_FUNCTION(tf_truce_with_from) {
-		auto result = ve::apply(to_nation(primary_slot), to_nation(from_slot), [&ws, holder](nations::country_tag a, nations::country_tag b) {
+		auto result = ve::apply(to_nation(primary_slot), to_nation(from_slot), [&ws](nations::country_tag a, nations::country_tag b) {
 			return contains_item(ws.w.nation_s.truce_arrays, ws.w.nation_s.nations.get<nation::truces>(a), nations::truce{ date_tag(), b });
 		});
 		return compare_to_true(tval[0], result);
 	}
 	TRIGGER_FUNCTION(tf_truce_with_this_nation) {
-		auto result = ve::apply(to_nation(primary_slot), to_nation(this_slot), [&ws, holder](nations::country_tag a, nations::country_tag b) {
+		auto result = ve::apply(to_nation(primary_slot), to_nation(this_slot), [&ws](nations::country_tag a, nations::country_tag b) {
 			return contains_item(ws.w.nation_s.truce_arrays, ws.w.nation_s.nations.get<nation::truces>(a), nations::truce{ date_tag(), b });
 		});
 		return compare_to_true(tval[0], result);
 	}
 	TRIGGER_FUNCTION(tf_truce_with_this_province) {
 		auto owner = provinces::province_owner(ws, to_prov(this_slot));
-		auto result = ve::apply(to_nation(primary_slot), owner, [&ws, holder](nations::country_tag a, nations::country_tag b) {
+		auto result = ve::apply(to_nation(primary_slot), owner, [&ws](nations::country_tag a, nations::country_tag b) {
 			return contains_item(ws.w.nation_s.truce_arrays, ws.w.nation_s.nations.get<nation::truces>(a), nations::truce{ date_tag(), b });
 		});
 		return compare_to_true(tval[0], result);
 	}
 	TRIGGER_FUNCTION(tf_truce_with_this_state) {
 		auto owner = to_value<state::owner>(ws.w.nation_s.states, to_state(this_slot));
-		auto result = ve::apply(to_nation(primary_slot), owner, [&ws, holder](nations::country_tag a, nations::country_tag b) {
+		auto result = ve::apply(to_nation(primary_slot), owner, [&ws](nations::country_tag a, nations::country_tag b) {
 			return contains_item(ws.w.nation_s.truce_arrays, ws.w.nation_s.nations.get<nation::truces>(a), nations::truce{ date_tag(), b });
 		});
 	}
 	TRIGGER_FUNCTION(tf_truce_with_this_pop) {
 		auto owner = population::get_pop_owner(ws, to_pop(this_slot));
-		auto result = ve::apply(to_nation(primary_slot), owner, [&ws, holder](nations::country_tag a, nations::country_tag b) {
+		auto result = ve::apply(to_nation(primary_slot), owner, [&ws](nations::country_tag a, nations::country_tag b) {
 			return contains_item(ws.w.nation_s.truce_arrays, ws.w.nation_s.nations.get<nation::truces>(a), nations::truce{ date_tag(), b });
 		});
 	}
@@ -2757,7 +2753,7 @@ namespace triggers {
 		return compare_values_eq(tval[0], to_prov(primary_slot), provinces::province_tag(tval[2]));
 	}
 	TRIGGER_FUNCTION(tf_vassal_of_tag) {
-		auto tag_holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+		auto tag_holder = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag];
 		return compare_values_eq(tval[0], to_value<nation::overlord>(ws.w.nation_s.nations, to_nation(primary_slot)), tag_holder);
 	}
 	TRIGGER_FUNCTION(tf_vassal_of_from) {
@@ -2779,7 +2775,7 @@ namespace triggers {
 		return compare_values_eq(tval[0], to_value<nation::overlord>(ws.w.nation_s.nations, to_nation(primary_slot)), owner);
 	}
 	TRIGGER_FUNCTION(tf_substate_of_tag) {
-		auto tag_holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+		auto tag_holder = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag];
 		return compare_to_true(tval[0],
 			ve::widen_mask(to_value<nation::is_substate>(ws.w.nation_s.nations, to_nation(primary_slot)))
 			& (to_value<nation::overlord>(ws.w.nation_s.nations, to_nation(primary_slot)) == tag_holder));
@@ -2814,47 +2810,47 @@ namespace triggers {
 	}
 	TRIGGER_FUNCTION(tf_alliance_with_tag) {
 		auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
-		auto result = ve::apply(to_nation(primary_slot), [&ws, holder](nations::culture_tag n) {
+		auto result = ve::apply(to_nation(primary_slot), [&ws, holder](nations::country_tag n) {
 			return contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(holder), n);
 		});
 		return compare_to_true(tval[0], result);
 	}
 	TRIGGER_FUNCTION(tf_alliance_with_from) {
-		auto result = ve::apply(to_nation(primary_slot), to_nation(from_slot), [&ws](nations::culture_tag a, nations::culture_tag b) {
+		auto result = ve::apply(to_nation(primary_slot), to_nation(from_slot), [&ws](nations::country_tag a, nations::country_tag b) {
 			return contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(a), b);
 		});
 		return compare_to_true(tval[0], result);
 	}
 	TRIGGER_FUNCTION(tf_alliance_with_this_nation) {
-		auto result = ve::apply(to_nation(primary_slot), to_nation(this_slot), [&ws](nations::culture_tag a, nations::culture_tag b) {
+		auto result = ve::apply(to_nation(primary_slot), to_nation(this_slot), [&ws](nations::country_tag a, nations::country_tag b) {
 			return contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(a), b);
 		});
 		return compare_to_true(tval[0], result);
 	}
 	TRIGGER_FUNCTION(tf_alliance_with_this_province) {
 		auto owner = provinces::province_owner(ws, to_prov(this_slot));
-		auto result = ve::apply(to_nation(primary_slot), owner, [&ws](nations::culture_tag a, nations::culture_tag b) {
+		auto result = ve::apply(to_nation(primary_slot), owner, [&ws](nations::country_tag a, nations::country_tag b) {
 			return contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(a), b);
 		});
 		return compare_to_true(tval[0], result);
 	}
 	TRIGGER_FUNCTION(tf_alliance_with_this_state) {
-		nations::country_tag owner = to_value<state::owner(>ws.w.nation_s.states, to_state(this_slot));
-		auto result = ve::apply(to_nation(primary_slot), owner, [&ws](nations::culture_tag a, nations::culture_tag b) {
+		nations::country_tag owner = to_value<state::owner>(ws.w.nation_s.states, to_state(this_slot));
+		auto result = ve::apply(to_nation(primary_slot), owner, [&ws](nations::country_tag a, nations::country_tag b) {
 			return contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(a), b);
 		});
 		return compare_to_true(tval[0], result);
 	}
 	TRIGGER_FUNCTION(tf_alliance_with_this_pop) {
 		auto owner = population::get_pop_owner(ws, to_pop(this_slot));
-		auto result = ve::apply(to_nation(primary_slot), owner, [&ws](nations::culture_tag a, nations::culture_tag b) {
+		auto result = ve::apply(to_nation(primary_slot), owner, [&ws](nations::country_tag a, nations::country_tag b) {
 			return contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(a), b);
 		});
 		return compare_to_true(tval[0], result);
 	}
 	TRIGGER_FUNCTION(tf_has_recently_lost_war) {
 		auto last_lost = to_value<nation::last_lost_war>(ws.w.nation_s.nations, to_nation(primary_slot));
-		return compare_to_true(tval[0], is_valid_index(last_lost) & ((to_int(ws.w.current_date) - to_int(last_lost)) < (365 * 5 + 1)));
+		return compare_to_true(tval[0], is_valid_index(last_lost) & ((ve::to_int(ws.w.current_date) - ce::to_int(last_lost)) < (365 * 5 + 1)));
 	}
 	TRIGGER_FUNCTION(tf_is_mobilised) {
 		return compare_to_true(tval[0], ve::widen_mask(to_value<nation::is_mobilized>(ws.w.nation_s.nations, to_nation(primary_slot))));
@@ -2892,7 +2888,7 @@ namespace triggers {
 		auto ruling_ideology = to_value<nation::ruling_ideology>(ws.w.nation_s.nations, owner);
 		auto population_size = to_value<pop::size>(ws.w.population_s.pops, to_pop(primary_slot));
 		auto ruling_support = ve::apply(to_pop(primary_slot), ruling_ideology, [&ws](population::pop_tag p, ideologies::ideology_tag i) {
-			return ws.w.population_s.pop_demographics.get(pop_id, population::to_demo_tag(ws, i));
+			return ws.w.population_s.pop_demographics.get(p, population::to_demo_tag(ws, i));
 		});
 		return compare_values(tval[0], ve::select(population_size > 0.0f, ruling_support / population_size, 0.0f), read_float_from_payload(tval + 2));
 	}
@@ -3052,7 +3048,7 @@ namespace triggers {
 	TRIGGER_FUNCTION(tf_civilized_nation) {
 		return compare_to_true(tval[0], ve::widen_mask(to_value<nation::is_civilized>(ws.w.nation_s.nations, to_nation(primary_slot))));
 	}
-	TRIGGER_FUNCTION(tf_civilized_pop(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_civilized_pop) {
 		auto owner = population::get_pop_owner(ws, to_pop(primary_slot));
 		return compare_to_true(tval[0], ve::widen_mask(to_value<nation::is_civilized>(ws.w.nation_s.nations, owner)));
 	}
@@ -3286,13 +3282,13 @@ namespace triggers {
 	TRIGGER_FUNCTION(tf_poor_strata_militancy_state) {
 		auto rvalue = 10.0f * ve::apply(to_state(primary_slot), [&ws](nations::state_tag s) {
 			if(ws.w.nation_s.states.is_valid_index(s))
-				return ws.w.nation_s.states_demographics.get(s, population::poor_militancy_demo_tag(ws));
+				return ws.w.nation_s.state_demographics.get(s, population::poor_militancy_demo_tag(ws));
 			else
 				return 0.0f;
 		});
 		auto rsz = ve::apply(to_state(primary_slot), [&ws](nations::state_tag s) {
 			if(ws.w.nation_s.states.is_valid_index(s))
-				return ws.w.nation_s.states_demographics.get(s, population::poor_population_demo_tag(ws));
+				return ws.w.nation_s.state_demographics.get(s, population::poor_population_demo_tag(ws));
 			else
 				return 0.0f;
 		});
@@ -3336,13 +3332,13 @@ namespace triggers {
 	TRIGGER_FUNCTION(tf_middle_strata_militancy_state) {
 		auto rvalue = 10.0f * ve::apply(to_state(primary_slot), [&ws](nations::state_tag s) {
 			if(ws.w.nation_s.states.is_valid_index(s))
-				return ws.w.nation_s.states_demographics.get(s, population::middle_militancy_demo_tag(ws));
+				return ws.w.nation_s.state_demographics.get(s, population::middle_militancy_demo_tag(ws));
 			else
 				return 0.0f;
 		});
 		auto rsz = ve::apply(to_state(primary_slot), [&ws](nations::state_tag s) {
 			if(ws.w.nation_s.states.is_valid_index(s))
-				return ws.w.nation_s.states_demographics.get(s, population::middle_population_demo_tag(ws));
+				return ws.w.nation_s.state_demographics.get(s, population::middle_population_demo_tag(ws));
 			else
 				return 0.0f;
 		});
@@ -3386,13 +3382,13 @@ namespace triggers {
 	TRIGGER_FUNCTION(tf_rich_strata_militancy_state) {
 		auto rvalue = 10.0f * ve::apply(to_state(primary_slot), [&ws](nations::state_tag s) {
 			if(ws.w.nation_s.states.is_valid_index(s))
-				return ws.w.nation_s.states_demographics.get(s, population::rich_militancy_demo_tag(ws));
+				return ws.w.nation_s.state_demographics.get(s, population::rich_militancy_demo_tag(ws));
 			else
 				return 0.0f;
 		});
 		auto rsz = ve::apply(to_state(primary_slot), [&ws](nations::state_tag s) {
 			if(ws.w.nation_s.states.is_valid_index(s))
-				return ws.w.nation_s.states_demographics.get(s, population::rich_population_demo_tag(ws));
+				return ws.w.nation_s.state_demographics.get(s, population::rich_population_demo_tag(ws));
 			else
 				return 0.0f;
 		});
@@ -3459,7 +3455,7 @@ namespace triggers {
 			to_value<nation::tag>(ws.w.nation_s.nations, owner));
 	}
 	TRIGGER_FUNCTION(tf_this_culture_union_this_state) {
-		auto owner = to_value<state::owner>ws.w.nation_s.states, to_state(this_slot));
+		auto owner = to_value<state::owner>(ws.w.nation_s.states, to_state(this_slot));
 		auto primary_culture = to_value<nation::primary_culture>(ws.w.nation_s.nations, to_nation(primary_slot));
 		return compare_values_eq(tval[0],
 			ve::load(primary_culture, ws.s.culture_m.cultures_to_tags.view()),
@@ -3476,7 +3472,7 @@ namespace triggers {
 		auto prim_culture = to_value<nation::primary_culture>(ws.w.nation_s.nations, to_nation(primary_slot));
 		auto this_culture = to_value<nation::primary_culture>(ws.w.nation_s.nations, to_nation(this_slot));
 		return compare_values_eq(tval[0],
-			ve::load(primary_culture, ws.s.culture_m.cultures_to_tags.view()),
+			ve::load(prim_culture, ws.s.culture_m.cultures_to_tags.view()),
 			ve::load(this_culture, ws.s.culture_m.cultures_to_tags.view()));
 	}
 	TRIGGER_FUNCTION(tf_this_culture_union_this_union_province) {
@@ -3484,7 +3480,7 @@ namespace triggers {
 		auto prim_culture = to_value<nation::primary_culture>(ws.w.nation_s.nations, to_nation(primary_slot));
 		auto this_culture = to_value<nation::primary_culture>(ws.w.nation_s.nations, owner);
 		return compare_values_eq(tval[0],
-			ve::load(primary_culture, ws.s.culture_m.cultures_to_tags.view()),
+			ve::load(prim_culture, ws.s.culture_m.cultures_to_tags.view()),
 			ve::load(this_culture, ws.s.culture_m.cultures_to_tags.view()));
 	}
 	TRIGGER_FUNCTION(tf_this_culture_union_this_union_state) {
@@ -3492,7 +3488,7 @@ namespace triggers {
 		auto prim_culture = to_value<nation::primary_culture>(ws.w.nation_s.nations, to_nation(primary_slot));
 		auto this_culture = to_value<nation::primary_culture>(ws.w.nation_s.nations, owner);
 		return compare_values_eq(tval[0],
-			ve::load(primary_culture, ws.s.culture_m.cultures_to_tags.view()),
+			ve::load(prim_culture, ws.s.culture_m.cultures_to_tags.view()),
 			ve::load(this_culture, ws.s.culture_m.cultures_to_tags.view()));
 	}
 	TRIGGER_FUNCTION(tf_this_culture_union_this_union_pop) {
@@ -3500,7 +3496,7 @@ namespace triggers {
 		auto prim_culture = to_value<nation::primary_culture>(ws.w.nation_s.nations, to_nation(primary_slot));
 		auto this_culture = to_value<nation::primary_culture>(ws.w.nation_s.nations, owner);
 		return compare_values_eq(tval[0],
-			ve::load(primary_culture, ws.s.culture_m.cultures_to_tags.view()),
+			ve::load(prim_culture, ws.s.culture_m.cultures_to_tags.view()),
 			ve::load(this_culture, ws.s.culture_m.cultures_to_tags.view()));
 	}
 	TRIGGER_FUNCTION(tf_minorities_nation) {
@@ -3515,7 +3511,7 @@ namespace triggers {
 					accepted_pop += ws.w.nation_s.nation_demographics.get(n, population::to_demo_tag(ws, c));
 				return accepted_pop;
 			} else {
-				return 0.0f
+				return 0.0f;
 			}
 		});
 
@@ -3534,7 +3530,7 @@ namespace triggers {
 					accepted_pop += ws.w.nation_s.state_demographics.get(s, population::to_demo_tag(ws, c));
 				return accepted_pop;
 			} else {
-				return 0.0f
+				return 0.0f;
 			}
 		});
 
@@ -3542,7 +3538,7 @@ namespace triggers {
 	}
 	TRIGGER_FUNCTION(tf_minorities_province) {
 		auto owner = provinces::province_owner(ws, to_prov(primary_slot));
-		auto total_pop = to_value<province_state::total_population>(province_s.province_state_container, to_prov(primary_slot));
+		auto total_pop = to_value<province_state::total_population>(ws.w.province_s.province_state_container, to_prov(primary_slot));
 		auto pculture = to_value<nation::primary_culture>(ws.w.nation_s.nations, owner);
 
 		auto accepted_pop = ve::apply(to_prov(primary_slot), owner, pculture, [&ws](provinces::province_tag p, nations::country_tag n, cultures::culture_tag pc) {
@@ -3553,7 +3549,7 @@ namespace triggers {
 					accepted_pop += ws.w.province_s.province_demographics.get(p, population::to_demo_tag(ws, c));
 				return accepted_pop;
 			} else {
-				return 0.0f
+				return 0.0f;
 			}
 		});
 
@@ -3589,7 +3585,7 @@ namespace triggers {
 			int32_t count_non_substates = 0;
 			for(auto v : vassal_range)
 				count_non_substates += int32_t(false == ws.w.nation_s.nations.get<nation::is_substate>(v));
-			return count_substates;
+			return count_non_substates;
 		});
 		return compare_values(tval[0], num_non_substates, int32_t(tval[2]));
 	}
@@ -3844,7 +3840,7 @@ namespace triggers {
 	TRIGGER_FUNCTION(tf_has_pop_culture_nation_this_pop) {
 		auto culture = to_value<pop::culture>(ws.w.population_s.pops, to_pop(this_slot));
 		auto result = ve::apply(to_nation(primary_slot), culture, [&ws](nations::country_tag n, cultures::culture_tag c) {
-			return ws.w.nation_s.nations.is_valid_index(n) && is_valid_index(c) && (0 != ws.w.nation_s.nation_demographics.get(s, population::to_demo_tag(ws, c)));
+			return ws.w.nation_s.nations.is_valid_index(n) && is_valid_index(c) && (0 != ws.w.nation_s.nation_demographics.get(n, population::to_demo_tag(ws, c)));
 		});
 		return compare_to_true(tval[0], result);
 	}
@@ -3914,7 +3910,7 @@ namespace triggers {
 	}
 	TRIGGER_FUNCTION(tf_has_pop_religion_nation) {
 		auto result = ve::apply(to_nation(primary_slot), [&ws, r = trigger_payload(tval[2]).small.values.religion](nations::country_tag n) {
-			return ws.w.nation_s.nations.is_valid_index(s) && (0 != ws.w.nation_s.nation_demographics.get(n, population::to_demo_tag(ws, r)));
+			return ws.w.nation_s.nations.is_valid_index(n) && (0 != ws.w.nation_s.nation_demographics.get(n, population::to_demo_tag(ws, r)));
 		});
 		return compare_to_true(tval[0], result);
 	}
@@ -3960,7 +3956,7 @@ namespace triggers {
 		});
 		return compare_values(tval[0], ve::select(total_pop != 0.0f, (value * 10.0f) / total_pop, 0.0f), read_float_from_payload(tval + 2));
 	}
-	TRIGGER_FUNCTION(tf_literacy_pop(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_literacy_pop) {
 		return compare_values(tval[0], population::get_literacy_direct(ws, to_pop(primary_slot)), read_float_from_payload(tval + 2));
 	}
 	TRIGGER_FUNCTION(tf_literacy_province) {
@@ -4568,1210 +4564,1312 @@ namespace triggers {
 		auto si = provinces::province_state(ws, location);
 		return tf_poor_strata_luxury_needs_state<value_to_type<decltype(si)>, single_type, single_type>(tval, ws, si, const_parameter(), const_parameter());
 	}
-	bool tf_diplomatic_influence_tag(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_diplomatic_influence_tag) {
 		auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[3]).tag].holder;
-		if(holder) 
-			return compare_values(tval[0], nations::get_influence_value(ws, to_nation(primary_slot), holder), int32_t(tval[2]));
-		else
-			return compare_values(tval[0], 0ui16, tval[2]);
+		auto result = ve::apply(to_nation(primary_slot), [&ws, holder](nations::country_tag a) {
+			nations::get_influence_value(ws, a, holder);
+		});
+		return compare_values(tval[0], result, int32_t(tval[2]));
 	}
-	bool tf_diplomatic_influence_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], nations::get_influence_value(ws, to_nation(primary_slot), to_nation(this_slot)), int32_t(tval[2]));
+	TRIGGER_FUNCTION(tf_diplomatic_influence_this_nation) {
+		auto result = ve::apply(to_nation(primary_slot), to_nation(this_slot), [&ws](nations::country_tag a, nations::country_tag b) {
+			nations::get_influence_value(ws, a, b);
+		});
+		return compare_values(tval[0], result, int32_t(tval[2]));
 	}
-	bool tf_diplomatic_influence_this_province(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_diplomatic_influence_this_province) {
 		auto owner = provinces::province_owner(ws, to_prov(this_slot));
-		if(owner)
-			return tf_diplomatic_influence_this_nation(tval, ws, primary_slot, owner, nullptr);
-		else
-			return compare_values(tval[0], 0ui16, tval[2]);
+		auto result = ve::apply(to_nation(primary_slot), owner, [&ws](nations::country_tag a, nations::country_tag b) {
+			nations::get_influence_value(ws, a, b);
+		});
+		return compare_values(tval[0], result, int32_t(tval[2]));
 	}
-	bool tf_diplomatic_influence_from_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], nations::get_influence_value(ws, to_nation(primary_slot), to_nation(from_slot)), int32_t(tval[2]));
+	TRIGGER_FUNCTION(tf_diplomatic_influence_from_nation) {
+		auto result = ve::apply(to_nation(primary_slot), to_nation(from_slot), [&ws](nations::country_tag a, nations::country_tag b) {
+			nations::get_influence_value(ws, a, b);
+		});
+		return compare_values(tval[0], result, int32_t(tval[2]));
 	}
-	bool tf_diplomatic_influence_from_province(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_diplomatic_influence_from_province) {
 		auto owner = provinces::province_owner(ws, to_prov(from_slot));
-		if(owner)
-			return tf_diplomatic_influence_this_nation(tval, ws, primary_slot, owner, nullptr);
-		else
-			return compare_values(tval[0], 0ui16, tval[2]);
+		auto result = ve::apply(to_nation(primary_slot), owner, [&ws](nations::country_tag a, nations::country_tag b) {
+			nations::get_influence_value(ws, a, b);
+		});
+		return compare_values(tval[0], result, int32_t(tval[2]));
 	}
-	bool tf_pop_unemployment_nation(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_pop_unemployment_nation) {
 		auto type = trigger_payload(tval[4]).small.values.pop_type;
-		auto id = to_nation(primary_slot);
-		if(ws.w.nation_s.nations.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.nation_demographics.get(id, population::to_demo_tag(ws, type));
-			if(total_pop != 0)
-				return compare_values(tval[0], 1.0f - float(ws.w.nation_s.nation_demographics.get(id, population::to_employment_demo_tag(ws, type))) / float(total_pop), read_float_from_payload(tval + 2));
-		}
-		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
+		auto pop_size = ve::apply(to_nation(primary_slot), [&ws, type](nations::country_tag n) {
+			if(ws.w.nation_s.nations.is_valid_index(n))
+				return ws.w.nation_s.nation_demographics.get(n, population::to_demo_tag(ws, type));
+			else
+				return 0.0f;
+		});
+		auto employment = ve::apply(to_nation(primary_slot), [&ws, type](nations::country_tag n) {
+			if(ws.w.nation_s.nations.is_valid_index(n))
+				return ws.w.nation_s.nation_demographics.get(n, population::to_employment_demo_tag(ws, type));
+			else
+				return 0.0f;
+		});
+		return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f), read_float_from_payload(tval + 2));
 	}
-	bool tf_pop_unemployment_state(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_pop_unemployment_state) {
 		auto type = trigger_payload(tval[4]).small.values.pop_type;
-		auto id = to_state(primary_slot);
-		if(ws.w.nation_s.states.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.state_demographics.get(id, population::to_demo_tag(ws, type));
-			if(total_pop != 0)
-				return compare_values(tval[0], 1.0f - float(ws.w.nation_s.state_demographics.get(id, population::to_employment_demo_tag(ws, type))) / float(total_pop), read_float_from_payload(tval + 2));
-		}
-		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
+		auto pop_size = ve::apply(to_state(primary_slot), [&ws, type](nations::state_tag s) {
+			if(ws.w.nation_s.states.is_valid_index(s))
+				return ws.w.nation_s.state_demographics.get(s, population::to_demo_tag(ws, type));
+			else
+				return 0.0f;
+		});
+		auto employment = ve::apply(to_state(primary_slot), [&ws, type](nations::state_tag s) {
+			if(ws.w.nation_s.states.is_valid_index(s))
+				return ws.w.nation_s.state_demographics.get(s, population::to_employment_demo_tag(ws, type));
+			else
+				return 0.0f;
+		});
+		return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f), read_float_from_payload(tval + 2));
 	}
-	bool tf_pop_unemployment_province(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_pop_unemployment_province) {
 		auto type = trigger_payload(tval[4]).small.values.pop_type;
-		auto id = to_prov(primary_slot);
-		auto total_pop = ws.w.province_s.province_demographics.get(id, population::to_demo_tag(ws, type));
-		if(total_pop != 0)
-			return compare_values(tval[0], 1.0f - float(ws.w.province_s.province_demographics.get(id, population::to_employment_demo_tag(ws, type))) / float(total_pop), read_float_from_payload(tval + 2));
-		else
-			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
+		auto pop_size = ve::apply(to_prov(primary_slot), [&ws, type](provinces::province_tag p) {
+			if(ws.w.province_s.province_state_container.is_valid_index(p))
+				return ws.w.province_s.province_demographics.get(p, population::to_demo_tag(ws, type));
+			else
+				return 0.0f;
+		});
+		auto employment = ve::apply(to_prov(primary_slot), [&ws, type](provinces::province_tag p) {
+			if(ws.w.province_s.province_state_container.is_valid_index(p))
+				return ws.w.province_s.province_demographics.get(p, population::to_employment_demo_tag(ws, type));
+			else
+				return 0.0f;
+		});
+		return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f), read_float_from_payload(tval + 2));
 	}
-	bool tf_pop_unemployment_pop(TRIGGER_PARAMTERS) {
-		auto id = to_pop(primary_slot);
-		if(ws.w.population_s.pops.is_valid_index(id)) {
-			auto total_size = ws.w.population_s.pops.get<pop::size>(id);
-			if(total_size != 0)
-				return compare_values(tval[0], 1.0f - float(ws.w.population_s.pop_demographics.get(id, population::total_employment_tag)) / float(total_size), read_float_from_payload(tval + 2));
-		}
-		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
+	TRIGGER_FUNCTION(tf_pop_unemployment_pop) {
+		auto pop_size = to_value<pop::size>(ws.w.population_s.pops, to_pop(primary_slot));
+		auto employment = ve::apply(to_pop(primary_slot), [&ws](population::pop_tag p) {
+			if(ws.w.population_s.pops.is_valid_index(p))
+				return ws.w.population_s.pop_demographics.get(p, population::total_employment_tag);
+			else
+				return 0.0f;
+		});
+		return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f), read_float_from_payload(tval + 2));
 	}
-	bool tf_pop_unemployment_nation_this_pop(TRIGGER_PARAMTERS) {
-		auto type = ws.w.population_s.pops.get<pop::type>(to_pop(this_slot));
-		auto id = to_nation(primary_slot);
-		if(ws.w.nation_s.nations.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.nation_demographics.get(id, population::to_demo_tag(ws, type));
-			if(total_pop != 0)
-				return compare_values(tval[0], 1.0f - float(ws.w.nation_s.nation_demographics.get(id, population::to_employment_demo_tag(ws, type))) / float(total_pop), read_float_from_payload(tval + 2));
-		}
-		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
+	TRIGGER_FUNCTION(tf_pop_unemployment_nation_this_pop) {
+		auto type = to_value<pop::type>(ws.w.population_s.pops, to_pop(this_slot));
+		auto pop_size = ve::apply(to_nation(primary_slot), [&ws, type](nations::country_tag n) {
+			if(ws.w.nation_s.nations.is_valid_index(n))
+				return ws.w.nation_s.nation_demographics.get(n, population::to_demo_tag(ws, type));
+			else
+				return 0.0f;
+		});
+		auto employment = ve::apply(to_nation(primary_slot), [&ws, type](nations::country_tag n) {
+			if(ws.w.nation_s.nations.is_valid_index(n))
+				return ws.w.nation_s.nation_demographics.get(n, population::to_employment_demo_tag(ws, type));
+			else
+				return 0.0f;
+		});
+		return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f), read_float_from_payload(tval + 2));
 	}
-	bool tf_pop_unemployment_state_this_pop(TRIGGER_PARAMTERS) {
-		auto type = ws.w.population_s.pops.get<pop::type>(to_pop(this_slot));
-		auto id = to_state(primary_slot);
-		if(ws.w.nation_s.states.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.state_demographics.get(id, population::to_demo_tag(ws, type));
-			if(total_pop != 0)
-				return compare_values(tval[0], 1.0f - float(ws.w.nation_s.state_demographics.get(id, population::to_employment_demo_tag(ws, type))) / float(total_pop), read_float_from_payload(tval + 2));
-		}
-		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
+	TRIGGER_FUNCTION(tf_pop_unemployment_state_this_pop) {
+		auto type = to_value<pop::type>(ws.w.population_s.pops, to_pop(this_slot));
+		auto pop_size = ve::apply(to_state(primary_slot), [&ws, type](nations::state_tag s) {
+			if(ws.w.nation_s.states.is_valid_index(s))
+				return ws.w.nation_s.state_demographics.get(s, population::to_demo_tag(ws, type));
+			else
+				return 0.0f;
+		});
+		auto employment = ve::apply(to_state(primary_slot), [&ws, type](nations::state_tag s) {
+			if(ws.w.nation_s.states.is_valid_index(s))
+				return ws.w.nation_s.state_demographics.get(s, population::to_employment_demo_tag(ws, type));
+			else
+				return 0.0f;
+		});
+		return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f), read_float_from_payload(tval + 2));
 	}
-	bool tf_pop_unemployment_province_this_pop(TRIGGER_PARAMTERS) {
-		auto type = ws.w.population_s.pops.get<pop::type>(to_pop(this_slot));
-		auto id = to_prov(primary_slot);
-		auto total_pop = ws.w.province_s.province_demographics.get(id, population::to_demo_tag(ws, type));
-		if(total_pop != 0)
-			return compare_values(tval[0], 1.0f - float(ws.w.province_s.province_demographics.get(id, population::to_employment_demo_tag(ws, type))) / float(total_pop), read_float_from_payload(tval + 2));
-		else
-			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
+	TRIGGER_FUNCTION(tf_pop_unemployment_province_this_pop) {
+		auto type = to_value<pop::type>(ws.w.population_s.pops, to_pop(this_slot));
+		auto pop_size = ve::apply(to_prov(primary_slot), [&ws, type](provinces::province_tag p) {
+			if(ws.w.province_s.province_state_container.is_valid_index(p))
+				return ws.w.province_s.province_demographics.get(p, population::to_demo_tag(ws, type));
+			else
+				return 0.0f;
+		});
+		auto employment = ve::apply(to_prov(primary_slot), [&ws, type](provinces::province_tag p) {
+			if(ws.w.province_s.province_state_container.is_valid_index(p))
+				return ws.w.province_s.province_demographics.get(p, population::to_employment_demo_tag(ws, type));
+			else
+				return 0.0f;
+		});
+		return compare_values(tval[0], ve::select(pop_size > 0.0f, 1.0f - (employment / pop_size), 0.0f), read_float_from_payload(tval + 2));
 	}
-	bool tf_relation_tag(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_relation_tag) {
 		auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[3]).tag].holder;
-		if(holder)
-			return compare_values(tval[0], nations::get_relationship(ws, to_nation(primary_slot), holder), int32_t(trigger_payload(tval[2]).signed_value));
-		else
-			return compare_values(tval[0], 0i16, trigger_payload(tval[2]).signed_value);
+		auto relation = ve::apply(to_nation(primary_slot), [&ws, holder](nations::country_tag a) {
+			return nations::get_relationship(ws, a, holder);
+		});
+		return compare_values(tval[0], relation, int32_t(trigger_payload(tval[2]).signed_value));
 	}
-	bool tf_relation_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], nations::get_relationship(ws, to_nation(primary_slot), to_nation(this_slot)), int32_t(trigger_payload(tval[2]).signed_value));
+	TRIGGER_FUNCTION(tf_relation_this_nation) {
+		auto relation = ve::apply(to_nation(primary_slot), to_nation(this_slot), [&ws](nations::country_tag a, nations::country_tag b) {
+			return nations::get_relationship(ws, a, b);
+		});
+		return compare_values(tval[0], relation, int32_t(trigger_payload(tval[2]).signed_value));
 	}
-	bool tf_relation_this_province(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_relation_this_province) {
 		auto owner = provinces::province_owner(ws, to_prov(this_slot));
-		if(owner)
-			return tf_relation_this_nation(tval, ws, primary_slot, owner, nullptr);
-		else
-			return compare_values(tval[0], 0i16, trigger_payload(tval[2]).signed_value);
+		auto relation = ve::apply(to_nation(primary_slot), owner, [&ws](nations::country_tag a, nations::country_tag b) {
+			return nations::get_relationship(ws, a, b);
+		});
+		return compare_values(tval[0], relation, int32_t(trigger_payload(tval[2]).signed_value));
 	}
-	bool tf_relation_from_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], nations::get_relationship(ws, to_nation(primary_slot), to_nation(from_slot)), int32_t(trigger_payload(tval[2]).signed_value));
+	TRIGGER_FUNCTION(tf_relation_from_nation) {
+		auto relation = ve::apply(to_nation(primary_slot), to_nation(from_slot), [&ws](nations::country_tag a, nations::country_tag b) {
+			return nations::get_relationship(ws, a, b);
+		});
+		return compare_values(tval[0], relation, int32_t(trigger_payload(tval[2]).signed_value));
 	}
-	bool tf_relation_from_province(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_relation_from_province) {
 		auto owner = provinces::province_owner(ws, to_prov(from_slot));
-		if(owner)
-			return tf_relation_this_nation(tval, ws, primary_slot, owner, nullptr);
-		else
-			return compare_values(tval[0], 0i16, trigger_payload(tval[2]).signed_value);
+		auto relation = ve::apply(to_nation(primary_slot), owner, [&ws](nations::country_tag a, nations::country_tag b) {
+			return nations::get_relationship(ws, a, b);
+		});
+		return compare_values(tval[0], relation, int32_t(trigger_payload(tval[2]).signed_value));
 	}
-	bool tf_check_variable(TRIGGER_PARAMTERS) {
-		auto id = to_nation(primary_slot);
-		if(ws.w.nation_s.nations.is_valid_index(id))
-			return compare_values(tval[0], ws.w.nation_s.national_variables.get(id, triggers::trigger_payload(tval[3]).nat_var), read_float_from_payload(tval + 2));
-		else
-			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
+	TRIGGER_FUNCTION(tf_check_variable) {
+		auto id = triggers::trigger_payload(tval[3]).nat_var;
+		auto value = ve::apply(to_nation(primary_slot), [&ws, id](nations::country_tag n) {
+			if(ws.w.nation_s.nations.is_valid_index(n))
+				return ws.w.nation_s.national_variables.get(n, id);
+			else
+				return 0.0f;
+		});
+		return compare_values(tval[0], value, read_float_from_payload(tval + 2));
 	}
-	bool tf_upper_house(TRIGGER_PARAMTERS) {
-		auto id = to_nation(primary_slot);
-		if(ws.w.nation_s.nations.is_valid_index(id))
-			return compare_values(tval[0], float(ws.w.nation_s.upper_house.get(id, triggers::trigger_payload(tval[3]).small.values.ideology)) / 100.0f, read_float_from_payload(tval + 2));
-		else
-			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
+	TRIGGER_FUNCTION(tf_upper_house) {
+		auto id = triggers::trigger_payload(tval[3]).small.values.ideology;
+		auto value = ve::apply(to_nation(primary_slot), [&ws, id](nations::country_tag n) {
+			if(ws.w.nation_s.nations.is_valid_index(n))
+				return float(ws.w.nation_s.upper_house.get(n, id)) / 100.0f;
+			else
+				return 0.0f;
+		});
+		return compare_values(tval[0], value, read_float_from_payload(tval + 2));
 	}
-	bool tf_unemployment_by_type_nation(TRIGGER_PARAMTERS) {
-		return tf_pop_unemployment_nation(tval, ws, primary_slot, nullptr, nullptr);
+	TRIGGER_FUNCTION(tf_unemployment_by_type_nation) {
+		return tf_pop_unemployment_nation<primary_type, single_type, single_type>(tval, ws, primary_slot, const_parameter(), const_parameter());
 	}
-	bool tf_unemployment_by_type_state(TRIGGER_PARAMTERS) {
-		return tf_pop_unemployment_state(tval, ws, primary_slot, nullptr, nullptr);
+	TRIGGER_FUNCTION(tf_unemployment_by_type_state) {
+		return tf_pop_unemployment_state<primary_type, single_type, single_type>(tval, ws, primary_slot, const_parameter(), const_parameter());
 	}
-	bool tf_unemployment_by_type_province(TRIGGER_PARAMTERS) {
-		return tf_pop_unemployment_province(tval, ws, primary_slot, nullptr, nullptr);
+	TRIGGER_FUNCTION(tf_unemployment_by_type_province) {
+		return tf_pop_unemployment_province<primary_type, single_type, single_type>(tval, ws, primary_slot, const_parameter(), const_parameter());
 	}
-	bool tf_unemployment_by_type_pop(TRIGGER_PARAMTERS) {
-		auto location = ws.w.population_s.pops.get<pop::location>(to_pop(primary_slot));
-		if(is_valid_index(location)) {
-			auto si = provinces::province_state(ws, location);
-			if(si)
-				return tf_unemployment_by_type_state(tval, ws, si, nullptr, nullptr);
-		}
-		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 2));
+	TRIGGER_FUNCTION(tf_unemployment_by_type_pop) {
+		auto location = to_value<pop::location>(ws.w.population_s.pops, to_pop(primary_slot));
+		auto si = provinces::province_state(ws, location);
+		return tf_unemployment_by_type_state<value_to_type<decltype(si)>, single_type, single_type>(tval, ws, si, const_parameter(), const_parameter());
 	}
-	bool tf_party_loyalty_nation_province_id(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_party_loyalty_nation_province_id) {
+		return compare_values(tval[0],
+			ws.w.province_s.party_loyalty.get(provinces::province_tag(tval[2]), trigger_payload(tval[5]).small.values.ideology),
+			read_float_from_payload(tval + 3));
+	}
+	TRIGGER_FUNCTION(tf_party_loyalty_from_nation_province_id) {
 		return compare_values(tval[0], ws.w.province_s.party_loyalty.get(provinces::province_tag(tval[2]), trigger_payload(tval[5]).small.values.ideology), read_float_from_payload(tval + 3));
 	}
-	bool tf_party_loyalty_from_nation_province_id(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_party_loyalty_province_province_id) {
 		return compare_values(tval[0], ws.w.province_s.party_loyalty.get(provinces::province_tag(tval[2]), trigger_payload(tval[5]).small.values.ideology), read_float_from_payload(tval + 3));
 	}
-	bool tf_party_loyalty_province_province_id(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_party_loyalty_from_province_province_id) {
 		return compare_values(tval[0], ws.w.province_s.party_loyalty.get(provinces::province_tag(tval[2]), trigger_payload(tval[5]).small.values.ideology), read_float_from_payload(tval + 3));
 	}
-	bool tf_party_loyalty_from_province_province_id(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.province_s.party_loyalty.get(provinces::province_tag(tval[2]), trigger_payload(tval[5]).small.values.ideology), read_float_from_payload(tval + 3));
+	TRIGGER_FUNCTION(tf_party_loyalty_nation_from_province) {
+		auto loyalty = ve::apply(to_prov(from_slot), [&ws, id = trigger_payload(tval[4]).small.values.ideology](provinces::province_tag p) {
+			if(ws.w.province_s.province_state_container.is_valid_index(p))
+				return ws.w.province_s.party_loyalty.get(p, id);
+			else
+				return 0.0f;
+		});
+		return compare_values(tval[0], loyalty, read_float_from_payload(tval + 2));
 	}
-	bool tf_party_loyalty_nation_from_province(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.province_s.party_loyalty.get(to_prov(from_slot), trigger_payload(tval[4]).small.values.ideology), read_float_from_payload(tval + 2));
+	TRIGGER_FUNCTION(tf_party_loyalty_generic) {
+		auto loyalty = ve::apply(to_prov(primary_slot), [&ws, id = trigger_payload(tval[4]).small.values.ideology](provinces::province_tag p) {
+			if(ws.w.province_s.province_state_container.is_valid_index(p))
+				return ws.w.province_s.party_loyalty.get(p, id);
+			else
+				return 0.0f;
+		});
+		return compare_values(tval[0], loyalty, read_float_from_payload(tval + 2));
 	}
-	bool tf_party_loyalty_generic(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.province_s.party_loyalty.get(to_prov(primary_slot), trigger_payload(tval[4]).small.values.ideology), read_float_from_payload(tval + 2));
+	TRIGGER_FUNCTION(tf_party_loyalty_from_nation_scope_province) {
+		auto loyalty = ve::apply(to_prov(primary_slot), [&ws, id = trigger_payload(tval[4]).small.values.ideology](provinces::province_tag p) {
+			if(ws.w.province_s.province_state_container.is_valid_index(p))
+				return ws.w.province_s.party_loyalty.get(p, id);
+			else
+				return 0.0f;
+		});
+		return compare_values(tval[0], loyalty, read_float_from_payload(tval + 2));
 	}
-	bool tf_party_loyalty_from_nation_scope_province(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.province_s.party_loyalty.get(to_prov(primary_slot), trigger_payload(tval[4]).small.values.ideology), read_float_from_payload(tval + 2));
+	TRIGGER_FUNCTION(tf_party_loyalty_from_province_scope_province) {
+		auto loyalty = ve::apply(to_prov(primary_slot), [&ws, id = trigger_payload(tval[4]).small.values.ideology](provinces::province_tag p) {
+			if(ws.w.province_s.province_state_container.is_valid_index(p))
+				return ws.w.province_s.party_loyalty.get(p, id);
+			else
+				return 0.0f;
+		});
+		return compare_values(tval[0], loyalty, read_float_from_payload(tval + 2));
 	}
-	bool tf_party_loyalty_from_province_scope_province(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.province_s.party_loyalty.get(to_prov(primary_slot), trigger_payload(tval[4]).small.values.ideology), read_float_from_payload(tval + 2));
+	TRIGGER_FUNCTION(tf_can_build_in_province_railroad_no_limit_from_nation) {
+		return compare_to_true(tval[0],
+			to_value<province_state::railroad_level>(ws.w.province_s.province_state_container, to_prov(primary_slot)) +
+			to_indexed_value<modifiers::provincial_offsets::min_build_railroad>(ws.w.province_s.modifier_values, to_prov(primary_slot)) <
+			to_indexed_value<technologies::tech_offset::max_railroad>(ws.w.nation_s.tech_attributes, to_nation(from_slot)));
 	}
-	bool tf_can_build_in_province_railroad_no_limit_from_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0],
-			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::railroad_level>(to_prov(primary_slot))) +
-			ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::min_build_railroad>(to_prov(primary_slot)) <
-			ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_railroad>(to_nation(from_slot)),
-			true);
+	TRIGGER_FUNCTION(tf_can_build_in_province_railroad_yes_limit_from_nation) {
+		return compare_to_true(tval[0],
+			to_value<province_state::railroad_level>(ws.w.province_s.province_state_container, to_prov(primary_slot)) +
+			to_indexed_value<modifiers::provincial_offsets::min_build_railroad>(ws.w.province_s.modifier_values, to_prov(primary_slot)) <
+			to_indexed_value<technologies::tech_offset::max_railroad>(ws.w.nation_s.tech_attributes, to_nation(from_slot)));
 	}
-	bool tf_can_build_in_province_railroad_yes_limit_from_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0],
-			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::railroad_level>(to_prov(primary_slot))) +
-			ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::min_build_railroad>(to_prov(primary_slot)) <
-			ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_railroad>(to_nation(from_slot)),
-			true);
+	TRIGGER_FUNCTION(tf_can_build_in_province_railroad_no_limit_this_nation) {
+		return compare_to_true(tval[0],
+			to_value<province_state::railroad_level>(ws.w.province_s.province_state_container, to_prov(primary_slot)) +
+			to_indexed_value<modifiers::provincial_offsets::min_build_railroad>(ws.w.province_s.modifier_values, to_prov(primary_slot)) <
+			to_indexed_value<technologies::tech_offset::max_railroad>(ws.w.nation_s.tech_attributes, to_nation(this_slot)));
 	}
-	bool tf_can_build_in_province_railroad_no_limit_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0],
-			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::railroad_level>(to_prov(primary_slot))) +
-			ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::min_build_railroad>(to_prov(primary_slot)) <
-			ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_railroad>(to_nation(this_slot)),
-			true);
+	TRIGGER_FUNCTION(tf_can_build_in_province_railroad_yes_limit_this_nation) {
+		return compare_to_true(tval[0],
+			to_value<province_state::railroad_level>(ws.w.province_s.province_state_container, to_prov(primary_slot)) +
+			to_indexed_value<modifiers::provincial_offsets::min_build_railroad>(ws.w.province_s.modifier_values, to_prov(primary_slot)) <
+			to_indexed_value<technologies::tech_offset::max_railroad>(ws.w.nation_s.tech_attributes, to_nation(this_slot)));
 	}
-	bool tf_can_build_in_province_railroad_yes_limit_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0],
-			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::railroad_level>(to_prov(primary_slot))) +
-			ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::min_build_railroad>(to_prov(primary_slot)) <
-			ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_railroad>(to_nation(this_slot)),
-			true);
+	TRIGGER_FUNCTION(tf_can_build_in_province_fort_no_limit_from_nation) {
+		return compare_to_true(tval[0],
+			to_value<province_state::fort_level>(ws.w.province_s.province_state_container, to_prov(primary_slot)) <
+			to_indexed_value<technologies::tech_offset::max_fort>(ws.w.nation_s.tech_attributes, to_nation(from_slot)));
 	}
-	bool tf_can_build_in_province_fort_no_limit_from_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0],
-			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::fort_level>(to_prov(primary_slot))) <
-			ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_fort>(to_nation(from_slot)),
-			true);
+	TRIGGER_FUNCTION(tf_can_build_in_province_fort_yes_limit_from_nation) {
+		return compare_to_true(tval[0],
+			to_value<province_state::fort_level>(ws.w.province_s.province_state_container, to_prov(primary_slot)) <
+			to_indexed_value<technologies::tech_offset::max_fort>(ws.w.nation_s.tech_attributes, to_nation(from_slot)));
 	}
-	bool tf_can_build_in_province_fort_yes_limit_from_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0],
-			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::fort_level>(to_prov(primary_slot))) <
-			ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_fort>(to_nation(from_slot)),
-			true);
+	TRIGGER_FUNCTION(tf_can_build_in_province_fort_no_limit_this_nation) {
+		return compare_to_true(tval[0],
+			to_value<province_state::fort_level>(ws.w.province_s.province_state_container, to_prov(primary_slot)) <
+			to_indexed_value<technologies::tech_offset::max_fort>(ws.w.nation_s.tech_attributes, to_nation(this_slot)));
 	}
-	bool tf_can_build_in_province_fort_no_limit_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0],
-			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::fort_level>(to_prov(primary_slot))) <
-			ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_fort>(to_nation(this_slot)),
-			true);
+	TRIGGER_FUNCTION(tf_can_build_in_province_fort_yes_limit_this_nation) {
+		return compare_to_true(tval[0],
+			to_value<province_state::fort_level>(ws.w.province_s.province_state_container, to_prov(primary_slot)) <
+			to_indexed_value<technologies::tech_offset::max_fort>(ws.w.nation_s.tech_attributes, to_nation(this_slot)));
 	}
-	bool tf_can_build_in_province_fort_yes_limit_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0],
-			technologies::tech_attribute_type(ws.w.province_s.province_state_container.get<province_state::fort_level>(to_prov(primary_slot))) <
-			ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_fort>(to_nation(this_slot)),
-			true);
-	}
-	bool tf_can_build_in_province_naval_base_no_limit_from_nation(TRIGGER_PARAMTERS) {
-		auto nb_level = ws.w.province_s.province_state_container.get<province_state::naval_base_level>(to_prov(primary_slot));
-		if(nb_level != 0ui8) {
-			return compare_values(tval[0],
-				technologies::tech_attribute_type(nb_level) <
-				ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_naval_base>(to_nation(from_slot)),
-				true);
-		} else if(auto si = provinces::province_state(ws, to_prov(primary_slot)); si) {
-			return compare_values(tval[0],
-				!is_valid_index(nations::state_port_province(ws, si)) &&
-				ws.s.province_m.province_container.get<province::is_coastal>(to_prov(primary_slot)) &&
-				ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_naval_base>(to_nation(from_slot)) >= technologies::tech_attribute_type(1),
-				true);
-		} else {
-			return compare_values(tval[0], false, true);
-		}
-	}
-	bool tf_can_build_in_province_naval_base_yes_limit_from_nation(TRIGGER_PARAMTERS) {
-		auto nb_level = ws.w.province_s.province_state_container.get<province_state::naval_base_level>(to_prov(primary_slot));
-		if(nb_level != 0ui8) {
-			return compare_values(tval[0],
-				technologies::tech_attribute_type(nb_level) <
-				ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_naval_base>(to_nation(from_slot)),
-				true);
-		} else if(auto si = provinces::province_state(ws, to_prov(primary_slot)); si) {
-			return compare_values(tval[0],
-				!is_valid_index(nations::state_port_province(ws, si)) &&
-				ws.s.province_m.province_container.get<province::is_coastal>(to_prov(primary_slot)) &&
-				ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_naval_base>(to_nation(from_slot)) >= technologies::tech_attribute_type(1),
-				true);
-		} else {
-			return compare_values(tval[0], false, true);
-		}
-	}
-	bool tf_can_build_in_province_naval_base_no_limit_this_nation(TRIGGER_PARAMTERS) {
-		auto nb_level = ws.w.province_s.province_state_container.get<province_state::naval_base_level>(to_prov(primary_slot));
-		if(nb_level != 0ui8) {
-			return compare_values(tval[0],
-				technologies::tech_attribute_type(nb_level) <
-				ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_naval_base>(to_nation(this_slot)),
-				true);
-		} else if(auto si = provinces::province_state(ws, to_prov(primary_slot)); si) {
-			return compare_values(tval[0],
-				!is_valid_index(nations::state_port_province(ws, si)) &&
-				ws.s.province_m.province_container.get<province::is_coastal>(to_prov(primary_slot)) &&
-				ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_naval_base>(to_nation(this_slot)) >= technologies::tech_attribute_type(1),
-				true);
-		} else {
-			return compare_values(tval[0], false, true);
-		}
-	}
-	bool tf_can_build_in_province_naval_base_yes_limit_this_nation(TRIGGER_PARAMTERS) {
-		auto nb_level = ws.w.province_s.province_state_container.get<province_state::naval_base_level>(to_prov(primary_slot));
-		if(nb_level != 0ui8) {
-			return compare_values(tval[0],
-				technologies::tech_attribute_type(nb_level) <
-				ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_naval_base>(to_nation(this_slot)),
-				true);
-		} else if(auto si = provinces::province_state(ws, to_prov(primary_slot)); si) {
-			return compare_values(tval[0],
-				!is_valid_index(nations::state_port_province(ws, si)) &&
-				ws.s.province_m.province_container.get<province::is_coastal>(to_prov(primary_slot)) &&
-				ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_naval_base>(to_nation(this_slot)) >= technologies::tech_attribute_type(1),
-				true);
-		} else {
-			return compare_values(tval[0], false, true);
-		}
-	}
-	bool tf_can_build_railway_in_capital_yes_whole_state_yes_limit(TRIGGER_PARAMTERS) {
-		// stub: virtually unused
-		return compare_values(tval[0], true, true);
-	}
-	bool tf_can_build_railway_in_capital_yes_whole_state_no_limit(TRIGGER_PARAMTERS) {
-		// stub: virtually unused
-		return compare_values(tval[0], true, true);
-	}
-	bool tf_can_build_railway_in_capital_no_whole_state_yes_limit(TRIGGER_PARAMTERS) {
-		// stub: virtually unused
-		return compare_values(tval[0], true, true);
-	}
-	bool tf_can_build_railway_in_capital_no_whole_state_no_limit(TRIGGER_PARAMTERS) {
-		// stub: virtually unused
-		return compare_values(tval[0], true, true);
-	}
-	bool tf_can_build_fort_in_capital_yes_whole_state_yes_limit(TRIGGER_PARAMTERS) {
-		// stub: virtually unused
-		return compare_values(tval[0], true, true);
-	}
-	bool tf_can_build_fort_in_capital_yes_whole_state_no_limit(TRIGGER_PARAMTERS) {
-		// stub: virtually unused
-		return compare_values(tval[0], true, true);
-	}
-	bool tf_can_build_fort_in_capital_no_whole_state_yes_limit(TRIGGER_PARAMTERS) {
-		// stub: virtually unused
-		return compare_values(tval[0], true, true);
-	}
-	bool tf_can_build_fort_in_capital_no_whole_state_no_limit(TRIGGER_PARAMTERS) {
-		// stub: virtually unused
-		return compare_values(tval[0], true, true);
-	}
-	bool tf_work_available_nation(TRIGGER_PARAMTERS) {
-		auto count_workers = tval[1] - 1;
-		auto id = to_nation(primary_slot);
+	TRIGGER_FUNCTION(tf_can_build_in_province_naval_base_no_limit_from_nation) {
+		auto nb_level = to_value<province_state::naval_base_level>(ws.w.province_s.province_state_container, to_prov(primary_slot));
+		auto max_nb = to_indexed_value<technologies::tech_offset::max_naval_base>(ws.w.nation_s.tech_attributes, to_nation(from_slot));
+		auto si = provinces::province_state(ws, to_prov(primary_slot));
 
-		if(!ws.w.nation_s.nations.is_valid_index(id))
-			return compare_values(tval[0], false, true);
+		auto result = (nb_level < max_nb)
+			& ve::widen_mask(to_value<province::is_coastal>(ws.s.province_m.province_container, to_prov(primary_slot)))
+			& ((nb_level != 0) | !is_valid_index(nations::state_port_province(ws, si)));
+		return compare_to_true(tval[0], result);
+	}
+	TRIGGER_FUNCTION(tf_can_build_in_province_naval_base_yes_limit_from_nation) {
+		auto nb_level = to_value<province_state::naval_base_level>(ws.w.province_s.province_state_container, to_prov(primary_slot));
+		auto max_nb = to_indexed_value<technologies::tech_offset::max_naval_base>(ws.w.nation_s.tech_attributes, to_nation(from_slot));
+		auto si = provinces::province_state(ws, to_prov(primary_slot));
+
+		auto result = (nb_level < max_nb)
+			& ve::widen_mask(to_value<province::is_coastal>(ws.s.province_m.province_container, to_prov(primary_slot)))
+			& ((nb_level != 0) | !is_valid_index(nations::state_port_province(ws, si)));
+		return compare_to_true(tval[0], result);
+	}
+	TRIGGER_FUNCTION(tf_can_build_in_province_naval_base_no_limit_this_nation) {
+		auto nb_level = to_value<province_state::naval_base_level>(ws.w.province_s.province_state_container, to_prov(primary_slot));
+		auto max_nb = to_indexed_value<technologies::tech_offset::max_naval_base>(ws.w.nation_s.tech_attributes, to_nation(this_slot));
+		auto si = provinces::province_state(ws, to_prov(primary_slot));
+
+		auto result = (nb_level < max_nb)
+			& ve::widen_mask(to_value<province::is_coastal>(ws.s.province_m.province_container, to_prov(primary_slot)))
+			& ((nb_level != 0) | !is_valid_index(nations::state_port_province(ws, si)));
+		return compare_to_true(tval[0], result);
+	}
+	TRIGGER_FUNCTION(tf_can_build_in_province_naval_base_yes_limit_this_nation) {
+		auto nb_level = to_value<province_state::naval_base_level>(ws.w.province_s.province_state_container, to_prov(primary_slot));
+		auto max_nb = to_indexed_value<technologies::tech_offset::max_naval_base>(ws.w.nation_s.tech_attributes, to_nation(this_slot));
+		auto si = provinces::province_state(ws, to_prov(primary_slot));
+
+		auto result = (nb_level < max_nb)
+			& ve::widen_mask(to_value<province::is_coastal>(ws.s.province_m.province_container, to_prov(primary_slot)))
+			& ((nb_level != 0) | !is_valid_index(nations::state_port_province(ws, si)));
+		return compare_to_true(tval[0], result);
+	}
+	TRIGGER_FUNCTION(tf_can_build_railway_in_capital_yes_whole_state_yes_limit) {
+		// stub: virtually unused
+		return compare_to_true(tval[0], true);
+	}
+	TRIGGER_FUNCTION(tf_can_build_railway_in_capital_yes_whole_state_no_limit) {
+		// stub: virtually unused
+		return compare_to_true(tval[0], true);
+	}
+	TRIGGER_FUNCTION(tf_can_build_railway_in_capital_no_whole_state_yes_limit) {
+		// stub: virtually unused
+		return compare_to_true(tval[0], true);
+	}
+	TRIGGER_FUNCTION(tf_can_build_railway_in_capital_no_whole_state_no_limit) {
+		// stub: virtually unused
+		return compare_to_true(tval[0], true);
+	}
+	TRIGGER_FUNCTION(tf_can_build_fort_in_capital_yes_whole_state_yes_limit) {
+		// stub: virtually unused
+		return compare_to_true(tval[0], true);
+	}
+	TRIGGER_FUNCTION(tf_can_build_fort_in_capital_yes_whole_state_no_limit) {
+		// stub: virtually unused
+		return compare_to_true(tval[0], true);
+	}
+	TRIGGER_FUNCTION(tf_can_build_fort_in_capital_no_whole_state_yes_limit) {
+		// stub: virtually unused
+		return compare_to_true(tval[0], true);
+	}
+	TRIGGER_FUNCTION(tf_can_build_fort_in_capital_no_whole_state_no_limit) {
+		// stub: virtually unused
+		return compare_to_true(tval[0], true);
+	}
+	TRIGGER_FUNCTION(tf_work_available_nation) {
+		auto count_workers = tval[1] - 1;
+		auto result = ve::widen_to<decltype(primary_slot)>(true);
 
 		for(int32_t i = 0; i < count_workers; ++i) {
 			auto type = trigger_payload(tval[2 + i]).small.values.pop_type;
-			if(ws.w.nation_s.nation_demographics.get(id, population::to_demo_tag(ws, type)) != 0 &&
-				ws.w.nation_s.nation_demographics.get(id, population::to_employment_demo_tag(ws, type)) == 0) {
-				return compare_values(tval[0], false, true);
-			}
-		}
-		return compare_values(tval[0], true, true);
-	}
-	bool tf_work_available_state(TRIGGER_PARAMTERS) {
-		auto count_workers = tval[1] - 1;
-		auto id = to_state(primary_slot);
 
-		if(!ws.w.nation_s.states.is_valid_index(id))
-			return compare_values(tval[0], false, true);
+			auto pop_size = ve::apply(to_nation(primary_slot), [&ws, type](nations::country_tag t) {
+				if(ws.w.nation_s.nations.is_valid_index(t))
+					return ws.w.nation_s.nation_demographics.get(t, population::to_demo_tag(ws, type));
+				else
+					return 0.0f;
+			});
+			auto employment = ve::apply(to_nation(primary_slot), [&ws, type](nations::country_tag t) {
+				if(ws.w.nation_s.nations.is_valid_index(t))
+					return ws.w.nation_s.nation_demographics.get(t, population::to_employment_demo_tag(ws, type));
+				else
+					return 0.0f;
+			});
+
+			result = result & ((pop_size == 0.0f) | (employment > 0.0f));
+		}
+
+		return compare_to_true(tval[0], result);
+	}
+	TRIGGER_FUNCTION(tf_work_available_state) {
+		auto count_workers = tval[1] - 1;
+		auto result = ve::widen_to<decltype(primary_slot)>(true);
 
 		for(int32_t i = 0; i < count_workers; ++i) {
 			auto type = trigger_payload(tval[2 + i]).small.values.pop_type;
-			if(ws.w.nation_s.state_demographics.get(id, population::to_demo_tag(ws, type)) != 0 &&
-				ws.w.nation_s.state_demographics.get(id, population::to_employment_demo_tag(ws, type)) == 0) {
-				return compare_values(tval[0], false, true);
-			}
+
+			auto pop_size = ve::apply(to_state(primary_slot), [&ws, type](nations::state_tag t) {
+				if(ws.w.nation_s.states.is_valid_index(t))
+					return ws.w.nation_s.state_demographics.get(t, population::to_demo_tag(ws, type));
+				else
+					return 0.0f;
+			});
+			auto employment = ve::apply(to_state(primary_slot), [&ws, type](nations::state_tag t) {
+				if(ws.w.nation_s.states.is_valid_index(t))
+					return ws.w.nation_s.state_demographics.get(t, population::to_employment_demo_tag(ws, type));
+				else
+					return 0.0f;
+			});
+
+			result = result & ((pop_size == 0.0f) | (employment > 0.0f));
 		}
-		return compare_values(tval[0], true, true);
+
+		return compare_to_true(tval[0], result);
 	}
-	bool tf_work_available_province(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_work_available_province) {
 		auto count_workers = tval[1] - 1;
-		auto id = to_prov(primary_slot);
+		auto result = ve::widen_to<decltype(primary_slot)>(true);
 
 		for(int32_t i = 0; i < count_workers; ++i) {
 			auto type = trigger_payload(tval[2 + i]).small.values.pop_type;
-			if(ws.w.province_s.province_demographics.get(id, population::to_demo_tag(ws, type)) != 0 &&
-				ws.w.province_s.province_demographics.get(id, population::to_employment_demo_tag(ws, type)) == 0) {
-				return compare_values(tval[0], false, true);
-			}
-		}
-		return compare_values(tval[0], true, true);
-	}
-	bool tf_variable_ideology_name_nation(TRIGGER_PARAMTERS) {
-		auto id = to_nation(primary_slot);
-		if(ws.w.nation_s.nations.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.nations.get<nation::total_core_population>(id);
-			if(total_pop != 0)
-				return compare_values(tval[0],
-					float(ws.w.nation_s.nation_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology))) / float(total_pop),
-					read_float_from_payload(tval + 3));
-		}
-		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 3));
-	}
-	bool tf_variable_ideology_name_state(TRIGGER_PARAMTERS) {
-		auto id = to_state(primary_slot);
-		if(ws.w.nation_s.states.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.states.get<state::total_population>(id);
-			if(total_pop != 0)
-				return compare_values(tval[0],
-					float(ws.w.nation_s.state_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology))) / float(total_pop),
-					read_float_from_payload(tval + 3));
-		}
-		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 3));
-	}
-	bool tf_variable_ideology_name_province(TRIGGER_PARAMTERS) {
-		auto id = to_prov(primary_slot);
 
-		auto total_pop = ws.w.province_s.province_state_container.get<province_state::total_population>(id);
-		if(total_pop != 0)
-			return compare_values(tval[0],
-				float(ws.w.province_s.province_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology))) / float(total_pop),
-				read_float_from_payload(tval + 3));
-		else
-			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 3));
-	}
-	bool tf_variable_ideology_name_pop(TRIGGER_PARAMTERS) {
-		auto id = to_pop(primary_slot);
-		if(ws.w.population_s.pops.is_valid_index(id)) {
-			auto total_pop = ws.w.population_s.pops.get<pop::size>(id);
-			if(total_pop != 0)
-				return compare_values(tval[0],
-					float(ws.w.population_s.pop_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.ideology))) / float(total_pop),
-					read_float_from_payload(tval + 3));
-		}
-		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 3));
-	}
-	bool tf_variable_issue_name_nation(TRIGGER_PARAMTERS) {
-		auto id = to_nation(primary_slot);
-		if(ws.w.nation_s.nations.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.nations.get<nation::total_core_population>(id);
-			if(total_pop != 0)
-				return compare_values(tval[0],
-					float(ws.w.nation_s.nation_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option))) / float(total_pop),
-					read_float_from_payload(tval + 3));
-		}
-		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 3));
-	}
-	bool tf_variable_issue_name_state(TRIGGER_PARAMTERS) {
-		auto id = to_state(primary_slot);
-		if(ws.w.nation_s.states.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.states.get<state::total_population>(id);
-			if(total_pop != 0)
-				return compare_values(tval[0],
-					float(ws.w.nation_s.state_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option))) / float(total_pop),
-					read_float_from_payload(tval + 3));
-		}
-		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 3));
-	}
-	bool tf_variable_issue_name_province(TRIGGER_PARAMTERS) {
-		auto id = to_prov(primary_slot);
+			auto pop_size = ve::apply(to_prov(primary_slot), [&ws, type](provinces::province_tag t) {
+				if(ws.w.province_s.province_state_container.is_valid_index(t))
+					return ws.w.province_s.province_demographics.get(t, population::to_demo_tag(ws, type));
+				else
+					return 0.0f;
+			});
+			auto employment = ve::apply(to_prov(primary_slot), [&ws, type](provinces::province_tag t) {
+				if(ws.w.province_s.province_state_container.is_valid_index(t))
+					return ws.w.province_s.province_demographics.get(t, population::to_employment_demo_tag(ws, type));
+				else
+					return 0.0f;
+			});
 
-		auto total_pop = ws.w.province_s.province_state_container.get<province_state::total_population>(id);
-		if(total_pop != 0)
-			return compare_values(tval[0],
-				float(ws.w.province_s.province_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option))) / float(total_pop),
-				read_float_from_payload(tval + 3));
-		else
-			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 3));
-	}
-	bool tf_variable_issue_name_pop(TRIGGER_PARAMTERS) {
-		auto id = to_pop(primary_slot);
-		if(ws.w.population_s.pops.is_valid_index(id)) {
-			auto total_pop = ws.w.population_s.pops.get<pop::size>(id);
-			if(total_pop != 0)
-				return compare_values(tval[0],
-					float(ws.w.population_s.pop_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.option))) / float(total_pop),
-					read_float_from_payload(tval + 3));
+			result = result & ((pop_size == 0.0f) | (employment > 0.0f));
 		}
-		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 3));
+
+		return compare_to_true(tval[0], result);
 	}
-	bool tf_variable_issue_group_name_nation(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_variable_ideology_name_nation) {
+		auto id = trigger_payload(tval[2]).small.values.ideology;
+		auto total_pop = to_value<nation::total_core_population>(ws.w.nation_s.nations, to_nation(primary_slot));
+		
+		auto support = ve::apply(to_nation(primary_slot), [&ws, id](nations::country_tag t) {
+			if(ws.w.nation_s.nations.is_valid_index(t))
+				return ws.w.nation_s.nation_demographics.get(t, population::to_demo_tag(ws, id));
+			else
+				return 0.0f;
+		});
+
+		return compare_values(tval[0], ve::select(total_pop > 0.0f, support / total_pop, 0.0f), read_float_from_payload(tval + 3));
+	}
+	TRIGGER_FUNCTION(tf_variable_ideology_name_state) {
+		auto id = trigger_payload(tval[2]).small.values.ideology;
+		auto total_pop = to_value<state::total_population>(ws.w.nation_s.states, to_state(primary_slot));
+
+		auto support = ve::apply(to_state(primary_slot), [&ws, id](nations::state_tag t) {
+			if(ws.w.nation_s.states.is_valid_index(t))
+				return ws.w.nation_s.state_demographics.get(t, population::to_demo_tag(ws, id));
+			else
+				return 0.0f;
+		});
+
+		return compare_values(tval[0], ve::select(total_pop > 0.0f, support / total_pop, 0.0f), read_float_from_payload(tval + 3));
+	}
+	TRIGGER_FUNCTION(tf_variable_ideology_name_province) {
+		auto id = trigger_payload(tval[2]).small.values.ideology;
+		auto total_pop = to_value<province_state::total_population>(ws.w.province_s.province_state_container, to_prov(primary_slot));
+
+		auto support = ve::apply(to_prov(primary_slot), [&ws, id](provinces::province_tag t) {
+			if(ws.w.province_s.province_state_container.is_valid_index(t))
+				return ws.w.province_s.province_demographics.get(t, population::to_demo_tag(ws, id));
+			else
+				return 0.0f;
+		});
+
+		return compare_values(tval[0], ve::select(total_pop > 0.0f, support / total_pop, 0.0f), read_float_from_payload(tval + 3));
+	}
+	TRIGGER_FUNCTION(tf_variable_ideology_name_pop) {
+		auto id = trigger_payload(tval[2]).small.values.ideology;
+		auto total_pop = to_value<pop::size>(ws.w.population_s.pops, to_pop(primary_slot));
+
+		auto support = ve::apply(to_pop(primary_slot), [&ws, id](population::pop_tag t) {
+			if(ws.w.population_s.pops.is_valid_index(t))
+				return ws.w.population_s.pop_demographics.get(t, population::to_demo_tag(ws, id));
+			else
+				return 0.0f;
+		});
+
+		return compare_values(tval[0], ve::select(total_pop > 0.0f, support / total_pop, 0.0f), read_float_from_payload(tval + 3));
+	}
+	TRIGGER_FUNCTION(tf_variable_issue_name_nation) {
+		auto id = trigger_payload(tval[2]).small.values.option;
+		auto total_pop = to_value<nation::total_core_population>(ws.w.nation_s.nations, to_nation(primary_slot));
+
+		auto support = ve::apply(to_nation(primary_slot), [&ws, id](nations::country_tag t) {
+			if(ws.w.nation_s.nations.is_valid_index(t))
+				return ws.w.nation_s.nation_demographics.get(t, population::to_demo_tag(ws, id));
+			else
+				return 0.0f;
+		});
+
+		return compare_values(tval[0], ve::select(total_pop > 0.0f, support / total_pop, 0.0f), read_float_from_payload(tval + 3));
+	}
+	TRIGGER_FUNCTION(tf_variable_issue_name_state) {
+		auto id = trigger_payload(tval[2]).small.values.option;
+		auto total_pop = to_value<state::total_population>(ws.w.nation_s.states, to_state(primary_slot));
+
+		auto support = ve::apply(to_state(primary_slot), [&ws, id](nations::state_tag t) {
+			if(ws.w.nation_s.states.is_valid_index(t))
+				return ws.w.nation_s.state_demographics.get(t, population::to_demo_tag(ws, id));
+			else
+				return 0.0f;
+		});
+
+		return compare_values(tval[0], ve::select(total_pop > 0.0f, support / total_pop, 0.0f), read_float_from_payload(tval + 3));
+	}
+	TRIGGER_FUNCTION(tf_variable_issue_name_province) {
+		auto id = trigger_payload(tval[2]).small.values.option;
+		auto total_pop = to_value<province_state::total_population>(ws.w.province_s.province_state_container, to_prov(primary_slot));
+
+		auto support = ve::apply(to_prov(primary_slot), [&ws, id](provinces::province_tag t) {
+			if(ws.w.province_s.province_state_container.is_valid_index(t))
+				return ws.w.province_s.province_demographics.get(t, population::to_demo_tag(ws, id));
+			else
+				return 0.0f;
+		});
+
+		return compare_values(tval[0], ve::select(total_pop > 0.0f, support / total_pop, 0.0f), read_float_from_payload(tval + 3));
+	}
+	TRIGGER_FUNCTION(tf_variable_issue_name_pop) {
+		auto id = trigger_payload(tval[2]).small.values.option;
+		auto total_pop = to_value<pop::size>(ws.w.population_s.pops, to_pop(primary_slot));
+
+		auto support = ve::apply(to_pop(primary_slot), [&ws, id](population::pop_tag t) {
+			if(ws.w.population_s.pops.is_valid_index(t))
+				return ws.w.population_s.pop_demographics.get(t, population::to_demo_tag(ws, id));
+			else
+				return 0.0f;
+		});
+
+		return compare_values(tval[0], ve::select(total_pop > 0.0f, support / total_pop, 0.0f), read_float_from_payload(tval + 3));
+	}
+	TRIGGER_FUNCTION(tf_variable_issue_group_name_nation) {
 		auto option = trigger_payload(tval[2]).small.values.option;
 		auto issue = ws.s.issues_m.options[option].parent_issue;
-
-		auto id = to_nation(primary_slot);
-		if(ws.w.nation_s.nations.is_valid_index(id))
-			return compare_values(tval[0], ws.w.nation_s.active_issue_options.get(id, issue) == option, true);
-		else
-			return compare_values(tval[0], false, true);
+		return compare_values_eq(tval[0], to_vindexed_value(ws.w.nation_s.active_issue_options, to_nation(primary_slot), issue), option);
 	}
-	bool tf_variable_issue_group_name_state(TRIGGER_PARAMTERS) {
-		auto owner = ws.w.nation_s.states.get<state::owner>(to_state(primary_slot));
-		if(owner)
-			return tf_variable_issue_group_name_nation(tval, ws, owner, nullptr, nullptr);
-		else
-			return compare_values(tval[0], false, true);
+	TRIGGER_FUNCTION(tf_variable_issue_group_name_state) {
+		auto owner = to_value<state::owner>(ws.w.nation_s.states, to_state(primary_slot));
+		auto option = trigger_payload(tval[2]).small.values.option;
+		auto issue = ws.s.issues_m.options[option].parent_issue;
+		return compare_values_eq(tval[0], to_vindexed_value(ws.w.nation_s.active_issue_options, owner, issue), option);
 	}
-	bool tf_variable_issue_group_name_province(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_variable_issue_group_name_province) {
 		auto owner = provinces::province_owner(ws, to_prov(primary_slot));
-		if(owner)
-			return tf_variable_issue_group_name_nation(tval, ws, owner, nullptr, nullptr);
-		else
-			return compare_values(tval[0], false, true);
+		auto option = trigger_payload(tval[2]).small.values.option;
+		auto issue = ws.s.issues_m.options[option].parent_issue;
+		return compare_values_eq(tval[0], to_vindexed_value(ws.w.nation_s.active_issue_options, owner, issue), option);
 	}
-	bool tf_variable_issue_group_name_pop(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_variable_issue_group_name_pop) {
 		auto owner = population::get_pop_owner(ws, to_pop(primary_slot));
-		if(owner)
-			return tf_variable_issue_group_name_nation(tval, ws, owner, nullptr, nullptr);
-		else
-			return compare_values(tval[0], false, true);
+		auto option = trigger_payload(tval[2]).small.values.option;
+		auto issue = ws.s.issues_m.options[option].parent_issue;
+		return compare_values_eq(tval[0], to_vindexed_value(ws.w.nation_s.active_issue_options, owner, issue), option);
 	}
-	bool tf_variable_pop_type_name_nation(TRIGGER_PARAMTERS) {
-		auto id = to_nation(primary_slot);
-		if(ws.w.nation_s.nations.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.nations.get<nation::total_core_population>(id);
-			if(total_pop != 0)
-				return compare_values(tval[0],
-					float(ws.w.nation_s.nation_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.pop_type))) / float(total_pop),
-					read_float_from_payload(tval + 3));
-		}
-		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 3));
+	TRIGGER_FUNCTION(tf_variable_pop_type_name_nation) {
+		auto total_pop = to_value<nation::total_core_population>(ws.w.nation_s.nations, to_nation(primary_slot));
+		auto type = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.pop_type);
+		auto size = ve::apply(to_nation(primary_slot), [&ws, type](nations::country_tag n) {
+			if(ws.w.nation_s.nations.is_valid_index(n))
+				return ws.w.nation_s.nation_demographics.get(n, type);
+			else
+				return 0.0f;
+		});
+		return compare_values(tval[0], ve::select(total_pop > 0.0f, size / total_pop, 0.0f), read_float_from_payload(tval + 3));
 	}
-	bool tf_variable_pop_type_name_state(TRIGGER_PARAMTERS) {
-		auto id = to_state(primary_slot);
-		if(ws.w.nation_s.states.is_valid_index(id)) {
-			auto total_pop = ws.w.nation_s.states.get<state::total_population>(id);
-			if(total_pop != 0)
-				return compare_values(tval[0],
-					float(ws.w.nation_s.state_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.pop_type))) / float(total_pop),
-					read_float_from_payload(tval + 3));
-		}
-		return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 3));
+	TRIGGER_FUNCTION(tf_variable_pop_type_name_state) {
+		auto total_pop = to_value<state::total_population>(ws.w.nation_s.states, to_state(primary_slot));
+		auto type = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.pop_type);
+		auto size = ve::apply(to_state(primary_slot), [&ws, type](nations::state_tag t) {
+			if(ws.w.nation_s.states.is_valid_index(t))
+				return ws.w.nation_s.state_demographics.get(t, type);
+			else
+				return 0.0f;
+		});
+		return compare_values(tval[0], ve::select(total_pop > 0.0f, size / total_pop, 0.0f), read_float_from_payload(tval + 3));
 	}
-	bool tf_variable_pop_type_name_province(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_variable_pop_type_name_province) {
+		auto total_pop = to_value<province::total_population>(ws.w.province_s.province_state_container, to_prov(primary_slot));
+		auto type = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.pop_type);
+		auto size = ve::apply(to_prov(primary_slot), [&ws, type](provinces::province_tag t) {
+			if(ws.w.province_s.province_state_container.is_valid_index(t))
+				return ws.w.province_s.province_demographics.get(t, type);
+			else
+				return 0.0f;
+		});
+		return compare_values(tval[0], ve::select(total_pop > 0.0f, size / total_pop, 0.0f), read_float_from_payload(tval + 3));
+
 		auto id = to_prov(primary_slot);
-
-		auto total_pop = ws.w.province_s.province_state_container.get<province_state::total_population>(id);
-		if(total_pop != 0)
-			return compare_values(tval[0],
-				float(ws.w.province_s.province_demographics.get(id, population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.pop_type))) / float(total_pop),
-				read_float_from_payload(tval + 3));
-		else
-			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 3));
 	}
-	bool tf_variable_pop_type_name_pop(TRIGGER_PARAMTERS) {
-		if(ws.w.population_s.pops.get<pop::type>(to_pop(primary_slot)) == trigger_payload(tval[2]).small.values.pop_type)
-			return compare_values(tval[0], 1.0f, read_float_from_payload(tval + 3));
-		else
-			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 3));
+	TRIGGER_FUNCTION(tf_variable_pop_type_name_pop) {
+		return compare_values(tval[0],
+			ve::select(to_value<pop::type>(ws.w.population_s.pops, to_pop(primary_slot)) == trigger_payload(tval[2]).small.values.pop_type, 1.0f, 0.0f),
+			read_float_from_payload(tval + 3));
 	}
-	bool tf_variable_good_name(TRIGGER_PARAMTERS) {
-		auto id = to_nation(primary_slot);
-		if(ws.w.nation_s.nations.is_valid_index(id))
-			return compare_values(tval[0], float(ws.w.nation_s.national_stockpiles.get(id, trigger_payload(tval[2]).small.values.good)), read_float_from_payload(tval + 3));
-		else
-			return compare_values(tval[0], 0.0f, read_float_from_payload(tval + 3));
+	TRIGGER_FUNCTION(tf_variable_good_name) {
+		auto good = trigger_payload(tval[2]).small.values.good;
+		auto amount = ve::apply(to_nation(primary_slot), [&ws, good](nations::country_tag n) {
+			if(ws.w.nation_s.nations.is_valid_index(n))
+				return ws.w.nation_s.national_stockpiles.get(n, good);
+			else
+				return 0.0f;
+		});
+		return compare_values(tval[0], amount, read_float_from_payload(tval + 3));
 	}
-	bool tf_religion_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::national_religion>(to_nation(primary_slot)) == trigger_payload(tval[2]).small.values.religion, true);
+	TRIGGER_FUNCTION(tf_religion_nation) {
+		return compare_values_eq(tval[0],
+			to_value<nation::national_religion>(ws.w.nation_s.nations, to_nation(primary_slot)),
+			trigger_payload(tval[2]).small.values.religion);
 	}
-	bool tf_religion_nation_reb(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::national_religion>(to_nation(primary_slot)) == ws.w.population_s.rebel_factions[to_rebel(from_slot)].religion, true);
+	TRIGGER_FUNCTION(tf_religion_nation_reb) {
+		return compare_values_eq(tval[0],
+			to_value<nation::national_religion>(ws.w.nation_s.nations, to_nation(primary_slot)),
+			to_value<rebel_faction::religion>(ws.w.population_s.rebel_factions, to_rebel(from_slot)));
 	}
-	bool tf_religion_nation_from_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::national_religion>(to_nation(primary_slot)) == ws.w.nation_s.nations.get<nation::national_religion>(to_nation(from_slot)), true);
+	TRIGGER_FUNCTION(tf_religion_nation_from_nation) {
+		return compare_values_eq(tval[0],
+			to_value<nation::national_religion>(ws.w.nation_s.nations, to_nation(primary_slot)),
+			to_value<nation::national_religion>(ws.w.nation_s.nations, to_nation(from_slot)));
 	}
-	bool tf_religion_nation_this_nation(TRIGGER_PARAMTERS) {
-		return compare_values(tval[0], ws.w.nation_s.nations.get<nation::national_religion>(to_nation(primary_slot)) == ws.w.nation_s.nations.get<nation::national_religion>(to_nation(this_slot)), true);
+	TRIGGER_FUNCTION(tf_religion_nation_this_nation) {
+		return compare_values_eq(tval[0],
+			to_value<nation::national_religion>(ws.w.nation_s.nations, to_nation(primary_slot)),
+			to_value<nation::national_religion>(ws.w.nation_s.nations, to_nation(this_slot)));
 	}
-	bool tf_religion_nation_this_state(TRIGGER_PARAMTERS) {
-		auto owner = ws.w.nation_s.states.get<state::owner>(to_state(this_slot));
-		if(owner)
-			return tf_religion_nation_this_nation(tval, ws, owner, nullptr, nullptr);
-		else
-			return compare_values(tval[0], false, true);
+	TRIGGER_FUNCTION(tf_religion_nation_this_state) {
+		auto owner = to_value<state::owner>(ws.w.nation_s.states, to_state(this_slot));
+		return compare_values_eq(tval[0],
+			to_value<nation::national_religion>(ws.w.nation_s.nations, to_nation(primary_slot)),
+			to_value<nation::national_religion>(ws.w.nation_s.nations, owner));
 	}
-	bool tf_religion_nation_this_province(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_religion_nation_this_province) {
 		auto owner = provinces::province_owner(ws, to_prov(this_slot));
-		if(owner)
-			return tf_religion_nation_this_nation(tval, ws, owner, nullptr, nullptr);
-		else
-			return compare_values(tval[0], false, true);
+		return compare_values_eq(tval[0],
+			to_value<nation::national_religion>(ws.w.nation_s.nations, to_nation(primary_slot)),
+			to_value<nation::national_religion>(ws.w.nation_s.nations, owner));
 	}
-	bool tf_religion_nation_this_pop(TRIGGER_PARAMTERS) {
+	TRIGGER_FUNCTION(tf_religion_nation_this_pop) {
 		auto owner = population::get_pop_owner(ws, to_pop(this_slot));
-		if(owner)
-			return tf_religion_nation_this_nation(tval, ws, owner, nullptr, nullptr);
-		else
-			return compare_values(tval[0], false, true);
+		return compare_values_eq(tval[0],
+			to_value<nation::national_religion>(ws.w.nation_s.nations, to_nation(primary_slot)),
+			to_value<nation::national_religion>(ws.w.nation_s.nations, owner));
 	}
-
-	static bool(*trigger_functions[])(TRIGGER_PARAMTERS) = {
-		tf_none,
-		tf_year,
-		tf_month,
-		tf_port,
-		tf_rank,
-		tf_technology,
-		tf_strata_rich,
-		tf_life_rating_province,
-		tf_life_rating_state,
-		tf_has_empty_adjacent_state_province,
-		tf_has_empty_adjacent_state_state,
-		tf_state_id_province,
-		tf_state_id_state,
-		tf_cash_reserves,
-		tf_unemployment_nation,
-		tf_unemployment_state,
-		tf_unemployment_province,
-		tf_unemployment_pop,
-		tf_is_slave_nation,
-		tf_is_slave_state,
-		tf_is_slave_province,
-		tf_is_slave_pop,
-		tf_is_independant,
-		tf_has_national_minority_province,
-		tf_has_national_minority_state,
-		tf_has_national_minority_nation,
-		tf_government_nation,
-		tf_government_pop,
-		tf_capital,
-		tf_tech_school,
-		tf_primary_culture,
-		tf_accepted_culture,
-		tf_culture_pop,
-		tf_culture_state,
-		tf_culture_province,
-		tf_culture_nation,
-		tf_culture_pop_reb,
-		tf_culture_state_reb,
-		tf_culture_province_reb,
-		tf_culture_nation_reb,
-		tf_culture_from_nation,
-		tf_culture_this_nation,
-		tf_culture_this_state,
-		tf_culture_this_pop,
-		tf_culture_this_province,
-		tf_culture_group_nation,
-		tf_culture_group_pop,
-		tf_culture_group_reb_nation,
-		tf_culture_group_reb_pop,
-		tf_culture_group_nation_from_nation,
-		tf_culture_group_pop_from_nation,
-		tf_culture_group_nation_this_nation,
-		tf_culture_group_pop_this_nation,
-		tf_culture_group_nation_this_province,
-		tf_culture_group_pop_this_province,
-		tf_culture_group_nation_this_state,
-		tf_culture_group_pop_this_state,
-		tf_culture_group_nation_this_pop,
-		tf_culture_group_pop_this_pop,
-		tf_religion,
-		tf_religion_reb,
-		tf_religion_from_nation,
-		tf_religion_this_nation,
-		tf_religion_this_state,
-		tf_religion_this_province,
-		tf_religion_this_pop,
-		tf_terrain_province,
-		tf_terrain_pop,
-		tf_trade_goods,
-		tf_is_secondary_power_pop,
-		tf_is_secondary_power_nation,
-		tf_has_faction_nation,
-		tf_has_faction_pop,
-		tf_has_unclaimed_cores,
-		tf_is_cultural_union_bool,
-		tf_is_cultural_union_this_self_pop,
-		tf_is_cultural_union_this_pop,
-		tf_is_cultural_union_this_state,
-		tf_is_cultural_union_this_province,
-		tf_is_cultural_union_this_nation,
-		tf_is_cultural_union_this_rebel,
-		tf_is_cultural_union_tag_nation,
-		tf_is_cultural_union_tag_this_pop,
-		tf_is_cultural_union_tag_this_state,
-		tf_is_cultural_union_tag_this_province,
-		tf_is_cultural_union_tag_this_nation,
-		tf_can_build_factory_pop,
-		tf_war_pop,
-		tf_war_nation,
-		tf_war_exhaustion_nation,
-		tf_blockade,
-		tf_owns,
-		tf_controls,
-		tf_is_core_integer,
-		tf_is_core_this_nation,
-		tf_is_core_this_state,
-		tf_is_core_this_province,
-		tf_is_core_this_pop,
-		tf_is_core_from_nation,
-		tf_is_core_reb,
-		tf_is_core_tag,
-		tf_num_of_revolts,
-		tf_revolt_percentage,
-		tf_num_of_cities_int,
-		tf_num_of_cities_from_nation,
-		tf_num_of_cities_this_nation,
-		tf_num_of_cities_this_state,
-		tf_num_of_cities_this_province,
-		tf_num_of_cities_this_pop,
-		tf_num_of_ports,
-		tf_num_of_allies,
-		tf_num_of_vassals,
-		tf_owned_by_tag,
-		tf_owned_by_from_nation,
-		tf_owned_by_this_nation,
-		tf_owned_by_this_province,
-		tf_owned_by_this_state,
-		tf_owned_by_this_pop,
-		tf_exists_bool,
-		tf_exists_tag,
-		tf_has_country_flag,
-		tf_continent_nation,
-		tf_continent_state,
-		tf_continent_province,
-		tf_continent_pop,
-		tf_continent_nation_this,
-		tf_continent_state_this,
-		tf_continent_province_this,
-		tf_continent_pop_this,
-		tf_continent_nation_from,
-		tf_continent_state_from,
-		tf_continent_province_from,
-		tf_continent_pop_from,
-		tf_casus_belli_tag,
-		tf_casus_belli_from,
-		tf_casus_belli_this_nation,
-		tf_casus_belli_this_state,
-		tf_casus_belli_this_province,
-		tf_casus_belli_this_pop,
-		tf_military_access_tag,
-		tf_military_access_from,
-		tf_military_access_this_nation,
-		tf_military_access_this_state,
-		tf_military_access_this_province,
-		tf_military_access_this_pop,
-		tf_prestige_value,
-		tf_prestige_from,
-		tf_prestige_this_nation,
-		tf_prestige_this_state,
-		tf_prestige_this_province,
-		tf_prestige_this_pop,
-		tf_badboy,
-		tf_has_building_state,
-		tf_has_building_fort,
-		tf_has_building_railroad,
-		tf_has_building_naval_base,
-		tf_empty,
-		tf_is_blockaded,
-		tf_has_country_modifier,
-		tf_has_province_modifier,
-		tf_region,
-		tf_tag_tag,
-		tf_tag_this_nation,
-		tf_tag_this_province,
-		tf_tag_from_nation,
-		tf_tag_from_province,
-		tf_neighbour_tag,
-		tf_neighbour_this,
-		tf_neighbour_from,
-		tf_units_in_province_value,
-		tf_units_in_province_from,
-		tf_units_in_province_this_nation,
-		tf_units_in_province_this_province,
-		tf_units_in_province_this_state,
-		tf_units_in_province_this_pop,
-		tf_war_with_tag,
-		tf_war_with_from,
-		tf_war_with_this_nation,
-		tf_war_with_this_province,
-		tf_war_with_this_state,
-		tf_war_with_this_pop,
-		tf_unit_in_battle,
-		tf_total_amount_of_divisions,
-		tf_money,
-		tf_lost_national,
-		tf_is_vassal,
-		tf_ruling_party_ideology_pop,
-		tf_ruling_party_ideology_nation,
-		tf_ruling_party,
-		tf_is_ideology_enabled,
-		tf_political_reform_want_nation,
-		tf_political_reform_want_pop,
-		tf_social_reform_want_nation,
-		tf_social_reform_want_pop,
-		tf_total_amount_of_ships,
-		tf_plurality,
-		tf_corruption,
-		tf_is_state_religion_pop,
-		tf_is_state_religion_province,
-		tf_is_state_religion_state,
-		tf_is_primary_culture_pop,
-		tf_is_primary_culture_province,
-		tf_is_primary_culture_state,
-		tf_is_primary_culture_nation_this_pop,
-		tf_is_primary_culture_nation_this_nation,
-		tf_is_primary_culture_nation_this_state,
-		tf_is_primary_culture_nation_this_province,
-		tf_is_primary_culture_state_this_pop,
-		tf_is_primary_culture_state_this_nation,
-		tf_is_primary_culture_state_this_state,
-		tf_is_primary_culture_state_this_province,
-		tf_is_primary_culture_province_this_pop,
-		tf_is_primary_culture_province_this_nation,
-		tf_is_primary_culture_province_this_state,
-		tf_is_primary_culture_province_this_province,
-		tf_is_primary_culture_pop_this_pop,
-		tf_is_primary_culture_pop_this_nation,
-		tf_is_primary_culture_pop_this_state,
-		tf_is_primary_culture_pop_this_province,
-		tf_is_accepted_culture_pop,
-		tf_is_accepted_culture_province,
-		tf_is_accepted_culture_state,
-		tf_is_coastal,
-		tf_in_sphere_tag,
-		tf_in_sphere_from,
-		tf_in_sphere_this_nation,
-		tf_in_sphere_this_province,
-		tf_in_sphere_this_state,
-		tf_in_sphere_this_pop,
-		tf_produces_nation,
-		tf_produces_state,
-		tf_produces_province,
-		tf_produces_pop,
-		tf_average_militancy_nation,
-		tf_average_militancy_state,
-		tf_average_militancy_province,
-		tf_average_consciousness_nation,
-		tf_average_consciousness_state,
-		tf_average_consciousness_province,
-		tf_is_next_reform_nation,
-		tf_is_next_reform_pop,
-		tf_rebel_power_fraction,
-		tf_recruited_percentage_nation,
-		tf_recruited_percentage_pop,
-		tf_has_culture_core,
-		tf_nationalism,
-		tf_is_overseas,
-		tf_controlled_by_rebels,
-		tf_controlled_by_tag,
-		tf_controlled_by_from,
-		tf_controlled_by_this_nation,
-		tf_controlled_by_this_province,
-		tf_controlled_by_this_state,
-		tf_controlled_by_this_pop,
-		tf_controlled_by_owner,
-		tf_controlled_by_reb,
-		tf_is_canal_enabled,
-		tf_is_state_capital,
-		tf_truce_with_tag,
-		tf_truce_with_from,
-		tf_truce_with_this_nation,
-		tf_truce_with_this_province,
-		tf_truce_with_this_state,
-		tf_truce_with_this_pop,
-		tf_total_pops_nation,
-		tf_total_pops_state,
-		tf_total_pops_province,
-		tf_total_pops_pop,
-		tf_has_pop_type_nation,
-		tf_has_pop_type_state,
-		tf_has_pop_type_province,
-		tf_has_pop_type_pop,
-		tf_has_empty_adjacent_province,
-		tf_has_leader,
-		tf_ai,
-		tf_can_create_vassals,
-		tf_is_possible_vassal,
-		tf_province_id,
-		tf_vassal_of_tag,
-		tf_vassal_of_from,
-		tf_vassal_of_this_nation,
-		tf_vassal_of_this_province,
-		tf_vassal_of_this_state,
-		tf_vassal_of_this_pop,
-		tf_alliance_with_tag,
-		tf_alliance_with_from,
-		tf_alliance_with_this_nation,
-		tf_alliance_with_this_province,
-		tf_alliance_with_this_state,
-		tf_alliance_with_this_pop,
-		tf_has_recently_lost_war,
-		tf_is_mobilised,
-		tf_mobilisation_size,
-		tf_crime_higher_than_education_nation,
-		tf_crime_higher_than_education_state,
-		tf_crime_higher_than_education_province,
-		tf_crime_higher_than_education_pop,
-		tf_agree_with_ruling_party,
-		tf_is_colonial_state,
-		tf_is_colonial_province,
-		tf_has_factories,
-		tf_in_default_tag,
-		tf_in_default_from,
-		tf_in_default_this_nation,
-		tf_in_default_this_province,
-		tf_in_default_this_state,
-		tf_in_default_this_pop,
-		tf_total_num_of_ports,
-		tf_always,
-		tf_election,
-		tf_has_global_flag,
-		tf_is_capital,
-		tf_nationalvalue_nation,
-		tf_industrial_score_value,
-		tf_industrial_score_from_nation,
-		tf_industrial_score_this_nation,
-		tf_industrial_score_this_pop,
-		tf_industrial_score_this_state,
-		tf_industrial_score_this_province,
-		tf_military_score_value,
-		tf_military_score_from_nation,
-		tf_military_score_this_nation,
-		tf_military_score_this_pop,
-		tf_military_score_this_state,
-		tf_military_score_this_province,
-		tf_civilized_nation,
-		tf_civilized_pop,
-		tf_civilized_province,
-		tf_national_provinces_occupied,
-		tf_is_greater_power_nation,
-		tf_is_greater_power_pop,
-		tf_rich_tax,
-		tf_middle_tax,
-		tf_poor_tax,
-		tf_social_spending_nation,
-		tf_social_spending_pop,
-		tf_social_spending_province,
-		tf_colonial_nation,
-		tf_pop_majority_religion_nation,
-		tf_pop_majority_religion_state,
-		tf_pop_majority_religion_province,
-		tf_pop_majority_culture_nation,
-		tf_pop_majority_culture_state,
-		tf_pop_majority_culture_province,
-		tf_pop_majority_issue_nation,
-		tf_pop_majority_issue_state,
-		tf_pop_majority_issue_province,
-		tf_pop_majority_issue_pop,
-		tf_pop_majority_ideology_nation,
-		tf_pop_majority_ideology_state,
-		tf_pop_majority_ideology_province,
-		tf_pop_majority_ideology_pop,
-		tf_poor_strata_militancy_nation,
-		tf_poor_strata_militancy_state,
-		tf_poor_strata_militancy_province,
-		tf_poor_strata_militancy_pop,
-		tf_middle_strata_militancy_nation,
-		tf_middle_strata_militancy_state,
-		tf_middle_strata_militancy_province,
-		tf_middle_strata_militancy_pop,
-		tf_rich_strata_militancy_nation,
-		tf_rich_strata_militancy_state,
-		tf_rich_strata_militancy_province,
-		tf_rich_strata_militancy_pop,
-		tf_rich_tax_above_poor,
-		tf_culture_has_union_tag_pop,
-		tf_culture_has_union_tag_nation,
-		tf_this_culture_union_tag,
-		tf_this_culture_union_from,
-		tf_this_culture_union_this_nation,
-		tf_this_culture_union_this_province,
-		tf_this_culture_union_this_state,
-		tf_this_culture_union_this_pop,
-		tf_this_culture_union_this_union_nation,
-		tf_this_culture_union_this_union_province,
-		tf_this_culture_union_this_union_state,
-		tf_this_culture_union_this_union_pop,
-		tf_minorities_nation,
-		tf_minorities_state,
-		tf_minorities_province,
-		tf_revanchism_nation,
-		tf_revanchism_pop,
-		tf_has_crime,
-		tf_num_of_substates,
-		tf_num_of_vassals_no_substates,
-		tf_brigades_compare_this,
-		tf_brigades_compare_from,
-		tf_constructing_cb_tag,
-		tf_constructing_cb_from,
-		tf_constructing_cb_this_nation,
-		tf_constructing_cb_this_province,
-		tf_constructing_cb_this_state,
-		tf_constructing_cb_this_pop,
-		tf_constructing_cb_discovered,
-		tf_constructing_cb_progress,
-		tf_civilization_progress,
-		tf_constructing_cb_type,
-		tf_is_our_vassal_tag,
-		tf_is_our_vassal_from,
-		tf_is_our_vassal_this_nation,
-		tf_is_our_vassal_this_province,
-		tf_is_our_vassal_this_state,
-		tf_is_our_vassal_this_pop,
-		tf_substate_of_tag,
-		tf_substate_of_from,
-		tf_substate_of_this_nation,
-		tf_substate_of_this_province,
-		tf_substate_of_this_state,
-		tf_substate_of_this_pop,
-		tf_is_substate,
-		tf_great_wars_enabled,
-		tf_can_nationalize,
-		tf_part_of_sphere,
-		tf_is_sphere_leader_of_tag,
-		tf_is_sphere_leader_of_from,
-		tf_is_sphere_leader_of_this_nation,
-		tf_is_sphere_leader_of_this_province,
-		tf_is_sphere_leader_of_this_state,
-		tf_is_sphere_leader_of_this_pop,
-		tf_number_of_states,
-		tf_war_score,
-		tf_is_releasable_vassal_from,
-		tf_is_releasable_vassal_other,
-		tf_has_recent_imigration,
-		tf_province_control_days,
-		tf_is_disarmed,
-		tf_big_producer,
-		tf_someone_can_form_union_tag_from,
-		tf_someone_can_form_union_tag_other,
-		tf_social_movement_strength,
-		tf_political_movement_strength,
-		tf_can_build_factory_in_capital_state,
-		tf_social_movement,
-		tf_political_movement,
-		tf_has_cultural_sphere,
-		tf_world_wars_enabled,
-		tf_has_pop_culture_pop_this_pop,
-		tf_has_pop_culture_state_this_pop,
-		tf_has_pop_culture_province_this_pop,
-		tf_has_pop_culture_nation_this_pop,
-		tf_has_pop_culture_pop,
-		tf_has_pop_culture_state,
-		tf_has_pop_culture_province,
-		tf_has_pop_culture_nation,
-		tf_has_pop_religion_pop_this_pop,
-		tf_has_pop_religion_state_this_pop,
-		tf_has_pop_religion_province_this_pop,
-		tf_has_pop_religion_nation_this_pop,
-		tf_has_pop_religion_pop,
-		tf_has_pop_religion_state,
-		tf_has_pop_religion_province,
-		tf_has_pop_religion_nation,
-		tf_life_needs,
-		tf_everyday_needs,
-		tf_luxury_needs,
-		tf_consciousness_pop,
-		tf_consciousness_province,
-		tf_consciousness_state,
-		tf_consciousness_nation,
-		tf_literacy_pop,
-		tf_literacy_province,
-		tf_literacy_state,
-		tf_literacy_nation,
-		tf_militancy_pop,
-		tf_militancy_province,
-		tf_militancy_state,
-		tf_militancy_nation,
-		tf_military_spending_pop,
-		tf_military_spending_province,
-		tf_military_spending_state,
-		tf_military_spending_nation,
-		tf_administration_spending_pop,
-		tf_administration_spending_province,
-		tf_administration_spending_state,
-		tf_administration_spending_nation,
-		tf_education_spending_pop,
-		tf_education_spending_province,
-		tf_education_spending_state,
-		tf_education_spending_nation,
-		tf_trade_goods_in_state_state,
-		tf_trade_goods_in_state_province,
-		tf_has_flashpoint,
-		tf_flashpoint_tension,
-		tf_crisis_exist,
-		tf_is_liberation_crisis,
-		tf_is_claim_crisis,
-		tf_crisis_temperature,
-		tf_involved_in_crisis_pop,
-		tf_involved_in_crisis_nation,
-		tf_rich_strata_life_needs_nation,
-		tf_rich_strata_life_needs_state,
-		tf_rich_strata_life_needs_province,
-		tf_rich_strata_life_needs_pop,
-		tf_rich_strata_everyday_needs_nation,
-		tf_rich_strata_everyday_needs_state,
-		tf_rich_strata_everyday_needs_province,
-		tf_rich_strata_everyday_needs_pop,
-		tf_rich_strata_luxury_needs_nation,
-		tf_rich_strata_luxury_needs_state,
-		tf_rich_strata_luxury_needs_province,
-		tf_rich_strata_luxury_needs_pop,
-		tf_middle_strata_life_needs_nation,
-		tf_middle_strata_life_needs_state,
-		tf_middle_strata_life_needs_province,
-		tf_middle_strata_life_needs_pop,
-		tf_middle_strata_everyday_needs_nation,
-		tf_middle_strata_everyday_needs_state,
-		tf_middle_strata_everyday_needs_province,
-		tf_middle_strata_everyday_needs_pop,
-		tf_middle_strata_luxury_needs_nation,
-		tf_middle_strata_luxury_needs_state,
-		tf_middle_strata_luxury_needs_province,
-		tf_middle_strata_luxury_needs_pop,
-		tf_poor_strata_life_needs_nation,
-		tf_poor_strata_life_needs_state,
-		tf_poor_strata_life_needs_province,
-		tf_poor_strata_life_needs_pop,
-		tf_poor_strata_everyday_needs_nation,
-		tf_poor_strata_everyday_needs_state,
-		tf_poor_strata_everyday_needs_province,
-		tf_poor_strata_everyday_needs_pop,
-		tf_poor_strata_luxury_needs_nation,
-		tf_poor_strata_luxury_needs_state,
-		tf_poor_strata_luxury_needs_province,
-		tf_poor_strata_luxury_needs_pop,
-		tf_diplomatic_influence_tag,
-		tf_diplomatic_influence_this_nation,
-		tf_diplomatic_influence_this_province,
-		tf_diplomatic_influence_from_nation,
-		tf_diplomatic_influence_from_province,
-		tf_pop_unemployment_nation,
-		tf_pop_unemployment_state,
-		tf_pop_unemployment_province,
-		tf_pop_unemployment_pop,
-		tf_pop_unemployment_nation_this_pop,
-		tf_pop_unemployment_state_this_pop,
-		tf_pop_unemployment_province_this_pop,
-		tf_relation_tag,
-		tf_relation_this_nation,
-		tf_relation_this_province,
-		tf_relation_from_nation,
-		tf_relation_from_province,
-		tf_check_variable,
-		tf_upper_house,
-		tf_unemployment_by_type_nation,
-		tf_unemployment_by_type_state,
-		tf_unemployment_by_type_province,
-		tf_unemployment_by_type_pop,
-		tf_party_loyalty_nation_province_id,
-		tf_party_loyalty_from_nation_province_id,
-		tf_party_loyalty_province_province_id,
-		tf_party_loyalty_from_province_province_id,
-		tf_party_loyalty_nation_from_province,
-		tf_party_loyalty_from_nation_scope_province,
-		tf_can_build_in_province_railroad_no_limit_from_nation,
-		tf_can_build_in_province_railroad_yes_limit_from_nation,
-		tf_can_build_in_province_railroad_no_limit_this_nation,
-		tf_can_build_in_province_railroad_yes_limit_this_nation,
-		tf_can_build_in_province_fort_no_limit_from_nation,
-		tf_can_build_in_province_fort_yes_limit_from_nation,
-		tf_can_build_in_province_fort_no_limit_this_nation,
-		tf_can_build_in_province_fort_yes_limit_this_nation,
-		tf_can_build_in_province_naval_base_no_limit_from_nation,
-		tf_can_build_in_province_naval_base_yes_limit_from_nation,
-		tf_can_build_in_province_naval_base_no_limit_this_nation,
-		tf_can_build_in_province_naval_base_yes_limit_this_nation,
-		tf_can_build_railway_in_capital_yes_whole_state_yes_limit,
-		tf_can_build_railway_in_capital_yes_whole_state_no_limit,
-		tf_can_build_railway_in_capital_no_whole_state_yes_limit,
-		tf_can_build_railway_in_capital_no_whole_state_no_limit,
-		tf_can_build_fort_in_capital_yes_whole_state_yes_limit,
-		tf_can_build_fort_in_capital_yes_whole_state_no_limit,
-		tf_can_build_fort_in_capital_no_whole_state_yes_limit,
-		tf_can_build_fort_in_capital_no_whole_state_no_limit,
-		tf_work_available_nation,
-		tf_work_available_state,
-		tf_work_available_province,
-		tf_variable_ideology_name_nation,
-		tf_variable_ideology_name_state,
-		tf_variable_ideology_name_province,
-		tf_variable_ideology_name_pop,
-		tf_variable_issue_name_nation,
-		tf_variable_issue_name_state,
-		tf_variable_issue_name_province,
-		tf_variable_issue_name_pop,
-		tf_variable_issue_group_name_nation,
-		tf_variable_issue_group_name_state,
-		tf_variable_issue_group_name_province,
-		tf_variable_issue_group_name_pop,
-		tf_variable_pop_type_name_nation,
-		tf_variable_pop_type_name_state,
-		tf_variable_pop_type_name_province,
-		tf_variable_pop_type_name_pop,
-		tf_variable_good_name,
-		tf_strata_middle,
-		tf_strata_poor,
-		tf_party_loyalty_from_province_scope_province,
-		tf_can_build_factory_nation,
-		tf_can_build_factory_province,
-		tf_nationalvalue_pop,
-		tf_nationalvalue_province,
-		tf_war_exhaustion_pop,
-		tf_has_culture_core_province_this_pop,
-		tf_tag_pop,
-		tf_has_country_flag_pop,
-		tf_has_country_flag_province,
-		tf_has_country_modifier_province,
-		tf_religion_nation,
-		tf_religion_nation_reb,
-		tf_religion_nation_from_nation,
-		tf_religion_nation_this_nation,
-		tf_religion_nation_this_state,
-		tf_religion_nation_this_province,
-		tf_religion_nation_this_pop,
-		tf_war_exhaustion_province,
-		tf_is_greater_power_province,
-		tf_is_cultural_union_pop_this_pop,
-		tf_has_building_factory,
-		tf_has_building_state_from_province,
-		tf_has_building_factory_from_province,
-		tf_party_loyalty_generic,
+	template<typename primary_type, typename this_type, typename from_type>
+	struct trigger_container {
+		constexpr static typename primary_type::return_type(__vectorcall *trigger_functions[])(uint16_t const*, world_state const&,
+			typename primary_type::parameter_type, typename this_type::parameter_type, typename from_type::parameter_type) = {
+		tf_none<primary_type, this_type, from_type>,
+		tf_year<primary_type, this_type, from_type>,
+		tf_month<primary_type, this_type, from_type>,
+		tf_port<primary_type, this_type, from_type>,
+		tf_rank<primary_type, this_type, from_type>,
+		tf_technology<primary_type, this_type, from_type>,
+		tf_strata_rich<primary_type, this_type, from_type>,
+		tf_life_rating_province<primary_type, this_type, from_type>,
+		tf_life_rating_state<primary_type, this_type, from_type>,
+		tf_has_empty_adjacent_state_province<primary_type, this_type, from_type>,
+		tf_has_empty_adjacent_state_state<primary_type, this_type, from_type>,
+		tf_state_id_province<primary_type, this_type, from_type>,
+		tf_state_id_state<primary_type, this_type, from_type>,
+		tf_cash_reserves<primary_type, this_type, from_type>,
+		tf_unemployment_nation<primary_type, this_type, from_type>,
+		tf_unemployment_state<primary_type, this_type, from_type>,
+		tf_unemployment_province<primary_type, this_type, from_type>,
+		tf_unemployment_pop<primary_type, this_type, from_type>,
+		tf_is_slave_nation<primary_type, this_type, from_type>,
+		tf_is_slave_state<primary_type, this_type, from_type>,
+		tf_is_slave_province<primary_type, this_type, from_type>,
+		tf_is_slave_pop<primary_type, this_type, from_type>,
+		tf_is_independant<primary_type, this_type, from_type>,
+		tf_has_national_minority_province<primary_type, this_type, from_type>,
+		tf_has_national_minority_state<primary_type, this_type, from_type>,
+		tf_has_national_minority_nation<primary_type, this_type, from_type>,
+		tf_government_nation<primary_type, this_type, from_type>,
+		tf_government_pop<primary_type, this_type, from_type>,
+		tf_capital<primary_type, this_type, from_type>,
+		tf_tech_school<primary_type, this_type, from_type>,
+		tf_primary_culture<primary_type, this_type, from_type>,
+		tf_accepted_culture<primary_type, this_type, from_type>,
+		tf_culture_pop<primary_type, this_type, from_type>,
+		tf_culture_state<primary_type, this_type, from_type>,
+		tf_culture_province<primary_type, this_type, from_type>,
+		tf_culture_nation<primary_type, this_type, from_type>,
+		tf_culture_pop_reb<primary_type, this_type, from_type>,
+		tf_culture_state_reb<primary_type, this_type, from_type>,
+		tf_culture_province_reb<primary_type, this_type, from_type>,
+		tf_culture_nation_reb<primary_type, this_type, from_type>,
+		tf_culture_from_nation<primary_type, this_type, from_type>,
+		tf_culture_this_nation<primary_type, this_type, from_type>,
+		tf_culture_this_state<primary_type, this_type, from_type>,
+		tf_culture_this_pop<primary_type, this_type, from_type>,
+		tf_culture_this_province<primary_type, this_type, from_type>,
+		tf_culture_group_nation<primary_type, this_type, from_type>,
+		tf_culture_group_pop<primary_type, this_type, from_type>,
+		tf_culture_group_reb_nation<primary_type, this_type, from_type>,
+		tf_culture_group_reb_pop<primary_type, this_type, from_type>,
+		tf_culture_group_nation_from_nation<primary_type, this_type, from_type>,
+		tf_culture_group_pop_from_nation<primary_type, this_type, from_type>,
+		tf_culture_group_nation_this_nation<primary_type, this_type, from_type>,
+		tf_culture_group_pop_this_nation<primary_type, this_type, from_type>,
+		tf_culture_group_nation_this_province<primary_type, this_type, from_type>,
+		tf_culture_group_pop_this_province<primary_type, this_type, from_type>,
+		tf_culture_group_nation_this_state<primary_type, this_type, from_type>,
+		tf_culture_group_pop_this_state<primary_type, this_type, from_type>,
+		tf_culture_group_nation_this_pop<primary_type, this_type, from_type>,
+		tf_culture_group_pop_this_pop<primary_type, this_type, from_type>,
+		tf_religion<primary_type, this_type, from_type>,
+		tf_religion_reb<primary_type, this_type, from_type>,
+		tf_religion_from_nation<primary_type, this_type, from_type>,
+		tf_religion_this_nation<primary_type, this_type, from_type>,
+		tf_religion_this_state<primary_type, this_type, from_type>,
+		tf_religion_this_province<primary_type, this_type, from_type>,
+		tf_religion_this_pop<primary_type, this_type, from_type>,
+		tf_terrain_province<primary_type, this_type, from_type>,
+		tf_terrain_pop<primary_type, this_type, from_type>,
+		tf_trade_goods<primary_type, this_type, from_type>,
+		tf_is_secondary_power_pop<primary_type, this_type, from_type>,
+		tf_is_secondary_power_nation<primary_type, this_type, from_type>,
+		tf_has_faction_nation<primary_type, this_type, from_type>,
+		tf_has_faction_pop<primary_type, this_type, from_type>,
+		tf_has_unclaimed_cores<primary_type, this_type, from_type>,
+		tf_is_cultural_union_bool<primary_type, this_type, from_type>,
+		tf_is_cultural_union_this_self_pop<primary_type, this_type, from_type>,
+		tf_is_cultural_union_this_pop<primary_type, this_type, from_type>,
+		tf_is_cultural_union_this_state<primary_type, this_type, from_type>,
+		tf_is_cultural_union_this_province<primary_type, this_type, from_type>,
+		tf_is_cultural_union_this_nation<primary_type, this_type, from_type>,
+		tf_is_cultural_union_this_rebel<primary_type, this_type, from_type>,
+		tf_is_cultural_union_tag_nation<primary_type, this_type, from_type>,
+		tf_is_cultural_union_tag_this_pop<primary_type, this_type, from_type>,
+		tf_is_cultural_union_tag_this_state<primary_type, this_type, from_type>,
+		tf_is_cultural_union_tag_this_province<primary_type, this_type, from_type>,
+		tf_is_cultural_union_tag_this_nation<primary_type, this_type, from_type>,
+		tf_can_build_factory_pop<primary_type, this_type, from_type>,
+		tf_war_pop<primary_type, this_type, from_type>,
+		tf_war_nation<primary_type, this_type, from_type>,
+		tf_war_exhaustion_nation<primary_type, this_type, from_type>,
+		tf_blockade<primary_type, this_type, from_type>,
+		tf_owns<primary_type, this_type, from_type>,
+		tf_controls<primary_type, this_type, from_type>,
+		tf_is_core_integer<primary_type, this_type, from_type>,
+		tf_is_core_this_nation<primary_type, this_type, from_type>,
+		tf_is_core_this_state<primary_type, this_type, from_type>,
+		tf_is_core_this_province<primary_type, this_type, from_type>,
+		tf_is_core_this_pop<primary_type, this_type, from_type>,
+		tf_is_core_from_nation<primary_type, this_type, from_type>,
+		tf_is_core_reb<primary_type, this_type, from_type>,
+		tf_is_core_tag<primary_type, this_type, from_type>,
+		tf_num_of_revolts<primary_type, this_type, from_type>,
+		tf_revolt_percentage<primary_type, this_type, from_type>,
+		tf_num_of_cities_int<primary_type, this_type, from_type>,
+		tf_num_of_cities_from_nation<primary_type, this_type, from_type>,
+		tf_num_of_cities_this_nation<primary_type, this_type, from_type>,
+		tf_num_of_cities_this_state<primary_type, this_type, from_type>,
+		tf_num_of_cities_this_province<primary_type, this_type, from_type>,
+		tf_num_of_cities_this_pop<primary_type, this_type, from_type>,
+		tf_num_of_ports<primary_type, this_type, from_type>,
+		tf_num_of_allies<primary_type, this_type, from_type>,
+		tf_num_of_vassals<primary_type, this_type, from_type>,
+		tf_owned_by_tag<primary_type, this_type, from_type>,
+		tf_owned_by_from_nation<primary_type, this_type, from_type>,
+		tf_owned_by_this_nation<primary_type, this_type, from_type>,
+		tf_owned_by_this_province<primary_type, this_type, from_type>,
+		tf_owned_by_this_state<primary_type, this_type, from_type>,
+		tf_owned_by_this_pop<primary_type, this_type, from_type>,
+		tf_exists_bool<primary_type, this_type, from_type>,
+		tf_exists_tag<primary_type, this_type, from_type>,
+		tf_has_country_flag<primary_type, this_type, from_type>,
+		tf_continent_nation<primary_type, this_type, from_type>,
+		tf_continent_state<primary_type, this_type, from_type>,
+		tf_continent_province<primary_type, this_type, from_type>,
+		tf_continent_pop<primary_type, this_type, from_type>,
+		tf_continent_nation_this<primary_type, this_type, from_type>,
+		tf_continent_state_this<primary_type, this_type, from_type>,
+		tf_continent_province_this<primary_type, this_type, from_type>,
+		tf_continent_pop_this<primary_type, this_type, from_type>,
+		tf_continent_nation_from<primary_type, this_type, from_type>,
+		tf_continent_state_from<primary_type, this_type, from_type>,
+		tf_continent_province_from<primary_type, this_type, from_type>,
+		tf_continent_pop_from<primary_type, this_type, from_type>,
+		tf_casus_belli_tag<primary_type, this_type, from_type>,
+		tf_casus_belli_from<primary_type, this_type, from_type>,
+		tf_casus_belli_this_nation<primary_type, this_type, from_type>,
+		tf_casus_belli_this_state<primary_type, this_type, from_type>,
+		tf_casus_belli_this_province<primary_type, this_type, from_type>,
+		tf_casus_belli_this_pop<primary_type, this_type, from_type>,
+		tf_military_access_tag<primary_type, this_type, from_type>,
+		tf_military_access_from<primary_type, this_type, from_type>,
+		tf_military_access_this_nation<primary_type, this_type, from_type>,
+		tf_military_access_this_state<primary_type, this_type, from_type>,
+		tf_military_access_this_province<primary_type, this_type, from_type>,
+		tf_military_access_this_pop<primary_type, this_type, from_type>,
+		tf_prestige_value<primary_type, this_type, from_type>,
+		tf_prestige_from<primary_type, this_type, from_type>,
+		tf_prestige_this_nation<primary_type, this_type, from_type>,
+		tf_prestige_this_state<primary_type, this_type, from_type>,
+		tf_prestige_this_province<primary_type, this_type, from_type>,
+		tf_prestige_this_pop<primary_type, this_type, from_type>,
+		tf_badboy<primary_type, this_type, from_type>,
+		tf_has_building_state<primary_type, this_type, from_type>,
+		tf_has_building_fort<primary_type, this_type, from_type>,
+		tf_has_building_railroad<primary_type, this_type, from_type>,
+		tf_has_building_naval_base<primary_type, this_type, from_type>,
+		tf_empty<primary_type, this_type, from_type>,
+		tf_is_blockaded<primary_type, this_type, from_type>,
+		tf_has_country_modifier<primary_type, this_type, from_type>,
+		tf_has_province_modifier<primary_type, this_type, from_type>,
+		tf_region<primary_type, this_type, from_type>,
+		tf_tag_tag<primary_type, this_type, from_type>,
+		tf_tag_this_nation<primary_type, this_type, from_type>,
+		tf_tag_this_province<primary_type, this_type, from_type>,
+		tf_tag_from_nation<primary_type, this_type, from_type>,
+		tf_tag_from_province<primary_type, this_type, from_type>,
+		tf_neighbour_tag<primary_type, this_type, from_type>,
+		tf_neighbour_this<primary_type, this_type, from_type>,
+		tf_neighbour_from<primary_type, this_type, from_type>,
+		tf_units_in_province_value<primary_type, this_type, from_type>,
+		tf_units_in_province_from<primary_type, this_type, from_type>,
+		tf_units_in_province_this_nation<primary_type, this_type, from_type>,
+		tf_units_in_province_this_province<primary_type, this_type, from_type>,
+		tf_units_in_province_this_state<primary_type, this_type, from_type>,
+		tf_units_in_province_this_pop<primary_type, this_type, from_type>,
+		tf_war_with_tag<primary_type, this_type, from_type>,
+		tf_war_with_from<primary_type, this_type, from_type>,
+		tf_war_with_this_nation<primary_type, this_type, from_type>,
+		tf_war_with_this_province<primary_type, this_type, from_type>,
+		tf_war_with_this_state<primary_type, this_type, from_type>,
+		tf_war_with_this_pop<primary_type, this_type, from_type>,
+		tf_unit_in_battle<primary_type, this_type, from_type>,
+		tf_total_amount_of_divisions<primary_type, this_type, from_type>,
+		tf_money<primary_type, this_type, from_type>,
+		tf_lost_national<primary_type, this_type, from_type>,
+		tf_is_vassal<primary_type, this_type, from_type>,
+		tf_ruling_party_ideology_pop<primary_type, this_type, from_type>,
+		tf_ruling_party_ideology_nation<primary_type, this_type, from_type>,
+		tf_ruling_party<primary_type, this_type, from_type>,
+		tf_is_ideology_enabled<primary_type, this_type, from_type>,
+		tf_political_reform_want_nation<primary_type, this_type, from_type>,
+		tf_political_reform_want_pop<primary_type, this_type, from_type>,
+		tf_social_reform_want_nation<primary_type, this_type, from_type>,
+		tf_social_reform_want_pop<primary_type, this_type, from_type>,
+		tf_total_amount_of_ships<primary_type, this_type, from_type>,
+		tf_plurality<primary_type, this_type, from_type>,
+		tf_corruption<primary_type, this_type, from_type>,
+		tf_is_state_religion_pop<primary_type, this_type, from_type>,
+		tf_is_state_religion_province<primary_type, this_type, from_type>,
+		tf_is_state_religion_state<primary_type, this_type, from_type>,
+		tf_is_primary_culture_pop<primary_type, this_type, from_type>,
+		tf_is_primary_culture_province<primary_type, this_type, from_type>,
+		tf_is_primary_culture_state<primary_type, this_type, from_type>,
+		tf_is_primary_culture_nation_this_pop<primary_type, this_type, from_type>,
+		tf_is_primary_culture_nation_this_nation<primary_type, this_type, from_type>,
+		tf_is_primary_culture_nation_this_state<primary_type, this_type, from_type>,
+		tf_is_primary_culture_nation_this_province<primary_type, this_type, from_type>,
+		tf_is_primary_culture_state_this_pop<primary_type, this_type, from_type>,
+		tf_is_primary_culture_state_this_nation<primary_type, this_type, from_type>,
+		tf_is_primary_culture_state_this_state<primary_type, this_type, from_type>,
+		tf_is_primary_culture_state_this_province<primary_type, this_type, from_type>,
+		tf_is_primary_culture_province_this_pop<primary_type, this_type, from_type>,
+		tf_is_primary_culture_province_this_nation<primary_type, this_type, from_type>,
+		tf_is_primary_culture_province_this_state<primary_type, this_type, from_type>,
+		tf_is_primary_culture_province_this_province<primary_type, this_type, from_type>,
+		tf_is_primary_culture_pop_this_pop<primary_type, this_type, from_type>,
+		tf_is_primary_culture_pop_this_nation<primary_type, this_type, from_type>,
+		tf_is_primary_culture_pop_this_state<primary_type, this_type, from_type>,
+		tf_is_primary_culture_pop_this_province<primary_type, this_type, from_type>,
+		tf_is_accepted_culture_pop<primary_type, this_type, from_type>,
+		tf_is_accepted_culture_province<primary_type, this_type, from_type>,
+		tf_is_accepted_culture_state<primary_type, this_type, from_type>,
+		tf_is_coastal<primary_type, this_type, from_type>,
+		tf_in_sphere_tag<primary_type, this_type, from_type>,
+		tf_in_sphere_from<primary_type, this_type, from_type>,
+		tf_in_sphere_this_nation<primary_type, this_type, from_type>,
+		tf_in_sphere_this_province<primary_type, this_type, from_type>,
+		tf_in_sphere_this_state<primary_type, this_type, from_type>,
+		tf_in_sphere_this_pop<primary_type, this_type, from_type>,
+		tf_produces_nation<primary_type, this_type, from_type>,
+		tf_produces_state<primary_type, this_type, from_type>,
+		tf_produces_province<primary_type, this_type, from_type>,
+		tf_produces_pop<primary_type, this_type, from_type>,
+		tf_average_militancy_nation<primary_type, this_type, from_type>,
+		tf_average_militancy_state<primary_type, this_type, from_type>,
+		tf_average_militancy_province<primary_type, this_type, from_type>,
+		tf_average_consciousness_nation<primary_type, this_type, from_type>,
+		tf_average_consciousness_state<primary_type, this_type, from_type>,
+		tf_average_consciousness_province<primary_type, this_type, from_type>,
+		tf_is_next_reform_nation<primary_type, this_type, from_type>,
+		tf_is_next_reform_pop<primary_type, this_type, from_type>,
+		tf_rebel_power_fraction<primary_type, this_type, from_type>,
+		tf_recruited_percentage_nation<primary_type, this_type, from_type>,
+		tf_recruited_percentage_pop<primary_type, this_type, from_type>,
+		tf_has_culture_core<primary_type, this_type, from_type>,
+		tf_nationalism<primary_type, this_type, from_type>,
+		tf_is_overseas<primary_type, this_type, from_type>,
+		tf_controlled_by_rebels<primary_type, this_type, from_type>,
+		tf_controlled_by_tag<primary_type, this_type, from_type>,
+		tf_controlled_by_from<primary_type, this_type, from_type>,
+		tf_controlled_by_this_nation<primary_type, this_type, from_type>,
+		tf_controlled_by_this_province<primary_type, this_type, from_type>,
+		tf_controlled_by_this_state<primary_type, this_type, from_type>,
+		tf_controlled_by_this_pop<primary_type, this_type, from_type>,
+		tf_controlled_by_owner<primary_type, this_type, from_type>,
+		tf_controlled_by_reb<primary_type, this_type, from_type>,
+		tf_is_canal_enabled<primary_type, this_type, from_type>,
+		tf_is_state_capital<primary_type, this_type, from_type>,
+		tf_truce_with_tag<primary_type, this_type, from_type>,
+		tf_truce_with_from<primary_type, this_type, from_type>,
+		tf_truce_with_this_nation<primary_type, this_type, from_type>,
+		tf_truce_with_this_province<primary_type, this_type, from_type>,
+		tf_truce_with_this_state<primary_type, this_type, from_type>,
+		tf_truce_with_this_pop<primary_type, this_type, from_type>,
+		tf_total_pops_nation<primary_type, this_type, from_type>,
+		tf_total_pops_state<primary_type, this_type, from_type>,
+		tf_total_pops_province<primary_type, this_type, from_type>,
+		tf_total_pops_pop<primary_type, this_type, from_type>,
+		tf_has_pop_type_nation<primary_type, this_type, from_type>,
+		tf_has_pop_type_state<primary_type, this_type, from_type>,
+		tf_has_pop_type_province<primary_type, this_type, from_type>,
+		tf_has_pop_type_pop<primary_type, this_type, from_type>,
+		tf_has_empty_adjacent_province<primary_type, this_type, from_type>,
+		tf_has_leader<primary_type, this_type, from_type>,
+		tf_ai<primary_type, this_type, from_type>,
+		tf_can_create_vassals<primary_type, this_type, from_type>,
+		tf_is_possible_vassal<primary_type, this_type, from_type>,
+		tf_province_id<primary_type, this_type, from_type>,
+		tf_vassal_of_tag<primary_type, this_type, from_type>,
+		tf_vassal_of_from<primary_type, this_type, from_type>,
+		tf_vassal_of_this_nation<primary_type, this_type, from_type>,
+		tf_vassal_of_this_province<primary_type, this_type, from_type>,
+		tf_vassal_of_this_state<primary_type, this_type, from_type>,
+		tf_vassal_of_this_pop<primary_type, this_type, from_type>,
+		tf_alliance_with_tag<primary_type, this_type, from_type>,
+		tf_alliance_with_from<primary_type, this_type, from_type>,
+		tf_alliance_with_this_nation<primary_type, this_type, from_type>,
+		tf_alliance_with_this_province<primary_type, this_type, from_type>,
+		tf_alliance_with_this_state<primary_type, this_type, from_type>,
+		tf_alliance_with_this_pop<primary_type, this_type, from_type>,
+		tf_has_recently_lost_war<primary_type, this_type, from_type>,
+		tf_is_mobilised<primary_type, this_type, from_type>,
+		tf_mobilisation_size<primary_type, this_type, from_type>,
+		tf_crime_higher_than_education_nation<primary_type, this_type, from_type>,
+		tf_crime_higher_than_education_state<primary_type, this_type, from_type>,
+		tf_crime_higher_than_education_province<primary_type, this_type, from_type>,
+		tf_crime_higher_than_education_pop<primary_type, this_type, from_type>,
+		tf_agree_with_ruling_party<primary_type, this_type, from_type>,
+		tf_is_colonial_state<primary_type, this_type, from_type>,
+		tf_is_colonial_province<primary_type, this_type, from_type>,
+		tf_has_factories<primary_type, this_type, from_type>,
+		tf_in_default_tag<primary_type, this_type, from_type>,
+		tf_in_default_from<primary_type, this_type, from_type>,
+		tf_in_default_this_nation<primary_type, this_type, from_type>,
+		tf_in_default_this_province<primary_type, this_type, from_type>,
+		tf_in_default_this_state<primary_type, this_type, from_type>,
+		tf_in_default_this_pop<primary_type, this_type, from_type>,
+		tf_total_num_of_ports<primary_type, this_type, from_type>,
+		tf_always<primary_type, this_type, from_type>,
+		tf_election<primary_type, this_type, from_type>,
+		tf_has_global_flag<primary_type, this_type, from_type>,
+		tf_is_capital<primary_type, this_type, from_type>,
+		tf_nationalvalue_nation<primary_type, this_type, from_type>,
+		tf_industrial_score_value<primary_type, this_type, from_type>,
+		tf_industrial_score_from_nation<primary_type, this_type, from_type>,
+		tf_industrial_score_this_nation<primary_type, this_type, from_type>,
+		tf_industrial_score_this_pop<primary_type, this_type, from_type>,
+		tf_industrial_score_this_state<primary_type, this_type, from_type>,
+		tf_industrial_score_this_province<primary_type, this_type, from_type>,
+		tf_military_score_value<primary_type, this_type, from_type>,
+		tf_military_score_from_nation<primary_type, this_type, from_type>,
+		tf_military_score_this_nation<primary_type, this_type, from_type>,
+		tf_military_score_this_pop<primary_type, this_type, from_type>,
+		tf_military_score_this_state<primary_type, this_type, from_type>,
+		tf_military_score_this_province<primary_type, this_type, from_type>,
+		tf_civilized_nation<primary_type, this_type, from_type>,
+		tf_civilized_pop<primary_type, this_type, from_type>,
+		tf_civilized_province<primary_type, this_type, from_type>,
+		tf_national_provinces_occupied<primary_type, this_type, from_type>,
+		tf_is_greater_power_nation<primary_type, this_type, from_type>,
+		tf_is_greater_power_pop<primary_type, this_type, from_type>,
+		tf_rich_tax<primary_type, this_type, from_type>,
+		tf_middle_tax<primary_type, this_type, from_type>,
+		tf_poor_tax<primary_type, this_type, from_type>,
+		tf_social_spending_nation<primary_type, this_type, from_type>,
+		tf_social_spending_pop<primary_type, this_type, from_type>,
+		tf_social_spending_province<primary_type, this_type, from_type>,
+		tf_colonial_nation<primary_type, this_type, from_type>,
+		tf_pop_majority_religion_nation<primary_type, this_type, from_type>,
+		tf_pop_majority_religion_state<primary_type, this_type, from_type>,
+		tf_pop_majority_religion_province<primary_type, this_type, from_type>,
+		tf_pop_majority_culture_nation<primary_type, this_type, from_type>,
+		tf_pop_majority_culture_state<primary_type, this_type, from_type>,
+		tf_pop_majority_culture_province<primary_type, this_type, from_type>,
+		tf_pop_majority_issue_nation<primary_type, this_type, from_type>,
+		tf_pop_majority_issue_state<primary_type, this_type, from_type>,
+		tf_pop_majority_issue_province<primary_type, this_type, from_type>,
+		tf_pop_majority_issue_pop<primary_type, this_type, from_type>,
+		tf_pop_majority_ideology_nation<primary_type, this_type, from_type>,
+		tf_pop_majority_ideology_state<primary_type, this_type, from_type>,
+		tf_pop_majority_ideology_province<primary_type, this_type, from_type>,
+		tf_pop_majority_ideology_pop<primary_type, this_type, from_type>,
+		tf_poor_strata_militancy_nation<primary_type, this_type, from_type>,
+		tf_poor_strata_militancy_state<primary_type, this_type, from_type>,
+		tf_poor_strata_militancy_province<primary_type, this_type, from_type>,
+		tf_poor_strata_militancy_pop<primary_type, this_type, from_type>,
+		tf_middle_strata_militancy_nation<primary_type, this_type, from_type>,
+		tf_middle_strata_militancy_state<primary_type, this_type, from_type>,
+		tf_middle_strata_militancy_province<primary_type, this_type, from_type>,
+		tf_middle_strata_militancy_pop<primary_type, this_type, from_type>,
+		tf_rich_strata_militancy_nation<primary_type, this_type, from_type>,
+		tf_rich_strata_militancy_state<primary_type, this_type, from_type>,
+		tf_rich_strata_militancy_province<primary_type, this_type, from_type>,
+		tf_rich_strata_militancy_pop<primary_type, this_type, from_type>,
+		tf_rich_tax_above_poor<primary_type, this_type, from_type>,
+		tf_culture_has_union_tag_pop<primary_type, this_type, from_type>,
+		tf_culture_has_union_tag_nation<primary_type, this_type, from_type>,
+		tf_this_culture_union_tag<primary_type, this_type, from_type>,
+		tf_this_culture_union_from<primary_type, this_type, from_type>,
+		tf_this_culture_union_this_nation<primary_type, this_type, from_type>,
+		tf_this_culture_union_this_province<primary_type, this_type, from_type>,
+		tf_this_culture_union_this_state<primary_type, this_type, from_type>,
+		tf_this_culture_union_this_pop<primary_type, this_type, from_type>,
+		tf_this_culture_union_this_union_nation<primary_type, this_type, from_type>,
+		tf_this_culture_union_this_union_province<primary_type, this_type, from_type>,
+		tf_this_culture_union_this_union_state<primary_type, this_type, from_type>,
+		tf_this_culture_union_this_union_pop<primary_type, this_type, from_type>,
+		tf_minorities_nation<primary_type, this_type, from_type>,
+		tf_minorities_state<primary_type, this_type, from_type>,
+		tf_minorities_province<primary_type, this_type, from_type>,
+		tf_revanchism_nation<primary_type, this_type, from_type>,
+		tf_revanchism_pop<primary_type, this_type, from_type>,
+		tf_has_crime<primary_type, this_type, from_type>,
+		tf_num_of_substates<primary_type, this_type, from_type>,
+		tf_num_of_vassals_no_substates<primary_type, this_type, from_type>,
+		tf_brigades_compare_this<primary_type, this_type, from_type>,
+		tf_brigades_compare_from<primary_type, this_type, from_type>,
+		tf_constructing_cb_tag<primary_type, this_type, from_type>,
+		tf_constructing_cb_from<primary_type, this_type, from_type>,
+		tf_constructing_cb_this_nation<primary_type, this_type, from_type>,
+		tf_constructing_cb_this_province<primary_type, this_type, from_type>,
+		tf_constructing_cb_this_state<primary_type, this_type, from_type>,
+		tf_constructing_cb_this_pop<primary_type, this_type, from_type>,
+		tf_constructing_cb_discovered<primary_type, this_type, from_type>,
+		tf_constructing_cb_progress<primary_type, this_type, from_type>,
+		tf_civilization_progress<primary_type, this_type, from_type>,
+		tf_constructing_cb_type<primary_type, this_type, from_type>,
+		tf_is_our_vassal_tag<primary_type, this_type, from_type>,
+		tf_is_our_vassal_from<primary_type, this_type, from_type>,
+		tf_is_our_vassal_this_nation<primary_type, this_type, from_type>,
+		tf_is_our_vassal_this_province<primary_type, this_type, from_type>,
+		tf_is_our_vassal_this_state<primary_type, this_type, from_type>,
+		tf_is_our_vassal_this_pop<primary_type, this_type, from_type>,
+		tf_substate_of_tag<primary_type, this_type, from_type>,
+		tf_substate_of_from<primary_type, this_type, from_type>,
+		tf_substate_of_this_nation<primary_type, this_type, from_type>,
+		tf_substate_of_this_province<primary_type, this_type, from_type>,
+		tf_substate_of_this_state<primary_type, this_type, from_type>,
+		tf_substate_of_this_pop<primary_type, this_type, from_type>,
+		tf_is_substate<primary_type, this_type, from_type>,
+		tf_great_wars_enabled<primary_type, this_type, from_type>,
+		tf_can_nationalize<primary_type, this_type, from_type>,
+		tf_part_of_sphere<primary_type, this_type, from_type>,
+		tf_is_sphere_leader_of_tag<primary_type, this_type, from_type>,
+		tf_is_sphere_leader_of_from<primary_type, this_type, from_type>,
+		tf_is_sphere_leader_of_this_nation<primary_type, this_type, from_type>,
+		tf_is_sphere_leader_of_this_province<primary_type, this_type, from_type>,
+		tf_is_sphere_leader_of_this_state<primary_type, this_type, from_type>,
+		tf_is_sphere_leader_of_this_pop<primary_type, this_type, from_type>,
+		tf_number_of_states<primary_type, this_type, from_type>,
+		tf_war_score<primary_type, this_type, from_type>,
+		tf_is_releasable_vassal_from<primary_type, this_type, from_type>,
+		tf_is_releasable_vassal_other<primary_type, this_type, from_type>,
+		tf_has_recent_imigration<primary_type, this_type, from_type>,
+		tf_province_control_days<primary_type, this_type, from_type>,
+		tf_is_disarmed<primary_type, this_type, from_type>,
+		tf_big_producer<primary_type, this_type, from_type>,
+		tf_someone_can_form_union_tag_from<primary_type, this_type, from_type>,
+		tf_someone_can_form_union_tag_other<primary_type, this_type, from_type>,
+		tf_social_movement_strength<primary_type, this_type, from_type>,
+		tf_political_movement_strength<primary_type, this_type, from_type>,
+		tf_can_build_factory_in_capital_state<primary_type, this_type, from_type>,
+		tf_social_movement<primary_type, this_type, from_type>,
+		tf_political_movement<primary_type, this_type, from_type>,
+		tf_has_cultural_sphere<primary_type, this_type, from_type>,
+		tf_world_wars_enabled<primary_type, this_type, from_type>,
+		tf_has_pop_culture_pop_this_pop<primary_type, this_type, from_type>,
+		tf_has_pop_culture_state_this_pop<primary_type, this_type, from_type>,
+		tf_has_pop_culture_province_this_pop<primary_type, this_type, from_type>,
+		tf_has_pop_culture_nation_this_pop<primary_type, this_type, from_type>,
+		tf_has_pop_culture_pop<primary_type, this_type, from_type>,
+		tf_has_pop_culture_state<primary_type, this_type, from_type>,
+		tf_has_pop_culture_province<primary_type, this_type, from_type>,
+		tf_has_pop_culture_nation<primary_type, this_type, from_type>,
+		tf_has_pop_religion_pop_this_pop<primary_type, this_type, from_type>,
+		tf_has_pop_religion_state_this_pop<primary_type, this_type, from_type>,
+		tf_has_pop_religion_province_this_pop<primary_type, this_type, from_type>,
+		tf_has_pop_religion_nation_this_pop<primary_type, this_type, from_type>,
+		tf_has_pop_religion_pop<primary_type, this_type, from_type>,
+		tf_has_pop_religion_state<primary_type, this_type, from_type>,
+		tf_has_pop_religion_province<primary_type, this_type, from_type>,
+		tf_has_pop_religion_nation<primary_type, this_type, from_type>,
+		tf_life_needs<primary_type, this_type, from_type>,
+		tf_everyday_needs<primary_type, this_type, from_type>,
+		tf_luxury_needs<primary_type, this_type, from_type>,
+		tf_consciousness_pop<primary_type, this_type, from_type>,
+		tf_consciousness_province<primary_type, this_type, from_type>,
+		tf_consciousness_state<primary_type, this_type, from_type>,
+		tf_consciousness_nation<primary_type, this_type, from_type>,
+		tf_literacy_pop<primary_type, this_type, from_type>,
+		tf_literacy_province<primary_type, this_type, from_type>,
+		tf_literacy_state<primary_type, this_type, from_type>,
+		tf_literacy_nation<primary_type, this_type, from_type>,
+		tf_militancy_pop<primary_type, this_type, from_type>,
+		tf_militancy_province<primary_type, this_type, from_type>,
+		tf_militancy_state<primary_type, this_type, from_type>,
+		tf_militancy_nation<primary_type, this_type, from_type>,
+		tf_military_spending_pop<primary_type, this_type, from_type>,
+		tf_military_spending_province<primary_type, this_type, from_type>,
+		tf_military_spending_state<primary_type, this_type, from_type>,
+		tf_military_spending_nation<primary_type, this_type, from_type>,
+		tf_administration_spending_pop<primary_type, this_type, from_type>,
+		tf_administration_spending_province<primary_type, this_type, from_type>,
+		tf_administration_spending_state<primary_type, this_type, from_type>,
+		tf_administration_spending_nation<primary_type, this_type, from_type>,
+		tf_education_spending_pop<primary_type, this_type, from_type>,
+		tf_education_spending_province<primary_type, this_type, from_type>,
+		tf_education_spending_state<primary_type, this_type, from_type>,
+		tf_education_spending_nation<primary_type, this_type, from_type>,
+		tf_trade_goods_in_state_state<primary_type, this_type, from_type>,
+		tf_trade_goods_in_state_province<primary_type, this_type, from_type>,
+		tf_has_flashpoint<primary_type, this_type, from_type>,
+		tf_flashpoint_tension<primary_type, this_type, from_type>,
+		tf_crisis_exist<primary_type, this_type, from_type>,
+		tf_is_liberation_crisis<primary_type, this_type, from_type>,
+		tf_is_claim_crisis<primary_type, this_type, from_type>,
+		tf_crisis_temperature<primary_type, this_type, from_type>,
+		tf_involved_in_crisis_pop<primary_type, this_type, from_type>,
+		tf_involved_in_crisis_nation<primary_type, this_type, from_type>,
+		tf_rich_strata_life_needs_nation<primary_type, this_type, from_type>,
+		tf_rich_strata_life_needs_state<primary_type, this_type, from_type>,
+		tf_rich_strata_life_needs_province<primary_type, this_type, from_type>,
+		tf_rich_strata_life_needs_pop<primary_type, this_type, from_type>,
+		tf_rich_strata_everyday_needs_nation<primary_type, this_type, from_type>,
+		tf_rich_strata_everyday_needs_state<primary_type, this_type, from_type>,
+		tf_rich_strata_everyday_needs_province<primary_type, this_type, from_type>,
+		tf_rich_strata_everyday_needs_pop<primary_type, this_type, from_type>,
+		tf_rich_strata_luxury_needs_nation<primary_type, this_type, from_type>,
+		tf_rich_strata_luxury_needs_state<primary_type, this_type, from_type>,
+		tf_rich_strata_luxury_needs_province<primary_type, this_type, from_type>,
+		tf_rich_strata_luxury_needs_pop<primary_type, this_type, from_type>,
+		tf_middle_strata_life_needs_nation<primary_type, this_type, from_type>,
+		tf_middle_strata_life_needs_state<primary_type, this_type, from_type>,
+		tf_middle_strata_life_needs_province<primary_type, this_type, from_type>,
+		tf_middle_strata_life_needs_pop<primary_type, this_type, from_type>,
+		tf_middle_strata_everyday_needs_nation<primary_type, this_type, from_type>,
+		tf_middle_strata_everyday_needs_state<primary_type, this_type, from_type>,
+		tf_middle_strata_everyday_needs_province<primary_type, this_type, from_type>,
+		tf_middle_strata_everyday_needs_pop<primary_type, this_type, from_type>,
+		tf_middle_strata_luxury_needs_nation<primary_type, this_type, from_type>,
+		tf_middle_strata_luxury_needs_state<primary_type, this_type, from_type>,
+		tf_middle_strata_luxury_needs_province<primary_type, this_type, from_type>,
+		tf_middle_strata_luxury_needs_pop<primary_type, this_type, from_type>,
+		tf_poor_strata_life_needs_nation<primary_type, this_type, from_type>,
+		tf_poor_strata_life_needs_state<primary_type, this_type, from_type>,
+		tf_poor_strata_life_needs_province<primary_type, this_type, from_type>,
+		tf_poor_strata_life_needs_pop<primary_type, this_type, from_type>,
+		tf_poor_strata_everyday_needs_nation<primary_type, this_type, from_type>,
+		tf_poor_strata_everyday_needs_state<primary_type, this_type, from_type>,
+		tf_poor_strata_everyday_needs_province<primary_type, this_type, from_type>,
+		tf_poor_strata_everyday_needs_pop<primary_type, this_type, from_type>,
+		tf_poor_strata_luxury_needs_nation<primary_type, this_type, from_type>,
+		tf_poor_strata_luxury_needs_state<primary_type, this_type, from_type>,
+		tf_poor_strata_luxury_needs_province<primary_type, this_type, from_type>,
+		tf_poor_strata_luxury_needs_pop<primary_type, this_type, from_type>,
+		tf_diplomatic_influence_tag<primary_type, this_type, from_type>,
+		tf_diplomatic_influence_this_nation<primary_type, this_type, from_type>,
+		tf_diplomatic_influence_this_province<primary_type, this_type, from_type>,
+		tf_diplomatic_influence_from_nation<primary_type, this_type, from_type>,
+		tf_diplomatic_influence_from_province<primary_type, this_type, from_type>,
+		tf_pop_unemployment_nation<primary_type, this_type, from_type>,
+		tf_pop_unemployment_state<primary_type, this_type, from_type>,
+		tf_pop_unemployment_province<primary_type, this_type, from_type>,
+		tf_pop_unemployment_pop<primary_type, this_type, from_type>,
+		tf_pop_unemployment_nation_this_pop<primary_type, this_type, from_type>,
+		tf_pop_unemployment_state_this_pop<primary_type, this_type, from_type>,
+		tf_pop_unemployment_province_this_pop<primary_type, this_type, from_type>,
+		tf_relation_tag<primary_type, this_type, from_type>,
+		tf_relation_this_nation<primary_type, this_type, from_type>,
+		tf_relation_this_province<primary_type, this_type, from_type>,
+		tf_relation_from_nation<primary_type, this_type, from_type>,
+		tf_relation_from_province<primary_type, this_type, from_type>,
+		tf_check_variable<primary_type, this_type, from_type>,
+		tf_upper_house<primary_type, this_type, from_type>,
+		tf_unemployment_by_type_nation<primary_type, this_type, from_type>,
+		tf_unemployment_by_type_state<primary_type, this_type, from_type>,
+		tf_unemployment_by_type_province<primary_type, this_type, from_type>,
+		tf_unemployment_by_type_pop<primary_type, this_type, from_type>,
+		tf_party_loyalty_nation_province_id<primary_type, this_type, from_type>,
+		tf_party_loyalty_from_nation_province_id<primary_type, this_type, from_type>,
+		tf_party_loyalty_province_province_id<primary_type, this_type, from_type>,
+		tf_party_loyalty_from_province_province_id<primary_type, this_type, from_type>,
+		tf_party_loyalty_nation_from_province<primary_type, this_type, from_type>,
+		tf_party_loyalty_from_nation_scope_province<primary_type, this_type, from_type>,
+		tf_can_build_in_province_railroad_no_limit_from_nation<primary_type, this_type, from_type>,
+		tf_can_build_in_province_railroad_yes_limit_from_nation<primary_type, this_type, from_type>,
+		tf_can_build_in_province_railroad_no_limit_this_nation<primary_type, this_type, from_type>,
+		tf_can_build_in_province_railroad_yes_limit_this_nation<primary_type, this_type, from_type>,
+		tf_can_build_in_province_fort_no_limit_from_nation<primary_type, this_type, from_type>,
+		tf_can_build_in_province_fort_yes_limit_from_nation<primary_type, this_type, from_type>,
+		tf_can_build_in_province_fort_no_limit_this_nation<primary_type, this_type, from_type>,
+		tf_can_build_in_province_fort_yes_limit_this_nation<primary_type, this_type, from_type>,
+		tf_can_build_in_province_naval_base_no_limit_from_nation<primary_type, this_type, from_type>,
+		tf_can_build_in_province_naval_base_yes_limit_from_nation<primary_type, this_type, from_type>,
+		tf_can_build_in_province_naval_base_no_limit_this_nation<primary_type, this_type, from_type>,
+		tf_can_build_in_province_naval_base_yes_limit_this_nation<primary_type, this_type, from_type>,
+		tf_can_build_railway_in_capital_yes_whole_state_yes_limit<primary_type, this_type, from_type>,
+		tf_can_build_railway_in_capital_yes_whole_state_no_limit<primary_type, this_type, from_type>,
+		tf_can_build_railway_in_capital_no_whole_state_yes_limit<primary_type, this_type, from_type>,
+		tf_can_build_railway_in_capital_no_whole_state_no_limit<primary_type, this_type, from_type>,
+		tf_can_build_fort_in_capital_yes_whole_state_yes_limit<primary_type, this_type, from_type>,
+		tf_can_build_fort_in_capital_yes_whole_state_no_limit<primary_type, this_type, from_type>,
+		tf_can_build_fort_in_capital_no_whole_state_yes_limit<primary_type, this_type, from_type>,
+		tf_can_build_fort_in_capital_no_whole_state_no_limit<primary_type, this_type, from_type>,
+		tf_work_available_nation<primary_type, this_type, from_type>,
+		tf_work_available_state<primary_type, this_type, from_type>,
+		tf_work_available_province<primary_type, this_type, from_type>,
+		tf_variable_ideology_name_nation<primary_type, this_type, from_type>,
+		tf_variable_ideology_name_state<primary_type, this_type, from_type>,
+		tf_variable_ideology_name_province<primary_type, this_type, from_type>,
+		tf_variable_ideology_name_pop<primary_type, this_type, from_type>,
+		tf_variable_issue_name_nation<primary_type, this_type, from_type>,
+		tf_variable_issue_name_state<primary_type, this_type, from_type>,
+		tf_variable_issue_name_province<primary_type, this_type, from_type>,
+		tf_variable_issue_name_pop<primary_type, this_type, from_type>,
+		tf_variable_issue_group_name_nation<primary_type, this_type, from_type>,
+		tf_variable_issue_group_name_state<primary_type, this_type, from_type>,
+		tf_variable_issue_group_name_province<primary_type, this_type, from_type>,
+		tf_variable_issue_group_name_pop<primary_type, this_type, from_type>,
+		tf_variable_pop_type_name_nation<primary_type, this_type, from_type>,
+		tf_variable_pop_type_name_state<primary_type, this_type, from_type>,
+		tf_variable_pop_type_name_province<primary_type, this_type, from_type>,
+		tf_variable_pop_type_name_pop<primary_type, this_type, from_type>,
+		tf_variable_good_name<primary_type, this_type, from_type>,
+		tf_strata_middle<primary_type, this_type, from_type>,
+		tf_strata_poor<primary_type, this_type, from_type>,
+		tf_party_loyalty_from_province_scope_province<primary_type, this_type, from_type>,
+		tf_can_build_factory_nation<primary_type, this_type, from_type>,
+		tf_can_build_factory_province<primary_type, this_type, from_type>,
+		tf_nationalvalue_pop<primary_type, this_type, from_type>,
+		tf_nationalvalue_province<primary_type, this_type, from_type>,
+		tf_war_exhaustion_pop<primary_type, this_type, from_type>,
+		tf_has_culture_core_province_this_pop<primary_type, this_type, from_type>,
+		tf_tag_pop<primary_type, this_type, from_type>,
+		tf_has_country_flag_pop<primary_type, this_type, from_type>,
+		tf_has_country_flag_province<primary_type, this_type, from_type>,
+		tf_has_country_modifier_province<primary_type, this_type, from_type>,
+		tf_religion_nation<primary_type, this_type, from_type>,
+		tf_religion_nation_reb<primary_type, this_type, from_type>,
+		tf_religion_nation_from_nation<primary_type, this_type, from_type>,
+		tf_religion_nation_this_nation<primary_type, this_type, from_type>,
+		tf_religion_nation_this_state<primary_type, this_type, from_type>,
+		tf_religion_nation_this_province<primary_type, this_type, from_type>,
+		tf_religion_nation_this_pop<primary_type, this_type, from_type>,
+		tf_war_exhaustion_province<primary_type, this_type, from_type>,
+		tf_is_greater_power_province<primary_type, this_type, from_type>,
+		tf_is_cultural_union_pop_this_pop<primary_type, this_type, from_type>,
+		tf_has_building_factory<primary_type, this_type, from_type>,
+		tf_has_building_state_from_province<primary_type, this_type, from_type>,
+		tf_has_building_factory_from_province<primary_type, this_type, from_type>,
+		tf_party_loyalty_generic<primary_type, this_type, from_type>,
+		};
 	};
+
+	
+
+	template<typename primary_type, typename this_type, typename from_type>
+	auto __vectorcall test_trigger_generic(uint16_t const* tval, world_state const& ws, typename primary_type::parameter_type primary_slot,
+		typename this_type::parameter_type this_slot, typename from_type::parameter_type from_slot) -> typename primary_type::return_type {
+		if((*tval & trigger_codes::is_scope) != 0) {
+			return scope_container<primary_type, this_type, from_type>::scope_functions[*tval & trigger_codes::code_mask](tval, ws, primary_slot, this_slot, from_slot);
+		} else {
+			return trigger_container<primary_type, this_type, from_type>::trigger_functions[*tval & trigger_codes::code_mask](tval, ws, primary_slot, this_slot, from_slot);
+		}
 	}
 
-	bool test_trigger(TRIGGER_PARAMTERS) {
-		if((*tval & trigger_codes::is_scope) != 0) {
-			return scope_functions[*tval & trigger_codes::code_mask](tval, ws, primary_slot, this_slot, from_slot);
-		} else {
-			return trigger_functions[*tval & trigger_codes::code_mask](tval, ws, primary_slot, this_slot, from_slot);
-		}
+	}
+
+	bool test_trigger(uint16_t const* tval, world_state const& ws, const_parameter primary_slot, const_parameter this_slot, const_parameter from_slot) {
+		return test_trigger_generic<single_type, single_type, single_type>(tval, ws, primary_slot, this_slot, from_slot);
 	}
 
 #ifdef __llvm__

@@ -3,6 +3,12 @@
 #include "Parsers\\parsers.hpp"
 
 namespace triggers {
+	__forceinline nations::country_tag to_nation(const_parameter v) { return v; }
+	__forceinline nations::state_tag to_state(const_parameter v) { return v; }
+	__forceinline provinces::province_tag to_prov(const_parameter v) { return v; }
+	__forceinline population::pop_tag to_pop(const_parameter v) { return v; }
+	__forceinline population::rebel_faction_tag to_rebel(const_parameter v) { return v; }
+
 	namespace effect_codes {
 		//flags
 		constexpr uint16_t is_scope = 0x8000;

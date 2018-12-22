@@ -474,7 +474,7 @@ public:
 	void reserve(size_t size) { storage.reserve(size + size_t(padded)); }
 	void pop_back() { storage.pop_back(); }
 	tagged_array_view<value_type, tag_type, padded> view() { return tagged_array_view<value_type, tag_type, padded>(storage.data(), int32_t(storage.size())); };
-	tagged_array_view<value_type const, tag_type, padded> view() const { return tagged_array_view<value_type, tag_type, padded>(storage.data(), int32_t(storage.size())); };
+	tagged_array_view<value_type const, tag_type, padded> view() const { return tagged_array_view<value_type const, tag_type, padded>(storage.data(), int32_t(storage.size())); };
 };
 
 template<typename value_type, typename variable_tag_type, typename fixed_tag_type, typename allocator = std::allocator<value_type>>
