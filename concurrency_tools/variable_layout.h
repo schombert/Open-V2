@@ -583,7 +583,7 @@ public:
 		if constexpr(!std::is_same_v<typename container_type::template value_type<U>, bitfield_type>)
 			return tagged_array_view<typename container_type::template value_type<U>, tag_type, true>(container_type::template get_row<U>(*ptr), size_used + 1);
 		else
-			return tagged_array_view<bitfield_type, tag_type, true>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), int32_t(uint32_t(size_used + 8) / 8ui32));
+			return tagged_array_view<bitfield_type, tag_type, true>(container_type::template get_row<U>(*static_cast<ptr_type*>(ptr)), int32_t(uint32_t(size_used + 8) / 8ui32));
 	}
 
 	template<typename U, typename V>
@@ -1049,7 +1049,7 @@ public:
 		if constexpr(!std::is_same_v<value_type, bitfield_type>)
 			return tagged_array_view<vector_type, tag_type, true>(ptr[to_index(index)].values, size);
 		else
-			return tagged_array_view<vector_type, tag_type, false>(
+			return tagged_array_view<bitfield_type, tag_type, true>(
 				ptr[to_index(index)].values,
 				int32_t(uint32_t(size + 7) / 8ui32));
 	}
@@ -1057,7 +1057,7 @@ public:
 		if constexpr(!std::is_same_v<value_type, bitfield_type>)
 			return tagged_array_view<const vector_type, tag_type, true>(ptr[to_index(index)].values, size);
 		else
-			return tagged_array_view<const bitfield_type, tag_type, false>(
+			return tagged_array_view<const bitfield_type, tag_type, true>(
 				ptr[to_index(index)].values,
 				int32_t(uint32_t(size + 7) / 8ui32));
 	}

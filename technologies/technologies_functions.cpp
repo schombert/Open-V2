@@ -64,7 +64,7 @@ namespace technologies {
 		if(is_valid_index(t.enable_crime)) {
 			for(int32_t i = int32_t(ws.s.modifiers_m.crimes.size()); i--; ) {
 				if(ws.s.modifiers_m.crimes[uint32_t(i)].modifier == t.enable_crime) {
-					bit_vector_set(&(ws.w.nation_s.nations.get<nation::enabled_crimes>(this_nation)), uint32_t(i), true);
+					bit_vector_set((bitfield_type*)(&(ws.w.nation_s.nations.get<nation::enabled_crimes>(this_nation))), uint32_t(i), true);
 					break;
 				}
 			}
@@ -77,7 +77,7 @@ namespace technologies {
 
 
 	void apply_single_technology(world_state& ws, nations::country_tag this_nation, tech_tag tech) {
-		if(ws.w.nation_s.active_technologies.get_row(this_nation, tech) == true)
+		if(ws.w.nation_s.active_technologies.get(this_nation, tech) == true)
 			return;
 
 		apply_technology(ws, this_nation, tech);
@@ -104,10 +104,10 @@ namespace technologies {
 
 		auto active_goods = ws.w.nation_s.active_goods.get_row(this_nation);
 		for(uint32_t j = 0; j < ws.s.economy_m.goods_count; ++j) {
-			bit_vector_set(active_goods.data(), j, 0 == (ws.s.economy_m.goods[economy::goods_tag(static_cast<economy::goods_tag::value_base_t>(j))].flags & economy::good_definition::not_available_from_start));
+			bit_vector_set((bitfield_type*)(active_goods.data()), j, 0 == (ws.s.economy_m.goods[economy::goods_tag(static_cast<economy::goods_tag::value_base_t>(j))].flags & economy::good_definition::not_available_from_start));
 		}
 
-		uint64_t* enabled_crimes = &(ws.w.nation_s.nations.get<nation::enabled_crimes>(this_nation));
+		bitfield_type* enabled_crimes = (bitfield_type*)(&(ws.w.nation_s.nations.get<nation::enabled_crimes>(this_nation)));
 		for(int32_t i = int32_t(ws.s.modifiers_m.crimes.size()); i--; ) {
 			if(ws.s.modifiers_m.crimes[uint32_t(i)].default_active)
 				bit_vector_set(enabled_crimes, uint32_t(i), true);
@@ -190,7 +190,7 @@ namespace technologies {
 	}
 
 	float get_invention_chance(tech_tag t, world_state& ws, nations::country_tag this_nation) {
-		return modifiers::test_additive_factor(ws.s.technology_m.technologies_container[t].ai_chance, ws, this_nation, nullptr) / 100.0f;
+		return modifiers::test_additive_factor(ws.s.technology_m.technologies_container[t].ai_chance, ws, this_nation, triggers::const_parameter()) / 100.0f;
 	}
 
 	bool can_research(tech_tag t, world_state const& ws, nations::country_tag this_nation) {
@@ -202,7 +202,7 @@ namespace technologies {
 		if(tech.year != 0 && tag_to_date(ws.w.current_date).year() < tech.year)
 			return false;
 		if(is_valid_index(tech.allow) && !triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(tech.allow),
-			ws, this_nation, this_nation, nullptr))
+			ws, this_nation, this_nation, triggers::const_parameter()))
 			return false;
 		if(is_valid_index(tech.preceeding) && id_valid && !ws.w.nation_s.active_technologies.get(id, tech.preceeding))
 			return false;

@@ -39,16 +39,14 @@ public:
 
 	static void serialize_object(std::byte* &output, cultures::cultures_state const& obj, world_state const& ws) {
 		serialize(output, obj.national_tags_state, ws);
+		serialization::serialize_array(output, obj.tags_to_holders.data() + 1, obj.national_tags_state.size());
 		serialize(output, obj.country_flags_by_government);
 	}
 	static void deserialize_object(std::byte const* &input, cultures::cultures_state& obj, world_state& ws) {
 		deserialize(input, obj.national_tags_state, ws);
+		obj.tags_to_holders.resize(obj.national_tags_state.size());
+		serialization::deserialize_array(input, obj.tags_to_holders.data() + 1, obj.national_tags_state.size());
 		deserialize(input, obj.country_flags_by_government);
-		for(int32_t i = 0; i < obj.national_tags_state.size(); ++i) {
-			auto tag = cultures::national_tag(cultures::national_tag::value_base_t(i));
-			auto& st = obj.national_tags_state[tag];
-			obj.tags_to_holders[tag] = st.holder;
-		}
 	}
 	static size_t size(cultures::cultures_state const& obj, world_state const& ws) {
 		return serialize_size(obj.national_tags_state, ws) + serialize_size(obj.country_flags_by_government);

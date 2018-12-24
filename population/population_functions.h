@@ -8,7 +8,7 @@ class world_state;
 namespace population {
 	void init_population_state(world_state& ws);
 	void reset_state(population_state& s);
-	void init_rebel_faction_from_rebel_type(rebel_faction_tag, rebel_type&);
+	void init_rebel_faction_from_rebel_type(world_state& ws, rebel_faction_tag, rebel_type&);
 	pop_tag make_new_pop(world_state& ws);
 	void init_pop_demographics(world_state& ws, pop_tag p, float size);
 	bool is_pop_accepted(world_state const& ws, pop_tag p, nations::country_tag n);

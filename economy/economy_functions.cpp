@@ -3,7 +3,7 @@
 #include "world_state\\world_state.h"
 #include "provinces\\province_functions.hpp"
 #include "nations\\nations_functions.hpp"
-#include "population\\population_function.h"
+#include "population\\population_functions.hpp"
 #include "nations\\nations_functions.hpp"
 #include "provinces\\province_functions.hpp"
 #include "modifiers\\modifier_functions.h"
@@ -153,7 +153,7 @@ namespace economy {
 
 		float bonus_sum = 1.0f;
 		for(uint32_t i = 0; i < std::extent_v<decltype(std::declval<factory_type>().bonuses)>; ++i) {
-			if(is_valid_index(bonuses[i].condition) && triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(bonuses[i].condition), ws, state_id, state_id, nullptr)) {
+			if(is_valid_index(bonuses[i].condition) && triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(bonuses[i].condition), ws, state_id, state_id, triggers::const_parameter())) {
 				bonus_sum += bonuses[i].value;
 			}
 		}
@@ -553,7 +553,7 @@ namespace economy {
 	class state_pops_summary {
 	public:
 		std::vector<population::pop_tag, concurrent_aligned_allocator<population::pop_tag>> pop_ids;
-		std::vector<expanded_tag<population::pop_type_tag>, concurrent_aligned_allocator<expanded_tag<population::pop_type_tag>>> pop_types;
+		std::vector<population::pop_type_tag, concurrent_aligned_allocator<population::pop_type_tag>> pop_types;
 		std::vector<float, concurrent_aligned_allocator<float>> money;
 		std::vector<float, concurrent_aligned_allocator<float>> size;
 		std::vector<float, concurrent_aligned_allocator<float>> satisfaction;
@@ -991,7 +991,7 @@ namespace economy {
 			auto nb_daily_cost =
 				(ve::dot_product<goods_tag, false>(prices_v, nb_costs) + money_qnty_type(ws.s.economy_m.naval_base.extra_cost)) / money_qnty_type(ws.s.economy_m.naval_base.time);
 
-			auto owner_sp_setting = float(ws.w.nation_s.nations.get<nation::projects_stockpile_spending>(owner_id)) / 100.0f;
+			auto owner_sp_setting = ws.w.nation_s.nations.get<nation::f_projects_stockpile_spending>(owner_id);
 			nations::for_each_province(ws, si, [owner_id, rr_daily_cost, fort_daily_cost, nb_daily_cost, rr_time, fort_time, naval_time,
 				current_state_demand, &local_nation_costs, owner_sp_setting, rr_costs, fort_costs, nb_costs, prices_v, &ws](provinces::province_tag ps) {
 				
@@ -1120,15 +1120,7 @@ namespace economy {
 
 		costs_by_nation.combine_each([&ws, nations_count](cbacked_eigen_vector<money_qnty_type> const& v) {
 			for(int32_t i = 0; i < nations_count; ++i) {
-				auto t = ws.w.nation_s.national_stockpiles.get(nations::country_tag(nations::country_tag::value_base_t(i)), economy::money_good);
-				if(auto val = v.vector[i]; val > 0) {
-					if(t >= val) {
-						ws.w.nation_s.national_stockpiles.get(nations::country_tag(nations::country_tag::value_base_t(i)), economy::money_good) = t - val;
-					} else {
-						ws.w.nation_s.national_stockpiles.get(nations::country_tag(nations::country_tag::value_base_t(i)), economy::money_good) = 0;
-						ws.w.nation_s.nations.get<nation::national_debt>(nations::country_tag(nations::country_tag::value_base_t(i))) += val - t;
-					}
-				}
+				ws.w.nation_s.nations.get<nation::treasury>(nations::country_tag(nations::country_tag::value_base_t(i))) -= v.vector[i];
 			}
 		});
 	}
@@ -1387,7 +1379,7 @@ namespace economy {
 				return;
 			}
 
-			auto state_owner_tarrifs = float(ws.w.nation_s.nations.get<nation::tarrifs>(state_owner)) / 100.0f;
+			auto state_owner_tarrifs = ws.w.nation_s.nations.get<nation::f_tarrifs>(state_owner);
 			auto state_owner_tarrif_mask = ws.w.nation_s.nations.get<nation::statewise_tarrif_mask>(state_owner);
 
 			auto& purchases_for_state = ws.w.nation_s.state_purchases.get(si, tag);
@@ -1476,7 +1468,7 @@ namespace economy {
 			if(!is_valid_index(state_owner)) // skip remainder for this state
 				return;
 
-			auto state_owner_tarrifs = float(ws.w.nation_s.nations.get<nation::tarrifs>(state_owner)) / 100.0f;
+			auto state_owner_tarrifs = ws.w.nation_s.nations.get<nation::f_tarrifs>(state_owner);
 			auto state_owner_tarrif_mask = ws.w.nation_s.nations.get<nation::statewise_tarrif_mask>(state_owner);
 			auto purchases_for_state = ws.w.nation_s.state_purchases.get(si, tag);
 
@@ -1826,7 +1818,7 @@ namespace economy {
 
 	struct consumption_operation {
 		float* const pop_sizes;
-		int32_t* const pop_types;
+		population::pop_type_tag* const pop_types;
 		float* const pop_money;
 
 		float* const satisfaction;
@@ -1844,7 +1836,7 @@ namespace economy {
 		float* const lx_costs_by_type;
 
 		consumption_operation(state_pops_summary& state_pops) :
-			pop_sizes(state_pops.size.data()), pop_types((int32_t*)(state_pops.pop_types.data())), pop_money(state_pops.money.data()),
+			pop_sizes(state_pops.size.data()), pop_types(state_pops.pop_types.data()), pop_money(state_pops.money.data()),
 			satisfaction(state_pops.satisfaction.data()), ln_spending(state_pops.ln_spending.data()), en_spending(state_pops.en_spending.data()),
 			lx_spending(state_pops.lx_spending.data()), ln_money_div_qnty_by_type(state_pops.ln_money_div_qnty_by_type.data()),
 			en_money_div_qnty_by_type(state_pops.en_money_div_qnty_by_type.data()), lx_money_div_qnty_by_type(state_pops.lx_money_div_qnty_by_type.data()),
@@ -1939,7 +1931,7 @@ namespace economy {
 	};
 
 	struct store_money_and_satisfaction_operation {
-		int32_t* const pop_ids;
+		population::pop_tag const* const pop_ids;
 		float const* const money;
 		float const* const satisfaction;
 
@@ -1947,7 +1939,7 @@ namespace economy {
 		float* const satisfaction_dest;
 
 		store_money_and_satisfaction_operation(world_state& ws, state_pops_summary const& state_pops) :
-			pop_ids((int32_t*)(state_pops.pop_ids.data())),
+			pop_ids(state_pops.pop_ids.data()),
 			money(state_pops.money.data()), satisfaction(state_pops.satisfaction.data()),
 			money_dest(ws.w.population_s.pops.get_row<pop::money>().data()),
 			satisfaction_dest(ws.w.population_s.pops.get_row<pop::needs_satisfaction>().data())
@@ -2172,18 +2164,22 @@ namespace economy {
 		//collect tarrif income, pay pops, manage debt
 		ws.w.nation_s.nations.parallel_for_each([&ws](nations::country_tag n) {
 			auto tincome = ws.w.nation_s.collected_tariffs.get_row(n);
-			ws.w.nation_s.national_stockpiles.get(n, economy::money_good) += std::reduce(std::begin(tincome), std::end(tincome), economy::money_qnty_type(0), std::plus<>());
+
+			float& treasury = ws.w.nation_s.nations.get<nation::treasury>(n);
+
+			treasury += std::reduce(std::begin(tincome), std::end(tincome), 0.0f, std::plus<>());
 			pay_unemployement_pensions_salaries(ws, n);
 
 			auto amount = calculate_daily_debt_payment(ws, n);
-			auto current_money = ws.w.nation_s.national_stockpiles.get(n, economy::money_good);
-			if(current_money >= amount) {
-				ws.w.nation_s.nations.get<nation::national_debt>(n) -= amount / 2.0f;
-				ws.w.nation_s.national_stockpiles.get(n, economy::money_good) = current_money - amount;
-			} else {
-				ws.w.nation_s.nations.get<nation::national_debt>(n) += (amount - current_money) - amount / 2.0f;
-				ws.w.nation_s.national_stockpiles.get(n, economy::money_good) = money_qnty_type(0);
+			auto paid = std::clamp(treasury, 0.0f, amount);
+			ws.w.nation_s.nations.get<nation::national_debt>(n) += (amount - paid) - amount / 2.0f;
+			treasury -= paid;
+			
+			if(treasury < 0.0f) {
+				ws.w.nation_s.nations.get<nation::national_debt>(n) -= treasury;
+				treasury = 0.0f;
 			}
+
 		});
 	}
 
@@ -2196,9 +2192,9 @@ namespace economy {
 			auto& tax_base = ws.w.nation_s.nations.get<nation::tax_base>(n);
 			tax_base = 0.0f;
 			auto taxeff = std::max(ws.s.modifiers_m.global_defines.base_country_tax_efficiency + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::tax_efficiency>(n), 0.05f);
-			auto pt = float(ws.w.nation_s.nations.get<nation::poor_tax>(n)) / 100.0f;
-			auto mt = float(ws.w.nation_s.nations.get<nation::middle_tax>(n)) / 100.0f;
-			auto rt = float(ws.w.nation_s.nations.get<nation::rich_tax>(n)) / 100.0f;
+			auto pt = ws.w.nation_s.nations.get<nation::f_poor_tax>(n);
+			auto mt = ws.w.nation_s.nations.get<nation::f_middle_tax>(n);
+			auto rt = ws.w.nation_s.nations.get<nation::f_rich_tax>(n);
 			if(n != ws.w.local_player_nation) {
 				money_qnty_type total = 0;
 				nations::for_each_pop(ws, n, [&total, &ws, &tax_base, n, taxeff, pt, mt, rt](population::pop_tag p) {
@@ -2222,7 +2218,7 @@ namespace economy {
 						p_money -= collected;
 					}
 				});
-				ws.w.nation_s.national_stockpiles.get(n, economy::money_good) += total;
+				ws.w.nation_s.nations.get<nation::treasury>(n) += total;
 			} else {
 				money_qnty_type total = 0;
 				nations::for_each_pop(ws, n, [&total, &ws, &tax_base, n, taxeff, pt, mt, rt](population::pop_tag p) {
@@ -2249,7 +2245,7 @@ namespace economy {
 						p_money -= collected;
 					}
 				});
-				ws.w.nation_s.national_stockpiles.get(n, economy::money_good) += total;
+				ws.w.nation_s.nations.get<nation::treasury>(n) += total;
 			}
 		});
 
@@ -2523,13 +2519,7 @@ namespace economy {
 		});
 
 		auto cost_with_waste = est_costs * (2.0f - ws.w.nation_s.nations.get<nation::national_administrative_efficiency>(n));
-		auto diff = ws.w.nation_s.national_stockpiles.get(n, economy::money_good) - cost_with_waste;
-		if(diff < money_qnty_type(0)) {
-			ws.w.nation_s.national_stockpiles.get(n, economy::money_good) = 0;
-			ws.w.nation_s.nations.get<nation::national_debt>(n) += -diff;
-		} else {
-			ws.w.nation_s.national_stockpiles.get(n, economy::money_good) = diff;
-		}
+		ws.w.nation_s.nations.get<nation::treasury>(n) -= cost_with_waste;
 	}
 
 }

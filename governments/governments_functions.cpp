@@ -67,16 +67,16 @@ namespace governments {
 	}
 
 	void update_current_rules(world_state& ws, nations::country_tag this_nation) {
-		auto& rules_value = ws.w.nation_s.nations.get<nation::current_rules>(this_nation).rules_value;
+		auto& rules_value = ws.w.nation_s.nations.get<nation::current_rules>(this_nation);
 		rules_value = 0ui32;
 
-		uint32_t max_issues = uint32_t(ws.s.issues_m.issues_container.size());
-		auto issues_row = ws.w.nation_s.active_issue_options.get_row(this_nation);
+		int32_t max_issues = int32_t(ws.s.issues_m.issues_container.size());
 
-		for(int32_t i = 0; i < int32_t(max_issues); ++i) {
+		for(int32_t i = 0; i < max_issues; ++i) {
 			auto i_tag = issues::issue_tag(issues::issue_tag::value_base_t(i));
-			if(is_valid_index(issues_row[i_tag])) {
-				rules_value |= ws.s.issues_m.options[issues_row[i_tag]].issue_rules.rules_settings.rules_value;
+			auto opt = ws.w.nation_s.active_issue_options.get(this_nation, i_tag);
+			if(is_valid_index(opt)) {
+				rules_value |= ws.s.issues_m.options[opt].issue_rules.rules_settings.rules_value;
 			}
 		}
 	}

@@ -855,7 +855,7 @@ namespace triggers {
 			if(is_valid_index(culture_group)) {
 				auto union_tag = ws.s.culture_m.culture_groups[culture_group].union_tag;
 				if(is_valid_index(union_tag)) {
-					auto union_holder = ws.w.culture_s.national_tags_state[union_tag].holder;
+					auto union_holder = ws.w.culture_s.tags_to_holders[union_tag];
 					if(union_holder)
 						apply_subeffects(tval, ws, union_holder, this_slot, from_slot, gen);
 				}
@@ -872,9 +872,9 @@ namespace triggers {
 				apply_subeffects(tval, ws, sphere_leader, this_slot, from_slot, gen);
 		}
 		void es_independence_scope(EFFECT_PARAMTERS) {
-			auto rtag = ws.w.population_s.rebel_factions[to_rebel(from_slot)].independence_tag;
+			auto rtag = ws.w.population_s.rebel_factions.get<rebel_faction::independence_tag>(to_rebel(from_slot));
 			if(is_valid_index(rtag)) {
-				auto ination = ws.w.culture_s.national_tags_state[rtag].holder;
+				auto ination = ws.w.culture_s.tags_to_holders[rtag];
 				if(ination)
 					apply_subeffects(tval, ws, ination, this_slot, from_slot, gen);
 			}
@@ -882,7 +882,7 @@ namespace triggers {
 		void es_flashpoint_tag_scope(EFFECT_PARAMTERS) {
 			auto ctag = ws.w.nation_s.states.get<state::crisis_tag>(to_state(primary_slot));
 			if(is_valid_index(ctag)) {
-				auto ctag_holder = ws.w.culture_s.national_tags_state[ctag].holder;
+				auto ctag_holder = ws.w.culture_s.tags_to_holders[ctag];
 				if(ctag_holder)
 					apply_subeffects(tval, ws, ctag_holder, this_slot, from_slot, gen);
 			}
@@ -908,12 +908,12 @@ namespace triggers {
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
 				auto limit = ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger);
 				auto tag = trigger_payload(tval[3]).tag;
-				auto tag_holder = ws.w.culture_s.national_tags_state[tag].holder;
+				auto tag_holder = ws.w.culture_s.tags_to_holders[tag];
 				if(tag_holder && test_trigger(limit, ws, tag_holder, this_slot, from_slot))
 					apply_subeffects(tval, ws, tag_holder, this_slot, from_slot, gen);
 			} else {
 				auto tag = trigger_payload(tval[2]).tag;
-				auto tag_holder = ws.w.culture_s.national_tags_state[tag].holder;
+				auto tag_holder = ws.w.culture_s.tags_to_holders[tag];
 				if(tag_holder)
 					apply_subeffects(tval, ws, tag_holder, this_slot, from_slot, gen);
 			}
@@ -1090,28 +1090,28 @@ namespace triggers {
 		void ef_add_core_this_province(EFFECT_PARAMTERS) {
 			auto owner = provinces::province_owner(ws, to_prov(this_slot));
 			if(owner)
-				ef_add_core_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_add_core_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_add_core_this_state(EFFECT_PARAMTERS) {
 			auto owner = ws.w.nation_s.states.get<state::owner>(to_state(this_slot));
 			if(owner)
-				ef_add_core_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_add_core_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_add_core_this_pop(EFFECT_PARAMTERS) {
 			auto owner = population::get_pop_owner(ws, to_pop(this_slot));
 			if(owner)
-				ef_add_core_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_add_core_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_add_core_from_province(EFFECT_PARAMTERS) {
 			auto owner = provinces::province_owner(ws, to_prov(from_slot));
 			if(owner)
-				ef_add_core_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_add_core_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_add_core_from_nation(EFFECT_PARAMTERS) {
-			ef_add_core_this_nation(tval, ws, primary_slot, from_slot, nullptr, gen);
+			ef_add_core_this_nation(tval, ws, primary_slot, from_slot, const_parameter(), gen);
 		}
 		void ef_add_core_reb(EFFECT_PARAMTERS) {
-			auto tag = ws.w.population_s.rebel_factions[to_rebel(from_slot)].independence_tag;
+			auto tag = ws.w.population_s.rebel_factions.get<rebel_faction::independence_tag>(to_rebel(from_slot));
 			if(is_valid_index(tag)) {
 				add_item(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container.get<province_state::cores>(to_prov(primary_slot)), tag);
 				add_item(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[tag].core_provinces, to_prov(primary_slot));
@@ -1140,28 +1140,28 @@ namespace triggers {
 		void ef_remove_core_this_province(EFFECT_PARAMTERS) {
 			auto owner = provinces::province_owner(ws, to_prov(this_slot));
 			if(owner)
-				ef_remove_core_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_remove_core_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_remove_core_this_state(EFFECT_PARAMTERS) {
 			auto owner = ws.w.nation_s.states.get<state::owner>(to_state(this_slot));
 			if(owner)
-				ef_remove_core_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_remove_core_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_remove_core_this_pop(EFFECT_PARAMTERS) {
 			auto owner = population::get_pop_owner(ws, to_pop(this_slot));
 			if(owner)
-				ef_remove_core_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_remove_core_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_remove_core_from_province(EFFECT_PARAMTERS) {
 			auto owner = provinces::province_owner(ws, to_prov(from_slot));
 			if(owner)
-				ef_remove_core_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_remove_core_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_remove_core_from_nation(EFFECT_PARAMTERS) {
-			ef_remove_core_this_nation(tval, ws, primary_slot, from_slot, nullptr, gen);
+			ef_remove_core_this_nation(tval, ws, primary_slot, from_slot, const_parameter(), gen);
 		}
 		void ef_remove_core_reb(EFFECT_PARAMTERS) {
-			auto tag = ws.w.population_s.rebel_factions[to_rebel(from_slot)].independence_tag;
+			auto tag = ws.w.population_s.rebel_factions.get<rebel_faction::independence_tag>(to_rebel(from_slot));
 			if(is_valid_index(tag)) {
 				remove_item(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container.get<province_state::cores>(to_prov(primary_slot)), tag);
 				remove_item(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[tag].core_provinces, to_prov(primary_slot));
@@ -1239,10 +1239,10 @@ namespace triggers {
 		}
 		void ef_government_reb(EFFECT_PARAMTERS) {
 			governments::silent_set_government(ws, to_nation(primary_slot),
-				ws.s.population_m.rebel_change_government_to.get(ws.w.population_s.rebel_factions[to_rebel(from_slot)].type, ws.w.nation_s.nations.get<nation::current_government>(to_nation(primary_slot))));
+				ws.s.population_m.rebel_change_government_to.get(ws.w.population_s.rebel_factions.get<rebel_faction::type>(to_rebel(from_slot)), ws.w.nation_s.nations.get<nation::current_government>(to_nation(primary_slot))));
 		}
 		void ef_treasury(EFFECT_PARAMTERS) {
-			ws.w.nation_s.national_stockpiles.get(to_nation(primary_slot), economy::money_good) += economy::goods_qnty_type(read_float_from_payload(tval + 2));
+			ws.w.nation_s.nations.get<nation::treasury>(to_nation(primary_slot)) += read_float_from_payload(tval + 2);
 		}
 		void ef_war_exhaustion(EFFECT_PARAMTERS) {
 			auto& war_x = ws.w.nation_s.nations.get<nation::war_exhaustion>(to_nation(primary_slot));
@@ -1282,7 +1282,7 @@ namespace triggers {
 		}
 		void ef_change_tag_no_core_switch(EFFECT_PARAMTERS) {
 			if(ws.w.local_player_nation == to_nation(primary_slot)) {
-				if(auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder; holder) {
+				if(auto holder = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag]; holder) {
 					ws.w.nation_s.nations.set<nation::is_not_ai_controlled>(ws.w.local_player_nation, false);
 					ws.w.nation_s.nations.set<nation::is_not_ai_controlled>(holder, true);
 					ws.w.local_player_nation = holder;
@@ -1296,7 +1296,7 @@ namespace triggers {
 					auto cg_t = ws.s.culture_m.culture_container[prim_culture].group;
 					auto u = ws.s.culture_m.culture_groups[cg_t].union_tag;
 					if(is_valid_index(u)) {
-						if(auto holder = ws.w.culture_s.national_tags_state[u].holder; holder) {
+						if(auto holder = ws.w.culture_s.tags_to_holders[u]; holder) {
 							ws.w.nation_s.nations.set<nation::is_not_ai_controlled>(ws.w.local_player_nation, false);
 							ws.w.nation_s.nations.set<nation::is_not_ai_controlled>(holder, true);
 							ws.w.local_player_nation = holder;
@@ -1366,21 +1366,21 @@ namespace triggers {
 			}
 		}
 		void ef_secede_province_from_nation(EFFECT_PARAMTERS) {
-			ef_secede_province_this_nation(tval, ws, primary_slot, from_slot, nullptr, gen);
+			ef_secede_province_this_nation(tval, ws, primary_slot, from_slot, const_parameter(), gen);
 		}
 		void ef_secede_province_from_province(EFFECT_PARAMTERS) {
-			ef_secede_province_this_province(tval, ws, primary_slot, from_slot, nullptr, gen);
+			ef_secede_province_this_province(tval, ws, primary_slot, from_slot, const_parameter(), gen);
 		}
 		void ef_secede_province_reb(EFFECT_PARAMTERS) {
-			if(is_valid_index(ws.w.population_s.rebel_factions[to_rebel(from_slot)].independence_tag)) {
-				auto holder = nations::make_nation_for_tag(ws, ws.w.population_s.rebel_factions[to_rebel(from_slot)].independence_tag);
+			if(auto itag = ws.w.population_s.rebel_factions.get<rebel_faction::independence_tag>(to_rebel(from_slot)); is_valid_index(itag)) {
+				auto holder = nations::make_nation_for_tag(ws, itag);
 				provinces::silent_set_province_owner(ws, holder, to_prov(primary_slot));
 				provinces::silent_set_province_controller(ws, holder, to_prov(primary_slot));
 				provinces::silent_on_conquer_province(ws, to_prov(primary_slot));
 			}
 		}
 		void ef_inherit(EFFECT_PARAMTERS) {
-			auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+			auto holder = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag];
 			if(holder && to_nation(primary_slot) != holder) 
 				nations::annex_nation(ws, to_nation(primary_slot), holder);
 		}
@@ -1413,7 +1413,7 @@ namespace triggers {
 				nations::annex_nation(ws, to_nation(primary_slot), owner);
 		}
 		void ef_annex_to(EFFECT_PARAMTERS) {
-			auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+			auto holder = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag];
 			if(holder && to_nation(primary_slot) != holder)
 				nations::annex_nation(ws, holder, to_nation(primary_slot));
 		}
@@ -1455,17 +1455,17 @@ namespace triggers {
 		void ef_release_this_state(EFFECT_PARAMTERS) {
 			auto owner = ws.w.nation_s.states.get<state::owner>(to_state(this_slot));
 			if(owner)
-				ef_release_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_release_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_release_this_province(EFFECT_PARAMTERS) {
 			auto owner = provinces::province_owner(ws, to_prov(this_slot));
 			if(owner)
-				ef_release_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_release_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_release_this_pop(EFFECT_PARAMTERS) {
 			auto owner = population::get_pop_owner(ws, to_pop(this_slot));
 			if(owner)
-				ef_release_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_release_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_release_from_nation(EFFECT_PARAMTERS) {
 			if(auto tag = ws.w.nation_s.nations.get<nation::tag>(to_nation(from_slot)); is_valid_index(tag))
@@ -1474,10 +1474,10 @@ namespace triggers {
 		void ef_release_from_province(EFFECT_PARAMTERS) {
 			auto owner = provinces::province_owner(ws, to_prov(from_slot));
 			if(owner)
-				ef_release_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_release_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_change_controller(EFFECT_PARAMTERS) {
-			auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+			auto holder = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag];
 			if(holder)
 				provinces::silent_set_province_controller(ws, holder, to_prov(primary_slot));
 		}
@@ -1511,7 +1511,7 @@ namespace triggers {
 			ws.w.nation_s.nations.get<nation::leadership_points>(to_nation(primary_slot)) += trigger_payload(tval[2]).signed_value;
 		}
 		void ef_create_vassal(EFFECT_PARAMTERS) {
-			auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+			auto holder = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag];
 			if(holder && is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(holder)))
 				nations::make_vassal(ws, to_nation(primary_slot), holder);
 		}
@@ -1522,7 +1522,7 @@ namespace triggers {
 		void ef_create_vassal_this_province(EFFECT_PARAMTERS) {
 			auto owner = provinces::province_owner(ws, to_prov(this_slot));
 			if(owner)
-				ef_create_vassal_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_create_vassal_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_create_vassal_from_nation(EFFECT_PARAMTERS) {
 			if(is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(to_nation(from_slot))))
@@ -1531,7 +1531,7 @@ namespace triggers {
 		void ef_create_vassal_from_province(EFFECT_PARAMTERS) {
 			auto owner = provinces::province_owner(ws, to_prov(from_slot));
 			if(owner)
-				ef_create_vassal_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_create_vassal_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_end_military_access(EFFECT_PARAMTERS) {
 			// do nothing
@@ -1549,7 +1549,7 @@ namespace triggers {
 			// do nothing
 		}
 		void ef_leave_alliance(EFFECT_PARAMTERS) {
-			auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+			auto holder = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag];
 			if(holder)
 				nations::end_alliance(ws, to_nation(primary_slot), holder);
 		}
@@ -1570,7 +1570,7 @@ namespace triggers {
 				nations::end_alliance(ws, to_nation(primary_slot), owner);
 		}
 		void ef_end_war(EFFECT_PARAMTERS) {
-			auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+			auto holder = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag];
 			if(holder) {
 				auto war_between = military::get_war_between(ws, to_nation(primary_slot), holder);
 				if(war_between) {
@@ -1589,7 +1589,7 @@ namespace triggers {
 		void ef_end_war_this_province(EFFECT_PARAMTERS) {
 			auto owner = provinces::province_owner(ws, to_prov(this_slot));
 			if(owner)
-				ef_end_war_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_end_war_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_end_war_from_nation(EFFECT_PARAMTERS) {
 			auto war_between = military::get_war_between(ws, to_nation(primary_slot), to_nation(from_slot));
@@ -1601,7 +1601,7 @@ namespace triggers {
 		void ef_end_war_from_province(EFFECT_PARAMTERS) {
 			auto owner = provinces::province_owner(ws, to_prov(from_slot));
 			if(owner)
-				ef_end_war_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_end_war_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_enable_ideology(EFFECT_PARAMTERS) {
 			ws.w.ideology_s.ideology_enabled[trigger_payload(tval[2]).small.values.ideology] = 1ui8;
@@ -1626,7 +1626,7 @@ namespace triggers {
 			modifiers::remove_all_timed_modifiers_from_nation(ws, to_nation(primary_slot), nmod);
 		}
 		void ef_create_alliance(EFFECT_PARAMTERS) {
-			auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+			auto holder = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag];
 			if(holder)
 				nations::make_alliance(ws, to_nation(primary_slot), holder);
 		}
@@ -1647,7 +1647,7 @@ namespace triggers {
 				nations::make_alliance(ws, to_nation(primary_slot), owner);
 		}
 		void ef_release_vassal(EFFECT_PARAMTERS) {
-			if(auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder; bool(holder) && is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(holder))) {
+			if(auto holder = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag]; bool(holder) && is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(holder))) {
 				nations::free_vassal(ws, holder);
 			} else {
 				auto new_nation = nations::liberate_uncored_cores(ws, to_nation(primary_slot), trigger_payload(tval[2]).tag);
@@ -1667,18 +1667,18 @@ namespace triggers {
 		void ef_release_vassal_this_province(EFFECT_PARAMTERS) {
 			auto owner = provinces::province_owner(ws, to_prov(this_slot));
 			if(owner)
-				ef_release_vassal_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_release_vassal_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_release_vassal_from_nation(EFFECT_PARAMTERS) {
-			ef_release_vassal_this_nation(tval, ws, primary_slot, from_slot, nullptr, gen);
+			ef_release_vassal_this_nation(tval, ws, primary_slot, from_slot, const_parameter(), gen);
 		}
 		void ef_release_vassal_from_province(EFFECT_PARAMTERS) {
 			auto owner = provinces::province_owner(ws, to_prov(from_slot));
 			if(owner)
-				ef_release_vassal_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_release_vassal_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_release_vassal_reb(EFFECT_PARAMTERS) {
-			nations::liberate_all_cores(ws, to_nation(primary_slot), ws.w.population_s.rebel_factions[to_rebel(from_slot)].independence_tag);
+			nations::liberate_all_cores(ws, to_nation(primary_slot), ws.w.population_s.rebel_factions.get<rebel_faction::independence_tag>(to_rebel(from_slot)));
 		}
 		void ef_release_vassal_random(EFFECT_PARAMTERS) {
 			//unused
@@ -1727,7 +1727,8 @@ namespace triggers {
 			issues::change_issue_option(ws, trigger_payload(tval[2]).small.values.option, to_nation(primary_slot));
 		}
 		void ef_add_tax_relative_income(EFFECT_PARAMTERS) {
-			ws.w.nation_s.national_stockpiles.get(to_nation(primary_slot), economy::money_good) += economy::goods_qnty_type(ws.w.nation_s.nations.get<nation::tax_base>(to_nation(primary_slot)) * economy::money_qnty_type(read_float_from_payload(tval + 2)));
+			ws.w.nation_s.nations.get<nation::treasury>(to_nation(primary_slot)) += 
+				ws.w.nation_s.nations.get<nation::tax_base>(to_nation(primary_slot)) * read_float_from_payload(tval + 2);
 		}
 		void ef_neutrality(EFFECT_PARAMTERS) {
 			auto allies_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(to_nation(primary_slot)));
@@ -1906,25 +1907,28 @@ namespace triggers {
 			auto ideology = trigger_payload(tval[5]).small.values.ideology;
 
 			for(auto rf : rf_range) {
-				auto& rf_obj = ws.w.population_s.rebel_factions[rf];
-				if((!is_valid_index(type) || rf_obj.type == type) &&
-					(!is_valid_index(culture) || rf_obj.culture == culture) &&
-					(!is_valid_index(religion) || rf_obj.religion == religion) &&
-					(!is_valid_index(ideology) || rf_obj.ideology == ideology)) {
-					population::trigger_rising(ws, rf_obj, to_nation(primary_slot));
+				auto rf_obj_type = ws.w.population_s.rebel_factions.get<rebel_faction::type>(rf);
+				auto rf_obj_culture = ws.w.population_s.rebel_factions.get<rebel_faction::culture>(rf);
+				auto rf_obj_religion = ws.w.population_s.rebel_factions.get<rebel_faction::religion>(rf);
+				auto rf_obj_ideology = ws.w.population_s.rebel_factions.get<rebel_faction::ideology>(rf);
+				if((!is_valid_index(type) || rf_obj_type == type) &&
+					(!is_valid_index(culture) || rf_obj_culture == culture) &&
+					(!is_valid_index(religion) || rf_obj_religion == religion) &&
+					(!is_valid_index(ideology) || rf_obj_ideology == ideology)) {
+					population::trigger_rising(ws, rf, to_nation(primary_slot));
 				}
 			}
 		}
 		void ef_trigger_revolt_state(EFFECT_PARAMTERS) {
 			if(auto owner = ws.w.nation_s.states.get<state::owner>(to_state(primary_slot)); owner)
-				ef_trigger_revolt_nation(tval, ws, owner, nullptr, nullptr, gen);
+				ef_trigger_revolt_nation(tval, ws, owner, const_parameter(), const_parameter(), gen);
 		}
 		void ef_trigger_revolt_province(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(primary_slot)); owner)
-				ef_trigger_revolt_nation(tval, ws, owner, nullptr, nullptr, gen);
+				ef_trigger_revolt_nation(tval, ws, owner, const_parameter(), const_parameter(), gen);
 		}
 		void ef_diplomatic_influence(EFFECT_PARAMTERS) {
-			if(auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder; holder)
+			if(auto holder = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag]; holder)
 				nations::adjust_influence(ws, to_nation(primary_slot), holder, trigger_payload(tval[3]).signed_value);
 		}
 		void ef_diplomatic_influence_this_nation(EFFECT_PARAMTERS) {
@@ -1942,7 +1946,7 @@ namespace triggers {
 				nations::adjust_influence(ws, to_nation(primary_slot), owner, trigger_payload(tval[2]).signed_value);
 		}
 		void ef_relation(EFFECT_PARAMTERS) {
-			if(auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder; holder)
+			if(auto holder = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag]; holder)
 				nations::adjust_relationship(ws, to_nation(primary_slot), holder, trigger_payload(tval[3]).signed_value);
 		}
 		void ef_relation_this_nation(EFFECT_PARAMTERS) {
@@ -1984,7 +1988,7 @@ namespace triggers {
 			auto months = trigger_payload(tval[3]).signed_value;
 			auto tag_target = trigger_payload(tval[4]).tag;
 
-			if(auto holder = ws.w.culture_s.national_tags_state[tag_target].holder; holder) {
+			if(auto holder = ws.w.culture_s.tags_to_holders[tag_target]; holder) {
 				add_item(ws.w.military_s.cb_arrays,
 					ws.w.nation_s.nations.get<nation::active_cbs>(to_nation(primary_slot)),
 					military::pending_cb {
@@ -2074,7 +2078,7 @@ namespace triggers {
 			auto months = trigger_payload(tval[3]).signed_value;
 			auto tag_target = trigger_payload(tval[4]).tag;
 
-			if(auto holder = ws.w.culture_s.national_tags_state[tag_target].holder; holder) {
+			if(auto holder = ws.w.culture_s.tags_to_holders[tag_target]; holder) {
 				add_item(ws.w.military_s.cb_arrays,
 					ws.w.nation_s.nations.get<nation::active_cbs>(holder),
 					military::pending_cb {
@@ -2166,7 +2170,7 @@ namespace triggers {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 			auto tag_target = trigger_payload(tval[3]).tag;
 
-			if(auto holder = ws.w.culture_s.national_tags_state[tag_target].holder; holder) {
+			if(auto holder = ws.w.culture_s.tags_to_holders[tag_target]; holder) {
 				remove_item(ws.w.military_s.cb_arrays,
 					ws.w.nation_s.nations.get<nation::active_cbs>(to_nation(primary_slot)),
 					military::pending_cb {holder, type, date_tag()});
@@ -2235,7 +2239,7 @@ namespace triggers {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 			auto tag_target = trigger_payload(tval[3]).tag;
 
-			if(auto holder = ws.w.culture_s.national_tags_state[tag_target].holder; holder) {
+			if(auto holder = ws.w.culture_s.tags_to_holders[tag_target]; holder) {
 				remove_item(ws.w.military_s.cb_arrays,
 					ws.w.nation_s.nations.get<nation::active_cbs>(holder),
 					military::pending_cb { to_nation(primary_slot), type, date_tag()});
@@ -2301,7 +2305,7 @@ namespace triggers {
 			}
 		}
 		void ef_war_tag(EFFECT_PARAMTERS) {
-			auto target = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+			auto target = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag];
 			if(target) {
 				auto& new_war = military::create_war(ws, to_nation(primary_slot), target, true);
 
@@ -2313,7 +2317,7 @@ namespace triggers {
 					auto liberate_country_tag = trigger_payload(tval[payload_index + 2]).tag;
 					auto state = ws.w.province_s.province_state_container.get<province_state::state_instance>(province_id);
 
-					auto lib_holder = ws.w.culture_s.national_tags_state[liberate_country_tag].holder;
+					auto lib_holder = ws.w.culture_s.tags_to_holders[liberate_country_tag];
 
 					add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
 						military::war_goal{ ws.w.current_date, 0.0f, to_nation(primary_slot), state, target, bool(lib_holder) ? lib_holder : nations::country_tag(), cb_type });
@@ -2328,7 +2332,7 @@ namespace triggers {
 					auto liberate_country_tag = trigger_payload(tval[payload_index + 2]).tag;
 					auto state = ws.w.province_s.province_state_container.get<province_state::state_instance>(province_id);
 
-					auto lib_holder = ws.w.culture_s.national_tags_state[liberate_country_tag].holder;
+					auto lib_holder = ws.w.culture_s.tags_to_holders[liberate_country_tag];
 
 					add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
 						military::war_goal{ ws.w.current_date, 0.0f, target, state, to_nation(primary_slot), bool(lib_holder) ? lib_holder : nations::country_tag(), cb_type });
@@ -2349,7 +2353,7 @@ namespace triggers {
 				auto liberate_country_tag = trigger_payload(tval[payload_index + 2]).tag;
 				auto state = ws.w.province_s.province_state_container.get<province_state::state_instance>(province_id);
 
-				auto lib_holder = ws.w.culture_s.national_tags_state[liberate_country_tag].holder;
+				auto lib_holder = ws.w.culture_s.tags_to_holders[liberate_country_tag];
 
 				add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
 					military::war_goal{ ws.w.current_date, 0.0f, to_nation(primary_slot), state, target, bool(lib_holder) ? lib_holder : nations::country_tag(), cb_type });
@@ -2364,7 +2368,7 @@ namespace triggers {
 				auto liberate_country_tag = trigger_payload(tval[payload_index + 2]).tag;
 				auto state = ws.w.province_s.province_state_container.get<province_state::state_instance>(province_id);
 
-				auto lib_holder = ws.w.culture_s.national_tags_state[liberate_country_tag].holder;
+				auto lib_holder = ws.w.culture_s.tags_to_holders[liberate_country_tag];
 
 				add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
 					military::war_goal{ ws.w.current_date, 0.0f, target, state, to_nation(primary_slot), bool(lib_holder) ? lib_holder : nations::country_tag(), cb_type });
@@ -2373,25 +2377,25 @@ namespace triggers {
 		}
 		void ef_war_this_state(EFFECT_PARAMTERS) {
 			if(auto owner = ws.w.nation_s.states.get<state::owner>(to_state(this_slot)); owner)
-				ef_war_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_war_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_war_this_province(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(this_slot)); owner)
-				ef_war_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_war_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_war_this_pop(EFFECT_PARAMTERS) {
 			if(auto owner = population::get_pop_owner(ws, to_pop(this_slot)); owner)
-				ef_war_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_war_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_war_from_nation(EFFECT_PARAMTERS) {
-			ef_war_this_nation(tval, ws, primary_slot, from_slot, nullptr, gen);
+			ef_war_this_nation(tval, ws, primary_slot, from_slot, const_parameter(), gen);
 		}
 		void ef_war_from_province(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(from_slot)); owner)
-				ef_war_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_war_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_war_no_ally_tag(EFFECT_PARAMTERS) {
-			auto target = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+			auto target = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag];
 			if(target) {
 				auto& new_war = military::create_war(ws, to_nation(primary_slot), target, false);
 
@@ -2403,7 +2407,7 @@ namespace triggers {
 					auto liberate_country_tag = trigger_payload(tval[payload_index + 2]).tag;
 					auto state = ws.w.province_s.province_state_container.get<province_state::state_instance>(province_id);
 
-					auto lib_holder = ws.w.culture_s.national_tags_state[liberate_country_tag].holder;
+					auto lib_holder = ws.w.culture_s.tags_to_holders[liberate_country_tag];
 
 					add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
 						military::war_goal{ ws.w.current_date, 0.0f, to_nation(primary_slot), state, target, bool(lib_holder) ? lib_holder : nations::country_tag(), cb_type });
@@ -2418,7 +2422,7 @@ namespace triggers {
 					auto liberate_country_tag = trigger_payload(tval[payload_index + 2]).tag;
 					auto state = ws.w.province_s.province_state_container.get<province_state::state_instance>(province_id);
 
-					auto lib_holder = ws.w.culture_s.national_tags_state[liberate_country_tag].holder;
+					auto lib_holder = ws.w.culture_s.tags_to_holders[liberate_country_tag];
 
 					add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
 						military::war_goal{ ws.w.current_date, 0.0f, target, state, to_nation(primary_slot), bool(lib_holder) ? lib_holder : nations::country_tag(), cb_type });
@@ -2439,7 +2443,7 @@ namespace triggers {
 				auto liberate_country_tag = trigger_payload(tval[payload_index + 2]).tag;
 				auto state = ws.w.province_s.province_state_container.get<province_state::state_instance>(province_id);
 
-				auto lib_holder = ws.w.culture_s.national_tags_state[liberate_country_tag].holder;
+				auto lib_holder = ws.w.culture_s.tags_to_holders[liberate_country_tag];
 
 				add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
 					military::war_goal{ ws.w.current_date, 0.0f, to_nation(primary_slot), state, target, bool(lib_holder) ? lib_holder : nations::country_tag(), cb_type });
@@ -2454,7 +2458,7 @@ namespace triggers {
 				auto liberate_country_tag = trigger_payload(tval[payload_index + 2]).tag;
 				auto state = ws.w.province_s.province_state_container.get<province_state::state_instance>(province_id);
 
-				auto lib_holder = ws.w.culture_s.national_tags_state[liberate_country_tag].holder;
+				auto lib_holder = ws.w.culture_s.tags_to_holders[liberate_country_tag];
 
 				add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
 					military::war_goal{ ws.w.current_date, 0.0f, target, state, to_nation(primary_slot), bool(lib_holder) ? lib_holder : nations::country_tag(), cb_type });
@@ -2463,22 +2467,22 @@ namespace triggers {
 		}
 		void ef_war_no_ally_this_state(EFFECT_PARAMTERS) {
 			if(auto owner = ws.w.nation_s.states.get<state::owner>(to_state(this_slot)); owner)
-				ef_war_no_ally_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_war_no_ally_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_war_no_ally_this_province(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(this_slot)); owner)
-				ef_war_no_ally_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_war_no_ally_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_war_no_ally_this_pop(EFFECT_PARAMTERS) {
 			if(auto owner = population::get_pop_owner(ws, to_pop(this_slot)); owner)
-				ef_war_no_ally_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_war_no_ally_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_war_no_ally_from_nation(EFFECT_PARAMTERS) {
-			ef_war_no_ally_this_nation(tval, ws, primary_slot, from_slot, nullptr, gen);
+			ef_war_no_ally_this_nation(tval, ws, primary_slot, from_slot, const_parameter(), gen);
 		}
 		void ef_war_no_ally_from_province(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(from_slot)); owner)
-				ef_war_no_ally_this_nation(tval, ws, primary_slot, owner, nullptr, gen);
+				ef_war_no_ally_this_nation(tval, ws, primary_slot, owner, const_parameter(), gen);
 		}
 		void ef_country_event_this_nation(EFFECT_PARAMTERS) {
 			events::fire_delayed_event(ws, trigger_payload(tval[2]).event, tval[3], to_nation(primary_slot), to_nation(this_slot));
@@ -2530,35 +2534,35 @@ namespace triggers {
 		}
 		void ef_country_event_province_this_nation(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(primary_slot)); owner)
-				ef_country_event_this_nation(tval, ws, owner, this_slot, nullptr, gen);
+				ef_country_event_this_nation(tval, ws, owner, this_slot, const_parameter(), gen);
 		}
 		void ef_country_event_immediate_province_this_nation(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(primary_slot)); owner)
-				ef_country_event_immediate_this_nation(tval, ws, owner, this_slot, nullptr, gen);
+				ef_country_event_immediate_this_nation(tval, ws, owner, this_slot, const_parameter(), gen);
 		}
 		void ef_country_event_province_this_state(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(primary_slot)); owner)
-				ef_country_event_this_state(tval, ws, owner, this_slot, nullptr, gen);
+				ef_country_event_this_state(tval, ws, owner, this_slot, const_parameter(), gen);
 		}
 		void ef_country_event_immediate_province_this_state(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(primary_slot)); owner)
-				ef_country_event_immediate_this_state(tval, ws, owner, this_slot, nullptr, gen);
+				ef_country_event_immediate_this_state(tval, ws, owner, this_slot, const_parameter(), gen);
 		}
 		void ef_country_event_province_this_province(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(primary_slot)); owner)
-				ef_country_event_this_province(tval, ws, owner, this_slot, nullptr, gen);
+				ef_country_event_this_province(tval, ws, owner, this_slot, const_parameter(), gen);
 		}
 		void ef_country_event_immediate_province_this_province(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(primary_slot)); owner)
-				ef_country_event_immediate_this_province(tval, ws, owner, this_slot, nullptr, gen);
+				ef_country_event_immediate_this_province(tval, ws, owner, this_slot, const_parameter(), gen);
 		}
 		void ef_country_event_province_this_pop(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(primary_slot)); owner)
-				ef_country_event_this_pop(tval, ws, owner, this_slot, nullptr, gen);
+				ef_country_event_this_pop(tval, ws, owner, this_slot, const_parameter(), gen);
 		}
 		void ef_country_event_immediate_province_this_pop(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(primary_slot)); owner)
-				ef_country_event_immediate_this_pop(tval, ws, owner, this_slot, nullptr, gen);
+				ef_country_event_immediate_this_pop(tval, ws, owner, this_slot, const_parameter(), gen);
 		}
 		
 		void ef_sub_unit_int(EFFECT_PARAMTERS) {
@@ -3104,7 +3108,7 @@ namespace triggers {
 			}
 		}
 		void ef_relation_reb(EFFECT_PARAMTERS) {
-			if(auto holder = ws.w.culture_s.national_tags_state[ws.w.population_s.rebel_factions[to_rebel(from_slot)].independence_tag].holder; holder)
+			if(auto holder = ws.w.culture_s.tags_to_holders[ws.w.population_s.rebel_factions.get<rebel_faction::independence_tag>(to_rebel(from_slot))]; holder)
 				nations::adjust_relationship(ws, to_nation(primary_slot), holder, trigger_payload(tval[2]).signed_value);
 		}
 		void ef_variable_tech_name(EFFECT_PARAMTERS) {
@@ -3112,43 +3116,43 @@ namespace triggers {
 		}
 		void ef_set_country_flag_province(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(primary_slot)); owner)
-				ef_set_country_flag(tval, ws, owner, nullptr, nullptr, gen);
+				ef_set_country_flag(tval, ws, owner, const_parameter(), const_parameter(), gen);
 		}
 		void ef_add_country_modifier_province(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(primary_slot)); owner)
-				ef_add_country_modifier(tval, ws, owner, nullptr, nullptr, gen);
+				ef_add_country_modifier(tval, ws, owner, const_parameter(), const_parameter(), gen);
 		}
 		void ef_add_country_modifier_province_no_duration(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(primary_slot)); owner)
-				ef_add_country_modifier_no_duration(tval, ws, owner, nullptr, nullptr, gen);
+				ef_add_country_modifier_no_duration(tval, ws, owner, const_parameter(), const_parameter(), gen);
 		}
 		void ef_relation_province(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(primary_slot)); owner)
-				ef_relation(tval, ws, owner, nullptr, nullptr, gen);
+				ef_relation(tval, ws, owner, const_parameter(), const_parameter(), gen);
 		}
 		void ef_relation_province_this_nation(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(primary_slot)); owner)
-				ef_relation_this_nation(tval, ws, owner, this_slot, nullptr, gen);
+				ef_relation_this_nation(tval, ws, owner, this_slot, const_parameter(), gen);
 		}
 		void ef_relation_province_this_province(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(primary_slot)); owner)
-				ef_relation_this_province(tval, ws, owner, this_slot, nullptr, gen);
+				ef_relation_this_province(tval, ws, owner, this_slot, const_parameter(), gen);
 		}
 		void ef_relation_province_from_nation(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(primary_slot)); owner)
-				ef_relation_this_nation(tval, ws, owner, from_slot, nullptr, gen);
+				ef_relation_this_nation(tval, ws, owner, from_slot, const_parameter(), gen);
 		}
 		void ef_relation_province_from_province(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(primary_slot)); owner)
-				ef_relation_this_province(tval, ws, owner, from_slot, nullptr, gen);
+				ef_relation_this_province(tval, ws, owner, from_slot, const_parameter(), gen);
 		}
 		void ef_relation_province_reb(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(primary_slot)); owner)
-				ef_relation_reb(tval, ws, owner, nullptr, from_slot, gen);
+				ef_relation_reb(tval, ws, owner, const_parameter(), from_slot, gen);
 		}
 		void ef_treasury_province(EFFECT_PARAMTERS) {
 			if(auto owner = provinces::province_owner(ws, to_prov(primary_slot)); owner)
-				ef_treasury(tval, ws, owner, this_slot, nullptr, gen);
+				ef_treasury(tval, ws, owner, this_slot, const_parameter(), gen);
 		}
 
 		static void(*effect_functions[])(uint16_t const*, world_state&, parameter, parameter, parameter, jsf_prng&) = {

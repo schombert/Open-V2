@@ -3,7 +3,7 @@
 #include "provinces\\province_functions.h"
 #include "nations\\nations_functions.h"
 #include "cultures\\cultures_functions.h"
-#include "population\\population_function.h"
+#include "population\\population_functions.hpp"
 #include "variables\\variables_functions.h"
 #include "military\\military_functions.h"
 #include "economy\\economy_functions.h"
@@ -19,10 +19,10 @@
 
 void world_state_non_ai_update(world_state & ws) {
 
-	population::update_literacy(ws);
-	population::update_militancy(ws);
-	population::update_consciousness(ws);
-	population::update_pop_ideology_and_issues(ws);
+	//population::update_literacy(ws);
+	//population::update_militancy(ws);
+	//population::update_consciousness(ws);
+	//population::update_pop_ideology_and_issues(ws);
 
 	economy::economy_update_tick(ws);
 

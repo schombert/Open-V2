@@ -14,19 +14,17 @@
 #undef max
 
 void serialization::serializer<cultures::national_tag_state>::serialize_object(std::byte *& output, cultures::national_tag_state const & obj, world_state const &) {
-	serialize(output, obj.holder);
 	serialize(output, obj.capital);
 	serialize(output, obj.is_not_releasable);
 }
 
 void serialization::serializer<cultures::national_tag_state>::deserialize_object(std::byte const *& input, cultures::national_tag_state & obj, world_state & ws) {
-	deserialize(input, obj.holder);
 	deserialize(input, obj.capital);
 	deserialize(input, obj.is_not_releasable);
 }
 
 size_t serialization::serializer<cultures::national_tag_state>::size() {
-	return sizeof(nations::country_tag) + sizeof(provinces::province_tag) + sizeof(bool);
+	return sizeof(provinces::province_tag) + sizeof(bool);
 }
 
 

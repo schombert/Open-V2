@@ -26,15 +26,14 @@ namespace issues {
 
 	void reset_active_issues(world_state& ws, nations::country_tag nation_for) {
 		uint32_t max_issues = uint32_t(ws.s.issues_m.issues_container.size());
-		auto issues_row = ws.w.nation_s.active_issue_options.get_row(nation_for);
 
 		for(uint32_t i = 0; i < max_issues; ++i) {
 			auto itag = issue_tag(static_cast<issue_tag::value_base_t>(i));
 			auto& this_issue = ws.s.issues_m.issues_container[itag];
 			if(this_issue.type == issue_group::political || this_issue.type == issue_group::social || this_issue.type == issue_group::party) {
-				issues_row[itag] = this_issue.options[0];
+				ws.w.nation_s.active_issue_options.set(nation_for, itag, this_issue.options[0]);
 			} else {
-				issues_row[itag] = option_tag();
+				ws.w.nation_s.active_issue_options.set(nation_for, itag, option_tag());
 			}
 		}
 	}
@@ -44,11 +43,11 @@ namespace issues {
 		
 		uint32_t max_issues = uint32_t(ws.s.issues_m.issues_container.size());
 
-		auto active_options = ws.w.nation_s.active_issue_options.get_row(nation_for);
 		for(uint32_t i = 0; i < max_issues; ++i) {
 			auto itag = issue_tag(static_cast<issue_tag::value_base_t>(i));
-			if(is_valid_index(active_options[itag]))
-				sum_multiplier += ws.s.issues_m.options[active_options[itag]].administrative_multiplier;
+			auto opt = ws.w.nation_s.active_issue_options.get(nation_for, itag);
+			if(is_valid_index(opt))
+				sum_multiplier += ws.s.issues_m.options[opt].administrative_multiplier;
 		}
 
 		return float(sum_multiplier) * ws.s.modifiers_m.global_defines.bureaucracy_percentage_increment + ws.s.modifiers_m.global_defines.max_bureaucracy_percentage;
@@ -61,10 +60,10 @@ namespace issues {
 		if(ws.w.nation_s.active_issue_options.get(nation_for, current_issue) != opt) {
 
 			if(!is_valid_index(this_option.on_execute_trigger) || 
-				triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(this_option.on_execute_trigger), ws, nation_for, nation_for, nullptr)) {
+				triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(this_option.on_execute_trigger), ws, nation_for, nation_for, triggers::const_parameter())) {
 
 				if(is_valid_index(this_option.on_execute_effect)) {
-					triggers::execute_effect(ws.s.trigger_m.effect_data.data() + to_index(this_option.on_execute_effect), ws, nation_for, nation_for, nullptr, get_local_generator());
+					triggers::execute_effect(ws.s.trigger_m.effect_data.data() + to_index(this_option.on_execute_effect), ws, nation_for, nation_for, triggers::const_parameter(), get_local_generator());
 				}
 			}
 

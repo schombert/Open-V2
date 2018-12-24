@@ -200,7 +200,7 @@ namespace current_state {
 			if(ws.w.nation_s.nations.is_valid_index(pid)) {
 				char16_t local_buf[64];
 
-				auto end_pos = put_value_in_buffer(local_buf, display_type::integer, ws.w.nation_s.national_stockpiles.get(pid, economy::money_good));
+				auto end_pos = put_value_in_buffer(local_buf, display_type::integer, ws.w.nation_s.nations.get<nation::treasury>(pid));
 				*end_pos = u'\u00A3';
 				*(end_pos + 1) = char16_t(0);
 				ui::text_chunk_to_instances(

@@ -139,17 +139,17 @@ namespace ve {
 		__forceinline tagged_vector() : value(_mm256_setzero_si256()) {}
 		__forceinline constexpr tagged_vector(__m256i v) : value(v) {}
 		__forceinline tagged_vector(tag_type v) : value(_mm256_set1_epi32(int32_t(v.value))) {}
-		__forceinline tagged_vector(expanded_tag<tag_type> v) : value(_mm256_set1_epi32(v.value)) {}
-		__forceinline tagged_vector(expanded_tag<tag_type> a, expanded_tag<tag_type> b, expanded_tag<tag_type> c, expanded_tag<tag_type> d, expanded_tag<tag_type> e, expanded_tag<tag_type> f, expanded_tag<tag_type> g, expanded_tag<tag_type> h)
-			: value(_mm256_setr_epi32(a.value, b.value, c.value, d.value, e.value, f.value, g.value, h.value)) {}
+		__forceinline tagged_vector(tag_type a, tag_type b, tag_type c, tag_type d, tag_type e, tag_type f, tag_type g, tag_type h) :
+			value(_mm256_setr_epi32(int32_t(a.value), int32_t(b.value), int32_t(c.value), int32_t(d.value), int32_t(e.value), int32_t(f.value), int32_t(g.value), int32_t(h.value))) {}
+
 		__forceinline constexpr operator __m256i() {
 			return value;
 		}
 
-		__forceinline expanded_tag<tag_type> operator[](uint32_t i) const noexcept {
-			return expanded_tag<tag_type>(value.m256i_i32[i], std::true_type());
+		__forceinline tag_type operator[](uint32_t i) const noexcept {
+			return tag_type(typename tag_type::value_base_t(value.m256i_i32[i]), std::true_type());
 		}
-		__forceinline void set(uint32_t i, expanded_tag<tag_type> v) noexcept {
+		__forceinline void set(uint32_t i, tag_type v) noexcept {
 			value.m256i_i32[i] = v.value;
 		}
 	};
@@ -268,6 +268,22 @@ namespace ve {
 		using type = int_vector;
 	};
 	template<>
+	struct value_to_vector_type_s<int16_t> {
+		using type = int_vector;
+	};
+	template<>
+	struct value_to_vector_type_s<uint16_t> {
+		using type = int_vector;
+	};
+	template<>
+	struct value_to_vector_type_s<int8_t> {
+		using type = int_vector;
+	};
+	template<>
+	struct value_to_vector_type_s<uint8_t> {
+		using type = int_vector;
+	};
+	template<>
 	struct value_to_vector_type_s<void> {
 		using type = void;
 	};
@@ -290,10 +306,6 @@ namespace ve {
 
 	template<typename value_base, typename individuator>
 	struct value_to_vector_type_s<tag_type<value_base, std::true_type, individuator>> {
-		using type = tagged_vector<tag_type<value_base, std::true_type, individuator>>;
-	};
-	template<typename value_base, typename individuator>
-	struct value_to_vector_type_s<expanded_tag<tag_type<value_base, std::true_type, individuator>>> {
 		using type = tagged_vector<tag_type<value_base, std::true_type, individuator>>;
 	};
 
@@ -383,17 +395,17 @@ namespace ve {
 	struct any_is_vector_type<F, R...> { constexpr static bool value = is_vector_type<F> || any_is_vector_type<R...>::value; };
 
 	template<typename TO, typename FROM>
-	__forceinline auto widen_to(FROM v) -> std::conditional_t<is_vector_type<TO>, value_to_vector_type_s<FROM>, FROM> { return v; }
+	__forceinline auto widen_to(FROM v) -> std::conditional_t<is_vector_type<TO>, value_to_vector_type<std::remove_cv_t<FROM>>, FROM> { return v; }
 
 	template<typename TO, typename ... REST, typename FROM>
-	__forceinline auto widen_to(FROM v) -> std::conditional_t<is_vector_type<TO>, value_to_vector_type_s<FROM>, decltype(widen_to<REST ...>(v))> { return v; }
+	__forceinline auto widen_to(FROM v) -> std::conditional_t<is_vector_type<TO>, value_to_vector_type<std::remove_cv_t<FROM>>, decltype(widen_to<REST ...>(v))> { return v; }
 
 	template<uint32_t i, typename T>
 	__forceinline std::enable_if_t<is_vector_type<T>, typename T::wrapped_value> nth_item(T v) {
 		return v[i];
 	}
 	template<uint32_t i, typename T>
-	__forceinline std::enable_if_t<!is_vector_type<T>, typename T::wrapped_value> nth_item(T v) {
+	__forceinline std::enable_if_t<!is_vector_type<T>, T> nth_item(T v) {
 		return v;
 	}
 
@@ -458,7 +470,7 @@ namespace ve {
 					(limit > 7ui32) ? f(nth_item<7ui32>(params) ...) : decltype(f(nth_item<0ui32>(params) ...))()
 					);
 			}
-		} else if constexpr(any_is_vector_type<PARAMS...>::value) {
+		} else if constexpr(any_is_vector_type<PARAMS ...>::value) {
 			if constexpr(std::is_same_v<decltype(f(nth_item<0ui32>(params) ...)), void>) {
 				f(nth_item<0ui32>(params) ...);
 				f(nth_item<1ui32>(params) ...);
@@ -563,6 +575,17 @@ namespace ve {
 	}
 	__forceinline fp_vector operator/(fp_vector a, fp_vector b) {
 		return _mm256_div_ps(a, b);
+	}
+
+
+	__forceinline int_vector operator+(int_vector a, int_vector b) {
+		return _mm256_add_epi32(a, b);
+	}
+	__forceinline int_vector operator-(int_vector a, int_vector b) {
+		return _mm256_sub_epi32(a, b);
+	}
+	__forceinline int_vector operator*(int_vector a, int_vector b) {
+		return _mm256_mul_epi32(a, b);
 	}
 
 	__forceinline mask_vector operator&(mask_vector a, mask_vector b) {
@@ -688,6 +711,15 @@ namespace ve {
 		return a != tagged_vector<T>(b);
 	}
 
+	template<typename T>
+	__forceinline mask_vector operator==(T a, tagged_vector<typename ve_identity<T>::type> b) {
+		return b == tagged_vector<T>(a);
+	}
+	template<typename T>
+	__forceinline mask_vector operator!=(T a, tagged_vector<typename ve_identity<T>::type> b) {
+		return b != tagged_vector<T>(a);
+	}
+
 	template<typename tag_type>
 	__forceinline mask_vector operator==(contiguous_tags_base<tag_type> a, tagged_vector<tag_type> b) {
 		return tagged_vector<tag_type>(
@@ -761,6 +793,11 @@ namespace ve {
 	__forceinline fp_vector select(mask_vector mask, fp_vector a, fp_vector b) {
 		return _mm256_blendv_ps(b, a, mask);
 	}
+
+	__forceinline int_vector select(mask_vector mask, int_vector a, int_vector b) {
+		return _mm256_blendv_epi8(b, a, _mm256_castps_si256(mask));
+	}
+
 	__forceinline mask_vector is_non_zero(int_vector i) {
 		return i != int_vector();
 	}
@@ -872,13 +909,13 @@ namespace ve {
 	};
 
 	template<typename F>
-	auto make_true_accumulator(F const& f) -> true_accumulator<F> {
-		return true_accumulator<F>(f);
+	auto make_true_accumulator(F&& f) -> true_accumulator<F> {
+		return true_accumulator<F>(std::forward<F>(f));
 	}
 
 	template<typename F>
-	auto make_false_accumulator(F const& f) -> false_accumulator<F> {
-		return false_accumulator<F>(f);
+	auto make_false_accumulator(F&& f) -> false_accumulator<F> {
+		return false_accumulator<F>(std::forward<F>(f));
 	}
 
 	template<typename T>
@@ -1033,10 +1070,12 @@ namespace ve {
 			return _mm256_i32gather_epi32((int32_t const*)source, indices, 4);
 	}
 
+#pragma warning( push )
+#pragma warning( disable : 4245)
 
 	template<typename T, int32_t i, typename U>
 	__forceinline auto load(contiguous_tags<T, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 2, value_to_vector_type<U>> {
-		if constexpr(U(-1) < U(0)) {
+		if constexpr(U(-2) < U(0)) {
 			auto v = _mm256_load_si256((const __m256i *)(source + e.value));
 			return _mm256_cvtepi16_epi32(_mm256_castsi256_si128(v));
 		} else {
@@ -1046,7 +1085,7 @@ namespace ve {
 	}
 	template<typename T, int32_t i, typename U>
 	__forceinline auto load(unaligned_contiguous_tags<T, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 2, value_to_vector_type<U>> {
-		if constexpr(U(-1) < U(0)) {
+		if constexpr(U(-2) < U(0)) {
 			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
 			return _mm256_cvtepi16_epi32(_mm256_castsi256_si128(v));
 		} else {
@@ -1056,19 +1095,19 @@ namespace ve {
 	}
 	template<typename T, typename U>
 	__forceinline auto load(partial_contiguous_tags<T> e, U const* source) -> std::enable_if_t<sizeof(U) == 2, value_to_vector_type<U>> {
-		if constexpr(U(-1) < U(0)) {
+		if constexpr(U(-2) < U(0)) {
 			auto mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - e.subcount));
 			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_blendv_ps(_mm256_setzero_si256(), _mm256_cvtepi16_epi32(_mm256_castsi256_si128(v)), mask);
+			return _mm256_blendv_epi8(_mm256_setzero_si256(), _mm256_cvtepi16_epi32(_mm256_castsi256_si128(v)), mask);
 		} else {
 			auto mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - e.subcount));
 			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_blendv_ps(_mm256_setzero_si256(), _mm256_cvtepu16_epi32(_mm256_castsi256_si128(v)), mask);
+			return _mm256_blendv_epi8(_mm256_setzero_si256(), _mm256_cvtepu16_epi32(_mm256_castsi256_si128(v)), mask);
 		}
 	}
 	template<typename U>
 	__forceinline auto load(int_vector indices, U const* source) -> std::enable_if_t<sizeof(U) == 2, value_to_vector_type<U>> {
-		if constexpr(U(-1) < U(0)) {
+		if constexpr(U(-2) < U(0)) {
 			auto v = _mm256_i32gather_epi32((int32_t const*)source, _mm256_sub_epi32(indices, _mm256_set1_epi32(1)), 2);
 			return _mm256_srai_epi32(v, 16);
 		} else {
@@ -1078,7 +1117,7 @@ namespace ve {
 	}
 	template<typename T, typename U>
 	__forceinline auto load(tagged_vector<T> indices, U const* source) -> std::enable_if_t<sizeof(U) == 2, value_to_vector_type<U>> {
-		if constexpr(U(-1) < U(0)) {
+		if constexpr(U(-2) < U(0)) {
 			auto v = _mm256_i32gather_epi32((int32_t const*)source, _mm256_sub_epi32(indices, _mm256_set1_epi32(1)), 2);
 			return _mm256_srai_epi32(v, 16);
 		} else {
@@ -1088,7 +1127,7 @@ namespace ve {
 	}
 	template<typename U>
 	__forceinline auto load(union_tag_vector indices, U const* source) -> std::enable_if_t<sizeof(U) == 2, value_to_vector_type<U>> {
-		if constexpr(U(-1) < U(0)) {
+		if constexpr(U(-2) < U(0)) {
 			auto v = _mm256_i32gather_epi32((int32_t const*)source, _mm256_sub_epi32(indices, _mm256_set1_epi32(1)), 2);
 			return _mm256_srai_epi32(v, 16);
 		} else {
@@ -1101,7 +1140,7 @@ namespace ve {
 
 	template<typename T, int32_t i, typename U>
 	__forceinline auto load(contiguous_tags<T, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<U, bitfield_type>, value_to_vector_type<U>> {
-		if constexpr(U(-1) < U(0)) {
+		if constexpr(U(-2) < U(0)) {
 			auto v = _mm256_load_si256((const __m256i *)(source + e.value));
 			return _mm256_cvtepi8_epi32(_mm256_castsi256_si128(v));
 		} else {
@@ -1111,7 +1150,7 @@ namespace ve {
 	}
 	template<typename T, int32_t i, typename U>
 	__forceinline auto load(unaligned_contiguous_tags<T, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<U, bitfield_type>, value_to_vector_type<U>> {
-		if constexpr(U(-1) < U(0)) {
+		if constexpr(U(-2) < U(0)) {
 			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
 			return _mm256_cvtepi8_epi32(_mm256_castsi256_si128(v));
 		} else {
@@ -1121,19 +1160,19 @@ namespace ve {
 	}
 	template<typename T, typename U>
 	__forceinline auto load(partial_contiguous_tags<T> e, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<U, bitfield_type>, value_to_vector_type<U>> {
-		if constexpr(U(-1) < U(0)) {
+		if constexpr(U(-2) < U(0)) {
 			auto mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - e.subcount));
 			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_blendv_ps(_mm256_setzero_si256(), _mm256_cvtepi8_epi32(_mm256_castsi256_si128(v)), mask);
+			return _mm256_blendv_epi8(_mm256_setzero_si256(), _mm256_cvtepi8_epi32(_mm256_castsi256_si128(v)), mask);
 		} else {
 			auto mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - e.subcount));
 			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_blendv_ps(_mm256_setzero_si256(), _mm256_cvtepu8_epi32(_mm256_castsi256_si128(v)), mask);
+			return _mm256_blendv_epi8(_mm256_setzero_si256(), _mm256_cvtepu8_epi32(_mm256_castsi256_si128(v)), mask);
 		}
 	}
 	template<typename U>
 	__forceinline auto load(int_vector indices, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<std::remove_cv_t<U>, bitfield_type>, value_to_vector_type<U>> {
-		if constexpr(U(-1) < U(0)) {
+		if constexpr(U(-2) < U(0)) {
 			auto v = _mm256_i32gather_epi32((int32_t const*)source, _mm256_sub_epi32(indices, _mm256_set1_epi32(3)), 1);
 			return _mm256_srai_epi32(v, 24);
 		} else {
@@ -1143,7 +1182,7 @@ namespace ve {
 	}
 	template<typename T, typename U>
 	__forceinline auto load(tagged_vector<T> indices, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<std::remove_cv_t<U>, bitfield_type>, value_to_vector_type<U>> {
-		if constexpr(U(-1) < U(0)) {
+		if constexpr(U(-2) < U(0)) {
 			auto v = _mm256_i32gather_epi32((int32_t const*)source, _mm256_sub_epi32(indices, _mm256_set1_epi32(3)), 1);
 			return _mm256_srai_epi32(v, 24);
 		} else {
@@ -1153,7 +1192,7 @@ namespace ve {
 	}
 	template<typename U>
 	__forceinline auto load(union_tag_vector indices, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<std::remove_cv_t<U>, bitfield_type>, value_to_vector_type<U>> {
-		if constexpr(U(-1) < U(0)) {
+		if constexpr(U(-2) < U(0)) {
 			auto v = _mm256_i32gather_epi32((int32_t const*)source, _mm256_sub_epi32(indices, _mm256_set1_epi32(3)), 1);
 			return _mm256_srai_epi32(v, 24);
 		} else {
@@ -1162,6 +1201,7 @@ namespace ve {
 		}
 	}
 
+#pragma warning( pop ) 
 
 	//-----
 	

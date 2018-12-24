@@ -13,7 +13,7 @@
 #include "military\\military_functions.h"
 #include "nations\\nations_functions.h"
 #include "economy\\economy_functions.h"
-#include "population\\population_function.h"
+#include "population\\population_functions.hpp"
 #include "variables\\variables_functions.h"
 #include "ideologies\\ideologies_functions.h"
 #include "modifiers\\modifier_functions.h"
@@ -187,23 +187,23 @@ size_t serialization::serializer<current_state::state>::size(current_state::stat
 void restore_world_state(world_state& ws) {
 	for(int32_t i = int32_t(ws.w.culture_s.national_tags_state.size()); i--; ) {
 		cultures::national_tag this_tag(static_cast<cultures::national_tag::value_base_t>(i));
-		auto& nt = ws.w.culture_s.national_tags_state[this_tag];
+		auto holder = ws.w.culture_s.tags_to_holders[this_tag];
 
-		if(nt.holder) {
-			ws.w.nation_s.nations.set<nation::tag>(nt.holder, this_tag);
-			auto names = ws.s.culture_m.country_names_by_government.get(this_tag, ws.w.nation_s.nations.get<nation::current_government>(nt.holder));
+		if(holder) {
+			ws.w.nation_s.nations.set<nation::tag>(holder, this_tag);
+			auto names = ws.s.culture_m.country_names_by_government.get(this_tag, ws.w.nation_s.nations.get<nation::current_government>(holder));
 
 			if(is_valid_index(names.name))
-				ws.w.nation_s.nations.set<nation::name>(nt.holder, names.name);
+				ws.w.nation_s.nations.set<nation::name>(holder, names.name);
 			else
-				ws.w.nation_s.nations.set<nation::name>(nt.holder, ws.s.culture_m.national_tags[this_tag].default_name.name);
+				ws.w.nation_s.nations.set<nation::name>(holder, ws.s.culture_m.national_tags[this_tag].default_name.name);
 
 			if(is_valid_index(names.adjective))
-				ws.w.nation_s.nations.set<nation::adjective>(nt.holder, names.adjective);
+				ws.w.nation_s.nations.set<nation::adjective>(holder, names.adjective);
 			else
-				ws.w.nation_s.nations.set<nation::adjective>(nt.holder, ws.s.culture_m.national_tags[this_tag].default_name.adjective);
+				ws.w.nation_s.nations.set<nation::adjective>(holder, ws.s.culture_m.national_tags[this_tag].default_name.adjective);
 
-			ws.w.nation_s.nations.set<nation::flag>(nt.holder, ws.w.culture_s.country_flags_by_government.get(this_tag, ws.w.nation_s.nations.get<nation::current_government>(nt.holder)));
+			ws.w.nation_s.nations.set<nation::flag>(holder, ws.w.culture_s.country_flags_by_government.get(this_tag, ws.w.nation_s.nations.get<nation::current_government>(holder)));
 		}
 	}
 
@@ -258,9 +258,8 @@ void restore_world_state(world_state& ws) {
 			add_item(ws.w.population_s.pop_arrays, rf, p);
 		}
 		if(auto movement = ws.w.population_s.pops.get<pop::movement>(p); is_valid_index(movement)) {
-			auto& m = ws.w.population_s.pop_movements[movement];
-			add_item(ws.w.population_s.pop_arrays, m.member_pops, p);
-			m.total_population_support += decltype(m.total_population_support)(ws.w.population_s.pop_demographics.get(p, population::total_population_tag));
+			add_item(ws.w.population_s.pop_arrays, ws.w.population_s.pop_movements.get<pop_movement::member_pops>(movement), p);
+			ws.w.population_s.pop_movements.get<pop_movement::total_population_support>(movement) += ws.w.population_s.pops.get<pop::size>(p);
 		}
 		if(auto loc = ws.w.population_s.pops.get<pop::location>(p); is_valid_index(loc)) {
 			add_item(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(loc), p);

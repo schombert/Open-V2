@@ -158,46 +158,8 @@ struct zero_is_null_of_s<tag_type<value_base, zero_is_null, individuator>> { usi
 template<typename value_base, typename zero_is_null, typename individuator>
 struct individuator_of_s<tag_type<value_base, zero_is_null, individuator>> { using type = individuator; };
 
-template<typename base_tag_type>
-struct expanded_tag {
-	static_assert(std::is_same_v<std::true_type, base_tag_type::zero_is_null_t>);
-
-	int32_t value = 0;
-
-	constexpr expanded_tag() : value(0) {}
-	constexpr expanded_tag(const expanded_tag& v) noexcept = default;
-	constexpr expanded_tag(expanded_tag&& v) noexcept = default;
-	constexpr expanded_tag(base_tag_type b) noexcept : value(b.value) {}
-	explicit constexpr expanded_tag(int32_t v, std::true_type) noexcept : value(v) {}
-
-	constexpr operator base_tag_type() const noexcept { return base_tag_type(base_tag_type::value_base_t(value), std::true_type()); }
-
-	constexpr bool is_valid() const noexcept { return value != 0; }
-
-	expanded_tag& operator=(expanded_tag&& v) noexcept = default;
-	expanded_tag& operator=(expanded_tag const& v) noexcept = default;
-	expanded_tag& operator=(base_tag_type&& v) noexcept { value = int32_t(v.value); return *this; }
-	expanded_tag& operator=(base_tag_type const& v) noexcept { value = int32_t(v.value); return *this; }
-
-	constexpr bool operator==(expanded_tag v) const noexcept { return value == v.value; }
-	constexpr bool operator!=(expanded_tag v) const noexcept { return value != v.value; }
-	constexpr bool operator<(expanded_tag v) const noexcept { return value < v.value; }
-	constexpr bool operator<=(expanded_tag v) const noexcept { return value <= v.value; }
-
-	constexpr bool operator==(base_tag_type v) const noexcept { return value == int32_t(v.value); }
-	constexpr bool operator!=(base_tag_type v) const noexcept { return value != int32_t(v.value); }
-	constexpr bool operator<(base_tag_type v) const noexcept { return value < int32_t(v.value); }
-	constexpr bool operator<=(base_tag_type v) const noexcept { return value <= int32_t(v.value); }
-
-	explicit constexpr operator bool() const noexcept { return value != 0; }
-};
-
 template<typename T>
 struct decay_tag_s {
-	using type = T;
-};
-template<typename T>
-struct decay_tag_s<expanded_tag<T>> {
 	using type = T;
 };
 template<typename T>
@@ -213,8 +175,6 @@ struct union_tag {
 
 	template<typename value_base, typename zero_is_null, typename individuator>
 	constexpr union_tag(tag_type<value_base, zero_is_null, individuator> b) noexcept : value(zero_is_null::value ? int32_t(b.value) : int32_t(b.value) + 1) {}
-	template<typename type>
-	constexpr union_tag(expanded_tag<type> b) noexcept : value(b.value) {}
 
 	template<typename value_base, typename zero_is_null, typename individuator>
 	constexpr operator tag_type<value_base, zero_is_null, individuator>() const noexcept {
@@ -226,11 +186,6 @@ struct union_tag {
 			else
 				tag_type<value_base, zero_is_null, individuator>();
 		}
-	}
-
-	template<typename type>
-	constexpr operator expanded_tag<type>() const noexcept {
-		expanded_tag<type>(value, std::true_type());
 	}
 
 	constexpr bool is_valid() const noexcept { return value != 0; }
@@ -259,26 +214,6 @@ struct zero_is_null_of_s<union_tag> { using type = std::true_type; };
 
 template<>
 struct individuator_of_s<union_tag> { using type = typename union_tag; };
-
-
-template<typename base_tag_type>
-constexpr expanded_tag<base_tag_type> null_value_of<expanded_tag<base_tag_type>> = expanded_tag<base_tag_type>();
-
-template<typename base_tag_type>
-constexpr int32_t to_index(expanded_tag<base_tag_type> in) { return in.value - 1; }
-
-template<typename base_tag_type>
-constexpr bool is_valid_index(expanded_tag<base_tag_type> in) { return in.is_valid(); }
-
-template<typename base_tag_type>
-struct value_base_of_s<expanded_tag<base_tag_type>> { using type = int32_t; };
-
-template<typename base_tag_type>
-struct zero_is_null_of_s<expanded_tag<base_tag_type>> { using type = std::true_type; };
-
-template<typename base_tag_type>
-struct individuator_of_s<expanded_tag<base_tag_type>> { using type = typename base_tag_type::individuator_t; };
-
 
 
 template<typename T>

@@ -7,9 +7,11 @@
 #include "triggers\\trigger_reading.h"
 #include "triggers\\effect_reading.h"
 #include "world_state\\world_state.h"
-#include "population_function.h"
+#include "population_functions.h"
 #include "issues\\issues_functions.h"
 
+
+/*
 void serialization::serializer<population::pop_movement>::serialize_object(std::byte *& output, population::pop_movement const & obj) {
 	serialize(output, obj.radicalism);
 	serialize(output, obj.radicalism_cache);
@@ -47,7 +49,7 @@ size_t serialization::serializer<population::pop_movement>::size() {
 		sizeof(nations::country_tag) +
 		sizeof(issues::option_tag) +
 		sizeof(uint8_t);
-}
+}*/
 
 void serialization::serializer<population::population_state>::serialize_object(std::byte *& output, population::population_state const & obj, world_state const & ws) {
 	serialize(output, obj.rebel_factions);

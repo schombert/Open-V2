@@ -982,7 +982,7 @@ namespace governments {
 			tag = ws.s.event_m.decision_container[win.tag].effect;
 			requirements = ws.s.event_m.decision_container[win.tag].allow;
 			auto player = ws.w.local_player_nation;
-			if(!is_valid_index(requirements) || triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(requirements), ws, player, player, nullptr))
+			if(!is_valid_index(requirements) || triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(requirements), ws, player, player, triggers::const_parameter()))
 				self.set_enabled(true);
 			else
 				self.set_enabled(false);
@@ -998,7 +998,7 @@ namespace governments {
 
 		if(auto player = ws.w.local_player_nation; player) {
 			for(auto& d : ws.s.event_m.decision_container) {
-				if(!is_valid_index(d.potential) || triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(d.potential), ws, player, player, nullptr)) {
+				if(!is_valid_index(d.potential) || triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(d.potential), ws, player, player, triggers::const_parameter())) {
 					possible_list.push_back(d.id);
 				}
 			}
@@ -1010,7 +1010,7 @@ namespace governments {
 	template<typename window_type>
 	void movement_ind_flag::windowed_update(ui::masked_flag<movement_ind_flag>& self, window_type & w, world_state & ws) {
 		if(is_valid_index(w.tag)) {
-			auto independance_nation = ws.w.population_s.pop_movements[w.tag].liberation_country;
+			auto independance_nation = ws.w.population_s.pop_movements.get<pop_movement::liberation_country>(w.tag);
 			if(is_valid_index(independance_nation)) {
 				self.set_displayed_flag(ws, independance_nation);
 				ui::make_visible_immediate(*self.associated_object);
@@ -1030,7 +1030,7 @@ namespace governments {
 	void movements_item_size::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(win.tag)) {
 			char16_t local_buf[16];
-			put_value_in_buffer(local_buf, display_type::integer, ws.w.population_s.pop_movements[win.tag].total_population_support);
+			put_value_in_buffer(local_buf, display_type::integer, ws.w.population_s.pop_movements.get<pop_movement::total_population_support>(win.tag));
 
 			ui::text_chunk_to_instances(
 				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
@@ -1045,7 +1045,7 @@ namespace governments {
 	void movements_item_radicalism::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(win.tag)) {
 			char16_t local_buf[16];
-			put_value_in_buffer(local_buf, display_type::fp_one_place, ws.w.population_s.pop_movements[win.tag].radicalism);
+			put_value_in_buffer(local_buf, display_type::fp_one_place, ws.w.population_s.pop_movements.get<pop_movement::radicalism>(win.tag));
 
 			ui::text_chunk_to_instances(
 				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
@@ -1064,7 +1064,9 @@ namespace governments {
 	template<typename window_type>
 	void rebels_item_type_icon::windowed_update(ui::dynamic_icon<rebels_item_type_icon>& self, window_type & win, world_state & ws) {
 		if(is_valid_index(win.tag)) {
-			auto icon = ws.w.population_s.rebel_factions[win.tag].icon;
+			auto type = ws.w.population_s.rebel_factions.get<rebel_faction::type>(win.tag);
+
+			auto icon = is_valid_index(type) ? ws.s.population_m.rebel_types[type].icon : 1;
 			if(icon != 0)
 				self.set_frame(ws.w.gui_m, uint32_t(icon) - 1ui32);
 			else
@@ -1075,7 +1077,7 @@ namespace governments {
 	template<typename window_type>
 	void rebels_item_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(win.tag)) {
-			if(auto type = ws.w.population_s.rebel_factions[win.tag].type; is_valid_index(type)) {
+			if(auto type = ws.w.population_s.rebel_factions.get<rebel_faction::type>(win.tag); is_valid_index(type)) {
 				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.population_m.rebel_types[type].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 				lm.finish_current_line();
 			}

@@ -119,7 +119,7 @@ namespace pop_movement {
 		member_pops, set_tag<population::pop_tag>,
 		liberation_country, cultures::national_tag,
 		associated_issue, issues::option_tag,
-		type, population::movement_type
+		type, uint8_t
 	>;
 }
 

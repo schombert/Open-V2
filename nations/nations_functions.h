@@ -51,7 +51,7 @@ namespace nations {
 	float tarrif_multiplier(world_state const& ws, nations::country_tag source, nations::country_tag target);
 
 	template<typename C, typename T>
-	auto is_culture_accepted(world_state const& ws, C c, T n) -> decltype(ve::widen_to<T>(true));
+	auto is_culture_accepted(world_state const& ws, C c, T n) -> decltype(ve::widen_to<C, T>(true));
 	template<typename T>
 	auto national_culture_group(world_state const& ws, T n)-> decltype(ve::widen_to<T>(cultures::culture_group_tag()));
 
@@ -75,6 +75,8 @@ namespace nations {
 	auto is_great_power(world_state const& ws, T this_nation) -> decltype(ve::widen_to<T>(true));
 	template<typename T>
 	auto state_port_province(world_state const& ws, T this_state) -> decltype(ve::widen_to<T>(provinces::province_tag()));
+	template<typename T>
+	auto union_tag_of(world_state const& ws, T this_nation) -> decltype(ve::widen_to<T>(cultures::national_tag()));
 
 	void change_primary_culture(world_state& ws, country_tag n, cultures::culture_tag c);
 	void add_accepted_culture(world_state& ws, country_tag n, cultures::culture_tag c);
@@ -95,7 +97,7 @@ namespace nations {
 	void end_alliance(world_state& ws, nations::country_tag a, nations::country_tag b);
 	void simple_make_vassal(world_state& ws, nations::country_tag overlord, nations::country_tag vassal);
 	void simple_make_substate(world_state& ws, nations::country_tag overlord, nations::country_tag vassal);
-	cultures::national_tag union_tag_of(world_state const& ws, nations::country_tag this_nation);
+	
 
 	
 	float fraction_of_cores_owned(world_state const& ws, nations::country_tag this_nation);

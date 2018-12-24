@@ -26,7 +26,7 @@ namespace events {
 	void execute_decision_set(std::vector<std::pair<nations::country_tag, events::decision_tag>>const& decision_set, world_state& ws) {
 		for(auto& p : decision_set) {
 			auto& gen = get_local_generator();
-			triggers::execute_effect(ws.s.trigger_m.effect_data.data() + to_index(ws.s.event_m.decision_container[p.second].effect), ws, p.first, p.first, nullptr, gen);
+			triggers::execute_effect(ws.s.trigger_m.effect_data.data() + to_index(ws.s.event_m.decision_container[p.second].effect), ws, p.first, p.first, triggers::const_parameter(), gen);
 			gen.advance_n<8>();
 		}
 	}

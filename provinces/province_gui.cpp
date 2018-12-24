@@ -3,7 +3,7 @@
 #include "world_state\\world_state.h"
 #include "modifiers\\modifiers_gui.h"
 #include "nations\\nations_functions.h"
-#include "province_functions.h"
+#include "province_functions.hpp"
 #include "economy\\economy_functions.h"
 
 namespace provinces {

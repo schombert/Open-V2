@@ -333,7 +333,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -352,7 +352,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -371,7 +371,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -390,7 +390,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -409,7 +409,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -428,7 +428,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -451,7 +451,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -474,7 +474,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -497,7 +497,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -520,7 +520,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -543,7 +543,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -566,7 +566,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -589,7 +589,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -608,7 +608,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -627,7 +627,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -646,7 +646,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -671,7 +671,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, false);
+			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, false);
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -927,7 +927,7 @@ namespace triggers {
 		}
 		ui::xy_pair tf_from_scope_state(TRIGGER_DISPLAY_PARAMS, bool show_condition) {
 			cursor_in = ui::add_linear_text(cursor_in,
-				bool(from_slot.state) ? ws.w.nation_s.states.get<state::name>(from_slot.state) : ws.s.fixed_ui_text[scenario::fixed_ui::from_state],
+				bool(to_state(from_slot)) ? ws.w.nation_s.states.get<state::name>(to_state(from_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::from_state],
 				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
@@ -941,7 +941,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				from_slot, this_slot, from_slot, show_condition && bool(from_slot.state));
+				from_slot, this_slot, from_slot, show_condition && bool(to_state(from_slot)));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -981,7 +981,7 @@ namespace triggers {
 
 			lm.increase_indent(1);
 			cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
-				from_slot, this_slot, from_slot, show_condition && bool(from_slot.pop));
+				from_slot, this_slot, from_slot, show_condition && bool(to_pop(from_slot)));
 			lm.decrease_indent(1);
 			return cursor_in;
 		}
@@ -1031,7 +1031,7 @@ namespace triggers {
 			if(is_valid_index(cg)) {
 				auto union_tag = ws.s.culture_m.culture_groups[cg].union_tag;
 				if(is_valid_index(union_tag)) {
-					auto union_holder = ws.w.culture_s.national_tags_state[union_tag].holder;
+					auto union_holder = ws.w.culture_s.tags_to_holders[union_tag];
 					cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
 						union_holder, this_slot, from_slot, show_condition && bool(union_holder));
 				}
@@ -1084,8 +1084,8 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair tf_independence_scope(TRIGGER_DISPLAY_PARAMS, bool show_condition) {
-			auto rtag = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions[to_rebel(from_slot)].independence_tag : cultures::national_tag();
-			auto ination = is_valid_index(rtag) ? ws.w.culture_s.national_tags_state[rtag].holder : nations::country_tag();
+			auto rtag = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions.get<rebel_faction::independence_tag>(to_rebel(from_slot)) : cultures::national_tag();
+			auto ination = is_valid_index(rtag) ? ws.w.culture_s.tags_to_holders[rtag] : nations::country_tag();
 
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::reb_independence_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -1106,7 +1106,7 @@ namespace triggers {
 		}
 		ui::xy_pair tf_flashpoint_tag_scope(TRIGGER_DISPLAY_PARAMS, bool show_condition) {
 			auto ctag = bool(to_state(primary_slot)) ? ws.w.nation_s.states.get<state::crisis_tag>(to_state(primary_slot)) : cultures::national_tag();
-			auto ination = is_valid_index(ctag) ? ws.w.culture_s.national_tags_state[ctag].holder : nations::country_tag();
+			auto ination = is_valid_index(ctag) ? ws.w.culture_s.tags_to_holders[ctag] : nations::country_tag();
 
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::flashpoint_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -1193,7 +1193,7 @@ namespace triggers {
 		}
 		ui::xy_pair tf_tag_scope(TRIGGER_DISPLAY_PARAMS, bool show_condition) {
 			auto tag = trigger_payload(tval[2]).tag;
-			auto tag_holder = ws.w.culture_s.national_tags_state[tag].holder;
+			auto tag_holder = ws.w.culture_s.tags_to_holders[tag];
 
 			cursor_in = ui::add_linear_text(cursor_in, tag_holder ? ws.w.nation_s.nations.get<nation::name>(tag_holder) : ws.s.culture_m.national_tags[tag].default_name.name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -1291,7 +1291,7 @@ namespace triggers {
 			if(is_valid_index(cg)) {
 				auto union_tag = ws.s.culture_m.culture_groups[cg].union_tag;
 				if(is_valid_index(union_tag)) {
-					auto union_holder = ws.w.culture_s.national_tags_state[union_tag].holder;
+					auto union_holder = ws.w.culture_s.tags_to_holders[union_tag];
 					cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
 						union_holder, this_slot, from_slot, show_condition && bool(union_holder));
 				}
@@ -1536,22 +1536,22 @@ namespace triggers {
 		return display_with_comparison(tval[0], ws.s.fixed_ui_text[scenario::fixed_ui::a_primary_or_accepted], ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_culture_pop_reb(TRIGGER_DISPLAY_PARAMS) {
-		cultures::culture_tag rc = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions[to_rebel(from_slot)].culture : cultures::culture_tag();
+		cultures::culture_tag rc = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions.get<rebel_faction::culture>(to_rebel(from_slot)) : cultures::culture_tag();
 		return display_with_comparison(tval[0], scenario::fixed_ui::culture,
 			is_valid_index(rc) ? ws.s.culture_m.culture_container[rc].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_culture], ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_culture_state_reb(TRIGGER_DISPLAY_PARAMS) {
-		cultures::culture_tag rc = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions[to_rebel(from_slot)].culture : cultures::culture_tag();
+		cultures::culture_tag rc = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions.get<rebel_faction::culture>(to_rebel(from_slot)) : cultures::culture_tag();
 		return display_with_comparison(tval[0], scenario::fixed_ui::dominant_culture,
 			is_valid_index(rc) ? ws.s.culture_m.culture_container[rc].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_culture], ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_culture_province_reb(TRIGGER_DISPLAY_PARAMS) {
-		cultures::culture_tag rc = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions[to_rebel(from_slot)].culture : cultures::culture_tag();
+		cultures::culture_tag rc = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions.get<rebel_faction::culture>(to_rebel(from_slot)) : cultures::culture_tag();
 		return display_with_comparison(tval[0], scenario::fixed_ui::dominant_culture,
 			is_valid_index(rc) ? ws.s.culture_m.culture_container[rc].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_culture], ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_culture_nation_reb(TRIGGER_DISPLAY_PARAMS) {
-		cultures::culture_tag rc = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions[to_rebel(from_slot)].culture : cultures::culture_tag();
+		cultures::culture_tag rc = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions.get<rebel_faction::culture>(to_rebel(from_slot)) : cultures::culture_tag();
 
 		cursor_in = ui::add_linear_text(cursor_in,
 			is_valid_index(rc) ? ws.s.culture_m.culture_container[rc].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_culture],
@@ -1590,14 +1590,14 @@ namespace triggers {
 			ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_culture_group_reb_nation(TRIGGER_DISPLAY_PARAMS) {
-		cultures::culture_tag rc = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions[to_rebel(from_slot)].culture : cultures::culture_tag();
+		cultures::culture_tag rc = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions.get<rebel_faction::culture>(to_rebel(from_slot)) : cultures::culture_tag();
 		auto cg = is_valid_index(rc) ? ws.s.culture_m.culture_container[rc].group : cultures::culture_group_tag();
 		return display_with_comparison(tval[0], scenario::fixed_ui::culture_group,
 			is_valid_index(cg) ? ws.s.culture_m.culture_groups[cg].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_culture_group],
 			ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_culture_group_reb_pop(TRIGGER_DISPLAY_PARAMS) {
-		cultures::culture_tag rc = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions[to_rebel(from_slot)].culture : cultures::culture_tag();
+		cultures::culture_tag rc = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions.get<rebel_faction::culture>(to_rebel(from_slot)) : cultures::culture_tag();
 		auto cg = is_valid_index(rc) ? ws.s.culture_m.culture_container[rc].group : cultures::culture_group_tag();
 		return display_with_comparison(tval[0], scenario::fixed_ui::culture_group,
 			is_valid_index(cg) ? ws.s.culture_m.culture_groups[cg].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_culture_group],
@@ -1637,34 +1637,34 @@ namespace triggers {
 	}
 	ui::xy_pair tf_culture_group_nation_this_province(TRIGGER_DISPLAY_PARAMS) {
 		return tf_culture_group_nation_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-			bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), nullptr);
+			bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), const_parameter());
 	}
 	ui::xy_pair tf_culture_group_pop_this_province(TRIGGER_DISPLAY_PARAMS) {
 		return tf_culture_group_pop_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-			bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), nullptr);
+			bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), const_parameter());
 	}
 	ui::xy_pair tf_culture_group_nation_this_state(TRIGGER_DISPLAY_PARAMS) {
 		return tf_culture_group_nation_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-			bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag(), nullptr);
+			bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag(), const_parameter());
 	}
 	ui::xy_pair tf_culture_group_pop_this_state(TRIGGER_DISPLAY_PARAMS) {
 		return tf_culture_group_pop_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-			bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag(), nullptr);
+			bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag(), const_parameter());
 	}
 	ui::xy_pair tf_culture_group_nation_this_pop(TRIGGER_DISPLAY_PARAMS) {
 		return tf_culture_group_nation_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-			bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag(), nullptr);
+			bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag(), const_parameter());
 	}
 	ui::xy_pair tf_culture_group_pop_this_pop(TRIGGER_DISPLAY_PARAMS) {
 		return tf_culture_group_pop_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-			bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag(), nullptr);
+			bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag(), const_parameter());
 	}
 	ui::xy_pair tf_religion(TRIGGER_DISPLAY_PARAMS) {
 		auto c = trigger_payload(tval[2]).small.values.religion;
 		return display_with_comparison(tval[0], scenario::fixed_ui::religion, ws.s.culture_m.religions[c].name, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_religion_reb(TRIGGER_DISPLAY_PARAMS) {
-		cultures::religion_tag rc = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions[to_rebel(from_slot)].religion : cultures::religion_tag();
+		cultures::religion_tag rc = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions.get<rebel_faction::religion>(to_rebel(from_slot)) : cultures::religion_tag();
 		return display_with_comparison(tval[0], scenario::fixed_ui::religion,
 			is_valid_index(rc) ? ws.s.culture_m.religions[rc].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_religion],
 			ws, container, cursor_in, lm, fmt);
@@ -1769,31 +1769,31 @@ namespace triggers {
 	}
 	ui::xy_pair tf_is_cultural_union_tag_nation(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[2]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto hname = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 		return display_with_comparison(tval[0], scenario::fixed_ui::union_for_nation, hname, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_is_cultural_union_tag_this_pop(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[2]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto hname = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 		return display_with_comparison(tval[0], scenario::fixed_ui::union_for_nation, hname, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_is_cultural_union_tag_this_state(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[2]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto hname = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 		return display_with_comparison(tval[0], scenario::fixed_ui::union_for_nation, hname, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_is_cultural_union_tag_this_province(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[2]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto hname = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 		return display_with_comparison(tval[0], scenario::fixed_ui::union_for_nation, hname, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_is_cultural_union_tag_this_nation(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[2]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto hname = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 		return display_with_comparison(tval[0], scenario::fixed_ui::union_for_nation, hname, ws, container, cursor_in, lm, fmt);
 	}
@@ -1948,8 +1948,8 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_is_core_reb(TRIGGER_DISPLAY_PARAMS) {
-		auto reb_ind = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions[to_rebel(from_slot)].independence_tag : cultures::national_tag();
-		auto reb_holder = is_valid_index(reb_ind) ? ws.w.culture_s.national_tags_state[reb_ind].holder : nations::country_tag();
+		auto reb_ind = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions.get<rebel_faction::independence_tag>(to_rebel(from_slot)) : cultures::national_tag();
+		auto reb_holder = is_valid_index(reb_ind) ? ws.w.culture_s.tags_to_holders[reb_ind] : nations::country_tag();
 		auto rnam = is_valid_index(reb_ind) ? 
 			(bool(reb_holder) ? ws.w.nation_s.nations.get<nation::name>(reb_holder) : ws.s.culture_m.national_tags[reb_ind].default_name.name) :
 			ws.s.fixed_ui_text[scenario::fixed_ui::the_rebel_ind_nation];
@@ -1963,7 +1963,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_is_core_tag(TRIGGER_DISPLAY_PARAMS) {
-		auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag];
 		auto nam = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[trigger_payload(tval[2]).tag].default_name.name;
 
 		cursor_in = display_with_comparison_no_newline(tval[0], ws.s.fixed_ui_text[scenario::fixed_ui::a_core_of], ws, container, cursor_in, lm, fmt);
@@ -2061,7 +2061,7 @@ namespace triggers {
 			ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_owned_by_tag(TRIGGER_DISPLAY_PARAMS) {
-		auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag];
 		auto nam = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[trigger_payload(tval[2]).tag].default_name.name;
 
 		cursor_in = display_with_comparison_no_newline(tval[0], ws.s.fixed_ui_text[scenario::fixed_ui::owned_by], ws, container, cursor_in, lm, fmt);
@@ -2141,7 +2141,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_exists_tag(TRIGGER_DISPLAY_PARAMS) {
-		auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag];
 		auto nam = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[trigger_payload(tval[2]).tag].default_name.name;
 
 		cursor_in = ui::add_linear_text(cursor_in, nam, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
@@ -2301,7 +2301,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_casus_belli_tag(TRIGGER_DISPLAY_PARAMS) {
-		auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag];
 		auto nam = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[trigger_payload(tval[2]).tag].default_name.name;
 
 		cursor_in = display_with_has_comparison_no_newline(tval[0],
@@ -2377,7 +2377,7 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_military_access_tag(TRIGGER_DISPLAY_PARAMS) {
-		auto holder = ws.w.culture_s.national_tags_state[trigger_payload(tval[2]).tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag];
 		auto nam = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[trigger_payload(tval[2]).tag].default_name.name;
 
 		cursor_in = display_with_has_comparison_no_newline(tval[0],
@@ -2595,7 +2595,7 @@ namespace triggers {
 	}
 	ui::xy_pair tf_tag_tag(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[2]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto name = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 		return display_with_comparison(tval[0],
 			name, ws, container, cursor_in, lm, fmt);
@@ -2624,7 +2624,7 @@ namespace triggers {
 	}
 	ui::xy_pair tf_tag_pop(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[2]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto name = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 
 		return display_with_comparison(tval[0],
@@ -2632,7 +2632,7 @@ namespace triggers {
 	}
 	ui::xy_pair tf_neighbour_tag(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[2]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto name = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 
 		cursor_in = display_with_has_comparison_no_newline(tval[0],
@@ -2712,7 +2712,7 @@ namespace triggers {
 	}
 	ui::xy_pair tf_war_with_tag(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[2]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto name = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 
 		cursor_in = display_with_comparison_no_newline(tval[0],
@@ -3004,7 +3004,7 @@ namespace triggers {
 	}
 	ui::xy_pair tf_in_sphere_tag(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[2]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto name = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 
 		cursor_in = display_with_comparison_no_newline(tval[0],
@@ -3188,7 +3188,7 @@ namespace triggers {
 	}
 	ui::xy_pair tf_controlled_by_tag(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[2]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto name = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 
 		cursor_in = display_with_comparison_no_newline(tval[0],
@@ -3280,7 +3280,7 @@ namespace triggers {
 	}
 	ui::xy_pair tf_truce_with_tag(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[2]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto name = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 
 		cursor_in = display_with_has_comparison_no_newline(tval[0],
@@ -3428,7 +3428,7 @@ namespace triggers {
 	}
 	ui::xy_pair tf_is_possible_vassal(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[2]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto name = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 
 		return display_with_comparison(tval[0],
@@ -3440,7 +3440,7 @@ namespace triggers {
 	}
 	ui::xy_pair tf_vassal_of_tag(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[2]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto name = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 
 		cursor_in = display_with_comparison_no_newline(tval[0],
@@ -3511,7 +3511,7 @@ namespace triggers {
 	}
 	ui::xy_pair tf_substate_of_tag(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[2]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto name = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 
 		cursor_in = display_with_comparison_no_newline(tval[0],
@@ -3582,7 +3582,7 @@ namespace triggers {
 	}
 	ui::xy_pair tf_alliance_with_tag(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[2]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto name = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 
 		cursor_in = display_with_comparison_no_newline(tval[0],
@@ -3706,7 +3706,7 @@ namespace triggers {
 	}
 	ui::xy_pair tf_in_default_tag(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[2]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto name = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 
 		cursor_in = display_with_comparison_no_newline(tval[0],
@@ -4192,7 +4192,7 @@ namespace triggers {
 	}
 	ui::xy_pair tf_this_culture_union_tag(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[2]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto name = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 
 		return display_with_comparison(tval[0],
@@ -4333,7 +4333,7 @@ namespace triggers {
 	}
 	ui::xy_pair tf_constructing_cb_tag(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[2]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto name = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 
 		cursor_in = display_with_comparison_no_newline(tval[0],
@@ -4436,7 +4436,7 @@ namespace triggers {
 	}
 	ui::xy_pair tf_is_our_vassal_tag(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[2]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto name = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 		auto scope_name = bool(to_nation(primary_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::nation_in_scope];
 
@@ -4541,7 +4541,7 @@ namespace triggers {
 	}
 	ui::xy_pair tf_is_sphere_leader_of_tag(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[2]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto name = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 
 		cursor_in = display_with_comparison_no_newline(tval[0],
@@ -5208,7 +5208,7 @@ namespace triggers {
 	}
 	ui::xy_pair tf_diplomatic_influence_tag(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[3]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto name = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 
 		cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::dip_influence_over], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
@@ -5356,7 +5356,7 @@ namespace triggers {
 	}
 	ui::xy_pair tf_relation_tag(TRIGGER_DISPLAY_PARAMS) {
 		auto tag = trigger_payload(tval[3]).tag;
-		auto holder = ws.w.culture_s.national_tags_state[tag].holder;
+		auto holder = ws.w.culture_s.tags_to_holders[tag];
 		auto name = bool(holder) ? ws.w.nation_s.nations.get<nation::name>(holder) : ws.s.culture_m.national_tags[tag].default_name.name;
 
 		cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::relationship_with], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
@@ -5937,7 +5937,7 @@ namespace triggers {
 			scenario::fixed_ui::national_religion, ws.s.culture_m.religions[trigger_payload(tval[2]).small.values.religion].name, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_religion_nation_reb(TRIGGER_DISPLAY_PARAMS) {
-		auto rr = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions[to_rebel(from_slot)].religion : cultures::religion_tag();
+		auto rr = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions.get<rebel_faction::religion>(to_rebel(from_slot)) : cultures::religion_tag();
 		auto rn = is_valid_index(rr) ? ws.s.culture_m.religions[rr].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_religion];
 		return display_with_comparison(tval[0],
 			scenario::fixed_ui::national_religion, rn, ws, container, cursor_in, lm, fmt);

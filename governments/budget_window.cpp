@@ -39,7 +39,7 @@ namespace governments {
 			sb.set_limits(ws.w.gui_m,
 				int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::min_tax>(player)),
 				ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_tax>(player) > 0 ? int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_tax>(player)) : 100);
-			sb.update_position(ws.w.nation_s.nations.get<nation::poor_tax>(player));
+			sb.update_position(int32_t(ws.w.nation_s.nations.get<nation::f_poor_tax>(player) * 100.0f));
 		}
 	}
 	void middle_tax_scrollbar::on_position(world_state& ws, ui::scrollbar<middle_tax_scrollbar>& sb, int32_t pos) {
@@ -52,7 +52,7 @@ namespace governments {
 			sb.set_limits(ws.w.gui_m,
 				int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::min_tax>(player)),
 				ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_tax>(player) > 0 ? int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_tax>(player)) : 100);
-			sb.update_position(ws.w.nation_s.nations.get<nation::middle_tax>(player));
+			sb.update_position(int32_t(ws.w.nation_s.nations.get<nation::f_middle_tax>(player) * 100.0f));
 		}
 	}
 	void rich_tax_scrollbar::on_position(world_state& ws, ui::scrollbar<rich_tax_scrollbar>& sb, int32_t pos) {
@@ -65,7 +65,7 @@ namespace governments {
 			sb.set_limits(ws.w.gui_m,
 				int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::min_tax>(player)),
 				ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_tax>(player) > 0 ? int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_tax>(player)) : 100);
-			sb.update_position(ws.w.nation_s.nations.get<nation::rich_tax>(player));
+			sb.update_position(int32_t(ws.w.nation_s.nations.get<nation::f_rich_tax>(player) * 100.0f));
 		}
 	}
 	void land_spending_scrollbar::on_position(world_state& ws, ui::scrollbar<land_spending_scrollbar>& sb, int32_t pos) {
@@ -75,7 +75,7 @@ namespace governments {
 	}
 	void land_spending_scrollbar::update(ui::scrollbar<land_spending_scrollbar>& sb, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			sb.update_position(ws.w.nation_s.nations.get<nation::army_stockpile_spending>(player));
+			sb.update_position(int32_t(ws.w.nation_s.nations.get<nation::f_army_stockpile_spending>(player) * 100.0f));
 		}
 	}
 	void naval_spending_scrollbar::on_position(world_state& ws, ui::scrollbar<naval_spending_scrollbar>& sb, int32_t pos) {
@@ -85,7 +85,7 @@ namespace governments {
 	}
 	void naval_spending_scrollbar::update(ui::scrollbar<naval_spending_scrollbar>& sb, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			sb.update_position(ws.w.nation_s.nations.get<nation::navy_stockpile_spending>(player));
+			sb.update_position(int32_t(ws.w.nation_s.nations.get<nation::f_navy_stockpile_spending>(player) * 100.0f));
 		}
 	}
 	void projects_spending_scrollbar::on_position(world_state& ws, ui::scrollbar<projects_spending_scrollbar>& sb, int32_t pos) {
@@ -95,7 +95,7 @@ namespace governments {
 	}
 	void projects_spending_scrollbar::update(ui::scrollbar<projects_spending_scrollbar>& sb, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			sb.update_position(ws.w.nation_s.nations.get<nation::projects_stockpile_spending>(player));
+			sb.update_position(int32_t(ws.w.nation_s.nations.get<nation::f_projects_stockpile_spending>(player) * 100.0f));
 		}
 	}
 	void administrative_pay_scrollbar::on_position(world_state& ws, ui::scrollbar<administrative_pay_scrollbar>& sb, int32_t pos) {
@@ -155,7 +155,7 @@ namespace governments {
 			sb.set_limits(ws.w.gui_m,
 				int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::min_tariff>(player)),
 				ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_tariff>(player) > 0 ? int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_tariff>(player)) : 100);
-			sb.update_position(ws.w.nation_s.nations.get<nation::tarrifs>(player));
+			sb.update_position(int32_t(ws.w.nation_s.nations.get<nation::f_tarrifs>(player) * 100.0f));
 		}
 	}
 	void poor_needs_pie_chart::update(ui::piechart<poor_needs_pie_chart>& pie, world_state & ws) {
@@ -378,9 +378,9 @@ namespace governments {
 			auto m_amount = economy::military_spending_amount(ws, player);
 			auto s_amount = economy::social_spending_amount(ws, player);
 			auto a_amount = economy::administrative_spending_amount(ws, player);
-			auto tariff_costs = std::max(-1.0f * economy::project_player_tarrif_income(ws, float(ws.w.nation_s.nations.get<nation::tarrifs>(player)) / 100.0f), float(0));
+			auto tariff_costs = std::max(-1.0f * economy::project_player_tarrif_income(ws, ws.w.nation_s.nations.get<nation::f_tarrifs>(player)), float(0));
 			auto interest = economy::calculate_daily_debt_payment(ws, player) / 2.0f;
-			auto b_amount = economy::daily_national_building_cost(ws, player) * float(ws.w.nation_s.nations.get<nation::projects_stockpile_spending>(player)) / 100.0f;
+			auto b_amount = economy::daily_national_building_cost(ws, player) * ws.w.nation_s.nations.get<nation::f_projects_stockpile_spending>(player);
 
 			auto total = e_amount + m_amount + s_amount + a_amount + tariff_costs + interest + b_amount;
 
@@ -427,10 +427,10 @@ namespace governments {
 
 	void incomes_pie_chart::update(ui::piechart<incomes_pie_chart>& pie, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			auto ptax_income = ws.w.local_player_data.collected_poor_tax * float(ws.w.nation_s.nations.get<nation::poor_tax>(player)) / 100.0f;
-			auto mtax_income = ws.w.local_player_data.collected_middle_tax * float(ws.w.nation_s.nations.get<nation::middle_tax>(player)) / 100.0f;
-			auto rtax_income = ws.w.local_player_data.collected_rich_tax * float(ws.w.nation_s.nations.get<nation::rich_tax>(player)) / 100.0f;
-			economy::money_qnty_type tariff_income = std::max(economy::project_player_tarrif_income(ws, float(ws.w.nation_s.nations.get<nation::tarrifs>(player)) / 100.0f), float(0));
+			auto ptax_income = ws.w.local_player_data.collected_poor_tax * ws.w.nation_s.nations.get<nation::f_poor_tax>(player);
+			auto mtax_income = ws.w.local_player_data.collected_middle_tax * ws.w.nation_s.nations.get<nation::f_middle_tax>(player);
+			auto rtax_income = ws.w.local_player_data.collected_rich_tax * ws.w.nation_s.nations.get<nation::f_rich_tax>(player);
+			economy::money_qnty_type tariff_income = std::max(economy::project_player_tarrif_income(ws, ws.w.nation_s.nations.get<nation::f_tarrifs>(player)), float(0));
 			auto total = ptax_income + mtax_income + rtax_income + tariff_income;
 			
 			if(total <= 0)

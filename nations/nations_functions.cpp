@@ -79,17 +79,17 @@ namespace nations {
 			ws.s.variables_m.count_national_variables) =
 			Eigen::Matrix<float, -1, 1>::Zero(ws.s.variables_m.count_national_variables);
 
-		ws.w.nation_s.nations.set<nation::rich_tax>(new_nation, 10i8);
-		ws.w.nation_s.nations.set<nation::middle_tax>(new_nation, 10i8);
-		ws.w.nation_s.nations.set<nation::poor_tax>(new_nation, 10i8);
+		ws.w.nation_s.nations.set<nation::f_rich_tax>(new_nation, 0.1f);
+		ws.w.nation_s.nations.set<nation::f_middle_tax>(new_nation, 0.1f);
+		ws.w.nation_s.nations.set<nation::f_poor_tax>(new_nation, 0.1f);
 		ws.w.nation_s.nations.set<nation::f_social_spending>(new_nation, 0.1f);
 		ws.w.nation_s.nations.set<nation::f_administrative_spending>(new_nation, 0.1f);
 		ws.w.nation_s.nations.set<nation::f_education_spending>(new_nation, 0.1f);
 		ws.w.nation_s.nations.set<nation::f_military_spending>(new_nation, 0.1f);
-		ws.w.nation_s.nations.set<nation::tarrifs>(new_nation, 0i8);
-		ws.w.nation_s.nations.set<nation::army_stockpile_spending>(new_nation, 10i8);
-		ws.w.nation_s.nations.set<nation::navy_stockpile_spending>(new_nation, 10i8);
-		ws.w.nation_s.nations.set<nation::projects_stockpile_spending>(new_nation, 10i8);
+		ws.w.nation_s.nations.set<nation::f_tarrifs>(new_nation, 0.0f);
+		ws.w.nation_s.nations.set<nation::f_army_stockpile_spending>(new_nation, 0.1f);
+		ws.w.nation_s.nations.set<nation::f_navy_stockpile_spending>(new_nation, 0.1f);
+		ws.w.nation_s.nations.set<nation::f_projects_stockpile_spending>(new_nation, 0.1f);
 
 		technologies::reset_technologies(ws, new_nation);
 	}
@@ -194,8 +194,8 @@ namespace nations {
 		auto& active_movements = ws.w.nation_s.nations.get<nation::active_movements>(new_nation);
 		auto movements = get_range(ws.w.population_s.pop_movement_arrays, active_movements);
 		for(auto m : movements) {
-			population::destroy_pop_movement(ws, ws.w.population_s.pop_movements[m]);
-			ws.w.population_s.pop_movements.remove(m);
+			population::destroy_pop_movement(ws, m);
+			ws.w.population_s.pop_movements.release(m);
 		}
 		clear(ws.w.population_s.pop_movement_arrays, active_movements);
 
@@ -849,16 +849,6 @@ namespace nations {
 		ws.w.nation_s.nations.set<nation::is_substate>(vassal, true);
 	}
 
-	cultures::national_tag union_tag_of(world_state const& ws, country_tag this_nation) {
-		auto pculture = ws.w.nation_s.nations.get<nation::primary_culture>(this_nation);
-		if(is_valid_index(pculture)) {
-			auto cgroup = ws.s.culture_m.culture_container[pculture].group;
-			return ws.s.culture_m.culture_groups[cgroup].union_tag;
-		}
-		else
-			return cultures::national_tag();
-	}
-
 	float fraction_of_cores_owned(world_state const& ws, country_tag this_nation) {
 		auto tag = ws.w.nation_s.nations.get<nation::tag>(this_nation);
 		if(is_valid_index(tag)) {
@@ -1091,13 +1081,14 @@ namespace nations {
 		}
 
 		auto movements = get_range(ws.w.population_s.pop_movement_arrays, ws.w.nation_s.nations.get<nation::active_movements>(this_nation));
-		int64_t total_social_support = 0;
-		int64_t total_political_support = 0;
+		float total_social_support = 0;
+		float total_political_support = 0;
 		for(auto m : movements) {
-			if(ws.w.population_s.pop_movements[m].type == population::movement_type::political) {
-				total_political_support += ws.w.population_s.pop_movements[m].total_population_support;
-			} else if(ws.w.population_s.pop_movements[m].type == population::movement_type::social) {
-				total_social_support += ws.w.population_s.pop_movements[m].total_population_support;
+			auto type = ws.w.population_s.pop_movements.get<pop_movement::type>(m);
+			if(type == uint8_t(population::movement_type::political)) {
+				total_political_support += ws.w.population_s.pop_movements.get<pop_movement::total_population_support>(m);
+			} else if(type == uint8_t(population::movement_type::social)) {
+				total_social_support += ws.w.population_s.pop_movements.get<pop_movement::total_population_support>(m);
 			}
 		}
 

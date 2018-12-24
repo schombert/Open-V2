@@ -38,7 +38,7 @@ class serialization::tagged_serializer<rebel_faction::member_pops, T> : public s
 template<typename T>
 class serialization::tagged_serializer<pop_movement::member_pops, T> : public serialization::discard_serializer<T> {};
 
-template<>
+/*template<>
 class serialization::serializer<population::pop_movement> {
 public:
 	static constexpr bool has_static_size = true;
@@ -48,7 +48,7 @@ public:
 	static void deserialize_object(std::byte const* &input, population::pop_movement& obj);
 	static size_t size(population::pop_movement const& obj);
 	static size_t size();
-};
+};*/
 
 /*template<>
 class serialization::serializer<population::rebel_faction> {

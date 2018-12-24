@@ -1004,7 +1004,7 @@ namespace graphics {
 						pcolors + i * 3, scolors + i * 3);
 				}
 
-			} else if(is_valid_index(g) && g != economy::money_good && ws.w.map_view.mode == current_state::map_mode::purchasing) {
+			} else if(is_valid_index(g) && g != economy::gold_good && ws.w.map_view.mode == current_state::map_mode::purchasing) {
 				if(auto selected_id = ws.w.map_view.selected_state; ws.w.nation_s.states.is_valid_index(selected_id)) {
 					auto purchasing_handle = ws.w.nation_s.state_purchases.get(selected_id, g);
 					auto purchases_data_range = get_range(ws.w.economy_s.purchasing_arrays, purchasing_handle);
@@ -1038,7 +1038,7 @@ namespace graphics {
 
 					}
 				}
-			} else if(is_valid_index(g) && g != economy::money_good && ws.w.map_view.mode == current_state::map_mode::production) {
+			} else if(is_valid_index(g) && g != economy::gold_good && ws.w.map_view.mode == current_state::map_mode::production) {
 				economy::goods_qnty_type max_production = 0.0001;
 				ws.w.nation_s.states.for_each([&](nations::state_tag id) {
 					max_production = std::max(max_production, economy::state_current_production(ws, id, g));

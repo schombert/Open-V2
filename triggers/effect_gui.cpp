@@ -168,12 +168,12 @@ namespace triggers {
 		ui::xy_pair tag_type_rebel_slot_effect(uint32_t ui_id, population::rebel_faction_tag rebel_id, world_state& ws,
 			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
 
-			cultures::national_tag rtag = bool(rebel_id) ? ws.w.population_s.rebel_factions[rebel_id].independence_tag : cultures::national_tag();
+			cultures::national_tag rtag = bool(rebel_id) ? ws.w.population_s.rebel_factions.get<rebel_faction::independence_tag>(rebel_id) : cultures::national_tag();
 			auto rtag_name = is_valid_index(rtag) ?
-				(bool(ws.w.culture_s.national_tags_state[rtag].holder) ? ws.w.nation_s.nations.get<nation::name>(ws.w.culture_s.national_tags_state[rtag].holder) : ws.s.culture_m.national_tags[rtag].default_name.name)
+				(bool(ws.w.culture_s.tags_to_holders[rtag]) ? ws.w.nation_s.nations.get<nation::name>(ws.w.culture_s.tags_to_holders[rtag]) : ws.s.culture_m.national_tags[rtag].default_name.name)
 				: ws.s.fixed_ui_text[scenario::fixed_ui::rebel];
 			auto rtag_adj = is_valid_index(rtag) ?
-				(bool(ws.w.culture_s.national_tags_state[rtag].holder) ? ws.w.nation_s.nations.get<nation::adjective>(ws.w.culture_s.national_tags_state[rtag].holder) : ws.s.culture_m.national_tags[rtag].default_name.adjective)
+				(bool(ws.w.culture_s.tags_to_holders[rtag]) ? ws.w.nation_s.nations.get<nation::adjective>(ws.w.culture_s.tags_to_holders[rtag]) : ws.s.culture_m.national_tags[rtag].default_name.adjective)
 				: ws.s.fixed_ui_text[scenario::fixed_ui::rebel];
 
 			text_data::replacement repl[2] = {
@@ -302,10 +302,10 @@ namespace triggers {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
-					nullptr, this_slot, from_slot, false);
+					const_parameter(), this_slot, from_slot, false);
 			}
 
-			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 			lm.decrease_indent(1);
 
 			return cursor_in;
@@ -351,10 +351,10 @@ namespace triggers {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
-					nullptr, this_slot, from_slot, false);
+					const_parameter(), this_slot, from_slot, false);
 			}
 
-			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 			lm.decrease_indent(1);
 
 			return cursor_in;
@@ -399,16 +399,16 @@ namespace triggers {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
-					nullptr, this_slot, from_slot, false);
+					const_parameter(), this_slot, from_slot, false);
 			}
 
-			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 			lm.decrease_indent(1);
 
 			return cursor_in;
 		}
 		ui::xy_pair es_x_country_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			return es_x_country_scope_nation(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, show_condition);
+			return es_x_country_scope_nation(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, show_condition);
 		}
 		ui::xy_pair es_x_empty_neighbor_province_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			if((tval[0] & effect_codes::is_random_scope) != 0 && show_condition && bool(to_prov(primary_slot))) {
@@ -453,10 +453,10 @@ namespace triggers {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
-					nullptr, this_slot, from_slot, false);
+					const_parameter(), this_slot, from_slot, false);
 			}
 
-			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 			lm.decrease_indent(1);
 
 			return cursor_in;
@@ -514,10 +514,10 @@ namespace triggers {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
-					nullptr, this_slot, from_slot, false);
+					const_parameter(), this_slot, from_slot, false);
 			}
 
-			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 			lm.decrease_indent(1);
 
 			return cursor_in;
@@ -539,19 +539,19 @@ namespace triggers {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
-					nullptr, this_slot, from_slot, false);
+					const_parameter(), this_slot, from_slot, false);
 			}
 
-			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 			lm.decrease_indent(1);
 
 			return cursor_in;
 		}
 		ui::xy_pair es_poor_strata_scope_state(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			return es_poor_strata_scope_nation(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, show_condition);
+			return es_poor_strata_scope_nation(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, show_condition);
 		}
 		ui::xy_pair es_poor_strata_scope_province(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			return es_poor_strata_scope_nation(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, show_condition);
+			return es_poor_strata_scope_nation(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, show_condition);
 		}
 		ui::xy_pair es_middle_strata_scope_nation(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			if((tval[0] & effect_codes::is_random_scope) != 0) {
@@ -570,19 +570,19 @@ namespace triggers {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
-					nullptr, this_slot, from_slot, false);
+					const_parameter(), this_slot, from_slot, false);
 			}
 
-			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 			lm.decrease_indent(1);
 
 			return cursor_in;
 		}
 		ui::xy_pair es_middle_strata_scope_state(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			return es_middle_strata_scope_nation(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, show_condition);
+			return es_middle_strata_scope_nation(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, show_condition);
 		}
 		ui::xy_pair es_middle_strata_scope_province(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			return es_middle_strata_scope_nation(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, show_condition);
+			return es_middle_strata_scope_nation(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, show_condition);
 		}
 		ui::xy_pair es_rich_strata_scope_nation(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			if((tval[0] & effect_codes::is_random_scope) != 0) {
@@ -601,19 +601,19 @@ namespace triggers {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
-					nullptr, this_slot, from_slot, false);
+					const_parameter(), this_slot, from_slot, false);
 			}
 
-			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 			lm.decrease_indent(1);
 
 			return cursor_in;
 		}
 		ui::xy_pair es_rich_strata_scope_state(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			return es_rich_strata_scope_nation(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, show_condition);
+			return es_rich_strata_scope_nation(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, show_condition);
 		}
 		ui::xy_pair es_rich_strata_scope_province(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			return es_rich_strata_scope_nation(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, show_condition);
+			return es_rich_strata_scope_nation(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, show_condition);
 		}
 		ui::xy_pair es_x_pop_scope_nation(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			if((tval[0] & effect_codes::is_random_scope) != 0) {
@@ -632,19 +632,19 @@ namespace triggers {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
-					nullptr, this_slot, from_slot, false);
+					const_parameter(), this_slot, from_slot, false);
 			}
 
-			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 			lm.decrease_indent(1);
 
 			return cursor_in;
 		}
 		ui::xy_pair es_x_pop_scope_state(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			return es_x_pop_scope_nation(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, show_condition);
+			return es_x_pop_scope_nation(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, show_condition);
 		}
 		ui::xy_pair es_x_pop_scope_province(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			return es_x_pop_scope_nation(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, show_condition);
+			return es_x_pop_scope_nation(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, show_condition);
 		}
 		ui::xy_pair es_x_owned_scope_nation(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			if((tval[0] & effect_codes::is_random_scope) != 0 && show_condition && bool(to_nation(primary_slot))) {
@@ -692,10 +692,10 @@ namespace triggers {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
-					nullptr, this_slot, from_slot, false);
+					const_parameter(), this_slot, from_slot, false);
 			}
 
-			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 			lm.decrease_indent(1);
 
 			return cursor_in;
@@ -746,10 +746,10 @@ namespace triggers {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
-					nullptr, this_slot, from_slot, false);
+					const_parameter(), this_slot, from_slot, false);
 			}
 
-			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 			lm.decrease_indent(1);
 
 			return cursor_in;
@@ -807,10 +807,10 @@ namespace triggers {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
-					nullptr, this_slot, from_slot, false);
+					const_parameter(), this_slot, from_slot, false);
 			}
 
-			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 			lm.decrease_indent(1);
 
 			return cursor_in;
@@ -861,10 +861,10 @@ namespace triggers {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
-					nullptr, this_slot, from_slot, false);
+					const_parameter(), this_slot, from_slot, false);
 			}
 
-			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 			lm.decrease_indent(1);
 
 			return cursor_in;
@@ -935,7 +935,7 @@ namespace triggers {
 				if(owner)
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, owner, this_slot, from_slot, gen, true);
 				else
-					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			} else {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
@@ -943,7 +943,7 @@ namespace triggers {
 				lm.finish_current_line();
 
 				lm.increase_indent(1);
-				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			}
 
@@ -962,7 +962,7 @@ namespace triggers {
 				if(owner)
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, owner, this_slot, from_slot, gen, true);
 				else
-					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			} else {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_province], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
@@ -970,7 +970,7 @@ namespace triggers {
 				lm.finish_current_line();
 
 				lm.increase_indent(1);
-				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			}
 
@@ -989,7 +989,7 @@ namespace triggers {
 				if(controller)
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, controller, this_slot, from_slot, gen, true);
 				else
-					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			} else {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_province], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
@@ -997,7 +997,7 @@ namespace triggers {
 				lm.finish_current_line();
 
 				lm.increase_indent(1);
-				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			}
 
@@ -1035,11 +1035,11 @@ namespace triggers {
 				if(owner)
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, owner, this_slot, from_slot, gen, true);
 				else
-					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			} else {
 				lm.increase_indent(1);
-				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			}
 
@@ -1058,7 +1058,7 @@ namespace triggers {
 				if(owner)
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, owner, this_slot, from_slot, gen, true);
 				else
-					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			} else {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
@@ -1066,7 +1066,7 @@ namespace triggers {
 				lm.finish_current_line();
 
 				lm.increase_indent(1);
-				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			}
 
@@ -1085,7 +1085,7 @@ namespace triggers {
 				if(is_valid_index(capital))
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, capital, this_slot, from_slot, gen, true);
 				else
-					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			} else {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
@@ -1093,7 +1093,7 @@ namespace triggers {
 				lm.finish_current_line();
 
 				lm.increase_indent(1);
-				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			}
 
@@ -1168,7 +1168,7 @@ namespace triggers {
 		}
 		ui::xy_pair es_from_scope_state(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			if(to_nation(from_slot))
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.states.get<state::name>(from_slot.state), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.states.get<state::name>(to_state(from_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			else
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::from_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -1238,7 +1238,7 @@ namespace triggers {
 				lm.finish_current_line();
 
 				lm.increase_indent(1);
-				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			} else {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
@@ -1246,7 +1246,7 @@ namespace triggers {
 				lm.finish_current_line();
 
 				lm.increase_indent(1);
-				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			}
 
@@ -1265,7 +1265,7 @@ namespace triggers {
 				if(overlord)
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, overlord, this_slot, from_slot, gen, true);
 				else
-					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			} else {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
@@ -1273,7 +1273,7 @@ namespace triggers {
 				lm.finish_current_line();
 
 				lm.increase_indent(1);
-				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			}
 
@@ -1292,7 +1292,7 @@ namespace triggers {
 				if(overlord)
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, overlord, this_slot, from_slot, gen, true);
 				else
-					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			} else {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
@@ -1300,7 +1300,7 @@ namespace triggers {
 				lm.finish_current_line();
 
 				lm.increase_indent(1);
-				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			}
 
@@ -1312,7 +1312,7 @@ namespace triggers {
 			lm.finish_current_line();
 
 			lm.increase_indent(1);
-			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 			lm.decrease_indent(1);
 
 			return cursor_in;
@@ -1323,7 +1323,7 @@ namespace triggers {
 			lm.finish_current_line();
 
 			lm.increase_indent(1);
-			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 			lm.decrease_indent(1);
 
 			return cursor_in;
@@ -1334,7 +1334,7 @@ namespace triggers {
 			lm.finish_current_line();
 
 			lm.increase_indent(1);
-			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 			lm.decrease_indent(1);
 
 			return cursor_in;
@@ -1359,7 +1359,7 @@ namespace triggers {
 				lm.finish_current_line();
 
 				lm.increase_indent(1);
-				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			}
 
@@ -1374,7 +1374,7 @@ namespace triggers {
 			lm.finish_current_line();
 
 			lm.increase_indent(1);
-			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 			lm.decrease_indent(1);
 
 			return cursor_in;
@@ -1397,10 +1397,10 @@ namespace triggers {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
-					nullptr, this_slot, from_slot, false);
+					const_parameter(), this_slot, from_slot, false);
 
 
-				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			} else {
 				auto tag = trigger_payload(tval[2]).tag;
@@ -1415,7 +1415,7 @@ namespace triggers {
 				}
 
 				lm.increase_indent(1);
-				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			}
 			return cursor_in;
@@ -1432,8 +1432,8 @@ namespace triggers {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
-					nullptr, this_slot, from_slot, false);
-				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+					const_parameter(), this_slot, from_slot, false);
+				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			} else {
 				provinces::province_tag ptag(tval[2]);
@@ -1443,7 +1443,7 @@ namespace triggers {
 				lm.finish_current_line();
 
 				lm.increase_indent(1);
-				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			}
 			return cursor_in;
@@ -1470,10 +1470,10 @@ namespace triggers {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
-					nullptr, this_slot, from_slot, false);
+					const_parameter(), this_slot, from_slot, false);
 			}
 
-			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 			lm.decrease_indent(1);
 
 			return cursor_in;
@@ -1502,10 +1502,10 @@ namespace triggers {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
-					nullptr, this_slot, from_slot, false);
+					const_parameter(), this_slot, from_slot, false);
 			}
 
-			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, nullptr, this_slot, from_slot, gen, false);
+			cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 			lm.decrease_indent(1);
 
 			return cursor_in;
@@ -1746,15 +1746,15 @@ namespace triggers {
 		}
 		ui::xy_pair ef_primary_culture_this_state(EFFECT_DISPLAY_PARAMS) {
 			return ef_primary_culture_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag(), nullptr, gen);
+				bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag(), const_parameter(), gen);
 		}
 		ui::xy_pair ef_primary_culture_this_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_primary_culture_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), nullptr, gen);
+				bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), const_parameter(), gen);
 		}
 		ui::xy_pair ef_primary_culture_this_pop(EFFECT_DISPLAY_PARAMS) {
 			return ef_primary_culture_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag(), nullptr, gen);
+				bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag(), const_parameter(), gen);
 		}
 		ui::xy_pair ef_primary_culture_from_nation(EFFECT_DISPLAY_PARAMS) {
 			if(to_nation(from_slot)) {
@@ -1852,7 +1852,7 @@ namespace triggers {
 		}
 		ui::xy_pair ef_government_reb(EFFECT_DISPLAY_PARAMS) {
 			if(to_rebel(from_slot) && to_nation(primary_slot)) {
-				auto gov = ws.s.population_m.rebel_change_government_to.get(ws.w.population_s.rebel_factions[to_rebel(from_slot)].type, ws.w.nation_s.nations.get<nation::current_government>(to_nation(primary_slot)));
+				auto gov = ws.s.population_m.rebel_change_government_to.get(ws.w.population_s.rebel_factions.get<rebel_faction::type>(to_rebel(from_slot)), ws.w.nation_s.nations.get<nation::current_government>(to_nation(primary_slot)));
 
 				text_data::replacement repl{
 					text_data::value_type::text,
@@ -2304,7 +2304,7 @@ namespace triggers {
 		}
 		ui::xy_pair ef_release_vassal_this_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_release_vassal_this_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), nullptr, gen);
+				bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), const_parameter(), gen);
 		}
 		ui::xy_pair ef_release_vassal_from_nation(EFFECT_DISPLAY_PARAMS) {
 			if(bool(to_nation(from_slot)) && is_valid_index(ws.w.nation_s.nations.get<nation::current_capital>(to_nation(from_slot))))
@@ -2314,7 +2314,7 @@ namespace triggers {
 		}
 		ui::xy_pair ef_release_vassal_from_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_release_vassal_from_nation(tval, ws, container, cursor_in, lm, fmt, primary_slot,
-				nullptr, bool(to_prov(from_slot)) ? provinces::province_owner(ws, to_prov(from_slot)) : nations::country_tag(), gen);
+				const_parameter(), bool(to_prov(from_slot)) ? provinces::province_owner(ws, to_prov(from_slot)) : nations::country_tag(), gen);
 		}
 		ui::xy_pair ef_release_vassal_reb(EFFECT_DISPLAY_PARAMS) {
 			return tag_type_rebel_slot_effect(scenario::fixed_ui::release_as_independent, to_rebel(from_slot), ws, container, cursor_in, lm, fmt);
@@ -2700,10 +2700,10 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_trigger_revolt_state(EFFECT_DISPLAY_PARAMS) {
-			return ef_trigger_revolt_nation(tval, ws, container, cursor_in, lm, fmt, nullptr, nullptr, nullptr, gen);
+			return ef_trigger_revolt_nation(tval, ws, container, cursor_in, lm, fmt, const_parameter(), const_parameter(), const_parameter(), gen);
 		}
 		ui::xy_pair ef_trigger_revolt_province(EFFECT_DISPLAY_PARAMS) {
-			return ef_trigger_revolt_nation(tval, ws, container, cursor_in, lm, fmt, nullptr, nullptr, nullptr, gen);
+			return ef_trigger_revolt_nation(tval, ws, container, cursor_in, lm, fmt, const_parameter(), const_parameter(), const_parameter(), gen);
 		}
 		ui::xy_pair ef_diplomatic_influence(EFFECT_DISPLAY_PARAMS) {
 			cursor_in = display_value(trigger_payload(tval[3]).signed_value, display_type::integer, true, ws, container, cursor_in, lm, fmt);
@@ -2929,15 +2929,15 @@ namespace triggers {
 		}
 		ui::xy_pair ef_casus_belli_this_state(EFFECT_DISPLAY_PARAMS) {
 			return ef_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag(), nullptr, gen);
+				const_parameter(), bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag(), const_parameter(), gen);
 		}
 		ui::xy_pair ef_casus_belli_this_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), nullptr, gen);
+				const_parameter(), bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), const_parameter(), gen);
 		}
 		ui::xy_pair ef_casus_belli_this_pop(EFFECT_DISPLAY_PARAMS) {
 			return ef_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag(), nullptr, gen);
+				const_parameter(), bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag(), const_parameter(), gen);
 		}
 		ui::xy_pair ef_casus_belli_from_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
@@ -2971,7 +2971,7 @@ namespace triggers {
 		}
 		ui::xy_pair ef_casus_belli_from_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_casus_belli_from_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, nullptr, bool(to_prov(from_slot)) ? provinces::province_owner(ws, to_prov(from_slot)) : nations::country_tag(), gen);
+				const_parameter(), const_parameter(), bool(to_prov(from_slot)) ? provinces::province_owner(ws, to_prov(from_slot)) : nations::country_tag(), gen);
 		}
 		ui::xy_pair ef_add_casus_belli_tag(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
@@ -3067,15 +3067,15 @@ namespace triggers {
 		}
 		ui::xy_pair ef_add_casus_belli_this_state(EFFECT_DISPLAY_PARAMS) {
 			return ef_add_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag(), nullptr, gen);
+				const_parameter(), bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag(), const_parameter(), gen);
 		}
 		ui::xy_pair ef_add_casus_belli_this_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_add_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), nullptr, gen);
+				const_parameter(), bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), const_parameter(), gen);
 		}
 		ui::xy_pair ef_add_casus_belli_this_pop(EFFECT_DISPLAY_PARAMS) {
 			return ef_add_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag(), nullptr, gen);
+				const_parameter(), bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag(), const_parameter(), gen);
 		}
 		ui::xy_pair ef_add_casus_belli_from_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
@@ -3109,7 +3109,7 @@ namespace triggers {
 		}
 		ui::xy_pair ef_add_casus_belli_from_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_add_casus_belli_from_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, nullptr, bool(to_prov(from_slot)) ? provinces::province_owner(ws, to_prov(from_slot)) : nations::country_tag(), gen);
+				const_parameter(), const_parameter(), bool(to_prov(from_slot)) ? provinces::province_owner(ws, to_prov(from_slot)) : nations::country_tag(), gen);
 		}
 		ui::xy_pair ef_remove_casus_belli_tag(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
@@ -3187,15 +3187,15 @@ namespace triggers {
 		}
 		ui::xy_pair ef_remove_casus_belli_this_state(EFFECT_DISPLAY_PARAMS) {
 			return ef_remove_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag(), nullptr, gen);
+				const_parameter(), bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag(), const_parameter(), gen);
 		}
 		ui::xy_pair ef_remove_casus_belli_this_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_remove_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), nullptr, gen);
+				const_parameter(), bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), const_parameter(), gen);
 		}
 		ui::xy_pair ef_remove_casus_belli_this_pop(EFFECT_DISPLAY_PARAMS) {
 			return ef_remove_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag(), nullptr, gen);
+				const_parameter(), bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag(), const_parameter(), gen);
 		}
 		ui::xy_pair ef_remove_casus_belli_from_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
@@ -3223,7 +3223,7 @@ namespace triggers {
 		}
 		ui::xy_pair ef_remove_casus_belli_from_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_remove_casus_belli_from_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, nullptr, bool(to_prov(from_slot)) ? provinces::province_owner(ws, to_prov(from_slot)) : nations::country_tag(), gen);
+				const_parameter(), const_parameter(), bool(to_prov(from_slot)) ? provinces::province_owner(ws, to_prov(from_slot)) : nations::country_tag(), gen);
 		}
 		ui::xy_pair ef_this_remove_casus_belli_tag(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
@@ -3301,15 +3301,15 @@ namespace triggers {
 		}
 		ui::xy_pair ef_this_remove_casus_belli_this_state(EFFECT_DISPLAY_PARAMS) {
 			return ef_this_remove_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag(), nullptr, gen);
+				const_parameter(), bool(to_state(this_slot)) ? nations::state_owner(ws, to_state(this_slot)) : nations::country_tag(), const_parameter(), gen);
 		}
 		ui::xy_pair ef_this_remove_casus_belli_this_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_this_remove_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), nullptr, gen);
+				const_parameter(), bool(to_prov(this_slot)) ? provinces::province_owner(ws, to_prov(this_slot)) : nations::country_tag(), const_parameter(), gen);
 		}
 		ui::xy_pair ef_this_remove_casus_belli_this_pop(EFFECT_DISPLAY_PARAMS) {
 			return ef_this_remove_casus_belli_this_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag(), nullptr, gen);
+				const_parameter(), bool(to_pop(this_slot)) ? population::get_pop_owner(ws, to_pop(this_slot)) : nations::country_tag(), const_parameter(), gen);
 		}
 		ui::xy_pair ef_this_remove_casus_belli_from_nation(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
@@ -3337,7 +3337,7 @@ namespace triggers {
 		}
 		ui::xy_pair ef_this_remove_casus_belli_from_province(EFFECT_DISPLAY_PARAMS) {
 			return ef_this_remove_casus_belli_from_nation(tval, ws, container, cursor_in, lm, fmt,
-				nullptr, nullptr, bool(to_prov(from_slot)) ? provinces::province_owner(ws, to_prov(from_slot)) : nations::country_tag(), gen);
+				const_parameter(), const_parameter(), bool(to_prov(from_slot)) ? provinces::province_owner(ws, to_prov(from_slot)) : nations::country_tag(), gen);
 		}
 
 		inline ui::xy_pair display_war_goal(military::cb_type_tag cb, nations::state_tag st, cultures::national_tag lib, bool attacker, world_state& ws,

@@ -1,7 +1,7 @@
 #include "common\\common.h"
 #include "province_functions.hpp"
 #include "modifiers\\modifiers.h"
-#include "population\\population_function.h"
+#include "population\\population_functions.hpp"
 #include "nations\\nations_functions.h"
 #include "modifiers\\modifier_functions.h"
 #include "military\\military_functions.h"

@@ -38,6 +38,7 @@ namespace ve {
 	__forceinline bool compress_mask(bool mask) { return mask; }
 
 	__forceinline constexpr float select(bool t, float a, float b) { return t ? a : b; }
+	__forceinline constexpr int32_t select(bool t, int32_t a, int32_t b) { return t ? a : b; }
 	__forceinline mask_vector widen_mask(mask_vector mask) { return mask; }
 	__forceinline bool widen_mask(bool mask) { return mask; }
 	__forceinline bool bit_test(int32_t val, int32_t bits) { return (val & bits) == bits; }
@@ -76,40 +77,28 @@ namespace ve {
 
 	template<int32_t cache_lines, typename value_base, typename zero_is_null, typename individuator>
 	__forceinline void prefetch(tag_type<value_base, zero_is_null, individuator> e, float const* source) {}
-	template<int32_t cache_lines, typename tt>
-	__forceinline void prefetch(expanded_tag<tt> e, float const* source) {}
 	template<int32_t cache_lines>
 	__forceinline void prefetch(int32_t e, float const* source) {}
 
 	template<int32_t cache_lines, typename value_base, typename zero_is_null, typename individuator>
 	__forceinline void nt_prefetch(tag_type<value_base, zero_is_null, individuator> e, float const* source) {}
-	template<int32_t cache_lines, typename tt>
-	__forceinline void nt_prefetch(expanded_tag<tt> e, float const* source) {}
 	template<int32_t cache_lines>
 	__forceinline void nt_prefetch(int32_t e, float const* source) {}
 
 
 	template<int32_t cache_lines, typename value_base, typename zero_is_null, typename individuator>
 	__forceinline void prefetch(tag_type<value_base, zero_is_null, individuator> e, int32_t const* source) {}
-	template<int32_t cache_lines, typename tt>
-	__forceinline void prefetch(expanded_tag<tt> e, int32_t const* source) {}
 	template<int32_t cache_lines>
 	__forceinline void prefetch(int32_t e, int32_t const* source) {}
 
 	template<int32_t cache_lines, typename value_base, typename zero_is_null, typename individuator>
 	__forceinline void nt_prefetch(tag_type<value_base, zero_is_null, individuator> e, int32_t const* source) {}
-	template<int32_t cache_lines, typename tt>
-	__forceinline void nt_prefetch(expanded_tag<tt> e, int32_t const* source) {}
 	template<int32_t cache_lines>
 	__forceinline void nt_prefetch(int32_t e, int32_t const* source) {}
 
 
 	template<typename value_base, typename zero_is_null, typename individuator>
 	__forceinline void store(tag_type<value_base, zero_is_null, individuator> e, float* dest, float value) {
-		dest[to_index(e)] = value;
-	}
-	template<typename tt>
-	__forceinline void store(expanded_tag<tt> e, float* dest, float value) {
 		dest[to_index(e)] = value;
 	}
 	__forceinline void store(int32_t e, float* dest, float value) {

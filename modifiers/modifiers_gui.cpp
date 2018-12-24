@@ -454,16 +454,15 @@ namespace modifiers {
 		else
 			cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.static_modifiers.civ_nation, modifier_offset, value_type(1));
 		
-		auto set_options = ws.w.nation_s.active_issue_options.get_row(nation_id);
 		for(int32_t i = int32_t(ws.s.issues_m.issues_container.size()); i--; ) {
-			auto active_option = set_options[issues::issue_tag(issues::issue_tag::value_base_t(i))];
+			auto active_option = ws.w.nation_s.active_issue_options.get(nation_id, issues::issue_tag(issues::issue_tag::value_base_t(i)));
 			if(is_valid_index(active_option))
 				cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.issues_m.options[active_option].modifier, modifier_offset, value_type(1));
 		}
-		auto active_techs = ws.w.nation_s.active_technologies.get_row(nation_id);
+
 		for(int32_t i = int32_t(ws.s.technology_m.technologies_container.size()); i--; ) {
 			technologies::tech_tag tag(static_cast<technologies::tech_tag::value_base_t>(i));
-			if(bit_vector_test(active_techs.data(), uint32_t(i)))
+			if(ws.w.nation_s.active_technologies.get(nation_id, tag))
 				cursor_in = display_single_national_modifier_value(ws, container, cursor_in, lm, fmt, ws.s.technology_m.technologies_container[tag].modifier, modifier_offset, value_type(1));
 		}
 
