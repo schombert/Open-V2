@@ -61,6 +61,7 @@ public:
 
 	static void rebuild_indexes(cultures::culture_manager& obj) {
 		obj.cultures_to_groups.resize(obj.culture_container.size());
+		obj.cultures_to_tags.resize(obj.culture_container.size());
 		for(auto const& i_culture : obj.culture_container) {
 			obj.named_culture_index.emplace(i_culture.name, i_culture.id);
 			obj.culture_by_culture_group.add_to_row(i_culture.group, i_culture.id);

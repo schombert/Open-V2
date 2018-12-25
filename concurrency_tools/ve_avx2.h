@@ -1,6 +1,8 @@
 #pragma once
 #include "common\\common.h"
 #include <intrin.h>
+#undef min
+#undef max
 
 namespace ve {
 	constexpr int32_t vector_size = 8;

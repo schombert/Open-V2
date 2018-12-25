@@ -18,6 +18,8 @@ namespace cultures {
 			ws.w.culture_s.country_flags_by_government.reset(uint32_t(ws.s.governments_m.governments_container.size()));
 		if(ws.w.culture_s.country_flags_by_government.outer_size() != ws.s.culture_m.national_tags.size())
 			ws.w.culture_s.country_flags_by_government.resize(ws.s.culture_m.national_tags.size());
+		if(ws.w.culture_s.tags_to_holders.size() != ws.s.culture_m.national_tags.size())
+			ws.w.culture_s.tags_to_holders.resize(ws.s.culture_m.national_tags.size());
 
 		for(uint32_t t = 0; t < ws.s.culture_m.national_tags.size(); ++t) {
 			const national_tag ntag(static_cast<value_base_of<national_tag>>(t));

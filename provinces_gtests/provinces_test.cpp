@@ -569,11 +569,11 @@ TEST(provinces_test, single_province_read_state) {
 		read_province_history(
 			ws, ps, date_to_tag(boost::gregorian::date(1836, boost::gregorian::Jan, 1)), presults.data(), presults.data() + presults.size());
 
-		EXPECT_EQ(provinces::province_controller(ws, ps), ws.w.culture_s.national_tags_state[usa_tag].holder);
-		EXPECT_EQ(provinces::province_owner(ws, ps), ws.w.culture_s.national_tags_state[usa_tag].holder);
-		EXPECT_EQ(ws.w.province_s.province_state_container.get<province_state::fort_level>(ps), 0ui8);
-		EXPECT_EQ(ws.w.province_s.province_state_container.get<province_state::railroad_level>(ps), 1ui8);
-		EXPECT_EQ(ws.w.province_s.province_state_container.get<province_state::naval_base_level>(ps), 0ui8);
+		EXPECT_EQ(provinces::province_controller(ws, ps), ws.w.culture_s.tags_to_holders[usa_tag]);
+		EXPECT_EQ(provinces::province_owner(ws, ps), ws.w.culture_s.tags_to_holders[usa_tag]);
+		EXPECT_EQ(ws.w.province_s.province_state_container.get<province_state::fort_level>(ps), 0);
+		EXPECT_EQ(ws.w.province_s.province_state_container.get<province_state::railroad_level>(ps), 1);
+		EXPECT_EQ(ws.w.province_s.province_state_container.get<province_state::naval_base_level>(ps), 0);
 		EXPECT_EQ(35i16, ws.w.province_s.province_state_container.get<province_state::base_life_rating>(ps));
 		EXPECT_EQ(tag_from_text(ws.s.economy_m.named_goods_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "tobacco")), ws.w.province_s.province_state_container.get<province_state::rgo_production>(ps));
 
@@ -589,8 +589,8 @@ TEST(provinces_test, single_province_read_state) {
 		read_province_history(
 			ws, ps, date_to_tag(boost::gregorian::date(1866, boost::gregorian::Jan, 1)), presults.data(), presults.data() + presults.size());
 
-		EXPECT_EQ(provinces::province_controller(ws, ps), ws.w.culture_s.national_tags_state[csa_tag].holder);
-		EXPECT_EQ(provinces::province_owner(ws, ps), ws.w.culture_s.national_tags_state[csa_tag].holder);
+		EXPECT_EQ(provinces::province_controller(ws, ps), ws.w.culture_s.tags_to_holders[csa_tag]);
+		EXPECT_EQ(provinces::province_owner(ws, ps), ws.w.culture_s.tags_to_holders[csa_tag]);
 		EXPECT_EQ(ws.w.province_s.province_state_container.get<province_state::fort_level>(ps), 0ui8);
 		EXPECT_EQ(ws.w.province_s.province_state_container.get<province_state::railroad_level>(ps), 3ui8);
 		EXPECT_EQ(ws.w.province_s.province_state_container.get<province_state::naval_base_level>(ps), 0ui8);

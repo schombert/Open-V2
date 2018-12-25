@@ -541,7 +541,7 @@ namespace nations {
 		ws.w.nation_s.active_parties.reset(ws.s.ideologies_m.ideologies_count);
 		ws.w.nation_s.upper_house.reset(ws.s.ideologies_m.ideologies_count);
 		ws.w.nation_s.active_technologies.resize(int32_t(ws.s.technology_m.technologies_container.size()));
-		ws.w.nation_s.active_goods.reset((ws.s.economy_m.goods_count + 63ui32) / 64ui32);
+		ws.w.nation_s.active_goods.reset((ws.s.economy_m.goods_count + 7ui32) / 8ui32);
 		ws.w.nation_s.collected_tariffs.reset(ws.s.economy_m.goods_count);
 		ws.w.nation_s.active_issue_options.resize(int32_t(ws.s.issues_m.issues_container.size()));
 		ws.w.nation_s.national_stockpiles.reset(uint32_t(ws.s.economy_m.aligned_32_goods_count));

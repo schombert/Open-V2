@@ -451,30 +451,6 @@ public:
 };
 
 
-
-template<typename index_type, bool padding>
-inline void bit_vector_set(tagged_array_view<uint64_t, index_type, padding> v, index_type index, bool value) {
-	const uint32_t real_index = (uint32_t(to_index(index)) + uint32_t(padding)) >> 6ui32;
-	const uint32_t sub_index = (uint32_t(to_index(index)) + uint32_t(padding)) & 63ui32;
-	if(value)
-		v.data()[real_index] |= 1ui64 << uint64_t(sub_index);
-	else
-		v.data()[real_index] &= ~(1ui64 << uint64_t(sub_index));
-}
-
-template<typename index_type, bool padding>
-inline bool bit_vector_test(tagged_array_view<uint64_t const, index_type, padding> v, index_type index) {
-	const uint32_t real_index = (uint32_t(to_index(index)) + uint32_t(padding)) >> 6ui32;
-	const uint32_t sub_index = (uint32_t(to_index(index)) + uint32_t(padding)) & 63ui32;
-	return (v.data()[real_index] & (1ui64 << uint64_t(sub_index))) != 0ui64;
-}
-template<typename index_type, bool padding>
-inline bool bit_vector_test(tagged_array_view<uint64_t, index_type, padding> v, index_type index) {
-	const uint32_t real_index = (uint32_t(to_index(index)) + uint32_t(padding)) >> 6ui32;
-	const uint32_t sub_index = (uint32_t(to_index(index)) + uint32_t(padding)) & 63ui32;
-	return (v.data()[real_index] & (1ui64 << uint64_t(sub_index))) != 0ui64;
-}
-
 template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
 class stable_2d_vector {
 public:

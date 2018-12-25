@@ -55,6 +55,8 @@ namespace serialization {
 	};
 
 	template<>
+	class serializer<bitfield_type> : public memcpy_serializer<bitfield_type> {};
+	template<>
 	class serializer<bool> : public memcpy_serializer<bool> {};
 	template<>
 	class serializer<char> : public memcpy_serializer<char> {};

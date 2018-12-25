@@ -26,13 +26,13 @@ public:
 
 		auto cache_shuffle = [a_vec = a.data(), b_vec = b.data(), dist = std::uniform_real_distribution<float>(0.0f, 1.0f)](auto executor) {
 			auto rval = dist(get_local_generator());
-			auto av = executor.load(a_vec);
-			auto bv = executor.load(b_vec);
-			executor.store(a_vec, (av + bv + executor.constant(rval)) * executor.constant(0.5f));
-			executor.store(b_vec, av - bv - executor.constant(rval));
+			auto av = ve::load(executor, a_vec);
+			auto bv = ve::load(executor, b_vec);
+			ve::store(executor, a_vec, (av + bv + rval) * 0.5f);
+			ve::store(executor, b_vec, av - bv - rval);
 		};
 
-		ve::execute_parallel(1024 * 1024 * 8, cache_shuffle);
+		ve::execute_parallel<int32_t>(1024 * 1024 * 8, cache_shuffle);
 
 		return a[idist(get_local_generator())];
 	}

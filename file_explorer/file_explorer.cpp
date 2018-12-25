@@ -446,17 +446,31 @@ int main(int , char **) {
 		//(srange.first + 3)->state->project.location = provinces::province_tag(6);
 	}
 
+	std::cout << ws.w.nation_s.nations.get<nation::treasury>(ws.w.local_player_nation) << std::endl;
+
 	ws.w.current_date = date_tag(to_index(ws.w.current_date) - 2);
 	economy::economy_demand_adjustment_tick(ws);
+
+	std::cout << ws.w.nation_s.nations.get<nation::treasury>(ws.w.local_player_nation) << std::endl;
+
 	ws.w.current_date = date_tag(to_index(ws.w.current_date) + 1);
 	economy::economy_demand_adjustment_tick(ws);
+	
+	std::cout << ws.w.nation_s.nations.get<nation::treasury>(ws.w.local_player_nation) << std::endl;
+
+
 	ws.w.current_date = date_tag(to_index(ws.w.current_date) + 1);
+
+	std::cout << ws.w.nation_s.nations.get<nation::treasury>(ws.w.local_player_nation) << std::endl;
+
 
 	provinces::recalculate_province_demographics(ws);
 	nations::recalculate_state_nation_demographics(ws);
 
 	init_tooltip_window(ws.s.gui_m, ws.w.gui_m);
 	ws.w.gui_m.on_resize(ui::resize{ 850ui32, 650ui32 });
+
+	std::cout << ws.w.nation_s.nations.get<nation::treasury>(ws.w.local_player_nation) << std::endl;
 
 	std::thread update_thread([&ws](){
 		world_state_update_loop(ws);

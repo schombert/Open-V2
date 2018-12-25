@@ -402,7 +402,7 @@ namespace nations {
 		stable_2d_vector<governments::party_tag, country_tag, ideologies::ideology_tag, 512, 16> active_parties;
 		stable_2d_vector<uint8_t, country_tag, ideologies::ideology_tag, 512, 16> upper_house;
 		//stable_2d_vector<uint64_t, country_tag, technologies::tech_tag, 512, 16> active_technologies;
-		stable_2d_vector<uint64_t, country_tag, economy::goods_tag, 512, 16> active_goods;
+		stable_2d_vector<bitfield_type, country_tag, economy::goods_tag, 512, 16> active_goods;
 		stable_2d_vector<economy::money_qnty_type, country_tag, economy::goods_tag, 512, 16> collected_tariffs;
 		//stable_2d_vector<issues::option_tag, country_tag, issues::issue_tag, 512, 16> active_issue_options;
 		stable_2d_vector<economy::goods_qnty_type, country_tag, economy::goods_tag, 512, 16> national_stockpiles;

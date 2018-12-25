@@ -517,8 +517,8 @@ struct bitfield_type {
 static_assert(sizeof(bitfield_type) == 1);
 
 inline void bit_vector_set(bitfield_type* v, uint32_t index, bool value) {
-	const uint32_t real_index = index >> 4ui32;
-	const uint32_t sub_index = index & 15ui32;
+	const uint32_t real_index = index >> 3ui32;
+	const uint32_t sub_index = index & 7ui32;
 	if(value) 
 		v[real_index].v |= uint8_t(1ui32 << sub_index);
 	else
@@ -526,9 +526,19 @@ inline void bit_vector_set(bitfield_type* v, uint32_t index, bool value) {
 }
 
 inline bool bit_vector_test(bitfield_type const* v, uint32_t index) {
-	const uint32_t real_index = index >> 4ui32;
-	const uint32_t sub_index = index & 15ui32;
+	const uint32_t real_index = index >> 3ui32;
+	const uint32_t sub_index = index & 7ui32;
 	return (v[real_index].v & (1ui32 << sub_index)) != 0;
+}
+
+template<typename index_type, bool padding>
+void bit_vector_set(tagged_array_view<bitfield_type, index_type, padding> v, index_type index, bool value) {
+	bit_vector_set(v.data(), uint32_t(to_index(index) + typename index_type::value_base_t(padding)), value);
+}
+
+template<typename index_type, bool padding>
+bool bit_vector_test(tagged_array_view<bitfield_type const, index_type, padding> v, index_type index) {
+	return bit_vector_test(v.data(), uint32_t(to_index(index) + typename index_type::value_base_t(padding)));
 }
 
 enum key_modifiers {

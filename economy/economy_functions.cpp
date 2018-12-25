@@ -1424,7 +1424,7 @@ namespace economy {
 					workspace_local.nation_tarrif_income[state_owner] +=
 						((to_obj.tariff_income_accumulator[0] + to_obj.tariff_income_accumulator[1]) + (to_obj.tariff_income_accumulator[2] + to_obj.tariff_income_accumulator[3])).reduce();
 
-					
+					assert(!std::isnan(workspace_local.nation_tarrif_income[state_owner]));
 				} else {
 					player_tariff_updator to_obj(workspace_local.global_demand_by_state.data(), workspace_local.apparent_price.data(),
 						state_prices_copy.data(), values.data(), tarrif_mask.data(), state_owner_tarrifs, workspace_local.weightings.data());
@@ -1432,6 +1432,8 @@ namespace economy {
 					ve::execute_serial<nations::state_tag>(uint32_t(state_max + 1), to_obj);
 					workspace_local.nation_tarrif_income[state_owner] +=
 						((to_obj.tariff_income_accumulator[0] + to_obj.tariff_income_accumulator[1]) + (to_obj.tariff_income_accumulator[2] + to_obj.tariff_income_accumulator[3])).reduce();
+
+					assert(!std::isnan(workspace_local.nation_tarrif_income[state_owner]));
 
 					ws.w.nation_s.states.for_each([&workspace_local, &ws, state_owner](nations::state_tag st) {
 						auto other_state_owner = ws.w.nation_s.states.get<state::owner>(st);
@@ -1811,8 +1813,10 @@ namespace economy {
 			});
 
 			state_pops.ln_money_div_qnty_by_type[i] /= (total_ln > 0 ? total_ln : 1.0f);
-			state_pops.en_money_div_qnty_by_type[i] /= total_en;
-			state_pops.lx_money_div_qnty_by_type[i] /= total_xn;
+			state_pops.en_money_div_qnty_by_type[i] /= (total_en > 0 ? total_en : 1.0f);
+			state_pops.lx_money_div_qnty_by_type[i] /= (total_xn > 0 ? total_xn : 1.0f);
+
+			assert(std::isfinite(state_pops.lx_money_div_qnty_by_type[i]));
 		}
 	}
 
@@ -1977,6 +1981,10 @@ namespace economy {
 					state_demand,
 					ws.s.population_m.luxury_needs.get_row(ptype),
 					state_pops.lx_spending[i]);
+		}
+
+		for(int32_t i = 0; i < int32_t(ws.s.economy_m.goods_count); ++i) {
+			assert(!std::isnan(*(state_demand.data() + i)));
 		}
 	}
 	
@@ -2167,14 +2175,17 @@ namespace economy {
 
 			float& treasury = ws.w.nation_s.nations.get<nation::treasury>(n);
 
-			treasury += std::reduce(std::begin(tincome), std::end(tincome), 0.0f, std::plus<>());
+			auto tincome_sum = std::reduce(std::begin(tincome), std::end(tincome), 0.0f, std::plus<>());
+
+			treasury += tincome_sum;
+
 			pay_unemployement_pensions_salaries(ws, n);
 
 			auto amount = calculate_daily_debt_payment(ws, n);
 			auto paid = std::clamp(treasury, 0.0f, amount);
 			ws.w.nation_s.nations.get<nation::national_debt>(n) += (amount - paid) - amount / 2.0f;
 			treasury -= paid;
-			
+
 			if(treasury < 0.0f) {
 				ws.w.nation_s.nations.get<nation::national_debt>(n) -= treasury;
 				treasury = 0.0f;

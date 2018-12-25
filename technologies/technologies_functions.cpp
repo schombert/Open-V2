@@ -104,7 +104,7 @@ namespace technologies {
 
 		auto active_goods = ws.w.nation_s.active_goods.get_row(this_nation);
 		for(uint32_t j = 0; j < ws.s.economy_m.goods_count; ++j) {
-			bit_vector_set((bitfield_type*)(active_goods.data()), j, 0 == (ws.s.economy_m.goods[economy::goods_tag(static_cast<economy::goods_tag::value_base_t>(j))].flags & economy::good_definition::not_available_from_start));
+			bit_vector_set(active_goods, economy::goods_tag(economy::goods_tag::value_base_t(j)), 0 == (ws.s.economy_m.goods[economy::goods_tag(static_cast<economy::goods_tag::value_base_t>(j))].flags & economy::good_definition::not_available_from_start));
 		}
 
 		bitfield_type* enabled_crimes = (bitfield_type*)(&(ws.w.nation_s.nations.get<nation::enabled_crimes>(this_nation)));

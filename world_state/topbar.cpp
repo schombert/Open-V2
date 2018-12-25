@@ -200,7 +200,8 @@ namespace current_state {
 			if(ws.w.nation_s.nations.is_valid_index(pid)) {
 				char16_t local_buf[64];
 
-				auto end_pos = put_value_in_buffer(local_buf, display_type::integer, ws.w.nation_s.nations.get<nation::treasury>(pid));
+				auto tval = ws.w.nation_s.nations.get<nation::treasury>(pid);
+				auto end_pos = put_value_in_buffer(local_buf, display_type::integer, tval);
 				*end_pos = u'\u00A3';
 				*(end_pos + 1) = char16_t(0);
 				ui::text_chunk_to_instances(
