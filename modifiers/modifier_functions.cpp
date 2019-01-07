@@ -61,39 +61,58 @@ namespace modifiers {
 	void apply_scaled_nat_modifier(world_state& ws,
 		const modifier_definition& def,
 		tagged_array_view<float, nations::country_tag, true> scale_values) {
-		auto nations_count = ws.w.nation_s.nations.size() + 1;
+		auto nations_count = ws.w.nation_s.nations.vector_size();
 
 		concurrency::parallel_for(0, modifier_attribute_count(def), [&ws, &def, scale_values, nations_count](int32_t i) {
-			ve::accumulate_scaled<nations::country_tag, true>(ws.w.nation_s.modifier_values.get_row(def.offsets[i], nations_count), scale_values, def.values[i]);
+			ve::accumulate_scaled(nations_count, ws.w.nation_s.modifier_values.get_row(def.offsets[i], nations_count), scale_values, def.values[i]);
 		}, concurrency::static_partitioner());
 	}
 	void apply_scaled_nat_modifier(world_state& ws,
 		const modifier_definition& def,
 		tagged_array_view<float, nations::country_tag, true> scale_values,
 		float fixed_scale) {
-		auto nations_count = ws.w.nation_s.nations.size() + 1;
+		auto nations_count = ws.w.nation_s.nations.vector_size();
 
 		concurrency::parallel_for(0, modifier_attribute_count(def), [&ws, &def, scale_values, fixed_scale, nations_count](int32_t i) {
-			ve::accumulate_scaled<nations::country_tag, true>(ws.w.nation_s.modifier_values.get_row(def.offsets[i], nations_count), scale_values, fixed_scale * def.values[i]);
+			ve::accumulate_scaled(nations_count, ws.w.nation_s.modifier_values.get_row(def.offsets[i], nations_count), scale_values, fixed_scale * def.values[i]);
 		}, concurrency::static_partitioner());
 	}
 	void apply_scaled_prov_modifier(world_state& ws,
 		const modifier_definition& def,
 		tagged_array_view<float, provinces::province_tag, true> scale_values) {
-		auto pcount = ws.w.province_s.province_state_container.size() + 1;
+		auto pcount = ws.w.province_s.province_state_container.vector_size();
 
 		concurrency::parallel_for(0, modifier_attribute_count(def), [&ws, &def, scale_values, pcount](int32_t i) {
-			ve::accumulate_scaled<provinces::province_tag, true>(ws.w.province_s.modifier_values.get_row(def.offsets[i], pcount), scale_values, def.values[i]);
+			ve::accumulate_scaled(pcount, ws.w.province_s.modifier_values.get_row(def.offsets[i], pcount), scale_values, def.values[i]);
 		}, concurrency::static_partitioner());
 	}
 	void apply_scaled_prov_modifier(world_state& ws,
 		const modifier_definition& def,
 		tagged_array_view<float, provinces::province_tag, true> scale_values,
 		float fixed_scale) {
-		auto pcount = ws.w.province_s.province_state_container.size() + 1;
+		auto pcount = ws.w.province_s.province_state_container.vector_size();
 
 		concurrency::parallel_for(0, modifier_attribute_count(def), [&ws, &def, scale_values, pcount, fixed_scale](int32_t i) {
-			ve::accumulate_scaled<provinces::province_tag, true>(ws.w.province_s.modifier_values.get_row(def.offsets[i], pcount), scale_values, fixed_scale * def.values[i]);
+			ve::accumulate_scaled(pcount, ws.w.province_s.modifier_values.get_row(def.offsets[i], pcount), scale_values, fixed_scale * def.values[i]);
+		}, concurrency::static_partitioner());
+	}
+	void apply_scaled_prov_modifier(world_state& ws,
+		const modifier_definition& def,
+		tagged_array_view<uint8_t, provinces::province_tag, true> scale_values) {
+		auto pcount = ws.w.province_s.province_state_container.vector_size();
+
+		concurrency::parallel_for(0, modifier_attribute_count(def), [&ws, &def, scale_values, pcount](int32_t i) {
+			ve::accumulate_ui8_scaled(pcount, ws.w.province_s.modifier_values.get_row(def.offsets[i], pcount), scale_values, def.values[i]);
+		}, concurrency::static_partitioner());
+	}
+	void apply_scaled_prov_modifier(world_state& ws,
+		const modifier_definition& def,
+		tagged_array_view<uint8_t, provinces::province_tag, true> scale_values,
+		float fixed_scale) {
+		auto pcount = ws.w.province_s.province_state_container.vector_size();
+
+		concurrency::parallel_for(0, modifier_attribute_count(def), [&ws, &def, scale_values, pcount, fixed_scale](int32_t i) {
+			ve::accumulate_ui8_scaled(pcount, ws.w.province_s.modifier_values.get_row(def.offsets[i], pcount), scale_values, fixed_scale * def.values[i]);
 		}, concurrency::static_partitioner());
 	}
 	/*
@@ -313,7 +332,7 @@ namespace modifiers {
 			ws.w.nation_s.nations.get_row<nation::plurality>(),
 			100.0f);
 
-		auto nations_count = ws.w.nation_s.nations.size();
+		auto nations_count = ws.w.nation_s.nations.vector_size();
 		concurrent_cache_aligned_buffer<float, nations::country_tag, true> temporary_buffer(nations_count);
 
 		ws.w.nation_s.nations.parallel_for_each([&ws, &temporary_buffer](nations::country_tag this_nation) {
@@ -406,39 +425,26 @@ namespace modifiers {
 			}
 		});
 
-		auto pcount = ws.w.province_s.province_state_container.size();
-		concurrent_cache_aligned_buffer<float, provinces::province_tag, true> temporary_buffer(pcount);
-
-		ws.w.province_s.province_state_container.parallel_for_each([&ws, &temporary_buffer](provinces::province_tag this_province) {
-			temporary_buffer[this_province] = float(ws.w.province_s.province_state_container.get<province_state::railroad_level>(this_province));
-		}, concurrency::static_partitioner());
-
 		apply_scaled_prov_modifier(ws,
 			ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.static_modifiers.infrastructure],
-			temporary_buffer.view(pcount),
+			ws.w.province_s.province_state_container.get_row<province_state::railroad_level>(),
 			ws.s.economy_m.railroad.infrastructure);
 
 		if(is_valid_index(ws.s.economy_m.railroad_modifier)) {
 			apply_scaled_prov_modifier(ws,
 				ws.s.modifiers_m.provincial_modifier_definitions[ws.s.economy_m.railroad_modifier],
-				temporary_buffer.view(pcount));
+				ws.w.province_s.province_state_container.get_row<province_state::railroad_level>());
 		}
 
 		if(is_valid_index(ws.s.economy_m.fort_modifier)) {
-			ws.w.province_s.province_state_container.parallel_for_each([&ws, &temporary_buffer](provinces::province_tag this_province) {
-				temporary_buffer[this_province] = float(ws.w.province_s.province_state_container.get<province_state::fort_level>(this_province));
-			}, concurrency::static_partitioner());
 			apply_scaled_prov_modifier(ws,
 				ws.s.modifiers_m.provincial_modifier_definitions[ws.s.economy_m.fort_modifier],
-				temporary_buffer.view(pcount));
+				ws.w.province_s.province_state_container.get_row<province_state::fort_level>());
 		}
 		if(is_valid_index(ws.s.economy_m.naval_base_modifier)) {
-			ws.w.province_s.province_state_container.parallel_for_each([&ws, &temporary_buffer](provinces::province_tag this_province) {
-				temporary_buffer[this_province] = float(ws.w.province_s.province_state_container.get<province_state::naval_base_level>(this_province));
-			}, concurrency::static_partitioner());
 			apply_scaled_prov_modifier(ws,
 				ws.s.modifiers_m.provincial_modifier_definitions[ws.s.economy_m.naval_base_modifier],
-				temporary_buffer.view(pcount));
+				ws.w.province_s.province_state_container.get_row<province_state::naval_base_level>());
 		}
 
 		apply_scaled_prov_modifier(ws,

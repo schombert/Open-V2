@@ -54,23 +54,24 @@ namespace boost {
 
 #undef max
 #undef min
+namespace std {
+	template<typename A, typename = typename std::iterator_traits<A>::iterator_category>
+	constexpr auto begin(std::pair<A, A> const& p) {
+		return p.first;
+	}
+	template<typename A, typename = typename std::iterator_traits<A>::iterator_category>
+	constexpr auto end(std::pair<A, A> const& p) {
+		return p.second;
+	}
 
-template<typename A, typename = typename std::iterator_traits<A>::iterator_category>
-constexpr auto begin(std::pair<A, A> const& p) {
-	return p.first;
-}
-template<typename A, typename = typename std::iterator_traits<A>::iterator_category>
-constexpr auto end(std::pair<A, A> const& p) {
-	return p.second;
-}
-
-template<typename A>
-constexpr auto begin(std::pair<A*, A*> const& p) {
-	return p.first;
-}
-template<typename A>
-constexpr auto end(std::pair<A*, A*> const& p) {
-	return p.second;
+	template<typename A>
+	constexpr auto begin(std::pair<A*, A*> const& p) {
+		return p.first;
+	}
+	template<typename A>
+	constexpr auto end(std::pair<A*, A*> const& p) {
+		return p.second;
+	}
 }
 
 template<typename T>
@@ -342,9 +343,16 @@ template<typename T, typename index_type, bool padding>
 struct tagged_array_view {
 private:
 	T* const ptr = nullptr;
-	int32_t size = 0;
 public:
-	constexpr tagged_array_view(T* p, int32_t s) noexcept : ptr(p), size(s) {}
+#ifdef _DEBUG
+	int32_t size = 0;
+#endif
+
+	constexpr tagged_array_view(T* p, int32_t s) noexcept : ptr(p)
+#ifdef _DEBUG
+		, size(s) 
+#endif
+	{}
 
 	T& operator[](index_type i) const noexcept {
 		if constexpr(padding) {
@@ -360,9 +368,11 @@ public:
 			return ptr;
 		}
 	}
-	T* end() const noexcept {
+#ifdef _DEBUG
+	T* debug_end() const noexcept {
 		return ptr + size;
 	}
+#endif
 	T* data() const noexcept {
 		return ptr;
 	}
@@ -370,10 +380,22 @@ public:
 		return ptr != nullptr;
 	}
 	constexpr operator tagged_array_view<const T, index_type, padding>() const noexcept {
-		return tagged_array_view<const T, index_type, padding>(ptr, size);
+		return tagged_array_view<const T, index_type, padding>(ptr, 
+#ifdef _DEBUG
+			size
+#else
+			0
+#endif
+			);
 	}
 	constexpr tagged_array_view<T, index_type, padding> operator+(int32_t i) const noexcept {
-		return tagged_array_view<T, index_type, padding>(ptr + i, size - i);
+		return tagged_array_view<T, index_type, padding>(ptr + i,
+#ifdef _DEBUG
+			size - i
+#else
+			0
+#endif
+			);
 	}
 };
 
@@ -408,8 +430,24 @@ public:
 	void resize(size_t size) { storage.resize(size + size_t(padded)); }
 	void reserve(size_t size) { storage.reserve(size + size_t(padded)); }
 	void pop_back() { storage.pop_back(); }
-	tagged_array_view<value_type, tag_type, padded> view() { return tagged_array_view<value_type, tag_type, padded>(storage.data(), int32_t(storage.size())); };
-	tagged_array_view<value_type const, tag_type, padded> view() const { return tagged_array_view<value_type const, tag_type, padded>(storage.data(), int32_t(storage.size())); };
+	tagged_array_view<value_type, tag_type, padded> view() {
+		return tagged_array_view<value_type, tag_type, padded>(storage.data(),
+#ifdef _DEBUG
+			int32_t(storage.size())
+#else
+			0
+#endif
+			);
+	};
+	tagged_array_view<value_type const, tag_type, padded> view() const {
+		return tagged_array_view<value_type const, tag_type, padded>(storage.data(),
+#ifdef _DEBUG
+			int32_t(storage.size())
+#else
+			0
+#endif
+		);
+	};
 };
 
 template<typename value_type, typename variable_tag_type, typename fixed_tag_type, typename allocator = std::allocator<value_type>>
@@ -425,10 +463,10 @@ public:
 		return storage[(uint32_t)to_index(inner) + (uint32_t)to_index(outer) * _inner_size];
 	}
 	tagged_array_view<value_type, fixed_tag_type, false> get_row(variable_tag_type outer) {
-		return tagged_array_view<value_type, fixed_tag_type, false>((value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), _inner_size);
+		return tagged_array_view<value_type, fixed_tag_type, false>((value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), int32_t(_inner_size));
 	}
 	tagged_array_view<const value_type, fixed_tag_type, false> get_row(variable_tag_type outer) const {
-		return tagged_array_view<const value_type, fixed_tag_type, false>((const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), _inner_size);
+		return tagged_array_view<const value_type, fixed_tag_type, false>((const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), int32_t(_inner_size));
 	}
 	value_type& safe_get(variable_tag_type outer, fixed_tag_type inner) {
 		const auto n2 = ((uint32_t)to_index(outer) + 1ui32) * _inner_size;
@@ -473,22 +511,22 @@ public:
 		return *((const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size) + (uint32_t)to_index(inner));
 	}
 	tagged_array_view<value_type, fixed_tag_type, false> get_row(variable_tag_type outer) {
-		return tagged_array_view<value_type, fixed_tag_type, false>((value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), observable_inner_size);
+		return tagged_array_view<value_type, fixed_tag_type, false>((value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), _inner_size * block_size / sizeof(value_type));
 	}
 	tagged_array_view<const value_type, fixed_tag_type, false> get_row(variable_tag_type outer) const {
-		return tagged_array_view<const value_type, fixed_tag_type, false>((const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), observable_inner_size);
+		return tagged_array_view<const value_type, fixed_tag_type, false>((const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), _inner_size * block_size / sizeof(value_type));
 	}
 	tagged_array_view<value_type, fixed_tag_type, false> safe_get_row(variable_tag_type outer) {
 		const auto n2 = ((uint32_t)to_index(outer) + 1ui32) * _inner_size;
 		if (n2 >= storage.size())
 			storage.resize(n2);
-		return tagged_array_view<value_type, fixed_tag_type, false>((value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), observable_inner_size);
+		return tagged_array_view<value_type, fixed_tag_type, false>((value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), _inner_size * block_size / sizeof(value_type));
 	}
 	tagged_array_view<const value_type, fixed_tag_type, false> safe_get_row(variable_tag_type outer) const {
 		const auto n2 = ((uint32_t)to_index(outer) + 1ui32) * _inner_size;
 		if (n2 >= storage.size())
 			storage.resize(n2);
-		return tagged_array_view<const value_type, fixed_tag_type, false>((const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), observable_inner_size);
+		return tagged_array_view<const value_type, fixed_tag_type, false>((const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), _inner_size * block_size / sizeof(value_type));
 	}
 	value_type& safe_get(variable_tag_type outer, fixed_tag_type inner) {
 		const auto n2 = ((uint32_t)to_index(outer) + 1ui32) * _inner_size;
@@ -503,7 +541,7 @@ public:
 	}
 	size_t size() const { return storage.size(); }
 	size_t outer_size() const { return storage.size() / _inner_size; }
-	uint32_t inner_size() const { return _inner_size * block_size / sizeof(value_type); }
+	uint32_t inner_size() const { return observable_inner_size; }
 	auto data() const { return storage.data(); }
 	auto data() { return storage.data(); }
 	void resize(size_t outer_size) { storage.resize(outer_size * _inner_size); }

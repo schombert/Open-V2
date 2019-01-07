@@ -1015,9 +1015,9 @@ namespace graphics {
 						
 						for(int32_t i = 0; i < ws.w.province_s.province_state_container.size(); ++i) {
 							if(auto sid = provinces::province_state(ws, provinces::province_tag(provinces::province_tag::value_base_t(i)));
-								bool(sid) && bool(ws.w.nation_s.states.get<state::owner>(sid)) && &(purchases_data_range[sid]) < std::end(purchases_data_range)) {
+								bool(sid) && bool(ws.w.nation_s.states.get<state::owner>(sid)) && purchases_data_range.first + to_index(sid) + 1 < purchases_data_range.second) {
 
-								auto amount = purchases_data_range[sid];
+								auto amount = purchases_data_range.first[to_index(sid) + 1];
 
 								auto fraction = amount / (max_purchases + 0.000001f);
 								if(fraction < 0)

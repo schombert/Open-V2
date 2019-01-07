@@ -425,12 +425,17 @@ std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_m
 	return get_range(storage, i.value);
 }
 template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
-tagged_array_view<const object_type, index_type, padding> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, array_tag<object_type, index_type, padding> i) {
+std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, array_tag<object_type, index_type, padding> i) {
+	return get_range(storage, i.value);
+}
+
+template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
+tagged_array_view<const object_type, index_type, padding> get_view(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, array_tag<object_type, index_type, padding> i) {
 	auto r = get_range(storage, i.value);
 	return tagged_array_view<const object_type, index_type, padding>(r.first, int32_t(r.second - r.first));
 }
 template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
-tagged_array_view<object_type, index_type, padding> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, array_tag<object_type, index_type, padding> i) {
+tagged_array_view<object_type, index_type, padding> get_view(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, array_tag<object_type, index_type, padding> i) {
 	auto r = get_range(storage, i.value);
 	return tagged_array_view<object_type, index_type, padding>(r.first, int32_t(r.second - r.first));
 }
@@ -500,10 +505,10 @@ void add_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, mem
 template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
 void remove_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, array_tag<object_type, index_type, padding>& i, object_type obj) {
 	auto range = get_range(storage, i);
-	const auto f = std::find(std::begin(range), std::end(range), obj);
-	if(f == std::end(range))
+	const auto f = std::find(begin(range), end(range), obj);
+	if(f == end(range))
 		return;
-	*f = *(std::end(range) - 1);
+	*f = *(end(range) - 1);
 	pop_back(storage, i.value);
 }
 template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
@@ -549,8 +554,8 @@ void remove_item_if(stable_variable_vector_storage_mk_2<object_type, minimum_siz
 	auto size = int32_t(std::end(range) - std::begin(range));
 
 	for(int32_t j = int32_t(size); j--; ) {
-		if(f(range.data()[j + int32_t(padding)])) {
-			range.data()[j + int32_t(padding)] = std::move(range.data()[size - 1 + int32_t(padding)]);
+		if(f(range.first[j + int32_t(padding)])) {
+			range.first[j + int32_t(padding)] = std::move(range.first[size - 1 + int32_t(padding)]);
 			--size;
 		}
 	}

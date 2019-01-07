@@ -561,10 +561,10 @@ namespace nations {
 	}
 
 	void update_state_nation_demographics(world_state& ws) {
-		ve::copy<nations::country_tag, true>(ws.w.nation_s.nations.get_row<nation::last_population>(),
+		ve::copy(ve::to_vector_size(ws.w.nation_s.nations.size() + 1), ws.w.nation_s.nations.get_row<nation::last_population>(),
 			ws.w.nation_s.nations.get_row<nation::total_core_population>());
-		ve::par_copy<nations::state_tag, true>(ws.w.nation_s.states.get_row<state::last_population>(),
-			ws.w.nation_s.states.get_row<state::total_population>());
+		ve::copy(ve::to_vector_size(ws.w.nation_s.states.size() + 1), ws.w.nation_s.states.get_row<state::last_population>(),
+			ws.w.nation_s.states.get_row<state::total_population>(), ve::par());
 		recalculate_state_nation_demographics(ws);
 	}
 
@@ -574,21 +574,23 @@ namespace nations {
 		ws.w.nation_s.nations.parallel_for_each([&ws, full_vector_size](country_tag n) {
 			auto nation_demo = ws.w.nation_s.nation_demographics.get_row(n);
 			auto nation_c_demo = ws.w.nation_s.nation_colonial_demographics.get_row(n);
+			const auto demo_size = ws.w.nation_s.nation_demographics.inner_size;
 			
-			ve::set_zero<population::demo_tag, false>(nation_demo);
-			ve::set_zero<population::demo_tag, false>(nation_c_demo);
+			ve::set_zero(demo_size, nation_demo, ve::serial_exact());
+			ve::set_zero(demo_size, nation_c_demo, ve::serial_exact());
 
 			const auto state_range = get_range(ws.w.nation_s.state_arrays, ws.w.nation_s.nations.get<nation::member_states>(n));
 
 			for(auto s = state_range.first; s != state_range.second; ++s) {
 				auto state_demo = ws.w.nation_s.state_demographics.get_row(s->state);
-				ve::set_zero<population::demo_tag, false>(state_demo);
+				
+				ve::set_zero(demo_size, state_demo);
 
 				const auto p_in_region_range = ws.s.province_m.states_to_province_index.get_row(s->region_id);
 				for(auto p = p_in_region_range.first; p != p_in_region_range.second; ++p) {
 					if(ws.w.province_s.province_state_container.get<province_state::owner>(*p) == n) {
 						auto province_demo = ws.w.province_s.province_demographics.get_row(*p);
-						ve::accumulate_exact<population::demo_tag, false>(state_demo, province_demo);
+						ve::accumulate(demo_size, state_demo, province_demo, ve::serial_exact());
 					}
 				}
 
@@ -613,9 +615,9 @@ namespace nations {
 				ws.w.nation_s.states.set<state::total_population>(s->state, state_demo[population::total_population_tag]);
 
 				if(!nations::is_colonial_or_protectorate(ws, s->state))
-					ve::accumulate_exact<population::demo_tag, false>(nation_demo, state_demo);
+					ve::accumulate(demo_size, nation_demo, state_demo, ve::serial_exact());
 				else
-					ve::accumulate_exact<population::demo_tag, false>(nation_c_demo, state_demo);
+					ve::accumulate(demo_size, nation_c_demo, state_demo, ve::serial_exact());
 			}
 
 			if(nation_demo[population::total_population_tag] != 0) {

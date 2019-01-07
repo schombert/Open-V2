@@ -285,6 +285,43 @@ namespace ve {
 		execute_parallel_exact<tag_type>(0, count, functor);
 	}
 
+	struct serial_exact {
+		template<typename tag_type, typename F>
+		__forceinline static void execute(uint32_t count, F&& functor) {
+			execute_serial<tag_type>(count, functor);
+		}
+	};
+	struct serial_unaligned {
+		template<typename tag_type, typename F>
+		__forceinline static void execute(uint32_t count, F&& functor) {
+			execute_serial_unaligned<tag_type>(count, functor);
+		}
+	};
+	struct serial {
+		template<typename tag_type, typename F>
+		__forceinline static void execute(uint32_t count, F&& functor) {
+			assert(count % ve::vector_size == 0);
+			execute_serial_fast<tag_type>(count, functor);
+		}
+	};
+	struct par {
+		template<typename tag_type, typename F>
+		__forceinline static void execute(uint32_t count, F&& functor) {
+			assert(count % ve::vector_size == 0);
+			execute_parallel<tag_type>(count, functor);
+		}
+	};
+	struct par_exact {
+		template<typename tag_type, typename F>
+		__forceinline static void execute(uint32_t count, F&& functor) {
+			execute_parallel_exact<tag_type>(count, functor);
+		}
+	};
+
+	constexpr inline uint32_t to_vector_size(uint32_t i) {
+		return (i + (ve::vector_size - 1ui32)) & ~(ve::vector_size - 1ui32);
+	}
+
 	namespace ve_impl {
 		struct reduce_operator {
 			float const* const vector;
@@ -299,10 +336,13 @@ namespace ve {
 		};
 	}
 
-	template<typename itype, bool padded>
-	__forceinline float reduce(tagged_array_view<const float, itype, padded> vector) {
+	template<typename T, typename itype, bool padded, typename policy = serial_exact>
+	__forceinline auto reduce(uint32_t size, tagged_array_view<T, itype, padded> vector, policy p = serial_exact())
+		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, float>, float> {
+		assert(vector.size >= int32_t(size));
+		
 		ve_impl::reduce_operator ro(vector.data());
-		execute_serial<itype>(uint32_t(std::end(vector) - vector.data()), ro);
+		policy::template execute<itype>(size, ro);
 		return ((ro.accumulator[0] + ro.accumulator[1]) + (ro.accumulator[2] + ro.accumulator[3])).reduce();
 	}
 
@@ -320,9 +360,12 @@ namespace ve {
 		};
 	}
 
-	template<typename itype, bool padded>
-	__forceinline void rescale(tagged_array_view<float, itype, padded> vector, float scale_factor) {
-		execute_serial_fast<itype>(uint32_t(std::end(vector) - vector.data()), ve_impl::rescale_operator(vector.data(), scale_factor));
+	template<typename T, typename itype, bool padded, typename policy = serial>
+	__forceinline auto rescale(uint32_t size, tagged_array_view<T, itype, padded> vector, float scale_factor, policy p = serial())
+		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, float>, void> {
+		assert(vector.size >= int32_t(size));
+
+		policy::template execute<itype>(size, ve_impl::rescale_operator(vector.data(), scale_factor));
 	}
 
 	namespace ve_impl {
@@ -339,16 +382,14 @@ namespace ve {
 		};
 	}
 
-	template<typename itype, bool padded>
-	__forceinline void accumulate(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> accumulated) {
-		assert(std::end(destination) - destination.data() == std::end(accumulated) - accumulated.data());
-		execute_serial_fast<itype>(uint32_t(std::end(destination) - destination.data()), ve_impl::vector_accumulate_operator(destination.data(), accumulated.data()));
-	}
+	template<typename itype, bool padded, typename T, typename policy = serial>
+	__forceinline auto accumulate(uint32_t size, tagged_array_view<float, itype, padded> destination, tagged_array_view<T, itype, padded> accumulated, policy p = serial())
+		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, float>, void> {
 
-	template<typename itype, bool padded>
-	__forceinline void accumulate_exact(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> accumulated) {
-		execute_serial_unaligned<itype>(std::min(uint32_t(std::end(destination) - destination.data()), uint32_t(std::end(accumulated) - accumulated.data())),
-			ve_impl::vector_accumulate_operator(destination.data(), accumulated.data()));
+		assert(destination.size >= int32_t(size));
+		assert(accumulated.size >= int32_t(size));
+
+		policy::template execute<itype>(size, ve_impl::vector_accumulate_operator(destination.data(), accumulated.data()));
 	}
 
 	namespace ve_impl {
@@ -365,16 +406,14 @@ namespace ve {
 	   };
 	}
 
-	template<typename itype, bool padded>
-	__forceinline void copy(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> source) {
-		assert(std::end(destination) - destination.data() >= std::end(source) - source.data());
-		execute_serial_fast<itype>(uint32_t(std::end(source) - source.data()), ve_impl::vector_copy_operator(destination.data(), source.data()));
-	}
+	template<typename itype, bool padded, typename T, typename policy = serial>
+	__forceinline auto copy(uint32_t size, tagged_array_view<float, itype, padded> destination, tagged_array_view<T, itype, padded> source, policy p = serial())
+		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, float>, void> {
 
-	template<typename itype, bool padded>
-	__forceinline void par_copy(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> source) {
-		assert(std::end(destination) - destination.data() >= std::end(source) - source.data());
-		execute_parallel<itype>(uint32_t(std::end(source) - source.data()), ve_impl::vector_copy_operator(destination.data(), source.data()));
+		assert(destination.size >= int32_t(size));
+		assert(source.size >= int32_t(size));
+
+		policy::template execute<itype>(size, ve_impl::vector_copy_operator(destination.data(), source.data()));
 	}
 
 	namespace ve_impl {
@@ -392,16 +431,39 @@ namespace ve {
 		};
 	}
 
-	template<typename itype, bool padded>
-	__forceinline void accumulate_scaled(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> accumulated, float scale) {
-		assert(std::end(destination) - destination.data() == std::end(accumulated) - accumulated.data());
-		execute_serial_fast<itype>(uint32_t(std::end(destination) - destination.data()), ve_impl::vector_accumulate_scaled_operator(destination.data(), accumulated.data(), scale));
+	template<typename itype, bool padded, typename T, typename policy = serial>
+	__forceinline auto accumulate_scaled(uint32_t size, tagged_array_view<float, itype, padded> destination, tagged_array_view<T, itype, padded> accumulated, float scale, policy p = serial())
+		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, float>, void> {
+		
+		assert(destination.size >= int32_t(size));
+		assert(accumulated.size >= int32_t(size));
+
+		policy::template execute<itype>(size, ve_impl::vector_accumulate_scaled_operator(destination.data(), accumulated.data(), scale));
 	}
 
-	template<typename itype, bool padded>
-	__forceinline void par_accumulate_scaled(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> accumulated, float scale) {
-		assert(std::end(destination) - destination.data() == std::end(accumulated) - accumulated.data());
-		execute_parallel<itype>(uint32_t(std::end(destination) - destination.data()), ve_impl::vector_accumulate_scaled_operator(destination.data(), accumulated.data(), scale));
+	namespace ve_impl {
+		struct vector_accumulate_ui8_scaled_operator {
+			float* const dest;
+			uint8_t const* const accumulated;
+			float const scale;
+
+			vector_accumulate_ui8_scaled_operator(float* d, uint8_t const* a, float s) : dest(d), accumulated(a), scale(s) {};
+
+			template<typename T>
+			__forceinline void operator()(T executor) {
+				store(executor, dest, ve::multiply_and_add(scale, to_float(load(executor, accumulated)), load(executor, dest)));
+			}
+		};
+	}
+
+	template<typename itype, bool padded, typename T, typename policy = serial>
+	__forceinline auto accumulate_ui8_scaled(uint32_t size, tagged_array_view<float, itype, padded> destination, tagged_array_view<T, itype, padded> accumulated, float scale, policy p = serial())
+		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, uint8_t>, void> {
+
+		assert(destination.size >= int32_t(size));
+		assert(accumulated.size >= int32_t(size));
+
+		policy::template execute<itype>(size, ve_impl::vector_accumulate_ui8_scaled_operator(destination.data(), accumulated.data(), scale));
 	}
 
 	namespace ve_impl {
@@ -419,14 +481,15 @@ namespace ve {
 		};
 	}
 
-	template<typename itype, bool padded>
-	__forceinline float dot_product(tagged_array_view<const float, itype, padded> a, tagged_array_view<const float, itype, padded> b) {
-#ifdef _DEBUG
-		assert(std::end(a) - a.data() == std::end(b) - b.data());
-#endif
+	template<typename itype, bool padded, typename T, typename U, typename policy = serial_exact>
+	__forceinline auto dot_product(uint32_t size, tagged_array_view<T, itype, padded> a, tagged_array_view<U, itype, padded> b, policy p = serial_exact())
+		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, float> && std::is_same_v<std::remove_cv_t<U>, float>, float> {
+		
+		assert(b.size >= int32_t(size));
+		assert(a.size >= int32_t(size));
 
 		ve_impl::dot_product_operator op(a.data(), b.data());
-		execute_serial<itype>(uint32_t(std::end(a) - a.data()), op);
+		policy::template execute<itype>(size, op);
 
 		return ((op.accumulator[0] + op.accumulator[1]) + (op.accumulator[2] + op.accumulator[3])).reduce();
 	}
@@ -446,12 +509,15 @@ namespace ve {
 		};
 	}
 
-	template<typename itype, bool padded>
-	__forceinline void accumulate_product(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> a, tagged_array_view<const float, itype, padded> b) {
-#ifdef _DEBUG
-		assert(std::end(destination) - destination.data() == std::end(a) - a.data() && std::end(destination) - destination.data() == std::end(b) - b.data());
-#endif
-		execute_serial_fast<itype>(uint32_t(std::end(destination) - destination.data()), ve_impl::vector_accumulate_product_operator(destination.data(), a.data(), b.data()));
+	template<typename itype, bool padded, typename T, typename U, typename policy = serial>
+	__forceinline auto accumulate_product(uint32_t size, tagged_array_view<float, itype, padded> destination, tagged_array_view<T, itype, padded> a, tagged_array_view<U, itype, padded> b, policy p = serial())
+		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, float> && std::is_same_v<std::remove_cv_t<U>, float>, void> {
+		
+		assert(destination.size >= int32_t(size));
+		assert(b.size >= int32_t(size));
+		assert(a.size >= int32_t(size));
+
+		policy::template execute<itype>(size, ve_impl::vector_accumulate_product_operator(destination.data(), a.data(), b.data()));
 	}
 
 	namespace ve_impl {
@@ -470,12 +536,15 @@ namespace ve {
 		};
 	}
 
-	template<typename itype, bool padded>
-	__forceinline void accumulate_scaled_product(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> a, tagged_array_view<const float, itype, padded> b, float scale) {
-#ifdef _DEBUG
-		assert(std::end(destination) - destination.data() == std::end(a) - a.data() && std::end(destination) - destination.data() == std::end(b) - b.data());
-#endif
-		execute_serial_fast<itype>(uint32_t(std::end(destination) - destination.data()), ve_impl::vector_accumulate_scaled_product_operator(destination.data(), a.data(), b.data(), scale));
+	template<typename itype, bool padded, typename T, typename U, typename policy = serial>
+	__forceinline auto accumulate_scaled_product(uint32_t size, tagged_array_view<float, itype, padded> destination, tagged_array_view<T, itype, padded> a, tagged_array_view<U, itype, padded> b, float scale, policy p = serial())
+		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, float> && std::is_same_v<std::remove_cv_t<U>, float>, void> {
+
+		assert(destination.size >= int32_t(size));
+		assert(b.size >= int32_t(size));
+		assert(a.size >= int32_t(size));
+
+		policy::template execute<itype>(size, ve_impl::vector_accumulate_scaled_product_operator(destination.data(), a.data(), b.data(), scale));
 	}
 
 	namespace ve_impl {
@@ -493,12 +562,15 @@ namespace ve {
 		};
 	}
 
-	template<typename itype, bool padded>
-	__forceinline void accumulate_sum(tagged_array_view<float, itype, padded> destination, tagged_array_view<const float, itype, padded> a, tagged_array_view<const float, itype, padded> b) {
-#ifdef _DEBUG
-		assert(std::end(destination) - destination.data() == std::end(a) - a.data() && std::end(destination) - destination.data() == std::end(b) - b.data());
-#endif
-		execute_serial_fast<itype>(uint32_t(std::end(destination) - destination.data()), ve_impl::vector_accumulate_sum_operator(destination.data(), a.data(), b.data()));
+	template<typename itype, bool padded, typename T, typename U, typename policy = serial>
+	__forceinline auto accumulate_sum(uint32_t size, tagged_array_view<float, itype, padded> destination, tagged_array_view<T, itype, padded> a, tagged_array_view<const float, itype, padded> b, policy p = serial())
+		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, float> && std::is_same_v<std::remove_cv_t<U>, float>, void> {
+
+		assert(destination.size >= int32_t(size));
+		assert(b.size >= int32_t(size));
+		assert(a.size >= int32_t(size));
+
+		policy::template execute<itype>(size, ve_impl::vector_accumulate_sum_operator(destination.data(), a.data(), b.data()));
 	}
 
 	namespace ve_impl {
@@ -513,8 +585,10 @@ namespace ve {
 		};
 	}
 
-	template<typename itype, bool padded>
-	__forceinline void set_zero(tagged_array_view<float, itype, padded> destination) {
-		execute_serial_fast<itype>(uint32_t(std::end(destination) - destination.data()), ve_impl::vector_zero_operator(destination.data()));
+	template<typename itype, bool padded, typename policy = serial>
+	__forceinline void set_zero(uint32_t size, tagged_array_view<float, itype, padded> destination, policy p = serial()) {
+		assert(destination.size >= int32_t(size));
+
+		policy::template execute<itype>(size, ve_impl::vector_zero_operator(destination.data()));
 	}
 }

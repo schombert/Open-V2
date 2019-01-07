@@ -284,8 +284,8 @@ namespace economy {
 	}
 	void sort_by_gpflag0_button::update(ui::masked_flag<sort_by_gpflag0_button>& self, world_state & ws) {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
-		if(std::begin(r) + 0 < std::end(r)) {
-			if(auto id = r[0]; ws.w.nation_s.nations.is_valid_index(id))
+		if(begin(r) + 0 < end(r)) {
+			if(auto id = r.first[0]; ws.w.nation_s.nations.is_valid_index(id))
 				self.set_displayed_flag(ws, id);
 		}
 	}
@@ -295,8 +295,8 @@ namespace economy {
 	}
 	void sort_by_gpflag1_button::update(ui::masked_flag<sort_by_gpflag1_button>& self, world_state & ws) {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
-		if(std::begin(r) + 1 < std::end(r)) {
-			if(auto id = r[1]; ws.w.nation_s.nations.is_valid_index(id))
+		if(begin(r) + 1 < end(r)) {
+			if(auto id = r.first[1]; ws.w.nation_s.nations.is_valid_index(id))
 				self.set_displayed_flag(ws, id);
 		}
 	}
@@ -306,8 +306,8 @@ namespace economy {
 	}
 	void sort_by_gpflag2_button::update(ui::masked_flag<sort_by_gpflag2_button>& self, world_state & ws) {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
-		if(std::begin(r) + 2 < std::end(r)) {
-			if(auto id = r[2]; ws.w.nation_s.nations.is_valid_index(id))
+		if(begin(r) + 2 < end(r)) {
+			if(auto id = r.first[2]; ws.w.nation_s.nations.is_valid_index(id))
 				self.set_displayed_flag(ws, id);
 		}
 	}
@@ -317,8 +317,8 @@ namespace economy {
 	}
 	void sort_by_gpflag3_button::update(ui::masked_flag<sort_by_gpflag3_button>& self, world_state & ws) {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
-		if(std::begin(r) + 3 < std::end(r)) {
-			if(auto id = r[3]; ws.w.nation_s.nations.is_valid_index(id))
+		if(begin(r) + 3 < end(r)) {
+			if(auto id = r.first[3]; ws.w.nation_s.nations.is_valid_index(id))
 				self.set_displayed_flag(ws, id);
 		}
 	}
@@ -328,8 +328,8 @@ namespace economy {
 	}
 	void sort_by_gpflag4_button::update(ui::masked_flag<sort_by_gpflag4_button>& self, world_state & ws) {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
-		if(std::begin(r) + 4 < std::end(r)) {
-			if(auto id = r[4]; ws.w.nation_s.nations.is_valid_index(id))
+		if(begin(r) + 4 < end(r)) {
+			if(auto id = r.first[4]; ws.w.nation_s.nations.is_valid_index(id))
 				self.set_displayed_flag(ws, id);
 		}
 	}
@@ -339,8 +339,8 @@ namespace economy {
 	}
 	void sort_by_gpflag5_button::update(ui::masked_flag<sort_by_gpflag5_button>& self, world_state & ws) {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
-		if(std::begin(r) + 5 < std::end(r)) {
-			if(auto id = r[5]; ws.w.nation_s.nations.is_valid_index(id))
+		if(begin(r) + 5 < end(r)) {
+			if(auto id = r.first[5]; ws.w.nation_s.nations.is_valid_index(id))
 				self.set_displayed_flag(ws, id);
 		}
 	}
@@ -350,8 +350,8 @@ namespace economy {
 	}
 	void sort_by_gpflag6_button::update(ui::masked_flag<sort_by_gpflag6_button>& self, world_state & ws) {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
-		if(std::begin(r) + 6 < std::end(r)) {
-			if(auto id = r[6]; ws.w.nation_s.nations.is_valid_index(id))
+		if(begin(r) + 6 < end(r)) {
+			if(auto id = r.first[6]; ws.w.nation_s.nations.is_valid_index(id))
 				self.set_displayed_flag(ws, id);
 		}
 	}
@@ -361,8 +361,8 @@ namespace economy {
 	}
 	void sort_by_gpflag7_button::update(ui::masked_flag<sort_by_gpflag7_button>& self, world_state & ws) {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
-		if(std::begin(r) + 7 < std::end(r)) {
-			if(auto id = r[7]; ws.w.nation_s.nations.is_valid_index(id))
+		if(begin(r) + 7 < end(r)) {
+			if(auto id = r.first[7]; ws.w.nation_s.nations.is_valid_index(id))
 				self.set_displayed_flag(ws, id);
 		}
 	}

@@ -1919,7 +1919,7 @@ namespace nations {
 	void gp_influence_text<index>::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
 		if(std::begin(r) + index < std::end(r)) {
-			if(auto id = r[index]; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(auto id = r.first[index]; ws.w.nation_s.nations.is_valid_index(id)) {
 				char16_t local_buffer[16];
 				put_value_in_buffer(local_buffer, display_type::integer, nations::get_influence_value(ws, id, win.tag));
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
@@ -2113,7 +2113,7 @@ namespace nations {
 				break;
 			case country_sort::gp_one:
 				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) < std::end(r)) {
-					if(auto id = r[0]; ws.w.nation_s.nations.is_valid_index(id)) {
+					if(auto id = r.first[0]; ws.w.nation_s.nations.is_valid_index(id)) {
 						std::sort(data.begin(), data.end(), [&ws, n = id](country_tag a, country_tag b) {
 							return nations::get_influence_value(ws, n, a) > nations::get_influence_value(ws, n, b);
 						});
@@ -2122,7 +2122,7 @@ namespace nations {
 				break;
 			case country_sort::gp_two:
 				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + 1 < std::end(r)) {
-					if(auto id = r[1]; ws.w.nation_s.nations.is_valid_index(id)) {
+					if(auto id = r.first[1]; ws.w.nation_s.nations.is_valid_index(id)) {
 						std::sort(data.begin(), data.end(), [&ws, n = id](country_tag a, country_tag b) {
 							return nations::get_influence_value(ws, n, a) > nations::get_influence_value(ws, n, b);
 						});
@@ -2131,7 +2131,7 @@ namespace nations {
 				break;
 			case country_sort::gp_three:
 				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + 2 < std::end(r)) {
-					if(auto id = r[2]; ws.w.nation_s.nations.is_valid_index(id)) {
+					if(auto id = r.first[2]; ws.w.nation_s.nations.is_valid_index(id)) {
 						std::sort(data.begin(), data.end(), [&ws, n = id](country_tag a, country_tag b) {
 							return nations::get_influence_value(ws, n, a) > nations::get_influence_value(ws, n, b);
 						});
@@ -2140,7 +2140,7 @@ namespace nations {
 				break;
 			case country_sort::gp_four:
 				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + 3 < std::end(r)) {
-					if(auto id = r[3]; ws.w.nation_s.nations.is_valid_index(id)) {
+					if(auto id = r.first[3]; ws.w.nation_s.nations.is_valid_index(id)) {
 						std::sort(data.begin(), data.end(), [&ws, n = id](country_tag a, country_tag b) {
 							return nations::get_influence_value(ws, n, a) > nations::get_influence_value(ws, n, b);
 						});
@@ -2149,7 +2149,7 @@ namespace nations {
 				break;
 			case country_sort::gp_five:
 				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + 4 < std::end(r)) {
-					if(auto id = r[4]; ws.w.nation_s.nations.is_valid_index(id)) {
+					if(auto id = r.first[4]; ws.w.nation_s.nations.is_valid_index(id)) {
 						std::sort(data.begin(), data.end(), [&ws, n = id](country_tag a, country_tag b) {
 							return nations::get_influence_value(ws, n, a) > nations::get_influence_value(ws, n, b);
 						});
@@ -2158,7 +2158,7 @@ namespace nations {
 				break;
 			case country_sort::gp_six:
 				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + 5 < std::end(r)) {
-					if(auto id = r[5]; ws.w.nation_s.nations.is_valid_index(id)) {
+					if(auto id = r.first[5]; ws.w.nation_s.nations.is_valid_index(id)) {
 						std::sort(data.begin(), data.end(), [&ws, n = id](country_tag a, country_tag b) {
 							return nations::get_influence_value(ws, n, a) > nations::get_influence_value(ws, n, b);
 						});
@@ -2167,7 +2167,7 @@ namespace nations {
 				break;
 			case country_sort::gp_seven:
 				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + 6 < std::end(r)) {
-					if(auto id = r[6]; ws.w.nation_s.nations.is_valid_index(id)) {
+					if(auto id = r.first[6]; ws.w.nation_s.nations.is_valid_index(id)) {
 						std::sort(data.begin(), data.end(), [&ws, n = id](country_tag a, country_tag b) {
 							return nations::get_influence_value(ws, n, a) > nations::get_influence_value(ws, n, b);
 						});
@@ -2176,7 +2176,7 @@ namespace nations {
 				break;
 			case country_sort::gp_eight:
 				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + 7 < std::end(r)) {
-					if(auto id = r[7]; ws.w.nation_s.nations.is_valid_index(id)) {
+					if(auto id = r.first[7]; ws.w.nation_s.nations.is_valid_index(id)) {
 						std::sort(data.begin(), data.end(), [&ws, n = id](country_tag a, country_tag b) {
 							return nations::get_influence_value(ws, n, a) > nations::get_influence_value(ws, n, b);
 						});
@@ -2313,7 +2313,7 @@ namespace nations {
 	template<typename window_type>
 	void gp_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + win.gp_index < std::end(r)) {
-			if(auto id = r[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(auto id = r.first[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
 				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations.get<nation::name>(id), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 				lm.finish_current_line();
 			}
@@ -2323,7 +2323,7 @@ namespace nations {
 	template<typename window_type>
 	void gp_prestige::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + win.gp_index < std::end(r)) {
-			if(auto id = r[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(auto id = r.first[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
 				char16_t local_buffer[16];
 				put_value_in_buffer(local_buffer, display_type::exact_integer, nations::get_prestige(ws, id));
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
@@ -2335,7 +2335,7 @@ namespace nations {
 	template<typename window_type>
 	void gp_military::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + win.gp_index < std::end(r)) {
-			if(nations::country_tag id = r[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(nations::country_tag id = r.first[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
 				char16_t local_buffer[16];
 				put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations.get<nation::military_score>(id));
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
@@ -2347,7 +2347,7 @@ namespace nations {
 	template<typename window_type>
 	void gp_industry::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + win.gp_index < std::end(r)) {
-			if(nations::country_tag id = r[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(nations::country_tag id = r.first[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
 				char16_t local_buffer[16];
 				put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.nation_s.nations.get<nation::industrial_score>(id));
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
@@ -2359,7 +2359,7 @@ namespace nations {
 	template<typename window_type>
 	void gp_overall::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + win.gp_index < std::end(r)) {
-			if(nations::country_tag id = r[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(nations::country_tag id = r.first[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
 				char16_t local_buffer[16];
 				put_value_in_buffer(local_buffer, display_type::exact_integer, nations::get_prestige(ws, id) + ws.w.nation_s.nations.get<nation::industrial_score>(id) + ws.w.nation_s.nations.get<nation::military_score>(id));
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
@@ -2371,7 +2371,7 @@ namespace nations {
 	template<typename window_type>
 	void gp_flag::windowed_update(ui::masked_flag<gp_flag>& self, window_type & win, world_state & ws) {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + win.gp_index < std::end(r)) {
-			if(nations::country_tag id = r[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(nations::country_tag id = r.first[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
 				self.set_displayed_flag(ws, id);
 				return;
 			}
@@ -2382,7 +2382,7 @@ namespace nations {
 	template<typename lb_type, typename window_type>
 	void gp_sphere::windowed_update(lb_type & lb, window_type & win, world_state & ws) {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + win.gp_index < std::end(r)) {
-			if(nations::country_tag id = r[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(nations::country_tag id = r.first[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
 				auto sphere_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::sphere_members>(id));
 				for(auto c : sphere_range) {
 					if(is_valid_index(c))
@@ -2528,7 +2528,7 @@ namespace nations {
 	template<typename window_type>
 	void influence_details_gp_flag::windowed_update(ui::masked_flag<influence_details_gp_flag>& self, window_type & win, world_state & ws) {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + win.gp_index < std::end(r)) {
-			if(nations::country_tag id = r[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(nations::country_tag id = r.first[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
 				self.set_displayed_flag(ws, id);
 				return;
 			}
@@ -2539,7 +2539,7 @@ namespace nations {
 	template<typename window_type>
 	void influence_details_opinion::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + win.gp_index < std::end(r)) {
-			if(nations::country_tag id = r[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(nations::country_tag id = r.first[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
 				ui::add_linear_text(ui::xy_pair{ 0,0 },
 					influence_level_to_text(ws, get_influence_level(ws, id, ws.w.diplomacy_w.selected_nation)),
 					fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
@@ -2551,7 +2551,7 @@ namespace nations {
 	template<typename window_type>
 	void influence_details_influence::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + win.gp_index < std::end(r)) {
-			if(nations::country_tag id = r[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(nations::country_tag id = r.first[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
 				char16_t local_buffer[16];
 				put_value_in_buffer(local_buffer, display_type::integer, get_influence_value(ws, id, ws.w.diplomacy_w.selected_nation));
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
@@ -2563,7 +2563,7 @@ namespace nations {
 	template<typename window_type>
 	void influence_details_investment::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + win.gp_index < std::end(r)) {
-			if(nations::country_tag id = r[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
+			if(nations::country_tag id = r.first[win.gp_index]; ws.w.nation_s.nations.is_valid_index(id)) {
 				char16_t local_buffer[16];
 				put_value_in_buffer(local_buffer, display_type::currency, get_influence(ws, id, ws.w.diplomacy_w.selected_nation).investment_amount);
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);

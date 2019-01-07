@@ -1453,8 +1453,8 @@ namespace economy {
 	template<typename window_type>
 	void gp_investment_text<index>::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
-		if(std::begin(r) + index < std::end(r)) {
-			if(auto id = r[index]; ws.w.nation_s.nations.is_valid_index(id)) {
+		if(begin(r) + index < end(r)) {
+			if(auto id = r.first[index]; ws.w.nation_s.nations.is_valid_index(id)) {
 				char16_t local_buffer[16];
 				put_value_in_buffer(local_buffer, display_type::currency, nations::get_foreign_investment(ws, id, win.tag));
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
@@ -1659,8 +1659,8 @@ namespace economy {
 				}
 				break;
 			case country_sort::gp_one:
-				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + 0 < std::end(r)) {
-					if(auto id = r[0]; ws.w.nation_s.nations.is_valid_index(id)) {
+				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); begin(r) + 0 < end(r)) {
+					if(auto id = r.first[0]; ws.w.nation_s.nations.is_valid_index(id)) {
 						std::sort(data.begin(), data.end(), [&ws, n = id](nations::country_tag a, nations::country_tag b) {
 							return nations::get_foreign_investment(ws, n, a) > nations::get_foreign_investment(ws, n, b);
 						});
@@ -1668,8 +1668,8 @@ namespace economy {
 				}
 				break;
 			case country_sort::gp_two:
-				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + 1 < std::end(r)) {
-					if(auto id = r[1]; ws.w.nation_s.nations.is_valid_index(id)) {
+				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); begin(r) + 1 < end(r)) {
+					if(auto id = r.first[1]; ws.w.nation_s.nations.is_valid_index(id)) {
 						std::sort(data.begin(), data.end(), [&ws, n = id](nations::country_tag a, nations::country_tag b) {
 							return nations::get_foreign_investment(ws, n, a) > nations::get_foreign_investment(ws, n, b);
 						});
@@ -1677,8 +1677,8 @@ namespace economy {
 				}
 				break;
 			case country_sort::gp_three:
-				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + 2 < std::end(r)) {
-					if(auto id = r[2]; ws.w.nation_s.nations.is_valid_index(id)) {
+				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); begin(r) + 2 < end(r)) {
+					if(auto id = r.first[2]; ws.w.nation_s.nations.is_valid_index(id)) {
 						std::sort(data.begin(), data.end(), [&ws, n = id](nations::country_tag a, nations::country_tag b) {
 							return nations::get_foreign_investment(ws, n, a) > nations::get_foreign_investment(ws, n, b);
 						});
@@ -1686,8 +1686,8 @@ namespace economy {
 				}
 				break;
 			case country_sort::gp_four:
-				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + 3 < std::end(r)) {
-					if(auto id = r[3]; ws.w.nation_s.nations.is_valid_index(id)) {
+				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); begin(r) + 3 < end(r)) {
+					if(auto id = r.first[3]; ws.w.nation_s.nations.is_valid_index(id)) {
 						std::sort(data.begin(), data.end(), [&ws, n = id](nations::country_tag a, nations::country_tag b) {
 							return nations::get_foreign_investment(ws, n, a) > nations::get_foreign_investment(ws, n, b);
 						});
@@ -1695,8 +1695,8 @@ namespace economy {
 				}
 				break;
 			case country_sort::gp_five:
-				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + 4 < std::end(r)) {
-					if(auto id = r[4]; ws.w.nation_s.nations.is_valid_index(id)) {
+				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); begin(r) + 4 < end(r)) {
+					if(auto id = r.first[4]; ws.w.nation_s.nations.is_valid_index(id)) {
 						std::sort(data.begin(), data.end(), [&ws, n = id](nations::country_tag a, nations::country_tag b) {
 							return nations::get_foreign_investment(ws, n, a) > nations::get_foreign_investment(ws, n, b);
 						});
@@ -1704,8 +1704,8 @@ namespace economy {
 				}
 				break;
 			case country_sort::gp_six:
-				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + 5 < std::end(r)) {
-					if(auto id = r[5]; ws.w.nation_s.nations.is_valid_index(id)) {
+				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); begin(r) + 5 < end(r)) {
+					if(auto id = r.first[5]; ws.w.nation_s.nations.is_valid_index(id)) {
 						std::sort(data.begin(), data.end(), [&ws, n = id](nations::country_tag a, nations::country_tag b) {
 							return nations::get_foreign_investment(ws, n, a) > nations::get_foreign_investment(ws, n, b);
 						});
@@ -1713,8 +1713,8 @@ namespace economy {
 				}
 				break;
 			case country_sort::gp_seven:
-				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + 6 < std::end(r)) {
-					if(auto id = r[6]; ws.w.nation_s.nations.is_valid_index(id)) {
+				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); begin(r) + 6 < end(r)) {
+					if(auto id = r.first[6]; ws.w.nation_s.nations.is_valid_index(id)) {
 						std::sort(data.begin(), data.end(), [&ws, n = id](nations::country_tag a, nations::country_tag b) {
 							return nations::get_foreign_investment(ws, n, a) > nations::get_foreign_investment(ws, n, b);
 						});
@@ -1722,8 +1722,8 @@ namespace economy {
 				}
 				break;
 			case country_sort::gp_eight:
-				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) + 7 < std::end(r)) {
-					if(auto id = r[7]; ws.w.nation_s.nations.is_valid_index(id)) {
+				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); begin(r) + 7 < end(r)) {
+					if(auto id = r.first[7]; ws.w.nation_s.nations.is_valid_index(id)) {
 						std::sort(data.begin(), data.end(), [&ws, n = id](nations::country_tag a, nations::country_tag b) {
 							return nations::get_foreign_investment(ws, n, a) > nations::get_foreign_investment(ws, n, b);
 						});
@@ -1831,8 +1831,8 @@ namespace economy {
 	template<typename W>
 	void gp_subwindow_flag::windowed_update(ui::masked_flag<gp_subwindow_flag>& self, W & w, world_state & ws) {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
-		if(std::begin(r) + w.nth_nation < std::end(r)) {
-			if(auto id = r[w.nth_nation]; ws.w.nation_s.nations.is_valid_index(id)) {
+		if(begin(r) + w.nth_nation < end(r)) {
+			if(auto id = r.first[w.nth_nation]; ws.w.nation_s.nations.is_valid_index(id)) {
 				self.set_displayed_flag(ws, id);
 			}
 		}
@@ -1841,8 +1841,8 @@ namespace economy {
 	template<typename W>
 	void gp_subwindow_investment_value::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank);
-		if(std::begin(r) + w.nth_nation < std::end(r)) {
-			if(auto id = r[w.nth_nation]; ws.w.nation_s.nations.is_valid_index(id)) {
+		if(begin(r) + w.nth_nation < end(r)) {
+			if(auto id = r.first[w.nth_nation]; ws.w.nation_s.nations.is_valid_index(id)) {
 				char16_t local_buffer[16];
 				put_value_in_buffer(local_buffer, display_type::currency, nations::get_foreign_investment(ws, id, ws.w.production_w.foreign_investment_nation));
 				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);

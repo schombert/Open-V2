@@ -322,7 +322,7 @@ void restore_world_state(world_state& ws) {
 	ws.w.nation_s.nations.parallel_for_each([&ws, state_max](nations::country_tag n) {
 		auto& tm = ws.w.nation_s.nations.get<nation::statewise_tarrif_mask>(n);
 		resize(ws.w.economy_s.purchasing_arrays, tm, state_max);
-		auto ptr = get_range(ws.w.economy_s.purchasing_arrays, tm);
+		auto ptr = get_view(ws.w.economy_s.purchasing_arrays, tm);
 		for(int32_t i = 0; i < int32_t(state_max); ++i) {
 			nations::state_tag this_state = nations::state_tag(nations::state_tag::value_base_t(i));
 			if(auto owner = ws.w.nation_s.states.get<state::owner>(this_state); is_valid_index(owner))

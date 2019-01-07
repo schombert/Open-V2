@@ -87,8 +87,10 @@ namespace provinces {
 	}
 
 	void update_province_demographics(world_state& ws) {
-		ve::par_copy<provinces::province_tag, true>(ws.w.province_s.province_state_container.get_row<province_state::last_population>(),
-			ws.w.province_s.province_state_container.get_row<province_state::total_population>());
+		ve::copy(ve::to_vector_size(uint32_t(ws.s.province_m.province_container.size() + 1)),
+			ws.w.province_s.province_state_container.get_row<province_state::last_population>(),
+			ws.w.province_s.province_state_container.get_row<province_state::total_population>(),
+			ve::par());
 		recalculate_province_demographics(ws);
 	}
 
@@ -130,11 +132,12 @@ namespace provinces {
 
 			auto province_full_demo = ws.w.province_s.province_demographics.get_row(prov_id);
 			
-			ve::set_zero<population::demo_tag, false>(province_full_demo);
+			ve::set_zero(ve::to_vector_size(ws.w.province_s.province_demographics.inner_size()), province_full_demo);
+			const auto pop_demo_size = ws.w.population_s.pop_demographics.inner_size;
 
 			for(auto p : pop_range) {
 				auto pop_demo_source = ws.w.population_s.pop_demographics.get_row(p);
-				ve::accumulate_exact<population::demo_tag, false>(province_full_demo, pop_demo_source);
+				ve::accumulate(pop_demo_size, province_full_demo, pop_demo_source, ve::serial_exact());
 
 				auto ptype =  ws.w.population_s.pops.get<pop::type>(p);
 				auto needs_satisfaction = ws.w.population_s.pops.get<pop::needs_satisfaction>(p);

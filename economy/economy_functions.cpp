@@ -392,15 +392,15 @@ namespace economy {
 
 	money_qnty_type get_factory_project_cost(world_state const& ws, factory_type_tag ftype, factory_project_type ptype, tagged_array_view<const float, goods_tag, false> prices) {
 		if(ptype == factory_project_type::open || ptype == factory_project_type::expand) {
-			return ve::dot_product<goods_tag, false>(prices, ws.s.economy_m.building_costs.get_row(ftype));
+			return ve::dot_product(ws.s.economy_m.goods_count, prices, ws.s.economy_m.building_costs.get_row(ftype));
 		} else {
 			// TODO
 
-			return ve::dot_product<goods_tag, false>(prices, ws.s.economy_m.factory_input_goods.get_row(ftype)) * money_qnty_type(10);
+			return ve::dot_product(ws.s.economy_m.goods_count, prices, ws.s.economy_m.factory_input_goods.get_row(ftype)) * money_qnty_type(10);
 		}
 	}
 	money_qnty_type get_railroad_cost(world_state const& ws, tagged_array_view<const float, goods_tag, false> prices) {
-		return ve::dot_product<goods_tag, false>(prices, ws.s.economy_m.building_costs.get_row(ws.s.economy_m.railroad.cost_tag));
+		return ve::dot_product(ws.s.economy_m.goods_count, prices, ws.s.economy_m.building_costs.get_row(ws.s.economy_m.railroad.cost_tag));
 	}
 
 
@@ -423,7 +423,7 @@ namespace economy {
 			return std::numeric_limits<float>::min();
 
 		auto prices = state_current_prices(ws, si);
-		auto inputs_cost = ve::dot_product<goods_tag, false>(prices, ws.s.economy_m.factory_input_goods.get_row(f.type->id));
+		auto inputs_cost = ve::dot_product(ws.s.economy_m.goods_count, prices, ws.s.economy_m.factory_input_goods.get_row(f.type->id));
 
 		return float(prices[f.type->output_good] * f.type->output_amount - inputs_cost);
 	}
@@ -445,7 +445,7 @@ namespace economy {
 
 			
 			auto inputs = ws.s.economy_m.factory_input_goods.get_row(f_type->id);
-			auto inputs_cost = ve::dot_product(prices, inputs) * modifiers.input_modifier;
+			auto inputs_cost = ve::dot_product(ws.s.economy_m.goods_count, prices, inputs) * modifiers.input_modifier;
 
 			return (prices[f_type->output_good] * f_type->output_amount * modifiers.output_modifier - inputs_cost) * modifiers.throughput_modifier;
 		}
@@ -608,7 +608,7 @@ namespace economy {
 		world_state const& ws, nations::state_tag si) {
 
 		auto state_prices = state_current_prices(ws, si);
-		std::fill(masked_prices.data(), std::end(masked_prices), 0.0f);
+		std::fill(masked_prices.data(), masked_prices.data() + ws.s.economy_m.goods_count, 0.0f);
 
 
 		auto enabled_goods = ws.w.nation_s.active_goods.get_row(ws.w.nation_s.states.get<state::owner>(si));
@@ -742,7 +742,10 @@ namespace economy {
 
 		auto state_owner = ws.w.nation_s.states.get<state::owner>(si);
 
-		for(population::pop_type_tag::value_base_t i = 0; i < ws.s.population_m.count_poptypes; ++i) {
+		const auto gc = ws.s.economy_m.goods_count;
+		const auto count_ptypes = ws.s.population_m.count_poptypes;
+
+		for(population::pop_type_tag::value_base_t i = 0; i < count_ptypes; ++i) {
 			population::pop_type_tag this_type(i);
 			auto this_strata = ws.s.population_m.pop_types[this_type].flags & population::pop_type::strata_mask;
 
@@ -764,14 +767,15 @@ namespace economy {
 				lx_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::rich_luxury_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::rich_luxury_needs>(state_capital);
 			}
 
+			
 			auto ln = ws.s.population_m.life_needs.get_row(this_type);
-			life_needs_cost_by_type[i] = ln_factor * ve::dot_product(masked_prices, ln);
+			life_needs_cost_by_type[i] = ln_factor * ve::dot_product(gc, masked_prices, ln);
 			
 			auto en = ws.s.population_m.everyday_needs.get_row(this_type);
-			everyday_needs_cost_by_type[i] = ev_factor * ve::dot_product(masked_prices, en);
+			everyday_needs_cost_by_type[i] = ev_factor * ve::dot_product(gc, masked_prices, en);
 
 			auto xn = ws.s.population_m.luxury_needs.get_row(this_type);
-			luxury_needs_cost_by_type[i] = lx_factor * ve::dot_product(masked_prices, xn);
+			luxury_needs_cost_by_type[i] = lx_factor * ve::dot_product(gc, masked_prices, xn);
 		}
 	}
 
@@ -888,12 +892,13 @@ namespace economy {
 
 		auto prices_v = state_current_prices(ws, id);
 
-		auto rr_daily_cost = ve::dot_product<goods_tag, false>(prices_v, ws.s.economy_m.building_costs.get_row(ws.s.economy_m.railroad.cost_tag))
+		const auto gc = ws.s.economy_m.goods_count;
+		auto rr_daily_cost = ve::dot_product(gc, prices_v, ws.s.economy_m.building_costs.get_row(ws.s.economy_m.railroad.cost_tag))
 			/ money_qnty_type(ws.s.economy_m.railroad.time);
-		auto fort_daily_cost = ve::dot_product<goods_tag, false>(prices_v, ws.s.economy_m.building_costs.get_row(ws.s.economy_m.fort.cost_tag))
+		auto fort_daily_cost = ve::dot_product(gc, prices_v, ws.s.economy_m.building_costs.get_row(ws.s.economy_m.fort.cost_tag))
 			/ money_qnty_type(ws.s.economy_m.fort.time);
 		auto nb_daily_cost = 
-			(ve::dot_product<goods_tag, false>(prices_v, ws.s.economy_m.building_costs.get_row(ws.s.economy_m.naval_base.cost_tag))
+			(ve::dot_product(gc, prices_v, ws.s.economy_m.building_costs.get_row(ws.s.economy_m.naval_base.cost_tag))
 				+ money_qnty_type(ws.s.economy_m.naval_base.extra_cost))
 			/ money_qnty_type(ws.s.economy_m.naval_base.time);
 
@@ -908,7 +913,7 @@ namespace economy {
 		auto& factories = ws.w.nation_s.states.get<state::factories>(id);
 		return std::transform_reduce(std::begin(factories), std::end(factories), sum, std::plus<>(), [&prices_v, &ws](factory_instance const& f) {
 			if(auto type = f.type; type && f.factory_progress > 0.0f && (f.flags & factory_instance::owner_is_upgrading) != 0) {
-				return ve::dot_product<goods_tag, false>(prices_v, ws.s.economy_m.building_costs.get_row(type->id))
+				return ve::dot_product(ws.s.economy_m.goods_count, prices_v, ws.s.economy_m.building_costs.get_row(type->id))
 					/ money_qnty_type(type->building_time);
 			} else {
 				return money_qnty_type(0);
@@ -986,20 +991,24 @@ namespace economy {
 			auto rr_costs = ws.s.economy_m.building_costs.get_row(ws.s.economy_m.railroad.cost_tag);
 			auto nb_costs = ws.s.economy_m.building_costs.get_row(ws.s.economy_m.naval_base.cost_tag);
 
-			auto rr_daily_cost = ve::dot_product<goods_tag, false>(prices_v, rr_costs) / money_qnty_type(ws.s.economy_m.railroad.time);
-			auto fort_daily_cost = ve::dot_product<goods_tag, false>(prices_v, fort_costs) / money_qnty_type(ws.s.economy_m.fort.time);
+			const auto gc = ws.s.economy_m.goods_count;
+
+			auto rr_daily_cost = ve::dot_product(gc, prices_v, rr_costs) / money_qnty_type(ws.s.economy_m.railroad.time);
+			auto fort_daily_cost = ve::dot_product(gc, prices_v, fort_costs) / money_qnty_type(ws.s.economy_m.fort.time);
 			auto nb_daily_cost =
-				(ve::dot_product<goods_tag, false>(prices_v, nb_costs) + money_qnty_type(ws.s.economy_m.naval_base.extra_cost)) / money_qnty_type(ws.s.economy_m.naval_base.time);
+				(ve::dot_product(gc, prices_v, nb_costs) + money_qnty_type(ws.s.economy_m.naval_base.extra_cost)) / money_qnty_type(ws.s.economy_m.naval_base.time);
 
 			auto owner_sp_setting = ws.w.nation_s.nations.get<nation::f_projects_stockpile_spending>(owner_id);
 			nations::for_each_province(ws, si, [owner_id, rr_daily_cost, fort_daily_cost, nb_daily_cost, rr_time, fort_time, naval_time,
 				current_state_demand, &local_nation_costs, owner_sp_setting, rr_costs, fort_costs, nb_costs, prices_v, &ws](provinces::province_tag ps) {
 				
+				const auto gc = ws.s.economy_m.goods_count;
+
 				auto& fort_upgrade_progress = ws.w.province_s.province_state_container.get<province_state::fort_upgrade_progress>(ps);
 				if(fort_upgrade_progress > 0.0f) {
 					local_nation_costs.vector[to_index(owner_id)] += fort_daily_cost * owner_sp_setting;
 					fort_upgrade_progress += fort_time * owner_sp_setting;
-					ve::accumulate_scaled_product<goods_tag, false>(current_state_demand, fort_costs, prices_v, fort_time * owner_sp_setting);
+					ve::accumulate_scaled_product(gc, current_state_demand, fort_costs, prices_v, fort_time * owner_sp_setting, ve::serial_exact());
 
 					if(fort_upgrade_progress >= 1.0f) {
 						fort_upgrade_progress = 0;
@@ -1011,7 +1020,7 @@ namespace economy {
 				if(naval_base_upgrade_progress > 0.0f) {
 					local_nation_costs.vector[to_index(owner_id)] += nb_daily_cost * owner_sp_setting;
 					naval_base_upgrade_progress += naval_time * owner_sp_setting;
-					ve::accumulate_scaled_product<goods_tag, false>(current_state_demand, nb_costs, prices_v, naval_time * owner_sp_setting);
+					ve::accumulate_scaled_product(gc, current_state_demand, nb_costs, prices_v, naval_time * owner_sp_setting, ve::serial_exact());
 
 					if(naval_base_upgrade_progress >= 1.0f) {
 						naval_base_upgrade_progress = 0;
@@ -1023,7 +1032,7 @@ namespace economy {
 				if(railroad_upgrade_progress > 0.0f && ws.w.province_s.province_state_container.get<province_state::owner_building_railroad>(ps)) {
 					local_nation_costs.vector[to_index(owner_id)] += rr_daily_cost * owner_sp_setting;
 					railroad_upgrade_progress += rr_time * owner_sp_setting;
-					ve::accumulate_scaled_product<goods_tag, false>(current_state_demand, rr_costs, prices_v, rr_time * owner_sp_setting);
+					ve::accumulate_scaled_product(gc, current_state_demand, rr_costs, prices_v, rr_time * owner_sp_setting, ve::serial_exact());
 
 					if(railroad_upgrade_progress >= 1.0f) {
 						railroad_upgrade_progress = 0;
@@ -1038,9 +1047,9 @@ namespace economy {
 					auto costs = ws.s.economy_m.building_costs.get_row(type->id);
 
 					auto time = 1.0f / money_qnty_type(type->building_time);
-					auto p_d_c = ve::dot_product<goods_tag, false>(prices_v, ws.s.economy_m.building_costs.get_row(type->id));
+					auto p_d_c = ve::dot_product(gc, prices_v, ws.s.economy_m.building_costs.get_row(type->id));
 					local_nation_costs.vector[to_index(owner_id)] += p_d_c * owner_sp_setting * time;
-					ve::accumulate_scaled_product<goods_tag, false>(current_state_demand, costs, prices_v, time * owner_sp_setting);
+					ve::accumulate_scaled_product(gc, current_state_demand, costs, prices_v, time * owner_sp_setting, ve::serial_exact());
 
 					f.factory_progress += time;
 					if(f.factory_progress >= 1.0f) {
@@ -1062,11 +1071,11 @@ namespace economy {
 					auto& railroad_upgrade_progress = ws.w.province_s.province_state_container.get<province_state::railroad_upgrade_progress>(project.location);
 					if(project.funds > rr_daily_cost) {
 						railroad_upgrade_progress += rr_time;
-						ve::accumulate_scaled_product<goods_tag, false>(current_state_demand, rr_costs, prices_v, rr_time);
+						ve::accumulate_scaled_product(gc, current_state_demand, rr_costs, prices_v, rr_time, ve::serial_exact());
 						project.funds -= rr_daily_cost;
 					} else {
 						railroad_upgrade_progress += rr_time * project.funds / rr_daily_cost;
-						ve::accumulate_scaled_product<goods_tag, false>(current_state_demand, rr_costs, prices_v, rr_time * project.funds / rr_daily_cost);
+						ve::accumulate_scaled_product(gc, current_state_demand, rr_costs, prices_v, rr_time * project.funds / rr_daily_cost, ve::serial_exact());
 						project.funds = 0;
 					}
 					if(railroad_upgrade_progress >= 1.0f) {
@@ -1087,15 +1096,15 @@ namespace economy {
 						auto costs = ws.s.economy_m.building_costs.get_row(project.factory_type);
 
 						auto time = 1.0f / money_qnty_type(f->type->building_time);
-						auto daily_cost = ve::dot_product<goods_tag, false>(prices_v, costs) * time;
+						auto daily_cost = ve::dot_product(gc, prices_v, costs) * time;
 
 						if(project.funds > daily_cost) {
 							f->factory_progress += time;
-							ve::accumulate_scaled_product<goods_tag, false>(current_state_demand, costs, prices_v, time);
+							ve::accumulate_scaled_product(gc, current_state_demand, costs, prices_v, time, ve::serial_exact());
 							project.funds -= daily_cost;
 						} else {
 							f->factory_progress += time * project.funds / daily_cost;
-							ve::accumulate_scaled_product<goods_tag, false>(current_state_demand, costs, prices_v, time * project.funds / daily_cost);
+							ve::accumulate_scaled_product(gc, current_state_demand, costs, prices_v, time * project.funds / daily_cost, ve::serial_exact());
 							project.funds = 0;
 						}
 
@@ -1107,7 +1116,7 @@ namespace economy {
 					} else if(f->worker_data.production_scale <= 0) {
 						auto costs = ws.s.economy_m.factory_input_goods.get_row(project.factory_type);
 
-						auto reopen_cost = ve::dot_product<goods_tag, false>(prices_v, costs) * money_qnty_type(10);
+						auto reopen_cost = ve::dot_product(gc, prices_v, costs) * money_qnty_type(10);
 						if(project.funds >= reopen_cost) {
 							f->worker_data.production_scale = 1.0f;
 							project.type = pop_project_type::none;
@@ -1345,7 +1354,7 @@ namespace economy {
 
 	void economy_single_good_tick(world_state& ws, goods_tag tag, int32_t state_max, int32_t nations_max) {
 		auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(state_max + 1) + 63ui32) & ~63ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
-		//auto aligned_nations_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(nations_max + 1) + 63ui32) & ~63ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
+		auto aligned_nations_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(nations_max + 1) + 63ui32) & ~63ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
 
 		const auto base_price = ws.s.economy_m.goods[tag].base_price;
 
@@ -1386,12 +1395,12 @@ namespace economy {
 			auto sz = get_size(ws.w.economy_s.purchasing_arrays, purchases_for_state);
 
 			if(sz < aligned_state_max)
-				resize(ws.w.economy_s.purchasing_arrays, purchases_for_state, state_max);
+				resize(ws.w.economy_s.purchasing_arrays, purchases_for_state, aligned_state_max);
 			
 
-			auto values = get_range(ws.w.economy_s.purchasing_arrays, purchases_for_state);
+			auto values = get_view(ws.w.economy_s.purchasing_arrays, purchases_for_state);
 			auto distance_vector = ws.w.province_s.state_distances.get_row(si);
-			auto tarrif_mask = get_range(ws.w.economy_s.purchasing_arrays, state_owner_tarrif_mask);
+			auto tarrif_mask = get_view(ws.w.economy_s.purchasing_arrays, state_owner_tarrif_mask);
 
 			ve::execute_serial_fast<nations::state_tag>(uint32_t(state_max + 1), calculate_apparant_prices(
 				workspace_local.apparent_price.data(),
@@ -1408,10 +1417,10 @@ namespace economy {
 			));
 			
 
-			auto sum_weightings = ve::reduce<nations::state_tag, true>(values);
+			auto sum_weightings = ve::reduce(aligned_state_max, values);
 
 			if(sum_weightings > 0) {
-				ve::rescale(values, demand_in_state / sum_weightings);
+				ve::rescale(aligned_state_max, values, demand_in_state / sum_weightings);
 				
 
 				// pay tarrifs & increase global demand
@@ -1424,7 +1433,7 @@ namespace economy {
 					workspace_local.nation_tarrif_income[state_owner] +=
 						((to_obj.tariff_income_accumulator[0] + to_obj.tariff_income_accumulator[1]) + (to_obj.tariff_income_accumulator[2] + to_obj.tariff_income_accumulator[3])).reduce();
 
-					assert(!std::isnan(workspace_local.nation_tarrif_income[state_owner]));
+					assert(std::isfinite(workspace_local.nation_tarrif_income[state_owner]));
 				} else {
 					player_tariff_updator to_obj(workspace_local.global_demand_by_state.data(), workspace_local.apparent_price.data(),
 						state_prices_copy.data(), values.data(), tarrif_mask.data(), state_owner_tarrifs, workspace_local.weightings.data());
@@ -1433,7 +1442,7 @@ namespace economy {
 					workspace_local.nation_tarrif_income[state_owner] +=
 						((to_obj.tariff_income_accumulator[0] + to_obj.tariff_income_accumulator[1]) + (to_obj.tariff_income_accumulator[2] + to_obj.tariff_income_accumulator[3])).reduce();
 
-					assert(!std::isnan(workspace_local.nation_tarrif_income[state_owner]));
+					assert(std::isfinite(workspace_local.nation_tarrif_income[state_owner]));
 
 					ws.w.nation_s.states.for_each([&workspace_local, &ws, state_owner](nations::state_tag st) {
 						auto other_state_owner = ws.w.nation_s.states.get<state::owner>(st);
@@ -1446,10 +1455,10 @@ namespace economy {
 			}
 		}, concurrency::static_partitioner());
 
-		workspace.combine_each([global_demand_by_state, &nation_tarrif_income, &player_imports, state_max, nations_max](single_good_update_work_data const & o) {
-			ve::accumulate<nations::state_tag, true>(global_demand_by_state, o.global_demand_by_state.view());
-			ve::accumulate<nations::country_tag, true>(nation_tarrif_income.view(), o.nation_tarrif_income.view());
-			ve::accumulate<nations::country_tag, true>(player_imports.view(), o.player_imports.view());
+		workspace.combine_each([global_demand_by_state, &nation_tarrif_income, &player_imports, aligned_state_max, aligned_nations_max](single_good_update_work_data const & o) {
+			ve::accumulate(aligned_state_max, global_demand_by_state, o.global_demand_by_state.view());
+			ve::accumulate(aligned_nations_max, nation_tarrif_income.view(), o.nation_tarrif_income.view());
+			ve::accumulate(aligned_nations_max, player_imports.view(), o.player_imports.view());
 		});
 
 		ws.w.nation_s.nations.parallel_for_each([&ws, &nation_tarrif_income, tag](nations::country_tag nt) {
@@ -1459,8 +1468,8 @@ namespace economy {
 		auto nations_aligned_sz = (uint32_t(nations_max) + 15ui32) & ~16ui32;
 		resize(ws.w.economy_s.purchasing_arrays, ws.w.local_player_data.imports_by_country[tag], nations_aligned_sz);
 
-		auto dest_player_imports = get_range(ws.w.economy_s.purchasing_arrays, ws.w.local_player_data.imports_by_country[tag]);
-		std::copy_n(player_imports.data(), std::end(dest_player_imports) - dest_player_imports.data(), dest_player_imports.data());
+		auto dest_player_imports = get_view(ws.w.economy_s.purchasing_arrays, ws.w.local_player_data.imports_by_country[tag]);
+		std::copy_n(player_imports.data(), nations_max, dest_player_imports.data());
 
 		// determine new prices
 		ws.w.nation_s.states.parallel_for_each([&ws, global_demand_by_state, state_production, state_max, aligned_state_max, tag, base_price](nations::state_tag si) {
@@ -1474,9 +1483,9 @@ namespace economy {
 			auto state_owner_tarrif_mask = ws.w.nation_s.nations.get<nation::statewise_tarrif_mask>(state_owner);
 			auto purchases_for_state = ws.w.nation_s.state_purchases.get(si, tag);
 
-			auto values = get_range(ws.w.economy_s.purchasing_arrays, purchases_for_state);
+			auto values = get_view(ws.w.economy_s.purchasing_arrays, purchases_for_state);
 			auto distance_vector = ws.w.province_s.state_distances.get_row(si);
-			auto tariff_mask = get_range(ws.w.economy_s.purchasing_arrays, state_owner_tarrif_mask);
+			auto tariff_mask = get_view(ws.w.economy_s.purchasing_arrays, state_owner_tarrif_mask);
 
 			/*workspace_local.apparent_price = (distance_vector.array() * distance_factor +
 				(tarrif_mask.array() * (state_owner_tarrifs) + 1.0f)
@@ -1621,7 +1630,7 @@ namespace economy {
 
 		auto inputs = ws.s.economy_m.artisan_input_goods.get_row(atype.id);
 
-		auto inputs_cost = ve::dot_product(prices, inputs) * artisan_modifiers.input_modifier * artisan_modifiers.throughput_modifier * global_throughput_multiplier;
+		auto inputs_cost = ve::dot_product(ws.s.economy_m.goods_count, prices, inputs) * artisan_modifiers.input_modifier * artisan_modifiers.throughput_modifier * global_throughput_multiplier;
 		//money_qnty_type min_wage = artisan_life_needs * atype.workforce / pop_needs_divisor;
 
 
@@ -1658,7 +1667,8 @@ namespace economy {
 		
 		auto inputs = ws.s.economy_m.artisan_input_goods.get_row(artisan_tag);
 
-		auto inputs_cost = ve::dot_product<goods_tag, false>(state_prices, inputs) * common_scale_amount * artisan_modifiers.input_modifier * artisan_modifiers.throughput_modifier;
+		const auto goods_count = ws.s.economy_m.goods_count;
+		auto inputs_cost = ve::dot_product(goods_count, state_prices, inputs) * common_scale_amount * artisan_modifiers.input_modifier * artisan_modifiers.throughput_modifier;
 
 		money_qnty_type min_wage = life_needs_cost_by_type[to_index(ws.s.population_m.artisan)] * artisan_pop / pop_needs_divisor;
 
@@ -1668,7 +1678,7 @@ namespace economy {
 			pay_by_type[to_index(ws.s.population_m.artisan)] += profit;
 
 			ws.w.nation_s.state_production.get(in_state, artisan_production) += output_amount;
-			ve::accumulate_scaled<goods_tag, false>(current_state_demand, inputs, inputs_cost / ve::reduce<goods_tag, false>(inputs));
+			ve::accumulate_scaled(goods_count, current_state_demand, inputs, inputs_cost / ve::reduce(goods_count, inputs));
 		}
 
 		//artisan_production_scale = std::clamp(
@@ -1719,14 +1729,15 @@ namespace economy {
 
 		min_wage = std::max(min_wage, 0.0001f);
 
-		auto inputs_cost = ve::dot_product<goods_tag, false>(state_prices, inputs) *
+		const auto goods_count = ws.s.economy_m.goods_count;
+		auto inputs_cost = ve::dot_product(goods_count, state_prices, inputs) *
 			 instance.worker_data.production_scale * factory_modifiers.input_modifier * factory_modifiers.throughput_modifier * global_throughput_multiplier;
 		auto output_value = output_amount * state_prices[f_type.output_good];
 		auto profit = output_value - min_wage - inputs_cost;
 
 		ws.w.nation_s.state_production.get(in_state, f_type.output_good) += output_amount;
 
-		ve::accumulate_scaled<goods_tag, false>(current_state_demand, inputs, inputs_cost / ve::reduce<goods_tag, false>(inputs));
+		ve::accumulate_scaled(goods_count, current_state_demand, inputs, inputs_cost / ve::reduce(goods_count, inputs));
 
 		if(profit <= 0) {
 			if(output_value - inputs_cost > 0) {
@@ -1963,21 +1974,23 @@ namespace economy {
 	void apply_pop_demand(world_state& ws, nations::state_tag in_state, state_pops_summary const& state_pops) {
 		auto state_demand = state_current_demand(ws, in_state);
 
+		const auto goods_count = ws.s.economy_m.goods_count;
 		const int32_t total = int32_t(state_pops.pop_ids.size());
+
 		for(int32_t i = 0; i < total; ++i) {
 			population::pop_type_tag ptype = state_pops.pop_types[i];
 			if(state_pops.ln_spending[i] > 0)
-				ve::accumulate_scaled<economy::goods_tag,false>(
+				ve::accumulate_scaled(goods_count,
 					state_demand,
 					ws.s.population_m.life_needs.get_row(ptype),
 					state_pops.ln_spending[i]);
 			if(state_pops.en_spending[i] > 0)
-				ve::accumulate_scaled<economy::goods_tag, false>(
+				ve::accumulate_scaled(goods_count,
 					state_demand,
 					ws.s.population_m.everyday_needs.get_row(ptype),
 					state_pops.en_spending[i]);
 			if(state_pops.lx_spending[i] > 0)
-				ve::accumulate_scaled<economy::goods_tag, false>(
+				ve::accumulate_scaled(goods_count,
 					state_demand,
 					ws.s.population_m.luxury_needs.get_row(ptype),
 					state_pops.lx_spending[i]);
@@ -2004,7 +2017,7 @@ namespace economy {
 		const float mobilization_effect = (ws.w.nation_s.nations.get<nation::is_mobilized>(state_owner) == false) ?
 			1.0f : std::max(0.0f, 1.0f - ws.w.nation_s.modifier_values.get<modifiers::national_offsets::mobilisation_size>(state_owner) * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::mobilisation_economy_impact>(state_owner));
 
-		std::fill(current_state_demand.data(), std::end(current_state_demand), 0.0f);
+		std::fill_n(current_state_demand.data(), ws.s.economy_m.goods_count, 0.0f);
 
 		tagged_array_view<float, goods_tag, false> masked_prices(
 			(economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count),
@@ -2175,7 +2188,7 @@ namespace economy {
 
 			float& treasury = ws.w.nation_s.nations.get<nation::treasury>(n);
 
-			auto tincome_sum = std::reduce(std::begin(tincome), std::end(tincome), 0.0f, std::plus<>());
+			auto tincome_sum = ve::reduce(ws.s.economy_m.goods_count, tincome);
 
 			treasury += tincome_sum;
 
@@ -2276,7 +2289,7 @@ namespace economy {
 				
 				return std::transform_reduce(integer_iterator(0), integer_iterator(sz), money_qnty_type(0), std::plus<>(), [ptr, tarrif_amount, overlord_id, sphere_leader_id](int32_t i) {
 					if(to_index(overlord_id) != i && to_index(sphere_leader_id) != i)
-						return tarrif_amount * *(std::begin(ptr) + i);
+						return tarrif_amount * *(begin(ptr) + i);
 					else
 						return money_qnty_type(0);
 				});

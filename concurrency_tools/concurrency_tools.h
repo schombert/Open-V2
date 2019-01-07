@@ -579,9 +579,11 @@ std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_m
 template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
 std::pair<object_type*, object_type*> get_subrange(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, multiset_tag<object_type> i, object_type obj);
 template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
-tagged_array_view<const object_type, index_type, padding> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, array_tag<object_type, index_type, padding> i);
+std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, array_tag<object_type, index_type, padding> i);
 template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
-tagged_array_view<object_type, index_type, padding> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, array_tag<object_type, index_type, padding> i);
+tagged_array_view<const object_type, index_type, padding> get_view(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, array_tag<object_type, index_type, padding> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
+tagged_array_view<object_type, index_type, padding> get_view(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, array_tag<object_type, index_type, padding> i);
 template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
 object_type& get(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, set_tag<object_type> i, uint32_t inner_index);
 template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>

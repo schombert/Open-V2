@@ -2,6 +2,7 @@
 #include "common\\common.h"
 #include "simple_serialize\\simple_serialize.hpp"
 #include <ppl.h>
+#include "ve.h"
 
 #define VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
 
@@ -556,7 +557,9 @@ public:
 	int32_t size() const {
 		return size_used;
 	}
-
+	uint32_t vector_size() const {
+		return ve::to_vector_size(uint32_t(size_used + 1));
+	}
 	bool is_valid_index(tag_type t) const noexcept {
 		return ::is_valid_index(t) & (int32_t(to_index(t)) < size_used);
 	}
@@ -574,14 +577,14 @@ public:
 	template<typename U>
 	__forceinline auto get_row() const {
 		if constexpr(!std::is_same_v<typename container_type::template value_type<U>, bitfield_type>)
-			return tagged_array_view<typename container_type::template value_type<U> const, tag_type, true>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), size_used + 1);
+			return tagged_array_view<typename container_type::template value_type<U> const, tag_type, true>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), ve::to_vector_size(uint32_t(size_used + 1)));
 		else
 			return tagged_array_view<bitfield_type const, tag_type, true>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), int32_t(uint32_t(size_used + 8) / 8ui32));
 	}
 	template<typename U>
 	__forceinline auto get_row() {
 		if constexpr(!std::is_same_v<typename container_type::template value_type<U>, bitfield_type>)
-			return tagged_array_view<typename container_type::template value_type<U>, tag_type, true>(container_type::template get_row<U>(*ptr), size_used + 1);
+			return tagged_array_view<typename container_type::template value_type<U>, tag_type, true>(container_type::template get_row<U>(*ptr), ve::to_vector_size(uint32_t(size_used + 1)));
 		else
 			return tagged_array_view<bitfield_type, tag_type, true>(container_type::template get_row<U>(*static_cast<ptr_type*>(ptr)), int32_t(uint32_t(size_used + 8) / 8ui32));
 	}
@@ -686,6 +689,9 @@ public:
 	int32_t size() const {
 		return size_used - 1;
 	}
+	uint32_t vector_size() const {
+		return ve::to_vector_size(uint32_t(size_used));
+	}
 
 	void reset() {
 		size_used = 1;
@@ -721,14 +727,14 @@ public:
 	template<typename U>
 	__forceinline auto get_row() const {
 		if constexpr(!std::is_same_v<typename container_type::template value_type<U>, bitfield_type>)
-			return tagged_array_view<typename container_type::template value_type<U> const, tag_type, true>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), size_used);
+			return tagged_array_view<typename container_type::template value_type<U> const, tag_type, true>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), ve::to_vector_size(uint32_t(size_used)));
 		else
 			return tagged_array_view<bitfield_type const, tag_type, true>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), int32_t(uint32_t(size_used + 7) / 8ui32));
 	}
 	template<typename U>
 	__forceinline auto get_row() {
 		if constexpr(!std::is_same_v<typename container_type::template value_type<U>, bitfield_type>)
-			return tagged_array_view<typename container_type::template value_type<U>, tag_type, true>(container_type::template get_row<U>(*ptr), size_used);
+			return tagged_array_view<typename container_type::template value_type<U>, tag_type, true>(container_type::template get_row<U>(*ptr), ve::to_vector_size(uint32_t(size_used)));
 		else
 			return tagged_array_view<bitfield_type, tag_type, true>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), int32_t(uint32_t(size_used + 7) / 8ui32));
 	}
