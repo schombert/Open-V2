@@ -1234,7 +1234,7 @@ namespace ve {
 	template<int32_t cache_lines, typename T, int32_t i, typename U>
 	__forceinline auto prefetch(contiguous_tags<T, i> e, tagged_array_view<U, typename ve_identity<T>::type, true> source) -> void {
 		if constexpr(i % (8 / sizeof(U)) == 0) {
-			_mm_prefetch((char const*)(source + e.value) + 64 * cache_lines, _MM_HINT_T0);
+			_mm_prefetch((char const*)(source.data() + e.value) + 64 * cache_lines, _MM_HINT_T0);
 		}
 	}
 	template<int32_t cache_lines, typename T, int32_t i, typename U>
@@ -1257,7 +1257,7 @@ namespace ve {
 	template<int32_t cache_lines, typename T, int32_t i, typename U>
 	__forceinline auto nt_prefetch(contiguous_tags<T, i> e, tagged_array_view<U, typename ve_identity<T>::type, true> source) -> void {
 		if constexpr(i % (8 / sizeof(U)) == 0) {
-			_mm_prefetch((char const*)(source + e.value) + 64 * cache_lines, _MM_HINT_T0);
+			_mm_prefetch((char const*)(source.data() + e.value) + 64 * cache_lines, _MM_HINT_T0);
 		}
 	}
 	template<int32_t cache_lines, typename T, int32_t i, typename U>
@@ -1285,6 +1285,20 @@ namespace ve {
 		int_vector_internal mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - e.subcount));
 		_mm256_maskstore_ps(dest + e.value, mask, values);
 	}
+
+	template<typename T, int32_t i, typename U>
+	__forceinline auto store(contiguous_tags<typename ve_identity<decay_tag<T>>::type, i> e, tagged_array_view<U, T, true> dest, fp_vector values) {
+		return ve::store(e, dest.data(), values);
+	}
+	template<typename T, int32_t i, typename U>
+	__forceinline auto store(unaligned_contiguous_tags<typename ve_identity<decay_tag<T>>::type, i> e, tagged_array_view<U, T, true> dest, fp_vector values) {
+		return ve::store(e, dest.data(), values);
+	}
+	template<typename T, typename U>
+	__forceinline auto store(partial_contiguous_tags<typename ve_identity<decay_tag<T>>::type> e, tagged_array_view<U, T, true> dest, fp_vector values) {
+		return ve::store(e, dest.data(), values);
+	}
+
 	__forceinline void store(int_vector indices, float* dest, fp_vector values) {
 		dest[indices[0]] = values[0];
 		dest[indices[1]] = values[1];

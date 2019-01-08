@@ -1195,13 +1195,16 @@ namespace economy {
 	constexpr int32_t prefetch_constant_a = 4;
 
 	struct calculate_apparant_prices {
-		float* const apparent_price_v;
-		float* const distance_vector_v;
-		float const state_owner_tarrifs;
-		float* const state_prices_copy_v;
-		float* const tarrif_mask_v;
+		using result_type = tagged_array_view<float, nations::state_tag, true>;
+		using data_type = tagged_array_view<const float, nations::state_tag, true>;
 
-		calculate_apparant_prices(float* a, float* c, float d, float* e, float* g) :
+		result_type apparent_price_v;
+		data_type distance_vector_v;
+		float state_owner_tarrifs;
+		data_type const state_prices_copy_v;
+		data_type const tarrif_mask_v;
+
+		calculate_apparant_prices(result_type a, data_type c, float d, data_type e, data_type g) :
 			apparent_price_v(a), distance_vector_v(c), state_owner_tarrifs(d), state_prices_copy_v(e), tarrif_mask_v(g) {}
 
 		template<typename T>
@@ -1226,11 +1229,14 @@ namespace economy {
 	};
 
 	struct calculate_weightings {
-		float* const apparent_price_v;
-		float* const weightings_v;
-		float* const state_production_copy_v;
+		using result_type = tagged_array_view<float, nations::state_tag, true>;
+		using data_type = tagged_array_view<const float, nations::state_tag, true>;
 
-		calculate_weightings(float* a, float* b, float* f) :
+		data_type apparent_price_v;
+		result_type weightings_v;
+		data_type state_production_copy_v;
+
+		calculate_weightings(data_type a, result_type b, data_type f) :
 			apparent_price_v(a), weightings_v(b), state_production_copy_v(f) {}
 
 		template<typename T>
@@ -1245,15 +1251,18 @@ namespace economy {
 	};
 
 	struct tariff_updator {
-		float* const global_demand_by_state_v;
-		float* const apparent_price_v;
-		float* const state_prices_copy_v;
-		float* const values_v;
-		float* const tarrif_mask_v;
+		using result_type = tagged_array_view<float, nations::state_tag, true>;
+		using data_type = tagged_array_view<const float, nations::state_tag, true>;
+
+		result_type global_demand_by_state_v;
+		data_type apparent_price_v;
+		data_type state_prices_copy_v;
+		data_type values_v;
+		data_type tarrif_mask_v;
 		float const state_owner_tarrifs;
 		ve::fp_vector tariff_income_accumulator[ve::block_repitition] = { ve::fp_vector{}, ve::fp_vector{}, ve::fp_vector{}, ve::fp_vector{} };
 
-		tariff_updator(float* a, float* b, float* c, float* d, float* e, float f) :
+		tariff_updator(result_type a, data_type b, data_type c, data_type d, data_type e, float f) :
 			global_demand_by_state_v(a), apparent_price_v(b), state_prices_copy_v(c), values_v(d), tarrif_mask_v(e), state_owner_tarrifs(f) {}
 
 		template<typename T>
@@ -1277,16 +1286,19 @@ namespace economy {
 	};
 
 	struct player_tariff_updator {
-		float* const global_demand_by_state_v;
-		float* const apparent_price_v;
-		float* const state_prices_copy_v;
-		float* const values_v;
-		float* const tarrif_mask_v;
+		using result_type = tagged_array_view<float, nations::state_tag, true>;
+		using data_type = tagged_array_view<const float, nations::state_tag, true>;
+
+		result_type global_demand_by_state_v;
+		data_type apparent_price_v;
+		data_type state_prices_copy_v;
+		data_type values_v;
+		data_type tarrif_mask_v;
 		float const state_owner_tarrifs;
 		ve::fp_vector tariff_income_accumulator[ve::block_repitition] = { ve::fp_vector{}, ve::fp_vector{}, ve::fp_vector{}, ve::fp_vector{} };
-		float* const money_spent_values;
+		result_type money_spent_values;
 
-		player_tariff_updator(float* a, float* b, float* c, float* d, float* e, float f, float* h) :
+		player_tariff_updator(result_type a, data_type b, data_type c, data_type d, data_type e, float f, result_type h) :
 			global_demand_by_state_v(a), apparent_price_v(b), state_prices_copy_v(c), values_v(d), tarrif_mask_v(e), state_owner_tarrifs(f), money_spent_values(h) {}
 
 		template<typename T>
@@ -1314,15 +1326,17 @@ namespace economy {
 	struct new_price_accumulator {
 		ve::fp_vector price_times_purchases_accumulator[ve::block_repitition] = { ve::fp_vector{}, ve::fp_vector{}, ve::fp_vector{}, ve::fp_vector{} };
 
-		float* const distance_vector;
-		float* const tariff_mask;
-		float* const global_demand_by_state;
-		float* const state_production_copy;
-		float* const values;
+		using data_type = tagged_array_view<const float, nations::state_tag, true>;
+
+		data_type distance_vector;
+		data_type tariff_mask;
+		data_type global_demand_by_state;
+		data_type state_production_copy;
+		data_type values;
 
 		float const state_owner_tariffs;
 		
-		new_price_accumulator(float* a, float* b, float* c, float* d, float* e, float f) :
+		new_price_accumulator(data_type a, data_type b, data_type c, data_type d, data_type e, float f) :
 			distance_vector(a), tariff_mask(b), global_demand_by_state(c), state_production_copy(d), values(e), state_owner_tariffs(f) {}
 
 		template<typename T>
@@ -1402,18 +1416,18 @@ namespace economy {
 			auto distance_vector = ws.w.province_s.state_distances.get_row(si);
 			auto tarrif_mask = get_view(ws.w.economy_s.purchasing_arrays, state_owner_tarrif_mask);
 
-			ve::execute_serial_fast<nations::state_tag>(uint32_t(state_max + 1), calculate_apparant_prices(
-				workspace_local.apparent_price.data(),
-				distance_vector.data(),
+			ve::execute_serial_fast<nations::state_tag>(ve::to_vector_size(uint32_t(state_max + 1)), calculate_apparant_prices(
+				workspace_local.apparent_price.view(),
+				distance_vector,
 				state_owner_tarrifs,
-				state_prices_copy.data(),
-				tarrif_mask.data()
+				state_prices_copy.view(),
+				tarrif_mask
 			));
 
-			ve::execute_serial_fast<nations::state_tag>(uint32_t(state_max + 1), calculate_weightings(
-				workspace_local.apparent_price.data(),
-				values.data(),
-				state_production.data()
+			ve::execute_serial_fast<nations::state_tag>(ve::to_vector_size(uint32_t(state_max + 1)), calculate_weightings(
+				workspace_local.apparent_price.view(),
+				values,
+				state_production
 			));
 			
 
@@ -1426,8 +1440,8 @@ namespace economy {
 				// pay tarrifs & increase global demand
 				if(ws.w.local_player_nation && ws.w.local_player_nation != state_owner) {
 
-					tariff_updator to_obj(workspace_local.global_demand_by_state.data(), workspace_local.apparent_price.data(),
-						state_prices_copy.data(), values.data(), tarrif_mask.data(), state_owner_tarrifs);
+					tariff_updator to_obj(workspace_local.global_demand_by_state.view(), workspace_local.apparent_price.view(),
+						state_prices_copy.view(), values, tarrif_mask, state_owner_tarrifs);
 
 					ve::execute_serial<nations::state_tag>(uint32_t(state_max + 1), to_obj);
 					workspace_local.nation_tarrif_income[state_owner] +=
@@ -1435,8 +1449,8 @@ namespace economy {
 
 					assert(std::isfinite(workspace_local.nation_tarrif_income[state_owner]));
 				} else {
-					player_tariff_updator to_obj(workspace_local.global_demand_by_state.data(), workspace_local.apparent_price.data(),
-						state_prices_copy.data(), values.data(), tarrif_mask.data(), state_owner_tarrifs, workspace_local.weightings.data());
+					player_tariff_updator to_obj(workspace_local.global_demand_by_state.view(), workspace_local.apparent_price.view(),
+						state_prices_copy.view(), values, tarrif_mask, state_owner_tarrifs, workspace_local.weightings.view());
 
 					ve::execute_serial<nations::state_tag>(uint32_t(state_max + 1), to_obj);
 					workspace_local.nation_tarrif_income[state_owner] +=
@@ -1491,7 +1505,7 @@ namespace economy {
 				(tarrif_mask.array() * (state_owner_tarrifs) + 1.0f)
 				* global_demand_by_state.vector.array() / (state_production_copy.vector.array() + 0.0001f)).matrix();*/
 
-			new_price_accumulator acc_obj(distance_vector.data(), tariff_mask.data(), global_demand_by_state.data(), state_production.data(), values.data(), state_owner_tarrifs);
+			new_price_accumulator acc_obj(distance_vector, tariff_mask, global_demand_by_state, state_production, values, state_owner_tarrifs);
 
 			ve::execute_serial<nations::state_tag>(uint32_t(state_max + 1), acc_obj);
 			const auto final_dot_product =
