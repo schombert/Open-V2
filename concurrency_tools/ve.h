@@ -342,7 +342,7 @@ namespace ve {
 		assert(vector.size >= int32_t(size));
 		
 		ve_impl::reduce_operator ro(vector.data());
-		policy::template execute<itype>(size, ro);
+		policy::template execute<int32_t>(size, ro);
 		return ((ro.accumulator[0] + ro.accumulator[1]) + (ro.accumulator[2] + ro.accumulator[3])).reduce();
 	}
 
@@ -365,7 +365,7 @@ namespace ve {
 		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, float>, void> {
 		assert(vector.size >= int32_t(size));
 
-		policy::template execute<itype>(size, ve_impl::rescale_operator(vector.data(), scale_factor));
+		policy::template execute<int32_t>(size, ve_impl::rescale_operator(vector.data(), scale_factor));
 	}
 
 	namespace ve_impl {
@@ -389,7 +389,7 @@ namespace ve {
 		assert(destination.size >= int32_t(size));
 		assert(accumulated.size >= int32_t(size));
 
-		policy::template execute<itype>(size, ve_impl::vector_accumulate_operator(destination.data(), accumulated.data()));
+		policy::template execute<int32_t>(size, ve_impl::vector_accumulate_operator(destination.data(), accumulated.data()));
 	}
 
 	namespace ve_impl {
@@ -413,7 +413,7 @@ namespace ve {
 		assert(destination.size >= int32_t(size));
 		assert(source.size >= int32_t(size));
 
-		policy::template execute<itype>(size, ve_impl::vector_copy_operator(destination.data(), source.data()));
+		policy::template execute<int32_t>(size, ve_impl::vector_copy_operator(destination.data(), source.data()));
 	}
 
 	namespace ve_impl {
@@ -438,7 +438,7 @@ namespace ve {
 		assert(destination.size >= int32_t(size));
 		assert(accumulated.size >= int32_t(size));
 
-		policy::template execute<itype>(size, ve_impl::vector_accumulate_scaled_operator(destination.data(), accumulated.data(), scale));
+		policy::template execute<int32_t>(size, ve_impl::vector_accumulate_scaled_operator(destination.data(), accumulated.data(), scale));
 	}
 
 	namespace ve_impl {
@@ -463,7 +463,7 @@ namespace ve {
 		assert(destination.size >= int32_t(size));
 		assert(accumulated.size >= int32_t(size));
 
-		policy::template execute<itype>(size, ve_impl::vector_accumulate_ui8_scaled_operator(destination.data(), accumulated.data(), scale));
+		policy::template execute<int32_t>(size, ve_impl::vector_accumulate_ui8_scaled_operator(destination.data(), accumulated.data(), scale));
 	}
 
 	namespace ve_impl {
@@ -489,7 +489,7 @@ namespace ve {
 		assert(a.size >= int32_t(size));
 
 		ve_impl::dot_product_operator op(a.data(), b.data());
-		policy::template execute<itype>(size, op);
+		policy::template execute<int32_t>(size, op);
 
 		return ((op.accumulator[0] + op.accumulator[1]) + (op.accumulator[2] + op.accumulator[3])).reduce();
 	}
@@ -517,7 +517,7 @@ namespace ve {
 		assert(b.size >= int32_t(size));
 		assert(a.size >= int32_t(size));
 
-		policy::template execute<itype>(size, ve_impl::vector_accumulate_product_operator(destination.data(), a.data(), b.data()));
+		policy::template execute<int32_t>(size, ve_impl::vector_accumulate_product_operator(destination.data(), a.data(), b.data()));
 	}
 
 	namespace ve_impl {
@@ -544,7 +544,7 @@ namespace ve {
 		assert(b.size >= int32_t(size));
 		assert(a.size >= int32_t(size));
 
-		policy::template execute<itype>(size, ve_impl::vector_accumulate_scaled_product_operator(destination.data(), a.data(), b.data(), scale));
+		policy::template execute<int32_t>(size, ve_impl::vector_accumulate_scaled_product_operator(destination.data(), a.data(), b.data(), scale));
 	}
 
 	namespace ve_impl {
@@ -570,7 +570,7 @@ namespace ve {
 		assert(b.size >= int32_t(size));
 		assert(a.size >= int32_t(size));
 
-		policy::template execute<itype>(size, ve_impl::vector_accumulate_sum_operator(destination.data(), a.data(), b.data()));
+		policy::template execute<int32_t>(size, ve_impl::vector_accumulate_sum_operator(destination.data(), a.data(), b.data()));
 	}
 
 	namespace ve_impl {
@@ -589,6 +589,6 @@ namespace ve {
 	__forceinline void set_zero(uint32_t size, tagged_array_view<float, itype, padded> destination, policy p = serial()) {
 		assert(destination.size >= int32_t(size));
 
-		policy::template execute<itype>(size, ve_impl::vector_zero_operator(destination.data()));
+		policy::template execute<int32_t>(size, ve_impl::vector_zero_operator(destination.data()));
 	}
 }

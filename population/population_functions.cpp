@@ -267,13 +267,16 @@ namespace population {
 	}
 
 	struct literacy_update_operation {
-		float const* const change_by_state;
-		provinces::province_tag const* const pop_locations;
-		nations::state_tag const* const province_state_owners;
-		float* const pop_literacy;
+		tagged_array_view<float const, nations::state_tag, true> change_by_state;
+		tagged_array_view<provinces::province_tag const, population::pop_tag, true> pop_locations;
+		tagged_array_view<nations::state_tag const, provinces::province_tag, true> province_state_owners;
+		tagged_array_view<float, population::pop_tag, true> pop_literacy;
 
-		literacy_update_operation(float const* a, provinces::province_tag const* b, nations::state_tag const* c, float* d) :
-			change_by_state(a), pop_locations(b), province_state_owners(c), pop_literacy(d) {}
+		literacy_update_operation(world_state& ws, tagged_array_view<float const, nations::state_tag, true> a) :
+			change_by_state(a),
+			pop_locations(ws.w.population_s.pops.get_row<pop::location>()),
+			province_state_owners(ws.w.province_s.province_state_container.get_row<province_state::state_instance>()),
+			pop_literacy(ws.w.population_s.pops.get_row<pop::literacy>()) {}
 
 		template<typename T>
 		__forceinline void operator()(T pop_v) {
@@ -287,15 +290,22 @@ namespace population {
 
 	struct gather_literacy_change_operation {
 		world_state const& ws;
-		float const* const state_populations;
-		nations::country_tag const* const state_owners;
-		float const* const education_efficiency_modifier;
-		float const* const tech_education_efficiency_modifier;
-		float const* const education_spending;
-		float* const change_out;
 
-		gather_literacy_change_operation(world_state const& w, float const* a, nations::country_tag const* b, float const* c, float const* d, float const* e, float* f) :
-			ws(w), state_populations(a), state_owners(b), education_efficiency_modifier(c), tech_education_efficiency_modifier(d), education_spending(e),
+		tagged_array_view<float const, nations::state_tag, true> state_populations;
+		tagged_array_view<nations::country_tag const, nations::state_tag, true> state_owners;
+		tagged_array_view<float const, nations::country_tag, true> education_efficiency_modifier;
+		tagged_array_view<float const, nations::country_tag, true> tech_education_efficiency_modifier;
+		tagged_array_view<float const, nations::country_tag, true> education_spending;
+
+		tagged_array_view<float, nations::state_tag, true> change_out;
+
+		gather_literacy_change_operation(world_state& w, tagged_array_view<float, nations::state_tag, true> f) :
+			ws(w),
+			state_populations(w.w.nation_s.states.get_row<state::total_population>()),
+			state_owners(w.w.nation_s.states.get_row<state::owner>()),
+			education_efficiency_modifier(w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::education_efficiency_modifier>(0)),
+			tech_education_efficiency_modifier(w.w.nation_s.tech_attributes.get_row<technologies::tech_offset::education_efficiency>(0)), 
+			education_spending(w.w.nation_s.nations.get_row<nation::f_education_spending>()),
 			change_out(f) {}
 
 		template<typename T>
@@ -329,33 +339,21 @@ namespace population {
 	void update_literacy(world_state& ws) {
 		concurrent_cache_aligned_buffer<float, nations::state_tag, true> change_by_state(ws.w.nation_s.states.size());
 
-		auto state_populations = ws.w.nation_s.states.get_row<state::total_population>();
-		auto state_owners = ws.w.nation_s.states.get_row<state::owner>();
-		auto nat_edu_efficiency = ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::education_efficiency_modifier>(ws.w.nation_s.nations.size());
-		auto tech_edu_efficiency = ws.w.nation_s.tech_attributes.get_row<technologies::tech_offset::education_efficiency>(ws.w.nation_s.nations.size());
-		
-		auto edu_spending = ws.w.nation_s.nations.get_row<nation::f_education_spending>();
-
-		ve::execute_parallel<nations::state_tag>(uint32_t(ws.w.nation_s.states.size() + 1),
-			gather_literacy_change_operation(ws, state_populations.data(), state_owners.data(),
-				nat_edu_efficiency.data(), tech_edu_efficiency.data(), edu_spending.data(), change_by_state.data()));
+		ve::execute_parallel<nations::state_tag>(ws.w.nation_s.states.vector_size(),
+			gather_literacy_change_operation(ws, change_by_state.view()));
 	
 		change_by_state.padding() = 0.0f;
 
-		auto pop_locations = ws.w.population_s.pops.get_row<pop::location>(); 
-		auto province_states = ws.w.province_s.province_state_container.get_row<province_state::state_instance>();
-		auto pop_literacy = ws.w.population_s.pops.get_row<pop::literacy>();
-
-		uint32_t pop_size = uint32_t(ws.w.population_s.pops.size() + 1);
+		uint32_t pop_size = ws.w.population_s.pops.vector_size();
 		uint32_t chunk_size = pop_size / (32ui32 * 16ui32);
 
 		uint32_t chunk_index = uint32_t(to_index(ws.w.current_date) & 31);
 		if(chunk_index != 31) {
 			ve::execute_parallel<population::pop_tag>(chunk_size * 16ui32 * chunk_index, chunk_size * 16ui32 * (chunk_index + 1ui32),
-				literacy_update_operation(change_by_state.data(), pop_locations.data(), province_states.data(), pop_literacy.data()));
+				literacy_update_operation(ws, change_by_state.view()));
 		} else {
 			ve::execute_parallel_exact<population::pop_tag>(chunk_size * 16ui32 * chunk_index, pop_size,
-				literacy_update_operation(change_by_state.data(), pop_locations.data(), province_states.data(), pop_literacy.data()));
+				literacy_update_operation(ws, change_by_state.view()));
 		}
 	}
 
@@ -373,25 +371,33 @@ namespace population {
 	}
 
 	struct gather_militancy_by_province_operation {
-		float* const base_modifier_out;
-		float* const non_accepted_modifier_out;
+		tagged_array_view<float, provinces::province_tag, true> base_modifier_out;
+		tagged_array_view<float, provinces::province_tag, true> non_accepted_modifier_out;
 
-		nations::country_tag const* const province_owners;
-		nations::state_tag const* const province_states;
+		tagged_array_view<nations::country_tag const, provinces::province_tag, true> province_owners;
+		tagged_array_view<nations::state_tag const, provinces::province_tag, true> province_states;
 
-		float const* const prov_militancy_mod;
-		float const* const nat_militancy_mod;
-		float const* const nat_war_exhaustion;
-		float const* const nat_non_accepted_mil;
-		float const* const tech_seperatism;
-		float const* const nat_core_pop_mil;
+		tagged_array_view<float const, provinces::province_tag, true> prov_militancy_mod;
+		tagged_array_view<float const, nations::country_tag, true> nat_militancy_mod;
+		tagged_array_view<float const, nations::country_tag, true> nat_war_exhaustion;
+		tagged_array_view<float const, nations::country_tag, true> nat_non_accepted_mil;
+		tagged_array_view<float const, nations::country_tag, true> tech_seperatism;
+		tagged_array_view<float const, nations::country_tag, true> nat_core_pop_mil;
 
 		world_state const& ws;
 
-		gather_militancy_by_province_operation(world_state const& w, float* a, float* b, nations::country_tag const* c,
-			nations::state_tag const* d, float const* e, float const* f, float const* g, float const* h, float const* i, float const* j) :
-			ws(w), base_modifier_out(a), non_accepted_modifier_out(b), province_owners(c), province_states(d), prov_militancy_mod(e),
-			nat_militancy_mod(f), nat_war_exhaustion(g), nat_non_accepted_mil(h), tech_seperatism(i), nat_core_pop_mil(j) {}
+		gather_militancy_by_province_operation(world_state& w,
+			tagged_array_view<float, provinces::province_tag, true> a,
+			tagged_array_view<float, provinces::province_tag, true> b) :
+			ws(w), base_modifier_out(a), non_accepted_modifier_out(b),
+			province_owners(w.w.province_s.province_state_container.get_row<province_state::owner>()),
+			province_states(w.w.province_s.province_state_container.get_row<province_state::state_instance>()),
+			prov_militancy_mod(w.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::pop_militancy_modifier>(0)),
+			nat_militancy_mod(w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::global_pop_militancy_modifier>(0)),
+			nat_war_exhaustion(w.w.nation_s.nations.get_row<nation::war_exhaustion>()),
+			nat_non_accepted_mil(w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::non_accepted_pop_militancy_modifier>(0)),
+			tech_seperatism(w.w.nation_s.tech_attributes.get_row<technologies::tech_offset::seperatism>(0)),
+			nat_core_pop_mil(w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::core_pop_militancy_modifier>(0)) {}
 
 		template<typename T>
 		void operator()(T province_v) {
@@ -425,27 +431,36 @@ namespace population {
 	};
 
 	struct update_militancy_operation {
-		float* const pop_militancy;
+		tagged_array_view<float, pop_tag, true> pop_militancy;
 
-		float const* const base_prov_modifier;
-		float const* const prov_non_accepted_modifier;
+		tagged_array_view<float const, provinces::province_tag, true> base_prov_modifier;
+		tagged_array_view<float const, provinces::province_tag, true> prov_non_accepted_modifier;
 
-		nations::country_tag const* const province_owners;
-		provinces::province_tag const* const pop_locations;
+		tagged_array_view<nations::country_tag const, provinces::province_tag, true> province_owners;
+		tagged_array_view<provinces::province_tag const, pop_tag, true> pop_locations;
 
-		bitfield_type const* const pop_acceptance;
+		tagged_array_view<bitfield_type const, pop_tag, true> pop_acceptance;
 
-		float const* const pop_size;
-		float const* const pop_satisfaction;
-		float const* const pop_political_reform_support;
-		float const* const pop_social_reform_support;
+		tagged_array_view<float const, pop_tag, true> pop_size;
+		tagged_array_view<float const, pop_tag, true> pop_satisfaction;
+		tagged_array_view<float const, pop_tag, true> pop_political_reform_support;
+		tagged_array_view<float const, pop_tag, true> pop_social_reform_support;
 
 		world_state const& ws;
 
-		update_militancy_operation(world_state const& w, float* mil_out, float const* a, float const* b, nations::country_tag const* c, provinces::province_tag const* d,
-			bitfield_type const* e, float const* f, float const* g, float const* h, float const* i) :
-			ws(w), pop_militancy(mil_out), base_prov_modifier(a), prov_non_accepted_modifier(b), province_owners(c), pop_locations(d), 
-			pop_acceptance(e), pop_size(f), pop_satisfaction(g), pop_political_reform_support(h), pop_social_reform_support(i) {}
+		update_militancy_operation(world_state& w,
+			tagged_array_view<float const, provinces::province_tag, true> a,
+			tagged_array_view<float const, provinces::province_tag, true> b) :
+			ws(w),
+			pop_militancy(w.w.population_s.pops.get_row<pop::militancy>()),
+			base_prov_modifier(a), prov_non_accepted_modifier(b),
+			province_owners(w.w.province_s.province_state_container.get_row<province_state::owner>()),
+			pop_locations(w.w.population_s.pops.get_row<pop::location>()),
+			pop_acceptance(w.w.population_s.pops.get_row<pop::is_accepted>()),
+			pop_size(w.w.population_s.pops.get_row<pop::size>()),
+			pop_satisfaction(w.w.population_s.pops.get_row<pop::needs_satisfaction>()),
+			pop_political_reform_support(w.w.population_s.pops.get_row<pop::political_interest>()),
+			pop_social_reform_support(w.w.population_s.pops.get_row<pop::social_interest>()) {}
 
 		template<typename T>
 		void operator()(T pop_v) {
@@ -524,66 +539,15 @@ namespace population {
 		concurrent_cache_aligned_buffer<float, provinces::province_tag, true> base_modifier(ws.w.province_s.province_state_container.size());
 		concurrent_cache_aligned_buffer<float, provinces::province_tag, true> non_accepted_modifier(ws.w.province_s.province_state_container.size());
 
-		auto province_owners = ws.w.province_s.province_state_container.get_row<province_state::owner>();
-		auto province_states = ws.w.province_s.province_state_container.get_row<province_state::state_instance>();
-		auto province_mil_mod = ws.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::pop_militancy_modifier>(ws.w.province_s.province_state_container.size());
-		auto nat_mil_mod = ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::global_pop_militancy_modifier>(ws.w.nation_s.nations.size());
-		auto nat_war_exh = ws.w.nation_s.nations.get_row<nation::war_exhaustion>();
-		auto nat_non_accepted_mil_mod = ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::non_accepted_pop_militancy_modifier>(ws.w.nation_s.nations.size());
-		auto nat_core_mil_mod = ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::core_pop_militancy_modifier>(ws.w.nation_s.nations.size());
-		auto tech_seperatism = ws.w.nation_s.tech_attributes.get_row<technologies::tech_offset::seperatism>(ws.w.nation_s.nations.size());
 
-		/*
-		float* const base_modifier_out;
-		float* const non_accepted_modifier_out;
+		ve::execute_parallel<provinces::province_tag>(ws.w.province_s.province_state_container.vector_size(),
+			gather_militancy_by_province_operation(ws, base_modifier.view(), non_accepted_modifier.view()));
 
-		int32_t const* const province_owners;
-		int32_t const* const province_states;
 
-		float const* const prov_militancy_mod;
-		float const* const nat_militancy_mod;
-		float const* const nat_war_exhaustion;
-		float const* const nat_non_accepted_mil;
-		float const* const tech_seperatism;
-		float const* const nat_core_pop_mil;
-		*/
-
-		ve::execute_parallel<provinces::province_tag>(uint32_t(ws.w.province_s.province_state_container.size() + 1),
-			gather_militancy_by_province_operation(ws, base_modifier.data(), non_accepted_modifier.data(),
-			province_owners.data(),province_states.data(), province_mil_mod.data(), nat_mil_mod.data(),
-			nat_war_exh.data(), nat_non_accepted_mil_mod.data(), tech_seperatism.data(), nat_core_mil_mod.data()));
-
-		/*
-		float* const pop_militancy;
-
-		float const* const base_prov_modifier;
-		float const* const prov_non_accepted_modifier;
-
-		int32_t const* const province_owners;
-		int32_t const* const pop_locations;
-
-		int8_t const* const pop_acceptance;
-
-		float const* const pop_size;
-		float const* const pop_satisfaction;
-		float const* const pop_political_reform_support;
-		float const* const pop_social_reform_support;
-		*/
-
-		auto pop_locations = ws.w.population_s.pops.get_row<pop::location>();
-		auto pop_militancy = ws.w.population_s.pops.get_row<pop::militancy>();
-		auto pop_is_accepted = ws.w.population_s.pops.get_row<pop::is_accepted>();
-		auto pop_sizes = ws.w.population_s.pops.get_row<pop::size>();
-		auto pop_satisfaction = ws.w.population_s.pops.get_row<pop::needs_satisfaction>();
-
-		auto prs = ws.w.population_s.pops.get_row<pop::political_interest>();
-		auto srs = ws.w.population_s.pops.get_row<pop::social_interest>();
-
-		uint32_t pop_size = uint32_t(ws.w.population_s.pops.size() + 1);
+		uint32_t pop_size = ws.w.population_s.pops.vector_size();
 		uint32_t chunk_size = pop_size / (32ui32 * 16ui32);
 
-		update_militancy_operation op(ws, pop_militancy.data(), base_modifier.data(), non_accepted_modifier.data(), province_owners.data(), 
-			pop_locations.data(), pop_is_accepted.data(), pop_sizes.data(), pop_satisfaction.data(), prs.data(), srs.data());
+		update_militancy_operation op(ws, base_modifier.view(), non_accepted_modifier.view());
 
 		uint32_t chunk_index = uint32_t(to_index(ws.w.current_date) & 31);
 		if(chunk_index != 31)
@@ -593,26 +557,35 @@ namespace population {
 	}
 
 	struct gather_consciousness_factors_operation {
-		float* const fixed_factor_out;
-		float* const clergy_factor_out;
-		float* const literacy_factor_out;
+		tagged_array_view<float, provinces::province_tag, true> fixed_factor_out;
+		tagged_array_view<float, provinces::province_tag, true> clergy_factor_out;
+		tagged_array_view<float, provinces::province_tag, true> literacy_factor_out;
 
-		nations::country_tag const* const owner_indices;
-		nations::state_tag const* const state_indices;
+		tagged_array_view<nations::country_tag const, provinces::province_tag, true> owner_indices;
+		tagged_array_view<nations::state_tag const, provinces::province_tag, true> state_indices;
 
-		float const* const nat_mod_literacy_impact;
-		float const* const nat_plurality;
-		float const* const prov_population;
-		float const* const nat_con_mod;
-		float const* const prov_con_mod;
-		float const* const nat_core_con_mod;
+		tagged_array_view<float const, nations::country_tag, true> nat_mod_literacy_impact;
+		tagged_array_view<float const, nations::country_tag, true> nat_plurality;
+		tagged_array_view<float const, provinces::province_tag, true> prov_population;
+		tagged_array_view<float const, nations::country_tag, true> nat_con_mod;
+		tagged_array_view<float const, provinces::province_tag, true> prov_con_mod;
+		tagged_array_view<float const, nations::country_tag, true> nat_core_con_mod;
 
 		world_state const& ws;
 
-		gather_consciousness_factors_operation(world_state const& w, float* a, float* b, float* c, nations::country_tag const* d, nations::state_tag const* e,
-			float const* f, float const* g, float const* h, float const* i, float const* j, float const* k) :
-			ws(w), fixed_factor_out(a), clergy_factor_out(b), literacy_factor_out(c), owner_indices(d), state_indices(e), 
-			nat_mod_literacy_impact(f), nat_plurality(g), prov_population(h), nat_con_mod(i), prov_con_mod(j), nat_core_con_mod(k) {}
+		gather_consciousness_factors_operation(world_state const& w,
+			tagged_array_view<float, provinces::province_tag, true> a,
+			tagged_array_view<float, provinces::province_tag, true> b,
+			tagged_array_view<float, provinces::province_tag, true> c) :
+			ws(w), fixed_factor_out(a), clergy_factor_out(b), literacy_factor_out(c),
+			owner_indices(w.w.province_s.province_state_container.get_row<province_state::owner>()),
+			state_indices(w.w.province_s.province_state_container.get_row<province_state::state_instance>()),
+			nat_mod_literacy_impact(w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::literacy_con_impact>(0)),
+			nat_plurality(w.w.nation_s.nations.get_row<nation::plurality>()),
+			prov_population(w.w.province_s.province_state_container.get_row<province_state::total_population>()),
+			nat_con_mod(w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::global_pop_consciousness_modifier>(0)),
+			prov_con_mod(w.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::pop_consciousness_modifier>(0)),
+			nat_core_con_mod(w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::core_pop_consciousness_modifier>(0)) {}
 
 		template<typename T>
 		void operator()(T province_v) {
@@ -639,28 +612,37 @@ namespace population {
 	};
 
 	struct update_consciousness_operation {
-		float* const pop_consciousness;
+		tagged_array_view<float, pop_tag, true> pop_consciousness;
 
-		provinces::province_tag const* const pop_locations;
-		nations::country_tag const* const owner_indices;
+		tagged_array_view<provinces::province_tag const, pop_tag, true> pop_locations;
+		tagged_array_view<nations::country_tag const, provinces::province_tag, true> owner_indices;
 
-		float const* const pop_literacy;
-		float const* const pop_satisfaction;
-		float const* const nat_non_accepted_con;
+		tagged_array_view<float const, pop_tag, true> pop_literacy;
+		tagged_array_view<float const, pop_tag, true> pop_satisfaction;
+		tagged_array_view<float const, nations::country_tag, true> nat_non_accepted_con;
 
-		bitfield_type const* const pop_is_poor;
-		bitfield_type const* const pop_is_accepted;
+		tagged_array_view<bitfield_type const, pop_tag, true> pop_is_poor;
+		tagged_array_view<bitfield_type const, pop_tag, true> pop_is_accepted;
 		
-		float const* const prov_fixed_factor;
-		float const* const prov_clergy_factor;
-		float const* const prov_literacy_factor;
+		tagged_array_view<float const, provinces::province_tag, true> prov_fixed_factor;
+		tagged_array_view<float const, provinces::province_tag, true> prov_clergy_factor;
+		tagged_array_view<float const, provinces::province_tag, true> prov_literacy_factor;
 
 		world_state const& ws;
 
-		update_consciousness_operation(world_state const& w, float* pop_con, provinces::province_tag const* a, nations::country_tag const* b, float const* c, float const* d, float const* e,
-			bitfield_type const* f, bitfield_type const* g, float const* h, float const* i, float const* j) : ws(w),
-			pop_consciousness(pop_con), pop_locations(a), owner_indices(b), pop_literacy(c), pop_satisfaction(d), nat_non_accepted_con(e),
-			pop_is_poor(f), pop_is_accepted(g), prov_fixed_factor(h), prov_clergy_factor(i), prov_literacy_factor(j)
+		update_consciousness_operation(world_state& w,
+			tagged_array_view<float const, provinces::province_tag, true> h,
+			tagged_array_view<float const, provinces::province_tag, true> i,
+			tagged_array_view<float const, provinces::province_tag, true> j) : ws(w),
+			pop_consciousness(w.w.population_s.pops.get_row<pop::consciousness>()),
+			pop_locations(w.w.population_s.pops.get_row<pop::location>()),
+			owner_indices(w.w.province_s.province_state_container.get_row<province_state::owner>()),
+			pop_literacy(w.w.population_s.pops.get_row<pop::literacy>()),
+			pop_satisfaction(w.w.population_s.pops.get_row<pop::needs_satisfaction>()),
+			nat_non_accepted_con(w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::non_accepted_pop_consciousness_modifier>(0)),
+			pop_is_poor(w.w.population_s.pops.get_row<pop::is_poor>()),
+			pop_is_accepted(w.w.population_s.pops.get_row<pop::is_accepted>()),
+			prov_fixed_factor(h), prov_clergy_factor(i), prov_literacy_factor(j)
 		{}
 
 		template<typename T>
@@ -699,70 +681,16 @@ namespace population {
 		concurrent_cache_aligned_buffer<float, provinces::province_tag, true> clergy_factor(ws.w.province_s.province_state_container.size());
 		concurrent_cache_aligned_buffer<float, provinces::province_tag, true> literacy_factor(ws.w.province_s.province_state_container.size());
 
-		auto province_owners = ws.w.province_s.province_state_container.get_row<province_state::owner>();
-		auto province_states = ws.w.province_s.province_state_container.get_row<province_state::state_instance>();
-		auto province_con_mod = ws.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::pop_consciousness_modifier>(ws.w.province_s.province_state_container.size());
-		auto nat_con_mod = ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::global_pop_consciousness_modifier>(ws.w.nation_s.nations.size());
-		auto nat_core_con_mod = ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::core_pop_consciousness_modifier>(ws.w.nation_s.nations.size());
-		auto nat_lit_impact = ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::literacy_con_impact>(ws.w.nation_s.nations.size());
-		auto nat_plurality = ws.w.nation_s.nations.get_row<nation::plurality>();
-		auto prov_pop = ws.w.province_s.province_state_container.get_row<province_state::total_population>();
 
-		/*
-		float* const fixed_factor_out;
-		float* const clergy_factor_out;
-		float* const literacy_factor_out;
-
-		int32_t const* const owner_indices;
-		int32_t const* const state_indices;
-
-		float const* const nat_mod_literacy_impact;
-		float const* const nat_plurality;
-		float const* const prov_population;
-		float const* const nat_con_mod;
-		float const* const prov_con_mod;
-		float const* const nat_core_con_mod;
-		*/
-
-		ve::execute_parallel<provinces::province_tag>(uint32_t(ws.w.province_s.province_state_container.size() + 1),
-			gather_consciousness_factors_operation(ws, fixed_factor.data(), clergy_factor.data(), literacy_factor.data(),
-				province_owners.data(), province_states.data(), nat_lit_impact.data(), nat_plurality.data(),
-				prov_pop.data(), nat_con_mod.data(), province_con_mod.data(), nat_core_con_mod.data()));
+		ve::execute_parallel<provinces::province_tag>(ws.w.province_s.province_state_container.vector_size(),
+			gather_consciousness_factors_operation(ws, fixed_factor.view(), clergy_factor.view(), literacy_factor.view()));
 
 		clergy_factor.padding() = 0.0f;
-		/*
-		float* const pop_consciousness;
-
-		int32_t const* const pop_locations;
-		int32_t const* const owner_indices;
-
-		float const* const pop_literacy;
-		float const* const pop_satisfaction;
-		float const* const nat_non_accepted_con;
-
-		int8_t const* const pop_is_poor;
-		int8_t const* const pop_is_accepted;
-		
-		float const* const prov_fixed_factor;
-		float const* const prov_clergy_factor;
-		float const* const prov_literacy_factor;
-		*/
-
-		auto pop_locations = ws.w.population_s.pops.get_row<pop::location>();
-		auto pop_consciousness = ws.w.population_s.pops.get_row<pop::consciousness>();
-		auto pop_satisfaction = ws.w.population_s.pops.get_row<pop::needs_satisfaction>();
-		auto pop_literacy = ws.w.population_s.pops.get_row<pop::literacy>();
-		auto pop_is_accepted = ws.w.population_s.pops.get_row<pop::is_accepted>();
-		auto pop_is_poor = ws.w.population_s.pops.get_row<pop::is_poor>();
-
-		auto nat_non_accepted_con = ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::non_accepted_pop_consciousness_modifier>(ws.w.nation_s.nations.size());
-
-		uint32_t pop_size = uint32_t(ws.w.population_s.pops.size() + 1);
+	
+		uint32_t pop_size = ws.w.population_s.pops.vector_size();
 		uint32_t chunk_size = pop_size / (32ui32 * 16ui32);
 
-		update_consciousness_operation op(ws, pop_consciousness.data(), pop_locations.data(), province_owners.data(),
-			pop_literacy.data(), pop_satisfaction.data(), nat_non_accepted_con.data(), pop_is_poor.data(),
-			pop_is_accepted.data(), fixed_factor.data(), clergy_factor.data(), literacy_factor.data());
+		update_consciousness_operation op(ws, fixed_factor.view(), clergy_factor.view(), literacy_factor.view());
 
 		uint32_t chunk_index = uint32_t(to_index(ws.w.current_date) & 31);
 		if(chunk_index != 31)

@@ -1856,21 +1856,24 @@ namespace economy {
 		float* const en_spending;
 		float* const lx_spending;
 
-		float* const ln_money_div_qnty_by_type;
-		float* const en_money_div_qnty_by_type;
-		float* const lx_money_div_qnty_by_type;
+		tagged_array_view<float const, population::pop_type_tag, true> ln_money_div_qnty_by_type;
+		tagged_array_view<float const, population::pop_type_tag, true> en_money_div_qnty_by_type;
+		tagged_array_view<float const, population::pop_type_tag, true> lx_money_div_qnty_by_type;
 
-		float* const ln_costs_by_type;
-		float* const en_costs_by_type;
-		float* const lx_costs_by_type;
+		tagged_array_view<float const, population::pop_type_tag, true> ln_costs_by_type;
+		tagged_array_view<float const, population::pop_type_tag, true> en_costs_by_type;
+		tagged_array_view<float const, population::pop_type_tag, true> lx_costs_by_type;
 
 		consumption_operation(state_pops_summary& state_pops) :
 			pop_sizes(state_pops.size.data()), pop_types(state_pops.pop_types.data()), pop_money(state_pops.money.data()),
 			satisfaction(state_pops.satisfaction.data()), ln_spending(state_pops.ln_spending.data()), en_spending(state_pops.en_spending.data()),
-			lx_spending(state_pops.lx_spending.data()), ln_money_div_qnty_by_type(state_pops.ln_money_div_qnty_by_type.data()),
-			en_money_div_qnty_by_type(state_pops.en_money_div_qnty_by_type.data()), lx_money_div_qnty_by_type(state_pops.lx_money_div_qnty_by_type.data()),
-			ln_costs_by_type(state_pops.ln_costs_by_type.data()), en_costs_by_type(state_pops.en_costs_by_type.data()),
-			lx_costs_by_type(state_pops.lx_costs_by_type.data())
+			lx_spending(state_pops.lx_spending.data()),
+			ln_money_div_qnty_by_type(state_pops.ln_money_div_qnty_by_type.data(), uint32_t(state_pops.ln_money_div_qnty_by_type.size())),
+			en_money_div_qnty_by_type(state_pops.en_money_div_qnty_by_type.data(), uint32_t(state_pops.en_money_div_qnty_by_type.size())),
+			lx_money_div_qnty_by_type(state_pops.lx_money_div_qnty_by_type.data(), uint32_t(state_pops.lx_money_div_qnty_by_type.size())),
+			ln_costs_by_type(state_pops.ln_costs_by_type.data(), uint32_t(state_pops.ln_costs_by_type.size())),
+			en_costs_by_type(state_pops.en_costs_by_type.data(), uint32_t(state_pops.en_costs_by_type.size())),
+			lx_costs_by_type(state_pops.lx_costs_by_type.data(), uint32_t(state_pops.lx_costs_by_type.size()))
 		{}
 
 		template<typename T>
@@ -1964,14 +1967,14 @@ namespace economy {
 		float const* const money;
 		float const* const satisfaction;
 
-		float* const money_dest;
-		float* const satisfaction_dest;
+		tagged_array_view<float, population::pop_tag, true> money_dest;
+		tagged_array_view<float, population::pop_tag, true> satisfaction_dest;
 
 		store_money_and_satisfaction_operation(world_state& ws, state_pops_summary const& state_pops) :
 			pop_ids(state_pops.pop_ids.data()),
 			money(state_pops.money.data()), satisfaction(state_pops.satisfaction.data()),
-			money_dest(ws.w.population_s.pops.get_row<pop::money>().data()),
-			satisfaction_dest(ws.w.population_s.pops.get_row<pop::needs_satisfaction>().data())
+			money_dest(ws.w.population_s.pops.get_row<pop::money>()),
+			satisfaction_dest(ws.w.population_s.pops.get_row<pop::needs_satisfaction>())
 		{ }
 
 		template<typename T>
