@@ -175,6 +175,8 @@ namespace ve {
 
 		__forceinline tagged_vector() : value(_mm256_setzero_si256()) {}
 		__forceinline constexpr tagged_vector(__m256i v) : value(v) {}
+		template<typename T>
+		__forceinline constexpr tagged_vector(tagged_vector<T> v) : value(v.value) {}
 		__forceinline tagged_vector(tag_type v) : value(_mm256_set1_epi32(int32_t(v.value))) {}
 		__forceinline tagged_vector(tag_type a, tag_type b, tag_type c, tag_type d, tag_type e, tag_type f, tag_type g, tag_type h) :
 			value(_mm256_setr_epi32(int32_t(a.value), int32_t(b.value), int32_t(c.value), int32_t(d.value), int32_t(e.value), int32_t(f.value), int32_t(g.value), int32_t(h.value))) {}
@@ -1017,7 +1019,7 @@ namespace ve {
 		if constexpr(std::is_same_v<U, float>)
 			return _mm256_i32gather_ps(source, indices, 4);
 		else
-			return _mm256_i32gather_epi32(source, indices, 4);
+			return _mm256_i32gather_epi32((int32_t const*)source, indices, 4);
 	}
 
 #pragma warning( push )

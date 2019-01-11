@@ -170,10 +170,6 @@ namespace triggers {
 		struct value_to_type_s<ve::tagged_vector<T>> {
 			using type = gathered_type;
 		};
-		template<>
-		struct value_to_type_s<ve::union_tag_vector> {
-			using type = gathered_type;
-		};
 
 		template<typename T>
 		using value_to_type = typename value_to_type_s<T>::type;
