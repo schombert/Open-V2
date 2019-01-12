@@ -582,11 +582,11 @@ namespace modifiers {
 			contains_item(ws.w.nation_s.timed_modifier_arrays, ws.w.nation_s.nations.get<nation::timed_modifiers>(this_nation), nations::timed_national_modifier{ date_tag(), mod });
 	}
 
-	float test_additive_factor(factor_tag t, world_state& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot) {
+	float test_additive_factor(factor_tag t, world_state const& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot) {
 		return test_additive_factor(ws.s.modifiers_m.factor_modifiers[t], ws, primary_slot, from_slot);
 	}
 
-	float test_additive_factor(factor_modifier const& f, world_state& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot) {
+	float test_additive_factor(factor_modifier const& f, world_state const& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot) {
 		float accumulated = f.factor;
 		for(uint32_t i = 0; i < f.data_length; ++i) {
 			auto segment = ws.s.modifiers_m.factor_data[f.data_offset + i];
@@ -596,11 +596,11 @@ namespace modifiers {
 		return accumulated;
 	}
 
-	float test_multiplicative_factor(factor_tag t, world_state& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot) {
+	float test_multiplicative_factor(factor_tag t, world_state const& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot) {
 		return test_multiplicative_factor(ws.s.modifiers_m.factor_modifiers[t], ws, primary_slot, from_slot);
 	}
 
-	float test_multiplicative_factor(factor_modifier const& f, world_state& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot) {
+	float test_multiplicative_factor(factor_modifier const& f, world_state const& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot) {
 		float accumulated = f.factor;
 		for(uint32_t i = 0; i < f.data_length; ++i) {
 			auto segment = ws.s.modifiers_m.factor_data[f.data_offset + i];

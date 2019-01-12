@@ -26,7 +26,8 @@ namespace population{
 namespace pop {
 	struct size_change_from_combat; // combat losses
 	struct size_change_from_growth; // growth & starvation
-	struct size_change_from_type_change; // promotion & demotion
+	struct size_change_from_promotion; // promotion
+	struct size_change_from_demotion; // demotion
 	struct size_change_from_assimilation; //cultural and religion change
 	struct size_change_from_local_migration; //moving from one state to another (includes colonial)
 	struct size_change_from_emmigration; //moving from one country to anther
@@ -65,7 +66,8 @@ namespace pop {
 		size, float,
 		size_change_from_combat, float,
 		size_change_from_growth, float,
-		size_change_from_type_change, float,
+		size_change_from_promotion, float,
+		size_change_from_demotion, float,
 		size_change_from_assimilation, float,
 		size_change_from_local_migration, float,
 		size_change_from_emmigration, float,

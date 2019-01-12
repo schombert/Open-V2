@@ -754,6 +754,9 @@ namespace modifiers {
 		tagged_vector<factor_modifier, factor_tag> factor_modifiers;
 		tagged_vector<national_focus, national_focus_tag> national_focuses;
 
+		tagged_vector<population::pop_type_tag, national_focus_tag, aligned_allocator_64<culture_group_tag>, true> focus_to_pop_types;
+		tagged_vectorfloat, national_focus_tag, aligned_allocator_64<culture_group_tag>, true> focus_to_promotion_amount;
+
 		std::vector<factor_segment> factor_data;
 
 		std::vector<text_data::text_tag> province_offset_names;

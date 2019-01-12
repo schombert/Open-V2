@@ -33,10 +33,10 @@ namespace modifiers {
 	void reset_national_modifiers(world_state& ws);
 	void reset_provincial_modifiers(world_state& ws);
 	
-	float test_multiplicative_factor(factor_tag t, world_state& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot);
-	float test_multiplicative_factor(factor_modifier const& f, world_state& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot);
-	float test_additive_factor(factor_tag t, world_state& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot);
-	float test_additive_factor(factor_modifier const& f, world_state& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot);
+	float test_multiplicative_factor(factor_tag t, world_state const& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot);
+	float test_multiplicative_factor(factor_modifier const& f, world_state const& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot);
+	float test_additive_factor(factor_tag t, world_state const& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot);
+	float test_additive_factor(factor_modifier const& f, world_state const& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot);
 	int32_t maximum_national_focuses(world_state const& ws, nations::country_tag this_nation);
 	float extract_value_from_definition(int32_t offset, modifier_definition const& def);
 }

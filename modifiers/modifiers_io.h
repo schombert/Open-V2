@@ -44,6 +44,14 @@ public:
 			}
 		}
 
+		focus_to_pop_types.resize(obj.national_focuses.size());
+		focus_to_promotion_amount.resize(obj.national_focuses.size());
+
+		for(auto const& i_nfocus : obj.national_focuses) {
+			focus_to_pop_types[i_nfocus.id] = i_nfocus.pop_type;
+			focus_to_promotion_amount[i_nfocus.id] = i_nfocus.pop_type_value;
+		}
+
 		assert(obj.crimes.size() <= 64);
 	}
 

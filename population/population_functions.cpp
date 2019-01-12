@@ -71,7 +71,8 @@ namespace population {
 			+ ws.w.population_s.pops.get<pop::size_change_from_emmigration>(p)
 			+ ws.w.population_s.pops.get<pop::size_change_from_growth>(p)
 			+ ws.w.population_s.pops.get<pop::size_change_from_local_migration>(p)
-			+ ws.w.population_s.pops.get<pop::size_change_from_type_change>(p);
+			- ws.w.population_s.pops.get<pop::size_change_from_promotion>(p);
+			- ws.w.population_s.pops.get<pop::size_change_from_demotion>(p);
 	}
 
 	bool is_dominant_issue(world_state const& ws, pop_tag id, issues::option_tag opt) {
@@ -698,4 +699,62 @@ namespace population {
 		else
 			ve::execute_parallel_exact<population::pop_tag>(chunk_size * 16ui32 * chunk_index, pop_size, op);
 	}
+
+	struct calculate_promotion_operation {
+		world_state const& ws;
+
+		tagged_array_view<float, pop_tag, true> promotion_amount;
+		tagged_array_view<float, pop_tag, true> demotion_amount;
+
+		tagged_array_view<pop_type_tag const, pop_tag, true> pop_types;
+		tagged_array_view<float const, pop_tag, true> pop_sizes;
+		tagged_array_view<provinces::province_tag const, pop_tag, true> pop_location;
+		tagged_array_view<nations::country_tag const, provinces::province_tag, true> province_owners;
+		tagged_array_view<float const, nations::country_tag, true> national_admin_eff;
+
+		tagged_array_view<nations::state_tag const, provinces::province_tag, true> province_state_instances;
+		tagged_array_view<modifiers::national_focus_tag const, nations::state_tag, true> states_focuses;
+		tagged_array_view<pop_type_tag const, modifiers::national_focus_tag, true> national_focus_type;
+
+		calculate_promotion_operation(world_state& w) : ws(w),
+			promotion_amount(w.w.population_s.pops.get_row<pop::size_change_from_promotion>()),
+			demotion_amount(w.w.population_s.pops.get_row<pop::size_change_from_demotion>()),
+			pop_types(w.w.population_s.pops.get_row<pop::type>()),
+			pop_sizes(w.w.population_s.pops.get_row<pop::size>()),
+			pop_location(w.w.population_s.pops.get_row<pop::location>()),
+			province_owners(w.w.province_s.province_state_container.get_row<province_state::owner>()),
+			national_admin_eff(w.w.nation_s.nations.get_row<nation::national_administrative_efficiency>()),
+			province_state_instances(w.w.province_s.province_state_container.get_row<province_state::state_instance>()),
+			states_focuses(w.w.nations_s.states.get_row<state::owner_national_focus>()),
+			national_focus_type(w.s.modifiers_m.focus_to_pop_types.view())
+		{}
+
+		template<typename T>
+		void operator()(T pop_v) {
+			auto loc = ve::load(pop_v, pop_location);
+			auto sz = ve::load(pop_v, pop_sizes);
+
+			auto prov_states = ve::load(loc, province_state_instances);
+			auto prov_nations = ve::load(loc, province_owners);
+
+			auto state_focus = ve::load(prov_states, states_focuses);
+			auto focus_target = (ve::load(state_focus, national_focus_type) == ve::load(pop_v, pop_types));
+
+			auto p_trigger_amount = ve::apply(pop_v, [&ws](pop_tag p){
+				return modifiers::test_additive_factor(ws.s.population_m.promotion_chance, ws, p, p);
+			});
+			auto d_trigger_amount = ve::apply(pop_v, [&ws](pop_tag p) {
+				return modifiers::test_additive_factor(ws.s.population_m.demotion_chance, ws, p, p);
+			});
+
+			auto p_result =
+				(ve::load(prov_nations, national_admin_eff) * sz)
+				* (p_trigger_amount * ws.s.modifiers_m.global_defines.promotion_scale) ;
+			ve::store(pop_v, promotion_amount, ve::select(focus_target, 0.0f, p_result));
+
+			auto d_result =
+				sz * d_trigger_amount * ws.s.modifiers_m.global_defines.promotion_scale;
+			ve::store(pop_v, demotion_amount, ve::select(focus_target, 0.0f, d_result));
+		}
+	};
 }
