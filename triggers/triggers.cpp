@@ -1276,7 +1276,7 @@ namespace triggers {
 		auto location = to_value<pop::location>(ws.w.population_s.pops, to_pop(primary_slot));
 		auto owners = to_value<province_state::owner>(ws.w.province_s.province_state_container, location);
 
-		return is_valid_index(owners) & tf_government_nation<primary_type, single_type, single_type>(tval, ws, owners, const_parameter(), const_parameter());
+		return is_valid_index(owners) & tf_government_nation<value_to_type<decltype(owners)>, single_type, single_type>(tval, ws, owners, const_parameter(), const_parameter());
 	}
 	TRIGGER_FUNCTION(tf_capital) {
 		return compare_values_eq(tval[0],
@@ -1347,16 +1347,16 @@ namespace triggers {
 	}
 	TRIGGER_FUNCTION(tf_culture_this_state) {
 		auto owner = to_value<state::owner>(ws.w.nation_s.states, to_state(this_slot));
-		return compare_to_true(tval[0], is_valid_index(owner) & tf_culture_this_nation<primary_type, this_type, single_type>(tval, ws, primary_slot, owner, const_parameter()));
+		return compare_to_true(tval[0], is_valid_index(owner) & tf_culture_this_nation<primary_type, value_to_type<decltype(owner)>, single_type>(tval, ws, primary_slot, owner, const_parameter()));
 	}
 	TRIGGER_FUNCTION(tf_culture_this_pop) {
 		auto loc = to_value<pop::location>(ws.w.population_s.pops, to_pop(this_slot));
 		auto owner = to_value<province_state::owner>(ws.w.province_s.province_state_container, loc);
-		return compare_to_true(tval[0], is_valid_index(owner) & tf_culture_this_nation<primary_type, this_type, single_type>(tval, ws, primary_slot, owner, const_parameter()));
+		return compare_to_true(tval[0], is_valid_index(owner) & tf_culture_this_nation<primary_type, value_to_type<decltype(owner)>, single_type>(tval, ws, primary_slot, owner, const_parameter()));
 	}
 	TRIGGER_FUNCTION(tf_culture_this_province) {
 		auto owner = to_value<province_state::owner>(ws.w.province_s.province_state_container, to_prov(this_slot));
-		return compare_to_true(tval[0], is_valid_index(owner) & tf_culture_this_nation<primary_type, this_type, single_type>(tval, ws, primary_slot, owner, const_parameter()));
+		return compare_to_true(tval[0], is_valid_index(owner) & tf_culture_this_nation<primary_type, value_to_type<decltype(owner)>, single_type>(tval, ws, primary_slot, owner, const_parameter()));
 	}
 	TRIGGER_FUNCTION(tf_culture_group_nation) {
 		return compare_values_eq(tval[0], nations::national_culture_group(ws, to_nation(primary_slot)), trigger_payload(tval[2]).culture_group);
@@ -2392,7 +2392,7 @@ namespace triggers {
 			owner);
 	}
 	TRIGGER_FUNCTION(tf_in_sphere_this_state) {
-		auto owner = ws.w.nation_s.states.get<state::owner>(to_state(this_slot));
+		auto owner = to_value<state::owner>(ws.w.nation_s.states, to_state(this_slot));
 		return compare_values_eq(tval[0],
 			to_value<nation::sphere_leader>(ws.w.nation_s.nations, to_nation(primary_slot)),
 			owner);
@@ -2827,7 +2827,7 @@ namespace triggers {
 		return compare_to_true(tval[0], result);
 	}
 	TRIGGER_FUNCTION(tf_alliance_with_this_state) {
-		nations::country_tag owner = to_value<state::owner>(ws.w.nation_s.states, to_state(this_slot));
+		auto owner = to_value<state::owner>(ws.w.nation_s.states, to_state(this_slot));
 		auto result = ve::apply(to_nation(primary_slot), owner, [&ws](nations::country_tag a, nations::country_tag b) {
 			return contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies>(a), b);
 		});
@@ -4651,15 +4651,15 @@ namespace triggers {
 	}
 	TRIGGER_FUNCTION(tf_pop_unemployment_nation_this_pop) {
 		auto type = to_value<pop::type>(ws.w.population_s.pops, to_pop(this_slot));
-		auto pop_size = ve::apply(to_nation(primary_slot), [&ws, type](nations::country_tag n) {
+		auto pop_size = ve::apply(to_nation(primary_slot), type, [&ws](nations::country_tag n, population::pop_type_tag t) {
 			if(ws.w.nation_s.nations.is_valid_index(n))
-				return ws.w.nation_s.nation_demographics.get(n, population::to_demo_tag(ws, type));
+				return ws.w.nation_s.nation_demographics.get(n, population::to_demo_tag(ws, t));
 			else
 				return 0.0f;
 		});
-		auto employment = ve::apply(to_nation(primary_slot), [&ws, type](nations::country_tag n) {
+		auto employment = ve::apply(to_nation(primary_slot), type, [&ws](nations::country_tag n, population::pop_type_tag t) {
 			if(ws.w.nation_s.nations.is_valid_index(n))
-				return ws.w.nation_s.nation_demographics.get(n, population::to_employment_demo_tag(ws, type));
+				return ws.w.nation_s.nation_demographics.get(n, population::to_employment_demo_tag(ws, t));
 			else
 				return 0.0f;
 		});
@@ -4667,15 +4667,15 @@ namespace triggers {
 	}
 	TRIGGER_FUNCTION(tf_pop_unemployment_state_this_pop) {
 		auto type = to_value<pop::type>(ws.w.population_s.pops, to_pop(this_slot));
-		auto pop_size = ve::apply(to_state(primary_slot), [&ws, type](nations::state_tag s) {
+		auto pop_size = ve::apply(to_state(primary_slot), type, [&ws](nations::state_tag s, population::pop_type_tag t) {
 			if(ws.w.nation_s.states.is_valid_index(s))
-				return ws.w.nation_s.state_demographics.get(s, population::to_demo_tag(ws, type));
+				return ws.w.nation_s.state_demographics.get(s, population::to_demo_tag(ws, t));
 			else
 				return 0.0f;
 		});
-		auto employment = ve::apply(to_state(primary_slot), [&ws, type](nations::state_tag s) {
+		auto employment = ve::apply(to_state(primary_slot), type, [&ws](nations::state_tag s, population::pop_type_tag t) {
 			if(ws.w.nation_s.states.is_valid_index(s))
-				return ws.w.nation_s.state_demographics.get(s, population::to_employment_demo_tag(ws, type));
+				return ws.w.nation_s.state_demographics.get(s, population::to_employment_demo_tag(ws, t));
 			else
 				return 0.0f;
 		});
@@ -4683,15 +4683,15 @@ namespace triggers {
 	}
 	TRIGGER_FUNCTION(tf_pop_unemployment_province_this_pop) {
 		auto type = to_value<pop::type>(ws.w.population_s.pops, to_pop(this_slot));
-		auto pop_size = ve::apply(to_prov(primary_slot), [&ws, type](provinces::province_tag p) {
+		auto pop_size = ve::apply(to_prov(primary_slot), type, [&ws](provinces::province_tag p, population::pop_type_tag t) {
 			if(ws.w.province_s.province_state_container.is_valid_index(p))
-				return ws.w.province_s.province_demographics.get(p, population::to_demo_tag(ws, type));
+				return ws.w.province_s.province_demographics.get(p, population::to_demo_tag(ws, t));
 			else
 				return 0.0f;
 		});
-		auto employment = ve::apply(to_prov(primary_slot), [&ws, type](provinces::province_tag p) {
+		auto employment = ve::apply(to_prov(primary_slot), type, [&ws](provinces::province_tag p, population::pop_type_tag t) {
 			if(ws.w.province_s.province_state_container.is_valid_index(p))
-				return ws.w.province_s.province_demographics.get(p, population::to_employment_demo_tag(ws, type));
+				return ws.w.province_s.province_demographics.get(p, population::to_employment_demo_tag(ws, t));
 			else
 				return 0.0f;
 		});
@@ -5864,6 +5864,11 @@ namespace triggers {
 
 	bool test_trigger(uint16_t const* tval, world_state const& ws, const_parameter primary_slot, const_parameter this_slot, const_parameter from_slot) {
 		return test_trigger_generic<single_type, single_type, single_type>(tval, ws, primary_slot, this_slot, from_slot);
+	}
+
+	ve::mask_vector test_contiguous_trigger(uint16_t const* tval, world_state const& ws, ve::contiguous_tags_base<union_tag> primary_offset, ve::contiguous_tags_base<union_tag> this_offset, ve::contiguous_tags_base<union_tag> from_offset) {
+		return test_trigger_generic<contiguous_type, contiguous_type, contiguous_type>(tval, ws,
+			ve::contiguous_tags<union_tag>(primary_offset.value), ve::contiguous_tags<union_tag>(this_offset.value), ve::contiguous_tags<union_tag>(from_offset.value));
 	}
 
 #ifdef __llvm__

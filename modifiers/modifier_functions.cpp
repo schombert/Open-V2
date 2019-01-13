@@ -610,6 +610,29 @@ namespace modifiers {
 		return accumulated;
 	}
 
+	ve::fp_vector test_contiguous_multiplicative_factor(factor_tag t, world_state const& ws, ve::contiguous_tags_base<union_tag> primary_offset, ve::contiguous_tags_base<union_tag> from_offset) {
+		auto& f = ws.s.modifiers_m.factor_modifiers[t];
+
+		ve::fp_vector accumulated = f.factor;
+		for(uint32_t i = 0; i < f.data_length; ++i) {
+			auto segment = ws.s.modifiers_m.factor_data[f.data_offset + i];
+			auto result = triggers::test_contiguous_trigger(ws.s.trigger_m.trigger_data.data() + to_index(segment.condition), ws, primary_offset, primary_offset, from_offset);
+			accumulated = ve::select(result, accumulated * segment.factor, accumulated);
+		}
+		return accumulated;
+	}
+	ve::fp_vector test_contiguous_additive_factor(factor_tag t, world_state const& ws, ve::contiguous_tags_base<union_tag> primary_offset, ve::contiguous_tags_base<union_tag> from_offset) {
+		auto& f = ws.s.modifiers_m.factor_modifiers[t];
+
+		ve::fp_vector accumulated = f.factor;
+		for(uint32_t i = 0; i < f.data_length; ++i) {
+			auto segment = ws.s.modifiers_m.factor_data[f.data_offset + i];
+			auto result = triggers::test_contiguous_trigger(ws.s.trigger_m.trigger_data.data() + to_index(segment.condition), ws, primary_offset, primary_offset, from_offset);
+			accumulated = ve::select(result, accumulated + segment.factor, accumulated);
+		}
+		return accumulated;
+	}
+
 	int32_t maximum_national_focuses(world_state const& ws, nations::country_tag this_nation) {
 		auto nation_id = this_nation;
 

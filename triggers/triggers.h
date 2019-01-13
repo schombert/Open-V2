@@ -7,6 +7,7 @@
 #include "text_data\\text_data.h"
 #include "concurrency_tools\\concurrency_tools.hpp"
 #include "issues\\issues.h"
+#include "concurrency_tools\\ve.h"
 
 namespace scenario {
 	class scenario_manager;
@@ -189,4 +190,5 @@ namespace triggers {
 	}
 
 	bool test_trigger(uint16_t const* tval, world_state const& ws, const_parameter primary_slot, const_parameter this_slot, const_parameter from_slot);
+	ve::mask_vector test_contiguous_trigger(uint16_t const* tval, world_state const& ws, ve::contiguous_tags_base<union_tag> primary_offset, ve::contiguous_tags_base<union_tag> this_offset, ve::contiguous_tags_base<union_tag> from_offset);
 }

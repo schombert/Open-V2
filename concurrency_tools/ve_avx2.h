@@ -209,11 +209,26 @@ namespace ve {
 		constexpr contiguous_tags_base(const contiguous_tags_base& v) noexcept = default;
 		constexpr contiguous_tags_base(contiguous_tags_base&& v) noexcept = default;
 
+		template<typename T, typename = std::enable_if_t<std::is_constructible_v<tag_type, T> && !std::is_same_v<tag_type, T>> >
+		constexpr contiguous_tags_base(contiguous_tags_base<T> v) : value(v.value) {}
+
 		contiguous_tags_base& operator=(contiguous_tags_base&& v) noexcept = default;
 		contiguous_tags_base& operator=(contiguous_tags_base const& v) noexcept = default;
 
+		template<typename T>
+		std::enable_if_t<std::is_constructible_v<tag_type, T> && !std::is_same_v<tag_type, T>, contiguous_tags_base&> operator=(contiguous_tags_base<T> v) noexcept {
+			value = v.value;
+		}
+
 		__forceinline tag_type operator[](uint32_t i) const noexcept {
 			return tag_type(typename tag_type::value_base_t(value + i), std::true_type());
+		}
+
+		constexpr bool operator==(contiguous_tags_base<tag_type> o) const noexcept {
+			return value == o.value;
+		}
+		constexpr bool operator!=(contiguous_tags_base<tag_type> o) const noexcept {
+			return value != o.value;
 		}
 	};
 
@@ -226,8 +241,16 @@ namespace ve {
 		constexpr contiguous_tags(const contiguous_tags& v) noexcept = default;
 		constexpr contiguous_tags(contiguous_tags&& v) noexcept = default;
 
+		template<typename T, typename = std::enable_if_t<std::is_constructible_v<tag_type, T> && !std::is_same_v<tag_type, T>> >
+		constexpr contiguous_tags(contiguous_tags<T> v) : contiguous_tags_base<tag_type>(v.value) {}
+
 		contiguous_tags& operator=(contiguous_tags&& v) noexcept = default;
 		contiguous_tags& operator=(contiguous_tags const& v) noexcept = default;
+
+		template<typename T>
+		std::enable_if_t<std::is_constructible_v<tag_type, T> && !std::is_same_v<tag_type, T>, contiguous_tags&> operator=(contiguous_tags<T> v) noexcept {
+			contiguous_tags_base<tag_type>::value = v.value;
+		}
 	};
 
 	template<typename tag_type, int32_t b_index = 0>
@@ -239,8 +262,16 @@ namespace ve {
 		constexpr unaligned_contiguous_tags(const unaligned_contiguous_tags& v) noexcept = default;
 		constexpr unaligned_contiguous_tags(unaligned_contiguous_tags&& v) noexcept = default;
 
+		template<typename T, typename = std::enable_if_t<std::is_constructible_v<tag_type, T> && !std::is_same_v<tag_type, T>> >
+		constexpr unaligned_contiguous_tags(unaligned_contiguous_tags<T> v) : contiguous_tags_base<tag_type>(v.value) {}
+
 		unaligned_contiguous_tags& operator=(unaligned_contiguous_tags&& v) noexcept = default;
 		unaligned_contiguous_tags& operator=(unaligned_contiguous_tags const& v) noexcept = default;
+
+		template<typename T>
+		std::enable_if_t<std::is_constructible_v<tag_type, T> && !std::is_same_v<tag_type, T>, unaligned_contiguous_tags&> operator=(unaligned_contiguous_tags<T> v) noexcept {
+			contiguous_tags_base<tag_type>::value = v.value;
+		}
 	};
 
 	template<typename tag_type>
@@ -254,18 +285,18 @@ namespace ve {
 		constexpr partial_contiguous_tags(const partial_contiguous_tags& v) noexcept = default;
 		constexpr partial_contiguous_tags(partial_contiguous_tags&& v) noexcept = default;
 
+		template<typename T, typename = std::enable_if_t<std::is_constructible_v<tag_type, T> && !std::is_same_v<tag_type, T>> >
+		constexpr partial_contiguous_tags(partial_contiguous_tags<T> v) : contiguous_tags_base<tag_type>(v.value), subcount(v.subcount) {}
+
 		partial_contiguous_tags& operator=(partial_contiguous_tags&& v) noexcept = default;
 		partial_contiguous_tags& operator=(partial_contiguous_tags const& v) noexcept = default;
-	};
 
-	template<typename tag_type>
-	constexpr bool operator==(contiguous_tags_base<tag_type> a, contiguous_tags_base<tag_type> b) noexcept {
-		return a.value == b.value;
-	}
-	template<typename tag_type>
-	constexpr bool operator!=(contiguous_tags_base<tag_type> a, contiguous_tags_base<tag_type> b) noexcept {
-		return a.value != b.value;
-	}
+		template<typename T>
+		std::enable_if_t<std::is_constructible_v<tag_type, T> && !std::is_same_v<tag_type, T>, partial_contiguous_tags&> operator=(partial_contiguous_tags<T> v) noexcept {
+			contiguous_tags_base<tag_type>::value = v.value;
+			subcount = v.subcount;
+		}
+	};
 
 	template<typename T>
 	struct value_to_vector_type_s;
@@ -705,16 +736,16 @@ namespace ve {
 	}
 
 	template<typename T>
-	__forceinline mask_vector operator==(T a, tagged_vector<typename ve_identity<T>::type> b) {
+	__forceinline mask_vector operator==(typename ve_identity<T>::type a, tagged_vector<T> b) {
 		return b == tagged_vector<T>(a);
 	}
 	template<typename T>
-	__forceinline mask_vector operator!=(T a, tagged_vector<typename ve_identity<T>::type> b) {
+	__forceinline mask_vector operator!=(typename ve_identity<T>::type a, tagged_vector<T> b) {
 		return b != tagged_vector<T>(a);
 	}
 
 	template<typename tag_type>
-	__forceinline mask_vector operator==(contiguous_tags_base<tag_type> a, tagged_vector<tag_type> b) {
+	__forceinline mask_vector operator==(contiguous_tags_base<tag_type> a, tagged_vector<typename ve_identity<tag_type>::type> b) {
 		return tagged_vector<tag_type>(
 			tag_type(typename tag_type::value_base_t(a.value), std::true_type()),
 			tag_type(typename tag_type::value_base_t(a.value + 1), std::true_type()),
@@ -726,7 +757,7 @@ namespace ve {
 			tag_type(typename tag_type::value_base_t(a.value + 7), std::true_type())) == b;
 	}
 	template<typename tag_type>
-	__forceinline mask_vector operator!=(contiguous_tags_base<tag_type> a, tagged_vector<tag_type> b) {
+	__forceinline mask_vector operator!=(contiguous_tags_base<tag_type> a, tagged_vector<typename ve_identity<tag_type>::type> b) {
 		return tagged_vector<tag_type>(
 			tag_type(typename tag_type::value_base_t(a.value), std::true_type()),
 			tag_type(typename tag_type::value_base_t(a.value + 1), std::true_type()),
@@ -740,7 +771,7 @@ namespace ve {
 
 
 	template<typename tag_type>
-	__forceinline mask_vector operator==(tagged_vector<tag_type> b, contiguous_tags_base<tag_type> a) {
+	__forceinline mask_vector operator==(tagged_vector<typename ve_identity<tag_type>::type> b, contiguous_tags_base<tag_type> a) {
 		return tagged_vector<tag_type>(
 			tag_type(typename tag_type::value_base_t(a.value), std::true_type()),
 			tag_type(typename tag_type::value_base_t(a.value + 1), std::true_type()),
@@ -752,7 +783,7 @@ namespace ve {
 			tag_type(typename tag_type::value_base_t(a.value + 7), std::true_type())) == b;
 	}
 	template<typename tag_type>
-	__forceinline mask_vector operator!=(tagged_vector<tag_type> b, contiguous_tags_base<tag_type> a) {
+	__forceinline mask_vector operator!=(tagged_vector<typename ve_identity<tag_type>::type> b, contiguous_tags_base<tag_type> a) {
 		return tagged_vector<tag_type>(
 			tag_type(typename tag_type::value_base_t(a.value), std::true_type()),
 			tag_type(typename tag_type::value_base_t(a.value + 1), std::true_type()),

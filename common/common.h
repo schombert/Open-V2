@@ -119,7 +119,7 @@ struct tag_type {
 	explicit constexpr tag_type(value_base v) noexcept : value(v + (std::is_same_v<std::true_type, zero_is_null> ? 1 : 0)) {}
 	constexpr tag_type(const tag_type& v) noexcept = default;
 	constexpr tag_type(tag_type&& v) noexcept = default;
-	explicit constexpr tag_type(value_base v, std::true_type) noexcept : value(v) {}
+	constexpr tag_type(value_base v, std::true_type) noexcept : value(v) {}
 
 	constexpr tag_type() noexcept : value(null_value) {}
 
@@ -168,11 +168,13 @@ using decay_tag = typename decay_tag_s<T>::type;
 
 struct union_tag {
 	int32_t value = 0;
+	using value_base_t = int32_t;
 
 	constexpr union_tag() : value(0) {}
 	constexpr explicit union_tag(int32_t v) : value(v) {}
 	constexpr union_tag(const union_tag& v) noexcept = default;
 	constexpr union_tag(union_tag&& v) noexcept = default;
+	constexpr union_tag(int32_t v, std::true_type) noexcept : value(v) {}
 
 	template<typename value_base, typename zero_is_null, typename individuator>
 	constexpr union_tag(tag_type<value_base, zero_is_null, individuator> b) noexcept : value(zero_is_null::value ? int32_t(b.value) : int32_t(b.value) + 1) {}

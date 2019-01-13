@@ -36,6 +36,7 @@ namespace population {
 	void update_pop_ideology_and_issues(world_state& ws);
 	void update_militancy(world_state& ws);
 	void update_consciousness(world_state& ws);
+	void calculate_promotion_and_demotion_qnty(world_state& ws);
 
 	template<typename T>
 	auto desired_needs_spending(world_state const& ws, T p) -> decltype(ve::widen_to<T>(0.0f));

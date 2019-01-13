@@ -71,7 +71,7 @@ namespace population {
 			+ ws.w.population_s.pops.get<pop::size_change_from_emmigration>(p)
 			+ ws.w.population_s.pops.get<pop::size_change_from_growth>(p)
 			+ ws.w.population_s.pops.get<pop::size_change_from_local_migration>(p)
-			- ws.w.population_s.pops.get<pop::size_change_from_promotion>(p);
+			- ws.w.population_s.pops.get<pop::size_change_from_promotion>(p)
 			- ws.w.population_s.pops.get<pop::size_change_from_demotion>(p);
 	}
 
@@ -725,7 +725,7 @@ namespace population {
 			province_owners(w.w.province_s.province_state_container.get_row<province_state::owner>()),
 			national_admin_eff(w.w.nation_s.nations.get_row<nation::national_administrative_efficiency>()),
 			province_state_instances(w.w.province_s.province_state_container.get_row<province_state::state_instance>()),
-			states_focuses(w.w.nations_s.states.get_row<state::owner_national_focus>()),
+			states_focuses(w.w.nation_s.states.get_row<state::owner_national_focus>()),
 			national_focus_type(w.s.modifiers_m.focus_to_pop_types.view())
 		{}
 
@@ -740,21 +740,38 @@ namespace population {
 			auto state_focus = ve::load(prov_states, states_focuses);
 			auto focus_target = (ve::load(state_focus, national_focus_type) == ve::load(pop_v, pop_types));
 
-			auto p_trigger_amount = ve::apply(pop_v, [&ws](pop_tag p){
-				return modifiers::test_additive_factor(ws.s.population_m.promotion_chance, ws, p, p);
+			/*auto p_trigger_amount = ve::apply(pop_v, [this](pop_tag p){
+				return modifiers::test_additive_factor(ws.s.population_m.promotion_chance, this->ws, p, p);
 			});
-			auto d_trigger_amount = ve::apply(pop_v, [&ws](pop_tag p) {
-				return modifiers::test_additive_factor(ws.s.population_m.demotion_chance, ws, p, p);
-			});
+			auto d_trigger_amount = ve::apply(pop_v, [this](pop_tag p) {
+				return modifiers::test_additive_factor(ws.s.population_m.demotion_chance, this->ws, p, p);
+			});*/
+
+			auto p_trigger_amount = modifiers::test_contiguous_additive_factor(ws.s.population_m.promotion_chance, ws, pop_v, pop_v);
+			auto d_trigger_amount = modifiers::test_contiguous_additive_factor(ws.s.population_m.demotion_chance, ws, pop_v, pop_v);
 
 			auto p_result =
 				(ve::load(prov_nations, national_admin_eff) * sz)
-				* (p_trigger_amount * ws.s.modifiers_m.global_defines.promotion_scale) ;
-			ve::store(pop_v, promotion_amount, ve::select(focus_target, 0.0f, p_result));
+				* (p_trigger_amount * ws.s.modifiers_m.global_defines.promotion_scale);
 
 			auto d_result =
 				sz * d_trigger_amount * ws.s.modifiers_m.global_defines.promotion_scale;
+
+			ve::store(pop_v, promotion_amount, ve::select(focus_target, 0.0f, p_result));
 			ve::store(pop_v, demotion_amount, ve::select(focus_target, 0.0f, d_result));
 		}
 	};
+
+	void calculate_promotion_and_demotion_qnty(world_state& ws) {
+		uint32_t pop_size = ws.w.population_s.pops.vector_size();
+		uint32_t chunk_size = pop_size / (32ui32 * 16ui32);
+
+		calculate_promotion_operation op(ws);
+
+		uint32_t chunk_index = uint32_t(to_index(ws.w.current_date) & 31);
+		if(chunk_index != 31)
+			ve::execute_parallel<population::pop_tag>(chunk_size * 16ui32 * chunk_index, chunk_size * 16ui32 * (chunk_index + 1ui32), op);
+		else
+			ve::execute_parallel_exact<population::pop_tag>(chunk_size * 16ui32 * chunk_index, pop_size, op);
+	}
 }
