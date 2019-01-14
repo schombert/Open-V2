@@ -341,6 +341,38 @@ struct tagged_object {
 	}
 };
 
+
+struct bitfield_type {
+	uint8_t v = 0;
+};
+
+static_assert(sizeof(bitfield_type) == 1);
+
+inline void bit_vector_set(bitfield_type* v, uint32_t index, bool value) {
+	const uint32_t real_index = index >> 3ui32;
+	const uint32_t sub_index = index & 7ui32;
+	if(value)
+		v[real_index].v |= uint8_t(1ui32 << sub_index);
+	else
+		v[real_index].v &= uint8_t(~(1ui32 << sub_index));
+}
+
+inline bool bit_vector_test(bitfield_type const* v, uint32_t index) {
+	const uint32_t real_index = index >> 3ui32;
+	const uint32_t sub_index = index & 7ui32;
+	return (v[real_index].v & (1ui32 << sub_index)) != 0;
+}
+
+template<typename index_type, bool padding>
+void bit_vector_set(tagged_array_view<bitfield_type, index_type, padding> v, index_type index, bool value) {
+	bit_vector_set(v.data(), uint32_t(to_index(index) + typename index_type::value_base_t(padding)), value);
+}
+
+template<typename index_type, bool padding>
+bool bit_vector_test(tagged_array_view<bitfield_type const, index_type, padding> v, index_type index) {
+	return bit_vector_test(v.data(), uint32_t(to_index(index) + typename index_type::value_base_t(padding)));
+}
+
 template<typename T, typename index_type, bool padding>
 struct tagged_array_view {
 private:
@@ -364,7 +396,7 @@ public:
 		}
 	}
 	T* begin() const noexcept {
-		if constexpr(padding) {
+		if constexpr(padding && !std::is_same_v<T, bitfield_type>) {
 			return ptr ? ptr + 1 : ptr;
 		} else {
 			return ptr;
@@ -376,7 +408,10 @@ public:
 	}
 #endif
 	T* data() const noexcept {
-		return ptr;
+		if constexpr(padding && !std::is_same_v<T, bitfield_type>) {
+			return ptr + 1;
+		else
+			return ptr;
 	}
 	explicit operator bool() const noexcept {
 		return ptr != nullptr;
@@ -549,37 +584,6 @@ public:
 	void resize(size_t outer_size) { storage.resize(outer_size * _inner_size); }
 	void reserve(size_t outer_size) { storage.reserve(outer_size * _inner_size); }
 };
-
-struct bitfield_type {
-	uint8_t v = 0;
-};
-
-static_assert(sizeof(bitfield_type) == 1);
-
-inline void bit_vector_set(bitfield_type* v, uint32_t index, bool value) {
-	const uint32_t real_index = index >> 3ui32;
-	const uint32_t sub_index = index & 7ui32;
-	if(value) 
-		v[real_index].v |= uint8_t(1ui32 << sub_index);
-	else
-		v[real_index].v &= uint8_t(~(1ui32 << sub_index));
-}
-
-inline bool bit_vector_test(bitfield_type const* v, uint32_t index) {
-	const uint32_t real_index = index >> 3ui32;
-	const uint32_t sub_index = index & 7ui32;
-	return (v[real_index].v & (1ui32 << sub_index)) != 0;
-}
-
-template<typename index_type, bool padding>
-void bit_vector_set(tagged_array_view<bitfield_type, index_type, padding> v, index_type index, bool value) {
-	bit_vector_set(v.data(), uint32_t(to_index(index) + typename index_type::value_base_t(padding)), value);
-}
-
-template<typename index_type, bool padding>
-bool bit_vector_test(tagged_array_view<bitfield_type const, index_type, padding> v, index_type index) {
-	return bit_vector_test(v.data(), uint32_t(to_index(index) + typename index_type::value_base_t(padding)));
-}
 
 enum key_modifiers {
 	modifiers_none = 0x0,

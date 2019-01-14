@@ -324,6 +324,20 @@ struct aligned_allocator_64 {
 	constexpr bool operator!=(aligned_allocator_64<U> const&) const { return false; }
 };
 
+template <typename T>
+struct padded_aligned_allocator_64 {
+	using value_type = T;
+	padded_aligned_allocator_64() noexcept {}
+	template <typename U>
+	padded_aligned_allocator_64(const aligned_allocator_64<U>&) noexcept {}
+	T* allocate(size_t n);
+	void deallocate(T* p, size_t n);
+	template<typename U>
+	constexpr bool operator==(padded_aligned_allocator_64<U> const&) const { return true; }
+	template<typename U>
+	constexpr bool operator!=(padded_aligned_allocator_64<U> const&) const { return false; }
+};
+
 template<typename T>
 using aligned_allocator = aligned_allocator_64<T>;
 template<typename T>
@@ -492,7 +506,13 @@ union concurrent_key_pair_helper {
 	constexpr explicit concurrent_key_pair_helper(uint64_t v) : value{ v } {}
 };
 
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned = false>
+namespace alignment_type {
+	constexpr int32_t none = 0;
+	constexpr int32_t cache_aligned = 1;
+	constexpr int32_t padded_cache_aligned = 2;
+}
+
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align = alignment_type::none>
 class stable_variable_vector_storage_mk_2 {
 public:
 	uint64_t* backing_storage = nullptr;

@@ -142,7 +142,7 @@ namespace economy {
 
 	class economic_state {
 	public:
-		stable_variable_vector_storage_mk_2<money_qnty_type, 64, 30'000'000, true> purchasing_arrays;
+		stable_variable_vector_storage_mk_2<money_qnty_type, 64, 30'000'000, alignment_type::padded_cache_aligned> purchasing_arrays;
 		goods_tag coal;
 	};
 

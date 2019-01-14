@@ -747,52 +747,52 @@ namespace ve {
 	template<typename tag_type>
 	__forceinline mask_vector operator==(contiguous_tags_base<tag_type> a, tagged_vector<typename ve_identity<tag_type>::type> b) {
 		return tagged_vector<tag_type>(
-			tag_type(typename tag_type::value_base_t(a.value), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 1), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 2), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 3), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 4), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 5), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 6), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 7), std::true_type())) == b;
+			tag_type(typename tag_type::value_base_t(a.value)),
+			tag_type(typename tag_type::value_base_t(a.value + 1)),
+			tag_type(typename tag_type::value_base_t(a.value + 2)),
+			tag_type(typename tag_type::value_base_t(a.value + 3)),
+			tag_type(typename tag_type::value_base_t(a.value + 4)),
+			tag_type(typename tag_type::value_base_t(a.value + 5)),
+			tag_type(typename tag_type::value_base_t(a.value + 6)),
+			tag_type(typename tag_type::value_base_t(a.value + 7))) == b;
 	}
 	template<typename tag_type>
 	__forceinline mask_vector operator!=(contiguous_tags_base<tag_type> a, tagged_vector<typename ve_identity<tag_type>::type> b) {
 		return tagged_vector<tag_type>(
-			tag_type(typename tag_type::value_base_t(a.value), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 1), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 2), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 3), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 4), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 5), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 6), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 7), std::true_type())) != b;
+			tag_type(typename tag_type::value_base_t(a.value)),
+			tag_type(typename tag_type::value_base_t(a.value + 1)),
+			tag_type(typename tag_type::value_base_t(a.value + 2)),
+			tag_type(typename tag_type::value_base_t(a.value + 3)),
+			tag_type(typename tag_type::value_base_t(a.value + 4)),
+			tag_type(typename tag_type::value_base_t(a.value + 5)),
+			tag_type(typename tag_type::value_base_t(a.value + 6)),
+			tag_type(typename tag_type::value_base_t(a.value + 7))) != b;
 	} 
 
 
 	template<typename tag_type>
 	__forceinline mask_vector operator==(tagged_vector<typename ve_identity<tag_type>::type> b, contiguous_tags_base<tag_type> a) {
 		return tagged_vector<tag_type>(
-			tag_type(typename tag_type::value_base_t(a.value), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 1), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 2), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 3), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 4), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 5), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 6), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 7), std::true_type())) == b;
+			tag_type(typename tag_type::value_base_t(a.value)),
+			tag_type(typename tag_type::value_base_t(a.value + 1)),
+			tag_type(typename tag_type::value_base_t(a.value + 2)),
+			tag_type(typename tag_type::value_base_t(a.value + 3)),
+			tag_type(typename tag_type::value_base_t(a.value + 4)),
+			tag_type(typename tag_type::value_base_t(a.value + 5)),
+			tag_type(typename tag_type::value_base_t(a.value + 6)),
+			tag_type(typename tag_type::value_base_t(a.value + 7))) == b;
 	}
 	template<typename tag_type>
 	__forceinline mask_vector operator!=(tagged_vector<typename ve_identity<tag_type>::type> b, contiguous_tags_base<tag_type> a) {
 		return tagged_vector<tag_type>(
-			tag_type(typename tag_type::value_base_t(a.value), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 1), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 2), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 3), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 4), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 5), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 6), std::true_type()),
-			tag_type(typename tag_type::value_base_t(a.value + 7), std::true_type())) != b;
+			tag_type(typename tag_type::value_base_t(a.value)),
+			tag_type(typename tag_type::value_base_t(a.value + 1)),
+			tag_type(typename tag_type::value_base_t(a.value + 2)),
+			tag_type(typename tag_type::value_base_t(a.value + 3)),
+			tag_type(typename tag_type::value_base_t(a.value + 4)),
+			tag_type(typename tag_type::value_base_t(a.value + 5)),
+			tag_type(typename tag_type::value_base_t(a.value + 6)),
+			tag_type(typename tag_type::value_base_t(a.value + 7))) != b;
 	}
 
 	__forceinline mask_vector bit_test(int_vector val, int32_t bits) {
@@ -1024,6 +1024,7 @@ namespace ve {
 
 	template<int32_t i, typename U>
 	__forceinline auto load(contiguous_tags<int32_t, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 4, value_to_vector_type<U>> {
+		assert((intptr_t(source + e.value) & 31) == 0);
 		if constexpr(std::is_same_v<U, float>)
 			return _mm256_load_ps(source + e.value);
 		else
@@ -1040,9 +1041,9 @@ namespace ve {
 	__forceinline auto load(partial_contiguous_tags<int32_t> e, U const* source) -> std::enable_if_t<sizeof(U) == 4, value_to_vector_type<U>> {
 		auto mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - e.subcount));
 		if constexpr(std::is_same_v<U, float>) {
-			return _mm256_maskload_ps(source + e.value, mask);
+			return _mm256_maskloadu_ps(source + e.value, mask);
 		} else {
-			return _mm256_maskload_epi32((int32_t const*)(source + e.value), mask);
+			return _mm256_maskloadu_epi32((int32_t const*)(source + e.value), mask);
 		}
 	}
 	template<typename U>
@@ -1059,10 +1060,10 @@ namespace ve {
 	template<int32_t i, typename U>
 	__forceinline auto load(contiguous_tags<int32_t, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 2, value_to_vector_type<U>> {
 		if constexpr(U(-2) < U(0)) {
-			auto v = _mm256_load_si256((const __m256i *)(source + e.value));
+			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
 			return _mm256_cvtepi16_epi32(_mm256_castsi256_si128(v));
 		} else {
-			auto v = _mm256_load_si256((const __m256i *)(source + e.value));
+			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
 			return _mm256_cvtepu16_epi32(_mm256_castsi256_si128(v));
 		}
 	}
@@ -1104,10 +1105,10 @@ namespace ve {
 	template<int32_t i, typename U>
 	__forceinline auto load(contiguous_tags<int32_t, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<U, bitfield_type>, value_to_vector_type<U>> {
 		if constexpr(U(-2) < U(0)) {
-			auto v = _mm256_load_si256((const __m256i *)(source + e.value));
+			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
 			return _mm256_cvtepi8_epi32(_mm256_castsi256_si128(v));
 		} else {
-			auto v = _mm256_load_si256((const __m256i *)(source + e.value));
+			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
 			return _mm256_cvtepu8_epi32(_mm256_castsi256_si128(v));
 		}
 	}
@@ -1148,21 +1149,24 @@ namespace ve {
 
 	//-----
 
-	template<typename T, int32_t i, typename U>
-	__forceinline auto load(contiguous_tags<typename ve_identity<T>::type, i> e, tagged_array_view<U, T, true> source) {
+	template<typename T, int32_t i, typename U, bool padded>
+	__forceinline auto load(contiguous_tags<typename ve_identity<T>::type, i> e, tagged_array_view<U, T, padded> source) {
+		static_assert(padded || !std::is_same_v<const U, const bitfield_type>);
 		return ve::load(contiguous_tags<int32_t, i>(e.value), source.data());
 	}
-	template<typename T, int32_t i, typename U>
-	__forceinline auto load(unaligned_contiguous_tags<typename ve_identity<T>::type, i> e, tagged_array_view<U, T, true> source) {
+	template<typename T, int32_t i, typename U, bool padded>
+	__forceinline auto load(unaligned_contiguous_tags<typename ve_identity<T>::type, i> e, tagged_array_view<U, T, padded> source) {
+		static_assert(padded || !std::is_same_v<const U, const bitfield_type>);
 		return ve::load(unaligned_contiguous_tags<int32_t, i>(e.value), source.data());
 	}
-	template<typename T, typename U>
-	__forceinline auto load(partial_contiguous_tags<typename ve_identity<T>::type> e, tagged_array_view<U, T, true> source) {
+	template<typename T, typename U, bool padded>
+	__forceinline auto load(partial_contiguous_tags<typename ve_identity<T>::type> e, tagged_array_view<U, T, padded> source) {
+		static_assert(padded || !std::is_same_v<const U, const bitfield_type>);
 		return ve::load(partial_contiguous_tags<int32_t>(e.value, e.subcount), source.data());
 	}
-	template<typename T, typename U>
-	__forceinline auto load(tagged_vector<typename ve_identity<T>::type> indices, tagged_array_view<U, T, true> source) {
-		return ve::load(indices.value, source.data());
+	template<typename T, typename U, bool padded>
+	__forceinline auto load(tagged_vector<typename ve_identity<T>::type> indices, tagged_array_view<U, T, padded> source) {
+		return ve::load(indices.value, source.data() - 1);
 	}
 	//-----
 
@@ -1213,6 +1217,7 @@ namespace ve {
 
 	template<int32_t i>
 	__forceinline void store(contiguous_tags<int32_t, i> e, float* dest, fp_vector values) {
+		assert((intptr_t(source + e.value) & 31) == 0);
 		return _mm256_store_ps(dest + e.value, values);
 	}
 	template<int32_t i>
@@ -1224,16 +1229,16 @@ namespace ve {
 		_mm256_maskstore_ps(dest + e.value, mask, values);
 	}
 
-	template<typename T, int32_t i>
-	__forceinline void store(contiguous_tags<typename ve_identity<T>::type, i> e, tagged_array_view<float, T, true> dest, fp_vector values) {
+	template<typename T, int32_t i, bool padded>
+	__forceinline void store(contiguous_tags<typename ve_identity<T>::type, i> e, tagged_array_view<float, T, padded> dest, fp_vector values) {
 		ve::store(contiguous_tags<int32_t, i>(e.value), dest.data(), values);
 	}
-	template<typename T, int32_t i>
-	__forceinline void store(unaligned_contiguous_tags<typename ve_identity<T>::type, i> e, tagged_array_view<float, T, true> dest, fp_vector values) {
+	template<typename T, int32_t i, bool padded>
+	__forceinline void store(unaligned_contiguous_tags<typename ve_identity<T>::type, i> e, tagged_array_view<float, T, padded> dest, fp_vector values) {
 		ve::store(unaligned_contiguous_tags<int32_t, i>(e.value), dest.data(), values);
 	}
-	template<typename T>
-	__forceinline void store(partial_contiguous_tags<typename ve_identity<T>::type> e, tagged_array_view<float, T, true> dest, fp_vector values) {
+	template<typename T, bool padded>
+	__forceinline void store(partial_contiguous_tags<typename ve_identity<T>::type> e, tagged_array_view<float, T, padded> dest, fp_vector values) {
 		ve::store(partial_contiguous_tags<int32_t>(e.value, e.subcount), dest.data(), values);
 	}
 
@@ -1247,8 +1252,8 @@ namespace ve {
 		dest[indices[6]] = values[6];
 		dest[indices[7]] = values[7];
 	}
-	template<typename T>
-	__forceinline void store(tagged_vector<typename ve_identity<T>::type> indices, tagged_array_view<float, T, true> dest, fp_vector values) {
-		ve::store(indices.value, dest.data(), values);
+	template<typename T, bool padded>
+	__forceinline void store(tagged_vector<typename ve_identity<T>::type> indices, tagged_array_view<float, T, padded> dest, fp_vector values) {
+		ve::store(indices.value, dest.data() - 1, values);
 	}
 }
