@@ -60,7 +60,7 @@ namespace ve {
 
 	template<typename value_base, typename zero_is_null, typename individuator, typename U>
 	__forceinline auto load(tag_type<value_base, zero_is_null, individuator> e, U const* source) -> std::enable_if_t<!std::is_same_v<std::remove_cv_t<U>, bitfield_type>, decay_tag<U>> {
-		return source[e.value];
+		return source[to_index(e)];
 	}
 
 	template<typename U>
@@ -70,7 +70,7 @@ namespace ve {
 	
 	template<typename value_base, typename zero_is_null, typename individuator, typename U>
 	__forceinline auto load(tag_type<value_base, zero_is_null, individuator> e,
-		tagged_array_view<U, typename ve_identity<tag_type<value_base, zero_is_null, individuator>>::type, true> source) {
+		tagged_array_view<U, typename ve_identity<tag_type<value_base, zero_is_null, individuator>>::type> source) {
 		return ve::load(e, source.data());
 	}
 	
@@ -336,8 +336,8 @@ namespace ve {
 		};
 	}
 
-	template<typename T, typename itype, bool padded, typename policy = serial_exact>
-	__forceinline auto reduce(uint32_t size, tagged_array_view<T, itype, padded> vector, policy p = serial_exact())
+	template<typename T, typename itype, typename policy = serial_exact>
+	__forceinline auto reduce(uint32_t size, tagged_array_view<T, itype> vector, policy p = serial_exact())
 		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, float>, float> {
 		assert(vector.size >= int32_t(size));
 		
@@ -360,8 +360,8 @@ namespace ve {
 		};
 	}
 
-	template<typename T, typename itype, bool padded, typename policy = serial>
-	__forceinline auto rescale(uint32_t size, tagged_array_view<T, itype, padded> vector, float scale_factor, policy p = serial())
+	template<typename T, typename itype, typename policy = serial>
+	__forceinline auto rescale(uint32_t size, tagged_array_view<T, itype> vector, float scale_factor, policy p = serial())
 		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, float>, void> {
 		assert(vector.size >= int32_t(size));
 
@@ -382,8 +382,8 @@ namespace ve {
 		};
 	}
 
-	template<typename itype, bool padded, typename T, typename policy = serial>
-	__forceinline auto accumulate(uint32_t size, tagged_array_view<float, itype, padded> destination, tagged_array_view<T, itype, padded> accumulated, policy p = serial())
+	template<typename itype, typename T, typename policy = serial>
+	__forceinline auto accumulate(uint32_t size, tagged_array_view<float, itype> destination, tagged_array_view<T, itype> accumulated, policy p = serial())
 		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, float>, void> {
 
 		assert(destination.size >= int32_t(size));
@@ -406,8 +406,8 @@ namespace ve {
 	   };
 	}
 
-	template<typename itype, bool padded, typename T, typename policy = serial>
-	__forceinline auto copy(uint32_t size, tagged_array_view<float, itype, padded> destination, tagged_array_view<T, itype, padded> source, policy p = serial())
+	template<typename itype, typename T, typename policy = serial>
+	__forceinline auto copy(uint32_t size, tagged_array_view<float, itype> destination, tagged_array_view<T, itype> source, policy p = serial())
 		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, float>, void> {
 
 		assert(destination.size >= int32_t(size));
@@ -431,8 +431,8 @@ namespace ve {
 		};
 	}
 
-	template<typename itype, bool padded, typename T, typename policy = serial>
-	__forceinline auto accumulate_scaled(uint32_t size, tagged_array_view<float, itype, padded> destination, tagged_array_view<T, itype, padded> accumulated, float scale, policy p = serial())
+	template<typename itype, typename T, typename policy = serial>
+	__forceinline auto accumulate_scaled(uint32_t size, tagged_array_view<float, itype> destination, tagged_array_view<T, itype> accumulated, float scale, policy p = serial())
 		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, float>, void> {
 		
 		assert(destination.size >= int32_t(size));
@@ -456,8 +456,8 @@ namespace ve {
 		};
 	}
 
-	template<typename itype, bool padded, typename T, typename policy = serial>
-	__forceinline auto accumulate_ui8_scaled(uint32_t size, tagged_array_view<float, itype, padded> destination, tagged_array_view<T, itype, padded> accumulated, float scale, policy p = serial())
+	template<typename itype, typename T, typename policy = serial>
+	__forceinline auto accumulate_ui8_scaled(uint32_t size, tagged_array_view<float, itype> destination, tagged_array_view<T, itype> accumulated, float scale, policy p = serial())
 		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, uint8_t>, void> {
 
 		assert(destination.size >= int32_t(size));
@@ -481,8 +481,8 @@ namespace ve {
 		};
 	}
 
-	template<typename itype, bool padded, typename T, typename U, typename policy = serial_exact>
-	__forceinline auto dot_product(uint32_t size, tagged_array_view<T, itype, padded> a, tagged_array_view<U, itype, padded> b, policy p = serial_exact())
+	template<typename itype, typename T, typename U, typename policy = serial_exact>
+	__forceinline auto dot_product(uint32_t size, tagged_array_view<T, itype> a, tagged_array_view<U, itype> b, policy p = serial_exact())
 		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, float> && std::is_same_v<std::remove_cv_t<U>, float>, float> {
 		
 		assert(b.size >= int32_t(size));
@@ -509,8 +509,8 @@ namespace ve {
 		};
 	}
 
-	template<typename itype, bool padded, typename T, typename U, typename policy = serial>
-	__forceinline auto accumulate_product(uint32_t size, tagged_array_view<float, itype, padded> destination, tagged_array_view<T, itype, padded> a, tagged_array_view<U, itype, padded> b, policy p = serial())
+	template<typename itype, typename T, typename U, typename policy = serial>
+	__forceinline auto accumulate_product(uint32_t size, tagged_array_view<float, itype> destination, tagged_array_view<T, itype> a, tagged_array_view<U, itype> b, policy p = serial())
 		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, float> && std::is_same_v<std::remove_cv_t<U>, float>, void> {
 		
 		assert(destination.size >= int32_t(size));
@@ -536,8 +536,8 @@ namespace ve {
 		};
 	}
 
-	template<typename itype, bool padded, typename T, typename U, typename policy = serial>
-	__forceinline auto accumulate_scaled_product(uint32_t size, tagged_array_view<float, itype, padded> destination, tagged_array_view<T, itype, padded> a, tagged_array_view<U, itype, padded> b, float scale, policy p = serial())
+	template<typename itype, typename T, typename U, typename policy = serial>
+	__forceinline auto accumulate_scaled_product(uint32_t size, tagged_array_view<float, itype> destination, tagged_array_view<T, itype> a, tagged_array_view<U, itype> b, float scale, policy p = serial())
 		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, float> && std::is_same_v<std::remove_cv_t<U>, float>, void> {
 
 		assert(destination.size >= int32_t(size));
@@ -562,8 +562,8 @@ namespace ve {
 		};
 	}
 
-	template<typename itype, bool padded, typename T, typename U, typename policy = serial>
-	__forceinline auto accumulate_sum(uint32_t size, tagged_array_view<float, itype, padded> destination, tagged_array_view<T, itype, padded> a, tagged_array_view<const float, itype, padded> b, policy p = serial())
+	template<typename itype, typename T, typename U, typename policy = serial>
+	__forceinline auto accumulate_sum(uint32_t size, tagged_array_view<float, itype> destination, tagged_array_view<T, itype> a, tagged_array_view<const float, itype> b, policy p = serial())
 		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, float> && std::is_same_v<std::remove_cv_t<U>, float>, void> {
 
 		assert(destination.size >= int32_t(size));
@@ -585,8 +585,8 @@ namespace ve {
 		};
 	}
 
-	template<typename itype, bool padded, typename policy = serial>
-	__forceinline void set_zero(uint32_t size, tagged_array_view<float, itype, padded> destination, policy p = serial()) {
+	template<typename itype, typename policy = serial>
+	__forceinline void set_zero(uint32_t size, tagged_array_view<float, itype> destination, policy p = serial()) {
 		assert(destination.size >= int32_t(size));
 
 		policy::template execute<int32_t>(size, ve_impl::vector_zero_operator(destination.data()));

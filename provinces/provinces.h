@@ -170,8 +170,8 @@ namespace provinces {
 	public:
 		void update(world_state const& ws);
 		float distance(nations::state_tag a, nations::state_tag b) const;
-		tagged_array_view<float,nations::state_tag,true> get_row(nations::state_tag a) const {
-			return tagged_array_view<float, nations::state_tag, true>(distance_data + to_index(a) * last_aligned_state_max, last_aligned_state_max);
+		tagged_array_view<float,nations::state_tag> get_row(nations::state_tag a) const {
+			return tagged_array_view<float, nations::state_tag>(distance_data + (1 + to_index(a)) * last_aligned_state_max + 1, last_aligned_state_max);
 		}
 		int32_t row_size() const { return last_aligned_state_max; }
 		~state_distances_manager();

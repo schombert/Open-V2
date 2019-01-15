@@ -489,12 +489,12 @@ namespace provinces {
 
 	void state_distances_manager::update(world_state const & ws) {
 		auto max_states = ws.w.nation_s.states.size() + 1;
-		auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(max_states) + 63ui32) & ~63ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
+		auto aligned_state_max = ((static_cast<uint32_t>(sizeof(float)) * uint32_t(max_states) + 63ui32) & ~63ui32) / static_cast<uint32_t>(sizeof(float));
 
 		if(last_aligned_state_max < int32_t(aligned_state_max)) {
 			if(distance_data)
-				_aligned_free(distance_data);
-			distance_data = (float*)_aligned_malloc(sizeof(float) * aligned_state_max * aligned_state_max, 32);
+				_aligned_free(distance_data - 15);
+			distance_data = (float*)_aligned_malloc(sizeof(float) * aligned_state_max * aligned_state_max + 64, 64) + 15;
 			std::fill_n(distance_data, aligned_state_max * aligned_state_max, 0.0f);
 			last_aligned_state_max = int32_t(aligned_state_max);
 		}
@@ -518,6 +518,6 @@ namespace provinces {
 	}
 
 	float state_distances_manager::distance(nations::state_tag a, nations::state_tag b) const {
-		return distance_data[to_index(a) * last_aligned_state_max + to_index(b)];
+		return distance_data[(to_index(a) + 1) * last_aligned_state_max + to_index(b) + 1];
 	}
 }

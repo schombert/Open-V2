@@ -1203,7 +1203,7 @@ namespace economy {
 		if(auto player = ws.w.local_player_nation; bool(player) && is_valid_index(win.tag)) {
 			if(auto pid = player; ws.w.nation_s.nations.is_valid_index(pid)) {
 				auto active_goods = ws.w.nation_s.active_goods.get_row(pid);
-				if(bit_vector_test<economy::goods_tag, false>(active_goods, win.tag)) 
+				if(bit_vector_test(active_goods, win.tag)) 
 					ui::hide(*self.associated_object);
 				else 
 					ui::make_visible_immediate(*self.associated_object);

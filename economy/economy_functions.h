@@ -45,7 +45,7 @@ namespace economy {
 	void init_factory_employment(world_state& ws);
 	float get_per_worker_profit(world_state const& ws, nations::state_tag si, factory_instance const& fi);
 	float factory_employment_fraction(world_state const& ws, factory_instance const& fi);
-	money_qnty_type get_factory_profit(world_state const& ws, provinces::province_tag in_province, factory_instance const& f, tagged_array_view<const float, goods_tag, false> prices);
+	money_qnty_type get_factory_profit(world_state const& ws, provinces::province_tag in_province, factory_instance const& f, tagged_array_view<const float, goods_tag> prices);
 	bool possible_to_invest_in(world_state const& ws, nations::country_tag investor, nations::country_tag target);
 	int32_t count_factories_in_state(world_state const& ws, nations::state_tag s);
 	int32_t count_factories_in_nation(world_state const& ws, nations::country_tag n);
@@ -58,16 +58,16 @@ namespace economy {
 	goods_qnty_type province_rgo_production_qnty(world_state const& ws, provinces::province_tag p);
 
 	factory_project_type get_factory_project_type(world_state const& ws, nations::state_tag location, factory_type_tag ftype);
-	money_qnty_type get_factory_project_cost(world_state const& ws, factory_type_tag ftype, factory_project_type ptype, tagged_array_view<const float, goods_tag, false> prices);
-	money_qnty_type get_railroad_cost(world_state const& ws, tagged_array_view<const float, goods_tag, false> prices);
-	float project_completion(world_state const& ws, nations::state_tag si, tagged_array_view<const float, goods_tag, false> prices);
-	tagged_array_view<const float, goods_tag, false> state_current_prices(world_state const& ws, nations::state_tag s);
-	tagged_array_view<const float, goods_tag, false> state_price_delta(world_state const& ws, nations::state_tag s);
+	money_qnty_type get_factory_project_cost(world_state const& ws, factory_type_tag ftype, factory_project_type ptype, tagged_array_view<const float, goods_tag> prices);
+	money_qnty_type get_railroad_cost(world_state const& ws, tagged_array_view<const float, goods_tag> prices);
+	float project_completion(world_state const& ws, nations::state_tag si, tagged_array_view<const float, goods_tag> prices);
+	tagged_array_view<const float, goods_tag> state_current_prices(world_state const& ws, nations::state_tag s);
+	tagged_array_view<const float, goods_tag> state_price_delta(world_state const& ws, nations::state_tag s);
 	float state_current_production(world_state const& ws, nations::state_tag s, goods_tag g);
-	tagged_array_view<const float, goods_tag, false> state_current_demand(world_state const& ws, nations::state_tag s);
-	tagged_array_view<float, goods_tag, false> state_current_prices(world_state& ws, nations::state_tag s);
-	tagged_array_view<float, goods_tag, false> state_price_delta(world_state& ws, nations::state_tag s);
-	tagged_array_view<float, goods_tag, false> state_current_demand(world_state& ws, nations::state_tag s);
+	tagged_array_view<const float, goods_tag> state_current_demand(world_state const& ws, nations::state_tag s);
+	tagged_array_view<float, goods_tag> state_current_prices(world_state& ws, nations::state_tag s);
+	tagged_array_view<float, goods_tag> state_price_delta(world_state& ws, nations::state_tag s);
+	tagged_array_view<float, goods_tag> state_current_demand(world_state& ws, nations::state_tag s);
 	money_qnty_type calculate_daily_debt_payment(world_state const& ws, nations::country_tag n);
 	money_qnty_type daily_state_owner_building_cost(world_state const& ws, nations::state_tag si);
 	money_qnty_type daily_national_building_cost(world_state const& ws, nations::country_tag n);

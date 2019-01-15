@@ -129,15 +129,22 @@ namespace variable_layout_detail {
 		using value_type = std::conditional_t<std::is_same_v<T, index_type>, member_type, typename variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template value_type<T>>;
 
 #ifdef VARIABLE_LAYOUT_STRUCT_OF_ARRAYS
-		struct data : public variable_layout_tagged_vector_impl<tag_type, size, REST ...>::data {
-			uint8_t pre_padding[64 * ((sizeof(member_type) + 63) / 64)];
-			member_type values[size + ((size * sizeof(member_type)) % 64) / sizeof(member_type)];
+		constexpr static uint32_t members_count = 
+			sizeof(member_type) <= 64 ? 
+				(uint32_t(size) + (64ui32 / uint32_t(sizeof(member_type))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(member_type)) - 1ui32) :
+				uint32_t(size) ;
+
+		struct alignas(64) data : public variable_layout_tagged_vector_impl<tag_type, size, REST ...>::data {
+			uint8_t pre_padding[64];
+			member_type values[members_count];
 
 			data() {
-				std::uninitialized_value_construct_n(values - 1, size + 1 + ((size * sizeof(member_type)) % 64) / sizeof(member_type) );
+				std::uninitialized_value_construct_n(values - int32_t(sizeof(member_type) <= 64), members_count + int32_t(sizeof(member_type) <= 64));
 			}
 		};
 
+		static_assert(members_count >= size);
+		//static_assert(sizeof(member_type) > 64 || (sizeof(member_type) * members_count) % 64ui32 == 0);
 		static_assert(sizeof(data) % 64ui32 == 0);
 #else
 		struct data : public variable_layout_tagged_vector_impl<tag_type, size, REST ...>::data {
@@ -150,8 +157,8 @@ namespace variable_layout_detail {
 		__forceinline static void reset(data& d) {
 			variable_layout_tagged_vector_impl<tag_type, size, REST ...>::reset(d);
 
-			std::destroy_n(d.values - 1, size + 1 + ((size * sizeof(member_type)) % 64) / sizeof(member_type));
-			std::uninitialized_value_construct_n(d.values - 1, size + 1 + ((size * sizeof(member_type)) % 64) / sizeof(member_type));
+			std::destroy_n(d.values - int32_t(sizeof(member_type) <= 64), members_count + int32_t(sizeof(member_type) <= 64));
+			std::uninitialized_value_construct_n(d.values - 1, members_count + 1);
 		}
 
 		template<typename T>
@@ -196,7 +203,7 @@ namespace variable_layout_detail {
 		template<typename U, typename T>
 		__forceinline static std::enable_if_t<std::is_trivially_copyable_v<T>> set(tag_type i, data& dat, T val) {
 			if constexpr(std::is_same_v<U, index_type>)
-				dat.d_union.values[to_index(i)] = val;
+				dat.values[to_index(i)] = val;
 			else
 				variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template set<U>(i, dat, val);
 		}
@@ -216,7 +223,7 @@ namespace variable_layout_detail {
 					serialization::serialize_array(output, obj.values, max);
 				} else {
 					for(int32_t i = 0; i < max; ++i)
-						serialization::tagged_serializer<index_type, member_type>::serialize_object(output, obj.d_union.values[i], std::forward<CONTEXT>(c)...);
+						serialization::tagged_serializer<index_type, member_type>::serialize_object(output, obj.values[i], std::forward<CONTEXT>(c)...);
 				}
 
 			} else {
@@ -224,7 +231,7 @@ namespace variable_layout_detail {
 					serialization::serialize_array(output, obj.values, max);
 				} else {
 					for(int32_t i = 0; i < max; ++i)
-						serialization::tagged_serializer<index_type, member_type>::serialize_object(output, obj.d_union.values[i], std::forward<CONTEXT>(c)...);
+						serialization::tagged_serializer<index_type, member_type>::serialize_object(output, obj.values[i], std::forward<CONTEXT>(c)...);
 				}
 			}
 			
@@ -240,7 +247,7 @@ namespace variable_layout_detail {
 					serialization::deserialize_array(input, obj.values, max);
 				} else {
 					for(int32_t i = 0; i < max; ++i)
-						serialization::tagged_serializer<index_type, member_type>::deserialize_object(input, obj.d_union.values[i], std::forward<CONTEXT>(c)...);
+						serialization::tagged_serializer<index_type, member_type>::deserialize_object(input, obj.values[i], std::forward<CONTEXT>(c)...);
 				}
 
 			} else {
@@ -248,7 +255,7 @@ namespace variable_layout_detail {
 					serialization::deserialize_array(input, obj.values + 1, max);
 				} else {
 					for(int32_t i = 0; i < max; ++i)
-						serialization::tagged_serializer<index_type, member_type>::deserialize_object(input, obj.d_union.values[i], std::forward<CONTEXT>(c)...);
+						serialization::tagged_serializer<index_type, member_type>::deserialize_object(input, obj.values[i], std::forward<CONTEXT>(c)...);
 				}
 
 			}
@@ -263,10 +270,10 @@ namespace variable_layout_detail {
 					size_t(max  * serialization::tagged_serializer<index_type, member_type>::size());
 			} else if constexpr(serialization::tagged_serializer<index_type, member_type>::has_simple_serialize) {
 				return variable_layout_tagged_vector_impl<tag_type, size, REST ...>::size_impl(max, obj, std::forward<CONTEXT>(c)...) +
-					size_t(serialization::tagged_serializer<index_type, member_type>::size(obj.d_union.values[0], std::forward<CONTEXT>(c)...) * max);
+					size_t(serialization::tagged_serializer<index_type, member_type>::size(obj.values[0], std::forward<CONTEXT>(c)...) * max);
 			} else {
 				return variable_layout_tagged_vector_impl<tag_type, size, REST ...>::size_impl(max, obj, std::forward<CONTEXT>(c)...) + 
-					std::transform_reduce(obj.d_union.values, obj.d_union.values + max, 0ui64, std::plus<>(), [&](member_type const& m) {
+					std::transform_reduce(obj.values, obj.values + max, 0ui64, std::plus<>(), [&](member_type const& m) {
 						return serialization::tagged_serializer<index_type, member_type>::size(m, std::forward<CONTEXT>(c)...);
 					});
 			}
@@ -338,33 +345,29 @@ namespace variable_layout_detail {
 		template<typename T>
 		using value_type = std::conditional_t<std::is_same_v<T, index_type>, bitfield_type, typename variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template value_type<T>>;
 
+		constexpr static uint32_t bytes_count = ((uint32_t(size + 7)) / 8ui32 + 63ui32) & ~63ui32;
+
 		struct data : public variable_layout_tagged_vector_impl<tag_type, size, REST ...>::data {
-			union d_union_type {
-				bitfield_type values[uint32_t(size + 7) / 8ui32];
-				uint8_t padding[(uint32_t(size + 7) / 8ui32 + 63ui32) & ~63ui32];
+			bitfield_type padding[64];
+			bitfield_type values[bytes_count];
 
-				static_assert(sizeof(values) <= sizeof(padding));
-				static_assert(((uint32_t(size + 7) / 8ui32 + 63ui32) & ~63ui32) % 64ui32 == 0);
-
-				d_union_type() {
-					std::fill_n(values, uint32_t(size + 7) / 8ui32, bitfield_type{ 0ui8 });
-				}
-			} d_union;
-			data() : d_union() {}
+			data()  {
+				std::fill_n(values - 1, 1 + bytes_count, bitfield_type{ 0ui8 });
+			}
 		};
 
 		static_assert(sizeof(data) % 64ui32 == 0);
 
 		__forceinline static void reset(data& d) {
 			variable_layout_tagged_vector_impl<tag_type, size, REST ...>::reset(d);
-			std::fill_n(d.d_union.values, uint32_t(size + 7) / 8ui32, bitfield_type{ 0ui8 });
+			std::fill_n(d.values - 1 , 1 + bytes_count, bitfield_type{ 0ui8 });
 		}
 
 		template<typename T>
 		__forceinline static auto get(tag_type i, data const& dat) 
 			-> std::conditional_t<std::is_same_v<T, index_type>, bool, decltype(variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get<T>(i, dat))> {
 			if constexpr(std::is_same_v<T, index_type>)
-				return bit_vector_test(dat.d_union.values, uint32_t(to_index(i) + 1));
+				return bit_vector_test(dat.values, to_index(i));
 			else
 				return variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get<T>(i, dat);
 		}
@@ -372,7 +375,7 @@ namespace variable_layout_detail {
 		__forceinline static auto get(tag_type i, data& dat) 
 			-> std::conditional_t<std::is_same_v<T, index_type>, bool, decltype(variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get<T>(i, dat))> {
 			if constexpr(std::is_same_v<T, index_type>)
-				return bit_vector_test(dat.d_union.values, uint32_t(to_index(i) + 1));
+				return bit_vector_test(dat.values, to_index(i));
 			else
 				return variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get<T>(i, dat);
 		}
@@ -380,7 +383,7 @@ namespace variable_layout_detail {
 		__forceinline static auto get_row(data& dat)
 			-> std::conditional_t<std::is_same_v<T, index_type>, bitfield_type*, decltype(variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get_row<T>(dat))> {
 			if constexpr(std::is_same_v<T, index_type>)
-				return dat.d_union.values;
+				return dat.values;
 			else
 				return variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get_row<T>(dat);
 		}
@@ -388,40 +391,40 @@ namespace variable_layout_detail {
 		__forceinline static auto get_row(const data& dat)
 			-> std::conditional_t<std::is_same_v<T, index_type>, bitfield_type const*, decltype(variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get_row<T>(dat))> {
 			if constexpr(std::is_same_v<T, index_type>)
-				return dat.d_union.values;
+				return dat.values;
 			else
 				return variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template get_row<T>(dat);
 		}
 		template<typename U, typename T>
 		__forceinline static std::enable_if_t<!std::is_trivially_copyable_v<T>> set(tag_type i, data& dat, T const& val) {
 			if constexpr(std::is_same_v<U, index_type>)
-				bit_vector_set(dat.d_union.values, uint32_t(to_index(i) + 1), val);
+				bit_vector_set(dat.values, to_index(i), val);
 			else
 				variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template set<U>(i, dat, val);
 		}
 		template<typename U, typename T>
 		__forceinline static std::enable_if_t<std::is_trivially_copyable_v<T>> set(tag_type i, data& dat, T val) {
 			if constexpr(std::is_same_v<U, index_type>)
-				bit_vector_set(dat.d_union.values, uint32_t(to_index(i) + 1), val);
+				bit_vector_set(dat.values, to_index(i), val);
 			else
 				variable_layout_tagged_vector_impl<tag_type, size, REST ...>::template set<U>(i, dat, val);
 		}
 		__forceinline static void clear(tag_type i, data& dat) {
 			variable_layout_tagged_vector_impl<tag_type, size, REST ...>::clear(i, dat);
-			bit_vector_set(dat.d_union.values, uint32_t(to_index(i) + 1), false);
+			bit_vector_set(dat.values, to_index(i), false);
 		}
 
 		template<typename ... CONTEXT>
 		static void serialize_object_impl(std::byte* &output, int32_t max, data const& obj, CONTEXT&& ... c) {
 			auto count = uint32_t(max + 7) / 8ui32;
 			variable_layout_tagged_vector_impl<tag_type, size, REST ...>::serialize_object_impl(output, max, obj, std::forward<CONTEXT>(c)...);
-			serialization::serialize_array(output, obj.d_union.values, count);
+			serialization::serialize_array(output, obj.values, count);
 		}
 		template<typename ... CONTEXT>
 		static void deserialize_object_impl(std::byte const* &input, int32_t max, data& obj, CONTEXT&& ... c) {
 			auto count = uint32_t(max + 7) / 8ui32;
 			variable_layout_tagged_vector_impl<tag_type, size, REST ...>::deserialize_object_impl(input, max, obj, std::forward<CONTEXT>(c)...);
-			serialization::deserialize_array(input, obj.d_union.values, count);
+			serialization::deserialize_array(input, obj.values, count);
 		}
 		template<typename ... CONTEXT>
 		static size_t size_impl(int32_t max, data const& obj, CONTEXT&& ... c) {
@@ -1035,19 +1038,19 @@ public:
 		if constexpr(!std::is_same_v<value_type, bitfield_type>)
 			return ptr[to_index(index)].values[to_index(t)];
 		else
-			return bit_vector_test(ptr[to_index(index)].values, to_index(t) + 1);
+			return bit_vector_test(ptr[to_index(index)].values, to_index(t));
 	}
 	__forceinline const_ret_type get(tag_type t, inner_tag_type index) const {
 		if constexpr(!std::is_same_v<value_type, bitfield_type>)
 			return ptr[to_index(index)].values[to_index(t)];
 		else
-			return bit_vector_test(ptr[to_index(index)].values, to_index(t) + 1);
+			return bit_vector_test(ptr[to_index(index)].values, to_index(t));
 	}
 	__forceinline void set(tag_type t, inner_tag_type index, param_type p) {
 		if constexpr(!std::is_same_v<value_type, bitfield_type>)
 			ptr[to_index(index)].values[to_index(t)] = p;
 		else
-			bit_vector_set(ptr[to_index(index)].values, to_index(t) + 1, p);
+			bit_vector_set(ptr[to_index(index)].values, to_index(t), p);
 	}
 	
 	__forceinline auto get_row(inner_tag_type index, int32_t size) {
@@ -1056,7 +1059,7 @@ public:
 		else
 			return tagged_array_view<bitfield_type, tag_type>(
 				ptr[to_index(index)].values,
-				int32_t(uint32_t(size + 8) / 8ui32));
+				int32_t(uint32_t(size + 7) / 8ui32));
 	}
 	__forceinline auto get_row(inner_tag_type index, int32_t size) const {
 		if constexpr(!std::is_same_v<value_type, bitfield_type>)
@@ -1064,7 +1067,7 @@ public:
 		else
 			return tagged_array_view<const bitfield_type, tag_type>(
 				ptr[to_index(index)].values,
-				int32_t(uint32_t(size + 8) / 8ui32));
+				int32_t(uint32_t(size + 7) / 8ui32));
 	}
 	void reset() {
 		if(ptr)

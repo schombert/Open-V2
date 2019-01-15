@@ -343,13 +343,13 @@ TEST(common_tests, tagged_fixed_blocked_2dvector_test) {
 	tagged_fixed_blocked_2dvector<double, uint32_t, uint16_t, aligned_allocator_32<double>> tv;
 
 	tv.reset(5);
-	EXPECT_EQ(8ui32, tv.inner_size());
+	EXPECT_EQ(5ui32, tv.inner_size());
 	EXPECT_EQ(0ui64, tv.outer_size());
 	EXPECT_EQ(0ui64, tv.size());
 
 	EXPECT_EQ(0.0, tv.safe_get(0, 4));
 
-	EXPECT_EQ(8ui32, tv.inner_size());
+	EXPECT_EQ(5ui32, tv.inner_size());
 	EXPECT_EQ(1ui64, tv.outer_size());
 	EXPECT_EQ(1ui64, tv.size());
 
@@ -363,7 +363,7 @@ TEST(common_tests, tagged_fixed_blocked_2dvector_test) {
 
 	EXPECT_EQ(0.0, tv.safe_get(1, 2));
 
-	EXPECT_EQ(8ui32, tv.inner_size());
+	EXPECT_EQ(5ui32, tv.inner_size());
 	EXPECT_EQ(2ui64, tv.outer_size());
 	EXPECT_EQ(2ui64, tv.size());
 
@@ -1043,7 +1043,7 @@ TEST(concurrency_tools, array_tags_interface) {
 
 	EXPECT_EQ(0ui32, get_capacity(test_vec, array_a));
 	EXPECT_EQ(0ui32, get_size(test_vec, array_a));
-	EXPECT_EQ(nullptr, get_range(test_vec, array_a).data());
+	EXPECT_EQ(nullptr, get_range(test_vec, array_a).first);
 
 	add_item(test_vec, array_a, 3);
 	add_item(test_vec, array_a, 5);
@@ -2183,7 +2183,7 @@ TEST(concurrency_tools, vector_reduce) {
 	a[14] = 24.4f;
 	a[15] = 25.4f;
 
-	auto reduce_result = ve::reduce<int32_t, false>(tagged_array_view<float, int32_t, false>(a.data(), 15));
+	auto reduce_result = ve::reduce(15, tagged_array_view<float, int32_t>(a.data(), 15));
 	auto std_reduce = std::reduce(a.data(), a.data() + 15, 0.0f, std::plus<>());
 	EXPECT_FLOAT_EQ(reduce_result, std_reduce);
 }
@@ -2278,8 +2278,8 @@ TEST(concurrency_tools, small_loads) {
 	auto a_index = ve::load(ve::contiguous_tags<int32_t>(0), a.data());
 	auto b_index = ve::load(ve::contiguous_tags<int32_t>(0), b.data());
 
-	auto a_values = ve::load(a_index, values.data());
-	auto b_values = ve::load(b_index, values.data());
+	auto a_values = ve::load(a_index, tagged_array_view<float, ttag_med>(values.data(),0));
+	auto b_values = ve::load(b_index, tagged_array_view<float, ttag_small>(values.data(),0));
 
 	EXPECT_EQ(a_values[0], values[10]);
 	EXPECT_EQ(a_values[1], values[7]);
@@ -2299,8 +2299,8 @@ TEST(concurrency_tools, small_loads) {
 
 	auto a_index_rev = ve::load(reversed, a.data());
 	auto b_index_rev = ve::load(reversed, b.data());
-	auto a_values_rev = ve::load(a_index_rev, values.data());
-	auto b_values_rev = ve::load(b_index_rev, values.data());
+	auto a_values_rev = ve::load(a_index_rev, tagged_array_view<float, ttag_med>(values.data(), 0));
+	auto b_values_rev = ve::load(b_index_rev, tagged_array_view<float, ttag_small>(values.data(), 0));
 
 	EXPECT_EQ(a_values_rev[3], values[10]);
 	EXPECT_EQ(a_values_rev[2], values[7]);
@@ -2358,8 +2358,8 @@ TEST(concurrency_tools, signed_small_loads) {
 	auto a_index = ve::load(ve::contiguous_tags<int32_t>(0), a.data());
 	auto b_index = ve::load(ve::contiguous_tags<int32_t>(0), b.data());
 
-	auto a_values = ve::load(a_index, values.data());
-	auto b_values = ve::load(b_index, values.data());
+	auto a_values = ve::load(a_index, tagged_array_view<float, s_ttag_med>(values.data(), 0));
+	auto b_values = ve::load(b_index, tagged_array_view<float, s_ttag_small>(values.data(), 0));
 
 	EXPECT_EQ(a_values[0], values[10]);
 	EXPECT_EQ(a_values[1], values[7]);
@@ -2379,8 +2379,8 @@ TEST(concurrency_tools, signed_small_loads) {
 
 	auto a_index_rev = ve::load(reversed, a.data());
 	auto b_index_rev = ve::load(reversed, b.data());
-	auto a_values_rev = ve::load(a_index_rev, values.data());
-	auto b_values_rev = ve::load(b_index_rev, values.data());
+	auto a_values_rev = ve::load(a_index_rev, tagged_array_view<float, s_ttag_med>(values.data(), 0));
+	auto b_values_rev = ve::load(b_index_rev, tagged_array_view<float, s_ttag_small>(values.data(), 0));
 
 	EXPECT_EQ(a_values_rev[3], values[10]);
 	EXPECT_EQ(a_values_rev[2], values[7]);
@@ -2392,4 +2392,127 @@ TEST(concurrency_tools, signed_small_loads) {
 	EXPECT_EQ(b_values_rev[1], values[4]);
 	EXPECT_EQ(b_values_rev[0], values[10]);
 
+}
+
+//using ttag_small = tag_type<uint8_t, std::true_type, struct ttag_small_type>;
+//using ttag_med = tag_type<uint16_t, std::true_type, struct ttag_med_type>;
+using ttag_large = tag_type<uint32_t, std::true_type, struct ttag_large_type>;
+
+using ttag_small_b = tag_type<int8_t, std::true_type, struct ttag_small_b_type>;
+using ttag_med_b = tag_type<int16_t, std::true_type, struct ttag_med_b_type>;
+using ttag_large_b = tag_type<int32_t, std::true_type, struct ttag_large_b_type>;
+
+using ttag_small_c = tag_type<int8_t, std::false_type, struct ttag_small_c_type>;
+using ttag_med_c = tag_type<int16_t, std::false_type, struct ttag_med_c_type>;
+using ttag_large_c = tag_type<int32_t, std::false_type, struct ttag_large_c_type>;
+
+using ttag_small_d = tag_type<uint8_t, std::false_type, struct ttag_small_d_type>;
+using ttag_med_d = tag_type<uint16_t, std::false_type, struct ttag_med_d_type>;
+using ttag_large_d = tag_type<uint32_t, std::false_type, struct ttag_large_d_type>;
+
+TEST(concurrency_tools, verify_index_edge_cases) {
+	{
+		ttag_small a;
+		EXPECT_EQ(-1, to_index(a));
+		ttag_small b(1ui8);
+		EXPECT_EQ(1, to_index(b));
+		ttag_small c(129ui8);
+		EXPECT_EQ(129, to_index(c));
+		ttag_small d(0);
+		EXPECT_EQ(0, to_index(d));
+	}
+	{
+		ttag_med a;
+		EXPECT_EQ(-1, to_index(a));
+		ttag_med b(1ui8);
+		EXPECT_EQ(1, to_index(b));
+		ttag_med c(32770ui16);
+		EXPECT_EQ(32770, to_index(c));
+		ttag_med d(0);
+		EXPECT_EQ(0, to_index(d));
+	}
+	{
+		ttag_large a;
+		EXPECT_EQ(-1, to_index(a));
+		ttag_large b(1ui8);
+		EXPECT_EQ(1, to_index(b));
+		ttag_large d(0);
+		EXPECT_EQ(0, to_index(d));
+	}
+	{
+		ttag_small_b a;
+		EXPECT_EQ(-1, to_index(a));
+		ttag_small_b b(1ui8);
+		EXPECT_EQ(1, to_index(b));
+		ttag_small_b d(0);
+		EXPECT_EQ(0, to_index(d));
+	}
+	{
+		ttag_med_b a;
+		EXPECT_EQ(-1, to_index(a));
+		ttag_med_b b(1ui8);
+		EXPECT_EQ(1, to_index(b));
+		ttag_med_b d(0);
+		EXPECT_EQ(0, to_index(d));
+	}
+	{
+		ttag_large_b a;
+		EXPECT_EQ(-1, to_index(a));
+		ttag_large_b b(1ui8);
+		EXPECT_EQ(1, to_index(b));
+		ttag_large_b d(0);
+		EXPECT_EQ(0, to_index(d));
+	}
+	{
+		ttag_small_c a;
+		EXPECT_EQ(-1, to_index(a));
+		ttag_small_c b(1ui8);
+		EXPECT_EQ(1, to_index(b));
+		ttag_small_c d(0);
+		EXPECT_EQ(0, to_index(d));
+	}
+	{
+		ttag_med_c a;
+		EXPECT_EQ(-1, to_index(a));
+		ttag_med_c b(1ui8);
+		EXPECT_EQ(1, to_index(b));
+		ttag_med_c d(0);
+		EXPECT_EQ(0, to_index(d));
+	}
+	{
+		ttag_large_c a;
+		EXPECT_EQ(-1, to_index(a));
+		ttag_large_c b(1ui8);
+		EXPECT_EQ(1, to_index(b));
+		ttag_large_c d(0);
+		EXPECT_EQ(0, to_index(d));
+	}
+	{
+		ttag_small_d a;
+		EXPECT_EQ(-1, to_index(a));
+		ttag_small_d b(1ui8);
+		EXPECT_EQ(1, to_index(b));
+		ttag_small_d c(129ui8);
+		EXPECT_EQ(129, to_index(c));
+		ttag_small_d d(0);
+		EXPECT_EQ(0, to_index(d));
+	}
+	{
+		ttag_med_d a;
+		EXPECT_EQ(-1, to_index(a));
+		ttag_med_d b(1ui8);
+		EXPECT_EQ(1, to_index(b));
+		ttag_med_d c(32770ui16);
+		EXPECT_EQ(32770, to_index(c));
+		ttag_med_d d(0);
+		EXPECT_EQ(0, to_index(d));
+	}
+	{
+		ttag_large_d a;
+		EXPECT_EQ(-1, to_index(a));
+		ttag_large_d b(1ui8);
+		EXPECT_EQ(1, to_index(b));
+		ttag_large_d d(0);
+		EXPECT_EQ(0, to_index(d));
+	}
 }

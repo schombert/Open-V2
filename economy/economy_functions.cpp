@@ -390,7 +390,7 @@ namespace economy {
 		});
 	}
 
-	money_qnty_type get_factory_project_cost(world_state const& ws, factory_type_tag ftype, factory_project_type ptype, tagged_array_view<const float, goods_tag, false> prices) {
+	money_qnty_type get_factory_project_cost(world_state const& ws, factory_type_tag ftype, factory_project_type ptype, tagged_array_view<const float, goods_tag> prices) {
 		if(ptype == factory_project_type::open || ptype == factory_project_type::expand) {
 			return ve::dot_product(ws.s.economy_m.goods_count, prices, ws.s.economy_m.building_costs.get_row(ftype));
 		} else {
@@ -399,12 +399,12 @@ namespace economy {
 			return ve::dot_product(ws.s.economy_m.goods_count, prices, ws.s.economy_m.factory_input_goods.get_row(ftype)) * money_qnty_type(10);
 		}
 	}
-	money_qnty_type get_railroad_cost(world_state const& ws, tagged_array_view<const float, goods_tag, false> prices) {
+	money_qnty_type get_railroad_cost(world_state const& ws, tagged_array_view<const float, goods_tag> prices) {
 		return ve::dot_product(ws.s.economy_m.goods_count, prices, ws.s.economy_m.building_costs.get_row(ws.s.economy_m.railroad.cost_tag));
 	}
 
 
-	float project_completion(world_state const& ws, nations::state_tag si, tagged_array_view<const float, goods_tag, false> prices) {
+	float project_completion(world_state const& ws, nations::state_tag si, tagged_array_view<const float, goods_tag> prices) {
 		auto& project = ws.w.nation_s.states.get<state::project>(si);
 		if(project.type == pop_project_type::railroad) {
 			auto cost = get_railroad_cost(ws, prices);
@@ -428,7 +428,7 @@ namespace economy {
 		return float(prices[f.type->output_good] * f.type->output_amount - inputs_cost);
 	}
 
-	money_qnty_type get_factory_profit(world_state const& ws, provinces::province_tag in_province, factory_instance const& f, tagged_array_view<const float, goods_tag, false> prices) {
+	money_qnty_type get_factory_profit(world_state const& ws, provinces::province_tag in_province, factory_instance const& f, tagged_array_view<const float, goods_tag> prices) {
 		auto owner_id = ws.w.province_s.province_state_container.get<province_state::owner>(in_province);
 		auto f_type = f.type;
 		if(is_valid_index(owner_id) && bool(f_type)) {
@@ -604,7 +604,7 @@ namespace economy {
 		}
 	};
 
-	void create_masked_prices(tagged_array_view<float, goods_tag, false> masked_prices,
+	void create_masked_prices(tagged_array_view<float, goods_tag> masked_prices,
 		world_state const& ws, nations::state_tag si) {
 
 		auto state_prices = state_current_prices(ws, si);
@@ -735,7 +735,7 @@ namespace economy {
 	}
 
 	void fill_needs_costs_arrays(world_state const& ws, nations::state_tag si, provinces::province_tag state_capital,
-		tagged_array_view<const float, goods_tag, false> masked_prices,
+		tagged_array_view<const float, goods_tag> masked_prices,
 		economy::money_qnty_type * __restrict life_needs_cost_by_type,
 		economy::money_qnty_type * __restrict everyday_needs_cost_by_type,
 		economy::money_qnty_type * __restrict luxury_needs_cost_by_type) {
@@ -779,11 +779,11 @@ namespace economy {
 		}
 	}
 
-	tagged_array_view<const float, goods_tag, false> state_current_prices(world_state const& ws, nations::state_tag s) {
+	tagged_array_view<const float, goods_tag> state_current_prices(world_state const& ws, nations::state_tag s) {
 		return ws.w.nation_s.state_prices.get_row(s);
 	}
 
-	tagged_array_view<const float, goods_tag, false> state_price_delta(world_state const& ws, nations::state_tag s) {
+	tagged_array_view<const float, goods_tag> state_price_delta(world_state const& ws, nations::state_tag s) {
 		return ws.w.nation_s.state_price_delta.get_row(s);
 	}
 
@@ -791,17 +791,17 @@ namespace economy {
 		return ws.w.nation_s.state_production.get(s, g);
 	}
 
-	tagged_array_view<const float, goods_tag, false> state_current_demand(world_state const& ws, nations::state_tag s) {
+	tagged_array_view<const float, goods_tag> state_current_demand(world_state const& ws, nations::state_tag s) {
 		return ws.w.nation_s.state_demand.get_row(s);
 	}
 
-	tagged_array_view<float, goods_tag, false> state_current_prices(world_state& ws, nations::state_tag s) {
+	tagged_array_view<float, goods_tag> state_current_prices(world_state& ws, nations::state_tag s) {
 		return ws.w.nation_s.state_prices.get_row(s);
 	}
-	tagged_array_view<float, goods_tag, false> state_price_delta(world_state& ws, nations::state_tag s) {
+	tagged_array_view<float, goods_tag> state_price_delta(world_state& ws, nations::state_tag s) {
 		return ws.w.nation_s.state_price_delta.get_row(s);
 	}
-	tagged_array_view<float, goods_tag, false> state_current_demand(world_state& ws, nations::state_tag s) {
+	tagged_array_view<float, goods_tag> state_current_demand(world_state& ws, nations::state_tag s) {
 		return ws.w.nation_s.state_demand.get_row(s);
 	}
 
@@ -831,7 +831,7 @@ namespace economy {
 			economy::money_qnty_type* everyday_needs_cost_by_type = (economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
 			economy::money_qnty_type* luxury_needs_cost_by_type = (economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
 
-			tagged_array_view<float, goods_tag, false> masked_prices(
+			tagged_array_view<float, goods_tag> masked_prices(
 				(economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count),
 				ws.s.economy_m.aligned_32_goods_count);
 
@@ -1195,8 +1195,8 @@ namespace economy {
 	constexpr int32_t prefetch_constant_a = 4;
 
 	struct calculate_apparant_prices {
-		using result_type = tagged_array_view<float, nations::state_tag, true>;
-		using data_type = tagged_array_view<const float, nations::state_tag, true>;
+		using result_type = tagged_array_view<float, nations::state_tag>;
+		using data_type = tagged_array_view<const float, nations::state_tag>;
 
 		result_type apparent_price_v;
 		data_type distance_vector_v;
@@ -1229,8 +1229,8 @@ namespace economy {
 	};
 
 	struct calculate_weightings {
-		using result_type = tagged_array_view<float, nations::state_tag, true>;
-		using data_type = tagged_array_view<const float, nations::state_tag, true>;
+		using result_type = tagged_array_view<float, nations::state_tag>;
+		using data_type = tagged_array_view<const float, nations::state_tag>;
 
 		data_type apparent_price_v;
 		result_type weightings_v;
@@ -1251,8 +1251,8 @@ namespace economy {
 	};
 
 	struct tariff_updator {
-		using result_type = tagged_array_view<float, nations::state_tag, true>;
-		using data_type = tagged_array_view<const float, nations::state_tag, true>;
+		using result_type = tagged_array_view<float, nations::state_tag>;
+		using data_type = tagged_array_view<const float, nations::state_tag>;
 
 		result_type global_demand_by_state_v;
 		data_type apparent_price_v;
@@ -1286,8 +1286,8 @@ namespace economy {
 	};
 
 	struct player_tariff_updator {
-		using result_type = tagged_array_view<float, nations::state_tag, true>;
-		using data_type = tagged_array_view<const float, nations::state_tag, true>;
+		using result_type = tagged_array_view<float, nations::state_tag>;
+		using data_type = tagged_array_view<const float, nations::state_tag>;
 
 		result_type global_demand_by_state_v;
 		data_type apparent_price_v;
@@ -1326,7 +1326,7 @@ namespace economy {
 	struct new_price_accumulator {
 		ve::fp_vector price_times_purchases_accumulator[ve::block_repitition] = { ve::fp_vector{}, ve::fp_vector{}, ve::fp_vector{}, ve::fp_vector{} };
 
-		using data_type = tagged_array_view<const float, nations::state_tag, true>;
+		using data_type = tagged_array_view<const float, nations::state_tag>;
 
 		data_type distance_vector;
 		data_type tariff_mask;
@@ -1631,7 +1631,7 @@ namespace economy {
 		provinces::province_tag p,
 		nations::country_tag owner,
 		artisan_type const& atype,
-		tagged_array_view<const float, goods_tag, false> prices,
+		tagged_array_view<const float, goods_tag> prices,
 		money_qnty_type artisan_life_needs
 	) {
 
@@ -1656,8 +1656,8 @@ namespace economy {
 		nations::country_tag nid,
 		nations::state_tag in_state,
 		economy::money_qnty_type* __restrict pay_by_type,
-		tagged_array_view<float, goods_tag, false> current_state_demand,
-		tagged_array_view<const float, goods_tag, false> state_prices,
+		tagged_array_view<float, goods_tag> current_state_demand,
+		tagged_array_view<const float, goods_tag> state_prices,
 		economy::money_qnty_type const* __restrict life_needs_cost_by_type,
 		provinces::province_tag p, float mobilization_effect) {
 
@@ -1714,8 +1714,8 @@ namespace economy {
 		nations::country_tag nid,
 		nations::state_tag in_state,
 		economy::money_qnty_type* __restrict pay_by_type,
-		tagged_array_view<float, goods_tag, false> current_state_demand,
-		tagged_array_view<const float, goods_tag, false> state_prices,
+		tagged_array_view<float, goods_tag> current_state_demand,
+		tagged_array_view<const float, goods_tag> state_prices,
 		economy::money_qnty_type const* __restrict life_needs_cost_by_type,
 		factory_instance& instance, provinces::province_tag capital, float mobilization_effect) {
 
@@ -1856,13 +1856,13 @@ namespace economy {
 		float* const en_spending;
 		float* const lx_spending;
 
-		tagged_array_view<float const, population::pop_type_tag, true> ln_money_div_qnty_by_type;
-		tagged_array_view<float const, population::pop_type_tag, true> en_money_div_qnty_by_type;
-		tagged_array_view<float const, population::pop_type_tag, true> lx_money_div_qnty_by_type;
+		tagged_array_view<float const, population::pop_type_tag> ln_money_div_qnty_by_type;
+		tagged_array_view<float const, population::pop_type_tag> en_money_div_qnty_by_type;
+		tagged_array_view<float const, population::pop_type_tag> lx_money_div_qnty_by_type;
 
-		tagged_array_view<float const, population::pop_type_tag, true> ln_costs_by_type;
-		tagged_array_view<float const, population::pop_type_tag, true> en_costs_by_type;
-		tagged_array_view<float const, population::pop_type_tag, true> lx_costs_by_type;
+		tagged_array_view<float const, population::pop_type_tag> ln_costs_by_type;
+		tagged_array_view<float const, population::pop_type_tag> en_costs_by_type;
+		tagged_array_view<float const, population::pop_type_tag> lx_costs_by_type;
 
 		consumption_operation(state_pops_summary& state_pops) :
 			pop_sizes(state_pops.size.data()), pop_types(state_pops.pop_types.data()), pop_money(state_pops.money.data()),
@@ -1967,8 +1967,8 @@ namespace economy {
 		float const* const money;
 		float const* const satisfaction;
 
-		tagged_array_view<float, population::pop_tag, true> money_dest;
-		tagged_array_view<float, population::pop_tag, true> satisfaction_dest;
+		tagged_array_view<float, population::pop_tag> money_dest;
+		tagged_array_view<float, population::pop_tag> satisfaction_dest;
 
 		store_money_and_satisfaction_operation(world_state& ws, state_pops_summary const& state_pops) :
 			pop_ids(state_pops.pop_ids.data()),
@@ -2036,7 +2036,7 @@ namespace economy {
 
 		std::fill_n(current_state_demand.data(), ws.s.economy_m.goods_count, 0.0f);
 
-		tagged_array_view<float, goods_tag, false> masked_prices(
+		tagged_array_view<float, goods_tag> masked_prices(
 			(economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count),
 			ws.s.economy_m.aligned_32_goods_count);
 		create_masked_prices(masked_prices, ws, si);
@@ -2448,7 +2448,7 @@ namespace economy {
 		auto capital_state_id = ws.w.province_s.province_state_container.get<province_state::state_instance>(ncap);
 		auto capital_of_capital = nations::get_state_capital(ws, capital_state_id);
 
-		tagged_array_view<float, goods_tag, false> masked_prices(
+		tagged_array_view<float, goods_tag> masked_prices(
 			(economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count),
 			ws.s.economy_m.aligned_32_goods_count);
 		create_masked_prices(masked_prices, ws, capital_state_id);

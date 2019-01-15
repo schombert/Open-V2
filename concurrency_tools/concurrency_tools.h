@@ -247,15 +247,15 @@ public:
 		return allocated_address != nullptr;
 	}
 
-	operator tagged_array_view<T, index_type, padded>() const noexcept {
-		return tagged_array_view<T, index_type, padded>(buffer, int32_t(_size));
+	operator tagged_array_view<T, index_type>() const noexcept {
+		return tagged_array_view<T, index_type>(buffer + int32_t(padded), int32_t(_size));
 	}
-	tagged_array_view<T, index_type, padded> view() const noexcept {
-		return tagged_array_view<T, index_type, padded>(buffer, int32_t(_size));
+	tagged_array_view<T, index_type> view() const noexcept {
+		return tagged_array_view<T, index_type>(buffer + int32_t(padded), int32_t(_size));
 	}
-	tagged_array_view<T, index_type, padded> view(int32_t size) const noexcept {
-		assert(size + int32_t(padded) <= int32_t(_size));
-		return tagged_array_view<T, index_type, padded>(buffer, size + int32_t(padded));
+	tagged_array_view<T, index_type> view(int32_t size) const noexcept {
+		assert(size <= int32_t(_size));
+		return tagged_array_view<T, index_type>(buffer + int32_t(padded), int32_t(size));
 	}
 };
 
@@ -288,15 +288,15 @@ public:
 		return allocated_address != nullptr;
 	}
 
-	operator tagged_array_view<T, index_type, padded>() const noexcept {
-		return tagged_array_view<T, index_type, padded>(buffer, int32_t(_size));
+	operator tagged_array_view<T, index_type>() const noexcept {
+		return tagged_array_view<T, index_type>(buffer + int32_t(padded), int32_t(_size));
 	}
-	tagged_array_view<T, index_type, padded> view() const noexcept {
-		return tagged_array_view<T, index_type, padded>(buffer, int32_t(_size));
+	tagged_array_view<T, index_type> view() const noexcept {
+		return tagged_array_view<T, index_type>(buffer + int32_t(padded), int32_t(_size));
 	}
-	tagged_array_view<T, index_type, padded> view(int32_t size) const noexcept {
-		assert(size + int32_t(padded) <= int32_t(_size));
-		return tagged_array_view<T, index_type, padded>(buffer, size + int32_t(padded));
+	tagged_array_view<T, index_type> view(int32_t size) const noexcept {
+		assert(size <= int32_t(_size));
+		return tagged_array_view<T, index_type>(buffer + int32_t(padded), size);
 	}
 };
 
@@ -329,7 +329,7 @@ struct padded_aligned_allocator_64 {
 	using value_type = T;
 	padded_aligned_allocator_64() noexcept {}
 	template <typename U>
-	padded_aligned_allocator_64(const aligned_allocator_64<U>&) noexcept {}
+	padded_aligned_allocator_64(const padded_aligned_allocator_64<U>&) noexcept {}
 	T* allocate(size_t n);
 	void deallocate(T* p, size_t n);
 	template<typename U>
@@ -485,9 +485,9 @@ public:
 	void clear_all(); // single thread only
 
 
-	tagged_array_view<const object_type, inner_index_type, false> get_row(outer_index_type i) const; // safe from any thread
-	tagged_array_view<object_type, inner_index_type, false> get_row(outer_index_type i); // safe from any thread
-	tagged_array_view<object_type, inner_index_type, false> safe_get_row(outer_index_type i); // single thread only
+	tagged_array_view<const object_type, inner_index_type> get_row(outer_index_type i) const; // safe from any thread
+	tagged_array_view<object_type, inner_index_type> get_row(outer_index_type i); // safe from any thread
+	tagged_array_view<object_type, inner_index_type> safe_get_row(outer_index_type i); // single thread only
 	object_type& get(outer_index_type i, inner_index_type j) const; // safe from any thread
 	object_type& safe_get(outer_index_type i, inner_index_type j); // single thread only
 	bool is_valid_index(outer_index_type i) const; //safe from any thread; if true, can use get without possible memory error
@@ -528,7 +528,7 @@ public:
 	stable_variable_vector_storage_mk_2();
 	~stable_variable_vector_storage_mk_2();
 
-	static_assert(!is_aligned || minimum_size * sizeof(object_type) >= 64);
+	static_assert(align == alignment_type::none || minimum_size * sizeof(object_type) >= 64);
 
 	void reset();
 	stable_mk_2_tag make_new(uint32_t capacity);
@@ -538,162 +538,162 @@ public:
 };
 
 //general interface, safe from any thread
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, stable_mk_2_tag i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, stable_mk_2_tag i);
 
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-object_type& get(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, stable_mk_2_tag i, uint32_t inner_index); // safe to read from any thread
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+object_type& get(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, stable_mk_2_tag i, uint32_t inner_index); // safe to read from any thread
 
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-uint32_t get_capacity(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, stable_mk_2_tag i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+uint32_t get_capacity(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, stable_mk_2_tag i);
 
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-uint32_t get_size(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, stable_mk_2_tag i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+uint32_t get_size(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, stable_mk_2_tag i);
 
 //unsorted interface
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void push_back(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, stable_mk_2_tag& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void push_back(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, stable_mk_2_tag& i, object_type obj);
 
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void pop_back(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, stable_mk_2_tag i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void pop_back(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, stable_mk_2_tag i);
 
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void add_unordered_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, stable_mk_2_tag& i, object_type const* first, object_type const* last);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void add_unordered_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, stable_mk_2_tag& i, object_type const* first, object_type const* last);
 
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void remove_unsorted_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, stable_mk_2_tag i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void remove_unsorted_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, stable_mk_2_tag i, object_type obj);
 
 //sorted interface
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void add_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, stable_mk_2_tag& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void add_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, stable_mk_2_tag& i, object_type obj);
 
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void add_unique_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, stable_mk_2_tag& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void add_unique_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, stable_mk_2_tag& i, object_type obj);
 
 //range passed must already be sorted
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void add_ordered_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, stable_mk_2_tag& i, object_type const* first, object_type const* last);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void add_ordered_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, stable_mk_2_tag& i, object_type const* first, object_type const* last);
 
 //range passed must already be sorted and contain no duplicates
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void add_unique_ordered_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, stable_mk_2_tag& i, object_type const* first, object_type const* last);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void add_unique_ordered_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, stable_mk_2_tag& i, object_type const* first, object_type const* last);
 
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void remove_sorted_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, stable_mk_2_tag i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void remove_sorted_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, stable_mk_2_tag i, object_type obj);
 
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void remove_multisorted_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, stable_mk_2_tag i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void remove_multisorted_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, stable_mk_2_tag i, object_type obj);
 
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void remove_subitem_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, stable_mk_2_tag i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void remove_subitem_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, stable_mk_2_tag i, object_type obj);
 
 //sorted interface safe from any thread
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, stable_mk_2_tag i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, stable_mk_2_tag i, object_type obj);
 
 
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, set_tag<object_type> i);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, multiset_tag<object_type> i);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-std::pair<object_type*, object_type*> get_subrange(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, multiset_tag<object_type> i, object_type obj);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
-std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, array_tag<object_type, index_type, padding> i);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
-tagged_array_view<const object_type, index_type, padding> get_view(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, array_tag<object_type, index_type, padding> i);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
-tagged_array_view<object_type, index_type, padding> get_view(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, array_tag<object_type, index_type, padding> i);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-object_type& get(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, set_tag<object_type> i, uint32_t inner_index);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-uint32_t get_capacity(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, set_tag<object_type> i);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-uint32_t get_size(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, set_tag<object_type> i);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-object_type& get(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, multiset_tag<object_type> i, uint32_t inner_index);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-uint32_t get_capacity(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, multiset_tag<object_type> i);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-uint32_t get_size(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, multiset_tag<object_type> i);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
-object_type& get(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, array_tag<object_type, index_type, padding> i, index_type inner_index);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
-uint32_t get_capacity(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, array_tag<object_type, index_type, padding> i);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
-uint32_t get_size(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, array_tag<object_type, index_type, padding> i);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
-void add_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, array_tag<object_type, index_type, padding>& i, object_type obj);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void add_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, set_tag<object_type>& i, object_type obj);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void add_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, multiset_tag<object_type>& i, object_type obj);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
-void remove_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, array_tag<object_type, index_type, padding>& i, object_type obj);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void remove_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, set_tag<object_type>& i, object_type obj);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void remove_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, multiset_tag<object_type>& i, object_type obj);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void remove_single_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, multiset_tag<object_type>& i, object_type obj);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void remove_subrange(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, multiset_tag<object_type>& i, object_type obj);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding, typename FUNC>
-void remove_item_if(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, array_tag<object_type, index_type, padding>& i, FUNC const& f);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename FUNC>
-void remove_item_if(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, set_tag<object_type>& i, FUNC const& f);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename FUNC>
-void remove_item_if(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, multiset_tag<object_type>& i, FUNC const& f);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename FUNC>
-void remove_subitem_if(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, multiset_tag<object_type>& i, object_type key, FUNC const& f);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
-bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, array_tag<object_type, index_type, padding> i, object_type obj);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, set_tag<object_type> i, object_type obj);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, multiset_tag<object_type> i, object_type obj);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-bool contains_subitem(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, multiset_tag<object_type> i, object_type obj);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
-void add_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, array_tag<object_type, index_type, padding>& i, object_type const* first, object_type const* last);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void add_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, set_tag<object_type>& i, object_type const* first, object_type const* last);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void add_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, multiset_tag<object_type>& i, object_type const* first, object_type const* last);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
-void clear(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, array_tag<object_type, index_type, padding>& i);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void clear(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, set_tag<object_type>& i);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void clear(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, multiset_tag<object_type>& i);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
-void resize(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, array_tag<object_type, index_type, padding>& i, uint32_t new_size);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void resize(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, set_tag<object_type>& i, uint32_t new_size);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void resize(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, multiset_tag<object_type>& i, uint32_t new_size);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
-void shrink(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, array_tag<object_type, index_type, padding>& i);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void shrink(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, set_tag<object_type>& i);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-void shrink(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, multiset_tag<object_type>& i);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
-object_type const* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, array_tag<object_type, index_type, padding> i, object_type obj);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename index_type, bool padding>
-object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, array_tag<object_type, index_type, padding> i, object_type obj);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, set_tag<object_type> i, object_type obj);
-template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned>
-object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, multiset_tag<object_type> i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, set_tag<object_type> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, multiset_tag<object_type> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+std::pair<object_type*, object_type*> get_subrange(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, multiset_tag<object_type> i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename index_type, bool padding>
+std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, array_tag<object_type, index_type, padding> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename index_type, bool padding>
+tagged_array_view<const object_type, index_type> get_view(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, array_tag<object_type, index_type, padding> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename index_type, bool padding>
+tagged_array_view<object_type, index_type> get_view(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, array_tag<object_type, index_type, padding> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+object_type& get(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, set_tag<object_type> i, uint32_t inner_index);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+uint32_t get_capacity(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, set_tag<object_type> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+uint32_t get_size(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, set_tag<object_type> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+object_type& get(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, multiset_tag<object_type> i, uint32_t inner_index);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+uint32_t get_capacity(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, multiset_tag<object_type> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+uint32_t get_size(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, multiset_tag<object_type> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename index_type, bool padding>
+object_type& get(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, array_tag<object_type, index_type, padding> i, index_type inner_index);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename index_type, bool padding>
+uint32_t get_capacity(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, array_tag<object_type, index_type, padding> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename index_type, bool padding>
+uint32_t get_size(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, array_tag<object_type, index_type, padding> i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename index_type, bool padding>
+void add_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, array_tag<object_type, index_type, padding>& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void add_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, set_tag<object_type>& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void add_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, multiset_tag<object_type>& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename index_type, bool padding>
+void remove_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, array_tag<object_type, index_type, padding>& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void remove_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, set_tag<object_type>& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void remove_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, multiset_tag<object_type>& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void remove_single_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, multiset_tag<object_type>& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void remove_subrange(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, multiset_tag<object_type>& i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename index_type, bool padding, typename FUNC>
+void remove_item_if(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, array_tag<object_type, index_type, padding>& i, FUNC const& f);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename FUNC>
+void remove_item_if(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, set_tag<object_type>& i, FUNC const& f);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename FUNC>
+void remove_item_if(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, multiset_tag<object_type>& i, FUNC const& f);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename FUNC>
+void remove_subitem_if(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, multiset_tag<object_type>& i, object_type key, FUNC const& f);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename index_type, bool padding>
+bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, array_tag<object_type, index_type, padding> i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, set_tag<object_type> i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+bool contains_item(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, multiset_tag<object_type> i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+bool contains_subitem(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, multiset_tag<object_type> i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename index_type, bool padding>
+void add_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, array_tag<object_type, index_type, padding>& i, object_type const* first, object_type const* last);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void add_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, set_tag<object_type>& i, object_type const* first, object_type const* last);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void add_range(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, multiset_tag<object_type>& i, object_type const* first, object_type const* last);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename index_type, bool padding>
+void clear(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, array_tag<object_type, index_type, padding>& i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void clear(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, set_tag<object_type>& i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void clear(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, multiset_tag<object_type>& i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename index_type, bool padding>
+void resize(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, array_tag<object_type, index_type, padding>& i, uint32_t new_size);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void resize(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, set_tag<object_type>& i, uint32_t new_size);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void resize(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, multiset_tag<object_type>& i, uint32_t new_size);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename index_type, bool padding>
+void shrink(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, array_tag<object_type, index_type, padding>& i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void shrink(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, set_tag<object_type>& i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+void shrink(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, multiset_tag<object_type>& i);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename index_type, bool padding>
+object_type const* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, array_tag<object_type, index_type, padding> i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename index_type, bool padding>
+object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, array_tag<object_type, index_type, padding> i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, set_tag<object_type> i, object_type obj);
+template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>
+object_type* find(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, multiset_tag<object_type> i, object_type obj);
 
 namespace serialization {
-	template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename type_tag>
-	void serialize_stable_array(std::byte* &output, stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, type_tag i);
-	template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename type_tag>
-	void deserialize_stable_array(std::byte const* &input, stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned>& storage, type_tag& i);
-	template<typename object_type, uint32_t minimum_size, size_t memory_size, bool is_aligned, typename type_tag>
-	size_t serialize_stable_array_size(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, is_aligned> const& storage, type_tag i);
+	template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename type_tag>
+	void serialize_stable_array(std::byte* &output, stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, type_tag i);
+	template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename type_tag>
+	void deserialize_stable_array(std::byte const* &input, stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, type_tag& i);
+	template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename type_tag>
+	size_t serialize_stable_array_size(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, type_tag i);
 }
 
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>

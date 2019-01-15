@@ -374,23 +374,23 @@ void stable_2d_vector<object_type, outer_index_type, inner_index_type, block_siz
 }
 
 template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
-tagged_array_view<const object_type, inner_index_type, false> stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::get_row(outer_index_type i) const {
+tagged_array_view<const object_type, inner_index_type> stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::get_row(outer_index_type i) const {
 	const auto block_num = to_index(i) >> bit_shift;
 	const auto block_index = to_index(i) & (block_size - 1);
 
-	return tagged_array_view<const object_type, inner_index_type, false>(index_array[block_num] + block_index * inner_size, inner_size);
+	return tagged_array_view<const object_type, inner_index_type>(index_array[block_num] + block_index * inner_size, inner_size);
 }
 
 template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
-tagged_array_view<object_type, inner_index_type, false> stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::get_row(outer_index_type i) {
+tagged_array_view<object_type, inner_index_type> stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::get_row(outer_index_type i) {
 	const auto block_num = to_index(i) >> bit_shift;
 	const auto block_index = to_index(i) & (block_size - 1);
 
-	return tagged_array_view<object_type, inner_index_type, false>(index_array[block_num] + block_index * inner_size, inner_size);
+	return tagged_array_view<object_type, inner_index_type>(index_array[block_num] + block_index * inner_size, inner_size);
 }
 
 template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>
-tagged_array_view<object_type, inner_index_type, false> stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::safe_get_row(outer_index_type i) {
+tagged_array_view<object_type, inner_index_type> stable_2d_vector<object_type, outer_index_type, inner_index_type, block_size, index_size>::safe_get_row(outer_index_type i) {
 	ensure_capacity(i);
 	return get_row(i);
 }
@@ -430,14 +430,20 @@ std::pair<object_type*, object_type*> get_range(stable_variable_vector_storage_m
 }
 
 template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename index_type, bool padding>
-tagged_array_view<const object_type, index_type, padding> get_view(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, array_tag<object_type, index_type, padding> i) {
+tagged_array_view<const object_type, index_type> get_view(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align> const& storage, array_tag<object_type, index_type, padding> i) {
 	auto r = get_range(storage, i.value);
-	return tagged_array_view<const object_type, index_type, padding>(r.first, int32_t(r.second - r.first));
+	if constexpr(padding)
+		return tagged_array_view<const object_type, index_type>(r.first + 1, int32_t(r.second - (r.first + 1)));
+	else
+		return tagged_array_view<const object_type, index_type>(r.first, int32_t(r.second - r.first));
 }
 template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align, typename index_type, bool padding>
-tagged_array_view<object_type, index_type, padding> get_view(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, array_tag<object_type, index_type, padding> i) {
+tagged_array_view<object_type, index_type> get_view(stable_variable_vector_storage_mk_2<object_type, minimum_size, memory_size, align>& storage, array_tag<object_type, index_type, padding> i) {
 	auto r = get_range(storage, i.value);
-	return tagged_array_view<object_type, index_type, padding>(r.first, int32_t(r.second - r.first));
+	if constexpr(padding)
+		return tagged_array_view<object_type, index_type>(r.first + 1, int32_t(r.second - (r.first + 1)));
+	else
+		return tagged_array_view<object_type, index_type>(r.first, int32_t(r.second - r.first));
 }
 
 template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align>

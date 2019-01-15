@@ -134,7 +134,7 @@ namespace technologies {
 
 	template<int32_t production_type>
 	inline adjusted_goods_tag economy_tag_to_production_adjustment(economy::goods_tag t) {
-		return adjusted_goods_tag(to_index(t) * production_adjustment::production_adjustment_count + production_type);
+		return adjusted_goods_tag(adjusted_goods_tag::value_base_t(to_index(t) * production_adjustment::production_adjustment_count + production_type));
 	}
 
 	

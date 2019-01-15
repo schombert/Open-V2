@@ -109,10 +109,11 @@ void normalize_integer_vector(T* vec, uint32_t count, T sum) {
 
 template<typename value_base, typename zero_is_null, typename individuator>
 struct tag_type {
-	static constexpr value_base null_value = std::is_same_v<std::true_type, zero_is_null> ? 0 : std::numeric_limits<value_base>::max();
+	static constexpr value_base null_value = std::is_same_v<std::true_type, zero_is_null> ? 0 : value_base(-1);
 	using value_base_t = value_base;
 	using zero_is_null_t = zero_is_null;
 	using individuator_t = individuator;
+	using index_result_t = std::conditional_t<sizeof(value_base) <= 4, int32_t, std::make_signed_t<value_base>>;
 
 	value_base value;
 
@@ -123,11 +124,17 @@ struct tag_type {
 
 	constexpr tag_type() noexcept : value(null_value) {}
 
-	constexpr value_base index() const noexcept {
-		if constexpr(std::is_same_v<std::true_type, zero_is_null>)
-			return value - 1;
-		else
-			return value;
+	constexpr index_result_t index() const noexcept {
+		if constexpr(std::is_same_v<std::true_type, zero_is_null>) {
+			return index_result_t(value) - 1;
+		} else {
+			if constexpr(std::is_signed_v<value_base> || std::is_same_v<index_result_t, std::make_signed_t<value_base>>) {
+				return value;
+			} else {
+				value_base i = value + value_base(1);
+				return index_result_t(i) - 1;
+			}
+		}
 	}
 	constexpr bool is_valid() const noexcept { return value != null_value; }
 	tag_type& operator=(tag_type&& v) noexcept = default;
@@ -145,7 +152,7 @@ template<typename value_base, typename zero_is_null, typename individuator>
 constexpr tag_type<value_base, zero_is_null, individuator> null_value_of<tag_type<value_base, zero_is_null, individuator>> = tag_type<value_base, zero_is_null, individuator>();
 
 template<typename value_base, typename zero_is_null, typename individuator>
-constexpr value_base to_index(tag_type<value_base, zero_is_null, individuator> in) { return in.index(); }
+constexpr auto to_index(tag_type<value_base, zero_is_null, individuator> in) { return in.index(); }
 
 template<typename value_base, typename zero_is_null, typename individuator>
 constexpr bool is_valid_index(tag_type<value_base, zero_is_null, individuator> in) { return in.is_valid(); }
@@ -177,7 +184,8 @@ struct union_tag {
 	constexpr union_tag(int32_t v, std::true_type) noexcept : value(v) {}
 
 	template<typename value_base, typename zero_is_null, typename individuator>
-	constexpr union_tag(tag_type<value_base, zero_is_null, individuator> b) noexcept : value(zero_is_null::value ? int32_t(b.value) : int32_t(b.value) + 1) {}
+	constexpr union_tag(tag_type<value_base, zero_is_null, individuator> b) noexcept :
+		value(zero_is_null::value ? int32_t(b.value) : int32_t(b.value + value_base(1))) {}
 
 	template<typename value_base, typename zero_is_null, typename individuator>
 	constexpr operator tag_type<value_base, zero_is_null, individuator>() const noexcept {
@@ -348,32 +356,22 @@ struct bitfield_type {
 
 static_assert(sizeof(bitfield_type) == 1);
 
-inline void bit_vector_set(bitfield_type* v, uint32_t index, bool value) {
-	const uint32_t real_index = index >> 3ui32;
-	const uint32_t sub_index = index & 7ui32;
+inline void bit_vector_set(bitfield_type* v, int32_t index, bool value) {
+	const int32_t real_index = index >> 3;
+	const uint32_t sub_index = uint32_t(index) & 7ui32;
 	if(value)
 		v[real_index].v |= uint8_t(1ui32 << sub_index);
 	else
 		v[real_index].v &= uint8_t(~(1ui32 << sub_index));
 }
 
-inline bool bit_vector_test(bitfield_type const* v, uint32_t index) {
-	const uint32_t real_index = index >> 3ui32;
-	const uint32_t sub_index = index & 7ui32;
+inline bool bit_vector_test(bitfield_type const* v, int32_t index) {
+	const int32_t real_index = index >> 3;
+	const uint32_t sub_index = uint32_t(index) & 7ui32;
 	return (v[real_index].v & (1ui32 << sub_index)) != 0;
 }
 
-template<typename index_type, bool padding>
-void bit_vector_set(tagged_array_view<bitfield_type, index_type, padding> v, index_type index, bool value) {
-	bit_vector_set(v.data(), uint32_t(to_index(index) + typename index_type::value_base_t(padding)), value);
-}
-
-template<typename index_type, bool padding>
-bool bit_vector_test(tagged_array_view<bitfield_type const, index_type, padding> v, index_type index) {
-	return bit_vector_test(v.data(), uint32_t(to_index(index) + typename index_type::value_base_t(padding)));
-}
-
-template<typename T, typename index_type, bool padding>
+template<typename T, typename index_type>
 struct tagged_array_view {
 private:
 	T* const ptr = nullptr;
@@ -389,18 +387,10 @@ public:
 	{}
 
 	T& operator[](index_type i) const noexcept {
-		if constexpr(padding) {
-			return ptr[to_index(i) + 1];
-		} else {
-			return ptr[to_index(i)];
-		}
+		return ptr[to_index(i)];
 	}
 	T* begin() const noexcept {
-		if constexpr(padding && !std::is_same_v<T, bitfield_type>) {
-			return ptr ? ptr + 1 : ptr;
-		} else {
-			return ptr;
-		}
+		return ptr;
 	}
 #ifdef _DEBUG
 	T* debug_end() const noexcept {
@@ -408,16 +398,13 @@ public:
 	}
 #endif
 	T* data() const noexcept {
-		if constexpr(padding && !std::is_same_v<T, bitfield_type>) {
-			return ptr + 1;
-		else
-			return ptr;
+		return ptr;
 	}
 	explicit operator bool() const noexcept {
 		return ptr != nullptr;
 	}
-	constexpr operator tagged_array_view<const T, index_type, padding>() const noexcept {
-		return tagged_array_view<const T, index_type, padding>(ptr, 
+	constexpr operator tagged_array_view<const T, index_type>() const noexcept {
+		return tagged_array_view<const T, index_type>(ptr, 
 #ifdef _DEBUG
 			size
 #else
@@ -425,8 +412,8 @@ public:
 #endif
 			);
 	}
-	constexpr tagged_array_view<T, index_type, padding> operator+(int32_t i) const noexcept {
-		return tagged_array_view<T, index_type, padding>(ptr + i,
+	constexpr tagged_array_view<T, index_type> operator+(int32_t i) const noexcept {
+		return tagged_array_view<T, index_type>(ptr + i,
 #ifdef _DEBUG
 			size - i
 #else
@@ -435,6 +422,17 @@ public:
 			);
 	}
 };
+
+template<typename index_type>
+void bit_vector_set(tagged_array_view<bitfield_type, index_type> v, index_type index, bool value) {
+	bit_vector_set(v.data(), to_index(index), value);
+}
+
+template<typename T, typename index_type>
+auto bit_vector_test(tagged_array_view<T, index_type> v, index_type index) -> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, bitfield_type>, bool> {
+	return bit_vector_test(v.data(), to_index(index));
+}
+
 
 template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>, bool padded = false>
 class tagged_vector {
@@ -467,19 +465,19 @@ public:
 	void resize(size_t size) { storage.resize(size + size_t(padded)); }
 	void reserve(size_t size) { storage.reserve(size + size_t(padded)); }
 	void pop_back() { storage.pop_back(); }
-	tagged_array_view<value_type, tag_type, padded> view() {
-		return tagged_array_view<value_type, tag_type, padded>(storage.data(),
+	tagged_array_view<value_type, tag_type> view() {
+		return tagged_array_view<value_type, tag_type>(storage.data() + int32_t(padded),
 #ifdef _DEBUG
-			int32_t(storage.size())
+			int32_t(storage.size()) - int32_t(padded)
 #else
 			0
 #endif
 			);
 	};
-	tagged_array_view<value_type const, tag_type, padded> view() const {
-		return tagged_array_view<value_type const, tag_type, padded>(storage.data(),
+	tagged_array_view<value_type const, tag_type> view() const {
+		return tagged_array_view<value_type const, tag_type>(storage.data() + int32_t(padded),
 #ifdef _DEBUG
-			int32_t(storage.size())
+			int32_t(storage.size()) - int32_t(padded)
 #else
 			0
 #endif
@@ -499,11 +497,11 @@ public:
 	const value_type & get(variable_tag_type outer, fixed_tag_type inner) const {
 		return storage[(uint32_t)to_index(inner) + (uint32_t)to_index(outer) * _inner_size];
 	}
-	tagged_array_view<value_type, fixed_tag_type, false> get_row(variable_tag_type outer) {
-		return tagged_array_view<value_type, fixed_tag_type, false>((value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), int32_t(_inner_size));
+	tagged_array_view<value_type, fixed_tag_type> get_row(variable_tag_type outer) {
+		return tagged_array_view<value_type, fixed_tag_type>((value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), int32_t(_inner_size));
 	}
-	tagged_array_view<const value_type, fixed_tag_type, false> get_row(variable_tag_type outer) const {
-		return tagged_array_view<const value_type, fixed_tag_type, false>((const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), int32_t(_inner_size));
+	tagged_array_view<const value_type, fixed_tag_type> get_row(variable_tag_type outer) const {
+		return tagged_array_view<const value_type, fixed_tag_type>((const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), int32_t(_inner_size));
 	}
 	value_type& safe_get(variable_tag_type outer, fixed_tag_type inner) {
 		const auto n2 = ((uint32_t)to_index(outer) + 1ui32) * _inner_size;
@@ -547,23 +545,23 @@ public:
 	const value_type & get(variable_tag_type outer, fixed_tag_type inner) const {
 		return *((const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size) + (uint32_t)to_index(inner));
 	}
-	tagged_array_view<value_type, fixed_tag_type, false> get_row(variable_tag_type outer) {
-		return tagged_array_view<value_type, fixed_tag_type, false>((value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), _inner_size * block_size / sizeof(value_type));
+	tagged_array_view<value_type, fixed_tag_type> get_row(variable_tag_type outer) {
+		return tagged_array_view<value_type, fixed_tag_type>((value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), _inner_size * block_size / sizeof(value_type));
 	}
-	tagged_array_view<const value_type, fixed_tag_type, false> get_row(variable_tag_type outer) const {
-		return tagged_array_view<const value_type, fixed_tag_type, false>((const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), _inner_size * block_size / sizeof(value_type));
+	tagged_array_view<const value_type, fixed_tag_type> get_row(variable_tag_type outer) const {
+		return tagged_array_view<const value_type, fixed_tag_type>((const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), _inner_size * block_size / sizeof(value_type));
 	}
-	tagged_array_view<value_type, fixed_tag_type, false> safe_get_row(variable_tag_type outer) {
+	tagged_array_view<value_type, fixed_tag_type> safe_get_row(variable_tag_type outer) {
 		const auto n2 = ((uint32_t)to_index(outer) + 1ui32) * _inner_size;
 		if (n2 >= storage.size())
 			storage.resize(n2);
-		return tagged_array_view<value_type, fixed_tag_type, false>((value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), _inner_size * block_size / sizeof(value_type));
+		return tagged_array_view<value_type, fixed_tag_type>((value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), _inner_size * block_size / sizeof(value_type));
 	}
-	tagged_array_view<const value_type, fixed_tag_type, false> safe_get_row(variable_tag_type outer) const {
+	tagged_array_view<const value_type, fixed_tag_type> safe_get_row(variable_tag_type outer) const {
 		const auto n2 = ((uint32_t)to_index(outer) + 1ui32) * _inner_size;
 		if (n2 >= storage.size())
 			storage.resize(n2);
-		return tagged_array_view<const value_type, fixed_tag_type, false>((const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), _inner_size * block_size / sizeof(value_type));
+		return tagged_array_view<const value_type, fixed_tag_type>((const value_type*)(storage.data() + (uint32_t)to_index(outer) * _inner_size), _inner_size * block_size / sizeof(value_type));
 	}
 	value_type& safe_get(variable_tag_type outer, fixed_tag_type inner) {
 		const auto n2 = ((uint32_t)to_index(outer) + 1ui32) * _inner_size;
