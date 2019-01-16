@@ -46,7 +46,7 @@ namespace graphics {
 			if(primary_texture.start != primary_texture.end)
 				dest.primary_texture_handle = env.th_f(primary_texture.start, primary_texture.end);
 			if(secondary_texture.start != secondary_texture.end)
-				dest.type_dependant = to_index(env.th_f(secondary_texture.start, secondary_texture.end));
+				dest.type_dependant = uint16_t(to_index(env.th_f(secondary_texture.start, secondary_texture.end)));
 		}
 
 		void clicksound(const token_and_type& t) {

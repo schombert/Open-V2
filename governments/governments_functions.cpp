@@ -14,7 +14,7 @@ namespace governments {
 		return result;
 	}
 
-	void get_best_parties_at_date(tagged_array_view<party_tag, ideologies::ideology_tag, false> parties_out, cultures::national_tag tag, date_tag date, scenario::scenario_manager& s) {
+	void get_best_parties_at_date(tagged_array_view<party_tag, ideologies::ideology_tag> parties_out, cultures::national_tag tag, date_tag date, scenario::scenario_manager& s) {
 		uint32_t* rules_count = (uint32_t*)_alloca(sizeof(uint32_t) * s.ideologies_m.ideologies_count);
 		for(int32_t i = 0; i < int32_t(s.ideologies_m.ideologies_count); ++i) {
 			auto itag = ideologies::ideology_tag(ideologies::ideology_tag::value_base_t(i));
@@ -22,7 +22,7 @@ namespace governments {
 			rules_count[i] = 0ui32;
 		}
 		auto const& tag_obj = s.culture_m.national_tags[tag];
-		for(auto p_index = tag_obj.first_party; p_index != tag_obj.last_party; p_index = party_tag(to_index(p_index) + 1)) {
+		for(auto p_index = tag_obj.first_party; p_index != tag_obj.last_party; p_index = party_tag(party_tag::value_base_t(to_index(p_index) + 1))) {
 			party& this_party = s.governments_m.parties[p_index];
 
 			if(this_party.start_date <= date && date < this_party.end_date) {

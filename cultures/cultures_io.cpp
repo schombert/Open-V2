@@ -97,7 +97,7 @@ namespace cultures {
 		void add_party(governments::party_tag id) {
 			if(!is_valid_index(env.under_construction.first_party))
 				env.under_construction.first_party = id;
-			env.under_construction.last_party = governments::party_tag(to_index(id) + 1);
+			env.under_construction.last_party = governments::party_tag(governments::party_tag::value_base_t(to_index(id) + 1));
 		}
 	};
 

@@ -306,12 +306,12 @@ struct atomic_tag {
 	}
 
 	void operator=(const atomic_tag &v) noexcept { value.store(v.value.load(std::memory_order_acquire), std::memory_order_release); }
-	void operator=(tag_base v) noexcept { value.store(to_index(v) + (std::is_same_v<std::true_type, zero_is_null_t> ? 1 : 0), std::memory_order_release); }
+	void operator=(tag_base v) noexcept { value.store(v.value, std::memory_order_release); }
 
 	bool operator==(const atomic_tag &v) const noexcept { return value.load(std::memory_order_acquire) == v.value.load(std::memory_order_acquire); }
-	bool operator==(tag_base v) const noexcept { return index() == to_index(v); }
+	bool operator==(tag_base v) const noexcept { return value.load(std::memory_order_acquire) == v.value; }
 	bool operator!=(const atomic_tag &v) const noexcept { return value.load(std::memory_order_acquire) != v.value.load(std::memory_order_acquire); }
-	bool operator!=(tag_base v) const noexcept { return index() != to_index(v); }
+	bool operator!=(tag_base v) const noexcept { return value.load(std::memory_order_acquire) != v.value; }
 	
 	operator tag_base() const noexcept { return tag_base(value.load(std::memory_order_acquire), std::true_type()); }
 };

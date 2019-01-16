@@ -60,7 +60,7 @@ namespace modifiers {
 
 	void apply_scaled_nat_modifier(world_state& ws,
 		const modifier_definition& def,
-		tagged_array_view<float, nations::country_tag, true> scale_values) {
+		tagged_array_view<float, nations::country_tag> scale_values) {
 		auto nations_count = ws.w.nation_s.nations.vector_size();
 
 		concurrency::parallel_for(0, modifier_attribute_count(def), [&ws, &def, scale_values, nations_count](int32_t i) {
@@ -69,7 +69,7 @@ namespace modifiers {
 	}
 	void apply_scaled_nat_modifier(world_state& ws,
 		const modifier_definition& def,
-		tagged_array_view<float, nations::country_tag, true> scale_values,
+		tagged_array_view<float, nations::country_tag> scale_values,
 		float fixed_scale) {
 		auto nations_count = ws.w.nation_s.nations.vector_size();
 
@@ -79,7 +79,7 @@ namespace modifiers {
 	}
 	void apply_scaled_prov_modifier(world_state& ws,
 		const modifier_definition& def,
-		tagged_array_view<float, provinces::province_tag, true> scale_values) {
+		tagged_array_view<float, provinces::province_tag> scale_values) {
 		auto pcount = ws.w.province_s.province_state_container.vector_size();
 
 		concurrency::parallel_for(0, modifier_attribute_count(def), [&ws, &def, scale_values, pcount](int32_t i) {
@@ -88,7 +88,7 @@ namespace modifiers {
 	}
 	void apply_scaled_prov_modifier(world_state& ws,
 		const modifier_definition& def,
-		tagged_array_view<float, provinces::province_tag, true> scale_values,
+		tagged_array_view<float, provinces::province_tag> scale_values,
 		float fixed_scale) {
 		auto pcount = ws.w.province_s.province_state_container.vector_size();
 
@@ -98,7 +98,7 @@ namespace modifiers {
 	}
 	void apply_scaled_prov_modifier(world_state& ws,
 		const modifier_definition& def,
-		tagged_array_view<uint8_t, provinces::province_tag, true> scale_values) {
+		tagged_array_view<uint8_t, provinces::province_tag> scale_values) {
 		auto pcount = ws.w.province_s.province_state_container.vector_size();
 
 		concurrency::parallel_for(0, modifier_attribute_count(def), [&ws, &def, scale_values, pcount](int32_t i) {
@@ -107,7 +107,7 @@ namespace modifiers {
 	}
 	void apply_scaled_prov_modifier(world_state& ws,
 		const modifier_definition& def,
-		tagged_array_view<uint8_t, provinces::province_tag, true> scale_values,
+		tagged_array_view<uint8_t, provinces::province_tag> scale_values,
 		float fixed_scale) {
 		auto pcount = ws.w.province_s.province_state_container.vector_size();
 

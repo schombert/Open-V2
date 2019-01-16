@@ -140,19 +140,19 @@ namespace ve {
 
 		__forceinline tagged_vector() : value(_mm256_setzero_si256()) {}
 		__forceinline constexpr tagged_vector(__m256i v) : value(v) {}
-		__forceinline tagged_vector(tag_type v) : value(_mm256_set1_epi32(to_index(v))) {}
+		__forceinline tagged_vector(tag_type v) : value(_mm256_set1_epi32(int32_t(v.value))) {}
 		__forceinline tagged_vector(tag_type a, tag_type b, tag_type c, tag_type d, tag_type e, tag_type f, tag_type g, tag_type h) :
-			value(_mm256_setr_epi32(to_index(a), to_index(b), to_index(c), to_index(d), to_index(e), to_index(f), to_index(g), to_index(h))) {}
+			value(_mm256_setr_epi32(int32_t(a.value), int32_t(b.value), int32_t(c.value), int32_t(d.value), int32_t(e.value), int32_t(f.value), int32_t(g.value), int32_t(h.value))) {}
 
 		__forceinline constexpr operator __m256i() {
 			return value;
 		}
 
 		__forceinline tag_type operator[](uint32_t i) const noexcept {
-			return tag_type(typename tag_type::value_base_t(value.m256i_i32[i]));
+			return tag_type(typename tag_type::value_base_t(value.m256i_i32[i]), std::true_type());
 		}
 		__forceinline void set(uint32_t i, tag_type v) noexcept {
-			value.m256i_i32[i] = to_index(v);
+			value.m256i_i32[i] = int32_t(v.value);
 		}
 	};
 
@@ -163,7 +163,7 @@ namespace ve {
 
 	template<typename value_base, typename individuator>
 	__forceinline int32_t to_int(tag_type<value_base, std::true_type, individuator> v) {
-		return to_index(v);
+		return int32_t(v.value);
 	}
 
 	template<>
@@ -177,19 +177,19 @@ namespace ve {
 		__forceinline constexpr tagged_vector(__m256i v) : value(v) {}
 		template<typename T>
 		__forceinline constexpr tagged_vector(tagged_vector<T> v) : value(v.value) {}
-		__forceinline tagged_vector(tag_type v) : value(_mm256_set1_epi32(to_index(v))) {}
+		__forceinline tagged_vector(tag_type v) : value(_mm256_set1_epi32(v.value)) {}
 		__forceinline tagged_vector(tag_type a, tag_type b, tag_type c, tag_type d, tag_type e, tag_type f, tag_type g, tag_type h) :
-			value(_mm256_setr_epi32(to_index(a), to_index(b), to_index(c), to_index(d), to_index(e), to_index(f), to_index(g), to_index(h))) {}
+			value(_mm256_setr_epi32(a.value, b.value, c.value, d.value, e.value, f.value, g.value, h.value)) {}
 
 		__forceinline constexpr operator __m256i() {
 			return value;
 		}
 
 		__forceinline union_tag operator[](uint32_t i) const noexcept {
-			return union_tag(value.m256i_i32[i] + 1);
+			return union_tag(value.m256i_i32[i]);
 		}
 		__forceinline void set(uint32_t i, union_tag v) noexcept {
-			value.m256i_i32[i] = to_index(v);
+			value.m256i_i32[i] = v.value;
 		}
 		template<typename T>
 		__forceinline constexpr operator tagged_vector<T>() {
@@ -1015,7 +1015,7 @@ namespace ve {
 		return vbitfield_type{ source[e.value / 8ui32].v };
 	}
 	__forceinline mask_vector load(int_vector indices, bitfield_type const* source) {
-		const auto byte_indices = _mm256_srai_epi32(indices, 3);
+		const auto byte_indices = _mm256_srai_epi32(indices - 1, 3);
 		const auto bit_indices = _mm256_and_si256(indices, _mm256_set1_epi32(0x00000007));
 		auto gathered = _mm256_i32gather_epi32((int32_t const*)(source), byte_indices, 1);
 		auto shifted = _mm256_and_si256(_mm256_srlv_epi32(gathered, bit_indices), _mm256_set1_epi32(0x00000001));
@@ -1163,7 +1163,10 @@ namespace ve {
 	}
 	template<typename T, typename U>
 	__forceinline auto load(tagged_vector<typename ve_identity<T>::type> indices, tagged_array_view<U, T> source) {
-		return ve::load(indices.value, source.data());
+		if constexpr(!std::is_same_v<std::remove_cv_t<U>, bitfield_type>)
+			return ve::load(indices.value, source.data() - 1);
+		else
+			return ve::load(indices.value, source.data());
 	}
 	//-----
 
@@ -1251,6 +1254,6 @@ namespace ve {
 	}
 	template<typename T>
 	__forceinline void store(tagged_vector<typename ve_identity<T>::type> indices, tagged_array_view<float, T> dest, fp_vector values) {
-		ve::store(indices.value, dest.data(), values);
+		ve::store(indices.value, dest.data() - 1, values);
 	}
 }

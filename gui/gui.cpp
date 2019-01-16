@@ -361,7 +361,7 @@ tagged_object<ui::text_instance, ui::text_instance_tag> ui::create_text_instance
 	const auto new_text_instance = container.text_instances.emplace();
 
 	new_gobj.object.flags.store(gui_object::type_text_instance | gui_object::enabled | gui_object::visible, std::memory_order_release);
-	new_gobj.object.type_dependant_handle.store(to_index(new_text_instance.id), std::memory_order_release);
+	new_gobj.object.type_dependant_handle.store(uint16_t(to_index(new_text_instance.id)), std::memory_order_release);
 
 	new_text_instance.object.color = fmt.color;
 	new_text_instance.object.font_handle = fmt.font_handle;
@@ -508,14 +508,14 @@ namespace {
 		overlay_graphic.object.graphics_object = &graphic_object_def;
 		overlay_graphic.object.t = main_texture_ptr;
 
-		overlay_gobj.object.type_dependant_handle.store(to_index(overlay_graphic.id), std::memory_order_release);
+		overlay_gobj.object.type_dependant_handle.store(uint16_t(to_index(overlay_graphic.id)), std::memory_order_release);
 		overlay_gobj.object.flags.fetch_or(ui::gui_object::type_graphics_object, std::memory_order_acq_rel);
 
 		const auto flag_graphics = manager.multi_texture_instances.emplace();
 		flag_graphics.object.mask_or_primary = mask_texture_ptr;
 		flag_graphics.object.flag_or_secondary = nullptr;
 
-		flag_gobj.object.type_dependant_handle.store(to_index(flag_graphics.id), std::memory_order_release);
+		flag_gobj.object.type_dependant_handle.store(uint16_t(to_index(flag_graphics.id)), std::memory_order_release);
 		flag_gobj.object.flags.fetch_or(ui::gui_object::type_masked_flag, std::memory_order_acq_rel);
 	}
 }
@@ -541,7 +541,7 @@ void ui::detail::instantiate_graphical_object(gui_static& static_manager, ui::gu
 				container.object.size.x = static_cast<int16_t>(icon_graphic.object.t->get_width() / ((graphic_object_def.number_of_frames != 0) ? graphic_object_def.number_of_frames : 1));
 			}
 
-			container.object.type_dependant_handle.store(to_index(icon_graphic.id), std::memory_order_release);
+			container.object.type_dependant_handle.store(uint16_t(to_index(icon_graphic.id)), std::memory_order_release);
 		}
 
 		return;
@@ -567,7 +567,7 @@ void ui::detail::instantiate_graphical_object(gui_static& static_manager, ui::gu
 					container.object.size.x = static_cast<int16_t>(icon_graphic.object.t->get_width() / ((graphic_object_def.number_of_frames != 0) ? graphic_object_def.number_of_frames : 1));
 				}
 
-				container.object.type_dependant_handle.store(to_index(icon_graphic.id), std::memory_order_release);
+				container.object.type_dependant_handle.store(uint16_t(to_index(icon_graphic.id)), std::memory_order_release);
 			}
 			break;
 		case graphics::object_type::horizontal_progress_bar:
@@ -579,7 +579,7 @@ void ui::detail::instantiate_graphical_object(gui_static& static_manager, ui::gu
 			bar_graphics.object.mask_or_primary = &(static_manager.textures.retrieve_by_key(primary_texture));
 			bar_graphics.object.flag_or_secondary = &(static_manager.textures.retrieve_by_key(secondary_texture));
 
-			container.object.type_dependant_handle.store(to_index(bar_graphics.id), std::memory_order_release);
+			container.object.type_dependant_handle.store(uint16_t(to_index(bar_graphics.id)), std::memory_order_release);
 			container.object.flags.fetch_or(ui::gui_object::type_progress_bar, std::memory_order_acq_rel);
 		}
 			break;
@@ -592,7 +592,7 @@ void ui::detail::instantiate_graphical_object(gui_static& static_manager, ui::gu
 			bar_graphics.object.mask_or_primary = &(static_manager.textures.retrieve_by_key(primary_texture));
 			bar_graphics.object.flag_or_secondary = &(static_manager.textures.retrieve_by_key(secondary_texture));
 
-			container.object.type_dependant_handle.store(to_index(bar_graphics.id), std::memory_order_release);
+			container.object.type_dependant_handle.store(uint16_t(to_index(bar_graphics.id)), std::memory_order_release);
 			container.object.flags.fetch_or(ui::gui_object::type_progress_bar | ui::gui_object::rotation_left, std::memory_order_acq_rel);
 		}
 			break;
@@ -603,7 +603,7 @@ void ui::detail::instantiate_graphical_object(gui_static& static_manager, ui::gu
 		{
 			container.object.flags.fetch_or(ui::gui_object::type_barchart, std::memory_order_acq_rel);
 			const auto new_dt = manager.data_textures.emplace(uint16_t(frame), 4ui16);
-			container.object.type_dependant_handle.store(to_index(new_dt.id), std::memory_order_release);
+			container.object.type_dependant_handle.store(uint16_t(to_index(new_dt.id)), std::memory_order_release);
 		}
 			break;
 		case graphics::object_type::piechart:
@@ -617,14 +617,14 @@ void ui::detail::instantiate_graphical_object(gui_static& static_manager, ui::gu
 
 			const auto new_dt = manager.data_textures.emplace(uint16_t(ui::piechart_resolution), 3ui16);
 
-			container.object.type_dependant_handle.store(to_index(new_dt.id), std::memory_order_release);
+			container.object.type_dependant_handle.store(uint16_t(to_index(new_dt.id)), std::memory_order_release);
 		}
 			break;
 		case graphics::object_type::linegraph:
 			container.object.flags.fetch_or(ui::gui_object::type_linegraph, std::memory_order_acq_rel);
 
 			const auto new_lines = manager.lines_set.emplace(uint32_t(frame));
-			container.object.type_dependant_handle.store(to_index(new_lines.id), std::memory_order_release);
+			container.object.type_dependant_handle.store(uint16_t(to_index(new_lines.id)), std::memory_order_release);
 
 			break;
 	}
@@ -1431,7 +1431,7 @@ void ui::init_tooltip_window(gui_static& static_manager, gui_manager& manager) {
 	bg_graphic.object.frame = 0;
 	bg_graphic.object.graphics_object = &(static_manager.graphics_object_definitions.definitions[static_manager.graphics_object_definitions.standard_text_background]);
 	bg_graphic.object.t = &(static_manager.textures.retrieve_by_key(static_manager.textures.standard_tiles_dialog));
-	manager.tooltip_window.type_dependant_handle.store(to_index(bg_graphic.id), std::memory_order_release);
+	manager.tooltip_window.type_dependant_handle.store(uint16_t(to_index(bg_graphic.id)), std::memory_order_release);
 }
 
 ui::tagged_gui_object ui::create_scrollable_text_block(world_state& ws, ui::text_tag handle, tagged_gui_object parent, const text_data::replacement* candidates, uint32_t count) {
@@ -1465,7 +1465,7 @@ ui::tagged_gui_object ui::create_scrollable_text_block(world_state& ws, ui::text
 		bg_graphic.object.graphics_object = &(ws.s.gui_m.graphics_object_definitions.definitions[ws.s.gui_m.graphics_object_definitions.standard_text_background]);
 		bg_graphic.object.t = &(ws.s.gui_m.textures.retrieve_by_key(texture));
 
-		res.object.type_dependant_handle.store(to_index(bg_graphic.id), std::memory_order_release);
+		res.object.type_dependant_handle.store(uint16_t(to_index(bg_graphic.id)), std::memory_order_release);
 	}
 
 	return res;
@@ -1521,7 +1521,7 @@ ui::tagged_gui_object ui::create_scrollable_text_block(world_state& ws, ui::text
 		bg_graphic.object.graphics_object = &(ws.s.gui_m.graphics_object_definitions.definitions[ws.s.gui_m.graphics_object_definitions.standard_text_background]);
 		bg_graphic.object.t = &(ws.s.gui_m.textures.retrieve_by_key(texture));
 
-		res.object.type_dependant_handle.store(to_index(bg_graphic.id), std::memory_order_release);
+		res.object.type_dependant_handle.store(uint16_t(to_index(bg_graphic.id)), std::memory_order_release);
 	}
 
 	return res;
@@ -1574,7 +1574,7 @@ ui::tagged_gui_object ui::create_dynamic_window(world_state& ws, window_tag t, t
 		bg_graphic.object.graphics_object = &(ws.s.gui_m.graphics_object_definitions.definitions[ws.s.gui_m.graphics_object_definitions.standard_text_background]);
 		bg_graphic.object.t = &(ws.s.gui_m.textures.retrieve_by_key(ws.s.gui_m.textures.standard_tiles_dialog));
 
-		window.object.type_dependant_handle.store(to_index(bg_graphic.id), std::memory_order_release);
+		window.object.type_dependant_handle.store(uint16_t(to_index(bg_graphic.id)), std::memory_order_release);
 
 		if ((definition.flags & (window_def::is_moveable | window_def::is_dialog)) != 0) {
 			window.object.associated_behavior = concurrent_allocator<draggable_region>().allocate(1);

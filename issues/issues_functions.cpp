@@ -6,7 +6,7 @@
 #include "governments\\governments_functions.h"
 
 namespace issues {
-	float calculate_political_interest(world_state const& ws, tagged_array_view<const float, population::demo_tag, false> demographics_array) {
+	float calculate_political_interest(world_state const& ws, tagged_array_view<const float, population::demo_tag> demographics_array) {
 		auto political_offset =
 			&(demographics_array[population::to_demo_tag(ws, issues::option_tag(0))]) +
 			ws.s.issues_m.party_issues_options_count +
@@ -15,7 +15,7 @@ namespace issues {
 		return (demographics_array[population::total_population_tag] != 0) ?
 			(float(political_vector.sum()) / float(demographics_array[population::total_population_tag])) : 0.0f;
 	}
-	float calculate_social_interest(world_state const& ws, tagged_array_view<const float, population::demo_tag, false> demographics_array) {
+	float calculate_social_interest(world_state const& ws, tagged_array_view<const float, population::demo_tag> demographics_array) {
 		auto social_offset =
 			&(demographics_array[population::to_demo_tag(ws, issues::option_tag(0))]) +
 			ws.s.issues_m.party_issues_options_count;

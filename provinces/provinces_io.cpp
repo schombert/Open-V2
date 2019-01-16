@@ -1171,17 +1171,17 @@ namespace provinces {
 				province_tag prev_result = province_tag(0);
 				if(auto it = color_mapping.find(previous_color_index); it != color_mapping.end()) {
 					prev_result = it->second;
-					m.province_map_data[static_cast<size_t>(last)] = to_index(it->second);
+					m.province_map_data[static_cast<size_t>(last)] = uint16_t(to_index(it->second));
 				}
 
 				for(int32_t t = m.province_map_width * m.province_map_height - 2; t >= 0; --t) {
 					uint32_t color_index = provinces::rgb_to_prov_index(raw_data[t * 3 + 0], raw_data[t * 3 + 1], raw_data[t * 3 + 2]);
 					if(color_index == previous_color_index) {
-						m.province_map_data[static_cast<size_t>(t)] = to_index(prev_result);
+						m.province_map_data[static_cast<size_t>(t)] = uint16_t(to_index(prev_result));
 					} else {
 						previous_color_index = color_index;
 						if(auto it = color_mapping.find(color_index); it != color_mapping.end())
-							m.province_map_data[static_cast<size_t>(t)] = to_index(it->second);
+							m.province_map_data[static_cast<size_t>(t)] = uint16_t(to_index(it->second));
 						else
 							m.province_map_data[static_cast<size_t>(t)] = 0ui16;
 						prev_result = province_tag(m.province_map_data[static_cast<size_t>(t)]);

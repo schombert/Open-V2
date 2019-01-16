@@ -2241,7 +2241,7 @@ using ttag_med = tag_type<uint16_t, std::true_type, struct ttag_med_type>;
 TEST(concurrency_tools, small_loads) {
 	std::vector<ttag_med, aligned_allocator_64<ttag_med>> a(32);
 	std::vector<ttag_small, aligned_allocator_64<ttag_small>> b(64);
-	std::vector<float, aligned_allocator_64<float>> values(16);
+	std::vector<float, padded_aligned_allocator_64<float>> values(16);
 
 	values[0] = 2.4f;
 	values[1] = 2.7f;
@@ -2278,8 +2278,8 @@ TEST(concurrency_tools, small_loads) {
 	auto a_index = ve::load(ve::contiguous_tags<int32_t>(0), a.data());
 	auto b_index = ve::load(ve::contiguous_tags<int32_t>(0), b.data());
 
-	auto a_values = ve::load(a_index, tagged_array_view<float, ttag_med>(values.data(),0));
-	auto b_values = ve::load(b_index, tagged_array_view<float, ttag_small>(values.data(),0));
+	auto a_values = ve::load(a_index, tagged_array_view<float, ttag_med>(values.data() + 1,0));
+	auto b_values = ve::load(b_index, tagged_array_view<float, ttag_small>(values.data() + 1,0));
 
 	EXPECT_EQ(a_values[0], values[10]);
 	EXPECT_EQ(a_values[1], values[7]);
@@ -2299,8 +2299,8 @@ TEST(concurrency_tools, small_loads) {
 
 	auto a_index_rev = ve::load(reversed, a.data());
 	auto b_index_rev = ve::load(reversed, b.data());
-	auto a_values_rev = ve::load(a_index_rev, tagged_array_view<float, ttag_med>(values.data(), 0));
-	auto b_values_rev = ve::load(b_index_rev, tagged_array_view<float, ttag_small>(values.data(), 0));
+	auto a_values_rev = ve::load(a_index_rev, tagged_array_view<float, ttag_med>(values.data() + 1, 0));
+	auto b_values_rev = ve::load(b_index_rev, tagged_array_view<float, ttag_small>(values.data() + 1, 0));
 
 	EXPECT_EQ(a_values_rev[3], values[10]);
 	EXPECT_EQ(a_values_rev[2], values[7]);
@@ -2321,7 +2321,7 @@ using s_ttag_med = tag_type<int16_t, std::true_type, struct ttag_med_type>;
 TEST(concurrency_tools, signed_small_loads) {
 	std::vector<s_ttag_med, aligned_allocator_64<s_ttag_med>> a(32);
 	std::vector<s_ttag_small, aligned_allocator_64<s_ttag_small>> b(64);
-	std::vector<float, aligned_allocator_64<float>> values(16);
+	std::vector<float, padded_aligned_allocator_64<float>> values(16);
 
 	values[0] = 2.4f;
 	values[1] = 2.7f;
@@ -2358,8 +2358,8 @@ TEST(concurrency_tools, signed_small_loads) {
 	auto a_index = ve::load(ve::contiguous_tags<int32_t>(0), a.data());
 	auto b_index = ve::load(ve::contiguous_tags<int32_t>(0), b.data());
 
-	auto a_values = ve::load(a_index, tagged_array_view<float, s_ttag_med>(values.data(), 0));
-	auto b_values = ve::load(b_index, tagged_array_view<float, s_ttag_small>(values.data(), 0));
+	auto a_values = ve::load(a_index, tagged_array_view<float, s_ttag_med>(values.data() + 1, 0));
+	auto b_values = ve::load(b_index, tagged_array_view<float, s_ttag_small>(values.data() + 1, 0));
 
 	EXPECT_EQ(a_values[0], values[10]);
 	EXPECT_EQ(a_values[1], values[7]);
@@ -2379,8 +2379,8 @@ TEST(concurrency_tools, signed_small_loads) {
 
 	auto a_index_rev = ve::load(reversed, a.data());
 	auto b_index_rev = ve::load(reversed, b.data());
-	auto a_values_rev = ve::load(a_index_rev, tagged_array_view<float, s_ttag_med>(values.data(), 0));
-	auto b_values_rev = ve::load(b_index_rev, tagged_array_view<float, s_ttag_small>(values.data(), 0));
+	auto a_values_rev = ve::load(a_index_rev, tagged_array_view<float, s_ttag_med>(values.data() + 1, 0));
+	auto b_values_rev = ve::load(b_index_rev, tagged_array_view<float, s_ttag_small>(values.data() + 1, 0));
 
 	EXPECT_EQ(a_values_rev[3], values[10]);
 	EXPECT_EQ(a_values_rev[2], values[7]);
