@@ -1010,7 +1010,7 @@ namespace graphics {
 					auto purchases_data_range = get_range(ws.w.economy_s.purchasing_arrays, purchasing_handle);
 
 					if(std::begin(purchases_data_range) != std::end(purchases_data_range)) {
-						auto max_purchases = *std::max_element(std::begin(purchases_data_range), std::end(purchases_data_range));
+						auto max_purchases = *std::max_element(std::begin(purchases_data_range) + 1, std::end(purchases_data_range));
 
 						
 						for(int32_t i = 0; i < ws.w.province_s.province_state_container.size(); ++i) {

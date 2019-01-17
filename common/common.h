@@ -176,6 +176,7 @@ using decay_tag = typename decay_tag_s<T>::type;
 struct union_tag {
 	int32_t value = 0;
 	using value_base_t = int32_t;
+	using zero_is_null_t = std::true_type;
 
 	constexpr union_tag() : value(0) {}
 	constexpr explicit union_tag(int32_t v) : value(v) {}

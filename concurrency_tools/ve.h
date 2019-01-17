@@ -322,6 +322,9 @@ namespace ve {
 		return (i + (ve::vector_size - 1ui32)) & ~(ve::vector_size - 1ui32);
 	}
 
+#define ve_aligned_alloca(size) reinterpret_cast<void*>(( \
+	reinterpret_cast<uintptr_t>(_alloca(size + ve::vector_size * 4)) + (ve::vector_size * 4)) & ~(uintptr_t(ve::vector_size * 4 - 1)))
+
 	namespace ve_impl {
 		struct reduce_operator {
 			float const* const vector;

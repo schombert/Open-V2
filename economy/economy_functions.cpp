@@ -323,11 +323,11 @@ namespace economy {
 	}
 
 	void update_factories_employment(world_state& ws, nations::state_tag si) {
-		float* allocation_by_type = (float*)_alloca(sizeof(float) * state::factories_count * ws.s.population_m.count_poptypes);
+		float* allocation_by_type = (float*)ve_aligned_alloca(sizeof(float) * state::factories_count * ws.s.population_m.count_poptypes);
 		std::fill_n(allocation_by_type, state::factories_count * ws.s.population_m.count_poptypes, 0.0f);
 
 		float* state_population_by_type = &(ws.w.nation_s.state_demographics.get_row(si)[population::to_demo_tag(ws, population::pop_type_tag(0))]);
-		float* unallocated_workers = (float*)_alloca(sizeof(float) * ws.s.population_m.count_poptypes);
+		float* unallocated_workers = (float*)ve_aligned_alloca(sizeof(float) * ws.s.population_m.count_poptypes);
 
 		std::copy(state_population_by_type, state_population_by_type + ws.s.population_m.count_poptypes, unallocated_workers);
 		std::pair<uint32_t, float> factories_by_profitability[state::factories_count];
@@ -827,12 +827,12 @@ namespace economy {
 			if(!is_valid_index(state_capital))
 				return;
 
-			economy::money_qnty_type* life_needs_cost_by_type = (economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
-			economy::money_qnty_type* everyday_needs_cost_by_type = (economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
-			economy::money_qnty_type* luxury_needs_cost_by_type = (economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
+			economy::money_qnty_type* life_needs_cost_by_type = (economy::money_qnty_type*)ve_aligned_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
+			economy::money_qnty_type* everyday_needs_cost_by_type = (economy::money_qnty_type*)ve_aligned_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
+			economy::money_qnty_type* luxury_needs_cost_by_type = (economy::money_qnty_type*)ve_aligned_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
 
 			tagged_array_view<float, goods_tag> masked_prices(
-				(economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count),
+				(economy::money_qnty_type*)ve_aligned_alloca(sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count),
 				ws.s.economy_m.aligned_32_goods_count);
 
 			create_masked_prices(masked_prices, ws, si);
@@ -2037,7 +2037,7 @@ namespace economy {
 		std::fill_n(current_state_demand.data(), ws.s.economy_m.goods_count, 0.0f);
 
 		tagged_array_view<float, goods_tag> masked_prices(
-			(economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count),
+			(economy::money_qnty_type*)ve_aligned_alloca(sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count),
 			ws.s.economy_m.aligned_32_goods_count);
 		create_masked_prices(masked_prices, ws, si);
 
@@ -2056,7 +2056,7 @@ namespace economy {
 		nations::for_each_province(ws, si, [&ws, current_state_demand, &masked_prices, state_owner, state_prices, si,
 			&state_pops, mobilization_effect](provinces::province_tag ps) {
 
-			economy::money_qnty_type* province_pay_by_type = (economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
+			economy::money_qnty_type* province_pay_by_type = (economy::money_qnty_type*)ve_aligned_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
 			std::fill_n(province_pay_by_type, ws.s.population_m.count_poptypes, economy::money_qnty_type(0));
 			auto province_population_by_type = &(ws.w.province_s.province_demographics.get_row(ps)[population::to_demo_tag(ws, population::pop_type_tag(0))]);
 
@@ -2091,7 +2091,7 @@ namespace economy {
 		});
 
 		
-		economy::money_qnty_type* state_pay_by_type = (economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
+		economy::money_qnty_type* state_pay_by_type = (economy::money_qnty_type*)ve_aligned_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
 		std::fill_n(state_pay_by_type, ws.s.population_m.count_poptypes, economy::money_qnty_type(0));
 		[[maybe_unused]] auto state_population_by_type = &(ws.w.nation_s.state_demographics.get_row(si)[population::to_demo_tag(ws, population::pop_type_tag(0))]);
 
@@ -2301,7 +2301,7 @@ namespace economy {
 			return std::transform_reduce(integer_iterator(1), integer_iterator(ws.s.economy_m.goods_count), money_qnty_type(0), std::plus<>(), [&ws, tarrif_amount, overlord_id, sphere_leader_id](int32_t i) {
 				auto atag = ws.w.local_player_data.imports_by_country[goods_tag(goods_tag::value_base_t(i))];
 				auto sz = get_size(ws.w.economy_s.purchasing_arrays, atag);
-				auto ptr = get_range(ws.w.economy_s.purchasing_arrays, atag);
+				auto ptr = get_view(ws.w.economy_s.purchasing_arrays, atag);
 
 				
 				return std::transform_reduce(integer_iterator(0), integer_iterator(sz), money_qnty_type(0), std::plus<>(), [ptr, tarrif_amount, overlord_id, sphere_leader_id](int32_t i) {
@@ -2449,13 +2449,13 @@ namespace economy {
 		auto capital_of_capital = nations::get_state_capital(ws, capital_state_id);
 
 		tagged_array_view<float, goods_tag> masked_prices(
-			(economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count),
+			(economy::money_qnty_type*)ve_aligned_alloca(sizeof(economy::money_qnty_type) * ws.s.economy_m.aligned_32_goods_count),
 			ws.s.economy_m.aligned_32_goods_count);
 		create_masked_prices(masked_prices, ws, capital_state_id);
 
-		economy::money_qnty_type* life_needs_cost_by_type = (economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
-		economy::money_qnty_type* everyday_needs_cost_by_type = (economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
-		economy::money_qnty_type* luxury_needs_cost_by_type = (economy::money_qnty_type*)_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
+		economy::money_qnty_type* life_needs_cost_by_type = (economy::money_qnty_type*)ve_aligned_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
+		economy::money_qnty_type* everyday_needs_cost_by_type = (economy::money_qnty_type*)ve_aligned_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
+		economy::money_qnty_type* luxury_needs_cost_by_type = (economy::money_qnty_type*)ve_aligned_alloca(sizeof(economy::money_qnty_type) * ws.s.population_m.count_poptypes);
 
 		fill_needs_costs_arrays(ws, capital_state_id, capital_of_capital, masked_prices, life_needs_cost_by_type, everyday_needs_cost_by_type, luxury_needs_cost_by_type);
 

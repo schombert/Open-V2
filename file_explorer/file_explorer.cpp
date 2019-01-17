@@ -176,8 +176,6 @@ auto fake_gobj_lookup() {
 }
 
 int main(int , char **) {
-
-
 	/*
 	const int32_t dimension = 100;
 
