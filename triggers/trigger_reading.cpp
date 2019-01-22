@@ -5082,7 +5082,7 @@ namespace triggers {
 
 			if ((source[0] & trigger_codes::code_mask) == trigger_codes::placeholder_not_scope) { // remove not scopes
 				invert_trigger(source);
-				source[0] = uint16_t((source[0] & ~trigger_codes::code_mask) | trigger_codes::generic_scope);
+				source[0] = uint16_t(trigger_codes::generic_scope | trigger_codes::is_scope);
 			}
 
 			if (scope_has_single_member(source)) {
@@ -5102,6 +5102,8 @@ namespace triggers {
 					source_size -= 2;
 				}
 			}
+
+			//MISSING OPTIMIZATION: fold inner and scope into and scope, inner or scope into or scope
 
 			return source_size;
 		} else {

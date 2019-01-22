@@ -29,7 +29,8 @@ namespace pop {
 	struct size_change_from_promotion; // promotion
 	struct size_change_from_demotion; // demotion
 	struct size_change_from_assimilation; //cultural and religion change
-	struct size_change_from_local_migration; //moving from one state to another (includes colonial)
+	struct size_change_from_local_migration; //moving from one state to another
+	struct size_change_from_colonial_migration; //moving from one state to another
 	struct size_change_from_emmigration; //moving from one country to anther
 	struct money;
 	struct needs_satisfaction;
@@ -70,6 +71,7 @@ namespace pop {
 		size_change_from_demotion, float,
 		size_change_from_assimilation, float,
 		size_change_from_local_migration, float,
+		size_change_from_colonial_migration, float,
 		size_change_from_emmigration, float,
 
 		political_interest, float,

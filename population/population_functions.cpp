@@ -68,9 +68,10 @@ namespace population {
 	float total_size_change(world_state const& ws, pop_tag p) {
 		return ws.w.population_s.pops.get<pop::size_change_from_assimilation>(p)
 			+ ws.w.population_s.pops.get<pop::size_change_from_combat>(p)
-			+ ws.w.population_s.pops.get<pop::size_change_from_emmigration>(p)
+			- ws.w.population_s.pops.get<pop::size_change_from_emmigration>(p)
 			+ ws.w.population_s.pops.get<pop::size_change_from_growth>(p)
-			+ ws.w.population_s.pops.get<pop::size_change_from_local_migration>(p)
+			- ws.w.population_s.pops.get<pop::size_change_from_local_migration>(p)
+			- ws.w.population_s.pops.get<pop::size_change_from_colonial_migration>(p)
 			- ws.w.population_s.pops.get<pop::size_change_from_promotion>(p)
 			- ws.w.population_s.pops.get<pop::size_change_from_demotion>(p);
 	}
@@ -767,6 +768,78 @@ namespace population {
 		uint32_t chunk_size = pop_size / (32ui32 * 16ui32);
 
 		calculate_promotion_operation op(ws);
+
+		uint32_t chunk_index = uint32_t(to_index(ws.w.current_date) & 31);
+		if(chunk_index != 31)
+			ve::execute_parallel<population::pop_tag>(chunk_size * 16ui32 * chunk_index, chunk_size * 16ui32 * (chunk_index + 1ui32), op);
+		else
+			ve::execute_parallel_exact<population::pop_tag>(chunk_size * 16ui32 * chunk_index, pop_size, op);
+	}
+
+	struct calculate_migration_operation {
+		world_state const& ws;
+
+		tagged_array_view<float, pop_tag> local_migration_amount;
+		tagged_array_view<float, pop_tag> colonial_migration_amount;
+		tagged_array_view<float, pop_tag> emmigration_amount;
+
+		tagged_array_view<float const, pop_tag> pop_sizes;
+		tagged_array_view<provinces::province_tag const, pop_tag> pop_location;
+		tagged_array_view<bitfield_type const, pop_tag> poor_pops;
+		tagged_array_view<bitfield_type const, pop_tag> middle_pops;
+		tagged_array_view<nations::country_tag const, provinces::province_tag> province_owners;
+		tagged_array_view<float const, provinces::province_tag> immigrant_push_modifier;
+		tagged_array_view<float const, nations::country_tag> tech_colonial_migration;
+		float const immigration_scale;
+
+
+		calculate_migration_operation(world_state& w) : ws(w),
+			local_migration_amount(w.w.population_s.pops.get_row<pop::size_change_from_local_migration>()),
+			colonial_migration_amount(w.w.population_s.pops.get_row<pop::size_change_from_colonial_migration>()),
+			emmigration_amount(w.w.population_s.pops.get_row<pop::size_change_from_emmigration>()),
+
+			pop_sizes(w.w.population_s.pops.get_row<pop::size>()),
+			pop_location(w.w.population_s.pops.get_row<pop::location>()),
+			poor_pops(w.w.population_s.pops.get_row<pop::is_poor>()),
+			middle_pops(w.w.population_s.pops.get_row<pop::is_middle>()),
+			province_owners(w.w.province_s.province_state_container.get_row<province_state::owner>()),
+			immigrant_push_modifier(w.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::immigrant_push>(0)),
+			tech_colonial_migration(w.w.nation_s.tech_attributes.get_row<technologies::tech_offset::colonial_migration>(0)),
+			immigration_scale(w.s.modifiers_m.global_defines.immigration_scale)
+			{}
+
+		template<typename T>
+		void operator()(T pop_v) {
+			auto loc = ve::load(pop_v, pop_location);
+			auto sz = ve::load(pop_v, pop_sizes);
+			auto poor = ve::load(pop_v, poor_pops);
+			auto mid = ve::load(pop_v, middle_pops);
+
+			auto mod = ve::load(loc, immigrant_push_modifier);
+			auto owner = ve::load(loc, province_owners);
+
+			auto trigger_amount_local = modifiers::test_contiguous_additive_factor(ws.s.population_m.migration_chance, ws, pop_v, pop_v);
+			auto trigger_amount_colonial = modifiers::test_contiguous_additive_factor(ws.s.population_m.colonialmigration_chance, ws, pop_v, pop_v);
+			auto trigger_amount_emmigration = modifiers::test_contiguous_additive_factor(ws.s.population_m.emigration_chance, ws, pop_v, pop_v);
+
+			auto owner_tech_mod = ve::load(owner, tech_colonial_migration);
+			auto mod_sq = ve::multiply_and_add(mod, mod + 2.0f, 1.0f);
+			auto adj_size = ve::select(mid | poor, sz, 0.0f);
+
+			ve::store(pop_v, local_migration_amount, ve::multiply_and_add(mod, sz, sz) * (trigger_amount_local * immigration_scale));
+			ve::store(pop_v, colonial_migration_amount,
+				ve::multiply_and_add(mod, adj_size, adj_size) *
+				ve::multiply_and_add(owner_tech_mod, immigration_scale, immigration_scale) *
+				(trigger_amount_colonial));
+			ve::store(pop_v, emmigration_amount, (sz * mod_sq) * (trigger_amount_emmigration * immigration_scale));
+		}
+	};
+
+	void calculate_migration_qnty(world_state& ws) {
+		uint32_t pop_size = ws.w.population_s.pops.vector_size();
+		uint32_t chunk_size = pop_size / (32ui32 * 16ui32);
+
+		calculate_migration_operation op(ws);
 
 		uint32_t chunk_index = uint32_t(to_index(ws.w.current_date) & 31);
 		if(chunk_index != 31)
