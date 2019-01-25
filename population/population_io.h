@@ -30,13 +30,6 @@ class serialization::tagged_serializer<pop::is_middle, T> : public serialization
 template<typename T>
 class serialization::tagged_serializer<pop::size, T> : public serialization::discard_serializer<T> {};
 
-template<typename T>
-class serialization::tagged_serializer<rebel_faction::controlled_provinces, T> : public serialization::discard_serializer<T> {};
-template<typename T>
-class serialization::tagged_serializer<rebel_faction::member_pops, T> : public serialization::discard_serializer<T> {};
-
-template<typename T>
-class serialization::tagged_serializer<pop_movement::member_pops, T> : public serialization::discard_serializer<T> {};
 
 /*template<>
 class serialization::serializer<population::pop_movement> {

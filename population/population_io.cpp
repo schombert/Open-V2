@@ -52,19 +52,18 @@ size_t serialization::serializer<population::pop_movement>::size() {
 }*/
 
 void serialization::serializer<population::population_state>::serialize_object(std::byte *& output, population::population_state const & obj, world_state const & ws) {
-	serialize(output, obj.rebel_factions);
-	serialize(output, obj.pop_movements);
 	serialize(output, obj.pops);
 
 	obj.pops.for_each([sz = population::aligned_32_issues_ideology_demo_size(ws), &obj, &output](population::pop_tag p) {
 		auto demographics = obj.pop_demographics.get_row(p);
 		serialize_array(output, demographics.data(), sz);
 	});
+
+	serialize_array(output, obj.independance_rebel_support.data(), ws.s.culture_m.national_tags.size());
+	serialize_array(output, obj.independance_movement_support.data(), ws.s.culture_m.national_tags.size());
 }
 
 void serialization::serializer<population::population_state>::deserialize_object(std::byte const *& input, population::population_state & obj, world_state & ws) {
-	deserialize(input, obj.rebel_factions);
-	deserialize(input, obj.pop_movements);
 	deserialize(input, obj.pops);
 
 	obj.pop_demographics.ensure_capacity(obj.pops.size());
@@ -91,6 +90,9 @@ void serialization::serializer<population::population_state>::deserialize_object
 
 		obj.pops.set<pop::size>(p, ws.w.population_s.pop_demographics.get(p, population::total_population_tag));
 	});
+
+	deserialize_array(input, obj.independance_rebel_support.data(), ws.s.culture_m.national_tags.size());
+	deserialize_array(input, obj.independance_movement_support.data(), ws.s.culture_m.national_tags.size());
 }
 
 size_t serialization::serializer<population::population_state>::size(population::population_state const & obj, world_state const & ws) {
@@ -99,10 +101,11 @@ size_t serialization::serializer<population::population_state>::size(population:
 		pop_demo_size += sz * sizeof(float);
 	});
 
-	return serialize_size(obj.rebel_factions) +
-		serialize_size(obj.pop_movements) +
+	return 
 		serialize_size(obj.pops) +
-		pop_demo_size;
+		pop_demo_size + 
+		sizeof(float) * ws.s.culture_m.national_tags.size() * 2; // independance rebels and movements
+
 }
 
 /*

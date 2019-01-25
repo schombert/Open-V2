@@ -1225,8 +1225,37 @@ namespace ve {
 	__forceinline auto nt_prefetch(int_vector indices, U source) -> void {}
 	template<int32_t cache_lines, typename T, typename U>
 	__forceinline auto nt_prefetch(tagged_vector<T> indices, U source) -> void {}
-	
 
+	template<int32_t stride>
+	struct prefetch_stride {
+		int32_t offset;
+	};
+
+	template<int32_t stride, typename T>
+	__forceinline auto prefetch(prefetch_stride<stride> e, T* source) -> void {
+		static_assert(sizeof(T) <= 4);
+		if constexpr((stride % (4 / sizeof(T))) == 0) {
+			_mm_prefetch((char const*)(source + 16 * e.offset), _MM_HINT_T0);
+		}
+	}
+
+	template<int32_t stride, typename T, typename U>
+	__forceinline auto prefetch(prefetch_stride<stride> e, tagged_array_view<T, U> source) -> void {
+		prefetch(e, source.data());
+	}
+
+	template<int32_t stride, typename T>
+	__forceinline auto nt_prefetch(prefetch_stride<stride> e, T* source) -> void {
+		static_assert(sizeof(T) <= 4);
+		if constexpr((stride % (4 / sizeof(T))) == 0) {
+			_mm_prefetch((char const*)(source + 16 * e.offset), _MM_HINT_NTA);
+		}
+	}
+
+	template<int32_t stride, typename T, typename U>
+	__forceinline auto nt_prefetch(prefetch_stride<stride> e, tagged_array_view<T, U> source) -> void {
+		prefetch(e, source.data());
+	}
 
 	template<int32_t i>
 	__forceinline void store(contiguous_tags<int32_t, i> e, float* dest, fp_vector values) {

@@ -39,8 +39,6 @@ namespace pop {
 	struct consciousness;
 	struct location;
 	struct culture;
-	struct rebel_faction;
-	struct movement;
 	struct associated_army;
 	struct religion;
 	struct type;
@@ -59,8 +57,6 @@ namespace pop {
 		type, population::pop_type_tag,
 		religion, cultures::religion_tag,
 		associated_army, military::army_tag,
-		movement, population::movement_tag,
-		rebel_faction, population::rebel_faction_tag,
 		culture, cultures::culture_tag,
 		location, provinces::province_tag,
 
@@ -84,7 +80,7 @@ namespace pop {
 	> ;
 }
 
-namespace rebel_faction {
+/*namespace rebel_faction {
 	struct controlled_provinces;
 	struct member_pops;
 	struct independence_tag;
@@ -95,6 +91,7 @@ namespace rebel_faction {
 	struct type;
 
 	using container = variable_layout_tagged_vector < population::rebel_faction_tag, 4'000,
+
 		controlled_provinces, set_tag<provinces::province_tag>,
 		member_pops, set_tag<population::pop_tag>,
 		independence_tag, cultures::national_tag,
@@ -104,9 +101,36 @@ namespace rebel_faction {
 		ideology, ideologies::ideology_tag,
 		type, population::rebel_type_tag
 	> ;
+}*/
+
+constexpr population::rebel_faction_tag to_rebel_faction_tag(issues::option_tag t) {
+	if(t)
+		return population::rebel_faction_tag(uint32_t((to_index(t) << 1) | 0));
+	else
+		return population::rebel_faction_tag();
 }
 
-namespace pop_movement {
+constexpr population::rebel_faction_tag to_rebel_faction_tag(cultures::national_tag t) {
+	if(t)
+		return population::rebel_faction_tag(uint32_t((to_index(t) << 1) | 1));
+	else
+		return population::rebel_faction_tag();
+}
+
+constexpr std::variant<issues::option_tag, cultures::national_tag> from_rebel_faction_tag(population::rebel_faction_tag t) {
+	if(!t) {
+		return cultures::national_tag();
+	} else {
+		const auto v = uint32_t(to_index(t));
+		if((v & 1) != 0)
+			return cultures::national_tag(cultures::national_tag::value_base_t(v >> 1));
+		else
+			return issues::option_tag(issues::option_tag::value_base_t(v >> 1));
+	}
+}
+
+
+/*namespace pop_movement {
 	struct total_population_support;
 	struct radicalism;
 	struct radicalism_cache;
@@ -125,7 +149,7 @@ namespace pop_movement {
 		associated_issue, issues::option_tag,
 		type, uint8_t
 	>;
-}
+}*/
 
 namespace population {
 
@@ -264,17 +288,18 @@ namespace population {
 
 	class population_state {
 	public:
-		//stable_vector<rebel_faction, rebel_faction_tag, 2048, 16> rebel_factions;
-		//stable_vector<pop_movement, movement_tag, 2048, 16> pop_movements;
+
+		tagged_vector<float, cultures::national_tag, padded_aligned_allocator_64<float>, true> independance_rebel_support;
+		tagged_vector<float, cultures::national_tag, padded_aligned_allocator_64<float>, true> independance_movement_support;
 
 		pop::container pops;
-		rebel_faction::container rebel_factions;
-		pop_movement::container pop_movements;
+		//rebel_faction::container rebel_factions;
+		//pop_movement::container pop_movements;
 		stable_2d_vector<float, pop_tag, demo_tag, 2048, 256> pop_demographics;
 
 		stable_variable_vector_storage_mk_2<pop_tag, 8, 65536> pop_arrays;
-		stable_variable_vector_storage_mk_2<rebel_faction_tag, 8, 65536> rebel_faction_arrays;
-		stable_variable_vector_storage_mk_2<movement_tag, 8, 65536> pop_movement_arrays;
+		//stable_variable_vector_storage_mk_2<rebel_faction_tag, 8, 65536> rebel_faction_arrays;
+		//stable_variable_vector_storage_mk_2<movement_tag, 8, 65536> pop_movement_arrays;
 	};
 
 	class population_manager {

@@ -256,33 +256,3 @@ template<typename T>
 size_t serialization::tagged_serializer<nation::wars_involved_in, T>::size(T const & obj, world_state const & ws) {
 	return serialize_stable_array_size(ws.w.military_s.war_arrays, obj);
 }
-
-template<typename T>
-void serialization::tagged_serializer<nation::active_rebel_factions, T>::serialize_object(std::byte *& output, T const & obj, world_state const & ws) {
-	serialize_stable_array(output, ws.w.population_s.rebel_faction_arrays, obj);
-}
-
-template<typename T>
-void serialization::tagged_serializer<nation::active_rebel_factions, T>::deserialize_object(std::byte const *& input, T & obj, world_state & ws) {
-	deserialize_stable_array(input, ws.w.population_s.rebel_faction_arrays, obj);
-}
-
-template<typename T>
-size_t serialization::tagged_serializer<nation::active_rebel_factions, T>::size(T const & obj, world_state const & ws) {
-	return serialize_stable_array_size(ws.w.population_s.rebel_faction_arrays, obj);
-}
-
-template<typename T>
-void serialization::tagged_serializer<nation::active_movements, T>::serialize_object(std::byte *& output, T const & obj, world_state const & ws) {
-	serialize_stable_array(output, ws.w.population_s.pop_movement_arrays, obj);
-}
-
-template<typename T>
-void serialization::tagged_serializer<nation::active_movements, T>::deserialize_object(std::byte const *& input, T & obj, world_state & ws) {
-	deserialize_stable_array(input, ws.w.population_s.pop_movement_arrays, obj);
-}
-
-template<typename T>
-size_t serialization::tagged_serializer<nation::active_movements, T>::size(T const & obj, world_state const & ws) {
-	return serialize_stable_array_size(ws.w.population_s.pop_movement_arrays, obj);
-}

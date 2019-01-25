@@ -173,8 +173,6 @@ namespace nation {
 	struct wars_involved_in;
 	struct opponents_in_war;
 	struct allies_in_war;
-	struct active_rebel_factions;
-	struct active_movements;
 
 	struct is_civilized;
 	struct is_substate;
@@ -248,8 +246,6 @@ namespace nation {
 		wars_involved_in, set_tag<military::war_identifier>,
 		opponents_in_war, set_tag<nations::country_tag>,
 		allies_in_war, set_tag<nations::country_tag>,
-		active_rebel_factions, array_tag<population::rebel_faction_tag, int32_t, false>,
-		active_movements, array_tag<population::movement_tag, int32_t, false>,
 
 		name, text_data::text_tag,
 		adjective, text_data::text_tag,
@@ -394,6 +390,11 @@ namespace nations {
 		varying_vectorizable_2d_array<state_tag, economy::goods_tag, float, state::container_size> state_global_demand;
 		fixed_vectorizable_2d_array<nations::country_tag, float, nation::container_size, modifiers::national_offsets::count> modifier_values;
 		fixed_vectorizable_2d_array<nations::country_tag, float, nation::container_size, technologies::tech_offset::count> tech_attributes;
+
+		stable_2d_vector<float, nations::country_tag, population::rebel_type_tag, 512, 16> local_rebel_support;
+		stable_2d_vector<float, nations::country_tag, issues::option_tag, 512, 16> local_movement_support;
+		stable_2d_vector<float, nations::country_tag, issues::option_tag, 512, 16> local_movement_radicalism;
+		stable_2d_vector<float, nations::country_tag, issues::option_tag, 512, 16> local_movement_radicalism_cache;
 
 		varying_vectorizable_2d_array<nations::country_tag, technologies::tech_tag, bitfield_type, nation::container_size> active_technologies;
 		varying_vectorizable_2d_array<nations::country_tag, issues::issue_tag, issues::option_tag, nation::container_size> active_issue_options;

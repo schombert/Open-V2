@@ -89,8 +89,7 @@ namespace population {
 	using pop_type_tag = tag_type<uint8_t, std::true_type, struct pop_type_tag_type>;
 	using pop_tag = tag_type<uint32_t, std::true_type, struct pop_tag_type>;
 	using rebel_type_tag = tag_type<uint8_t, std::true_type, struct rebel_type_tag_type>;
-	using rebel_faction_tag = tag_type<uint16_t, std::true_type, struct rebel_faction_tag_type>;
-	using movement_tag = tag_type<uint16_t, std::true_type, struct movement_tag_type>;
+	using rebel_faction_tag = tag_type<uint32_t, std::true_type, struct rebel_faction_tag_type>;
 	using demo_tag = tag_type<uint32_t, std::true_type, struct demo_tag_type>;
 	using fp_demo_tag = tag_type<uint32_t, std::true_type, struct fp_demo_tag_type>;
 }

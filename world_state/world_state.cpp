@@ -24,6 +24,7 @@ void world_state_non_ai_update(world_state & ws) {
 	population::update_consciousness(ws);
 	population::update_pop_ideology_and_issues(ws);
 	population::calculate_promotion_and_demotion_qnty(ws);
+	population::calculate_migration_qnty(ws);
 
 	economy::economy_update_tick(ws);
 

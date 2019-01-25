@@ -12,10 +12,6 @@
 #undef max
 
 namespace population {
-	void init_rebel_faction_from_rebel_type(world_state& ws, rebel_faction_tag faction, rebel_type& type) {
-		ws.w.population_s.rebel_factions.set<rebel_faction::type>(faction, type.id);
-		ws.w.population_s.rebel_factions.set<rebel_faction::flags>(faction, type.flags);
-	}
 
 	pop_tag make_new_pop(world_state& ws) {
 		return ws.w.population_s.pops.get_new();
@@ -23,12 +19,13 @@ namespace population {
 
 	void init_population_state(world_state& ws) {
 		ws.w.population_s.pop_demographics.reset(aligned_32_issues_ideology_demo_size(ws));
+
+		ws.w.population_s.independance_rebel_support.resize(ws.s.culture_m.national_tags.size());
+		ws.w.population_s.independance_movement_support.resize(ws.s.culture_m.national_tags.size());
 	}
 
 	void reset_state(population_state& s) {
 		s.pop_arrays.reset();
-		s.rebel_faction_arrays.reset();
-		s.pop_movement_arrays.reset();
 	}
 
 	void init_pop_demographics(world_state& ws, pop_tag p, float size) {
@@ -90,27 +87,6 @@ namespace population {
 		return ideology_vector.maxCoeff() == ideology_offset[to_index(opt)];
 	}
 
-	void destroy_pop_movement(world_state& ws, movement_tag m) {
-		auto& members = ws.w.population_s.pop_movements.get<pop_movement::member_pops>(m);
-		auto prange = get_range(ws.w.population_s.pop_arrays, members);
-		for(auto p : prange)
-			ws.w.population_s.pops.set<pop::movement>(p, movement_tag());
-		clear(ws.w.population_s.pop_arrays, members);
-	}
-
-	void destroy_rebel_faction(world_state& ws, rebel_faction_tag r) {
-		auto& members = ws.w.population_s.rebel_factions.get<rebel_faction::member_pops>(r);
-		auto prange = get_range(ws.w.population_s.pop_arrays, members);
-		for(auto p : prange)
-			ws.w.population_s.pops.set<pop::rebel_faction>(p, rebel_faction_tag());
-		clear(ws.w.population_s.pop_arrays, members);
-
-		auto& controlled_provinces = ws.w.population_s.rebel_factions.get<rebel_faction::controlled_provinces>(r);
-		auto prov_range = get_range(ws.w.province_s.province_arrays, controlled_provinces);
-		for(auto p : prov_range)
-			ws.w.province_s.province_state_container.set<province_state::rebel_controller>(p, rebel_faction_tag());
-		clear(ws.w.province_s.province_arrays, controlled_provinces);
-	}
 
 	void change_pop_type(world_state& ws, pop_tag this_pop, pop_type_tag new_type) {
 		// todo: fix employment

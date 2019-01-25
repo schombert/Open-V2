@@ -8,7 +8,6 @@ class world_state;
 namespace population {
 	void init_population_state(world_state& ws);
 	void reset_state(population_state& s);
-	void init_rebel_faction_from_rebel_type(world_state& ws, rebel_faction_tag, rebel_type&);
 	pop_tag make_new_pop(world_state& ws);
 	void init_pop_demographics(world_state& ws, pop_tag p, float size);
 	bool is_pop_accepted(world_state const& ws, pop_tag p, nations::country_tag n);
@@ -21,8 +20,6 @@ namespace population {
 	
 	bool is_dominant_issue(world_state const& ws, pop_tag id, issues::option_tag opt);
 	bool is_dominant_ideology(world_state const& ws, pop_tag id, ideologies::ideology_tag opt);
-	void destroy_pop_movement(world_state& ws, movement_tag m);
-	void destroy_rebel_faction(world_state& ws, rebel_faction_tag r);
 	void change_pop_type(world_state& ws, pop_tag this_pop, pop_type_tag new_type);
 	void change_pop_size(world_state& ws, pop_tag this_pop, int32_t new_size);
 	void change_pop_location(world_state& ws, pop_tag this_pop, provinces::province_tag new_location);
@@ -37,6 +34,7 @@ namespace population {
 	void update_militancy(world_state& ws);
 	void update_consciousness(world_state& ws);
 	void calculate_promotion_and_demotion_qnty(world_state& ws);
+	void calculate_migration_qnty(world_state& ws);
 
 	template<typename T>
 	auto desired_needs_spending(world_state const& ws, T p) -> decltype(ve::widen_to<T>(0.0f));

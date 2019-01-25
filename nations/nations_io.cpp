@@ -55,6 +55,18 @@ void serialization::serializer<nations::nations_state>::serialize_object(std::by
 
 		auto variables = ws.w.nation_s.national_variables.get_row(n);
 		serialize_array(output, variables.data(), ws.s.variables_m.count_national_variables);
+
+		auto local_rebels = ws.w.nation_s.local_rebel_support.get_row(n);
+		serialize_array(output, local_rebels.data(), ws.s.population_m.rebel_types.size());
+
+		auto local_movement = ws.w.nation_s.local_movement_support.get_row(n);
+		serialize_array(output, local_movement.data(), ws.s.issues_m.tracked_options_count);
+
+		auto local_movement_r = ws.w.nation_s.local_movement_radicalism.get_row(n);
+		serialize_array(output, local_movement_r.data(), ws.s.issues_m.tracked_options_count);
+
+		auto local_movement_rc = ws.w.nation_s.local_movement_radicalism_cache.get_row(n);
+		serialize_array(output, local_movement_rc.data(), ws.s.issues_m.tracked_options_count);
 	});
 
 	auto tech_count = int32_t(ws.s.technology_m.technologies_container.size());
@@ -93,6 +105,11 @@ void serialization::serializer<nations::nations_state>::deserialize_object(std::
 	ws.w.nation_s.rebel_org_gain.ensure_capacity(obj.nations.size());
 	ws.w.nation_s.production_adjustments.ensure_capacity(obj.nations.size());
 
+	ws.w.nation_s.local_rebel_support.ensure_capacity(obj.nations.size());
+	ws.w.nation_s.local_movement_support.ensure_capacity(obj.nations.size());
+	ws.w.nation_s.local_movement_radicalism.ensure_capacity(obj.nations.size());
+	ws.w.nation_s.local_movement_radicalism_cache.ensure_capacity(obj.nations.size());
+
 	obj.states.for_each([&ws, &input](nations::state_tag s) {
 		auto prices = ws.w.nation_s.state_prices.get_row(s);
 		deserialize_array(input, prices.data(), ws.s.economy_m.aligned_32_goods_count);
@@ -129,6 +146,18 @@ void serialization::serializer<nations::nations_state>::deserialize_object(std::
 
 		auto variables = ws.w.nation_s.national_variables.get_row(n);
 		deserialize_array(input, variables.data(), ws.s.variables_m.count_national_variables);
+
+		auto local_rebels = ws.w.nation_s.local_rebel_support.get_row(n);
+		deserialize_array(input, local_rebels.data(), ws.s.population_m.rebel_types.size());
+
+		auto local_movement = ws.w.nation_s.local_movement_support.get_row(n);
+		deserialize_array(input, local_movement.data(), ws.s.issues_m.tracked_options_count);
+
+		auto local_movement_r = ws.w.nation_s.local_movement_radicalism.get_row(n);
+		deserialize_array(input, local_movement_r.data(), ws.s.issues_m.tracked_options_count);
+
+		auto local_movement_rc = ws.w.nation_s.local_movement_radicalism_cache.get_row(n);
+		deserialize_array(input, local_movement_rc.data(), ws.s.issues_m.tracked_options_count);
 
 
 		if(auto o = ws.w.nation_s.nations.get<nation::overlord>(n); is_valid_index(o)) {
@@ -182,9 +211,12 @@ size_t serialization::serializer<nations::nations_state>::size(nations::nations_
 		//sizeof(uint64_t) * ((uint32_t(ws.s.technology_m.technologies_container.size()) + 63ui32) / 64ui32) + // active technologies
 		//sizeof(issues::option_tag) * ws.s.issues_m.issues_container.size() + // active issue options
 		sizeof(economy::goods_qnty_type) * ws.s.economy_m.aligned_32_goods_count + // national stockpiles
-		sizeof(float) * ws.s.variables_m.count_national_variables; // national variables
+		sizeof(float) * ws.s.variables_m.count_national_variables + // national variables
+		sizeof(float) * ws.s.population_m.rebel_types.size() + //local rebels
+		sizeof(float) * ws.s.issues_m.tracked_options_count * 3 //local movement support, radicalism, radicalism cache
+		;
 
-	obj.states.for_each([nation_fixed_sz_increment, &nation_data_size](nations::state_tag s) {
+	obj.nations.for_each([nation_fixed_sz_increment, &nation_data_size](nations::country_tag n) {
 		nation_data_size += nation_fixed_sz_increment;
 	});
 

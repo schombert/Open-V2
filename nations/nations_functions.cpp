@@ -191,21 +191,6 @@ namespace nations {
 		clear(ws.w.nation_s.static_modifier_arrays, ws.w.nation_s.nations.get<nation::static_modifiers>(new_nation));
 		clear(ws.w.nation_s.timed_modifier_arrays, ws.w.nation_s.nations.get<nation::timed_modifiers>(new_nation));
 
-		auto& active_movements = ws.w.nation_s.nations.get<nation::active_movements>(new_nation);
-		auto movements = get_range(ws.w.population_s.pop_movement_arrays, active_movements);
-		for(auto m : movements) {
-			population::destroy_pop_movement(ws, m);
-			ws.w.population_s.pop_movements.release(m);
-		}
-		clear(ws.w.population_s.pop_movement_arrays, active_movements);
-
-		auto& active_rebel_factions = ws.w.nation_s.nations.get<nation::active_rebel_factions>(new_nation);
-		auto factions = get_range(ws.w.population_s.rebel_faction_arrays, active_rebel_factions);
-		for(auto rf : factions) {
-			population::destroy_rebel_faction(ws, rf);
-			ws.w.population_s.rebel_factions.release(rf);
-		}
-		clear(ws.w.population_s.rebel_faction_arrays, active_rebel_factions);
 
 		auto& allies_in_war = ws.w.nation_s.nations.get<nation::allies_in_war>(new_nation);
 		auto wally_range = get_range(ws.w.nation_s.nations_arrays, allies_in_war);
@@ -436,6 +421,11 @@ namespace nations {
 		ws.w.nation_s.rebel_org_gain.ensure_capacity(to_index(new_nation) + 1);
 		ws.w.nation_s.production_adjustments.ensure_capacity(to_index(new_nation) + 1);
 
+		ws.w.nation_s.local_rebel_support.ensure_capacity(to_index(new_nation) + 1);
+		ws.w.nation_s.local_movement_support.ensure_capacity(to_index(new_nation) + 1);
+		ws.w.nation_s.local_movement_radicalism.ensure_capacity(to_index(new_nation) + 1);
+		ws.w.nation_s.local_movement_radicalism_cache.ensure_capacity(to_index(new_nation) + 1);
+
 		reset_nation(ws, new_nation);
 
 		return new_nation;
@@ -558,6 +548,12 @@ namespace nations {
 		ws.w.nation_s.unit_stats.reset(static_cast<uint32_t>(ws.s.military_m.unit_types.size()));
 		ws.w.nation_s.rebel_org_gain.reset(static_cast<uint32_t>(ws.s.population_m.rebel_types.size()));
 		ws.w.nation_s.production_adjustments.reset(ws.s.economy_m.goods_count * uint32_t(technologies::production_adjustment::production_adjustment_count));
+
+		ws.w.nation_s.local_rebel_support.reset(uint32_t(ws.s.population_m.rebel_types.size()));
+		ws.w.nation_s.local_movement_support.reset(uint32_t(ws.s.issues_m.tracked_options_count));
+		ws.w.nation_s.local_movement_radicalism.reset(uint32_t(ws.s.issues_m.tracked_options_count));
+		ws.w.nation_s.local_movement_radicalism_cache.reset(uint32_t(ws.s.issues_m.tracked_options_count));
+
 	}
 
 	void update_state_nation_demographics(world_state& ws) {
@@ -1082,18 +1078,21 @@ namespace nations {
 			return;
 		}
 
-		auto movements = get_range(ws.w.population_s.pop_movement_arrays, ws.w.nation_s.nations.get<nation::active_movements>(this_nation));
 		float total_social_support = 0;
 		float total_political_support = 0;
-		for(auto m : movements) {
-			auto type = ws.w.population_s.pop_movements.get<pop_movement::type>(m);
-			if(type == uint8_t(population::movement_type::political)) {
-				total_political_support += ws.w.population_s.pop_movements.get<pop_movement::total_population_support>(m);
-			} else if(type == uint8_t(population::movement_type::social)) {
-				total_social_support += ws.w.population_s.pop_movements.get<pop_movement::total_population_support>(m);
+
+		{
+			const int32_t max_option_a = int32_t(ws.s.issues_m.party_issues_options_count + ws.s.issues_m.political_issues_options_count);
+			int32_t i = int32_t(ws.s.issues_m.party_issues_options_count);
+			auto nation_movements = ws.w.nation_s.local_movement_support.get_row(this_nation);
+			for(; i < max_option_a; ++i) {
+				total_social_support += nation_movements[issues::option_tag(issues::option_tag::value_base_t(i))];
+			}
+			const int32_t max_option_b = max_option_a + int32_t(ws.s.issues_m.social_issues_options_count);
+			for(; i < max_option_b; ++i) {
+				total_political_support += nation_movements[issues::option_tag(issues::option_tag::value_base_t(i))];
 			}
 		}
-
 		
 		social_movement_support = std::min(1.0f, (float(total_social_support) / total_pop) * ws.s.modifiers_m.global_defines.movement_support_uh_factor);
 		political_movement_support = std::min(1.0f, (float(total_political_support) / total_pop) * ws.s.modifiers_m.global_defines.movement_support_uh_factor);

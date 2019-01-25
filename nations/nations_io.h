@@ -294,26 +294,6 @@ public:
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
 };
-template<typename T>
-class serialization::tagged_serializer<nation::active_rebel_factions, T> {
-public:
-	static constexpr bool has_static_size = false;
-	static constexpr bool has_simple_serialize = false;
-
-	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
-	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
-	static size_t size(T const& obj, world_state const& ws);
-};
-template<typename T>
-class serialization::tagged_serializer<nation::active_movements, T> {
-public:
-	static constexpr bool has_static_size = false;
-	static constexpr bool has_simple_serialize = false;
-
-	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
-	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
-	static size_t size(T const& obj, world_state const& ws);
-};
 
 template<>
 class serialization::serializer<nations::nations_state> {

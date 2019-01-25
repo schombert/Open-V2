@@ -105,6 +105,12 @@ namespace ve {
 		dest[e] = value;
 	}
 
+	template<typename A, typename B, typename C>
+	struct _has_prefetch : std::false_type {};
+	template<typename A, typename C>
+	struct _has_prefetch<A, decltype(void(std::declval<A>().prefetch(std::declval<C>()))), C> : std::true_type {};
+	template<typename A, typename C>
+	constexpr bool has_prefetch = _has_prefetch<A, void, C>::value;
 
 	constexpr int32_t block_repitition = 4;
 
@@ -113,6 +119,27 @@ namespace ve {
 		const uint32_t full_units = (count + uint32_t(vector_size - 1)) & ~uint32_t(vector_size - 1);
 		const uint32_t reps = full_units / vector_size;
 		const uint32_t quad_reps = reps / uint32_t(block_repitition);
+
+		if constexpr(has_prefetch < F, prefetch_stride<0> > ) {
+
+			int32_t i = 0;
+			for(; i < int32_t(quad_reps); ++i) {
+				functor.prefetch(prefetch_stride<0>{ i * 4 });
+				functor.prefetch(prefetch_stride<1>{ i * 4 + 1 });
+				functor.prefetch(prefetch_stride<2>{ i * 4 + 2 });
+				functor.prefetch(prefetch_stride<3>{ i * 4 + 3 });
+			}
+			if((reps & 3) == 1) {
+				functor.prefetch(prefetch_stride<0>{ i * 4 });
+			} else if((reps & 3) == 2) {
+				functor.prefetch(prefetch_stride<0>{ i * 4 });
+				functor.prefetch(prefetch_stride<1>{ i * 4 + 1 });
+			} else if((reps & 3) == 3) {
+				functor.prefetch(prefetch_stride<0>{ i * 4 });
+				functor.prefetch(prefetch_stride<1>{ i * 4 + 1 });
+				functor.prefetch(prefetch_stride<2>{ i * 4 + 2 });
+			}
+		}
 
 		int32_t i = 0;
 		for(; i < int32_t(quad_reps); ++i) {

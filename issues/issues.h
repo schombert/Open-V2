@@ -117,8 +117,8 @@ namespace issues {
 		uint32_t options_count = 0ui32;
 
 		uint32_t party_issues_options_count = 0ui32;
-		uint32_t political_issues_options_count = 0ui32;
 		uint32_t social_issues_options_count = 0ui32;
+		uint32_t political_issues_options_count = 0ui32;
 
 		uint32_t tracked_options_count = 0ui32; // how many options are tracked in demographics arrays
 
