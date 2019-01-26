@@ -3,6 +3,46 @@
 #include "world_state\\world_state.h"
 
 namespace cultures {
+	national_tag dominant_tag_for_culture(world_state const& ws, provinces::province_tag p, culture_tag c) {
+		auto tags_in_province = get_range(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container.get<province_state::cores>(p));
+		uint32_t max_provinces = 0;
+		national_tag best_tag;
+		bool existing = false;
+
+		for(auto pt : tags_in_province) {
+			auto holder = ws.w.culture_s.tags_to_holders[pt];
+			auto holder_pc = ws.w.nation_s.nations.get<nation::primary_culture>(holder);
+			auto exists = bool(ws.w.nation_s.nations.get<nation::capital>(holder));
+
+			if(holder_pc == c) {
+				auto ccount = get_size(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[pt].core_provinces);
+				
+				if(ccount > max_provinces || (exists && !existing)) {
+					max_provinces = ccount;
+					best_tag = pt;
+					existing = exists;
+				}
+			}
+		}
+
+		if(best_tag)
+			return best_tag;
+
+		auto cg = ws.s.culture_m.cultures_to_groups[c];
+		for(auto pt : tags_in_province) {
+			auto tg = ws.s.culture_m.tags_to_groups[pt];
+			if(tg == cg) {
+				auto ccount = get_size(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[pt].core_provinces);
+				if(ccount > max_provinces) {
+					max_provinces = ccount;
+					best_tag = pt;
+				}
+			}
+		}
+
+		return best_tag;
+	}
+
 	void reset_state(cultures_state& s) {
 		s.culture_arrays.reset();
 		for(auto& ht : s.tags_to_holders)

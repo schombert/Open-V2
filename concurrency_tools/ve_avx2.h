@@ -936,6 +936,41 @@ namespace ve {
 		}
 	};
 
+	template<typename TAG, typename F>
+	class alignas(__m256i) value_accumulator : public F {
+	private:
+		fp_vector value;
+		tagged_vector<TAG> store;
+
+		uint32_t index = 0;
+		int32_t accumulated_mask = 0;
+	public:
+		bool result = false;
+
+		value_accumulator(F&& f) : F(std::move(f)) {}
+
+		void add_value(TAG v) {
+			accumulated_mask |= (int32_t(is_valid_index(v)) << index);
+			store.set(index++, v);
+
+			if(index == ve::vector_size) {
+				value += ve::select(accumulated_mask, F::operator()(store), 0.0f);
+				index = 0;
+				accumulated_mask = 0;
+			}
+			
+		}
+		float flush() {
+			if(index != 0) {
+				value += ve::select(accumulated_mask, F::operator()(store), 0.0f);
+				index = 0;
+			}
+
+			return value.reduce();
+		}
+	};
+
+
 	template<typename F>
 	auto make_true_accumulator(F&& f) -> true_accumulator<F> {
 		return true_accumulator<F>(std::forward<F>(f));
@@ -944,6 +979,11 @@ namespace ve {
 	template<typename F>
 	auto make_false_accumulator(F&& f) -> false_accumulator<F> {
 		return false_accumulator<F>(std::forward<F>(f));
+	}
+
+	template<typename TAG, typename F>
+	auto make_value_accumulator(F&& f) -> value_accumulator<TAG, F> {
+		return value_accumulator<TAG, F>(std::forward<F>(f));
 	}
 
 	template<typename T>

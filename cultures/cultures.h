@@ -88,6 +88,7 @@ namespace cultures {
 		tagged_vector<culture_group_tag, culture_tag, padded_aligned_allocator_64<culture_group_tag>, true> cultures_to_groups;
 		tagged_vector<national_tag, culture_group_tag, padded_aligned_allocator_64<national_tag>, true> groups_to_tags;
 		tagged_vector<national_tag, culture_tag, padded_aligned_allocator_64<national_tag>, true> cultures_to_tags;
+		tagged_vector<culture_group_tag, national_tag, padded_aligned_allocator_64<culture_group_tag>, true> tags_to_groups;
 
 		tagged_vector<national_tag_object, national_tag> national_tags;
 

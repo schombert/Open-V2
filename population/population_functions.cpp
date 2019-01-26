@@ -823,4 +823,107 @@ namespace population {
 		else
 			ve::execute_parallel_exact<population::pop_tag>(chunk_size * 16ui32 * chunk_index, pop_size, op);
 	}
+
+	constexpr float max_movement_support = 0.5f;
+	constexpr float max_rebel_support = 0.5f;
+
+	inline auto make_movement_acc(world_state const& ws, cultures::culture_tag holder_pc) {
+		return ve::make_value_accumulator<population::pop_tag>([&ws, holder_pc](auto v) {
+			const static con_limit = ws.s.modifiers_m.global_defines.issue_movement_leave_limit / 10.0f;
+			const static inv_con_limit = 1.0f / (1.0f - ws.s.modifiers_m.global_defines.issue_movement_leave_limit / 10.0f);
+
+			auto pop_con = ve::load(v, ws.w.population_s.pops.get_row<pop::consciousness>());
+			return ve::select(
+				ve::load(v, ws.w.population_s.pops.get_row<pop::is_accepted>())
+				| (pop_con < con_limit)
+				| (ve::load(v, ws.w.population_s.pops.get_row<pop::culture>()) != holder_pc),
+				0.0f,
+				((pop_con - con_limit) * inv_con_limit) * ve::load(v, ws.w.population_s.pops.get_row<pop::literacy>()) * (max_movement_support * ve::load(v, ws.w.population_s.pops.get_row<pop::size>())));
+		});
+	}
+
+	inline auto make_rebel_acc(world_state const& ws, cultures::culture_tag holder_pc) {
+		return ve::make_value_accumulator<population::pop_tag>([&ws, holder_pc](auto v) {
+			const static mil_limit = ws.s.modifiers_m.global_defines.mil_to_join_rebel / 10.0f;
+			const static inv_mil_limit = 1.0f / (1.0f - ws.s.modifiers_m.global_defines.mil_to_join_rebel / 10.0f);
+
+			auto pop_mil = ve::load(v, ws.w.population_s.pops.get_row<pop::militancy>());
+			return ve::select(
+				ve::load(v, ws.w.population_s.pops.get_row<pop::is_accepted>())
+				| (pop_con < con_limit)
+				| (ve::load(v, ws.w.population_s.pops.get_row<pop::culture>()) != holder_pc),
+				0.0f,
+				((pop_mil - mil_limit) * inv_mil_limit) * (max_rebel_support * ve::load(v, ws.w.population_s.pops.get_row<pop::size>()))); 
+		});
+	}
+
+	void update_non_union_independance_movement_and_rebels(world_state& ws, cultures::national_tag t) {
+		float old_rebel_support = ws.w.population_s.independance_rebel_support[t];
+		float old_movement_support = ws.w.population_s.independance_movement_support[t];
+
+		auto holder = ws.w.culture_s.tags_to_holders[t];
+		auto cores = get_range(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags[t].core_provinces);
+		auto holder_pc = ws.w.nation_s.nations.get<nation::primary_culture>(holder);
+
+		auto movement_acc = make_movement_acc(ws, holder_pc);
+		auto rebel_acc = make_rebel_acc(ws, holder_pc);
+
+		for(auto p : cores) {
+			if(ws.w.province_s.province_state_container.get<province_state::owner>(p) != holder
+				&& t == cultures::dominant_tag_for_culture(ws, p, holder_pc)) {
+
+				provinces::for_each_pop(ws, p, [&ws, &movement_acc, &rebel_acc](population::pop_tag po) {
+					movement_acc.add_value(po);
+					rebel_acc.add_value(po);
+				});
+			}
+		}
+
+		float total_movement_support = movement_acc.flush();
+		float total_rebel_support = rebel_acc.flush();
+
+		ws.w.population_s.independance_rebel_support[t] = old_rebel_support < total_rebel_support ? (old_rebel_support + total_rebel_support) / 2.0f : total_rebel_support;
+		ws.w.population_s.independance_movement_support[t] = old_movement_support < total_movement_support ? (old_movement_support + total_movement_support) / 2.0f : total_movement_support;
+	}
+
+
+	update_union_independance_movement_and_rebels(world_state& ws, cultures::national_tag t) {
+		float old_rebel_support = ws.w.population_s.independance_rebel_support[t];
+		float old_movement_support = ws.w.population_s.independance_movement_support[t];
+
+		auto holder = ws.w.culture_s.tags_to_holders[t];
+		auto cores = get_range(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags[t].core_provinces);
+		auto tag_group = ws.s.culture_m.tags_to_groups[t];
+
+		auto group_cultures = ws.s.culture_m.culture_by_culture_group.get_row(tag_group);
+		int32_t cultures_count = int32_t(group_cultures.second - group_cultures.first);
+
+		using acc_pair = std::pair<decltype(make_movement_acc(ws, cultures::culture_tag())), decltype(make_rebel_acc(ws, cultures::culture_tag()))>;
+		boost::container::small_vector<acc_pair, 16, concurrent_allocator<acc_pair>> accumulators;
+
+		for(int32_t i = 0; i < cultures_count; ++i) 
+			accumulators.emplace_back(make_movement_acc(ws, group_cultures.first[i]), make_rebel_acc(ws, group_cultures.first[i]));
+
+		auto movement_acc = make_movement_acc(ws, holder_pc);
+		auto rebel_acc = make_rebel_acc(ws, holder_pc);
+
+		for(auto p : cores) {
+			if(ws.w.province_s.province_state_container.get<province_state::owner>(p) != holder) {
+				for(int32_t i = 0; i < cultures_count; ++i) {
+					if(t == cultures::dominant_tag_for_culture(ws, p, group_cultures.first[i])) {
+						provinces::for_each_pop(ws, p, [&ws, &accumulators, i](population::pop_tag po) {
+							accumulators[i].first.add_value(po);
+							accumulators[i].second.add_value(po);
+						});
+					}
+				}
+			}
+		}
+
+		float total_movement_support = std::transform_reduce(std::begin(accumulators), std::end(accumulators), 0.0f, std::plus<>(), [](auto& v) { return v.first.flush(); };
+		float total_rebel_support = std::transform_reduce(std::begin(accumulators), std::end(accumulators), 0.0f, std::plus<>(), [](auto& v) { return v.second.flush(); };
+
+		ws.w.population_s.independance_rebel_support[t] = old_rebel_support < total_rebel_support ? (old_rebel_support + total_rebel_support) / 2.0f : total_rebel_support;
+		ws.w.population_s.independance_movement_support[t] = old_movement_support < total_movement_support ? (old_movement_support + total_movement_support) / 2.0f : total_movement_support;
+	}
 }
