@@ -262,7 +262,7 @@ namespace population {
 			triggers::trigger_scope_state{
 				triggers::trigger_slot_contents::pop,
 				triggers::trigger_slot_contents::pop,
-				triggers::trigger_slot_contents::rebel,
+				triggers::trigger_slot_contents::pop,
 				},
 				1.0f, 0.0f, s, e);
 	}

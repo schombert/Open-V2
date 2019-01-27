@@ -832,6 +832,11 @@ namespace ve {
 		return _mm256_blendv_epi8(b, a, _mm256_castps_si256(mask));
 	}
 
+	template<typename T>
+	__forceinline tagged_vector<T> select(mask_vector mask, tagged_vector<T> a, tagged_vector<typename ve_identity<T>::type> b) {
+		return _mm256_blendv_epi8(b, a, _mm256_castps_si256(mask));
+	}
+
 	__forceinline mask_vector is_non_zero(int_vector i) {
 		return i != int_vector();
 	}

@@ -850,7 +850,7 @@ namespace population {
 			auto pop_mil = ve::load(v, ws.w.population_s.pops.get_row<pop::militancy>());
 			return ve::select(
 				ve::load(v, ws.w.population_s.pops.get_row<pop::is_accepted>())
-				| (pop_con < con_limit)
+				| (pop_mil < mil_limit)
 				| (ve::load(v, ws.w.population_s.pops.get_row<pop::culture>()) != holder_pc),
 				0.0f,
 				((pop_mil - mil_limit) * inv_mil_limit) * (max_rebel_support * ve::load(v, ws.w.population_s.pops.get_row<pop::size>()))); 
@@ -887,7 +887,7 @@ namespace population {
 	}
 
 
-	update_union_independance_movement_and_rebels(world_state& ws, cultures::national_tag t) {
+	void update_union_independance_movement_and_rebels(world_state& ws, cultures::national_tag t) {
 		float old_rebel_support = ws.w.population_s.independance_rebel_support[t];
 		float old_movement_support = ws.w.population_s.independance_movement_support[t];
 
@@ -925,5 +925,69 @@ namespace population {
 
 		ws.w.population_s.independance_rebel_support[t] = old_rebel_support < total_rebel_support ? (old_rebel_support + total_rebel_support) / 2.0f : total_rebel_support;
 		ws.w.population_s.independance_movement_support[t] = old_movement_support < total_movement_support ? (old_movement_support + total_movement_support) / 2.0f : total_movement_support;
+	}
+
+	void update_local_movements_and_rebels(world_state& ws, nations::country_tag n) {
+		float* local_movements = ve_aligned_alloca(sizeof(float) * ws.s.issues_m.tracked_options_count);
+		std::fill_n(local_movements, ws.s.issues_m.tracked_options_count, 0.0f);
+
+		float* local_rebels = ve_aligned_alloca(sizeof(float) * ws.s.population_m.rebel_type.size());
+		std::fill_n(local_rebels, ws.s.population_m.rebel_type.size(), 0.0f);
+
+		nations::for_each_pop(ws, n, [&ws, local_movements, local_rebels](pop_tag p) {
+			const static con_limit = ws.s.modifiers_m.global_defines.issue_movement_leave_limit / 10.0f;
+			const static inv_con_limit = 1.0f / (1.0f - ws.s.modifiers_m.global_defines.issue_movement_leave_limit / 10.0f);
+			const static mil_limit = ws.s.modifiers_m.global_defines.mil_to_join_rebel / 10.0f;
+			const static inv_mil_limit = 1.0f / (1.0f - ws.s.modifiers_m.global_defines.mil_to_join_rebel / 10.0f);
+
+			if(ws.w.population_s.pops.get<pop::is_accepted>(p)) {
+				auto pop_con = ws.w.population_s.pops.get<pop::consciousness>(p);
+				auto pop_mil = ws.w.population_s.pops.get<pop::militancy>(p);
+				auto pop_size = ws.w.population_s.pops.get<pop::size>(p);
+
+				if(pop_con >= con_limit) {
+					ve::accumulate_scaled(ws.s.issues_m.tracked_options_count,
+						tagged_array_view<float, int32_t>(local_movements, ws.s.issues_m.tracked_options_count),
+						tagged_array_view<float, int32_t>(ws.w.population_s.pop_demographics.get_row(p).data() + to_index(to_demo_tag(ws, issues::option_tag(0))), ws.s.issues_m.tracked_options_count),
+						((pop_con - con_limit) * inv_con_limit) * ws.w.population_s.pops.get<pop::literacy>(p) * (max_movement_support * pop_size),
+						ve::serial_exact());
+				}
+				if(pop_mil >= mil_limit) {
+					rebel_type_tag best_fit;
+					float best_support = 0.0f;
+					for(auto const& rt : ws.s.population_m.rebel_types) {
+						auto chance = modifiers::test_multiplicative_factor(rt.spawn_chance, ws, p, p);
+						if(chance > best_support) {
+							best_support = chance;
+							best_fit = rt.id;
+						}
+					}
+					if(best_fit) {
+						auto reb_support = ((pop_mil - mil_limit) * inv_mil_limit) * (max_rebel_support * pop_size);
+						local_rebels[to_index(best_fit)] += reb_support;
+					}
+				}
+			}
+		});
+
+		auto local_m_support = ws.w.nation_s.local_movement_support.get_row(n);
+		for(int32_t i = party_issues_options_count; i < tracked_options_count; ++i) {
+			if(local_m_support[issues::option_tag(issues::option_tag::value_base_t(i))] < local_movements[i]) {
+				local_m_support[issues::option_tag(issues::option_tag::value_base_t(i))] =
+					(local_m_support[issues::option_tag(issues::option_tag::value_base_t(i))] + local_movements[i]) / 2.0f;
+			} else {
+				local_m_support[issues::option_tag(issues::option_tag::value_base_t(i))] = local_movements[i];
+			}
+		}
+
+		auto local_r_support = ws.w.nation_s.local_rebel_support.get_row(n);
+		for(int32_t i = 0; i < ws.s.population_m.rebel_type.size(); ++i) {
+			if(local_r_support[rebel_type_tag(rebel_type_tag::value_base_t(i))] < local_rebels[i]) {
+				local_r_support[rebel_type_tag(rebel_type_tag::value_base_t(i))] =
+					(local_r_support[rebel_type_tag(rebel_type_tag::value_base_t(i))] + local_rebels[i]) / 2.0f
+			} else {
+				local_r_support[rebel_type_tag(rebel_type_tag::value_base_t(i))] = local_rebels[i];
+			}
+		}
 	}
 }
