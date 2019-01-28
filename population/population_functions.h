@@ -25,7 +25,7 @@ namespace population {
 	void change_pop_location(world_state& ws, pop_tag this_pop, provinces::province_tag new_location);
 	void remove_pop_from_province(world_state& ws, pop_tag this_pop);
 	void free_slave(world_state& ws, pop_tag this_pop);
-	void trigger_rising(world_state& ws, rebel_faction_tag faction, nations::country_tag in_nation);
+	void trigger_rising(world_state& ws, rebel_type_tag rtype, nations::country_tag in_nation);
 	void default_initialize_issues_and_ideology(world_state& ws, pop_tag this_pop);
 	void default_initialize_world_issues_and_ideology(world_state& ws);
 	float total_size_change(world_state const& ws, pop_tag this_pop);

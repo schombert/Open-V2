@@ -1380,13 +1380,17 @@ namespace triggers {
 	}
 	TRIGGER_FUNCTION(tf_culture_group_reb_nation) {
 		auto rtags = ve::apply(to_rebel(from_slot), [](population::rebel_faction_tag r) { return population::rebel_faction_tag_to_national_tag(r); });
-		auto rcg = ve::load(rtags, ws.s.culture_m.tags_to_groups.view());
+		auto rholders = ve::load(rtags, ws.w.culture_s.tags_to_holders.view());
+		auto c = to_value<nation::primary_culture>(ws.w.nation_s.nations, rholders);
+		auto rcg = ve::load(c, ws.s.culture_m.cultures_to_groups.view());
 
 		return compare_values_eq(tval[0], rcg, nations::national_culture_group(ws, to_nation(primary_slot)));
 	}
 	TRIGGER_FUNCTION(tf_culture_group_reb_pop) {
 		auto rtags = ve::apply(to_rebel(from_slot), [](population::rebel_faction_tag r) { return population::rebel_faction_tag_to_national_tag(r); });
-		auto rcg = ve::load(rtags, ws.s.culture_m.tags_to_groups.view());
+		auto rholders = ve::load(rtags, ws.w.culture_s.tags_to_holders.view());
+		auto c = to_value<nation::primary_culture>(ws.w.nation_s.nations, rholders);
+		auto rcg = ve::load(c, ws.s.culture_m.cultures_to_groups.view());
 
 		auto pculture = to_value<pop::culture>(ws.w.population_s.pops, to_pop(primary_slot));
 		auto cgroups = ve::load(pculture, ws.s.culture_m.cultures_to_groups.view());
@@ -1599,8 +1603,10 @@ namespace triggers {
 		return compare_values_eq(tval[0], prov_owner, main_union);
 	}
 	TRIGGER_FUNCTION(tf_is_cultural_union_this_rebel) {
-		auto rc = to_value<rebel_faction::culture>(ws.w.population_s.rebel_factions, to_rebel(from_slot));
-		return compare_values_eq(tval[0], to_nation(primary_slot), nations::union_holder_for(ws, rc));
+		auto rtags = ve::apply(to_rebel(from_slot), [](population::rebel_faction_tag r) { return population::rebel_faction_tag_to_national_tag(r); });
+		auto rholders = ve::load(rtags, ws.w.culture_s.tags_to_holders.view());
+
+		return compare_values_eq(tval[0], to_nation(primary_slot), nations::union_holder_of(ws, rholders));
 	}
 	TRIGGER_FUNCTION(tf_is_cultural_union_tag_nation) {
 		return compare_values_eq(tval[0], nations::union_tag_of(ws, to_nation(primary_slot)), trigger_payload(tval[2]).tag);
@@ -1730,8 +1736,9 @@ namespace triggers {
 		return compare_to_true(tval[0], result);
 	}
 	TRIGGER_FUNCTION(tf_is_core_reb) {
-		auto tag = to_value<rebel_faction::independence_tag>(ws.w.population_s.rebel_factions, to_rebel(from_slot));
-		auto result = ve::apply(to_prov(primary_slot), tag,
+		auto rtags = ve::apply(to_rebel(from_slot), [](population::rebel_faction_tag r) { return population::rebel_faction_tag_to_national_tag(r); });
+
+		auto result = ve::apply(to_prov(primary_slot), rtags,
 			[&ws](provinces::province_tag prov, cultures::national_tag t) {
 			return contains_item(ws.w.province_s.core_arrays,
 				ws.w.province_s.province_state_container.get<province_state::cores>(prov),
@@ -3789,12 +3796,18 @@ namespace triggers {
 		return compare_to_true(tval[0], true);
 	}
 	TRIGGER_FUNCTION(tf_social_movement) {
-		auto mt = to_value<pop::movement>(ws.w.population_s.pops, to_pop(primary_slot));
-		return compare_to_true(tval[0], is_valid_index(mt) & (to_value<pop_movement::type>(ws.w.population_s.pop_movements, mt) == uint8_t(population::movement_type::social)));
+		//auto mt = to_value<pop::movement>(ws.w.population_s.pops, to_pop(primary_slot));
+		//return compare_to_true(tval[0], is_valid_index(mt) & (to_value<pop_movement::type>(ws.w.population_s.pop_movements, mt) == uint8_t(population::movement_type::social)));
+
+		// was used to exclude pops in movements from rebels: no longer makes sense to do this
+		return compare_to_true(tval[0], false);
 	}
 	TRIGGER_FUNCTION(tf_political_movement) {
-		auto mt = to_value<pop::movement>(ws.w.population_s.pops, to_pop(primary_slot));
-		return compare_to_true(tval[0], is_valid_index(mt) & (to_value<pop_movement::type>(ws.w.population_s.pop_movements, mt) == uint8_t(population::movement_type::political)));
+		//auto mt = to_value<pop::movement>(ws.w.population_s.pops, to_pop(primary_slot));
+		//return compare_to_true(tval[0], is_valid_index(mt) & (to_value<pop_movement::type>(ws.w.population_s.pop_movements, mt) == uint8_t(population::movement_type::political)));
+	
+		// was used to exclude pops in movements from rebels: no longer makes sense to do this
+		return compare_to_true(tval[0], false);
 	}
 
 	auto cultural_sphere_member_accumulator(world_state const& ws, cultures::culture_group_tag g) {
@@ -5204,9 +5217,13 @@ namespace triggers {
 			trigger_payload(tval[2]).small.values.religion);
 	}
 	TRIGGER_FUNCTION(tf_religion_nation_reb) {
+		auto rtags = ve::apply(to_rebel(from_slot), [](population::rebel_faction_tag r) { return population::rebel_faction_tag_to_national_tag(r); });
+		auto rholders = ve::load(rtags, ws.w.culture_s.tags_to_holders.view());
+		auto r = to_value<nation::national_religion>(ws.w.nation_s.nations, rholders);
+
 		return compare_values_eq(tval[0],
 			to_value<nation::national_religion>(ws.w.nation_s.nations, to_nation(primary_slot)),
-			to_value<rebel_faction::religion>(ws.w.population_s.rebel_factions, to_rebel(from_slot)));
+			r);
 	}
 	TRIGGER_FUNCTION(tf_religion_nation_from_nation) {
 		return compare_values_eq(tval[0],

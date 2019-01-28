@@ -103,44 +103,6 @@ namespace pop {
 	> ;
 }*/
 
-constexpr population::rebel_faction_tag to_rebel_faction_tag(issues::option_tag t) {
-	if(t)
-		return population::rebel_faction_tag(uint32_t((to_index(t) << 1) | 0));
-	else
-		return population::rebel_faction_tag();
-}
-
-constexpr population::rebel_faction_tag to_rebel_faction_tag(cultures::national_tag t) {
-	if(t)
-		return population::rebel_faction_tag(uint32_t((to_index(t) << 1) | 1));
-	else
-		return population::rebel_faction_tag();
-}
-
-constexpr std::variant<issues::option_tag, cultures::national_tag> from_rebel_faction_tag(population::rebel_faction_tag t) {
-	if(!t) {
-		return cultures::national_tag();
-	} else {
-		const auto v = uint32_t(to_index(t));
-		if((v & 1) != 0)
-			return cultures::national_tag(cultures::national_tag::value_base_t(v >> 1));
-		else
-			return issues::option_tag(issues::option_tag::value_base_t(v >> 1));
-	}
-}
-
-constexpr cultures::national_tag rebel_faction_tag_to_national_tag(population::rebel_faction_tag t) {
-	if(!t) {
-		return cultures::national_tag();
-	} else {
-		const auto v = uint32_t(to_index(t));
-		if((v & 1) != 0)
-			return cultures::national_tag(cultures::national_tag::value_base_t(v >> 1));
-		else
-			return cultures::national_tag();
-	}
-}
-
 /*namespace pop_movement {
 	struct total_population_support;
 	struct radicalism;
@@ -163,6 +125,43 @@ constexpr cultures::national_tag rebel_faction_tag_to_national_tag(population::r
 }*/
 
 namespace population {
+	constexpr population::rebel_faction_tag to_rebel_faction_tag(rebel_type_tag t) {
+		if(t)
+			return population::rebel_faction_tag(uint32_t((to_index(t) << 1) | 0));
+		else
+			return population::rebel_faction_tag();
+	}
+
+	constexpr population::rebel_faction_tag to_rebel_faction_tag(cultures::national_tag t) {
+		if(t)
+			return population::rebel_faction_tag(uint32_t((to_index(t) << 1) | 1));
+		else
+			return population::rebel_faction_tag();
+	}
+
+	constexpr std::variant<rebel_type_tag, cultures::national_tag> from_rebel_faction_tag(population::rebel_faction_tag t) {
+		if(!t) {
+			return cultures::national_tag();
+		} else {
+			const auto v = uint32_t(to_index(t));
+			if((v & 1) != 0)
+				return cultures::national_tag(cultures::national_tag::value_base_t(v >> 1));
+			else
+				return rebel_type_tag(rebel_type_tag::value_base_t(v >> 1));
+		}
+	}
+
+	constexpr cultures::national_tag rebel_faction_tag_to_national_tag(population::rebel_faction_tag t) {
+		if(!t) {
+			return cultures::national_tag();
+		} else {
+			const auto v = uint32_t(to_index(t));
+			if((v & 1) != 0)
+				return cultures::national_tag(cultures::national_tag::value_base_t(v >> 1));
+			else
+				return cultures::national_tag();
+		}
+	}
 
 	enum class income_type : uint8_t {
 		administration, military, education, reforms, none

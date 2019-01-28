@@ -168,7 +168,8 @@ namespace triggers {
 		ui::xy_pair tag_type_rebel_slot_effect(uint32_t ui_id, population::rebel_faction_tag rebel_id, world_state& ws,
 			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
 
-			cultures::national_tag rtag = bool(rebel_id) ? ws.w.population_s.rebel_factions.get<rebel_faction::independence_tag>(rebel_id) : cultures::national_tag();
+			auto rtag = population::rebel_faction_tag_to_national_tag(rebel_id);
+
 			auto rtag_name = is_valid_index(rtag) ?
 				(bool(ws.w.culture_s.tags_to_holders[rtag]) ? ws.w.nation_s.nations.get<nation::name>(ws.w.culture_s.tags_to_holders[rtag]) : ws.s.culture_m.national_tags[rtag].default_name.name)
 				: ws.s.fixed_ui_text[scenario::fixed_ui::rebel];
@@ -1851,8 +1852,11 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_government_reb(EFFECT_DISPLAY_PARAMS) {
-			if(to_rebel(from_slot) && to_nation(primary_slot)) {
-				auto gov = ws.s.population_m.rebel_change_government_to.get(ws.w.population_s.rebel_factions.get<rebel_faction::type>(to_rebel(from_slot)), ws.w.nation_s.nations.get<nation::current_government>(to_nation(primary_slot)));
+			std::variant<population::rebel_type_tag, cultures::national_tag> rvar = population::from_rebel_faction_tag(to_rebel(from_slot));
+			if(to_rebel(from_slot) && to_nation(primary_slot) && std::holds_alternative<population::rebel_type_tag>(rvar)) {
+				
+				auto gov = 
+					ws.s.population_m.rebel_change_government_to.get(std::get<population::rebel_type_tag>(rvar), ws.w.nation_s.nations.get<nation::current_government>(to_nation(primary_slot)));
 
 				text_data::replacement repl{
 					text_data::value_type::text,

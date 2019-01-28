@@ -1084,7 +1084,7 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair tf_independence_scope(TRIGGER_DISPLAY_PARAMS, bool show_condition) {
-			auto rtag = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions.get<rebel_faction::independence_tag>(to_rebel(from_slot)) : cultures::national_tag();
+			auto rtag = population::rebel_faction_tag_to_national_tag(to_rebel(from_slot));
 			auto ination = is_valid_index(rtag) ? ws.w.culture_s.tags_to_holders[rtag] : nations::country_tag();
 
 			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::reb_independence_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
@@ -1536,22 +1536,33 @@ namespace triggers {
 		return display_with_comparison(tval[0], ws.s.fixed_ui_text[scenario::fixed_ui::a_primary_or_accepted], ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_culture_pop_reb(TRIGGER_DISPLAY_PARAMS) {
-		cultures::culture_tag rc = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions.get<rebel_faction::culture>(to_rebel(from_slot)) : cultures::culture_tag();
+		auto rtag = population::rebel_faction_tag_to_national_tag(to_rebel(from_slot));
+		auto rholder = rtag ? ws.w.culture_s.tags_to_holders[rtag] : nations::country_tag();
+		auto rc = ws.w.nation_s.nations.get<nation::primary_culture>(rholder);
+
 		return display_with_comparison(tval[0], scenario::fixed_ui::culture,
 			is_valid_index(rc) ? ws.s.culture_m.culture_container[rc].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_culture], ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_culture_state_reb(TRIGGER_DISPLAY_PARAMS) {
-		cultures::culture_tag rc = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions.get<rebel_faction::culture>(to_rebel(from_slot)) : cultures::culture_tag();
+		auto rtag = population::rebel_faction_tag_to_national_tag(to_rebel(from_slot));
+		auto rholder = rtag ? ws.w.culture_s.tags_to_holders[rtag] : nations::country_tag();
+		auto rc = ws.w.nation_s.nations.get<nation::primary_culture>(rholder);
+
 		return display_with_comparison(tval[0], scenario::fixed_ui::dominant_culture,
 			is_valid_index(rc) ? ws.s.culture_m.culture_container[rc].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_culture], ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_culture_province_reb(TRIGGER_DISPLAY_PARAMS) {
-		cultures::culture_tag rc = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions.get<rebel_faction::culture>(to_rebel(from_slot)) : cultures::culture_tag();
+		auto rtag = population::rebel_faction_tag_to_national_tag(to_rebel(from_slot));
+		auto rholder = rtag ? ws.w.culture_s.tags_to_holders[rtag] : nations::country_tag();
+		auto rc = ws.w.nation_s.nations.get<nation::primary_culture>(rholder); 
+		
 		return display_with_comparison(tval[0], scenario::fixed_ui::dominant_culture,
 			is_valid_index(rc) ? ws.s.culture_m.culture_container[rc].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_culture], ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_culture_nation_reb(TRIGGER_DISPLAY_PARAMS) {
-		cultures::culture_tag rc = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions.get<rebel_faction::culture>(to_rebel(from_slot)) : cultures::culture_tag();
+		auto rtag = population::rebel_faction_tag_to_national_tag(to_rebel(from_slot));
+		auto rholder = rtag ? ws.w.culture_s.tags_to_holders[rtag] : nations::country_tag();
+		auto rc = ws.w.nation_s.nations.get<nation::primary_culture>(rholder);
 
 		cursor_in = ui::add_linear_text(cursor_in,
 			is_valid_index(rc) ? ws.s.culture_m.culture_container[rc].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_culture],
@@ -1590,15 +1601,21 @@ namespace triggers {
 			ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_culture_group_reb_nation(TRIGGER_DISPLAY_PARAMS) {
-		cultures::culture_tag rc = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions.get<rebel_faction::culture>(to_rebel(from_slot)) : cultures::culture_tag();
-		auto cg = is_valid_index(rc) ? ws.s.culture_m.culture_container[rc].group : cultures::culture_group_tag();
+		auto rtag = population::rebel_faction_tag_to_national_tag(to_rebel(from_slot));
+		auto rholder = rtag ? ws.w.culture_s.tags_to_holders[rtag] : nations::country_tag();
+		auto rc = ws.w.nation_s.nations.get<nation::primary_culture>(rholder); 
+		auto cg = rc ? ws.s.culture_m.cultures_to_groups[rc] : cultures::culture_group_tag();
+
 		return display_with_comparison(tval[0], scenario::fixed_ui::culture_group,
 			is_valid_index(cg) ? ws.s.culture_m.culture_groups[cg].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_culture_group],
 			ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_culture_group_reb_pop(TRIGGER_DISPLAY_PARAMS) {
-		cultures::culture_tag rc = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions.get<rebel_faction::culture>(to_rebel(from_slot)) : cultures::culture_tag();
-		auto cg = is_valid_index(rc) ? ws.s.culture_m.culture_container[rc].group : cultures::culture_group_tag();
+		auto rtag = population::rebel_faction_tag_to_national_tag(to_rebel(from_slot));
+		auto rholder = rtag ? ws.w.culture_s.tags_to_holders[rtag] : nations::country_tag();
+		auto rc = ws.w.nation_s.nations.get<nation::primary_culture>(rholder);
+		auto cg = rc ? ws.s.culture_m.cultures_to_groups[rc] : cultures::culture_group_tag();
+
 		return display_with_comparison(tval[0], scenario::fixed_ui::culture_group,
 			is_valid_index(cg) ? ws.s.culture_m.culture_groups[cg].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_culture_group],
 			ws, container, cursor_in, lm, fmt);
@@ -1664,7 +1681,10 @@ namespace triggers {
 		return display_with_comparison(tval[0], scenario::fixed_ui::religion, ws.s.culture_m.religions[c].name, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_religion_reb(TRIGGER_DISPLAY_PARAMS) {
-		cultures::religion_tag rc = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions.get<rebel_faction::religion>(to_rebel(from_slot)) : cultures::religion_tag();
+		auto rtag = population::rebel_faction_tag_to_national_tag(to_rebel(from_slot));
+		auto rholder = rtag ? ws.w.culture_s.tags_to_holders[rtag] : nations::country_tag();
+		auto rc = ws.w.nation_s.nations.get<nation::national_religion>(rholder);
+
 		return display_with_comparison(tval[0], scenario::fixed_ui::religion,
 			is_valid_index(rc) ? ws.s.culture_m.religions[rc].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_religion],
 			ws, container, cursor_in, lm, fmt);
@@ -1948,10 +1968,11 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_is_core_reb(TRIGGER_DISPLAY_PARAMS) {
-		auto reb_ind = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions.get<rebel_faction::independence_tag>(to_rebel(from_slot)) : cultures::national_tag();
-		auto reb_holder = is_valid_index(reb_ind) ? ws.w.culture_s.tags_to_holders[reb_ind] : nations::country_tag();
-		auto rnam = is_valid_index(reb_ind) ? 
-			(bool(reb_holder) ? ws.w.nation_s.nations.get<nation::name>(reb_holder) : ws.s.culture_m.national_tags[reb_ind].default_name.name) :
+		auto rtag = population::rebel_faction_tag_to_national_tag(to_rebel(from_slot));
+		auto reb_holder = rtag ? ws.w.culture_s.tags_to_holders[rtag] : nations::country_tag();
+		
+		auto rnam = is_valid_index(rtag) ? 
+			(bool(reb_holder) ? ws.w.nation_s.nations.get<nation::name>(reb_holder) : ws.s.culture_m.national_tags[rtag].default_name.name) :
 			ws.s.fixed_ui_text[scenario::fixed_ui::the_rebel_ind_nation];
 
 		cursor_in = display_with_comparison_no_newline(tval[0], ws.s.fixed_ui_text[scenario::fixed_ui::a_core_of], ws, container, cursor_in, lm, fmt);
@@ -5937,7 +5958,10 @@ namespace triggers {
 			scenario::fixed_ui::national_religion, ws.s.culture_m.religions[trigger_payload(tval[2]).small.values.religion].name, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_religion_nation_reb(TRIGGER_DISPLAY_PARAMS) {
-		auto rr = bool(to_rebel(from_slot)) ? ws.w.population_s.rebel_factions.get<rebel_faction::religion>(to_rebel(from_slot)) : cultures::religion_tag();
+		auto rtag = population::rebel_faction_tag_to_national_tag(to_rebel(from_slot));
+		auto rholder = rtag ? ws.w.culture_s.tags_to_holders[rtag] : nations::country_tag();
+		auto rr = ws.w.nation_s.nations.get<nation::national_religion>(rholder);
+
 		auto rn = is_valid_index(rr) ? ws.s.culture_m.religions[rr].name : ws.s.fixed_ui_text[scenario::fixed_ui::rebel_religion];
 		return display_with_comparison(tval[0],
 			scenario::fixed_ui::national_religion, rn, ws, container, cursor_in, lm, fmt);
