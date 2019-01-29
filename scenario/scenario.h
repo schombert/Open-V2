@@ -644,8 +644,9 @@ namespace scenario {
 		constexpr uint32_t no_other_naval_base = 622ui32;
 		constexpr uint32_t is_coastal = 623ui32;
 		constexpr uint32_t bankrupcy_warning = 624ui32;
+		constexpr uint32_t nationalist_movement = 625ui32;
 
-		constexpr uint32_t count = 625ui32;
+		constexpr uint32_t count = 626ui32;
 	}
 
 	class scenario_manager {

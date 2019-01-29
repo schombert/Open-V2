@@ -59,6 +59,8 @@ namespace issues {
 		issue_option& opt = env.manager.options[opt_tag];
 
 		opt.name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
+		std::string m_name = std::string("movement_") + std::string(t.start, t.end);
+		opt.movement_name = text_data::get_thread_safe_text_handle(env.text_lookup, m_name.c_str(), m_name.c_str() + m_name.size());
 		opt.id = opt_tag;
 		opt.parent_issue = i.id;
 

@@ -228,7 +228,8 @@ namespace population {
 	parsing_state::parsing_state(parsing_state&& o) noexcept : impl(std::move(o.impl)) {}
 
 	inline int inner_pre_parse_rebel(const token_group* s, const token_group* e, const token_and_type& t, parsing_environment& env) {
-		const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
+		std::string reb_name = std::string(t.start, t.end) + "_name";
+		const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, reb_name.c_str(), reb_name.c_str() + reb_name.size());
 		const auto rtag = env.manager.rebel_types.emplace_back();
 		auto& reb = env.manager.rebel_types[rtag];
 		reb.id = rtag;

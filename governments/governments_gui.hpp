@@ -4,6 +4,7 @@
 #include "triggers\\triggers.h"
 #include "triggers\\effects.h"
 #include "gui\\gui.hpp"
+#include "nations\\nations_functions.h"
 
 namespace governments {
 	class government_window_base : public ui::draggable_region {
@@ -334,6 +335,30 @@ namespace governments {
 		decision_pane_base
 	>;
 
+	struct movement_gui_item {
+		issues::option_tag issue_option_tag;
+		cultures::national_tag liberation_tag;
+		float support;
+		float radicalism;
+		bool is_issue_type = false;
+
+		bool operator==(movement_gui_item const& o) const {
+			return is_issue_type == o.is_issue_type && (issue_option_tag == o.issue_option_tag) && (liberation_tag == o.liberation_tag);
+		}
+	};
+
+	struct rebel_gui_item {
+		population::rebel_type_tag rebel_type_tag;
+		cultures::national_tag liberation_tag;
+		nations::country_tag owner;
+		float support;
+		bool is_rebel_type = false;
+
+		bool operator==(rebel_gui_item const& o) const {
+			return is_rebel_type == o.is_rebel_type && (rebel_type_tag == o.rebel_type_tag) && (liberation_tag == o.liberation_tag);
+		}
+	};
+
 	class movements_pane_base : public ui::window_pane {
 	public:
 		template<typename W>
@@ -362,9 +387,9 @@ namespace governments {
 
 	class movements_item_base : public ui::visible_region {
 	public:
-		population::movement_tag tag;
-		void set_value(population::movement_tag t) {
-			tag = t;
+		movement_gui_item data;
+		void set_value(movement_gui_item t) {
+			data = t;
 		}
 	};
 
@@ -400,8 +425,6 @@ namespace governments {
 
 	class movements_item_suppress_button {
 	public:
-		population::movement_tag tag;
-
 		template<typename window_type>
 		void windowed_update(ui::simple_button<movement_sortby_name_button>&, window_type& win, world_state& ws);
 		void button_function(ui::simple_button<movement_sortby_name_button>&, world_state&);
@@ -427,9 +450,9 @@ namespace governments {
 
 	class rebels_item_base : public ui::visible_region {
 	public:
-		population::rebel_faction_tag tag;
-		void set_value(population::rebel_faction_tag t) {
-			tag = t;
+		rebel_gui_item data;
+		void set_value(rebel_gui_item t) {
+			data = t;
 		}
 	};
 
@@ -499,8 +522,8 @@ namespace governments {
 		CT_STRING("sortby_size_button"), ui::simple_button<movement_sortby_size_button>,
 		CT_STRING("sortby_radical_button"), ui::simple_button<movement_sortby_radical_button>,
 		CT_STRING("sortby_name_button"), ui::simple_button<movement_sortby_name_button>,
-		CT_STRING("movements_listbox"), ui::discrete_listbox<movements_listbox, movements_item, population::movement_tag>,
-		CT_STRING("rebel_listbox"), ui::discrete_listbox<rebels_listbox, rebels_item, population::rebel_faction_tag>,
+		CT_STRING("movements_listbox"), ui::discrete_listbox<movements_listbox, movements_item, movement_gui_item>,
+		CT_STRING("rebel_listbox"), ui::discrete_listbox<rebels_listbox, rebels_item, rebel_gui_item>,
 		movements_pane_base
 	>;
 
@@ -1009,85 +1032,121 @@ namespace governments {
 
 	template<typename window_type>
 	void movement_ind_flag::windowed_update(ui::masked_flag<movement_ind_flag>& self, window_type & w, world_state & ws) {
-		if(is_valid_index(w.tag)) {
-			auto independance_nation = ws.w.population_s.pop_movements.get<pop_movement::liberation_country>(w.tag);
-			if(is_valid_index(independance_nation)) {
-				self.set_displayed_flag(ws, independance_nation);
-				ui::make_visible_immediate(*self.associated_object);
-			} else {
-				ui::hide(*self.associated_object);
-			}
+		if(is_valid_index(w.data.is_issue_type)) {
+			self.set_displayed_flag(ws, w.data.liberation_tag);
+			ui::make_visible_immediate(*self.associated_object);
+		} else {
+			ui::hide(*self.associated_object);
 		}
 	}
 
 	template<typename window_type>
-	void movements_item_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
+	void movements_item_name::windowed_update(window_type & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(is_valid_index(w.data.is_issue_type)) {
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.issues_m.options[w.data.issue_option_tag].movement_name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			lm.finish_current_line();
+		} else {
+			// leave blank
+		}
+	}
 
 	template<typename window_type>
-	void movements_item_nationalist_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
+	void movements_item_nationalist_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(is_valid_index(win.data.is_issue_type)) {
+			// leave blank
+		} else {
+			nations::country_tag holder = ws.w.culture_s.tags_to_holders[win.data.liberation_tag];
+			auto adj = holder ? ws.w.nation_s.nations.get<nation::adjective>(holder) : ws.s.culture_m.national_tags[win.data.liberation_tag].default_name.adjective;
+
+			text_data::replacement repl[1] = {
+				text_data::replacement{
+					text_data::value_type::country,
+					adj ? text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, adj) : vector_backed_string<char16_t>(u""),
+					[](ui::tagged_gui_object) {}
+				}
+			};
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::nationalist_movement], fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 1);
+			lm.finish_current_line();
+		}
+	}
 
 	template<typename window_type>
 	void movements_item_size::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		if(is_valid_index(win.tag)) {
-			char16_t local_buf[16];
-			put_value_in_buffer(local_buf, display_type::integer, ws.w.population_s.pop_movements.get<pop_movement::total_population_support>(win.tag));
+		char16_t local_buf[16];
+		put_value_in_buffer(local_buf, display_type::integer, win.data.support);
 
-			ui::text_chunk_to_instances(
-				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
-				box, ui::xy_pair{ 0,0 }, fmt, lm
-			);
+		ui::text_chunk_to_instances(
+			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+			box, ui::xy_pair{ 0,0 }, fmt, lm
+		);
 
-			lm.finish_current_line();
-		}
+		lm.finish_current_line();	
 	}
 
 	template<typename window_type>
 	void movements_item_radicalism::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		if(is_valid_index(win.tag)) {
-			char16_t local_buf[16];
-			put_value_in_buffer(local_buf, display_type::fp_one_place, ws.w.population_s.pop_movements.get<pop_movement::radicalism>(win.tag));
+		char16_t local_buf[16];
+		put_value_in_buffer(local_buf, display_type::fp_one_place, win.data.radicalism);
 
-			ui::text_chunk_to_instances(
-				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
-				box, ui::xy_pair{ 0,0 }, fmt, lm
-			);
+		ui::text_chunk_to_instances(
+			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+			box, ui::xy_pair{ 0,0 }, fmt, lm
+		);
 
-			lm.finish_current_line();
-		}
+		lm.finish_current_line();
 	}
 
 	template<typename window_type>
 	void movements_item_suppress_button::windowed_update(ui::simple_button<movement_sortby_name_button>&, window_type & win, world_state & ws) {
-		tag = win.tag;
 	}
 
 	template<typename window_type>
 	void rebels_item_type_icon::windowed_update(ui::dynamic_icon<rebels_item_type_icon>& self, window_type & win, world_state & ws) {
-		if(is_valid_index(win.tag)) {
-			auto type = ws.w.population_s.rebel_factions.get<rebel_faction::type>(win.tag);
-
-			auto icon = is_valid_index(type) ? ws.s.population_m.rebel_types[type].icon : 1;
-			if(icon != 0)
-				self.set_frame(ws.w.gui_m, uint32_t(icon) - 1ui32);
-			else
-				self.set_frame(ws.w.gui_m, 4ui32);
-		}
+		auto type = win.data.is_rebel_type ? win.data.rebel_type_tag : ws.s.population_m.nationalist_rebels;
+		auto icon = is_valid_index(type) ? ws.s.population_m.rebel_types[type].icon : 1;
+		if(icon != 0)
+			self.set_frame(ws.w.gui_m, uint32_t(icon) - 1ui32);
+		else
+			self.set_frame(ws.w.gui_m, 4ui32);
 	}
 
 	template<typename window_type>
 	void rebels_item_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		if(is_valid_index(win.tag)) {
-			if(auto type = ws.w.population_s.rebel_factions.get<rebel_faction::type>(win.tag); is_valid_index(type)) {
-				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.population_m.rebel_types[type].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
-				lm.finish_current_line();
-			}
+		nations::country_tag holder = ws.w.culture_s.tags_to_holders[win.data.liberation_tag];
+		auto adj = win.data.is_rebel_type ? ws.w.nation_s.nations.get<nation::adjective>(win.data.owner) : (holder ? ws.w.nation_s.nations.get<nation::adjective>(holder) : ws.s.culture_m.national_tags[win.data.liberation_tag].default_name.adjective);
+		auto type = win.data.is_rebel_type ? win.data.rebel_type_tag : ws.s.population_m.nationalist_rebels;
+
+		if(type) {
+			text_data::replacement repl[3] = {
+				text_data::replacement{
+					text_data::value_type::union_adj,
+					adj ? text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, adj) : vector_backed_string<char16_t>(u""),
+					[](ui::tagged_gui_object) {}
+				},
+				text_data::replacement{
+					text_data::value_type::indep,
+					adj ? text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, adj) : vector_backed_string<char16_t>(u""),
+					[](ui::tagged_gui_object) {}
+				},
+				text_data::replacement{
+					text_data::value_type::country,
+					adj ? text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, adj) : vector_backed_string<char16_t>(u""),
+					[](ui::tagged_gui_object) {}
+				}
+			};
+
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.population_m.rebel_types[type].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 3);
+			lm.finish_current_line();
 		}
 	}
 
 	template<typename window_type>
 	void rebels_item_size::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		char16_t local_buf[16];
+		put_value_in_buffer(local_buf, display_type::integer, win.data.support);
+		
 		ui::text_chunk_to_instances(
-			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"0"),
+			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
 			box, ui::xy_pair{ 0,0 }, fmt, lm
 		);
 		lm.finish_current_line();
@@ -1129,19 +1188,83 @@ namespace governments {
 		lm.finish_current_line();
 	}
 
+
 	template<typename lb_type>
 	void movements_listbox::populate_list(lb_type & lb, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			auto movement_range = get_range(ws.w.population_s.pop_movement_arrays, ws.w.nation_s.nations.get<nation::active_movements>(player));
-			lb.update_list(std::begin(movement_range), std::end(movement_range));
+			auto other_cores = nations::get_owned_cores(ws, player);
+
+			std::vector<movement_gui_item, concurrent_allocator<movement_gui_item>> temp;
+
+			for(int32_t i = int32_t(ws.s.issues_m.party_issues_options_count); i < int32_t(ws.s.issues_m.tracked_options_count); ++i) {
+				auto val = ws.w.nation_s.local_movement_support.get(player, issues::option_tag(issues::option_tag::value_base_t(i)));
+				auto rad = ws.w.nation_s.local_movement_radicalism.get(player, issues::option_tag(issues::option_tag::value_base_t(i)));
+
+				if(val >= 1.0f) {
+					temp.push_back(
+						movement_gui_item{ 
+							issues::option_tag(issues::option_tag::value_base_t(i)), 
+							cultures::national_tag(),
+							val,
+							rad,
+							true
+						});
+				}
+			}
+			for(auto c : other_cores) {
+				if(auto val = ws.w.population_s.independance_movement_support[c]; val >= 1.0f) {
+					temp.push_back(
+						movement_gui_item{
+							issues::option_tag(),
+							c,
+							val,
+							0.0f,
+							false
+						});
+				}
+			}
+
+			lb.update_list(std::begin(temp), std::end(temp));
 		}
 	}
+
 
 	template<typename lb_type>
 	void rebels_listbox::populate_list(lb_type & lb, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			auto rebel_range = get_range(ws.w.population_s.rebel_faction_arrays, ws.w.nation_s.nations.get<nation::active_rebel_factions>(player));
-			lb.update_list(std::begin(rebel_range), std::end(rebel_range));
+			auto other_cores = nations::get_owned_cores(ws, player);
+
+			std::vector<rebel_gui_item, concurrent_allocator<rebel_gui_item>> temp;
+
+			for(int32_t i = 0; i < int32_t(ws.s.population_m.rebel_types.size()); ++i) {
+				auto val = ws.w.nation_s.local_rebel_support.get(player, population::rebel_type_tag(population::rebel_type_tag::value_base_t(i)));
+				
+				if(val >= 1.0f) {
+					temp.push_back(
+						rebel_gui_item{
+							population::rebel_type_tag(population::rebel_type_tag::value_base_t(i)),
+							cultures::national_tag(),
+							player,
+							val,
+							true
+						});
+				}
+			}
+
+			for(auto c : other_cores) {
+				if(auto val = ws.w.population_s.independance_rebel_support[c]; val >= 1.0f) {
+					temp.push_back(
+						rebel_gui_item{
+							population::rebel_type_tag(),
+							c,
+							player,
+							val,
+							false
+						});
+				}
+			}
+
+			lb.update_list(std::begin(temp), std::end(temp));
 		}
 	}
 

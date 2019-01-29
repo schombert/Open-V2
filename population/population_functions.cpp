@@ -137,7 +137,7 @@ namespace population {
 		change_pop_type(ws, this_pop, is_mine ? ws.s.economy_m.rgo_mine.workers[0].type : ws.s.economy_m.rgo_farm.workers[0].type);
 	}
 
-	void trigger_rising(world_state&, rebel_faction_tag, nations::country_tag) {
+	void trigger_rising(world_state&, rebel_type_tag, nations::country_tag) {
 		// todo
 	}
 

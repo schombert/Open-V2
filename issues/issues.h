@@ -80,6 +80,7 @@ namespace issues {
 		int16_t administrative_multiplier = 0;
 
 		text_data::text_tag name;
+		text_data::text_tag movement_name;
 		triggers::trigger_tag allow;
 		modifiers::national_modifier_tag modifier;
 

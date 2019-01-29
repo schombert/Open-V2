@@ -80,8 +80,12 @@ public:
 			if((i_pop.flags & population::pop_type::factory_worker) != 0)
 				obj.factory_workers.push_back(i_pop.id);
 		}
-		for(auto const& i_rebel : obj.rebel_types)
+		obj.nationalist_rebels = population::rebel_type_tag();
+		for(auto const& i_rebel : obj.rebel_types) {
 			obj.named_rebel_type_index.emplace(i_rebel.name, i_rebel.id);
+			if(!is_valid_index(obj.nationalist_rebels) && (i_rebel.flags & population::rebel_type::defection_culture) != 0)
+				obj.nationalist_rebels = i_rebel.id;
+		}
 		obj.count_poptypes = static_cast<uint32_t>(obj.pop_types.size());
 	}
 

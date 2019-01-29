@@ -725,5 +725,6 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::no_other_naval_base] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "no_other_naval_base");
 		s.fixed_ui_text[fixed_ui::is_coastal] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "is_coastal");
 		s.fixed_ui_text[fixed_ui::bankrupcy_warning] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "bankrupcy_warning");
+		s.fixed_ui_text[fixed_ui::nationalist_movement] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NATIONALIST_LIBERATION_MOVEMENT");
 	}
 }

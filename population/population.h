@@ -372,6 +372,8 @@ namespace population {
 		pop_type_tag soldier;
 		pop_type_tag officer;
 
+		rebel_type_tag nationalist_rebels;
+
 		uint32_t count_poptypes = 0;
 	};
 

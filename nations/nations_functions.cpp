@@ -1396,4 +1396,17 @@ namespace nations {
 		else
 			return 1.0f;
 	}
+
+	boost::container::flat_set<cultures::national_tag, std::less<cultures::national_tag>, concurrent_allocator<cultures::national_tag>>  get_owned_cores(world_state const& ws, country_tag n) {
+		boost::container::flat_set<cultures::national_tag, std::less<cultures::national_tag>, concurrent_allocator<cultures::national_tag>>  return_value;
+		return_value.reserve(ws.s.culture_m.national_tags.size());
+
+		for_each_province(ws, n, [&ws, &return_value](provinces::province_tag p) {
+			auto pcores = get_range(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container.get<province_state::cores>(p));
+			for(auto c : pcores)
+				return_value.insert(c);
+		});
+		return_value.erase(ws.w.nation_s.nations.get<nation::tag>(n));
+		return return_value;
+	}
 }

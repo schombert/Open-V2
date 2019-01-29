@@ -130,7 +130,7 @@ namespace nations {
 	void unmake_slave_state(world_state& ws, state_tag this_state);
 
 	bool are_states_physically_neighbors(world_state const& ws, state_tag a, state_tag b);
-	
+	boost::container::flat_set<cultures::national_tag, std::less<cultures::national_tag>, concurrent_allocator<cultures::national_tag>> get_owned_cores(world_state const& ws, country_tag n);
 
 	template<typename F>
 	void for_each_province(world_state const& ws, state_tag s, F&& f);
