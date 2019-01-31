@@ -1135,7 +1135,7 @@ namespace governments {
 				}
 			};
 
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.population_m.rebel_types[type].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 3);
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.population_m.rebel_types[type].label, fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 3);
 			lm.finish_current_line();
 		}
 	}

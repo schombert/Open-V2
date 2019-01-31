@@ -12,7 +12,7 @@ namespace cultures {
 		for(auto pt : tags_in_province) {
 			auto holder = ws.w.culture_s.tags_to_holders[pt];
 			auto holder_pc = ws.w.nation_s.nations.get<nation::primary_culture>(holder);
-			auto exists = bool(ws.w.nation_s.nations.get<nation::capital>(holder));
+			auto exists = bool(ws.w.nation_s.nations.get<nation::current_capital>(holder));
 
 			if(holder_pc == c) {
 				auto ccount = get_size(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[pt].core_provinces);

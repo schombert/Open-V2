@@ -36,6 +36,9 @@ namespace population {
 	void calculate_promotion_and_demotion_qnty(world_state& ws);
 	void calculate_migration_qnty(world_state& ws);
 
+	void update_independance_movements(world_state& ws);
+	void update_local_rebels_and_movements(world_state& ws);
+
 	template<typename T>
 	auto desired_needs_spending(world_state const& ws, T p) -> decltype(ve::widen_to<T>(0.0f));
 	template<typename T>

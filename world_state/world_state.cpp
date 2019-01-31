@@ -26,6 +26,9 @@ void world_state_non_ai_update(world_state & ws) {
 	population::calculate_promotion_and_demotion_qnty(ws);
 	population::calculate_migration_qnty(ws);
 
+	population::update_independance_movements(ws);
+	population::update_local_rebels_and_movements(ws);
+
 	economy::economy_update_tick(ws);
 
 	provinces::update_province_demographics(ws);

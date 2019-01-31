@@ -73,7 +73,7 @@ public:
 		obj.groups_to_tags.resize(obj.culture_groups.size());
 		obj.tags_to_groups.resize(obj.national_tags.size());
 		for(auto& i : obj.tags_to_groups)
-			i = culture_group_tag();
+			i = cultures::culture_group_tag();
 
 		for(auto const& i_culture_group : obj.culture_groups) {
 			obj.named_culture_group_index.emplace(i_culture_group.name, i_culture_group.id);

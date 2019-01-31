@@ -247,6 +247,7 @@ namespace population {
 		float occupation_mult = 1.0f;
 
 		text_data::text_tag name;
+		text_data::text_tag label;
 
 		modifiers::factor_tag spawn_chance;
 		modifiers::factor_tag will_rise;

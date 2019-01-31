@@ -959,7 +959,7 @@ namespace ve {
 			store.set(index++, v);
 
 			if(index == ve::vector_size) {
-				value += ve::select(accumulated_mask, F::operator()(store), 0.0f);
+				value = value + ve::select(accumulated_mask, F::operator()(store), 0.0f);
 				index = 0;
 				accumulated_mask = 0;
 			}
@@ -967,7 +967,7 @@ namespace ve {
 		}
 		float flush() {
 			if(index != 0) {
-				value += ve::select(accumulated_mask, F::operator()(store), 0.0f);
+				value = value + ve::select(accumulated_mask, F::operator()(store), 0.0f);
 				index = 0;
 			}
 

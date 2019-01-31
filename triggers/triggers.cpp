@@ -200,7 +200,7 @@ namespace triggers {
 		const auto source_size = 1 + get_trigger_payload_size(tval);
 		auto sub_units_start = tval + 2 + trigger_scope_data_payload(tval[0]);
 
-		typename primary_type::return_type result;
+		typename primary_type::return_type result = typename primary_type::return_type();
 		while(sub_units_start < tval + source_size) {
 			result = result | test_trigger_generic<primary_type, this_type, from_type>(sub_units_start, ws, primary_slot, this_slot, from_slot);
 
