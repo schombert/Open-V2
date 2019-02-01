@@ -59,8 +59,8 @@ void serialization::serializer<population::population_state>::serialize_object(s
 		serialize_array(output, demographics.data(), sz);
 	});
 
-	serialize_array(output, obj.independance_rebel_support.data(), ws.s.culture_m.national_tags.size());
-	serialize_array(output, obj.independance_movement_support.data(), ws.s.culture_m.national_tags.size());
+	serialize_array(output, obj.independence_rebel_support.data(), ws.s.culture_m.national_tags.size());
+	serialize_array(output, obj.independence_movement_support.data(), ws.s.culture_m.national_tags.size());
 }
 
 void serialization::serializer<population::population_state>::deserialize_object(std::byte const *& input, population::population_state & obj, world_state & ws) {
@@ -91,8 +91,8 @@ void serialization::serializer<population::population_state>::deserialize_object
 		obj.pops.set<pop::size>(p, ws.w.population_s.pop_demographics.get(p, population::total_population_tag));
 	});
 
-	deserialize_array(input, obj.independance_rebel_support.data(), ws.s.culture_m.national_tags.size());
-	deserialize_array(input, obj.independance_movement_support.data(), ws.s.culture_m.national_tags.size());
+	deserialize_array(input, obj.independence_rebel_support.data(), ws.s.culture_m.national_tags.size());
+	deserialize_array(input, obj.independence_movement_support.data(), ws.s.culture_m.national_tags.size());
 }
 
 size_t serialization::serializer<population::population_state>::size(population::population_state const & obj, world_state const & ws) {
@@ -469,7 +469,7 @@ namespace population {
 			env.under_construction.demands_enforced_trigger = t;
 		}
 		void set_occupation_mult(float v) {
-			env.under_construction.occupation_mult = v;
+			env.under_construction.occupation_multiplier = v;
 		}
 	};
 
@@ -494,7 +494,7 @@ namespace population {
 			env.population_m.migration_chance = t;
 		}
 		void set_colonialmigration_chance(modifiers::factor_tag t) {
-			env.population_m.colonialmigration_chance = t;
+			env.population_m.colonial_migration_chance = t;
 		}
 		void set_emigration_chance(modifiers::factor_tag t) {
 			env.population_m.emigration_chance = t;
@@ -854,7 +854,7 @@ MEMBER_FDEF(population::rebel_reader, set_siege_won_effect, "siege_won_effect");
 MEMBER_FDEF(population::rebel_reader, set_siege_won_trigger, "siege_won_trigger");
 MEMBER_FDEF(population::rebel_reader, set_demands_enforced_effect, "demands_enforced_effect");
 MEMBER_FDEF(population::rebel_reader, set_demands_enforced_trigger, "demands_enforced_trigger");
-MEMBER_FDEF(population::rebel_reader, set_occupation_mult, "occupation_mult");
+MEMBER_FDEF(population::rebel_reader, set_occupation_mult, "occupation_multiplier");
 
 MEMBER_FDEF(population::rebel_types_pre_parse_file, add_rebel_type, "add_rebel_type");
 MEMBER_FDEF(population::poptypes_file, set_promotion_chance, "promotion_chance");
@@ -944,7 +944,7 @@ namespace population {
 		MEMBER_ASSOCIATION("defection", "defection", token_from_rh)
 		MEMBER_ASSOCIATION("independence", "independence", token_from_rh)
 		MEMBER_ASSOCIATION("defect_delay", "defect_delay", value_from_rh<uint8_t>)
-		MEMBER_ASSOCIATION("occupation_mult", "occupation_mult", value_from_rh<float>)
+		MEMBER_ASSOCIATION("occupation_multiplier", "occupation_multiplier", value_from_rh<float>)
 		MEMBER_TYPE_EXTERN("siege_won_trigger", "siege_won_trigger", triggers::trigger_tag, read_rebel_siege_won_trigger)
 		MEMBER_TYPE_EXTERN("siege_won_effect", "siege_won_effect", triggers::trigger_tag, read_rebel_siege_won_effect)
 		MEMBER_TYPE_EXTERN("demands_enforced_trigger", "demands_enforced_trigger", triggers::trigger_tag, read_rebel_demands_enforced_trigger)

@@ -1444,8 +1444,8 @@ namespace economy {
 				return;
 			}
 
-			auto state_owner_tarrifs = ws.w.nation_s.nations.get<nation::f_tarrifs>(state_owner);
-			auto state_owner_tarrif_mask = ws.w.nation_s.nations.get<nation::statewise_tarrif_mask>(state_owner);
+			auto state_owner_tarrifs = ws.w.nation_s.nations.get<nation::f_tariffs>(state_owner);
+			auto state_owner_tarrif_mask = ws.w.nation_s.nations.get<nation::statewise_tariff_mask>(state_owner);
 
 			auto& purchases_for_state = ws.w.nation_s.state_purchases.get(si, tag);
 			auto sz = get_size(ws.w.economy_s.purchasing_arrays, purchases_for_state);
@@ -1535,8 +1535,8 @@ namespace economy {
 			if(!is_valid_index(state_owner)) // skip remainder for this state
 				return;
 
-			auto state_owner_tarrifs = ws.w.nation_s.nations.get<nation::f_tarrifs>(state_owner);
-			auto state_owner_tarrif_mask = ws.w.nation_s.nations.get<nation::statewise_tarrif_mask>(state_owner);
+			auto state_owner_tarrifs = ws.w.nation_s.nations.get<nation::f_tariffs>(state_owner);
+			auto state_owner_tarrif_mask = ws.w.nation_s.nations.get<nation::statewise_tariff_mask>(state_owner);
 			auto purchases_for_state = ws.w.nation_s.state_purchases.get(si, tag);
 
 			auto values = get_view(ws.w.economy_s.purchasing_arrays, purchases_for_state);

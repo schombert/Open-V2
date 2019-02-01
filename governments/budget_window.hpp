@@ -425,7 +425,7 @@ namespace governments {
 	void tariff_percent::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::percent, ws.w.nation_s.nations.get<nation::f_tarrifs>(player));
+			put_value_in_buffer(local_buffer, display_type::percent, ws.w.nation_s.nations.get<nation::f_tariffs>(player));
 			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
 			lm.finish_current_line();
 		}
@@ -598,7 +598,7 @@ namespace governments {
 	template<typename W>
 	void tariff_amount::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			economy::money_qnty_type tarrif_income = economy::project_player_tarrif_income(ws, ws.w.nation_s.nations.get<nation::f_tarrifs>(player));
+			economy::money_qnty_type tarrif_income = economy::project_player_tarrif_income(ws, ws.w.nation_s.nations.get<nation::f_tariffs>(player));
 				
 			char16_t local_buffer[16];
 			put_value_in_buffer(local_buffer, display_type::currency, tarrif_income);
@@ -622,7 +622,7 @@ namespace governments {
 				ws.w.local_player_data.collected_middle_tax * ws.w.nation_s.nations.get<nation::f_middle_tax>(player) +
 				ws.w.local_player_data.collected_rich_tax * ws.w.nation_s.nations.get<nation::f_rich_tax>(player);
 
-			auto tariff = economy::project_player_tarrif_income(ws, ws.w.nation_s.nations.get<nation::f_tarrifs>(player));
+			auto tariff = economy::project_player_tarrif_income(ws, ws.w.nation_s.nations.get<nation::f_tariffs>(player));
 
 			char16_t local_buffer[16];
 			put_value_in_buffer(local_buffer, display_type::currency, tax_income + ex_total + tariff);

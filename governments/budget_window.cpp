@@ -155,7 +155,7 @@ namespace governments {
 			sb.set_limits(ws.w.gui_m,
 				int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::min_tariff>(player)),
 				ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_tariff>(player) > 0 ? int32_t(100.0f * ws.w.nation_s.modifier_values.get<modifiers::national_offsets::max_tariff>(player)) : 100);
-			sb.update_position(int32_t(ws.w.nation_s.nations.get<nation::f_tarrifs>(player) * 100.0f));
+			sb.update_position(int32_t(ws.w.nation_s.nations.get<nation::f_tariffs>(player) * 100.0f));
 		}
 	}
 	void poor_needs_pie_chart::update(ui::piechart<poor_needs_pie_chart>& pie, world_state & ws) {
@@ -378,7 +378,7 @@ namespace governments {
 			auto m_amount = economy::military_spending_amount(ws, player);
 			auto s_amount = economy::social_spending_amount(ws, player);
 			auto a_amount = economy::administrative_spending_amount(ws, player);
-			auto tariff_costs = std::max(-1.0f * economy::project_player_tarrif_income(ws, ws.w.nation_s.nations.get<nation::f_tarrifs>(player)), float(0));
+			auto tariff_costs = std::max(-1.0f * economy::project_player_tarrif_income(ws, ws.w.nation_s.nations.get<nation::f_tariffs>(player)), float(0));
 			auto interest = economy::calculate_daily_debt_payment(ws, player) / 2.0f;
 			auto b_amount = economy::daily_national_building_cost(ws, player) * ws.w.nation_s.nations.get<nation::f_projects_stockpile_spending>(player);
 
@@ -430,7 +430,7 @@ namespace governments {
 			auto ptax_income = ws.w.local_player_data.collected_poor_tax * ws.w.nation_s.nations.get<nation::f_poor_tax>(player);
 			auto mtax_income = ws.w.local_player_data.collected_middle_tax * ws.w.nation_s.nations.get<nation::f_middle_tax>(player);
 			auto rtax_income = ws.w.local_player_data.collected_rich_tax * ws.w.nation_s.nations.get<nation::f_rich_tax>(player);
-			economy::money_qnty_type tariff_income = std::max(economy::project_player_tarrif_income(ws, ws.w.nation_s.nations.get<nation::f_tarrifs>(player)), float(0));
+			economy::money_qnty_type tariff_income = std::max(economy::project_player_tarrif_income(ws, ws.w.nation_s.nations.get<nation::f_tariffs>(player)), float(0));
 			auto total = ptax_income + mtax_income + rtax_income + tariff_income;
 			
 			if(total <= 0)

@@ -1212,7 +1212,7 @@ namespace governments {
 				}
 			}
 			for(auto c : other_cores) {
-				if(auto val = ws.w.population_s.independance_movement_support[c]; val >= 1.0f) {
+				if(auto val = ws.w.population_s.independence_movement_support[c]; val >= 1.0f) {
 					temp.push_back(
 						movement_gui_item{
 							issues::option_tag(),
@@ -1252,7 +1252,7 @@ namespace governments {
 			}
 
 			for(auto c : other_cores) {
-				if(auto val = ws.w.population_s.independance_rebel_support[c]; val >= 1.0f) {
+				if(auto val = ws.w.population_s.independence_rebel_support[c]; val >= 1.0f) {
 					temp.push_back(
 						rebel_gui_item{
 							population::rebel_type_tag(),

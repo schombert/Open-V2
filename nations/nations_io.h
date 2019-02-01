@@ -126,7 +126,7 @@ class serialization::tagged_serializer<nation::member_states, T> : public serial
 template<typename T>
 class serialization::tagged_serializer<nation::influencers, T> : public serialization::discard_serializer<T> {};
 template<typename T>
-class serialization::tagged_serializer<nation::statewise_tarrif_mask, T> : public serialization::discard_serializer<T> {};
+class serialization::tagged_serializer<nation::statewise_tariff_mask, T> : public serialization::discard_serializer<T> {};
 template<typename T>
 class serialization::tagged_serializer<nation::armies, T> : public serialization::discard_serializer<T> {};
 template<typename T>

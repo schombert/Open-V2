@@ -86,7 +86,7 @@ namespace nations {
 		ws.w.nation_s.nations.set<nation::f_administrative_spending>(new_nation, 0.1f);
 		ws.w.nation_s.nations.set<nation::f_education_spending>(new_nation, 0.1f);
 		ws.w.nation_s.nations.set<nation::f_military_spending>(new_nation, 0.1f);
-		ws.w.nation_s.nations.set<nation::f_tarrifs>(new_nation, 0.0f);
+		ws.w.nation_s.nations.set<nation::f_tariffs>(new_nation, 0.0f);
 		ws.w.nation_s.nations.set<nation::f_army_stockpile_spending>(new_nation, 0.1f);
 		ws.w.nation_s.nations.set<nation::f_navy_stockpile_spending>(new_nation, 0.1f);
 		ws.w.nation_s.nations.set<nation::f_projects_stockpile_spending>(new_nation, 0.1f);
@@ -186,7 +186,7 @@ namespace nations {
 			remove_item(ws.w.nation_s.truce_arrays, ws.w.nation_s.nations.get<nation::truces>(t->tag), truce{date_tag(), new_nation});
 		clear(ws.w.nation_s.truce_arrays, truces);
 		
-		clear(ws.w.economy_s.purchasing_arrays, ws.w.nation_s.nations.get<nation::statewise_tarrif_mask>(new_nation));
+		clear(ws.w.economy_s.purchasing_arrays, ws.w.nation_s.nations.get<nation::statewise_tariff_mask>(new_nation));
 		clear(ws.w.variable_s.national_flags_arrays, ws.w.nation_s.nations.get<nation::national_flags>(new_nation));
 		clear(ws.w.nation_s.static_modifier_arrays, ws.w.nation_s.nations.get<nation::static_modifiers>(new_nation));
 		clear(ws.w.nation_s.timed_modifier_arrays, ws.w.nation_s.nations.get<nation::timed_modifiers>(new_nation));
@@ -520,7 +520,7 @@ namespace nations {
 		}
 		auto state_max = ws.w.nation_s.states.size();
 		ws.w.nation_s.nations.parallel_for_each([&ws, state_max](nations::country_tag n) {
-			resize(ws.w.economy_s.purchasing_arrays, ws.w.nation_s.nations.get<nation::statewise_tarrif_mask>(n), state_max);
+			resize(ws.w.economy_s.purchasing_arrays, ws.w.nation_s.nations.get<nation::statewise_tariff_mask>(n), state_max);
 		});
 	}
 

@@ -312,7 +312,7 @@ namespace provinces {
 
 			auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(ws.w.nation_s.states.size()) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
 			ws.w.nation_s.nations.parallel_for_each([&ws, aligned_state_max, new_state, new_owner](nations::country_tag n){
-				auto& tfmask = ws.w.nation_s.nations.get<nation::statewise_tarrif_mask>(n);
+				auto& tfmask = ws.w.nation_s.nations.get<nation::statewise_tariff_mask>(n);
 				if(get_size(ws.w.economy_s.purchasing_arrays, tfmask) < aligned_state_max)
 					resize(ws.w.economy_s.purchasing_arrays, tfmask, aligned_state_max);
 				get(ws.w.economy_s.purchasing_arrays, tfmask, new_state) = nations::tarrif_multiplier(ws, n, new_owner);

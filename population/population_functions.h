@@ -2,6 +2,7 @@
 #include "common\\common.h"
 #include "population.h"
 #include "concurrency_tools\\ve.h"
+#include "concurrency_tools/ve_avx2.h"
 
 class world_state;
 
@@ -35,8 +36,9 @@ namespace population {
 	void update_consciousness(world_state& ws);
 	void calculate_promotion_and_demotion_qnty(world_state& ws);
 	void calculate_migration_qnty(world_state& ws);
+	void calculate_assimilation_qnty(world_state& ws);
 
-	void update_independance_movements(world_state& ws);
+	void update_independence_movements(world_state& ws);
 	void update_local_rebels_and_movements(world_state& ws);
 
 	template<typename T>

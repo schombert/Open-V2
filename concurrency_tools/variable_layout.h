@@ -572,14 +572,14 @@ public:
 	}
 
 	template<typename U>
-	__forceinline auto get_row() const {
+	__forceinline tagged_array_view<typename container_type::template value_type<U> const, tag_type> get_row() const {
 		if constexpr(!std::is_same_v<typename container_type::template value_type<U>, bitfield_type>)
 			return tagged_array_view<typename container_type::template value_type<U> const, tag_type>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), ve::to_vector_size(uint32_t(size_used)));
 		else
 			return tagged_array_view<bitfield_type const, tag_type>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), int32_t(uint32_t(size_used + 7) / 8ui32));
 	}
 	template<typename U>
-	__forceinline auto get_row() {
+	__forceinline tagged_array_view<typename container_type::template value_type<U>, tag_type> get_row() {
 		if constexpr(!std::is_same_v<typename container_type::template value_type<U>, bitfield_type>)
 			return tagged_array_view<typename container_type::template value_type<U>, tag_type>(container_type::template get_row<U>(*ptr), ve::to_vector_size(uint32_t(size_used)));
 		else

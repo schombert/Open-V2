@@ -26,12 +26,11 @@ namespace population{
 namespace pop {
 	struct size_change_from_combat; // combat losses
 	struct size_change_from_growth; // growth & starvation
-	struct size_change_from_promotion; // promotion
-	struct size_change_from_demotion; // demotion
-	struct size_change_from_assimilation; //cultural and religion change
+	struct size_change_from_type_change_away; // promotion & demotion away
+	struct size_change_from_assimilation_away; //cultural and religion change
 	struct size_change_from_local_migration; //moving from one state to another
 	struct size_change_from_colonial_migration; //moving from one state to another
-	struct size_change_from_emmigration; //moving from one country to anther
+	struct size_change_from_emigration; //moving from one country to anther
 	struct money;
 	struct needs_satisfaction;
 	struct literacy;
@@ -63,12 +62,11 @@ namespace pop {
 		size, float,
 		size_change_from_combat, float,
 		size_change_from_growth, float,
-		size_change_from_promotion, float,
-		size_change_from_demotion, float,
-		size_change_from_assimilation, float,
+		size_change_from_type_change_away, float,
+		size_change_from_assimilation_away, float,
 		size_change_from_local_migration, float,
 		size_change_from_colonial_migration, float,
-		size_change_from_emmigration, float,
+		size_change_from_emigration, float,
 
 		political_interest, float,
 		social_interest, float,
@@ -244,7 +242,7 @@ namespace population {
 		static constexpr uint16_t independence_any = 0x5000;
 		static constexpr uint16_t independence_pan_nationalist = 0x6000;
 
-		float occupation_mult = 1.0f;
+		float occupation_multiplier = 1.0f;
 
 		text_data::text_tag name;
 		text_data::text_tag label;
@@ -300,8 +298,8 @@ namespace population {
 	class population_state {
 	public:
 
-		tagged_vector<float, cultures::national_tag, padded_aligned_allocator_64<float>, true> independance_rebel_support;
-		tagged_vector<float, cultures::national_tag, padded_aligned_allocator_64<float>, true> independance_movement_support;
+		tagged_vector<float, cultures::national_tag, padded_aligned_allocator_64<float>, true> independence_rebel_support;
+		tagged_vector<float, cultures::national_tag, padded_aligned_allocator_64<float>, true> independence_movement_support;
 
 		pop::container pops;
 		//rebel_faction::container rebel_factions;
@@ -351,7 +349,7 @@ namespace population {
 		modifiers::factor_tag promotion_chance;
 		modifiers::factor_tag demotion_chance;
 		modifiers::factor_tag migration_chance;
-		modifiers::factor_tag colonialmigration_chance;
+		modifiers::factor_tag colonial_migration_chance;
 		modifiers::factor_tag emigration_chance;
 		modifiers::factor_tag assimilation_chance;
 		modifiers::factor_tag conversion_chance;

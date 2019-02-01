@@ -61,14 +61,15 @@ namespace ve {
 		__forceinline mask_vector(bool a, bool b, bool c, bool d, bool e, bool f, bool g, bool h) :
 			value(_mm256_castsi256_ps(_mm256_setr_epi32(-int32_t(a), -int32_t(b), -int32_t(c), -int32_t(d), -int32_t(e), -int32_t(f), -int32_t(g), -int32_t(h)))) {}
 		__forceinline mask_vector(vbitfield_type b) {
-			auto repeated_mask = _mm256_set1_epi32(b.v);
+			const auto repeated_mask = _mm256_set1_epi32(b.v);
 			const auto mask_filter = _mm256_setr_epi32(
 				0x00000001, 0x00000002, 0x00000004, 0x00000008,
 				0x00000010, 0x00000020, 0x00000040, 0x00000080);
 			value = _mm256_castsi256_ps(_mm256_xor_si256(_mm256_and_si256(repeated_mask, mask_filter), _mm256_set1_epi32(-1)));
 		}
 		__forceinline constexpr mask_vector(__m256 v) : value(v) {}
-		__forceinline constexpr operator __m256() {
+		__forceinline constexpr operator __m256() const
+		{
 			return value;
 		}
 		__forceinline bool operator[](uint32_t i) const noexcept {
@@ -85,14 +86,15 @@ namespace ve {
 		__forceinline constexpr fp_vector(__m256 v) : value(v) {}
 		__forceinline fp_vector(float v) : value(_mm256_set1_ps(v)) {}
 		__forceinline fp_vector(float a, float b, float c, float d, float e, float f, float g, float h) : value(_mm256_setr_ps(a, b, c, d, e, f, g, h)) {}
-		__forceinline constexpr operator __m256() {
+		__forceinline constexpr operator __m256() const {
 			return value;
 		}
-		__forceinline float reduce() {
+		__forceinline float reduce() const
+		{
 			// source: Peter Cordes
-			__m128 vlow = _mm256_castps256_ps128(value);
-			__m128 vhigh = _mm256_extractf128_ps(value, 1); // high 128
-			__m128 v = _mm_add_ps(vlow, vhigh);  // add the low 128
+			const __m128 vlow = _mm256_castps256_ps128(value);
+			const __m128 vhigh = _mm256_extractf128_ps(value, 1); // high 128
+			const __m128 v = _mm_add_ps(vlow, vhigh);  // add the low 128
 
 			__m128 shuf = _mm_movehdup_ps(v); // broadcast elements 3,1 to 2,0
 			__m128 sums = _mm_add_ps(v, shuf);
@@ -100,7 +102,7 @@ namespace ve {
 			sums = _mm_add_ss(sums, shuf);
 			return _mm_cvtss_f32(sums);
 		}
-		__forceinline const float operator[](uint32_t i) const noexcept {
+		__forceinline float operator[](uint32_t i) const noexcept {
 			return value.m256_f32[i];
 		}
 		__forceinline void set(uint32_t i, float v) noexcept {
@@ -120,7 +122,8 @@ namespace ve {
 		__forceinline int_vector(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f, int32_t g, int32_t h) : value(_mm256_setr_epi32(a, b, c, d, e, f, g, h)) {}
 		__forceinline int_vector(uint32_t a, uint32_t b, uint32_t c, uint32_t d, uint32_t e, uint32_t f, uint32_t g, uint32_t h) :
 			value(_mm256_setr_epi32(int32_t(a), int32_t(b), int32_t(c), int32_t(d), int32_t(e), int32_t(f), int32_t(g), int32_t(h))) {}
-		__forceinline constexpr operator __m256i() {
+		__forceinline constexpr operator __m256i() const
+		{
 			return value;
 		}
 
@@ -148,7 +151,8 @@ namespace ve {
 				_mm256_setr_epi32(to_index(a), to_index(b), to_index(c), to_index(d), to_index(e), to_index(f), to_index(g), to_index(h))
 			) {}
 
-		__forceinline constexpr operator __m256i() {
+		__forceinline constexpr operator __m256i() const
+		{
 			return value;
 		}
 
@@ -191,7 +195,8 @@ namespace ve {
 		__forceinline tagged_vector(tag_type a, tag_type b, tag_type c, tag_type d, tag_type e, tag_type f, tag_type g, tag_type h) :
 			value(_mm256_setr_epi32(a.value, b.value, c.value, d.value, e.value, f.value, g.value, h.value)) {}
 
-		__forceinline constexpr operator __m256i() {
+		__forceinline constexpr operator __m256i() const
+		{
 			return value;
 		}
 
@@ -228,6 +233,7 @@ namespace ve {
 		template<typename T>
 		std::enable_if_t<std::is_constructible_v<tag_type, T> && !std::is_same_v<tag_type, T>, contiguous_tags_base&> operator=(contiguous_tags_base<T> v) noexcept {
 			value = v.value;
+			return *this;
 		}
 
 		__forceinline tag_type operator[](uint32_t i) const noexcept {
@@ -260,6 +266,7 @@ namespace ve {
 		template<typename T>
 		std::enable_if_t<std::is_constructible_v<tag_type, T> && !std::is_same_v<tag_type, T>, contiguous_tags&> operator=(contiguous_tags<T> v) noexcept {
 			contiguous_tags_base<tag_type>::value = v.value;
+			return *this;
 		}
 	};
 
@@ -281,6 +288,7 @@ namespace ve {
 		template<typename T>
 		std::enable_if_t<std::is_constructible_v<tag_type, T> && !std::is_same_v<tag_type, T>, unaligned_contiguous_tags&> operator=(unaligned_contiguous_tags<T> v) noexcept {
 			contiguous_tags_base<tag_type>::value = v.value;
+			return *this;
 		}
 	};
 
@@ -305,6 +313,7 @@ namespace ve {
 		std::enable_if_t<std::is_constructible_v<tag_type, T> && !std::is_same_v<tag_type, T>, partial_contiguous_tags&> operator=(partial_contiguous_tags<T> v) noexcept {
 			contiguous_tags_base<tag_type>::value = v.value;
 			subcount = v.subcount;
+			return *this;
 		}
 	};
 
@@ -810,7 +819,7 @@ namespace ve {
 	}
 
 	__forceinline fp_vector select(vbitfield_type mask, fp_vector a, fp_vector b) {
-		auto repeated_mask = _mm256_set1_epi32(mask.v);
+		const auto repeated_mask = _mm256_set1_epi32(mask.v);
 		const auto mask_filter = _mm256_setr_epi32(
 			0x00000001, 0x00000002, 0x00000004, 0x00000008,
 			0x00000010, 0x00000020, 0x00000040, 0x00000080);
@@ -818,7 +827,7 @@ namespace ve {
 		return _mm256_blendv_ps(b, a, fp_mask);
 	}
 	__forceinline mask_vector widen_mask(vbitfield_type mask) {
-		auto repeated_mask = _mm256_set1_epi32(mask.v);
+		const auto repeated_mask = _mm256_set1_epi32(mask.v);
 		const auto mask_filter = _mm256_setr_epi32(
 			0x00000001, 0x00000002, 0x00000004, 0x00000008,
 			0x00000010, 0x00000020, 0x00000040, 0x00000080);
@@ -1072,8 +1081,8 @@ namespace ve {
 	__forceinline mask_vector load(int_vector indices, bitfield_type const* source) {
 		const auto byte_indices = _mm256_srai_epi32(indices, 3);
 		const auto bit_indices = _mm256_and_si256(indices, _mm256_set1_epi32(0x00000007));
-		auto gathered = _mm256_i32gather_epi32((int32_t const*)(source), byte_indices, 1);
-		auto shifted = _mm256_and_si256(_mm256_srlv_epi32(gathered, bit_indices), _mm256_set1_epi32(0x00000001));
+		auto const gathered = _mm256_i32gather_epi32((int32_t const*)(source), byte_indices, 1);
+		auto const shifted = _mm256_and_si256(_mm256_srlv_epi32(gathered, bit_indices), _mm256_set1_epi32(0x00000001));
 		return _mm256_castsi256_ps(_mm256_sub_epi32(_mm256_setzero_si256(), shifted));
 	}
 

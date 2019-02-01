@@ -104,7 +104,7 @@ public:
 		serialize(output, obj.promotion_chance);
 		serialize(output, obj.demotion_chance);
 		serialize(output, obj.migration_chance);
-		serialize(output, obj.colonialmigration_chance);
+		serialize(output, obj.colonial_migration_chance);
 		serialize(output, obj.emigration_chance);
 		serialize(output, obj.assimilation_chance);
 		serialize(output, obj.conversion_chance);
@@ -136,7 +136,7 @@ public:
 		deserialize(input, obj.promotion_chance);
 		deserialize(input, obj.demotion_chance);
 		deserialize(input, obj.migration_chance);
-		deserialize(input, obj.colonialmigration_chance);
+		deserialize(input, obj.colonial_migration_chance);
 		deserialize(input, obj.emigration_chance);
 		deserialize(input, obj.assimilation_chance);
 		deserialize(input, obj.conversion_chance);
@@ -170,7 +170,7 @@ public:
 		deserialize(input, obj.promotion_chance);
 		deserialize(input, obj.demotion_chance);
 		deserialize(input, obj.migration_chance);
-		deserialize(input, obj.colonialmigration_chance);
+		deserialize(input, obj.colonial_migration_chance);
 		deserialize(input, obj.emigration_chance);
 		deserialize(input, obj.assimilation_chance);
 		deserialize(input, obj.conversion_chance);
@@ -205,7 +205,7 @@ public:
 			serialize_size(obj.promotion_chance) +
 			serialize_size(obj.demotion_chance) +
 			serialize_size(obj.migration_chance) +
-			serialize_size(obj.colonialmigration_chance) +
+			serialize_size(obj.colonial_migration_chance) +
 			serialize_size(obj.emigration_chance) +
 			serialize_size(obj.assimilation_chance) +
 			serialize_size(obj.conversion_chance) +

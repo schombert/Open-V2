@@ -52,7 +52,7 @@ namespace ve {
 
 	template<typename value_base, typename zero_is_null, typename individuator>
 	__forceinline bool load(tag_type<value_base, zero_is_null, individuator> e, bitfield_type const* source) {
-		return bit_vector_test(source, uint32_t(e.value));
+		return bit_vector_test(source, to_index(e));
 	}
 	__forceinline bool load(int32_t e, bitfield_type const* source) {
 		return bit_vector_test(source, uint32_t(e));

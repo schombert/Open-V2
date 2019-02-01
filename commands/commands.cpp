@@ -109,7 +109,7 @@ namespace commands {
 						mod_values.get<modifiers::national_offsets::max_tariff>(c.nation_for) > 0
 						?  mod_values.get<modifiers::national_offsets::max_tariff>(c.nation_for)
 						: 1.0f, min_v, 1.0f);
-					ws.w.nation_s.nations.set<nation::f_tarrifs>(c.nation_for, std::clamp(float(c.tarrifs)/100.0f, min_v, max_v));
+					ws.w.nation_s.nations.set<nation::f_tariffs>(c.nation_for, std::clamp(float(c.tarrifs)/100.0f, min_v, max_v));
 				}
 				ws.w.nation_s.nations.set<nation::f_army_stockpile_spending>(c.nation_for, std::clamp(float(c.army_stockpile_spending)/100.0f, 0.0f, 1.0f));
 				ws.w.nation_s.nations.set<nation::f_navy_stockpile_spending>(c.nation_for, std::clamp(float(c.navy_stockpile_spending)/100.0f, 0.0f, 1.0f));
@@ -179,7 +179,7 @@ namespace commands {
 						mod_values.get<modifiers::national_offsets::max_tariff>(c.nation_for) > 0
 						? mod_values.get<modifiers::national_offsets::max_tariff>(c.nation_for)
 						: 1.0f, min_v, 1.0f);
-					ws.w.nation_s.nations.set<nation::f_tarrifs>(c.nation_for, std::clamp(float(c.tarrifs)/100.0f, min_v, max_v));
+					ws.w.nation_s.nations.set<nation::f_tariffs>(c.nation_for, std::clamp(float(c.tarrifs)/100.0f, min_v, max_v));
 				}
 					return;
 				case set_budget_type::army_stockpile_spending:

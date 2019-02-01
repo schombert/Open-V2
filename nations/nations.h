@@ -32,7 +32,7 @@ namespace nations {
 		country_tag target;
 
 		uint8_t amount = 0ui8; // up to 100
-		int8_t level = 2i8; // 0 to 5 (5 = in sphere, 2 = netural)
+		int8_t level = 2i8; // 0 to 5 (5 = in sphere, 2 = neutral)
 
 		bool operator<(influence const& other)  const noexcept { return target < other.target; }
 		bool operator==(influence const& other) const noexcept { return target == other.target; }
@@ -68,7 +68,7 @@ namespace nation {
 	struct f_administrative_spending;
 	struct f_education_spending;
 	struct f_military_spending;
-	struct f_tarrifs;
+	struct f_tariffs;
 	//struct debt_setting;
 	struct f_army_stockpile_spending;
 	struct f_navy_stockpile_spending;
@@ -163,7 +163,7 @@ namespace nation {
 	struct national_flags;
 	struct static_modifiers;
 	struct timed_modifiers;
-	struct statewise_tarrif_mask;
+	struct statewise_tariff_mask;
 	struct generals;
 	struct admirals;
 	struct armies;
@@ -236,7 +236,7 @@ namespace nation {
 		national_flags, set_tag<variables::national_flag_tag>,
 		static_modifiers, multiset_tag<modifiers::national_modifier_tag>,
 		timed_modifiers, multiset_tag<nations::timed_national_modifier>,
-		statewise_tarrif_mask, array_tag<economy::money_qnty_type, nations::state_tag, true>,
+		statewise_tariff_mask, array_tag<economy::money_qnty_type, nations::state_tag, true>,
 		generals, array_tag<military::leader_tag, int32_t, false>,
 		admirals, array_tag<military::leader_tag, int32_t, false>,
 		armies, array_tag<military::army_tag, int32_t, false>,
@@ -295,7 +295,7 @@ namespace nation {
 		f_administrative_spending, float,
 		f_education_spending, float,
 		f_military_spending, float,
-		f_tarrifs, float,
+		f_tariffs, float,
 		f_army_stockpile_spending, float,
 		f_navy_stockpile_spending, float,
 		f_projects_stockpile_spending, float,

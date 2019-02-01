@@ -194,7 +194,7 @@ public:
 		"	general = yes\r\n"
 		"	smart = yes\r\n"
 		"	unit_transfer = no	\r\n"
-		"	occupation_mult = 5.0\r\n"
+		"	occupation_multiplier = 5.0\r\n"
 		"	will_rise = {\r\n"
 		"		factor = 0.1\r\n"
 		"		modifier = {\r\n"
@@ -429,7 +429,7 @@ TEST(population_tests, test_poptype_file_read) {
 
 	EXPECT_NE(modifiers::factor_tag(), s.population_m.emigration_chance);
 	EXPECT_NE(modifiers::factor_tag(), s.population_m.demotion_chance);
-	EXPECT_EQ(modifiers::factor_tag(), s.population_m.colonialmigration_chance);
+	EXPECT_EQ(modifiers::factor_tag(), s.population_m.colonial_migration_chance);
 }
 
 TEST(population_tests, test_individual_poptype) {
@@ -575,7 +575,7 @@ TEST(population_tests, read_rebels) {
 	EXPECT_EQ(uint16_t(rebel_type::area_nation | rebel_type::defection_none | rebel_type::independence_none | rebel_type::break_alliance_on_win), s.population_m.rebel_types[rebel_type_tag(0)].flags);
 	EXPECT_EQ(rebel_type_tag(0), s.population_m.rebel_types[rebel_type_tag(0)].id);
 	EXPECT_EQ(tag_from_text(s.ideologies_m.named_ideology_index, text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "ideology_a")), s.population_m.rebel_types[rebel_type_tag(0)].ideology);
-	EXPECT_EQ(5.0f, s.population_m.rebel_types[rebel_type_tag(0)].occupation_mult);
+	EXPECT_EQ(5.0f, s.population_m.rebel_types[rebel_type_tag(0)].occupation_multiplier);
 	EXPECT_EQ(5ui8, s.population_m.rebel_types[rebel_type_tag(0)].icon);
 	EXPECT_NE(modifiers::factor_tag(), s.population_m.rebel_types[rebel_type_tag(0)].will_rise);
 	EXPECT_NE(modifiers::factor_tag(), s.population_m.rebel_types[rebel_type_tag(0)].movement_evaluation);
@@ -588,7 +588,7 @@ TEST(population_tests, read_rebels) {
 	EXPECT_EQ(uint16_t(rebel_type::area_religion | rebel_type::defection_pan_nationalist | rebel_type::independence_culture_group | rebel_type::restrict_by_ideology | rebel_type::restrict_by_religion), s.population_m.rebel_types[rebel_type_tag(1)].flags);
 	EXPECT_EQ(rebel_type_tag(1), s.population_m.rebel_types[rebel_type_tag(1)].id);
 	EXPECT_EQ(ideologies::ideology_tag(), s.population_m.rebel_types[rebel_type_tag(1)].ideology);
-	EXPECT_EQ(1.0f, s.population_m.rebel_types[rebel_type_tag(1)].occupation_mult);
+	EXPECT_EQ(1.0f, s.population_m.rebel_types[rebel_type_tag(1)].occupation_multiplier);
 	EXPECT_EQ(3ui8, s.population_m.rebel_types[rebel_type_tag(1)].icon);
 	EXPECT_EQ(modifiers::factor_tag(), s.population_m.rebel_types[rebel_type_tag(1)].will_rise);
 	EXPECT_EQ(modifiers::factor_tag(), s.population_m.rebel_types[rebel_type_tag(1)].movement_evaluation);
