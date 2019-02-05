@@ -854,7 +854,7 @@ MEMBER_FDEF(population::rebel_reader, set_siege_won_effect, "siege_won_effect");
 MEMBER_FDEF(population::rebel_reader, set_siege_won_trigger, "siege_won_trigger");
 MEMBER_FDEF(population::rebel_reader, set_demands_enforced_effect, "demands_enforced_effect");
 MEMBER_FDEF(population::rebel_reader, set_demands_enforced_trigger, "demands_enforced_trigger");
-MEMBER_FDEF(population::rebel_reader, set_occupation_mult, "occupation_multiplier");
+MEMBER_FDEF(population::rebel_reader, set_occupation_mult, "occupation_mult");
 
 MEMBER_FDEF(population::rebel_types_pre_parse_file, add_rebel_type, "add_rebel_type");
 MEMBER_FDEF(population::poptypes_file, set_promotion_chance, "promotion_chance");
@@ -944,7 +944,7 @@ namespace population {
 		MEMBER_ASSOCIATION("defection", "defection", token_from_rh)
 		MEMBER_ASSOCIATION("independence", "independence", token_from_rh)
 		MEMBER_ASSOCIATION("defect_delay", "defect_delay", value_from_rh<uint8_t>)
-		MEMBER_ASSOCIATION("occupation_multiplier", "occupation_multiplier", value_from_rh<float>)
+		MEMBER_ASSOCIATION("occupation_mult", "occupation_mult", value_from_rh<float>)
 		MEMBER_TYPE_EXTERN("siege_won_trigger", "siege_won_trigger", triggers::trigger_tag, read_rebel_siege_won_trigger)
 		MEMBER_TYPE_EXTERN("siege_won_effect", "siege_won_effect", triggers::trigger_tag, read_rebel_siege_won_effect)
 		MEMBER_TYPE_EXTERN("demands_enforced_trigger", "demands_enforced_trigger", triggers::trigger_tag, read_rebel_demands_enforced_trigger)

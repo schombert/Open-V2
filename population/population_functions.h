@@ -41,6 +41,8 @@ namespace population {
 	void update_independence_movements(world_state& ws);
 	void update_local_rebels_and_movements(world_state& ws);
 
+	pop_tag find_in_province(world_state const& ws, provinces::province_tag prov, pop_type_tag type, cultures::culture_tag c, cultures::religion_tag r);
+
 	template<typename T>
 	auto desired_needs_spending(world_state const& ws, T p) -> decltype(ve::widen_to<T>(0.0f));
 	template<typename T>

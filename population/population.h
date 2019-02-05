@@ -29,7 +29,6 @@ namespace pop {
 	struct size_change_from_type_change_away; // promotion & demotion away
 	struct size_change_from_assimilation_away; //cultural and religion change
 	struct size_change_from_local_migration; //moving from one state to another
-	struct size_change_from_colonial_migration; //moving from one state to another
 	struct size_change_from_emigration; //moving from one country to anther
 	struct money;
 	struct needs_satisfaction;
@@ -65,7 +64,6 @@ namespace pop {
 		size_change_from_type_change_away, float,
 		size_change_from_assimilation_away, float,
 		size_change_from_local_migration, float,
-		size_change_from_colonial_migration, float,
 		size_change_from_emigration, float,
 
 		political_interest, float,
@@ -77,50 +75,6 @@ namespace pop {
 		consciousness, float
 	> ;
 }
-
-/*namespace rebel_faction {
-	struct controlled_provinces;
-	struct member_pops;
-	struct independence_tag;
-	struct culture;
-	struct flags;
-	struct religion;
-	struct ideology;
-	struct type;
-
-	using container = variable_layout_tagged_vector < population::rebel_faction_tag, 4'000,
-
-		controlled_provinces, set_tag<provinces::province_tag>,
-		member_pops, set_tag<population::pop_tag>,
-		independence_tag, cultures::national_tag,
-		culture, cultures::culture_tag,
-		flags, uint16_t,
-		religion, cultures::religion_tag,
-		ideology, ideologies::ideology_tag,
-		type, population::rebel_type_tag
-	> ;
-}*/
-
-/*namespace pop_movement {
-	struct total_population_support;
-	struct radicalism;
-	struct radicalism_cache;
-
-	struct member_pops;
-	struct liberation_country;
-	struct associated_issue;
-	struct type;
-
-	using container = variable_layout_tagged_vector < population::movement_tag, 4'000,
-		total_population_support, float,
-		radicalism, float,
-		radicalism_cache, float,
-		member_pops, set_tag<population::pop_tag>,
-		liberation_country, cultures::national_tag,
-		associated_issue, issues::option_tag,
-		type, uint8_t
-	>;
-}*/
 
 namespace population {
 	constexpr population::rebel_faction_tag to_rebel_faction_tag(rebel_type_tag t) {
