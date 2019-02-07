@@ -184,7 +184,7 @@ namespace population {
 				const auto pop_type = tag_from_text(
 					env.ws.s.population_m.named_pop_type_index,
 					text_data::get_thread_safe_existing_text_handle(env.ws.s.gui_m.text_data_sequences, p.first.start, p.first.end));
-				auto new_pop = make_new_pop(env.ws);
+				auto new_pop = allocate_new_pop(env.ws);
 				
 				env.ws.w.population_s.pops.set<pop::culture>(new_pop, p.second.culture);
 				env.ws.w.population_s.pops.set<pop::religion>(new_pop, p.second.religion);

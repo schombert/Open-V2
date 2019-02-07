@@ -2188,8 +2188,8 @@ namespace economy {
 			}
 		}
 
-		std::uniform_real_distribution<money_qnty_type> dist(money_qnty_type(0), profit_sum);
-		auto chosen = dist(get_local_generator());
+		std::uniform_real_distribution<money_qnty_type> const dist(money_qnty_type(0), profit_sum);
+		auto const chosen = dist(get_local_generator());
 
 		auto lb = std::lower_bound(result.begin(), result.end(), chosen, [](std::pair<artisan_type_tag, money_qnty_type> p, money_qnty_type v) { return p.second < v; });
 		if(lb != result.end())
