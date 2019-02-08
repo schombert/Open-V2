@@ -5904,6 +5904,10 @@ namespace triggers {
 			ve::contiguous_tags<union_tag>(primary_offset.value), ve::contiguous_tags<union_tag>(this_offset.value), ve::contiguous_tags<union_tag>(from_offset.value));
 	}
 
+	ve::mask_vector test_semi_contiguous_trigger(uint16_t const* tval, world_state const& ws, ve::contiguous_tags_base<union_tag> primary_offset, const_parameter this_slot, const_parameter from_slot) {
+		return test_trigger_generic<contiguous_type, single_type, single_type>(tval, ws,
+			ve::contiguous_tags<union_tag>(primary_offset.value), this_slot, from_slot);
+	}
 #ifdef __llvm__
 #pragma clang diagnostic pop
 #endif

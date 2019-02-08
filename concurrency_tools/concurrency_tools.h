@@ -201,7 +201,9 @@ public:
 template <typename T>
 struct concurrent_allocator {
 	using value_type = T;
-	constexpr concurrent_allocator() noexcept {}
+	constexpr concurrent_allocator() noexcept = default;
+	constexpr concurrent_allocator(concurrent_allocator const&) noexcept = default;
+	constexpr concurrent_allocator(concurrent_allocator&&) noexcept = default;
 	template <typename U>
 	constexpr concurrent_allocator(const concurrent_allocator<U>&) noexcept {}
 	T* allocate(size_t n);
@@ -211,7 +213,9 @@ struct concurrent_allocator {
 template <typename T>
 struct concurrent_aligned_allocator{
 	using value_type = T;
-	constexpr concurrent_aligned_allocator() noexcept {}
+	constexpr concurrent_aligned_allocator() noexcept = default;
+	constexpr concurrent_aligned_allocator(concurrent_aligned_allocator const&) noexcept = default;
+	constexpr concurrent_aligned_allocator(concurrent_aligned_allocator&&) noexcept = default;
 	template <typename U>
 	constexpr concurrent_aligned_allocator(const concurrent_aligned_allocator<U>&) noexcept {}
 	T* allocate(size_t n);
@@ -236,6 +240,9 @@ public:
 
 	T* data() const {
 		return buffer;
+	}
+	T* begin() const {
+		return buffer + int32_t(padded);
 	}
 	T& operator[](index_type i) const {
 		return buffer[to_index(i) + int32_t(padded)];
@@ -271,12 +278,15 @@ public:
 	~moveable_concurrent_cache_aligned_buffer();
 
 	moveable_concurrent_cache_aligned_buffer(moveable_concurrent_cache_aligned_buffer const&) = delete;
-	moveable_concurrent_cache_aligned_buffer(moveable_concurrent_cache_aligned_buffer&&);
+	moveable_concurrent_cache_aligned_buffer(moveable_concurrent_cache_aligned_buffer&&) noexcept;
 	moveable_concurrent_cache_aligned_buffer& operator=(moveable_concurrent_cache_aligned_buffer const&) = delete;
-	moveable_concurrent_cache_aligned_buffer& operator=(moveable_concurrent_cache_aligned_buffer&&);
+	moveable_concurrent_cache_aligned_buffer& operator=(moveable_concurrent_cache_aligned_buffer&&) noexcept;
 
 	T* data() const {
 		return buffer;
+	}
+	T* begin() const {
+		return buffer + int32_t(padded);
 	}
 	T& operator[](index_type i) const {
 		return buffer[to_index(i) + int32_t(padded)];

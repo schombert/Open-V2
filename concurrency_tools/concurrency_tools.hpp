@@ -1329,14 +1329,14 @@ moveable_concurrent_cache_aligned_buffer<T, index_type, padded>::~moveable_concu
 }
 
 template<typename T, typename index_type, bool padded>
-moveable_concurrent_cache_aligned_buffer<T, index_type, padded>::moveable_concurrent_cache_aligned_buffer(moveable_concurrent_cache_aligned_buffer&& o) :
+moveable_concurrent_cache_aligned_buffer<T, index_type, padded>::moveable_concurrent_cache_aligned_buffer(moveable_concurrent_cache_aligned_buffer&& o) noexcept :
 	allocated_address(o.allocated_address), buffer(o.buffer), _size(o._size) {
 	o.allocated_address = nullptr;
 	o.buffer = nullptr;
 }
 
 template<typename T, typename index_type, bool padded>
-moveable_concurrent_cache_aligned_buffer<T, index_type, padded>& moveable_concurrent_cache_aligned_buffer<T, index_type, padded>::operator=(moveable_concurrent_cache_aligned_buffer&& o) {
+moveable_concurrent_cache_aligned_buffer<T, index_type, padded>& moveable_concurrent_cache_aligned_buffer<T, index_type, padded>::operator=(moveable_concurrent_cache_aligned_buffer&& o) noexcept {
 	if(allocated_address)
 		concurrent_free_wrapper(allocated_address);
 

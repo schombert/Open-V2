@@ -19,7 +19,7 @@ namespace population {
 		provinces::province_tag location,
 		pop_type_tag t,
 		cultures::culture_tag c,
-		cultures::religion_tag r)
+		cultures::religion_tag r);
 	void init_pop_demographics(world_state& ws, pop_tag p, float size);
 	bool is_pop_accepted(world_state const& ws, pop_tag p, nations::country_tag n);
 	pop_tag get_unassigned_soldier_in_province(world_state const& ws, provinces::province_tag prov);

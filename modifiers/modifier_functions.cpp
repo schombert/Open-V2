@@ -589,7 +589,7 @@ namespace modifiers {
 	float test_additive_factor(factor_modifier const& f, world_state const& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot) {
 		float accumulated = f.factor;
 		for(uint32_t i = 0; i < f.data_length; ++i) {
-			auto segment = ws.s.modifiers_m.factor_data[f.data_offset + i];
+			auto const segment = ws.s.modifiers_m.factor_data[f.data_offset + i];
 			if(triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(segment.condition), ws, primary_slot, primary_slot, from_slot))
 				accumulated += segment.factor;
 		}
@@ -603,7 +603,7 @@ namespace modifiers {
 	float test_multiplicative_factor(factor_modifier const& f, world_state const& ws, triggers::const_parameter primary_slot, triggers::const_parameter from_slot) {
 		float accumulated = f.factor;
 		for(uint32_t i = 0; i < f.data_length; ++i) {
-			auto segment = ws.s.modifiers_m.factor_data[f.data_offset + i];
+			auto const segment = ws.s.modifiers_m.factor_data[f.data_offset + i];
 			if(triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(segment.condition), ws, primary_slot, primary_slot, from_slot))
 				accumulated *= segment.factor;
 		}
@@ -615,8 +615,8 @@ namespace modifiers {
 
 		ve::fp_vector accumulated = f.factor;
 		for(uint32_t i = 0; i < f.data_length; ++i) {
-			auto segment = ws.s.modifiers_m.factor_data[f.data_offset + i];
-			auto result = triggers::test_contiguous_trigger(ws.s.trigger_m.trigger_data.data() + to_index(segment.condition), ws, primary_offset, primary_offset, from_offset);
+			auto const segment = ws.s.modifiers_m.factor_data[f.data_offset + i];
+			auto const result = triggers::test_contiguous_trigger(ws.s.trigger_m.trigger_data.data() + to_index(segment.condition), ws, primary_offset, primary_offset, from_offset);
 			accumulated = ve::select(result, accumulated * segment.factor, accumulated);
 		}
 		return accumulated;
@@ -626,8 +626,31 @@ namespace modifiers {
 
 		ve::fp_vector accumulated = f.factor;
 		for(uint32_t i = 0; i < f.data_length; ++i) {
-			auto segment = ws.s.modifiers_m.factor_data[f.data_offset + i];
-			auto result = triggers::test_contiguous_trigger(ws.s.trigger_m.trigger_data.data() + to_index(segment.condition), ws, primary_offset, primary_offset, from_offset);
+			auto const segment = ws.s.modifiers_m.factor_data[f.data_offset + i];
+			auto const result = triggers::test_contiguous_trigger(ws.s.trigger_m.trigger_data.data() + to_index(segment.condition), ws, primary_offset, primary_offset, from_offset);
+			accumulated = ve::select(result, accumulated + segment.factor, accumulated);
+		}
+		return accumulated;
+	}
+
+	ve::fp_vector test_semi_contiguous_multiplicative_factor(factor_tag t, world_state const& ws, ve::contiguous_tags_base<union_tag> primary_offset, triggers::const_parameter this_slot, triggers::const_parameter from_slot) {
+		auto& f = ws.s.modifiers_m.factor_modifiers[t];
+
+		ve::fp_vector accumulated = f.factor;
+		for(uint32_t i = 0; i < f.data_length; ++i) {
+			auto const segment = ws.s.modifiers_m.factor_data[f.data_offset + i];
+			auto const result = triggers::test_semi_contiguous_trigger(ws.s.trigger_m.trigger_data.data() + to_index(segment.condition), ws, primary_offset, this_slot, from_slot);
+			accumulated = ve::select(result, accumulated * segment.factor, accumulated);
+		}
+		return accumulated;
+	}
+	ve::fp_vector test_semi_contiguous_additive_factor(factor_tag t, world_state const& ws, ve::contiguous_tags_base<union_tag> primary_offset, triggers::const_parameter this_slot, triggers::const_parameter from_slot) {
+		auto& f = ws.s.modifiers_m.factor_modifiers[t];
+
+		ve::fp_vector accumulated = f.factor;
+		for(uint32_t i = 0; i < f.data_length; ++i) {
+			auto const segment = ws.s.modifiers_m.factor_data[f.data_offset + i];
+			auto const result = triggers::test_semi_contiguous_trigger(ws.s.trigger_m.trigger_data.data() + to_index(segment.condition), ws, primary_offset, this_slot, from_slot);
 			accumulated = ve::select(result, accumulated + segment.factor, accumulated);
 		}
 		return accumulated;

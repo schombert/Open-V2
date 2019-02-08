@@ -2,6 +2,7 @@
 #include "common\\common.h"
 #include "modifiers.h"
 #include "triggers\\triggers.h"
+#include "concurrency_tools\\ve.h"
 
 class world_state;
 
@@ -40,6 +41,9 @@ namespace modifiers {
 
 	ve::fp_vector test_contiguous_multiplicative_factor(factor_tag t, world_state const& ws, ve::contiguous_tags_base<union_tag> primary_offset, ve::contiguous_tags_base<union_tag> from_offset);
 	ve::fp_vector test_contiguous_additive_factor(factor_tag t, world_state const& ws, ve::contiguous_tags_base<union_tag> primary_offset, ve::contiguous_tags_base<union_tag> from_offset);
+
+	ve::fp_vector test_semi_contiguous_multiplicative_factor(factor_tag t, world_state const& ws, ve::contiguous_tags_base<union_tag> primary_offset, triggers::const_parameter this_slot, triggers::const_parameter from_slot);
+	ve::fp_vector test_semi_contiguous_additive_factor(factor_tag t, world_state const& ws, ve::contiguous_tags_base<union_tag> primary_offset, triggers::const_parameter this_slot, triggers::const_parameter from_slot);
 
 	int32_t maximum_national_focuses(world_state const& ws, nations::country_tag this_nation);
 	float extract_value_from_definition(int32_t offset, modifier_definition const& def);

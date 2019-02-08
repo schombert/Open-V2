@@ -1130,22 +1130,94 @@ namespace population {
 		return pop_tag();
 	}
 
-	struct new_pop_key {
+	struct pop_migration_key {
 		cultures::culture_tag c;
 		cultures::religion_tag r;
+		pop_type_tag t;
+	};
+	struct pop_migration_data {
+		moveable_concurrent_cache_aligned_buffer<float, nations::country_tag, true> nation_weights;
+		moveable_concurrent_cache_aligned_buffer<float, provinces::province_tag, true> province_weights;
+		moveable_concurrent_cache_aligned_buffer<float, nations::country_tag, true> sum_province_weights_by_nation;
+		float nation_weights_sum = -1.0f;
+
+		pop_migration_data(world_state const& ws, pop_type_tag p_type, pop_tag from_pop) : nation_weights(ws.w.nation_s.nations.vector_size()),
+			province_weights(ws.w.province_s.province_state_container.vector_size()),
+			sum_province_weights_by_nation(ws.w.nation_s.nations.vector_size()) {
+
+			auto const mt_trigger = ws.s.population_m.pop_types[p_type].migration_target;
+			auto const vs = ws.w.province_s.province_state_container.vector_size();
+			for(int32_t i = 0; i < int32_t(vs); i += ve::vector_size) {
+				ve::contiguous_tags<provinces::province_tag> off(i);
+				ve::store(
+					off,
+					province_weights.view(int32_t(vs)),
+					modifiers::test_semi_contiguous_multiplicative_factor(mt_trigger, ws, off, from_pop, from_pop));
+			}
+
+		}
+		nations::country_tag choose_nation(world_state const& ws, pop_type_tag p_type, pop_tag from_pop) {
+			auto const vs = ws.w.nation_s.nations.vector_size();
+
+			if(nation_weights_sum < 0.0f) {
+				auto const mt_trigger = ws.s.population_m.pop_types[p_type].country_migration_target;
+				for(int32_t i = 0; i < int32_t(vs); i += ve::vector_size) {
+					ve::contiguous_tags<nations::country_tag> off(i);
+					ve::store(
+						off,
+						nation_weights.view(int32_t(vs)),
+						modifiers::test_semi_contiguous_multiplicative_factor(mt_trigger, ws, off, from_pop, from_pop));
+				}
+				float temp_sum = 0.0f;
+				for(int32_t i = 0; i < int32_t(vs); ++i) {
+					temp_sum += nation_weights[nations::country_tag(nations::country_tag::value_base_t(i))];
+					nation_weights[nations::country_tag(nations::country_tag::value_base_t(i))] = temp_sum;
+				}
+				nation_weights_sum = temp_sum;
+			}
+
+			std::uniform_real_distribution<float> const dist(0.0f, nation_weights_sum);
+			auto const chosen = dist(get_local_generator());
+
+			auto const chosen_position = std::lower_bound(nation_weights.begin(), nation_weights.begin() + vs, chosen);
+			return (chosen_position < nation_weights.begin() + vs)
+				       ? nations::country_tag(nations::country_tag::value_base_t(chosen_position - nation_weights.begin()))
+				       : nations::country_tag();
+		}
+		provinces::province_tag choose_province_from_nation(world_state const& ws, nations::country_tag n) {
+			auto p_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(n));
+
+			if(sum_province_weights_by_nation[n] == 0.0f) {
+				sum_province_weights_by_nation[n] = std::transform_reduce(
+					p_range.begin,
+					p_range.end,
+					0.0000001f,
+					std::plus<>(),
+					[&province_weights](provinces::province_tag p) { return province_weights[p]; });
+			}
+			auto const total_weights = sum_province_weights_by_nation[n];
+			std::uniform_real_distribution<float> const dist(0.0f, total_weights);
+			auto chosen = dist(get_local_generator());
+			for(auto p : p_range) {
+				if(chosen < province_weights[p])
+					return p;
+				else
+					chosen -= province_weights[p];
+			}
+			return provinces::province_tag();
+		}
 	};
 }
 
 namespace std {
 	template<>
-	struct hash<population::new_pop_key> {
-		size_t operator()(population::new_pop_key k) const noexcept {
+	struct hash<population::pop_migration_key> {
+		size_t operator()(population::pop_migration_key k) const noexcept {
 			// from: https://github.com/martinus/robin-hood-hashing/blob/master/src/include/robin_hood.h
-			uint32_t const v = (uint32_t(k.c.value) << 8) | uint32_t(k.r.value);
-			return static_cast<uint64_t>(
-				(static_cast<unsigned __int128>(0xfa1371431ef43ae1ui64) * static_cast<unsigned __int128>(v)) >> 64u
-				)
-				* 0xfe9b65e7da1b3187ui64;
+			uint32_t const v = (uint32_t(k.c.value) << 8) ^ (uint32_t(k.t.value) << 3) ^ uint32_t(k.r.value);
+
+			__int64 const high_out = __mulh(0xfa1371431ef43ae1ui64, v);
+			return static_cast<uint64_t>(high_out) * 0xfe9b65e7da1b3187ui64;
 		}
 	};
 }
@@ -1184,7 +1256,7 @@ namespace population {
 
 			if(promotion_val > 0.0f) {
 				// promote
-				for(int32_t k = 0; k < ws.s.population_m.count_poptypes; ++k) {
+				for(int32_t k = 0; k < int32_t(ws.s.population_m.count_poptypes); ++k) {
 					pop_type_tag pt = pop_type_tag(pop_type_tag::value_base_t(k));
 					auto const trigger = ws.s.population_m.promote_to.get(pop_j_type, pt);
 					float const chance = trigger ? std::max(
@@ -1199,7 +1271,7 @@ namespace population {
 				}
 			} else {
 				// demote
-				for(int32_t k = 0; k < ws.s.population_m.count_poptypes; ++k) {
+				for(int32_t k = 0; k < int32_t(ws.s.population_m.count_poptypes); ++k) {
 					pop_type_tag pt = pop_type_tag(pop_type_tag::value_base_t(k));
 					auto const trigger = ws.s.population_m.demote_to.get(pop_j_type, pt);
 					float const chance = trigger ? std::max(
@@ -1315,6 +1387,8 @@ namespace population {
 			});
 		}, concurrency::static_partitioner());
 
+		std::unordered_map<pop_migration_key, pop_migration_data> migration_map;
+
 		for(int32_t i = chunk_size * chunk_index; i < int32_t(std::min(chunk_size * (chunk_index + 1), provinces_count)); ++i) {
 			provinces::province_tag t = provinces::province_tag(provinces::province_tag::value_base_t(i));
 			auto const province_owner = ws.w.province_s.province_state_container.get<province_state::owner>(t);
@@ -1378,11 +1452,56 @@ namespace population {
 				auto const migration_val = ws.w.population_s.pops.get<pop::size_change_from_local_migration>(pop_j);
 				if(migration_val > 0.0f) {
 					// move within nation
+
+					auto const emplace_result = migration_map.try_emplace(pop_migration_key{ pop_j_culture, pop_j_religion, pop_j_type }, ws, pop_j_type, pop_j);
+					auto const dest_province = emplace_result.first->second.choose_province_from_nation(ws, province_owner);
+
+					if(dest_province) {
+						auto const target_pop = find_in_province(ws, dest_province, pop_j_type, pop_j_culture, pop_j_religion);
+						if(target_pop) {
+							ws.w.population_s.pops.get<pop::size_change_from_growth>(target_pop) += migration_val;
+						} else {
+							make_new_pop(
+								ws,
+								migration_val,
+								pop_j_militancy,
+								pop_j_consciousness,
+								pop_j_literacy,
+								dest_province,
+								pop_j_type,
+								pop_j_culture,
+								pop_j_religion);
+						}
+					}
 				}
 
 				auto const emigration_val = ws.w.population_s.pops.get<pop::size_change_from_emigration>(pop_j);
 				if(emigration_val > 0.0f) {
 					// move outside nation
+
+					auto const emplace_result = migration_map.try_emplace(pop_migration_key{ pop_j_culture, pop_j_religion, pop_j_type }, ws, pop_j_type, pop_j);
+					auto const dest_nation = emplace_result.first->second.choose_nation(ws, pop_j_type, pop_j);
+				
+					if(dest_nation) {
+						auto const dest_province = emplace_result.first->second.choose_province_from_nation(ws, dest_nation);
+						if(dest_province) {
+							auto const target_pop = find_in_province(ws, dest_province, pop_j_type, pop_j_culture, pop_j_religion);
+							if(target_pop) {
+								ws.w.population_s.pops.get<pop::size_change_from_growth>(target_pop) += emigration_val;
+							} else {
+								make_new_pop(
+									ws,
+									emigration_val,
+									pop_j_militancy,
+									pop_j_consciousness,
+									pop_j_literacy,
+									dest_province,
+									pop_j_type,
+									pop_j_culture,
+									pop_j_religion);
+							}
+						}
+					}
 				}
 				/*
 				struct size_change_from_type_change_away; // promotion & demotion away
