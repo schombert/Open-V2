@@ -40,5 +40,6 @@ namespace provinces {
 	double distance(world_state const& ws, province_tag a, province_tag b); // in km
 	void path_wise_distance_cost(world_state const& ws, province_tag a, float* results, province_tag* p_results); // in ~km
 	void fill_distance_arrays(world_state& ws);
-	
+
+	void ready_initial_province_statistics(world_state& ws);
 }

@@ -33,6 +33,7 @@ namespace population {
 	bool is_dominant_ideology(world_state const& ws, pop_tag id, ideologies::ideology_tag opt);
 	void change_pop_type(world_state& ws, pop_tag this_pop, pop_type_tag new_type);
 	void change_pop_size(world_state& ws, pop_tag this_pop, int32_t new_size);
+	void grow_pop_immediate(world_state& ws, pop_tag this_pop, float size_change);
 	void change_pop_location(world_state& ws, pop_tag this_pop, provinces::province_tag new_location);
 	void remove_pop_from_province(world_state& ws, pop_tag this_pop);
 	void free_slave(world_state& ws, pop_tag this_pop);

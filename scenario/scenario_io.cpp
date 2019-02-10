@@ -91,7 +91,6 @@ namespace scenario {
 		technologies::read_technologies(tech_state, s);
 
 		governments::setup_party_rules(s);
-
 		// stage 4
 
 		commit_pending_triggered_events(s, ecm, root);

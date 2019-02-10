@@ -191,6 +191,7 @@ namespace population {
 				env.ws.w.population_s.pops.set<pop::type>(new_pop, pop_type);
 				set_militancy_direct(env.ws, new_pop, p.second.militancy);
 				env.ws.w.population_s.pops.set<pop::location>(new_pop, env.prov);
+				env.ws.w.population_s.pops.set<pop::needs_satisfaction>(new_pop, 2.0f);
 
 				init_pop_demographics(env.ws, new_pop, float(p.second.size));
 

@@ -44,13 +44,13 @@ namespace population {
 
 		change_pop_type(ws, new_id, t);
 		init_pop_demographics(ws, new_id, initial_size);
-		ws.w.population_s.pops.set<pop::size_change_from_growth>(new_id, initial_size);
 
 		add_item(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(location), new_id);
-
 		ws.w.population_s.pops.set<pop::is_accepted>(new_id, is_pop_accepted(ws, new_id, prov_owner));
+		ws.w.population_s.pops.set<pop::size_change_from_growth>(new_id, initial_size);
 
 		default_initialize_issues_and_ideology(ws, new_id);
+
 		return new_id;
 	}
 
@@ -144,6 +144,12 @@ namespace population {
 		// todo: fix employment
 		ws.w.population_s.pop_demographics.get(this_pop, total_population_tag) = float(new_size);
 		ws.w.population_s.pops.set<pop::size>(this_pop, float(new_size));
+	}
+
+	void grow_pop_immediate(world_state& ws, pop_tag this_pop, float size_change) {
+		// todo: fix employment
+		ws.w.population_s.pop_demographics.get(this_pop, total_population_tag) += size_change;
+		ws.w.population_s.pops.get<pop::size>(this_pop) += size_change;
 	}
 
 	void remove_pop_from_province(world_state& ws, pop_tag this_pop) {
@@ -1189,11 +1195,11 @@ namespace population {
 
 			if(sum_province_weights_by_nation[n] == 0.0f) {
 				sum_province_weights_by_nation[n] = std::transform_reduce(
-					p_range.begin,
-					p_range.end,
+					p_range.first,
+					p_range.second,
 					0.0000001f,
 					std::plus<>(),
-					[&province_weights](provinces::province_tag p) { return province_weights[p]; });
+					[_this = this](provinces::province_tag p) { return _this->province_weights[p]; });
 			}
 			auto const total_weights = sum_province_weights_by_nation[n];
 			std::uniform_real_distribution<float> const dist(0.0f, total_weights);
@@ -1389,6 +1395,21 @@ namespace population {
 
 		std::unordered_map<pop_migration_key, pop_migration_data> migration_map;
 
+		for(int32_t i = chunk_size * chunk_index; i < int32_t(std::min(chunk_size * (chunk_index + 1), provinces_count)); i += ve::vector_size) {
+			ve::contiguous_tags<provinces::province_tag> off(i);
+			auto migration = ws.w.province_s.province_state_container.get_row<province_state::net_migration_growth>();
+			ve::store(off, ws.w.province_s.province_state_container.get_row<province_state::old_migration_growth>(), ve::load(off, migration));
+			ve::store(off, migration, 0.0f);
+
+			auto immigration = ws.w.province_s.province_state_container.get_row<province_state::net_immigration_growth>();
+			ve::store(off, ws.w.province_s.province_state_container.get_row<province_state::old_immigration_growth>(), ve::load(off, immigration));
+			ve::store(off, immigration, 0.0f);
+
+			auto monthly_pop = ws.w.province_s.province_state_container.get_row<province_state::monthly_population>();
+			ve::store(off, ws.w.province_s.province_state_container.get_row<province_state::old_monthly_population>(), ve::load(off, monthly_pop));
+			ve::store(off, monthly_pop, 0.0f);
+		}
+
 		for(int32_t i = chunk_size * chunk_index; i < int32_t(std::min(chunk_size * (chunk_index + 1), provinces_count)); ++i) {
 			provinces::province_tag t = provinces::province_tag(provinces::province_tag::value_base_t(i));
 			auto const province_owner = ws.w.province_s.province_state_container.get<province_state::owner>(t);
@@ -1405,93 +1426,86 @@ namespace population {
 			population::pop_tag* const fixed_range = static_cast<population::pop_tag*>(_alloca(sizeof(population::pop_tag) * fixed_pop_count));
 			std::copy_n(pop_range.first, fixed_pop_count, fixed_range);
 
+			float const province_growth = std::max(0.0f,
+					(provinces::get_life_rating(ws, t) - ws.s.modifiers_m.global_defines.min_life_rating_for_growth) 
+					* ws.s.modifiers_m.global_defines.life_rating_growth_bonus)
+			    + ws.s.modifiers_m.global_defines.base_popgrowth;
+
+			float const owner_growth_mod = ws.w.nation_s.modifier_values.get<modifiers::national_offsets::global_population_growth>(province_owner);
+
+			// first pass : zero growth
+			for(int32_t j = 0; j < fixed_pop_count; ++j) {
+				ws.w.population_s.pops.set<pop::size_change_from_growth>(fixed_range[j], 0.0f);
+			}
+
+			// second pass : calculate growth
 			for(int32_t j = 0; j < fixed_pop_count; ++j) {
 				auto const pop_j = fixed_range[j];
-				auto const pop_j_culture = ws.w.population_s.pops.get<pop::culture>(pop_j);
-				auto const pop_j_religion = ws.w.population_s.pops.get<pop::religion>(pop_j);
 				auto const pop_j_type = ws.w.population_s.pops.get<pop::type>(pop_j);
+				auto const pop_j_size = ws.w.population_s.pops.get<pop::size>(pop_j);
+				auto const pop_j_satisfaction = ws.w.population_s.pops.get<pop::needs_satisfaction>(pop_j);
 
-				auto const pop_j_militancy = ws.w.population_s.pops.get<pop::militancy>(pop_j);
-				auto const pop_j_consciousness = ws.w.population_s.pops.get<pop::consciousness>(pop_j);
-				auto const pop_j_literacy = ws.w.population_s.pops.get<pop::literacy>(pop_j);
+				if(pop_j_type != ws.s.population_m.slave) {
+					auto const pop_j_culture = ws.w.population_s.pops.get<pop::culture>(pop_j);
+					auto const pop_j_religion = ws.w.population_s.pops.get<pop::religion>(pop_j);
 
-				auto const promotion_val = ws.w.population_s.pops.get<pop::size_change_from_type_change_away>(pop_j);
-				if(abs(promotion_val) >= 1.0f) {
-					handle_pop_promotion_and_demotion(
-						ws,
-						t,
-						focused_type,
-						pop_j,
-						pop_j_culture,
-						pop_j_religion,
-						pop_j_type,
-						pop_j_militancy,
-						pop_j_consciousness,
-						pop_j_literacy,
-						promotion_val);
-				}
 
-				auto const assimilation_val = ws.w.population_s.pops.get<pop::size_change_from_assimilation_away>(pop_j);
-				if(assimilation_val > 0.0f) {
-					// change culture or religion
-					handle_pop_assimilation(
-						ws,
-						t,
-						owner_culture,
-						owner_religion,
-						pop_j,
-						pop_j_culture,
-						pop_j_religion,
-						pop_j_type,
-						pop_j_militancy,
-						pop_j_consciousness,
-						pop_j_literacy,
-						assimilation_val);
-				}
+					auto const pop_j_militancy = ws.w.population_s.pops.get<pop::militancy>(pop_j);
+					auto const pop_j_consciousness = ws.w.population_s.pops.get<pop::consciousness>(pop_j);
+					auto const pop_j_literacy = ws.w.population_s.pops.get<pop::literacy>(pop_j);
 
-				auto const migration_val = ws.w.population_s.pops.get<pop::size_change_from_local_migration>(pop_j);
-				if(migration_val > 0.0f) {
-					// move within nation
-
-					auto const emplace_result = migration_map.try_emplace(pop_migration_key{ pop_j_culture, pop_j_religion, pop_j_type }, ws, pop_j_type, pop_j);
-					auto const dest_province = emplace_result.first->second.choose_province_from_nation(ws, province_owner);
-
-					if(dest_province) {
-						auto const target_pop = find_in_province(ws, dest_province, pop_j_type, pop_j_culture, pop_j_religion);
-						if(target_pop) {
-							ws.w.population_s.pops.get<pop::size_change_from_growth>(target_pop) += migration_val;
-						} else {
-							make_new_pop(
-								ws,
-								migration_val,
-								pop_j_militancy,
-								pop_j_consciousness,
-								pop_j_literacy,
-								dest_province,
-								pop_j_type,
-								pop_j_culture,
-								pop_j_religion);
-						}
+					auto const promotion_val = ws.w.population_s.pops.get<pop::size_change_from_type_change_away>(pop_j);
+					if(abs(promotion_val) >= 1.0f) {
+						handle_pop_promotion_and_demotion(
+							ws,
+							t,
+							focused_type,
+							pop_j,
+							pop_j_culture,
+							pop_j_religion,
+							pop_j_type,
+							pop_j_militancy,
+							pop_j_consciousness,
+							pop_j_literacy,
+							promotion_val);
 					}
-				}
 
-				auto const emigration_val = ws.w.population_s.pops.get<pop::size_change_from_emigration>(pop_j);
-				if(emigration_val > 0.0f) {
-					// move outside nation
+					auto const assimilation_val = ws.w.population_s.pops.get<pop::size_change_from_assimilation_away>(pop_j);
+					if(assimilation_val >= 1.0f) {
+						// change culture or religion
+						handle_pop_assimilation(
+							ws,
+							t,
+							owner_culture,
+							owner_religion,
+							pop_j,
+							pop_j_culture,
+							pop_j_religion,
+							pop_j_type,
+							pop_j_militancy,
+							pop_j_consciousness,
+							pop_j_literacy,
+							assimilation_val);
+					}
 
-					auto const emplace_result = migration_map.try_emplace(pop_migration_key{ pop_j_culture, pop_j_religion, pop_j_type }, ws, pop_j_type, pop_j);
-					auto const dest_nation = emplace_result.first->second.choose_nation(ws, pop_j_type, pop_j);
-				
-					if(dest_nation) {
-						auto const dest_province = emplace_result.first->second.choose_province_from_nation(ws, dest_nation);
+					auto const migration_val = ws.w.population_s.pops.get<pop::size_change_from_local_migration>(pop_j);
+					if(migration_val >= 1.0f) {
+						// move within nation
+
+						auto const emplace_result = migration_map.try_emplace(pop_migration_key{ pop_j_culture, pop_j_religion, pop_j_type }, ws, pop_j_type, pop_j);
+						auto const dest_province = emplace_result.first->second.choose_province_from_nation(ws, province_owner);
+
 						if(dest_province) {
+							ws.w.province_s.province_state_container.get<province_state::net_migration_growth>(t) -= migration_val;
+							ws.w.province_s.province_state_container.get<province_state::net_migration_growth>(dest_province) += migration_val;
+
 							auto const target_pop = find_in_province(ws, dest_province, pop_j_type, pop_j_culture, pop_j_religion);
 							if(target_pop) {
-								ws.w.population_s.pops.get<pop::size_change_from_growth>(target_pop) += emigration_val;
+								grow_pop_immediate(ws, target_pop, migration_val);
 							} else {
 								make_new_pop(
 									ws,
-									emigration_val,
+									migration_val,
 									pop_j_militancy,
 									pop_j_consciousness,
 									pop_j_literacy,
@@ -1502,16 +1516,82 @@ namespace population {
 							}
 						}
 					}
+
+					auto const emigration_val = ws.w.population_s.pops.get<pop::size_change_from_emigration>(pop_j);
+					if(emigration_val >= 1.0f) {
+						// move outside nation
+
+						auto const emplace_result = migration_map.try_emplace(pop_migration_key{ pop_j_culture, pop_j_religion, pop_j_type }, ws, pop_j_type, pop_j);
+						auto const dest_nation = emplace_result.first->second.choose_nation(ws, pop_j_type, pop_j);
+
+						if(dest_nation) {
+							auto const dest_province = emplace_result.first->second.choose_province_from_nation(ws, dest_nation);
+							if(dest_province) {
+
+								ws.w.province_s.province_state_container.get<province_state::net_immigration_growth>(t) -= emigration_val;
+								ws.w.province_s.province_state_container.get<province_state::net_immigration_growth>(dest_province) += emigration_val;
+
+								auto const target_pop = find_in_province(ws, dest_province, pop_j_type, pop_j_culture, pop_j_religion);
+								if(target_pop) {
+									grow_pop_immediate(ws, target_pop, emigration_val);
+								} else {
+									make_new_pop(
+										ws,
+										emigration_val,
+										pop_j_militancy,
+										pop_j_consciousness,
+										pop_j_literacy,
+										dest_province,
+										pop_j_type,
+										pop_j_culture,
+										pop_j_religion);
+								}
+							}
+						}
+					}
+					//generic growth
+					auto const modified_prov_growth = (pop_j_satisfaction < ws.s.modifiers_m.global_defines.life_need_starvation_limit)
+						? (province_growth * (1.0f + 4.0f * (pop_j_satisfaction - ws.s.modifiers_m.global_defines.life_need_starvation_limit)))
+						: province_growth;
+					auto const growth_amount = (owner_growth_mod + modified_prov_growth) * pop_j_size;
+					ws.w.population_s.pops.get<pop::size_change_from_growth>(pop_j) += growth_amount;
+
+				} else {
+					// slave case
+					auto const modified_prov_growth = (pop_j_satisfaction < ws.s.modifiers_m.global_defines.life_need_starvation_limit)
+						? (province_growth * (1.0f + 4.0f * (pop_j_satisfaction - ws.s.modifiers_m.global_defines.life_need_starvation_limit)))
+						: province_growth;
+					auto const growth_amount = (owner_growth_mod + modified_prov_growth) * pop_j_size / ws.s.modifiers_m.global_defines.slave_growth_divisor;
+					ws.w.population_s.pops.get<pop::size_change_from_growth>(pop_j) += growth_amount;
 				}
-				/*
-				struct size_change_from_type_change_away; // promotion & demotion away
-				struct size_change_from_assimilation_away; //cultural and religion change
-				struct size_change_from_local_migration; //moving from one state to another
-				struct size_change_from_emigration; //moving from one country to anther
-				 */
 			}
 
+			// third pass: apply growth, remove dead pops -- new pops have size >= 1.0f, thus do not need to be checked and cannot have grown
+			auto& pops_array_ref = ws.w.province_s.province_state_container.get<province_state::pops>(t);
+
+			for(int32_t j = 0; j < fixed_pop_count; ++j) {
+				auto const pop_j = fixed_range[j];
+				grow_pop_immediate(ws, pop_j, total_size_change(ws, pop_j));
+				if(ws.w.population_s.pops.get<pop::size>(pop_j) < 1.0f) {
+					remove_item(ws.w.population_s.pop_arrays, pops_array_ref, pop_j);
+					if(auto a = ws.w.population_s.pops.get<pop::associated_army>(pop_j); a) {
+						remove_item(ws.w.population_s.pop_arrays, ws.w.military_s.armies[a].backing_pops, pop_j);
+					}
+					ws.w.population_s.pops.release(pop_j);
+				}
+			}
 		}
-		
+
+		for(int32_t i = chunk_size * chunk_index; i < int32_t(std::min(chunk_size * (chunk_index + 1), provinces_count)); ++i) {
+			provinces::province_tag t = provinces::province_tag(provinces::province_tag::value_base_t(i));
+			auto const p_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(t));
+			float const total = std::transform_reduce(
+				p_range.first,
+				p_range.second,
+				0.0f,
+				std::plus<>(),
+				[](pop_tag p) { return ws.w.population_s.pops.get<pop::size>(p); });
+			ws.w.province_s.province_state_container.set<province_state::monthly_population>(t, total);
+		}
 	}
 }

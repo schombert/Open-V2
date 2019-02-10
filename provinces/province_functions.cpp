@@ -87,10 +87,10 @@ namespace provinces {
 	}
 
 	void update_province_demographics(world_state& ws) {
-		ve::copy(ve::to_vector_size(uint32_t(ws.s.province_m.province_container.size() + 1)),
-			ws.w.province_s.province_state_container.get_row<province_state::last_population>(),
-			ws.w.province_s.province_state_container.get_row<province_state::total_population>(),
-			ve::par());
+		//ve::copy(ve::to_vector_size(uint32_t(ws.s.province_m.province_container.size() + 1)),
+		//	ws.w.province_s.province_state_container.get_row<province_state::last_population>(),
+		//	ws.w.province_s.province_state_container.get_row<province_state::total_population>(),
+		//	ve::par());
 		recalculate_province_demographics(ws);
 	}
 
@@ -519,5 +519,19 @@ namespace provinces {
 
 	float state_distances_manager::distance(nations::state_tag a, nations::state_tag b) const {
 		return distance_data[(to_index(a) + 1) * last_aligned_state_max + to_index(b) + 1];
+	}
+
+	void ready_initial_province_statistics(world_state& ws) {
+		for(int32_t i = 0; i < ws.s.province_m.province_container.size(); ++i) {
+			provinces::province_tag t = provinces::province_tag(provinces::province_tag::value_base_t(i));
+			auto const p_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(t));
+			float const total = std::transform_reduce(
+				p_range.first,
+				p_range.second,
+				0.0f,
+				std::plus<>(),
+				[](population::pop_tag p) { return ws.w.population_s.pops.get<pop::size>(p); });
+			ws.w.province_s.province_state_container.set<province_state::monthly_population>(t, total);
+		}
 	}
 }

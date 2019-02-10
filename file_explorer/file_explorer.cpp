@@ -351,6 +351,7 @@ int main(int , char **) {
 
 		provinces::recalculate_province_demographics(ws);
 		nations::recalculate_state_nation_demographics(ws);
+		provinces::ready_initial_province_statistics(ws);
 
 		nations::fix_capitals(ws);
 

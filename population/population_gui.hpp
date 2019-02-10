@@ -1780,7 +1780,7 @@ namespace population {
 		if(is_valid_index(w.tag)) {
 			auto growth =
 				ws.w.province_s.province_demographics.get(w.tag, total_population_tag)
-				- ws.w.province_s.province_state_container.get<province_state::last_population>(w.tag);
+				- ws.w.province_s.province_state_container.get<province_state::>(w.tag);
 			if(growth > 0)
 				ico.set_frame(ws.w.gui_m, 0ui32);
 			else if(growth == 0)

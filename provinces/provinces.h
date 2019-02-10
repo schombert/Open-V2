@@ -61,7 +61,6 @@ namespace province_state {
 	struct rebel_controller;
 	struct state_instance;
 	struct orders;
-	struct last_population;
 	struct total_population;
 	struct nationalism;
 	struct siege_progress;
@@ -69,6 +68,13 @@ namespace province_state {
 	struct railroad_upgrade_progress;
 	struct naval_base_upgrade_progress;
 	struct artisan_production_scale;
+
+	struct net_migration_growth;
+	struct net_immigration_growth;
+	struct monthly_population;
+	struct old_migration_growth;
+	struct old_immigration_growth;
+	struct old_monthly_population;
 
 	struct last_controller_change;
 	struct last_immigration;
@@ -138,7 +144,6 @@ namespace province_state {
 		cores, set_tag<cultures::national_tag>,
 
 		rgo_worker_data, economy::worked_instance,
-		last_population, float,
 		total_population, float,
 		last_controller_change, date_tag,
 		last_immigration, date_tag,
@@ -149,6 +154,13 @@ namespace province_state {
 		railroad_upgrade_progress, float,
 		naval_base_upgrade_progress, float,
 		artisan_production_scale, float,
+
+		net_migration_growth, float,
+		net_immigration_growth, float,
+		monthly_population, float,
+		old_migration_growth, float,
+		old_immigration_growth, float,
+		old_monthly_population, float,
 
 		owner, nations::country_tag,
 		controller, nations::country_tag,

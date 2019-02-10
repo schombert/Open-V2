@@ -557,10 +557,10 @@ namespace nations {
 	}
 
 	void update_state_nation_demographics(world_state& ws) {
-		ve::copy(ve::to_vector_size(ws.w.nation_s.nations.size() + 1), ws.w.nation_s.nations.get_row<nation::last_population>(),
-			ws.w.nation_s.nations.get_row<nation::total_core_population>());
-		ve::copy(ve::to_vector_size(ws.w.nation_s.states.size() + 1), ws.w.nation_s.states.get_row<state::last_population>(),
-			ws.w.nation_s.states.get_row<state::total_population>(), ve::par());
+		//ve::copy(ve::to_vector_size(ws.w.nation_s.nations.size() + 1), ws.w.nation_s.nations.get_row<nation::last_population>(),
+		//	ws.w.nation_s.nations.get_row<nation::total_core_population>());
+		//ve::copy(ve::to_vector_size(ws.w.nation_s.states.size() + 1), ws.w.nation_s.states.get_row<state::last_population>(),
+		//	ws.w.nation_s.states.get_row<state::total_population>(), ve::par());
 		recalculate_state_nation_demographics(ws);
 	}
 

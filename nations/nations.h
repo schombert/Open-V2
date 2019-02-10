@@ -138,7 +138,6 @@ namespace nation {
 	struct political_movement_support; // sum of social movement supporters / total pop * defines factor
 	// mobilization_impact // == 1.0 - std::max(0.0f, this_nation.modifier_values[national_offsets::mobilisation_size]) * this_nation.modifier_values[national_offsets::mobilisation_economy_impact];
 
-	struct last_population;
 	struct last_election;
 	struct last_lost_war;
 	struct disarmed_until;
@@ -196,7 +195,6 @@ namespace nation {
 
 		enabled_crimes, uint64_t,
 		current_rules, int32_t,
-		last_population, float,
 		total_core_population, float,
 		last_election, date_tag,
 		last_lost_war, date_tag,
@@ -319,7 +317,6 @@ namespace state {
 	struct owner;
 	struct owner_national_focus;
 	struct project;
-	struct last_population;
 	struct total_population;
 
 	struct flashpoint_tension_focuses;
@@ -363,7 +360,6 @@ namespace state {
 		name, text_data::text_tag,
 		current_tension, float,
 		administrative_efficiency, float,
-		last_population, float,
 		total_population, float,
 
 		flashpoint_tension_focuses, set_tag<nations::country_tag>,
