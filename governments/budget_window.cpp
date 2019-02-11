@@ -378,7 +378,7 @@ namespace governments {
 			auto m_amount = economy::military_spending_amount(ws, player);
 			auto s_amount = economy::social_spending_amount(ws, player);
 			auto a_amount = economy::administrative_spending_amount(ws, player);
-			auto tariff_costs = std::max(-1.0f * economy::project_player_tarrif_income(ws, ws.w.nation_s.nations.get<nation::f_tariffs>(player)), float(0));
+			auto tariff_costs = std::max(-1.0f * economy::project_player_tariff_income(ws, ws.w.nation_s.nations.get<nation::f_tariffs>(player)), float(0));
 			auto interest = economy::calculate_daily_debt_payment(ws, player) / 2.0f;
 			auto b_amount = economy::daily_national_building_cost(ws, player) * ws.w.nation_s.nations.get<nation::f_projects_stockpile_spending>(player);
 
@@ -430,7 +430,7 @@ namespace governments {
 			auto ptax_income = ws.w.local_player_data.collected_poor_tax * ws.w.nation_s.nations.get<nation::f_poor_tax>(player);
 			auto mtax_income = ws.w.local_player_data.collected_middle_tax * ws.w.nation_s.nations.get<nation::f_middle_tax>(player);
 			auto rtax_income = ws.w.local_player_data.collected_rich_tax * ws.w.nation_s.nations.get<nation::f_rich_tax>(player);
-			economy::money_qnty_type tariff_income = std::max(economy::project_player_tarrif_income(ws, ws.w.nation_s.nations.get<nation::f_tariffs>(player)), float(0));
+			economy::money_qnty_type tariff_income = std::max(economy::project_player_tariff_income(ws, ws.w.nation_s.nations.get<nation::f_tariffs>(player)), float(0));
 			auto total = ptax_income + mtax_income + rtax_income + tariff_income;
 			
 			if(total <= 0)

@@ -318,6 +318,8 @@ namespace population {
 		std::vector<pop_type_tag> factory_workers;
 
 		pop_type_tag artisan;
+		pop_type_tag farmer;
+		pop_type_tag laborer;
 		pop_type_tag capitalist;
 		pop_type_tag clergy;
 		pop_type_tag bureaucrat;

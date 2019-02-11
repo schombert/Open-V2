@@ -532,6 +532,7 @@ namespace provinces {
 				std::plus<>(),
 				[](population::pop_tag p) { return ws.w.population_s.pops.get<pop::size>(p); });
 			ws.w.province_s.province_state_container.set<province_state::monthly_population>(t, total);
+			ws.w.province_s.province_state_container.set<province_state::old_monthly_population>(t, total);
 		}
 	}
 }

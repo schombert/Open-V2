@@ -178,6 +178,34 @@ namespace population {
 		change_pop_type(ws, this_pop, is_mine ? ws.s.economy_m.rgo_mine.workers[0].type : ws.s.economy_m.rgo_farm.workers[0].type);
 	}
 
+	void determine_farmer_and_laborer(scenario::scenario_manager& s) {
+		for(uint32_t i = 0; i < std::extent_v<decltype(s.economy_m.rgo_farm.workers)>; ++i) {
+			if(s.economy_m.rgo_farm.workers[i].type != s.economy_m.rgo_mine.workers[i].type) {
+				if(is_valid_index(s.economy_m.rgo_mine.workers[i].type) && s.economy_m.rgo_mine.workers[i].type != s.population_m.slave)
+					s.population_m.laborer = s.economy_m.rgo_mine.workers[i].type;
+				if(is_valid_index(s.economy_m.rgo_farm.workers[i].type) && s.economy_m.rgo_farm.workers[i].type != s.population_m.slave)
+					s.population_m.farmer = s.economy_m.rgo_farm.workers[i].type;
+			}
+		}
+	}
+
+	pop_type_tag fit_type_to_province(world_state const& ws, provinces::province_tag prov, pop_type_tag type) {
+		auto const production = ws.w.province_s.province_state_container.get<province_state::rgo_production>(prov);
+		bool const is_mined = (ws.s.economy_m.goods[production].flags & economy::good_definition::mined) != 0;
+
+		if(is_mined) {
+			if(type == ws.s.population_m.farmer)
+				return ws.s.population_m.laborer;
+			else
+				return type;
+		} else {
+			if(type == ws.s.population_m.laborer)
+				return ws.s.population_m.farmer;
+			else
+				return type;
+		}
+	}
+
 	void trigger_rising(world_state&, rebel_type_tag, nations::country_tag) {
 		// todo
 	}
@@ -1499,7 +1527,8 @@ namespace population {
 							ws.w.province_s.province_state_container.get<province_state::net_migration_growth>(t) -= migration_val;
 							ws.w.province_s.province_state_container.get<province_state::net_migration_growth>(dest_province) += migration_val;
 
-							auto const target_pop = find_in_province(ws, dest_province, pop_j_type, pop_j_culture, pop_j_religion);
+							auto const fitted_type = fit_type_to_province(ws, dest_province, pop_j_type);
+							auto const target_pop = find_in_province(ws, dest_province, fitted_type, pop_j_culture, pop_j_religion);
 							if(target_pop) {
 								grow_pop_immediate(ws, target_pop, migration_val);
 							} else {
@@ -1510,7 +1539,7 @@ namespace population {
 									pop_j_consciousness,
 									pop_j_literacy,
 									dest_province,
-									pop_j_type,
+									fitted_type,
 									pop_j_culture,
 									pop_j_religion);
 							}
@@ -1531,7 +1560,8 @@ namespace population {
 								ws.w.province_s.province_state_container.get<province_state::net_immigration_growth>(t) -= emigration_val;
 								ws.w.province_s.province_state_container.get<province_state::net_immigration_growth>(dest_province) += emigration_val;
 
-								auto const target_pop = find_in_province(ws, dest_province, pop_j_type, pop_j_culture, pop_j_religion);
+								auto const fitted_type = fit_type_to_province(ws, dest_province, pop_j_type);
+								auto const target_pop = find_in_province(ws, dest_province, fitted_type, pop_j_culture, pop_j_religion);
 								if(target_pop) {
 									grow_pop_immediate(ws, target_pop, emigration_val);
 								} else {
@@ -1542,7 +1572,7 @@ namespace population {
 										pop_j_consciousness,
 										pop_j_literacy,
 										dest_province,
-										pop_j_type,
+										fitted_type,
 										pop_j_culture,
 										pop_j_religion);
 								}

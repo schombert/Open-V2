@@ -2251,7 +2251,7 @@ namespace economy {
 
 			treasury += tincome_sum;
 
-			pay_unemployement_pensions_salaries(ws, n);
+			pay_unemployment_pensions_salaries(ws, n);
 
 			auto amount = calculate_daily_debt_payment(ws, n);
 			auto paid = std::clamp(treasury, 0.0f, amount);
@@ -2335,20 +2335,20 @@ namespace economy {
 		update_bankrupcy(ws);
 	}
 
-	economy::money_qnty_type project_player_tarrif_income(world_state const& ws, float tarrif_amount) {
+	economy::money_qnty_type project_player_tariff_income(world_state const& ws, float tariff_amount) {
 		if(auto player = ws.w.local_player_nation; player) {
 			auto overlord_id = ws.w.nation_s.nations.get<nation::overlord>(player);
 			auto sphere_leader_id = ws.w.nation_s.nations.get<nation::sphere_leader>(player);
 
-			return std::transform_reduce(integer_iterator(1), integer_iterator(ws.s.economy_m.goods_count), money_qnty_type(0), std::plus<>(), [&ws, tarrif_amount, overlord_id, sphere_leader_id](int32_t i) {
+			return std::transform_reduce(integer_iterator(1), integer_iterator(ws.s.economy_m.goods_count), money_qnty_type(0), std::plus<>(), [&ws, tariff_amount, overlord_id, sphere_leader_id](int32_t i) {
 				auto atag = ws.w.local_player_data.imports_by_country[goods_tag(goods_tag::value_base_t(i))];
 				auto sz = get_size(ws.w.economy_s.purchasing_arrays, atag);
 				auto ptr = get_view(ws.w.economy_s.purchasing_arrays, atag);
 
 				
-				return std::transform_reduce(integer_iterator(0), integer_iterator(sz), money_qnty_type(0), std::plus<>(), [ptr, tarrif_amount, overlord_id, sphere_leader_id](int32_t i) {
+				return std::transform_reduce(integer_iterator(0), integer_iterator(sz), money_qnty_type(0), std::plus<>(), [ptr, tariff_amount, overlord_id, sphere_leader_id](int32_t i) {
 					if(to_index(overlord_id) != i && to_index(sphere_leader_id) != i)
-						return tarrif_amount * *(begin(ptr) + i);
+						return tariff_amount * *(begin(ptr) + i);
 					else
 						return money_qnty_type(0);
 				});
@@ -2482,7 +2482,7 @@ namespace economy {
 		return cost_with_waste;
 	}
 
-	void pay_unemployement_pensions_salaries(world_state& ws, nations::country_tag n) {
+	void pay_unemployment_pensions_salaries(world_state& ws, nations::country_tag n) {
 		auto ncap = ws.w.nation_s.nations.get<nation::current_capital>(n);
 		if(!is_valid_index(ncap))
 			return;

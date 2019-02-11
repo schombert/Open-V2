@@ -120,6 +120,8 @@ public:
 		serialize(output, obj.slave);
 		serialize(output, obj.soldier);
 		serialize(output, obj.officer);
+		serialize(output, obj.farmer);
+		serialize(output, obj.laborer);
 	}
 	static void deserialize_object(std::byte const* &input, population::population_manager& obj) {
 		deserialize(input, obj.pop_types);
@@ -152,6 +154,8 @@ public:
 		deserialize(input, obj.slave);
 		deserialize(input, obj.soldier);
 		deserialize(input, obj.officer);
+		deserialize(input, obj.farmer);
+		deserialize(input, obj.laborer);
 
 		rebuild_indexes(obj);
 	}
@@ -186,6 +190,8 @@ public:
 		deserialize(input, obj.slave);
 		deserialize(input, obj.soldier);
 		deserialize(input, obj.officer);
+		deserialize(input, obj.farmer);
+		deserialize(input, obj.laborer);
 
 		tg.run([&obj]() { rebuild_indexes(obj); });
 	}
@@ -220,7 +226,9 @@ public:
 			serialize_size(obj.bureaucrat) +
 			serialize_size(obj.slave) +
 			serialize_size(obj.soldier) +
-			serialize_size(obj.officer);
+			serialize_size(obj.officer) +
+			serialize_size(obj.farmer) +
+			serialize_size(obj.laborer);
 	}
 };
 

@@ -1,4 +1,5 @@
 #include "scenario_io.h"
+#include "population/population_functions.h"
 
 namespace scenario {
 	void read_scenario(scenario_manager& s, const directory& root) {
@@ -91,6 +92,7 @@ namespace scenario {
 		technologies::read_technologies(tech_state, s);
 
 		governments::setup_party_rules(s);
+		population::determine_farmer_and_laborer(s);
 		// stage 4
 
 		commit_pending_triggered_events(s, ecm, root);

@@ -87,12 +87,12 @@ namespace economy {
 	void update_bankrupcy(world_state& ws);
 	bool is_bankrupt(world_state const& ws, nations::country_tag n);
 	void collect_taxes(world_state& ws);
-	void pay_unemployement_pensions_salaries(world_state& ws, nations::country_tag n);
+	void pay_unemployment_pensions_salaries(world_state& ws, nations::country_tag n);
 	void economy_update_tick(world_state& ws);
 	void economy_demand_adjustment_tick(world_state& ws);
 	void update_construction_and_projects(world_state& ws);
 
-	economy::money_qnty_type project_player_tarrif_income(world_state const& ws, float tarrif_amount);
+	economy::money_qnty_type project_player_tariff_income(world_state const& ws, float tariff_amount);
 
 	money_qnty_type military_spending_amount(world_state const& ws, nations::country_tag n);
 	money_qnty_type social_spending_amount(world_state const& ws, nations::country_tag n);
