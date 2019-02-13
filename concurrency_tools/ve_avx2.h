@@ -1124,33 +1124,33 @@ namespace ve {
 	template<int32_t i, typename U>
 	__forceinline auto load(contiguous_tags<int32_t, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 2, value_to_vector_type<U>> {
 		if constexpr(U(-2) < U(0)) {
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_cvtepi16_epi32(_mm256_castsi256_si128(v));
+			auto v = _mm_loadu_si128((const __m128i *)(source + e.value));
+			return _mm256_cvtepi16_epi32(v);
 		} else {
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_cvtepu16_epi32(_mm256_castsi256_si128(v));
+			auto v = _mm_loadu_si128((const __m128i *)(source + e.value));
+			return _mm256_cvtepu16_epi32(v);
 		}
 	}
 	template<int32_t i, typename U>
 	__forceinline auto load(unaligned_contiguous_tags<int32_t, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 2, value_to_vector_type<U>> {
 		if constexpr(U(-2) < U(0)) {
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_cvtepi16_epi32(_mm256_castsi256_si128(v));
+			auto v = _mm_loadu_si128((const __m128i *)(source + e.value));
+			return _mm256_cvtepi16_epi32(v);
 		} else {
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_cvtepu16_epi32(_mm256_castsi256_si128(v));
+			auto v = _mm_loadu_si128((const __m128i *)(source + e.value));
+			return _mm256_cvtepu16_epi32(v);
 		}
 	}
 	template<typename U>
 	__forceinline auto load(partial_contiguous_tags<int32_t> e, U const* source) -> std::enable_if_t<sizeof(U) == 2, value_to_vector_type<U>> {
 		if constexpr(U(-2) < U(0)) {
 			auto mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - e.subcount));
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_blendv_epi8(_mm256_setzero_si256(), _mm256_cvtepi16_epi32(_mm256_castsi256_si128(v)), mask);
+			auto v = _mm_loadu_si128((const __m128i *)(source + e.value));
+			return _mm256_blendv_epi8(_mm256_setzero_si256(), _mm256_cvtepi16_epi32(v), mask);
 		} else {
 			auto mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - e.subcount));
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_blendv_epi8(_mm256_setzero_si256(), _mm256_cvtepu16_epi32(_mm256_castsi256_si128(v)), mask);
+			auto v = _mm_loadu_si128((const __m128i *)(source + e.value));
+			return _mm256_blendv_epi8(_mm256_setzero_si256(), _mm256_cvtepu16_epi32(v), mask);
 		}
 	}
 	template<typename U>
@@ -1169,33 +1169,33 @@ namespace ve {
 	template<int32_t i, typename U>
 	__forceinline auto load(contiguous_tags<int32_t, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<U, bitfield_type>, value_to_vector_type<U>> {
 		if constexpr(U(-2) < U(0)) {
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_cvtepi8_epi32(_mm256_castsi256_si128(v));
+			auto v = _mm_loadl_epi64((const __m128i *)(source + e.value));
+			return _mm256_cvtepi8_epi32(v);
 		} else {
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_cvtepu8_epi32(_mm256_castsi256_si128(v));
+			auto v = _mm_loadl_epi64((const __m128i *)(source + e.value));
+			return _mm256_cvtepu8_epi32(v);
 		}
 	}
 	template<int32_t i, typename U>
 	__forceinline auto load(unaligned_contiguous_tags<int32_t, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<U, bitfield_type>, value_to_vector_type<U>> {
 		if constexpr(U(-2) < U(0)) {
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_cvtepi8_epi32(_mm256_castsi256_si128(v));
+			auto v = _mm_loadl_epi64((const __m128i *)(source + e.value));
+			return _mm256_cvtepi8_epi32(v);
 		} else {
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_cvtepu8_epi32(_mm256_castsi256_si128(v));
+			auto v = _mm_loadl_epi64((const __m128i *)(source + e.value));
+			return _mm256_cvtepu8_epi32(v);
 		}
 	}
 	template<typename U>
 	__forceinline auto load(partial_contiguous_tags<int32_t> e, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<U, bitfield_type>, value_to_vector_type<U>> {
 		if constexpr(U(-2) < U(0)) {
 			auto mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - e.subcount));
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_blendv_epi8(_mm256_setzero_si256(), _mm256_cvtepi8_epi32(_mm256_castsi256_si128(v)), mask);
+			auto v = _mm_loadl_epi64((const __m128i *)(source + e.value));
+			return _mm256_blendv_epi8(_mm256_setzero_si256(), _mm256_cvtepi8_epi32(v), mask);
 		} else {
 			auto mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - e.subcount));
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_blendv_epi8(_mm256_setzero_si256(), _mm256_cvtepu8_epi32(_mm256_castsi256_si128(v)), mask);
+			auto v = _mm_loadl_epi64((const __m128i *)(source + e.value));
+			return _mm256_blendv_epi8(_mm256_setzero_si256(), _mm256_cvtepu8_epi32(v), mask);
 		}
 	}
 	template<typename U>

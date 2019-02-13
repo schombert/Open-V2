@@ -1052,14 +1052,30 @@ namespace ve {
 		return vbitfield_type{ source[e.value / 8ui32].v };
 	}
 
-	// todo: fix remainder
-
 	__forceinline mask_vector load(int_vector indices, bitfield_type const* source) {
-		const auto byte_indices = _mm256_srai_epi32(indices, 3);
-		const auto bit_indices = _mm256_and_si256(indices, _mm256_set1_epi32(0x00000007));
-		auto const gathered = _mm256_i32gather_epi32((int32_t const*)(source), byte_indices, 1);
-		auto const shifted = _mm256_and_si256(_mm256_srlv_epi32(gathered, bit_indices), _mm256_set1_epi32(0x00000001));
-		return _mm256_castsi256_ps(_mm256_sub_epi32(_mm256_setzero_si256(), shifted));
+		const auto mask = _mm_set1_epi32(0x00000007);
+		const auto low_bit_mask = _mm_set1_epi32(0x00000001);
+
+		const auto byte_indices_low = _mm_srai_epi32(indices.value_low, 3);	
+		auto const gathered_low = _mm_setr_epi32(
+			source[byte_indices_low.m128i_i32[0]].v,
+			source[byte_indices_low.m128i_i32[1]].v,
+			source[byte_indices_low.m128i_i32[2]].v,
+			source[byte_indices_low.m128i_i32[3]].v);
+		const auto bit_indices_low = _mm_and_si128(indices.value_low, mask);
+		auto const gathered_low_bits = _mm_and_si128(_mm_srlv_epi32(gathered_low, bit_indices_low), low_bit_mask);
+
+		const auto byte_indices_high = _mm_srai_epi32(indices.value_high, 3);
+		auto const gathered_high = _mm_setr_epi32(
+			source[byte_indices_high.m128i_i32[0]].v,
+			source[byte_indices_high.m128i_i32[1]].v,
+			source[byte_indices_high.m128i_i32[2]].v,
+			source[byte_indices_high.m128i_i32[3]].v);
+		const auto bit_indices_high = _mm_and_si128(indices.value_high, mask);
+		auto const gathered_high_bits = _mm_and_si128(_mm_srlv_epi32(gathered_high, bit_indices_high), low_bit_mask);
+
+		return _mm256_castsi256_ps(
+			_mm256_setr_m128i(_mm_sub_epi32(_mm_setzero_si128(), gathered_low_bits), _mm_sub_epi32(_mm_setzero_si128(), gathered_high_bits)));
 	}
 
 	template<int32_t i, typename U>
@@ -1068,30 +1084,93 @@ namespace ve {
 		if constexpr(std::is_same_v<U, float>)
 			return _mm256_load_ps(source + e.value);
 		else
-			return _mm256_load_si256((const __m256i *)(source + e.value));
+			return _mm256_castps_si256_ps(_mm256_load_ps(source + e.value));
 	}
 	template<int32_t i, typename U>
 	__forceinline auto load(unaligned_contiguous_tags<int32_t, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 4, value_to_vector_type<U>> {
 		if constexpr(std::is_same_v<U, float>)
 			return _mm256_loadu_ps(source + e.value);
 		else
-			return _mm256_loadu_si256((const __m256i *)(source + e.value));
+			return _mm256_castps_si256_ps(_mm256_loadu_ps(source + e.value));
 	}
 	template<typename U>
 	__forceinline auto load(partial_contiguous_tags<int32_t> e, U const* source) -> std::enable_if_t<sizeof(U) == 4, value_to_vector_type<U>> {
 		auto mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - e.subcount));
 		if constexpr(std::is_same_v<U, float>) {
-			return _mm256_maskload_ps(source + e.value, mask);
+			return _mm256_setr_ps(
+				e.subcount >= 0 ? source[e.value + 0] : 0.0f,
+				e.subcount >= 1 ? source[e.value + 1] : 0.0f,
+				e.subcount >= 2 ? source[e.value + 2] : 0.0f,
+				e.subcount >= 3 ? source[e.value + 3] : 0.0f,
+				e.subcount >= 4 ? source[e.value + 4] : 0.0f,
+				e.subcount >= 5 ? source[e.value + 5] : 0.0f,
+				e.subcount >= 6 ? source[e.value + 6] : 0.0f,
+				e.subcount >= 7 ? source[e.value + 7] : 0.0f
+			);
 		} else {
-			return _mm256_maskload_epi32((int32_t const*)(source + e.value), mask);
+			return _mm256_setr_epi32(
+				e.subcount >= 0 ? source[e.value + 0] : 0,
+				e.subcount >= 1 ? source[e.value + 1] : 0,
+				e.subcount >= 2 ? source[e.value + 2] : 0,
+				e.subcount >= 3 ? source[e.value + 3] : 0,
+				e.subcount >= 4 ? source[e.value + 4] : 0,
+				e.subcount >= 5 ? source[e.value + 5] : 0,
+				e.subcount >= 6 ? source[e.value + 6] : 0,
+				e.subcount >= 7 ? source[e.value + 7] : 0
+			);
+		}
+	}
+	template<typename U>
+	__forceinline auto load(__m256i indices, U const* source) -> std::enable_if_t<sizeof(U) == 4, value_to_vector_type<U>> {
+		if constexpr(std::is_same_v<U, float>) {
+			return _mm256_setr_ps(
+				source[indices.m256i_i32[0]],
+				source[indices.m256i_i32[1]],
+				source[indices.m256i_i32[2]],
+				source[indices.m256i_i32[3]],
+				source[indices.m256i_i32[4]],
+				source[indices.m256i_i32[5]],
+				source[indices.m256i_i32[6]],
+				source[indices.m256i_i32[7]]
+			);
+		} else {
+			return _mm256_setr_epi32(
+				source[indices.m256i_i32[0]],
+				source[indices.m256i_i32[1]],
+				source[indices.m256i_i32[2]],
+				source[indices.m256i_i32[3]],
+				source[indices.m256i_i32[4]],
+				source[indices.m256i_i32[5]],
+				source[indices.m256i_i32[6]],
+				source[indices.m256i_i32[7]]
+			);
 		}
 	}
 	template<typename U>
 	__forceinline auto load(int_vector indices, U const* source) -> std::enable_if_t<sizeof(U) == 4, value_to_vector_type<U>> {
-		if constexpr(std::is_same_v<U, float>)
-			return _mm256_i32gather_ps(source, indices, 4);
-		else
-			return _mm256_i32gather_epi32((int32_t const*)source, indices, 4);
+		if constexpr(std::is_same_v<U, float>) {
+			return _mm256_setr_ps(
+				source[indices.value_low.m128i_i32[0]],
+				source[indices.value_low.m128i_i32[1]],
+				source[indices.value_low.m128i_i32[2]],
+				source[indices.value_low.m128i_i32[3]],
+				source[indices.value_high.m128i_i32[0]],
+				source[indices.value_high.m128i_i32[1]],
+				source[indices.value_high.m128i_i32[2]],
+				source[indices.value_high.m128i_i32[3]]
+			);
+		} else {
+			return _mm256_setr_epi32(
+				source[indices.value_low.m128i_i32[0]],
+				source[indices.value_low.m128i_i32[1]],
+				source[indices.value_low.m128i_i32[2]],
+				source[indices.value_low.m128i_i32[3]],
+				source[indices.value_high.m128i_i32[0]],
+				source[indices.value_high.m128i_i32[1]],
+				source[indices.value_high.m128i_i32[2]],
+				source[indices.value_high.m128i_i32[3]]
+			);
+		}
 	}
 
 #pragma warning( push )
@@ -1100,90 +1179,295 @@ namespace ve {
 	template<int32_t i, typename U>
 	__forceinline auto load(contiguous_tags<int32_t, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 2, value_to_vector_type<U>> {
 		if constexpr(U(-2) < U(0)) {
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_cvtepi16_epi32(_mm256_castsi256_si128(v));
+			auto const vl = _mm_loadl_epi64((const __m128i *)(source + e.value));
+			auto const vh = _mm_loadl_epi64((const __m128i *)(source + e.value + 4));
+
+			auto const cl = _mm_cvtepi16_epi32(vl);
+			auto const ch = _mm_cvtepi16_epi32(vh);
+
+			if constexpr(std::is_same_v<value_to_vector_type<U>, int_vector>)
+				return int_vector(cl, ch);
+			else
+				return _mm256_setr_m128i(cl, ch);
 		} else {
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_cvtepu16_epi32(_mm256_castsi256_si128(v));
+			auto const vl = _mm_loadl_epi64((const __m128i *)(source + e.value));
+			auto const vh = _mm_loadl_epi64((const __m128i *)(source + e.value + 4));
+
+			auto const cl = _mm_cvtepu16_epi32(vl);
+			auto const ch = _mm_cvtepu16_epi32(vh);
+
+			if constexpr(std::is_same_v<value_to_vector_type<U>, int_vector>)
+				return int_vector(cl, ch);
+			else
+				return _mm256_setr_m128i(cl, ch);
 		}
 	}
 	template<int32_t i, typename U>
 	__forceinline auto load(unaligned_contiguous_tags<int32_t, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 2, value_to_vector_type<U>> {
 		if constexpr(U(-2) < U(0)) {
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_cvtepi16_epi32(_mm256_castsi256_si128(v));
+			auto const vl = _mm_loadl_epi64((const __m128i *)(source + e.value));
+			auto const vh = _mm_loadl_epi64((const __m128i *)(source + e.value + 4));
+
+			auto const cl = _mm_cvtepi16_epi32(vl);
+			auto const ch = _mm_cvtepi16_epi32(vh);
+
+			if constexpr(std::is_same_v<value_to_vector_type<U>, int_vector>)
+				return int_vector(cl, ch);
+			else
+				return _mm256_setr_m128i(cl, ch);
 		} else {
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_cvtepu16_epi32(_mm256_castsi256_si128(v));
+			auto const vl = _mm_loadl_epi64((const __m128i *)(source + e.value));
+			auto const vh = _mm_loadl_epi64((const __m128i *)(source + e.value + 4));
+
+			auto const cl = _mm_cvtepu16_epi32(vl);
+			auto const ch = _mm_cvtepu16_epi32(vh);
+
+			if constexpr(std::is_same_v<value_to_vector_type<U>, int_vector>)
+				return int_vector(cl, ch);
+			else
+				return _mm256_setr_m128i(cl, ch);
 		}
 	}
 	template<typename U>
 	__forceinline auto load(partial_contiguous_tags<int32_t> e, U const* source) -> std::enable_if_t<sizeof(U) == 2, value_to_vector_type<U>> {
 		if constexpr(U(-2) < U(0)) {
-			auto mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - e.subcount));
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_blendv_epi8(_mm256_setzero_si256(), _mm256_cvtepi16_epi32(_mm256_castsi256_si128(v)), mask);
+			auto const vl = _mm_loadl_epi64((const __m128i *)(source + e.value));
+			auto const vh = _mm_loadl_epi64((const __m128i *)(source + e.value + 4));
+
+			auto const cl = _mm_cvtepi16_epi32(vl);
+			auto const ch = _mm_cvtepi16_epi32(vh);
+
+			if constexpr(std::is_same_v<value_to_vector_type<U>, int_vector>) {
+				auto const mask_l = _mm_loadu_si128((const __m128i *)(load_masks + 8ui32 - e.subcount));
+				auto const mask_h = _mm_loadu_si128((const __m128i *)(load_masks + 8ui32 + 4ui32 - e.subcount));
+
+				return int_vector(_mm_blendv_epi8(_mm_setzero_si128(), cl, mask_l), _mm_blendv_epi8(_mm_setzero_si128(), ch, mask_h));
+			} else {
+				auto mask = _mm256_loadu_ps((float const*)load_masks + 8ui32 - e.subcount);
+				return _mm256_castps_si256(_mm256_blendv_ps(_mm256_setzero_ps(), _mm256_castsi256_ps(_mm256_setr_m128i(cl, ch)), mask));
+			}
 		} else {
-			auto mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - e.subcount));
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_blendv_epi8(_mm256_setzero_si256(), _mm256_cvtepu16_epi32(_mm256_castsi256_si128(v)), mask);
+			auto const vl = _mm_loadl_epi64((const __m128i *)(source + e.value));
+			auto const vh = _mm_loadl_epi64((const __m128i *)(source + e.value + 4));
+
+			auto const cl = _mm_cvtepu16_epi32(vl);
+			auto const ch = _mm_cvtepu16_epi32(vh);
+
+			if constexpr(std::is_same_v<value_to_vector_type<U>, int_vector>) {
+				auto const mask_l = _mm_loadu_si128((const __m128i *)(load_masks + 8ui32 - e.subcount));
+				auto const mask_h = _mm_loadu_si128((const __m128i *)(load_masks + 8ui32 + 4ui32 - e.subcount));
+
+				return int_vector(_mm_blendv_epi8(_mm_setzero_si128(), cl, mask_l), _mm_blendv_epi8(_mm_setzero_si128(), ch, mask_h));
+			} else {
+				auto mask = _mm256_loadu_ps((float const*)load_masks + 8ui32 - e.subcount);
+				return _mm256_castps_si256(_mm256_blendv_ps(_mm256_setzero_ps(), _mm256_castsi256_ps(_mm256_setr_m128i(cl, ch)), mask));
+			}
 		}
 	}
 	template<typename U>
 	__forceinline auto load(int_vector indices, U const* source) -> std::enable_if_t<sizeof(U) == 2, value_to_vector_type<U>> {
 		if constexpr(U(-2) < U(0)) {
-			auto v = _mm256_i32gather_epi32((int32_t const*)source, _mm256_sub_epi32(indices, _mm256_set1_epi32(1)), 2);
-			return _mm256_srai_epi32(v, 16);
+			const auto casted_source = (int16_t const*)source;
+			return _mm256_setr_epi32(
+				casted_source[indices.value_low.m128i_i32[0]],
+				casted_source[indices.value_low.m128i_i32[1]],
+				casted_source[indices.value_low.m128i_i32[2]],
+				casted_source[indices.value_low.m128i_i32[3]],
+				casted_source[indices.value_high.m128i_i32[0]],
+				casted_source[indices.value_high.m128i_i32[1]],
+				casted_source[indices.value_high.m128i_i32[2]],
+				casted_source[indices.value_high.m128i_i32[3]]
+			);
 		} else {
-			auto v = _mm256_i32gather_epi32((int32_t const*)source, indices, 2);
-			return _mm256_and_si256(v, _mm256_set1_epi32(0xFFFF));
+			const auto casted_source = (uint16_t const*)source;
+			return _mm256_setr_epi32(
+				casted_source[indices.value_low.m128i_i32[0]],
+				casted_source[indices.value_low.m128i_i32[1]],
+				casted_source[indices.value_low.m128i_i32[2]],
+				casted_source[indices.value_low.m128i_i32[3]],
+				casted_source[indices.value_high.m128i_i32[0]],
+				casted_source[indices.value_high.m128i_i32[1]],
+				casted_source[indices.value_high.m128i_i32[2]],
+				casted_source[indices.value_high.m128i_i32[3]]
+			);
 		}
 	}
-
-
+	template<typename U>
+	__forceinline auto load(__m256i indices, U const* source) -> std::enable_if_t<sizeof(U) == 2, value_to_vector_type<U>> {
+		if constexpr(U(-2) < U(0)) {
+			const auto casted_source = (int16_t const*)source;
+			return _mm256_setr_epi32(
+				casted_source[indices.m256i_i32[0]],
+				casted_source[indices.m256i_i32[1]],
+				casted_source[indices.m256i_i32[2]],
+				casted_source[indices.m256i_i32[3]],
+				casted_source[indices.m256i_i32[4]],
+				casted_source[indices.m256i_i32[5]],
+				casted_source[indices.m256i_i32[6]],
+				casted_source[indices.m256i_i32[7]]
+			);
+		} else {
+			const auto casted_source = (uint16_t const*)source;
+			return _mm256_setr_epi32(
+				casted_source[indices.m256i_i32[0]],
+				casted_source[indices.m256i_i32[1]],
+				casted_source[indices.m256i_i32[2]],
+				casted_source[indices.m256i_i32[3]],
+				casted_source[indices.m256i_i32[4]],
+				casted_source[indices.m256i_i32[5]],
+				casted_source[indices.m256i_i32[6]],
+				casted_source[indices.m256i_i32[7]]
+			);
+		}
+	}
 
 	template<int32_t i, typename U>
 	__forceinline auto load(contiguous_tags<int32_t, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<U, bitfield_type>, value_to_vector_type<U>> {
 		if constexpr(U(-2) < U(0)) {
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_cvtepi8_epi32(_mm256_castsi256_si128(v));
+			auto const vl = _mm_loadu_si32(source + e.value);
+			auto const vh = _mm_loadu_sii32(source + e.value + 4);
+
+			auto const cl = _mm_cvtepi8_epi32(vl);
+			auto const ch = _mm_cvtepi8_epi32(vh);
+
+			if constexpr(std::is_same_v<value_to_vector_type<U>, int_vector>)
+				return int_vector(cl, ch);
+			else
+				return _mm256_setr_m128i(cl, ch);
 		} else {
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_cvtepu8_epi32(_mm256_castsi256_si128(v));
+			auto const vl = _mm_loadu_si32(source + e.value);
+			auto const vh = _mm_loadu_sii32(source + e.value + 4);
+
+			auto const cl = _mm_cvtepu8_epi32(vl);
+			auto const ch = _mm_cvtepu8_epi32(vh);
+
+			if constexpr(std::is_same_v<value_to_vector_type<U>, int_vector>)
+				return int_vector(cl, ch);
+			else
+				return _mm256_setr_m128i(cl, ch);
 		}
 	}
 	template<int32_t i, typename U>
 	__forceinline auto load(unaligned_contiguous_tags<int32_t, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<U, bitfield_type>, value_to_vector_type<U>> {
 		if constexpr(U(-2) < U(0)) {
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_cvtepi8_epi32(_mm256_castsi256_si128(v));
+			auto const vl = _mm_loadu_si32(source + e.value);
+			auto const vh = _mm_loadu_sii32(source + e.value + 4);
+
+			auto const cl = _mm_cvtepi8_epi32(vl);
+			auto const ch = _mm_cvtepi8_epi32(vh);
+
+			if constexpr(std::is_same_v<value_to_vector_type<U>, int_vector>)
+				return int_vector(cl, ch);
+			else
+				return _mm256_setr_m128i(cl, ch);
 		} else {
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_cvtepu8_epi32(_mm256_castsi256_si128(v));
+			auto const vl = _mm_loadu_si32(source + e.value);
+			auto const vh = _mm_loadu_sii32(source + e.value + 4);
+
+			auto const cl = _mm_cvtepu8_epi32(vl);
+			auto const ch = _mm_cvtepu8_epi32(vh);
+
+			if constexpr(std::is_same_v<value_to_vector_type<U>, int_vector>)
+				return int_vector(cl, ch);
+			else
+				return _mm256_setr_m128i(cl, ch);
 		}
 	}
 	template<typename U>
 	__forceinline auto load(partial_contiguous_tags<int32_t> e, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<U, bitfield_type>, value_to_vector_type<U>> {
 		if constexpr(U(-2) < U(0)) {
-			auto mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - e.subcount));
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_blendv_epi8(_mm256_setzero_si256(), _mm256_cvtepi8_epi32(_mm256_castsi256_si128(v)), mask);
+			auto const vl = _mm_loadu_si32(source + e.value);
+			auto const vh = _mm_loadu_sii32(source + e.value + 4);
+
+			auto const cl = _mm_cvtepi8_epi32(vl);
+			auto const ch = _mm_cvtepi8_epi32(vh);
+
+			if constexpr(std::is_same_v<value_to_vector_type<U>, int_vector>) {
+				auto const mask_l = _mm_loadu_si128((const __m128i *)(load_masks + 8ui32 - e.subcount));
+				auto const mask_h = _mm_loadu_si128((const __m128i *)(load_masks + 8ui32 + 4ui32 - e.subcount));
+
+				return int_vector(_mm_blendv_epi8(_mm_setzero_si128(), cl, mask_l), _mm_blendv_epi8(_mm_setzero_si128(), ch, mask_h));
+			} else {
+				auto mask = _mm256_loadu_ps((float const*)load_masks + 8ui32 - e.subcount);
+				return _mm256_castps_si256(_mm256_blendv_ps(_mm256_setzero_ps(), _mm256_castsi256_ps(_mm256_setr_m128i(cl, ch)), mask));
+			}
 		} else {
-			auto mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - e.subcount));
-			auto v = _mm256_loadu_si256((const __m256i *)(source + e.value));
-			return _mm256_blendv_epi8(_mm256_setzero_si256(), _mm256_cvtepu8_epi32(_mm256_castsi256_si128(v)), mask);
+			auto const vl = _mm_loadu_si32(source + e.value);
+			auto const vh = _mm_loadu_sii32(source + e.value + 4);
+
+			auto const cl = _mm_cvtepu8_epi32(vl);
+			auto const ch = _mm_cvtepu8_epi32(vh);
+
+			if constexpr(std::is_same_v<value_to_vector_type<U>, int_vector>) {
+				auto const mask_l = _mm_loadu_si128((const __m128i *)(load_masks + 8ui32 - e.subcount));
+				auto const mask_h = _mm_loadu_si128((const __m128i *)(load_masks + 8ui32 + 4ui32 - e.subcount));
+
+				return int_vector(_mm_blendv_epi8(_mm_setzero_si128(), cl, mask_l), _mm_blendv_epi8(_mm_setzero_si128(), ch, mask_h));
+			} else {
+				auto mask = _mm256_loadu_ps((float const*)load_masks + 8ui32 - e.subcount);
+				return _mm256_castps_si256(_mm256_blendv_ps(_mm256_setzero_ps(), _mm256_castsi256_ps(_mm256_setr_m128i(cl, ch)), mask));
+			}
+		}
+	}
+	template<typename U>
+	__forceinline auto load(__m256i indices, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<std::remove_cv_t<U>, bitfield_type>, value_to_vector_type<U>> {
+		if constexpr(U(-2) < U(0)) {
+			const auto casted_source = (int8_t const*)source;
+			return _mm256_setr_epi32(
+				casted_source[indices.m256i_i32[0]],
+				casted_source[indices.m256i_i32[1]],
+				casted_source[indices.m256i_i32[2]],
+				casted_source[indices.m256i_i32[3]],
+				casted_source[indices.m256i_i32[4]],
+				casted_source[indices.m256i_i32[5]],
+				casted_source[indices.m256i_i32[6]],
+				casted_source[indices.m256i_i32[7]]
+			);
+		} else {
+			const auto casted_source = (uint8_t const*)source;
+			return _mm256_setr_epi32(
+				casted_source[indices.m256i_i32[0]],
+				casted_source[indices.m256i_i32[1]],
+				casted_source[indices.m256i_i32[2]],
+				casted_source[indices.m256i_i32[3]],
+				casted_source[indices.m256i_i32[4]],
+				casted_source[indices.m256i_i32[5]],
+				casted_source[indices.m256i_i32[6]],
+				casted_source[indices.m256i_i32[7]]
+			);
 		}
 	}
 	template<typename U>
 	__forceinline auto load(int_vector indices, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<std::remove_cv_t<U>, bitfield_type>, value_to_vector_type<U>> {
 		if constexpr(U(-2) < U(0)) {
-			auto v = _mm256_i32gather_epi32((int32_t const*)source, _mm256_sub_epi32(indices, _mm256_set1_epi32(3)), 1);
-			return _mm256_srai_epi32(v, 24);
+			const auto casted_source = (int8_t const*)source;
+			return _mm256_setr_epi32(
+				casted_source[indices.value_low.m128i_i32[0]],
+				casted_source[indices.value_low.m128i_i32[1]],
+				casted_source[indices.value_low.m128i_i32[2]],
+				casted_source[indices.value_low.m128i_i32[3]],
+				casted_source[indices.value_high.m128i_i32[0]],
+				casted_source[indices.value_high.m128i_i32[1]],
+				casted_source[indices.value_high.m128i_i32[2]],
+				casted_source[indices.value_high.m128i_i32[3]]
+			);
 		} else {
-			auto v = _mm256_i32gather_epi32((int32_t const*)source, indices, 1);
-			return _mm256_and_si256(v, _mm256_set1_epi32(0xFF));
+			const auto casted_source = (uint8_t const*)source;
+			return _mm256_setr_epi32(
+				casted_source[indices.value_low.m128i_i32[0]],
+				casted_source[indices.value_low.m128i_i32[1]],
+				casted_source[indices.value_low.m128i_i32[2]],
+				casted_source[indices.value_low.m128i_i32[3]],
+				casted_source[indices.value_high.m128i_i32[0]],
+				casted_source[indices.value_high.m128i_i32[1]],
+				casted_source[indices.value_high.m128i_i32[2]],
+				casted_source[indices.value_high.m128i_i32[3]]
+			);
 		}
 	}
+
+	
+	// todo: fix remainder
 
 #pragma warning( pop ) 
 
