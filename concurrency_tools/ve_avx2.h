@@ -634,7 +634,7 @@ namespace ve {
 		return _mm256_sub_epi32(a, b);
 	}
 	__forceinline int_vector operator*(int_vector a, int_vector b) {
-		return _mm256_mul_epi32(a, b);
+		return _mm256_mullo_epi32(a, b);
 	}
 
 	__forceinline mask_vector operator&(mask_vector a, mask_vector b) {
@@ -959,7 +959,6 @@ namespace ve {
 		uint32_t index = 0;
 		int32_t accumulated_mask = 0;
 	public:
-		bool result = false;
 
 		value_accumulator(F&& f) : F(std::move(f)) {}
 

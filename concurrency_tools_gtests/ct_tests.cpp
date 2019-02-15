@@ -2216,7 +2216,7 @@ TEST(concurrency_tools, vector_integer_mask) {
 		ve::store(executor, b_vec, ve::select(ve::vbitfield_type{ ve::vbitfield_type::storage(0xFFFF) }, ve::load(executor, a_vec), 5.0f));
 	};
 	auto second = [a_vec = a.data(), b_vec = b.data()](auto executor) {
-		ve::store(executor, b_vec, ve::select(ve::vbitfield_type{ ve::vbitfield_type::storage(0x0202) }, ve::load(executor, a_vec), 5.0f));
+		ve::store(executor, b_vec, ve::select(ve::vbitfield_type{ ve::vbitfield_type::storage(0x2222) }, ve::load(executor, a_vec), 5.0f));
 	};
 
 	ve::execute_serial_fast<int32_t>(16, all_not);
@@ -2224,14 +2224,18 @@ TEST(concurrency_tools, vector_integer_mask) {
 		EXPECT_FLOAT_EQ(b[i], 5.0f);
 	}
 
+	memset(b.data(), 0, 16 * sizeof(float));
+
 	ve::execute_serial_fast<int32_t>(16, all_true);
 	for(uint32_t i = 0; i < 16; ++i) {
 		EXPECT_FLOAT_EQ(b[i], a[i]);
 	}
 
+	memset(b.data(), 0, 16 * sizeof(float));
+
 	ve::execute_serial<int32_t>(16, second);
 	for(uint32_t i = 0; i < 16; ++i) {
-		EXPECT_FLOAT_EQ(b[i], i == 1 || i == 9 ? a[i] : 5.0f);
+		EXPECT_FLOAT_EQ(b[i], i == 1 || i == 5 || i == 9 || i == 13 ? a[i] : 5.0f);
 	}
 }
 

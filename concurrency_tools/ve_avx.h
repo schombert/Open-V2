@@ -638,7 +638,7 @@ namespace ve {
 		return int_vector(_mm_sub_epi32(a.value_low, b.value_low), _mm_sub_epi32(a.value_high, b.value_high));
 	}
 	__forceinline int_vector operator*(int_vector a, int_vector b) {
-		return int_vector(_mm_mul_epi32(a.value_low, b.value_low), _mm_mul_epi32(a.value_high, b.value_high));
+		return int_vector(_mm_mullo_epi32(a.value_low, b.value_low), _mm_mullo_epi32(a.value_high, b.value_high));
 	}
 
 	__forceinline mask_vector operator&(mask_vector a, mask_vector b) {
@@ -975,7 +975,6 @@ namespace ve {
 		uint32_t index = 0;
 		int32_t accumulated_mask = 0;
 	public:
-		bool result = false;
 
 		value_accumulator(F&& f) : F(std::move(f)) {}
 
@@ -1084,40 +1083,25 @@ namespace ve {
 		if constexpr(std::is_same_v<U, float>)
 			return _mm256_load_ps(source + e.value);
 		else
-			return _mm256_castps_si256_ps(_mm256_load_ps(source + e.value));
+			return _mm256_load_si256((const __m256i *)(source + e.value));
 	}
 	template<int32_t i, typename U>
 	__forceinline auto load(unaligned_contiguous_tags<int32_t, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 4, value_to_vector_type<U>> {
 		if constexpr(std::is_same_v<U, float>)
 			return _mm256_loadu_ps(source + e.value);
 		else
-			return _mm256_castps_si256_ps(_mm256_loadu_ps(source + e.value));
+			return _mm256_loadu_si256((const __m256i *)(source + e.value));
 	}
 	template<typename U>
 	__forceinline auto load(partial_contiguous_tags<int32_t> e, U const* source) -> std::enable_if_t<sizeof(U) == 4, value_to_vector_type<U>> {
-		auto mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - e.subcount));
+		auto mask = _mm256_loadu_ps((float const*)(load_masks) + 8ui32 - e.subcount);
+
 		if constexpr(std::is_same_v<U, float>) {
-			return _mm256_setr_ps(
-				e.subcount >= 0 ? source[e.value + 0] : 0.0f,
-				e.subcount >= 1 ? source[e.value + 1] : 0.0f,
-				e.subcount >= 2 ? source[e.value + 2] : 0.0f,
-				e.subcount >= 3 ? source[e.value + 3] : 0.0f,
-				e.subcount >= 4 ? source[e.value + 4] : 0.0f,
-				e.subcount >= 5 ? source[e.value + 5] : 0.0f,
-				e.subcount >= 6 ? source[e.value + 6] : 0.0f,
-				e.subcount >= 7 ? source[e.value + 7] : 0.0f
-			);
+			auto const v = _mm256_loadu_ps(source + e.value);
+			return _mm256_blendv_ps(_mm256_setzero_ps(), v, mask);
 		} else {
-			return _mm256_setr_epi32(
-				e.subcount >= 0 ? source[e.value + 0] : 0,
-				e.subcount >= 1 ? source[e.value + 1] : 0,
-				e.subcount >= 2 ? source[e.value + 2] : 0,
-				e.subcount >= 3 ? source[e.value + 3] : 0,
-				e.subcount >= 4 ? source[e.value + 4] : 0,
-				e.subcount >= 5 ? source[e.value + 5] : 0,
-				e.subcount >= 6 ? source[e.value + 6] : 0,
-				e.subcount >= 7 ? source[e.value + 7] : 0
-			);
+			auto const v = _mm256_loadu_ps((float const*)(source) + e.value);
+			return _mm256_castps_si256(_mm256_blendv_ps(_mm256_setzero_ps(), v, mask));
 		}
 	}
 	template<typename U>
@@ -1325,7 +1309,7 @@ namespace ve {
 	__forceinline auto load(contiguous_tags<int32_t, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<U, bitfield_type>, value_to_vector_type<U>> {
 		if constexpr(U(-2) < U(0)) {
 			auto const vl = _mm_loadu_si32(source + e.value);
-			auto const vh = _mm_loadu_sii32(source + e.value + 4);
+			auto const vh = _mm_loadu_si32(source + e.value + 4);
 
 			auto const cl = _mm_cvtepi8_epi32(vl);
 			auto const ch = _mm_cvtepi8_epi32(vh);
@@ -1336,7 +1320,7 @@ namespace ve {
 				return _mm256_setr_m128i(cl, ch);
 		} else {
 			auto const vl = _mm_loadu_si32(source + e.value);
-			auto const vh = _mm_loadu_sii32(source + e.value + 4);
+			auto const vh = _mm_loadu_si32(source + e.value + 4);
 
 			auto const cl = _mm_cvtepu8_epi32(vl);
 			auto const ch = _mm_cvtepu8_epi32(vh);
@@ -1351,7 +1335,7 @@ namespace ve {
 	__forceinline auto load(unaligned_contiguous_tags<int32_t, i> e, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<U, bitfield_type>, value_to_vector_type<U>> {
 		if constexpr(U(-2) < U(0)) {
 			auto const vl = _mm_loadu_si32(source + e.value);
-			auto const vh = _mm_loadu_sii32(source + e.value + 4);
+			auto const vh = _mm_loadu_si32(source + e.value + 4);
 
 			auto const cl = _mm_cvtepi8_epi32(vl);
 			auto const ch = _mm_cvtepi8_epi32(vh);
@@ -1377,7 +1361,7 @@ namespace ve {
 	__forceinline auto load(partial_contiguous_tags<int32_t> e, U const* source) -> std::enable_if_t<sizeof(U) == 1 && !std::is_same_v<U, bitfield_type>, value_to_vector_type<U>> {
 		if constexpr(U(-2) < U(0)) {
 			auto const vl = _mm_loadu_si32(source + e.value);
-			auto const vh = _mm_loadu_sii32(source + e.value + 4);
+			auto const vh = _mm_loadu_si32(source + e.value + 4);
 
 			auto const cl = _mm_cvtepi8_epi32(vl);
 			auto const ch = _mm_cvtepi8_epi32(vh);
@@ -1393,7 +1377,7 @@ namespace ve {
 			}
 		} else {
 			auto const vl = _mm_loadu_si32(source + e.value);
-			auto const vh = _mm_loadu_sii32(source + e.value + 4);
+			auto const vh = _mm_loadu_si32(source + e.value + 4);
 
 			auto const cl = _mm_cvtepu8_epi32(vl);
 			auto const ch = _mm_cvtepu8_epi32(vh);
@@ -1465,9 +1449,6 @@ namespace ve {
 			);
 		}
 	}
-
-	
-	// todo: fix remainder
 
 #pragma warning( pop ) 
 
@@ -1581,8 +1562,36 @@ namespace ve {
 		return _mm256_storeu_ps(dest + e.value, values);
 	}
 	__forceinline void store(partial_contiguous_tags<int32_t> e, float* dest, fp_vector values) {
-		auto const mask = _mm256_loadu_si256((__m256i const*)(load_masks + 8ui32 - e.subcount));
-		_mm256_maskstore_ps(dest + e.value, mask, values);
+		switch(e.subcount) {
+			default:
+				// fallthrough
+			case 8:
+				dest[e.value + 7] = values[7];
+				// fallthrough
+			case 7:
+				dest[e.value + 6] = values[6];
+				// fallthrough
+			case 6:
+				dest[e.value + 5] = values[5];
+				// fallthrough
+			case 5:
+				dest[e.value + 4] = values[4];
+				// fallthrough
+			case 4:
+				dest[e.value + 3] = values[3];
+				// fallthrough
+			case 3:
+				dest[e.value + 2] = values[2];
+				// fallthrough
+			case 2:
+				dest[e.value + 1] = values[1];
+				// fallthrough
+			case 1:
+				dest[e.value + 0] = values[0];
+				// fallthrough
+			case 0:
+				break;
+		}
 	}
 
 	template<typename T, int32_t i>
@@ -1598,6 +1607,16 @@ namespace ve {
 		ve::store(partial_contiguous_tags<int32_t>(e.value, e.subcount), dest.data(), values);
 	}
 
+	__forceinline void store(__m256i indices, float* dest, fp_vector values) {
+		dest[indices.m256i_i32[0]] = values[0];
+		dest[indices.m256i_i32[1]] = values[1];
+		dest[indices.m256i_i32[2]] = values[2];
+		dest[indices.m256i_i32[3]] = values[3];
+		dest[indices.m256i_i32[4]] = values[4];
+		dest[indices.m256i_i32[5]] = values[5];
+		dest[indices.m256i_i32[6]] = values[6];
+		dest[indices.m256i_i32[7]] = values[7];
+	}
 	__forceinline void store(int_vector indices, float* dest, fp_vector values) {
 		dest[indices[0]] = values[0];
 		dest[indices[1]] = values[1];
@@ -1608,6 +1627,7 @@ namespace ve {
 		dest[indices[6]] = values[6];
 		dest[indices[7]] = values[7];
 	}
+	
 	template<typename T>
 	__forceinline void store(tagged_vector<typename ve_identity<T>::type> indices, tagged_array_view<float, T> dest, fp_vector values) {
 		ve::store(indices.value, dest.data() - int32_t(T::zero_is_null_t::value), values);

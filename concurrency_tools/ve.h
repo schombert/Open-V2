@@ -163,7 +163,7 @@ namespace ve {
 	template<typename tag_type, typename F>
 	__forceinline void execute_serial(uint32_t count, F&& functor) {
 		const uint32_t full_units = count & ~uint32_t(vector_size - 1);
-		const uint32_t remainder = count - full_units;
+		const uint32_t remainder = count & uint32_t(vector_size - 1);
 
 		execute_serial_fast<tag_type>(full_units, std::forward<F>(functor));
 
@@ -175,7 +175,7 @@ namespace ve {
 	template<typename tag_type, typename F>
 	__forceinline void execute_serial_unaligned(uint32_t count, F&& functor) {
 		const uint32_t full_units = count & ~uint32_t(vector_size - 1);
-		const uint32_t remainder = count - full_units;
+		const uint32_t remainder = count & uint32_t(vector_size - 1);
 
 		const uint32_t reps = full_units / vector_size;
 		const uint32_t quad_reps = reps / uint32_t(block_repitition);

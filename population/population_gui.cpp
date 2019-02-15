@@ -292,6 +292,133 @@ namespace population {
 	ui::window_tag electorate_lb::element_tag(ui::gui_static& m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["pop_legend_item"]);
 	}
+
+	void create_pop_size_change_description(world_state& ws, pop_tag p, ui::tagged_gui_object tw) {
+		ui::unlimited_line_manager lm;
+		auto cursor = ui::xy_pair{ 0, 0 };
+		static const ui::text_format green_text{
+			ui::text_color::green,
+			ui::tooltip_text_format.font_handle,
+			ui::tooltip_text_format.font_size
+		};
+		static const ui::text_format red_text{
+			ui::text_color::red,
+			ui::tooltip_text_format.font_handle,
+			ui::tooltip_text_format.font_size
+		};
+		
+
+		if(auto const amount = ws.w.population_s.pops.get<pop::size_change_from_growth>(p); amount >= 1.0f) {
+			char16_t local_buf[32] = u"+";
+			put_value_in_buffer(local_buf + 1, display_type::integer, amount);
+
+			cursor = ui::text_chunk_to_instances(
+				ws.s.gui_m,
+				ws.w.gui_m,
+				vector_backed_string<char16_t>(local_buf),
+				tw,
+				cursor,
+				green_text,
+				lm);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_growth], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			lm.finish_current_line();
+		}
+
+		if(auto const amount = ws.w.population_s.pops.get<pop::size_change_from_combat>(p); amount >= 1.0f) {
+			char16_t local_buf[32];
+			put_value_in_buffer(local_buf, display_type::integer, -amount);
+
+			cursor = ui::text_chunk_to_instances(
+				ws.s.gui_m,
+				ws.w.gui_m,
+				vector_backed_string<char16_t>(local_buf),
+				tw,
+				cursor,
+				red_text,
+				lm);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_combat], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			lm.finish_current_line();
+		}
+
+		if(auto const amount = ws.w.population_s.pops.get<pop::size_change_from_assimilation_away>(p); amount >= 1.0f) {
+			char16_t local_buf[32];
+			put_value_in_buffer(local_buf, display_type::integer, -amount);
+
+			cursor = ui::text_chunk_to_instances(
+				ws.s.gui_m,
+				ws.w.gui_m,
+				vector_backed_string<char16_t>(local_buf),
+				tw,
+				cursor,
+				red_text,
+				lm);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_assimilation], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			lm.finish_current_line();
+		}
+
+		if(auto const amount = ws.w.population_s.pops.get<pop::size_change_from_emigration>(p); amount >= 1.0f) {
+			char16_t local_buf[32];
+			put_value_in_buffer(local_buf, display_type::integer, -amount);
+
+			cursor = ui::text_chunk_to_instances(
+				ws.s.gui_m,
+				ws.w.gui_m,
+				vector_backed_string<char16_t>(local_buf),
+				tw,
+				cursor,
+				red_text,
+				lm);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_emigration], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			lm.finish_current_line();
+		}
+
+		if(auto const amount = ws.w.population_s.pops.get<pop::size_change_from_local_migration>(p); amount >= 1.0f) {
+			char16_t local_buf[32];
+			put_value_in_buffer(local_buf, display_type::integer, -amount);
+
+			cursor = ui::text_chunk_to_instances(
+				ws.s.gui_m,
+				ws.w.gui_m,
+				vector_backed_string<char16_t>(local_buf),
+				tw,
+				cursor,
+				red_text,
+				lm);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_migration], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			lm.finish_current_line();
+		}
+
+		if(auto const amount = ws.w.population_s.pops.get<pop::size_change_from_type_change_away>(p); amount >= 1.0f) {
+			char16_t local_buf[32];
+			put_value_in_buffer(local_buf, display_type::integer, -amount);
+
+			cursor = ui::text_chunk_to_instances(
+				ws.s.gui_m,
+				ws.w.gui_m,
+				vector_backed_string<char16_t>(local_buf),
+				tw,
+				cursor,
+				red_text,
+				lm);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_type_change], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			lm.finish_current_line();
+		}
+	}
+
+	void pop_growth::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
+		create_pop_size_change_description(ws, tag, tw);
+	}
+
+	void pop_size::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
+		create_pop_size_change_description(ws, tag, tw);
+	}
+
 	ui::window_tag population_lb::element_tag(ui::gui_static& m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["popinfomember_popview"]);
 	}

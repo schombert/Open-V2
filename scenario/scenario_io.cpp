@@ -725,7 +725,13 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::rail_tech_prerequisite] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rail_tech_prerequisite");
 		s.fixed_ui_text[fixed_ui::no_other_naval_base] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "no_other_naval_base");
 		s.fixed_ui_text[fixed_ui::is_coastal] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "is_coastal");
-		s.fixed_ui_text[fixed_ui::bankrupcy_warning] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "bankrupcy_warning");
+		s.fixed_ui_text[fixed_ui::bankruptcy_warning] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "bankrupcy_warning");
 		s.fixed_ui_text[fixed_ui::nationalist_movement] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NATIONALIST_LIBERATION_MOVEMENT");
+		s.fixed_ui_text[fixed_ui::pop_size_growth] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "pop_size_growth");
+		s.fixed_ui_text[fixed_ui::pop_size_combat] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "pop_size_combat");
+		s.fixed_ui_text[fixed_ui::pop_size_type_change] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "pop_size_type_change");
+		s.fixed_ui_text[fixed_ui::pop_size_assimilation] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "pop_size_assimilation");
+		s.fixed_ui_text[fixed_ui::pop_size_migration] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "pop_size_migration");
+		s.fixed_ui_text[fixed_ui::pop_size_emigration] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "pop_size_emigration");
 	}
 }

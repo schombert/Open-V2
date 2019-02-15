@@ -50,6 +50,9 @@ namespace nations {
 	void destroy_nation(world_state& ws, nations::country_tag new_nation);
 	float tarrif_multiplier(world_state const& ws, nations::country_tag source, nations::country_tag target);
 
+	float monthly_growth(world_state const& ws, nations::country_tag n);
+	float monthly_growth(world_state const& ws, nations::state_tag s);
+
 	template<typename C, typename T>
 	auto is_culture_accepted(world_state const& ws, C c, T n) -> decltype(ve::widen_to<C, T>(true));
 	template<typename T>

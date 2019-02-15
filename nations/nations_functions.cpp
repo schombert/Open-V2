@@ -1409,4 +1409,21 @@ namespace nations {
 		return_value.erase(ws.w.nation_s.nations.get<nation::tag>(n));
 		return return_value;
 	}
+
+	float monthly_growth(world_state const& ws, nations::country_tag n) {
+		float value = 0.0f;
+		for_each_province(ws, n, [&ws, &value](provinces::province_tag p) {
+			value += (ws.w.province_s.province_state_container.get<province_state::monthly_population>(p)
+				- ws.w.province_s.province_state_container.get<province_state::old_monthly_population>(p));
+		});
+		return value;
+	}
+	float monthly_growth(world_state const& ws, nations::state_tag s) {
+		float value = 0.0f;
+		for_each_province(ws, s, [&ws, &value](provinces::province_tag p) {
+			value += (ws.w.province_s.province_state_container.get<province_state::monthly_population>(p)
+				- ws.w.province_s.province_state_container.get<province_state::old_monthly_population>(p));
+		});
+		return value;
+	}
 }

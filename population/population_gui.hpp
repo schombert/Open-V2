@@ -196,8 +196,12 @@ namespace population {
 
 	class pop_size {
 	public:
+		pop_tag tag;
+
 		template<typename window_type>
 		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	class pop_type_button {
@@ -377,11 +381,13 @@ namespace population {
 
 	class pop_growth {
 	public:
+		pop_tag tag;
+
 		template<typename W>
 		void windowed_update(ui::dynamic_icon<pop_growth>&, W& w, world_state& ws);
 
-		//bool has_tooltip(world_state&) { return true; }
-		//void create_tooltip(world_state&, ui::tagged_gui_object tw);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state&, ui::tagged_gui_object tw);
 	};
 
 	using pop_list_item = ui::gui_window <
@@ -1331,6 +1337,8 @@ namespace population {
 
 	template<typename window_type>
 	void pop_size::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		tag = w.tag;
+
 		char16_t local_buf[32];
 		put_value_in_buffer(local_buf, display_type::exact_integer, int32_t(ws.w.population_s.pop_demographics.get(w.tag, total_population_tag)));
 
@@ -1677,7 +1685,7 @@ namespace population {
 	template<typename W>
 	void pop_country_growth::windowed_update(ui::dynamic_icon<pop_country_growth>& ico, W& w, world_state& ws) {
 		if(is_valid_index(w.tag)) {
-			auto growth = ws.w.nation_s.nation_demographics.get(w.tag, total_population_tag) - ws.w.nation_s.nations.get<nation::last_population>(w.tag);
+			auto growth = int32_t(nations::monthly_growth(ws, w.tag));
 			if(growth > 0)
 				ico.set_frame(ws.w.gui_m, 0ui32);
 			else if(growth == 0)
@@ -1689,7 +1697,8 @@ namespace population {
 
 	template<typename W>
 	void pop_growth::windowed_update(ui::dynamic_icon<pop_growth>& ico, W& w, world_state& ws) {
-		auto total_growth = total_size_change(ws, w.tag);
+		tag = w.tag;
+		auto total_growth = int32_t(total_size_change(ws, w.tag));
 
 		if(total_growth > 0)
 			ico.set_frame(ws.w.gui_m, 0ui32);
@@ -1721,7 +1730,8 @@ namespace population {
 	template<typename W>
 	void pop_state_growth::windowed_update(ui::dynamic_icon<pop_state_growth>& ico, W& w, world_state& ws) {
 		if(is_valid_index(w.tag)) {
-			auto growth = ws.w.nation_s.state_demographics.get(w.tag, total_population_tag) - ws.w.nation_s.states.get<state::last_population>(w.tag);
+			auto growth = int32_t(nations::monthly_growth(ws, w.tag));
+
 			if(growth > 0)
 				ico.set_frame(ws.w.gui_m, 0ui32);
 			else if(growth == 0)
@@ -1778,9 +1788,9 @@ namespace population {
 	template<typename W>
 	void pop_province_growth::windowed_update(ui::dynamic_icon<pop_province_growth>& ico, W& w, world_state& ws) {
 		if(is_valid_index(w.tag)) {
-			auto growth =
-				ws.w.province_s.province_demographics.get(w.tag, total_population_tag)
-				- ws.w.province_s.province_state_container.get<province_state::>(w.tag);
+			auto growth = int32_t(
+				ws.w.province_s.province_state_container.get<province_state::monthly_population>(w.tag)
+				- ws.w.province_s.province_state_container.get<province_state::old_monthly_population>(w.tag));
 			if(growth > 0)
 				ico.set_frame(ws.w.gui_m, 0ui32);
 			else if(growth == 0)

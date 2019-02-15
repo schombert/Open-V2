@@ -1168,7 +1168,12 @@ namespace population {
 		cultures::culture_tag c;
 		cultures::religion_tag r;
 		pop_type_tag t;
+
+		constexpr bool operator==(pop_migration_key const& o) const {
+			return c == o.c && r == o.r && t == o.t;
+		}
 	};
+
 	struct pop_migration_data {
 		moveable_concurrent_cache_aligned_buffer<float, nations::country_tag, true> nation_weights;
 		moveable_concurrent_cache_aligned_buffer<float, provinces::province_tag, true> province_weights;
@@ -1620,7 +1625,7 @@ namespace population {
 				p_range.second,
 				0.0f,
 				std::plus<>(),
-				[](pop_tag p) { return ws.w.population_s.pops.get<pop::size>(p); });
+				[&ws](pop_tag p) { return ws.w.population_s.pops.get<pop::size>(p); });
 			ws.w.province_s.province_state_container.set<province_state::monthly_population>(t, total);
 		}
 	}
