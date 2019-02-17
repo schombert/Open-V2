@@ -600,11 +600,16 @@ public:
 		serialization::deserialize(input, obj.size_used);
 
 		serialization::deserialize_array(input, obj.ptr->values, obj.size_used);
+		
 		variable_layout_detail::variable_layout_tagged_vector_impl<tag_type, container_size, T ...>::deserialize_object_impl(
 			input, obj.size_used, *(obj.ptr), std::forward<CONTEXT>(c)...);
 
 		obj.first_free = tag_type();
-		for(int32_t i = container_size - 1; i >= 0; --i) {
+		for(int32_t i = container_size - 1; i >= obj.size_used; --i) {
+			obj.template set<index_type_marker>(tag_type(typename tag_type::value_base_t(i)), obj.first_free);
+			obj.first_free = tag_type(typename tag_type::value_base_t(i));
+		}
+		for(int32_t i = obj.size_used - 1; i >= 0; --i) {
 			if(!::is_valid_index(obj.template get<index_type_marker>(tag_type(typename tag_type::value_base_t(i))))) {
 				obj.template set<index_type_marker>(tag_type(typename tag_type::value_base_t(i)), obj.first_free);
 				obj.first_free = tag_type(typename tag_type::value_base_t(i));

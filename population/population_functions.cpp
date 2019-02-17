@@ -31,6 +31,8 @@ namespace population {
 		cultures::culture_tag c,
 		cultures::religion_tag r) {
 
+		assert(std::isfinite(initial_size) && initial_size >= 1.0f);
+
 		auto const new_id = ws.w.population_s.pops.get_new();
 		auto const prov_owner = ws.w.province_s.province_state_container.get<province_state::owner>(location);
 
@@ -50,6 +52,8 @@ namespace population {
 		ws.w.population_s.pops.set<pop::size_change_from_growth>(new_id, initial_size);
 
 		default_initialize_issues_and_ideology(ws, new_id);
+
+		assert(ws.w.population_s.pops.get<pop::size>(new_id) == ws.w.population_s.pop_demographics.get(new_id, total_population_tag));
 
 		return new_id;
 	}
@@ -98,14 +102,25 @@ namespace population {
 		ws.w.population_s.pops.set<pop::consciousness>(p, std::clamp(v, 0.0f, 10.0f) / 10.0f);
 	}
 
+	namespace {
+		constexpr float drop_small_value(float v) {
+			return v < 1.0f ? 0.0f : v;
+		}
+	}
+
 	float total_size_change(world_state const& ws, pop_tag p) {
-		return -ws.w.population_s.pops.get<pop::size_change_from_assimilation_away>(p)
-			- ws.w.population_s.pops.get<pop::size_change_from_combat>(p)
-			- ws.w.population_s.pops.get<pop::size_change_from_emigration>(p)
-			+ ws.w.population_s.pops.get<pop::size_change_from_growth>(p)
-			- ws.w.population_s.pops.get<pop::size_change_from_local_migration>(p)
-			- std::abs(ws.w.population_s.pops.get<pop::size_change_from_type_change_away>(p))
-			;
+		auto const p_type = ws.w.population_s.pops.get<pop::type>(p);
+		if(p_type != ws.s.population_m.slave) {
+			return -drop_small_value(ws.w.population_s.pops.get<pop::size_change_from_assimilation_away>(p))
+				- drop_small_value(ws.w.population_s.pops.get<pop::size_change_from_combat>(p))
+				- drop_small_value(ws.w.population_s.pops.get<pop::size_change_from_emigration>(p))
+				+ ws.w.population_s.pops.get<pop::size_change_from_growth>(p)
+				- drop_small_value(ws.w.population_s.pops.get<pop::size_change_from_local_migration>(p))
+				- drop_small_value(std::abs(ws.w.population_s.pops.get<pop::size_change_from_type_change_away>(p)))
+				;
+		} else {
+			return ws.w.population_s.pops.get<pop::size_change_from_growth>(p);
+		}
 	}
 
 	bool is_dominant_issue(world_state const& ws, pop_tag id, issues::option_tag opt) {
@@ -142,14 +157,17 @@ namespace population {
 
 	void change_pop_size(world_state& ws, pop_tag this_pop, int32_t new_size) {
 		// todo: fix employment
+		assert(new_size != 0);
 		ws.w.population_s.pop_demographics.get(this_pop, total_population_tag) = float(new_size);
 		ws.w.population_s.pops.set<pop::size>(this_pop, float(new_size));
 	}
 
 	void grow_pop_immediate(world_state& ws, pop_tag this_pop, float size_change) {
 		// todo: fix employment
-		ws.w.population_s.pop_demographics.get(this_pop, total_population_tag) += size_change;
-		ws.w.population_s.pops.get<pop::size>(this_pop) += size_change;
+		auto& sz = ws.w.population_s.pops.get<pop::size>(this_pop);
+		sz += size_change;
+		ws.w.population_s.pop_demographics.get(this_pop, total_population_tag) = sz;
+		
 	}
 
 	void remove_pop_from_province(world_state& ws, pop_tag this_pop) {
@@ -313,6 +331,9 @@ namespace population {
 		});
 	}
 
+	constexpr uint32_t pop_update_frequency = 32ui32;
+	constexpr uint32_t pop_update_group_size = uint32_t(std::max(16, ve::vector_size));
+
 	struct literacy_update_operation {
 		tagged_array_view<float const, nations::state_tag> change_by_state;
 		tagged_array_view<provinces::province_tag const, population::pop_tag> pop_locations;
@@ -392,22 +413,22 @@ namespace population {
 		change_by_state.padding() = 0.0f;
 
 		const uint32_t pop_size = ws.w.population_s.pops.vector_size();
-		const uint32_t chunk_size = pop_size / (32ui32 * 16ui32);
+		const uint32_t chunk_size = pop_size / (pop_update_frequency * pop_update_group_size);
 
-		const uint32_t chunk_index = uint32_t(to_index(ws.w.current_date) & 31);
-		if(chunk_index != 31) {
-			ve::execute_parallel<population::pop_tag>(chunk_size * 16ui32 * chunk_index, chunk_size * 16ui32 * (chunk_index + 1ui32),
+		const uint32_t chunk_index = uint32_t(to_index(ws.w.current_date) & (pop_update_frequency - 1));
+		if(chunk_index != pop_update_frequency - 1) {
+			ve::execute_parallel<population::pop_tag>(chunk_size * pop_update_group_size * chunk_index, chunk_size * pop_update_group_size * (chunk_index + 1ui32),
 				literacy_update_operation(ws, change_by_state.view()));
 		} else {
-			ve::execute_parallel_exact<population::pop_tag>(chunk_size * 16ui32 * chunk_index, pop_size,
+			ve::execute_parallel_exact<population::pop_tag>(chunk_size * pop_update_group_size * chunk_index, pop_size,
 				literacy_update_operation(ws, change_by_state.view()));
 		}
 	}
 
 	void update_pop_ideology_and_issues(world_state& ws) {
 		const uint32_t pop_count = uint32_t(ws.w.population_s.pops.size());
-		const auto chunk_size = (pop_count + 31ui32) / 32ui32;
-		const uint32_t chunk_index = uint32_t(to_index(ws.w.current_date) & 31);
+		const auto chunk_size = (pop_count + pop_update_frequency - 1) / pop_update_frequency;
+		const uint32_t chunk_index = uint32_t(to_index(ws.w.current_date) & (pop_update_frequency - 1));
 
 		concurrency::parallel_for(chunk_size * chunk_index, std::min(chunk_size * (chunk_index + 1), pop_count), [&ws](uint32_t i) {
 			pop_tag const pt = pop_tag(pop_tag::value_base_t(i));
@@ -593,15 +614,15 @@ namespace population {
 
 
 		uint32_t const pop_size = ws.w.population_s.pops.vector_size();
-		uint32_t const chunk_size = pop_size / (32ui32 * 16ui32);
+		uint32_t const chunk_size = pop_size / (pop_update_frequency * pop_update_group_size);
 
 		update_militancy_operation op(ws, base_modifier.view(), non_accepted_modifier.view());
 
-		uint32_t const chunk_index = uint32_t(to_index(ws.w.current_date) & 31);
-		if(chunk_index != 31)
-			ve::execute_parallel<population::pop_tag>(chunk_size * 16ui32 * chunk_index, chunk_size * 16ui32 * (chunk_index + 1ui32), op);
+		uint32_t const chunk_index = uint32_t(to_index(ws.w.current_date) & (pop_update_frequency - 1));
+		if(chunk_index != pop_update_frequency - 1)
+			ve::execute_parallel<population::pop_tag>(chunk_size * pop_update_group_size * chunk_index, chunk_size * pop_update_group_size * (chunk_index + 1ui32), op);
 		else
-			ve::execute_parallel_exact<population::pop_tag>(chunk_size * 16ui32 * chunk_index, pop_size, op);
+			ve::execute_parallel_exact<population::pop_tag>(chunk_size * pop_update_group_size * chunk_index, pop_size, op);
 	}
 
 	struct gather_consciousness_factors_operation {
@@ -737,15 +758,15 @@ namespace population {
 		clergy_factor.padding() = 0.0f;
 
 		uint32_t const pop_size = ws.w.population_s.pops.vector_size();
-		uint32_t const chunk_size = pop_size / (32ui32 * 16ui32);
+		uint32_t const chunk_size = pop_size / (pop_update_frequency * pop_update_group_size);
 
 		update_consciousness_operation op(ws, fixed_factor.view(), clergy_factor.view(), literacy_factor.view());
 
-		uint32_t const chunk_index = uint32_t(to_index(ws.w.current_date) & 31);
-		if(chunk_index != 31)
-			ve::execute_parallel<population::pop_tag>(chunk_size * 16ui32 * chunk_index, chunk_size * 16ui32 * (chunk_index + 1ui32), op);
+		uint32_t const chunk_index = uint32_t(to_index(ws.w.current_date) & (pop_update_frequency - 1));
+		if(chunk_index != pop_update_frequency - 1)
+			ve::execute_parallel<population::pop_tag>(chunk_size * pop_update_group_size * chunk_index, chunk_size * pop_update_group_size * (chunk_index + 1ui32), op);
 		else
-			ve::execute_parallel_exact<population::pop_tag>(chunk_size * 16ui32 * chunk_index, pop_size, op);
+			ve::execute_parallel_exact<population::pop_tag>(chunk_size * pop_update_group_size * chunk_index, pop_size, op);
 	}
 
 	struct calculate_promotion_operation {
@@ -808,15 +829,15 @@ namespace population {
 
 	void calculate_promotion_and_demotion_qnty(world_state& ws) {
 		const uint32_t pop_size = ws.w.population_s.pops.vector_size();
-		const uint32_t chunk_size = pop_size / (32ui32 * 16ui32);
+		const uint32_t chunk_size = pop_size / (pop_update_frequency * pop_update_group_size);
 
 		calculate_promotion_operation op(ws);
 
-		const uint32_t chunk_index = uint32_t(to_index(ws.w.current_date) & 31);
-		if(chunk_index != 31)
-			ve::execute_parallel<population::pop_tag>(chunk_size * 16ui32 * chunk_index, chunk_size * 16ui32 * (chunk_index + 1ui32), op);
+		const uint32_t chunk_index = uint32_t(to_index(ws.w.current_date) & (pop_update_frequency - 1));
+		if(chunk_index != pop_update_frequency - 1)
+			ve::execute_parallel<population::pop_tag>(chunk_size * pop_update_group_size * chunk_index, chunk_size * pop_update_group_size * (chunk_index + 1ui32), op);
 		else
-			ve::execute_parallel_exact<population::pop_tag>(chunk_size * 16ui32 * chunk_index, pop_size, op);
+			ve::execute_parallel_exact<population::pop_tag>(chunk_size * pop_update_group_size * chunk_index, pop_size, op);
 	}
 
 	struct calculate_migration_operation {
@@ -882,15 +903,15 @@ namespace population {
 
 	void calculate_migration_qnty(world_state& ws) {
 		const uint32_t pop_size = ws.w.population_s.pops.vector_size();
-		const uint32_t chunk_size = pop_size / (32ui32 * 16ui32);
+		const uint32_t chunk_size = pop_size / (pop_update_frequency * pop_update_group_size);
 
 		calculate_migration_operation op(ws);
 
-		const uint32_t chunk_index = uint32_t(to_index(ws.w.current_date) & 31);
-		if(chunk_index != 31)
-			ve::execute_parallel<population::pop_tag>(chunk_size * 16ui32 * chunk_index, chunk_size * 16ui32 * (chunk_index + 1ui32), op);
+		const uint32_t chunk_index = uint32_t(to_index(ws.w.current_date) & (pop_update_frequency - 1));
+		if(chunk_index != pop_update_frequency - 1)
+			ve::execute_parallel<population::pop_tag>(chunk_size * pop_update_group_size * chunk_index, chunk_size * pop_update_group_size * (chunk_index + 1ui32), op);
 		else
-			ve::execute_parallel_exact<population::pop_tag>(chunk_size * 16ui32 * chunk_index, pop_size, op);
+			ve::execute_parallel_exact<population::pop_tag>(chunk_size * pop_update_group_size * chunk_index, pop_size, op);
 	}
 
 	struct calculate_assimilation_operation {
@@ -900,10 +921,12 @@ namespace population {
 
 		tagged_array_view<float const, pop_tag> pop_sizes;
 		tagged_array_view<provinces::province_tag const, pop_tag> pop_location;
+		tagged_array_view<cultures::religion_tag const, pop_tag> pop_religions;
 		tagged_array_view<bitfield_type const, pop_tag> is_accepted;
 		tagged_array_view<nations::country_tag const, provinces::province_tag> province_owners;
 		tagged_array_view<float const, provinces::province_tag> province_assimilation_mod;
 		tagged_array_view<float const, nations::country_tag> national_assimilation_mod;
+		tagged_array_view<cultures::religion_tag const, nations::country_tag> national_religions;
 		float const conversion_scale;
 		float const assimilation_scale;
 
@@ -912,10 +935,12 @@ namespace population {
 			assimilation_amount(w.w.population_s.pops.get_row<pop::size_change_from_assimilation_away>()),
 			pop_sizes(w.w.population_s.pops.get_row<pop::size>()),
 			pop_location(w.w.population_s.pops.get_row<pop::location>()),
+			pop_religions(w.w.population_s.pops.get_row<pop::religion>()),
 			is_accepted(w.w.population_s.pops.get_row<pop::is_accepted>()),
 			province_owners(w.w.province_s.province_state_container.get_row<province_state::owner>()),
 			province_assimilation_mod(w.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::assimilation_rate>(0)),
 			national_assimilation_mod(w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::global_assimilation_rate>(0)),
+			national_religions(ws.w.nation_s.nations.get_row<nation::national_religion>()),
 			conversion_scale(w.s.modifiers_m.global_defines.conversion_scale),
 			assimilation_scale(w.s.modifiers_m.global_defines.assimilation_scale) {}
 
@@ -924,10 +949,11 @@ namespace population {
 			auto loc = ve::load(pop_v, pop_location);
 			auto sz = ve::load(pop_v, pop_sizes);
 			auto accepted_culture = ve::load(pop_v, is_accepted);
-
+			
 			auto prov_mod = ve::load(loc, province_assimilation_mod);
 			auto owner = ve::load(loc, province_owners);
 			auto national_mod = ve::load(owner, national_assimilation_mod);
+			auto is_nat_religion = ve::load(pop_v, pop_religions) == ve::load(owner, national_religions);
 
 			auto trigger_amount_religious = modifiers::test_contiguous_additive_factor(
 				ws.s.population_m.conversion_chance, ws, pop_v, pop_v);
@@ -935,7 +961,7 @@ namespace population {
 				ws.s.population_m.assimilation_chance, ws, pop_v, pop_v);
 
 			auto result = ve::max(sz * ve::select(accepted_culture,
-				conversion_scale * trigger_amount_religious,
+				ve::select(is_nat_religion, 0.0f, conversion_scale * trigger_amount_religious),
 				ve::multiply_and_add(prov_mod, assimilation_scale, assimilation_scale) *
 				ve::multiply_and_add(national_mod, trigger_amount_cultural, trigger_amount_cultural)), 0.0f);
 
@@ -945,15 +971,15 @@ namespace population {
 
 	void calculate_assimilation_qnty(world_state& ws) {
 		const uint32_t pop_size = ws.w.population_s.pops.vector_size();
-		const uint32_t chunk_size = pop_size / (32ui32 * 16ui32);
+		const uint32_t chunk_size = pop_size / (pop_update_frequency * pop_update_group_size);
 
 		calculate_assimilation_operation op(ws);
 
-		const uint32_t chunk_index = uint32_t(to_index(ws.w.current_date) & 31);
-		if(chunk_index != 31)
-			ve::execute_parallel<population::pop_tag>(chunk_size * 16ui32 * chunk_index, chunk_size * 16ui32 * (chunk_index + 1ui32), op);
+		const uint32_t chunk_index = uint32_t(to_index(ws.w.current_date) & (pop_update_frequency - 1));
+		if(chunk_index != pop_update_frequency - 1)
+			ve::execute_parallel<population::pop_tag>(chunk_size * pop_update_group_size * chunk_index, chunk_size * pop_update_group_size * (chunk_index + 1ui32), op);
 		else
-			ve::execute_parallel_exact<population::pop_tag>(chunk_size * 16ui32 * chunk_index, pop_size, op);
+			ve::execute_parallel_exact<population::pop_tag>(chunk_size * pop_update_group_size * chunk_index, pop_size, op);
 	}
 
 	constexpr float max_movement_support = 0.5f;
@@ -1273,8 +1299,6 @@ namespace population {
 		return r;
 	}
 
-	constexpr uint32_t size_update_frequency = 16;
-
 	namespace {
 		void handle_pop_promotion_and_demotion(
 			world_state& ws,
@@ -1416,10 +1440,14 @@ namespace population {
 	void execute_size_changes(world_state& ws) {
 
 		uint32_t const provinces_count = uint32_t(ws.w.province_s.province_state_container.size());
-		auto const chunk_size = (provinces_count + size_update_frequency - 1ui32) / size_update_frequency;
-		uint32_t const chunk_index = uint32_t(to_index(ws.w.current_date) & (size_update_frequency - 1));
 
-		concurrency::parallel_for(chunk_size * chunk_index, std::min(chunk_size * (chunk_index + 1), provinces_count), [&ws](uint32_t i) {
+		uint32_t const chunk_size = (provinces_count / (pop_update_frequency * pop_update_group_size));
+		uint32_t const chunk_index = uint32_t(to_index(ws.w.current_date) & (pop_update_frequency - 1));
+
+		int32_t const lower_limit = int32_t(chunk_size * chunk_index * pop_update_group_size);
+		int32_t const upper_limit = int32_t(chunk_index != pop_update_frequency - 1 ? chunk_size * pop_update_group_size * (chunk_index + 1) : provinces_count);
+
+		concurrency::parallel_for(lower_limit, upper_limit, [&ws](uint32_t i) {
 			provinces::province_tag t = provinces::province_tag(provinces::province_tag::value_base_t(i));
 			provinces::for_each_pop(ws, t, [&ws](population::pop_tag p) {
 				ws.w.population_s.pops.set<pop::size_change_from_growth>(p, 0.0f);
@@ -1428,7 +1456,7 @@ namespace population {
 
 		std::unordered_map<pop_migration_key, pop_migration_data> migration_map;
 
-		for(int32_t i = chunk_size * chunk_index; i < int32_t(std::min(chunk_size * (chunk_index + 1), provinces_count)); i += ve::vector_size) {
+		for(int32_t i = lower_limit; i < upper_limit; i += ve::vector_size) {
 			ve::contiguous_tags<provinces::province_tag> off(i);
 			auto migration = ws.w.province_s.province_state_container.get_row<province_state::net_migration_growth>();
 			ve::store(off, ws.w.province_s.province_state_container.get_row<province_state::old_migration_growth>(), ve::load(off, migration));
@@ -1443,7 +1471,7 @@ namespace population {
 			ve::store(off, monthly_pop, 0.0f);
 		}
 
-		for(int32_t i = chunk_size * chunk_index; i < int32_t(std::min(chunk_size * (chunk_index + 1), provinces_count)); ++i) {
+		for(int32_t i = lower_limit; i < upper_limit; ++i) {
 			provinces::province_tag t = provinces::province_tag(provinces::province_tag::value_base_t(i));
 			auto const province_owner = ws.w.province_s.province_state_container.get<province_state::owner>(t);
 			auto const owner_culture = ws.w.nation_s.nations.get<nation::primary_culture>(province_owner);
@@ -1536,6 +1564,7 @@ namespace population {
 							auto const target_pop = find_in_province(ws, dest_province, fitted_type, pop_j_culture, pop_j_religion);
 							if(target_pop) {
 								grow_pop_immediate(ws, target_pop, migration_val);
+								assert(ws.w.population_s.pops.get<pop::size>(target_pop) == ws.w.population_s.pop_demographics.get(target_pop, total_population_tag));
 							} else {
 								make_new_pop(
 									ws,
@@ -1569,6 +1598,7 @@ namespace population {
 								auto const target_pop = find_in_province(ws, dest_province, fitted_type, pop_j_culture, pop_j_religion);
 								if(target_pop) {
 									grow_pop_immediate(ws, target_pop, emigration_val);
+									assert(ws.w.population_s.pops.get<pop::size>(target_pop) == ws.w.population_s.pop_demographics.get(target_pop, total_population_tag));
 								} else {
 									make_new_pop(
 										ws,
@@ -1606,7 +1636,12 @@ namespace population {
 
 			for(int32_t j = 0; j < fixed_pop_count; ++j) {
 				auto const pop_j = fixed_range[j];
-				grow_pop_immediate(ws, pop_j, total_size_change(ws, pop_j));
+				auto const change = total_size_change(ws, pop_j);
+				
+				assert(std::isfinite(change));
+				grow_pop_immediate(ws, pop_j, change);
+
+				assert(ws.w.population_s.pops.get<pop::size>(pop_j) == ws.w.population_s.pop_demographics.get(pop_j, total_population_tag));
 				if(ws.w.population_s.pops.get<pop::size>(pop_j) < 1.0f) {
 					remove_item(ws.w.population_s.pop_arrays, pops_array_ref, pop_j);
 					if(auto a = ws.w.population_s.pops.get<pop::associated_army>(pop_j); a) {
@@ -1617,7 +1652,7 @@ namespace population {
 			}
 		}
 
-		for(int32_t i = chunk_size * chunk_index; i < int32_t(std::min(chunk_size * (chunk_index + 1), provinces_count)); ++i) {
+		for(int32_t i = lower_limit; i < upper_limit; ++i) {
 			provinces::province_tag t = provinces::province_tag(provinces::province_tag::value_base_t(i));
 			auto const p_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(t));
 			float const total = std::transform_reduce(
@@ -1625,7 +1660,13 @@ namespace population {
 				p_range.second,
 				0.0f,
 				std::plus<>(),
-				[&ws](pop_tag p) { return ws.w.population_s.pops.get<pop::size>(p); });
+				[&ws](pop_tag p) {
+					auto const sz = ws.w.population_s.pops.get<pop::size>(p);
+					auto const total_sz = ws.w.population_s.pop_demographics.get(p, total_population_tag);
+					assert(sz >= 1.0f);
+					assert(sz == total_sz);
+					return sz;
+			});
 			ws.w.province_s.province_state_container.set<province_state::monthly_population>(t, total);
 		}
 	}

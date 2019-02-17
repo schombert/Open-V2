@@ -26,14 +26,15 @@ void world_state_non_ai_update(world_state & ws) {
 	population::calculate_promotion_and_demotion_qnty(ws);
 	population::calculate_migration_qnty(ws);
 	population::calculate_assimilation_qnty(ws);
+	population::execute_size_changes(ws);
+
+	provinces::update_province_demographics(ws);
+	nations::update_state_nation_demographics(ws);
 
 	population::update_independence_movements(ws);
 	population::update_local_rebels_and_movements(ws);
 
 	economy::economy_update_tick(ws);
-
-	provinces::update_province_demographics(ws);
-	nations::update_state_nation_demographics(ws);
 
 	ws.w.nation_s.nations.parallel_for_each([&ws](nations::country_tag n) {
 		nations::update_movement_support(ws, n);

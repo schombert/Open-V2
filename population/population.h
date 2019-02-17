@@ -47,7 +47,7 @@ namespace pop {
 	struct is_middle;
 	struct size;
 
-	using container = variable_layout_tagged_vector < population::pop_tag, 40'000,
+	using container = variable_layout_tagged_vector < population::pop_tag, 75'000,
 		is_accepted, bitfield_type,
 		is_poor, bitfield_type,
 		is_middle, bitfield_type,

@@ -2157,7 +2157,10 @@ namespace economy {
 		const int32_t total = int32_t(state_pops.pop_ids.size());
 		for(int32_t i = 0; i < total; ++i) {
 			auto ptype = state_pops.pop_types[i];
-			state_pops.money[i] += state_pay_by_type[to_index(ptype)] * state_pops.size[i] / float(state_population_by_type[to_index(ptype)]);
+			auto const state_pop_type_sz = float(state_population_by_type[to_index(ptype)]);
+			auto const change = state_pay_by_type[to_index(ptype)] * state_pops.size[i] / state_pop_type_sz;
+			assert(std::isfinite(change));
+			state_pops.money[i] += change;
 		}
 
 		ve::execute_serial<int32_t>(uint32_t(total), store_money_and_satisfaction_operation(ws, state_pops));
@@ -2248,7 +2251,7 @@ namespace economy {
 			float& treasury = ws.w.nation_s.nations.get<nation::treasury>(n);
 
 			auto tincome_sum = ve::reduce(ws.s.economy_m.goods_count, tincome);
-
+			assert(std::isfinite(tincome_sum));
 			treasury += tincome_sum;
 
 			pay_unemployment_pensions_salaries(ws, n);
@@ -2307,6 +2310,9 @@ namespace economy {
 				nations::for_each_pop(ws, n, [&total, &ws, &tax_base, n, taxeff, pt, mt, rt](population::pop_tag p) {
 					auto p_type = ws.w.population_s.pops.get<pop::type>(p);
 					auto& p_money = ws.w.population_s.pops.get<pop::money>(p);
+
+					assert(std::isfinite(p_money));
+
 					auto strata = ws.s.population_m.pop_types[p_type].flags & population::pop_type::strata_mask;
 					if(strata == population::pop_type::strata_poor) {
 						auto collected = std::min(p_money * pt * taxeff, p_money);

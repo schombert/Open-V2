@@ -143,6 +143,8 @@ namespace provinces {
 				auto needs_satisfaction = ws.w.population_s.pops.get<pop::needs_satisfaction>(p);
 
 				auto pop_size = pop_demo_source[population::total_population_tag];
+				auto other_pop_size = ws.w.population_s.pops.get<pop::size>(p);
+				assert(std::isfinite(pop_size) && pop_size > 0.0f && pop_size == other_pop_size);
 
 				province_full_demo[population::to_demo_tag(ws, ws.w.population_s.pops.get<pop::culture>(p))] += pop_size;
 				province_full_demo[population::to_demo_tag(ws, ws.w.population_s.pops.get<pop::religion>(p))] += pop_size;
@@ -530,7 +532,7 @@ namespace provinces {
 				p_range.second,
 				0.0f,
 				std::plus<>(),
-				[](population::pop_tag p) { return ws.w.population_s.pops.get<pop::size>(p); });
+				[&ws](population::pop_tag p) { return ws.w.population_s.pops.get<pop::size>(p); });
 			ws.w.province_s.province_state_container.set<province_state::monthly_population>(t, total);
 			ws.w.province_s.province_state_container.set<province_state::old_monthly_population>(t, total);
 		}

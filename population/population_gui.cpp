@@ -322,8 +322,13 @@ namespace population {
 				lm);
 			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_growth], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			lm.finish_current_line();
 		}
+
+		// early exit
+		if(ws.w.population_s.pops.get<pop::type>(p) == ws.s.population_m.slave)
+			return; 
 
 		if(auto const amount = ws.w.population_s.pops.get<pop::size_change_from_combat>(p); amount >= 1.0f) {
 			char16_t local_buf[32];
@@ -339,6 +344,7 @@ namespace population {
 				lm);
 			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_combat], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			lm.finish_current_line();
 		}
 
@@ -356,6 +362,7 @@ namespace population {
 				lm);
 			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_assimilation], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			lm.finish_current_line();
 		}
 
@@ -373,6 +380,7 @@ namespace population {
 				lm);
 			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_emigration], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			lm.finish_current_line();
 		}
 
@@ -390,6 +398,7 @@ namespace population {
 				lm);
 			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_migration], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			lm.finish_current_line();
 		}
 
@@ -407,6 +416,7 @@ namespace population {
 				lm);
 			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_type_change], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			lm.finish_current_line();
 		}
 	}

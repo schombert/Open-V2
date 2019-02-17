@@ -348,8 +348,7 @@ void stable_2d_vector<object_type, outer_index_type, inner_index_type, block_siz
 
 	for(uint32_t i = indices_in_use; i <= block_num; ++i) {
 		object_type* new_block = static_cast<object_type*>(_aligned_malloc(sizeof(object_type) * block_size * inner_size, 64));
-		for(int32_t j = static_cast<int32_t>(block_size * inner_size) - 1; j >= 0; --j)
-			new (new_block + j) object_type();
+		std::uninitialized_value_construct_n(new_block, block_size * inner_size);
 		index_array[i] = new_block;
 	}
 	indices_in_use = block_num + 1;

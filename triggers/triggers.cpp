@@ -2703,21 +2703,30 @@ namespace triggers {
 	TRIGGER_FUNCTION(tf_has_pop_type_nation) {
 		auto type = trigger_payload(tval[2]).small.values.pop_type;
 		auto amount = ve::apply(to_nation(primary_slot), [&ws, type](nations::country_tag n) {
-			return ws.w.nation_s.nation_demographics.get(n, population::to_demo_tag(ws, type));
+			if(ws.w.nation_s.nations.is_valid_index(n))
+				return ws.w.nation_s.nation_demographics.get(n, population::to_demo_tag(ws, type));
+			else
+				return 0.0f;
 		});
 		return compare_to_true(tval[0], amount > 0.0f);
 	}
 	TRIGGER_FUNCTION(tf_has_pop_type_state) {
 		auto type = trigger_payload(tval[2]).small.values.pop_type;
 		auto amount = ve::apply(to_state(primary_slot), [&ws, type](nations::state_tag s) {
-			return ws.w.nation_s.state_demographics.get(s, population::to_demo_tag(ws, type));
+			if(ws.w.nation_s.states.is_valid_index(s))
+				return ws.w.nation_s.state_demographics.get(s, population::to_demo_tag(ws, type));
+			else
+				return 0.0f;
 		});
 		return compare_to_true(tval[0], amount > 0.0f);
 	}
 	TRIGGER_FUNCTION(tf_has_pop_type_province) {
 		auto type = trigger_payload(tval[2]).small.values.pop_type;
 		auto amount = ve::apply(to_prov(primary_slot), [&ws, type](provinces::province_tag p) {
-			return ws.w.province_s.province_demographics.get(p, population::to_demo_tag(ws, type));
+			if(ws.w.province_s.province_state_container.is_valid_index(p))
+				return ws.w.province_s.province_demographics.get(p, population::to_demo_tag(ws, type));
+			else
+				return 0.0f;
 		});
 		return compare_to_true(tval[0], amount > 0.0f);
 
@@ -3856,7 +3865,7 @@ namespace triggers {
 	TRIGGER_FUNCTION(tf_has_pop_culture_province_this_pop) {
 		auto culture = to_value<pop::culture>(ws.w.population_s.pops, to_pop(this_slot));
 		auto result = ve::apply(to_prov(primary_slot), culture, [&ws](provinces::province_tag p, cultures::culture_tag c) {
-			return is_valid_index(p) && is_valid_index(c) && (0 != ws.w.province_s.province_demographics.get(p, population::to_demo_tag(ws, c)));
+			return ws.w.province_s.province_state_container.is_valid_index(p) && is_valid_index(c) && (0 != ws.w.province_s.province_demographics.get(p, population::to_demo_tag(ws, c)));
 		});
 		return compare_to_true(tval[0], result);
 	}
@@ -3878,7 +3887,7 @@ namespace triggers {
 	}
 	TRIGGER_FUNCTION(tf_has_pop_culture_province) {
 		auto result = ve::apply(to_prov(primary_slot), [&ws, c = trigger_payload(tval[2]).culture](provinces::province_tag p) {
-			return is_valid_index(p) && (0 != ws.w.province_s.province_demographics.get(p, population::to_demo_tag(ws, c)));
+			return ws.w.province_s.province_state_container.is_valid_index(p) && (0 != ws.w.province_s.province_demographics.get(p, population::to_demo_tag(ws, c)));
 		});
 		return compare_to_true(tval[0], result);
 	}
@@ -3903,7 +3912,7 @@ namespace triggers {
 	TRIGGER_FUNCTION(tf_has_pop_religion_province_this_pop) {
 		auto religion = to_value<pop::religion>(ws.w.population_s.pops, to_pop(this_slot));
 		auto result = ve::apply(to_prov(primary_slot), religion, [&ws](provinces::province_tag p, cultures::religion_tag r) {
-			return is_valid_index(p) && is_valid_index(r) && (0 != ws.w.province_s.province_demographics.get(p, population::to_demo_tag(ws, r)));
+			return ws.w.province_s.province_state_container.is_valid_index(p) && is_valid_index(r) && (0 != ws.w.province_s.province_demographics.get(p, population::to_demo_tag(ws, r)));
 		});
 		return compare_to_true(tval[0], result);
 	}
@@ -3927,7 +3936,7 @@ namespace triggers {
 	}
 	TRIGGER_FUNCTION(tf_has_pop_religion_province) {
 		auto result = ve::apply(to_prov(primary_slot), [&ws, r = trigger_payload(tval[2]).small.values.religion](provinces::province_tag p) {
-			return is_valid_index(p) && (0 != ws.w.province_s.province_demographics.get(p, population::to_demo_tag(ws, r)));
+			return ws.w.province_s.province_state_container.is_valid_index(p) && (0 != ws.w.province_s.province_demographics.get(p, population::to_demo_tag(ws, r)));
 		});
 		return compare_to_true(tval[0], result);
 	}
@@ -3952,7 +3961,7 @@ namespace triggers {
 	TRIGGER_FUNCTION(tf_consciousness_province) {
 		auto total_pop = to_value<province_state::total_population>(ws.w.province_s.province_state_container, to_prov(primary_slot));
 		auto value = ve::apply(to_prov(primary_slot), [&ws](provinces::province_tag p) {
-			if(is_valid_index(p))
+			if(ws.w.province_s.province_state_container.is_valid_index(p))
 				return ws.w.province_s.province_demographics.get(p, population::consciousness_demo_tag(ws));
 			else
 				return 0.0f;
@@ -3985,7 +3994,7 @@ namespace triggers {
 	TRIGGER_FUNCTION(tf_literacy_province) {
 		auto total_pop = to_value<province_state::total_population>(ws.w.province_s.province_state_container, to_prov(primary_slot));
 		auto value = ve::apply(to_prov(primary_slot), [&ws](provinces::province_tag p) {
-			if(is_valid_index(p))
+			if(ws.w.province_s.province_state_container.is_valid_index(p))
 				return ws.w.province_s.province_demographics.get(p, population::literacy_demo_tag(ws));
 			else
 				return 0.0f;
@@ -4018,7 +4027,7 @@ namespace triggers {
 	TRIGGER_FUNCTION(tf_militancy_province) {
 		auto total_pop = to_value<province_state::total_population>(ws.w.province_s.province_state_container, to_prov(primary_slot));
 		auto value = ve::apply(to_prov(primary_slot), [&ws](provinces::province_tag p) {
-			if(is_valid_index(p))
+			if(ws.w.province_s.province_state_container.is_valid_index(p))
 				return ws.w.province_s.province_demographics.get(p, population::militancy_demo_tag(ws));
 			else
 				return 0.0f;
