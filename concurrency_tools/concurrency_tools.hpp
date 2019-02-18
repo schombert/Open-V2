@@ -351,7 +351,7 @@ void stable_2d_vector<object_type, outer_index_type, inner_index_type, block_siz
 		std::uninitialized_value_construct_n(new_block, block_size * inner_size);
 		index_array[i] = new_block;
 	}
-	indices_in_use = block_num + 1;
+	indices_in_use = std::max(block_num + 1, indices_in_use);
 }
 
 template<typename object_type, typename outer_index_type, typename inner_index_type, uint32_t block_size, uint32_t index_size>

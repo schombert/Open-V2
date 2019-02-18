@@ -20,6 +20,16 @@ namespace population {
 		pop_type_tag t,
 		cultures::culture_tag c,
 		cultures::religion_tag r);
+	pop_tag concurrent_make_new_pop(
+		world_state& ws,
+		float initial_size,
+		float militancy,
+		float consciousness,
+		float literacy,
+		provinces::province_tag location,
+		pop_type_tag t,
+		cultures::culture_tag c,
+		cultures::religion_tag r);
 	void default_initialize_issues_and_ideology(world_state& ws, pop_tag this_pop);
 	void default_initialize_world_issues_and_ideology(world_state& ws);
 	void init_pop_demographics(world_state& ws, pop_tag p, float size);
