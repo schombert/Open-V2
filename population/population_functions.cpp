@@ -944,6 +944,7 @@ namespace population {
 
 		tagged_array_view<float const, pop_tag> pop_sizes;
 		tagged_array_view<provinces::province_tag const, pop_tag> pop_location;
+		tagged_array_view<bitfield_type const, provinces::province_tag> provinces_are_colonial;
 		// tagged_array_view<bitfield_type const, pop_tag> poor_pops;
 		// tagged_array_view<bitfield_type const, pop_tag> middle_pops;
 		tagged_array_view<nations::country_tag const, provinces::province_tag> province_owners;
@@ -960,6 +961,7 @@ namespace population {
 
 			pop_sizes(w.w.population_s.pops.get_row<pop::size>()),
 			pop_location(w.w.population_s.pops.get_row<pop::location>()),
+			provinces_are_colonial(w.w.province_s.province_state_container.get_row<province_state::is_non_state>()),
 			// poor_pops(w.w.population_s.pops.get_row<pop::is_poor>()),
 			// middle_pops(w.w.population_s.pops.get_row<pop::is_middle>()),
 			province_owners(w.w.province_s.province_state_container.get_row<province_state::owner>()),
@@ -986,16 +988,17 @@ namespace population {
 				ws.s.population_m.emigration_chance, ws, pop_v, pop_v);
 
 			auto owner_civilization = ve::load(owner, owner_is_civilized);
+			auto province_colonial = ve::load(loc, provinces_are_colonial);
 			// auto owner_tech_mod = ve::load(owner, tech_colonial_migration);
 			auto mod_sq = ve::multiply_and_add(mod, mod + 2.0f, 1.0f);
 			// auto adj_size = ve::select(mid | poor, sz, 0.0f);
 
-			ve::store(pop_v, local_migration_amount, ve::multiply_and_add(mod, sz, sz) * (trigger_amount_local * immigration_scale));
+			ve::store(pop_v, local_migration_amount, ve::select(province_colonial, 0.0f, ve::multiply_and_add(mod, sz, sz) * (trigger_amount_local * immigration_scale)));
 			//ve::store(pop_v, colonial_migration_amount,
 			//	ve::multiply_and_add(mod, adj_size, adj_size) *
 			//	ve::multiply_and_add(owner_tech_mod, immigration_scale, immigration_scale) *
 			//	(trigger_amount_colonial));
-			ve::store(pop_v, emigration_amount, ve::select(owner_civilization, (sz * mod_sq) * (trigger_amount_emigration * immigration_scale), 0.0f));
+			ve::store(pop_v, emigration_amount, ve::select(owner_civilization & ~province_colonial, (sz * mod_sq) * (trigger_amount_emigration * immigration_scale), 0.0f));
 		}
 	};
 
@@ -1331,19 +1334,26 @@ namespace population {
 
 		void populate_weights(world_state const& ws, pop_type_tag p_type, cultures::culture_tag p_culture) {
 			if(emigrating_pops.size() != 0) {
-				auto const vs = ws.w.nation_s.nations.vector_size();
+				auto const nation_count = ws.w.nation_s.nations.size();
+
 				auto const mt_trigger = ws.s.population_m.pop_types[p_type].country_migration_target;
-				for(int32_t i = 0; i < int32_t(vs); i += ve::vector_size) {
+				for(int32_t i = 0; i < nation_count; i += ve::vector_size) {
 					ve::contiguous_tags<nations::country_tag> off(i);
 					ve::store(
 						off,
-						nation_weights.view(int32_t(vs)),
+						nation_weights.view(int32_t(nation_count)),
 						modifiers::test_semi_contiguous_multiplicative_factor(mt_trigger, ws, off, from_pop, from_pop));
 				}
+				float const avg = std::reduce(
+					                  nation_weights.begin(),
+					                  nation_weights.begin() + nation_count,
+									  -0.000001f,
+					                  std::plus<>()) / float(nation_count) ;
+				
 				float temp_sum = 0.0f;
-				int32_t const nation_count = ws.w.nation_s.nations.size();
+
 				for(int32_t i = 0; i < nation_count; ++i) {
-					temp_sum += nation_weights[nations::country_tag(nations::country_tag::value_base_t(i))];
+					temp_sum += std::max(0.0f, nation_weights[nations::country_tag(nations::country_tag::value_base_t(i))] - avg);
 					nation_weights[nations::country_tag(nations::country_tag::value_base_t(i))] = temp_sum;
 				}
 				nation_weights_sum = temp_sum;
@@ -1366,7 +1376,7 @@ namespace population {
 			auto const chosen = dist(get_local_generator());
 
 			auto const chosen_position = std::lower_bound(nation_weights.begin(), nation_weights.begin() + nation_count, chosen);
-			return (chosen_position < nation_weights.begin() + nation_count)
+			return (chosen_position != nation_weights.begin() + nation_count)
 				       ? nations::country_tag(nations::country_tag::value_base_t(chosen_position - nation_weights.begin()))
 				       : nations::country_tag();
 		}
@@ -1375,23 +1385,34 @@ namespace population {
 			auto p_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(n));
 
 			if(sum_province_weights_by_nation[n] == 0.0f) {
-				sum_province_weights_by_nation[n] = std::transform_reduce(
+				float const avg = std::transform_reduce(
 					p_range.first,
 					p_range.second,
-					0.0000001f,
+					-0.000001f,
 					std::plus<>(),
-					[_this = this](provinces::province_tag p) { return _this->province_weights[p]; });
+					[_this = this](provinces::province_tag p) { return _this->province_weights[p]; }) / float(p_range.second - p_range.first);
+				
+				float temp_sum = 0.0f;
+				for(auto p : p_range) {
+					temp_sum += std::max(0.0f, province_weights[p] - avg);
+					province_weights[p] = temp_sum;
+				}
+				sum_province_weights_by_nation[n] = temp_sum;
 			}
+
 			auto const total_weights = sum_province_weights_by_nation[n];
 			std::uniform_real_distribution<float> const dist(0.0f, total_weights);
 			auto chosen = dist(get_local_generator());
-			for(auto p : p_range) {
-				if(chosen < province_weights[p])
-					return p;
-				else
-					chosen -= province_weights[p];
-			}
-			return provinces::province_tag();
+
+			auto const chosen_position = std::lower_bound(
+				p_range.first,
+				p_range.second,
+				chosen,
+				[_this = this](provinces::province_tag a, float val) { return _this->province_weights[a] < val; });
+
+			return (chosen_position != p_range.second)
+				? *chosen_position
+				: provinces::province_tag();
 		}
 	};
 }
@@ -1762,14 +1783,17 @@ namespace population {
 				auto const dest_nation = map_pair.second.choose_nation(ws);
 				if(dest_nation) {
 					auto const dest_province = map_pair.second.choose_province_from_nation(ws, dest_nation);
+					auto const dest_nation_religion = ws.w.nation_s.nations.get<nation::national_religion>(dest_nation);
+
 					if(dest_province) {
 						ws.w.province_s.province_state_container.get<province_state::net_immigration_growth>(dest_province) += em_pop.amount;
-
 
 						auto const fitted_type = fit_type_to_province(ws, dest_province, map_pair.first.t);
 						auto const target_pop = find_in_province(ws, dest_province, fitted_type, map_pair.first.c, em_pop.pop_religion);
 						if(target_pop) {
 							grow_pop_immediate(ws, target_pop, em_pop.amount);
+						} else if(auto const immigrant_target_pop = find_in_province(ws, dest_province, fitted_type, ws.s.culture_m.immigrant_culture, dest_nation_religion); immigrant_target_pop) {
+							grow_pop_immediate(ws, immigrant_target_pop, em_pop.amount);
 						} else {
 							make_new_pop_deferred(
 								ws,
@@ -1779,8 +1803,8 @@ namespace population {
 								em_pop.pop_literacy,
 								dest_province,
 								fitted_type,
-								map_pair.first.c,
-								em_pop.pop_religion,
+								ws.s.culture_m.immigrant_culture,
+								dest_nation_religion,
 								pop_creation_tg);
 						}
 					}
@@ -1788,6 +1812,7 @@ namespace population {
 			}
 			for(auto& mi_pop : map_pair.second.migrating_pops) {
 				auto const dest_province = map_pair.second.choose_province_from_nation(ws, mi_pop.within_nation);
+				auto const dest_nation_religion = ws.w.nation_s.nations.get<nation::national_religion>(mi_pop.within_nation);
 
 				if(dest_province) {
 					
@@ -1797,6 +1822,8 @@ namespace population {
 					auto const target_pop = find_in_province(ws, dest_province, fitted_type, map_pair.first.c, mi_pop.pop_religion);
 					if(target_pop) {
 						grow_pop_immediate(ws, target_pop, mi_pop.amount);
+					} else if(auto const immigrant_target_pop = find_in_province(ws, dest_province, fitted_type, ws.s.culture_m.immigrant_culture, dest_nation_religion); immigrant_target_pop) {
+						grow_pop_immediate(ws, immigrant_target_pop, mi_pop.amount);
 					} else {
 						make_new_pop_deferred(
 							ws,
@@ -1806,8 +1833,8 @@ namespace population {
 							mi_pop.pop_literacy,
 							dest_province,
 							fitted_type,
-							map_pair.first.c,
-							mi_pop.pop_religion,
+							ws.s.culture_m.immigrant_culture,
+							dest_nation_religion,
 							pop_creation_tg);
 					}
 				}

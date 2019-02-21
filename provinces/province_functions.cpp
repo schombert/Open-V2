@@ -303,10 +303,13 @@ namespace provinces {
 		nations::region_state_pair* found = find(ws.w.nation_s.state_arrays, ws.w.nation_s.nations.get<nation::member_states>(new_owner), nations::region_state_pair{ region_id, nations::state_tag() });
 		if(found) {
 			container.set<province_state::state_instance>(prov, found->state);
+			container.set<province_state::is_non_state>(prov, ws.w.nation_s.states.get<state::is_colonial>(found->state) || ws.w.nation_s.states.get<state::is_protectorate>(found->state));
 			ws.w.nation_s.states.set<state::state_capital>(found->state, nations::find_state_capital(ws, found->state));
+
 		} else {
 			auto new_state = nations::make_state(region_id, ws);
 			container.set<province_state::state_instance>(prov, new_state);
+			container.set<province_state::is_non_state>(prov, false);
 
 			ws.w.nation_s.states.set<state::owner>(new_state, new_owner);
 			ws.w.nation_s.states.set<state::state_capital>(new_state, nations::find_state_capital(ws, new_state));

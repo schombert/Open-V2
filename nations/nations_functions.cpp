@@ -261,6 +261,35 @@ namespace nations {
 		clear(ws.w.nation_s.state_arrays, member_states);
 	}
 
+	void set_colonial_status(world_state& ws, state_tag s, colonial_status status) {
+		switch(status) {
+			case colonial_status::protectorate:
+				ws.w.nation_s.states.set<state::is_protectorate>(s, true);
+				ws.w.nation_s.states.set<state::is_colonial>(s, false);
+				for_each_province(ws, s,
+					[&ws](provinces::province_tag p) {
+						ws.w.province_s.province_state_container.set<province_state::is_non_state>(p, true);
+					});
+				break;
+			case colonial_status::colonial:
+				ws.w.nation_s.states.set<state::is_protectorate>(s, false);
+				ws.w.nation_s.states.set<state::is_colonial>(s, true);
+				for_each_province(ws, s,
+					[&ws](provinces::province_tag p) {
+					ws.w.province_s.province_state_container.set<province_state::is_non_state>(p, true);
+				});
+				break;
+			case colonial_status::not_colonial:
+				ws.w.nation_s.states.set<state::is_protectorate>(s, false);
+				ws.w.nation_s.states.set<state::is_colonial>(s, false);
+				for_each_province(ws, s,
+					[&ws](provinces::province_tag p) {
+					ws.w.province_s.province_state_container.set<province_state::is_non_state>(p, false);
+				});
+				break;
+		}
+	}
+
 	void remove_owned_province(world_state& ws, nations::country_tag n, provinces::province_tag p) { // removes province from list of owned
 		remove_item(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(n), p);
 	}

@@ -544,7 +544,7 @@ public:
 		if constexpr(!std::is_same_v<typename container_type::template value_type<U>, bitfield_type>)
 			return tagged_array_view<typename container_type::template value_type<U>, tag_type>(container_type::template get_row<U>(*ptr), ve::to_vector_size(uint32_t(size_used)));
 		else
-			return tagged_array_view<bitfield_type, tag_type>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), int32_t(uint32_t(size_used + 7) / 8ui32));
+			return tagged_array_view<bitfield_type, tag_type>(container_type::template get_row<U>(*static_cast<ptr_type*>(ptr)), int32_t(uint32_t(size_used + 7) / 8ui32));
 	}
 	template<typename U, typename V>
 	__forceinline std::enable_if_t<!std::is_trivially_copyable_v<V>> set(tag_type i, V const& val) {

@@ -7,6 +7,12 @@
 class world_state;
 
 namespace nations {
+	enum class colonial_status {
+		not_colonial,
+		colonial,
+		protectorate
+	};
+
 	void init_nations_state(world_state& ws);
 	void reset_state(nations_state& s);
 	state_tag make_state(provinces::state_tag region, world_state& ws);
@@ -19,7 +25,8 @@ namespace nations {
 	void fix_capitals(world_state& ws);
 	provinces::province_tag get_state_capital(world_state const& ws, nations::state_tag s);
 	provinces::province_tag find_state_capital(world_state const& ws, nations::state_tag s);
-	
+	void set_colonial_status(world_state& ws, state_tag s, colonial_status status);
+
 	void set_relationship(world_state& ws, nations::country_tag a, nations::country_tag b, int32_t value);
 	int32_t get_relationship(world_state const& ws, nations::country_tag a, country_tag b);
 	void adjust_relationship(world_state& ws, nations::country_tag a, nations::country_tag b, int32_t value);

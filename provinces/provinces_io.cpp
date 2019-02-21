@@ -833,9 +833,9 @@ namespace provinces {
 		if(auto si = container.get<province_state::state_instance>(ps); result.colony && is_valid_index(si)) {
 
 			if(*result.colony == 2)
-				ws.w.nation_s.states.set<state::is_colonial>(si, true);
+				nations::set_colonial_status(ws, si, nations::colonial_status::colonial);
 			else if(*result.colony == 1)
-				ws.w.nation_s.states.set<state::is_protectorate>(si, true);
+				nations::set_colonial_status(ws, si, nations::colonial_status::protectorate);
 			//else if(*result.colony == 0)
 				//si.flags = decltype(si.flags)(0);
 		}

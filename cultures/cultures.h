@@ -110,6 +110,7 @@ namespace cultures {
 		uint32_t count_religions = 0ui32;
 
 		graphics::texture_tag no_leader;
+		constexpr static culture_tag immigrant_culture = culture_tag(0);
 	};
 
 	struct tag_as_text {

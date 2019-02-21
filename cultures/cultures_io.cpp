@@ -518,6 +518,20 @@ namespace cultures {
 		const auto common_dir = source_directory.get_directory(u"\\common");
 		const auto file = common_dir.open_file(u"cultures.txt");
 
+		// create immigrant culture
+		char const* name_text = "immigrant";
+		auto const immigrant_name = text_data::get_thread_safe_text_handle(text_function, name_text, name_text + 9);
+
+		manager.culture_groups.emplace_back();
+		manager.culture_groups[culture_group_tag(0)].id = culture_group_tag(0);
+		manager.culture_groups[culture_group_tag(0)].name = immigrant_name;
+
+		manager.culture_container.emplace_back();
+		manager.culture_container[culture_tag(0)].id = culture_tag(0);
+		manager.culture_container[culture_tag(0)].color = graphics::color_rgb{200ui8, 200ui8, 200ui8};
+		manager.culture_container[culture_tag(0)].name = immigrant_name;
+		manager.culture_container[culture_tag(0)].group = culture_group_tag(0);
+
 		if(file) {
 			const auto sz = file->size();
 

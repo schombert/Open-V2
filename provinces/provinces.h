@@ -108,6 +108,7 @@ namespace province_state {
 	struct is_overseas;
 	struct has_owner_core;
 	struct owner_building_railroad;
+	struct is_non_state;
 
 	constexpr int32_t container_size = 4000;
 	using container =
@@ -118,6 +119,7 @@ namespace province_state {
 		is_overseas, bitfield_type,
 		has_owner_core, bitfield_type,
 		owner_building_railroad, bitfield_type,
+		is_non_state, bitfield_type,
 
 		fort_level, uint8_t,
 		railroad_level, uint8_t,
