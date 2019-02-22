@@ -223,6 +223,8 @@ namespace provinces {
 	public:
 		province::container province_container;
 		tagged_vector<text_data::text_tag, state_tag> state_names;
+		std::vector<provinces::province_tag> integer_to_province;
+		int32_t first_sea_province = 0;
 
 		v_vector<province_tag, state_tag> states_to_province_index;
 		boost::container::flat_map<text_data::text_tag, state_tag> named_states_index;

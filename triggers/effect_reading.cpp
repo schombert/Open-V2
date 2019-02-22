@@ -71,7 +71,7 @@ namespace triggers {
 		}
 		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
 			if(is_positive_integer(t.start, t.end))
-				return trigger_payload(token_to<uint16_t>(t));
+				return trigger_payload(s.province_m.integer_to_province[token_to<uint16_t>(t)]);
 			else
 				return trigger_payload(
 					tag_from_text(
@@ -121,7 +121,7 @@ namespace triggers {
 		}
 		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
 			if (is_positive_integer(t.start, t.end))
-				return trigger_payload(token_to<uint16_t>(t));
+				return trigger_payload(s.province_m.integer_to_province[token_to<uint16_t>(t)]);
 			else
 				return trigger_payload(
 					tag_from_text(
@@ -1023,8 +1023,8 @@ namespace triggers {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state&, association_type, const token_and_type&) {
 			return effect_codes::enable_canal;
 		}
-		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
-			return trigger_payload(token_to<uint16_t>(t));
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
+			return trigger_payload(s.province_m.integer_to_province[token_to<uint16_t>(t)]);
 		}
 	};
 	struct set_global_flag_effect {
@@ -1155,8 +1155,8 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager&, const trigger_scope_state&, events::event_creation_manager&) {
-			return trigger_payload(token_to<uint16_t>(t));
+		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
+			return trigger_payload(s.province_m.integer_to_province[token_to<uint16_t>(t)]);
 		}
 	};
 	struct pop_type_effect {
@@ -2265,7 +2265,7 @@ namespace triggers {
 		effect_parsing_environment& env;
 
 		int16_t months = 0;
-		uint16_t province_target = 0;
+		provinces::province_tag province_target = provinces::province_tag(0);
 		bool from_target = false;
 		bool this_target = false;
 		cultures::national_tag target_tag;
@@ -2286,7 +2286,7 @@ namespace triggers {
 			} else if (is_fixed_token_ci(t, "from")) {
 				from_target = true;
 			} else if (is_positive_integer(t.start, t.end)) {
-				province_target = token_to<uint16_t>(t);
+				province_target = env.s.province_m.integer_to_province[token_to<uint16_t>(t)];
 			} else {
 				target_tag = tag_from_text(
 					env.s.culture_m.national_tags_index,
@@ -2343,7 +2343,7 @@ namespace triggers {
 		effect_parsing_environment& env;
 
 		int16_t months = 0;
-		uint16_t province_target = 0;
+		provinces::province_tag province_target = provinces::province_tag(0);
 		bool from_target = false;
 		bool this_target = false;
 		cultures::national_tag target_tag;
@@ -2364,7 +2364,7 @@ namespace triggers {
 			} else if (is_fixed_token_ci(t, "from")) {
 				from_target = true;
 			} else if (is_positive_integer(t.start, t.end)) {
-				province_target = token_to<uint16_t>(t);
+				province_target = env.s.province_m.integer_to_province[token_to<uint16_t>(t)];
 			} else {
 				target_tag = tag_from_text(
 					env.s.culture_m.national_tags_index,
@@ -2420,7 +2420,7 @@ namespace triggers {
 	struct remove_casus_belli_effect {
 		effect_parsing_environment& env;
 
-		uint16_t province_target = 0;
+		provinces::province_tag province_target = provinces::province_tag(0);
 		bool from_target = false;
 		bool this_target = false;
 		cultures::national_tag target_tag;
@@ -2441,7 +2441,7 @@ namespace triggers {
 			} else if (is_fixed_token_ci(t, "from")) {
 				from_target = true;
 			} else if (is_positive_integer(t.start, t.end)) {
-				province_target = token_to<uint16_t>(t);
+				province_target = env.s.province_m.integer_to_province[token_to<uint16_t>(t)];
 			} else {
 				target_tag = tag_from_text(
 					env.s.culture_m.national_tags_index,
@@ -2493,7 +2493,7 @@ namespace triggers {
 	struct this_remove_casus_belli_effect {
 		effect_parsing_environment& env;
 
-		uint16_t province_target = 0;
+		provinces::province_tag province_target = provinces::province_tag(0);
 		bool from_target = false;
 		bool this_target = false;
 		cultures::national_tag target_tag;
@@ -2514,7 +2514,7 @@ namespace triggers {
 			} else if (is_fixed_token_ci(t, "from")) {
 				from_target = true;
 			} else if (is_positive_integer(t.start, t.end)) {
-				province_target = token_to<uint16_t>(t);
+				province_target = env.s.province_m.integer_to_province[token_to<uint16_t>(t)];
 			} else {
 				target_tag = tag_from_text(
 					env.s.culture_m.national_tags_index,
@@ -2836,7 +2836,7 @@ namespace triggers {
 	struct sub_unit_effect {
 		effect_parsing_environment& env;
 
-		uint16_t value = 0;
+		provinces::province_tag value = provinces::province_tag(0);
 		bool value_this = false;
 		bool value_from = false;
 		bool value_current = false;
@@ -2857,7 +2857,7 @@ namespace triggers {
 			else if (is_fixed_token_ci(t, "current"))
 				value_current = true;
 			else
-				value = token_to<uint16_t>(t);
+				value = env.s.province_m.integer_to_province[token_to<uint16_t>(t)];
 		}
 
 		void finalize() const {
@@ -2885,7 +2885,7 @@ namespace triggers {
 				env.data.push_back(effect_codes::sub_unit_int);
 				env.data.push_back(3ui16);
 				env.data.push_back(trigger_payload(type).value);
-				env.data.push_back(value);
+				env.data.push_back(trigger_payload(value).value);
 			}
 		}
 	};
@@ -3529,7 +3529,7 @@ namespace triggers {
 				env.data.push_back(3ui16);
 				payload_size_offset = e.data.size() - 1;
 				env.data.push_back(trigger_payload(trigger_tag()).value);
-				env.data.push_back(token_to<uint16_t>(name));
+				env.data.push_back(trigger_payload(env.s.province_m.integer_to_province[token_to<uint16_t>(name)]).value);
 			} else {
 				EFFECT_ERROR(unknown_effect_scope, e);
 			}

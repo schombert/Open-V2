@@ -1360,7 +1360,7 @@ namespace population {
 			}
 
 			auto const mt_trigger = ws.s.population_m.pop_types[p_type].migration_target;
-			auto const vs = ws.w.province_s.province_state_container.vector_size();
+			auto const vs = ws.s.province_m.first_sea_province;
 			for(int32_t i = 0; i < int32_t(vs); i += ve::vector_size) {
 				ve::contiguous_tags<provinces::province_tag> off(i);
 				ve::store(
@@ -1583,7 +1583,7 @@ namespace population {
 
 	void execute_size_changes(world_state& ws) {
 
-		uint32_t const provinces_count = uint32_t(ws.w.province_s.province_state_container.size());
+		uint32_t const provinces_count = uint32_t(ws.s.province_m.first_sea_province);
 
 		uint32_t const chunk_size = (provinces_count / (pop_update_frequency * pop_update_group_size));
 		uint32_t const chunk_index = uint32_t(to_index(ws.w.current_date) & (pop_update_frequency - 1));

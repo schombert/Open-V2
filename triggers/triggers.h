@@ -78,6 +78,7 @@ namespace triggers {
 		variables::national_flag_tag nat_flag;
 		variables::global_variable_tag global_var;
 		provinces::state_tag state;
+		provinces::province_tag prov;
 		text_data::text_tag text;
 		technologies::tech_tag tech;
 		events::event_tag event;
@@ -102,6 +103,7 @@ namespace triggers {
 		trigger_payload(technologies::tech_tag i) : tech(i) {}
 		trigger_payload(economy::factory_type_tag i) : small(i) {}
 		trigger_payload(provinces::state_tag i) : state(i) {}
+		trigger_payload(provinces::province_tag i) : prov(i) {}
 		trigger_payload(text_data::text_tag i) : text(i) {}
 		trigger_payload(ideologies::ideology_tag i) : small(i) {}
 		trigger_payload(issues::issue_tag i) : small(i) {}

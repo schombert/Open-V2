@@ -357,7 +357,7 @@ namespace nations {
 		}
 
 		void set_capital(uint16_t v) {
-			capital = provinces::province_tag(v);
+			capital = ws.s.province_m.integer_to_province[v];
 		}
 		void set_oob(token_and_type const& t) {
 			oob_filename = std::string(t.start, t.end);

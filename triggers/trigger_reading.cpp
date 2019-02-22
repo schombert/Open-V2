@@ -30,8 +30,8 @@ namespace triggers {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state&, association_type a, const token_and_type&) {
 			return uint16_t(trigger_codes::is_canal_enabled | association_to_bool_code(a));
 		}
-		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
-			return trigger_payload(token_to<uint16_t>(t));
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+			return trigger_payload(s.province_m.integer_to_province[token_to<uint16_t>(t)]);
 		}
 	};
 	struct month_trigger {
@@ -1071,8 +1071,8 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
-			return trigger_payload{ token_to<uint16_t>(t) };
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+			return trigger_payload{ s.province_m.integer_to_province[token_to<uint16_t>(t)] };
 		}
 	};
 	struct invention_trigger {
@@ -1155,8 +1155,8 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
-			return trigger_payload{ token_to<uint16_t>(t) };
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+			return trigger_payload{ s.province_m.integer_to_province[token_to<uint16_t>(t)] };
 		}
 	};
 	struct cash_reserves_trigger {
@@ -1281,8 +1281,8 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
-			return trigger_payload{ token_to<uint16_t>(t) };
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+			return trigger_payload{ s.province_m.integer_to_province[token_to<uint16_t>(t)] };
 		}
 	};
 	struct tech_school_trigger {
@@ -1867,8 +1867,8 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
-			return trigger_payload{ token_to<uint16_t>(t) };
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+			return trigger_payload{ s.province_m.integer_to_province[token_to<uint16_t>(t)] };
 		}
 	};
 	struct controls_trigger {
@@ -1878,8 +1878,8 @@ namespace triggers {
 			else
 				return std::optional<uint16_t>();
 		}
-		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager&) {
-			return trigger_payload{ token_to<uint16_t>(t) };
+		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
+			return trigger_payload{ s.province_m.integer_to_province[token_to<uint16_t>(t)] };
 		}
 	};
 	struct is_core_trigger {
@@ -1920,7 +1920,7 @@ namespace triggers {
 		}
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
 			if (is_integer(t.start, t.end)) {
-				return trigger_payload{ token_to<uint16_t>(t) };
+				return trigger_payload{ s.province_m.integer_to_province[token_to<uint16_t>(t)] };
 			} else {
 				return trigger_payload(
 					tag_from_text(
@@ -4456,7 +4456,7 @@ namespace triggers {
 				env.data.push_back(uint16_t(trigger_codes::integer_scope | trigger_codes::is_scope));
 				env.data.push_back(2ui16);
 				payload_size_offset = e.data.size() - 1;
-				env.data.push_back(token_to<uint16_t>(name));
+				env.data.push_back(trigger_payload(env.s.province_m.integer_to_province[token_to<uint16_t>(name)]).value);
 			} else {
 				TRIGGER_ERROR(unknown_scope, e);
 			}

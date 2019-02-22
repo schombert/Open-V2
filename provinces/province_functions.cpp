@@ -71,7 +71,7 @@ namespace provinces {
 			name_temp += std::to_string(i);
 
 			ws.w.province_s.province_state_container.set<province_state::name>(
-				this_tag,
+				ws.s.province_m.integer_to_province[i],
 				text_data::get_thread_safe_text_handle(ws.s.gui_m.text_data_sequences, name_temp.data(), name_temp.data() + name_temp.length()));
 
 			if(!is_valid_index(ws.w.province_s.province_state_container.get<province_state::controller>(this_tag)))
@@ -126,6 +126,9 @@ namespace provinces {
 			&ws, vector_size, full_vector_size,
 			ppdt, mpdt, rpdt, cdt, mdt, ldt, pmpdt, mmpdt, rmpdt, plndt, mlndt, rlndt, pendt, mendt, rendt, pxndt, mxndt, rxndt
 		](provinces::province_tag prov_id){
+			if(to_index(prov_id) >= ws.s.province_m.first_sea_province)
+				return;
+
 			auto& container = ws.w.province_s.province_state_container;
 
 			auto pop_range = get_range(ws.w.population_s.pop_arrays, container.get<province_state::pops>(prov_id));

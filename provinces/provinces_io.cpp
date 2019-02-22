@@ -387,23 +387,46 @@ namespace provinces {
 
 	struct sea_starts {
 		parsing_environment& env;
-		sea_starts(parsing_environment& e) : env(e) {}
+		std::vector<int8_t> marked_as_sea;
+
+		sea_starts(parsing_environment& e) : env(e) {
+			marked_as_sea.resize(env.manager.province_container.size());
+		}
 
 		void add_sea_start(uint16_t v) {
-			env.manager.province_container.set<province::is_sea>(province_tag(v), true);
+			marked_as_sea[v] = 1i8;
+			//env.manager.province_container.set<province::is_sea>(province_tag(v), true);
 		}
 	};
 
 	struct default_map_file {
 		parsing_environment& env;
+		
+
 		default_map_file(parsing_environment& e) : env(e) {}
+		
 
 		void discard(int) {}
 		void discard_empty(const empty_type&) {}
 		void set_province_count(size_t v) {
 			env.manager.province_container.resize(int32_t(v));
+			env.manager.integer_to_province.resize(v);
 		}
-		void handle_sea_starts(const sea_starts&) {}
+		void handle_sea_starts(const sea_starts& s) {
+			int32_t current_land = 0;
+			int32_t current_sea = env.manager.province_container.size() - 1;
+			for(int32_t i = 0; i < env.manager.province_container.size(); ++ i) {
+				if(s.marked_as_sea[i] != 0) {
+					env.manager.province_container.set<province::is_sea>(province_tag(uint16_t(current_sea)), true);
+					env.manager.integer_to_province[i] = province_tag(uint16_t(current_sea));
+					current_sea--;
+				} else {
+					env.manager.integer_to_province[i] = province_tag(uint16_t(current_land));
+					current_land++;
+				}
+			}
+			env.manager.first_sea_province = current_sea;
+		}
 	};
 
 	struct terrain_modifier_parsing_environment {
@@ -537,8 +560,8 @@ namespace provinces {
 		}
 
 		void add_province(uint16_t v) {
-			env.manager.province_container.set<province::state_id>(province_tag(v), tag);
-			env.manager.states_to_province_index.add_to_row(tag, province_tag(v));
+			env.manager.province_container.set<province::state_id>(env.manager.integer_to_province[v], tag);
+			env.manager.states_to_province_index.add_to_row(tag, env.manager.integer_to_province[v]);
 		}
 	};
 
@@ -569,7 +592,7 @@ namespace provinces {
 
 		void add_continent_provinces(const std::vector<uint16_t>& v) {
 			for(auto i : v) {
-				env.manager.province_container.set<province::continent>(province_tag(i), tag);
+				env.manager.province_container.set<province::continent>(env.manager.integer_to_province[i], tag);
 			}
 		}
 
@@ -868,10 +891,10 @@ namespace provinces {
 			for(auto& pfile : province_files) {
 				auto file_name =  pfile.file_name();
 				auto name_break = std::find_if(file_name.begin(), file_name.end(), [](char16_t c) { return c == u' ' || c == u'-'; });
-				uint16_t prov_id = uint16_t(u16atoui(file_name.begin().operator->(), name_break.operator->()));
+				auto const prov_id = ws.s.province_m.integer_to_province[u16atoui(file_name.begin().operator->(), name_break.operator->())];
 
 				auto fi = pfile.open_file();
-				if(fi && prov_id != 0ui16 && prov_id < ws.s.province_m.province_container.size()) {
+				if(fi &&  ws.s.province_m.province_container.is_valid_index(prov_id)) {
 					const auto sz = fi->size();
 					std::unique_ptr<char[]> parse_data = std::unique_ptr<char[]>(new char[sz]);
 					std::vector<token_group> presults;
@@ -881,7 +904,7 @@ namespace provinces {
 
 					read_province_history(
 						ws,
-						province_tag(prov_id),
+						prov_id,
 						target_date,
 						presults.data(), presults.data() + presults.size());
 				}
@@ -897,7 +920,7 @@ namespace provinces {
 		} else {
 			const auto vals = parse_object<climate_province_values, preparse_climate_domain>(s, e, env);
 			for(auto v : vals.values)
-				env.manager.province_container.set<province::climate>(province_tag(v), fr->second);
+				env.manager.province_container.set<province::climate>(env.manager.integer_to_province[v], fr->second);
 		}
 		return 0;
 	}
@@ -1063,8 +1086,8 @@ namespace provinces {
 			}
 		}
 	}
-	boost::container::flat_map<uint32_t, province_tag> read_province_definition_file(directory const & source_directory) {
-		boost::container::flat_map<uint32_t, province_tag> t;
+	boost::container::flat_map<uint32_t, int32_t> read_province_definition_file(directory const & source_directory) {
+		boost::container::flat_map<uint32_t, int32_t> t;
 
 		const auto map_dir = source_directory.get_directory(u"\\map");
 		const auto fi = map_dir.open_file(u"definition.csv");
@@ -1088,7 +1111,7 @@ namespace provinces {
 							uint8_t(parse_int(values[1].first, values[1].second)),
 							uint8_t(parse_int(values[2].first, values[2].second)),
 							uint8_t(parse_int(values[3].first, values[3].second))),
-							province_tag(province_tag::value_base_t(parse_int(values[0].first, values[0].second))));
+							parse_int(values[0].first, values[0].second));
 					}
 				});
 			}
@@ -1170,8 +1193,8 @@ namespace provinces {
 				uint32_t previous_color_index = provinces::rgb_to_prov_index(raw_data[last * 3 + 0], raw_data[last * 3 + 1], raw_data[last * 3 + 2]);
 				province_tag prev_result = province_tag(0);
 				if(auto it = color_mapping.find(previous_color_index); it != color_mapping.end()) {
-					prev_result = it->second;
-					m.province_map_data[static_cast<size_t>(last)] = uint16_t(to_index(it->second));
+					prev_result = m.integer_to_province[it->second];
+					m.province_map_data[static_cast<size_t>(last)] = uint16_t(to_index(prev_result));
 				}
 
 				for(int32_t t = m.province_map_width * m.province_map_height - 2; t >= 0; --t) {
@@ -1181,7 +1204,7 @@ namespace provinces {
 					} else {
 						previous_color_index = color_index;
 						if(auto it = color_mapping.find(color_index); it != color_mapping.end())
-							m.province_map_data[static_cast<size_t>(t)] = uint16_t(to_index(it->second));
+							m.province_map_data[static_cast<size_t>(t)] = uint16_t(to_index(m.integer_to_province[it->second]));
 						else
 							m.province_map_data[static_cast<size_t>(t)] = 0ui16;
 						prev_result = province_tag(m.province_map_data[static_cast<size_t>(t)]);
@@ -1294,7 +1317,7 @@ namespace provinces {
 		return result;
 	}
 
-	void read_adjacnencies_file(std::map<province_tag, boost::container::flat_set<province_tag>>& adj_map, std::vector<std::tuple<province_tag, province_tag, text_data::text_tag, province_tag>>& canals, directory const& root, text_data::text_sequences& text) {
+	void read_adjacnencies_file(std::map<province_tag, boost::container::flat_set<province_tag>>& adj_map, directory const& root, scenario::scenario_manager& s) {
 		const auto map_dir = root.get_directory(u"\\map");
 		const auto fi = map_dir.open_file(u"adjacencies.csv");
 
@@ -1311,9 +1334,9 @@ namespace provinces {
 
 			while(cpos < parse_data.get() + sz) {
 				cpos = parse_fixed_amount_csv_values<6>(cpos, parse_data.get() + sz, ';',
-					[&adj_map, &canals, &text](std::pair<char const*, char const*> const* values) {
-					const auto prov_a = province_tag(uint16_t(parse_int(values[0].first, values[0].second)));
-					const auto prov_b = province_tag(uint16_t(parse_int(values[1].first, values[1].second)));
+					[&adj_map, &s](std::pair<char const*, char const*> const* values) {
+					const auto prov_a = s.province_m.integer_to_province[parse_int(values[0].first, values[0].second)];
+					const auto prov_b = s.province_m.integer_to_province[parse_int(values[1].first, values[1].second)];
 					
 
 					if(is_fixed_token_ci(values[2].first, values[2].second, "impassable")) {
@@ -1328,11 +1351,11 @@ namespace provinces {
 						}
 					} else if(is_fixed_token_ci(values[2].first, values[2].second, "canal")) {
 						const int32_t canal_index = parse_int(values[4].first, values[4].second) - 1;
-						if(static_cast<size_t>(canal_index) >= canals.size())
-							canals.resize(static_cast<size_t>(canal_index + 1));
+						if(static_cast<size_t>(canal_index) >= s.province_m.canals.size())
+							s.province_m.canals.resize(static_cast<size_t>(canal_index + 1));
 						if(canal_index >= 0) {
 							const auto prov_through = province_tag(uint16_t(parse_int(values[3].first, values[3].second)));
-							canals[static_cast<size_t>(canal_index)] = std::make_tuple(prov_a, prov_b, text_data::get_thread_safe_text_handle(text, values[5].first, values[5].second), prov_through);
+							s.province_m.canals[static_cast<size_t>(canal_index)] = std::make_tuple(prov_a, prov_b, text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, values[5].first, values[5].second), prov_through);
 						}
 					} else {
 						adj_map[prov_a].insert(prov_b);

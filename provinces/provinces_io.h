@@ -86,6 +86,7 @@ public:
 
 	static void serialize_object(std::byte* &output, provinces::province_manager const& obj) {
 		serialize(output, obj.province_container);
+		serialize_array(output, obj.integer_to_province.data(), obj.province_container.size());
 		serialize(output, obj.state_names);
 		serialize(output, obj.states_to_province_index);
 		serialize(output, obj.same_type_adjacency);
@@ -95,9 +96,12 @@ public:
 		serialize(output, obj.province_map_data);
 		serialize(output, obj.province_map_width);
 		serialize(output, obj.province_map_height);
+		serialize(output, obj.first_sea_province);
 	}
 	static void deserialize_object(std::byte const* &input, provinces::province_manager& obj) {
 		deserialize(input, obj.province_container);
+		obj.integer_to_province.resize(obj.province_container.size());
+		deserialize_array(input, obj.integer_to_province.data(), obj.province_container.size());
 		deserialize(input, obj.state_names);
 		deserialize(input, obj.states_to_province_index);
 		deserialize(input, obj.same_type_adjacency);
@@ -107,11 +111,14 @@ public:
 		deserialize(input, obj.province_map_data);
 		deserialize(input, obj.province_map_width);
 		deserialize(input, obj.province_map_height);
+		deserialize(input, obj.first_sea_province);
 
 		rebuild_indexes(obj);
 	}
 	static void deserialize_object(std::byte const* &input, provinces::province_manager& obj, concurrency::task_group& tg) {
 		deserialize(input, obj.province_container);
+		obj.integer_to_province.resize(obj.province_container.size());
+		deserialize_array(input, obj.integer_to_province.data(), obj.province_container.size());
 		deserialize(input, obj.state_names);
 		deserialize(input, obj.states_to_province_index);
 		deserialize(input, obj.same_type_adjacency);
@@ -121,11 +128,13 @@ public:
 		deserialize(input, obj.province_map_data);
 		deserialize(input, obj.province_map_width);
 		deserialize(input, obj.province_map_height);
+		deserialize(input, obj.first_sea_province);
 
 		tg.run([&obj]() { rebuild_indexes(obj); });
 	}
 	static size_t size(provinces::province_manager const& obj) {
 		return serialize_size(obj.province_container) +
+			sizeof(provinces::province_tag) * obj.province_container.size() + /*integer_to_province*/
 			serialize_size(obj.state_names) +
 			serialize_size(obj.states_to_province_index) +
 			serialize_size(obj.same_type_adjacency) +
@@ -134,7 +143,8 @@ public:
 			serialize_size(obj.terrain_graphics) +
 			serialize_size(obj.province_map_data) +
 			serialize_size(obj.province_map_width) +
-			serialize_size(obj.province_map_height);
+			serialize_size(obj.province_map_height) +
+			serialize_size(obj.first_sea_province);
 	}
 };
 
@@ -173,7 +183,7 @@ namespace provinces {
 	void assign_terrain_color(provinces_state& m, tagged_vector<uint8_t, province_tag> const & terrain_colors, color_to_terrain_map const & terrain_map);
 	
 	std::map<province_tag, boost::container::flat_set<province_tag>> generate_map_adjacencies(uint16_t const* province_map_data, int32_t height, int32_t width);
-	void read_adjacnencies_file(std::map<province_tag, boost::container::flat_set<province_tag>>& adj_map, std::vector<std::tuple<province_tag, province_tag, text_data::text_tag, province_tag>>& canals, directory const& root, text_data::text_sequences& text);
+	void read_adjacnencies_file(std::map<province_tag, boost::container::flat_set<province_tag>>& adj_map, directory const& root, scenario::scenario_manager& s);
 	void make_lakes(std::map<province_tag, boost::container::flat_set<province_tag>>& adj_map, province_manager& m);
 	void make_adjacency(std::map<province_tag, boost::container::flat_set<province_tag>>& adj_map, province_manager& m);
 
@@ -186,7 +196,7 @@ namespace provinces {
 	void read_climates(
 		parsing_state& state,
 		const directory& source_directory); // adds provincial modifiers
-	boost::container::flat_map<uint32_t, province_tag> read_province_definition_file(directory const& source_directory);
+	boost::container::flat_map<uint32_t, int32_t> read_province_definition_file(directory const& source_directory);
 
 	void read_province_history(world_state& ws, province_tag p, date_tag target_date, token_group const* start, token_group const* end);
 	void read_province_histories(world_state& ws, const directory& root, date_tag target_date);

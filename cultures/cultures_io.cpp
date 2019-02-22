@@ -468,7 +468,7 @@ namespace cultures {
 				file->read_to_buffer(parse_data.get(), sz);
 				parse_pdx_file(parse_results, parse_data.get(), parse_data.get() + sz);
 
-				if(parse_results.size() > 0) {
+				if(!parse_results.empty()) {
 					country_file_env env(uc, s);
 					parse_object<country_file, culture_file_domain>(
 						&parse_results[0],
@@ -498,7 +498,7 @@ namespace cultures {
 			file->read_to_buffer(parse_data.get(), sz);
 			parse_pdx_file(parse_results, parse_data.get(), parse_data.get() + sz);
 
-			if(parse_results.size() > 0) {
+			if(!parse_results.empty()) {
 				parse_object<religions_file, parse_religions_domain>(
 					&parse_results[0],
 					&parse_results[0] + parse_results.size(),
@@ -545,7 +545,7 @@ namespace cultures {
 			parsing_environment return_state(text_function, manager, tm, source_directory, is_unicode);
 			parse_pdx_file(parse_results, file_start, file_start + sz - (is_unicode ? 3 : 0));
 
-			if(parse_results.size() > 0) {
+			if(!parse_results.empty()) {
 				parse_object<cultures_file, parse_cultures_domain>(
 					&parse_results[0],
 					&parse_results[0] + parse_results.size(),
@@ -582,7 +582,7 @@ namespace cultures {
 			file->read_to_buffer(parse_data.get(), sz);
 			parse_pdx_file(parse_results, parse_data.get(), parse_data.get() + sz);
 
-			if(parse_results.size() > 0) {
+			if(!parse_results.empty()) {
 				parse_object<tags_file, parse_tags_domain>(
 					&parse_results[0],
 					&parse_results[0] + parse_results.size(),
