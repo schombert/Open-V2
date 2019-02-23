@@ -67,9 +67,8 @@ namespace technologies {
 		constexpr int32_t morale = 25;
 		constexpr int32_t colonial_migration = 26;
 		constexpr int32_t colonial_points = 27;
-		constexpr int32_t cb_creation_speed = 28;
 
-		constexpr int32_t count = 29;
+		constexpr int32_t count = 28;
 		constexpr static size_t aligned_32_size = ((sizeof(tech_attribute_type) * count + 31ui64) & ~31ui64) / sizeof(tech_attribute_type);
 	}
 

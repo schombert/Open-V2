@@ -210,4 +210,9 @@ namespace nations {
 		auto pculture = ve::load(this_nation, ws.w.nation_s.nations.get_row<nation::primary_culture>());
 		return ve::load(pculture, ws.s.culture_m.cultures_to_tags.view());
 	}
+
+	template<typename T>
+	auto nation_exists(world_state const& ws, T n) -> decltype(ve::widen_to<T>(true)) {
+		return is_valid_index(ve::load(n, ws.w.nation_s.nations.get_row<nation::current_capital>()));
+	}
 }

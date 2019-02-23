@@ -89,11 +89,16 @@ public:
 	static void rebuild_indexes(military::military_manager& obj) {
 		for(auto const& i_unit : obj.unit_types)
 			obj.named_unit_type_index.emplace(i_unit.name, i_unit.id);
-		for(auto const& i_cb : obj.cb_types)
+
+		obj.cb_type_to_speed.resize(obj.cb_types.size());
+		for(auto const& i_cb : obj.cb_types) {
 			obj.named_cb_type_index.emplace(i_cb.name, i_cb.id);
+			obj.cb_type_to_speed[i_cb.id] = i_cb.construction_speed;
+		}
 		for(int32_t i = static_cast<int32_t>(obj.leader_traits.size()) - 1; i >= 0; --i)
 			obj.named_leader_trait_index.emplace(obj.leader_traits[military::leader_trait_tag(static_cast<military::leader_trait_tag::value_base_t>(i))], military::leader_trait_tag(static_cast<military::leader_trait_tag::value_base_t>(i)));
 		obj.unit_types_count = uint32_t(obj.unit_types.size());
+		
 	}
 
 	static void serialize_object(std::byte* &output, military::military_manager const& obj) {

@@ -198,7 +198,74 @@ namespace military {
 				triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(c.can_use), ws, nation_target, nation_by, triggers::const_parameter()))
 				return true;
 		}
+		auto vassal_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::vassals>(nation_target));
+		for(auto v : vassal_range) {
+			if(can_use_cb_against(ws, nation_by, nation_target))
+				return true;
+		}
 		return false;
+	}
+
+	bool inner_test_cb_conditions(world_state const& ws, nations::country_tag nation_by, nations::country_tag nation_target, const cb_type& c) {
+		if(is_valid_index(c.allowed_countries)) {
+			if((c.flags & cb_type::po_release_puppet) != 0) {
+				auto vassal_range_b = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::vassals>(nation_target));
+				const auto any_vassal = [&ws, t = c.allowed_countries, vassal_range_b, nation_target, nation_by]() {
+					for(auto v : vassal_range_b) {
+						if(triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(t), ws, nation_target, nation_by, v))
+							return true;
+					}
+					return false;
+				}();
+				if(!any_vassal)
+					return false;
+			} else if((c.flags & cb_type::po_take_from_sphere) != 0) {
+				auto sm_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::sphere_members>(nation_target));
+				const auto any_sphere_member = [&ws, t = c.allowed_countries, sm_range, nation_target, nation_by]() {
+					for(auto v : sm_range) {
+						if(triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(t), ws, nation_target, nation_by, v))
+							return true;
+					}
+					return false;
+				}();
+				if(!sm_range)
+					return false;
+			} else if((c.flags & cb_type::po_liberate) != 0) {
+				return nations::owns_releasable_core(ws, nation_target);
+			} else {
+				if(!triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(c.allowed_countries), ws, nation_target, nation_by, nation_target))
+					return false;
+			}
+		}
+		if(is_valid_index(c.allowed_states)) {
+			const auto any_state = [&ws, t = c.allowed_states, nation_target, nation_by]() {
+				auto target_state_range = get_range(ws.w.nation_s.state_arrays, ws.w.nation_s.nations.get<nation::member_states>(nation_target));
+				for(auto p : target_state_range) {
+					if(triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(t), ws, p.state, nation_by, nation_target))
+						return true;
+				}
+				return false;
+			}();
+			if(!any_state)
+				return false;
+		}
+
+		return true;
+	}
+
+	bool is_cb_construction_valid_against(world_state const& ws, cb_type_tag cb, nations::country_tag nation_by, nations::country_tag nation_target) {
+		auto& c = ws.s.military_m.cb_types[cb];
+		if((c.flags & cb_type::is_not_triggered_only) == 0)
+			return false;
+		if(is_valid_index(c.allowed_substate_regions)) {
+			return false;
+		}
+		if(is_valid_index(c.can_use)) {
+			if(!triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(c.can_use), ws, nation_target, nation_by, triggers::const_parameter()))
+				return false;
+		}
+		
+		return inner_test_cb_conditions(ws, nation_by, nation_target, c);
 	}
 
 	bool has_units_in_province(world_state const& ws, nations::country_tag this_nation, provinces::province_tag ps) {
@@ -653,5 +720,118 @@ namespace military {
 				sum += calculate_base_war_score_cost(ws, i);
 		}
 		return sum;
+	}
+
+	float base_cb_infamy(world_state const& ws, cb_type_tag cb) {
+		auto const& cb_definition = ws.s.military_m.cb_types[cb];
+	
+		float total = 0.0f;
+		if((cb_definition.flags & cb_type::po_annex) != 0) {
+			total += 10.0f;
+		}
+		if((cb_definition.flags & cb_type::po_demand_state) != 0) {
+			total += 5.0f;
+		}
+		if((cb_definition.flags & cb_type::po_add_to_sphere) != 0) {
+			total += 2.0f;
+		}
+		if((cb_definition.flags & cb_type::po_disarmament) != 0) {
+			total += 5.0f;
+		}
+		if((cb_definition.flags & cb_type::po_reparations) != 0) {
+			total += 5.0f;
+		}
+		if((cb_definition.flags & cb_type::po_transfer_provinces) != 0) {
+			total += 5.0f;
+		}
+		if((cb_definition.flags & cb_type::po_remove_prestige) != 0) {
+			total += 2.0f;
+		}
+		if((cb_definition.flags & cb_type::po_make_puppet) != 0) {
+			total += 5.0f;
+		}
+		if((cb_definition.flags & cb_type::po_release_puppet) != 0) {
+			total += 0.5f;
+		}
+		if((cb_definition.flags & cb_type::po_install_communist_gov_type) != 0) {
+			total += 5.0f;
+		}
+		if((cb_definition.flags & cb_type::po_uninstall_communist_gov_type) != 0) {
+			total += 5.0f;
+		}
+		if((cb_definition.flags & cb_type::po_destroy_forts) != 0) {
+			total += 2.0f;
+		}
+		if((cb_definition.flags & cb_type::po_destroy_naval_bases) != 0) {
+			total += 2.0f;
+		}
+
+		return total * cb_definition.badboy_factor;
+	}
+
+	void update_cb_construction(world_state& ws) {
+		ve::execute_serial<nations::country_tag>(ws.w.nation_s.nations.vector_size(), [
+			&ws,
+			increment = ws.s.modifiers_m.global_defines.cb_generation_base_speed * 0.001f,
+			mod_row = ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::cb_generation_speed_modifier>(ws.w.nation_s.nations.vector_size()),
+			cb_type_row = ws.w.nation_s.nations.get_row<nation::cb_construction_type>(),
+			progress_row = ws.w.nation_s.nations.get_row<nation::cb_construction_progress>()
+		](auto off) {
+			const auto nat_mod = ve::load(off, mod_row);
+			const auto cb_type = ve::load(off, cb_type_row);
+
+			const auto adjusted_mod = nat_mod + 1.0f;
+			const auto cb_speed = ve::load(cb_type, ws.s.military_m.cb_type_to_speed.view());
+			const auto base_speed = cb_speed * increment;
+			const auto old_value = ve::load(off, progress_row);
+
+			ve::store(off, progress_row, ve::multiply_and_add(adjusted_mod, base_speed, old_value))
+		});
+
+		ws.w.nation_s.nations.parallel_for_each([&ws](nations::country_tag n) {
+			auto const cb_type_id = ws.w.nation_s.nations.get<nation::cb_construction_type>(n);
+			auto const cb_target = ws.w.nation_s.nations.get<nation::cb_construction_target>(n);
+			if(cb_target && cb_type_id) {
+				if(ws.w.nation_s.nations.get<nation::cb_construction_progress>(n) >= 1.0f) {
+					if(is_cb_construction_valid_against(ws, cb_type_id, n, cb_target)) {
+						// is valid: add
+						auto& cb_array = ws.w.nation_s.nations.get<nation::active_cbs>(n);
+						add_item(ws.w.military_s.cb_arrays, cb_array, pending_cb{cb_target, cb_type_id, date_tag()});
+						// todo: message
+					} else {
+						// not valid: post invalid message
+						// todo: message
+					}
+					// either case: erase
+					ws.w.nation_s.nations.set<nation::cb_construction_type>(n, cb_type_tag());
+					ws.w.nation_s.nations.set<nation::cb_construction_target>(n, nations::country_tag());
+					ws.w.nation_s.nations.set<nation::cb_construction_discovered>(n, false);
+					ws.w.nation_s.nations.set<nation::cb_construction_progress>(n, 0.0f);
+				} else {
+					// check for discovery & then validity
+					if(is_cb_construction_valid_against(ws, cb_type_id, n, cb_target)) {
+						if(ws.w.nation_s.nations.get<nation::cb_construction_discovered>(n) == false) {
+							
+							std::uniform_int_distribution<int32_t> dist(0, 1'000);
+							auto const chance = dist(get_local_generator());
+							auto const defines_probability = int32_t(ws.s.modifiers_m.global_defines.cb_detection_chance_base);
+							if(chance <= defines_probability) {
+								ws.w.nation_s.nations.set<nation::cb_construction_discovered>(n, true);
+								ws.w.nation_s.nations.get<nation::infamy>(n) += base_cb_infamy(ws, cb_type_id) * (
+									1.0f - ws.w.nation_s.nations.get<nation::cb_construction_progress>(n));
+								// todo: message
+							}
+						}
+					} else {
+						// not valid, erase and post invalid message
+						ws.w.nation_s.nations.set<nation::cb_construction_type>(n, cb_type_tag());
+						ws.w.nation_s.nations.set<nation::cb_construction_target>(n, nations::country_tag());
+						ws.w.nation_s.nations.set<nation::cb_construction_discovered>(n, false);
+						ws.w.nation_s.nations.set<nation::cb_construction_progress>(n, 0.0f);
+						// todo: message
+					}
+				}
+			}
+		});
 	}
 }

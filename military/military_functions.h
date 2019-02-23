@@ -15,6 +15,8 @@ namespace military {
 	fleet& make_fleet(world_state& ws, nations::country_tag n, provinces::province_tag location);
 	void immediate_add_pop_to_army(world_state& ws, army& target_army, population::pop_tag p);
 	bool can_use_cb_against(world_state const& ws, nations::country_tag nation_by, nations::country_tag nation_target);
+	bool is_cb_construction_valid_against(world_state const& ws, cb_type_tag cb, nations::country_tag nation_by, nations::country_tag nation_target);
+	float base_cb_infamy(world_state const& ws, cb_type_tag cb);
 
 	template<typename T, typename U>
 	auto has_military_access_with(world_state const& ws, T nation_by, U nation_target) -> decltype(ve::widen_to<T, U>(true));
@@ -65,4 +67,6 @@ namespace military {
 	float total_defender_demands_war_score(world_state const& ws, war const& w);
 
 	war& create_war(world_state& ws, nations::country_tag attacker, nations::country_tag defender, bool call_willing_attacker_allies);
+
+	void update_cb_construction(world_state& ws);
 }

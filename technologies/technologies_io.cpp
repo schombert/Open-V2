@@ -711,7 +711,7 @@ namespace technologies {
 			add_attribute(env.under_construction.attributes, tech_offset::colonial_points, v);
 		}
 		void set_cb_creation_speed(float v) {
-			add_attribute(env.under_construction.attributes, tech_offset::cb_creation_speed, v);
+			env.mod.add_attribute(modifiers::bad_offset, modifiers::national_offsets::cb_generation_speed_modifier, v);
 		}
 		void set_max_fort(float v) {
 			add_attribute(env.under_construction.attributes, tech_offset::max_fort, v);
@@ -1083,6 +1083,5 @@ namespace technologies {
 		m.tech_modifier_names[tech_offset::morale] = text_data::get_thread_safe_text_handle(text, "MORALE_TECH");
 		m.tech_modifier_names[tech_offset::colonial_migration] = text_data::get_thread_safe_text_handle(text, "COLONIAL_MIGRATION_TECH");
 		m.tech_modifier_names[tech_offset::colonial_points] = text_data::get_thread_safe_text_handle(text, "COLONIAL_POINTS_TECH");
-		m.tech_modifier_names[tech_offset::cb_creation_speed] = text_data::get_thread_safe_text_handle(text, "CB_MANUFACTURE_TECH");
 	}
 }

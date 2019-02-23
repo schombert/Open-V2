@@ -1339,10 +1339,12 @@ namespace population {
 				auto const mt_trigger = ws.s.population_m.pop_types[p_type].country_migration_target;
 				for(int32_t i = 0; i < nation_count; i += ve::vector_size) {
 					ve::contiguous_tags<nations::country_tag> off(i);
+					auto const nat_mod = ve::load(off, ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::global_immigrant_attract>(nation_count));
+					auto const modifier_result = modifiers::test_semi_contiguous_multiplicative_factor(mt_trigger, ws, off, from_pop, from_pop);
 					ve::store(
 						off,
 						nation_weights.view(int32_t(nation_count)),
-						modifiers::test_semi_contiguous_multiplicative_factor(mt_trigger, ws, off, from_pop, from_pop));
+						ve::max(ve::multiply_and_add(nat_mod, modifier_result, modifier_result), 0.0f));
 				}
 				float const avg = std::reduce(
 					                  nation_weights.begin(),
@@ -1363,10 +1365,12 @@ namespace population {
 			auto const vs = ws.s.province_m.first_sea_province;
 			for(int32_t i = 0; i < int32_t(vs); i += ve::vector_size) {
 				ve::contiguous_tags<provinces::province_tag> off(i);
+				auto const prov_mod = ve::load(off, ws.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::immigrant_attract>(vs));
+				auto const modifier_result = modifiers::test_semi_contiguous_multiplicative_factor(mt_trigger, ws, off, from_pop, from_pop);
 				ve::store(
 					off,
 					province_weights.view(int32_t(vs)),
-					modifiers::test_semi_contiguous_multiplicative_factor(mt_trigger, ws, off, from_pop, from_pop));
+					ve::max(ve::multiply_and_add(prov_mod, modifier_result, modifier_result), 0.0f));
 			}
 		}
 

@@ -357,6 +357,8 @@ namespace military {
 		boost::container::flat_map<text_data::text_tag, cb_type_tag> named_cb_type_index;
 		boost::container::flat_map<text_data::text_tag, leader_trait_tag> named_leader_trait_index;
 
+		tagged_vector<float, cb_type_tag, padded_aligned_allocator_64<float>, true> cb_type_to_speed;
+
 		tagged_fixed_blocked_2dvector<economy::goods_qnty_type, unit_type_tag, economy::goods_tag, aligned_allocator_32<economy::goods_qnty_type>> unit_build_costs;
 		tagged_fixed_blocked_2dvector<economy::goods_qnty_type, unit_type_tag, economy::goods_tag, aligned_allocator_32<economy::goods_qnty_type>> unit_base_supply_costs;
 

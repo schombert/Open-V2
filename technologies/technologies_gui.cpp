@@ -139,7 +139,6 @@ namespace technologies {
 			display_type::percent,//constexpr int32_t morale = 25;
 			display_type::percent,//constexpr int32_t colonial_migration = 26;
 			display_type::integer,//constexpr int32_t colonial_points = 27;
-			display_type::percent,//constexpr int32_t cb_creation_speed = 28;
 		};
 
 		ui::xy_pair display_green_value(float value, display_type d_type, world_state& ws,

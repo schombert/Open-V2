@@ -910,6 +910,20 @@ namespace nations {
 		return false;
 	}
 
+	bool owns_releasable_core(world_state const& ws, country_tag this_nation) {
+		auto const target_tag = ws.w.nation_s.nations.get<nation::tag>(this_nation);
+		auto const p_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(this_nation));
+		for(auto p : p_range) {
+			const auto cores = get_range(ws.w.province_s.core_arrays, ws.w.province_s.province_state_container.get<province_state::cores>(p));
+			for(auto c : cores) {
+				if(c != target_tag && (!ws.w.culture_s.national_tags_state[c].is_not_releasable || nation_exists(ws, ws.w.culture_s.tags_to_holders[c]))) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	int32_t get_colonial_points(world_state const& ws, nations::country_tag n) {
 		return int32_t(ws.w.nation_s.nations.get<nation::base_colonial_points>(n)) + int32_t(ws.w.nation_s.tech_attributes.get<technologies::tech_offset::colonial_points>(n));
 	}
