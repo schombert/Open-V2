@@ -16,6 +16,7 @@
 #include "gui\\gui.h"
 #include "sound\\sound.h"
 #include "simple_fs\\simple_fs.h"
+#include "world_state\\messages.h"
 
 namespace scenario {
 	namespace fixed_ui {
@@ -670,7 +671,7 @@ namespace scenario {
 		military::military_manager military_m;
 		events::event_manager event_m;
 		triggers::trigger_manager trigger_m;
-
+		messages::messages_manager message_m;
 		ui::gui_static gui_m;
 		sound::sound_manager sound_m;
 

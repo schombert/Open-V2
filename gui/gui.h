@@ -972,8 +972,8 @@ namespace ui {
 	xy_pair advance_cursor_by_space(ui::xy_pair cursor, gui_static& manager, text_format const& fmt, int32_t count = 1);
 
 	template<typename LM = single_line_manager>
-	xy_pair add_linear_text(ui::xy_pair cursor, text_data::text_tag, text_format const& fmt, gui_static& static_manager, gui_manager& manager, tagged_gui_object container, LM&& lm = single_line_manager(), const text_data::replacement* candidates = nullptr, uint32_t count = 0);
-
+	xy_pair add_linear_text(xy_pair cursor, text_data::text_tag, text_format const& fmt, gui_static& static_manager, gui_manager& manager, tagged_gui_object container, LM&& lm = single_line_manager(), const text_data::replacement* candidates = nullptr, uint32_t count = 0);
+	xy_pair add_multiline_text(xy_pair position, text_data::text_tag text_handle, text_format const& fmt, gui_static& static_manager, gui_manager& manager, tagged_gui_object container, line_manager& lm, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
 
 	void shorten_text_instance_to_space(ui::text_instance& txt);
 	float text_component_width(const text_data::text_component& c, const std::vector<char16_t>& text_data, graphics::font& this_font, uint32_t font_size);

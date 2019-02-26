@@ -23,6 +23,9 @@
 #include "variables\\variables_io.h"
 
 template<>
+class serialization::serializer<messages::messages_manager> : public serialization::memcpy_serializer<messages::messages_manager> {};
+
+template<>
 class serialization::serializer<scenario::scenario_manager> {
 public:
 	static constexpr bool has_static_size = false;
@@ -45,6 +48,7 @@ public:
 		serialize(output, obj.gui_m);
 		serialize(output, obj.sound_m);
 		serialize(output, obj.fixed_ui_text);
+		serialize(output, obj.message_m);
 	}
 	template<typename ... CONTEXT>
 	static void deserialize_object(std::byte const* &input, scenario::scenario_manager& obj, uint64_t version, CONTEXT&& ... c) {
@@ -67,6 +71,7 @@ public:
 		deserialize(input, obj.gui_m, std::forward<CONTEXT>(c) ...);
 		deserialize(input, obj.sound_m, std::forward<CONTEXT>(c) ...);
 		deserialize(input, obj.fixed_ui_text, std::forward<CONTEXT>(c) ...);
+		deserialize(input, obj.message_m);
 	}
 	static size_t size(scenario::scenario_manager const& obj) {
 		return serialize_size(obj.population_m) +
@@ -84,7 +89,8 @@ public:
 			serialize_size(obj.trigger_m) +
 			serialize_size(obj.gui_m) +
 			serialize_size(obj.sound_m) +
-			serialize_size(obj.fixed_ui_text);
+			serialize_size(obj.fixed_ui_text) +
+			serialize_size(obj.message_m);
 	}
 };
 

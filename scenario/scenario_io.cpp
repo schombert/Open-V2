@@ -9,8 +9,9 @@ namespace scenario {
 		ui::load_gui_from_directory(root, s.gui_m, gobj_nmaps);
 
 		//stage 2
-		auto const country_files = cultures::read_national_tags(s.culture_m, root);
+		messages::init_message_text(s);
 
+		auto const country_files = cultures::read_national_tags(s.culture_m, root);
 		cultures::read_religions(s.culture_m, root, s.gui_m.text_data_sequences);
 		cultures::read_cultures(s.culture_m, s.gui_m.textures, root, s.gui_m.text_data_sequences);
 
