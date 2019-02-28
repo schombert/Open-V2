@@ -23,8 +23,8 @@ namespace messages {
 
 	class goto_button {
 	public:
-		void button_function(ui::simple_button<goto_button>&, world_state&);
-		void update(ui::simple_button<goto_button>&, world_state&);
+		void button_function(ui::button<goto_button>&, world_state&);
+		void update(ui::button<goto_button>&, world_state&);
 	};
 
 	class message_window_base : public ui::draggable_region {
@@ -53,7 +53,7 @@ namespace messages {
 	};
 
 	class message_window_t : public ui::gui_window <
-		CT_STRING("AgreeButton"), ui::simple_button<goto_button>,
+		CT_STRING("AgreeButton"), ui::button<goto_button>,
 		CT_STRING("LeftShield"), ui::masked_flag<messaage_flag>,
 		CT_STRING("RightShield"), ui::masked_flag<messaage_flag>,
 		CT_STRING("Title"), ui::display_text<message_header>,

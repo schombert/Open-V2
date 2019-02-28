@@ -176,9 +176,9 @@ namespace messages {
 	}
 
 	void message_window::show_message_window(ui::gui_manager& gui_m) {
+		currently_displayed_index = 0;
 		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(win->associated_object), win->window_object });
 		ui::make_visible_and_update(gui_m, *(win->associated_object));
-		
 	}
 
 	void message_window::init_message_window(world_state& ws) {
@@ -193,6 +193,65 @@ namespace messages {
 				std::string line_key = std::string(message_identifiers[i]) + "_" + std::to_string(j + 1);
 				s.message_m.message_text[i].line[j] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, line_key.c_str(), line_key.c_str() + line_key.size());
 			}
+		}
+	}
+
+	void close_button::button_function(ui::simple_button<close_button>&, world_state& ws) {
+		ws.w.message_w.hide_message_window(ws.w.gui_m);
+	}
+
+	void next_button::button_function(ui::simple_button<next_button>&, world_state& ws) {
+		++ws.w.message_w.currently_displayed_index;
+		if(ws.w.message_w.currently_displayed_index > ws.w.message_w.current_message_count)
+			ws.w.message_w.currently_displayed_index = 0;
+		ws.w.message_w.update_message_window(ws.w.gui_m);
+	}
+
+	void prev_button::button_function(ui::simple_button<prev_button>&, world_state& ws) {
+		--ws.w.message_w.currently_displayed_index;
+		if(ws.w.message_w.currently_displayed_index < 0)
+			ws.w.message_w.currently_displayed_index = ws.w.message_w.current_message_count - 1;
+		ws.w.message_w.update_message_window(ws.w.gui_m);
+	}
+
+	void goto_button::button_function(ui::button<goto_button>&, world_state&) {}
+	void goto_button::update(ui::button<goto_button>& self, world_state& ws) {
+		self.set_text(ws, ws.s.fixed_ui_text[scenario::fixed_ui::goto_label]);
+	}
+
+	void messaage_flag::update(ui::masked_flag<messaage_flag>& self, world_state& ws) {
+		auto const goto_variant = ws.w.message_w.displayed_messages[ws.w.message_w.currently_displayed_index].goto_tag;
+		if(std::holds_alternative<nations::country_tag>(goto_variant)) {
+			self.set_displayed_flag(ws, std::get<nations::country_tag>(goto_variant));
+		} else if(std::holds_alternative<provinces::province_tag>(goto_variant)) {
+			self.set_displayed_flag(ws, ws.w.province_s.province_state_container.get<province_state::owner>(std::get<provinces::province_tag>(goto_variant)));
+		} else {
+			self.set_displayed_flag(ws, ws.w.local_player_nation);
+		}
+	}
+
+	void message_header::update(
+		ui::tagged_gui_object box,
+		ui::text_box_line_manager& lm,
+		ui::text_format& fmt,
+		world_state& ws) {
+
+		char16_t local_buffer[16];
+		put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.message_w.currently_displayed_index + 1);
+		ui::xy_pair cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+
+		put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.message_w.current_message_count);
+		cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u" / "), box, cursor, fmt, lm);
+
+		put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.message_w.current_message_count);
+		cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, cursor, fmt, lm);
+
+		lm.finish_current_line();
+	}
+
+	void message_body::update(ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		if(ws.w.message_w.displayed_messages[ws.w.message_w.currently_displayed_index].func != nullptr) {
+			ws.w.message_w.displayed_messages[ws.w.message_w.currently_displayed_index].func(ws, box, lm, fmt);
 		}
 	}
 }

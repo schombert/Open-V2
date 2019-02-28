@@ -734,5 +734,6 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::pop_size_assimilation] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "pop_size_assimilation");
 		s.fixed_ui_text[fixed_ui::pop_size_migration] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "pop_size_migration");
 		s.fixed_ui_text[fixed_ui::pop_size_emigration] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "pop_size_emigration");
+		s.fixed_ui_text[fixed_ui::goto_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "GOTO_GOTO");
 	}
 }

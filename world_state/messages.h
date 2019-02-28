@@ -181,7 +181,7 @@ namespace messages {
 		message_setting all_countries = message_setting::log;
 	};
 
-	using display_function = std::function<ui::xy_pair(ui::xy_pair, ui::gui_static&, ui::gui_manager&, ui::tagged_gui_object, ui::line_manager&)>;
+	using display_function = std::function<void(world_state&, ui::tagged_gui_object, ui::line_manager&, ui::text_format&)>;
 
 	struct message_instance {
 		display_function func;

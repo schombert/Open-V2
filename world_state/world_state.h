@@ -20,6 +20,7 @@
 #include "economy\\trade_window.h"
 #include "governments\\budget_window.h"
 #include "commands\\commands.hpp"
+#include "messages.h"
 
 #undef small
 
@@ -111,6 +112,7 @@ namespace current_state {
 		population::population_window population_w;
 		economy::production_window production_w;
 		economy::trade_window trade_w;
+		messages::message_window message_w;
 		topbar topbar_w;
 
 		//player data
