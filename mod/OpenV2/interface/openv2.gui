@@ -1,0 +1,16 @@
+guiTypes = {
+	guiButtonType = {
+		name = "open_v2_left_right_button"
+		position = { x = 0 y = 0 }
+		quadTextureSprite = "GFX_openv2_left_right"
+		clicksound = click
+	}
+	
+	guiButtonType = {
+		name = "open_v2_msg_close_button"
+		position = { x = 0 y = 0 }
+		quadTextureSprite = "GFX_openv2_msg_close"
+		shortcut = "ESCAPE"
+		clicksound = click
+	}
+}

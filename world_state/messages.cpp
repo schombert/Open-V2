@@ -1,6 +1,6 @@
 #include "common\\common.h"
-#include "messages.hpp"
 #include "world_state.h"
+#include "messages.hpp"
 
 namespace messages {
 	constexpr char const* message_identifiers[] = {
@@ -163,6 +163,7 @@ namespace messages {
 
 	void message_window::hide_message_window(ui::gui_manager& gui_m) {
 		current_message_count = 0;
+		last_replaced_index = 0;
 		for(auto& m : displayed_messages)
 			m = message_instance{};
 
@@ -217,6 +218,20 @@ namespace messages {
 	void goto_button::button_function(ui::button<goto_button>&, world_state&) {}
 	void goto_button::update(ui::button<goto_button>& self, world_state& ws) {
 		self.set_text(ws, ws.s.fixed_ui_text[scenario::fixed_ui::goto_label]);
+	}
+
+	void message_window_base::update(world_state& ws) {
+		message_instance m;
+		while(ws.w.message_w.pending_messages.try_pop(m)) {
+			if(ws.w.message_w.current_message_count < messages::maximum_displayed_messages) {
+				ws.w.message_w.displayed_messages[ws.w.message_w.current_message_count] = m;
+				++ws.w.message_w.current_message_count;
+			} else {
+				ws.w.message_w.displayed_messages[ws.w.message_w.last_replaced_index] = m;
+				ws.w.message_w.last_replaced_index = (ws.w.message_w.last_replaced_index + 1) % messages::maximum_displayed_messages;
+			}
+		}
+		
 	}
 
 	void messaage_flag::update(ui::masked_flag<messaage_flag>& self, world_state& ws) {

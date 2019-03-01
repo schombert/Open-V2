@@ -1,0 +1,12 @@
+spriteTypes = {
+	spriteType = {
+		name = "GFX_openv2_left_right"
+		texturefile = "gfx\\interface\\toggle_default.tga"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_openv2_msg_close"
+		texturefile = "gfx\\interface\\msg_close.tga"
+		noOfFrames = 1
+	}
+}

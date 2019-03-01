@@ -1,6 +1,6 @@
 #pragma once
 #include "common\\common.h"
-#include "gui\\gui.hpp"
+#include "gui\\gui.h"
 #include <ppl.h>
 #include <concurrent_queue.h>
 

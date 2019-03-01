@@ -1,8 +1,8 @@
 #pragma once
 #include "common\\common.h"
 #include "messages.h"
-#include "gui\\gui.hpp"
 #include "world_state.h"
+#include "gui\\gui.hpp"
 
 namespace messages {
 
@@ -35,7 +35,37 @@ namespace messages {
 
 		template<typename W>
 		void on_create(W& w, world_state&);
+
+		void update(world_state& ws);
 	};
+
+	template <typename W>
+	void message_window_base::on_create(W& w, world_state& ws) {
+	
+		auto lr_tag = std::get<ui::button_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_left_right_button"]);
+		auto close_tag = std::get<ui::button_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_msg_close_button"]);
+
+		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+			ws, lr_tag,
+			ui::tagged_gui_object{ *associated_object, w.window_object },
+			m_prev_button));
+		m_prev_button.set_frame(ws.w.gui_m, 0);
+		m_prev_button.associated_object->position = ui::xy_pair{ int16_t(500 - 18 - 20 * 3),56i16};
+
+		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+			ws, lr_tag,
+			ui::tagged_gui_object{ *associated_object, w.window_object },
+			m_next_button));
+		m_next_button.set_frame(ws.w.gui_m, 1);
+		m_next_button.associated_object->position = ui::xy_pair{ int16_t(500 - 18 - 20 * 2),56i16 };
+
+		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+			ws, close_tag,
+			ui::tagged_gui_object{ *associated_object, w.window_object },
+			m_close_button));
+		m_close_button.associated_object->position = ui::xy_pair{ int16_t(500 - 18 - 20) ,56i16 };
+
+	}
 
 	class messaage_flag {
 	public:
