@@ -269,4 +269,164 @@ namespace messages {
 			ws.w.message_w.displayed_messages[ws.w.message_w.currently_displayed_index].func(ws, box, lm, fmt);
 		}
 	}
+
+	void submit_message(world_state& ws, std::variant<std::monostate, nations::country_tag, provinces::province_tag> goto_tag, display_function&& f) {
+		ws.w.message_w.pending_messages.push(message_instance{ std::move(f), goto_tag });
+		ws.w.message_w.show_message_window(ws.w.gui_m);
+	}
+
+	message_setting get_single_setting(world_state const& ws, message_settings s, nations::country_tag n) {
+		if(n == ws.w.local_player_nation)
+			return s.self;
+		else
+			return s.interesting_countries;
+	}
+
+	template<typename ... NATIONS>
+	message_setting get_relevant_setting(world_state const& ws, message_settings s, nations::country_tag n, NATIONS ... rest) {
+		return merge_message_setting(get_single_setting(ws, s, n), get_single_setting(ws, s, rest ...));
+	}
+
+	class nation_hyperlink {
+	public:
+		nations::country_tag target;
+
+		nation_hyperlink(nations::country_tag t) : target(t) {}
+
+		void button_function(ui::simple_button<nation_hyperlink>&, world_state& ws) {
+			ws.w.diplomacy_w.show_diplomacy_window(ws.w.gui_m, target);
+		}
+	};
+
+	void display_message_body(world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt, int32_t message_id, text_data::replacement* repl, int32_t replacements_length) {
+		auto cursor = add_multiline_text(
+			ui::xy_pair{ 0,0 },
+			ws.s.message_m.message_text[message_id].line[0],
+			fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, replacements_length);
+		lm.finish_current_line();
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, fmt);
+		cursor = add_multiline_text(
+			cursor,
+			ws.s.message_m.message_text[message_id].line[1],
+			fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, replacements_length);
+		cursor = add_multiline_text(
+			cursor,
+			ws.s.message_m.message_text[message_id].line[2],
+			fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, replacements_length);
+		cursor = add_multiline_text(
+			cursor,
+			ws.s.message_m.message_text[message_id].line[3],
+			fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, replacements_length);
+		cursor = add_multiline_text(
+			cursor,
+			ws.s.message_m.message_text[message_id].line[4],
+			fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, replacements_length);
+		cursor = add_multiline_text(
+			cursor,
+			ws.s.message_m.message_text[message_id].line[5],
+			fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, replacements_length);
+		lm.finish_current_line();
+	}
+
+	void cb_detected(world_state& ws, nations::country_tag by, nations::country_tag target, military::cb_type_tag type, float infamy_gained) {
+		if(by == ws.w.local_player_nation) {
+			// case by player detected
+			switch(ws.w.message_w.settings[message_type::OUR_CB_DETECTED].self) {
+				case message_setting::popup_and_pause:
+					ws.w.paused.store(true, std::memory_order_release);
+					// fallthrough
+				case message_setting::popup:
+					submit_message(ws, target, [type, target, infamy_gained](world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt) {
+						char16_t local_buffer[16];
+						put_value_in_buffer(local_buffer, display_type::fp_one_place, infamy_gained);
+
+						text_data::replacement repl[3] = {
+							text_data::replacement{text_data::value_type::casus, 
+								text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name), 
+								[](ui::tagged_gui_object) {}},
+							text_data::replacement{text_data::value_type::target,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+								[&ws, target](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+							}},
+							text_data::replacement{text_data::value_type::badboy,
+								vector_backed_string<char16_t>(local_buffer),
+								[](ui::tagged_gui_object) {}}
+						};
+
+						display_message_body(ws, box, lm, fmt, message_type::OUR_CB_DETECTED, repl, 3);
+					});
+					break;
+				case message_setting::log:
+					// todo: log message
+					break;
+				case message_setting::discard:
+					//do nothing
+					break;
+			}
+		} else if(target == ws.w.local_player_nation) {
+			// case against player detected
+			switch(ws.w.message_w.settings[message_type::CB_TOWARDS_US_DETECTED].self) {
+				case message_setting::popup_and_pause:
+					ws.w.paused.store(true, std::memory_order_release);
+					// fallthrough
+				case message_setting::popup:
+					submit_message(ws, by, [type, by](world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[2] = {
+							text_data::replacement{text_data::value_type::casus,
+								text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+								[](ui::tagged_gui_object) {}},
+							text_data::replacement{text_data::value_type::country,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(by)) ,
+								[&ws, by](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, by);
+							}}
+						};
+
+						display_message_body(ws, box, lm, fmt, message_type::CB_TOWARDS_US_DETECTED, repl, 2);
+					});
+					break;
+				case message_setting::log:
+					// todo: log message
+					break;
+				case message_setting::discard:
+					//do nothing
+					break;
+			}
+		} else {
+			// all others
+			switch(get_relevant_setting(ws, ws.w.message_w.settings[message_type::OTHERS_CB_DETECTED], target, by)) {
+				case message_setting::popup_and_pause:
+					ws.w.paused.store(true, std::memory_order_release);
+					// fallthrough
+				case message_setting::popup:
+					submit_message(ws, target, [type, target, by](world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[3] = {
+							text_data::replacement{text_data::value_type::casus,
+								text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+								[](ui::tagged_gui_object) {}},
+							text_data::replacement{text_data::value_type::country,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(by)) ,
+								[&ws, by](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, by);
+							}},
+							text_data::replacement{text_data::value_type::target,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+								[&ws, target](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+							}}
+						};
+
+						display_message_body(ws, box, lm, fmt, message_type::OTHERS_CB_DETECTED, repl, 3);
+					});
+					break;
+				case message_setting::log:
+					// todo: log message
+					break;
+				case message_setting::discard:
+					//do nothing
+					break;
+			}
+		}
+	}
 }

@@ -894,6 +894,9 @@ void ui::detail::render_object_type(gui_static& static_manager, const gui_manage
 					case ui::text_color::yellow:
 						ogl.render_text(ti->text, ti->length, cmod, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 1.0f, 0.75f, 0.2f }, fnt);
 						break;
+					case ui::text_color::blue:
+						ogl.render_text(ti->text, ti->length, cmod, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 0.2f, 0.2f, 1.0f }, fnt);
+						break;
 				}
 			}
 			break;

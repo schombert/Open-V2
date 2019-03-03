@@ -67,6 +67,8 @@ namespace ui {
 			new_gobj.object.position = position;
 
 			behavior_creator(new_gobj);
+			if(new_gobj.object.associated_behavior)
+				new_text_instance.object.color = ui::text_color::blue;
 
 			add_to_back(container, parent_object, new_gobj);
 			lm.add_object(&(new_gobj.object));
@@ -253,6 +255,18 @@ ui::tagged_gui_object ui::create_dynamic_element(world_state& ws, T handle, tagg
 		ui::add_to_back(ws.w.gui_m, parent, new_obj);
 		return new_obj;
 	}
+}
+
+template<typename BEHAVIOR, typename ... PARAMS>
+void ui::attach_dynamic_behavior(world_state& ws, ui::tagged_gui_object target_object, PARAMS&& ... params) {
+	BEHAVIOR* b = concurrent_allocator<BEHAVIOR>().allocate(1);
+	new (b)BEHAVIOR(std::forward<PARAMS>(params) ...);
+
+	auto& obj = ws.w.gui_m.gui_objects.at(target_object);
+	obj.flags.fetch_or(ui::gui_object::dynamic_behavior, std::memory_order_acq_rel);
+
+	obj.associated_behavior = b;
+	b->associated_object = &obj;
 }
 
 template<typename FILL_FUNCTION>

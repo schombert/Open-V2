@@ -38,7 +38,7 @@ namespace ui {
 	constexpr int32_t piechart_resolution = 200;
 
 	enum class text_color : uint8_t {
-		black, white, red, green, yellow,
+		black, white, red, green, yellow, blue,
 		outlined_white, outlined_black
 	};
 	constexpr bool is_outlined_color(text_color c) {
@@ -855,6 +855,9 @@ namespace ui {
 
 	template<typename BEHAVIOR = ui::gui_behavior, typename T, typename ... PARAMS>
 	ui::tagged_gui_object create_dynamic_element(world_state& ws, T handle, tagged_gui_object parent, PARAMS&& ... params);
+
+	template<typename BEHAVIOR, typename ... PARAMS>
+	void attach_dynamic_behavior(world_state& ws, ui::tagged_gui_object target_object, PARAMS&& ... params);
 
 	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, progress_bar<B>& b);
