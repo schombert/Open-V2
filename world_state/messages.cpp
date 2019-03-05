@@ -203,7 +203,7 @@ namespace messages {
 
 	void next_button::button_function(ui::simple_button<next_button>&, world_state& ws) {
 		++ws.w.message_w.currently_displayed_index;
-		if(ws.w.message_w.currently_displayed_index > ws.w.message_w.current_message_count)
+		if(ws.w.message_w.currently_displayed_index >= ws.w.message_w.current_message_count)
 			ws.w.message_w.currently_displayed_index = 0;
 		ws.w.message_w.update_message_window(ws.w.gui_m);
 	}
@@ -298,33 +298,21 @@ namespace messages {
 		}
 	};
 
-	void display_message_body(world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt, int32_t message_id, text_data::replacement* repl, int32_t replacements_length) {
+	void display_message_body(world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt, int32_t message_id, text_data::replacement* repl, int32_t replacements_length, int32_t max_line = 6) {
 		auto cursor = add_multiline_text(
 			ui::xy_pair{ 0,0 },
 			ws.s.message_m.message_text[message_id].line[0],
 			fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, replacements_length);
 		lm.finish_current_line();
 		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, fmt);
-		cursor = add_multiline_text(
-			cursor,
-			ws.s.message_m.message_text[message_id].line[1],
-			fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, replacements_length);
-		cursor = add_multiline_text(
-			cursor,
-			ws.s.message_m.message_text[message_id].line[2],
-			fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, replacements_length);
-		cursor = add_multiline_text(
-			cursor,
-			ws.s.message_m.message_text[message_id].line[3],
-			fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, replacements_length);
-		cursor = add_multiline_text(
-			cursor,
-			ws.s.message_m.message_text[message_id].line[4],
-			fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, replacements_length);
-		cursor = add_multiline_text(
-			cursor,
-			ws.s.message_m.message_text[message_id].line[5],
-			fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, replacements_length);
+
+		for(int32_t i = 1; i < max_line; ++i) {
+			cursor = add_multiline_text(
+				cursor,
+				ws.s.message_m.message_text[message_id].line[i],
+				fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, replacements_length);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
+		}
 		lm.finish_current_line();
 	}
 
@@ -427,6 +415,64 @@ namespace messages {
 					//do nothing
 					break;
 			}
+		}
+	}
+
+	void player_cb_construction_invalid(world_state& ws, nations::country_tag target, military::cb_type_tag type) {
+		switch(ws.w.message_w.settings[message_type::CB_JUSTIFY_NO_LONGER_VALID].self) {
+			case message_setting::popup_and_pause:
+				ws.w.paused.store(true, std::memory_order_release);
+				// fallthrough
+			case message_setting::popup:
+				submit_message(ws, target, [type, target](world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt) {
+					text_data::replacement repl[2] = {
+						text_data::replacement{text_data::value_type::casus,
+							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+							[](ui::tagged_gui_object) {}},
+						text_data::replacement{text_data::value_type::target,
+							 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+							[&ws, target](ui::tagged_gui_object b) {
+							ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+						}}
+					};
+					display_message_body(ws, box, lm, fmt, message_type::CB_JUSTIFY_NO_LONGER_VALID, repl, 2);
+				});
+				break;
+			case message_setting::log:
+				// todo: log message
+				break;
+			case message_setting::discard:
+				//do nothing
+				break;
+		}
+	}
+
+	void player_acquired_cb(world_state& ws, nations::country_tag target, military::cb_type_tag type) {
+		switch(ws.w.message_w.settings[message_type::WEGAINCB].self) {
+			case message_setting::popup_and_pause:
+				ws.w.paused.store(true, std::memory_order_release);
+				// fallthrough
+			case message_setting::popup:
+				submit_message(ws, target, [type, target](world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt) {
+					text_data::replacement repl[2] = {
+						text_data::replacement{text_data::value_type::casus,
+							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+							[](ui::tagged_gui_object) {}},
+						text_data::replacement{text_data::value_type::enemy,
+							 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+							[&ws, target](ui::tagged_gui_object b) {
+							ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+						}}
+					};
+					display_message_body(ws, box, lm, fmt, message_type::WEGAINCB, repl, 2, 5);
+				});
+				break;
+			case message_setting::log:
+				// todo: log message
+				break;
+			case message_setting::discard:
+				//do nothing
+				break;
 		}
 	}
 }

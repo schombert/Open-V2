@@ -231,4 +231,6 @@ namespace messages {
 	void submit_message(world_state& ws, std::variant<std::monostate, nations::country_tag, provinces::province_tag> goto_tag, display_function&& f);
 
 	void cb_detected(world_state& ws, nations::country_tag by, nations::country_tag target, military::cb_type_tag type, float infamy_gained);
+	void player_cb_construction_invalid(world_state& ws, nations::country_tag target, military::cb_type_tag type);
+	void player_acquired_cb(world_state& ws, nations::country_tag target, military::cb_type_tag type);
 }

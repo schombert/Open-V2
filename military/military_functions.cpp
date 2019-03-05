@@ -5,6 +5,7 @@
 #include "nations\\nations_functions.hpp"
 #include "provinces\\province_functions.h"
 #include "economy\\economy_functions.h"
+#include "world_state\\messages.h"
 
 namespace military {
 	void init_military_state(world_state& ws) {
@@ -228,7 +229,7 @@ namespace military {
 					}
 					return false;
 				}();
-				if(!sm_range)
+				if(!any_sphere_member)
 					return false;
 			} else if((c.flags & cb_type::po_liberate) != 0) {
 				return nations::owns_releasable_core(ws, nation_target);
@@ -785,7 +786,7 @@ namespace military {
 			const auto base_speed = cb_speed * increment;
 			const auto old_value = ve::load(off, progress_row);
 
-			ve::store(off, progress_row, ve::multiply_and_add(adjusted_mod, base_speed, old_value))
+			ve::store(off, progress_row, ve::multiply_and_add(adjusted_mod, base_speed, old_value));
 		});
 
 		ws.w.nation_s.nations.parallel_for_each([&ws](nations::country_tag n) {
@@ -797,10 +798,13 @@ namespace military {
 						// is valid: add
 						auto& cb_array = ws.w.nation_s.nations.get<nation::active_cbs>(n);
 						add_item(ws.w.military_s.cb_arrays, cb_array, pending_cb{cb_target, cb_type_id, date_tag()});
-						// todo: message
+
+						if(n == ws.w.local_player_nation)
+							messages::player_acquired_cb(ws, cb_target, cb_type_id);
 					} else {
 						// not valid: post invalid message
-						// todo: message
+						if(n == ws.w.local_player_nation)
+							messages::player_cb_construction_invalid(ws, cb_target, cb_type_id);
 					}
 					// either case: erase
 					ws.w.nation_s.nations.set<nation::cb_construction_type>(n, cb_type_tag());
@@ -817,9 +821,11 @@ namespace military {
 							auto const defines_probability = int32_t(ws.s.modifiers_m.global_defines.cb_detection_chance_base);
 							if(chance <= defines_probability) {
 								ws.w.nation_s.nations.set<nation::cb_construction_discovered>(n, true);
-								ws.w.nation_s.nations.get<nation::infamy>(n) += base_cb_infamy(ws, cb_type_id) * (
+								auto const infamy_gain = base_cb_infamy(ws, cb_type_id) * (
 									1.0f - ws.w.nation_s.nations.get<nation::cb_construction_progress>(n));
-								// todo: message
+								ws.w.nation_s.nations.get<nation::infamy>(n) += infamy_gain;
+
+								messages::cb_detected(ws, n, cb_target, cb_type_id, infamy_gain);
 							}
 						}
 					} else {
@@ -828,7 +834,9 @@ namespace military {
 						ws.w.nation_s.nations.set<nation::cb_construction_target>(n, nations::country_tag());
 						ws.w.nation_s.nations.set<nation::cb_construction_discovered>(n, false);
 						ws.w.nation_s.nations.set<nation::cb_construction_progress>(n, 0.0f);
-						// todo: message
+						
+						if(n == ws.w.local_player_nation)
+							messages::player_cb_construction_invalid(ws, cb_target, cb_type_id);
 					}
 				}
 			}
