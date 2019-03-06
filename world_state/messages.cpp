@@ -475,4 +475,8 @@ namespace messages {
 				break;
 		}
 	}
+
+	void hidden_button::update(ui::simple_button<hidden_button>& self, world_state & ws) {
+		ui::hide(*self.associated_object);
+	}
 }

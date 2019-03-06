@@ -675,8 +675,21 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_static& static_man
 			int16_t(new_gobj.object.position.x - new_gobj.object.size.y),
 			int16_t(new_gobj.object.position.y + new_gobj.object.size.y - new_gobj.object.size.x) };
 		new_gobj.object.size = ui::xy_pair{new_gobj.object.size.y, new_gobj.object.size.x};
+	} else if(rotation == ui::gui_object::rotation_left) {
+		//new_gobj.object.position = ui::xy_pair{
+		//	int16_t(new_gobj.object.position.x - new_gobj.object.size.y),
+		//	int16_t(new_gobj.object.position.y + new_gobj.object.size.y - new_gobj.object.size.x) };
+		new_gobj.object.size = ui::xy_pair{ new_gobj.object.size.y, new_gobj.object.size.x };
 	}
 
+
+	if(rotation != ui::gui_object::rotation_upright) {
+		ui::for_each_child(manager, new_gobj, [rotation](ui::tagged_gui_object child) {
+			child.object.flags.fetch_or(rotation, std::memory_order_acq_rel);
+			child.object.size = ui::xy_pair{ child.object.size.y, child.object.size.x };
+		});
+	}
+	
 	new_gobj.object.size.x = int16_t(float(new_gobj.object.size.x) * icon_def.scale);
 	new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
 

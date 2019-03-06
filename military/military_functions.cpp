@@ -773,7 +773,7 @@ namespace military {
 	void update_cb_construction(world_state& ws) {
 		ve::execute_serial<nations::country_tag>(ws.w.nation_s.nations.vector_size(), [
 			&ws,
-			increment = ws.s.modifiers_m.global_defines.cb_generation_base_speed * 0.001f,
+			increment = ws.s.modifiers_m.global_defines.cb_generation_base_speed * 0.01f,
 			mod_row = ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::cb_generation_speed_modifier>(ws.w.nation_s.nations.vector_size()),
 			cb_type_row = ws.w.nation_s.nations.get_row<nation::cb_construction_type>(),
 			progress_row = ws.w.nation_s.nations.get_row<nation::cb_construction_progress>()
@@ -813,30 +813,30 @@ namespace military {
 					ws.w.nation_s.nations.set<nation::cb_construction_progress>(n, 0.0f);
 				} else {
 					// check for discovery & then validity
-					if(is_cb_construction_valid_against(ws, cb_type_id, n, cb_target)) {
-						if(ws.w.nation_s.nations.get<nation::cb_construction_discovered>(n) == false) {
+					if(ws.w.nation_s.nations.get<nation::cb_construction_discovered>(n) == false) {
+						std::uniform_int_distribution<int32_t> dist(0, 1'000);
+						auto const chance = dist(get_local_generator());
+						auto const defines_probability = int32_t(ws.s.modifiers_m.global_defines.cb_detection_chance_base);
 							
-							std::uniform_int_distribution<int32_t> dist(0, 1'000);
-							auto const chance = dist(get_local_generator());
-							auto const defines_probability = int32_t(ws.s.modifiers_m.global_defines.cb_detection_chance_base);
-							if(chance <= defines_probability) {
+						if(chance <= defines_probability) {
+							if(is_cb_construction_valid_against(ws, cb_type_id, n, cb_target)) {
 								ws.w.nation_s.nations.set<nation::cb_construction_discovered>(n, true);
 								auto const infamy_gain = base_cb_infamy(ws, cb_type_id) * (
 									1.0f - ws.w.nation_s.nations.get<nation::cb_construction_progress>(n));
 								ws.w.nation_s.nations.get<nation::infamy>(n) += infamy_gain;
 
 								messages::cb_detected(ws, n, cb_target, cb_type_id, infamy_gain);
+							} else {
+								// not valid, erase and post invalid message
+								ws.w.nation_s.nations.set<nation::cb_construction_type>(n, cb_type_tag());
+								ws.w.nation_s.nations.set<nation::cb_construction_target>(n, nations::country_tag());
+								ws.w.nation_s.nations.set<nation::cb_construction_discovered>(n, false);
+								ws.w.nation_s.nations.set<nation::cb_construction_progress>(n, 0.0f);
+
+								if(n == ws.w.local_player_nation)
+									messages::player_cb_construction_invalid(ws, cb_target, cb_type_id);
 							}
 						}
-					} else {
-						// not valid, erase and post invalid message
-						ws.w.nation_s.nations.set<nation::cb_construction_type>(n, cb_type_tag());
-						ws.w.nation_s.nations.set<nation::cb_construction_target>(n, nations::country_tag());
-						ws.w.nation_s.nations.set<nation::cb_construction_discovered>(n, false);
-						ws.w.nation_s.nations.set<nation::cb_construction_progress>(n, 0.0f);
-						
-						if(n == ws.w.local_player_nation)
-							messages::player_cb_construction_invalid(ws, cb_target, cb_type_id);
 					}
 				}
 			}

@@ -538,7 +538,7 @@ namespace graphics {
 	bool font_manager::is_black(const char* start, const char* end) {
 		if (end - start <= 5)
 			return false;
-		return (compile_time_str_compare_ci<CT_STRING("black")>(end - 5, end) == 0 || ((end - start > 10) && compile_time_str_compare_ci<CT_STRING("black_bold")>(end - 10, end) == 0));
+		return compile_time_str_compare_ci<CT_STRING("_bl")>(end - 3, end) == 0 || (compile_time_str_compare_ci<CT_STRING("black")>(end - 5, end) == 0 || ((end - start > 10) && compile_time_str_compare_ci<CT_STRING("black_bold")>(end - 10, end) == 0));
 	}
 
 	void font_manager::load_standard_fonts(const directory& root) {

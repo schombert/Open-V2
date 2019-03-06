@@ -50,21 +50,23 @@ namespace messages {
 			ui::tagged_gui_object{ *associated_object, w.window_object },
 			m_prev_button));
 		m_prev_button.set_frame(ws.w.gui_m, 0);
-		m_prev_button.associated_object->position = ui::xy_pair{ int16_t(500 - 18 - 20 * 3),56i16};
+		m_prev_button.associated_object->position = ui::xy_pair{ int16_t(500 - 24 - 20 * 3),22i16};
 
 		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
 			ws, lr_tag,
 			ui::tagged_gui_object{ *associated_object, w.window_object },
 			m_next_button));
 		m_next_button.set_frame(ws.w.gui_m, 1);
-		m_next_button.associated_object->position = ui::xy_pair{ int16_t(500 - 18 - 20 * 2),56i16 };
+		m_next_button.associated_object->position = ui::xy_pair{ int16_t(500 - 24 - 20 * 2),22i16 };
 
 		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
 			ws, close_tag,
 			ui::tagged_gui_object{ *associated_object, w.window_object },
 			m_close_button));
-		m_close_button.associated_object->position = ui::xy_pair{ int16_t(500 - 18 - 20) ,56i16 };
+		m_close_button.associated_object->position = ui::xy_pair{ int16_t(500 - 24 - 20) ,22i16 };
 
+		w.get<CT_STRING("LeftShield")>().associated_object->position += ui::xy_pair{8, -6 };
+		w.get<CT_STRING("RightShield")>().associated_object->position += ui::xy_pair{ 8, -6 };
 	}
 
 	class messaage_flag {
@@ -82,7 +84,13 @@ namespace messages {
 		void update(ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
 
+	class hidden_button {
+	public:
+		void update(ui::simple_button<hidden_button>& self, world_state& ws);
+	};
+
 	class message_window_t : public ui::gui_window <
+		CT_STRING("Background"), ui::simple_button<hidden_button>,
 		CT_STRING("AgreeButton"), ui::button<goto_button>,
 		CT_STRING("LeftShield"), ui::masked_flag<messaage_flag>,
 		CT_STRING("RightShield"), ui::masked_flag<messaage_flag>,
