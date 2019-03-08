@@ -562,7 +562,7 @@ namespace military {
 			if(!v) env.under_construction.flags |= cb_type::is_not_triggered_only;
 		}
 		void set_constructing_cb(bool v) {
-			if(v) env.under_construction.flags |= cb_type::is_not_constructing_cb;
+			if(!v) env.under_construction.flags |= cb_type::is_not_constructing_cb;
 		}
 		void set_allowed_states(triggers::trigger_tag t) {
 			env.under_construction.allowed_states = t;
@@ -727,6 +727,10 @@ namespace military {
 
 			env.pending_cb_parse.emplace_back(cbid, start, end);
 		} else {
+
+			std::string setup_name = std::string(t.start, t.end) + std::string("_setup");
+			env.manager.cb_types[cbtag].explanation = text_data::get_thread_safe_text_handle(env.text_lookup, setup_name.c_str(), setup_name.c_str() + setup_name.length());
+
 			env.pending_cb_parse.emplace_back(cbtag, start, end);
 		}
 		return 0;
@@ -741,8 +745,6 @@ namespace military {
 				const auto cbid = env.manager.cb_types.emplace_back();
 				env.manager.cb_types[cbid].id = cbid;
 				env.manager.cb_types[cbid].name = name;
-				std::string setup_name = std::string(t.start, t.end) + std::string("_setup");
-				env.manager.cb_types[cbid].explanation = text_data::get_thread_safe_text_handle(env.text_lookup, setup_name.c_str(), setup_name.c_str() + setup_name.length());
 
 				env.manager.named_cb_type_index.emplace(name, cbid);
 			}
@@ -1339,6 +1341,12 @@ namespace military {
 		for(auto const& t : state.impl->pending_cb_parse) {
 			cb_environment env(s, ecm, s.military_m.cb_types[std::get<0>(t)]);
 			parse_object<single_cb, single_cb_domain>(std::get<1>(t), std::get<2>(t), env);
+		}
+		for(auto& c : s.military_m.cb_types) {
+			if(!is_valid_index(c.explanation)) {
+				// prevent erronious entries from bad peace_order declaration from being used
+				c.flags |= (cb_type::is_not_triggered_only | cb_type::is_not_constructing_cb);
+			}
 		}
 	}
 

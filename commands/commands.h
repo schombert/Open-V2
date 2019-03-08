@@ -81,12 +81,21 @@ namespace commands {
 		province_building(nations::country_tag n, province_building_type t, nations::state_tag st) : nation_for(n), type(t), s(st) {}
 	};
 
+	struct fabricate_cb {
+		nations::country_tag nation_for;
+		nations::country_tag nation_target;
+		military::cb_type_tag type;
+
+		fabricate_cb(nations::country_tag f, nations::country_tag t, military::cb_type_tag y) : nation_for(f), nation_target(t), type(y) {}
+	};
+
 
 	void execute_command(set_budget const& c, world_state& ws);
 	void execute_command(province_building const& c, world_state& ws);
+	void execute_command(fabricate_cb const& c, world_state& ws);
 
 	bool is_command_valid(province_building const& c, world_state const& ws);
 	ui::xy_pair explain_command_conditions(province_building const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
 	
-	using full_command_set = command_set<set_budget, province_building>;
+	using full_command_set = command_set<set_budget, province_building, fabricate_cb>;
 }

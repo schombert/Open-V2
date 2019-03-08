@@ -67,6 +67,8 @@ namespace messages {
 
 		w.get<CT_STRING("LeftShield")>().associated_object->position += ui::xy_pair{8, -6 };
 		w.get<CT_STRING("RightShield")>().associated_object->position += ui::xy_pair{ 8, -6 };
+
+		ui::hide(*associated_object);
 	}
 
 	class messaage_flag {

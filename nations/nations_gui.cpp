@@ -541,7 +541,9 @@ namespace nations {
 		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.military_m.cb_types[tag].name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
 	}
 
-	void cb_item_cancel_button::button_function(ui::simple_button<cb_item_cancel_button>& self, world_state & ws) {}
+	void cb_item_cancel_button::button_function(ui::simple_button<cb_item_cancel_button>& self, world_state & ws) {
+		ws.w.pending_commands.add<commands::fabricate_cb>(ws.w.local_player_nation, nations::country_tag(), military::cb_type_tag());
+	}
 
 	ui::window_tag cb_fabrication_lb::element_tag(ui::gui_static & m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["diplomacy_cb_info_player"]);
@@ -898,7 +900,9 @@ namespace nations {
 		}
 	}
 	void declare_war_offer_peace_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
-	void justify_war_button::button_function(ui::button<justify_war_button>&, world_state &) {}
+	void justify_war_button::button_function(ui::button<justify_war_button>&, world_state & ws) {
+		ws.w.fabricate_cb_w.show_fabricate_window(ws.w.gui_m, ws.w.diplomacy_w.selected_nation);
+	}
 	void justify_war_button::update(ui::button<justify_war_button>& self, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			if(player == ws.w.diplomacy_w.selected_nation) {

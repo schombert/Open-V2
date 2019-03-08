@@ -21,6 +21,7 @@
 #include "governments\\budget_window.h"
 #include "commands\\commands.hpp"
 #include "messages.h"
+#include "military\\military_gui.h"
 
 #undef small
 
@@ -113,6 +114,8 @@ namespace current_state {
 		economy::production_window production_w;
 		economy::trade_window trade_w;
 		messages::message_window message_w;
+		military::fabricate_cb_window fabricate_cb_w;
+
 		topbar topbar_w;
 
 		//player data

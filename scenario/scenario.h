@@ -653,8 +653,10 @@ namespace scenario {
 		constexpr uint32_t pop_size_migration = 630ui32;
 		constexpr uint32_t pop_size_emigration = 631ui32;
 		constexpr uint32_t goto_label = 632ui32;
+		constexpr uint32_t fabricate_title = 633ui32;
+		constexpr uint32_t fabricate_description = 634ui32;
 
-		constexpr uint32_t count = 633ui32;
+		constexpr uint32_t count = 635ui32;
 	}
 
 	class scenario_manager {

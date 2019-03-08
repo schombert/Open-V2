@@ -341,7 +341,7 @@ namespace nations {
 		std::optional<float> nonstate_consciousness;
 		std::optional<float> prestige;
 		std::optional<bool> civilized;
-		std::optional<bool> is_releasbale_vassal;
+		std::optional<bool> is_releasable_vassal;
 		modifiers::national_modifier_tag nationalvalue;
 		modifiers::national_modifier_tag techschool;
 		std::vector<std::pair<cultures::national_tag, uint32_t>> investment;
@@ -497,8 +497,8 @@ namespace nations {
 			ws.w.nation_s.nations.set<nation::base_prestige>(target_nation, *npo.prestige);
 		if(npo.civilized && *npo.civilized)
 			ws.w.nation_s.nations.set<nation::is_civilized>(target_nation, true);
-		if(npo.is_releasbale_vassal)
-			nat_tag.is_not_releasable = !(*npo.is_releasbale_vassal);
+		if(npo.is_releasable_vassal)
+			nat_tag.is_not_releasable = !(*npo.is_releasable_vassal);
 		ws.w.nation_s.nations.set<nation::national_value>(target_nation, npo.nationalvalue);
 		ws.w.nation_s.nations.set<nation::tech_school>(target_nation, npo.techschool);
 		ws.w.nation_s.nations.set<nation::current_government>(target_nation, npo.gov);
@@ -604,8 +604,8 @@ namespace nations {
 			base.prestige = other.prestige;
 		if(other.civilized)
 			base.civilized = other.civilized;
-		if(other.is_releasbale_vassal)
-			base.is_releasbale_vassal = other.is_releasbale_vassal;
+		if(other.is_releasable_vassal)
+			base.is_releasable_vassal = other.is_releasable_vassal;
 		if(is_valid_index(other.nationalvalue))
 			base.nationalvalue = other.nationalvalue;
 		if(is_valid_index(other.techschool))
@@ -665,7 +665,7 @@ MEMBER_DEF(nations::nation_parse_object, nonstate_consciousness, "nonstate_consc
 MEMBER_DEF(nations::nation_parse_object, prestige, "prestige");
 MEMBER_DEF(nations::nation_parse_object, civilized, "civilized");
 MEMBER_FDEF(nations::nation_parse_object, set_ruling_party, "ruling_party");
-MEMBER_DEF(nations::nation_parse_object, is_releasbale_vassal, "is_releasbale_vassal");
+MEMBER_DEF(nations::nation_parse_object, is_releasable_vassal, "is_releasable_vassal");
 
 namespace nations {
 	BEGIN_DOMAIN(relation_file)
@@ -720,7 +720,7 @@ namespace nations {
 		MEMBER_ASSOCIATION("nonstate_consciousness", "nonstate_consciousness", value_from_rh<float>)
 		MEMBER_ASSOCIATION("prestige", "prestige", value_from_rh<float>)
 		MEMBER_ASSOCIATION("civilized", "civilized", value_from_rh<bool>)
-		MEMBER_ASSOCIATION("is_releasbale_vassal", "is_releasbale_vassal", value_from_rh<bool>)
+		MEMBER_ASSOCIATION("is_releasable_vassal", "is_releasable_vassal", value_from_rh<bool>)
 		MEMBER_VARIABLE_TYPE_ASSOCIATION("dated_block", accept_all, nation_parse_object, name_dated_block)
 		MEMBER_VARIABLE_ASSOCIATION("other", accept_all, make_token_token_pair)
 		END_TYPE

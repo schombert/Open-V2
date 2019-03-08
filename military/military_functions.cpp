@@ -256,7 +256,7 @@ namespace military {
 
 	bool is_cb_construction_valid_against(world_state const& ws, cb_type_tag cb, nations::country_tag nation_by, nations::country_tag nation_target) {
 		auto& c = ws.s.military_m.cb_types[cb];
-		if((c.flags & cb_type::is_not_triggered_only) == 0)
+		if((c.flags & (cb_type::is_not_triggered_only | cb_type::is_not_constructing_cb)) != 0)
 			return false;
 		if(is_valid_index(c.allowed_substate_regions)) {
 			return false;
@@ -768,6 +768,17 @@ namespace military {
 		}
 
 		return total * cb_definition.badboy_factor;
+	}
+
+	float daily_cb_progress(world_state const& ws, nations::country_tag n, cb_type_tag type) {
+		const auto nat_mod = ve::load(n, ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::cb_generation_speed_modifier>(ws.w.nation_s.nations.vector_size()));
+
+		const auto adjusted_mod = nat_mod + 1.0f;
+		const auto cb_speed = ve::load(type, ws.s.military_m.cb_type_to_speed.view());
+		const auto base_speed = cb_speed * ws.s.modifiers_m.global_defines.cb_generation_base_speed * 0.01f;
+		const auto old_value = ve::load(n, ws.w.nation_s.nations.get_row<nation::cb_construction_progress>());
+
+		return adjusted_mod * base_speed;
 	}
 
 	void update_cb_construction(world_state& ws) {

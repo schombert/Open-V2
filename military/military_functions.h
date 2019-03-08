@@ -68,5 +68,6 @@ namespace military {
 
 	war& create_war(world_state& ws, nations::country_tag attacker, nations::country_tag defender, bool call_willing_attacker_allies);
 
+	float daily_cb_progress(world_state const& ws, nations::country_tag n, cb_type_tag type);
 	void update_cb_construction(world_state& ws);
 }

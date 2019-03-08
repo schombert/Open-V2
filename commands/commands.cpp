@@ -397,4 +397,11 @@ namespace commands {
 		}
 		return cursor_in;
 	}
+
+	void execute_command(fabricate_cb const& c, world_state& ws) {
+		ws.w.nation_s.nations.set<nation::cb_construction_target>(c.nation_for, c.nation_target);
+		ws.w.nation_s.nations.set<nation::cb_construction_progress>(c.nation_for, 0.0f);
+		ws.w.nation_s.nations.set<nation::cb_construction_discovered>(c.nation_for, false);
+		ws.w.nation_s.nations.set<nation::cb_construction_type>(c.nation_for, c.type);
+	}
 }

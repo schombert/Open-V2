@@ -149,6 +149,7 @@ namespace current_state {
 		trade_w.init(ws);
 		budget_w.init(ws);
 		message_w.init_message_window(ws);
+		fabricate_cb_w.init_fabricate_window(ws);
 	}
 
 	void state::toggle_pause() {

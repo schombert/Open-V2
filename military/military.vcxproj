@@ -143,11 +143,14 @@
     <ClInclude Include="military.h" />
     <ClInclude Include="military_functions.h" />
     <ClInclude Include="military_functions.hpp" />
+    <ClInclude Include="military_gui.h" />
+    <ClInclude Include="military_gui.hpp" />
     <ClInclude Include="military_io.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="military.cpp" />
     <ClCompile Include="military_functions.cpp" />
+    <ClCompile Include="military_gui.cpp" />
     <ClCompile Include="military_io.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
