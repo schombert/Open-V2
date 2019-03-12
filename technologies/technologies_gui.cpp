@@ -178,7 +178,7 @@ namespace technologies {
 		return cursor_in;
 	}
 	
-	ui::xy_pair eplain_technology(tech_tag t, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in,
+	ui::xy_pair explain_technology(tech_tag t, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in,
 		ui::line_manager& lm, ui::text_format const& fmt) {
 
 		auto& tech = ws.s.technology_m.technologies_container[t];
@@ -531,7 +531,7 @@ namespace technologies {
 	}
 	void invention_item_name::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
 		ui::unlimited_line_manager lm;
-		eplain_technology(invention, ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format);
+		explain_technology(invention, ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format);
 	}
 	void tech_picture::on_create(ui::dynamic_icon<tech_picture>& self, world_state & ws) {
 		auto gi = ws.w.gui_m.graphics_instances.safe_at(ui::graphics_instance_tag(self.associated_object->type_dependant_handle.load(std::memory_order_acquire)));
@@ -560,7 +560,7 @@ namespace technologies {
 	}
 	void selected_tech_description::update(ui::tagged_gui_object box, ui::line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(ws.w.technologies_w.selected_technology)) {
-			eplain_technology(ws.w.technologies_w.selected_technology, ws, box, ui::xy_pair{ 0,0 }, lm, fmt);
+			explain_technology(ws.w.technologies_w.selected_technology, ws, box, ui::xy_pair{ 0,0 }, lm, fmt);
 		}
 	}
 	void selected_tech_cost::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
@@ -596,7 +596,7 @@ namespace technologies {
 	void individual_tech_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
 		if(is_valid_index(tech)) {
 			ui::unlimited_line_manager lm;
-			eplain_technology(tech, ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format);
+			explain_technology(tech, ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format);
 		}
 	}
 	technology_window::technology_window() : win(std::make_unique<tech_window_t>()) {}

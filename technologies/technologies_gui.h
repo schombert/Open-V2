@@ -27,7 +27,7 @@ namespace technologies {
 		void init_technology_winodw(world_state& ws);
 	};
 
-	ui::xy_pair eplain_technology(tech_tag t, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in,
+	ui::xy_pair explain_technology(tech_tag t, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in,
 		ui::line_manager& lm, ui::text_format const& fmt);
 
 }

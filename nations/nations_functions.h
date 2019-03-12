@@ -63,7 +63,7 @@ namespace nations {
 	template<typename C, typename T>
 	auto is_culture_accepted(world_state const& ws, C c, T n) -> decltype(ve::widen_to<C, T>(true));
 	template<typename T>
-	auto national_culture_group(world_state const& ws, T n)-> decltype(ve::widen_to<T>(cultures::culture_group_tag()));
+	auto national_culture_group(world_state const& ws, T n) -> decltype(ve::widen_to<T>(cultures::culture_group_tag()));
 	template<typename T>
 	auto nation_exists(world_state const& ws, T n) -> decltype(ve::widen_to<T>(true));
 	template<typename T>

@@ -1,7 +1,7 @@
 #include "common\\common.h"
 #include "topbar.hpp"
 #include "nations\\nations_functions.hpp"
-#include "technologies\\technologies_functions.h"
+#include "technologies\\technologies_functions.hpp"
 #include "modifiers\\modifiers_gui.h"
 #include "modifiers\\modifier_functions.h"
 #include "governments\\governments_functions.h"

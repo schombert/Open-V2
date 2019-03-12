@@ -96,6 +96,8 @@ namespace commands {
 
 	bool is_command_valid(province_building const& c, world_state const& ws);
 	ui::xy_pair explain_command_conditions(province_building const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
+	bool is_command_valid(fabricate_cb const& c, world_state const& ws);
+	ui::xy_pair explain_command_conditions(fabricate_cb const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
 	
 	using full_command_set = command_set<set_budget, province_building, fabricate_cb>;
 }

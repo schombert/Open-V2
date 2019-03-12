@@ -142,6 +142,7 @@
   <ItemGroup>
     <ClInclude Include="technologies.h" />
     <ClInclude Include="technologies_functions.h" />
+    <ClInclude Include="technologies_functions.hpp" />
     <ClInclude Include="technologies_gui.h" />
     <ClInclude Include="technologies_gui.hpp" />
     <ClInclude Include="technologies_io.h" />

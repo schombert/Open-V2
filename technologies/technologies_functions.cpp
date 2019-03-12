@@ -6,6 +6,7 @@
 #include "military\\military_functions.h"
 #include "concurrency_tools\\concurrency_tools.h"
 #include "concurrency_tools\\ve.h"
+#include "world_state\\messages.h"
 
 namespace technologies {
 	void init_technology_state(world_state& ws) {
@@ -139,27 +140,7 @@ namespace technologies {
 		military::update_all_unit_attributes(ws, this_nation);
 	}
 
-	float daily_research_points(world_state const& ws, nations::country_tag n) {
-		auto id = n;
-		if(!ws.w.nation_s.nations.is_valid_index(id))
-			return 0.0f;
-
-		float total_pop = ws.w.nation_s.nation_demographics.get(id, population::total_population_tag);
-		float const* pop_by_type = &(ws.w.nation_s.nation_demographics.get_row(id)[population::to_demo_tag(ws, population::pop_type_tag(0))]);
-
-		float points_by_type = 0.0f;
-		if(total_pop != 0) {
-			for(uint32_t i = 0; i < ws.s.population_m.count_poptypes; ++i) {
-				population::pop_type_tag this_tag(static_cast<population::pop_type_tag::value_base_t>(i));
-				auto& pt = ws.s.population_m.pop_types[this_tag];
-				if(pt.research_points != 0 && pt.research_optimum != 0.0f) {
-					points_by_type += float(pt.research_points) * std::min(1.0f, (float(pop_by_type[i]) / float(total_pop)) / ws.s.population_m.pop_types[this_tag].research_optimum);
-				}
-			}
-		}
-
-		return (ws.w.nation_s.modifier_values.get<modifiers::national_offsets::research_points>(n) + points_by_type) * (1.0f + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::research_points_modifier>(n));
-	}
+	
 
 	float effective_tech_cost(tech_tag t, world_state const& ws, nations::country_tag this_nation) {
 		auto& tech = ws.s.technology_m.technologies_container[t];
@@ -208,5 +189,39 @@ namespace technologies {
 			return false;
 
 		return true;
+	}
+
+	void daily_update(world_state& ws) {
+		ve::execute_serial<nations::country_tag>(ws.w.nation_s.nations.vector_size(), [
+			&ws,
+			progress_row = ws.w.nation_s.nations.get_row<nation::research_points>()
+		](auto off) {
+				const auto old_value = ve::load(off, progress_row);
+				ve::store(off, progress_row, daily_research_points(ws, off, old_value));
+			});
+
+		concurrency::concurrent_queue<std::pair<nations::country_tag, technologies::tech_tag >> pending_new_techs;
+
+		ws.w.nation_s.nations.parallel_for_each([&ws, &pending_new_techs](nations::country_tag n) {
+			if(auto t = ws.w.nation_s.nations.get<nation::current_research>(n); t) {
+				auto tech_cost = effective_tech_cost(t, ws, n);
+				auto rp = ws.w.nation_s.nations.get<nation::research_points>(n);
+
+				if(rp >= tech_cost) {
+					// todo: decide new ai research
+					ws.w.nation_s.nations.set<nation::current_research>(n, technologies::tech_tag());
+					ws.w.nation_s.nations.set<nation::research_points>(n, rp - tech_cost);
+					pending_new_techs.push(std::pair<nations::country_tag, technologies::tech_tag >(n, t));
+
+					if(n == ws.w.local_player_nation)
+						messages::player_technology(ws, t);
+				}
+			}
+		});
+
+		std::pair<nations::country_tag, technologies::tech_tag> p;
+		while(pending_new_techs.try_pop(p)) {
+			technologies::apply_single_technology(ws, p.first, p.second);
+		}
 	}
 }

@@ -1,6 +1,7 @@
 #include "common\\common.h"
 #include "world_state.h"
 #include "messages.hpp"
+#include "technologies\\technologies_gui.h"
 
 namespace messages {
 	constexpr char const* message_identifiers[] = {
@@ -478,5 +479,39 @@ namespace messages {
 
 	void hidden_button::update(ui::simple_button<hidden_button>& self, world_state & ws) {
 		ui::hide(*self.associated_object);
+	}
+
+	void player_technology(world_state& ws, technologies::tech_tag type) {
+		switch(ws.w.message_w.settings[message_type::TECH_ONCE].self) {
+			case message_setting::popup_and_pause:
+				ws.w.paused.store(true, std::memory_order_release);
+				// fallthrough
+			case message_setting::popup:
+				submit_message(ws, ws.w.local_player_nation , [type](world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt) {
+					
+					auto cursor = add_multiline_text(
+						ui::xy_pair{ 0,0 },
+						ws.s.fixed_ui_text[scenario::fixed_ui::tech_researched_header],
+						fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+					lm.finish_current_line();
+					cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, fmt);
+
+					cursor = add_multiline_text(
+						ui::xy_pair{ 0,0 },
+						ws.s.technology_m.technologies_container[type].name,
+						fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+					lm.finish_current_line();
+					cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, fmt);
+
+					technologies::explain_technology(type, ws, box, cursor, lm, fmt);
+				});
+				break;
+			case message_setting::log:
+				// todo: log message
+				break;
+			case message_setting::discard:
+				//do nothing
+				break;
+		}
 	}
 }

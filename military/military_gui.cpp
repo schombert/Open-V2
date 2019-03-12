@@ -54,10 +54,10 @@ namespace military {
 		self.set_enabled(is_valid_index(ws.w.fabricate_cb_w.selected_type));
 	}
 	void ok_button::button_function(ui::simple_button<ok_button>& self, world_state & ws) {
-		ws.w.fabricate_cb_w.hide_fabricate_window(ws.w.gui_m);
-
 		if(ws.w.fabricate_cb_w.selected_type)
 			ws.w.pending_commands.add<commands::fabricate_cb>(ws.w.local_player_nation, ws.w.fabricate_cb_w.target, ws.w.fabricate_cb_w.selected_type);
+
+		ws.w.fabricate_cb_w.hide_fabricate_window(ws.w.gui_m);
 	}
 	void cancel_button::button_function(ui::simple_button<cancel_button>& self, world_state & ws) {
 		ws.w.fabricate_cb_w.hide_fabricate_window(ws.w.gui_m);

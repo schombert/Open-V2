@@ -834,13 +834,13 @@ namespace nations {
 		ui::xy_pair cursor{ 0,0 };
 		ui::line_manager lm;
 		if(is_valid_index(this_cb.type)) {
-			cursor = ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.military_m.cb_types[this_cb.type].name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			cursor = ui::add_linear_text(cursor, ws.s.military_m.cb_types[this_cb.type].name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
 			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 		}
 		if(ws.w.nation_s.nations.is_valid_index(this_cb.target)) {
-			cursor = ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::against], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::against], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
 			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
-			cursor = ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations.get<nation::name>(this_cb.target), ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			cursor = ui::add_linear_text(cursor, ws.w.nation_s.nations.get<nation::name>(this_cb.target), ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
 			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 		}
 		if(is_valid_index(this_cb.expiration)) {
@@ -848,7 +848,7 @@ namespace nations {
 			u16_format_date(local_buffer, this_cb.expiration);
 			text_data::replacement repl{ text_data::value_type::date, vector_backed_string<char16_t>(local_buffer), [](ui::tagged_gui_object) {} };
 
-			cursor = ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::expires_on],
+			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::expires_on],
 				ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm, &repl, 1);
 		}
 	}
@@ -915,7 +915,10 @@ namespace nations {
 				self.set_enabled(true);
 		}
 	}
-	void justify_war_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
+	void justify_war_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::unlimited_line_manager lm;
+		commands::explain_command_conditions(commands::fabricate_cb{ ws.w.local_player_nation, ws.w.fabricate_cb_w.target, ws.w.fabricate_cb_w.selected_type }, ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format);
+	}
 	void ban_embassy_button::button_function(ui::button<ban_embassy_button>&, world_state &) {}
 	void ban_embassy_button::update(ui::button<ban_embassy_button>& self, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {

@@ -37,6 +37,8 @@ void world_state_non_ai_update(world_state & ws) {
 	economy::economy_update_tick(ws);
 	military::update_cb_construction(ws);
 
+	technologies::daily_update(ws);
+
 	ws.w.nation_s.nations.parallel_for_each([&ws](nations::country_tag n) {
 		nations::update_movement_support(ws, n);
 

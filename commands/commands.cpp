@@ -404,4 +404,29 @@ namespace commands {
 		ws.w.nation_s.nations.set<nation::cb_construction_discovered>(c.nation_for, false);
 		ws.w.nation_s.nations.set<nation::cb_construction_type>(c.nation_for, c.type);
 	}
+
+	bool is_command_valid(fabricate_cb const& c, world_state const& ws) {
+		if(is_valid_index(c.nation_target))
+			return !is_valid_index(ws.w.nation_s.nations.get<nation::cb_construction_target>(c.nation_for)) && c.nation_for != c.nation_target;
+		else
+			return true;
+	}
+
+	ui::xy_pair explain_command_conditions(fabricate_cb const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+		bool const not_fabricating = !is_valid_index(ws.w.nation_s.nations.get<nation::cb_construction_target>(c.nation_for));
+
+		if(not_fabricating) {
+			ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
+		} else {
+			ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u274C "), container, cursor_in, local_fmt, lm);
+		}
+
+		cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::fabrication_condition], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+		lm.finish_current_line();
+		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+
+		return cursor_in;
+	}
 }

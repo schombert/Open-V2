@@ -655,8 +655,10 @@ namespace scenario {
 		constexpr uint32_t goto_label = 632ui32;
 		constexpr uint32_t fabricate_title = 633ui32;
 		constexpr uint32_t fabricate_description = 634ui32;
+		constexpr uint32_t fabrication_condition = 635ui32;
+		constexpr uint32_t tech_researched_header = 636ui32;
 
-		constexpr uint32_t count = 635ui32;
+		constexpr uint32_t count = 637ui32;
 	}
 
 	class scenario_manager {

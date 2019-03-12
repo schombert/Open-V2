@@ -737,5 +737,7 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::goto_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "GOTO_GOTO");
 		s.fixed_ui_text[fixed_ui::fabricate_title] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "MAKE_CBTITLE");
 		s.fixed_ui_text[fixed_ui::fabricate_description] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "CB_CREATION_DETAIL");
+		s.fixed_ui_text[fixed_ui::fabrication_condition] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "fabrication_condition");
+		s.fixed_ui_text[fixed_ui::tech_researched_header] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "TECH_ONCE_HEADER");
 	}
 }
