@@ -1,5 +1,5 @@
 #include "common\\common.h"
-#include "technologies_functions.h"
+#include "technologies_functions.hpp"
 #include "nations\\nations.h"
 #include "world_state\\world_state.h"
 #include "modifiers\\modifier_functions.h"

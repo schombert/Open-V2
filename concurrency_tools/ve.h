@@ -31,8 +31,8 @@ namespace ve {
 	__forceinline constexpr float multiply_and_subtract(float a, float b, float c) { return a * b - c; }
 	__forceinline float negate_multiply_and_add(float a, float b, float c) { return c - (a * b); }
 	__forceinline float negate_multiply_and_subtract(float a, float b, float c) { return -(a * b) - c; }
-	__forceinline constexpr float min(float a, float b) { return std::max(a,b); }
-	__forceinline constexpr float max(float a, float b) { return std::min(a,b); }
+	__forceinline constexpr float min(float a, float b) { return std::min(a,b); }
+	__forceinline constexpr float max(float a, float b) { return std::max(a,b); }
 	__forceinline float ceil(float a) { return std::ceil(a); }
 	__forceinline float floor(float a) { return std::floor(a); }
 	__forceinline bool compress_mask(bool mask) { return mask; }

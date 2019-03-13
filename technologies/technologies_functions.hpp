@@ -7,9 +7,6 @@
 namespace technologies {
 	template<typename T, typename U>
 	auto daily_research_points(world_state const& ws, T this_nation, U base) -> decltype(ve::widen_to<T>(0.0f)) {
-		if(!ws.w.nation_s.nations.is_valid_index(this_nation))
-			return 0.0f;
-
 		auto const total_pop = ve::load(this_nation, ws.w.nation_s.nations.get_row<nation::total_core_population>());
 		auto const inv_total_pop = ve::select(total_pop > 0.0f, 1.0f / total_pop, 0.0f);
 
@@ -22,13 +19,14 @@ namespace technologies {
 			auto const r_optimum = pt.research_optimum;
 
 			if(r_points != 0 && r_optimum != 0.0f) {
-				points_by_type += ve::apply(this_nation, [&ws, r_points, inv_opt = 1.0f / r_optimum, this_tag, inv_total_pop](nations::country_tag n) {
+				const auto pop_by_type = ve::apply(this_nation, [&ws, this_tag](nations::country_tag n) {
 					if(ws.w.nation_s.nations.is_valid_index(n)) {
-						return r_points * std::min(1.0f, ws.w.nation_s.nation_demographics.get(n, population::to_demo_tag(ws, this_tag)) * inv_total_pop * inv_opt);
+						return  ws.w.nation_s.nation_demographics.get(n, population::to_demo_tag(ws, this_tag));
 					} else {
 						return 0.0f;
 					}
 				});
+				points_by_type = ve::multiply_and_add(r_points, ve::min(1.0f, pop_by_type * inv_total_pop * (1.0f / r_optimum)), points_by_type);
 			}
 		}
 
