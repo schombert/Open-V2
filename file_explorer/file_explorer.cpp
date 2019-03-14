@@ -386,9 +386,9 @@ int main(int , char **) {
 		modifiers::add_static_modifier_to_nation(ws, ws.w.local_player_nation, nmod);
 	}
 	{
-		auto mod_thandle = text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "army_tech_school");
-		auto nmod = ws.s.modifiers_m.named_national_modifiers_index[mod_thandle];
-		ws.w.nation_s.nations.set<nation::tech_school>(ws.w.local_player_nation, nmod);
+		//auto mod_thandle = text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "army_tech_school");
+		//auto nmod = ws.s.modifiers_m.named_national_modifiers_index[mod_thandle];
+		//ws.w.nation_s.nations.set<nation::tech_school>(ws.w.local_player_nation, nmod);
 
 		
 	}
@@ -396,7 +396,7 @@ int main(int , char **) {
 		auto thandle = text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "strategic_mobility");
 		auto tech = ws.s.technology_m.named_technology_index[thandle];
 		ws.w.nation_s.nations.set<nation::current_research>(ws.w.local_player_nation, tech);
-		ws.w.nation_s.nations.set<nation::research_points>(ws.w.local_player_nation, 1500.0f);
+		ws.w.nation_s.nations.set<nation::research_points>(ws.w.local_player_nation, 7180.0f);
 	}
 	{
 		ws.w.current_crisis.type = current_state::crisis_type::liberation;

@@ -167,6 +167,8 @@ namespace technologies {
 	class research_progress_bar {
 	public:
 		void update(ui::progress_bar<research_progress_bar>& bar, world_state& ws);
+		bool has_tooltip(world_state& ws);
+		void create_tooltip(ui::progress_bar<research_progress_bar>& bar, world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	class research_name_text_box {
@@ -274,6 +276,8 @@ namespace technologies {
 	public:
 		void update(ui::simple_button<start_research_button>&, world_state&);
 		void button_function(ui::simple_button<start_research_button>&, world_state&);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	class selected_tech_invention_item_base : public ui::visible_region {

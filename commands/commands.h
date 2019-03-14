@@ -89,15 +89,25 @@ namespace commands {
 		fabricate_cb(nations::country_tag f, nations::country_tag t, military::cb_type_tag y) : nation_for(f), nation_target(t), type(y) {}
 	};
 
+	struct change_research {
+		nations::country_tag nation_for;
+		technologies::tech_tag tech;
+
+		change_research(nations::country_tag f, technologies::tech_tag t) : nation_for(f), tech(t) {}
+	};
 
 	void execute_command(set_budget const& c, world_state& ws);
 	void execute_command(province_building const& c, world_state& ws);
 	void execute_command(fabricate_cb const& c, world_state& ws);
+	void execute_command(change_research const& c, world_state& ws);
 
 	bool is_command_valid(province_building const& c, world_state const& ws);
-	ui::xy_pair explain_command_conditions(province_building const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
 	bool is_command_valid(fabricate_cb const& c, world_state const& ws);
+	bool is_command_valid(change_research const& c, world_state const& ws);
+
+	ui::xy_pair explain_command_conditions(province_building const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
 	ui::xy_pair explain_command_conditions(fabricate_cb const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
-	
-	using full_command_set = command_set<set_budget, province_building, fabricate_cb>;
+	ui::xy_pair explain_command_conditions(change_research const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
+
+	using full_command_set = command_set<set_budget, province_building, fabricate_cb, change_research>;
 }

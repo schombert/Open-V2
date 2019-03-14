@@ -3,6 +3,9 @@
 #include "world_state\\world_state.h"
 #include "nations\\nations_functions.hpp"
 #include "provinces\\province_functions.h"
+#include "nations\nations_io.h"
+#include "technologies\\technologies_functions.h"
+#include "triggers\\trigger_gui.h"
 
 namespace commands {
 	set_budget::set_budget(nations::country_tag n, set_budget_type t, int8_t v) : nation_for(n), type(t) {
@@ -429,4 +432,74 @@ namespace commands {
 
 		return cursor_in;
 	}
+
+	void execute_command(change_research const& c, world_state& ws) {
+		if(is_command_valid(c, ws)) {
+			ws.w.nation_s.nations.set<nation::current_research>(c.nation_for, c.tech);
+		}
+	}
+
+	bool is_command_valid(change_research const& c, world_state const& ws) {
+		return !is_valid_index(c.tech) || (ws.w.nation_s.active_technologies.get(c.nation_for, c.tech) == false &&
+		                                   technologies::can_research(c.tech, ws, c.nation_for));
+	}
+
+	ui::xy_pair explain_command_conditions(change_research const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+		if(!is_valid_index(c.tech))
+			return cursor_in;
+
+		auto& tech = ws.s.technology_m.technologies_container[c.tech];
+
+		if(tech.year == 0 || tag_to_date(ws.w.current_date).year() >= tech.year) {
+			ui::text_format const local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
+		} else {
+			ui::text_format const local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u274C "), container, cursor_in, local_fmt, lm);
+		}
+
+		cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::tech_condition_year], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+		lm.finish_current_line();
+		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+
+
+		if(ws.w.nation_s.active_technologies.get(c.nation_for, c.tech) == false) {
+			ui::text_format const local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
+		} else {
+			ui::text_format const local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u274C "), container, cursor_in, local_fmt, lm);
+		}
+
+		cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::tech_condition_not_done], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+		lm.finish_current_line();
+		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+
+		if(!is_valid_index(tech.preceeding) || ws.w.nation_s.active_technologies.get(c.nation_for, tech.preceeding) == true) {
+			ui::text_format const local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
+		} else {
+			ui::text_format const local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u274C "), container, cursor_in, local_fmt, lm);
+		}
+		cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::tech_condition_previous], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+		lm.finish_current_line();
+		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+
+		if(is_valid_index(tech.allow))
+			cursor_in = triggers::make_trigger_description(
+				ws,
+				container,
+				cursor_in,
+				lm,
+				fmt,
+				ws.s.trigger_m.trigger_data.data() + to_index(tech.allow),
+				c.nation_for,
+				c.nation_for,
+				triggers::const_parameter()
+			);
+
+		return cursor_in;
+	}
+
 }

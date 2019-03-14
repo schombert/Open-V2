@@ -495,9 +495,10 @@ namespace messages {
 						fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 					lm.finish_current_line();
 					cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, fmt);
+					cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, fmt);
 
 					cursor = add_multiline_text(
-						ui::xy_pair{ 0,0 },
+						cursor,
 						ws.s.technology_m.technologies_container[type].name,
 						fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
 					lm.finish_current_line();

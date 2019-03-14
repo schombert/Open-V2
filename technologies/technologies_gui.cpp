@@ -3,6 +3,7 @@
 #include "world_state\\world_state.h"
 #include "technologies\\technologies_functions.h"
 #include "military\\military_functions.h"
+#include "commands\\commands.h"
 
 namespace technologies {
 	void close_button::button_function(ui::simple_button<close_button>&, world_state& ws) {
@@ -47,6 +48,33 @@ namespace technologies {
 		}
 		bar.set_fraction(0.0f);
 	}
+	bool research_progress_bar::has_tooltip(world_state & ws) {
+		auto tech = ws.w.nation_s.nations.get<nation::current_research>(ws.w.local_player_nation);
+		return is_valid_index(tech);
+	}
+
+	void research_progress_bar::create_tooltip(ui::progress_bar<research_progress_bar>& bar, world_state& ws, ui::tagged_gui_object tw) {
+		if(auto player = ws.w.local_player_nation; player) {
+			if(auto tech = ws.w.nation_s.nations.get<nation::current_research>(player); is_valid_index(tech)) {
+				if(auto total_points = effective_tech_cost(tech, ws, player); total_points != 0.0f) {
+					char16_t local_buffer_a[16];
+					put_pos_value_in_buffer(local_buffer_a, display_type::exact_integer, ws.w.nation_s.nations.get<nation::research_points>(player));
+					
+					auto cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer_a), tw, ui::xy_pair{ 0,0 }, ui::tooltip_text_format);
+					cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+
+					cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"/"), tw, cursor, ui::tooltip_text_format);
+					cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+
+					char16_t local_buffer_b[16];
+					put_pos_value_in_buffer(local_buffer_b, display_type::exact_integer, total_points);
+
+					cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer_b), tw, cursor, ui::tooltip_text_format);
+				}
+			}
+		}
+	}
+
 	void research_name_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			auto cr = ws.w.nation_s.nations.get<nation::current_research>(player);
@@ -579,8 +607,19 @@ namespace technologies {
 			lm.finish_current_line();
 		}
 	}
-	void start_research_button::update(ui::simple_button<start_research_button>&, world_state &) {}
-	void start_research_button::button_function(ui::simple_button<start_research_button>&, world_state &) {}
+	void start_research_button::update(ui::simple_button<start_research_button>& self, world_state& ws) {
+		self.set_enabled(is_valid_index(ws.w.technologies_w.selected_technology) && technologies::can_research(ws.w.technologies_w.selected_technology, ws, ws.w.local_player_nation));
+	}
+	void start_research_button::button_function(ui::simple_button<start_research_button>&, world_state & ws) {
+		if(is_valid_index(ws.w.technologies_w.selected_technology)) {
+			ws.w.pending_commands.add<commands::change_research>(ws.w.local_player_nation, ws.w.technologies_w.selected_technology);
+		}
+	}
+
+	void start_research_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::unlimited_line_manager lm;
+		commands::explain_command_conditions(commands::change_research{ ws.w.local_player_nation, ws.w.technologies_w.selected_technology }, ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format);
+	}
 
 	ui::window_tag selected_tech_invention_lb::element_tag(ui::gui_static & m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["invention_icon_window"]);
