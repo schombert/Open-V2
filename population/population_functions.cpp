@@ -99,19 +99,21 @@ namespace population {
 		auto const new_id = allocate_new_pop(ws);
 		add_item(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(location), new_id);
 
+		ws.w.population_s.pop_demographics.get(new_id, total_population_tag) = initial_size;
+		ws.w.population_s.pops.set<pop::size>(new_id, initial_size);
+
+		ws.w.population_s.pops.set<pop::location>(new_id, location);
+		ws.w.population_s.pops.set<pop::culture>(new_id, c);
+		ws.w.population_s.pops.set<pop::religion>(new_id, r);
+
+		change_pop_type(ws, new_id, t);
+
 		tg.run([&ws, new_id, initial_size, militancy, consciousness, literacy, location, t, c, r]() {
 			auto const prov_owner = ws.w.province_s.province_state_container.get<province_state::owner>(location);
-
-			ws.w.population_s.pops.set<pop::location>(new_id, location);
-			ws.w.population_s.pops.set<pop::culture>(new_id, c);
-			ws.w.population_s.pops.set<pop::religion>(new_id, r);
 
 			ws.w.population_s.pops.set<pop::militancy>(new_id, militancy);
 			ws.w.population_s.pops.set<pop::consciousness>(new_id, consciousness);
 			ws.w.population_s.pops.set<pop::literacy>(new_id, literacy);
-
-			change_pop_type(ws, new_id, t);
-			init_pop_demographics(ws, new_id, initial_size);
 
 			ws.w.population_s.pops.set<pop::is_accepted>(new_id, is_pop_accepted(ws, new_id, prov_owner));
 			default_initialize_issues_and_ideology(ws, new_id);

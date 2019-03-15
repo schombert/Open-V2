@@ -125,6 +125,7 @@ namespace current_state {
 			economy::money_qnty_type collected_middle_tax = 0;
 			economy::money_qnty_type collected_rich_tax = 0;
 			tagged_vector<array_tag<economy::money_qnty_type, nations::country_tag, true>, economy::goods_tag> imports_by_country;
+			tagged_vector<tagged_vector<bitfield_type, nations::country_tag>, military::cb_type_tag> triggered_cb_state;
 		} local_player_data;
 		nations::country_tag local_player_nation;
 

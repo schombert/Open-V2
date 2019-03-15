@@ -36,6 +36,7 @@ void world_state_non_ai_update(world_state & ws) {
 
 	economy::economy_update_tick(ws);
 	military::update_cb_construction(ws);
+	military::update_player_cb_state(ws);
 
 	technologies::daily_update(ws);
 
@@ -133,6 +134,7 @@ void ready_world_state(world_state& ws) {
 	technologies::init_technology_state(ws);
 
 	ws.w.local_player_data.imports_by_country.resize(ws.s.economy_m.goods_count);
+	ws.w.local_player_data.triggered_cb_state.resize(ws.s.military_m.cb_types.size());
 }
 
 namespace current_state {

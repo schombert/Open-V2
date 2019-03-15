@@ -331,4 +331,5 @@ void restore_world_state(world_state& ws) {
 	});
 
 	nations::update_nation_ranks(ws);
+	military::init_player_cb_state(ws);
 }

@@ -353,6 +353,8 @@ struct tagged_object {
 
 struct bitfield_type {
 	uint8_t v = 0;
+
+	bool operator[](int32_t i) const { return ((v >> i) & 1) != 0; }
 };
 
 static_assert(sizeof(bitfield_type) == 1);
@@ -458,7 +460,7 @@ public:
 	}
 	auto data() const { return storage.data(); }
 	auto data() { return storage.data(); }
-	auto begin() const { return storage.begin(); }
+	auto begin() const { return storage.begin() + int32_t(padded); }
 	auto end() const { return storage.end(); }
 	auto begin() { return storage.begin() + int32_t(padded); }
 	auto end() { return storage.end(); }
@@ -483,6 +485,58 @@ public:
 			0
 #endif
 		);
+	};
+};
+
+template<typename tag_type, typename allocator, bool padded>
+class tagged_vector<bitfield_type, tag_type, allocator, padded> {
+public:
+	using value_type = bitfield_type;
+private:
+	std::vector<value_type, allocator> storage;
+public:
+	bool operator[](tag_type t) const {
+		return bit_vector_test(storage.data() + int32_t(padded), to_index(t));
+	}
+	bool safe_get(tag_type t) {
+		if(to_index(t) / (sizeof(bitfield_type) * 8) + int32_t(padded) >= storage.size())
+			storage.resize((to_index(t)) / 8 + int32_t(padded) + 1);
+		return bit_vector_test(storage.data() + int32_t(padded), to_index(t));
+	}
+	void set(tag_type t, bool value) {
+		bit_vector_set(storage.data() + int32_t(padded), to_index(t), value);
+	}
+	void safe_set(tag_type t, bool value) {
+		if(to_index(t) / (sizeof(bitfield_type) * 8) + int32_t(padded) >= storage.size())
+			storage.resize((to_index(t)) / 8 + int32_t(padded) + 1);
+		bit_vector_set(storage.data() + int32_t(padded), to_index(t), value);
+	}
+	auto data() const { return storage.data(); }
+	auto data() { return storage.data(); }
+	auto begin() const { return storage.begin() + int32_t(padded); }
+	auto end() const { return storage.end(); }
+	auto begin() { return storage.begin() + int32_t(padded); }
+	auto end() { return storage.end(); }
+	size_t size() const { return storage.size() - int32_t(padded) * sizeof(bitfield_type) * 8; }
+	void resize(size_t size) { storage.resize((size + 7) / 8 + size_t(padded)); }
+
+	tagged_array_view<value_type, tag_type> view() {
+		return tagged_array_view<value_type, tag_type>(storage.data() + int32_t(padded),
+#ifdef _DEBUG
+			int32_t(storage.size()) - int32_t(padded)
+#else
+			0
+#endif
+			);
+	};
+	tagged_array_view<value_type const, tag_type> view() const {
+		return tagged_array_view<value_type const, tag_type>(storage.data() + int32_t(padded),
+#ifdef _DEBUG
+			int32_t(storage.size()) - int32_t(padded)
+#else
+			0
+#endif
+			);
 	};
 };
 

@@ -269,6 +269,45 @@ namespace military {
 		return inner_test_cb_conditions(ws, nation_by, nation_target, c);
 	}
 
+	void init_player_cb_state(world_state& ws) {
+		for(auto const& c : ws.s.military_m.cb_types) {
+			if((c.flags & cb_type::is_not_triggered_only) != 0) {
+				ws.w.local_player_data.triggered_cb_state[c.id].resize(ws.w.nation_s.nations.size());
+
+				ws.w.nation_s.nations.for_each([&ws, cb_id = c.id, can_use = c.can_use](nations::country_tag n) {
+					if(nations::nation_exists(ws, n) && n != ws.w.local_player_nation) {
+						ws.w.local_player_data.triggered_cb_state[cb_id].set(n, !is_valid_index(can_use) || triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(can_use), ws, n, ws.w.local_player_nation, triggers::const_parameter()));
+					}
+				});
+			}
+		}
+	}
+	void update_player_cb_state(world_state& ws) {
+		if(!is_valid_index(ws.w.local_player_nation))
+			return;
+
+		concurrency::parallel_for_each(ws.s.military_m.cb_types.begin(), ws.s.military_m.cb_types.end(), [&ws](military::cb_type const& c){
+			if((c.flags & cb_type::is_not_triggered_only) != 0) {
+				ws.w.local_player_data.triggered_cb_state[c.id].resize(ws.w.nation_s.nations.size());
+
+				ws.w.nation_s.nations.for_each([&ws, cb_id = c.id, can_use = c.can_use](nations::country_tag n) {
+					const auto old_state = ws.w.local_player_data.triggered_cb_state[cb_id][n];
+					if(nations::nation_exists(ws, n) && n != ws.w.local_player_nation) {
+						auto const new_state = !is_valid_index(can_use) || triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(can_use), ws, n, ws.w.local_player_nation, triggers::const_parameter());
+						ws.w.local_player_data.triggered_cb_state[cb_id].set(n, new_state);
+
+						if(new_state != old_state) {
+							if(new_state) 
+								messages::player_acquired_cb(ws, n, cb_id);
+							else 
+								messages::player_lost_cb(ws, n, cb_id);
+						}
+					}
+				});
+			}
+		});
+	}
+
 	bool has_units_in_province(world_state const& ws, nations::country_tag this_nation, provinces::province_tag ps) {
 		auto orders = ws.w.province_s.province_state_container.get<province_state::orders>(ps);
 		if(is_valid_index(orders)) {

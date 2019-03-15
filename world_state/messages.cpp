@@ -157,6 +157,7 @@ namespace messages {
 		"CRISIS_BECAME_WAR",
 		"CRISIS_STARTED",
 		"CRISIS_NOBODY_BACKED",
+		"WELOSECB",
 	};
 
 	message_window::message_window() : win(std::make_unique<message_window_t>()) {}
@@ -450,6 +451,35 @@ namespace messages {
 
 	void player_acquired_cb(world_state& ws, nations::country_tag target, military::cb_type_tag type) {
 		switch(ws.w.message_w.settings[message_type::WEGAINCB].self) {
+			case message_setting::popup_and_pause:
+				ws.w.paused.store(true, std::memory_order_release);
+				// fallthrough
+			case message_setting::popup:
+				submit_message(ws, target, [type, target](world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt) {
+					text_data::replacement repl[2] = {
+						text_data::replacement{text_data::value_type::casus,
+							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+							[](ui::tagged_gui_object) {}},
+						text_data::replacement{text_data::value_type::enemy,
+							 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+							[&ws, target](ui::tagged_gui_object b) {
+							ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+						}}
+					};
+					display_message_body(ws, box, lm, fmt, message_type::WEGAINCB, repl, 2, 5);
+				});
+				break;
+			case message_setting::log:
+				// todo: log message
+				break;
+			case message_setting::discard:
+				//do nothing
+				break;
+		}
+	}
+
+	void player_lost_cb(world_state& ws, nations::country_tag target, military::cb_type_tag type) {
+		switch(ws.w.message_w.settings[message_type::WELOSECB].self) {
 			case message_setting::popup_and_pause:
 				ws.w.paused.store(true, std::memory_order_release);
 				// fallthrough

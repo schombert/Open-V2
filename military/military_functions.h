@@ -70,4 +70,7 @@ namespace military {
 
 	float daily_cb_progress(world_state const& ws, nations::country_tag n, cb_type_tag type);
 	void update_cb_construction(world_state& ws);
+
+	void init_player_cb_state(world_state& ws);
+	void update_player_cb_state(world_state& ws);
 }
