@@ -17,7 +17,7 @@ public:
 
 	static void rebuild_indexes(events::event_manager& obj) {
 		for(auto const& i_desc : obj.decision_container)
-			obj.descisions_by_title_index.emplace(i_desc.title, i_desc.id);
+			obj.decisions_by_title_index.emplace(i_desc.title, i_desc.id);
 	}
 
 	static void serialize_object(std::byte* &output, events::event_manager const& obj) {
@@ -107,6 +107,28 @@ public:
 			serialize_size(obj.on_my_factories_nationalized) +
 			serialize_size(	obj.on_crisis_declare_interest) +
 			serialize_size(obj.events_by_id);
+	}
+};
+
+
+template<>
+class serialization::serializer<events::event_state> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, events::event_state const& obj, world_state const& ws) {
+		serialize_array(output, obj.country_event_has_fired.array(), obj.country_event_has_fired.end() - obj.country_event_has_fired.begin());
+		serialize_array(output, obj.province_event_has_fired.array(), obj.province_event_has_fired.end() - obj.province_event_has_fired.begin());
+	}
+	static void deserialize_object(std::byte const* &input, events::event_state& obj, world_state& ws) {
+		deserialize_array(input, obj.country_event_has_fired.array(), obj.country_event_has_fired.end() - obj.country_event_has_fired.begin());
+		deserialize_array(input, obj.province_event_has_fired.array(), obj.province_event_has_fired.end() - obj.province_event_has_fired.begin());
+	}
+
+	static size_t size(events::event_state const& obj, world_state const& ws) {
+		return (obj.country_event_has_fired.end() - obj.country_event_has_fired.begin()) +
+			(obj.province_event_has_fired.end() - obj.province_event_has_fired.begin());
 	}
 };
 

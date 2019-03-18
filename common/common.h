@@ -460,6 +460,8 @@ public:
 	}
 	auto data() const { return storage.data(); }
 	auto data() { return storage.data(); }
+	auto array() const { return storage.data() + int32_t(padded); }
+	auto array() { return storage.data() + int32_t(padded); }
 	auto begin() const { return storage.begin() + int32_t(padded); }
 	auto end() const { return storage.end(); }
 	auto begin() { return storage.begin() + int32_t(padded); }
@@ -513,6 +515,8 @@ public:
 	}
 	auto data() const { return storage.data(); }
 	auto data() { return storage.data(); }
+	auto array() const { return storage.data() + int32_t(padded); }
+	auto array() { return storage.data() + int32_t(padded); }
 	auto begin() const { return storage.begin() + int32_t(padded); }
 	auto end() const { return storage.end(); }
 	auto begin() { return storage.begin() + int32_t(padded); }

@@ -20,6 +20,7 @@
 #include "issues\\issues_functions.h"
 #include "technologies\\technologies_io.h"
 #include "governments\\governments_functions.h"
+#include "events\\event_functions.h"
 #include <ppl.h>
 
 /*
@@ -38,6 +39,8 @@ void serialization::serializer<decltype(current_state::state::local_player_data)
 	for(uint32_t i = 1; i < ws.s.economy_m.goods_count; ++i) {
 		serialize_stable_array(output, ws.w.economy_s.purchasing_arrays, obj.imports_by_country[economy::goods_tag(economy::goods_tag::value_base_t(i))]);
 	}
+	serialize_array(output, obj.saved_event_choices.data(), obj.saved_event_choices.size());
+	serialize_array(output, obj.suppressed_decisions.array(), obj.suppressed_decisions.end() - obj.suppressed_decisions.begin());
 }
 
 void serialization::serializer<decltype(current_state::state::local_player_data)>::deserialize_object(std::byte const *& input, decltype(current_state::state::local_player_data)& obj, world_state & ws) {
@@ -48,6 +51,8 @@ void serialization::serializer<decltype(current_state::state::local_player_data)
 	for(uint32_t i = 1; i < ws.s.economy_m.goods_count; ++i) {
 		deserialize_stable_array(input, ws.w.economy_s.purchasing_arrays, obj.imports_by_country[economy::goods_tag(economy::goods_tag::value_base_t(i))]);
 	}
+	deserialize_array(input, obj.saved_event_choices.data(), obj.saved_event_choices.size());
+	deserialize_array(input, obj.suppressed_decisions.array(), obj.suppressed_decisions.end() - obj.suppressed_decisions.begin());
 }
 
 size_t serialization::serializer<decltype(current_state::state::local_player_data)>::size(decltype(current_state::state::local_player_data) const & obj, world_state const & ws) {
@@ -57,7 +62,9 @@ size_t serialization::serializer<decltype(current_state::state::local_player_dat
 		serialize_size(obj.collected_rich_tax) +
 		std::transform_reduce(integer_iterator(1), integer_iterator(ws.s.economy_m.goods_count), 0ui64, std::plus<>(), [&ws, &obj](int32_t i) {
 			return serialize_stable_array_size(ws.w.economy_s.purchasing_arrays, obj.imports_by_country[economy::goods_tag(economy::goods_tag::value_base_t(i))]);
-		});
+		}) +
+		(sizeof(int8_t) * obj.saved_event_choices.size()) +
+		obj.suppressed_decisions.end() - obj.suppressed_decisions.begin();
 }
 
 void serialization::serializer<current_state::crisis_state>::serialize_object(std::byte* &output, current_state::crisis_state const& obj, world_state const& ws) {
@@ -120,6 +127,7 @@ void serialization::serializer<current_state::state>::serialize_object(std::byte
 	serialize(output, obj.variable_s, ws);
 	serialize(output, obj.ideology_s, ws);
 	serialize(output, obj.technology_s, ws);
+	serialize(output, obj.event_s, ws);
 
 	serialize(output, obj.current_crisis, ws);
 
@@ -143,6 +151,7 @@ void serialization::serializer<current_state::state>::deserialize_object(std::by
 	population::reset_state(obj.population_s);
 	variables::reset_state(obj.variable_s);
 	ideologies::reset_state(obj.ideology_s);
+	events::reset_state(obj.event_s);
 
 	deserialize(input, obj.province_s, ws);
 	deserialize(input, obj.culture_s, ws);
@@ -153,6 +162,7 @@ void serialization::serializer<current_state::state>::deserialize_object(std::by
 	deserialize(input, obj.variable_s, ws);
 	deserialize(input, obj.ideology_s, ws);
 	deserialize(input, obj.technology_s, ws);
+	deserialize(input, obj.event_s, ws);
 
 	deserialize(input, obj.current_crisis, ws);
 
@@ -176,6 +186,7 @@ size_t serialization::serializer<current_state::state>::size(current_state::stat
 		serialize_size(obj.variable_s, ws) +
 		serialize_size(obj.ideology_s, ws) +
 		serialize_size(obj.technology_s, ws) +
+		serialize_size(obj.event_s, ws) +
 		serialize_size(obj.current_crisis, ws) +
 		serialize_size(obj.current_date) +
 		serialize_size(obj.great_wars_enabled) +

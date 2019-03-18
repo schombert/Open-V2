@@ -141,11 +141,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="events.h" />
+    <ClInclude Include="events_gui.h" />
+    <ClInclude Include="events_gui.hpp" />
     <ClInclude Include="events_io.h" />
+    <ClInclude Include="event_functions.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="events.cpp" />
+    <ClCompile Include="events_gui.cpp" />
     <ClCompile Include="events_io.cpp" />
+    <ClCompile Include="event_functions.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

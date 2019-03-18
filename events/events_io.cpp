@@ -540,7 +540,7 @@ namespace events {
 		new_decision.title = text_data::get_thread_safe_text_handle(env.s.gui_m.text_data_sequences, s_title.c_str(), s_title.c_str() + s_title.length());
 		new_decision.body = text_data::get_thread_safe_text_handle(env.s.gui_m.text_data_sequences, s_desc.c_str(), s_desc.c_str() + s_desc.length());
 
-		env.s.event_m.descisions_by_title_index.emplace(new_decision.title, tag);
+		env.s.event_m.decisions_by_title_index.emplace(new_decision.title, tag);
 		return 0;
 	}
 }

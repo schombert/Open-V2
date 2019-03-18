@@ -368,7 +368,7 @@ namespace nations {
 		void add_decision(token_and_type const& t) {
 			std::string title = std::string(t.start, t.end) + "_title";
 			const auto tt_title = text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, title.c_str(), title.c_str() + title.length());
-			decisions.push_back(tag_from_text(ws.s.event_m.descisions_by_title_index, tt_title));
+			decisions.push_back(tag_from_text(ws.s.event_m.decisions_by_title_index, tt_title));
 		}
 		void set_primary_culture(token_and_type const& t) {
 			primary_culture = tag_from_text(ws.s.culture_m.named_culture_index, text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, t.start, t.end));

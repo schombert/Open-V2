@@ -22,6 +22,8 @@
 #include "commands\\commands.hpp"
 #include "messages.h"
 #include "military\\military_gui.h"
+#include "events\\events.h"
+#include "events\\events_gui.h"
 
 #undef small
 
@@ -84,6 +86,7 @@ namespace current_state {
 		variables::variables_state variable_s;
 		ideologies::ideologies_state ideology_s;
 		technologies::technologies_state technology_s;
+		events::event_state event_s;
 		ui::gui_manager gui_m;
 
 		//crisis state
@@ -115,6 +118,9 @@ namespace current_state {
 		economy::trade_window trade_w;
 		messages::message_window message_w;
 		military::fabricate_cb_window fabricate_cb_w;
+		events::province_event_window province_event_w;
+		events::nation_event_window nation_event_w;
+		events::major_event_window major_event_w;
 
 		topbar topbar_w;
 
@@ -125,7 +131,12 @@ namespace current_state {
 			economy::money_qnty_type collected_middle_tax = 0;
 			economy::money_qnty_type collected_rich_tax = 0;
 			tagged_vector<array_tag<economy::money_qnty_type, nations::country_tag, true>, economy::goods_tag> imports_by_country;
+			tagged_vector<bitfield_type, events::decision_tag> suppressed_decisions;
+			tagged_vector<int8_t, events::event_tag> saved_event_choices;
 			tagged_vector<tagged_vector<bitfield_type, nations::country_tag>, military::cb_type_tag> triggered_cb_state;
+			std::atomic<int32_t> player_chosen_option = -1;
+			std::mutex player_choice_guard;
+			std::condition_variable player_choice_condition;
 		} local_player_data;
 		nations::country_tag local_player_nation;
 

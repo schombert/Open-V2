@@ -53,7 +53,8 @@ namespace events {
 		bool no_alert = false;
 	};
 
-	struct event_manager {
+	class event_manager {
+	public:
 		tagged_vector<event, event_tag> event_container;
 		tagged_vector<decision, decision_tag> decision_container;
 
@@ -79,7 +80,13 @@ namespace events {
 
 
 		boost::container::flat_map<int32_t, event_tag> events_by_id;
-		boost::container::flat_map<text_data::text_tag, decision_tag> descisions_by_title_index;
+		boost::container::flat_map<text_data::text_tag, decision_tag> decisions_by_title_index;
+	};
+
+	class event_state {
+	public:
+		tagged_vector<bitfield_type, int32_t> country_event_has_fired;
+		tagged_vector<bitfield_type, int32_t> province_event_has_fired;
 	};
 
 	using event_slot_content = std::variant<std::monostate, nations::country_tag, provinces::province_tag, population::pop_tag, nations::state_tag>;

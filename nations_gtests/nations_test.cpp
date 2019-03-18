@@ -433,6 +433,6 @@ TEST(nations_tests, read_nations_files_layered) {
 
 	EXPECT_EQ(1ui64, decisions.size());
 	EXPECT_EQ(ger_nation, decisions[0].first);
-	EXPECT_EQ(tag_from_text(ws.s.event_m.descisions_by_title_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "trail_of_tears_TITLE")), decisions[0].second);
+	EXPECT_EQ(tag_from_text(ws.s.event_m.decisions_by_title_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "trail_of_tears_TITLE")), decisions[0].second);
 }
 

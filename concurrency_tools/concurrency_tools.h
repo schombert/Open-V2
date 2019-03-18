@@ -18,15 +18,16 @@ private:
 public:
 	using result_type = uint32_t;
 
+	jsf_prng() {}
 	jsf_prng(uint32_t seed);
 	jsf_prng(jsf_prng const& o) noexcept : a(o.a), b(o.b), c(o.c), d(o.d) {}
 	jsf_prng(jsf_prng&& o) noexcept : a(o.a), b(o.b), c(o.c), d(o.d) {}
 	constexpr static uint32_t max() { return std::numeric_limits<uint32_t>::max(); }
 	constexpr static uint32_t min() { return std::numeric_limits<uint32_t>::min(); }
 	uint32_t operator()();
-	template<uint32_t n>
+	template<int32_t n>
 	void advance_n() {
-		for(uint32_t i = n; i--; )
+		for(int32_t i = n; i--; )
 			this->operator()();
 	}
 };

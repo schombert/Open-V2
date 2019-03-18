@@ -14,6 +14,7 @@
 #include <chrono>
 
 #include <Windows.h>
+#include "events\event_functions.h"
 #undef min
 #undef max
 
@@ -132,9 +133,12 @@ void ready_world_state(world_state& ws) {
 	economy::init_economic_scenario(ws);
 	ideologies::init_ideology_state(ws);
 	technologies::init_technology_state(ws);
+	events::init_events_state(ws);
 
 	ws.w.local_player_data.imports_by_country.resize(ws.s.economy_m.goods_count);
 	ws.w.local_player_data.triggered_cb_state.resize(ws.s.military_m.cb_types.size());
+	ws.w.local_player_data.suppressed_decisions.resize(ws.s.event_m.decision_container.size());
+	ws.w.local_player_data.saved_event_choices.resize(ws.s.event_m.event_container.size());
 }
 
 namespace current_state {
@@ -154,6 +158,9 @@ namespace current_state {
 		budget_w.init(ws);
 		message_w.init_message_window(ws);
 		fabricate_cb_w.init_fabricate_window(ws);
+		province_event_w.init_province_event_window(ws);
+		nation_event_w.init_nation_event_window(ws);
+		major_event_w.init_major_event_window(ws);
 	}
 
 	void state::toggle_pause() {

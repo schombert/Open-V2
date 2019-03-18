@@ -21,12 +21,27 @@
     <ClInclude Include="events_io.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="events_gui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="events_gui.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="event_functions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="events.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="events_io.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="events_gui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="event_functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
