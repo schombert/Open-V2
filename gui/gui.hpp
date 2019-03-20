@@ -265,6 +265,7 @@ void ui::attach_dynamic_behavior(world_state& ws, ui::tagged_gui_object target_o
 	auto& obj = ws.w.gui_m.gui_objects.at(target_object);
 	obj.flags.fetch_or(ui::gui_object::dynamic_behavior, std::memory_order_acq_rel);
 
+	assert(obj.associated_behavior == nullptr);
 	obj.associated_behavior = b;
 	b->associated_object = &obj;
 }

@@ -3,6 +3,7 @@
 #include "common\\shared_tags.h"
 #include "concurrency_tools\\concurrency_tools.hpp"
 #include "gui\\gui.h"
+#include "triggers\triggers.h"
 
 class world_state;
 
@@ -75,10 +76,10 @@ namespace commands {
 		nations::country_tag nation_for;
 		provinces::province_tag p;
 		nations::state_tag s;
-
 		province_building_type type = province_building_type::province_railroad;
-		province_building(nations::country_tag n, province_building_type t, provinces::province_tag prov) : nation_for(n), type(t), p(prov) {}
-		province_building(nations::country_tag n, province_building_type t, nations::state_tag st) : nation_for(n), type(t), s(st) {}
+
+		province_building(nations::country_tag n, province_building_type t, provinces::province_tag prov) : nation_for(n), p(prov), type(t) {}
+		province_building(nations::country_tag n, province_building_type t, nations::state_tag st) : nation_for(n), s(st), type(t) {}
 	};
 
 	struct fabricate_cb {
@@ -96,10 +97,21 @@ namespace commands {
 		change_research(nations::country_tag f, technologies::tech_tag t) : nation_for(f), tech(t) {}
 	};
 
+	struct execute_event {
+		jsf_prng generator;
+		triggers::const_parameter target;
+		triggers::const_parameter from;
+		events::event_tag e;
+		int8_t option;
+
+		execute_event(jsf_prng g, triggers::const_parameter t, triggers::const_parameter f, events::event_tag ev, int8_t o) : generator(g), target(t), from(f), e(ev), option(o) {}
+	};
+
 	void execute_command(set_budget const& c, world_state& ws);
 	void execute_command(province_building const& c, world_state& ws);
 	void execute_command(fabricate_cb const& c, world_state& ws);
 	void execute_command(change_research const& c, world_state& ws);
+	void execute_command(execute_event const& c, world_state& ws);
 
 	bool is_command_valid(province_building const& c, world_state const& ws);
 	bool is_command_valid(fabricate_cb const& c, world_state const& ws);
@@ -109,5 +121,5 @@ namespace commands {
 	ui::xy_pair explain_command_conditions(fabricate_cb const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
 	ui::xy_pair explain_command_conditions(change_research const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
 
-	using full_command_set = command_set<set_budget, province_building, fabricate_cb, change_research>;
+	using full_command_set = command_set<set_budget, province_building, fabricate_cb, change_research, execute_event>;
 }

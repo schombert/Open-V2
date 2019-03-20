@@ -325,11 +325,11 @@ void ui::button<BASE>::set_enabled(bool enabled) {
 }
 
 template<typename BASE>
-void ui::button<BASE>::set_text(world_state& ws, text_data::text_tag t) {
+void ui::button<BASE>::set_text(world_state& ws, text_data::text_tag t, const text_data::replacement* candidates, uint32_t count) {
 	ui::clear_children(ws.w.gui_m, ui::tagged_gui_object{*associated_object, id});
 
 	if(is_valid_index(t))
-		detail::create_linear_text(ws.s.gui_m, ws.w.gui_m, ui::tagged_gui_object{ *associated_object, id }, t, text_align, fmt);
+		detail::create_linear_text(ws.s.gui_m, ws.w.gui_m, ui::tagged_gui_object{ *associated_object, id }, t, text_align, fmt, candidates, count);
 }
 
 template<typename B>

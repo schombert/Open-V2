@@ -277,7 +277,7 @@ namespace ui {
 
 		void set_frame(gui_manager&, uint32_t frame_num);
 		void set_visibility(gui_manager&, bool visible);
-		void set_text(world_state& ws, text_data::text_tag t);
+		void set_text(world_state& ws, text_data::text_tag t, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
 		void set_enabled(bool enabled);
 
 		virtual bool mouse_consumer(ui::xy_pair) final override;

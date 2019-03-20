@@ -742,5 +742,6 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::tech_condition_previous] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "tech_condition_previous");
 		s.fixed_ui_text[fixed_ui::tech_condition_year] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "tech_condition_year");
 		s.fixed_ui_text[fixed_ui::tech_condition_not_done] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "tech_condition_not_done");
+		s.fixed_ui_text[fixed_ui::automate_option] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "automate_option");
 	}
 }

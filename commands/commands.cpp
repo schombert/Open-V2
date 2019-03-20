@@ -6,6 +6,7 @@
 #include "nations\nations_io.h"
 #include "technologies\\technologies_functions.h"
 #include "triggers\\trigger_gui.h"
+#include "triggers\effects.h"
 
 namespace commands {
 	set_budget::set_budget(nations::country_tag n, set_budget_type t, int8_t v) : nation_for(n), type(t) {
@@ -436,6 +437,15 @@ namespace commands {
 	void execute_command(change_research const& c, world_state& ws) {
 		if(is_command_valid(c, ws)) {
 			ws.w.nation_s.nations.set<nation::current_research>(c.nation_for, c.tech);
+		}
+	}
+
+	void execute_command(execute_event const& c, world_state& ws) {
+		if(auto const immediate = ws.s.event_m.event_container[c.e].immediate_effect; immediate) {
+			triggers::execute_effect(ws.s.trigger_m.effect_data.data() + to_index(immediate), ws, c.target, c.target, c.from, c.generator);
+		}
+		if(auto const opt = ws.s.event_m.event_container[c.e].options[c.option].effect; opt) {
+			triggers::execute_effect(ws.s.trigger_m.effect_data.data() + to_index(opt), ws, c.target, c.target, c.from, c.generator);
 		}
 	}
 
