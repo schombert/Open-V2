@@ -54,7 +54,7 @@ namespace events {
 				std::end(ws.s.event_m.event_container[e].options),
 				[](event_option const& opt) { return is_valid_index(opt.name); });
 			for(int32_t i = 0; i < num_options; ++i) {
-				possible_list.push_back(event_option_pair(ws.w.province_event_w.displayed_event,i));
+				possible_list.emplace_back(ws.w.province_event_w.displayed_event, i);
 			}
 		}
 
@@ -183,7 +183,7 @@ namespace events {
 				std::end(ws.s.event_m.event_container[e].options),
 				[](event_option const& opt) { return is_valid_index(opt.name); });
 			for(int32_t i = 0; i < num_options; ++i) {
-				possible_list.push_back(event_option_pair(ws.w.province_event_w.displayed_event, i));
+				possible_list.emplace_back(ws.w.province_event_w.displayed_event, i);
 			}
 		}
 
@@ -207,6 +207,52 @@ namespace events {
 		nation_event_window_base
 	> {};
 
+	class major_event_title {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class major_event_body {
+	public:
+		void update(ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class major_event_flag {
+	public:
+		void update(ui::masked_flag<major_event_flag>& self, world_state& ws);
+	};
+
+	class major_options_listbox {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	template <typename lb_type>
+	void major_options_listbox::populate_list(lb_type& lb, world_state& ws) {
+		boost::container::small_vector<event_option_pair, 8, concurrent_allocator<event_option_pair>> possible_list;
+
+		if(auto e = ws.w.major_event_w.displayed_event.e; e) {
+			auto const num_options = std::count_if(
+				std::begin(ws.s.event_m.event_container[e].options),
+				std::end(ws.s.event_m.event_container[e].options),
+				[](event_option const& opt) { return is_valid_index(opt.name); });
+			for(int32_t i = 0; i < num_options; ++i) {
+				possible_list.emplace_back(ws.w.province_event_w.displayed_event, i);
+			}
+		}
+
+		lb.new_list(possible_list.begin().get_ptr(), possible_list.end().get_ptr());
+	}
+
+	class major_event_window_base : public ui::draggable_region {
+	public:
+		ui::discrete_listbox<major_options_listbox, option_item, event_option_pair> options;
+
+		template<typename W>
+		void on_create(W& w, world_state& ws);
+	};
 
 	class major_event_window_t : public ui::gui_window <
 		CT_STRING("country_flag1"), ui::masked_flag<major_event_flag>,
@@ -227,7 +273,7 @@ namespace events {
 			ui::tagged_gui_object{ *associated_object, w.window_object },
 			options));
 
-		lb_tag.associated_object->position = ui::xy_pair{ 28i16,513i16 };
+		options.associated_object->position = ui::xy_pair{ 28i16,513i16 };
 
 		ui::hide(*associated_object);
 	}
@@ -241,14 +287,28 @@ namespace events {
 			ui::tagged_gui_object{ *associated_object, w.window_object },
 			options));
 
-		lb_tag.associated_object->position = ui::xy_pair{ 40i16,528i16 };
+		options.associated_object->position = ui::xy_pair{ 40i16,528i16 };
+
+		ui::hide(*associated_object);
+	}
+
+	template<typename W>
+	void major_event_window_base::on_create(W & w, world_state & ws) {
+		auto lb_tag = std::get<ui::listbox_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_nation_event_list"]);
+
+		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+			ws, lb_tag,
+			ui::tagged_gui_object{ *associated_object, w.window_object },
+			options));
+
+		options.associated_object->position = ui::xy_pair{ 68i16,510i16 };
 
 		ui::hide(*associated_object);
 	}
 
 	template<typename window_type>
 	void nation_event_image::windowed_update(ui::dynamic_icon<nation_event_image>& self, window_type & w, world_state & ws) {
-		if(auto const e = ws.w.nation_event_w.displayed_event.e; w) {
+		if(auto const e = ws.w.nation_event_w.displayed_event.e; e) {
 			graphics::texture_tag picture = ws.s.event_m.event_container[e].picture;
 			auto gi = ws.w.gui_m.graphics_instances.safe_at(ui::graphics_instance_tag(self.associated_object->type_dependant_handle.load(std::memory_order_acquire)));
 

@@ -154,9 +154,7 @@ namespace events {
 
 	void populate_replacements(world_state& ws, text_data::replacement* replacement_array, target_variant event_target, target_variant event_from) {
 		auto const target_nation = [event_target, &ws]() {
-			if(std::holds_alternative<std::monostate>(event_target))
-				return nations::country_tag();
-			else if(std::holds_alternative<nations::country_tag>(event_target))
+			if(std::holds_alternative<nations::country_tag>(event_target))
 				return std::get<nations::country_tag>(event_target);
 			else if(std::holds_alternative<nations::state_tag>(event_target))
 				return ws.w.nation_s.states.get<state::owner>(std::get<nations::state_tag>(event_target));
@@ -164,12 +162,12 @@ namespace events {
 				return ws.w.province_s.province_state_container.get<province_state::owner>(std::get<provinces::province_tag>(event_target));
 			else if(std::holds_alternative<population::pop_tag>(event_target))
 				return population::get_pop_owner(ws, std::get<population::pop_tag>(event_target));
-		};
+			else
+				return nations::country_tag();
+		}();
 		auto const target_cap = ws.w.nation_s.nations.get<nation::current_capital>(target_nation);
 		auto const target_state = [event_target, &ws]() {
-			if(std::holds_alternative<std::monostate>(event_target))
-				return nations::state_tag();
-			else if(std::holds_alternative<nations::country_tag>(event_target))
+			if(std::holds_alternative<nations::country_tag>(event_target))
 				return nations::state_tag();
 			else if(std::holds_alternative<nations::state_tag>(event_target))
 				return std::get<nations::state_tag>(event_target);
@@ -178,11 +176,11 @@ namespace events {
 			else if(std::holds_alternative<population::pop_tag>(event_target))
 				return ws.w.province_s.province_state_container.get<province_state::state_instance>(
 					ws.w.population_s.pops.get<pop::location>(std::get<population::pop_tag>(event_target)));
-		};
+			else
+				return nations::state_tag();
+		}();
 		auto const target_province = [event_target, &ws]() {
-			if(std::holds_alternative<std::monostate>(event_target))
-				return provinces::province_tag();
-			else if(std::holds_alternative<nations::country_tag>(event_target))
+			if(std::holds_alternative<nations::country_tag>(event_target))
 				return provinces::province_tag();
 			else if(std::holds_alternative<nations::state_tag>(event_target))
 				return ws.w.nation_s.states.get<state::state_capital>(std::get<nations::state_tag>(event_target));
@@ -190,11 +188,11 @@ namespace events {
 				return std::get<provinces::province_tag>(event_target);
 			else if(std::holds_alternative<population::pop_tag>(event_target))
 				return ws.w.population_s.pops.get<pop::location>(std::get<population::pop_tag>(event_target));
-		};
+			else
+				return provinces::province_tag();
+		}();
 		auto const from_nation = [event_from, &ws]() {
-			if(std::holds_alternative<std::monostate>(event_from))
-				return nations::country_tag();
-			else if(std::holds_alternative<nations::country_tag>(event_from))
+			if(std::holds_alternative<nations::country_tag>(event_from))
 				return std::get<nations::country_tag>(event_from);
 			else if(std::holds_alternative<nations::state_tag>(event_from))
 				return ws.w.nation_s.states.get<state::owner>(std::get<nations::state_tag>(event_from));
@@ -202,7 +200,9 @@ namespace events {
 				return ws.w.province_s.province_state_container.get<province_state::owner>(std::get<provinces::province_tag>(event_from));
 			else if(std::holds_alternative<population::pop_tag>(event_from))
 				return population::get_pop_owner(ws, std::get<population::pop_tag>(event_from));
-		};
+			else
+				return nations::country_tag();
+		}();
 		auto const target_union_tag = ws.s.culture_m.cultures_to_tags[ws.w.nation_s.nations.get<nation::primary_culture>(target_nation)];
 		auto const target_union = ws.w.culture_s.tags_to_holders[target_union_tag];
 		auto const target_culture = ws.w.province_s.province_state_container.get<province_state::dominant_culture>(target_province);
@@ -329,12 +329,12 @@ namespace events {
 		ui::text_chunk_to_instances(
 			ws.s.gui_m,
 			ws.w.gui_m,
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.province_s.province_state_container.get<province_state::name>(ws.w.province_event_w.displayed_event.province_for)),
+			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.province_s.province_state_container.get<province_state::name>(std::get<provinces::province_tag>(ws.w.province_event_w.displayed_event.event_for))),
 			box,
 			ui::xy_pair{ 0,0 },
 			fmt,
 			lm,
-			[&ws](ui::tagged_gui_object b) { ui::attach_dynamic_behavior<ui::simple_button<province_hyperlink>>(ws, b, ws.w.province_event_w.displayed_event.province_for); }
+			[&ws](ui::tagged_gui_object b) { ui::attach_dynamic_behavior<ui::simple_button<province_hyperlink>>(ws, b, std::get<provinces::province_tag>(ws.w.province_event_w.displayed_event.event_for)); }
 			);
 		lm.finish_current_line();
 	}
@@ -362,7 +362,7 @@ namespace events {
 	}
 
 	void event_auto_button::button_function(ui::simple_button<event_auto_button>& self, world_state & ws) {
-		ws.w.local_player_data.saved_event_choices[e] = int8_t(value + 1);
+		ws.w.local_player_data.saved_event_choices[e.e] = int8_t(value + 1);
 
 		ws.w.pending_commands.add<commands::execute_event>(
 			ws.w.province_event_w.displayed_event.generator,
@@ -394,7 +394,7 @@ namespace events {
 					to_trigger_param(e.event_from),
 					e.generator);
 			}
-			if(auto const effect = ws.s.event_m.event_container[e].options[value].effect; effect) {
+			if(auto const effect = ws.s.event_m.event_container[e.e].options[value].effect; effect) {
 				cursor = triggers::make_effect_description(
 					ws,
 					tw,
@@ -476,5 +476,57 @@ namespace events {
 				rep_array,
 				events::replacement_size);
 		}
+	}
+
+	ui::window_tag major_options_listbox::element_tag(ui::gui_static& m) {
+		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["open_v2_nation_event_option"]);
+	}
+
+	void major_event_title::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+
+		if(auto const e = ws.w.major_event_w.displayed_event.e; e) {
+
+			text_data::replacement rep_array[events::replacement_size];
+			populate_replacements(ws, rep_array, ws.w.major_event_w.displayed_event.event_for, ws.w.major_event_w.displayed_event.event_from);
+
+			ui::add_linear_text(
+				ui::xy_pair{ 0, 0 },
+				ws.s.event_m.event_container[e].title,
+				fmt,
+				ws.s.gui_m,
+				ws.w.gui_m,
+				box,
+				lm,
+				rep_array,
+				events::replacement_size);
+		}
+	}
+
+	void major_event_body::update(
+		ui::tagged_gui_object box,
+		ui::line_manager& lm,
+		ui::text_format& fmt,
+		world_state& ws) {
+
+		if(auto const e = ws.w.major_event_w.displayed_event.e; e) {
+
+			text_data::replacement rep_array[events::replacement_size];
+			populate_replacements(ws, rep_array, ws.w.major_event_w.displayed_event.event_for, ws.w.major_event_w.displayed_event.event_from);
+
+			ui::add_multiline_text(
+				ui::xy_pair{ 0, 0 },
+				ws.s.event_m.event_container[e].body,
+				fmt,
+				ws.s.gui_m,
+				ws.w.gui_m,
+				box,
+				lm,
+				rep_array,
+				events::replacement_size);
+		}
+	}
+
+	void major_event_flag::update(ui::masked_flag<major_event_flag>& self, world_state& ws) {
+		self.set_displayed_flag(ws, ws.w.local_player_nation);
 	}
 }

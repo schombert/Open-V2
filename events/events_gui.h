@@ -13,10 +13,10 @@ namespace events {
 	using target_variant = std::variant<std::monostate, provinces::province_tag, nations::country_tag, nations::state_tag, population::pop_tag, population::rebel_faction_tag>;
 
 	struct pending_event {
-		event_tag e;
+		jsf_prng generator;
 		target_variant event_for;
 		target_variant event_from;
-		jsf_prng generator;
+		event_tag e;
 	};
 
 	class province_event_window {

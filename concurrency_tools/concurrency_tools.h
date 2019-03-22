@@ -25,11 +25,14 @@ public:
 	constexpr static uint32_t max() { return std::numeric_limits<uint32_t>::max(); }
 	constexpr static uint32_t min() { return std::numeric_limits<uint32_t>::min(); }
 	uint32_t operator()();
+
 	template<int32_t n>
 	void advance_n() {
 		for(int32_t i = n; i--; )
 			this->operator()();
 	}
+	jsf_prng& operator=(jsf_prng const&) noexcept = default;
+	jsf_prng& operator=(jsf_prng&&) noexcept = default;
 };
 
 jsf_prng& get_local_generator();
