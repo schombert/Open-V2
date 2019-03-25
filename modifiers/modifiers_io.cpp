@@ -148,7 +148,7 @@ namespace modifiers {
 			CT_STRING_INT("number_of_voters", pack_offset_pair(provincial_offsets::number_of_voters, bad_offset)),
 			CT_STRING_INT("goods_demand", pack_offset_pair(provincial_offsets::goods_demand, national_offsets::goods_demand)),
 			CT_STRING_INT("badboy", pack_offset_pair(bad_offset, national_offsets::badboy)),
-			CT_STRING_INT("assimilation_rate", pack_offset_pair(provincial_offsets::assimilation_rate, bad_offset)),
+			CT_STRING_INT("assimilation_rate", pack_offset_pair(provincial_offsets::assimilation_rate, national_offsets::global_assimilation_rate)),
 			CT_STRING_INT("global_assimilation_rate", pack_offset_pair(bad_offset, national_offsets::global_assimilation_rate)),
 			CT_STRING_INT("prestige", pack_offset_pair(bad_offset, national_offsets::prestige)),
 			CT_STRING_INT("factory_cost", pack_offset_pair(bad_offset, national_offsets::factory_cost)),
@@ -161,8 +161,8 @@ namespace modifiers {
 			CT_STRING_INT("social_reform_desire", pack_offset_pair(bad_offset, national_offsets::social_reform_desire)),
 			CT_STRING_INT("political_reform_desire", pack_offset_pair(bad_offset, national_offsets::political_reform_desire)),
 			CT_STRING_INT("literacy_con_impact", pack_offset_pair(bad_offset, national_offsets::literacy_con_impact)),
-			CT_STRING_INT("pop_militancy_modifier", pack_offset_pair(provincial_offsets::pop_militancy_modifier, bad_offset)),
-			CT_STRING_INT("pop_consciousness_modifier", pack_offset_pair(provincial_offsets::pop_consciousness_modifier, bad_offset)),
+			CT_STRING_INT("pop_militancy_modifier", pack_offset_pair(provincial_offsets::pop_militancy_modifier, national_offsets::global_pop_militancy_modifier)),
+			CT_STRING_INT("pop_consciousness_modifier", pack_offset_pair(provincial_offsets::pop_consciousness_modifier, national_offsets::global_pop_consciousness_modifier)),
 			CT_STRING_INT("rich_income_modifier", pack_offset_pair(provincial_offsets::rich_income_modifier, national_offsets::rich_income_modifier)),
 			CT_STRING_INT("middle_income_modifier", pack_offset_pair(provincial_offsets::middle_income_modifier, national_offsets::middle_income_modifier)),
 			CT_STRING_INT("poor_income_modifier", pack_offset_pair(provincial_offsets::poor_income_modifier, national_offsets::poor_income_modifier)),
@@ -306,11 +306,13 @@ namespace modifiers {
 			// some attributes apply only to province
 			// conclude intent is provincial modifier with additional national properties
 			return std::pair<provincial_modifier_tag, national_modifier_tag>(add_provincial_modifier(name, mod, manager), national_modifier_tag());
-		} else if(mod.count_unique_national == mod.total_attributes) {
+		} /* else if(mod.count_unique_national == mod.total_attributes) {
 			// all attributes apply only to nation
 			// conclude intent is national modifier
+			// removed because of "colonial_museum_of_natural_history"
+			// thus: ALL modifiers must have a provincial modifier generated for them
 			return std::pair<provincial_modifier_tag, national_modifier_tag>(provincial_modifier_tag(), add_national_modifier(name, mod, manager));
-		} else {
+		} */ else {
 			//intent indeterminate: create first a national modifier (non destructive), then destructively create provincial and complement
 			const auto nt = add_national_modifier(name, mod, manager);
 			const auto pt = add_provincial_modifier(name, mod, manager);
@@ -1565,6 +1567,8 @@ namespace modifiers {
 					main_results.parse_results.data() + main_results.parse_results.size(),
 					*state.impl);
 			}
+		} else {
+			OutputDebugStringW(L"ERROR: failed to open event_modifiers.txt\n");
 		}
 	}
 

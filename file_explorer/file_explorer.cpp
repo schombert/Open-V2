@@ -22,6 +22,7 @@
 #include "population\\population_functions.hpp"
 #include "economy\\economy_functions.hpp"
 #include "modifiers\\modifier_functions.h"
+#include "events\\event_functions.h"
 #include <random>
 
 #undef max

@@ -95,7 +95,7 @@ namespace ui {
 		static constexpr uint8_t clicksound_start_game     = 0x30;
 		static constexpr uint8_t rotation_mask             = 0x40;
 		static constexpr uint8_t rotation_upright          = 0x00;
-		static constexpr uint8_t rotation_90_left          = 0x40;
+		static constexpr uint8_t rotation_90_right         = 0x40;
 		static constexpr uint8_t is_checkbox               = 0x80;
 
 		xy_pair position; //4bytes

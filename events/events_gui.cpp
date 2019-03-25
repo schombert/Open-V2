@@ -20,6 +20,7 @@ namespace events {
 		auto gobj = win->associated_object;
 		if(gobj)
 			ui::hide(*gobj);
+		gui_m.hide_tooltip();
 	}
 	void province_event_window::show_province_event_window(ui::gui_manager& gui_m, pending_event e) {
 		displayed_event = e;
@@ -35,6 +36,7 @@ namespace events {
 		auto gobj = win->associated_object;
 		if(gobj)
 			ui::hide(*gobj);
+		gui_m.hide_tooltip();
 	}
 	void nation_event_window::show_nation_event_window(ui::gui_manager& gui_m, pending_event e) {
 		displayed_event = e;
@@ -50,6 +52,7 @@ namespace events {
 		auto gobj = win->associated_object;
 		if(gobj)
 			ui::hide(*gobj);
+		gui_m.hide_tooltip();
 	}
 	void major_event_window::show_major_event_window(ui::gui_manager& gui_m, pending_event e) {
 		displayed_event = e;
@@ -79,13 +82,15 @@ namespace events {
 			ui::add_linear_text(
 				ui::xy_pair{ 0, 0 },
 				ws.s.event_m.event_container[e].title,
-				fmt,
+				ui::text_format{ ui::text_color::black, fmt.font_handle, fmt.font_size},
 				ws.s.gui_m,
 				ws.w.gui_m,
 				box,
 				lm,
 				rep_array,
 				events::replacement_size);
+
+			lm.finish_current_line();
 		}
 
 	}
@@ -111,6 +116,8 @@ namespace events {
 				lm,
 				rep_array,
 				events::replacement_size);
+
+			lm.finish_current_line();
 		}
 
 	}
@@ -445,6 +452,7 @@ namespace events {
 				lm,
 				rep_array,
 				events::replacement_size);
+			lm.finish_current_line();
 		}
 	}
 
@@ -468,13 +476,15 @@ namespace events {
 			ui::add_linear_text(
 				ui::xy_pair{ 0, 0 },
 				ws.s.event_m.event_container[e].title,
-				fmt,
+				ui::text_format{ ui::text_color::black, fmt.font_handle, fmt.font_size },
 				ws.s.gui_m,
 				ws.w.gui_m,
 				box,
 				lm,
 				rep_array,
 				events::replacement_size);
+
+			lm.finish_current_line();
 		}
 	}
 
@@ -492,13 +502,15 @@ namespace events {
 			ui::add_linear_text(
 				ui::xy_pair{ 0, 0 },
 				ws.s.event_m.event_container[e].title,
-				fmt,
+				ui::text_format{ ui::text_color::black, fmt.font_handle, fmt.font_size },
 				ws.s.gui_m,
 				ws.w.gui_m,
 				box,
 				lm,
 				rep_array,
 				events::replacement_size);
+
+			lm.finish_current_line();
 		}
 	}
 
@@ -523,6 +535,8 @@ namespace events {
 				lm,
 				rep_array,
 				events::replacement_size);
+
+			lm.finish_current_line();
 		}
 	}
 

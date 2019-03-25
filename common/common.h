@@ -42,8 +42,10 @@
 
 #ifndef _DEBUG
 #define CALL __vectorcall
+#define RELEASE_INLINE __forceinline
 #else
 #define CALL
+#define RELEASE_INLINE inline
 #endif
 
 #ifndef _DEBUG

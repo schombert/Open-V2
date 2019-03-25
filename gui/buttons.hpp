@@ -338,8 +338,8 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, button_tag hand
 	const auto new_gobj = ws.w.gui_m.gui_objects.emplace();
 
 	const uint16_t rotation =
-		(def.flags & button_def::rotation_mask) == button_def::rotation_90_left ?
-		gui_object::rotation_left :
+		(def.flags & button_def::rotation_mask) == button_def::rotation_90_right ?
+		gui_object::rotation_right :
 		gui_object::rotation_upright;
 
 	new_gobj.object.flags.store(gui_object::visible_after_update | gui_object::enabled | rotation, std::memory_order_release);

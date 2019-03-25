@@ -444,7 +444,7 @@ namespace population {
 			pop_literacy(ws.w.population_s.pops.get_row<pop::literacy>()) {}
 
 		template<typename T>
-		__forceinline void operator()(T pop_v) {
+		RELEASE_INLINE void operator()(T pop_v) {
 			auto location = ve::load(pop_v, pop_locations);
 			auto state_indices = ve::load(location, province_state_owners);
 			auto change = ve::load(state_indices, change_by_state);
@@ -474,7 +474,7 @@ namespace population {
 			change_out(f) {}
 
 		template<typename T>
-		__forceinline void operator()(T state_v) {
+		RELEASE_INLINE void operator()(T state_v) {
 			auto owners = ve::load(state_v, state_owners);
 
 			auto gath_education_efficiency_modifier = ve::load(owners, education_efficiency_modifier);
@@ -1208,7 +1208,7 @@ namespace population {
 						tagged_array_view<float, int32_t>(local_movements, ws.s.issues_m.tracked_options_count),
 						tagged_array_view<float, int32_t>(ws.w.population_s.pop_demographics.get_row(p).data() + to_index(to_demo_tag(ws, issues::option_tag(0))), ws.s.issues_m.tracked_options_count),
 						((pop_con - con_limit) * inv_con_limit) * ws.w.population_s.pops.get<pop::literacy>(p) * (max_movement_support * pop_size),
-						ve::serial_exact());
+						ve::serial_unaligned());
 				}
 				if(pop_mil >= mil_limit) {
 					rebel_type_tag best_fit;

@@ -635,8 +635,8 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_static& static_man
 	const auto new_gobj = manager.gui_objects.emplace();
 
 	const uint16_t rotation =
-		(def.flags & button_def::rotation_mask) == button_def::rotation_90_left ?
-		gui_object::rotation_left :
+		(def.flags & button_def::rotation_mask) == button_def::rotation_90_right ?
+		gui_object::rotation_right :
 		gui_object::rotation_upright;
 
 	new_gobj.object.flags.store(gui_object::visible_after_update | gui_object::enabled | rotation, std::memory_order_release);
@@ -671,14 +671,8 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_static& static_man
 	instantiate_graphical_object(static_manager, manager, new_gobj, icon_def.graphical_object_handle, icon_def.frame != 0 ? int32_t(icon_def.frame) - 1 : 0);
 
 	if(rotation == ui::gui_object::rotation_right) {
-		new_gobj.object.position = ui::xy_pair{
-			int16_t(new_gobj.object.position.x - new_gobj.object.size.y),
-			int16_t(new_gobj.object.position.y + new_gobj.object.size.y - new_gobj.object.size.x) };
 		new_gobj.object.size = ui::xy_pair{new_gobj.object.size.y, new_gobj.object.size.x};
 	} else if(rotation == ui::gui_object::rotation_left) {
-		//new_gobj.object.position = ui::xy_pair{
-		//	int16_t(new_gobj.object.position.x - new_gobj.object.size.y),
-		//	int16_t(new_gobj.object.position.y + new_gobj.object.size.y - new_gobj.object.size.x) };
 		new_gobj.object.size = ui::xy_pair{ new_gobj.object.size.y, new_gobj.object.size.x };
 	}
 

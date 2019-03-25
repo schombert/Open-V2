@@ -21,6 +21,7 @@
 #include "technologies\\technologies_io.h"
 #include "governments\\governments_functions.h"
 #include "events\\event_functions.h"
+#include "events\\events_io.h"
 #include <ppl.h>
 
 /*
@@ -64,7 +65,7 @@ size_t serialization::serializer<decltype(current_state::state::local_player_dat
 			return serialize_stable_array_size(ws.w.economy_s.purchasing_arrays, obj.imports_by_country[economy::goods_tag(economy::goods_tag::value_base_t(i))]);
 		}) +
 		(sizeof(int8_t) * obj.saved_event_choices.size()) +
-		obj.suppressed_decisions.end() - obj.suppressed_decisions.begin();
+		(obj.suppressed_decisions.end() - obj.suppressed_decisions.begin());
 }
 
 void serialization::serializer<current_state::crisis_state>::serialize_object(std::byte* &output, current_state::crisis_state const& obj, world_state const& ws) {

@@ -5,7 +5,7 @@
 #include "triggers\\effects.h"
 #include "modifiers\\modifier_functions.h"
 #include <random>
-#include "nations\nations_functions.h"
+#include "nations\nations_functions.hpp"
 
 namespace events {
 	void init_events_state(world_state& ws) {
@@ -99,7 +99,7 @@ namespace events {
 				auto any_valid = triggers::test_contiguous_trigger(allow_data, ws, ve::contiguous_tags<union_tag>(j), ve::contiguous_tags<union_tag>(j), ve::contiguous_tags<union_tag>(0));
 				if(ve::compress_mask(any_valid) != 0) {
 					auto const chance_tag = ws.s.event_m.event_container[e].mean_time_to_happen;
-					auto const value = modifiers::test_contiguous_multiplicative_factor(chance_tag, ws, ve::contiguous_tags<union_tag>(j), ve::contiguous_tags<union_tag>(j), ve::contiguous_tags<union_tag>(0));
+					auto const value = modifiers::test_contiguous_multiplicative_factor(chance_tag, ws, ve::contiguous_tags<union_tag>(j), ve::contiguous_tags<union_tag>(0));
 
 					auto chance = 2.0f / ve::max(value, 2.0f);
 					auto neg_chance = 1.0f - chance;
@@ -131,7 +131,7 @@ namespace events {
 										prov,
 										triggers::parameter(),
 										e,
-										opt);
+										int8_t(opt));
 									gen.advance_n<8>();
 								}
 								any_fired = true;
@@ -145,7 +145,7 @@ namespace events {
 					}
 				}
 			}
-		}, concurrency::static_partitioner());
+		});
 
 	
 		for(int32_t v =  0; fired_once_list.try_pop(v); ) {
@@ -166,7 +166,7 @@ namespace events {
 					v.first,
 					triggers::parameter(),
 					v.second,
-					fixed_choice - 1);
+					int8_t(fixed_choice - 1));
 				gen.advance_n<8>();
 			}
 		}
@@ -185,13 +185,13 @@ namespace events {
 
 			auto const nation_count = ws.w.nation_s.nations.size();
 			for(int32_t j = 0; j < nation_count; j += ve::vector_size) {
-				auto any_valid = nations::nation_exists(ws, ve::contiguous_tags<nations::country_tag>(j)) | triggers::test_contiguous_trigger(allow_data, ws, ve::contiguous_tags<union_tag>(j), ve::contiguous_tags<union_tag>(j), ve::contiguous_tags<union_tag>(0));
+				auto any_valid = nations::nation_exists(ws, ve::contiguous_tags<nations::country_tag>(j)) & triggers::test_contiguous_trigger(allow_data, ws, ve::contiguous_tags<union_tag>(j), ve::contiguous_tags<union_tag>(j), ve::contiguous_tags<union_tag>(0));
 				
 				if(ve::compress_mask(any_valid) != 0) {
 					auto const chance_tag = ws.s.event_m.event_container[e].mean_time_to_happen;
-					auto const value = modifiers::test_contiguous_multiplicative_factor(chance_tag, ws, ve::contiguous_tags<union_tag>(j), ve::contiguous_tags<union_tag>(j), ve::contiguous_tags<union_tag>(0));
+					auto const value = modifiers::test_contiguous_multiplicative_factor(chance_tag, ws, ve::contiguous_tags<union_tag>(j), ve::contiguous_tags<union_tag>(0));
 
-					auto chance = 1.0f / ve::max(value, 2.0f);
+					auto chance = 1.0f / ve::max(value, 1.0f);
 					auto neg_chance = 1.0f - chance;
 					auto neg_chance_2 = neg_chance * neg_chance;
 					auto neg_chance_4 = neg_chance_2 * neg_chance_2;
@@ -220,7 +220,7 @@ namespace events {
 										n,
 										triggers::parameter(),
 										e,
-										opt);
+										int8_t(opt));
 									gen.advance_n<8>();
 								}
 								any_fired = true;
@@ -234,7 +234,7 @@ namespace events {
 					}
 				}
 			}
-		}, concurrency::static_partitioner());
+		});
 
 
 		for(int32_t v = 0; fired_once_list.try_pop(v); ) {
@@ -244,7 +244,10 @@ namespace events {
 		for(events::event_tag v; player_nation_events.try_pop(v); ) {
 			auto const fixed_choice = ws.w.local_player_data.saved_event_choices[v];
 			if(fixed_choice == 0) {
-				ws.w.province_event_w.show_province_event_window(ws.w.gui_m, pending_event{ gen, ws.w.local_player_nation, target_variant(), v });
+				//if((ws.s.event_m.event_container[v].flags & event::is_major) != 0)
+					ws.w.major_event_w.show_major_event_window(ws.w.gui_m, pending_event { gen, ws.w.local_player_nation, target_variant(), v });
+				//else
+				//	ws.w.nation_event_w.show_nation_event_window(ws.w.gui_m, pending_event{ gen, ws.w.local_player_nation, target_variant(), v });
 				gen.advance_n<8>();
 
 				wait_for_player_choice(ws);
@@ -254,7 +257,7 @@ namespace events {
 					ws.w.local_player_nation,
 					triggers::parameter(),
 					v,
-					fixed_choice - 1);
+					int8_t(fixed_choice - 1));
 				gen.advance_n<8>();
 			}
 		}

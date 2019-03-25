@@ -80,27 +80,27 @@ namespace triggers {
 		return pack_int.i;
 	}
 
-	__forceinline ve::contiguous_tags<nations::country_tag> to_nation(ve::contiguous_tags<union_tag> v) {
+	RELEASE_INLINE ve::contiguous_tags<nations::country_tag> to_nation(ve::contiguous_tags<union_tag> v) {
 		return ve::contiguous_tags<nations::country_tag>(v.value);
 	}
-	__forceinline ve::contiguous_tags<nations::state_tag> to_state(ve::contiguous_tags<union_tag> v) {
+	RELEASE_INLINE ve::contiguous_tags<nations::state_tag> to_state(ve::contiguous_tags<union_tag> v) {
 		return ve::contiguous_tags<nations::state_tag>(v.value);
 	}
-	__forceinline ve::contiguous_tags<provinces::province_tag> to_prov(ve::contiguous_tags<union_tag> v) {
+	RELEASE_INLINE ve::contiguous_tags<provinces::province_tag> to_prov(ve::contiguous_tags<union_tag> v) {
 		return ve::contiguous_tags<provinces::province_tag>(v.value);
 	}
-	__forceinline ve::contiguous_tags<population::pop_tag> to_pop(ve::contiguous_tags<union_tag> v) {
+	RELEASE_INLINE ve::contiguous_tags<population::pop_tag> to_pop(ve::contiguous_tags<union_tag> v) {
 		return ve::contiguous_tags<population::pop_tag>(v.value);
 	}
-	__forceinline ve::contiguous_tags<population::rebel_faction_tag> to_rebel(ve::contiguous_tags<union_tag> v) {
+	RELEASE_INLINE ve::contiguous_tags<population::rebel_faction_tag> to_rebel(ve::contiguous_tags<union_tag> v) {
 		return ve::contiguous_tags<population::rebel_faction_tag>(v.value);
 	}
 
-	__forceinline ve::tagged_vector<nations::country_tag> to_nation(ve::union_tag_vector v) { return v; }
-	__forceinline ve::tagged_vector<nations::state_tag> to_state(ve::union_tag_vector v) { return v; }
-	__forceinline ve::tagged_vector<provinces::province_tag> to_prov(ve::union_tag_vector v) { return v; }
-	__forceinline ve::tagged_vector<population::pop_tag> to_pop(ve::union_tag_vector v) { return v; }
-	__forceinline ve::tagged_vector<population::rebel_faction_tag> to_rebel(ve::union_tag_vector v) { return v; }
+	RELEASE_INLINE ve::tagged_vector<nations::country_tag> to_nation(ve::union_tag_vector v) { return v; }
+	RELEASE_INLINE ve::tagged_vector<nations::state_tag> to_state(ve::union_tag_vector v) { return v; }
+	RELEASE_INLINE ve::tagged_vector<provinces::province_tag> to_prov(ve::union_tag_vector v) { return v; }
+	RELEASE_INLINE ve::tagged_vector<population::pop_tag> to_pop(ve::union_tag_vector v) { return v; }
+	RELEASE_INLINE ve::tagged_vector<population::rebel_faction_tag> to_rebel(ve::union_tag_vector v) { return v; }
 
 	namespace {
 
@@ -180,15 +180,15 @@ namespace triggers {
 
 
 		template<typename index, typename container, typename T>
-		__forceinline auto to_value(container const& c, T v) {
+		RELEASE_INLINE auto to_value(container const& c, T v) {
 			return ve::load(v, c.template get_row<index>());
 		}
 		template<int32_t index, typename container, typename T>
-		__forceinline auto to_indexed_value(container const& c, T v) {
+		RELEASE_INLINE auto to_indexed_value(container const& c, T v) {
 			return ve::load(v, c.template get_row<index>(0));
 		}
 		template<typename container, typename T, typename ITYPE>
-		__forceinline auto to_vindexed_value(container const& c, T v, ITYPE i) {
+		RELEASE_INLINE auto to_vindexed_value(container const& c, T v, ITYPE i) {
 			return ve::load(v, c.get_row(i, 0));
 		}
 

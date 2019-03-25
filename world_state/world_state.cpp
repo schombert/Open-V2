@@ -11,6 +11,7 @@
 #include "technologies\\technologies_functions.h"
 #include "modifiers\\modifier_functions.h"
 #include "issues\\issues_functions.h"
+#include "events\\event_functions.h"
 #include <chrono>
 
 #include <Windows.h>
@@ -40,6 +41,8 @@ void world_state_non_ai_update(world_state & ws) {
 	military::update_player_cb_state(ws);
 
 	technologies::daily_update(ws);
+
+	events::daily_update(ws);
 
 	ws.w.nation_s.nations.parallel_for_each([&ws](nations::country_tag n) {
 		nations::update_movement_support(ws, n);

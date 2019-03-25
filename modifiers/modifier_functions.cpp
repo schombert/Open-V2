@@ -454,10 +454,12 @@ namespace modifiers {
 	
 
 	void add_timed_modifier_to_nation(world_state& ws, nations::country_tag this_nation, national_modifier_tag mod, date_tag expiration) {
+		assert(is_valid_index(mod));
 		add_item(ws.w.nation_s.timed_modifier_arrays, ws.w.nation_s.nations.get<nation::timed_modifiers>(this_nation), nations::timed_national_modifier{ expiration, mod });
 	}
 
 	void add_unique_timed_modifier_to_nation(world_state& ws, nations::country_tag this_nation, national_modifier_tag mod, date_tag expiration) {
+		assert(is_valid_index(mod));
 		auto& timed = ws.w.nation_s.nations.get<nation::timed_modifiers>(this_nation);
 		auto found = find(ws.w.nation_s.timed_modifier_arrays, timed, nations::timed_national_modifier{ expiration, mod });
 		if(found)
@@ -466,6 +468,7 @@ namespace modifiers {
 			add_item(ws.w.nation_s.timed_modifier_arrays, timed, nations::timed_national_modifier{ expiration, mod });
 	}
 	void add_timed_modifier_to_province(world_state& ws, provinces::province_tag this_province, provincial_modifier_tag mod, date_tag expiration) {
+		assert(is_valid_index(mod));
 		add_item(ws.w.province_s.timed_modifier_arrays,
 			ws.w.province_s.province_state_container.get<province_state::timed_modifiers>(this_province),
 			provinces::timed_provincial_modifier{ expiration, mod });

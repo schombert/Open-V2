@@ -252,7 +252,7 @@ namespace ui {
 
 	std::optional<uint8_t> button_rotation_from_rh(association_type, const token_and_type& t) {
 		if(is_fixed_token_ci(t, "-1.5708")) {
-			return ui::button_def::rotation_90_left;
+			return ui::button_def::rotation_90_right;
 		} else if(token_to<double>(t) == 0.0) {
 			return ui::button_def::rotation_upright;
 		}
@@ -354,9 +354,9 @@ namespace ui {
 
 	std::optional<uint8_t> icon_rotation_from_rh(association_type, const token_and_type& t) {
 		if(is_fixed_token_ci(t, "-1.5708")) {
-			return ui::icon_def::rotation_90_left;
-		} else if(is_fixed_token_ci(t, "1.5708")) {
 			return ui::icon_def::rotation_90_right;
+		} else if(is_fixed_token_ci(t, "1.5708")) {
+			return ui::icon_def::rotation_90_left;
 		} else if(token_to<double>(t) == 0.0) {
 			return ui::icon_def::rotation_upright;
 		}

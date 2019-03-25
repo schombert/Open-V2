@@ -1208,7 +1208,7 @@ namespace economy {
 			apparent_price_v(a), distance_vector_v(c), state_owner_tarrifs(d), state_prices_copy_v(e), tarrif_mask_v(g) {}
 
 		/*template<typename T>
-		__forceinline void prefetch(T executor) {
+		RELEASE_INLINE void prefetch(T executor) {
 			ve::nt_prefetch(executor, state_prices_copy_v);
 			ve::nt_prefetch(executor, tarrif_mask_v);
 			ve::nt_prefetch(executor, distance_vector_v);
@@ -1216,7 +1216,7 @@ namespace economy {
 		}*/
 
 		template<typename T>
-		__forceinline void operator()(T executor) {
+		RELEASE_INLINE void operator()(T executor) {
 			//ve::nt_prefetch<prefetch_constant_a>(executor, state_prices_copy_v);
 			//ve::nt_prefetch<prefetch_constant_a>(executor, tarrif_mask_v);
 			//ve::nt_prefetch<prefetch_constant_a>(executor, distance_vector_v);
@@ -1248,14 +1248,14 @@ namespace economy {
 			apparent_price_v(a), weightings_v(b), state_production_copy_v(f) {}
 
 		/*template<typename T>
-		__forceinline void prefetch(T executor) {
+		RELEASE_INLINE void prefetch(T executor) {
 			ve::prefetch(executor, apparent_price_v);
 			ve::nt_prefetch(executor, weightings_v);
 			ve::nt_prefetch(executor, state_production_copy_v);
 		}*/
 
 		template<typename T>
-		__forceinline void operator()(T executor) {
+		RELEASE_INLINE void operator()(T executor) {
 			//ve::prefetch<prefetch_constant_a>(executor, apparent_price_v);
 			//ve::nt_prefetch<prefetch_constant_a>(executor, weightings_v);
 			//ve::nt_prefetch<prefetch_constant_a>(executor, state_production_copy_v);
@@ -1281,7 +1281,7 @@ namespace economy {
 			global_demand_by_state_v(a), apparent_price_v(b), state_prices_copy_v(c), values_v(d), tarrif_mask_v(e), state_owner_tarrifs(f) {}
 
 		/*template<typename T>
-		__forceinline void prefetch(T executor) {
+		RELEASE_INLINE void prefetch(T executor) {
 			ve::prefetch(executor, apparent_price_v);
 			ve::nt_prefetch(executor, state_prices_copy_v);
 			ve::nt_prefetch(executor, values_v);
@@ -1290,7 +1290,7 @@ namespace economy {
 		}*/
 
 		template<typename T>
-		__forceinline void operator()(T executor) {
+		RELEASE_INLINE void operator()(T executor) {
 			//ve::prefetch<prefetch_constant_a>(executor, apparent_price_v);
 			//ve::nt_prefetch<prefetch_constant_a>(executor, state_prices_copy_v);
 			//ve::nt_prefetch<prefetch_constant_a>(executor, values_v);
@@ -1326,7 +1326,7 @@ namespace economy {
 			global_demand_by_state_v(a), apparent_price_v(b), state_prices_copy_v(c), values_v(d), tarrif_mask_v(e), state_owner_tarrifs(f), money_spent_values(h) {}
 
 		/*template<typename T>
-		__forceinline void prefetch(T executor) {
+		RELEASE_INLINE void prefetch(T executor) {
 			ve::prefetch(executor, apparent_price_v);
 			ve::nt_prefetch(executor, state_prices_copy_v);
 			ve::nt_prefetch(executor, values_v);
@@ -1335,7 +1335,7 @@ namespace economy {
 		}*/
 
 		template<typename T>
-		__forceinline void operator()(T executor) {
+		RELEASE_INLINE void operator()(T executor) {
 			//ve::prefetch<prefetch_constant_a>(executor, apparent_price_v);
 			//ve::nt_prefetch<prefetch_constant_a>(executor, state_prices_copy_v);
 			//ve::nt_prefetch<prefetch_constant_a>(executor, values_v);
@@ -1373,7 +1373,7 @@ namespace economy {
 			distance_vector(a), tariff_mask(b), global_demand_by_state(c), state_production_copy(d), values(e), state_owner_tariffs(f) {}
 
 		/*template<typename T>
-		__forceinline void prefetch(T executor) {
+		RELEASE_INLINE void prefetch(T executor) {
 			ve::prefetch(executor, distance_vector);
 			ve::prefetch(executor, tariff_mask);
 			ve::prefetch(executor, global_demand_by_state);
@@ -1382,7 +1382,7 @@ namespace economy {
 		}*/
 
 		template<typename T>
-		__forceinline void operator()(T executor) {
+		RELEASE_INLINE void operator()(T executor) {
 			//ve::prefetch<prefetch_constant_a>(executor, distance_vector);
 			//ve::prefetch<prefetch_constant_a>(executor, tariff_mask);
 			//ve::prefetch<prefetch_constant_a>(executor, global_demand_by_state);
@@ -2020,7 +2020,7 @@ namespace economy {
 		{ }
 
 		template<typename T>
-		__forceinline void operator()(T executor) {
+		RELEASE_INLINE void operator()(T executor) {
 			auto indices = ve::load(executor, pop_ids);
 			auto money_source = ve::load(executor, money);
 			auto satisfaction_source = ve::load(executor, satisfaction);

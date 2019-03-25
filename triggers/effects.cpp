@@ -12,6 +12,7 @@
 #include "issues\\issues_functions.h"
 #include "technologies\\technologies_functions.h"
 #include "economy\\economy_functions.h"
+#include "events\\event_functions.h"
 
 namespace triggers {
 	int32_t get_effect_payload_size(const uint16_t* data) {
@@ -1754,7 +1755,7 @@ namespace triggers {
 		void ef_reduce_pop(EFFECT_PARAMTERS) {
 			population::change_pop_size(
 				ws, to_pop(primary_slot), 
-				int32_t(ws.w.population_s.pops.get<pop::size>(to_pop(primary_slot)) * read_float_from_payload(tval + 2)));
+				std::max(1, int32_t(ws.w.population_s.pops.get<pop::size>(to_pop(primary_slot)) * read_float_from_payload(tval + 2))));
 		}
 		void ef_move_pop(EFFECT_PARAMTERS) {
 			population::change_pop_location(ws, to_pop(primary_slot), provinces::province_tag(tval[2]));

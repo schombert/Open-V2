@@ -18,6 +18,12 @@
 namespace triggers {
 	using effect_value = std::variant<std::monostate, int32_t, float, trigger_payload>;
 
+	template<typename T>
+	inline T assert_valid(T v) {
+		assert(is_valid_index(v));
+		return v;
+	}
+
 	struct capital_effect {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::nation)
@@ -919,9 +925,9 @@ namespace triggers {
 		}
 		static effect_value read_value(const token_and_type& t, scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
 			return trigger_payload(
-				tag_from_text(
+				assert_valid(tag_from_text(
 					s.modifiers_m.named_provincial_modifiers_index,
-					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end))));
 		}
 	};
 	struct remove_country_modifier_effect {
@@ -933,9 +939,9 @@ namespace triggers {
 		}
 		static effect_value read_value(const token_and_type& t, scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
 			return trigger_payload(
-				tag_from_text(
+				assert_valid(tag_from_text(
 					s.modifiers_m.named_national_modifiers_index,
-					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end))));
 		}
 	};
 	struct create_alliance_effect {
@@ -1056,9 +1062,9 @@ namespace triggers {
 		}
 		static effect_value read_value(const token_and_type& t, scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
 			return trigger_payload(
-				tag_from_text(
+				assert_valid(tag_from_text(
 					s.modifiers_m.named_national_modifiers_index,
-					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end))));
 		}
 	};
 	struct civilized_effect {
@@ -1259,9 +1265,9 @@ namespace triggers {
 		}
 		static effect_value read_value(const token_and_type& t, scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
 			return trigger_payload(
-				tag_from_text(
+				assert_valid(tag_from_text(
 					s.modifiers_m.named_provincial_modifiers_index,
-					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end))));
 		}
 	};
 	struct nationalize_effect {
@@ -1425,9 +1431,9 @@ namespace triggers {
 		}
 		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
 			return trigger_payload(
-				tag_from_text(
+				assert_valid(tag_from_text(
 					s.modifiers_m.named_provincial_modifiers_index,
-					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end))));
 		}
 	};
 	struct add_country_modifier_effect {
@@ -1439,9 +1445,9 @@ namespace triggers {
 		}
 		static effect_value read_value(const token_and_type& t, const scenario::scenario_manager& s, const trigger_scope_state&, events::event_creation_manager&) {
 			return trigger_payload(
-				tag_from_text(
+				assert_valid(tag_from_text(
 					s.modifiers_m.named_national_modifiers_index,
-					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end)));
+					text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, t.start, t.end))));
 		}
 	};
 
@@ -2197,9 +2203,9 @@ namespace triggers {
 		add_province_modifier_complex_effect(effect_parsing_environment& e) : env(e) {}
 
 		void set_name(const token_and_type& t) {
-			name = tag_from_text(
+			name = assert_valid(tag_from_text(
 				env.s.modifiers_m.named_provincial_modifiers_index,
-				text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end));
+				text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 
 		void finalize() const {
@@ -2228,9 +2234,9 @@ namespace triggers {
 		add_country_modifier_complex_effect(effect_parsing_environment& e) : env(e) {}
 
 		void set_name(const token_and_type& t) {
-			name = tag_from_text(
+			name = assert_valid(tag_from_text(
 				env.s.modifiers_m.named_national_modifiers_index,
-				text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end));
+				text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end)));
 		}
 
 		void finalize() const {
@@ -2270,8 +2276,6 @@ namespace triggers {
 		bool this_target = false;
 		cultures::national_tag target_tag;
 		military::cb_type_tag type;
-
-		modifiers::national_modifier_tag name;
 
 		casus_belli_effect(effect_parsing_environment& e) : env(e) {}
 
@@ -2349,7 +2353,6 @@ namespace triggers {
 		cultures::national_tag target_tag;
 		military::cb_type_tag type;
 
-		modifiers::national_modifier_tag name;
 
 		add_casus_belli_effect(effect_parsing_environment& e) : env(e) {}
 
@@ -2426,7 +2429,6 @@ namespace triggers {
 		cultures::national_tag target_tag;
 		military::cb_type_tag type;
 
-		modifiers::national_modifier_tag name;
 
 		remove_casus_belli_effect(effect_parsing_environment& e) : env(e) {}
 
@@ -2499,7 +2501,6 @@ namespace triggers {
 		cultures::national_tag target_tag;
 		military::cb_type_tag type;
 
-		modifiers::national_modifier_tag name;
 
 		this_remove_casus_belli_effect(effect_parsing_environment& e) : env(e) {}
 
@@ -2595,8 +2596,6 @@ namespace triggers {
 		bool from_target = false;
 		bool this_target = false;
 		bool call_ally = false;
-
-		modifiers::national_modifier_tag name;
 
 		war_effect(effect_parsing_environment& e) : env(e) {}
 

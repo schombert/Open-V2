@@ -11,6 +11,7 @@
 #include <ppl.h>
 #include "economy\\economy_functions.h"
 #include "concurrency_tools\\ve.h"
+#include "events\\event_functions.h"
 
 namespace nations {
 	

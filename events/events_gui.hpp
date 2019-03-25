@@ -139,9 +139,9 @@ namespace events {
 
 	class province_event_window_t : public ui::gui_window <
 		CT_STRING("event_images"), ui::dynamic_icon<hidden_image>,
-		CT_STRING("Title"), ui::display_text<province_event_title>,
+		CT_STRING("Title"), ui::display_text<province_event_title, -280>,
 		CT_STRING("Date"), ui::display_text<hidden_text>,
-		CT_STRING("Province"), ui::display_text<province_event_location>,
+		CT_STRING("Province"), ui::display_text<province_event_location, -95>,
 		CT_STRING("Description"), ui::multiline_text<province_event_body>,
 		CT_STRING("Event_Province_OptionButton"), ui::simple_button<hidden_button>,
 		province_event_window_base
@@ -183,7 +183,7 @@ namespace events {
 				std::end(ws.s.event_m.event_container[e].options),
 				[](event_option const& opt) { return is_valid_index(opt.name); });
 			for(int32_t i = 0; i < num_options; ++i) {
-				possible_list.emplace_back(ws.w.province_event_w.displayed_event, i);
+				possible_list.emplace_back(ws.w.nation_event_w.displayed_event, i);
 			}
 		}
 
@@ -239,7 +239,7 @@ namespace events {
 				std::end(ws.s.event_m.event_container[e].options),
 				[](event_option const& opt) { return is_valid_index(opt.name); });
 			for(int32_t i = 0; i < num_options; ++i) {
-				possible_list.emplace_back(ws.w.province_event_w.displayed_event, i);
+				possible_list.emplace_back(ws.w.major_event_w.displayed_event, i);
 			}
 		}
 
@@ -266,6 +266,7 @@ namespace events {
 
 	template<typename W>
 	void province_event_window_base::on_create(W & w, world_state & ws) {
+		associated_object->size = ui::xy_pair{370i16,540i16};
 		auto lb_tag = std::get<ui::listbox_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_province_event_list"]);
 
 		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
@@ -273,13 +274,14 @@ namespace events {
 			ui::tagged_gui_object{ *associated_object, w.window_object },
 			options));
 
-		options.associated_object->position = ui::xy_pair{ 28i16,513i16 };
+		options.associated_object->position = ui::xy_pair{ 28i16,400i16 };
 
 		ui::hide(*associated_object);
 	}
 
 	template<typename W>
 	void nation_event_window_base::on_create(W & w, world_state & ws) {
+		associated_object->size = ui::xy_pair{ 585i16,705i16 };
 		auto lb_tag = std::get<ui::listbox_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_nation_event_list"]);
 
 		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
@@ -294,6 +296,7 @@ namespace events {
 
 	template<typename W>
 	void major_event_window_base::on_create(W & w, world_state & ws) {
+		associated_object->size = ui::xy_pair{ 640i16,685i16 };
 		auto lb_tag = std::get<ui::listbox_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_nation_event_list"]);
 
 		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
@@ -303,7 +306,9 @@ namespace events {
 
 		options.associated_object->position = ui::xy_pair{ 68i16,510i16 };
 
-		ui::hide(*associated_object);
+		w.get<CT_STRING("country_flag1")>().associated_object->position += ui::xy_pair{ 21i16, -23i16 };
+		w.get<CT_STRING("country_flag2")>().associated_object->position += ui::xy_pair{ 21i16, -23i16 };
+		//ui::hide(*associated_object);
 	}
 
 	template<typename window_type>
