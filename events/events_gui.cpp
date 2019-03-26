@@ -4,6 +4,8 @@
 #include "provinces\provinces_io.h"
 #include "triggers\trigger_gui.h"
 #include "event_functions.h"
+#include "modifiers\modifiers_gui.h"
+#include "modifiers\modifier_functions.h"
 
 namespace events {
 
@@ -109,7 +111,7 @@ namespace events {
 			ui::add_multiline_text(
 				ui::xy_pair{ 0, 0 },
 				ws.s.event_m.event_container[e].body,
-				fmt,
+				ui::text_format{ fmt.color, graphics::font_tag(1), fmt.font_size },
 				ws.s.gui_m,
 				ws.w.gui_m,
 				box,
@@ -445,7 +447,7 @@ namespace events {
 			ui::add_multiline_text(
 				ui::xy_pair{ 0, 0 },
 				ws.s.event_m.event_container[e].body,
-				fmt,
+				ui::text_format{ fmt.color, graphics::font_tag(1), fmt.font_size },
 				ws.s.gui_m,
 				ws.w.gui_m,
 				box,
@@ -528,7 +530,7 @@ namespace events {
 			ui::add_multiline_text(
 				ui::xy_pair{ 0, 0 },
 				ws.s.event_m.event_container[e].body,
-				fmt,
+				ui::text_format{ fmt.color, graphics::font_tag(1), fmt.font_size },
 				ws.s.gui_m,
 				ws.w.gui_m,
 				box,
@@ -542,5 +544,224 @@ namespace events {
 
 	void major_event_flag::update(ui::masked_flag<major_event_flag>& self, world_state& ws) {
 		self.set_displayed_flag(ws, ws.w.local_player_nation);
+	}
+	void province_event_info::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		if(auto const e = ws.w.province_event_w.displayed_event.e; e) {
+			ui::unlimited_line_manager lm;
+			triggers::make_trigger_description(
+				ws,
+				tw,
+				ui::xy_pair{0, 0},
+				lm,
+				ui::tooltip_text_format,
+				ws.s.trigger_m.trigger_data.data() + to_index(ws.s.event_m.event_container[e].trigger),
+				to_trigger_param(ws.w.province_event_w.displayed_event.event_for),
+				to_trigger_param(ws.w.province_event_w.displayed_event.event_for),
+				to_trigger_param(ws.w.province_event_w.displayed_event.event_from));
+		}
+	}
+	void province_event_odds::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		if(auto const e = ws.w.province_event_w.displayed_event.e; e) {
+			if(auto const chance_tag = ws.s.event_m.event_container[e].mean_time_to_happen; chance_tag) {
+				ui::unlimited_line_manager lm;
+				ui::xy_pair cursor{ 0,0 };
+				cursor = ui::add_linear_text(
+					cursor,
+					ws.s.fixed_ui_text[scenario::fixed_ui::monthly_chance],
+					ui::tooltip_text_format,
+					ws.s.gui_m,
+					ws.w.gui_m,
+					tw,
+					lm);
+
+				cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+
+
+				auto const value = modifiers::test_multiplicative_factor(
+					chance_tag,
+					ws,
+					to_trigger_param(ws.w.province_event_w.displayed_event.event_for),
+					to_trigger_param(ws.w.province_event_w.displayed_event.event_from));
+
+				auto base_chance = 2.0f / ve::max(value, 2.0f);
+				auto neg_chance = 1.0f - base_chance;
+				auto neg_chance_2 = neg_chance * neg_chance;
+				auto neg_chance_4 = neg_chance_2 * neg_chance_2;
+				auto neg_chance_8 = neg_chance_4 * neg_chance_4;
+				auto neg_chance_16 = neg_chance_8 * neg_chance_8;
+
+				const float chance = 1.0f - neg_chance_16;
+
+				static char16_t buffer[16];
+				put_value_in_buffer(buffer, display_type::percent_fp_one_place, chance);
+
+				cursor = ui::text_chunk_to_instances(
+					ws.s.gui_m,
+					ws.w.gui_m,
+					vector_backed_string<char16_t>(buffer),
+					tw,
+					cursor,
+					ui::tooltip_text_format,
+					lm);
+
+				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
+				modifiers::make_multiplicative_factor_explanation_in_days(
+					ws.s.modifiers_m.factor_modifiers[chance_tag],
+					ws,
+					tw,
+					cursor,
+					lm,
+					ui::tooltip_text_format,
+					to_trigger_param(ws.w.province_event_w.displayed_event.event_for),
+					to_trigger_param(ws.w.province_event_w.displayed_event.event_from)
+				);
+			}
+		}
+	}
+	void nation_event_info::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		if(auto const e = ws.w.nation_event_w.displayed_event.e; e) {
+			ui::unlimited_line_manager lm;
+			triggers::make_trigger_description(
+				ws,
+				tw,
+				ui::xy_pair{ 0, 0 },
+				lm,
+				ui::tooltip_text_format,
+				ws.s.trigger_m.trigger_data.data() + to_index(ws.s.event_m.event_container[e].trigger),
+				to_trigger_param(ws.w.nation_event_w.displayed_event.event_for),
+				to_trigger_param(ws.w.nation_event_w.displayed_event.event_for),
+				to_trigger_param(ws.w.nation_event_w.displayed_event.event_from));
+		}
+	}
+	void nation_event_odds::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		if(auto const e = ws.w.nation_event_w.displayed_event.e; e) {
+			if(auto const chance_tag = ws.s.event_m.event_container[e].mean_time_to_happen; chance_tag) {
+				ui::unlimited_line_manager lm;
+				ui::xy_pair cursor{ 0,0 };
+				cursor = ui::add_linear_text(
+					cursor,
+					ws.s.fixed_ui_text[scenario::fixed_ui::monthly_chance],
+					ui::tooltip_text_format,
+					ws.s.gui_m,
+					ws.w.gui_m,
+					tw,
+					lm);
+
+				cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+
+
+				auto const value = modifiers::test_multiplicative_factor(
+					chance_tag,
+					ws,
+					to_trigger_param(ws.w.nation_event_w.displayed_event.event_for),
+					to_trigger_param(ws.w.nation_event_w.displayed_event.event_from));
+
+				auto base_chance = 1.0f / ve::max(value, 2.0f);
+				auto neg_chance = 1.0f - base_chance;
+				auto neg_chance_2 = neg_chance * neg_chance;
+				auto neg_chance_4 = neg_chance_2 * neg_chance_2;
+				auto neg_chance_8 = neg_chance_4 * neg_chance_4;
+				auto neg_chance_16 = neg_chance_8 * neg_chance_8;
+
+				const float chance = 1.0f - neg_chance_16;
+
+				static char16_t buffer[16];
+				put_value_in_buffer(buffer, display_type::percent_fp_one_place, chance);
+
+				cursor = ui::text_chunk_to_instances(
+					ws.s.gui_m,
+					ws.w.gui_m,
+					vector_backed_string<char16_t>(buffer),
+					tw,
+					cursor,
+					ui::tooltip_text_format,
+					lm);
+
+				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
+				modifiers::make_multiplicative_factor_explanation_in_days(
+					ws.s.modifiers_m.factor_modifiers[chance_tag],
+					ws,
+					tw,
+					cursor,
+					lm,
+					ui::tooltip_text_format,
+					to_trigger_param(ws.w.nation_event_w.displayed_event.event_for),
+					to_trigger_param(ws.w.nation_event_w.displayed_event.event_from)
+				);
+			}
+		}
+	}
+	void major_event_info::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		if(auto const e = ws.w.major_event_w.displayed_event.e; e) {
+			ui::unlimited_line_manager lm;
+			triggers::make_trigger_description(
+				ws,
+				tw,
+				ui::xy_pair{ 0, 0 },
+				lm,
+				ui::tooltip_text_format,
+				ws.s.trigger_m.trigger_data.data() + to_index(ws.s.event_m.event_container[e].trigger),
+				to_trigger_param(ws.w.major_event_w.displayed_event.event_for),
+				to_trigger_param(ws.w.major_event_w.displayed_event.event_for),
+				to_trigger_param(ws.w.major_event_w.displayed_event.event_from));
+		}
+	}
+	void major_event_odds::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		if(auto const e = ws.w.major_event_w.displayed_event.e; e) {
+			if(auto const chance_tag = ws.s.event_m.event_container[e].mean_time_to_happen; chance_tag) {
+				ui::unlimited_line_manager lm;
+				ui::xy_pair cursor{ 0,0 };
+				cursor = ui::add_linear_text(
+					cursor,
+					ws.s.fixed_ui_text[scenario::fixed_ui::monthly_chance],
+					ui::tooltip_text_format,
+					ws.s.gui_m,
+					ws.w.gui_m,
+					tw,
+					lm);
+
+				cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+
+
+				auto const value = modifiers::test_multiplicative_factor(
+					chance_tag,
+					ws,
+					to_trigger_param(ws.w.major_event_w.displayed_event.event_for),
+					to_trigger_param(ws.w.major_event_w.displayed_event.event_from));
+
+				auto base_chance = 1.0f / ve::max(value, 2.0f);
+				auto neg_chance = 1.0f - base_chance;
+				auto neg_chance_2 = neg_chance * neg_chance;
+				auto neg_chance_4 = neg_chance_2 * neg_chance_2;
+				auto neg_chance_8 = neg_chance_4 * neg_chance_4;
+				auto neg_chance_16 = neg_chance_8 * neg_chance_8;
+
+				const float chance = 1.0f - neg_chance_16;
+
+				static char16_t buffer[16];
+				put_value_in_buffer(buffer, display_type::percent_fp_one_place, chance);
+
+				cursor = ui::text_chunk_to_instances(
+					ws.s.gui_m,
+					ws.w.gui_m,
+					vector_backed_string<char16_t>(buffer),
+					tw,
+					cursor,
+					ui::tooltip_text_format,
+					lm);
+
+				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
+				modifiers::make_multiplicative_factor_explanation_in_days(
+					ws.s.modifiers_m.factor_modifiers[chance_tag],
+					ws,
+					tw,
+					cursor,
+					lm,
+					ui::tooltip_text_format,
+					to_trigger_param(ws.w.major_event_w.displayed_event.event_for),
+					to_trigger_param(ws.w.major_event_w.displayed_event.event_from)
+				);
+			}
+		}
 	}
 }

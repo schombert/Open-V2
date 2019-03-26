@@ -181,7 +181,7 @@ struct union_tag {
 	using zero_is_null_t = std::true_type;
 
 	constexpr union_tag() : value(0) {}
-	constexpr explicit union_tag(int32_t v) : value(v) {}
+	constexpr explicit union_tag(int32_t v) : value(v + 1) {}
 	constexpr union_tag(const union_tag& v) noexcept = default;
 	constexpr union_tag(union_tag&& v) noexcept = default;
 	constexpr union_tag(int32_t v, std::true_type) noexcept : value(v) {}

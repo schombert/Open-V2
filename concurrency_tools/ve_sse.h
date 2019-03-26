@@ -185,7 +185,7 @@ namespace ve {
 		}
 
 		RELEASE_INLINE union_tag operator[](uint32_t i) const noexcept {
-			return union_tag(value.m128i_i32[i]);
+			return union_tag(value.m128i_i32[i], std::true_type());
 		}
 		RELEASE_INLINE void set(uint32_t i, union_tag v) noexcept {
 			value.m128i_i32[i] = v.value;

@@ -268,7 +268,8 @@ namespace messages {
 
 	void message_body::update(ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		if(ws.w.message_w.displayed_messages[ws.w.message_w.currently_displayed_index].func != nullptr) {
-			ws.w.message_w.displayed_messages[ws.w.message_w.currently_displayed_index].func(ws, box, lm, fmt);
+			auto revised_format = ui::text_format{ fmt.color, graphics::font_tag(1), fmt.font_size };
+			ws.w.message_w.displayed_messages[ws.w.message_w.currently_displayed_index].func(ws, box, lm, revised_format);
 		}
 	}
 

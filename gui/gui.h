@@ -775,10 +775,13 @@ namespace ui {
 		static constexpr uint16_t display_as_disabled = 0x4000;
 		static constexpr uint16_t interactable = 0x8000;
 
-		static constexpr uint16_t rotation_mask = 0x0030;
+		static constexpr uint16_t rotation_mask = 0x0070;
 		static constexpr uint16_t rotation_upright = 0x0000;
 		static constexpr uint16_t rotation_right = 0x0010;
 		static constexpr uint16_t rotation_left = 0x0020;
+		static constexpr uint16_t rotation_upright_vertical_flipped = 0x0040;
+		static constexpr uint16_t rotation_right_vertical_flipped = 0x0050;
+		static constexpr uint16_t rotation_left_vertical_flipped = 0x0060;
 
 		static constexpr uint16_t type_mask = 0x000F;
 		static constexpr uint16_t type_none = 0x0000;

@@ -288,6 +288,9 @@ namespace graphics {
 	static GLuint global_sqaure_buffer = 0;
 	static GLuint global_sqaure_right_buffer = 0;
 	static GLuint global_sqaure_left_buffer = 0;
+	static GLuint global_sqaure_flipped_buffer = 0;
+	static GLuint global_sqaure_right_flipped_buffer = 0;
+	static GLuint global_sqaure_left_flipped_buffer = 0;
 
 	static GLfloat global_square_data[] = {
 		0.0f, 0.0f, 0.0f, 0.0f,
@@ -308,6 +311,28 @@ namespace graphics {
 		0.0f, 1.0f, 0.0f, 0.0f,
 		1.0f, 1.0f, 0.0f, 1.0f,
 		1.0f, 0.0f, 1.0f, 1.0f
+	};
+
+
+	static GLfloat global_square_flipped_data[] = {
+		0.0f, 0.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		1.0f, 1.0f, 1.0f, 0.0f,
+		1.0f, 0.0f, 1.0f, 1.0f
+	};
+
+	static GLfloat global_square_right_flipped_data[] = {
+		0.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 1.0f, 0.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 0.0f, 0.0f, 1.0f
+	};
+
+	static GLfloat global_square_left_flipped_data[] = {
+		0.0f, 0.0f, 1.0f, 1.0f,
+		0.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 1.0f, 0.0f
 	};
 
 	static GLuint sub_sqaure_buffers[64] = { 0 };
@@ -339,6 +364,19 @@ namespace graphics {
 		glGenBuffers(1, &global_sqaure_right_buffer);
 		glBindBuffer(GL_ARRAY_BUFFER, global_sqaure_right_buffer);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_right_data, GL_STATIC_DRAW);
+
+
+		glGenBuffers(1, &global_sqaure_right_flipped_buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, global_sqaure_right_flipped_buffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_right_flipped_data, GL_STATIC_DRAW);
+
+		glGenBuffers(1, &global_sqaure_left_flipped_buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, global_sqaure_left_flipped_buffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_left_flipped_data, GL_STATIC_DRAW);
+
+		glGenBuffers(1, &global_sqaure_flipped_buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, global_sqaure_flipped_buffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_flipped_data, GL_STATIC_DRAW);
 
 
 		glGenBuffers(64, sub_sqaure_buffers);
@@ -699,6 +737,12 @@ namespace graphics {
 				glBindVertexBuffer(0, global_sqaure_left_buffer, 0, sizeof(GLfloat) * 4); break;
 			case rotation::right:
 				glBindVertexBuffer(0, global_sqaure_right_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::upright_vertical_flipped:
+				glBindVertexBuffer(0, global_sqaure_flipped_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::left_vertical_flipped:
+				glBindVertexBuffer(0, global_sqaure_left_flipped_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::right_vertical_flipped:
+				glBindVertexBuffer(0, global_sqaure_right_flipped_buffer, 0, sizeof(GLfloat) * 4); break;
 		}
 
 
@@ -730,13 +774,19 @@ namespace graphics {
 	void open_gl_wrapper::render_barchart(color_modification enabled, float x, float y, float width, float height, data_texture& t, rotation r) {
 		glBindVertexArray(global_square_vao);
 
-		switch (r) {
+		switch(r) {
 			case rotation::upright:
 				glBindVertexBuffer(0, global_sqaure_buffer, 0, sizeof(GLfloat) * 4); break;
 			case rotation::left:
 				glBindVertexBuffer(0, global_sqaure_left_buffer, 0, sizeof(GLfloat) * 4); break;
 			case rotation::right:
 				glBindVertexBuffer(0, global_sqaure_right_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::upright_vertical_flipped:
+				glBindVertexBuffer(0, global_sqaure_flipped_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::left_vertical_flipped:
+				glBindVertexBuffer(0, global_sqaure_left_flipped_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::right_vertical_flipped:
+				glBindVertexBuffer(0, global_sqaure_right_flipped_buffer, 0, sizeof(GLfloat) * 4); break;
 		}
 
 
@@ -770,13 +820,19 @@ namespace graphics {
 	void open_gl_wrapper::render_bordered_rect(color_modification enabled, float border_size, float x, float y, float width, float height, texture& t, rotation r) {
 		glBindVertexArray(global_square_vao);
 
-		switch (r) {
+		switch(r) {
 			case rotation::upright:
 				glBindVertexBuffer(0, global_sqaure_buffer, 0, sizeof(GLfloat) * 4); break;
 			case rotation::left:
 				glBindVertexBuffer(0, global_sqaure_left_buffer, 0, sizeof(GLfloat) * 4); break;
 			case rotation::right:
 				glBindVertexBuffer(0, global_sqaure_right_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::upright_vertical_flipped:
+				glBindVertexBuffer(0, global_sqaure_flipped_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::left_vertical_flipped:
+				glBindVertexBuffer(0, global_sqaure_left_flipped_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::right_vertical_flipped:
+				glBindVertexBuffer(0, global_sqaure_right_flipped_buffer, 0, sizeof(GLfloat) * 4); break;
 		}
 
 
@@ -795,13 +851,19 @@ namespace graphics {
 	void open_gl_wrapper::render_masked_rect(color_modification enabled, float x, float y, float width, float height, texture& t, texture& mask, rotation r) {
 		glBindVertexArray(global_square_vao);
 
-		switch (r) {
+		switch(r) {
 			case rotation::upright:
 				glBindVertexBuffer(0, global_sqaure_buffer, 0, sizeof(GLfloat) * 4); break;
 			case rotation::left:
 				glBindVertexBuffer(0, global_sqaure_left_buffer, 0, sizeof(GLfloat) * 4); break;
 			case rotation::right:
 				glBindVertexBuffer(0, global_sqaure_right_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::upright_vertical_flipped:
+				glBindVertexBuffer(0, global_sqaure_flipped_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::left_vertical_flipped:
+				glBindVertexBuffer(0, global_sqaure_left_flipped_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::right_vertical_flipped:
+				glBindVertexBuffer(0, global_sqaure_right_flipped_buffer, 0, sizeof(GLfloat) * 4); break;
 		}
 
 
@@ -821,13 +883,19 @@ namespace graphics {
 	void open_gl_wrapper::render_progress_bar(color_modification enabled, float progress, float x, float y, float width, float height, texture& left, texture& right, rotation r) {
 		glBindVertexArray(global_square_vao);
 
-		switch (r) {
+		switch(r) {
 			case rotation::upright:
 				glBindVertexBuffer(0, global_sqaure_buffer, 0, sizeof(GLfloat) * 4); break;
 			case rotation::left:
 				glBindVertexBuffer(0, global_sqaure_left_buffer, 0, sizeof(GLfloat) * 4); break;
 			case rotation::right:
 				glBindVertexBuffer(0, global_sqaure_right_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::upright_vertical_flipped:
+				glBindVertexBuffer(0, global_sqaure_flipped_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::left_vertical_flipped:
+				glBindVertexBuffer(0, global_sqaure_left_flipped_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::right_vertical_flipped:
+				glBindVertexBuffer(0, global_sqaure_right_flipped_buffer, 0, sizeof(GLfloat) * 4); break;
 		}
 
 
@@ -855,6 +923,12 @@ namespace graphics {
 				glBindVertexBuffer(0, global_sqaure_left_buffer, 0, sizeof(GLfloat) * 4); break;
 			case rotation::right:
 				glBindVertexBuffer(0, global_sqaure_right_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::upright_vertical_flipped:
+				glBindVertexBuffer(0, global_sqaure_flipped_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::left_vertical_flipped:
+				glBindVertexBuffer(0, global_sqaure_left_flipped_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::right_vertical_flipped:
+				glBindVertexBuffer(0, global_sqaure_right_flipped_buffer, 0, sizeof(GLfloat) * 4); break;
 		}
 
 		glUniform3f(parameters::inner_color, r, g, b);
@@ -872,13 +946,19 @@ namespace graphics {
 	void open_gl_wrapper::render_subsprite(color_modification enabled, int frame, int total_frames, float x, float y, float width, float height, texture& t, rotation r) {
 		glBindVertexArray(global_square_vao);
 
-		switch (r) {
+		switch(r) {
 			case rotation::upright:
 				glBindVertexBuffer(0, global_sqaure_buffer, 0, sizeof(GLfloat) * 4); break;
 			case rotation::left:
 				glBindVertexBuffer(0, global_sqaure_left_buffer, 0, sizeof(GLfloat) * 4); break;
 			case rotation::right:
 				glBindVertexBuffer(0, global_sqaure_right_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::upright_vertical_flipped:
+				glBindVertexBuffer(0, global_sqaure_flipped_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::left_vertical_flipped:
+				glBindVertexBuffer(0, global_sqaure_left_flipped_buffer, 0, sizeof(GLfloat) * 4); break;
+			case rotation::right_vertical_flipped:
+				glBindVertexBuffer(0, global_sqaure_right_flipped_buffer, 0, sizeof(GLfloat) * 4); break;
 		}
 
 		const auto scale = 1.0f / static_cast<float>(total_frames);

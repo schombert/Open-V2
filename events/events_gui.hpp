@@ -129,9 +129,26 @@ namespace events {
 		option_item_base
 	>;
 
+	class province_event_info {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<province_event_info>& self, window_type& win, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+	};
+	class province_event_odds {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<province_event_odds>& self, window_type& win, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+	};
+
 	class province_event_window_base : public ui::draggable_region {
 	public:
 		ui::discrete_listbox<province_options_listbox, option_item, event_option_pair> options;
+		ui::dynamic_icon<province_event_info> event_info;
+		ui::dynamic_icon<province_event_odds> event_odds;
 
 		template<typename W>
 		void on_create(W& w, world_state& ws);
@@ -190,9 +207,26 @@ namespace events {
 		lb.new_list(possible_list.begin().get_ptr(), possible_list.end().get_ptr());
 	}
 
+	class nation_event_info {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<nation_event_info>& self, window_type& win, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+	};
+	class nation_event_odds {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<nation_event_odds>& self, window_type& win, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+	};
+
 	class nation_event_window_base : public ui::draggable_region {
 	public:
 		ui::discrete_listbox<nation_options_listbox, option_item, event_option_pair> options;
+		ui::dynamic_icon<nation_event_info> event_info;
+		ui::dynamic_icon<nation_event_odds> event_odds;
 
 		template<typename W>
 		void on_create(W& w, world_state& ws);
@@ -246,9 +280,27 @@ namespace events {
 		lb.new_list(possible_list.begin().get_ptr(), possible_list.end().get_ptr());
 	}
 
+	class major_event_info {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<major_event_info>& self, window_type& win, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+	};
+	class major_event_odds {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<major_event_odds>& self, window_type& win, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+	};
+
+
 	class major_event_window_base : public ui::draggable_region {
 	public:
 		ui::discrete_listbox<major_options_listbox, option_item, event_option_pair> options;
+		ui::dynamic_icon<major_event_info> event_info;
+		ui::dynamic_icon<major_event_odds> event_odds;
 
 		template<typename W>
 		void on_create(W& w, world_state& ws);
@@ -267,14 +319,31 @@ namespace events {
 	template<typename W>
 	void province_event_window_base::on_create(W & w, world_state & ws) {
 		associated_object->size = ui::xy_pair{370i16,540i16};
-		auto lb_tag = std::get<ui::listbox_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_province_event_list"]);
+		{
+			auto lb_tag = std::get<ui::listbox_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_province_event_list"]);
 
-		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
-			ws, lb_tag,
-			ui::tagged_gui_object{ *associated_object, w.window_object },
-			options));
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, lb_tag,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				options));
+			options.associated_object->position = ui::xy_pair{ 28i16,400i16 };
+		}
+		{
+			auto icon_tag = std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_info_icon"]);
 
-		options.associated_object->position = ui::xy_pair{ 28i16,400i16 };
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, icon_tag,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				event_info));
+		}
+		{
+			auto icon_tag = std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_odds_icon"]);
+
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, icon_tag,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				event_odds));
+		}
 
 		ui::hide(*associated_object);
 	}
@@ -282,14 +351,32 @@ namespace events {
 	template<typename W>
 	void nation_event_window_base::on_create(W & w, world_state & ws) {
 		associated_object->size = ui::xy_pair{ 585i16,705i16 };
-		auto lb_tag = std::get<ui::listbox_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_nation_event_list"]);
+		{
+			auto lb_tag = std::get<ui::listbox_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_nation_event_list"]);
 
-		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
-			ws, lb_tag,
-			ui::tagged_gui_object{ *associated_object, w.window_object },
-			options));
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, lb_tag,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				options));
 
-		options.associated_object->position = ui::xy_pair{ 40i16,528i16 };
+			options.associated_object->position = ui::xy_pair{ 40i16,528i16 };
+		}
+		{
+			auto icon_tag = std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_info_icon"]);
+
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, icon_tag,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				event_info));
+		}
+		{
+			auto icon_tag = std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_odds_icon"]);
+
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, icon_tag,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				event_odds));
+		}
 
 		ui::hide(*associated_object);
 	}
@@ -297,18 +384,36 @@ namespace events {
 	template<typename W>
 	void major_event_window_base::on_create(W & w, world_state & ws) {
 		associated_object->size = ui::xy_pair{ 640i16,685i16 };
-		auto lb_tag = std::get<ui::listbox_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_nation_event_list"]);
+		{
+			auto lb_tag = std::get<ui::listbox_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_nation_event_list"]);
 
-		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
-			ws, lb_tag,
-			ui::tagged_gui_object{ *associated_object, w.window_object },
-			options));
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, lb_tag,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				options));
 
-		options.associated_object->position = ui::xy_pair{ 68i16,510i16 };
+			options.associated_object->position = ui::xy_pair{ 68i16,510i16 };
+		}
+		{
+			auto icon_tag = std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_info_icon"]);
+
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, icon_tag,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				event_info));
+		}
+		{
+			auto icon_tag = std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_odds_icon"]);
+
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, icon_tag,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				event_odds));
+		}
 
 		w.get<CT_STRING("country_flag1")>().associated_object->position += ui::xy_pair{ 21i16, -23i16 };
 		w.get<CT_STRING("country_flag2")>().associated_object->position += ui::xy_pair{ 21i16, -23i16 };
-		//ui::hide(*associated_object);
+		ui::hide(*associated_object);
 	}
 
 	template<typename window_type>
@@ -325,6 +430,72 @@ namespace events {
 					gi->t = default_image;
 			}
 		}
+	}
+
+	template<typename window_type>
+	void province_event_odds::windowed_update(ui::dynamic_icon<province_event_odds>& self, window_type & win, world_state & ws) {
+		if(auto const e = ws.w.province_event_w.displayed_event.e; e) {
+			if(auto const chance_tag = ws.s.event_m.event_container[e].mean_time_to_happen; chance_tag) {
+				ui::make_visible_immediate(*self.associated_object);
+				return;
+			}
+		}
+		ui::hide(*self.associated_object);
+	}
+
+	template<typename window_type>
+	void province_event_info::windowed_update(ui::dynamic_icon<province_event_info>& self, window_type & win, world_state & ws) {
+		if(auto const e = ws.w.province_event_w.displayed_event.e; e) {
+			if(auto const t = ws.s.event_m.event_container[e].trigger; t) {
+				ui::make_visible_immediate(*self.associated_object);
+				return;
+			}
+		}
+		ui::hide(*self.associated_object);
+	}
+
+	template<typename window_type>
+	void nation_event_info::windowed_update(ui::dynamic_icon<nation_event_info>& self, window_type & win, world_state & ws) {
+		if(auto const e = ws.w.nation_event_w.displayed_event.e; e) {
+			if(auto const chance_tag = ws.s.event_m.event_container[e].mean_time_to_happen; chance_tag) {
+				ui::make_visible_immediate(*self.associated_object);
+				return;
+			}
+		}
+		ui::hide(*self.associated_object);
+	}
+
+	template<typename window_type>
+	void nation_event_odds::windowed_update(ui::dynamic_icon<nation_event_odds>& self, window_type & win, world_state & ws) {
+		if(auto const e = ws.w.nation_event_w.displayed_event.e; e) {
+			if(auto const t = ws.s.event_m.event_container[e].trigger; t) {
+				ui::make_visible_immediate(*self.associated_object);
+				return;
+			}
+		}
+		ui::hide(*self.associated_object);
+	}
+
+	template<typename window_type>
+	void major_event_info::windowed_update(ui::dynamic_icon<major_event_info>& self, window_type & win, world_state & ws) {
+		if(auto const e = ws.w.major_event_w.displayed_event.e; e) {
+			if(auto const chance_tag = ws.s.event_m.event_container[e].mean_time_to_happen; chance_tag) {
+				ui::make_visible_immediate(*self.associated_object);
+				return;
+			}
+		}
+		ui::hide(*self.associated_object);
+	}
+
+	template<typename window_type>
+	void major_event_odds::windowed_update(ui::dynamic_icon<major_event_odds>& self, window_type & win, world_state & ws) {
+		if(auto const e = ws.w.major_event_w.displayed_event.e; e) {
+			if(auto const t = ws.s.event_m.event_container[e].trigger; t) {
+				ui::make_visible_immediate(*self.associated_object);
+				return;
+			}
+		}
+		ui::hide(*self.associated_object);
 	}
 
 }

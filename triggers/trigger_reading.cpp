@@ -31,7 +31,7 @@ namespace triggers {
 			return uint16_t(trigger_codes::is_canal_enabled | association_to_bool_code(a));
 		}
 		static trigger_value read_value(const token_and_type& t, const scenario::scenario_manager& s) {
-			return trigger_payload(s.province_m.integer_to_province[token_to<uint16_t>(t)]);
+			return trigger_payload(token_to<uint16_t>(t));
 		}
 	};
 	struct month_trigger {

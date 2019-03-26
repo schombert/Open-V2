@@ -972,7 +972,7 @@ namespace governments {
 	template<typename window_type>
 	void decision_item_description::windowed_update(window_type & win, ui::tagged_gui_object box, ui::line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(win.tag)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.event_m.decision_container[win.tag].body, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.event_m.decision_container[win.tag].body, ui::text_format{ fmt.color, graphics::font_tag(1), fmt.font_size }, ws.s.gui_m, ws.w.gui_m, box, lm);
 			lm.finish_current_line();
 		}
 	}

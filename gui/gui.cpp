@@ -526,6 +526,9 @@ void ui::detail::instantiate_graphical_object(gui_static& static_manager, ui::gu
 	if (container.object.size == ui::xy_pair{ 0,0 })
 		container.object.size = ui::xy_pair{ graphic_object_def.size.x, graphic_object_def.size.y };
 
+	if((graphic_object_def.flags & graphics::object::flip_v) != 0)
+		container.object.flags.fetch_or(uint16_t(ui::gui_object::rotation_upright_vertical_flipped), std::memory_order_acq_rel);
+
 	if(force_tinted) {
 		if(is_valid_index(graphic_object_def.primary_texture_handle)) {
 			container.object.flags.fetch_or(ui::gui_object::type_tinted_icon, std::memory_order_acq_rel);
@@ -634,7 +637,7 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_static& static_man
 	const button_def& def = static_manager.ui_definitions.buttons[handle];
 	const auto new_gobj = manager.gui_objects.emplace();
 
-	const uint16_t rotation =
+	uint16_t rotation =
 		(def.flags & button_def::rotation_mask) == button_def::rotation_90_right ?
 		gui_object::rotation_right :
 		gui_object::rotation_upright;
@@ -659,7 +662,7 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_static& static_man
 	const ui::icon_def& icon_def = static_manager.ui_definitions.icons[handle];
 	const auto new_gobj = manager.gui_objects.emplace();
 
-	const uint16_t rotation =
+	uint16_t rotation =
 		(icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_upright?
 		ui::gui_object::rotation_upright :
 		((icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_90_right ? ui::gui_object::rotation_right : ui::gui_object::rotation_left);
@@ -677,9 +680,11 @@ ui::tagged_gui_object ui::detail::create_element_instance(gui_static& static_man
 	}
 
 
-	if(rotation != ui::gui_object::rotation_upright) {
-		ui::for_each_child(manager, new_gobj, [rotation](ui::tagged_gui_object child) {
-			child.object.flags.fetch_or(rotation, std::memory_order_acq_rel);
+	if(uint16_t const final_rotation = new_gobj.object.flags.load(std::memory_order_acquire) & ui::gui_object::rotation_mask;
+		final_rotation != ui::gui_object::rotation_upright) {
+
+		ui::for_each_child(manager, new_gobj, [final_rotation](ui::tagged_gui_object child) {
+			child.object.flags.fetch_or(final_rotation, std::memory_order_acq_rel);
 			child.object.size = ui::xy_pair{ child.object.size.y, child.object.size.x };
 		});
 	}
@@ -721,6 +726,9 @@ namespace ui {
 			case graphics::rotation::upright: return graphics::rotation::upright;
 			case graphics::rotation::right: return graphics::rotation::left;
 			case graphics::rotation::left: return graphics::rotation::right;
+			case graphics::rotation::upright_vertical_flipped: return graphics::rotation::upright_vertical_flipped;
+			case graphics::rotation::right_vertical_flipped: return graphics::rotation::left_vertical_flipped;
+			case graphics::rotation::left_vertical_flipped: return graphics::rotation::right_vertical_flipped;
 			default: return graphics::rotation::upright;
 		}
 	}
@@ -855,7 +863,7 @@ void ui::detail::render_object_type(gui_static& static_manager, const gui_manage
 						position.effective_height,
 						*primary,
 						*secondary,
-						reverse_rotation(current_rotation));
+						current_rotation);
 				}
 			}
 			break;
@@ -1430,6 +1438,12 @@ graphics::rotation ui::gui_object::get_rotation() const {
 		return graphics::rotation::left;
 	else if (rotation_bits == ui::gui_object::rotation_right)
 		return graphics::rotation::right;
+	else if(rotation_bits == ui::gui_object::rotation_right_vertical_flipped)
+		return graphics::rotation::right_vertical_flipped;
+	else if(rotation_bits == ui::gui_object::rotation_left_vertical_flipped)
+		return graphics::rotation::left_vertical_flipped;
+	else if(rotation_bits == ui::gui_object::rotation_upright_vertical_flipped)
+		return graphics::rotation::upright_vertical_flipped;
 	else
 		return graphics::rotation::upright;
 }

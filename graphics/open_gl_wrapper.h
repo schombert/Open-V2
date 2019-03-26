@@ -20,7 +20,10 @@ namespace graphics {
 	enum class rotation {
 		upright,
 		left,
-		right
+		right,
+		upright_vertical_flipped,
+		left_vertical_flipped,
+		right_vertical_flipped
 	};
 
 	class scissor_rect {

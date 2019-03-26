@@ -244,10 +244,10 @@ namespace events {
 		for(events::event_tag v; player_nation_events.try_pop(v); ) {
 			auto const fixed_choice = ws.w.local_player_data.saved_event_choices[v];
 			if(fixed_choice == 0) {
-				//if((ws.s.event_m.event_container[v].flags & event::is_major) != 0)
+				if((ws.s.event_m.event_container[v].flags & event::is_major) != 0)
 					ws.w.major_event_w.show_major_event_window(ws.w.gui_m, pending_event { gen, ws.w.local_player_nation, target_variant(), v });
-				//else
-				//	ws.w.nation_event_w.show_nation_event_window(ws.w.gui_m, pending_event{ gen, ws.w.local_player_nation, target_variant(), v });
+				else
+					ws.w.nation_event_w.show_nation_event_window(ws.w.gui_m, pending_event{ gen, ws.w.local_player_nation, target_variant(), v });
 				gen.advance_n<8>();
 
 				wait_for_player_choice(ws);

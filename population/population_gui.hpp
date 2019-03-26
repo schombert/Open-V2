@@ -854,11 +854,20 @@ namespace population {
 		}
 		{
 			auto& bar = w.template get<CT_STRING("lifeneed_progress")>();
-			bar.associated_object->position.x += 1;
+			bar.associated_object->position += ui::xy_pair{-16i16, -7i16};
 		}
 		{
 			auto& bar = w.template get<CT_STRING("eveneed_progress")>();
-			bar.associated_object->position.x += 3;
+			bar.associated_object->position += ui::xy_pair{ -18i16, -7i16 };
+			bar.associated_object->flags |= ui::gui_object::rotation_upright_vertical_flipped;
+		}
+		{
+			auto& bar = w.template get<CT_STRING("luxneed_progress")>();
+			bar.associated_object->position += ui::xy_pair{ -15i16, -4i16 };
+		}
+		{
+			auto& bar = w.template get<CT_STRING("pop_unemployment_bar")>();
+			bar.associated_object->position += ui::xy_pair{ -15i16, -13i16 };
 		}
 	}
 

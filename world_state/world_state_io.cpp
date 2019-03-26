@@ -265,14 +265,6 @@ void restore_world_state(world_state& ws) {
 			add_item(ws.w.population_s.pop_arrays, a.backing_pops, p);
 			a.total_soldiers += uint32_t(ws.w.population_s.pop_demographics.get(p, population::total_population_tag));
 		}
-		//if(auto rfaction = ws.w.population_s.pops.get<pop::rebel_faction>(p); is_valid_index(rfaction)) {
-		//	auto& rf = ws.w.population_s.rebel_factions.get<rebel_faction::member_pops>(rfaction);
-		//	add_item(ws.w.population_s.pop_arrays, rf, p);
-		//}
-		//if(auto movement = ws.w.population_s.pops.get<pop::movement>(p); is_valid_index(movement)) {
-		//	add_item(ws.w.population_s.pop_arrays, ws.w.population_s.pop_movements.get<pop_movement::member_pops>(movement), p);
-		//	ws.w.population_s.pop_movements.get<pop_movement::total_population_support>(movement) += ws.w.population_s.pops.get<pop::size>(p);
-		//}
 		if(auto loc = ws.w.population_s.pops.get<pop::location>(p); is_valid_index(loc)) {
 			add_item(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(loc), p);
 

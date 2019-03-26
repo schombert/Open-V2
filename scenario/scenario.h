@@ -661,8 +661,9 @@ namespace scenario {
 		constexpr uint32_t tech_condition_year = 638ui32;
 		constexpr uint32_t tech_condition_not_done = 639ui32;
 		constexpr uint32_t automate_option = 640ui32;
+		constexpr uint32_t monthly_chance = 641ui32;
 
-		constexpr uint32_t count = 641ui32;
+		constexpr uint32_t count = 642ui32;
 	}
 
 	class scenario_manager {
