@@ -963,7 +963,7 @@ namespace nations {
 		auto ratio_num = b_amount * (1.0f + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::administrative_efficiency_modifier>(n)) / total_pop;
 
 		const float issue_factor = [&ws, n]() {
-			const int32_t issue_count = int32_t(ws.s.issues_m.tracked_options_count);
+			const int32_t issue_count = int32_t(ws.s.issues_m.issues_container.size());
 			float sum = 0.0f;
 			for(int32_t i = 0; i < issue_count; ++i) {
 				auto opt = ws.w.nation_s.active_issue_options.get(n, issues::issue_tag(issues::issue_tag::value_base_t(i)));

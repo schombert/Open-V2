@@ -20,13 +20,362 @@
 
 namespace graphics {
 
-	struct map_vertex_data_3d {
-		float x;
-		float y;
-		float z;
-		int32_t x_value;
-		int32_t y_value;
+	enum class subpixel_edge {
+		a = 0,
+		b = 1,
+		c = 2,
+		d = 3,
+		e = 4,
+		f = 5,
+		g = 6,
+		h = 7,
+		no_edge = 8
 	};
+	enum class subpixel_point {
+		one = 0,
+		two = 1,
+		three = 2,
+		four = 3,
+		five = 4,
+		six = 5,
+		seven = 6,
+		eight = 7,
+	};
+	struct pt_xy {
+		int32_t x;
+		int32_t y;
+
+		pt_xy() : x(0), y(0) {}
+		pt_xy(int32_t a, int32_t b) : x(a), y(b) {}
+		pt_xy operator+(pt_xy const& o) const { return pt_xy(x + o.x, y + o.y); }
+		void operator+=(pt_xy const& o) { x += o.x;  y += o.y; }
+		void operator=(pt_xy const& o) { x = o.x; y = o.y; }
+	};
+	pt_xy subpixel_other_side(subpixel_edge v) {
+		switch(v) {
+			case subpixel_edge::a: return pt_xy(0, -1);
+			case subpixel_edge::b: return pt_xy(0, -1);
+			case subpixel_edge::c: return pt_xy(1, 0);
+			case subpixel_edge::d: return pt_xy(1, 0);
+			case subpixel_edge::e: return pt_xy(-1, -1);
+			case subpixel_edge::f: return pt_xy(1, -1);
+			case subpixel_edge::g: return pt_xy(-1, -1);
+			case subpixel_edge::h: return pt_xy(0, -1);
+		}
+		assert(false);
+	}
+	subpixel_point pick_different(subpixel_point value, subpixel_point a, subpixel_point b) {
+		return value == a ? b : a;
+	}
+	subpixel_point matched_subpixel_point(subpixel_edge v, subpixel_point p) {
+		switch(v) {
+			case subpixel_edge::a: return pick_different(p, subpixel_point::three, subpixel_point::two);
+			case subpixel_edge::b: return pick_different(p, subpixel_point::three, subpixel_point::four);
+			case subpixel_edge::c: return pick_different(p, subpixel_point::four, subpixel_point::five);
+			case subpixel_edge::d: return pick_different(p, subpixel_point::five, subpixel_point::six);
+			case subpixel_edge::e: return pick_different(p, subpixel_point::one, subpixel_point::three);
+			case subpixel_edge::f: return pick_different(p, subpixel_point::three, subpixel_point::five);
+			case subpixel_edge::g: return pick_different(p, subpixel_point::one, subpixel_point::seven);
+			case subpixel_edge::h: return pick_different(p, subpixel_point::seven, subpixel_point::five);
+		}
+		assert(false);
+	}
+	bool edges_are_straight(subpixel_edge a, subpixel_edge b) {
+		return (a == subpixel_edge::a && b == subpixel_edge::b)
+			|| (a == subpixel_edge::b && b == subpixel_edge::a)
+			|| (a == subpixel_edge::c && b == subpixel_edge::d)
+			|| (a == subpixel_edge::d && b == subpixel_edge::c)
+			|| (a == subpixel_edge::g && b == subpixel_edge::f)
+			|| (a == subpixel_edge::f && b == subpixel_edge::g)
+			|| (a == subpixel_edge::h && b == subpixel_edge::e)
+			|| (a == subpixel_edge::e && b == subpixel_edge::h);
+	}
+
+	bool is_corner_point(subpixel_point p) {
+		if(p == subpixel_point::two || p == subpixel_point::four || p == subpixel_point::six || p == subpixel_point::eight)
+			return true;
+		else
+			return false;
+	}
+	template<typename FUNC>
+	void enumerate_edges_at_point(subpixel_point p, FUNC&& f) {
+		switch(p) {
+			case subpixel_point::one:
+				f(pt_xy(-1, 0), subpixel_edge::h, subpixel_point::five);
+				f(pt_xy(0, 0), subpixel_edge::g, subpixel_point::one);
+				f(pt_xy(-1, 0), subpixel_edge::f, subpixel_point::five);
+				f(pt_xy(0, 0), subpixel_edge::e, subpixel_point::one);
+				f(pt_xy(-1, 0), subpixel_edge::d, subpixel_point::five);
+				f(pt_xy(-1, 0), subpixel_edge::c, subpixel_point::five);
+				break;
+			case subpixel_point::two:
+				f(pt_xy(-1, -1), subpixel_edge::d, subpixel_point::six);
+				f(pt_xy(-1, 0), subpixel_edge::c, subpixel_point::four);
+				f(pt_xy(-1, 0), subpixel_edge::b, subpixel_point::four);
+				f(pt_xy(0, 0), subpixel_edge::a, subpixel_point::two);
+				break;
+			case subpixel_point::three:
+				f(pt_xy(0, -1), subpixel_edge::h, subpixel_point::seven);
+				f(pt_xy(0, -1), subpixel_edge::g, subpixel_point::seven);
+				f(pt_xy(0, 0), subpixel_edge::f, subpixel_point::three);
+				f(pt_xy(0, 0), subpixel_edge::e, subpixel_point::three);
+				f(pt_xy(0, 0), subpixel_edge::b, subpixel_point::three);
+				f(pt_xy(0, 0), subpixel_edge::a, subpixel_point::three);
+				break;
+			case subpixel_point::four:
+				f(pt_xy(0, -1), subpixel_edge::d, subpixel_point::six);
+				f(pt_xy(0, 0), subpixel_edge::c, subpixel_point::four);
+				f(pt_xy(0, 0), subpixel_edge::b, subpixel_point::four);
+				f(pt_xy(1, 0), subpixel_edge::a, subpixel_point::two);
+				break;
+			case subpixel_point::five:
+				f(pt_xy(0, 0), subpixel_edge::h, subpixel_point::five);
+				f(pt_xy(1, 0), subpixel_edge::g, subpixel_point::one);
+				f(pt_xy(0, 0), subpixel_edge::f, subpixel_point::five);
+				f(pt_xy(1, 0), subpixel_edge::e, subpixel_point::one);
+				f(pt_xy(0, 0), subpixel_edge::d, subpixel_point::five);
+				f(pt_xy(0, 0), subpixel_edge::c, subpixel_point::five);
+				break;
+			case subpixel_point::six:
+				f(pt_xy(0, 0), subpixel_edge::d, subpixel_point::six);
+				f(pt_xy(0, 1), subpixel_edge::c, subpixel_point::four);
+				f(pt_xy(0, 1), subpixel_edge::b, subpixel_point::four);
+				f(pt_xy(1, 0), subpixel_edge::a, subpixel_point::two);
+				break;
+			case subpixel_point::seven:
+				f(pt_xy(0, 0), subpixel_edge::h, subpixel_point::seven);
+				f(pt_xy(0, 0), subpixel_edge::g, subpixel_point::seven);
+				f(pt_xy(0, 1), subpixel_edge::f, subpixel_point::three);
+				f(pt_xy(0, 1), subpixel_edge::e, subpixel_point::three);
+				f(pt_xy(0, 1), subpixel_edge::b, subpixel_point::three);
+				f(pt_xy(0, 1), subpixel_edge::a, subpixel_point::three);
+				break;
+			case subpixel_point::eight:
+				f(pt_xy(-1, 0), subpixel_edge::d, subpixel_point::six);
+				f(pt_xy(-1, 1), subpixel_edge::c, subpixel_point::four);
+				f(pt_xy(-1, 1), subpixel_edge::b, subpixel_point::four);
+				f(pt_xy(0, 1), subpixel_edge::a, subpixel_point::two);
+				break;
+		}
+	}
+
+	constexpr int32_t block_size = 64;
+
+	struct block_view {
+		uint16_t const* base_data;
+		int32_t x_size;
+		int32_t y_size;
+		int32_t x_offset;
+		int32_t y_offset;
+
+		block_view(uint16_t const* d, int32_t sz_x, int32_t sz_y, int32_t x, int32_t y) :
+			base_data(d), x_size(sz_x), y_size(sz_y), x_offset(x), y_offset(y) {}
+
+		uint16_t operator()(pt_xy v) const {
+			auto adjusted_position = pt_xy(x_offset, y_offset) + v;
+
+			if(adjusted_position.y < 0 || adjusted_position.y >= y_size)
+				return 0;
+
+			if(adjusted_position.x < 0)
+				adjusted_position.x += x_size;
+			if(adjusted_position.x == x_size)
+				adjusted_position.x = 0;
+			if(adjusted_position.x > x_size)
+				return 0;
+
+			return base_data[adjusted_position.y * x_size + adjusted_position.x];
+		}
+
+		std::pair<float, float> to_map_point(pt_xy v, subpixel_point sub_pt) const {
+			std::pair<float, float> p(x_offset + v.x, y_offset + v.y);
+			switch(sub_pt) {
+				case subpixel_point::one:
+					p.second + 0.5f;
+					break;
+				case subpixel_point::two:
+					break;
+				case subpixel_point::three:
+					p.first + 0.5f;
+					break;
+				case subpixel_point::four:
+					p.first + 1.0f;
+					break;
+				case subpixel_point::five:
+					p.first + 1.0f;
+					p.second + 0.5f;
+					break;
+				case subpixel_point::six:
+					p.first + 1.0f;
+					p.second + 1.0f;
+					break;
+				case subpixel_point::seven:
+					p.first + 0.5f;
+					p.second + 1.0f;
+					break;
+				case subpixel_point::eight:
+					p.second + 1.0f;
+					break;
+			}
+			return p;
+		}
+	};
+
+	struct segment_data {
+		uint8_t value = 0;
+
+		void set(subpixel_edge e, bool v) {
+			uint32_t bit = 1 << int32_t(e);
+
+			if(v)
+				value |= uint8_t(bit);
+			else
+				value &= uint8_t(~bit);
+		}
+		bool get(subpixel_edge e) {
+			uint32_t bit = 1 << int32_t(e);
+			return (value & bit) != 0;
+		}
+	};
+
+	struct ordered_id_pair {
+		uint16_t a;
+		uint16_t b;
+			
+		ordered_id_pair(uint16_t x, uint16_t y) : a(std::min(x,y)), b(std::max(x,y)) {}
+		ordered_id_pair(uint32_t v) : a(uint16_t(v >> 16)), b(uint16_t(v)) {};
+
+		operator uint32_t() {
+			return (uint32_t(a) << 16ui32) | uint32_t(b);
+		}
+	};
+
+	struct borders_set {
+		std::vector<std::pair<float, float>> points;
+		std::unordered_map<uint32_t, std::vector<int32_t>> ordered_pair_to_indices;
+	};
+
+	void consume_single_border(borders_set& output, block_view const& block, segment_data* segments, pt_xy point, subpixel_edge edge, subpixel_point sub_point) {
+		ordered_id_pair origin_pair(block(point), block(point + subpixel_other_side(edge)));
+
+		std::vector<int32_t>& destination_indices = output.ordered_pair_to_indices[uint32_t(origin_pair)];
+		if(destination_indices.size() != 0)
+			destination_indices.push_back(-1);
+
+		destination_indices.push_back(int32_t(output.points.size()));
+		output.points.push_back(block.to_map_point(point, sub_point));
+
+		edge = subpixel_edge::no_edge;
+		bool found_next_point = false;
+
+		do {
+			found_next_point = false;
+			subpixel_edge old_edge = edge;
+
+			enumerate_edges_at_point(
+				sub_point,
+				[old_point = point, edge_id = uint32_t(origin_pair), &block, &found_next_point, segments, &point, &edge, &sub_point](
+				pt_xy direction,
+				subpixel_edge inner_new_edge,
+				subpixel_point inner_new_sub_point) {
+				
+				pt_xy temp_new_point = old_point + direction;
+
+				// bounds test
+				if(temp_new_point.x >= 0 && temp_new_point.x < block_size &&
+					temp_new_point.y >= 0 && temp_new_point.y < block_size) {
+
+					// is edge present?
+					if(segments[temp_new_point.x + temp_new_point.y * block_size].get(inner_new_edge)) {
+						ordered_id_pair new_edge_id(block(temp_new_point), block(temp_new_point + subpixel_other_side(inner_new_edge)));
+
+						// is part of same border?
+						if(uint32_t(new_edge_id) == edge_id) {
+							point = temp_new_point;
+							edge = inner_new_edge;
+							sub_point = inner_new_sub_point;
+							found_next_point = true;
+						}
+					}
+				}
+			});
+
+			if(found_next_point) {
+				segments[point.x + point.y * block_size].set(edge, false);
+
+				if(edges_are_straight(old_edge, edge)) {
+					output.points.pop_back();
+					output.points.push_back(block.to_map_point(point, sub_point));
+				} else {
+					destination_indices.push_back(int32_t(output.points.size()));
+					output.points.push_back(block.to_map_point(point, sub_point));
+				}
+			}
+		} while(found_next_point);
+	}
+	
+	template<typename FUNC>
+	borders_set block_to_borders(block_view const& block, FUNC&& is_sea) {
+		borders_set result;
+		segment_data segments[block_size * block_size] = { segment_data() };
+
+		// populate border segments
+		for(int32_t i = 0; i < block_size; ++i) {
+			for(int32_t j = 0; j < block_size; ++j) {
+				pt_xy t(i, j);
+
+				if(block(t) != 0) {
+					for(int32_t k = 0; k < 4; ++k) {
+						if(!is_sea(block(t)) || !is_sea(block(t + subpixel_other_side(subpixel_edge(k)))))
+							segments[i + j * block_size].set(subpixel_edge(k), block(t) != block(t + subpixel_other_side(subpixel_edge(k))));
+					}
+					if(block(t + pt_xy(-1, -1)) == block(t + pt_xy(-1, 0)) &&
+						block(t + pt_xy(-1, -1)) == block(t + pt_xy(0, -1))) {
+
+						if(!is_sea(block(t)) || !is_sea(block(t + pt_xy(-1, -1))))
+							segments[i + j * block_size].set(subpixel_edge::e, block(t) != block(t + pt_xy(-1, -1)));
+					}
+					if(block(t + pt_xy(1, -1)) == block(t + pt_xy(1, 0)) &&
+						block(t + pt_xy(1, -1)) == block(t + pt_xy(0, -1))) {
+
+						if(!is_sea(block(t)) || !is_sea(block(t + pt_xy(1, -1))))
+							segments[i + j * block_size].set(subpixel_edge::f, block(t) != block(t + pt_xy(1, -1)));
+					}
+					if(block(t + pt_xy(1, 1)) == block(t + pt_xy(1, 0)) &&
+						block(t + pt_xy(1, 1)) == block(t + pt_xy(0, 1))) {
+
+						if(!is_sea(block(t)) || !is_sea(block(t + pt_xy(1, 1))))
+							segments[i + j * block_size].set(subpixel_edge::h, block(t) != block(t + pt_xy(1, 1)));
+					}
+					if(block(t + pt_xy(-1, 1)) == block(t + pt_xy(-1, 0)) &&
+						block(t + pt_xy(-1, 1)) == block(t + pt_xy(0, 1))) {
+
+						if(!is_sea(block(t)) || !is_sea(block(t + pt_xy(-1, 1))))
+							segments[i + j * block_size].set(subpixel_edge::g, block(t) != block(t + pt_xy(-1, 1)));
+					}
+				}
+			}
+		}
+
+		// consume border segments
+		for(int32_t i = 0; i < block_size; ++i) {
+			for(int32_t j = 0; j < block_size; ++j) {
+				pt_xy t(i, j);
+
+				for(int32_t k = 0; k < 8; ++k) {
+					if(segments[i + j * block_size].get(subpixel_edge(k))) {
+						// least point = 
+						auto sub_pt_a = matched_subpixel_point(subpixel_edge(k), subpixel_point::one);
+						auto sub_pt_b = matched_subpixel_point(subpixel_edge(k), sub_pt_a);
+						auto least_sub_pt = subpixel_point(std::min(int32_t(sub_pt_a), int32_t(sub_pt_b)));
+						consume_single_border(result, block, segments, t, subpixel_edge(k), least_sub_pt);
+					}
+				}
+			}
+		}
+
+		return result;
+	}
 
 	struct map_vertex_data_3d_b {
 		float x;
@@ -36,7 +385,7 @@ namespace graphics {
 		float ty_value;
 	};
 
-	constexpr int32_t block_size = 8;
+	
 
 	uint16_t get_value_from_data(int32_t i, int32_t j, const uint16_t* data, int32_t width, int32_t height);
 	uint16_t get_value_from_data_h(int32_t i, int32_t j, const uint16_t* data, int32_t width);
@@ -189,32 +538,6 @@ namespace graphics {
 		return std::make_pair(final_xoff, final_yoff);
 	}
 
-	static const char* map_vertex_shader =
-		"#version 430 core\n"
-		"layout (location = 0) in vec3 vertex_position;\n"
-		"layout (location = 1) in ivec2 value;\n"
-		"\n"
-		"out ivec2 t_value;\n"
-		"\n"
-		"layout(location = 0) uniform float aspect;\n" // = w/h
-		"layout(location = 1) uniform float scale;\n"
-		"layout(location = 2) uniform int division_count;\n"
-		"layout(location = 3) uniform int inner_step;\n"
-		"layout(location = 4) uniform mat3 rotation_matrix;\n"
-		"\n"
-		"const float hpi = 1.5707963267f;\n"
-		"\n"
-		"void main() {\n"
-		"   vec3 rotated_position = rotation_matrix * vertex_position;\n"
-		"   vec2 base_projection = vec2(atan(rotated_position.y, rotated_position.x), asin(rotated_position.z));\n"
-		"   float rdiv = base_projection.y / 3.14159265358f;\n"
-		"	gl_Position = vec4(scale * base_projection.x * sqrt(1.0f - (3.0f*rdiv*rdiv)) / 3.14159265358f, base_projection.y * scale * aspect / 3.14159265358f, "
-		"        (abs(base_projection.x))/16.0f + 0.5f, 1.0f);\n"
-		//"	gl_Position = vec4(scale * rotated_position.y, rotated_position.z * scale * aspect, "
-		//"        -rotated_position.x/16.0f + 0.5f, 1.0f);\n"
-		"	t_value = value;\n"
-		"}\n";
-
 	static const char* map_vertex_shader_b =
 		"#version 430 core\n"
 		"layout (location = 0) in vec3 vertex_position;\n"
@@ -237,112 +560,6 @@ namespace graphics {
 		//"	gl_Position = vec4(scale * rotated_position.y, rotated_position.z * scale * aspect, "
 		//"        -rotated_position.x/16.0f + 0.5f, 1.0f);\n"
 		"	t_value = value;\n"
-		"}\n";
-
-	static const char* map_geometry_shader =
-		"#version 430 core\n"
-		"layout (lines_adjacency) in;\n"
-		"layout (triangle_strip, max_vertices = 48) out;\n"
-		"\n"
-		"layout(location = 2) uniform int division_count;\n"
-		"layout(location = 3) uniform int inner_step;\n"
-		"\n"
-		"in ivec2 t_value[];\n"
-		"\n"
-		"layout (binding = 0) uniform usampler2D data_texture;\n"
-		"\n"
-		"flat out int i_value;\n"
-		"\n"
-		"void main() {\n"
-		"    const float max_x = max(max(gl_in[0].gl_Position.x, gl_in[1].gl_Position.x), max(gl_in[3].gl_Position.x, gl_in[2].gl_Position.x));\n"
-		"    const float max_y = max(max(gl_in[0].gl_Position.y, gl_in[1].gl_Position.y), max(gl_in[3].gl_Position.y, gl_in[2].gl_Position.y));\n"
-		"    const float min_x = min(min(gl_in[0].gl_Position.x, gl_in[1].gl_Position.x), min(gl_in[3].gl_Position.x, gl_in[2].gl_Position.x));\n"
-		"    const float min_y = min(min(gl_in[0].gl_Position.y, gl_in[1].gl_Position.y), min(gl_in[3].gl_Position.y, gl_in[2].gl_Position.y));\n"
-		"    if(min_x <= 1.0f && max_x >= -1.0f && min_y <= 1.0f && max_y >= -1.0f) {\n"
-		"    const float inv_div_count = 1.0f / float(division_count);\n"
-		"    for(int i = 0; i < division_count; ++i) {\n"
-		"        const vec4 top_left = mix(gl_in[0].gl_Position, gl_in[3].gl_Position, inv_div_count * float(i));\n"
-		"        const vec4 top_center = mix(gl_in[0].gl_Position, gl_in[3].gl_Position, inv_div_count * (float(i) + 0.5f));\n"
-		"        const vec4 top_right = mix(gl_in[0].gl_Position, gl_in[3].gl_Position, inv_div_count * float(i + 1));\n"
-		"        const vec4 bottom_left = mix(gl_in[1].gl_Position, gl_in[2].gl_Position, inv_div_count * float(i));\n"
-		"        const vec4 bottom_center = mix(gl_in[1].gl_Position, gl_in[2].gl_Position, inv_div_count * (float(i) + 0.5f));\n"
-		"        const vec4 bottom_right = mix(gl_in[1].gl_Position, gl_in[2].gl_Position, inv_div_count * float(i + 1));\n"
-		"        for(int j = 0; j < division_count; ++j) {\n"
-		"            const vec4 center_left = mix(top_left, bottom_left, inv_div_count * (float(j) + 0.5f));\n"
-		"            const vec4 center_right = mix(top_right, bottom_right, inv_div_count * (float(j) + 0.5f)); \n"
-		"\n"
-		"        const int this_value = int(texelFetch(data_texture, t_value[0] + ivec2(i * inner_step, j * inner_step), 0).r);\n"
-		"        const unsigned int right_value = texelFetch(data_texture, t_value[0] + ivec2((i+1) * inner_step, j * inner_step), 0).r;\n"
-		"        const unsigned int bottom_right_value = texelFetch(data_texture, t_value[0] + ivec2((i+1) * inner_step, (j+1) * inner_step), 0).r;\n"
-		"        const unsigned int bottom_value = texelFetch(data_texture, t_value[0] + ivec2(i * inner_step, (j+1) * inner_step), 0).r;\n"
-		"        const unsigned int bottom_left_value = texelFetch(data_texture, t_value[0] + ivec2((i-1) * inner_step, (j+1) * inner_step), 0).r;\n"
-		"        const unsigned int left_value = texelFetch(data_texture, t_value[0] + ivec2((i-1) * inner_step, j * inner_step), 0).r;\n"
-		"        const unsigned int top_left_value = texelFetch(data_texture, t_value[0] + ivec2((i-1) * inner_step, (j-1) * inner_step), 0).r;\n"
-		"        const unsigned int top_value = texelFetch(data_texture, t_value[0] + ivec2(i * inner_step, (j-1) * inner_step), 0).r;\n"
-		"        const unsigned int top_right_value = texelFetch(data_texture, t_value[0] + ivec2((i+1) * inner_step, (j-1) * inner_step), 0).r;\n"
-		"        const int br_corner = (right_value == bottom_right_value && bottom_right_value == bottom_value) ? int(right_value) : this_value;\n"
-		"        const int bl_corner = (left_value == bottom_left_value && bottom_left_value == bottom_value) ? int(left_value) : this_value;\n"
-		"        const int tl_corner = (left_value == top_left_value && top_left_value == top_value) ? int(left_value) : this_value;\n"
-		"        const int tr_corner = (right_value == top_right_value && top_right_value == top_value) ? int(right_value) : this_value;\n"
-		"\n"
-		"            gl_Position = mix(top_left, bottom_left, inv_div_count * float(j));\n"
-		"            i_value = tl_corner;\n"
-		"            EmitVertex();\n"
-		"            gl_Position = mix(top_center, bottom_center, inv_div_count * float(j));\n"
-		"            i_value = this_value;\n"
-		"            EmitVertex();\n"
-		"            gl_Position = center_left;\n"
-		"            i_value = this_value;\n"
-		"            EmitVertex();\n"
-		"            gl_Position = center_right;\n"
-		"            i_value = br_corner;\n"
-		"            EmitVertex();\n"
-		"            gl_Position = mix(top_center, bottom_center, inv_div_count * float(j + 1));\n"
-		"            i_value = br_corner;\n"
-		"            EmitVertex();\n"
-		"            gl_Position = mix(top_right, bottom_right, inv_div_count * float(j + 1));\n"
-		"            i_value = br_corner;\n"
-		"            EmitVertex();\n"
-		"            EndPrimitive();\n"
-		"\n"
-		"            gl_Position = center_left;\n"
-		"            i_value = bl_corner;\n"
-		"            EmitVertex();\n"
-		"            gl_Position = mix(top_left, bottom_left, inv_div_count * float(j + 1));\n"
-		"            i_value = bl_corner;\n"
-		"            EmitVertex();\n"
-		"            gl_Position = mix(top_center, bottom_center, inv_div_count * float(j + 1));;\n"
-		"            i_value = bl_corner;\n"
-		"            EmitVertex();\n"
-		"            EndPrimitive();\n"
-		"\n"
-		"            gl_Position = mix(top_center, bottom_center, inv_div_count * float(j));\n"
-		"            i_value = tr_corner;\n"
-		"            EmitVertex();\n"
-		"            gl_Position = mix(top_right, bottom_right, inv_div_count * float(j));\n"
-		"            i_value = tr_corner;\n"
-		"            EmitVertex();\n"
-		"            gl_Position = center_right;\n"
-		"            i_value = tr_corner;\n"
-		"            EmitVertex();\n"
-		"            EndPrimitive();\n"
-		"        }\n"
-		"    }\n"
-		"    }\n"
-		"}\n";
-
-	static const char* map_fragment_shader =
-		"#version 430 core\n"
-		"\n"
-		"flat in int i_value;\n"
-		"layout (location = 0) out vec4 frag_color;\n"
-		"\n"
-		"layout (binding = 0) uniform usampler2D data_texture;\n"
-		"layout (binding = 1) uniform sampler1D primary_colors;\n"
-		"layout (binding = 2) uniform sampler1D secondary_colors;\n"
-		"\n"
-		"void main() {\n"
-		"   frag_color = texelFetch(primary_colors, i_value, 0);\n"
 		"}\n";
 
 	static const char* map_fragment_shader_b =
@@ -372,15 +589,6 @@ namespace graphics {
 		return m;
 	}
 
-	
-	inline map_vertex_data_3d generate_3d_map_point(int32_t x_off, int32_t y_off, float base_lat, float lat_step, float long_step) {
-		const float vx_pos = x_off * long_step;
-		const float vy_pos = y_off * lat_step + base_lat;
-		const float cos_vy = cos(vy_pos);
-		const float sin_vy = sin(vy_pos);
-		//return map_vertex_data_3d{ cos(vx_pos) * cos_vy , sin(vx_pos) * cos_vy, sin_vy, x_off, y_off };
-		return map_vertex_data_3d{ cos(vx_pos) * cos_vy , sin(vx_pos) * cos_vy, sin_vy, x_off, y_off };
-	}
 	inline map_vertex_data_3d_b generate_3d_map_point_b(int32_t x_off, int32_t y_off, float base_lat, float lat_step, float long_step) {
 		const float vx_pos = x_off * long_step;
 		const float vy_pos = y_off * lat_step + base_lat;
@@ -390,43 +598,6 @@ namespace graphics {
 		return map_vertex_data_3d_b{ cos(vx_pos) * cos_vy , sin(vx_pos) * cos_vy, sin_vy, float(x_off), float(y_off) };
 	}
 
-	std::tuple<uint32_t, uint32_t, uint32_t> create_patches_buffers(int32_t width, int32_t height, float base_lat, float lat_step, float long_step);
-	std::tuple<uint32_t, uint32_t, uint32_t> create_patches_buffers_b(int32_t width, int32_t height, float base_lat, float lat_step, float long_step);
-
-	std::tuple<uint32_t, uint32_t, uint32_t> create_patches_buffers(int32_t width, int32_t height, float base_lat, float lat_step, float long_step) {
-		std::vector<uint32_t> indices;
-		std::vector<map_vertex_data_3d> vertices;
-
-		const auto wblocks = (width + block_size - 1) / block_size;
-		const auto hblocks = (height + block_size - 1) / block_size;
-
-		for (int32_t j = 0; j <= hblocks; ++j) {
-			for (int32_t i = 0; i <= wblocks; ++i) {
-				vertices.emplace_back(generate_3d_map_point(i * block_size, j * block_size, base_lat, lat_step, long_step));
-			}
-		}
-		
-		for (int32_t j = 0; j < hblocks; ++j) {
-			for (int32_t i = 0; i < wblocks; ++i) {
-				indices.push_back(static_cast<uint32_t>(i + j * (wblocks + 1)));
-				indices.push_back(static_cast<uint32_t>(i + (j + 1) * (wblocks + 1)));
-				indices.push_back(static_cast<uint32_t>((i + 1) + (j + 1) * (wblocks + 1)));
-				indices.push_back(static_cast<uint32_t>((i + 1) + j * (wblocks + 1)));
-			}
-		}
-		uint32_t element_buffer = 0;
-		uint32_t vertex_buffer = 0;
-
-		glGenBuffers(1, &element_buffer);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<int64_t>(indices.size() * sizeof(uint32_t)), indices.data(), GL_STATIC_DRAW);
-
-		glGenBuffers(1, &vertex_buffer);
-		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-		glBufferData(GL_ARRAY_BUFFER, static_cast<int64_t>(vertices.size() * sizeof(map_vertex_data_3d)), vertices.data(), GL_STATIC_DRAW);
-
-		return std::make_tuple(vertex_buffer, element_buffer, static_cast<uint32_t>(indices.size()));
-	}
 
 	std::tuple<uint32_t, uint32_t, uint32_t> create_patches_buffers_b(int32_t width, int32_t height, float base_lat, float lat_step, float long_step) {
 		std::vector<uint32_t> indices;
@@ -551,131 +722,6 @@ namespace graphics {
 		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	}
 
-	uint32_t compile_program();
-	uint32_t compile_program_b();
-
-	uint32_t compile_program() {
-		GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-		GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-		GLuint geom_shader = glCreateShader(GL_GEOMETRY_SHADER);
-
-#ifdef _DEBUG
-		if (vertex_shader == 0 || fragment_shader == 0) {
-			MessageBox(nullptr, L"shader creation failed", L"OpenGL error", MB_OK);
-			std::abort();
-		}
-#endif
-		const GLchar* array_a[] = { map_vertex_shader };
-
-		glShaderSource(vertex_shader, 1, array_a, nullptr);
-		glCompileShader(vertex_shader);
-
-#ifdef _DEBUG
-		GLint result;
-		glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &result);
-		if (result == GL_FALSE) {
-			MessageBox(nullptr, L"vertex shader compilation failed", L"OpenGL error", MB_OK);
-
-			GLint logLen;
-			glGetShaderiv(vertex_shader, GL_INFO_LOG_LENGTH, &logLen);
-
-			char * log = new char[static_cast<size_t>(logLen)];
-			GLsizei written;
-			glGetShaderInfoLog(vertex_shader, logLen, &written, log);
-
-			MessageBoxA(nullptr, log, "OpenGL error", MB_OK);
-			delete[] log;
-
-			std::abort();
-		}
-#endif
-
-
-		const GLchar* array_b[] = { map_fragment_shader };
-
-		glShaderSource(fragment_shader, 1, array_b, nullptr);
-		glCompileShader(fragment_shader);
-
-#ifdef _DEBUG
-		glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &result);
-		if (result == GL_FALSE) {
-			MessageBox(nullptr, L"fragment shader compilation failed", L"OpenGL error", MB_OK);
-
-			GLint logLen;
-			glGetShaderiv(fragment_shader, GL_INFO_LOG_LENGTH, &logLen);
-
-			char * log = new char[static_cast<size_t>(logLen)];
-			GLsizei written;
-			glGetShaderInfoLog(fragment_shader, logLen, &written, log);
-
-			MessageBoxA(nullptr, log, "OpenGL error", MB_OK);
-			delete[] log;
-
-			std::abort();
-		}
-#endif
-
-		const GLchar* array_c[] = { map_geometry_shader };
-		glShaderSource(geom_shader, 1, array_c, nullptr);
-		glCompileShader(geom_shader);
-
-#ifdef _DEBUG
-		glGetShaderiv(geom_shader, GL_COMPILE_STATUS, &result);
-		if (result == GL_FALSE) {
-			MessageBox(nullptr, L"geometry shader compilation failed", L"OpenGL error", MB_OK);
-
-			GLint logLen;
-			glGetShaderiv(geom_shader, GL_INFO_LOG_LENGTH, &logLen);
-
-			char * log = new char[static_cast<size_t>(logLen)];
-			GLsizei written;
-			glGetShaderInfoLog(geom_shader, logLen, &written, log);
-
-			MessageBoxA(nullptr, log, "OpenGL error", MB_OK);
-			delete[] log;
-
-			std::abort();
-		}
-#endif
-
-		uint32_t shader_handle = glCreateProgram();
-
-#ifdef _DEBUG
-		if (shader_handle == 0) {
-			MessageBox(nullptr, L"shader program creation failed", L"OpenGL error", MB_OK);
-			std::abort();
-		}
-#endif
-
-		glAttachShader(shader_handle, vertex_shader);
-		glAttachShader(shader_handle, geom_shader);
-		glAttachShader(shader_handle, fragment_shader);
-		glLinkProgram(shader_handle);
-
-#ifdef _DEBUG
-		glGetProgramiv(shader_handle, GL_LINK_STATUS, &result);
-		if (result == GL_FALSE) {
-			MessageBox(nullptr, L"shader program linking failed", L"OpenGL error", MB_OK);
-
-			GLint logLen;
-			glGetProgramiv(shader_handle, GL_INFO_LOG_LENGTH, &logLen);
-
-			char * log = new char[static_cast<size_t>(logLen)];
-			GLsizei written;
-			glGetProgramInfoLog(shader_handle, logLen, &written, log);
-			MessageBoxA(nullptr, log, "OpenGL error", MB_OK);
-
-			delete[] log;
-			std::abort();
-		}
-#endif
-		glDeleteShader(vertex_shader);
-		glDeleteShader(geom_shader);
-		glDeleteShader(fragment_shader);
-
-		return shader_handle;
-	}
-
 	uint32_t compile_program_b() {
 		GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 
@@ -780,28 +826,6 @@ namespace graphics {
 		return shader_handle;
 	}
 
-	uint32_t setup_vao(uint32_t vertex_buffer);
-	uint32_t setup_vao_b(uint32_t vertex_buffer);
-
-	uint32_t setup_vao(uint32_t vertex_buffer) {
-		uint32_t vao;
-
-		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-		glGenVertexArrays(1, &vao);
-		glBindVertexArray(vao);
-		glEnableVertexAttribArray(0); //position
-		glEnableVertexAttribArray(1); //layer_value
-
-		glBindVertexBuffer(0, vertex_buffer, 0, sizeof(map_vertex_data_3d));
-
-		glVertexAttribFormat(0, 3, GL_FLOAT, GL_FALSE, 0); //position
-		glVertexAttribIFormat(1, 2, GL_INT, sizeof(GLfloat) * 3); //layer_value
-		glVertexAttribBinding(0, 0); //position -> to array zero
-		glVertexAttribBinding(1, 0); //layer_value -> to array zero 
-
-		return vao;
-	}
-
 	uint32_t setup_vao_b(uint32_t vertex_buffer) {
 		uint32_t vao;
 
@@ -887,29 +911,6 @@ namespace graphics {
 		ready = true;
 	}
 
-	void inner_render(float scale, float long_rotation, float lat_rotation, int32_t width, int32_t height, int32_t vertex_count);
-	void inner_render_b(float scale, const Eigen::Matrix3f& rotation, float aspect, int32_t vertex_count);
-
-	void inner_render(float scale, float long_rotation, float lat_rotation, int32_t width, int32_t height, int32_t vertex_count) {
-		glUniform1f(map_parameters::aspect, static_cast<float>(width) / static_cast<float>(height));
-		glUniform1f(map_parameters::scale, scale);
-
-		const int32_t divisions = 2;
-
-		glUniform1i(map_parameters::division_count, divisions);
-		glUniform1i(map_parameters::inner_step, block_size / divisions);
-
-		const auto m = generate_rotation_matrix(long_rotation, lat_rotation);
-		glUniformMatrix3fv(map_parameters::rotation_matrix, 1, GL_FALSE, m.data());
-
-		
-
-		glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
-		glEnable(GL_DEPTH_TEST);
-		glDrawElements(GL_LINES_ADJACENCY, vertex_count, GL_UNSIGNED_INT, nullptr);
-		glDisable(GL_DEPTH_TEST);
-	}
-
 	void inner_render_b(float scale, const Eigen::Matrix3f& rotation, float aspect, int32_t vertex_count) {
 		glUniform1f(map_parameters_b::aspect, aspect);
 		glUniform1f(map_parameters_b::scale, scale);
@@ -941,7 +942,7 @@ namespace graphics {
 			colors.bind_colors();
 
 			glBindVertexArray(vao);
-			glBindVertexBuffer(0, vertex_buffer, 0, sizeof(map_vertex_data_3d));
+			glBindVertexBuffer(0, vertex_buffer, 0, sizeof(map_vertex_data_3d_b));
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
 
 
