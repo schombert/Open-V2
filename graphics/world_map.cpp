@@ -314,8 +314,7 @@ namespace graphics {
 		} while(found_next_point);
 	}
 	
-	template<typename FUNC>
-	borders_set block_to_borders(block_view const& block, FUNC&& is_sea) {
+	borders_set block_to_borders(block_view const& block, int32_t first_sea_province) {
 		borders_set result;
 		segment_data segments[block_size * block_size] = { segment_data() };
 
@@ -326,31 +325,31 @@ namespace graphics {
 
 				if(block(t) != 0) {
 					for(int32_t k = 0; k < 4; ++k) {
-						if(!is_sea(block(t)) || !is_sea(block(t + subpixel_other_side(subpixel_edge(k)))))
+						if(block(t) < first_sea_province || block(t + subpixel_other_side(subpixel_edge(k))) < first_sea_province)
 							segments[i + j * block_size].set(subpixel_edge(k), block(t) != block(t + subpixel_other_side(subpixel_edge(k))));
 					}
 					if(block(t + pt_xy(-1, -1)) == block(t + pt_xy(-1, 0)) &&
 						block(t + pt_xy(-1, -1)) == block(t + pt_xy(0, -1))) {
 
-						if(!is_sea(block(t)) || !is_sea(block(t + pt_xy(-1, -1))))
+						if(block(t) < first_sea_province || block(t + pt_xy(-1, -1)) < first_sea_province)
 							segments[i + j * block_size].set(subpixel_edge::e, block(t) != block(t + pt_xy(-1, -1)));
 					}
 					if(block(t + pt_xy(1, -1)) == block(t + pt_xy(1, 0)) &&
 						block(t + pt_xy(1, -1)) == block(t + pt_xy(0, -1))) {
 
-						if(!is_sea(block(t)) || !is_sea(block(t + pt_xy(1, -1))))
+						if(block(t) < first_sea_province || block(t + pt_xy(1, -1)) < first_sea_province)
 							segments[i + j * block_size].set(subpixel_edge::f, block(t) != block(t + pt_xy(1, -1)));
 					}
 					if(block(t + pt_xy(1, 1)) == block(t + pt_xy(1, 0)) &&
 						block(t + pt_xy(1, 1)) == block(t + pt_xy(0, 1))) {
 
-						if(!is_sea(block(t)) || !is_sea(block(t + pt_xy(1, 1))))
+						if(block(t) < < first_sea_province || block(t + pt_xy(1, 1)) < < first_sea_province)
 							segments[i + j * block_size].set(subpixel_edge::h, block(t) != block(t + pt_xy(1, 1)));
 					}
 					if(block(t + pt_xy(-1, 1)) == block(t + pt_xy(-1, 0)) &&
 						block(t + pt_xy(-1, 1)) == block(t + pt_xy(0, 1))) {
 
-						if(!is_sea(block(t)) || !is_sea(block(t + pt_xy(-1, 1))))
+						if(block(t) < < first_sea_province || block(t + pt_xy(-1, 1)) < < first_sea_province)
 							segments[i + j * block_size].set(subpixel_edge::g, block(t) != block(t + pt_xy(-1, 1)));
 					}
 				}
@@ -362,13 +361,15 @@ namespace graphics {
 			for(int32_t j = 0; j < block_size; ++j) {
 				pt_xy t(i, j);
 
-				for(int32_t k = 0; k < 8; ++k) {
-					if(segments[i + j * block_size].get(subpixel_edge(k))) {
-						// least point = 
-						auto sub_pt_a = matched_subpixel_point(subpixel_edge(k), subpixel_point::one);
-						auto sub_pt_b = matched_subpixel_point(subpixel_edge(k), sub_pt_a);
-						auto least_sub_pt = subpixel_point(std::min(int32_t(sub_pt_a), int32_t(sub_pt_b)));
-						consume_single_border(result, block, segments, t, subpixel_edge(k), least_sub_pt);
+				while(segments[i + j * block_size].value != 0) {
+					for(int32_t k = 0; k < 8; ++k) {
+						if(segments[i + j * block_size].get(subpixel_edge(k))) {
+							// least point = 
+							auto sub_pt_a = matched_subpixel_point(subpixel_edge(k), subpixel_point::one);
+							auto sub_pt_b = matched_subpixel_point(subpixel_edge(k), sub_pt_a);
+							auto least_sub_pt = subpixel_point(std::min(int32_t(sub_pt_a), int32_t(sub_pt_b)));
+							consume_single_border(result, block, segments, t, subpixel_edge(k), least_sub_pt);
+						}
 					}
 				}
 			}
@@ -385,7 +386,44 @@ namespace graphics {
 		float ty_value;
 	};
 
-	
+	template<typename FUNC>
+	void globe_mesh::for_each_visible_block(int32_t width, int32_t height, FUNC && f) {
+		const auto wblocks = (width + block_size - 1) / block_size;
+		const auto hblocks = (height + block_size - 1) / block_size;
+
+		for(int32_t j = 0; j < hblocks; ++j) {
+			for(int32_t i = 0; i < wblocks; ++i) {
+				int32_t const index_a = (i + j * (wblocks + 1)) * 2;
+				std::pair<float, float> top_left(transformed_buffer[index_a], transformed_buffer[index_a + 1]);
+
+				int32_t const index_b = (i + 1 + j * (wblocks + 1)) * 2;
+				std::pair<float, float> top_right(transformed_buffer[index_b], transformed_buffer[index_b + 1]);
+
+				int32_t const index_c = (i + (j + 1) * (wblocks + 1)) * 2;
+				std::pair<float, float> bottom_left(transformed_buffer[index_c], transformed_buffer[index_c + 1]);
+
+				int32_t const index_d = (i + 1 + (j + 1) * (wblocks + 1)) * 2;
+				std::pair<float, float> bottom_right(transformed_buffer[index_c], transformed_buffer[index_d + 1]);
+
+				bool const out_of_view =
+					(top_left.first < -0.5f && top_right.first < -0.5f && bottom_left.first < -0.5f && bottom_right.first < -0.5f)
+					|| (top_left.first > 0.5f && top_right.first > 0.5f && bottom_left.first > 0.5f && bottom_right.first > 0.5f)
+					|| (top_left.second < -0.5f && top_right.second < -0.5f && bottom_left.second < -0.5f && bottom_right.second < -0.5f)
+					|| (top_left.second > 0.5f && top_right.second > 0.5f && bottom_left.second > 0.5f && bottom_right.second > 0.5f)
+					;
+
+				bool const positive_area = ((top_right.first - top_left.first) * (top_right.second - top_left.second) +
+					(bottom_right.first - top_right.first) * (bottom_right.second - top_right.second)) > 0.0f;
+
+				if(!out_of_view && positive_area) {
+					float x_matrix[4] = { top_left.first, bottom_left.first, top_right.first, bottom_right.first };
+					float y_matrix[4] = { top_left.second, bottom_left.second, top_right.second, bottom_right.second };
+
+					f(x_matrix, y_matrix);
+				}
+			}
+		}
+	}
 
 	uint16_t get_value_from_data(int32_t i, int32_t j, const uint16_t* data, int32_t width, int32_t height);
 	uint16_t get_value_from_data_h(int32_t i, int32_t j, const uint16_t* data, int32_t width);
@@ -490,10 +528,16 @@ namespace graphics {
 	}
 	void map_state::resize(int32_t x, int32_t y) {
 		_aspect = static_cast<float>(x) / static_cast<float>(y);
+		globe.update_transformed_buffer(_aspect, scale, _rotation);
+	}
+	void map_state::rescale_by(float multiplier) {
+		scale = std::clamp(scale * multiplier, 1.0f, 18.0f);
+		globe.update_transformed_buffer(_aspect, scale, _rotation);
 	}
 	void map_state::rotate(float longr, float latr) {
 		_rotation = Eigen::AngleAxisf(latr, Eigen::Vector3f::UnitY()) * Eigen::AngleAxisf(longr, Eigen::Vector3f::UnitZ());
 		inverse_rotation = Eigen::AngleAxisf(-longr, Eigen::Vector3f::UnitZ()) * Eigen::AngleAxisf(-latr, Eigen::Vector3f::UnitY());
+		globe.update_transformed_buffer(_aspect, scale, _rotation);
 	}
 	std::pair<float, float> map_state::normalize_screen_coordinates(int32_t x, int32_t y, int32_t width, int32_t height) const {
 		return std::make_pair(float(x * 2) / float(width) - 1.0f, float(-y * 2) / float(height) + 1.0f);
@@ -536,6 +580,15 @@ namespace graphics {
 		const int32_t final_xoff = std::clamp(x_off < 0.0f ? int32_t(x_off) + map_width : int32_t(x_off), 0, map_width - 1);
 
 		return std::make_pair(final_xoff, final_yoff);
+	}
+
+	std::pair<float, float> normalized_coordinates_from_base(float aspect, float scale, Eigen::Matrix3f const& rotation, float x, float y, float z) {
+		Eigen::Vector3f rotated = rotation * Eigen::Vector3f(x, y, z).transpose();
+		float base_projection_x = atan2(rotated[1], rotated[0]);
+		float base_projection_y = asin(rotated[3]);
+		float rdiv = base_projection_y / 3.14159265358f;
+		return std::pair<float, float>(scale * base_projection_x * sqrt(1.0f - (3.0f*rdiv*rdiv)) / 3.14159265358f,
+			base_projection_y * scale * aspect / 3.14159265358f);
 	}
 
 	static const char* map_vertex_shader_b =
@@ -583,6 +636,31 @@ namespace graphics {
 		"           int(t_value.y)), 0).r), 0);\n"
 		"}\n";
 
+	static const char* map_border_vertex_shader =
+		"#version 430 core\n"
+		"layout (location = 0) in vec2 vertex_position;\n"
+		"\n"
+		"layout (location = 0) uniform mat2 x_scale_matrix;\n"
+		"layout (location = 1) uniform mat2 y_scale_matrix;\n"
+		"\n"
+		"void main() {\n"
+		"	vec2 vx = vec2(1.0f - vertex_position.x, vertex_position.x);\n"
+		"	vec2 vy = vec2(1.0f - vertex_position.x, vertex_position.x);\n"
+
+		"	gl_Position = vec4(dot(vx, x_scale_matrix * vy)), dot(vx, y_scale_matrix * vy)), 0.5f, 1.0f);\n"
+		"}\n";
+
+	static const char* map_border_fragment_shader =
+		"#version 430 core\n"
+		"\n"
+		"layout (location = 0) out vec4 frag_color;\n"
+		"\n"
+		"layout (binding = 0) uniform vec4 border_color;\n"
+		"\n"
+		"void main() {\n"
+		"   frag_color = border_color;\n"
+		"}\n";
+
 	inline auto generate_rotation_matrix(float long_rotation, float lat_rotation) {
 		Eigen::Matrix3f m;
 		m = Eigen::AngleAxisf(lat_rotation, Eigen::Vector3f::UnitX()) * Eigen::AngleAxisf(long_rotation, Eigen::Vector3f::UnitZ());
@@ -598,8 +676,111 @@ namespace graphics {
 		return map_vertex_data_3d_b{ cos(vx_pos) * cos_vy , sin(vx_pos) * cos_vy, sin_vy, float(x_off), float(y_off) };
 	}
 
+	void globe_mesh::update_transformed_buffer(float aspect, float scale, Eigen::Matrix3f const & rotation) {
+		int32_t index = 0;
+		for(auto& v : vertices) {
+			const auto result = normalized_coordinates_from_base(aspect, scale, rotation, v.x, v.y, v.z);
+			transformed_buffer[index] = result.first;
+			transformed_buffer[index + 1] = result.second;
+			index += 2;
+		}
+	}
 
-	std::tuple<uint32_t, uint32_t, uint32_t> create_patches_buffers_b(int32_t width, int32_t height, float base_lat, float lat_step, float long_step) {
+	borders_manager::border_block borders_to_graphics_data(borders_set const& b_set, scenario::scenario_manager const& s) {
+		borders_manager::border_block result;
+
+		glGenBuffers(1, &result.vertices_handle);
+		glBindBuffer(GL_ARRAY_BUFFER, result.vertices_handle);
+		glBufferData(GL_ARRAY_BUFFER, static_cast<int64_t>(b_set.points.size() * 8), b_set.points.data(), GL_STATIC_DRAW);
+
+		std::vector<int32_t> temp_indices_buffer;
+
+		for(auto const& indices_set : b_set.ordered_pair_to_indices) {
+			ordered_id_pair const ids(indices_set.first);
+			if(ids.a >= s.province_m.first_sea_province || ids.b >= s.province_m.first_sea_province) {
+				temp_indices_buffer.push_back(-1);
+				temp_indices_buffer.insert(temp_indices_buffer.end(), indices_set.second.begin(), indices_set.second.end());
+			}
+		}
+
+		result.coastal_borders_size = temp_indices_buffer.size();
+
+		for(auto const& indices_set : b_set.ordered_pair_to_indices) {
+			ordered_id_pair const ids(indices_set.first);
+			provinces::province_tag const a(ids.a);
+			provinces::province_tag const b(ids.b);
+			if(ids.a < s.province_m.first_sea_province && ids.b < s.province_m.first_sea_province
+				&& (s.province_m.province_container.get<province::state_id>(a) != s.province_m.province_container.get<province::state_id>(b))) {
+				result.province_borders.push_back(
+					borders_manager::province_border_info{
+						indices_set.second.size(),
+						temp_indices_buffer.size() + 1,
+						a,
+						b
+					});
+				temp_indices_buffer.push_back(-1);
+				temp_indices_buffer.insert(temp_indices_buffer.end(), indices_set.second.begin(), indices_set.second.end());
+			}
+		}
+
+		result.state_borders_size = temp_indices_buffer.size() - result.coastal_borders_size;
+
+		for(auto const& indices_set : b_set.ordered_pair_to_indices) {
+			ordered_id_pair const ids(indices_set.first);
+			provinces::province_tag const a(ids.a);
+			provinces::province_tag const b(ids.b);
+			if(ids.a < s.province_m.first_sea_province && ids.b < s.province_m.first_sea_province
+				&& (s.province_m.province_container.get<province::state_id>(a) == s.province_m.province_container.get<province::state_id>(b))) {
+				result.province_borders.push_back(
+					borders_manager::province_border_info{
+						indices_set.second.size(),
+						temp_indices_buffer.size() + 1,
+						a,
+						b
+					});
+				temp_indices_buffer.push_back(-1);
+				temp_indices_buffer.insert(temp_indices_buffer.end(), indices_set.second.begin(), indices_set.second.end());
+			}
+		}
+
+		result.province_borders_size = temp_indices_buffer.size() - (result.coastal_borders_size + result.state_borders_size);
+
+		glGenBuffers(1, &result.indices_handle);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, result.indices_handle);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<int64_t>(temp_indices_buffer.size() * sizeof(int32_t)), temp_indices_buffer.data(), GL_STATIC_DRAW);
+
+		return result;
+	}
+
+	void render_coastal_borders(borders_manager::border_block const& block) {
+
+	}
+	void render_state_borders(borders_manager::border_block const& block) {
+
+	}
+	void render_province_borders(borders_manager::border_block const& block) {
+		glLineWidth(2.0f);
+	}
+
+	void map_display::populate_borders(scenario::scenario_manager const& s, uint16_t const* map_data, int32_t width, int32_t height) {
+		const auto wblocks = (width + block_size - 1) / block_size;
+		const auto hblocks = (height + block_size - 1) / block_size;
+
+		borders.borders.resize(wblocks * hblocks);
+
+		concurrency::parallel_for(0, hblocks, 1, [_this = this, wblocks, &s](int32_t j){
+			for(int32_t i = 0; i < wblocks; ++i) {
+				_this->borders.borders[i + j * wblocks] = borders_to_graphics_data(
+					block_to_borders(
+						block_view(map_data, width, height, block_size * i, block_size * j),
+						s.province_m.first_sea_province),
+					s);
+			}
+		});
+
+	}
+
+	std::tuple<uint32_t, uint32_t, uint32_t> create_patches_buffers_b(int32_t width, int32_t height, globe_mesh& mesh, float base_lat, float lat_step, float long_step) {
 		std::vector<uint32_t> indices;
 		std::vector<map_vertex_data_3d_b> vertices;
 
@@ -608,9 +789,12 @@ namespace graphics {
 
 		for (int32_t j = 0; j <= hblocks; ++j) {
 			for (int32_t i = 0; i <= wblocks; ++i) {
-				vertices.emplace_back(generate_3d_map_point_b(std::min(i * block_size, width), std::min(j * block_size, height), base_lat, lat_step, long_step));
+				auto const pt = generate_3d_map_point_b(std::min(i * block_size, width), std::min(j * block_size, height), base_lat, lat_step, long_step);
+				vertices.emplace_back(pt);
+				mesh.vertices.push_back(globe_mesh::vertex{pt.x, pt.y, pt.z});
 			}
 		}
+		mesh.transformed_buffer.resize(mesh.vertices.size() * 2);
 
 		for (int32_t j = 0; j < hblocks; ++j) {
 			for (int32_t i = 0; i <= wblocks; ++i) {

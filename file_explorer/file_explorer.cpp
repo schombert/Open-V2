@@ -116,8 +116,7 @@ struct gui_window_handler {
 	}
 	void operator()(const ui::scroll& ss, ui::window_base&) {
 		if (!s.w.gui_m.on_scroll(s, ss)) {
-			map.state.scale *= float(pow(2, ss.amount / 2.0f));
-			map.state.scale = std::clamp(map.state.scale, 1.0f, 18.0f);
+			map.state.rescale_by(float(pow(2, ss.amount / 2.0f)));
 		}
 	}
 	void operator()(const ui::mouse_drag& m, ui::window_base&) {

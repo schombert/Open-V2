@@ -2,6 +2,7 @@
 #include "common\\common.h"
 #include "open_gl_wrapper.h"
 #include "simple_fs\\simple_fs.h"
+#include "scenario\scenario.h"
 
 class world_state;
 
@@ -63,18 +64,58 @@ namespace graphics {
 		spherical
 	};
 
+	struct borders_manager {
+		struct province_border_info {
+			int16_t size;
+			int16_t offset;
+			provinces::province_tag a;
+			provinces::province_tag b;
+		};
+
+		struct border_block {
+			std::vector<province_border_info> province_borders;
+
+			uint32_t vertices_handle = 0;
+			uint32_t indices_handle = 0;
+
+			int32_t coastal_borders_size = 0;
+			int32_t state_borders_size = 0;
+			int32_t province_borders_size = 0;
+		};
+
+		std::vector<border_block> borders;
+	};
+
+	struct globe_mesh {
+		struct vertex {
+			float x;
+			float y;
+			float z;
+		};
+
+		std::vector<vertex> vertices;
+		std::vector<float> transformed_buffer;
+
+		void update_transformed_buffer(float aspect, float scale, Eigen::Matrix3f const& rotation);
+
+		template<typename FUNC>
+		void for_each_visible_block(int32_t width, int32_t height, FUNC&& f);
+	};
+
 	struct map_state {
 	private:
 		Eigen::Matrix3f _rotation;
 		Eigen::Matrix3f inverse_rotation;
 
 		float _aspect = 1.0f;
-	public:
 		float scale = 1.0f;
+	public:
+		globe_mesh globe;
 		projection_type projection = projection_type::standard_map;
 
 		map_state();
 		void resize(int32_t x, int32_t y);
+		void rescale_by(float multiplier);
 		void rotate(float longr, float latr);
 		const Eigen::Matrix3f& rotation() const { return _rotation; }
 		float aspect() const { return _aspect; }
@@ -102,9 +143,11 @@ namespace graphics {
 		color_maps colors;
 		map_data_textures data_textures;
 		map_state state;
+		borders_manager borders;
 
 		std::pair<int32_t, int32_t> map_coordinates_from_screen(std::pair<float, float> const& normalized_screen_coordinates) const;
 		void initialize(open_gl_wrapper&, std::string shadows_file, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude);
+		void populate_borders(scenario::scenario_manager const& s, uint16_t const* map_data, int32_t width, int32_t height);
 		void render(open_gl_wrapper&);
 	};
 
