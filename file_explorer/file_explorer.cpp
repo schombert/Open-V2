@@ -141,7 +141,7 @@ struct gui_window_handler {
 		s.s.gui_m.fonts.load_fonts(ogl);
 	
 		//map.initialize(ogl, s.province_m.province_map_data.data(), s.province_m.province_map_width, s.province_m.province_map_height, 0.0f, -1.2f, 1.2f);
-		map.initialize(ogl, shadows_file, s.s.province_m.province_map_data.data(), s.s.province_m.province_map_width, s.s.province_m.province_map_height, 0.0f, 1.57f, -1.57f);
+		map.initialize(ogl, s.s, shadows_file, s.s.province_m.province_map_data.data(), s.s.province_m.province_map_width, s.s.province_m.province_map_height, 0.0f, 1.57f, -1.57f);
 		map.state.resize(s.w.gui_m.width(), s.w.gui_m.height());
 	}
 

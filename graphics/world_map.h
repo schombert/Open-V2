@@ -84,6 +84,7 @@ namespace graphics {
 		};
 
 		std::vector<border_block> borders;
+		uint32_t border_vbo = 0;
 	};
 
 	struct globe_mesh {
@@ -119,6 +120,7 @@ namespace graphics {
 		void rotate(float longr, float latr);
 		const Eigen::Matrix3f& rotation() const { return _rotation; }
 		float aspect() const { return _aspect; }
+		float get_scale() const { return scale; };
 		std::pair<float, float> normalize_screen_coordinates(int32_t x, int32_t y, int32_t width, int32_t height) const;
 		void move_vector_to(const Eigen::Vector3f& start, const Eigen::Vector3f& destination);
 		Eigen::Vector3f get_vector_for(const std::pair<float, float>& in) const;
@@ -139,6 +141,10 @@ namespace graphics {
 		float left_long = 0.0f;
 		float long_step = 0.0f;
 		int32_t triangle_vertex_count = 0;
+
+		uint32_t border_shader_handle = 0;
+
+		void render_borders();
 	public:
 		color_maps colors;
 		map_data_textures data_textures;
@@ -146,7 +152,7 @@ namespace graphics {
 		borders_manager borders;
 
 		std::pair<int32_t, int32_t> map_coordinates_from_screen(std::pair<float, float> const& normalized_screen_coordinates) const;
-		void initialize(open_gl_wrapper&, std::string shadows_file, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude);
+		void initialize(open_gl_wrapper&, scenario::scenario_manager const& s, std::string shadows_file, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude);
 		void populate_borders(scenario::scenario_manager const& s, uint16_t const* map_data, int32_t width, int32_t height);
 		void render(open_gl_wrapper&);
 	};

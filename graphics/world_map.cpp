@@ -59,10 +59,11 @@ namespace graphics {
 			case subpixel_edge::d: return pt_xy(1, 0);
 			case subpixel_edge::e: return pt_xy(-1, -1);
 			case subpixel_edge::f: return pt_xy(1, -1);
-			case subpixel_edge::g: return pt_xy(-1, -1);
-			case subpixel_edge::h: return pt_xy(0, -1);
+			case subpixel_edge::g: return pt_xy(-1, 1);
+			case subpixel_edge::h: return pt_xy(1, 1);
 		}
 		assert(false);
+		return pt_xy(0, 0);
 	}
 	subpixel_point pick_different(subpixel_point value, subpixel_point a, subpixel_point b) {
 		return value == a ? b : a;
@@ -79,6 +80,7 @@ namespace graphics {
 			case subpixel_edge::h: return pick_different(p, subpixel_point::seven, subpixel_point::five);
 		}
 		assert(false);
+		return subpixel_point::one;
 	}
 	bool edges_are_straight(subpixel_edge a, subpixel_edge b) {
 		return (a == subpixel_edge::a && b == subpixel_edge::b)
@@ -140,7 +142,7 @@ namespace graphics {
 				f(pt_xy(0, 0), subpixel_edge::d, subpixel_point::six);
 				f(pt_xy(0, 1), subpixel_edge::c, subpixel_point::four);
 				f(pt_xy(0, 1), subpixel_edge::b, subpixel_point::four);
-				f(pt_xy(1, 0), subpixel_edge::a, subpixel_point::two);
+				f(pt_xy(1, 1), subpixel_edge::a, subpixel_point::two);
 				break;
 			case subpixel_point::seven:
 				f(pt_xy(0, 0), subpixel_edge::h, subpixel_point::seven);
@@ -188,36 +190,44 @@ namespace graphics {
 		}
 
 		std::pair<float, float> to_map_point(pt_xy v, subpixel_point sub_pt) const {
-			std::pair<float, float> p(x_offset + v.x, y_offset + v.y);
+			std::pair<float, float> p(float(v.x), float(v.y));
 			switch(sub_pt) {
 				case subpixel_point::one:
-					p.second + 0.5f;
+					p.second += 0.5f;
 					break;
 				case subpixel_point::two:
 					break;
 				case subpixel_point::three:
-					p.first + 0.5f;
+					p.first += 0.5f;
 					break;
 				case subpixel_point::four:
-					p.first + 1.0f;
+					p.first += 1.0f;
 					break;
 				case subpixel_point::five:
-					p.first + 1.0f;
-					p.second + 0.5f;
+					p.first += 1.0f;
+					p.second += 0.5f;
 					break;
 				case subpixel_point::six:
-					p.first + 1.0f;
-					p.second + 1.0f;
+					p.first += 1.0f;
+					p.second += 1.0f;
 					break;
 				case subpixel_point::seven:
-					p.first + 0.5f;
-					p.second + 1.0f;
+					p.first += 0.5f;
+					p.second += 1.0f;
 					break;
 				case subpixel_point::eight:
-					p.second + 1.0f;
+					p.second += 1.0f;
 					break;
 			}
-			return p;
+			assert(p.first >= 0.0f && p.first <= 65.0f && p.second >= 0.0f && p.second <= 65.0f);
+			auto const pre_adjust = std::pair<float, float>(p.first  / float(block_size), p.second / float(block_size));
+			//return pre_adjust;
+			auto const adjust_magnitude_rt = float(abs(y_size / 2 - y_offset)) / float(y_size) * 7.0f;
+			auto const adjust_magnitude = adjust_magnitude_rt * adjust_magnitude_rt;
+
+			return std::pair<float, float>(pre_adjust.first 
+				- (0.5f - abs(pre_adjust.second - 0.5f)) * (0.5f - abs(pre_adjust.first - 0.5f)) * adjust_magnitude / float(block_size), 
+				pre_adjust.second);
 		}
 	};
 
@@ -288,12 +298,13 @@ namespace graphics {
 					// is edge present?
 					if(segments[temp_new_point.x + temp_new_point.y * block_size].get(inner_new_edge)) {
 						ordered_id_pair new_edge_id(block(temp_new_point), block(temp_new_point + subpixel_other_side(inner_new_edge)));
+						assert(new_edge_id.a != new_edge_id.b);
 
 						// is part of same border?
 						if(uint32_t(new_edge_id) == edge_id) {
 							point = temp_new_point;
 							edge = inner_new_edge;
-							sub_point = inner_new_sub_point;
+							sub_point = matched_subpixel_point(inner_new_edge, inner_new_sub_point);
 							found_next_point = true;
 						}
 					}
@@ -319,46 +330,78 @@ namespace graphics {
 		segment_data segments[block_size * block_size] = { segment_data() };
 
 		// populate border segments
-		for(int32_t i = 0; i < block_size; ++i) {
-			for(int32_t j = 0; j < block_size; ++j) {
+		
+		for(int32_t j = 0; j < block_size; ++j) {
+			for(int32_t i = 0; i < block_size; ++i) {
 				pt_xy t(i, j);
 
 				if(block(t) != 0) {
 					for(int32_t k = 0; k < 4; ++k) {
-						if(block(t) < first_sea_province || block(t + subpixel_other_side(subpixel_edge(k))) < first_sea_province)
+						if((block(t) < first_sea_province || block(t + subpixel_other_side(subpixel_edge(k))) < first_sea_province)
+							&& block(t + subpixel_other_side(subpixel_edge(k))) != 0)
 							segments[i + j * block_size].set(subpixel_edge(k), block(t) != block(t + subpixel_other_side(subpixel_edge(k))));
 					}
 					if(block(t + pt_xy(-1, -1)) == block(t + pt_xy(-1, 0)) &&
 						block(t + pt_xy(-1, -1)) == block(t + pt_xy(0, -1))) {
 
-						if(block(t) < first_sea_province || block(t + pt_xy(-1, -1)) < first_sea_province)
+						if((block(t) < first_sea_province || block(t + pt_xy(-1, -1)) < first_sea_province)
+							&& block(t + pt_xy(-1, -1)) != 0) {
 							segments[i + j * block_size].set(subpixel_edge::e, block(t) != block(t + pt_xy(-1, -1)));
+						}
 					}
 					if(block(t + pt_xy(1, -1)) == block(t + pt_xy(1, 0)) &&
 						block(t + pt_xy(1, -1)) == block(t + pt_xy(0, -1))) {
 
-						if(block(t) < first_sea_province || block(t + pt_xy(1, -1)) < first_sea_province)
+						if((block(t) < first_sea_province || block(t + pt_xy(1, -1)) < first_sea_province)
+							&& block(t + pt_xy(1, -1)) != 0) {
 							segments[i + j * block_size].set(subpixel_edge::f, block(t) != block(t + pt_xy(1, -1)));
+						}
 					}
 					if(block(t + pt_xy(1, 1)) == block(t + pt_xy(1, 0)) &&
 						block(t + pt_xy(1, 1)) == block(t + pt_xy(0, 1))) {
 
-						if(block(t) < < first_sea_province || block(t + pt_xy(1, 1)) < < first_sea_province)
+						if((block(t) < first_sea_province || block(t + pt_xy(1, 1)) < first_sea_province)
+							&& block(t + pt_xy(1, 1)) != 0) {
 							segments[i + j * block_size].set(subpixel_edge::h, block(t) != block(t + pt_xy(1, 1)));
+						}
 					}
 					if(block(t + pt_xy(-1, 1)) == block(t + pt_xy(-1, 0)) &&
 						block(t + pt_xy(-1, 1)) == block(t + pt_xy(0, 1))) {
 
-						if(block(t) < < first_sea_province || block(t + pt_xy(-1, 1)) < < first_sea_province)
+						if((block(t) < first_sea_province || block(t + pt_xy(-1, 1)) < first_sea_province)
+							&& block(t + pt_xy(-1, 1)) != 0) {
 							segments[i + j * block_size].set(subpixel_edge::g, block(t) != block(t + pt_xy(-1, 1)));
+						}
 					}
 				}
 			}
 		}
 
+		for(int32_t j = 0; j < block_size+1; ++j) {
+			for(int32_t i = 0; i < block_size+1; ++i) {
+				pt_xy a(i, j);
+				pt_xy b(i-1, j);
+				pt_xy c(i, j-1);
+				pt_xy d(i-1, j-1);
+				if((block(a) == block(d) && (block(a) == block(c) || block(a) == block(b))) 
+					|| block(b) == block(c) && (block(b) == block(a) || block(b) == block(d))) {
+					
+					if(i > 0 && j > 0)
+						segments[i - 1 + (j - 1) * block_size].set(subpixel_edge::d, false);
+					if(i > 0 && j < block_size) {
+						segments[i - 1 + j * block_size].set(subpixel_edge::b, false);
+						segments[i - 1 + j * block_size].set(subpixel_edge::c, false);
+					}
+					if(i < block_size && j < block_size)
+						segments[i + j * block_size].set(subpixel_edge::a, false);
+				}
+			}
+		}
+
 		// consume border segments
-		for(int32_t i = 0; i < block_size; ++i) {
-			for(int32_t j = 0; j < block_size; ++j) {
+		
+		for(int32_t j = 0; j < block_size; ++j) {
+			for(int32_t i = 0; i < block_size; ++i) {
 				pt_xy t(i, j);
 
 				while(segments[i + j * block_size].value != 0) {
@@ -403,23 +446,24 @@ namespace graphics {
 				std::pair<float, float> bottom_left(transformed_buffer[index_c], transformed_buffer[index_c + 1]);
 
 				int32_t const index_d = (i + 1 + (j + 1) * (wblocks + 1)) * 2;
-				std::pair<float, float> bottom_right(transformed_buffer[index_c], transformed_buffer[index_d + 1]);
+				std::pair<float, float> bottom_right(transformed_buffer[index_d], transformed_buffer[index_d + 1]);
 
 				bool const out_of_view =
-					(top_left.first < -0.5f && top_right.first < -0.5f && bottom_left.first < -0.5f && bottom_right.first < -0.5f)
-					|| (top_left.first > 0.5f && top_right.first > 0.5f && bottom_left.first > 0.5f && bottom_right.first > 0.5f)
-					|| (top_left.second < -0.5f && top_right.second < -0.5f && bottom_left.second < -0.5f && bottom_right.second < -0.5f)
-					|| (top_left.second > 0.5f && top_right.second > 0.5f && bottom_left.second > 0.5f && bottom_right.second > 0.5f)
+					(top_left.first < -1.0f && top_right.first < -1.0f && bottom_left.first < -1.0f && bottom_right.first < -1.0f)
+					|| (top_left.first > 1.0f && top_right.first > 1.0f && bottom_left.first > 1.0f && bottom_right.first > 1.0f)
+					|| (top_left.second < -1.0f && top_right.second < -1.0f && bottom_left.second < -1.0f && bottom_right.second < -1.0f)
+					|| (top_left.second > 1.0f && top_right.second > 1.0f && bottom_left.second > 1.0f && bottom_right.second > 1.0f)
 					;
 
-				bool const positive_area = ((top_right.first - top_left.first) * (top_right.second - top_left.second) +
-					(bottom_right.first - top_right.first) * (bottom_right.second - top_right.second)) > 0.0f;
+				bool const positive_area = ((top_right.first - top_left.first) * (top_right.second + top_left.second) +
+					(bottom_right.first - top_right.first) * (bottom_right.second + top_right.second) +
+					(top_left.first - bottom_right.first) * (top_left.second + bottom_right.second)) > 0.0f;
 
 				if(!out_of_view && positive_area) {
-					float x_matrix[4] = { top_left.first, bottom_left.first, top_right.first, bottom_right.first };
-					float y_matrix[4] = { top_left.second, bottom_left.second, top_right.second, bottom_right.second };
+					float x_matrix[4] = { top_left.first, top_right.first, bottom_left.first, bottom_right.first };
+					float y_matrix[4] = { top_left.second, top_right.second, bottom_left.second, bottom_right.second };
 
-					f(x_matrix, y_matrix);
+					f(i, j, x_matrix, y_matrix);
 				}
 			}
 		}
@@ -530,8 +574,10 @@ namespace graphics {
 		_aspect = static_cast<float>(x) / static_cast<float>(y);
 		globe.update_transformed_buffer(_aspect, scale, _rotation);
 	}
+	constexpr float scale_min = 1.0f;
+	constexpr float scale_max = 18.0f;
 	void map_state::rescale_by(float multiplier) {
-		scale = std::clamp(scale * multiplier, 1.0f, 18.0f);
+		scale = std::clamp(scale * multiplier, scale_min, scale_max);
 		globe.update_transformed_buffer(_aspect, scale, _rotation);
 	}
 	void map_state::rotate(float longr, float latr) {
@@ -583,9 +629,9 @@ namespace graphics {
 	}
 
 	std::pair<float, float> normalized_coordinates_from_base(float aspect, float scale, Eigen::Matrix3f const& rotation, float x, float y, float z) {
-		Eigen::Vector3f rotated = rotation * Eigen::Vector3f(x, y, z).transpose();
+		Eigen::Vector3f rotated = rotation * Eigen::Vector3f(x, y, z);
 		float base_projection_x = atan2(rotated[1], rotated[0]);
-		float base_projection_y = asin(rotated[3]);
+		float base_projection_y = asin(rotated[2]);
 		float rdiv = base_projection_y / 3.14159265358f;
 		return std::pair<float, float>(scale * base_projection_x * sqrt(1.0f - (3.0f*rdiv*rdiv)) / 3.14159265358f,
 			base_projection_y * scale * aspect / 3.14159265358f);
@@ -636,18 +682,24 @@ namespace graphics {
 		"           int(t_value.y)), 0).r), 0);\n"
 		"}\n";
 
+	namespace border_parameters {
+		constexpr GLuint x_scale_matrix = 0;
+		constexpr GLuint y_scale_matrix = 4;
+		constexpr GLuint border_color = 8;
+	}
+
 	static const char* map_border_vertex_shader =
 		"#version 430 core\n"
 		"layout (location = 0) in vec2 vertex_position;\n"
 		"\n"
 		"layout (location = 0) uniform mat2 x_scale_matrix;\n"
-		"layout (location = 1) uniform mat2 y_scale_matrix;\n"
+		"layout (location = 4) uniform mat2 y_scale_matrix;\n"
 		"\n"
 		"void main() {\n"
 		"	vec2 vx = vec2(1.0f - vertex_position.x, vertex_position.x);\n"
-		"	vec2 vy = vec2(1.0f - vertex_position.x, vertex_position.x);\n"
+		"	vec2 vy = vec2(1.0f - vertex_position.y, vertex_position.y);\n"
 
-		"	gl_Position = vec4(dot(vx, x_scale_matrix * vy)), dot(vx, y_scale_matrix * vy)), 0.5f, 1.0f);\n"
+		"	gl_Position = vec4(dot(vx, x_scale_matrix * vy), dot(vx, y_scale_matrix * vy), 0.5f, 1.0f);\n"
 		"}\n";
 
 	static const char* map_border_fragment_shader =
@@ -655,7 +707,7 @@ namespace graphics {
 		"\n"
 		"layout (location = 0) out vec4 frag_color;\n"
 		"\n"
-		"layout (binding = 0) uniform vec4 border_color;\n"
+		"layout (location = 8) uniform vec4 border_color;\n"
 		"\n"
 		"void main() {\n"
 		"   frag_color = border_color;\n"
@@ -689,77 +741,136 @@ namespace graphics {
 	borders_manager::border_block borders_to_graphics_data(borders_set const& b_set, scenario::scenario_manager const& s) {
 		borders_manager::border_block result;
 
-		glGenBuffers(1, &result.vertices_handle);
-		glBindBuffer(GL_ARRAY_BUFFER, result.vertices_handle);
-		glBufferData(GL_ARRAY_BUFFER, static_cast<int64_t>(b_set.points.size() * 8), b_set.points.data(), GL_STATIC_DRAW);
+		if(b_set.points.size() != 0) {
+			glGenBuffers(1, &(result.vertices_handle));
+			glBindBuffer(GL_ARRAY_BUFFER, result.vertices_handle);
+			glBufferData(GL_ARRAY_BUFFER, static_cast<int64_t>(b_set.points.size() * 8), b_set.points.data(), GL_STATIC_DRAW);
 
-		std::vector<int32_t> temp_indices_buffer;
+			std::vector<int32_t> temp_indices_buffer;
 
-		for(auto const& indices_set : b_set.ordered_pair_to_indices) {
-			ordered_id_pair const ids(indices_set.first);
-			if(ids.a >= s.province_m.first_sea_province || ids.b >= s.province_m.first_sea_province) {
-				temp_indices_buffer.push_back(-1);
-				temp_indices_buffer.insert(temp_indices_buffer.end(), indices_set.second.begin(), indices_set.second.end());
+			for(auto const& indices_set : b_set.ordered_pair_to_indices) {
+				ordered_id_pair const ids(indices_set.first);
+				if(ids.a >= s.province_m.first_sea_province || ids.b >= s.province_m.first_sea_province) {
+					temp_indices_buffer.push_back(-1);
+					temp_indices_buffer.insert(temp_indices_buffer.end(), indices_set.second.begin(), indices_set.second.end());
+				}
 			}
-		}
 
-		result.coastal_borders_size = temp_indices_buffer.size();
+			result.coastal_borders_size = int32_t(temp_indices_buffer.size());
 
-		for(auto const& indices_set : b_set.ordered_pair_to_indices) {
-			ordered_id_pair const ids(indices_set.first);
-			provinces::province_tag const a(ids.a);
-			provinces::province_tag const b(ids.b);
-			if(ids.a < s.province_m.first_sea_province && ids.b < s.province_m.first_sea_province
-				&& (s.province_m.province_container.get<province::state_id>(a) != s.province_m.province_container.get<province::state_id>(b))) {
-				result.province_borders.push_back(
-					borders_manager::province_border_info{
-						indices_set.second.size(),
-						temp_indices_buffer.size() + 1,
-						a,
-						b
-					});
-				temp_indices_buffer.push_back(-1);
-				temp_indices_buffer.insert(temp_indices_buffer.end(), indices_set.second.begin(), indices_set.second.end());
+			for(auto const& indices_set : b_set.ordered_pair_to_indices) {
+				ordered_id_pair const ids(indices_set.first);
+				provinces::province_tag const a(ids.a);
+				provinces::province_tag const b(ids.b);
+				if(ids.a < s.province_m.first_sea_province && ids.b < s.province_m.first_sea_province
+					&& (s.province_m.province_container.get<province::state_id>(a) != s.province_m.province_container.get<province::state_id>(b))) {
+					result.province_borders.push_back(
+						borders_manager::province_border_info{
+							int16_t(indices_set.second.size()),
+							int16_t(temp_indices_buffer.size() + 1),
+							a,
+							b
+						});
+					temp_indices_buffer.push_back(-1);
+					temp_indices_buffer.insert(temp_indices_buffer.end(), indices_set.second.begin(), indices_set.second.end());
+				}
 			}
-		}
 
-		result.state_borders_size = temp_indices_buffer.size() - result.coastal_borders_size;
+			result.state_borders_size = int32_t(temp_indices_buffer.size()) - result.coastal_borders_size;
 
-		for(auto const& indices_set : b_set.ordered_pair_to_indices) {
-			ordered_id_pair const ids(indices_set.first);
-			provinces::province_tag const a(ids.a);
-			provinces::province_tag const b(ids.b);
-			if(ids.a < s.province_m.first_sea_province && ids.b < s.province_m.first_sea_province
-				&& (s.province_m.province_container.get<province::state_id>(a) == s.province_m.province_container.get<province::state_id>(b))) {
-				result.province_borders.push_back(
-					borders_manager::province_border_info{
-						indices_set.second.size(),
-						temp_indices_buffer.size() + 1,
-						a,
-						b
-					});
-				temp_indices_buffer.push_back(-1);
-				temp_indices_buffer.insert(temp_indices_buffer.end(), indices_set.second.begin(), indices_set.second.end());
+			for(auto const& indices_set : b_set.ordered_pair_to_indices) {
+				ordered_id_pair const ids(indices_set.first);
+				provinces::province_tag const a(ids.a);
+				provinces::province_tag const b(ids.b);
+				if(ids.a < s.province_m.first_sea_province && ids.b < s.province_m.first_sea_province
+					&& (s.province_m.province_container.get<province::state_id>(a) == s.province_m.province_container.get<province::state_id>(b))) {
+					result.province_borders.push_back(
+						borders_manager::province_border_info{
+							int16_t(indices_set.second.size()),
+							int16_t(temp_indices_buffer.size() + 1),
+							a,
+							b
+						});
+					temp_indices_buffer.push_back(-1);
+					temp_indices_buffer.insert(temp_indices_buffer.end(), indices_set.second.begin(), indices_set.second.end());
+				}
 			}
+
+			result.province_borders_size = int32_t(temp_indices_buffer.size()) - (result.coastal_borders_size + result.state_borders_size);
+
+			glGenBuffers(1, &(result.indices_handle));
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, result.indices_handle);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<int64_t>(temp_indices_buffer.size() * sizeof(int32_t)), temp_indices_buffer.data(), GL_STATIC_DRAW);
 		}
-
-		result.province_borders_size = temp_indices_buffer.size() - (result.coastal_borders_size + result.state_borders_size);
-
-		glGenBuffers(1, &result.indices_handle);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, result.indices_handle);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<int64_t>(temp_indices_buffer.size() * sizeof(int32_t)), temp_indices_buffer.data(), GL_STATIC_DRAW);
 
 		return result;
 	}
 
-	void render_coastal_borders(borders_manager::border_block const& block) {
+	void init_border_vbo(borders_manager& m) {
+		glGenVertexArrays(1, &m.border_vbo);
+		glBindVertexArray(m.border_vbo);
+		glEnableVertexAttribArray(0); //position
+
+		glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, 0); //position
+		glVertexAttribBinding(0, 0); //position -> to array zero
+	}
+
+	void ready_border_render(uint32_t vao, uint32_t vertices_handle, uint32_t indices_handle, float const* x_matrix, float const* y_matrix) {
+		glBindVertexArray(vao);
+		glUniformMatrix2fv(border_parameters::x_scale_matrix, 1, GL_FALSE, x_matrix);
+		glUniformMatrix2fv(border_parameters::y_scale_matrix, 1, GL_FALSE, y_matrix);
+
+		glBindVertexBuffer(0, vertices_handle, 0, sizeof(GLfloat) * 2);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices_handle);
+	}
+
+	void render_coastal_borders(float scale, borders_manager::border_block const& block) {
+		if(block.coastal_borders_size > 1) {
+			glLineWidth(1.0f + ((scale - scale_min) / (scale_max - scale_min)) * 3.0f);
+			glUniform4f(border_parameters::border_color, 0.0f, 0.0f, 0.0f, 1.0f);
+
+			glDrawElements(GL_LINE_STRIP, block.coastal_borders_size - 1, GL_UNSIGNED_INT, (void*)(sizeof(int32_t)));
+		}
+	}
+	void render_state_borders(float scale, borders_manager::border_block const& block) {
+		if(block.state_borders_size > 0 && scale > scale_max * 0.3f) {
+			glLineWidth(1.0f + ((scale - scale_min) / (scale_max - scale_min)) * 2.0f);
+			glUniform4f(border_parameters::border_color, 0.0f, 0.0f, 0.0f, 1.0f);
+
+			glDrawElements(GL_LINE_STRIP, block.state_borders_size, GL_UNSIGNED_INT, (void*)(block.coastal_borders_size * sizeof(int32_t)));
+		}
 
 	}
-	void render_state_borders(borders_manager::border_block const& block) {
+	void render_province_borders(float scale, borders_manager::border_block const& block) {
+		if(block.province_borders_size > 0 && scale > scale_max * 0.6f) {
+			glLineWidth(2.0f);
+			glUniform4f(border_parameters::border_color, 0.0f, 0.0f, 0.0f, 0.5f);
 
+			glDrawElements(GL_LINE_STRIP, block.province_borders_size, GL_UNSIGNED_INT, (void*)((block.coastal_borders_size + block.state_borders_size) * sizeof(int32_t)));
+		}
 	}
-	void render_province_borders(borders_manager::border_block const& block) {
-		glLineWidth(2.0f);
+
+	void map_display::render_borders() {
+		glUseProgram(border_shader_handle);
+
+		glEnable(GL_PRIMITIVE_RESTART);
+		glPrimitiveRestartIndex(uint32_t(-1));
+
+		const auto wblocks = (map_width + block_size - 1) / block_size;
+
+		int32_t count = 0;
+		state.globe.for_each_visible_block(map_width, map_height, [_this = this, wblocks, &count](int32_t x, int32_t y, float const* x_matrix, float const* y_matrix) {
+			auto& block = _this->borders.borders[x + y * wblocks];
+			
+			ready_border_render(_this->borders.border_vbo, block.vertices_handle, block.indices_handle, x_matrix, y_matrix);
+			
+			render_coastal_borders(_this->state.get_scale(), block);
+			render_state_borders(_this->state.get_scale(), block);
+			render_province_borders(_this->state.get_scale(), block);
+
+			count++;
+		});
+		glDisable(GL_PRIMITIVE_RESTART);
 	}
 
 	void map_display::populate_borders(scenario::scenario_manager const& s, uint16_t const* map_data, int32_t width, int32_t height) {
@@ -768,16 +879,15 @@ namespace graphics {
 
 		borders.borders.resize(wblocks * hblocks);
 
-		concurrency::parallel_for(0, hblocks, 1, [_this = this, wblocks, &s](int32_t j){
+		for(int32_t j = 0; j < hblocks; ++j) {
 			for(int32_t i = 0; i < wblocks; ++i) {
-				_this->borders.borders[i + j * wblocks] = borders_to_graphics_data(
+				borders.borders[i + j * wblocks] = borders_to_graphics_data(
 					block_to_borders(
 						block_view(map_data, width, height, block_size * i, block_size * j),
 						s.province_m.first_sea_province),
 					s);
 			}
-		});
-
+		}
 	}
 
 	std::tuple<uint32_t, uint32_t, uint32_t> create_patches_buffers_b(int32_t width, int32_t height, globe_mesh& mesh, float base_lat, float lat_step, float long_step) {
@@ -1010,6 +1120,111 @@ namespace graphics {
 		return shader_handle;
 	}
 
+
+	uint32_t compile_borders_program() {
+		GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+
+#ifdef _DEBUG
+		if(vertex_shader == 0) {
+			MessageBox(nullptr, L"vertex shader creation failed", L"OpenGL error", MB_OK);
+			//std::abort();
+		}
+#endif
+
+		GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+
+#ifdef _DEBUG
+		if(fragment_shader == 0) {
+			MessageBox(nullptr, L"fragment_shader shader creation failed", L"OpenGL error", MB_OK);
+			//std::abort();
+		}
+#endif
+		const GLchar* array_a[] = { map_border_vertex_shader };
+
+		glShaderSource(vertex_shader, 1, array_a, nullptr);
+		glCompileShader(vertex_shader);
+
+#ifdef _DEBUG
+		GLint result;
+		glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &result);
+		if(result == GL_FALSE) {
+			MessageBox(nullptr, L"border vertex shader compilation failed", L"OpenGL error", MB_OK);
+
+			GLint logLen;
+			glGetShaderiv(vertex_shader, GL_INFO_LOG_LENGTH, &logLen);
+
+			char * log = new char[static_cast<size_t>(logLen)];
+			GLsizei written;
+			glGetShaderInfoLog(vertex_shader, logLen, &written, log);
+
+			MessageBoxA(nullptr, log, "OpenGL error", MB_OK);
+			delete[] log;
+
+			std::abort();
+		}
+#endif
+
+
+		const GLchar* array_b[] = { map_border_fragment_shader };
+
+		glShaderSource(fragment_shader, 1, array_b, nullptr);
+		glCompileShader(fragment_shader);
+
+#ifdef _DEBUG
+		glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &result);
+		if(result == GL_FALSE) {
+			MessageBox(nullptr, L"border fragment shader compilation failed", L"OpenGL error", MB_OK);
+
+			GLint logLen;
+			glGetShaderiv(fragment_shader, GL_INFO_LOG_LENGTH, &logLen);
+
+			char * log = new char[static_cast<size_t>(logLen)];
+			GLsizei written;
+			glGetShaderInfoLog(fragment_shader, logLen, &written, log);
+
+			MessageBoxA(nullptr, log, "OpenGL error", MB_OK);
+			delete[] log;
+
+			std::abort();
+		}
+#endif
+
+		uint32_t shader_handle = glCreateProgram();
+
+#ifdef _DEBUG
+		if(shader_handle == 0) {
+			MessageBox(nullptr, L"border shader program creation failed", L"OpenGL error", MB_OK);
+			//std::abort();
+		}
+#endif
+
+		glAttachShader(shader_handle, vertex_shader);
+		glAttachShader(shader_handle, fragment_shader);
+		glLinkProgram(shader_handle);
+
+#ifdef _DEBUG
+		glGetProgramiv(shader_handle, GL_LINK_STATUS, &result);
+		if(result == GL_FALSE) {
+			MessageBox(nullptr, L"border shader program linking failed", L"OpenGL error", MB_OK);
+
+			GLint logLen;
+			glGetProgramiv(shader_handle, GL_INFO_LOG_LENGTH, &logLen);
+
+			char * log = new char[static_cast<size_t>(logLen)];
+			GLsizei written;
+			glGetProgramInfoLog(shader_handle, logLen, &written, log);
+			MessageBoxA(nullptr, log, "OpenGL error", MB_OK);
+
+			delete[] log;
+			std::abort();
+		}
+#endif
+		glDeleteShader(vertex_shader);
+		glDeleteShader(fragment_shader);
+
+		return shader_handle;
+	}
+
 	uint32_t setup_vao_b(uint32_t vertex_buffer) {
 		uint32_t vao;
 
@@ -1029,7 +1244,7 @@ namespace graphics {
 		return vao;
 	}
 
-	void map_display::initialize(open_gl_wrapper& ogl, std::string shadows_file, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude) {
+	void map_display::initialize(open_gl_wrapper& ogl, scenario::scenario_manager const& s, std::string shadows_file, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude) {
 
 		glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
 		glEnable(GL_DEPTH_TEST);
@@ -1047,12 +1262,16 @@ namespace graphics {
 		data_textures = create_data_textures(map_data, width, height);
 		colors.create_color_textures();
 
-		const auto [v, e, c] = create_patches_buffers_b(width, height, top_lat, lat_step, long_step);
+		const auto [v, e, c] = create_patches_buffers_b(width, height, state.globe, top_lat, lat_step, long_step);
 		vertex_buffer = v;
 		element_buffer = e;
 		triangle_vertex_count = static_cast<int32_t>(c);
 
 		vao = setup_vao_b(vertex_buffer);
+
+		border_shader_handle = compile_borders_program();
+		populate_borders(s, map_data, width, height);
+		init_border_vbo(borders);
 
 		unsigned char pixel[3] = { 255, 255, 255 };
 
@@ -1130,7 +1349,9 @@ namespace graphics {
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
 
 
-			inner_render_b(state.scale, state.rotation(), state.aspect(), triangle_vertex_count);
+			inner_render_b(state.get_scale(), state.rotation(), state.aspect(), triangle_vertex_count);
+
+			render_borders();
 		}
 	}
 
