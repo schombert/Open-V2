@@ -33,6 +33,12 @@
     <ClInclude Include="messages.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="bottombar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bottombar.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="world_state.cpp">
@@ -45,6 +51,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="messages.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bottombar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -5,7 +5,6 @@
 #include "gui\\gui.hpp"
 
 namespace current_state {
-
 	class topbar_bg {
 	public:
 		void button_function(ui::simple_button<topbar_bg>&, world_state&) {} // just to trap clicks

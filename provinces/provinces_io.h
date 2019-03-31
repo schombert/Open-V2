@@ -10,6 +10,58 @@
 
 class world_state;
 
+template<>
+class serialization::serializer<provinces::borders_manager::province_border_info> : public serialization::memcpy_serializer<provinces::borders_manager::province_border_info> {};
+
+template<>
+class serialization::serializer<provinces::borders_manager::border_block> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, provinces::borders_manager::border_block const& obj) {
+		serialize(output, obj.coastal_borders_size);
+		serialize(output, obj.state_borders_size);
+		serialize(output, obj.province_borders_size);
+		serialize(output, obj.province_borders);
+		serialize(output, obj.indices_data);
+		serialize(output, obj.vertices_data);
+	}
+	static void deserialize_object(std::byte const* &input, provinces::borders_manager::border_block& obj) {
+		deserialize(input, obj.coastal_borders_size);
+		deserialize(input, obj.state_borders_size);
+		deserialize(input, obj.province_borders_size);
+		deserialize(input, obj.province_borders);
+		deserialize(input, obj.indices_data);
+		deserialize(input, obj.vertices_data);
+	}
+	static size_t size(provinces::borders_manager::border_block const& obj) {
+		return serialize_size(obj.coastal_borders_size) +
+			serialize_size(obj.state_borders_size) +
+			serialize_size(obj.province_borders_size) +
+			serialize_size(obj.province_borders) +
+			serialize_size(obj.indices_data) +
+			serialize_size(obj.vertices_data);
+	}
+};
+
+template<>
+class serialization::serializer<provinces::borders_manager> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, provinces::borders_manager const& obj) {
+		serialize(output, obj.borders);
+	}
+	static void deserialize_object(std::byte const* &input, provinces::borders_manager& obj) {
+		deserialize(input, obj.borders);
+	}
+	static size_t size(provinces::borders_manager const& obj) {
+		return serialize_size(obj.borders);
+	}
+};
+
 template<typename T>
 class serialization::tagged_serializer<province_state::cores, T> {
 public:
@@ -97,6 +149,7 @@ public:
 		serialize(output, obj.province_map_width);
 		serialize(output, obj.province_map_height);
 		serialize(output, obj.first_sea_province);
+		serialize(output, obj.borders);
 	}
 	static void deserialize_object(std::byte const* &input, provinces::province_manager& obj) {
 		deserialize(input, obj.province_container);
@@ -112,6 +165,7 @@ public:
 		deserialize(input, obj.province_map_width);
 		deserialize(input, obj.province_map_height);
 		deserialize(input, obj.first_sea_province);
+		deserialize(input, obj.borders);
 
 		rebuild_indexes(obj);
 	}
@@ -129,6 +183,7 @@ public:
 		deserialize(input, obj.province_map_width);
 		deserialize(input, obj.province_map_height);
 		deserialize(input, obj.first_sea_province);
+		deserialize(input, obj.borders);
 
 		tg.run([&obj]() { rebuild_indexes(obj); });
 	}
@@ -144,7 +199,8 @@ public:
 			serialize_size(obj.province_map_data) +
 			serialize_size(obj.province_map_width) +
 			serialize_size(obj.province_map_height) +
-			serialize_size(obj.first_sea_province);
+			serialize_size(obj.first_sea_province) +
+			serialize_size(obj.borders);;
 	}
 };
 

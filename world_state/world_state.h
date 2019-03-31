@@ -24,6 +24,8 @@
 #include "military\\military_gui.h"
 #include "events\\events.h"
 #include "events\\events_gui.h"
+#include "bottombar.h"
+#include "graphics\\world_map.h"
 
 #undef small
 
@@ -44,7 +46,7 @@ namespace current_state {
 
 	constexpr int32_t max_speed = 5;
 
-	enum map_mode {
+	enum class map_mode {
 		political,
 		prices,
 		distance,
@@ -77,6 +79,8 @@ namespace current_state {
 
 	class state {
 	public:
+		graphics::map_display map;
+
 		provinces::provinces_state province_s;
 		cultures::cultures_state culture_s;
 		military::military_state military_s;
@@ -123,6 +127,7 @@ namespace current_state {
 		events::major_event_window major_event_w;
 
 		topbar topbar_w;
+		bottombar bottombar_w;
 
 		//player data
 		struct {

@@ -141,6 +141,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="bottombar.h" />
+    <ClInclude Include="bottombar.hpp" />
     <ClInclude Include="messages.h" />
     <ClInclude Include="messages.hpp" />
     <ClInclude Include="topbar.h" />
@@ -149,6 +151,7 @@
     <ClInclude Include="world_state_io.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="bottombar.cpp" />
     <ClCompile Include="messages.cpp" />
     <ClCompile Include="topbar.cpp" />
     <ClCompile Include="world_state.cpp" />

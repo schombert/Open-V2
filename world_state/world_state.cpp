@@ -151,6 +151,7 @@ namespace current_state {
 
 	void state::init_gui_objects(world_state& ws) {
 		topbar_w.init_topbar(ws);
+		bottombar_w.init_bottombar(ws);
 		government_w.init_government_window(ws);
 		province_w.init_province_window(ws);
 		diplomacy_w.init_diplomacy_window(ws);

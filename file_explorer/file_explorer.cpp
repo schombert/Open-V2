@@ -37,13 +37,13 @@ struct gui_window_handler {
 	world_state& s;
 	std::string shadows_file;
 
-	graphics::map_display map;
+	
 	Eigen::Vector3f interest = Eigen::Vector3f::UnitX();
 	bool map_dragging = false;
 	std::pair<int32_t, int32_t> map_drag_start;
 
 	gui_window_handler(world_state& snm, std::string const& shadows) : s(snm), shadows_file(shadows) {
-		map.colors.init_color_data(static_cast<uint32_t>(s.s.province_m.province_container.size()));
+		s.w.map.colors.init_color_data(static_cast<uint32_t>(s.s.province_m.province_container.size()));
 	}
 
 	template<typename T>
@@ -57,7 +57,7 @@ struct gui_window_handler {
 
 	void operator()(const ui::resize& r, ui::window_base&) {
 		s.w.gui_m.on_resize(r);
-		map.state.resize(static_cast<int32_t>(r.width), static_cast<int32_t>(r.height));
+		s.w.map.state.resize(static_cast<int32_t>(r.width), static_cast<int32_t>(r.height));
 		s.w.topbar_w.resize_topbar(s.w.gui_m);
 	}
 
@@ -65,7 +65,7 @@ struct gui_window_handler {
 		if (!s.w.gui_m.on_lbutton_down(s, m)) {
 			map_dragging = true;
 			map_drag_start = std::make_pair(m.x, m.y);
-			interest = map.state.get_vector_for(map.state.normalize_screen_coordinates(m.x, m.y, s.w.gui_m.width(), s.w.gui_m.height()));
+			interest = s.w.map.state.get_vector_for(s.w.map.state.normalize_screen_coordinates(m.x, m.y, s.w.gui_m.width(), s.w.gui_m.height()));
 		}
 	}
 	void operator()(const ui::lbutton_up& m, ui::window_base&) {
@@ -74,11 +74,13 @@ struct gui_window_handler {
 			map_dragging = false;
 
 			if(std::abs(map_drag_start.first - m.x) < 5 && std::abs(map_drag_start.second - m.y) < 5) {
-				auto map_coord = map.map_coordinates_from_screen(map.state.normalize_screen_coordinates(m.x, m.y, s.w.gui_m.width(), s.w.gui_m.height()));
+				auto map_coord = s.w.map.map_coordinates_from_screen(s.w.map.state.normalize_screen_coordinates(m.x, m.y, s.w.gui_m.width(), s.w.gui_m.height()));
 				auto id = s.s.province_m.province_map_data[size_t(map_coord.first + map_coord.second * s.s.province_m.province_map_width)];
-				s.w.province_w.show_province_window(s.w.gui_m, provinces::province_tag(id));
+				
 				s.w.map_view.selected_province = provinces::province_tag(id);
-				if(is_valid_index(provinces::province_tag(id))) {
+				if(is_valid_index(provinces::province_tag(id)) && id != 0 && id < s.s.province_m.first_sea_province) {
+					s.w.province_w.show_province_window(s.w.gui_m, provinces::province_tag(id));
+
 					if(auto sid = provinces::province_state(s, provinces::province_tag(id)); sid) {
 						if(s.w.nation_s.states.is_valid_index(sid) && s.w.map_view.selected_state != sid) {
 							s.w.map_view.selected_state = sid;
@@ -91,8 +93,10 @@ struct gui_window_handler {
 							s.w.map_view.selected_country = nid;
 					}
 					s.w.map_view.changed = true;
+				} else {
+					s.w.province_w.hide_province_window(s.w.gui_m);
 				}
-			}
+			} 
 		}
 	}
 	void operator()(const ui::key_down& m, ui::window_base&) {
@@ -116,15 +120,15 @@ struct gui_window_handler {
 	}
 	void operator()(const ui::scroll& ss, ui::window_base&) {
 		if (!s.w.gui_m.on_scroll(s, ss)) {
-			map.state.rescale_by(float(pow(2, ss.amount / 2.0f)));
+			s.w.map.state.rescale_by(float(pow(2, ss.amount / 2.0f)));
 		}
 	}
 	void operator()(const ui::mouse_drag& m, ui::window_base&) {
 		if (!map_dragging) {
 			s.w.gui_m.on_mouse_drag(s, m);
 		} else {
-			Eigen::Vector3f mouse_over = map.state.get_unrotated_vector_for(map.state.normalize_screen_coordinates(map_drag_start.first + m.x, map_drag_start.second + m.y, s.w.gui_m.width(), s.w.gui_m.height()));
-			map.state.move_vector_to(interest, mouse_over);
+			Eigen::Vector3f mouse_over = s.w.map.state.get_unrotated_vector_for(s.w.map.state.normalize_screen_coordinates(map_drag_start.first + m.x, map_drag_start.second + m.y, s.w.gui_m.width(), s.w.gui_m.height()));
+			s.w.map.state.move_vector_to(interest, mouse_over);
 		}
 	}
 	void operator()(const ui::mouse_move& m, ui::window_base&) {
@@ -141,12 +145,12 @@ struct gui_window_handler {
 		s.s.gui_m.fonts.load_fonts(ogl);
 	
 		//map.initialize(ogl, s.province_m.province_map_data.data(), s.province_m.province_map_width, s.province_m.province_map_height, 0.0f, -1.2f, 1.2f);
-		map.initialize(ogl, s.s, shadows_file, s.s.province_m.province_map_data.data(), s.s.province_m.province_map_width, s.s.province_m.province_map_height, 0.0f, 1.57f, -1.57f);
-		map.state.resize(s.w.gui_m.width(), s.w.gui_m.height());
+		s.w.map.initialize(ogl, s.s, shadows_file, s.s.province_m.province_map_data.data(), s.s.province_m.province_map_width, s.s.province_m.province_map_height, 0.0f, 1.57f, -1.57f);
+		s.w.map.state.resize(s.w.gui_m.width(), s.w.gui_m.height());
 	}
 
 	void on_idle(ui::window_base& win) {
-		graphics::update_map_colors(map, s);
+		graphics::update_map_colors(s.w.map, s);
 
 		if (s.w.gui_m.check_and_clear_update()) {
 			ui::update(s);
@@ -156,7 +160,7 @@ struct gui_window_handler {
 	}
 
 	void render(graphics::open_gl_wrapper& ogl) {
-		map.render(ogl);
+		s.w.map.render(ogl, s);
 		ui::render(s.s.gui_m, s.w.gui_m, ogl);
 	}
 };

@@ -11,6 +11,7 @@
 #include "province_functions.h"
 #include "nations\\nations_functions.h"
 #include "world_state\\world_state.h"
+#include "graphics\\world_map.h"
 
 template<>
 class serialization::serializer<economy::worked_instance> : public serialization::memcpy_serializer<economy::worked_instance> {};
@@ -1264,32 +1265,49 @@ namespace provinces {
 		}
 	}
 
+	void populate_borders(provinces::province_manager& province_m) {
+		const auto wblocks = (province_m.province_map_width + graphics::block_size - 1) / graphics::block_size;
+		const auto hblocks = (province_m.province_map_height + graphics::block_size - 1) / graphics::block_size;
+
+		province_m.borders.borders.resize(wblocks * hblocks);
+
+		concurrency::parallel_for(0, hblocks, 1, [&province_m, wblocks](int32_t j) {
+			for(int32_t i = 0; i < wblocks; ++i) {
+				province_m.borders.borders[i + j * wblocks] = 
+					graphics::create_border_block_data(province_m, i, j, province_m.province_map_data.data(), province_m.province_map_width, province_m.province_map_height);
+			}
+		});
+	}
+
 	void make_adjacency(std::map<province_tag, boost::container::flat_set<province_tag>>& adj_map, province_manager& m) {
 		m.same_type_adjacency.expand_rows(static_cast<uint32_t>(m.province_container.size()));
 		m.coastal_adjacency.expand_rows(static_cast<uint32_t>(m.province_container.size()));
 		
-
-		for(auto const& adj_set : adj_map) {
-			if(m.province_container.get<province::is_sea>(adj_set.first)) {
-				for(auto oprov : adj_set.second) {
-					if(m.province_container.get<province::is_sea>(oprov)) {
-						m.same_type_adjacency.add_to_row(adj_set.first, oprov);
-					} else {
-						m.coastal_adjacency.add_to_row(adj_set.first, oprov);
-						m.province_container.set<province::is_coastal>(adj_set.first, true);
+		concurrency::parallel_invoke([&adj_map, &m]() {
+			for(auto const& adj_set : adj_map) {
+				if(m.province_container.get<province::is_sea>(adj_set.first)) {
+					for(auto oprov : adj_set.second) {
+						if(m.province_container.get<province::is_sea>(oprov)) {
+							m.same_type_adjacency.add_to_row(adj_set.first, oprov);
+						} else {
+							m.coastal_adjacency.add_to_row(adj_set.first, oprov);
+							m.province_container.set<province::is_coastal>(adj_set.first, true);
+						}
 					}
-				}
-			} else {
-				for(auto oprov : adj_set.second) {
-					if(m.province_container.get<province::is_sea>(oprov)) {
-						m.coastal_adjacency.add_to_row(adj_set.first, oprov);
-						m.province_container.set<province::is_coastal>(adj_set.first, true);
-					} else {
-						m.same_type_adjacency.add_to_row(adj_set.first, oprov);
+				} else {
+					for(auto oprov : adj_set.second) {
+						if(m.province_container.get<province::is_sea>(oprov)) {
+							m.coastal_adjacency.add_to_row(adj_set.first, oprov);
+							m.province_container.set<province::is_coastal>(adj_set.first, true);
+						} else {
+							m.same_type_adjacency.add_to_row(adj_set.first, oprov);
+						}
 					}
 				}
 			}
-		}
+		}, [&m]() {
+			populate_borders(m);
+		});
 	}
 
 	void calculate_province_areas(province_manager& m, float top_latitude, float bottom_latitude) {

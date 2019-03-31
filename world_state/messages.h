@@ -169,6 +169,15 @@ namespace messages {
 
 	constexpr int32_t message_count = 153;
 
+	namespace message_category {
+		constexpr int32_t combat = 0x0001;
+		constexpr int32_t diplomacy = 0x0002;
+		constexpr int32_t units = 0x0004;
+		constexpr int32_t provinces = 0x0008;
+		constexpr int32_t events = 0x0010;
+		constexpr int32_t other = 0x0020;
+	}
+
 	enum class message_setting : int8_t {
 		discard = 0,
 		log = 1,
@@ -218,6 +227,8 @@ namespace messages {
 		int32_t current_message_count = 0;
 		int32_t last_replaced_index = 0;
 		int32_t currently_displayed_index = 0;
+		int32_t message_categories = message_category::combat | message_category::diplomacy | message_category::events
+			| message_category::other | message_category::provinces | message_category::units;
 
 		message_window();
 		~message_window();

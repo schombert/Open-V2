@@ -176,6 +176,31 @@ namespace province_state {
 }
 
 namespace provinces {
+	class borders_manager {
+	public:
+		struct province_border_info {
+			int16_t size;
+			int16_t offset;
+			provinces::province_tag a;
+			provinces::province_tag b;
+		};
+
+		struct border_block {
+			std::vector<province_border_info> province_borders;
+			std::vector<float> vertices_data;
+			std::vector<int32_t> indices_data;
+
+			uint32_t vertices_handle = 0;
+			uint32_t indices_handle = 0;
+
+			int32_t coastal_borders_size = 0;
+			int32_t state_borders_size = 0;
+			int32_t province_borders_size = 0;
+		};
+
+		std::vector<border_block> borders;
+		uint32_t border_vbo = 0;
+	};
 
 	class state_distances_manager {
 	private:
@@ -237,7 +262,8 @@ namespace provinces {
 
 		std::vector<uint16_t> province_map_data;
 		int32_t province_map_width = 0;
-		int32_t province_map_height = 0; 
+		int32_t province_map_height = 0;
+		borders_manager borders;
 	};
 
 	struct color_to_terrain_map {
