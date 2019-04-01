@@ -734,7 +734,7 @@ namespace graphics {
 	Eigen::Vector3f globe_point_from_position(float x_off, float y_off, float top_latitude, float bottom_latitude) {
 		auto const lat_step = (bottom_latitude - top_latitude);
 		auto const top_lat = top_latitude;
-		auto const long_step = 6.28318530718f / x_off;
+		auto const long_step = 6.28318530718f;
 
 		const float vx_pos = x_off * long_step;
 		const float vy_pos = y_off * lat_step + top_lat;

@@ -278,6 +278,10 @@ namespace messages {
 		ws.w.message_w.show_message_window(ws.w.gui_m);
 	}
 
+	void submit_log_item(world_state& ws, int32_t category, log_display_function&& f) {
+		ws.w.message_w.pending_log_items.push(log_message_instance{ std::move(f), category });
+	}
+
 	message_setting get_single_setting(world_state const& ws, message_settings s, nations::country_tag n) {
 		if(n == ws.w.local_player_nation)
 			return s.self;
@@ -347,9 +351,23 @@ namespace messages {
 
 						display_message_body(ws, box, lm, fmt, message_type::OUR_CB_DETECTED, repl, 3);
 					});
-					break;
+					// fallthrough
 				case message_setting::log:
-					// todo: log message
+					submit_log_item(ws, message_category::diplomacy, [target](world_state& ws, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[1] = {
+							text_data::replacement{text_data::value_type::target,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+								[&ws, target](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+							}}
+						};
+
+						ui::add_linear_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::OUR_CB_DETECTED],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 1);
+						lm.finish_current_line();
+					});
 					break;
 				case message_setting::discard:
 					//do nothing
@@ -376,9 +394,23 @@ namespace messages {
 
 						display_message_body(ws, box, lm, fmt, message_type::CB_TOWARDS_US_DETECTED, repl, 2);
 					});
-					break;
+					// fallthrough
 				case message_setting::log:
-					// todo: log message
+					submit_log_item(ws, message_category::diplomacy, [by](world_state& ws, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[1] = {
+							text_data::replacement{text_data::value_type::country,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(by)) ,
+								[&ws, by](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, by);
+							}}
+						};
+
+						ui::add_linear_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::CB_TOWARDS_US_DETECTED],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 1);
+						lm.finish_current_line();
+					});
 					break;
 				case message_setting::discard:
 					//do nothing
@@ -410,9 +442,28 @@ namespace messages {
 
 						display_message_body(ws, box, lm, fmt, message_type::OTHERS_CB_DETECTED, repl, 3);
 					});
-					break;
+					// fallthrough
 				case message_setting::log:
-					// todo: log message
+					submit_log_item(ws, message_category::diplomacy, [by, target](world_state& ws, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[2] = {
+							text_data::replacement{text_data::value_type::country,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(by)) ,
+								[&ws, by](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, by);
+							}},
+							text_data::replacement{text_data::value_type::target,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+								[&ws, target](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+							}}
+						};
+
+						ui::add_linear_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::OTHERS_CB_DETECTED],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 2);
+						lm.finish_current_line();
+					});
 					break;
 				case message_setting::discard:
 					//do nothing
@@ -440,9 +491,23 @@ namespace messages {
 					};
 					display_message_body(ws, box, lm, fmt, message_type::CB_JUSTIFY_NO_LONGER_VALID, repl, 2);
 				});
-				break;
+				// fallthrough
 			case message_setting::log:
-				// todo: log message
+				submit_log_item(ws, message_category::diplomacy, [target](world_state& ws, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt) {
+					text_data::replacement repl[1] = {
+						text_data::replacement{text_data::value_type::target,
+							 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+							[&ws, target](ui::tagged_gui_object b) {
+							ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+						}}
+					};
+
+					ui::add_linear_text(
+						ui::xy_pair{ 0,0 },
+						ws.s.message_m.log_text[message_type::CB_JUSTIFY_NO_LONGER_VALID],
+						fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 1);
+					lm.finish_current_line();
+				});
 				break;
 			case message_setting::discard:
 				//do nothing
@@ -469,9 +534,26 @@ namespace messages {
 					};
 					display_message_body(ws, box, lm, fmt, message_type::WEGAINCB, repl, 2, 5);
 				});
-				break;
+				// fallthrough
 			case message_setting::log:
-				// todo: log message
+				submit_log_item(ws, message_category::diplomacy, [type, target](world_state& ws, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt) {
+					text_data::replacement repl[2] = {
+						text_data::replacement{text_data::value_type::casus,
+							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+							[](ui::tagged_gui_object) {}},
+						text_data::replacement{text_data::value_type::enemy,
+							 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+							[&ws, target](ui::tagged_gui_object b) {
+							ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+						}}
+					};
+
+					ui::add_linear_text(
+						ui::xy_pair{ 0,0 },
+						ws.s.message_m.log_text[message_type::WEGAINCB],
+						fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 2);
+					lm.finish_current_line();
+				});
 				break;
 			case message_setting::discard:
 				//do nothing
@@ -498,9 +580,26 @@ namespace messages {
 					};
 					display_message_body(ws, box, lm, fmt, message_type::WEGAINCB, repl, 2, 5);
 				});
-				break;
+				// fallthrough
 			case message_setting::log:
-				// todo: log message
+				submit_log_item(ws, message_category::diplomacy, [type, target](world_state& ws, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt) {
+					text_data::replacement repl[2] = {
+						text_data::replacement{text_data::value_type::casus,
+							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
+							[](ui::tagged_gui_object) {}},
+						text_data::replacement{text_data::value_type::enemy,
+							 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+							[&ws, target](ui::tagged_gui_object b) {
+							ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+						}}
+					};
+
+					ui::add_linear_text(
+						ui::xy_pair{ 0,0 },
+						ws.s.message_m.log_text[message_type::WELOSECB],
+						fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 2);
+					lm.finish_current_line();
+				});
 				break;
 			case message_setting::discard:
 				//do nothing
@@ -537,9 +636,21 @@ namespace messages {
 
 					technologies::explain_technology(type, ws, box, cursor, lm, fmt);
 				});
-				break;
+				// fallthrough
 			case message_setting::log:
-				// todo: log message
+				submit_log_item(ws, message_category::other, [type](world_state& ws, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt) {
+					text_data::replacement repl[1] = {
+						text_data::replacement{text_data::value_type::type,
+							 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.technology_m.technologies_container[type].name) ,
+							[](ui::tagged_gui_object b) {}}
+					};
+
+					ui::add_linear_text(
+						ui::xy_pair{ 0,0 },
+						ws.s.message_m.log_text[message_type::TECH_ONCE],
+						fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 1);
+					lm.finish_current_line();
+				});
 				break;
 			case message_setting::discard:
 				//do nothing

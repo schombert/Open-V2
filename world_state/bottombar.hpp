@@ -9,18 +9,12 @@ namespace current_state {
 	class log_text_box {
 	public:
 		template<typename window_type>
-		void update(ui::tagged_gui_object box, window_type& w, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+		void windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
 
-	class hidden_button {
-	public:
-		void update(ui::simple_button<hidden_button>& self, world_state& ws);
-	};
 
 	class log_item_base : public ui::visible_region {
 	public:
-		ui::display_text<log_text_box> log_text;
-
 		int32_t index = 0;
 		void set_value(int32_t t) {
 			index = t;
@@ -38,23 +32,31 @@ namespace current_state {
 	};
 
 	using log_item = ui::gui_window<
-		CT_STRING("messagelogbutton"), ui::simple_button<hidden_button>,
+		CT_STRING("open_v2_log_text_box"), ui::display_text<log_text_box>,
 		log_item_base
 	>;
+
+	class location_icon {
+	public:
+	};
 
 	class mini_map : public ui::gui_behavior {
 	public:
 		mini_map() = default;
 		mini_map(mini_map&&) = default;
 
+		ui::dynamic_icon<location_icon> location;
 
 		virtual bool mouse_consumer(ui::xy_pair) final override { return true; }
 		virtual bool on_lclick(ui::gui_object_tag o, world_state& m, const ui::lbutton_down& lb) final override;
 	};
 
+	
+
 	class bottombar_base : public ui::gui_behavior {
 	public:
 		mini_map mmap;
+		
 
 		template<typename W>
 		void on_create(W& w, world_state& ws);
@@ -147,38 +149,39 @@ namespace current_state {
 		CT_STRING("map_zoom_in"), ui::simple_button<zoom_in_button>,
 		CT_STRING("map_zoom_out"), ui::simple_button<zoom_out_button>,
 		CT_STRING("mapmode_1"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_2"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_3"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_4"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_5"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_6"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_7"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_8"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_9"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_10"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_11"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_12"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_13"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_14"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_15"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_16"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_17"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_18"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_19"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_20"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_21"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_22"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
+		CT_STRING("mapmode_2"), ui::simple_button<map_mode_button<current_state::map_mode::distance>>,
+		CT_STRING("mapmode_3"), ui::simple_button<map_mode_button<current_state::map_mode::prices>>,
+		CT_STRING("mapmode_4"), ui::simple_button<map_mode_button<current_state::map_mode::production>>,
+		CT_STRING("mapmode_5"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
+		CT_STRING("mapmode_6"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
+		CT_STRING("mapmode_7"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
+		CT_STRING("mapmode_8"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
+		CT_STRING("mapmode_9"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
+		CT_STRING("mapmode_10"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
+		CT_STRING("mapmode_11"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
+		CT_STRING("mapmode_12"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
+		CT_STRING("mapmode_13"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
+		CT_STRING("mapmode_14"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
+		CT_STRING("mapmode_15"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
+		CT_STRING("mapmode_16"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
+		CT_STRING("mapmode_17"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
+		CT_STRING("mapmode_18"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
+		CT_STRING("mapmode_19"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
+		CT_STRING("mapmode_20"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
+		CT_STRING("mapmode_21"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
+		CT_STRING("mapmode_22"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
 		bottombar_base
 	> {};
 
 	template<current_state::map_mode mode>
 	void map_mode_button<mode>::update(ui::simple_button<map_mode_button<mode>>& self, world_state & ws) {
-		self.set_frame(ws.w.gui_m, uint32_t(ws.w.map_view.mode != mode));
+		self.set_frame(ws.w.gui_m, uint32_t(ws.w.map_view.mode == mode));
 	}
 	template<current_state::map_mode mode>
 	void map_mode_button<mode>::button_function(ui::simple_button<map_mode_button<mode>>&, world_state & ws) {
 		ws.w.map_view.mode = mode;
 		ws.w.map_view.changed = true;
+		ws.w.bottombar_w.update_bottombar(ws.w.gui_m);
 	}
 	template<typename W>
 	void chat_window_base::on_create(W & w, world_state & ws) {
@@ -186,8 +189,18 @@ namespace current_state {
 	}
 	template<typename W>
 	void message_log_base::on_create(W & w, world_state & ws) {
-		associated_object->size = ui::xy_pair{448i16,156i16};
-		associated_object->position = ui::xy_pair{ 0i16,-172i16 };
+		associated_object->size = ui::xy_pair{447i16 + 16i16,156i16};
+		ui::for_each_child(ws.w.gui_m, ui::tagged_gui_object{ *associated_object, ui::gui_object_tag() }, [](ui::tagged_gui_object obj) {
+			if(obj.object.align == ui::alignment::bottom_right) {
+				obj.object.position.y *= -1;
+				obj.object.position.x += 874 - (447 + 16);
+			}
+		});
+		w.get<CT_STRING("closebutton")>().associated_object->position.y = -29i16;
+		w.get<CT_STRING("closebutton")>().associated_object->position.x = -36i16;
+		w.get<CT_STRING("messagelog")>().associated_object->position.x += 8;
+
+		ui::hide(*w.associated_object);
 	}
 	template<typename W>
 	void bottombar_base::on_create(W & w, world_state & ws) {
@@ -213,8 +226,14 @@ namespace current_state {
 		ws.w.gui_m.flag_minimal_update();
 		ui::move_to_front(ws.w.gui_m, new_gobj);
 
-		associated_object->size = ui::xy_pair{ 874i16,172i16 };
-		associated_object->position = ui::xy_pair{ 0i16,16i16 };
+		auto location_tag = std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_location_cursor"]);
+		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+			ws, location_tag,
+			new_gobj,
+			mmap.location));
+
+		associated_object->size = ui::xy_pair{ 874i16,166i16 };
+		associated_object->position = ui::xy_pair{ -874i16,-166i16 };
 		associated_object->align = ui::alignment::bottom_right;
 	}
 	template<int32_t category>
@@ -229,22 +248,41 @@ namespace current_state {
 	template<typename window_type>
 	void open_log_button::windowed_update(ui::simple_button<open_log_button>& self, window_type & w, world_state & ws) {
 		if(ws.w.bottombar_w.log_is_open == false)
-			ui::make_visible_immediate(*ws.w.bottombar_w.win->associated_object);
+			ui::make_visible_immediate(*self.associated_object);
 		else
-			ui::hide(*ws.w.bottombar_w.win->associated_object);
+			ui::hide(*self.associated_object);
 	}
 	template<typename W>
 	void log_item_base::on_create(W & w, world_state & ws) {
-		auto t_tag = std::get<ui::text_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_log_text_box"]);
-		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
-			ws, t_tag,
-			ui::tagged_gui_object{ *associated_object, w.window_object },
-			log_text));
 	}
 	
 	template<typename window_type>
-	void log_text_box::update(ui::tagged_gui_object box, window_type & w, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
+	void log_text_box::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		ws.w.message_w.current_log[w.index].func(ws, box, lm, fmt);
+	}
 	
 	template<typename lb_type>
-	void log_items_lb::populate_list(lb_type & lb, world_state & ws) {}
+	void log_items_lb::populate_list(lb_type & lb, world_state & ws) {
+		messages::log_message_instance m;
+		while(ws.w.message_w.pending_log_items.try_pop(m)) {
+			ws.w.message_w.first_log_item--;
+			if(ws.w.message_w.first_log_item < 0)
+				ws.w.message_w.first_log_item = messages::maximum_log_items - 1;
+
+			ws.w.message_w.current_log[ws.w.message_w.first_log_item] = m;
+		}
+
+		int32_t indices_to_add[messages::maximum_log_items];
+		int32_t count = 0;
+
+		for(int32_t i = 0; i < messages::maximum_log_items ; ++i) {
+			int32_t actual_index = (i + ws.w.message_w.first_log_item) % messages::maximum_log_items;
+			if((ws.w.message_w.current_log[actual_index].category & ws.w.message_w.message_categories) != 0) {
+				indices_to_add[count] = actual_index;
+				++count;
+			}
+		}
+
+		lb.new_list(indices_to_add, indices_to_add + count);
+	}
 }

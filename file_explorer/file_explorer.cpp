@@ -129,6 +129,7 @@ struct gui_window_handler {
 		} else {
 			Eigen::Vector3f mouse_over = s.w.map.state.get_unrotated_vector_for(s.w.map.state.normalize_screen_coordinates(map_drag_start.first + m.x, map_drag_start.second + m.y, s.w.gui_m.width(), s.w.gui_m.height()));
 			s.w.map.state.move_vector_to(interest, mouse_over);
+			s.w.bottombar_w.update_location(s);
 		}
 	}
 	void operator()(const ui::mouse_move& m, ui::window_base&) {
@@ -147,6 +148,7 @@ struct gui_window_handler {
 		//map.initialize(ogl, s.province_m.province_map_data.data(), s.province_m.province_map_width, s.province_m.province_map_height, 0.0f, -1.2f, 1.2f);
 		s.w.map.initialize(ogl, s.s, shadows_file, s.s.province_m.province_map_data.data(), s.s.province_m.province_map_width, s.s.province_m.province_map_height, 0.0f, 1.57f, -1.57f);
 		s.w.map.state.resize(s.w.gui_m.width(), s.w.gui_m.height());
+		s.w.bottombar_w.update_location(s);
 	}
 
 	void on_idle(ui::window_base& win) {

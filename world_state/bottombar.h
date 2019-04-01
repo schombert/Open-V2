@@ -16,5 +16,6 @@ namespace current_state {
 		~bottombar();
 		void init_bottombar(world_state& ws);
 		void update_bottombar(ui::gui_manager& gui_m);
+		void update_location(world_state& ws);
 	};
 }

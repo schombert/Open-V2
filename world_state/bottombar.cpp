@@ -2,12 +2,10 @@
 #include "bottombar.hpp"
 
 namespace current_state {
-	void hidden_button::update(ui::simple_button<hidden_button>& self, world_state & ws) {
-		ui::hide(*self.associated_object);
-	}
 	void close_log_button::button_function(ui::simple_button<close_log_button>&, world_state & ws) {
 		ui::hide(*ws.w.bottombar_w.win->get<CT_STRING("messagelog_window")>().associated_object);
 		ws.w.bottombar_w.log_is_open = false;
+		ws.w.bottombar_w.update_bottombar(ws.w.gui_m);
 	}
 	void open_log_button::button_function(ui::simple_button<open_log_button>& self, world_state & ws) {
 		ui::make_visible_and_update(ws.w.gui_m, *ws.w.bottombar_w.win->get<CT_STRING("messagelog_window")>().associated_object);
@@ -28,10 +26,17 @@ namespace current_state {
 		Eigen::Vector3f destination = ws.w.map.state.get_unrotated_vector_for(
 			std::pair<float, float>(0.0f, 0.0f));
 		ws.w.map.state.move_vector_to(target, destination);
+		ws.w.bottombar_w.update_location(ws);
 		return true;
 	}
+	void bottombar::update_location(world_state& ws) {
+		auto const map_center = ws.w.map.map_coordinates_from_screen(std::pair<float, float>(0.0f,0.0f));
+		auto new_location = ui::xy_pair{ int16_t(map_center.first / float(ws.s.province_m.province_map_width) * 266.0f) - 15,
+				int16_t((map_center.second / float(ws.s.province_m.province_map_height)) * 133.0f - 9.0f - 15) };
+		ws.w.bottombar_w.win->mmap.location.associated_object->position = new_location;
+	}
 	ui::window_tag log_items_lb::element_tag(ui::gui_static & m) {
-		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["logtext"]);
+		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["open_v2_logtext"]);
 	}
 	bottombar::bottombar() : win(std::make_unique<bottombar_t>()) {}
 	bottombar::~bottombar() {}

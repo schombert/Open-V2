@@ -199,15 +199,23 @@ namespace messages {
 	message_setting get_relevant_setting(world_state const& ws, message_settings s, nations::country_tag n, NATIONS ... rest);
 
 	using display_function = std::function<void(world_state&, ui::tagged_gui_object, ui::line_manager&, ui::text_format&)>;
+	using log_display_function = std::function<void(world_state&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&)>;
 
 	struct message_instance {
 		display_function func;
 		std::variant<std::monostate, nations::country_tag, provinces::province_tag> goto_tag;
 	};
 
+	struct log_message_instance {
+		log_display_function func;
+		int32_t category = 0;
+	};
+
 	constexpr int32_t maximum_displayed_messages = 128;
+	constexpr int32_t maximum_log_items = 128;
 
 	using message_queue = concurrency::concurrent_queue<message_instance, concurrent_allocator<message_instance>>;
+	using log_message_queue = concurrency::concurrent_queue<log_message_instance, concurrent_allocator<log_message_instance>>;
 
 
 	class message_window_t;
@@ -227,6 +235,11 @@ namespace messages {
 		int32_t current_message_count = 0;
 		int32_t last_replaced_index = 0;
 		int32_t currently_displayed_index = 0;
+
+		log_message_queue pending_log_items;
+		log_message_instance current_log[maximum_log_items] = { log_message_instance() };
+		int32_t first_log_item = 0;
+
 		int32_t message_categories = message_category::combat | message_category::diplomacy | message_category::events
 			| message_category::other | message_category::provinces | message_category::units;
 
