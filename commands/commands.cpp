@@ -449,6 +449,15 @@ namespace commands {
 		}
 	}
 
+	void execute_command(change_influence_priority_level const& c, world_state& ws) {
+		if(c.level >= 0 && c.level <= 3)
+			nations::set_priority_level(ws, c.nation_for, c.nation_target, c.level);
+	}
+
+	void execute_command(change_sphere_leader const& c, world_state& ws) {
+		nations::set_sphere_leader(ws, c.nation_for, c.new_leader);
+	}
+
 	bool is_command_valid(change_research const& c, world_state const& ws) {
 		return !is_valid_index(c.tech) || (ws.w.nation_s.active_technologies.get(c.nation_for, c.tech) == false &&
 		                                   technologies::can_research(c.tech, ws, c.nation_for));

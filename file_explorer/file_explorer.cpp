@@ -68,6 +68,11 @@ struct gui_window_handler {
 			interest = s.w.map.state.get_vector_for(s.w.map.state.normalize_screen_coordinates(m.x, m.y, s.w.gui_m.width(), s.w.gui_m.height()));
 		}
 	}
+	void operator()(const ui::rbutton_down& m, ui::window_base&) {
+		if(!s.w.gui_m.on_rbutton_down(s, m)) {
+			///
+		}
+	}
 	void operator()(const ui::lbutton_up& m, ui::window_base&) {
 		s.w.gui_m.on_lbutton_up(s, m);
 		if(map_dragging) {

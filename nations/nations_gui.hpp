@@ -652,8 +652,9 @@ namespace nations {
 		nations::country_tag tag;
 
 		template<typename window_type>
-		void windowed_update(ui::simple_button<nation_details_priority_button>& self, window_type& win, world_state& ws);
-		void button_function(ui::simple_button<nation_details_priority_button>& self, world_state& ws);
+		void windowed_update(ui::button<nation_details_priority_button>& self, window_type& win, world_state& ws);
+		void button_function(ui::button<nation_details_priority_button>& self, world_state& ws);
+		void button_function(ui::button<nation_details_priority_button>& self, ui::rbutton_down, world_state& ws);
 	};
 
 	template<int32_t index>
@@ -709,7 +710,7 @@ namespace nations {
 		CT_STRING("country_select"), ui::simple_button<nation_details_background_button>,
 		CT_STRING("country_flag"), ui::masked_flag<nation_details_flag>,
 		CT_STRING("country_name"), ui::display_text<nation_details_name>,
-		CT_STRING("country_prio"), ui::simple_button<nation_details_priority_button>,
+		CT_STRING("country_prio"), ui::button<nation_details_priority_button>,
 		CT_STRING("country_gp0"), ui::display_text<gp_influence_text<0>>,
 		CT_STRING("country_gp1"), ui::display_text<gp_influence_text<1>>,
 		CT_STRING("country_gp2"), ui::display_text<gp_influence_text<2>>,
@@ -1910,8 +1911,14 @@ namespace nations {
 	}
 
 	template<typename window_type>
-	void nation_details_priority_button::windowed_update(ui::simple_button<nation_details_priority_button>& self, window_type & win, world_state & ws) {
+	void nation_details_priority_button::windowed_update(ui::button<nation_details_priority_button>& self, window_type & win, world_state & ws) {
 		tag = win.tag;
+		self.set_frame(ws.w.gui_m, nations::get_priority_level(ws, ws.w.local_player_nation, tag));
+		if(nations::can_influence(ws, ws.w.local_player_nation, tag)) {
+			self.associated_object->flags.fetch_and(uint16_t(~ui::gui_object::display_as_disabled), std::memory_order_release);
+		} else {
+			self.associated_object->flags.fetch_or(ui::gui_object::display_as_disabled, std::memory_order_release);
+		}
 	}
 
 	template<int32_t index>
@@ -2110,6 +2117,10 @@ namespace nations {
 			}
 				break;
 			case country_sort::priority:
+				std::sort(data.begin(), data.end(), [&ws](country_tag a, country_tag b) {
+					return get_priority_level(ws, ws.w.local_player_nation, a) >
+						get_priority_level(ws, ws.w.local_player_nation, b);
+				});
 				break;
 			case country_sort::gp_one:
 				if(auto r = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations_by_rank); std::begin(r) < std::end(r)) {
@@ -2411,7 +2422,7 @@ namespace nations {
 				return;
 			auto inf_range = get_range(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(selected));
 			for(auto i = inf_range.first; i != inf_range.second; ++i) {
-				if(i->level == 4i8)
+				if(i->level() == 4)
 					lb.add_item(ws, i->target);
 			}
 		}
@@ -2424,7 +2435,7 @@ namespace nations {
 				return;
 			auto inf_range = get_range(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(selected));
 			for(auto i = inf_range.first; i != inf_range.second; ++i) {
-				if(i->level == 3i8)
+				if(i->level() == 3)
 					lb.add_item(ws, i->target);
 			}
 		}

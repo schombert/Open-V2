@@ -97,6 +97,14 @@ namespace commands {
 		change_research(nations::country_tag f, technologies::tech_tag t) : nation_for(f), tech(t) {}
 	};
 
+	struct change_influence_priority_level {
+		nations::country_tag nation_for;
+		nations::country_tag nation_target;
+		int8_t level;
+
+		change_influence_priority_level(nations::country_tag f, nations::country_tag t, int8_t l) : nation_for(f), nation_target(t), level(l) {}
+	};
+
 	struct execute_event {
 		jsf_prng generator;
 		triggers::const_parameter target;
@@ -107,11 +115,20 @@ namespace commands {
 		execute_event(jsf_prng g, triggers::const_parameter t, triggers::const_parameter f, events::event_tag ev, int8_t o) : generator(g), target(t), from(f), e(ev), option(o) {}
 	};
 
+	struct change_sphere_leader {
+		nations::country_tag nation_for;
+		nations::country_tag new_leader;
+
+		change_sphere_leader(nations::country_tag f, nations::country_tag l) : nation_for(f), new_leader(l) {}
+	};
+
 	void execute_command(set_budget const& c, world_state& ws);
 	void execute_command(province_building const& c, world_state& ws);
 	void execute_command(fabricate_cb const& c, world_state& ws);
 	void execute_command(change_research const& c, world_state& ws);
 	void execute_command(execute_event const& c, world_state& ws);
+	void execute_command(change_influence_priority_level const& c, world_state& ws);
+	void execute_command(change_sphere_leader const& c, world_state& ws);
 
 	bool is_command_valid(province_building const& c, world_state const& ws);
 	bool is_command_valid(fabricate_cb const& c, world_state const& ws);
@@ -121,5 +138,5 @@ namespace commands {
 	ui::xy_pair explain_command_conditions(fabricate_cb const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
 	ui::xy_pair explain_command_conditions(change_research const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
 
-	using full_command_set = command_set<set_budget, province_building, fabricate_cb, change_research, execute_event>;
+	using full_command_set = command_set<set_budget, province_building, fabricate_cb, change_research, execute_event, change_influence_priority_level, change_sphere_leader>;
 }

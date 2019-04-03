@@ -172,7 +172,7 @@ namespace nations {
 		auto& influencers = ws.w.nation_s.nations.get<nation::influencers>(new_nation);
 		auto rev_inf_range = get_range(ws.w.nation_s.nations_arrays, influencers);
 		for(auto i : rev_inf_range)
-			remove_item(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(i), influence{0.0f, new_nation, 0ui8, 0i8});
+			remove_item(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(i), influence(new_nation));
 		clear(ws.w.nation_s.nations_arrays, influencers);
 		
 		auto& relations = ws.w.nation_s.nations.get<nation::relations>(new_nation);
@@ -749,74 +749,110 @@ namespace nations {
 		return 0;
 	}
 	int32_t get_influence_value(world_state const& ws, country_tag a, country_tag b) {
-		if(auto f = find(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(a), influence{ 0.0f, b, 0ui8, 0i8 }); f)
+		if(auto f = find(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(a), influence(b)); f)
 			return f->amount;
 		return 0;
 	}
 	int32_t get_influence_level(world_state const& ws, country_tag a, country_tag b) {
-		if(auto f = find(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(a), influence{ 0.0f, b, 0ui8, 0i8 }); f)
-			return f->level;
+		if(auto f = find(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(a), influence(b)); f)
+			return f->level();
 		return 2;
 	}
 	nations::influence get_influence(world_state const& ws, country_tag nation_by, country_tag nation_over) {
-		if(auto f = find(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(nation_by), influence{ 0.0f, nation_over, 0ui8, 0i8 }); f)
+		if(auto f = find(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(nation_by), influence(nation_over)); f)
 			return *f;
-		return nations::influence{0.0f, nation_over, 0ui8, 2i8 };
+		return nations::influence(nation_over);
+	}
+	void set_sphere_leader(world_state& ws, nations::country_tag nation_target, country_tag sphere_leader) {
+		if(is_valid_index(sphere_leader)) {
+			auto& leader_inf = ws.w.nation_s.nations.get<nation::gp_influence>(sphere_leader);
+			auto f = find(ws.w.nation_s.influence_arrays, leader_inf, influence(nation_target));
+			if(f == nullptr) {
+				add_item(ws.w.nation_s.influence_arrays, leader_inf, influence{ 0.0f, nation_target, uint8_t(0), int8_t(5), 0i8 });
+				add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::influencers>(nation_target), sphere_leader);
+
+				f = find(ws.w.nation_s.influence_arrays, leader_inf, influence(nation_target));
+			}
+		}
+		auto& target_leader = ws.w.nation_s.nations.get<nation::sphere_leader>(nation_target);
+		if(is_valid_index(target_leader) && target_leader != sphere_leader) {
+			if(auto g = find(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(target_leader), influence(nation_target)); g) {
+				g->level(g->level() > 4 ? 4 : g->level());
+			}
+		}
+		target_leader = sphere_leader;
 	}
 	void set_influence(world_state& ws, country_tag a, country_tag b, int32_t value, int32_t level) {
 		auto& a_inf = ws.w.nation_s.nations.get<nation::gp_influence>(a);
-		auto f = find(ws.w.nation_s.influence_arrays, a_inf, influence{ 0.0f, b, 0ui8, 0i8 });
+		auto f = find(ws.w.nation_s.influence_arrays, a_inf, influence(b));
 		if(f == nullptr) {
-			add_item(ws.w.nation_s.influence_arrays, a_inf, influence{ 0.0f, b, uint8_t(0), int8_t(2) });
+			add_item(ws.w.nation_s.influence_arrays, a_inf, influence{ 0.0f, b, uint8_t(0), int8_t(2), 0i8 });
 			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::influencers>(b), a);
 
-			f = find(ws.w.nation_s.influence_arrays, a_inf, influence{ 0.0f, b, 0ui8, 0i8 });
+			f = find(ws.w.nation_s.influence_arrays, a_inf, influence(b));
 		}
 
 		f->amount = uint8_t(value);
 
-		if(f->level == 5i8 && level != 5) {
+		if(f->level() == 5 && level != 5) {
 			ws.w.nation_s.nations.set<nation::sphere_leader>(b, country_tag());
 			remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::sphere_members>(a), b);
-			f->level = int8_t(level);
-		} else if(f->level != 5i8 && level == 5) {
+			f->level(level);
+		} else if(f->level() != 5 && level == 5) {
 			auto& b_leader = ws.w.nation_s.nations.get<nation::sphere_leader>(b);
 			if(b_leader == country_tag()) {
 				b_leader = a;
 				add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::sphere_members>(a), b);
-				f->level = int8_t(5);
+				f->level(5);
 			} else {
-				f->level = int8_t(4);
+				f->level(4);
 			}
 		} else {
-			f->level = int8_t(level);
+			f->level(level);
 		}
 	}
 	void set_influence_value(world_state& ws, country_tag a, country_tag b, int32_t value) {
 		auto& a_inf = ws.w.nation_s.nations.get<nation::gp_influence>(a);
-		if(auto f = find(ws.w.nation_s.influence_arrays, a_inf, influence{ 0.0f, b, 0ui8, 0i8 }); f) {
+		if(auto f = find(ws.w.nation_s.influence_arrays, a_inf, influence(b)); f) {
 			f->amount = uint8_t(value);
 		} else {
-			add_item(ws.w.nation_s.influence_arrays, a_inf, influence{ 0.0f, b, uint8_t(value), int8_t(2) });
+			add_item(ws.w.nation_s.influence_arrays, a_inf, influence{ 0.0f, b, uint8_t(value), int8_t(2), 0i8 });
 			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::influencers>(b), a);
 		}
 	}
 	float get_foreign_investment(world_state const& ws, country_tag a, country_tag b) {
-		if(auto f = find(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(a), influence{ 0.0f, b, 0ui8, 0i8 }); f)
+		if(auto f = find(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(a), influence(b)); f)
 			return f->investment_amount;
 		return 0.0f;
 	}
 	void set_foreign_investment(world_state& ws, country_tag a, country_tag b, float value) {
 		auto& a_inf = ws.w.nation_s.nations.get<nation::gp_influence>(a);
-		if(auto f = find(ws.w.nation_s.influence_arrays, a_inf, influence{ 0.0f, b, 0ui8, 0i8 }); f) {
+		if(auto f = find(ws.w.nation_s.influence_arrays, a_inf, influence(b)); f) {
+			auto const change = value - f->investment_amount;
 			f->investment_amount = value;
+			ws.w.nation_s.nations.get<nation::total_foreign_investment>(b) += change;
 		} else {
-			add_item(ws.w.nation_s.influence_arrays, a_inf, influence{ value, b, 0ui8, 0i8 });
+			add_item(ws.w.nation_s.influence_arrays, a_inf, influence{ value, b, 0ui8, 2i8, 0i8 });
 			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::influencers>(b), a);
+			ws.w.nation_s.nations.get<nation::total_foreign_investment>(b) += value;
 		}
 	}
+	void set_priority_level(world_state& ws, nations::country_tag nation_by, country_tag nation_target, int32_t level) {
+		auto& a_inf = ws.w.nation_s.nations.get<nation::gp_influence>(nation_by);
+		if(auto f = find(ws.w.nation_s.influence_arrays, a_inf, influence(nation_target)); f) {
+			f->priority(level);
+		} else {
+			add_item(ws.w.nation_s.influence_arrays, a_inf, influence{ 0.0f, nation_target, 0ui8, 2i8, int8_t(level) });
+			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::influencers>(nation_target), nation_by);
+		}
+	}
+	int32_t get_priority_level(world_state const& ws, nations::country_tag nation_by, country_tag nation_target) {
+		if(auto f = find(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(nation_by), influence(nation_target)); f)
+			return f->priority();
+		return 0;
+	}
 	void remove_investment_and_influence(world_state& ws, country_tag nation_by, country_tag nation_target) {
-		remove_item(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(nation_by), influence{ 0.0f, nation_target, 0ui8, 0i8 });
+		remove_item(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(nation_by), influence(nation_target));
 		remove_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::influencers>(nation_target), nation_by);
 	}
 
@@ -1321,7 +1357,7 @@ namespace nations {
 	void perform_nationalization(world_state& ws, nations::country_tag this_nation) {
 		auto influencers_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::influencers>(this_nation));
 		for(auto n : influencers_range) {
-			auto fr = find(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(n), nations::influence{0.0f, this_nation, 0ui8, 0i8});
+			auto fr = find(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(n), nations::influence(this_nation));
 			if(fr->investment_amount != 0.0f) {
 				fr->investment_amount = 0.0f;
 				events::fire_event_from_list(ws, ws.s.event_m.on_my_factories_nationalized, n, this_nation);
@@ -1359,29 +1395,29 @@ namespace nations {
 		if(influence_result < 0) {
 			auto decrease_cost = int32_t(ws.s.modifiers_m.global_defines.decreaseopinion_influence_cost);
 
-			while(influence_result < 0 && current_influence.level != 0) {
+			while(influence_result < 0 && current_influence.level() != 0) {
 				influence_result += decrease_cost;
-				--current_influence.level;
+				current_influence.level(current_influence.level() - 1);
 			}
 
 			influence_result = std::max(0, influence_result);
 
-			set_influence(ws, nation_by, nation_target, influence_result, current_influence.level);
+			set_influence(ws, nation_by, nation_target, influence_result, current_influence.level());
 		} else if(influence_result > 100) {
 			auto increase_cost = int32_t(ws.s.modifiers_m.global_defines.increaseopinion_influence_cost);
 			auto sphere_cost = int32_t(ws.s.modifiers_m.global_defines.addtosphere_influence_cost);
 
-			while(influence_result > 100 && current_influence.level < 4) {
+			while(influence_result > 100 && current_influence.level() < 4) {
 				influence_result -= increase_cost;
-				++current_influence.level;
+				current_influence.level(current_influence.level() + 1);
 			}
-			if(current_influence.level == 4 && influence_result > 100 && influence_result >= sphere_cost) {
-				current_influence.level = uint8_t(5);
+			if(current_influence.level() == 4 && influence_result > 100 && influence_result >= sphere_cost) {
+				current_influence.level(5);
 				influence_result -= sphere_cost;
 			}
 			influence_result = std::min(100, influence_result);
 
-			set_influence(ws, nation_by, nation_target, influence_result, current_influence.level);
+			set_influence(ws, nation_by, nation_target, influence_result, current_influence.level());
 		} else {
 			set_influence_value(ws, nation_by, nation_target, influence_result);
 		}
@@ -1469,5 +1505,62 @@ namespace nations {
 				- ws.w.province_s.province_state_container.get<province_state::old_monthly_population>(p));
 		});
 		return value;
+	}
+
+	bool can_influence(world_state const& ws, nations::country_tag nation_by, country_tag nation_target) {
+		if(!is_great_power(ws, nation_by))
+			return false;
+		if(is_great_power(ws, nation_target))
+			return false;
+		if(contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::opponents_in_war>(nation_by), nation_target))
+			return false;
+		if(auto const f = find(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(nation_by), influence(nation_target)); f && f->is_banned())
+			return false;
+		return true;
+	}
+
+	constexpr float priority_to_factor(int32_t n) {
+		switch(n) {
+			case 0: return 0.0f;
+			case 1: return 1.0f;
+			case 2: return 2.0f;
+			case 3: return 4.0f;
+			default: return 0.0f;
+		}
+	}
+
+	void update_nation_influence(world_state& ws, nations::country_tag n) {
+		auto inf_range = get_range(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(n));
+
+		float total_priority = 0;
+		for(auto& i : inf_range) {
+			if(can_influence(ws, n, i.target)) {
+				total_priority += priority_to_factor(i.priority());
+			}
+		}
+
+		auto const influence_per_priority = (ws.s.modifiers_m.global_defines.base_greatpower_daily_influence 
+			* (ws.w.nation_s.modifier_values.get<modifiers::national_offsets::influence_modifier>(n) + 1.0f)
+			* (ws.w.nation_s.tech_attributes.get<technologies::tech_offset::influence>(n) + 1.0f)) / total_priority;
+
+		auto const n_array = ws.w.nation_s.nations.get<nation::neighboring_nations>(n);
+		auto const continent = ws.s.province_m.province_container.get<province::continent>(ws.w.nation_s.nations.get<nation::current_capital>(n));
+
+		for(auto& i : inf_range) {
+			if(can_influence(ws, n, i.target)) {
+				auto const target_continent = ws.s.province_m.province_container.get<province::continent>(ws.w.nation_s.nations.get<nation::current_capital>(i.target));
+				auto const target_investment_total = ws.w.nation_s.nations.get<nation::total_foreign_investment>(i.target);
+
+				auto const pfactor = priority_to_factor(i.priority()) * influence_per_priority;
+				auto const with_bonus = pfactor * (
+					1.0f 
+					+ contains_item(ws.w.nation_s.nations_arrays, n_array, i.target) ? ws.s.modifiers_m.global_defines.neighbour_bonus_influence_percent : 0.0f
+					+ target_continent != continent ? ws.s.modifiers_m.global_defines.other_continent_bonus_influence_percent : 0.0f
+					+ ws.w.nation_s.nations.get<nation::overlord>(i.target) == n ? ws.s.modifiers_m.global_defines.puppet_bonus_influence_percent : 0.0f
+					+ target_investment_total > 0 ? (ws.s.modifiers_m.global_defines.investment_influence_defense * i.investment_amount / target_investment_total): 0.0f
+					+ float(get_relationship(ws, i.target, n)) / ws.s.modifiers_m.global_defines.relation_influence_modifier);
+				i.amount = uint8_t(std::clamp(float(i.amount) + with_bonus, 0.0f, 255.0f));
+			}
+		}
 	}
 }

@@ -247,6 +247,15 @@ namespace current_state {
 	}
 	template<typename window_type>
 	void open_log_button::windowed_update(ui::simple_button<open_log_button>& self, window_type & w, world_state & ws) {
+		messages::log_message_instance m;
+		while(ws.w.message_w.pending_log_items.try_pop(m)) {
+			ws.w.message_w.first_log_item--;
+			if(ws.w.message_w.first_log_item < 0)
+				ws.w.message_w.first_log_item = messages::maximum_log_items - 1;
+
+			ws.w.message_w.current_log[ws.w.message_w.first_log_item] = m;
+		}
+		
 		if(ws.w.bottombar_w.log_is_open == false)
 			ui::make_visible_immediate(*self.associated_object);
 		else
@@ -263,15 +272,6 @@ namespace current_state {
 	
 	template<typename lb_type>
 	void log_items_lb::populate_list(lb_type & lb, world_state & ws) {
-		messages::log_message_instance m;
-		while(ws.w.message_w.pending_log_items.try_pop(m)) {
-			ws.w.message_w.first_log_item--;
-			if(ws.w.message_w.first_log_item < 0)
-				ws.w.message_w.first_log_item = messages::maximum_log_items - 1;
-
-			ws.w.message_w.current_log[ws.w.message_w.first_log_item] = m;
-		}
-
 		int32_t indices_to_add[messages::maximum_log_items];
 		int32_t count = 0;
 

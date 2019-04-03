@@ -32,7 +32,19 @@ namespace nations {
 		country_tag target;
 
 		uint8_t amount = 0ui8; // up to 100
-		int8_t level = 2i8; // 0 to 5 (5 = in sphere, 2 = neutral)
+		uint8_t packed_data = 2ui8;
+		
+		int32_t level() const { return int32_t(packed_data & 0x07); } // 0 to 5 (5 = in sphere, 2 = neutral)
+		int32_t priority() const { return int32_t((packed_data & 0x30) >> 4); } // 0 to 3
+		bool is_banned() const { return (packed_data & 0x08) != 0; }
+
+		void level(int32_t v) { packed_data = uint8_t((packed_data & ~(0x07)) | (v & 0x07)); }
+		void priority(int32_t v) { packed_data = uint8_t((packed_data & ~(0x30)) | ((v << 4) & 0x30)); }
+		void is_banned(bool v) { packed_data = uint8_t((packed_data & ~(0x08)) | (int32_t(v) << 3)); }
+
+		influence() noexcept : investment_amount(0.0f), target(), amount(0ui8), packed_data(2i8) {}
+		influence(nations::country_tag n) noexcept : investment_amount(0.0f), target(n), amount(0ui8), packed_data(2i8) {}
+		influence(float a, nations::country_tag n, uint8_t b, int8_t c, int8_t d) noexcept : investment_amount(a), target(n), amount(b), packed_data(uint8_t(c | (d << 4))) {}
 
 		bool operator<(influence const& other)  const noexcept { return target < other.target; }
 		bool operator==(influence const& other) const noexcept { return target == other.target; }
@@ -120,6 +132,7 @@ namespace nation {
 	struct num_connected_ports; // number of ports connected to capital by land
 	struct num_ports;
 
+	struct total_foreign_investment;
 	struct treasury;
 	struct plurality;
 	struct revanchism;
@@ -200,6 +213,7 @@ namespace nation {
 		last_lost_war, date_tag,
 		disarmed_until, date_tag,
 
+		total_foreign_investment, float,
 		treasury, float,
 		plurality, float,
 		revanchism, float,

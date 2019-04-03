@@ -462,7 +462,16 @@ namespace nations {
 	void nation_details_background_button::button_function(ui::simple_button<nation_details_background_button>& self, world_state & ws) {
 		ws.w.diplomacy_w.show_diplomacy_window(ws.w.gui_m, tag);
 	}
-	void nation_details_priority_button::button_function(ui::simple_button<nation_details_priority_button>& self, world_state & ws) {}
+	void nation_details_priority_button::button_function(ui::button<nation_details_priority_button>& self, world_state & ws) {
+		auto p = nations::get_priority_level(ws, ws.w.local_player_nation, tag);
+		p = (p + 1) % 4;
+		ws.w.pending_commands.add<commands::change_influence_priority_level>(ws.w.local_player_nation, tag, int8_t(p));
+	}
+	void nation_details_priority_button::button_function(ui::button<nation_details_priority_button>& self, ui::rbutton_down, world_state& ws) {
+		auto p = nations::get_priority_level(ws, ws.w.local_player_nation, tag);
+		p = (p + 3) % 4;
+		ws.w.pending_commands.add<commands::change_influence_priority_level>(ws.w.local_player_nation, tag, int8_t(p));
+	}
 	ui::window_tag nations_details_lb::element_tag(ui::gui_static & m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["diplomacy_country_info"]);
 	}

@@ -167,8 +167,10 @@ void serialization::serializer<nations::nations_state>::deserialize_object(std::
 			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::sphere_members>(o), n);
 		}
 		auto inf_range = get_range(ws.w.nation_s.influence_arrays, ws.w.nation_s.nations.get<nation::gp_influence>(n));
-		for(auto c = inf_range.first; c != inf_range.second; ++c)
+		for(auto c = inf_range.first; c != inf_range.second; ++c) {
 			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::influencers>(c->target), n);
+			ws.w.nation_s.nations.get<nation::total_foreign_investment>(c->target) += c->investment_amount;
+		}
 	});
 
 	const auto n_count = obj.nations.size();

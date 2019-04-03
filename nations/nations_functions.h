@@ -35,8 +35,12 @@ namespace nations {
 	int32_t get_influence_level(world_state const& ws, nations::country_tag nation_by, country_tag nation_over);
 	void set_influence(world_state& ws, nations::country_tag nation_by, country_tag nation_over, int32_t value, int32_t level); // will not remove from some else's sphere
 	void set_influence_value(world_state& ws, nations::country_tag nation_by, country_tag nation_over, int32_t value);
+	void set_sphere_leader(world_state& ws, nations::country_tag nation_target, country_tag sphere_leader);
+	bool can_influence(world_state const& ws, nations::country_tag nation_by, country_tag nation_target);
 	float get_foreign_investment(world_state const& ws, nations::country_tag nation_by, country_tag nation_in);
 	void set_foreign_investment(world_state& ws, nations::country_tag nation_by, country_tag nation_in, float value);
+	void set_priority_level(world_state& ws, nations::country_tag nation_by, country_tag nation_target, int32_t level);
+	int32_t get_priority_level(world_state const& ws, nations::country_tag nation_by, country_tag nation_target);
 	void remove_investment_and_influence(world_state& ws, nations::country_tag nation_by, nations::country_tag nation_target);
 	void init_empty_states(world_state& ws);
 	void reset_nation(world_state& ws, nations::country_tag new_nation);
