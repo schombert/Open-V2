@@ -4601,33 +4601,33 @@ namespace triggers {
 		auto result = ve::apply(to_nation(primary_slot), [&ws, holder](nations::country_tag a) {
 			return nations::get_influence_value(ws, a, holder);
 		});
-		return compare_values(tval[0], result, int32_t(tval[2]));
+		return compare_values(tval[0], result, float(tval[2]));
 	}
 	TRIGGER_FUNCTION(tf_diplomatic_influence_this_nation) {
 		auto result = ve::apply(to_nation(primary_slot), to_nation(this_slot), [&ws](nations::country_tag a, nations::country_tag b) {
 			return nations::get_influence_value(ws, a, b);
 		});
-		return compare_values(tval[0], result, int32_t(tval[2]));
+		return compare_values(tval[0], result, float(tval[2]));
 	}
 	TRIGGER_FUNCTION(tf_diplomatic_influence_this_province) {
 		auto owner = provinces::province_owner(ws, to_prov(this_slot));
 		auto result = ve::apply(to_nation(primary_slot), owner, [&ws](nations::country_tag a, nations::country_tag b) {
 			return nations::get_influence_value(ws, a, b);
 		});
-		return compare_values(tval[0], result, int32_t(tval[2]));
+		return compare_values(tval[0], result, float(tval[2]));
 	}
 	TRIGGER_FUNCTION(tf_diplomatic_influence_from_nation) {
 		auto result = ve::apply(to_nation(primary_slot), to_nation(from_slot), [&ws](nations::country_tag a, nations::country_tag b) {
 			return nations::get_influence_value(ws, a, b);
 		});
-		return compare_values(tval[0], result, int32_t(tval[2]));
+		return compare_values(tval[0], result, float(tval[2]));
 	}
 	TRIGGER_FUNCTION(tf_diplomatic_influence_from_province) {
 		auto owner = provinces::province_owner(ws, to_prov(from_slot));
 		auto result = ve::apply(to_nation(primary_slot), owner, [&ws](nations::country_tag a, nations::country_tag b) {
 			return nations::get_influence_value(ws, a, b);
 		});
-		return compare_values(tval[0], result, int32_t(tval[2]));
+		return compare_values(tval[0], result, float(tval[2]));
 	}
 	TRIGGER_FUNCTION(tf_pop_unemployment_nation) {
 		auto type = trigger_payload(tval[4]).small.values.pop_type;

@@ -31,10 +31,10 @@ namespace nations {
 	int32_t get_relationship(world_state const& ws, nations::country_tag a, country_tag b);
 	void adjust_relationship(world_state& ws, nations::country_tag a, nations::country_tag b, int32_t value);
 	nations::influence get_influence(world_state const& ws, nations::country_tag nation_by, country_tag nation_over);
-	int32_t get_influence_value(world_state const& ws, nations::country_tag nation_by, country_tag nation_over);
+	float get_influence_value(world_state const& ws, nations::country_tag nation_by, country_tag nation_over);
 	int32_t get_influence_level(world_state const& ws, nations::country_tag nation_by, country_tag nation_over);
-	void set_influence(world_state& ws, nations::country_tag nation_by, country_tag nation_over, int32_t value, int32_t level); // will not remove from some else's sphere
-	void set_influence_value(world_state& ws, nations::country_tag nation_by, country_tag nation_over, int32_t value);
+	void set_influence(world_state& ws, nations::country_tag nation_by, country_tag nation_over, float value, int32_t level); // will not remove from some else's sphere
+	void set_influence_value(world_state& ws, nations::country_tag nation_by, country_tag nation_over, float value);
 	void set_sphere_leader(world_state& ws, nations::country_tag nation_target, country_tag sphere_leader);
 	bool can_influence(world_state const& ws, nations::country_tag nation_by, country_tag nation_target);
 	float get_foreign_investment(world_state const& ws, nations::country_tag nation_by, country_tag nation_in);
@@ -51,7 +51,7 @@ namespace nations {
 	void make_vassal(world_state& ws, nations::country_tag overlord, nations::country_tag vassal);
 	void free_vassal(world_state& ws, nations::country_tag vassal);
 	text_data::text_tag influence_level_to_text(world_state const& ws, int32_t i);
-	void adjust_influence(world_state& ws, nations::country_tag nation_by, nations::country_tag nation_target, int32_t amount); // will also adjust influence level on overflow / underflow
+	void adjust_influence(world_state& ws, nations::country_tag nation_by, nations::country_tag nation_target, float amount); // will also adjust influence level on overflow / underflow
 	void remove_owned_province(world_state& ws, nations::country_tag n, provinces::province_tag p); // removes province from list of owned
 	void remove_controlled_province(world_state& ws, nations::country_tag n, provinces::province_tag p); // removes province from list of controlled
 	void add_owned_province(world_state& ws, nations::country_tag n, provinces::province_tag p); // add province to list of owned
@@ -131,6 +131,7 @@ namespace nations {
 
 	void update_province_counts(world_state& ws, nations::country_tag this_nation); // marks provinces, updates count of central provinces, blockaded, with crime, rebel controlled, ports
 	void update_movement_support(world_state& ws, nations::country_tag this_nation);
+	void daily_influence_update(world_state& ws);
 
 	int32_t calculate_industrial_score(world_state const& ws, nations::country_tag this_nation);
 	int32_t calculate_military_score(world_state const& ws, nations::country_tag this_nation);

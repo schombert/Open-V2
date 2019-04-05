@@ -434,7 +434,7 @@ namespace military {
 			if(p.second.value != 0)
 				nations::set_relationship(ws, this_nation, other_nation, p.second.value);
 			if(p.second.influence_value != 0 || p.second.level != 2)
-				nations::set_influence(ws, this_nation, other_nation, p.second.influence_value, p.second.level);
+				nations::set_influence(ws, this_nation, other_nation, float(p.second.influence_value), p.second.level);
 		}
 		void add_leader(parsed_leader const& l) {
 			auto& new_leader = make_empty_leader(ws, ws.w.nation_s.nations.get<nation::primary_culture>(this_nation), l.is_general);

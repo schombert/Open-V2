@@ -291,7 +291,7 @@ namespace messages {
 
 	template<typename ... NATIONS>
 	message_setting get_relevant_setting(world_state const& ws, message_settings s, nations::country_tag n, NATIONS ... rest) {
-		return merge_message_setting(get_single_setting(ws, s, n), get_single_setting(ws, s, rest ...));
+		return merge_message_setting(get_single_setting(ws, s, n), get_relevant_setting(ws, s, rest ...));
 	}
 
 	class nation_hyperlink {
@@ -321,6 +321,549 @@ namespace messages {
 			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
 		}
 		lm.finish_current_line();
+	}
+
+	void increase_opinion(world_state& ws, nations::country_tag by, nations::country_tag target, int32_t new_level) {
+		if(by == ws.w.local_player_nation) {
+			// case by player detected
+			switch(ws.w.message_w.settings[message_type::INCREASEOPINION_THEY_ACCEPT].self) {
+				case message_setting::popup_and_pause:
+					ws.w.paused.store(true, std::memory_order_release);
+					// fallthrough
+				case message_setting::popup:
+					submit_message(ws, target, [new_level, target](world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[2] = {
+							text_data::replacement{text_data::value_type::opinion,
+								text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::rel_hostile + new_level]),
+								[](ui::tagged_gui_object) {}},
+							text_data::replacement{text_data::value_type::recipient,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+								[&ws, target](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+							}}
+						};
+
+						ui::add_multiline_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::INCREASEOPINION_THEY_ACCEPT],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 2);
+						lm.finish_current_line();
+					});
+					// fallthrough
+				case message_setting::log:
+					submit_log_item(ws, message_category::diplomacy, [new_level, target](world_state& ws, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[2] = {
+							text_data::replacement{text_data::value_type::opinion,
+								text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::rel_hostile + new_level]),
+								[](ui::tagged_gui_object) {}},
+							text_data::replacement{text_data::value_type::recipient,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+								[&ws, target](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+							}}
+						};
+
+						ui::add_linear_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::INCREASEOPINION_THEY_ACCEPT],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 2);
+						lm.finish_current_line();
+					});
+					break;
+				case message_setting::discard:
+					//do nothing
+					break;
+			}
+		} else if(target == ws.w.local_player_nation) {
+			// case against player detected
+			switch(ws.w.message_w.settings[message_type::INCREASEOPINION_WE_ACCEPT].self) {
+				case message_setting::popup_and_pause:
+					ws.w.paused.store(true, std::memory_order_release);
+					// fallthrough
+				case message_setting::popup:
+					submit_message(ws, by, [new_level, by](world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[2] = {
+							text_data::replacement{text_data::value_type::opinion,
+								text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::rel_hostile + new_level]),
+								[](ui::tagged_gui_object) {}},
+							text_data::replacement{text_data::value_type::actor,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(by)) ,
+								[&ws, by](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, by);
+							}}
+						};
+
+						ui::add_multiline_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::INCREASEOPINION_WE_ACCEPT],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 2);
+						lm.finish_current_line();
+					});
+					// fallthrough
+				case message_setting::log:
+					submit_log_item(ws, message_category::diplomacy, [new_level, by](world_state& ws, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[2] = {
+							text_data::replacement{text_data::value_type::opinion,
+								text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::rel_hostile + new_level]),
+								[](ui::tagged_gui_object) {}},
+							text_data::replacement{text_data::value_type::actor,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(by)) ,
+								[&ws, by](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, by);
+							}}
+						};
+
+						ui::add_linear_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::INCREASEOPINION_WE_ACCEPT],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 2);
+						lm.finish_current_line();
+					});
+					break;
+				case message_setting::discard:
+					//do nothing
+					break;
+			}
+		} else {
+			// all others
+			switch(get_relevant_setting(ws, ws.w.message_w.settings[message_type::INCREASEOPINION_OTHER_ACCEPT], target, by)) {
+				case message_setting::popup_and_pause:
+					ws.w.paused.store(true, std::memory_order_release);
+					// fallthrough
+				case message_setting::popup:
+					submit_message(ws, target, [new_level, target, by](world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[3] = {
+							text_data::replacement{text_data::value_type::opinion,
+								text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::rel_hostile + new_level]),
+								[](ui::tagged_gui_object) {}},
+							text_data::replacement{text_data::value_type::actor,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(by)) ,
+								[&ws, by](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, by);
+							}},
+							text_data::replacement{text_data::value_type::recipient,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+								[&ws, target](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+							}}
+						};
+
+						ui::add_multiline_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::INCREASEOPINION_OTHER_ACCEPT],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 3);
+						lm.finish_current_line();
+					});
+					// fallthrough
+				case message_setting::log:
+					submit_log_item(ws, message_category::diplomacy, [by, target, new_level](world_state& ws, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[3] = {
+							text_data::replacement{text_data::value_type::opinion,
+								text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::rel_hostile + new_level]),
+								[](ui::tagged_gui_object) {}},
+							text_data::replacement{text_data::value_type::actor,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(by)) ,
+								[&ws, by](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, by);
+							}},
+							text_data::replacement{text_data::value_type::recipient,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+								[&ws, target](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+							}}
+						};
+
+
+						ui::add_linear_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::INCREASEOPINION_OTHER_ACCEPT],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 3);
+						lm.finish_current_line();
+					});
+					break;
+				case message_setting::discard:
+					//do nothing
+					break;
+			}
+		}
+	}
+
+	void add_to_sphere(world_state& ws, nations::country_tag sphere_leader, nations::country_tag target) {
+		if(sphere_leader == ws.w.local_player_nation) {
+			// case by player detected
+			switch(ws.w.message_w.settings[message_type::ADDTOSPHERE_THEY_ACCEPT].self) {
+				case message_setting::popup_and_pause:
+					ws.w.paused.store(true, std::memory_order_release);
+					// fallthrough
+				case message_setting::popup:
+					submit_message(ws, target, [target](world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[1] = {
+							text_data::replacement{text_data::value_type::recipient,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+								[&ws, target](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+							}}
+						};
+
+						ui::add_multiline_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::ADDTOSPHERE_THEY_ACCEPT],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 1);
+						lm.finish_current_line();
+					});
+					// fallthrough
+				case message_setting::log:
+					submit_log_item(ws, message_category::diplomacy, [target](world_state& ws, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[1] = {
+							text_data::replacement{text_data::value_type::recipient,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+								[&ws, target](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+							}}
+						};
+
+						ui::add_linear_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::ADDTOSPHERE_THEY_ACCEPT],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 1);
+						lm.finish_current_line();
+					});
+					break;
+				case message_setting::discard:
+					//do nothing
+					break;
+			}
+		} else if(target == ws.w.local_player_nation) {
+			// case against player detected
+			switch(ws.w.message_w.settings[message_type::ADDTOSPHERE_WE_ACCEPT].self) {
+				case message_setting::popup_and_pause:
+					ws.w.paused.store(true, std::memory_order_release);
+					// fallthrough
+				case message_setting::popup:
+					submit_message(ws, sphere_leader, [sphere_leader](world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[1] = {
+							text_data::replacement{text_data::value_type::actor,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(sphere_leader)) ,
+								[&ws, sphere_leader](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, sphere_leader);
+							}}
+						};
+
+						ui::add_multiline_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::ADDTOSPHERE_WE_ACCEPT],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 1);
+						lm.finish_current_line();
+					});
+					// fallthrough
+				case message_setting::log:
+					submit_log_item(ws, message_category::diplomacy, [sphere_leader](world_state& ws, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[1] = {
+							text_data::replacement{text_data::value_type::actor,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(sphere_leader)) ,
+								[&ws, sphere_leader](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, sphere_leader);
+							}}
+						};
+
+						ui::add_linear_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::ADDTOSPHERE_WE_ACCEPT],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 1);
+						lm.finish_current_line();
+					});
+					break;
+				case message_setting::discard:
+					//do nothing
+					break;
+			}
+		} else {
+			// all others
+			switch(get_relevant_setting(ws, ws.w.message_w.settings[message_type::ADDTOSPHERE_OTHER_ACCEPT], target, sphere_leader)) {
+				case message_setting::popup_and_pause:
+					ws.w.paused.store(true, std::memory_order_release);
+					// fallthrough
+				case message_setting::popup:
+					submit_message(ws, target, [target, sphere_leader](world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[2] = {
+							text_data::replacement{text_data::value_type::actor,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(sphere_leader)) ,
+								[&ws, sphere_leader](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, sphere_leader);
+							}},
+							text_data::replacement{text_data::value_type::recipient,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+								[&ws, target](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+							}}
+						};
+
+						ui::add_multiline_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::ADDTOSPHERE_OTHER_ACCEPT],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 2);
+						lm.finish_current_line();
+					});
+					// fallthrough
+				case message_setting::log:
+					submit_log_item(ws, message_category::diplomacy, [target, sphere_leader](world_state& ws, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[2] = {
+							text_data::replacement{text_data::value_type::actor,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(sphere_leader)) ,
+								[&ws, sphere_leader](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, sphere_leader);
+							}},
+							text_data::replacement{text_data::value_type::recipient,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+								[&ws, target](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+							}}
+						};
+
+
+						ui::add_linear_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::ADDTOSPHERE_OTHER_ACCEPT],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 2);
+						lm.finish_current_line();
+					});
+					break;
+				case message_setting::discard:
+					//do nothing
+					break;
+			}
+		}
+	}
+
+	void remove_from_sphere(world_state& ws, nations::country_tag actor, nations::country_tag sphere_leader, nations::country_tag target) {
+		if(sphere_leader == ws.w.local_player_nation) {
+			switch(get_relevant_setting(ws, ws.w.message_w.settings[message_type::WETARGET_REMOVEFROMSPHERE], target, sphere_leader, actor)) {
+				case message_setting::popup_and_pause:
+					ws.w.paused.store(true, std::memory_order_release);
+					// fallthrough
+				case message_setting::popup:
+					submit_message(ws, target, [target, actor](world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[2] = {
+							text_data::replacement{text_data::value_type::actor,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(actor)) ,
+								[&ws, actor](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, actor);
+							}},
+							text_data::replacement{text_data::value_type::recipient,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+								[&ws, target](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+							}}
+						};
+
+						ui::add_multiline_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::WETARGET_REMOVEFROMSPHERE],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 2);
+						lm.finish_current_line();
+					});
+					// fallthrough
+				case message_setting::log:
+					submit_log_item(ws, message_category::diplomacy, [target, actor](world_state& ws, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[2] = {
+							text_data::replacement{text_data::value_type::actor,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(actor)) ,
+								[&ws, actor](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, actor);
+							}},
+							text_data::replacement{text_data::value_type::recipient,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+								[&ws, target](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+							}}
+						};
+
+
+						ui::add_linear_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::WETARGET_REMOVEFROMSPHERE],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 2);
+						lm.finish_current_line();
+					});
+					break;
+				case message_setting::discard:
+					//do nothing
+					break;
+			}
+		} else if(actor == ws.w.local_player_nation) {
+			// case by player detected
+			switch(ws.w.message_w.settings[message_type::REMOVEFROMSPHERE_THEY_ACCEPT].self) {
+				case message_setting::popup_and_pause:
+					ws.w.paused.store(true, std::memory_order_release);
+					// fallthrough
+				case message_setting::popup:
+					submit_message(ws, target, [target, sphere_leader](world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[2] = {
+							text_data::replacement{text_data::value_type::recipient,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+								[&ws, target](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+							}},
+							text_data::replacement{text_data::value_type::target,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(sphere_leader)) ,
+								[&ws, sphere_leader](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, sphere_leader);
+							}}
+						};
+
+						ui::add_multiline_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::REMOVEFROMSPHERE_THEY_ACCEPT],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 2);
+						lm.finish_current_line();
+					});
+					// fallthrough
+				case message_setting::log:
+					submit_log_item(ws, message_category::diplomacy, [target, sphere_leader](world_state& ws, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[2] = {
+							text_data::replacement{text_data::value_type::recipient,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+								[&ws, target](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+							}},
+							text_data::replacement{text_data::value_type::target,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(sphere_leader)) ,
+								[&ws, sphere_leader](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, sphere_leader);
+							}}
+						};
+
+						ui::add_linear_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::REMOVEFROMSPHERE_THEY_ACCEPT],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 2);
+						lm.finish_current_line();
+					});
+					break;
+				case message_setting::discard:
+					//do nothing
+					break;
+			}
+		} else if(target == ws.w.local_player_nation) {
+			// case against player detected
+			switch(ws.w.message_w.settings[message_type::REMOVEFROMSPHERE_WE_ACCEPT].self) {
+				case message_setting::popup_and_pause:
+					ws.w.paused.store(true, std::memory_order_release);
+					// fallthrough
+				case message_setting::popup:
+					submit_message(ws, sphere_leader, [sphere_leader, actor](world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[2] = {
+							text_data::replacement{text_data::value_type::actor,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(actor)) ,
+								[&ws, actor](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, actor);
+							}},
+							text_data::replacement{text_data::value_type::target,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(sphere_leader)) ,
+								[&ws, sphere_leader](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, sphere_leader);
+							}}
+						};
+
+						ui::add_multiline_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::REMOVEFROMSPHERE_WE_ACCEPT],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 2);
+						lm.finish_current_line();
+					});
+					// fallthrough
+				case message_setting::log:
+					submit_log_item(ws, message_category::diplomacy, [sphere_leader, actor](world_state& ws, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[2] = {
+							text_data::replacement{text_data::value_type::actor,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(actor)) ,
+								[&ws, actor](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, actor);
+							}},
+							text_data::replacement{text_data::value_type::target,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(sphere_leader)) ,
+								[&ws, sphere_leader](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, sphere_leader);
+							}}
+						};
+
+						ui::add_linear_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::REMOVEFROMSPHERE_WE_ACCEPT],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 2);
+						lm.finish_current_line();
+					});
+					break;
+				case message_setting::discard:
+					//do nothing
+					break;
+			}
+		} else {
+			// all others
+			switch(get_relevant_setting(ws, ws.w.message_w.settings[message_type::REMOVEFROMSPHERE_OTHER_ACCEPT], target, sphere_leader, actor)) {
+				case message_setting::popup_and_pause:
+					ws.w.paused.store(true, std::memory_order_release);
+					// fallthrough
+				case message_setting::popup:
+					submit_message(ws, target, [target, sphere_leader, actor](world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[3] = {
+							text_data::replacement{text_data::value_type::target,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(sphere_leader)) ,
+								[&ws, sphere_leader](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, sphere_leader);
+							}},
+							text_data::replacement{text_data::value_type::actor,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(actor)) ,
+								[&ws, actor](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, actor);
+							}},
+							text_data::replacement{text_data::value_type::recipient,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+								[&ws, target](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+							}}
+						};
+
+						ui::add_multiline_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::REMOVEFROMSPHERE_OTHER_ACCEPT],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 3);
+						lm.finish_current_line();
+					});
+					// fallthrough
+				case message_setting::log:
+					submit_log_item(ws, message_category::diplomacy, [target, sphere_leader, actor](world_state& ws, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt) {
+						text_data::replacement repl[3] = {
+							text_data::replacement{text_data::value_type::target,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(sphere_leader)) ,
+								[&ws, sphere_leader](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, sphere_leader);
+							}},
+							text_data::replacement{text_data::value_type::actor,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(actor)) ,
+								[&ws, actor](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, actor);
+							}},
+							text_data::replacement{text_data::value_type::recipient,
+								 text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target)) ,
+								[&ws, target](ui::tagged_gui_object b) {
+								ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target);
+							}}
+						};
+
+
+						ui::add_linear_text(
+							ui::xy_pair{ 0,0 },
+							ws.s.message_m.log_text[message_type::REMOVEFROMSPHERE_OTHER_ACCEPT],
+							fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 3);
+						lm.finish_current_line();
+					});
+					break;
+				case message_setting::discard:
+					//do nothing
+					break;
+			}
+		}
 	}
 
 	void cb_detected(world_state& ws, nations::country_tag by, nations::country_tag target, military::cb_type_tag type, float infamy_gained) {

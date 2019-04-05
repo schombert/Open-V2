@@ -1567,8 +1567,6 @@ namespace modifiers {
 					main_results.parse_results.data() + main_results.parse_results.size(),
 					*state.impl);
 			}
-		} else {
-			OutputDebugStringW(L"ERROR: failed to open event_modifiers.txt\n");
 		}
 	}
 

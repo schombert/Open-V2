@@ -28,10 +28,9 @@ namespace nations {
 	};
 	struct influence {
 		float investment_amount = 0.0f;
+		float amount = 0.0f; // up to 100
 
 		country_tag target;
-
-		uint8_t amount = 0ui8; // up to 100
 		uint8_t packed_data = 2ui8;
 		
 		int32_t level() const { return int32_t(packed_data & 0x07); } // 0 to 5 (5 = in sphere, 2 = neutral)
@@ -42,9 +41,9 @@ namespace nations {
 		void priority(int32_t v) { packed_data = uint8_t((packed_data & ~(0x30)) | ((v << 4) & 0x30)); }
 		void is_banned(bool v) { packed_data = uint8_t((packed_data & ~(0x08)) | (int32_t(v) << 3)); }
 
-		influence() noexcept : investment_amount(0.0f), target(), amount(0ui8), packed_data(2i8) {}
-		influence(nations::country_tag n) noexcept : investment_amount(0.0f), target(n), amount(0ui8), packed_data(2i8) {}
-		influence(float a, nations::country_tag n, uint8_t b, int8_t c, int8_t d) noexcept : investment_amount(a), target(n), amount(b), packed_data(uint8_t(c | (d << 4))) {}
+		influence() noexcept : investment_amount(0.0f), target(), amount(0), packed_data(2i8) {}
+		influence(nations::country_tag n) noexcept : investment_amount(0.0f), target(n), amount(0), packed_data(2i8) {}
+		influence(float a, nations::country_tag n, float b, int8_t c, int8_t d) noexcept : investment_amount(a), target(n), amount(b), packed_data(uint8_t(c | (d << 4))) {}
 
 		bool operator<(influence const& other)  const noexcept { return target < other.target; }
 		bool operator==(influence const& other) const noexcept { return target == other.target; }
