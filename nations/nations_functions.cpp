@@ -1594,8 +1594,15 @@ namespace nations {
 			}
 		}
 		for(auto p : inf_ptrs) {
-			p.second->amount = std::max(p.second->amount - total_excess, 0.0f);
-			if(p.second->amount > increase_cost && p.second->level() < 4) {
+			p.second->amount -= total_excess;
+			if(p.second->amount < 0) {
+				if(p.second->level() > 2 && p.second->level() < 5) {
+					p.second->level(p.second->level() - 1);
+					p.second->amount += increase_cost;
+				} else {
+					p.second->amount = 0.0f;
+				}
+			} else if(p.second->amount > increase_cost && p.second->level() < 4) {
 				messages::increase_opinion(ws, p.first, n, p.second->level() + 1);
 				p.second->level(p.second->level() + 1);
 				p.second->amount = p.second->amount - increase_cost;

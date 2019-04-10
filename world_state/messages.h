@@ -252,6 +252,22 @@ namespace messages {
 		void init_message_window(world_state& ws);
 	};
 
+	class message_settings_window_t;
+
+	class message_settings_window {
+	public:
+		std::unique_ptr<message_settings_window_t> win;
+		bool showing_messages = true;
+
+		message_settings_window();
+		~message_settings_window();
+
+		void hide_message_settings_window(ui::gui_manager& gui_m);
+		void update_message_settings_window(ui::gui_manager& gui_m);
+		void show_message_settings_window(ui::gui_manager& gui_m);
+		void init_message_settings_window(world_state& ws);
+	};
+
 	void init_message_text(scenario::scenario_manager& s);
 	void submit_message(world_state& ws, std::variant<std::monostate, nations::country_tag, provinces::province_tag> goto_tag, display_function&& f);
 

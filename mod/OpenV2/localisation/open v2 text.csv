@@ -472,3 +472,19 @@ pop_size_assimilation;from changing culture or religion
 pop_size_migration;from migrating within the nation
 pop_size_emigration;from emigrating to another nation
 immigrant;Immigrant
+fabrication_condition;Is not currently fabricating a casus belli
+tech_condition_previous;The preceding technology has been researched
+tech_condition_year;It is not prior to the activation year
+tech_condition_not_done;The technology has not been researched
+WELOSECB_SETUP;When we lose a Casus Belli
+WELOSECB_1;Casus Belli
+WELOSECB_2;We have lost the
+WELOSECB_3;$CASUS$ Casus Belli
+WELOSECB_4;against
+WELOSECB_5;$ENEMY$
+WELOSECB_6;$DESC$
+WELOSECB_LOG;We lost the $CASUS$ Casus Belli against $ENEMY$.
+automate_option;Automatically choose this option
+monthly_chance;Chance per month:
+openv2_messagecat_text;Messages
+openv2_sourcescat_text;Sources

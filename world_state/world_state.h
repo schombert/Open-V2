@@ -121,6 +121,7 @@ namespace current_state {
 		economy::production_window production_w;
 		economy::trade_window trade_w;
 		messages::message_window message_w;
+		messages::message_settings_window message_settings_w;
 		military::fabricate_cb_window fabricate_cb_w;
 		events::province_event_window province_event_w;
 		events::nation_event_window nation_event_w;

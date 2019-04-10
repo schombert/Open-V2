@@ -13,4 +13,326 @@ guiTypes = {
 		shortcut = "ESCAPE"
 		clicksound = click
 	}
+	
+	listboxType = 	{
+		name ="open_v2_province_event_list"
+		position = { x = 0 y = 0 }
+		backGround=""
+		size = { x=320 y = 96 }
+		Orientation = "UPPER_LEFT"
+		spacing = 0
+		scrollbartype = "standardlistbox_slider"
+		borderSize = {x = 0 y = 0}
+	}
+	
+	listboxType = 	{
+		name ="open_v2_nation_event_list"
+		position = { x = 0 y = 0 }
+		backGround=""
+		size = { x=512 y = 96 }
+		Orientation = "UPPER_LEFT"
+		spacing = 0
+		scrollbartype = "standardlistbox_slider"
+		borderSize = {x = 0 y = 0}
+	}
+		
+	windowType = {
+		name = "open_v2_province_event_option"
+		position = { x=0 y=0 }	
+		size = { x=320 y=32 }
+		moveable = 0
+		fullScreen = no
+
+		guiButtonType = {
+			name = "option_button"
+			position = { x=0 y =0}
+			quadTextureSprite ="GFX_event_province_button"
+			buttonFont = "vic_18_black"
+		}
+		
+		guiButtonType = {
+			name = "auto_button"
+			position = { x=288 y=0 }
+			quadTextureSprite ="GFX_openv2_automate"
+		}
+	}
+	
+	windowType = {
+		name = "open_v2_nation_event_option"
+		position = { x=0 y=0 }	
+		size = { x=512 y=32 }
+		moveable = 0
+		fullScreen = no
+
+		guiButtonType = {
+			name = "option_button"
+			position = { x=0 y =0}
+			quadTextureSprite ="GFX_event_country_button"
+			buttonFont = "vic_18_black"
+		}
+		
+		guiButtonType = {
+			name = "auto_button"
+			position = { x=480 y=0 }
+			quadTextureSprite ="GFX_openv2_automate"
+		}
+	}
+	
+	iconType = {
+		name ="open_v2_info_icon"
+		spriteType = "GFX_openv2_info_icon"
+		position = { x= 25 y = 25 }
+		Orientation = "UPPER_LEFT"
+	}
+	iconType = {
+		name ="open_v2_odds_icon"
+		spriteType = "GFX_openv2_odds_icon"
+		position = { x= 25 y = 55 }
+		Orientation = "UPPER_LEFT"
+	}
+	iconType = {
+		name ="open_v2_location_cursor"
+		spriteType = "GFX_openv2_location_cursor"
+		position = { x= 0 y = 0 }
+		Orientation = "UPPER_LEFT"
+	}
+	windowType = {
+		name = "open_v2_logtext"
+		backGround=""
+		position = { x=0 y=0 }	
+		size = { x=430 y= 16 }
+		moveable = 0
+		fullScreen = no
+		
+		instantTextBoxType = {
+			name = "open_v2_log_text_box"
+			position = { x = 0 y = 0 }
+			font = "timefont_12"
+			format = left
+			borderSize = {x = 0 y = 0}
+			
+			maxWidth = 430
+			maxHeight = 16	
+			Orientation = "UPPER_LEFT"			
+		}
+		
+	}
+	
+	windowType = {
+		name ="openv2_message_settings"
+		backGround=""
+		position = { x = -390 y = -232 }	
+		size = { x = 780 y = 464}
+		Orientation = "CENTER"
+			
+		iconType = {
+			name ="messagesettings_bg"
+			spriteType = "GFX_messagesettings_bg"
+			position = { x = 0 y = 0 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		guiButtonType = {
+			name = "close_button"
+			quadTextureSprite = "GFX_main_close_button"
+			position = { x = -32 y = 0 }
+			Orientation = "UPPER_RIGHT"
+			shortcut = "ESCAPE"
+		}
+
+		instantTextBoxType = {
+			position = {x = 16 y = 16 }
+			name = "messagesettings_label"
+			font = "vic_22"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 749
+			maxHeight = 24
+			text = "MENU_BAR_MESSAGE_SETTINGS"	
+			orientation = "UPPER_LEFT"
+			format = centre
+		}
+			
+		checkboxType = {
+			name = "category_messages_button"
+			position = { x=30 y=47 }
+			quadTextureSprite ="GFX_message_cat_tab"
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			position = {x = 30 y = 54 }
+			name = "category_messages"
+			font = "vic_18_black"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 90
+			maxHeight = 18
+			text = "openv2_messagecat_text"	
+			orientation = "UPPER_LEFT"
+			format = centre
+		}
+			
+		checkboxType = {
+			name = "category_sources_button"
+			position = { x=120 y=47 }
+			quadTextureSprite ="GFX_message_cat_tab"
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			position = {x = 120 y = 54 }
+			name = "category_sources"
+			font = "vic_18_black"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 90
+			maxHeight = 18
+			text = "openv2_sourcescat_text"	
+			orientation = "UPPER_LEFT"
+			format = centre
+		}
+		
+		listboxType = {
+			name = "message_settings_items"
+			position = { x= 30 y = 129}
+				
+			backGround=""
+			size = { x=725 y= 212 }
+			spacing = 1
+			scrollbartype = "standardlistbox_slider"
+			borderSize = {x = 20 y = 5}
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType = {
+			position = {x = 30 y = 79 }
+			name = "header_search"
+			font = "vic_18_black"
+			maxWidth = 70
+			maxHeight = 32
+			text = "MESSAGE_SEARCH"	
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+			
+		editBoxType = {
+			position = { x = 100 y = 79 }
+			name = "search_edit"
+			textureFile = "gfx\\interface\\small_tiles_dialog.dds"
+			font = "vic_18"
+			borderSize = { x = 8 y = 4  }	
+			size = { x=240 y=34 }
+			text = ""	
+			orientation = "UPPER_LEFT"
+		}
+		
+		iconType = {
+			name = "stars_zero"
+			spriteType = "GFX_openv2_stars_horizontal"
+			position = { x= 499 y = 113 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		iconType = {
+			name = "stars_one"
+			spriteType = "GFX_openv2_stars_horizontal"
+			position = { x= 563 y = 113 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		iconType = {
+			name = "stars_two"
+			spriteType = "GFX_openv2_stars_horizontal"
+			position = { x= 627 y = 113 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		iconType = {
+			name = "stars_three"
+			spriteType = "GFX_openv2_stars_horizontal"
+			position = { x= 691 y = 113 }
+			Orientation = "UPPER_LEFT"
+		}
+			
+		instantTextBoxType = {
+			name = "label_importance"
+			position = { x = 627 y = 113 }
+			maxWidth = 128
+			maxHeight = 16	
+			font = "vic_14_black"
+			borderSize = {x = 0 y = 0}	
+			format = centre
+			text = "Importance"	
+			Orientation = "UPPER_LEFT"	
+			fixedsize = yes		
+		}
+			
+				
+	}
+	
+	windowType = {
+		name = "openv2_message_setting_item"
+		position = { x=0 y=0 }	
+		size = { x=725 y=20 }
+		moveable = 0
+		fullScreen = no
+
+		iconType = {
+			name ="message_bg"
+			spriteType = "GFX_messagesettings_listbutton"
+			position = { x= 0 y = 0 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		guiButtonType = {
+			name = "country_flag"
+			position = { x=0 y = 1 }
+			quadTextureSprite ="GFX_flag_new"
+			buttonText = " "
+			buttonFont = "vic_18_black"
+		}
+		
+		instantTextBoxType = {
+			position = {x = 30 y = 0 }
+			name = "entry_text"
+			font = "Arial12_bold_black"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 505
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = left
+			fixedsize = yes
+		}
+		
+		guiButtonType = {
+			name = "importance_button"
+			position = { x= 637 y = 2 }
+			quadTextureSprite = "GFX_openv2_stars_horizontal"
+			buttonFont = "vic_18_black"
+		}
+		
+		guiButtonType = {
+			name = "stars_zero_button"
+			position = { x= 485 y = 2 }
+			quadTextureSprite = "GFX_openv2_message_type"
+			buttonFont = "vic_18_black"
+		}
+		
+		guiButtonType = {
+			name = "stars_one_button"
+			position = { x= 549 y = 2 }
+			quadTextureSprite = "GFX_openv2_message_type"
+			buttonFont = "vic_18_black"
+		}
+		
+		guiButtonType = {
+			name = "stars_two_button"
+			position = { x= 613 y = 2 }
+			quadTextureSprite = "GFX_openv2_message_type"
+			buttonFont = "vic_18_black"
+		}
+		
+		guiButtonType = {
+			name = "stars_three_button"
+			position = { x= 677 y = 2 }
+			quadTextureSprite = "GFX_openv2_message_type"
+			buttonFont = "vic_18_black"
+		}
+	}
 }

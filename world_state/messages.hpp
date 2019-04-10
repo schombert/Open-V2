@@ -100,4 +100,118 @@ namespace messages {
 		CT_STRING("Description"), ui::multiline_text<message_body, 0, -70>,
 		message_window_base
 	> {};
+
+	class message_settings_window_base : public ui::draggable_region {
+	public:
+	};
+
+	class message_settings_close_button {
+	public:
+		void button_function(ui::simple_button<message_settings_close_button>&, world_state&);
+	};
+
+	class mesasge_settings_button_group {
+	public:
+		void on_select(world_state& ws, uint32_t i);
+	};
+
+	template<uint32_t i>
+	class stars_icon {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<stars_icon<i>>& self, window_type& win, world_state& ws);
+	};
+
+	class importance_label {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	enum class group_setting {
+		self,
+		neighbors,
+		sphere_members,
+		vassals,
+		allies,
+		great_powers,
+		sphere_leader,
+		overlord
+	};
+	struct message_id {
+		int32_t value = 0;
+	};
+
+	using message_setting = std::variant<std::monostate, group_setting, nations::country_tag, message_id>;
+
+	class message_settings_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class message_setting_item_base : public ui::visible_region {
+	public:
+		message_setting value;
+		void set_value(message_setting t) {
+			value = t;
+		}
+	};
+
+	class message_setting_flag {
+	public:
+		template<typename W>
+		void windowed_update(ui::masked_flag<message_setting_flag>& self, W& w, world_state& ws);
+	};
+
+	class message_setting_label {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	template<int32_t i>
+	class message_type_button {
+	public:
+		message_setting value;
+
+		template<typename window_type>
+		void windowed_update(ui::simple_button<message_type_button<i>>& self, window_type& win, world_state& ws);
+		void button_function(ui::simple_button<message_type_button<i>>& self, world_state& ws);
+	};
+
+	class importance_button {
+	public:
+		message_setting value;
+
+		template<typename window_type>
+		void windowed_update(ui::simple_button<importance_button>& self, window_type& win, world_state& ws);
+		void button_function(ui::simple_button<importance_button>& self, world_state& ws);
+	};
+
+	using message_setting_item = ui::gui_window <
+		CT_STRING("country_flag"), ui::masked_flag<message_setting_flag>,
+		CT_STRING("entry_text"), ui::display_text<message_setting_label>,
+		CT_STRING("stars_zero_button"), ui::simple_button<message_type_button<0>>,
+		CT_STRING("stars_one_button"), ui::simple_button<message_type_button<1>>,
+		CT_STRING("stars_two_button"), ui::simple_button<message_type_button<2>>,
+		CT_STRING("stars_three_button"), ui::simple_button<message_type_button<3>>,
+		CT_STRING("importance_button"), ui::simple_button<importance_button>,
+		message_setting_item_base
+	> ;
+
+	class message_settings_window_t : public ui::gui_window <
+		CT_STRING("close_button"), ui::simple_button<message_settings_close_button>,
+		CT_STRING("mesasge_settings_button_group"), ui::button_group<
+		CT_STRING("category_messages_button"),
+		CT_STRING("category_sources_button"), mesasge_settings_button_group>,
+		CT_STRING("stars_zero"), ui::dynamic_icon<stars_icon<0>>,
+		CT_STRING("stars_one"), ui::dynamic_icon<stars_icon<1>>,
+		CT_STRING("stars_two"), ui::dynamic_icon<stars_icon<2>>,
+		CT_STRING("stars_three"), ui::dynamic_icon<stars_icon<3>>,
+		CT_STRING("label_importance"), ui::display_text<importance_label>,
+		CT_STRING("message_settings_items"), ui::discrete_listbox<message_settings_lb, message_setting_item, message_setting>,
+		message_settings_window_base
+	> {};
 }

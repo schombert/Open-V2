@@ -20,9 +20,14 @@ namespace events {
 	int32_t wait_for_player_choice(world_state& ws) {
 		std::unique_lock<std::mutex> lk(ws.w.local_player_data.player_choice_guard);
 
-		ws.w.local_player_data.player_choice_condition.wait(lk, [&ws] {
+		while(!ws.w.local_player_data.player_choice_condition.wait_for(lk, std::chrono::milliseconds(1), [&ws] {
 			return ws.w.local_player_data.player_chosen_option.load(std::memory_order_acquire) != -1;
-		});
+		})) {
+			if(ws.w.pending_commands.execute(ws)) {
+				ws.w.gui_m.flag_update();
+				ws.w.map_view.changed.store(true, std::memory_order_release);
+			}
+		}
 
 		auto const result = ws.w.local_player_data.player_chosen_option.load(std::memory_order_acquire);
 		ws.w.local_player_data.player_chosen_option.store(-1, std::memory_order_release);

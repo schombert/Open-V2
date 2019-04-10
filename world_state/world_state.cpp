@@ -42,7 +42,6 @@ void world_state_non_ai_update(world_state & ws) {
 
 	technologies::daily_update(ws);
 
-	events::daily_update(ws);
 	nations::daily_influence_update(ws);
 
 	ws.w.nation_s.nations.parallel_for_each([&ws](nations::country_tag n) {
@@ -58,6 +57,8 @@ void world_state_non_ai_update(world_state & ws) {
 		for(auto s = member_states.first; s != member_states.second; ++s)
 			ws.w.nation_s.states.set<state::administrative_efficiency>(s->state, nations::calculate_state_administrative_efficiency(ws, s->state, admin_req));
 	});
+
+	events::daily_update(ws);
 
 	nations::update_nation_ranks(ws);
 
@@ -162,6 +163,7 @@ namespace current_state {
 		trade_w.init(ws);
 		budget_w.init(ws);
 		message_w.init_message_window(ws);
+		message_settings_w.init_message_settings_window(ws);
 		fabricate_cb_w.init_fabricate_window(ws);
 		province_event_w.init_province_event_window(ws);
 		nation_event_w.init_nation_event_window(ws);

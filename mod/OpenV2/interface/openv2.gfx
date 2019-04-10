@@ -9,4 +9,39 @@ spriteTypes = {
 		texturefile = "gfx\\interface\\msg_close.tga"
 		noOfFrames = 1
 	}
+	spriteType = {
+		name = "GFX_openv2_automate"
+		texturefile = "gfx\\interface\\event_automate.tga"
+		noOfFrames = 1
+	}
+	
+	spriteType = {
+		name = "GFX_openv2_info_icon"
+		texturefile = "gfx\\interface\\openv2_info_icon.tga"
+		noOfFrames = 1
+	}
+	
+	spriteType = {
+		name = "GFX_openv2_odds_icon"
+		texturefile = "gfx\\interface\\openv2_odds_icon.tga"
+		noOfFrames = 1
+	}
+	
+	spriteType = {
+		name = "GFX_openv2_location_cursor"
+		texturefile = "gfx\\interface\\openv2_location_cursor.tga"
+		noOfFrames = 1
+	}
+	
+	spriteType = {
+		name = "GFX_openv2_stars_horizontal"
+		texturefile = "gfx\\interface\\openv2_star_levels_h.tga"
+		noOfFrames = 4
+	}
+	
+	spriteType = {
+		name = "GFX_openv2_message_type"
+		texturefile = "gfx\\interface\\openv2_message_options.tga"
+		noOfFrames = 4
+	}
 }
