@@ -47,4 +47,10 @@ namespace current_state {
 		if(win->associated_object)
 			ui::make_visible_and_update(gui_m, *(win->associated_object));
 	}
+	void message_settings_button::button_function(ui::simple_button<message_settings_button>& self, world_state & ws) {
+		ws.w.message_settings_w.show_message_settings_window(ws.w.gui_m);
+	}
+	void message_settings_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::message_settings], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+	}
 }

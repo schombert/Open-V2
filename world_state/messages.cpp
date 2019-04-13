@@ -5,22 +5,14 @@
 
 namespace messages {
 	constexpr char const* message_identifiers[] = {
-		"WEGAINCB",
-		"REVOLTALLIANCE",
-		"WAR_THEY_ACCEPT",
-		"WAR_WE_ACCEPT",
-		"WAR_OTHER_ACCEPT",
-		"WARGOAL_THEY_ACCEPT",
-		"WARGOAL_WE_ACCEPT",
-		"WARGOAL_OTHER_ACCEPT",
-		"SIEGEOVER",
-		"SIEGEUS",
-		"SIEGEUSREBEL",
-		"SIEGETHEM",
-		"SIEGETHEMREBEL",
-		"COLONY_SUCCESS",
-		"COLONY_FAIL",
-		"COLONY_ABORT",
+		"GAINCB",
+		"LOSECB",
+		"REVOLTALLIANCE_CAUSE",
+		"REVOLTALLIANCE_TARGET",
+		"WAR_CAUSE",
+		"WAR_TARGET",
+		"WARGOAL_CAUSE",
+		"WARGOAL_TARGET",
 		"SOCREFORM",
 		"SOCREFORM_BAD",
 		"POLREFORM",
@@ -34,130 +26,68 @@ namespace messages {
 		"ELECTIONSTART",
 		"ELECTIONDONE",
 		"BREAKCOUNTRY",
-		"BREAKCOUNTRYOTHER",
-		"ANNEX",
-		"PEACE_WE_ACCEPT",
-		"PEACE_WE_DECLINE",
-		"PEACE_THEY_ACCEPT",
-		"PEACE_THEY_DECLINE",
-		"PEACE_OTHER_ACCEPT",
-		"PEACE_OTHER_DECLINE",
-		"PARTISANS",
-		"WE_MOBILIZE",
-		"OTHER_MOBILIZE",
-		"WE_DEMOBILIZE",
-		"OTHER_DEMOBILIZE",
+		"REBELS",
+		"ANNEX_CAUSE",
+		"ANNEX_TARGET",
+		"PEACE_ACCEPT_CAUSE",
+		"PEACE_ACCEPT_TARGET",
+		"PEACE_DECLINE_CAUSE",
+		"PEACE_DECLINE_TARGET",
+		"MOBILIZE",
+		"DEMOBILIZE",
 		"BUILDING_DONE",
-		"WEDEFECT",
-		"THEYDEFECT",
-		"OTHERDEFECT",
 		"EVENTHAPPENOTHER",
 		"EVENTHAPPENOTHEROPTION",
 		"MAJOREVENTHAPPENOTHER",
 		"MAJOREVENTHAPPENOTHEROPTION",
-		"EVENTHAPPENUS // log only",
 		"INVENTION",
-		"TECH_ONCE",
-		"TRIGMOD",
-		"TRIGMODLOST",
+		"TECH",
 		"LEADERDIED",
-		"ATTACKTHEM",
-		"ATTACKUS",
 		"LANDBATTLEOVER",
 		"NAVALBATTLEOVER",
-		"ALLYTAKEOVER",
-		"ALLYTAKEOVERWE",
-		"INDEPENDANCE",
-		"PROVINCELOST",
-		"NAVALATTACKTHEM",
-		"NAVALATTACKUS",
-		"UNITARRIVED",
 		"DECISIONOTHER",
-		"DECISIONUS",
-		"WE_NO_LONGER_GREAT_POWER",
-		"THEY_NO_LONGER_GREAT_POWER",
-		"WE_BECAME_GREAT_POWER",
-		"ALLIANCE_THEY_ACCEPT",
-		"ALLIANCE_WE_ACCEPT",
-		"ALLIANCE_OTHER_ACCEPT",
-		"ALLIANCE_THEY_DECLINE",
-		"ALLIANCE_WE_DECLINE",
-		"ALLIANCE_OTHER_DECLINE",
-		"CANCELALLIANCE_THEY_ACCEPT",
-		"CANCELALLIANCE_WE_ACCEPT",
-		"CANCELALLIANCE_OTHER_ACCEPT",
-		"CALLALLY_THEY_ACCEPT",
-		"CALLALLY_WE_ACCEPT",
-		"CALLALLY_OTHER_ACCEPT",
-		"CALLALLY_THEY_DECLINE",
-		"CALLALLY_WE_DECLINE",
-		"CALLALLY_OTHER_DECLINE",
-		"EXPELADVISORS_THEY_ACCEPT",
-		"EXPELADVISORS_WE_ACCEPT",
-		"EXPELADVISORS_OTHER_ACCEPT",
-		"BANEMBASSY_THEY_ACCEPT",
-		"BANEMBASSY_WE_ACCEPT",
-		"BANEMBASSY_OTHER_ACCEPT",
-		"INCREASEOPINION_THEY_ACCEPT",
-		"INCREASEOPINION_WE_ACCEPT",
-		"INCREASEOPINION_OTHER_ACCEPT",
-		"DECREASEOPINION_THEY_ACCEPT",
-		"DECREASEOPINION_WE_ACCEPT",
-		"DECREASEOPINION_OTHER_ACCEPT",
-		"ADDTOSPHERE_THEY_ACCEPT",
-		"ADDTOSPHERE_WE_ACCEPT",
-		"ADDTOSPHERE_OTHER_ACCEPT",
-		"REMOVEFROMSPHERE_THEY_ACCEPT",
-		"REMOVEFROMSPHERE_WE_ACCEPT",
-		"REMOVEFROMSPHERE_OTHER_ACCEPT",
-		"INCREASERELATION_THEY_ACCEPT",
-		"INCREASERELATION_WE_ACCEPT",
-		"INCREASERELATION_OTHER_ACCEPT",
-		"DECREASERELATION_THEY_ACCEPT",
-		"DECREASERELATION_WE_ACCEPT",
-		"DECREASERELATION_OTHER_ACCEPT",
-		"WETARGET_EXPELADVISORS",
-		"WETARGET_BANEMBASSY",
-		"WETARGET_DECREASEOPINION",
-		"WETARGET_REMOVEFROMSPHERE",
-		"INTERVENTION_OUR_SIDE",
-		"INTERVENTION_THEIR_SIDE",
+		"NO_LONGER_GREAT_POWER",
+		"BECAME_GREAT_POWER",
+		"ALLIANCE_ACCEPT_CAUSE",
+		"ALLIANCE_ACCEPT_TARGET",
+		"ALLIANCE_DECLINE_CAUSE",
+		"ALLIANCE_DECLINE_TARGET",
+		"CANCELALLIANCE_CAUSE",
+		"CANCELALLIANCE_TARGET",
+		"INCREASEOPINION_CAUSE",
+		"INCREASEOPINION_TARGET",
+		"ADDTOSPHERE_CAUSE",
+		"ADDTOSPHERE_TARGET",
+		"REMOVEFROMSPHERE_CAUSE",
+		"REMOVEFROMSPHERE_TARGET",
+		"REMOVEFROMSPHERE_OTHER_TARGET",
+		"INCREASERELATION_CAUSE",
+		"INCREASERELATION_TARGET",
+		"DECREASERELATION_CAUSE",
+		"DECREASERELATION_TARGET",
+		"INTERVENTION_SAME_SIDE",
 		"INTERVENTION_OTHER_SIDE",
-		"WE_INTERVENED",
+		"INTERVENTION",
 		"BANKRUPTCY",
-		"THEY_BANKRUPTCY",
 		"NEW_PARTY_AVAIL",
 		"PARTY_UNAVAIL",
-		"GW_DISCOVERED",
-		"WAR_GAIN_GW_STATUS",
-		"OUR_CB_DETECTED",
-		"CB_TOWARDS_US_DETECTED",
-		"OTHERS_CB_DETECTED",
+		"CB_DETECTED_CAUSE",
+		"CB_DETECTED_TARGET",
 		"CB_JUSTIFY_NO_LONGER_VALID",
-		"INVESTED_IN_US",
-		"CRISIS_OFFER_THEY_ACCEPT",
-		"CRISIS_OFFER_WE_ACCEPT",
-		"CRISIS_OFFER_OTHER_ACCEPT",
-		"CRISIS_OFFER_THEY_DECLINE",
-		"CRISIS_OFFER_WE_DECLINE",
-		"CRISIS_OFFER_OTHER_DECLINE",
-		"BACK_CRISIS_THEY_ACCEPT",
-		"BACK_CRISIS_WE_ACCEPT",
-		"BACK_CRISIS_OTHER_ACCEPT",
-		"BACK_CRISIS_THEY_DECLINE",
-		"BACK_CRISIS_WE_DECLINE",
-		"BACK_CRISIS_OTHER_DECLINE",
-		"CRISIS_BACK_DOWN_WE_ACCEPT",
-		"CRISIS_BACK_DOWN_WE_DECLINE",
-		"CRISIS_BACK_DOWN_THEY_ACCEPT",
-		"CRISIS_BACK_DOWN_THEY_DECLINE",
-		"CRISIS_BACK_DOWN_OTHER_ACCEPT",
-		"CRISIS_BACK_DOWN_OTHER_DECLINE",
-		"CRISIS_NO_SIDE_PICKED",
-		"CRISIS_BECAME_WAR",
+		"JOIN_CRISIS_OFFER_CAUSE",
+		"JOIN_CRISIS_OFFER_TARGET",
+		"JOIN_CRISIS_OFFER_REJECT_CAUSE",
+		"JOIN_CRISIS_OFFER_REJECT_TARGET",
+		"JOIN_CRISIS_CAUSE",
+		"JOIN_CRISIS_TARGET",
+		"CRISIS_OFFER_CAUSE",
+		"CRISIS_OFFER_TARGET",
+		"CRISIS_OFFER_DECLINED_CAUSE",
+		"CRISIS_OFFER_DECLINED_TARGET",
+		"CRISIS_RESOLVED_CAUSE",
+		"CRISIS_RESOLVED_TARGET",
 		"CRISIS_STARTED",
-		"CRISIS_NOBODY_BACKED",
-		"WELOSECB",
+		"CRISIS_BECAME_WAR_TARGET",
 	};
 
 	message_window::message_window() : win(std::make_unique<message_window_t>()) {}
@@ -190,12 +120,11 @@ namespace messages {
 
 	void init_message_text(scenario::scenario_manager& s) {
 		for(int32_t i = 0; i < message_count; ++i) {
-			std::string log_key = std::string(message_identifiers[i]) + "_LOG";
+			std::string log_key = std::string(message_identifiers[i]) + "_MESSAGE";
+			std::string description_key = std::string(message_identifiers[i]) + "_DESCRIPTION";
+
 			s.message_m.log_text[i] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, log_key.c_str(), log_key.c_str() + log_key.size());
-			for(int32_t j = 0; j < 6; ++j) {
-				std::string line_key = std::string(message_identifiers[i]) + "_" + std::to_string(j + 1);
-				s.message_m.message_text[i].line[j] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, line_key.c_str(), line_key.c_str() + line_key.size());
-			}
+			s.message_m.description_text[i] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, description_key.c_str(), description_key.c_str() + description_key.size());
 		}
 	}
 
@@ -1199,5 +1128,76 @@ namespace messages {
 				//do nothing
 				break;
 		}
+	}
+	void message_settings_button_group::on_select(world_state & ws, uint32_t i) {
+		ws.w.message_settings_w.showing_messages = (i == 0);
+
+		auto& lb = ws.w.message_settings_w.win->get<CT_STRING("message_settings_items")>();
+		auto const old_position = lb.get_position();
+		lb.set_position(ws.w.message_settings_w.other_lb_position, ws.w.gui_m);
+		ws.w.message_settings_w.other_lb_position = old_position;
+
+		ws.w.message_settings_w.update_message_settings_window(ws.w.gui_m);
+	}
+	void message_settings_close_button::button_function(ui::simple_button<message_settings_close_button>&, world_state& ws) {
+		// todo: save changed settings
+		ws.w.message_settings_w.setting_changed = false;
+		ws.w.message_settings_w.hide_message_settings_window(ws.w.gui_m);
+	}
+	void importance_button::button_function(ui::button<importance_button>& self, world_state & ws) {
+		if(std::holds_alternative<group_setting>(value)) {
+			auto const old_setting = ws.s.message_m.group_importance[int32_t(std::get<group_setting>(value))];
+			auto const new_setting = (old_setting + 1) % 4;
+			ws.s.message_m.group_importance[int32_t(std::get<group_setting>(value))] = int8_t(new_setting);
+
+			self.set_frame(ws.w.gui_m, new_setting);
+			ws.w.message_settings_w.setting_changed = true;
+		} else if(std::holds_alternative<nations::country_tag>(value)) {
+			auto const old_setting = ws.w.nation_s.nations.get<nation::player_importance>(std::get<nations::country_tag>(value));
+			auto const new_setting = (old_setting + 1) % 4;
+			ws.w.nation_s.nations.set<nation::player_importance>(std::get<nations::country_tag>(value), int8_t(new_setting));
+
+			self.set_frame(ws.w.gui_m, new_setting);
+		} 
+	}
+	void importance_button::button_function(ui::button<importance_button>& self, ui::rbutton_down m, world_state & ws) {
+		if(std::holds_alternative<group_setting>(value)) {
+			auto const old_setting = ws.s.message_m.group_importance[int32_t(std::get<group_setting>(value))];
+			auto const new_setting = (old_setting + 3) % 4;
+			ws.s.message_m.group_importance[int32_t(std::get<group_setting>(value))] = int8_t(new_setting);
+
+			self.set_frame(ws.w.gui_m, new_setting);
+			ws.w.message_settings_w.setting_changed = true;
+		} else if(std::holds_alternative<nations::country_tag>(value)) {
+			auto const old_setting = ws.w.nation_s.nations.get<nation::player_importance>(std::get<nations::country_tag>(value));
+			auto const new_setting = (old_setting + 3) % 4;
+			ws.w.nation_s.nations.set<nation::player_importance>(std::get<nations::country_tag>(value), int8_t(new_setting));
+
+			self.set_frame(ws.w.gui_m, new_setting);
+		}
+	}
+	ui::window_tag message_settings_lb::element_tag(ui::gui_static & m) {
+		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["openv2_message_setting_item"]);
+	}
+	message_settings_window::message_settings_window() : win(std::make_unique<message_settings_window_t>()) {}
+	message_settings_window::~message_settings_window() {}
+	void message_settings_window::hide_message_settings_window(ui::gui_manager & gui_m) {
+		auto gobj = win->associated_object;
+		if(gobj)
+			ui::hide(*gobj);
+
+		showing_messages = true;
+		setting_changed = false;
+		other_lb_position = 0;
+	}
+	void message_settings_window::update_message_settings_window(ui::gui_manager & gui_m) {
+		ui::make_visible_and_update(gui_m, *(win->associated_object));
+	}
+	void message_settings_window::show_message_settings_window(ui::gui_manager & gui_m) {
+		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(win->associated_object), win->window_object });
+		ui::make_visible_and_update(gui_m, *(win->associated_object));
+	}
+	void message_settings_window::init_message_settings_window(world_state & ws) {
+		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["openv2_message_settings"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *win);
 	}
 }

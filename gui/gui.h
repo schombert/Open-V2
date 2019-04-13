@@ -544,11 +544,11 @@ namespace ui {
 		virtual void update_data(gui_object_tag, world_state&) final override;
 	};
 
-	class unmanaged_region_scollbar {
+	class unmanaged_region_scrollbar {
 	private:
 		gui_object& contents_frame;
 	public:
-		unmanaged_region_scollbar(gui_object& g) : contents_frame(g) {}
+		unmanaged_region_scrollbar(gui_object& g) : contents_frame(g) {}
 		void on_position(int32_t pos);
 	};
 
@@ -662,6 +662,8 @@ namespace ui {
 		template<typename iterator>
 		void update_list(iterator first, iterator last);
 		void goto_element(value_type const& v, ui::gui_manager& m);
+		uint32_t get_position() const;
+		void set_position(uint32_t p, ui::gui_manager& m);
 	};
 
 	template<typename BASE, typename data_type_list, typename gui_type_list>
@@ -1071,6 +1073,7 @@ namespace ui {
 		int32_t width() const { return _width; }
 		int32_t height() const { return _height; }
 		void hide_tooltip();
+		void refresh_tooltip(world_state& ws);
 		void flag_update() { pending_update.store(true, std::memory_order_release); }
 		bool check_and_clear_update() { bool expected = true; return pending_update.compare_exchange_strong(expected, false, std::memory_order_release, std::memory_order_acquire); }
 		void flag_minimal_update();

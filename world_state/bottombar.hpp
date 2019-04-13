@@ -51,12 +51,17 @@ namespace current_state {
 		virtual bool on_lclick(ui::gui_object_tag o, world_state& m, const ui::lbutton_down& lb) final override;
 	};
 
-	
+	class message_settings_button {
+	public:
+		void button_function(ui::simple_button<message_settings_button>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
 
 	class bottombar_base : public ui::gui_behavior {
 	public:
 		mini_map mmap;
-		
+		ui::simple_button<message_settings_button> settings_button;
 
 		template<typename W>
 		void on_create(W& w, world_state& ws);
@@ -231,6 +236,15 @@ namespace current_state {
 			ws, location_tag,
 			new_gobj,
 			mmap.location));
+
+		//settings_button
+		auto button_tag = std::get<ui::button_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_message_settings_button"])
+		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+			ws, button_tag,
+			ui::tagged_gui_object{ *associated_object, w.window_object },
+			settings_button));
+
+		w.get<CT_STRING("button_goto")>().associated_object->position.y = -65i16;
 
 		associated_object->size = ui::xy_pair{ 874i16,166i16 };
 		associated_object->position = ui::xy_pair{ -874i16,-166i16 };

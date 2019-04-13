@@ -744,5 +744,19 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::tech_condition_not_done] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "tech_condition_not_done");
 		s.fixed_ui_text[fixed_ui::automate_option] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "automate_option");
 		s.fixed_ui_text[fixed_ui::monthly_chance] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "monthly_chance");
+		s.fixed_ui_text[fixed_ui::importance_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "importance_label");
+		s.fixed_ui_text[fixed_ui::message_type_discard] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "message_type_discard");
+		s.fixed_ui_text[fixed_ui::message_type_log] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "message_type_log");
+		s.fixed_ui_text[fixed_ui::message_type_popup] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "message_type_popup");
+		s.fixed_ui_text[fixed_ui::message_type_pause] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "message_type_pause");
+		s.fixed_ui_text[fixed_ui::message_group_self] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "message_group_self");
+		s.fixed_ui_text[fixed_ui::message_group_neighbors] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "message_group_neighbors");
+		s.fixed_ui_text[fixed_ui::message_group_sphere_members] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "message_group_sphere_members");
+		s.fixed_ui_text[fixed_ui::message_group_vassals] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "message_group_vassals");
+		s.fixed_ui_text[fixed_ui::message_group_allies] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "message_group_allies");
+		s.fixed_ui_text[fixed_ui::message_group_great_powers] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "message_group_great_powers");
+		s.fixed_ui_text[fixed_ui::message_group_sphere_leader] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "message_group_sphere_leader");
+		s.fixed_ui_text[fixed_ui::message_group_overlord] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "message_group_overlord");
+		s.fixed_ui_text[fixed_ui::message_settings] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "MENU_BAR_MESSAGE_SETTINGS");
 	}
 }

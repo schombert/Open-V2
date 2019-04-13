@@ -197,6 +197,7 @@ namespace nation {
 	struct has_gas_defence;
 
 	struct total_core_population;
+	struct player_importance;
 
 	constexpr int32_t container_size = 400;
 
@@ -282,6 +283,8 @@ namespace nation {
 		base_colonial_points, int16_t,
 		num_connected_ports, uint16_t,
 		num_ports, uint16_t,
+
+		player_importance, int8_t,
 
 		cb_construction_progress, float,
 		cb_construction_target, nations::country_tag,

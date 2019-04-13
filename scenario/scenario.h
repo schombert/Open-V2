@@ -662,8 +662,22 @@ namespace scenario {
 		constexpr uint32_t tech_condition_not_done = 639ui32;
 		constexpr uint32_t automate_option = 640ui32;
 		constexpr uint32_t monthly_chance = 641ui32;
+		constexpr uint32_t importance_label = 642ui32;
+		constexpr uint32_t message_type_discard = 643ui32;
+		constexpr uint32_t message_type_log = 644ui32;
+		constexpr uint32_t message_type_popup = 645ui32;
+		constexpr uint32_t message_type_pause = 646ui32;
+		constexpr uint32_t message_group_self = 647ui32;
+		constexpr uint32_t message_group_neighbors = 648ui32;
+		constexpr uint32_t message_group_sphere_members = 649ui32;
+		constexpr uint32_t message_group_vassals = 650ui32;
+		constexpr uint32_t message_group_allies = 651ui32;
+		constexpr uint32_t message_group_great_powers = 652ui32;
+		constexpr uint32_t message_group_sphere_leader = 653ui32;
+		constexpr uint32_t message_group_overlord = 654ui32;
+		constexpr uint32_t message_settings = 655ui32;
 
-		constexpr uint32_t count = 642ui32;
+		constexpr uint32_t count = 656ui32;
 	}
 
 	class scenario_manager {

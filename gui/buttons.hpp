@@ -5,9 +5,15 @@ template<typename BASE>
 bool ui::simple_button<BASE>::on_lclick(gui_object_tag o, world_state& m, const lbutton_down &) {
 	if constexpr(ui::detail::has_button_function<BASE, gui_object_tag, world_state&>) {
 		BASE::button_function(o, m);
+
+		if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
+			m.w.gui_m.refresh_tooltip(m);
 		return true;
 	} else if constexpr(ui::detail::has_button_function<BASE, ui::simple_button<BASE>&, world_state&>) {
 		BASE::button_function(*this, m);
+
+		if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
+			m.w.gui_m.refresh_tooltip(m);
 		return true;
 	} else {
 		return false;
@@ -18,12 +24,21 @@ template<typename BASE>
 bool ui::button<BASE>::on_lclick(gui_object_tag o, world_state& m, const lbutton_down & message) {
 	if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, world_state&>) {
 		BASE::button_function(*this, m);
+
+		if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
+			m.w.gui_m.refresh_tooltip(m);
 		return true;
 	} else if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, lbutton_down, world_state&>) {
 		BASE::button_function(*this, message, m);
+
+		if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
+			m.w.gui_m.refresh_tooltip(m);
 		return true;
 	} else if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, key_modifiers, world_state&>) {
 		BASE::button_function(*this, message.mod, m);
+
+		if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
+			m.w.gui_m.refresh_tooltip(m);
 		return true;
 	} else {
 		return false;
@@ -34,6 +49,9 @@ template<typename BASE>
 bool ui::button<BASE>::on_rclick(gui_object_tag o, world_state& m, const rbutton_down & message) {
 	if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, rbutton_down, world_state&>) {
 		BASE::button_function(*this, message, m);
+
+		if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
+			m.w.gui_m.refresh_tooltip(m);
 		return true;
 	} else {
 		return false;

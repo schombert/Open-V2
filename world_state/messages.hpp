@@ -110,7 +110,7 @@ namespace messages {
 		void button_function(ui::simple_button<message_settings_close_button>&, world_state&);
 	};
 
-	class mesasge_settings_button_group {
+	class message_settings_button_group {
 	public:
 		void on_select(world_state& ws, uint32_t i);
 	};
@@ -128,21 +128,12 @@ namespace messages {
 		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
 
-	enum class group_setting {
-		self,
-		neighbors,
-		sphere_members,
-		vassals,
-		allies,
-		great_powers,
-		sphere_leader,
-		overlord
-	};
+	
 	struct message_id {
 		int32_t value = 0;
 	};
 
-	using message_setting = std::variant<std::monostate, group_setting, nations::country_tag, message_id>;
+	using setting_item = std::variant<std::monostate, group_setting, nations::country_tag, message_id>;
 
 	class message_settings_lb {
 	public:
@@ -153,8 +144,8 @@ namespace messages {
 
 	class message_setting_item_base : public ui::visible_region {
 	public:
-		message_setting value;
-		void set_value(message_setting t) {
+		setting_item value;
+		void set_value(setting_item t) {
 			value = t;
 		}
 	};
@@ -177,8 +168,11 @@ namespace messages {
 		message_setting value;
 
 		template<typename window_type>
-		void windowed_update(ui::simple_button<message_type_button<i>>& self, window_type& win, world_state& ws);
-		void button_function(ui::simple_button<message_type_button<i>>& self, world_state& ws);
+		void windowed_update(ui::button<message_type_button<i>>& self, window_type& win, world_state& ws);
+		void button_function(ui::button<message_type_button<i>>& self, world_state& ws);
+		void button_function(ui::button<message_type_button<i>>& self, ui::rbutton_down m, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	class importance_button {
@@ -186,18 +180,19 @@ namespace messages {
 		message_setting value;
 
 		template<typename window_type>
-		void windowed_update(ui::simple_button<importance_button>& self, window_type& win, world_state& ws);
-		void button_function(ui::simple_button<importance_button>& self, world_state& ws);
+		void windowed_update(ui::button<importance_button>& self, window_type& win, world_state& ws);
+		void button_function(ui::button<importance_button>& self, world_state& ws);
+		void button_function(ui::button<importance_button>& self, ui::rbutton_down m, world_state& ws);
 	};
 
 	using message_setting_item = ui::gui_window <
 		CT_STRING("country_flag"), ui::masked_flag<message_setting_flag>,
 		CT_STRING("entry_text"), ui::display_text<message_setting_label>,
-		CT_STRING("stars_zero_button"), ui::simple_button<message_type_button<0>>,
-		CT_STRING("stars_one_button"), ui::simple_button<message_type_button<1>>,
-		CT_STRING("stars_two_button"), ui::simple_button<message_type_button<2>>,
-		CT_STRING("stars_three_button"), ui::simple_button<message_type_button<3>>,
-		CT_STRING("importance_button"), ui::simple_button<importance_button>,
+		CT_STRING("stars_zero_button"), ui::button<message_type_button<0>>,
+		CT_STRING("stars_one_button"), ui::button<message_type_button<1>>,
+		CT_STRING("stars_two_button"), ui::button<message_type_button<2>>,
+		CT_STRING("stars_three_button"), ui::button<message_type_button<3>>,
+		CT_STRING("importance_button"), ui::button<importance_button>,
 		message_setting_item_base
 	> ;
 
@@ -205,13 +200,131 @@ namespace messages {
 		CT_STRING("close_button"), ui::simple_button<message_settings_close_button>,
 		CT_STRING("mesasge_settings_button_group"), ui::button_group<
 		CT_STRING("category_messages_button"),
-		CT_STRING("category_sources_button"), mesasge_settings_button_group>,
+		CT_STRING("category_sources_button"), message_settings_button_group>,
 		CT_STRING("stars_zero"), ui::dynamic_icon<stars_icon<0>>,
 		CT_STRING("stars_one"), ui::dynamic_icon<stars_icon<1>>,
 		CT_STRING("stars_two"), ui::dynamic_icon<stars_icon<2>>,
 		CT_STRING("stars_three"), ui::dynamic_icon<stars_icon<3>>,
 		CT_STRING("label_importance"), ui::display_text<importance_label>,
-		CT_STRING("message_settings_items"), ui::discrete_listbox<message_settings_lb, message_setting_item, message_setting>,
+		CT_STRING("message_settings_items"), ui::discrete_listbox<message_settings_lb, message_setting_item, setting_item>,
 		message_settings_window_base
 	> {};
+	
+	template<uint32_t i>
+	template<typename window_type>
+	void stars_icon<i>::windowed_update(ui::dynamic_icon<stars_icon<i>>& self, window_type & win, world_state & ws) {
+		if(ws.w.message_settings_w.showing_messages) {
+			ui::make_visible_immediate(*self.associated_object);
+			self.set_frame(ws.w.gui_m, i);
+		} else {
+			ui::hide(*self.associated_object);
+		}
+	}
+	template<typename window_type>
+	void importance_label::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(!ws.w.message_settings_w.showing_messages) {
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::importance_label], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			lm.finish_current_line();
+		}
+	}
+	template<typename W>
+	void message_setting_flag::windowed_update(ui::masked_flag<message_setting_flag>& self, W & w, world_state & ws) {
+		if(std::holds_alternative<nations::country_tag>(w.value)) {
+			self.set_displayed_flag(ws, std::get<nations::country_tag>(w.value));
+			ui::make_visible_immediate(*self.associated_object);
+		} else {
+			ui::hide(*self.associated_object);
+		}
+	}
+	template<int32_t i>
+	template<typename window_type>
+	void message_type_button<i>::windowed_update(ui::button<message_type_button<i>>& self, window_type & win, world_state & ws) {
+		value = w.value;
+		if(std::holds_alternative<nations::message_id>(w.value)) {
+			self.set_frame(ws.w.gui_m, uint32_t(ws.s.message_m.settings[std::get<nations::message_id>(w.value).value * 4 + i]));
+			ui::make_visible_immediate(*self.associated_object);
+		} else {
+			ui::hide(*self.associated_object);
+		}
+		
+	}
+	template<int32_t i>
+	void message_type_button<i>::button_function(ui::button<message_type_button<i>>& self, world_state & ws) {
+		if(std::holds_alternative<nations::message_id>(value)) {
+			auto const old_setting = uint32_t(ws.s.message_m.settings[std::get<nations::message_id>(value).value * 4 + i]);
+			auto const new_setting = (old_setting + 1) % 4;
+			ws.s.message_m.settings[std::get<nations::message_id>(value).value * 4 + i]  = message_setting(new_setting);
+			
+			self.set_frame(ws.w.gui_m, new_setting);
+			ws.w.message_settings_w.setting_changed = true;
+		}
+	}
+	template<int32_t i>
+	void message_type_button<i>::button_function(ui::button<message_type_button<i>>& self, ui::rbutton_down m, world_state & ws) {
+		if(std::holds_alternative<nations::message_id>(value)) {
+			auto const old_setting = uint32_t(ws.s.message_m.settings[std::get<nations::message_id>(value).value * 4 + i]);
+			auto const new_setting = (old_setting + 3) % 4;
+			ws.s.message_m.settings[std::get<nations::message_id>(value).value * 4 + i] = message_setting(new_setting);
+
+			self.set_frame(ws.w.gui_m, new_setting);
+			ws.w.message_settings_w.setting_changed = true;
+		}
+	}
+	template<int32_t i>
+	void message_type_button<i>::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		if(std::holds_alternative<nations::message_id>(value)) {
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::message_type_discard + uint32_t(ws.s.message_m.settings[std::get<nations::message_id>(value).value * 4 + i])], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+		}
+	}
+	template<typename window_type>
+	void importance_button::windowed_update(ui::button<importance_button>& self, window_type & win, world_state & ws) {
+		value = w.value;
+		if(std::holds_alternative<group_setting>(value)) {
+			self.set_frame(ws.w.gui_m, ws.s.message_m.group_importance[int32_t(std::get<group_setting>(value))]);
+			ui::make_visible_immediate(*self.associated_object);
+		} else if(std::holds_alternative<nations::country_tag>(value)) {
+			self.set_frame(ws.w.gui_m, ws.w.nation_s.nations.get<nation::player_importance>(std::get<nations::country_tag>(value)));
+			ui::make_visible_immediate(*self.associated_object);
+		} else {
+			ui::hide(*self.associated_object);
+		}
+	}
+	template<typename window_type>
+	void message_setting_label::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		auto const value = win.value;
+		if(std::holds_alternative<group_setting>(value)) {
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::message_group_self + uint32_t(std::get<group_setting>(value))], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		} else if(std::holds_alternative<nations::country_tag>(value)) {
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations.get<nation::name>(std::get<nations::country_tag>(value)), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		} else if(std::holds_alternative<message_id>(value)) {
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.message_m.description_text[std::get<message_id>(value).value], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		}
+	}
+
+	template<typename lb_type>
+	void message_settings_lb::populate_list(lb_type & lb, world_state & ws) {
+		std::vector<setting_item, concurrent_allocator<setting_item>> list_items(std::max(message_count, group_setting_count + ws.w.nation_s.nations.size()));
+
+		if(ws.w.message_settings_w.showing_messages) {
+			for(int32_t i = 0; i < message_count; ++i) {
+				list_items.emplace_back(message_id{i});
+			}
+		} else {
+			for(int32_t i = 0; i < group_setting_count; ++i) {
+				list_items.emplace_back(group_setting(i));
+			}
+			ws.w.nation_s.nations.for_each([&list_items](nations::country_tag n) { list_items.emplace_back(n); });
+
+			vector_backed_string_lex_less<char16_t> lss(ws.s.gui_m.text_data_sequences.text_data);
+			std::sort(list_items.begin() + group_setting_count, list_items.end(), [&ws, &lss](setting_item a, setting_item b) {
+				auto a_name = ws.w.nation_s.nations.get<nation::name>(std::get<nations::country_tag>(a));
+				auto b_name = ws.w.nation_s.nations.get<nation::name>(std::get<nations::country_tag>(b));
+				return lss(
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, a_name),
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, b_name));
+			});
+		}
+
+		lb.new_list(list_items.begin(), list_items.end());
+	}
 }

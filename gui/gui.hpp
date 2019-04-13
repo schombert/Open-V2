@@ -9,7 +9,7 @@
 namespace ui {
 	class unmanaged_scrollable_region : public visible_region {
 	public:
-		scrollbar<unmanaged_region_scollbar> sb;
+		scrollbar<unmanaged_region_scrollbar> sb;
 
 		unmanaged_scrollable_region(gui_object& g);
 		virtual bool on_scroll(gui_object_tag o, world_state& m, const scroll& s) override;

@@ -216,7 +216,7 @@ namespace ui {
 		}
 	}
 
-	void unmanaged_region_scollbar::on_position(int32_t pos) {
+	void unmanaged_region_scrollbar::on_position(int32_t pos) {
 		contents_frame.position.y = static_cast<int16_t>(-pos);
 	}
 
@@ -1216,6 +1216,11 @@ bool ui::gui_manager::on_rbutton_down(world_state& ws, const rbutton_down& rd) {
 			return obj.object.associated_behavior->on_rclick(obj.id, ws, r);
 		return false;
 	}, tagged_gui_object{ root,gui_object_tag(0) }, root.size, ui::rescale_message(rd, _scale));
+}
+
+void ui::gui_manager::refresh_tooltip(world_state& ws) {
+	tooltip = ui::gui_object_tag();
+	on_mouse_move(ws, mouse_move{ last_mouse_move.x, last_mouse_move.y, key_modifiers::modifiers_none });
 }
 
 bool ui::gui_manager::on_mouse_move(world_state& static_manager, const mouse_move& mm) {
