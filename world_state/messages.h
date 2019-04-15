@@ -13,88 +13,90 @@ class world_state;
 namespace messages {
 	namespace message_type {
 		constexpr int32_t GAINCB = 0;
-		constexpr int32_t LOSECB = 1;
-		constexpr int32_t REVOLTALLIANCE_CAUSE = 2;
-		constexpr int32_t REVOLTALLIANCE_TARGET = 3;
-		constexpr int32_t WAR_CAUSE = 4;
-		constexpr int32_t WAR_TARGET = 5;
-		constexpr int32_t WARGOAL_CAUSE = 6;
-		constexpr int32_t WARGOAL_TARGET = 7;
-		constexpr int32_t SOCREFORM = 8;
-		constexpr int32_t SOCREFORM_BAD = 9;
-		constexpr int32_t POLREFORM = 10;
-		constexpr int32_t POLREFORM_BAD = 11;
-		constexpr int32_t ECONOMICREFORM = 12;
-		constexpr int32_t ECONOMICREFORM_BAD = 13;
-		constexpr int32_t MILITARYREFORM = 14;
-		constexpr int32_t MILITARYREFORM_BAD = 15;
-		constexpr int32_t SETPARTY = 16;
-		constexpr int32_t UPPERHOUSE = 17;
-		constexpr int32_t ELECTIONSTART = 18;
-		constexpr int32_t ELECTIONDONE = 19;
-		constexpr int32_t BREAKCOUNTRY = 20;
-		constexpr int32_t REBELS = 21;
-		constexpr int32_t ANNEX_CAUSE = 22;
-		constexpr int32_t ANNEX_TARGET = 23;
-		constexpr int32_t PEACE_ACCEPT_CAUSE = 24;
-		constexpr int32_t PEACE_ACCEPT_TARGET = 25;
-		constexpr int32_t PEACE_DECLINE_CAUSE = 26;
-		constexpr int32_t PEACE_DECLINE_TARGET = 27;
-		constexpr int32_t MOBILIZE = 28;
-		constexpr int32_t DEMOBILIZE = 29;
-		constexpr int32_t BUILDING_DONE = 30;
-		constexpr int32_t EVENTHAPPENOTHER = 31;
-		constexpr int32_t EVENTHAPPENOTHEROPTION = 32;
-		constexpr int32_t MAJOREVENTHAPPENOTHER = 33;
-		constexpr int32_t MAJOREVENTHAPPENOTHEROPTION = 34;
-		constexpr int32_t INVENTION = 35;
-		constexpr int32_t TECH = 36;
-		constexpr int32_t LEADERDIED = 37;
-		constexpr int32_t LANDBATTLEOVER = 38;
-		constexpr int32_t NAVALBATTLEOVER = 39;
-		constexpr int32_t DECISIONOTHER = 40;
-		constexpr int32_t NO_LONGER_GREAT_POWER = 41;
-		constexpr int32_t BECAME_GREAT_POWER = 42;
-		constexpr int32_t ALLIANCE_ACCEPT_CAUSE = 43;
-		constexpr int32_t ALLIANCE_ACCEPT_TARGET = 44;
-		constexpr int32_t ALLIANCE_DECLINE_CAUSE = 45;
-		constexpr int32_t ALLIANCE_DECLINE_TARGET = 46;
-		constexpr int32_t CANCELALLIANCE_CAUSE = 47;
-		constexpr int32_t CANCELALLIANCE_TARGET = 48;
-		constexpr int32_t INCREASEOPINION_CAUSE = 49;
-		constexpr int32_t INCREASEOPINION_TARGET = 50;
-		constexpr int32_t ADDTOSPHERE_CAUSE = 51;
-		constexpr int32_t ADDTOSPHERE_TARGET = 52;
-		constexpr int32_t REMOVEFROMSPHERE_CAUSE = 53;
-		constexpr int32_t REMOVEFROMSPHERE_TARGET = 54;
-		constexpr int32_t REMOVEFROMSPHERE_OTHER_TARGET = 55;
-		constexpr int32_t INCREASERELATION_CAUSE = 56;
-		constexpr int32_t INCREASERELATION_TARGET = 57;
-		constexpr int32_t DECREASERELATION_CAUSE = 58;
-		constexpr int32_t DECREASERELATION_TARGET = 59;
-		constexpr int32_t INTERVENTION_SAME_SIDE = 60;
-		constexpr int32_t INTERVENTION_OTHER_SIDE = 61;
-		constexpr int32_t INTERVENTION = 62;
-		constexpr int32_t BANKRUPTCY = 63;
-		constexpr int32_t NEW_PARTY_AVAIL = 64;
-		constexpr int32_t PARTY_UNAVAIL = 65;
-		constexpr int32_t CB_DETECTED_CAUSE = 66;
-		constexpr int32_t CB_DETECTED_TARGET = 67;
-		constexpr int32_t CB_JUSTIFY_NO_LONGER_VALID = 68;
-		constexpr int32_t JOIN_CRISIS_OFFER_CAUSE = 69;
-		constexpr int32_t JOIN_CRISIS_OFFER_TARGET = 70;
-		constexpr int32_t JOIN_CRISIS_OFFER_REJECT_CAUSE = 71;
-		constexpr int32_t JOIN_CRISIS_OFFER_REJECT_TARGET = 72;
-		constexpr int32_t JOIN_CRISIS_CAUSE = 73;
-		constexpr int32_t JOIN_CRISIS_TARGET = 74;
-		constexpr int32_t CRISIS_OFFER_CAUSE = 75;
-		constexpr int32_t CRISIS_OFFER_TARGET = 76;
-		constexpr int32_t CRISIS_OFFER_DECLINED_CAUSE = 77;
-		constexpr int32_t CRISIS_OFFER_DECLINED_TARGET = 78;
-		constexpr int32_t CRISIS_RESOLVED_CAUSE = 79;
-		constexpr int32_t CRISIS_RESOLVED_TARGET = 80;
-		constexpr int32_t CRISIS_STARTED = 81;
-		constexpr int32_t CRISIS_BECAME_WAR_TARGET = 82;
+		constexpr int32_t GAINCB_TARGET = 1;
+		constexpr int32_t LOSECB = 2;
+		constexpr int32_t LOSECB_TARGET = 3;
+		constexpr int32_t REVOLTALLIANCE_CAUSE = 4;
+		constexpr int32_t REVOLTALLIANCE_TARGET = 5;
+		constexpr int32_t WAR_CAUSE = 6;
+		constexpr int32_t WAR_TARGET = 7;
+		constexpr int32_t WARGOAL_CAUSE = 8;
+		constexpr int32_t WARGOAL_TARGET = 9;
+		constexpr int32_t SOCREFORM = 10;
+		constexpr int32_t SOCREFORM_BAD = 11;
+		constexpr int32_t POLREFORM = 12;
+		constexpr int32_t POLREFORM_BAD = 13;
+		constexpr int32_t ECONOMICREFORM = 14;
+		constexpr int32_t ECONOMICREFORM_BAD = 15;
+		constexpr int32_t MILITARYREFORM = 16;
+		constexpr int32_t MILITARYREFORM_BAD = 17;
+		constexpr int32_t SETPARTY = 18;
+		constexpr int32_t UPPERHOUSE = 19;
+		constexpr int32_t ELECTIONSTART = 20;
+		constexpr int32_t ELECTIONDONE = 21;
+		constexpr int32_t BREAKCOUNTRY = 22;
+		constexpr int32_t REBELS = 23;
+		constexpr int32_t ANNEX_CAUSE = 24;
+		constexpr int32_t ANNEX_TARGET = 25;
+		constexpr int32_t PEACE_ACCEPT_CAUSE = 26;
+		constexpr int32_t PEACE_ACCEPT_TARGET = 27;
+		constexpr int32_t PEACE_DECLINE_CAUSE = 28;
+		constexpr int32_t PEACE_DECLINE_TARGET = 29;
+		constexpr int32_t MOBILIZE = 30;
+		constexpr int32_t DEMOBILIZE = 31;
+		constexpr int32_t BUILDING_DONE = 32;
+		constexpr int32_t EVENTHAPPENOTHER = 33;
+		constexpr int32_t EVENTHAPPENOTHEROPTION = 34;
+		constexpr int32_t MAJOREVENTHAPPENOTHER = 35;
+		constexpr int32_t MAJOREVENTHAPPENOTHEROPTION = 36;
+		constexpr int32_t INVENTION = 37;
+		constexpr int32_t TECH = 38;
+		constexpr int32_t LEADERDIED = 39;
+		constexpr int32_t LANDBATTLEOVER = 40;
+		constexpr int32_t NAVALBATTLEOVER = 41;
+		constexpr int32_t DECISIONOTHER = 42;
+		constexpr int32_t NO_LONGER_GREAT_POWER = 43;
+		constexpr int32_t BECAME_GREAT_POWER = 44;
+		constexpr int32_t ALLIANCE_ACCEPT_CAUSE = 45;
+		constexpr int32_t ALLIANCE_ACCEPT_TARGET = 46;
+		constexpr int32_t ALLIANCE_DECLINE_CAUSE = 47;
+		constexpr int32_t ALLIANCE_DECLINE_TARGET = 48;
+		constexpr int32_t CANCELALLIANCE_CAUSE = 49;
+		constexpr int32_t CANCELALLIANCE_TARGET = 50;
+		constexpr int32_t INCREASEOPINION_CAUSE = 51;
+		constexpr int32_t INCREASEOPINION_TARGET = 52;
+		constexpr int32_t ADDTOSPHERE_CAUSE = 53;
+		constexpr int32_t ADDTOSPHERE_TARGET = 54;
+		constexpr int32_t REMOVEFROMSPHERE_CAUSE = 55;
+		constexpr int32_t REMOVEFROMSPHERE_TARGET = 56;
+		constexpr int32_t REMOVEFROMSPHERE_OTHER_TARGET = 57;
+		constexpr int32_t INCREASERELATION_CAUSE = 58;
+		constexpr int32_t INCREASERELATION_TARGET = 59;
+		constexpr int32_t DECREASERELATION_CAUSE = 60;
+		constexpr int32_t DECREASERELATION_TARGET = 61;
+		constexpr int32_t INTERVENTION_SAME_SIDE = 62;
+		constexpr int32_t INTERVENTION_OTHER_SIDE = 63;
+		constexpr int32_t INTERVENTION = 64;
+		constexpr int32_t BANKRUPTCY = 65;
+		constexpr int32_t NEW_PARTY_AVAIL = 66;
+		constexpr int32_t PARTY_UNAVAIL = 67;
+		constexpr int32_t CB_DETECTED_CAUSE = 68;
+		constexpr int32_t CB_DETECTED_TARGET = 69;
+		constexpr int32_t CB_JUSTIFY_NO_LONGER_VALID = 70;
+		constexpr int32_t JOIN_CRISIS_OFFER_CAUSE = 71;
+		constexpr int32_t JOIN_CRISIS_OFFER_TARGET = 72;
+		constexpr int32_t JOIN_CRISIS_OFFER_REJECT_CAUSE = 73;
+		constexpr int32_t JOIN_CRISIS_OFFER_REJECT_TARGET = 74;
+		constexpr int32_t JOIN_CRISIS_CAUSE = 75;
+		constexpr int32_t JOIN_CRISIS_TARGET = 76;
+		constexpr int32_t CRISIS_OFFER_CAUSE = 77;
+		constexpr int32_t CRISIS_OFFER_TARGET = 78;
+		constexpr int32_t CRISIS_OFFER_DECLINED_CAUSE = 79;
+		constexpr int32_t CRISIS_OFFER_DECLINED_TARGET = 80;
+		constexpr int32_t CRISIS_RESOLVED_CAUSE = 81;
+		constexpr int32_t CRISIS_RESOLVED_TARGET = 82;
+		constexpr int32_t CRISIS_STARTED = 83;
+		constexpr int32_t CRISIS_BECAME_WAR_TARGET = 84;
 		
 		/*
 		constexpr int32_t WEGAINCB = 0;
@@ -252,7 +254,7 @@ namespace messages {
 		constexpr int32_t WELOSECB = 152;*/
 	};
 
-	constexpr int32_t message_count = 83;
+	constexpr int32_t message_count = 85;
 
 	namespace message_category {
 		constexpr int32_t combat = 0x0001;
@@ -283,12 +285,31 @@ namespace messages {
 
 	constexpr int32_t group_setting_count = 8;
 
-	inline message_setting merge_message_setting(message_setting a, message_setting b) { return a > b ? a : b; }
-	inline message_setting get_relevant_setting(world_state const& ws, message_settings s) { return message_setting::discard; }
-	message_setting get_single_setting(world_state const& ws, message_settings s, nations::country_tag n);
+	struct message_display {
+		int32_t max_importance = 0;
+		message_setting max_setting = message_setting::discard;
 
-	template<typename ... NATIONS>
-	message_setting get_relevant_setting(world_state const& ws, message_settings s, nations::country_tag n, NATIONS ... rest);
+		void operator+=(message_display const& o) {
+			if(o.max_importance == max_importance)
+				max_setting = std::max(o.max_setting, max_setting);
+			else if(o.max_importance > max_importance)
+				max_setting = o.max_setting;
+			max_importance = std::max(max_importance, o.max_importance);
+		}
+		message_display operator+(message_display const& o) const {
+			message_display t = *this;
+			t += o;
+			return t;
+		}
+	};
+
+	int32_t nation_importance(world_state const& ws, nations::country_tag n);
+	message_display determine_message_display(world_state const& ws, int32_t message_id, nations::country_tag n);
+
+	constexpr auto default_popup_text = [](world_state const&, ui::xy_pair, ui::text_format&, ui::tagged_gui_object, ui::line_manager&) {};
+
+	template<typename G, typename F = decltype(default_popup_text)>
+	void handle_generic_message(world_state& ws, message_display display, int32_t message_id, G const& replacements_maker, F&& popup_text = default_popup_text);
 
 	using display_function = std::function<void(world_state&, ui::tagged_gui_object, ui::line_manager&, ui::text_format&)>;
 	using log_display_function = std::function<void(world_state&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&)>;
@@ -321,7 +342,9 @@ namespace messages {
 		};
 		message_setting settings[message_count * 4] = {
 			message_setting::discard, message_setting::discard, message_setting::log, message_setting::popup, //GAINCB
+			message_setting::discard, message_setting::discard, message_setting::log, message_setting::popup, //GAINCB_TARGET
 			message_setting::discard, message_setting::discard, message_setting::log, message_setting::popup, //LOSECB
+			message_setting::discard, message_setting::discard, message_setting::log, message_setting::popup, //LOSECB_TARGET
 			message_setting::discard, message_setting::discard, message_setting::discard, message_setting::discard, //REVOLTALLIANCE_CAUSE
 			message_setting::discard, message_setting::discard, message_setting::discard, message_setting::popup, //REVOLTALLIANCE_TARGET
 			message_setting::discard, message_setting::log, message_setting::log, message_setting::discard, //WAR_CAUSE
@@ -454,10 +477,10 @@ namespace messages {
 	void submit_message(world_state& ws, std::variant<std::monostate, nations::country_tag, provinces::province_tag> goto_tag, display_function&& f);
 
 	void cb_detected(world_state& ws, nations::country_tag by, nations::country_tag target, military::cb_type_tag type, float infamy_gained);
-	void player_cb_construction_invalid(world_state& ws, nations::country_tag target, military::cb_type_tag type);
-	void player_acquired_cb(world_state& ws, nations::country_tag target, military::cb_type_tag type);
-	void player_lost_cb(world_state& ws, nations::country_tag target, military::cb_type_tag type);
-	void player_technology(world_state& ws, technologies::tech_tag type);
+	void cb_construction_invalid(world_state& ws, nations::country_tag by, nations::country_tag target, military::cb_type_tag type);
+	void acquired_cb(world_state& ws, nations::country_tag by, nations::country_tag target, military::cb_type_tag type);
+	void lost_cb(world_state& ws, nations::country_tag by, nations::country_tag target, military::cb_type_tag type);
+	void new_technology(world_state& ws, nations::country_tag by, technologies::tech_tag type);
 	void increase_opinion(world_state& ws, nations::country_tag by, nations::country_tag target, int32_t new_level);
 	void add_to_sphere(world_state& ws, nations::country_tag sphere_leader, nations::country_tag target);
 	void remove_from_sphere(world_state& ws, nations::country_tag actor, nations::country_tag old_sphere_leader, nations::country_tag target);
