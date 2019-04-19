@@ -213,8 +213,7 @@ namespace technologies {
 					ws.w.nation_s.nations.set<nation::research_points>(n, rp - tech_cost);
 					pending_new_techs.push(std::pair<nations::country_tag, technologies::tech_tag >(n, t));
 
-					if(n == ws.w.local_player_nation)
-						messages::player_technology(ws, t);
+					messages::new_technology(ws, n, t);
 				}
 			}
 		});

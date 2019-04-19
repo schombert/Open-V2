@@ -141,10 +141,10 @@ struct gui_window_handler {
 		s.w.gui_m.on_mouse_move(s, m);
 	}
 	void operator()(const ui::text_event& t, ui::window_base&) {
-		if(t.text == u'.') {
-			s.w.single_step_pending.store(true, std::memory_order_release);
-		} else {
-			s.w.gui_m.on_text(s, t);
+		if(!s.w.gui_m.on_text(s, t)) {
+			if(t.text == u'.') {
+				s.w.single_step_pending.store(true, std::memory_order_release);
+			}
 		}
 	}
 	void initialize_graphics(graphics::open_gl_wrapper& ogl) {

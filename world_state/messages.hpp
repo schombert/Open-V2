@@ -3,6 +3,7 @@
 #include "messages.h"
 #include "world_state.h"
 #include "gui\\gui.hpp"
+#include "nations\nations_functions.h"
 
 namespace messages {
 
@@ -103,6 +104,8 @@ namespace messages {
 
 	class message_settings_window_base : public ui::draggable_region {
 	public:
+		template<typename W>
+		void on_create(W& w, world_state&);
 	};
 
 	class message_settings_close_button {
@@ -126,6 +129,10 @@ namespace messages {
 	public:
 		template<typename window_type>
 		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class search_box {
+	public:
 	};
 
 	
@@ -165,7 +172,7 @@ namespace messages {
 	template<int32_t i>
 	class message_type_button {
 	public:
-		message_setting value;
+		setting_item value;
 
 		template<typename window_type>
 		void windowed_update(ui::button<message_type_button<i>>& self, window_type& win, world_state& ws);
@@ -177,7 +184,7 @@ namespace messages {
 
 	class importance_button {
 	public:
-		message_setting value;
+		setting_item value;
 
 		template<typename window_type>
 		void windowed_update(ui::button<importance_button>& self, window_type& win, world_state& ws);
@@ -198,9 +205,12 @@ namespace messages {
 
 	class message_settings_window_t : public ui::gui_window <
 		CT_STRING("close_button"), ui::simple_button<message_settings_close_button>,
+		CT_STRING("category_messages_button"), ui::button_group_member,
+		CT_STRING("category_sources_button"), ui::button_group_member,
 		CT_STRING("mesasge_settings_button_group"), ui::button_group<
 		CT_STRING("category_messages_button"),
 		CT_STRING("category_sources_button"), message_settings_button_group>,
+		CT_STRING("search_edit"), ui::edit_box<search_box>,
 		CT_STRING("stars_zero"), ui::dynamic_icon<stars_icon<0>>,
 		CT_STRING("stars_one"), ui::dynamic_icon<stars_icon<1>>,
 		CT_STRING("stars_two"), ui::dynamic_icon<stars_icon<2>>,
@@ -239,9 +249,9 @@ namespace messages {
 	template<int32_t i>
 	template<typename window_type>
 	void message_type_button<i>::windowed_update(ui::button<message_type_button<i>>& self, window_type & win, world_state & ws) {
-		value = w.value;
-		if(std::holds_alternative<nations::message_id>(w.value)) {
-			self.set_frame(ws.w.gui_m, uint32_t(ws.s.message_m.settings[std::get<nations::message_id>(w.value).value * 4 + i]));
+		value = win.value;
+		if(std::holds_alternative<message_id>(win.value)) {
+			self.set_frame(ws.w.gui_m, uint32_t(ws.s.message_m.settings[std::get<message_id>(win.value).value * 4 + i]));
 			ui::make_visible_immediate(*self.associated_object);
 		} else {
 			ui::hide(*self.associated_object);
@@ -250,10 +260,10 @@ namespace messages {
 	}
 	template<int32_t i>
 	void message_type_button<i>::button_function(ui::button<message_type_button<i>>& self, world_state & ws) {
-		if(std::holds_alternative<nations::message_id>(value)) {
-			auto const old_setting = uint32_t(ws.s.message_m.settings[std::get<nations::message_id>(value).value * 4 + i]);
+		if(std::holds_alternative<message_id>(value)) {
+			auto const old_setting = uint32_t(ws.s.message_m.settings[std::get<message_id>(value).value * 4 + i]);
 			auto const new_setting = (old_setting + 1) % 4;
-			ws.s.message_m.settings[std::get<nations::message_id>(value).value * 4 + i]  = message_setting(new_setting);
+			ws.s.message_m.settings[std::get<message_id>(value).value * 4 + i]  = message_setting(new_setting);
 			
 			self.set_frame(ws.w.gui_m, new_setting);
 			ws.w.message_settings_w.setting_changed = true;
@@ -261,10 +271,10 @@ namespace messages {
 	}
 	template<int32_t i>
 	void message_type_button<i>::button_function(ui::button<message_type_button<i>>& self, ui::rbutton_down m, world_state & ws) {
-		if(std::holds_alternative<nations::message_id>(value)) {
-			auto const old_setting = uint32_t(ws.s.message_m.settings[std::get<nations::message_id>(value).value * 4 + i]);
+		if(std::holds_alternative<message_id>(value)) {
+			auto const old_setting = uint32_t(ws.s.message_m.settings[std::get<message_id>(value).value * 4 + i]);
 			auto const new_setting = (old_setting + 3) % 4;
-			ws.s.message_m.settings[std::get<nations::message_id>(value).value * 4 + i] = message_setting(new_setting);
+			ws.s.message_m.settings[std::get<message_id>(value).value * 4 + i] = message_setting(new_setting);
 
 			self.set_frame(ws.w.gui_m, new_setting);
 			ws.w.message_settings_w.setting_changed = true;
@@ -272,12 +282,12 @@ namespace messages {
 	}
 	template<int32_t i>
 	void message_type_button<i>::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
-		if(std::holds_alternative<nations::message_id>(value)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::message_type_discard + uint32_t(ws.s.message_m.settings[std::get<nations::message_id>(value).value * 4 + i])], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+		if(std::holds_alternative<message_id>(value)) {
+			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::message_type_discard + uint32_t(ws.s.message_m.settings[std::get<message_id>(value).value * 4 + i])], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
 		}
 	}
 	template<typename window_type>
-	void importance_button::windowed_update(ui::button<importance_button>& self, window_type & win, world_state & ws) {
+	void importance_button::windowed_update(ui::button<importance_button>& self, window_type & w, world_state & ws) {
 		value = w.value;
 		if(std::holds_alternative<group_setting>(value)) {
 			self.set_frame(ws.w.gui_m, ws.s.message_m.group_importance[int32_t(std::get<group_setting>(value))]);
@@ -303,7 +313,8 @@ namespace messages {
 
 	template<typename lb_type>
 	void message_settings_lb::populate_list(lb_type & lb, world_state & ws) {
-		std::vector<setting_item, concurrent_allocator<setting_item>> list_items(std::max(message_count, group_setting_count + ws.w.nation_s.nations.size()));
+		std::vector<setting_item, concurrent_allocator<setting_item>> list_items;
+		list_items.reserve(std::max(message_count, group_setting_count + ws.w.nation_s.nations.size()));
 
 		if(ws.w.message_settings_w.showing_messages) {
 			for(int32_t i = 0; i < message_count; ++i) {
@@ -313,18 +324,31 @@ namespace messages {
 			for(int32_t i = 0; i < group_setting_count; ++i) {
 				list_items.emplace_back(group_setting(i));
 			}
-			ws.w.nation_s.nations.for_each([&list_items](nations::country_tag n) { list_items.emplace_back(n); });
+			ws.w.nation_s.nations.for_each([&list_items, &ws](nations::country_tag n) {
+				if(nations::nation_exists(ws, n))
+					list_items.emplace_back(n);
+			});
 
 			vector_backed_string_lex_less<char16_t> lss(ws.s.gui_m.text_data_sequences.text_data);
 			std::sort(list_items.begin() + group_setting_count, list_items.end(), [&ws, &lss](setting_item a, setting_item b) {
-				auto a_name = ws.w.nation_s.nations.get<nation::name>(std::get<nations::country_tag>(a));
-				auto b_name = ws.w.nation_s.nations.get<nation::name>(std::get<nations::country_tag>(b));
-				return lss(
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, a_name),
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, b_name));
+				if(std::holds_alternative<nations::country_tag>(a) && std::holds_alternative<nations::country_tag>(b)) {
+					auto a_name = ws.w.nation_s.nations.get<nation::name>(std::get<nations::country_tag>(a));
+					auto b_name = ws.w.nation_s.nations.get<nation::name>(std::get<nations::country_tag>(b));
+					return lss(
+						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, a_name),
+						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, b_name));
+				} else if(!std::holds_alternative<nations::country_tag>(a) && std::holds_alternative<nations::country_tag>(b)) {
+					return true;
+				} else {
+					return false;
+				}
 			});
 		}
 
 		lb.new_list(list_items.begin(), list_items.end());
+	}
+	template<typename W>
+	void message_settings_window_base::on_create(W & w, world_state &) {
+		ui::hide(*associated_object);
 	}
 }

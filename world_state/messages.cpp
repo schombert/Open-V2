@@ -232,27 +232,28 @@ namespace messages {
 
 		std::tuple<types ...> members;
 
-		template<typename ... params>
-		t_replacements(params && ... p) : members(std::forward<params ...>(p)) {}
+		t_replacements(t_replacements const& o) noexcept : members(o.members) {}
+		t_replacements(t_replacements&& o) noexcept : members(std::move(o.members)) {}
+
+		template<typename ... params, typename = std::enable_if_t<sizeof...(params) == sizeof...(types)> >
+		t_replacements(params && ... p) : members(std::forward<params>(p)...) {}
 
 		static int32_t count() {
 			return int32_t(sizeof...(types));
 		}
 		template<size_t n>
-		void populate_internal(world_state const& ws, text_data::replacement* repl) const {
+		void populate_internal(world_state& ws, text_data::replacement* repl) const {
 			if constexpr(n != 0)
 				populate_internal<n - 1>(ws, repl);
 			std::get<n>(members).fill(ws, *(repl + n));
 		}
-		void populate(world_state const& ws, text_data::replacement* repl) const {
+		void populate(world_state& ws, text_data::replacement* repl) const {
 			populate_internal<sizeof...(types) - 1>(ws, repl);
 		}
 	};
 
 	template<>
-	struct t_replacements {
-		t_replacements() {}
-
+	struct t_replacements<> {
 		static int32_t count() {
 			return 0;
 		}
@@ -263,13 +264,14 @@ namespace messages {
 	template<text_data::value_type param>
 	struct nation_replacement {
 		nations::country_tag n;
+		nation_replacement() {  }
 		nation_replacement(nations::country_tag t) : n(t) {}
 
-		void fill(world_state const& ws, text_data::replacement& r) const {
+		void fill(world_state& ws, text_data::replacement& r) const {
 			r = text_data::replacement{
 				param,
 				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(n)),
-				[&ws, n](ui::tagged_gui_object b) {
+				[&ws, n = this->n](ui::tagged_gui_object b) {
 					ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, n);
 				}
 			};
@@ -279,6 +281,7 @@ namespace messages {
 	template<text_data::value_type param>
 	struct text_replacement {
 		text_data::text_tag tag;
+		text_replacement() {  }
 		text_replacement(text_data::text_tag t) : tag(t) {}
 
 		void fill(world_state const& ws, text_data::replacement& r) const {
@@ -293,7 +296,8 @@ namespace messages {
 
 	template<text_data::value_type param>
 	struct fp_replacement {
-		char16_t local_buffer[16];
+		char16_t local_buffer[16] = {};
+		fp_replacement() {  }
 		fp_replacement(float v) {
 			put_value_in_buffer(local_buffer, display_type::fp_one_place, v);
 		}
@@ -308,13 +312,13 @@ namespace messages {
 	};
 
 	template<typename G, typename F>
-	void handle_generic_message(world_state& ws, message_display display, int32_t message_id, G const& replacements_maker, F&& popup_text) {
+	void handle_generic_message(world_state& ws, nations::country_tag goto_tag, message_display display, int32_t message_id, G const& replacements_maker, F& popup_text) {
 		switch(display.max_setting) {
 			case message_setting::popup_and_pause:
 				ws.w.paused.store(true, std::memory_order_release);
 				// fallthrough
 			case message_setting::popup:
-				submit_message(ws, target, [message_id, replacements_maker, f = std::move(popup_text)](world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt) {
+				submit_message(ws, goto_tag, [message_id, replacements_maker, popup_text](world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt) {
 					const auto repl_count = replacements_maker.count();
 					text_data::replacement* repl = (text_data::replacement*)_alloca(sizeof(text_data::replacement) * repl_count);
 					std::uninitialized_default_construct_n(repl, repl_count);
@@ -326,7 +330,7 @@ namespace messages {
 						fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, repl_count);
 					new_cursor = ui::advance_cursor_to_newline(new_cursor, ws.s.gui_m, fmt);
 					lm.finish_current_line();
-					f(ws, new_cursor, fmt, box, lm);
+					popup_text(ws, new_cursor, fmt, box, lm);
 					lm.finish_current_line();
 				});
 				// fallthrough
@@ -346,6 +350,7 @@ namespace messages {
 				// fallthrough
 			case message_setting::discard:
 				// do nothing
+				break;
 		}
 	}
 
@@ -354,7 +359,7 @@ namespace messages {
 		display += determine_message_display(ws, message_type::INCREASEOPINION_TARGET, target);
 
 		handle_generic_message(
-			ws,
+			ws, by,
 			display,
 			message_type::INCREASEOPINION_CAUSE,
 			t_replacements<nation_replacement<text_data::value_type::nation>, nation_replacement<text_data::value_type::target>, text_replacement<text_data::value_type::opinion>>(
@@ -367,7 +372,7 @@ namespace messages {
 		display += determine_message_display(ws, message_type::ADDTOSPHERE_TARGET, target);
 
 		handle_generic_message(
-			ws,
+			ws, sphere_leader,
 			display,
 			message_type::ADDTOSPHERE_CAUSE,
 			t_replacements<nation_replacement<text_data::value_type::nation>, nation_replacement<text_data::value_type::target>>(
@@ -381,7 +386,7 @@ namespace messages {
 		display += determine_message_display(ws, message_type::REMOVEFROMSPHERE_TARGET, target);
 
 		handle_generic_message(
-			ws,
+			ws, actor,
 			display,
 			message_type::REMOVEFROMSPHERE_CAUSE,
 			t_replacements<nation_replacement<text_data::value_type::nation>, nation_replacement<text_data::value_type::target>, nation_replacement<text_data::value_type::recipient>>(
@@ -394,7 +399,7 @@ namespace messages {
 		display += determine_message_display(ws, message_type::CB_DETECTED_TARGET, target);
 
 		handle_generic_message(
-			ws,
+			ws, by,
 			display,
 			message_type::CB_DETECTED_CAUSE,
 			t_replacements<nation_replacement<text_data::value_type::nation>, nation_replacement<text_data::value_type::target>, fp_replacement<text_data::value_type::badboy>>(
@@ -405,7 +410,7 @@ namespace messages {
 	void cb_construction_invalid(world_state& ws, nations::country_tag by, nations::country_tag target, military::cb_type_tag type) {
 		auto display = determine_message_display(ws, message_type::CB_JUSTIFY_NO_LONGER_VALID, by);
 		handle_generic_message(
-			ws,
+			ws, by,
 			display,
 			message_type::CB_JUSTIFY_NO_LONGER_VALID,
 			t_replacements<nation_replacement<text_data::value_type::nation>, nation_replacement<text_data::value_type::target>, text_replacement<text_data::value_type::casus>>(
@@ -418,7 +423,7 @@ namespace messages {
 		display += determine_message_display(ws, message_type::GAINCB_TARGET, target);
 
 		handle_generic_message(
-			ws,
+			ws, by,
 			display,
 			message_type::GAINCB,
 			t_replacements<nation_replacement<text_data::value_type::nation>, nation_replacement<text_data::value_type::target>, text_replacement<text_data::value_type::casus>>(
@@ -431,7 +436,7 @@ namespace messages {
 		display += determine_message_display(ws, message_type::LOSECB_TARGET, target);
 
 		handle_generic_message(
-			ws,
+			ws, by,
 			display,
 			message_type::GAINCB,
 			t_replacements<nation_replacement<text_data::value_type::nation>, nation_replacement<text_data::value_type::target>, text_replacement<text_data::value_type::casus>>(
@@ -446,7 +451,7 @@ namespace messages {
 	void new_technology(world_state& ws, nations::country_tag by, technologies::tech_tag type) {
 		auto display = determine_message_display(ws, message_type::TECH, by);
 		handle_generic_message(
-			ws,
+			ws, by,
 			display,
 			message_type::TECH,
 			t_replacements<nation_replacement<text_data::value_type::nation>, text_replacement<text_data::value_type::type>>(
@@ -456,10 +461,10 @@ namespace messages {
 	void message_settings_button_group::on_select(world_state & ws, uint32_t i) {
 		ws.w.message_settings_w.showing_messages = (i == 0);
 
-		auto& lb = ws.w.message_settings_w.win->get<CT_STRING("message_settings_items")>();
-		auto const old_position = lb.get_position();
-		lb.set_position(ws.w.message_settings_w.other_lb_position, ws.w.gui_m);
-		ws.w.message_settings_w.other_lb_position = old_position;
+		//auto& lb = ws.w.message_settings_w.win->get<CT_STRING("message_settings_items")>();
+		//auto const old_position = lb.get_position();
+		//lb.set_position(ws.w.message_settings_w.other_lb_position, ws.w.gui_m);
+		//ws.w.message_settings_w.other_lb_position = old_position;
 
 		ws.w.message_settings_w.update_message_settings_window(ws.w.gui_m);
 	}

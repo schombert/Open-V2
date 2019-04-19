@@ -147,6 +147,7 @@ void ui::scrollbar<BASE>::set_limits(gui_manager& m, int32_t lmin, int32_t lmax)
 	limt_maximum = std::min(lmax, maximum);
 	limit_minimum = std::max(lmin, minimum);
 	update_limit_icons(m);
+	update_position(_position);
 }
 
 template<typename BASE>
@@ -158,6 +159,7 @@ void ui::scrollbar<BASE>::set_range(gui_manager& m, int32_t rmin, int32_t rmax) 
 		limt_maximum = rmax;
 	maximum = rmax;
 	update_limit_icons(m);
+	update_position(_position);
 }
 
 template<typename BASE>

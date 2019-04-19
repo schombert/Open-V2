@@ -320,6 +320,8 @@ namespace graphics {
 		}
 
 		defs.standard_text_background = defs.definitions.emplace_back(object{ xy_pair{ 0, 0 }, texture_tag(), 14, (uint8_t)object_type::bordered_rect, 1 });
+		defs.small_text_background = defs.definitions.emplace_back(object{ xy_pair{ 0, 0 }, texture_tag(), 4, (uint8_t)object_type::bordered_rect, 1 });
+		defs.edit_cursor = defs.definitions.emplace_back(object{ xy_pair{ 48, 16 }, texture_tag(), 0, (uint8_t)object_type::generic_sprite, 48 });
 
 	}
 }

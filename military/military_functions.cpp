@@ -298,9 +298,9 @@ namespace military {
 
 						if(new_state != old_state) {
 							if(new_state) 
-								messages::player_acquired_cb(ws, n, cb_id);
+								messages::acquired_cb(ws, ws.w.local_player_nation, n, cb_id);
 							else 
-								messages::player_lost_cb(ws, n, cb_id);
+								messages::lost_cb(ws, ws.w.local_player_nation, n, cb_id);
 						}
 					}
 				});
@@ -849,12 +849,10 @@ namespace military {
 						auto& cb_array = ws.w.nation_s.nations.get<nation::active_cbs>(n);
 						add_item(ws.w.military_s.cb_arrays, cb_array, pending_cb{cb_target, cb_type_id, date_tag()});
 
-						if(n == ws.w.local_player_nation)
-							messages::player_acquired_cb(ws, cb_target, cb_type_id);
+						messages::acquired_cb(ws, n, cb_target, cb_type_id);
 					} else {
 						// not valid: post invalid message
-						if(n == ws.w.local_player_nation)
-							messages::player_cb_construction_invalid(ws, cb_target, cb_type_id);
+						messages::cb_construction_invalid(ws, n, cb_target, cb_type_id);
 					}
 					// either case: erase
 					ws.w.nation_s.nations.set<nation::cb_construction_type>(n, cb_type_tag());
@@ -883,8 +881,7 @@ namespace military {
 								ws.w.nation_s.nations.set<nation::cb_construction_discovered>(n, false);
 								ws.w.nation_s.nations.set<nation::cb_construction_progress>(n, 0.0f);
 
-								if(n == ws.w.local_player_nation)
-									messages::player_cb_construction_invalid(ws, cb_target, cb_type_id);
+								messages::cb_construction_invalid(ws, n, cb_target, cb_type_id);
 							}
 						}
 					}

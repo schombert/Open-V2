@@ -16,14 +16,18 @@ public:
 	static void serialize_object(std::byte* &output, graphics::object_definitions const& obj) {
 		serialize(output, obj.definitions);
 		serialize(output, obj.standard_text_background);
+		serialize(output, obj.small_text_background);
+		serialize(output, obj.edit_cursor);
 	}
 	template<typename ... CONTEXT>
 	static void deserialize_object(std::byte const* &input, graphics::object_definitions& obj, CONTEXT&& ... c) {
 		deserialize(input, obj.definitions);
 		deserialize(input, obj.standard_text_background);
+		deserialize(input, obj.small_text_background);
+		deserialize(input, obj.edit_cursor);
 	}
 	static size_t size(graphics::object_definitions const& obj) {
-		return serialize_size(obj.definitions) + serialize_size(obj.standard_text_background);
+		return serialize_size(obj.definitions) + serialize_size(obj.standard_text_background) + serialize_size(obj.small_text_background) + serialize_size(obj.edit_cursor);
 	}
 };
 

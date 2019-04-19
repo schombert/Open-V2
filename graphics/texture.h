@@ -86,6 +86,7 @@ namespace graphics {
 		texture_tag standard_tiles_dialog;
 		texture_tag standard_transparency;
 		texture_tag standard_small_tiles_dialog;
+		texture_tag edit_cursor;
 
 		texture_manager() : fname_map(vector_backed_string_less_ci(file_names)) {}
 		auto count() { return textures.size(); }
@@ -127,6 +128,7 @@ public:
 		serialize(output, obj.standard_tiles_dialog);
 		serialize(output, obj.standard_transparency);
 		serialize(output, obj.standard_small_tiles_dialog);
+		serialize(output, obj.edit_cursor);
 	}
 	template<typename ... CONTEXT>
 	static void deserialize_object(std::byte const* &input, graphics::texture_manager& obj, CONTEXT&& ... c) {
@@ -134,11 +136,13 @@ public:
 		deserialize(input, obj.standard_tiles_dialog);
 		deserialize(input, obj.standard_transparency);
 		deserialize(input, obj.standard_small_tiles_dialog);
+		deserialize(input, obj.edit_cursor);
 	}
 	static size_t size(graphics::texture_manager const& obj) {
 		return serialize_size(obj.textures) +
 			serialize_size(obj.standard_tiles_dialog) +
 			serialize_size(obj.standard_transparency) +
-			serialize_size(obj.standard_small_tiles_dialog);
+			serialize_size(obj.standard_small_tiles_dialog) +
+			serialize_size(obj.edit_cursor);
 	}
 };

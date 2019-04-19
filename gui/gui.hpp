@@ -329,4 +329,5 @@ namespace ui {
 #include "progress_bar.hpp"
 #include "linechart.hpp"
 #include "barchart.hpp"
+#include "edit_box.hpp"
 #include "concurrency_tools\\concurrency_tools.hpp"

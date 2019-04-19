@@ -832,6 +832,13 @@ inline char ascii_to_lower(char in) {
 	return converted[(uint8_t)in];
 }
 
+inline char16_t lower_ascii(char16_t in) {
+	if(in <= 255)
+		return char16_t(ascii_to_lower(char(in)));
+	else
+		return in;
+}
+
 inline char16_t* _u16itoa(uint32_t i, char16_t* buffer) {
 	if (i >= 10) {
 		const auto num = i / 10;
@@ -885,8 +892,8 @@ enum class display_type : uint8_t {
 	fp_two_places,
 	fp_three_places,
 	percent,
-	netural_integer,
-	netural_percent,
+	neutral_integer,
+	neutral_percent,
 	exact_integer,
 	percent_fp_one_place,
 	currency
@@ -911,7 +918,7 @@ inline char16_t* put_pos_value_in_buffer(char16_t* dest, display_type display_as
 	}
 #endif
 	switch(display_as) {
-		case display_type::netural_percent:
+		case display_type::neutral_percent:
 		case display_type::percent:
 		{
 			uint32_t int_value = uint32_t(value_type(100.0) * value + value_type(0.5));
@@ -937,7 +944,7 @@ inline char16_t* put_pos_value_in_buffer(char16_t* dest, display_type display_as
 		}
 		default:
 		case display_type::integer:
-		case display_type::netural_integer:
+		case display_type::neutral_integer:
 		{
 			uint64_t int_value = uint64_t(value + value_type(0.5));
 			if(int_value < 10'000) {

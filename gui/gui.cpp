@@ -1253,9 +1253,14 @@ bool ui::gui_manager::on_mouse_move(world_state& static_manager, const mouse_mov
 					static_manager.w.gui_m.tooltip_window.position.y += obj.object.size.y;
 				else
 					static_manager.w.gui_m.tooltip_window.position.y -= static_manager.w.gui_m.tooltip_window.size.y;
+
+				static_manager.w.gui_m.tooltip_window.position.y = std::min(static_manager.w.gui_m.tooltip_window.position.y, int16_t(static_manager.w.gui_m.height() - static_manager.w.gui_m.tooltip_window.size.y));
+				static_manager.w.gui_m.tooltip_window.position.y = std::max(static_manager.w.gui_m.tooltip_window.position.y, 0i16);
+
 				static_manager.w.gui_m.tooltip_window.position.x += obj.object.size.x / 2;
 				static_manager.w.gui_m.tooltip_window.position.x -= static_manager.w.gui_m.tooltip_window.size.x / 2;
 				static_manager.w.gui_m.tooltip_window.position.x = std::max(static_manager.w.gui_m.tooltip_window.position.x, 0i16);
+				static_manager.w.gui_m.tooltip_window.position.x = std::min(static_manager.w.gui_m.tooltip_window.position.x, int16_t(static_manager.w.gui_m.width() - static_manager.w.gui_m.tooltip_window.size.x));
 
 				static_manager.w.gui_m.tooltip_window.flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
 			}
@@ -1404,12 +1409,15 @@ ui::gui_manager::gui_manager(int32_t width, int32_t height) :
 	root(gui_objects.emplace_at(gui_object_tag(0))),
 	background(gui_objects.emplace_at(gui_object_tag(1))),
 	foreground(gui_objects.emplace_at(gui_object_tag(2))),
-	tooltip_window(gui_objects.emplace_at(gui_object_tag(3))) {
+	tooltip_window(gui_objects.emplace_at(gui_object_tag(3))),
+	edit_cursor(gui_objects.emplace_at(gui_object_tag(4))) {
 
 	on_resize(resize{ static_cast<uint32_t>(width > 0 ? width : 0) , static_cast<uint32_t>(height > 0 ? height : 0) });
 	
 	hide(tagged_gui_object{ tooltip_window, gui_object_tag(3) });
+	hide(tagged_gui_object{ edit_cursor, gui_object_tag(4) });
 	add_to_back(*this, tagged_gui_object{ foreground, gui_object_tag(2) }, tagged_gui_object{ tooltip_window, gui_object_tag(3) });
+	add_to_back(*this, tagged_gui_object{ foreground, gui_object_tag(2) }, tagged_gui_object{ edit_cursor, gui_object_tag(4) });
 }
 
 void ui::gui_manager::on_resize(const resize& r) {
@@ -1432,6 +1440,12 @@ void ui::gui_manager::rescale(float new_scale) {
 
 void ui::render(gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper& ogl) {
 	ogl.use_default_program();
+	auto& cursor_graphic = manager.graphics_instances.at(graphics_instance_tag(manager.edit_cursor.type_dependant_handle));
+
+	auto const time = std::chrono::system_clock::now();
+	auto const ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::time_point_cast<std::chrono::milliseconds>(time).time_since_epoch());
+	cursor_graphic.frame = std::clamp(int32_t((sin(float(ms.count() % 1000) * 3.14159f * 2.0f / 1000.0f) + 1.0f) * 24.0f),0,47);
+	
 	detail::render(static_manager, manager, ogl, manager.background, ui::xy_pair{ 0, 0 }, manager.background.size, graphics::color_modification::none);
 	detail::render(static_manager, manager, ogl, manager.root, ui::xy_pair{ 0, 0 }, manager.root.size, graphics::color_modification::none);
 	detail::render(static_manager, manager, ogl, manager.foreground, ui::xy_pair{ 0, 0 }, manager.foreground.size, graphics::color_modification::none);
@@ -1461,6 +1475,14 @@ void ui::init_tooltip_window(gui_static& static_manager, gui_manager& manager) {
 	bg_graphic.object.graphics_object = &(static_manager.graphics_object_definitions.definitions[static_manager.graphics_object_definitions.standard_text_background]);
 	bg_graphic.object.t = &(static_manager.textures.retrieve_by_key(static_manager.textures.standard_tiles_dialog));
 	manager.tooltip_window.type_dependant_handle.store(uint16_t(to_index(bg_graphic.id)), std::memory_order_release);
+
+	manager.edit_cursor.flags.fetch_or(ui::gui_object::type_graphics_object, std::memory_order_acq_rel);
+	const auto cursor_graphics = manager.graphics_instances.emplace();
+	cursor_graphics.object.frame = 0;
+	cursor_graphics.object.graphics_object = &(static_manager.graphics_object_definitions.definitions[static_manager.graphics_object_definitions.edit_cursor]);
+	cursor_graphics.object.t = &(static_manager.textures.retrieve_by_key(static_manager.textures.edit_cursor));
+	manager.edit_cursor.type_dependant_handle.store(uint16_t(to_index(cursor_graphics.id)), std::memory_order_release);
+	manager.edit_cursor.size = ui::xy_pair{ 2,16 };
 }
 
 ui::tagged_gui_object ui::create_scrollable_text_block(world_state& ws, ui::text_tag handle, tagged_gui_object parent, const text_data::replacement* candidates, uint32_t count) {

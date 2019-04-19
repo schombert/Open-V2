@@ -140,6 +140,7 @@
   <ItemGroup>
     <ClInclude Include="barchart.hpp" />
     <ClInclude Include="buttons.hpp" />
+    <ClInclude Include="edit_box.hpp" />
     <ClInclude Include="gui.h" />
     <ClInclude Include="gui.hpp" />
     <ClInclude Include="gui_io.h" />

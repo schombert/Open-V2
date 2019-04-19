@@ -59,6 +59,8 @@ namespace graphics {
 		tagged_vector<object, obj_definition_tag> definitions;
 
 		obj_definition_tag standard_text_background;
+		obj_definition_tag small_text_background;
+		obj_definition_tag edit_cursor;
 	};
 
 	obj_definition_tag reserve_graphics_object(name_maps& nmaps, const char* name_start, const char* name_end);

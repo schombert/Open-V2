@@ -238,7 +238,7 @@ namespace current_state {
 			mmap.location));
 
 		//settings_button
-		auto button_tag = std::get<ui::button_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_message_settings_button"])
+		auto button_tag = std::get<ui::button_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_message_settings_button"]);
 		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
 			ws, button_tag,
 			ui::tagged_gui_object{ *associated_object, w.window_object },

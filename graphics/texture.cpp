@@ -145,6 +145,9 @@ namespace graphics {
 
 		static const char tiles_dialog[] = "gfx\\interface\\tiles_dialog.tga";
 		standard_tiles_dialog = load_texture(root, tiles_dialog, tiles_dialog + (sizeof(tiles_dialog) - 1));
+
+		static const char cursor[] = "\\gfx\\interface\\edit_cursor.tga";
+		edit_cursor = load_texture(root, cursor, cursor + (sizeof(cursor) - 1));
 	}
 
 	texture_tag texture_manager::retrieve_by_name(const directory& root, const char* start, const char* end) {

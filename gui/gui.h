@@ -199,7 +199,7 @@ namespace ui {
 		visible_region(visible_region&&) = default;
 		template<typename ...P>
 		explicit visible_region(P&& ...) {}
-		virtual bool mouse_consumer(ui::xy_pair) { return true; }
+		virtual bool mouse_consumer(ui::xy_pair) override { return true; }
 		virtual bool on_lclick(gui_object_tag, world_state&, const lbutton_down&) override { return true; }
 		virtual bool on_rclick(gui_object_tag, world_state&, const rbutton_down&) override { return true; }
 		virtual tooltip_behavior has_tooltip(gui_object_tag, world_state&, const mouse_move&) override { return tooltip_behavior::no_tooltip; }
@@ -430,6 +430,33 @@ namespace ui {
 
 		virtual tooltip_behavior has_tooltip(gui_object_tag, world_state&, const mouse_move&) final override;
 		virtual void create_tooltip(gui_object_tag, world_state&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
+	};
+
+	template<typename BASE>
+	class edit_box : public gui_behavior, public BASE {
+	private:
+		void adjust_cursor_position(world_state& ws) const;
+		bool _filter(world_state& ws, char16_t t) const;
+	public:
+		char16_t contents[64];
+		text_format format;
+		int32_t size = 0;
+		int32_t border_size = 0;
+		int32_t cursor_position = 0;
+
+		void clear() {
+			contents[0] = 0;
+			size = 0;
+			cursor_position = 0;
+		}
+
+		virtual bool mouse_consumer(ui::xy_pair) final override { return true; }
+		virtual bool on_lclick(gui_object_tag, world_state&, const lbutton_down&) final override;
+		virtual bool on_keydown(gui_object_tag, world_state&, const key_down&) final override;
+		virtual bool on_text(gui_object_tag, world_state&, const text_event&) final override;
+		virtual bool on_get_focus(gui_object_tag, world_state&) final override;
+		virtual void on_lose_focus(gui_object_tag, world_state&) final override;
+		virtual void update_data(gui_object_tag, world_state&) final override;
 	};
 
 	template<typename BASE>
@@ -865,6 +892,8 @@ namespace ui {
 	void attach_dynamic_behavior(world_state& ws, ui::tagged_gui_object target_object, PARAMS&& ... params);
 
 	template<typename B>
+	ui::tagged_gui_object create_static_element(world_state& ws, text_tag handle, tagged_gui_object parent, edit_box<B>& b);
+	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, progress_bar<B>& b);
 	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, button_tag handle, tagged_gui_object parent, simple_button<B>& b);
@@ -1048,6 +1077,7 @@ namespace ui {
 		gui_object& background;
 		gui_object& foreground;
 		gui_object& tooltip_window;
+		gui_object& edit_cursor;
 
 		gui_object_tag focus;
 		gui_object_tag tooltip;
