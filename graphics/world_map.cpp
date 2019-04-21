@@ -585,6 +585,10 @@ namespace graphics {
 		scale = std::clamp(scale * multiplier, scale_min, scale_max);
 		globe_out_of_date = true;
 	}
+	void map_state::set_scale(float value) {
+		scale = std::clamp(value, scale_min, scale_max);
+		globe_out_of_date = true;
+	}
 	void map_state::rotate(float longr, float latr) {
 		_rotation = Eigen::AngleAxisf(latr, Eigen::Vector3f::UnitY()) * Eigen::AngleAxisf(longr, Eigen::Vector3f::UnitZ());
 		inverse_rotation = Eigen::AngleAxisf(-longr, Eigen::Vector3f::UnitZ()) * Eigen::AngleAxisf(-latr, Eigen::Vector3f::UnitY());
@@ -638,6 +642,36 @@ namespace graphics {
 		const int32_t final_xoff = std::clamp(x_off < 0.0f ? int32_t(x_off) + map_width : int32_t(x_off), 0, map_width - 1);
 
 		return std::make_pair(final_xoff, final_yoff);
+	}
+
+	void map_goto(world_state& ws, provinces::province_tag t) {
+		auto const province_centroid = ws.s.province_m.province_container.get<province::centroid>(t);
+		Eigen::Vector3f const display_center = ws.w.map.state.get_unrotated_vector_for(std::pair<float, float>(0.0f, 0.0f));
+		ws.w.map.state.move_vector_to(province_centroid, display_center);
+		ws.w.bottombar_w.update_location(ws);
+		ws.w.map.state.set_scale(std::max(ws.w.map.state.get_scale(), scale_max * 0.75f));
+	}
+	void map_goto(world_state& ws, nations::state_tag t) {
+		auto const state_capital = ws.w.nation_s.states.get<state::state_capital>(t);
+		if(state_capital) {
+			auto const province_centroid = ws.s.province_m.province_container.get<province::centroid>(state_capital);
+
+			Eigen::Vector3f const display_center = ws.w.map.state.get_unrotated_vector_for(std::pair<float, float>(0.0f, 0.0f));
+			ws.w.map.state.move_vector_to(province_centroid, display_center);
+			ws.w.bottombar_w.update_location(ws);
+			ws.w.map.state.set_scale(std::max(ws.w.map.state.get_scale(), scale_max * 0.5f));
+		}
+	}
+	void map_goto(world_state& ws, nations::country_tag t) {
+		auto const national_capital = ws.w.nation_s.nations.get<nation::current_capital>(t);
+		if(national_capital) {
+			auto const province_centroid = ws.s.province_m.province_container.get<province::centroid>(national_capital);
+
+			Eigen::Vector3f const display_center = ws.w.map.state.get_unrotated_vector_for(std::pair<float, float>(0.0f, 0.0f));
+			ws.w.map.state.move_vector_to(province_centroid, display_center);
+			ws.w.bottombar_w.update_location(ws);
+			ws.w.map.state.set_scale(std::max(ws.w.map.state.get_scale(), scale_max * 0.25f));
+		}
 	}
 
 	std::pair<float, float> normalized_coordinates_from_base(float aspect, float scale, Eigen::Matrix3f const& rotation, float x, float y, float z) {

@@ -136,6 +136,7 @@ namespace events {
 
 		void button_function(ui::simple_button<nation_hyperlink>&, world_state& ws) {
 			ws.w.diplomacy_w.show_diplomacy_window(ws.w.gui_m, target);
+			graphics::map_goto(ws, target);
 		}
 	};
 
@@ -147,6 +148,7 @@ namespace events {
 
 		void button_function(ui::simple_button<province_hyperlink>&, world_state& ws) {
 			ws.w.province_w.show_province_window(ws.w.gui_m, target);
+			graphics::map_goto(ws, target);
 		}
 	};
 
@@ -158,6 +160,7 @@ namespace events {
 
 		void button_function(ui::simple_button<province_hyperlink>&, world_state& ws) {
 			ws.w.province_w.show_province_window(ws.w.gui_m, ws.w.nation_s.states.get<state::state_capital>(target));
+			graphics::map_goto(ws, target);
 		}
 	};
 

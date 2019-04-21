@@ -67,6 +67,9 @@ namespace ui {
 				contents[size] = 0;
 
 				adjust_cursor_position(ws);
+
+				if constexpr(ui::has_on_edit<edit_box<BASE>, edit_box<BASE>&, world_state&>)
+					BASE::on_edit(*this, ws);
 			}
 			ui::make_visible_and_update(ws.w.gui_m, *associated_object);
 		} else if(m.keycode == virtual_key::LEFT || m.keycode == virtual_key::NAVIGATION_LEFT) {
@@ -101,7 +104,7 @@ namespace ui {
 			adjust_cursor_position(ws);
 
 			if constexpr(ui::has_on_edit<edit_box<BASE>, edit_box<BASE>&, world_state&>)
-				on_edit(*this, ws);
+				BASE::on_edit(*this, ws);
 
 			ui::make_visible_and_update(ws.w.gui_m, *associated_object);
 		}

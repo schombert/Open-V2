@@ -223,6 +223,7 @@ namespace messages {
 
 		void button_function(ui::simple_button<nation_hyperlink>&, world_state& ws) {
 			ws.w.diplomacy_w.show_diplomacy_window(ws.w.gui_m, target);
+			graphics::map_goto(ws, target);
 		}
 	};
 
@@ -466,6 +467,7 @@ namespace messages {
 		//lb.set_position(ws.w.message_settings_w.other_lb_position, ws.w.gui_m);
 		//ws.w.message_settings_w.other_lb_position = old_position;
 
+		ws.w.message_settings_w.win->get<CT_STRING("search_edit")>().clear();
 		ws.w.message_settings_w.update_message_settings_window(ws.w.gui_m);
 	}
 	void message_settings_close_button::button_function(ui::simple_button<message_settings_close_button>&, world_state& ws) {
@@ -524,6 +526,7 @@ namespace messages {
 	}
 	void message_settings_window::show_message_settings_window(ui::gui_manager & gui_m) {
 		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(win->associated_object), win->window_object });
+		win->get<CT_STRING("search_edit")>().clear();
 		ui::make_visible_and_update(gui_m, *(win->associated_object));
 	}
 	void message_settings_window::init_message_settings_window(world_state & ws) {
@@ -554,5 +557,8 @@ namespace messages {
 	message_display determine_message_display(world_state const& ws, int32_t message_id, nations::country_tag n) {
 		int32_t importance = nation_importance(ws, n);
 		return message_display{ importance, ws.s.message_m.settings[message_id * 4 + importance] };
+	}
+	void search_box::on_edit(ui::edit_box<search_box>& self, world_state & ws) {
+		ws.w.message_settings_w.update_message_settings_window(ws.w.gui_m);
 	}
 }

@@ -99,6 +99,7 @@ namespace graphics {
 		map_state();
 		void resize(int32_t x, int32_t y);
 		void rescale_by(float multiplier);
+		void set_scale(float value);
 		void rotate(float longr, float latr);
 		const Eigen::Matrix3f& rotation() const { return _rotation; }
 		float aspect() const { return _aspect; }
@@ -144,4 +145,8 @@ namespace graphics {
 	void update_map_colors(graphics::map_display& map, world_state& ws);
 	provinces::borders_manager::border_block create_border_block_data(provinces::province_manager const& province_m, int32_t block_i, int32_t block_j, uint16_t const* map_data, int32_t width, int32_t height);
 	Eigen::Vector3f globe_point_from_position(float x_off, float y_off, float top_latitude, float bottom_latitude);
+
+	void map_goto(world_state& ws, provinces::province_tag t);
+	void map_goto(world_state& ws, nations::state_tag t);
+	void map_goto(world_state& ws, nations::country_tag t);
 }

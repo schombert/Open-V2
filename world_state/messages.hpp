@@ -133,6 +133,7 @@ namespace messages {
 
 	class search_box {
 	public:
+		void on_edit(ui::edit_box<search_box>& self, world_state& ws);
 	};
 
 	
@@ -316,21 +317,37 @@ namespace messages {
 		std::vector<setting_item, concurrent_allocator<setting_item>> list_items;
 		list_items.reserve(std::max(message_count, group_setting_count + ws.w.nation_s.nations.size()));
 
+		auto& search_box = ws.w.message_settings_w.win->get<CT_STRING("search_edit")>();
+		bool const search_filter = search_box.size != 0;
+
 		if(ws.w.message_settings_w.showing_messages) {
 			for(int32_t i = 0; i < message_count; ++i) {
-				list_items.emplace_back(message_id{i});
+				if(search_filter) {
+					if(text_data::contains_case_insensitive(ws.s.gui_m.text_data_sequences, ws.s.message_m.description_text[i], search_box.contents, search_box.size))
+						list_items.emplace_back(message_id{ i });
+				} else {
+					list_items.emplace_back(message_id{ i });
+				}
 			}
 		} else {
-			for(int32_t i = 0; i < group_setting_count; ++i) {
-				list_items.emplace_back(group_setting(i));
+			if(!search_filter) {
+				for(int32_t i = 0; i < group_setting_count; ++i) {
+					list_items.emplace_back(group_setting(i));
+				}
 			}
-			ws.w.nation_s.nations.for_each([&list_items, &ws](nations::country_tag n) {
-				if(nations::nation_exists(ws, n))
-					list_items.emplace_back(n);
+			ws.w.nation_s.nations.for_each([&list_items, &ws, search_filter, &search_box](nations::country_tag n) {
+				if(nations::nation_exists(ws, n)) {
+					if(search_filter) {
+						if(text_data::contains_case_insensitive(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(n), search_box.contents, search_box.size))
+							list_items.emplace_back(n);
+					} else {
+						list_items.emplace_back(n);
+					}
+				}
 			});
 
 			vector_backed_string_lex_less<char16_t> lss(ws.s.gui_m.text_data_sequences.text_data);
-			std::sort(list_items.begin() + group_setting_count, list_items.end(), [&ws, &lss](setting_item a, setting_item b) {
+			std::sort(list_items.begin() + (search_filter ? 0 : group_setting_count), list_items.end(), [&ws, &lss](setting_item a, setting_item b) {
 				if(std::holds_alternative<nations::country_tag>(a) && std::holds_alternative<nations::country_tag>(b)) {
 					auto a_name = ws.w.nation_s.nations.get<nation::name>(std::get<nations::country_tag>(a));
 					auto b_name = ws.w.nation_s.nations.get<nation::name>(std::get<nations::country_tag>(b));

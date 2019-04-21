@@ -131,5 +131,6 @@ namespace text_data {
 
 	std::u16string to_string(const text_sequences& container, text_data::text_tag tag);
 	vector_backed_string<char16_t> text_tag_to_backing(const text_sequences& container, text_data::text_tag tag);
+	bool contains_case_insensitive(const text_sequences& container, text_data::text_tag tag, char16_t const* sequence, int32_t sequence_length);
 }
 

@@ -613,6 +613,43 @@ namespace text_data {
 		return result;
 	}
 
+	namespace {
+		bool _contains_case_insensitive(char16_t const* source, int32_t source_length, char16_t const* sequence, int32_t sequence_length) {
+			while(sequence_length <= source_length) {
+				bool const identical = [source, sequence, sequence_length]() {
+					for(int32_t i = 0; i < sequence_length; ++i) {
+						if(lower_ascii(source[i]) != lower_ascii(sequence[i]))
+							return false;
+					}
+					return true;
+				}();
+				if(identical)
+					return true;
+
+				source++;
+				source_length--;
+			}
+			return false;
+		}
+	}
+
+	bool contains_case_insensitive(const text_sequences& container, text_data::text_tag tag, char16_t const* sequence, int32_t sequence_length) {
+		const auto& components = container.all_sequences[tag];
+
+		const auto components_start = container.all_components.data() + components.starting_component;
+		const auto components_end = components_start + components.component_count;
+
+
+		for(auto component_i = components_start; component_i != components_end; ++component_i) {
+			if(std::holds_alternative<text_data::text_chunk>(*component_i)) {
+				const auto chunk = std::get<text_data::text_chunk>(*component_i);
+				if(_contains_case_insensitive(container.text_data.data() + chunk.offset, chunk.length, sequence, sequence_length))
+					return true;
+			}
+		}
+		return false;
+	}
+
 	vector_backed_string<char16_t> text_tag_to_backing(const text_sequences& container, text_data::text_tag tag) {
 		if(!is_valid_index(tag))
 			return vector_backed_string<char16_t>(u"");
@@ -629,4 +666,5 @@ namespace text_data {
 		else
 			return vector_backed_string<char16_t>();
 	}
+
 }
