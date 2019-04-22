@@ -26,6 +26,7 @@
 #include "events\\events_gui.h"
 #include "bottombar.h"
 #include "graphics\\world_map.h"
+#include "find.h"
 
 #undef small
 
@@ -126,6 +127,7 @@ namespace current_state {
 		events::province_event_window province_event_w;
 		events::nation_event_window nation_event_w;
 		events::major_event_window major_event_w;
+		find_dialog::find_window find_w;
 
 		topbar topbar_w;
 		bottombar bottombar_w;

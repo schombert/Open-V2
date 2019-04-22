@@ -132,6 +132,8 @@ namespace current_state {
 	class goto_button {
 	public:
 		void button_function(ui::simple_button<goto_button>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	class zoom_in_button {

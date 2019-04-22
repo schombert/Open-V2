@@ -676,8 +676,9 @@ namespace scenario {
 		constexpr uint32_t message_group_sphere_leader = 653ui32;
 		constexpr uint32_t message_group_overlord = 654ui32;
 		constexpr uint32_t message_settings = 655ui32;
+		constexpr uint32_t find_label = 656ui32;
 
-		constexpr uint32_t count = 656ui32;
+		constexpr uint32_t count = 657ui32;
 	}
 
 	class scenario_manager {

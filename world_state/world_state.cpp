@@ -168,6 +168,7 @@ namespace current_state {
 		province_event_w.init_province_event_window(ws);
 		nation_event_w.init_nation_event_window(ws);
 		major_event_w.init_major_event_window(ws);
+		find_w.init_find_window(ws);
 	}
 
 	void state::toggle_pause() {

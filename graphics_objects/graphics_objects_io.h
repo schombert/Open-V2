@@ -27,7 +27,10 @@ public:
 		deserialize(input, obj.edit_cursor);
 	}
 	static size_t size(graphics::object_definitions const& obj) {
-		return serialize_size(obj.definitions) + serialize_size(obj.standard_text_background) + serialize_size(obj.small_text_background) + serialize_size(obj.edit_cursor);
+		return serialize_size(obj.definitions) 
+		+ serialize_size(obj.standard_text_background) 
+		+ serialize_size(obj.small_text_background) 
+		+ serialize_size(obj.edit_cursor);
 	}
 };
 

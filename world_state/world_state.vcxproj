@@ -143,6 +143,8 @@
   <ItemGroup>
     <ClInclude Include="bottombar.h" />
     <ClInclude Include="bottombar.hpp" />
+    <ClInclude Include="find.h" />
+    <ClInclude Include="find.hpp" />
     <ClInclude Include="messages.h" />
     <ClInclude Include="messages.hpp" />
     <ClInclude Include="topbar.h" />
@@ -152,6 +154,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bottombar.cpp" />
+    <ClCompile Include="find.cpp" />
     <ClCompile Include="messages.cpp" />
     <ClCompile Include="topbar.cpp" />
     <ClCompile Include="world_state.cpp" />

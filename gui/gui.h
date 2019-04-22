@@ -1025,6 +1025,7 @@ namespace ui {
 	void move_to_back(const gui_manager& manager, tagged_gui_object g);
 	void add_to_front(const gui_manager& manager, tagged_gui_object parent, tagged_gui_object child);
 	void add_to_back(const gui_manager& manager, tagged_gui_object parent, tagged_gui_object child);
+	ui::tagged_gui_object find_in_parent(const gui_manager& manager, gui_object& o);
 
 	void make_visible_and_update(gui_manager& manager, gui_object& g);
 	void make_visible(gui_manager& manager, gui_object& g);

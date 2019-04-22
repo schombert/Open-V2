@@ -758,5 +758,6 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::message_group_sphere_leader] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "message_group_sphere_leader");
 		s.fixed_ui_text[fixed_ui::message_group_overlord] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "message_group_overlord");
 		s.fixed_ui_text[fixed_ui::message_settings] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "MENU_BAR_MESSAGE_SETTINGS");
+		s.fixed_ui_text[fixed_ui::find_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "GOTO_SEARCH_COUNTRIES_AND_PROVINCES");
 	}
 }

@@ -1142,6 +1142,24 @@ ui::xy_pair ui::absolute_position(gui_manager& manager, tagged_gui_object g) {
 	return sum;
 }
 
+ui::tagged_gui_object ui::find_in_parent(const ui::gui_manager& manager, ui::gui_object& o) {
+	ui::gui_object_tag parent = o.parent;
+	if(parent) {
+		auto& parent_object = manager.gui_objects.at(parent);
+
+		ui::gui_object_tag child = parent_object.first_child;
+		while(is_valid_index(child)) {
+			auto& current_obj = manager.gui_objects.at(child);
+			if(&current_obj == &o)
+				return ui::tagged_gui_object{ o, child };
+			const ui::gui_object_tag next_index = current_obj.right_sibling;
+			child = next_index;
+		}
+	}
+
+	return ui::tagged_gui_object{ o, ui::gui_object_tag() };
+}
+
 void ui::add_to_back(const gui_manager& manager, tagged_gui_object parent, tagged_gui_object child) {
 	child.object.parent = parent.id;
 	const gui_object_tag first_child_id = parent.object.first_child;
