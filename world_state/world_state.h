@@ -27,6 +27,7 @@
 #include "bottombar.h"
 #include "graphics\\world_map.h"
 #include "find.h"
+#include "menu.h"
 
 #undef small
 
@@ -128,6 +129,7 @@ namespace current_state {
 		events::nation_event_window nation_event_w;
 		events::major_event_window major_event_w;
 		find_dialog::find_window find_w;
+		menu::menu_window menu_w;
 
 		topbar topbar_w;
 		bottombar bottombar_w;
@@ -155,7 +157,6 @@ namespace current_state {
 		void toggle_pause();
 		void increase_speed();
 		void decrease_speed();
-		
 	};
 }
 
@@ -167,6 +168,7 @@ public:
 
 void world_state_non_ai_update(world_state & ws);
 void world_state_update_loop(world_state& ws);
+void apply_new_settings(world_state& ws);
 
 //called after loading a scenario & before loading a specific world state
 void ready_world_state(world_state& ws);

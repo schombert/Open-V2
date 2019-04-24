@@ -27,6 +27,9 @@ namespace events {
 				ws.w.gui_m.flag_update();
 				ws.w.map_view.changed.store(true, std::memory_order_release);
 			}
+			if(ws.w.end_game.load(std::memory_order_acquire)) {
+				ws.w.local_player_data.player_chosen_option.store(0, std::memory_order_release);
+			}
 		}
 
 		auto const result = ws.w.local_player_data.player_chosen_option.load(std::memory_order_acquire);

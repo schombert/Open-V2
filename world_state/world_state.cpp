@@ -146,12 +146,22 @@ void ready_world_state(world_state& ws) {
 	ws.w.local_player_data.saved_event_choices.resize(ws.s.event_m.event_container.size());
 }
 
+void apply_new_settings(world_state& ws) {
+	ws.w.gui_m.rescale(scenario::ui_scales[ws.s.settings.ui_scale]);
+	if(ws.s.settings.projection == 0)
+		ws.w.map.state.set_projection(graphics::projection_type::standard_map);
+	else if(ws.s.settings.projection == 1)
+		ws.w.map.state.set_projection(graphics::projection_type::spherical);
+}
+
 namespace current_state {
 
 	state::state() {};
 	state::~state() {}
 
 	void state::init_gui_objects(world_state& ws) {
+		apply_new_settings(ws);
+
 		topbar_w.init_topbar(ws);
 		bottombar_w.init_bottombar(ws);
 		government_w.init_government_window(ws);
@@ -169,6 +179,7 @@ namespace current_state {
 		nation_event_w.init_nation_event_window(ws);
 		major_event_w.init_major_event_window(ws);
 		find_w.init_find_window(ws);
+		menu_w.init_menu_window(ws);
 	}
 
 	void state::toggle_pause() {

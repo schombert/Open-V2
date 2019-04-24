@@ -1267,18 +1267,18 @@ bool ui::gui_manager::on_mouse_move(world_state& static_manager, const mouse_mov
 				ui::shrink_to_children(static_manager.w.gui_m, ui::tagged_gui_object{ static_manager.w.gui_m.tooltip_window, gui_object_tag(3) }, 16);
 
 				static_manager.w.gui_m.tooltip_window.position = ui::absolute_position(static_manager.w.gui_m, obj);
-				if(static_manager.w.gui_m.tooltip_window.position.y + obj.object.size.y + static_manager.w.gui_m.tooltip_window.size.y <= static_manager.w.gui_m.height())
+				if(static_manager.w.gui_m.tooltip_window.position.y + obj.object.size.y + static_manager.w.gui_m.tooltip_window.size.y <= static_manager.w.gui_m.root.size.y)
 					static_manager.w.gui_m.tooltip_window.position.y += obj.object.size.y;
 				else
 					static_manager.w.gui_m.tooltip_window.position.y -= static_manager.w.gui_m.tooltip_window.size.y;
 
-				static_manager.w.gui_m.tooltip_window.position.y = std::min(static_manager.w.gui_m.tooltip_window.position.y, int16_t(static_manager.w.gui_m.height() - static_manager.w.gui_m.tooltip_window.size.y));
+				static_manager.w.gui_m.tooltip_window.position.y = std::min(static_manager.w.gui_m.tooltip_window.position.y, int16_t(static_manager.w.gui_m.root.size.y - static_manager.w.gui_m.tooltip_window.size.y));
 				static_manager.w.gui_m.tooltip_window.position.y = std::max(static_manager.w.gui_m.tooltip_window.position.y, 0i16);
 
 				static_manager.w.gui_m.tooltip_window.position.x += obj.object.size.x / 2;
 				static_manager.w.gui_m.tooltip_window.position.x -= static_manager.w.gui_m.tooltip_window.size.x / 2;
 				static_manager.w.gui_m.tooltip_window.position.x = std::max(static_manager.w.gui_m.tooltip_window.position.x, 0i16);
-				static_manager.w.gui_m.tooltip_window.position.x = std::min(static_manager.w.gui_m.tooltip_window.position.x, int16_t(static_manager.w.gui_m.width() - static_manager.w.gui_m.tooltip_window.size.x));
+				static_manager.w.gui_m.tooltip_window.position.x = std::min(static_manager.w.gui_m.tooltip_window.position.x, int16_t(static_manager.w.gui_m.root.size.x - static_manager.w.gui_m.tooltip_window.size.x));
 
 				static_manager.w.gui_m.tooltip_window.flags.fetch_or(ui::gui_object::visible, std::memory_order_acq_rel);
 			}
@@ -1451,7 +1451,7 @@ void ui::gui_manager::on_resize(const resize& r) {
 }
 
 void ui::gui_manager::rescale(float new_scale) {
-	const resize new_size{ static_cast<uint32_t>(static_cast<float>(root.size.x) * scale()), static_cast<uint32_t>(static_cast<float>(root.size.y) * scale()) };
+	const resize new_size{ static_cast<uint32_t>(_width), static_cast<uint32_t>(_height) };
 	_scale = new_scale;
 	on_resize(new_size);
 }

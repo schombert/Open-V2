@@ -759,5 +759,9 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::message_group_overlord] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "message_group_overlord");
 		s.fixed_ui_text[fixed_ui::message_settings] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "MENU_BAR_MESSAGE_SETTINGS");
 		s.fixed_ui_text[fixed_ui::find_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "GOTO_SEARCH_COUNTRIES_AND_PROVINCES");
+		s.fixed_ui_text[fixed_ui::window_mode_one] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "WINDOW_MODE_ONE");
+		s.fixed_ui_text[fixed_ui::window_mode_two] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "WINDOW_MODE_TWO");
+		s.fixed_ui_text[fixed_ui::projection_one] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECTION_ONE");
+		s.fixed_ui_text[fixed_ui::projection_two] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECTION_TWO");
 	}
 }

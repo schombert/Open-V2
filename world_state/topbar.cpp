@@ -834,6 +834,6 @@ namespace current_state {
 	}
 	void topbar::resize_topbar(ui::gui_manager & gui_m) {
 		if(win->associated_object)
-			win->associated_object->size.x = int16_t(gui_m.width());
+			win->associated_object->size.x = gui_m.root.size.x;
 	}
 }

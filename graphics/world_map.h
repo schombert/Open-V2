@@ -75,7 +75,7 @@ namespace graphics {
 		std::vector<vertex> vertices;
 		std::vector<float> transformed_buffer;
 
-		void update_transformed_buffer(float aspect, float scale, Eigen::Matrix3f rotation);
+		void update_transformed_buffer(float aspect, float scale, Eigen::Matrix3f rotation, projection_type projection);
 
 		template<typename FUNC>
 		void for_each_visible_block(int32_t width, int32_t height, FUNC&& f);
@@ -90,11 +90,13 @@ namespace graphics {
 
 		float _aspect = 1.0f;
 		float scale = 1.0f;
+		projection_type _projection = projection_type::standard_map;
+
 		bool globe_out_of_date = true;
 		globe_mesh globe;
 	public:
 		
-		projection_type projection = projection_type::standard_map;
+		
 
 		map_state();
 		void resize(int32_t x, int32_t y);
@@ -104,6 +106,8 @@ namespace graphics {
 		const Eigen::Matrix3f& rotation() const { return _rotation; }
 		float aspect() const { return _aspect; }
 		float get_scale() const { return scale; };
+		projection_type projection() const { return _projection; }
+		void set_projection(projection_type p);
 		std::pair<float, float> normalize_screen_coordinates(int32_t x, int32_t y, int32_t width, int32_t height) const;
 		void move_vector_to(const Eigen::Vector3f& start, const Eigen::Vector3f& destination);
 		Eigen::Vector3f get_vector_for(const std::pair<float, float>& in) const;

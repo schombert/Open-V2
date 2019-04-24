@@ -105,23 +105,26 @@ struct gui_window_handler {
 		}
 	}
 	void operator()(const ui::key_down& m, ui::window_base&) {
-		if(m.keycode == virtual_key::NUMPAD1 || m.keycode == virtual_key::NUM_1) {
-			s.w.map_view.mode = current_state::map_mode::political;
-			s.w.map_view.changed = true;
-		} else if(m.keycode == virtual_key::NUMPAD2 || m.keycode == virtual_key::NUM_2) {
-			s.w.map_view.mode = current_state::map_mode::distance;
-			s.w.map_view.changed = true;
-		} else if(m.keycode == virtual_key::NUMPAD3 || m.keycode == virtual_key::NUM_3) {
-			s.w.map_view.mode = current_state::map_mode::prices;
-			s.w.map_view.changed = true;
-		} else if(m.keycode == virtual_key::NUMPAD4 || m.keycode == virtual_key::NUM_4) {
-			s.w.map_view.mode = current_state::map_mode::purchasing;
-			s.w.map_view.changed = true;
-		} else if(m.keycode == virtual_key::NUMPAD5 || m.keycode == virtual_key::NUM_5) {
-			s.w.map_view.mode = current_state::map_mode::production;
-			s.w.map_view.changed = true;
+		if(!s.w.gui_m.on_keydown(s, m)) {
+			if(m.keycode == virtual_key::ESCAPE) {
+				s.w.menu_w.show_menu_window(s);
+			} else if(m.keycode == virtual_key::NUMPAD1 || m.keycode == virtual_key::NUM_1) {
+				s.w.map_view.mode = current_state::map_mode::political;
+				s.w.map_view.changed = true;
+			} else if(m.keycode == virtual_key::NUMPAD2 || m.keycode == virtual_key::NUM_2) {
+				s.w.map_view.mode = current_state::map_mode::distance;
+				s.w.map_view.changed = true;
+			} else if(m.keycode == virtual_key::NUMPAD3 || m.keycode == virtual_key::NUM_3) {
+				s.w.map_view.mode = current_state::map_mode::prices;
+				s.w.map_view.changed = true;
+			} else if(m.keycode == virtual_key::NUMPAD4 || m.keycode == virtual_key::NUM_4) {
+				s.w.map_view.mode = current_state::map_mode::purchasing;
+				s.w.map_view.changed = true;
+			} else if(m.keycode == virtual_key::NUMPAD5 || m.keycode == virtual_key::NUM_5) {
+				s.w.map_view.mode = current_state::map_mode::production;
+				s.w.map_view.changed = true;
+			}
 		}
-		s.w.gui_m.on_keydown(s, m);
 	}
 	void operator()(const ui::scroll& ss, ui::window_base&) {
 		if (!s.w.gui_m.on_scroll(s, ss)) {
@@ -164,6 +167,9 @@ struct gui_window_handler {
 		} else if (s.w.gui_m.check_and_clear_minimal_update()) {
 			ui::minimal_update(s);
 		}
+
+		if(s.w.end_game.load(std::memory_order_acquire))
+			win.close_window();
 	}
 
 	void render(graphics::open_gl_wrapper& ogl) {

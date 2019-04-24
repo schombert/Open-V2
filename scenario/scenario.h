@@ -677,9 +677,60 @@ namespace scenario {
 		constexpr uint32_t message_group_overlord = 654ui32;
 		constexpr uint32_t message_settings = 655ui32;
 		constexpr uint32_t find_label = 656ui32;
+		constexpr uint32_t window_mode_one = 657ui32;
+		constexpr uint32_t window_mode_two = 658ui32;
+		constexpr uint32_t projection_one = 659ui32;
+		constexpr uint32_t projection_two = 660ui32;
 
-		constexpr uint32_t count = 657ui32;
+		constexpr uint32_t count = 661ui32;
 	}
+
+	constexpr uint32_t projection_labels[] = {
+		scenario::fixed_ui::projection_one,
+		scenario::fixed_ui::projection_two,
+	};
+	constexpr auto projection_type_count = std::extent_v<decltype(projection_labels)>;
+
+
+	constexpr uint32_t window_mode_labels[] = {
+		scenario::fixed_ui::window_mode_one,
+		scenario::fixed_ui::window_mode_two,
+	};
+	constexpr auto window_mode_count = std::extent_v<decltype(window_mode_labels)>;
+
+	constexpr float ui_scales[] = {
+		0.5f,
+		0.75f,
+		0.9f,
+		1.0f,
+		1.25f,
+		1.5f,
+		1.75f,
+		2.0f,
+		2.5f,
+		3.0f,
+		4.0f,
+		5.0f
+	};
+	constexpr auto ui_scale_count = std::extent_v<decltype(ui_scales)>;
+
+	enum class zoom_type : int8_t {
+		to_center,
+		to_cursor
+	};
+
+	struct game_settings {
+		int32_t window_mode = 0;
+		int32_t projection = 0;
+		int32_t ui_scale = 3;
+
+		float master_volume = 1.0f;
+		float effects_volume = 1.0f;
+		float interface_volume = 1.0f;
+		float music_volume = 1.0f;
+
+		zoom_type zoom_setting = zoom_type::to_cursor;
+	};
 
 	class scenario_manager {
 	public:
@@ -699,6 +750,8 @@ namespace scenario {
 		messages::messages_manager message_m;
 		ui::gui_static gui_m;
 		sound::sound_manager sound_m;
+
+		game_settings settings;
 
 		std::vector<text_data::text_tag> fixed_ui_text;
 

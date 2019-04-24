@@ -474,9 +474,6 @@ namespace graphics {
 		}
 	}
 
-	uint16_t get_value_from_data(int32_t i, int32_t j, const uint16_t* data, int32_t width, int32_t height);
-	uint16_t get_value_from_data_h(int32_t i, int32_t j, const uint16_t* data, int32_t width);
-
 	uint16_t get_value_from_data(int32_t i, int32_t j, const uint16_t* data, int32_t width, int32_t height) {
 		if((j < 0) | (j >= height)) {
 			return 0ui16;
@@ -508,28 +505,34 @@ namespace graphics {
 		constexpr GLuint rotation_matrix = 2;
 	}
 
-	Eigen::Vector3f projected_a_to_unrotated(float x, float y, float scale, float aspect);
-	Eigen::Vector3f projected_b_to_unrotated(float x, float y, float scale, float aspect);
-	std::pair<float, float> move_vector_to_vector(const Eigen::Vector3f &source, const Eigen::Vector3f &target);
+	Eigen::Vector3f projected_to_unrotated(float x, float y, float scale, float aspect, projection_type projection) {
+		if(projection == projection_type::standard_map) {
+			const float projected_y = y * 3.14159265358f / (scale * aspect);
+			const float rdiv = projected_y / 3.14159265358f;
+			const float projected_x = x * 3.14159265358f / (scale * sqrt(std::max(0.0001f, 1.0f - (3.0f*rdiv*rdiv))));
+			const float sin_y = sin(projected_y);
+			const float cos_y = cos(projected_y);
+			Eigen::Vector3f r(cos(projected_x) * cos_y, sin(projected_x) * cos_y, sin_y);
+			r.normalize();
+			return r;
+		} else { //projection == projection_type::spherical
+			const float unproj_y = x * 3.14159265358f / scale;
+			const float unproj_z = y * 3.14159265358f / (scale * aspect);
+			const float magnitude = unproj_y * unproj_y + unproj_z * unproj_z;
 
-	Eigen::Vector3f projected_a_to_unrotated(float x, float y, float scale, float aspect) {
-		const float projected_y = y * 3.14159265358f / (scale * aspect);
-		const float rdiv = projected_y / 3.14159265358f;
-		const float projected_x = x * 3.14159265358f / (scale * sqrt(std::max(0.0001f, 1.0f - (3.0f*rdiv*rdiv))));
-		const float sin_y = sin(projected_y);
-		const float cos_y = cos(projected_y);
-		Eigen::Vector3f r(cos(projected_x) * cos_y, sin(projected_x) * cos_y, sin_y);
-		r.normalize();
-		return r;
-	}
+			if(unproj_y * unproj_y + unproj_z * unproj_z > 1.0f) {
+				Eigen::Vector3f r(0.0f, unproj_y, unproj_z);
+				r.normalize();
+				return r;
+			} else {
+				const float uproj_x = sqrt(std::max(0.0f, 1.0f - magnitude));
+				Eigen::Vector3f r(uproj_x, unproj_y, unproj_z);
+				r.normalize();
+				return r;
+			}
 
-	Eigen::Vector3f projected_b_to_unrotated(float x, float y, float scale, float aspect) {
-		const float unproj_y = x / scale;
-		const float unproj_z = y / (scale * aspect);
-		const float uproj_x = sqrt(std::max(0.0f, 1.0f - unproj_y * unproj_y + unproj_z * unproj_z));
-		Eigen::Vector3f r(uproj_x, unproj_y, unproj_z);
-		r.normalize();
-		return r;
+			
+		}
 	}
 
 	inline float minimal_rotation(float start, float dest) {
@@ -589,6 +592,11 @@ namespace graphics {
 		scale = std::clamp(value, scale_min, scale_max);
 		globe_out_of_date = true;
 	}
+	void map_state::set_projection(projection_type p) {
+		_projection = p;
+		globe_out_of_date = true;
+	}
+
 	void map_state::rotate(float longr, float latr) {
 		_rotation = Eigen::AngleAxisf(latr, Eigen::Vector3f::UnitY()) * Eigen::AngleAxisf(longr, Eigen::Vector3f::UnitZ());
 		inverse_rotation = Eigen::AngleAxisf(-longr, Eigen::Vector3f::UnitZ()) * Eigen::AngleAxisf(-latr, Eigen::Vector3f::UnitY());
@@ -597,7 +605,7 @@ namespace graphics {
 	globe_mesh& map_state::get_globe() {
 		if(globe_out_of_date) {
 			globe_out_of_date = false;
-			globe.update_transformed_buffer(_aspect, scale, _rotation);
+			globe.update_transformed_buffer(_aspect, scale, _rotation, _projection);
 		}
 		return globe;
 	}
@@ -609,24 +617,10 @@ namespace graphics {
 		rotate(z_r, y_r);
 	}
 	Eigen::Vector3f map_state::get_vector_for(const std::pair<float, float>& in) const {
-		switch(projection) {
-			case projection_type::standard_map:
-				return inverse_rotation * projected_a_to_unrotated(in.first, in.second, scale, _aspect);
-			case projection_type::spherical:
-				return inverse_rotation * projected_b_to_unrotated(in.first, in.second, scale, _aspect);
-			default:
-				return inverse_rotation * projected_a_to_unrotated(in.first, in.second, scale, _aspect);
-		}
+		return inverse_rotation * projected_to_unrotated(in.first, in.second, scale, _aspect, _projection);
 	}
 	Eigen::Vector3f map_state::get_unrotated_vector_for(const std::pair<float, float>& in) const {
-		switch(projection) {
-			case projection_type::standard_map:
-				return  projected_a_to_unrotated(in.first, in.second, scale, _aspect);
-			case projection_type::spherical:
-				return  projected_b_to_unrotated(in.first, in.second, scale, _aspect);
-			default:
-				return  projected_a_to_unrotated(in.first, in.second, scale, _aspect);
-		}
+		return  projected_to_unrotated(in.first, in.second, scale, _aspect, _projection);
 	}
 
 
@@ -674,17 +668,38 @@ namespace graphics {
 		}
 	}
 
-	std::pair<float, float> normalized_coordinates_from_base(float aspect, float scale, Eigen::Matrix3f const& rotation, float x, float y, float z) {
+	std::pair<float, float> normalized_coordinates_from_base(float aspect, float scale, Eigen::Matrix3f const& rotation, float x, float y, float z, projection_type projection) {
 		Eigen::Vector3f rotated = rotation * Eigen::Vector3f(x, y, z);
-		float base_projection_x = atan2(rotated[1], rotated[0]);
-		float base_projection_y = asin(rotated[2]);
-		float rdiv = base_projection_y / 3.14159265358f;
-		return std::pair<float, float>(scale * base_projection_x * sqrt(1.0f - (3.0f*rdiv*rdiv)) / 3.14159265358f,
-			base_projection_y * scale * aspect / 3.14159265358f);
+		if(projection == projection_type::standard_map) {
+			float base_projection_x = atan2(rotated[1], rotated[0]);
+			float base_projection_y = asin(rotated[2]);
+			float rdiv = base_projection_y / 3.14159265358f;
+			return std::pair<float, float>(scale * base_projection_x * sqrt(1.0f - (3.0f*rdiv*rdiv)) / 3.14159265358f,
+				base_projection_y * scale * aspect / 3.14159265358f);
+		} else { // projection == projection_type::spherical
+			return std::pair<float, float>(scale * rotated[1] / 3.14159265358f, rotated[2] * scale * aspect / 3.14159265358f);
+		}
+	}
+
+	namespace projection_parameters {
+		constexpr GLuint wagner_six = 0;
+		constexpr GLuint orthographic = 1;
+	}
+
+	constexpr GLuint to_projection_parameter(projection_type p) {
+		if(p == projection_type::standard_map)
+			return projection_parameters::wagner_six;
+		else //if(p == projection_type::spherical)
+			return projection_parameters::orthographic;
+		
 	}
 
 	static const char* map_vertex_shader_b =
 		"#version 430 core\n"
+	
+		"subroutine vec4 projection_function_class(vec3 rotated_position);\n"
+		"layout(location = 0) subroutine uniform projection_function_class projection_function;\n"
+
 		"layout (location = 0) in vec3 vertex_position;\n"
 		"layout (location = 1) in vec2 value;\n"
 		"\n"
@@ -696,14 +711,24 @@ namespace graphics {
 		"\n"
 		"const float hpi = 1.5707963267f;\n"
 		"\n"
-		"void main() {\n"
-		"   vec3 rotated_position = rotation_matrix * vertex_position;\n"
+
+		"layout(index = 0) subroutine(projection_function_class)\n"
+		"vec4 wagner_six(vec3 rotated_position) {\n"
 		"   vec2 base_projection = vec2(atan(rotated_position.y, rotated_position.x), asin(rotated_position.z));\n"
 		"   float rdiv = base_projection.y / 3.14159265358f;\n"
-		"	gl_Position = vec4(scale * base_projection.x * sqrt(1.0f - (3.0f*rdiv*rdiv)) / 3.14159265358f, base_projection.y * scale * aspect / 3.14159265358f, "
+		"	return vec4(scale * base_projection.x * sqrt(1.0f - (3.0f*rdiv*rdiv)) / 3.14159265358f, base_projection.y * scale * aspect / 3.14159265358f, "
 		"        (abs(base_projection.x))/16.0f + 0.5f, 1.0f);\n"
-		//"	gl_Position = vec4(scale * rotated_position.y, rotated_position.z * scale * aspect, "
-		//"        -rotated_position.x/16.0f + 0.5f, 1.0f);\n"
+		"}\n"
+
+		"layout(index = 1) subroutine(projection_function_class)\n"
+		"vec4 orthographic(vec3 rotated_position) {\n"
+		"	return vec4(scale * rotated_position.y / 3.14159265358f, rotated_position.z * scale * aspect / 3.14159265358f, "
+		"        -rotated_position.x/16.0f + 0.5f, 1.0f);\n"
+		"}\n"
+
+		"void main() {\n"
+		"   vec3 rotated_position = rotation_matrix * vertex_position;\n"
+		"	gl_Position = projection_function(rotated_position);\n"
 		"	t_value = value;\n"
 		"}\n";
 
@@ -787,10 +812,10 @@ namespace graphics {
 		return map_vertex_data_3d_b{ cos(vx_pos) * cos_vy , sin(vx_pos) * cos_vy, sin_vy, float(x_off), float(y_off) };
 	}
 
-	void globe_mesh::update_transformed_buffer(float aspect, float scale, Eigen::Matrix3f rotation) {
+	void globe_mesh::update_transformed_buffer(float aspect, float scale, Eigen::Matrix3f rotation, projection_type projection) {
 		int32_t index = 0;
 		for(auto& v : vertices) {
-			const auto result = normalized_coordinates_from_base(aspect, scale, rotation, v.x, v.y, v.z);
+			const auto result = normalized_coordinates_from_base(aspect, scale, rotation, v.x, v.y, v.z, projection);
 			transformed_buffer[index] = result.first;
 			transformed_buffer[index + 1] = result.second;
 			index += 2;
@@ -1383,7 +1408,6 @@ namespace graphics {
 		glUniform1f(map_parameters_b::aspect, aspect);
 		glUniform1f(map_parameters_b::scale, scale);
 
-
 		glUniformMatrix3fv(map_parameters_b::rotation_matrix, 1, GL_FALSE, rotation.data());
 
 		glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
@@ -1413,6 +1437,8 @@ namespace graphics {
 			glBindVertexBuffer(0, vertex_buffer, 0, sizeof(map_vertex_data_3d_b));
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
 
+			GLuint subroutine = to_projection_parameter(state.projection());
+			glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &subroutine); // must set all subroutines in one call
 
 			inner_render_b(state.get_scale(), state.rotation(), state.aspect(), triangle_vertex_count);
 

@@ -12,7 +12,9 @@ namespace current_state {
 		ui::hide(*self.associated_object);
 		ws.w.bottombar_w.log_is_open = true;
 	}
-	void menu_button::button_function(ui::simple_button<menu_button>& self, world_state & ws) {}
+	void menu_button::button_function(ui::simple_button<menu_button>& self, world_state & ws) {
+		ws.w.menu_w.show_menu_window(ws);
+	}
 	void ledger_button::button_function(ui::simple_button<ledger_button>& self, world_state & ws) {}
 	void goto_button::button_function(ui::simple_button<goto_button>& self, world_state & ws) {
 		ws.w.find_w.show_find_window(ws.w.gui_m);
